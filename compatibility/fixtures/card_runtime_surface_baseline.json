@@ -2021,6 +2021,37 @@
       }
     },
     {
+      "name": "companion_mac_lock: lock",
+      "sourceKind": "contract",
+      "sourceType": "companion_mac_lock",
+      "mode": "lock",
+      "canonicalType": "companion_mac_lock",
+      "web": {
+        "registration": "companion_mac_lock",
+        "picker": {
+          "main": false,
+          "subpage": false,
+          "infoOnly": false
+        },
+        "preview": {
+          "available": true,
+          "fingerprint": "9123b9a397393c29"
+        }
+      },
+      "firmware": {
+        "family": "COMPANION"
+      },
+      "lifecycle": {
+        "subscriptions": [
+          "none"
+        ],
+        "actions": [
+          "local"
+        ],
+        "modalOwner": "none"
+      }
+    },
+    {
       "name": "slider: numeric",
       "sourceKind": "contract",
       "sourceType": "slider",

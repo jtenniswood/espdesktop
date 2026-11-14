@@ -18,6 +18,7 @@
 #include "ha_state_limits.h"
 #include "camera_refresh_policy.h"
 #include "companion_capabilities_generated.h"
+#include "companion_shortcut_page.h"
 #include "app_shortcuts_generated.h"
 #include "button_grid_saved_config_access_generated.h"
 #include "button_grid_saved_config_security_generated.h"
@@ -1239,22 +1240,8 @@ inline bool companion_shortcut_template_id_valid(const std::string &value) {
   return std::atoi(value.c_str()) <= 999;
 }
 
-inline bool companion_shortcut_app_id_valid(const std::string &value) {
-  if (value.size() > 96 || value.empty()) return false;
-  const auto &id = value;
-  bool has_separator = false;
-  for (char ch : id) {
-    const bool allowed = (ch >= 'a' && ch <= 'z') || (ch >= 'A' && ch <= 'Z') ||
-      (ch >= '0' && ch <= '9') || ch == '-' || ch == '.';
-    if (!allowed) return false;
-    if (ch == '.' || ch == '-') has_separator = true;
-  }
-  return has_separator && id.find('.') != std::string::npos;
-}
-
 inline bool companion_app_shortcuts_enabled(const ParsedCfg &p) {
-  return p.type == "companion" &&
-         (p.entity == "com.apple.finder" || companion_shortcut_app_id_valid(p.entity)) &&
+  return p.type == "companion" && companion_shortcut_page_app(p.entity) &&
          p.sensor.empty() && cfg_option_token_present(p.options, "app_shortcuts");
 }
 
@@ -1262,13 +1249,16 @@ inline bool companion_app_launch_card(const ParsedCfg &p) {
   return p.type == "companion" && !p.entity.empty() && p.sensor.empty() &&
          p.entity.rfind("folder.", 0) != 0 &&
          p.entity.rfind("shortcut.", 0) != 0 &&
-         p.entity.rfind("window.", 0) != 0 &&
          p.entity.rfind("system.", 0) != 0 &&
          p.entity.rfind("stat.", 0) != 0;
 }
 
 inline bool companion_app_icon_enabled(const ParsedCfg &p) {
   return companion_app_launch_card(p);
+}
+
+inline bool companion_url_opens_new_window(const ParsedCfg &p) {
+  return p.sensor.rfind("url.", 0) == 0 && cfg_option_value(p.options, "url_open_behavior") == "new_window";
 }
 
 inline std::string companion_folder_open_behavior(const ParsedCfg &p) {
@@ -1310,6 +1300,9 @@ inline std::string companion_shortcut_preset_normalized(const ParsedCfg &p) {
 }
 
 inline std::string companion_card_options_normalized(const ParsedCfg &p) {
+  if (p.sensor.rfind("url.", 0) == 0) {
+    return companion_url_opens_new_window(p) ? "url_open_behavior=new_window" : "";
+  }
   std::string out;
   const std::string preset = companion_shortcut_preset_normalized(p);
   if (!preset.empty()) {
@@ -1321,6 +1314,7 @@ inline std::string companion_card_options_normalized(const ParsedCfg &p) {
     if (!out.empty()) out += ",";
     out += token;
   };
+  if (companion_folder_open_behavior(p) == "same_window") add_token("finder_open_behavior=same_window");
   if (companion_app_shortcuts_enabled(p)) {
     add_token("app_shortcuts");
     const std::string tabs = companion_app_shortcut_tabs_normalized(p);
@@ -1340,12 +1334,10 @@ inline std::string companion_card_options_normalized(const ParsedCfg &p) {
 }
 
 inline ParsedCfg normalize_parsed_cfg(ParsedCfg p) {
-  if (p.type == "companion" && p.entity.rfind("webapp.", 0) == 0)
-    p.type = "companion_webapp";
-  if (card_runtime_type_retired(p.type)) {
-    const std::string type = p.type;
+  const std::string retired_type = retired_saved_card_type(p.type, p.entity);
+  if (!retired_type.empty()) {
     p = ParsedCfg{};
-    p.type = type;
+    p.type = retired_type;
     p.icon = "Auto";
     p.icon_on = "Auto";
     return p;
@@ -1390,6 +1382,15 @@ inline ParsedCfg normalize_parsed_cfg(ParsedCfg p) {
   normalize_saved_config_light_control(p, normalize_saved_config_light_control_options);
   normalize_saved_config_subpage(
       p, normalize_saved_config_subpage_fields, normalize_saved_config_subpage_options);
+  if (p.type == "companion_mac_lock") {
+    p.entity = "shortcut.command+control+q";
+    if (p.label.empty()) p.label = card_runtime_label(p.type);
+    if (p.icon.empty() || p.icon == "Auto") p.icon = card_runtime_default_icon_name(p.type);
+    p.icon_on = "Auto";
+    p.sensor.clear();
+    p.unit.clear();
+    p.precision.clear();
+  }
   if (p.type == "companion") {
     p.icon_on = "Auto";
     if (companion_system_metric_config(p)) {

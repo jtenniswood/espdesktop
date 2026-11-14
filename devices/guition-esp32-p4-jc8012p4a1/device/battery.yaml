@@ -16,6 +16,14 @@ substitutions:
   battery_empty_voltage: "3.30"
   battery_full_voltage: "4.20"
 
+esphome:
+  on_boot:
+    - priority: -95
+      then:
+        - lambda: |-
+            id(espdesktop_app).bind_panel_scalar(espdesktop::panel_settings::ScalarSetting::SCREEN_BATTERY_STATUS,
+              [](std::string_view value) { id(battery_status_enabled).publish_state(value == "1"); });
+
 sensor:
   - platform: adc
     pin: ${battery_adc_pin}
@@ -68,12 +76,16 @@ switch:
     name: "${entity_screen_battery_status}"
     internal: true
     id: battery_status_enabled
-    optimistic: true
-    restore_mode: RESTORE_DEFAULT_OFF
+    optimistic: false
+    restore_mode: DISABLED
     entity_category: config
     icon: "mdi:battery-alert"
     web_server:
       sorting_group_id: sg_display
+    turn_on_action:
+      - lambda: 'id(espdesktop_app).edit_panel_scalar(espdesktop::panel_settings::ScalarSetting::SCREEN_BATTERY_STATUS, "1");'
+    turn_off_action:
+      - lambda: 'id(espdesktop_app).edit_panel_scalar(espdesktop::panel_settings::ScalarSetting::SCREEN_BATTERY_STATUS, "0");'
     on_turn_on:
       - component.update: battery_voltage_raw
       - script.execute: clock_bar_apply

@@ -149,10 +149,6 @@ export function registerSliderCardTypes(
                     label: "Control",
                     idSuffix: "slider-control",
                     options: [
-                        ["mac_output", "Mac output volume"],
-                        ["mac_input", "Mic"],
-                        ["mac_output_mute", "Output mute"],
-                        ["mac_input_mute", "Microphone mute"],
                         ["mac_brightness", "Mac display brightness"],
                     ],
                     value: companionSliderMode,

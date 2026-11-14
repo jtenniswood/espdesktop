@@ -20,6 +20,7 @@ export interface ConnectorsPageFeature {
     companionConfigured(): boolean;
     onStatusChange(callback: () => void): void;
     onCompanionConnectionChange(callback: (connected: boolean) => void): void;
+    onCompanionPairingChange(callback: (state: CompanionPairingState | null) => void): void;
     // Transitional adapters for shared editors while their retired modes are removed.
     homeAssistantConfigured(): boolean;
     homeAssistantConnected(): boolean;
@@ -52,6 +53,7 @@ export function createConnectorsPageFeature(
     let refreshInProgress = false;
     const statusListeners: Array<() => void> = [];
     const connectionListeners: Array<(connected: boolean) => void> = [];
+    const pairingListeners: Array<(state: CompanionPairingState | null) => void> = [];
 
     function fallbackStatus(): ConnectorsStatus {
         return { onboarding_complete: true, mac_companion: {
@@ -83,10 +85,11 @@ export function createConnectorsPageFeature(
             if (!current) applyStatus(fallbackStatus());
         } finally { refreshInProgress = false; }
     }
-    function applyCompanionStatus(value: CompanionPairingState): void {
-        applyStatus({ onboarding_complete: true, mac_companion: {
+    function applyCompanionStatus(value: CompanionPairingState | null): void {
+        if (value) applyStatus({ onboarding_complete: true, mac_companion: {
             available: value.available, configured: value.paired, paired: value.paired, connected: value.connected,
         } });
+        pairingListeners.forEach(listener => listener(value));
     }
     function buildPage(parent: HTMLElement): void {
         const page = document.createElement("div");
@@ -100,7 +103,7 @@ export function createConnectorsPageFeature(
         config.appendChild(heading);
         if (companionSupported) {
             const open = requestedConnectorFromSearch(window.location.search) === "mac_companion";
-            config.appendChild(companionSection.buildCompanionSettingsCard(applyCompanionStatus, !open));
+            config.appendChild(companionSection.buildCompanionSettingsCard(applyCompanionStatus, !open, open));
         } else {
             const message = document.createElement("p");
             message.className = "sp-connectors-unavailable";
@@ -120,6 +123,7 @@ export function createConnectorsPageFeature(
         companionConfigured: () => !!current?.mac_companion.paired,
         onStatusChange: callback => { statusListeners.push(callback); },
         onCompanionConnectionChange: callback => { connectionListeners.push(callback); },
+        onCompanionPairingChange: callback => { pairingListeners.push(callback); },
         homeAssistantConfigured: () => false,
         homeAssistantConnected: () => false,
         homeAssistantSettingsAvailable: () => false,

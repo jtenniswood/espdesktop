@@ -7,6 +7,7 @@ import json
 from pathlib import Path
 
 import check_public_firmware
+from check_card_contract_outputs import assert_docs_contract
 from release_devices import load_release_devices
 
 import device_matrix
@@ -119,11 +120,8 @@ def test_generated_device_docs(devices: list[dict]) -> None:
 
 
 def test_generated_card_docs() -> None:
-    cards = read_json(CARD_CONTRACT_JSON)["cards"]
-    text = CARD_CAPABILITIES_DOC.read_text(encoding="utf-8")
-    for card_type, card in cards.items():
-        type_name = card_type or "switch"
-        assert f"| {card['label']} | {type_name} |" in text, f"{type_name}: generated card docs row is missing"
+    contract = read_json(CARD_CONTRACT_JSON)
+    assert_docs_contract(contract, CARD_CAPABILITIES_DOC.read_text(encoding="utf-8"))
 
 
 def main() -> int:

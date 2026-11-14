@@ -98,6 +98,7 @@ export function createCompanionCatalogueMonitor(
     start(): void {
       ++generation;
       clearTimer();
+      lastActions = null;
       retryDelayMs = 1000;
       void request(generation);
     },
@@ -126,7 +127,7 @@ export function createCompanionCatalogue(fetchImpl: typeof fetch) {
   }
 
   async function fetchDefinitions(): Promise<CompanionDefinitions> {
-    const applications: AppShortcutApplication[] = [];
+    const applications = new Map<string, AppShortcutApplication>();
     for (let page = 0; page < 64; page += 1) {
       const response = await fetchImpl(`/companion/definitions?page=${page}`, { cache: "no-store" });
       if (!response.ok) throw new Error("Companion definitions unavailable");
@@ -139,13 +140,22 @@ export function createCompanionCatalogue(fetchImpl: typeof fetch) {
         const entry = value as { kind?: unknown; definition?: unknown };
         if (!entry.definition || typeof entry.definition !== "object") continue;
         const definition = entry.definition as Record<string, unknown>;
-        if (entry.kind === "application" && typeof definition.appId === "string") applications.push(definition as unknown as AppShortcutApplication);
+        if (entry.kind !== "application" || typeof definition.appId !== "string" || !Array.isArray(definition.shortcuts)) continue;
+        const app = definition as unknown as AppShortcutApplication;
+        if (app.shortcuts.length) {
+          applications.set(app.appId, app);
+        } else if (Array.isArray(app.moreShortcuts)) {
+          const previous = applications.get(app.appId);
+          if (previous) applications.set(app.appId, {
+            ...previous, moreShortcuts: [...(previous.moreShortcuts ?? []), ...app.moreShortcuts],
+          });
+        }
       }
       if (!payload.hasMore) break;
       if (page === 63) throw new Error("Companion definitions exceed the supported catalogue size");
     }
-    if (applications.length === 0) throw new Error("Companion definitions are empty or invalid");
-    return { applications };
+    if (applications.size === 0) throw new Error("Companion definitions are empty or invalid");
+    return { applications: [...applications.values()] };
   }
 
   function load(refresh = false): Promise<readonly CompanionAction[]> {

@@ -98,98 +98,98 @@ struct ApprovedFolder: Codable, Identifiable, Hashable {
 final class CompanionStore: NSObject, ObservableObject {
     let updater = CompanionUpdater()
     @Published var settingsRequestID: UUID?
-    var requestedSettingsPage = "connection"
-    static let privacyPolicyURL = URL(string: "https://jtenniswood.github.io/espdesktop/reference/privacy")!
+    var requestedSettingsDestination: CompanionSettingsDestination = .displays
+    static let privacyPolicyURL = URL(string: "https://espdesktop.com/reference/privacy")!
     static let issuesURL = URL(string: "https://github.com/jtenniswood/espdesktop/issues")!
-    static let supportURL = URL(string: "https://jtenniswood.github.io/espdesktop/getting-started/troubleshooting")!
+    static let supportURL = URL(string: "https://espdesktop.com/getting-started/troubleshooting")!
     static let buyMeACoffeeURL = URL(string: "https://www.buymeacoffee.com/jtenniswood")!
 
-    @Published var panelHost: String { didSet { defaults.set(panelHost, forKey: Keys.host) } }
-    @Published var panelDisplayName: String {
-        didSet { defaults.set(panelDisplayName, forKey: Keys.displayName) }
+    @Published var onboardingCompleted: Bool {
+        didSet { defaults.set(onboardingCompleted, forKey: Keys.onboardingCompleted) }
     }
-    private(set) var pairingAccount: String
+    @Published private(set) var displays: [CompanionDisplay] = []
+    @Published private(set) var connectedDisplayCount = 0
+    @Published private(set) var pairingState: CompanionConnectionState = .disconnected
+    private(set) var pairingRecoveryMessage = ""
+    var hasSavedPairing: Bool { !displays.isEmpty }
+    var hasSavedPairingInProgress: Bool { pairingDisplay.hasSavedPairing }
+    var panelHost: String {
+        get { pairingDisplay.panelHost }
+        set { pairingDisplay.panelHost = newValue }
+    }
+    var panelDisplayName: String {
+        get { pairingDisplay.record.name }
+        set { pairingDisplay.record.name = newValue }
+    }
     @Published private(set) var availableApps: [LaunchableApp] = []
     @Published private(set) var approvedApplicationIdentifiers: Set<String>
     @Published private(set) var approvedFolders: [ApprovedFolder]
-    @Published private(set) var isConnected = false
-    @Published private(set) var connectionState: CompanionConnectionState = .disconnected
-    @Published private(set) var connectionRecoveryMessage = ""
     @Published private(set) var folderMessage: String?
     @Published private(set) var foldersNeedingAccess: Set<UUID> = []
     @Published private(set) var launchAtLoginEnabled = false
     @Published private(set) var launchAtLoginMessage = ""
-    @Published private(set) var nowPlayingStatus = "Waiting for a display connection"
-    @Published private(set) var nowPlayingApplication = ""
-    @Published private(set) var nowPlayingTitle = ""
-    @Published private(set) var nowPlayingArtwork: NSImage?
     @Published private(set) var systemMetricsStatus = "Waiting for a display connection"
-    @Published private(set) var systemMetricsSupported = false
 
     private enum Keys {
-        static let host = "panelHost"
-        static let displayName = "panelDisplayName"
-        static let pairingAccount = "pairingAccount"
+        static let onboardingCompleted = "companion.onboarding.completed"
         static let approvedApplications = "approvedApplications"
         static let knownApplications = "knownApplications"
         static let approvedFolders = "approvedFolders"
     }
     private static let preferencesSuite = "io.espdesktop.app"
     private let defaults: UserDefaults
-    private lazy var connection: CompanionConnection = {
-        let session = CompanionConnection(preferences: self, resources: self)
-        session.onEvent = { [weak self] event in self?.receiveSessionEvent(event) }
-        return session
-    }()
-    private let nowPlayingProvider: any NowPlayingProviding
+    private let savedDisplays: CompanionSavedDisplays
+    private var forgettingDisplays: Set<UUID> = []
+    private lazy var pairingDisplay = makeDisplay(CompanionDisplayRecord())
+    private(set) var isRePairing = false
+    var canRetryRePairing: Bool { isRePairing && pairingDisplay.connection.isPairing }
+    private var connectedDisplays: [CompanionDisplay] { displays.filter { $0.state == .connected } }
+    private var metricsDisplays: [CompanionDisplay] { connectedDisplays.filter(\.supportsSystemMetrics) }
+    private var systemMetricsActive = false
     private let mediaController: any MediaControlling
     private let systemMetricsProvider: any SystemMetricsProviding
     private let remoteCatalogueStore = RemoteCompanionCatalogueStore()
-    private var latestNowPlayingSnapshot: CompanionNowPlayingSnapshot?
     private var latestSystemMetricsSnapshot: CompanionSystemMetricsSnapshot?
     private let sessionLock = MacSessionLockMonitor()
     private var mediaControlTimer: Timer?
     private var focusTimer: Timer?
     private var activatedApplicationPID: pid_t?
+    private var browserFocusQuery: Task<URL?, Never>?
+    private var browserFocusGeneration = 0
     private var lastMediaControlValues: [String: Int] = [:]
-    private var companionURLFocusTargets: [(id: String, url: URL)] = []
 
     override convenience init() {
         self.init(
-            nowPlayingProvider: SystemNowPlayingProvider(),
             mediaController: SystemMediaController(),
             systemMetricsProvider: SystemMetricsProvider()
         )
     }
 
     init(
-        nowPlayingProvider: any NowPlayingProviding,
         mediaController: any MediaControlling,
-        systemMetricsProvider: any SystemMetricsProviding
+        systemMetricsProvider: any SystemMetricsProviding,
+        defaults: UserDefaults? = nil
     ) {
-        self.nowPlayingProvider = nowPlayingProvider
         self.mediaController = mediaController
         self.systemMetricsProvider = systemMetricsProvider
-        let stableDefaults = UserDefaults(suiteName: Self.preferencesSuite) ?? .standard
-        defaults = stableDefaults
+        let stableDefaults = defaults ?? (Bundle.main.bundleIdentifier == Self.preferencesSuite
+            ? UserDefaults.standard
+            : (UserDefaults(suiteName: Self.preferencesSuite) ?? .standard))
+        self.defaults = stableDefaults
+        let savedDisplays = CompanionSavedDisplays(defaults: stableDefaults)
+        self.savedDisplays = savedDisplays
         approvedApplicationIdentifiers = Set(
             stableDefaults.stringArray(forKey: Keys.approvedApplications) ?? []
         )
         approvedFolders = stableDefaults.data(forKey: Keys.approvedFolders)
             .flatMap { try? JSONDecoder().decode([ApprovedFolder].self, from: $0) }
             ?? []
-        let savedPairingAccounts = KeychainStore.accounts(service: KeychainStore.service)
-        let configuredPanelHost = stableDefaults.string(forKey: Keys.host)
-            ?? savedPairingAccounts.first
-            ?? ""
-        panelHost = configuredPanelHost
-        panelDisplayName = stableDefaults.string(forKey: Keys.displayName) ?? ""
-        pairingAccount = stableDefaults.string(forKey: Keys.pairingAccount)
-            ?? (savedPairingAccounts.contains(configuredPanelHost) ? configuredPanelHost : nil)
-            ?? (savedPairingAccounts.count == 1 ? savedPairingAccounts[0] : "")
+        let records = savedDisplays.load { KeychainStore.accounts(service: KeychainStore.service) }
+        onboardingCompleted = stableDefaults.bool(forKey: Keys.onboardingCompleted) || !records.isEmpty
         super.init()
-        sessionLock.onChange = { [weak self] locked in
-            self?.connection.publishSessionLock(locked)
+        displays = records.map(makeDisplay)
+        sessionLock.onChange = { [weak self] locked, displayAwake in
+            self?.publishToConnectedDisplays { $0.publishSessionLock(locked, displayAwake: displayAwake) }
         }
         sessionLock.start()
         NSWorkspace.shared.notificationCenter.addObserver(
@@ -204,47 +204,43 @@ final class CompanionStore: NSObject, ObservableObject {
             name: NSNotification.Name.NSSystemTimeZoneDidChange,
             object: nil
         )
-        if !pairingAccount.isEmpty { defaults.set(pairingAccount, forKey: Keys.pairingAccount) }
-        nowPlayingProvider.onStatus = { [weak self] value in self?.nowPlayingStatus = value }
-        nowPlayingProvider.onSnapshot = { [weak self] snapshot in
-            guard let self else { return }
-            nowPlayingApplication = snapshot.applicationName
-            nowPlayingTitle = snapshot.title
-            nowPlayingArtwork = snapshot.artworkJPEG.flatMap(NSImage.init(data:))
-            latestNowPlayingSnapshot = snapshot
-            if isConnected { connection.publishNowPlaying(snapshot) }
-        }
+        if onboardingCompleted { stableDefaults.set(true, forKey: Keys.onboardingCompleted) }
         systemMetricsProvider.onSnapshot = { [weak self] snapshot in
             guard let self else { return }
-            guard isConnected && systemMetricsSupported else { return }
+            guard !metricsDisplays.isEmpty else { return }
             latestSystemMetricsSnapshot = snapshot
             systemMetricsStatus = "Sharing processor, memory, storage, network and battery statistics"
-            if isConnected { connection.publishSystemMetrics(snapshot) }
+            for display in metricsDisplays { display.connection.publishSystemMetrics(snapshot) }
         }
         if supportsLaunchAtLogin { refreshLaunchAtLoginStatus() }
         refreshApplications()
         Task { await remoteCatalogueStore.refresh() }
     }
 
-    func stringPreference(forKey key: String) -> String? { defaults.string(forKey: key) }
-    func integerPreference(forKey key: String) -> Int { defaults.integer(forKey: key) }
-    func setPreference(_ value: Any, forKey key: String) {
-        if key == Keys.displayName, let displayName = value as? String {
-            panelDisplayName = displayName
-        } else {
-            defaults.set(value, forKey: key)
+    private func makeDisplay(_ record: CompanionDisplayRecord) -> CompanionDisplay {
+        let display = CompanionDisplay(record: record, defaults: defaults, resources: self)
+        display.isNewCertificate = { [weak self, weak display] fingerprint in
+            guard let self, let display else { return false }
+            return !displays.contains { $0.id != display.id && $0.certificateFingerprint == fingerprint }
         }
+        display.onRecordChange = { [weak self, weak display] in
+            guard let self, let display else { return }
+            objectWillChange.send()
+            guard display.hasSavedPairing else { return }
+            if !displays.contains(where: { $0.id == display.id }) { displays.append(display) }
+            savedDisplays.save(displays.map(\.record))
+        }
+        display.connection.onEvent = { [weak self, weak display] event in
+            guard let self, let display else { return }
+            receiveSessionEvent(event, from: display)
+        }
+        return display
     }
-    func removePreference(forKey key: String) { defaults.removeObject(forKey: key) }
 
-    var hasSavedPairing: Bool {
-        !pairingAccount.isEmpty && KeychainStore.accounts(service: KeychainStore.service).contains(pairingAccount)
+    private func publishToConnectedDisplays(_ publish: (CompanionConnection) -> Void) {
+        for display in connectedDisplays { publish(display.connection) }
     }
 
-    func rememberPairingAccount(_ account: String) {
-        pairingAccount = account
-        defaults.set(account, forKey: Keys.pairingAccount)
-    }
     var supportsLaunchAtLogin: Bool {
         Bundle.main.bundleURL.pathExtension.lowercased() == "app"
     }
@@ -316,7 +312,7 @@ final class CompanionStore: NSObject, ObservableObject {
             availableApps = applications
             applicationCatalogueReady = true
             applicationScan = nil
-            if isConnected { connection.publishCatalogue() }
+            publishToConnectedDisplays { $0.publishCatalogue() }
         }
     }
 
@@ -409,7 +405,7 @@ final class CompanionStore: NSObject, ObservableObject {
             approvedApplicationIdentifiers.subtract(identifiers)
         }
         defaults.set(approvedApplicationIdentifiers.sorted(), forKey: Keys.approvedApplications)
-        if isConnected { connection.publishCatalogue() }
+        publishToConnectedDisplays { $0.publishCatalogue() }
     }
 
     func setApplication(_ application: LaunchableApp, approved: Bool) {
@@ -419,7 +415,7 @@ final class CompanionStore: NSObject, ObservableObject {
             approvedApplicationIdentifiers.remove(application.bundleIdentifier)
         }
         defaults.set(approvedApplicationIdentifiers.sorted(), forKey: Keys.approvedApplications)
-        if isConnected { connection.publishCatalogue() }
+        publishToConnectedDisplays { $0.publishCatalogue() }
     }
 
     func folderActions() -> [ApprovedFolder] { approvedFolders }
@@ -435,7 +431,7 @@ final class CompanionStore: NSObject, ObservableObject {
     }
 
     func focusedCompanionActionIdentifier() async -> String {
-        await focusedCompanionActionIdentifiers().first ?? ""
+        await focusedCompanionActionIdentifiers(for: []).first ?? ""
     }
 
     func immediateFocusedApplicationIdentifier() -> String? {
@@ -448,7 +444,7 @@ final class CompanionStore: NSObject, ObservableObject {
         return identifier
     }
 
-    func focusedCompanionActionIdentifiers() async -> [String] {
+    func focusedCompanionActionIdentifiers(for targets: [(id: String, url: URL)]) async -> [String] {
         // Activation notifications can arrive before NSWorkspace updates its
         // frontmostApplication cache. Never confirm the previous app as current.
         let expectedPID = activatedApplicationPID
@@ -462,24 +458,24 @@ final class CompanionStore: NSObject, ObservableObject {
         guard ready else { return [] }
         return await CompanionFocusQuery.readStable(
             currentApplication: { NSWorkspace.shared.frontmostApplication?.processIdentifier },
-            query: { await self.queryFocusedCompanionActionIdentifiers() }
+            query: { await self.queryFocusedCompanionActionIdentifiers(for: targets) }
         )
     }
 
-    private func queryFocusedCompanionActionIdentifiers() async -> [String] {
+    private func queryFocusedCompanionActionIdentifiers(for targets: [(id: String, url: URL)]) async -> [String] {
         guard let application = NSWorkspace.shared.frontmostApplication,
               let bundleIdentifier = application.bundleIdentifier else { return [] }
         if bundleIdentifier == "com.apple.Safari" || bundleIdentifier == "com.google.Chrome" {
             let browser = focusedLaunchableApplicationIdentifier()
-            guard !companionURLFocusTargets.isEmpty else {
+            guard !targets.isEmpty else {
                 return browser.isEmpty ? [] : [browser]
             }
-            let activeURL = await activeBrowserTabURL(bundleIdentifier: bundleIdentifier)
+            let activeURL = await sharedActiveBrowserTabURL(bundleIdentifier: bundleIdentifier)
             guard let url = activeURL else {
                 return browser.isEmpty ? [] : [browser]
             }
             var matches = browser.isEmpty ? [] : [browser]
-            matches.append(contentsOf: ActiveTabURLMatcher.matchingURLCardIDs(url: url, targets: companionURLFocusTargets))
+            matches.append(contentsOf: ActiveTabURLMatcher.matchingURLCardIDs(url: url, targets: targets))
             return matches
         }
         if bundleIdentifier == "com.apple.finder" {
@@ -498,9 +494,23 @@ final class CompanionStore: NSObject, ObservableObject {
         return [bundleIdentifier]
     }
 
-    func setCompanionFocusRegistrations(_ targets: [(id: String, url: URL)]) {
-        companionURLFocusTargets = Array(targets.prefix(64))
-        if isConnected { connection.publishFocusedAction() }
+    private func sharedActiveBrowserTabURL(bundleIdentifier: String) async -> URL? {
+        if let browserFocusQuery { return await browserFocusQuery.value }
+        let generation = browserFocusGeneration
+        let query = Task { [weak self] in
+            await self?.activeBrowserTabURL(bundleIdentifier: bundleIdentifier)
+        }
+        browserFocusQuery = query
+        let url = await query.value
+        guard generation == browserFocusGeneration else { return nil }
+        browserFocusQuery = nil
+        return url
+    }
+
+    private func invalidateBrowserFocusQuery() {
+        browserFocusGeneration += 1
+        browserFocusQuery?.cancel()
+        browserFocusQuery = nil
     }
 
     private func activeBrowserTabURL(bundleIdentifier: String) async -> URL? {
@@ -516,7 +526,7 @@ final class CompanionStore: NSObject, ObservableObject {
             end try
         end tell
         """
-        guard let rawURL = await CompanionFocusScript.read(source),
+        guard let rawURL = await CompanionAppleScript.run(source),
               NSWorkspace.shared.frontmostApplication?.bundleIdentifier == bundleIdentifier,
               let url = URL(string: rawURL),
               (url.scheme == "http" || url.scheme == "https"), url.host != nil else { return nil }
@@ -540,26 +550,28 @@ final class CompanionStore: NSObject, ObservableObject {
             end try
         end tell
         """
-        guard let path = await CompanionFocusScript.read(source),
+        guard let path = await CompanionAppleScript.run(source),
               NSWorkspace.shared.frontmostApplication?.bundleIdentifier == "com.apple.finder",
               !path.isEmpty else { return nil }
         return path
     }
 
     @objc private func frontmostApplicationDidChange(_ notification: Notification) {
-        guard isConnected else { return }
+        guard connectedDisplayCount > 0 else { return }
         let application = notification.userInfo?[NSWorkspace.applicationUserInfoKey] as? NSRunningApplication
+        invalidateBrowserFocusQuery()
         activatedApplicationPID = application?.processIdentifier
         let activated = application?.bundleIdentifier
         let approved = activated.map { approvedApplicationIdentifiers.contains($0) ? $0 : "" }
         // Use the activation event itself rather than a possibly older cached
         // frontmostApplication value while this notification is being delivered.
-        connection.publishFocusedAction(invalidatePendingQuery: true,
-                                        activatedApplicationIdentifier: approved)
+        publishToConnectedDisplays {
+            $0.publishFocusedAction(invalidatePendingQuery: true, activatedApplicationIdentifier: approved)
+        }
     }
 
     @objc private func systemTimeZoneDidChange(_: Notification) {
-        if isConnected { connection.publishTimezone() }
+        publishToConnectedDisplays { $0.publishTimezone() }
     }
 
     func folderNeedsAccess(_ folder: ApprovedFolder) -> Bool {
@@ -594,7 +606,7 @@ final class CompanionStore: NSObject, ObservableObject {
             approvedFolders[index] = ApprovedFolder(id: folder.id, name: folder.name, path: url.path)
             persistApprovedFolders()
             folderMessage = "Folder updated for \(folder.name)."
-            if isConnected { connection.publishCatalogue() }
+            publishToConnectedDisplays { $0.publishCatalogue() }
             return
         }
         guard !approvedFolders.contains(where: { $0.path == url.path }) else {
@@ -605,7 +617,7 @@ final class CompanionStore: NSObject, ObservableObject {
         approvedFolders.append(ApprovedFolder(id: UUID(), name: displayName, path: url.path))
         approvedFolders.sort { $0.name.localizedCaseInsensitiveCompare($1.name) == .orderedAscending }
         persistApprovedFolders()
-        if isConnected { connection.publishCatalogue() }
+        publishToConnectedDisplays { $0.publishCatalogue() }
     }
 
     func removeFolder(_ folder: ApprovedFolder) {
@@ -613,7 +625,7 @@ final class CompanionStore: NSObject, ObservableObject {
         foldersNeedingAccess.remove(folder.id)
         approvedFolders.removeAll { $0.id == folder.id }
         persistApprovedFolders()
-        if isConnected { connection.publishCatalogue() }
+        publishToConnectedDisplays { $0.publishCatalogue() }
     }
 
     private func persistApprovedFolders() {
@@ -622,22 +634,36 @@ final class CompanionStore: NSObject, ObservableObject {
         }
     }
 
-    func connect() { connection.connect(mode: .authenticate) }
-    func disconnect() { connection.disconnect() }
-    func openPanelWebServer() {
-        _ = openPanelWebServer(tab: nil)
+    func connectSavedDisplays() {
+        for display in displays where display.record.connectAtLaunch && !display.panelHost.isEmpty {
+            display.connection.connect(mode: .authenticate)
+        }
+    }
+
+    func setConnection(_ enabled: Bool, for display: CompanionDisplay) {
+        guard display.state != .needsPairing, displays.contains(where: { $0.id == display.id }) else { return }
+        display.record.connectAtLaunch = enabled
+        if enabled {
+            display.connection.connect(mode: .authenticate)
+        } else {
+            display.connection.disconnect()
+        }
+    }
+
+    func openPanelWebServer(_ display: CompanionDisplay) {
+        _ = openPanelWebServer(host: display.panelHost, tab: nil)
     }
 
     func openPanelPairing() -> Bool {
-        openPanelWebServer(tab: "connectors", connector: "mac_companion")
+        openPanelWebServer(host: panelHost, tab: "connectors", connector: "mac_companion")
     }
 
-    private func openPanelWebServer(tab: String?, connector: String? = nil) -> Bool {
-        guard !panelHost.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
-            updateStatus("Enter the display address first")
-            return false
-        }
-        guard let url = Self.panelWebServerURL(from: panelHost, tab: tab, connector: connector),
+    func openPanelSetup() -> Bool {
+        openPanelWebServer(host: panelHost, setup: true)
+    }
+
+    private func openPanelWebServer(host: String, tab: String? = nil, connector: String? = nil, setup: Bool = false) -> Bool {
+        guard let url = Self.panelWebServerURL(from: host, tab: tab, connector: connector, setup: setup),
               NSWorkspace.shared.open(url) else {
             updateStatus("Could not open display settings")
             return false
@@ -649,6 +675,7 @@ final class CompanionStore: NSObject, ObservableObject {
         from value: String,
         tab: String? = nil,
         connector: String? = nil,
+        setup: Bool = false
     ) -> URL? {
         let raw = value.trimmingCharacters(in: .whitespacesAndNewlines)
         guard let parsed = URL(string: raw.contains("://") ? raw : "http://\(raw)"),
@@ -665,65 +692,108 @@ final class CompanionStore: NSObject, ObservableObject {
                 URLQueryItem(name: "connector", value: connector),
             ]
         }
+        if setup {
+            components.queryItems = (components.queryItems ?? []) + [URLQueryItem(name: "setup", value: "1")]
+        }
         return components.url
     }
+    func isSavedDisplay(fingerprint: String) -> Bool {
+        displays.contains { $0.certificateFingerprint == fingerprint }
+    }
+
+    func resetPairing() {
+        let previous = pairingDisplay
+        let wasRePairing = isRePairing
+        isRePairing = false
+        pairingDisplay = makeDisplay(CompanionDisplayRecord())
+        if wasRePairing {
+            previous.connection.cancelRePairing()
+        } else if !previous.hasSavedPairing {
+            previous.connection.disconnect()
+        }
+        pairingRecoveryMessage = ""
+        pairingState = .disconnected
+    }
+
+    func prepareRePairing(_ display: CompanionDisplay) -> Bool {
+        guard display.state == .needsPairing, displays.contains(where: { $0 === display }) else { return false }
+        resetPairing()
+        pairingDisplay = display
+        isRePairing = true
+        return true
+    }
+
     func pair(code: String) {
-        guard !connectionState.isBusy,
-              !panelHost.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
+        guard isRePairing || !pairingDisplay.hasSavedPairing,
+              !pairingState.isBusy, ConnectionEndpointPolicy.isLocalEndpoint(panelHost),
               let normalizedCode = CompanionPairingInput.normalizedCode(code) else { return }
-        connection.connect(mode: .pair(code: normalizedCode))
+        pairingDisplay.connection.connect(mode: .pair(code: normalizedCode))
     }
 
-    func forgetPanel() {
-        let forgottenAccount = pairingAccount
-        KeychainStore.remove(service: KeychainStore.service, account: forgottenAccount)
-        defaults.removeObject(forKey: "companion.certificateFingerprint.\(forgottenAccount)")
-        defaults.removeObject(forKey: "companion.authenticationSequence.\(forgottenAccount)")
-        defaults.removeObject(forKey: Keys.pairingAccount)
-        pairingAccount = ""
-        connection.disconnect()
-        panelHost = ""
-        panelDisplayName = ""
+    func forgetDisplay(_ display: CompanionDisplay) async {
+        guard displays.contains(where: { $0 === display }), forgettingDisplays.insert(display.id).inserted else { return }
+        defer { forgettingDisplays.remove(display.id) }
+        await display.connection.showPairingBeforeDisconnecting()
+        display.connection.disconnect()
+        display.onRecordChange = nil
+        display.connection.onEvent = nil
+        displays.removeAll { $0.id == display.id }
+        savedDisplays.save(displays.map(\.record))
+        let account = display.pairingAccount
+        KeychainStore.remove(service: KeychainStore.service, account: account)
+        defaults.removeObject(forKey: "companion.certificateFingerprint.\(account)")
+        defaults.removeObject(forKey: "companion.authenticationSequence.\(account)")
+        if display === pairingDisplay { resetPairing() }
     }
 
-    private func receiveSessionEvent(_ event: CompanionSessionEvent) {
+    private func receiveSessionEvent(_ event: CompanionSessionEvent, from display: CompanionDisplay) {
         switch event {
         case let .connection(message, state, recovery):
-            updateConnectionStatus(message, state: state, recovery: recovery)
-        case let .status(message): updateStatus(message)
-        case let .capabilities(systemMetrics): setSystemMetricsSupported(systemMetrics)
+            updateConnectionStatus(message, state: state, recovery: recovery, for: display)
+        case let .status(message):
+            updateStatus(message)
+        case let .capabilities(systemMetrics):
+            display.supportsSystemMetrics = systemMetrics
+            updateSystemMetricsProvider()
         case .publishCurrentState:
-            connection.publishSessionLock(sessionLock.refresh())
-            republishCurrentNowPlaying()
-            republishCurrentSystemMetrics()
-        case let .artworkRequested(generation): republishNowPlayingArtwork(generation: generation)
+            sessionLock.refresh()
+            display.connection.publishSessionLock(sessionLock.locked, displayAwake: sessionLock.displayAwake)
+            if display.supportsSystemMetrics, let snapshot = latestSystemMetricsSnapshot {
+                display.connection.publishSystemMetrics(snapshot, force: true)
+            }
+            publishMediaControlValues(force: true, to: display)
         }
     }
 
-    func updateConnectionStatus(_ message: String, state: CompanionConnectionState, recovery: String? = nil) {
-        connectionRecoveryMessage = recovery ?? (hasSavedPairing
+    private func updateConnectionStatus(_ message: String, state: CompanionConnectionState,
+                                        recovery: String?, for display: CompanionDisplay) {
+        objectWillChange.send()
+        display.recoveryMessage = recovery ?? (display.hasSavedPairing && !display.connection.isPairing
             ? "Check that your display is on and connected to the same network, then try Connect again."
-            : "Open the device webpage at its local address, start pairing, and enter the current eight-letter code to try again.")
-        connectionState = state
+            : "Start pairing on your display and enter the current pairing code to try again.")
+        display.state = state
+        if display === pairingDisplay {
+            pairingRecoveryMessage = display.recoveryMessage
+            pairingState = state
+        }
         updateStatus(message)
-        let connected = state == .connected
-        guard isConnected != connected else { return }
-        isConnected = connected
-        if !connected { systemMetricsSupported = false }
-        updateNowPlayingProvider()
+        if state != .connected { display.supportsSystemMetrics = false }
+        let previousCount = connectedDisplayCount
+        connectedDisplayCount = connectedDisplays.count
         updateSystemMetricsProvider()
-        if connected {
-            startMediaControlPublishing()
-            Task {
+        if state == .connected {
+            if previousCount == 0 { startMediaControlPublishing() }
+            Task { [weak display] in
                 await remoteCatalogueStore.refresh()
-                if isConnected { connection.publishCatalogue() }
+                if let display, display.state == .connected { display.connection.publishCatalogue() }
             }
-        } else {
+        } else if previousCount > 0 && connectedDisplayCount == 0 {
             mediaControlTimer?.invalidate()
             mediaControlTimer = nil
             focusTimer?.invalidate()
             focusTimer = nil
             activatedApplicationPID = nil
+            invalidateBrowserFocusQuery()
             lastMediaControlValues = [:]
         }
     }
@@ -733,7 +803,10 @@ final class CompanionStore: NSObject, ObservableObject {
     }
 
     private func updateSystemMetricsProvider() {
-        if isConnected && systemMetricsSupported {
+        let active = !metricsDisplays.isEmpty
+        guard systemMetricsActive != active else { return }
+        systemMetricsActive = active
+        if active {
             systemMetricsStatus = "Collecting Mac system statistics…"
             systemMetricsProvider.start()
         } else {
@@ -743,46 +816,6 @@ final class CompanionStore: NSObject, ObservableObject {
         }
     }
 
-    func setSystemMetricsSupported(_ supported: Bool) {
-        systemMetricsSupported = supported
-        updateSystemMetricsProvider()
-    }
-
-    private func updateNowPlayingProvider() {
-        if !isConnected {
-            // Do not carry a confirmed session across disconnects.
-            latestNowPlayingSnapshot = nil
-        }
-        if isConnected {
-            nowPlayingProvider.start()
-        } else {
-            nowPlayingProvider.stop()
-            nowPlayingStatus = "Waiting for a display connection"
-        }
-    }
-
-    func republishNowPlayingArtwork(generation: UInt32) {
-        guard isConnected,
-              let snapshot = latestNowPlayingSnapshot,
-              snapshot.generation == generation else { return }
-        connection.publishNowPlaying(snapshot, forceArtwork: true)
-    }
-
-    func republishCurrentNowPlaying() {
-        guard isConnected, let snapshot = latestNowPlayingSnapshot else { return }
-        connection.publishNowPlaying(snapshot, forceArtwork: true)
-    }
-    func republishCurrentSystemMetrics() {
-        guard isConnected, systemMetricsSupported,
-              let snapshot = latestSystemMetricsSnapshot else { return }
-        connection.publishSystemMetrics(snapshot, force: true)
-    }
-
-    func publishSystemMetricsUnavailable() {
-        guard isConnected, systemMetricsSupported else { return }
-        latestSystemMetricsSnapshot = nil
-        connection.publishSystemMetricsUnavailable()
-    }
     func launch(bundleIdentifier: String) async -> Bool {
         guard let app = launchableApps().first(where: { $0.bundleIdentifier == bundleIdentifier }) else { return false }
         // Approval still applies when the app is already open. Avoid reopening
@@ -823,10 +856,11 @@ final class CompanionStore: NSObject, ObservableObject {
     }
 
     func performResultStatus(actionIdentifier: String,
-                             folderOpenBehavior: String = "new_window") async -> String {
+                             folderOpenBehavior: String = "new_window",
+                             shortcutAppID: String? = nil) async -> String {
         guard !sessionLock.refresh() else { return "not_allowed" }
         let performed = await perform(actionIdentifier: actionIdentifier,
-                                      folderOpenBehavior: folderOpenBehavior)
+                                      folderOpenBehavior: folderOpenBehavior, shortcutAppID: shortcutAppID)
         return Self.actionResultStatus(actionIdentifier: actionIdentifier, performed: performed)
     }
 
@@ -834,7 +868,6 @@ final class CompanionStore: NSObject, ObservableObject {
         guard performed else { return "not_allowed" }
         let isApplicationLaunch = !actionIdentifier.hasPrefix(ApprovedFolder.actionPrefix)
             && !actionIdentifier.hasPrefix(CompanionKeyboardShortcut.actionPrefix)
-            && !actionIdentifier.hasPrefix(CompanionKeyboardShortcut.windowActionPrefix)
             && !actionIdentifier.hasPrefix("system.")
         return isApplicationLaunch ? "activated" : "performed"
     }
@@ -879,7 +912,8 @@ final class CompanionStore: NSObject, ObservableObject {
         return true
     }
 
-    func perform(actionIdentifier: String, folderOpenBehavior: String = "new_window") async -> Bool {
+    func perform(actionIdentifier: String, folderOpenBehavior: String = "new_window",
+                 shortcutAppID: String? = nil) async -> Bool {
         if actionIdentifier.hasPrefix("system.") {
             switch actionIdentifier {
             case "system.brightness_up", "system.brightness_down":
@@ -896,34 +930,92 @@ final class CompanionStore: NSObject, ObservableObject {
             return openFolder(actionIdentifier: actionIdentifier, behavior: folderOpenBehavior)
         }
 
-        if CompanionNativeWindowAction.supports(actionIdentifier) {
-            guard let error = CompanionNativeWindowAction.perform(actionIdentifier) else { return true }
-            updateStatus(error)
-            return false
-        }
+        // Keep legacy window identifiers from falling through to application launch.
+        guard !actionIdentifier.hasPrefix("window.") else { return false }
 
-        if let performed = CompanionWindowArrangement.perform(identifier: actionIdentifier) {
-            if !performed {
-                updateStatus("Select an available app window and allow Accessibility access")
-            }
-            return performed
-        }
-
-        guard actionIdentifier.hasPrefix(CompanionKeyboardShortcut.actionPrefix) ||
-              actionIdentifier.hasPrefix(CompanionKeyboardShortcut.windowActionPrefix) else {
+        guard actionIdentifier.hasPrefix(CompanionKeyboardShortcut.actionPrefix) else {
             return await launch(bundleIdentifier: actionIdentifier)
+        }
+        if actionIdentifier.hasPrefix(CompanionKeyboardShortcut.installedWebAppActionPrefix) {
+            guard let application = NSWorkspace.shared.frontmostApplication,
+                  let shortcut = CompanionKeyboardShortcut.installedWebAppShortcut(
+                    actionIdentifier, frontmostBundleIdentifier: application.bundleIdentifier,
+                    approvedBundleIdentifiers: approvedApplicationIdentifiers
+                  ) else {
+                updateStatus("Bring the approved Safari web app for this shortcut to the front")
+                return false
+            }
+            guard shortcut.replay(to: application.processIdentifier) else {
+                updateStatus("Allow EspDesktop in Privacy & Security → Accessibility")
+                return false
+            }
+            return true
+        }
+        let keys = String(actionIdentifier.dropFirst(CompanionKeyboardShortcut.actionPrefix.count))
+        if keys.hasPrefix(CompanionKeyboardShortcut.scopedPrefix) {
+            guard let shortcutAppID, let application = NSWorkspace.shared.frontmostApplication,
+                  let bundleID = application.bundleIdentifier,
+                  CompanionKeyboardShortcut.scopedTargetMatches(shortcutAppID, frontmost: bundleID,
+                                                               approved: approvedApplicationIdentifiers),
+                  let strokes = CompanionKeyboardShortcut.scopedStrokes(keys) else {
+                updateStatus("Bring the approved app for this shortcut to the front")
+                return false
+            }
+            for (index, stroke) in strokes.enumerated() {
+                if index > 0 {
+                    do { try await Task.sleep(for: .milliseconds(80)) } catch { return false }
+                }
+                guard !sessionLock.refresh(),
+                      approvedApplicationIdentifiers.contains(bundleID),
+                      NSWorkspace.shared.frontmostApplication?.processIdentifier == application.processIdentifier,
+                      stroke.replay(to: application.processIdentifier) else { return false }
+            }
+            return true
         }
         guard let shortcut = CompanionKeyboardShortcut(actionIdentifier: actionIdentifier) else {
             updateStatus("Blocked an invalid keyboard shortcut")
             return false
         }
-        guard shortcut.isSupported(on: ProcessInfo.processInfo.operatingSystemVersion) else {
-            updateStatus("Window tiling requires macOS 15 or later")
+        if CompanionKeyboardShortcut.isSafariUnmodifiedShortcut(keys),
+           !CompanionKeyboardShortcut.isSafariApplication(NSWorkspace.shared.frontmostApplication?.bundleIdentifier) {
+            updateStatus("Bring Safari or the installed Safari web app to the front to use this shortcut")
             return false
         }
-        guard shortcut.replay() else {
+        if CompanionKeyboardShortcut.isBooksExtendedShortcut(keys),
+           NSWorkspace.shared.frontmostApplication?.bundleIdentifier != CompanionKeyboardShortcut.booksBundleIdentifier {
+            updateStatus("Bring Books to the front to use this shortcut")
+            return false
+        }
+        var targetPID: pid_t?
+        if actionIdentifier.hasPrefix(CompanionKeyboardShortcut.actionPrefix),
+           CompanionKeyboardShortcut.isClaudeScopedShortcut(keys) {
+            guard let application = NSWorkspace.shared.frontmostApplication,
+                  application.bundleIdentifier == CompanionKeyboardShortcut.claudeDesktopBundleIdentifier else {
+                updateStatus("Bring Claude Desktop to the front to use this shortcut")
+                return false
+            }
+            targetPID = application.processIdentifier
+        } else if actionIdentifier == CompanionKeyboardShortcut.actionPrefix + CompanionKeyboardShortcut.chatGPTClearUnreads {
+            guard let application = NSWorkspace.shared.frontmostApplication,
+                  application.bundleIdentifier == CompanionKeyboardShortcut.chatGPTDesktopBundleIdentifier else {
+                updateStatus("Bring ChatGPT Desktop to the front to clear unread chats")
+                return false
+            }
+            targetPID = application.processIdentifier
+        }
+        guard shortcut.replay(to: targetPID) else {
             updateStatus("Allow EspDesktop in Privacy & Security → Accessibility")
             return false
+        }
+        if keys == CompanionKeyboardShortcut.claudeRewindShortcut, let targetPID {
+            do {
+                try await Task.sleep(for: .milliseconds(80))
+            } catch {
+                return false
+            }
+            guard !sessionLock.refresh(),
+                  NSWorkspace.shared.frontmostApplication?.processIdentifier == targetPID else { return false }
+            return shortcut.replay(to: targetPID)
         }
         return true
     }
@@ -947,17 +1039,16 @@ final class CompanionStore: NSObject, ObservableObject {
             // Tabs and Finder folders do not generate app-activation events.
             // Keep their polling independent of the slower audio-level timer.
             let timer = Timer(timeInterval: 0.2, repeats: true) { [weak self] _ in
-                Task { @MainActor [weak self] in self?.connection.publishFocusedAction() }
+                Task { @MainActor [weak self] in self?.publishToConnectedDisplays { $0.publishFocusedAction() } }
             }
             RunLoop.main.add(timer, forMode: .common)
             focusTimer = timer
         }
-        publishMediaControlValues(force: true)
-        connection.publishFocusedAction()
+        publishToConnectedDisplays { $0.publishFocusedAction() }
     }
 
-    private func publishMediaControlValues(force: Bool = false) {
-        guard isConnected else { return }
+    private func publishMediaControlValues(force: Bool = false, to display: CompanionDisplay? = nil) {
+        guard connectedDisplayCount > 0 else { return }
         let values = mediaController.values()
         guard force || values != lastMediaControlValues else { return }
         let unavailable = mediaController.unavailableVolumeIDs(
@@ -965,13 +1056,16 @@ final class CompanionStore: NSObject, ObservableObject {
             previousValues: lastMediaControlValues,
             force: force
         )
-        lastMediaControlValues = values
-        connection.publishMediaControlValues(values, unavailable: unavailable)
+        if let display {
+            display.connection.publishMediaControlValues(values, unavailable: unavailable)
+        } else {
+            lastMediaControlValues = values
+            publishToConnectedDisplays { $0.publishMediaControlValues(values, unavailable: unavailable) }
+        }
     }
 
-    func openURL(encodedURL: String, bundleIdentifier: String) async -> Bool {
+    func openURL(encodedURL: String, newWindow: Bool) async -> Bool {
         guard !sessionLock.refresh() else { return false }
-        _ = bundleIdentifier  // Older firmware sends the previously selected app; URLs now use the system default.
         guard encodedURL.utf8.count <= 128,
               let value = encodedURL.removingPercentEncoding,
               let components = URLComponents(string: value),
@@ -984,6 +1078,21 @@ final class CompanionStore: NSObject, ObservableObject {
             updateStatus("Blocked an invalid URL")
             return false
         }
+        let browserURL = NSWorkspace.shared.urlForApplication(toOpen: url)
+        let browserID = browserURL.flatMap { Bundle(url: $0)?.bundleIdentifier }
+        if let script = CompanionBrowserOpen.script(browserID: browserID, newWindow: newWindow) {
+            let result = await CompanionAppleScript.run(script, arguments: [url.absoluteString], timeout: 20)
+            if result == "opened" { return true }
+            if newWindow || result != "denied" {
+                updateStatus("Could not open the link. Check the browser's Automation permission in System Settings.")
+                return false
+            }
+        } else if newWindow {
+            updateStatus("Opening a link in a new window requires Safari or Google Chrome as the default browser")
+            return false
+        }
+
+        guard !sessionLock.refresh(), !Task.isCancelled else { return false }
         let opened = NSWorkspace.shared.open(url)
         if !opened {
             updateStatus("macOS could not open this URL in the default browser")
@@ -992,4 +1101,4 @@ final class CompanionStore: NSObject, ObservableObject {
     }
 }
 
-extension CompanionStore: CompanionSessionPreferences, CompanionSessionResources {}
+extension CompanionStore: CompanionSessionResources {}

@@ -24,8 +24,6 @@ import {
   companionSubtypeIcon,
   companionUrlConfig,
   companionUrlValue,
-  COMPANION_WINDOW_ACTIONS,
-  companionWindowActionLabel,
   formatCompanionShortcutActionId,
   normalizeCompanionCard,
   resetCompanionMetricPresentation,
@@ -59,7 +57,8 @@ import {
   SLACK_BUNDLE_ID,
   finderFolderTabs,
   syncFinderFolderSelection,
-  addFinderFolderTiles,
+  reconnectAthenaShortcutSubpage,
+  COMPANION_SHORTCUT_APPS,
   inheritFinderOpenBehaviorForCard,
   setFinderOpenBehavior,
   createCompanionShortcutSubpage,
@@ -105,7 +104,7 @@ export function runCompanionShortcutFeatureTests(): void {
     throw new Error("Finder should start with an empty editable folder page");
   }
   if (companionShortcutFolderAppLabel("com.adobe.PremierePro.25") !== "Adobe Premiere Pro" ||
-      companionShortcutTabDefinitions("com.adobe.PremierePro.25").length !== 10 ||
+      companionShortcutTabDefinitions("com.adobe.PremierePro.25").length <= 64 ||
       companionShortcutFolderAppLabel("com.adobe.PremierePro.beta") !== "") {
     throw new Error("Premiere Pro app versions must match only numeric bundle ID suffixes");
   }
@@ -134,37 +133,73 @@ export function runCompanionShortcutFeatureTests(): void {
     throw new Error("Saving Finder settings must preserve configured directory cards");
   }
   const folderTiles = [{ id: "folder.projects", label: "Projects renamed" }, { id: "folder.downloads", label: "Downloads" }];
-  addFinderFolderTiles(restoredPage, folderTiles, 4);
-  addFinderFolderTiles(restoredPage, folderTiles, 4);
-  if (restoredPage.buttons.length !== 2 || restoredPage.buttons[0].label !== "Projects" ||
-      restoredPage.buttons[1].entity !== "folder.downloads" || restoredPage.order.join() !== "B,1,2") {
-    throw new Error("Finder folder population must add missing folders once and preserve existing tiles");
-  }
-  const fullPage = createCompanionShortcutSubpage("com.apple.finder");
-  addFinderFolderTiles(fullPage, folderTiles, 2);
-  if (fullPage.buttons.length !== 1 || fullPage.order.length !== 2) {
-    throw new Error("Folder population must reserve Back and respect display capacity");
-  }
   const buildFinderGrid = (page: any) => Object.assign(page, buildSubpageGrid(page, 9, 3));
-  const selectionSource = createCompanionShortcutSubpage("com.apple.finder");
-  addFinderFolderTiles(selectionSource, folderTiles, 9);
-  buildFinderGrid(selectionSource);
-  const toggled = syncFinderFolderSelection(selectionSource, folderTiles, ["folder.downloads"], 9, buildFinderGrid);
-  if (!toggled || finderFolderTabs(toggled).join() !== "folder.downloads" || toggled.buttons.length !== 2) {
-    throw new Error("Disabled folders must remain saved but absent from the visible grid");
+  const untouched = JSON.stringify(restoredPage);
+  const pinned = syncFinderFolderSelection(restoredPage, folderTiles,
+    ["folder.projects", "folder.downloads"], 9, buildFinderGrid);
+  if (!pinned || pinned.buttons.length !== 2 || pinned.buttons[0].label !== "Projects" ||
+      finderFolderTabs(pinned).join() !== "folder.projects,folder.downloads" || JSON.stringify(restoredPage) !== untouched) {
+    throw new Error("Pinning one live folder must preserve the saved layout and labels until the edit is saved");
   }
-  addFinderFolderTiles(toggled, folderTiles, 9);
-  buildFinderGrid(toggled);
-  if (finderFolderTabs(toggled).join() !== "folder.downloads") throw new Error("Auto population must respect disabled folders");
-  const reordered = syncFinderFolderSelection(toggled, folderTiles, ["folder.downloads", "folder.projects"], 9, buildFinderGrid);
-  if (finderFolderTabs(reordered).join() !== "folder.downloads,folder.projects") throw new Error("Folder toggles must apply their chosen order");
-  [reordered.grid[1], reordered.grid[2]] = [reordered.grid[2], reordered.grid[1]];
-  if (finderFolderTabs(reordered).join() !== "folder.projects,folder.downloads") throw new Error("Folder lists must follow tile moves");
-  const allOff = syncFinderFolderSelection(reordered, folderTiles, [], 9, buildFinderGrid);
-  if (!allOff || finderFolderTabs(allOff).length || allOff.buttons.length !== 2) throw new Error("All folders may be disabled without losing their definitions");
+  const reorderedPin = syncFinderFolderSelection(restoredPage, folderTiles,
+    ["folder.downloads", "folder.projects"], 9, buildFinderGrid);
+  if (!reorderedPin || finderFolderTabs(reorderedPin).join() !== "folder.downloads,folder.projects") {
+    throw new Error("A new pin moved above an existing folder must keep the chosen order");
+  }
+  const empty = createCompanionShortcutSubpage("com.apple.finder");
+  if (syncFinderFolderSelection(empty, folderTiles, folderTiles.map(folder => folder.id), 2, buildFinderGrid)) {
+    throw new Error("Pinning folders must reserve Back and respect display capacity");
+  }
+  const unpinned = syncFinderFolderSelection(pinned, folderTiles, ["folder.downloads"], 9, buildFinderGrid);
+  if (!unpinned || finderFolderTabs(unpinned).join() !== "folder.downloads" || unpinned.grid[2] !== pinned.grid[2]) {
+    throw new Error("Unpinning a folder must leave other saved tiles in place");
+  }
+  const reconnected = syncFinderFolderSelection(unpinned, [], ["folder.downloads"], 9, buildFinderGrid);
+  if (!reconnected || finderFolderTabs(reconnected).join() !== "folder.downloads") {
+    throw new Error("Pinned folders must survive loss of the approved catalogue");
+  }
+  const restored = syncFinderFolderSelection(unpinned, folderTiles, ["folder.downloads", "folder.projects"], 9, buildFinderGrid);
+  if (restored.buttons[0].label !== "Projects" || finderFolderTabs(restored).length !== 2) {
+    throw new Error("Repinning a folder should recover its saved label");
+  }
+  const previousAthena = "com.apple.Safari.WebApp.27234284-164C-41C9-97DD-7189CD41B456";
+  const replacementAthena = "com.apple.Safari.WebApp.0B4CC478-908F-49C5-B3B9-45EED7371A3A";
+  const athenaTemplate = COMPANION_SHORTCUT_APPS.find(app => app.appId === "io.github.jtenniswood.athena");
+  if (!athenaTemplate) throw new Error("Expected the offered Athena template");
+  const savedAthena = { order: ["B", "", "1"], buttons: [{
+    ...emptyCardConfig("companion"), entity: "shortcut.control+command+n",
+    label: "My New Chat", options: "app_shortcut_preset=" + previousAthena + ":100",
+  }] };
+  if (reconnectAthenaShortcutSubpage(savedAthena, previousAthena, replacementAthena)) {
+    throw new Error("A missing replacement must leave saved Athena cards untouched");
+  }
+  COMPANION_SHORTCUT_APPS.push({ ...athenaTemplate, appId: replacementAthena });
+  try {
+    const reconnected = reconnectAthenaShortcutSubpage(savedAthena, previousAthena, replacementAthena);
+    if (!reconnected || reconnected.order.join() !== "B,,1" || reconnected.buttons[0]?.label !== "My New Chat" ||
+        configOptionValue(reconnected.buttons[0].options, "app_shortcut_preset") !== replacementAthena + ":100" ||
+        reconnectAthenaShortcutSubpage(savedAthena, "com.apple.finder", replacementAthena)) {
+      throw new Error("Choosing a replacement for the original Athena card should preserve its saved layout");
+    }
+    const fullAthena = { order: ["B", "1", "2"], buttons: [...savedAthena.buttons, {
+      ...emptyCardConfig("companion"), entity: "shortcut.command+shift+f",
+      label: "Search Chats", options: "app_shortcut_preset=" + previousAthena + ":101",
+    }] };
+    const fullReconnected = reconnectAthenaShortcutSubpage(fullAthena, previousAthena, replacementAthena);
+    if (!fullReconnected || !companionShortcutTabsFitSubpage(replacementAthena, ["101"], fullReconnected, 3) ||
+        companionShortcutTabsFitSubpage(replacementAthena, ["101"], fullAthena, 3)) {
+      throw new Error("Capacity checks must use the reconnected page when a full Athena subpage is edited");
+    }
+    const updated = syncCompanionShortcutSubpage(replacementAthena, ["101"], reconnected);
+    if (companionShortcutTabsFromSubpage(replacementAthena, updated).join() !== "101") {
+      throw new Error("Shortcut selection edits in the same save must apply to the reconnected page");
+    }
+  } finally {
+    COMPANION_SHORTCUT_APPS.pop();
+  }
   const companionModes = companionCardModeOptions();
-  if (companionModes.length !== 7 || new Set(companionModes.map(([mode]) => mode)).size !== 7 ||
-      !companionCardModeValid("window") || companionCardModeValid("webapp") || companionCardModeValid("home_assistant") ||
+  if (companionModes.map(([mode]) => mode).join() !== "app,shortcut,url,folder,stats,system" ||
+      companionCardModeValid("window") || companionCardModeValid("webapp") || companionCardModeValid("home_assistant") ||
       companionCardDefaultIcon("shortcut") !== "Shortcut Command") {
     throw new Error("Companion card modes must come from the generated product contract");
   }
@@ -192,7 +227,7 @@ export function runCompanionShortcutFeatureTests(): void {
   if (typedCard.mode !== "app" || typedCard.applicationId !== "") {
     throw new Error("Companion cards must have a typed in-memory model without changing saved config");
   }
-  for (const entity of ["com.example.Offline", "shortcut.command+a", "folder.saved-id", "media.play_pause", "window.left", "stat.memory_free", "stat.storage:external-volume", "stat.storage_free:external-volume"]) {
+  for (const entity of ["com.example.Offline", "shortcut.command+a", "folder.saved-id", "media.play_pause", "stat.memory_free", "stat.storage:external-volume", "stat.storage_free:external-volume"]) {
     const saved = { ...emptyCardConfig("companion"), entity, label: "Keep", options: "future_option=keep", precision: "2", unit: "%" };
     if (JSON.stringify(encodeCompanionCard(decodeCompanionCard(saved), saved)) !== JSON.stringify(saved)) {
       throw new Error("Companion variants must round-trip offline cards and unknown options");
@@ -300,35 +335,62 @@ export function runCompanionShortcutFeatureTests(): void {
     "shortcut.command+shift+keybackslash",
     "shortcut.control+tab",
     "shortcut.control+shift+tab",
+    "shortcut.option+tab",
+    "shortcut.command+p",
+    "shortcut.command+c",
+    "shortcut.command+v",
+    "shortcut.command+shift+h",
+    "shortcut.command+keycomma",
+    "shortcut.command+shift+keyequal",
+    "shortcut.command+keyminus",
+    "shortcut.command+keybackquote",
+    "shortcut.command+shift+r",
+    "shortcut.tab",
+    "shortcut.escape",
   ];
-  if (safariPreset.map((card) => card.entity).join("|") !== expectedSafariShortcuts.join("|")) {
+  if (safariPreset.slice(0, expectedSafariShortcuts.length).map((card) => card.entity).join("|") !== expectedSafariShortcuts.join("|")) {
     throw new Error("Safari shortcut defaults changed");
   }
   if (!safariPreset.every((card) => card.type === "companion" && companionShortcutActionIdValid(card.entity))) {
     throw new Error("Safari presets must contain only Companion keyboard shortcuts");
   }
-  if (!safariPreset.every((card, index) =>
+  if (!safariPreset.slice(0, expectedSafariShortcuts.length).every((card, index) =>
       card.options.includes("app_shortcut_preset=com.apple.Safari%3A" + index))) {
     throw new Error("Generated shortcuts must keep a stable preset identity");
   }
   const codexPreset = codexShortcutPresetCards();
   const expectedCodexShortcuts = [
+    "shortcut.command+n",
     "shortcut.command+k",
-    "shortcut.command+enter",
+    "shortcut.option+command+a",
+    "shortcut.control+shift+g",
+    "shortcut.control+keybackquote",
+    "shortcut.command+f",
+    "shortcut.command+p",
     "shortcut.command+t",
     "shortcut.command+b",
-    "shortcut.option+command+b",
+    "shortcut.command+shift+e",
+    "shortcut.option+command+shift+o",
+    "shortcut.control+shift+m",
+    "shortcut.command+o",
     "shortcut.command+j",
-    "shortcut.control+keybackquote",
+    "shortcut.option+command+b",
+    "shortcut.option+command+l",
+    "shortcut.control+shift+tab",
+    "shortcut.control+tab",
   ];
-  if (codexPreset.map((card) => card.entity).join("|") !== expectedCodexShortcuts.join("|")) {
-    throw new Error("Codex shortcut defaults changed");
+  if (codexPreset.slice(0, expectedCodexShortcuts.length).map((card) => card.entity).join("|") !== expectedCodexShortcuts.join("|")) {
+    throw new Error("Codex starter presets changed");
   }
   if (!codexPreset.every((card) => card.type === "companion" && companionShortcutActionIdValid(card.entity))) {
     throw new Error("Codex presets must contain only Companion keyboard shortcuts");
   }
-  const expectedCodexLabels = ["Command", "Approve", "Browser", "Sidebar", "Terminal (Bottom)", "Terminal (Side)", "Terminal (Side)"];
-  if (codexPreset.map((card) => card.label).join("|") !== expectedCodexLabels.join("|")) {
+  const expectedCodexLabels = [
+    "New Chat", "Command Menu", "Needs Attention", "Review Changes", "Terminal", "Find Text", "Find Files",
+    "Browser Tab", "Sidebar", "File Tree", "Project Picker", "Model / Effort", "Open Folder", "Bottom Panel",
+    "Chat / Tabs", "Copy Link", "Previous Chat", "Next Chat",
+  ];
+  if (codexPreset.slice(0, expectedCodexLabels.length).map((card) => card.label).join("|") !== expectedCodexLabels.join("|")) {
     throw new Error("Codex shortcut labels should stay short");
   }
   const slackFolderCard = {
@@ -352,18 +414,20 @@ export function runCompanionShortcutFeatureTests(): void {
     "shortcut.option+shift+down",
     "shortcut.command+k",
   ];
-  if (slackPreset.map((card) => card.entity).join("|") !== expectedSlackShortcuts.join("|")) {
-    throw new Error("Slack shortcut defaults changed");
+  if (slackPreset.slice(0, expectedSlackShortcuts.length).map((card) => card.entity).join("|") !== expectedSlackShortcuts.join("|")) {
+    throw new Error("Slack starter presets changed");
   }
   if (!slackPreset.every((card) => card.type === "companion" && companionShortcutActionIdValid(card.entity))) {
     throw new Error("Slack presets must contain only Companion keyboard shortcuts");
   }
+  if (slackPreset[0]?.icon !== "Chat Plus") {
+    throw new Error("The Slack New Message preset should use the compose icon");
+  }
   const expectedSlackLabels = [
-    "Compose a new message", "Start a search", "Browse DMs", "Jump to most recent unread",
-    "Open the All Unread view", "Search chat", "Show keyboard shortcuts",
-    "Previous unread conversation", "Next unread conversation", "Quick switch to channel or DM",
+    "New Message", "Search", "Browse DMs", "Jump Unread", "All Unread",
+    "Search chat", "Shortcuts", "Previous Unread", "Next Unread", "Quick Switch",
   ];
-  if (slackPreset.map((card) => card.label).join("|") !== expectedSlackLabels.join("|")) {
+  if (slackPreset.slice(0, expectedSlackLabels.length).map((card) => card.label).join("|") !== expectedSlackLabels.join("|")) {
     throw new Error("Slack shortcut labels should stay short");
   }
   if (companionShortcutActionIdValid("shortcut.") ||
@@ -379,7 +443,8 @@ export function runCompanionShortcutFeatureTests(): void {
     }
   }
   const safariSubpage = createSafariShortcutSubpage();
-  if (safariSubpage.backLabel !== "Back" || safariSubpage.order.join("|") !== "B|1|2|3|4|5|6|7|8|9|10") {
+  const expectedSafariOrder = ["B", ...expectedSafariShortcuts.slice(0, 8).map((_shortcut, index) => String(index + 1))];
+  if (safariSubpage.backLabel !== "Back" || safariSubpage.order.join("|") !== expectedSafariOrder.join("|")) {
     throw new Error("Safari app subpage layout changed");
   }
   setCompanionShortcutTabs(safariFolderCard, ["3", "0"]);
@@ -396,7 +461,7 @@ export function runCompanionShortcutFeatureTests(): void {
   });
   selectedSafariSubpage.order.push("6");
   syncCompanionShortcutSubpage(SAFARI_BUNDLE_ID, ["3", "0"], selectedSafariSubpage);
-  if (selectedSafariSubpage.buttons.map((card: any) => card.label).join("|") !== "Open a new tab|Previous|Custom" ||
+  if (selectedSafariSubpage.buttons.map((card: any) => card.label).join("|") !== "New Tab|Previous|Custom" ||
       selectedSafariSubpage.order.join("|") !== "B|1|2||||3" ||
       companionShortcutTabsFromSubpage(SAFARI_BUNDLE_ID, selectedSafariSubpage).join("|") !== "3|0") {
     throw new Error("Changing shortcut choices must preserve custom cards and edited preset cards: " +
@@ -423,7 +488,8 @@ export function runCompanionShortcutFeatureTests(): void {
   const crossAppSubpage = createSafariShortcutSubpage();
   syncCompanionShortcutSubpage(SAFARI_BUNDLE_ID, ["0", "1", "2", "3", "4"], crossAppSubpage);
   crossAppSubpage.order = ["B", "1", "2", "3", "4", "5"];
-  crossAppSubpage.buttons.push({ ...codexPreset[2], label: "Pasted Browser" });
+  const codexBrowserPreset = codexPreset.find((card) => card.entity === "shortcut.command+t");
+  crossAppSubpage.buttons.push({ ...codexBrowserPreset, label: "Pasted Browser" });
   crossAppSubpage.order.push("6");
   syncCompanionShortcutSubpage(SAFARI_BUNDLE_ID, ["0"], crossAppSubpage);
   if (!crossAppSubpage.buttons.some((card: any) =>
@@ -473,13 +539,30 @@ export function runCompanionShortcutFeatureTests(): void {
     throw new Error("Users must be able to turn off every preset shortcut");
   }
   const codexSubpage = createCodexShortcutSubpage();
-  if (codexSubpage.backLabel !== "Back" || codexSubpage.order.join("|") !== "B|1|2|3|4|5|6|7" ||
-      codexSubpage.buttons.map((card: any) => card.entity).join("|") !== expectedCodexShortcuts.join("|")) {
+  const codexDefaults = [0, 1, 2, 3, 4, 6, 11, 7].map(index => codexPreset[index]);
+  if (codexSubpage.backLabel !== "Back" || codexSubpage.order.length !== codexDefaults.length + 1 ||
+      codexSubpage.order[0] !== "B" ||
+      codexSubpage.buttons.map((card: any) => card.entity).join("|") !== codexDefaults.map((card) => card?.entity).join("|")) {
     throw new Error("Codex app subpage layout changed");
   }
+  const savedApprove = {
+    ...codexPreset[0], entity: "shortcut.command+enter", label: "Approve", icon: "Check",
+    options: "app_shortcut_preset=com.openai.codex%3A1",
+  };
+  const existingCodexSubpage = { ...codexSubpage, buttons: [savedApprove], order: ["B", "1"] };
+  syncCompanionShortcutSubpage(CODEX_BUNDLE_ID, ["7"], existingCodexSubpage, 9);
+  if (existingCodexSubpage.buttons[0] !== savedApprove ||
+      existingCodexSubpage.buttons[1]?.entity !== "shortcut.command+n") {
+    throw new Error("Adding New Chat must preserve a previously saved Approve card");
+  }
   const slackSubpage = createSlackShortcutSubpage();
-  if (slackSubpage.backLabel !== "Back" || slackSubpage.order.join("|") !== "B|1|2|3|4|5|6|7|8|9|10" ||
-      slackSubpage.buttons.map((card: any) => card.entity).join("|") !== expectedSlackShortcuts.join("|")) {
+  const slackDefaults = [
+    "shortcut.command+k", "shortcut.command+g", "shortcut.command+n", "shortcut.command+shift+a",
+    "shortcut.scoped.command+shift+space", "shortcut.scoped.command+shift+t", "shortcut.command+f",
+    "shortcut.command+shift+k",
+  ];
+  if (slackSubpage.backLabel !== "Back" || slackSubpage.order.join("|") !== "B|1|2|3|4|5|6|7|8" ||
+      slackSubpage.buttons.map((card: any) => card.entity).join("|") !== slackDefaults.join("|")) {
     throw new Error("Slack app subpage layout changed");
   }
   const ipCard: any = { type: "companion", entity: "stat.ip_address:en1", icon: "Auto" };
@@ -667,27 +750,6 @@ export function runCompanionShortcutFeatureTests(): void {
     throw new Error("Leaving a generated statistic card must clear its generated presentation");
   }
 
-  if (COMPANION_WINDOW_ACTIONS.length !== 28) {
-    throw new Error("Companion window controls must expose the complete approved preset list");
-  }
-  const windowIds = new Set(COMPANION_WINDOW_ACTIONS.map((action) => action.id));
-  const additionalWindowIds = [
-    "window.top-left", "window.top-right", "window.bottom-left", "window.bottom-right",
-    "window.arrange.quarters", "window.fullscreen.enter", "window.fullscreen.exit",
-    "window.split.left", "window.split.right",
-  ];
-  if (windowIds.size !== COMPANION_WINDOW_ACTIONS.length || !windowIds.has("window.close")
-      || !windowIds.has("window.arrange.bottom-quarters")
-      || additionalWindowIds.some((id) => !windowIds.has(id))) {
-    throw new Error("Companion window action identifiers must be unique and complete");
-  }
-  if (companionCardMode({ entity: "window.left", sensor: "" }) !== "window") {
-    throw new Error("Window actions must restore as the Window controls subtype");
-  }
-  if (companionWindowActionLabel("window.center") !== "Centre"
-      || companionWindowActionLabel("window.unknown") !== "") {
-    throw new Error("Window actions must use allow-listed display labels");
-  }
   const offlineSavedApp = "com.apple.Safari";
   if (!companionApplicationActionIdCanSave([], offlineSavedApp, offlineSavedApp)
       || companionApplicationActionIdCanSave([], "com.apple.TextEdit", offlineSavedApp)) {
@@ -741,10 +803,16 @@ export function runCompanionShortcutFeatureTests(): void {
   if (companionUrlConfig("https://example.com/" + "a".repeat(200)) !== "") {
     throw new Error("Companion URL cards must stay within the main-grid storage limit");
   }
-  const urlCard = { entity: "com.apple.Safari", sensor: urlConfig, icon: "Monitor" };
+  const urlCard = { entity: "com.apple.Safari", sensor: urlConfig, icon: "Monitor", options: "" };
   normalizeCompanionCard(urlCard);
   if (urlCard.sensor !== urlConfig) throw new Error("Companion URL configuration must survive card normalization");
   if (urlCard.icon !== "Web") throw new Error("Existing URL cards must adopt the Web default icon");
+  if (urlCard.options !== "") throw new Error("Existing URL cards must default to a new tab");
+  const windowUrlCard = { ...urlCard, options: "url_open_behavior=new_window,app_shortcuts" };
+  normalizeCompanionCard(windowUrlCard);
+  if (windowUrlCard.options !== "url_open_behavior=new_window") {
+    throw new Error("URL cards must retain their new-window setting and drop app subpage options");
+  }
   const shortcutCard = { entity: "shortcut.command+a", sensor: "", icon: "Monitor" };
   normalizeCompanionCard(shortcutCard);
   if (shortcutCard.icon !== "Shortcut Command") {

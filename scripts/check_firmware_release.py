@@ -29,6 +29,7 @@ CHIP = "ESP32-S3"
 PROJECT_NAME = "jtenniswood.espdesktop"
 ESPHOME_ENV = Path(__file__).resolve().parents[1] / ".github" / "esphome.env"
 RELEASE_WORKFLOW = Path(__file__).resolve().parents[1] / ".github" / "workflows" / "release.yml"
+PUBLISH_WORKFLOW = Path(__file__).resolve().parents[1] / ".github" / "workflows" / "publish-release.yml"
 PAGES_WORKFLOW = Path(__file__).resolve().parents[1] / ".github" / "workflows" / "pages.yml"
 FIRMWARE_COMPILE_WORKFLOW = Path(__file__).resolve().parents[1] / ".github" / "workflows" / "firmware-compile.yml"
 NIGHTLY_FIRMWARE_WORKFLOW = Path(__file__).resolve().parents[1] / ".github" / "workflows" / "nightly-firmware.yml"
@@ -64,20 +65,8 @@ def project_version_string(version: str) -> str:
     return f"Project {PROJECT_NAME} version {version}"
 
 
-def release_image_strings(version: str, *extra: str) -> tuple[str, ...]:
-    return (
-        version,
-        project_version_string(version),
-        "package_import_url",
-        version,
-        PROJECT_NAME,
-        "project_version",
-        *extra,
-    )
-
-
 def write_release_image(path: Path, version: str, *extra: str) -> None:
-    write_image(path, *release_image_strings(version, *extra))
+    write_image(path, project_version_string(version), *extra)
 
 
 def run_ok(args: list[str]) -> None:
@@ -167,7 +156,7 @@ def test_release_workflow_uses_current_ota_output() -> None:
     assert "scripts/firmware_release.py generate-release-manifest" in workflow
     assert "scripts/firmware_release.py verify-release-manifest" in workflow
     assert "scripts/firmware_release.py verify-bundle" in workflow
-    assert "scripts/firmware_release.py publish-draft" in workflow
+    assert "scripts/firmware_release.py publish-draft" not in workflow
     assert "--source-revision" in workflow
     assert "scripts/firmware_release.py verify-recovery" in workflow
     assert "scripts/check_release_contract.py --github-repository" in workflow
@@ -188,6 +177,35 @@ def test_release_workflow_uses_current_ota_output() -> None:
     assert "name: Download release web assets" in workflow
     assert "dist/release-web-assets" in workflow
     assert "Include release web assets in distribution" in workflow
+
+    firmware_job = workflow.split("\n  build-firmware:", 1)[1].split("\n  assemble-release:", 1)[0]
+    editor_download = firmware_job.index("name: release-web-assets")
+    editor_verify = firmware_job.index("sha256sum -c -", editor_download)
+    editor_install = firmware_job.index('install -D -m 644 "${EDITOR}" docs/public/webserver/embedded/www.js', editor_verify)
+    assert editor_install < firmware_job.index("name: Compile firmware")
+    assert "needs.preflight.outputs.embedded_editor_sha256" in firmware_job
+    preflight = workflow.split("\n  preflight:", 1)[1].split("\n  device-matrix:", 1)[0]
+    prepare_web = preflight.split("name: Prepare release web assets", 1)[1]
+    assert prepare_web.index("node scripts/check_web_asset_manifest.js") < prepare_web.index("name: Upload release web assets")
+
+
+def test_publication_requires_tested_candidate() -> None:
+    build = RELEASE_WORKFLOW.read_text(encoding="utf-8")
+    publish = PUBLISH_WORKFLOW.read_text(encoding="utf-8")
+    assert "name: release-candidate-compatibility" in build
+    assert "name: release-candidate-compatibility" in publish
+    assert '.conclusion == "success"' in publish and ".head_sha == $source" in publish
+    assert '.workflow_id == $workflow' in publish
+    assert 'confirmed_fingerprint:\n        description:' in publish
+    assert 'CONFIRMED_FINGERPRINT: ${{ inputs.confirmed_fingerprint }}' in publish
+    assert publish.count("run-id: ${{ inputs.candidate_run }}") == 3
+    pages_upload = publish.split("name: Make the tested editor available to Pages", 1)[1]
+    pages_upload = pages_upload.split("name: Upload, verify, and publish draft release", 1)[0]
+    assert "overwrite: true" in pages_upload, "Publication retries must replace the verified Pages artifact"
+    assert publish.index('--tested-fingerprint "${CONFIRMED_FINGERPRINT}"') < publish.index(
+        "scripts/firmware_release.py publish-draft"
+    )
+    assert 'workflows: ["Publish Release"]' in PAGES_WORKFLOW.read_text(encoding="utf-8")
 
 
 def test_device_matrix_sparse_checkouts_include_product_model() -> None:
@@ -217,7 +235,11 @@ def test_pages_excludes_draft_prereleases() -> None:
     assert "name: Download verified release web assets" in workflow
     assert "run-id: ${{ github.event.workflow_run.id }}" in workflow
     assert "name: Use verified release web assets" in workflow
-    assert "if: github.event_name != 'workflow_run'" in workflow
+    prepare = workflow.index("name: Prepare published release web assets")
+    verify = workflow.index("name: Verify rebuilt hosted editor", prepare)
+    assert verify < workflow.index("name: Build docs", verify)
+    assert "if: github.event_name != 'workflow_run'" in workflow[verify:]
+    assert "node scripts/check_web_asset_manifest.js --manifest-only" in workflow[verify:]
 
 
 def test_release_skill_creates_selected_tag_before_draft() -> None:
@@ -541,8 +563,10 @@ def test_recovery_sources_and_documentation_stay_complete() -> None:
         normal_factory = ROOT / "builds" / f"{slug}.factory.yaml"
         assert "esp32_c6_recovery" not in normal_factory.read_text(encoding="utf-8")
 
-    install = (ROOT / "docs/getting-started/install.md").read_text(encoding="utf-8")
-    assert "https://jtenniswood.github.io/espcontrol/getting-started/c6-recovery" in install
+    troubleshooting = (ROOT / "docs/getting-started/troubleshooting.md").read_text(
+        encoding="utf-8"
+    )
+    assert "https://jtenniswood.github.io/espcontrol/getting-started/c6-recovery" in troubleshooting
     firmware_updates = (ROOT / "docs/features/firmware-updates.md").read_text(encoding="utf-8")
     assert "/getting-started/c6-recovery" in firmware_updates
     screen_docs = {
@@ -621,6 +645,22 @@ def test_placeholder_fails() -> None:
             "--factory", str(factory),
             "--ota", str(ota),
         ])
+
+
+def test_legacy_api_project_version() -> None:
+    with TemporaryDirectory() as tmp:
+        image = Path(tmp) / "firmware.ota.bin"
+        startup_version = project_version_string(VERSION)
+        write_image(image, startup_version, "package_import_url", VERSION, PROJECT_NAME, "project_version")
+        firmware_release.assert_binary_version(image, VERSION)
+
+        write_image(image, startup_version, "package_import_url", "v0.0.1", PROJECT_NAME, "project_version")
+        try:
+            firmware_release.assert_binary_version(image, VERSION)
+        except firmware_release.FirmwareReleaseError as error:
+            assert "API project metadata" in str(error)
+        else:
+            raise AssertionError("mismatched legacy API project metadata was accepted")
 
 
 def test_unrelated_placeholder_strings_pass() -> None:
@@ -909,6 +949,7 @@ def test_public_pages_verification() -> None:
 def main() -> int:
     test_esphome_env_format()
     test_release_workflow_uses_current_ota_output()
+    test_publication_requires_tested_candidate()
     test_device_matrix_sparse_checkouts_include_product_model()
     test_pages_excludes_draft_prereleases()
     test_release_skill_creates_selected_tag_before_draft()
@@ -916,6 +957,7 @@ def main() -> int:
     test_legacy_web_bundle_selection()
     test_web_bundle_compatibility_aliases()
     test_placeholder_fails()
+    test_legacy_api_project_version()
     test_unrelated_placeholder_strings_pass()
     test_wrong_manifest_version_fails()
     test_missing_chip_family_fails()

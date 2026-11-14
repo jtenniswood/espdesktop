@@ -5,15 +5,11 @@ import {
     normalizeHour,
     normalizeTimeOfDay,
 } from "../model/settings";
-import { setSelectValue } from "./ui_primitives";
-import { timedSettingLabel, type SettingsUiFeature } from "../features/settings";
+import type { SettingsUiFeature } from "../features/settings";
 
 import type { ScreensaverController } from "../features/screensaver_controller";
-import type { CoverArtScreensaverController } from "../features/cover_art_screensaver_controller";
-import type { MediaPlaybackController } from "../features/media_playback_controller";
 import type { ConfigCodecFeature } from "./config_codec";
 import type { UiRuntimeState } from "./state";
-import type { ApplicationLayoutState } from "./application_context";
 import type { ScreenScheduleStateFeature } from "./screen_schedule_state";
 import type { ClockBarFeature } from "./clock_bar_state";
 import type { EntityStateFeature } from "./entity_state";
@@ -22,17 +18,13 @@ import type { ApplicationApiFeature } from "./api";
 import type { AppStatusPreviewFeature } from "./app_status_preview";
 import type { ClockBarPostApiFeature } from "./clock_bar_post_api";
 import type { ControlsFieldsFeature } from "./controls_fields";
-import type { ArtworkPostApiFeature } from "./artwork_post_api";
 
 export interface SettingsPageHelpersControllers {
     readonly settingsUiFeature: SettingsUiFeature;
 
     readonly screensaver: ScreensaverController;
-    readonly coverArtScreensaver: CoverArtScreensaverController;
-    readonly mediaPlayback: MediaPlaybackController;
     readonly codec: Pick<ConfigCodecFeature, "bindTextPost">;
     readonly runtime: UiRuntimeState;
-    readonly layout: ApplicationLayoutState;
     readonly screenScheduleState: ScreenScheduleStateFeature;
     readonly clockBar: Pick<ClockBarFeature, "syncUi">;
     readonly entityState: Pick<EntityStateFeature, "entityInput" | "entityName">;
@@ -44,21 +36,14 @@ export interface SettingsPageHelpersControllers {
 }
 
 export interface SettingsPageHelpersFeature {
-    coverArtScreensaverState(...args: any[]): any;
-    applyCoverArtScreensaverState(...args: any[]): any;
-    mediaPlaybackState(...args: any[]): any;
-    applyMediaPlaybackState(...args: any[]): any;
     settingsStatusHeader(...args: any[]): any;
     appendSettingsSection(...args: any[]): any;
 
-    coverArtTrackOverlayDurationSupported(...args: any[]): any;
     infoPanel(...args: any[]): any;
     statusBadge(...args: any[]): any;
     disclosureBadge(...args: any[]): any;
     inlineDisclosure(...args: any[]): any;
     syncClockScreensaverControls(...args: any[]): any;
-    syncMediaPlayerSleepPreventionUi(...args: any[]): any;
-    syncCoverArtScreensaverUi(...args: any[]): any;
     syncOptionalClockBrightness(...args: any[]): any;
     createScreensaverThenControls(...args: any[]): any;
     createHourSelect(...args: any[]): any;
@@ -94,15 +79,13 @@ export function createSettingsPageHelpersFeature(
         postSwitch,
     } = controllers.requestApi;
     const els = controllers.runtime.els;
-    const { formatDuration, formatHour } = controllers.screenScheduleState;
+    const { formatHour } = controllers.screenScheduleState;
     const { syncUi: syncClockBarUi } = controllers.clockBar;
     // ── Settings Page Helpers ──────────────────────────────────────────
     // ── Settings UI helpers ─────────────────────────────────────────────
     const _settingsUiFeature: SettingsUiFeature = controllers.settingsUiFeature;
 
     const _screensaverController: ScreensaverController = controllers.screensaver;
-    const _coverArtScreensaverController: CoverArtScreensaverController = controllers.coverArtScreensaver;
-    const _mediaPlaybackController: MediaPlaybackController = controllers.mediaPlayback;
 
     function screensaverState(this: any) {
         return {
@@ -123,36 +106,6 @@ export function createSettingsPageHelpersFeature(
         state.screensaverDimmedBrightnessNight = next.dimBrightnessNight;
         state.clockScreensaverOn = next.action === "clock";
     }
-    function coverArtScreensaverState(this: any) {
-        return {
-            enabled: !!state.coverArtScreensaverOn,
-            delay: state.coverArtDelay,
-            trackOverlayDuration: state.coverArtTrackOverlayDuration,
-            hideExternalInput: !!state.coverArtHideExternalInputOn,
-            filteringEnabled: !!state.coverArtFilteringEnabled,
-            attributeConditions: state.coverArtAttributeConditions || "",
-        };
-    }
-    function applyCoverArtScreensaverState(this: any, next?: any) {
-        state.coverArtScreensaverOn = next.enabled;
-        state.coverArtDelay = next.delay;
-        state.coverArtTrackOverlayDuration = next.trackOverlayDuration;
-        state.coverArtHideExternalInputOn = next.hideExternalInput;
-        state.coverArtFilteringEnabled = next.filteringEnabled;
-        state.coverArtAttributeConditions = next.attributeConditions;
-    }
-    function mediaPlaybackState(this: any) {
-        return {
-            sleepPreventionEnabled: !!state.mediaPlayerSleepPreventionOn,
-            sleepPreventionEntity: state.mediaPlayerSleepPreventionEntity || "",
-            coverArtEntity: state.coverArtMediaPlayerEntity || "",
-        };
-    }
-    function applyMediaPlaybackState(this: any, next?: any) {
-        state.mediaPlayerSleepPreventionOn = next.sleepPreventionEnabled;
-        state.mediaPlayerSleepPreventionEntity = next.sleepPreventionEntity;
-        state.coverArtMediaPlayerEntity = next.coverArtEntity;
-    }
     function settingsStatusHeader(this: any, title?: any) {
         return _settingsUiFeature.settingsStatusHeader(title);
     }
@@ -160,9 +113,6 @@ export function createSettingsPageHelpersFeature(
         _settingsUiFeature.appendSettingsSection(parent, title, cards);
     }
 
-    function coverArtTrackOverlayDurationSupported(this: any) {
-        return !!controllers.layout.config.coverArtSquareOverlay;
-    }
     function infoPanel(this: any, id?: any, text?: any) {
         return _settingsUiFeature.infoPanel(id, text);
     }
@@ -273,58 +223,6 @@ export function createSettingsPageHelpersFeature(
             els.setCompanionClockBrightnessNight.value = state.clockBrightnessNight;
             els.setCompanionClockBrightnessNightVal.textContent = controlState.nightBrightnessLabel;
         }
-    }
-    function syncMediaPlayerSleepPreventionUi(this: any) {
-        var uiState: any = _mediaPlaybackController.uiState(mediaPlaybackState());
-        if (els.setMediaPlayerSleepPreventionToggle) {
-            els.setMediaPlayerSleepPreventionToggle.checked = uiState.sleepPreventionEnabled;
-        }
-        if (els.setSensorMediaPlayerSleepPreventionToggle) {
-            els.setSensorMediaPlayerSleepPreventionToggle.checked = uiState.sleepPreventionEnabled;
-        }
-    }
-    function syncCoverArtScreensaverUi(this: any) {
-        applyCoverArtScreensaverState(_coverArtScreensaverController.normalize(coverArtScreensaverState()));
-        var uiState: any = _coverArtScreensaverController.uiState(coverArtScreensaverState());
-        if (els.setCoverArtPlaybackControlToggle) {
-            els.setCoverArtPlaybackControlToggle.checked = state.coverArtPlaybackControlOn;
-        }
-        if (els.setCoverArtToggle) {
-            els.setCoverArtToggle.checked = !!state.coverArtScreensaverOn;
-        }
-        if (els.setClockOverlayToggle) {
-            els.setClockOverlayToggle.checked = !!state.clockOverlayOn;
-        }
-        if (els.setCoverArtOptions) {
-            els.setCoverArtOptions.classList.toggle("sp-visible", uiState.contentVisible);
-        }
-        if (els.setCoverArtOnlyOptions) {
-            els.setCoverArtOnlyOptions.classList.toggle("sp-visible", uiState.contentVisible);
-        }
-        if (els.setCoverArtBadge) {
-            els.setCoverArtBadge.className = "sp-card-badge" + (uiState.badgeVisible ? "" : " sp-hidden");
-        }
-        if (els.setCoverArtDelay) {
-            setSelectValue(els.setCoverArtDelay, state.coverArtDelay, formatDuration(state.coverArtDelay));
-        }
-        if (els.setCoverArtTrackOverlayDuration) {
-            var value: any = state.coverArtTrackOverlayDuration;
-            setSelectValue(els.setCoverArtTrackOverlayDuration, value, timedSettingLabel(value, formatDuration));
-        }
-        if (els.setCoverArtHideExternalInputToggle) {
-            els.setCoverArtHideExternalInputToggle.checked = !state.coverArtHideExternalInputOn;
-        }
-        if (els.setCoverArtSecondaryMediaPlayerOptions) {
-            els.setCoverArtSecondaryMediaPlayerOptions.classList.toggle(
-                "sp-visible", uiState.externalSourcesVisible);
-        }
-        if (els.setCoverArtFilterToggle) {
-            els.setCoverArtFilterToggle.checked = !!state.coverArtFilteringEnabled;
-        }
-        if (els.setCoverArtFilterOptions) {
-            els.setCoverArtFilterOptions.classList.toggle("sp-visible", uiState.filterOptionsVisible);
-        }
-        syncInput(els.setCoverArtConditions, state.coverArtAttributeConditions || "");
     }
     function syncOptionalClockBrightness(this: any, field?: any, previousField?: any, display?: any) {
         if (field)
@@ -492,13 +390,9 @@ export function createSettingsPageHelpersFeature(
         return { toggle: toggle, field: field, input: inp };
     }
     return {
-        coverArtScreensaverState, applyCoverArtScreensaverState,
-        mediaPlaybackState, applyMediaPlaybackState, settingsStatusHeader,
-        appendSettingsSection,
-         coverArtTrackOverlayDurationSupported,
+        settingsStatusHeader, appendSettingsSection,
         infoPanel, statusBadge, disclosureBadge, inlineDisclosure,
-        syncClockScreensaverControls, syncMediaPlayerSleepPreventionUi,
-        syncCoverArtScreensaverUi, syncOptionalClockBrightness,
+        syncClockScreensaverControls, syncOptionalClockBrightness,
         createScreensaverThenControls, createHourSelect, createTimeInput,
         createEntityToggleSection,
     };

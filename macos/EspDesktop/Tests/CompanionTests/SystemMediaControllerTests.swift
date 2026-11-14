@@ -154,7 +154,7 @@ final class SystemMediaControllerTests: XCTestCase {
         }
         XCTAssertEqual(audio.writes, 0)
         audio.nativeMutes.removeAll()
-        XCTAssertTrue(controller.values().isEmpty)
+        XCTAssertTrue(controller.values().keys.allSatisfy { $0 == SystemMediaController.brightnessID })
         XCTAssertFalse(controller.setValue(100, controlIdentifier: SystemMediaController.inputMuteID))
     }
 

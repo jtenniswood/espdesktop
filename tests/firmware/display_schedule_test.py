@@ -6,6 +6,7 @@ code. Hardware, rendering and unrelated scripts are doubles. The small script
 runner models restart, delay and wait so both periodic callback orders execute.
 """
 import argparse
+import json
 from pathlib import Path
 import subprocess
 import tempfile
@@ -23,9 +24,24 @@ def generate(root):
     for filename in ("backlight.yaml", "backlight_schedule.yaml"):
         text = (root / "common/addon" / filename).read_text()
         scripts.update({s["id"]: s for s in yaml.load(text[text.index("script:\n"):], Loader)["script"]})
+    button_order = yaml.load((root / "common/config/button_order.yaml").read_text(), Loader)
+    scripts["save_button_order"] = button_order["text"][0]["on_value"]
+    layout_scripts = {script["id"]: script for script in button_order.get("script", [])}
+    scripts.update(layout_scripts)
+    board = (root / "devices/guition-esp32-s3-4848s040/device/sensors.yaml").read_text()
+    grid_scripts = {
+        script["id"]: script for script in yaml.load(board.split("\nesphome:\n", 1)[0], Loader)["script"]
+        if script["id"] in {"apply_button_grid", "refresh_button_grid"}
+    }
+    scripts.update(grid_scripts)
     selected = {"display_mode_reconcile", "screen_schedule_check", "screen_schedule_wake",
+                "screen_schedule_boot_guard",
                 "display_mode_apply_transition", "display_mode_effect_active",
-                "display_active_finalize", "screensaver_idle_check"}
+                "display_active_finalize", "screensaver_idle_check",
+                "screen_schedule_wake_timeout_check",
+                "screensaver_companion_reconcile", "screensaver_sleep_timer",
+                "display_mode_request_automatic", "display_mode_clear_automatic",
+                "save_button_order", *grid_scripts, *layout_scripts}
     # Exercise the entire ACTIVE branch, including the guarded completion and
     # finalizer call. Other presentation modes are hardware doubles below.
     adapter = scripts["display_mode_apply_transition"]["then"][0]["if"]["then"]
@@ -51,6 +67,8 @@ def generate(root):
             elif kind == "delay":
                 if isinstance(value, str) and value.endswith("ms"):
                     duration = value[:-2]
+                elif isinstance(value, str) and value.endswith("s") and value[:-1].isdigit():
+                    duration = str(1000 * int(value[:-1]))
                 else:
                     duration = f"([] {{ {value} }})()"
                 result.append(f"pause([&] {{ return {duration}; }})")
@@ -75,7 +93,7 @@ def generate(root):
 
     setups = [f"{name}.steps = {actions(scripts[name]['then'], name)};" for name in sorted(selected)]
     helpers = (root / "components/espdesktop/backlight.h").read_text()
-    helpers = helpers[helpers.index("inline bool screen_schedule_in_window"):helpers.index("inline bool screen_schedule_blocks_cover_art")]
+    helpers = helpers[helpers.index("inline bool screen_schedule_in_window"):helpers.index("inline bool screensaver_action_clock_mode")]
     return ("\n".join(f"Script {s};" for s in sorted(declarations)), "\n".join(setups), helpers)
 
 def main():
@@ -86,6 +104,14 @@ def main():
     declarations, setup, helpers = generate(args.root)
     source = (ROOT / "tests/firmware/display_schedule_test.cpp.in").read_text()
     source = source.replace("// SCRIPT_DECLARATIONS", declarations).replace("// SCRIPT_SETUP", setup).replace("// SCHEDULE_HELPERS", helpers)
+    fixtures = json.loads((ROOT / "compatibility/fixtures/panel_settings_records.json").read_text())
+    assertions = [
+        f"  assert({'' if group == 'valid' else '!'}parse_{name}({json.dumps(value)}));"
+        for name, records in fixtures.items()
+        for group, values in records.items()
+        for value in values
+    ]
+    source = source.replace("  // PANEL_SETTING_FIXTURES", "\n".join(assertions))
     with tempfile.TemporaryDirectory() as tmp:
         cpp, binary = Path(tmp) / "test.cpp", Path(tmp) / "test"
         cpp.write_text(source)

@@ -1,0 +1,71 @@
+{
+  "scalar_settings": {
+    "screen_clock_bar": { "default": "0", "type": "switch" },
+    "screen_clock_bar_time": { "default": "1", "type": "switch" },
+    "screen_clock_bar_night_mode": { "default": "0", "type": "switch" },
+    "screen_network_status_icon": { "default": "1", "type": "switch" },
+    "screen_battery_status": { "default": "0", "type": "switch" },
+    "screen_subpage_title_bar": { "default": "1", "type": "switch" },
+    "screen_subpage_chevron": { "default": "1", "type": "switch" },
+    "companion_auto_open_app_subpages": { "default": "1", "type": "switch" },
+    "companion_return_home_on_app_switch": { "default": "1", "type": "switch" },
+    "screen_default_icon_size": { "default": "Large", "choices": ["Small", "Medium", "Large"] },
+    "screen_card_curve": { "default": "Large", "choices": ["Small", "Medium", "Large"] },
+    "screensaver_mode": { "default": "disabled", "choices": ["disabled", "timer", "companion"] },
+    "screen_saver_action": { "default": "Display Off", "choices": ["Display Off", "Screen Dimmed", "Clock"] },
+    "screen_saver_show_date": { "default": "0", "type": "switch" },
+    "screensaver_timeout": { "default": 1800, "min": 10, "max": 3600 },
+    "screen_saver_dimmed_brightness": { "default": 10, "min": 1, "max": 100 },
+    "screen_saver_daytime_dimmed_brightness": { "default": 10, "min": 1, "max": 100 },
+    "screen_saver_nighttime_dimmed_brightness": { "default": 10, "min": 1, "max": 100 },
+    "screen_saver_daytime_clock_brightness": { "default": 35, "min": 1, "max": 100 },
+    "screen_saver_nighttime_clock_brightness": { "default": 35, "min": 1, "max": 100 },
+    "screen_clock_format": { "default": "24h", "time_select": "clock_format_select" },
+    "screen_language": { "default": "en", "time_select": "language_select" },
+    "screen_timezone": { "default": "Auto (Mac Companion)", "time_select": "timezone_select" },
+    "screen_ntp_server_1": { "default": "0.pool.ntp.org", "ascii_text_max": 100 },
+    "screen_ntp_server_2": { "default": "1.pool.ntp.org", "ascii_text_max": 100 },
+    "screen_ntp_server_3": { "default": "2.pool.ntp.org", "ascii_text_max": 100 },
+    "screen_rotation": { "default": "180", "device_rotation": true },
+    "firmware_auto_update": { "default": "1", "type": "switch" },
+    "firmware_update_frequency": { "default": "Daily", "choices": ["Hourly", "Daily", "Weekly", "Monthly"] },
+    "esp32_c6_auto_update": { "default": "1", "type": "switch" }
+  },
+  "screen_schedule_preferences": {
+    "version": 1,
+    "fields": {
+      "enabled": ["0", "1"],
+      "on_hour": { "min": 0, "max": 23 },
+      "off_hour": { "min": 0, "max": 23 },
+      "night_mode": ["off", "dim", "always", "clock"],
+      "wake_timeout": { "min": 10, "max": 3600 },
+      "wake_brightness": { "min": 10, "max": 100 },
+      "dimmed_brightness": { "min": 1, "max": 100 },
+      "clock_brightness": { "min": 1, "max": 100 },
+      "clock_color": { "hex": 6 }
+    }
+  },
+  "display_brightness_preferences": {
+    "version": 1,
+    "fields": {
+      "manual": ["0", "1"],
+      "use_sun": ["0", "1"],
+      "manual_level": { "min": 1, "max": 10000 },
+      "daytime": { "min": 10, "max": 100 },
+      "nighttime": { "min": 10, "max": 100 },
+      "dawn_minute": { "min": 0, "max": 1439 },
+      "dusk_minute": { "min": 0, "max": 1439 }
+    }
+  },
+  "display_theme_preferences": {
+    "version": 1,
+    "fields": {
+      "mode": ["dark", "light", "auto"],
+      "auto_method": ["time", "sun"],
+      "light_start": { "min": 0, "max": 1439 },
+      "dark_start": { "min": 0, "max": 1439 },
+      "sunrise_offset": { "min": -180, "max": 180 },
+      "sunset_offset": { "min": -180, "max": 180 }
+    }
+  }
+}

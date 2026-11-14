@@ -3,42 +3,95 @@
   "appId": "com.apple.Music",
   "label": "Music",
   "catalog": false,
+  "defaultShortcutIds": ["6", "11", "10", "13", "4", "16", "17", "36"],
   "shortcuts": [
     {
       "id": "0",
-      "label": "Stop playing the selected song",
+      "label": "Stop",
       "shortcut": "command+keyperiod",
-      "icon": "Play"
+      "icon": "Stop"
     },
     {
       "id": "1",
-      "label": "Create a new playlist",
+      "label": "New Playlist",
       "shortcut": "command+n",
-      "icon": "Plus"
+      "icon": "Playlist Plus"
     },
     {
       "id": "2",
-      "label": "Create a playlist from a selection of songs",
+      "label": "Playlist Selection",
       "shortcut": "shift+command+n",
-      "icon": "Plus"
+      "icon": "Playlist Plus"
     },
     {
       "id": "3",
-      "label": "Create a new Smart Playlist",
+      "label": "Smart Playlist",
       "shortcut": "option+command+n",
-      "icon": "Plus"
+      "icon": "Playlist Edit"
     },
     {
       "id": "4",
-      "label": "Select the search field",
+      "label": "Search",
       "shortcut": "command+f",
       "icon": "Search"
     },
     {
       "id": "5",
-      "label": "Search the iTunes Store",
+      "label": "Search Store",
       "shortcut": "option+enter",
       "icon": "Search"
     }
+  ],
+  "moreShortcuts": [
+    {"id": "6", "label": "Start playing or pause selected song", "shortcut": "scoped.space", "icon": "Pause"},
+    {"id": "7", "label": "Play selected song from beginning", "shortcut": "scoped.enter", "icon": "Play"},
+    {"id": "8", "label": "Move forward or backward within song", "shortcut": "scoped.command+option+right", "icon": "Arrow Right"},
+    {"id": "9", "label": "Move forward or backward within song", "shortcut": "scoped.command+option+left", "icon": "Arrow Right"},
+    {"id": "10", "label": "When song is playing, play next song in list", "shortcut": "scoped.right", "icon": "Play"},
+    {"id": "11", "label": "When song is playing, play previous song", "shortcut": "scoped.left", "icon": "Play"},
+    {"id": "12", "label": "Show currently playing song in list", "shortcut": "scoped.command+l", "icon": "Shortcut Command"},
+    {"id": "13", "label": "Show queue", "shortcut": "scoped.command+option+u", "icon": "Shortcut Command"},
+    {"id": "14", "label": "Play next album in list", "shortcut": "scoped.option+right", "icon": "Play"},
+    {"id": "15", "label": "Play previous album in list", "shortcut": "scoped.option+left", "icon": "Play"},
+    {"id": "16", "label": "Increase volume", "shortcut": "scoped.command+up", "icon": "Volume Up"},
+    {"id": "17", "label": "Decrease volume", "shortcut": "scoped.command+down", "icon": "Volume Down"},
+    {"id": "18", "label": "Open equalizer", "shortcut": "scoped.command+option+e", "icon": "Open File"},
+    {"id": "19", "label": "Next or last chapter", "shortcut": "scoped.command+shift+right", "icon": "Arrow Right"},
+    {"id": "20", "label": "Next or last chapter", "shortcut": "scoped.command+shift+left", "icon": "Arrow Right"},
+    {"id": "21", "label": "Stream audio file at specific URL to Music", "shortcut": "scoped.command+u", "icon": "Audio Settings"},
+    {"id": "22", "label": "Start Genius Shuffle", "shortcut": "scoped.option+space", "icon": "Shuffle"},
+    {"id": "23", "label": "Refresh Genius Playlist", "shortcut": "scoped.command+r", "icon": "Refresh"},
+    {"id": "24", "label": "Delete selected song", "shortcut": "scoped.delete", "icon": "Delete"},
+    {"id": "25", "label": "Delete selected song", "shortcut": "scoped.command+delete", "icon": "Delete"},
+    {"id": "26", "label": "Delete selected song", "shortcut": "scoped.option+delete", "icon": "Delete"},
+    {"id": "27", "label": "Add file (import) to your library", "shortcut": "scoped.command+o", "icon": "Import"},
+    {"id": "28", "label": "Show where song file is located", "shortcut": "scoped.command+shift+r", "icon": "Open File"},
+    {"id": "29", "label": "Undo your last typing change while editing", "shortcut": "scoped.command+z", "icon": "Undo"},
+    {"id": "30", "label": "Cut selected song's information or artwork", "shortcut": "scoped.command+x", "icon": "Cut"},
+    {"id": "31", "label": "Copy selected song's information or artwork", "shortcut": "scoped.command+c", "icon": "Copy"},
+    {"id": "32", "label": "Paste selected song's information or artwork", "shortcut": "scoped.command+v", "icon": "Paste"},
+    {"id": "33", "label": "Select all songs in list", "shortcut": "scoped.command+a", "icon": "Select All"},
+    {"id": "34", "label": "Toggle column browser", "shortcut": "scoped.command+b", "icon": "View Grid"},
+    {"id": "35", "label": "Deselect all songs in list", "shortcut": "scoped.command+shift+a", "icon": "Deselect"},
+    {"id": "36", "label": "Toggle MiniPlayer", "shortcut": "scoped.command+option+m", "icon": "Open File"},
+    {"id": "37", "label": "Toggle MiniPlayer", "shortcut": "scoped.command+shift+m", "icon": "Open File"},
+    {"id": "38", "label": "Toggle Full Screen Player", "shortcut": "scoped.command+shift+f", "icon": "Full Screen Exit"},
+    {"id": "39", "label": "Toggle status bar", "shortcut": "scoped.command+keyslash", "icon": "Eye Off"},
+    {"id": "40", "label": "Open Info window for selected song", "shortcut": "scoped.command+i", "icon": "Application"},
+    {"id": "41", "label": "Shortcut", "shortcut": "scoped.command+keybracketleft", "icon": "Arrow Right"},
+    {"id": "42", "label": "Shortcut", "shortcut": "scoped.command+keybracketright", "icon": "Arrow Right"},
+    {"id": "43", "label": "Open View Options window", "shortcut": "scoped.command+j", "icon": "Settings"},
+    {"id": "44", "label": "Turn visualizer on or off", "shortcut": "scoped.command+t", "icon": "Shortcut Command"},
+    {"id": "45", "label": "Refresh Apple Music or iTunes Store", "shortcut": "scoped.command+r", "icon": "Refresh"},
+    {"id": "46", "label": "Open Music window", "shortcut": "scoped.command+0", "icon": "Application"},
+    {"id": "47", "label": "Close Music window", "shortcut": "scoped.command+w", "icon": "Application"},
+    {"id": "48", "label": "Put Music window in Dock", "shortcut": "scoped.command+m", "icon": "Application"},
+    {"id": "49", "label": "Hide all other apps", "shortcut": "scoped.command+option+h", "icon": "Eye Off"},
+    {"id": "50", "label": "Next page in iTunes Store", "shortcut": "scoped.command+keybracketright", "icon": "Page Next"},
+    {"id": "51", "label": "Previous page in iTunes Store", "shortcut": "scoped.command+keybracketleft", "icon": "Page Previous"},
+    {"id": "52", "label": "Reload page", "shortcut": "scoped.command+r", "icon": "Book"},
+    {"id": "53", "label": "Open Music settings", "shortcut": "scoped.command+keycomma", "icon": "Settings"},
+    {"id": "54", "label": "Eject CD", "shortcut": "scoped.command+e", "icon": "Shortcut Command"},
+    {"id": "55", "label": "Open Music Help menu", "shortcut": "scoped.command+shift+keyslash", "icon": "Help"}
   ]
 }

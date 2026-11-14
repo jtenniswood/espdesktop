@@ -10,9 +10,9 @@
   },
   "summary": {
     "deviceProfiles": 9,
-    "cardTypes": 32,
-    "entityNames": 104,
-    "icons": 259,
+    "cardTypes": 33,
+    "entityNames": 92,
+    "icons": 360,
     "structuralIcons": 39,
     "compatibilityFixtureGroups": 2
   },
@@ -44,6 +44,7 @@
           "180",
           "270"
         ],
+        "default": "180",
         "displayOffset": 180,
         "rotateWidthCompensation": true
       },
@@ -140,40 +141,6 @@
             "density": "comfortable",
             "memoryTier": "standard",
             "baseTouchTarget": 57
-          },
-          "coverArt": {
-            "cover_art_size": "600",
-            "cover_art_decode_size": "600",
-            "cover_art_x": "0",
-            "cover_art_y": "0",
-            "cover_art_accent_x": "585",
-            "cover_art_accent_y": "0",
-            "cover_art_accent_width": "439",
-            "cover_art_accent_height": "600",
-            "cover_art_accent_bg_opa": "100%",
-            "cover_art_accent_opa": "100%",
-            "cover_art_panel_x": "615",
-            "cover_art_panel_y": "34",
-            "cover_art_panel_width": "377",
-            "cover_art_panel_height": "430",
-            "cover_art_panel_pad_top": "0",
-            "cover_art_panel_pad_bottom": "0",
-            "cover_art_panel_pad_left": "0",
-            "cover_art_panel_pad_right": "0",
-            "cover_art_panel_pad_row": "0",
-            "cover_art_title_font": "font_cover_art_title",
-            "cover_art_title_max_height": "260",
-            "cover_art_title_line_space": "-8",
-            "cover_art_artist_font": "font_cover_art_artist",
-            "cover_art_artist_pad_top": "10",
-            "cover_art_artist_long_mode": "dot",
-            "cover_art_time_font": "font_cover_art_time",
-            "cover_art_time_pad_top": "14",
-            "cover_art_progress_width": "1024",
-            "cover_art_progress_height": "4",
-            "cover_art_text_color": "0xFFFFFF",
-            "cover_art_square_overlay": "false",
-            "cover_art_live_image_updates": "false"
           }
         },
         "package": {
@@ -255,6 +222,7 @@
           "180",
           "270"
         ],
+        "default": "180",
         "displayOffset": 180,
         "rotateWidthCompensation": true
       },
@@ -351,40 +319,6 @@
             "density": "comfortable",
             "memoryTier": "standard",
             "baseTouchTarget": 57
-          },
-          "coverArt": {
-            "cover_art_size": "600",
-            "cover_art_decode_size": "600",
-            "cover_art_x": "0",
-            "cover_art_y": "0",
-            "cover_art_accent_x": "585",
-            "cover_art_accent_y": "0",
-            "cover_art_accent_width": "439",
-            "cover_art_accent_height": "600",
-            "cover_art_accent_bg_opa": "100%",
-            "cover_art_accent_opa": "100%",
-            "cover_art_panel_x": "615",
-            "cover_art_panel_y": "34",
-            "cover_art_panel_width": "377",
-            "cover_art_panel_height": "430",
-            "cover_art_panel_pad_top": "0",
-            "cover_art_panel_pad_bottom": "0",
-            "cover_art_panel_pad_left": "0",
-            "cover_art_panel_pad_right": "0",
-            "cover_art_panel_pad_row": "0",
-            "cover_art_title_font": "font_cover_art_title",
-            "cover_art_title_max_height": "260",
-            "cover_art_title_line_space": "-8",
-            "cover_art_artist_font": "font_cover_art_artist",
-            "cover_art_artist_pad_top": "10",
-            "cover_art_artist_long_mode": "dot",
-            "cover_art_time_font": "font_cover_art_time",
-            "cover_art_time_pad_top": "14",
-            "cover_art_progress_width": "1024",
-            "cover_art_progress_height": "4",
-            "cover_art_text_color": "0xFFFFFF",
-            "cover_art_square_overlay": "false",
-            "cover_art_live_image_updates": "false"
           }
         },
         "package": {
@@ -466,6 +400,7 @@
           "180",
           "270"
         ],
+        "default": "180",
         "displayOffset": 180
       },
       "internalRelays": [],
@@ -556,41 +491,7 @@
           "refreshRebuildsSubpages": true,
           "subpageChevronX": 3,
           "subpageChevronY": -2,
-          "subpageChevronTextWidthPercent": 96,
-          "coverArt": {
-            "cover_art_size": "480",
-            "cover_art_decode_size": "480",
-            "cover_art_x": "0",
-            "cover_art_y": "0",
-            "cover_art_accent_x": "0",
-            "cover_art_accent_y": "480",
-            "cover_art_accent_width": "480",
-            "cover_art_accent_height": "320",
-            "cover_art_accent_bg_opa": "100%",
-            "cover_art_accent_opa": "100%",
-            "cover_art_panel_x": "24",
-            "cover_art_panel_y": "514",
-            "cover_art_panel_width": "432",
-            "cover_art_panel_height": "262",
-            "cover_art_panel_pad_top": "0",
-            "cover_art_panel_pad_bottom": "0",
-            "cover_art_panel_pad_left": "0",
-            "cover_art_panel_pad_right": "0",
-            "cover_art_panel_pad_row": "0",
-            "cover_art_title_font": "font_cover_art_title",
-            "cover_art_title_max_height": "130",
-            "cover_art_title_line_space": "0",
-            "cover_art_artist_font": "font_cover_art_artist",
-            "cover_art_artist_pad_top": "10",
-            "cover_art_artist_long_mode": "dot",
-            "cover_art_time_font": "font_cover_art_time",
-            "cover_art_time_pad_top": "14",
-            "cover_art_progress_width": "480",
-            "cover_art_progress_height": "4",
-            "cover_art_text_color": "0xFFFFFF",
-            "cover_art_square_overlay": "false",
-            "cover_art_live_image_updates": "false"
-          }
+          "subpageChevronTextWidthPercent": 96
         },
         "package": {
           "firmwareVersion": "dev",
@@ -666,6 +567,7 @@
           "180",
           "270"
         ],
+        "default": "180",
         "displayOffset": 180
       },
       "internalRelays": [],
@@ -756,41 +658,7 @@
           "refreshRebuildsSubpages": true,
           "subpageChevronX": 3,
           "subpageChevronY": -2,
-          "subpageChevronTextWidthPercent": 96,
-          "coverArt": {
-            "cover_art_size": "480",
-            "cover_art_decode_size": "480",
-            "cover_art_x": "0",
-            "cover_art_y": "0",
-            "cover_art_accent_x": "0",
-            "cover_art_accent_y": "480",
-            "cover_art_accent_width": "480",
-            "cover_art_accent_height": "320",
-            "cover_art_accent_bg_opa": "100%",
-            "cover_art_accent_opa": "100%",
-            "cover_art_panel_x": "24",
-            "cover_art_panel_y": "514",
-            "cover_art_panel_width": "432",
-            "cover_art_panel_height": "262",
-            "cover_art_panel_pad_top": "0",
-            "cover_art_panel_pad_bottom": "0",
-            "cover_art_panel_pad_left": "0",
-            "cover_art_panel_pad_right": "0",
-            "cover_art_panel_pad_row": "0",
-            "cover_art_title_font": "font_cover_art_title",
-            "cover_art_title_max_height": "130",
-            "cover_art_title_line_space": "0",
-            "cover_art_artist_font": "font_cover_art_artist",
-            "cover_art_artist_pad_top": "10",
-            "cover_art_artist_long_mode": "dot",
-            "cover_art_time_font": "font_cover_art_time",
-            "cover_art_time_pad_top": "14",
-            "cover_art_progress_width": "480",
-            "cover_art_progress_height": "4",
-            "cover_art_text_color": "0xFFFFFF",
-            "cover_art_square_overlay": "false",
-            "cover_art_live_image_updates": "false"
-          }
+          "subpageChevronTextWidthPercent": 96
         },
         "package": {
           "firmwareVersion": "dev",
@@ -866,6 +734,7 @@
           "180",
           "270"
         ],
+        "default": "180",
         "displayOffset": 180
       },
       "internalRelays": [],
@@ -954,40 +823,6 @@
             "density": "spacious",
             "memoryTier": "standard",
             "baseTouchTarget": 76
-          },
-          "coverArt": {
-            "cover_art_size": "800",
-            "cover_art_decode_size": "800",
-            "cover_art_x": "0",
-            "cover_art_y": "0",
-            "cover_art_accent_x": "800",
-            "cover_art_accent_y": "0",
-            "cover_art_accent_width": "480",
-            "cover_art_accent_height": "800",
-            "cover_art_accent_bg_opa": "100%",
-            "cover_art_accent_opa": "100%",
-            "cover_art_panel_x": "840",
-            "cover_art_panel_y": "40",
-            "cover_art_panel_width": "400",
-            "cover_art_panel_height": "720",
-            "cover_art_panel_pad_top": "0",
-            "cover_art_panel_pad_bottom": "0",
-            "cover_art_panel_pad_left": "0",
-            "cover_art_panel_pad_right": "0",
-            "cover_art_panel_pad_row": "0",
-            "cover_art_title_font": "font_cover_art_title",
-            "cover_art_title_max_height": "506",
-            "cover_art_title_line_space": "0",
-            "cover_art_artist_font": "font_cover_art_artist",
-            "cover_art_artist_pad_top": "4",
-            "cover_art_artist_long_mode": "wrap",
-            "cover_art_time_font": "font_cover_art_time",
-            "cover_art_time_pad_top": "12",
-            "cover_art_progress_width": "1280",
-            "cover_art_progress_height": "4",
-            "cover_art_text_color": "0xFFF5E0",
-            "cover_art_square_overlay": "false",
-            "cover_art_live_image_updates": "false"
           }
         },
         "package": {
@@ -1064,6 +899,7 @@
           "180",
           "270"
         ],
+        "default": "180",
         "displayOffset": 180
       },
       "internalRelays": [],
@@ -1152,40 +988,6 @@
             "density": "spacious",
             "memoryTier": "standard",
             "baseTouchTarget": 76
-          },
-          "coverArt": {
-            "cover_art_size": "800",
-            "cover_art_decode_size": "800",
-            "cover_art_x": "0",
-            "cover_art_y": "0",
-            "cover_art_accent_x": "800",
-            "cover_art_accent_y": "0",
-            "cover_art_accent_width": "480",
-            "cover_art_accent_height": "800",
-            "cover_art_accent_bg_opa": "100%",
-            "cover_art_accent_opa": "100%",
-            "cover_art_panel_x": "840",
-            "cover_art_panel_y": "40",
-            "cover_art_panel_width": "400",
-            "cover_art_panel_height": "720",
-            "cover_art_panel_pad_top": "0",
-            "cover_art_panel_pad_bottom": "0",
-            "cover_art_panel_pad_left": "0",
-            "cover_art_panel_pad_right": "0",
-            "cover_art_panel_pad_row": "0",
-            "cover_art_title_font": "font_cover_art_title",
-            "cover_art_title_max_height": "506",
-            "cover_art_title_line_space": "0",
-            "cover_art_artist_font": "font_cover_art_artist",
-            "cover_art_artist_pad_top": "4",
-            "cover_art_artist_long_mode": "wrap",
-            "cover_art_time_font": "font_cover_art_time",
-            "cover_art_time_pad_top": "12",
-            "cover_art_progress_width": "1280",
-            "cover_art_progress_height": "4",
-            "cover_art_text_color": "0xFFF5E0",
-            "cover_art_square_overlay": "false",
-            "cover_art_live_image_updates": "false"
           }
         },
         "package": {
@@ -1260,6 +1062,7 @@
           "180",
           "270"
         ],
+        "default": "180",
         "displayOffset": 180
       },
       "internalRelays": [],
@@ -1349,40 +1152,6 @@
             "density": "spacious",
             "memoryTier": "standard",
             "baseTouchTarget": 76
-          },
-          "coverArt": {
-            "cover_art_size": "800",
-            "cover_art_decode_size": "800",
-            "cover_art_x": "0",
-            "cover_art_y": "0",
-            "cover_art_accent_x": "800",
-            "cover_art_accent_y": "0",
-            "cover_art_accent_width": "480",
-            "cover_art_accent_height": "800",
-            "cover_art_accent_bg_opa": "100%",
-            "cover_art_accent_opa": "100%",
-            "cover_art_panel_x": "840",
-            "cover_art_panel_y": "40",
-            "cover_art_panel_width": "400",
-            "cover_art_panel_height": "720",
-            "cover_art_panel_pad_top": "0",
-            "cover_art_panel_pad_bottom": "0",
-            "cover_art_panel_pad_left": "0",
-            "cover_art_panel_pad_right": "0",
-            "cover_art_panel_pad_row": "0",
-            "cover_art_title_font": "font_cover_art_title",
-            "cover_art_title_max_height": "506",
-            "cover_art_title_line_space": "0",
-            "cover_art_artist_font": "font_cover_art_artist",
-            "cover_art_artist_pad_top": "4",
-            "cover_art_artist_long_mode": "wrap",
-            "cover_art_time_font": "font_cover_art_time",
-            "cover_art_time_pad_top": "12",
-            "cover_art_progress_width": "1280",
-            "cover_art_progress_height": "4",
-            "cover_art_text_color": "0xFFF5E0",
-            "cover_art_square_overlay": "false",
-            "cover_art_live_image_updates": "false"
           }
         },
         "package": {
@@ -1467,7 +1236,6 @@
         }
       ],
       "web": {
-        "coverArtSquareOverlay": true,
         "dragMode": "displace",
         "dragAnimation": true,
         "screen": {
@@ -1542,41 +1310,7 @@
             "baseTouchTarget": 69
           },
           "wrapTallLabels": false,
-          "refreshRebuildsSubpages": true,
-          "coverArt": {
-            "cover_art_size": "720",
-            "cover_art_decode_size": "720",
-            "cover_art_x": "0",
-            "cover_art_y": "0",
-            "cover_art_accent_x": "0",
-            "cover_art_accent_y": "0",
-            "cover_art_accent_width": "720",
-            "cover_art_accent_height": "720",
-            "cover_art_accent_bg_opa": "80%",
-            "cover_art_accent_opa": "80%",
-            "cover_art_panel_x": "0",
-            "cover_art_panel_y": "0",
-            "cover_art_panel_width": "720",
-            "cover_art_panel_height": "720",
-            "cover_art_panel_pad_top": "36",
-            "cover_art_panel_pad_bottom": "24",
-            "cover_art_panel_pad_left": "36",
-            "cover_art_panel_pad_right": "36",
-            "cover_art_panel_pad_row": "0",
-            "cover_art_title_font": "font_cover_art_title",
-            "cover_art_title_max_height": "495",
-            "cover_art_title_line_space": "0",
-            "cover_art_artist_font": "font_cover_art_artist",
-            "cover_art_artist_pad_top": "9",
-            "cover_art_artist_long_mode": "dot",
-            "cover_art_time_font": "font_cover_art_time",
-            "cover_art_time_pad_top": "18",
-            "cover_art_progress_width": "720",
-            "cover_art_progress_height": "4",
-            "cover_art_text_color": "0xFFFFFF",
-            "cover_art_square_overlay": "true",
-            "cover_art_live_image_updates": "false"
-          }
+          "refreshRebuildsSubpages": true
         },
         "package": {
           "firmwareVersion": "dev",
@@ -1678,7 +1412,6 @@
         }
       ],
       "web": {
-        "coverArtSquareOverlay": true,
         "dragMode": "displace",
         "dragAnimation": true,
         "screen": {
@@ -1757,41 +1490,7 @@
           "refreshRebuildsSubpages": true,
           "subpageChevronX": 3,
           "subpageChevronY": -2,
-          "subpageChevronTextWidthPercent": 96,
-          "coverArt": {
-            "cover_art_size": "480",
-            "cover_art_decode_size": "320",
-            "cover_art_x": "0",
-            "cover_art_y": "0",
-            "cover_art_accent_x": "0",
-            "cover_art_accent_y": "0",
-            "cover_art_accent_width": "480",
-            "cover_art_accent_height": "480",
-            "cover_art_accent_bg_opa": "80%",
-            "cover_art_accent_opa": "80%",
-            "cover_art_panel_x": "0",
-            "cover_art_panel_y": "0",
-            "cover_art_panel_width": "480",
-            "cover_art_panel_height": "480",
-            "cover_art_panel_pad_top": "24",
-            "cover_art_panel_pad_bottom": "16",
-            "cover_art_panel_pad_left": "24",
-            "cover_art_panel_pad_right": "24",
-            "cover_art_panel_pad_row": "0",
-            "cover_art_title_font": "font_cover_art_title",
-            "cover_art_title_max_height": "330",
-            "cover_art_title_line_space": "0",
-            "cover_art_artist_font": "font_cover_art_artist",
-            "cover_art_artist_pad_top": "6",
-            "cover_art_artist_long_mode": "dot",
-            "cover_art_time_font": "font_cover_art_time",
-            "cover_art_time_pad_top": "12",
-            "cover_art_progress_width": "480",
-            "cover_art_progress_height": "4",
-            "cover_art_text_color": "0xFFFFFF",
-            "cover_art_square_overlay": "true",
-            "cover_art_live_image_updates": "false"
-          }
+          "subpageChevronTextWidthPercent": 96
         },
         "package": {
           "firmwareVersion": "dev",
@@ -2268,6 +1967,18 @@
           }
         },
         "companion": {
+          "driver": "companion",
+          "capabilities": {
+            "informationOnly": false,
+            "subscriptions": false,
+            "actions": true,
+            "numericControl": false,
+            "modal": false,
+            "runtimeAllocation": false,
+            "subpage": true
+          }
+        },
+        "companion_mac_lock": {
           "driver": "companion",
           "capabilities": {
             "informationOnly": false,
@@ -4785,6 +4496,61 @@
           "options": ""
         }
       },
+      "companion_mac_lock": {
+        "label": "Mac Lock",
+        "pickerLabel": "Lock Machine",
+        "allowInSubpage": true,
+        "domains": [],
+        "normalization": {
+          "fields": {
+            "entity": {
+              "policy": "default",
+              "value": "shortcut.command+control+q"
+            },
+            "label": {
+              "policy": "default_if_empty",
+              "value": "Mac Lock"
+            },
+            "icon": {
+              "policy": "default_if_empty",
+              "value": "Lock"
+            },
+            "icon_on": {
+              "policy": "default",
+              "value": "Auto"
+            },
+            "sensor": {
+              "policy": "clear"
+            },
+            "unit": {
+              "policy": "clear"
+            },
+            "type": {
+              "policy": "default",
+              "value": "companion_mac_lock"
+            },
+            "precision": {
+              "policy": "clear"
+            },
+            "options": {
+              "policy": "clear"
+            }
+          },
+          "unknownOptions": "drop",
+          "canonicalOptionOrder": []
+        },
+        "default": {
+          "entity": "shortcut.command+control+q",
+          "label": "Mac Lock",
+          "icon": "Lock",
+          "icon_on": "Auto",
+          "sensor": "",
+          "unit": "",
+          "type": "companion_mac_lock",
+          "precision": "",
+          "options": ""
+        }
+      },
       "companion": {
         "label": "Companion",
         "allowInSubpage": true,
@@ -4803,6 +4569,19 @@
             "label": "App Subpage",
             "kind": "flag",
             "omitDefault": true
+          },
+          {
+            "name": "url_open_behavior",
+            "label": "Open URL in",
+            "kind": "choice",
+            "values": [
+              "new_tab",
+              "new_window"
+            ],
+            "defaultValue": "new_tab",
+            "omitDefault": true,
+            "hidden": true,
+            "docsHidden": true
           },
           {
             "name": "finder_open_behavior",
@@ -4915,6 +4694,7 @@
           "canonicalOptionOrder": [
             "custom_icon",
             "app_shortcuts",
+            "url_open_behavior",
             "finder_open_behavior",
             "finder_open_override",
             "app_shortcuts_tabs",
@@ -4939,7 +4719,8 @@
         }
       },
       "slider": {
-        "label": "Volume",
+        "label": "Legacy Slider",
+        "hidden": true,
         "allowInSubpage": true,
         "domains": [
           "light",
@@ -5542,7 +5323,27 @@
       "climate_control": "HC",
       "push": "P",
       "companion": "CP",
+      "companion_mac_lock": "ML",
       "subpage": "G"
+    },
+    "releaseAvailability": {
+      "stable": [
+        "companion",
+        "companion_mac_lock",
+        "subpage"
+      ],
+      "preview": {
+        "companion_window": {
+          "label": "Window Control",
+          "issue": 309
+        }
+      },
+      "removeOnEdit": [
+        "companion_webapp",
+        "companion_audio",
+        "wifi_qr",
+        "wifi_qr_card"
+      ]
     },
     "retiredCardTypes": [
       "sensor",
@@ -5560,7 +5361,8 @@
       "clock",
       "timezone",
       "webhook",
-      "companion_webapp"
+      "companion_webapp",
+      "companion_audio"
     ]
   },
   "entityNames": {
@@ -5904,148 +5706,6 @@
         ]
       },
       {
-        "key": "screen_saver_cover_art_playback_control",
-        "domain": "switch",
-        "name": "Screen Saver: Cover Art Playback Control",
-        "objectIds": [
-          "screen_saver__cover_art_playback_control",
-          "screen_saver_cover_art_playback_control",
-          "cover_art_playback_control_enabled"
-        ],
-        "groups": [
-          "settings"
-        ]
-      },
-      {
-        "key": "screen_saver_media_player_sleep_prevention",
-        "domain": "switch",
-        "name": "Screen Saver: Media Player Sleep Prevention",
-        "objectIds": [
-          "screen_saver__media_player_sleep_prevention",
-          "screen_saver_media_player_sleep_prevention",
-          "media_player_sleep_prevention_enabled"
-        ],
-        "groups": [
-          "settings"
-        ]
-      },
-      {
-        "key": "media_player_sleep_prevention_entity",
-        "domain": "text",
-        "name": "Media Player Sleep Prevention Entity",
-        "objectIds": [
-          "media_player_sleep_prevention_entity"
-        ],
-        "groups": [
-          "settings"
-        ]
-      },
-      {
-        "key": "screen_saver_cover_art",
-        "domain": "switch",
-        "name": "Screen Saver: Cover Art",
-        "objectIds": [
-          "screen_saver__cover_art",
-          "screen_saver_cover_art",
-          "screensaver_cover_art"
-        ],
-        "groups": [
-          "settings"
-        ]
-      },
-      {
-        "key": "cover_art_source",
-        "domain": "select",
-        "name": "Cover Art Source",
-        "objectIds": [
-          "cover_art_source"
-        ],
-        "groups": [
-          "settings"
-        ]
-      },
-      {
-        "key": "screen_saver_cover_art_entity",
-        "domain": "text",
-        "name": "Screen Saver: Cover Art Entity",
-        "objectIds": [
-          "screen_saver__cover_art_entity",
-          "screen_saver_cover_art_entity",
-          "cover_art_media_player_entity"
-        ],
-        "groups": [
-          "settings"
-        ]
-      },
-      {
-        "key": "screen_saver_cover_art_secondary_entity",
-        "domain": "text",
-        "name": "Screen Saver: External Source Media Entity",
-        "objectIds": [
-          "screen_saver__external_source_media_entity",
-          "screen_saver_cover_art_secondary_entity",
-          "cover_art_secondary_media_player_entity"
-        ],
-        "groups": [
-          "settings"
-        ]
-      },
-      {
-        "key": "screen_saver_cover_art_conditions",
-        "domain": "text",
-        "name": "Screen Saver: Cover Art Conditions",
-        "objectIds": [
-          "screen_saver__cover_art_conditions",
-          "screen_saver_cover_art_conditions",
-          "cover_art_attribute_conditions"
-        ],
-        "groups": [
-          "settings"
-        ]
-      },
-      {
-        "key": "screen_saver_cover_art_delay",
-        "domain": "number",
-        "name": "Screen Saver: Cover Art Delay",
-        "objectIds": [
-          "screen_saver__cover_art_delay",
-          "screen_saver_cover_art_delay",
-          "cover_art_delay"
-        ],
-        "groups": [
-          "settings"
-        ]
-      },
-      {
-        "key": "screen_saver_track_overlay_duration",
-        "domain": "number",
-        "name": "Screen Saver: Show Track Overlay",
-        "objectIds": [
-          "screen_saver__track_overlay_duration",
-          "screen_saver_track_overlay_duration",
-          "track_overlay_duration",
-          "screen_saver__show_track_overlay"
-        ],
-        "groups": [
-          "settings"
-        ]
-      },
-      {
-        "key": "screen_saver_hide_cover_art_external_input",
-        "domain": "switch",
-        "name": "Screen Saver: Hide for external sources",
-        "objectIds": [
-          "screen_saver__hide_cover_art_on_external_input",
-          "screen_saver_hide_cover_art_on_external_input",
-          "hide_cover_art_on_external_input",
-          "cover_art_hide_external_input",
-          "screen_saver__hide_for_external_sources"
-        ],
-        "groups": [
-          "settings"
-        ]
-      },
-      {
         "key": "screen_saver_daytime_clock_brightness",
         "domain": "number",
         "name": "Screen Saver: Daytime Clock Brightness",
@@ -6118,17 +5778,6 @@
         "name": "Screensaver Timeout",
         "objectIds": [
           "screensaver_timeout"
-        ],
-        "groups": [
-          "settings"
-        ]
-      },
-      {
-        "key": "home_screen_timeout",
-        "domain": "number",
-        "name": "Home Screen Timeout",
-        "objectIds": [
-          "home_screen_timeout"
         ],
         "groups": [
           "settings"
@@ -8247,6 +7896,511 @@
         "name": "Gauge",
         "codepoint": "F029A",
         "mdi": "gauge"
+      },
+      {
+        "name": "Account Question",
+        "codepoint": "F0B5A",
+        "mdi": "account-question-outline"
+      },
+      {
+        "name": "Bold",
+        "codepoint": "F0264",
+        "mdi": "format-bold"
+      },
+      {
+        "name": "Book",
+        "codepoint": "F15D6",
+        "mdi": "book-open-page-variant-outline"
+      },
+      {
+        "name": "Bullet List",
+        "codepoint": "F0279",
+        "mdi": "format-list-bulleted"
+      },
+      {
+        "name": "Calendar Multiple",
+        "codepoint": "F00F1",
+        "mdi": "calendar-multiple"
+      },
+      {
+        "name": "Calendar Plus",
+        "codepoint": "F00F3",
+        "mdi": "calendar-plus"
+      },
+      {
+        "name": "Calendar Search",
+        "codepoint": "F094C",
+        "mdi": "calendar-search"
+      },
+      {
+        "name": "Calendar Today",
+        "codepoint": "F00F6",
+        "mdi": "calendar-today"
+      },
+      {
+        "name": "Calendar Week",
+        "codepoint": "F0A33",
+        "mdi": "calendar-week"
+      },
+      {
+        "name": "Car",
+        "codepoint": "F14ED",
+        "mdi": "car-outline"
+      },
+      {
+        "name": "Chat Plus",
+        "codepoint": "F10BB",
+        "mdi": "message-plus-outline"
+      },
+      {
+        "name": "Clipping Mask",
+        "codepoint": "F055D",
+        "mdi": "vector-intersection"
+      },
+      {
+        "name": "Comment Plus",
+        "codepoint": "F0183",
+        "mdi": "comment-plus-outline"
+      },
+      {
+        "name": "Component",
+        "codepoint": "F1C4F",
+        "mdi": "shape-plus-outline"
+      },
+      {
+        "name": "Deselect",
+        "codepoint": "F0488",
+        "mdi": "select-off"
+      },
+      {
+        "name": "Email Plus",
+        "codepoint": "F09EC",
+        "mdi": "email-plus-outline"
+      },
+      {
+        "name": "Email Sync",
+        "codepoint": "F12C8",
+        "mdi": "email-sync-outline"
+      },
+      {
+        "name": "Emoji",
+        "codepoint": "F01F2",
+        "mdi": "emoticon-outline"
+      },
+      {
+        "name": "Export",
+        "codepoint": "F0B93",
+        "mdi": "export-variant"
+      },
+      {
+        "name": "File Compare",
+        "codepoint": "F08AA",
+        "mdi": "file-compare"
+      },
+      {
+        "name": "File Report",
+        "codepoint": "F1029",
+        "mdi": "file-chart-outline"
+      },
+      {
+        "name": "Filter Plus",
+        "codepoint": "F0EF1",
+        "mdi": "filter-plus-outline"
+      },
+      {
+        "name": "Flag Plus",
+        "codepoint": "F10B3",
+        "mdi": "flag-plus-outline"
+      },
+      {
+        "name": "Folder Plus",
+        "codepoint": "F0B9D",
+        "mdi": "folder-plus-outline"
+      },
+      {
+        "name": "Folder Search",
+        "codepoint": "F0969",
+        "mdi": "folder-search-outline"
+      },
+      {
+        "name": "Form Fill",
+        "codepoint": "F07F5",
+        "mdi": "form-textbox-password"
+      },
+      {
+        "name": "Format Size",
+        "codepoint": "F027F",
+        "mdi": "format-size"
+      },
+      {
+        "name": "Heading",
+        "codepoint": "F0274",
+        "mdi": "format-header-pound"
+      },
+      {
+        "name": "Image Search",
+        "codepoint": "F0978",
+        "mdi": "image-search-outline"
+      },
+      {
+        "name": "Import",
+        "codepoint": "F02FA",
+        "mdi": "import"
+      },
+      {
+        "name": "Inbox",
+        "codepoint": "F1274",
+        "mdi": "inbox-outline"
+      },
+      {
+        "name": "Indent",
+        "codepoint": "F0276",
+        "mdi": "format-indent-increase"
+      },
+      {
+        "name": "Italic",
+        "codepoint": "F0277",
+        "mdi": "format-italic"
+      },
+      {
+        "name": "Magnet",
+        "codepoint": "F0347",
+        "mdi": "magnet"
+      },
+      {
+        "name": "Map",
+        "codepoint": "F0982",
+        "mdi": "map-outline"
+      },
+      {
+        "name": "Merge",
+        "codepoint": "F0F5C",
+        "mdi": "merge"
+      },
+      {
+        "name": "Message Unread",
+        "codepoint": "F1942",
+        "mdi": "message-badge-outline"
+      },
+      {
+        "name": "New Window",
+        "codepoint": "F0704",
+        "mdi": "plus-box-outline"
+      },
+      {
+        "name": "Note Plus",
+        "codepoint": "F039D",
+        "mdi": "note-plus-outline"
+      },
+      {
+        "name": "Note Search",
+        "codepoint": "F1654",
+        "mdi": "note-search-outline"
+      },
+      {
+        "name": "Panorama",
+        "codepoint": "F03DE",
+        "mdi": "panorama-horizontal-outline"
+      },
+      {
+        "name": "Paperclip",
+        "codepoint": "F03E2",
+        "mdi": "paperclip"
+      },
+      {
+        "name": "Photo Album",
+        "codepoint": "F02EF",
+        "mdi": "image-multiple-outline"
+      },
+      {
+        "name": "Pin",
+        "codepoint": "F0931",
+        "mdi": "pin-outline"
+      },
+      {
+        "name": "Pin Off",
+        "codepoint": "F0930",
+        "mdi": "pin-off-outline"
+      },
+      {
+        "name": "Playlist Edit",
+        "codepoint": "F0900",
+        "mdi": "playlist-edit"
+      },
+      {
+        "name": "Playlist Music",
+        "codepoint": "F0CB9",
+        "mdi": "playlist-music-outline"
+      },
+      {
+        "name": "Playlist Plus",
+        "codepoint": "F0412",
+        "mdi": "playlist-plus"
+      },
+      {
+        "name": "Podcast",
+        "codepoint": "F0994",
+        "mdi": "podcast"
+      },
+      {
+        "name": "Reply",
+        "codepoint": "F0F20",
+        "mdi": "reply-outline"
+      },
+      {
+        "name": "Rotate Left",
+        "codepoint": "F0465",
+        "mdi": "rotate-left"
+      },
+      {
+        "name": "Satellite",
+        "codepoint": "F0471",
+        "mdi": "satellite-variant"
+      },
+      {
+        "name": "Save As",
+        "codepoint": "F0CFC",
+        "mdi": "content-save-edit-outline"
+      },
+      {
+        "name": "Send",
+        "codepoint": "F1165",
+        "mdi": "send-outline"
+      },
+      {
+        "name": "Slideshow",
+        "codepoint": "F0429",
+        "mdi": "presentation-play"
+      },
+      {
+        "name": "Source Commit",
+        "codepoint": "F0718",
+        "mdi": "source-commit"
+      },
+      {
+        "name": "Source Compare",
+        "codepoint": "F1492",
+        "mdi": "compare-horizontal"
+      },
+      {
+        "name": "Source Pull Request",
+        "codepoint": "F04C2",
+        "mdi": "source-pull"
+      },
+      {
+        "name": "Speed Down",
+        "codepoint": "F070A",
+        "mdi": "rewind-outline"
+      },
+      {
+        "name": "Speed Up",
+        "codepoint": "F06D2",
+        "mdi": "fast-forward-outline"
+      },
+      {
+        "name": "Star",
+        "codepoint": "F04D2",
+        "mdi": "star-outline"
+      },
+      {
+        "name": "Tab Restore",
+        "codepoint": "F099B",
+        "mdi": "restore"
+      },
+      {
+        "name": "Table Plus",
+        "codepoint": "F0A75",
+        "mdi": "table-plus"
+      },
+      {
+        "name": "Tag Plus",
+        "codepoint": "F1222",
+        "mdi": "tag-plus-outline"
+      },
+      {
+        "name": "Template",
+        "codepoint": "F1A9E",
+        "mdi": "file-document-plus-outline"
+      },
+      {
+        "name": "Theme",
+        "codepoint": "F050E",
+        "mdi": "theme-light-dark"
+      },
+      {
+        "name": "Train",
+        "codepoint": "F052C",
+        "mdi": "train"
+      },
+      {
+        "name": "Underline",
+        "codepoint": "F0287",
+        "mdi": "format-underline"
+      },
+      {
+        "name": "Zoom In",
+        "codepoint": "F06ED",
+        "mdi": "magnify-plus-outline"
+      },
+      {
+        "name": "Zoom Out",
+        "codepoint": "F06EC",
+        "mdi": "magnify-minus-outline"
+      },
+      {
+        "name": "Compare Selection",
+        "codepoint": "F0AD9",
+        "mdi": "select-compare"
+      },
+      {
+        "name": "Filmstrip Stack",
+        "codepoint": "F0D18",
+        "mdi": "filmstrip-box-multiple"
+      },
+      {
+        "name": "Group Selection",
+        "codepoint": "F0F82",
+        "mdi": "select-group"
+      },
+      {
+        "name": "Movie Plus",
+        "codepoint": "F1712",
+        "mdi": "movie-plus-outline"
+      },
+      {
+        "name": "Timeline Plus",
+        "codepoint": "F0F97",
+        "mdi": "timeline-plus-outline"
+      },
+      {
+        "name": "File Search",
+        "codepoint": "F0B97",
+        "mdi": "file-find-outline"
+      },
+      {
+        "name": "File Tree",
+        "codepoint": "F13D2",
+        "mdi": "file-tree-outline"
+      },
+      {
+        "name": "Message Alert",
+        "codepoint": "F0A04",
+        "mdi": "message-alert-outline"
+      },
+      {
+        "name": "Robot",
+        "codepoint": "F167A",
+        "mdi": "robot-outline"
+      },
+      {
+        "name": "Web Plus",
+        "codepoint": "F0033",
+        "mdi": "web-plus"
+      },
+      {
+        "name": "Book Alphabet",
+        "codepoint": "F061D",
+        "mdi": "book-alphabet"
+      },
+      {
+        "name": "Bookmark Multiple",
+        "codepoint": "F0E15",
+        "mdi": "bookmark-multiple"
+      },
+      {
+        "name": "Bookmark Plus",
+        "codepoint": "F00C5",
+        "mdi": "bookmark-plus"
+      },
+      {
+        "name": "Card Text",
+        "codepoint": "F0B77",
+        "mdi": "card-text"
+      },
+      {
+        "name": "Font Size Decrease",
+        "codepoint": "F09F3",
+        "mdi": "format-font-size-decrease"
+      },
+      {
+        "name": "Font Size Increase",
+        "codepoint": "F09F4",
+        "mdi": "format-font-size-increase"
+      },
+      {
+        "name": "Page Next",
+        "codepoint": "F0BB0",
+        "mdi": "page-next"
+      },
+      {
+        "name": "Page Previous",
+        "codepoint": "F0BB2",
+        "mdi": "page-previous"
+      },
+      {
+        "name": "Duplicate",
+        "codepoint": "F0191",
+        "mdi": "content-duplicate"
+      },
+      {
+        "name": "Align Left",
+        "codepoint": "F0262",
+        "mdi": "format-align-left"
+      },
+      {
+        "name": "Align Right",
+        "codepoint": "F0263",
+        "mdi": "format-align-right"
+      },
+      {
+        "name": "Align Center",
+        "codepoint": "F0260",
+        "mdi": "format-align-center"
+      },
+      {
+        "name": "Justify",
+        "codepoint": "F0261",
+        "mdi": "format-align-justify"
+      },
+      {
+        "name": "Strikethrough",
+        "codepoint": "F0281",
+        "mdi": "format-strikethrough-variant"
+      },
+      {
+        "name": "Numbered List",
+        "codepoint": "F027B",
+        "mdi": "format-list-numbered"
+      },
+      {
+        "name": "Decrease Indent",
+        "codepoint": "F0275",
+        "mdi": "format-indent-decrease"
+      },
+      {
+        "name": "Increase Indent",
+        "codepoint": "F0276",
+        "mdi": "format-indent-increase"
+      },
+      {
+        "name": "Paint Format",
+        "codepoint": "F027C",
+        "mdi": "format-paint"
+      },
+      {
+        "name": "Subscript",
+        "codepoint": "F0282",
+        "mdi": "format-subscript"
+      },
+      {
+        "name": "Superscript",
+        "codepoint": "F0283",
+        "mdi": "format-superscript"
+      },
+      {
+        "name": "Subtitles",
+        "codepoint": "F0A17",
+        "mdi": "subtitles-outline"
       }
     ],
     "domain_defaults": {

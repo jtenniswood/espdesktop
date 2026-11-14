@@ -1,8 +1,9 @@
-import { cardContractTypeRetired } from "../generated/card_contract";
+import { cardContractRemoveOnEdit, cardContractTypeRetired } from "../generated/card_contract";
 import type { CardConfig } from "../contracts/types";
-import { emptyCardConfig } from "../model/card";
+import { emptyCardConfig, retiredSavedCardType } from "../model/card";
 import { childPageKey, pageDepth, parentPageKey, PAGE_OWNER_SLOTS } from "../model/page_keys";
 import { coveredCells } from "../model/grid";
+import type { NativePageLayout } from "../model/panel_config_conversion";
 
 // Release retired tiles and their spans so the old spaces can hold new cards.
 export function removeRetiredCards(
@@ -12,7 +13,7 @@ export function removeRetiredCards(
   const removed: number[] = [];
   for (let position = 0; position < grid.length; position++) {
     const slot = grid[position] ?? 0;
-    if (slot <= 0 || !isRetired(buttons[slot - 1]?.type)) continue;
+    if (slot <= 0 || !isRetired(retiredSavedCardType(buttons[slot - 1]) || buttons[slot - 1]?.type)) continue;
     for (const cell of coveredCells(position, sizes[slot] || 1, grid.length, columns, true)) {
       if (cell < grid.length && (grid[cell] === slot || grid[cell] === -1)) grid[cell] = 0;
     }
@@ -33,7 +34,7 @@ export function removeRetiredSubpageRecords(
 ): { value: string; slots: Set<number> } {
   const slots = new Set<number>();
   buttons.forEach((button, index) => {
-    if (isRetired(button.type)) slots.add(index + 1);
+    if (isRetired(retiredSavedCardType(button) || button.type)) slots.add(index + 1);
   });
   if (!slots.size) return { value, slots };
   const compact = value.startsWith("~");
@@ -46,7 +47,9 @@ export function removeRetiredSubpageRecords(
 export function removeRetiredPanelRecords(document: import("../model/panel_config").PanelConfigDocument, codec: {
   parseButtonConfig(value: string): CardConfig;
   parseSubpageConfig(value: string): { buttons: CardConfig[] };
-}, isRetired = cardContractTypeRetired): boolean {
+}, isRetired = cardContractTypeRetired, layout?: NativePageLayout): boolean {
+  const rootCards = new Map(layout?.rootCards.map(card => [card.slot, card.config]));
+  const pages = new Map(layout?.pages.map(page => [page.key, page.cards]));
   let changed = false;
   const removeOwnedPages = (key: number) => {
     delete document.subpages[key];
@@ -56,7 +59,9 @@ export function removeRetiredPanelRecords(document: import("../model/panel_confi
   };
   const retiredSlots = new Set<number>();
   for (const [slot, value] of Object.entries(document.buttons)) {
-    if (!isRetired(codec.parseButtonConfig(value).type)) continue;
+    const card = rootCards.get(Number(slot)) ?? codec.parseButtonConfig(value);
+    const type = retiredSavedCardType(card) || card.type;
+    if (!isRetired(type)) continue;
     retiredSlots.add(Number(slot));
     if (Number(slot) <= PAGE_OWNER_SLOTS) removeOwnedPages(Number(slot));
     delete document.buttons[Number(slot)];
@@ -69,13 +74,22 @@ export function removeRetiredPanelRecords(document: import("../model/panel_confi
     const page = Number(slot);
     const raw = document.subpages[page];
     if (raw === undefined) continue;
-    const cleaned = removeRetiredSubpageRecords(raw, codec.parseSubpageConfig(raw).buttons, isRetired);
+    const buttons = pages.get(page)?.map(card => card.config) ?? codec.parseSubpageConfig(raw).buttons;
+    const cleaned = removeRetiredSubpageRecords(raw, buttons, isRetired);
     if (!cleaned.slots.size) continue;
     changed = true;
     document.subpages[page] = cleaned.value;
     if (pageDepth(page) !== 1) continue;
     for (const retiredSlot of cleaned.slots) {
       if (retiredSlot <= PAGE_OWNER_SLOTS) removeOwnedPages(childPageKey(page, retiredSlot));
+    }
+  }
+  const special = document.settings.special_page;
+  if (special) {
+    const cleaned = removeRetiredSubpageRecords(special, codec.parseSubpageConfig(special).buttons, isRetired);
+    if (cleaned.slots.size) {
+      document.settings.special_page = cleaned.value;
+      changed = true;
     }
   }
   return changed;
@@ -85,6 +99,6 @@ export function isRetiredWebApp(type: string | null | undefined): boolean {
   return type === "companion_webapp";
 }
 
-export function isRetiredWebAppOrWifiCard(type: string | null | undefined): boolean {
-  return isRetiredWebApp(type) || type === "wifi_qr" || type === "wifi_qr_card";
+export function isRetiredLayoutCard(type: string | null | undefined): boolean {
+  return cardContractRemoveOnEdit(type);
 }

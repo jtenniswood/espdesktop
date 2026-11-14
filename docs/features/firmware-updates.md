@@ -6,13 +6,11 @@ description:
 
 # Firmware Updates
 
-Your panel can update its firmware over the air — no USB cable or computer needed after the initial install. When a new version is available, the panel downloads and installs it automatically (if enabled) or waits for you to trigger the update manually.
+Your panel can update its firmware over the air without a USB cable or computer after the initial install. When a new version is available, the panel downloads and installs it automatically (if enabled) or waits for you to trigger the update manually.
 
 ## Stable Releases, Development Builds, and Custom Firmware
 
 Use the [published release list](https://github.com/jtenniswood/espdesktop/releases) to confirm whether a version is stable or marked **Pre-release**. Documentation follows the project's current source; a recently documented control may require newer firmware than your panel has installed. Compare **Current version** with the release notes before relying on a new option.
-
-**Release status checked September 22, 2026:** `v2.10.0` is the latest published stable release. This dated check is not a promise that a later version is available on every hardware revision; use the matching installer and release assets for your panel.
 
 Built-in updates install released binaries. They do not rebuild custom YAML, pins, or components. If you manage a custom ESPHome build, turn off **Auto Update** and use [manual ESPHome updates](/getting-started/manual-esphome-setup). For a release-specific custom build, use matching tagged sources and dependencies.
 
@@ -20,12 +18,12 @@ The JC8012P4A1 V3 rejects browser OTA firmware uploads; use native ESPHome OTA a
 
 ## Update Settings
 
-These are configured from the **System** tab in the [Setup](/features/setup) under **System > Firmware**.
+These are configured from the **System** tab in the [System settings](/settings/system#update-the-display-firmware) under **System > Firmware**.
 
-- **Current version** and **Available version** — compare the firmware running on your panel with the latest stable release.
-- **Auto updates** — open this panel to turn **Auto Update** on or off and choose the **Update Frequency**: **Hourly**, **Daily**, **Weekly**, or **Monthly**.
-- **Previous firmware** — open this panel to choose and install one of the available previous stable versions.
-- **Check for Update** — press this button to check for a new version right now, regardless of the automatic schedule.
+- **Current version** and **Available version**: compare the firmware running on your panel with the latest stable release.
+- **Auto updates**: open this panel to turn **Auto Update** on or off and choose the **Update Frequency**: **Hourly**, **Daily**, **Weekly**, or **Monthly**.
+- **Previous firmware**: open this panel to choose and install one of the available previous stable versions.
+- **Check for Update**: press this button to check for a new version right now, regardless of the automatic schedule.
 
 When either a panel firmware update or WiFi co-processor update is available, the collapsed **Firmware** section shows an **Update available** badge so you do not need to open each update panel to check.
 
@@ -42,7 +40,7 @@ The update usually takes a minute or two. The display may show an update or load
 
 ## Installing an Older Version
 
-When older stable firmware is available, open **Previous firmware**, choose a **Version**, and press **Install**. This is intended for rolling back to one of the four most recent previous stable versions if you need to test or recover from a problem. Keep the setup page open while it downloads the selected firmware and uploads it to your panel. Installation is confirmed only when the panel reports the selected version after restarting. If confirmation times out or the upload fails, the error remains visible so you can check the current version before retrying.
+When older stable firmware is available for your display, open **System → Firmware → Previous firmware**, choose a **Version**, and press **Install**. The list offers up to four previous stable releases. Turn off **Auto Update** first if you want the display to stay on the older version. Keep the setup page open while it downloads the selected firmware and uploads it to your panel. Installation is confirmed only when the panel reports the selected version after restarting. If confirmation times out or the upload fails, the error remains visible so you can check the current version before retrying.
 
 ## Compatibility Notes
 

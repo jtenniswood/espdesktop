@@ -1,0 +1,4 @@
+lvgl.display.set_rotation: !lambda |-
+  const auto option = id(screen_rotation_select).current_option();
+  const int degrees = std::atoi(option.c_str());
+  return (degrees + ${hardware_rotation_offset}) % 360;

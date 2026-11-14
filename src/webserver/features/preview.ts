@@ -1,4 +1,4 @@
-import { cardContractTypeRetired } from "../generated/card_contract";
+import { cardContractAvailability, cardContractTypeRetired } from "../generated/card_contract";
 import { cardTypeConnector, cardRequiresHomeAssistant } from "../model/legacy_home_assistant";
 export { cardTypeConnector, cardRequiresHomeAssistant } from "../model/legacy_home_assistant";
 import { configOptionValue } from "../model/config_primitives";
@@ -30,6 +30,7 @@ export interface CardTypeDefinition {
   readonly key?: string;
   readonly label?: string | (() => string);
   readonly pickerKey?: string | null | (() => string | null);
+  readonly pickerLabel?: string | (() => string);
   readonly allowInSubpage?: boolean | (() => boolean);
   readonly isAvailable?: ((context: { isSub: boolean }) => boolean) | null;
 }
@@ -63,12 +64,12 @@ const CARD_TYPE_PICKER_DETAILS: Readonly<Record<string, PickerDetails>> = {
   climate: { icon: "thermostat", description: "Show climate status and temperature controls." },
   companion_app: { icon: "application-outline", description: "Launch an app on the Mac." },
   companion_folder: { icon: "folder", description: "Open an approved folder on the Mac." },
+  companion_mac_lock: { icon: "lock", description: "Lock the paired Mac." },
   companion_shortcut: { icon: "apple-keyboard-command", description: "Run a keyboard shortcut on the Mac." },
   companion_subpage: { icon: "view-grid-plus", description: "Open a nested page of Mac Companion cards." },
   companion_url: { icon: "web", description: "Open a URL on the Mac." },
   companion_brightness: { icon: "weather-sunny", description: "Adjust the main Mac display brightness." },
   companion_system: { icon: "weather-sunny", description: "Brighten or dim the main Mac display." },
-  companion_window: { icon: "window-open", description: "Control the active Mac window." },
   cover: { icon: "window-shutter", description: "Control blinds, curtains, or covers." },
   door_window: { icon: "door-open", description: "Show open or closed sensor state." },
   presence: { icon: "account", description: "Show person or presence status." },
@@ -82,8 +83,7 @@ const CARD_TYPE_PICKER_DETAILS: Readonly<Record<string, PickerDetails>> = {
   media: { icon: "speaker", description: "Control media playback or volume." },
   media_control: { icon: "music", description: "Open all media controls and volume in a modal." },
   push: { icon: "gesture-tap-button", description: "Fire a momentary button event." },
-  slider: { icon: "volume-high", description: "Adjust or mute Mac audio." },
-  subpage: { icon: "view-grid-plus", description: "Open a nested page of cards." },
+  subpage: { icon: "view-grid-plus", description: "Create a subpage for additional cards" },
   vacuum: { icon: "robot-vacuum", description: "Show or control a vacuum cleaner." },
   weather: { icon: "weather-partly-cloudy", description: "Show weather or forecast data." },
 };
@@ -98,13 +98,12 @@ const CARD_TYPE_PICKER_DEFAULTS: Readonly<Record<string, string>> = {
   companion_shortcut: "companion",
   companion_subpage: "subpage",
   companion_url: "companion",
-  companion_window: "companion",
   companion_system: "companion",
   companion_brightness: "slider",
 };
 
 const MAC_COMPANION_HIDDEN_CARD_TYPES = new Set([
-  "companion", "push",
+  "companion", "push", "slider",
 ]);
 
 
@@ -121,10 +120,10 @@ export function cardPickerConnectors(
 }
 
 export function cardTypeVisibleForConnector(key: string, connector: CardPickerConnector): boolean {
-  if (connector !== "mac_companion" || cardContractTypeRetired(key)) return false;
-  if (connector === "mac_companion" && MAC_COMPANION_HIDDEN_CARD_TYPES.has(key)) return false;
-  const source = cardTypeConnector(key);
-  return connector === "mac_companion" ? source !== "home_assistant" : source !== "mac_companion";
+  return connector === "mac_companion" &&
+    !MAC_COMPANION_HIDDEN_CARD_TYPES.has(key) &&
+    (key === "companion_brightness" || cardContractAvailability(defaultCardTypeForPicker(key)) === "stable") &&
+    cardTypeConnector(key) !== "home_assistant";
 }
 
 function cardRelativeLuminance(background: string): number {
@@ -275,7 +274,8 @@ export function cardTypePickerOptions(
     const rawDefinition = definition as Record<string, unknown>;
     const pickerKey = String(registryValue(rawDefinition, "pickerKey", ""));
     const allowInSubpage = !!registryValue(rawDefinition, "allowInSubpage", false);
-    const label = registryValue(rawDefinition, "label", definition.key || "Toggle");
+    const defaultLabel = registryValue(rawDefinition, "label", definition.key || "Toggle");
+    const label = registryValue(rawDefinition, "pickerLabel", defaultLabel);
     const source = cardTypeConnector(typeKey);
     const requiresHomeAssistant = !homeAssistantEnabled && (source === "home_assistant" ||
       source === "home_assistant_or_local");

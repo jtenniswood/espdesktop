@@ -65,7 +65,7 @@ def test_nightly_matrix_includes_every_manifest_slug() -> None:
     }
 
 
-def test_pr_matrix_uses_one_representative_per_chip_family() -> None:
+def test_pr_matrix_puts_public_targets_before_manual_representatives() -> None:
     matrix = run_ok(["pr"])
     expected: dict[str, dict[str, object]] = {}
     for slug, device in manifest_data()["devices"].items():
@@ -77,7 +77,13 @@ def test_pr_matrix_uses_one_representative_per_chip_family() -> None:
                 "recovery": chip == device_matrix.RECOVERY_CHIP_FAMILY,
             },
         )
-    assert matrix == {"include": list(expected.values())}
+    public = run_ok(["release"])["include"]
+    assert matrix["include"][:len(public)] == [
+        {"slug": entry["slug"], "recovery": entry["recovery"]} for entry in public
+    ]
+    public_chips = {entry["chip"] for entry in public}
+    manual = [entry for chip, entry in expected.items() if chip not in public_chips]
+    assert matrix["include"][len(public):] == manual
     assert len(matrix["include"]) < len(manifest_data()["devices"])
 
 
@@ -170,7 +176,7 @@ def main() -> int:
     tests = [
         test_release_matrix_shape,
         test_nightly_matrix_includes_every_manifest_slug,
-        test_pr_matrix_uses_one_representative_per_chip_family,
+        test_pr_matrix_puts_public_targets_before_manual_representatives,
         test_release_matrix_includes_only_public_devices,
         test_release_device_selection_validation,
         test_missing_chip_metadata_fails,

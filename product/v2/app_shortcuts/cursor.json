@@ -3,42 +3,90 @@
   "appId": "com.todesktop.230313mzl4w4u92",
   "label": "Cursor",
   "catalog": false,
+  "defaultShortcutIds": ["25", "1", "0", "8", "2", "5", "10", "49"],
   "shortcuts": [
     {
       "id": "0",
-      "label": "Toggle the Cursor side panel",
+      "label": "Toggle Sidebar",
       "shortcut": "command+i",
-      "icon": "Application"
+      "icon": "Dock Right"
     },
     {
       "id": "1",
-      "label": "Open Inline Edit",
+      "label": "Inline Edit",
       "shortcut": "command+k",
-      "icon": "Application"
+      "icon": "Draw"
     },
     {
       "id": "2",
-      "label": "Open the Command Palette",
+      "label": "Command Palette",
       "shortcut": "command+shift+p",
-      "icon": "Application"
+      "icon": "Shortcut Command"
     },
     {
       "id": "3",
-      "label": "Force-send a message",
+      "label": "Force Send",
       "shortcut": "command+enter",
-      "icon": "Application"
+      "icon": "Send"
     },
     {
       "id": "4",
-      "label": "Cancel generation",
+      "label": "Stop Reply",
       "shortcut": "command+shift+delete",
-      "icon": "Application"
+      "icon": "Stop"
     },
     {
       "id": "5",
-      "label": "Add selected code to chat",
+      "label": "Attach Code",
       "shortcut": "command+shift+l",
-      "icon": "Application"
+      "icon": "Code"
     }
+  ],
+  "moreShortcuts": [
+    {"id": "6", "label": "Toggle Cursor side panel", "shortcut": "scoped.command+l", "icon": "Application"},
+    {"id": "7", "label": "Open Inline Edit", "shortcut": "scoped.command+k", "icon": "Open File"},
+    {"id": "8", "label": "Open mode menu", "shortcut": "scoped.command+keyperiod", "icon": "Open File"},
+    {"id": "9", "label": "Rotate between Agent modes", "shortcut": "scoped.shift+tab", "icon": "Rotate Left"},
+    {"id": "10", "label": "Cycle through AI models", "shortcut": "scoped.command+keyslash", "icon": "Shortcut Command"},
+    {"id": "11", "label": "Toggle Agent layout", "shortcut": "scoped.command+e", "icon": "Application"},
+    {"id": "12", "label": "Toggle voice mode", "shortcut": "scoped.command+shift+space", "icon": "Microphone"},
+    {"id": "13", "label": "Open Cursor settings", "shortcut": "scoped.command+shift+j", "icon": "Settings"},
+    {"id": "14", "label": "Open general settings", "shortcut": "scoped.command+keycomma", "icon": "Settings"},
+    {"id": "15", "label": "Open Keyboard Shortcuts", "shortcut": "scoped.command+r~command+s", "icon": "Keyboard"},
+    {"id": "16", "label": "Queue message", "shortcut": "scoped.enter", "icon": "Chat"},
+    {"id": "17", "label": "Force-send message", "shortcut": "scoped.command+enter", "icon": "Send"},
+    {"id": "18", "label": "Accept all suggested changes", "shortcut": "scoped.command+enter", "icon": "Check"},
+    {"id": "19", "label": "Cancel generation", "shortcut": "scoped.command+shift+delete", "icon": "Close"},
+    {"id": "20", "label": "Reject all suggested changes", "shortcut": "scoped.command+shift+delete", "icon": "Shortcut Backspace"},
+    {"id": "21", "label": "Add clipboard code or logs as context", "shortcut": "scoped.command+v", "icon": "Code"},
+    {"id": "22", "label": "Paste clipboard content into chat input", "shortcut": "scoped.command+shift+v", "icon": "Paste"},
+    {"id": "23", "label": "Next chat message", "shortcut": "scoped.tab", "icon": "Arrow Right"},
+    {"id": "24", "label": "Toggle model", "shortcut": "scoped.command+option+keyslash", "icon": "Shortcut Command"},
+    {"id": "25", "label": "Start new chat", "shortcut": "scoped.command+n", "icon": "Run"},
+    {"id": "26", "label": "Start new chat", "shortcut": "scoped.command+r", "icon": "Run"},
+    {"id": "27", "label": "Open new chat tab", "shortcut": "scoped.command+t", "icon": "Tab"},
+    {"id": "28", "label": "Previous chat", "shortcut": "scoped.command+keybracketleft", "icon": "Arrow Left"},
+    {"id": "29", "label": "Next chat", "shortcut": "scoped.command+keybracketright", "icon": "Arrow Right"},
+    {"id": "30", "label": "Close active chat", "shortcut": "scoped.command+w", "icon": "Chat"},
+    {"id": "31", "label": "Unfocus chat field", "shortcut": "scoped.escape", "icon": "Chat"},
+    {"id": "32", "label": "Toggle Inline Edit input focus", "shortcut": "scoped.command+shift+k", "icon": "Shortcut Command"},
+    {"id": "33", "label": "Submit Inline Edit request", "shortcut": "scoped.enter", "icon": "Send"},
+    {"id": "34", "label": "Cancel Inline Edit", "shortcut": "scoped.command+shift+delete", "icon": "Close"},
+    {"id": "35", "label": "Ask quick question", "shortcut": "scoped.option+enter", "icon": "Shortcut Return"},
+    {"id": "36", "label": "Add selected code to Inline Edit", "shortcut": "scoped.command+shift+k", "icon": "Code"},
+    {"id": "37", "label": "Add selected code to new chat", "shortcut": "scoped.command+l", "icon": "Code"},
+    {"id": "38", "label": "Search codebase in chat", "shortcut": "scoped.command+enter", "icon": "Search"},
+    {"id": "39", "label": "Add copied reference code to chat", "shortcut": "scoped.command+c", "icon": "Code"},
+    {"id": "40", "label": "Add copied reference code to chat", "shortcut": "scoped.command+v", "icon": "Code"},
+    {"id": "41", "label": "Add copied code as chat text", "shortcut": "scoped.command+c", "icon": "Heading"},
+    {"id": "42", "label": "Add copied code as chat text", "shortcut": "scoped.command+shift+v", "icon": "Heading"},
+    {"id": "43", "label": "Accept next suggested word", "shortcut": "scoped.command+right", "icon": "Check"},
+    {"id": "44", "label": "Accept inline suggestion", "shortcut": "scoped.tab", "icon": "Check"},
+    {"id": "45", "label": "Open terminal prompt bar", "shortcut": "scoped.command+k", "icon": "Terminal"},
+    {"id": "46", "label": "Run generated terminal command", "shortcut": "scoped.command+enter", "icon": "Terminal"},
+    {"id": "47", "label": "Accept terminal command", "shortcut": "scoped.escape", "icon": "Terminal"},
+    {"id": "48", "label": "Toggle sidebar or Explorer", "shortcut": "scoped.command+b", "icon": "Dock Left"},
+    {"id": "49", "label": "Toggle integrated terminal", "shortcut": "scoped.control+keybackquote", "icon": "Terminal"},
+    {"id": "50", "label": "Toggle Markdown preview", "shortcut": "scoped.command+shift+v", "icon": "Shortcut Command"}
   ]
 }

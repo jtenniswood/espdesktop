@@ -14,17 +14,93 @@ inline void lv_label_set_text(lv_obj_t *, const char *) {}
 
 using namespace esphome::companion;
 
+static void assert_finder_folder_projection() {
+  struct Tile {
+    int cell;
+    std::string id;
+    std::string label;
+  };
+  struct Case {
+    std::string order;
+    std::vector<std::string> saved_ids;
+    std::vector<CompanionAction> catalogue;
+    int capacity;
+    std::vector<Tile> expected;
+  };
+  const Case cases[] = {
+#include "finder_folder_preview_cases.inc"
+  };
+  for (const auto &example : cases) {
+    std::vector<SubpageBtn> buttons;
+    for (const auto &id : example.saved_ids)
+      buttons.push_back({id, "Saved label", "Auto", "Auto", "", "", "companion", "", ""});
+    SubpageOrder order;
+    parse_subpage_order(example.order, 9, buttons.size(), order);
+    normalize_subpage_order_spans(order, 9, 3);
+    const SubpageOrder saved = order;
+    finder_project_folder_tiles(order, buttons, 9, 3, example.capacity, example.catalogue, "same_window");
+    assert(buttons.size() == example.saved_ids.size() + example.expected.size());
+    assert(order.back_pos == saved.back_pos && order.back_col_span == saved.back_col_span);
+    for (size_t index = 0; index < example.saved_ids.size(); ++index)
+      assert(buttons[index].entity == example.saved_ids[index] && buttons[index].label == "Saved label");
+    size_t found = 0;
+    for (int cell = 0; cell < 9; ++cell) {
+      const auto slot = order.positions[cell];
+      if (slot <= int(example.saved_ids.size())) {
+        assert(slot == saved.positions[cell]);
+        continue;
+      }
+      const auto &expected = example.expected.at(found++);
+      const auto &tile = buttons[slot - 1];
+      assert(cell == expected.cell && tile.entity == expected.id && tile.label == expected.label);
+      assert(tile.icon == finder_folder_default_icon() && tile.options == "finder_open_behavior=same_window");
+    }
+    assert(found == example.expected.size());
+  }
+}
+
 int main() {
+  assert_finder_folder_projection();
+  const auto mac_lock = normalize_parsed_cfg(
+      ParsedCfg{"shortcut.command+a", "", "", "", "url.invalid", "%", "companion_mac_lock", "1", ""});
+  assert(mac_lock.entity == "shortcut.command+control+q" && mac_lock.sensor.empty());
+  assert(mac_lock.label == "Mac Lock" && mac_lock.icon == "Lock");
+  const auto mac_lock_subpage = parse_subpage_config("~1|ML,,Lock Work Mac,Shield");
+  assert(mac_lock_subpage.size() == 1);
+  const auto subpage_lock = parsed_cfg_from_subpage_btn(mac_lock_subpage.front());
+  assert(subpage_lock.type == mac_lock.type && subpage_lock.entity == mac_lock.entity);
+  assert(subpage_lock.label == "Lock Work Mac" && subpage_lock.icon == "Shield");
+  const auto lock_runtime = espdesktop::cards::card_runtime_registry_service().context_for(
+      mac_lock.type, mac_lock.sensor);
+  assert(lock_runtime.runtime.driver == espdesktop::card_runtime::CardDriverId::COMPANION);
+  assert(lock_runtime.allow_in_subpage && companion_shortcut_action_valid(mac_lock.entity));
+
+  const auto saved_page = parse_subpage_config("~B,1|companion,com.example.RemoteEditor,Editor,,,,,,app_shortcuts");
+  assert(saved_page.size() == 1);
+  auto saved_app = parsed_cfg_from_subpage_btn(saved_page.front());
+  assert(companion_app_shortcuts_enabled(saved_app));
+  assert(std::string_view(companion_shortcut_page_back_icon(saved_app.icon)) == "Monitor");
+  saved_app.icon = "Pencil";
+  assert(std::string_view(companion_shortcut_page_back_icon(saved_app.icon)) == "Pencil");
+  saved_app.entity = "shortcut.command+l";
+  assert(!companion_app_shortcuts_enabled(saved_app));
+
   // Fast app colour is visual-only, independent of the slower contextual focus.
   {
     CompanionRuntimeService runtime;
     runtime.set_connected(true);
     runtime.set_focused_actions({"com.apple.Safari", "webapp.google-docs"});
+    assert(runtime.shortcut_page_ready("com.apple.Safari"));
+    assert(!runtime.shortcut_page_ready("com.example.RemoteEditor"));
+    runtime.set_keyboard_actions_supported(false);
+    assert(!runtime.shortcut_page_ready("com.apple.Safari"));
+    runtime.set_keyboard_actions_supported(true);
     runtime.consume_auto_subpage_action("com.apple.Safari");
     runtime.set_application_highlight("com.apple.finder");
     auto state = runtime.snapshot();
     assert(state.application_highlight_known && state.application_highlight_id == "com.apple.finder");
     assert(state.focused_action_ids.empty());
+    assert(!runtime.shortcut_page_ready("com.apple.Safari"));
     assert(runtime.pending_auto_subpage_action().empty());
     assert(runtime.consume_focus_refresh_request());
     runtime.consume_refresh_request();
@@ -32,9 +108,11 @@ int main() {
     assert(!runtime.consume_refresh_request());
     assert(!runtime.consume_focus_refresh_request());
     runtime.set_focused_actions({"folder.one"});
+    assert(runtime.shortcut_page_ready("com.apple.finder"));
     assert(runtime.snapshot().application_highlight_id == "com.apple.finder");
     assert(runtime.pending_auto_subpage_action() == "com.apple.finder");
     runtime.set_connected(false);
+    assert(!runtime.shortcut_page_ready("com.apple.finder"));
     assert(!runtime.snapshot().application_highlight_known);
   }
   {
@@ -56,24 +134,74 @@ int main() {
     brightness_slider.entity = "display.brightness";
     assert(!retired_home_assistant_card(brightness_slider));
   }
+  {
+  // A confirmed window loss is separate from automatic opening and switching.
+  {
+    CompanionRuntimeService runtime;
+    const std::string app = "com.apple.Safari";
+    runtime.set_connected(true);
+    runtime.set_auto_open_app_subpages(false);
+    runtime.set_application_highlight(app);
+    assert(!runtime.set_focused_actions({app}));
+    assert(!runtime.set_focused_actions({}));
+    assert(runtime.pending_auto_subpage_action().empty());
+    assert(runtime.consume_closed_app_subpage_action() == app);
+    assert(runtime.consume_closed_app_subpage_action().empty());
+
+    runtime.set_focused_actions({app});
+    runtime.set_focused_actions({});
+    runtime.set_focused_actions({app});
+    assert(runtime.consume_closed_app_subpage_action().empty());  // Window reopened.
+    runtime.set_application_highlight("");
+    runtime.set_focused_actions({});
+    assert(runtime.consume_closed_app_subpage_action().empty());  // Switched apps.
+  }
+  {
+    CompanionRuntimeService runtime;
+    runtime.set_connected(true);
+    runtime.set_focused_actions({"first.app"});
+    assert(runtime.take_wake_subpage_action() == "first.app");
+    assert(runtime.pending_auto_subpage_action().empty());
+    assert(runtime.take_wake_subpage_action() == "first.app");  // No new focus event required.
+    runtime.set_focused_actions({"second.app"});
+    assert(runtime.take_wake_subpage_action() == "second.app");
+    runtime.set_auto_open_app_subpages(false);
+    assert(runtime.take_wake_subpage_action().empty());
+    runtime.set_auto_open_app_subpages(true);
+    runtime.set_connected(false);
+    assert(runtime.take_wake_subpage_action().empty());
+  }
   assert(std::string(companion_volume_control_label("media.output_volume")) == "Volume");
   assert(std::string(companion_volume_control_label("media.input_volume")) == "Mic");
   assert(companion_json_payload_valid(R"({"label":"A, B | C"})", 12000));
   assert(!companion_json_payload_valid(std::string("{\"label\":\"bad\nvalue\"}"), 12000));
   assert(!companion_json_payload_valid("{}", 1));
-  assert(companion_remote_definition_capacity_available("application", 127));
-  assert(!companion_remote_definition_capacity_available("application", 128));
+  assert(companion_remote_definition_capacity_available("application", 255));
+  assert(!companion_remote_definition_capacity_available("application", 256));
   assert(!companion_remote_definition_capacity_available("webapp", 0));
 
   const std::string page = "~B,1,,|companion,folder.one,My folder,Folder Outline,Auto,,,,";
   const std::vector<CompanionAction> folders = {{"folder.one", "Changed"}, {"folder.two", "A,B|C"}};
-  const auto added = finder_append_folder_tiles(page, {true, true, true, false}, folders);
-  const auto parsed = parse_subpage_config(added);
-  assert(parsed.size() == 2 && parsed[0].label == "My folder" && parsed[1].label == "A,B|C");
-  assert(added.rfind("~B,1,,2|", 0) == 0);
-  assert(finder_append_folder_tiles(added, {true, true, true, true}, folders) == added);
-  assert(finder_append_folder_tiles(page, {true, true, true, true}, folders) == page);
-  assert(finder_append_folder_tiles(page, {true, true, false, false}, folders, page.size()) == page);
+  const auto saved = parse_subpage_config(page);
+  auto project = [](auto buttons, const auto &catalogue) {
+    SubpageOrder order;
+    parse_subpage_order("B,1,,", 4, buttons.size(), order);
+    normalize_subpage_order_spans(order, 4, 2);
+    finder_project_folder_tiles(order, buttons, 4, 2, 4, catalogue, "same_window");
+    return buttons;
+  };
+  const auto live = project(saved, folders);
+  assert(live.size() == 2 && live[0].label == "My folder" && live[1].label == "A,B|C");
+  assert(live[1].options == "finder_open_behavior=same_window");
+  assert(project(saved, std::vector<CompanionAction>{}).size() == 1);
+  assert(project(saved, folders)[1].label == live[1].label);
+  auto concurrent_edit = saved;
+  concurrent_edit[0].label = "Renamed while offline";
+  const auto restored = project(concurrent_edit, folders);
+  assert(restored[0].label == "Renamed while offline" && restored.size() == 2);
+  assert(saved.size() == 1 && saved[0].label == "My folder");
+  assert(finder_folder_catalogue_equal(folders, folders));
+  assert(!finder_folder_catalogue_equal(folders, {{"folder.one", "Different"}, folders[1]}));
 
   // Exercise the real translation tables at the device-label boundary.
   assert(std::string(companion_volume_control_label("media.input_mute")) == "Mute");
@@ -82,8 +210,6 @@ int main() {
   assert(std::string(companion_volume_control_label("media.input_mute")) == "Stumm");
   assert(std::string(companion_volume_control_label("media.output_volume")) == "Lautstärke");
   assert(std::string(companion_volume_control_label("media.input_volume")) == "Mikro");
-  assert(companion_default_action_label("window.minimize") == "Minimieren");
-  assert(companion_default_action_label("window.arrange.left-right") == "Links und rechts");
   assert(companion_default_action_label("", "url.https%3A%2F%2Fexample.com") == "URL öffnen");
   assert(companion_default_action_label("") == "Mac-App");
   assert(companion_default_action_label("com.apple.Safari") == "com.apple.Safari");
@@ -97,11 +223,21 @@ int main() {
   assert(std::string(espdesktop_i18n_key(companion_metric_suffix_key("stat.storage_free:external"))) == "free");
   assert(!companion_connected());
   assert(!companion_card_refresh_requested().load());
+  const std::string athena = "com.apple.Safari.WebApp.27234284-164C-41C9-97DD-7189CD41B456";
+  assert(companion_athena_shortcut_target(athena + ":100") == athena);
+  assert(companion_athena_shortcut_target(athena + ":2").empty());
+  assert(companion_athena_shortcut_target("com.apple.Safari:100").empty());
   assert(companion_shortcut_action_valid("shortcut.command+a"));
   assert(companion_shortcut_label("shortcut.command+a") == "\U000F0633" "A");
   assert(companion_shortcut_action_valid("shortcut.control+shift+tab"));
   assert(companion_shortcut_label("shortcut.control+shift+tab") == "\U000F0634\U000F0636" "Tab");
   assert(companion_shortcut_action_valid("shortcut.option+f20"));
+  assert(companion_shortcut_label("shortcut.left") == "\U000F004D");
+  assert(companion_shortcut_label("shortcut.right") == "\U000F0054");
+  assert(companion_shortcut_label("shortcut.space") == "Space");
+  assert(companion_shortcut_label("shortcut.function+f") == "Fn F");
+  assert(!companion_shortcut_action_valid("shortcut.a"));
+  assert(!companion_shortcut_action_valid("shortcut.function+g"));
   assert(companion_shortcut_label("shortcut.option+f20") == "\U000F0635" "F20");
   assert(companion_shortcut_label("shortcut.command+left") == "\U000F0633\U000F004D");
 
@@ -110,6 +246,27 @@ int main() {
   assert(!companion_shortcut_action_valid("shortcut.command+volumeup"));
   assert(!companion_shortcut_action_valid("shortcut.command+f21"));
   assert(!companion_shortcut_action_valid("com.apple.Safari"));
+  assert(companion_shortcut_label("shortcut.f6") == "F6");
+  assert(companion_shortcut_label("shortcut.shift+f6") == "\U000F0636" "F6");
+  assert(companion_shortcut_label("shortcut.escape-twice") == "Esc Esc");
+  assert(companion_shortcut_label("shortcut.9") == "9");
+  assert(!companion_shortcut_action_valid("shortcut.0"));
+  assert(!companion_shortcut_action_valid("shortcut.shift+f7"));
+  assert(!companion_shortcut_action_valid("shortcut.escape-thrice"));
+  assert(companion_shortcut_label("shortcut.tab") == "Tab");
+  assert(companion_shortcut_label("shortcut.escape") == "Esc");
+  assert(!companion_shortcut_action_valid("shortcut.enter"));
+  {
+    CompanionRuntimeSnapshot keyboard_only;
+    keyboard_only.connected = true;
+    assert(!companion_action_available(keyboard_only, "shortcut.tab"));
+    keyboard_only.keyboard_actions_supported = true;
+    // The Mac verifies Safari is active. A standalone keyboard card does not need app-launch approval.
+    assert(companion_action_available(keyboard_only, "shortcut.tab"));
+    assert(companion_action_available(keyboard_only, "shortcut.escape"));
+  }
+  assert(companion_shortcut_label("shortcut.shift+escape") == "\U000F0636" "Esc");
+  assert(!companion_shortcut_action_valid("shortcut.shift+tab"));
 
   ParsedCfg finder_launch;
   finder_launch.type = "companion";
@@ -179,7 +336,6 @@ int main() {
   assert(companion_encoded_url("url.javascript%3Aalert(1)").empty());
   assert(companion_encoded_url("url.https%3A%2F%2Fexample.com|INVOKE").empty());
   assert(companion_encoded_url("url." + std::string(129, 'a')).empty());
-  assert(companion_default_action_label("window.arrange.left-right") == "Left & Right");
   assert(companion_default_action_label("shortcut.command+a") == "\U000F0633" "A");
   assert(companion_default_action_label("com.apple.Safari") == "com.apple.Safari");
   assert(companion_default_action_label("com.apple.Safari", url_config) == "Open URL");
@@ -207,16 +363,20 @@ int main() {
   assert(companion_default_action_label_with_fallback("com.apple.Safari", "", resolved_label) == "Safari");
   companion_set_actions({});
   assert(companion_default_action_label_with_fallback("com.apple.Safari", "", resolved_label) == "Safari");
-  companion_set_actions({{"com.apple.Safari", "Safari"}, {folder_action, "Projects"}});
-  companion_set_window_actions({"window.left"});
+  const auto retired_window = parse_cfg("window.minimize;Old;Monitor;Auto;;;companion");
+  assert(card_runtime_type_retired(retired_window.type) && retired_window.entity.empty());
+  const auto window_subpage = parse_subpage_config("~B,1,2|CP,window.minimize,Old|CP,shortcut.command%2Ba,Keep");
+  assert(window_subpage.size() == 2);
+  assert(card_runtime_type_retired(window_subpage[0].type) && window_subpage[0].entity.empty());
+  assert(window_subpage[1].type == "companion" && window_subpage[1].entity == "shortcut.command+a");
+  // A saved window action stays unavailable even if an older peer supplies its identifier.
+  companion_set_actions({{"com.apple.Safari", "Safari"}, {folder_action, "Projects"}, {"window.left", "Left"}});
   companion_set_keyboard_actions_supported(true);
   assert(companion_card_refresh_requested().load());
   companion_set_connected(true);
   assert(companion_connected());
   assert(companion_action_available("shortcut.command+a"));
-  assert(companion_window_action_valid("window.left"));
-  assert(companion_action_available("window.left"));
-  assert(companion_action_available("shortcut.command+a"));
+  assert(!companion_action_available("window.left"));
   companion_set_keyboard_actions_supported(false);
   assert(!companion_action_available("shortcut.command+a"));
   assert(!companion_action_available("window.close"));
@@ -358,7 +518,9 @@ int main() {
   assert(companion_action_active("folder.one"));
   int guarded_invocations = 0;
   companion_set_keyboard_actions_supported(true);
-  register_companion_action_sender([&](const std::string &, const std::string &, const std::string &) {
+  std::string shortcut_target;
+  register_companion_action_sender([&](const std::string &, const std::string &, const std::string &, const std::string &app) {
+    shortcut_target = app;
     ++guarded_invocations; return true;
   });
   companion_set_focused_actions({"A"});
@@ -371,6 +533,13 @@ int main() {
   assert(guarded_invocations == 1);
   assert(invoke_companion_action_for_app("shortcut.control+w", "standalone", ""));
   assert(guarded_invocations == 2);
+  assert(companion_shortcut_action_valid("shortcut.scoped.command+k~command+s"));
+  assert(companion_shortcut_action_valid("shortcut.scoped.shift+keypadenter"));
+  assert(!companion_shortcut_action_valid("shortcut.scoped.a~b~c~d"));
+  assert(!companion_shortcut_action_valid("shortcut.scoped.command+command+a"));
+  assert(!invoke_companion_action_for_app("shortcut.scoped.space", "unscoped", ""));
+  assert(invoke_companion_action_for_app("shortcut.scoped.space", "app-preset", "", "new_window", "org.videolan.vlc:12"));
+  assert(shortcut_target == "org.videolan.vlc");
   companion_set_value("media.output_volume", 72);
   bool volume_invoked = false;
   register_companion_value_sender([&volume_invoked](const std::string &control, int value,
@@ -414,13 +583,19 @@ int main() {
   assert(companion_card_focus_allowed(""));
   assert(companion_action_available(folder_action));
   bool invoked = false;
-  register_companion_url_sender([&invoked](const std::string &app, const std::string &url,
-                                           const std::string &request) {
-    invoked = app == "system.default_browser" && url.rfind("https%3A%2F%2F", 0) == 0 && request == "test-1";
+  register_companion_url_sender([&invoked](const std::string &url, const std::string &request, bool new_window) {
+    invoked = url.rfind("https%3A%2F%2F", 0) == 0 &&
+              (new_window ? request == "test-window" : request == "test-tab");
     return invoked;
   });
-  assert(invoke_companion_url("com.google.Chrome", url_config, "test-1"));
+  ParsedCfg url_card;
+  url_card.type = "companion";
+  url_card.sensor = url_config;
+  assert(invoke_companion_url(url_config, "test-tab", companion_url_opens_new_window(url_card)));
   assert(invoked);
+  url_card.options = "url_open_behavior=new_window";
+  url_card = normalize_parsed_cfg(url_card);
+  assert(invoke_companion_url(url_config, "test-window", companion_url_opens_new_window(url_card)));
   bool navigated = false;
   companion_expect_action_result("launch-1", [&navigated]() { navigated = true; });
   companion_deliver_action_result("another-request", "performed");
@@ -477,7 +652,7 @@ int main() {
   assert(!companion_timezone_changed());
   companion_set_connected(false);
   assert(!companion_url_available("system.default_browser", url_config));
-  assert(!invoke_companion_url("system.default_browser", url_config, "offline-url"));
+  assert(!invoke_companion_url(url_config, "offline-url"));
   assert(companion_consume_subpage_return_request());
   companion_set_timezone_id("");
   assert(companion_timezone_id().empty());
@@ -487,7 +662,6 @@ int main() {
   assert(!companion_metric_value(companion_runtime_snapshot(), "stat.cpu", metric_value));
   assert(!companion_application_focused("com.apple.Safari"));
   assert(!companion_action_active("media.play_pause"));
-  assert(companion_runtime_snapshot().now_playing.playback_state == CompanionPlaybackState::UNAVAILABLE);
   companion_set_connected(true);
   assert(!companion_action_available("media.play_pause"));
   assert(!companion_value("media.output_volume", output_volume));

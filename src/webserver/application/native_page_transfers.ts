@@ -4,9 +4,9 @@ import { pageDepth } from "../model/page_keys";
 import type { ConfigCodecFeature } from "./config_codec";
 import { state } from "../state/app_instance";
 import { createClipboardEntry } from "../features/clipboard";
-import { capturePageCards, planPageCardDelete, planPageCardPaste, PageTransferConflict,
+import { captureNativePageCards, deleteNativePageCards, pasteNativePageCards, PageTransferConflict,
   type PageCardClipboard, type PageTransferCard, type PageTransferOrigin } from "../model/page_card_transfer";
-import type { PanelConfigDocument } from "../model/panel_config";
+import type { NativeLayoutDraft } from "../model/native_layout_draft";
 import type { NativePanelConfigController } from "../controllers/native_panel_config_controller";
 import type { NativePageEditorLoader } from "../features/page_editor";
 import type { ApplicationLayoutState } from "./application_context";
@@ -23,6 +23,8 @@ export interface NativePageTransfersFeature {
   paste(position: number, page?: number, entries?: readonly PageTransferCard[]): Promise<{ ok: boolean; resized: number }>;
   duplicate(slot: number): Promise<boolean>;
   delete(slots: readonly number[]): Promise<boolean>;
+  rename(slot: number, label: string): Promise<boolean>;
+  place(order: string): Promise<boolean>;
 }
 /** Validate normalized temporary views, preserving the raw transfer payload. */
 export function validatePageTransferCards(
@@ -34,8 +36,15 @@ export function validatePageTransferCards(
     validate(codec.normalizeButtonConfig(cloneCardConfig(button)), inSubpage);
   for (const entry of entries) {
     check(entry.button, pageDepth(target) > 0);
-    if (entry.subtree) for (const raw of [entry.subtree.configuration, ...Object.values(entry.subtree.children)]) {
-      if (raw !== null) for (const button of codec.parseSubpageConfig(raw, true).buttons) check(button, true);
+    if (entry.nativeTree !== undefined) {
+      const tree = entry.nativeTree;
+      if (tree) for (const page of [tree.page, ...Object.values(tree.children)]) {
+        if (page) for (const button of page.cards) check(button, true);
+      }
+    } else if (entry.subtree) {
+      for (const raw of [entry.subtree.configuration, ...Object.values(entry.subtree.children)]) {
+        if (raw !== null) for (const button of codec.parseSubpageConfig(raw, true).buttons) check(button, true);
+      }
     }
   }
 }
@@ -81,22 +90,30 @@ export function createNativePageTransfersFeature(options: {
       busy = false; state.nativeTransferActive = false; options.shell.syncConfigLockUi();
     }
   }
-  function savedDocument(): PanelConfigDocument {
-    const document = options.native.client?.lastDocument();
+  function savedCards(page: number, slots: readonly number[], grid: ReturnType<typeof currentLayout>): PageCardClipboard {
+    const client = options.native.client;
+    const document = client?.lastDocument();
     if (!document) throw new Error("Reload the saved pages before transferring cards.");
-    return document;
+    return captureNativePageCards(document, client?.lastLayout(), page, slots, grid);
   }
-  function unchanged(current: PanelConfigDocument, origin: PageTransferOrigin, layout: ReturnType<typeof currentLayout>): void {
-    if (capturePageCards(current, origin.page, origin.slots, layout).origin.fingerprint !== origin.fingerprint)
+  async function readCards(page: number, slots: readonly number[], grid: ReturnType<typeof currentLayout>): Promise<PageCardClipboard> {
+    const expected = savedCards(page, slots, grid).origin;
+    const snapshot = await options.native.readSnapshot();
+    if (!snapshot) throw new Error("Could not read the saved cards.");
+    const captured = captureNativePageCards(snapshot.document, snapshot.layout, page, slots, grid);
+    if (captured.origin.fingerprint !== expected.fingerprint)
       throw new PageTransferConflict("The selected cards changed. Reload before trying again.");
+    return captured;
   }
-  async function save(plan: (current: PanelConfigDocument) => PanelConfigDocument): Promise<void> {
-    let committed: PanelConfigDocument | null = null;
+  async function save(plan: (draft: NativeLayoutDraft) => void, checkAcceptedLayout = false): Promise<void> {
     let planningFailed = false, planningError: unknown;
-    const pending = options.native.schedule(current => {
-      try { committed = plan(current); return committed; }
-      catch (error) { planningFailed = true; planningError = error; throw error; }
-    });
+    const pending = options.native.schedule(Object.assign(
+      () => { throw new Error("Card transfers require the native layout."); },
+      { checkAcceptedLayout, editNative(draft: NativeLayoutDraft) {
+        try { plan(draft); }
+        catch (error) { planningFailed = true; planningError = error; throw error; }
+      } },
+    ), checkAcceptedLayout);
     const attempt = options.native.saveAttemptId;
     const result = await pending;
     // A failed connection may lose the acknowledgement after publication.
@@ -105,39 +122,37 @@ export function createNativePageTransfersFeature(options: {
     unappliedSaveAttempt = pending && (planningFailed || result !== "failed" && result !== "legacy-fallback") ? attempt : null;
     if (planningFailed) throw planningError;
     if (result === "failed") throw new UnconfirmedTransferError("Could not confirm the transfer. Reload the saved pages before trying again.");
+    const client = options.native.client;
+    const committed = client?.lastDocument();
     if ((result !== "saved" && result !== "mirror-failed") || !committed)
-      throw new Error(result === "conflict" ? "The saved pages changed. Reload before trying again." : "The cards did not save. No transfer was applied.");
+      throw new Error(result === "conflict"
+        ? checkAcceptedLayout
+          ? "Configuration changed in another browser. Reload before saving again."
+          : "The saved pages changed. Reload before trying again."
+        : "The cards did not save. No transfer was applied.");
     unappliedSaveAttempt = null;
     // A disconnected panel will refresh itself on reconnect. Do not overwrite
     // its connection state with the candidate from this now-obsolete session.
-    if (!state.configLocked) options.editor().replace(committed);
+    if (!state.configLocked) options.editor().replace(committed, client?.lastLayout(), checkAcceptedLayout);
   }
   async function capture(slots: readonly number[]): Promise<PageCardClipboard | null> {
     const sourcePage = page();
     let captured: PageCardClipboard | null = null;
     await run(async layout => {
-      const expected = capturePageCards(savedDocument(), sourcePage, slots, layout).origin;
-      const snapshot = await options.native.readSnapshot();
-      if (!snapshot) throw new Error("Could not read the saved cards.");
-      unchanged(snapshot.document, expected, layout);
-      captured = capturePageCards(snapshot.document, sourcePage, slots, layout);
+      captured = await readCards(sourcePage, slots, layout);
     });
     return captured;
   }
   async function copy(slots: readonly number[], cut = false): Promise<boolean> {
     const sourcePage = page();
     return run(async layout => {
-      const expected = capturePageCards(savedDocument(), sourcePage, slots, layout).origin;
-      const snapshot = await options.native.readSnapshot();
-      if (!snapshot) throw new Error("Could not read the saved cards.");
-      unchanged(snapshot.document, expected, layout);
-      const captured = capturePageCards(snapshot.document, sourcePage, slots, layout);
+      const captured = await readCards(sourcePage, slots, layout);
       const clipboard = { buttons: captured.entries.map(entry => createClipboardEntry(entry.button, entry.size, entry.subtree?.configuration ?? null)),
         native: { ...captured, cut } };
       // A lost acknowledgement may follow a committed deletion. Keep a recovery
       // copy in that case; confirmed rejections preserve the previous clipboard.
       if (cut) {
-        try { await save(current => planPageCardDelete(current, captured.origin, layout)); }
+        try { await save(draft => deleteNativePageCards(draft, captured.origin, layout)); }
         catch (error) {
           if (error instanceof UnconfirmedTransferError) state.clipboard = clipboard;
           throw error;
@@ -154,9 +169,8 @@ export function createNativePageTransfersFeature(options: {
     let resized = 0;
     const ok = await run(async layout => {
       options.validate(entries, target, false);
-      await save(current => {
-        const plan = planPageCardPaste(current, target, position, entries, layout);
-        resized = plan.resized; return plan.document;
+      await save(draft => {
+        resized = pasteNativePageCards(draft, target, position, entries, layout).resized;
       });
       if (!supplied && state.clipboard === clipboard) state.clipboard = null;
     });
@@ -166,20 +180,25 @@ export function createNativePageTransfersFeature(options: {
   async function duplicate(slot: number): Promise<boolean> {
     const sourcePage = page(), pos = options.grid.ctx().grid.indexOf(slot);
     return run(async layout => {
-      const captured = capturePageCards(savedDocument(), sourcePage, [slot], layout);
+      const captured = savedCards(sourcePage, [slot], layout);
       options.validate(captured.entries, sourcePage, false);
-      await save(current => {
-        unchanged(current, captured.origin, layout);
-        return planPageCardPaste(current, sourcePage, (pos + 1) % layout.slots, captured.entries, layout).document;
-      });
+      await save(draft => { pasteNativePageCards(draft, sourcePage, (pos + 1) % layout.slots, captured.entries, layout, captured.origin); });
     });
   }
   async function remove(slots: readonly number[]): Promise<boolean> {
     const sourcePage = page();
     return run(async layout => {
-      const origin = capturePageCards(savedDocument(), sourcePage, slots, layout).origin;
-      await save(current => planPageCardDelete(current, origin, layout));
+      const { origin } = savedCards(sourcePage, slots, layout);
+      await save(draft => deleteNativePageCards(draft, origin, layout));
     });
   }
-  return { available, capture, copy, paste, duplicate, delete: remove };
+  async function rename(slot: number, label: string): Promise<boolean> {
+    const targetPage = page();
+    return run(() => save(draft => draft.renameCard(targetPage, slot, label), true));
+  }
+  async function place(order: string): Promise<boolean> {
+    const targetPage = page();
+    return run(() => save(draft => draft.writePageOrder(targetPage, order), true));
+  }
+  return { available, capture, copy, paste, duplicate, delete: remove, rename, place };
 }

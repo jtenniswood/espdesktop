@@ -14,6 +14,13 @@ validates and discovers these files, generating shared browser definitions and
 firmware app names/shortcut IDs. The catalog and app subpages consume the same
 definitions; adding a file requires no app-specific code.
 
+Capability 9 adds optional expanded presets. The browser bundles them in a
+compact per-app format and decodes them on demand. Companion sends a starter
+definition followed by bounded pages for approved apps, using the existing
+catalogue transport. Older displays receive starter definitions only. A scoped
+action carries its target using the existing action app ID field, and Companion
+checks approval and foreground focus before every stroke.
+
 ## Ownership boundaries
 
 - `components/companion/` owns TLS, pairing, authentication, protocol parsing,
@@ -29,10 +36,11 @@ Protocol v4 uses typed JSON control messages on `/companion/v4`; only bounded
 artwork and app-icon chunks are binary. New messages and card modes must be added to the
 product contract before they are implemented. Pairing starts when an unpaired display’s Companion setup page is opened.
 The endpoint applies the configured device web authentication before starting
-a pairing window or returning its code. Without device web authentication,
-anyone with network access to that page can start pairing. The code expires
-after 15 minutes and is hidden once paired; the touchscreen can also activate
-pairing. This is a device-web-access policy, not a physical-presence guarantee.
+pairing or returning its code. Without device web authentication, anyone with
+network access to that page can start pairing. The touchscreen can also start
+pairing. The code persists across reboots and rotates after successful pairing.
+The display only shows it while unpaired. Pairing is authorized by access to
+the device webserver.
 
 ## Compatibility and testing
 
@@ -61,6 +69,13 @@ On macOS, `CompanionConnection` accepts preferences, resources and credentials
 through `CompanionSessionPorts.swift` and publishes events observed by the store.
 Native settings views live in `CompanionSettings.swift`; application lifecycle
 and the menu bar remain in `CompanionApp.swift`.
+
+Each saved display owns a connection, Keychain account, certificate pin,
+authentication sequence, and reconnect preference. Mac permissions, approved
+resources, media state, and system metrics are shared by the store. The store
+samples Mac state and publishes it to connected sessions. Each session keeps
+its own capabilities, focus registrations, pending replies, and icon transfers.
+The legacy display record keeps its original Keychain account during migration.
 
 Browser card variants live in `model/companion_card.ts`. The saved-format adapter
 in `model/companion_card_codec.ts` retains current bytes and unknown options;

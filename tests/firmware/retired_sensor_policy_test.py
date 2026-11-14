@@ -1,5 +1,6 @@
-"""Run the actual boot migration and schedule predicates for retired HA modes."""
+"""Check that retired sensor modes cannot drive the current display policy."""
 from pathlib import Path
+import json
 import subprocess
 import sys
 import tempfile
@@ -12,19 +13,38 @@ class Loader(yaml.SafeLoader):
     pass
 Loader.add_constructor("!lambda", lambda loader, node: loader.construct_scalar(node))
 config = yaml.load(schedule, Loader)
-migration = next(hook for hook in config["esphome"]["on_boot"]
-                 if any("local_display_policy_ready) = true" in str(action) for action in hook["then"]))
-assert migration["priority"] > -190, "Migrate before the schedule's restored-enabled fallback"
+rules = json.loads((ROOT / "product/v2/panel_settings.json").read_text())["scalar_settings"]
+assert rules["screensaver_mode"] == {
+    "default": "disabled", "choices": ["disabled", "timer", "companion"],
+}
+display = yaml.load((ROOT / "common/config/display.yaml").read_text(), Loader)
+for group, entity_id, setting in (
+    ("text", "screensaver_mode", "SCREENSAVER_MODE"),
+    ("select", "screensaver_action", "SCREEN_SAVER_ACTION"),
+):
+    entity = next(item for item in display[group] if item["id"] == entity_id)
+    assert not entity["restore_value"] and not entity["optimistic"]
+    assert f"ScalarSetting::{setting}," in entity["set_action"][0]["lambda"]
+trigger = next(item for item in config["text"] if item["id"] == "screen_schedule_trigger")
+assert not trigger["restore_value"] and not trigger["optimistic"]
+assert trigger["initial_value"] == "disabled"
+assert next(select for select in config["select"] if select["id"] == "schedule_mode")["initial_option"] == "Screen Dimmed"
+defaults = {number["id"]: number.get("initial_value") for number in config["number"]}
+assert defaults["schedule_on_hour"] == 7
+assert defaults["schedule_off_hour"] == 19
+assert defaults["schedule_dimmed_brightness"] == 15
 for switch in config["switch"]:
     if switch["id"] != "schedule_enabled":
         continue
-    for handler in ("on_turn_on", "on_turn_off"):
-        assert len(switch[handler]) == 1
-        assert switch[handler][0]["if"]["condition"]["lambda"] == "return id(local_display_policy_ready);"
+    assert switch["restore_mode"] == "DISABLED"
+    assert switch["optimistic"] is False
+    for handler in ("turn_on_action", "turn_off_action"):
+        assert "edit_screen_schedule_preference" in switch[handler][0]["lambda"]
+    assert switch["on_turn_off"][0]["if"]["condition"]["lambda"] == "return id(local_display_policy_ready);"
 helpers = (ROOT / "components/espdesktop/backlight.h").read_text()
 names = ("screen_schedule_in_window", "screen_schedule_sensor_trigger", "screen_schedule_disabled_trigger",
          "screen_schedule_time_trigger", "screen_schedule_waiting_for_time", "screen_schedule_night_active",
-         "screen_schedule_normal_active", "screen_schedule_blocks_cover_art")
+         "screen_schedule_normal_active")
 production = "\n".join(definition(helpers, name)[1] for name in names)
 header_source = (ROOT / "components/espdesktop/button_grid_grid.h").read_text()
 local_header = definition(header_source, "grid_refresh_local_header")[1]
@@ -50,22 +70,6 @@ void refresh_clock_bar_left_label(lv_obj_t *page, bool visible) {
  refreshed_page = page; refreshed_visible = visible;
 }
 ''' + local_header + r'''
-struct Text {
- std::string state; int writes = 0;
- struct Call { Text *text; std::string value;
-   void set_value(const char *next) { value = next; }
-   void perform() { text->state = value; ++text->writes; }
- };
- Call make_call() { return {this, ""}; }
-} screensaver_mode, screen_schedule_trigger;
-struct Switch { bool state; int writes = 0; void turn_off() { state = false; ++writes; } } schedule_enabled;
-struct Preferences { int syncs = 0; void sync() { ++syncs; } } preferences;
-auto *global_preferences = &preferences;
-bool local_display_policy_ready = false;
-#define id(x) x
-void migrate() {
-''' + migration["then"][0]["lambda"] + r'''
-}
 int main() {
  lv_obj_t label, page; lv_obj_t *labels[] = {&label};
  for (bool visible : {false, true}) {
@@ -73,26 +77,11 @@ int main() {
   assert(registered_label == &label && registered_count == 1);
   assert(refreshed_page == &page && refreshed_visible == visible);
  }
- for (const auto &idle : {"disabled", "timer", "companion", "sensor"}) {
-  for (const auto &trigger : {"disabled", "time", "timer", "sensor", "Sensor"}) {
-   for (bool enabled : {false, true}) {
-    screensaver_mode = {idle, 0}; screen_schedule_trigger = {trigger, 0};
-    schedule_enabled = {enabled, 0}; preferences.syncs = 0; local_display_policy_ready = false;
-    const bool retired_idle = std::string(idle) == "sensor";
-    const bool retired_schedule = screen_schedule_sensor_trigger(trigger);
-    migrate();
-    assert(local_display_policy_ready);
-    assert(screensaver_mode.state == (retired_idle ? "disabled" : idle));
-    assert(screen_schedule_trigger.state == (retired_schedule ? "disabled" : trigger));
-    assert(schedule_enabled.state == (retired_schedule ? false : enabled));
-    assert(preferences.syncs == (retired_idle || retired_schedule ? 1 : 0));
-    const int writes = screensaver_mode.writes + screen_schedule_trigger.writes + schedule_enabled.writes;
-    migrate();
-    assert(writes == screensaver_mode.writes + screen_schedule_trigger.writes + schedule_enabled.writes);
-   }
-  }
- }
- // Raw values from an older client must never block the display or Mac artwork.
+ assert(!screen_schedule_night_active("time", true, false, true, 18, 7, 19));
+ assert(screen_schedule_night_active("time", true, false, true, 19, 7, 19));
+ assert(screen_schedule_night_active("time", true, false, true, 6, 7, 19));
+ assert(!screen_schedule_night_active("time", true, false, true, 7, 7, 19));
+ // Raw values from an older client must never block the display.
  for (const auto &trigger : {"sensor", "Sensor"}) {
   for (bool presence : {false, true}) {
    for (bool valid_time : {false, true}) {
@@ -100,7 +89,6 @@ int main() {
      assert(screen_schedule_disabled_trigger(trigger));
      assert(!screen_schedule_waiting_for_time(trigger, true, valid_time));
      assert(!screen_schedule_night_active(trigger, true, presence, valid_time, 0, 8, 22, activation));
-     assert(!screen_schedule_blocks_cover_art(trigger, true, presence, valid_time, 0, 8, 22, activation));
     }
    }
   }

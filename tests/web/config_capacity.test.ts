@@ -64,7 +64,8 @@ export async function runConfigCapacityTests(): Promise<void> {
   persistence.connectRequestApi(api as any);
   persistence.connectCodec({ serializeButtonConfig: () => "light.kitchen",
     serializeSubpageConfig: () => largeSubpage,
-    parseButtonConfig: parseRawButtonConfig, parseSubpageConfig: parseLegacySubpageConfig });
+    parseButtonConfig: parseRawButtonConfig, parseSubpageConfig: parseLegacySubpageConfig,
+    buttonConfigFields: () => [], subpageSerializedOrder: () => [] });
   equal(persistence.buttonConfigByteLimit(), 255, "undiscovered firmware keeps the safe card limit");
   equal(persistence.subpageConfigFits(largeSubpage), false, "undiscovered firmware keeps the configured chunk limit");
   await controller.begin();

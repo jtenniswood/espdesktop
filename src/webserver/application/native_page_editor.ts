@@ -1,7 +1,9 @@
 import { state } from "../state/app_instance";
 import { WEB_UI_COLORS } from "../state/ui_tokens";
-import { isRetiredWebAppOrWifiCard, removeRetiredPanelRecords } from "../features/retired_cards";
+import { isRetiredLayoutCard, removeRetiredPanelRecords } from "../features/retired_cards";
 import { parseGridOrder } from "../model";
+import type { PanelConfigDocument } from "../model/panel_config";
+import type { NativePageLayout } from "../model/panel_config_conversion";
 import { NativePageEditorLoader, preparePageEditorDocument, restoredEditorPage } from "../features/page_editor";
 import type { NativePanelConfigController } from "../controllers/native_panel_config_controller";
 import type { ConfigCodecFeature } from "./config_codec";
@@ -15,13 +17,19 @@ export function createNativePageEditorFeature(options: {
   layout: ApplicationLayoutState;
   runtime: UiRuntimeState;
   document: Document;
+  displayDemo?: boolean;
   shell: Pick<ControlsShellFeature, "showBanner" | "syncConfigLockUi">;
   closeSettings(): void;
   render(): void;
   canApply(): boolean;
 }): NativePageEditorLoader {
   const { native, codec, layout, runtime } = options;
-  return new NativePageEditorLoader({
+  let removingOldCards = false;
+  const cleanRetiredCards = (snapshot: PanelConfigDocument, nativeLayout?: NativePageLayout) => {
+    const cleaned = structuredClone(snapshot);
+    return removeRetiredPanelRecords(cleaned, codec, isRetiredLayoutCard, nativeLayout) ? cleaned : snapshot;
+  };
+  const loader = new NativePageEditorLoader({
     discover: () => native.waitForDiscovery(),
     readDepth: () => native.readNavigationDepth(),
     revision: () => native.changeRevision(),
@@ -29,10 +37,9 @@ export function createNativePageEditorFeature(options: {
     canApply: () => options.canApply() && !state.configLocked && !state.nativeTransferActive && !state.settingsDraft?.dirty && !state.settingsDraft?.isNew &&
       runtime.dragSrcPos < 0 && !state.clockBarDragItem &&
       !options.document.activeElement?.closest(".sp-card-name-input"),
-    apply: (document) => {
-      const cleaned = structuredClone(document);
-      const retired = removeRetiredPanelRecords(cleaned, codec, isRetiredWebAppOrWifiCard);
-      const prepared = preparePageEditorDocument(cleaned, layout.numSlots, codec);
+    apply: (snapshot, nativeLayout, preserveSelection) => {
+      const cleaned = cleanRetiredCards(snapshot, nativeLayout);
+      const prepared = preparePageEditorDocument(cleaned, layout.numSlots, codec, cleaned === snapshot ? nativeLayout : undefined);
       const root = parseGridOrder(cleaned.settings.button_order ?? "", layout.totalSlots, layout.gridCols, {}, layout.previewSlots);
       const editing = restoredEditorPage(state.editingSubpage, prepared);
       options.closeSettings();
@@ -40,33 +47,43 @@ export function createNativePageEditorFeature(options: {
       state.subpages = prepared.subpages;
       state.nativePanelDocument = prepared.source;
       state.nativePageSnapshotLoaded = true;
-      native.client?.acceptSnapshot(prepared.source);
+      native.client?.acceptSnapshot(prepared.source, cleaned === snapshot ? nativeLayout : undefined);
       state.nativeHasNestedPages = prepared.nested;
-      state.nativeConfigReadOnly = prepared.nested && native.writableNavigationDepth() < 2;
+      state.nativeConfigReadOnly = !!options.displayDemo || (prepared.nested && native.writableNavigationDepth() < 2);
       state.subpageRaw = {};
       state.subpageSavePending = {};
       state.pendingButtonOrderRaw = cleaned.settings.button_order ?? "";
       state.grid = root.grid;
       state.sizes = root.sizes;
-      state.onColor = document.settings.button_on_color || WEB_UI_COLORS.primary;
+      state.onColor = cleaned.settings.button_on_color || WEB_UI_COLORS.primary;
+      const activeSubpageGrid = editing === state.editingSubpage && editing
+        ? prepared.subpages[editing]?.grid ?? [] : [];
       state.editingSubpage = editing;
-      state.selectedSlots = []; state.subpageSelectedSlots = [];
-      state.lastClickedSlot = state.subpageLastClicked = -1;
+      state.selectedSlots = preserveSelection ? state.selectedSlots.filter(slot => root.grid.includes(slot)) : [];
+      state.subpageSelectedSlots = preserveSelection
+        ? state.subpageSelectedSlots.filter(slot => activeSubpageGrid.includes(slot)) : [];
+      if (!preserveSelection || !root.grid.includes(state.lastClickedSlot)) state.lastClickedSlot = -1;
+      if (!preserveSelection || !activeSubpageGrid.includes(state.subpageLastClicked)) state.subpageLastClicked = -1;
       runtime.orderReceived = true;
       clearTimeout(runtime.migrationTimer as any);
       clearTimeout(runtime.sliderMigrationTimer as any);
       runtime.pendingSliderSubpageMigrations = {};
       options.shell.syncConfigLockUi();
-      if (state.nativeConfigReadOnly)
+      if (state.nativeConfigReadOnly && !options.displayDemo)
         options.shell.showBanner("This firmware can display nested pages, but cannot save changes to them.", "warning");
-      options.render();
-      if (retired && !state.nativeConfigReadOnly) {
-        // Apply the same cleanup to the latest saved generation so concurrent edits survive.
-        void native.schedule(current => {
-          removeRetiredPanelRecords(current, codec, isRetiredWebAppOrWifiCard);
-          return current;
-        });
+      if (cleaned !== snapshot && !state.nativeConfigReadOnly && !removingOldCards) {
+        // Reapply the cleanup to the current device generation so concurrent
+        // changes to neighbouring cards survive the write.
+        const pending = native.schedule(document => cleanRetiredCards(document), true);
+        if (pending) {
+          removingOldCards = true;
+          void pending.then(result => {
+            removingOldCards = false;
+            if ((result === "saved" || result === "mirror-failed") && !state.configLocked) loader.refreshAfterChange();
+          });
+        }
       }
+      options.render();
     },
     loading: active => {
       state.nativeConfigLoading = active && state.nativePanelDocument === null;
@@ -77,4 +94,5 @@ export function createNativePageEditorFeature(options: {
       options.shell.showBanner("Could not load the saved pages. Reload before editing.", "error");
     },
   });
+  return loader;
 }

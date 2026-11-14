@@ -960,6 +960,21 @@
     }
   },
   {
+    "name": "companion_mac_lock: lock",
+    "input": "~shortcut.command%2Bcontrol%2Bq,Mac%20Lock,Lock,Auto,,,companion_mac_lock,,",
+    "expected": {
+      "entity": "shortcut.command+control+q",
+      "label": "Mac Lock",
+      "icon": "Lock",
+      "icon_on": "Auto",
+      "sensor": "",
+      "unit": "",
+      "type": "companion_mac_lock",
+      "precision": "",
+      "options": ""
+    }
+  },
+  {
     "name": "slider: numeric",
     "input": "~input_number.example,,Auto,Auto,,,slider,,",
     "expected": {

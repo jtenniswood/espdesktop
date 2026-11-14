@@ -7,15 +7,17 @@ description: "Choose Mac controls, local panel actions, information cards and fo
 
 Webhook cards saved with older firmware appear as empty slots after updating.
 
-Cards show information and controls on the display. Mac controls use the paired [EspDesktop Mac app](/getting-started/mac-app); local cards run on the panel.
+Cards show information and controls on the display. Mac controls use the paired [EspDesktop Mac app](/screens/4848s040#install-and-pair-the-espdesktop-mac-app); local cards run on the panel.
 
 | Goal | Card |
 |---|---|
-| Launch apps, run shortcuts, open websites and folders, or arrange windows | [Companion](./companion) |
-| Adjust or mute Mac output and microphone audio | [Volume](./sliders) |
+| Launch apps, run shortcuts, or open websites and folders | [Companion](/#what-you-can-control) |
+| Adjust the main Mac display brightness | Display brightness or Mac screen |
 | Open another page of cards | [Subpage](/features/subpages) |
 
-[Existing Stats cards](/mac-controls/statistics) continue to show readings from the paired Mac.
+## Removed Mac audio cards
+
+Saved Volume, Mic, and mute cards leave empty spaces when the display loads a layout or restores a backup.
 
 ## Saved Home Assistant cards
 

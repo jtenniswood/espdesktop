@@ -10,6 +10,7 @@ const source = () => ({ deviceProfile: "panel-a", buttons: { 2: ";Root;;;;;subpa
     32: "~B,1|subpage,,Hidden", [keys.childPageKey(32, 1)]: "~B,1|,light.hidden,Hidden" },
   settings: { button_order: "2", future: "opaque\0🌡️" } });
 const codec = {
+  normalizeButtonConfig: model.cloneCardConfig,
   parseButtonConfig: model.parseRawButtonConfig,
   parseSubpageConfig: value => model.parseRawSubpageConfig(value, code => code),
   buildSubpageGrid: page => Object.assign(page, model.buildSubpageGrid(page, 9, 3)),
@@ -28,6 +29,20 @@ test("editor snapshot preserves both levels, inactive data and immediate owner t
   assert.equal(editor.restoredEditorPage(child, document), null);
   document.source.settings.future = "changed copy";
   assert.equal(JSON.stringify(input), before);
+});
+test("native layout fields feed the editor without parsing card strings", () => {
+  const conversion = load("model/panel_config_conversion.ts");
+  const input = source();
+  const { document, layout } = conversion.decodePanelPageSnapshot(conversion.encodePanelPageDocument(input));
+  const fail = () => { throw new Error("native rendering must not parse card strings"); };
+  const direct = editor.preparePageEditorDocument(document, 9, {
+    ...codec, parseButtonConfig: fail, parseSubpageConfig: fail,
+  }, layout);
+  const projected = editor.preparePageEditorDocument(input, 9, codec);
+  assert.deepEqual(direct, projected);
+  assert.equal(editor.restoredEditorPage(child, direct), child);
+  direct.subpages[child].buttons[0].label = "edited";
+  assert.equal(layout.pages.find(page => page.key === child).cards[0].config.label, "Leaf");
 });
 test("a rejected snapshot has no partially applied document", () => {
   const input = source(), before = JSON.stringify(input);

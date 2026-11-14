@@ -40,7 +40,7 @@ def main() -> int:
         "artwork.ack", "artwork.end", "artwork.abort", "artwork.request",
         "app_icon.request", "app_icon.begin", "app_icon.unchanged",
         "app_icon.unavailable", "app_icon.ack", "app_icon.end",
-        "app_icon.abort", "error", "catalogue.definitions.page", "focus.targets", "session.lock",
+        "app_icon.abort", "error", "catalogue.definitions.page", "focus.targets", "session.lock", "pair.reset",
     }
     require(set(message_ids) == required_messages, "the typed message registry is incomplete")
 
@@ -60,8 +60,13 @@ def main() -> int:
         for mode_id in mode_ids:
             require(mode_id in text, f"{output.relative_to(ROOT)} omits card mode {mode_id}")
 
+    firmware_transport = ROOT / "components/companion/companion.cpp"
+    loop = firmware_transport.read_text().partition("void CompanionService::loop() {")[2].split("\n}", 1)[0]
+    require("httpd_queue_work(this->server_, &CompanionService::authentication_expiry_work_, this)" in loop,
+            "the Companion loop must schedule expiry of unauthenticated connections")
+
     transport_sources = [
-        ROOT / "components/companion/companion.cpp",
+        firmware_transport,
         ROOT / "macos/EspDesktop/Sources/Companion/CompanionConnection.swift",
     ]
     legacy_tokens = ("PAIR|", "AUTH|", "CAPS|", "ACTIONS|", "INVOKE|", "RESULT|",

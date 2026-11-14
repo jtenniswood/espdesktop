@@ -190,7 +190,7 @@ def check_root(root: Path) -> list[str]:
             or "navigation_driver_bind_main( s, p, context, navigation_state)" not in compact_grid
             or "navigation_driver_own_subpage( owner_slot, p, parent_context, navigation_slot, display_order, sub_scr)" not in compact_grid
             or "card_palette_for_config(palette, p, display)" not in compact_grid
-            or "card_palette_for_config(palette, sb_cfg, display)" not in compact_grid
+            or not re.search(r"card_palette_for_config\((?:page_)?palette, sb_cfg, display\)", compact_grid)
             or "bind_passive_card(s, p, context, card_palette)" not in compact_grid
             or "bind_passive_card(sub_slot, sb_cfg, context, card_palette)" not in compact_grid
         ):

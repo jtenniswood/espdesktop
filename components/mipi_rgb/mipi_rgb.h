@@ -32,6 +32,13 @@ class MipiRgb : public display::Display {
   void set_double_buffered(bool enabled) { this->double_buffered_ = enabled; }
   void begin_frame();
   void end_frame();
+#if defined(USE_ESP32_VARIANT_ESP32S3)
+  void resync_scanout();
+#endif
+#ifdef ESPDESKTOP_S3_DISPLAY_RESET_TEST
+  // Call on the ESPHome loop, between drawing operations.
+  bool copy_presented_frame(uint16_t *pixels, size_t pixel_count) const;
+#endif
   void setup() override;
   void loop() override;
   void update() override;
@@ -123,6 +130,9 @@ class MipiRgbSpi : public MipiRgb,
   void set_init_sequence(const std::vector<uint8_t> &init_sequence) { this->init_sequence_ = init_sequence; }
   void set_dc_pin(GPIOPin *dc_pin) { this->dc_pin_ = dc_pin; }
   void setup() override;
+#ifdef ESPDESKTOP_S3_DISPLAY_RESET_TEST
+  void reset_lcd_controller();
+#endif
 
  protected:
   void write_command_(uint8_t value);
