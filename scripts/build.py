@@ -1378,6 +1378,11 @@ def gen_saved_config_media_h(data):
 
 
 SAVED_CONFIG_STATIC_CARD_TYPES = (
+    "companion_output_volume",
+    "companion_input_volume",
+    "companion_output_mute",
+    "companion_input_mute",
+    "companion_cough",
     "light_brightness",
     "light_switch",
     "light_temperature",

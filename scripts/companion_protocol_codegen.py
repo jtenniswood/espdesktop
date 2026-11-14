@@ -38,6 +38,7 @@ def cpp(data):
 #include <cstring>
 #include <optional>
 #include <string>
+#include <string_view>
 #include <variant>
 #include <vector>
 #include "companion_capabilities_generated.h"
@@ -57,6 +58,27 @@ inline bool number_valid(JsonVariantConst value, double minimum, double maximum,
   const double n = value.as<double>();
   return std::isfinite(n) && n >= minimum && n <= maximum && (!integer || std::floor(n) == n);
 }
+inline bool input_device_control_id_valid(std::string_view id) {
+  constexpr std::string_view prefix = "input.level.";
+  if (id.size() != prefix.size() + 64 || id.substr(0, prefix.size()) != prefix) return false;
+  for (char c : id.substr(prefix.size()))
+    if (!((c >= '0' && c <= '9') || (c >= 'a' && c <= 'f'))) return false;
+  return true;
+}
+inline bool volume_control_id_valid(std::string_view id) {
+  if (input_device_control_id_valid(id)) return true;
+  constexpr std::string_view prefix = "app.volume.";
+  if (id == "media.output_volume" || id == "media.input_volume" ||
+      id == "media.output_mute" || id == "media.input_mute" || id == "media.cough") return true;
+  if (id.size() <= prefix.size() || id.size() > 107 || id.substr(0, prefix.size()) != prefix)
+    return false;
+  for (char c : id.substr(prefix.size())) {
+    if (!((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') ||
+          (c >= '0' && c <= '9') || c == '.' || c == '-')) return false;
+  }
+  return true;
+}
+
 inline bool hex_valid(JsonVariantConst value) {
   if (!string_valid(value, 64, 64)) return false;
   for (const char *c = value.as<const char *>(); *c; ++c)
@@ -77,6 +99,7 @@ inline bool hex_valid(JsonVariantConst value) {
             e=f'string_valid({value}, {spec["minLength"]}, {spec["maxLength"]})'
             if 'enum' in spec: e+=' && ('+' || '.join(f'{value}.as<std::string>() == {json.dumps(v)}' for v in spec['enum'])+')'
             if spec.get('pattern')=='hex64': e+=f' && hex_valid({value})'
+            if spec.get('pattern')=='volume_control_id': e+=f' && volume_control_id_valid({value}.as<const char *>())'
             return e
         if kind in ('number','integer'):
             return f'number_valid({value}, {spec["minimum"]}, {spec["maximum"]}, {str(kind=="integer").lower()})'
@@ -199,6 +222,22 @@ enum CompanionProtocolDirection: String { case panelToMac = "panel_to_mac", macT
     # Validation is generated from the same field rules as the C++ decoder.
     schema=json.dumps(data['protocol']['messages'],separators=(',',':'))
     out.append('''enum CompanionProtocolDecoder {
+    static func isInputDeviceControl(_ id: String) -> Bool {
+        let prefix = "input.level."
+        return id.hasPrefix(prefix) && id.utf8.count == prefix.utf8.count + 64 &&
+            id.utf8.dropFirst(prefix.utf8.count).allSatisfy { (48...57).contains($0) || (97...102).contains($0) }
+    }
+
+    static func appVolumeBundleIdentifier(_ id: String) -> String? {
+        let prefix = "app.volume."
+        guard id.hasPrefix(prefix) else { return nil }
+        let bundleID = id.dropFirst(prefix.count)
+        guard (1...96).contains(bundleID.utf8.count), bundleID.utf8.allSatisfy({
+            (48...57).contains($0) || (65...90).contains($0) || (97...122).contains($0) || $0 == 45 || $0 == 46
+        }) else { return nil }
+        return String(bundleID)
+    }
+
     private static let schemaData = #"'''+schema+'''"#.data(using: .utf8)!
     private static let schemas = try! JSONSerialization.jsonObject(with: schemaData) as! [[String: Any]]
 
@@ -209,6 +248,10 @@ enum CompanionProtocolDirection: String { case panelToMac = "panel_to_mac", macT
                   text.utf8.count >= rule["minLength"] as! Int,
                   text.utf8.count <= rule["maxLength"] as! Int else { return false }
             if let options = rule["enum"] as? [String], !options.contains(text) { return false }
+            if rule["pattern"] as? String == "volume_control_id" {
+                return ["media.output_volume", "media.input_volume", "media.output_mute", "media.input_mute", "media.cough"].contains(text)
+                    || appVolumeBundleIdentifier(text) != nil || isInputDeviceControl(text)
+            }
             if rule["pattern"] as? String == "hex64" {
                 return text.utf8.count == 64 && text.utf8.allSatisfy { (48...57).contains($0) || (65...70).contains($0) || (97...102).contains($0) }
             }

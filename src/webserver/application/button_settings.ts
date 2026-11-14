@@ -1007,6 +1007,21 @@ export function createButtonSettingsFeature(
             homeAssistantEnabled: connectorState.homeAssistantEnabled,
             homeAssistantConfigured: connectorState.homeAssistantConfigured,
         };
+        if ((buttonTypeRegistryValue(rawTypeDef, "pickerKey", "") || b.type) === "companion_output_volume") {
+            const audioSubtypes: [string, string][] = [
+                ["companion_output_volume", "Output Volume"],
+                ["companion_output_mute", "Output Mute"],
+                ["companion_app_volume", "Output per application"],
+                ["companion_input_volume", "Input Volume"],
+                ["companion_input_mute", "Input Mute"],
+                ["companion_cough", "Input Cough"],
+                ["companion_input_device", "Input per device level"],
+            ];
+            const subtype = selectField("Type", idPrefix + "audio-type", audioSubtypes, b.type,
+                (event: Event) => selectCardType((event.currentTarget as HTMLSelectElement).value));
+            panel.appendChild(subtype.field);
+            markCardPrimaryField(subtype.field, "type");
+        }
         if (typeDef && typeDef.renderSettingsBeforeLabel &&
             (!c.isSub || buttonTypeRegistryValue(typeDef, "allowInSubpage", false))) {
             typeDef.renderSettingsBeforeLabel(panel, b, slot, typeHelpers);

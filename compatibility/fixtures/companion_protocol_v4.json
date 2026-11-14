@@ -1431,5 +1431,172 @@
     "direction": "mac_to_panel",
     "state": "connected",
     "valid": true
+  },
+  {
+    "name": "app volume command",
+    "message": {
+      "protocol": 4,
+      "type": "value.set",
+      "controlId": "app.volume.com.example.Player",
+      "requestId": "v2",
+      "value": 35
+    },
+    "direction": "panel_to_mac",
+    "state": "connected",
+    "valid": true
+  },
+  {
+    "name": "app volume state",
+    "message": {
+      "protocol": 4,
+      "type": "value.state",
+      "controlId": "app.volume.com.example.Player",
+      "available": true,
+      "value": 35
+    },
+    "direction": "mac_to_panel",
+    "state": "connected",
+    "valid": true
+  },
+  {
+    "name": "app volume unavailable",
+    "message": {
+      "protocol": 4,
+      "type": "value.state",
+      "controlId": "app.volume.com.example.Player",
+      "available": false
+    },
+    "direction": "mac_to_panel",
+    "state": "connected",
+    "valid": true
+  },
+  {
+    "name": "app volume with invalid identifier",
+    "message": {
+      "protocol": 4,
+      "type": "value.set",
+      "controlId": "app.volume.com/example",
+      "requestId": "v2",
+      "value": 35
+    },
+    "direction": "panel_to_mac",
+    "state": "connected",
+    "valid": false
+  },
+  {
+    "name": "app volume with empty bundle identifier",
+    "message": {
+      "protocol": 4,
+      "type": "value.set",
+      "controlId": "app.volume.",
+      "requestId": "v2",
+      "value": 35
+    },
+    "direction": "panel_to_mac",
+    "state": "connected",
+    "valid": false
+  },
+  {
+    "name": "app volume before authentication",
+    "message": {
+      "protocol": 4,
+      "type": "value.set",
+      "controlId": "app.volume.com.example.Player",
+      "requestId": "v2",
+      "value": 35
+    },
+    "direction": "panel_to_mac",
+    "state": "authenticating",
+    "valid": false
+  },
+  {
+    "name": "Cough button press",
+    "message": {
+      "protocol": 4,
+      "type": "value.set",
+      "controlId": "media.cough",
+      "value": 100,
+      "requestId": "cough-test"
+    },
+    "direction": "panel_to_mac",
+    "state": "connected",
+    "valid": true
+  },
+  {
+    "name": "Cough button confirm",
+    "message": {
+      "protocol": 4,
+      "type": "value.set",
+      "controlId": "media.cough",
+      "value": 50,
+      "requestId": "cough-test"
+    },
+    "direction": "panel_to_mac",
+    "state": "connected",
+    "valid": true
+  },
+  {
+    "name": "Cough button release",
+    "message": {
+      "protocol": 4,
+      "type": "value.set",
+      "controlId": "media.cough",
+      "value": 0,
+      "requestId": "cough-test"
+    },
+    "direction": "panel_to_mac",
+    "state": "connected",
+    "valid": true
+  },
+  {
+    "name": "Cough button state",
+    "message": {
+      "protocol": 4,
+      "type": "value.state",
+      "controlId": "media.cough",
+      "value": 100,
+      "available": true
+    },
+    "direction": "mac_to_panel",
+    "state": "connected",
+    "valid": true
+  },
+  {
+    "name": "specific input level command",
+    "message": {
+      "protocol": 4,
+      "type": "value.set",
+      "controlId": "input.level.aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "requestId": "input-1",
+      "value": 45
+    },
+    "direction": "panel_to_mac",
+    "state": "connected",
+    "valid": true
+  },
+  {
+    "name": "specific input level unavailable",
+    "message": {
+      "protocol": 4,
+      "type": "value.state",
+      "controlId": "input.level.aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "available": false
+    },
+    "direction": "mac_to_panel",
+    "state": "connected",
+    "valid": true
+  },
+  {
+    "name": "specific input rejects malformed target",
+    "message": {
+      "protocol": 4,
+      "type": "value.set",
+      "controlId": "input.level.xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+      "requestId": "input-2",
+      "value": 45
+    },
+    "direction": "panel_to_mac",
+    "state": "connected",
+    "valid": false
   }
 ]

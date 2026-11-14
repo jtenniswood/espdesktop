@@ -12,11 +12,13 @@ numeric = re.sub(r'^#(?:include[^\n]*|pragma once)\n', '', numeric, flags=re.M)
 actions = (firmware/'button_grid_actions.h').read_text()
 basic = (firmware/'button_grid_basic_action_driver.h').read_text()
 prelude = r'''
+#include <algorithm>
 #include <cassert>
 #include <cstdint>
 #include <cstdio>
 #include <functional>
 #include <string>
+#include <string_view>
 #include <vector>
 namespace card_runtime { enum class CardDriverId { ACTION, INTERNAL, COMPANION, SCREEN_LOCK, SCREENSAVER, TOGGLE, PUSH, ALARM_ACTION, FAN, SENSOR }; enum class CardTypeId { SENSOR, LOCAL_SENSOR }; }
 struct Context { struct { card_runtime::CardDriverId driver; card_runtime::CardTypeId type = card_runtime::CardTypeId::SENSOR; } runtime; };
@@ -39,9 +41,14 @@ int mute_setups = 0, mute_bindings = 0;
 void setup_slider_visual(BtnSlot &, const ParsedCfg &, uint32_t) { ++setups; }
 void refresh_slider_card_layout(BtnSlot &) { ++layouts; }
 void setup_toggle_visual(BtnSlot &, const ParsedCfg &) { ++mute_setups; }
-bool companion_mute_control_valid(const std::string &key) { return key == "media.output_mute" || key == "media.input_mute"; }
-bool companion_volume_control_valid(const std::string &key) { return key == "media.output_volume" || key == "media.input_volume" || companion_mute_control_valid(key); }
+int transitions_removed = 0;
+void remove_button_state_transitions(lv_obj_t *) { ++transitions_removed; }
+
+bool companion_mute_control_valid(const std::string &key);
+bool companion_volume_control_valid(const std::string &key);
 const char *companion_volume_control_label(const std::string &key) { return companion_mute_control_valid(key) ? "Mute" : key == "media.output_volume" ? "Lautstärke" : "Mic"; }
+void unbind_cough_button(lv_obj_t *) {}
+void bind_cough_button(lv_obj_t *, lv_obj_t *, const char *, const char *, bool) {}
 bool companion_forget_mute(lv_obj_t *) { return false; }
 void set_card_checked_state(lv_obj_t *, bool) {}
 void set_card_disabled_state(lv_obj_t *, bool) {}
@@ -63,7 +70,11 @@ void sensor_driver_register_local_value(BtnSlot &, const ParsedCfg &) { ++local_
 }
 '''
 parser = (firmware/'button_grid_config_parser.h').read_text()
-production = ''
+controls = (firmware/'companion_controls.h').read_text()
+production = '\n'.join(definition(controls, name)[1] for name in (
+    'companion_mute_control_valid', 'companion_app_volume_control_valid',
+    'companion_input_device_control_valid', 'companion_volume_control_valid',
+)) + '\n'
 production += definition(actions, 'send_slider_action')[1] + numeric
 production += '\nnamespace espdesktop::cards {\n'
 production += definition(basic, 'basic_action_driver_matches')[1]
@@ -112,6 +123,37 @@ int main() {
   assert(!send_slider_action(key,50)); assert(!send_slider_action(key,-1));
  }
  assert(commands.size() == 6 && setups == 2 && bindings == 4);
+ config = {"companion_app_volume","app.volume.com.example.Player","","","","Player"};
+ assert(numeric_selectable_driver_setup_visual(slot,config,c,palette,display));
+ assert(numeric_selectable_driver_bind_main(slot,config,c,palette,display));
+ assert(numeric_selectable_driver_bind_subpage(slot,config,c,{}));
+ assert(send_slider_action(config.entity,35));
+ assert(commands.back() == std::make_pair(config.entity,35));
+ config.entity = "media.output_volume";
+ assert(!numeric_selectable_driver_matches(c, config));
+ config.entity = "app.volume.";
+ assert(!numeric_selectable_driver_matches(c, config));
+ for (const std::string control : {"output_volume", "input_volume", "output_mute", "input_mute"}) {
+  const std::string entity = "media." + control;
+  config = {"companion_" + control, entity, "", "", "", "Custom label"};
+  label.text = config.label;
+  assert(numeric_selectable_driver_setup_visual(slot,config,c,palette,display));
+  assert(numeric_selectable_driver_bind_main(slot,config,c,palette,display));
+  assert(numeric_selectable_driver_bind_subpage(slot,config,c,{}));
+  assert(label.text == "Custom label");
+  if (companion_mute_control_valid(entity)) {
+   assert(numeric_selectable_driver_handle_main_click(c,config,&button));
+   assert(commands.back() == std::make_pair(entity,100));
+   callbacks.back()();
+   assert(commands.back() == std::make_pair(entity,100));
+  } else {
+   assert(send_slider_action(entity,35));
+   assert(commands.back() == std::make_pair(entity,35));
+  }
+  config.entity = "media.cough";
+  assert(!numeric_selectable_driver_matches(c, config));
+ }
+ assert(transitions_removed == mute_setups);
  for (auto *p : allocations) delete static_cast<std::string *>(p);
 }
 '''

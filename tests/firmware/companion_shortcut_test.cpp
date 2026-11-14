@@ -486,6 +486,32 @@ int main() {
   assert(output_volume == 72);
   companion_remove_value("media.output_volume");
   assert(!companion_value("media.output_volume", output_volume));
+
+  const char *system_controls[] = {"media.output_volume", "media.input_volume",
+                                  "media.output_mute", "media.input_mute", "media.cough"};
+  for (const auto *control : system_controls) companion_set_value(control, 100);
+  for (int index = 0; index < 256; ++index) {
+    const std::string id = "app.volume.com.example.Player" + std::to_string(index);
+    companion_set_value(id, 35);
+    int level = 0;
+    assert(companion_value(id, level) && level == 35);
+  }
+  for (int index = 0; index < 16; ++index) {
+    const std::string id = "input.level." + std::string(63, 'a') + "0123456789abcdef"[index];
+    companion_set_value(id, 45);
+    int level = 0;
+    assert(companion_value(id, level) && level == 45);
+  }
+  const std::string overflow_input = "input.level." + std::string(64, 'b');
+  companion_set_value(overflow_input, 45);
+  assert(!companion_value(overflow_input, output_volume));
+  companion_set_value("app.volume.com.example.Overflow", 35);
+  assert(!companion_value("app.volume.com.example.Overflow", output_volume));
+  for (int index = 0; index < 256; ++index)
+    companion_remove_value("app.volume.com.example.Player" + std::to_string(index));
+  for (const auto *control : system_controls) companion_remove_value(control);
+  for (int index = 0; index < 16; ++index)
+    companion_remove_value("input.level." + std::string(63, 'a') + "0123456789abcdef"[index]);
   companion_set_focused_actions({"com.apple.Safari", "webapp.google-docs"});
   companion_runtime_service().set_application_highlight("com.apple.finder");
   assert(companion_action_active("com.apple.finder", true));
@@ -564,13 +590,38 @@ int main() {
     companion_set_value(control, 0);
     assert(companion_toggle_mute(control));
     assert(mute_control == control && mute_value == 100 && !mute_request.empty());
-    companion_set_value(control, 100);
-    assert(companion_toggle_mute(control));
+    const auto press_request = mute_request;
+    assert(companion_value(control, output_volume) && output_volume == 0);
+    assert(companion_runtime_service().displayed_mute_value(control, output_volume) == 100);
+    assert(companion_toggle_mute(control)); // A second tap uses the preview.
     assert(mute_value == 0);
+    companion_set_value(control, 100); // The first reply can arrive late.
+    companion_deliver_action_result(press_request, "performed");
+    assert(companion_runtime_service().displayed_mute_value(control, 100) == 0);
+    companion_deliver_action_result(mute_request, "not_allowed");
+    assert(companion_runtime_service().displayed_mute_value(control, 100) == 100);
+    assert(companion_toggle_mute(control));
+    companion_deliver_action_result(mute_request, "performed");
+    companion_set_value(control, 0);
+    companion_set_value(control, 100); // An external change wins after confirmation.
+    assert(companion_runtime_service().displayed_mute_value(control, 100) == 100);
+    assert(companion_toggle_mute(control));
+    companion_expire_action_results(100);
+    companion_expire_action_results(800);
+    assert(companion_runtime_service().displayed_mute_value(control, 100) == 100);
     assert(!invoke_companion_value(control, 50, "invalid-mute"));
     companion_remove_value(control);
     assert(!companion_toggle_mute(control));
   }
+  companion_set_value("media.cough", 0);
+  companion_runtime_service().preview_mute("media.cough", 100, "cough-press");
+  assert(companion_runtime_service().displayed_mute_value("media.cough", 0) == 100);
+  companion_runtime_service().preview_mute("media.cough", 0, "cough-release");
+  companion_set_value("media.cough", 100);
+  companion_deliver_action_result("cough-press", "performed");
+  assert(companion_runtime_service().displayed_mute_value("media.cough", 100) == 0);
+  companion_deliver_action_result("cough-release", "performed");
+  companion_set_value("media.cough", 0);
   companion_set_value("media.input_mute", 100);
   companion_set_connected(false);
   assert(!companion_toggle_mute("media.input_mute"));
