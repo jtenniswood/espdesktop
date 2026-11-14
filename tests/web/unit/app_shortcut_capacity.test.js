@@ -8,6 +8,8 @@ const appId = "com.openai.codex";
 const selected = ["0", "3", "5", "6"];
 function page() {
   const source = api.createCompanionShortcutSubpage(appId, selected);
+  source.buttons.shift();
+  source.order = ["B", "1", "2", "3", "4"];
   source.buttons.push({ type: "companion", entity: "shortcut.command+shift+p", label: "Custom shortcut", options: "" });
   source.order.push("5", "", "", "");
   Object.assign(source, buildSubpageGrid(source, 9, 3));
@@ -44,4 +46,25 @@ test("capacity still reserves Back and respects custom tiles spanning multiple c
   const unchanged = structuredClone(source);
   assert.equal(api.companionShortcutTabsFitSubpage(appId, [...selected, "7"], source, 9), false);
   assert.deepEqual(source, unchanged);
+});
+
+
+test("existing ChatGPT subpages add Usage before shortcuts once, when space permits", () => {
+  const source = page();
+  source.order = ["B", "1", "2", "3", "4", "", "5"];
+  Object.assign(source, buildSubpageGrid(source, 9, 3));
+  assert.equal(api.addAppTokenUsageCard(appId, source, 9), true);
+  assert.equal(source.buttons[Number(source.order[1]) - 1].type, "token_usage");
+  assert.equal(source.order[6], "5", "custom shortcut stays in its original cell");
+  Object.assign(source, buildSubpageGrid(source, 9, 3));
+  assert.equal(api.addAppTokenUsageCard(appId, source, 9), false);
+  assert.deepEqual(api.companionShortcutTabsFromSubpage(appId, source), selected);
+  assert.equal(api.companionShortcutTabsForCapacity(selected, 4, appId).length, 2);
+});
+
+test("an existing custom tile blocks automatic insertion without changing the page", () => {
+  const source = page();
+  const original = structuredClone(source);
+  assert.equal(api.addAppTokenUsageCard(appId, source, 9), false);
+  assert.deepEqual(source, original);
 });

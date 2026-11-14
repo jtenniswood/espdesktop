@@ -1,3 +1,4 @@
+import { normalizeTokenUsageOptions } from "../cards/token_usage";
 import { isRetiredLayoutCard, removeRetiredCards, removeRetiredSubpageRecords } from "../features/retired_cards";
 import { retiredSavedCardType } from "../model/card";
 import { COMPANION_SYSTEM_METRICS } from "../generated/companion_capabilities";
@@ -447,7 +448,7 @@ export function createConfigCodecFeature(
             normalizeSavedConfigSubpage(b, normalizeSavedConfigSubpageFields, normalizeSavedConfigSubpageOptions);
         var normalizedSavedOccupancy: any = !!(b && normalizeSavedConfigOccupancy(b, normalizeSavedConfigOccupancyFields, normalizeSavedConfigOccupancyOptions));
         var normalizedSavedSwitch: any = !!(b && normalizeSavedConfigSwitch(b, normalizeSwitchConfirmationOptions));
-        if (b && !normalizedSavedSwitch && !normalizedSavedAccess && !normalizedSavedOccupancy && !normalizedSavedStatic && !normalizedSavedFan && !normalizedSavedMower && b.type !== "action" && b.type !== "alarm" && b.type !== "alarm_action" && !isClimateCardType(b.type) && b.type !== "media" && b.type !== "companion" && b.type !== "subpage" && b.type !== "image" && b.type !== "light_control" && b.type !== "vacuum" && b.type !== "weather" && !cardLargeNumbersSupported(b)) {
+        if (b && !normalizedSavedSwitch && !normalizedSavedAccess && !normalizedSavedOccupancy && !normalizedSavedStatic && !normalizedSavedFan && !normalizedSavedMower && b.type !== "action" && b.type !== "alarm" && b.type !== "alarm_action" && !isClimateCardType(b.type) && b.type !== "media" && b.type !== "companion" && b.type !== "token_usage" && b.type !== "subpage" && b.type !== "image" && b.type !== "light_control" && b.type !== "vacuum" && b.type !== "weather" && !cardLargeNumbersSupported(b)) {
             b.options = "";
         }
         if (b && cardColorOptions) b.options = [b.options || "", cardColorOptions].filter(Boolean).join(",");
@@ -594,6 +595,9 @@ export function createConfigCodecFeature(
         }
         else if (type === "subpage") {
             options = normalizeSubpageOptions(options, sensor, precision);
+        }
+        else if (type === "token_usage") {
+            options = normalizeTokenUsageOptions(options);
         }
         else if (type === "companion") {
             const isCompanionMetric = !!companionMetricForEntity(b?.entity);

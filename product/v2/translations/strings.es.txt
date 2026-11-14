@@ -343,3 +343,5 @@ mic=Micrófono
 mute=Silenciar
 mac_update_required=Actualizar la app de Mac
 mac_update_reconnect=Actualiza EspDesktop en tu Mac para volver a conectar.
+token_usage_resets=Se reinicia en
+token_usage_last_seven_days=Últimos 7 días

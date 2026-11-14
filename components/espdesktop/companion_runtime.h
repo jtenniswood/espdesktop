@@ -12,7 +12,9 @@
 #include <cstddef>
 #include <cstdint>
 #include <mutex>
+#include <optional>
 #include <string>
+#include <string_view>
 #include <utility>
 #include <vector>
 
@@ -49,6 +51,24 @@ struct CompanionNetworkInterface {
   std::string label;
   std::string address;
 };
+
+enum class TokenUsageService : size_t { CODEX, CLAUDE, OPENCODE_GO, CLAUDE_ENTERPRISE, COUNT };
+
+inline TokenUsageService token_usage_service(std::string_view service) {
+  if (service == "claude") return TokenUsageService::CLAUDE;
+  if (service == "opencode-go") return TokenUsageService::OPENCODE_GO;
+  if (service == "claude-enterprise") return TokenUsageService::CLAUDE_ENTERPRISE;
+  return TokenUsageService::CODEX;
+}
+
+struct CompanionTokenUsageReading {
+  uint8_t remaining_percent{0};
+  uint32_t resets_at{0};
+  uint32_t observed_at{0};
+  std::optional<uint32_t> spend_cents;
+};
+
+using CompanionTokenUsage = std::array<CompanionTokenUsageReading, static_cast<size_t>(TokenUsageService::COUNT)>;
 
 struct CompanionSystemMetricsSnapshot {
   uint32_t generation{0};
@@ -290,6 +310,17 @@ class CompanionRuntimeService {
     request_refresh_();
   }
 
+  std::pair<bool, CompanionTokenUsage> token_usage() const {
+    std::lock_guard<std::mutex> lock(mutex_);
+    return {connected_ && token_usage_current_, token_usage_};
+  }
+
+  void set_token_usage(CompanionTokenUsage readings) {
+    std::lock_guard<std::mutex> lock(mutex_);
+    token_usage_ = readings;
+    token_usage_current_ = true;
+  }
+
   void set_system_metrics(CompanionSystemMetricsSnapshot snapshot) {
     std::lock_guard<std::mutex> lock(mutex_);
     system_metrics_ = std::move(snapshot);
@@ -424,6 +455,7 @@ class CompanionRuntimeService {
       closed_app_subpage_action_id_.clear();
       keyboard_actions_supported_ = false;
       system_metrics_ = {};
+      token_usage_current_ = false;
     }
     request_refresh_();
   }
@@ -455,6 +487,8 @@ class CompanionRuntimeService {
   bool keyboard_actions_supported_{false};
   bool connected_{false};
   CompanionSystemMetricsSnapshot system_metrics_;
+  CompanionTokenUsage token_usage_{};
+  bool token_usage_current_{false};
   std::atomic<bool> mac_update_required_{false};
   std::atomic<bool> refresh_requested_{false};
   std::atomic<bool> focus_refresh_requested_{false};

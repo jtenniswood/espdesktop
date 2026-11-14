@@ -253,6 +253,14 @@
       "lifecycle": { "subscriptions": ["none"], "actions": ["local"], "modalOwner": "none" },
       "modes": [{ "name": "approved_app", "config": { "entity": "com.apple.Safari", "label": "Safari" } }]
     },
+    "token_usage": {
+      "classification": "canonical", "canonicalType": "token_usage", "webRegistration": "token_usage", "firmwareFamily": "TOKEN_USAGE",
+      "lifecycle": { "subscriptions": ["none"], "actions": ["none"], "modalOwner": "none" },
+      "modes": [
+        { "name": "codex", "config": {} },
+        { "name": "claude", "config": { "options": "services=claude" } }
+      ]
+    },
     "companion_mac_lock": {
       "classification": "canonical", "canonicalType": "companion_mac_lock", "webRegistration": "companion_mac_lock", "firmwareFamily": "COMPANION",
       "lifecycle": { "subscriptions": ["none"], "actions": ["local"], "modalOwner": "none" },

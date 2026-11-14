@@ -71,6 +71,7 @@
       "media_cover_art",
       "media_playlist",
       "push",
+      "token_usage",
       "companion",
       "subpage",
       "weather",
@@ -437,6 +438,18 @@
           "subpage": true
         }
       },
+      "token_usage": {
+        "driver": "token_usage",
+        "capabilities": {
+          "informationOnly": true,
+          "subscriptions": false,
+          "actions": false,
+          "numericControl": false,
+          "modal": false,
+          "runtimeAllocation": false,
+          "subpage": true
+        }
+      },
       "companion_mac_lock": {
         "driver": "companion",
         "capabilities": {
@@ -674,11 +687,12 @@
     "climate_control": "HC",
     "push": "P",
     "companion": "CP",
+    "token_usage": "TU",
     "companion_mac_lock": "ML",
     "subpage": "G"
   },
   "releaseAvailability": {
-    "stable": ["companion", "companion_mac_lock", "subpage"],
+    "stable": ["token_usage", "companion", "companion_mac_lock", "subpage"],
     "preview": {
       "companion_window": { "label": "Window Control", "issue": 309 }
     },

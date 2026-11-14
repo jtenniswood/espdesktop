@@ -4255,6 +4255,89 @@ async function assertNativeProfileJourney(browser, testCase) {
   }
 }
 
+async function assertTokenUsageCard(browser) {
+  const testCase = CASES.find(item => item.slug === "guition-esp32-s3-4848s040");
+  const nativeState = nativeConfigState(testCase.slug);
+  nativeState.document.buttons = { 2: COPY_SHORTCUT };
+  nativeState.document.settings.button_order = "2";
+  nativeState.document.subpages = {};
+  const context = await browser.newContext({ viewport: testCase.viewport });
+  await installRoutes(context, testCase.slug, { nativeState });
+  const page = await context.newPage();
+  await installFakeEventSource(page);
+  let slot;
+  const tile = () => page.locator('.sp-main [data-slot="' + slot + '"]');
+  const service = page.getByLabel("Service", { exact: true });
+  const save = () => page.getByRole("button", { name: "Save", exact: true }).click();
+  const load = async () => {
+    await page.waitForFunction(() => window.__eventSources?.length > 0);
+    await page.getByRole("tab", { name: "Layout", exact: true }).click();
+    await seedNativeDocument(page, nativeState);
+  };
+  const edit = async () => {
+    await tile().click();
+    await page.getByRole("button", { name: "Edit", exact: true }).click();
+  };
+  try {
+    await page.goto(`http://espdesktop.test/${testCase.slug}?events=1`);
+    await load();
+    await page.locator(".sp-main .sp-empty-cell").first().click();
+    await page.getByRole("button", { name: "Token Usage card type", exact: true }).click();
+    assert.deepStrictEqual(await service.locator("option").evaluateAll(options => options.map(option => option.value)), ["codex", "claude", "opencode-go", "claude-enterprise"]);
+    await service.selectOption("claude");
+    await save();
+    await waitForNativeState(nativeState, () => {
+      slot = Object.keys(nativeState.document.buttons).find(key =>
+        parseRawButtonConfig(nativeState.document.buttons[key]).type === "token_usage");
+      return slot && parseRawButtonConfig(nativeState.document.buttons[slot]).options.includes("services=claude");
+    },
+      "Token Usage saves Claude");
+    await page.reload();
+    await load();
+    const claudeIcon = tile().getByRole("img", { name: "Claude" });
+    await claudeIcon.waitFor();
+    assert.strictEqual(await claudeIcon.evaluate(async (icon) => {
+      const { fontFamily, fontSize } = getComputedStyle(icon);
+      if (!fontFamily.includes("EspDesktop Usage Icons")) return false;
+      const fonts = await document.fonts.load(fontSize + " " + fontFamily, icon.textContent);
+      return fonts.some(font => font.status === "loaded");
+    }), true);
+    assert.deepStrictEqual(await tile().locator(".sp-token-usage-reset").allTextContents(),
+      ["Resets 2d 9h"]);
+    await edit();
+    assert.strictEqual(await service.inputValue(), "claude");
+    await service.selectOption("opencode-go");
+    await save();
+    await waitForNativeState(nativeState, () => parseRawButtonConfig(nativeState.document.buttons[slot]).options === "services=opencode-go",
+      "Token Usage saves OpenCode Go");
+    await page.reload();
+    await load();
+    await tile().getByRole("img", { name: "OpenCode Go" }).waitFor();
+    await edit();
+    assert.strictEqual(await service.inputValue(), "opencode-go");
+    await service.selectOption("claude-enterprise");
+    await save();
+    await waitForNativeState(nativeState, () => parseRawButtonConfig(nativeState.document.buttons[slot]).options === "services=claude-enterprise",
+      "Token Usage saves Claude Enterprise");
+    await page.reload();
+    await load();
+    await tile().getByRole("img", { name: "Claude Enterprise" }).waitFor();
+    assert.deepStrictEqual(await tile().locator(".sp-token-usage-value").allTextContents(), ["$12.34"]);
+    assert.deepStrictEqual(await tile().locator(".sp-token-usage-reset").allTextContents(), ["Last 7 days"]);
+    await edit();
+    assert.strictEqual(await service.inputValue(), "claude-enterprise");
+    await service.selectOption("codex");
+    await save();
+    await waitForNativeState(nativeState, () => parseRawButtonConfig(nativeState.document.buttons[slot]).options === "",
+      "Token Usage saves Codex");
+    await tile().getByRole("img", { name: "Codex" }).waitFor();
+    assert.strictEqual(await tile().getByRole("img", { name: "Claude" }).count(), 0);
+    console.log("Token Usage picker, weekly previews, save and reload passed.");
+  } finally {
+    await context.close();
+  }
+}
+
 async function assertMacLockCard(browser) {
   const testCase = CASES.find(item => item.slug === "guition-esp32-s3-4848s040");
   const nativeState = nativeConfigState(testCase.slug);
@@ -4852,6 +4935,8 @@ async function assertAppSubpageCapacity(browser, testCase) {
     const fixture = nativeConfigState(testCase.slug);
     fixture.document.buttons[1] = "com.openai.codex;Codex;Auto;Auto;;;companion;;app_shortcuts,app_shortcuts_tabs=0%7C3%7C5%7C6";
     const subpage = shortcuts.createCompanionShortcutSubpage("com.openai.codex", ["0", "3", "5", "6"]);
+    subpage.buttons.shift();
+    subpage.order = ["B", "1", "2", "3", "4"];
     subpage.buttons.push({ type: "companion", entity: "shortcut.command+shift+p", label: "Custom shortcut", icon: "Application", icon_on: "Auto", options: "" });
     subpage.order.push("5", "", "", "");
     fixture.document.subpages[1] = "~" + subpage.order.join(",") + "|" + subpage.buttons.map(card =>
@@ -7699,6 +7784,7 @@ async function assertFirstRunSetup(browser) {
     await assertRetiredCardRemoval(browser);
     if (process.env.ESPDESKTOP_RETIRED_CARDS_ONLY === "1") return;
     await assertMacLockCard(browser);
+    await assertTokenUsageCard(browser);
     if (process.env.ESPDESKTOP_RETIRED_SETTINGS_ONLY === "1") {
       for (const testCase of ACTIVE_CASES) await assertRetiredSettingsStayUnavailable(browser, testCase);
       await assertNamingOfflineBackups(browser);

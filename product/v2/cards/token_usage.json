@@ -1,0 +1,19 @@
+{
+  "label": "Token Usage",
+  "allowInSubpage": true,
+  "domains": [],
+  "options": [
+    {
+      "name": "services",
+      "label": "Service",
+      "kind": "choice",
+      "values": ["codex", "claude", "opencode-go", "claude-enterprise"],
+      "defaultValue": "codex",
+      "omitDefault": true
+    }
+  ],
+  "default": {
+    "entity": "", "label": "", "icon": "Auto", "icon_on": "Auto",
+    "sensor": "", "unit": "", "type": "token_usage", "precision": "", "options": ""
+  }
+}

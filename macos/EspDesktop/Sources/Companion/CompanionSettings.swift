@@ -427,8 +427,135 @@ struct CompanionSettings: View {
                     .padding(.vertical, 4)
                 }
                 accessibilityAndStartupSections
+                tokenUsageSettings
             }
             .formStyle(.grouped)
+        }
+    }
+
+    @State private var enterpriseUserDraft = ""
+    @State private var enterpriseKeyDraft = ""
+    @State private var enterpriseSetupFailed = false
+
+    private var tokenUsageSettings: some View {
+        Section("Token Usage") {
+            Toggle(isOn: $store.sharesCodexUsage) {
+                Text("Share ChatGPT (Codex) weekly usage")
+                if store.sharesCodexUsage {
+                    TimelineView(.periodic(from: .now, by: 15)) { context in
+                        Text(codexUsageStatus(at: context.date))
+                            .foregroundStyle(.secondary)
+                    }
+                }
+            }
+            .tint(.blue)
+            Toggle(isOn: $store.sharesClaudeUsage) {
+                Text("Share Claude weekly usage")
+                if store.sharesClaudeUsage {
+                    TimelineView(.periodic(from: .now, by: 15)) { context in
+                        Text(claudeUsageStatus(at: context.date))
+                            .foregroundStyle(.secondary)
+                    }
+                }
+            }
+            .tint(.blue)
+            Toggle(isOn: $store.sharesOpenCodeGoUsage) {
+                Text("Share OpenCode Go weekly usage")
+                if store.sharesOpenCodeGoUsage {
+                    TimelineView(.periodic(from: .now, by: 15)) { context in
+                        Text(openCodeGoUsageStatus(at: context.date))
+                            .foregroundStyle(.secondary)
+                    }
+                }
+            }
+            .tint(.blue)
+            enterpriseSpendSettings
+        }
+    }
+
+    private var enterpriseSpendSettings: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text("Claude Enterprise spend")
+            if store.enterpriseUserID.isEmpty {
+                Text("Share one user’s Claude Code spend over the last 7 days. Ask your organization’s primary owner for a Claude Enterprise Analytics API key and the user ID.")
+                    .foregroundStyle(.secondary)
+                TextField("Claude Enterprise user ID", text: $enterpriseUserDraft)
+                SecureField("Analytics API key", text: $enterpriseKeyDraft)
+                Button("Connect Claude Enterprise") {
+                    enterpriseSetupFailed = !store.connectEnterpriseSpend(
+                        userID: enterpriseUserDraft.trimmingCharacters(in: .whitespacesAndNewlines),
+                        key: enterpriseKeyDraft.trimmingCharacters(in: .whitespacesAndNewlines)
+                    )
+                    if !enterpriseSetupFailed {
+                        enterpriseUserDraft = ""
+                        enterpriseKeyDraft = ""
+                    }
+                }
+                .disabled(!TokenUsage.validEnterpriseUserID(enterpriseUserDraft.trimmingCharacters(in: .whitespacesAndNewlines))
+                          || enterpriseKeyDraft.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                if enterpriseSetupFailed {
+                    Text("Couldn’t save the Analytics API key in Keychain.").foregroundStyle(.secondary)
+                }
+            } else {
+                Text(store.enterpriseSpend.map { "\($0.formatted) USD in the last 7 days" }
+                     ?? (store.enterpriseSpendChecked
+                         ? "Spend unavailable. Check the Analytics API key and user ID."
+                         : "Checking Claude Code spend…"))
+                    .foregroundStyle(.secondary)
+                Button("Disconnect Claude Enterprise") { store.disconnectEnterpriseSpend() }
+            }
+        }
+    }
+
+    private func openCodeGoUsageStatus(at date: Date) -> String {
+        if let reading = store.openCodeGoUsage {
+            return reading.isCurrent(at: date)
+                ? "\(reading.remainingPercent)% left this week"
+                : "Last weekly reading is out of date."
+        }
+        switch store.openCodeGoStatus {
+        case .checking:
+            return "Checking weekly usage…"
+        case .missingLogin:
+            return "Run /connect in OpenCode, choose OpenCode Go, and enter your Go API key."
+        case .rejected:
+            return "Check that the key saved in OpenCode belongs to an active Go subscription."
+        case .unavailable, .available:
+            return "OpenCode Go weekly usage is unavailable."
+        }
+    }
+
+    private func codexUsageStatus(at date: Date) -> String {
+        if let reading = store.codexUsage {
+            return reading.isCurrent(at: date)
+                ? "\(reading.remainingPercent)% left this week"
+                : "Last weekly reading is out of date."
+        }
+        return store.didCheckCodexUsage
+            ? "Weekly usage unavailable. Check that Codex CLI is installed and signed in with ChatGPT."
+            : "Checking weekly usage…"
+    }
+
+    private func claudeUsageStatus(at date: Date) -> String {
+        switch store.claudeAccount {
+        case .checking:
+            return "Checking Claude Code…"
+        case .missingCLI:
+            return "Install Claude Code to share your weekly subscription usage."
+        case .signedOut:
+            return "Sign in to Claude Code with your Claude subscription."
+        case .apiKey:
+            return "Claude Code is using an API key. Use your Claude subscription in Claude Code to share weekly usage."
+        case .otherProvider:
+            return "Claude Code is using a third-party provider. Use your Claude subscription to share weekly usage."
+        case .detected, .unknown:
+            if let reading = store.claudeUsage, reading.isCurrent(at: date) {
+                return "\(reading.remainingPercent)% left this week"
+            }
+            if store.claudeUsage != nil {
+                return "Last weekly reading is out of date."
+            }
+            return "Weekly usage unavailable. Update Claude Code and check that /usage shows your weekly plan limit."
         }
     }
 

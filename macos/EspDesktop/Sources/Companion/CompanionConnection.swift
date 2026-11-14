@@ -72,6 +72,9 @@ final class CompanionConnection: NSObject {
     private var supportsImmediateApplicationFocus = false
     private var supportsSessionLock = false
     private var supportsPairingReset = false
+    private(set) var supportsTokenUsage = false
+    private var supportsOpenCodeGoUsage = false
+    private var supportsEnterpriseSpend = false
     private var pairingResetCompletion: CheckedContinuation<Void, Never>?
     private var pairingResetTimeout: Task<Void, Never>?
     private var remoteCatalogueDefinitionsSupported = false
@@ -504,6 +507,9 @@ final class CompanionConnection: NSObject {
             supportsSessionLock = payload.capabilityVersion >= 7
             supportsPairingReset = payload.capabilityVersion >= 8
             expandedShortcutsSupported = payload.capabilityVersion >= 9
+            supportsTokenUsage = payload.capabilityVersion >= 10
+            supportsOpenCodeGoUsage = payload.capabilityVersion >= 11
+            supportsEnterpriseSpend = payload.capabilityVersion >= 12
             // A Bonjour TXT record never authorizes a location change. Both the
             // pinned TLS certificate and the authenticated session must agree.
             let expectedFingerprint = preferences.stringPreference(forKey: certificateFingerprintKey)
@@ -751,6 +757,22 @@ final class CompanionConnection: NSObject {
         sendJSON(["type": "app_icon.begin", "appId": payload.appId,
                   "generation": appIconGeneration, "byteLength": transferPixels.count,
                   "sha256": hash, "format": transferFormat])
+    }
+
+    func publishTokenUsage(codex: WeeklyUsageReading?, claude: WeeklyUsageReading?,
+                           openCodeGo: WeeklyUsageReading?, enterprise: TokenUsage.EnterpriseSpend?) {
+        guard sessionAuthenticated, supportsTokenUsage else { return }
+        let readings = [
+            codex?.wireValue(service: "codex"),
+            claude?.wireValue(service: "claude"),
+            supportsOpenCodeGoUsage ? openCodeGo?.wireValue(service: "opencode-go") : nil,
+        ].compactMap { $0 }
+        var message: [String: Any] = ["type": "token_usage", "readings": readings]
+        if supportsEnterpriseSpend, let enterprise {
+            message["claudeEnterpriseSpendCents"] = enterprise.cents
+            message["claudeEnterpriseObservedAt"] = enterprise.observedAt
+        }
+        sendJSON(message)
     }
 
     func publishSessionLock(_ locked: Bool, displayAwake: Bool?) {

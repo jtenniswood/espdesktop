@@ -71,6 +71,7 @@
       "media_cover_art",
       "media_playlist",
       "push",
+      "token_usage",
       "companion",
       "subpage",
       "weather",
@@ -431,6 +432,18 @@
           "informationOnly": false,
           "subscriptions": false,
           "actions": true,
+          "numericControl": false,
+          "modal": false,
+          "runtimeAllocation": false,
+          "subpage": true
+        }
+      },
+      "token_usage": {
+        "driver": "token_usage",
+        "capabilities": {
+          "informationOnly": true,
+          "subscriptions": false,
+          "actions": false,
           "numericControl": false,
           "modal": false,
           "runtimeAllocation": false,
@@ -3010,6 +3023,37 @@
         "options": ""
       }
     },
+    "token_usage": {
+      "label": "Token Usage",
+      "allowInSubpage": true,
+      "domains": [],
+      "options": [
+        {
+          "name": "services",
+          "label": "Service",
+          "kind": "choice",
+          "values": [
+            "codex",
+            "claude",
+            "opencode-go",
+            "claude-enterprise"
+          ],
+          "defaultValue": "codex",
+          "omitDefault": true
+        }
+      ],
+      "default": {
+        "entity": "",
+        "label": "",
+        "icon": "Auto",
+        "icon_on": "Auto",
+        "sensor": "",
+        "unit": "",
+        "type": "token_usage",
+        "precision": "",
+        "options": ""
+      }
+    },
     "companion": {
       "label": "Companion",
       "allowInSubpage": true,
@@ -3782,11 +3826,13 @@
     "climate_control": "HC",
     "push": "P",
     "companion": "CP",
+    "token_usage": "TU",
     "companion_mac_lock": "ML",
     "subpage": "G"
   },
   "releaseAvailability": {
     "stable": [
+      "token_usage",
       "companion",
       "companion_mac_lock",
       "subpage"

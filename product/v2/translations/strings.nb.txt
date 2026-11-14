@@ -343,3 +343,5 @@ mic=Mikrofon
 mute=Demp
 mac_update_required=Oppdater Mac-appen
 mac_update_reconnect=Oppdater EspDesktop på Macen for å koble til igjen.
+token_usage_resets=Nullstilles om
+token_usage_last_seven_days=Siste 7 dager

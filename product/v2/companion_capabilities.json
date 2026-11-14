@@ -1,5 +1,5 @@
 {
-  "version": 9,
+  "version": 12,
   "protocol": {
     "version": 4,
     "path": "/companion/v4",
@@ -459,6 +459,62 @@
             "minLength": 1,
             "maxLength": 64,
             "pattern": "hex64",
+            "optional": true
+          }
+        },
+        "states": [
+          "connected"
+        ]
+      },
+      {
+        "id": "token_usage",
+        "direction": "mac_to_panel",
+        "authorization": "session",
+        "fields": {
+          "readings": {
+            "type": "array",
+            "maxItems": 3,
+            "items": {
+              "type": "object",
+              "fields": {
+                "service": {
+                  "type": "string",
+                  "minLength": 5,
+                  "maxLength": 11,
+                  "enum": [
+                    "codex",
+                    "claude",
+                    "opencode-go"
+                  ]
+                },
+                "remainingPercent": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 100
+                },
+                "resetsAt": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 4294967295
+                },
+                "observedAt": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 4294967295
+                }
+              }
+            }
+          },
+          "claudeEnterpriseSpendCents": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 4294967295,
+            "optional": true
+          },
+          "claudeEnterpriseObservedAt": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 4294967295,
             "optional": true
           }
         },

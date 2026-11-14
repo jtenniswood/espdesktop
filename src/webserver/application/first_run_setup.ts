@@ -72,7 +72,7 @@ export function applyFirstRunLayout(
         const card = { entity: app.id, label: app.label, icon: "Auto", icon_on: "Auto",
             sensor: "", unit: "", type: "companion", precision: "", options: "" };
         if (!addShortcutPages || !supportsSetupShortcuts(app.id)) return { card };
-        const tabs = companionShortcutTabsForCapacity(companionShortcutDefaultTabs(app.id), capacity);
+        const tabs = companionShortcutTabsForCapacity(companionShortcutDefaultTabs(app.id), capacity, app.id);
         setCompanionAppShortcutFolderEnabled(card, true);
         card.options = setConfigOptionValue(card.options, "app_shortcuts_tabs", tabs.join("|") || "none");
         const { order, buttons } = createCompanionShortcutSubpage(app.id, tabs);

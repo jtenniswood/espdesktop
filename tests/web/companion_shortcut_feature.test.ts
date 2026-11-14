@@ -525,9 +525,10 @@ export function runCompanionShortcutFeatureTests(): void {
   }
   const codexSubpage = createCodexShortcutSubpage();
   const codexDefaults = [0, 1, 2, 3, 4, 6, 11, 7].map(index => codexPreset[index]);
-  if (codexSubpage.backLabel !== "Back" || codexSubpage.order.length !== codexDefaults.length + 1 ||
+  if (codexSubpage.backLabel !== "Back" || codexSubpage.order.length !== codexDefaults.length + 2 ||
       codexSubpage.order[0] !== "B" ||
-      codexSubpage.buttons.map((card: any) => card.entity).join("|") !== codexDefaults.map((card) => card?.entity).join("|")) {
+      codexSubpage.buttons[0]?.type !== "token_usage" ||
+      codexSubpage.buttons.slice(1).map((card: any) => card.entity).join("|") !== codexDefaults.map((card) => card?.entity).join("|")) {
     throw new Error("Codex app subpage layout changed");
   }
   const savedApprove = {

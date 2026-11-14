@@ -1,5 +1,35 @@
 [
   {
+    "name": "weekly token usage",
+    "message": {
+      "protocol": 4,
+      "type": "token_usage",
+      "claudeEnterpriseSpendCents": 1234,
+      "claudeEnterpriseObservedAt": 1700000000,
+      "readings": [
+        { "service": "codex", "remainingPercent": 41, "resetsAt": 1700172800, "observedAt": 1700000000 },
+        { "service": "claude", "remainingPercent": 72, "resetsAt": 1700345600, "observedAt": 1700000000 },
+        { "service": "opencode-go", "remainingPercent": 54, "resetsAt": 1700432000, "observedAt": 1700000000 }
+      ]
+    },
+    "direction": "mac_to_panel",
+    "state": "connected",
+    "valid": true
+  },
+  {
+    "name": "weekly token usage rejects an invalid percentage",
+    "message": {
+      "protocol": 4,
+      "type": "token_usage",
+      "readings": [
+        { "service": "claude", "remainingPercent": 101, "resetsAt": 1700345600, "observedAt": 1700000000 }
+      ]
+    },
+    "direction": "mac_to_panel",
+    "state": "connected",
+    "valid": false
+  },
+  {
     "name": "hello",
     "message": {
       "protocol": 4,

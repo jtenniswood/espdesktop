@@ -77,6 +77,7 @@
       "media": "product/v2/cards/media.json",
       "push": "product/v2/cards/push.json",
       "companion_mac_lock": "product/v2/cards/companion_mac_lock.json",
+      "token_usage": "product/v2/cards/token_usage.json",
       "companion": "product/v2/cards/companion.json",
       "slider": "product/v2/cards/slider.json",
       "subpage": "product/v2/cards/subpage.json",

@@ -105,6 +105,7 @@ import { createNativePageEditorFeature } from "./application/native_page_editor"
 import { createReconnectController } from "./features/reconnect";
 import { registerTimerCardTypes } from "./cards/timer";
 import { registerAlarmCardTypes } from "./cards/alarm";
+import { registerTokenUsageCard } from "./cards/token_usage";
 import { registerCompanionCardTypes } from "./cards/companion";
 import { registerClimateCardTypes } from "./cards/climate";
 import { createCoverLikeCardRegistration } from "./cards/cover_like_card";
@@ -153,6 +154,7 @@ function registerCards(
   const coverLikeCards = createCoverLikeCardRegistration(registry, context.controllers.renderQueue, fields, cardUi);
   registerAlarmCardTypes(registry, context.configuration.accessClimateAlarm, context.controllers.renderQueue, fields, cardUi);
   registerTimerCardTypes(registry);
+  registerTokenUsageCard(registry, !!context.device.profile.features?.companion, fields, cardUi);
   registerCompanionCardTypes(
     registry,
     !!context.device.profile.features?.companion,

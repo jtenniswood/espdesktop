@@ -128,6 +128,53 @@ final class CompanionStore: NSObject, ObservableObject {
     @Published private(set) var foldersNeedingAccess: Set<UUID> = []
     @Published private(set) var launchAtLoginEnabled = false
     @Published private(set) var launchAtLoginMessage = ""
+    @Published var sharesCodexUsage = false {
+        didSet {
+            defaults.set(sharesCodexUsage, forKey: "tokenUsage.codex")
+            codexUsage = nil
+            didCheckCodexUsage = false
+            lastCodexUsageAttempt = .distantPast
+            restartTokenUsage()
+        }
+    }
+    @Published var sharesClaudeUsage = false {
+        didSet {
+            defaults.set(sharesClaudeUsage, forKey: "tokenUsage.claude")
+            claudeAccount = .checking
+            claudeUsage = nil
+            lastClaudeUsageAttempt = .distantPast
+            restartTokenUsage()
+        }
+    }
+    @Published var sharesOpenCodeGoUsage = false {
+        didSet {
+            defaults.set(sharesOpenCodeGoUsage, forKey: "tokenUsage.opencode-go")
+            openCodeGoStatus = .checking
+            openCodeGoUsage = nil
+            lastOpenCodeGoUsageAttempt = .distantPast
+            restartTokenUsage()
+        }
+    }
+    @Published private(set) var enterpriseUserID = ""
+    @Published private(set) var enterpriseSpend: TokenUsage.EnterpriseSpend?
+    @Published private(set) var enterpriseSpendChecked = false
+    private var lastEnterpriseSpendAttempt = Date.distantPast
+
+    @Published private(set) var openCodeGoStatus = TokenUsage.OpenCodeGoStatus.checking
+    @Published private(set) var openCodeGoUsage: WeeklyUsageReading?
+    private var lastOpenCodeGoUsageAttempt = Date.distantPast
+
+    @Published private(set) var claudeAccount = TokenUsage.ClaudeAccount.checking
+    @Published private(set) var claudeUsage: WeeklyUsageReading?
+    @Published private(set) var codexUsage: WeeklyUsageReading?
+    @Published private(set) var didCheckCodexUsage = false
+    private var lastClaudeUsageAttempt = Date.distantPast
+    private var lastCodexUsageAttempt = Date.distantPast
+    private var tokenUsageTask: Task<Void, Never>?
+    private var tokenUsageDisplays: [CompanionDisplay] {
+        connectedDisplays.filter { $0.connection.supportsTokenUsage }
+    }
+
     @Published private(set) var systemMetricsStatus = "Waiting for a display connection"
 
     private enum Keys {
@@ -176,6 +223,10 @@ final class CompanionStore: NSObject, ObservableObject {
             ? UserDefaults.standard
             : (UserDefaults(suiteName: Self.preferencesSuite) ?? .standard))
         self.defaults = stableDefaults
+        sharesCodexUsage = stableDefaults.bool(forKey: "tokenUsage.codex")
+        sharesClaudeUsage = stableDefaults.bool(forKey: "tokenUsage.claude")
+        sharesOpenCodeGoUsage = stableDefaults.bool(forKey: "tokenUsage.opencode-go")
+        enterpriseUserID = stableDefaults.string(forKey: "tokenUsage.enterpriseUserID") ?? ""
         let savedDisplays = CompanionSavedDisplays(defaults: stableDefaults)
         self.savedDisplays = savedDisplays
         approvedApplicationIdentifiers = Set(
@@ -214,6 +265,7 @@ final class CompanionStore: NSObject, ObservableObject {
         }
         if supportsLaunchAtLogin { refreshLaunchAtLoginStatus() }
         refreshApplications()
+        updateTokenUsageTask()
         Task { await remoteCatalogueStore.refresh() }
     }
 
@@ -782,6 +834,10 @@ final class CompanionStore: NSObject, ObservableObject {
         connectedDisplayCount = connectedDisplays.count
         updateSystemMetricsProvider()
         if state == .connected {
+            publishTokenUsage(to: display)
+        }
+        updateTokenUsageTask()
+        if state == .connected {
             if previousCount == 0 { startMediaControlPublishing() }
             Task { [weak display] in
                 await remoteCatalogueStore.refresh()
@@ -800,6 +856,115 @@ final class CompanionStore: NSObject, ObservableObject {
 
     func updateStatus(_ message: String) {
         print("[EspDesktop] \(message)")
+    }
+
+    func connectEnterpriseSpend(userID: String, key: String) -> Bool {
+        guard TokenUsage.validEnterpriseUserID(userID), TokenUsage.validEnterpriseKey(key),
+              KeychainStore.save(Data(key.utf8), service: TokenUsage.enterpriseKeychainService, account: userID)
+        else { return false }
+        if !enterpriseUserID.isEmpty, enterpriseUserID != userID {
+            KeychainStore.remove(service: TokenUsage.enterpriseKeychainService, account: enterpriseUserID)
+        }
+        updateEnterpriseUser(userID)
+        return true
+    }
+
+    func disconnectEnterpriseSpend() {
+        KeychainStore.remove(service: TokenUsage.enterpriseKeychainService, account: enterpriseUserID)
+        updateEnterpriseUser("")
+    }
+
+    private func updateEnterpriseUser(_ userID: String) {
+        enterpriseUserID = userID
+        defaults.set(userID, forKey: "tokenUsage.enterpriseUserID")
+        enterpriseSpend = nil
+        enterpriseSpendChecked = false
+        lastEnterpriseSpendAttempt = .distantPast
+        restartTokenUsage()
+    }
+
+    private func publishTokenUsage(to display: CompanionDisplay) {
+        display.connection.publishTokenUsage(
+            codex: sharesCodexUsage ? codexUsage : nil,
+            claude: sharesClaudeUsage ? claudeUsage : nil,
+            openCodeGo: sharesOpenCodeGoUsage ? openCodeGoUsage : nil,
+            enterprise: enterpriseSpend
+        )
+    }
+
+    private func restartTokenUsage() {
+        tokenUsageTask?.cancel()
+        tokenUsageTask = nil
+        for display in tokenUsageDisplays { publishTokenUsage(to: display) }
+        updateTokenUsageTask()
+    }
+
+    private func updateTokenUsageTask() {
+        guard sharesCodexUsage || sharesClaudeUsage || sharesOpenCodeGoUsage || !enterpriseUserID.isEmpty else {
+            tokenUsageTask?.cancel()
+            tokenUsageTask = nil
+            return
+        }
+        guard tokenUsageTask == nil else { return }
+        tokenUsageTask = Task { [weak self] in
+            while !Task.isCancelled {
+                await self?.refreshTokenUsage()
+                try? await Task.sleep(for: .seconds(15))
+            }
+        }
+    }
+
+    private func refreshTokenUsage() async {
+        if sharesCodexUsage, Date().timeIntervalSince(lastCodexUsageAttempt) >= 300 {
+            let reading = await TokenUsage.readCodex()
+            guard !Task.isCancelled else { return }
+            lastCodexUsageAttempt = .now
+            didCheckCodexUsage = true
+            if let reading {
+                codexUsage = reading
+                for display in tokenUsageDisplays { publishTokenUsage(to: display) }
+            }
+        }
+        let claudeInterval: TimeInterval = claudeAccount == .detected ? 300 : 60
+        if sharesClaudeUsage, Date().timeIntervalSince(lastClaudeUsageAttempt) >= claudeInterval {
+            let (account, reading) = await TokenUsage.readClaude()
+            guard !Task.isCancelled else { return }
+            lastClaudeUsageAttempt = .now
+            if claudeAccount != account { claudeAccount = account }
+            if let reading {
+                claudeUsage = reading
+            } else if account != .detected && account != .unknown {
+                claudeUsage = nil
+            }
+            for display in tokenUsageDisplays { publishTokenUsage(to: display) }
+        }
+        let openCodeGoInterval: TimeInterval = openCodeGoStatus == .missingLogin ? 60 : 300
+        if sharesOpenCodeGoUsage, Date().timeIntervalSince(lastOpenCodeGoUsageAttempt) >= openCodeGoInterval {
+            let (status, reading) = await TokenUsage.readOpenCodeGo()
+            guard !Task.isCancelled else { return }
+            lastOpenCodeGoUsageAttempt = .now
+            if openCodeGoStatus != status { openCodeGoStatus = status }
+            if let reading {
+                openCodeGoUsage = reading
+            } else if status == .missingLogin || status == .rejected {
+                openCodeGoUsage = nil
+            }
+            for display in tokenUsageDisplays { publishTokenUsage(to: display) }
+        }
+        if !enterpriseUserID.isEmpty, Date().timeIntervalSince(lastEnterpriseSpendAttempt) >= 900 {
+            let userID = enterpriseUserID
+            let data = KeychainStore.load(service: TokenUsage.enterpriseKeychainService, account: userID)
+            let key = data.flatMap { String(data: $0, encoding: .utf8) }
+            var reading: TokenUsage.EnterpriseSpend?
+            if let key {
+                reading = await TokenUsage.readEnterpriseSpend(userID: userID, key: key)
+            }
+            guard !Task.isCancelled else { return }
+            lastEnterpriseSpendAttempt = .now
+            enterpriseSpend = reading
+            enterpriseSpendChecked = true
+            for display in tokenUsageDisplays { publishTokenUsage(to: display) }
+        }
     }
 
     private func updateSystemMetricsProvider() {

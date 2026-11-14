@@ -343,3 +343,5 @@ mic=Mikrofon
 mute=Tysta
 mac_update_required=Uppdatera Mac-appen
 mac_update_reconnect=Uppdatera EspDesktop på din Mac för att ansluta igen.
+token_usage_resets=Återställs om
+token_usage_last_seven_days=Senaste 7 dagarna
