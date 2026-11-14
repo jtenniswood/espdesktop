@@ -12,6 +12,9 @@ font:
     size: 44
     bpp: 4
     glyphs: !include ../../../common/assets/icon_glyphs.yaml
+    extras:
+      - file: ../../../common/assets/fonts/token-usage-icons.ttf
+        glyphs: ["\uE900", "\uE901", "\uE902"]
 
   # Smaller card icons
   - file: '${mdi_font_file}'
