@@ -1,11 +1,11 @@
 ---
 title: Launch Mac Apps from a Touchscreen
-description: Choose which apps EspDesktop can launch, add an Applications card to your touchscreen and set up shortcut pages for supported apps.
+description: Launch Mac apps, give individual apps their own volume sliders, and set up shortcut pages from your EspDesktop touchscreen.
 ---
 
 # Launch Mac apps
 
-Tap an Applications card to launch an approved app or bring it to the front on your Mac.
+Tap an Applications card to launch an approved app or bring it to the front on your Mac. To give an app its own slider, [add an App Volume card](#app-volume).
 
 App subpages open automatically when their app gains focus by default. Switching between apps with subpages goes directly to the matching page. Browser tabs and Finder folders are checked separately so they do not hold up app switches. To require a press instead, turn off **Screen → Appearance → App Subpages → Open app subpages on focus**. Press an app card to focus its app, then press it again once the app is active on the Mac to open the subpage. This setting applies to every app subpage on the display.
 
@@ -13,7 +13,7 @@ App subpages open automatically when their app gains focus by default. Switching
 
 ### Choose apps in the Mac app
 
-Open **Apps** in the Mac app. **All available apps** is on by default. To limit what the display can launch, turn it off and enable the apps you want to use.
+Open **Apps** in the Mac app. **All available apps** is on by default. To choose which apps the display can launch or adjust, turn it off and enable the apps you want to control.
 
 <a href="/images/mac-app-available-apps.png"><picture><source type="image/avif" srcset="/images/mac-connector/mac_app2-480.avif 480w, /images/mac-connector/mac_app2-960.avif 960w" sizes="(min-width: 768px) 688px, 90vw"><img src="/images/mac-app-available-apps.png" alt="EspDesktop Mac app on the Apps tab with the All available apps switch on" width="1224" height="1488" loading="lazy"></picture></a>
 
@@ -35,13 +35,18 @@ App cards use the normal card theme by default. Previously saved custom backgrou
 
 Approve **Finder** in the Mac app to use its launch card. Touching an app card sends its action immediately. With a matching current Mac app and firmware, macOS activation updates the active colour directly, without waiting for window, Finder-folder or browser-tab checks. The fill has no outline or fade. Detailed focus checks still control app subpages and keyboard shortcuts separately; touch actions and page changes do not wait for either update.
 
-## Adjust an app’s volume
+## Adjust an app’s volume {#app-volume}
 
-With macOS 14.2 or later and matching EspDesktop firmware and Mac companion, add an **App Volume** card in the display editor. Select an app enabled in the Mac companion’s **Apps** tab and save. Add another card to control a second app independently.
+An **App Volume** card controls one Mac app at a time. For example, give Spotify its own slider so you can turn down music while keeping your call at the same level. Use macOS 14.2 or later and matching Mac companion and display firmware builds that include App Volume.
 
-Play sound in the app and drag its card on the display. Allow **System Audio Recording** on the Mac when prompted. The control applies to audio the app plays through the Mac’s default output. At 100%, the app plays at its normal level. At 0%, the card silences its output. EspDesktop resets these adjustments when the last display disconnects.
+1. In EspDesktop on the Mac, open **Settings → Apps** and make sure the app is enabled.
+2. In the display’s web editor, select an empty tile on the home screen or in a folder. Choose **App Volume**.
+3. Choose the app under **Application** and select **Save**. The card starts with the app’s name as its label. Add another card for each app you want to adjust.
+4. Start playback in the app, then drag the slider on the touchscreen. Allow **System Audio Recording** if macOS prompts you.
 
-Browser tabs that share an audio process use the same app volume. Some apps and audio devices use audio paths the card cannot adjust.
+At **100%**, the app plays at its normal level. At **0%**, its output is silent. Disabling the app in EspDesktop or disconnecting the last paired display restores normal playback.
+
+If the app is missing from the picker, check that the Mac companion is connected and the app is enabled in **Apps**, then reopen the card editor. If the slider has no effect, check EspDesktop’s audio recording permission in **System Settings → Privacy & Security** and confirm the app plays through the Mac’s default sound output. Some apps and audio devices use output paths that the slider cannot adjust. Browser tabs that share one audio process share one volume setting.
 
 ## Ready-Made app subpages
 

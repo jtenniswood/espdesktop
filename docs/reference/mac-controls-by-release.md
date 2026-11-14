@@ -20,4 +20,4 @@ The table describes the public controls in [EspDesktop v1.2.6](https://github.co
 
 The v1.2.6 card picker omits Mac statistics and dedicated Mac volume controls. An older layout can still contain settings for a previously saved card. If the editor marks it unavailable, [replace or remove it](/getting-started/troubleshooting#a-card-does-not-work). Keep a backup of the original layout if you plan to return to its original firmware release.
 
-Check the [release notes](https://github.com/jtenniswood/espdesktop/releases) for controls added in a newer stable release.
+[App Volume](/mac-controls/apps#app-volume) provides a slider for an individual enabled app on macOS 14.2 or later. Check the [release notes](https://github.com/jtenniswood/espdesktop/releases) for a release that includes it.
