@@ -1,6 +1,6 @@
 {
   "label": "Mute",
-  "pickerKey": "companion_input_volume",
+  "pickerKey": "companion_output_volume",
   "allowInSubpage": true,
   "domains": [],
   "normalization": {

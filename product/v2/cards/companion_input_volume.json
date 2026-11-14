@@ -1,6 +1,6 @@
 {
   "label": "Volume",
-  "pickerLabel": "Input",
+  "pickerKey": "companion_output_volume",
   "allowInSubpage": true,
   "domains": [],
   "normalization": {

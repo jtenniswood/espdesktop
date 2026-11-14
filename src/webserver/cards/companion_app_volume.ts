@@ -2,7 +2,7 @@ import type { CardDefinition, CardUiServices } from "../application/card_registr
 import type { ControlsFieldsFeature } from "../application/controls_fields";
 import { iconSlug } from "../application/ui_primitives";
 import type { CompanionAction } from "../api/companion_catalogue";
-import { cardContractDefaultConfig } from "../generated/card_contract";
+import { cardContractDefaultConfig, cardContractPickerKey } from "../generated/card_contract";
 
 const volumePrefix = "app.volume.";
 
@@ -20,7 +20,7 @@ export function targetedAudioCard(
     const metadata = { icon: { fallback: defaults.icon } };
     return {
         label: defaults.label || (inputDevice ? "Input per device level" : "App Volume"),
-        pickerKey: inputDevice ? "companion_input_volume" : "companion_output_volume",
+        pickerKey: cardContractPickerKey(type),
         cardMetadata: metadata,
         allowInSubpage: true,
         isAvailable: () => supported,

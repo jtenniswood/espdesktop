@@ -1,6 +1,6 @@
 {
   "label": "Volume",
-  "pickerLabel": "Output",
+  "pickerLabel": "Sound",
   "allowInSubpage": true,
   "domains": [],
   "normalization": {

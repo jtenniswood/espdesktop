@@ -2570,7 +2570,7 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
   },
   "companion_output_volume": {
     "label": "Volume",
-    "pickerLabel": "Output",
+    "pickerLabel": "Sound",
     "allowInSubpage": true,
     "domains": [],
     "normalization": {
@@ -2628,7 +2628,7 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
   },
   "companion_input_device": {
     "label": "Input per device level",
-    "pickerKey": "companion_input_volume",
+    "pickerKey": "companion_output_volume",
     "allowInSubpage": true,
     "domains": [],
     "normalization": {
@@ -2681,7 +2681,7 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
   },
   "companion_input_volume": {
     "label": "Volume",
-    "pickerLabel": "Input",
+    "pickerKey": "companion_output_volume",
     "allowInSubpage": true,
     "domains": [],
     "normalization": {
@@ -2798,7 +2798,7 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
   },
   "companion_input_mute": {
     "label": "Mute",
-    "pickerKey": "companion_input_volume",
+    "pickerKey": "companion_output_volume",
     "allowInSubpage": true,
     "domains": [],
     "normalization": {
@@ -2856,7 +2856,7 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
   },
   "companion_cough": {
     "label": "Cough",
-    "pickerKey": "companion_input_volume",
+    "pickerKey": "companion_output_volume",
     "allowInSubpage": true,
     "domains": [],
     "normalization": {

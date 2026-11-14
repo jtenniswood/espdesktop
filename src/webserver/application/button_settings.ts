@@ -1007,21 +1007,16 @@ export function createButtonSettingsFeature(
             homeAssistantEnabled: connectorState.homeAssistantEnabled,
             homeAssistantConfigured: connectorState.homeAssistantConfigured,
         };
-        const audioTypes: Record<string, [string, string][]> = {
-            companion_input_volume: [
+        if ((buttonTypeRegistryValue(rawTypeDef, "pickerKey", "") || b.type) === "companion_output_volume") {
+            const audioSubtypes: [string, string][] = [
+                ["companion_output_volume", "Output Volume"],
+                ["companion_output_mute", "Output Mute"],
+                ["companion_app_volume", "Output per application"],
+                ["companion_input_volume", "Input Volume"],
                 ["companion_input_mute", "Input Mute"],
                 ["companion_cough", "Input Cough"],
-                ["companion_input_volume", "Input Volume"],
                 ["companion_input_device", "Input per device level"],
-            ],
-            companion_output_volume: [
-                ["companion_output_mute", "Output Mute"],
-                ["companion_output_volume", "Output Volume"],
-                ["companion_app_volume", "Output per application"],
-            ],
-        };
-        const audioSubtypes = audioTypes[buttonTypeRegistryValue(rawTypeDef, "pickerKey", "") || b.type];
-        if (audioSubtypes) {
+            ];
             const subtype = selectField("Type", idPrefix + "audio-type", audioSubtypes, b.type,
                 (event: Event) => selectCardType((event.currentTarget as HTMLSelectElement).value));
             panel.appendChild(subtype.field);

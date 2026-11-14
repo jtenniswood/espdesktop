@@ -4280,10 +4280,12 @@ async function assertAppVolumeCard(browser) {
     await page.getByRole("tab", { name: "Layout", exact: true }).click();
     await page.evaluate(events => window.__seedEspState(events), nativeDocumentEvents(nativeState.document));
     await page.locator(".sp-main .sp-empty-cell").first().click();
-    await page.getByRole("button", { name: "Output card type", exact: true }).click();
+    assert.equal(await page.getByRole("button", { name: /^(Input|Output) card type$/ }).count(), 0);
+    await page.getByRole("button", { name: "Sound card type", exact: true }).click();
     const subtype = page.locator('select[id$="audio-type"]');
     assert.deepEqual(await subtype.locator("option").allTextContents(),
-      ["Output Mute", "Output Volume", "Output per application"]);
+      ["Output Volume", "Output Mute", "Output per application",
+        "Input Volume", "Input Mute", "Input Cough", "Input per device level"]);
     await subtype.selectOption("companion_app_volume");
     const application = page.getByLabel("Application", { exact: true });
     await application.locator('option[value="app.volume.com.spotify.client"]').waitFor({ state: "attached" });
@@ -4308,8 +4310,7 @@ async function assertAppVolumeCard(browser) {
     ];
     for (const [label, control, icon, slider] of deviceAudio) {
       await page.locator(".sp-main .sp-empty-cell").first().click();
-      const group = control.startsWith("input") ? "Input" : "Output";
-      await page.getByRole("button", { name: group + " card type", exact: true }).click();
+      await page.getByRole("button", { name: "Sound card type", exact: true }).click();
       await subtype.selectOption("companion_" + control);
       await page.getByRole("button", { name: "Save", exact: true }).click();
       const expected = `media.${control};${label};${icon};Auto;;;companion_${control}`;
@@ -4321,9 +4322,7 @@ async function assertAppVolumeCard(browser) {
       assert.equal(await preview.locator(".sp-slider-preview").count(), slider ? 1 : 0, label);
     }
     await page.locator(".sp-main .sp-empty-cell").first().click();
-    await page.getByRole("button", { name: "Input card type", exact: true }).click();
-    assert.deepEqual(await subtype.locator("option").allTextContents(),
-      ["Input Mute", "Input Cough", "Input Volume", "Input per device level"]);
+    await page.getByRole("button", { name: "Sound card type", exact: true }).click();
     await subtype.selectOption("companion_input_device");
     const input = page.getByLabel("Input device", { exact: true });
     const inputID = "input.level." + "a".repeat(64);
@@ -4333,7 +4332,7 @@ async function assertAppVolumeCard(browser) {
     await waitForNativeState(nativeState, () => Object.values(nativeState.document.buttons)
       .includes(inputID + ";USB Microphone;Microphone;Auto;;;companion_input_device"),
     "Input per device saves the chosen microphone");
-    console.log("Input and Output audio subtypes passed picker and save checks.");
+    console.log("Sound subtypes passed picker and save checks.");
   } finally { await context.close(); }
 }
 
