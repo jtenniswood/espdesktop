@@ -52,22 +52,23 @@ export function registerTokenUsageCard(
       const icon = (id: keyof typeof TOKEN_USAGE_ICONS) =>
         '<img class="sp-token-usage-icon" alt="' + (id === "codex" ? "Codex" : "Claude") +
         '" src="' + TOKEN_USAGE_ICONS[id] + '">';
-      const reading = (left: string, reset: string) =>
-        '<span class="sp-btn-label sp-token-usage-value">' + helpers.escHtml(left) +
-        '</span><span class="sp-token-usage-reset">' + helpers.escHtml(reset) + '</span>';
+      const value = (left: string) =>
+        '<span class="sp-btn-label sp-token-usage-value">' + helpers.escHtml(left) + '</span>';
+      const reset = (text: string) =>
+        '<span class="sp-token-usage-reset">' + helpers.escHtml(text) + '</span>';
       if (selected === "both") {
         return {
           iconHtml: '',
-          labelHtml: '<span class="sp-token-usage-services"><span class="sp-token-usage-row">' +
-            icon("codex") + '<span>' + reading("41% left", "Resets in 2d") +
-            '</span></span><span class="sp-token-usage-row">' + icon("claude") +
-            '<span>' + reading("72% left", "Resets in 4d") + '</span></span></span>',
+          labelHtml: '<span class="sp-token-usage-services"><span><span class="sp-token-usage-row">' +
+            icon("codex") + value("41% left") + '</span>' + reset("Resets in 2d") +
+            '</span><span><span class="sp-token-usage-row">' + icon("claude") + value("72% left") +
+            '</span>' + reset("Resets in 4d") + '</span></span>',
           labelEditable: false,
         };
       }
       return {
         iconHtml: icon(selected),
-        labelHtml: '<span class="sp-btn-label-row sp-token-usage-single">' + reading("41% left", "Resets in 2d") + '</span>',
+        labelHtml: '<span class="sp-btn-label-row sp-token-usage-single">' + value("41% left") + reset("Resets in 2d") + '</span>',
         labelEditable: false,
       };
     },
