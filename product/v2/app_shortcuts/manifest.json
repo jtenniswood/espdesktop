@@ -1,6 +1,6 @@
 {
   "formatVersion": 1,
-  "catalogueVersion": 20,
+  "catalogueVersion": 21,
   "minimumCompanionVersion": "1.0.0",
   "entries": [
     {
@@ -167,6 +167,9 @@
     },
     {
       "path": "obsidian.json"
+    },
+    {
+      "path": "opencode.json"
     },
     {
       "path": "orca-slicer.json"
