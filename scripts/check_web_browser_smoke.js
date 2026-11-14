@@ -7137,6 +7137,60 @@ async function assertReorderAfterDelete(browser) {
   } finally { await context.close(); }
 }
 
+async function assertAppleShortcutCard(browser) {
+  const testCase = CASES.find(item => item.slug === "guition-esp32-s3-4848s040");
+  const fixture = nativeConfigState(testCase.slug);
+  fixture.document.settings.web_onboarding_complete = "1";
+  const connectorsStatus = { onboarding_complete: true, mac_companion: {
+    available: true, configured: true, paired: true, connected: true,
+  } };
+  let workflowAvailable = true;
+  const id = "appleshortcut.727ed9bf-de97-42ed-b661-8967497b122c";
+  const context = await browser.newContext({ viewport: testCase.viewport });
+  await installRoutes(context, testCase.slug, { nativeState: fixture, connectorsStatus, nativeV2: true });
+  await context.route("**/companion/actions", route => route.fulfill({
+    json: workflowAvailable ? [{ id, label: "Start Design Session" }] : [],
+  }));
+  try {
+    const page = await context.newPage();
+    await installFakeEventSource(page);
+    async function open() {
+      await page.goto(`http://espdesktop.test/${testCase.slug}?events=1`);
+      await page.waitForSelector("#sp-app");
+      await page.waitForFunction(() => window.__eventSources?.length > 0);
+      await page.evaluate(events => window.__seedEspState(events), nativeDocumentEvents(fixture.document));
+    }
+    await open();
+    await page.locator(".sp-main .sp-empty-cell").first().click();
+    await chooseCardType(page, "Run Apple Shortcut");
+    const picker = page.getByLabel("Apple Shortcut", { exact: true });
+    await picker.locator(`option[value="${id}"]`).waitFor({ state: "attached" });
+    await picker.selectOption(id);
+    await page.getByRole("button", { name: "Save", exact: true }).click();
+    await waitForNativeState(fixture, () => fixture.puts.length > 0, "save an approved Apple Shortcut");
+    const slot = Object.keys(fixture.document.buttons).find(key => fixture.document.buttons[key].startsWith("~" + id + ","));
+    assert(slot, "the saved card keeps its Apple Shortcut identifier");
+    assert(fixture.document.buttons[slot].startsWith("~" + id + ",Start Design Session,"));
+    workflowAvailable = false;
+    connectorsStatus.mac_companion.connected = false;
+    // Reopen the saved record in a known visible cell after a fresh load.
+    fixture.document.buttons[1] = fixture.document.buttons[slot];
+    delete fixture.document.buttons[slot];
+    await open();
+    const savedCard = page.locator('.sp-main [data-slot="1"]');
+    await savedCard.getByText("Start Design Session", { exact: true }).waitFor();
+    await savedCard.click({ button: "right" });
+    await page.locator(".sp-ctx-menu").getByText("Edit Card", { exact: true }).click();
+    await picker.locator(`option[value="${id}"]`).waitFor({ state: "attached" });
+    assert.equal(await picker.inputValue(), id);
+    assert.equal(await picker.locator("option:checked").textContent(), "Start Design Session (unavailable)");
+    await page.getByRole("button", { name: "Save", exact: true }).click();
+    await page.locator(".sp-settings-modal").waitFor({ state: "hidden" });
+    assert(fixture.document.buttons[1].startsWith("~" + id + ","));
+    console.log("Apple Shortcut card creation and offline editing passed.");
+  } finally { await context.close(); }
+}
+
 async function assertLiveFinderPreview(browser) {
   const testCase = CASES.find(item => item.slug === "guition-esp32-s3-4848s040");
   const fixture = nativeConfigState(testCase.slug);
@@ -7680,6 +7734,10 @@ async function assertFirstRunSetup(browser) {
       await assertFirstRunSetup(browser);
       return;
     }
+    if (process.env.ESPDESKTOP_APPLE_SHORTCUT_ONLY === "1") {
+      await assertAppleShortcutCard(browser);
+      return;
+    }
     if (process.env.ESPDESKTOP_MAC_LOCK_ONLY === "1") {
       await assertMacLockCard(browser);
       return;
@@ -7688,6 +7746,7 @@ async function assertFirstRunSetup(browser) {
       for (const testCase of ACTIVE_CASES) await runCase(browser, testCase);
       return;
     }
+    await assertAppleShortcutCard(browser);
     await assertRetiredCardRemoval(browser);
     if (process.env.ESPDESKTOP_RETIRED_CARDS_ONLY === "1") return;
     await assertMacLockCard(browser);
