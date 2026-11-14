@@ -26,7 +26,7 @@ Mac actions require an unlocked Mac with the [EspDesktop Mac app running and pai
 
 Home Assistant reads the latest button list when it reconnects. If a newly added card is missing or a name looks out of date, go to **System → Connectors → Home Assistant** in the display’s web editor and select **Resync buttons**. The display stays running while its ESPHome connection briefly reconnects. Reopen **Controls** in Home Assistant to see the refreshed list.
 
-If a button still shows an old name, check its entity settings in Home Assistant for a custom **Name**. Clear it to show the name supplied by EspDesktop. If you move a card, change its action, or rename it while Home Assistant is offline, check any automations that use it because the button’s entity may change.
+If a button still shows an old name, check its entity settings in Home Assistant for a custom **Name**. Clear it to show the name supplied by EspDesktop. Home Assistant 2026.11.1 can match renamed cards to their existing entities using the previous button list, including across a restart when that list has been saved. If you use an older Home Assistant version and rename a card while it’s offline, check the automations that use it. Moving a card or changing its action can also change its entity.
 
 Turn off **Enable ESPHome API** in the web editor to disable remote presses.
 
