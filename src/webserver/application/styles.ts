@@ -362,10 +362,10 @@ export function createWebStyles(dragAnimation: boolean): string {
         ".sp-card-type-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px}" +
         ".sp-card-type-option{min-width:0;min-height:112px;display:flex;align-items:flex-start;gap:13px;" +
         "padding:16px;border:1px solid var(--border);border-radius:8px;background:var(--surface);" +
-        "color:var(--text);font-family:inherit;text-align:left;cursor:pointer;transition:background .2s,border-color .2s,box-shadow .2s,transform .2s}" +
-        ".sp-card-type-option:hover{background:var(--surface2);border-color:var(--text3);transform:translateY(-1px)}" +
+        "color:var(--text);font-family:inherit;text-align:left;cursor:pointer;transition:background .2s,border-color .2s,box-shadow .2s}" +
+        ".sp-card-type-option:hover{background:var(--surface2);border-color:var(--text3)}" +
         ".sp-card-type-option:focus-visible{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}" +
-        ".sp-card-type-option:disabled{opacity:.48;cursor:not-allowed;transform:none}" +
+        ".sp-card-type-option:disabled{opacity:.48;cursor:not-allowed}" +
         ".sp-card-type-icon{width:34px;height:34px;border-radius:8px;background:var(--accent-soft);" +
         "color:var(--accent-hover);position:relative;font-size:22px;line-height:1;flex:0 0 auto}" +
         ".sp-card-type-icon::before{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);line-height:1}" +
