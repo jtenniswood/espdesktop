@@ -57,7 +57,7 @@ export function registerTokenUsageCard(
         '<span class="sp-token-usage-reset">' + helpers.escHtml(text) + '</span>';
       return {
         iconHtml: icon,
-        labelHtml: '<span class="sp-btn-label-row sp-token-usage-single">' + value("41% left") + reset("Resets in 2d") + '</span>',
+        labelHtml: '<span class="sp-btn-label-row sp-token-usage-single">' + value("41% left") + reset("Resets 2d 9h") + '</span>',
         labelEditable: false,
       };
     },

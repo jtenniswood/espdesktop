@@ -4296,7 +4296,7 @@ async function assertTokenUsageCard(browser) {
     await load();
     await tile().getByRole("img", { name: "Claude" }).waitFor();
     assert.deepStrictEqual(await tile().locator(".sp-token-usage-reset").allTextContents(),
-      ["Resets in 2d"]);
+      ["Resets 2d 9h"]);
     await edit();
     assert.strictEqual(await service.inputValue(), "claude");
     await service.selectOption("codex");
