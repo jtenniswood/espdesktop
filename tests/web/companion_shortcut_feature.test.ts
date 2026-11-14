@@ -361,8 +361,8 @@ export function runCompanionShortcutFeatureTests(): void {
     "shortcut.command+j",
     "shortcut.option+command+b",
     "shortcut.option+command+l",
-    "shortcut.control+shift+tab",
-    "shortcut.control+tab",
+    "shortcut.command+option+keybracketleft",
+    "shortcut.command+option+keybracketright",
   ];
   if (codexPreset.slice(0, expectedCodexShortcuts.length).map((card) => card.entity).join("|") !== expectedCodexShortcuts.join("|")) {
     throw new Error("Codex starter presets changed");
@@ -373,7 +373,7 @@ export function runCompanionShortcutFeatureTests(): void {
   const expectedCodexLabels = [
     "New Chat", "Command Menu", "Needs Attention", "Review Changes", "Terminal", "Find Text", "Find Files",
     "Browser Tab", "Sidebar", "File Tree", "Project Picker", "Model / Effort", "Open Folder", "Bottom Panel",
-    "Chat / Tabs", "Copy Link", "Previous Chat", "Next Chat",
+    "Chat / Tabs", "Copy Link", "Previous Sidebar Item", "Next Sidebar Item",
   ];
   if (codexPreset.slice(0, expectedCodexLabels.length).map((card) => card.label).join("|") !== expectedCodexLabels.join("|")) {
     throw new Error("Codex shortcut labels should stay short");

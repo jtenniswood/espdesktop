@@ -103,14 +103,14 @@
     },
     {
       "id": "17",
-      "label": "Previous Chat",
-      "shortcut": "control+shift+tab",
+      "label": "Previous Sidebar Item",
+      "shortcut": "command+option+keybracketleft",
       "icon": "Chevron Left"
     },
     {
       "id": "18",
-      "label": "Next Chat",
-      "shortcut": "control+tab",
+      "label": "Next Sidebar Item",
+      "shortcut": "command+option+keybracketright",
       "icon": "Chevron Right"
     },
     {
@@ -460,10 +460,10 @@
     {"id": "89", "label": "New temporary chat", "shortcut": "scoped.command+shift+n", "icon": "Chat"},
     {"id": "90", "label": "Find next match", "shortcut": "scoped.command+g", "icon": "Search"},
     {"id": "91", "label": "Find previous match", "shortcut": "scoped.command+shift+g", "icon": "Search"},
-    {"id": "92", "label": "Previous chat or tab", "shortcut": "scoped.command+shift+keybracketleft", "icon": "Tab"},
-    {"id": "93", "label": "Previous chat or tab", "shortcut": "scoped.command+option+left", "icon": "Tab"},
-    {"id": "94", "label": "Next chat or tab", "shortcut": "scoped.command+shift+keybracketright", "icon": "Tab"},
-    {"id": "95", "label": "Next chat or tab", "shortcut": "scoped.command+option+right", "icon": "Tab"},
+    {"id": "92", "label": "Previous Tab", "shortcut": "scoped.command+shift+keybracketleft", "icon": "Tab"},
+    {"id": "93", "label": "Previous Sidebar Item", "shortcut": "scoped.command+option+left", "icon": "Tab"},
+    {"id": "94", "label": "Next Tab", "shortcut": "scoped.command+shift+keybracketright", "icon": "Tab"},
+    {"id": "95", "label": "Next Sidebar Item", "shortcut": "scoped.command+option+right", "icon": "Tab"},
     {"id": "96", "label": "Start dictation", "shortcut": "scoped.control+shift+d", "icon": "Microphone"},
     {"id": "97", "label": "Restore previous composer prompt", "shortcut": "scoped.up", "icon": "Arrow Left"},
     {"id": "98", "label": "Run primary environment action", "shortcut": "scoped.command+shift+d", "icon": "Run"},

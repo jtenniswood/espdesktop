@@ -42,6 +42,12 @@ Nested layouts use the new saved-layout format and require firmware with two-lev
 
 See how to [move or copy cards between Home and a subpage](/features/home#organise-cards).
 
+## Switch chats in ChatGPT Desktop
+
+Use **Next Sidebar Item** and **Previous Sidebar Item** on your ChatGPT Desktop subpage to move through chats in sidebar order. The **Next Tab** and **Previous Tab** presets cycle through open tabs.
+
+If you already have **Next Chat** and **Previous Chat** cards that send **Control + Tab** and **Control + Shift + Tab**, those keys now switch tabs by default. You can replace the saved cards with the sidebar presets in the EspDesktop editor. To keep cycling through recently viewed chats with your existing cards, open **Settings → Keyboard Shortcuts** in ChatGPT Desktop. Assign **Control + Tab** to **Next recently viewed chat** and **Control + Shift + Tab** to **Previous recently viewed chat**.
+
 ## Swipe back
 
 Swipe right from the left edge of a subpage to use its **Back** action. This also works on app subpages while the touchscreen is unlocked and showing its cards.
