@@ -59,6 +59,17 @@ extern "C" bool espdesktop_native_configuration_generation(uint32_t *generation)
   return true;
 }
 
+#if defined(USE_WEBSERVER) && defined(USE_ESPDESKTOP_NATIVE_CARD_BUTTONS)
+extern "C" bool espdesktop_allow_web_card_press(httpd_req_t *raw) {
+  esphome::web_server_idf::AsyncWebServerRequest request(raw);
+  char buffer[esphome::web_server_idf::AsyncWebServerRequest::URL_BUF_SIZE];
+  const auto path = request.url_to(buffer);
+  if (!espdesktop::home_assistant::is_native_card_web_press({path.c_str(), path.length()})) return true;
+  httpd_resp_send_err(raw, HTTPD_404_NOT_FOUND, nullptr);
+  return false;
+}
+#endif
+
 extern "C" void espdesktop_register_web_server_handlers(
     esphome::web_server_idf::AsyncWebServer *server) {
 #ifdef USE_WEBSERVER

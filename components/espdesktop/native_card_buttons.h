@@ -7,6 +7,22 @@
 
 namespace espdesktop::home_assistant {
 
+inline constexpr std::string_view NATIVE_CARD_NAME_SEPARATOR = " · ";
+inline constexpr size_t NATIVE_CARD_NAME_ID_LENGTH = 8;
+
+inline bool is_native_card_web_press(std::string_view path) {
+  constexpr std::string_view prefix = "/button/";
+  constexpr std::string_view action = "/press";
+  constexpr size_t suffix_length = NATIVE_CARD_NAME_SEPARATOR.size() + NATIVE_CARD_NAME_ID_LENGTH;
+  if (!path.starts_with(prefix) || !path.ends_with(action) ||
+      path.size() < prefix.size() + suffix_length + action.size()) return false;
+  const auto suffix = path.substr(path.size() - action.size() - suffix_length, suffix_length);
+  return suffix.starts_with(NATIVE_CARD_NAME_SEPARATOR) &&
+      std::all_of(suffix.begin() + NATIVE_CARD_NAME_SEPARATOR.size(), suffix.end(), [](char ch) {
+        return (ch >= '0' && ch <= '9') || (ch >= 'a' && ch <= 'f');
+      });
+}
+
 class NativeCardButton final : public esphome::button::Button {
  public:
   void configure(std::string id, std::string name, uint32_t key) {
@@ -71,7 +87,8 @@ class NativeCardButtons {
             : card.config.label;
         if (name.empty() || name == card.config.entity) name = "Mac action";
         // A replacement card gets a fresh identity even if its label is reused.
-        name += " · " + card.id.substr(0, 8);
+        name += NATIVE_CARD_NAME_SEPARATOR;
+        name.append(card.id, 0, NATIVE_CARD_NAME_ID_LENGTH);
         entries.push_back({card.id, std::move(name), key});
       }
       std::sort(entries.begin(), entries.end(), [](const auto &a, const auto &b) { return a.key < b.key; });
