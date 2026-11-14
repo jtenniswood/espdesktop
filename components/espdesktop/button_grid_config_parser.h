@@ -1466,6 +1466,8 @@ inline ParsedCfg normalize_parsed_cfg(ParsedCfg p) {
   if (!normalized_saved_static && !normalized_saved_fan && !normalized_saved_mower && !normalized_saved_occupancy && !normalized_saved_access && !p.type.empty() && p.type != "action" && p.type != "alarm" && p.type != "alarm_action" && !climate_card_type(p.type) && p.type != "media" && p.type != "companion" && p.type != "subpage" && p.type != "image" && p.type != "light_control" && p.type != "vacuum" && p.type != "weather" && !card_large_numbers_supported(p)) {
     p.options.clear();
   }
+  if (card_background_supported_card(p.type, p.sensor))
+    append_card_background_options(p.options, original_options);
   if (!card_colors.empty()) {
     if (!p.options.empty()) p.options += ",";
     p.options += card_colors;

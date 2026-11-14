@@ -71,6 +71,7 @@ inline SubpageBtn normalize_subpage_btn(SubpageBtn b) {
     type_options += token;
   }
   b.options = type_options;
+  const std::string original_options = b.options;
   // Shared colours must survive the card-specific option cleanup below.
   const std::string card_colors = card_color_options_normalized(b.options);
   b.options = options_without_card_colors(b.options);
@@ -241,6 +242,8 @@ inline SubpageBtn normalize_subpage_btn(SubpageBtn b) {
       !fan_card_type(b.type) && !card_large_numbers_supported(p)) {
     b.options.clear();
   }
+  if (card_background_supported_card(b.type, b.sensor))
+    append_card_background_options(b.options, original_options);
   if (!card_colors.empty()) {
     if (!b.options.empty()) b.options += ",";
     b.options += card_colors;

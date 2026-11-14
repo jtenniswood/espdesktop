@@ -273,6 +273,8 @@ inline void navigation_clear_home_targets() {
   grid_navigation_service().clear_home_targets();
 }
 
+inline void card_background_unregister_page(lv_obj_t *page);
+
 inline void navigation_clear_subpages(lv_obj_t *main_page_obj) {
   lv_obj_t *active = lv_scr_act();
   for (const auto &entry : navigation_subpages()) {
@@ -420,8 +422,6 @@ inline NavigationSubpageEntry *navigation_find_slot(int slot) {
   }
   return nullptr;
 }
-
-inline void card_background_unregister_page(lv_obj_t *page);
 
 inline void navigation_release_subpage_screen(NavigationSubpageEntry &entry) {
   if (!entry.screen) return;

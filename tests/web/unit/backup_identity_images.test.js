@@ -55,19 +55,20 @@ for (const result of ['saved', 'mirror-failed', 'failed', 'discovery-failed']) {
     const emptyFeature = new Proxy({}, { get: () => noop });
     const document = { deviceProfile: 'test-panel', buttons: {}, subpages: {}, settings: { button_order: '', button_on_color: '' } };
     const plan = { importedSettings: {}, importedGridCols: 3, backupPlan: {
-      screen: { device: 'test-panel' }, buttons: [], subpages: {}, config: { native_config: document },
+      screen: { device: 'test-panel' }, buttons: [], subpages: {}, config: { native_config: null },
     } };
     let complete;
     const completion = new Promise(resolve => { complete = resolve; });
     const controllers = new Proxy({
       layout: { deviceId: 'test-panel', numSlots: 0 },
       runtime: { els: {} },
+      grid: { flushMainGridSave: noop },
       requestApi: { postQueue: Promise.resolve(), postQueueError: false },
       identity: { chooseRestoreName: async () => undefined },
       backupImport: { plan: () => plan },
       backupFile: { import: receive => receive({}, null) },
       nativePanelConfig: {
-        client: {}, waitForDiscovery: async () => result === 'discovery-failed' ? 'failed' : 'native',
+        client: { lastDocument: () => document }, waitForDiscovery: async () => result === 'discovery-failed' ? 'failed' : true,
         writeDocument: async () => { events.push('layout-write'); return result; },
       },
       backupRestore: { restore: async (_data, _target, apply) => {
@@ -93,21 +94,31 @@ for (const result of ['saved', 'mirror-failed', 'failed', 'discovery-failed']) {
 }
 
 
-test("image restore remaps swipe-up page settings before writing native configuration", async () => {
+test("image restore remaps nested pages in native backups", async () => {
   const noop = () => undefined;
   const emptyFeature = new Proxy({}, { get: () => noop });
-  const special = { grid: [1], buttons: [{ type: "companion", options: "bg_image=old-id" }] };
+  const { createNativeConfigBackupPayload, decodeNativeConfigBackupPayload, decodeNativeConfigDocument } =
+    loadTypescriptTest("src/webserver/model/native_config_backup.ts");
+  const { encodePanelPageDocument } = loadTypescriptTest("src/webserver/model/panel_config_conversion.ts");
+  const { parseRawButtonConfig, serializeCardConfig } = loadTypescriptTest("src/webserver/model/card.ts");
+  const { parseRawSubpageConfig, serializeRawSubpageConfig } = loadTypescriptTest("src/webserver/model/subpage.ts");
+  const document = { deviceProfile: "test-panel", buttons: { 1: ";;;;;;subpage" },
+    subpages: { 1: "~B,1|subpage,,Folder", 33: "~B,1|companion,shortcut.command%2Bc,Copy,,,,,,bg_image%3Dold-id" },
+    settings: { button_order: "1", untouched: "keep" },
+  };
   const plan = { backupPlan: { screen: {}, buttons: [], subpages: {}, config: {
-    settings: { special_page: JSON.stringify(special), untouched: "keep" },
-    native_config: { stale: true },
+    native_config: createNativeConfigBackupPayload(encodePanelPageDocument(document)),
   } } };
   let finish;
-  const completion = new Promise(resolve => { finish = resolve; });
+  const completion = new Promise((resolve, reject) => { finish = { resolve, reject }; });
   const controllers = new Proxy({
     layout: { deviceId: "test-panel", numSlots: 0 }, runtime: { els: {} },
+    identity: { chooseRestoreName: async () => undefined },
     backupImport: { plan: () => plan },
     backupFile: { import: receive => receive({}, {}) },
-    codec: { parseSubpageConfig: JSON.parse, serializeSubpageConfig: JSON.stringify },
+    codec: { parseButtonConfig: parseRawButtonConfig, serializeButtonConfig: serializeCardConfig,
+      parseSubpageConfig: value => parseRawSubpageConfig(value, type => type),
+      serializeSubpageConfig: value => serializeRawSubpageConfig(value, type => type) },
     cardImages: { backupAssetProvider: { createRestore: () => ({
       stage: noop, commit: noop, rollback: noop,
       remapImportedReferences: value => {
@@ -115,17 +126,15 @@ test("image restore remaps swipe-up page settings before writing native configur
       },
     }) } },
     backupRestore: { restore: async (_data, _target, _apply, assets) => {
-      await assets.stage();
-      assets.remap(plan);
-      finish();
+      try { assets.remap(plan); finish.resolve(); }
+      catch (error) { finish.reject(error); }
       return false;
     } },
   }, { get: (target, key) => target[key] ?? emptyFeature });
   createAppBackupFeature(controllers).importConfig();
   await completion;
-  const restored = JSON.parse(plan.backupPlan.config.settings.special_page);
-  assert.equal(restored.buttons[0].options, "bg_image=uploaded-id");
-  assert.deepEqual(restored.grid, [1]);
-  assert.equal(plan.backupPlan.config.settings.untouched, "keep");
-  assert.equal(plan.backupPlan.config.native_config, null, "stale native IDs must not overwrite the remapped page");
+  const output = decodeNativeConfigDocument(decodeNativeConfigBackupPayload(plan.backupPlan.config.native_config));
+  assert.match(output.subpages[33], /uploaded-id/);
+  assert.doesNotMatch(output.subpages[33], /old-id/);
+  assert.equal(output.settings.untouched, "keep");
 });

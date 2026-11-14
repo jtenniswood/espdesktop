@@ -18,6 +18,8 @@ export async function runAppBackupExportMessageTest(outcome: "success" | "cancel
   const controllers: any = new Proxy({
     layout: { config: { screenSize: "4inch" }, deviceId: "test", numSlots: 9 },
     runtime: { els: {} },
+    waitForInitialState: async () => undefined,
+    nativePanelConfig: { readForBackup: async () => undefined },
     identity: { load: async () => { throw new Error("Identity unavailable"); } },
     backupContract: { createBackupConfig: (value: unknown) => value },
     backupExport: { addNativeConfig: (value: unknown) => value, fileName: () => "backup.json" },

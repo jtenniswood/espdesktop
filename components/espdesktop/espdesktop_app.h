@@ -18,6 +18,9 @@
 #include "esphome/core/component.h"
 
 #include "panel_identity.h"
+#include "card_asset_service.h"
+#include "card_asset_http_api.h"
+#include "panel_flash_layout.h"
 #include "panel_config_text_storage.h"
 namespace esphome::template_ {
 class TemplateText;

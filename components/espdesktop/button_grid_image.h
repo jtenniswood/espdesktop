@@ -457,6 +457,7 @@ inline void refresh_image_cards() {
 
 inline void image_card_refresh_due(std::function<bool()> page_visible = nullptr) {
   image_card_page_visible() = std::move(page_visible);
+  card_background_refresh_due();
   const uint32_t now = esphome::millis();
   ImageCardCtx *contexts = image_card_contexts();
   for (int i = 0; i < IMAGE_CARD_MAX_CONTEXTS; ++i) {

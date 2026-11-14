@@ -437,6 +437,7 @@ inline void setup_card_visual(BtnSlot &s, const ParsedCfg &p,
     return;
   }
 
+  apply_card_background_image(s, p, cfg);
   if (espdesktop::cards::basic_action_driver_setup_visual(
         s, p, context, palette.sensor_val)) {
 #ifdef USE_COMPANION
@@ -502,8 +503,6 @@ inline void refresh_card_layout(BtnSlot &s, const ParsedCfg &p,
   if (retired_home_assistant_card(p)) return;
   const DisplayProfile display = display_profile_from_grid_config(cfg);
   const auto context = card_runtime_context(p);
-  sync_card_background_image(s, p, cfg);
-  if (card_background_configured_for_card(p)) card_background_move_content_foreground(s);
   if (s.text_lbl) {
     // Card labels inherit their font from the button theme. Read the font from
     // the themed button itself so the subpage title follows the exact font
@@ -532,11 +531,6 @@ inline void refresh_card_layout(BtnSlot &s, const ParsedCfg &p,
   sync_card_background_image(s, p, cfg);
   if (card_background_configured_for_card(p)) {
     card_background_move_content_foreground(s);
-  }
-  if (espdesktop::cards::weather_driver_matches(context) &&
-      (p.precision == "wind" || p.precision == "rainfall" || espdesktop::cards::weather_driver_shows_forecast(p))) {
-    espdesktop::cards::weather_driver_refresh_layout(s, p, context, display, row_span, col_span);
-    return;
   }
   if (espdesktop::cards::navigation_driver_refresh_layout(
         s, p, context, cfg)) return;
@@ -641,12 +635,7 @@ inline void grid_phase1(
   // Remote controls may be open over a non-grid page when widgets are rebuilt.
   navigation_close_modals_for_display_takeover();
   set_backlight_display_takeover_callback(navigation_close_modals_for_display_takeover);
-  set_display_temperature_unit(cfg.temperature_unit, cfg.timezone);
-  const DisplayProfile display = display_profile_from_grid_config(cfg);
-  display_activate_profile(display);
   reset_card_background_image_pool(cfg);
-  // Clear image references before visual setup removes their old LVGL widgets.
-  espdesktop::cards::image_driver_reset_pool(cfg);
   const DisplayProfile display = display_profile_from_grid_config(cfg);
   display_activate_profile(display);
   // Initialize downloaders and detach old widgets before visual setup deletes them.
@@ -736,7 +725,6 @@ inline void grid_phase1(
     refresh_card_layout(s, p, cfg, row_span, col_span);
   }
   if (main_page_obj) card_background_activate_page(cfg, main_page_obj);
-  screen_lock_apply();
   register_theme_grid(main_page_obj, slots, neutral_buttons, NS, sensor_surfaces,
                       cfg.color_correction_red_percent,
                       cfg.color_correction_green_percent,
@@ -1255,7 +1243,6 @@ inline void grid_phase2(
   }
 #endif
   grid_log_memory("start");
-  set_display_temperature_unit(cfg.temperature_unit, cfg.timezone);
   const DisplayProfile display = display_profile_from_grid_config(cfg);
   display_activate_profile(display);
   network_status_card_icon_font() = display_icon_font(display);
@@ -1290,11 +1277,6 @@ inline void grid_phase2(
   // value and unit during Phase 2 and afterwards.
   grid_clear_navigation_targets(slots, NS);
   navigation_clear_home_targets();
-  // Image-card contexts may still point at widgets inside subpage screens.
-  espdesktop::cards::image_driver_reset_pool(cfg);
-  for (auto &entry : navigation_subpages()) {
-    card_background_unregister_page(entry.screen);
-  }
   // The subpage release hook detaches icons before deleting their widgets,
   // including when Phase 2 runs without a complete visual rebuild.
   navigation_clear_subpages(main_page_obj);
