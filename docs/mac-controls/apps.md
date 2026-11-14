@@ -40,7 +40,7 @@ Approve **Finder** in the Mac app to use its launch card. Touching an app card s
 An **App Volume** card controls one Mac app at a time. For example, give Spotify its own slider so you can turn down music while keeping your call at the same level. Use macOS 14.2 or later and matching Mac companion and display firmware builds that include App Volume.
 
 1. In EspDesktop on the Mac, open **Settings → Apps** and make sure the app is enabled.
-2. In the display’s web editor, select an empty tile on the home screen or in a folder. Choose **App Volume**.
+2. In the display’s web editor, select an empty tile on the home screen or in a folder. Choose **Output**, then set **Type** to **Output per application**.
 3. Choose the app under **Application** and select **Save**. The card starts with the app’s name as its label. Add another card for each app you want to adjust.
 4. Start playback in the app, then drag the slider on the touchscreen. Allow **System Audio Recording** if macOS prompts you.
 
@@ -50,14 +50,17 @@ If the app is missing from the picker, check that the Mac companion is connected
 
 ## Control Mac sound and microphone {#mac-audio}
 
-In the display editor, select an empty tile and add any of these cards to Home or a folder.
+In the display editor, select an empty tile on Home or in a folder. Choose **Input** or **Output**, then select a **Type**. Each card uses one type, so add another card for each control you want to keep on screen.
 
 | Card | What it controls |
 | --- | --- |
 | **Output Volume** | Drag to set the Mac’s overall sound level on its current default output. |
-| **Input Level** | Drag to set the level of the Mac’s current default microphone or audio input. |
+| **Input Volume** | Drag to set the level of the Mac’s current default microphone or audio input. |
 | **Output Mute** | Tap to mute the Mac’s sound output. Tap again to restore it. |
 | **Input Mute** | Tap to mute the Mac’s microphone. Tap again to restore it. |
+| **Input Cough** | Hold to mute the default microphone until you release. |
+| **Input per device level** | Choose a connected audio input with adjustable gain. The card follows that device even when you change the default microphone. It becomes unavailable while that device is disconnected. |
+| **Output per application** | Choose an enabled app and adjust its sound independently. |
 
 Mute cards show a crossed-out icon when the Mac reports mute. [Cough](/mac-controls/cough) mutes the microphone while you hold the card. If a card is unavailable, check the Mac connection and whether the selected audio device exposes that control in macOS. Raising a level above zero also unmutes that device.
 

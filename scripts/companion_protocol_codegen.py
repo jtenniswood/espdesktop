@@ -58,7 +58,15 @@ inline bool number_valid(JsonVariantConst value, double minimum, double maximum,
   const double n = value.as<double>();
   return std::isfinite(n) && n >= minimum && n <= maximum && (!integer || std::floor(n) == n);
 }
+inline bool input_device_control_id_valid(std::string_view id) {
+  constexpr std::string_view prefix = "input.level.";
+  if (id.size() != prefix.size() + 64 || id.substr(0, prefix.size()) != prefix) return false;
+  for (char c : id.substr(prefix.size()))
+    if (!((c >= '0' && c <= '9') || (c >= 'a' && c <= 'f'))) return false;
+  return true;
+}
 inline bool volume_control_id_valid(std::string_view id) {
+  if (input_device_control_id_valid(id)) return true;
   constexpr std::string_view prefix = "app.volume.";
   if (id == "media.output_volume" || id == "media.input_volume" ||
       id == "media.output_mute" || id == "media.input_mute" || id == "media.cough") return true;
@@ -214,6 +222,12 @@ enum CompanionProtocolDirection: String { case panelToMac = "panel_to_mac", macT
     # Validation is generated from the same field rules as the C++ decoder.
     schema=json.dumps(data['protocol']['messages'],separators=(',',':'))
     out.append('''enum CompanionProtocolDecoder {
+    static func isInputDeviceControl(_ id: String) -> Bool {
+        let prefix = "input.level."
+        return id.hasPrefix(prefix) && id.utf8.count == prefix.utf8.count + 64 &&
+            id.utf8.dropFirst(prefix.utf8.count).allSatisfy { (48...57).contains($0) || (97...102).contains($0) }
+    }
+
     static func appVolumeBundleIdentifier(_ id: String) -> String? {
         let prefix = "app.volume."
         guard id.hasPrefix(prefix) else { return nil }
@@ -236,7 +250,7 @@ enum CompanionProtocolDirection: String { case panelToMac = "panel_to_mac", macT
             if let options = rule["enum"] as? [String], !options.contains(text) { return false }
             if rule["pattern"] as? String == "volume_control_id" {
                 return ["media.output_volume", "media.input_volume", "media.output_mute", "media.input_mute", "media.cough"].contains(text)
-                    || appVolumeBundleIdentifier(text) != nil
+                    || appVolumeBundleIdentifier(text) != nil || isInputDeviceControl(text)
             }
             if rule["pattern"] as? String == "hex64" {
                 return text.utf8.count == 64 && text.utf8.allSatisfy { (48...57).contains($0) || (65...70).contains($0) || (97...102).contains($0) }

@@ -23,7 +23,7 @@ inline bool normalize_saved_config_static(Config &config) {
   }
   if (config.type == "companion_input_volume") {
     config.entity = "media.input_volume";
-    if (config.label.empty()) config.label = "Input Level";
+    if (config.label.empty()) config.label = "Input Volume";
     if (config.icon.empty()) config.icon = "Microphone";
     config.icon_on = "Auto";
     config.sensor.clear();

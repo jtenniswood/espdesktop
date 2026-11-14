@@ -11,7 +11,7 @@ Hold the **Cough** card to mute your Mac’s default microphone during a call. L
 
 1. Pair your display with the Mac Companion app. Use firmware and a Mac app version that both include the Cough card.
 2. In the display’s web editor, open **Layout** and select an empty tile on the home screen or inside a folder.
-3. Choose **Cough** under **Mac Companion**, then save.
+3. Choose **Input** under **Mac Companion**, set **Type** to **Input Cough**, then save.
 
 The card shows a crossed-out microphone when the Mac reports that the mic is muted. If the display disconnects while you’re holding the card, the Mac restores the mic’s previous state automatically.
 

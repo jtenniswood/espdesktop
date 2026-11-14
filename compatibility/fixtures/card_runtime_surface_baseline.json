@@ -2114,6 +2114,37 @@
       }
     },
     {
+      "name": "companion_input_device: specific_input",
+      "sourceKind": "contract",
+      "sourceType": "companion_input_device",
+      "mode": "specific_input",
+      "canonicalType": "companion_input_device",
+      "web": {
+        "registration": "companion_input_device",
+        "picker": {
+          "main": false,
+          "subpage": false,
+          "infoOnly": false
+        },
+        "preview": {
+          "available": true,
+          "fingerprint": "00baa97dd934dc4d"
+        }
+      },
+      "firmware": {
+        "family": "SLIDER"
+      },
+      "lifecycle": {
+        "subscriptions": [
+          "state"
+        ],
+        "actions": [
+          "local"
+        ],
+        "modalOwner": "none"
+      }
+    },
+    {
       "name": "companion_input_volume: default_device",
       "sourceKind": "contract",
       "sourceType": "companion_input_volume",
@@ -2128,7 +2159,7 @@
         },
         "preview": {
           "available": true,
-          "fingerprint": "00f5088580ffc6c0"
+          "fingerprint": "d392ac625c83b4d4"
         }
       },
       "firmware": {

@@ -71,7 +71,7 @@ parser = (firmware/'button_grid_config_parser.h').read_text()
 controls = (firmware/'companion_controls.h').read_text()
 production = '\n'.join(definition(controls, name)[1] for name in (
     'companion_mute_control_valid', 'companion_app_volume_control_valid',
-    'companion_volume_control_valid',
+    'companion_input_device_control_valid', 'companion_volume_control_valid',
 )) + '\n'
 production += definition(actions, 'send_slider_action')[1] + numeric
 production += '\nnamespace espdesktop::cards {\n'

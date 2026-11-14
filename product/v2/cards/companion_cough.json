@@ -1,5 +1,6 @@
 {
   "label": "Cough",
+  "pickerKey": "companion_input_volume",
   "allowInSubpage": true,
   "domains": [],
   "normalization": {

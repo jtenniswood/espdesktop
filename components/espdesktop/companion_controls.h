@@ -314,9 +314,18 @@ inline bool companion_app_volume_control_valid(const std::string &control_id) {
   });
 }
 
+inline bool companion_input_device_control_valid(const std::string &id) {
+  constexpr std::string_view prefix = "input.level.";
+  return id.size() == prefix.size() + 64 && id.compare(0, prefix.size(), prefix) == 0 &&
+    std::all_of(id.begin() + prefix.size(), id.end(), [](char c) {
+      return (c >= '0' && c <= '9') || (c >= 'a' && c <= 'f');
+    });
+}
+
 inline bool companion_volume_control_valid(const std::string &control_id) {
   return control_id == "media.output_volume" || control_id == "media.input_volume" ||
-    companion_mute_control_valid(control_id) || companion_app_volume_control_valid(control_id);
+    companion_mute_control_valid(control_id) || companion_app_volume_control_valid(control_id) ||
+    companion_input_device_control_valid(control_id);
 }
 
 inline bool companion_value_control_valid(const std::string &control_id) {
@@ -337,9 +346,9 @@ inline bool companion_value(const std::string &control_id, int &value) {
 inline void companion_set_value(const std::string &control_id, int value) {
   if (!companion_value_control_valid(control_id)) return;
   value = std::max(0, std::min(100, value));
-  if (companion_app_volume_control_valid(control_id)) {
+  if (companion_app_volume_control_valid(control_id) || companion_input_device_control_valid(control_id)) {
     // The shared store needs room for the full Mac catalogue and five system controls.
-    constexpr size_t max_audio_values = 256 + 5;
+    constexpr size_t max_audio_values = 256 + 5 + 16;
     companion_runtime_service().set_value(control_id, value, max_audio_values);
   } else {
     companion_runtime_service().set_value(control_id, value);
@@ -626,7 +635,7 @@ inline std::string companion_shortcut_label(const std::string &action_id) {
 
 
 inline bool companion_action_available(const CompanionRuntimeSnapshot &snapshot, const std::string &action_id) {
-  if (action_id.empty()) return false;
+  if (action_id.empty() || companion_input_device_control_valid(action_id)) return false;
   if (!snapshot.connected) return false;
   if (companion_shortcut_action_valid(action_id)) return snapshot.keyboard_actions_supported;
   // An older Companion may still advertise retired window identifiers.

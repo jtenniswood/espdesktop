@@ -496,11 +496,22 @@ int main() {
     int level = 0;
     assert(companion_value(id, level) && level == 35);
   }
+  for (int index = 0; index < 16; ++index) {
+    const std::string id = "input.level." + std::string(63, 'a') + "0123456789abcdef"[index];
+    companion_set_value(id, 45);
+    int level = 0;
+    assert(companion_value(id, level) && level == 45);
+  }
+  const std::string overflow_input = "input.level." + std::string(64, 'b');
+  companion_set_value(overflow_input, 45);
+  assert(!companion_value(overflow_input, output_volume));
   companion_set_value("app.volume.com.example.Overflow", 35);
   assert(!companion_value("app.volume.com.example.Overflow", output_volume));
   for (int index = 0; index < 256; ++index)
     companion_remove_value("app.volume.com.example.Player" + std::to_string(index));
   for (const auto *control : system_controls) companion_remove_value(control);
+  for (int index = 0; index < 16; ++index)
+    companion_remove_value("input.level." + std::string(63, 'a') + "0123456789abcdef"[index]);
   companion_set_focused_actions({"com.apple.Safari", "webapp.google-docs"});
   companion_runtime_service().set_application_highlight("com.apple.finder");
   assert(companion_action_active("com.apple.finder", true));

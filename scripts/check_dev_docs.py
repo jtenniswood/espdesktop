@@ -184,6 +184,7 @@ PUBLIC_DOCS_BY_TYPE: dict[str, str] = {
     "companion_app_volume": "docs/mac-controls/apps.md",
     "companion_mac_lock": "docs/index.md",
     "companion_output_volume": "docs/mac-controls/apps.md",
+    "companion_input_device": "docs/mac-controls/apps.md",
     "companion_input_volume": "docs/mac-controls/apps.md",
     "companion_output_mute": "docs/mac-controls/apps.md",
     "companion_input_mute": "docs/mac-controls/apps.md",

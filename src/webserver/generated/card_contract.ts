@@ -10,7 +10,7 @@ type LargeNumbersRule = true | {
 };
 
 export const CARD_CONTRACT_VERSION = 1 as const;
-const STABLE_CARD_TYPES: readonly string[] = ["companion", "companion_mac_lock", "companion_app_volume", "companion_output_volume", "companion_input_volume", "companion_output_mute", "companion_input_mute", "companion_cough", "subpage"];
+const STABLE_CARD_TYPES: readonly string[] = ["companion", "companion_mac_lock", "companion_app_volume", "companion_output_volume", "companion_input_volume", "companion_output_mute", "companion_input_mute", "companion_cough", "companion_input_device", "subpage"];
 const PREVIEW_CARD_TYPES: readonly string[] = ["companion_window"];
 const REMOVE_ON_EDIT: readonly string[] = ["companion_webapp", "companion_audio", "wifi_qr", "wifi_qr_card", "companion_window"];
 export const CARD_CONTRACT_RETIRED_TYPES: readonly string[] = ["companion_window", "sensor", "local_sensor", "text_sensor", "internal", "wifi_qr", "wifi_qr_card", "screen_lock", "screensaver", "action", "local", "option_select", "calendar", "clock", "timezone", "webhook", "companion_webapp", "companion_audio", "S", "LS", "I", "SL", "SS", "A", "U", "WH"];
@@ -2517,6 +2517,7 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
   },
   "companion_app_volume": {
     "label": "App Volume",
+    "pickerKey": "companion_output_volume",
     "allowInSubpage": true,
     "domains": [],
     "normalization": {
@@ -2569,6 +2570,7 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
   },
   "companion_output_volume": {
     "label": "Output Volume",
+    "pickerLabel": "Output",
     "allowInSubpage": true,
     "domains": [],
     "normalization": {
@@ -2621,8 +2623,62 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
       "options": ""
     }
   },
+  "companion_input_device": {
+    "label": "Input per device level",
+    "pickerKey": "companion_input_volume",
+    "allowInSubpage": true,
+    "domains": [],
+    "normalization": {
+      "fields": {
+        "entity": {
+          "policy": "keep"
+        },
+        "label": {
+          "policy": "keep"
+        },
+        "icon": {
+          "policy": "default_if_empty",
+          "value": "Microphone"
+        },
+        "icon_on": {
+          "policy": "default",
+          "value": "Auto"
+        },
+        "sensor": {
+          "policy": "clear"
+        },
+        "unit": {
+          "policy": "clear"
+        },
+        "type": {
+          "policy": "default",
+          "value": "companion_input_device"
+        },
+        "precision": {
+          "policy": "clear"
+        },
+        "options": {
+          "policy": "clear"
+        }
+      },
+      "unknownOptions": "drop",
+      "canonicalOptionOrder": []
+    },
+    "default": {
+      "entity": "",
+      "label": "",
+      "icon": "Microphone",
+      "icon_on": "Auto",
+      "sensor": "",
+      "unit": "",
+      "type": "companion_input_device",
+      "precision": "",
+      "options": ""
+    }
+  },
   "companion_input_volume": {
-    "label": "Input Level",
+    "label": "Input Volume",
+    "pickerLabel": "Input",
     "allowInSubpage": true,
     "domains": [],
     "normalization": {
@@ -2633,7 +2689,7 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
         },
         "label": {
           "policy": "default_if_empty",
-          "value": "Input Level"
+          "value": "Input Volume"
         },
         "icon": {
           "policy": "default_if_empty",
@@ -2665,7 +2721,7 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
     },
     "default": {
       "entity": "media.input_volume",
-      "label": "Input Level",
+      "label": "Input Volume",
       "icon": "Microphone",
       "icon_on": "Auto",
       "sensor": "",
@@ -2677,6 +2733,7 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
   },
   "companion_output_mute": {
     "label": "Output Mute",
+    "pickerKey": "companion_output_volume",
     "allowInSubpage": true,
     "domains": [],
     "normalization": {
@@ -2731,6 +2788,7 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
   },
   "companion_input_mute": {
     "label": "Input Mute",
+    "pickerKey": "companion_input_volume",
     "allowInSubpage": true,
     "domains": [],
     "normalization": {
@@ -2785,6 +2843,7 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
   },
   "companion_cough": {
     "label": "Cough",
+    "pickerKey": "companion_input_volume",
     "allowInSubpage": true,
     "domains": [],
     "normalization": {
@@ -3884,6 +3943,18 @@ export const CARD_RUNTIME_SPECS: Readonly<Record<string, CardRuntimeSpec>> = {
       "subpage": true
     }
   },
+  "companion_input_device": {
+    "driver": "numeric",
+    "capabilities": {
+      "informationOnly": false,
+      "subscriptions": true,
+      "actions": true,
+      "numericControl": true,
+      "modal": false,
+      "runtimeAllocation": true,
+      "subpage": true
+    }
+  },
   "companion_input_volume": {
     "driver": "numeric",
     "capabilities": {
@@ -4062,6 +4133,7 @@ export const CARD_CONTRACT_SUBPAGE_TYPE_CODES: Readonly<Record<string, string>> 
   "companion_app_volume": "AV",
   "companion_output_volume": "OV",
   "companion_input_volume": "IV",
+  "companion_input_device": "ID",
   "companion_output_mute": "OM",
   "companion_input_mute": "IM",
   "companion_cough": "CC",
@@ -4104,6 +4176,7 @@ export const CARD_CONTRACT_SUBPAGE_TYPES_BY_CODE: Readonly<Record<string, string
   "AV": "companion_app_volume",
   "OV": "companion_output_volume",
   "IV": "companion_input_volume",
+  "ID": "companion_input_device",
   "OM": "companion_output_mute",
   "IM": "companion_input_mute",
   "CC": "companion_cough",

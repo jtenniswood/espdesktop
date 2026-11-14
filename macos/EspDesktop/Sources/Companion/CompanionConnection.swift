@@ -73,6 +73,7 @@ final class CompanionConnection: NSObject {
     private var supportsSessionLock = false
     private var supportsPairingReset = false
     private var supportsCoughButton = false
+    private var supportsInputDevices = false
     private var pairingResetCompletion: CheckedContinuation<Void, Never>?
     private var pairingResetTimeout: Task<Void, Never>?
     private var remoteCatalogueDefinitionsSupported = false
@@ -518,6 +519,7 @@ final class CompanionConnection: NSObject {
             expandedShortcutsSupported = payload.capabilityVersion >= 9
             appVolumeSupported = payload.capabilityVersion >= 10
             supportsCoughButton = payload.capabilityVersion >= 11
+            supportsInputDevices = payload.capabilityVersion >= 12
             // A Bonjour TXT record never authorizes a location change. Both the
             // pinned TLS certificate and the authenticated session must agree.
             let expectedFingerprint = preferences.stringPreference(forKey: certificateFingerprintKey)
@@ -620,6 +622,7 @@ final class CompanionConnection: NSObject {
             if CompanionProtocolDecoder.appVolumeBundleIdentifier(controlIdentifier) != nil && !appVolumeSupported {
                 return false
             }
+            if CompanionProtocolDecoder.isInputDeviceControl(controlIdentifier) && !supportsInputDevices { return false }
             let activeTask = task
             let changed = if controlIdentifier == SystemMediaController.coughID {
                 supportsCoughButton && resources.setCoughButtonValue(value, from: ObjectIdentifier(self))
@@ -810,6 +813,9 @@ final class CompanionConnection: NSObject {
         sendJSON(["type": "capabilities", "values": capabilities])
         // The browser receives identifiers, never application paths or shell commands.
         let apps = resources.launchableApps()
+        let inputs: [[String: String]] = supportsInputDevices ? resources.inputDeviceActions().map {
+            ["id": $0.id, "label": Self.catalogueLabel($0.label, fallback: "Input device")]
+        } : []
         let entries: [[String: String]] = resources.folderActions().compactMap { folder -> [String: String]? in
             guard Self.validCatalogueIdentifier(folder.actionIdentifier) else { return nil }
             return ["id": folder.actionIdentifier, "label": Self.catalogueLabel(folder.name, fallback: "Folder")]
@@ -817,10 +823,11 @@ final class CompanionConnection: NSObject {
             guard Self.validCatalogueIdentifier(app.bundleIdentifier) else { return nil }
             return ["id": app.bundleIdentifier, "label": Self.catalogueLabel(app.name, fallback: app.bundleIdentifier)]
         }
+        let catalogue = inputs + entries
         catalogueGeneration &+= 1
         if catalogueGeneration == 0 { catalogueGeneration = 1 }
-        let pages = stride(from: 0, to: max(entries.count, 1), by: 48).map {
-            Array(entries[$0..<min($0 + 48, entries.count)])
+        let pages = stride(from: 0, to: max(catalogue.count, 1), by: 48).map {
+            Array(catalogue[$0..<min($0 + 48, catalogue.count)])
         }
         for (page, items) in pages.enumerated() {
             sendJSON(["type": "catalogue.page", "generation": catalogueGeneration,
@@ -986,6 +993,7 @@ final class CompanionConnection: NSObject {
     }
 
     private func validMediaControlIdentifier(_ value: String) -> Bool {
+        if CompanionProtocolDecoder.isInputDeviceControl(value) { return supportsInputDevices }
         if value == SystemMediaController.coughID { return supportsCoughButton }
         return SystemMediaController.volumeControlIDs.contains(value) ||
             (appVolumeSupported && CompanionProtocolDecoder.appVolumeBundleIdentifier(value) != nil)

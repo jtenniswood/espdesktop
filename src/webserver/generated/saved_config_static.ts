@@ -21,7 +21,7 @@ export function normalizeSavedConfigStatic(config: CardConfig): boolean {
   }
   if (config.type === "companion_input_volume") {
     config.entity = "media.input_volume";
-    if (!config.label) config.label = "Input Level";
+    if (!config.label) config.label = "Input Volume";
     if (!config.icon) config.icon = "Microphone";
     config.icon_on = "Auto";
     config.sensor = "";

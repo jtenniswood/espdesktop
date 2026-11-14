@@ -1,5 +1,6 @@
 {
   "label": "Output Volume",
+  "pickerLabel": "Output",
   "allowInSubpage": true,
   "domains": [],
   "normalization": {

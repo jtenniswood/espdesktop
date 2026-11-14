@@ -13,6 +13,8 @@ protocol SystemMetricsProviding: AnyObject {
 
 @MainActor
 protocol MediaControlling: AnyObject {
+    func refreshInputDevices() -> Bool
+    func inputDeviceActions() -> [(id: String, label: String)]
     func values() -> [String: Int]
     func setValue(_ value: Int, controlIdentifier: String) -> Bool
     func beginCoughMute() -> Bool
@@ -22,6 +24,11 @@ protocol MediaControlling: AnyObject {
         previousValues: [String: Int],
         force: Bool
     ) -> Set<String>
+}
+
+extension MediaControlling {
+    func refreshInputDevices() -> Bool { false }
+    func inputDeviceActions() -> [(id: String, label: String)] { [] }
 }
 
 extension SystemMetricsProvider: SystemMetricsProviding {}

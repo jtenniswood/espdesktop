@@ -1,4 +1,4 @@
-import type { CardRegistry, CardUiServices } from "../application/card_registry";
+import type { CardDefinition, CardUiServices } from "../application/card_registry";
 import type { ControlsFieldsFeature } from "../application/controls_fields";
 import { iconSlug } from "../application/ui_primitives";
 import type { CompanionAction } from "../api/companion_catalogue";
@@ -6,17 +6,21 @@ import { cardContractDefaultConfig } from "../generated/card_contract";
 
 const volumePrefix = "app.volume.";
 
-export function registerAppVolumeCard(
-    registry: CardRegistry,
+export function targetedAudioCard(
     supported: boolean,
     loadApps: () => Promise<readonly CompanionAction[]>,
     cardUi: CardUiServices,
     fields: ControlsFieldsFeature,
-): void {
-    const defaults = cardContractDefaultConfig("companion_app_volume");
+    type: string,
+    inputDevice = false,
+): CardDefinition {
+    const defaults = cardContractDefaultConfig(type);
+    const prefix = inputDevice ? "input.level." : volumePrefix;
+    const targetName = inputDevice ? "Input device" : "Application";
     const metadata = { icon: { fallback: defaults.icon } };
-    registry.register("companion_app_volume", {
-        label: "App Volume",
+    return {
+        label: defaults.label || (inputDevice ? "Input per device level" : "App Volume"),
+        pickerKey: inputDevice ? "companion_input_volume" : "companion_output_volume",
         cardMetadata: metadata,
         allowInSubpage: true,
         isAvailable: () => supported,
@@ -25,11 +29,11 @@ export function registerAppVolumeCard(
         renderSettingsBeforeLabel: (panel, card, _slot, helpers) => {
             const savedEntity = card.entity;
             const apps = new Map<string, string>();
-            const placeholder = ["", "Choose an app…"];
-            const savedLabel = card.label || savedEntity.slice(volumePrefix.length);
+            const placeholder = ["", inputDevice ? "Choose an input device…" : "Choose an app…"];
+            const savedLabel = card.label || savedEntity.slice(prefix.length);
             const savedOption = savedEntity ? [[savedEntity, savedLabel]] : [];
             const { field, select } = helpers.selectField(
-                "Application", helpers.idPrefix + "volume-app", [placeholder, ...savedOption], savedEntity,
+                targetName, helpers.idPrefix + "audio-target", [placeholder, ...savedOption], savedEntity,
                 () => {
                     const label = apps.get(select.value);
                     if (!label) {
@@ -47,16 +51,18 @@ export function registerAppVolumeCard(
                 },
             ) as { field: HTMLElement; select: HTMLSelectElement };
             panel.appendChild(field);
-            helpers.markCardPrimaryField(field, "type");
-            helpers.requireField(select, "Choose an enabled Mac app before saving.");
+            helpers.markCardPrimaryField(field, "entity");
+            helpers.requireField(select, inputDevice ? "Choose an input device before saving." : "Choose an enabled Mac app before saving.");
             const note = panel.ownerDocument.createElement("p");
             note.className = "sp-setting-note";
-            note.textContent = "Loading enabled apps…";
+            note.textContent = inputDevice ? "Loading input devices…" : "Loading enabled apps…";
             field.appendChild(note);
             select.disabled = true;
             void loadApps().then((actions) => {
                 for (const app of actions) {
-                    if (/^[A-Za-z0-9.-]{1,96}$/.test(app.id)) apps.set(volumePrefix + app.id, app.label);
+                    if (inputDevice ? /^input\.level\.[0-9a-f]{64}$/.test(app.id) : /^[A-Za-z0-9.-]{1,96}$/.test(app.id)) {
+                        apps.set(inputDevice ? app.id : prefix + app.id, app.label);
+                    }
                 }
                 const options = [...apps].map(([value, label]) => new Option(label, value));
                 if (savedEntity && !apps.has(savedEntity)) {
@@ -66,11 +72,11 @@ export function registerAppVolumeCard(
                 select.value = savedEntity;
                 select.disabled = apps.size === 0;
                 note.hidden = apps.size > 0 && (!savedEntity || apps.has(savedEntity));
-                note.textContent = apps.size > 0
+                note.textContent = inputDevice ? "Connect a Mac input device with an adjustable level." : apps.size > 0
                     ? "Enable this app in EspDesktop on the Mac to use its volume control."
                     : "Connect the Mac companion and enable apps in its Apps settings.";
             }).catch(() => {
-                note.textContent = "Connect the Mac companion to load its enabled apps.";
+                note.textContent = "Connect the Mac companion to load the available choices.";
             });
         },
         renderSettings: (panel, card, _slot, helpers) => {
@@ -80,7 +86,7 @@ export function registerAppVolumeCard(
             iconHtml: '<span class="sp-btn-icon mdi mdi-' + iconSlug(card.icon && card.icon !== "Auto" ? card.icon : defaults.icon) +
                 '"></span><span class="sp-slider-preview"><span class="sp-slider-track">' +
                 '<span class="sp-slider-fill"></span></span></span>',
-            labelHtml: fields.cardBadgeLabelHtml(helpers, card.label || "App Volume", ""),
+            labelHtml: fields.cardBadgeLabelHtml(helpers, card.label || (inputDevice ? targetName : "App Volume"), ""),
         }),
-    });
+    };
 }

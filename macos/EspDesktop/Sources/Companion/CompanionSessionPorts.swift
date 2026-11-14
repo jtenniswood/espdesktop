@@ -26,6 +26,7 @@ extension CompanionSessionPreferences {
 protocol CompanionSessionResources: AnyObject {
     var applicationCatalogueReady: Bool { get }
     func folderActions() -> [ApprovedFolder]
+    func inputDeviceActions() -> [(id: String, label: String)]
     func launchableApps() -> [LaunchableApp]
     func appIconPixels(bundleIdentifier: String, pixelSide: Int) -> Data?
     func focusedCompanionActionIdentifier() async -> String
@@ -62,6 +63,7 @@ enum CompanionSessionEvent {
 
 @MainActor
 extension CompanionSessionResources {
+    func inputDeviceActions() -> [(id: String, label: String)] { [] }
     func setCoughButtonValue(_ value: Int, from session: ObjectIdentifier) -> Bool { false }
     func immediateFocusedApplicationIdentifier() -> String? { nil }
     var applicationCatalogueReady: Bool { true }

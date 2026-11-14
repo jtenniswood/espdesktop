@@ -1,5 +1,6 @@
 {
   "label": "App Volume",
+  "pickerKey": "companion_output_volume",
   "allowInSubpage": true,
   "domains": [],
   "normalization": {

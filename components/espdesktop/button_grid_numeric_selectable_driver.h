@@ -11,11 +11,13 @@ inline bool numeric_selectable_driver_matches(const Context &, const ParsedCfg &
   if (config.type == "companion_app_volume")
     return companion_app_volume_control_valid(config.entity);
   if (config.type == "companion_output_volume") return config.entity == "media.output_volume";
+  if (config.type == "companion_input_device")
+    return companion_input_device_control_valid(config.entity);
   if (config.type == "companion_input_volume") return config.entity == "media.input_volume";
   if (config.type == "companion_output_mute") return config.entity == "media.output_mute";
   if (config.type == "companion_input_mute") return config.entity == "media.input_mute";
   return config.type == "slider" && companion_volume_control_valid(config.entity) &&
-    !companion_app_volume_control_valid(config.entity);
+    !companion_app_volume_control_valid(config.entity) && !companion_input_device_control_valid(config.entity);
 }
 inline void numeric_selectable_driver_track_slider_cleanup(BtnSlot &slot) {
   lv_obj_t *slider = slot.sensor_container

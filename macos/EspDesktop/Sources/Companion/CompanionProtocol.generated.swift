@@ -218,6 +218,12 @@ enum CompanionProtocolMessage: Sendable {
     case pairReset(CompanionWirePairReset)
 }
 enum CompanionProtocolDecoder {
+    static func isInputDeviceControl(_ id: String) -> Bool {
+        let prefix = "input.level."
+        return id.hasPrefix(prefix) && id.utf8.count == prefix.utf8.count + 64 &&
+            id.utf8.dropFirst(prefix.utf8.count).allSatisfy { (48...57).contains($0) || (97...102).contains($0) }
+    }
+
     static func appVolumeBundleIdentifier(_ id: String) -> String? {
         let prefix = "app.volume."
         guard id.hasPrefix(prefix) else { return nil }
@@ -240,7 +246,7 @@ enum CompanionProtocolDecoder {
             if let options = rule["enum"] as? [String], !options.contains(text) { return false }
             if rule["pattern"] as? String == "volume_control_id" {
                 return ["media.output_volume", "media.input_volume", "media.output_mute", "media.input_mute", "media.cough"].contains(text)
-                    || appVolumeBundleIdentifier(text) != nil
+                    || appVolumeBundleIdentifier(text) != nil || isInputDeviceControl(text)
             }
             if rule["pattern"] as? String == "hex64" {
                 return text.utf8.count == 64 && text.utf8.allSatisfy { (48...57).contains($0) || (65...70).contains($0) || (97...102).contains($0) }

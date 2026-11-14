@@ -1,4 +1,4 @@
-import { registerAppVolumeCard } from "./companion_app_volume";
+import { targetedAudioCard } from "./companion_app_volume";
 import { childPageKey } from "../model/page_keys";
 import { renderCompanionStorageSelector } from "./companion_storage";
 import { COMPANION_FOLDER_PREFIX, decodeCompanionCard, encodeCompanionCard, companionMetricForEntity } from "../model/companion_card_codec";
@@ -337,7 +337,7 @@ export function companionEntityForMode(mode: string): string {
 
 export function companionApplicationActions(actions: readonly CompanionAction[]): readonly CompanionAction[] {
     return sortCompanionLabels(actions.filter((action) =>
-        !action.id.startsWith(COMPANION_FOLDER_PREFIX) &&
+        !action.id.startsWith(COMPANION_FOLDER_PREFIX) && !action.id.startsWith("input.level.") &&
         !["media.play_pause", "media.previous", "media.next"].includes(action.id)));
 }
 
@@ -1545,13 +1545,18 @@ export function registerCompanionCardTypes(
     };
     registry.register("companion", companionDefinition);
 
-    registerAppVolumeCard(registry, supported, async () => companionApplicationActions(await loadCompanionActions(true)), cardUi, fields);
+    registry.register("companion_app_volume", targetedAudioCard(
+        supported, async () => companionApplicationActions(await loadCompanionActions(true)), cardUi, fields, "companion_app_volume"));
+    registry.register("companion_input_device", targetedAudioCard(
+        supported, async () => sortCompanionLabels(await loadCompanionActions(true)), cardUi, fields, "companion_input_device", true));
 
     function deviceAudioCard(type: string, slider: boolean): CardDefinition {
         const defaults = cardContractDefaultConfig(type);
         const metadata = { icon: { fallback: defaults.icon } };
         return {
             label: defaults.label,
+            pickerLabel: cardContractCard(type)?.pickerLabel || defaults.label,
+            pickerKey: cardContractPickerKey(type),
             cardMetadata: metadata,
             allowInSubpage: cardContractAllowInSubpage(type),
             isAvailable: () => supported,
@@ -1612,6 +1617,7 @@ export function registerCompanionCardTypes(
     registry.register("companion_cough", {
         cardMetadata: coughMetadata,
         label: coughDefaults.label,
+        pickerKey: cardContractPickerKey("companion_cough"),
         allowInSubpage: cardContractAllowInSubpage("companion_cough"),
         isAvailable: () => supported,
         labelPlaceholder: coughDefaults.label,

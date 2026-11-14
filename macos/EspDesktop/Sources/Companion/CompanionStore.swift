@@ -324,6 +324,8 @@ final class CompanionStore: NSObject, ObservableObject {
         }
     }
 
+    func inputDeviceActions() -> [(id: String, label: String)] { mediaController.inputDeviceActions() }
+
     func launchableApps() -> [LaunchableApp] {
         availableApps.filter { approvedApplicationIdentifiers.contains($0.bundleIdentifier) }
     }
@@ -794,7 +796,10 @@ final class CompanionStore: NSObject, ObservableObject {
         connectedDisplayCount = connectedDisplays.count
         updateSystemMetricsProvider()
         if state == .connected {
-            if previousCount == 0 { startMediaControlPublishing() }
+            if previousCount == 0 {
+                _ = mediaController.refreshInputDevices()
+                startMediaControlPublishing()
+            }
             Task { [weak display] in
                 await remoteCatalogueStore.refresh()
                 if let display, display.state == .connected { display.connection.publishCatalogue() }
@@ -1127,8 +1132,12 @@ final class CompanionStore: NSObject, ObservableObject {
         if mediaControlTimer == nil {
             mediaControlTimer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { [weak self] _ in
                 Task { @MainActor [weak self] in
-                    self?.publishMediaControlValues()
-                    self?.refreshAppVolumeValues()
+                    guard let self else { return }
+                    if self.mediaController.refreshInputDevices() {
+                        self.publishToConnectedDisplays { $0.publishCatalogue() }
+                    }
+                    self.publishMediaControlValues()
+                    self.refreshAppVolumeValues()
                 }
             }
         }

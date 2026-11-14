@@ -1,4 +1,5 @@
 import CoreAudio
+import CryptoKit
 import Foundation
 
 @MainActor
@@ -19,6 +20,13 @@ final class SystemMediaController {
         case nativeMute
         case inputLevel(Float32)
     }
+    struct InputDevice: Equatable {
+        let controlID: String
+        let name: String
+        let device: AudioDeviceID
+    }
+
+    private var inputDevices: [InputDevice] = []
     private var coughRestores: [AudioDeviceID: CoughInput] = [:]
     private var restoreLevels: [DeviceKey: Float32] = [:]
     private let findDevice: (AudioObjectPropertyScope) -> AudioDeviceID?
@@ -50,6 +58,47 @@ final class SystemMediaController {
         return candidates.subtracting(values.keys)
     }
 
+    func inputDeviceActions() -> [(id: String, label: String)] {
+        inputDevices.map { ($0.controlID, $0.name) }
+    }
+
+    @discardableResult
+    func refreshInputDevices() -> Bool {
+        let devices = Self.availableInputDevices()
+        guard devices != inputDevices else { return false }
+        inputDevices = devices
+        return true
+    }
+
+    private nonisolated static func availableInputDevices() -> [InputDevice] {
+        var address = AudioObjectPropertyAddress(mSelector: kAudioHardwarePropertyDevices,
+                                                 mScope: kAudioObjectPropertyScopeGlobal, mElement: 0)
+        let system = AudioObjectID(kAudioObjectSystemObject)
+        var size: UInt32 = 0
+        let stride = MemoryLayout<AudioDeviceID>.stride
+        guard AudioObjectGetPropertyDataSize(system, &address, 0, nil, &size) == noErr, size >= stride else { return [] }
+        var devices = [AudioDeviceID](repeating: 0, count: Int(size) / stride)
+        let status = devices.withUnsafeMutableBytes {
+            AudioObjectGetPropertyData(system, &address, 0, nil, &size, $0.baseAddress!)
+        }
+        guard status == noErr else { return [] }
+        func stringProperty(_ device: AudioDeviceID, _ selector: AudioObjectPropertySelector) -> String? {
+            var property = AudioObjectPropertyAddress(mSelector: selector, mScope: kAudioObjectPropertyScopeGlobal, mElement: 0)
+            var value: Unmanaged<CFString>?
+            var size = UInt32(MemoryLayout.size(ofValue: value))
+            guard AudioObjectGetPropertyData(device, &property, 0, nil, &size, &value) == noErr else { return nil }
+            return value?.takeRetainedValue() as String?
+        }
+        let inputs: [InputDevice] = devices.prefix(Int(size) / stride).compactMap { device in
+            guard volume(device: device, scope: kAudioDevicePropertyScopeInput) != nil,
+                  let uid = stringProperty(device, kAudioDevicePropertyDeviceUID),
+                  let name = stringProperty(device, kAudioObjectPropertyName) else { return nil }
+            let hash = SHA256.hash(data: Data(uid.utf8)).map { String(format: "%02x", $0) }.joined()
+            return InputDevice(controlID: "input.level." + hash, name: name, device: device)
+        }
+        return Array(inputs.sorted { $0.controlID < $1.controlID }.prefix(16))
+    }
+
     func values() -> [String: Int] {
         var result: [String: Int] = [:]
         for (scope, volumeID, muteID) in [
@@ -74,6 +123,11 @@ final class SystemMediaController {
                 result[muteID] = muted ? 100 : 0
             } else if let level, level > 0 || restoreLevels[key] != nil {
                 result[muteID] = level == 0 ? 100 : 0
+            }
+        }
+        for input in inputDevices {
+            if let level = readVolume(input.device, kAudioDevicePropertyScopeInput) {
+                result[input.controlID] = Int((level * 100).rounded()).clampedPercentage
             }
         }
         return result
@@ -122,6 +176,11 @@ final class SystemMediaController {
     }
 
     func setValue(_ value: Int, controlIdentifier: String) -> Bool {
+        if CompanionProtocolDecoder.isInputDeviceControl(controlIdentifier) {
+            // Resolve the stable identifier against the current hardware before writing.
+            guard let input = Self.availableInputDevices().first(where: { $0.controlID == controlIdentifier }) else { return false }
+            return writeVolume(Float32(value.clampedPercentage) / 100, input.device, kAudioDevicePropertyScopeInput)
+        }
         let scope: AudioObjectPropertyScope
         switch controlIdentifier {
         case Self.outputVolumeID, Self.outputMuteID: scope = kAudioDevicePropertyScopeOutput

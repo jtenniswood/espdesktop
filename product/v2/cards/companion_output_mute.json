@@ -1,5 +1,6 @@
 {
   "label": "Output Mute",
+  "pickerKey": "companion_output_volume",
   "allowInSubpage": true,
   "domains": [],
   "normalization": {

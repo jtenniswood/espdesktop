@@ -25,7 +25,15 @@ inline bool number_valid(JsonVariantConst value, double minimum, double maximum,
   const double n = value.as<double>();
   return std::isfinite(n) && n >= minimum && n <= maximum && (!integer || std::floor(n) == n);
 }
+inline bool input_device_control_id_valid(std::string_view id) {
+  constexpr std::string_view prefix = "input.level.";
+  if (id.size() != prefix.size() + 64 || id.substr(0, prefix.size()) != prefix) return false;
+  for (char c : id.substr(prefix.size()))
+    if (!((c >= '0' && c <= '9') || (c >= 'a' && c <= 'f'))) return false;
+  return true;
+}
 inline bool volume_control_id_valid(std::string_view id) {
+  if (input_device_control_id_valid(id)) return true;
   constexpr std::string_view prefix = "app.volume.";
   if (id == "media.output_volume" || id == "media.input_volume" ||
       id == "media.output_mute" || id == "media.input_mute" || id == "media.cough") return true;

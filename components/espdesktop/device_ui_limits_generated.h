@@ -33,6 +33,7 @@ inline constexpr DeviceCardTypeSupport DEVICE_UI_CARD_TYPES_0[] = {
     {"push", true},
     {"companion_app_volume", true},
     {"companion_output_volume", true},
+    {"companion_input_device", true},
     {"companion_input_volume", true},
     {"companion_output_mute", true},
     {"companion_input_mute", true},

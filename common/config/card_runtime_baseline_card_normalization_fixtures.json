@@ -1005,11 +1005,26 @@
     }
   },
   {
+    "name": "companion_input_device: specific_input",
+    "input": "~input.level.0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef,USB%20Microphone,Microphone,Auto,,,companion_input_device,,",
+    "expected": {
+      "entity": "input.level.0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+      "label": "USB Microphone",
+      "icon": "Microphone",
+      "icon_on": "Auto",
+      "sensor": "",
+      "unit": "",
+      "type": "companion_input_device",
+      "precision": "",
+      "options": ""
+    }
+  },
+  {
     "name": "companion_input_volume: default_device",
-    "input": "~media.input_volume,Input%20Level,Microphone,Auto,,,companion_input_volume,,",
+    "input": "~media.input_volume,Input%20Volume,Microphone,Auto,,,companion_input_volume,,",
     "expected": {
       "entity": "media.input_volume",
-      "label": "Input Level",
+      "label": "Input Volume",
       "icon": "Microphone",
       "icon_on": "Auto",
       "sensor": "",
