@@ -1,5 +1,6 @@
 """Expose the cards on an EspDesktop display."""
 from datetime import timedelta
+import logging
 
 import aiohttp
 
@@ -25,7 +26,6 @@ async def async_setup_entry(hass, entry):
         except (aiohttp.ClientError, TimeoutError, ValueError, KeyError, TypeError) as error:
             raise UpdateFailed("Could not read EspDesktop cards") from error
 
-    import logging
     coordinator = DataUpdateCoordinator(
         hass, logging.getLogger(__name__), config_entry=entry, name=entry.title,
         update_method=fetch_cards, update_interval=timedelta(seconds=15),

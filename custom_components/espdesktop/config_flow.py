@@ -21,6 +21,7 @@ class EspDesktopConfigFlow(config_entries.ConfigFlow, domain="espdesktop"):
         except ValueError:
             return self.async_abort(reason="unsupported")
         await self.async_set_unique_id(fingerprint)
+        # The stored TLS fingerprint still authenticates all later requests.
         self._abort_if_unique_id_configured(updates={
             "host": discovery_info.host, "port": discovery_info.port,
         })

@@ -1357,7 +1357,8 @@ inline ParsedCfg normalize_parsed_cfg(ParsedCfg p) {
     size_t end = p.options.find(',', start);
     if (end == std::string::npos) end = p.options.size();
     const std::string token = p.options.substr(start, end - start);
-    if (!token.empty() && token.compare(0, 10, "icon_size=") != 0) {
+    if (!token.empty() && token.compare(0, 10, "icon_size=") != 0 &&
+        token.compare(0, 6, "ha_id=") != 0 && token != "ha_exposed") {
       if (!type_options.empty()) type_options += ",";
       type_options += token;
     }
@@ -1448,9 +1449,6 @@ inline ParsedCfg normalize_parsed_cfg(ParsedCfg p) {
   }
   if (valid_home_assistant_card_id(automation_id) &&
       (p.type == "companion" || p.type == "companion_mac_lock" || p.type == "subpage")) {
-    // Companion and Subpage normalizers rebuild their option lists. Mac Lock
-    // retains its options, so avoid adding a second copy on normalization.
-    if (p.type == "companion_mac_lock") p.options = card_colors;
     if (!p.options.empty()) p.options += ",";
     p.options += "ha_id=" + automation_id;
     if (exposed) p.options += ",ha_exposed";

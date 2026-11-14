@@ -14,7 +14,8 @@ esphome:
               const auto &display = id(espdesktop_app).display();
               if (display.current_mode_is(espdesktop::DisplayMode::ACTIVE) &&
                   !display.takeover_active(espdesktop::DisplayTakeoverKind::CRITICAL))
-                device_show_home_assistant_pairing(code, id(${setup_body_font_id})->get_lv_font());
+                return device_show_home_assistant_pairing(code, id(${setup_body_font_id})->get_lv_font());
+              return false;
             };
             device_pairing_style_button(id(button_setup_pair));
             register_theme_static_page(id(button_setup_page)->obj);

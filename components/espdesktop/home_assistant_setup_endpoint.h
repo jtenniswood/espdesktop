@@ -34,7 +34,8 @@ class SetupEndpoint final : public esphome::web_server_idf::AsyncWebHandler {
         return;
       }
     } else if (request->method() != HTTP_GET) {
-      httpd_resp_send_err(raw, HTTPD_405_METHOD_NOT_ALLOWED, "Unsupported method");
+      httpd_resp_set_status(raw, "405 Method Not Allowed");
+      httpd_resp_send(raw, nullptr, 0);
       return;
     }
     const auto body = std::string("{\"id\":\"") + hooks().fingerprint +

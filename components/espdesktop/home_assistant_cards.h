@@ -8,7 +8,7 @@ struct Hooks {
   std::string fingerprint;
   std::function<std::string()> list;
   std::function<bool(const std::string &)> press;
-  std::function<void(const std::string &)> show_code;
+  std::function<bool(const std::string &)> show_code;
   std::function<bool()> paired;
   std::function<bool(bool)> setup;
 };

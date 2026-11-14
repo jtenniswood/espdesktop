@@ -33,7 +33,7 @@ export function buildHomeAssistantSettings(
             status.textContent = action === "pair" ?
                 "Enter the fingerprint and code shown on the unlocked display in Home Assistant." :
                 paired ? "Home Assistant is paired." : "Home Assistant is disconnected.";
-            if (action === "pair") {
+            if (action === "pair" && !paired) {
                 window.clearTimeout(timer);
                 const end = Date.now() + 120_000;
                 const poll = async () => {

@@ -239,8 +239,8 @@ inline void device_pairing_open(const lv_font_t *text_font, const lv_font_t *tit
   device_pairing_show(text_font, title_font, false);
 }
 
-inline void device_show_home_assistant_pairing(const std::string &code, const lv_font_t *font) {
-  if (screen_lock_enabled() || device_pairing_ui().overlay) return;
+inline bool device_show_home_assistant_pairing(const std::string &code, const lv_font_t *font) {
+  if (screen_lock_enabled() || device_pairing_ui().overlay) return false;
   const auto layout = control_modal_calc_layout(icon_width_compensation_percent());
   const auto radius = control_modal_card_radius(nullptr);
   const auto shell = control_modal_open_nested_menu(layout.panel_w, radius, device_pairing_close);
@@ -259,10 +259,14 @@ inline void device_show_home_assistant_pairing(const std::string &code, const lv
     auto *object = device_pairing_label(shell.panel, value.c_str(), font, theme.text_primary);
     lv_obj_set_style_base_dir(object, LV_BASE_DIR_LTR, LV_PART_MAIN);
   };
-  label(code.substr(0, 32) + "\n" + code.substr(32, 32) + "\n\n" + code.substr(65));
+  label("Fingerprint");
+  for (size_t start = 0; start < 64; start += 16) label(code.substr(start, 16));
+  label("Pairing code");
+  label(code.substr(65));
   const auto width = layout.panel_w - layout.inset * 2;
   auto *done = device_pairing_button(shell.panel, espdesktop_i18n("Done"), width, width,
                                      layout.profile.base_touch_target, font);
   bind_immediate_button_action(done, [](lv_event_t *) { control_modal_close_nested_menu(); }, nullptr);
   ui.refresh_timer = lv_timer_create([](lv_timer_t *) { control_modal_close_nested_menu(); }, 120000, nullptr);
+  return true;
 }

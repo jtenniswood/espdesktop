@@ -1125,7 +1125,7 @@ export function createButtonSettingsFeature(
             disclosure.classList.add("sp-open");
             disclosureButton.setAttribute("aria-expanded", "true");
         });
-        if (canExposeCard(b)) {
+        if (layout.config.features?.companion && canExposeCard(b)) {
             const exposure = cardExposure(b.options);
             const control = toggleRow("Expose to Home Assistant", idPrefix + "ha-exposed", exposure.enabled);
             control.input.disabled = true;

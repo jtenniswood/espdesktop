@@ -307,7 +307,9 @@ bool CompanionService::start_server_() {
   if (httpd_register_uri_handler(this->server_, &legacy_websocket) != ESP_OK) return false;
   uint8_t digest[32]{};
   return mbedtls_sha256(this->identity_.certificate, this->identity_.certificate_len, digest, 0) == 0 &&
-      this->home_assistant_.start(*this, this->server_, hex(digest, sizeof(digest)));
+      this->home_assistant_.start(
+          [this](std::function<void()> callback) { this->defer(std::move(callback)); },
+          this->server_, hex(digest, sizeof(digest)));
 }
 
 void CompanionService::session_close_(httpd_handle_t server, int socket_fd) {

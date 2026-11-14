@@ -1,6 +1,6 @@
 #pragma once
 
-#include "esphome/core/component.h"
+#include <functional>
 #include "esphome/core/preferences.h"
 #include <esp_https_server.h>
 #include <array>
@@ -10,14 +10,15 @@
 namespace esphome::companion {
 class HomeAssistantApi {
  public:
-  bool start(Component &owner, httpd_handle_t server, const std::string &fingerprint);
+  using Defer = std::function<void(std::function<void()>)>;
+  bool start(Defer defer, httpd_handle_t server, const std::string &fingerprint);
  private:
   static esp_err_t handle(httpd_req_t *request);
   esp_err_t request(httpd_req_t *request);
   bool setup(bool disconnect);
   std::string token() const;
   using Credential = std::array<unsigned char, 32>;
-  Component *owner_{nullptr};
+  Defer defer_;
   ESPPreferenceObject preferences_;
   Credential credential_{};
   Credential pairing_{};

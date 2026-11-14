@@ -82,8 +82,7 @@ inline std::string list_cards() {
 }
 
 inline bool press_card(const std::string &id) {
-  const auto cards = shared_cards();
-  for (const auto &card : cards) {
+  for (const auto &card : shared_cards()) {
     if (id != card.id) continue;
     if (!card_available(card, companion_runtime_snapshot())) return false;
     if (card.config.type == "subpage") return navigation_present_companion_subpage(card.target);

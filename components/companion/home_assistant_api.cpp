@@ -3,9 +3,10 @@
 #include "../espdesktop/device_reset.h"
 #include "esphome/core/application.h"
 #include "esphome/core/hal.h"
+#include "esphome/core/helpers.h"
 
 #include <esp_random.h>
-#include <algorithm>
+#include <chrono>
 #include <cstring>
 #include <condition_variable>
 #include <memory>
@@ -55,10 +56,10 @@ struct MainRequest {
 };
 }  // namespace
 
-bool HomeAssistantApi::start(Component &owner, httpd_handle_t server, const std::string &fingerprint) {
-  owner_ = &owner;
+bool HomeAssistantApi::start(Defer defer, httpd_handle_t server, const std::string &fingerprint) {
+  defer_ = std::move(defer);
   fingerprint_ = fingerprint;
-  preferences_ = global_preferences->make_preference<Credential>(0x483a921bu);
+  preferences_ = global_preferences->make_preference<Credential>(fnv1a_hash("espdesktop_home_assistant_credential"));
   preferences_.load(&credential_);
   const httpd_uri_t routes[] = {
     {.uri = "/home-assistant/v1", .method = HTTP_GET, .handler = handle, .user_ctx = this},
@@ -90,7 +91,7 @@ bool HomeAssistantApi::setup(bool disconnect) {
     return preferences_.save(&credential_) && global_preferences->sync();
   }
   if (!hooks().show_code) return false;
-  owner_->defer("home-assistant-setup", [this] {
+  defer_([this] {
     std::string code;
     {
       std::lock_guard<std::mutex> lock(mutex_);
@@ -99,7 +100,11 @@ bool HomeAssistantApi::setup(bool disconnect) {
       attempts_ = 5;
       code = encode(pairing_.data(), 12);
     }
-    hooks().show_code(fingerprint_ + "\n" + code);
+    if (!hooks().show_code(fingerprint_ + "\n" + code)) {
+      std::lock_guard<std::mutex> lock(mutex_);
+      expires_ = 0;
+      pairing_ = {};
+    }
   });
   return true;
 }
@@ -144,7 +149,7 @@ esp_err_t HomeAssistantApi::request(httpd_req_t *request) {
   if (press && (id.size() != 32 || id.find_first_not_of("0123456789abcdef") != std::string::npos))
     return respond(request, "400 Bad Request", "{}");
   auto pending = std::make_shared<MainRequest>();
-  owner_->defer([this, pending, bearer, press, id] {
+  defer_([this, pending, bearer, press, id] {
     std::lock_guard<std::mutex> lock(pending->mutex);
     if (pending->cancelled) return;
     bool authorized;
