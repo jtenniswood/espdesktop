@@ -1,42 +1,33 @@
 ---
-title: "Home Assistant and EspDesktop"
-description: "Press shared EspDesktop cards from Home Assistant and learn how retired controls behave."
+title: "Run EspDesktop actions from Home Assistant"
+description: "Connect a 4-inch EspDesktop display to Home Assistant, press saved cards from automations, and refresh the button list from the display’s web editor."
 ---
 
-# Home Assistant and EspDesktop
+# Run EspDesktop actions from Home Assistant
 
-The previous Home Assistant controls are retired. EspDesktop lets Home Assistant press shared cards through its built-in ESPHome integration.
+The 4-inch Guition 4848S040 can share its saved card actions as buttons through Home Assistant’s built-in ESPHome integration. Use firmware that shows **Home Assistant** under **System → Connectors** in the display’s web editor.
 
-For Mac controls, follow [Mac app setup](/screens/4848s040#install-and-pair-the-espdesktop-mac-app).
+## Connect the display
 
-For Home Assistant touchscreen controls, use the [EspControl documentation](https://jtenniswood.github.io/espcontrol/).
+1. In the display’s web editor, open **System → Connectors → Home Assistant**.
+2. Turn on **Enable ESPHome API**. It starts off by default. The display restarts and keeps your saved cards.
+3. In Home Assistant, open **Settings → Devices & services** and add the display under **Discovered**. If it doesn’t appear, choose **Add integration → ESPHome** and enter the display’s local address.
+4. Complete the standard ESPHome setup. Compatible Home Assistant versions generate the encryption key automatically. This connection uses the existing ESPHome integration and needs no separate EspDesktop pairing in Home Assistant.
 
-## Press EspDesktop cards from Home Assistant
+## Press a card from Home Assistant
 
-On 4-inch Guition 4848S040 firmware that supports card exposure, Home Assistant
-can press saved cards that have a tap action.
+On the ESPHome device page, look under **Controls**. Saved apps, Finder folders, websites, keyboard shortcuts, Lock Machine cards, and subpages appear automatically, including actions on nested pages. A button’s name starts with its app or folder, for example **Safari – Close Tab**. Cards that only show information have no button.
 
-1. In the display's web editor, open **Connectors → Home Assistant** and switch
-   on **Enable ESPHome API**. It starts off. The display restarts when
-   you change this setting, and your saved cards are retained.
-2. In Home Assistant, open **Settings → Devices & services** and add your
-   display under **Discovered**. If discovery is unavailable, use **Add
-   integration → ESPHome** and enter its local address.
-3. Finish standard ESPHome setup. Compatible Home Assistant versions
-   generate the native encryption key automatically.
-4. Open the display in Home Assistant to find its buttons. Saved app, Finder folder,
-   website, shortcut, Lock Machine, and Subpage cards appear automatically,
-   including cards on nested pages. Button names start with the app or folder
-   that contains the action, for example **Safari – Close Tab**.
-5. In Home Assistant, add the button to a dashboard or use **Button: Press**
-   as an action in an automation. The card list refreshes when Home Assistant reconnects.
-   To request a refresh from the display's web editor, open
-   **System → Connectors → Home Assistant** and select **Resync buttons**.
-   Mac actions require an unlocked Mac with EspDesktop running and paired.
-   Pressing a keyboard shortcut on an app's subpage opens or focuses that app
-   before sending the shortcut.
+To use a card in an automation, add the **Button: Press** action and select the card’s button as the target. You can also add the button to a dashboard.
 
-Resizing a card keeps its button identity. Home Assistant can track a rename
-while connected. After renaming a card with Home Assistant stopped, check any
-automations that use it. Moving a card to another page or changing its action
-can also give it a new button identity. Turning off **Enable ESPHome API** disables all remote presses.
+Mac actions require an unlocked Mac with the [EspDesktop Mac app running and paired to the display](/screens/4848s040#pair-the-display). A keyboard shortcut on an app’s subpage opens or focuses that app first. If the Mac cannot confirm the app is frontmost, the shortcut is skipped.
+
+## Refresh the button list
+
+Home Assistant reads the latest button list when it reconnects. If a newly added card is missing or a name looks out of date, go to **System → Connectors → Home Assistant** in the display’s web editor and select **Resync buttons**. The display stays running while its ESPHome connection briefly reconnects. Reopen **Controls** in Home Assistant to see the refreshed list.
+
+If a button still shows an old name, check its entity settings in Home Assistant for a custom **Name**. Clear it to show the name supplied by EspDesktop. If you move a card, change its action, or rename it while Home Assistant is offline, check any automations that use it because the button’s entity may change.
+
+Turn off **Enable ESPHome API** in the web editor to disable remote presses.
+
+To control Home Assistant devices from a touchscreen, see the [EspControl documentation](https://jtenniswood.github.io/espcontrol/).
