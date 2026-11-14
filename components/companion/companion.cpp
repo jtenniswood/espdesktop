@@ -876,7 +876,7 @@ void CompanionService::handle_json_(int socket_fd, const std::string &message) {
     if (const auto *payload = std::get_if<companion_protocol::TokenUsage>(&*decoded)) {
       CompanionTokenUsage readings{};
       for (const auto &reading : payload->readings) {
-        const auto service = reading.service == "claude" ? TokenUsageService::CLAUDE : TokenUsageService::CODEX;
+        const auto service = token_usage_service(reading.service);
         auto &entry = readings[static_cast<size_t>(service)];
         if (entry.observed_at != 0 || reading.resetsAt <= reading.observedAt) return false;
         entry = {static_cast<uint8_t>(reading.remainingPercent),

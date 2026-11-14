@@ -13,6 +13,7 @@
 #include <cstdint>
 #include <mutex>
 #include <string>
+#include <string_view>
 #include <utility>
 #include <vector>
 
@@ -50,7 +51,13 @@ struct CompanionNetworkInterface {
   std::string address;
 };
 
-enum class TokenUsageService : size_t { CODEX, CLAUDE };
+enum class TokenUsageService : size_t { CODEX, CLAUDE, OPENCODE_GO, COUNT };
+
+inline TokenUsageService token_usage_service(std::string_view service) {
+  if (service == "claude") return TokenUsageService::CLAUDE;
+  if (service == "opencode-go") return TokenUsageService::OPENCODE_GO;
+  return TokenUsageService::CODEX;
+}
 
 struct CompanionTokenUsageReading {
   uint8_t remaining_percent{0};
@@ -58,7 +65,7 @@ struct CompanionTokenUsageReading {
   uint32_t observed_at{0};
 };
 
-using CompanionTokenUsage = std::array<CompanionTokenUsageReading, 2>;
+using CompanionTokenUsage = std::array<CompanionTokenUsageReading, static_cast<size_t>(TokenUsageService::COUNT)>;
 
 struct CompanionSystemMetricsSnapshot {
   uint32_t generation{0};

@@ -7,7 +7,7 @@
       "name": "services",
       "label": "Service",
       "kind": "choice",
-      "values": ["codex", "claude"],
+      "values": ["codex", "claude", "opencode-go"],
       "defaultValue": "codex",
       "omitDefault": true
     }

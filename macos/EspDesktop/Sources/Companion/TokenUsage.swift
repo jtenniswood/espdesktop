@@ -136,6 +136,92 @@ enum TokenUsage {
         return output.fileHandleForReading.readDataToEndOfFile()
     }
 
+    enum OpenCodeGoStatus: Equatable, Sendable {
+        case checking, missingLogin, rejected, unavailable, available
+    }
+
+    private struct OpenCodeGoAuthFile: Decodable {
+        let go: OpenCodeGoCredential?
+        enum CodingKeys: String, CodingKey { case go = "opencode-go" }
+    }
+
+    private struct OpenCodeGoCredential: Decodable {
+        let type: String
+        let key: String?
+    }
+
+    private struct OpenCodeGoReply: Decodable {
+        struct Usage: Decodable {
+            struct Window: Decodable {
+                let percent: Double
+                let resetsAt: String
+            }
+
+            let weekly: Window
+        }
+
+        let usage: Usage
+    }
+
+    private final class RejectUsageRedirects: NSObject, URLSessionTaskDelegate {
+        func urlSession(_ session: URLSession, task: URLSessionTask,
+                        willPerformHTTPRedirection response: HTTPURLResponse,
+                        newRequest request: URLRequest,
+                        completionHandler: @escaping @Sendable (URLRequest?) -> Void) {
+            completionHandler(nil)
+        }
+    }
+
+    static func openCodeGoKey(from data: Data) -> String? {
+        guard let credential = try? JSONDecoder().decode(OpenCodeGoAuthFile.self, from: data).go,
+              credential.type == "api", let key = credential.key,
+              !key.isEmpty, key.utf8.allSatisfy({ (33...126).contains($0) }) else { return nil }
+        return key
+    }
+
+    static func readOpenCodeGo() async -> (status: OpenCodeGoStatus, reading: WeeklyUsageReading?) {
+        let defaultData = FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent(".local/share")
+        let xdgData = ProcessInfo.processInfo.environment["XDG_DATA_HOME"]
+        let dataDirectory = xdgData.flatMap { $0.hasPrefix("/") ? URL(fileURLWithPath: $0) : nil } ?? defaultData
+        let authFile = dataDirectory.appendingPathComponent("opencode/auth.json")
+        guard let data = try? Data(contentsOf: authFile), let key = openCodeGoKey(from: data)
+        else { return (.missingLogin, nil) }
+
+        var request = URLRequest(url: URL(string: "https://opencode.ai/zen/go/v1/usage")!, timeoutInterval: 12)
+        request.setValue("Bearer " + key, forHTTPHeaderField: "Authorization")
+        request.setValue("application/json", forHTTPHeaderField: "Accept")
+        let configuration = URLSessionConfiguration.ephemeral
+        configuration.httpShouldSetCookies = false
+        configuration.timeoutIntervalForResource = 15
+        let session = URLSession(configuration: configuration)
+        defer { session.finishTasksAndInvalidate() }
+        guard let (payload, response) = try? await session.data(for: request, delegate: RejectUsageRedirects()),
+              let response = response as? HTTPURLResponse else { return (.unavailable, nil) }
+        if response.statusCode == 401 || response.statusCode == 403 { return (.rejected, nil) }
+        guard response.statusCode == 200, let reading = parseOpenCodeGo(payload)
+        else { return (.unavailable, nil) }
+        return (.available, reading)
+    }
+
+    static func parseOpenCodeGo(_ data: Data, observedAt: Date = .now) -> WeeklyUsageReading? {
+        guard let window = try? JSONDecoder().decode(OpenCodeGoReply.self, from: data).usage.weekly,
+              (0...100).contains(window.percent) else { return nil }
+        let formatter = ISO8601DateFormatter()
+        formatter.formatOptions.insert(.withFractionalSeconds)
+        var reset = formatter.date(from: window.resetsAt)
+        if reset == nil {
+            formatter.formatOptions.remove(.withFractionalSeconds)
+            reset = formatter.date(from: window.resetsAt)
+        }
+        guard let reset, reset > observedAt else { return nil }
+        let now = observedAt.timeIntervalSince1970
+        let resetTime = reset.timeIntervalSince1970
+        guard now >= 1, resetTime <= Double(UInt32.max) else { return nil }
+        let reading = WeeklyUsageReading(remainingPercent: Int((100 - window.percent).rounded()),
+                                         resetsAt: UInt32(resetTime), observedAt: UInt32(now))
+        return reading.valid ? reading : nil
+    }
+
     private struct Reply: Decodable {
         struct Limits: Decodable {
             struct Window: Decodable {

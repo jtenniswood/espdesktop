@@ -70,8 +70,8 @@ inline void token_usage_tile_tick(lv_timer_t *timer) {
 #if ESPHOME_VERSION_CODE >= VERSION_CODE(2026, 4, 0)
 inline const lv_image_dsc_t *token_usage_icon(size_t index) {
   static const auto descriptors = [] {
-    std::array<lv_image_dsc_t, 2> result{};
-    const uint8_t *pixels[] = {token_usage_codex_icon, token_usage_claude_icon};
+    std::array<lv_image_dsc_t, static_cast<size_t>(TokenUsageService::COUNT)> result{};
+    const uint8_t *pixels[] = {token_usage_codex_icon, token_usage_claude_icon, token_usage_opencode_go_icon};
     for (size_t i = 0; i < result.size(); ++i) {
       auto &icon = result[i];
       icon.header.magic = LV_IMAGE_HEADER_MAGIC;
@@ -90,7 +90,7 @@ inline const lv_image_dsc_t *token_usage_icon(size_t index) {
 // Contract coverage marker: "token_usage".
 inline void setup_token_usage_card(BtnSlot &slot, const ParsedCfg &config,
                                     const DisplayProfile &display, const CardPalette &palette) {
-  const size_t service = cfg_option_value(config.options, "services") == "claude" ? 1 : 0;
+  const auto service = token_usage_service(cfg_option_value(config.options, "services"));
   lv_obj_clear_flag(slot.btn, LV_OBJ_FLAG_CLICKABLE);
   lv_obj_add_flag(slot.icon_lbl, LV_OBJ_FLAG_HIDDEN);
   lv_obj_add_flag(slot.text_lbl, LV_OBJ_FLAG_HIDDEN);
@@ -108,15 +108,16 @@ inline void setup_token_usage_card(BtnSlot &slot, const ParsedCfg &config,
   const auto *secondary_font = display_small_text_font(display, primary_font);
   const auto foreground = lv_obj_get_style_text_color(slot.text_lbl, LV_PART_MAIN);
 
-  tile->service = service;
+  tile->service = static_cast<size_t>(service);
 #if ESPHOME_VERSION_CODE >= VERSION_CODE(2026, 4, 0)
   auto *icon = lv_image_create(container);
-  lv_image_set_src(icon, token_usage_icon(service));
+  lv_image_set_src(icon, token_usage_icon(tile->service));
   lv_obj_set_style_image_recolor(icon, foreground, LV_PART_MAIN);
   lv_obj_set_style_image_recolor_opa(icon, LV_OPA_COVER, LV_PART_MAIN);
 #else
   auto *icon = lv_label_create(container);
-  lv_label_set_text(icon, service == 0 ? "Codex" : "Claude");
+  const char *names[] = {"Codex", "Claude", "OpenCode Go"};
+  lv_label_set_text(icon, names[tile->service]);
 #endif
   lv_obj_clear_flag(icon, LV_OBJ_FLAG_CLICKABLE);
   lv_obj_align(icon, LV_ALIGN_TOP_LEFT, 0, 0);

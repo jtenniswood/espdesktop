@@ -1,5 +1,5 @@
 {
-  "version": 10,
+  "version": 11,
   "protocol": {
     "version": 4,
     "path": "/companion/v4",
@@ -473,17 +473,18 @@
         "fields": {
           "readings": {
             "type": "array",
-            "maxItems": 2,
+            "maxItems": 3,
             "items": {
               "type": "object",
               "fields": {
                 "service": {
                   "type": "string",
                   "minLength": 5,
-                  "maxLength": 6,
+                  "maxLength": 11,
                   "enum": [
                     "codex",
-                    "claude"
+                    "claude",
+                    "opencode-go"
                   ]
                 },
                 "remainingPercent": {
