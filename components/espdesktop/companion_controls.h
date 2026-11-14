@@ -47,7 +47,6 @@ inline void companion_clear_pending_action(CompanionPendingAction &pending) {
   pending.expected_application_id.clear();
   pending.expires_at = 0;
   pending.success = nullptr;
-  pending.completion = nullptr;
 }
 
 inline bool companion_expect_action_result(
@@ -72,20 +71,6 @@ inline bool companion_expect_action_result(const std::string &request_id,
                                            CompanionActionResultHandler success,
                                            uint32_t expires_at = 0) {
   return companion_expect_action_result(request_id, "", std::move(success), expires_at);
-}
-
-inline bool companion_expect_shortcut_result(
-    const std::string &request_id, uint32_t expires_at,
-    std::function<void(const std::string &)> completion) {
-  auto &pending = companion_pending_actions();
-  std::lock_guard<std::mutex> lock(pending.mutex);
-  auto entry = std::find_if(pending.entries.begin(), pending.entries.end(),
-    [](const CompanionPendingAction &candidate) { return candidate.request_id.empty(); });
-  if (entry == pending.entries.end()) return false;
-  entry->request_id = request_id;
-  entry->expires_at = expires_at;
-  entry->completion = std::move(completion);
-  return true;
 }
 
 inline void companion_cancel_action_result(const std::string &request_id = "") {
@@ -114,7 +99,6 @@ inline size_t companion_expire_action_results(uint32_t now) {
 inline void companion_deliver_action_result(const std::string &request_id,
                                             const std::string &status) {
   CompanionActionResultHandler success;
-  std::function<void(const std::string &)> completion;
   {
     auto &pending = companion_pending_actions();
     std::lock_guard<std::mutex> lock(pending.mutex);
@@ -128,11 +112,9 @@ inline void companion_deliver_action_result(const std::string &request_id,
     // "performed" as soon as launch scheduling succeeds, which is not safe
     // enough to expose keyboard shortcuts.
     if (status == "activated") success = std::move(entry->success);
-    completion = std::move(entry->completion);
     companion_clear_pending_action(*entry);
   }
   if (success) success();
-  if (completion) completion(status);
 }
 
 inline void companion_request_card_refresh();

@@ -343,5 +343,3 @@ mic=Mikro
 mute=Stumm
 mac_update_required=Mac-App aktualisieren
 mac_update_reconnect=Aktualisiere EspDesktop auf deinem Mac, um die Verbindung wiederherzustellen.
-apple_shortcut_running=Kurzbefehl läuft. Prüfe deinen Mac.
-apple_shortcut_failed=Kurzbefehl fehlgeschlagen. Prüfe deinen Mac.

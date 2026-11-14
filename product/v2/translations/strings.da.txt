@@ -343,5 +343,3 @@ mic=Mikrofon
 mute=Slå lyd fra
 mac_update_required=Opdater Mac-appen
 mac_update_reconnect=Opdater EspDesktop på din Mac for at oprette forbindelse igen.
-apple_shortcut_running=Shortcut running. Check your Mac.
-apple_shortcut_failed=Shortcut failed. Check your Mac.

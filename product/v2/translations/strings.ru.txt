@@ -343,5 +343,3 @@ mic=Микрофон
 mute=Без звука
 mac_update_required=Обновите приложение для Mac
 mac_update_reconnect=Обновите EspDesktop на Mac, чтобы восстановить соединение.
-apple_shortcut_running=Shortcut running. Check your Mac.
-apple_shortcut_failed=Shortcut failed. Check your Mac.

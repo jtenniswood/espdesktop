@@ -343,5 +343,3 @@ mic=Mikrofon
 mute=Ztlumit
 mac_update_required=Aktualizovat aplikaci pro Mac
 mac_update_reconnect=Pro opětovné připojení aktualizujte EspDesktop na Macu.
-apple_shortcut_running=Shortcut running. Check your Mac.
-apple_shortcut_failed=Shortcut failed. Check your Mac.

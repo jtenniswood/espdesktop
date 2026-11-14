@@ -344,5 +344,3 @@ mic=מיקרופון
 mute=השתקה
 mac_update_required=עדכון האפליקציה ב-Mac
 mac_update_reconnect=כדי להתחבר מחדש, יש לעדכן את EspDesktop ב-Mac.
-apple_shortcut_running=Shortcut running. Check your Mac.
-apple_shortcut_failed=Shortcut failed. Check your Mac.

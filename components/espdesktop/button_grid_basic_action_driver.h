@@ -120,36 +120,30 @@ struct BasicActionSubpageEnvironment {
   int *parent_on_count = nullptr;
 };
 
-inline void apple_shortcut_feedback(const char *message_key) {
-  static lv_obj_t *toast = nullptr;
-  if (toast) lv_obj_del(toast);
-  const lv_coord_t width = std::min<lv_coord_t>(300, lv_display_get_horizontal_resolution(lv_display_get_default()) - 24);
-  const auto shell = control_modal_open_toast(width, 12, theme_display_color(current_theme().surface_secondary));
-  toast = shell.box;
-  lv_obj_add_event_cb(toast, [](lv_event_t *) { toast = nullptr; }, LV_EVENT_DELETE, nullptr);
-  lv_obj_clear_flag(toast, LV_OBJ_FLAG_CLICKABLE);
-  lv_obj_set_height(toast, LV_SIZE_CONTENT);
-  lv_obj_align(toast, LV_ALIGN_BOTTOM_MID, 0, -12);
-  auto *label = control_modal_create_title(toast, espdesktop_i18n_key(message_key), width - 24, nullptr, 100);
-  lv_label_set_long_mode(label, LV_LABEL_LONG_WRAP);
-  lv_obj_delete_delayed(toast, 3500);
-}
-
-inline void run_apple_shortcut_card(const std::string &action_id, const std::string &request_id) {
-  if (!companion_expect_shortcut_result(request_id, esphome::millis() + 300000,
-      [](const std::string &status) {
-        apple_shortcut_feedback(status == "performed" ? "done" :
-          status == "not_found" || status == "not_allowed" ? "unavailable" : "apple_shortcut_failed");
-      })) {
-    apple_shortcut_feedback("unavailable");
-    return;
-  }
+inline void run_apple_shortcut_card(lv_obj_t *button, const std::string &action_id,
+                                    const std::string &request_id) {
   if (!invoke_companion_action(action_id, request_id)) {
-    companion_cancel_action_result(request_id);
-    apple_shortcut_feedback("unavailable");
+    ESP_LOGW("companion", "Action unavailable: %s", action_id.c_str());
     return;
   }
-  apple_shortcut_feedback("apple_shortcut_running");
+  if (!button) return;
+
+  // Touch-down has already consumed the release. Show the pressed colour
+  // briefly, and let LVGL cancel the animation if the card is deleted.
+  lv_obj_add_state(button, APPLE_SHORTCUT_TAP_STATE);
+  sync_bound_card_text_color(button);
+  lv_anim_t pulse;
+  lv_anim_init(&pulse);
+  lv_anim_set_var(&pulse, button);
+  lv_anim_set_values(&pulse, 0, 1);
+  lv_anim_set_duration(&pulse, 160);
+  lv_anim_set_exec_cb(&pulse, [](void *object, int32_t finished) {
+    if (!finished) return;
+    auto *card = static_cast<lv_obj_t *>(object);
+    lv_obj_clear_state(card, APPLE_SHORTCUT_TAP_STATE);
+    sync_bound_card_text_color(card);
+  });
+  lv_anim_start(&pulse);
 }
 
 struct CompanionSubpageActionContext {
@@ -194,7 +188,8 @@ inline bool basic_action_driver_bind_subpage(
         snprintf(request_id, sizeof(request_id), "sub-%08lx",
                  static_cast<unsigned long>(companion_next_request_number()));
         if (companion_apple_shortcut_action(card->entity)) {
-          run_apple_shortcut_card(card->entity, request_id);
+          run_apple_shortcut_card(static_cast<lv_obj_t *>(lv_event_get_target(event)),
+                                  card->entity, request_id);
           return;
         }
         const bool invoked = companion_encoded_url(card->sensor).empty()
@@ -227,7 +222,7 @@ inline bool basic_action_driver_handle_main_click(
       snprintf(request_id, sizeof(request_id), "%08lx-%d",
                static_cast<unsigned long>(companion_next_request_number()), slot_number);
       if (companion_apple_shortcut_action(config.entity)) {
-        run_apple_shortcut_card(config.entity, request_id);
+        run_apple_shortcut_card(button, config.entity, request_id);
         break;
       }
       lv_obj_t *screen = nullptr;
