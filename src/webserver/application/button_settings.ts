@@ -1,4 +1,4 @@
-import { canExposeCard, cardExposure, sameCardAction, setCardExposure } from "../model/home_assistant_cards";
+import { sameCardAction, setCardExposure } from "../model/home_assistant_cards";
 import { childPageKey, pageOwnerSlot, parentPageKey } from "../model/page_keys";
 import { previewSubpageOwner } from "../model/companion_shortcut_page";
 import { companionCardHasAppIcon, companionSavedCardMode } from "../model/companion_card_codec";
@@ -482,8 +482,7 @@ export function createButtonSettingsFeature(
             }
             const previous = c.buttons[bIdx];
             if (!draft.isNew && previous && !sameCardAction(previous, draft.button)) {
-                const exposure = cardExposure(draft.button.options);
-                draft.button.options = setCardExposure(draft.button.options, exposure.identity, false);
+                draft.button.options = setCardExposure(draft.button.options, "", false);
             }
             const originalPages = structuredClone(state.subpages);
             const originalPending = { ...state.subpageSavePending };
@@ -1125,31 +1124,6 @@ export function createButtonSettingsFeature(
             disclosure.classList.add("sp-open");
             disclosureButton.setAttribute("aria-expanded", "true");
         });
-        if (layout.config.features?.companion && canExposeCard(b)) {
-            const exposure = cardExposure(b.options);
-            const control = toggleRow("Expose to Home Assistant", idPrefix + "ha-exposed", exposure.enabled);
-            control.input.disabled = true;
-            const setup = fetch("/api/v1/home-assistant", { cache: "no-store" }).then(async response => {
-                if (!response.ok) throw new Error("Home Assistant setup is unavailable on this display.");
-                const { id } = await response.json();
-                if (typeof id !== "string" || !/^[a-f0-9]{64}$/.test(id)) throw new Error("Display identity is unavailable.");
-                return id as string;
-            });
-            void setup.then(id => {
-                control.input.checked = exposure.enabled && exposure.identity.startsWith(id);
-                control.input.disabled = false;
-                panel.insertBefore(control.row, panel.lastChild);
-            }).catch(() => {});
-            control.input.addEventListener("change", async () => {
-                const id = await setup;
-                const saved = cardExposure(b.options).identity;
-                const random = Array.from(crypto.getRandomValues(new Uint8Array(16)),
-                    byte => byte.toString(16).padStart(2, "0")).join("");
-                b.options = setCardExposure(b.options, saved.startsWith(id) ? saved : id + random, control.input.checked);
-                markDraftDirty();
-            });
-        }
-
         var saveRow: any = document.createElement("div");
         saveRow.className = "sp-btn-row sp-btn-row--save";
         if (!isNewDraft) {
