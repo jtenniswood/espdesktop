@@ -12,6 +12,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <mutex>
+#include <optional>
 #include <string>
 #include <utility>
 #include <vector>
@@ -223,6 +224,54 @@ class CompanionRuntimeService {
     return true;
   }
 
+  // Touch feedback stays separate from confirmed audio state. Only the latest
+  // command for each mute control can settle its preview.
+  int displayed_mute_value(const std::string &id, int confirmed) const {
+    std::lock_guard<std::mutex> lock(mutex_);
+    for (const auto &pending : pending_mutes_)
+      if (!pending.request.empty() && pending.control == id) return pending.value;
+    return confirmed;
+  }
+
+  void preview_mute(const std::string &control, int value, const std::string &request) {
+    std::lock_guard<std::mutex> lock(mutex_);
+    auto entry = std::find_if(pending_mutes_.begin(), pending_mutes_.end(),
+      [&control](const PendingMute &item) { return item.control == control; });
+    if (entry == pending_mutes_.end())
+      entry = std::find_if(pending_mutes_.begin(), pending_mutes_.end(),
+        [](const PendingMute &item) { return item.request.empty(); });
+    if (entry == pending_mutes_.end()) return;
+    *entry = {control, request, value, std::nullopt, false};
+    request_refresh_();
+  }
+
+  void acknowledge_mute(const std::string &request, bool performed) {
+    std::lock_guard<std::mutex> lock(mutex_);
+    for (auto &pending : pending_mutes_) {
+      if (pending.request != request || request.empty()) continue;
+      const bool confirmed = std::any_of(values_.begin(), values_.end(),
+        [&pending](const CompanionValue &item) { return item.id == pending.control && item.value == pending.value; });
+      if (!performed || confirmed) {
+        pending = {};
+        request_refresh_();
+      } else {
+        pending.acknowledged = true;
+      }
+      break;
+    }
+  }
+
+  void expire_mute_previews(uint32_t now) {
+    std::lock_guard<std::mutex> lock(mutex_);
+    for (auto &pending : pending_mutes_) {
+      if (pending.request.empty()) continue;
+      if (!pending.expires_at) pending.expires_at = now + 700;
+      if (static_cast<int32_t>(now - *pending.expires_at) < 0) continue;
+      pending = {};
+      request_refresh_();
+    }
+  }
+
   CompanionRuntimeSnapshot snapshot() const {
     std::lock_guard<std::mutex> lock(mutex_);
     return {actions_, values_, focused_action_id_, focused_action_ids_, keyboard_actions_supported_,
@@ -292,11 +341,15 @@ class CompanionRuntimeService {
     } else {
       item->value = value;
     }
+    for (auto &pending : pending_mutes_)
+      if (pending.acknowledged && pending.control == control_id && pending.value == value) pending = {};
     request_refresh_();
   }
 
   void remove_value(const std::string &control_id) {
     std::lock_guard<std::mutex> lock(mutex_);
+    for (auto &pending : pending_mutes_)
+      if (pending.control == control_id) pending = {};
     values_.erase(std::remove_if(values_.begin(), values_.end(),
       [&control_id](const CompanionValue &candidate) { return candidate.id == control_id; }),
       values_.end());
@@ -428,6 +481,7 @@ class CompanionRuntimeService {
     }
     if (!connected_) {
       values_.clear();
+      pending_mutes_ = {};
       focused_action_id_.clear();
       focused_action_ids_.clear();
       application_highlight_known_ = false;
@@ -459,6 +513,14 @@ class CompanionRuntimeService {
   std::vector<CompanionURLFocusTarget> url_focus_targets_;
   uint32_t url_focus_targets_generation_{0};
   std::vector<CompanionValue> values_;
+  struct PendingMute {
+    std::string control;
+    std::string request;
+    int value{0};
+    std::optional<uint32_t> expires_at;
+    bool acknowledged{false};
+  };
+  std::array<PendingMute, 3> pending_mutes_{};
   std::string focused_action_id_;
   std::vector<std::string> focused_action_ids_;
   bool auto_open_app_subpages_ = true;

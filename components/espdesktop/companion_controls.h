@@ -83,6 +83,7 @@ inline void companion_cancel_action_result(const std::string &request_id = "") {
 }
 
 inline size_t companion_expire_action_results(uint32_t now) {
+  companion_runtime_service().expire_mute_previews(now);
   size_t expired = 0;
   auto &pending = companion_pending_actions();
   std::lock_guard<std::mutex> lock(pending.mutex);
@@ -98,6 +99,7 @@ inline size_t companion_expire_action_results(uint32_t now) {
 
 inline void companion_deliver_action_result(const std::string &request_id,
                                             const std::string &status) {
+  companion_runtime_service().acknowledge_mute(request_id, status == "performed");
   CompanionActionResultHandler success;
   {
     auto &pending = companion_pending_actions();
@@ -859,7 +861,7 @@ inline void companion_apply_mute_state(const CompanionMuteRef &ref,
   const auto value = std::find_if(snapshot.values.begin(), snapshot.values.end(),
     [&ref](const CompanionValue &candidate) { return candidate.id == ref.control_id; });
   const bool available = snapshot.connected && value != snapshot.values.end();
-  const bool muted = available && value->value > 0;
+  const bool muted = available && companion_runtime_service().displayed_mute_value(ref.control_id, value->value) > 0;
   set_card_disabled_state(ref.button, !available);
   set_card_checked_state(ref.button, muted);
   const char *icon = muted ? ref.icon_muted : ref.icon_unmuted;
@@ -1106,8 +1108,11 @@ inline bool companion_toggle_mute(const std::string &control_id) {
   int value = 0;
   if (!companion_mute_control_valid(control_id) || !companion_connected() ||
       !companion_value(control_id, value) || !companion_value_sender()) return false;
-  return companion_value_sender()(control_id, value > 0 ? 0 : 100,
-                                  "mute-" + std::to_string(companion_next_request_number()));
+  const int next = companion_runtime_service().displayed_mute_value(control_id, value) > 0 ? 0 : 100;
+  const auto request = "mute-" + std::to_string(companion_next_request_number());
+  if (!companion_value_sender()(control_id, next, request)) return false;
+  companion_runtime_service().preview_mute(control_id, next, request);
+  return true;
 }
 
 inline bool invoke_companion_action(const std::string &action_id,

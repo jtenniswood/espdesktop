@@ -590,13 +590,38 @@ int main() {
     companion_set_value(control, 0);
     assert(companion_toggle_mute(control));
     assert(mute_control == control && mute_value == 100 && !mute_request.empty());
-    companion_set_value(control, 100);
-    assert(companion_toggle_mute(control));
+    const auto press_request = mute_request;
+    assert(companion_value(control, output_volume) && output_volume == 0);
+    assert(companion_runtime_service().displayed_mute_value(control, output_volume) == 100);
+    assert(companion_toggle_mute(control)); // A second tap uses the preview.
     assert(mute_value == 0);
+    companion_set_value(control, 100); // The first reply can arrive late.
+    companion_deliver_action_result(press_request, "performed");
+    assert(companion_runtime_service().displayed_mute_value(control, 100) == 0);
+    companion_deliver_action_result(mute_request, "not_allowed");
+    assert(companion_runtime_service().displayed_mute_value(control, 100) == 100);
+    assert(companion_toggle_mute(control));
+    companion_deliver_action_result(mute_request, "performed");
+    companion_set_value(control, 0);
+    companion_set_value(control, 100); // An external change wins after confirmation.
+    assert(companion_runtime_service().displayed_mute_value(control, 100) == 100);
+    assert(companion_toggle_mute(control));
+    companion_expire_action_results(100);
+    companion_expire_action_results(800);
+    assert(companion_runtime_service().displayed_mute_value(control, 100) == 100);
     assert(!invoke_companion_value(control, 50, "invalid-mute"));
     companion_remove_value(control);
     assert(!companion_toggle_mute(control));
   }
+  companion_set_value("media.cough", 0);
+  companion_runtime_service().preview_mute("media.cough", 100, "cough-press");
+  assert(companion_runtime_service().displayed_mute_value("media.cough", 0) == 100);
+  companion_runtime_service().preview_mute("media.cough", 0, "cough-release");
+  companion_set_value("media.cough", 100);
+  companion_deliver_action_result("cough-press", "performed");
+  assert(companion_runtime_service().displayed_mute_value("media.cough", 100) == 0);
+  companion_deliver_action_result("cough-release", "performed");
+  companion_set_value("media.cough", 0);
   companion_set_value("media.input_mute", 100);
   companion_set_connected(false);
   assert(!companion_toggle_mute("media.input_mute"));
