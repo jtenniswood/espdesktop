@@ -106,7 +106,8 @@ function samplePageCards(appId: string, tabs: readonly string[]): SamplePageCard
 
 const sampleButtons: Record<number, string> = {}
 const sampleSubpages: Record<number, string> = {}
-for (const [index, { id, label }] of sampleApps.entries()) {
+const startingApps = editable ? sampleApps.slice(0, 8) : sampleApps
+for (const [index, { id, label }] of startingApps.entries()) {
   const slot = index + 1
   const tabs = sampleShortcutTabs[id]
   let options = 'app_hide_label'
@@ -211,12 +212,16 @@ function sampleAppIcon(appId: string) {
   return request
 }
 
-// Keep the picker tied to the starting layout even after its cards are edited or deleted.
+// Keep sample apps available in the picker even when they are absent from the layout.
 const demoApps = new Map<string, { id: string; label: string }>()
 if (editable) {
-  for (const { config: card } of startingConfig.layout.rootCards) {
-    if (!companionCardHasAppIcon(card) || (appIcons && !snapshotAppIcon(card.entity))) continue
-    demoApps.set(card.entity, { id: card.entity, label: card.label || card.entity })
+  if (snapshot) {
+    for (const { config: card } of startingConfig.layout.rootCards) {
+      if (!companionCardHasAppIcon(card) || (appIcons && !snapshotAppIcon(card.entity))) continue
+      demoApps.set(card.entity, { id: card.entity, label: card.label || card.entity })
+    }
+  } else {
+    for (const { id, label } of sampleApps) demoApps.set(id, { id, label })
   }
 }
 
