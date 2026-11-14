@@ -90,7 +90,7 @@ function samplePageCards(appId: string, tabs: readonly string[]): SamplePageCard
     return demoFolders.filter(({ label }) => finderFolderLabels.includes(label))
       .map(({ id, label }) => ({ entity: id, label, icon: 'Folder Outline' }))
   }
-  const { buttons } = createCompanionShortcutSubpage(appId, tabs)
+  const buttons = createCompanionShortcutSubpage(appId, tabs).buttons.filter(card => card.type !== "token_usage")
   if (appId !== chatgptAppId) return buttons
 
   // Keep the captured labels and the Approve shortcut, which was retired from the catalog.
