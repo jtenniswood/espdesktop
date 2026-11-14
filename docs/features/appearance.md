@@ -7,7 +7,7 @@ description:
 # Appearance
 
 The **Appearance** section is at the top of **Screen**. Its panels are
-**Active Colour**, **Card Style** (curve), **Theme**, [Idle](/features/idle) and [Clock Bar](/features/clock-bar).
+**Active Colour**, **Card Style** (curve), **Theme**, and [Clock Bar](/features/clock-bar).
 
 Cards use continuous corners, with the same proportions on the panel and
 setup-page preview. Choose **Card curve → Small, Medium or Large** in
@@ -15,7 +15,8 @@ setup-page preview. Choose **Card curve → Small, Medium or Large** in
 is saved on the display and survives restarts.
 
 All supported displays use continuous corners that ease gradually into the
-card edges. **Medium** is the default. Corner sizes in pixels are:
+card edges. **Large** is the default when the display has no saved choice.
+Corner sizes in pixels are:
 
 | Display | Small | Medium | Large |
 | --- | ---: | ---: | ---: |
@@ -33,19 +34,17 @@ support, and scales the card gaps to match the physical display. Selection
 outlines stay visible above every card type, including Cover Art. Selected-card
 and dashed empty-card outlines follow the chosen curve with even thickness.
 
-On the first boot after installing this update, new and existing displays switch
-to Medium once. Choices made afterward are saved across restarts and future updates.
-
 The curve setting is included in configuration backups. Restoring an older
 backup without it keeps the current choice. Change **Card Curve** in the web editor. Changes update the preview immediately
 and redraw the physical cards after the display's brief refresh delay.
 
-Find these controls in **Screen → Appearance** on the [Setup](/features/setup) page. Your selection is saved on the panel and applies without a reboot. Existing panels default to Dark.
+Find these controls in **Screen → Appearance** on the [Screen settings](/settings/screen#appearance) page. Your selection is saved on the panel and applies without a reboot. Existing panels default to Dark.
 
 ## App icon size
 
 Set **Screen → Appearance → Card Style → Default app icon size** to choose the
 starting size for Mac application artwork, including apps inside subpages.
+The default is **Large** when the display has no saved choice.
 Small keeps the original size; Medium enlarges it to 1.5× above the label;
 Large fills the available card area and hides the label.
 
@@ -78,7 +77,7 @@ Backups include the theme mode, automatic method, times and offsets. Older backu
 
 ## Active colour
 
-- **Primary** — the colour cards show when an entity is active. Choose from the same compact grid used in individual card settings. It contains 19 preset colours and a final swatch with an eyedropper icon that opens your browser's native colour picker for any colour, including white. A checkmark shows the selected preset; an accent outline highlights a custom colour. The orange swatch is `FF8C00`, the panel's default active colour.
+- **Primary**: the colour cards show when an entity is active. Choose from the same compact grid used in individual card settings. It contains 19 preset colours and a final swatch with an eyedropper icon that opens your browser's native colour picker for any colour, including white. A checkmark shows the selected preset; an accent outline highlights a custom colour. The orange swatch is `FF8C00`, the panel's default active colour.
 - Secondary inactive cards and tertiary information cards use fixed panel colours so setup stays simpler and modal styling remains consistent.
 
 The eyedropper swatch has a dashed border while empty and a solid border once a custom colour is chosen. Choosing a preset keeps the custom colour visible in the swatch while selecting the preset. Click the eyedropper again to restore that custom colour and open the picker. This retained colour is kept while editing the current panel; the selected colour is what is saved.

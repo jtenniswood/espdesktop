@@ -14,7 +14,7 @@ struct SubpageBtn {
   std::string icon_on;
   std::string sensor;     // sensor entity, cover/internal mode, or action name
   std::string unit;
-  std::string type;       // button type: "" (toggle), action, sensor, door_window, presence, calendar, timezone, weather_forecast, slider, light_brightness, light_switch, fan_*, cover, garage, gate, lock, alarm, alarm_action, media, push, webhook, internal, subpage
+  std::string type;       // button type: "" (toggle), action, door_window, presence, weather_forecast, slider, light_brightness, light_switch, fan_*, cover, garage, gate, lock, alarm, alarm_action, media, push, internal, subpage
   std::string precision;  // decimal places for sensor display; "text" = text sensor mode
   std::string options;    // comma-delimited card options
 };
@@ -53,6 +53,15 @@ inline std::string decode_compact_subpage_field(const std::string &value, size_t
 }
 
 inline SubpageBtn normalize_subpage_btn(SubpageBtn b) {
+  const std::string retired_type = retired_saved_card_type(b.type, b.entity);
+  if (retired_type == "companion_webapp" || retired_type == "companion_audio" ||
+      retired_type == "companion_window") {
+    b = SubpageBtn{};
+    b.type = retired_type;
+    b.icon = "Auto";
+    b.icon_on = "Auto";
+    return b;
+  }
   // Shared appearance options must survive the same cleanup as main cards.
   const std::string icon_size = cfg_option_value(b.options, "icon_size");
   std::string type_options;
@@ -357,8 +366,8 @@ inline std::string get_subpage_back_custom_label(const std::string &order_str) {
   return std::string{};
 }
 
-inline std::string get_subpage_back_label(const std::string &order_str, bool is_special_page = false) {
-  const std::string default_label = espdesktop_i18n(std::string(is_special_page ? "Close" : "Back"));
+inline std::string get_subpage_back_label(const std::string &order_str) {
+  const std::string default_label = espdesktop_i18n(std::string("Back"));
   if (order_str.empty()) return default_label;
   size_t st = 0;
   while (st <= order_str.length()) {
@@ -372,7 +381,7 @@ inline std::string get_subpage_back_label(const std::string &order_str, bool is_
           size_t label_end = order_str.find(':', label_start);
           if (label_end == std::string::npos || label_end > cm) label_end = cm;
           std::string label = decode_compact_subpage_field(order_str, label_start, label_end - label_start);
-          return label.empty() || (is_special_page && (label == "Back" || label == "Close")) ? default_label : label;
+          return label.empty() ? default_label : label;
         }
         return default_label;
       }
@@ -394,8 +403,8 @@ inline std::string get_subpage_back_color(const std::string &order_str) {
       if (label_start == std::string::npos) return "";
       const size_t separator = order_str.find(':', label_start);
       if (separator == std::string::npos || separator >= end) return "";
-      const size_t title_separator = order_str.find(':', separator + 1);
-      const size_t color_end = title_separator < end ? title_separator : end;
+      const size_t metadata_separator = order_str.find(':', separator + 1);
+      const size_t color_end = metadata_separator < end ? metadata_separator : end;
       return normalize_card_color_value(order_str.substr(separator + 1, color_end - separator - 1));
     }
     start = end + 1;
@@ -512,26 +521,6 @@ inline void normalize_subpage_order_spans(SubpageOrder &order, int num_slots,
   }
 }
 
-
-inline std::string get_subpage_title(const std::string &order_str) {
-  size_t start = 0;
-  while (start < order_str.size()) {
-    size_t end = order_str.find(',', start);
-    if (end == std::string::npos) end = order_str.size();
-    char suffix = '\0';
-    size_t label_start = std::string::npos;
-    if (subpage_back_token_span(order_str, start, end, suffix, &label_start) &&
-        label_start != std::string::npos) {
-      const size_t color = order_str.find(':', label_start);
-      if (color >= end) return "";
-      const size_t title = order_str.find(':', color + 1);
-      if (title >= end) return "";
-      return decode_compact_subpage_field(order_str, title + 1, end - title - 1);
-    }
-    start = end + 1;
-  }
-  return "";
-}
 
 #ifndef ESPDESKTOP_SUBPAGE_PARSER_ONLY
 

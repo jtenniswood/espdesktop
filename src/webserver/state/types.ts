@@ -32,7 +32,6 @@ export interface DeviceConfig {
   readonly dragAnimation: boolean;
   readonly imageSlotCapacity: number;
   readonly largeSensorUnitOffsetPercent?: number;
-  readonly coverArtSquareOverlay?: boolean;
   readonly disabledCardTypes?: readonly string[];
   readonly infoOnly?: boolean;
   readonly features?: DeviceConfigFeatures;
@@ -113,6 +112,7 @@ export interface SettingsDraft {
   isNew?: boolean;
   pos?: number;
   typeSelected?: boolean;
+  appShortcutPage?: number;
   autoSelectedButton?: CardConfig | null;
 }
 
@@ -149,22 +149,9 @@ export interface AppState {
   screensaverCameraImageMode: string;
   screensaverCameraDimming: number;
   screensaverCameraDimmingSupported: boolean;
-  mediaPlayerSleepPreventionOn: boolean;
-  mediaPlayerSleepPreventionEntity: string;
-  coverArtScreensaverOn: boolean;
-  coverArtSource: string;
   clockOverlayOn: boolean;
-  coverArtMediaPlayerEntity: string;
-  coverArtSecondaryMediaPlayerEntity: string;
-  coverArtAttributeConditions: string;
-  coverArtFilteringEnabled: boolean;
-  coverArtDelay: number;
-  coverArtPlaybackControlOn: boolean;
-  coverArtTrackOverlayDuration: number;
-  coverArtHideExternalInputOn: boolean;
   homeAssistantArtworkProtocol: string;
   homeAssistantArtworkHost: string;
-  coverArtHomeAssistantPort: number;
   homeAssistantArtworkEndpointMode: string;
   homeAssistantArtworkEndpointStatus: string;
   homeAssistantArtworkEndpointHealth: string;
@@ -183,7 +170,6 @@ export interface AppState {
   screensaverTimeoutMin: number;
   screensaverTimeoutMax: number;
   screensaverTimeoutLimitsLoaded: boolean;
-  homeScreenTimeout: number;
   brightnessDayVal: number;
   brightnessNightVal: number;
   brightnessMode: string;

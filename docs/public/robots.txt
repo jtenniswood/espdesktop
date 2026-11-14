@@ -1,0 +1,10 @@
+# Search and answer discovery
+User-agent: OAI-SearchBot
+User-agent: Claude-SearchBot
+Allow: /
+
+# Default crawl policy for public resources
+User-agent: *
+Allow: /
+
+Sitemap: https://espdesktop.com/sitemap.xml

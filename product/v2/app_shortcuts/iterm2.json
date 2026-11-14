@@ -3,30 +3,65 @@
   "appId": "com.googlecode.iterm2",
   "label": "iTerm2",
   "catalog": false,
+  "defaultShortcutIds": ["32", "0", "1", "2", "3", "33", "4", "6"],
   "shortcuts": [
     {
       "id": "0",
-      "label": "Split vertically",
+      "label": "Vertical Split",
       "shortcut": "command+d",
-      "icon": "Video"
+      "icon": "Split Vertical"
     },
     {
       "id": "1",
-      "label": "Split horizontally",
+      "label": "Horizontal Split",
       "shortcut": "command+shift+d",
-      "icon": "Application"
+      "icon": "Split Horizontal"
     },
     {
       "id": "2",
-      "label": "Maximize or restore the active pane",
+      "label": "Maximise Pane",
       "shortcut": "command+shift+enter",
-      "icon": "Application"
+      "icon": "Window Maximise"
     },
     {
       "id": "3",
-      "label": "Search the current session",
+      "label": "Find Text",
       "shortcut": "command+f",
       "icon": "Search"
     }
+  ],
+  "moreShortcuts": [
+    {"id": "4", "label": "Select next tab", "shortcut": "scoped.command+right", "icon": "Tab"},
+    {"id": "5", "label": "Select next tab", "shortcut": "scoped.command+shift+keybracketright", "icon": "Tab"},
+    {"id": "6", "label": "Select previous tab", "shortcut": "scoped.command+left", "icon": "Tab"},
+    {"id": "7", "label": "Select previous tab", "shortcut": "scoped.command+shift+keybracketleft", "icon": "Tab"},
+    {"id": "8", "label": "Select tab by 1", "shortcut": "scoped.command+1", "icon": "Tab"},
+    {"id": "9", "label": "Select tab by 2", "shortcut": "scoped.command+2", "icon": "Tab"},
+    {"id": "10", "label": "Select tab by 3", "shortcut": "scoped.command+3", "icon": "Tab"},
+    {"id": "11", "label": "Select tab by 4", "shortcut": "scoped.command+4", "icon": "Tab"},
+    {"id": "12", "label": "Select tab by 5", "shortcut": "scoped.command+5", "icon": "Tab"},
+    {"id": "13", "label": "Select tab by 6", "shortcut": "scoped.command+6", "icon": "Tab"},
+    {"id": "14", "label": "Select tab by 7", "shortcut": "scoped.command+7", "icon": "Tab"},
+    {"id": "15", "label": "Select tab by 8", "shortcut": "scoped.command+8", "icon": "Tab"},
+    {"id": "16", "label": "Select tab by 9", "shortcut": "scoped.command+9", "icon": "Tab"},
+    {"id": "17", "label": "Select window by 1", "shortcut": "scoped.command+option+1", "icon": "Group Selection"},
+    {"id": "18", "label": "Select window by 2", "shortcut": "scoped.command+option+2", "icon": "Group Selection"},
+    {"id": "19", "label": "Select window by 3", "shortcut": "scoped.command+option+3", "icon": "Group Selection"},
+    {"id": "20", "label": "Select window by 4", "shortcut": "scoped.command+option+4", "icon": "Group Selection"},
+    {"id": "21", "label": "Select window by 5", "shortcut": "scoped.command+option+5", "icon": "Group Selection"},
+    {"id": "22", "label": "Select window by 6", "shortcut": "scoped.command+option+6", "icon": "Group Selection"},
+    {"id": "23", "label": "Select window by 7", "shortcut": "scoped.command+option+7", "icon": "Group Selection"},
+    {"id": "24", "label": "Select window by 8", "shortcut": "scoped.command+option+8", "icon": "Group Selection"},
+    {"id": "25", "label": "Select window by 9", "shortcut": "scoped.command+option+9", "icon": "Group Selection"},
+    {"id": "26", "label": "Focus pane by direction Left", "shortcut": "scoped.command+option+left", "icon": "Application"},
+    {"id": "27", "label": "Focus pane by direction Right", "shortcut": "scoped.command+option+right", "icon": "Application"},
+    {"id": "28", "label": "Focus pane by direction Up", "shortcut": "scoped.command+option+up", "icon": "Application"},
+    {"id": "29", "label": "Focus pane by direction Down", "shortcut": "scoped.command+option+down", "icon": "Application"},
+    {"id": "30", "label": "Focus next recently used pane", "shortcut": "scoped.command+keybracketright", "icon": "Arrow Right"},
+    {"id": "31", "label": "Focus previous recently used pane", "shortcut": "scoped.command+keybracketleft", "icon": "Arrow Right"},
+    {"id": "32", "label": "Open Quickly", "shortcut": "scoped.command+shift+o", "icon": "Open File"},
+    {"id": "33", "label": "Open command history", "shortcut": "scoped.command+shift+keysemicolon", "icon": "Open File"},
+    {"id": "34", "label": "Autocomplete from command history", "shortcut": "scoped.command+keysemicolon", "icon": "Shortcut Command"},
+    {"id": "35", "label": "Toggle full screen", "shortcut": "scoped.command+enter", "icon": "Full Screen Exit"}
   ]
 }

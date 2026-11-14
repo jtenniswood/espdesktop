@@ -7,7 +7,6 @@
 # =============================================================================
 
 globals:
-  # Restored switches must not rewrite retired trigger values before migration.
   - id: local_display_policy_ready
     type: bool
     initial_value: 'false'
@@ -38,24 +37,9 @@ globals:
   - id: schedule_mode_clock
     type: bool
     initial_value: 'false'
-  - id: brightness_mode_migrated
-    type: bool
-    restore_value: true
-    initial_value: 'false'
-  - id: manual_brightness_pct
-    type: float
-    restore_value: true
-    initial_value: '100.0'
-  - id: brightness_last_automatic_uses_sun
-    type: bool
-    restore_value: true
-    initial_value: 'true'
   - id: brightness_mode_runtime_ready
     type: bool
     initial_value: 'false'
-  - id: brightness_mode_last_observed
-    type: std::string
-    initial_value: '"Sunrise and sunset"'
   - id: backlight_expected_internal_level
     type: float
     initial_value: '1.0'
@@ -102,110 +86,87 @@ esphome:
     # handler can decide whether it is safe to light the panel.
     - priority: -189
       then:
-        - lambda: |-
-            bool preferences_changed = false;
-            if (id(screensaver_mode).state == "sensor") {
-              auto call = id(screensaver_mode).make_call();
-              call.set_value("disabled");
-              call.perform();
-              preferences_changed = true;
-            }
-            if (screen_schedule_sensor_trigger(id(screen_schedule_trigger).state)) {
-              auto call = id(screen_schedule_trigger).make_call();
-              call.set_value("disabled");
-              call.perform();
-              id(schedule_enabled).turn_off();
-              preferences_changed = true;
-            }
-            if (preferences_changed) global_preferences->sync();
-            id(local_display_policy_ready) = true;
+        - lambda: 'id(local_display_policy_ready) = true;'
     - priority: -190
       then:
         - lambda: |-
-            // Read the persisted index before replacing the obsolete Sun
-            // value; ESPHome discards out-of-range indexes during setup.
-            size_t old_index;
-            auto preference = id(screen_theme_mode).make_entity_preference<size_t>();
-            ThemeSettings migrated;
-            if (preference.load(&old_index) && migrate_legacy_theme_index(old_index, migrated)) {
-              auto method = id(screen_theme_auto_method).make_call();
-              method.set_option("Sunrise / Sunset");
-              method.perform();
-              auto mode = id(screen_theme_mode).make_call();
-              mode.set_option("Auto");
-              mode.perform();
-              global_preferences->sync();
-            }
+            id(espdesktop_app).bind_screen_schedule(${screen_schedule_clock_default_brightness}, [](const espdesktop::ScreenSchedulePreferences &settings) {
+              id(schedule_on_hour).publish_state(settings.on_hour);
+              id(schedule_off_hour).publish_state(settings.off_hour);
+              id(schedule_mode_always_on) = settings.night_mode == espdesktop::ScheduledNightMode::DIMMED ||
+                  settings.night_mode == espdesktop::ScheduledNightMode::ALWAYS_ON;
+              id(schedule_mode_clock) = settings.night_mode == espdesktop::ScheduledNightMode::CLOCK;
+              id(schedule_mode).publish_state(espdesktop::scheduled_night_mode_option(settings.night_mode));
+              id(schedule_wake_timeout).publish_state(settings.wake_timeout);
+              id(schedule_wake_brightness).publish_state(settings.wake_brightness);
+              id(schedule_dimmed_brightness).publish_state(settings.dimmed_brightness);
+              id(schedule_clock_brightness).publish_state(settings.clock_brightness);
+              id(schedule_clock_text_color).publish_state(settings.clock_color.data());
+              id(screen_schedule_trigger).publish_state(settings.enabled ? "time" : "disabled");
+              id(schedule_enabled).publish_state(settings.enabled);
+              if (!id(brightness_mode_runtime_ready)) return;
+              id(screen_schedule_check).execute();
+              if (id(manual_wake_ms) != 0) {
+                id(screen_schedule_wake_timeout_check).execute();
+              } else {
+                id(screen_schedule_wake_timeout_check).stop();
+              }
+              const auto mode = id(espdesktop_app).display().current_mode();
+              if (mode == espdesktop::DisplayMode::CLOCK) {
+                id(clock_screensaver_refresh_brightness).execute();
+                id(clock_screensaver_update_time).execute();
+              } else if (mode == espdesktop::DisplayMode::ACTIVE) {
+                id(backlight_apply_brightness).execute();
+              }
+            });
         - lambda: |-
+            id(espdesktop_app).bind_display_theme_preferences(
+              [](const ThemeSettings &settings) {
+                id(screen_theme_mode).publish_state(espdesktop::display_theme_mode_option(settings.mode));
+                id(screen_theme_auto_method).publish_state(espdesktop::display_theme_method_option(settings.auto_method));
+                id(screen_theme_light_start).publish_state(espdesktop::display_theme_time_option(settings.light_start));
+                id(screen_theme_dark_start).publish_state(espdesktop::display_theme_time_option(settings.dark_start));
+                id(screen_theme_sunrise_offset).publish_state(settings.sunrise_offset);
+                id(screen_theme_sunset_offset).publish_state(settings.sunset_offset);
+                id(theme_settings_refresh).execute();
+              });
+        - lambda: |-
+            id(espdesktop_app).bind_display_brightness_preferences([](const espdesktop::DisplayBrightnessPreferences &settings) {
+              id(brightness_mode).publish_state(settings.mode());
+              id(brightness_day).publish_state(settings.daytime);
+              id(brightness_night).publish_state(settings.nighttime);
+              id(brightness_dawn_time).publish_state(espdesktop::display_theme_time_option(settings.dawn_minute));
+              id(brightness_dusk_time).publish_state(espdesktop::display_theme_time_option(settings.dusk_minute));
+              if (!id(brightness_mode_runtime_ready)) return;
+              id(backlight_apply_brightness).execute();
+              const auto mode = id(espdesktop_app).display().current_mode();
+              if (mode == espdesktop::DisplayMode::DIMMED) id(screensaver_dimmed_refresh_brightness).execute();
+              if (mode == espdesktop::DisplayMode::CLOCK) id(clock_screensaver_refresh_brightness).execute();
+            });
             settings_backlight_service().read = []() {
+              const auto &settings = id(espdesktop_app).display_brightness_preferences();
               SettingsBacklightState state;
               state.available = true;
-              const bool manual = brightness_mode_manual(id(brightness_mode).current_option());
-              state.level = manual ? SettingsBacklightLevel::MANUAL
+              state.level = settings.manual ? SettingsBacklightLevel::MANUAL
                   : id(last_is_daytime) ? SettingsBacklightLevel::DAYTIME : SettingsBacklightLevel::NIGHTTIME;
-              state.percent = manual ? id(manual_brightness_pct)
-                  : id(last_is_daytime) ? id(brightness_day).state : id(brightness_night).state;
+              state.percent = settings.manual ? settings.manual_percent()
+                  : id(last_is_daytime) ? settings.daytime : settings.nighttime;
               return state;
             };
             settings_backlight_service().write = [](SettingsBacklightLevel level, int percent) {
-              const auto active = settings_backlight_service().read();
-              if (active.level != level) return;
+              if (settings_backlight_service().read().level != level) return;
               percent = settings_backlight_percent(level, percent);
+              auto &app = *id(espdesktop_app);
               if (level == SettingsBacklightLevel::MANUAL) {
-                id(manual_brightness_pct) = percent;
-                id(backlight_apply_brightness).execute();
+                app.edit_manual_brightness(percent / 100.0f);
               } else {
-                auto *setting = level == SettingsBacklightLevel::DAYTIME ? id(brightness_day) : id(brightness_night);
-                auto call = setting->make_call();
-                call.set_value(percent);
-                call.perform();
+                using Settings = espdesktop::DisplayBrightnessPreferences;
+                app.edit_display_brightness_preference(
+                    level == SettingsBacklightLevel::DAYTIME ? &Settings::daytime : &Settings::nighttime,
+                    static_cast<unsigned>(percent));
               }
             };
-        - lambda: |-
-            if (!id(brightness_mode_migrated)) {
-              const char *migrated_mode = id(automatic_brightness_legacy).state
-                  ? "Sunrise and sunset" : "Fixed times";
-              auto mode_call = id(brightness_mode).make_call();
-              mode_call.set_option(migrated_mode);
-              mode_call.perform();
-              id(brightness_last_automatic_uses_sun) =
-                  id(automatic_brightness_legacy).state;
-              id(brightness_mode_migrated) = true;
-              global_preferences->sync();
-            }
-            std::string mode = normalize_brightness_mode(
-                id(brightness_mode).current_option());
-            id(brightness_mode_last_observed) = mode;
-            if (!brightness_mode_manual(mode)) {
-              id(brightness_last_automatic_uses_sun) =
-                  brightness_mode_uses_sun(mode);
-            }
             id(brightness_mode_runtime_ready) = true;
-        - lambda: |-
-            std::string mode = id(schedule_mode).current_option();
-            id(schedule_mode_always_on) = screen_schedule_always_on_mode(mode);
-            id(schedule_mode_clock) = screen_schedule_clock_mode(mode);
-        - if:
-            condition:
-              lambda: 'return id(schedule_enabled).state && screen_schedule_disabled_trigger(id(screen_schedule_trigger).state);'
-            then:
-              - lambda: |-
-                  auto call = id(screen_schedule_trigger).make_call();
-                  call.set_value("time");
-                  call.perform();
-        - lambda: |-
-            auto now = id(panel_time).now();
-            const bool waiting_for_time = screen_schedule_waiting_for_time(
-                id(screen_schedule_trigger).state, id(schedule_enabled).state, now.is_valid());
-            const bool schedule_night = screen_schedule_night_active(
-                id(screen_schedule_trigger).state,
-                id(schedule_enabled).state,
-                false,
-                now.is_valid(),
-                now.is_valid() ? now.hour : 0,
-                (int) id(schedule_on_hour).state,
-                (int) id(schedule_off_hour).state,
-                "Sensor Off");
         - script.execute: screen_schedule_boot_guard
     - priority: -110
       then:
@@ -218,53 +179,26 @@ esphome:
 # =============================================================================
 
 switch:
-  # One-release migration shim. It retains the previous preference key but is
-  # internal, so the obsolete Home Assistant switch disappears immediately.
-  - platform: template
-    name: "Screen: Automatic Brightness"
-    id: automatic_brightness_legacy
-    internal: true
-    optimistic: true
-    restore_mode: RESTORE_DEFAULT_ON
-
   - platform: template
     name: "${entity_screen_schedule_enabled}"
     internal: true
     id: schedule_enabled
-    optimistic: true
-    restore_mode: RESTORE_DEFAULT_OFF
+    optimistic: false
+    # The saved panel configuration publishes the switch state at startup.
+    restore_mode: DISABLED
     entity_category: config
     icon: "mdi:calendar-clock"
     web_server:
       sorting_group_id: sg_brightness
-    on_turn_on:
-      - if:
-          condition:
-            lambda: 'return id(local_display_policy_ready);'
-          then:
-            - if:
-                condition:
-                  lambda: 'return screen_schedule_disabled_trigger(id(screen_schedule_trigger).state);'
-                then:
-                  - lambda: |-
-                      auto call = id(screen_schedule_trigger).make_call();
-                      call.set_value("time");
-                      call.perform();
-                else:
-                  - script.execute: screen_schedule_check
+    turn_on_action:
+      - lambda: 'id(espdesktop_app).edit_screen_schedule_preference(&espdesktop::ScreenSchedulePreferences::enabled, true);'
+    turn_off_action:
+      - lambda: 'id(espdesktop_app).edit_screen_schedule_preference(&espdesktop::ScreenSchedulePreferences::enabled, false);'
     on_turn_off:
       - if:
           condition:
             lambda: 'return id(local_display_policy_ready);'
           then:
-            - if:
-                condition:
-                  lambda: 'return !screen_schedule_disabled_trigger(id(screen_schedule_trigger).state);'
-                then:
-                  - lambda: |-
-                      auto call = id(screen_schedule_trigger).make_call();
-                      call.set_value("disabled");
-                      call.perform();
             - lambda: |-
                 id(espdesktop_app).display().clear(
                     espdesktop::DisplayRequestSource::MANUAL_SLEEP);
@@ -290,8 +224,7 @@ select:
     id: screen_theme_mode
     entity_category: config
     icon: "mdi:theme-light-dark"
-    optimistic: true
-    restore_value: true
+    restore_value: false
     initial_option: "Dark"
     options:
       - "Dark"
@@ -299,34 +232,35 @@ select:
       - "Auto"
     web_server:
       sorting_group_id: sg_brightness
-    on_value:
-      then:
-        - script.execute: theme_settings_refresh
+    set_action:
+      - lambda: |-
+          id(espdesktop_app).edit_display_theme_preference(
+                  &ThemeSettings::mode, parse_theme_mode(x.c_str()));
 
   - platform: template
     name: "${entity_screen_theme_auto_method}"
     id: screen_theme_auto_method
     entity_category: config
     icon: "mdi:clock-outline"
-    optimistic: true
-    restore_value: true
+    restore_value: false
     initial_option: "Time"
     options:
       - "Time"
       - "Sunrise / Sunset"
     web_server:
       sorting_group_id: sg_brightness
-    on_value:
-      then:
-        - script.execute: theme_settings_refresh
+    set_action:
+      - lambda: |-
+          id(espdesktop_app).edit_display_theme_preference(
+                  &ThemeSettings::auto_method, parse_theme_auto_method(x.c_str()));
 
   - platform: template
     name: "${entity_screen_brightness_mode}"
     id: brightness_mode
     entity_category: config
     icon: "mdi:brightness-auto"
-    optimistic: true
-    restore_value: true
+    optimistic: false
+    restore_value: false
     initial_option: "Sunrise and sunset"
     options:
       - "Manual"
@@ -334,34 +268,27 @@ select:
       - "Fixed times"
     web_server:
       sorting_group_id: sg_brightness
-    on_value:
-      then:
-        - lambda: |-
-            std::string mode = normalize_brightness_mode(x);
-            if (id(brightness_mode_runtime_ready) &&
-                brightness_mode_manual(mode) &&
-                !brightness_mode_manual(id(brightness_mode_last_observed))) {
-              float current = id(display_backlight).remote_values.get_brightness();
-              if (std::isnan(current) || current <= 0.0f) {
-                current = id(display_backlight).current_values.get_brightness();
-              }
-              if (!std::isnan(current) && current > 0.0f) {
-                if (current > 1.0f) current = 1.0f;
-                id(manual_brightness_pct) = current * 100.0f;
-              }
-            } else if (!brightness_mode_manual(mode)) {
-              id(brightness_last_automatic_uses_sun) =
-                  brightness_mode_uses_sun(mode);
+    set_action:
+      - lambda: |-
+          auto &app = *id(espdesktop_app);
+          auto next = app.display_brightness_preferences();
+          if (x == "Manual") {
+            if (next.manual) return;
+            float current = id(display_backlight).remote_values.get_brightness();
+            if (!std::isfinite(current) || current <= 0.0f)
+              current = id(display_backlight).current_values.get_brightness();
+            if (std::isfinite(current) && current > 0.0f) {
+              app.edit_manual_brightness(current);
+              return;
             }
-            id(brightness_mode_last_observed) = mode;
-        - script.execute: backlight_apply_brightness
-        - if:
-            condition:
-              lambda: |-
-                return id(espdesktop_app).display().current_mode_is(
-                    espdesktop::DisplayMode::DIMMED);
-            then:
-              - script.execute: screensaver_dimmed_refresh_brightness
+            next.manual = true;
+          } else {
+            const bool use_sun = x == "Sunrise and sunset";
+            if (!next.manual && next.use_sun == use_sun) return;
+            next.manual = false;
+            next.use_sun = use_sun;
+          }
+          app.save_display_brightness_preferences(next);
 
   - platform: template
     name: "${entity_screen_schedule_mode}"
@@ -369,9 +296,9 @@ select:
     id: schedule_mode
     entity_category: config
     icon: "mdi:theme-light-dark"
-    optimistic: true
-    restore_value: true
-    initial_option: "Screen off"
+    optimistic: false
+    restore_value: false
+    initial_option: "Screen Dimmed"
     options:
       - "Screen off"
       - "Screen Dimmed"
@@ -379,19 +306,17 @@ select:
       - "Clock"
     web_server:
       sorting_group_id: sg_brightness
-    on_value:
-      then:
-        - lambda: |-
-            std::string mode = id(schedule_mode).current_option();
-            id(schedule_mode_always_on) = screen_schedule_always_on_mode(mode);
-            id(schedule_mode_clock) = screen_schedule_clock_mode(mode);
-        - script.execute: screen_schedule_check
+    set_action:
+      - lambda: |-
+          id(espdesktop_app).edit_screen_schedule_preference(
+              &espdesktop::ScreenSchedulePreferences::night_mode,
+              espdesktop::scheduled_night_mode_from_option(std::string_view(x.c_str(), x.size())));
 
 text:
   - platform: template
     name: "${entity_screen_theme_light_start}"
     id: screen_theme_light_start
-    restore_value: true
+    restore_value: false
     initial_value: "07:00"
     min_length: 5
     max_length: 5
@@ -408,13 +333,13 @@ text:
             ESP_LOGW("theme", "Rejected invalid Light start time: %s", x.c_str());
             return;
           }
-          id(screen_theme_light_start).publish_state(x);
-          id(theme_settings_refresh).execute();
+          id(espdesktop_app).edit_display_theme_preference(
+                  &ThemeSettings::light_start, minute);
 
   - platform: template
     name: "${entity_screen_theme_dark_start}"
     id: screen_theme_dark_start
-    restore_value: true
+    restore_value: false
     initial_value: "20:00"
     min_length: 5
     max_length: 5
@@ -431,15 +356,15 @@ text:
             ESP_LOGW("theme", "Rejected invalid Dark start time: %s", x.c_str());
             return;
           }
-          id(screen_theme_dark_start).publish_state(x);
-          id(theme_settings_refresh).execute();
+          id(espdesktop_app).edit_display_theme_preference(
+                  &ThemeSettings::dark_start, minute);
 
   - platform: template
     name: "${entity_screen_schedule_trigger}"
     internal: true
     id: screen_schedule_trigger
-    optimistic: true
-    restore_value: true
+    optimistic: false
+    restore_value: false
     initial_value: "disabled"
     min_length: 0
     max_length: 10
@@ -449,23 +374,17 @@ text:
     update_interval: never
     web_server:
       sorting_group_id: sg_brightness
-    on_value:
-      then:
-        - if:
-            condition:
-              lambda: 'return screen_schedule_disabled_trigger(id(screen_schedule_trigger).state);'
-            then:
-              - switch.turn_off: schedule_enabled
-            else:
-              - switch.turn_on: schedule_enabled
-        - script.execute: screen_schedule_check
+    set_action:
+      - lambda: |-
+          id(espdesktop_app).edit_screen_schedule_preference(
+              &espdesktop::ScreenSchedulePreferences::enabled, screen_schedule_time_trigger(x));
 
   - platform: template
     name: "${entity_screen_schedule_clock_text_color}"
     internal: true
     id: schedule_clock_text_color
-    optimistic: true
-    restore_value: true
+    optimistic: false
+    restore_value: false
     initial_value: "FFFFFF"
     min_length: 6
     max_length: 6
@@ -475,26 +394,20 @@ text:
     update_interval: never
     web_server:
       sorting_group_id: sg_brightness
-    on_value:
-      then:
-        - if:
-            condition:
-              lambda: |-
-                const auto mode = id(espdesktop_app).display().current_mode();
-                return mode == espdesktop::DisplayMode::CLOCK;
-            then:
-              - lambda: |-
-                  apply_clock_screensaver_text_color(
-                      id(clock_label), id(schedule_clock_text_color).state);
-                  apply_clock_screensaver_text_color(
-                      id(clock_date_label), id(schedule_clock_text_color).state);
+    set_action:
+      - lambda: |-
+          std::array<char, 7> color{};
+          if (!espdesktop::panel_settings::is_hex(x, color.size() - 1)) return;
+          x.copy(color.data(), color.size() - 1);
+          id(espdesktop_app).edit_screen_schedule_preference(
+              &espdesktop::ScreenSchedulePreferences::clock_color, color);
 
   - platform: template
     name: "${entity_screen_brightness_dawn_time}"
     internal: true
     id: brightness_dawn_time
-    optimistic: true
-    restore_value: true
+    optimistic: false
+    restore_value: false
     initial_value: "06:00"
     min_length: 5
     max_length: 5
@@ -504,16 +417,19 @@ text:
     update_interval: never
     web_server:
       sorting_group_id: sg_brightness
-    on_value:
-      then:
-        - script.execute: backlight_apply_brightness
+    set_action:
+      - lambda: |-
+          int hour, minute;
+          if (!parse_time_of_day(std::string(x.c_str(), x.size()), hour, minute)) return;
+          id(espdesktop_app).edit_display_brightness_preference(
+              &espdesktop::DisplayBrightnessPreferences::dawn_minute, static_cast<unsigned>(hour * 60 + minute));
 
   - platform: template
     name: "${entity_screen_brightness_dusk_time}"
     internal: true
     id: brightness_dusk_time
-    optimistic: true
-    restore_value: true
+    optimistic: false
+    restore_value: false
     initial_value: "18:00"
     min_length: 5
     max_length: 5
@@ -523,9 +439,12 @@ text:
     update_interval: never
     web_server:
       sorting_group_id: sg_brightness
-    on_value:
-      then:
-        - script.execute: backlight_apply_brightness
+    set_action:
+      - lambda: |-
+          int hour, minute;
+          if (!parse_time_of_day(std::string(x.c_str(), x.size()), hour, minute)) return;
+          id(espdesktop_app).edit_display_brightness_preference(
+              &espdesktop::DisplayBrightnessPreferences::dusk_minute, static_cast<unsigned>(hour * 60 + minute));
 
 number:
   - platform: template
@@ -535,7 +454,7 @@ number:
     max_value: 180
     step: 1
     initial_value: 0
-    restore_value: true
+    restore_value: false
     unit_of_measurement: min
     entity_category: config
     icon: "mdi:weather-sunset-up"
@@ -548,8 +467,8 @@ number:
             ESP_LOGW("theme", "Rejected invalid sunrise offset: %.1f", x);
             return;
           }
-          id(screen_theme_sunrise_offset).publish_state(x);
-          id(theme_settings_refresh).execute();
+          id(espdesktop_app).edit_display_theme_preference(
+                  &ThemeSettings::sunrise_offset, offset);
 
   - platform: template
     name: "${entity_screen_theme_sunset_offset}"
@@ -558,7 +477,7 @@ number:
     max_value: 180
     step: 1
     initial_value: 0
-    restore_value: true
+    restore_value: false
     unit_of_measurement: min
     entity_category: config
     icon: "mdi:weather-sunset-down"
@@ -571,8 +490,8 @@ number:
             ESP_LOGW("theme", "Rejected invalid sunset offset: %.1f", x);
             return;
           }
-          id(screen_theme_sunset_offset).publish_state(x);
-          id(theme_settings_refresh).execute();
+          id(espdesktop_app).edit_display_theme_preference(
+                  &ThemeSettings::sunset_offset, offset);
 
   - platform: template
     name: "${entity_screen_schedule_on_hour}"
@@ -581,16 +500,17 @@ number:
     min_value: 0
     max_value: 23
     step: 1
-    initial_value: 6
-    optimistic: true
-    restore_value: true
+    initial_value: 7
+    optimistic: false
+    restore_value: false
     entity_category: config
     icon: "mdi:weather-sunset-up"
     web_server:
       sorting_group_id: sg_brightness
-    on_value:
-      then:
-        - script.execute: screen_schedule_check
+    set_action:
+      - lambda: |-
+          id(espdesktop_app).edit_screen_schedule_number(
+              &espdesktop::ScreenSchedulePreferences::on_hour, x);
 
   - platform: template
     name: "${entity_screen_schedule_off_hour}"
@@ -599,16 +519,17 @@ number:
     min_value: 0
     max_value: 23
     step: 1
-    initial_value: 23
-    optimistic: true
-    restore_value: true
+    initial_value: 19
+    optimistic: false
+    restore_value: false
     entity_category: config
     icon: "mdi:weather-night"
     web_server:
       sorting_group_id: sg_brightness
-    on_value:
-      then:
-        - script.execute: screen_schedule_check
+    set_action:
+      - lambda: |-
+          id(espdesktop_app).edit_screen_schedule_number(
+              &espdesktop::ScreenSchedulePreferences::off_hour, x);
 
   - platform: template
     name: "${entity_screen_schedule_wake_timeout}"
@@ -618,20 +539,17 @@ number:
     max_value: 3600
     step: 10
     initial_value: 60
-    optimistic: true
-    restore_value: true
+    optimistic: false
+    restore_value: false
     unit_of_measurement: s
     entity_category: config
     icon: "mdi:timer-outline"
     web_server:
       sorting_group_id: sg_brightness
-    on_value:
-      then:
-        - if:
-            condition:
-              lambda: 'return id(manual_wake_ms) != 0;'
-            then:
-              - script.execute: screen_schedule_wake_timeout_check
+    set_action:
+      - lambda: |-
+          id(espdesktop_app).edit_screen_schedule_number(
+              &espdesktop::ScreenSchedulePreferences::wake_timeout, x);
 
   - platform: template
     name: "${entity_screen_schedule_wake_brightness}"
@@ -641,20 +559,17 @@ number:
     max_value: 100
     step: 5
     initial_value: 10
-    optimistic: true
-    restore_value: true
+    optimistic: false
+    restore_value: false
     unit_of_measurement: "%"
     entity_category: config
     icon: "mdi:brightness-5"
     web_server:
       sorting_group_id: sg_brightness
-    on_value:
-      then:
-        - if:
-            condition:
-              lambda: 'return id(manual_wake_ms) != 0;'
-            then:
-              - script.execute: backlight_apply_brightness
+    set_action:
+      - lambda: |-
+          id(espdesktop_app).edit_screen_schedule_number(
+              &espdesktop::ScreenSchedulePreferences::wake_brightness, x);
 
   - platform: template
     name: "${entity_screen_schedule_dimmed_brightness}"
@@ -663,34 +578,18 @@ number:
     min_value: 1
     max_value: 100
     step: 1
-    initial_value: 10
-    optimistic: true
-    restore_value: true
+    initial_value: 15
+    optimistic: false
+    restore_value: false
     unit_of_measurement: "%"
     entity_category: config
     icon: "mdi:brightness-4"
     web_server:
       sorting_group_id: sg_brightness
-    on_value:
-      then:
-        - if:
-            condition:
-              lambda: |-
-                if (!id(espdesktop_app).display().current_mode_is(
-                      espdesktop::DisplayMode::ACTIVE)) return false;
-                auto now = id(panel_time).now();
-                return screen_schedule_night_active(
-                         id(screen_schedule_trigger).state,
-                         id(schedule_enabled).state,
-                         false,
-                         now.is_valid(),
-                         now.is_valid() ? now.hour : 0,
-                         (int) id(schedule_on_hour).state,
-                         (int) id(schedule_off_hour).state,
-                         "Sensor Off") &&
-                       id(schedule_mode_always_on);
-            then:
-              - script.execute: backlight_apply_brightness
+    set_action:
+      - lambda: |-
+          id(espdesktop_app).edit_screen_schedule_number(
+              &espdesktop::ScreenSchedulePreferences::dimmed_brightness, x);
 
   - platform: template
     name: "${entity_screen_schedule_clock_brightness}"
@@ -700,22 +599,17 @@ number:
     max_value: 100
     step: 1
     initial_value: ${screen_schedule_clock_default_brightness}
-    optimistic: true
-    restore_value: true
+    optimistic: false
+    restore_value: false
     unit_of_measurement: "%"
     entity_category: config
     icon: "mdi:clock-outline"
     web_server:
       sorting_group_id: sg_brightness
-    on_value:
-      then:
-        - if:
-            condition:
-              lambda: |-
-                return id(espdesktop_app).display().current_mode_is(
-                    espdesktop::DisplayMode::CLOCK);
-            then:
-              - script.execute: clock_screensaver_refresh_brightness
+    set_action:
+      - lambda: |-
+          id(espdesktop_app).edit_screen_schedule_number(
+              &espdesktop::ScreenSchedulePreferences::clock_brightness, x);
 
   - platform: template
     name: "${entity_screen_daytime_brightness}"
@@ -725,16 +619,18 @@ number:
     max_value: 100
     step: 5
     initial_value: 100
-    optimistic: true
-    restore_value: true
+    optimistic: false
+    restore_value: false
     unit_of_measurement: "%"
     entity_category: config
     icon: "mdi:brightness-7"
     web_server:
       sorting_group_id: sg_brightness
-    on_value:
-      then:
-        - script.execute: backlight_apply_brightness
+    set_action:
+      - lambda: |-
+          if (!(x >= 10.0f && x <= 100.0f && std::floor(x) == x)) return;
+          id(espdesktop_app).edit_display_brightness_preference(
+              &espdesktop::DisplayBrightnessPreferences::daytime, static_cast<unsigned>(x));
 
   - platform: template
     name: "${entity_screen_nighttime_brightness}"
@@ -744,16 +640,18 @@ number:
     max_value: 100
     step: 5
     initial_value: 75
-    optimistic: true
-    restore_value: true
+    optimistic: false
+    restore_value: false
     unit_of_measurement: "%"
     entity_category: config
     icon: "mdi:brightness-4"
     web_server:
       sorting_group_id: sg_brightness
-    on_value:
-      then:
-        - script.execute: backlight_apply_brightness
+    set_action:
+      - lambda: |-
+          if (!(x >= 10.0f && x <= 100.0f && std::floor(x) == x)) return;
+          id(espdesktop_app).edit_display_brightness_preference(
+              &espdesktop::DisplayBrightnessPreferences::nighttime, static_cast<unsigned>(x));
 
 # =============================================================================
 # SCRIPTS
@@ -764,23 +662,12 @@ script:
     mode: restart
     then:
       - lambda: |-
-          ThemeSettings settings;
-          settings.mode = parse_theme_mode(id(screen_theme_mode).current_option());
-          settings.auto_method = parse_theme_auto_method(id(screen_theme_auto_method).current_option());
-          // Invalid restored values keep the documented defaults. New writes
-          // are rejected by the text entities above.
-          parse_theme_time(id(screen_theme_light_start).state, settings.light_start);
-          parse_theme_time(id(screen_theme_dark_start).state, settings.dark_start);
-          bool offsets_valid = true;
-          if (id(screen_theme_sunrise_offset).has_state())
-            offsets_valid &= parse_theme_sun_offset(id(screen_theme_sunrise_offset).state, settings.sunrise_offset);
-          if (id(screen_theme_sunset_offset).has_state())
-            offsets_valid &= parse_theme_sun_offset(id(screen_theme_sunset_offset).state, settings.sunset_offset);
+          const auto &settings = id(espdesktop_app).display_theme_preferences();
           auto now = id(panel_time).now();
           ThemeConditions conditions;
           conditions.time_valid = now.is_valid();
           if (conditions.time_valid) conditions.local_minute = now.hour * 60 + now.minute;
-          conditions.sun_valid = id(theme_solar_valid) && offsets_valid;
+          conditions.sun_valid = id(theme_solar_valid);
           conditions.sunrise_minute = id(sunrise_hour) * 60 + id(sunrise_minute);
           conditions.sunset_minute = id(sunset_hour) * 60 + id(sunset_minute);
           apply_theme_resolution(current_theme_resolver(), settings, conditions);
@@ -828,16 +715,7 @@ script:
             return;
           }
 
-          id(manual_brightness_pct) = requested * 100.0f;
-          std::string mode = normalize_brightness_mode(
-              id(brightness_mode).current_option());
-          if (brightness_mode_manual(mode)) return;
-
-          id(brightness_last_automatic_uses_sun) = brightness_mode_uses_sun(mode);
-          id(brightness_mode_last_observed) = "Manual";
-          auto mode_call = id(brightness_mode).make_call();
-          mode_call.set_option("Manual");
-          mode_call.perform();
+          id(espdesktop_app).edit_manual_brightness(requested);
 
   # ---------------------------------------------------------------------------
   # Keep the backlight dark after reboot until valid time confirms the schedule.
@@ -888,7 +766,6 @@ script:
       - globals.set: { id: manual_wake_ms, value: '0' }
       - script.execute: display_mode_reconcile
       - script.wait: display_mode_apply_transition
-      - script.execute: home_screen_idle_check
 
   # ---------------------------------------------------------------------------
   # Show the clock during the scheduled night period
@@ -897,7 +774,6 @@ script:
     mode: restart
     then:
       - script.stop: screensaver_idle_check
-      - script.stop: home_screen_idle_check
       - script.stop: screen_schedule_wake_timeout_check
       - lambda: |-
           id(espdesktop_app).display().clear(
@@ -950,7 +826,9 @@ script:
           if (std::isnan(timeout_s) || timeout_s <= 0) timeout_s = 60;
           if (timeout_s < 10) timeout_s = 10;
           if (timeout_s > 3600) timeout_s = 3600;
-          return (int) (timeout_s * 1000.0f);
+          const uint32_t timeout_ms = static_cast<uint32_t>(timeout_s * 1000.0f);
+          const uint32_t elapsed = id(manual_wake_ms) == 0 ? 0 : millis() - id(manual_wake_ms);
+          return elapsed < timeout_ms ? timeout_ms - elapsed : 0;
       - lambda: |-
           if (!id(schedule_enabled).state || id(manual_wake_ms) == 0 ||
               id(espdesktop_app).display().request_active(
@@ -992,9 +870,7 @@ script:
     then:
       - lambda: |-
           if (!id(espdesktop_app).display().target_mode_is(
-                espdesktop::DisplayMode::ACTIVE) &&
-              !id(espdesktop_app).display().target_mode_is(
-                espdesktop::DisplayMode::COVER_ART)) return;
+                espdesktop::DisplayMode::ACTIVE)) return;
           const bool onboarding = id(espdesktop_app).display().target_source_is(
               espdesktop::DisplayRequestSource::ONBOARDING);
           auto now = id(panel_time).now();
@@ -1034,14 +910,14 @@ script:
                        "Sensor Off") &&
                      id(schedule_mode_always_on)) {
             pct = id(schedule_dimmed_brightness).state;
-            if (std::isnan(pct) || pct <= 0) pct = 10;
+            if (std::isnan(pct) || pct <= 0) pct = 15;
             if (pct < 1) pct = 1;
             if (pct > 100) pct = 100;
           } else {
             std::string mode = normalize_brightness_mode(
                 id(brightness_mode).current_option());
             if (brightness_mode_manual(mode)) {
-              pct = id(manual_brightness_pct);
+              pct = id(espdesktop_app).display_brightness_preferences().manual_percent();
               if (std::isnan(pct) || pct <= 0.0f) pct = 100.0f;
               if (pct < 1.0f) pct = 1.0f;
               if (pct > 100.0f) pct = 100.0f;

@@ -9,6 +9,8 @@ from pathlib import Path
 
 import yaml
 
+from release_devices import load_release_devices
+
 import device_matrix
 import generate_device_slots
 from device_profiles import (
@@ -153,7 +155,11 @@ def test_public_device_capabilities(profile_slugs: list[str]) -> None:
         else:
             assert "Touch subpages are not available" in grid, f"{stem}: grid snippet missing no-subpage note"
         assert "| Capability | Value |" not in grid, f"{stem}: grid snippet must not include a device specs table"
-        assert f'slug="{capability["installSlug"]}"' in install, f"{stem}: install snippet missing slug"
+        if capability["installSlug"] in load_release_devices():
+            assert f'slug="{capability["installSlug"]}"' in install, f"{stem}: install snippet missing slug"
+        else:
+            assert "planned for a future release" in install
+            assert "<EspInstallButton" not in install
 
 
 def test_generated_web(profiles: dict[str, dict]) -> None:
@@ -194,9 +200,13 @@ def test_generated_web(profiles: dict[str, dict]) -> None:
             build = (ROOT / "builds" / f"{slug}{suffix}").read_text(encoding="utf-8")
             assert 'docs/public/webserver/embedded/www.js"' in build, f"{slug}{suffix}: firmware does not embed its offline editor"
         factory = (ROOT / "builds" / f"{slug}.factory.yaml").read_text(encoding="utf-8")
-        assert "webserver/www.js?device=${device_slug}&v=${firmware_version}" in factory, (
-            f"{slug}.factory.yaml: release firmware does not request its compatible hosted editor"
-        )
+        if slug == "guition-esp32-s3-4848s040":
+            web = yaml.load(factory, Loader=yaml.BaseLoader)["web_server"]
+            assert web["js_url"] == "", f"{slug}.factory.yaml: the public S3 must start its embedded editor"
+        else:
+            assert "webserver/www.js?device=${device_slug}&v=${firmware_version}" in factory, (
+                f"{slug}.factory.yaml: firmware does not request its compatible hosted editor"
+            )
 
 
 def test_web_server_request_limits() -> None:
@@ -244,10 +254,6 @@ def test_s3_low_heap_policy() -> None:
     )
     assert "falling back to internal RAM" in artwork and "config.buffer_size = HTTP_CLIENT_BUFFER_SIZE" in artwork, (
         "S3 artwork transfer must retain an internal-stack fallback and bounded HTTP buffer"
-    )
-    companion_handlers = device.split("register_companion_now_playing_handlers", 1)[0]
-    assert "priority: 190" in companion_handlers[-320:], (
-        "S3 Companion handlers must register after the EspDesktop owner starts at priority 200"
     )
     companion_header = (ROOT / "components" / "companion" / "companion.h").read_text(encoding="utf-8")
     assert "setup_priority::AFTER_WIFI - 1.0f" in companion_header, (
@@ -537,17 +543,12 @@ def test_square_s3_reapplies_clock_bar_after_screen_changes() -> None:
     sensors = (ROOT / "devices" / slug / "device" / "sensors.yaml").read_text(encoding="utf-8")
     device = (ROOT / "devices" / slug / "device" / "device.yaml").read_text(encoding="utf-8")
     assert (
-        "grid_rebuild_all(slots, cfg, sp_cfgs, sp_ext, sp_ext2, sp_ext3, nullptr, nullptr, nullptr, nullptr,\n"
-        "            id(button_order).state,\n"
-        "            id(button_on_color).state,\n"
-        "            id(main_page)->obj);\n"
+        "- lambda: 'grid_run_board(GridBoardOperation::REBUILD);'\n"
         "      - script.execute: clock_bar_apply"
     ) in sensors, "S3 grid refresh must rebuild safely and reapply the fixed clock bar"
     assert (
-        "grid_phase2(slots, cfg, sp_cfgs, sp_ext, sp_ext2, sp_ext3,\n"
-        "              id(button_order).state,\n"
-        "              id(button_on_color).state,\n"
-        "              id(main_page)->obj);\n"
+        "grid_run_board(GridBoardOperation::INITIAL_SUBPAGES);\n"
+        "            // END GENERATED PHASE 2 GRID WIRING\n"
         "        - script.execute: clock_bar_apply"
     ) in sensors, "S3 boot setup must reapply the fixed clock bar after subpages are created"
     assert (
@@ -555,8 +556,7 @@ def test_square_s3_reapplies_clock_bar_after_screen_changes() -> None:
         "        - script.execute: clock_bar_apply"
     ) in device, "S3 restored rotation must reapply the fixed clock bar"
     assert (
-        "- script.execute: apply_screen_rotation\n"
-        "              - script.execute: clock_bar_apply"
+        "rotation_refresh_script: clock_bar_apply"
     ) in device, "S3 rotation changes must reapply the fixed clock bar"
 
 
@@ -574,9 +574,29 @@ def test_rotation_refresh_rebuilds_subpages() -> None:
         sensors = (ROOT / "devices" / slug / "device" / "sensors.yaml").read_text(encoding="utf-8")
         refresh_script = sensors.split("  - id: refresh_button_grid", 1)[1].split(
             "  - id: refresh_subpage_grid", 1)[0]
-        assert "grid_rebuild_all(slots, cfg," in refresh_script, (
+        assert "grid_run_board(GridBoardOperation::REBUILD)" in refresh_script, (
             f"{slug}: rotation refresh must rebuild secondary cards safely"
         )
+    rotation = (ROOT / "common/device/screen_rotation_select.yaml").read_text(encoding="utf-8")
+    assert "restore_value: false" in rotation and "optimistic: false" in rotation
+    assert "ScalarSetting::SCREEN_ROTATION" in rotation
+    assert rotation.index("script.execute: apply_screen_rotation") < rotation.index(
+        "script.execute: ${rotation_refresh_script}"
+    )
+    for slug, profile in load_device_profiles().items():
+        if not profile["rotation"].get("enabled"):
+            continue
+        device = (ROOT / "devices" / slug / "device/device.yaml").read_text(encoding="utf-8")
+        assert "file: ../../../common/device/screen_rotation_select.yaml" in device
+        assert "file: ../../../common/device/display_rotation_action.yaml" in device
+        expected = "clock_bar_apply" if slug in ("esp32-p4-86", "guition-esp32-s3-4848s040") else "refresh_button_grid"
+        assert f"rotation_refresh_script: {expected}" in device
+        offset = 180
+        if slug == "esp32-p4-86":
+            offset = 0
+        elif slug.startswith("guition-esp32-p4-jc8012p4a1"):
+            offset = 90
+        assert f"hardware_rotation_offset: {offset}" in device
 
 
 def test_local_display_header_has_no_ha_bindings() -> None:
@@ -637,7 +657,7 @@ def test_subpage_config_changes_schedule_live_refresh() -> None:
             f"{sensors_path}: missing secondary-page refresh script"
         )
         refresh_script = sensors.split("  - id: refresh_subpage_grid", 1)[1].split("\nesphome:", 1)[0]
-        assert "grid_rebuild_all(slots, cfg," in refresh_script, (
+        assert "grid_run_board(GridBoardOperation::REBUILD)" in refresh_script, (
             f"{sensors_path}: secondary-page refresh must rebuild card subscriptions"
         )
 
@@ -814,7 +834,7 @@ def test_firmware_matrices(profile_slugs: list[str]) -> None:
     release = device_matrix.release_matrix(profiles)
     nightly = device_matrix.nightly_matrix(profiles)
     pr = device_matrix.pr_matrix(profiles)
-    assert_profile_slugs(profile_slugs, [entry["slug"] for entry in release["include"]], "release matrix")
+    assert_profile_slugs(load_release_devices(), [entry["slug"] for entry in release["include"]], "release matrix")
     assert_profile_slugs(profile_slugs, [entry["slug"] for entry in nightly["include"]], "nightly matrix")
     pr_chips = [profiles[entry["slug"]]["firmware"]["build"]["chip"] for entry in pr["include"]]
     expected_chips = {profile["firmware"]["build"]["chip"] for profile in profiles.values()}
@@ -823,7 +843,7 @@ def test_firmware_matrices(profile_slugs: list[str]) -> None:
 
 
 def test_public_firmware_slugs(profile_slugs: list[str]) -> None:
-    assert sorted(profile_slugs) == check_public_firmware.load_slugs(ROOT / "devices" / "manifest.json")
+    assert sorted(load_release_devices()) == check_public_firmware.load_slugs(ROOT / "devices" / "manifest.json")
 
 
 def main() -> int:

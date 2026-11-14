@@ -1,4 +1,8 @@
+import { SCREEN_SCHEDULE_PREFERENCES, decodeScreenSchedulePreferences, encodeScreenSchedulePreferences,
+  type ScreenSchedulePreferences } from "../model/screen_schedule_preferences";
 import { updateEditorPage } from "../model/page_edit";
+import type { CardConfig } from "../contracts/types";
+import type { NativeLayoutDraft, NativePageEdit } from "../model/native_layout_draft";
 import {
   createNativePanelConfigClient,
   updateNativePanelConfigDocument,
@@ -9,11 +13,16 @@ import {
   type NativePanelConfigFetch,
   type NativePanelConfigSaveResult,
   type NativePanelConfigSnapshot,
+  type NativePanelConfigUpdate,
 } from "../features/native_panel_config";
 import type { PanelConfigDocument } from "../model";
+import type { NativePanelConfigGraph } from "../model/panel_config_conversion";
+import { DISPLAY_THEME_PREFERENCES, decodeDisplayThemePreferences, encodeDisplayThemePreferences,
+  type DisplayThemePreferences } from "../model/display_theme_preferences";
 import { pageDepth, parentPageKey } from "../model/page_keys";
+import { validPanelScalarSetting } from "../generated/panel_settings";
 
-export type NativePanelConfigUpdate = (document: PanelConfigDocument) => PanelConfigDocument;
+export type { NativePanelConfigUpdate } from "../features/native_panel_config";
 export type NativePanelConfigSaveOutcome = NativePanelConfigSaveResult | "legacy-fallback";
 
 export interface NativePanelConfigControllerDependencies {
@@ -73,10 +82,42 @@ export class NativePanelConfigController {
   }
 
   writeSetting(key: string, value: string): Promise<NativePanelConfigSaveOutcome> | null {
-    if (!key || key.length > 63) return null;
-    return this.schedule((current) => updateNativePanelConfigDocument(
+    if (!key || key.length > 63 || !validPanelScalarSetting(key, value)) return null;
+    return this.schedule(this.withNativeEdit(current => updateNativePanelConfigDocument(
       current, this.dependencies.deviceProfile(), "settings", key, value,
-    ));
+    ), draft => draft.writeSetting(key, value)));
+  }
+
+  writeDisplayThemePreference(patch: Partial<DisplayThemePreferences>, legacy: DisplayThemePreferences) {
+    return this.writePreferenceGroup(DISPLAY_THEME_PREFERENCES, patch, legacy,
+      decodeDisplayThemePreferences, encodeDisplayThemePreferences);
+  }
+
+  writeScreenSchedulePreference(patch: Partial<ScreenSchedulePreferences>, current: ScreenSchedulePreferences) {
+    return this.writePreferenceGroup(SCREEN_SCHEDULE_PREFERENCES, patch, current,
+      decodeScreenSchedulePreferences, encodeScreenSchedulePreferences);
+  }
+
+  private writePreferenceGroup<T extends object>(key: string, patch: Partial<T>, fallback: T,
+      decode: (value?: string) => T | undefined, encode: (value: T) => string) {
+    const next = (settings: Readonly<Record<string, string>>) => encode({
+      ...(decode(settings[key]) ?? fallback), ...patch,
+    });
+    return this.schedule(this.withNativeEdit(
+      current => updateNativePanelConfigDocument(current, this.dependencies.deviceProfile(),
+        "settings", key, next(current.settings)),
+      (draft, current) => draft.writeSetting(key, next(current.document.settings)),
+    ), true);
+  }
+
+  private withNativeEdit(update: NativePanelConfigUpdate, edit: NonNullable<NativePanelConfigUpdate["editNative"]>): NativePanelConfigUpdate {
+    return Object.assign(update, {
+      checkAcceptedLayout: true,
+      editNative: (draft: NativeLayoutDraft, current: NativePanelConfigGraph) => {
+        if (draft.deviceProfile !== this.dependencies.deviceProfile()) throw new Error("Device profile changed");
+        edit(draft, current);
+      },
+    });
   }
 
   maxConfigValueBytes(): number | null {
@@ -107,7 +148,12 @@ export class NativePanelConfigController {
         cancel();
         if (!ok) return false;
         if (!updates.length) return true;
-        const result = await this.schedule(current => updates.reduce((document, update) => update(document), current));
+        const update: NativePanelConfigUpdate = current => updates.reduce((document, apply) => apply(document), current);
+        if (updates.every(apply => apply.editNative)) {
+          update.editNative = (draft, current) => updates.forEach(apply => apply.editNative!(draft, current));
+          update.checkAcceptedLayout = updates.every(apply => apply.checkAcceptedLayout);
+        }
+        const result = await this.schedule(update);
         return result === "saved" || result === "mirror-failed";
       },
     };
@@ -176,8 +222,10 @@ export class NativePanelConfigController {
     return this.waitForDiscovery(attempts + 1);
   }
 
-  schedule(update: NativePanelConfigUpdate): Promise<NativePanelConfigSaveOutcome> | null {
+  schedule(update: NativePanelConfigUpdate, skipUnchanged = false,
+      nativeBackup?: Uint8Array): Promise<NativePanelConfigSaveOutcome> | null {
     if (this.atomicUpdates_) {
+      if (nativeBackup) return Promise.resolve(this.report("failed"));
       ++this.revision_;
       this.atomicUpdates_.push(update);
       return Promise.resolve("saved");
@@ -190,12 +238,12 @@ export class NativePanelConfigController {
       .then(async () => this.supported() || await this.waitForDiscovery())
       .then(async (supported) => supported === "legacy-fallback" || supported === "failed"
         ? supported
-        : supported ? client.save(update) : "unsupported" as const)
+        : supported ? client.save(update, skipUnchanged, nativeBackup) : "unsupported" as const)
       .then(async (result) => {
         if (result !== "unsupported" || !client.retryable()) return result;
         const supported = await this.waitForDiscovery();
         if (supported === "legacy-fallback" || supported === "failed") return supported;
-        return supported ? client.save(update) : result;
+        return supported ? client.save(update, skipUnchanged, nativeBackup) : result;
       })
       .then((result) => {
         const document = client.lastDocument();
@@ -227,16 +275,12 @@ export class NativePanelConfigController {
 
   writeText(name: string, value: string): Promise<NativePanelConfigSaveOutcome> | null | false {
     if (name === this.dependencies.entityName("button_order")) {
-      return this.schedule((current) => updateNativePanelConfigDocument(
-        current, this.dependencies.deviceProfile(), "settings", "button_order", value,
-      ));
+      return this.writeSetting("button_order", value);
     }
     if (name === this.dependencies.entityName("button_on_color")) {
       const color = this.dependencies.normalizeHexColor(value, "");
       if (!color) return false;
-      return this.schedule((current) => updateNativePanelConfigDocument(
-        current, this.dependencies.deviceProfile(), "settings", "button_on_color", color,
-      ));
+      return this.writeSetting("button_on_color", color);
     }
     for (let slot = 1; slot <= this.dependencies.slotCount(); slot += 1) {
       if (name === this.dependencies.entityNameForSlot("button_config", slot)) {
@@ -248,19 +292,25 @@ export class NativePanelConfigController {
     return false;
   }
 
-  writeButtonAndOrder(slot: number, value: string, order: string): Promise<NativePanelConfigSaveOutcome> | null | false {
+  writeButtonAndOrder(slot: number, value: string | (() => string), order?: string,
+      card?: CardConfig): Promise<NativePanelConfigSaveOutcome> | null | false {
     if (!Number.isInteger(slot) || slot < 1 || slot > this.dependencies.slotCount()) return false;
-    return this.schedule((current) => {
+    const update: NativePanelConfigUpdate = current => {
       const withButton = updateNativePanelConfigDocument(
-        current, this.dependencies.deviceProfile(), "buttons", slot, value,
+        current, this.dependencies.deviceProfile(), "buttons", slot, typeof value === "string" ? value : value(),
       );
-      return updateNativePanelConfigDocument(
+      return order === undefined ? withButton : updateNativePanelConfigDocument(
         withButton, this.dependencies.deviceProfile(), "settings", "button_order", order,
       );
-    });
+    };
+    return this.schedule(card ? this.withNativeEdit(update, draft => {
+      draft.writeRootCard(slot, card);
+      if (order !== undefined) draft.writeSetting("button_order", order);
+    }) : update);
   }
 
-  writeDocument(document: PanelConfigDocument): Promise<NativePanelConfigSaveOutcome> | null {
+  writeDocument(document: PanelConfigDocument, nativeBackup?: Uint8Array,
+      theme?: { legacy: DisplayThemePreferences; patch: Partial<DisplayThemePreferences> }): Promise<NativePanelConfigSaveOutcome> | null {
     if (!this.client_) return null;
     return this.schedule((current) => {
       if (current.deviceProfile !== document.deviceProfile) {
@@ -270,24 +320,34 @@ export class NativePanelConfigController {
           nativeBackupHasInactiveRecords(document, this.dependencies.slotCount())) {
         throw new NativePanelConfigCompatibilityError(NATIVE_BACKUP_UPDATE_REQUIRED_MESSAGE);
       }
-      return document;
-    });
+      const settings = { ...document.settings };
+      const savedSchedule = current.settings[SCREEN_SCHEDULE_PREFERENCES];
+      if (!Object.hasOwn(settings, SCREEN_SCHEDULE_PREFERENCES) && savedSchedule &&
+          decodeScreenSchedulePreferences(savedSchedule)) {
+        settings[SCREEN_SCHEDULE_PREFERENCES] = savedSchedule;
+      }
+      if (theme && !Object.hasOwn(settings, DISPLAY_THEME_PREFERENCES)) {
+        const previous = current.settings[DISPLAY_THEME_PREFERENCES];
+        const value = Object.keys(theme.patch).length
+          ? encodeDisplayThemePreferences({ ...(decodeDisplayThemePreferences(previous) ?? theme.legacy), ...theme.patch })
+          : previous;
+        if (value) settings[DISPLAY_THEME_PREFERENCES] = value;
+      }
+      return { ...document, settings };
+    }, false, nativeBackup);
   }
 
-  writeSubpage(slot: number, value: string): Promise<NativePanelConfigSaveOutcome> | false | null {
+  writeSubpage(slot: number, value: string | (() => string),
+      page?: NativePageEdit | null): Promise<NativePanelConfigSaveOutcome> | false | null {
     try {
       const depth = pageDepth(slot);
       if (!depth || (depth === 1 ? slot : parentPageKey(slot)) > this.dependencies.slotCount()) return false;
     } catch { return false; }
-    return this.schedule(current => {
+    const update: NativePanelConfigUpdate = current => {
       if (current.deviceProfile !== this.dependencies.deviceProfile()) throw new Error("Device profile changed");
-      return updateEditorPage(current, slot, value);
-    });
+      return updateEditorPage(current, slot, typeof value === "string" ? value : value());
+    };
+    return this.schedule(page === undefined ? update : this.withNativeEdit(update, draft => draft.writePage(slot, page)));
   }
 
-  writeSpecialPage(value: string): Promise<NativePanelConfigSaveOutcome> | null {
-    return this.schedule((current) => updateNativePanelConfigDocument(
-      current, this.dependencies.deviceProfile(), "settings", "special_page", value,
-    ));
-  }
 }

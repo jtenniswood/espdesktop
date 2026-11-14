@@ -3,30 +3,90 @@
   "appId": "com.panic.Transmit",
   "label": "Transmit",
   "catalog": false,
+  "defaultShortcutIds": ["54", "0", "1", "11", "2", "3", "19", "10"],
   "shortcuts": [
     {
       "id": "0",
-      "label": "Show Transfers",
+      "label": "Transfers",
       "shortcut": "command+l",
-      "icon": "Application"
+      "icon": "Swap Horizontal"
     },
     {
       "id": "1",
       "label": "Refresh",
       "shortcut": "command+r",
-      "icon": "Application"
+      "icon": "Refresh"
     },
     {
       "id": "2",
       "label": "Back",
       "shortcut": "command+keybracketleft",
-      "icon": "Application"
+      "icon": "Back"
     },
     {
       "id": "3",
       "label": "Forward",
       "shortcut": "command+keybracketright",
-      "icon": "Application"
+      "icon": "Forward"
     }
+  ],
+  "moreShortcuts": [
+    {"id": "4", "label": "Settings", "shortcut": "scoped.command+keycomma", "icon": "Settings"},
+    {"id": "5", "label": "Hide Transmit", "shortcut": "scoped.command+h", "icon": "Eye Off"},
+    {"id": "6", "label": "Hide Others", "shortcut": "scoped.command+option+h", "icon": "Eye Off"},
+    {"id": "7", "label": "Quit Transmit", "shortcut": "scoped.command+q", "icon": "Application Exit"},
+    {"id": "8", "label": "Quit and Close All Windows", "shortcut": "scoped.command+option+q", "icon": "Application Exit"},
+    {"id": "9", "label": "New Window", "shortcut": "scoped.command+n", "icon": "New Window"},
+    {"id": "10", "label": "New Tab", "shortcut": "scoped.command+t", "icon": "New Tab"},
+    {"id": "11", "label": "New Folder", "shortcut": "scoped.command+shift+n", "icon": "Folder Open Outline"},
+    {"id": "12", "label": "New File", "shortcut": "scoped.command+option+n", "icon": "Plus"},
+    {"id": "13", "label": "Close Tab", "shortcut": "scoped.command+w", "icon": "Close Tab"},
+    {"id": "14", "label": "Close Window", "shortcut": "scoped.command+shift+w", "icon": "Window Close"},
+    {"id": "15", "label": "Close All", "shortcut": "scoped.command+option+w", "icon": "Shortcut Command"},
+    {"id": "16", "label": "Disconnect", "shortcut": "scoped.command+e", "icon": "Shortcut Command"},
+    {"id": "17", "label": "Open", "shortcut": "scoped.command+o", "icon": "Open File"},
+    {"id": "18", "label": "Save", "shortcut": "scoped.command+s", "icon": "Save"},
+    {"id": "19", "label": "Preview in Browser", "shortcut": "scoped.command+b", "icon": "Shortcut Command"},
+    {"id": "20", "label": "Get Info", "shortcut": "scoped.command+i", "icon": "Information"},
+    {"id": "21", "label": "Show Inspector", "shortcut": "scoped.command+option+i", "icon": "Shortcut Command"},
+    {"id": "22", "label": "Duplicate", "shortcut": "scoped.command+d", "icon": "Duplicate"},
+    {"id": "23", "label": "Quick Look", "shortcut": "scoped.command+y", "icon": "Shortcut Command"},
+    {"id": "24", "label": "Print", "shortcut": "scoped.command+p", "icon": "Printer"},
+    {"id": "25", "label": "Undo", "shortcut": "scoped.command+z", "icon": "Undo"},
+    {"id": "26", "label": "Redo", "shortcut": "scoped.command+shift+z", "icon": "Redo"},
+    {"id": "27", "label": "Cut", "shortcut": "scoped.command+x", "icon": "Cut"},
+    {"id": "28", "label": "Copy", "shortcut": "scoped.command+c", "icon": "Copy"},
+    {"id": "29", "label": "Paste", "shortcut": "scoped.command+v", "icon": "Paste"},
+    {"id": "30", "label": "Select All", "shortcut": "scoped.command+a", "icon": "Select All"},
+    {"id": "31", "label": "Jump to Selection", "shortcut": "scoped.command+j", "icon": "Group Selection"},
+    {"id": "32", "label": "Show Spelling and Grammar", "shortcut": "scoped.command+shift+keysemicolon", "icon": "Shortcut Command"},
+    {"id": "33", "label": "Check Spelling", "shortcut": "scoped.command+keysemicolon", "icon": "Shortcut Command"},
+    {"id": "34", "label": "Show Transfers Window", "shortcut": "scoped.command+option+l", "icon": "Application"},
+    {"id": "35", "label": "View as Thumbnails", "shortcut": "scoped.command+1", "icon": "Application"},
+    {"id": "36", "label": "View as List", "shortcut": "scoped.command+2", "icon": "Application"},
+    {"id": "37", "label": "View as Columns", "shortcut": "scoped.command+3", "icon": "Application"},
+    {"id": "38", "label": "View as Cover Flow", "shortcut": "scoped.command+4", "icon": "Application"},
+    {"id": "39", "label": "Show Invisible Files", "shortcut": "scoped.command+shift+b", "icon": "Shortcut Command"},
+    {"id": "40", "label": "Hide Places Bar", "shortcut": "scoped.command+shift+s", "icon": "Eye Off"},
+    {"id": "41", "label": "Show View Options", "shortcut": "scoped.command+shift+j", "icon": "Settings"},
+    {"id": "42", "label": "Enter Full Screen", "shortcut": "scoped.command+control+f", "icon": "Full Screen"},
+    {"id": "43", "label": "Focus Local Pane", "shortcut": "scoped.command+option+left", "icon": "Application"},
+    {"id": "44", "label": "Focus Remote Pane", "shortcut": "scoped.command+option+right", "icon": "Application"},
+    {"id": "45", "label": "Enclosing Folder", "shortcut": "scoped.command+up", "icon": "Folder Open Outline"},
+    {"id": "46", "label": "Folder", "shortcut": "scoped.command+option+g", "icon": "Folder Open Outline"},
+    {"id": "47", "label": "Open in Terminal", "shortcut": "scoped.command+option+t", "icon": "Terminal"},
+    {"id": "48", "label": "Link Folder Navigation", "shortcut": "scoped.command+shift+l", "icon": "Link"},
+    {"id": "49", "label": "Connect to Last Used Protocol", "shortcut": "scoped.command+k", "icon": "Shortcut Command"},
+    {"id": "50", "label": "Transfer Selected Items", "shortcut": "scoped.command+shift+r", "icon": "Shortcut Command"},
+    {"id": "51", "label": "Transfer Selected Items Without Rules", "shortcut": "scoped.command+option+shift+r", "icon": "Shortcut Command"},
+    {"id": "52", "label": "Cancel Transfer", "shortcut": "scoped.command+keyperiod", "icon": "Close"},
+    {"id": "53", "label": "Add New Server", "shortcut": "scoped.command+shift+a", "icon": "Plus"},
+    {"id": "54", "label": "Quick Connect", "shortcut": "scoped.command+shift+f", "icon": "Shortcut Command"},
+    {"id": "55", "label": "Edit Server", "shortcut": "scoped.command+shift+i", "icon": "Shortcut Command"},
+    {"id": "56", "label": "Minimize", "shortcut": "scoped.command+m", "icon": "Window Minimise"},
+    {"id": "57", "label": "Minimize All", "shortcut": "scoped.command+option+m", "icon": "Window Minimise"},
+    {"id": "58", "label": "Select Next Tab", "shortcut": "scoped.control+tab", "icon": "Tab"},
+    {"id": "59", "label": "Select Previous Tab", "shortcut": "scoped.control+shift+tab", "icon": "Tab"},
+    {"id": "60", "label": "Open Transcript", "shortcut": "scoped.command+control+t", "icon": "Open File"}
   ]
 }

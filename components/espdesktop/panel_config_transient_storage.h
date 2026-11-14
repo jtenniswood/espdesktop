@@ -64,6 +64,12 @@ public:
     stored_size_ = 0;
   }
 
+  bool prepare_slot(uint8_t slot, size_t size) override {
+    if (!valid(slot, 0, size)) return false;
+    if (storage_.supports_range_io()) return storage_.prepare_range_slot(slot, size);
+    return StorageBackend::prepare_slot(slot, size);
+  }
+
   bool read(uint8_t slot, size_t offset, uint8_t *output,
             size_t size) override {
     if (!valid(slot, offset, size) || (size > 0 && output == nullptr))

@@ -46,8 +46,6 @@ GRID_HEADER = "button_grid_grid.h"
 ACTION_HEADER = "button_grid_actions.h"
 IMAGE_HEADER = "button_grid_image.h"
 STATUS_ENTITY_HEADER = "button_grid_status_entity_driver.h"
-DATE_TIME_HEADER = "button_grid_date_time_driver.h"
-DATE_TIME_CARDS_HEADER = "button_grid_datetime_cards.h"
 WEATHER_HEADER = "button_grid_weather_driver.h"
 BASIC_ACTION_HEADER = "button_grid_basic_action_driver.h"
 NUMERIC_SELECTABLE_HEADER = "button_grid_numeric_selectable_driver.h"
@@ -181,9 +179,7 @@ def check_root(root: Path) -> list[str]:
                 f"components/espdesktop/{GRID_HEADER}: refresh subpage card geometry after applying label clamps"
             )
         if (
-            "date_time_driver_setup_visual( s, p, context, palette)" not in compact_grid
-            or "date_time_driver_bind_data(s, p, context)" not in compact_grid
-            or "basic_action_driver_setup_visual( s, p, context, palette.sensor_val)" not in compact_grid
+            "basic_action_driver_setup_visual( s, p, context, palette.sensor_val)" not in compact_grid
             or "basic_action_driver_bind_main( s, p, context, cfg, card_palette, display, main_page_obj, COLS, toggle_state)" not in compact_grid
             or "basic_action_driver_bind_subpage( sub_slot, sb_cfg, context, action_environment)" not in compact_grid
             or "numeric_selectable_driver_setup_visual( s, p, context, palette, display)" not in compact_grid
@@ -193,9 +189,8 @@ def check_root(root: Path) -> list[str]:
             or "navigation_driver_setup_visual( s, p, context, cfg, display)" not in compact_grid
             or "navigation_driver_bind_main( s, p, context, navigation_state)" not in compact_grid
             or "navigation_driver_own_subpage( owner_slot, p, parent_context, navigation_slot, display_order, sub_scr)" not in compact_grid
-            or "navigation_register_special_page(sub_scr, main_page_obj, get_subpage_title(sp_order_str))" not in compact_grid
             or "card_palette_for_config(palette, p, display)" not in compact_grid
-            or "card_palette_for_config(palette, sb_cfg, display)" not in compact_grid
+            or not re.search(r"card_palette_for_config\((?:page_)?palette, sb_cfg, display\)", compact_grid)
             or "bind_passive_card(s, p, context, card_palette)" not in compact_grid
             or "bind_passive_card(sub_slot, sb_cfg, context, card_palette)" not in compact_grid
         ):
@@ -398,72 +393,6 @@ def check_root(root: Path) -> list[str]:
                 f"components/espdesktop/{IMAGE_HEADER}: rebind image completion callbacks after image-card lifecycle changes"
             )
     status_entity_header = root / "components" / "espdesktop" / STATUS_ENTITY_HEADER
-    date_time_header = root / "components" / "espdesktop" / DATE_TIME_HEADER
-    if date_time_header.exists():
-        text = date_time_header.read_text(encoding="utf-8")
-        required = (
-            "date_time_driver_setup_visual",
-            "date_time_driver_bind_data",
-            "date_time_driver_attach_interaction",
-            "date_time_driver_refresh_layout",
-            "date_time_driver_cleanup",
-            "context.runtime.type == Type::CALENDAR",
-            "context.runtime.type == Type::CLOCK",
-            "context.runtime.type == Type::TIMEZONE",
-            "register_calendar_card",
-            "register_timezone_card",
-        )
-        for needle in required:
-            if needle not in text:
-                failures.append(
-                    f"components/espdesktop/{DATE_TIME_HEADER}: missing shared date-time lifecycle guard {needle}"
-                )
-    elif grid_header.exists():
-        failures.append(
-            f"components/espdesktop/{DATE_TIME_HEADER}: missing shared date-time driver"
-        )
-    date_time_cards_header = root / "components" / "espdesktop" / DATE_TIME_CARDS_HEADER
-    if date_time_cards_header.exists():
-        text = date_time_cards_header.read_text(encoding="utf-8")
-        for legacy_setup in ("setup_calendar_card", "setup_clock_card", "setup_timezone_card"):
-            if legacy_setup in text:
-                failures.append(
-                    f"components/espdesktop/{DATE_TIME_CARDS_HEADER}: keep {legacy_setup} inside the shared date-time driver"
-                )
-        for guard, compact, refresh, register in (
-            (
-                "calendar_card_ref_ready",
-                "compact_calendar_card_refs",
-                "refresh_calendar_cards",
-                "register_calendar_card",
-            ),
-            (
-                "timezone_card_ref_ready",
-                "compact_timezone_card_refs",
-                "update_timezone_cards",
-                "register_timezone_card",
-            ),
-        ):
-            guard_body = function_body(text, guard)
-            compact_body = function_body(text, compact)
-            refresh_body = function_body(text, refresh)
-            register_body = function_body(text, register)
-            if guard_body is None or "lv_obj_is_valid" not in guard_body:
-                failures.append(
-                    f"components/espdesktop/{DATE_TIME_CARDS_HEADER}: {guard} must reject deleted LVGL labels"
-                )
-            if compact_body is None or guard not in compact_body or "count = write_index;" not in compact_body:
-                failures.append(
-                    f"components/espdesktop/{DATE_TIME_CARDS_HEADER}: {compact} must remove deleted LVGL label references"
-                )
-            if refresh_body is None or compact not in refresh_body:
-                failures.append(
-                    f"components/espdesktop/{DATE_TIME_CARDS_HEADER}: {refresh} must compact deleted LVGL label references"
-                )
-            if register_body is None or compact not in register_body:
-                failures.append(
-                    f"components/espdesktop/{DATE_TIME_CARDS_HEADER}: {register} must reclaim deleted LVGL label references before registration"
-                )
     weather_header = root / "components" / "espdesktop" / WEATHER_HEADER
     basic_action_header = root / "components" / "espdesktop" / BASIC_ACTION_HEADER
     if basic_action_header.exists():
@@ -501,7 +430,8 @@ def check_root(root: Path) -> list[str]:
             "numeric_selectable_driver_bind_slider",
             "companion_volume_control_valid",
             "companion_track_slider",
-            "send_slider_action",
+            "companion_track_mute",
+            "companion_toggle_mute",
             '"light_brightness"',
             '"light_temperature"',
             '"fan_speed"',
@@ -736,39 +666,6 @@ inline void setup_light_temp_visual() {
         (
             {"button_grid_image.h": "for (int i = 0; i < count; i++) {}\n"},
             ("reset every image-card context, including disabled slots",),
-        ),
-        (
-            {
-                "button_grid_date_time_driver.h": (
-                    "inline bool date_time_driver_setup_visual() {}\n"
-                    "inline bool date_time_driver_bind_data() {}\n"
-                )
-            },
-            ("missing shared date-time lifecycle guard",),
-        ),
-        (
-            {
-                "button_grid_datetime_cards.h": (
-                    "inline bool calendar_card_ref_ready() { return true; }\n"
-                    "inline void compact_calendar_card_refs() {}\n"
-                    "inline void refresh_calendar_cards() {}\n"
-                    "inline void register_calendar_card() {}\n"
-                    "inline bool timezone_card_ref_ready() { return true; }\n"
-                    "inline void compact_timezone_card_refs() {}\n"
-                    "inline void update_timezone_cards() {}\n"
-                    "inline void register_timezone_card() {}\n"
-                )
-            },
-            (
-                "calendar_card_ref_ready must reject deleted LVGL labels",
-                "compact_calendar_card_refs must remove deleted LVGL label references",
-                "refresh_calendar_cards must compact deleted LVGL label references",
-                "register_calendar_card must reclaim deleted LVGL label references before registration",
-                "timezone_card_ref_ready must reject deleted LVGL labels",
-                "compact_timezone_card_refs must remove deleted LVGL label references",
-                "update_timezone_cards must compact deleted LVGL label references",
-                "register_timezone_card must reclaim deleted LVGL label references before registration",
-            ),
         ),
         (
             {

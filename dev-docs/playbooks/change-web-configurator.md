@@ -18,9 +18,9 @@ sources before their generated browser output.
 python3 scripts/build.py www
 ```
 
-Commit every web output produced by the generator. Use
-[Source of Truth Contract](../source-of-truth.md) for the current output list;
-do not edit a bundle directly.
+Commit the source changes. The editor, hosted bundle, manifest and loaders
+are generated locally and in CI. See the
+[Source of Truth Contract](../source-of-truth.md) for the output paths.
 
 ## Stop If
 

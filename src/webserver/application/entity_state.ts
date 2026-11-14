@@ -150,8 +150,6 @@ export function createEntityStateFeature(dependencies: EntityStateDependencies) 
         }
 
         rememberEntityName(state.presenceEntity, "Presence Sensor");
-        rememberEntityName(state.coverArtMediaPlayerEntity, "Media Player");
-        rememberEntityName(state.coverArtSecondaryMediaPlayerEntity, "External Source Media Player");
     }
     function optionLabelForEntity(this: any, entityId?: any) {
         var names: any = state.entityNames[entityId] || [];

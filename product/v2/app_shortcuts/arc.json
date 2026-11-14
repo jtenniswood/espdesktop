@@ -3,66 +3,98 @@
   "appId": "company.thebrowser.Browser",
   "label": "Arc",
   "catalog": false,
+  "defaultShortcutIds": ["0", "2", "5", "8", "9", "23", "24", "3"],
   "shortcuts": [
     {
       "id": "0",
-      "label": "Open a new tab",
+      "label": "New Tab",
       "shortcut": "command+t",
-      "icon": "Application"
+      "icon": "New Tab"
     },
     {
       "id": "1",
-      "label": "Close the current tab or window",
+      "label": "Close Tab",
       "shortcut": "command+w",
-      "icon": "Application"
+      "icon": "Close Tab"
     },
     {
       "id": "2",
-      "label": "Reopen the last closed tab",
+      "label": "Reopen Tab",
       "shortcut": "command+shift+t",
-      "icon": "Application"
+      "icon": "Tab Restore"
     },
     {
       "id": "3",
-      "label": "Pin or unpin the current tab",
+      "label": "Pin Tab",
       "shortcut": "command+d",
-      "icon": "Application"
+      "icon": "Pin"
     },
     {
       "id": "4",
-      "label": "Change the current tab URL",
+      "label": "Edit URL",
       "shortcut": "command+l",
-      "icon": "Application"
+      "icon": "Link"
     },
     {
       "id": "5",
-      "label": "Show or hide the sidebar",
+      "label": "Toggle Sidebar",
       "shortcut": "command+s",
-      "icon": "Application"
+      "icon": "Dock Left"
     },
     {
       "id": "6",
-      "label": "Go directly to tab N",
+      "label": "Jump Tab",
       "shortcut": "command+1",
-      "icon": "Application"
+      "icon": "Tab"
     },
     {
       "id": "7",
-      "label": "Switch between the five most recent tabs",
+      "label": "Recent Tabs",
       "shortcut": "control+tab",
-      "icon": "Application"
+      "icon": "History"
     },
     {
       "id": "8",
-      "label": "Reload the webpage",
+      "label": "Reload",
       "shortcut": "command+r",
-      "icon": "Application"
+      "icon": "Refresh"
     },
     {
       "id": "9",
-      "label": "Find text on the webpage",
+      "label": "Find Text",
       "shortcut": "command+f",
-      "icon": "Application"
+      "icon": "Search"
     }
+  ],
+  "moreShortcuts": [
+    {"id": "10", "label": "Open new window", "shortcut": "scoped.command+n", "icon": "New Window"},
+    {"id": "11", "label": "Open new Incognito window", "shortcut": "scoped.command+shift+n", "icon": "New Window"},
+    {"id": "12", "label": "Open Little Arc", "shortcut": "scoped.command+option+n", "icon": "Open File"},
+    {"id": "13", "label": "Copy tab URL", "shortcut": "scoped.command+shift+c", "icon": "Tab"},
+    {"id": "14", "label": "Copy tab URL as Markdown", "shortcut": "scoped.command+option+shift+c", "icon": "Tab"},
+    {"id": "15", "label": "Clear unpinned tabs", "shortcut": "scoped.command+shift+k", "icon": "Delete"},
+    {"id": "16", "label": "Go directly to tab N 2", "shortcut": "scoped.command+2", "icon": "Tab"},
+    {"id": "17", "label": "Go directly to tab N 3", "shortcut": "scoped.command+3", "icon": "Tab"},
+    {"id": "18", "label": "Focus Space N 1", "shortcut": "scoped.control+1", "icon": "Shortcut Command"},
+    {"id": "19", "label": "Focus Space N 2", "shortcut": "scoped.control+2", "icon": "Shortcut Command"},
+    {"id": "20", "label": "Focus Space N 3", "shortcut": "scoped.control+3", "icon": "Shortcut Command"},
+    {"id": "21", "label": "Switch through tabs in sidebar order Up", "shortcut": "scoped.command+option+up", "icon": "Dock Left"},
+    {"id": "22", "label": "Switch through tabs in sidebar order Down", "shortcut": "scoped.command+option+down", "icon": "Dock Left"},
+    {"id": "23", "label": "Switch between Spaces Left", "shortcut": "scoped.command+option+left", "icon": "Arrow Left"},
+    {"id": "24", "label": "Switch between Spaces Right", "shortcut": "scoped.command+option+right", "icon": "Arrow Right"},
+    {"id": "25", "label": "Go back in tab history", "shortcut": "scoped.command+left", "icon": "Tab"},
+    {"id": "26", "label": "Go back in tab history", "shortcut": "scoped.command+keybracketleft", "icon": "Tab"},
+    {"id": "27", "label": "Go forward in tab history", "shortcut": "scoped.command+right", "icon": "Tab"},
+    {"id": "28", "label": "Go forward in tab history", "shortcut": "scoped.command+keybracketright", "icon": "Tab"},
+    {"id": "29", "label": "Close Split View", "shortcut": "scoped.control+shift+keyminus", "icon": "Application"},
+    {"id": "30", "label": "Focus Split View pane N 1", "shortcut": "scoped.control+shift+1", "icon": "Application"},
+    {"id": "31", "label": "Focus Split View pane N 2", "shortcut": "scoped.control+shift+2", "icon": "Application"},
+    {"id": "32", "label": "View browsing history", "shortcut": "scoped.command+y", "icon": "Application"},
+    {"id": "33", "label": "Zoom in on webpage", "shortcut": "scoped.command+shift+keyequal", "icon": "Zoom In"},
+    {"id": "34", "label": "Zoom out on webpage", "shortcut": "scoped.command+keyminus", "icon": "Zoom Out"},
+    {"id": "35", "label": "Reset webpage zoom", "shortcut": "scoped.command+0", "icon": "Fit to Screen"},
+    {"id": "36", "label": "Open Peek in new tab", "shortcut": "scoped.command+o", "icon": "New Tab"},
+    {"id": "37", "label": "Open Arc Settings", "shortcut": "scoped.command+keycomma", "icon": "Settings"},
+    {"id": "38", "label": "Open Developer Tools", "shortcut": "scoped.f12", "icon": "Open File"}
   ]
 }

@@ -10,7 +10,6 @@ export function runCompanionPairingFeatureTests(): void {
     active: true,
     paired: false,
     connected: false,
-    expires_in_seconds: 900,
     pairing_code: "ABCD-EFGH",
   })) {
     throw new Error("An active unpaired device must show its pairing code");
@@ -20,7 +19,6 @@ export function runCompanionPairingFeatureTests(): void {
     active: true,
     paired: true,
     connected: false,
-    expires_in_seconds: 900,
     pairing_code: "ABCD-EFGH",
   })) {
     throw new Error("A paired device must not show a pairing code");
@@ -30,11 +28,10 @@ export function runCompanionPairingFeatureTests(): void {
     active: true,
     paired: false,
     connected: false,
-    expires_in_seconds: 900,
     pairing_code: "",
   });
-  if (openStatus !== "Pairing is open for about 15 minutes.") {
-    throw new Error("Companion setup should describe the extended pairing window");
+  if (openStatus !== "Ready to pair") {
+    throw new Error("Companion setup should show that pairing is ready without a countdown");
   }
 
   const connectedStatus = companionPairingStatusText({
@@ -42,7 +39,6 @@ export function runCompanionPairingFeatureTests(): void {
     active: false,
     paired: true,
     connected: true,
-    expires_in_seconds: 0,
     pairing_code: "",
   });
   if (connectedStatus !== "Mac Companion connected") {

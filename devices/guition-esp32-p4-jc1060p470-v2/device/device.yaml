@@ -80,10 +80,11 @@ espdesktop:
   # The native document is imported from these restored entities on first boot.
   # The legacy entities remain live during the compatibility releases.
   panel_config:
+    on_layout_changed:
+      - script.execute: refresh_subpage_grid
     device_profile: ${device_slug}
     button_order: button_order
     button_on_color: button_on_color
-    special_page_chunks: [special_page_config, special_page_config_ext, special_page_config_ext_2, special_page_config_ext_3, special_page_config_ext_4, special_page_config_ext_5, special_page_config_ext_6, special_page_config_ext_7]
     buttons:
       - config: button_1_config
         subpage_chunks: [subpage_1_config, subpage_1_config_ext, subpage_1_config_ext_2, subpage_1_config_ext_3, subpage_1_config_ext_4, subpage_1_config_ext_5, subpage_1_config_ext_6, subpage_1_config_ext_7]
@@ -247,30 +248,7 @@ light:
     restore_mode: RESTORE_DEFAULT_ON
     default_transition_length: 0s
     gamma_correct: 1.0
-    on_turn_on:
-      then:
-        - if:
-            condition:
-              lambda: |-
-                auto now = id(panel_time).now();
-                return (id(espdesktop_app).display().target_source_is(
-                            espdesktop::DisplayRequestSource::SCREEN_SCHEDULE) &&
-                        id(espdesktop_app).display().target_mode_is(
-                            espdesktop::DisplayMode::DISPLAY_OFF)) ||
-                       screen_schedule_waiting_for_time(
-                         id(screen_schedule_trigger).state,
-                         id(schedule_enabled).state,
-                         now.is_valid());
-            then:
-              - script.execute: backlight_force_display_off
-            else:
-              - if:
-                  condition:
-                    lambda: |-
-                      return id(espdesktop_app).display().current_mode_is(
-                          espdesktop::DisplayMode::DISPLAY_OFF);
-                  then:
-                    - script.execute: screensaver_wake
+    on_turn_on: !include ../../../common/device/display_backlight_on.yaml
     on_turn_off:
       then:
         - script.execute: display_backlight_handle_off
@@ -307,7 +285,7 @@ touchscreen:
     reset_pin: GPIO22
     interrupt_pin: GPIO21
     on_touch:
-      - script.execute: cover_art_handle_touch
+      - script.execute: screensaver_wake
 
 # ---------------------------------------------------------------------------
 # Display (7" 1024x600 MIPI DSI panel, V2 "New Panel" revision)
@@ -441,52 +419,17 @@ lvgl:
 script:
   - id: apply_screen_rotation
     then:
-      - if:
-          condition:
-            lambda: 'return id(screen_rotation_select).current_option() == "90";'
-          then:
-            - lvgl.display.set_rotation: 270
-          else:
-            - if:
-                condition:
-                  lambda: 'return id(screen_rotation_select).current_option() == "180";'
-                then:
-                  - lvgl.display.set_rotation: 0
-                else:
-                  - if:
-                      condition:
-                        lambda: 'return id(screen_rotation_select).current_option() == "270";'
-                      then:
-                        - lvgl.display.set_rotation: 90
-                      else:
-                        - lvgl.display.set_rotation: 180
+      - !include
+        file: ../../../common/device/display_rotation_action.yaml
+        vars:
+          hardware_rotation_offset: 180
       # Grid refresh is delayed; update the pixel axis before screensaver layout.
       - lambda: |-
           const auto rotation = id(screen_rotation_select).current_option();
           set_width_compensation_vertical_axis(rotation == "90" || rotation == "270");
-      - script.execute: cover_art_apply_responsive_layout
 
 select:
-  - platform: template
-    name: "${entity_screen_rotation}"
-    internal: true
-    disabled_by_default: true
-    id: screen_rotation_select
-    entity_category: config
-    icon: "mdi:screen-rotation"
-    optimistic: true
-    restore_value: true
-    initial_option: "180"
-    options:
-      - "0"
-      - "90"
-      - "180"
-      - "270"
-    on_value:
-      then:
-        - if:
-            condition:
-              lambda: 'return id(screen_rotation_ready);'
-            then:
-              - script.execute: apply_screen_rotation
-              - script.execute: refresh_button_grid
+  - !include
+    file: ../../../common/device/screen_rotation_select.yaml
+    vars:
+      rotation_refresh_script: refresh_button_grid

@@ -19,6 +19,12 @@ int main() {
   first.companion_runtime().set_connected(true);
   second.companion_runtime().set_actions({{"com.example.Second", "Second"}});
   assert(!second.companion_runtime().connected());
+  second.companion_runtime().set_mac_update_required(true);
+  assert(second.companion_runtime().mac_update_required());
+  assert(!first.companion_runtime().mac_update_required());
+  second.companion_runtime().set_connected(true);
+  second.companion_runtime().set_connected(false);
+  assert(!second.companion_runtime().mac_update_required());
   assert(first.companion_runtime().snapshot().actions[0].id == "com.example.First");
   assert(second.companion_runtime().snapshot().actions[0].id == "com.example.Second");
   const auto before = allocations;
@@ -26,24 +32,18 @@ int main() {
   assert(allocations == before); // Simple status reads never copy the catalogue.
   const std::string remote_json(12000, 'x');
   std::vector<CompanionRemoteDefinition> definitions;
-  definitions.reserve(COMPANION_MAX_REMOTE_DEFINITIONS_PER_CATALOGUE * 2);
-  for (size_t i = 0; i < COMPANION_MAX_REMOTE_DEFINITIONS_PER_CATALOGUE * 2; ++i)
-    definitions.push_back({i < COMPANION_MAX_REMOTE_DEFINITIONS_PER_CATALOGUE ? "application" : "webapp",
-                           std::to_string(i), i == COMPANION_MAX_REMOTE_DEFINITIONS_PER_CATALOGUE
-                               ? "https://raw.githubusercontent.com/jtenniswood/espdesktop/main/icon.png" : "",
-                           remote_json});
+  for (size_t i = 0; i < COMPANION_MAX_REMOTE_DEFINITIONS_PER_CATALOGUE; ++i)
+    definitions.push_back({"application", std::to_string(i), remote_json});
   first.companion_runtime().set_remote_definitions(std::move(definitions));
   const auto before_snapshot = allocations;
   const auto snapshot = first.companion_runtime().snapshot();
   assert(allocations - before_snapshot < 16); // Snapshot reads omit the large remote definition catalogue.
   assert(snapshot.actions[0].id == "com.example.First");
-  const std::string icon_url = first.companion_runtime().remote_definition_icon_url("webapp", "128");
-  assert(icon_url == "https://raw.githubusercontent.com/jtenniswood/espdesktop/main/icon.png");
   bool definitions_connected = false;
   bool has_more = false;
   assert(first.companion_runtime().remote_definitions_page(0, 4, definitions_connected, has_more).size() == 4);
   assert(definitions_connected && has_more);
-  assert(first.companion_runtime().remote_definitions_page(252, 4, definitions_connected, has_more).size() == 4);
+  assert(first.companion_runtime().remote_definitions_page(COMPANION_MAX_REMOTE_DEFINITIONS_PER_CATALOGUE - 4, 4, definitions_connected, has_more).size() == 4);
   assert(definitions_connected && !has_more);
   assert(first.start());
   bool invoked = false;
@@ -53,11 +53,11 @@ int main() {
   assert(!invoked);
   auto lifetime = std::make_shared<int>(1);
   std::weak_ptr<int> callback_lifetime = lifetime;
-  companion_action_sender() = [lifetime](const std::string &, const std::string &, const std::string &) { return true; };
+  companion_action_sender() = [lifetime](const std::string &, const std::string &, const std::string &, const std::string &) { return true; };
   first.companion_runtime().begin_pairing = [lifetime] {};
-  first.companion_runtime().revoke_pairing = [lifetime] {};
+  first.companion_runtime().reset_and_begin_pairing = [lifetime] { return true; };
   assert(!second.companion_runtime().begin_pairing);
-  assert(!second.companion_runtime().revoke_pairing);
+  assert(!second.companion_runtime().reset_and_begin_pairing);
   lifetime.reset();
   assert(!callback_lifetime.expired());
   assert(first.stop());

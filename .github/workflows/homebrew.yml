@@ -1,0 +1,64 @@
+name: Update Homebrew Tap
+
+on:
+  # Releases published through GitHub's UI or a user's credentials.
+  release:
+    types: [published]
+  # Publishing with GITHUB_TOKEN does not trigger the release event in Actions.
+  workflow_run:
+    workflows: ["Publish Release"]
+    types: [completed]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: espdesktop-homebrew-tap
+  cancel-in-progress: false
+
+jobs:
+  update:
+    name: Update EspDesktop cask
+    if: >-
+      github.repository == 'jtenniswood/espdesktop' &&
+      (github.event_name == 'workflow_dispatch' && github.ref_name == github.event.repository.default_branch ||
+      github.event_name == 'release' && !github.event.release.prerelease ||
+      github.event_name == 'workflow_run' &&
+      github.event.workflow_run.event == 'workflow_dispatch' &&
+      github.event.workflow_run.conclusion == 'success')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the cask generator from the default branch
+        uses: actions/checkout@v7.0.1
+        with:
+          ref: refs/heads/${{ github.event.repository.default_branch }}
+          persist-credentials: false
+
+      - name: Check out the tap
+        uses: actions/checkout@v7.0.1
+        with:
+          repository: jtenniswood/homebrew-tap
+          ref: main
+          path: homebrew-tap
+          ssh-key: ${{ secrets.HOMEBREW_TAP_DEPLOY_KEY }}
+
+      - name: Sync the latest stable Mac release
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh api --paginate --slurp "repos/${GITHUB_REPOSITORY}/releases?per_page=100" \
+            | python3 scripts/update_homebrew_cask.py homebrew-tap/Casks/espdesktop.rb
+
+          cd homebrew-tap
+          git add Casks/espdesktop.rb
+          if git diff --cached --quiet; then
+            echo "The EspDesktop cask is up to date."
+            exit 0
+          fi
+
+          git -c user.name='github-actions[bot]' \
+              -c user.email='41898282+github-actions[bot]@users.noreply.github.com' \
+              commit -m "Update EspDesktop Homebrew cask"
+          git push origin HEAD:main

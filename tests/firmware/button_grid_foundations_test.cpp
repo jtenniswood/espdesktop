@@ -85,9 +85,9 @@ int main() {
   const auto climate = card_runtime_context("climate");
   const auto climate_control = card_runtime_context("climate_control");
   const auto alarm = card_runtime_context("alarm");
-  const auto clock = card_runtime_context("clock");
-  const auto timezone = card_runtime_context("timezone");
-  const auto calendar = card_runtime_context("calendar");
+  for (const char *type : {"calendar", "clock", "timezone"}) {
+    if (!card_runtime_type_retired(type) || card_runtime_context(type).known) return EXIT_FAILURE;
+  }
   const auto weather = card_runtime_context("weather");
   const auto weather_forecast = card_runtime_context("weather_forecast");
   if (card_runtime_context("internal").known) {
@@ -130,9 +130,6 @@ int main() {
   const auto unsupported = card_runtime_context("not_a_card");
   if (!card_runtime_information_only(door) || !card_runtime_passive(door) ||
       !presence.known ||
-      clock.runtime.driver != espdesktop::card_runtime::CardDriverId::DATE_TIME ||
-      timezone.runtime.driver != espdesktop::card_runtime::CardDriverId::DATE_TIME ||
-      calendar.runtime.driver != espdesktop::card_runtime::CardDriverId::DATE_TIME ||
       weather.runtime.driver != espdesktop::card_runtime::CardDriverId::WEATHER ||
       weather_forecast.runtime.driver != espdesktop::card_runtime::CardDriverId::WEATHER ||
       !toggle.known || action.known || !alarm_action.known ||
@@ -259,14 +256,13 @@ int main() {
     return EXIT_FAILURE;
   }
   const char *contract_card_types[] = {
-    "", "alarm", "alarm_action", "calendar", "climate",
-    "climate_control", "clock", "cover", "door_window", "fan_control",
+    "", "alarm", "alarm_action", "climate",
+    "climate_control", "cover", "door_window", "fan_control",
     "fan_direction", "fan_oscillate", "fan_preset", "fan_speed", "fan_switch",
     "garage", "gate", "image", "lawn_mower", "light_brightness",
     "light_control", "light_switch", "light_temperature", "lock",
     "media", "presence", "push",
-    "slider", "subpage", "timezone", "vacuum", "weather", "weather_forecast",
-    "webhook",
+    "slider", "subpage", "vacuum", "weather", "weather_forecast",
   };
   for (const char *type : contract_card_types) {
     const auto registration = card_runtime_registration(type);

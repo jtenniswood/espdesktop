@@ -64,21 +64,24 @@ merging, require all of the following for the candidate head:
 - GitHub reports it mergeable with no conflicts;
 - no actionable unresolved review threads or change requests remain;
 - all required reviews and required status checks have passed;
-- after the last head-changing push, the user has explicitly confirmed they
-  tested the candidate head's relevant behavior;
+- the user has confirmed testing that still applies to the candidate head;
 - branch protection does not report another unmet requirement.
 
 Run any focused local check required by the two nested skills. Do not treat a
 local build as physical device testing, and do not waive a required check
 because a similar local command passed.
 
-User confirmation is mandatory even when automated checks pass or the current
-request says to merge. If the user has not confirmed testing, prepare the PR as
-far as possible, leave it open, and ask them to test it. Never infer physical
-device testing from a build or compile result. Any later head-changing push,
-including another review fix or base-branch update, invalidates both the
-readiness result and the testing confirmation; repeat this step for the new
-candidate head.
+Keep prior test confirmation when a branch update leaves the tested behavior
+unchanged. Compare the tested revision with the candidate head, including changes
+brought in from the base branch. Consider the code, configuration, and build inputs
+that affect the tested behavior. A documentation-only update can carry the
+confirmation forward. Ask for a focused retest if the update changes the tested
+behavior or you cannot establish that the earlier test still applies. If the user
+has yet to confirm testing, prepare the PR as far as possible and ask them to test
+it before merging.
+
+Recheck GitHub readiness and required checks after every change to the head,
+including when the earlier test confirmation still applies.
 
 If GitHub is still calculating mergeability, refresh briefly. If checks are
 pending, wait for them rather than enabling auto-merge. If any gate fails, leave

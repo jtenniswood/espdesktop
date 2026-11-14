@@ -163,7 +163,8 @@ export function createSettingsSystemSectionFeature(
         fwOverview.appendChild(fwActions);
         var fwStatus: any = document.createElement("div");
         fwStatus.className = "sp-fw-status";
-        fwOverview.appendChild(fwStatus);
+        fwStatus.id = "sp-fw-status";
+        fwStatus.setAttribute("aria-live", "polite");
         els.fwStatus = fwStatus;
         renderFirmwareUpdateStatus();
         var firmwareSubpanels: any = document.createElement("div");
@@ -326,6 +327,7 @@ export function createSettingsSystemSectionFeature(
         els.fwPreviousPanel = previousFirmwarePanel;
         firmwareSubpanels.appendChild(previousFirmwarePanel);
         fwBody.appendChild(firmwareSubpanels);
+        fwBody.appendChild(fwStatus);
         var firmwareCardBadge: any = statusBadge("Firmware update available", "Update available");
         firmwareCardBadge.className = "sp-card-badge sp-hidden";
         els.firmwareCardBadge = firmwareCardBadge;

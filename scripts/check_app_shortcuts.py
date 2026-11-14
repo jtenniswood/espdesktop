@@ -3,12 +3,10 @@
 import copy
 import json
 from pathlib import Path
-import shutil
 from tempfile import TemporaryDirectory
 import unittest
 
 from app_shortcuts_codegen import icon_names, load_apps, outputs, validate_app
-from web_apps_codegen import load_web_apps, outputs as web_outputs
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -17,13 +15,24 @@ class AppShortcutTests(unittest.TestCase):
     def setUp(self):
         self.icons = icon_names(json.loads((ROOT / 'product/v2/icons.json').read_text()))
         self.app = json.loads((ROOT / 'product/v2/app_shortcuts/safari.json').read_text())
+        self.app.pop('safariShortcuts', None)
 
     def test_existing_files_and_legacy_ids(self):
         apps = load_apps(ROOT)
         self.assertEqual([app['label'] for app in apps if app['catalog']], ['Safari'])
         safari = next(app for app in apps if app['appId'] == 'com.apple.Safari')
-        self.assertEqual([item['id'] for item in safari['shortcuts']], [str(index) for index in range(10)])
+        self.assertEqual([item['id'] for item in safari['shortcuts'][:10]], [str(index) for index in range(10)])
         self.assertEqual(safari['shortcuts'][2]['shortcut'], 'command+r')
+
+    def test_safari_plain_keys_are_reserved_for_the_safari_templates(self):
+        safari = copy.deepcopy(self.app)
+        safari['safariShortcuts'] = [{'id': '90', 'label': 'Next Field', 'shortcut': 'tab', 'icon': 'Shortcut Tab'}]
+        validate_app(safari, self.icons)
+        with self.assertRaisesRegex(ValueError, 'only in Safari'):
+            validate_app(dict(safari, appId='org.example.Editor'), self.icons)
+        safari['safariShortcuts'][0]['shortcut'] = 'enter'
+        with self.assertRaisesRegex(ValueError, 'invalid keyboard shortcut'):
+            validate_app(safari, self.icons)
 
     def test_invalid_definitions(self):
         for field, value in [('appId', 'invalid/id'), ('catalog', 'yes'), ('version', True), ('label', '')]:
@@ -48,6 +57,28 @@ class AppShortcutTests(unittest.TestCase):
         example = json.loads((ROOT / 'product/v2/app_shortcuts/examples/example-editor.json').read_text())
         validate_app(example, self.icons)
 
+    def test_claude_numbered_choices_and_additional_keys(self):
+        claude = json.loads((ROOT / 'product/v2/app_shortcuts/claude-desktop.json').read_text())
+        validate_app(claude, self.icons)
+        shortcuts = {item['shortcut'] for item in claude['shortcuts'] + claude['claudeShortcuts']}
+        for digit in '123456789':
+            self.assertTrue({digit, f'command+{digit}', f'command+option+{digit}'} <= shortcuts)
+        with self.assertRaisesRegex(ValueError, 'only on the Claude Desktop'):
+            validate_app(dict(claude, appId='org.example.Editor'), self.icons)
+        claude['claudeShortcuts'][0]['shortcut'] = 'enter'
+        with self.assertRaisesRegex(ValueError, 'invalid keyboard shortcut'):
+            validate_app(claude, self.icons)
+
+    def test_chatgpt_extra_presets_preserve_the_regular_list(self):
+        app = json.loads((ROOT / 'product/v2/app_shortcuts/codex.json').read_text())
+        validate_app(app, self.icons)
+        validate_app({key: value for key, value in app.items() if key != 'additionalShortcuts'}, self.icons)
+        with self.assertRaisesRegex(ValueError, 'only on the ChatGPT Desktop'):
+            validate_app(dict(app, appId='org.example.Editor'), self.icons)
+        app['additionalShortcuts'][0]['shortcut'] = 'escape'
+        with self.assertRaisesRegex(ValueError, 'invalid keyboard shortcut'):
+            validate_app(app, self.icons)
+
     def test_new_file_is_discovered_and_reordering_preserves_ids(self):
         with TemporaryDirectory() as temp:
             root = Path(temp)
@@ -55,102 +86,20 @@ class AppShortcutTests(unittest.TestCase):
             directory.mkdir(parents=True)
             (root / 'product/v2/icons.json').write_text((ROOT / 'product/v2/icons.json').read_text())
             self.app.update(appId='org.example.Editor', label='Example Editor', catalog=True)
-            self.app['shortcuts'][0]['id'] = '12'
+            self.app['shortcuts'][0]['id'] = '99'
+            self.app['defaultShortcutIds'] = ['99']
             self.app['shortcuts'].reverse()
             (directory / 'example.json').write_text(json.dumps(self.app))
             apps = load_apps(root)
-            self.assertEqual(apps[0]['shortcuts'][-1]['id'], '12')
+            self.assertEqual(apps[0]['shortcuts'][-1]['id'], '99')
+            self.assertEqual(apps[0]['defaultShortcutIds'], ['99'])
             generated = dict((path.suffix, content) for path, content in outputs(root))
             self.assertIn('org.example.Editor', generated['.ts'])
-            self.assertIn('id == "12"', generated['.h'])
+            self.assertIn('id == "99"', generated['.h'])
             self.assertIn('Example Editor', generated['.h'])
             (directory / 'duplicate.json').write_text(json.dumps(self.app))
             with self.assertRaisesRegex(ValueError, 'duplicate appId'):
                 load_apps(root)
-
-
-class WebAppTests(unittest.TestCase):
-    def test_reference_example_is_valid(self):
-        with TemporaryDirectory() as temp:
-            root = Path(temp)
-            source = ROOT / 'product/v2/web_apps'
-            directory = root / 'product/v2/web_apps'
-            (directory / 'icons').mkdir(parents=True)
-            (root / 'product/v2/icons.json').write_text((ROOT / 'product/v2/icons.json').read_text())
-            example = source / 'examples/example-service.json'
-            (directory / 'example-service.json').write_text(example.read_text())
-            shutil.copy2(source / 'icons/google-docs.png', directory / 'icons/google-docs.png')
-            (directory / 'manifest.json').write_text(json.dumps({
-                'formatVersion': 1,
-                'catalogueVersion': 1,
-                'minimumCompanionVersion': '1.0.0',
-                'entries': [{'path': 'example-service.json'}],
-            }))
-            self.assertEqual([app['id'] for app in load_web_apps(root)], ['example-service'])
-
-    def test_web_templates_manifest_and_hosted_icon(self):
-        apps = load_web_apps(ROOT)
-        self.assertEqual([app['id'] for app in apps], ['google-docs'])
-        self.assertEqual(apps[0]['matchHost'], 'docs.google.com')
-        generated = dict((path.name, content) for path, content in web_outputs(ROOT))
-        self.assertIn('google-docs', generated['web_apps.ts'])
-        self.assertIn('icon_url', generated['web_apps_generated.h'])
-
-    def test_web_manifest_template_and_match_validation(self):
-        with TemporaryDirectory() as temp:
-            root = Path(temp)
-            source = ROOT / 'product/v2/web_apps'
-            (root / 'product/v2/web_apps/icons').mkdir(parents=True)
-            (root / 'product/v2/icons.json').write_text((ROOT / 'product/v2/icons.json').read_text())
-            (root / 'product/v2/web_apps/google-docs.json').write_text((source / 'google-docs.json').read_text())
-            (root / 'product/v2/web_apps/manifest.json').write_text((source / 'manifest.json').read_text())
-            (root / 'product/v2/web_apps/icons/google-docs.png').write_bytes((source / 'icons/google-docs.png').read_bytes())
-            self.assertEqual(len(load_web_apps(root)), 1)
-            template_path = root / 'product/v2/web_apps/google-docs.json'
-            template = json.loads(template_path.read_text())
-            template['matchHost'] = 'example.com'
-            template_path.write_text(json.dumps(template))
-            with self.assertRaisesRegex(ValueError, 'matchHost must match'):
-                load_web_apps(root)
-            template['matchHost'] = 'docs.google.com'
-            template_path.write_text(json.dumps(template))
-            manifest = json.loads((root / 'product/v2/web_apps/manifest.json').read_text())
-            manifest['entries'][0]['path'] = '../google-docs.json'
-            (root / 'product/v2/web_apps/manifest.json').write_text(json.dumps(manifest))
-            with self.assertRaises(ValueError):
-                load_web_apps(root)
-
-    def test_web_labels_and_definition_size_fit_the_wire_format(self):
-        with TemporaryDirectory() as temp:
-            root = Path(temp)
-            source = ROOT / 'product/v2/web_apps'
-            directory = root / 'product/v2/web_apps'
-            (directory / 'icons').mkdir(parents=True)
-            (root / 'product/v2/icons.json').write_text((ROOT / 'product/v2/icons.json').read_text())
-            (directory / 'google-docs.json').write_text((source / 'google-docs.json').read_text())
-            (directory / 'manifest.json').write_text((source / 'manifest.json').read_text())
-            shutil.copy2(source / 'icons/google-docs.png', directory / 'icons/google-docs.png')
-            template_path = directory / 'google-docs.json'
-            template = json.loads(template_path.read_text())
-            template['id'] = 'a' * 65
-            template_path.write_text(json.dumps(template))
-            with self.assertRaisesRegex(ValueError, 'identifier of at most 64 bytes'):
-                load_web_apps(root)
-            template['id'] = 'google-docs'
-            template['label'] = 'W' * 49
-            template_path.write_text(json.dumps(template))
-            with self.assertRaisesRegex(ValueError, 'label must contain 1–48 bytes'):
-                load_web_apps(root)
-            template['label'] = 'Google Docs'
-            template['shortcuts'][0]['label'] = 'B' * 49
-            template_path.write_text(json.dumps(template))
-            with self.assertRaisesRegex(ValueError, 'invalid shortcut'):
-                load_web_apps(root)
-            template['shortcuts'][0]['label'] = 'Bold'
-            template['url'] += '?q=' + ('x' * 12000)
-            template_path.write_text(json.dumps(template))
-            with self.assertRaisesRegex(ValueError, 'compact serialized definition exceeds 12000 bytes'):
-                load_web_apps(root)
 
 
 if __name__ == '__main__':

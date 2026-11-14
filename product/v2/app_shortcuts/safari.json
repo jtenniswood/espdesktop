@@ -3,66 +3,191 @@
   "appId": "com.apple.Safari",
   "label": "Safari",
   "catalog": true,
+  "defaultShortcutIds": ["0", "1", "2", "3", "4", "5", "6", "7"],
   "shortcuts": [
     {
       "id": "0",
-      "label": "Go back to the previous webpage",
+      "label": "Back",
       "shortcut": "command+keybracketleft",
       "icon": "Chevron Left"
     },
     {
       "id": "1",
-      "label": "Go forward to the next webpage",
+      "label": "Forward",
       "shortcut": "command+keybracketright",
       "icon": "Chevron Right"
     },
     {
       "id": "2",
-      "label": "Reload the current webpage",
+      "label": "Reload",
       "shortcut": "command+r",
-      "icon": "Repeat"
+      "icon": "Refresh"
     },
     {
       "id": "3",
-      "label": "Open a new tab",
+      "label": "New Tab",
       "shortcut": "command+t",
-      "icon": "Plus"
+      "icon": "New Tab"
     },
     {
       "id": "4",
-      "label": "Close the active tab",
+      "label": "Close Tab",
       "shortcut": "command+w",
-      "icon": "Close"
+      "icon": "Close Tab"
     },
     {
       "id": "5",
-      "label": "Search the current webpage",
+      "label": "Find Text",
       "shortcut": "command+f",
       "icon": "Search"
     },
     {
       "id": "6",
-      "label": "Select the Smart Search field",
+      "label": "Search Bar",
       "shortcut": "command+l",
       "icon": "Search"
     },
     {
       "id": "7",
-      "label": "Show tab overview",
+      "label": "Tab Overview",
       "shortcut": "command+shift+keybackslash",
       "icon": "View Grid"
     },
     {
       "id": "8",
-      "label": "Go to the next tab",
+      "label": "Next Tab",
       "shortcut": "control+tab",
-      "icon": "Tab"
+      "icon": "Chevron Right"
     },
     {
       "id": "9",
-      "label": "Go to the previous tab",
+      "label": "Previous Tab",
       "shortcut": "control+shift+tab",
-      "icon": "Tab"
+      "icon": "Chevron Left"
+    },
+    {
+      "id": "10",
+      "label": "Next Item",
+      "shortcut": "option+tab",
+      "icon": "Link"
+    },
+    {
+      "id": "11",
+      "label": "Print Page",
+      "shortcut": "command+p",
+      "icon": "Printer"
+    },
+    {
+      "id": "12",
+      "label": "Copy",
+      "shortcut": "command+c",
+      "icon": "Copy"
+    },
+    {
+      "id": "13",
+      "label": "Paste",
+      "shortcut": "command+v",
+      "icon": "Paste"
+    },
+    {
+      "id": "14",
+      "label": "Home Page",
+      "shortcut": "command+shift+h",
+      "icon": "Home Page"
+    },
+    {
+      "id": "15",
+      "label": "Settings",
+      "shortcut": "command+keycomma",
+      "icon": "Settings"
+    },
+    {
+      "id": "16",
+      "label": "Zoom In",
+      "shortcut": "command+shift+keyequal",
+      "icon": "Zoom In"
+    },
+    {
+      "id": "17",
+      "label": "Zoom Out",
+      "shortcut": "command+keyminus",
+      "icon": "Zoom Out"
+    },
+    {
+      "id": "18",
+      "label": "Next Window",
+      "shortcut": "command+keybackquote",
+      "icon": "Window Restore"
+    },
+    {
+      "id": "19",
+      "label": "Open Reader",
+      "shortcut": "command+shift+r",
+      "icon": "Book"
     }
+  ],
+  "safariShortcuts": [
+    {
+      "id": "20",
+      "label": "Next Field",
+      "shortcut": "tab",
+      "icon": "Shortcut Tab"
+    },
+    {
+      "id": "21",
+      "label": "Escape",
+      "shortcut": "escape",
+      "icon": "Shortcut Escape"
+    }
+  ],
+  "moreShortcuts": [
+    {"id": "22", "label": "Scroll up, down, left, or right", "shortcut": "scoped.left", "icon": "Arrow Down"},
+    {"id": "23", "label": "Scroll up, down, left, or right", "shortcut": "scoped.right", "icon": "Arrow Down"},
+    {"id": "24", "label": "Scroll up, down, left, or right", "shortcut": "scoped.up", "icon": "Arrow Down"},
+    {"id": "25", "label": "Scroll up, down, left, or right", "shortcut": "scoped.down", "icon": "Arrow Down"},
+    {"id": "26", "label": "Scroll in larger increments Left", "shortcut": "scoped.option+left", "icon": "Arrow Left"},
+    {"id": "27", "label": "Scroll in larger increments Right", "shortcut": "scoped.option+right", "icon": "Arrow Right"},
+    {"id": "28", "label": "Scroll in larger increments Up", "shortcut": "scoped.option+up", "icon": "Arrow Up"},
+    {"id": "29", "label": "Scroll in larger increments Down", "shortcut": "scoped.option+down", "icon": "Arrow Down"},
+    {"id": "30", "label": "Scroll down screen", "shortcut": "scoped.pagedown", "icon": "Arrow Down"},
+    {"id": "31", "label": "Scroll down screen", "shortcut": "scoped.space", "icon": "Arrow Down"},
+    {"id": "32", "label": "Scroll up screen", "shortcut": "scoped.pageup", "icon": "Arrow Up"},
+    {"id": "33", "label": "Scroll up screen", "shortcut": "scoped.shift+space", "icon": "Arrow Up"},
+    {"id": "34", "label": "Scroll to top-left or bottom-left corner", "shortcut": "scoped.command+up", "icon": "Arrow Up"},
+    {"id": "35", "label": "Scroll to top-left or bottom-left corner", "shortcut": "scoped.command+down", "icon": "Arrow Down"},
+    {"id": "36", "label": "Next find result", "shortcut": "scoped.enter", "icon": "Search"},
+    {"id": "37", "label": "While typing", "shortcut": "scoped.escape", "icon": "Search"},
+    {"id": "38", "label": "Open new window", "shortcut": "scoped.command+n", "icon": "New Window"},
+    {"id": "39", "label": "Open private window", "shortcut": "scoped.command+shift+n", "icon": "Application"},
+    {"id": "40", "label": "Next tab", "shortcut": "scoped.command+shift+keybracketright", "icon": "Tab"},
+    {"id": "41", "label": "Select one of your first eight tabs 1", "shortcut": "scoped.command+1", "icon": "Group Selection"},
+    {"id": "42", "label": "Select one of your first eight tabs 2", "shortcut": "scoped.command+2", "icon": "Group Selection"},
+    {"id": "43", "label": "Select one of your first eight tabs 3", "shortcut": "scoped.command+3", "icon": "Group Selection"},
+    {"id": "44", "label": "Select one of your first eight tabs 4", "shortcut": "scoped.command+4", "icon": "Group Selection"},
+    {"id": "45", "label": "Select one of your first eight tabs 5", "shortcut": "scoped.command+5", "icon": "Group Selection"},
+    {"id": "46", "label": "Select one of your first eight tabs 6", "shortcut": "scoped.command+6", "icon": "Group Selection"},
+    {"id": "47", "label": "Select one of your first eight tabs 7", "shortcut": "scoped.command+7", "icon": "Group Selection"},
+    {"id": "48", "label": "Select one of your first eight tabs 8", "shortcut": "scoped.command+8", "icon": "Group Selection"},
+    {"id": "49", "label": "Select your last tab", "shortcut": "scoped.command+9", "icon": "Tab"},
+    {"id": "50", "label": "Reopen last tab you closed", "shortcut": "scoped.command+shift+t", "icon": "Tab Restore"},
+    {"id": "51", "label": "View browsing history", "shortcut": "scoped.command+y", "icon": "Application"},
+    {"id": "52", "label": "Exit full-screen view", "shortcut": "scoped.escape", "icon": "Full Screen Exit"},
+    {"id": "53", "label": "Restore default website zoom", "shortcut": "scoped.command+0", "icon": "Fit to Screen"},
+    {"id": "54", "label": "Reopen last window you closed", "shortcut": "scoped.command+shift+t", "icon": "Application"},
+    {"id": "55", "label": "Toggle Reading List sidebar", "shortcut": "scoped.command+control+2", "icon": "Dock Left"},
+    {"id": "56", "label": "Add current webpage", "shortcut": "scoped.command+shift+d", "icon": "Plus"},
+    {"id": "57", "label": "Close Reader", "shortcut": "scoped.escape", "icon": "Shortcut Escape"},
+    {"id": "58", "label": "Toggle Bookmarks sidebar", "shortcut": "scoped.command+control+1", "icon": "Dock Left"},
+    {"id": "59", "label": "Open Downloads", "shortcut": "scoped.command+option+l", "icon": "Open File"},
+    {"id": "60", "label": "Select next bookmark or folder", "shortcut": "scoped.up", "icon": "Group Selection"},
+    {"id": "61", "label": "Select next bookmark or folder", "shortcut": "scoped.down", "icon": "Group Selection"},
+    {"id": "62", "label": "Open selected bookmark", "shortcut": "scoped.space", "icon": "Bookmark"},
+    {"id": "63", "label": "Open selected folder", "shortcut": "scoped.space", "icon": "Folder Open Outline"},
+    {"id": "64", "label": "Open selected folder", "shortcut": "scoped.right", "icon": "Folder Open Outline"},
+    {"id": "65", "label": "Close selected folder", "shortcut": "scoped.space", "icon": "Folder Open Outline"},
+    {"id": "66", "label": "Close selected folder", "shortcut": "scoped.left", "icon": "Folder Open Outline"},
+    {"id": "67", "label": "Cancel editing bookmark name in sidebar", "shortcut": "scoped.escape", "icon": "Dock Left"},
+    {"id": "68", "label": "Finish editing bookmark name", "shortcut": "scoped.enter", "icon": "Bookmark"},
+    {"id": "69", "label": "Rename or edit selected bookmark", "shortcut": "scoped.enter", "icon": "Rename"}
   ]
 }

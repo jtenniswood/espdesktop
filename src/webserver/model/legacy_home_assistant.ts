@@ -1,6 +1,6 @@
 import type { CardConfig } from "../contracts/types";
 import type { PanelConfigDocument } from "./panel_config";
-import { parseRawButtonConfig } from "./card";
+import { isMacAudioCard, parseRawButtonConfig } from "./card";
 import { parseRawSubpageConfig } from "./subpage";
 import { cardContractSubpageTypeFromCode } from "../generated/card_contract";
 import { configOptionValue } from "./config_primitives";
@@ -42,7 +42,9 @@ export function cardRequiresHomeAssistant(
     readonly sensor?: string | null;
   } | null | undefined,
 ): boolean {
-  if (key === "slider") return card?.entity !== "media.output_volume" && card?.entity !== "media.input_volume";
+  if (key === "slider") {
+    return !isMacAudioCard(key, card?.entity);
+  }
   if (key === "subpage") {
     const connector = configOptionValue(card?.options, SUBPAGE_CONNECTOR_OPTION);
     const kind = configOptionValue(card?.options, SUBPAGE_KIND_OPTION);
@@ -99,10 +101,6 @@ export function legacyHomeAssistantCards(document: PanelConfigDocument): LegacyH
   for (const [slot, raw] of Object.entries(document.subpages)) {
     const subpage = parseRawSubpageConfig(raw, cardContractSubpageTypeFromCode);
     subpage.buttons.forEach((card, index) => inspect(card, `Folder ${slot}, card ${index + 1}`));
-  }
-  if (document.settings.special_page) {
-    const subpage = parseRawSubpageConfig(document.settings.special_page, cardContractSubpageTypeFromCode);
-    subpage.buttons.forEach((card, index) => inspect(card, `Special page, card ${index + 1}`));
   }
   return result;
 }

@@ -3,7 +3,7 @@ const assert = require("node:assert/strict");
 const { test } = require("node:test");
 const { loadTypescriptTest } = require("./helpers/load_typescript_test");
 const { normalizeCompanionCard, resetCompanionMetricPresentation, companionShortcutCatalogSelection } = loadTypescriptTest("src/webserver/cards/companion.ts");
-const { companionShortcutPresetCards, normalizeCompanionAppShortcutOptions } = loadTypescriptTest("src/webserver/application/companion_shortcut_folder.ts");
+const { companionShortcutCatalogApps, companionShortcutPresetCards, normalizeCompanionAppShortcutOptions } = loadTypescriptTest("src/webserver/application/companion_shortcut_folder.ts");
 test("every Companion normalizer preserves saved colour through repeated editor normalization", () => {
   for (const [entity, sensor, flags] of [
     ["stats", "", ""], ["stat.cpu", "", "large_numbers,stat_labels_off"],
@@ -11,7 +11,6 @@ test("every Companion normalizer preserves saved colour through repeated editor 
     ["folder.home", "", "finder_open_behavior=same_window,finder_open_override"],
     ["com.apple.Safari", "", "app_shortcuts"],
     ["com.apple.Safari", "url.https%3A%2F%2Fexample.com", ""],
-    ["webapp.browser", "", "webapp_icon_title"],
     ["shortcut.command+shift+k", "", "app_shortcut_preset=custom"],
   ]) {
     const card = { type: "companion", entity, sensor, options: [flags, "card_off_color=6633b9"].filter(Boolean).join(",") };
@@ -33,4 +32,16 @@ test("Companion metric reset and shortcut presets retain colour without confusin
   assert(normalizeCompanionAppShortcutOptions(card).includes("card_off_color=00BCD4"));
   normalizeCompanionCard(card);
   assert(companionShortcutCatalogSelection(card));
+});
+
+test("the picker can include a page's app using a bundled template", () => {
+  for (const appId of [
+    "com.apple.Safari.WebApp.01234567-89AB-CDEF-0123-456789abcdef",
+    "com.adobe.PremierePro.26",
+  ]) {
+    assert(!companionShortcutCatalogApps().some(app => app.appId === appId));
+    assert(companionShortcutCatalogApps(appId).some(app => app.appId === appId));
+    const preset = companionShortcutPresetCards(appId)[0];
+    assert.equal(companionShortcutCatalogSelection(preset)?.appId, appId);
+  }
 });

@@ -23,6 +23,21 @@ final class PairingCodeEntryTests: XCTestCase {
         }
     }
 
+    func testShortCodePasteAndIncompleteFallbackEntry() {
+        var short = PairingCodeEntry(letterCount: 4)
+        XCTAssertEqual(short.replace(at: 3, with: " abcd\n"), 3)
+        XCTAssertEqual(short.letters.count, 4)
+        XCTAssertEqual(short.code, "ABCD")
+
+        var fallback = PairingCodeEntry(letterCount: nil)
+        _ = fallback.replace(at: 0, with: "ABCDEFGH")
+        for index in 2...5 { _ = fallback.replace(at: index, with: "") }
+        XCTAssertEqual(fallback.code, "")
+        _ = fallback.replace(at: 0, with: "abcd")
+        XCTAssertEqual(fallback.code, "ABCD")
+        XCTAssertTrue(fallback.letters.suffix(4).allSatisfy(\.isEmpty))
+    }
+
     func testInvalidPasteDoesNotAlterCode() {
         var entry = PairingCodeEntry()
         _ = entry.replace(at: 0, with: "ABCD-EFGH")

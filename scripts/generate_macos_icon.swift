@@ -44,12 +44,10 @@ for (name, pixels) in sizes {
         throw NSError(domain: "IconGeneration", code: 2)
     }
     NSGraphicsContext.current = context
-    // Apply the macOS tile silhouette at each output size, keeping corners transparent.
-    let scale = CGFloat(pixels) / 1024
-    let tile = NSRect(x: 64 * scale, y: 64 * scale, width: 896 * scale, height: 896 * scale)
-    NSBezierPath(roundedRect: tile, xRadius: 200 * scale, yRadius: 200 * scale).addClip()
+    // The artwork already includes its rounded silhouette and transparent margins.
     context.imageInterpolation = .high
-    source.draw(in: tile, from: .zero, operation: .copy, fraction: 1)
+    let bounds = NSRect(x: 0, y: 0, width: pixels, height: pixels)
+    source.draw(in: bounds, from: .zero, operation: .copy, fraction: 1)
     context.flushGraphics()
     NSGraphicsContext.restoreGraphicsState()
     guard let data = bitmap.representation(using: NSBitmapImageRep.FileType.png, properties: [:]) else {

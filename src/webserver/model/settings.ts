@@ -1,3 +1,12 @@
+import { PANEL_SCALAR_SETTINGS } from "../generated/panel_settings";
+
+export const APP_SUBPAGE_PREFERENCE = "companion_auto_open_app_subpages";
+
+export function nativeAppSubpagePreference(settings?: Readonly<Record<string, string>>): boolean | undefined {
+  const saved = settings?.[APP_SUBPAGE_PREFERENCE];
+  return saved === "1" ? true : saved === "0" ? false : undefined;
+}
+
 export function normalizeLanguage(value: unknown): string {
   const language = String(value == null ? "" : value).trim().toLowerCase();
   return language || "en";
@@ -31,7 +40,8 @@ export function normalizeThemeMode(value: unknown): string {
 
 export function normalizeCardCurve(value: unknown): string {
   const preset = String(value || "").trim().toLowerCase();
-  return preset === "small" ? "Small" : preset === "large" ? "Large" : "Medium";
+  const rule = PANEL_SCALAR_SETTINGS.screen_card_curve;
+  return rule.choices.find(choice => choice.toLowerCase() === preset) ?? rule.defaultValue;
 }
 
 export function cardCurveRadius(baseRadius: number, preset: unknown, radii?: Readonly<Record<string, number>>): number {
@@ -72,14 +82,6 @@ export function normalizeScheduleWakeTimeout(value: unknown): number {
   if (!Number.isFinite(n) || n <= 0) return 60;
   if (n < 10) return 10;
   if (n > 3600) return 3600;
-  return Math.round(n);
-}
-
-export function normalizeCoverArtDelay(value: unknown): number {
-  const n = parseFloat(String(value));
-  if (!Number.isFinite(n)) return 10;
-  if (n < 3) return 3;
-  if (n > 300) return 300;
   return Math.round(n);
 }
 
@@ -318,10 +320,6 @@ export interface BackupPanelSettingsCurrent {
   ntpServer1: string;
   ntpServer2: string;
   ntpServer3: string;
-  coverArtHomeAssistantHost: string;
-  coverArtHomeAssistantProtocol: string;
-  coverArtHomeAssistantPort: number;
-  coverArtHomeAssistantEndpointMode: string;
   autoUpdate: boolean;
   updateFrequency: string;
   updateFrequencyOptions: readonly string[];
@@ -354,23 +352,8 @@ export interface BackupPanelSettingsState {
   metadataOverlay: boolean;
   screensaverCameraImageMode: string;
   screensaverCameraDimming: number;
-  mediaPlayerSleepPrevention: boolean;
-  mediaPlayerSleepPreventionEntity: string;
-  coverArtScreensaver: boolean;
-  coverArtSource: string;
   clockDate: boolean;
   clockOverlay: boolean;
-  coverArtMediaPlayerEntity: string;
-  coverArtSecondaryMediaPlayerEntity: string;
-  coverArtAttributeConditions: string;
-  coverArtDelay: unknown;
-  coverArtPlaybackControl: boolean;
-  coverArtTrackOverlayDuration: unknown;
-  coverArtHideExternalInput: boolean;
-  coverArtHomeAssistantHost: string;
-  coverArtHomeAssistantProtocol: string;
-  coverArtHomeAssistantPort: number;
-  coverArtHomeAssistantEndpointMode: string;
   autoUpdate: boolean;
   updateFrequency: string;
   screensaverAction: string;
@@ -381,17 +364,12 @@ export interface BackupPanelSettingsState {
   screensaverDimmedBrightnessDay: number;
   screensaverDimmedBrightnessNight: number;
   screensaverTimeout: unknown;
-  homeScreenTimeout: unknown;
   screenRotation: string;
 }
 
 export function normalizeScreensaverMode(value: unknown): string {
   const mode = String(value || "disabled");
   return mode === "timer" || mode === "companion" || mode === "disabled" ? mode : "disabled";
-}
-
-export function normalizeCoverArtSource(_value: unknown): string {
-  return "Mac Companion";
 }
 
 function normalizeScreenRotationValue(value: unknown, options: readonly string[]): string {
@@ -444,15 +422,6 @@ export function normalizeBackupPanelSettings(
       ? settings.screensaver_dimmed_brightness_night
       : screensaverDimmedBrightnessDay,
   );
-  const coverArtHomeAssistantProtocol = objectValue(settings, "home_assistant_artwork_protocol") != null
-    ? normalizeHomeAssistantArtworkProtocol(settings.home_assistant_artwork_protocol)
-    : normalizeHomeAssistantArtworkProtocol(current.coverArtHomeAssistantProtocol);
-  const coverArtHomeAssistantHost = objectValue(settings, "home_assistant_artwork_host") != null
-    ? normalizeHomeAssistantArtworkHost(settings.home_assistant_artwork_host)
-    : normalizeHomeAssistantArtworkHost(current.coverArtHomeAssistantHost);
-  const coverArtHomeAssistantPort = objectValue(settings, "home_assistant_artwork_port") != null
-    ? normalizeHomeAssistantArtworkPort(settings.home_assistant_artwork_port)
-    : normalizeHomeAssistantArtworkPort(current.coverArtHomeAssistantPort);
   return {
     clockBar: objectValue(settings, "clock_bar") != null ? !!settings.clock_bar : false,
     clockBarTime: objectValue(settings, "clock_bar_time") != null ? !!settings.clock_bar_time : true,
@@ -495,35 +464,10 @@ export function normalizeBackupPanelSettings(
     screensaverCameraImageMode: normalizeScreensaverCameraImageMode(
       settings.screensaver_camera_image_mode,
     ),
-    mediaPlayerSleepPrevention: objectValue(settings, "media_player_sleep_prevention") != null
-      ? !!settings.media_player_sleep_prevention
-      : true,
-    mediaPlayerSleepPreventionEntity: String(settings.media_player_sleep_prevention_entity || settings.cover_art_media_player_entity || ""),
-    coverArtScreensaver: !!settings.cover_art_screensaver,
-    coverArtSource: normalizeCoverArtSource(settings.cover_art_source),
     clockDate: !!settings.clock_date,
     clockOverlay: objectValue(settings, "clock_overlay") != null
       ? !!settings.clock_overlay
       : false,
-    coverArtMediaPlayerEntity: String(settings.cover_art_media_player_entity || settings.media_player_sleep_prevention_entity || ""),
-    coverArtSecondaryMediaPlayerEntity: String(settings.cover_art_secondary_media_player_entity || ""),
-    coverArtAttributeConditions: String(settings.cover_art_attribute_conditions || settings.cover_art_conditions || ""),
-    coverArtDelay: normalizeCoverArtDelay(
-      objectValue(settings, "cover_art_delay") != null ? settings.cover_art_delay : 10,
-    ),
-    coverArtPlaybackControl: objectValue(settings, "cover_art_playback_control") != null ? !!settings.cover_art_playback_control : true,
-    coverArtTrackOverlayDuration: objectValue(settings, "cover_art_track_overlay_duration") != null ? settings.cover_art_track_overlay_duration : 5,
-    coverArtHideExternalInput: objectValue(settings, "cover_art_hide_external_input") != null
-      ? !!settings.cover_art_hide_external_input
-      : true,
-    coverArtHomeAssistantHost,
-    coverArtHomeAssistantProtocol,
-    coverArtHomeAssistantPort,
-    coverArtHomeAssistantEndpointMode: normalizeHomeAssistantArtworkEndpointMode(
-      settings.home_assistant_artwork_endpoint_mode,
-      coverArtHomeAssistantProtocol,
-      coverArtHomeAssistantPort,
-    ),
     autoUpdate: objectValue(settings, "firmware_auto_update") != null
       ? !!settings.firmware_auto_update
       : current.autoUpdate,
@@ -542,7 +486,6 @@ export function normalizeBackupPanelSettings(
     screensaverDimmedBrightnessDay,
     screensaverDimmedBrightnessNight,
     screensaverTimeout: settings.screensaver_timeout || 300,
-    homeScreenTimeout: objectValue(settings, "home_screen_timeout") != null ? settings.home_screen_timeout : 60,
     screenRotation: normalizeScreenRotationValue(settings.screen_rotation, current.screenRotationOptions),
   };
 }

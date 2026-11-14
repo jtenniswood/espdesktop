@@ -30,4 +30,12 @@ final class ConnectionEndpointPolicyTests: XCTestCase {
             "http://192.168.1.20?tab=connectors&connector=mac_companion"
         )
     }
+
+    func testPanelSetupURLTargetsTheDisplayWebServer() {
+        XCTAssertEqual(
+            CompanionStore.panelWebServerURL(from: "desk.local:8443", setup: true)?.absoluteString,
+            "http://desk.local?setup=1"
+        )
+        XCTAssertNil(CompanionStore.panelWebServerURL(from: "example.com", setup: true))
+    }
 }

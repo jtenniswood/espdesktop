@@ -18,6 +18,7 @@
 #include "ha_state_limits.h"
 #include "camera_refresh_policy.h"
 #include "companion_capabilities_generated.h"
+#include "companion_shortcut_page.h"
 #include "app_shortcuts_generated.h"
 #include "button_grid_saved_config_access_generated.h"
 #include "button_grid_saved_config_security_generated.h"
@@ -28,7 +29,6 @@
 #include "button_grid_saved_config_webhook_generated.h"
 #include "button_grid_saved_config_subpage_generated.h"
 #include "button_grid_saved_config_switch_generated.h"
-#include "button_grid_saved_config_date_time_generated.h"
 #include "button_grid_saved_config_fan_generated.h"
 #include "button_grid_saved_config_media_generated.h"
 #include "button_grid_saved_config_mower_generated.h"
@@ -108,13 +108,13 @@ inline std::string encode_compact_field(const std::string &value) {
 
 // Structured view of a button config string: entity;label;icon;icon_on;sensor;unit;type;precision;options
 struct ParsedCfg {
-  std::string entity;      // 0  HA entity_id, timezone option
+  std::string entity;      // 0  HA entity_id
   std::string label;       // 1  display name (blank = use HA friendly_name)
   std::string icon;        // 2  icon name for off/default state
   std::string icon_on;     // 3  icon name for on state (blank = no swap)
   std::string sensor;      // 4  sensor entity, cover mode, or action name for Action cards
   std::string unit;        // 5  unit suffix for sensor display
-  std::string type;        // 6  button type: "" (toggle), action, sensor, calendar, timezone, weather_forecast, slider, light_brightness, light_switch, fan_*, cover, garage, gate, lock, alarm, alarm_action, media, climate, push, webhook, subpage
+  std::string type;        // 6  button type: "" (toggle), action, weather_forecast, slider, light_brightness, light_switch, fan_*, cover, garage, gate, lock, alarm, alarm_action, media, climate, push, subpage
   std::string precision;   // 7  decimal places for sensors; "text" = text sensor mode
   std::string options;     // 8  comma-delimited card options
 };
@@ -853,21 +853,6 @@ inline const char *subpage_companion_stat_default_unit(const std::string &entity
   return capability ? capability->unit : "%";
 }
 
-inline std::string date_time_card_options_normalized(const std::string &options,
-                                                     const ParsedCfg &p) {
-  if (!card_large_numbers_supported(p)) return "";
-  std::string out;
-  if (cfg_option_token_present(options, "large_numbers") ||
-      large_numbers_explicitly_disabled(options)) {
-    append_large_numbers_option(out, options);
-  }
-  if (p.type == "clock" && cfg_option_token_present(options, "center_clock")) {
-    if (!out.empty()) out += ",";
-    out += "center_clock";
-  }
-  return out;
-}
-
 inline std::string companion_metric_options_normalized(const std::string &options) {
   return cfg_option_token_present(options, "stat_labels_off") ? "stat_labels_off" : "";
 }
@@ -1095,12 +1080,6 @@ inline void normalize_saved_config_fan_fields(ParsedCfg &p) {
   }
 }
 
-inline void normalize_saved_config_date_time_fields(ParsedCfg &p) {
-  if (!p.entity.empty()) return;
-  if (p.type == "calendar") p.entity = "sensor.date";
-  else if (p.type == "timezone") p.entity = "UTC (GMT+0)";
-}
-
 inline void normalize_saved_config_mower_fields(ParsedCfg &p) {
   p.sensor = card_runtime_lawn_mower_mode(p.sensor);
   if (p.icon.empty() || p.icon == "Auto") {
@@ -1289,24 +1268,8 @@ inline bool companion_shortcut_template_id_valid(const std::string &value) {
   return std::atoi(value.c_str()) <= 999;
 }
 
-inline bool companion_shortcut_app_id_valid(const std::string &value) {
-  if (value.size() > 96 || value.empty()) return false;
-  const bool web_app = value.rfind("webapp.", 0) == 0;
-  const std::string id = web_app ? value.substr(7) : value;
-  if (id.empty()) return false;
-  bool has_separator = false;
-  for (char ch : id) {
-    const bool allowed = (ch >= 'a' && ch <= 'z') || (ch >= 'A' && ch <= 'Z') ||
-      (ch >= '0' && ch <= '9') || ch == '-' || (web_app ? false : ch == '.');
-    if (!allowed) return false;
-    if (ch == '.' || ch == '-') has_separator = true;
-  }
-  return web_app ? true : has_separator && id.find('.') != std::string::npos;
-}
-
 inline bool companion_app_shortcuts_enabled(const ParsedCfg &p) {
-  return p.type == "companion" &&
-         (p.entity == "com.apple.finder" || companion_shortcut_app_id_valid(p.entity)) &&
+  return p.type == "companion" && companion_shortcut_page_app(p.entity) &&
          p.sensor.empty() && cfg_option_token_present(p.options, "app_shortcuts");
 }
 
@@ -1314,13 +1277,15 @@ inline bool companion_app_launch_card(const ParsedCfg &p) {
   return p.type == "companion" && !p.entity.empty() && p.sensor.empty() &&
          p.entity.rfind("folder.", 0) != 0 &&
          p.entity.rfind("shortcut.", 0) != 0 &&
-         p.entity.rfind("window.", 0) != 0 &&
          p.entity.rfind("stat.", 0) != 0;
 }
 
 inline bool companion_app_icon_enabled(const ParsedCfg &p) {
-  return companion_app_launch_card(p) &&
-         p.entity.rfind("webapp.", 0) != 0;
+  return companion_app_launch_card(p);
+}
+
+inline bool companion_url_opens_new_window(const ParsedCfg &p) {
+  return p.sensor.rfind("url.", 0) == 0 && cfg_option_value(p.options, "url_open_behavior") == "new_window";
 }
 
 inline std::string companion_folder_open_behavior(const ParsedCfg &p) {
@@ -1362,11 +1327,10 @@ inline std::string companion_shortcut_preset_normalized(const ParsedCfg &p) {
 }
 
 inline std::string companion_card_options_normalized(const ParsedCfg &p) {
-  std::string out;
-  if (p.entity.rfind("webapp.", 0) == 0 &&
-      cfg_option_token_present(p.options, "webapp_icon_title")) {
-    out = "webapp_icon_title";
+  if (p.sensor.rfind("url.", 0) == 0) {
+    return companion_url_opens_new_window(p) ? "url_open_behavior=new_window" : "";
   }
+  std::string out;
   const std::string preset = companion_shortcut_preset_normalized(p);
   if (!preset.empty()) {
     if (!out.empty()) out += ",";
@@ -1377,6 +1341,7 @@ inline std::string companion_card_options_normalized(const ParsedCfg &p) {
     if (!out.empty()) out += ",";
     out += token;
   };
+  if (companion_folder_open_behavior(p) == "same_window") add_token("finder_open_behavior=same_window");
   if (companion_app_shortcuts_enabled(p)) {
     add_token("app_shortcuts");
     const std::string tabs = companion_app_shortcut_tabs_normalized(p);
@@ -1396,10 +1361,10 @@ inline std::string companion_card_options_normalized(const ParsedCfg &p) {
 }
 
 inline ParsedCfg normalize_parsed_cfg(ParsedCfg p) {
-  if (card_runtime_type_retired(p.type)) {
-    const std::string type = p.type;
+  const std::string retired_type = retired_saved_card_type(p.type, p.entity);
+  if (!retired_type.empty()) {
     p = ParsedCfg{};
-    p.type = type;
+    p.type = retired_type;
     p.icon = "Auto";
     p.icon_on = "Auto";
     return p;
@@ -1443,11 +1408,18 @@ inline ParsedCfg normalize_parsed_cfg(ParsedCfg p) {
   normalize_saved_config_image(
       p, normalize_saved_config_image_fields, normalize_saved_config_image_options);
   const bool normalized_saved_static = normalize_saved_config_static(p);
-  normalize_saved_config_date_time(
-      p, normalize_saved_config_date_time_fields, date_time_card_options_normalized);
   normalize_saved_config_light_control(p, normalize_saved_config_light_control_options);
   normalize_saved_config_subpage(
       p, normalize_saved_config_subpage_fields, normalize_saved_config_subpage_options);
+  if (p.type == "companion_mac_lock") {
+    p.entity = "shortcut.command+control+q";
+    if (p.label.empty()) p.label = card_runtime_label(p.type);
+    if (p.icon.empty() || p.icon == "Auto") p.icon = card_runtime_default_icon_name(p.type);
+    p.icon_on = "Auto";
+    p.sensor.clear();
+    p.unit.clear();
+    p.precision.clear();
+  }
   if (p.type == "companion") {
     p.icon_on = "Auto";
     if (companion_system_metric_config(p)) {

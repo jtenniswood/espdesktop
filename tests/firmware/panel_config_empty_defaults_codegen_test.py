@@ -24,11 +24,17 @@ espdesktop:
   id: target_app
   panel_config:
     device_profile: fixture
+    on_layout_changed:
+      - script.execute: refresh_layout
     button_order: order
     button_on_color: color
     buttons:
       - config: button
         subpage_chunks: [empty_restore, volatile_text, calculated_text, copied_text, another_empty, nonempty]
+script:
+  - id: refresh_layout
+    then:
+      - delay: 1ms
 external_components:
   - source:
       type: local
@@ -105,6 +111,7 @@ text:
     defines = (root / ".esphome/build/empty-defaults-test/src/esphome/core/defines.h").read_text()
     assert "#define ESPDESKTOP_PANEL_CONFIG_TEXT_SLOT_COUNT 1" in defines
     assert "#define ESPDESKTOP_PANEL_CONFIG_TEXT_CHUNK_COUNT 6" in defines
+    assert "target_app->get_layout_changed_trigger()" in generated
     marked = set(re.findall(r"target_app->set_panel_config_text_empty_default\((\w+)\)", generated))
     assert marked == {"order", "empty_restore", "another_empty"}, marked
     assert "target_app->set_panel_config_button(1," in generated

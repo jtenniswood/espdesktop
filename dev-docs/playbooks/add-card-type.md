@@ -5,7 +5,8 @@ configured, rendered, previewed, or saved.
 
 ## Edit First
 
-- `product/v2/card_contract.json`
+- `product/v2/cards/<type>.json` for the card definition
+- `product/v2/card_contract_shared.json` for shared rules and runtime registration
 - `src/webserver/cards/<type>.ts`
 - `components/espdesktop/button_grid_<type>.h`
 
@@ -21,7 +22,7 @@ and firmware behavior show the real shape of the change.
 
 ## Checklist
 
-- [ ] Add or update the card entry in `product/v2/card_contract.json`.
+- [ ] Add or update the card definition in `product/v2/cards/`. Register new entries in `product/model_v2.json`.
 - [ ] Add or update its `runtime.specs` entry with a permitted driver and every
       capability flag. Add an exhaustive mode mapping when a saved field selects
       different behaviour.
@@ -55,6 +56,7 @@ Do not edit generated files directly. The source-to-generated mapping is in
 
 Expected generated files commonly include:
 
+- `product/v2/card_contract.json`
 - `src/webserver/generated/card_contract.ts`
 - `components/espdesktop/button_grid_contract_generated.h`
 - `docs/generated/cards/capabilities.md`

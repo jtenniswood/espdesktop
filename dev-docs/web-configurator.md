@@ -34,23 +34,31 @@ keepalive requests, and JSON decoding.
 
 ## Build
 
+Run `npm ci` from the repository root, then `npm run webserver:build` to
+generate the editor. The generated editor, manifest and loaders are ignored
+by Git. The repository retains pinned compatibility bundles for release
+builds that cannot fetch their published predecessors.
+
 The web generator writes `docs/public/webserver/<slug>/www.js` for each supported
 device. The shared `docs/public/webserver/www.js` is a small hosted bridge: it
 uses `web-assets.json` to select an immutable content-addressed editor for the
 development build and the stable release/rollback versions declared by the
 generator. The matching offline editor is written to
-`docs/public/webserver/embedded/www.js`. Firmware
-loads that local editor first as a fallback, then asks the hosted bridge for its
-declared compatible bundle; if the manifest or bundle cannot be loaded, the
-local editor starts automatically.
+`docs/public/webserver/embedded/www.js`. The public Guition 4848S040 firmware
+starts its embedded editor for both factory installs and OTA upgrades. Editor
+changes reach that panel through firmware updates. Firmware configured with
+the hosted bridge still starts its local fallback if the hosted editor cannot
+load.
 
 The configurator page itself is served by the device. New build entry points in
 `builds/*.yaml` bundle the matching JavaScript with `web_server.js_include`, so
-a flashed branch uses that branch's setup UI. The generated files are still
-published for older firmware that loads the hosted GitHub Pages copy:
+a flashed branch uses that branch's setup UI. The local ESPHome wrapper
+builds the editor before compilation. The PR firmware check also publishes
+factory and OTA binaries under the matching `pr-firmware-<slug>` artifact.
+GitHub Pages publishes the hosted version at:
 
 ```text
-https://jtenniswood.github.io/espdesktop/webserver/<slug>/www.js
+https://espdesktop.com/webserver/<slug>/www.js
 ```
 
 The fallback hosted bundle URL is set as `js_url` in
@@ -59,29 +67,37 @@ firmware and imported configs.
 
 ## Device API Shape
 
-The setup page reads and writes ESPHome web server entities exposed by the
-device. Button configuration is saved in text entities such as:
+The editor discovers the panel's supported layout versions at
+`GET /api/v1/capabilities`. It reads the saved binary document from
+`GET /api/v1/config` and writes updates to that endpoint. A write includes the
+last observed `ETag` in its `If-Match` header, so a second browser cannot
+silently overwrite a newer save.
 
-```text
-Button 1 Config
-Button 2 Config
-...
-```
-
-The setup page serializes card settings to a compact string. Firmware parses the
-same string on-device. Keep `src/webserver/application/config_codec.ts` and
-`components/espdesktop/button_grid_config.h` in sync.
-
-To inspect what the device actually stored, read the matching ESPHome web server
-entity:
+On current firmware, use the layout API to inspect a saved configuration.
+The following request shows the document version and generation without
+printing the layout contents.
 
 ```bash
-curl -s "http://<device-ip>/text/Button%201%20Config?detail=all"
-curl -s "http://<device-ip>/text/Button%20On%20Color?detail=all"
+curl --fail --silent --show-error --dump-header - --output /dev/null \
+  --header 'X-Panel-Config-Version: 2' "http://<device-ip>/api/v1/config"
 ```
 
-The setup page writes to these same text/select/number/switch entities, so the
-REST response shows the exact compact string firmware will parse.
+Older firmware exposes card layout through ESPHome text entities. Current
+firmware still uses ESPHome entities for some screen settings, while card
+layout saves and rendering use the native document.
+
+### Mac app setup
+
+Firmware that advertises `configuration.companion_auto_open_app_subpages`
+applies the automatic switching preference from the native layout document.
+The first-run wizard writes the home cards and shortcut pages directly to
+the native layout and commits them with the preference and completion marker
+in one generation-checked save. Setup Again reads the current layout and
+stops if another editor changes the layout or preference before saving.
+The Screen settings toggle edits that field through the same API. A layout without the field
+retains the panel's previously saved preference. The switch publishes the
+live value to the editor after the layout commit. Existing backups can supply
+the preference through their portable settings.
 
 ### Reset and editing sessions
 
@@ -150,7 +166,10 @@ exact edit, generation, and verification steps, or the
 
 ## Preview and Persistence Rules
 
-- Update the draft object first.
+- Inline rename and drag-and-drop on native panels commit an edit before
+  refreshing the preview. A rename changes one card. Drag-and-drop changes
+  the page order while retaining the card records.
+- Update the draft object first for settings that use the legacy save path.
 - Use the existing helper save functions where available.
 - Schedule a preview refresh after changing fields that affect the tile.
 - Keep option-backed fields in the `options` string, not as new top-level fields,
@@ -163,3 +182,21 @@ exact edit, generation, and verification steps, or the
 The web playbook owns browser checks and the physical-display loop. Browsers
 cache `www.js` aggressively, so physical testing must hard reload after each
 rebuild.
+
+The theme's mode, automatic method, local start times, and solar offsets are
+stored as one versioned native display preference. The editor discovers
+support before using it. The firmware's theme entities submit edits to the
+same record, including the first edit on a fresh panel. Firmware publishes
+the complete theme after storage commits and uses product defaults when the
+record is absent.
+
+Night Schedule also uses one native record. Its firmware entities publish
+live values and route edits through the same native transaction as the editor.
+Before the saved document loads, the panel uses the enabled time schedule
+with the product defaults.
+
+Independent settings such as card corner size and clock bar visibility use
+the scalar rules in `product/v2/panel_settings.json`. The ESPHome entities
+provide the controls and publish live values. The panel commits those edits
+through the native configuration service and publishes only changed values
+after activation.

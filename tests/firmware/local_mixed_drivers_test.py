@@ -35,15 +35,23 @@ void lv_obj_add_event_cb(lv_obj_t *, void(*)(lv_event_t *), int, void *) {}
 void lv_label_set_display_text(lv_obj_t *obj, const char *text) { obj->text = text; }
 uint32_t card_slider_fill_color(const CardPalette &) { return 0; }
 int layouts = 0, setups = 0, bindings = 0, local_bindings = 0;
+int mute_setups = 0, mute_bindings = 0;
 void setup_slider_visual(BtnSlot &, const ParsedCfg &, uint32_t) { ++setups; }
 void refresh_slider_card_layout(BtnSlot &) { ++layouts; }
-bool companion_volume_control_valid(const std::string &key) { return key == "media.output_volume" || key == "media.input_volume"; }
-const char *companion_volume_control_label(const std::string &key) { return key == "media.output_volume" ? "Output Volume" : "Microphone Volume"; }
-bool slider_has_alt_icon(const std::string &, const std::string &icon) { return !icon.empty(); }
+void setup_toggle_visual(BtnSlot &, const ParsedCfg &) { ++mute_setups; }
+bool companion_mute_control_valid(const std::string &key) { return key == "media.output_mute" || key == "media.input_mute"; }
+bool companion_volume_control_valid(const std::string &key) { return key == "media.output_volume" || key == "media.input_volume" || companion_mute_control_valid(key); }
+const char *companion_volume_control_label(const std::string &key) { return companion_mute_control_valid(key) ? "Mute" : key == "media.output_volume" ? "Lautstärke" : "Mic"; }
+bool companion_forget_mute(lv_obj_t *) { return false; }
+void set_card_checked_state(lv_obj_t *, bool) {}
+void set_card_disabled_state(lv_obj_t *, bool) {}
+const char *find_icon(const char *name) { return name; }
+void companion_track_mute(lv_obj_t *, const std::string &key, lv_obj_t *, const char *, const char *) { assert(companion_mute_control_valid(key)); ++mute_bindings; }
 const char *slider_icon_off(const std::string &, const std::string &, const std::string &) { return "volume"; }
 const char *slider_icon_on(const std::string &, const std::string &, const std::string &, const std::string &) { return "volume-on"; }
 void companion_track_slider(lv_obj_t *, const std::string &key, lv_obj_t *, bool, const char *, const char *) { assert(companion_volume_control_valid(key)); ++bindings; }
 std::vector<std::pair<std::string,int>> commands;
+bool companion_toggle_mute(const std::string &key) { commands.emplace_back(key,100); return true; }
 unsigned companion_next_request_number() { return 1; }
 bool invoke_companion_value(const std::string &key, int value, const char *) { commands.emplace_back(key,value); return true; }
 std::vector<std::function<void()>> callbacks;
@@ -71,17 +79,29 @@ int main() {
  lv_obj_t button, container, slider, icon, label; container.data = &slider;
  BtnSlot slot{&button,&container,&icon,&label}; CardPalette palette; DisplayProfile display;
  for (const char *key : {"media.output_volume","media.input_volume"}) {
-  config = {"slider",key,"","","",""};
+  config = {"slider",key,"","","",std::string(key) == "media.output_volume" ? "Volume" : "Mic"};
   assert(numeric_selectable_driver_setup_visual(slot,config,c,palette,display));
   assert(numeric_selectable_driver_bind_main(slot,config,c,palette,display));
   assert(numeric_selectable_driver_bind_subpage(slot,config,c,{}));
   assert(label.text == companion_volume_control_label(key));
   assert(numeric_selectable_driver_refresh_layout(slot,config,c));
   assert(numeric_selectable_driver_handle_main_click(c,config,&button));
-  callbacks.back()();
+  assert(callbacks.empty());
   assert(send_slider_action(key,42));
  }
- assert(setups == 2 && bindings == 4 && layouts == 2 && commands.size() == 6);
+ assert(setups == 2 && bindings == 4 && layouts == 2 && commands.size() == 2);
+ for (const char *key : {"media.output_mute","media.input_mute"}) {
+  config = {"slider",key,"","","",""};
+  assert(numeric_selectable_driver_setup_visual(slot,config,c,palette,display));
+  assert(numeric_selectable_driver_bind_main(slot,config,c,palette,display));
+  assert(numeric_selectable_driver_bind_subpage(slot,config,c,{}));
+  assert(label.text == "Mute");
+  assert(numeric_selectable_driver_refresh_layout(slot,config,c));
+  assert(numeric_selectable_driver_handle_main_click(c,config,&button));
+  callbacks.back()();
+  assert(commands.back() == std::make_pair(std::string(key),100));
+ }
+ assert(mute_setups == 2 && mute_bindings == 4 && layouts == 2 && commands.size() == 6);
  for (const char *key : {"light.room","fan.room","cover.room","number.room","media_player.room","input_number.room"}) {
   config.entity = key;
   assert(!numeric_selectable_driver_setup_visual(slot,config,c,palette,display));

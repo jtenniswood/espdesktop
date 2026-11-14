@@ -1,9 +1,14 @@
+import { screenSchedulePreferencesFromState } from "./model/screen_schedule_preferences";
+import { displayThemePreferencesFromState } from "./model/display_theme_preferences";
+import { createFirstRunSetup } from "./application/first_run_setup";
 import { resetAwareFetch } from "./api/reset_session";
 import type { CardConfig } from "./contracts/types";
 import * as DeviceConfig from "./device_config";
 import * as Model from "./model";
+import { APP_SUBPAGE_PREFERENCE } from "./model/settings";
 import { createDeviceApi } from "./api/device_api";
 import { companionFocusRegistrationValues, createCompanionCatalogue } from "./api/companion_catalogue";
+import type { CompanionAction } from "./api/companion_catalogue";
 import { NTP_SERVER_DEFAULTS, defaultTimezoneOptionsForDevice } from "./state/app_state";
 import * as AppInstance from "./state/app_instance";
 import { state } from "./state/app_instance";
@@ -41,7 +46,6 @@ import { createConfigWeatherOptionsFeature } from "./application/config_weather_
 import { createConfigWebhookOptionsFeature } from "./application/config_webhook_options";
 import { createConfigRobotCardOptionsFeature } from "./application/config_robot_card_options";
 import { createConfigLockOptionsFeature } from "./application/config_lock_options";
-import { createConfigDateTimeOptionsFeature } from "./application/config_date_time_options";
 import { createConfigModalTabOptionsFeature } from "./application/config_modal_tab_options";
 import { createConfigSensorOptionsFeature } from "./application/config_sensor_options";
 import { createConfigConfirmationOptionsFeature } from "./application/config_confirmation_options";
@@ -51,13 +55,11 @@ import { createNativePanelConfigMigrationController } from "./application/native
 import { createConfigPersistenceFeature } from "./application/config_post_api";
 import { createStateLoaderFeature, type StateLoaderFeature } from "./application/state_loader_api";
 import { createGridMigrationFeature } from "./application/grid_migration";
-import { createArtworkPostApiFeature } from "./application/artwork_post_api";
 import { createScreenSchedulePostApiFeature } from "./application/screen_schedule_post_api";
 import { createClockBarPostApiFeature } from "./application/clock_bar_post_api";
 import { createControlsShellFeature, renderPanelBrand } from "./application/controls_shell";
 import { createSettingsPageHelpersFeature, type SettingsPageHelpersFeature } from "./application/settings_page_helpers";
 import { createSettingsScheduleSectionFeature } from "./application/settings_schedule_section";
-import { createSettingsCoverArtSectionFeature } from "./application/settings_cover_art_section";
 import { createSettingsSystemSectionFeature } from "./application/settings_system_section";
 import { createSettingsCompanionSectionFeature } from "./application/settings_companion_section";
 import { createConnectorsPageFeature, type ConnectorsPageFeature } from "./application/connectors_page";
@@ -85,8 +87,6 @@ import { createScreenScheduleController } from "./features/screen_schedule_contr
 import { createSettingsUiFeature } from "./features/settings";
 
 import { createScreensaverController } from "./features/screensaver_controller";
-import { createCoverArtScreensaverController } from "./features/cover_art_screensaver_controller";
-import { createMediaPlaybackController } from "./features/media_playback_controller";
 import { createBackupImportController } from "./features/backup_import_controller";
 import { createBackupExportController } from "./features/backup_export_controller";
 import { createBackupFileController } from "./features/backup_file_controller";
@@ -106,10 +106,8 @@ import { createNativePageEditorFeature } from "./application/native_page_editor"
 import { createReconnectController } from "./features/reconnect";
 import { registerTimerCardTypes } from "./cards/timer";
 import { registerAlarmCardTypes } from "./cards/alarm";
-import { registerCalendarCardTypes } from "./cards/calendar";
 import { registerCompanionCardTypes } from "./cards/companion";
 import { registerClimateCardTypes } from "./cards/climate";
-import { registerClockCardTypes } from "./cards/clock";
 import { createCoverLikeCardRegistration } from "./cards/cover_like_card";
 import { registerDoorWindowCardTypes } from "./cards/door_window";
 import { registerFanCardTypes } from "./cards/fan";
@@ -125,7 +123,6 @@ import { registerPushCardTypes } from "./cards/push";
 import { registerSliderCardTypes } from "./cards/slider";
 import { registerSubpageCardTypes } from "./cards/subpage";
 import { registerSwitchCardTypes } from "./cards/switch";
-import { registerTimezoneCardTypes } from "./cards/timezone";
 import { registerVacuumCardTypes } from "./cards/vacuum";
 import { registerWeatherCardTypes } from "./cards/weather";
 import { registerWeatherForecastCardTypes } from "./cards/weather_forecast";
@@ -145,7 +142,10 @@ const startupState = globalThis as typeof globalThis & {
   __ESPDESKTOP_UI_STARTING__?: boolean;
 };
 
-function registerCards(context: ApplicationContext) {
+function registerCards(
+  context: ApplicationContext,
+  publishFinderFolders: (folders: readonly CompanionAction[]) => boolean,
+) {
   const registry = context.cards;
   const fields = context.controllers.fields;
   const cardUi = {
@@ -155,8 +155,6 @@ function registerCards(context: ApplicationContext) {
   const coverLikeCards = createCoverLikeCardRegistration(registry, context.controllers.renderQueue, fields, cardUi);
   registerAlarmCardTypes(registry, context.configuration.accessClimateAlarm, context.controllers.renderQueue, fields, cardUi);
   registerTimerCardTypes(registry);
-  registerCalendarCardTypes(registry, context.configuration.dateTimeOptions, fields,
-    () => context.configuration.native.homeAssistantSupportEnabled());
   registerCompanionCardTypes(
     registry,
     !!context.device.profile.features?.companion,
@@ -169,6 +167,7 @@ function registerCards(context: ApplicationContext) {
     context.controllers.selection,
     context.layout.numSlots,
     context.controllers.connectorsPage,
+    publishFinderFolders,
   );
   registerClimateCardTypes(
     registry,
@@ -177,8 +176,6 @@ function registerCards(context: ApplicationContext) {
     context.controllers.renderQueue,
     fields,
   );
-  registerClockCardTypes(registry, context.configuration.dateTimeOptions, fields,
-    () => context.configuration.native.homeAssistantSupportEnabled());
   registerDoorWindowCardTypes(registry, context.configuration.options, fields);
   registerFanCardTypes(registry, context.configuration.modalTabs, fields, cardUi);
   registerGarageCardTypes(
@@ -211,8 +208,6 @@ function registerCards(context: ApplicationContext) {
   );
   registerSubpageCardTypes(registry, context.configuration.codec, context.core, context.controllers.selection, fields, cardUi);
   registerSwitchCardTypes(registry, context.configuration.confirmationOptions, lightCards, fields);
-  registerTimezoneCardTypes(registry, context.configuration.dateTimeOptions, context.dom.document, fields,
-    () => context.configuration.native.homeAssistantSupportEnabled());
   registerVacuumCardTypes(registry, context.configuration.robotOptions, fields, cardUi);
   const weatherCards = registerWeatherCardTypes(registry, context.configuration.weatherOptions, fields, cardUi);
   registerWeatherForecastCardTypes(registry, weatherCards, fields);
@@ -230,7 +225,6 @@ function installTestHooks(context: ApplicationContext, lightCards: ReturnType<ty
     context.configuration.weatherOptions,
     context.configuration.webhookOptions,
     context.configuration.lockOptions,
-    context.configuration.dateTimeOptions,
     context.configuration.modalTabs,
     context.configuration.accessClimateAlarm,
     context.configuration.confirmationOptions,
@@ -256,13 +250,12 @@ function installTestHooks(context: ApplicationContext, lightCards: ReturnType<ty
     context.controllers.entityState,
     context.controllers.requestApi,
     context.controllers.statusPreview,
-    context.controllers.artworkPostApi,
     context.controllers.publicFirmwareInstall,
     register,
   );
 }
 
-function composeApplicationContext(): ApplicationContext {
+function composeApplicationContext(liveFinderFolders: () => readonly CompanionAction[]): ApplicationContext {
   const fetchService: typeof fetch = typeof fetch === "function"
     ? resetAwareFetch
     : (() => Promise.reject(new Error("Fetch is not available"))) as typeof fetch;
@@ -273,12 +266,13 @@ function composeApplicationContext(): ApplicationContext {
     createEventSource: () => new EventSource("/events", { withCredentials: true }),
     schedule: ((callback: TimerHandler, delay?: number) => window.setTimeout(callback, delay)) as typeof setTimeout,
   };
+  const displayDemo = dom.document.documentElement?.hasAttribute("data-espdesktop-display-demo") === true;
   const deviceApi = createDeviceApi((url, init) =>
     dom.fetch(url, init as RequestInit));
   const identity = createPanelIdentityFeature({
     document: dom.document, fetch: dom.fetch,
     changed: () => {
-      pageTitle.applyPageTitle(identity.current()?.friendly_name);
+      pageTitle.applyPageTitle();
       const brand = dom.document.querySelector(".sp-brand");
       if (brand) renderPanelBrand(brand, dom.document, identity.current()?.name);
     },
@@ -295,7 +289,7 @@ function composeApplicationContext(): ApplicationContext {
     infoPanel: (id, text) => settingsUi.infoPanel(id, text),
   });
   const pageTitle = createAppTitleFeature({
-    panelName: () => identity.current()?.name,
+    panelIdentity: identity.current,
     document: dom.document,
     eventStreamEnabled: () => {
       try { return new URLSearchParams(dom.window.location.search).get("events") === "1"; }
@@ -427,16 +421,6 @@ function composeApplicationContext(): ApplicationContext {
       saveSubpage: (homeSlot) => configurationPersistence.saveSubpageEntity(Number(homeSlot)),
     },
   );
-  const dateTimeConfigurationOptions = createConfigDateTimeOptionsFeature({
-    state: AppInstance.state,
-    now: core.now,
-    renderButtonSettings: () => buttonSettings.render(),
-    effectiveTimezoneOption: (value) => environment.effectiveTimezoneOptionForWeb(value),
-    timezoneId: (value) => statusPreview.getTzId(value),
-    timezoneOptionsWithFallback: (options, selected) => environment.timezoneOptionsWithFallback(options, selected),
-    appendTimezoneOption: (select, option) => statusPreview.appendTimezoneOption(select, option),
-    monthNameForIndex: (index) => environment.monthNameForIndex(index),
-  });
   const modalTabOptions = createConfigModalTabOptionsFeature({
     document: dom.document,
     renderButtonSettings: () => buttonSettings.render(),
@@ -452,7 +436,6 @@ function composeApplicationContext(): ApplicationContext {
     webhookConfigurationOptions,
     robotConfigurationOptions,
     lockConfigurationOptions,
-    dateTimeConfigurationOptions,
     modalTabOptions,
     accessClimateAlarmOptions,
     confirmationOptions,
@@ -505,8 +488,25 @@ function composeApplicationContext(): ApplicationContext {
     shell,
   );
   firmwarePostApi = createFirmwareUpdatePostApiFeature(entityState, requestApi);
-  const artworkPostApi = createArtworkPostApiFeature(entityState, requestApi);
-  const schedulePostApi = createScreenSchedulePostApiFeature(entityState, requestApi);
+  const schedulePostApi = createScreenSchedulePostApiFeature(entityState, requestApi, async (patch, legacy) => {
+    try {
+      await stateLoader.waitForInitialState();
+      const current = screenSchedulePreferencesFromState(state);
+      const availability = await nativePanelConfig.waitForDiscovery();
+      if (availability === "legacy-fallback" ||
+          (availability === true && !nativePanelConfig.client?.supportsScreenSchedulePreferences())) {
+        legacy();
+        return true;
+      } else if (availability === true) {
+        return await nativePanelConfig.writeScreenSchedulePreference(patch, current) === "saved";
+      } else {
+        shell.showBanner("Could not save the night schedule. Check the display’s connection and try again.", "error");
+      }
+    } catch {
+      shell.showBanner("Could not read the current night schedule. Check the display’s connection and try again.", "error");
+    }
+    return false;
+  });
   const clockBarPostApi = createClockBarPostApiFeature(entityState, requestApi);
   configurationPersistence.connectRequestApi(requestApi);
   configurationCodec.connectRequestApi(requestApi);
@@ -542,7 +542,6 @@ function composeApplicationContext(): ApplicationContext {
     gridMigration,
     {
       subpageEntityKeys: configurationPersistence.subpageEntityKeys,
-      specialPageEntityKeys: configurationPersistence.specialPageEntityKeys,
       connectEvents: () => appEvents.connect(),
       publishCompanionURLTargets: () => {
         void focusTargetCatalogue.saveFocusRegistrations(
@@ -579,20 +578,12 @@ function composeApplicationContext(): ApplicationContext {
     dimBrightness: (value) => Model.normalizeScreensaverDimmedBrightness(value),
     clockBrightness: (value, fallback) => Model.normalizeClockBrightness(value, fallback),
   });
-  const coverArtScreensaver = createCoverArtScreensaverController({
-    delay: (value) => Model.normalizeCoverArtDelay(value),
-    trackOverlayDuration: (value) => parseFloat(String(value)) || 0,
-  });
-  const mediaPlayback = createMediaPlaybackController();
   settingsHelpers = createSettingsPageHelpersFeature({
     settingsUiFeature: settingsUi,
 
     screensaver,
-    coverArtScreensaver,
-    mediaPlayback,
     codec: configurationCodec,
     runtime,
-    layout,
     screenScheduleState,
     clockBar: clockBarState,
     entityState,
@@ -622,6 +613,7 @@ function composeApplicationContext(): ApplicationContext {
     },
   );
   preview = createPreviewRenderFeature({
+    displayDemo,
     updateClockBarItemUi: statusPreview.updateClockBarItemUi,
     document: dom.document,
     layout,
@@ -634,6 +626,7 @@ function composeApplicationContext(): ApplicationContext {
     grid,
     selection,
     homeAssistantSupported: () => nativePanelConfig.homeAssistantSupportEnabled(),
+    liveFinderFolders,
   });
   const nativeTransfers = createNativePageTransfersFeature({
     native: nativePanelConfig, editor: () => nativePages, layout, api: requestApi, grid, shell,
@@ -687,6 +680,7 @@ function composeApplicationContext(): ApplicationContext {
     renderPreview: () => preview.render(),
     renderButtonSettings: () => buttonSettings.render(),
     openCardSettings: (slot) => buttonSettings.openCardSettings(slot),
+    openAppShortcutSettings: () => buttonSettings.openAppShortcutSettings(),
 
     addSlot: (position) => interactions.addSlot(position),
     addSubpageSlot: (position) => interactions.addSubpageSlot(position),
@@ -731,7 +725,7 @@ function composeApplicationContext(): ApplicationContext {
   );
   const configEvents = createAppConfigEventsFeature(configurationPersistence, configurationCodec, layout, renderQueue);
   const nativePages = createNativePageEditorFeature({ native: nativePanelConfig, codec: configurationCodec, layout, runtime,
-    document: dom.document, shell, closeSettings: selection.closeSettings,
+    document: dom.document, shell, closeSettings: selection.closeSettings, displayDemo,
     render: () => { preview.render(); buttonSettings.render(); appearance.syncColorUi(); },
     canApply: () => !grid.hasPendingMainGridSave(),
   });
@@ -777,10 +771,6 @@ function composeApplicationContext(): ApplicationContext {
       ntpServer1: state.ntpServer1,
       ntpServer2: state.ntpServer2,
       ntpServer3: state.ntpServer3,
-      coverArtHomeAssistantProtocol: state.homeAssistantArtworkProtocol,
-      coverArtHomeAssistantHost: state.homeAssistantArtworkHost,
-      coverArtHomeAssistantPort: state.coverArtHomeAssistantPort,
-      coverArtHomeAssistantEndpointMode: state.homeAssistantArtworkEndpointMode,
       autoUpdate: state.autoUpdate,
       updateFrequency: state.updateFrequency,
       updateFrequencyOptions: state.updateFreqOptions,
@@ -884,7 +874,6 @@ function composeApplicationContext(): ApplicationContext {
     requestApi,
     statusPreview,
     grid,
-    artworkPostApi,
     schedulePostApi,
     clockBarPostApi,
     settingsHelpers,
@@ -924,11 +913,7 @@ function composeApplicationContext(): ApplicationContext {
     appEvents,
   );
   const scheduleSection = createSettingsScheduleSectionFeature(
-    configurationCodec, runtime, screenScheduleState, entityState, requestApi,
-    schedulePostApi, fields, settingsHelpers,
-  );
-  const coverArtSection = createSettingsCoverArtSectionFeature(
-    runtime, artworkPostApi, fields, settingsHelpers, coverArtScreensaver,
+    runtime, screenScheduleState, schedulePostApi, fields, settingsHelpers,
   );
   const systemSection = createSettingsSystemSectionFeature({
     buildIdentityCard: identity.buildCard,
@@ -954,19 +939,53 @@ function composeApplicationContext(): ApplicationContext {
   settingsPage = createSettingsPageFeature(
     configurationCodec, runtime, core, layout, environment, screenScheduleState,
     screensaverTimeout, screenRotation, appearance, clockBarState, entityState,
-    shell, requestApi, statusPreview, artworkPostApi, schedulePostApi,
-    clockBarPostApi, fields, settingsHelpers, scheduleSection, coverArtSection,
-    systemSection, preview, connectorsPage,
+    shell, requestApi, statusPreview, schedulePostApi,
+    clockBarPostApi, fields, settingsHelpers, scheduleSection,
+    systemSection, preview, connectorsPage, () => firstRunSetup.open(),
+    async enabled => {
+      if (await nativePanelConfig.waitForDiscovery() !== true || !nativePanelConfig.client?.supportsAppSubpagePreference()) {
+        shell.showBanner("Could not save automatic app switching. Check the display’s connection and firmware.", "error");
+        return false;
+      }
+      const result = await nativePanelConfig.writeSetting(APP_SUBPAGE_PREFERENCE, enabled ? "1" : "0");
+      return result === "saved" || result === "mirror-failed";
+    },
+    async (patch, legacySave) => {
+      try {
+        await stateLoader.waitForInitialState();
+      } catch {
+        shell.showBanner("Could not read the current theme. Check the display’s connection and try again.", "error");
+        return;
+      }
+      const fallback = displayThemePreferencesFromState(state);
+      const availability = await nativePanelConfig.waitForDiscovery();
+      if (availability === "legacy-fallback" ||
+          (availability === true && !nativePanelConfig.client?.supportsDisplayThemePreferences())) {
+        legacySave();
+      } else if (availability === true) {
+        await nativePanelConfig.writeDisplayThemePreference(patch, fallback);
+      } else {
+        shell.showBanner("Could not save the theme. Check the display’s connection and try again.", "error");
+      }
+    },
   );
+  const firstRunSetup = createFirstRunSetup({
+    ...dom, capacity: layout.numSlots, supported: !!layout.config.features?.companion,
+    native: nativePanelConfig, connectors: connectorsPage, fields, shell,
+    autoSwitchEnabled: () => state.autoOpenAppSubpages,
+    onSaved: (mirrorFailed) => {
+      shell.switchTab("screen");
+      nativePages.invalidate();
+      void nativePages.refresh();
+      if (!mirrorFailed) {
+        shell.showBanner("Setup saved.", "success");
+      }
+    },
+  });
   app = createAppFeature(
     pageTitle, createWebStyles(layout.config.dragAnimation), core, screenRotation,
     clockBarState, shell, appEvents, statusPreview, selection, contextMenu,
-    interactions, preview, buttonSettings, connectorsPage,
-  );
-  app = createAppFeature(
-    pageTitle, createWebStyles(layout.config.dragAnimation), core, screenRotation,
-    clockBarState, shell, appEvents, statusPreview, selection, contextMenu,
-    interactions, preview, buttonSettings, connectorsPage,
+    interactions, preview, buttonSettings, connectorsPage, firstRunSetup,
   );
   requestApi.connectReconnect(appEvents.connect);
   dom.schedule(() => { void identity.load().catch(() => {}); }, 0);
@@ -986,7 +1005,6 @@ function composeApplicationContext(): ApplicationContext {
     webhookConfigurationOptions,
     robotConfigurationOptions,
     lockConfigurationOptions,
-    dateTimeConfigurationOptions,
     modalTabOptions,
     accessClimateAlarmOptions,
     confirmationOptions,
@@ -1001,7 +1019,6 @@ function composeApplicationContext(): ApplicationContext {
     firmwareVersion,
     firmwareUpdate,
     firmwarePostApi,
-    artworkPostApi,
     schedulePostApi,
     clockBarPostApi,
     publicFirmwareInstall,
@@ -1022,8 +1039,6 @@ function composeApplicationContext(): ApplicationContext {
     cardEditorSave,
     cardEditorValidation,
     clockBar,
-    coverArtScreensaver,
-    mediaPlayback,
     pageTitle,
     previewPlacement,
     reconnect,
@@ -1056,9 +1071,16 @@ function startEspDesktop(): void {
   if (startupState.__ESPDESKTOP_UI_STARTED__ || startupState.__ESPDESKTOP_UI_STARTING__) return;
   AppInstance.initializeAppState();
 
-  const context = composeApplicationContext();
+  let liveFinderFolders: readonly CompanionAction[] = [];
+  const context = composeApplicationContext(() => liveFinderFolders);
 
-  const lightCards = registerCards(context);
+  const lightCards = registerCards(context, folders => {
+    const changed = folders.length !== liveFinderFolders.length ||
+      folders.some((folder, index) => folder.id !== liveFinderFolders[index]?.id ||
+        folder.label !== liveFinderFolders[index]?.label);
+    if (changed) liveFinderFolders = folders;
+    return changed;
+  });
   if (__ESPDESKTOP_TEST_HOOKS_ENABLED__) {
     installTestHooks(context, lightCards);
   }

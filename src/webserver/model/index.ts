@@ -120,8 +120,6 @@ export {
   normalizeBackupPanelSettings,
   normalizeBackupScreenSettings,
   normalizeClockBrightness,
-  normalizeCoverArtDelay,
-  normalizeCoverArtSource,
 
   brightnessModeOption,
   normalizeHexColor,

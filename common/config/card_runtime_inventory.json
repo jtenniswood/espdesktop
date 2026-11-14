@@ -6,6 +6,14 @@
     "modalOwners": ["none", "alarm", "climate", "cover", "image", "media", "weather"]
   },
   "types": {
+    "webhook": {
+      "classification": "canonical", "canonicalType": "webhook", "webRegistration": "webhook", "firmwareFamily": "WEBHOOK",
+      "lifecycle": { "subscriptions": ["http"], "actions": ["http"], "modalOwner": "none" },
+      "modes": [
+        { "name": "get", "config": { "entity": "https://example.invalid/hook", "sensor": "GET" } },
+        { "name": "post", "config": { "entity": "https://example.invalid/hook", "sensor": "POST", "unit": "{}" } }
+      ]
+    },
     "timer": {
       "classification": "canonical",
       "canonicalType": "timer",
@@ -97,22 +105,6 @@
         { "name": "vacation", "config": { "entity": "alarm_control_panel.example", "sensor": "vacation" } },
         { "name": "disarm", "config": { "entity": "alarm_control_panel.example", "sensor": "disarm" } }
       ]
-    },
-    "calendar": {
-      "classification": "canonical",
-      "canonicalType": "calendar",
-      "webRegistration": "calendar",
-      "firmwareFamily": "DATE_TIME",
-      "lifecycle": { "subscriptions": ["state", "time"], "actions": ["none"], "modalOwner": "none" },
-      "modes": [{ "name": "date", "config": { "type": "calendar" } }]
-    },
-    "clock": {
-      "classification": "canonical",
-      "canonicalType": "clock",
-      "webRegistration": "clock",
-      "firmwareFamily": "DATE_TIME",
-      "lifecycle": { "subscriptions": ["time"], "actions": ["none"], "modalOwner": "none" },
-      "modes": [{ "name": "local_time", "config": { "type": "clock" } }]
     },
     "climate": {
       "classification": "canonical",
@@ -269,13 +261,10 @@
       "lifecycle": { "subscriptions": ["none"], "actions": ["local"], "modalOwner": "none" },
       "modes": [{ "name": "approved_app", "config": { "entity": "com.apple.Safari", "label": "Safari" } }]
     },
-    "webhook": {
-      "classification": "canonical", "canonicalType": "webhook", "webRegistration": "webhook", "firmwareFamily": "WEBHOOK",
-      "lifecycle": { "subscriptions": ["http"], "actions": ["http"], "modalOwner": "none" },
-      "modes": [
-        { "name": "get", "config": { "entity": "https://example.invalid/hook", "sensor": "GET" } },
-        { "name": "post", "config": { "entity": "https://example.invalid/hook", "sensor": "POST", "unit": "{}" } }
-      ]
+    "companion_mac_lock": {
+      "classification": "canonical", "canonicalType": "companion_mac_lock", "webRegistration": "companion_mac_lock", "firmwareFamily": "COMPANION",
+      "lifecycle": { "subscriptions": ["none"], "actions": ["local"], "modalOwner": "none" },
+      "modes": [{ "name": "lock", "config": {} }]
     },
     "slider": {
       "classification": "canonical", "canonicalType": "slider", "webRegistration": "slider", "firmwareFamily": "SLIDER",
@@ -286,11 +275,6 @@
       "classification": "canonical", "canonicalType": "subpage", "webRegistration": "subpage", "firmwareFamily": "SUBPAGE",
       "lifecycle": { "subscriptions": ["none"], "actions": ["navigation"], "modalOwner": "none" },
       "modes": [{ "name": "navigation", "config": { "entity": "1", "label": "Rooms" } }]
-    },
-    "timezone": {
-      "classification": "canonical", "canonicalType": "timezone", "webRegistration": "timezone", "firmwareFamily": "DATE_TIME",
-      "lifecycle": { "subscriptions": ["time"], "actions": ["none"], "modalOwner": "none" },
-      "modes": [{ "name": "timezone", "config": { "entity": "Europe/London", "type": "timezone" } }]
     },
     "weather": {
       "classification": "canonical", "canonicalType": "weather", "webRegistration": "weather", "firmwareFamily": "WEATHER",

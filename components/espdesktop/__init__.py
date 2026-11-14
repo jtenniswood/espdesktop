@@ -5,6 +5,7 @@ and include path for compatibility headers used by device YAML.
 EspDesktopApp owns long-lived firmware services while YAML continues to supply
 device-specific wiring.
 """
+from esphome import automation
 import esphome.codegen as cg
 from esphome.components.esp32 import VARIANT_ESP32P4, VARIANT_ESP32S3, get_esp32_variant
 from esphome.components import text
@@ -23,8 +24,8 @@ CONF_BUTTON_ON_COLOR = "button_on_color"
 CONF_BUTTONS = "buttons"
 CONF_CONFIG = "config"
 CONF_SUBPAGE_CHUNKS = "subpage_chunks"
-CONF_SPECIAL_PAGE_CHUNKS = "special_page_chunks"
 CONF_STORAGE = "storage"
+CONF_ON_LAYOUT_CHANGED = "on_layout_changed"
 CONF_WEB_AUTH_USERNAME = "web_auth_username"
 CONF_WEB_AUTH_PASSWORD = "web_auth_password"
 
@@ -45,11 +46,9 @@ PANEL_CONFIG_BUTTON_SCHEMA = cv.Schema(
 PANEL_CONFIG_SCHEMA = cv.Schema(
     {
         cv.Required(CONF_DEVICE_PROFILE): cv.string_strict,
+        cv.Optional(CONF_ON_LAYOUT_CHANGED): automation.validate_automation(single=True),
         cv.Required(CONF_BUTTON_ORDER): cv.use_id(text.Text),
         cv.Optional(CONF_BUTTON_ON_COLOR): cv.use_id(text.Text),
-        cv.Optional(CONF_SPECIAL_PAGE_CHUNKS): cv.All(
-            cv.ensure_list(cv.use_id(text.Text)), cv.Length(min=4, max=8)
-        ),
         cv.Required(CONF_BUTTONS): cv.All(
             cv.ensure_list(PANEL_CONFIG_BUTTON_SCHEMA), cv.Length(min=1, max=32)
         ),
@@ -85,6 +84,12 @@ def _empty_template_preference_ids(text_configs):
 
 @coroutine_with_priority(CoroPriority.DIAGNOSTICS)
 async def to_code(config):
+    if "lvgl" in CORE.config:
+        from esphome.components.lvgl.defines import add_lv_use
+
+        # App icons and image cards create their LVGL widgets at runtime.
+        add_lv_use("image")
+
     # Run before safe_mode's early return and before any preference consumers.
     if CORE.config.get("preferences", {}).get("rtc_storage", False):
         raise cv.Invalid("EspDesktop reset requires flash preferences; remove preferences.rtc_storage")
@@ -128,18 +133,16 @@ async def to_code(config):
         if panel_config[CONF_STORAGE] == "card_images":
             cg.add(var.set_panel_config_card_images_storage(True))
         cg.add(var.set_panel_config_device_profile(panel_config[CONF_DEVICE_PROFILE]))
+        if CONF_ON_LAYOUT_CHANGED in panel_config:
+            await automation.build_automation(
+                var.get_layout_changed_trigger(), [], panel_config[CONF_ON_LAYOUT_CHANGED]
+            )
         cg.add_define("ESPDESKTOP_UI_PROFILE_" + panel_config[CONF_DEVICE_PROFILE].replace("-", "_").upper())
         button_order = await cg.get_variable(panel_config[CONF_BUTTON_ORDER])
         cg.add(var.set_panel_config_button_order(button_order))
         if CONF_BUTTON_ON_COLOR in panel_config:
             button_on_color = await cg.get_variable(panel_config[CONF_BUTTON_ON_COLOR])
             cg.add(var.set_panel_config_button_on_color(button_on_color))
-        if CONF_SPECIAL_PAGE_CHUNKS in panel_config:
-            special_page_chunks = [
-                await cg.get_variable(source)
-                for source in panel_config[CONF_SPECIAL_PAGE_CHUNKS]
-            ]
-            cg.add(var.set_panel_config_special_page(*special_page_chunks))
         referenced_texts = [panel_config[CONF_BUTTON_ORDER]]
         if CONF_BUTTON_ON_COLOR in panel_config:
             referenced_texts.append(panel_config[CONF_BUTTON_ON_COLOR])

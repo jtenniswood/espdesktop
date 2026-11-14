@@ -27,7 +27,6 @@ SAVED_CONFIG_VACUUM_HEADER = ROOT / "components" / "espdesktop" / "button_grid_s
 SAVED_CONFIG_MEDIA_HEADER = ROOT / "components" / "espdesktop" / "button_grid_saved_config_media_generated.h"
 SAVED_CONFIG_STATIC_HEADER = ROOT / "components" / "espdesktop" / "button_grid_saved_config_static_generated.h"
 SAVED_CONFIG_FAN_HEADER = ROOT / "components" / "espdesktop" / "button_grid_saved_config_fan_generated.h"
-SAVED_CONFIG_DATE_TIME_HEADER = ROOT / "components" / "espdesktop" / "button_grid_saved_config_date_time_generated.h"
 SAVED_CONFIG_MOWER_HEADER = ROOT / "components" / "espdesktop" / "button_grid_saved_config_mower_generated.h"
 SAVED_CONFIG_OCCUPANCY_HEADER = ROOT / "components" / "espdesktop" / "button_grid_saved_config_occupancy_generated.h"
 SAVED_CONFIG_ACCESS_HEADER = ROOT / "components" / "espdesktop" / "button_grid_saved_config_access_generated.h"
@@ -252,6 +251,8 @@ inline void lv_obj_move_background(lv_obj_t *) { lv_obj_move_background_calls++;
 
 #include "display_color.h"
 #include "button_grid_config_parser.h"
+#define ESPDESKTOP_SUBPAGE_PARSER_ONLY
+#include "button_grid_subpages.h"
 #include "backlight.h"
 #include "button_grid_layout.h"
 
@@ -528,9 +529,17 @@ int main() {
   assert(companion_action.options == "");
 
   auto clock = parse_cfg(";;;;;;clock;;large_numbers");
-  assert(clock.type == "clock");
-  assert(clock.options == "large_numbers");
-  assert(card_large_numbers_enabled(clock));
+  assert(card_runtime_type_retired(clock.type));
+  assert(clock.options.empty());
+  assert(!card_large_numbers_enabled(clock));
+  for (const auto *code : {"D", "CK", "T"}) {
+    assert(card_runtime_type_retired(card_runtime_subpage_type_from_code(code)));
+  }
+
+  auto audio_folder = parse_subpage_config("~B,1,2|L,media.input_mute,Mute|L,number.level,Level");
+  assert(audio_folder.size() == 2);
+  assert(audio_folder[0].type == "companion_audio" && audio_folder[0].entity.empty());
+  assert(audio_folder[1].type == "slider" && audio_folder[1].entity == "number.level");
 
   auto weather_today = parse_cfg("weather.home;;;;;;weather;today;large_numbers");
   assert(weather_today.type == "weather");
@@ -1100,7 +1109,10 @@ def main() -> int:
         return 1
     with TemporaryDirectory() as tmp:
         tmp_path = Path(tmp)
-        for helper in ("button_grid_order_parser.h", "config_field_decode.h", "display_utf8_case.h", "ha_state_limits.h"):
+        for helper in (
+            "button_grid_order_parser.h", "button_grid_subpages.h", "config_field_decode.h",
+            "display_utf8_case.h", "ha_state_limits.h", "companion_shortcut_page.h",
+        ):
             shutil.copy2(PARSER_HEADER.parent / helper, tmp_path / helper)
         shutil.copy2(PARSER_HEADER, tmp_path / "button_grid_config_parser.h")
         shutil.copy2(PARSER_HEADER.with_name("i18n_generated.h"), tmp_path / "i18n_generated.h")
@@ -1112,7 +1124,6 @@ def main() -> int:
         shutil.copy2(PARSER_HEADER.parent / "app_shortcuts_generated.h", tmp_path / "app_shortcuts_generated.h")
         shutil.copy2(DISPLAY_COLOR_HEADER, tmp_path / "display_color.h")
         shutil.copy2(SCREEN_LOCK_STATE_HEADER, tmp_path / "screen_lock_state.h")
-        shutil.copy2(SCREEN_LOCK_STATE_HEADER.with_name("screensaver_pin.h"), tmp_path / "screensaver_pin.h")
         shutil.copy2(CONTRACT_HEADER, tmp_path / "button_grid_contract_generated.h")
         shutil.copy2(CARD_RUNTIME_HEADER, tmp_path / "button_grid_card_runtime.h")
         shutil.copy2(CARD_REGISTRY_HEADER, tmp_path / "button_grid_card_registry.h")
@@ -1120,7 +1131,6 @@ def main() -> int:
         shutil.copy2(SAVED_CONFIG_MEDIA_HEADER, tmp_path / "button_grid_saved_config_media_generated.h")
         shutil.copy2(SAVED_CONFIG_STATIC_HEADER, tmp_path / "button_grid_saved_config_static_generated.h")
         shutil.copy2(SAVED_CONFIG_FAN_HEADER, tmp_path / "button_grid_saved_config_fan_generated.h")
-        shutil.copy2(SAVED_CONFIG_DATE_TIME_HEADER, tmp_path / "button_grid_saved_config_date_time_generated.h")
         shutil.copy2(SAVED_CONFIG_MOWER_HEADER, tmp_path / "button_grid_saved_config_mower_generated.h")
         shutil.copy2(SAVED_CONFIG_OCCUPANCY_HEADER, tmp_path / "button_grid_saved_config_occupancy_generated.h")
         shutil.copy2(SAVED_CONFIG_ACCESS_HEADER, tmp_path / "button_grid_saved_config_access_generated.h")

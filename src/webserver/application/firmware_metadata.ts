@@ -1,7 +1,8 @@
 import { deviceId } from "../device_config";
 
 export const FIRMWARE_VERSION_METADATA_PATH = "/espdesktop/version";
-export const FIRMWARE_PUBLIC_MANIFEST_BASE = "https://jtenniswood.github.io/espdesktop/firmware/";
+// Use the canonical host because browsers block the old Pages redirect during cross-origin fetches.
+export const FIRMWARE_PUBLIC_MANIFEST_BASE = "https://espdesktop.com/firmware/";
 
 export function isSpecificFirmwareVersion(this: any, version?: any) {
         version = String(version == null ? "" : version).trim();
