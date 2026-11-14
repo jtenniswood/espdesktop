@@ -482,6 +482,7 @@ export function createConfigCodecFeature(
         return EspDesktopModel.trimConfigFields(fields);
     }
     function buttonConfigFields(this: any, b?: any) {
+        const exposure = cardExposure(b?.options);
         const retiredType = retiredSavedCardType(b);
         if (retiredType) {
             return trimConfigFields(["", "", "Auto", "Auto", "", "", retiredType]);
@@ -676,6 +677,8 @@ export function createConfigCodecFeature(
         }
         if (cardColorOptions) options = [options || "", cardColorOptions].filter(Boolean).join(",");
         options = preserveCardIconSize(companionCardHasAppIcon(b) ? iconSizeOptions : "", options);
+        if (b && canExposeCard(b) && exposure.identity)
+            options = setCardExposure(options, exposure.identity, exposure.enabled);
         return trimConfigFields([
             (type === "door_window" || type === "presence") ? "" : (b && b.entity || ""),
             label,

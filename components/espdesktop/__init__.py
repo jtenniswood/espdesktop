@@ -89,9 +89,11 @@ async def to_code(config):
         cg.add_global(cg.RawStatement(
             '#include "esphome/components/espdesktop/native_api_setting.h"'
         ), prepend=True)
-        # The S3 renderer allows 81 total home and subpage placements.
-        cg.add_define("ESPDESKTOP_NATIVE_CARD_BUTTON_CAPACITY", 81)
-        for _ in range(81):
+        # Root plus two levels of subpages on the 4-inch S3. Firmware
+        # checks this against the generated UI profile at compile time.
+        capacity = 9 + 9 * 8 + 9 * 8 * 8
+        cg.add_define("ESPDESKTOP_NATIVE_CARD_BUTTON_CAPACITY", capacity)
+        for _ in range(capacity):
             CORE.register_platform_component("button", None)
     if "lvgl" in CORE.config:
         from esphome.components.lvgl.defines import add_lv_use

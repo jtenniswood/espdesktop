@@ -30,6 +30,7 @@ can press saved cards that have a tap action.
 5. In Home Assistant, add the button to a dashboard or use **Button: Press**
    as an action in an automation. The card list refreshes when Home Assistant reconnects. Mac actions require an unlocked Mac with EspDesktop running and paired.
 
-Renaming or resizing a card keeps its button identity. Moving a card that was
-automatically exposed to another page or changing its action can give it a new
-button identity. Turning off **Enable ESPHome API** disables all remote presses.
+Resizing a card keeps its button identity. Home Assistant can track a rename
+while connected. After renaming a card with Home Assistant stopped, check any
+automations that use it. Moving a card to another page or changing its action
+can also give it a new button identity. Turning off **Enable ESPHome API** disables all remote presses.

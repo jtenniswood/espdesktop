@@ -1,9 +1,11 @@
 #pragma once
 
 #ifdef USE_ESPDESKTOP_NATIVE_CARD_BUTTONS
+#include <memory>
 #include "esphome/components/api/api_server.h"
 #include "esphome/components/button/button.h"
 #include "native_api_setting.h"
+#include "device_ui_limits.h"
 
 namespace espdesktop::home_assistant {
 
@@ -44,6 +46,8 @@ class NativeCardButton final : public esphome::button::Button {
   std::string name_storage_;
 };
 
+static_assert(ESPDESKTOP_NATIVE_CARD_BUTTON_CAPACITY == espdesktop::DEVICE_UI_LIMITS.max_cards());
+
 class NativeCardButtons {
  public:
   void setup() {
@@ -56,10 +60,6 @@ class NativeCardButtons {
 #include "esphome/core/entity_types.h"
 #undef ENTITY_CONTROLLER_TYPE_
 #undef ENTITY_TYPE_
-    for (size_t i = 0; i < buttons_.size(); ++i) {
-      buttons_[i].configure({}, "Unassigned EspDesktop card", 0);
-      esphome::App.register_button(&buttons_[i]);
-    }
   }
 
   void refresh() {
@@ -105,17 +105,24 @@ class NativeCardButtons {
     for (const auto &client : server->active_clients()) client->on_fatal_error();
     size_t index = 0;
     for (const auto &entry : entries) {
-      if (index == buttons_.size()) break;
-      buttons_[index++].configure(entry.id, entry.name, entry.key);
+      if (index >= buttons_.size()) {
+        auto button = std::make_unique<NativeCardButton>();
+        button->configure(entry.id, entry.name, entry.key);
+        esphome::App.register_button(button.get());
+        buttons_.push_back(std::move(button));
+      } else {
+        buttons_[index]->configure(entry.id, entry.name, entry.key);
+      }
+      ++index;
     }
     for (; index < buttons_.size(); ++index)
-      buttons_[index].configure({}, "Unassigned EspDesktop card", 0);
+      buttons_[index]->configure({}, "Unassigned EspDesktop card", 0);
     entries_ = std::move(entries);
   }
 
   bool is_card(const esphome::button::Button *button) const {
     return std::any_of(buttons_.begin(), buttons_.end(),
-                       [&](const auto &entry) { return &entry == button; });
+                       [&](const auto &entry) { return entry.get() == button; });
   }
 
  private:
@@ -125,7 +132,8 @@ class NativeCardButtons {
     uint32_t key;
     bool operator==(const Entry &) const = default;
   };
-  std::array<NativeCardButton, ESPDESKTOP_NATIVE_CARD_BUTTON_CAPACITY> buttons_;
+  // Keep registered addresses stable and only allocate as the layout grows.
+  std::vector<std::unique_ptr<NativeCardButton>> buttons_;
   std::vector<Entry> entries_;
   uint32_t generation_{0};
   bool refreshed_{false};
