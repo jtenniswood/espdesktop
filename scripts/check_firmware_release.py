@@ -109,28 +109,34 @@ class FakeGitHub:
         raise AssertionError(f"unexpected fake gh command: {arguments}")
 
 
-def validate_esphome_env(path: Path) -> None:
+def validate_esphome_env(path: Path, *, allow_beta: bool = False) -> None:
     lines = path.read_text(encoding="utf-8").splitlines()
     assert len(lines) == 1, f"{path}: expected exactly one ESPHOME_VERSION line"
-    assert ESPHOME_ENV_RE.fullmatch(lines[0]), (
+    is_beta = allow_beta and re.fullmatch(r"ESPHOME_VERSION=20[0-9]{2}\.[0-9]{1,2}\.0b[1-9][0-9]*", lines[0])
+    assert ESPHOME_ENV_RE.fullmatch(lines[0]) or is_beta, (
         f"{path}: expected ESPHOME_VERSION to be a stable numeric ESPHome release, "
         "for example ESPHOME_VERSION=2026.8.1"
     )
 
 
 def test_esphome_env_format() -> None:
-    validate_esphome_env(ESPHOME_ENV)
+    # This firmware-validation branch deliberately uses the ESPHome beta.
+    validate_esphome_env(ESPHOME_ENV, allow_beta=True)
     with TemporaryDirectory() as tmp:
         base = Path(tmp)
         valid = base / "valid.env"
         valid.write_text("ESPHOME_VERSION=2026.8.1\n", encoding="utf-8")
         validate_esphome_env(valid)
+        beta = base / "beta.env"
+        beta.write_text("ESPHOME_VERSION=2026.11.0b4\n", encoding="utf-8")
+        validate_esphome_env(beta, allow_beta=True)
 
         for value in (
             "",
             "export ESPHOME_VERSION=2026.8.1\n",
             "ESPHOME_VERSION=\"2026.8.1\"\n",
             "ESPHOME_VERSION=2026.8.1-beta.1\n",
+            "ESPHOME_VERSION=2026.11.0b4\n",
             "OTHER_VERSION=2026.8.1\n",
             "ESPHOME_VERSION=2026.8.1\nEXTRA=value\n",
         ):
