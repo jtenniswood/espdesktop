@@ -271,7 +271,7 @@ async function checkBrowser() {
       Safari: ['Reload', 'Search Bar', 'Tab Overview', 'Previous Tab', 'Next Tab'],
       Slack: ['New Message', 'Search', 'Browse DMs', 'Jump Unread', 'All Unread', 'Search chat', 'Shortcuts', 'Previous Unread'],
       Notes: ['New Note', 'New Folder', 'Search Notes', 'Checklist', 'Cell Paragraph'],
-      ChatGPT: ['Command', 'Approve', 'Browser', 'Sidebar', 'Bottom Terminal', 'Side Terminal', 'Side Terminal'],
+      ChatGPT: ['Command Menu', 'New Chat', 'Find Text', 'Next Tab', 'Previous Tab', 'Recent Chat 1', 'Keyboard Shortcuts'],
       Claude: ['Quick Entry', 'Code Shortcuts', 'New Session', 'Next Session'],
     };
     for (const [app, expectedTiles] of Object.entries(shortcutPages)) {
