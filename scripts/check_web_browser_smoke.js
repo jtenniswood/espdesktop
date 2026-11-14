@@ -5747,9 +5747,19 @@ async function assertHomeAssistantConnectorLayout(browser) {
       available: true, active: true, paired: false, connected: false,
       pairing_code: "ABCD",
     };
+    let requestedResync = false;
     if (testCase.companionSupported) {
       await context.route(/\/companion\/pairing(?:\?.*)?$/, route => route.fulfill({ json: pairingState }));
-      await context.route(/\/api\/v1\/home-assistant(?:\?.*)?$/, route => route.fulfill({ json: { enabled: true } }));
+      await context.route(/\/api\/v1\/home-assistant(?:\?.*)?$/, route => {
+        const request = route.request();
+        if (request.method() === "POST") {
+          if (request.headers()["x-espdesktop-request"] !== "resync-buttons") {
+            return route.fulfill({ status: 400 });
+          }
+          requestedResync = true;
+        }
+        return route.fulfill({ json: { enabled: true } });
+      });
     }
     const page = await context.newPage();
     await installFakeEventSource(page);
@@ -5799,6 +5809,10 @@ async function assertHomeAssistantConnectorLayout(browser) {
         `${testCase.name}: Home Assistant action confirmation is unavailable`,
       );
       if (testCase.companionSupported) {
+        await connectors.getByRole("heading", { name: "Home Assistant", exact: true }).click();
+        await connectors.getByRole("button", { name: "Resync buttons", exact: true }).click();
+        await connectors.getByText("Button refresh requested. Home Assistant will reconnect shortly.", { exact: true }).waitFor();
+        assert(requestedResync, `${testCase.name}: resync sends a request to the display`);
         assert(
           await connectors.getByRole("heading", { name: "Mac Companion", exact: true }).count() > 0,
           `${testCase.name}: Mac Companion setup remains available`,

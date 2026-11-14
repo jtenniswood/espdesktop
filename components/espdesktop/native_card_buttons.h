@@ -112,7 +112,8 @@ class NativeCardButtons {
     if (!store || !server || hooks().fingerprint.empty()) return;
     const bool authorized = native_api_enabled.load() && server->get_noise_ctx().has_psk();
     const auto catalogue = authorized ? companion_runtime_service().action_catalogue_generation() : 0;
-    if (refreshed_ && generation_ == store->generation() && authorized == authorized_ &&
+    const bool resync = native_button_resync_requested.exchange(false) && authorized;
+    if (!resync && refreshed_ && generation_ == store->generation() && authorized == authorized_ &&
         catalogue == catalogue_generation_) return;
     refreshed_ = true;
     generation_ = store->generation();
@@ -138,10 +139,11 @@ class NativeCardButtons {
         else entries.erase(entries.begin() + i, entries.begin() + end);
       }
     }
-    if (entries == entries_) return;
+    if (!resync && entries == entries_) return;
     // Clients list entities on connection. Close the old sessions before
     // replacing their snapshot so Home Assistant can request the new list.
     for (const auto &client : server->active_clients()) client->on_fatal_error();
+    if (entries == entries_) return;
     size_t index = 0;
     for (const auto &entry : entries) {
       if (index >= buttons_.size()) {

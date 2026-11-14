@@ -17,7 +17,15 @@ export function buildHomeAssistantSettings(
     note.className = "sp-setting-note";
     note.textContent = "Changing this setting restarts the display.";
     status.append(note);
-    body.append(control.row, status);
+    const actions = document.createElement("div");
+    actions.className = "sp-btn-row";
+    const resync = document.createElement("button");
+    resync.type = "button";
+    resync.className = "sp-action-btn sp-neutral-btn";
+    resync.textContent = "Resync buttons";
+    resync.disabled = true;
+    actions.append(resync);
+    body.append(control.row, status, actions);
     const card = makeCard("Home Assistant", body, true) as HTMLElement;
     card.hidden = true;
     let enabled = false;
@@ -28,12 +36,14 @@ export function buildHomeAssistantSettings(
         if (typeof settings.enabled !== "boolean") return;
         enabled = settings.enabled;
         control.input.checked = enabled;
+        resync.disabled = !enabled;
         card.hidden = false;
     }).catch(() => {});
 
     control.input.addEventListener("change", async () => {
         const next = control.input.checked;
         control.input.disabled = true;
+        resync.disabled = true;
         try {
             const response = await resetAwareFetch(PATH, {
                 method: "POST",
@@ -49,8 +59,30 @@ export function buildHomeAssistantSettings(
             control.input.checked = enabled;
             note.textContent = "Could not save the setting. Try again.";
             status.replaceChildren(note);
+            control.input.disabled = false;
+            resync.disabled = !enabled;
+        }
+    });
+
+    resync.addEventListener("click", async () => {
+        control.input.disabled = true;
+        resync.disabled = true;
+        try {
+            const response = await resetAwareFetch(PATH, {
+                method: "POST",
+                headers: { "X-EspDesktop-Request": "resync-buttons" },
+            });
+            if (!response.ok) throw new Error("Resync failed");
+            status.replaceChildren(infoPanel(
+                "sp-esphome-resync",
+                "Button refresh requested. Home Assistant will reconnect shortly.",
+            ));
+        } catch {
+            note.textContent = "Could not request a button refresh. Try again.";
+            status.replaceChildren(note);
         } finally {
             control.input.disabled = false;
+            resync.disabled = !enabled;
         }
     });
     return card;

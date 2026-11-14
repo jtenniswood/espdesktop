@@ -9,6 +9,7 @@ namespace espdesktop::home_assistant {
 
 inline std::atomic<bool> native_api_enabled{false};
 inline std::atomic<bool> native_api_configured{false};
+inline std::atomic<bool> native_button_resync_requested{false};
 
 inline void configure_native_api_at_boot() {
   nvs_handle_t handle;

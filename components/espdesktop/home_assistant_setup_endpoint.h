@@ -23,7 +23,8 @@ class SetupEndpoint final : public esphome::web_server_idf::AsyncWebHandler {
     }
     if (request->method() == HTTP_POST) {
       const auto operation = request->get_header("X-EspDesktop-Request").value_or("");
-      if ((operation != "enable-esphome" && operation != "disable-esphome") ||
+      const bool resync = operation == "resync-buttons";
+      if ((!resync && operation != "enable-esphome" && operation != "disable-esphome") ||
           !reset::same_origin(request->get_header("Origin").value_or(""),
               request->get_header("Host").value_or(""),
               request->get_header("Sec-Fetch-Site").value_or(""), "reset")) {
@@ -31,7 +32,14 @@ class SetupEndpoint final : public esphome::web_server_idf::AsyncWebHandler {
         return;
       }
       const bool enabled = operation == "enable-esphome";
-      if (enabled != native_api_configured.load()) {
+      if (resync) {
+        if (!native_api_enabled.load()) {
+          httpd_resp_set_status(raw, "409 Conflict");
+          httpd_resp_sendstr(raw, "Enable the ESPHome API first");
+          return;
+        }
+        native_button_resync_requested.store(true);
+      } else if (enabled != native_api_configured.load()) {
         if (!save_native_api_setting(enabled)) {
           httpd_resp_send_err(raw, HTTPD_500_INTERNAL_SERVER_ERROR, "Could not save the ESPHome API setting");
           return;
