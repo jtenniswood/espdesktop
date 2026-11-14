@@ -18,6 +18,9 @@
 #include "esphome/core/component.h"
 
 #include "panel_identity.h"
+#include "card_asset_service.h"
+#include "card_asset_http_api.h"
+#include "panel_flash_layout.h"
 #include "panel_config_text_storage.h"
 namespace esphome::template_ {
 class TemplateText;
@@ -30,7 +33,7 @@ namespace espdesktop {
 // owner while behaviour moves into compiled modules.
 class EspDesktopApp : public esphome::Component {
  public:
-  static constexpr size_t PANEL_CONFIG_STORAGE_SLOT_CAPACITY = 40 * 1024;
+  static constexpr size_t PANEL_CONFIG_STORAGE_SLOT_CAPACITY = espdesktop::PANEL_CONFIG_STORAGE_SLOT_CAPACITY;
   static constexpr size_t PANEL_CONFIG_NVS_SLOT_CAPACITY = 16 * 1024;
 
   EspDesktopApp();
@@ -50,6 +53,8 @@ class EspDesktopApp : public esphome::Component {
   DisplayLifecycleService &display_lifecycle() { return core_.display_lifecycle(); }
   DisplayModeController &display() { return core_.display(); }
   const DisplayModeController &display() const { return core_.display(); }
+  CardAssetService &card_assets() { return card_assets_; }
+  const CardAssetService &card_assets() const { return card_assets_; }
   AppLifecycleState lifecycle_state() const { return core_.lifecycle_state(); }
   bool connector_onboarding_complete() const;
   using ScalarSetting = panel_settings::ScalarSetting;
@@ -168,6 +173,7 @@ class EspDesktopApp : public esphome::Component {
   void set_web_auth_credentials(const char *username, const char *password) {
     web_auth_username_ = username;
     web_auth_password_ = password;
+    card_asset_http::set_auth_credentials(username, password);
   }
 
  private:
@@ -184,6 +190,8 @@ class EspDesktopApp : public esphome::Component {
   bool save_panel_setting(std::string_view key, std::string_view value);
   std::string_view panel_scalar_value(ScalarSetting setting) const;
   void retry_configuration_compatibility();
+  static bool clear_card_asset_references(void *context, const std::string &id);
+  static CardAssetReferenceState check_recovery_references(void *context, const std::string &id);
   bool native_configuration_requested() const;
   bool create_native_configuration_runtime();
 
@@ -219,6 +227,7 @@ class EspDesktopApp : public esphome::Component {
   bool native_configuration_initialized_{false};
   bool native_configuration_initialization_pending_{false};
   configuration::ConfigurationBufferRetry configuration_buffer_retry_{};
+  CardAssetService card_assets_{};
   bool panel_config_http_context_bound_{false};
   const char *web_auth_username_{nullptr};
   const char *web_auth_password_{nullptr};

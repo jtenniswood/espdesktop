@@ -3717,6 +3717,7 @@ export const CARD_CONTRACT_OPTION_NAMES: Readonly<Record<string, string>> = {
   "app_shortcut_preset": "app_shortcut_preset",
   "app_shortcuts": "app_shortcuts",
   "app_shortcuts_tabs": "app_shortcuts_tabs",
+  "bg_image": "bg_image",
   "climate_tabs": "climate_tabs",
   "confirm_message": "confirm_message",
   "confirm_no": "confirm_no",
@@ -3775,6 +3776,7 @@ export const CARD_CONTRACT_OPTION_NAMES: Readonly<Record<string, string>> = {
   "weather_mode": "weather_mode",
   "wind_source": "wind_source"
 };
+export const CARD_CONTRACT_BACKGROUND_IMAGE_TYPES = ["", "vacuum", "lawn_mower", "alarm", "alarm_action", "climate", "climate_control", "cover", "door_window", "presence", "fan_direction", "fan_oscillate", "fan_preset", "fan_speed", "fan_control", "fan_switch", "garage", "gate", "light_brightness", "light_switch", "light_temperature", "light_control", "lock", "media", "push", "companion", "slider", "subpage", "weather", "weather_forecast", "companion_mac_lock"] as const;
 
 function cardContractListContains(list: readonly string[] | undefined, value: string): boolean {
   return (list || []).indexOf(value) >= 0;
@@ -3786,6 +3788,10 @@ export function cardContractCard(type: string | null | undefined): CardTypeSpec 
 
 export function cardContractCardKeys(): string[] {
   return Object.keys(CARD_CONTRACT_CARDS);
+}
+
+export function cardContractSupportsBackground(type: string | null | undefined): boolean {
+  return cardContractListContains(CARD_CONTRACT_BACKGROUND_IMAGE_TYPES, type || "");
 }
 
 export function cardRuntimeSpec(type: string | null | undefined): CardRuntimeSpec | null {

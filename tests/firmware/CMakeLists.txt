@@ -179,6 +179,10 @@ target_include_directories(button_grid_foundations_test PRIVATE
 add_test(NAME button_grid_foundations_test COMMAND button_grid_foundations_test)
 add_test(NAME card_colour_rendering_test COMMAND ${Python3_EXECUTABLE}
   ${CMAKE_CURRENT_SOURCE_DIR}/card_colour_rendering_test.py ${CMAKE_CXX_COMPILER})
+add_test(NAME card_background_lifecycle_test COMMAND ${Python3_EXECUTABLE}
+  ${CMAKE_CURRENT_SOURCE_DIR}/card_background_lifecycle_test.py ${CMAKE_CXX_COMPILER})
+add_test(NAME card_background_text_test COMMAND ${Python3_EXECUTABLE}
+  ${CMAKE_CURRENT_SOURCE_DIR}/card_background_text_test.py ${CMAKE_CXX_COMPILER})
 
 add_test(NAME compact_landscape_controls_test COMMAND ${Python3_EXECUTABLE}
   ${CMAKE_CURRENT_SOURCE_DIR}/compact_landscape_controls_test.py ${CMAKE_CXX_COMPILER})
@@ -281,6 +285,7 @@ add_test(NAME configuration_store_test COMMAND configuration_store_test)
 
 add_executable(configuration_service_test
   configuration_service_test.cpp
+  ../../components/espdesktop/legacy_card_config.cpp
   ../../components/espdesktop/configuration_service.cpp
   ../../components/espdesktop/configuration_store.cpp
 )
@@ -288,6 +293,15 @@ target_compile_features(configuration_service_test PRIVATE cxx_std_17)
 target_compile_options(configuration_service_test PRIVATE -Wall -Wextra -Werror)
 target_include_directories(configuration_service_test PRIVATE ../../components/espdesktop)
 add_test(NAME configuration_service_test COMMAND configuration_service_test)
+
+add_executable(legacy_card_config_test
+  legacy_card_config_test.cpp
+  ../../components/espdesktop/legacy_card_config.cpp
+)
+target_compile_features(legacy_card_config_test PRIVATE cxx_std_17)
+target_compile_options(legacy_card_config_test PRIVATE -Wall -Wextra -Werror)
+target_include_directories(legacy_card_config_test PRIVATE ../../components/espdesktop)
+add_test(NAME legacy_card_config_test COMMAND legacy_card_config_test)
 
 add_executable(panel_config_document_test panel_config_document_test.cpp)
 target_compile_features(panel_config_document_test PRIVATE cxx_std_17)

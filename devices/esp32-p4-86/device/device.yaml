@@ -81,7 +81,7 @@ external_components:
       url: ${espdesktop_component_url}
       ref: ${espdesktop_component_ref}
       path: components
-    components: [espdesktop, captive_portal, web_server_idf, artwork_image]
+    components: [espdesktop, captive_portal, web_server_idf, artwork_image, card_image_store]
     refresh: 1s
 
 espdesktop:

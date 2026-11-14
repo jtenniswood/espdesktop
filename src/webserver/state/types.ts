@@ -31,6 +31,8 @@ export interface DeviceConfig {
   readonly dragMode: "swap" | "displace";
   readonly dragAnimation: boolean;
   readonly imageSlotCapacity: number;
+  readonly cardBackgroundImageLimit?: number;
+  readonly cardBackgroundPartitionBytes?: number;
   readonly largeSensorUnitOffsetPercent?: number;
   readonly disabledCardTypes?: readonly string[];
   readonly infoOnly?: boolean;

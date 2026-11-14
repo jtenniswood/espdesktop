@@ -193,7 +193,7 @@ export function registerMediaCardTypes(
             config.unit = "";
             config.precision = "";
             config.icon_on = "Auto";
-            config.options = normalizeMediaOptions(config.options, config.sensor);
+            config.options = normalizeMediaOptions(config.options, config.sensor, config);
         },
     });
 }

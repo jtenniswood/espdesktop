@@ -65,6 +65,7 @@ import type { ConfigConfirmationOptionsFeature } from "./config_confirmation_opt
 import {
     IMAGE_ICON_OPTION,
     MEDIA_COVER_ART_OPTION,
+    copyCardBackgroundOptions,
     copyLargeNumbersOption,
 } from "./config_option_core";
 import {
@@ -419,6 +420,7 @@ export function createConfigCodecFeature(
             cardColorOptions = "";
             iconSizeOptions = "";
         }
+        var originalOptions: any = b ? b.options : "";
         if (b)
             b.options = setConfigOptionValue(withoutCardColorOptions(b.options || ""), "icon_size", "");
         if (b && migrateSavedConfigVacuumLegacy(b)) {
@@ -450,6 +452,8 @@ export function createConfigCodecFeature(
         if (b && !normalizedSavedSwitch && !normalizedSavedAccess && !normalizedSavedOccupancy && !normalizedSavedStatic && !normalizedSavedFan && !normalizedSavedMower && b.type !== "action" && b.type !== "alarm" && b.type !== "alarm_action" && !isClimateCardType(b.type) && b.type !== "media" && b.type !== "companion" && b.type !== "subpage" && b.type !== "image" && b.type !== "light_control" && b.type !== "vacuum" && b.type !== "weather" && !cardLargeNumbersSupported(b)) {
             b.options = "";
         }
+        if (b)
+            b.options = copyCardBackgroundOptions(b.options, originalOptions, b);
         if (b && cardColorOptions) b.options = [b.options || "", cardColorOptions].filter(Boolean).join(",");
         if (b) b.options = preserveCardIconSize(companionCardHasAppIcon(b) ? iconSizeOptions : "", b.options);
         return b;
@@ -587,7 +591,7 @@ export function createConfigCodecFeature(
             options = normalizeClimateOptions(options, true);
         }
         else if (type === "media") {
-            options = normalizeMediaOptions(options, sensor);
+            options = normalizeMediaOptions(options, sensor, b);
         }
         else if (type === "weather") {
             options = normalizeWeatherOptions(options, { precision });
@@ -670,6 +674,7 @@ export function createConfigCodecFeature(
             unit = "";
             precision = "";
         }
+        options = copyCardBackgroundOptions(options, b && b.options, b || { type: type });
         if (cardColorOptions) options = [options || "", cardColorOptions].filter(Boolean).join(",");
         options = preserveCardIconSize(companionCardHasAppIcon(b) ? iconSizeOptions : "", options);
         return trimConfigFields([

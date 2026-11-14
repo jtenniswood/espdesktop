@@ -52,6 +52,7 @@ import { createConfigAccessClimateAlarmOptionsFeature } from "./application/conf
 import { createConfigCodecFeature } from "./application/config_codec";
 import { createNativePanelConfigMigrationController } from "./application/native_panel_config_migration";
 import { createConfigPersistenceFeature } from "./application/config_post_api";
+import { createCardImageService } from "./application/card_image_service";
 import { createStateLoaderFeature, type StateLoaderFeature } from "./application/state_loader_api";
 import { createGridMigrationFeature } from "./application/grid_migration";
 import { createScreenSchedulePostApiFeature } from "./application/screen_schedule_post_api";
@@ -62,6 +63,7 @@ import { createSettingsScheduleSectionFeature } from "./application/settings_sch
 import { createSettingsSystemSectionFeature } from "./application/settings_system_section";
 import { createSettingsCompanionSectionFeature } from "./application/settings_companion_section";
 import { createConnectorsPageFeature, type ConnectorsPageFeature } from "./application/connectors_page";
+import { createSettingsImageLibraryFeature } from "./application/settings_image_library";
 import { createSettingsPageFeature, type SettingsPageFeature } from "./application/settings_page";
 import { createControlsFieldsFeature, type ControlsFieldsFeature } from "./application/controls_fields";
 import { createPreviewRenderFeature, type PreviewRenderFeature } from "./application/preview_render";
@@ -318,6 +320,7 @@ function composeApplicationContext(liveFinderFolders: () => readonly CompanionAc
     state: AppInstance.state,
     schedule: dom.schedule,
     cancelSchedule: (handle) => { dom.window.clearTimeout(handle); },
+    settingsShown: () => { imageLibrary.refreshIfOpen(); },
     buildSettingsPage: (parent) => { settingsPage.buildSettingsPage(parent); },
     closeSettings: () => { selection.closeSettings(); },
     postButtonPress: (name) => requestApi.postButtonPress(name),
@@ -505,7 +508,18 @@ function composeApplicationContext(liveFinderFolders: () => readonly CompanionAc
   configurationPersistence.connectRequestApi(requestApi);
   configurationCodec.connectRequestApi(requestApi);
   const grid = createGridFeature(configurationCodec, runtime, layout, entityState, requestApi, renderQueue, () => nativePanelConfig.markLocalEdit());
-  fields = createControlsFieldsFeature(cards, configurationOptions, shell, requestApi);
+  const cardImages = createCardImageService({
+    layout,
+    requestApi,
+    persistence: configurationPersistence,
+    fetch: dom.fetch,
+    renderPreview: () => preview.render(),
+    renderButtonSettings: () => buttonSettings.render(),
+  });
+  fields = createControlsFieldsFeature(cards, configurationOptions, shell, requestApi, cardImages, {
+    renderPreview: () => preview.render(),
+    renderButtonSettings: () => buttonSettings.render(),
+  });
   const placement = createPreviewGridPlacementFeature({
     controller: previewPlacement,
     layout,
@@ -801,8 +815,8 @@ function composeApplicationContext(liveFinderFolders: () => readonly CompanionAc
   });
   const backupFile = createBackupFileController({
     transport: {
-      download(content, filename) {
-        const blob = new Blob([content], { type: "application/json" });
+      download(content, filename, contentType) {
+        const blob = new Blob([content as BlobPart], { type: contentType });
         const url = URL.createObjectURL(blob);
         const link = dom.document.createElement("a");
         link.href = url;
@@ -812,10 +826,10 @@ function composeApplicationContext(liveFinderFolders: () => readonly CompanionAc
         dom.document.body.removeChild(link);
         URL.revokeObjectURL(url);
       },
-      chooseJsonFile(onText, onError) {
+      chooseFile(onFile, onError) {
         const input = dom.document.createElement("input");
         input.type = "file";
-        input.accept = ".json";
+        input.accept = ".json,.zip";
         input.style.display = "none";
         const cleanupInput = () => {
           if (input.parentNode) input.parentNode.removeChild(input);
@@ -833,9 +847,14 @@ function composeApplicationContext(liveFinderFolders: () => readonly CompanionAc
           };
           reader.onload = () => {
             cleanupInput();
-            onText(String(reader.result || ""));
+            const result = reader.result;
+            if (!(result instanceof ArrayBuffer)) {
+              onError();
+              return;
+            }
+            onFile(input.files?.[0]?.name || "backup.json", new Uint8Array(result));
           };
-          reader.readAsText(input.files[0]);
+          reader.readAsArrayBuffer(input.files[0]);
         });
         dom.document.body.appendChild(input);
         input.click();
@@ -851,6 +870,7 @@ function composeApplicationContext(liveFinderFolders: () => readonly CompanionAc
     backupImport,
     backupRestore,
     backupFile,
+    cardImages,
     normalizeImportedPanelSettings,
     gridColsForImportedSettings,
     nativePanelConfig,
@@ -910,6 +930,7 @@ function composeApplicationContext(liveFinderFolders: () => readonly CompanionAc
     runtime, screenScheduleState, schedulePostApi, fields, settingsHelpers,
   );
   const systemSection = createSettingsSystemSectionFeature({
+    cardImages,
     buildIdentityCard: identity.buildCard,
     exportBackup: backupApplication.exportConfig,
     importBackup: backupApplication.importConfig,
@@ -930,12 +951,13 @@ function composeApplicationContext(liveFinderFolders: () => readonly CompanionAc
     pickerHomeAssistantConfigured = configured;
     buttonSettings.render();
   });
+  const imageLibrary = createSettingsImageLibraryFeature(cardImages, shell, fields);
   settingsPage = createSettingsPageFeature(
     configurationCodec, runtime, core, layout, environment, screenScheduleState,
     screensaverTimeout, screenRotation, appearance, clockBarState, entityState,
     shell, requestApi, statusPreview, schedulePostApi,
     clockBarPostApi, fields, settingsHelpers, scheduleSection,
-    systemSection, preview, connectorsPage, () => firstRunSetup.open(),
+    systemSection, preview, imageLibrary, connectorsPage, () => firstRunSetup.open(),
     async enabled => {
       if (await nativePanelConfig.waitForDiscovery() !== true || !nativePanelConfig.client?.supportsAppSubpagePreference()) {
         shell.showBanner("Could not save automatic app switching. Check the display’s connection and firmware.", "error");

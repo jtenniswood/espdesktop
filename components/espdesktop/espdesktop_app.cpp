@@ -18,6 +18,8 @@
 #include "button_grid.h"
 #include "grid_page_runtime.h"
 #include "panel_config_page_append.h"
+#include "panel_config_asset_references.h"
+#include "freertos/task.h"
 #include "configuration_main_loop.h"
 #include "configuration_release_policy.h"
 #include "configuration_service.h"
@@ -39,6 +41,8 @@
 #include "button_grid.h"
 #include "grid_page_runtime.h"
 #include "panel_config_page_append.h"
+#include "panel_config_asset_references.h"
+#include "freertos/task.h"
 #include "connector_state.h"
 #ifdef USE_COMPANION
 #include "../companion/companion.h"
@@ -61,6 +65,7 @@ extern "C" void espdesktop_register_web_server_handlers(
 #ifdef USE_WEBSERVER
   if (server == nullptr) return;
   espdesktop::reset::register_handlers(*server);
+  espdesktop::card_asset_http::register_endpoints(*server);
   espdesktop::register_panel_identity_endpoint(*server);
   espdesktop::register_panel_diagnostics_endpoint(*server);
   register_companion_actions_endpoint(*server);
@@ -627,7 +632,66 @@ void EspDesktopApp::retry_configuration_compatibility() {
   }
 }
 
+static TaskHandle_t card_asset_application_task = nullptr;
+
+CardAssetReferenceState EspDesktopApp::check_recovery_references(void *context, const std::string &id) {
+  auto *app = static_cast<EspDesktopApp *>(context);
+  if (!app->native_configuration_requested()) return CardAssetReferenceState::USE_LEGACY;
+  auto *runtime = app->native_configuration_runtime_.get();
+  auto *service = app->core_.configuration_service();
+  if (!runtime || !service || !app->native_configuration_initialized_ || runtime->boot_configuration_pending)
+    return CardAssetReferenceState::UNAVAILABLE;
+  const auto capacity = service->maximum_document_size();
+  configuration::ConfigurationBuffer buffer(allocate_configuration_slot, release_configuration_slot);
+  auto *document = buffer.allocate(capacity);
+  if (!document) return CardAssetReferenceState::UNAVAILABLE;
+  const auto loaded = service->load(document, capacity);
+  if (loaded.status == configuration::ServiceStatus::EMPTY) return CardAssetReferenceState::UNREFERENCED;
+  bool referenced = false;
+  if (!loaded.ok() || !panel_config_asset_reference(
+      loaded.document_version, document, loaded.document_size, id, referenced,
+      allocate_configuration_slot, release_configuration_slot)) return CardAssetReferenceState::UNAVAILABLE;
+  return referenced ? CardAssetReferenceState::REFERENCED : CardAssetReferenceState::UNREFERENCED;
+}
+
+bool EspDesktopApp::clear_card_asset_references(void *context, const std::string &id) {
+  (void) context;
+  auto &http = configuration::panel_config_http_context();
+  if (!http.ready.load(std::memory_order_acquire) || !http.service || !http.transactions) return false;
+  auto &service = *http.service;
+  const bool main_task = xTaskGetCurrentTaskHandle() == card_asset_application_task;
+  const auto capacity = http.document_capacity;
+  configuration::ConfigurationBuffer input(allocate_configuration_slot, release_configuration_slot);
+  auto *document = input.allocate(capacity);
+  if (!document) return false;
+  for (int attempt = 0; attempt < 3; ++attempt) {
+    const auto loaded = main_task ? service.load(document, capacity)
+        : http.transactions->load(document, capacity).result;
+    if (!loaded.ok()) return false;
+    bool referenced = false;
+    if (!panel_config_asset_reference(loaded.document_version, document, loaded.document_size,
+        id, referenced, allocate_configuration_slot, release_configuration_slot)) return false;
+    if (!referenced) return true;
+    if (loaded.document_version != configuration::PANEL_CONFIG_DOCUMENT_VERSION_2) return false;
+    configuration::ConfigurationBuffer output(allocate_configuration_slot, release_configuration_slot);
+    auto *updated = output.allocate(capacity);
+    size_t size = 0;
+    if (!updated || !clear_panel_config_v2_asset_references(document, loaded.document_size,
+        updated, capacity, &size, id, allocate_configuration_slot, release_configuration_slot)) return false;
+    const auto saved = main_task
+        ? service.save_if_generation(loaded.generation, loaded.document_version, updated, size)
+        : http.transactions->save_if_generation(loaded.generation, loaded.document_version, updated, size).result;
+    if (saved.ok()) return true;
+  }
+  return false;
+}
+
 void EspDesktopApp::setup() {
+  card_asset_application_task = xTaskGetCurrentTaskHandle();
+  card_assets_.set_recovery_reference_callback(&EspDesktopApp::check_recovery_references, this);
+  if (native_configuration_requested())
+    card_assets_.set_reference_transaction_callback(&EspDesktopApp::clear_card_asset_references, this);
+  if (!card_assets_.start()) ESP_LOGE(TAG, "Card image storage failed to start");
   if (core_.start()) {
     cards::set_card_runtime_registry_service(&core_.card_runtime_registry());
   } else {
@@ -824,6 +888,7 @@ void EspDesktopApp::loop() {
   register_panel_config_endpoints();
   trace_phase("HTTP registration");
   if (application_scene_ && application_scene_->maintenance_ready()) application_scene_->loop();
+  if (scene_ready) card_assets_.loop();
 }
 
 void EspDesktopApp::on_shutdown() {
@@ -832,6 +897,7 @@ void EspDesktopApp::on_shutdown() {
   if (native_configuration_runtime_ != nullptr)
     native_configuration_runtime_->transactions.stop();
   if (application_scene_) application_scene_->stop();
+  card_assets_.stop();
   esphome::artwork_image::TransferObserver::instance().set({}, {});
   cards::set_card_runtime_registry_service(nullptr);
   core_.stop();

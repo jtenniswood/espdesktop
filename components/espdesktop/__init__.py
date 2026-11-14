@@ -15,7 +15,7 @@ from esphome.core import CORE, CoroPriority, coroutine_with_priority
 import os
 
 CODEOWNERS = ["@jtenniswood"]
-AUTO_LOAD = ["mdns", "json", "socket"]
+AUTO_LOAD = ["card_image_store", "mdns", "json", "socket"]
 
 CONF_PANEL_CONFIG = "panel_config"
 CONF_DEVICE_PROFILE = "device_profile"

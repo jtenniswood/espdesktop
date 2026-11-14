@@ -7,7 +7,8 @@
       "esp32-p4": {
         "firmware": {
           "build": {
-            "chip": "ESP32-P4"
+            "chip": "ESP32-P4",
+            "flashBytes": 16777216
           },
           "package": {}
         }
@@ -15,7 +16,17 @@
       "esp32-s3": {
         "firmware": {
           "build": {
-            "chip": "ESP32-S3"
+            "chip": "ESP32-S3",
+            "flashBytes": 16777216
+          },
+          "package": {}
+        }
+      },
+      "esp32-p4-32mb": {
+        "firmware": {
+          "build": {
+            "chip": "ESP32-P4",
+            "flashBytes": 33554432
           },
           "package": {}
         }
@@ -449,6 +460,44 @@
         "firmware": {
           "package": {
             "touchscreenPackage": true
+          }
+        }
+      }
+    },
+    "assets": {
+      "card-backgrounds-6": {
+        "capabilities": {
+          "cardBackgrounds": {
+            "maxActive": 6,
+            "partitionBytes": 2097152,
+            "residentFrames": 6
+          }
+        }
+      },
+      "card-backgrounds-9": {
+        "capabilities": {
+          "cardBackgrounds": {
+            "maxActive": 9,
+            "partitionBytes": 2097152,
+            "residentFrames": 9
+          }
+        }
+      },
+      "card-backgrounds-15": {
+        "capabilities": {
+          "cardBackgrounds": {
+            "maxActive": 15,
+            "partitionBytes": 2097152,
+            "residentFrames": 15
+          }
+        }
+      },
+      "card-backgrounds-20": {
+        "capabilities": {
+          "cardBackgrounds": {
+            "maxActive": 20,
+            "partitionBytes": 2097152,
+            "residentFrames": 20
           }
         }
       }

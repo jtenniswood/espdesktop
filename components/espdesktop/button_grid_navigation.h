@@ -273,6 +273,8 @@ inline void navigation_clear_home_targets() {
   grid_navigation_service().clear_home_targets();
 }
 
+inline void card_background_unregister_page(lv_obj_t *page);
+
 inline void navigation_clear_subpages(lv_obj_t *main_page_obj) {
   lv_obj_t *active = lv_scr_act();
   for (const auto &entry : navigation_subpages()) {
@@ -284,7 +286,8 @@ inline void navigation_clear_subpages(lv_obj_t *main_page_obj) {
   }
   for (auto &entry : navigation_subpages()) {
     if (entry.screen != nullptr) {
-      navigation_release_subpage_runtime(entry);
+      card_background_unregister_page(entry.screen);
+  navigation_release_subpage_runtime(entry);
       clock_bar_clear_responsive_grid_cards(entry.screen);
       lv_obj_del(entry.screen);
     }
@@ -422,6 +425,7 @@ inline NavigationSubpageEntry *navigation_find_slot(int slot) {
 
 inline void navigation_release_subpage_screen(NavigationSubpageEntry &entry) {
   if (!entry.screen) return;
+  card_background_unregister_page(entry.screen);
   navigation_release_subpage_runtime(entry);
   clock_bar_unregister_button_grid_page(entry.screen);
   auto &screens = navigation_grid_screens();

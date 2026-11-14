@@ -68,10 +68,13 @@ struct GridConfig {
   esphome::artwork_image::ArtworkImage **image_card_images = nullptr;
   esphome::artwork_image::ArtworkImage *image_card_modal_image = nullptr;
   int image_card_image_count = 0;
+  esphome::artwork_image::ArtworkImage **card_background_images = nullptr;
+  int card_background_image_count = 0;
   bool image_card_diagnostics = false;
 };
 
 #include "button_grid_image.h"
+#include "button_grid_card_background.h"
 
 // The approved Mac catalogue is only a render input. The native page store
 // continues to contain the user's placed tiles.
@@ -434,6 +437,7 @@ inline void setup_card_visual(BtnSlot &s, const ParsedCfg &p,
     return;
   }
 
+  apply_card_background_image(s, p, cfg);
   if (espdesktop::cards::basic_action_driver_setup_visual(
         s, p, context, palette.sensor_val)) {
 #ifdef USE_COMPANION
@@ -524,6 +528,10 @@ inline void refresh_card_layout(BtnSlot &s, const ParsedCfg &p,
     if (source) companion_layout_card_app_icon(*source, s.app_icon_img);
   }
 #endif
+  sync_card_background_image(s, p, cfg);
+  if (card_background_configured_for_card(p)) {
+    card_background_move_content_foreground(s);
+  }
   if (espdesktop::cards::navigation_driver_refresh_layout(
         s, p, context, cfg)) return;
 
@@ -547,6 +555,7 @@ inline void grid_refresh_layout(
     lv_obj_add_flag(slots[i].btn, LV_OBJ_FLAG_HIDDEN);
   grid_navigation_service().layout_slots = NS;
   grid_navigation_service().layout_columns = COLS;
+  for (int i = 0; i < NS; i++) clear_card_background_image(slots[i]);
   configure_grid_layout(main_page_obj, NS, COLS);
   int ROWS = (NS + COLS - 1) / COLS;
 
@@ -626,6 +635,7 @@ inline void grid_phase1(
   // Remote controls may be open over a non-grid page when widgets are rebuilt.
   navigation_close_modals_for_display_takeover();
   set_backlight_display_takeover_callback(navigation_close_modals_for_display_takeover);
+  reset_card_background_image_pool(cfg);
   const DisplayProfile display = display_profile_from_grid_config(cfg);
   display_activate_profile(display);
   // Initialize downloaders and detach old widgets before visual setup deletes them.
@@ -714,6 +724,7 @@ inline void grid_phase1(
     setup_card_visual(s, p, context, cfg, palette, row_span, col_span);
     refresh_card_layout(s, p, cfg, row_span, col_span);
   }
+  if (main_page_obj) card_background_activate_page(cfg, main_page_obj);
   register_theme_grid(main_page_obj, slots, neutral_buttons, NS, sensor_surfaces,
                       cfg.color_correction_red_percent,
                       cfg.color_correction_green_percent,

@@ -11,6 +11,7 @@
 
 #include "configuration_service.h"
 #include "panel_config_service_validator.h"
+#include "panel_config_asset_references.h"
 
 namespace {
 

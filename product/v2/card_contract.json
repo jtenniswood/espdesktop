@@ -514,7 +514,8 @@
   "optionNames": [
     "state_low_label",
     "state_high_label",
-    "media_cover_art"
+    "media_cover_art",
+    "bg_image"
   ],
   "cards": {
     "timer": {
@@ -3822,5 +3823,43 @@
     "webhook",
     "companion_webapp",
     "companion_audio"
-  ]
+  ],
+  "appearance": {
+    "backgroundImage": {
+      "option": "bg_image",
+      "supportedCardTypes": [
+        "",
+        "vacuum",
+        "lawn_mower",
+        "alarm",
+        "alarm_action",
+        "climate",
+        "climate_control",
+        "cover",
+        "door_window",
+        "presence",
+        "fan_direction",
+        "fan_oscillate",
+        "fan_preset",
+        "fan_speed",
+        "fan_control",
+        "fan_switch",
+        "garage",
+        "gate",
+        "light_brightness",
+        "light_switch",
+        "light_temperature",
+        "light_control",
+        "lock",
+        "media",
+        "push",
+        "companion",
+        "slider",
+        "subpage",
+        "weather",
+        "weather_forecast",
+        "companion_mac_lock"
+      ]
+    }
+  }
 }

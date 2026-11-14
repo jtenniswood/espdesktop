@@ -38,6 +38,7 @@
 constexpr const char *IMAGE_LABEL_OPTION = card_runtime_option_name_image_label();
 constexpr const char *IMAGE_ICON_OPTION = card_runtime_option_name_image_icon();
 constexpr const char *IMAGE_MODAL_MODE_OPTION = card_runtime_option_name_image_modal_mode();
+constexpr const char *CARD_BACKGROUND_IMAGE_OPTION = "bg_image";
 constexpr const char *MEDIA_COVER_ART_OPTION = card_runtime_option_name_media_cover_art();
 constexpr const char *MEDIA_COVER_ART_DETAILS_OPTION = card_runtime_option_name_cover_art_details();
 constexpr const char *MEDIA_COVER_ART_SECONDARY_ENTITY_OPTION = card_runtime_option_name_cover_art_secondary_entity();
@@ -217,6 +218,41 @@ inline std::string options_without_card_colors(const std::string &options) {
 
 inline bool large_numbers_explicitly_disabled(const std::string &options) {
   return cfg_option_value(options, "large_numbers") == "off";
+}
+
+inline bool card_background_image_id_valid(const std::string &value) {
+  if (value.empty() || value.size() > 40) return false;
+  for (char ch : value) {
+    if (!((ch >= 'a' && ch <= 'z') || (ch >= '0' && ch <= '9') || ch == '-')) return false;
+  }
+  return true;
+}
+
+inline std::string card_background_options_normalized(const std::string &options) {
+  std::string image = cfg_option_value(options, CARD_BACKGROUND_IMAGE_OPTION);
+  if (!card_background_image_id_valid(image)) return "";
+  return std::string(CARD_BACKGROUND_IMAGE_OPTION) + "=" + image;
+}
+
+inline bool card_background_supported_type(const std::string &type) {
+  return card_runtime_supports_background(type);
+}
+
+inline bool card_background_supported_card(const std::string &type,
+                                           const std::string &sensor) {
+  return card_background_supported_type(type) &&
+         !(type == "media" && sensor == "cover_art");
+}
+
+inline bool card_background_supported_card(const ParsedCfg &card) {
+  return card_background_supported_card(card.type, card.sensor);
+}
+
+inline void append_card_background_options(std::string &out, const std::string &options) {
+  std::string background = card_background_options_normalized(options);
+  if (background.empty()) return;
+  if (!out.empty()) out += ",";
+  out += background;
 }
 
 inline void append_large_numbers_option(std::string &out, const std::string &options) {
@@ -1356,6 +1392,7 @@ inline ParsedCfg normalize_parsed_cfg(ParsedCfg p) {
     start = end + 1;
   }
   p.options = type_options;
+  const std::string original_options = p.options;
   const std::string card_colors = card_color_options_normalized(p.options);
   p.options = options_without_card_colors(p.options);
   // Retired Mac playback cards become empty slots, including inside subpages.
@@ -1429,6 +1466,8 @@ inline ParsedCfg normalize_parsed_cfg(ParsedCfg p) {
   if (!normalized_saved_static && !normalized_saved_fan && !normalized_saved_mower && !normalized_saved_occupancy && !normalized_saved_access && !p.type.empty() && p.type != "action" && p.type != "alarm" && p.type != "alarm_action" && !climate_card_type(p.type) && p.type != "media" && p.type != "companion" && p.type != "subpage" && p.type != "image" && p.type != "light_control" && p.type != "vacuum" && p.type != "weather" && !card_large_numbers_supported(p)) {
     p.options.clear();
   }
+  if (card_background_supported_card(p.type, p.sensor))
+    append_card_background_options(p.options, original_options);
   if (!card_colors.empty()) {
     if (!p.options.empty()) p.options += ",";
     p.options += card_colors;
