@@ -10,6 +10,12 @@ esphome:
     - priority: -210
       then:
         - lambda: |-
+            espdesktop::home_assistant::hooks().show_code = [](const std::string &code) {
+              const auto &display = id(espdesktop_app).display();
+              if (display.current_mode_is(espdesktop::DisplayMode::ACTIVE) &&
+                  !display.takeover_active(espdesktop::DisplayTakeoverKind::CRITICAL))
+                device_show_home_assistant_pairing(code, id(${setup_body_font_id})->get_lv_font());
+            };
             device_pairing_style_button(id(button_setup_pair));
             register_theme_static_page(id(button_setup_page)->obj);
             companion_runtime_service().pairing_changed_handler = [] {

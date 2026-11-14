@@ -24,7 +24,7 @@ def _reserve_network_resources(config):
     socket.consume_sockets(
         1, "companion_secure_websocket", socket.SocketType.TCP_LISTEN
     )(config)
-    socket.consume_sockets(2, "companion_secure_websocket")(config)
+    socket.consume_sockets(3, "companion_secure_websocket")(config)
     return config
 
 

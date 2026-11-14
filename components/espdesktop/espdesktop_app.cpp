@@ -40,6 +40,8 @@
 #include "grid_page_runtime.h"
 #include "panel_config_page_append.h"
 #include "connector_state.h"
+#include "home_assistant_card_actions.h"
+#include "home_assistant_setup_endpoint.h"
 #ifdef USE_COMPANION
 #include "../companion/companion.h"
 #endif
@@ -64,6 +66,9 @@ extern "C" void espdesktop_register_web_server_handlers(
   espdesktop::register_panel_identity_endpoint(*server);
   espdesktop::register_panel_diagnostics_endpoint(*server);
   register_companion_actions_endpoint(*server);
+#ifdef USE_COMPANION
+  espdesktop::home_assistant::register_setup_endpoint(*server);
+#endif
   register_companion_app_icon_preview_endpoint(*server);
   espdesktop::connectors::register_connector_status_endpoint(*server);
   espdesktop::configuration::register_panel_config_capabilities_endpoint(*server);
@@ -628,6 +633,10 @@ void EspDesktopApp::retry_configuration_compatibility() {
 }
 
 void EspDesktopApp::setup() {
+#ifdef USE_COMPANION
+  home_assistant::hooks().list = home_assistant::list_cards;
+  home_assistant::hooks().press = home_assistant::press_card;
+#endif
   if (core_.start()) {
     cards::set_card_runtime_registry_service(&core_.card_runtime_registry());
   } else {

@@ -1,3 +1,4 @@
+import { setCardExposure } from "./home_assistant_cards";
 import type { CardConfig } from "../contracts/types";
 import { CARD_CONFIG_FIELDS, cloneCardConfig } from "./card";
 import { configOptionEnabled } from "./config_primitives";
@@ -83,6 +84,7 @@ function normalizeTransferCard(value: unknown, context: string): CardConfig {
   for (const field of CARD_CONFIG_FIELDS) {
     fields[field] = requiredString(value, field, context);
   }
+  fields.options = setCardExposure(fields.options ?? "", "", false);
   return cloneCardConfig(fields);
 }
 
@@ -104,10 +106,8 @@ function normalizeTransferSubpage(value: unknown, context: string): StructuredSu
   })) {
     throw transferError("Invalid card code - " + context + " has an invalid order");
   }
-  buttons.forEach((button, index) => {
-    normalizeTransferCard(button, context + " card " + (index + 1));
-  });
-  return structuredSubpageFromParsed(parseStructuredSubpageConfig(value));
+  const cards = buttons.map((button, index) => normalizeTransferCard(button, context + " card " + (index + 1)));
+  return structuredSubpageFromParsed(parseStructuredSubpageConfig({ ...value, buttons: cards }));
 }
 
 function normalizeTransferEntry(value: unknown, index: number, version: number): CardTransferEntry {

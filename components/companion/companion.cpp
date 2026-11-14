@@ -268,7 +268,7 @@ bool CompanionService::ensure_identity_() {
 
 bool CompanionService::start_server_() {
   httpd_ssl_config_t config = HTTPD_SSL_CONFIG_DEFAULT();
-  config.httpd.max_open_sockets = 2;
+  config.httpd.max_open_sockets = 3;
   // Detect a Mac that disappears without closing its WebSocket (power or
   // network loss), so connection-driven screensavers can still activate.
   config.httpd.keep_alive_enable = true;
@@ -304,7 +304,10 @@ bool CompanionService::start_server_() {
       .uri = LEGACY_PROTOCOL_ROUTE, .method = HTTP_GET, .handler = &CompanionService::legacy_websocket_handler_,
       .user_ctx = this, .is_websocket = true, .handle_ws_control_frames = false,
       .ws_post_handshake_cb = &CompanionService::websocket_opened_};
-  return httpd_register_uri_handler(this->server_, &legacy_websocket) == ESP_OK;
+  if (httpd_register_uri_handler(this->server_, &legacy_websocket) != ESP_OK) return false;
+  uint8_t digest[32]{};
+  return mbedtls_sha256(this->identity_.certificate, this->identity_.certificate_len, digest, 0) == 0 &&
+      this->home_assistant_.start(*this, this->server_, hex(digest, sizeof(digest)));
 }
 
 void CompanionService::session_close_(httpd_handle_t server, int socket_fd) {
