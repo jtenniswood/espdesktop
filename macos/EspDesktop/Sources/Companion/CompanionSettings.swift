@@ -455,6 +455,34 @@ struct CompanionSettings: View {
                 }
             }
             .tint(.blue)
+            Toggle(isOn: $store.sharesOpenCodeGoUsage) {
+                Text("Share OpenCode Go weekly usage")
+                if store.sharesOpenCodeGoUsage {
+                    TimelineView(.periodic(from: .now, by: 15)) { context in
+                        Text(openCodeGoUsageStatus(at: context.date))
+                            .foregroundStyle(.secondary)
+                    }
+                }
+            }
+            .tint(.blue)
+        }
+    }
+
+    private func openCodeGoUsageStatus(at date: Date) -> String {
+        if let reading = store.openCodeGoUsage {
+            return reading.isCurrent(at: date)
+                ? "\(reading.remainingPercent)% left this week"
+                : "Last weekly reading is out of date."
+        }
+        switch store.openCodeGoStatus {
+        case .checking:
+            return "Checking weekly usage…"
+        case .missingLogin:
+            return "Run /connect in OpenCode, choose OpenCode Go, and enter your Go API key."
+        case .rejected:
+            return "Check that the key saved in OpenCode belongs to an active Go subscription."
+        case .unavailable, .available:
+            return "OpenCode Go weekly usage is unavailable."
         }
     }
 

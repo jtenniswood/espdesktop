@@ -49,6 +49,24 @@ final class TokenUsageTests: XCTestCase {
         XCTAssertFalse(resetting.isCurrent(at: Date(timeIntervalSince1970: 1_100)))
     }
 
+    func testOpenCodeGoReadsOnlyTheWeeklyPercentage() throws {
+        let now = try XCTUnwrap(ISO8601DateFormatter().date(from: "2025-08-10T18:00:00Z"))
+        let output = #"{"usage":{"rolling":{"percent":75},"weekly":{"percent":1,"resetsAt":"2025-08-13T07:59:23.880Z"},"monthly":{"percent":93}}}"#
+        let reading = try XCTUnwrap(TokenUsage.parseOpenCodeGo(Data(output.utf8), observedAt: now))
+        XCTAssertEqual(reading.remainingPercent, 99)
+        XCTAssertEqual(reading.resetsAt, 1_755_071_963)
+        XCTAssertNil(TokenUsage.parseOpenCodeGo(Data(#"{"usage":{"rolling":{"percent":75}}}"#.utf8), observedAt: now))
+        let expired = output.replacingOccurrences(of: "2025-08-13", with: "2025-08-09")
+        XCTAssertNil(TokenUsage.parseOpenCodeGo(Data(expired.utf8), observedAt: now))
+    }
+
+    func testOpenCodeGoUsesOnlyTheSavedGoProviderKey() {
+        let setup = #"{"opencode":{"type":"api","key":"zen-only"},"opencode-go":{"type":"api","key":"go-key"},"other":42}"#
+        XCTAssertEqual(TokenUsage.openCodeGoKey(from: Data(setup.utf8)), "go-key")
+        let zenOnly = #"{"opencode":{"type":"api","key":"zen-only"}}"#
+        XCTAssertNil(TokenUsage.openCodeGoKey(from: Data(zenOnly.utf8)))
+    }
+
     func testReadsOnlyTheWeeklyCodexLimit() throws {
         let snapshot = #"{"id":2,"result":{"rateLimits":{"limitId":"codex","primary":{"usedPercent":10,"windowDurationMins":300,"resetsAt":1700003600},"secondary":{"usedPercent":59,"windowDurationMins":10080,"resetsAt":1700172800}}}}"#
         let reading = try XCTUnwrap(TokenUsage.parseCodex(Data(snapshot.utf8), observedAt: 1_700_000_000))

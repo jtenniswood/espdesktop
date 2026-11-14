@@ -4283,7 +4283,7 @@ async function assertTokenUsageCard(browser) {
     await load();
     await page.locator(".sp-main .sp-empty-cell").first().click();
     await page.getByRole("button", { name: "Token Usage card type", exact: true }).click();
-    assert.deepStrictEqual(await service.locator("option").evaluateAll(options => options.map(option => option.value)), ["codex", "claude"]);
+    assert.deepStrictEqual(await service.locator("option").evaluateAll(options => options.map(option => option.value)), ["codex", "claude", "opencode-go"]);
     await service.selectOption("claude");
     await save();
     await waitForNativeState(nativeState, () => {
@@ -4299,6 +4299,15 @@ async function assertTokenUsageCard(browser) {
       ["Resets 2d 9h"]);
     await edit();
     assert.strictEqual(await service.inputValue(), "claude");
+    await service.selectOption("opencode-go");
+    await save();
+    await waitForNativeState(nativeState, () => parseRawButtonConfig(nativeState.document.buttons[slot]).options === "services=opencode-go",
+      "Token Usage saves OpenCode Go");
+    await page.reload();
+    await load();
+    await tile().getByRole("img", { name: "OpenCode Go" }).waitFor();
+    await edit();
+    assert.strictEqual(await service.inputValue(), "opencode-go");
     await service.selectOption("codex");
     await save();
     await waitForNativeState(nativeState, () => parseRawButtonConfig(nativeState.document.buttons[slot]).options === "",

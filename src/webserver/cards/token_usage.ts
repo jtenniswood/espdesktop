@@ -7,11 +7,12 @@ import { TOKEN_USAGE_ICONS } from "./token_usage_icons";
 const SERVICES = [
   ["codex", "ChatGPT (Codex)"],
   ["claude", "Claude"],
+  ["opencode-go", "OpenCode Go"],
 ] as const;
 
 function selectedServices(options: string): typeof SERVICES[number][0] {
   const value = configOptionValue(options, "services");
-  return value === "claude" ? value : "codex";
+  return value === "claude" || value === "opencode-go" ? value : "codex";
 }
 
 export function normalizeTokenUsageOptions(options: string): string {
@@ -49,7 +50,7 @@ export function registerTokenUsageCard(
     renderPreview: (card, helpers) => {
       const selected = selectedServices(card.options);
       const icon = '<span class="sp-btn-icon sp-token-usage-icon" role="img" aria-label="' +
-        (selected === "codex" ? "Codex" : "Claude") +
+        (selected === "codex" ? "Codex" : selected === "claude" ? "Claude" : "OpenCode Go") +
         '" style="--token-usage-icon:url(' + TOKEN_USAGE_ICONS[selected] + ')"></span>';
       const value = (left: string) =>
         '<span class="sp-btn-label sp-token-usage-value">' + helpers.escHtml(left) + '</span>';

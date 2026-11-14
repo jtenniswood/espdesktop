@@ -800,11 +800,11 @@ inline std::optional<Message> decode(JsonObjectConst root, Direction direction, 
     if (direction != Direction::MAC_TO_PANEL) return std::nullopt;
     if (!(state == SessionState::CONNECTED)) return std::nullopt;
     {
-      if (!(root["readings"].is<JsonArrayConst>() && root["readings"].size() <= 2)) return std::nullopt;
+      if (!(root["readings"].is<JsonArrayConst>() && root["readings"].size() <= 3)) return std::nullopt;
       for (JsonVariantConst item : root["readings"].as<JsonArrayConst>()) {
         if (!(item.is<JsonObjectConst>())) return std::nullopt;
         {
-          if (!(string_valid(item.as<JsonObjectConst>()["service"], 5, 6) && (item.as<JsonObjectConst>()["service"].as<std::string>() == "codex" || item.as<JsonObjectConst>()["service"].as<std::string>() == "claude"))) return std::nullopt;
+          if (!(string_valid(item.as<JsonObjectConst>()["service"], 5, 11) && (item.as<JsonObjectConst>()["service"].as<std::string>() == "codex" || item.as<JsonObjectConst>()["service"].as<std::string>() == "claude" || item.as<JsonObjectConst>()["service"].as<std::string>() == "opencode-go"))) return std::nullopt;
         }
         {
           if (!(number_valid(item.as<JsonObjectConst>()["remainingPercent"], 0, 100, true))) return std::nullopt;

@@ -146,6 +146,19 @@ final class CompanionStore: NSObject, ObservableObject {
             restartTokenUsage()
         }
     }
+    @Published var sharesOpenCodeGoUsage = false {
+        didSet {
+            defaults.set(sharesOpenCodeGoUsage, forKey: "tokenUsage.opencode-go")
+            openCodeGoStatus = .checking
+            openCodeGoUsage = nil
+            lastOpenCodeGoUsageAttempt = .distantPast
+            restartTokenUsage()
+        }
+    }
+    @Published private(set) var openCodeGoStatus = TokenUsage.OpenCodeGoStatus.checking
+    @Published private(set) var openCodeGoUsage: WeeklyUsageReading?
+    private var lastOpenCodeGoUsageAttempt = Date.distantPast
+
     @Published private(set) var claudeAccount = TokenUsage.ClaudeAccount.checking
     @Published private(set) var claudeUsage: WeeklyUsageReading?
     @Published private(set) var codexUsage: WeeklyUsageReading?
@@ -207,6 +220,7 @@ final class CompanionStore: NSObject, ObservableObject {
         self.defaults = stableDefaults
         sharesCodexUsage = stableDefaults.bool(forKey: "tokenUsage.codex")
         sharesClaudeUsage = stableDefaults.bool(forKey: "tokenUsage.claude")
+        sharesOpenCodeGoUsage = stableDefaults.bool(forKey: "tokenUsage.opencode-go")
         let savedDisplays = CompanionSavedDisplays(defaults: stableDefaults)
         self.savedDisplays = savedDisplays
         approvedApplicationIdentifiers = Set(
@@ -841,7 +855,8 @@ final class CompanionStore: NSObject, ObservableObject {
     private func publishTokenUsage(to display: CompanionDisplay) {
         display.connection.publishTokenUsage(
             codex: sharesCodexUsage ? codexUsage : nil,
-            claude: sharesClaudeUsage ? claudeUsage : nil
+            claude: sharesClaudeUsage ? claudeUsage : nil,
+            openCodeGo: sharesOpenCodeGoUsage ? openCodeGoUsage : nil
         )
     }
 
@@ -853,7 +868,7 @@ final class CompanionStore: NSObject, ObservableObject {
     }
 
     private func updateTokenUsageTask() {
-        guard sharesCodexUsage || sharesClaudeUsage else {
+        guard sharesCodexUsage || sharesClaudeUsage || sharesOpenCodeGoUsage else {
             tokenUsageTask?.cancel()
             tokenUsageTask = nil
             return
@@ -888,6 +903,19 @@ final class CompanionStore: NSObject, ObservableObject {
                 claudeUsage = reading
             } else if account != .detected && account != .unknown {
                 claudeUsage = nil
+            }
+            for display in tokenUsageDisplays { publishTokenUsage(to: display) }
+        }
+        let openCodeGoInterval: TimeInterval = openCodeGoStatus == .missingLogin ? 60 : 300
+        if sharesOpenCodeGoUsage, Date().timeIntervalSince(lastOpenCodeGoUsageAttempt) >= openCodeGoInterval {
+            let (status, reading) = await TokenUsage.readOpenCodeGo()
+            guard !Task.isCancelled else { return }
+            lastOpenCodeGoUsageAttempt = .now
+            if openCodeGoStatus != status { openCodeGoStatus = status }
+            if let reading {
+                openCodeGoUsage = reading
+            } else if status == .missingLogin || status == .rejected {
+                openCodeGoUsage = nil
             }
             for display in tokenUsageDisplays { publishTokenUsage(to: display) }
         }

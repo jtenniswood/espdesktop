@@ -6,7 +6,8 @@
       "type": "token_usage",
       "readings": [
         { "service": "codex", "remainingPercent": 41, "resetsAt": 1700172800, "observedAt": 1700000000 },
-        { "service": "claude", "remainingPercent": 72, "resetsAt": 1700345600, "observedAt": 1700000000 }
+        { "service": "claude", "remainingPercent": 72, "resetsAt": 1700345600, "observedAt": 1700000000 },
+        { "service": "opencode-go", "remainingPercent": 54, "resetsAt": 1700432000, "observedAt": 1700000000 }
       ]
     },
     "direction": "mac_to_panel",

@@ -73,6 +73,7 @@ final class CompanionConnection: NSObject {
     private var supportsSessionLock = false
     private var supportsPairingReset = false
     private(set) var supportsTokenUsage = false
+    private var supportsOpenCodeGoUsage = false
     private var pairingResetCompletion: CheckedContinuation<Void, Never>?
     private var pairingResetTimeout: Task<Void, Never>?
     private var remoteCatalogueDefinitionsSupported = false
@@ -506,6 +507,7 @@ final class CompanionConnection: NSObject {
             supportsPairingReset = payload.capabilityVersion >= 8
             expandedShortcutsSupported = payload.capabilityVersion >= 9
             supportsTokenUsage = payload.capabilityVersion >= 10
+            supportsOpenCodeGoUsage = payload.capabilityVersion >= 11
             // A Bonjour TXT record never authorizes a location change. Both the
             // pinned TLS certificate and the authenticated session must agree.
             let expectedFingerprint = preferences.stringPreference(forKey: certificateFingerprintKey)
@@ -755,9 +757,14 @@ final class CompanionConnection: NSObject {
                   "sha256": hash, "format": transferFormat])
     }
 
-    func publishTokenUsage(codex: WeeklyUsageReading?, claude: WeeklyUsageReading?) {
+    func publishTokenUsage(codex: WeeklyUsageReading?, claude: WeeklyUsageReading?,
+                           openCodeGo: WeeklyUsageReading?) {
         guard sessionAuthenticated, supportsTokenUsage else { return }
-        let readings = [codex?.wireValue(service: "codex"), claude?.wireValue(service: "claude")].compactMap { $0 }
+        let readings = [
+            codex?.wireValue(service: "codex"),
+            claude?.wireValue(service: "claude"),
+            supportsOpenCodeGoUsage ? openCodeGo?.wireValue(service: "opencode-go") : nil,
+        ].compactMap { $0 }
         sendJSON(["type": "token_usage", "readings": readings])
     }
 
