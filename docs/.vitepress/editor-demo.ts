@@ -82,7 +82,7 @@ function samplePageCards(appId: string, tabs: readonly string[]): SamplePageCard
     return demoFolders.filter(({ label }) => finderFolderLabels.includes(label))
       .map(({ id, label }) => ({ entity: id, label, icon: 'Folder Outline' }))
   }
-  return createCompanionShortcutSubpage(appId, tabs).buttons
+  return createCompanionShortcutSubpage(appId, tabs).buttons.filter(card => card.type !== "token_usage")
 }
 
 const sampleButtons: Record<number, string> = {}
