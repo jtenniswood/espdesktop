@@ -56,6 +56,7 @@ import {
     reconnectAthenaShortcutSubpage,
     syncFinderFolderSelection,
     createCompanionShortcutSubpage,
+    addAppTokenUsageCard,
     normalizeCompanionCardOptions,
     normalizeCompanionAppShortcutOptions,
     resetCompanionShortcutTabs,
@@ -551,7 +552,7 @@ export function registerCompanionCardTypes(
             showAll,
             dragOnly: true,
             tabs: (button: any) => companionShortcutTabsForCapacity(
-                companionShortcutTabs(button), maxSlots,
+                companionShortcutTabs(button), maxSlots, savedShortcutSubpage ? undefined : button.entity,
             ),
             normalizeOptions: function (options: string) {
                 return normalizeCompanionAppShortcutOptions({ ...card, options });
@@ -1506,7 +1507,6 @@ export function registerCompanionCardTypes(
             delete card._appShortcutCapacityRejected;
             if (!companionAppShortcutFolderEnabled(card)) return "saved";
             const existing = context?.reconnectedSubpage ?? state.subpages[slot];
-            if (existing && !selectionChanged && !appChanged && !openBehaviorChanged) return "saved";
             const source = existing ? {
                 ...existing,
                 order: (existing.order || []).slice(),
@@ -1514,6 +1514,13 @@ export function registerCompanionCardTypes(
                 grid: (existing.grid || []).slice(),
                 sizes: { ...(existing.sizes || {}) },
             } : null;
+            if (source && !selectionChanged && !appChanged && !openBehaviorChanged) {
+                codec.buildSubpageGrid(source);
+                if (!addAppTokenUsageCard(card.entity, source, maxSlots)) return "saved";
+                codec.buildSubpageGrid(source);
+                state.subpages[slot] = source;
+                return codec.saveSubpageConfig(slot);
+            }
             let subpage;
             if (source && context?.reconnectedSubpage) {
                 const tabs = companionShortcutTabs(card);
@@ -1525,7 +1532,7 @@ export function registerCompanionCardTypes(
                     syncCompanionShortcutSubpage(card.entity, companionShortcutTabs(card), source, maxSlots);
             } else {
                 subpage = createCompanionShortcutSubpage(card.entity,
-                    companionShortcutTabsForCapacity(companionShortcutTabs(card), maxSlots));
+                    companionShortcutTabsForCapacity(companionShortcutTabs(card), maxSlots, card.entity));
             }
             if (card.entity === "com.apple.finder") {
                 codec.buildSubpageGrid(subpage);
@@ -1538,6 +1545,7 @@ export function registerCompanionCardTypes(
                 syncInheritedFinderOpenBehavior(subpage, finderOpenBehavior(card));
             }
             codec.buildSubpageGrid(subpage);
+            if (addAppTokenUsageCard(card.entity, subpage, maxSlots)) codec.buildSubpageGrid(subpage);
             state.subpages[slot] = subpage;
             return codec.saveSubpageConfig(slot);
         },

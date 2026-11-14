@@ -11,6 +11,8 @@ Show a weekly allowance or Claude Enterprise spend on a paired display. Each all
 
 The Mac app refreshes enabled services in the background every few minutes while sharing is enabled, including when the provider apps are closed. EspDesktop must be running on your Mac. The panel hides the reset countdown when the reading is stale or the reset time is unknown. It shows **Unavailable** until it has a weekly reading.
 
+New ChatGPT and Claude app shortcut pages place the matching Token Usage card just after Back. To add it to an existing page, open the app card’s settings and save. If the layout has no room before its shortcuts, you can add or move the card in the subpage editor.
+
 ## Claude Enterprise spend
 
 Select **Claude Enterprise** as the card’s service to show one user’s Claude Code spend in USD over the last seven days. This uses Anthropic’s usage-based Enterprise analytics. On older seat-based plans, Anthropic’s API reports usage credits only. Ask your organization’s primary owner for a key with the `read:analytics` scope and the user’s `user_…` ID. Enter both under **Token Usage** in EspDesktop Settings and select **Connect Claude Enterprise**. EspDesktop stores the key in macOS Keychain and sends only the amount and timestamp to the display.

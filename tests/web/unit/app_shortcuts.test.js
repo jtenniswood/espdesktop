@@ -34,7 +34,9 @@ test("Claude Desktop keeps its existing presets and exposes numbered and scoped 
   const entries = [...claude.shortcuts, ...claude.claudeShortcuts];
   const ids = keys.map(key => entries.find(item => item.shortcut === key).id);
   const page = api.createCompanionShortcutSubpage(claude.appId, ids);
-  assert.deepEqual(page.buttons.map(card => card.entity), keys.map(key => "shortcut." + key));
+  assert.equal(page.buttons[0].type, "token_usage");
+  assert.equal(page.buttons[0].options, "services=claude");
+  assert.deepEqual(page.buttons.slice(1).map(card => card.entity), keys.map(key => "shortcut." + key));
   assert.deepEqual(api.companionShortcutTabsFromSubpage(claude.appId, page), ids);
   api.replaceCompanionDefinitions([claude]);
   assert.deepEqual(api.companionShortcutPresetCards(claude.appId), presets);
@@ -121,9 +123,11 @@ test("ChatGPT Desktop uses the installed app identifier and keeps its numbered s
   const entries = [...app.shortcuts, ...app.additionalShortcuts];
   const ids = keys.map(key => entries.find(item => item.shortcut === key).id);
   const page = api.createCompanionShortcutSubpage(app.appId, ids);
-  assert.deepEqual(page.buttons.map(card => card.entity), keys.map(key => "shortcut." + key));
+  assert.equal(page.buttons[0].type, "token_usage");
+  assert.equal(page.buttons[0].options, "");
+  assert.deepEqual(page.buttons.slice(1).map(card => card.entity), keys.map(key => "shortcut." + key));
   assert.deepEqual(api.companionShortcutTabsFromSubpage(app.appId, page), ids);
-  const custom = { ...page.buttons[0], entity: "shortcut.command+w", label: "My Close Card", options: "" };
+  const custom = { ...page.buttons[1], entity: "shortcut.command+w", label: "My Close Card", options: "" };
   page.buttons.push(custom);
   page.order.push(String(page.buttons.length));
   assert.deepEqual(api.companionShortcutTabsFromSubpage(app.appId, page), ids);
@@ -258,7 +262,8 @@ test("every packed offline shortcut preserves the authored ID, keys, icon and la
     } else {
       assert(app.defaultShortcutIds?.length <= 8, filename);
       assert.deepEqual(defaults, app.defaultShortcutIds, filename);
-      assert.equal(createCompanionShortcutSubpage(app.appId).buttons.length, defaults.length, filename);
+      const usageSlots = ["com.openai.codex", "com.openai.chat", "com.anthropic.claudefordesktop"].includes(app.appId) ? 1 : 0;
+      assert.equal(createCompanionShortcutSubpage(app.appId).buttons.length, defaults.length + usageSlots, filename);
     }
   }
 

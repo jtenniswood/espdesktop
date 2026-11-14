@@ -4935,6 +4935,8 @@ async function assertAppSubpageCapacity(browser, testCase) {
     const fixture = nativeConfigState(testCase.slug);
     fixture.document.buttons[1] = "com.openai.codex;Codex;Auto;Auto;;;companion;;app_shortcuts,app_shortcuts_tabs=0%7C3%7C5%7C6";
     const subpage = shortcuts.createCompanionShortcutSubpage("com.openai.codex", ["0", "3", "5", "6"]);
+    subpage.buttons.shift();
+    subpage.order = ["B", "1", "2", "3", "4"];
     subpage.buttons.push({ type: "companion", entity: "shortcut.command+shift+p", label: "Custom shortcut", icon: "Application", icon_on: "Auto", options: "" });
     subpage.order.push("5", "", "", "");
     fixture.document.subpages[1] = "~" + subpage.order.join(",") + "|" + subpage.buttons.map(card =>
