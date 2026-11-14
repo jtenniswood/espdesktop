@@ -33,7 +33,7 @@ int main() {
   const std::string remote_json(12000, 'x');
   std::vector<CompanionRemoteDefinition> definitions;
   for (size_t i = 0; i < COMPANION_MAX_REMOTE_DEFINITIONS_PER_CATALOGUE; ++i)
-    definitions.push_back({"application", std::to_string(i), remote_json});
+    definitions.push_back({"application", std::to_string(i), {}, remote_json});
   first.companion_runtime().set_remote_definitions(std::move(definitions));
   const auto before_snapshot = allocations;
   const auto snapshot = first.companion_runtime().snapshot();
