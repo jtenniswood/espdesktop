@@ -3,6 +3,7 @@
 
 import argparse
 from concurrent.futures import ThreadPoolExecutor
+import hashlib
 import json
 from pathlib import Path
 import re
@@ -24,6 +25,43 @@ DMG = re.compile(
 class NoRedirect(HTTPRedirectHandler):
     def redirect_request(self, req, fp, code, msg, headers, newurl):
         return None
+
+
+BUNDLE = re.compile(r'/assets/app\.([A-Za-z0-9_-]+)\.js')
+
+
+def fingerprint(body):
+    return hashlib.sha256(body).hexdigest()[:12]
+
+
+def bundle_version(body):
+    match = BUNDLE.search(body.decode('utf-8', 'replace'))
+    return match[1] if match else 'unknown'
+
+
+CLOUDFLARE_BEACON = re.compile(
+    rb'<script[^>]*src="https://static\.cloudflareinsights\.com/beacon\.min\.js[^"]*"[^>]*>\s*</script>\r?\n'
+)
+BODY_END = re.compile(rb'[ \t\r\n]*</body>')
+
+
+def published_body(route, body):
+    """Normalise the two rewrites Cloudflare applies to HTML on the live host.
+
+    The production host is a Cloudflare-proxied zone with Web Analytics
+    enabled, so Cloudflare injects its beacon script before </body> and
+    re-serialises the whitespace that preceded the closing tag (proven from a
+    GitHub runner: every HTML page came back exactly 367 bytes longer than the
+    deployment artifact, while .md pages matched byte for byte). GitHub Pages
+    never performs that rewrite, so artifact and live HTML can never be
+    byte-identical without removing those two known artefacts.
+
+    Nothing else is exempted: the body is otherwise compared byte for byte,
+    and every non-HTML type is compared completely raw.
+    """
+    if not route.endswith('.html'):
+        return body
+    return BODY_END.sub(b'</body>', CLOUDFLARE_BEACON.sub(b'', body))
 
 
 def fetch(url):
@@ -87,12 +125,20 @@ def verify(dist, base):
             status, headers, body = fetch(url)
         except (OSError, URLError) as error:
             return f'{url}: {error}'
+        served = published_body(route, body)
         if route in redirects:
             target, path, uses_fragment = redirects[route]
             if status == 200:
-                if body == path.read_bytes():
+                raw = path.read_bytes()
+                expected = published_body(route, raw)
+                if served == expected:
                     return None
-                return f'{url}: redirect HTML differs from the deployment artifact'
+                return (
+                    f'{url}: redirect HTML differs from the deployment artifact '
+                    f'(served {len(body)}B raw / {len(served)}B normalised {fingerprint(served)} '
+                    f'bundle {bundle_version(served)}, expected {len(raw)}B / {len(expected)}B '
+                    f'{fingerprint(expected)} bundle {bundle_version(expected)})'
+                )
             if uses_fragment:
                 return f'{url}: expected HTML that preserves section links, got HTTP {status}'
             if status in (301, 308) and urljoin(url, headers.get('Location', '')) == target:
@@ -105,8 +151,15 @@ def verify(dist, base):
             accepted_types.add('text/xml')
         if status != 200 or served_type not in accepted_types:
             return f'{url}: expected HTTP 200 and {media_type}, got HTTP {status} and {served_type}'
-        if body != path.read_bytes():
-            return f'{url}: response differs from the deployment artifact'
+        raw = path.read_bytes()
+        expected = published_body(route, raw)
+        if served != expected:
+            return (
+                f'{url}: response differs from the deployment artifact '
+                f'(served {len(body)}B raw / {len(served)}B normalised {fingerprint(served)} '
+                f'bundle {bundle_version(served)}, expected {len(raw)}B / {len(expected)}B '
+                f'{fingerprint(expected)} bundle {bundle_version(expected)})'
+            )
         return None
 
     with ThreadPoolExecutor(max_workers=8) as executor:
