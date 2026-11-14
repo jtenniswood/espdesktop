@@ -1,0 +1,145 @@
+name: Windows EspDesktop
+
+on:
+  pull_request:
+    paths:
+      - 'windows/**'
+      - 'product/v2/companion_capabilities.json'
+      - 'compatibility/fixtures/companion_protocol_v4.json'
+      - '.github/workflows/windows-espdesktop.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Windows installer and smoke test (${{ matrix.arch }})
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - arch: x64
+            runner: windows-2025
+          - arch: arm64
+            runner: windows-11-arm
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 18
+    steps:
+      - uses: actions/checkout@v7.0.1
+      - uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Run shared protocol and connection tests
+        run: dotnet run -c Release --project windows/EspDesktop.Tests
+
+      - name: Verify real Windows desktop data over a display connection
+        shell: pwsh
+        run: |
+          # Hosted accounts have a fresh browser profile. Open test pages directly.
+          $edgePolicy = 'HKCU:\Software\Policies\Microsoft\Edge'
+          New-Item -Path $edgePolicy -Force | Out-Null
+          New-ItemProperty -Path $edgePolicy -Name HideFirstRunExperience -Value 1 -PropertyType DWord -Force | Out-Null
+          dotnet run -c Release --project windows/EspDesktop.Tests -- --verify-native-windows --exercise-desktop-actions
+
+      - name: Build the per-user installer
+        run: ./windows/EspDesktop/Packaging/Build-Installer.ps1 -Architecture ${{ matrix.arch }}
+
+      - name: Install, open, upgrade, and uninstall the app
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $installer = (Get-ChildItem ./dist/windows/*-Setup.exe).FullName
+          $installDir = Join-Path $env:RUNNER_TEMP 'EspDesktopSmoke'
+          $appPath = Join-Path $installDir 'EspDesktop.exe'
+          $directoryArgument = '/DIR="' + $installDir + '"'
+          $runRegistryPath = 'HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Run'
+          $runKey = 'Registry::' + $runRegistryPath
+          $startMenuLink = Join-Path ([Environment]::GetFolderPath('Programs')) 'EspDesktop.lnk'
+          $install = Start-Process $installer -ArgumentList '/VERYSILENT','/SUPPRESSMSGBOXES','/NORESTART',$directoryArgument -Wait -PassThru
+          if ($install.ExitCode -ne 0) { throw "Install exit code: $($install.ExitCode)" }
+          if ($null -ne [Microsoft.Win32.Registry]::GetValue($runRegistryPath, 'EspDesktop', $null)) {
+            throw 'A fresh install should leave start-at-sign-in disabled.'
+          }
+          if (!(Test-Path -LiteralPath $startMenuLink)) { throw 'Setup did not create the Start menu shortcut.' }
+          $shell = New-Object -ComObject WScript.Shell
+          if ($shell.CreateShortcut($startMenuLink).TargetPath -ne $appPath) {
+            throw 'The Start menu shortcut points to the wrong app.'
+          }
+          if ('${{ matrix.arch }}' -eq 'x64') {
+            $env:ESPDESKTOP_SETTINGS_PREVIEW = Join-Path $env:RUNNER_TEMP 'EspDesktop-settings.png'
+          }
+          $app = Start-Process $appPath -ArgumentList '--smoke-test' -PassThru
+          if (!$app.WaitForExit(60000)) { $app.Kill(); throw 'Native app smoke test timed out.' }
+          if ($app.ExitCode -ne 0) { throw "App exit code: $($app.ExitCode)" }
+          if ('${{ matrix.arch }}' -eq 'x64') {
+            $env:ESPDESKTOP_SETTINGS_PREVIEW = Join-Path $env:RUNNER_TEMP 'EspDesktop-settings-dark.png'
+            $dark = Start-Process $appPath -ArgumentList '--smoke-test','--dark-preview' -PassThru
+            if (!$dark.WaitForExit(60000)) { $dark.Kill(); throw 'Dark mode preview timed out.' }
+            if ($dark.ExitCode -ne 0) { throw "Dark mode app exit code: $($dark.ExitCode)" }
+          }
+          # Seed a real per-user profile and the same startup command the app writes.
+          dotnet run -c Release --no-build --project windows/EspDesktop.Tests -- --installer-profile prepare
+          if ($LASTEXITCODE -ne 0) { throw 'Could not prepare the Windows test profile.' }
+          $startupCommand = '"' + $appPath + '" --background'
+          if (!(Test-Path -LiteralPath $runKey)) { New-Item -Path $runKey | Out-Null }
+          New-ItemProperty -LiteralPath $runKey -Name EspDesktop -Value $startupCommand -PropertyType String -Force | Out-Null
+          ./windows/EspDesktop.Tests/Test-InstalledLaunch.ps1 -AppPath $appPath -StartMenuLink $startMenuLink
+          # Model an update started while the existing instance is still quitting.
+          $updateLog = Join-Path $env:RUNNER_TEMP 'EspDesktopUpdate.log'
+          $logArgument = '/LOG="' + $updateLog + '"'
+          $appMutex = [System.Threading.Mutex]::new($false, 'Local\EspDesktop.Windows')
+          try {
+            $update = Start-Process $installer -ArgumentList '/VERYSILENT','/SUPPRESSMSGBOXES','/NORESTART','/EspDesktopUpdate',$directoryArgument,$logArgument -PassThru
+            $deadline = [DateTime]::UtcNow.AddSeconds(15)
+            do {
+              $waiting = Select-String -LiteralPath $updateLog -SimpleMatch 'Waiting for EspDesktop to finish closing.' -Quiet -ErrorAction SilentlyContinue
+              if (!$waiting) { Start-Sleep -Milliseconds 200 }
+            } until ($waiting -or $update.HasExited -or [DateTime]::UtcNow -ge $deadline)
+          }
+          finally {
+            $appMutex.Dispose()
+          }
+          if (!$update.WaitForExit(60000)) { $update.Kill(); throw 'Installer update timed out.' }
+          if (!$waiting -or $update.ExitCode -ne 0) { Get-Content $updateLog; throw 'Installer did not wait for the existing app and upgrade successfully.' }
+          if ([Microsoft.Win32.Registry]::GetValue($runRegistryPath, 'EspDesktop', $null) -ne $startupCommand) {
+            throw 'The upgrade changed the start-at-sign-in setting.'
+          }
+          dotnet run -c Release --no-build --project windows/EspDesktop.Tests -- --installer-profile verify
+          if ($LASTEXITCODE -ne 0) { throw 'The upgrade changed the saved profile.' }
+          $uninstall = Start-Process (Join-Path $installDir 'unins000.exe') -ArgumentList '/VERYSILENT','/SUPPRESSMSGBOXES','/NORESTART' -Wait -PassThru
+          if ($uninstall.ExitCode -ne 0 -or (Test-Path -LiteralPath $appPath) -or (Test-Path -LiteralPath $startMenuLink)) {
+            throw 'EspDesktop was not uninstalled.'
+          }
+          if ($null -ne [Microsoft.Win32.Registry]::GetValue($runRegistryPath, 'EspDesktop', $null)) {
+            throw 'Uninstall left the start-at-sign-in entry behind.'
+          }
+          dotnet run -c Release --no-build --project windows/EspDesktop.Tests -- --installer-profile verify
+          if ($LASTEXITCODE -ne 0) { throw 'Uninstall removed the saved profile.' }
+          Write-Host 'Verified the Start menu shortcut, start-at-sign-in behavior, and retained profile across install, reinstall, and uninstall.'
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: espdesktop-windows-${{ matrix.arch }}-installer
+          path: dist/windows/*-Setup.exe
+          if-no-files-found: error
+
+      - uses: actions/upload-artifact@v7
+        if: matrix.arch == 'x64'
+        with:
+          name: espdesktop-windows-settings-preview
+          path: ${{ runner.temp }}/EspDesktop-settings*.png
+          if-no-files-found: error
+
+      - name: Verify signed installers and updater publisher checks
+        shell: pwsh
+        timeout-minutes: 6
+        run: |
+          $preview = (Get-ChildItem ./dist/windows/*-Setup.exe).FullName
+          ./windows/EspDesktop.Tests/Test-SignedInstaller.ps1 -Architecture ${{ matrix.arch }} -UnsignedInstaller $preview
+
+      # Leave this last because the runner's desktop stays locked.
+      - name: Verify Windows locks on a display command
+        timeout-minutes: 2
+        run: dotnet run -c Release --no-build --project windows/EspDesktop.Tests -- --verify-windows-lock

@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <TargetFramework Condition="$([MSBuild]::IsOSPlatform('Windows')) Or '$(TestWindowsDesktop)' == 'true'">net10.0-windows10.0.19041.0</TargetFramework>
+    <EnableWindowsTargeting Condition="'$(TargetFramework)' != 'net10.0'">true</EnableWindowsTargeting>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+  </PropertyGroup>
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+    <EmbeddedResource Include="../../compatibility/fixtures/companion_protocol_v4.json" LogicalName="ProtocolFixtures.json" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(TargetFramework)' == 'net10.0'">
+    <Compile Include="../EspDesktop/Core/*.cs" LinkBase="Core" />
+    <Compile Include="../EspDesktop/Updates.cs" Link="Updates.cs" />
+    <EmbeddedResource Include="../../product/v2/companion_capabilities.json" LogicalName="CompanionContract.json" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(TargetFramework)' != 'net10.0'">
+    <ProjectReference Include="../EspDesktop/EspDesktop.csproj" />
+  </ItemGroup>
+</Project>
