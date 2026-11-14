@@ -107,7 +107,7 @@ export function runPreviewFeatureTests(): void {
       ...definitions,
       companion: { label: "Companion", allowInSubpage: true },
       companion_app: { label: "Applications", allowInSubpage: true },
-      companion_shortcut: { label: "Key Shortcut", allowInSubpage: true },
+      companion_shortcut: { label: "Keyboard Shortcut", allowInSubpage: true },
       companion_url: { label: "Website", allowInSubpage: true },
       companion_folder: { label: "Folder", allowInSubpage: true },
       companion_subpage: { label: "Subpage", pickerKey: "subpage", allowInSubpage: false },

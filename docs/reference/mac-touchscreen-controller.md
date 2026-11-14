@@ -1,6 +1,6 @@
 ---
 title: DIY Mac touchscreen controller or Stream Deck?
-description: Compare EspDesktop on the Guition 4848S040 with an Elgato Stream Deck and Stream Deck Mobile for launching apps and running Mac shortcuts.
+description: Compare EspDesktop on the Guition 4848S040 with an Elgato Stream Deck and Stream Deck Mobile for launching apps and running Mac keyboard shortcuts.
 ---
 
 # DIY Mac touchscreen controller or Stream Deck?

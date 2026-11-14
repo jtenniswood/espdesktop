@@ -13,14 +13,14 @@ Set up the display from a normal web browser.
 ## What You Can Control
 
 - **Applications** — launch only the Mac apps you approve in EspDesktop.
-- **App shortcuts** — open an app-specific page of controls for common actions, or create your own keyboard shortcuts.
+- **App keyboard shortcuts** — open an app-specific page of controls for common actions, or create your own keyboard shortcuts.
 - **Mac Lock** — lock your Mac with a tap on the display.
 - **Finder folders** — open an approved folder with a tap.
 - **Websites** — open `http://` and `https://` links in your default browser.
 
 You can organise controls into subpages, resize and rearrange cards, change icons and colours, and back up or restore the layout from the display’s built-in editor. See the [feature guide](https://espdesktop.com/#what-you-can-control) for release availability.
 
-<img src="docs/public/images/espdesktop-slack-subpage.jpg" alt="EspDesktop touchscreen showing a Slack subpage with shortcuts for messages, search, and unread chats" width="600">
+<img src="docs/public/images/espdesktop-slack-subpage.jpg" alt="EspDesktop touchscreen showing a Slack subpage with keyboard shortcuts for messages, search, and unread chats" width="600">
 
 ## How It Works
 

@@ -33,7 +33,7 @@ export async function writeGuideIndex(outDir: string, pages: string[], metadata:
   const lines = [
     '# EspDesktop',
     '',
-    `> EspDesktop pairs a ${productFacts.displayLabel} touchscreen with a macOS menu-bar app. Use it to launch apps, open Finder folders and websites, run shortcuts and lock the Mac.`,
+    `> EspDesktop pairs a ${productFacts.displayLabel} touchscreen with a macOS menu-bar app. Use it to launch apps, open Finder folders and websites, run keyboard shortcuts and lock the Mac.`,
     '',
     `The Mac app requires ${productFacts.macProcessor} and macOS ${productFacts.minimumMacOS} or newer. The display needs ${productFacts.displayWiFiBand} Wi-Fi on the same local network as the Mac. Use firmware and the Mac app from the ${productFacts.matchedRelease}.`,
     '',

@@ -20,8 +20,8 @@ The [touchscreen follows your Mac’s lock state](/settings/system#protect-the-t
 ## macOS permission prompts
 
 <figure>
-  <a href="/images/mac-companion-shortcut-access.png"><picture><source type="image/avif" srcset="/images/mac-companion-shortcut-access-480.avif 480w, /images/mac-companion-shortcut-access-960.avif 960w" sizes="(min-width: 768px) 612px, 90vw"><img src="/images/mac-companion-shortcut-access.png" alt="EspDesktop’s Enable Shortcuts step with the macOS permission prompt and Open System Settings button" width="612" height="744" loading="lazy"></picture></a>
-  <figcaption>macOS can show this prompt when you choose Enable Shortcuts in EspDesktop.</figcaption>
+  <a href="/images/mac-companion-shortcut-access.png"><picture><source type="image/avif" srcset="/images/mac-companion-shortcut-access-480.avif 480w, /images/mac-companion-shortcut-access-960.avif 960w" sizes="(min-width: 768px) 612px, 90vw"><img src="/images/mac-companion-shortcut-access.png" alt="EspDesktop’s Enable Keyboard Shortcuts step with the macOS permission prompt and Open System Settings button" width="612" height="744" loading="lazy"></picture></a>
+  <figcaption>macOS can show this prompt when you choose Enable Keyboard Shortcuts in EspDesktop.</figcaption>
 </figure>
 
 <figure>

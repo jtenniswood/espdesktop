@@ -1,5 +1,5 @@
 {
-  "version": 9,
+  "version": 10,
   "protocol": {
     "version": 4,
     "path": "/companion/v4",
@@ -988,7 +988,7 @@
     },
     {
       "id": "shortcut",
-      "label": "Keyboard shortcut",
+      "label": "Keyboard Shortcut",
       "capability": "keyboard_shortcuts",
       "defaultIcon": "Shortcut Command"
     },
@@ -1003,6 +1003,12 @@
       "label": "Open folder",
       "capability": "folders",
       "defaultIcon": "Folder Outline"
+    },
+    {
+      "id": "apple_shortcut",
+      "label": "Run Apple Shortcut",
+      "capability": "apple_shortcuts",
+      "defaultIcon": "Flash"
     },
     {
       "id": "stats",

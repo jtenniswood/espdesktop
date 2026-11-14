@@ -38,7 +38,7 @@ const pageImages: Record<string, typeof defaultImage> = {
   'features/home.md': shareImage('web-editor-home.png', 1694, 2266,
     'EspDesktop Home layout with Mac app cards in the web editor'),
   'features/subpages.md': shareImage('web-editor-figma-subpage.png', 1562, 2134,
-    'Figma app subpage with the Figma icon as the Back tile and a grid of shortcuts'),
+    'Figma app subpage with the Figma icon as the Back tile and a grid of keyboard shortcuts'),
   'mac-controls/apps.md': shareImage('web-editor-application-card.png', 1694, 2266,
     'Applications card form with Figma selected in the EspDesktop web editor'),
   'mac-controls/websites.md': shareImage('web-editor-website.jpg', 560, 530,
@@ -70,7 +70,7 @@ const customiseLinks = [
   { text: 'Websites', link: '/mac-controls/websites' },
   { text: 'Finder folders', link: '/mac-controls/folders' },
   { text: 'Keyboard shortcuts', link: '/mac-controls/shortcuts' },
-  { text: 'Shortcut presets', link: '/reference/shortcut-presets' },
+  { text: 'Keyboard shortcut presets', link: '/reference/shortcut-presets' },
 ]
 const screenSettingsLink = { text: 'Screen settings', link: '/settings/screen' }
 const systemSettingsLink = { text: 'System settings', link: '/settings/system' }
@@ -78,7 +78,7 @@ const systemSettingsLink = { text: 'System settings', link: '/settings/system' }
 export default defineConfig({
   title: 'EspDesktop',
   description:
-    'Pair a small ESP32 touchscreen with your Mac to launch apps, open folders and websites, and run shortcuts.',
+    'Pair a small ESP32 touchscreen with your Mac to launch apps, open folders and websites, and run keyboard shortcuts.',
   lang: 'en-US',
   appearance: 'force-dark',
   cleanUrls: true,
@@ -341,7 +341,7 @@ export default defineConfig({
       {
         text: 'Contribute',
         items: [
-          { text: 'App shortcuts', link: '/mac-controls/improve-shortcuts' },
+          { text: 'App keyboard shortcuts', link: '/mac-controls/improve-shortcuts' },
           { text: 'Request an icon', link: '/reference/request-icons' },
         ],
       },

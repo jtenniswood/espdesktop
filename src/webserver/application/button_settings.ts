@@ -910,7 +910,7 @@ export function createButtonSettingsFeature(
                     const owner = c.buttons[slot - 1];
                     if (state.editingSubpage !== shortcutPage || !editableAppShortcutPage(owner) ||
                         owner.entity !== b.entity || !codec.canCreateSubpage(homeSlot)) {
-                        showBanner("This app subpage has changed. Reopen its shortcut settings to try again.", "error");
+                        showBanner("This app subpage has changed. Reopen its keyboard shortcut settings to try again.", "error");
                         return;
                     }
                     const tabs = configOptionValue(b.options, COMPANION_APP_SHORTCUTS_TABS_OPTION);
@@ -933,7 +933,7 @@ export function createButtonSettingsFeature(
                 closeSettings();
                 return;
             }
-            title.textContent = "Edit App Shortcuts";
+            title.textContent = "Edit Keyboard Shortcuts";
             panel.classList.add("sp-app-subpage-settings");
             renderShortcuts(panel, b, shortcutPage, { idPrefix, saveField }, true);
             const footer = document.createElement("div");

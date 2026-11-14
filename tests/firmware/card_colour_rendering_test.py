@@ -122,6 +122,7 @@ void set_card_disabled_state(lv_obj_t *obj, bool disabled) {
   else lv_obj_clear_state(obj, LV_STATE_DISABLED);
 }
 bool lv_obj_has_flag(lv_obj_t *obj,int flag){return (obj->flags & flag)!=0;}
+using lv_state_t = int;
 using lv_coord_t = int;
 void lv_obj_add_flag(lv_obj_t *obj, int flag) { obj->flags |= flag; }
 void lv_obj_clear_flag(lv_obj_t *obj, int flag) { obj->flags &= ~flag; }

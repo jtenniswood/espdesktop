@@ -108,6 +108,9 @@ struct BtnSlot {
 };
 struct lv_disp_t {};
 struct lv_font_t { int line_height = 16; };
+using lv_state_t = int;
+constexpr lv_state_t LV_STATE_USER_1 = 1 << 12;
+
 using lv_coord_t = int;
 using lv_style_selector_t = int;
 using lv_color_t = int;

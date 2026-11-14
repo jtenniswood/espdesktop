@@ -389,6 +389,7 @@ inline bool companion_consume_auto_subpage_action(const std::string &action_id) 
 inline bool companion_action_focused(const CompanionRuntimeSnapshot &snapshot,
                                     const std::string &action_id, bool visual_only = false) {
   if (action_id.empty() || action_id.rfind("shortcut.", 0) == 0 ||
+      companion_apple_shortcut_action(action_id) ||
       action_id.rfind("media.", 0) == 0) return false;
   if (!snapshot.connected) return false;
   if (visual_only && snapshot.application_highlight_known &&

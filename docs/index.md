@@ -11,7 +11,7 @@ layout: home
 
 # A touchscreen controller *for your Mac*
 
-EspDesktop turns a 4-inch ESP32-based touchscreen into a controller for opening apps, visiting websites and running shortcuts on your Mac for less than **$26/£20**. Pair it over your local network with the free Mac app.
+EspDesktop turns a 4-inch ESP32-based touchscreen into a controller for opening apps, visiting websites and running keyboard shortcuts on your Mac for less than **$26/£20**. Pair it over your local network with the free Mac app.
 
 <div class="homepage-action">
 
@@ -90,9 +90,9 @@ Give Downloads, client files or your current project a tile of its own.
   <path d="M6 9h.01M10 9h.01M14 9h.01M18 9h.01M6 12h.01M10 12h.01M14 12h.01M18 12h.01M8 15h8" />
 </svg>
 
-### Keep shortcuts in view
+### Keep keyboard shortcuts in view
 
-Turn key combinations into labelled buttons. Shortcut pages can follow the app you’re using, such as Safari or Figma.
+Turn key combinations into labelled buttons. Keyboard shortcut pages can follow the app you’re using, such as Safari or Figma.
 
 [Keyboard shortcuts](/mac-controls/shortcuts)
 
@@ -140,7 +140,7 @@ Resize tiles, choose their icons and colours, and group related controls into su
 
 ## EspDesktop in action {#a-look-at-the-web-editor}
 
-Tap Safari, Slack, Notes, ChatGPT, or Claude to see their shortcuts, or tap Finder to see its folders. Tap the app icon on any subpage to go back home.
+Tap Safari, Slack, Notes, ChatGPT, or Claude to see their keyboard shortcuts, or tap Finder to see its folders. Tap the app icon on any subpage to go back home.
 
 <div class="homepage-editor-actions">
 

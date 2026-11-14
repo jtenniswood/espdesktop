@@ -530,7 +530,7 @@ inline void setup_companion_card(BtnSlot &s, const ParsedCfg &p,
   }
   companion_track_card(s.btn, p.entity, p.sensor, s.text_lbl, p.label.empty());
   set_card_disabled_state(s.btn, !available);
-  if (companion_app_launch_card(p)) {
+  if (companion_app_launch_card(p) || companion_apple_shortcut_action(p.entity)) {
     apply_instant_button_feedback(s.btn);
   } else if (available) {
     apply_push_button_transition(s.btn);

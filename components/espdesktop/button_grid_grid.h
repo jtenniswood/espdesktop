@@ -394,10 +394,17 @@ inline void setup_card_visual(BtnSlot &s, const ParsedCfg &p,
 #endif
   apply_grid_card_corners(s.btn, cfg.card_corner_radius, cfg.continuous_card_corners);
   theme_set_content_background(s.btn, palette.custom_background);
+  const bool apple_shortcut = p.type == "companion" && companion_apple_shortcut_action(p.entity);
+  const auto pressed_state = apple_shortcut ? APPLE_SHORTCUT_TAP_STATE : LV_STATE_PRESSED;
+  lv_obj_clear_state(s.btn, APPLE_SHORTCUT_TAP_STATE);
+  lv_obj_remove_local_style_prop(s.btn, LV_STYLE_BG_COLOR, APPLE_SHORTCUT_TAP_STATE);
+  lv_obj_remove_local_style_prop(s.btn, LV_STYLE_TEXT_COLOR, APPLE_SHORTCUT_TAP_STATE);
+  lv_obj_remove_local_style_prop(s.btn, LV_STYLE_BG_GRAD_COLOR, APPLE_SHORTCUT_TAP_STATE);
+  lv_obj_remove_local_style_prop(s.btn, LV_STYLE_BG_GRAD_DIR, APPLE_SHORTCUT_TAP_STATE);
   apply_button_colors(s.btn, palette.has_on, palette.on_val,
-    palette.has_off, palette.off_val);
+    palette.has_off, palette.off_val, pressed_state);
   sync_card_checked_text_color(s.btn);
-  apply_button_on_pattern(s.btn, p.options, palette.has_on, palette.on_val);
+  apply_button_on_pattern(s.btn, p.options, palette.has_on, palette.on_val, pressed_state);
   apply_standard_sensor_number_style(s, display);
   if (s.unit_lbl) lv_obj_clear_flag(s.unit_lbl, LV_OBJ_FLAG_HIDDEN);
   if (s.text_lbl) lv_obj_clear_flag(s.text_lbl, LV_OBJ_FLAG_HIDDEN);

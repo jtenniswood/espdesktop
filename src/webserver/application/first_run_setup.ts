@@ -1,4 +1,5 @@
 import { createCompanionCatalogue, type CompanionAction } from "../api/companion_catalogue";
+import { APPLE_SHORTCUT_PREFIX } from "../model/companion_card_codec";
 import type { NativeLayoutDraft } from "../model/native_layout_draft";
 import type { NativePanelConfigGraph } from "../model/panel_config_conversion";
 import type { NativePanelConfigSnapshot } from "../features/native_panel_config";
@@ -32,7 +33,7 @@ function hasNativeLayout(snapshot: NativePanelConfigSnapshot | null): snapshot i
 export function firstRunApplications(actions: readonly CompanionAction[]): CompanionAction[] {
     const unique = new Map<string, CompanionAction>();
     for (const action of actions) {
-        if (!action.id.startsWith("folder.") && !action.id.startsWith("shortcut.") &&
+        if (!action.id.startsWith(APPLE_SHORTCUT_PREFIX) && !action.id.startsWith("folder.") && !action.id.startsWith("shortcut.") &&
             !action.id.startsWith("media.") && !action.id.startsWith("system.") &&
             !action.id.startsWith("window.") && !action.id.startsWith("webapp.")) unique.set(action.id, action);
     }
@@ -313,7 +314,7 @@ export function createFirstRunSetup(deps: FirstRunSetupDependencies): { start():
         const supportedCount = supportedApps().length;
         const lastStep = addShortcutPages && supportedCount > 0 ? 3 : 2;
         step = Math.min(step, lastStep);
-        const titles = ["Connect your Mac", "Choose your apps", "Shortcut pages", "Finish setup"];
+        const titles = ["Connect your Mac", "Choose your apps", "Keyboard shortcut pages", "Finish setup"];
         const pairingOffset = Number(includePairingStep);
         const progress = element("p", `Step ${step + pairingOffset} of ${lastStep + pairingOffset}`, "sp-setup-step");
         const title = element("h1", titles[step], "sp-setup-title");
@@ -322,7 +323,7 @@ export function createFirstRunSetup(deps: FirstRunSetupDependencies): { start():
             "Connect to a Mac on the same network.",
             `Pick your favourite apps to display (up to ${appLimit} apps).`,
             "Choose what you can do from your app cards.",
-            "Choose when the display opens a shortcut page.",
+            "Choose when the display opens a keyboard shortcut page.",
         ];
         const description = element("p", explanations[step], "sp-setup-description");
         if (step === 1 && replacing && (replacing.layout.rootCards.length || replacing.layout.pages.length)) {
@@ -369,9 +370,9 @@ export function createFirstRunSetup(deps: FirstRunSetupDependencies): { start():
             modes.setAttribute("aria-label", "App card mode");
             const canAddPages = supportedCount > 0;
             modes.append(
-                modeChoice("sp-setup-add-pages", "Add shortcut pages", canAddPages
-                    ? `Add a page of ready-to-use shortcuts for ${supportedCount} of your selected apps.`
-                    : "The selected apps have no built-in shortcut pages.", addShortcutPages && canAddPages,
+                modeChoice("sp-setup-add-pages", "Add keyboard shortcut pages", canAddPages
+                    ? `Add a page of ready-to-use keyboard shortcuts for ${supportedCount} of your selected apps.`
+                    : "The selected apps have no built-in keyboard shortcut pages.", addShortcutPages && canAddPages,
                     () => { addShortcutPages = true; render(); }, !canAddPages),
                 modeChoice("sp-setup-launch-only", "Launch apps only", "Tap a card to open or switch to its app.",
                     !addShortcutPages || !canAddPages, () => { addShortcutPages = false; render(); }),
@@ -380,11 +381,11 @@ export function createFirstRunSetup(deps: FirstRunSetupDependencies): { start():
         } else {
             const modes = element("div", "", "sp-setup-modes");
             modes.setAttribute("role", "radiogroup");
-            modes.setAttribute("aria-label", "Shortcut page opening mode");
+            modes.setAttribute("aria-label", "Keyboard shortcut page opening mode");
             modes.append(
-                modeChoice("sp-setup-auto-switch", "Follow the active app", "Open its shortcut page when you switch to the app on your Mac.",
+                modeChoice("sp-setup-auto-switch", "Follow the active app", "Open its keyboard shortcut page when you switch to the app on your Mac.",
                     autoSwitch, () => { autoSwitch = true; }),
-                modeChoice("sp-setup-manual-switch", "Open from the display", "Tap the card of an active app to open its shortcuts.",
+                modeChoice("sp-setup-manual-switch", "Open from the display", "Tap the card of an active app to open its keyboard shortcuts.",
                     !autoSwitch, () => { autoSwitch = false; }),
             );
             content.appendChild(modes);

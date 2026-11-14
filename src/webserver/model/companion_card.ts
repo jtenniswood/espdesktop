@@ -12,6 +12,7 @@ export type CompanionCardModel =
   | { readonly mode: "shortcut"; readonly shortcutId: string }
   | { readonly mode: "url"; readonly applicationId: string; readonly encodedUrl: string }
   | { readonly mode: "folder"; readonly folderId: string }
+  | { readonly mode: "apple_shortcut"; readonly actionId: string }
   | { readonly mode: "stats"; readonly metricId: string; readonly precision: string; readonly unit: string };
 
 export function companionCardModeContract(mode: unknown): CompanionCardMode | undefined {

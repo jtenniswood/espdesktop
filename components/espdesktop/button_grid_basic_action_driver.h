@@ -120,6 +120,32 @@ struct BasicActionSubpageEnvironment {
   int *parent_on_count = nullptr;
 };
 
+inline void run_apple_shortcut_card(lv_obj_t *button, const std::string &action_id,
+                                    const std::string &request_id) {
+  if (!invoke_companion_action(action_id, request_id)) {
+    ESP_LOGW("companion", "Action unavailable: %s", action_id.c_str());
+    return;
+  }
+  if (!button) return;
+
+  // Touch-down has already consumed the release. Show the pressed colour
+  // briefly, and let LVGL cancel the animation if the card is deleted.
+  lv_obj_add_state(button, APPLE_SHORTCUT_TAP_STATE);
+  sync_bound_card_text_color(button);
+  lv_anim_t pulse;
+  lv_anim_init(&pulse);
+  lv_anim_set_var(&pulse, button);
+  lv_anim_set_values(&pulse, 0, 1);
+  lv_anim_set_duration(&pulse, 160);
+  lv_anim_set_exec_cb(&pulse, [](void *object, int32_t finished) {
+    if (!finished) return;
+    auto *card = static_cast<lv_obj_t *>(object);
+    lv_obj_clear_state(card, APPLE_SHORTCUT_TAP_STATE);
+    sync_bound_card_text_color(card);
+  });
+  lv_anim_start(&pulse);
+}
+
 struct CompanionSubpageActionContext {
   ParsedCfg card;
   std::string required_focus_id;
@@ -161,6 +187,11 @@ inline bool basic_action_driver_bind_subpage(
         char request_id[24];
         snprintf(request_id, sizeof(request_id), "sub-%08lx",
                  static_cast<unsigned long>(companion_next_request_number()));
+        if (companion_apple_shortcut_action(card->entity)) {
+          run_apple_shortcut_card(static_cast<lv_obj_t *>(lv_event_get_target(event)),
+                                  card->entity, request_id);
+          return;
+        }
         const bool invoked = companion_encoded_url(card->sensor).empty()
           ? invoke_companion_action_for_app(card->entity, request_id, context->required_focus_id,
                                     companion_folder_open_behavior(*card),
@@ -190,6 +221,10 @@ inline bool basic_action_driver_handle_main_click(
       char request_id[24];
       snprintf(request_id, sizeof(request_id), "%08lx-%d",
                static_cast<unsigned long>(companion_next_request_number()), slot_number);
+      if (companion_apple_shortcut_action(config.entity)) {
+        run_apple_shortcut_card(button, config.entity, request_id);
+        break;
+      }
       lv_obj_t *screen = nullptr;
       if (companion_app_shortcuts_enabled(config) && button) {
         const auto started = esphome::millis();

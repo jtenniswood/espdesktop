@@ -125,6 +125,11 @@ final class CompanionStore: NSObject, ObservableObject {
     @Published private(set) var approvedApplicationIdentifiers: Set<String>
     @Published private(set) var approvedFolders: [ApprovedFolder]
     @Published private(set) var folderMessage: String?
+    @Published private(set) var appleShortcuts: [AppleShortcut] = []
+    @Published private(set) var approvedAppleShortcutIDs: Set<UUID>
+    @Published private(set) var appleShortcutMessage: String?
+    @Published private(set) var refreshingAppleShortcuts = false
+    private var runningAppleShortcutIDs: Set<UUID> = []
     @Published private(set) var foldersNeedingAccess: Set<UUID> = []
     @Published private(set) var launchAtLoginEnabled = false
     @Published private(set) var launchAtLoginMessage = ""
@@ -135,6 +140,7 @@ final class CompanionStore: NSObject, ObservableObject {
         static let approvedApplications = "approvedApplications"
         static let knownApplications = "knownApplications"
         static let approvedFolders = "approvedFolders"
+        static let approvedAppleShortcuts = "approvedAppleShortcuts"
     }
     private static let preferencesSuite = "io.espdesktop.app"
     private let defaults: UserDefaults
@@ -181,6 +187,9 @@ final class CompanionStore: NSObject, ObservableObject {
         approvedApplicationIdentifiers = Set(
             stableDefaults.stringArray(forKey: Keys.approvedApplications) ?? []
         )
+        approvedAppleShortcutIDs = Set(
+            (stableDefaults.stringArray(forKey: Keys.approvedAppleShortcuts) ?? []).compactMap(UUID.init(uuidString:))
+        )
         approvedFolders = stableDefaults.data(forKey: Keys.approvedFolders)
             .flatMap { try? JSONDecoder().decode([ApprovedFolder].self, from: $0) }
             ?? []
@@ -214,6 +223,7 @@ final class CompanionStore: NSObject, ObservableObject {
         }
         if supportsLaunchAtLogin { refreshLaunchAtLoginStatus() }
         refreshApplications()
+        if !approvedAppleShortcutIDs.isEmpty { refreshAppleShortcuts() }
         Task { await remoteCatalogueStore.refresh() }
     }
 
@@ -419,6 +429,48 @@ final class CompanionStore: NSObject, ObservableObject {
     }
 
     func folderActions() -> [ApprovedFolder] { approvedFolders }
+
+    func appleShortcutActions() -> [AppleShortcut] {
+        appleShortcuts.filter { approvedAppleShortcutIDs.contains($0.id) }
+    }
+
+    func refreshAppleShortcuts() {
+        guard !refreshingAppleShortcuts else { return }
+        refreshingAppleShortcuts = true
+        appleShortcutMessage = nil
+        Task { [weak self] in
+            let shortcuts = await AppleShortcutsCLI.list()
+            guard let self else { return }
+            refreshingAppleShortcuts = false
+            guard let shortcuts else {
+                appleShortcutMessage = "Couldn’t load Apple Shortcuts. Try refreshing again."
+                return
+            }
+            appleShortcuts = shortcuts
+            publishToConnectedDisplays { $0.publishCatalogue(includeDefinitions: false) }
+        }
+    }
+
+    func setAppleShortcut(_ shortcut: AppleShortcut, approved: Bool) {
+        if approved {
+            approvedAppleShortcutIDs.insert(shortcut.id)
+        } else {
+            approvedAppleShortcutIDs.remove(shortcut.id)
+        }
+        defaults.set(approvedAppleShortcutIDs.map(\.uuidString).sorted(), forKey: Keys.approvedAppleShortcuts)
+        publishToConnectedDisplays { $0.publishCatalogue(includeDefinitions: false) }
+    }
+
+    private func runAppleShortcut(_ actionIdentifier: String) async -> String {
+        guard let id = AppleShortcut.identifier(from: actionIdentifier),
+              approvedAppleShortcutIDs.contains(id) else { return "not_allowed" }
+        guard appleShortcuts.contains(where: { $0.id == id }) else { return "not_found" }
+        guard runningAppleShortcutIDs.insert(id).inserted else { return "not_allowed" }
+        defer { runningAppleShortcutIDs.remove(id) }
+        if await AppleShortcutsCLI.run(id) { return "performed" }
+        refreshAppleShortcuts()
+        return "failed"
+    }
     func remoteCompanionCatalogues() -> RemoteCompanionCatalogues { remoteCatalogueStore.value }
     func focusedLaunchableApplicationIdentifier() -> String {
         guard let application = NSWorkspace.shared.frontmostApplication,
@@ -859,6 +911,9 @@ final class CompanionStore: NSObject, ObservableObject {
                              folderOpenBehavior: String = "new_window",
                              shortcutAppID: String? = nil) async -> String {
         guard !sessionLock.refresh() else { return "not_allowed" }
+        if actionIdentifier.hasPrefix(AppleShortcut.actionPrefix) {
+            return await runAppleShortcut(actionIdentifier)
+        }
         let performed = await perform(actionIdentifier: actionIdentifier,
                                       folderOpenBehavior: folderOpenBehavior, shortcutAppID: shortcutAppID)
         return Self.actionResultStatus(actionIdentifier: actionIdentifier, performed: performed)
@@ -929,7 +984,7 @@ final class CompanionStore: NSObject, ObservableObject {
                     actionIdentifier, frontmostBundleIdentifier: application.bundleIdentifier,
                     approvedBundleIdentifiers: approvedApplicationIdentifiers
                   ) else {
-                updateStatus("Bring the approved Safari web app for this shortcut to the front")
+                updateStatus("Bring the approved Safari web app for this keyboard shortcut to the front")
                 return false
             }
             guard shortcut.replay(to: application.processIdentifier) else {
@@ -945,7 +1000,7 @@ final class CompanionStore: NSObject, ObservableObject {
                   CompanionKeyboardShortcut.scopedTargetMatches(shortcutAppID, frontmost: bundleID,
                                                                approved: approvedApplicationIdentifiers),
                   let strokes = CompanionKeyboardShortcut.scopedStrokes(keys) else {
-                updateStatus("Bring the approved app for this shortcut to the front")
+                updateStatus("Bring the approved app for this keyboard shortcut to the front")
                 return false
             }
             for (index, stroke) in strokes.enumerated() {
@@ -965,12 +1020,12 @@ final class CompanionStore: NSObject, ObservableObject {
         }
         if CompanionKeyboardShortcut.isSafariUnmodifiedShortcut(keys),
            !CompanionKeyboardShortcut.isSafariApplication(NSWorkspace.shared.frontmostApplication?.bundleIdentifier) {
-            updateStatus("Bring Safari or the installed Safari web app to the front to use this shortcut")
+            updateStatus("Bring Safari or the installed Safari web app to the front to use this keyboard shortcut")
             return false
         }
         if CompanionKeyboardShortcut.isBooksExtendedShortcut(keys),
            NSWorkspace.shared.frontmostApplication?.bundleIdentifier != CompanionKeyboardShortcut.booksBundleIdentifier {
-            updateStatus("Bring Books to the front to use this shortcut")
+            updateStatus("Bring Books to the front to use this keyboard shortcut")
             return false
         }
         var targetPID: pid_t?
@@ -978,7 +1033,7 @@ final class CompanionStore: NSObject, ObservableObject {
            CompanionKeyboardShortcut.isClaudeScopedShortcut(keys) {
             guard let application = NSWorkspace.shared.frontmostApplication,
                   application.bundleIdentifier == CompanionKeyboardShortcut.claudeDesktopBundleIdentifier else {
-                updateStatus("Bring Claude Desktop to the front to use this shortcut")
+                updateStatus("Bring Claude Desktop to the front to use this keyboard shortcut")
                 return false
             }
             targetPID = application.processIdentifier
