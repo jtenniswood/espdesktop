@@ -32,6 +32,7 @@ inline constexpr DeviceCardTypeSupport DEVICE_UI_CARD_TYPES_0[] = {
     {"media", true},
     {"push", true},
     {"companion_app_volume", true},
+    {"companion_cough", true},
     {"companion_mac_lock", true},
     {"companion", true},
     {"slider", true},

@@ -69,6 +69,24 @@ final class SystemMediaControllerTests: XCTestCase {
         XCTAssertEqual(audio.levels[3], 0.25)
     }
 
+    func testCoughCanUseAnotherMicrophoneWhileTheOriginalIsDisconnected() {
+        let audio = AudioFixture(), controller = audio.controller()
+        let original = audio.levels[2]
+        XCTAssertTrue(controller.beginCoughMute())
+
+        audio.levels[2] = nil
+        audio.input = 3
+        XCTAssertFalse(controller.endCoughMute())
+        XCTAssertTrue(controller.beginCoughMute())
+        XCTAssertEqual(audio.levels[3], 0)
+        XCTAssertFalse(controller.endCoughMute())
+        XCTAssertEqual(audio.levels[3], 0.25)
+
+        audio.levels[2] = 0
+        XCTAssertTrue(controller.endCoughMute())
+        XCTAssertEqual(audio.levels[2], original)
+    }
+
     func testCoughMuteRespectsAnAlreadyMutedMicrophone() {
         let audio = AudioFixture(), controller = audio.controller()
         audio.nativeMutes[2] = true

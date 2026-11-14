@@ -19,7 +19,7 @@ final class SystemMediaController {
         case nativeMute
         case inputLevel(Float32)
     }
-    private var coughRestore: (device: AudioDeviceID, input: CoughInput)?
+    private var coughRestores: [AudioDeviceID: CoughInput] = [:]
     private var restoreLevels: [DeviceKey: Float32] = [:]
     private let findDevice: (AudioObjectPropertyScope) -> AudioDeviceID?
     private let readVolume: (AudioDeviceID, AudioObjectPropertyScope) -> Float32?
@@ -81,7 +81,8 @@ final class SystemMediaController {
 
     func beginCoughMute() -> Bool {
         let scope = kAudioDevicePropertyScopeInput
-        guard endCoughMute(), let device = findDevice(scope) else { return false }
+        _ = endCoughMute()
+        guard let device = findDevice(scope), coughRestores[device] == nil else { return false }
         let input: CoughInput
         if let muted = readMute(device, scope) {
             guard muted || writeMute(true, device, scope) else { return false }
@@ -92,12 +93,20 @@ final class SystemMediaController {
         } else {
             return false
         }
-        coughRestore = (device, input)
+        coughRestores[device] = input
         return true
     }
 
     func endCoughMute() -> Bool {
-        guard let (device, input) = coughRestore else { return true }
+        for (device, input) in coughRestores {
+            if restoreCoughInput(input, on: device) {
+                coughRestores.removeValue(forKey: device)
+            }
+        }
+        return coughRestores.isEmpty
+    }
+
+    private func restoreCoughInput(_ input: CoughInput, on device: AudioDeviceID) -> Bool {
         let scope = kAudioDevicePropertyScopeInput
         switch input {
         case .unchanged:
@@ -109,7 +118,6 @@ final class SystemMediaController {
             guard let level = readVolume(device, scope),
                   level > 0 || writeVolume(previous, device, scope) else { return false }
         }
-        coughRestore = nil
         return true
     }
 
