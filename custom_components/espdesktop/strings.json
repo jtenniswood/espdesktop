@@ -30,6 +30,16 @@
           "fingerprint": "Display fingerprint",
           "code": "Pairing code"
         }
+      },
+      "discovery_confirm": {
+        "title": "Connect {name}",
+        "description": "The display was discovered automatically. Confirm that the fingerprint matches the physical display, then enter the code shown under System → Home Assistant → Pair Home Assistant.",
+        "data": {
+          "host": "Display address",
+          "port": "Secure port",
+          "fingerprint": "Display fingerprint",
+          "code": "Pairing code"
+        }
       }
     },
     "error": {
@@ -42,6 +52,7 @@
       "unsupported": "This display does not advertise a supported identity.",
       "reauth_successful": "Pairing was updated.",
       "reconfigure_successful": "Display setup was updated."
-    }
+    },
+    "flow_title": "EspDesktop · {name}"
   }
 }

@@ -20,12 +20,14 @@ and the display's secure local connection.
 1. Copy the repository's `custom_components/espdesktop` folder into the
    `custom_components` directory in your Home Assistant configuration and restart
    Home Assistant.
-2. Wake and unlock the display. Open its web editor, go to **System → Home
-   Assistant**, and select **Pair Home Assistant**.
-3. In Home Assistant, select the discovered EspDesktop display or add
-   **EspDesktop** under **Settings → Devices & services**. Enter the display's
-   address if prompted. Enter the certificate fingerprint and pairing code shown
-   on the touchscreen.
+2. In Home Assistant, open **Settings → Devices & services**. The display
+   should appear under **Discovered**. If its network announcement does not
+   reach Home Assistant, select **Add integration → EspDesktop** and enter the
+   display's local address.
+3. To allow Home Assistant to press shared cards, wake and unlock the display.
+   In its web editor, go to **System → Home Assistant → Pair Home Assistant**.
+   Verify the fingerprint against the touchscreen and enter the code shown
+   there. Discovery fills in the address and fingerprint when available.
 4. In the display's Layout editor, edit an app, Finder folder, website, shortcut,
    Lock Machine, or Subpage card. Enable **Expose to Home Assistant** and save.
    Saved cards in nested pages work too.

@@ -26,9 +26,19 @@ class EspDesktopConfigFlow(config_entries.ConfigFlow, domain="espdesktop"):
             "host": discovery_info.host, "port": discovery_info.port,
         })
         self._discovered = {
-            "host": discovery_info.host, "port": discovery_info.port,
+            "host": discovery_info.host,
+            "port": discovery_info.port or 8443,
+            "fingerprint": fingerprint,
         }
-        return await self.async_step_user()
+        self.context["title_placeholders"] = {
+            "name": discovery_info.properties.get("name") or discovery_info.hostname,
+        }
+        return await self.async_step_discovery_confirm()
+
+    async def async_step_discovery_confirm(self, user_input=None):
+        """Confirm the discovered panel using its physical display."""
+        self._set_confirm_only()
+        return await self._pair("discovery_confirm", user_input)
 
     async def async_step_user(self, user_input=None):
         """Accept the fingerprint and code from the physical display."""
@@ -77,7 +87,8 @@ class EspDesktopConfigFlow(config_entries.ConfigFlow, domain="espdesktop"):
                 data = {"host": host, "port": port, "fingerprint": fingerprint, "token": token}
                 if previous:
                     return self.async_update_reload_and_abort(previous, data=data)
-                return self.async_create_entry(title=f"EspDesktop ({host})", data=data)
+                title = self.context.get("title_placeholders", {}).get("name", f"EspDesktop ({host})")
+                return self.async_create_entry(title=title, data=data)
         schema = vol.Schema({
             vol.Required("host", default=defaults.get("host", "")): str,
             vol.Required("port", default=defaults.get("port", 8443)): vol.All(vol.Coerce(int), vol.Range(min=1, max=65535)),
