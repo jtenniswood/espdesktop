@@ -11,6 +11,35 @@ final class TokenUsageTests: XCTestCase {
         XCTAssertEqual(TokenUsage.ClaudeAccount.from(loggedIn: false, method: "none"), .signedOut)
     }
 
+    func testClaudeBackgroundUsageUsesOnlyTheAllModelsWeek() throws {
+        let output = """
+        Current session: 25% used · resets Dec 31 at 11pm (Europe/London)
+        Current week (all models): 59% used · resets Jan 2 at 4:30pm (Europe/London)
+        Current week (Fable): 91% used · resets Jan 2 at 4:30pm (Europe/London)
+        """
+        let now = try XCTUnwrap(ISO8601DateFormatter().date(from: "2025-12-31T18:00:00Z"))
+        let reading = try XCTUnwrap(TokenUsage.parseClaude(claudeUsageReply(output), observedAt: now))
+        XCTAssertEqual(reading.remainingPercent, 41)
+        XCTAssertEqual(reading.resetsAt, 1_767_371_400)
+    }
+
+    func testClaudeIgnoresModelSpecificLimitsAndRejectsModelOutput() throws {
+        let now = try XCTUnwrap(ISO8601DateFormatter().date(from: "2025-08-10T18:00:00Z"))
+        let limit = "Current week (all models): 100% used, resets Aug 13, 7:59am (Asia/Seoul)"
+        let reading = try XCTUnwrap(TokenUsage.parseClaude(claudeUsageReply(limit), observedAt: now))
+        XCTAssertEqual(reading.remainingPercent, 0)
+        XCTAssertNil(TokenUsage.parseClaude(try claudeUsageReply(limit, turns: 1), observedAt: now))
+        let modelLimit = limit.replacingOccurrences(of: "all models", with: "Fable")
+        XCTAssertNil(TokenUsage.parseClaude(try claudeUsageReply(modelLimit), observedAt: now))
+        XCTAssertNil(TokenUsage.parseClaude(try claudeUsageReply("Total cost: $0.0000"), observedAt: now))
+    }
+
+    private func claudeUsageReply(_ result: String, turns: Int = 0) throws -> Data {
+        try JSONSerialization.data(withJSONObject: [
+            "result": result, "num_turns": turns, "is_error": false, "local_command": "usage",
+        ])
+    }
+
     func testWeeklyReadingExpiresAfterFifteenMinutesOrAtReset() {
         let reading = WeeklyUsageReading(remainingPercent: 41, resetsAt: 2_000, observedAt: 1_000)
         XCTAssertTrue(reading.isCurrent(at: Date(timeIntervalSince1970: 1_899)))

@@ -23,12 +23,6 @@ struct WeeklyUsageReading: Codable, Equatable, Sendable {
 }
 
 enum TokenUsage {
-    static let directory = FileManager.default.homeDirectoryForCurrentUser
-        .appendingPathComponent("Library/Application Support/EspDesktop/TokenUsage")
-    private static let scriptURL = directory.appendingPathComponent("claude-status-line")
-
-    enum SetupError: Error { case invalidSettings, missingHelper }
-
     enum ClaudeAccount: Equatable, Sendable {
         case checking, missingCLI, signedOut, apiKey, otherProvider, detected, unknown
 
@@ -37,68 +31,92 @@ enum TokenUsage {
             switch method {
             case "api_key", "api_key_helper": return .apiKey
             case "third_party": return .otherProvider
-            default: return .detected
+            case "claude.ai", "oauth_token": return .detected
+            default: return .unknown
             }
         }
-    }
-
-    struct ClaudeSetup: Equatable, Sendable {
-        var account: ClaudeAccount = .checking
-        var settings = TokenUsage.claudeSettings
-        var helperConfigured = false
     }
 
     private struct ClaudeAuthReply: Decodable {
         let loggedIn: Bool
         let authMethod: String?
-        let configDirectory: String?
     }
 
-    private static var claudeSettings: URL {
+    private struct ClaudeUsageReply: Decodable {
+        let is_error: Bool
+        let num_turns: Int
+        let local_command: String
+        let result: String
+    }
+
+    static func readClaude() async -> (account: ClaudeAccount, reading: WeeklyUsageReading?) {
+        await Task.detached(priority: .utility) { fetchClaude() }.value
+    }
+
+    private static func fetchClaude() -> (ClaudeAccount, WeeklyUsageReading?) {
         let home = FileManager.default.homeDirectoryForCurrentUser
-        let override = ProcessInfo.processInfo.environment["CLAUDE_CONFIG_DIR"]
-        let config = override.flatMap { $0.isEmpty ? nil : URL(fileURLWithPath: ($0 as NSString).expandingTildeInPath) }
-        return (config ?? home.appendingPathComponent(".claude")).appendingPathComponent("settings.json")
+        let candidates = [home.appendingPathComponent(".local/bin/claude").path,
+                          "/opt/homebrew/bin/claude", "/usr/local/bin/claude"]
+        guard let executable = candidates.first(where: { FileManager.default.isExecutableFile(atPath: $0) })
+        else { return (.missingCLI, nil) }
+        guard let auth = runClaude(executable, arguments: ["auth", "status"], from: home, timeout: 5),
+              let reply = try? JSONDecoder().decode(ClaudeAuthReply.self, from: auth)
+        else { return (.unknown, nil) }
+
+        let account = ClaudeAccount.from(loggedIn: reply.loggedIn, method: reply.authMethod)
+        guard account == .detected else { return (account, nil) }
+
+        // Use Claude Code's built-in local usage command with custom commands and tools disabled.
+        let arguments = ["--safe-mode", "--strict-mcp-config", "--tools", "",
+                         "--no-session-persistence", "--output-format", "json", "-p", "/usage"]
+        let result = runClaude(executable, arguments: arguments, from: home, timeout: 15)
+        return (account, result.flatMap { parseClaude($0) })
     }
 
-    static func checkClaudeSetup() async -> ClaudeSetup {
-        await Task.detached(priority: .utility) {
-            let home = FileManager.default.homeDirectoryForCurrentUser
-            let candidates = [home.appendingPathComponent(".local/bin/claude").path,
-                              "/opt/homebrew/bin/claude", "/usr/local/bin/claude"]
-            var setup = ClaudeSetup()
-            if let executable = candidates.first(where: { FileManager.default.isExecutableFile(atPath: $0) }) {
-                if let reply = readClaudeAuth(executable: executable, home: home) {
-                    setup.account = .from(loggedIn: reply.loggedIn, method: reply.authMethod)
-                    if let directory = reply.configDirectory, directory.hasPrefix("/") {
-                        setup.settings = URL(fileURLWithPath: directory).appendingPathComponent("settings.json")
-                    }
-                } else {
-                    setup.account = .unknown
-                }
-            } else {
-                setup.account = .missingCLI
-            }
-            if let data = try? Data(contentsOf: setup.settings),
-               let document = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
-               let statusLine = document["statusLine"] as? [String: Any],
-               let command = statusLine["command"] as? String {
-                setup.helperConfigured = statusLine["type"] as? String == "command"
-                    && (command == claudeHelperCommand || command.hasPrefix(claudeHelperCommand + " "))
-                    && FileManager.default.isReadableFile(atPath: scriptURL.path)
-            }
-            return setup
-        }.value
+    static func parseClaude(_ data: Data, observedAt: Date = .now) -> WeeklyUsageReading? {
+        guard let reply = try? JSONDecoder().decode(ClaudeUsageReply.self, from: data),
+              !reply.is_error, reply.num_turns == 0, reply.local_command == "usage" else { return nil }
+        // The CLI also prints session limits and model-specific weekly limits.
+        let pattern = #"(?im)^\s*Current week \(all models\):\s+(\d{1,3})% used\s*[·,]\s*resets\s+([A-Za-z]{3} \d{1,2})(?: at |, )(\d{1,2}(?::\d{2})?\s*[ap]m)\s*\(([^)\r\n]+)\)\s*$"#
+        guard let regex = try? NSRegularExpression(pattern: pattern),
+              let match = regex.firstMatch(in: reply.result, range: NSRange(reply.result.startIndex..., in: reply.result))
+        else { return nil }
+
+        let fields = (1..<match.numberOfRanges).compactMap { index in
+            Range(match.range(at: index), in: reply.result).map { String(reply.result[$0]) }
+        }
+        guard fields.count == 4, let used = Int(fields[0]), (0...100).contains(used),
+              let zone = TimeZone(identifier: fields[3]) else { return nil }
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = zone
+        let year = calendar.component(.year, from: observedAt)
+        let formatter = DateFormatter()
+        formatter.locale = Locale(identifier: "en_US_POSIX")
+        formatter.timeZone = zone
+        let time = fields[2].replacingOccurrences(of: " ", with: "").uppercased()
+        formatter.dateFormat = time.contains(":") ? "yyyy MMM d h:mma" : "yyyy MMM d ha"
+        // The CLI omits the year. The next weekly reset can cross New Year's Day.
+        guard let reset = [year, year + 1].compactMap({ formatter.date(from: "\($0) \(fields[1]) \(time)") })
+            .first(where: { (0...8 * 24 * 60 * 60).contains($0.timeIntervalSince(observedAt)) })
+        else { return nil }
+        let now = observedAt.timeIntervalSince1970
+        let resetTime = reset.timeIntervalSince1970
+        guard now >= 1, resetTime <= Double(UInt32.max) else { return nil }
+        let reading = WeeklyUsageReading(remainingPercent: 100 - used,
+                                         resetsAt: UInt32(resetTime), observedAt: UInt32(now))
+        return reading.valid ? reading : nil
     }
 
-    private static func readClaudeAuth(executable: String, home: URL) -> ClaudeAuthReply? {
+    private static func runClaude(_ executable: String, arguments: [String],
+                                  from home: URL, timeout: Double) -> Data? {
         let process = Process()
         let output = Pipe()
         process.executableURL = URL(fileURLWithPath: executable)
-        process.arguments = ["auth", "status"]
+        process.arguments = arguments
         process.currentDirectoryURL = home
         var environment = ProcessInfo.processInfo.environment
         environment["PATH"] = "\(home.path)/.local/bin:/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin"
+        environment["LC_ALL"] = "en_US.UTF-8"
         process.environment = environment
         process.standardInput = FileHandle.nullDevice
         process.standardOutput = output
@@ -106,7 +124,7 @@ enum TokenUsage {
         do { try process.run() } catch { return nil }
 
         let deadline = DispatchSource.makeTimerSource(queue: .global(qos: .utility))
-        deadline.schedule(deadline: .now() + 5)
+        deadline.schedule(deadline: .now() + timeout)
         deadline.setEventHandler {
             if process.isRunning { kill(process.processIdentifier, SIGKILL) }
         }
@@ -115,61 +133,7 @@ enum TokenUsage {
             process.waitUntilExit()
             deadline.cancel()
         }
-        let data = output.fileHandleForReading.readDataToEndOfFile()
-        return try? JSONDecoder().decode(ClaudeAuthReply.self, from: data)
-    }
-
-    static func connectClaude(settings: URL) throws {
-        let manager = FileManager.default
-        var document = [String: Any]()
-        if manager.fileExists(atPath: settings.path) {
-            guard let existing = try JSONSerialization.jsonObject(with: Data(contentsOf: settings)) as? [String: Any]
-            else { throw SetupError.invalidSettings }
-            document = existing
-        }
-        var statusLine = [String: Any]()
-        if let existing = document["statusLine"] {
-            guard let value = existing as? [String: Any], value["type"] as? String == "command",
-                  value["command"] is String else { throw SetupError.invalidSettings }
-            statusLine = value
-        }
-        let helper = try installClaudeHelper()
-        if let existing = statusLine["command"] as? String {
-            if existing == helper || existing.hasPrefix(helper + " ") { return }
-            statusLine["command"] = helper + " " + shellQuote(existing)
-        } else {
-            statusLine["command"] = helper
-        }
-        statusLine["type"] = "command"
-        document["statusLine"] = statusLine
-        try manager.createDirectory(at: settings.deletingLastPathComponent(), withIntermediateDirectories: true)
-        try JSONSerialization.data(withJSONObject: document, options: [.prettyPrinted, .sortedKeys, .withoutEscapingSlashes])
-            .write(to: settings, options: .atomic)
-    }
-
-    private static func shellQuote(_ value: String) -> String {
-        "'" + value.replacingOccurrences(of: "'", with: "'\\''") + "'"
-    }
-
-    private static var claudeHelperCommand: String {
-        "/usr/bin/perl " + shellQuote(scriptURL.path)
-    }
-
-    private static func installClaudeHelper() throws -> String {
-        guard let source = Bundle.module.url(forResource: "claude-status-line", withExtension: nil)
-        else { throw SetupError.missingHelper }
-        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true,
-                                                attributes: [.posixPermissions: 0o700])
-        try Data(contentsOf: source).write(to: scriptURL, options: .atomic)
-        return claudeHelperCommand
-    }
-
-    static func readClaude() -> WeeklyUsageReading? {
-        let snapshot = directory.appendingPathComponent("claude-weekly.json")
-        guard let data = try? Data(contentsOf: snapshot), data.count <= 1024,
-              let reading = try? JSONDecoder().decode(WeeklyUsageReading.self, from: data),
-              reading.valid else { return nil }
-        return reading
+        return output.fileHandleForReading.readDataToEndOfFile()
     }
 
     private struct Reply: Decodable {

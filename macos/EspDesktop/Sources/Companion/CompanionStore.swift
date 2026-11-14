@@ -140,16 +140,17 @@ final class CompanionStore: NSObject, ObservableObject {
     @Published var sharesClaudeUsage = false {
         didSet {
             defaults.set(sharesClaudeUsage, forKey: "tokenUsage.claude")
-            claudeSetup = .init()
-            lastClaudeSetupCheck = .distantPast
+            claudeAccount = .checking
+            claudeUsage = nil
+            lastClaudeUsageAttempt = .distantPast
             restartTokenUsage()
         }
     }
-    @Published private(set) var claudeSetup = TokenUsage.ClaudeSetup()
+    @Published private(set) var claudeAccount = TokenUsage.ClaudeAccount.checking
     @Published private(set) var claudeUsage: WeeklyUsageReading?
     @Published private(set) var codexUsage: WeeklyUsageReading?
     @Published private(set) var didCheckCodexUsage = false
-    private var lastClaudeSetupCheck = Date.distantPast
+    private var lastClaudeUsageAttempt = Date.distantPast
     private var lastCodexUsageAttempt = Date.distantPast
     private var tokenUsageTask: Task<Void, Never>?
     private var tokenUsageDisplays: [CompanionDisplay] {
@@ -844,16 +845,9 @@ final class CompanionStore: NSObject, ObservableObject {
         )
     }
 
-    func connectClaudeUsage() throws {
-        try TokenUsage.connectClaude(settings: claudeSetup.settings)
-        lastClaudeSetupCheck = .distantPast
-        restartTokenUsage()
-    }
-
     private func restartTokenUsage() {
         tokenUsageTask?.cancel()
         tokenUsageTask = nil
-        refreshClaudeUsage()
         for display in tokenUsageDisplays { publishTokenUsage(to: display) }
         updateTokenUsageTask()
     }
@@ -873,22 +867,7 @@ final class CompanionStore: NSObject, ObservableObject {
         }
     }
 
-    private func refreshClaudeUsage() {
-        let reading = sharesClaudeUsage ? TokenUsage.readClaude() : nil
-        if claudeUsage != reading { claudeUsage = reading }
-    }
-
     private func refreshTokenUsage() async {
-        refreshClaudeUsage()
-        for display in tokenUsageDisplays { publishTokenUsage(to: display) }
-
-        if sharesClaudeUsage, Date().timeIntervalSince(lastClaudeSetupCheck) >= 60 {
-            let setup = await TokenUsage.checkClaudeSetup()
-            guard !Task.isCancelled else { return }
-            lastClaudeSetupCheck = .now
-            if claudeSetup != setup { claudeSetup = setup }
-        }
-
         if sharesCodexUsage, Date().timeIntervalSince(lastCodexUsageAttempt) >= 300 {
             let reading = await TokenUsage.readCodex()
             guard !Task.isCancelled else { return }
@@ -898,6 +877,19 @@ final class CompanionStore: NSObject, ObservableObject {
                 codexUsage = reading
                 for display in tokenUsageDisplays { publishTokenUsage(to: display) }
             }
+        }
+        let claudeInterval: TimeInterval = claudeAccount == .detected ? 300 : 60
+        if sharesClaudeUsage, Date().timeIntervalSince(lastClaudeUsageAttempt) >= claudeInterval {
+            let (account, reading) = await TokenUsage.readClaude()
+            guard !Task.isCancelled else { return }
+            lastClaudeUsageAttempt = .now
+            if claudeAccount != account { claudeAccount = account }
+            if let reading {
+                claudeUsage = reading
+            } else if account != .detected && account != .unknown {
+                claudeUsage = nil
+            }
+            for display in tokenUsageDisplays { publishTokenUsage(to: display) }
         }
     }
 
