@@ -435,95 +435,52 @@ struct CompanionSettings: View {
 
     private var tokenUsageSettings: some View {
         Section("Token Usage") {
-            Toggle(isOn: $store.sharesCodexUsage) {
-                Text("Share ChatGPT (Codex) weekly usage")
-                if store.sharesCodexUsage {
-                    TimelineView(.periodic(from: .now, by: 15)) { context in
-                        Text(codexUsageStatus(at: context.date))
-                            .foregroundStyle(.secondary)
-                    }
+            if store.tokenUsageDisplayConnected {
+                TimelineView(.periodic(from: .now, by: 15)) { context in
+                    LabeledContent("ChatGPT", value: codexUsageStatus(at: context.date))
                 }
-            }
-            .tint(.blue)
-            Toggle(isOn: $store.sharesClaudeUsage) {
-                Text("Share Claude weekly usage")
-                if store.sharesClaudeUsage {
-                    TimelineView(.periodic(from: .now, by: 15)) { context in
-                        Text(claudeUsageStatus(at: context.date))
-                            .foregroundStyle(.secondary)
-                    }
+                TimelineView(.periodic(from: .now, by: 15)) { context in
+                    LabeledContent("Claude", value: claudeUsageStatus(at: context.date))
                 }
-            }
-            .tint(.blue)
-            Toggle(isOn: $store.sharesOpenCodeGoUsage) {
-                Text("Share OpenCode Go usage")
-                if store.sharesOpenCodeGoUsage {
-                    TimelineView(.periodic(from: .now, by: 15)) { context in
-                        Text(openCodeGoUsageStatus(at: context.date))
-                            .foregroundStyle(.secondary)
-                    }
+                TimelineView(.periodic(from: .now, by: 15)) { context in
+                    LabeledContent("OpenCode Go", value: openCodeGoUsageStatus(at: context.date))
                 }
+            } else {
+                Text("Connect a compatible display")
+                    .foregroundStyle(.secondary)
             }
-            .tint(.blue)
         }
     }
 
     private func openCodeGoUsageStatus(at date: Date) -> String {
         if let usage = store.openCodeGoUsage {
-            var limits: [String] = []
-            if let weekly = usage.weekly, weekly.isCurrent(at: date) {
-                limits.append("Weekly \(weekly.remainingPercent)% left")
-            }
-            if let monthly = usage.monthly, monthly.isCurrent(at: date) {
-                limits.append("Monthly \(monthly.remainingPercent)% left")
-            }
-            return limits.isEmpty ? "Last usage reading is out of date." : limits.joined(separator: " · ")
+            return usage.weekly?.isCurrent(at: date) == true || usage.monthly?.isCurrent(at: date) == true
+                ? "Ready" : "Stale"
         }
         switch store.openCodeGoStatus {
-        case .checking:
-            return "Checking weekly usage…"
-        case .missingLogin:
-            return "Run /connect in OpenCode, choose OpenCode Go, and enter your Go API key."
-        case .rejected:
-            return "OpenCode rejected the saved login. Check your Go subscription and reconnect in OpenCode."
-        case .noSubscription:
-            return "OpenCode didn’t return Go limits for the active login. Check the workspace or reconnect with its Go API key."
-        case .unavailable, .available:
-            return "OpenCode Go usage is unavailable."
+        case .checking: return "Checking…"
+        case .missingLogin, .rejected: return "Connect in OpenCode"
+        case .noSubscription: return "No Go limits"
+        case .unavailable, .available: return "Unavailable"
         }
     }
 
     private func codexUsageStatus(at date: Date) -> String {
         if let reading = store.codexUsage {
-            return reading.isCurrent(at: date)
-                ? "\(reading.remainingPercent)% left this week"
-                : "Last weekly reading is out of date."
+            return reading.isCurrent(at: date) ? "Ready" : "Stale"
         }
-        return store.didCheckCodexUsage
-            ? "Weekly usage unavailable. Check that Codex CLI is installed and signed in with ChatGPT."
-            : "Checking weekly usage…"
+        return store.didCheckCodexUsage ? "Unavailable" : "Checking…"
     }
 
     private func claudeUsageStatus(at date: Date) -> String {
         switch store.claudeAccount {
-        case .checking:
-            return "Checking Claude Code…"
-        case .missingCLI:
-            return "Install Claude Code to share your weekly subscription usage."
-        case .signedOut:
-            return "Sign in to Claude Code with your Claude subscription."
-        case .apiKey:
-            return "Claude Code is using an API key. Use your Claude subscription in Claude Code to share weekly usage."
-        case .otherProvider:
-            return "Claude Code is using a third-party provider. Use your Claude subscription to share weekly usage."
+        case .checking: return "Checking…"
+        case .missingCLI: return "Install Claude Code"
+        case .signedOut: return "Sign in"
+        case .apiKey, .otherProvider: return "Subscription required"
         case .detected, .unknown:
-            if let reading = store.claudeUsage, reading.isCurrent(at: date) {
-                return "\(reading.remainingPercent)% left this week"
-            }
-            if store.claudeUsage != nil {
-                return "Last weekly reading is out of date."
-            }
-            return "Weekly usage unavailable. Update Claude Code and check that /usage shows your weekly plan limit."
+            guard let reading = store.claudeUsage else { return "Unavailable" }
+            return reading.isCurrent(at: date) ? "Ready" : "Stale"
         }
     }
 
