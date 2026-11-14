@@ -18,7 +18,7 @@ export interface CardDefinition {
   readonly renderSettingsBeforeLabel?: ((...args: any[]) => unknown) | null;
   readonly renderSettings?: ((...args: any[]) => unknown) | null;
   readonly renderAppShortcutSettings?: (panel: HTMLElement, card: CardConfig, page: number,
-    helpers: { idPrefix: string; saveField: (field: string, value: unknown) => void }) => void;
+    helpers: { idPrefix: string; saveField: (field: string, value: unknown) => void }, showAll?: boolean) => void;
   /** Preview results set labelEditable to false when their label shows generated state instead of the card name. */
   readonly renderPreview?: ((...args: any[]) => unknown) | null;
   readonly contextMenuItems?: ((...args: any[]) => unknown) | null;
