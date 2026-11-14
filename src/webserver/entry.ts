@@ -921,7 +921,7 @@ function composeApplicationContext(liveFinderFolders: () => readonly CompanionAc
   connectorsPage = createConnectorsPageFeature(
     dom, shell, companionSection, !!layout.config.features?.companion,
     () => buildHomeAssistantSettings(
-      fields.makeCollapsibleCard, fields.toggleRow, settingsUi.infoPanel,
+      fields.makeCollapsibleCard, fields.toggleRow, settingsUi,
     ),
   );
   let pickerHomeAssistantEnabled = connectorsPage.homeAssistantCardPickerEnabled();

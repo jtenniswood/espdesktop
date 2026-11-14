@@ -5748,17 +5748,18 @@ async function assertHomeAssistantConnectorLayout(browser) {
       pairing_code: "ABCD",
     };
     let requestedResync = false;
+    let esphomeEnabled = true;
     if (testCase.companionSupported) {
       await context.route(/\/companion\/pairing(?:\?.*)?$/, route => route.fulfill({ json: pairingState }));
       await context.route(/\/api\/v1\/home-assistant(?:\?.*)?$/, route => {
         const request = route.request();
         if (request.method() === "POST") {
-          if (request.headers()["x-espdesktop-request"] !== "resync-buttons") {
-            return route.fulfill({ status: 400 });
-          }
-          requestedResync = true;
+          const operation = request.headers()["x-espdesktop-request"];
+          if (operation === "resync-buttons") requestedResync = true;
+          else if (operation === "disable-esphome") esphomeEnabled = false;
+          else return route.fulfill({ status: 400 });
         }
-        return route.fulfill({ json: { enabled: true } });
+        return route.fulfill({ json: { enabled: esphomeEnabled } });
       });
     }
     const page = await context.newPage();
@@ -5809,10 +5810,18 @@ async function assertHomeAssistantConnectorLayout(browser) {
         `${testCase.name}: Home Assistant action confirmation is unavailable`,
       );
       if (testCase.companionSupported) {
-        await connectors.getByRole("heading", { name: "Home Assistant", exact: true }).click();
+        const homeAssistantHeading = connectors.getByRole("heading", { name: "Home Assistant", exact: true });
+        const badge = connectors.getByLabel("ESPHome API enabled", { exact: true });
+        await badge.waitFor({ state: "visible" });
+        assert.strictEqual(await badge.textContent(), "ON");
+        await homeAssistantHeading.click();
         await connectors.getByRole("button", { name: "Resync buttons", exact: true }).click();
         await connectors.getByText("Button refresh requested. Home Assistant will reconnect shortly.", { exact: true }).waitFor();
         assert(requestedResync, `${testCase.name}: resync sends a request to the display`);
+        await connectors.locator("label[for='sp-enable-esphome-api']").click();
+        await connectors.getByText("Setting saved. The display is restarting.", { exact: true }).waitFor();
+        await homeAssistantHeading.click();
+        assert(!(await badge.isVisible()), `${testCase.name}: disabled ESPHome has no On badge`);
         assert(
           await connectors.getByRole("heading", { name: "Mac Companion", exact: true }).count() > 0,
           `${testCase.name}: Mac Companion setup remains available`,

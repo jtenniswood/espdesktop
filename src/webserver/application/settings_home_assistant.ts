@@ -7,7 +7,7 @@ const PATH = "/api/v1/home-assistant";
 export function buildHomeAssistantSettings(
     makeCard: ControlsFieldsFeature["makeCollapsibleCard"],
     toggleRow: ControlsFieldsFeature["toggleRow"],
-    infoPanel: SettingsUiFeature["infoPanel"],
+    { infoPanel, statusBadge }: Pick<SettingsUiFeature, "infoPanel" | "statusBadge">,
 ): HTMLElement {
     const body = document.createElement("div");
     const control = toggleRow("Enable ESPHome API", "sp-enable-esphome-api", false);
@@ -26,7 +26,9 @@ export function buildHomeAssistantSettings(
     resync.disabled = true;
     actions.append(resync);
     body.append(control.row, status, actions);
-    const card = makeCard("Home Assistant", body, true) as HTMLElement;
+    const badge = statusBadge("ESPHome API enabled");
+    badge.classList.add("sp-card-badge", "sp-hidden");
+    const card = makeCard("Home Assistant", body, true, badge) as HTMLElement;
     card.hidden = true;
     let enabled = false;
 
@@ -35,6 +37,7 @@ export function buildHomeAssistantSettings(
         const settings = await response.json();
         if (typeof settings.enabled !== "boolean") return;
         enabled = settings.enabled;
+        badge.classList.toggle("sp-hidden", !enabled);
         control.input.checked = enabled;
         resync.disabled = !enabled;
         card.hidden = false;
@@ -51,6 +54,7 @@ export function buildHomeAssistantSettings(
             });
             if (!response.ok || (await response.json()).enabled !== next) throw new Error("Save failed");
             enabled = next;
+            badge.classList.toggle("sp-hidden", !enabled);
             status.replaceChildren(infoPanel(
                 "sp-esphome-restarting",
                 "Setting saved. The display is restarting.",
