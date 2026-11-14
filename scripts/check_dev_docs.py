@@ -183,7 +183,7 @@ PUBLIC_DOCS_BY_TYPE: dict[str, str] = {
     "companion": "docs/index.md",
     "companion_app_volume": "docs/mac-controls/apps.md",
     "companion_mac_lock": "docs/index.md",
-    "companion_cough": "docs/mac-controls/shortcuts.md",
+    "companion_cough": "docs/mac-controls/cough.md",
     "climate": "docs/card-types/climate.md",
     "climate_control": "docs/card-types/climate.md",
     "cover": "docs/card-types/covers.md",

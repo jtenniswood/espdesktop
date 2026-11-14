@@ -13,6 +13,7 @@ Folder paths stay on the Mac. The display uses a friendly name and an anonymous 
 |---|---|
 | Launching an app | Approve it on the Mac app's **Apps** page |
 | [App Volume](/mac-controls/apps#app-volume) | Enable the app on the Mac app’s **Apps** page and allow **System Audio Recording** when prompted |
+| [Cough](/mac-controls/cough) | Pair the display with the Mac app |
 | Opening a folder | Add it on the Mac app's **Folders** page |
 | Keyboard shortcuts and Mac Lock | Enable EspDesktop in **System Settings → Privacy & Security → Accessibility** |
 

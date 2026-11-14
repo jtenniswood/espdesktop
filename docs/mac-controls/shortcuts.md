@@ -39,6 +39,4 @@ The web editor dims these shortcuts when the app loses focus or the Mac disconne
 
 ## Hold to mute your microphone
 
-In the web editor, choose **Add Card → Mac Companion → Cough**. Touch and hold the card to mute the Mac’s default microphone. Lift your finger to restore its previous state. A microphone that was already muted stays muted.
-
-The card requires matching display firmware and Mac app updates. It is available when the paired Mac can mute its default microphone or adjust its input level.
+Use the [Cough card](/mac-controls/cough) to mute the Mac’s default microphone for as long as you hold the tile.

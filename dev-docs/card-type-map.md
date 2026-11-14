@@ -64,7 +64,7 @@ The generated card contract and the public documentation mapping define this tab
 | [media.md](../docs/card-types/media.md) | `media` |
 | [buttons.md](../docs/card-types/buttons.md) | `push` |
 | [apps.md](../docs/mac-controls/apps.md) | `companion_app_volume` |
-| [shortcuts.md](../docs/mac-controls/shortcuts.md) | `companion_cough` |
+| [cough.md](../docs/mac-controls/cough.md) | `companion_cough` |
 | [index.md](../docs/index.md) | `companion_mac_lock` |
 | [index.md](../docs/index.md) | `companion` |
 | [sliders.md](../docs/card-types/sliders.md) | `slider` |
