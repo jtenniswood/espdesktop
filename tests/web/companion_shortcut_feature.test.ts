@@ -530,9 +530,10 @@ export function runCompanionShortcutFeatureTests(): void {
     "shortcut.command+n", "shortcut.command+k", "shortcut.command+f", "shortcut.control+shift+m",
     "shortcut.command+b", "shortcut.control+shift+v", "shortcut.command+keyslash", "shortcut.command+option+l",
   ];
-  if (codexSubpage.backLabel !== "Back" || codexSubpage.order.length !== codexDefaults.length + 1 ||
+  if (codexSubpage.backLabel !== "Back" || codexSubpage.order.length !== codexDefaults.length + 2 ||
       codexSubpage.order[0] !== "B" ||
-      codexSubpage.buttons.map((card: any) => card.entity).join("|") !== codexDefaults.join("|")) {
+      codexSubpage.buttons[0]?.type !== "token_usage" ||
+      codexSubpage.buttons.slice(1).map((card: any) => card.entity).join("|") !== codexDefaults.join("|")) {
     throw new Error("Codex app subpage layout changed");
   }
   const savedApprove = {

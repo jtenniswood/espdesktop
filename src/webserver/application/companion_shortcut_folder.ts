@@ -1,3 +1,4 @@
+import { cardContractDefaultConfig } from "../generated/card_contract";
 import { COMPANION_SHORTCUT_APPS as BUNDLED_SHORTCUT_APPS } from "../generated/app_shortcuts";
 import { bundledExpandedShortcuts, SCOPED_SHORTCUT_PREFIX } from "./companion_shortcut_data";
 import type { AppShortcutApplication } from "../generated/app_shortcuts";
@@ -470,12 +471,57 @@ export function companionShortcutPresetCards(bundleIdentifier: string): Companio
     }));
 }
 
+function appTokenUsageService(bundleIdentifier: string): "codex" | "claude" | undefined {
+    if (bundleIdentifier === CLAUDE_DESKTOP_BUNDLE_ID) return "claude";
+    if (bundleIdentifier === CODEX_BUNDLE_ID || bundleIdentifier === "com.openai.chat") return "codex";
+}
+
+function appTokenUsageCard(service: "codex" | "claude") {
+    return { ...cardContractDefaultConfig("token_usage"), options: service === "claude" ? "services=claude" : "" };
+}
+
+export function addAppTokenUsageCard(bundleIdentifier: string, page: any, maxSlots: number): boolean {
+    const service = appTokenUsageService(bundleIdentifier);
+    if (!service || page.buttons.some((card: any) => card.type === "token_usage" &&
+        (configOptionValue(card.options, "services") || "codex") === service)) return false;
+
+    const order = [...page.order];
+    if (!order.some(isBackOrderToken)) order.unshift("B");
+    const firstShortcut = order.findIndex(token => {
+        const index = subpageOrderButtonIndex(token);
+        return index >= 0 && page.buttons[index]?.type === "companion" &&
+            page.buttons[index].entity?.startsWith(COMPANION_SHORTCUT_PREFIX);
+    });
+    const start = firstShortcut < 0 ? order.findIndex(isBackOrderToken) + 1 : firstShortcut;
+    // Shift only consecutive one-cell shortcuts starting at the first shortcut.
+    // Preserve custom layouts if another tile or span blocks the available space.
+    const legacyPresets = legacyCompanionShortcutPresetKeys(bundleIdentifier, companionShortcutPresetCards(bundleIdentifier));
+    let end = start;
+    while (end < maxSlots && page.grid[end] > 0) {
+        const token = order[end];
+        const card = page.buttons[subpageOrderButtonIndex(token)];
+        if (subpageOrderButtonSuffix(token) || !card) return false;
+        const marker = configOptionValue(card.options, COMPANION_SHORTCUT_PRESET_OPTION);
+        const managed = marker ? companionShortcutPresetIdentity(card).startsWith(bundleIdentifier + ":")
+            : card.type === "companion" && legacyPresets.has(card.entity);
+        if (!managed) return false;
+        end += 1;
+    }
+    if (end >= maxSlots || page.grid[end] !== 0 || page.buttons.length >= maxSlots - 1) return false;
+    for (let position = end; position > start; position -= 1) order[position] = order[position - 1];
+    order[start] = String(page.buttons.push(appTokenUsageCard(service)));
+    page.order = order;
+    return true;
+}
+
 export function createCompanionShortcutSubpage(bundleIdentifier: string, tabs?: readonly string[]) {
     const presets = companionShortcutPresetCards(bundleIdentifier);
     const selected = tabs == null ? companionShortcutDefaultTabs(bundleIdentifier) : tabs;
-    const buttons = selected.map(function (value) {
+    const shortcuts = selected.map(function (value) {
         return presets.find((preset) => companionShortcutPresetIdentity(preset) === bundleIdentifier + ":" + value);
     }).filter(preset => preset !== undefined);
+    const service = appTokenUsageService(bundleIdentifier);
+    const buttons = service ? [appTokenUsageCard(service), ...shortcuts] : shortcuts;
     return {
         order: ["B"].concat(buttons.map((_button, index) => String(index + 1))),
         buttons,
@@ -485,8 +531,9 @@ export function createCompanionShortcutSubpage(bundleIdentifier: string, tabs?: 
     };
 }
 
-export function companionShortcutTabsForCapacity(tabs: readonly string[], maxSlots: number): string[] {
-    return tabs.slice(0, Math.max(0, maxSlots - 1));
+export function companionShortcutTabsForCapacity(tabs: readonly string[], maxSlots: number, bundleIdentifier?: string): string[] {
+    const reserved = bundleIdentifier && appTokenUsageService(bundleIdentifier) ? 2 : 1;
+    return tabs.slice(0, Math.max(0, maxSlots - reserved));
 }
 
 export function finderFolderTabs(subpage: any): string[] {
@@ -731,7 +778,7 @@ export function companionShortcutTabsFitSubpage(
     subpage: any,
     maxSlots: number,
 ): boolean {
-    if (!subpage) return tabs.length + 1 <= maxSlots;
+    if (!subpage) return companionShortcutTabsForCapacity(tabs, maxSlots, bundleIdentifier).length === tabs.length;
     const source = {
         ...subpage,
         order: (subpage.order || []).slice(),
