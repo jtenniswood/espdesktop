@@ -2577,12 +2577,11 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
     "options": [
       {
         "name": "services",
-        "label": "Services",
+        "label": "Service",
         "kind": "choice",
         "values": [
           "codex",
-          "claude",
-          "both"
+          "claude"
         ],
         "defaultValue": "codex",
         "omitDefault": true

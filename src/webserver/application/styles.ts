@@ -755,13 +755,10 @@ export function createWebStyles(dragAnimation: boolean): string {
         ".sp-fw-btn.sp-fw-btn-busy:hover{background:rgba(35,37,43,.5);border-color:rgba(74,77,84,.45)}" +
         ".sp-btn-label-row{display:flex;align-items:last baseline;gap:4px;width:100%;overflow:hidden;position:relative;z-index:1}" +
         ".sp-btn-label-row .sp-btn-label{flex:0 1 auto;min-width:0}" +
-        ".sp-token-usage-icon{width:var(--btn-icon,24px);height:var(--btn-icon,24px);object-fit:contain;flex:none}" +
+        ".sp-token-usage-icon{width:var(--btn-icon,24px);height:var(--btn-icon,24px);background:currentColor;mask:var(--token-usage-icon) center/contain no-repeat;pointer-events:none}" +
         ".sp-btn-label-row.sp-token-usage-single{display:flex;flex-direction:column;align-items:flex-start;gap:0}" +
         ".sp-token-usage-value,.sp-token-usage-reset{display:block;white-space:nowrap}" +
-        ".sp-token-usage-reset{font-size:calc(var(--btn-label)*.8);color:var(--card-text-color,var(--preview-text-muted));opacity:.8}" +
-        ".sp-token-usage-services{margin-block:auto;display:flex;flex-direction:column;justify-content:space-between;height:100%;min-width:0}" +
-        ".sp-token-usage-row{display:flex;align-items:center;gap:.35em;min-width:0}" +
-        ".sp-token-usage-row .sp-token-usage-icon{width:1.25em;height:1.25em}" +
+        ".sp-token-usage-reset{font-size:var(--btn-sublabel,calc(var(--btn-label)*.82));color:var(--card-text-color,var(--preview-text-muted));opacity:.8}" +
         ".sp-subpage-badge{font-size:var(--btn-label);line-height:1.35;color:#fff;flex-shrink:0;" +
         "display:inline-block;text-align:center;width:1.35em;height:1.35em;" +
         "cursor:pointer;padding:0;background:transparent;text-shadow:0 1px 3px rgba(0,0,0,.9),0 0 2px rgba(0,0,0,.65)}" +

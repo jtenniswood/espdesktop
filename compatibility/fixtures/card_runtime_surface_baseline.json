@@ -2035,7 +2035,7 @@
         },
         "preview": {
           "available": true,
-          "fingerprint": "a44987936e275242"
+          "fingerprint": "a1c73eb6302b7fb9"
         }
       },
       "firmware": {
@@ -2066,38 +2066,7 @@
         },
         "preview": {
           "available": true,
-          "fingerprint": "01f065e534b5eafb"
-        }
-      },
-      "firmware": {
-        "family": "TOKEN_USAGE"
-      },
-      "lifecycle": {
-        "subscriptions": [
-          "none"
-        ],
-        "actions": [
-          "none"
-        ],
-        "modalOwner": "none"
-      }
-    },
-    {
-      "name": "token_usage: both",
-      "sourceKind": "contract",
-      "sourceType": "token_usage",
-      "mode": "both",
-      "canonicalType": "token_usage",
-      "web": {
-        "registration": "token_usage",
-        "picker": {
-          "main": false,
-          "subpage": false,
-          "infoOnly": false
-        },
-        "preview": {
-          "available": true,
-          "fingerprint": "765700b0b1f087ea"
+          "fingerprint": "b48d72c55a771030"
         }
       },
       "firmware": {

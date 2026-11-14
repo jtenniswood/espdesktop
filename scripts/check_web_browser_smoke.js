@@ -4267,7 +4267,7 @@ async function assertTokenUsageCard(browser) {
   await installFakeEventSource(page);
   let slot;
   const tile = () => page.locator('.sp-main [data-slot="' + slot + '"]');
-  const service = page.getByLabel("Services", { exact: true });
+  const service = page.getByLabel("Service", { exact: true });
   const save = () => page.getByRole("button", { name: "Save", exact: true }).click();
   const load = async () => {
     await page.waitForFunction(() => window.__eventSources?.length > 0);
@@ -4283,28 +4283,28 @@ async function assertTokenUsageCard(browser) {
     await load();
     await page.locator(".sp-main .sp-empty-cell").first().click();
     await page.getByRole("button", { name: "Token Usage card type", exact: true }).click();
-    await service.selectOption("both");
+    assert.deepStrictEqual(await service.locator("option").evaluateAll(options => options.map(option => option.value)), ["codex", "claude"]);
+    await service.selectOption("claude");
     await save();
     await waitForNativeState(nativeState, () => {
       slot = Object.keys(nativeState.document.buttons).find(key =>
         parseRawButtonConfig(nativeState.document.buttons[key]).type === "token_usage");
-      return slot && parseRawButtonConfig(nativeState.document.buttons[slot]).options.includes("services=both");
+      return slot && parseRawButtonConfig(nativeState.document.buttons[slot]).options.includes("services=claude");
     },
-      "Token Usage saves both services");
+      "Token Usage saves Claude");
     await page.reload();
     await load();
-    await tile().getByAltText("Codex").waitFor();
-    await tile().getByAltText("Claude").waitFor();
+    await tile().getByRole("img", { name: "Claude" }).waitFor();
     assert.deepStrictEqual(await tile().locator(".sp-token-usage-reset").allTextContents(),
-      ["Resets in 2d", "Resets in 4d"]);
+      ["Resets in 2d"]);
     await edit();
-    assert.strictEqual(await service.inputValue(), "both");
-    await service.selectOption("claude");
+    assert.strictEqual(await service.inputValue(), "claude");
+    await service.selectOption("codex");
     await save();
-    await waitForNativeState(nativeState, () => parseRawButtonConfig(nativeState.document.buttons[slot]).options.includes("services=claude"),
-      "Token Usage saves Claude only");
-    await tile().getByAltText("Claude").waitFor();
-    assert.strictEqual(await tile().getByAltText("Codex").count(), 0);
+    await waitForNativeState(nativeState, () => parseRawButtonConfig(nativeState.document.buttons[slot]).options === "",
+      "Token Usage saves Codex");
+    await tile().getByRole("img", { name: "Codex" }).waitFor();
+    assert.strictEqual(await tile().getByRole("img", { name: "Claude" }).count(), 0);
     console.log("Token Usage picker, weekly previews, save and reload passed.");
   } finally {
     await context.close();

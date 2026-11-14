@@ -990,21 +990,6 @@
     }
   },
   {
-    "name": "token_usage: both",
-    "input": "~,,Auto,Auto,,,token_usage,,services%3Dboth",
-    "expected": {
-      "entity": "",
-      "label": "",
-      "icon": "Auto",
-      "icon_on": "Auto",
-      "sensor": "",
-      "unit": "",
-      "type": "token_usage",
-      "precision": "",
-      "options": "services=both"
-    }
-  },
-  {
     "name": "companion_mac_lock: lock",
     "input": "~shortcut.command%2Bcontrol%2Bq,Mac%20Lock,Lock,Auto,,,companion_mac_lock,,",
     "expected": {
