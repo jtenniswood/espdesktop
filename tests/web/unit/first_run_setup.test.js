@@ -7,11 +7,22 @@ const {
 } = loadTypescriptTest("src/webserver/application/first_run_setup.ts");
 const { NativeLayoutDraft } = loadTypescriptTest("src/webserver/model/native_layout_draft.ts");
 const { decodePanelPageSnapshot, encodePanelPageDocument } = loadTypescriptTest("src/webserver/model/panel_config_conversion.ts");
+const { canExposeCard } = loadTypescriptTest("src/webserver/model/home_assistant_cards.ts");
 const empty = overrides => encodePanelPageDocument({
   deviceProfile: "test", buttons: {}, subpages: {}, settings: { button_on_color: "FF0000" }, ...overrides,
 });
 const safari = { id: "com.apple.Safari", label: "Safari; Personal" };
 const custom = { id: "org.example.custom", label: "Custom" };
+
+test("OBS tiles that require a panel tap are excluded from Home Assistant export", () => {
+  const uuid = "11111111-1111-1111-1111-111111111111";
+  for (const entity of ["obs.take", "obs.brb", "obs.output.stream", "obs.output.record", "obs.target." + uuid, "obs.status.program"]) {
+    assert.equal(canExposeCard({ type: "companion", entity, sensor: "" }), false, entity);
+  }
+  for (const entity of ["obs.mute." + uuid, "obs.scene." + uuid, "obs.replay"]) {
+    assert.equal(canExposeCard({ type: "companion", entity, sensor: "" }), true, entity);
+  }
+});
 
 function setup(input, apps, shortcuts, capacity = 4, replacing, automaticSwitch) {
   const draft = new NativeLayoutDraft(input);

@@ -1,11 +1,13 @@
 import type { CardConfig } from "../contracts/types";
-import { OBS_TAKE_ID } from "./companion_card_codec";
+import { OBS_BRB_ID, OBS_OUTPUT_OPTIONS, OBS_TAKE_ID } from "./companion_card_codec";
 import { configOptionEnabled, configOptionValue, setConfigOption, setConfigOptionValue } from "./config_primitives";
 
 export function canExposeCard(card: CardConfig): boolean {
     return card.type === "subpage" || card.type === "companion_mac_lock" ||
         (card.type === "companion" && !card.entity.startsWith("stat.") &&
-            !card.entity.startsWith("obs.status.") && card.entity !== OBS_TAKE_ID && Boolean(card.entity || card.sensor));
+            !card.entity.startsWith("obs.status.") && !card.entity.startsWith("obs.target.") &&
+            card.entity !== OBS_TAKE_ID && card.entity !== OBS_BRB_ID &&
+            !OBS_OUTPUT_OPTIONS.some(([id]) => id === card.entity) && Boolean(card.entity || card.sensor));
 }
 
 export function cardExposure(options: string) {
