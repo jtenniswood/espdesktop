@@ -45,6 +45,7 @@ See how to [move or copy cards between Home and a subpage](/features/home#organi
 ## Swipe back
 
 Swipe right from the left edge of a subpage to use its **Back** action. This also works on app subpages while the touchscreen is unlocked and showing its cards.
+
 ## Swipe-up page
 
 The swipe-up page is **off by default**. Turn on **Screen → Swipe-up Page → Enable swipe-up page** to use it. The setting is saved across restarts and included in backups; older backups without this setting leave it off. Turning it off hides the layout editor button and keeps the page’s saved cards.
