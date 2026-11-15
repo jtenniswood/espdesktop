@@ -194,8 +194,19 @@ final class OBSConnection: ObservableObject {
     static func controlActions(_ state: State?) -> [(id: String, label: String)] {
         productionActions(state) + sceneActions(state) + audioActions(state) + faderActions(state) + meterActions(state) + coughActions(state) + outputActions(state) + adaptiveSceneActions(state) +
             selectedSceneActions(state) +
+            unavailableTakeAction(state) +
             (state?.breakCard.map { [($0.actionID, $0.label)] } ?? []) +
             (state?.breakSceneID.map { [("obs.brb.scene." + $0, "Configured BRB scene")] } ?? [])
+    }
+
+    private static func unavailableTakeAction(_ state: State?) -> [(id: String, label: String)] {
+        guard let state, !state.canTakePreview else { return [] }
+        let reason: String
+        if !state.studioMode { reason = "Enable Studio Mode" }
+        else if state.transitionInProgress { reason = "Transitioning" }
+        else if state.preview == nil { reason = "Choose a preview" }
+        else { reason = "Already on Program" }
+        return [("obs.take", "Take Live · " + reason)]
     }
 
     private static func selectedSceneActions(_ state: State?) -> [(id: String, label: String)] {
@@ -633,17 +644,20 @@ final class OBSConnection: ObservableObject {
         } else if breakInFlight {
             label = breakSession?.returning == true ? "Resuming…" : "Starting BRB…"
         } else if let session = breakSession {
-            label = "Resume"
             enabled = !snapshot.transitionInProgress && snapshot.program?.id == session.target
+            label = enabled ? "Resume" : "Resume · Transitioning"
         } else {
             guard let configured,
                   let target = snapshot.scenes.first(where: { $0.id == configured.sceneID }) else {
                 snapshot.breakCard = nil
                 return
             }
-            label = "BRB · " + target.name
             enabled = !snapshot.transitionInProgress && snapshot.program != nil && snapshot.program?.id != target.id &&
                 (configured.micID == nil || configured.micID.map { snapshot.inputMutes[$0] != nil } == true)
+            if enabled { label = "BRB · " + target.name }
+            else if snapshot.transitionInProgress { label = "BRB · Transitioning" }
+            else if snapshot.program?.id == target.id { label = "BRB · Already on break" }
+            else { label = "BRB · Unavailable" }
         }
         let program = snapshot.program?.id
         let previous = snapshot.breakCard

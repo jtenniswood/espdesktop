@@ -7704,6 +7704,8 @@ async function assertOBSStarterPage(browser) {
     { id: `obs.target.${away}.${token}`, label: "Break Room" },
     { id: `obs.selected.${main}`, label: "Selected OBS scene" },
     { id: `obs.mute.${mic}`, label: "Muted · Desk Mic" },
+    { id: "obs.take", label: "Take Live · Enable Studio Mode" },
+    { id: "obs.brb", label: "BRB · Already on break" },
     { id: `obs.brb.scene.${away}`, label: "Configured BRB scene" },
     { id: `obs.level.${mic}`, label: "Desk Mic" },
   ] }));
@@ -7732,6 +7734,20 @@ async function assertOBSStarterPage(browser) {
     assert(fixture.document.subpages[2].includes("obs.brb"));
     assert(!fixture.document.subpages[2].includes(token));
     await page.getByRole("tab", { name: "Layout", exact: true }).click();
+    await page.locator(".sp-main .sp-empty-cell").first().click();
+    await page.getByRole("button", { name: "OBS Output Control card type", exact: true }).click();
+    await page.getByLabel("OBS output", { exact: true }).selectOption("obs.output.record");
+    await page.getByRole("button", { name: "Card Settings", exact: true }).click();
+    const confirmation = page.locator("input[id$='obs-confirm-toggle']");
+    assert(await confirmation.isChecked(), "existing and new OBS cards confirm both directions by default");
+    await page.getByRole("button", { name: "On", exact: true }).click();
+    await page.getByLabel("Message", { exact: true }).fill("Record a local clip?");
+    await page.getByLabel("Confirm Button", { exact: true }).fill("Record");
+    await page.getByLabel("Cancel Button", { exact: true }).fill("Back");
+    await page.getByRole("button", { name: "Save", exact: true }).click();
+    await waitForNativeState(fixture, () => fixture.document.buttons[3]?.includes("obs_confirm=on") &&
+      fixture.document.buttons[3].includes("confirm_yes=Record") && fixture.document.buttons[3].includes("confirm_no=Back"),
+      "OBS output confirmation choices persist");
     await page.locator('.sp-main [data-slot="2"]').click({ button: "right" });
     await page.getByText("Edit Subpage", { exact: true }).click();
     await page.locator(".sp-back-btn").waitFor();
@@ -7753,6 +7769,12 @@ async function assertOBSStarterPage(browser) {
     assert.equal(colors[2], colors[1], "muted mic uses the default colour");
     assert.equal(await mainTile.locator('.sp-btn-label').innerText(), "Main scene");
     assert.equal(await micTile.locator('.sp-btn-label').innerText(), "Mic");
+    const takeTile = page.locator('.sp-main [data-slot="5"]');
+    assert.equal(await takeTile.locator('.sp-btn-label').innerText(), "Take Live");
+    assert.equal(await takeTile.locator('.sp-obs-detail').innerText(), "Enable Studio Mode");
+    const brbTile = page.locator('.sp-main [data-slot="7"]');
+    assert.equal(await brbTile.locator('.sp-btn-label').innerText(), "BRB");
+    assert.equal(await brbTile.locator('.sp-obs-detail').innerText(), "Already on break");
     console.log("OBS starter page pinned, preserved the Home card, and reopened for editing.");
   } finally {
     await context.close();

@@ -197,6 +197,12 @@ export function normalizeCompanionCardOptions(card: any): string {
             behavior === "new_window" ? behavior : ""));
     }
     let options = normalizeCompanionAppShortcutOptions(card);
+    if (mode === "obs_output") {
+        const confirmation = configOptionValue(card.options, "obs_confirm");
+        if (["on", "off", "none"].includes(confirmation)) options = setConfigOptionValue(options, "obs_confirm", confirmation);
+        for (const key of ["confirm_message", "confirm_yes", "confirm_no"])
+            options = setConfigOptionValue(options, key, configOptionValue(card.options, key));
+    }
     if (mode !== "app") return options;
 
     // App launch cards now always use the Mac app icon. Drop the legacy opt-out

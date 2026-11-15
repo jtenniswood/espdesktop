@@ -1314,6 +1314,14 @@ inline std::string companion_card_options_normalized(const ParsedCfg &p) {
     if (!out.empty()) out += ",";
     out += token;
   };
+  if (p.entity == "obs.output.stream" || p.entity == "obs.output.record") {
+    const auto mode = cfg_option_value(p.options, "obs_confirm");
+    if (mode == "on" || mode == "off" || mode == "none") add_token("obs_confirm=" + mode);
+    for (const char *name : {"confirm_message", "confirm_yes", "confirm_no"}) {
+      const auto value = cfg_option_value(p.options, name);
+      if (!value.empty()) add_token(std::string(name) + "=" + encode_compact_field(value));
+    }
+  }
   if (companion_folder_open_behavior(p) == "same_window") add_token("finder_open_behavior=same_window");
   if (companion_app_shortcuts_enabled(p)) {
     add_token("app_shortcuts");

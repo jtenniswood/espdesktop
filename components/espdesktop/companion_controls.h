@@ -783,6 +783,7 @@ struct CompanionCardRef {
   lv_obj_t *obs_mute_icon_label = nullptr;
   const char *obs_mute_icon_off = nullptr;
   const char *obs_mute_icon_on = nullptr;
+  lv_obj_t *obs_detail = nullptr;
 };
 
 struct CompanionSliderRef {
@@ -1034,6 +1035,7 @@ inline void companion_track_card(lv_obj_t *button, const std::string &action_id,
     existing->url_config = url_config;
     existing->dynamic_default_label = dynamic_default_label;
     existing->obs_label_alias = obs_label_alias;
+    existing->obs_detail = nullptr;
     existing->obs_mute_icon_label = obs_mute_icon_label;
     existing->obs_mute_icon_off = obs_mute_icon_off;
     existing->obs_mute_icon_on = obs_mute_icon_on;
@@ -1067,6 +1069,39 @@ inline void companion_track_card(lv_obj_t *button, const std::string &action_id,
   if (obs_mute_icon_label) companion_render_obs_mute(refs.back(), companion_runtime_snapshot());
   lv_obj_add_event_cb(button, companion_card_deleted, LV_EVENT_DELETE, nullptr);
   lv_obj_add_event_cb(button, companion_card_focus_drawn, LV_EVENT_DRAW_POST_END, nullptr);
+}
+
+inline void companion_render_obs_detail(CompanionCardRef &ref, const std::string &label) {
+  if (!ref.obs_detail || !lv_obj_is_valid(ref.obs_detail) || !ref.text_label) return;
+  const std::string separator = " · ";
+  const auto split = label.find(separator);
+  const char *name = ref.action_id == "obs.take" ? "Take Live"
+    : (label.rfind("Resume", 0) == 0 ? "Resume" : "BRB");
+  const std::string primary = espdesktop_i18n(name);
+  const std::string detail = split != std::string::npos ? label.substr(split + separator.size())
+    : (label == name ? "" : label);
+  if (normalize_display_text(primary) != lv_label_get_text(ref.text_label))
+    lv_label_set_display_text(ref.text_label, primary.c_str());
+  if (normalize_display_text(detail) != lv_label_get_text(ref.obs_detail))
+    lv_label_set_display_text(ref.obs_detail, detail.c_str());
+  lv_obj_align(ref.obs_detail, LV_ALIGN_BOTTOM_LEFT, 0, 0);
+  lv_obj_update_layout(ref.obs_detail);
+  lv_obj_align(ref.text_label, LV_ALIGN_BOTTOM_LEFT, 0, detail.empty() ? 0 : -lv_obj_get_height(ref.obs_detail) - 2);
+}
+
+inline void companion_setup_obs_detail(lv_obj_t *button, const lv_font_t *font) {
+  for (auto &ref : companion_card_refs()) {
+    if (ref.button != button || (ref.action_id != "obs.take" && ref.action_id != "obs.brb")) continue;
+    if (!ref.obs_detail) {
+      ref.obs_detail = lv_label_create(button);
+      lv_obj_set_width(ref.obs_detail, lv_pct(100));
+      lv_label_set_long_mode(ref.obs_detail, LV_LABEL_LONG_DOT);
+      lv_obj_set_style_text_opa(ref.obs_detail, LV_OPA_80, LV_PART_MAIN);
+    }
+    if (font) lv_obj_set_style_text_font(ref.obs_detail, font, LV_PART_MAIN);
+    companion_render_obs_detail(ref, companion_default_action_label(ref.action_id));
+    return;
+  }
 }
 
 inline void companion_set_rendered_obs_action(CompanionCardRef &ref, const CompanionRuntimeSnapshot &snapshot) {
@@ -1194,7 +1229,8 @@ inline void companion_refresh_cards_if_requested() {
       const std::string live_label = companion_default_action_label_with_fallback(
         it->action_id, it->url_config, it->resolved_default_label, &snapshot);
       const std::string label = companion_obs_control_label(it->action_id, it->obs_label_alias, live_label);
-      if (normalize_display_text(label) != lv_label_get_text(it->text_label))
+      if (it->obs_detail) companion_render_obs_detail(*it, label);
+      else if (normalize_display_text(label) != lv_label_get_text(it->text_label))
         lv_label_set_display_text(it->text_label, label.c_str());
     }
     if (companion_obs_tokenized_card(it->action_id)) companion_set_rendered_obs_action(*it, snapshot);
@@ -1254,6 +1290,7 @@ inline void companion_track_card(void *, const std::string &, const std::string 
                                  void * = nullptr, const char * = nullptr, const char * = nullptr) {}
 inline void companion_track_metric_card(void *, void *, void *, const std::string &,
                                         const std::string &, int) {}
+inline void companion_setup_obs_detail(void *, const void *) {}
 inline void companion_apply_card_focus(void *, const std::string &, const std::string & = "", bool = true) {}
 inline bool companion_forget_mute(void *) { return false; }
 inline void companion_track_mute(void *, const std::string &, void * = nullptr,

@@ -112,7 +112,7 @@ To get started, open **Screen → App Subpages → Add OBS starter page** in the
 
 In the Mac Companion’s **OBS** settings, choose a **Break scene** and optionally select a **Mute during break** input. Add **OBS BRB** to the display. It verifies the mic is muted before switching Program. **Resume** returns to the previous scene and restores a mic that EspDesktop muted when it can verify those changes. If the card says **Check OBS**, check the Program scene and microphone in OBS, then clear the alert in the Mac Companion.
 
-Add **OBS Output Control** separately for streaming or recording. The card displays the available action, such as **Stop Recording**, then asks you to confirm it. If OBS changes the output while the prompt is open, close the prompt and check the updated card before trying again.
+Add **OBS Output Control** separately for streaming or recording. By default, it asks you to confirm both starting and stopping. **Confirmation Required** lets you choose **On** for starting, **Off** for stopping, or **Both**, and customise the message and button labels. If OBS changes the output while a prompt is open, check the updated action before trying again.
 
 Use matching display firmware and Mac app builds that support OBS cards. Before going live, try the cards with a test recording and listen back to check the mix.
 

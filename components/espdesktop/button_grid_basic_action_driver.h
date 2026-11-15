@@ -8,6 +8,16 @@
 
 namespace espdesktop::cards {
 
+struct ObsConfirmationFonts {
+  const lv_font_t *message = nullptr;
+  const lv_font_t *icon = nullptr;
+};
+
+inline ObsConfirmationFonts &obs_confirmation_fonts() {
+  static ObsConfirmationFonts fonts;
+  return fonts;
+}
+
 inline bool basic_action_driver_matches(const Context &context,
                                         const ParsedCfg &) {
   using Driver = card_runtime::CardDriverId;
@@ -59,6 +69,10 @@ inline bool basic_action_driver_refresh_layout(
       lv_obj_set_style_text_font(slot.sensor_lbl, display_sensor_font(display), LV_PART_MAIN);
     }
   }
+  if (config.entity == "obs.take" || config.entity == "obs.brb")
+    companion_setup_obs_detail(slot.btn, display_small_text_font(display));
+  if (companion_obs_output_card(config.entity))
+    obs_confirmation_fonts() = {display_switch_confirmation_message_font(display), display.fonts.icon};
   return basic_action_driver_matches(context, config);
 }
 
@@ -125,26 +139,54 @@ struct CompanionSubpageActionContext {
   std::string required_focus_id;
 };
 
-inline bool show_obs_output_confirmation(lv_obj_t *button) {
+inline bool invoke_obs_output(const ParsedCfg &card, lv_obj_t *button, const std::string &request_id) {
   if (!button || screen_lock_enabled()) return false;
   const auto shown = companion_rendered_obs_action(button);
   if (shown.id.empty() || !companion_action_available(shown.id)) return false;
+  const auto mode = cfg_option_value(card.options, "obs_confirm");
+  if (mode == "none" || (mode == "on" && shown.label.rfind("Stop ", 0) == 0) ||
+      (mode == "off" && shown.label.rfind("Start ", 0) == 0))
+    return invoke_companion_action(shown.id, request_id);
+
   using Kind = ControlModalKind;
-  auto shell = control_modal_open_shell(Kind::OBS_OUTPUT_CONFIRMATION, button, 100, nullptr, [] {
+  const auto &fonts = obs_confirmation_fonts();
+  auto shell = control_modal_open_shell(Kind::OBS_OUTPUT_CONFIRMATION, button, 100, fonts.icon, [] {
     control_modal_delete_overlay(Kind::OBS_OUTPUT_CONFIRMATION, control_modal_active().overlay);
   });
   if (!shell.panel) return false;
-  if (shell.close_btn) lv_obj_add_flag(shell.close_btn, LV_OBJ_FLAG_HIDDEN);
-  auto *prompt = control_modal_create_title(shell.panel, shown.label + "?", shell.content_w, nullptr, 100);
-  lv_obj_align(prompt, LV_ALIGN_CENTER, 0, -shell.layout.panel_h / 4);
-  auto *confirm = control_modal_create_text_button(shell.panel, espdesktop_i18n("Confirm"), shell.content_w,
-      shell.content_w / 2, shell.layout.panel_h / 6, control_modal_card_radius(button),
-      theme_display_color(current_theme().surface_secondary), nullptr);
-  lv_obj_align(confirm, LV_ALIGN_CENTER, 0, 0);
-  auto *cancel = control_modal_create_text_button(shell.panel, espdesktop_i18n("Cancel"), shell.content_w,
-      shell.content_w / 2, shell.layout.panel_h / 6, control_modal_card_radius(button),
-      theme_display_color(current_theme().surface_secondary), nullptr);
-  lv_obj_align(cancel, LV_ALIGN_CENTER, 0, shell.layout.panel_h / 4);
+  const auto &layout = shell.layout;
+  const auto *font = lv_obj_get_style_text_font(button, LV_PART_MAIN);
+  const auto message = cfg_option_value(card.options, "confirm_message");
+  auto *prompt = control_modal_create_title(shell.panel, message.empty() ? shown.label + "?" : message,
+      shell.content_w, fonts.message ? fonts.message : font, 100);
+  lv_label_set_long_mode(prompt, LV_LABEL_LONG_WRAP);
+
+  const auto scaled = [&](lv_coord_t value, lv_coord_t minimum) {
+    return std::max(minimum, control_modal_scaled_px(value, layout.short_side));
+  };
+  const lv_coord_t gap = scaled(12, 8);
+  const lv_coord_t message_gap = scaled(28, 18);
+  const lv_coord_t height = scaled(52, 36);
+  const lv_coord_t max_width = (shell.content_w - gap) / 2;
+  const lv_coord_t min_width = std::min(max_width, std::max<lv_coord_t>(56, height + scaled(16, 0)));
+  const uint32_t accent = current_button_primary_color();
+  auto *cancel = control_modal_create_text_button(shell.panel, switch_confirmation_no_text(card),
+      max_width, min_width, height, height / 2, theme_display_color(current_theme().border), font);
+  auto *confirm = control_modal_create_text_button(shell.panel, switch_confirmation_yes_text(card),
+      max_width, min_width, height, height / 2, accent, font);
+  lv_obj_set_style_text_color(lv_obj_get_child(confirm, 0), lv_color_hex(readable_text_color_for_bg(accent)), LV_PART_MAIN);
+  lv_obj_update_layout(shell.panel);
+  const lv_coord_t prompt_height = lv_obj_get_height(prompt);
+  const lv_coord_t actions_height = std::max(lv_obj_get_height(cancel), lv_obj_get_height(confirm));
+  const lv_coord_t group_height = prompt_height + message_gap + actions_height;
+  const lv_coord_t top_limit = layout.inset + layout.back_size + message_gap;
+  const lv_coord_t bottom_limit = layout.panel_h - layout.inset - group_height;
+  auto group_top = std::max<lv_coord_t>(top_limit, (layout.panel_h - group_height) / 2);
+  group_top = std::max(layout.inset, std::min(group_top, bottom_limit));
+  const lv_coord_t actions_y = group_top + prompt_height + message_gap + actions_height / 2 - layout.panel_h / 2;
+  lv_obj_align(prompt, LV_ALIGN_CENTER, 0, group_top + prompt_height / 2 - layout.panel_h / 2);
+  lv_obj_align(cancel, LV_ALIGN_CENTER, -(lv_obj_get_width(confirm) + gap) / 2, actions_y);
+  lv_obj_align(confirm, LV_ALIGN_CENTER, (lv_obj_get_width(cancel) + gap) / 2, actions_y);
   lv_obj_add_event_cb(cancel, [](lv_event_t *) {
     control_modal_force_close_active();
   }, LV_EVENT_CLICKED, nullptr);
@@ -173,7 +215,7 @@ inline bool invoke_saved_companion_card(const ParsedCfg &card, const std::string
                                          lv_obj_t *button = nullptr) {
   if (card.entity == "obs.take" || card.entity == "obs.brb" || companion_obs_scene_target(card.entity))
     return invoke_companion_action(companion_rendered_obs_action(button).id, request_id);
-  if (companion_obs_output_card(card.entity)) return show_obs_output_confirmation(button);
+  if (companion_obs_output_card(card.entity)) return invoke_obs_output(card, button, request_id);
   if (companion_obs_status_card(card.entity)) return false;
   return companion_encoded_url(card.sensor).empty()
     ? invoke_companion_action_for_app(card.entity, request_id, required_focus,

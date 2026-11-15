@@ -485,11 +485,11 @@ export function registerCompanionCardTypes(
                 obsControlLabels.set(scene, action.label);
                 continue;
             }
-            if (/^obs\.take\.[a-f0-9-]{36}$/.test(action.id)) {
+            if (action.id === OBS_TAKE_ID || /^obs\.take\.[a-f0-9-]{36}$/.test(action.id)) {
                 obsControlLabels.set(OBS_TAKE_ID, action.label);
             } else if (action.id.startsWith("obs.selected.")) {
                 obsControlLabels.set("obs.selected", action.id.slice(12));
-            } else if (action.id === OBS_BRB_ID || action.id.startsWith(OBS_BRB_ID + ".")) {
+            } else if (/^obs\.brb(?:\.[a-f0-9-]{36})?$/.test(action.id)) {
                 obsControlLabels.set(OBS_BRB_ID, action.label);
             } else if (action.id.startsWith("obs.output.")) {
                 const output = OBS_OUTPUT_OPTIONS.find(([id]) => action.id.startsWith(id + "."));
@@ -549,7 +549,41 @@ export function registerCompanionCardTypes(
         }).catch(() => { note.textContent = "Connect OBS in the Mac Companion and try again."; });
         helpers.renderCardIconPicker(panel, card, helpers, COMPANION_CARD_METADATA.icon);
     }
-    function renderOBSProductionSettings(panel: HTMLElement, card: { entity: string }, helpers: any, mode: "obs_take" | "obs_status" | "obs_replay" | "obs_output" | "obs_brb"): void {
+    function renderOBSOutputConfirmation(panel: HTMLElement, card: { options: string }, helpers: any): void {
+        const save = (key: string, value: string) => {
+            card.options = setConfigOptionValue(card.options, key, value);
+            helpers.saveField("options", card.options);
+        };
+        const stored = configOptionValue(card.options, "obs_confirm");
+        const section = document.createElement("div");
+        section.hidden = stored === "none";
+        let when = stored === "on" || stored === "off" ? stored : "both";
+        helpers.renderCardOptionToggle(panel, card, helpers, {
+            label: "Confirmation Required", idSuffix: "obs-confirm-toggle", checked: !section.hidden,
+            onChange: (_: unknown, __: unknown, checked: boolean) => {
+                section.hidden = !checked;
+                save("obs_confirm", checked ? when : "none");
+            },
+        });
+        helpers.renderCardSegmentControl(section, card, helpers, {
+            label: "When", options: [["off", "Off"], ["on", "On"], ["both", "Both"]], value: when,
+            onSelect: (_: unknown, __: unknown, mode: string) => { when = mode; save("obs_confirm", mode); },
+        });
+        for (const [key, label, placeholder, limit] of [
+            ["confirm_message", "Message", "Uses the OBS action", 72],
+            ["confirm_yes", "Confirm Button", "Yes", 20],
+            ["confirm_no", "Cancel Button", "No", 20],
+        ] as const) {
+            const { input } = helpers.renderCardTextField(section, card, helpers, {
+                label, placeholder, idSuffix: key, bindName: null, value: configOptionValue(card.options, key),
+            });
+            input.maxLength = limit;
+            input.addEventListener("input", () => save(key, input.value));
+        }
+        panel.appendChild(section);
+    }
+
+    function renderOBSProductionSettings(panel: HTMLElement, card: { entity: string; options: string }, helpers: any, mode: "obs_take" | "obs_status" | "obs_replay" | "obs_output" | "obs_brb"): void {
         if (mode === "obs_status" || mode === "obs_output") {
             const output = mode === "obs_output";
             const { field, select } = helpers.selectField(output ? "OBS output" : "OBS status",
@@ -562,13 +596,14 @@ export function registerCompanionCardTypes(
             panel.appendChild(field);
             helpers.markCardPrimaryField(field, "entity");
         }
+        if (mode === "obs_output") renderOBSOutputConfirmation(panel, card, helpers);
         const note = document.createElement("p");
         note.className = "sp-setting-note";
         const descriptions = {
             obs_brb: "Choose your break scene and optional mic in the Mac Companion’s OBS settings.",
             obs_status: "Displays the selected status reported by OBS Studio.",
             obs_take: "In Studio Mode, checks the named Preview scene before sending it to Program.",
-            obs_output: "Shows the action and asks you to confirm before starting or stopping the selected output.",
+            obs_output: "Off means stopping the output. On means starting it.",
             obs_replay: "Saves a clip while the OBS Replay Buffer is running.",
         };
         note.textContent = descriptions[mode];
@@ -1613,12 +1648,18 @@ export function registerCompanionCardTypes(
                 const muted = mode === "obs_mic" && currentLabel?.startsWith("Muted · ");
                 const live = mode === "obs_mic" && currentLabel?.startsWith("Unmuted · ");
                 const label = alias || (mode === "obs_mic" ? currentLabel?.replace(/^(Muted|Unmuted) · /, "") : currentLabel) || fallback[mode];
+                const preview = cardBadgePreview(muted ? { ...card, icon: "Microphone Off" } : card, helpers, {
+                    label, iconFallback: companionSubtypeDefaultIcon(mode), badge: COMPANION_CARD_METADATA.preview.badge,
+                });
+                if (mode === "obs_take" || mode === "obs_brb") {
+                    const [name, detail] = (currentLabel || "").split(" · ", 2);
+                    const title = name === "Resume" ? name : fallback[mode];
+                    const note = detail || (name === title ? "" : name || "Unavailable");
+                    preview.labelHtml = '<span class="sp-btn-label-row sp-obs-label"><span class="sp-btn-label">' +
+                        helpers.escHtml(title) + '</span><span class="sp-obs-detail">' + helpers.escHtml(note) + '</span></span>';
+                }
                 return {
-                    ...cardBadgePreview(muted ? { ...card, icon: "Microphone Off" } : card, helpers, {
-                        label,
-                        iconFallback: companionSubtypeDefaultIcon(mode),
-                        badge: COMPANION_CARD_METADATA.preview.badge,
-                    }),
+                    ...preview,
                     isOn: live || (mode === "obs" && !!currentLabel && card.entity.slice(-37) === obsControlLabels.get("obs.selected")),
                     labelEditable: false,
                 };

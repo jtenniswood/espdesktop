@@ -579,6 +579,8 @@ final class OBSProductionTests: XCTestCase {
         transport.onEvent?("SceneTransitionStarted", [:])
         XCTAssertFalse(connection.state?.canTakePreview ?? true)
         XCTAssertNil(connection.state?.breakCard?.token)
+        XCTAssertEqual(OBSConnection.controlActions(connection.state).first { $0.id == "obs.take" }?.label,
+                       "Take Live · Transitioning")
         transport.transitionCursor = 1
         for _ in 0..<100 where connection.state?.canTakePreview != true {
             try await Task.sleep(for: .milliseconds(1))
@@ -597,6 +599,8 @@ final class OBSProductionTests: XCTestCase {
         transport.studioMode = false
         let connection = try await open(transport, transitionProbeInterval: .milliseconds(1), defaults: defaults)
         connection.configureBreak(sceneID: OBSPilotTransport.queued, micID: nil)
+        XCTAssertEqual(OBSConnection.controlActions(connection.state).first { $0.id == "obs.take" }?.label,
+                       "Take Live · Enable Studio Mode")
 
         func recoverAfterInterruptedTransition() async throws -> UUID {
             let original = try XCTUnwrap(connection.state?.breakCard?.token)
