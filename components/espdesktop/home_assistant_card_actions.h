@@ -124,10 +124,12 @@ inline std::string list_cards() {
 }
 
 inline std::string shortcut_application(const SharedCard &card) {
-  if (!card.page || !companion_shortcut_action_valid(card.config.entity)) return {};
-  if (!card.focus.empty()) return card.focus;
+  if (!companion_encoded_url(card.config.sensor).empty() ||
+      !companion_shortcut_action_valid(card.config.entity)) return {};
   const auto preset = cfg_option_value(card.config.options, "app_shortcut_preset");
   if (auto app = companion_shortcut_preset_app(preset); !app.empty()) return app;
+  if (!card.page) return {};
+  if (!card.focus.empty()) return card.focus;
 
   const auto *store = grid_native_page_store();
   if (!store) return {};
@@ -147,9 +149,10 @@ inline std::string shortcut_application(const SharedCard &card) {
 inline bool press_app_shortcut(const SharedCard &card, const std::string &app,
                                 const std::string &request) {
   const auto shortcut = companion_app_scoped_shortcut(card.config.entity);
-  if (shortcut.empty() || !companion_action_sender()) return false;
-  return companion_activate_then(app, request, esphome::millis() + 10000,
-      [id = card.id, app, shortcut, request] {
+  const auto target = companion_shortcut_launch_target(app);
+  if (shortcut.empty() || target.empty() || !companion_action_sender()) return false;
+  return companion_activate_then(target, request, esphome::millis() + 10000,
+      [id = card.id, app, target, shortcut, request] {
 #ifdef USE_ESPDESKTOP_NATIVE_CARD_BUTTONS
         if (!native_api_enabled.load()) return;
 #endif
@@ -159,7 +162,7 @@ inline bool press_app_shortcut(const SharedCard &card, const std::string &app,
           if (card_available(current, mac) && shortcut_application(current) == app &&
               companion_app_scoped_shortcut(current.config.entity) == shortcut &&
               companion_action_sender())
-            companion_action_sender()(shortcut, request + "-keys", "new_window", app);
+            companion_action_sender()(shortcut, request + "-keys", "new_window", target);
           return;
         }
       });
