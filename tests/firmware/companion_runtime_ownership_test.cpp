@@ -78,6 +78,24 @@ int main() {
   shortcut_catalogue.receive({previous_session.request_id, "com.example.Second", 0, 5, true, "{}"});
   assert(shortcut_catalogue.read("com.example.Second", 0, 6).status == Status::pending);
   assert(shortcut_catalogue.read("com.example.First", 0, 3005).status == Status::request);
+
+  auto &timeline = first.companion_runtime();
+  const std::string editor = "com.apple.FinalCut";
+  timeline.set_focused_action(editor);
+  assert(!timeline.timeline_controls_ready(editor));
+  timeline.set_timeline_controls_supported(true);
+  assert(timeline.timeline_controls_ready(editor));
+  assert(!timeline.timeline_controls_ready("com.blackmagic-design.DaVinciResolve"));
+  assert(timeline.begin_timeline_input("timeline-1", 50));
+  assert(!timeline.begin_timeline_input("timeline-2", 100));
+  timeline.finish_timeline_input("timeline-2");
+  assert(!timeline.begin_timeline_input("timeline-2", 150));
+  timeline.finish_timeline_input("timeline-1");
+  assert(timeline.begin_timeline_input("timeline-2", 200));
+  timeline.set_connected(false);
+  timeline.set_connected(true);
+  assert(!timeline.timeline_controls_supported());
+  assert(timeline.begin_timeline_input("timeline-3", 250));
   assert(first.start());
   bool invoked = false;
   assert(companion_expect_action_result("old-session", [&] { invoked = true; }));

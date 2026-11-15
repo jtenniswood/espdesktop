@@ -621,6 +621,7 @@ void CompanionService::handle_json_(int socket_fd, const std::string &message) {
       bool app_icons_high_resolution_supported = false;
       bool focus_targets_supported = false;
       bool shortcut_catalogue_supported = false;
+      bool timeline_controls_supported = false;
       for (const auto &capability : payload->values) {
         if (capability == COMPANION_APP_ICONS_CAPABILITY) {
           app_icons_supported = true;
@@ -634,6 +635,8 @@ void CompanionService::handle_json_(int socket_fd, const std::string &message) {
         } else if (capability == "keyboard_shortcuts_unavailable") {
           keyboard_actions = false;
           keyboard_actions_capability_received = true;
+        } else if (capability == "timeline_controls") {
+          timeline_controls_supported = true;
         } else if (capability == "url_card_focus") {
           focus_targets_supported = true;
         } else if (capability == "shortcut_catalogue_on_demand") {
@@ -652,8 +655,9 @@ void CompanionService::handle_json_(int socket_fd, const std::string &message) {
       }
       for (const auto &id : configured_icons) this->request_app_icon(id);
       this->defer_session_([this, keyboard_actions, keyboard_actions_capability_received,
-                            focus_targets_supported, shortcut_catalogue_supported]() {
+                            focus_targets_supported, shortcut_catalogue_supported, timeline_controls_supported]() {
         if (shortcut_catalogue_supported) companion_set_remote_definitions({});
+        companion_runtime_service().set_timeline_controls_supported(timeline_controls_supported);
         if (keyboard_actions_capability_received) companion_set_keyboard_actions_supported(keyboard_actions);
         this->focus_targets_supported_.store(focus_targets_supported);
       });
@@ -865,7 +869,12 @@ void CompanionService::handle_json_(int socket_fd, const std::string &message) {
       const std::string request_id = payload->requestId;
       const std::string status = payload->status;
       if (!safe_field(request_id, 64) || !safe_field(status, 32)) return false;
-      this->defer_session_([request_id, status]() { companion_deliver_action_result(request_id, status); });
+      this->defer_session_([request_id, status]() {
+        if (request_id.rfind("timeline-", 0) == 0)
+          companion_runtime_service().finish_timeline_input(request_id);
+        else
+          companion_deliver_action_result(request_id, status);
+      });
       return true;
     }
 
