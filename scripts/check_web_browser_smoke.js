@@ -4445,7 +4445,7 @@ async function assertOBSSceneCard(browser) {
   const fixture = nativeConfigState(testCase.slug);
   fixture.document.buttons = {
     1: "com.apple.Safari;Safari;Monitor;Auto;;;companion",
-    2: "com.apple.Notes;Notes;Monitor;Auto;;;companion",
+    2: "obs.status.program;;Monitor;Auto;;;companion",
   };
   fixture.document.settings.button_order = "1,2";
   const context = await browser.newContext({ viewport: testCase.viewport });
@@ -4473,6 +4473,14 @@ async function assertOBSSceneCard(browser) {
     await page.waitForFunction(() => window.__eventSources?.length > 0);
     await page.getByRole("tab", { name: "Layout", exact: true }).click();
     await seedNativeDocument(page, fixture);
+    const studioPicker = page.locator("select[id$='obs-studio']");
+    const programTile = page.locator('.sp-main [data-slot="2"]');
+    await programTile.getByText("Program", { exact: true }).waitFor();
+    await programTile.click();
+    await page.getByRole("button", { name: "Edit", exact: true }).click();
+    assert.equal(await studioPicker.inputValue(), "obs.status.program", "existing Program cards reopen in Studio Mode");
+    assert.deepEqual(await studioPicker.locator("option").allTextContents(), ["Toggle Studio Mode", "Program scene", "Take Live"]);
+    await page.keyboard.press("Escape");
     await page.locator(".sp-main .sp-empty-cell").first().click();
     const obsGroup = page.getByRole("button", { name: "OBS Studio card type", exact: true });
     const obsCards = page.locator('#sp-card-type-picker [data-card-type^="companion_obs"]');
@@ -4481,7 +4489,7 @@ async function assertOBSSceneCard(browser) {
     await obsGroup.click();
     assert.deepEqual((await obsCards.evaluateAll(cards => cards.map(card => card.getAttribute("aria-label")))).sort(),
       ["OBS BRB", "OBS Input Cough", "OBS Input Level", "OBS Input Mute", "OBS Output Control",
-        "OBS Save Replay", "OBS Scene", "OBS Status", "OBS Studio Mode", "OBS Take Live"]
+        "OBS Save Replay", "OBS Scene", "OBS Status", "Studio Mode"]
         .map(label => label + " card type"));
     assert.equal(await page.getByRole("button", { name: "Sound card type", exact: true }).count(), 0);
     await page.getByRole("button", { name: "Back to card types", exact: true }).click();
@@ -4489,6 +4497,7 @@ async function assertOBSSceneCard(browser) {
     await chooseOBSCard(page, "OBS Scene");
     const picker = page.locator("select[id$='obs-scene']");
     await picker.getByRole("option", { name: "Program · Gameplay" }).waitFor({ state: "attached" });
+    await programTile.getByText("Gameplay", { exact: true }).waitFor();
     await picker.selectOption(id);
     await page.getByRole("button", { name: "Save", exact: true }).click();
     await waitForNativeState(fixture, () => fixture.document.buttons[3]?.startsWith(id + ";"),
@@ -4505,14 +4514,24 @@ async function assertOBSSceneCard(browser) {
     await waitForNativeState(fixture, () => fixture.document.buttons[4]?.startsWith(mic + ";"),
       "The OBS mic UUID saves as a Companion card");
     await page.locator(".sp-main .sp-empty-cell").first().click();
-    await chooseOBSCard(page, "OBS Take Live");
+    await chooseOBSCard(page, "Studio Mode");
+    await studioPicker.selectOption("obs.status.program");
     await page.getByRole("button", { name: "Save", exact: true }).click();
-    await waitForNativeState(fixture, () => fixture.document.buttons[5]?.startsWith("obs.take;"),
-      "The Take Live card saves without its transient preview token");
+    await waitForNativeState(fixture, () => fixture.document.buttons[5]?.startsWith("obs.status.program;;Monitor;"),
+      "A new Program indicator saves from the Studio Mode group");
+    await page.locator('.sp-main [data-slot="5"]').click();
+    await page.getByRole("button", { name: "Edit", exact: true }).click();
+    await studioPicker.selectOption("obs.take");
+    await page.getByRole("button", { name: "Save", exact: true }).click();
+    await waitForNativeState(fixture, () => fixture.document.buttons[5]?.startsWith("obs.take;;Arrow Right;"),
+      "The Take Live card saves its default icon and stays free of transient tokens");
 
     await page.locator(".sp-main .sp-empty-cell").first().click();
     await chooseOBSCard(page, "OBS Status");
-    await page.locator("select[id$='obs-status']").selectOption("obs.status.record");
+    const statusPicker = page.locator("select[id$='obs-status']");
+    assert.deepEqual(await statusPicker.locator("option").allTextContents(), ["Streaming", "Recording"]);
+    assert.equal(await statusPicker.inputValue(), "obs.status.stream");
+    await statusPicker.selectOption("obs.status.record");
     await page.getByRole("button", { name: "Save", exact: true }).click();
     await waitForNativeState(fixture, () => fixture.document.buttons[6]?.startsWith("obs.status.record;"),
       "The read-only OBS recording indicator saves its selected status");
@@ -4545,7 +4564,7 @@ async function assertOBSSceneCard(browser) {
     await page.locator(".sp-settings-overlay.sp-visible .sp-settings-close").click();
 
     await page.locator(".sp-main .sp-empty-cell").first().click();
-    await chooseOBSCard(page, "OBS Studio Mode");
+    await chooseOBSCard(page, "Studio Mode");
     await page.getByRole("button", { name: "Save", exact: true }).click();
     await waitForNativeState(fixture, () => fixture.document.buttons[9]?.startsWith("obs.studio;"),
       "Studio Mode saves without the ephemeral OBS token");

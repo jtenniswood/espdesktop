@@ -12,15 +12,20 @@ export function savedOBSSceneTarget(actionId: string): string {
 export const OBS_BRB_ID = "obs.brb";
 export const OBS_TAKE_ID = "obs.take";
 export const OBS_STUDIO_ID = "obs.studio";
+export const OBS_PROGRAM_ID = "obs.status.program";
 export const OBS_REPLAY_ID = "obs.replay";
 export const OBS_OUTPUT_OPTIONS = [
   ["obs.output.stream", "Streaming"],
   ["obs.output.record", "Recording"],
 ] as const;
 export const OBS_STATUS_OPTIONS = [
-  ["obs.status.program", "Program scene"],
   ["obs.status.stream", "Streaming"],
   ["obs.status.record", "Recording"],
+] as const;
+export const OBS_STUDIO_OPTIONS = [
+  [OBS_STUDIO_ID, "Toggle Studio Mode"],
+  [OBS_PROGRAM_ID, "Program scene"],
+  [OBS_TAKE_ID, "Take Live"],
 ] as const;
 
 export function companionMetricForEntity(entity: unknown) {
@@ -37,7 +42,7 @@ export function companionSavedCardMode(config: Partial<CardConfig>): CompanionCa
   if (entity === OBS_STUDIO_ID) return "obs_studio";
   if (entity === OBS_REPLAY_ID) return "obs_replay";
   if (OBS_OUTPUT_OPTIONS.some(([id]) => entity === id)) return "obs_output";
-  if (OBS_STATUS_OPTIONS.some(([id]) => entity === id)) return "obs_status";
+  if (entity === OBS_PROGRAM_ID || OBS_STATUS_OPTIONS.some(([id]) => entity === id)) return "obs_status";
   if (entity.startsWith("obs.mute.")) return "obs_mic";
   if (entity.startsWith(COMPANION_OBS_PREFIX)) return "obs";
   if (entity === "stats" || companionMetricForEntity(entity)) return "stats";
