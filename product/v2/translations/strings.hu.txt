@@ -173,6 +173,7 @@ active=Aktív
 live=Élő
 changing=Változik
 reconnecting=Újracsatlakozás
+replay_buffer=Visszajátszási puffer
 start_replay_buffer=Visszajátszási puffer indítása
 stopped=Leállítva
 stopping=Leállítás

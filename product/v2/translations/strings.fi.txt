@@ -173,6 +173,7 @@ active=Aktiivinen
 live=Suorana
 changing=Vaihtuu
 reconnecting=Yhdistetään uudelleen
+replay_buffer=Toistopuskuri
 start_replay_buffer=Käynnistä toistopuskuri
 stopped=Pysäytetty
 stopping=Pysäytetään

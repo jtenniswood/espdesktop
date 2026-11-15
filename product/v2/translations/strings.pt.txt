@@ -173,6 +173,7 @@ active=Ativa
 live=Em direto
 changing=A mudar
 reconnecting=A voltar a ligar
+replay_buffer=Memória de repetição
 start_replay_buffer=Iniciar memória de repetição
 stopped=Parado
 stopping=A parar

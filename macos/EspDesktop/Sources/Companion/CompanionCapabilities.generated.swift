@@ -62,6 +62,7 @@ enum CompanionCapabilities {
         "obs_transition": "Transition",
         "obs_status": "OBS Status",
         "obs_replay": "OBS Save Replay",
+        "obs_replay_buffer": "OBS Replay Buffer",
         "obs_output": "OBS Output Control",
         "obs_brb": "OBS BRB",
         "stats": "Stats",

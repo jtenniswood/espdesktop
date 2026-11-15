@@ -113,6 +113,9 @@ private final class OBSPilotTransport: OBSWebSocketTransport {
             ])
             return [:]
         case "GetReplayBufferStatus": return ["outputActive": replayActive]
+        case "StartReplayBuffer", "StopReplayBuffer":
+            replayActive = type == "StartReplayBuffer"
+            return [:]
         case "SaveReplayBuffer": return [:]
         case "GetCurrentSceneTransitionCursor": return ["transitionCursor": transitionCursor]
         case "GetCurrentPreviewScene": return scene(preview)
@@ -160,7 +163,7 @@ final class OBSProductionTests: XCTestCase {
         let transport = OBSPilotTransport()
         let connection = try await open(transport)
         XCTAssertEqual(OBSConnection.productionActions(connection.state).map(\.label), [
-            "Program · Gameplay", "Stream · Reconnecting", "Recording · Paused", "On", "Take Live · BRB",
+            "Program · Gameplay", "Stream · Reconnecting", "Recording · Paused", "On", "Take Live · BRB", "Off",
         ])
         XCTAssertTrue(OBSConnection.controlActions(connection.state).contains { $0.id == "obs.record.active" })
         transport.onEvent?("CurrentSceneCollectionChanging", [:])
@@ -244,6 +247,34 @@ final class OBSProductionTests: XCTestCase {
         let duplicateResult = await connection.takeLive(token: token)
         XCTAssertFalse(duplicateResult)
         XCTAssertEqual(transport.requests.filter { $0 == "TriggerStudioModeTransition" }.count, 1)
+    }
+
+    @MainActor
+    func testReplayBufferToggleTracksOBSAndRejectsStaleTaps() async throws {
+        let transport = OBSPilotTransport()
+        let connection = try await open(transport)
+        func control() -> (id: String, label: String)? {
+            OBSConnection.productionActions(connection.state).first { $0.id.hasPrefix(OBSConnection.replayBufferID + ".") }
+        }
+        let off = try XCTUnwrap(control())
+        XCTAssertEqual(off.label, "Off")
+        let offToken = try XCTUnwrap(OBSConnection.controlToken(off.id, for: OBSConnection.replayBufferID))
+        let started = await connection.toggleReplayBuffer(token: offToken, isValid: { true })
+        XCTAssertTrue(started)
+        let on = try XCTUnwrap(control())
+        XCTAssertEqual(on.label, "On")
+        XCTAssertTrue(OBSConnection.productionActions(connection.state).contains { $0.id == "obs.replay" })
+        let stale = await connection.toggleReplayBuffer(token: offToken, isValid: { true })
+        XCTAssertFalse(stale)
+        let onToken = try XCTUnwrap(OBSConnection.controlToken(on.id, for: OBSConnection.replayBufferID))
+        let stopped = await connection.toggleReplayBuffer(token: onToken, isValid: { true })
+        XCTAssertTrue(stopped)
+        XCTAssertEqual(control()?.label, "Off")
+        XCTAssertFalse(OBSConnection.productionActions(connection.state).contains { $0.id == "obs.replay" })
+        XCTAssertEqual(transport.requests.filter { ["StartReplayBuffer", "StopReplayBuffer"].contains($0) },
+                       ["StartReplayBuffer", "StopReplayBuffer"])
+        transport.onEvent?("ReplayBufferStateChanged", ["outputActive": true])
+        XCTAssertEqual(control()?.label, "On")
     }
 
     @MainActor

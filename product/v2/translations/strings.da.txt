@@ -173,6 +173,7 @@ active=Aktiv
 live=Live
 changing=Skifter
 reconnecting=Forbinder igen
+replay_buffer=Genafspilningsbuffer
 start_replay_buffer=Start genafspilningsbuffer
 stopped=Stoppet
 stopping=Stopper

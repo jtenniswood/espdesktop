@@ -458,7 +458,7 @@ int main() {
     companion_refresh_card_focus(studio);
     assert(!lv_obj_has_state(&main_scene, LV_STATE_USER_1));
     assert(lv_obj_has_state(&break_scene, LV_STATE_USER_1));
-    assert(!lv_obj_has_state(&break_scene, LV_STATE_CHECKED));
+    assert(lv_obj_has_state(&break_scene, LV_STATE_CHECKED));
     companion_refresh_card_focus({});
     assert(!lv_obj_has_state(&break_scene, LV_STATE_USER_1));
     assert(!lv_obj_has_state(&break_scene, LV_STATE_CHECKED));

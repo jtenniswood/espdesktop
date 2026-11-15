@@ -85,6 +85,7 @@ final class OBSConnection: ObservableObject {
 
     static let studioModeID = "obs.studio"
     static let transitionID = "obs.transition"
+    static let replayBufferID = "obs.replay.buffer"
 
     static func controlToken(_ action: String, for id: String) -> UUID? {
         let prefix = id + "."
@@ -127,7 +128,8 @@ final class OBSConnection: ObservableObject {
         var inputFaders: [String: Int] = [:]
         var recordingPaused = false
         var recordingStopping = false
-        var replayBufferActive = false
+        var replayBufferActive: Bool?
+        var replayBufferToken = UUID()
         var replaySave = ReplaySave.ready
         var transitionInProgress = false
         var selectedTransition: String?
@@ -139,6 +141,12 @@ final class OBSConnection: ObservableObject {
         var outputTokens: [Output: UUID] = [.stream: UUID(), .record: UUID()]
         var outputsTransitioning: Set<Output> = []
         var outputsPending: Set<Output> = []
+
+        mutating func setReplayBufferActive(_ active: Bool?) {
+            if replayBufferActive != active { replayBufferToken = UUID() }
+            replayBufferActive = active
+            if active != true { replaySave = .ready }
+        }
 
         func outputActive(_ output: Output) -> Bool { output == .stream ? streaming : recording }
 
@@ -206,7 +214,11 @@ final class OBSConnection: ObservableObject {
             actions.append((id: "obs.take." + state.takeToken.uuidString.lowercased(),
                             label: "Take Live · " + preview.name))
         }
-        if state.replayBufferActive {
+        if let active = state.replayBufferActive {
+            actions.append((id: replayBufferID + "." + state.replayBufferToken.uuidString.lowercased(),
+                            label: active ? "On" : "Off"))
+        }
+        if state.replayBufferActive == true {
             actions.append((id: "obs.replay", label: state.replaySave.label))
         }
         return actions
@@ -455,6 +467,7 @@ final class OBSConnection: ObservableObject {
     private var generation = UUID()
     private var collectionChanging = false
     private var outputCommands: Set<Output> = []
+    private var changingReplayBuffer = false
     private var pendingMuteCommands = Set<UUID>()
     private struct CoughHold {
         let session: ObjectIdentifier
@@ -857,8 +870,35 @@ final class OBSConnection: ObservableObject {
         return true
     }
 
+    func toggleReplayBuffer(token: UUID, isValid: () -> Bool) async -> Bool {
+        guard isValid(), !changingReplayBuffer, let shown = state, shown.replayBufferToken == token,
+              let previous = shown.replayBufferActive else { return false }
+        changingReplayBuffer = true
+        defer { changingReplayBuffer = false }
+        let active = generation
+        let fresh = try? await snapshotRequest("GetReplayBufferStatus", generation: active)
+        guard isValid(), active == generation, var current = state, current.replayBufferToken == token,
+              let actual = fresh?["outputActive"] as? Bool else { return false }
+        guard actual == previous else {
+            current.setReplayBufferActive(actual)
+            state = current
+            return false
+        }
+        let accepted = await command(previous ? "StopReplayBuffer" : "StartReplayBuffer", fields: [:])
+        // OBS normally confirms the change through an event. Refresh if no event advanced the token.
+        if active == generation, state?.replayBufferToken == token,
+           let confirmed = try? await snapshotRequest("GetReplayBufferStatus", generation: active),
+           let value = confirmed["outputActive"] as? Bool, active == generation,
+           var latest = state, latest.replayBufferToken == token {
+            latest.setReplayBufferActive(value)
+            state = latest
+            if value == false, pendingReplay != nil { finishReplay(.ready) }
+        }
+        return accepted && active == generation
+    }
+
     func saveReplay() async -> Bool {
-        guard var current = state, current.replayBufferActive, pendingReplay == nil else { return false }
+        guard var current = state, current.replayBufferActive == true, pendingReplay == nil else { return false }
         let active = generation
         pendingReplay = PendingReplay()
         current.replaySave = .saving
@@ -1125,7 +1165,7 @@ final class OBSConnection: ObservableObject {
                     inputMutes: inputMutes,
                     inputFaders: inputFaders,
                     recordingPaused: recordingPaused,
-                    replayBufferActive: replay?["outputActive"] as? Bool ?? false,
+                    replayBufferActive: replay?["outputActive"] as? Bool,
                     selectedTransition: transition?["transitionName"] as? String
                 )
                 for (type, fields) in bufferedEvents { Self.apply(type, fields: fields, to: &snapshot) }
@@ -1222,7 +1262,7 @@ final class OBSConnection: ObservableObject {
                 updateBreakCard(&current)
                 state = current
                 if type == "SceneTransitionStarted" || type == "SceneTransitionEnded" { updateTransitionProbe() }
-                if type == "ReplayBufferStateChanged", !current.replayBufferActive, pendingReplay != nil {
+                if type == "ReplayBufferStateChanged", current.replayBufferActive == false, pendingReplay != nil {
                     finishReplay(.ready)
                 }
             } else if !collectionChanging {
@@ -1303,8 +1343,7 @@ final class OBSConnection: ObservableObject {
         case "SceneTransitionEnded":
             state.transitionInProgress = false
         case "ReplayBufferStateChanged":
-            state.replayBufferActive = fields["outputActive"] as? Bool ?? state.replayBufferActive
-            if !state.replayBufferActive { state.replaySave = .ready }
+            if let active = fields["outputActive"] as? Bool { state.setReplayBufferActive(active) }
         default: break
         }
     }

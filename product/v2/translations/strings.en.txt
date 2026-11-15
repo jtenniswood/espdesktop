@@ -173,6 +173,7 @@ active=Active
 live=Live
 changing=Changing
 reconnecting=Reconnecting
+replay_buffer=Replay Buffer
 start_replay_buffer=Start Replay Buffer
 stopped=Stopped
 stopping=Stopping

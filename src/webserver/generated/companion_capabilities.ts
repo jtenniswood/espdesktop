@@ -80,6 +80,12 @@ export const COMPANION_CARD_MODES = [
     defaultIcon: "History"
   },
   {
+    id: "obs_replay_buffer",
+    label: "OBS Replay Buffer",
+    capability: "obs_scene_cards",
+    defaultIcon: "Repeat"
+  },
+  {
     id: "obs_output",
     label: "OBS Output Control",
     capability: "obs_output_controls",

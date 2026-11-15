@@ -670,7 +670,7 @@ inline bool companion_obs_break_active(std::string_view label) {
 
 inline bool companion_obs_tokenized_card(const std::string &id) {
   return id == "obs.take" || id == "obs.brb" || id == "obs.studio" || id == "obs.transition" ||
-    companion_obs_output_card(id) || companion_obs_scene_target(id);
+    id == "obs.replay.buffer" || companion_obs_output_card(id) || companion_obs_scene_target(id);
 }
 
 inline const CompanionAction *companion_published_action(const CompanionRuntimeSnapshot &snapshot,
@@ -835,12 +835,12 @@ inline void companion_apply_card_focus(lv_obj_t *button, const std::string &acti
   if (show_focus && companion_card_focus_allowed(url_config)) {
     const std::string focus_id = url_config.empty() ? action_id : companion_url_card_focus_id(url_config);
     if (companion_obs_scene_card(action_id) || action_id == "obs.output.record" || action_id == "obs.studio" ||
-        action_id == "obs.brb") {
+        action_id == "obs.brb" || action_id == "obs.replay.buffer") {
       const auto owned = snapshot ? CompanionRuntimeSnapshot{} : companion_runtime_snapshot();
       const auto &current = snapshot ? *snapshot : owned;
       if (action_id == "obs.output.record") {
         active = companion_published_action(current, "obs.record.active") != nullptr;
-      } else if (action_id == "obs.studio") {
+      } else if (action_id == "obs.studio" || action_id == "obs.replay.buffer") {
         const auto *mode = companion_published_action(current, action_id);
         active = mode && mode->label == "On";
       } else if (action_id == "obs.brb") {
@@ -849,7 +849,7 @@ inline void companion_apply_card_focus(lv_obj_t *button, const std::string &acti
       } else {
         const std::string scene_id = action_id.substr(action_id.rfind('.') + 1);
         on_program = companion_published_action(current, "obs.program." + scene_id) != nullptr;
-        active = !on_program && companion_action_available(current, action_id) &&
+        active = companion_action_available(current, action_id) &&
           companion_published_action(current, "obs.selected." + scene_id);
       }
     } else {
@@ -1130,6 +1130,7 @@ inline void companion_render_obs_detail(CompanionCardRef &ref, const std::string
   const auto split = label.find(separator);
   const char *name = ref.action_id == "obs.take" ? "Take Live"
     : ref.action_id == "obs.replay" ? "Save Replay"
+    : ref.action_id == "obs.replay.buffer" ? "Replay Buffer"
     : ref.action_id == "obs.status.program" ? "Program"
     : ref.action_id == "obs.status.stream" ? "Stream"
     : ref.action_id == "obs.status.record" ? "Recording"
@@ -1145,7 +1146,7 @@ inline void companion_render_obs_detail(CompanionCardRef &ref, const std::string
     : brb ? espdesktop_i18n_key("label_obs_break") : espdesktop_i18n(name);
   const bool already_on_break = brb && label == "BRB · Already on break";
   std::string detail = scene ? espdesktop_i18n_key("label_obs_scene")
-    : studio ? espdesktop_i18n(label)
+    : (studio || ref.action_id == "obs.replay.buffer") ? espdesktop_i18n(label)
     : transition ? label
     : already_on_break ? "" : record ? (stopping ? espdesktop_i18n("Stopping") : "")
     : (split != std::string::npos ? label.substr(split + separator.size()) : (label == name ? "" : label));

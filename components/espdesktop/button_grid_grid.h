@@ -403,6 +403,11 @@ inline void setup_card_visual(BtnSlot &s, const ParsedCfg &p,
     lv_obj_set_style_outline_color(s.btn, lv_color_hex(palette.on_val), program_outline);
     lv_obj_set_style_outline_width(s.btn, 3, program_outline);
     lv_obj_set_style_outline_pad(s.btn, -3, program_outline);
+    // Keep the outline visible when the same scene is also filled for Preview.
+    const auto program_preview = program_outline | LV_STATE_CHECKED;
+    lv_obj_set_style_border_color(s.btn, lv_color_hex(palette.off_val), program_preview);
+    lv_obj_set_style_border_width(s.btn, 5, program_preview);
+    lv_obj_set_style_border_side(s.btn, LV_BORDER_SIDE_FULL, program_preview);
   }
   sync_card_checked_text_color(s.btn);
   apply_button_on_pattern(s.btn, p.options, palette.has_on, palette.on_val);

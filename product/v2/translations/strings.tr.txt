@@ -173,6 +173,7 @@ active=Etkin
 live=Canlı
 changing=Değişiyor
 reconnecting=Yeniden bağlanıyor
+replay_buffer=Tekrar tamponu
 start_replay_buffer=Tekrar tamponunu başlat
 stopped=Durduruldu
 stopping=Durduruluyor

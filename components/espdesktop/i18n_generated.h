@@ -172,6 +172,7 @@ inline const char *espdesktop_i18n_cs(const char *text) {
   if (std::strcmp(text, "Live") == 0) return "Živě";
   if (std::strcmp(text, "Changing") == 0) return "Probíhá změna";
   if (std::strcmp(text, "Reconnecting") == 0) return "Opětovné připojení";
+  if (std::strcmp(text, "Replay Buffer") == 0) return "Vyrovnávací paměť záznamu";
   if (std::strcmp(text, "Start Replay Buffer") == 0) return "Spustit vyrovnávací paměť záznamu";
   if (std::strcmp(text, "Stopped") == 0) return "Zastaveno";
   if (std::strcmp(text, "Stopping") == 0) return "Zastavování";
@@ -471,6 +472,7 @@ inline const char *espdesktop_i18n_da(const char *text) {
   if (std::strcmp(text, "Active") == 0) return "Aktiv";
   if (std::strcmp(text, "Changing") == 0) return "Skifter";
   if (std::strcmp(text, "Reconnecting") == 0) return "Forbinder igen";
+  if (std::strcmp(text, "Replay Buffer") == 0) return "Genafspilningsbuffer";
   if (std::strcmp(text, "Start Replay Buffer") == 0) return "Start genafspilningsbuffer";
   if (std::strcmp(text, "Stopped") == 0) return "Stoppet";
   if (std::strcmp(text, "Stopping") == 0) return "Stopper";
@@ -766,6 +768,7 @@ inline const char *espdesktop_i18n_de(const char *text) {
   if (std::strcmp(text, "Active") == 0) return "Aktiv";
   if (std::strcmp(text, "Changing") == 0) return "Wird geändert";
   if (std::strcmp(text, "Reconnecting") == 0) return "Verbindet erneut";
+  if (std::strcmp(text, "Replay Buffer") == 0) return "Replay-Puffer";
   if (std::strcmp(text, "Start Replay Buffer") == 0) return "Replay-Puffer starten";
   if (std::strcmp(text, "Stopped") == 0) return "Gestoppt";
   if (std::strcmp(text, "Stopping") == 0) return "Wird gestoppt";
@@ -1075,6 +1078,7 @@ inline const char *espdesktop_i18n_es(const char *text) {
   if (std::strcmp(text, "Live") == 0) return "En directo";
   if (std::strcmp(text, "Changing") == 0) return "Cambiando";
   if (std::strcmp(text, "Reconnecting") == 0) return "Reconectando";
+  if (std::strcmp(text, "Replay Buffer") == 0) return "Búfer de repetición";
   if (std::strcmp(text, "Start Replay Buffer") == 0) return "Iniciar búfer de repetición";
   if (std::strcmp(text, "Stopped") == 0) return "Detenido";
   if (std::strcmp(text, "Stopping") == 0) return "Deteniendo";
@@ -1395,6 +1399,7 @@ inline const char *espdesktop_i18n_fi(const char *text) {
   if (std::strcmp(text, "Live") == 0) return "Suorana";
   if (std::strcmp(text, "Changing") == 0) return "Vaihtuu";
   if (std::strcmp(text, "Reconnecting") == 0) return "Yhdistetään uudelleen";
+  if (std::strcmp(text, "Replay Buffer") == 0) return "Toistopuskuri";
   if (std::strcmp(text, "Start Replay Buffer") == 0) return "Käynnistä toistopuskuri";
   if (std::strcmp(text, "Stopped") == 0) return "Pysäytetty";
   if (std::strcmp(text, "Stopping") == 0) return "Pysäytetään";
@@ -1697,6 +1702,7 @@ inline const char *espdesktop_i18n_fr(const char *text) {
   if (std::strcmp(text, "Live") == 0) return "En direct";
   if (std::strcmp(text, "Changing") == 0) return "En cours";
   if (std::strcmp(text, "Reconnecting") == 0) return "Reconnexion";
+  if (std::strcmp(text, "Replay Buffer") == 0) return "Tampon de replay";
   if (std::strcmp(text, "Start Replay Buffer") == 0) return "Démarrer le tampon de replay";
   if (std::strcmp(text, "Stopped") == 0) return "Arrêté";
   if (std::strcmp(text, "Stopping") == 0) return "Arrêt en cours";
@@ -2024,6 +2030,7 @@ inline const char *espdesktop_i18n_he(const char *text) {
   if (std::strcmp(text, "Live") == 0) return "בשידור חי";
   if (std::strcmp(text, "Changing") == 0) return "משתנה";
   if (std::strcmp(text, "Reconnecting") == 0) return "מתחבר מחדש";
+  if (std::strcmp(text, "Replay Buffer") == 0) return "מאגר שידור חוזר";
   if (std::strcmp(text, "Start Replay Buffer") == 0) return "הפעלת מאגר שידור חוזר";
   if (std::strcmp(text, "Stopped") == 0) return "הופסק";
   if (std::strcmp(text, "Stopping") == 0) return "מתבצעת עצירה";
@@ -2339,6 +2346,7 @@ inline const char *espdesktop_i18n_hu(const char *text) {
   if (std::strcmp(text, "Live") == 0) return "Élő";
   if (std::strcmp(text, "Changing") == 0) return "Változik";
   if (std::strcmp(text, "Reconnecting") == 0) return "Újracsatlakozás";
+  if (std::strcmp(text, "Replay Buffer") == 0) return "Visszajátszási puffer";
   if (std::strcmp(text, "Start Replay Buffer") == 0) return "Visszajátszási puffer indítása";
   if (std::strcmp(text, "Stopped") == 0) return "Leállítva";
   if (std::strcmp(text, "Stopping") == 0) return "Leállítás";
@@ -2650,6 +2658,7 @@ inline const char *espdesktop_i18n_it(const char *text) {
   if (std::strcmp(text, "Live") == 0) return "In diretta";
   if (std::strcmp(text, "Changing") == 0) return "In transizione";
   if (std::strcmp(text, "Reconnecting") == 0) return "Riconnessione";
+  if (std::strcmp(text, "Replay Buffer") == 0) return "Buffer di replay";
   if (std::strcmp(text, "Start Replay Buffer") == 0) return "Avvia buffer di replay";
   if (std::strcmp(text, "Stopped") == 0) return "Interrotto";
   if (std::strcmp(text, "Stopping") == 0) return "Arresto in corso";
@@ -2956,6 +2965,7 @@ inline const char *espdesktop_i18n_nb(const char *text) {
   if (std::strcmp(text, "Live") == 0) return "Direkte";
   if (std::strcmp(text, "Changing") == 0) return "Endrer";
   if (std::strcmp(text, "Reconnecting") == 0) return "Kobler til på nytt";
+  if (std::strcmp(text, "Replay Buffer") == 0) return "Repetisjonsbuffer";
   if (std::strcmp(text, "Start Replay Buffer") == 0) return "Start repetisjonsbuffer";
   if (std::strcmp(text, "Stopped") == 0) return "Stoppet";
   if (std::strcmp(text, "Stopping") == 0) return "Stopper";
@@ -3262,6 +3272,7 @@ inline const char *espdesktop_i18n_nl(const char *text) {
   if (std::strcmp(text, "Active") == 0) return "Actief";
   if (std::strcmp(text, "Changing") == 0) return "Bezig met wijzigen";
   if (std::strcmp(text, "Reconnecting") == 0) return "Opnieuw verbinden";
+  if (std::strcmp(text, "Replay Buffer") == 0) return "Replaybuffer";
   if (std::strcmp(text, "Start Replay Buffer") == 0) return "Replaybuffer starten";
   if (std::strcmp(text, "Stopped") == 0) return "Gestopt";
   if (std::strcmp(text, "Stopping") == 0) return "Bezig met stoppen";
@@ -3561,6 +3572,7 @@ inline const char *espdesktop_i18n_pl(const char *text) {
   if (std::strcmp(text, "Live") == 0) return "Na żywo";
   if (std::strcmp(text, "Changing") == 0) return "Zmiana stanu";
   if (std::strcmp(text, "Reconnecting") == 0) return "Ponowne łączenie";
+  if (std::strcmp(text, "Replay Buffer") == 0) return "Bufor powtórek";
   if (std::strcmp(text, "Start Replay Buffer") == 0) return "Uruchom bufor powtórek";
   if (std::strcmp(text, "Stopped") == 0) return "Zatrzymane";
   if (std::strcmp(text, "Stopping") == 0) return "Zatrzymywanie";
@@ -3869,6 +3881,7 @@ inline const char *espdesktop_i18n_pt_br(const char *text) {
   if (std::strcmp(text, "Live") == 0) return "Ao vivo";
   if (std::strcmp(text, "Changing") == 0) return "Alterando";
   if (std::strcmp(text, "Reconnecting") == 0) return "Reconectando";
+  if (std::strcmp(text, "Replay Buffer") == 0) return "Buffer de replay";
   if (std::strcmp(text, "Start Replay Buffer") == 0) return "Iniciar buffer de replay";
   if (std::strcmp(text, "Stopped") == 0) return "Parado";
   if (std::strcmp(text, "Stopping") == 0) return "Parando";
@@ -4175,6 +4188,7 @@ inline const char *espdesktop_i18n_pt(const char *text) {
   if (std::strcmp(text, "Live") == 0) return "Em direto";
   if (std::strcmp(text, "Changing") == 0) return "A mudar";
   if (std::strcmp(text, "Reconnecting") == 0) return "A voltar a ligar";
+  if (std::strcmp(text, "Replay Buffer") == 0) return "Memória de repetição";
   if (std::strcmp(text, "Start Replay Buffer") == 0) return "Iniciar memória de repetição";
   if (std::strcmp(text, "Stopped") == 0) return "Parado";
   if (std::strcmp(text, "Stopping") == 0) return "A parar";
@@ -4490,6 +4504,7 @@ inline const char *espdesktop_i18n_ro(const char *text) {
   if (std::strcmp(text, "Live") == 0) return "În direct";
   if (std::strcmp(text, "Changing") == 0) return "Se schimbă";
   if (std::strcmp(text, "Reconnecting") == 0) return "Reconectare";
+  if (std::strcmp(text, "Replay Buffer") == 0) return "Buffer de reluare";
   if (std::strcmp(text, "Start Replay Buffer") == 0) return "Pornește bufferul de reluare";
   if (std::strcmp(text, "Stopped") == 0) return "Oprit";
   if (std::strcmp(text, "Stopping") == 0) return "Se oprește";
@@ -4810,6 +4825,7 @@ inline const char *espdesktop_i18n_ru(const char *text) {
   if (std::strcmp(text, "Live") == 0) return "В эфире";
   if (std::strcmp(text, "Changing") == 0) return "Меняется";
   if (std::strcmp(text, "Reconnecting") == 0) return "Переподключение";
+  if (std::strcmp(text, "Replay Buffer") == 0) return "Буфер повтора";
   if (std::strcmp(text, "Start Replay Buffer") == 0) return "Запустить буфер повтора";
   if (std::strcmp(text, "Stopped") == 0) return "Остановлено";
   if (std::strcmp(text, "Stopping") == 0) return "Остановка";
@@ -5120,6 +5136,7 @@ inline const char *espdesktop_i18n_sk(const char *text) {
   if (std::strcmp(text, "Live") == 0) return "Naživo";
   if (std::strcmp(text, "Changing") == 0) return "Prebieha zmena";
   if (std::strcmp(text, "Reconnecting") == 0) return "Opätovné pripájanie";
+  if (std::strcmp(text, "Replay Buffer") == 0) return "Vyrovnávacia pamäť záznamu";
   if (std::strcmp(text, "Start Replay Buffer") == 0) return "Spustiť vyrovnávaciu pamäť záznamu";
   if (std::strcmp(text, "Stopped") == 0) return "Zastavené";
   if (std::strcmp(text, "Stopping") == 0) return "Zastavuje sa";
@@ -5430,6 +5447,7 @@ inline const char *espdesktop_i18n_sl(const char *text) {
   if (std::strcmp(text, "Live") == 0) return "V živo";
   if (std::strcmp(text, "Changing") == 0) return "Spreminjanje";
   if (std::strcmp(text, "Reconnecting") == 0) return "Ponovno povezovanje";
+  if (std::strcmp(text, "Replay Buffer") == 0) return "Medpomnilnik ponovitev";
   if (std::strcmp(text, "Start Replay Buffer") == 0) return "Zaženi medpomnilnik ponovitev";
   if (std::strcmp(text, "Stopped") == 0) return "Ustavljeno";
   if (std::strcmp(text, "Stopping") == 0) return "Ustavljanje";
@@ -5734,6 +5752,7 @@ inline const char *espdesktop_i18n_sv(const char *text) {
   if (std::strcmp(text, "Active") == 0) return "Aktiv";
   if (std::strcmp(text, "Changing") == 0) return "Ändras";
   if (std::strcmp(text, "Reconnecting") == 0) return "Återansluter";
+  if (std::strcmp(text, "Replay Buffer") == 0) return "Reprisbuffer";
   if (std::strcmp(text, "Start Replay Buffer") == 0) return "Starta reprisbuffer";
   if (std::strcmp(text, "Stopped") == 0) return "Stoppad";
   if (std::strcmp(text, "Stopping") == 0) return "Stoppar";
@@ -6044,6 +6063,7 @@ inline const char *espdesktop_i18n_tr(const char *text) {
   if (std::strcmp(text, "Live") == 0) return "Canlı";
   if (std::strcmp(text, "Changing") == 0) return "Değişiyor";
   if (std::strcmp(text, "Reconnecting") == 0) return "Yeniden bağlanıyor";
+  if (std::strcmp(text, "Replay Buffer") == 0) return "Tekrar tamponu";
   if (std::strcmp(text, "Start Replay Buffer") == 0) return "Tekrar tamponunu başlat";
   if (std::strcmp(text, "Stopped") == 0) return "Durduruldu";
   if (std::strcmp(text, "Stopping") == 0) return "Durduruluyor";
@@ -6362,6 +6382,7 @@ inline const char *espdesktop_i18n_uk(const char *text) {
   if (std::strcmp(text, "Live") == 0) return "Наживо";
   if (std::strcmp(text, "Changing") == 0) return "Змінюється";
   if (std::strcmp(text, "Reconnecting") == 0) return "Повторне підключення";
+  if (std::strcmp(text, "Replay Buffer") == 0) return "Буфер повтору";
   if (std::strcmp(text, "Start Replay Buffer") == 0) return "Запустити буфер повтору";
   if (std::strcmp(text, "Stopped") == 0) return "Зупинено";
   if (std::strcmp(text, "Stopping") == 0) return "Зупинення";
@@ -6686,6 +6707,7 @@ inline const char *espdesktop_i18n_key_en(const char *key) {
   if (std::strcmp(key, "live") == 0) return "Live";
   if (std::strcmp(key, "changing") == 0) return "Changing";
   if (std::strcmp(key, "reconnecting") == 0) return "Reconnecting";
+  if (std::strcmp(key, "replay_buffer") == 0) return "Replay Buffer";
   if (std::strcmp(key, "start_replay_buffer") == 0) return "Start Replay Buffer";
   if (std::strcmp(key, "stopped") == 0) return "Stopped";
   if (std::strcmp(key, "stopping") == 0) return "Stopping";
@@ -7027,6 +7049,7 @@ inline const char *espdesktop_i18n_key_cs(const char *key) {
   if (std::strcmp(key, "live") == 0) return "Živě";
   if (std::strcmp(key, "changing") == 0) return "Probíhá změna";
   if (std::strcmp(key, "reconnecting") == 0) return "Opětovné připojení";
+  if (std::strcmp(key, "replay_buffer") == 0) return "Vyrovnávací paměť záznamu";
   if (std::strcmp(key, "start_replay_buffer") == 0) return "Spustit vyrovnávací paměť záznamu";
   if (std::strcmp(key, "stopped") == 0) return "Zastaveno";
   if (std::strcmp(key, "stopping") == 0) return "Zastavování";
@@ -7341,6 +7364,7 @@ inline const char *espdesktop_i18n_key_da(const char *key) {
   if (std::strcmp(key, "active") == 0) return "Aktiv";
   if (std::strcmp(key, "changing") == 0) return "Skifter";
   if (std::strcmp(key, "reconnecting") == 0) return "Forbinder igen";
+  if (std::strcmp(key, "replay_buffer") == 0) return "Genafspilningsbuffer";
   if (std::strcmp(key, "start_replay_buffer") == 0) return "Start genafspilningsbuffer";
   if (std::strcmp(key, "stopped") == 0) return "Stoppet";
   if (std::strcmp(key, "stopping") == 0) return "Stopper";
@@ -7648,6 +7672,7 @@ inline const char *espdesktop_i18n_key_de(const char *key) {
   if (std::strcmp(key, "active") == 0) return "Aktiv";
   if (std::strcmp(key, "changing") == 0) return "Wird geändert";
   if (std::strcmp(key, "reconnecting") == 0) return "Verbindet erneut";
+  if (std::strcmp(key, "replay_buffer") == 0) return "Replay-Puffer";
   if (std::strcmp(key, "start_replay_buffer") == 0) return "Replay-Puffer starten";
   if (std::strcmp(key, "stopped") == 0) return "Gestoppt";
   if (std::strcmp(key, "stopping") == 0) return "Wird gestoppt";
@@ -7970,6 +7995,7 @@ inline const char *espdesktop_i18n_key_es(const char *key) {
   if (std::strcmp(key, "live") == 0) return "En directo";
   if (std::strcmp(key, "changing") == 0) return "Cambiando";
   if (std::strcmp(key, "reconnecting") == 0) return "Reconectando";
+  if (std::strcmp(key, "replay_buffer") == 0) return "Búfer de repetición";
   if (std::strcmp(key, "start_replay_buffer") == 0) return "Iniciar búfer de repetición";
   if (std::strcmp(key, "stopped") == 0) return "Detenido";
   if (std::strcmp(key, "stopping") == 0) return "Deteniendo";
@@ -8304,6 +8330,7 @@ inline const char *espdesktop_i18n_key_fi(const char *key) {
   if (std::strcmp(key, "live") == 0) return "Suorana";
   if (std::strcmp(key, "changing") == 0) return "Vaihtuu";
   if (std::strcmp(key, "reconnecting") == 0) return "Yhdistetään uudelleen";
+  if (std::strcmp(key, "replay_buffer") == 0) return "Toistopuskuri";
   if (std::strcmp(key, "start_replay_buffer") == 0) return "Käynnistä toistopuskuri";
   if (std::strcmp(key, "stopped") == 0) return "Pysäytetty";
   if (std::strcmp(key, "stopping") == 0) return "Pysäytetään";
@@ -8621,6 +8648,7 @@ inline const char *espdesktop_i18n_key_fr(const char *key) {
   if (std::strcmp(key, "live") == 0) return "En direct";
   if (std::strcmp(key, "changing") == 0) return "En cours";
   if (std::strcmp(key, "reconnecting") == 0) return "Reconnexion";
+  if (std::strcmp(key, "replay_buffer") == 0) return "Tampon de replay";
   if (std::strcmp(key, "start_replay_buffer") == 0) return "Démarrer le tampon de replay";
   if (std::strcmp(key, "stopped") == 0) return "Arrêté";
   if (std::strcmp(key, "stopping") == 0) return "Arrêt en cours";
@@ -8961,6 +8989,7 @@ inline const char *espdesktop_i18n_key_he(const char *key) {
   if (std::strcmp(key, "live") == 0) return "בשידור חי";
   if (std::strcmp(key, "changing") == 0) return "משתנה";
   if (std::strcmp(key, "reconnecting") == 0) return "מתחבר מחדש";
+  if (std::strcmp(key, "replay_buffer") == 0) return "מאגר שידור חוזר";
   if (std::strcmp(key, "start_replay_buffer") == 0) return "הפעלת מאגר שידור חוזר";
   if (std::strcmp(key, "stopped") == 0) return "הופסק";
   if (std::strcmp(key, "stopping") == 0) return "מתבצעת עצירה";
@@ -9291,6 +9320,7 @@ inline const char *espdesktop_i18n_key_hu(const char *key) {
   if (std::strcmp(key, "live") == 0) return "Élő";
   if (std::strcmp(key, "changing") == 0) return "Változik";
   if (std::strcmp(key, "reconnecting") == 0) return "Újracsatlakozás";
+  if (std::strcmp(key, "replay_buffer") == 0) return "Visszajátszási puffer";
   if (std::strcmp(key, "start_replay_buffer") == 0) return "Visszajátszási puffer indítása";
   if (std::strcmp(key, "stopped") == 0) return "Leállítva";
   if (std::strcmp(key, "stopping") == 0) return "Leállítás";
@@ -9617,6 +9647,7 @@ inline const char *espdesktop_i18n_key_it(const char *key) {
   if (std::strcmp(key, "live") == 0) return "In diretta";
   if (std::strcmp(key, "changing") == 0) return "In transizione";
   if (std::strcmp(key, "reconnecting") == 0) return "Riconnessione";
+  if (std::strcmp(key, "replay_buffer") == 0) return "Buffer di replay";
   if (std::strcmp(key, "start_replay_buffer") == 0) return "Avvia buffer di replay";
   if (std::strcmp(key, "stopped") == 0) return "Interrotto";
   if (std::strcmp(key, "stopping") == 0) return "Arresto in corso";
@@ -9937,6 +9968,7 @@ inline const char *espdesktop_i18n_key_nb(const char *key) {
   if (std::strcmp(key, "live") == 0) return "Direkte";
   if (std::strcmp(key, "changing") == 0) return "Endrer";
   if (std::strcmp(key, "reconnecting") == 0) return "Kobler til på nytt";
+  if (std::strcmp(key, "replay_buffer") == 0) return "Repetisjonsbuffer";
   if (std::strcmp(key, "start_replay_buffer") == 0) return "Start repetisjonsbuffer";
   if (std::strcmp(key, "stopped") == 0) return "Stoppet";
   if (std::strcmp(key, "stopping") == 0) return "Stopper";
@@ -10255,6 +10287,7 @@ inline const char *espdesktop_i18n_key_nl(const char *key) {
   if (std::strcmp(key, "active") == 0) return "Actief";
   if (std::strcmp(key, "changing") == 0) return "Bezig met wijzigen";
   if (std::strcmp(key, "reconnecting") == 0) return "Opnieuw verbinden";
+  if (std::strcmp(key, "replay_buffer") == 0) return "Replaybuffer";
   if (std::strcmp(key, "start_replay_buffer") == 0) return "Replaybuffer starten";
   if (std::strcmp(key, "stopped") == 0) return "Gestopt";
   if (std::strcmp(key, "stopping") == 0) return "Bezig met stoppen";
@@ -10566,6 +10599,7 @@ inline const char *espdesktop_i18n_key_pl(const char *key) {
   if (std::strcmp(key, "live") == 0) return "Na żywo";
   if (std::strcmp(key, "changing") == 0) return "Zmiana stanu";
   if (std::strcmp(key, "reconnecting") == 0) return "Ponowne łączenie";
+  if (std::strcmp(key, "replay_buffer") == 0) return "Bufor powtórek";
   if (std::strcmp(key, "start_replay_buffer") == 0) return "Uruchom bufor powtórek";
   if (std::strcmp(key, "stopped") == 0) return "Zatrzymane";
   if (std::strcmp(key, "stopping") == 0) return "Zatrzymywanie";
@@ -10889,6 +10923,7 @@ inline const char *espdesktop_i18n_key_pt_br(const char *key) {
   if (std::strcmp(key, "live") == 0) return "Ao vivo";
   if (std::strcmp(key, "changing") == 0) return "Alterando";
   if (std::strcmp(key, "reconnecting") == 0) return "Reconectando";
+  if (std::strcmp(key, "replay_buffer") == 0) return "Buffer de replay";
   if (std::strcmp(key, "start_replay_buffer") == 0) return "Iniciar buffer de replay";
   if (std::strcmp(key, "stopped") == 0) return "Parado";
   if (std::strcmp(key, "stopping") == 0) return "Parando";
@@ -11209,6 +11244,7 @@ inline const char *espdesktop_i18n_key_pt(const char *key) {
   if (std::strcmp(key, "live") == 0) return "Em direto";
   if (std::strcmp(key, "changing") == 0) return "A mudar";
   if (std::strcmp(key, "reconnecting") == 0) return "A voltar a ligar";
+  if (std::strcmp(key, "replay_buffer") == 0) return "Memória de repetição";
   if (std::strcmp(key, "start_replay_buffer") == 0) return "Iniciar memória de repetição";
   if (std::strcmp(key, "stopped") == 0) return "Parado";
   if (std::strcmp(key, "stopping") == 0) return "A parar";
@@ -11538,6 +11574,7 @@ inline const char *espdesktop_i18n_key_ro(const char *key) {
   if (std::strcmp(key, "live") == 0) return "În direct";
   if (std::strcmp(key, "changing") == 0) return "Se schimbă";
   if (std::strcmp(key, "reconnecting") == 0) return "Reconectare";
+  if (std::strcmp(key, "replay_buffer") == 0) return "Buffer de reluare";
   if (std::strcmp(key, "start_replay_buffer") == 0) return "Pornește bufferul de reluare";
   if (std::strcmp(key, "stopped") == 0) return "Oprit";
   if (std::strcmp(key, "stopping") == 0) return "Se oprește";
@@ -11873,6 +11910,7 @@ inline const char *espdesktop_i18n_key_ru(const char *key) {
   if (std::strcmp(key, "live") == 0) return "В эфире";
   if (std::strcmp(key, "changing") == 0) return "Меняется";
   if (std::strcmp(key, "reconnecting") == 0) return "Переподключение";
+  if (std::strcmp(key, "replay_buffer") == 0) return "Буфер повтора";
   if (std::strcmp(key, "start_replay_buffer") == 0) return "Запустить буфер повтора";
   if (std::strcmp(key, "stopped") == 0) return "Остановлено";
   if (std::strcmp(key, "stopping") == 0) return "Остановка";
@@ -12198,6 +12236,7 @@ inline const char *espdesktop_i18n_key_sk(const char *key) {
   if (std::strcmp(key, "live") == 0) return "Naživo";
   if (std::strcmp(key, "changing") == 0) return "Prebieha zmena";
   if (std::strcmp(key, "reconnecting") == 0) return "Opätovné pripájanie";
+  if (std::strcmp(key, "replay_buffer") == 0) return "Vyrovnávacia pamäť záznamu";
   if (std::strcmp(key, "start_replay_buffer") == 0) return "Spustiť vyrovnávaciu pamäť záznamu";
   if (std::strcmp(key, "stopped") == 0) return "Zastavené";
   if (std::strcmp(key, "stopping") == 0) return "Zastavuje sa";
@@ -12523,6 +12562,7 @@ inline const char *espdesktop_i18n_key_sl(const char *key) {
   if (std::strcmp(key, "live") == 0) return "V živo";
   if (std::strcmp(key, "changing") == 0) return "Spreminjanje";
   if (std::strcmp(key, "reconnecting") == 0) return "Ponovno povezovanje";
+  if (std::strcmp(key, "replay_buffer") == 0) return "Medpomnilnik ponovitev";
   if (std::strcmp(key, "start_replay_buffer") == 0) return "Zaženi medpomnilnik ponovitev";
   if (std::strcmp(key, "stopped") == 0) return "Ustavljeno";
   if (std::strcmp(key, "stopping") == 0) return "Ustavljanje";
@@ -12842,6 +12882,7 @@ inline const char *espdesktop_i18n_key_sv(const char *key) {
   if (std::strcmp(key, "active") == 0) return "Aktiv";
   if (std::strcmp(key, "changing") == 0) return "Ändras";
   if (std::strcmp(key, "reconnecting") == 0) return "Återansluter";
+  if (std::strcmp(key, "replay_buffer") == 0) return "Reprisbuffer";
   if (std::strcmp(key, "start_replay_buffer") == 0) return "Starta reprisbuffer";
   if (std::strcmp(key, "stopped") == 0) return "Stoppad";
   if (std::strcmp(key, "stopping") == 0) return "Stoppar";
@@ -13165,6 +13206,7 @@ inline const char *espdesktop_i18n_key_tr(const char *key) {
   if (std::strcmp(key, "live") == 0) return "Canlı";
   if (std::strcmp(key, "changing") == 0) return "Değişiyor";
   if (std::strcmp(key, "reconnecting") == 0) return "Yeniden bağlanıyor";
+  if (std::strcmp(key, "replay_buffer") == 0) return "Tekrar tamponu";
   if (std::strcmp(key, "start_replay_buffer") == 0) return "Tekrar tamponunu başlat";
   if (std::strcmp(key, "stopped") == 0) return "Durduruldu";
   if (std::strcmp(key, "stopping") == 0) return "Durduruluyor";
@@ -13498,6 +13540,7 @@ inline const char *espdesktop_i18n_key_uk(const char *key) {
   if (std::strcmp(key, "live") == 0) return "Наживо";
   if (std::strcmp(key, "changing") == 0) return "Змінюється";
   if (std::strcmp(key, "reconnecting") == 0) return "Повторне підключення";
+  if (std::strcmp(key, "replay_buffer") == 0) return "Буфер повтору";
   if (std::strcmp(key, "start_replay_buffer") == 0) return "Запустити буфер повтору";
   if (std::strcmp(key, "stopped") == 0) return "Зупинено";
   if (std::strcmp(key, "stopping") == 0) return "Зупинення";

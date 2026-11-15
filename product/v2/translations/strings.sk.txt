@@ -173,6 +173,7 @@ active=Aktívne
 live=Naživo
 changing=Prebieha zmena
 reconnecting=Opätovné pripájanie
+replay_buffer=Vyrovnávacia pamäť záznamu
 start_replay_buffer=Spustiť vyrovnávaciu pamäť záznamu
 stopped=Zastavené
 stopping=Zastavuje sa

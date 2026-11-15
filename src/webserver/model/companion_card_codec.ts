@@ -15,6 +15,7 @@ export const OBS_STUDIO_ID = "obs.studio";
 export const OBS_TRANSITION_ID = "obs.transition";
 export const OBS_PROGRAM_ID = "obs.status.program";
 export const OBS_REPLAY_ID = "obs.replay";
+export const OBS_REPLAY_BUFFER_ID = "obs.replay.buffer";
 export const OBS_OUTPUT_OPTIONS = [
   ["obs.output.stream", "Streaming"],
   ["obs.output.record", "Recording"],
@@ -44,6 +45,7 @@ export function companionSavedCardMode(config: Partial<CardConfig>): CompanionCa
   if (entity === OBS_STUDIO_ID) return "obs_studio";
   if (entity === OBS_TRANSITION_ID) return "obs_transition";
   if (entity === OBS_REPLAY_ID) return "obs_replay";
+  if (entity === OBS_REPLAY_BUFFER_ID) return "obs_replay_buffer";
   if (OBS_OUTPUT_OPTIONS.some(([id]) => entity === id)) return "obs_output";
   if (entity === OBS_PROGRAM_ID || OBS_STATUS_OPTIONS.some(([id]) => entity === id)) return "obs_status";
   if (entity.startsWith("obs.mute.")) return "obs_mic";
@@ -68,6 +70,7 @@ export function decodeCompanionCard(config: Partial<CardConfig>, mode = companio
     case "obs_output":
     case "obs_brb":
     case "obs_replay":
+    case "obs_replay_buffer":
     case "obs_status":
     case "obs_take":
     case "obs_transition":
@@ -90,6 +93,7 @@ export function encodeCompanionCard(model: CompanionCardModel, original: CardCon
     case "obs_output":
     case "obs_brb":
     case "obs_replay":
+    case "obs_replay_buffer":
     case "obs_status":
     case "obs_take":
     case "obs_transition":

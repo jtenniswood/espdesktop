@@ -173,6 +173,7 @@ active=Aktiv
 live=Direkte
 changing=Endrer
 reconnecting=Kobler til på nytt
+replay_buffer=Repetisjonsbuffer
 start_replay_buffer=Start repetisjonsbuffer
 stopped=Stoppet
 stopping=Stopper

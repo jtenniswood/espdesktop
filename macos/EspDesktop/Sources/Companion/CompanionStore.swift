@@ -929,6 +929,9 @@ final class CompanionStore: NSObject, ObservableObject {
         if let token = OBSConnection.controlToken(actionIdentifier, for: OBSConnection.transitionID) {
             return await obs.cycleTransition(token: token, isValid: canSend)
         }
+        if let token = OBSConnection.controlToken(actionIdentifier, for: OBSConnection.replayBufferID) {
+            return await obs.toggleReplayBuffer(token: token, isValid: canSend)
+        }
         guard let (output, token) = OBSConnection.Output.command(actionIdentifier) else { return false }
         return await obs.performOutput(output, token: token, isValid: canSend)
     }

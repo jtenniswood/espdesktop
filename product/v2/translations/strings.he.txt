@@ -173,6 +173,7 @@ active=פעיל
 live=בשידור חי
 changing=משתנה
 reconnecting=מתחבר מחדש
+replay_buffer=מאגר שידור חוזר
 start_replay_buffer=הפעלת מאגר שידור חוזר
 stopped=הופסק
 stopping=מתבצעת עצירה

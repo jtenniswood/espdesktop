@@ -4446,7 +4446,7 @@ async function assertOBSSceneCard(browser) {
   const testCase = CASES.find(item => item.slug === "guition-esp32-s3-4848s040");
   const fixture = nativeConfigState(testCase.slug);
   fixture.document.buttons = {
-    1: "com.apple.Safari;Safari;Monitor;Auto;;;companion",
+    1: "obs.replay.buffer;;Repeat;Auto;;;companion",
     2: "obs.status.program;;Monitor;Auto;;;companion",
   };
   fixture.document.settings.button_order = "1,2";
@@ -4457,6 +4457,7 @@ async function assertOBSSceneCard(browser) {
   const fader = "obs.level.69da3f8f-7f62-4abe-a594-4e40dd579858";
   let connectedToOBS = true;
   let studioModeOn = false;
+  let replayBufferOn = false;
   let transitionName = "Fade";
   await context.route("**/companion/actions", route => route.fulfill({
     json: connectedToOBS ? [
@@ -4466,6 +4467,8 @@ async function assertOBSSceneCard(browser) {
       { id: "obs.take.9ea47782-fada-4bb3-aef6-1904669efae7", label: "Take Live · Setup" },
       { id: "obs.studio.9ea47782-fada-4bb3-aef6-1904669efae7", label: studioModeOn ? "On" : "Off" },
       { id: "obs.transition.9ea47782-fada-4bb3-aef6-1904669efae7", label: transitionName },
+      { id: "obs.replay.buffer.9ea47782-fada-4bb3-aef6-1904669efae7", label: replayBufferOn ? "On" : "Off" },
+      ...(replayBufferOn ? [{ id: "obs.replay", label: "Save Replay" }] : []),
       { id: "obs.status.record", label: "Recording · Idle" },
       { id: "obs.status.program", label: "Program · Gameplay" },
     ] : [],
@@ -4478,6 +4481,7 @@ async function assertOBSSceneCard(browser) {
     await page.getByRole("tab", { name: "Layout", exact: true }).click();
     await seedNativeDocument(page, fixture);
     const studioPicker = page.locator("select[id$='obs-studio']");
+    const replayBufferTile = page.locator('.sp-main [data-slot="1"]');
     const programTile = page.locator('.sp-main [data-slot="2"]');
     await programTile.getByText("Program", { exact: true }).waitFor();
     await programTile.click();
@@ -4493,7 +4497,7 @@ async function assertOBSSceneCard(browser) {
     assert.equal(await obsCards.count(), 0, "individual OBS cards are absent from the top level");
     await obsGroup.click();
     assert.deepEqual((await obsCards.evaluateAll(cards => cards.map(card => card.getAttribute("aria-label")))).sort(),
-      ["OBS BRB", "OBS Input Cough", "OBS Input Level", "OBS Input Mute", "OBS Output Control",
+      ["OBS BRB", "OBS Input Cough", "OBS Input Level", "OBS Input Mute", "OBS Output Control", "OBS Replay Buffer",
         "OBS Save Replay", "OBS Scene", "OBS Status", "Studio Mode"]
         .map(label => label + " card type"));
     assert.equal(await page.getByRole("button", { name: "Sound card type", exact: true }).count(), 0);
@@ -4503,6 +4507,9 @@ async function assertOBSSceneCard(browser) {
     const picker = page.locator("select[id$='obs-scene']");
     await picker.getByRole("option", { name: "Program · Gameplay" }).waitFor({ state: "attached" });
     await programTile.getByText("Gameplay", { exact: true }).waitFor();
+    await replayBufferTile.getByText("Replay Buffer", { exact: true }).waitFor();
+    await replayBufferTile.getByText("Off", { exact: true }).waitFor();
+    const replayBufferOff = await replayBufferTile.evaluate(tile => tile.style.backgroundColor);
     await picker.selectOption(id);
     await page.getByRole("button", { name: "Save", exact: true }).click();
     await waitForNativeState(fixture, () => fixture.document.buttons[3]?.startsWith(id + ";"),
@@ -4578,10 +4585,13 @@ async function assertOBSSceneCard(browser) {
     await studioTile.getByText("Off", { exact: true }).waitFor();
     const studioOff = await studioTile.evaluate(tile => tile.style.backgroundColor);
     studioModeOn = true;
+    replayBufferOn = true;
     await page.locator('.sp-main [data-slot="3"]').click();
     await page.getByRole("button", { name: "Edit", exact: true }).click();
     await studioTile.getByText("On", { exact: true }).waitFor();
     assert.notEqual(await studioTile.evaluate(tile => tile.style.backgroundColor), studioOff);
+    await replayBufferTile.getByText("On", { exact: true }).waitFor();
+    assert.notEqual(await replayBufferTile.evaluate(tile => tile.style.backgroundColor), replayBufferOff);
     await page.locator(".sp-settings-overlay.sp-visible .sp-settings-close").click();
     await studioTile.click();
     await page.getByRole("button", { name: "Edit", exact: true }).click();
@@ -4605,6 +4615,8 @@ async function assertOBSSceneCard(browser) {
     await page.getByRole("button", { name: "Edit", exact: true }).click();
     await picker.getByRole("option", { name: "Saved scene (unavailable)" }).waitFor({ state: "attached" });
     assert.equal(await picker.inputValue(), id);
+    await replayBufferTile.getByText("Unavailable", { exact: true }).waitFor();
+    assert.equal(await replayBufferTile.evaluate(tile => tile.style.backgroundColor), replayBufferOff);
     console.log("OBS scene, microphone, Take Live, status, replay, and fader card checks passed.");
   } finally {
     await context.close();
@@ -7902,9 +7914,9 @@ async function assertOBSStarterPage(browser) {
     await mainTile.click({ button: "right" });
     await page.getByText("Edit Card", { exact: true }).click();
     await scene.locator(`option[value="obs.target.${main}"]`).waitFor({ state: "attached" });
-    await page.locator('.sp-main [data-slot="3"].sp-obs-program > .sp-card-outline').waitFor();
+    await page.locator('.sp-main [data-slot="3"].sp-obs-program-preview .sp-obs-outline-gap').waitFor();
     assert.equal(await mainTile.evaluate(card => card.classList.contains("sp-obs-program")), false);
-    assert.equal(await breakTile.evaluate(card => getComputedStyle(card).backgroundColor), colors[1]);
+    assert.equal(await breakTile.evaluate(card => getComputedStyle(card).backgroundColor), colors[0]);
     await closeSettings.click();
     await page.locator(".sp-back-btn .sp-back-hit").click();
     await recordTile.getByText("Recording", { exact: true }).waitFor();

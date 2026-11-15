@@ -173,6 +173,7 @@ active=Aktivno
 live=V živo
 changing=Spreminjanje
 reconnecting=Ponovno povezovanje
+replay_buffer=Medpomnilnik ponovitev
 start_replay_buffer=Zaženi medpomnilnik ponovitev
 stopped=Ustavljeno
 stopping=Ustavljanje

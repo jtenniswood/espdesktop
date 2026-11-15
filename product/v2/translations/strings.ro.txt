@@ -173,6 +173,7 @@ active=Activă
 live=În direct
 changing=Se schimbă
 reconnecting=Reconectare
+replay_buffer=Buffer de reluare
 start_replay_buffer=Pornește bufferul de reluare
 stopped=Oprit
 stopping=Se oprește

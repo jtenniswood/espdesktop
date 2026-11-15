@@ -540,6 +540,8 @@ export function createPreviewRenderFeature(dependencies: PreviewRenderDependenci
                     (typePreview?.sensorSurface ? previewColors.surfaceSensor : color);
                 btn.style.backgroundColor = "#" + contrastBackground;
                 btn.style.setProperty("--card-active-color", "#" + (cardOnColor || state.onColor || WEB_UI_COLORS.primary));
+                if (btn.classList.contains("sp-obs-program-preview"))
+                    btn.style.setProperty("--obs-outline-gap-color", "#" + (cardOffColor || color));
                 var activeMode: any = configOptionValue(b.options, "card_active_color");
                 var customActive: any = configOptionValue(b.options, "card_on_color").replace(/^#/, "");
                 var explicitActive: any = activeMode === "theme" || (activeMode === "custom" && /^[0-9A-F]{6}$/i.test(customActive));
