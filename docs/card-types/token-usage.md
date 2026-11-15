@@ -12,4 +12,4 @@ Show a weekly or monthly allowance on a paired display. Each card shows one serv
 
 The Mac app automatically refreshes usage in the background every few minutes when a compatible display is connected. The provider apps can be closed. EspDesktop must be running on your Mac. The panel hides the reset countdown when the reading is stale or the reset time is unknown. It shows **Unavailable** until it has a reading for the selected limit.
 
-New ChatGPT, Claude, and Cursor app shortcut pages place the matching Token Usage card just after Back. To add it to an existing page, open the app card’s settings and save. If the layout has no room before its shortcuts, you can add or move the card in the subpage editor.
+New ChatGPT, Claude, Cursor, OpenCode, and Antigravity app subpages list Token Usage as included and place the card just after Back. To add it to an existing page, open the app card’s settings and save. If the layout has no room before its shortcuts, you can add or move the card in the subpage editor.

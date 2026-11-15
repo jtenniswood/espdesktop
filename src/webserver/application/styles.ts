@@ -531,6 +531,8 @@ export function createWebStyles(dragAnimation: boolean): string {
         ".sp-light-tab-row{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;" +
         "gap:10px;min-height:42px;padding:5px 0}" +
         ".sp-light-tab-row:has(~.sp-light-tab-row:not([hidden])){border-bottom:1px solid rgba(255,255,255,.08)}" +
+        ".sp-light-tab-row.sp-app-subpage-included{grid-template-columns:minmax(0,1fr) auto}" +
+        ".sp-app-subpage-included>span:last-child{opacity:.65}" +
         ".sp-light-tab-row.sp-dragging{opacity:.55}" +
         ".sp-light-tab-controls{display:inline-flex;align-items:center;gap:2px;color:var(--text3)}" +
         ".sp-light-tab-drag,.sp-light-tab-move{width:28px;height:28px;border:0;background:transparent;" +

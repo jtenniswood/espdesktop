@@ -294,8 +294,9 @@ export function createConfigModalTabOptionsFeature(
         var list: any = dependencies.document.createElement("div");
         list.className = "sp-light-tab-list";
         section.appendChild(list);
+        if (config.includedRow) list.appendChild(config.includedRow);
         function listRows(this: any) {
-            return Array.prototype.slice.call(list.querySelectorAll(".sp-light-tab-row"));
+            return Array.prototype.slice.call(list.querySelectorAll(".sp-light-tab-row[data-tab]"));
         }
         function saveTabsFromRows(this: any) {
             var nextTabs: any = [];

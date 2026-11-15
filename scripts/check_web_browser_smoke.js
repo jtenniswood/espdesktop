@@ -4946,6 +4946,57 @@ async function assertCompanionURLOpenBehavior(browser, testCase) {
   }
 }
 
+async function assertAutomaticAppTokenUsage(browser, testCase) {
+  if (testCase.slug !== "guition-esp32-s3-4848s040") return;
+  const fixture = nativeConfigState(testCase.slug);
+  const apps = [
+    ["com.openai.codex", "ChatGPT", "TU", true],
+    ["ai.opencode.desktop", "OpenCode", "services=opencode-go", true],
+    ["com.google.antigravity", "Antigravity", "services=antigravity", true],
+    ["com.apple.Safari", "Safari", "", false],
+  ];
+  fixture.document.buttons = Object.fromEntries(apps.map(([id, name], index) =>
+    [index + 1, id + ";" + name + ";Auto;Auto;;;companion"]));
+  fixture.document.settings.button_order = "1,2,3,4";
+  fixture.document.subpages = {};
+  const context = await browser.newContext({ viewport: testCase.viewport });
+  await installRoutes(context, testCase.slug, { nativeState: fixture });
+  const page = await context.newPage();
+  await installFakeEventSource(page);
+  try {
+    await page.goto(`http://espdesktop.test/${testCase.slug}?events=1`, { waitUntil: "domcontentloaded" });
+    await page.waitForFunction(() => window.__eventSources?.length > 0);
+    await seedNativeDocument(page, fixture);
+    for (const [index, [, name, service, expectUsage]] of apps.entries()) {
+      const slot = index + 1;
+      await page.locator(`.sp-main [data-slot="${slot}"]`).click();
+      await page.getByRole("button", { name: "Edit", exact: true }).click();
+      const app = page.locator(".sp-settings-modal .sp-app-subpage-settings");
+      const header = app.locator(".sp-disclosure-button");
+      if (await header.getAttribute("aria-expanded") !== "true") await header.click();
+      const toggle = app.locator('input[id$="companion-app-shortcuts"]');
+      await toggle.evaluate(input => input.click());
+      const included = app.locator(".sp-app-subpage-included");
+      if (expectUsage) {
+        await included.waitFor();
+        assert.equal((await included.innerText()).replace(/\s+/g, " "), "Token Usage Included");
+        assert.equal(await app.locator(".sp-light-tab-list > :first-child").getAttribute("class"),
+          "sp-light-tab-row sp-app-subpage-included", name);
+      } else {
+        assert.equal(await included.count(), 0, name);
+      }
+      await page.getByRole("button", { name: "Save", exact: true }).click();
+      await waitForNativeState(fixture, () => !!fixture.document.subpages[slot], name + " subpage saves");
+      const [order, first] = decodeURIComponent(fixture.document.subpages[slot]).split("|");
+      assert(order.startsWith("~B,1"), name);
+      assert.equal(first.split(",")[0] === "TU", expectUsage, name);
+      if (expectUsage) assert(first.includes(service), name);
+    }
+  } finally {
+    await context.close();
+  }
+}
+
 async function assertAppSubpageCapacity(browser, testCase) {
   if (testCase.slug !== "guition-esp32-s3-4848s040") return;
   const shortcuts = loadTypeScriptModule("src/webserver/application/companion_shortcut_folder.ts");
@@ -7862,6 +7913,7 @@ async function assertFirstRunSetup(browser) {
       const testCase = CASES.find(item => item.slug === "guition-esp32-s3-4848s040");
       await assertCompanionURLOpenBehavior(browser, testCase);
       await assertCompanionShortcutSettings(browser, testCase);
+      await assertAutomaticAppTokenUsage(browser, testCase);
       await assertAppSubpageCapacity(browser, testCase);
       await assertShortcutCatalogSettings(browser, testCase);
       await assertCompanionStorageSettings(browser, testCase);
@@ -8045,6 +8097,7 @@ async function assertFirstRunSetup(browser) {
       await assertGlobalIconSize(browser, testCase);
       await assertCompanionURLOpenBehavior(browser, testCase);
       await assertCompanionShortcutSettings(browser, testCase);
+      await assertAutomaticAppTokenUsage(browser, testCase);
       await assertAppSubpageCapacity(browser, testCase);
       await assertShortcutCatalogSettings(browser, testCase);
       await assertCompanionStorageSettings(browser, testCase);

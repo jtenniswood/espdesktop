@@ -118,7 +118,7 @@ export interface CompanionShortcutTabDefinition {
 export function companionShortcutFolderAppLabel(bundleIdentifier: unknown): string {
     if (bundleIdentifier === "com.apple.finder") return "Finder";
     if (typeof bundleIdentifier !== "string") return "";
-    return companionShortcutApp(bundleIdentifier)?.label || "";
+    return companionShortcutApp(bundleIdentifier)?.label || (isAntigravityApp(bundleIdentifier) ? "Google Antigravity" : "");
 }
 
 function companionShortcutApp(bundleIdentifier: string): AppShortcutApplication | undefined {
@@ -471,10 +471,16 @@ export function companionShortcutPresetCards(bundleIdentifier: string): Companio
     }));
 }
 
-type AppTokenUsageService = "codex" | "claude" | "cursor";
+type AppTokenUsageService = "codex" | "claude" | "cursor" | "opencode-go" | "antigravity";
 
-function appTokenUsageService(bundleIdentifier: string): AppTokenUsageService | undefined {
+function isAntigravityApp(bundleIdentifier: string): boolean {
+    return bundleIdentifier === "com.google.antigravity" || bundleIdentifier === "com.google.antigravity-ide";
+}
+
+export function appTokenUsageService(bundleIdentifier: string): AppTokenUsageService | undefined {
     if (bundleIdentifier === "com.todesktop.230313mzl4w4u92") return "cursor";
+    if (bundleIdentifier === "ai.opencode.desktop") return "opencode-go";
+    if (isAntigravityApp(bundleIdentifier)) return "antigravity";
     if (bundleIdentifier === CLAUDE_DESKTOP_BUNDLE_ID) return "claude";
     if (bundleIdentifier === CODEX_BUNDLE_ID || bundleIdentifier === "com.openai.chat") return "codex";
 }
@@ -483,10 +489,14 @@ function appTokenUsageCard(service: AppTokenUsageService) {
     return { ...cardContractDefaultConfig("token_usage"), options: service === "codex" ? "" : "services=" + service };
 }
 
+export function subpageHasAppTokenUsage(page: any, service: AppTokenUsageService): boolean {
+    return page?.buttons?.some((card: any) => card.type === "token_usage" &&
+        (configOptionValue(card.options, "services") || "codex") === service) ?? false;
+}
+
 export function addAppTokenUsageCard(bundleIdentifier: string, page: any, maxSlots: number): boolean {
     const service = appTokenUsageService(bundleIdentifier);
-    if (!service || page.buttons.some((card: any) => card.type === "token_usage" &&
-        (configOptionValue(card.options, "services") || "codex") === service)) return false;
+    if (!service || subpageHasAppTokenUsage(page, service)) return false;
 
     const order = [...page.order];
     if (!order.some(isBackOrderToken)) order.unshift("B");

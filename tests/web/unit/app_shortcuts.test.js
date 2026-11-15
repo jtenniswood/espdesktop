@@ -272,7 +272,7 @@ test("every packed offline shortcut preserves the authored ID, keys, icon and la
     } else {
       assert(app.defaultShortcutIds?.length <= 8, filename);
       assert.deepEqual(defaults, app.defaultShortcutIds, filename);
-      const usageSlots = ["com.openai.codex", "com.openai.chat", "com.anthropic.claudefordesktop", "com.todesktop.230313mzl4w4u92"].includes(app.appId) ? 1 : 0;
+      const usageSlots = ["com.openai.codex", "com.openai.chat", "com.anthropic.claudefordesktop", "com.todesktop.230313mzl4w4u92", "ai.opencode.desktop"].includes(app.appId) ? 1 : 0;
       assert.equal(createCompanionShortcutSubpage(app.appId).buttons.length, defaults.length + usageSlots, filename);
     }
   }

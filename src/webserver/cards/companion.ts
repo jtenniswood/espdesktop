@@ -57,6 +57,8 @@ import {
     syncFinderFolderSelection,
     createCompanionShortcutSubpage,
     addAppTokenUsageCard,
+    appTokenUsageService,
+    subpageHasAppTokenUsage,
     normalizeCompanionCardOptions,
     normalizeCompanionAppShortcutOptions,
     resetCompanionShortcutTabs,
@@ -538,21 +540,35 @@ export function registerCompanionCardTypes(
         helpers: { idPrefix: string; saveField: (field: string, value: unknown) => void }, showAll = false): void {
         const savedShortcutSubpage = state.subpages[page];
         const savedParent = previewSubpageOwner(page, state.buttons, key => state.subpages[key]);
-        if (savedShortcutSubpage &&
-            companionShortcutSelectionMatchesSavedParent(card, savedParent) &&
-            card._appShortcutSelectionChanged !== true) {
+        const matchesSavedParent = companionShortcutSelectionMatchesSavedParent(card, savedParent);
+        if (savedShortcutSubpage && matchesSavedParent && card._appShortcutSelectionChanged !== true) {
             setCompanionShortcutTabs(
                 card,
                 companionShortcutTabsFromSubpage(card.entity, savedShortcutSubpage),
             );
         }
+        const service = appTokenUsageService(card.entity);
+        const showUsage = service && (!savedShortcutSubpage || !matchesSavedParent ||
+            subpageHasAppTokenUsage(savedShortcutSubpage, service));
+        let includedRow: HTMLElement | undefined;
+        if (showUsage) {
+            includedRow = document.createElement("div");
+            includedRow.className = "sp-light-tab-row sp-app-subpage-included";
+            const name = document.createElement("span");
+            name.className = "sp-light-tab-label";
+            name.textContent = "Token Usage";
+            const status = document.createElement("span");
+            status.textContent = "Included";
+            includedRow.append(name, status);
+        }
         modalTabs.renderModalTabSettings(panel, card, helpers, {
             definitions: function () { return companionShortcutTabDefinitions(card.entity); },
+            includedRow,
             searchPlaceholder: "Find a shortcut…",
             showAll,
             dragOnly: true,
             tabs: (button: any) => companionShortcutTabsForCapacity(
-                companionShortcutTabs(button), maxSlots, savedShortcutSubpage ? undefined : button.entity,
+                companionShortcutTabs(button), maxSlots, savedShortcutSubpage && matchesSavedParent ? undefined : button.entity,
             ),
             normalizeOptions: function (options: string) {
                 return normalizeCompanionAppShortcutOptions({ ...card, options });
@@ -560,7 +576,7 @@ export function registerCompanionCardTypes(
             setTabs: function (button: any, tabs: string[]) {
                 const candidate = reconnectAthenaShortcutSubpage(
                     savedShortcutSubpage ?? undefined, savedParent?.entity, button.entity,
-                ) ?? savedShortcutSubpage;
+                ) ?? (matchesSavedParent ? savedShortcutSubpage : undefined);
                 if (!companionShortcutTabsFitSubpage(button.entity, tabs, candidate, maxSlots)) {
                     button._appShortcutCapacityRejected = true;
                     return false;
