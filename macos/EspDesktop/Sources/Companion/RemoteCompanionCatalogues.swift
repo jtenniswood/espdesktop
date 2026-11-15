@@ -97,8 +97,24 @@ func decodeBundledCatalogueEntries<T: Decodable>(
 struct RemoteCompanionCatalogues: Codable, Sendable, Equatable {
     var version: Int
     var applications: [RemoteMacApplicationDefinition]
-    var webApplications: [RemoteWebApplicationDefinition] = []
+    var webApplications: [RemoteWebApplicationDefinition]
     var webVersion: Int?
+
+    init(version: Int, applications: [RemoteMacApplicationDefinition],
+         webApplications: [RemoteWebApplicationDefinition] = [], webVersion: Int? = nil) {
+        self.version = version
+        self.applications = applications
+        self.webApplications = webApplications
+        self.webVersion = webVersion
+    }
+
+    init(from decoder: Decoder) throws {
+        let values = try decoder.container(keyedBy: CodingKeys.self)
+        version = try values.decode(Int.self, forKey: .version)
+        applications = try values.decode([RemoteMacApplicationDefinition].self, forKey: .applications)
+        webApplications = try values.decodeIfPresent([RemoteWebApplicationDefinition].self, forKey: .webApplications) ?? []
+        webVersion = try values.decodeIfPresent(Int.self, forKey: .webVersion)
+    }
 
     static let empty = RemoteCompanionCatalogues(version: 1, applications: [], webApplications: [])
 

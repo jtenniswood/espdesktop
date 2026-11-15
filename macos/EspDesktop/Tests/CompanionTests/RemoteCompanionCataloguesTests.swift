@@ -3,6 +3,25 @@ import XCTest
 @testable import Companion
 
 final class RemoteCompanionCataloguesTests: XCTestCase {
+
+    @MainActor
+    func testNativeOnlyCacheSurvivesUpgrade() throws {
+        let suite = "NativeCatalogueUpgradeTests." + UUID().uuidString
+        let defaults = try XCTUnwrap(UserDefaults(suiteName: suite))
+        defer { defaults.removePersistentDomain(forName: suite) }
+        let bundled = RemoteCompanionCatalogueStore(defaults: defaults).value
+        let app = try XCTUnwrap(bundled.applications.first)
+        let version = bundled.version + 1
+        let cache = try JSONEncoder().encode(["version": version])
+        var legacy = try XCTUnwrap(JSONSerialization.jsonObject(with: cache) as? [String: Any])
+        legacy["applications"] = try JSONSerialization.jsonObject(with: JSONEncoder().encode([app]))
+        defaults.set(try JSONSerialization.data(withJSONObject: legacy), forKey: "remoteCompanionCatalogues")
+
+        let restored = RemoteCompanionCatalogueStore(defaults: defaults).value
+        XCTAssertEqual(restored.version, version)
+        XCTAssertEqual(restored.applications, [app])
+        XCTAssertEqual(restored.webApplications, bundled.webApplications)
+    }
     @MainActor
     func testUpdatedWebCatalogueRestoresIndependentlyOfNativeCatalogue() throws {
         let suite = "WebCatalogueTests." + UUID().uuidString
