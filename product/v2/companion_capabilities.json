@@ -285,7 +285,7 @@
             "type": "string",
             "pattern": "writable_volume_control_id",
             "minLength": 1,
-            "maxLength": 46
+            "maxLength": 107
           },
           "value": {
             "type": "integer",
@@ -306,7 +306,7 @@
             "type": "string",
             "pattern": "volume_control_id",
             "minLength": 1,
-            "maxLength": 46
+            "maxLength": 107
           },
           "available": {
             "type": "boolean"

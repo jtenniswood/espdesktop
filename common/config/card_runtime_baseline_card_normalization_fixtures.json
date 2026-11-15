@@ -960,6 +960,21 @@
     }
   },
   {
+    "name": "companion_app_volume: approved_app",
+    "input": "~app.volume.com.example.Player,Player,Volume%20High,Auto,,,companion_app_volume,,",
+    "expected": {
+      "entity": "app.volume.com.example.Player",
+      "label": "Player",
+      "icon": "Volume High",
+      "icon_on": "Auto",
+      "sensor": "",
+      "unit": "",
+      "type": "companion_app_volume",
+      "precision": "",
+      "options": ""
+    }
+  },
+  {
     "name": "companion_mac_lock: lock",
     "input": "~shortcut.command%2Bcontrol%2Bq,Mac%20Lock,Lock,Auto,,,companion_mac_lock,,",
     "expected": {
@@ -970,6 +985,96 @@
       "sensor": "",
       "unit": "",
       "type": "companion_mac_lock",
+      "precision": "",
+      "options": ""
+    }
+  },
+  {
+    "name": "companion_output_volume: default_device",
+    "input": "~media.output_volume,Volume,Volume%20High,Auto,,,companion_output_volume,,",
+    "expected": {
+      "entity": "media.output_volume",
+      "label": "Volume",
+      "icon": "Volume High",
+      "icon_on": "Auto",
+      "sensor": "",
+      "unit": "",
+      "type": "companion_output_volume",
+      "precision": "",
+      "options": ""
+    }
+  },
+  {
+    "name": "companion_input_device: specific_input",
+    "input": "~input.level.0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef,USB%20Microphone,Microphone,Auto,,,companion_input_device,,",
+    "expected": {
+      "entity": "input.level.0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+      "label": "USB Microphone",
+      "icon": "Microphone",
+      "icon_on": "Auto",
+      "sensor": "",
+      "unit": "",
+      "type": "companion_input_device",
+      "precision": "",
+      "options": ""
+    }
+  },
+  {
+    "name": "companion_input_volume: default_device",
+    "input": "~media.input_volume,Volume,Microphone,Auto,,,companion_input_volume,,",
+    "expected": {
+      "entity": "media.input_volume",
+      "label": "Volume",
+      "icon": "Microphone",
+      "icon_on": "Auto",
+      "sensor": "",
+      "unit": "",
+      "type": "companion_input_volume",
+      "precision": "",
+      "options": ""
+    }
+  },
+  {
+    "name": "companion_output_mute: default_device",
+    "input": "~media.output_mute,Mute,Volume%20High,Auto,,,companion_output_mute,,",
+    "expected": {
+      "entity": "media.output_mute",
+      "label": "Mute",
+      "icon": "Volume High",
+      "icon_on": "Auto",
+      "sensor": "",
+      "unit": "",
+      "type": "companion_output_mute",
+      "precision": "",
+      "options": ""
+    }
+  },
+  {
+    "name": "companion_input_mute: default_device",
+    "input": "~media.input_mute,Mute,Microphone,Auto,,,companion_input_mute,,",
+    "expected": {
+      "entity": "media.input_mute",
+      "label": "Mute",
+      "icon": "Microphone",
+      "icon_on": "Auto",
+      "sensor": "",
+      "unit": "",
+      "type": "companion_input_mute",
+      "precision": "",
+      "options": ""
+    }
+  },
+  {
+    "name": "companion_cough: hold_to_mute",
+    "input": "~,Cough,Microphone,Auto,,,companion_cough,,",
+    "expected": {
+      "entity": "",
+      "label": "Cough",
+      "icon": "Microphone",
+      "icon_on": "Auto",
+      "sensor": "",
+      "unit": "",
+      "type": "companion_cough",
       "precision": "",
       "options": ""
     }
@@ -1091,6 +1196,36 @@
       "unit": "",
       "type": "weather",
       "precision": "tomorrow",
+      "options": ""
+    }
+  },
+  {
+    "name": "companion_obs_fader: picker_alias",
+    "input": "~obs.level.69da3f8f-7f62-4abe-a594-4e40dd579858,OBS%20%C2%B7%20Desk%20Mic,Microphone,,,,slider,,",
+    "expected": {
+      "entity": "obs.level.69da3f8f-7f62-4abe-a594-4e40dd579858",
+      "label": "OBS · Desk Mic",
+      "icon": "Microphone",
+      "icon_on": "Auto",
+      "sensor": "",
+      "unit": "",
+      "type": "slider",
+      "precision": "",
+      "options": ""
+    }
+  },
+  {
+    "name": "companion_obs_meter: picker_alias",
+    "input": "~obs.meter.69da3f8f-7f62-4abe-a594-4e40dd579858,OBS%20Meter%20%C2%B7%20Desk%20Mic,Microphone,,,,slider,,",
+    "expected": {
+      "entity": "obs.meter.69da3f8f-7f62-4abe-a594-4e40dd579858",
+      "label": "OBS Meter · Desk Mic",
+      "icon": "Microphone",
+      "icon_on": "Auto",
+      "sensor": "",
+      "unit": "",
+      "type": "slider",
+      "precision": "",
       "options": ""
     }
   },

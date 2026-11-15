@@ -47,7 +47,7 @@ EspDesktop turns a 4-inch ESP32-based touchscreen into a controller for opening 
 
 ### Launch Mac apps
 
-Open an app or bring it to the front with a tap. Give Slack, Mail or Figma a tile of its own.
+Open or switch to apps like Slack, Mail and Figma. Adjust app volume or mute your mic from the touchscreen.
 
 [Apps](/mac-controls/apps)
 

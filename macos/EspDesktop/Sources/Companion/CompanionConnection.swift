@@ -72,10 +72,13 @@ final class CompanionConnection: NSObject {
     private var supportsImmediateApplicationFocus = false
     private var supportsSessionLock = false
     private var supportsPairingReset = false
+    private var supportsCoughButton = false
+    private var supportsInputDevices = false
     private var pairingResetCompletion: CheckedContinuation<Void, Never>?
     private var pairingResetTimeout: Task<Void, Never>?
     private var remoteCatalogueDefinitionsSupported = false
     private var expandedShortcutsSupported = false
+    private var appVolumeSupported = false
     private var authenticationRequestOutstanding = false
     private var appIconData: Data?
     private var appIconIdentifier = ""
@@ -215,6 +218,7 @@ final class CompanionConnection: NSObject {
     private func tearDownConnection() {
         obsMeterWatch.removeAll()
         lastOBSMeterValues.removeAll()
+        releaseCoughButton()
         finishPairingResetRequest()
         if !shouldReconnect { discovery.stop() }
         connectionGeneration &+= 1
@@ -226,6 +230,7 @@ final class CompanionConnection: NSObject {
         supportsHighResolutionAppIcons = false
         remoteCatalogueDefinitionsSupported = false
         expandedShortcutsSupported = false
+        appVolumeSupported = false
         endpointRecovery.verifiedFingerprint = nil
         authenticationRequestOutstanding = false
         resetAppIconTransferState(clearPendingRequests: true)
@@ -350,7 +355,7 @@ final class CompanionConnection: NSObject {
                 do {
                     let message = try await task.receive()
                     guard !Task.isCancelled, self.task === task else { return }
-                    if case .string(let value) = message { self.handle(value) }
+                    if case .string(let value) = message { await self.handle(value) }
                 } catch {
                     guard !Task.isCancelled else { return }
                     self.handleConnectionFailure(for: task, reason: "Receive failed: \(error.localizedDescription)")
@@ -394,6 +399,7 @@ final class CompanionConnection: NSObject {
 
     private func handleConnectionFailure(for failedTask: URLSessionWebSocketTask, reason: String = "Connection closed") {
         guard task === failedTask else { return }
+        releaseCoughButton()
         finishPairingResetRequest()
         print("[EspDesktop] Companion connection lost: \(reason)")
         if !hasTerminalConnectionError, case .pair = mode {
@@ -407,6 +413,7 @@ final class CompanionConnection: NSObject {
         resetAppIconTransferState(clearPendingRequests: true)
         remoteCatalogueDefinitionsSupported = false
         expandedShortcutsSupported = false
+        appVolumeSupported = false
         connectionTimeoutTask?.cancel()
         connectionTimeoutTask = nil
         heartbeatTask?.cancel()
@@ -420,6 +427,12 @@ final class CompanionConnection: NSObject {
         session?.invalidateAndCancel()
         session = nil
         scheduleReconnect()
+    }
+
+    private func releaseCoughButton() {
+        guard supportsCoughButton else { return }
+        supportsCoughButton = false
+        _ = resources.setCoughButtonValue(0, from: ObjectIdentifier(self))
     }
 
     private func resetAppIconTransferState(clearPendingRequests: Bool = false) {
@@ -465,8 +478,8 @@ final class CompanionConnection: NSObject {
         }
     }
 
-    private func handle(_ message: String) {
-        guard handleJSON(message) else {
+    private func handle(_ message: String) async {
+        guard await handleJSON(message) else {
             hasTerminalConnectionError = true
             shouldReconnect = false
             tearDownConnection()
@@ -475,7 +488,7 @@ final class CompanionConnection: NSObject {
         }
     }
 
-    private func handleJSON(_ message: String) -> Bool {
+    private func handleJSON(_ message: String) async -> Bool {
         let state: CompanionProtocolState = sessionAuthenticated ? .connected : {
             if case .pair = mode { return .pairing }
             return .authenticating
@@ -518,6 +531,9 @@ final class CompanionConnection: NSObject {
             obsMeterWatch.removeAll()
             lastOBSMeterValues.removeAll()
             lastOBSFaderValues.removeAll()
+            appVolumeSupported = payload.capabilityVersion >= 10
+            supportsCoughButton = payload.capabilityVersion >= 11
+            supportsInputDevices = payload.capabilityVersion >= 12
             // A Bonjour TXT record never authorizes a location change. Both the
             // pinned TLS certificate and the authenticated session must agree.
             let expectedFingerprint = preferences.stringPreference(forKey: certificateFingerprintKey)
@@ -642,7 +658,17 @@ final class CompanionConnection: NSObject {
                 }
                 return true
             }
-            let changed = resources.setMediaControlValue(value, controlIdentifier: controlIdentifier)
+            if CompanionProtocolDecoder.appVolumeBundleIdentifier(controlIdentifier) != nil && !appVolumeSupported {
+                return false
+            }
+            if CompanionProtocolDecoder.isInputDeviceControl(controlIdentifier) && !supportsInputDevices { return false }
+            let activeTask = task
+            let changed = if controlIdentifier == SystemMediaController.coughID {
+                supportsCoughButton && resources.setCoughButtonValue(value, from: ObjectIdentifier(self))
+            } else {
+                await resources.setMediaControlValue(value, controlIdentifier: controlIdentifier)
+            }
+            guard task === activeTask, sessionAuthenticated else { return true }
             sendJSON(["type": "action.result", "requestId": requestIdentifier,
                       "status": changed ? "performed" : "not_allowed"])
         case .error(let payload):
@@ -829,6 +855,9 @@ final class CompanionConnection: NSObject {
         if obsActions == nil { sendJSON(["type": "capabilities", "values": capabilities]) }
         // The browser receives identifiers, never application paths or shell commands.
         let apps = resources.launchableApps()
+        let inputs: [[String: String]] = supportsInputDevices ? resources.inputDeviceActions().map {
+            ["id": $0.id, "label": Self.catalogueLabel($0.label, fallback: "Input device")]
+        } : []
         let supportedOBSActions = supportsOBSCards ? obsActions ?? resources.obsControlActions() : []
         let obsEntries: [[String: String]] = supportedOBSActions.filter { entry in
             (supportsOBSFaders || OBSConnection.faderInputUUID(for: entry.id) == nil) &&
@@ -843,10 +872,11 @@ final class CompanionConnection: NSObject {
             guard Self.validCatalogueIdentifier(app.bundleIdentifier) else { return nil }
             return ["id": app.bundleIdentifier, "label": Self.catalogueLabel(app.name, fallback: app.bundleIdentifier)]
         }
+        let catalogue = inputs + entries
         catalogueGeneration &+= 1
         if catalogueGeneration == 0 { catalogueGeneration = 1 }
-        let pages = stride(from: 0, to: max(entries.count, 1), by: 48).map {
-            Array(entries[$0..<min($0 + 48, entries.count)])
+        let pages = stride(from: 0, to: max(catalogue.count, 1), by: 48).map {
+            Array(catalogue[$0..<min($0 + 48, catalogue.count)])
         }
         for (page, items) in pages.enumerated() {
             sendJSON(["type": "catalogue.page", "generation": catalogueGeneration,
@@ -960,11 +990,11 @@ final class CompanionConnection: NSObject {
     }
 
     func publishMediaControlValues(_ values: [String: Int], unavailable: Set<String>) {
-        for identifier in unavailable.sorted() where Self.validMediaControlIdentifier(identifier) {
+        for identifier in unavailable.sorted() where validMediaControlIdentifier(identifier) {
             sendJSON(["type": "value.state", "controlId": identifier, "available": false])
         }
         for (identifier, value) in values.sorted(by: { $0.key < $1.key }) {
-            guard Self.validMediaControlIdentifier(identifier), (0...100).contains(value) else { continue }
+            guard validMediaControlIdentifier(identifier), (0...100).contains(value) else { continue }
             sendJSON(["type": "value.state", "controlId": identifier, "available": true, "value": value])
         }
     }
@@ -1037,8 +1067,11 @@ final class CompanionConnection: NSObject {
         }
     }
 
-    private static func validMediaControlIdentifier(_ value: String) -> Bool {
-        SystemMediaController.volumeControlIDs.contains(value)
+    private func validMediaControlIdentifier(_ value: String) -> Bool {
+        if CompanionProtocolDecoder.isInputDeviceControl(value) { return supportsInputDevices }
+        if value == SystemMediaController.coughID { return supportsCoughButton }
+        return SystemMediaController.volumeControlIDs.contains(value) ||
+            (appVolumeSupported && CompanionProtocolDecoder.appVolumeBundleIdentifier(value) != nil)
     }
 
     private static func catalogueLabel(_ value: String, fallback: String) -> String {

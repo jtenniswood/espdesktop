@@ -601,7 +601,7 @@ export function createPreviewRenderFeature(dependencies: PreviewRenderDependenci
                         ? typePreview.appIconBackgroundColor : "");
                     loadCardAppIcon(btn, applicationId, backgroundColor, fallbackIcon);
                 }
-                if (["light_brightness", "fan_speed", "cover", "slider", "light_temperature"].indexOf(b.type) !== -1) {
+                if (["light_brightness", "fan_speed", "cover", "slider", "companion_app_volume", "companion_output_volume", "companion_input_volume", "companion_input_device", "light_temperature"].indexOf(b.type) !== -1) {
                     applySliderPreviewTextContrast(btn, cardOffColor ? cardPreviewTextColor(cardOffColor) : "#" + previewColors.textPrimary, sliderFillColor);
                 }
                 if (btn.classList.contains("sp-weather-daily-card")) weatherLayout.observe(btn);

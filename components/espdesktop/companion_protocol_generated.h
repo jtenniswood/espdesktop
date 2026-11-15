@@ -5,6 +5,7 @@
 #include <cstring>
 #include <optional>
 #include <string>
+#include <string_view>
 #include <variant>
 #include <vector>
 #include "companion_capabilities_generated.h"
@@ -25,6 +26,29 @@ inline bool number_valid(JsonVariantConst value, double minimum, double maximum,
   const double n = value.as<double>();
   return std::isfinite(n) && n >= minimum && n <= maximum && (!integer || std::floor(n) == n);
 }
+inline bool input_device_control_id_valid(std::string_view id) {
+  constexpr std::string_view prefix = "input.level.";
+  if (id.size() != prefix.size() + 64 || id.substr(0, prefix.size()) != prefix) return false;
+  for (char c : id.substr(prefix.size()))
+    if (!((c >= '0' && c <= '9') || (c >= 'a' && c <= 'f'))) return false;
+  return true;
+}
+inline bool writable_volume_control_id_valid(std::string_view id) {
+  if (input_device_control_id_valid(id) || companion_writable_audio_control_id(id) || id == "media.cough") return true;
+  constexpr std::string_view prefix = "app.volume.";
+  if (id.size() <= prefix.size() || id.size() > 107 || id.substr(0, prefix.size()) != prefix)
+    return false;
+  for (char c : id.substr(prefix.size())) {
+    if (!((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') ||
+          (c >= '0' && c <= '9') || c == '.' || c == '-')) return false;
+  }
+  return true;
+}
+
+inline bool volume_control_id_valid(std::string_view id) {
+  return writable_volume_control_id_valid(id) || companion_obs_meter_control(id);
+}
+
 inline bool hex_valid(JsonVariantConst value) {
   if (!string_valid(value, 64, 64)) return false;
   for (const char *c = value.as<const char *>(); *c; ++c)
@@ -661,7 +685,7 @@ inline std::optional<Message> decode(JsonObjectConst root, Direction direction, 
       if (!(string_valid(root["requestId"], 1, 64))) return std::nullopt;
     }
     {
-      if (!(string_valid(root["controlId"], 1, 46) && companion_writable_audio_control_id(root["controlId"].as<const char *>()))) return std::nullopt;
+      if (!(string_valid(root["controlId"], 1, 107) && writable_volume_control_id_valid(root["controlId"].as<const char *>()))) return std::nullopt;
     }
     {
       if (!(number_valid(root["value"], 0, 100, true))) return std::nullopt;
@@ -676,7 +700,7 @@ inline std::optional<Message> decode(JsonObjectConst root, Direction direction, 
     if (direction != Direction::MAC_TO_PANEL) return std::nullopt;
     if (!(state == SessionState::CONNECTED)) return std::nullopt;
     {
-      if (!(string_valid(root["controlId"], 1, 46) && companion_audio_control_id(root["controlId"].as<const char *>()))) return std::nullopt;
+      if (!(string_valid(root["controlId"], 1, 107) && volume_control_id_valid(root["controlId"].as<const char *>()))) return std::nullopt;
     }
     {
       if (!(root["available"].is<bool>())) return std::nullopt;
