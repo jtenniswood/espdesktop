@@ -267,7 +267,7 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
                 ([slot, value]) => [slot, parseSubpageConfig(value)],
             )) : state.subpages,
             settings: {
-                special_page: specialPageConfig(),
+                special_page: nativeDocument ? nativeDocument.settings.special_page ?? "" : specialPageConfig(),
 
                 clock_bar: state.clockBarOn,
                 clock_bar_time: state.clockBarTimeOn,

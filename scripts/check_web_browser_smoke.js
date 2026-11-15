@@ -6960,7 +6960,7 @@ async function assertSpecialPageEntry(browser, testCase) {
   const savedPage = nativeState.document.settings.special_page;
   const context = await browser.newContext({ viewport: process.env.ESPDESKTOP_SPECIAL_PAGE_MOBILE === "1"
     ? { width: 390, height: 844 } : testCase.viewport });
-  await installRoutes(context, testCase.slug, { nativeState, homeAssistantSupport: true });
+  await installRoutes(context, testCase.slug, { nativeState, nativeV2: true, homeAssistantSupport: true });
   const page = await context.newPage();
   await installFakeEventSource(page);
   async function openPage() {
@@ -7023,7 +7023,41 @@ async function assertSpecialPageEntry(browser, testCase) {
     assert.strictEqual(await page.locator(".sp-back-btn").count(), 0, "remote disable returns the editor home");
     assert.strictEqual(await toggle.isChecked(), false, "remote disable updates the setting");
     assert.strictEqual(nativeState.document.settings.special_page, savedPage, "toggling keeps saved swipe-up cards");
-    console.log(`${testCase.name}: swipe-up entry sizing, keyboard access, title-free page and return navigation passed.`);
+    // Re-seed the device after the remote-disable event so its native snapshot
+    // and the editor agree before exercising card transfers.
+    await page.evaluate(() => window.__seedEspState([
+      { id: "switch-swipe_up_page_enabled", state: "ON", value: true },
+    ]));
+    const officeCard = page.locator('.sp-main [data-slot="2"]');
+    const menu = page.locator(".sp-ctx-menu");
+    for (const action of ["Copy", "Cut"]) {
+      await officeCard.click({ button: "right" });
+      await menu.getByText(action, { exact: true }).click();
+      await page.locator('.sp-main[aria-disabled="false"]').waitFor();
+      if (action === "Cut") await officeCard.waitFor({ state: "detached" });
+      await entry.press("Enter");
+      await page.locator(".sp-main .sp-back-btn").waitFor();
+      await page.locator(".sp-main .sp-empty-cell").first().click({ button: "right" });
+      await menu.getByText("Paste", { exact: true }).click();
+      const pasted = page.locator(".sp-main [data-slot]").filter({ hasText: "Office" });
+      await pasted.nth(action === "Copy" ? 0 : 1).waitFor();
+      const expectedCopies = action === "Copy" ? 1 : 2;
+      await waitForNativeState(nativeState, () =>
+        (nativeState.document.settings.special_page.match(/light\.office/g) ?? []).length === expectedCopies,
+        `an ordinary card from the native clipboard is saved when using ${action}`);
+      await page.locator(".sp-back-btn .sp-back-hit").click();
+    }
+
+    await openBackupControls(page);
+    const externalPage = "~B,1|companion,shortcut.command%2Bx,External,Shortcut Command,Auto";
+    nativeState.document.settings.special_page = externalPage;
+    nativeState.generation++;
+    const download = page.waitForEvent("download");
+    await page.getByRole("button", { name: "Export", exact: true }).click();
+    const backup = JSON.parse(fs.readFileSync(await (await download).path(), "utf8"));
+    assert.strictEqual(backup.settings.special_page, externalPage,
+      "portable backup exports the saved swipe-up page even without a browser refresh");
+    console.log(`${testCase.name}: swipe-up navigation, native copy and cut, and saved-layout backup passed.`);
 
   } finally { await context.close(); }
 }
