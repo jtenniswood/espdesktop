@@ -1856,7 +1856,7 @@ export function registerCompanionCardTypes(
         registry.register(key, {
             ...companionDefinition,
             label,
-            pickerKey: null,
+            pickerKey: mode === "obs_mic" ? "companion_output_volume" : null,
             runtimeSpec: CARD_RUNTIME_SPECS.companion,
             onSelect: function (card?: any) {
                 companionDefinition.onSelect(card);

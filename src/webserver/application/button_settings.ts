@@ -1,3 +1,4 @@
+import { isOBSFaderControlID, isOBSMeterControlID, OBS_FADER_PREFIX, OBS_METER_PREFIX } from "../model/card";
 import { sameCardAction, setCardExposure } from "../model/home_assistant_cards";
 import { childPageKey, pageOwnerSlot, parentPageKey } from "../model/page_keys";
 import { previewSubpageOwner } from "../model/companion_shortcut_page";
@@ -1007,7 +1008,11 @@ export function createButtonSettingsFeature(
             homeAssistantEnabled: connectorState.homeAssistantEnabled,
             homeAssistantConfigured: connectorState.homeAssistantConfigured,
         };
-        if ((buttonTypeRegistryValue(rawTypeDef, "pickerKey", "") || b.type) === "companion_output_volume") {
+        const obsSound = b.type === "slider"
+            ? b.entity === OBS_FADER_PREFIX || isOBSFaderControlID(b.entity) ? "companion_obs_fader"
+                : b.entity === OBS_METER_PREFIX || isOBSMeterControlID(b.entity) ? "companion_obs_meter" : ""
+            : b.type === "companion" && companionSavedCardMode(b) === "obs_mic" ? "companion_obs_mic" : "";
+        if (obsSound || (buttonTypeRegistryValue(rawTypeDef, "pickerKey", "") || b.type) === "companion_output_volume") {
             const audioSubtypes: [string, string][] = [
                 ["companion_output_volume", "Audio Output"],
                 ["companion_output_mute", "Output Mute"],
@@ -1015,10 +1020,13 @@ export function createButtonSettingsFeature(
                 ["companion_input_volume", "Audio Input"],
                 ["companion_input_mute", "Input Mute"],
                 ["companion_cough", "Input Cough"],
-                ["companion_obs_cough", "OBS Input Cough"],
                 ["companion_input_device", "Input per device level"],
+                ["companion_obs_fader", "OBS Input Level"],
+                ["companion_obs_mic", "OBS Input Mute"],
+                ["companion_obs_meter", "OBS Input Meter"],
+                ["companion_obs_cough", "OBS Input Cough"],
             ];
-            const subtype = selectField("Type", idPrefix + "audio-type", audioSubtypes, b.type,
+            const subtype = selectField("Type", idPrefix + "audio-type", audioSubtypes, obsSound || b.type,
                 (event: Event) => selectCardType((event.currentTarget as HTMLSelectElement).value));
             panel.appendChild(subtype.field);
             markCardPrimaryField(subtype.field, "type");

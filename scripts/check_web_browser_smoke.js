@@ -4287,7 +4287,8 @@ async function assertAppVolumeCard(browser) {
     const subtype = page.locator('select[id$="audio-type"]');
     assert.deepEqual(await subtype.locator("option").allTextContents(),
       ["Audio Output", "Output Mute", "Output per application",
-        "Audio Input", "Input Mute", "Input Cough", "OBS Input Cough", "Input per device level"]);
+        "Audio Input", "Input Mute", "Input Cough", "Input per device level",
+        "OBS Input Level", "OBS Input Mute", "OBS Input Meter", "OBS Input Cough"]);
     await subtype.selectOption("companion_app_volume");
     const application = page.getByLabel("Application", { exact: true });
     await application.locator('option[value="app.volume.com.spotify.client"]').waitFor({ state: "attached" });
@@ -4473,7 +4474,8 @@ async function assertOBSSceneCard(browser) {
       "The OBS scene UUID saves as a Companion card");
 
     await page.locator(".sp-main .sp-empty-cell").first().click();
-    await page.getByRole("button", { name: "OBS Mic Mute card type", exact: true }).click();
+    await page.getByRole("button", { name: "Sound card type", exact: true }).click();
+    await page.locator('select[id$="audio-type"]').selectOption("companion_obs_mic");
     const micPicker = page.locator("select[id$='obs-mic']");
     await micPicker.getByRole("option", { name: "Muted · Desk Mic" }).waitFor({ state: "attached" });
     assert.equal(await micPicker.getByRole("option", { name: "Program · Gameplay" }).count(), 0);
@@ -4501,7 +4503,8 @@ async function assertOBSSceneCard(browser) {
 
 
     await page.locator(".sp-main .sp-empty-cell").first().click();
-    await page.getByRole("button", { name: "OBS Input Level card type", exact: true }).click();
+    await page.getByRole("button", { name: "Sound card type", exact: true }).click();
+    await page.locator('select[id$="audio-type"]').selectOption("companion_obs_fader");
     const faderPicker = page.locator("select[id$='obs-level']");
     await faderPicker.getByRole("option", { name: "Desk Mic", exact: true }).waitFor({ state: "attached" });
     await faderPicker.selectOption(fader);
@@ -4515,7 +4518,8 @@ async function assertOBSSceneCard(browser) {
     await page.locator(".sp-settings-overlay.sp-visible .sp-settings-close").click();
 
     await page.locator(".sp-main .sp-empty-cell").first().click();
-    await page.getByRole("button", { name: "OBS Input Meter card type", exact: true }).click();
+    await page.getByRole("button", { name: "Sound card type", exact: true }).click();
+    await page.locator('select[id$="audio-type"]').selectOption("companion_obs_meter");
     const meterPicker = page.locator("select[id$='obs-level']");
     await meterPicker.getByRole("option", { name: "Desk Mic", exact: true }).waitFor({ state: "attached" });
     assert.equal(await meterPicker.locator(`option[value="${fader}"]`).count(), 0);

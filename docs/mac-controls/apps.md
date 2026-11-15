@@ -98,9 +98,9 @@ A scene card created in normal mode switches the program scene. A scene card cre
 
 An **OBS Mic Mute** card changes the selected input in the OBS mixer. Its **Muted** and **Unmuted** labels come from OBS. Use the mic your broadcast captures when setting up the card, especially if it differs from the Mac’s default mic. Scene and input bindings are kept when a target is unavailable.
 
-Add **OBS Input Level** to adjust a named mixer input. The tile shows the confirmed fader setting in dB. Dragging it leaves the input’s mute and track settings alone. Use OBS Mic Mute to change the mute state.
+Under **Sound**, choose **OBS Input Level** to adjust a named mixer input. The tile shows the confirmed fader setting in dB. Dragging it leaves the input’s mute and track settings alone. Choose **OBS Input Mute** to change the mute state.
 
-Add **OBS Input Meter** to check signal on a named input. It shows the strongest channel before the fader, so it can move even while that input is muted. Check the mute card separately. A meter shows **Unavailable** when OBS stops reporting that input.
+Under **Sound**, choose **OBS Input Meter** to check signal on a named input. It shows the strongest channel before the fader, so it can move even while that input is muted. Check the mute card separately. A meter shows **Unavailable** when OBS stops reporting that input.
 
 Add an **OBS Status** tile and choose **Program scene**, **Streaming**, or **Recording**. These tiles display OBS state. You can check for an active stream, reconnecting stream, or paused recording while you work in another app.
 
