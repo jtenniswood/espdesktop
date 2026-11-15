@@ -24,6 +24,7 @@ struct lv_obj_t;
 void lv_label_set_text(lv_obj_t *, const char *) {}
 #include "i18n_generated.h"
 #include "button_grid_config_parser.h"
+#include "companion_audio_control.h"
 #define ESPDESKTOP_SUBPAGE_PARSER_ONLY
 #include "button_grid_subpages.h"
 #include "display_color.h"
@@ -191,7 +192,11 @@ bool companion_card_focus_allowed(const std::string &) { return focus_allowed; }
 std::string companion_url_card_focus_id(const std::string &) { return "browser"; }
 unsigned focus_reads = 0;
 bool companion_action_active(const std::string &id, bool = false) { ++focus_reads; return id == focused_app; }
-struct CompanionRuntimeSnapshot {};
+struct CompanionRuntimeSnapshot { std::string selected_scene{}; };
+CompanionRuntimeSnapshot companion_runtime_snapshot() { return {}; }
+const std::string *companion_published_action(const CompanionRuntimeSnapshot &snapshot, const std::string &id) {
+  return id == snapshot.selected_scene ? &snapshot.selected_scene : nullptr;
+}
 bool companion_action_focused(const CompanionRuntimeSnapshot &, const std::string &id, bool = false) {
   return companion_action_active(id);
 }
@@ -219,7 +224,7 @@ groups = (
     ("card_text_contrast.h", "", ("apply_card_descendant_text_color", "sync_card_checked_text_color", "card_text_contrast_event_cb", "sync_bound_card_text_color", "bind_card_text_contrast_events", "set_card_checked_state")),
     ("button_grid_touch.h", "", ("consume_button_touch_press",)),
     ("button_grid_layout.h", "", ("parse_hex_color", "apply_button_colors", "apply_button_on_pattern")),
-    ("companion_controls.h", "", ("companion_apply_card_focus", "companion_required_focus_ready", "companion_refresh_card_focus")),
+    ("companion_controls.h", "", ("companion_obs_scene_target", "companion_obs_scene_card", "companion_apply_card_focus", "companion_required_focus_ready", "companion_refresh_card_focus")),
     ("button_grid_grid.h", "", ("card_palette_for_config", "card_slot_static_child", "reset_card_slot_dynamic_children")),
     ("button_grid_grid.h", "", ("apply_subpage_back_colors",)),
     ("button_grid_subscriptions.h", "", ("apply_sensor_active_color",)),
@@ -271,6 +276,22 @@ int main() {
     companion_refresh_card_focus(CompanionRuntimeSnapshot{});
     assert(!lv_obj_has_state(&shortcut, LV_STATE_DISABLED));
     focus_cards.clear(); focused_app.clear();
+  }
+  {
+    lv_obj_t main_scene, break_scene;
+    const std::string main_id = "11111111-1111-1111-1111-111111111111";
+    const std::string break_id = "22222222-2222-2222-2222-222222222222";
+    focus_cards = {{&main_scene, "obs.target." + main_id, "", ""},
+                   {&break_scene, "obs.target." + break_id, "", ""}};
+    companion_refresh_card_focus({"obs.selected." + main_id});
+    assert(lv_obj_has_state(&main_scene, LV_STATE_CHECKED));
+    assert(!lv_obj_has_state(&break_scene, LV_STATE_CHECKED));
+    companion_refresh_card_focus({"obs.selected." + break_id});
+    assert(!lv_obj_has_state(&main_scene, LV_STATE_CHECKED));
+    assert(lv_obj_has_state(&break_scene, LV_STATE_CHECKED));
+    companion_refresh_card_focus({});
+    assert(!lv_obj_has_state(&break_scene, LV_STATE_CHECKED));
+    focus_cards.clear();
   }
   // An icon reload/reconnect after a light-theme change must not restore
   // the dark fallback captured when the card was first created.
