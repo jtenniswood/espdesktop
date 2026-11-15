@@ -4371,9 +4371,10 @@ async function assertShortcutCatalogSettings(browser, testCase) {
       assert.strictEqual(await selected.count(), 1, "only one shortcut is selected");
       assert.strictEqual(await selected.inputValue(), value);
     }
+    assert.deepStrictEqual(await type.getByRole("tab").allTextContents(), ["Application", "Custom"]);
     assert.strictEqual(await custom.getAttribute("aria-selected"), "true", "existing custom shortcuts open the Custom tab");
     assert.strictEqual(await page.locator('[id$="companion-shortcut"]').count(), 0, "the recording field is removed");
-    await custom.press("ArrowRight");
+    await custom.press("ArrowLeft");
     assert.strictEqual(await application.getAttribute("aria-selected"), "true");
     assert(await application.evaluate(tab => tab === document.activeElement), "arrow keys focus the selected tab");
     assert(await page.getByRole("tabpanel", { name: "Application" }).isVisible());
@@ -4540,6 +4541,10 @@ async function assertShortcutCatalogSettings(browser, testCase) {
       await page.locator(".sp-main .sp-empty-cell").first().click();
       await chooseCardType(page, "Key Shortcut");
     };
+    await addShortcut();
+    assert.strictEqual(await application.getAttribute("aria-selected"), "true", "new shortcuts start on Application");
+    assert.strictEqual(await app.inputValue(), "", "new shortcuts on the main grid start without an app");
+    await page.locator(".sp-settings-close").click();
     await page.locator('.sp-main [data-slot="4"] .sp-subpage-badge').click();
     await addShortcut();
     assert.strictEqual(await application.getAttribute("aria-selected"), "true");
@@ -4565,7 +4570,8 @@ async function assertShortcutCatalogSettings(browser, testCase) {
     await page.locator(".sp-back-btn .sp-back-hit").click();
     await page.locator('.sp-main [data-slot="3"] .sp-subpage-badge').click();
     await addShortcut();
-    assert.strictEqual(await custom.getAttribute("aria-selected"), "true", "generic subpages still start on Custom");
+    assert.strictEqual(await application.getAttribute("aria-selected"), "true", "generic subpages start on Application too");
+    assert.strictEqual(await app.inputValue(), "", "generic subpages start without an app");
 
   } finally {
     await context.close();
