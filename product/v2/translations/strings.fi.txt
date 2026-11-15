@@ -339,6 +339,7 @@ label_garage=Autotalli
 label_sensor=Anturi
 label_camera=Kamera
 label_obs_scene=Näkymä
+label_obs_studio_mode=Studiotila
 wind_north=North
 wind_north_east=North East
 wind_east=East

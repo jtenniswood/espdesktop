@@ -524,6 +524,7 @@ inline void setup_companion_card(BtnSlot &s, const ParsedCfg &p,
   }
   const char *icon = (p.icon.empty() || p.icon == "Auto")
     ? find_icon(obs_mute ? "Microphone" : p.entity == "obs.brb" ? "Coffee to Go" :
+                p.entity == "obs.studio" ? "Split Vertical" :
                 companion_obs_scene_card(p.entity) ? "Image Card Loading" : "Monitor")
     : find_icon(p.icon.c_str());
   lv_label_set_display_text(s.icon_lbl, icon);

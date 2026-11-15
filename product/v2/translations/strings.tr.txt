@@ -339,6 +339,7 @@ label_garage=Garaj
 label_sensor=Sensör
 label_camera=Kamera
 label_obs_scene=Sahne
+label_obs_studio_mode=Stüdyo Modu
 wind_north=North
 wind_north_east=North East
 wind_east=East

@@ -339,6 +339,7 @@ label_garage=Garagem
 label_sensor=Sensor
 label_camera=Câmara
 label_obs_scene=Cena
+label_obs_studio_mode=Modo estúdio
 wind_north=North
 wind_north_east=North East
 wind_east=East

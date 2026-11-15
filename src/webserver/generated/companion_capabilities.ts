@@ -50,6 +50,12 @@ export const COMPANION_CARD_MODES = [
     defaultIcon: "Microphone"
   },
   {
+    id: "obs_studio",
+    label: "Studio Mode",
+    capability: "obs_scene_cards",
+    defaultIcon: "Split Vertical"
+  },
+  {
     id: "obs_take",
     label: "OBS Take Live",
     capability: "obs_scene_cards",

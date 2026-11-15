@@ -4451,12 +4451,14 @@ async function assertOBSSceneCard(browser) {
   const mic = "obs.mute.69da3f8f-7f62-4abe-a594-4e40dd579858";
   const fader = "obs.level.69da3f8f-7f62-4abe-a594-4e40dd579858";
   let connectedToOBS = true;
+  let studioModeOn = false;
   await context.route("**/companion/actions", route => route.fulfill({
     json: connectedToOBS ? [
       { id, label: "Program · Gameplay" },
       { id: mic, label: "Muted · Desk Mic" },
       { id: fader, label: "Desk Mic" },
       { id: "obs.take.9ea47782-fada-4bb3-aef6-1904669efae7", label: "Take Live · Setup" },
+      { id: "obs.studio.9ea47782-fada-4bb3-aef6-1904669efae7", label: studioModeOn ? "On" : "Off" },
       { id: "obs.status.record", label: "Recording · Idle" },
       { id: "obs.status.program", label: "Program · Gameplay" },
     ] : [],
@@ -4529,6 +4531,21 @@ async function assertOBSSceneCard(browser) {
     assert.equal(await faderPicker.inputValue(), fader);
     await page.locator(".sp-settings-overlay.sp-visible .sp-settings-close").click();
 
+    await page.locator(".sp-main .sp-empty-cell").first().click();
+    await page.getByRole("button", { name: "OBS Studio Mode card type", exact: true }).click();
+    await page.getByRole("button", { name: "Save", exact: true }).click();
+    await waitForNativeState(fixture, () => fixture.document.buttons[9]?.startsWith("obs.studio;"),
+      "Studio Mode saves without the ephemeral OBS token");
+    const studioTile = page.locator('.sp-main [data-slot="9"]');
+    await studioTile.getByText("Studio Mode", { exact: true }).waitFor();
+    await studioTile.getByText("Off", { exact: true }).waitFor();
+    const studioOff = await studioTile.evaluate(tile => tile.style.backgroundColor);
+    studioModeOn = true;
+    await page.locator('.sp-main [data-slot="3"]').click();
+    await page.getByRole("button", { name: "Edit", exact: true }).click();
+    await studioTile.getByText("On", { exact: true }).waitFor();
+    assert.notEqual(await studioTile.evaluate(tile => tile.style.backgroundColor), studioOff);
+    await page.locator(".sp-settings-overlay.sp-visible .sp-settings-close").click();
     connectedToOBS = false;
     await page.locator('.sp-main [data-slot="3"]').click();
     await page.getByRole("button", { name: "Edit", exact: true }).click();

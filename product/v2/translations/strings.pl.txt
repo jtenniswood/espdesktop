@@ -339,6 +339,7 @@ label_garage=Garaż
 label_sensor=Czujnik
 label_camera=Kamera
 label_obs_scene=Scena
+label_obs_studio_mode=Tryb studia
 wind_north=North
 wind_north_east=North East
 wind_east=East

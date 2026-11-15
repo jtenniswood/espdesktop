@@ -83,6 +83,15 @@ final class OBSConnection: ObservableObject {
         }
     }
 
+    static let studioModeID = "obs.studio"
+
+    static func studioModeToken(_ action: String) -> UUID? {
+        let prefix = studioModeID + "."
+        guard action.hasPrefix(prefix), let token = UUID(uuidString: String(action.dropFirst(prefix.count))),
+              action == prefix + token.uuidString.lowercased() else { return nil }
+        return token
+    }
+
     struct BreakConfiguration: Codable, Equatable {
         var sceneID: String
         var micID: String?
@@ -181,6 +190,8 @@ final class OBSConnection: ObservableObject {
             (id: "obs.status.program", label: "Program · " + (state.program?.name ?? "Unknown")),
             (id: "obs.status.stream", label: state.streamStatus),
             (id: "obs.status.record", label: state.recordStatus),
+            (id: state.transitionInProgress ? studioModeID : studioModeID + "." + state.adaptiveSceneToken.uuidString.lowercased(),
+             label: state.studioMode ? "On" : "Off"),
         ]
         if state.canTakePreview, let preview = state.preview {
             actions.append((id: "obs.take." + state.takeToken.uuidString.lowercased(),
@@ -249,11 +260,11 @@ final class OBSConnection: ObservableObject {
     }
 
     func performAdaptiveScene(_ sceneID: UUID, token: UUID, isValid: () -> Bool) async -> Bool {
-        guard isValid(), !breakInFlight, let shown = state, shown.adaptiveSceneToken == token,
+        guard isValid(), !breakInFlight, !changingStudioMode, let shown = state, shown.adaptiveSceneToken == token,
               let scene = shown.scenes.first(where: { UUID(uuidString: $0.id) == sceneID }) else { return false }
         let active = generation
         let mode = try? await snapshotRequest("GetStudioModeEnabled", generation: active)
-        guard isValid(), active == generation, !breakInFlight, state?.adaptiveSceneToken == token,
+        guard isValid(), active == generation, !breakInFlight, !changingStudioMode, state?.adaptiveSceneToken == token,
               mode?["studioModeEnabled"] as? Bool == shown.studioMode else { return false }
         return await selectScene(id: scene.id, collection: shown.collection, expectedStudioMode: shown.studioMode)
     }
@@ -436,6 +447,7 @@ final class OBSConnection: ObservableObject {
     private var coughHolds: [UUID: CoughHold] = [:]
     private let coughTouchTimeout: Duration
     private var takingPreview = false
+    private var changingStudioMode = false
     private var transitionProbe: Task<Void, Never>?
     private let transitionProbeInterval: Duration
     private struct PendingReplay {
@@ -506,14 +518,14 @@ final class OBSConnection: ObservableObject {
     }
 
     func selectScene(id: String, collection: String, expectedStudioMode: Bool) async -> Bool {
-        guard let state, state.collection == collection, state.studioMode == expectedStudioMode,
+        guard !changingStudioMode, let state, state.collection == collection, state.studioMode == expectedStudioMode,
               state.scenes.contains(where: { $0.id == id }) else { return false }
         return await command(expectedStudioMode ? "SetCurrentPreviewScene" : "SetCurrentProgramScene",
                              fields: ["sceneUuid": id])
     }
 
     func takeLive(token: UUID) async -> Bool {
-        guard !breakInFlight, let state, state.canTakePreview, state.takeToken == token,
+        guard !breakInFlight, !changingStudioMode, let state, state.canTakePreview, state.takeToken == token,
               let expectedPreview = state.preview?.id, !takingPreview else { return false }
         takingPreview = true
         defer { takingPreview = false }
@@ -525,6 +537,30 @@ final class OBSConnection: ObservableObject {
               active == generation, let current = self.state,
               current.canTakePreview, current.takeToken == token else { return false }
         return await command("TriggerStudioModeTransition", fields: [:])
+    }
+
+    func toggleStudioMode(token: UUID, isValid: () -> Bool) async -> Bool {
+        guard isValid(), !changingStudioMode, !takingPreview, !breakInFlight, let shown = state,
+              !shown.transitionInProgress, shown.adaptiveSceneToken == token else { return false }
+        changingStudioMode = true
+        defer { changingStudioMode = false }
+        let active = generation
+        let fresh = try? await snapshotRequest("GetStudioModeEnabled", generation: active)
+        guard isValid(), active == generation, state?.transitionInProgress == false,
+              state?.adaptiveSceneToken == token, let enabled = fresh?["studioModeEnabled"] as? Bool else { return false }
+        guard enabled == shown.studioMode else {
+            sync()
+            return false
+        }
+        do {
+            _ = try await socket.request("SetStudioModeEnabled", fields: ["studioModeEnabled": !enabled])
+        } catch {
+            if active == generation { sync() }
+            return false
+        }
+        // OBS may already have sent StudioModeStateChanged before its response.
+        if active == generation { sync() }
+        return true
     }
 
     func performOutput(_ output: Output, token: UUID, isValid: () -> Bool = { true }) async -> Bool {
@@ -664,7 +700,7 @@ final class OBSConnection: ObservableObject {
     }
 
     func performBreak(token: UUID, isValid: () -> Bool = { true }) async -> Bool {
-        guard isValid(), !breakInFlight, !takingPreview, let shown = state, shown.breakCard?.token == token,
+        guard isValid(), !breakInFlight, !takingPreview, !changingStudioMode, let shown = state, shown.breakCard?.token == token,
               !shown.transitionInProgress, let program = shown.program?.id else { return false }
 
         let returning = breakSession != nil

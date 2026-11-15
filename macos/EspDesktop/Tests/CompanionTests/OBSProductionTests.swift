@@ -74,6 +74,10 @@ private final class OBSPilotTransport: OBSWebSocketTransport {
             faderMultiplier = fields["inputVolumeMul"] as? Double ?? pow(10, faderDb / 20)
             return [:]
         case "GetStudioModeEnabled": return ["studioModeEnabled": studioMode]
+        case "SetStudioModeEnabled":
+            studioMode = fields["studioModeEnabled"] as? Bool ?? false
+            onEvent?("StudioModeStateChanged", ["studioModeEnabled": studioMode])
+            return [:]
         case "SetCurrentPreviewScene":
             preview = fields["sceneUuid"] as? String ?? ""
             onEvent?("CurrentPreviewSceneChanged", scene(preview))
@@ -146,11 +150,46 @@ final class OBSProductionTests: XCTestCase {
         let transport = OBSPilotTransport()
         let connection = try await open(transport)
         XCTAssertEqual(OBSConnection.productionActions(connection.state).map(\.label), [
-            "Program · Gameplay", "Stream · Reconnecting", "Recording · Paused", "Take Live · BRB",
+            "Program · Gameplay", "Stream · Reconnecting", "Recording · Paused", "On", "Take Live · BRB",
         ])
         XCTAssertTrue(OBSConnection.controlActions(connection.state).contains { $0.id == "obs.record.active" })
         transport.onEvent?("CurrentSceneCollectionChanging", [:])
         XCTAssertTrue(OBSConnection.productionActions(connection.state).isEmpty)
+    }
+
+    @MainActor
+    func testStudioModeButtonTracksOBSAndRejectsStaleTaps() async throws {
+        let transport = OBSPilotTransport()
+        transport.studioMode = false
+        let connection = try await open(transport)
+        func publishedMode() throws -> (UUID, String) {
+            let action = try XCTUnwrap(OBSConnection.controlActions(connection.state)
+                .first { OBSConnection.studioModeToken($0.id) != nil })
+            return (try XCTUnwrap(OBSConnection.studioModeToken(action.id)), action.label)
+        }
+        let (disabledToken, off) = try publishedMode()
+        XCTAssertEqual(off, "Off")
+        let accepted = await connection.toggleStudioMode(token: disabledToken) { true }
+        XCTAssertTrue(accepted)
+        for _ in 0..<40 where connection.state?.studioMode != true {
+            try await Task.sleep(for: .milliseconds(5))
+        }
+        let (enabledToken, on) = try publishedMode()
+        XCTAssertEqual(on, "On")
+        XCTAssertNotEqual(enabledToken, disabledToken)
+        let stale = await connection.toggleStudioMode(token: disabledToken) { true }
+        XCTAssertFalse(stale)
+        XCTAssertEqual(transport.programID, OBSPilotTransport.program)
+
+        // The operator changes mode before OBS delivers the event.
+        transport.studioMode = false
+        let superseded = await connection.toggleStudioMode(token: enabledToken) { true }
+        XCTAssertFalse(superseded)
+        XCTAssertEqual(transport.requests.filter { $0 == "SetStudioModeEnabled" }.count, 1)
+        for _ in 0..<40 where connection.state?.studioMode != false {
+            try await Task.sleep(for: .milliseconds(5))
+        }
+        XCTAssertEqual(try publishedMode().1, "Off")
     }
 
     @MainActor

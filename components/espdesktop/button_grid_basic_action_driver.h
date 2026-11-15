@@ -71,7 +71,7 @@ inline bool basic_action_driver_refresh_layout(
   }
   const bool status = companion_obs_status_card(config.entity);
   if (status || companion_obs_scene_card(config.entity) || config.entity == "obs.take" || config.entity == "obs.brb" ||
-      config.entity == "obs.replay" || config.entity == "obs.output.record")
+      config.entity == "obs.replay" || config.entity == "obs.output.record" || config.entity == "obs.studio")
     companion_setup_obs_detail(slot.btn, display_small_text_font(display), status ? slot.icon_lbl : nullptr);
   if (companion_obs_output_card(config.entity))
     obs_confirmation_fonts() = {display_switch_confirmation_message_font(display), display.fonts.icon};
@@ -214,9 +214,9 @@ inline bool invoke_obs_output(const ParsedCfg &card, lv_obj_t *button, const std
 inline bool invoke_saved_companion_card(const ParsedCfg &card, const std::string &request_id,
                                          const std::string &required_focus = {},
                                          lv_obj_t *button = nullptr) {
-  if (card.entity == "obs.take" || card.entity == "obs.brb" || companion_obs_scene_target(card.entity))
-    return invoke_companion_action(companion_rendered_obs_action(button).id, request_id);
   if (companion_obs_output_card(card.entity)) return invoke_obs_output(card, button, request_id);
+  if (companion_obs_tokenized_card(card.entity))
+    return invoke_companion_action(companion_rendered_obs_action(button).id, request_id);
   if (companion_obs_status_card(card.entity)) return false;
   return companion_encoded_url(card.sensor).empty()
     ? invoke_companion_action_for_app(card.entity, request_id, required_focus,

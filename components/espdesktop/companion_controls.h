@@ -665,7 +665,8 @@ inline bool companion_obs_scene_card(const std::string &id) {
 }
 
 inline bool companion_obs_tokenized_card(const std::string &id) {
-  return id == "obs.take" || id == "obs.brb" || companion_obs_output_card(id) || companion_obs_scene_target(id);
+  return id == "obs.take" || id == "obs.brb" || id == "obs.studio" ||
+    companion_obs_output_card(id) || companion_obs_scene_target(id);
 }
 
 inline const CompanionAction *companion_published_action(const CompanionRuntimeSnapshot &snapshot,
@@ -828,11 +829,14 @@ inline void companion_apply_card_focus(lv_obj_t *button, const std::string &acti
   bool active = false;
   if (show_focus && companion_card_focus_allowed(url_config)) {
     const std::string focus_id = url_config.empty() ? action_id : companion_url_card_focus_id(url_config);
-    if (companion_obs_scene_card(action_id) || action_id == "obs.output.record") {
+    if (companion_obs_scene_card(action_id) || action_id == "obs.output.record" || action_id == "obs.studio") {
       const auto owned = snapshot ? CompanionRuntimeSnapshot{} : companion_runtime_snapshot();
       const auto &current = snapshot ? *snapshot : owned;
       if (action_id == "obs.output.record") {
         active = companion_published_action(current, "obs.record.active") != nullptr;
+      } else if (action_id == "obs.studio") {
+        const auto *mode = companion_published_action(current, action_id);
+        active = mode && mode->label == "On";
       } else {
         const std::string selection = "obs.selected." + action_id.substr(action_id.rfind('.') + 1);
         active = companion_action_available(current, action_id) && companion_published_action(current, selection);
@@ -1117,9 +1121,12 @@ inline void companion_render_obs_detail(CompanionCardRef &ref, const std::string
     : (label.rfind("Resume", 0) == 0 ? "Resume" : "BRB");
   const bool record = ref.action_id == "obs.output.record";
   const bool scene = companion_obs_scene_card(ref.action_id);
-  const std::string primary = (record || scene) ? label : espdesktop_i18n(name);
+  const bool studio = ref.action_id == "obs.studio";
+  const std::string primary = (record || scene) ? label
+    : studio ? espdesktop_i18n_key("label_obs_studio_mode") : espdesktop_i18n(name);
   const bool already_on_break = ref.action_id == "obs.brb" && label == "BRB · Already on break";
   std::string detail = scene ? espdesktop_i18n_key("label_obs_scene")
+    : studio ? espdesktop_i18n(label)
     : already_on_break ? "" : record ? (stopping ? espdesktop_i18n("Stopping") : "")
     : (split != std::string::npos ? label.substr(split + separator.size()) : (label == name ? "" : label));
   if (ref.obs_status_icon) {

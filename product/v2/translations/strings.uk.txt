@@ -339,6 +339,7 @@ label_garage=Гараж
 label_sensor=Датчик
 label_camera=Камера
 label_obs_scene=Сцена
+label_obs_studio_mode=Режим студії
 wind_north=North
 wind_north_east=North East
 wind_east=East

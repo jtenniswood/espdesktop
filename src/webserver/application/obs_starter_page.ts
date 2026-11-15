@@ -3,7 +3,7 @@ import type { CardConfig } from "../contracts/types";
 import type { NativePanelConfigController } from "../controllers/native_panel_config_controller";
 import { emptyCardConfig, isEmptyCardConfig, OBS_FADER_PREFIX } from "../model/card";
 import { companionCardDefaultIcon } from "../model/companion_card";
-import { OBS_BRB_ID, OBS_TAKE_ID, savedOBSSceneTarget } from "../model/companion_card_codec";
+import { OBS_BRB_ID, OBS_STUDIO_ID, OBS_TAKE_ID, savedOBSSceneTarget } from "../model/companion_card_codec";
 import { parseGridOrder } from "../model/grid";
 import type { NativeLayoutDraft } from "../model/native_layout_draft";
 import type { NativePanelConfigGraph } from "../model/panel_config_conversion";
@@ -64,6 +64,8 @@ export function pinOBSStarterPage(draft: NativeLayoutDraft, current: NativePanel
     const micLevel = OBS_FADER_PREFIX + choices.mic.slice("obs.mute.".length);
     if (ids.has(micLevel)) cards.push(card(micLevel, "Microphone", "Mic level", "slider"));
     if (ids.has("obs.replay")) cards.push(card("obs.replay", "History"));
+    if ([...ids].some(id => id.startsWith(OBS_STUDIO_ID + ".")))
+        cards.push(card(OBS_STUDIO_ID, companionCardDefaultIcon("obs_studio")));
     const visible = cards.slice(0, geometry.numSlots - 1);
     const folder = card("", "Monitor", "OBS Studio", "subpage");
     folder.options = "subpage_connector=mac_companion";
