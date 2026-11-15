@@ -48,12 +48,90 @@ final class OBSConnection: ObservableObject {
         var streaming: Bool
         var streamReconnecting: Bool
         var recording: Bool
+        var inputMutes: [String: Bool] = [:]
     }
+
+    enum SceneAction: Equatable {
+        case program(UUID)
+        case preview(UUID)
+
+        init?(id: String) {
+            let prefix = id.hasPrefix("obs.scene.") ? "obs.scene." : "obs.preview."
+            guard id.hasPrefix(prefix),
+                  let target = UUID(uuidString: String(id.dropFirst(prefix.count))) else { return nil }
+            self = prefix == "obs.scene." ? .program(target) : .preview(target)
+        }
+
+        var id: String {
+            switch self {
+            case .program(let target): return "obs.scene." + target.uuidString.lowercased()
+            case .preview(let target): return "obs.preview." + target.uuidString.lowercased()
+            }
+        }
+    }
+
+    static func sceneActions(_ state: State?) -> [(id: String, label: String)] {
+        guard let state else { return [] }
+        return state.scenes.prefix(40).compactMap { scene in
+            guard let target = UUID(uuidString: scene.id) else { return nil }
+            let action: SceneAction = state.studioMode ? .preview(target) : .program(target)
+            let selected = state.studioMode ? state.preview?.id == scene.id : state.program?.id == scene.id
+            let prefix = state.studioMode ? (selected ? "Preview · " : "Queue · ")
+                : (selected ? (state.streaming && !state.streamReconnecting ? "On air · " : "Program · ") : "")
+            return (action.id, prefix + scene.name)
+        }
+    }
+
+    func performSceneAction(_ action: SceneAction) async -> Bool {
+        guard let state else { return false }
+        let target: UUID
+        let expectedStudioMode: Bool
+        switch action {
+        case .program(let id): (target, expectedStudioMode) = (id, false)
+        case .preview(let id): (target, expectedStudioMode) = (id, true)
+        }
+        guard let scene = state.scenes.first(where: { UUID(uuidString: $0.id) == target }) else { return false }
+        return await selectScene(id: scene.id, collection: state.collection, expectedStudioMode: expectedStudioMode)
+    }
+
+    static func audioActions(_ state: State?) -> [(id: String, label: String)] {
+        guard let state else { return [] }
+        return state.inputs.compactMap { input in
+            guard let target = UUID(uuidString: input.id), let muted = state.inputMutes[input.id] else { return nil }
+            return ("obs.mute." + target.uuidString.lowercased(),
+                    (muted ? "Muted · " : "Unmuted · ") + input.name)
+        }
+    }
+
+    func toggleMicMute(id: UUID) async -> Bool {
+        guard let state,
+              let target = state.inputs.first(where: { UUID(uuidString: $0.id) == id }),
+              state.inputMutes[target.id] != nil,
+              pendingMuteCommands.insert(id).inserted else { return false }
+        defer { pendingMuteCommands.remove(id) }
+
+        let active = generation
+        guard let muted = await micMute(id: target.id, collection: state.collection),
+              active == generation else { return false }
+        let accepted = await setMicMute(id: target.id, collection: state.collection, muted: !muted)
+        // Publish the confirmed state even if OBS does not send an event for the change.
+        if active == generation,
+           let confirmed = await micMute(id: target.id, collection: state.collection),
+           active == generation, var current = self.state {
+            current.inputMutes[target.id] = confirmed
+            self.state = current
+            return accepted && confirmed != muted
+        }
+        return false
+    }
+
+    static let legacyCredentialAccount = "obs.local-websocket"
 
     private enum Keys {
         static let enabled = "obs.enabled"
         static let port = "obs.port"
-        static let credential = "obs.local-websocket"
+        static let credentialService = "io.espdesktop.app.obs"
+        static let credentialAccount = "local-websocket"
     }
 
     @Published private(set) var status: Status = .off
@@ -67,6 +145,8 @@ final class OBSConnection: ObservableObject {
     private var syncTask: Task<Void, Never>?
     private var generation = UUID()
     private var collectionChanging = false
+    private var pendingMuteCommands = Set<UUID>()
+    private var bufferedMutes: [String: Bool] = [:]
     private var bufferedEvents: [(String, OBSWebSocket.Fields)] = []
 
     init(defaults: UserDefaults = .standard, socket: OBSWebSocket = OBSWebSocket()) {
@@ -87,12 +167,13 @@ final class OBSConnection: ObservableObject {
 
     func configure(port: UInt16, password: String) {
         if !password.isEmpty,
-           !KeychainStore.save(Data(password.utf8), service: KeychainStore.service, account: Keys.credential) {
+           !KeychainStore.save(Data(password.utf8), service: Keys.credentialService, account: Keys.credentialAccount) {
             stop()
             status = .keychainUnavailable
             return
         }
 
+        if !password.isEmpty { removeLegacyPassword() }
         self.port = port
         defaults.set(Int(port), forKey: Keys.port)
         enabled = true
@@ -103,7 +184,8 @@ final class OBSConnection: ObservableObject {
     func disable() {
         enabled = false
         defaults.set(false, forKey: Keys.enabled)
-        KeychainStore.remove(service: KeychainStore.service, account: Keys.credential)
+        KeychainStore.remove(service: Keys.credentialService, account: Keys.credentialAccount)
+        removeLegacyPassword()
         stop()
     }
 
@@ -159,9 +241,25 @@ final class OBSConnection: ObservableObject {
     private func connect() {
         stop()
         status = .connecting
-        let password = KeychainStore.load(service: KeychainStore.service, account: Keys.credential)
-            .map { String(decoding: $0, as: UTF8.self) }
+        let password = loadPassword().map { String(decoding: $0, as: UTF8.self) }
         socket.connect(port: port, password: password)
+    }
+
+    private func loadPassword() -> Data? {
+        if let saved = KeychainStore.load(service: Keys.credentialService, account: Keys.credentialAccount) {
+            return saved
+        }
+        guard let legacy = KeychainStore.load(service: KeychainStore.service, account: Self.legacyCredentialAccount) else {
+            return nil
+        }
+        if KeychainStore.save(legacy, service: Keys.credentialService, account: Keys.credentialAccount) {
+            removeLegacyPassword()
+        }
+        return legacy
+    }
+
+    private func removeLegacyPassword() {
+        KeychainStore.remove(service: KeychainStore.service, account: Self.legacyCredentialAccount)
     }
 
     private func disconnected(_ failure: OBSWebSocket.Failure) {
@@ -194,6 +292,7 @@ final class OBSConnection: ObservableObject {
         syncTask?.cancel()
         syncTask = nil
         bufferedEvents.removeAll()
+        bufferedMutes.removeAll()
         state = nil
     }
 
@@ -227,16 +326,31 @@ final class OBSConnection: ObservableObject {
                     socket.close(.unsupportedProtocol)
                     return
                 }
+                let inputTargets = Array(inputList.compactMap { Target(fields: $0, kind: "input") }.prefix(40))
+                var inputMutes: [String: Bool] = [:]
+                for input in inputTargets {
+                    guard active == generation, !Task.isCancelled else { return }
+                    do {
+                        let result = try await socket.request("GetInputMute", fields: ["inputUuid": input.id])
+                        inputMutes[input.id] = result["inputMuted"] as? Bool
+                    } catch OBSWebSocket.Failure.requestRejected {
+                        // Video-only inputs do not expose the OBS mixer mute operation.
+                    }
+                }
+                guard active == generation else { return }
+                for (id, muted) in bufferedMutes where inputMutes[id] != nil { inputMutes[id] = muted }
+                bufferedMutes.removeAll()
                 var snapshot = State(
                     collection: collectionName,
                     scenes: sceneTargets,
-                    inputs: inputList.compactMap { Target(fields: $0, kind: "input") },
+                    inputs: inputTargets,
                     program: sceneTargets.first { $0.id == scenes["currentProgramSceneUuid"] as? String },
                     preview: sceneTargets.first { $0.id == scenes["currentPreviewSceneUuid"] as? String },
                     studioMode: studioMode,
                     streaming: streaming,
                     streamReconnecting: stream["outputReconnecting"] as? Bool ?? false,
-                    recording: recording
+                    recording: recording,
+                    inputMutes: inputMutes
                 )
                 for (type, fields) in bufferedEvents { Self.apply(type, fields: fields, to: &snapshot) }
                 bufferedEvents.removeAll()
@@ -268,6 +382,15 @@ final class OBSConnection: ObservableObject {
         case "SceneCreated", "SceneRemoved", "SceneNameChanged", "SceneListChanged",
              "InputCreated", "InputRemoved", "InputNameChanged", "StudioModeStateChanged":
             if !collectionChanging { sync() }
+        case "InputMuteStateChanged":
+            guard let id = fields["inputUuid"] as? String,
+                  let muted = fields["inputMuted"] as? Bool else { return }
+            if var current = state, current.inputMutes[id] != nil {
+                current.inputMutes[id] = muted
+                state = current
+            } else if state == nil, !collectionChanging, bufferedMutes.count < 128 {
+                bufferedMutes[id] = muted
+            }
         case "CurrentProgramSceneChanged", "CurrentPreviewSceneChanged", "StreamStateChanged", "RecordStateChanged":
             if var current = state {
                 Self.apply(type, fields: fields, to: &current)

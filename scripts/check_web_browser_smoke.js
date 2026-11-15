@@ -4310,6 +4310,61 @@ async function assertMacLockCard(browser) {
   }
 }
 
+async function assertOBSSceneCard(browser) {
+  const testCase = CASES.find(item => item.slug === "guition-esp32-s3-4848s040");
+  const fixture = nativeConfigState(testCase.slug);
+  fixture.document.buttons = {
+    1: "com.apple.Safari;Safari;Monitor;Auto;;;companion",
+    2: "com.apple.Notes;Notes;Monitor;Auto;;;companion",
+  };
+  fixture.document.settings.button_order = "1,2";
+  const context = await browser.newContext({ viewport: testCase.viewport });
+  await installRoutes(context, testCase.slug, { nativeState: fixture });
+  const id = "obs.scene.a51e30ff-0c88-418f-ac5a-fd2e33963c2b";
+  const mic = "obs.mute.69da3f8f-7f62-4abe-a594-4e40dd579858";
+  let connectedToOBS = true;
+  await context.route("**/companion/actions", route => route.fulfill({
+    json: connectedToOBS ? [
+      { id, label: "Program · Gameplay" },
+      { id: mic, label: "Muted · Desk Mic" },
+    ] : [],
+  }));
+  const page = await context.newPage();
+  await installFakeEventSource(page);
+  try {
+    await page.goto("http://espdesktop.test/" + testCase.slug + "?events=1");
+    await page.waitForFunction(() => window.__eventSources?.length > 0);
+    await page.getByRole("tab", { name: "Layout", exact: true }).click();
+    await seedNativeDocument(page, fixture);
+    await page.locator(".sp-main .sp-empty-cell").first().click();
+    await page.getByRole("button", { name: "OBS Scene card type", exact: true }).click();
+    const picker = page.locator("select[id$='obs-scene']");
+    await picker.getByRole("option", { name: "Program · Gameplay" }).waitFor({ state: "attached" });
+    await picker.selectOption(id);
+    await page.getByRole("button", { name: "Save", exact: true }).click();
+    await waitForNativeState(fixture, () => fixture.document.buttons[3]?.startsWith(id + ";"),
+      "The OBS scene UUID saves as a Companion card");
+
+    await page.locator(".sp-main .sp-empty-cell").first().click();
+    await page.getByRole("button", { name: "OBS Mic Mute card type", exact: true }).click();
+    const micPicker = page.locator("select[id$='obs-mic']");
+    await micPicker.getByRole("option", { name: "Muted · Desk Mic" }).waitFor({ state: "attached" });
+    assert.equal(await micPicker.getByRole("option", { name: "Program · Gameplay" }).count(), 0);
+    await micPicker.selectOption(mic);
+    await page.getByRole("button", { name: "Save", exact: true }).click();
+    await waitForNativeState(fixture, () => fixture.document.buttons[4]?.startsWith(mic + ";"),
+      "The OBS mic UUID saves as a Companion card");
+    connectedToOBS = false;
+    await page.locator('.sp-main [data-slot="3"]').click();
+    await page.getByRole("button", { name: "Edit", exact: true }).click();
+    await picker.getByRole("option", { name: "Saved scene (unavailable)" }).waitFor({ state: "attached" });
+    assert.equal(await picker.inputValue(), id);
+    console.log("OBS scene and mic card save and offline binding checks passed.");
+  } finally {
+    await context.close();
+  }
+}
+
 async function assertShortcutCatalogSettings(browser, testCase) {
   if (testCase.slug !== "guition-esp32-s3-4848s040") return;
   const nativeState = nativeConfigState(testCase.slug);
@@ -7790,6 +7845,10 @@ async function assertFirstRunSetup(browser) {
       await assertFirstRunSetup(browser);
       return;
     }
+    if (process.env.ESPDESKTOP_OBS_ONLY === "1") {
+      await assertOBSSceneCard(browser);
+      return;
+    }
     if (process.env.ESPDESKTOP_MAC_LOCK_ONLY === "1") {
       await assertMacLockCard(browser);
       return;
@@ -7798,6 +7857,7 @@ async function assertFirstRunSetup(browser) {
       for (const testCase of ACTIVE_CASES) await runCase(browser, testCase);
       return;
     }
+    await assertOBSSceneCard(browser);
     await assertRetiredCardRemoval(browser);
     if (process.env.ESPDESKTOP_RETIRED_CARDS_ONLY === "1") return;
     await assertMacLockCard(browser);

@@ -667,7 +667,7 @@ void CompanionService::handle_json_(int socket_fd, const std::string &message) {
         if ((retain_action || app_icon_store().is_referenced(id)) &&
             id.rfind("folder.", 0) != 0 && id.rfind("shortcut.", 0) != 0 &&
             id.rfind("window.", 0) != 0 && id.rfind("metrics.", 0) != 0 &&
-            id.rfind("urlcard.", 0) != 0 &&
+            id.rfind("urlcard.", 0) != 0 && id.rfind("obs.", 0) != 0 &&
             std::find(this->catalogue_enabled_icons_.begin(), this->catalogue_enabled_icons_.end(), id) ==
                 this->catalogue_enabled_icons_.end())
           this->catalogue_enabled_icons_.push_back(id);

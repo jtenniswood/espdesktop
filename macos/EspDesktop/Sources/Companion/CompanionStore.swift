@@ -97,7 +97,8 @@ struct ApprovedFolder: Codable, Identifiable, Hashable {
 @MainActor
 final class CompanionStore: NSObject, ObservableObject {
     let updater = CompanionUpdater()
-    let obs = OBSConnection()
+    let obs: OBSConnection
+    private var obsCatalogueObservation: AnyCancellable?
     @Published var settingsRequestID: UUID?
     var requestedSettingsDestination: CompanionSettingsDestination = .displays
     static let privacyPolicyURL = URL(string: "https://espdesktop.com/reference/privacy")!
@@ -177,6 +178,7 @@ final class CompanionStore: NSObject, ObservableObject {
             ? UserDefaults.standard
             : (UserDefaults(suiteName: Self.preferencesSuite) ?? .standard))
         self.defaults = stableDefaults
+        obs = OBSConnection(defaults: stableDefaults)
         let savedDisplays = CompanionSavedDisplays(defaults: stableDefaults)
         self.savedDisplays = savedDisplays
         approvedApplicationIdentifiers = Set(
@@ -189,6 +191,13 @@ final class CompanionStore: NSObject, ObservableObject {
         onboardingCompleted = stableDefaults.bool(forKey: Keys.onboardingCompleted) || !records.isEmpty
         super.init()
         displays = records.map(makeDisplay)
+        obsCatalogueObservation = obs.$state.map { OBSConnection.sceneActions($0) + OBSConnection.audioActions($0) }
+            .removeDuplicates(by: { old, new in
+                old.elementsEqual(new) { $0.id == $1.id && $0.label == $1.label }
+            })
+            .sink { [weak self] actions in
+                self?.publishToConnectedDisplays { $0.publishCatalogue(obsActions: actions) }
+            }
         sessionLock.onChange = { [weak self] locked, displayAwake in
             self?.publishToConnectedDisplays { $0.publishSessionLock(locked, displayAwake: displayAwake) }
         }
@@ -856,10 +865,22 @@ final class CompanionStore: NSObject, ObservableObject {
         return false
     }
 
+    func obsControlActions() -> [(id: String, label: String)] {
+        OBSConnection.sceneActions(obs.state) + OBSConnection.audioActions(obs.state)
+    }
+
     func performResultStatus(actionIdentifier: String,
                              folderOpenBehavior: String = "new_window",
                              shortcutAppID: String? = nil) async -> String {
         guard !sessionLock.refresh() else { return "not_allowed" }
+        if actionIdentifier.hasPrefix("obs.mute."),
+           let target = UUID(uuidString: String(actionIdentifier.dropFirst("obs.mute.".count))) {
+            return await obs.toggleMicMute(id: target) ? "performed" : "not_allowed"
+        }
+        if actionIdentifier.hasPrefix("obs.") {
+            guard let action = OBSConnection.SceneAction(id: actionIdentifier) else { return "not_found" }
+            return await obs.performSceneAction(action) ? "performed" : "not_allowed"
+        }
         let performed = await perform(actionIdentifier: actionIdentifier,
                                       folderOpenBehavior: folderOpenBehavior, shortcutAppID: shortcutAppID)
         return Self.actionResultStatus(actionIdentifier: actionIdentifier, performed: performed)

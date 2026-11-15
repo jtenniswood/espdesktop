@@ -59,6 +59,18 @@ When you close the last visible window of the foreground app, the display return
 
 See [all app presets](/reference/shortcut-presets).
 
+## OBS Studio scene and microphone cards
+
+1. In OBS Studio, open **Tools → WebSocket Server Settings** and enable the server. Keep authentication enabled.
+2. In the EspDesktop Mac app, open **Settings → OBS**. Enter the port and password shown in OBS, then choose **Connect**.
+3. In the display editor, add **OBS Scene** or **OBS Mic Mute** and choose the target by name. Both cards are available on the home screen and in folders.
+
+A scene card created in normal mode switches the program scene. A scene card created in Studio Mode selects the preview scene. Each card is available in the mode it was set up for. Use OBS Studio to take the preview live. The scene tile shows **Program**, **On air**, or **Preview** when OBS reports it as selected.
+
+An **OBS Mic Mute** card changes the selected input in the OBS mixer. Its **Muted** and **Unmuted** labels come from OBS. Use the mic your broadcast captures when setting up the card, especially if it differs from the Mac’s default mic. Scene and input bindings are kept when a target is unavailable.
+
+Use matching display firmware and Mac app builds that support OBS cards. Before going live, try the cards with a test recording and listen back to check the mix.
+
 ## Website cards {#open-a-website}
 
 To add a tile for a web address, see [Open Websites on Your Mac](/mac-controls/websites).

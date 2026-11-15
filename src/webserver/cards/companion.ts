@@ -1,6 +1,6 @@
 import { childPageKey } from "../model/page_keys";
 import { renderCompanionStorageSelector } from "./companion_storage";
-import { COMPANION_FOLDER_PREFIX, decodeCompanionCard, encodeCompanionCard, companionMetricForEntity } from "../model/companion_card_codec";
+import { COMPANION_FOLDER_PREFIX, COMPANION_OBS_PREFIX, decodeCompanionCard, encodeCompanionCard, companionMetricForEntity } from "../model/companion_card_codec";
 import { configOptionEnabled, configOptionValue, setConfigOption, setConfigOptionValue, normalizedCardColorOptions, preserveCardColorOptions, withoutCardColorOptions } from "../model/config_primitives";
 import { createCompanionCatalogue, createCompanionCatalogueMonitor } from "../api/companion_catalogue";
 import type { CompanionAction } from "../api/companion_catalogue";
@@ -330,6 +330,8 @@ export function companionEntityForMode(mode: string): string {
     if (mode === "url") return COMPANION_DEFAULT_BROWSER;
     if (mode === "shortcut") return COMPANION_SHORTCUT_PREFIX;
     if (mode === "folder") return COMPANION_FOLDER_PREFIX;
+    if (mode === "obs") return COMPANION_OBS_PREFIX;
+    if (mode === "obs_mic") return "obs.mute.";
     if (mode === "stats") return COMPANION_SYSTEM_METRICS[0]?.id || "";
     return COMPANION_SYSTEM_METRICS.find((metric) => metric.mode === mode)?.id || "";
 }
@@ -337,6 +339,7 @@ export function companionEntityForMode(mode: string): string {
 export function companionApplicationActions(actions: readonly CompanionAction[]): readonly CompanionAction[] {
     return sortCompanionLabels(actions.filter((action) =>
         !action.id.startsWith(COMPANION_FOLDER_PREFIX) &&
+        !action.id.startsWith(COMPANION_OBS_PREFIX) &&
         !["media.play_pause", "media.previous", "media.next"].includes(action.id)));
 }
 
@@ -462,15 +465,67 @@ export function registerCompanionCardTypes(
     const { renderButtonSettings, renderPreview } = cardUi;
     const catalogue = createCompanionCatalogue(fetchImpl);
     const loadCompanionActions = catalogue.load;
+    const obsControlLabels = new Map<string, string>();
+
+    function rememberOBSControls(actions: readonly CompanionAction[]): readonly CompanionAction[] {
+        const scenes = actions.filter(action => /^obs\.(scene|preview|mute)\.[a-f0-9-]{36}$/.test(action.id));
+        obsControlLabels.clear();
+        for (const scene of scenes) obsControlLabels.set(scene.id, scene.label);
+        return scenes;
+    }
+
+    function renderOBSControlSettings(panel: HTMLElement, card: { entity: string }, helpers: any, audio: boolean): void {
+        const name = audio ? "OBS audio input" : "OBS scene";
+        const placeholder = "Choose an " + name + "…";
+        const unavailable = audio ? "Saved OBS input (unavailable)" : "Saved scene (unavailable)";
+        const isNew = card.entity === (audio ? "obs.mute." : COMPANION_OBS_PREFIX);
+        const saved = card.entity;
+        const options: Array<[string, string]> = [["", placeholder]];
+        if (!isNew) {
+            options.push([saved, obsControlLabels.get(saved) || unavailable]);
+        }
+        const { field, select } = helpers.selectField(name, helpers.idPrefix + (audio ? "obs-mic" : "obs-scene"), options,
+            saved, () => {
+                if (!select.value) return;
+                card.entity = select.value;
+                helpers.saveField("entity", card.entity);
+            });
+        panel.appendChild(field);
+        helpers.markCardPrimaryField(field, "entity");
+        helpers.requireField(select, "Choose an " + name + " before saving.");
+        const note = document.createElement("p");
+        note.className = "sp-setting-note";
+        note.textContent = "Loading controls from OBS…";
+        field.appendChild(note);
+        select.disabled = true;
+        void loadCompanionActions(true).then(actions => {
+            const targets = rememberOBSControls(actions).filter(action => action.id.startsWith("obs.mute.") === audio);
+            const entries = targets.map(target => new Option(target.label, target.id));
+            if (!isNew && !targets.some(target => target.id === saved)) {
+                entries.unshift(new Option(unavailable, saved));
+            }
+            select.replaceChildren(new Option(placeholder, ""), ...entries);
+            select.value = isNew ? "" : saved;
+            select.disabled = targets.length === 0;
+            note.textContent = targets.length
+                ? (audio ? "Changes this input in the OBS mixer." : "Studio Mode scene tiles select Preview. Set up the tile in the OBS mode you intend to use.")
+                : "Connect OBS in the Mac Companion and try again.";
+            cardUi.renderPreview();
+        }).catch(() => { note.textContent = "Connect OBS in the Mac Companion and try again."; });
+        helpers.renderCardIconPicker(panel, card, helpers, COMPANION_CARD_METADATA.icon);
+    }
     let companionApplications: readonly CompanionAction[] = [];
     const companionApplicationLabels = new Map<string, string>();
 
     const companionCatalogueMonitor = createCompanionCatalogueMonitor(
         () => loadCompanionActions(true),
         function (actions) {
+            const previousOBS = JSON.stringify([...obsControlLabels]);
+            rememberOBSControls(actions);
             const folders = actions.filter(action => action.id.startsWith(COMPANION_FOLDER_PREFIX));
             const foldersChanged = publishFinderFolders(folders);
-            if (rememberCompanionApplications(actions) || foldersChanged) cardUi.renderPreview();
+            if (rememberCompanionApplications(actions) || foldersChanged ||
+                previousOBS !== JSON.stringify([...obsControlLabels])) cardUi.renderPreview();
         },
     );
 
@@ -501,13 +556,16 @@ export function registerCompanionCardTypes(
     if (supported) {
         void loadCompanionActions().then(function (actions) {
             rememberCompanionApplications(actions);
+            rememberOBSControls(actions);
             cardUi.renderPreview();
         }).catch(function () {});
         connectorStatus.onCompanionConnectionChange(function (connected) {
             if (connected) companionCatalogueMonitor.start();
             else {
                 companionCatalogueMonitor.stop();
-                if (publishFinderFolders([])) cardUi.renderPreview();
+                const hadOBSControls = obsControlLabels.size > 0;
+                obsControlLabels.clear();
+                if (publishFinderFolders([]) || hadOBSControls) cardUi.renderPreview();
             }
             document.dispatchEvent(new CustomEvent("espdesktop:app-icon-cache-cleared", { detail: {
                 name: "companion-connection", value: String(connected),
@@ -602,6 +660,10 @@ export function registerCompanionCardTypes(
             const currentEntity = typeof card.entity === "string" ? card.entity : "";
             card.entity = currentEntity;
             const initialMode = companionCardMode(card);
+            if ((initialMode === "obs" || initialMode === "obs_mic") && panel) {
+                renderOBSControlSettings(panel, card, helpers, initialMode === "obs_mic");
+                return;
+            }
             const parentPage = helpers.isSub ? state.editingSubpage : null;
             const canAddSubpage = codec.canCreateSubpage(parentPage);
             const subpageKey = canAddSubpage && slot ? childPageKey(parentPage ?? 0, Number(slot)) : null;
@@ -1470,6 +1532,16 @@ export function registerCompanionCardTypes(
                     badge: COMPANION_CARD_METADATA.preview.badge,
                 });
             }
+            if (mode === "obs" || mode === "obs_mic") {
+                return {
+                    ...cardBadgePreview(card, helpers, {
+                        label: obsControlLabels.get(card.entity) || (mode === "obs_mic" ? "OBS Mic Mute" : "OBS Scene"),
+                        iconFallback: companionSubtypeDefaultIcon(mode),
+                        badge: COMPANION_CARD_METADATA.preview.badge,
+                    }),
+                    labelEditable: false,
+                };
+            }
             const shortcutLabel = formatCompanionShortcutActionId(card.entity);
             const appLabel = mode === "app" || mode === "url"
                 ? companionApplicationLabel(card.entity) : "";
@@ -1600,6 +1672,8 @@ export function registerCompanionCardTypes(
         ["companion_shortcut", "Key Shortcut", "shortcut"],
         ["companion_url", "Website", "url"],
         ["companion_folder", "Finder Folder", "folder"],
+        ["companion_obs", "OBS Scene", "obs"],
+        ["companion_obs_mic", "OBS Mic Mute", "obs_mic"],
     ];
     companionPickerDefinitions.forEach(function (definition) {
         const key = definition[0];

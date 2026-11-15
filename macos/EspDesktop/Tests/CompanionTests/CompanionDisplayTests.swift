@@ -84,6 +84,22 @@ final class CompanionDisplayTests: XCTestCase {
     }
 
     @MainActor
+    func testLegacyOBSPasswordDoesNotCreateAPairedDisplay() {
+        let suite = "CompanionDisplayTests.\(UUID())"
+        let defaults = UserDefaults(suiteName: suite)!
+        defer { defaults.removePersistentDomain(forName: suite) }
+        let saved = CompanionSavedDisplays(defaults: defaults)
+        XCTAssertTrue(saved.load { [OBSConnection.legacyCredentialAccount] }.isEmpty)
+        XCTAssertEqual(saved.load {
+            [OBSConnection.legacyCredentialAccount, "studio.local"]
+        }.map(\.account), ["studio.local"])
+
+        let display = CompanionDisplayRecord(host: "studio.local", account: "studio.local")
+        saved.save([display, CompanionDisplayRecord(account: OBSConnection.legacyCredentialAccount)])
+        XCTAssertEqual(saved.load { [] }, [display])
+    }
+
+    @MainActor
     func testDisplayFailureDoesNotStopMetricsForOtherDisplay() {
         let suite = "CompanionDisplayTests.\(UUID())"
         let defaults = UserDefaults(suiteName: suite)!

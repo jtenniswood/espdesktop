@@ -36,4 +36,46 @@ final class OBSWebSocketTests: XCTestCase {
         XCTAssertEqual(target?.id, "stable-id")
         XCTAssertEqual(target?.name, "Mic")
     }
+
+    @MainActor
+    func testSceneCatalogueSeparatesProgramFromStudioPreview() async throws {
+        let uuid = UUID(uuidString: "a51e30ff-0c88-418f-ac5a-fd2e33963c2b")!
+        let scene = try XCTUnwrap(OBSConnection.Target(fields: [
+            "sceneName": "Gameplay", "sceneUuid": uuid.uuidString,
+        ], kind: "scene"))
+        var state = OBSConnection.State(collection: "Show", scenes: [scene], inputs: [],
+                                        program: scene, preview: nil, studioMode: false,
+                                        streaming: true, streamReconnecting: false, recording: true)
+        let program = try XCTUnwrap(OBSConnection.sceneActions(state).first)
+        XCTAssertEqual(OBSConnection.SceneAction(id: program.id), .program(uuid))
+        XCTAssertEqual(program.label, "On air · Gameplay")
+
+        state.studioMode = true
+        state.preview = scene
+        let preview = try XCTUnwrap(OBSConnection.sceneActions(state).first)
+        XCTAssertEqual(OBSConnection.SceneAction(id: preview.id), .preview(uuid))
+        XCTAssertEqual(preview.label, "Preview · Gameplay")
+        XCTAssertNotEqual(program.id, preview.id)
+        XCTAssertTrue(OBSConnection.sceneActions(nil).isEmpty)
+        XCTAssertNil(OBSConnection.SceneAction(id: "obs.scene.Gameplay"))
+    }
+
+    @MainActor
+    func testMuteCatalogueShowsConfirmedStatesForAudioInputsOnly() async throws {
+        let mic = try XCTUnwrap(OBSConnection.Target(fields: [
+            "inputName": "Desk Mic", "inputUuid": "69da3f8f-7f62-4abe-a594-4e40dd579858",
+        ], kind: "input"))
+        let video = try XCTUnwrap(OBSConnection.Target(fields: [
+            "inputName": "Camera", "inputUuid": "9e7fb755-e834-445b-a33e-e96e02acaba0",
+        ], kind: "input"))
+        var state = OBSConnection.State(collection: "Show", scenes: [], inputs: [mic, video],
+                                        program: nil, preview: nil, studioMode: true,
+                                        streaming: false, streamReconnecting: false, recording: false,
+                                        inputMutes: [mic.id: true])
+        XCTAssertEqual(OBSConnection.audioActions(state).map(\.id), ["obs.mute." + mic.id])
+        XCTAssertEqual(OBSConnection.audioActions(state).map(\.label), ["Muted · Desk Mic"])
+        state.inputMutes[mic.id] = false
+        XCTAssertEqual(OBSConnection.audioActions(state).map(\.label), ["Unmuted · Desk Mic"])
+        XCTAssertTrue(OBSConnection.audioActions(nil).isEmpty)
+    }
 }

@@ -87,6 +87,7 @@ final class CompanionConnection: NSObject {
     private var focusPublicationTask: Task<Void, Never>?
     private var applicationFocusPublisher = CompanionApplicationFocusPublisher()
     private var catalogueGeneration: UInt32 = 0
+    private var supportsOBSCards = false
     private var definitionGeneration: UInt32 = 0
     private var lastPublishedSystemMetrics: CompanionSystemMetricsSnapshot?
     private var lastSystemMetricsPublication = Date.distantPast
@@ -504,6 +505,7 @@ final class CompanionConnection: NSObject {
             supportsSessionLock = payload.capabilityVersion >= 7
             supportsPairingReset = payload.capabilityVersion >= 8
             expandedShortcutsSupported = payload.capabilityVersion >= 9
+            supportsOBSCards = payload.capabilityVersion >= 13
             // A Bonjour TXT record never authorizes a location change. Both the
             // pinned TLS certificate and the authenticated session must agree.
             let expectedFingerprint = preferences.stringPreference(forKey: certificateFingerprintKey)
@@ -550,6 +552,10 @@ final class CompanionConnection: NSObject {
             let requestIdentifier = payload.requestId
             let kind = payload.kind
             if kind == "action", let actionIdentifier = payload.actionId {
+                if actionIdentifier.hasPrefix("obs.") && !supportsOBSCards {
+                    sendJSON(["type": "action.result", "requestId": requestIdentifier, "status": "not_allowed"])
+                    return true
+                }
                 let requestingTask = task
                 Task { [weak self, weak requestingTask] in
                     guard let self, let requestingTask, self.task === requestingTask, self.sessionAuthenticated else { return }
@@ -773,21 +779,27 @@ final class CompanionConnection: NSObject {
         send(value)
     }
 
-    func publishCatalogue() {
+    func publishCatalogue(obsActions: [(id: String, label: String)]? = nil) {
         // An initial empty scan is provisional; publishing it would prune the
         // panel's persistent icons before discovery supplies the real app list.
         guard resources.applicationCatalogueReady else { return }
         guard sessionAuthenticated || task != nil else { return }
-        applicationFocusPublisher.reset()
+        if obsActions != nil && (!sessionAuthenticated || !supportsOBSCards) { return }
+        if obsActions == nil { applicationFocusPublisher.reset() }
         var capabilities = ["keyboard_shortcuts"]
         capabilities.append(CompanionCapabilities.appIconsCapability)
         capabilities.append(CompanionCapabilities.appIconsAlphaCapability)
         capabilities.append(CompanionCapabilities.appIconsHighResolutionCapability)
         capabilities.append("url_card_focus")
-        sendJSON(["type": "capabilities", "values": capabilities])
+        if supportsOBSCards { capabilities.append("obs_scene_cards") }
+        if obsActions == nil { sendJSON(["type": "capabilities", "values": capabilities]) }
         // The browser receives identifiers, never application paths or shell commands.
         let apps = resources.launchableApps()
-        let entries: [[String: String]] = resources.folderActions().compactMap { folder -> [String: String]? in
+        let supportedOBSActions = supportsOBSCards ? obsActions ?? resources.obsControlActions() : []
+        let obsEntries: [[String: String]] = supportedOBSActions.map { entry in
+            ["id": entry.id, "label": Self.catalogueLabel(entry.label, fallback: "OBS scene")]
+        }
+        let entries: [[String: String]] = obsEntries + resources.folderActions().compactMap { folder -> [String: String]? in
             guard Self.validCatalogueIdentifier(folder.actionIdentifier) else { return nil }
             return ["id": folder.actionIdentifier, "label": Self.catalogueLabel(folder.name, fallback: "Folder")]
         } + apps.compactMap { app -> [String: String]? in
@@ -803,7 +815,7 @@ final class CompanionConnection: NSObject {
             sendJSON(["type": "catalogue.page", "generation": catalogueGeneration,
                       "page": page, "complete": page == pages.count - 1, "items": items])
         }
-        if remoteCatalogueDefinitionsSupported {
+        if obsActions == nil && remoteCatalogueDefinitionsSupported {
             let definitions = resources.remoteCompanionCatalogues().applicationsForDisplay(approvedApps: apps)
             let installedIDs = Set(apps.map(\.bundleIdentifier))
             let starter = definitions.map(\.starter)

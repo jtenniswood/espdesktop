@@ -641,6 +641,7 @@ inline std::string companion_default_action_label(const std::string &action_id,
   const auto action = std::find_if(snapshot.actions.begin(), snapshot.actions.end(),
     [&action_id](const CompanionAction &candidate) { return candidate.id == action_id; });
   if (action != snapshot.actions.end() && !action->label.empty()) return action->label;
+  if (action_id.rfind("obs.", 0) == 0) return espdesktop_i18n("Unavailable");
   return action_id.empty() ? espdesktop_i18n("Mac App") : action_id;
 }
 
