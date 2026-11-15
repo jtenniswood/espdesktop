@@ -124,7 +124,7 @@ Tap the Lock Machine tile when you step away from your desk.
 
 ### Make the layout your own
 
-Resize tiles, choose their icons and colours, and group related controls into subpages.
+Resize tiles, choose icons, colours or photos for your cards, and group related controls into subpages.
 
 [Customise the layout](/features/home)
 

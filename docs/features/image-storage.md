@@ -32,19 +32,19 @@ The **Background > Image** controls and **Settings > System > Backup** show an i
 Backups preserve cards, subpages and display settings. When image storage is available, a full backup also includes uploaded images. If storage is missing, configuration-only export is expected. Keep the original image files if you will need to upload them later.
 
 ::: warning Keep connection details ready
-A USB reinstall can erase saved settings, Wi-Fi credentials and pairing details. Keep your network details ready and be prepared to pair the display with the Mac Companion again. See [Backup and Restore](/features/setup) for what a backup includes.
+A USB reinstall can erase saved settings, Wi-Fi credentials and pairing details. Keep your network details ready and be prepared to pair the display with the Mac Companion again. See [Backup and restore](/settings/backup) for what a backup includes.
 :::
 
 ## 2. Reinstall Over USB
 
-1. Identify your exact [screen model and hardware revision](/getting-started/install).
+1. Identify your exact screen model and hardware revision.
 2. Connect its programming port to your computer with a USB **data** cable.
-3. Follow [Install EspDesktop](/getting-started/install), choosing the matching model and revision. Complete a full USB firmware installation so the partition table is written.
+3. Complete a full USB firmware installation using the factory image for your model and revision. For the public Guition 4848S040, see [Install EspDesktop](/screens/4848s040#install).
 4. Let the display restart, then reconnect Wi-Fi and the Mac Companion as needed.
 
 Uploading a firmware file through the display's web page or using ESPHome OTA does not install the new partition layout. Resetting the display does not change it either.
 
-For a custom ESPHome installation, follow [Manual ESPHome Setup](/getting-started/install). Use the current device configuration and perform the full USB install; when flashing a downloaded file, use the matching **factory** image rather than the OTA image. If you are testing a feature branch, use a factory build from that same branch.
+Use the matching **factory** image for a downloaded firmware file. If you are testing a feature branch, use the factory build from that branch.
 
 ## 3. Restore and Check Image Support
 

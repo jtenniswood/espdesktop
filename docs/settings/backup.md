@@ -13,7 +13,7 @@ Export a backup before a firmware update or factory reset, or when you want to m
 
 1. Open the display’s web editor using **Customize Display** from the EspDesktop menu bar icon or the display’s local address.
 2. In the **System** tab, find the **System** heading and open **Backup**.
-3. Click **Export**. Your browser downloads a dated file ending in `.json`. Keep it somewhere you can find it later.
+3. Click **Export**. Your browser downloads a dated `.zip` file. A full backup includes uploaded background pictures and their card assignments when image storage is available. Keep the file somewhere you can find it later.
 
 Keep the file private if your cards contain personal web addresses or other sensitive settings.
 
@@ -29,5 +29,7 @@ On a replacement display or after a complete reset, [connect the display to Wi-F
 ## Restore to a different display or firmware version
 
 When the destination has a different grid, EspDesktop rearranges cards to fit where it can. Check the restored layout and subpages, especially if the destination has fewer slots. Backups with pages nested inside other subpages require the same display model.
+
+To restore a ZIP containing pictures, the destination needs [image storage](/features/image-storage). You can also import older `.json` configuration backups.
 
 If the editor asks for newer firmware, [update the display](/settings/system#update-the-display-firmware) and try the import again. When returning to older firmware, use a backup made before the upgrade. Older cards may appear as unavailable on current EspDesktop firmware. You can replace or remove them in **Layout**.

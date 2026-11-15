@@ -41,6 +41,12 @@ Right-click a card to open its menu.
 
 <a href="/images/web-editor-card-menu.webp"><picture><source type="image/avif" srcset="/images/web-editor-card-menu-480.avif 480w, /images/web-editor-card-menu-960.avif 960w" sizes="(min-width: 768px) 688px, 90vw"><img src="/images/web-editor-card-menu.webp" alt="Right-click menu on an app card showing Edit Card, App Icon Size, Card Colour and Edit Subpage" width="1205" height="1205" loading="lazy"></picture></a>
 
+### Use a photo as a card background
+
+Open **Edit Card**, choose **Background → Image**, and upload a picture or select one from the library. Choose **Save** to apply it. In **Screen → Appearance → Image Library**, you can upload, rename or delete pictures. Deleting a picture used by a card clears that card’s image background.
+
+If the image option shows a storage message, follow [Enable image storage](/features/image-storage).
+
 ## Add a card
 
 1. Click the **+** in an empty spot on the grid.
