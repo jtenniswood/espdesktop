@@ -35,7 +35,7 @@ export function firstRunApplications(actions: readonly CompanionAction[]): Compa
         if (!action.id.startsWith("folder.") && !action.id.startsWith("shortcut.") &&
             !action.id.startsWith("media.") && !action.id.startsWith("system.") &&
             !action.id.startsWith("window.") && !action.id.startsWith("webapp.") &&
-            !action.id.startsWith("obs.")) unique.set(action.id, action);
+            !action.id.startsWith("obs.") && !action.id.startsWith("input.level.")) unique.set(action.id, action);
     }
     return [...unique.values()].sort((a, b) => a.label.localeCompare(b.label));
 }
