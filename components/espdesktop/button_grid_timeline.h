@@ -141,7 +141,9 @@ inline void companion_timeline_open(lv_obj_t *launcher, const std::string &app,
   lv_obj_center(strip);
   lv_obj_clear_flag(strip, LV_OBJ_FLAG_GESTURE_BUBBLE);
   lv_obj_add_flag(strip, LV_OBJ_FLAG_PRESS_LOCK);
-  lv_obj_add_event_cb(strip, companion_timeline_touch, LV_EVENT_ALL, pad);
+  for (const auto code : {LV_EVENT_PRESSED, LV_EVENT_PRESSING, LV_EVENT_RELEASED, LV_EVENT_PRESS_LOST}) {
+    lv_obj_add_event_cb(strip, companion_timeline_touch, code, pad);
+  }
 
   auto *left = companion_timeline_button(shell.panel, "<", font, compensation, mode_height);
   auto *right = companion_timeline_button(shell.panel, ">", font, compensation, mode_height);
