@@ -701,6 +701,30 @@ inline bool companion_obs_record_stopping(const CompanionRuntimeSnapshot &snapsh
   return action && action->id == "obs.output.record" && action->label == "Stopping";
 }
 
+inline std::string_view companion_obs_output_status(const CompanionRuntimeSnapshot &snapshot,
+                                                    const std::string &id) {
+  if (id == "obs.output.record" && companion_obs_record_stopping(snapshot)) return "Stopping";
+  const auto *status = companion_published_action(snapshot,
+    id == "obs.output.record" ? "obs.status.record" : "obs.status.stream");
+  if (!status) return "Unavailable";
+  const auto separator = status->label.find(" · ");
+  return separator == std::string::npos ? "Unavailable"
+    : std::string_view(status->label).substr(separator + sizeof(" · ") - 1);
+}
+
+inline bool companion_obs_output_active(const CompanionRuntimeSnapshot &snapshot, const std::string &id) {
+  const bool record = id == "obs.output.record";
+  if (companion_published_action(snapshot, record ? "obs.record.active" : "obs.stream.active")) return true;
+  const auto status = companion_obs_output_status(snapshot, id);
+  return record ? status == "Active" || status == "Paused" || status == "Stopping"
+    : status == "Live" || status == "Reconnecting";
+}
+
+inline bool companion_obs_output_auto_icon(const std::string &id, const std::string &icon) {
+  return icon.empty() || icon == "Auto" || icon == "Monitor" ||
+    (id == "obs.output.record" ? icon == "Record" : icon == "Broadcast");
+}
+
 inline bool companion_action_available(const std::string &action_id) {
   return companion_action_available(companion_runtime_snapshot(), action_id);
 }
@@ -743,8 +767,13 @@ inline std::string companion_default_action_label_with_fallback(
 }
 
 inline std::string companion_obs_control_label(const std::string &action_id, const std::string &alias,
-                                               const std::string &live_label, bool recording_active = false) {
-  if (action_id == "obs.output.record") return espdesktop_i18n(recording_active ? "Recording" : "Record");
+                                               const std::string &live_label,
+                                               const CompanionRuntimeSnapshot *snapshot = nullptr) {
+  if (snapshot && companion_obs_output_card(action_id)) {
+    const char *title = action_id == "obs.output.stream" ? "Stream"
+      : companion_obs_output_active(*snapshot, action_id) ? "Recording" : "Record";
+    return std::string(title) + " · " + std::string(companion_obs_output_status(*snapshot, action_id));
+  }
   if (!alias.empty()) return alias;
   if (companion_obs_audio_uuid(action_id, "obs.mute.")) {
     for (std::string_view prefix : {"Muted · ", "Unmuted · "}) {
@@ -834,12 +863,12 @@ inline void companion_apply_card_focus(lv_obj_t *button, const std::string &acti
   bool on_program = false;
   if (show_focus && companion_card_focus_allowed(url_config)) {
     const std::string focus_id = url_config.empty() ? action_id : companion_url_card_focus_id(url_config);
-    if (companion_obs_scene_card(action_id) || action_id == "obs.output.record" || action_id == "obs.studio" ||
+    if (companion_obs_scene_card(action_id) || companion_obs_output_card(action_id) || action_id == "obs.studio" ||
         action_id == "obs.brb" || action_id == "obs.replay.buffer" || action_id == "obs.replay") {
       const auto owned = snapshot ? CompanionRuntimeSnapshot{} : companion_runtime_snapshot();
       const auto &current = snapshot ? *snapshot : owned;
-      if (action_id == "obs.output.record") {
-        active = companion_published_action(current, "obs.record.active") != nullptr;
+      if (companion_obs_output_card(action_id)) {
+        active = companion_obs_output_active(current, action_id);
       } else if (action_id == "obs.studio" || action_id == "obs.replay.buffer") {
         const auto *mode = companion_published_action(current, action_id);
         active = mode && mode->label == "On";
@@ -1125,13 +1154,14 @@ inline void companion_track_card(lv_obj_t *button, const std::string &action_id,
 inline const char *companion_obs_status_icon(const std::string &id, const std::string &status, bool available) {
   if (!available || status == "Unknown") return "Monitor Off";
   if (id == "obs.status.program") return "Monitor";
-  if (status == "Changing" || status == "Reconnecting") return "Progress Clock";
-  if (id == "obs.status.stream") return status == "Live" ? "Broadcast" : "Broadcast Off";
+  if (status == "Unavailable") return "Monitor Off";
+  if (status == "Changing" || status == "Reconnecting" || status == "Stopping") return "Progress Clock";
+  if (id == "obs.status.stream" || id == "obs.output.stream") return status == "Live" ? "Broadcast" : "Broadcast Off";
   if (status == "Paused") return "Pause";
   return status == "Active" ? "Record" : "Stop Circle";
 }
 
-inline void companion_render_obs_detail(CompanionCardRef &ref, const std::string &label, bool stopping = false) {
+inline void companion_render_obs_detail(CompanionCardRef &ref, const std::string &label) {
   if (!ref.obs_detail || !lv_obj_is_valid(ref.obs_detail) || !ref.text_label) return;
   const std::string separator = " · ";
   const auto split = label.find(separator);
@@ -1142,12 +1172,13 @@ inline void companion_render_obs_detail(CompanionCardRef &ref, const std::string
     : ref.action_id == "obs.status.stream" ? "Stream"
     : ref.action_id == "obs.status.record" ? "Recording"
     : "Break";
-  const bool record = ref.action_id == "obs.output.record";
+  const bool output = companion_obs_output_card(ref.action_id);
   const bool scene = companion_obs_scene_card(ref.action_id);
   const bool studio = ref.action_id == "obs.studio";
   const bool transition = ref.action_id == "obs.transition";
   const bool brb = ref.action_id == "obs.brb";
-  const std::string primary = (record || scene) ? label
+  const std::string primary = scene ? label
+    : output ? espdesktop_i18n(label.substr(0, split))
     : studio ? espdesktop_i18n_key("label_obs_studio_mode")
     : transition ? espdesktop_i18n_key("label_obs_transition")
     : brb ? espdesktop_i18n_key("label_obs_break") : espdesktop_i18n(name);
@@ -1156,7 +1187,7 @@ inline void companion_render_obs_detail(CompanionCardRef &ref, const std::string
     : (studio || ref.action_id == "obs.replay.buffer") ? espdesktop_i18n(label)
     : ref.action_id == "obs.replay" ? (label == name ? espdesktop_i18n("Ready") : espdesktop_i18n(label))
     : transition ? label
-    : already_on_break ? "" : record ? (stopping ? espdesktop_i18n("Stopping") : "")
+    : already_on_break ? ""
     : (split != std::string::npos ? label.substr(split + separator.size()) : (label == name ? "" : label));
   if (brb) {
     if (companion_obs_break_active(label)) detail = espdesktop_i18n_key("label_obs_resume");
@@ -1166,8 +1197,8 @@ inline void companion_render_obs_detail(CompanionCardRef &ref, const std::string
   if (ref.obs_status_icon) {
     const auto *icon = find_icon(companion_obs_status_icon(ref.action_id, detail, split != std::string::npos));
     if (std::strcmp(icon, lv_label_get_text(ref.obs_status_icon)) != 0) lv_label_set_text(ref.obs_status_icon, icon);
-    if (ref.action_id != "obs.status.program") detail = espdesktop_i18n(detail);
   }
+  if (output || (ref.obs_status_icon && ref.action_id != "obs.status.program")) detail = espdesktop_i18n(detail);
   if (normalize_display_text(primary) != lv_label_get_text(ref.text_label))
     lv_label_set_display_text(ref.text_label, primary.c_str());
   if (normalize_display_text(detail) != lv_label_get_text(ref.obs_detail))
@@ -1177,8 +1208,8 @@ inline void companion_render_obs_detail(CompanionCardRef &ref, const std::string
   lv_obj_align(ref.text_label, LV_ALIGN_BOTTOM_LEFT, 0, detail.empty() ? 0 : -lv_obj_get_height(ref.obs_detail) - 2);
 }
 
-inline void companion_update_obs_detail_contrast(const CompanionCardRef &ref, bool stopping) {
-  const bool dim = lv_obj_has_state(ref.button, LV_STATE_DISABLED) && !stopping;
+inline void companion_update_obs_detail_contrast(const CompanionCardRef &ref, bool show_output_state) {
+  const bool dim = lv_obj_has_state(ref.button, LV_STATE_DISABLED) && !show_output_state;
   if (lv_obj_has_state(ref.text_label, LV_STATE_DISABLED) != dim ||
       lv_obj_has_state(ref.obs_detail, LV_STATE_DISABLED) != dim)
     set_card_content_disabled(ref.button, dim);
@@ -1196,14 +1227,13 @@ inline void companion_setup_obs_detail(lv_obj_t *button, const lv_font_t *font, 
     ref.obs_status_icon = status_icon;
     if (font) lv_obj_set_style_text_font(ref.obs_detail, font, LV_PART_MAIN);
     const auto snapshot = companion_runtime_snapshot();
-    const bool record = ref.action_id == "obs.output.record";
-    const bool stopping = record && companion_obs_record_stopping(snapshot);
+    const bool show_output_state = companion_obs_output_card(ref.action_id) &&
+      companion_obs_output_status(snapshot, ref.action_id) != "Unavailable";
     const auto live = companion_default_action_label(ref.action_id, "", &snapshot);
-    const bool recording = record && companion_published_action(snapshot, "obs.record.active");
     const std::string label = companion_obs_scene_card(ref.action_id) ? lv_label_get_text(ref.text_label)
-      : companion_obs_control_label(ref.action_id, "", live, recording);
-    companion_render_obs_detail(ref, label, stopping);
-    companion_update_obs_detail_contrast(ref, stopping);
+      : companion_obs_control_label(ref.action_id, "", live, &snapshot);
+    companion_render_obs_detail(ref, label);
+    companion_update_obs_detail_contrast(ref, show_output_state);
     return;
   }
 }
@@ -1366,17 +1396,16 @@ inline void companion_refresh_cards_if_requested() {
       ++it;
       continue;
     }
-    const bool record = it->action_id == "obs.output.record";
-    const bool stopping = record && companion_obs_record_stopping(snapshot);
+    const bool show_output_state = companion_obs_output_card(it->action_id) &&
+      companion_obs_output_status(snapshot, it->action_id) != "Unavailable";
     if (companion_obs_tokenized_card(it->action_id)) companion_set_rendered_obs_action(*it, snapshot);
     if (it->dynamic_default_label && it->text_label && lv_obj_is_valid(it->text_label)) {
       // A disconnected Companion temporarily has no action catalogue. Keep
       // the friendly name seen before the outage instead of showing its ID.
       const std::string live_label = companion_default_action_label_with_fallback(
         it->action_id, it->url_config, it->resolved_default_label, &snapshot);
-      const bool recording = record && companion_published_action(snapshot, "obs.record.active");
-      const std::string label = companion_obs_control_label(it->action_id, it->obs_label_alias, live_label, recording);
-      if (it->obs_detail) companion_render_obs_detail(*it, label, stopping);
+      const std::string label = companion_obs_control_label(it->action_id, it->obs_label_alias, live_label, &snapshot);
+      if (it->obs_detail) companion_render_obs_detail(*it, label);
       else if (normalize_display_text(label) != lv_label_get_text(it->text_label))
         lv_label_set_display_text(it->text_label, label.c_str());
     }
@@ -1388,7 +1417,7 @@ inline void companion_refresh_cards_if_requested() {
     if (lv_obj_has_state(it->button, LV_STATE_DISABLED) == available)
       set_card_disabled_state(it->button, !available);
     companion_apply_card_focus(it->button, it->action_id, it->url_config, it->show_focus, &snapshot);
-    if (it->obs_detail) companion_update_obs_detail_contrast(*it, stopping);
+    if (it->obs_detail) companion_update_obs_detail_contrast(*it, show_output_state);
     companion_render_obs_mute(*it, snapshot);
     ++it;
   }

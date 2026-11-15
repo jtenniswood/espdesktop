@@ -57,7 +57,7 @@ export function pinOBSStarterPage(draft: NativeLayoutDraft, current: NativePanel
         card(choices.away, companionCardDefaultIcon("obs"), "Break scene"),
         card(choices.mic, "Microphone", "Mic"),
         card(OBS_TAKE_ID, "Arrow Right"),
-        card("obs.status.stream", "Monitor"),
+        card("obs.output.stream", "Monitor"),
     ];
     const awayUuid = choices.away.slice("obs.target.".length);
     if (ids.has("obs.brb.scene." + awayUuid)) cards.push(card(OBS_BRB_ID, companionCardDefaultIcon("obs_brb")));

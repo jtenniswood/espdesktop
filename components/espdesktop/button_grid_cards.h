@@ -500,14 +500,14 @@ inline void setup_companion_card(BtnSlot &s, const ParsedCfg &p,
   const std::string obs_alias = supports_obs_alias ? p.label : "";
   const bool dynamic_label = obs_status || tokenized_card || p.entity == "obs.replay" || p.label.empty() || !obs_alias.empty();
   const auto obs_snapshot = tokenized_card ? companion_runtime_snapshot() : CompanionRuntimeSnapshot{};
-  const bool recording = p.entity == "obs.output.record" && companion_published_action(obs_snapshot, "obs.record.active");
   const bool url_card = !companion_encoded_url(p.sensor).empty();
   const bool available = url_card
     ? companion_url_available(p.entity, p.sensor)
     : (tokenized_card ? companion_action_available(obs_snapshot, p.entity) : companion_action_available(p.entity));
   const std::string label = dynamic_label
     ? companion_obs_control_label(p.entity, obs_alias,
-        companion_default_action_label(p.entity, p.sensor, tokenized_card ? &obs_snapshot : nullptr), recording)
+        companion_default_action_label(p.entity, p.sensor, tokenized_card ? &obs_snapshot : nullptr),
+        tokenized_card ? &obs_snapshot : nullptr)
     : p.label;
   lv_label_set_display_text(s.text_lbl, label.c_str());
   if (companion_app_launch_card(p) &&

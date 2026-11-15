@@ -1409,6 +1409,11 @@ inline ParsedCfg normalize_parsed_cfg(ParsedCfg p) {
     p.precision.clear();
   }
   if (p.type == "companion") {
+    if (p.entity == "obs.status.stream" || p.entity == "obs.status.record") {
+      p.entity = p.entity == "obs.status.stream" ? "obs.output.stream" : "obs.output.record";
+      // Give previously read-only cards the normal confirmation in both directions.
+      p.options.clear();
+    }
     p.icon_on = "Auto";
     if (companion_system_metric_config(p)) {
       p.sensor.clear();

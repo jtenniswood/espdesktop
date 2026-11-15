@@ -70,11 +70,13 @@ inline bool basic_action_driver_refresh_layout(
     }
   }
   const bool status = companion_obs_status_card(config.entity);
+  const bool output = companion_obs_output_card(config.entity);
   if (status || companion_obs_scene_card(config.entity) || config.entity == "obs.take" || config.entity == "obs.brb" ||
-      config.entity == "obs.replay" || config.entity == "obs.output.record" || config.entity == "obs.studio" ||
+      config.entity == "obs.replay" || output || config.entity == "obs.studio" ||
       config.entity == "obs.transition" || config.entity == "obs.replay.buffer")
-    companion_setup_obs_detail(slot.btn, display_small_text_font(display), status ? slot.icon_lbl : nullptr);
-  if (companion_obs_output_card(config.entity))
+    companion_setup_obs_detail(slot.btn, display_small_text_font(display),
+      status || (output && companion_obs_output_auto_icon(config.entity, config.icon)) ? slot.icon_lbl : nullptr);
+  if (output)
     obs_confirmation_fonts() = {display_switch_confirmation_message_font(display), display.fonts.icon};
   return basic_action_driver_matches(context, config);
 }

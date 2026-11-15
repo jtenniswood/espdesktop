@@ -233,6 +233,9 @@ final class OBSConnection: ObservableObject {
         if state?.recording == true || state?.recordingStopping == true {
             actions.append(("obs.record.active", "Recording"))
         }
+        if state?.streaming == true || state?.streamReconnecting == true {
+            actions.append(("obs.stream.active", "Live"))
+        }
         if state?.recordingStopping == true { actions.append((Output.record.savedID, "Stopping")) }
         if let state, let name = state.selectedTransition {
             let id = state.transitionInProgress ? transitionID : transitionID + "." + state.transitionToken.uuidString.lowercased()

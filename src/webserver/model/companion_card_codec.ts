@@ -20,10 +20,11 @@ export const OBS_OUTPUT_OPTIONS = [
   ["obs.output.stream", "Streaming"],
   ["obs.output.record", "Recording"],
 ] as const;
-export const OBS_STATUS_OPTIONS = [
-  ["obs.status.stream", "Streaming"],
-  ["obs.status.record", "Recording"],
-] as const;
+export function obsOutputCardEntity(entity: string): string {
+  if (entity === "obs.status.stream") return "obs.output.stream";
+  if (entity === "obs.status.record") return "obs.output.record";
+  return entity;
+}
 export const OBS_STUDIO_OPTIONS = [
   [OBS_STUDIO_ID, "Toggle Studio Mode"],
   [OBS_PROGRAM_ID, "Program scene"],
@@ -46,8 +47,8 @@ export function companionSavedCardMode(config: Partial<CardConfig>): CompanionCa
   if (entity === OBS_TRANSITION_ID) return "obs_transition";
   if (entity === OBS_REPLAY_ID) return "obs_replay";
   if (entity === OBS_REPLAY_BUFFER_ID) return "obs_replay_buffer";
-  if (OBS_OUTPUT_OPTIONS.some(([id]) => entity === id)) return "obs_output";
-  if (entity === OBS_PROGRAM_ID || OBS_STATUS_OPTIONS.some(([id]) => entity === id)) return "obs_status";
+  if (OBS_OUTPUT_OPTIONS.some(([id]) => obsOutputCardEntity(entity) === id)) return "obs_output";
+  if (entity === OBS_PROGRAM_ID) return "obs_status";
   if (entity.startsWith("obs.mute.")) return "obs_mic";
   if (entity.startsWith(COMPANION_OBS_PREFIX)) return "obs";
   if (entity === "stats" || companionMetricForEntity(entity)) return "stats";
@@ -67,7 +68,7 @@ export function decodeCompanionCard(config: Partial<CardConfig>, mode = companio
     case "app": return { mode, applicationId: entity };
     case "shortcut": return { mode, shortcutId: entity };
     case "folder": return { mode, folderId: entity };
-    case "obs_output":
+    case "obs_output": return { mode, actionId: obsOutputCardEntity(entity) };
     case "obs_brb":
     case "obs_replay":
     case "obs_replay_buffer":

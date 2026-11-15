@@ -266,6 +266,7 @@ groups = (
     ("card_text_contrast.h", "", ("apply_card_descendant_text_color", "sync_card_checked_text_color", "card_text_contrast_event_cb", "sync_bound_card_text_color", "bind_card_text_contrast_events", "set_card_checked_state")),
     ("button_grid_touch.h", "", ("consume_button_touch_press",)),
     ("button_grid_layout.h", "", ("parse_hex_color", "apply_button_colors", "apply_button_on_pattern")),
+    ("companion_controls.h", "", ("companion_obs_output_card", "companion_obs_record_stopping", "companion_obs_output_status", "companion_obs_output_active", "companion_obs_control_label")),
     ("companion_controls.h", "", ("companion_obs_scene_target", "companion_obs_scene_card", "companion_obs_break_active", "companion_apply_card_focus", "companion_required_focus_ready", "companion_refresh_card_focus")),
     ("companion_controls.h", "", ("companion_obs_status_card", "companion_obs_status_icon", "companion_render_obs_detail", "companion_update_obs_detail_contrast", "companion_render_slider")),
     ("button_grid_grid.h", "", ("card_palette_for_config", "card_slot_static_child", "reset_card_slot_dynamic_children")),
@@ -330,20 +331,35 @@ int main() {
     CompanionCardRef record{&tile, "obs.output.record", "", ""};
     record.text_label = &title;
     record.obs_detail = &detail;
+    record.obs_status_icon = &icon;
     set_card_disabled_state(&tile, true);
     set_card_content_disabled(&tile, true);
-    set_card_checked_state(&tile, true);
-    companion_render_obs_detail(record, "Recording", true);
+    CompanionRuntimeSnapshot stopping;
+    stopping.actions = {{"obs.output.record", "Stopping"}, {"obs.record.active", "Recording"}};
+    companion_apply_card_focus(&tile, record.action_id, "", true, &stopping);
+    companion_render_obs_detail(record, companion_obs_control_label(record.action_id, "", "", &stopping));
     companion_update_obs_detail_contrast(record, true);
     assert(title.content == "Recording" && detail.content == "Stopping" && title.y_offset < 0);
     assert(lv_obj_has_state(&tile, LV_STATE_DISABLED) && lv_obj_has_state(&tile, LV_STATE_CHECKED));
     assert(!lv_obj_has_state(&title, LV_STATE_DISABLED) && !lv_obj_has_state(&icon, LV_STATE_DISABLED));
 
-    set_card_checked_state(&tile, false);
-    companion_render_obs_detail(record, "Record", false);
+    CompanionRuntimeSnapshot idle;
+    idle.actions = {{"obs.status.record", "Recording · Idle"}};
+    companion_apply_card_focus(&tile, record.action_id, "", true, &idle);
+    companion_render_obs_detail(record, companion_obs_control_label(record.action_id, "", "", &idle));
     companion_update_obs_detail_contrast(record, false);
-    assert(title.content == "Record" && detail.content.empty() && title.y_offset == 0);
+    assert(title.content == "Record" && detail.content == "Idle" && icon.content == "Stop Circle");
+    assert(!lv_obj_has_state(&tile, LV_STATE_CHECKED));
     assert(lv_obj_has_state(&title, LV_STATE_DISABLED));
+    record.action_id = "obs.output.stream";
+    CompanionRuntimeSnapshot reconnecting;
+    reconnecting.actions = {{"obs.status.stream", "Stream · Reconnecting"}};
+    companion_apply_card_focus(&tile, record.action_id, "", true, &reconnecting);
+    companion_render_obs_detail(record, companion_obs_control_label(record.action_id, "", "", &reconnecting));
+    assert(title.content == "Stream" && detail.content == "Reconnecting" && icon.content == "Progress Clock");
+    assert(lv_obj_has_state(&tile, LV_STATE_CHECKED));
+    const auto migrated = parse_cfg("obs.status.record;;Monitor;Auto;;;companion;;obs_confirm=none,card_off_color=123456");
+    assert(migrated.entity == "obs.output.record" && migrated.options == "card_off_color=123456");
   }
   {
     lv_obj_t tile, title, detail;

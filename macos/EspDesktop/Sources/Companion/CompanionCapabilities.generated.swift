@@ -60,11 +60,11 @@ enum CompanionCapabilities {
         "obs_studio": "Studio Mode",
         "obs_take": "OBS Take Live",
         "obs_transition": "Transition",
-        "obs_status": "OBS Status",
+        "obs_status": "Program scene",
         "obs_replay": "OBS Save Replay",
         "obs_replay_buffer": "OBS Replay Buffer",
         "obs_output": "OBS Output Control",
-        "obs_brb": "OBS BRB",
+        "obs_brb": "Break",
         "stats": "Stats",
     ]
 }

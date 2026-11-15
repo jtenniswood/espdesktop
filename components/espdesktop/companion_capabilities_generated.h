@@ -70,11 +70,11 @@ inline constexpr CompanionCardModeCapability COMPANION_CARD_MODES[] = {
   {"obs_studio", "Studio Mode", "obs_scene_cards", "Split Vertical"},
   {"obs_take", "OBS Take Live", "obs_scene_cards", "Arrow Right"},
   {"obs_transition", "Transition", "obs_scene_cards", "Flip Horizontal"},
-  {"obs_status", "OBS Status", "obs_scene_cards", "Monitor"},
+  {"obs_status", "Program scene", "obs_scene_cards", "Monitor"},
   {"obs_replay", "OBS Save Replay", "obs_scene_cards", "History"},
   {"obs_replay_buffer", "OBS Replay Buffer", "obs_scene_cards", "Repeat"},
   {"obs_output", "OBS Output Control", "obs_output_controls", "Monitor"},
-  {"obs_brb", "OBS BRB", "obs_brb", "Coffee to Go"},
+  {"obs_brb", "Break", "obs_brb", "Coffee to Go"},
   {"stats", "Stats", "system_metrics", "Gauge"},
 };
 

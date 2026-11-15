@@ -1,7 +1,7 @@
 import { targetedAudioCard } from "./companion_app_volume";
 import { childPageKey } from "../model/page_keys";
 import { renderCompanionStorageSelector } from "./companion_storage";
-import { COMPANION_FOLDER_PREFIX, COMPANION_OBS_PREFIX, OBS_BRB_ID, OBS_OUTPUT_OPTIONS, OBS_PROGRAM_ID, OBS_REPLAY_BUFFER_ID, OBS_REPLAY_ID, OBS_STATUS_OPTIONS, OBS_STUDIO_ID, OBS_STUDIO_OPTIONS, OBS_TAKE_ID, OBS_TRANSITION_ID, savedOBSSceneTarget, decodeCompanionCard, encodeCompanionCard, companionMetricForEntity } from "../model/companion_card_codec";
+import { COMPANION_FOLDER_PREFIX, COMPANION_OBS_PREFIX, OBS_BRB_ID, OBS_OUTPUT_OPTIONS, OBS_PROGRAM_ID, OBS_REPLAY_BUFFER_ID, OBS_REPLAY_ID, OBS_STUDIO_ID, OBS_STUDIO_OPTIONS, OBS_TAKE_ID, OBS_TRANSITION_ID, savedOBSSceneTarget, decodeCompanionCard, encodeCompanionCard, companionMetricForEntity, obsOutputCardEntity } from "../model/companion_card_codec";
 import { configOptionEnabled, configOptionValue, setConfigOption, setConfigOptionValue, normalizedCardColorOptions, preserveCardColorOptions, withoutCardColorOptions } from "../model/config_primitives";
 import { createCompanionCatalogue, createCompanionCatalogueMonitor } from "../api/companion_catalogue";
 import type { CompanionAction } from "../api/companion_catalogue";
@@ -339,7 +339,7 @@ export function companionEntityForMode(mode: string): string {
     if (mode === "obs_replay") return OBS_REPLAY_ID;
     if (mode === "obs_replay_buffer") return OBS_REPLAY_BUFFER_ID;
     if (mode === "obs_output") return OBS_OUTPUT_OPTIONS[0][0];
-    if (mode === "obs_status") return OBS_STATUS_OPTIONS[0][0];
+    if (mode === "obs_status") return OBS_PROGRAM_ID;
     if (mode === "stats") return COMPANION_SYSTEM_METRICS[0]?.id || "";
     return COMPANION_SYSTEM_METRICS.find((metric) => metric.mode === mode)?.id || "";
 }
@@ -395,6 +395,11 @@ export function normalizeCompanionCard(card: any): void {
 
 function normalizeCompanionCardFields(card: any): void {
     if (!card) return;
+    const outputEntity = obsOutputCardEntity(card.entity);
+    if (outputEntity !== card.entity) {
+        card.entity = outputEntity;
+        card.options = normalizedCardColorOptions(card.options);
+    }
     if (card.entity === COMPANION_STATS_PLACEHOLDER) {
         card.type = "companion";
         card.sensor = "";
@@ -508,7 +513,7 @@ export function registerCompanionCardTypes(
             } else if (action.id.startsWith("obs.output.")) {
                 const output = OBS_OUTPUT_OPTIONS.find(([id]) => action.id === id || action.id.startsWith(id + "."));
                 if (output) obsControlLabels.set(output[0], action.label);
-            } else if (action.id === "obs.record.active" || action.id === OBS_REPLAY_ID || action.id.startsWith("obs.status.")) {
+            } else if (action.id === "obs.record.active" || action.id === "obs.stream.active" || action.id === OBS_REPLAY_ID || action.id.startsWith("obs.status.")) {
                 obsControlLabels.set(action.id, action.label);
             }
         }
@@ -599,18 +604,15 @@ export function registerCompanionCardTypes(
 
     function renderOBSProductionSettings(panel: HTMLElement, card: { entity: string; icon: string; options: string }, helpers: any, mode: "obs_status" | "obs_replay" | "obs_replay_buffer" | "obs_output" | "obs_brb" | "obs_studio"): void {
         const studio = mode === "obs_studio" || card.entity === OBS_PROGRAM_ID;
-        if (studio || mode === "obs_status" || mode === "obs_output") {
-            const output = mode === "obs_output";
-            const { field, select } = helpers.selectField(studio ? "Studio Mode" : output ? "OBS output" : "OBS status",
-                helpers.idPrefix + (studio ? "obs-studio" : output ? "obs-output" : "obs-status"),
-                studio ? OBS_STUDIO_OPTIONS : output ? OBS_OUTPUT_OPTIONS : OBS_STATUS_OPTIONS, card.entity, () => {
+        if (studio || mode === "obs_output") {
+            const { field, select } = helpers.selectField(studio ? "Studio Mode" : "OBS output",
+                helpers.idPrefix + (studio ? "obs-studio" : "obs-output"),
+                studio ? OBS_STUDIO_OPTIONS : OBS_OUTPUT_OPTIONS, card.entity, () => {
                     const previous = companionCardMode(card);
                     card.entity = select.value;
-                    if (studio) {
-                        card.icon = companionGeneratedIcon(card.icon,
-                            companionSubtypeDefaultIcon(previous), companionSubtypeDefaultIcon(companionCardMode(card)));
-                        iconPicker._setIcon(card.icon);
-                    }
+                    card.icon = companionGeneratedIcon(card.icon,
+                        companionSubtypeDefaultIcon(previous), companionSubtypeDefaultIcon(companionCardMode(card)));
+                    iconPicker._setIcon(card.icon);
                     helpers.saveField("entity", card.entity);
                     cardUi.renderPreview();
                 });
@@ -1669,11 +1671,17 @@ export function registerCompanionCardTypes(
                     obs_replay: "Save Replay",
                     obs_replay_buffer: "Replay Buffer",
                     obs_output: OBS_OUTPUT_OPTIONS.find(([id]) => id === card.entity)?.[1] || "OBS Output Control",
-                    obs_status: OBS_STATUS_OPTIONS.find(([id]) => id === card.entity)?.[1] || "OBS Status",
+                    obs_status: "Program",
                 };
-                const currentLabel = obsControlLabels.get(card.entity);
-                const record = card.entity === "obs.output.record";
-                const recording = record && obsControlLabels.has("obs.record.active");
+                const entity = obsOutputCardEntity(card.entity);
+                const currentLabel = obsControlLabels.get(entity);
+                const output = mode === "obs_output";
+                const record = entity === "obs.output.record";
+                const outputStatus = output ? (record && currentLabel === "Stopping" ? "Stopping"
+                    : obsControlLabels.get(record ? "obs.status.record" : "obs.status.stream")?.split(" · ")[1] || "Unavailable") : "";
+                const outputOn = output && (record
+                    ? obsControlLabels.has("obs.record.active") || ["Active", "Paused", "Stopping"].includes(outputStatus)
+                    : obsControlLabels.has("obs.stream.active") || ["Live", "Reconnecting"].includes(outputStatus));
                 const scene = mode === "obs";
                 const sceneId = card.entity.slice(-36);
                 const onProgram = scene && sceneId === obsControlLabels.get("obs.program");
@@ -1682,29 +1690,29 @@ export function registerCompanionCardTypes(
                 const toggle = mode === "obs_studio" || mode === "obs_replay_buffer";
                 const replay = mode === "obs_replay";
                 const brb = mode === "obs_brb";
-                const statusValue = sensor && currentLabel?.replace(/^\w+ · /, "");
-                const program = card.entity === OBS_PROGRAM_ID;
-                const stream = card.entity === "obs.status.stream";
-                const sensorIcon = !statusValue || statusValue === "Unknown" ? "Monitor Off"
-                    : program ? "Monitor"
-                    : statusValue === "Changing" || statusValue === "Reconnecting" ? "Progress Clock"
-                    : stream ? (statusValue === "Live" ? "Broadcast" : "Broadcast Off")
-                    : statusValue === "Paused" ? "Pause" : statusValue === "Active" ? "Record" : "Stop Circle";
+                const programScene = sensor && currentLabel?.replace(/^Program · /, "");
+                const automaticOutputIcon = output && (!card.icon || ["Auto", "Monitor", record ? "Record" : "Broadcast"].includes(card.icon));
+                const statusIcon = sensor ? (programScene && programScene !== "Unknown" ? "Monitor" : "Monitor Off")
+                    : outputStatus === "Unavailable" ? "Monitor Off"
+                    : ["Changing", "Reconnecting", "Stopping"].includes(outputStatus) ? "Progress Clock"
+                    : !record ? (outputOn ? "Broadcast" : "Broadcast Off")
+                    : outputStatus === "Paused" ? "Pause" : outputOn ? "Record" : "Stop Circle";
                 const alias = (mode === "obs_mic" || card.entity.startsWith("obs.target.")) && card.label;
                 const muted = mode === "obs_mic" && currentLabel?.startsWith("Muted · ");
                 const live = mode === "obs_mic" && currentLabel?.startsWith("Unmuted · ");
-                const label = record ? (recording ? "Recording" : "Record")
+                const label = output ? (record ? (outputOn ? "Recording" : "Record") : "Stream")
                     : alias || (mode === "obs_mic" ? currentLabel?.replace(/^(Muted|Unmuted) · /, "") : currentLabel) || fallback[mode];
-                const preview = cardBadgePreview(sensor || muted ? { ...card, icon: sensor ? sensorIcon : "Microphone Off" } : card, helpers, {
+                const preview = cardBadgePreview(sensor || automaticOutputIcon || muted
+                    ? { ...card, icon: muted ? "Microphone Off" : statusIcon } : card, helpers, {
                     label, iconFallback: companionSubtypeDefaultIcon(mode), badge: COMPANION_CARD_METADATA.preview.badge,
                 });
-                if (sensor || scene || toggle || mode === "obs_take" || mode === "obs_transition" || brb || replay || (record && currentLabel === "Stopping")) {
+                if (sensor || output || scene || toggle || mode === "obs_take" || mode === "obs_transition" || brb || replay) {
                     const status = replay && currentLabel === "Save Replay" ? "Ready"
                         : currentLabel || (replay && obsControlLabels.has("obs.status.program") ? "Start Replay Buffer" : "");
                     const [name, detail] = status.split(" · ", 2);
-                    const title = sensor ? (program ? "Program" : stream ? "Stream" : "Recording")
-                        : record || scene ? label : fallback[mode];
-                    const note = sensor ? statusValue || "Unavailable"
+                    const title = output || scene ? label : fallback[mode];
+                    const note = sensor ? programScene || "Unavailable"
+                        : output ? outputStatus
                         : scene ? "Scene"
                         : mode === "obs_transition" ? currentLabel || "Unavailable"
                         : status === "BRB · Already on break" ? "" : detail || (name === title ? "" : name || "Unavailable");
@@ -1715,7 +1723,7 @@ export function registerCompanionCardTypes(
                     ...preview,
                     buttonClass: onProgram && !selectedScene ? "sp-obs-program" : undefined,
                     sensorSurface: sensor,
-                    isOn: live || recording || (toggle && currentLabel === "On") || (brb && currentLabel === "Resume") ||
+                    isOn: live || outputOn || (toggle && currentLabel === "On") || (brb && currentLabel === "Resume") ||
                         (replay && (currentLabel === "Saving" || currentLabel === "Saved")) || selectedScene,
                     labelEditable: false,
                 };
@@ -1950,7 +1958,7 @@ export function registerCompanionCardTypes(
         },
     });
 
-    const companionPickerDefinitions: readonly [string, string, string][] = [
+    const companionPickerDefinitions: readonly [string, string, string, string?][] = [
         ["companion_app", "Applications", "app"],
         ["companion_shortcut", "Key Shortcut", "shortcut"],
         ["companion_url", "Website", "url"],
@@ -1958,11 +1966,11 @@ export function registerCompanionCardTypes(
         ["companion_obs", "OBS Scene", "obs"],
         ["companion_obs_mic", "OBS Input Mute", "obs_mic"],
         ["companion_obs_studio", "Studio Mode", "obs_studio"],
-        ["companion_obs_brb", "OBS BRB", "obs_brb"],
-        ["companion_obs_status", "OBS Status", "obs_status"],
+        ["companion_obs_brb", "Break", "obs_brb"],
         ["companion_obs_replay_buffer", "OBS Replay Buffer", "obs_replay_buffer"],
         ["companion_obs_replay", "OBS Save Replay", "obs_replay"],
-        ["companion_obs_output", "OBS Output Control", "obs_output"],
+        ["companion_obs_stream", "Streaming Control", "obs_output", "obs.output.stream"],
+        ["companion_obs_record", "Recording Control", "obs_output", "obs.output.record"],
     ];
     companionPickerDefinitions.forEach(function (definition) {
         const key = definition[0];
@@ -1976,6 +1984,7 @@ export function registerCompanionCardTypes(
             onSelect: function (card?: any) {
                 companionDefinition.onSelect(card);
                 applyCompanionPickerPreset(card, mode);
+                if (card && definition[3]) card.entity = definition[3];
             },
         });
     });

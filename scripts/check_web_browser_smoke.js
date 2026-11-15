@@ -4362,9 +4362,9 @@ async function assertAppVolumeCard(browser) {
     assert.equal(await cough.inputValue(), coughID);
     await page.keyboard.press("Escape");
     await page.locator(".sp-main .sp-empty-cell").first().click();
-    await chooseOBSCard(page, "OBS Output Control");
+    await chooseOBSCard(page, "Streaming Control");
     const output = page.locator('select[id$="obs-output"]');
-    await output.selectOption("obs.output.stream");
+    assert.equal(await output.inputValue(), "obs.output.stream");
     await page.getByRole("button", { name: "Card Settings", exact: true }).click();
     await page.getByRole("button", { name: "Stop", exact: true }).click();
     await page.getByRole("button", { name: "Save", exact: true }).click();
@@ -4378,7 +4378,7 @@ async function assertAppVolumeCard(browser) {
     assert.equal(await output.inputValue(), "obs.output.stream");
     await page.keyboard.press("Escape");
     await page.locator(".sp-main .sp-empty-cell").first().click();
-    await chooseOBSCard(page, "OBS BRB");
+    await chooseOBSCard(page, "Break");
     await page.getByRole("button", { name: "Save", exact: true }).click();
     await waitForNativeState(nativeState, () => Object.values(nativeState.document.buttons)
       .some(card => card.startsWith("obs.brb;") && card.endsWith(";companion")),
@@ -4459,6 +4459,7 @@ async function assertOBSSceneCard(browser) {
   let studioModeOn = false;
   let replayBufferOn = false;
   let replaySave = "Ready";
+  let recordingState = "Idle";
   let transitionName = "Fade";
   await context.route("**/companion/actions", route => route.fulfill({
     json: connectedToOBS ? [
@@ -4470,7 +4471,7 @@ async function assertOBSSceneCard(browser) {
       { id: "obs.transition.9ea47782-fada-4bb3-aef6-1904669efae7", label: transitionName },
       { id: "obs.replay.buffer.9ea47782-fada-4bb3-aef6-1904669efae7", label: replayBufferOn ? "On" : "Off" },
       ...(replayBufferOn ? [{ id: "obs.replay", label: replaySave }] : []),
-      { id: "obs.status.record", label: "Recording · Idle" },
+      { id: "obs.status.record", label: "Recording · " + recordingState },
       { id: "obs.status.program", label: "Program · Gameplay" },
     ] : [],
   }));
@@ -4498,8 +4499,8 @@ async function assertOBSSceneCard(browser) {
     assert.equal(await obsCards.count(), 0, "individual OBS cards are absent from the top level");
     await obsGroup.click();
     assert.deepEqual((await obsCards.evaluateAll(cards => cards.map(card => card.getAttribute("aria-label")))).sort(),
-      ["OBS BRB", "OBS Input Cough", "OBS Input Level", "OBS Input Mute", "OBS Output Control", "OBS Replay Buffer",
-        "OBS Save Replay", "OBS Scene", "OBS Status", "Studio Mode"]
+      ["Break", "OBS Input Cough", "OBS Input Level", "OBS Input Mute", "OBS Replay Buffer",
+        "OBS Save Replay", "OBS Scene", "Recording Control", "Streaming Control", "Studio Mode"]
         .map(label => label + " card type"));
     assert.equal(await page.getByRole("button", { name: "Sound card type", exact: true }).count(), 0);
     await page.getByRole("button", { name: "Back to card types", exact: true }).click();
@@ -4540,19 +4541,17 @@ async function assertOBSSceneCard(browser) {
       "The Take Live card saves its default icon and stays free of transient tokens");
 
     await page.locator(".sp-main .sp-empty-cell").first().click();
-    await chooseOBSCard(page, "OBS Status");
-    const statusPicker = page.locator("select[id$='obs-status']");
-    assert.deepEqual(await statusPicker.locator("option").allTextContents(), ["Streaming", "Recording"]);
-    assert.equal(await statusPicker.inputValue(), "obs.status.stream");
-    await statusPicker.selectOption("obs.status.record");
+    await chooseOBSCard(page, "Recording Control");
+    const outputPicker = page.locator("select[id$='obs-output']");
+    assert.equal(await outputPicker.inputValue(), "obs.output.record");
     await page.getByRole("button", { name: "Save", exact: true }).click();
-    await waitForNativeState(fixture, () => fixture.document.buttons[6]?.startsWith("obs.status.record;"),
-      "The read-only OBS recording indicator saves its selected status");
-    const recordingStatus = page.locator('.sp-main [data-slot="6"]');
-    await recordingStatus.getByText("Recording", { exact: true }).waitFor();
-    await recordingStatus.getByText("Idle", { exact: true }).waitFor();
-    await recordingStatus.locator(".mdi-stop-circle").waitFor();
-    assert.equal(await recordingStatus.evaluate(tile => getComputedStyle(tile).backgroundColor), "rgb(33, 33, 33)");
+    await waitForNativeState(fixture, () => fixture.document.buttons[6]?.startsWith("obs.output.record;"),
+      "Recording Control saves the output ID");
+    const recordingControl = page.locator('.sp-main [data-slot="6"]');
+    await recordingControl.getByText("Record", { exact: true }).waitFor();
+    await recordingControl.getByText("Idle", { exact: true }).waitFor();
+    await recordingControl.locator(".mdi-stop-circle").waitFor();
+    const recordingIdle = await recordingControl.evaluate(tile => getComputedStyle(tile).backgroundColor);
     await page.locator(".sp-main .sp-empty-cell").first().click();
     await chooseOBSCard(page, "OBS Save Replay");
     await page.getByRole("button", { name: "Save", exact: true }).click();
@@ -4609,11 +4608,15 @@ async function assertOBSSceneCard(browser) {
     assert.equal(await transitionDetail.innerText(), "Fade");
     transitionName = "Cut";
     replaySave = "Saved";
+    recordingState = "Paused";
     await page.locator('.sp-main [data-slot="3"]').click();
     await page.getByRole("button", { name: "Edit", exact: true }).click();
     await studioTile.getByText("Cut", { exact: true }).waitFor();
     assert.equal(await transitionTitle.innerText(), "Transition");
     await replayTile.getByText("Saved", { exact: true }).waitFor();
+    await recordingControl.getByText("Paused", { exact: true }).waitFor();
+    await recordingControl.locator(".mdi-pause").waitFor();
+    assert.notEqual(await recordingControl.evaluate(tile => getComputedStyle(tile).backgroundColor), recordingIdle);
     assert.notEqual(await replayTile.evaluate(tile => tile.style.backgroundColor), replayReadyColor);
     await page.locator(".sp-settings-overlay.sp-visible .sp-settings-close").click();
     connectedToOBS = false;
@@ -7798,6 +7801,7 @@ async function assertOBSStarterPage(browser) {
     { id: `obs.mute.${mic}`, label: (muted ? "Muted" : "Unmuted") + " · Desk Mic" },
     { id: "obs.take", label: "Take Live · Enable Studio Mode" },
     { id: "obs.status.stream", label: streaming ? "Stream · Live" : "Stream · Idle" },
+    { id: "obs.status.record", label: recording ? "Recording · Active" : "Recording · Idle" },
     { id: "obs.brb." + token, label: onBreak ? "Resume" : "BRB · Break Room" },
     { id: `obs.brb.scene.${away}`, label: "Configured BRB scene" },
     { id: `obs.level.${mic}`, label: "Desk Mic" },
@@ -7830,8 +7834,8 @@ async function assertOBSStarterPage(browser) {
     assert(!fixture.document.subpages[2].includes(token));
     await page.getByRole("tab", { name: "Layout", exact: true }).click();
     await page.locator(".sp-main .sp-empty-cell").first().click();
-    await chooseOBSCard(page, "OBS Output Control");
-    await page.getByLabel("OBS output", { exact: true }).selectOption("obs.output.record");
+    await chooseOBSCard(page, "Recording Control");
+    assert.equal(await page.getByLabel("OBS output", { exact: true }).inputValue(), "obs.output.record");
     await page.getByRole("button", { name: "Card Settings", exact: true }).click();
     const confirmation = page.locator("input[id$='obs-confirm-toggle']");
     assert(await confirmation.isChecked(), "existing and new OBS cards confirm both directions by default");
@@ -7906,6 +7910,7 @@ async function assertOBSStarterPage(browser) {
     assert.equal(await brbTile.locator('.sp-btn-label').innerText(), "Break");
     assert.equal(await brbTile.evaluate(card => getComputedStyle(card).backgroundColor), colors[0]);
     assert.equal(await streamTile.locator(".sp-obs-detail").innerText(), "Live");
+    assert.equal(await streamTile.evaluate(card => getComputedStyle(card).backgroundColor), colors[0]);
     assert.notEqual(await fillColor(), "rgb(128, 128, 128)", "unmuted mic fader uses its active colour");
     await page.getByRole("button", { name: "Custom Colours", exact: true }).click();
     await page.getByRole("group", { name: "Active state colour", exact: true }).getByRole("button", { name: "Custom", exact: true }).click();

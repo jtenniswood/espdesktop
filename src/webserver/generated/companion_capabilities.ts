@@ -69,7 +69,7 @@ export const COMPANION_CARD_MODES = [
   },
   {
     id: "obs_status",
-    label: "OBS Status",
+    label: "Program scene",
     capability: "obs_scene_cards",
     defaultIcon: "Monitor"
   },
@@ -93,7 +93,7 @@ export const COMPANION_CARD_MODES = [
   },
   {
     id: "obs_brb",
-    label: "OBS BRB",
+    label: "Break",
     capability: "obs_brb",
     defaultIcon: "Coffee to Go"
   },

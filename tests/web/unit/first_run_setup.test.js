@@ -134,7 +134,7 @@ test("OBS starter pins a native subpage without replacing an existing wide card"
   assert.equal(result.layout.rootCards[1].config.label, "OBS Studio");
   assert.equal(result.layout.pages[0].key, 2);
   assert.deepEqual(result.layout.pages[0].cards.map(card => card.config.entity), [
-    "obs.status.program", choices.main, choices.away, choices.mic, "obs.take", "obs.status.stream",
+    "obs.status.program", choices.main, choices.away, choices.mic, "obs.take", "obs.output.stream",
     "obs.brb", "obs.level." + mic,
   ]);
   assert.deepEqual(result.layout.pages[0].cards.map(card => card.config.label), [
