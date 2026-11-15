@@ -68,15 +68,6 @@ struct OBSSettings: View {
                         Button("Clear BRB alert") { connection.acknowledgeBreakReview() }
                     }
                 }
-                Section("Current broadcast") {
-                    LabeledContent("Scene collection", value: state.collection)
-                    LabeledContent(state.streaming ? "On air" : "Program", value: state.program?.name ?? "Unknown")
-                    if state.studioMode {
-                        LabeledContent("Preview", value: state.preview?.name ?? "Unknown")
-                    }
-                    LabeledContent("Stream", value: state.streamReconnecting ? "Reconnecting" : state.streaming ? "Streaming" : "Idle")
-                    LabeledContent("Recording", value: state.recording ? "Recording" : "Idle")
-                }
             }
         }
         .formStyle(.grouped)
