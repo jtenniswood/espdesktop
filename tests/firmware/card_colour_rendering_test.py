@@ -227,6 +227,7 @@ struct CompanionCardRef {
   bool show_focus = true;
   std::string required_focus_id{};
   lv_obj_t *text_label = nullptr, *obs_detail = nullptr, *obs_status_icon = nullptr;
+  CompanionAction rendered_obs_action{};
 };
 struct CompanionSliderRef {
   lv_obj_t *slider = nullptr, *icon_label = nullptr, *text_label = nullptr, *obs_fader_fill = nullptr;
@@ -263,7 +264,7 @@ groups = (
     ("card_text_contrast.h", "", ("apply_card_descendant_text_color", "sync_card_checked_text_color", "card_text_contrast_event_cb", "sync_bound_card_text_color", "bind_card_text_contrast_events", "set_card_checked_state")),
     ("button_grid_touch.h", "", ("consume_button_touch_press",)),
     ("button_grid_layout.h", "", ("parse_hex_color", "apply_button_colors", "apply_button_on_pattern")),
-    ("companion_controls.h", "", ("companion_obs_scene_target", "companion_obs_scene_card", "companion_apply_card_focus", "companion_required_focus_ready", "companion_refresh_card_focus")),
+    ("companion_controls.h", "", ("companion_obs_scene_target", "companion_obs_scene_card", "companion_obs_break_active", "companion_apply_card_focus", "companion_required_focus_ready", "companion_refresh_card_focus")),
     ("companion_controls.h", "", ("companion_obs_status_card", "companion_obs_status_icon", "companion_render_obs_detail", "companion_update_obs_detail_contrast", "companion_render_slider")),
     ("button_grid_grid.h", "", ("card_palette_for_config", "card_slot_static_child", "reset_card_slot_dynamic_children")),
     ("button_grid_grid.h", "", ("apply_subpage_back_colors",)),
@@ -307,7 +308,7 @@ int main() {
     sensor.obs_detail = &detail;
     sensor.obs_status_icon = &icon;
     companion_render_obs_detail(sensor, "Recording · Idle");
-    assert(title.content == "Recording" && detail.content == "Idle" && icon.content == "Circle Outline");
+    assert(title.content == "Recording" && detail.content == "Idle" && icon.content == "Stop");
     companion_render_obs_detail(sensor, "Recording · Active");
     assert(title.content == "Recording" && detail.content == "Active" && icon.content == "Record");
     companion_render_obs_detail(sensor, "Recording · Paused");
@@ -358,10 +359,22 @@ int main() {
     companion_render_obs_detail(replay, "BRB · Check OBS");
     lv_obj_clear_state(&detail, LV_STATE_DISABLED);
     companion_update_obs_detail_contrast(replay, false);
-    assert(title.content == "BRB" && detail.content == "Check OBS");
+    assert(title.content == "Break" && detail.content == "Check OBS");
     assert(lv_obj_has_state(&detail, LV_STATE_DISABLED));
     companion_render_obs_detail(replay, "BRB · Already on break");
-    assert(title.content == "BRB" && detail.content.empty() && title.y_offset == 0);
+    assert(title.content == "Break" && detail.content.empty() && title.y_offset == 0);
+    replay.rendered_obs_action = {"obs.brb.11111111-1111-1111-1111-111111111111", "BRB · Test scene"};
+    companion_render_obs_detail(replay, replay.rendered_obs_action.label);
+    assert(title.content == "Break" && detail.content == "Start");
+    CompanionRuntimeSnapshot break_state;
+    break_state.actions = {{"obs.brb", "Resume"}};
+    companion_render_obs_detail(replay, "Resume");
+    companion_apply_card_focus(&tile, "obs.brb", "", true, &break_state);
+    assert(title.content == "Break" && detail.content == "Resume");
+    assert(lv_obj_has_state(&tile, LV_STATE_CHECKED));
+    break_state.actions[0].label = "BRB · Test scene";
+    companion_apply_card_focus(&tile, "obs.brb", "", true, &break_state);
+    assert(!lv_obj_has_state(&tile, LV_STATE_CHECKED));
     replay.action_id = "obs.replay";
     set_card_disabled_state(&tile, false);
     companion_render_obs_detail(replay, "Replay saved");

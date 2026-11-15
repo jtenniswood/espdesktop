@@ -7750,6 +7750,7 @@ async function assertOBSStarterPage(browser) {
   let stopping = false;
   let muted = true;
   let streaming = false;
+  let onBreak = false;
   await context.route("**/companion/actions", route => route.fulfill({ json: [
     { id: `obs.target.${main}.${token}`, label: "Gameplay" },
     { id: `obs.target.${away}.${token}`, label: "Break Room" },
@@ -7757,7 +7758,7 @@ async function assertOBSStarterPage(browser) {
     { id: `obs.mute.${mic}`, label: (muted ? "Muted" : "Unmuted") + " · Desk Mic" },
     { id: "obs.take", label: "Take Live · Enable Studio Mode" },
     { id: "obs.status.stream", label: streaming ? "Stream · Live" : "Stream · Idle" },
-    { id: "obs.brb", label: "BRB · Already on break" },
+    { id: "obs.brb." + token, label: onBreak ? "Resume" : "BRB · Break Room" },
     { id: `obs.brb.scene.${away}`, label: "Configured BRB scene" },
     { id: `obs.level.${mic}`, label: "Desk Mic" },
     ...(recording ? [{ id: "obs.record.active", label: "Recording" }] : []),
@@ -7840,8 +7841,9 @@ async function assertOBSStarterPage(browser) {
     assert.equal(await streamTile.locator(".sp-obs-detail").innerText(), "Idle");
     const brbTile = page.locator('.sp-main [data-slot="7"]');
     await brbTile.locator('.mdi-coffee-to-go').waitFor();
-    assert.equal(await brbTile.locator('.sp-btn-label').innerText(), "BRB");
-    assert.equal(await brbTile.locator('.sp-obs-detail').innerText(), "");
+    assert.equal(await brbTile.locator('.sp-btn-label').innerText(), "Break");
+    assert.equal(await brbTile.locator('.sp-obs-detail').innerText(), "Start");
+    assert.equal(await brbTile.evaluate(card => getComputedStyle(card).backgroundColor), colors[1]);
     const fader = page.locator(".sp-main .sp-slider-fill");
     const fillColor = () => fader.evaluate(fill => getComputedStyle(fill).backgroundColor);
     assert.equal(await fillColor(), "rgb(128, 128, 128)", "muted mic fader is grey");
@@ -7850,10 +7852,14 @@ async function assertOBSStarterPage(browser) {
     muted = false;
     recording = true;
     streaming = true;
+    onBreak = true;
     await mainTile.click({ button: "right" });
     await page.getByText("Edit Card", { exact: true }).click();
     await micTile.locator('.mdi-microphone').waitFor();
     await streamTile.locator(".mdi-broadcast").waitFor();
+    await brbTile.getByText("Resume", { exact: true }).waitFor();
+    assert.equal(await brbTile.locator('.sp-btn-label').innerText(), "Break");
+    assert.equal(await brbTile.evaluate(card => getComputedStyle(card).backgroundColor), colors[0]);
     assert.equal(await streamTile.locator(".sp-obs-detail").innerText(), "Live");
     assert.notEqual(await fillColor(), "rgb(128, 128, 128)", "unmuted mic fader uses its active colour");
     await closeSettings.click();
