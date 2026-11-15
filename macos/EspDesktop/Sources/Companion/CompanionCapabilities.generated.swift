@@ -59,6 +59,7 @@ enum CompanionCapabilities {
         "obs_mic": "OBS Mic Mute",
         "obs_take": "OBS Take Live",
         "obs_status": "OBS Status",
+        "obs_replay": "OBS Save Replay",
         "stats": "Stats",
     ]
 }

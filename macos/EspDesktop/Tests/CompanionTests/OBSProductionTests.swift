@@ -9,6 +9,7 @@ private final class OBSPilotTransport: OBSWebSocketTransport {
     var isReady = true
     var requests: [String] = []
     var preview = queued
+    var replayActive = false
     static let program = "bd73192e-4d59-4ff4-afab-c88777454f98"
     static let queued = "0b3d47f0-c796-44c1-9e63-1a8cb0519101"
 
@@ -29,6 +30,8 @@ private final class OBSPilotTransport: OBSWebSocketTransport {
         case "GetStudioModeEnabled": return ["studioModeEnabled": true]
         case "GetStreamStatus": return ["outputActive": true, "outputReconnecting": true]
         case "GetRecordStatus": return ["outputActive": true, "outputPaused": true]
+        case "GetReplayBufferStatus": return ["outputActive": replayActive]
+        case "SaveReplayBuffer": return [:]
         case "GetCurrentSceneTransitionCursor": return ["transitionCursor": 1.0]
         case "GetCurrentPreviewScene": return scene(preview)
         case "TriggerStudioModeTransition":
@@ -86,5 +89,27 @@ final class OBSProductionTests: XCTestCase {
         let duplicateResult = await connection.takeLive(token: token)
         XCTAssertFalse(duplicateResult)
         XCTAssertEqual(transport.requests.filter { $0 == "TriggerStudioModeTransition" }.count, 1)
+    }
+
+    @MainActor
+    func testReplayShowsSuccessOnlyAfterOBSConfirmsAFile() async throws {
+        let transport = OBSPilotTransport()
+        let connection = try await open(transport)
+        let inactiveResult = await connection.saveReplay()
+        XCTAssertFalse(inactiveResult)
+        XCTAssertFalse(transport.requests.contains("SaveReplayBuffer"))
+
+        transport.onEvent?("ReplayBufferStateChanged", ["outputActive": true])
+        XCTAssertEqual(OBSConnection.productionActions(connection.state).last?.label, "Save Replay")
+        let accepted = await connection.saveReplay()
+        XCTAssertTrue(accepted)
+        XCTAssertEqual(connection.state?.replaySave, .saving)
+        let duplicate = await connection.saveReplay()
+        XCTAssertFalse(duplicate)
+        transport.onEvent?("ReplayBufferSaved", ["savedReplayPath": ""])
+        XCTAssertEqual(connection.state?.replaySave, .saving)
+        transport.onEvent?("ReplayBufferSaved", ["savedReplayPath": "/test/replay.mkv"])
+        XCTAssertEqual(OBSConnection.productionActions(connection.state).last?.label, "Replay saved")
+        XCTAssertEqual(transport.requests.filter { $0 == "SaveReplayBuffer" }.count, 1)
     }
 }

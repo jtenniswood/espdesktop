@@ -4329,6 +4329,7 @@ async function assertOBSSceneCard(browser) {
       { id: mic, label: "Muted · Desk Mic" },
       { id: "obs.take.9ea47782-fada-4bb3-aef6-1904669efae7", label: "Take Live · Setup" },
       { id: "obs.status.record", label: "Recording · Idle" },
+      { id: "obs.replay", label: "Save Replay" },
     ] : [],
   }));
   const page = await context.newPage();
@@ -4368,13 +4369,19 @@ async function assertOBSSceneCard(browser) {
     await page.getByRole("button", { name: "Save", exact: true }).click();
     await waitForNativeState(fixture, () => fixture.document.buttons[6]?.startsWith("obs.status.record;"),
       "The read-only OBS recording indicator saves its selected status");
+    await page.locator(".sp-main .sp-empty-cell").first().click();
+    await page.getByRole("button", { name: "OBS Save Replay card type", exact: true }).click();
+    await page.getByRole("button", { name: "Save", exact: true }).click();
+    await waitForNativeState(fixture, () => fixture.document.buttons[7]?.startsWith("obs.replay;"),
+      "The OBS replay card saves a stable ID");
+
 
     connectedToOBS = false;
     await page.locator('.sp-main [data-slot="3"]').click();
     await page.getByRole("button", { name: "Edit", exact: true }).click();
     await picker.getByRole("option", { name: "Saved scene (unavailable)" }).waitFor({ state: "attached" });
     assert.equal(await picker.inputValue(), id);
-    console.log("OBS scene, microphone, Take Live and status card checks passed.");
+    console.log("OBS scene, microphone, Take Live, status and replay card checks passed.");
   } finally {
     await context.close();
   }

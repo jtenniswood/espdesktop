@@ -71,6 +71,8 @@ An **OBS Mic Mute** card changes the selected input in the OBS mixer. Its **Mute
 
 Add an **OBS Status** tile and choose **Program scene**, **Streaming**, or **Recording**. These tiles display OBS state. You can check for an active stream, reconnecting stream, or paused recording while you work in another app.
 
+Add **OBS Save Replay** to capture a clip. Enable and start the Replay Buffer in OBS first. The tile displays **Replay saved** after OBS confirms that it wrote a file.
+
 Use matching display firmware and Mac app builds that support OBS cards. Before going live, try the cards with a test recording and listen back to check the mix.
 
 ## Website cards {#open-a-website}

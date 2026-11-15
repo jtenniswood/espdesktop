@@ -873,6 +873,9 @@ final class CompanionStore: NSObject, ObservableObject {
                              folderOpenBehavior: String = "new_window",
                              shortcutAppID: String? = nil) async -> String {
         guard !sessionLock.refresh() else { return "not_allowed" }
+        if actionIdentifier == "obs.replay" {
+            return await obs.saveReplay() ? "performed" : "not_allowed"
+        }
         if actionIdentifier.hasPrefix("obs.take."),
            let token = UUID(uuidString: String(actionIdentifier.dropFirst("obs.take.".count))) {
             return await obs.takeLive(token: token) ? "performed" : "not_allowed"

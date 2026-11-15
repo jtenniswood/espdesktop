@@ -6,6 +6,7 @@ import { retiredSavedCardType } from "./card";
 export const COMPANION_FOLDER_PREFIX = "folder.";
 export const COMPANION_OBS_PREFIX = "obs.";
 export const OBS_TAKE_ID = "obs.take";
+export const OBS_REPLAY_ID = "obs.replay";
 export const OBS_STATUS_OPTIONS = [
   ["obs.status.program", "Program scene"],
   ["obs.status.stream", "Streaming"],
@@ -22,6 +23,7 @@ export function companionSavedCardMode(config: Partial<CardConfig>): CompanionCa
   if (entity.startsWith("shortcut.")) return "shortcut";
   if (entity.startsWith(COMPANION_FOLDER_PREFIX)) return "folder";
   if (entity === OBS_TAKE_ID) return "obs_take";
+  if (entity === OBS_REPLAY_ID) return "obs_replay";
   if (OBS_STATUS_OPTIONS.some(([id]) => entity === id)) return "obs_status";
   if (entity.startsWith("obs.mute.")) return "obs_mic";
   if (entity.startsWith(COMPANION_OBS_PREFIX)) return "obs";
@@ -42,6 +44,7 @@ export function decodeCompanionCard(config: Partial<CardConfig>, mode = companio
     case "app": return { mode, applicationId: entity };
     case "shortcut": return { mode, shortcutId: entity };
     case "folder": return { mode, folderId: entity };
+    case "obs_replay":
     case "obs_status":
     case "obs_take":
     case "obs_mic":
@@ -59,6 +62,7 @@ export function encodeCompanionCard(model: CompanionCardModel, original: CardCon
     case "app": config.entity = model.applicationId; break;
     case "shortcut": config.entity = model.shortcutId; break;
     case "folder": config.entity = model.folderId; break;
+    case "obs_replay":
     case "obs_status":
     case "obs_take":
     case "obs_mic":

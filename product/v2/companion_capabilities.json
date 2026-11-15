@@ -1029,6 +1029,12 @@
       "defaultIcon": "Monitor"
     },
     {
+      "id": "obs_replay",
+      "label": "OBS Save Replay",
+      "capability": "obs_scene_cards",
+      "defaultIcon": "History"
+    },
+    {
       "id": "stats",
       "label": "Stats",
       "capability": "system_metrics",

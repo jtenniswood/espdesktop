@@ -1,6 +1,6 @@
 import { childPageKey } from "../model/page_keys";
 import { renderCompanionStorageSelector } from "./companion_storage";
-import { COMPANION_FOLDER_PREFIX, COMPANION_OBS_PREFIX, OBS_STATUS_OPTIONS, OBS_TAKE_ID, decodeCompanionCard, encodeCompanionCard, companionMetricForEntity } from "../model/companion_card_codec";
+import { COMPANION_FOLDER_PREFIX, COMPANION_OBS_PREFIX, OBS_REPLAY_ID, OBS_STATUS_OPTIONS, OBS_TAKE_ID, decodeCompanionCard, encodeCompanionCard, companionMetricForEntity } from "../model/companion_card_codec";
 import { configOptionEnabled, configOptionValue, setConfigOption, setConfigOptionValue, normalizedCardColorOptions, preserveCardColorOptions, withoutCardColorOptions } from "../model/config_primitives";
 import { createCompanionCatalogue, createCompanionCatalogueMonitor } from "../api/companion_catalogue";
 import type { CompanionAction } from "../api/companion_catalogue";
@@ -333,6 +333,7 @@ export function companionEntityForMode(mode: string): string {
     if (mode === "obs") return COMPANION_OBS_PREFIX;
     if (mode === "obs_mic") return "obs.mute.";
     if (mode === "obs_take") return OBS_TAKE_ID;
+    if (mode === "obs_replay") return OBS_REPLAY_ID;
     if (mode === "obs_status") return OBS_STATUS_OPTIONS[0][0];
     if (mode === "stats") return COMPANION_SYSTEM_METRICS[0]?.id || "";
     return COMPANION_SYSTEM_METRICS.find((metric) => metric.mode === mode)?.id || "";
@@ -476,7 +477,7 @@ export function registerCompanionCardTypes(
         for (const action of actions) {
             if (/^obs\.take\.[a-f0-9-]{36}$/.test(action.id)) {
                 obsControlLabels.set(OBS_TAKE_ID, action.label);
-            } else if (OBS_STATUS_OPTIONS.some(([id]) => action.id === id)) {
+            } else if (action.id === OBS_REPLAY_ID || OBS_STATUS_OPTIONS.some(([id]) => action.id === id)) {
                 obsControlLabels.set(action.id, action.label);
             }
         }
@@ -523,8 +524,8 @@ export function registerCompanionCardTypes(
         }).catch(() => { note.textContent = "Connect OBS in the Mac Companion and try again."; });
         helpers.renderCardIconPicker(panel, card, helpers, COMPANION_CARD_METADATA.icon);
     }
-    function renderOBSProductionSettings(panel: HTMLElement, card: { entity: string }, helpers: any, status: boolean): void {
-        if (status) {
+    function renderOBSProductionSettings(panel: HTMLElement, card: { entity: string }, helpers: any, mode: "obs_take" | "obs_status" | "obs_replay"): void {
+        if (mode === "obs_status") {
             const { field, select } = helpers.selectField("OBS status", helpers.idPrefix + "obs-status",
                 OBS_STATUS_OPTIONS, card.entity, () => {
                     card.entity = select.value;
@@ -536,9 +537,12 @@ export function registerCompanionCardTypes(
         }
         const note = document.createElement("p");
         note.className = "sp-setting-note";
-        note.textContent = status
-            ? "Displays the selected status reported by OBS Studio."
-            : "In Studio Mode, checks the named Preview scene before sending it to Program.";
+        const descriptions = {
+            obs_status: "Displays the selected status reported by OBS Studio.",
+            obs_take: "In Studio Mode, checks the named Preview scene before sending it to Program.",
+            obs_replay: "Saves a clip while the OBS Replay Buffer is running.",
+        };
+        note.textContent = descriptions[mode];
         panel.appendChild(note);
         helpers.renderCardIconPicker(panel, card, helpers, COMPANION_CARD_METADATA.icon);
     }
@@ -693,8 +697,8 @@ export function registerCompanionCardTypes(
                 renderOBSControlSettings(panel, card, helpers, initialMode === "obs_mic");
                 return;
             }
-            if ((initialMode === "obs_take" || initialMode === "obs_status") && panel) {
-                renderOBSProductionSettings(panel, card, helpers, initialMode === "obs_status");
+            if ((initialMode === "obs_take" || initialMode === "obs_status" || initialMode === "obs_replay") && panel) {
+                renderOBSProductionSettings(panel, card, helpers, initialMode);
                 return;
             }
             const parentPage = helpers.isSub ? state.editingSubpage : null;
@@ -1565,11 +1569,12 @@ export function registerCompanionCardTypes(
                     badge: COMPANION_CARD_METADATA.preview.badge,
                 });
             }
-            if (mode === "obs" || mode === "obs_mic" || mode === "obs_take" || mode === "obs_status") {
+            if (mode === "obs" || mode === "obs_mic" || mode === "obs_take" || mode === "obs_status" || mode === "obs_replay") {
                 const fallback = {
                     obs: "OBS Scene",
                     obs_mic: "OBS Mic Mute",
                     obs_take: "Take Live",
+                    obs_replay: "Save Replay",
                     obs_status: OBS_STATUS_OPTIONS.find(([id]) => id === card.entity)?.[1] || "OBS Status",
                 };
                 return {
@@ -1715,6 +1720,7 @@ export function registerCompanionCardTypes(
         ["companion_obs_mic", "OBS Mic Mute", "obs_mic"],
         ["companion_obs_take", "OBS Take Live", "obs_take"],
         ["companion_obs_status", "OBS Status", "obs_status"],
+        ["companion_obs_replay", "OBS Save Replay", "obs_replay"],
     ];
     companionPickerDefinitions.forEach(function (definition) {
         const key = definition[0];
