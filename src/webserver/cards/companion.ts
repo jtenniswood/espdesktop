@@ -526,8 +526,9 @@ export function registerCompanionCardTypes(
                 label: "Label", idSuffix: "label", field: "label", rerender: true,
             });
         }
-        const name = audio ? "OBS audio input" : "OBS scene";
-        const placeholder = "Choose an " + name + "…";
+        const name = audio ? "Source" : "OBS scene";
+        const target = audio ? "audio input" : name;
+        const placeholder = "Choose an " + target + "…";
         const unavailable = audio ? "Saved OBS input (unavailable)" : "Saved scene (unavailable)";
         const isNew = card.entity === (audio ? "obs.mute." : COMPANION_OBS_PREFIX);
         const saved = card.entity;
@@ -543,7 +544,7 @@ export function registerCompanionCardTypes(
             });
         panel.appendChild(field);
         helpers.markCardPrimaryField(field, "entity");
-        helpers.requireField(select, "Choose an " + name + " before saving.");
+        helpers.requireField(select, "Choose an " + target + " before saving.");
         const note = document.createElement("p");
         note.className = "sp-setting-note";
         note.textContent = "Loading controls from OBS…";
@@ -1917,7 +1918,7 @@ export function registerCompanionCardTypes(
     registry.register("companion_obs_cough", {
         ...registry.definitions.companion_cough,
         label: "Input Cough",
-        pickerKey: cardContractPickerKey("companion_obs_cough"),
+        pickerKey: "companion_obs_fader",
         defaultConfig: () => obsCoughDefaults,
         onSelect: (card) => Object.assign(card, obsCoughDefaults),
         renderPreview: (card, helpers) => cardBadgePreview(card, helpers, {
@@ -1926,10 +1927,10 @@ export function registerCompanionCardTypes(
         }),
         renderSettings: (panel, card, _slot, helpers) => {
             const saved = card.entity;
-            const placeholder = "Choose an OBS audio input…";
+            const placeholder = "Choose an audio input…";
             const choices: [string, string][] = [["", placeholder]];
             if (saved) choices.push([saved, "Saved OBS input"]);
-            const { field, select } = helpers.selectField("OBS audio input", helpers.idPrefix + "obs-cough",
+            const { field, select } = helpers.selectField("Source", helpers.idPrefix + "obs-cough",
                 choices, saved, () => {
                     if (!select.value) return;
                     card.entity = select.value;
@@ -1937,7 +1938,7 @@ export function registerCompanionCardTypes(
                 });
             panel.appendChild(field);
             helpers.markCardPrimaryField(field, "entity");
-            helpers.requireField(select, "Choose an OBS audio input before saving.");
+            helpers.requireField(select, "Choose an audio input before saving.");
             const note = document.createElement("p");
             note.className = "sp-setting-note";
             note.textContent = "Loading audio inputs from OBS…";
@@ -1979,7 +1980,7 @@ export function registerCompanionCardTypes(
         registry.register(key, {
             ...companionDefinition,
             label,
-            pickerKey: null,
+            pickerKey: key === "companion_obs_mic" ? "companion_obs_fader" : null,
             runtimeSpec: CARD_RUNTIME_SPECS.companion,
             onSelect: function (card?: any) {
                 companionDefinition.onSelect(card);

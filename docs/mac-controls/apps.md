@@ -92,15 +92,15 @@ See [all app presets](/reference/shortcut-presets).
 
 1. In OBS Studio, open **Tools → WebSocket Server Settings** and enable the server. Keep authentication enabled.
 2. In the EspDesktop Mac app, open **Settings → OBS**. Enter the port and password shown in OBS, then choose **Connect**.
-3. In the display editor, open **Add Card → OBS Studio**. Choose **Scene** or **Input Mute** and select the target by name. Both cards are available on the home screen and in folders.
+3. In the display editor, open **Add Card → OBS Studio**. Choose **Scene** or **Audio Controls**. For audio, select **Level**, **Mute**, or **Cough** under **Type**, then choose a **Source**. Both cards are available on the home screen and in folders.
 
 In the OBS Studio card menu, choose **Studio Mode** to add **Toggle Studio Mode**, **Program scene**, **Take Live**, or **Transition**. **Program scene** shows what OBS is sending to its output. **Transition** cycles through the transitions configured in OBS and displays the selected name. **Take Live** sends the preview named on that tile to Program. If the preview changes before the command reaches OBS, tap again after checking the updated name. Scene cards switch Program in normal mode and select Preview in Studio Mode.
 
-An **Input Mute** card changes the selected input in the OBS mixer. The ON colour and microphone icon show an unmuted input. Muting the input turns the colour off and shows a crossed-out microphone. Use the mic your broadcast captures when setting up the card, especially if it differs from the Mac’s default mic. Scene and input bindings are kept when a target is unavailable.
+A **Mute** card changes the selected input in the OBS mixer. The ON colour and microphone icon show an unmuted input. Muting the input turns the colour off and shows a crossed-out microphone. Use the mic your broadcast captures when setting up the card, especially if it differs from the Mac’s default mic. Scene and input bindings are kept when a target is unavailable.
 
-Choose **Input Level** to adjust a named mixer input. The tile shows the confirmed fader setting in dB. The fill turns grey while the input is muted, and you can still drag to adjust the level.
+Choose **Level** to adjust a named mixer input. The tile shows the confirmed fader setting in dB. The fill turns grey while the input is muted, and you can still drag to adjust the level.
 
-Choose **Input Cough** and select the input to mute momentarily. The tile reads **Muted** whenever that input is muted, including during a break. Release it to restore the input’s previous mute state.
+Choose **Cough** and select the input to mute momentarily. The tile reads **Muted** whenever that input is muted, including during a break. Release it to restore the input’s previous mute state.
 
 Add **Streaming Control** or **Recording Control** from the **OBS Studio** card menu. Tap the card to start or stop the output using its confirmation settings. The subtitle shows the current state, including reconnecting streams and paused recordings. Existing streaming and recording status cards open as the corresponding controls and ask for confirmation in both directions.
 

@@ -4,6 +4,7 @@ import { previewSubpageOwner } from "../model/companion_shortcut_page";
 import { companionCardHasAppIcon } from "../model/companion_card_codec";
 import { state } from "../state/app_instance";
 import * as EspDesktopModel from "../model";
+import { OBS_FADER_PREFIX } from "../model/card";
 import { cardIconSizeOverride, setConfigOptionValue, configOptionValue, setCardColor, cardActiveColorMode, cardActiveColor, setCardActiveColor, withoutCardColorOptions, preserveCardColorOptions } from "../model/config_primitives";
 import { createColorSwatches } from "../components/color_swatches";
 import { defaultCardBackgroundColor } from "../state/preview_theme";
@@ -267,6 +268,9 @@ export function createButtonSettingsFeature(
         if (!pendingNewDraft)
             state.settingsDraft = cardEditorDraftController.ensureExistingDraft(state.settingsDraft, location, liveButton);
         var b: any = state.settingsDraft!.button;
+        const obsAudioType = b.type === "companion_obs_cough" ? "companion_obs_cough"
+            : b.type === "slider" && b.entity.startsWith(OBS_FADER_PREFIX) ? "companion_obs_fader"
+            : b.type === "companion" && b.entity.startsWith("obs.mute.") ? "companion_obs_mic" : "";
         var isNewDraft: any = !!state.settingsDraft!.isNew;
         var title: any = document.createElement("div");
         title.className = "sp-section-title";
@@ -987,7 +991,7 @@ export function createButtonSettingsFeature(
                 container.appendChild(panel);
                 return;
             }
-            title.textContent = cardSettingsTitle(rawTypeDef, b);
+            title.textContent = obsAudioType ? "Audio Controls" : cardSettingsTitle(rawTypeDef, b);
         }
         var typeHelpers: any = {
             makeIconPicker: makeIconPicker,
@@ -1029,7 +1033,15 @@ export function createButtonSettingsFeature(
             homeAssistantEnabled: connectorState.homeAssistantEnabled,
             homeAssistantConfigured: connectorState.homeAssistantConfigured,
         };
-        if ((buttonTypeRegistryValue(rawTypeDef, "pickerKey", "") || b.type) === "companion_output_volume") {
+        if (obsAudioType) {
+            const subtype = selectField("Type", idPrefix + "obs-audio-type", [
+                ["companion_obs_fader", "Level"],
+                ["companion_obs_mic", "Mute"],
+                ["companion_obs_cough", "Cough"],
+            ], obsAudioType, (event: Event) => selectCardType((event.currentTarget as HTMLSelectElement).value));
+            panel.appendChild(subtype.field);
+            markCardPrimaryField(subtype.field, "type");
+        } else if ((buttonTypeRegistryValue(rawTypeDef, "pickerKey", "") || b.type) === "companion_output_volume") {
             const audioSubtypes: [string, string][] = [
                 ["companion_output_volume", "Audio Output"],
                 ["companion_output_mute", "Output Mute"],

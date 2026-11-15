@@ -88,8 +88,8 @@ export function registerSliderCardTypes(
         const saved = isOBSFaderControlID(card.entity) ? card.entity : "";
         const names = new Map<string, string>();
         const legacyLabel = card.label?.replace(/^OBS · /, "") || "Saved OBS input";
-        const placeholder = "Choose an OBS audio input…";
-        const { field, select } = helpers.selectField("OBS audio input", helpers.idPrefix + "obs-level",
+        const placeholder = "Choose an audio input…";
+        const { field, select } = helpers.selectField("Source", helpers.idPrefix + "obs-level",
             [["", placeholder], ...(saved ? [[saved, legacyLabel]] : [])], saved, () => {
                 const name = names.get(select.value);
                 if (!name) return;
@@ -101,7 +101,7 @@ export function registerSliderCardTypes(
             });
         panel.appendChild(field);
         helpers.markCardPrimaryField(field, "entity");
-        helpers.requireField(select, "Choose an OBS audio input before saving.");
+        helpers.requireField(select, "Choose an audio input before saving.");
         const note = panel.ownerDocument.createElement("p");
         note.className = "sp-setting-note";
         note.textContent = "Loading audio inputs from OBS…";
@@ -592,7 +592,7 @@ export function registerSliderCardTypes(
     }));
     registry.register("companion_obs_fader", {
         ...legacySlider,
-        label: "Input Level",
+        label: "Audio Controls",
         hidden: false,
         pickerKey: null,
         onSelect: (card) => Object.assign(card, cardContractDefaultConfig("slider"), {
