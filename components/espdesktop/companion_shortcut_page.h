@@ -3,7 +3,15 @@
 #include <string>
 #include <string_view>
 
-#include "healthchecks_catalogue.h"
+namespace espdesktop {
+
+inline constexpr std::string_view HEALTHCHECK_CARD_PREFIX = "healthchecks.";
+
+inline bool healthcheck_card_entity(std::string_view entity) {
+  return entity.substr(0, HEALTHCHECK_CARD_PREFIX.size()) == HEALTHCHECK_CARD_PREFIX;
+}
+
+}  // namespace espdesktop
 
 inline bool companion_shortcut_app_id_valid(std::string_view value) {
   if (value.size() > 96 || value.find('.') == std::string_view::npos) return false;

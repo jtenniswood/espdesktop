@@ -19,7 +19,6 @@
 #include "camera_refresh_policy.h"
 #include "companion_capabilities_generated.h"
 #include "companion_shortcut_page.h"
-#include "healthchecks_catalogue.h"
 #include "app_shortcuts_generated.h"
 #include "button_grid_saved_config_access_generated.h"
 #include "button_grid_saved_config_security_generated.h"

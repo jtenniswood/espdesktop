@@ -16,15 +16,10 @@
 
 namespace espdesktop {
 
-inline constexpr std::string_view HEALTHCHECK_CARD_PREFIX = "healthchecks.";
 inline constexpr size_t HEALTHCHECK_ID_BYTES = 40;
 inline constexpr size_t HEALTHCHECK_LABEL_BYTES = 160;
 inline constexpr size_t HEALTHCHECK_PAGE_SIZE = 32;
 inline constexpr size_t HEALTHCHECK_LIMIT = 1024;
-
-inline bool healthcheck_card_entity(std::string_view entity) {
-  return entity.substr(0, HEALTHCHECK_CARD_PREFIX.size()) == HEALTHCHECK_CARD_PREFIX;
-}
 
 inline bool healthcheck_id_valid(std::string_view id) {
   return id.size() == HEALTHCHECK_ID_BYTES && std::all_of(id.begin(), id.end(), [](char ch) {
