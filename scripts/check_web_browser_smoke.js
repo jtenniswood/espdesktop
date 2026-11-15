@@ -7048,6 +7048,19 @@ async function assertSpecialPageEntry(browser, testCase) {
       await page.locator(".sp-back-btn .sp-back-hit").click();
     }
 
+    if (testCase.companionSupported) {
+      await entry.press("Enter");
+      await page.locator(".sp-main .sp-empty-cell").first().click();
+      await chooseCardType(page, "Key Shortcut");
+      const modifiers = page.getByRole("group", { name: "Shortcut modifiers" });
+      await modifiers.getByRole("button", { name: "⌘ Command", exact: true }).click();
+      await page.locator('[id$="shortcut-key"]').selectOption("w");
+      await page.getByRole("button", { name: "Save", exact: true }).click();
+      await waitForNativeState(nativeState, () =>
+        /shortcut\.command(?:\+|%2B)w/.test(nativeState.document.settings.special_page),
+        "a new keyboard shortcut saves on the swipe-up page");
+    }
+
     await openBackupControls(page);
     const externalPage = "~B,1|companion,shortcut.command%2Bx,External,Shortcut Command,Auto";
     nativeState.document.settings.special_page = externalPage;
@@ -7057,7 +7070,7 @@ async function assertSpecialPageEntry(browser, testCase) {
     const backup = JSON.parse(fs.readFileSync(await (await download).path(), "utf8"));
     assert.strictEqual(backup.settings.special_page, externalPage,
       "portable backup exports the saved swipe-up page even without a browser refresh");
-    console.log(`${testCase.name}: swipe-up navigation, native copy and cut, and saved-layout backup passed.`);
+    console.log(`${testCase.name}: swipe-up navigation, clipboard, shortcut settings, and saved-layout backup passed.`);
 
   } finally { await context.close(); }
 }
