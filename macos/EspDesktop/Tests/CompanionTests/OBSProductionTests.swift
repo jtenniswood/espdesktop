@@ -9,6 +9,11 @@ private final class OBSPilotTransport: OBSWebSocketTransport {
     var isReady = true
     var requests: [String] = []
     var preview = queued
+    var programID = program
+    var rejectProgramChange = false
+    var rejectMuteCommand = false
+    var breakRequests: [String] = []
+    var afterMute: (() -> Void)?
     var transitionCursor = 1.0
     var replayActive = false
     var streaming = true
@@ -39,10 +44,17 @@ private final class OBSPilotTransport: OBSWebSocketTransport {
         case "GetSceneCollectionList": return ["currentSceneCollectionName": "Show"]
         case "GetSceneList":
             return [
-                "currentProgramSceneUuid": Self.program,
+                "currentProgramSceneUuid": programID,
                 "currentPreviewSceneUuid": preview,
                 "scenes": [scene(Self.program), scene(Self.queued)],
             ]
+        case "GetCurrentProgramScene": return scene(programID)
+        case "SetCurrentProgramScene":
+            let target = fields["sceneUuid"] as? String ?? ""
+            breakRequests.append("scene:" + target)
+            if rejectProgramChange { throw OBSWebSocket.Failure.requestRejected(500) }
+            updateProgram(target)
+            return [:]
         case "GetInputList":
             let inputs = hasAudioInput ? [["inputUuid": Self.mic, "inputName": "Desk Mic"]] : []
             return ["inputs": inputs]
@@ -50,8 +62,11 @@ private final class OBSPilotTransport: OBSWebSocketTransport {
         case "SetInputMute":
             guard fields["inputUuid"] as? String == Self.mic,
                   let muted = fields["inputMuted"] as? Bool else { throw OBSWebSocket.Failure.requestRejected(204) }
+            breakRequests.append(muted ? "mute" : "unmute")
+            if rejectMuteCommand { throw OBSWebSocket.Failure.requestRejected(500) }
             muteWrites.append(muted)
             updateMute(muted, emit: emitMuteEvents)
+            if muted { afterMute?() }
             return [:]
         case "GetInputVolume": return ["inputVolumeDb": faderDb, "inputVolumeMul": faderMultiplier]
         case "SetInputVolume":
@@ -91,6 +106,11 @@ private final class OBSPilotTransport: OBSWebSocketTransport {
         }
     }
 
+    func updateProgram(_ id: String) {
+        programID = id
+        onEvent?("CurrentProgramSceneChanged", scene(id))
+    }
+
     func updateMute(_ muted: Bool, emit: Bool = true) {
         self.muted = muted
         if emit { onEvent?("InputMuteStateChanged", ["inputUuid": Self.mic, "inputMuted": muted]) }
@@ -106,8 +126,9 @@ final class OBSProductionTests: XCTestCase {
     private func open(_ transport: OBSPilotTransport,
                       transitionProbeInterval: Duration = .seconds(1),
                       meterExpiry: Duration = .seconds(1),
-                      coughTouchTimeout: Duration = .seconds(1)) async throws -> OBSConnection {
-        let connection = OBSConnection(socket: transport, transitionProbeInterval: transitionProbeInterval,
+                      coughTouchTimeout: Duration = .seconds(1),
+                      defaults: UserDefaults = .standard) async throws -> OBSConnection {
+        let connection = OBSConnection(defaults: defaults, socket: transport, transitionProbeInterval: transitionProbeInterval,
                                        meterInterval: .milliseconds(5), meterExpiry: meterExpiry,
                                        coughTouchTimeout: coughTouchTimeout)
         transport.onReady?()
@@ -403,6 +424,115 @@ final class OBSProductionTests: XCTestCase {
         XCTAssertTrue(stopped)
         XCTAssertEqual(transport.outputWrites, ["StartStream", "StopStream"])
         XCTAssertEqual(connection.state?.streamStatus, "Stream · Idle")
+    }
+
+    @MainActor
+    func testBreakMutesBeforeSwitchingAndRestoresOnlyAfterReturning() async throws {
+        let domain = "EspDesktop.OBSBreak." + UUID().uuidString
+        let defaults = try XCTUnwrap(UserDefaults(suiteName: domain))
+        defer { defaults.removePersistentDomain(forName: domain) }
+        let transport = OBSPilotTransport()
+        transport.hasAudioInput = true
+        transport.muted = false
+        let connection = try await open(transport, defaults: defaults)
+        connection.configureBreak(sceneID: OBSPilotTransport.queued, micID: OBSPilotTransport.mic)
+        let enter = try XCTUnwrap(connection.state?.breakCard?.token)
+        let away = await connection.performBreak(token: enter)
+        XCTAssertTrue(away)
+        XCTAssertEqual(transport.breakRequests, ["mute", "scene:" + OBSPilotTransport.queued])
+        XCTAssertTrue(transport.muted)
+        XCTAssertEqual(connection.state?.breakCard?.label, "Resume")
+        let resume = try XCTUnwrap(connection.state?.breakCard?.token)
+        let resumed = await connection.performBreak(token: resume)
+        XCTAssertTrue(resumed)
+        XCTAssertEqual(transport.breakRequests, ["mute", "scene:" + OBSPilotTransport.queued,
+                                                  "scene:" + OBSPilotTransport.program, "unmute"])
+        XCTAssertFalse(transport.muted)
+        XCTAssertEqual(connection.state?.breakCard?.label, "BRB · BRB")
+
+        transport.updateMute(true)
+        let ready = try XCTUnwrap(connection.state?.breakCard?.token)
+        let awayMuted = await connection.performBreak(token: ready)
+        XCTAssertTrue(awayMuted)
+        let again = try XCTUnwrap(connection.state?.breakCard?.token)
+        let resumedMuted = await connection.performBreak(token: again)
+        XCTAssertTrue(resumedMuted)
+        XCTAssertTrue(transport.muted)
+        XCTAssertEqual(transport.muteWrites, [true, false])
+    }
+
+    @MainActor
+    func testBreakLeavesTheMicMutedAndExplainsAPartialFailure() async throws {
+        let domain = "EspDesktop.OBSBreak." + UUID().uuidString
+        let defaults = try XCTUnwrap(UserDefaults(suiteName: domain))
+        defer { defaults.removePersistentDomain(forName: domain) }
+        let transport = OBSPilotTransport()
+        transport.hasAudioInput = true
+        transport.muted = false
+        transport.rejectProgramChange = true
+        let connection = try await open(transport, defaults: defaults)
+        connection.configureBreak(sceneID: OBSPilotTransport.queued, micID: OBSPilotTransport.mic)
+        let enter = try XCTUnwrap(connection.state?.breakCard?.token)
+        let failed = await connection.performBreak(token: enter)
+        XCTAssertFalse(failed)
+        XCTAssertTrue(transport.muted)
+        XCTAssertEqual(transport.programID, OBSPilotTransport.program)
+        XCTAssertNil(connection.state?.breakCard?.token)
+        XCTAssertEqual(connection.state?.breakCard?.label, "BRB · Check OBS")
+        let restarted = try await open(transport, defaults: defaults)
+        XCTAssertTrue(restarted.breakNeedsReview)
+        XCTAssertEqual(restarted.breakConfiguration?.micID, OBSPilotTransport.mic)
+    }
+
+    @MainActor
+    func testBreakDoesNotSwitchAfterRejectedMuteOrDisplayDisconnect() async throws {
+        let domain = "EspDesktop.OBSBreak." + UUID().uuidString
+        let defaults = try XCTUnwrap(UserDefaults(suiteName: domain))
+        defer { defaults.removePersistentDomain(forName: domain) }
+        let transport = OBSPilotTransport()
+        transport.hasAudioInput = true
+        transport.muted = false
+        let connection = try await open(transport, defaults: defaults)
+        connection.configureBreak(sceneID: OBSPilotTransport.queued, micID: OBSPilotTransport.mic)
+        let enter = try XCTUnwrap(connection.state?.breakCard?.token)
+        transport.rejectMuteCommand = true
+        let rejected = await connection.performBreak(token: enter)
+        XCTAssertFalse(rejected)
+        XCTAssertFalse(transport.muted)
+        XCTAssertEqual(transport.breakRequests, ["mute"])
+
+        connection.acknowledgeBreakReview()
+        let retry = try XCTUnwrap(connection.state?.breakCard?.token)
+        transport.rejectMuteCommand = false
+        var connected = true
+        transport.afterMute = { connected = false }
+        let disconnected = await connection.performBreak(token: retry) { connected }
+        XCTAssertFalse(disconnected)
+        XCTAssertTrue(transport.muted)
+        XCTAssertEqual(transport.breakRequests, ["mute", "mute"])
+    }
+
+    @MainActor
+    func testBreakCancelsResumeWhenOBSOperatorTakesOver() async throws {
+        let domain = "EspDesktop.OBSBreak." + UUID().uuidString
+        let defaults = try XCTUnwrap(UserDefaults(suiteName: domain))
+        defer { defaults.removePersistentDomain(forName: domain) }
+        let transport = OBSPilotTransport()
+        transport.hasAudioInput = true
+        transport.muted = false
+        let connection = try await open(transport, defaults: defaults)
+        connection.configureBreak(sceneID: OBSPilotTransport.queued, micID: OBSPilotTransport.mic)
+        let enter = try XCTUnwrap(connection.state?.breakCard?.token)
+        let away = await connection.performBreak(token: enter)
+        XCTAssertTrue(away)
+        let resume = try XCTUnwrap(connection.state?.breakCard?.token)
+        transport.updateProgram(OBSPilotTransport.program)
+        transport.updateProgram(OBSPilotTransport.queued)
+        let stale = await connection.performBreak(token: resume)
+        XCTAssertFalse(stale)
+        XCTAssertTrue(transport.muted)
+        XCTAssertEqual(transport.breakRequests, ["mute", "scene:" + OBSPilotTransport.queued])
+        XCTAssertTrue(connection.breakNeedsReview)
     }
 
     @MainActor

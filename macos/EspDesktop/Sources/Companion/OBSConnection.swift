@@ -69,6 +69,26 @@ final class OBSConnection: ObservableObject {
         }
     }
 
+    struct BreakConfiguration: Codable, Equatable {
+        var sceneID: String
+        var micID: String?
+    }
+
+    struct BreakCard: Equatable {
+        let label: String
+        let programID: String?
+        let token: UUID?
+
+        var actionID: String { token.map { "obs.brb." + $0.uuidString.lowercased() } ?? "obs.brb" }
+
+        static func token(for id: String) -> UUID? {
+            let prefix = "obs.brb."
+            guard id.hasPrefix(prefix), let token = UUID(uuidString: String(id.dropFirst(prefix.count))),
+                  id == prefix + token.uuidString.lowercased() else { return nil }
+            return token
+        }
+    }
+
     struct State: Equatable {
         let collection: String
         let scenes: [Target]
@@ -86,6 +106,7 @@ final class OBSConnection: ObservableObject {
         var replaySave = ReplaySave.ready
         var transitionInProgress = false
         var takeToken = UUID()
+        var breakCard: BreakCard?
         var outputTokens: [Output: UUID] = [.stream: UUID(), .record: UUID()]
         var outputsTransitioning: Set<Output> = []
         var outputsPending: Set<Output> = []
@@ -155,7 +176,8 @@ final class OBSConnection: ObservableObject {
     }
 
     static func controlActions(_ state: State?) -> [(id: String, label: String)] {
-        productionActions(state) + sceneActions(state) + audioActions(state) + faderActions(state) + meterActions(state) + coughActions(state) + outputActions(state)
+        productionActions(state) + sceneActions(state) + audioActions(state) + faderActions(state) + meterActions(state) + coughActions(state) + outputActions(state) +
+            (state?.breakCard.map { [($0.actionID, $0.label)] } ?? [])
     }
 
     static func outputActions(_ state: State?) -> [(id: String, label: String)] {
@@ -180,7 +202,7 @@ final class OBSConnection: ObservableObject {
     }
 
     func performSceneAction(_ action: SceneAction) async -> Bool {
-        guard let state else { return false }
+        guard !breakInFlight, let state else { return false }
         let target: UUID
         let expectedStudioMode: Bool
         switch action {
@@ -322,6 +344,8 @@ final class OBSConnection: ObservableObject {
     private enum Keys {
         static let enabled = "obs.enabled"
         static let port = "obs.port"
+        static let breakConfigurations = "obs.breakConfigurations"
+        static let breakRecovery = "obs.breakRecovery"
         static let credentialService = "io.espdesktop.app.obs"
         static let credentialAccount = "local-websocket"
     }
@@ -331,6 +355,23 @@ final class OBSConnection: ObservableObject {
     @Published private(set) var meterValues: [String: Int] = [:]
     @Published private(set) var port: UInt16
     @Published private(set) var enabled: Bool
+    @Published private(set) var breakNeedsReview = false
+
+    private struct BreakSession {
+        let collection: String
+        let original: String
+        let target: String
+        let mic: String?
+        var returning = false
+        var needsUnmute = false
+        var sawMute = false
+        var expectedMute: Bool?
+        var expectedProgram: String?
+    }
+
+    private var breakConfigurations: [String: BreakConfiguration]
+    private var breakSession: BreakSession?
+    private var breakInFlight = false
 
     private let socket: any OBSWebSocketTransport
     private let defaults: UserDefaults
@@ -375,11 +416,14 @@ final class OBSConnection: ObservableObject {
          meterInterval: Duration = .milliseconds(200), meterExpiry: Duration = .seconds(1),
          coughTouchTimeout: Duration = .seconds(1)) {
         self.defaults = defaults
+        breakConfigurations = (try? JSONDecoder().decode([String: BreakConfiguration].self,
+            from: defaults.data(forKey: Keys.breakConfigurations) ?? Data())) ?? [:]
         self.socket = socket
         self.transitionProbeInterval = transitionProbeInterval
         self.meterInterval = meterInterval
         self.meterExpiry = meterExpiry
         self.coughTouchTimeout = coughTouchTimeout
+        breakNeedsReview = defaults.bool(forKey: Keys.breakRecovery)
         enabled = defaults.bool(forKey: Keys.enabled)
         port = UInt16(exactly: defaults.integer(forKey: Keys.port)).flatMap { $0 == 0 ? nil : $0 } ?? 4455
 
@@ -434,7 +478,7 @@ final class OBSConnection: ObservableObject {
     }
 
     func takeLive(token: UUID) async -> Bool {
-        guard let state, state.canTakePreview, state.takeToken == token,
+        guard !breakInFlight, let state, state.canTakePreview, state.takeToken == token,
               let expectedPreview = state.preview?.id, !takingPreview else { return false }
         takingPreview = true
         defer { takingPreview = false }
@@ -509,6 +553,172 @@ final class OBSConnection: ObservableObject {
             state.recordingPaused = active && detail
         }
         if before != active || beforeDetail != detail { state.outputTokens[output] = UUID() }
+    }
+
+    var breakConfiguration: BreakConfiguration? {
+        state.flatMap { breakConfigurations[$0.collection] }
+    }
+
+    var canConfigureBreak: Bool { !breakInFlight && breakSession == nil }
+
+    func configureBreak(sceneID: String, micID: String?) {
+        guard canConfigureBreak, var snapshot = state else { return }
+        breakConfigurations[snapshot.collection] = sceneID.isEmpty && micID == nil ? nil
+            : BreakConfiguration(sceneID: sceneID, micID: micID)
+        if let data = try? JSONEncoder().encode(breakConfigurations) {
+            defaults.set(data, forKey: Keys.breakConfigurations)
+        }
+        snapshot.breakCard = nil
+        updateBreakCard(&snapshot)
+        state = snapshot
+    }
+
+    func acknowledgeBreakReview() {
+        guard !breakInFlight, var snapshot = state else { return }
+        breakNeedsReview = false
+        defaults.removeObject(forKey: Keys.breakRecovery)
+        updateBreakCard(&snapshot)
+        state = snapshot
+    }
+
+    private func updateBreakCard(_ snapshot: inout State) {
+        let label: String
+        var enabled = false
+        if breakNeedsReview {
+            label = "BRB · Check OBS"
+        } else if breakInFlight {
+            label = breakSession?.returning == true ? "Resuming…" : "Starting BRB…"
+        } else if let session = breakSession {
+            label = "Resume"
+            enabled = !snapshot.transitionInProgress && snapshot.program?.id == session.target
+        } else {
+            guard let configured = breakConfigurations[snapshot.collection],
+                  let target = snapshot.scenes.first(where: { $0.id == configured.sceneID }) else {
+                snapshot.breakCard = nil
+                return
+            }
+            label = "BRB · " + target.name
+            enabled = !snapshot.transitionInProgress && snapshot.program != nil && snapshot.program?.id != target.id &&
+                (configured.micID == nil || configured.micID.map { snapshot.inputMutes[$0] != nil } == true)
+        }
+        let program = snapshot.program?.id
+        let previous = snapshot.breakCard
+        let token = enabled ? (previous?.label == label && previous?.programID == program ? previous?.token : nil) ?? UUID() : nil
+        snapshot.breakCard = BreakCard(label: label, programID: program, token: token)
+    }
+
+    private func refreshBreakCard() {
+        guard var snapshot = state else { return }
+        updateBreakCard(&snapshot)
+        if snapshot != state { state = snapshot }
+    }
+
+    private func abandonBreak() {
+        if breakSession != nil { breakNeedsReview = true }
+        breakSession = nil
+    }
+
+    func performBreak(token: UUID, isValid: () -> Bool = { true }) async -> Bool {
+        guard isValid(), !breakInFlight, !takingPreview, let shown = state, shown.breakCard?.token == token,
+              !shown.transitionInProgress, let program = shown.program?.id else { return false }
+
+        let returning = breakSession != nil
+        var transaction: BreakSession
+        if let current = breakSession {
+            guard current.collection == shown.collection, program == current.target,
+                  shown.scenes.contains(where: { $0.id == current.original }) else { return false }
+            transaction = current
+            transaction.returning = true
+        } else {
+            guard let configured = breakConfigurations[shown.collection],
+                  configured.sceneID != program,
+                  shown.scenes.contains(where: { $0.id == configured.sceneID }) else { return false }
+            transaction = BreakSession(collection: shown.collection, original: program,
+                                       target: configured.sceneID, mic: configured.micID)
+        }
+
+        let micUUID = transaction.mic.flatMap(UUID.init(uuidString:))
+        if let micUUID {
+            guard coughHolds[micUUID].map({ $0.lastTouch.duration(to: .now) < coughTouchTimeout }) != true,
+                  pendingMuteCommands.insert(micUUID).inserted else { return false }
+        }
+        breakSession = transaction
+        defaults.set(true, forKey: Keys.breakRecovery)
+        breakInFlight = true
+        refreshBreakCard()
+        var succeeded = false
+        defer {
+            if let micUUID { pendingMuteCommands.remove(micUUID) }
+            if !succeeded { abandonBreak() }
+            breakInFlight = false
+            refreshBreakCard()
+        }
+
+        let active = generation
+        func stillValid() -> Bool {
+            isValid() && generation == active && breakSession != nil && state?.collection == transaction.collection
+        }
+        func programMatches(_ id: String) async -> Bool {
+            let reply = try? await snapshotRequest("GetCurrentProgramScene", generation: active)
+            return stillValid() && reply?["sceneUuid"] as? String == id
+        }
+
+        guard await programMatches(program) else { return false }
+        if let mic = transaction.mic {
+            guard let muted = await micMute(id: mic, collection: transaction.collection),
+                  stillValid() else { return false }
+            if returning {
+                guard muted else { return false }
+            } else if !muted {
+                breakSession?.needsUnmute = true
+                breakSession?.expectedMute = true
+                guard await setMicMute(id: mic, collection: transaction.collection, muted: true),
+                      stillValid(),
+                      await micMute(id: mic, collection: transaction.collection) == true,
+                      stillValid() else { return false }
+                publishConfirmedMute(true, for: mic)
+            }
+        }
+
+        let destination = returning ? transaction.original : transaction.target
+        if let mic = transaction.mic {
+            guard await micMute(id: mic, collection: transaction.collection) == true, stillValid() else { return false }
+        }
+        guard await programMatches(program), state?.transitionInProgress != true else { return false }
+        breakSession?.expectedProgram = destination
+        guard await command("SetCurrentProgramScene", fields: ["sceneUuid": destination]),
+              stillValid() else { return false }
+        // OBS can acknowledge before a transition reaches Program.
+        var switched = false
+        for _ in 0..<24 {
+            if await programMatches(destination), state?.transitionInProgress != true {
+                switched = true
+                break
+            }
+            guard stillValid() else { return false }
+            do { try await Task.sleep(for: .milliseconds(150)) } catch { return false }
+        }
+        guard switched, stillValid() else { return false }
+        if var snapshot = state, let scene = snapshot.scenes.first(where: { $0.id == destination }) {
+            snapshot.program = scene
+            state = snapshot
+        }
+        if returning {
+            if transaction.needsUnmute {
+                guard let mic = transaction.mic, transaction.sawMute,
+                      await micMute(id: mic, collection: transaction.collection) == true,
+                      await programMatches(destination), stillValid() else { return false }
+                breakSession?.expectedMute = false
+                guard await setMicMute(id: mic, collection: transaction.collection, muted: false),
+                      stillValid(), await micMute(id: mic, collection: transaction.collection) == false,
+                      stillValid() else { return false }
+                publishConfirmedMute(false, for: mic)
+            }
+            breakSession = nil
+            defaults.removeObject(forKey: Keys.breakRecovery)
+        }
+        succeeded = true
+        return true
     }
 
     func saveReplay() async -> Bool {
@@ -743,6 +953,7 @@ final class OBSConnection: ObservableObject {
     }
 
     private func invalidate() {
+        abandonBreak()
         abandonCoughHolds()
         meterPeaks.removeAll()
         meterSamples.removeAll()
@@ -831,6 +1042,7 @@ final class OBSConnection: ObservableObject {
                 )
                 for (type, fields) in bufferedEvents { Self.apply(type, fields: fields, to: &snapshot) }
                 bufferedEvents.removeAll()
+                updateBreakCard(&snapshot)
                 state = snapshot
                 updateTransitionProbe()
                 status = .connected
@@ -865,6 +1077,14 @@ final class OBSConnection: ObservableObject {
         case "InputMuteStateChanged":
             guard let id = fields["inputUuid"] as? String,
                   let muted = fields["inputMuted"] as? Bool else { return }
+            if breakSession?.mic == id {
+                if breakSession?.expectedMute == muted {
+                    breakSession?.expectedMute = nil
+                    if muted { breakSession?.sawMute = true }
+                } else {
+                    abandonBreak()
+                }
+            }
             if let uuid = UUID(uuidString: id), var hold = coughHolds[uuid] {
                 // One mute event may belong to our touch-down. Any other change
                 // supersedes ownership, including an unmute followed by a mute.
@@ -877,6 +1097,7 @@ final class OBSConnection: ObservableObject {
             }
             if var current = state, current.inputMutes[id] != nil {
                 current.inputMutes[id] = muted
+                updateBreakCard(&current)
                 state = current
             } else if state == nil, !collectionChanging, bufferedMutes.count < 128 {
                 bufferedMutes[id] = muted
@@ -899,7 +1120,13 @@ final class OBSConnection: ObservableObject {
         case "CurrentProgramSceneChanged", "CurrentPreviewSceneChanged", "StreamStateChanged", "RecordStateChanged",
              "SceneTransitionStarted", "SceneTransitionEnded", "ReplayBufferStateChanged":
             if var current = state {
+                if type == "CurrentProgramSceneChanged", let session = breakSession,
+                   let incoming = Target(fields: fields, kind: "scene"), incoming.id != current.program?.id {
+                    if session.expectedProgram == incoming.id { breakSession?.expectedProgram = nil }
+                    else { abandonBreak() }
+                }
                 Self.apply(type, fields: fields, to: &current)
+                updateBreakCard(&current)
                 state = current
                 if type == "SceneTransitionStarted" || type == "SceneTransitionEnded" { updateTransitionProbe() }
                 if type == "ReplayBufferStateChanged", !current.replayBufferActive, pendingReplay != nil {

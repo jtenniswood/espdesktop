@@ -36,6 +36,38 @@ struct OBSSettings: View {
             }
 
             if let state = connection.state {
+                Section("Be Right Back") {
+                    Picker("Break scene", selection: Binding(
+                        get: { connection.breakConfiguration?.sceneID ?? "" },
+                        set: { connection.configureBreak(sceneID: $0, micID: connection.breakConfiguration?.micID) }
+                    )) {
+                        Text("Choose a scene").tag("")
+                        ForEach(state.scenes) { scene in Text(scene.name).tag(scene.id) }
+                        if let saved = connection.breakConfiguration?.sceneID, !saved.isEmpty,
+                           !state.scenes.contains(where: { $0.id == saved }) {
+                            Text("Saved scene unavailable").tag(saved)
+                        }
+                    }
+                    .disabled(!connection.canConfigureBreak)
+                    Picker("Mute during break", selection: Binding(
+                        get: { connection.breakConfiguration?.micID ?? "" },
+                        set: { connection.configureBreak(sceneID: connection.breakConfiguration?.sceneID ?? "",
+                                                         micID: $0.isEmpty ? nil : $0) }
+                    )) {
+                        Text("Leave audio as is").tag("")
+                        ForEach(state.inputs.filter { state.inputMutes[$0.id] != nil }) { input in
+                            Text(input.name).tag(input.id)
+                        }
+                        if let saved = connection.breakConfiguration?.micID, state.inputMutes[saved] == nil {
+                            Text("Saved input unavailable").tag(saved)
+                        }
+                    }
+                    .disabled(!connection.canConfigureBreak)
+                    if connection.breakNeedsReview {
+                        Text("Check the Program scene and microphone in OBS before continuing.")
+                        Button("Clear BRB alert") { connection.acknowledgeBreakReview() }
+                    }
+                }
                 Section("Current broadcast") {
                     LabeledContent("Scene collection", value: state.collection)
                     LabeledContent(state.streaming ? "On air" : "Program", value: state.program?.name ?? "Unknown")

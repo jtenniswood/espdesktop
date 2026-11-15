@@ -926,11 +926,15 @@ final class CompanionStore: NSObject, ObservableObject {
         return await obs.setFader(controlID: controlIdentifier, value: value)
     }
 
-    func performOBSOutput(actionIdentifier: String, isValid: @escaping @MainActor () -> Bool) async -> Bool {
-        guard let (output, token) = OBSConnection.Output.command(actionIdentifier) else { return false }
-        return await obs.performOutput(output, token: token) {
+    func performGuardedOBSAction(actionIdentifier: String, isValid: @escaping @MainActor () -> Bool) async -> Bool {
+        func canSend() -> Bool {
             isValid() && !self.sessionLock.locked && self.sessionLock.displayAwake != false
         }
+        if let token = OBSConnection.BreakCard.token(for: actionIdentifier) {
+            return await obs.performBreak(token: token, isValid: canSend)
+        }
+        guard let (output, token) = OBSConnection.Output.command(actionIdentifier) else { return false }
+        return await obs.performOutput(output, token: token, isValid: canSend)
     }
 
     func obsControlActions() -> [(id: String, label: String)] {

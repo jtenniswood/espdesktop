@@ -648,7 +648,7 @@ inline bool companion_obs_output_card(const std::string &id) {
 }
 
 inline bool companion_obs_tokenized_card(const std::string &id) {
-  return id == "obs.take" || companion_obs_output_card(id);
+  return id == "obs.take" || id == "obs.brb" || companion_obs_output_card(id);
 }
 
 inline const CompanionAction *companion_published_action(const CompanionRuntimeSnapshot &snapshot,
@@ -656,9 +656,9 @@ inline const CompanionAction *companion_published_action(const CompanionRuntimeS
   if (!snapshot.connected && id.rfind("obs.", 0) == 0) return nullptr;
   const auto item = std::find_if(snapshot.actions.begin(), snapshot.actions.end(), [&](const CompanionAction &action) {
     // Saved tiles outlive the short-lived action for the state they show.
-    return companion_obs_tokenized_card(id)
-      ? action.id.size() > id.size() && action.id[id.size()] == '.' && action.id.compare(0, id.size(), id) == 0
-      : action.id == id;
+    if (action.id == id) return true;
+    return companion_obs_tokenized_card(id) && action.id.size() > id.size() &&
+      action.id[id.size()] == '.' && action.id.compare(0, id.size(), id) == 0;
   });
   return item == snapshot.actions.end() ? nullptr : &*item;
 }
@@ -669,7 +669,8 @@ inline bool companion_action_available(const CompanionRuntimeSnapshot &snapshot,
   if (companion_shortcut_action_valid(action_id)) return snapshot.keyboard_actions_supported;
   // An older Companion may still advertise retired window identifiers.
   if (action_id.rfind("window.", 0) == 0) return false;
-  return companion_published_action(snapshot, action_id) != nullptr;
+  const auto *action = companion_published_action(snapshot, action_id);
+  return action && (!companion_obs_tokenized_card(action_id) || action->id != action_id);
 }
 
 inline bool companion_action_available(const std::string &action_id) {

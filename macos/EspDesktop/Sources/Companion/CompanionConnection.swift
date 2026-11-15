@@ -91,6 +91,7 @@ final class CompanionConnection: NSObject {
     private var applicationFocusPublisher = CompanionApplicationFocusPublisher()
     private var catalogueGeneration: UInt32 = 0
     private var supportsOBSCards = false
+    private var supportsOBSBreak = false
     private var supportsOBSOutputs = false
     private var supportsOBSCough = false
     private var supportsOBSMeters = false
@@ -536,6 +537,7 @@ final class CompanionConnection: NSObject {
             supportsOBSMeters = payload.capabilityVersion >= 15
             supportsOBSCough = payload.capabilityVersion >= 16
             supportsOBSOutputs = payload.capabilityVersion >= 17
+            supportsOBSBreak = payload.capabilityVersion >= 18
             obsMeterWatch.removeAll()
             lastOBSMeterValues.removeAll()
             lastOBSAudioValues.removeAll()
@@ -589,7 +591,8 @@ final class CompanionConnection: NSObject {
             let kind = payload.kind
             if kind == "action", let actionIdentifier = payload.actionId {
                 if (actionIdentifier.hasPrefix("obs.") && !supportsOBSCards) ||
-                    (actionIdentifier.hasPrefix("obs.output.") && !supportsOBSOutputs) {
+                    (actionIdentifier.hasPrefix("obs.output.") && !supportsOBSOutputs) ||
+                    (actionIdentifier.hasPrefix("obs.brb.") && !supportsOBSBreak) {
                     sendJSON(["type": "action.result", "requestId": requestIdentifier, "status": "not_allowed"])
                     return true
                 }
@@ -597,8 +600,8 @@ final class CompanionConnection: NSObject {
                 Task { [weak self, weak requestingTask] in
                     guard let self, let requestingTask, self.task === requestingTask, self.sessionAuthenticated else { return }
                     let status: String
-                    if actionIdentifier.hasPrefix("obs.output.") {
-                        let performed = await self.resources.performOBSOutput(actionIdentifier: actionIdentifier) {
+                    if actionIdentifier.hasPrefix("obs.output.") || actionIdentifier.hasPrefix("obs.brb.") {
+                        let performed = await self.resources.performGuardedOBSAction(actionIdentifier: actionIdentifier) {
                             self.task === requestingTask && self.sessionAuthenticated
                         }
                         status = performed ? "performed" : "not_allowed"
@@ -882,6 +885,7 @@ final class CompanionConnection: NSObject {
         if supportsOBSCards { capabilities.append("obs_scene_cards") }
         if supportsOBSMeters { capabilities.append("obs_input_meters") }
         if supportsOBSOutputs { capabilities.append("obs_output_controls") }
+        if supportsOBSBreak { capabilities.append("obs_brb") }
         if obsActions == nil { sendJSON(["type": "capabilities", "values": capabilities]) }
         // The browser receives identifiers, never application paths or shell commands.
         let apps = resources.launchableApps()
@@ -893,7 +897,8 @@ final class CompanionConnection: NSObject {
             (supportsOBSFaders || OBSConnection.faderInputUUID(for: entry.id) == nil) &&
             (supportsOBSMeters || OBSConnection.meterInputUUID(for: entry.id) == nil) &&
             (supportsOBSCough || OBSConnection.coughInputUUID(for: entry.id) == nil) &&
-            (supportsOBSOutputs || !entry.id.hasPrefix("obs.output."))
+            (supportsOBSOutputs || !entry.id.hasPrefix("obs.output.")) &&
+            (supportsOBSBreak || !(entry.id == "obs.brb" || entry.id.hasPrefix("obs.brb.")))
         }.map { entry in
             ["id": entry.id, "label": Self.catalogueLabel(entry.label, fallback: "OBS scene")]
         }

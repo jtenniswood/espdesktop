@@ -4364,7 +4364,14 @@ async function assertAppVolumeCard(browser) {
     await page.locator(`.sp-main [data-slot="${outputSlot}"]`).click();
     await page.getByRole("button", { name: "Edit", exact: true }).click();
     assert.equal(await output.inputValue(), "obs.output.record");
-    console.log("Sound subtypes, OBS Cough, and OBS output passed picker and save checks.");
+    await page.keyboard.press("Escape");
+    await page.locator(".sp-main .sp-empty-cell").first().click();
+    await page.getByRole("button", { name: "OBS BRB card type", exact: true }).click();
+    await page.getByRole("button", { name: "Save", exact: true }).click();
+    await waitForNativeState(nativeState, () => Object.values(nativeState.document.buttons)
+      .some(card => card.startsWith("obs.brb;") && card.endsWith(";companion")),
+    "OBS BRB saves a stable action without the current break token");
+    console.log("Sound subtypes and guarded OBS cards passed picker and save checks.");
   } finally { await context.close(); }
 }
 

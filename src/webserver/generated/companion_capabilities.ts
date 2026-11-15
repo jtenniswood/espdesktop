@@ -5,7 +5,7 @@ export interface CompanionSystemMetric { readonly mode: string; readonly id: str
 export interface CompanionCardMode { readonly id: string; readonly label: string; readonly capability: string; readonly defaultIcon: string; }
 export interface CompanionProtocolMessage { readonly id: string; readonly direction: string; readonly authorization: string; }
 
-export const COMPANION_CAPABILITY_VERSION = 17 as const;
+export const COMPANION_CAPABILITY_VERSION = 18 as const;
 export const COMPANION_PROTOCOL_VERSION = 4 as const;
 export const COMPANION_PROTOCOL_PATH = "/companion/v4" as const;
 export const COMPANION_MAXIMUM_TEXT_FRAME_BYTES = 16384 as const;
@@ -71,6 +71,12 @@ export const COMPANION_CARD_MODES = [
     id: "obs_output",
     label: "OBS Output Control",
     capability: "obs_output_controls",
+    defaultIcon: "Monitor"
+  },
+  {
+    id: "obs_brb",
+    label: "OBS BRB",
+    capability: "obs_brb",
     defaultIcon: "Monitor"
   },
   {

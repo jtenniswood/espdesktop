@@ -1,5 +1,5 @@
 {
-  "version": 17,
+  "version": 18,
   "protocol": {
     "version": 4,
     "path": "/companion/v4",
@@ -1046,6 +1046,12 @@
       "id": "obs_output",
       "label": "OBS Output Control",
       "capability": "obs_output_controls",
+      "defaultIcon": "Monitor"
+    },
+    {
+      "id": "obs_brb",
+      "label": "OBS BRB",
+      "capability": "obs_brb",
       "defaultIcon": "Monitor"
     },
     {

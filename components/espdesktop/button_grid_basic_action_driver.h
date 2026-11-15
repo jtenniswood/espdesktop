@@ -171,7 +171,7 @@ inline bool show_obs_output_confirmation(lv_obj_t *button) {
 inline bool invoke_saved_companion_card(const ParsedCfg &card, const std::string &request_id,
                                          const std::string &required_focus = {},
                                          lv_obj_t *button = nullptr) {
-  if (card.entity == "obs.take")
+  if (card.entity == "obs.take" || card.entity == "obs.brb")
     return invoke_companion_action(companion_rendered_obs_action(button).id, request_id);
   if (companion_obs_output_card(card.entity)) return show_obs_output_confirmation(button);
   if (companion_obs_status_card(card.entity)) return false;
