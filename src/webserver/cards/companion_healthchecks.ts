@@ -87,7 +87,7 @@ export function renderHealthcheckSettings(
     }
 
     field.append(label, search, select, note, refreshButton);
-    helpers.markCardPrimaryField(field, "healthcheck");
+    helpers.markCardPrimaryField(field, "entity");
     panel.appendChild(field);
     helpers.requireField(select, "Choose a health check before saving.", () => true, value =>
         /^[0-9a-f]{40}$/.test(value) && (COMPANION_HEALTHCHECK_PREFIX + value === originalEntity ||

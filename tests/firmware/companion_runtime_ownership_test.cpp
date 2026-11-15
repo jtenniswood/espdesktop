@@ -48,11 +48,13 @@ int main() {
   assert(healthchecks.reading(CHECK_ID, 60000).check->status == CheckStatus::DOWN);
   assert(healthchecks.editor_page(0, 60000).has_more);
   assert(healthchecks.editor_page(1, 60000).checks.size() == 1);
+  const auto previous_generation = healthchecks.editor_page(0, 60000).generation;
   healthchecks.set_connected(false);
   assert(healthchecks.reading(CHECK_ID, 70000).state == HealthchecksState::STALE);
   assert(healthchecks.editor_page(0, 70000).checks.empty());
   healthchecks.set_connected(true);
   assert(healthchecks.receive(1, 0, 0, true, HealthchecksState::READY, nullptr, 0, 75000));
+  assert(healthchecks.editor_page(0, 75000).generation != previous_generation);
   assert(!healthchecks.reading(CHECK_ID, 75000).check);
   assert(healthchecks.reading(CHECK_ID, 75000).state == HealthchecksState::READY);
   healthchecks.clear();

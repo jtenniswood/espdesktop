@@ -118,6 +118,7 @@ class HealthchecksCatalogue {
       }
       pending_ = {};
       current_session_ = true;
+      if (++editor_generation_ == 0) ++editor_generation_;
     }
     return true;
   }
@@ -157,7 +158,7 @@ class HealthchecksCatalogue {
     HealthchecksPage result;
     if (!connected_ || !current_session_) return result;
     result.state = state_at(now);
-    result.generation = current_.generation;
+    result.generation = editor_generation_;
     const size_t start = page * HEALTHCHECK_PAGE_SIZE;
     for (size_t i = start; i < std::min(start + HEALTHCHECK_PAGE_SIZE, current_.count); i++)
       result.checks.push_back(current_.checks.get()[i]);
@@ -200,6 +201,7 @@ class HealthchecksCatalogue {
   mutable std::mutex mutex_;
   bool connected_{false};
   bool current_session_{false};
+  uint32_t editor_generation_{0};
   uint32_t discarding_generation_{0};
   Snapshot current_;
   Snapshot pending_;

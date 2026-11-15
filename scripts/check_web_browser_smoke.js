@@ -5022,10 +5022,22 @@ async function assertCompanionOnlyCardPicker(browser, testCase) {
       connected: false,
     },
   };
+  const legacyTextState = {};
+  const healthcheckId = "a".repeat(40);
   await installRoutes(context, testCase.slug, {
+    legacyTextState,
     connectorsStatus: connectorStatus,
     homeAssistantSupport: true,
   });
+  await context.route("**/companion/healthchecks?page=0", route => route.fulfill({
+    json: {
+      state: "ready", generation: 1, hasMore: false,
+      checks: [
+        { id: healthcheckId, label: "Database backup" },
+        { id: "b".repeat(40), label: "Nightly sync" },
+      ],
+    },
+  }));
   const page = await context.newPage();
   await installFakeEventSource(page);
   try {
@@ -5079,6 +5091,17 @@ async function assertCompanionOnlyCardPicker(browser, testCase) {
       0,
       `${testCase.name}: Stats is unavailable when adding a new card`,
     );
+    await page.locator('[data-card-type="companion_healthchecks"]').click();
+    const healthchecks = page.getByLabel("Health check", { exact: true });
+    await healthchecks.locator('option[value="' + healthcheckId + '"]').waitFor({ state: "attached" });
+    await page.getByRole("searchbox", { name: "Search health checks" }).fill("database");
+    assert.strictEqual(await healthchecks.getByText("Nightly sync").count(), 0);
+    await healthchecks.selectOption(healthcheckId);
+    await page.getByRole("button", { name: "Save", exact: true }).click();
+    await page.locator(".sp-main .sp-btn-label").getByText("Database backup", { exact: true }).waitFor();
+    assert(Object.values(legacyTextState).some(value =>
+      parseRawButtonConfig(value)?.entity === "healthchecks." + healthcheckId),
+    "Saving a Healthchecks card persists the stable check ID");
   } finally {
     await context.close();
   }
