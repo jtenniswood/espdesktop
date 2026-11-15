@@ -1100,7 +1100,7 @@ inline const char *companion_obs_status_icon(const std::string &id, const std::s
   if (!available || status == "Unknown") return "Monitor Off";
   if (id == "obs.status.program") return "Monitor";
   if (status == "Changing" || status == "Reconnecting") return "Progress Clock";
-  if (id == "obs.status.stream") return status == "Live" ? "Cast" : "Wifi Off";
+  if (id == "obs.status.stream") return status == "Live" ? "Broadcast" : "Broadcast Off";
   if (status == "Paused") return "Pause";
   return status == "Active" ? "Record" : "Stop";
 }

@@ -13,7 +13,7 @@
     "cardTypes": 41,
     "entityNames": 92,
     "icons": 361,
-    "structuralIcons": 39,
+    "structuralIcons": 41,
     "compatibilityFixtureGroups": 2
   },
   "deviceProfiles": {
@@ -7157,6 +7157,18 @@
         "codepoint": "F0082",
         "mdi": "battery-90",
         "comment": "Battery status indicator"
+      },
+      {
+        "name": "Broadcast",
+        "codepoint": "F1720",
+        "mdi": "broadcast",
+        "comment": "OBS stream status"
+      },
+      {
+        "name": "Broadcast Off",
+        "codepoint": "F1721",
+        "mdi": "broadcast-off",
+        "comment": "OBS stream status"
       }
     ],
     "icons": [

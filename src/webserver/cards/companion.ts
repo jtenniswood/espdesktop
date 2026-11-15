@@ -1656,7 +1656,7 @@ export function registerCompanionCardTypes(
                 const sensorIcon = !statusValue || statusValue === "Unknown" ? "Monitor Off"
                     : program ? "Monitor"
                     : statusValue === "Changing" || statusValue === "Reconnecting" ? "Progress Clock"
-                    : stream ? (statusValue === "Live" ? "Cast" : "Wifi Off")
+                    : stream ? (statusValue === "Live" ? "Broadcast" : "Broadcast Off")
                     : statusValue === "Paused" ? "Pause" : statusValue === "Active" ? "Record" : "Stop";
                 const alias = (mode === "obs_mic" || card.entity.startsWith("obs.target.")) && card.label;
                 const muted = mode === "obs_mic" && currentLabel?.startsWith("Muted · ");
