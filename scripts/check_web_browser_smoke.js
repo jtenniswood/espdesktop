@@ -4433,6 +4433,15 @@ async function assertShortcutCatalogSettings(browser, testCase) {
     const newTab = action.getByRole("radio", { name: "New Tab ⌘T", exact: true });
     await newTab.press("Space");
     assert(await newTab.isChecked(), "keyboard selection activates the new shortcut");
+    assert(await newTab.evaluate(input => {
+      const list = input.closest(".sp-shortcut-catalog-list");
+      const track = input.nextElementSibling;
+      const style = getComputedStyle(track);
+      const outlineOutset = parseFloat(style.outlineWidth) + parseFloat(style.outlineOffset);
+      const clipRight = list.getBoundingClientRect().left + list.clientLeft + list.clientWidth;
+      return input === document.activeElement && style.outlineStyle !== "none" &&
+        track.getBoundingClientRect().right + outlineOutset <= clipRight;
+    }), "the focused shortcut toggle's outline fits inside the scrolling list");
     assert.strictEqual(await preset(reloadPreset).isChecked(), false, "selecting a new shortcut clears the previous one");
     await selectPreset(reloadPreset);
     await saveCard();
