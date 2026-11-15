@@ -786,7 +786,7 @@ export function registerCompanionCardTypes(
             shortcutField.className = "sp-field sp-shortcut-settings";
             if (initialMode === "shortcut") panel?.classList.add("sp-shortcut-card-settings");
             const savedCatalogShortcut = companionShortcutCatalogSelection(card);
-            const pageApp = initialMode === "shortcut" && state.settingsDraft?.isNew && parentPage !== -1
+            const pageApp = initialMode === "shortcut" && state.settingsDraft?.isNew
                 ? appShortcutPageOwner(previewSubpageOwner(parentPage, state.buttons, key => state.subpages[key]))
                 : undefined;
             const catalogueApps = sortCompanionLabels(companionShortcutCatalogApps(savedCatalogShortcut?.appId || pageApp));

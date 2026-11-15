@@ -12,7 +12,7 @@ export function appShortcutPageOwner(card?: Partial<CardConfig> | null): string 
 
 export function previewSubpageOwner(page: number | null, home: readonly CardConfig[],
     getSubpage: (key: number) => { buttons: readonly CardConfig[] } | null | undefined): CardConfig | undefined {
-    if (!page) return;
+    if (!page || page === -1) return;
     const parent = parentPageKey(page);
     return (parent ? getSubpage(parent)?.buttons : home)?.[pageOwnerSlot(page) - 1];
 }

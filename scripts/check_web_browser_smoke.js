@@ -7052,6 +7052,7 @@ async function assertSpecialPageEntry(browser, testCase) {
       await entry.press("Enter");
       await page.locator(".sp-main .sp-empty-cell").first().click();
       await chooseCardType(page, "Key Shortcut");
+      await page.getByRole("tablist", { name: "Shortcut type" }).getByRole("tab", { name: "Custom", exact: true }).click();
       const modifiers = page.getByRole("group", { name: "Shortcut modifiers" });
       await modifiers.getByRole("button", { name: "⌘ Command", exact: true }).click();
       await page.locator('[id$="shortcut-key"]').selectOption("w");
