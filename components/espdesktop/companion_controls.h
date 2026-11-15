@@ -333,11 +333,11 @@ inline bool companion_volume_control_valid(const std::string &control_id) {
 
 inline bool companion_value_control_valid(const std::string &control_id) {
   return control_id == COMPANION_COUGH_ID || companion_obs_cough_control(control_id) ||
-    companion_volume_control_valid(control_id);
+    (!companion_obs_meter_control(control_id) && companion_volume_control_valid(control_id));
 }
 
 inline bool companion_writable_value_control_valid(const std::string &control_id) {
-  return !companion_obs_meter_control(control_id) && companion_value_control_valid(control_id);
+  return companion_value_control_valid(control_id);
 }
 
 inline const char *companion_volume_control_label(const std::string &control_id) {
@@ -355,7 +355,7 @@ inline void companion_set_value(const std::string &control_id, int value) {
   if (!companion_value_control_valid(control_id)) return;
   value = std::max(0, std::min(100, value));
   constexpr size_t max_mac_values = 256 + 5 + 16;
-  constexpr size_t max_obs_values = 40 + 40 + 12;
+  constexpr size_t max_obs_values = 40 + 40;
   const size_t limit = control_id.rfind("obs.", 0) == 0 ? max_obs_values : max_mac_values;
   companion_runtime_service().set_value(control_id, value, limit);
 }
@@ -853,6 +853,7 @@ struct CompanionMuteRef {
   const char *icon_unmuted = nullptr;
   const char *icon_muted = nullptr;
   lv_obj_t *text_label = nullptr;
+  std::string resting_label{};
 };
 
 struct CompanionViewRegistry {
@@ -946,18 +947,6 @@ inline void companion_track_slider(lv_obj_t *slider, const std::string &control_
   companion_request_card_refresh();
 }
 
-inline std::vector<std::string> companion_visible_obs_meters() {
-  std::vector<std::string> ids;
-  for (const auto &ref : companion_slider_refs()) {
-    if (ids.size() == 12) break;
-    if (!ref.slider || !lv_obj_is_valid(ref.slider) || lv_obj_get_screen(ref.slider) != lv_scr_act() ||
-        !companion_obs_meter_control(ref.control_id)) continue;
-    if (std::find(ids.begin(), ids.end(), ref.control_id) == ids.end()) ids.push_back(ref.control_id);
-  }
-  std::sort(ids.begin(), ids.end());
-  return ids;
-}
-
 inline void companion_render_mute(const CompanionMuteRef &ref, bool muted, bool checked) {
   if (lv_obj_has_state(ref.button, LV_STATE_CHECKED) != checked)
     set_card_checked_state(ref.button, checked);
@@ -985,6 +974,10 @@ inline void companion_apply_mute_state(const CompanionMuteRef &ref,
   if (lv_obj_has_state(ref.button, LV_STATE_DISABLED) == available)
     set_card_disabled_state(ref.button, !available);
   companion_render_mute(ref, muted, muted);
+  if (companion_obs_cough_control(ref.control_id) && ref.text_label && lv_obj_is_valid(ref.text_label)) {
+    const auto label = muted ? normalize_display_text(espdesktop_i18n("Muted")) : ref.resting_label;
+    if (label != lv_label_get_text(ref.text_label)) lv_label_set_text(ref.text_label, label.c_str());
+  }
 }
 
 inline void companion_paint_mute_preview(const std::string &control, int value) {
@@ -1032,7 +1025,8 @@ inline void companion_track_mute(lv_obj_t *button, const std::string &control_id
                    control_id == COMPANION_COUGH_ID || companion_obs_cough_control(control_id))) return;
   companion_forget_mute(button);
   companion_view_registry().mutes.push_back(
-    {button, control_id, icon_label, icon_unmuted, icon_muted, text_label});
+    {button, control_id, icon_label, icon_unmuted, icon_muted, text_label,
+     text_label ? lv_label_get_text(text_label) : ""});
   lv_obj_add_event_cb(button, companion_mute_deleted, LV_EVENT_DELETE, nullptr);
   companion_request_card_refresh();
 }
@@ -1219,7 +1213,6 @@ inline void companion_render_slider(const CompanionSliderRef &ref, const Compani
   const auto value = std::find_if(snapshot.values.begin(), snapshot.values.end(),
     [&ref](const CompanionValue &candidate) { return candidate.id == ref.control_id; });
   const bool available = snapshot.connected && value != snapshot.values.end();
-  const bool meter = companion_obs_meter_control(ref.control_id);
   if (ref.obs_fader_fill) {
     const bool muted = snapshot.connected && std::any_of(snapshot.values.begin(), snapshot.values.end(),
       [&ref](const CompanionValue &candidate) { return candidate.id == ref.obs_cough_id && candidate.value > 0; });
@@ -1230,15 +1223,14 @@ inline void companion_render_slider(const CompanionSliderRef &ref, const Compani
   if (ref.text_label && lv_obj_is_valid(ref.text_label)) {
     char level[24]{};
     if (available && value->value > 0) {
-      const double db = meter ? (value->value - 100) * 0.6 : companion_obs_fader_decibels(value->value);
-      snprintf(level, sizeof(level), meter ? "%.1f dBFS" : "%+.1f dB", db);
+      const double db = companion_obs_fader_decibels(value->value);
+      snprintf(level, sizeof(level), "%+.1f dB", db);
     }
     const auto *action = companion_published_action(snapshot, ref.control_id);
-    const std::string title = meter && !ref.base_label.empty() ? ref.base_label
-      : (action ? (meter ? "OBS Meter · " : "OBS · ") + action->label : ref.base_label);
+    const std::string title = action ? "OBS · " + action->label : ref.base_label;
     const std::string label = title + "\n" + (available
-      ? (value->value > 0 ? level : meter ? "≤ -60 dBFS" : "-∞ dB")
-      : espdesktop_i18n(meter && action ? "No signal" : "Unavailable"));
+      ? (value->value > 0 ? level : "-∞ dB")
+      : espdesktop_i18n("Unavailable"));
     const auto normalized = normalize_display_text(label);
     if (normalized != lv_label_get_text(ref.text_label))
       lv_label_set_display_text(ref.text_label, label.c_str());
@@ -1252,10 +1244,6 @@ inline void companion_render_slider(const CompanionSliderRef &ref, const Compani
     }
     lv_obj_clear_state(ref.slider, LV_STATE_DISABLED);
   } else {
-    if (meter && lv_slider_get_value(ref.slider) != 0) {
-      lv_slider_set_value(ref.slider, 0, LV_ANIM_OFF);
-      lv_obj_send_event(ref.slider, LV_EVENT_VALUE_CHANGED, nullptr);
-    }
     lv_obj_add_state(ref.slider, LV_STATE_DISABLED);
   }
 }
@@ -1360,7 +1348,6 @@ inline void companion_track_mute(void *, const std::string &, void * = nullptr,
 inline void companion_track_slider(void *, const std::string &, void *, bool,
                                    const char *, const char *, void * = nullptr,
                                    const std::string & = {}, void * = nullptr) {}
-inline std::vector<std::string> companion_visible_obs_meters() { return {}; }
 inline void companion_refresh_cards_if_requested() {}
 inline void companion_paint_mute_preview(const std::string &, int) {}
 inline void companion_require_card_focus(void *, const std::string &) {}

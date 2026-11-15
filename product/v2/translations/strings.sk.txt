@@ -343,6 +343,5 @@ microphone_mute=Stlmiť mikrofón
 mic=Mikrofón
 mute=Stlmiť
 muted=Stlmené
-no_signal=Bez signálu
 mac_update_required=Aktualizujte aplikáciu pre Mac
 mac_update_reconnect=Na opätovné pripojenie aktualizujte EspDesktop na Macu.

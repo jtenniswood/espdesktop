@@ -343,6 +343,5 @@ microphone_mute=Mikrofon némítása
 mic=Mikrofon
 mute=Némítás
 muted=Némítva
-no_signal=Nincs jel
 mac_update_required=Frissítse a Mac-alkalmazást
 mac_update_reconnect=A csatlakozáshoz frissítse az EspDesktopot a Macen.

@@ -562,7 +562,7 @@ int main() {
   companion_set_value(obs_level, 72);
   companion_set_value(obs_meter, 85);
   assert(companion_value(obs_level, output_volume) && output_volume == 72);
-  assert(companion_value(obs_meter, output_volume) && output_volume == 85);
+  assert(!companion_value(obs_meter, output_volume));
   companion_remove_value(obs_level);
   companion_remove_value(obs_meter);
   const std::string overflow_input = "input.level." + std::string(64, 'b');

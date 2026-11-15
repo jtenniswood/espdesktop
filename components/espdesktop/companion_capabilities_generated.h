@@ -54,7 +54,6 @@ inline constexpr CompanionProtocolMessagePolicy COMPANION_PROTOCOL_MESSAGES[] = 
   {"app_icon.abort", "bidirectional", "session"},
   {"error", "bidirectional", "public"},
   {"catalogue.definitions.page", "mac_to_panel", "session"},
-  {"obs.meters.watch", "panel_to_mac", "session"},
   {"focus.targets", "panel_to_mac", "session"},
   {"session.lock", "mac_to_panel", "paired"},
   {"pair.reset", "mac_to_panel", "session"},

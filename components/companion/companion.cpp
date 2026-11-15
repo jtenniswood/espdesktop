@@ -183,10 +183,6 @@ void CompanionService::loop() {
       focus_targets.generation != this->focus_targets_generation_.load())
     this->publish_focus_targets_();
   const uint32_t now = millis();
-  if (this->obs_meters_supported_.load() && now - this->last_obs_meter_check_ >= 250) {
-    this->last_obs_meter_check_ = now;
-    this->publish_obs_meter_watch_();
-  }
   const uint32_t authentication_deadline = this->authentication_expires_at_.load();
   if (authentication_deadline != 0 &&
       static_cast<int32_t>(millis() - authentication_deadline) >= 0 &&
@@ -613,7 +609,6 @@ void CompanionService::handle_json_(int socket_fd, const std::string &message) {
       bool app_icons_alpha_supported = false;
       bool app_icons_high_resolution_supported = false;
       bool focus_targets_supported = false;
-      bool obs_meters_supported = false;
       for (const auto &capability : payload->values) {
         if (capability == COMPANION_APP_ICONS_CAPABILITY) {
           app_icons_supported = true;
@@ -629,8 +624,6 @@ void CompanionService::handle_json_(int socket_fd, const std::string &message) {
           keyboard_actions_capability_received = true;
         } else if (capability == "url_card_focus") {
           focus_targets_supported = true;
-        } else if (capability == "obs_input_meters") {
-          obs_meters_supported = true;
         }
       }
       this->app_icons_supported_.store(app_icons_supported && app_icons_alpha_supported &&
@@ -642,12 +635,9 @@ void CompanionService::handle_json_(int socket_fd, const std::string &message) {
       }
       for (const auto &id : configured_icons) this->request_app_icon(id);
       this->defer_session_([this, keyboard_actions, keyboard_actions_capability_received,
-                            focus_targets_supported, obs_meters_supported]() {
+                            focus_targets_supported]() {
         if (keyboard_actions_capability_received) companion_set_keyboard_actions_supported(keyboard_actions);
         this->focus_targets_supported_.store(focus_targets_supported);
-        if (this->obs_meters_supported_.exchange(obs_meters_supported) != obs_meters_supported)
-          this->published_obs_meters_.clear();
-        if (focus_targets_supported) this->focus_targets_generation_.store(0xFFFFFFFFu);
       });
       return true;
     }
@@ -1066,7 +1056,6 @@ void CompanionService::set_connected_(bool connected, int closing_socket) {
       this->session_.disconnect();
     }
   }
-  this->obs_meters_supported_.store(false);
   if (connected) {
     this->focus_targets_generation_ = 0xFFFFFFFFu;
     this->focus_targets_supported_ = false;
@@ -1110,18 +1099,6 @@ void CompanionService::publish_focus_targets_() {
         companion_protocol::encode(root, payload);
       }))) {
     this->focus_targets_generation_.store(snapshot.url_focus_targets_generation);
-  }
-}
-
-void CompanionService::publish_obs_meter_watch_() {
-  const int socket_fd = this->session_.authenticated_socket();
-  if (socket_fd < 0) return;
-  companion_protocol::ObsMetersWatch payload{companion_visible_obs_meters()};
-  if (payload.controlIds == this->published_obs_meters_) return;
-  if (this->send_(socket_fd, json::build_json([&payload](JsonObject root) {
-        companion_protocol::encode(root, payload);
-      }))) {
-    this->published_obs_meters_ = std::move(payload.controlIds);
   }
 }
 

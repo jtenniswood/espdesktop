@@ -100,9 +100,7 @@ An **OBS Mic Mute** card changes the selected input in the OBS mixer. The ON col
 
 Under **Sound**, choose **OBS Input Level** to adjust a named mixer input. The tile shows the confirmed fader setting in dB. The fill turns grey while the input is muted, and you can still drag to adjust the level. Choose **OBS Input Mute** to change the mute state.
 
-Under **Sound**, choose **OBS Input Meter** to check signal on a named input. It shows the strongest channel before the fader, so it can move even while that input is muted. The meter clears when samples stop and says **No signal** if OBS still knows the input. It says **Unavailable** if OBS disconnects or the input is missing.
-
-Under **Sound**, choose **OBS Input Cough** and select the input to mute momentarily. The tile reads **Muted** while held. Release it to restore the card label and the input’s previous mute state.
+Under **Sound**, choose **OBS Input Cough** and select the input to mute momentarily. The tile reads **Muted** whenever that input is muted, including during a break. Release it to restore the input’s previous mute state.
 
 Add an **OBS Status** tile and choose **Program scene**, **Streaming**, or **Recording**. These tiles display OBS state. You can check for an active stream, reconnecting stream, or paused recording while you work in another app.
 

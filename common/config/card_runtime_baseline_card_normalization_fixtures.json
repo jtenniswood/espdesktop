@@ -1230,21 +1230,6 @@
     }
   },
   {
-    "name": "companion_obs_meter: picker_alias",
-    "input": "~obs.meter.69da3f8f-7f62-4abe-a594-4e40dd579858,OBS%20Meter%20%C2%B7%20Desk%20Mic,Microphone,Auto,,,slider,,",
-    "expected": {
-      "entity": "obs.meter.69da3f8f-7f62-4abe-a594-4e40dd579858",
-      "label": "OBS Meter · Desk Mic",
-      "icon": "Microphone",
-      "icon_on": "Auto",
-      "sensor": "",
-      "unit": "",
-      "type": "slider",
-      "precision": "",
-      "options": ""
-    }
-  },
-  {
     "name": "companion_subpage: picker_alias",
     "input": "~,Mac%20Controls,Auto,Auto,,,subpage,,subpage_connector%3Dmac_companion",
     "expected": {

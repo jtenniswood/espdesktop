@@ -61,7 +61,6 @@ struct CompanionKeychainCredentials: CompanionSessionCredentials {
 }
 
 enum CompanionSessionEvent {
-    case obsMeterWatchChanged
     case connection(message: String, state: CompanionConnectionState, recovery: String?)
     case status(String)
     case capabilities(systemMetrics: Bool)

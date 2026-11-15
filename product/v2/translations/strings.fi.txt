@@ -343,6 +343,5 @@ microphone_mute=Mykistä mikrofoni
 mic=Mikki
 mute=Mykistä
 muted=Mykistetty
-no_signal=Ei signaalia
 mac_update_required=Päivitä Mac-sovellus
 mac_update_reconnect=Muodosta yhteys uudelleen päivittämällä EspDesktop Macissa.

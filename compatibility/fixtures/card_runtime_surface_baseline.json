@@ -2283,7 +2283,7 @@
         },
         "preview": {
           "available": true,
-          "fingerprint": "ece07bab3cb79b97"
+          "fingerprint": "35667f0872debf6f"
         }
       },
       "firmware": {
@@ -2576,37 +2576,6 @@
         ],
         "actions": [
           "local"
-        ],
-        "modalOwner": "none"
-      }
-    },
-    {
-      "name": "companion_obs_meter: picker_alias",
-      "sourceKind": "runtime_only",
-      "sourceType": "companion_obs_meter",
-      "mode": "picker_alias",
-      "canonicalType": "slider",
-      "web": {
-        "registration": "companion_obs_meter",
-        "picker": {
-          "main": false,
-          "subpage": false,
-          "infoOnly": false
-        },
-        "preview": {
-          "available": true,
-          "fingerprint": "e46520c1a53c7a09"
-        }
-      },
-      "firmware": {
-        "family": null
-      },
-      "lifecycle": {
-        "subscriptions": [
-          "local"
-        ],
-        "actions": [
-          "none"
         ],
         "modalOwner": "none"
       }

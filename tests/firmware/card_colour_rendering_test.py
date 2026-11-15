@@ -312,24 +312,23 @@ int main() {
     assert(lv_obj_has_state(&title, LV_STATE_DISABLED));
   }
   {
-    lv_obj_t slider, title;
-    CompanionSliderRef meter;
-    meter.slider = &slider;
-    meter.text_label = &title;
-    meter.base_label = "Mic meter";
-    meter.control_id = "obs.meter.11111111-1111-1111-1111-111111111111";
+    lv_obj_t slider, title, fill;
+    CompanionSliderRef fader;
+    fader.slider = &slider;
+    fader.text_label = &title;
+    fader.obs_fader_fill = &fill;
+    fader.obs_fader_live_color = 0xFF8C00;
+    fader.control_id = "obs.level.11111111-1111-1111-1111-111111111111";
+    fader.obs_cough_id = "obs.cough.11111111-1111-1111-1111-111111111111";
     CompanionRuntimeSnapshot snapshot;
-    snapshot.actions = {{meter.control_id, "Long OBS audio input name"}};
-    snapshot.values = {{meter.control_id, 75}};
-    companion_render_slider(meter, snapshot);
-    assert(title.content == "Mic meter\n-15.0 dBFS" && slider.slider_value == 75);
-    snapshot.values.clear();
-    companion_render_slider(meter, snapshot);
-    assert(title.content == "Mic meter\nNo signal" && slider.slider_value == 0);
-    assert(slider.slider_events == 2 && lv_obj_has_state(&slider, LV_STATE_DISABLED));
-    snapshot.connected = false;
-    companion_render_slider(meter, snapshot);
-    assert(title.content == "Mic meter\nUnavailable" && slider.slider_events == 2);
+    snapshot.actions = {{fader.control_id, "Desk Mic"}};
+    snapshot.values = {{fader.control_id, 75}, {fader.obs_cough_id, 100}};
+    companion_render_slider(fader, snapshot);
+    assert(fill.background[0] == 0x808080 && slider.slider_value == 75);
+    assert(!lv_obj_has_state(&slider, LV_STATE_DISABLED));
+    snapshot.values[1].value = 0;
+    companion_render_slider(fader, snapshot);
+    assert(fill.background[0] == 0xFF8C00 && slider.slider_value == 75);
   }
   {
     lv_obj_t old_app, new_app, unrelated_app, metric;

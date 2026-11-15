@@ -238,11 +238,6 @@ export const COMPANION_PROTOCOL_MESSAGES: readonly CompanionProtocolMessage[] = 
     authorization: "session"
   },
   {
-    id: "obs.meters.watch",
-    direction: "panel_to_mac",
-    authorization: "session"
-  },
-  {
     id: "focus.targets",
     direction: "panel_to_mac",
     authorization: "session"

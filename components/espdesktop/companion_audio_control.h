@@ -22,6 +22,7 @@ inline bool companion_obs_level_control(std::string_view id) {
 }
 
 inline bool companion_obs_meter_control(std::string_view id) {
+  // Keep development-build meter bindings out of Home Assistant slider routing.
   return companion_obs_audio_uuid(id, "obs.meter.");
 }
 

@@ -52,6 +52,7 @@ inline void cough_button_press(lv_obj_t *button) {
       !companion_value(control, value)) return;
   const int previous_mute = companion_runtime_service().displayed_mute_value(control, value);
   if (!send_cough_button_value(control, 100)) return;
+  if (companion_obs_cough_control(control)) text_label = nullptr;  // OBS confirms the actual mute state.
   touch = {button, esphome::millis(), previous_mute, std::move(control), text_label, {}};
   if (text_label) {
     touch.resting_label = lv_label_get_text(text_label);

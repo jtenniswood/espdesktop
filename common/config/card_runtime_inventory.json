@@ -338,14 +338,6 @@
       "config": { "entity": "obs.level.69da3f8f-7f62-4abe-a594-4e40dd579858", "label": "OBS · Desk Mic", "icon": "Microphone", "icon_on": "Auto", "type": "slider" },
       "lifecycle": { "subscriptions": ["local"], "actions": ["local"], "modalOwner": "none" }
     },
-    "companion_obs_meter": {
-      "classification": "picker_alias",
-      "canonicalType": "slider",
-      "surfaces": ["web_registry"],
-      "webRegistration": "companion_obs_meter",
-      "config": { "entity": "obs.meter.69da3f8f-7f62-4abe-a594-4e40dd579858", "label": "OBS Meter · Desk Mic", "icon": "Microphone", "icon_on": "Auto", "type": "slider" },
-      "lifecycle": { "subscriptions": ["local"], "actions": ["none"], "modalOwner": "none" }
-    },
     "companion_subpage": {
       "classification": "picker_alias",
       "canonicalType": "subpage",

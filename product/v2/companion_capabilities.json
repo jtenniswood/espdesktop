@@ -892,24 +892,6 @@
         ]
       },
       {
-        "id": "obs.meters.watch",
-        "direction": "panel_to_mac",
-        "authorization": "session",
-        "fields": {
-          "controlIds": {
-            "type": "array",
-            "maxItems": 12,
-            "items": {
-              "type": "string",
-              "minLength": 46,
-              "maxLength": 46,
-              "pattern": "obs_meter_control_id"
-            }
-          }
-        },
-        "states": ["connected"]
-      },
-      {
         "id": "focus.targets",
         "direction": "panel_to_mac",
         "authorization": "session",

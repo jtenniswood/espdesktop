@@ -1,5 +1,5 @@
 import { createCompanionCatalogue } from "../api/companion_catalogue";
-import { OBS_FADER_PREFIX, OBS_METER_PREFIX, isOBSFaderControlID, isOBSMeterControlID } from "../model/card";
+import { OBS_FADER_PREFIX, isOBSFaderControlID } from "../model/card";
 import { renderRetiredCardSettings } from "../application/card_registry";
 import { preserveCardColorOptions } from "../model/config_primitives";
 import {
@@ -30,7 +30,6 @@ export const COMPANION_OUTPUT_MUTE_ID = "media.output_mute";
 export const COMPANION_INPUT_MUTE_ID = "media.input_mute";
 
 export function companionSliderMode(card: any): string {
-    if (card?.entity === OBS_METER_PREFIX || isOBSMeterControlID(card?.entity)) return "obs_meter";
     if (card?.entity === OBS_FADER_PREFIX || isOBSFaderControlID(card?.entity)) return "obs_level";
     if (card?.entity === COMPANION_OUTPUT_VOLUME_ID) return "mac_output";
     if (card?.entity === COMPANION_INPUT_VOLUME_ID) return "mac_input";
@@ -85,9 +84,8 @@ export function registerSliderCardTypes(
     const { cardBadgeLabelHtml } = fields;
     const obsCatalogue = createCompanionCatalogue(fetchImpl);
 
-    function renderOBSAudioSettings(panel: HTMLElement, card: { entity: string; label: string }, helpers: any, meter: boolean): void {
-        const matches = meter ? isOBSMeterControlID : isOBSFaderControlID;
-        const saved = matches(card.entity) ? card.entity : "";
+    function renderOBSAudioSettings(panel: HTMLElement, card: { entity: string; label: string }, helpers: any): void {
+        const saved = isOBSFaderControlID(card.entity) ? card.entity : "";
         const names = new Map<string, string>();
         const legacyLabel = card.label || "Saved OBS input";
         const placeholder = "Choose an OBS audio input…";
@@ -96,7 +94,7 @@ export function registerSliderCardTypes(
                 const name = names.get(select.value);
                 if (!name) return;
                 card.entity = select.value;
-                card.label = (meter ? "OBS Meter · " : "OBS · ") + name;
+                card.label = "OBS · " + name;
                 helpers.saveField("entity", card.entity);
                 helpers.saveField("label", card.label);
                 cardUi.renderPreview();
@@ -110,15 +108,14 @@ export function registerSliderCardTypes(
         field.appendChild(note);
         select.disabled = true;
         void obsCatalogue.load(true).then(actions => {
-            for (const action of actions) if (matches(action.id)) names.set(action.id, action.label);
+            for (const action of actions) if (isOBSFaderControlID(action.id)) names.set(action.id, action.label);
             const items = [...names].map(([id, name]) => new Option(name, id));
             if (saved && !names.has(saved)) items.unshift(new Option(legacyLabel + " (unavailable)", saved));
             select.replaceChildren(new Option(placeholder, ""), ...items);
             select.value = saved;
             select.disabled = names.size === 0;
             note.textContent = names.size
-                ? (meter ? "Shows input signal before the OBS fader. The meter can move while the input is muted."
-                    : "Adjusts the selected OBS input without changing its mute state.")
+                ? "Adjusts the selected OBS input without changing its mute state."
                 : "Connect OBS in the Mac Companion to choose an input.";
         }).catch(() => { note.textContent = "Connect OBS in the Mac Companion to choose an input."; });
         helpers.renderCardIconPicker(panel, card, helpers, { fallback: "Microphone" });
@@ -228,8 +225,8 @@ export function registerSliderCardTypes(
             renderSettings: function (this: any, panel?: any, b?: any, slot?: any, helpers?: any) {
                 if (opts.type !== "slider" || companionSliderMode(b) === "home_assistant") return renderRetiredCardSettings(panel);
                 const mode = companionSliderMode(b);
-                if (mode === "obs_level" || mode === "obs_meter") {
-                    renderOBSAudioSettings(panel, b, helpers, mode === "obs_meter");
+                if (mode === "obs_level") {
+                    renderOBSAudioSettings(panel, b, helpers);
                     return;
                 }
                 var cardSettingsPanel: any = null;
@@ -600,16 +597,6 @@ export function registerSliderCardTypes(
         pickerKey: "companion_output_volume",
         onSelect: (card) => Object.assign(card, cardContractDefaultConfig("slider"), {
             entity: OBS_FADER_PREFIX,
-            icon: "Microphone",
-        }),
-    });
-    registry.register("companion_obs_meter", {
-        ...legacySlider,
-        label: "OBS Input Meter",
-        hidden: false,
-        pickerKey: "companion_output_volume",
-        onSelect: (card) => Object.assign(card, cardContractDefaultConfig("slider"), {
-            entity: OBS_METER_PREFIX,
             icon: "Microphone",
         }),
     });

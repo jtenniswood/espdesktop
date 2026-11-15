@@ -93,7 +93,6 @@ class CompanionService final : public Component {
   void set_connected_(bool connected, int closing_socket = -1);
   void publish_catalogue_();
   void publish_focus_targets_();
-  void publish_obs_meter_watch_();
   void restore_focus_targets_();
   void save_focus_targets_();
   bool invoke_(const std::string &action_id, const std::string &request_id,
@@ -122,9 +121,6 @@ class CompanionService final : public Component {
   std::string pairing_code_;
   std::atomic<uint32_t> focus_targets_generation_{0};
   std::atomic<bool> focus_targets_supported_{false};
-  std::atomic<bool> obs_meters_supported_{false};
-  uint32_t last_obs_meter_check_{0};
-  std::vector<std::string> published_obs_meters_;
   std::vector<std::pair<std::string, std::string>> catalogue_actions_;
   CompanionCatalogueLimits catalogue_limits_;
   std::vector<std::string> catalogue_enabled_icons_;

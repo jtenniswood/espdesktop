@@ -4288,7 +4288,7 @@ async function assertAppVolumeCard(browser) {
     assert.deepEqual(await subtype.locator("option").allTextContents(),
       ["Audio Output", "Output Mute", "Output per application",
         "Audio Input", "Input Mute", "Input Cough", "Input per device level",
-        "OBS Input Level", "OBS Input Mute", "OBS Input Meter", "OBS Input Cough"]);
+        "OBS Input Level", "OBS Input Mute", "OBS Input Cough"]);
     await subtype.selectOption("companion_app_volume");
     const application = page.getByLabel("Application", { exact: true });
     await application.locator('option[value="app.volume.com.spotify.client"]').waitFor({ state: "attached" });
@@ -4444,14 +4444,12 @@ async function assertOBSSceneCard(browser) {
   const id = "obs.scene.a51e30ff-0c88-418f-ac5a-fd2e33963c2b";
   const mic = "obs.mute.69da3f8f-7f62-4abe-a594-4e40dd579858";
   const fader = "obs.level.69da3f8f-7f62-4abe-a594-4e40dd579858";
-  const meter = "obs.meter.69da3f8f-7f62-4abe-a594-4e40dd579858";
   let connectedToOBS = true;
   await context.route("**/companion/actions", route => route.fulfill({
     json: connectedToOBS ? [
       { id, label: "Program · Gameplay" },
       { id: mic, label: "Muted · Desk Mic" },
       { id: fader, label: "Desk Mic" },
-      { id: meter, label: "Desk Mic" },
       { id: "obs.take.9ea47782-fada-4bb3-aef6-1904669efae7", label: "Take Live · Setup" },
       { id: "obs.status.record", label: "Recording · Idle" },
       { id: "obs.replay", label: "Save Replay" },
@@ -4517,28 +4515,12 @@ async function assertOBSSceneCard(browser) {
     assert.equal(await faderPicker.inputValue(), fader);
     await page.locator(".sp-settings-overlay.sp-visible .sp-settings-close").click();
 
-    await page.locator(".sp-main .sp-empty-cell").first().click();
-    await page.getByRole("button", { name: "Sound card type", exact: true }).click();
-    await page.locator('select[id$="audio-type"]').selectOption("companion_obs_meter");
-    const meterPicker = page.locator("select[id$='obs-level']");
-    await meterPicker.getByRole("option", { name: "Desk Mic", exact: true }).waitFor({ state: "attached" });
-    assert.equal(await meterPicker.locator(`option[value="${fader}"]`).count(), 0);
-    await meterPicker.selectOption(meter);
-    await page.getByRole("button", { name: "Save", exact: true }).click();
-    await waitForNativeState(fixture, () => fixture.document.buttons[9]?.startsWith(meter + ";"),
-      "The OBS meter saves a read-only input UUID");
-    await page.locator('.sp-main [data-slot="9"]').click();
-    await page.getByRole("button", { name: "Edit", exact: true }).click();
-    await meterPicker.getByRole("option", { name: "Desk Mic", exact: true }).waitFor({ state: "attached" });
-    assert.equal(await meterPicker.inputValue(), meter);
-    await page.locator(".sp-settings-overlay.sp-visible .sp-settings-close").click();
-
     connectedToOBS = false;
     await page.locator('.sp-main [data-slot="3"]').click();
     await page.getByRole("button", { name: "Edit", exact: true }).click();
     await picker.getByRole("option", { name: "Saved scene (unavailable)" }).waitFor({ state: "attached" });
     assert.equal(await picker.inputValue(), id);
-    console.log("OBS scene, microphone, Take Live, status, replay, fader and meter card checks passed.");
+    console.log("OBS scene, microphone, Take Live, status, replay, and fader card checks passed.");
   } finally {
     await context.close();
   }

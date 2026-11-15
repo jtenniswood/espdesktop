@@ -46,7 +46,6 @@ enum CompanionCapabilities {
         "app_icon.abort",
         "error",
         "catalogue.definitions.page",
-        "obs.meters.watch",
         "focus.targets",
         "session.lock",
         "pair.reset",

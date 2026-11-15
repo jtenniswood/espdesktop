@@ -9,12 +9,7 @@ protocol OBSWebSocketTransport: AnyObject {
     var isReady: Bool { get }
     func connect(port: UInt16, password: String?)
     func close(_ failure: OBSWebSocket.Failure?)
-    func setMeterEventsEnabled(_ enabled: Bool)
     func request(_ type: String, fields: OBSWebSocket.Fields) async throws -> OBSWebSocket.Fields
-}
-
-extension OBSWebSocketTransport {
-    func setMeterEventsEnabled(_ enabled: Bool) {}
 }
 
 /// OBS WebSocket v5 transport. Lives on the Companion's main actor so replies
@@ -49,9 +44,6 @@ final class OBSWebSocket: OBSWebSocketTransport {
     private var receiveTask: Task<Void, Never>?
     private var heartbeatTask: Task<Void, Never>?
     private var handshakeTimeout: Task<Void, Never>?
-    private var subscriptionTask: Task<Void, Never>?
-    private var meterEventsEnabled = false
-    private var sentMeterEvents = false
     private var password: String?
     private var receivedHello = false
     private(set) var isReady = false
@@ -105,8 +97,6 @@ final class OBSWebSocket: OBSWebSocketTransport {
         heartbeatTask = nil
         handshakeTimeout?.cancel()
         handshakeTimeout = nil
-        subscriptionTask?.cancel()
-        subscriptionTask = nil
         oldSocket?.cancel(with: .goingAway, reason: nil)
         let outstanding = pending
         pending.removeAll()
@@ -115,37 +105,6 @@ final class OBSWebSocket: OBSWebSocketTransport {
             request.continuation.resume(throwing: failure ?? Failure.disconnected)
         }
         if let failure { onClose?(failure) }
-    }
-
-    func setMeterEventsEnabled(_ enabled: Bool) {
-        meterEventsEnabled = enabled
-        updateSubscriptions()
-    }
-
-    private func eventSubscriptions(meters: Bool) -> Int {
-        // General, Config, Scenes, Inputs, Transitions, Outputs, UI, optional InputVolumeMeters.
-        let standard = 1 | 2 | 4 | 8 | 16 | 64 | 1024
-        return meters ? standard | (1 << 16) : standard
-    }
-
-    private func updateSubscriptions() {
-        guard isReady, let socket, subscriptionTask == nil, sentMeterEvents != meterEventsEnabled else { return }
-        subscriptionTask = Task { [weak self] in
-            guard let self, self.socket === socket else { return }
-            while sentMeterEvents != meterEventsEnabled {
-                let enabled = meterEventsEnabled
-                do {
-                    let update = try Self.encode(op: 3, data: ["eventSubscriptions": eventSubscriptions(meters: enabled)])
-                    try await socket.send(update)
-                } catch {
-                    if self.socket === socket { close(.disconnected) }
-                    return
-                }
-                guard self.socket === socket else { return }
-                sentMeterEvents = enabled
-            }
-            subscriptionTask = nil
-        }
     }
 
     func request(_ type: String, fields: Fields = [:]) async throws -> Fields {
@@ -210,8 +169,8 @@ final class OBSWebSocket: OBSWebSocketTransport {
             }
             guard rpcVersion >= 1 else { throw Failure.unsupportedProtocol }
             receivedHello = true
-            sentMeterEvents = meterEventsEnabled
-            var identify: Fields = ["rpcVersion": 1, "eventSubscriptions": eventSubscriptions(meters: sentMeterEvents)]
+            // General, Config, Scenes, Inputs, Transitions, Outputs, UI.
+            var identify: Fields = ["rpcVersion": 1, "eventSubscriptions": 1 | 2 | 4 | 8 | 16 | 64 | 1024]
             if let auth = fields["authentication"] as? Fields {
                 guard let salt = auth["salt"] as? String,
                       let challenge = auth["challenge"] as? String else { throw Failure.invalidMessage }
@@ -221,16 +180,13 @@ final class OBSWebSocket: OBSWebSocketTransport {
             password = nil
             try await socket.send(Self.encode(op: 1, data: identify))
         case 2:
-            guard receivedHello else { throw Failure.invalidMessage }
+            guard receivedHello, !isReady else { throw Failure.invalidMessage }
             guard fields["negotiatedRpcVersion"] as? Int == 1 else { throw Failure.unsupportedProtocol }
-            // OBS also acknowledges Reidentify with Identified.
-            if isReady { return }
             handshakeTimeout?.cancel()
             handshakeTimeout = nil
             isReady = true
             startHeartbeat(for: socket)
             onReady?()
-            updateSubscriptions()
         case 5:
             guard isReady, let type = fields["eventType"] as? String else { throw Failure.invalidMessage }
             onEvent?(type, fields["eventData"] as? Fields ?? [:])

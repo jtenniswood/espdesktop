@@ -1432,41 +1432,6 @@
     "valid": true
   },
   {
-    "name": "authenticated panel watches an OBS meter",
-    "message": {
-      "protocol": 4,
-      "type": "obs.meters.watch",
-      "controlIds": ["obs.meter.69da3f8f-7f62-4abe-a594-4e40dd579858"]
-    },
-    "direction": "panel_to_mac",
-    "state": "connected",
-    "valid": true
-  },
-  {
-    "name": "OBS watch rejects a writable fader ID",
-    "message": {
-      "protocol": 4,
-      "type": "obs.meters.watch",
-      "controlIds": ["obs.level.69da3f8f-7f62-4abe-a594-4e40dd579858"]
-    },
-    "direction": "panel_to_mac",
-    "state": "connected",
-    "valid": false
-  },
-  {
-    "name": "OBS meter only accepts values from the Mac",
-    "message": {
-      "protocol": 4,
-      "type": "value.state",
-      "controlId": "obs.meter.69da3f8f-7f62-4abe-a594-4e40dd579858",
-      "available": true,
-      "value": 80
-    },
-    "direction": "mac_to_panel",
-    "state": "connected",
-    "valid": true
-  },
-  {
     "name": "panel can confirm a held OBS Cough card",
     "message": {
       "protocol": 4,
@@ -1480,7 +1445,7 @@
     "valid": true
   },
   {
-    "name": "panel cannot set an OBS meter",
+    "name": "panel cannot set a retired OBS meter",
     "message": {
       "protocol": 4,
       "type": "value.set",

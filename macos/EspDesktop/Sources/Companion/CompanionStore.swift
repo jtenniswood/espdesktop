@@ -99,7 +99,6 @@ final class CompanionStore: NSObject, ObservableObject {
     let updater = CompanionUpdater()
     let obs: OBSConnection
     private var obsCatalogueObservation: AnyCancellable?
-    private var obsMeterObservation: AnyCancellable?
     private var obsAudioObservation: AnyCancellable?
     @Published var settingsRequestID: UUID?
     var requestedSettingsDestination: CompanionSettingsDestination = .displays
@@ -207,9 +206,6 @@ final class CompanionStore: NSObject, ObservableObject {
             .sink { [weak self] actions in
                 self?.publishToConnectedDisplays { $0.publishCatalogue(obsActions: actions) }
             }
-        obsMeterObservation = obs.$meterValues.removeDuplicates().sink { [weak self] values in
-            self?.publishToConnectedDisplays { $0.publishOBSMeterValues(values) }
-        }
         obsAudioObservation = obs.$state.map(OBSConnection.audioValues).removeDuplicates().sink { [weak self] values in
             self?.publishToConnectedDisplays { $0.publishOBSAudioValues(values) }
         }
@@ -768,7 +764,6 @@ final class CompanionStore: NSObject, ObservableObject {
         display.onRecordChange = nil
         display.connection.onEvent = nil
         displays.removeAll { $0.id == display.id }
-        updateOBSMeterWatch()
         savedDisplays.save(displays.map(\.record))
         let account = display.pairingAccount
         KeychainStore.remove(service: KeychainStore.service, account: account)
@@ -786,9 +781,6 @@ final class CompanionStore: NSObject, ObservableObject {
         case let .capabilities(systemMetrics):
             display.supportsSystemMetrics = systemMetrics
             updateSystemMetricsProvider()
-        case .obsMeterWatchChanged:
-            updateOBSMeterWatch()
-            display.connection.publishOBSMeterValues(obs.meterValues)
         case .publishCurrentState:
             sessionLock.refresh()
             display.connection.publishSessionLock(sessionLock.locked, displayAwake: sessionLock.displayAwake)
@@ -800,10 +792,6 @@ final class CompanionStore: NSObject, ObservableObject {
             display.connection.publishMediaControlValues(lastAppVolumeValues, unavailable: [])
             refreshAppVolumeValues()
         }
-    }
-
-    private func updateOBSMeterWatch() {
-        obs.setMeterInputs(Set(connectedDisplays.flatMap { $0.connection.obsMeterWatch }))
     }
 
     private func updateConnectionStatus(_ message: String, state: CompanionConnectionState,
@@ -821,7 +809,6 @@ final class CompanionStore: NSObject, ObservableObject {
         if state != .connected { display.supportsSystemMetrics = false }
         let previousCount = connectedDisplayCount
         connectedDisplayCount = connectedDisplays.count
-        updateOBSMeterWatch()
         updateSystemMetricsProvider()
         if state == .connected {
             if previousCount == 0 {

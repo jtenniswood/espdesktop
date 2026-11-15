@@ -47,7 +47,7 @@ inline bool writable_volume_control_id_valid(std::string_view id) {
 }
 
 inline bool volume_control_id_valid(std::string_view id) {
-  return writable_volume_control_id_valid(id) || companion_obs_meter_control(id);
+  return writable_volume_control_id_valid(id);
 }
 
 inline bool hex_valid(JsonVariantConst value) {
@@ -218,9 +218,6 @@ struct CatalogueDefinitionsPage {
   uint32_t page{};
   bool complete{};
   std::vector<CatalogueDefinitionsPageItemsItem> items{};
-};
-struct ObsMetersWatch {
-  std::vector<std::string> controlIds{};
 };
 struct FocusTargetsItemsItem {
   std::string id{};
@@ -476,14 +473,6 @@ inline void encode(JsonObject root, const CatalogueDefinitionsPage &message) {
     entry["json"] = item.json;
   }
 }
-inline void encode(JsonObject root, const ObsMetersWatch &message) {
-  root["type"] = "obs.meters.watch";
-  root["protocol"] = COMPANION_PROTOCOL_VERSION;
-  auto values_controlIds = root["controlIds"].to<JsonArray>();
-  for (const auto &item : message.controlIds) {
-    values_controlIds.add(item);
-  }
-}
 inline void encode(JsonObject root, const FocusTargets &message) {
   root["type"] = "focus.targets";
   root["protocol"] = COMPANION_PROTOCOL_VERSION;
@@ -511,7 +500,7 @@ inline void encode(JsonObject root, const PairReset &message) {
   root["protocol"] = COMPANION_PROTOCOL_VERSION;
   (void) message;
 }
-using Message = std::variant<Hello, PairRequest, PairAccepted, AuthRequest, AuthAccepted, Capabilities, CatalogueRequest, CataloguePage, ActionInvoke, ActionResult, ValueSet, ValueState, FocusChanged, TimezoneChanged, NowPlaying, SystemMetrics, ArtworkBegin, ArtworkAck, ArtworkEnd, ArtworkAbort, ArtworkRequest, AppIconRequest, AppIconBegin, AppIconUnchanged, AppIconUnavailable, AppIconAck, AppIconEnd, AppIconAbort, Error, CatalogueDefinitionsPage, ObsMetersWatch, FocusTargets, SessionLock, PairReset>;
+using Message = std::variant<Hello, PairRequest, PairAccepted, AuthRequest, AuthAccepted, Capabilities, CatalogueRequest, CataloguePage, ActionInvoke, ActionResult, ValueSet, ValueState, FocusChanged, TimezoneChanged, NowPlaying, SystemMetrics, ArtworkBegin, ArtworkAck, ArtworkEnd, ArtworkAbort, ArtworkRequest, AppIconRequest, AppIconBegin, AppIconUnchanged, AppIconUnavailable, AppIconAck, AppIconEnd, AppIconAbort, Error, CatalogueDefinitionsPage, FocusTargets, SessionLock, PairReset>;
 inline std::optional<Message> decode(JsonObjectConst root, Direction direction, SessionState state) {
   if (!number_valid(root["protocol"], COMPANION_PROTOCOL_VERSION, COMPANION_PROTOCOL_VERSION, true) || !root["type"].is<const char *>()) return std::nullopt;
   const std::string type = root["type"].as<std::string>();
@@ -1106,21 +1095,6 @@ inline std::optional<Message> decode(JsonObjectConst root, Direction direction, 
     result.complete = root["complete"].as<bool>();
     for (JsonVariantConst item : root["items"].as<JsonArrayConst>()) {
       result.items.push_back({item["kind"].as<std::string>(), item["json"].as<std::string>()});
-    }
-    return result;
-  }
-  if (type == "obs.meters.watch") {
-    if (direction != Direction::PANEL_TO_MAC) return std::nullopt;
-    if (!(state == SessionState::CONNECTED)) return std::nullopt;
-    {
-      if (!(root["controlIds"].is<JsonArrayConst>() && root["controlIds"].size() <= 12)) return std::nullopt;
-      for (JsonVariantConst item : root["controlIds"].as<JsonArrayConst>()) {
-        if (!(string_valid(item, 46, 46) && companion_obs_meter_control(item.as<const char *>()))) return std::nullopt;
-      }
-    }
-    ObsMetersWatch result;
-    for (JsonVariantConst item : root["controlIds"].as<JsonArrayConst>()) {
-      result.controlIds.push_back(item.as<std::string>());
     }
     return result;
   }

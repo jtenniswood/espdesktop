@@ -1,4 +1,4 @@
-import { isOBSFaderControlID, isOBSMeterControlID, OBS_FADER_PREFIX, OBS_METER_PREFIX } from "../model/card";
+import { isOBSFaderControlID, OBS_FADER_PREFIX } from "../model/card";
 import { sameCardAction, setCardExposure } from "../model/home_assistant_cards";
 import { childPageKey, pageOwnerSlot, parentPageKey } from "../model/page_keys";
 import { previewSubpageOwner } from "../model/companion_shortcut_page";
@@ -1009,8 +1009,7 @@ export function createButtonSettingsFeature(
             homeAssistantConfigured: connectorState.homeAssistantConfigured,
         };
         const obsSound = b.type === "slider"
-            ? b.entity === OBS_FADER_PREFIX || isOBSFaderControlID(b.entity) ? "companion_obs_fader"
-                : b.entity === OBS_METER_PREFIX || isOBSMeterControlID(b.entity) ? "companion_obs_meter" : ""
+            ? b.entity === OBS_FADER_PREFIX || isOBSFaderControlID(b.entity) ? "companion_obs_fader" : ""
             : b.type === "companion" && companionSavedCardMode(b) === "obs_mic" ? "companion_obs_mic" : "";
         if (obsSound || (buttonTypeRegistryValue(rawTypeDef, "pickerKey", "") || b.type) === "companion_output_volume") {
             const audioSubtypes: [string, string][] = [
@@ -1023,7 +1022,6 @@ export function createButtonSettingsFeature(
                 ["companion_input_device", "Input per device level"],
                 ["companion_obs_fader", "OBS Input Level"],
                 ["companion_obs_mic", "OBS Input Mute"],
-                ["companion_obs_meter", "OBS Input Meter"],
                 ["companion_obs_cough", "OBS Input Cough"],
             ];
             const subtype = selectField("Type", idPrefix + "audio-type", audioSubtypes, obsSound || b.type,

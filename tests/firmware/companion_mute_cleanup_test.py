@@ -30,6 +30,7 @@ struct CompanionMuteRef {
   lv_obj_t *button; std::string control_id; lv_obj_t *icon_label=nullptr;
   const char *icon_unmuted=nullptr, *icon_muted=nullptr;
   lv_obj_t *text_label=nullptr;
+  std::string resting_label{};
 };
 struct CompanionValue { std::string id; int value; };
 struct CompanionRuntimeSnapshot { bool connected=true; std::vector<CompanionValue> values; };
@@ -40,6 +41,8 @@ bool lv_obj_has_state(lv_obj_t *obj, int state) {
 bool lv_obj_is_valid(lv_obj_t *) { return true; }
 const char *lv_label_get_text(lv_obj_t *obj) { return obj->text.c_str(); }
 void lv_label_set_text(lv_obj_t *obj, const char *text) { obj->text=text; }
+std::string normalize_display_text(const char *text) { return text; }
+const char *espdesktop_i18n(const char *value) { return value; }
 struct Registry { std::vector<CompanionMuteRef> mutes; } registry;
 Registry &companion_view_registry() { return registry; }
 struct Runtime {
@@ -69,7 +72,6 @@ namespace esphome { unsigned millis() { return 0; } }
 bool screen_lock_enabled() { return false; }
 bool companion_value(const std::string &, int &value) { value = 0; return true; }
 bool send_cough_button_value(const std::string &, int, int = 100) { return true; }
-const char *espdesktop_i18n(const char *value) { return value; }
 void lv_label_set_display_text(lv_obj_t *obj, const char *text) { lv_label_set_text(obj, text); }
 '''
 checks = r'''
@@ -124,11 +126,15 @@ int main() {
   assert(companion_tracked_mute_control(&first) == cough);
   first.disabled = false;
   cough_button_press(&first);
-  assert(cough_title.text == "Muted");
-  cough_button_release(&first);
   assert(cough_title.text == "Cough");
   companion_apply_mute_state(registry.mutes.back(), {true, {{cough, 100}}});
-  assert(first.checked && !first.disabled && input_icon.text == "mic-off");
+  assert(cough_title.text == "Muted");
+  cough_button_release(&first);
+  assert(cough_title.text == "Muted");
+  companion_apply_mute_state(registry.mutes.back(), {true, {{cough, 0}}});
+  assert(cough_title.text == "Cough");
+  companion_apply_mute_state(registry.mutes.back(), {true, {{cough, 100}}});
+  assert(cough_title.text == "Muted" && first.checked && !first.disabled && input_icon.text == "mic-off");
   assert(companion_forget_mute(&first));
   assert(companion_tracked_mute_control(&first).empty());
 }

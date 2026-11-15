@@ -80,7 +80,7 @@ inline bool writable_volume_control_id_valid(std::string_view id) {
 }
 
 inline bool volume_control_id_valid(std::string_view id) {
-  return writable_volume_control_id_valid(id) || companion_obs_meter_control(id);
+  return writable_volume_control_id_valid(id);
 }
 
 inline bool hex_valid(JsonVariantConst value) {
@@ -106,7 +106,6 @@ inline bool hex_valid(JsonVariantConst value) {
             control_validators = {
                 'volume_control_id': 'volume_control_id_valid',
                 'writable_volume_control_id': 'writable_volume_control_id_valid',
-                'obs_meter_control_id': 'companion_obs_meter_control',
             }
             if validator := control_validators.get(spec.get('pattern')):
                 e+=f' && {validator}({value}.as<const char *>())'
@@ -262,15 +261,11 @@ enum CompanionProtocolDirection: String { case panelToMac = "panel_to_mac", macT
                 return text.utf8.count == 64 && text.utf8.allSatisfy { (48...57).contains($0) || (65...70).contains($0) || (97...102).contains($0) }
             }
             let pattern = rule["pattern"] as? String
-            if pattern == "obs_meter_control_id" {
-                return OBSConnection.meterInputUUID(for: text) != nil
-            }
             if pattern == "volume_control_id" || pattern == "writable_volume_control_id" {
                 let macControls = ["media.output_volume", "media.input_volume", "media.output_mute", "media.input_mute", "media.cough"]
                 return macControls.contains(text) || appVolumeBundleIdentifier(text) != nil ||
                     isInputDeviceControl(text) || OBSConnection.faderInputUUID(for: text) != nil ||
-                    OBSConnection.coughInputUUID(for: text) != nil ||
-                    (pattern == "volume_control_id" && OBSConnection.meterInputUUID(for: text) != nil)
+                    OBSConnection.coughInputUUID(for: text) != nil
             }
             return true
         case "integer", "number":

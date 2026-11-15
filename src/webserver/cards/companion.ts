@@ -473,6 +473,8 @@ export function registerCompanionCardTypes(
     const catalogue = createCompanionCatalogue(fetchImpl);
     const loadCompanionActions = catalogue.load;
     const obsControlLabels = new Map<string, string>();
+    const isOBSInputMuted = (inputId: string) =>
+        obsControlLabels.get("obs.mute." + inputId)?.startsWith("Muted · ") === true;
 
     function rememberOBSControls(actions: readonly CompanionAction[]): readonly CompanionAction[] {
         const targets = actions.filter(action => /^obs\.(scene|preview|mute)\.[a-f0-9-]{36}$/.test(action.id));
@@ -1859,6 +1861,14 @@ export function registerCompanionCardTypes(
         pickerKey: cardContractPickerKey("companion_obs_cough"),
         defaultConfig: () => obsCoughDefaults,
         onSelect: (card) => Object.assign(card, obsCoughDefaults),
+        renderPreview: (card, helpers) => {
+            const muted = isOBSInputMuted(card.entity.slice(obsCoughPrefix.length));
+            const preview = cardBadgePreview(muted ? { ...card, icon: "Microphone Off" } : card, helpers, {
+                ...coughMetadata.preview,
+                label: muted ? "Muted" : card.label || obsCoughDefaults.label,
+            });
+            return { ...preview, isOn: muted };
+        },
         renderSettings: (panel, card, _slot, helpers) => {
             const saved = card.entity;
             const placeholder = "Choose an OBS audio input…";
@@ -1921,5 +1931,5 @@ export function registerCompanionCardTypes(
             },
         });
     });
-    return inputId => obsControlLabels.get("obs.mute." + inputId)?.startsWith("Muted · ") === true;
+    return isOBSInputMuted;
 }
