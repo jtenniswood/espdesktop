@@ -342,6 +342,7 @@ label_obs_scene=Scena
 label_obs_break=Premor
 label_obs_resume=Nadaljuj
 label_obs_studio_mode=Studijski način
+label_obs_transition=Prehod
 wind_north=North
 wind_north_east=North East
 wind_east=East

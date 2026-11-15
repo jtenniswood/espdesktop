@@ -16,7 +16,7 @@ const custom = { id: "org.example.custom", label: "Custom" };
 
 test("OBS tiles that require a panel tap are excluded from Home Assistant export", () => {
   const uuid = "11111111-1111-1111-1111-111111111111";
-  for (const entity of ["obs.take", "obs.studio", "obs.brb", "obs.output.stream", "obs.output.record", "obs.target." + uuid, "obs.status.program"]) {
+  for (const entity of ["obs.take", "obs.studio", "obs.transition", "obs.brb", "obs.output.stream", "obs.output.record", "obs.target." + uuid, "obs.status.program"]) {
     assert.equal(canExposeCard({ type: "companion", entity, sensor: "" }), false, entity);
   }
   for (const entity of ["obs.mute." + uuid, "obs.scene." + uuid, "obs.replay"]) {

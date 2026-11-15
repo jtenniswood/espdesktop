@@ -12,7 +12,7 @@
     "deviceProfiles": 9,
     "cardTypes": 41,
     "entityNames": 92,
-    "icons": 361,
+    "icons": 362,
     "structuralIcons": 41,
     "compatibilityFixtureGroups": 2
   },
@@ -8982,6 +8982,11 @@
         "name": "Coffee to Go",
         "codepoint": "F0177",
         "mdi": "coffee-to-go"
+      },
+      {
+        "name": "Flip Horizontal",
+        "codepoint": "F10E7",
+        "mdi": "flip-horizontal"
       }
     ],
     "domain_defaults": {

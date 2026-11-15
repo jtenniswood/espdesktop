@@ -383,6 +383,11 @@ int main() {
     assert(!lv_obj_has_state(&detail, LV_STATE_DISABLED));
     companion_render_obs_detail(replay, "Save Replay");
     assert(title.content == "Save Replay" && detail.content.empty());
+    replay.action_id = "obs.transition";
+    companion_render_obs_detail(replay, "Fade · Short");
+    assert(title.content == "Transition" && detail.content == "Fade · Short");
+    companion_render_obs_detail(replay, "Cut");
+    assert(title.content == "Transition" && detail.content == "Cut");
   }
   {
     lv_obj_t slider, title, fill;

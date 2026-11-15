@@ -342,6 +342,7 @@ label_obs_scene=Scene
 label_obs_break=Pause
 label_obs_resume=Fortsett
 label_obs_studio_mode=Studiomodus
+label_obs_transition=Overgang
 wind_north=North
 wind_north_east=North East
 wind_east=East

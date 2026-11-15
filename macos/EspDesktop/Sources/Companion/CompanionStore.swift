@@ -923,8 +923,11 @@ final class CompanionStore: NSObject, ObservableObject {
         if let token = OBSConnection.BreakCard.token(for: actionIdentifier) {
             return await obs.performBreak(token: token, isValid: canSend)
         }
-        if let token = OBSConnection.studioModeToken(actionIdentifier) {
+        if let token = OBSConnection.controlToken(actionIdentifier, for: OBSConnection.studioModeID) {
             return await obs.toggleStudioMode(token: token, isValid: canSend)
+        }
+        if let token = OBSConnection.controlToken(actionIdentifier, for: OBSConnection.transitionID) {
+            return await obs.cycleTransition(token: token, isValid: canSend)
         }
         guard let (output, token) = OBSConnection.Output.command(actionIdentifier) else { return false }
         return await obs.performOutput(output, token: token, isValid: canSend)

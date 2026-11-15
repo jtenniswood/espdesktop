@@ -15,6 +15,8 @@ private final class OBSPilotTransport: OBSWebSocketTransport {
     var breakRequests: [String] = []
     var afterMute: (() -> Void)?
     var transitionCursor = 1.0
+    var transitionName = "Fade"
+    var configuredTransitions = ["Fade", "Cut", "Slide"]
     var replayActive = false
     var studioMode = true
     var streaming = true
@@ -74,6 +76,14 @@ private final class OBSPilotTransport: OBSWebSocketTransport {
             faderMultiplier = fields["inputVolumeMul"] as? Double ?? pow(10, faderDb / 20)
             return [:]
         case "GetStudioModeEnabled": return ["studioModeEnabled": studioMode]
+        case "GetCurrentSceneTransition": return ["transitionName": transitionName]
+        case "GetSceneTransitionList":
+            return ["currentSceneTransitionName": transitionName,
+                    "transitions": configuredTransitions.map { ["transitionName": $0] }]
+        case "SetCurrentSceneTransition":
+            transitionName = fields["transitionName"] as? String ?? ""
+            onEvent?("CurrentSceneTransitionChanged", ["transitionName": transitionName])
+            return [:]
         case "SetStudioModeEnabled":
             studioMode = fields["studioModeEnabled"] as? Bool ?? false
             onEvent?("StudioModeStateChanged", ["studioModeEnabled": studioMode])
@@ -164,8 +174,8 @@ final class OBSProductionTests: XCTestCase {
         let connection = try await open(transport)
         func publishedMode() throws -> (UUID, String) {
             let action = try XCTUnwrap(OBSConnection.controlActions(connection.state)
-                .first { OBSConnection.studioModeToken($0.id) != nil })
-            return (try XCTUnwrap(OBSConnection.studioModeToken(action.id)), action.label)
+                .first { OBSConnection.controlToken($0.id, for: OBSConnection.studioModeID) != nil })
+            return (try XCTUnwrap(OBSConnection.controlToken(action.id, for: OBSConnection.studioModeID)), action.label)
         }
         let (disabledToken, off) = try publishedMode()
         XCTAssertEqual(off, "Off")
@@ -190,6 +200,29 @@ final class OBSProductionTests: XCTestCase {
             try await Task.sleep(for: .milliseconds(5))
         }
         XCTAssertEqual(try publishedMode().1, "Off")
+    }
+
+    @MainActor
+    func testTransitionCyclesConfiguredNamesAndFollowsOBSWithoutTakingLive() async throws {
+        let transport = OBSPilotTransport()
+        let connection = try await open(transport)
+        for (selected, next) in [("Fade", "Cut"), ("Cut", "Slide"), ("Slide", "Fade")] {
+            let shown = try XCTUnwrap(connection.state)
+            XCTAssertEqual(shown.selectedTransition, selected)
+            let changed = await connection.cycleTransition(token: shown.transitionToken) { true }
+            XCTAssertTrue(changed)
+            XCTAssertEqual(connection.state?.selectedTransition, next)
+            let repeated = await connection.cycleTransition(token: shown.transitionToken) { true }
+            XCTAssertFalse(repeated)
+        }
+        let token = try XCTUnwrap(connection.state?.transitionToken)
+        transport.transitionName = "Cut"
+        transport.onEvent?("CurrentSceneTransitionChanged", ["transitionName": transport.transitionName])
+        XCTAssertEqual(connection.state?.selectedTransition, "Cut")
+        XCTAssertNotEqual(connection.state?.transitionToken, token)
+        XCTAssertEqual(transport.programID, OBSPilotTransport.program)
+        XCTAssertEqual(transport.preview, OBSPilotTransport.queued)
+        XCTAssertFalse(transport.requests.contains("TriggerStudioModeTransition"))
     }
 
     @MainActor

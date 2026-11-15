@@ -94,7 +94,7 @@ See [all app presets](/reference/shortcut-presets).
 2. In the EspDesktop Mac app, open **Settings → OBS**. Enter the port and password shown in OBS, then choose **Connect**.
 3. In the display editor, open **Add Card → OBS Studio**. Choose **OBS Scene** or **OBS Input Mute** and select the target by name. Both cards are available on the home screen and in folders.
 
-In the OBS Studio card menu, choose **Studio Mode** to add a **Toggle Studio Mode**, **Program scene**, or **Take Live** card. **Program scene** shows what OBS is sending to its output. **Take Live** sends the preview named on that tile to Program. If the preview changes before the command reaches OBS, tap again after checking the updated name. Scene cards switch Program in normal mode and select Preview in Studio Mode.
+In the OBS Studio card menu, choose **Studio Mode** to add **Toggle Studio Mode**, **Program scene**, **Take Live**, or **Transition**. **Program scene** shows what OBS is sending to its output. **Transition** cycles through the transitions configured in OBS and displays the selected name. **Take Live** sends the preview named on that tile to Program. If the preview changes before the command reaches OBS, tap again after checking the updated name. Scene cards switch Program in normal mode and select Preview in Studio Mode.
 
 An **OBS Input Mute** card changes the selected input in the OBS mixer. The ON colour and microphone icon show an unmuted input. Muting the input turns the colour off and shows a crossed-out microphone. Use the mic your broadcast captures when setting up the card, especially if it differs from the Mac’s default mic. Scene and input bindings are kept when a target is unavailable.
 

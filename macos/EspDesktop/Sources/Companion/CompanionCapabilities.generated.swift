@@ -59,6 +59,7 @@ enum CompanionCapabilities {
         "obs_mic": "OBS Mic Mute",
         "obs_studio": "Studio Mode",
         "obs_take": "OBS Take Live",
+        "obs_transition": "Transition",
         "obs_status": "OBS Status",
         "obs_replay": "OBS Save Replay",
         "obs_output": "OBS Output Control",

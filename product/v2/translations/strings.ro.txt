@@ -342,6 +342,7 @@ label_obs_scene=Scenă
 label_obs_break=Pauză
 label_obs_resume=Reia
 label_obs_studio_mode=Mod studio
+label_obs_transition=Tranziție
 wind_north=North
 wind_north_east=North East
 wind_east=East

@@ -69,6 +69,7 @@ inline constexpr CompanionCardModeCapability COMPANION_CARD_MODES[] = {
   {"obs_mic", "OBS Mic Mute", "obs_scene_cards", "Microphone"},
   {"obs_studio", "Studio Mode", "obs_scene_cards", "Split Vertical"},
   {"obs_take", "OBS Take Live", "obs_scene_cards", "Arrow Right"},
+  {"obs_transition", "Transition", "obs_scene_cards", "Flip Horizontal"},
   {"obs_status", "OBS Status", "obs_scene_cards", "Monitor"},
   {"obs_replay", "OBS Save Replay", "obs_scene_cards", "History"},
   {"obs_output", "OBS Output Control", "obs_output_controls", "Monitor"},

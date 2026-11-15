@@ -2058,6 +2058,11 @@
       "name": "Coffee to Go",
       "codepoint": "F0177",
       "mdi": "coffee-to-go"
+    },
+    {
+      "name": "Flip Horizontal",
+      "codepoint": "F10E7",
+      "mdi": "flip-horizontal"
     }
   ],
   "domain_defaults": {

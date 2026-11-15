@@ -1,7 +1,7 @@
 import { targetedAudioCard } from "./companion_app_volume";
 import { childPageKey } from "../model/page_keys";
 import { renderCompanionStorageSelector } from "./companion_storage";
-import { COMPANION_FOLDER_PREFIX, COMPANION_OBS_PREFIX, OBS_BRB_ID, OBS_OUTPUT_OPTIONS, OBS_PROGRAM_ID, OBS_REPLAY_ID, OBS_STATUS_OPTIONS, OBS_STUDIO_ID, OBS_STUDIO_OPTIONS, OBS_TAKE_ID, savedOBSSceneTarget, decodeCompanionCard, encodeCompanionCard, companionMetricForEntity } from "../model/companion_card_codec";
+import { COMPANION_FOLDER_PREFIX, COMPANION_OBS_PREFIX, OBS_BRB_ID, OBS_OUTPUT_OPTIONS, OBS_PROGRAM_ID, OBS_REPLAY_ID, OBS_STATUS_OPTIONS, OBS_STUDIO_ID, OBS_STUDIO_OPTIONS, OBS_TAKE_ID, OBS_TRANSITION_ID, savedOBSSceneTarget, decodeCompanionCard, encodeCompanionCard, companionMetricForEntity } from "../model/companion_card_codec";
 import { configOptionEnabled, configOptionValue, setConfigOption, setConfigOptionValue, normalizedCardColorOptions, preserveCardColorOptions, withoutCardColorOptions } from "../model/config_primitives";
 import { createCompanionCatalogue, createCompanionCatalogueMonitor } from "../api/companion_catalogue";
 import type { CompanionAction } from "../api/companion_catalogue";
@@ -492,6 +492,8 @@ export function registerCompanionCardTypes(
                 obsControlLabels.set(OBS_TAKE_ID, action.label);
             } else if (action.id === OBS_STUDIO_ID || action.id.startsWith(OBS_STUDIO_ID + ".")) {
                 obsControlLabels.set(OBS_STUDIO_ID, action.label);
+            } else if (action.id === OBS_TRANSITION_ID || action.id.startsWith(OBS_TRANSITION_ID + ".")) {
+                obsControlLabels.set(OBS_TRANSITION_ID, action.label);
             } else if (action.id.startsWith("obs.selected.")) {
                 obsControlLabels.set("obs.selected", action.id.slice(12));
             } else if (/^obs\.brb(?:\.[a-f0-9-]{36})?$/.test(action.id)) {
@@ -618,7 +620,7 @@ export function registerCompanionCardTypes(
             const descriptions = {
                 obs_brb: "Choose your break scene and optional mic in the Mac Companion’s OBS settings.",
                 obs_status: "Displays the selected status reported by OBS Studio.",
-                obs_studio: "Toggle Studio Mode, show Program, or send Preview to Program.",
+                obs_studio: "Choose a Studio Mode control.",
                 obs_replay: "Saves a clip while the OBS Replay Buffer is running.",
             };
             note.textContent = descriptions[studio ? "obs_studio" : mode];
@@ -777,8 +779,9 @@ export function registerCompanionCardTypes(
                 renderOBSControlSettings(panel, card, helpers, initialMode === "obs_mic");
                 return;
             }
-            if ((initialMode === "obs_take" || initialMode === "obs_status" || initialMode === "obs_replay" || initialMode === "obs_output" || initialMode === "obs_brb" || initialMode === "obs_studio") && panel) {
-                renderOBSProductionSettings(panel, card, helpers, initialMode === "obs_take" ? "obs_studio" : initialMode);
+            const productionMode = initialMode === "obs_take" || initialMode === "obs_transition" ? "obs_studio" : initialMode;
+            if ((productionMode === "obs_status" || productionMode === "obs_replay" || productionMode === "obs_output" || productionMode === "obs_brb" || productionMode === "obs_studio") && panel) {
+                renderOBSProductionSettings(panel, card, helpers, productionMode);
                 return;
             }
             const parentPage = helpers.isSub ? state.editingSubpage : null;
@@ -1649,11 +1652,12 @@ export function registerCompanionCardTypes(
                     badge: COMPANION_CARD_METADATA.preview.badge,
                 });
             }
-            if (mode === "obs" || mode === "obs_mic" || mode === "obs_take" || mode === "obs_status" || mode === "obs_replay" || mode === "obs_output" || mode === "obs_brb" || mode === "obs_studio") {
+            if (mode === "obs" || mode === "obs_mic" || mode === "obs_take" || mode === "obs_transition" || mode === "obs_status" || mode === "obs_replay" || mode === "obs_output" || mode === "obs_brb" || mode === "obs_studio") {
                 const fallback = {
                     obs: "OBS Scene",
                     obs_mic: "OBS Mic Mute",
                     obs_take: "Take Live",
+                    obs_transition: "Transition",
                     obs_studio: "Studio Mode",
                     obs_brb: "Break",
                     obs_replay: "Save Replay",
@@ -1683,13 +1687,14 @@ export function registerCompanionCardTypes(
                 const preview = cardBadgePreview(sensor || muted ? { ...card, icon: sensor ? sensorIcon : "Microphone Off" } : card, helpers, {
                     label, iconFallback: companionSubtypeDefaultIcon(mode), badge: COMPANION_CARD_METADATA.preview.badge,
                 });
-                if (sensor || scene || studio || mode === "obs_take" || brb || mode === "obs_replay" || (record && currentLabel === "Stopping")) {
+                if (sensor || scene || studio || mode === "obs_take" || mode === "obs_transition" || brb || mode === "obs_replay" || (record && currentLabel === "Stopping")) {
                     const status = currentLabel || (mode === "obs_replay" && obsControlLabels.has("obs.status.program") ? "Start Replay Buffer" : "");
                     const [name, detail] = status.split(" · ", 2);
                     const title = sensor ? (program ? "Program" : stream ? "Stream" : "Recording")
                         : record || scene ? label : fallback[mode];
                     const note = sensor ? statusValue || "Unavailable"
                         : scene ? "Scene"
+                        : mode === "obs_transition" ? currentLabel || "Unavailable"
                         : status === "BRB · Already on break" ? "" : detail || (name === title ? "" : name || "Unavailable");
                     preview.labelHtml = '<span class="sp-btn-label-row sp-obs-label"><span class="sp-btn-label">' +
                         helpers.escHtml(title) + '</span><span class="sp-obs-detail">' + helpers.escHtml(note) + '</span></span>';

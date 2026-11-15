@@ -342,6 +342,7 @@ label_obs_scene=Escena
 label_obs_break=Pausa
 label_obs_resume=Reanudar
 label_obs_studio_mode=Modo estudio
+label_obs_transition=Transición
 wind_north=North
 wind_north_east=North East
 wind_east=East

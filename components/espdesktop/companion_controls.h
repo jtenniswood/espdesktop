@@ -669,7 +669,7 @@ inline bool companion_obs_break_active(std::string_view label) {
 }
 
 inline bool companion_obs_tokenized_card(const std::string &id) {
-  return id == "obs.take" || id == "obs.brb" || id == "obs.studio" ||
+  return id == "obs.take" || id == "obs.brb" || id == "obs.studio" || id == "obs.transition" ||
     companion_obs_output_card(id) || companion_obs_scene_target(id);
 }
 
@@ -1130,13 +1130,16 @@ inline void companion_render_obs_detail(CompanionCardRef &ref, const std::string
   const bool record = ref.action_id == "obs.output.record";
   const bool scene = companion_obs_scene_card(ref.action_id);
   const bool studio = ref.action_id == "obs.studio";
+  const bool transition = ref.action_id == "obs.transition";
   const bool brb = ref.action_id == "obs.brb";
   const std::string primary = (record || scene) ? label
     : studio ? espdesktop_i18n_key("label_obs_studio_mode")
+    : transition ? espdesktop_i18n_key("label_obs_transition")
     : brb ? espdesktop_i18n_key("label_obs_break") : espdesktop_i18n(name);
   const bool already_on_break = brb && label == "BRB · Already on break";
   std::string detail = scene ? espdesktop_i18n_key("label_obs_scene")
     : studio ? espdesktop_i18n(label)
+    : transition ? label
     : already_on_break ? "" : record ? (stopping ? espdesktop_i18n("Stopping") : "")
     : (split != std::string::npos ? label.substr(split + separator.size()) : (label == name ? "" : label));
   if (brb) {

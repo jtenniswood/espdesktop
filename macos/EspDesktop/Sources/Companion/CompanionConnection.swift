@@ -597,7 +597,8 @@ final class CompanionConnection: NSObject {
                     let status: String
                     if actionIdentifier.hasPrefix("obs.output.") || actionIdentifier.hasPrefix("obs.brb.") ||
                         actionIdentifier.hasPrefix(OBSConnection.AdaptiveScene.prefix) ||
-                        actionIdentifier.hasPrefix(OBSConnection.studioModeID + ".") {
+                        actionIdentifier.hasPrefix(OBSConnection.studioModeID + ".") ||
+                        actionIdentifier.hasPrefix(OBSConnection.transitionID + ".") {
                         let performed = await self.resources.performGuardedOBSAction(actionIdentifier: actionIdentifier) {
                             self.task === requestingTask && self.sessionAuthenticated
                         }

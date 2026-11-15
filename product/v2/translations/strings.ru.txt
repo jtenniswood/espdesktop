@@ -342,6 +342,7 @@ label_obs_scene=Сцена
 label_obs_break=Перерыв
 label_obs_resume=Продолжить
 label_obs_studio_mode=Режим студии
+label_obs_transition=Переход
 wind_north=North
 wind_north_east=North East
 wind_east=East

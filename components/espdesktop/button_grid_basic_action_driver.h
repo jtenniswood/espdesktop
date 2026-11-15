@@ -71,7 +71,8 @@ inline bool basic_action_driver_refresh_layout(
   }
   const bool status = companion_obs_status_card(config.entity);
   if (status || companion_obs_scene_card(config.entity) || config.entity == "obs.take" || config.entity == "obs.brb" ||
-      config.entity == "obs.replay" || config.entity == "obs.output.record" || config.entity == "obs.studio")
+      config.entity == "obs.replay" || config.entity == "obs.output.record" || config.entity == "obs.studio" ||
+      config.entity == "obs.transition")
     companion_setup_obs_detail(slot.btn, display_small_text_font(display), status ? slot.icon_lbl : nullptr);
   if (companion_obs_output_card(config.entity))
     obs_confirmation_fonts() = {display_switch_confirmation_message_font(display), display.fonts.icon};

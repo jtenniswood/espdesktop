@@ -342,6 +342,7 @@ label_obs_scene=Sahne
 label_obs_break=Mola
 label_obs_resume=Devam et
 label_obs_studio_mode=Stüdyo Modu
+label_obs_transition=Geçiş
 wind_north=North
 wind_north_east=North East
 wind_east=East

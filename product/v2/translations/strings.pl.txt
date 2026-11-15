@@ -342,6 +342,7 @@ label_obs_scene=Scena
 label_obs_break=Przerwa
 label_obs_resume=Wznów
 label_obs_studio_mode=Tryb studia
+label_obs_transition=Przejście
 wind_north=North
 wind_north_east=North East
 wind_east=East

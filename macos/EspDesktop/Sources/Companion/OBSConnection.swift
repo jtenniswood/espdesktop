@@ -84,9 +84,10 @@ final class OBSConnection: ObservableObject {
     }
 
     static let studioModeID = "obs.studio"
+    static let transitionID = "obs.transition"
 
-    static func studioModeToken(_ action: String) -> UUID? {
-        let prefix = studioModeID + "."
+    static func controlToken(_ action: String, for id: String) -> UUID? {
+        let prefix = id + "."
         guard action.hasPrefix(prefix), let token = UUID(uuidString: String(action.dropFirst(prefix.count))),
               action == prefix + token.uuidString.lowercased() else { return nil }
         return token
@@ -129,6 +130,8 @@ final class OBSConnection: ObservableObject {
         var replayBufferActive = false
         var replaySave = ReplaySave.ready
         var transitionInProgress = false
+        var selectedTransition: String?
+        var transitionToken = UUID()
         var takeToken = UUID()
         var adaptiveSceneToken = UUID()
         var breakCard: BreakCard?
@@ -162,6 +165,12 @@ final class OBSConnection: ObservableObject {
 
         var canTakePreview: Bool {
             studioMode && !transitionInProgress && preview != nil && preview?.id != program?.id
+        }
+
+        mutating func setSelectedTransition(_ name: String?) {
+            guard selectedTransition != name else { return }
+            selectedTransition = name
+            transitionToken = UUID()
         }
     }
 
@@ -213,6 +222,10 @@ final class OBSConnection: ObservableObject {
             actions.append(("obs.record.active", "Recording"))
         }
         if state?.recordingStopping == true { actions.append((Output.record.savedID, "Stopping")) }
+        if let state, let name = state.selectedTransition {
+            let id = state.transitionInProgress ? transitionID : transitionID + "." + state.transitionToken.uuidString.lowercased()
+            actions.append((id, name))
+        }
         return actions
     }
 
@@ -448,6 +461,7 @@ final class OBSConnection: ObservableObject {
     private let coughTouchTimeout: Duration
     private var takingPreview = false
     private var changingStudioMode = false
+    private var cyclingTransition = false
     private var transitionProbe: Task<Void, Never>?
     private let transitionProbeInterval: Duration
     private struct PendingReplay {
@@ -518,14 +532,14 @@ final class OBSConnection: ObservableObject {
     }
 
     func selectScene(id: String, collection: String, expectedStudioMode: Bool) async -> Bool {
-        guard !changingStudioMode, let state, state.collection == collection, state.studioMode == expectedStudioMode,
+        guard !changingStudioMode, !cyclingTransition, let state, state.collection == collection, state.studioMode == expectedStudioMode,
               state.scenes.contains(where: { $0.id == id }) else { return false }
         return await command(expectedStudioMode ? "SetCurrentPreviewScene" : "SetCurrentProgramScene",
                              fields: ["sceneUuid": id])
     }
 
     func takeLive(token: UUID) async -> Bool {
-        guard !breakInFlight, !changingStudioMode, let state, state.canTakePreview, state.takeToken == token,
+        guard !breakInFlight, !changingStudioMode, !cyclingTransition, let state, state.canTakePreview, state.takeToken == token,
               let expectedPreview = state.preview?.id, !takingPreview else { return false }
         takingPreview = true
         defer { takingPreview = false }
@@ -540,7 +554,7 @@ final class OBSConnection: ObservableObject {
     }
 
     func toggleStudioMode(token: UUID, isValid: () -> Bool) async -> Bool {
-        guard isValid(), !changingStudioMode, !takingPreview, !breakInFlight, let shown = state,
+        guard isValid(), !changingStudioMode, !cyclingTransition, !takingPreview, !breakInFlight, let shown = state,
               !shown.transitionInProgress, shown.adaptiveSceneToken == token else { return false }
         changingStudioMode = true
         defer { changingStudioMode = false }
@@ -561,6 +575,40 @@ final class OBSConnection: ObservableObject {
         // OBS may already have sent StudioModeStateChanged before its response.
         if active == generation { sync() }
         return true
+    }
+
+    func cycleTransition(token: UUID, isValid: () -> Bool) async -> Bool {
+        guard isValid(), !cyclingTransition, !takingPreview, !changingStudioMode, !breakInFlight,
+              let shown = state, !shown.transitionInProgress, shown.transitionToken == token,
+              let selected = shown.selectedTransition else { return false }
+        cyclingTransition = true
+        defer { cyclingTransition = false }
+        let active = generation
+        guard let cursor = try? await snapshotRequest("GetCurrentSceneTransitionCursor", generation: active),
+              cursor["transitionCursor"] as? Double == 1,
+              let transitions = try? await snapshotRequest("GetSceneTransitionList", generation: active),
+              active == generation, var current = state, current.transitionToken == token else { return false }
+        let actual = transitions["currentSceneTransitionName"] as? String
+        guard actual == selected else {
+            current.setSelectedTransition(actual)
+            state = current
+            return false
+        }
+        guard isValid(), !current.transitionInProgress,
+              let entries = transitions["transitions"] as? [OBSWebSocket.Fields] else { return false }
+        let names = entries.compactMap { $0["transitionName"] as? String }.filter { !$0.isEmpty }
+        // OBS changes transitions by name. Skip names that would select an ambiguous target.
+        let counts = Dictionary(grouping: names, by: { $0 })
+        let choices = names.filter { counts[$0]?.count == 1 }
+        guard choices.count > 1, let index = choices.firstIndex(of: selected) else { return false }
+        let next = choices[(index + 1) % choices.count]
+        let accepted = await command("SetCurrentSceneTransition", fields: ["transitionName": next])
+        guard let confirmed = try? await snapshotRequest("GetCurrentSceneTransition", generation: active),
+              active == generation, var latest = state else { return false }
+        let confirmedName = confirmed["transitionName"] as? String
+        latest.setSelectedTransition(confirmedName)
+        state = latest
+        return accepted && confirmedName == next
     }
 
     func performOutput(_ output: Output, token: UUID, isValid: () -> Bool = { true }) async -> Bool {
@@ -700,7 +748,7 @@ final class OBSConnection: ObservableObject {
     }
 
     func performBreak(token: UUID, isValid: () -> Bool = { true }) async -> Bool {
-        guard isValid(), !breakInFlight, !takingPreview, !changingStudioMode, let shown = state, shown.breakCard?.token == token,
+        guard isValid(), !breakInFlight, !takingPreview, !changingStudioMode, !cyclingTransition, let shown = state, shown.breakCard?.token == token,
               !shown.transitionInProgress, let program = shown.program?.id else { return false }
 
         let returning = breakSession != nil
@@ -1017,6 +1065,7 @@ final class OBSConnection: ObservableObject {
                 let stream = try await snapshotRequest("GetStreamStatus", generation: active)
                 let record = try await snapshotRequest("GetRecordStatus", generation: active)
                 let replay = try? await snapshotRequest("GetReplayBufferStatus", generation: active)
+                let transition = try? await snapshotRequest("GetCurrentSceneTransition", generation: active)
                 guard active == generation else { return }
                 guard let collectionName = collection["currentSceneCollectionName"] as? String,
                       let sceneList = scenes["scenes"] as? [OBSWebSocket.Fields],
@@ -1069,7 +1118,8 @@ final class OBSConnection: ObservableObject {
                     inputMutes: inputMutes,
                     inputFaders: inputFaders,
                     recordingPaused: recordingPaused,
-                    replayBufferActive: replay?["outputActive"] as? Bool ?? false
+                    replayBufferActive: replay?["outputActive"] as? Bool ?? false,
+                    selectedTransition: transition?["transitionName"] as? String
                 )
                 for (type, fields) in bufferedEvents { Self.apply(type, fields: fields, to: &snapshot) }
                 bufferedEvents.removeAll()
@@ -1147,7 +1197,7 @@ final class OBSConnection: ObservableObject {
             pendingReplay?.saved = true
             if pendingReplay?.accepted == true { finishReplay(.saved) }
         case "CurrentProgramSceneChanged", "CurrentPreviewSceneChanged", "StreamStateChanged", "RecordStateChanged",
-             "SceneTransitionStarted", "SceneTransitionEnded", "ReplayBufferStateChanged":
+             "SceneTransitionStarted", "SceneTransitionEnded", "ReplayBufferStateChanged", "CurrentSceneTransitionChanged":
             if var current = state {
                 if type == "CurrentProgramSceneChanged", let session = breakSession,
                    let incoming = Target(fields: fields, kind: "scene"), incoming.id != current.program?.id {
@@ -1212,6 +1262,8 @@ final class OBSConnection: ObservableObject {
 
     private static func apply(_ type: String, fields: OBSWebSocket.Fields, to state: inout State) {
         switch type {
+        case "CurrentSceneTransitionChanged":
+            state.setSelectedTransition(fields["transitionName"] as? String)
         case "CurrentProgramSceneChanged":
             state.program = Target(fields: fields, kind: "scene")
         case "CurrentPreviewSceneChanged":

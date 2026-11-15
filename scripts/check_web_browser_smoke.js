@@ -4457,6 +4457,7 @@ async function assertOBSSceneCard(browser) {
   const fader = "obs.level.69da3f8f-7f62-4abe-a594-4e40dd579858";
   let connectedToOBS = true;
   let studioModeOn = false;
+  let transitionName = "Fade";
   await context.route("**/companion/actions", route => route.fulfill({
     json: connectedToOBS ? [
       { id, label: "Program · Gameplay" },
@@ -4464,6 +4465,7 @@ async function assertOBSSceneCard(browser) {
       { id: fader, label: "Desk Mic" },
       { id: "obs.take.9ea47782-fada-4bb3-aef6-1904669efae7", label: "Take Live · Setup" },
       { id: "obs.studio.9ea47782-fada-4bb3-aef6-1904669efae7", label: studioModeOn ? "On" : "Off" },
+      { id: "obs.transition.9ea47782-fada-4bb3-aef6-1904669efae7", label: transitionName },
       { id: "obs.status.record", label: "Recording · Idle" },
       { id: "obs.status.program", label: "Program · Gameplay" },
     ] : [],
@@ -4481,7 +4483,8 @@ async function assertOBSSceneCard(browser) {
     await programTile.click();
     await page.getByRole("button", { name: "Edit", exact: true }).click();
     assert.equal(await studioPicker.inputValue(), "obs.status.program", "existing Program cards reopen in Studio Mode");
-    assert.deepEqual(await studioPicker.locator("option").allTextContents(), ["Toggle Studio Mode", "Program scene", "Take Live"]);
+    assert.deepEqual(await studioPicker.locator("option").allTextContents(),
+      ["Toggle Studio Mode", "Program scene", "Take Live", "Transition"]);
     await page.keyboard.press("Escape");
     await page.locator(".sp-main .sp-empty-cell").first().click();
     const obsGroup = page.getByRole("button", { name: "OBS Studio card type", exact: true });
@@ -4579,6 +4582,23 @@ async function assertOBSSceneCard(browser) {
     await page.getByRole("button", { name: "Edit", exact: true }).click();
     await studioTile.getByText("On", { exact: true }).waitFor();
     assert.notEqual(await studioTile.evaluate(tile => tile.style.backgroundColor), studioOff);
+    await page.locator(".sp-settings-overlay.sp-visible .sp-settings-close").click();
+    await studioTile.click();
+    await page.getByRole("button", { name: "Edit", exact: true }).click();
+    await studioPicker.selectOption("obs.transition");
+    const transitionTitle = studioTile.locator(".sp-btn-label");
+    const transitionDetail = studioTile.locator(".sp-obs-detail");
+    await page.getByRole("button", { name: "Save", exact: true }).click();
+    await waitForNativeState(fixture, () => fixture.document.buttons[9]?.startsWith("obs.transition;;Flip Horizontal;"),
+      "Transition saves its own stable card and default icon");
+    await studioTile.locator(".mdi-flip-horizontal").waitFor();
+    assert.equal(await transitionTitle.innerText(), "Transition");
+    assert.equal(await transitionDetail.innerText(), "Fade");
+    transitionName = "Cut";
+    await page.locator('.sp-main [data-slot="3"]').click();
+    await page.getByRole("button", { name: "Edit", exact: true }).click();
+    await studioTile.getByText("Cut", { exact: true }).waitFor();
+    assert.equal(await transitionTitle.innerText(), "Transition");
     await page.locator(".sp-settings-overlay.sp-visible .sp-settings-close").click();
     connectedToOBS = false;
     await page.locator('.sp-main [data-slot="3"]').click();

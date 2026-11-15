@@ -71,7 +71,7 @@ const CARD_TYPE_PICKER_DETAILS: Readonly<Record<string, PickerDetails>> = {
   companion_app_volume: { icon: "volume-high", description: "Adjust the sound from one Mac app." },
   companion_mac_lock: { icon: "lock", description: "Lock the paired Mac." },
   companion_obs_brb: { icon: "monitor", description: "Switch to your break scene and resume when ready." },
-  companion_obs_studio: { icon: "view-split-vertical", description: "Toggle Studio Mode, show Program, or take Preview live." },
+  companion_obs_studio: { icon: "view-split-vertical", description: "Control Studio Mode, Program, and transitions." },
   companion_obs_output: { icon: "monitor", description: "Start or stop streaming or recording after confirmation." },
   companion_obs_replay: { icon: "history", description: "Save a clip from the running OBS replay buffer." },
   companion_obs_status: { icon: "monitor", description: "Show the OBS stream or recording status." },

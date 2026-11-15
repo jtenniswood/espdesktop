@@ -62,6 +62,12 @@ export const COMPANION_CARD_MODES = [
     defaultIcon: "Arrow Right"
   },
   {
+    id: "obs_transition",
+    label: "Transition",
+    capability: "obs_scene_cards",
+    defaultIcon: "Flip Horizontal"
+  },
+  {
     id: "obs_status",
     label: "OBS Status",
     capability: "obs_scene_cards",
