@@ -50,6 +50,8 @@ Press **Command + /** in ChatGPT Desktop to see or customize its keyboard shortc
 
 **Chat Bar / Mini** sends **Option + Space**. ChatGPT Desktop may call this action **Toggle Mini** in its Keyboard Shortcuts settings.
 
+**Voice Chat** sends **Control + Shift + V**. Bring the main ChatGPT window to the front before using the tile. If you only see the floating pet or Mini, open a new chat and check that its voice button starts a session. Look for **Toggle voice chat** in **Settings → Keyboard Shortcuts**. If you use a different binding, create a [custom Key Shortcut card](/mac-controls/shortcuts#create-a-shortcut-card) with the same keys. See [ChatGPT Voice](https://learn.chatgpt.com/docs/features/voice) for availability and microphone setup.
+
 The **Next Tab** and **Previous Tab** tiles use **Control + Tab** and **Control + Shift + Tab**. To use those keys to cycle through recently viewed chats instead, assign them to **Next recently viewed chat** and **Previous recently viewed chat** under **Settings → Keyboard Shortcuts** in ChatGPT Desktop. Saved tiles keep their names and keys when the preset list changes.
 
 If you already have **Tab 1** through **Tab 9** tiles, they send **Command + 1** through **Command + 9**. In ChatGPT Desktop, set **Settings → Keyboard Shortcuts → Number shortcuts** to **⌘1–9 for Tabs**. Open two tabs in the current chat and try **Command + 2** on your Mac before testing the **Tab 2** tile. Each tile needs an open tab at that position.
