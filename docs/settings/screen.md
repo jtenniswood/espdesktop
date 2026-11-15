@@ -25,6 +25,12 @@ Choose **Apply Configuration** at the bottom of the tab when you’re ready to r
 - **Backlight** controls brightness. Choose **Manual** for a fixed level, **Automatic** to follow sunrise and sunset, or **Timed** to set your own dawn and dusk times. Automatic and Timed let you set separate day and night levels.
 - **Rotation** turns the interface by 0°, 90°, 180° or 270° to match how the display is mounted.
 
+### Adjust your Mac’s display brightness {#mac-display-brightness}
+
+On matching Mac app and firmware builds with Mac screen controls, add **Companion → Display brightness** for a 0–100% slider. For buttons, choose **Companion → Mac screen**, then select **Screen Brighter** or **Screen Dimmer** and save. Each tap moves brightness by 10 percentage points.
+
+The slider follows brightness changes made on your Mac. The cards are available when macOS exposes brightness control for the main display.
+
 ## Sleep & Schedule
 
 - **Screensaver** can dim the screen, show a clock or turn the display off. Choose **Timer** to start it after idle time, or **App Connection** to start it when your paired Mac locks or disconnects.
