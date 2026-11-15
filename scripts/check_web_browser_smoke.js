@@ -4390,6 +4390,7 @@ async function assertShortcutCatalogSettings(browser, testCase) {
     assert.strictEqual(await search.isVisible(), false, "search appears after choosing an app");
     const appLabels = await app.locator("option").allTextContents();
     assert.strictEqual(appLabels[0], "Choose an app…");
+    assert.deepStrictEqual(appLabels.filter(label => label.startsWith("ChatGPT")), ["ChatGPT"]);
     assert(appLabels.includes("Safari") && appLabels.includes("Slack") && appLabels.includes("Figma"),
       "the Application tab includes bundled presets for Safari and other apps");
     const names = appLabels.slice(1);

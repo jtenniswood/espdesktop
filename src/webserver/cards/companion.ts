@@ -159,7 +159,7 @@ export function companionShortcutCatalogSelection(card: any) {
     const separator = marker.lastIndexOf(":");
     if (separator < 0) return undefined;
     const appId = marker.slice(0, separator);
-    if (!companionShortcutCatalogApps(appId).some((app) => app.appId === appId)) return undefined;
+    if (!companionShortcutCatalogApps({ savedAppId: appId }).some((app) => app.appId === appId)) return undefined;
     const preset = companionShortcutPresetCards(appId).find((preset) =>
         preset.entity === card?.entity && preset.options === options);
     return preset ? { ...preset, appId } : undefined;
@@ -790,7 +790,9 @@ export function registerCompanionCardTypes(
             const pageApp = isNewShortcut
                 ? appShortcutPageOwner(previewSubpageOwner(parentPage, state.buttons, key => state.subpages[key]))
                 : undefined;
-            const catalogueApps = sortCompanionLabels(companionShortcutCatalogApps(savedCatalogShortcut?.appId || pageApp));
+            const catalogueApps = sortCompanionLabels(companionShortcutCatalogApps({
+                pageAppId: pageApp, savedAppId: savedCatalogShortcut?.appId,
+            }));
             const defaultCatalogApp = catalogueApps.find(app => app.appId === pageApp)?.appId;
             const shortcutType = card._shortcutType || (savedCatalogShortcut || isNewShortcut ? "catalog" : "custom");
             const typeId = helpers.idPrefix + "shortcut-type";

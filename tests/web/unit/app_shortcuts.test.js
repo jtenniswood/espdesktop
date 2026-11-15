@@ -11,14 +11,19 @@ test("the shortcut catalogue combines bundled and live presets and preserves sav
   const card = { type: "companion", entity: "shortcut.command+n", options: "app_shortcut_preset=org.example.Editor%3A12" };
   assert.equal(api.normalizeCompanionAppShortcutOptions(card), card.options, "keep the preset before its definition arrives");
   const updatedSafari = { ...safari, label: "Updated Safari" };
-  assert(api.replaceCompanionDefinitions([updatedSafari, live]));
+  const chatGPT = require("../../../product/v2/app_shortcuts/codex.json");
+  const classic = require("../../../product/v2/app_shortcuts/chatgpt.json");
+  assert(api.replaceCompanionDefinitions([updatedSafari, live, chatGPT, classic]));
   const apps = new Map(api.companionShortcutCatalogApps().map(app => [app.appId, app.label]));
   assert.equal(apps.get(safari.appId), updatedSafari.label);
   assert.equal(apps.get(live.appId), live.label);
   assert.equal(apps.get("com.tinyspeck.slackmacgap"), "Slack");
+  assert.equal(apps.get(chatGPT.appId), "ChatGPT");
+  assert(!apps.has(classic.appId));
   assert(!apps.has("io.github.jtenniswood.athena"), "Athena uses an installed web app ID");
   assert.equal(api.companionShortcutPresetCards(live.appId)[0].options, card.options);
-  assert.equal(api.replaceCompanionDefinitions([updatedSafari, live]), false, "reloading the same catalogue leaves it unchanged");
+  assert.equal(api.replaceCompanionDefinitions([updatedSafari, live, chatGPT, classic]), false,
+    "reloading the same catalogue leaves it unchanged");
 });
 
 test("Claude Desktop keeps its existing presets and exposes numbered and scoped shortcuts", () => {
