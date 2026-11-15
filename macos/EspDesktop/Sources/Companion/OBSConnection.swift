@@ -1198,7 +1198,7 @@ final class OBSConnection: ObservableObject {
             collectionChanging = false
             sync()
         case "SceneCreated", "SceneRemoved", "SceneNameChanged", "SceneListChanged",
-             "InputCreated", "InputRemoved", "InputNameChanged", "StudioModeStateChanged":
+             "InputCreated", "InputRemoved", "InputNameChanged", "StudioModeStateChanged", "CurrentProfileChanged":
             if !collectionChanging { sync() }
         case "InputMuteStateChanged":
             guard let id = fields["inputUuid"] as? String,
