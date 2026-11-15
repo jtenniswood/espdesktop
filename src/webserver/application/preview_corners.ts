@@ -77,11 +77,9 @@ export function syncPreviewCorners(screen: HTMLElement, radius: number, emptyRad
                 if (outline.getAttribute("viewBox") !== viewBox) outline.setAttribute("viewBox", viewBox);
                 // The card edge clips the outer half of the centered stroke,
                 // leaving an even inner outline above the card content.
-                const edge = card.classList.contains("sp-obs-program-preview")
-                    ? `<g class="sp-obs-outline-gap">${shape.edge}</g>${shape.edge}` : shape.edge;
-                if (edges.get(outline) !== edge) {
-                    outline.innerHTML = edge;
-                    edges.set(outline, edge);
+                if (edges.get(outline) !== shape.edge) {
+                    outline.innerHTML = shape.edge;
+                    edges.set(outline, shape.edge);
                 }
             }
         };

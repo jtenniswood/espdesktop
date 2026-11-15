@@ -7914,8 +7914,8 @@ async function assertOBSStarterPage(browser) {
     await mainTile.click({ button: "right" });
     await page.getByText("Edit Card", { exact: true }).click();
     await scene.locator(`option[value="obs.target.${main}"]`).waitFor({ state: "attached" });
-    await page.locator('.sp-main [data-slot="3"].sp-obs-program-preview .sp-obs-outline-gap').waitFor();
-    assert.equal(await mainTile.evaluate(card => card.classList.contains("sp-obs-program")), false);
+    await page.locator('.sp-main [data-slot="2"]:not(.sp-obs-program)').waitFor();
+    assert.equal(await breakTile.evaluate(card => card.classList.contains("sp-obs-program")), false);
     assert.equal(await breakTile.evaluate(card => getComputedStyle(card).backgroundColor), colors[0]);
     await closeSettings.click();
     await page.locator(".sp-back-btn .sp-back-hit").click();

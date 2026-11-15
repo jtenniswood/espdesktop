@@ -1711,7 +1711,7 @@ export function registerCompanionCardTypes(
                 }
                 return {
                     ...preview,
-                    buttonClass: onProgram ? "sp-obs-program" + (selectedScene ? " sp-obs-program-preview" : "") : undefined,
+                    buttonClass: onProgram && !selectedScene ? "sp-obs-program" : undefined,
                     sensorSurface: sensor,
                     isOn: live || recording || (toggle && currentLabel === "On") || (brb && currentLabel === "Resume") ||
                         selectedScene,

@@ -20,6 +20,7 @@ struct Mask {
   int width = 0;
   int height = 0;
   int radius = 0;
+  int outline = 0;
   unsigned owners = 0;
   uint8_t *pixels = nullptr;
   lv_image_dsc_t image{};
@@ -30,12 +31,12 @@ inline Mask *&mask_cache() {
   return head;
 }
 
-inline Mask *acquire(int width, int height, int radius) {
+inline Mask *acquire(int width, int height, int radius, int outline = 0) {
   // Bound allocations to panel-sized cards. Thin widgets use native rounding.
   if (radius <= 0 || width < radius * 4 || height < radius * 4 ||
-      width > 1280 || height > 1280) return nullptr;
+      width > 1280 || height > 1280 || width < outline * 2 || height < outline * 2) return nullptr;
   for (Mask *mask = mask_cache(); mask; mask = mask->next) {
-    if (mask->width == width && mask->height == height && mask->radius == radius) {
+    if (mask->width == width && mask->height == height && mask->radius == radius && mask->outline == outline) {
       ++mask->owners;
       return mask;
     }
@@ -53,10 +54,12 @@ inline Mask *acquire(int width, int height, int radius) {
     delete mask;
     return nullptr;
   }
-  fill_mask(mask->pixels, width, height, stride, radius);
+  if (outline) fill_outline_mask(mask->pixels, width, height, stride, radius * 2, outline);
+  else fill_mask(mask->pixels, width, height, stride, radius);
   mask->width = width;
   mask->height = height;
   mask->radius = radius;
+  mask->outline = outline;
   mask->owners = 1;
   mask->image.header.magic = LV_IMAGE_HEADER_MAGIC;
   mask->image.header.cf = LV_COLOR_FORMAT_A8;
@@ -83,8 +86,21 @@ inline void release(Mask *mask) {
 
 struct Binding {
   Mask *mask = nullptr;
+  Mask *outline_mask = nullptr;
+  int outline = 0;
   bool updating = false;
 };
+
+inline void update_outline(lv_obj_t *obj, Binding &binding, const Mask *shape) {
+  if (!binding.outline && !binding.outline_mask) return;
+  auto *previous = binding.outline_mask;
+  binding.outline_mask = binding.outline && shape
+    ? acquire(shape->width, shape->height, shape->radius, binding.outline) : nullptr;
+  const auto program = static_cast<lv_style_selector_t>(LV_PART_MAIN) | LV_STATE_USER_1;
+  lv_obj_set_style_bg_image_src(obj, binding.outline_mask ? &binding.outline_mask->image : nullptr, program);
+  lv_obj_set_style_outline_opa(obj, binding.outline_mask ? LV_OPA_TRANSP : LV_OPA_COVER, program);
+  release(previous);
+}
 
 inline void update(lv_obj_t *obj, Binding &binding) {
   if (binding.updating) return;
@@ -98,6 +114,7 @@ inline void update(lv_obj_t *obj, Binding &binding) {
   binding.mask = acquire(width, height, radius);
   // Allocation failure leaves a usable card with its native circular radius.
   lv_obj_set_style_bitmap_mask_src(obj, binding.mask ? &binding.mask->image : nullptr, LV_PART_MAIN);
+  update_outline(obj, binding, binding.mask);
   release(previous);
   binding.updating = false;
 }
@@ -109,6 +126,7 @@ inline void on_event(lv_event_t *event) {
   if (lv_event_get_current_target(event) != obj) return;
   const auto code = lv_event_get_code(event);
   if (code == LV_EVENT_DELETE) {
+    release(binding->outline_mask);
     release(binding->mask);
     delete binding;
   } else if (code == LV_EVENT_SIZE_CHANGED || code == LV_EVENT_STYLE_CHANGED) {
@@ -150,9 +168,18 @@ inline void apply_continuous_card_corners(lv_obj_t *obj) {
 inline bool card_uses_continuous_corners(lv_obj_t *obj) {
   return espdesktop::corners::binding_for(obj) != nullptr;
 }
+inline void set_continuous_program_outline(lv_obj_t *obj, int thickness) {
+  auto *binding = espdesktop::corners::binding_for(obj);
+  if (!binding || binding->outline == thickness) return;
+  binding->outline = thickness;
+  binding->updating = true;
+  espdesktop::corners::update_outline(obj, *binding, binding->mask);
+  binding->updating = false;
+}
 #else
 inline void apply_continuous_card_corners(lv_obj_t *) {}
 inline bool card_uses_continuous_corners(lv_obj_t *) { return false; }
+inline void set_continuous_program_outline(lv_obj_t *, int) {}
 #endif
 
 inline void apply_grid_card_corners(lv_obj_t *obj, int radius, bool continuous) {

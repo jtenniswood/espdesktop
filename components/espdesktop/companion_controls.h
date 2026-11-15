@@ -857,8 +857,9 @@ inline void companion_apply_card_focus(lv_obj_t *button, const std::string &acti
                         : companion_action_active(focus_id, true);
     }
   }
-  if (lv_obj_has_state(button, LV_STATE_USER_1) != on_program) {
-    if (on_program) lv_obj_add_state(button, LV_STATE_USER_1);
+  const bool outlined = on_program && !active;
+  if (lv_obj_has_state(button, LV_STATE_USER_1) != outlined) {
+    if (outlined) lv_obj_add_state(button, LV_STATE_USER_1);
     else lv_obj_clear_state(button, LV_STATE_USER_1);
   }
   // Focus is a background visual update, never a prerequisite for a touch
