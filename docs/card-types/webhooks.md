@@ -12,19 +12,16 @@ Use Webhook cards for local automation platforms such as Jeedom, openHAB, Fibaro
 
 ## Setting Up a Webhook Card
 
-1. Select a card and change its type to **Webhook**.
-2. Set a **Label** - this is the text shown on the card.
-3. Choose the HTTP **Method**.
-4. Enter the webhook **URL**.
-5. For POST, PUT, or PATCH requests, optionally enter a **Body**.
-6. Optionally enter **Headers**.
-7. Choose an **Icon**.
+1. Select an empty slot in **Layout** and choose **Webhook**.
+2. In **Webhook Settings**, choose the HTTP method from **Type** and enter the **URL**.
+3. For POST, PUT or PATCH requests, add a **Body** if needed. Use **Headers** to send any required headers.
+4. Set a **Label** and **Icon** for the card, then select **Save**.
 
 ## Common Examples
 
 ### Jeedom Scenario
 
-Jeedom scenarios and commands often use HTTP GET URLs. Paste the full Jeedom API URL into the **URL** field and leave the method as **GET**.
+Jeedom scenarios and commands often use HTTP GET URLs. Paste the full Jeedom API URL into the **URL** field and leave **Type** set to **GET**.
 
 Example:
 
@@ -34,7 +31,7 @@ http://jeedom.local/core/api/jeeApi.php?apikey=YOUR_KEY&type=scenario&id=56&acti
 
 ### IFTTT or Zapier
 
-Set the method to **POST**. Use the service webhook URL, add a JSON body if needed, and include:
+Set **Type** to **POST**. Use the service webhook URL, add a JSON body if needed, and include:
 
 ```text
 Content-Type: application/json
