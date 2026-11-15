@@ -17,6 +17,7 @@
 #include "display_utf8_case.h"
 #include "ha_state_limits.h"
 #include "camera_refresh_policy.h"
+#include "companion_audio_control.h"
 #include "companion_capabilities_generated.h"
 #include "companion_shortcut_page.h"
 #include "app_shortcuts_generated.h"
@@ -1348,6 +1349,9 @@ inline bool valid_home_assistant_card_id(std::string_view id) {
 }
 
 inline ParsedCfg normalize_parsed_cfg(ParsedCfg p) {
+  constexpr char legacy_obs_prefix[] = "OBS · ";
+  if (p.type == "slider" && companion_obs_level_control(p.entity) && p.label.rfind(legacy_obs_prefix, 0) == 0)
+    p.label.erase(0, sizeof(legacy_obs_prefix) - 1);
   const auto automation_id = cfg_option_value(p.options, "ha_id");
   const bool exposed = cfg_option_token_present(p.options, "ha_exposed");
   const std::string retired_type = retired_saved_card_type(p.type, p.entity);

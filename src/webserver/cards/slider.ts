@@ -87,14 +87,14 @@ export function registerSliderCardTypes(
     function renderOBSAudioSettings(panel: HTMLElement, card: { entity: string; label: string }, helpers: any): void {
         const saved = isOBSFaderControlID(card.entity) ? card.entity : "";
         const names = new Map<string, string>();
-        const legacyLabel = card.label || "Saved OBS input";
+        const legacyLabel = card.label?.replace(/^OBS · /, "") || "Saved OBS input";
         const placeholder = "Choose an OBS audio input…";
         const { field, select } = helpers.selectField("OBS audio input", helpers.idPrefix + "obs-level",
             [["", placeholder], ...(saved ? [[saved, legacyLabel]] : [])], saved, () => {
                 const name = names.get(select.value);
                 if (!name) return;
                 card.entity = select.value;
-                card.label = "OBS · " + name;
+                card.label = name;
                 helpers.saveField("entity", card.entity);
                 helpers.saveField("label", card.label);
                 cardUi.renderPreview();
@@ -534,6 +534,7 @@ export function registerSliderCardTypes(
                     (sliderMode === "mac_output_mute" && b.label === "Output Mute") ||
                     (sliderMode === "mac_input_mute" && b.label === "Microphone Mute");
                 var label: any = oldDefaultLabel ? defaultLabel : b.label || defaultLabel;
+                if (sliderMode === "obs_level") label = label.replace(/^OBS · /, "") || defaultLabel;
                 var iconName: any = sliderMode !== "home_assistant"
                     ? iconSlug(companionSliderNormalIcon(b.icon, sliderMode))
                     : b.icon && b.icon !== "Auto" ? iconSlug(b.icon) : defaultIcon;

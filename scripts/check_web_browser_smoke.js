@@ -4567,8 +4567,8 @@ async function assertOBSSceneCard(browser) {
     await faderPicker.getByRole("option", { name: "Desk Mic", exact: true }).waitFor({ state: "attached" });
     await faderPicker.selectOption(fader);
     await page.getByRole("button", { name: "Save", exact: true }).click();
-    await waitForNativeState(fixture, () => fixture.document.buttons[8]?.startsWith(fader + ";"),
-      "The OBS fader saves the selected input UUID");
+    await waitForNativeState(fixture, () => fixture.document.buttons[8]?.startsWith(fader + ";Desk Mic;"),
+      "The OBS fader saves the selected input UUID and its unprefixed name");
     await page.locator('.sp-main [data-slot="8"]').click();
     await page.getByRole("button", { name: "Edit", exact: true }).click();
     await faderPicker.getByRole("option", { name: "Desk Mic", exact: true }).waitFor({ state: "attached" });

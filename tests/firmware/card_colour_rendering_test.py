@@ -419,11 +419,14 @@ int main() {
     fader.obs_fader_fill = &fill;
     fader.obs_fader_live_color = 0xFF8C00;
     fader.control_id = "obs.level.11111111-1111-1111-1111-111111111111";
+    fader.base_label = parse_cfg(fader.control_id + ";OBS · Desk Mic;Microphone;Auto;;;slider").label;
+    assert(fader.base_label == "Desk Mic");
     fader.obs_cough_id = "obs.cough.11111111-1111-1111-1111-111111111111";
     CompanionRuntimeSnapshot snapshot;
     snapshot.actions = {{fader.control_id, "Desk Mic"}};
     snapshot.values = {{fader.control_id, 75}, {fader.obs_cough_id, 100}};
     companion_render_slider(fader, snapshot);
+    assert(title.content.rfind("Desk Mic\n", 0) == 0);
     assert(fill.background[0] == 0x808080 && slider.slider_value == 75);
     assert(!lv_obj_has_state(&slider, LV_STATE_DISABLED));
     snapshot.values[1].value = 0;

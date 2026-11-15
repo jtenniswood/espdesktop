@@ -1327,7 +1327,7 @@ inline void companion_render_slider(const CompanionSliderRef &ref, const Compani
       snprintf(level, sizeof(level), "%+.1f dB", db);
     }
     const auto *action = companion_published_action(snapshot, ref.control_id);
-    const std::string title = action ? "OBS · " + action->label : ref.base_label;
+    const std::string &title = action ? action->label : ref.base_label;
     const std::string label = title + "\n" + (available
       ? (value->value > 0 ? level : "-∞ dB")
       : espdesktop_i18n("Unavailable"));
