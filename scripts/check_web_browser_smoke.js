@@ -4458,6 +4458,7 @@ async function assertOBSSceneCard(browser) {
   let connectedToOBS = true;
   let studioModeOn = false;
   let replayBufferOn = false;
+  let replaySave = "Ready";
   let transitionName = "Fade";
   await context.route("**/companion/actions", route => route.fulfill({
     json: connectedToOBS ? [
@@ -4468,7 +4469,7 @@ async function assertOBSSceneCard(browser) {
       { id: "obs.studio.9ea47782-fada-4bb3-aef6-1904669efae7", label: studioModeOn ? "On" : "Off" },
       { id: "obs.transition.9ea47782-fada-4bb3-aef6-1904669efae7", label: transitionName },
       { id: "obs.replay.buffer.9ea47782-fada-4bb3-aef6-1904669efae7", label: replayBufferOn ? "On" : "Off" },
-      ...(replayBufferOn ? [{ id: "obs.replay", label: "Save Replay" }] : []),
+      ...(replayBufferOn ? [{ id: "obs.replay", label: replaySave }] : []),
       { id: "obs.status.record", label: "Recording · Idle" },
       { id: "obs.status.program", label: "Program · Gameplay" },
     ] : [],
@@ -4592,6 +4593,8 @@ async function assertOBSSceneCard(browser) {
     assert.notEqual(await studioTile.evaluate(tile => tile.style.backgroundColor), studioOff);
     await replayBufferTile.getByText("On", { exact: true }).waitFor();
     assert.notEqual(await replayBufferTile.evaluate(tile => tile.style.backgroundColor), replayBufferOff);
+    await replayTile.getByText("Ready", { exact: true }).waitFor();
+    const replayReadyColor = await replayTile.evaluate(tile => tile.style.backgroundColor);
     await page.locator(".sp-settings-overlay.sp-visible .sp-settings-close").click();
     await studioTile.click();
     await page.getByRole("button", { name: "Edit", exact: true }).click();
@@ -4605,10 +4608,13 @@ async function assertOBSSceneCard(browser) {
     assert.equal(await transitionTitle.innerText(), "Transition");
     assert.equal(await transitionDetail.innerText(), "Fade");
     transitionName = "Cut";
+    replaySave = "Saved";
     await page.locator('.sp-main [data-slot="3"]').click();
     await page.getByRole("button", { name: "Edit", exact: true }).click();
     await studioTile.getByText("Cut", { exact: true }).waitFor();
     assert.equal(await transitionTitle.innerText(), "Transition");
+    await replayTile.getByText("Saved", { exact: true }).waitFor();
+    assert.notEqual(await replayTile.evaluate(tile => tile.style.backgroundColor), replayReadyColor);
     await page.locator(".sp-settings-overlay.sp-visible .sp-settings-close").click();
     connectedToOBS = false;
     await page.locator('.sp-main [data-slot="3"]').click();
@@ -7894,15 +7900,17 @@ async function assertOBSStarterPage(browser) {
     await micTile.locator('.mdi-microphone').waitFor();
     await streamTile.locator(".mdi-broadcast").waitFor();
     await brbTile.getByText("Resume", { exact: true }).waitFor();
-    const programOutline = page.locator('.sp-main [data-slot="2"].sp-obs-program > .sp-card-outline');
-    await programOutline.waitFor();
-    assert.equal(await programOutline.evaluate(outline => getComputedStyle(outline).stroke), colors[0]);
-    assert.equal(await mainTile.evaluate(card => getComputedStyle(card).backgroundColor), colors[1]);
+    await page.locator('.sp-main [data-slot="2"].sp-obs-program').waitFor();
+    assert.equal(await mainTile.evaluate(card => getComputedStyle(card).backgroundColor), "rgb(165, 91, 0)");
     assert.equal(await breakTile.evaluate(card => getComputedStyle(card).backgroundColor), colors[0]);
     assert.equal(await brbTile.locator('.sp-btn-label').innerText(), "Break");
     assert.equal(await brbTile.evaluate(card => getComputedStyle(card).backgroundColor), colors[0]);
     assert.equal(await streamTile.locator(".sp-obs-detail").innerText(), "Live");
     assert.notEqual(await fillColor(), "rgb(128, 128, 128)", "unmuted mic fader uses its active colour");
+    await page.getByRole("button", { name: "Custom Colours", exact: true }).click();
+    await page.getByRole("group", { name: "Active state colour", exact: true }).getByRole("button", { name: "Custom", exact: true }).click();
+    await page.getByRole("group", { name: "Active state colour presets", exact: true }).locator('input[type="color"]').fill("#64ad54");
+    assert.equal(await mainTile.evaluate(card => getComputedStyle(card).backgroundColor), "rgb(65, 112, 54)");
     await closeSettings.click();
     await page.locator(".sp-back-btn .sp-back-hit").click();
     await recordTile.getByText("Recording", { exact: true }).waitFor({ timeout: 12000 });

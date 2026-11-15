@@ -835,7 +835,7 @@ inline void companion_apply_card_focus(lv_obj_t *button, const std::string &acti
   if (show_focus && companion_card_focus_allowed(url_config)) {
     const std::string focus_id = url_config.empty() ? action_id : companion_url_card_focus_id(url_config);
     if (companion_obs_scene_card(action_id) || action_id == "obs.output.record" || action_id == "obs.studio" ||
-        action_id == "obs.brb" || action_id == "obs.replay.buffer") {
+        action_id == "obs.brb" || action_id == "obs.replay.buffer" || action_id == "obs.replay") {
       const auto owned = snapshot ? CompanionRuntimeSnapshot{} : companion_runtime_snapshot();
       const auto &current = snapshot ? *snapshot : owned;
       if (action_id == "obs.output.record") {
@@ -843,6 +843,9 @@ inline void companion_apply_card_focus(lv_obj_t *button, const std::string &acti
       } else if (action_id == "obs.studio" || action_id == "obs.replay.buffer") {
         const auto *mode = companion_published_action(current, action_id);
         active = mode && mode->label == "On";
+      } else if (action_id == "obs.replay") {
+        const auto *replay = companion_published_action(current, action_id);
+        active = replay && (replay->label == "Saving" || replay->label == "Saved");
       } else if (action_id == "obs.brb") {
         const auto *action = companion_published_action(current, action_id);
         active = action && companion_obs_break_active(action->label);
@@ -857,9 +860,10 @@ inline void companion_apply_card_focus(lv_obj_t *button, const std::string &acti
                         : companion_action_active(focus_id, true);
     }
   }
-  const bool outlined = on_program && !active;
-  if (lv_obj_has_state(button, LV_STATE_USER_1) != outlined) {
-    if (outlined) lv_obj_add_state(button, LV_STATE_USER_1);
+  const bool program_only = on_program && !active;
+  const bool program_changed = lv_obj_has_state(button, LV_STATE_USER_1) != program_only;
+  if (program_changed) {
+    if (program_only) lv_obj_add_state(button, LV_STATE_USER_1);
     else lv_obj_clear_state(button, LV_STATE_USER_1);
   }
   // Focus is a background visual update, never a prerequisite for a touch
@@ -867,6 +871,8 @@ inline void companion_apply_card_focus(lv_obj_t *button, const std::string &acti
   if (lv_obj_has_state(button, LV_STATE_CHECKED) != active) {
     set_card_checked_state(button, active);
     ESP_LOGD("companion_focus", "Card %s highlight=%d at=%u", action_id.c_str(), active, unsigned(esphome::millis()));
+  } else if (program_changed) {
+    sync_card_checked_text_color(button);
   }
 }
 
@@ -1148,6 +1154,7 @@ inline void companion_render_obs_detail(CompanionCardRef &ref, const std::string
   const bool already_on_break = brb && label == "BRB · Already on break";
   std::string detail = scene ? espdesktop_i18n_key("label_obs_scene")
     : (studio || ref.action_id == "obs.replay.buffer") ? espdesktop_i18n(label)
+    : ref.action_id == "obs.replay" ? (label == name ? espdesktop_i18n("Ready") : espdesktop_i18n(label))
     : transition ? label
     : already_on_break ? "" : record ? (stopping ? espdesktop_i18n("Stopping") : "")
     : (split != std::string::npos ? label.substr(split + separator.size()) : (label == name ? "" : label));

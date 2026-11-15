@@ -1680,6 +1680,7 @@ export function registerCompanionCardTypes(
                 const selectedScene = scene && !!currentLabel && sceneId === obsControlLabels.get("obs.selected");
                 const sensor = mode === "obs_status";
                 const toggle = mode === "obs_studio" || mode === "obs_replay_buffer";
+                const replay = mode === "obs_replay";
                 const brb = mode === "obs_brb";
                 const statusValue = sensor && currentLabel?.replace(/^\w+ · /, "");
                 const program = card.entity === OBS_PROGRAM_ID;
@@ -1697,8 +1698,9 @@ export function registerCompanionCardTypes(
                 const preview = cardBadgePreview(sensor || muted ? { ...card, icon: sensor ? sensorIcon : "Microphone Off" } : card, helpers, {
                     label, iconFallback: companionSubtypeDefaultIcon(mode), badge: COMPANION_CARD_METADATA.preview.badge,
                 });
-                if (sensor || scene || toggle || mode === "obs_take" || mode === "obs_transition" || brb || mode === "obs_replay" || (record && currentLabel === "Stopping")) {
-                    const status = currentLabel || (mode === "obs_replay" && obsControlLabels.has("obs.status.program") ? "Start Replay Buffer" : "");
+                if (sensor || scene || toggle || mode === "obs_take" || mode === "obs_transition" || brb || replay || (record && currentLabel === "Stopping")) {
+                    const status = replay && currentLabel === "Save Replay" ? "Ready"
+                        : currentLabel || (replay && obsControlLabels.has("obs.status.program") ? "Start Replay Buffer" : "");
                     const [name, detail] = status.split(" · ", 2);
                     const title = sensor ? (program ? "Program" : stream ? "Stream" : "Recording")
                         : record || scene ? label : fallback[mode];
@@ -1714,7 +1716,7 @@ export function registerCompanionCardTypes(
                     buttonClass: onProgram && !selectedScene ? "sp-obs-program" : undefined,
                     sensorSurface: sensor,
                     isOn: live || recording || (toggle && currentLabel === "On") || (brb && currentLabel === "Resume") ||
-                        selectedScene,
+                        (replay && (currentLabel === "Saving" || currentLabel === "Saved")) || selectedScene,
                     labelEditable: false,
                 };
             }

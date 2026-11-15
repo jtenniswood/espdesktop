@@ -286,17 +286,26 @@ final class OBSProductionTests: XCTestCase {
         XCTAssertFalse(transport.requests.contains("SaveReplayBuffer"))
 
         transport.onEvent?("ReplayBufferStateChanged", ["outputActive": true])
-        XCTAssertEqual(OBSConnection.productionActions(connection.state).last?.label, "Save Replay")
+        XCTAssertEqual(OBSConnection.productionActions(connection.state).last?.label, "Ready")
         let accepted = await connection.saveReplay()
         XCTAssertTrue(accepted)
         XCTAssertEqual(connection.state?.replaySave, .saving)
+        XCTAssertEqual(OBSConnection.productionActions(connection.state).last?.label, "Saving")
         let duplicate = await connection.saveReplay()
         XCTAssertFalse(duplicate)
         transport.onEvent?("ReplayBufferSaved", ["savedReplayPath": ""])
         XCTAssertEqual(connection.state?.replaySave, .saving)
+        let confirmedAt = ContinuousClock.now
         transport.onEvent?("ReplayBufferSaved", ["savedReplayPath": "/test/replay.mkv"])
-        XCTAssertEqual(OBSConnection.productionActions(connection.state).last?.label, "Replay saved")
+        XCTAssertEqual(OBSConnection.productionActions(connection.state).last?.label, "Saved")
         XCTAssertEqual(transport.requests.filter { $0 == "SaveReplayBuffer" }.count, 1)
+        try await Task.sleep(for: .seconds(4))
+        XCTAssertEqual(connection.state?.replaySave, .saved)
+        while connection.state?.replaySave == .saved && ContinuousClock.now - confirmedAt < .seconds(7) {
+            try await Task.sleep(for: .milliseconds(20))
+        }
+        XCTAssertGreaterThanOrEqual(ContinuousClock.now - confirmedAt, .seconds(5))
+        XCTAssertEqual(OBSConnection.productionActions(connection.state).last?.label, "Ready")
     }
 
     @MainActor

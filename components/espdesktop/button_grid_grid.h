@@ -399,16 +399,12 @@ inline void setup_card_visual(BtnSlot &s, const ParsedCfg &p,
   theme_set_content_background(s.btn, palette.custom_background);
   apply_button_colors(s.btn, palette.has_on, palette.on_val,
     palette.has_off, palette.off_val);
-  const bool obs_scene = p.type == "companion" && companion_obs_scene_card(p.entity);
-  if (obs_scene) {
-    const auto program_outline = static_cast<lv_style_selector_t>(LV_PART_MAIN) | LV_STATE_USER_1;
-    lv_obj_set_style_outline_color(s.btn, lv_color_hex(palette.on_val), program_outline);
-    lv_obj_set_style_outline_width(s.btn, 3, program_outline);
-    lv_obj_set_style_outline_pad(s.btn, -3, program_outline);
-    lv_obj_set_style_bg_image_recolor(s.btn, lv_color_hex(palette.on_val), program_outline);
-    lv_obj_set_style_bg_image_recolor_opa(s.btn, LV_OPA_COVER, program_outline);
+  if (p.type == "companion" && companion_obs_scene_card(p.entity)) {
+    const auto program = static_cast<lv_style_selector_t>(LV_PART_MAIN) | LV_STATE_USER_1;
+    const uint32_t shade = darker_card_color(palette.on_val);
+    lv_obj_set_style_bg_color(s.btn, lv_color_hex(shade), program);
+    lv_obj_set_style_text_color(s.btn, lv_color_hex(display_text_color_for_bg(shade)), program);
   }
-  set_continuous_program_outline(s.btn, obs_scene && cfg.continuous_card_corners ? 3 : 0);
   sync_card_checked_text_color(s.btn);
   apply_button_on_pattern(s.btn, p.options, palette.has_on, palette.on_val);
   apply_standard_sensor_number_style(s, display);

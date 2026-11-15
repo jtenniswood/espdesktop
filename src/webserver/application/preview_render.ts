@@ -22,6 +22,7 @@ import {
     cardSliderFillColor,
     applySliderPreviewTextContrast,
     cardPatternHighlightColor,
+    darkerCardColor,
     cardTypePickerDetails,
     cardTypePickerOptions,
     defaultCardTypeForPicker,
@@ -536,10 +537,12 @@ export function createPreviewRenderFeature(dependencies: PreviewRenderDependenci
                     (typePreview && typePreview.buttonClass ? " " + typePreview.buttonClass : "") +
                     sizeClass(slotSz) +
                     (c.selected.indexOf(slot) !== -1 ? " sp-selected" : "");
-                let contrastBackground = (typePreview?.isOn ? cardOnColor : cardOffColor) ||
+                const activeColor = cardOnColor || state.onColor || WEB_UI_COLORS.primary;
+                const programColor = btn.classList.contains("sp-obs-program") ? darkerCardColor(activeColor) : "";
+                let contrastBackground = programColor || (typePreview?.isOn ? cardOnColor : cardOffColor) ||
                     (typePreview?.sensorSurface ? previewColors.surfaceSensor : color);
                 btn.style.backgroundColor = "#" + contrastBackground;
-                btn.style.setProperty("--card-active-color", "#" + (cardOnColor || state.onColor || WEB_UI_COLORS.primary));
+                btn.style.setProperty("--card-active-color", "#" + activeColor);
                 var activeMode: any = configOptionValue(b.options, "card_active_color");
                 var customActive: any = configOptionValue(b.options, "card_on_color").replace(/^#/, "");
                 var explicitActive: any = activeMode === "theme" || (activeMode === "custom" && /^[0-9A-F]{6}$/i.test(customActive));

@@ -29,6 +29,7 @@ void lv_label_set_text(lv_obj_t *, const char *);
 #include "button_grid_subpages.h"
 #include "display_color.h"
 #include "button_grid_style.h"
+static_assert(darker_card_color(0x64AD54) == 0x417036);
 using lv_color_t = uint32_t;
 using lv_style_selector_t = int;
 constexpr int LV_PART_MAIN = 0, LV_STATE_DEFAULT = 0, LV_STATE_CHECKED = 1, LV_STATE_PRESSED = 2;
@@ -378,12 +379,16 @@ int main() {
     assert(!lv_obj_has_state(&tile, LV_STATE_CHECKED));
     replay.action_id = "obs.replay";
     set_card_disabled_state(&tile, false);
-    companion_render_obs_detail(replay, "Replay saved");
+    CompanionRuntimeSnapshot replay_state;
+    for (const auto *status : {"Saving", "Saved", "Ready"}) {
+      replay_state.actions = {{"obs.replay", status}};
+      companion_render_obs_detail(replay, status);
+      companion_apply_card_focus(&tile, "obs.replay", "", true, &replay_state);
+      assert(title.content == "Save Replay" && detail.content == status);
+      assert(lv_obj_has_state(&tile, LV_STATE_CHECKED) == (std::string_view(status) != "Ready"));
+    }
     companion_update_obs_detail_contrast(replay, false);
-    assert(title.content == "Save Replay" && detail.content == "Replay saved");
     assert(!lv_obj_has_state(&detail, LV_STATE_DISABLED));
-    companion_render_obs_detail(replay, "Save Replay");
-    assert(title.content == "Save Replay" && detail.content.empty());
     replay.action_id = "obs.transition";
     companion_render_obs_detail(replay, "Fade · Short");
     assert(title.content == "Transition" && detail.content == "Fade · Short");

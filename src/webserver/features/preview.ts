@@ -188,14 +188,20 @@ export function cardSliderFillColor(background: string, selectedActiveColor = ""
   return active;
 }
 
+export function darkerCardColor(background: string): string {
+  const hex = background.replace(/^#/, "").toUpperCase();
+  if (!/^[0-9A-F]{6}$/.test(hex)) return "";
+  return [0, 2, 4].map(offset =>
+    Math.floor(parseInt(hex.slice(offset, offset + 2), 16) * 65 / 100).toString(16).padStart(2, "0").toUpperCase()).join("");
+}
+
 export function cardPatternHighlightColor(background: string): string {
   const hex = background.replace(/^#/, "").toUpperCase();
   if (!/^[0-9A-F]{6}$/.test(hex)) return "";
-  const whiteText = cardPreviewTextColor(hex) === "#FFFFFF";
+  if (cardPreviewTextColor(hex) === "#FFFFFF") return darkerCardColor(hex);
   return [0, 2, 4].map(offset => {
     const channel = parseInt(hex.slice(offset, offset + 2), 16);
-    const shade = whiteText ? Math.floor(channel * 65 / 100)
-      : channel + Math.floor((255 - channel) * 35 / 100);
+    const shade = channel + Math.floor((255 - channel) * 35 / 100);
     return shade.toString(16).padStart(2, "0").toUpperCase();
   }).join("");
 }

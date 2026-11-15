@@ -43,9 +43,9 @@ final class OBSConnection: ObservableObject {
 
         var label: String {
             switch self {
-            case .ready: return "Save Replay"
-            case .saving: return "Saving replay…"
-            case .saved: return "Replay saved"
+            case .ready: return "Ready"
+            case .saving: return "Saving"
+            case .saved: return "Saved"
             case .unconfirmed: return "Replay not confirmed"
             }
         }
@@ -485,6 +485,7 @@ final class OBSConnection: ObservableObject {
     private var transitionProbe: Task<Void, Never>?
     private let transitionProbeInterval: Duration
     private struct PendingReplay {
+        let id = UUID()
         var accepted = false
         var saved = false
     }
@@ -892,7 +893,7 @@ final class OBSConnection: ObservableObject {
            var latest = state, latest.replayBufferToken == token {
             latest.setReplayBufferActive(value)
             state = latest
-            if value == false, pendingReplay != nil { finishReplay(.ready) }
+            if value == false, pendingReplay != nil || replayDeadline != nil { finishReplay(.ready) }
         }
         return accepted && active == generation
     }
@@ -900,11 +901,14 @@ final class OBSConnection: ObservableObject {
     func saveReplay() async -> Bool {
         guard var current = state, current.replayBufferActive == true, pendingReplay == nil else { return false }
         let active = generation
-        pendingReplay = PendingReplay()
+        let request = PendingReplay()
+        replayDeadline?.cancel()
+        replayDeadline = nil
+        pendingReplay = request
         current.replaySave = .saving
         state = current
         let accepted = await command("SaveReplayBuffer", fields: [:])
-        guard active == generation, pendingReplay != nil else { return false }
+        guard active == generation, pendingReplay?.id == request.id else { return false }
         guard accepted else {
             finishReplay(.unconfirmed)
             return false
@@ -915,7 +919,7 @@ final class OBSConnection: ObservableObject {
         } else {
             replayDeadline = Task { [weak self] in
                 do { try await Task.sleep(for: .seconds(8)) } catch { return }
-                guard let self, active == generation, pendingReplay != nil else { return }
+                guard let self, active == generation, pendingReplay?.id == request.id else { return }
                 finishReplay(.unconfirmed)
             }
         }
@@ -929,6 +933,14 @@ final class OBSConnection: ObservableObject {
         if var current = state {
             current.replaySave = result
             state = current
+        }
+        if result == .saved {
+            let active = generation
+            replayDeadline = Task { [weak self] in
+                do { try await Task.sleep(for: .seconds(5)) } catch { return }
+                guard let self, !Task.isCancelled, active == generation, state?.replaySave == .saved else { return }
+                finishReplay(.ready)
+            }
         }
     }
 
@@ -1262,7 +1274,8 @@ final class OBSConnection: ObservableObject {
                 updateBreakCard(&current)
                 state = current
                 if type == "SceneTransitionStarted" || type == "SceneTransitionEnded" { updateTransitionProbe() }
-                if type == "ReplayBufferStateChanged", current.replayBufferActive == false, pendingReplay != nil {
+                if type == "ReplayBufferStateChanged", current.replayBufferActive == false,
+                   pendingReplay != nil || replayDeadline != nil {
                     finishReplay(.ready)
                 }
             } else if !collectionChanging {

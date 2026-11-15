@@ -555,7 +555,7 @@ inline void setup_companion_card(BtnSlot &s, const ParsedCfg &p,
     clear_push_button_transition(s.btn);
   } else if (companion_app_launch_card(p)) {
     apply_instant_button_feedback(s.btn);
-  } else if (available) {
+  } else if (available && p.entity != "obs.replay") {
     apply_push_button_transition(s.btn);
   } else {
     clear_push_button_transition(s.btn);

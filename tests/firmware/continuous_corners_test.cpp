@@ -10,9 +10,6 @@ enum lv_state_t { LV_STATE_DEFAULT = 0, LV_STATE_PRESSED = 1, LV_STATE_CHECKED =
 using lv_style_selector_t = unsigned;
 constexpr int LV_IMAGE_HEADER_MAGIC = 0x19;
 constexpr int LV_COLOR_FORMAT_A8 = 1;
-constexpr int LV_STATE_USER_1 = 4;
-constexpr int LV_OPA_TRANSP = 0;
-constexpr int LV_OPA_COVER = 255;
 enum lv_event_code_t { LV_EVENT_ALL, LV_EVENT_SIZE_CHANGED, LV_EVENT_STYLE_CHANGED, LV_EVENT_DELETE };
 struct lv_event_t;
 using lv_event_cb_t = void (*)(lv_event_t *);
@@ -26,8 +23,6 @@ struct lv_obj_t {
   int width = 100, height = 80, radius = 16;
   int pressed_radius = 16;
   const void *mask = nullptr;
-  const void *outline = nullptr;
-  int native_outline_opacity = LV_OPA_COVER;
   std::vector<lv_event_dsc_t> events;
 };
 struct lv_event_t { lv_obj_t *target; lv_obj_t *current; lv_event_code_t code; void *data; };
@@ -62,8 +57,6 @@ void lv_obj_set_style_bitmap_mask_src(lv_obj_t *o, const void *mask, int) {
   o->mask = mask;
   send(*o, LV_EVENT_STYLE_CHANGED); // Exercise recursive style notifications.
 }
-void lv_obj_set_style_bg_image_src(lv_obj_t *o, const void *src, lv_style_selector_t) { o->outline = src; }
-void lv_obj_set_style_outline_opa(lv_obj_t *o, int opacity, lv_style_selector_t) { o->native_outline_opacity = opacity; }
 unsigned lv_draw_buf_width_to_stride(unsigned width, int) { return (width + 3) & ~3U; }
 int dropped = 0;
 void lv_image_cache_drop(const void *) { ++dropped; }
@@ -172,17 +165,5 @@ int main() {
   send(hidden, LV_EVENT_SIZE_CHANGED);
   assert(binding_for(&hidden)->mask->radius == 14);
   send(hidden, LV_EVENT_DELETE);
-  assert(mask_cache() == nullptr);
-  lv_obj_t program;
-  attach(&program);
-  set_continuous_program_outline(&program, 3);
-  assert(program.outline && program.native_outline_opacity == LV_OPA_TRANSP);
-  const auto *outline = static_cast<const lv_image_dsc_t *>(program.outline);
-  const auto sample = [&](int x, int y) { return outline->data[y * outline->header.stride + x]; };
-  assert(sample(50, 2) == 255 && sample(50, 3) == 0);
-  assert(sample(6, 6) == 255 && sample(9, 9) == 0);
-  set_continuous_program_outline(&program, 0);
-  assert(!program.outline && program.native_outline_opacity == LV_OPA_COVER);
-  send(program, LV_EVENT_DELETE);
   assert(mask_cache() == nullptr);
 }
