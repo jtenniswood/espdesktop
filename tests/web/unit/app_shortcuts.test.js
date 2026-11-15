@@ -129,11 +129,18 @@ test("ChatGPT Desktop subpages use the curated catalogue and preserve custom car
   ]);
   assert.deepEqual(api.companionShortcutTabsFromSubpage(app.appId, page), ids);
   const custom = { ...page.buttons[0], entity: "shortcut.command+w", label: "My Close Card", options: "" };
-  page.buttons.push(custom);
-  page.order.push(String(page.buttons.length));
+  const savedAlternate = {
+    ...page.buttons[0],
+    entity: "shortcut.command+shift+o",
+    label: "New Chat",
+    options: "app_shortcut_preset=com.openai.codex%3A87",
+  };
+  page.buttons.push(custom, savedAlternate);
+  page.order.push(String(page.buttons.length - 1), String(page.buttons.length));
   assert.deepEqual(api.companionShortcutTabsFromSubpage(app.appId, page), ids);
   api.syncCompanionShortcutSubpage(app.appId, ids, page);
   assert(page.buttons.includes(custom), "a pre-existing custom shortcut must survive the new matching preset");
+  assert(page.buttons.includes(savedAlternate), "a saved New Chat tile must survive removal of the alternate preset");
   api.replaceCompanionDefinitions([app]);
   assert.deepEqual(api.companionShortcutPresetCards(app.appId), presets);
 });
