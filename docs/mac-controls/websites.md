@@ -20,6 +20,6 @@ A **Website** card opens a web address in your Mac’s default browser. Give a f
 
 Use matching versions of the EspDesktop Mac app and display firmware. Safari and Google Chrome support both opening options when EspDesktop has **Automation** permission for your browser in macOS System Settings. In other browsers, **New tab** follows the browser’s usual behaviour for links opened from another app. If no browser window is open, opening a tab creates a window for it.
 
-## Replace an older web app card
+## Add a Web App card
 
-Upgrading or restoring a backup removes saved **Web App** cards. Add a **Website** card with the same address to replace one.
+Choose **Web App** under **Companion** to give a supported site, such as Google Docs, a tile with its own artwork and keyboard shortcuts. Select the site and save. Use matching Mac app and display firmware builds. When the Mac app detects the matching browser tab, the tile shows it as active. For any other web address, use a **Website** card.

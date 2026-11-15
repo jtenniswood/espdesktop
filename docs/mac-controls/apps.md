@@ -63,4 +63,4 @@ To add a tile for a web address, see [Open Websites on Your Mac](/mac-controls/w
 
 ## Web App cards
 
-Choose **Web App** in the card picker to add a supported website with its own artwork and shortcuts. Pair the display with the matching Mac app to open the site and detect when its browser tab is active.
+See [Web App cards](/mac-controls/websites#add-a-web-app-card) for sites with built-in keyboard shortcuts and artwork.
