@@ -1648,6 +1648,7 @@ export function registerCompanionCardTypes(
                 const currentLabel = obsControlLabels.get(card.entity);
                 const record = card.entity === "obs.output.record";
                 const recording = record && obsControlLabels.has("obs.record.active");
+                const scene = mode === "obs";
                 const sensor = mode === "obs_status";
                 const statusValue = sensor && currentLabel?.replace(/^\w+ · /, "");
                 const program = card.entity === "obs.status.program";
@@ -1656,7 +1657,7 @@ export function registerCompanionCardTypes(
                     : program ? "Monitor"
                     : statusValue === "Changing" || statusValue === "Reconnecting" ? "Progress Clock"
                     : stream ? (statusValue === "Live" ? "Cast" : "Wifi Off")
-                    : statusValue === "Paused" ? "Pause" : statusValue === "Active" ? "Record" : "Circle Outline";
+                    : statusValue === "Paused" ? "Pause" : statusValue === "Active" ? "Record" : "Stop";
                 const alias = (mode === "obs_mic" || card.entity.startsWith("obs.target.")) && card.label;
                 const muted = mode === "obs_mic" && currentLabel?.startsWith("Muted · ");
                 const live = mode === "obs_mic" && currentLabel?.startsWith("Unmuted · ");
@@ -1665,12 +1666,13 @@ export function registerCompanionCardTypes(
                 const preview = cardBadgePreview(sensor || muted ? { ...card, icon: sensor ? sensorIcon : "Microphone Off" } : card, helpers, {
                     label, iconFallback: companionSubtypeDefaultIcon(mode), badge: COMPANION_CARD_METADATA.preview.badge,
                 });
-                if (sensor || mode === "obs_take" || mode === "obs_brb" || mode === "obs_replay" || (record && currentLabel === "Stopping")) {
+                if (sensor || scene || mode === "obs_take" || mode === "obs_brb" || mode === "obs_replay" || (record && currentLabel === "Stopping")) {
                     const status = currentLabel || (mode === "obs_replay" && obsControlLabels.has("obs.status.program") ? "Start Replay Buffer" : "");
                     const [name, detail] = status.split(" · ", 2);
                     const title = sensor ? (program ? "Program" : stream ? "Stream" : "Recording")
-                        : record ? label : name === "Resume" ? name : fallback[mode];
+                        : record || scene ? label : name === "Resume" ? name : fallback[mode];
                     const note = sensor ? statusValue || "Unavailable"
+                        : scene ? "Scene"
                         : status === "BRB · Already on break" ? "" : detail || (name === title ? "" : name || "Unavailable");
                     preview.labelHtml = '<span class="sp-btn-label-row sp-obs-label"><span class="sp-btn-label">' +
                         helpers.escHtml(title) + '</span><span class="sp-obs-detail">' + helpers.escHtml(note) + '</span></span>';
@@ -1678,7 +1680,7 @@ export function registerCompanionCardTypes(
                 return {
                     ...preview,
                     sensorSurface: sensor,
-                    isOn: live || recording || (mode === "obs" && !!currentLabel && card.entity.slice(-37) === obsControlLabels.get("obs.selected")),
+                    isOn: live || recording || (scene && !!currentLabel && card.entity.slice(-37) === obsControlLabels.get("obs.selected")),
                     labelEditable: false,
                 };
             }

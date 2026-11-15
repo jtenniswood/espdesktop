@@ -12,7 +12,7 @@
     "deviceProfiles": 9,
     "cardTypes": 41,
     "entityNames": 92,
-    "icons": 360,
+    "icons": 361,
     "structuralIcons": 39,
     "compatibilityFixtureGroups": 2
   },
@@ -8966,6 +8966,11 @@
         "name": "Subtitles",
         "codepoint": "F0A17",
         "mdi": "subtitles-outline"
+      },
+      {
+        "name": "Coffee to Go",
+        "codepoint": "F0177",
+        "mdi": "coffee-to-go"
       }
     ],
     "domain_defaults": {

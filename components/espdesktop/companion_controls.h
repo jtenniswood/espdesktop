@@ -1102,7 +1102,7 @@ inline const char *companion_obs_status_icon(const std::string &id, const std::s
   if (status == "Changing" || status == "Reconnecting") return "Progress Clock";
   if (id == "obs.status.stream") return status == "Live" ? "Cast" : "Wifi Off";
   if (status == "Paused") return "Pause";
-  return status == "Active" ? "Record" : "Circle Outline";
+  return status == "Active" ? "Record" : "Stop";
 }
 
 inline void companion_render_obs_detail(CompanionCardRef &ref, const std::string &label, bool stopping = false) {
@@ -1116,9 +1116,11 @@ inline void companion_render_obs_detail(CompanionCardRef &ref, const std::string
     : ref.action_id == "obs.status.record" ? "Recording"
     : (label.rfind("Resume", 0) == 0 ? "Resume" : "BRB");
   const bool record = ref.action_id == "obs.output.record";
-  const std::string primary = record ? label : espdesktop_i18n(name);
+  const bool scene = companion_obs_scene_card(ref.action_id);
+  const std::string primary = (record || scene) ? label : espdesktop_i18n(name);
   const bool already_on_break = ref.action_id == "obs.brb" && label == "BRB · Already on break";
-  std::string detail = already_on_break ? "" : record ? (stopping ? espdesktop_i18n("Stopping") : "")
+  std::string detail = scene ? espdesktop_i18n_key("label_obs_scene")
+    : already_on_break ? "" : record ? (stopping ? espdesktop_i18n("Stopping") : "")
     : (split != std::string::npos ? label.substr(split + separator.size()) : (label == name ? "" : label));
   if (ref.obs_status_icon) {
     const auto *icon = find_icon(companion_obs_status_icon(ref.action_id, detail, split != std::string::npos));
@@ -1157,7 +1159,9 @@ inline void companion_setup_obs_detail(lv_obj_t *button, const lv_font_t *font, 
     const bool stopping = record && companion_obs_record_stopping(snapshot);
     const auto live = companion_default_action_label(ref.action_id, "", &snapshot);
     const bool recording = record && companion_published_action(snapshot, "obs.record.active");
-    companion_render_obs_detail(ref, companion_obs_control_label(ref.action_id, "", live, recording), stopping);
+    const std::string label = companion_obs_scene_card(ref.action_id) ? lv_label_get_text(ref.text_label)
+      : companion_obs_control_label(ref.action_id, "", live, recording);
+    companion_render_obs_detail(ref, label, stopping);
     companion_update_obs_detail_contrast(ref, stopping);
     return;
   }

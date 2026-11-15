@@ -523,7 +523,8 @@ inline void setup_companion_card(BtnSlot &s, const ParsedCfg &p,
     lv_obj_set_width(s.text_lbl, lv_pct(100));
   }
   const char *icon = (p.icon.empty() || p.icon == "Auto")
-    ? find_icon(obs_mute ? "Microphone" : companion_obs_scene_card(p.entity) ? "Image Card Loading" : "Monitor")
+    ? find_icon(obs_mute ? "Microphone" : p.entity == "obs.brb" ? "Coffee to Go" :
+                companion_obs_scene_card(p.entity) ? "Image Card Loading" : "Monitor")
     : find_icon(p.icon.c_str());
   lv_label_set_display_text(s.icon_lbl, icon);
   if (companion_app_icon_enabled(p)) {

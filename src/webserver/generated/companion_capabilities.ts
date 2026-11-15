@@ -77,7 +77,7 @@ export const COMPANION_CARD_MODES = [
     id: "obs_brb",
     label: "OBS BRB",
     capability: "obs_brb",
-    defaultIcon: "Monitor"
+    defaultIcon: "Coffee to Go"
   },
   {
     id: "stats",

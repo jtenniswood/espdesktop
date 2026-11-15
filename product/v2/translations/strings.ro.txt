@@ -338,6 +338,7 @@ label_lighting=Iluminat
 label_garage=Garaj
 label_sensor=Senzor
 label_camera=Cameră
+label_obs_scene=Scenă
 wind_north=North
 wind_north_east=North East
 wind_east=East

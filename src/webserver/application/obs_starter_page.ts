@@ -60,7 +60,7 @@ export function pinOBSStarterPage(draft: NativeLayoutDraft, current: NativePanel
         card("obs.status.stream", "Monitor"),
     ];
     const awayUuid = choices.away.slice("obs.target.".length);
-    if (ids.has("obs.brb.scene." + awayUuid)) cards.push(card(OBS_BRB_ID, "Monitor"));
+    if (ids.has("obs.brb.scene." + awayUuid)) cards.push(card(OBS_BRB_ID, companionCardDefaultIcon("obs_brb")));
     const micLevel = OBS_FADER_PREFIX + choices.mic.slice("obs.mute.".length);
     if (ids.has(micLevel)) cards.push(card(micLevel, "Microphone", "Mic level", "slider"));
     if (ids.has("obs.replay")) cards.push(card("obs.replay", "History"));

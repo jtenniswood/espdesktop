@@ -338,6 +338,7 @@ label_lighting=Világítás
 label_garage=Garázs
 label_sensor=Érzékelő
 label_camera=Kamera
+label_obs_scene=Jelenet
 wind_north=North
 wind_north_east=North East
 wind_east=East

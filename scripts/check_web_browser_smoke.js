@@ -4503,7 +4503,7 @@ async function assertOBSSceneCard(browser) {
     const recordingStatus = page.locator('.sp-main [data-slot="6"]');
     await recordingStatus.getByText("Recording", { exact: true }).waitFor();
     await recordingStatus.getByText("Idle", { exact: true }).waitFor();
-    await recordingStatus.locator(".mdi-circle-outline").waitFor();
+    await recordingStatus.locator(".mdi-stop").waitFor();
     assert.equal(await recordingStatus.evaluate(tile => getComputedStyle(tile).backgroundColor), "rgb(33, 33, 33)");
     await page.locator(".sp-main .sp-empty-cell").first().click();
     await page.getByRole("button", { name: "OBS Save Replay card type", exact: true }).click();
@@ -7774,11 +7774,15 @@ async function assertOBSStarterPage(browser) {
     assert.notEqual(colors[0], colors[1], "selected scene uses ON colour");
     assert.equal(colors[2], colors[1], "muted mic uses the default colour");
     assert.equal(await mainTile.locator('.sp-btn-label').innerText(), "Main scene");
+    assert.equal(await breakTile.locator('.sp-btn-label').innerText(), "Break scene");
+    for (const sceneTile of [mainTile, breakTile])
+      assert.equal(await sceneTile.locator('.sp-obs-detail').innerText(), "Scene");
     assert.equal(await micTile.locator('.sp-btn-label').innerText(), "Mic");
     const takeTile = page.locator('.sp-main [data-slot="5"]');
     assert.equal(await takeTile.locator('.sp-btn-label').innerText(), "Take Live");
     assert.equal(await takeTile.locator('.sp-obs-detail').innerText(), "Enable Studio Mode");
     const brbTile = page.locator('.sp-main [data-slot="7"]');
+    await brbTile.locator('.mdi-coffee-to-go').waitFor();
     assert.equal(await brbTile.locator('.sp-btn-label').innerText(), "BRB");
     assert.equal(await brbTile.locator('.sp-obs-detail').innerText(), "");
     const fader = page.locator(".sp-main .sp-slider-fill");

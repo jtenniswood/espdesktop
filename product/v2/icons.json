@@ -2041,6 +2041,11 @@
       "name": "Subtitles",
       "codepoint": "F0A17",
       "mdi": "subtitles-outline"
+    },
+    {
+      "name": "Coffee to Go",
+      "codepoint": "F0177",
+      "mdi": "coffee-to-go"
     }
   ],
   "domain_defaults": {

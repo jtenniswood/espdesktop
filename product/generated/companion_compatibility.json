@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "protocolVersion": 4,
   "capabilityVersion": 19,
-  "contractSha256": "221247d4e2fc9f06165d867ec81942b5297edfbb5ab4603342759f3b38b584ac",
+  "contractSha256": "d82b9f5c37ea6314d56891603b581425ce39fb3ee66eab7318905d1d1cfde206",
   "supportedDevices": [
     "guition-esp32-s3-4848s040"
   ],

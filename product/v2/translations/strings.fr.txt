@@ -338,6 +338,7 @@ label_lighting=Éclairage
 label_garage=Garage
 label_sensor=Capteur
 label_camera=Caméra
+label_obs_scene=Scène
 wind_north=North
 wind_north_east=North East
 wind_east=East

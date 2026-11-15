@@ -416,6 +416,7 @@ static const IconEntry ICON_ENTRIES[] = {
     {"Subscript",                    "\U000F0282"},
     {"Superscript",                  "\U000F0283"},
     {"Subtitles",                    "\U000F0A17"},
+    {"Coffee to Go",                 "\U000F0177"},
     // --- GENERATED:ICONS END ---
 };
 

@@ -70,7 +70,7 @@ inline bool basic_action_driver_refresh_layout(
     }
   }
   const bool status = companion_obs_status_card(config.entity);
-  if (status || config.entity == "obs.take" || config.entity == "obs.brb" ||
+  if (status || companion_obs_scene_card(config.entity) || config.entity == "obs.take" || config.entity == "obs.brb" ||
       config.entity == "obs.replay" || config.entity == "obs.output.record")
     companion_setup_obs_detail(slot.btn, display_small_text_font(display), status ? slot.icon_lbl : nullptr);
   if (companion_obs_output_card(config.entity))
