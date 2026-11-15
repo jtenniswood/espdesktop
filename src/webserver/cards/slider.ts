@@ -114,9 +114,8 @@ export function registerSliderCardTypes(
             select.replaceChildren(new Option(placeholder, ""), ...items);
             select.value = saved;
             select.disabled = names.size === 0;
-            note.textContent = names.size
-                ? "Adjusts the selected OBS input without changing its mute state."
-                : "Connect OBS in the Mac Companion to choose an input.";
+            if (names.size) note.remove();
+            else note.textContent = "Connect OBS in the Mac Companion to choose an input.";
         }).catch(() => { note.textContent = "Connect OBS in the Mac Companion to choose an input."; });
         helpers.renderCardIconPicker(panel, card, helpers, { fallback: "Microphone" });
     }
