@@ -148,6 +148,8 @@ Tap Safari, Slack, Notes, ChatGPT, or Claude to see their shortcuts, or tap Find
 
 </div>
 
+[Track your AI usage allowance](/card-types/token-usage) from the touchscreen while you work.
+
 </div>
 
 <figure class="homepage-demo">

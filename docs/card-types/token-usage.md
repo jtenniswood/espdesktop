@@ -1,3 +1,8 @@
+---
+title: Track AI Usage on Your EspDesktop Touchscreen
+description: See how much of your Codex, Claude, OpenCode Go, Cursor or Google Antigravity allowance remains and when it resets.
+---
+
 # Token Usage
 
 Show a weekly or monthly allowance on a paired display. Each card shows one service, the percentage remaining, and the time until its next reset. Add a card for each service to see multiple services.
@@ -10,6 +15,6 @@ Show a weekly or monthly allowance on a paired display. Each card shows one serv
 6. For Google Antigravity, install the [Antigravity CLI](https://antigravity.google/docs/cli/tutorial/), run `agy`, and sign in to your Google account. Choose **Google Antigravity (Gemini)** on the card to show the Gemini model group’s weekly allowance. EspDesktop reads the CLI’s built-in quota report in the background.
 7. In the panel’s web editor, add **Token Usage**, select a service, and apply the layout.
 
-The Mac app automatically refreshes usage in the background every few minutes when a compatible display is connected. The provider apps can be closed. EspDesktop must be running on your Mac. The panel hides the reset countdown when the reading is stale or the reset time is unknown. It shows **Unavailable** until it has a reading for the selected limit.
+The Mac app automatically refreshes usage in the background every few minutes when a compatible display is connected. The provider apps can be closed. EspDesktop must be running on your Mac. The paired display receives the allowance readings and reset times. Provider credentials stay on the Mac and are used by the relevant provider tools or requests. The panel hides the reset countdown when the reading is stale or the reset time is unknown. It shows **Unavailable** until it has a reading for the selected limit.
 
 New ChatGPT, Claude, Cursor, OpenCode, and Antigravity app subpages list Token Usage as included and place the card just after Back. To add it to an existing page, open the app card’s settings and save. If the layout has no room before its shortcuts, you can add or move the card in the subpage editor.
