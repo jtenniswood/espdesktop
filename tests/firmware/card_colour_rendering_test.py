@@ -291,6 +291,12 @@ int main() {
     assert(lv_obj_has_state(&break_scene, LV_STATE_CHECKED));
     companion_refresh_card_focus({});
     assert(!lv_obj_has_state(&break_scene, LV_STATE_CHECKED));
+    lv_obj_t recording;
+    focus_cards = {{&recording, "obs.output.record", "", ""}};
+    companion_refresh_card_focus({"obs.record.active"});
+    assert(lv_obj_has_state(&recording, LV_STATE_CHECKED));
+    companion_refresh_card_focus({});
+    assert(!lv_obj_has_state(&recording, LV_STATE_CHECKED));
     focus_cards.clear();
   }
   // An icon reload/reconnect after a light-theme change must not restore

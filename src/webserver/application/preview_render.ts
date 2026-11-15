@@ -542,7 +542,8 @@ export function createPreviewRenderFeature(dependencies: PreviewRenderDependenci
                 var activeMode: any = configOptionValue(b.options, "card_active_color");
                 var customActive: any = configOptionValue(b.options, "card_on_color").replace(/^#/, "");
                 var explicitActive: any = activeMode === "theme" || (activeMode === "custom" && /^[0-9A-F]{6}$/i.test(customActive));
-                var sliderFillColor: any = cardSliderFillColor(cardOffColor, explicitActive ? cardOnColor : "") || cardOnColor;
+                var sliderFillColor: any = typePreview?.sliderMuted ? "808080"
+                    : cardSliderFillColor(cardOffColor, explicitActive ? cardOnColor : "") || cardOnColor;
                 if (sliderFillColor) btn.style.setProperty("--card-slider-fill-color", "#" + sliderFillColor);
                 btn.draggable = !isPreviewReadOnly();
                 btn.setAttribute("data-pos", pos);

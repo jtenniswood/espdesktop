@@ -730,7 +730,8 @@ inline std::string companion_default_action_label_with_fallback(
 }
 
 inline std::string companion_obs_control_label(const std::string &action_id, const std::string &alias,
-                                               const std::string &live_label) {
+                                               const std::string &live_label, bool recording_active = false) {
+  if (action_id == "obs.output.record") return espdesktop_i18n(recording_active ? "Recording" : "Record");
   if (!alias.empty()) return alias;
   if (companion_obs_audio_uuid(action_id, "obs.mute.")) {
     for (std::string_view prefix : {"Muted · ", "Unmuted · "}) {
@@ -802,6 +803,9 @@ struct CompanionSliderRef {
   const char *icon_on = nullptr;
   lv_obj_t *text_label = nullptr;
   std::string base_label{};
+  lv_obj_t *obs_fader_fill = nullptr;
+  lv_color_t obs_fader_live_color{};
+  std::string obs_cough_id{};
 };
 
 inline void companion_apply_card_focus(lv_obj_t *button, const std::string &action_id,
@@ -815,11 +819,15 @@ inline void companion_apply_card_focus(lv_obj_t *button, const std::string &acti
   bool active = false;
   if (show_focus && companion_card_focus_allowed(url_config)) {
     const std::string focus_id = url_config.empty() ? action_id : companion_url_card_focus_id(url_config);
-    if (companion_obs_scene_card(action_id)) {
+    if (companion_obs_scene_card(action_id) || action_id == "obs.output.record") {
       const auto owned = snapshot ? CompanionRuntimeSnapshot{} : companion_runtime_snapshot();
       const auto &current = snapshot ? *snapshot : owned;
-      const std::string selection = "obs.selected." + action_id.substr(action_id.rfind('.') + 1);
-      active = companion_action_available(current, action_id) && companion_published_action(current, selection);
+      if (action_id == "obs.output.record") {
+        active = companion_published_action(current, "obs.record.active") != nullptr;
+      } else {
+        const std::string selection = "obs.selected." + action_id.substr(action_id.rfind('.') + 1);
+        active = companion_action_available(current, action_id) && companion_published_action(current, selection);
+      }
     } else {
       active = snapshot ? companion_action_focused(*snapshot, focus_id, true)
                         : companion_action_active(focus_id, true);
@@ -839,6 +847,7 @@ struct CompanionMuteRef {
   lv_obj_t *icon_label = nullptr;
   const char *icon_unmuted = nullptr;
   const char *icon_muted = nullptr;
+  lv_obj_t *text_label = nullptr;
 };
 
 struct CompanionViewRegistry {
@@ -908,22 +917,25 @@ inline void companion_slider_deleted(lv_event_t *event) {
 inline void companion_track_slider(lv_obj_t *slider, const std::string &control_id,
                                    lv_obj_t *icon_label, bool has_icon_on,
                                    const char *icon_off, const char *icon_on,
-                                   lv_obj_t *text_label = nullptr, const std::string &base_label = {}) {
+                                   lv_obj_t *text_label = nullptr, const std::string &base_label = {},
+                                   lv_obj_t *obs_fader_fill = nullptr) {
   if (!slider || !companion_volume_control_valid(control_id)) return;
   auto &refs = companion_slider_refs();
   auto existing = std::find_if(refs.begin(), refs.end(), [slider](const CompanionSliderRef &ref) {
     return ref.slider == slider;
   });
+  CompanionSliderRef ref{slider, icon_label, control_id, has_icon_on, icon_off, icon_on, text_label, base_label};
+  if (obs_fader_fill) {
+    ref.obs_fader_fill = obs_fader_fill;
+    ref.obs_fader_live_color = lv_obj_get_style_bg_color(obs_fader_fill, LV_PART_MAIN);
+    ref.obs_cough_id = "obs.cough." + control_id.substr(sizeof("obs.level.") - 1);
+  }
   if (existing != refs.end()) {
-    existing->control_id = control_id;
-    existing->icon_label = icon_label;
-    existing->has_icon_on = has_icon_on;
-    existing->icon_off = icon_off;
-    existing->icon_on = icon_on;
-    existing->text_label = text_label;
-    existing->base_label = base_label;
+    if (obs_fader_fill && existing->obs_fader_fill == obs_fader_fill)
+      ref.obs_fader_live_color = existing->obs_fader_live_color;
+    *existing = std::move(ref);
   } else {
-    refs.push_back({slider, icon_label, control_id, has_icon_on, icon_off, icon_on, text_label, base_label});
+    refs.push_back(std::move(ref));
     lv_obj_add_event_cb(slider, companion_slider_deleted, LV_EVENT_DELETE, nullptr);
   }
   companion_request_card_refresh();
@@ -997,23 +1009,25 @@ inline bool companion_forget_mute(lv_obj_t *button) {
   return true;
 }
 
-inline std::string companion_tracked_mute_control(lv_obj_t *button) {
+inline std::string companion_tracked_mute_control(lv_obj_t *button, lv_obj_t **text_label = nullptr) {
   const auto &refs = companion_view_registry().mutes;
   const auto found = std::find_if(refs.begin(), refs.end(), [button](const auto &ref) {
     return ref.button == button;
   });
+  if (text_label) *text_label = found == refs.end() ? nullptr : found->text_label;
   return found == refs.end() ? std::string{} : found->control_id;
 }
 
 inline void companion_track_mute(lv_obj_t *button, const std::string &control_id,
                                   lv_obj_t *icon_label = nullptr,
                                   const char *icon_unmuted = nullptr,
-                                  const char *icon_muted = nullptr) {
+                                  const char *icon_muted = nullptr,
+                                  lv_obj_t *text_label = nullptr) {
   if (!button || !(companion_mute_control_valid(control_id) ||
                    control_id == COMPANION_COUGH_ID || companion_obs_cough_control(control_id))) return;
   companion_forget_mute(button);
   companion_view_registry().mutes.push_back(
-    {button, control_id, icon_label, icon_unmuted, icon_muted});
+    {button, control_id, icon_label, icon_unmuted, icon_muted, text_label});
   lv_obj_add_event_cb(button, companion_mute_deleted, LV_EVENT_DELETE, nullptr);
   companion_request_card_refresh();
 }
@@ -1235,7 +1249,8 @@ inline void companion_refresh_cards_if_requested() {
       // the friendly name seen before the outage instead of showing its ID.
       const std::string live_label = companion_default_action_label_with_fallback(
         it->action_id, it->url_config, it->resolved_default_label, &snapshot);
-      const std::string label = companion_obs_control_label(it->action_id, it->obs_label_alias, live_label);
+      const bool recording = it->action_id == "obs.output.record" && companion_published_action(snapshot, "obs.record.active");
+      const std::string label = companion_obs_control_label(it->action_id, it->obs_label_alias, live_label, recording);
       if (it->obs_detail) companion_render_obs_detail(*it, label);
       else if (normalize_display_text(label) != lv_label_get_text(it->text_label))
         lv_label_set_display_text(it->text_label, label.c_str());
@@ -1263,6 +1278,13 @@ inline void companion_refresh_cards_if_requested() {
     const auto value = std::find_if(snapshot.values.begin(), snapshot.values.end(),
       [it](const CompanionValue &candidate) { return candidate.id == it->control_id; });
     const bool available = snapshot.connected && value != snapshot.values.end();
+    if (it->obs_fader_fill) {
+      const bool muted = snapshot.connected && std::any_of(snapshot.values.begin(), snapshot.values.end(),
+        [it](const CompanionValue &candidate) { return candidate.id == it->obs_cough_id && candidate.value > 0; });
+      const auto color = muted ? lv_color_hex(0x808080) : it->obs_fader_live_color;
+      if (!lv_color_eq(lv_obj_get_style_bg_color(it->obs_fader_fill, LV_PART_MAIN), color))
+        lv_obj_set_style_bg_color(it->obs_fader_fill, color, LV_PART_MAIN);
+    }
     if (it->text_label && lv_obj_is_valid(it->text_label)) {
       const bool meter = companion_obs_meter_control(it->control_id);
       char level[24]{};
@@ -1301,10 +1323,10 @@ inline void companion_setup_obs_detail(void *, const void *) {}
 inline void companion_apply_card_focus(void *, const std::string &, const std::string & = "", bool = true) {}
 inline bool companion_forget_mute(void *) { return false; }
 inline void companion_track_mute(void *, const std::string &, void * = nullptr,
-                                 const char * = nullptr, const char * = nullptr) {}
+                                 const char * = nullptr, const char * = nullptr, void * = nullptr) {}
 inline void companion_track_slider(void *, const std::string &, void *, bool,
                                    const char *, const char *, void * = nullptr,
-                                   const std::string & = {}) {}
+                                   const std::string & = {}, void * = nullptr) {}
 inline std::vector<std::string> companion_visible_obs_meters() { return {}; }
 inline void companion_refresh_cards_if_requested() {}
 inline void companion_paint_mute_preview(const std::string &, int) {}

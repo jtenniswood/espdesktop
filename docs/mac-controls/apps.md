@@ -98,11 +98,11 @@ A scene card created in normal mode switches the program scene. A scene card cre
 
 An **OBS Mic Mute** card changes the selected input in the OBS mixer. The ON colour and microphone icon show an unmuted input. Muting the input turns the colour off and shows a crossed-out microphone. Use the mic your broadcast captures when setting up the card, especially if it differs from the Mac’s default mic. Scene and input bindings are kept when a target is unavailable.
 
-Under **Sound**, choose **OBS Input Level** to adjust a named mixer input. The tile shows the confirmed fader setting in dB. Dragging it leaves the input’s mute and track settings alone. Choose **OBS Input Mute** to change the mute state.
+Under **Sound**, choose **OBS Input Level** to adjust a named mixer input. The tile shows the confirmed fader setting in dB. The fill turns grey while the input is muted, and you can still drag to adjust the level. Choose **OBS Input Mute** to change the mute state.
 
 Under **Sound**, choose **OBS Input Meter** to check signal on a named input. It shows the strongest channel before the fader, so it can move even while that input is muted. Check the mute card separately. A meter shows **Unavailable** when OBS stops reporting that input.
 
-Under **Sound**, choose **OBS Input Cough** and select the input to mute momentarily. Hold the card while you cough, then release it to restore the previous mute state. An input that was already muted stays muted.
+Under **Sound**, choose **OBS Input Cough** and select the input to mute momentarily. The tile reads **Muted** while held. Release it to restore the card label and the input’s previous mute state.
 
 Add an **OBS Status** tile and choose **Program scene**, **Streaming**, or **Recording**. These tiles display OBS state. You can check for an active stream, reconnecting stream, or paused recording while you work in another app.
 
@@ -112,7 +112,7 @@ To get started, open **Screen → App Subpages → Add OBS starter page** in the
 
 In the Mac Companion’s **OBS** settings, choose a **Break scene** and optionally select a **Mute during break** input. Add **OBS BRB** to the display. It verifies the mic is muted before switching Program. **Resume** returns to the previous scene and restores a mic that EspDesktop muted when it can verify those changes. If the card says **Check OBS**, check the Program scene and microphone in OBS, then clear the alert in the Mac Companion.
 
-Add **OBS Output Control** separately for streaming or recording. By default, it asks you to confirm both starting and stopping. **Confirmation Required** lets you choose **On** for starting, **Off** for stopping, or **Both**, and customise the message and button labels. If OBS changes the output while a prompt is open, check the updated action before trying again.
+Add **OBS Output Control** separately for streaming or recording. The recording tile says **Record** while idle and lights up as **Recording** when active. By default, it asks you to confirm both starting and stopping. **Confirmation Required** lets you choose **On** for starting, **Off** for stopping, or **Both**, and customise the message and button labels. If OBS changes the output while a prompt is open, check the updated action before trying again.
 
 Use matching display firmware and Mac app builds that support OBS cards. Before going live, try the cards with a test recording and listen back to check the mix.
 

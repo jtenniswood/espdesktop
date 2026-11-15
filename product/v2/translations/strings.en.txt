@@ -342,5 +342,6 @@ output_mute=Output Mute
 microphone_mute=Microphone Mute
 mic=Mic
 mute=Mute
+muted=Muted
 mac_update_required=Update Mac app
 mac_update_reconnect=Update EspDesktop on your Mac to reconnect.

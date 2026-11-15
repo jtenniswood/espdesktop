@@ -152,6 +152,7 @@ final class OBSProductionTests: XCTestCase {
         XCTAssertEqual(OBSConnection.productionActions(connection.state).map(\.label), [
             "Program · Gameplay", "Stream · Reconnecting", "Recording · Paused", "Take Live · BRB",
         ])
+        XCTAssertTrue(OBSConnection.controlActions(connection.state).contains { $0.id == "obs.record.active" })
         transport.onEvent?("CurrentSceneCollectionChanging", [:])
         XCTAssertTrue(OBSConnection.productionActions(connection.state).isEmpty)
     }
@@ -369,6 +370,10 @@ final class OBSProductionTests: XCTestCase {
         transport.recording = false
         transport.recordingPaused = false
         let connection = try await open(transport)
+        func showsRecording() -> Bool {
+            OBSConnection.controlActions(connection.state).contains { $0.id == "obs.record.active" }
+        }
+        XCTAssertFalse(showsRecording())
         let start = try XCTUnwrap(OBSConnection.outputActions(connection.state).first)
         XCTAssertEqual(start.label, "Start Recording")
         let token = try XCTUnwrap(OBSConnection.Output.command(start.id)?.1)
@@ -377,6 +382,7 @@ final class OBSProductionTests: XCTestCase {
         XCTAssertTrue(started)
         XCTAssertEqual(transport.outputWrites, ["StartRecord"])
         XCTAssertEqual(connection.state?.recordStatus, "Recording · Active")
+        XCTAssertTrue(showsRecording())
         let oldPrompt = await connection.performOutput(.record, token: token)
         XCTAssertFalse(oldPrompt)
 
@@ -388,6 +394,7 @@ final class OBSProductionTests: XCTestCase {
         XCTAssertFalse(stale)
         XCTAssertEqual(transport.outputWrites, ["StartRecord"])
         XCTAssertEqual(connection.state?.recordStatus, "Recording · Idle")
+        XCTAssertFalse(showsRecording())
     }
 
     @MainActor

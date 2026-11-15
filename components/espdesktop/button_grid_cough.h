@@ -12,6 +12,8 @@ struct CoughTouch {
   uint32_t last_confirmation = 0;
   int previous_mute = 0;
   std::string control;
+  lv_obj_t *text_label = nullptr;
+  std::string resting_label;
 };
 
 inline CoughTouch &cough_touch() {
@@ -29,11 +31,13 @@ inline bool send_cough_button_value(const std::string &control, int value, int p
   return true;
 }
 
-inline void cough_button_release(lv_obj_t *button) {
+inline void cough_button_release(lv_obj_t *button, bool restore_label = true) {
   auto &touch = cough_touch();
   if (!button || touch.button != button) return;
   auto released = std::move(touch);
   touch = {};
+  if (restore_label && released.text_label && lv_obj_is_valid(released.text_label))
+    lv_label_set_text(released.text_label, released.resting_label.c_str());
   send_cough_button_value(released.control, 0, released.previous_mute);
 }
 
@@ -42,11 +46,17 @@ inline void cough_button_press(lv_obj_t *button) {
   int value = 0;
   if (!button || touch.button || screen_lock_enabled() ||
       lv_obj_has_state(button, LV_STATE_DISABLED)) return;
-  auto control = companion_tracked_mute_control(button);
+  lv_obj_t *text_label = nullptr;
+  auto control = companion_tracked_mute_control(button, &text_label);
   if ((control != COMPANION_COUGH_ID && !companion_obs_cough_control(control)) ||
       !companion_value(control, value)) return;
   const int previous_mute = companion_runtime_service().displayed_mute_value(control, value);
-  if (send_cough_button_value(control, 100)) touch = {button, esphome::millis(), previous_mute, std::move(control)};
+  if (!send_cough_button_value(control, 100)) return;
+  touch = {button, esphome::millis(), previous_mute, std::move(control), text_label, {}};
+  if (text_label) {
+    touch.resting_label = lv_label_get_text(text_label);
+    lv_label_set_display_text(text_label, espdesktop_i18n("Muted"));
+  }
 }
 
 inline bool cough_pointer_within(lv_obj_t *button) {
@@ -81,8 +91,10 @@ inline void cough_button_event(lv_event_t *event) {
     }
     case LV_EVENT_RELEASED:
     case LV_EVENT_PRESS_LOST:
-    case LV_EVENT_DELETE:
       cough_button_release(button);
+      break;
+    case LV_EVENT_DELETE:
+      cough_button_release(button, false);
       break;
     default:
       break;
@@ -94,10 +106,10 @@ inline void unbind_cough_button(lv_obj_t *button) {
   if (button) lv_obj_remove_event_cb(button, cough_button_event);
 }
 
-inline void bind_cough_button(lv_obj_t *button, lv_obj_t *label, const char *unmuted,
+inline void bind_cough_button(lv_obj_t *button, lv_obj_t *icon_label, lv_obj_t *text_label, const char *unmuted,
                               const char *muted, const std::string &control, bool subpage) {
   unbind_cough_button(button);
-  companion_track_mute(button, control, label, unmuted, muted);
+  companion_track_mute(button, control, icon_label, unmuted, muted, text_label);
   static bool subpage_press = true;
   lv_obj_add_event_cb(button, cough_button_event, LV_EVENT_ALL, subpage ? &subpage_press : nullptr);
 }

@@ -7699,15 +7699,18 @@ async function assertOBSStarterPage(browser) {
   const away = "22222222-2222-2222-2222-222222222222";
   const mic = "33333333-3333-3333-3333-333333333333";
   const token = "44444444-4444-4444-4444-444444444444";
+  let recording = false;
+  let muted = true;
   await context.route("**/companion/actions", route => route.fulfill({ json: [
     { id: `obs.target.${main}.${token}`, label: "Gameplay" },
     { id: `obs.target.${away}.${token}`, label: "Break Room" },
     { id: `obs.selected.${main}`, label: "Selected OBS scene" },
-    { id: `obs.mute.${mic}`, label: "Muted · Desk Mic" },
+    { id: `obs.mute.${mic}`, label: (muted ? "Muted" : "Unmuted") + " · Desk Mic" },
     { id: "obs.take", label: "Take Live · Enable Studio Mode" },
     { id: "obs.brb", label: "BRB · Already on break" },
     { id: `obs.brb.scene.${away}`, label: "Configured BRB scene" },
     { id: `obs.level.${mic}`, label: "Desk Mic" },
+    ...(recording ? [{ id: "obs.record.active", label: "Recording" }] : []),
   ] }));
   const page = await context.newPage();
   await installFakeEventSource(page);
@@ -7748,6 +7751,9 @@ async function assertOBSStarterPage(browser) {
     await waitForNativeState(fixture, () => fixture.document.buttons[3]?.includes("obs_confirm=on") &&
       fixture.document.buttons[3].includes("confirm_yes=Record") && fixture.document.buttons[3].includes("confirm_no=Back"),
       "OBS output confirmation choices persist");
+    const recordTile = page.locator('.sp-main [data-slot="3"]');
+    await recordTile.getByText("Record", { exact: true }).waitFor();
+    const idleColor = await recordTile.evaluate(tile => getComputedStyle(tile).backgroundColor);
     await page.locator('.sp-main [data-slot="2"]').click({ button: "right" });
     await page.getByText("Edit Subpage", { exact: true }).click();
     await page.locator(".sp-back-btn").waitFor();
@@ -7775,6 +7781,21 @@ async function assertOBSStarterPage(browser) {
     const brbTile = page.locator('.sp-main [data-slot="7"]');
     assert.equal(await brbTile.locator('.sp-btn-label').innerText(), "BRB");
     assert.equal(await brbTile.locator('.sp-obs-detail').innerText(), "Already on break");
+    const fader = page.locator(".sp-main .sp-slider-fill");
+    const fillColor = () => fader.evaluate(fill => getComputedStyle(fill).backgroundColor);
+    assert.equal(await fillColor(), "rgb(128, 128, 128)", "muted mic fader is grey");
+    const closeSettings = page.locator(".sp-settings-overlay.sp-visible .sp-settings-close");
+    await closeSettings.click();
+    muted = false;
+    recording = true;
+    await mainTile.click({ button: "right" });
+    await page.getByText("Edit Card", { exact: true }).click();
+    await micTile.locator('.mdi-microphone').waitFor();
+    assert.notEqual(await fillColor(), "rgb(128, 128, 128)", "unmuted mic fader uses its active colour");
+    await closeSettings.click();
+    await page.locator(".sp-back-btn .sp-back-hit").click();
+    await recordTile.getByText("Recording", { exact: true }).waitFor({ timeout: 12000 });
+    assert.notEqual(await recordTile.evaluate(tile => getComputedStyle(tile).backgroundColor), idleColor);
     console.log("OBS starter page pinned, preserved the Home card, and reopened for editing.");
   } finally {
     await context.close();

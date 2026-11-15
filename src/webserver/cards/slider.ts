@@ -80,6 +80,7 @@ export function registerSliderCardTypes(
     companionSupported: boolean,
     cardUi: CardUiServices,
     fetchImpl: typeof fetch,
+    isOBSInputMuted: (inputId: string) => boolean,
 ): void {
     const { cardBadgeLabelHtml } = fields;
     const obsCatalogue = createCompanionCatalogue(fetchImpl);
@@ -548,6 +549,7 @@ export function registerSliderCardTypes(
                     };
                 }
                 return {
+                    sliderMuted: sliderMode === "obs_level" && isOBSInputMuted(b.entity.slice(OBS_FADER_PREFIX.length)),
                     buttonClass: opts.type === "cover" ? "sp-cover-preview" : "",
                     iconHtml: '<span class="sp-btn-icon mdi mdi-' + iconName + '"></span>' +
                         '<span class="sp-slider-preview"><span class="sp-slider-track">' +

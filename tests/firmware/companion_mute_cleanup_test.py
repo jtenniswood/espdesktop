@@ -8,10 +8,13 @@ from production_source import definition
 root = Path(__file__).resolve().parents[2]
 controls = (root / 'components/espdesktop/companion_controls.h').read_text()
 driver = (root / 'components/espdesktop/button_grid_numeric_selectable_driver.h').read_text()
+cough_card = (root / 'components/espdesktop/button_grid_cough.h').read_text()
 production = '\n'.join(definition(controls, name)[1] for name in (
     'companion_render_mute', 'companion_apply_mute_state', 'companion_paint_mute_preview', 'companion_erase_mute_ref', 'companion_mute_deleted',
     'companion_forget_mute', 'companion_tracked_mute_control', 'companion_track_mute'))
 production += definition(driver, 'numeric_selectable_driver_cleanup')[1]
+production += cough_card[cough_card.index('struct CoughTouch'):cough_card.index('inline bool send_cough_button_value')]
+production += '\n'.join(definition(cough_card, name)[1] for name in ('cough_button_release', 'cough_button_press'))
 stubs = r'''
 #include "companion_audio_control.h"
 #include <algorithm>
@@ -25,6 +28,7 @@ constexpr int LV_EVENT_DELETE=1;
 struct CompanionMuteRef {
   lv_obj_t *button; std::string control_id; lv_obj_t *icon_label=nullptr;
   const char *icon_unmuted=nullptr, *icon_muted=nullptr;
+  lv_obj_t *text_label=nullptr;
 };
 struct CompanionValue { std::string id; int value; };
 struct CompanionRuntimeSnapshot { bool connected=true; std::vector<CompanionValue> values; };
@@ -60,6 +64,12 @@ struct BtnSlot { lv_obj_t *btn; };
 struct ParsedCfg {};
 struct Context { bool numeric=false; };
 bool numeric_selectable_driver_matches(const Context &context, const ParsedCfg &) { return context.numeric; }
+namespace esphome { unsigned millis() { return 0; } }
+bool screen_lock_enabled() { return false; }
+bool companion_value(const std::string &, int &value) { value = 0; return true; }
+bool send_cough_button_value(const std::string &, int, int = 100) { return true; }
+const char *espdesktop_i18n(const char *value) { return value; }
+void lv_label_set_display_text(lv_obj_t *obj, const char *text) { lv_label_set_text(obj, text); }
 '''
 checks = r'''
 int main() {
@@ -108,8 +118,14 @@ int main() {
   assert(registry.mutes.size()==1 && registry.mutes.front().button==&second);
   assert(!companion_forget_mute(&first));
   const std::string cough = "obs.cough.69da3f8f-7f62-4abe-a594-4e40dd579858";
-  companion_track_mute(&first, cough, &input_icon, "mic", "mic-off");
+  lv_obj_t cough_title{false, false, "Cough"};
+  companion_track_mute(&first, cough, &input_icon, "mic", "mic-off", &cough_title);
   assert(companion_tracked_mute_control(&first) == cough);
+  first.disabled = false;
+  cough_button_press(&first);
+  assert(cough_title.text == "Muted");
+  cough_button_release(&first);
+  assert(cough_title.text == "Cough");
   companion_apply_mute_state(registry.mutes.back(), {true, {{cough, 100}}});
   assert(first.checked && !first.disabled && input_icon.text == "mic-off");
   assert(companion_forget_mute(&first));

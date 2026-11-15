@@ -341,5 +341,6 @@ output_mute=Dezactivează sunetul
 microphone_mute=Dezactivează microfonul
 mic=Microfon
 mute=Mut
+muted=Fără sunet
 mac_update_required=Actualizează aplicația pentru Mac
 mac_update_reconnect=Actualizează EspDesktop pe Mac pentru a te reconecta.

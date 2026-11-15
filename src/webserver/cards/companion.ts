@@ -467,7 +467,7 @@ export function registerCompanionCardTypes(
     maxSlots: number,
     connectorStatus: Pick<ConnectorsPageFeature, "onCompanionConnectionChange">,
     publishFinderFolders: (folders: readonly CompanionAction[]) => boolean,
-): void {
+): (inputId: string) => boolean {
     const { cardBadgePreview, cardBadgeLabelHtml, cardSensorPreviewHtml, fieldLabel } = fields;
     const { renderButtonSettings, renderPreview } = cardUi;
     const catalogue = createCompanionCatalogue(fetchImpl);
@@ -494,7 +494,7 @@ export function registerCompanionCardTypes(
             } else if (action.id.startsWith("obs.output.")) {
                 const output = OBS_OUTPUT_OPTIONS.find(([id]) => action.id.startsWith(id + "."));
                 if (output) obsControlLabels.set(output[0], action.label);
-            } else if (action.id === OBS_REPLAY_ID || OBS_STATUS_OPTIONS.some(([id]) => action.id === id)) {
+            } else if (action.id === "obs.record.active" || action.id === OBS_REPLAY_ID || OBS_STATUS_OPTIONS.some(([id]) => action.id === id)) {
                 obsControlLabels.set(action.id, action.label);
             }
         }
@@ -1644,10 +1644,13 @@ export function registerCompanionCardTypes(
                     obs_status: OBS_STATUS_OPTIONS.find(([id]) => id === card.entity)?.[1] || "OBS Status",
                 };
                 const currentLabel = obsControlLabels.get(card.entity);
+                const record = card.entity === "obs.output.record";
+                const recording = record && obsControlLabels.has("obs.record.active");
                 const alias = (mode === "obs_mic" || card.entity.startsWith("obs.target.")) && card.label;
                 const muted = mode === "obs_mic" && currentLabel?.startsWith("Muted · ");
                 const live = mode === "obs_mic" && currentLabel?.startsWith("Unmuted · ");
-                const label = alias || (mode === "obs_mic" ? currentLabel?.replace(/^(Muted|Unmuted) · /, "") : currentLabel) || fallback[mode];
+                const label = record ? (recording ? "Recording" : "Record")
+                    : alias || (mode === "obs_mic" ? currentLabel?.replace(/^(Muted|Unmuted) · /, "") : currentLabel) || fallback[mode];
                 const preview = cardBadgePreview(muted ? { ...card, icon: "Microphone Off" } : card, helpers, {
                     label, iconFallback: companionSubtypeDefaultIcon(mode), badge: COMPANION_CARD_METADATA.preview.badge,
                 });
@@ -1660,7 +1663,7 @@ export function registerCompanionCardTypes(
                 }
                 return {
                     ...preview,
-                    isOn: live || (mode === "obs" && !!currentLabel && card.entity.slice(-37) === obsControlLabels.get("obs.selected")),
+                    isOn: live || recording || (mode === "obs" && !!currentLabel && card.entity.slice(-37) === obsControlLabels.get("obs.selected")),
                     labelEditable: false,
                 };
             }
@@ -1918,4 +1921,5 @@ export function registerCompanionCardTypes(
             },
         });
     });
+    return inputId => obsControlLabels.get("obs.mute." + inputId)?.startsWith("Muted · ") === true;
 }

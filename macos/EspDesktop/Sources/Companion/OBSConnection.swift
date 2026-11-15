@@ -192,11 +192,13 @@ final class OBSConnection: ObservableObject {
     }
 
     static func controlActions(_ state: State?) -> [(id: String, label: String)] {
-        productionActions(state) + sceneActions(state) + audioActions(state) + faderActions(state) + meterActions(state) + coughActions(state) + outputActions(state) + adaptiveSceneActions(state) +
+        var actions = productionActions(state) + sceneActions(state) + audioActions(state) + faderActions(state) + meterActions(state) + coughActions(state) + outputActions(state) + adaptiveSceneActions(state) +
             selectedSceneActions(state) +
             unavailableTakeAction(state) +
             (state?.breakCard.map { [($0.actionID, $0.label)] } ?? []) +
             (state?.breakSceneID.map { [("obs.brb.scene." + $0, "Configured BRB scene")] } ?? [])
+        if state?.recording == true { actions.append(("obs.record.active", "Recording")) }
+        return actions
     }
 
     private static func unavailableTakeAction(_ state: State?) -> [(id: String, label: String)] {

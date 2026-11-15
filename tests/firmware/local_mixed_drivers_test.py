@@ -25,7 +25,7 @@ struct Context { struct { card_runtime::CardDriverId driver; card_runtime::CardT
 struct ParsedCfg { std::string type, entity, sensor, icon, icon_on, label; };
 struct lv_obj_t { void *data = nullptr; std::string text; };
 struct lv_event_t { void *data; };
-struct SliderCtx {};
+struct SliderCtx { lv_obj_t *fill = nullptr; };
 struct BtnSlot { lv_obj_t *btn, *sensor_container, *icon_lbl, *text_lbl; };
 struct CardPalette {};
 struct DisplayProfile {};
@@ -50,7 +50,7 @@ const char *companion_volume_control_label(const std::string &key) { return comp
 void unbind_cough_button(lv_obj_t *) {}
 constexpr char COMPANION_COUGH_ID[] = "media.cough";
 bool companion_obs_cough_control(const std::string &id) { return id.rfind("obs.cough.", 0) == 0; }
-void bind_cough_button(lv_obj_t *, lv_obj_t *, const char *, const char *, const std::string &, bool) {}
+void bind_cough_button(lv_obj_t *, lv_obj_t *, lv_obj_t *, const char *, const char *, const std::string &, bool) {}
 bool companion_forget_mute(lv_obj_t *) { return false; }
 void set_card_checked_state(lv_obj_t *, bool) {}
 void set_card_disabled_state(lv_obj_t *, bool) {}
@@ -64,7 +64,7 @@ bool companion_audio_control_id(const std::string &key) {
     return key == "media.output_volume" || key == "media.input_volume" || companion_mute_control_valid(key);
 }
 void companion_track_slider(lv_obj_t *, const std::string &key, lv_obj_t *, bool, const char *, const char *,
-                            lv_obj_t *, const std::string &) { assert(companion_volume_control_valid(key)); ++bindings; }
+                            lv_obj_t *, const std::string &, lv_obj_t *) { assert(companion_volume_control_valid(key)); ++bindings; }
 std::vector<std::pair<std::string,int>> commands;
 bool companion_toggle_mute(const std::string &key) { commands.emplace_back(key,100); return true; }
 unsigned companion_next_request_number() { return 1; }

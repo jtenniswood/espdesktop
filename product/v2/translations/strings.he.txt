@@ -342,5 +342,6 @@ output_mute=השתקת פלט
 microphone_mute=השתקת מיקרופון
 mic=מיקרופון
 mute=השתקה
+muted=מושתק
 mac_update_required=עדכון האפליקציה ב-Mac
 mac_update_reconnect=כדי להתחבר מחדש, יש לעדכן את EspDesktop ב-Mac.
