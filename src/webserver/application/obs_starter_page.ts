@@ -1,7 +1,7 @@
 import { createCompanionCatalogue, type CompanionAction } from "../api/companion_catalogue";
 import type { CardConfig } from "../contracts/types";
 import type { NativePanelConfigController } from "../controllers/native_panel_config_controller";
-import { emptyCardConfig, OBS_FADER_PREFIX } from "../model/card";
+import { emptyCardConfig, isEmptyCardConfig, OBS_FADER_PREFIX } from "../model/card";
 import { OBS_BRB_ID, OBS_TAKE_ID, savedOBSSceneTarget } from "../model/companion_card_codec";
 import { parseGridOrder } from "../model/grid";
 import type { NativeLayoutDraft } from "../model/native_layout_draft";
@@ -30,7 +30,8 @@ function starterSlot({ document, layout }: NativePanelConfigGraph, geometry: Geo
     const { grid } = parseGridOrder(order, totalSlots, gridCols, undefined, previewSlots);
     const tokens = order ? order.split(",") : [];
     const cell = grid.findIndex((value, index) => index < previewSlots && value === 0 && !tokens[index]?.trim());
-    const used = new Set([...layout.rootCards.map(card => card.slot), ...layout.pages.map(page => page.key), ...grid]);
+    const savedCards = layout.rootCards.filter(card => !isEmptyCardConfig(card.config));
+    const used = new Set([...savedCards.map(card => card.slot), ...layout.pages.map(page => page.key), ...grid]);
     let slot = 1;
     while (used.has(slot)) ++slot;
     if (cell < 0 || slot > previewSlots) throw new Error("Make room for one card on Home, then try again.");

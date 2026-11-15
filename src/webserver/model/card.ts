@@ -67,6 +67,11 @@ export function emptyCardConfig(type?: string): CardConfig {
   };
 }
 
+export function isEmptyCardConfig(card: CardConfig | undefined): boolean {
+  return !card || CARD_CONFIG_FIELDS.every(field => !card[field] ||
+    ((field === "icon" || field === "icon_on") && card[field] === "Auto"));
+}
+
 export function cloneCardConfig(src?: Partial<CardConfig> & Partial<DraftCardConfig>): DraftCardConfig {
   const button: DraftCardConfig = {
     entity: src?.entity || "",

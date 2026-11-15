@@ -130,4 +130,16 @@ test("OBS starter pins a native subpage without replacing an existing wide card"
     /Choose two different scenes/);
   assert.throws(() => pinOBSStarterPage(draft, current, controls, choices,
     { ...geometry, numSlots: 2, previewSlots: 2, gridCols: 2 }), /Make room/);
+
+  const cleared = empty({
+    buttons: { 1: "com.apple.Safari;Safari;Auto;Auto;;;companion",
+      ...Object.fromEntries(Array.from({ length: 8 }, (_, index) => [index + 2, ";;Auto;Auto;;;;;"])) },
+  });
+  const clearedDraft = new NativeLayoutDraft(cleared);
+  pinOBSStarterPage(clearedDraft, decodePanelPageSnapshot(cleared), controls, choices, geometry);
+  const clearedResult = decodePanelPageSnapshot(clearedDraft.finish());
+  assert.equal(clearedResult.document.settings.button_order, "2");
+  assert.equal(clearedResult.layout.rootCards[0].config.entity, safari.id);
+  assert.equal(clearedResult.layout.rootCards[1].config.label, "OBS Studio");
+  assert.equal(clearedResult.layout.pages[0].key, 2);
 });
