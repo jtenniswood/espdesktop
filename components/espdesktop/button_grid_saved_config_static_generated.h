@@ -75,6 +75,18 @@ inline bool normalize_saved_config_static(Config &config) {
     config.options.clear();
     return true;
   }
+  if (config.type == "companion_obs_cough") {
+    if (config.label.empty()) config.label = "OBS Input Cough";
+    if (config.icon == "") config.icon = "Microphone";
+    if (config.icon == "Auto") config.icon = "Microphone";
+    config.icon_on = "Auto";
+    config.sensor.clear();
+    config.unit.clear();
+    config.type = "companion_obs_cough";
+    config.precision.clear();
+    config.options.clear();
+    return true;
+  }
   if (config.type == "light_brightness") {
     config.sensor.clear();
     config.type = "light_brightness";

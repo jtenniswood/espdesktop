@@ -25,6 +25,10 @@ inline bool companion_obs_meter_control(std::string_view id) {
   return companion_obs_audio_uuid(id, "obs.meter.");
 }
 
+inline bool companion_obs_cough_control(std::string_view id) {
+  return companion_obs_audio_uuid(id, "obs.cough.");
+}
+
 inline bool companion_writable_audio_control_id(std::string_view id) {
   return id == "media.output_volume" || id == "media.input_volume" ||
     id == "media.output_mute" || id == "media.input_mute" || companion_obs_level_control(id);

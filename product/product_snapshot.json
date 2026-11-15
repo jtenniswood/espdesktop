@@ -10,7 +10,7 @@
   },
   "summary": {
     "deviceProfiles": 9,
-    "cardTypes": 40,
+    "cardTypes": 41,
     "entityNames": 92,
     "icons": 360,
     "structuralIcons": 39,
@@ -2039,6 +2039,18 @@
           }
         },
         "companion_cough": {
+          "driver": "numeric",
+          "capabilities": {
+            "informationOnly": false,
+            "subscriptions": true,
+            "actions": true,
+            "numericControl": false,
+            "modal": false,
+            "runtimeAllocation": false,
+            "subpage": true
+          }
+        },
+        "companion_obs_cough": {
           "driver": "numeric",
           "capabilities": {
             "informationOnly": false,
@@ -4976,6 +4988,63 @@
           "options": ""
         }
       },
+      "companion_obs_cough": {
+        "label": "OBS Input Cough",
+        "pickerKey": "companion_output_volume",
+        "allowInSubpage": true,
+        "domains": [],
+        "normalization": {
+          "fields": {
+            "entity": {
+              "policy": "keep"
+            },
+            "label": {
+              "policy": "default_if_empty",
+              "value": "OBS Input Cough"
+            },
+            "icon": {
+              "policy": "alias",
+              "aliases": {
+                "": "Microphone",
+                "Auto": "Microphone"
+              }
+            },
+            "icon_on": {
+              "policy": "default",
+              "value": "Auto"
+            },
+            "sensor": {
+              "policy": "clear"
+            },
+            "unit": {
+              "policy": "clear"
+            },
+            "type": {
+              "policy": "default",
+              "value": "companion_obs_cough"
+            },
+            "precision": {
+              "policy": "clear"
+            },
+            "options": {
+              "policy": "clear"
+            }
+          },
+          "unknownOptions": "drop",
+          "canonicalOptionOrder": []
+        },
+        "default": {
+          "entity": "",
+          "label": "OBS Input Cough",
+          "icon": "Microphone",
+          "icon_on": "Auto",
+          "sensor": "",
+          "unit": "",
+          "type": "companion_obs_cough",
+          "precision": "",
+          "options": ""
+        }
+      },
       "companion_mac_lock": {
         "label": "Mac Lock",
         "pickerLabel": "Lock Machine",
@@ -5811,6 +5880,7 @@
       "companion_output_mute": "OM",
       "companion_input_mute": "IM",
       "companion_cough": "CC",
+      "companion_obs_cough": "OC",
       "subpage": "G"
     },
     "releaseAvailability": {
@@ -5823,6 +5893,7 @@
         "companion_output_mute",
         "companion_input_mute",
         "companion_cough",
+        "companion_obs_cough",
         "companion_input_device",
         "subpage"
       ],

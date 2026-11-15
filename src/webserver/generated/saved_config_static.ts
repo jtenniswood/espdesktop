@@ -73,6 +73,18 @@ export function normalizeSavedConfigStatic(config: CardConfig): boolean {
     config.options = "";
     return true;
   }
+  if (config.type === "companion_obs_cough") {
+    if (!config.label) config.label = "OBS Input Cough";
+    if (config.icon === "") config.icon = "Microphone";
+    if (config.icon === "Auto") config.icon = "Microphone";
+    config.icon_on = "Auto";
+    config.sensor = "";
+    config.unit = "";
+    config.type = "companion_obs_cough";
+    config.precision = "";
+    config.options = "";
+    return true;
+  }
   if (config.type === "light_brightness") {
     config.sensor = "";
     config.type = "light_brightness";

@@ -100,7 +100,7 @@ final class CompanionStore: NSObject, ObservableObject {
     let obs: OBSConnection
     private var obsCatalogueObservation: AnyCancellable?
     private var obsMeterObservation: AnyCancellable?
-    private var obsFaderObservation: AnyCancellable?
+    private var obsAudioObservation: AnyCancellable?
     @Published var settingsRequestID: UUID?
     var requestedSettingsDestination: CompanionSettingsDestination = .displays
     static let privacyPolicyURL = URL(string: "https://espdesktop.com/reference/privacy")!
@@ -210,8 +210,8 @@ final class CompanionStore: NSObject, ObservableObject {
         obsMeterObservation = obs.$meterValues.removeDuplicates().sink { [weak self] values in
             self?.publishToConnectedDisplays { $0.publishOBSMeterValues(values) }
         }
-        obsFaderObservation = obs.$state.map(OBSConnection.faderValues).removeDuplicates().sink { [weak self] values in
-            self?.publishToConnectedDisplays { $0.publishOBSFaderValues(values) }
+        obsAudioObservation = obs.$state.map(OBSConnection.audioValues).removeDuplicates().sink { [weak self] values in
+            self?.publishToConnectedDisplays { $0.publishOBSAudioValues(values) }
         }
         sessionLock.onChange = { [weak self] locked, displayAwake in
             if locked || displayAwake == false { self?.releaseCoughButtons() }
@@ -796,7 +796,7 @@ final class CompanionStore: NSObject, ObservableObject {
                 display.connection.publishSystemMetrics(snapshot, force: true)
             }
             publishMediaControlValues(force: true, to: display)
-            display.connection.publishOBSFaderValues(OBSConnection.faderValues(obs.state), force: true)
+            display.connection.publishOBSAudioValues(OBSConnection.audioValues(obs.state), force: true)
             display.connection.publishMediaControlValues(lastAppVolumeValues, unavailable: [])
             refreshAppVolumeValues()
         }
@@ -908,8 +908,17 @@ final class CompanionStore: NSObject, ObservableObject {
         return false
     }
 
-    func obsFaderValues() -> [String: Int] {
-        OBSConnection.faderValues(obs.state)
+    func setOBSCough(_ value: Int, controlIdentifier: String, from session: ObjectIdentifier) async -> Bool {
+        guard !sessionLock.locked, sessionLock.displayAwake != false else { return false }
+        return await obs.setCough(value, controlID: controlIdentifier, from: session)
+    }
+
+    func abandonOBSCough(from session: ObjectIdentifier) {
+        obs.abandonCoughHolds(from: session)
+    }
+
+    func obsAudioValues() -> [String: Int] {
+        OBSConnection.audioValues(obs.state)
     }
 
     func setOBSFader(_ value: Int, controlIdentifier: String) async -> Bool {
@@ -1141,6 +1150,7 @@ final class CompanionStore: NSObject, ObservableObject {
     }
 
     func releaseCoughButtons() {
+        obs.abandonCoughHolds()
         for hold in coughHolds.values { hold.cancel() }
         coughHolds.removeAll()
         restoreCoughInput()

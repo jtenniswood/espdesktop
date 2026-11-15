@@ -1467,6 +1467,19 @@
     "valid": true
   },
   {
+    "name": "panel can confirm a held OBS Cough card",
+    "message": {
+      "protocol": 4,
+      "type": "value.set",
+      "controlId": "obs.cough.69da3f8f-7f62-4abe-a594-4e40dd579858",
+      "requestId": "obs-cough",
+      "value": 50
+    },
+    "direction": "panel_to_mac",
+    "state": "connected",
+    "valid": true
+  },
+  {
     "name": "panel cannot set an OBS meter",
     "message": {
       "protocol": 4,

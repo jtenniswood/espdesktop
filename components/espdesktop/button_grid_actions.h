@@ -27,7 +27,7 @@ inline void handle_button_press(const std::string &cfg, int slot_num,
   if (screen_lock_enabled()) return;
   if (slot_num <= 0 || slot_num > MAX_GRID_SLOTS) return;
   const ParsedCfg p = grid_layout_card_config(slot_num, cfg);
-  if (p.type == "companion_cough") {
+  if (p.type == "companion_cough" || p.type == "companion_obs_cough") {
     cough_button_press(btn_obj);
     return;
   }

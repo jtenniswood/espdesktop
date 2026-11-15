@@ -60,6 +60,7 @@ inline Family family_for_runtime_type(espdesktop::card_runtime::CardTypeId type)
     case Type::COMPANION_OUTPUT_MUTE:
     case Type::COMPANION_INPUT_MUTE:
     case Type::COMPANION_COUGH:
+    case Type::COMPANION_OBS_COUGH:
     case Type::SLIDER:
     case Type::LIGHT_BRIGHTNESS: return Family::SLIDER;
     case Type::SUBPAGE: return Family::SUBPAGE;

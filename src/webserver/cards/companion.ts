@@ -1772,6 +1772,48 @@ export function registerCompanionCardTypes(
         }),
     });
 
+    const obsCoughDefaults = cardContractDefaultConfig("companion_obs_cough");
+    const obsCoughPrefix = "obs.cough.";
+    registry.register("companion_obs_cough", {
+        ...registry.definitions.companion_cough,
+        label: obsCoughDefaults.label,
+        pickerKey: cardContractPickerKey("companion_obs_cough"),
+        defaultConfig: () => obsCoughDefaults,
+        onSelect: (card) => Object.assign(card, obsCoughDefaults),
+        renderSettings: (panel, card, _slot, helpers) => {
+            const saved = card.entity;
+            const placeholder = "Choose an OBS audio input…";
+            const choices: [string, string][] = [["", placeholder]];
+            if (saved) choices.push([saved, "Saved OBS input"]);
+            const { field, select } = helpers.selectField("OBS audio input", helpers.idPrefix + "obs-cough",
+                choices, saved, () => {
+                    if (!select.value) return;
+                    card.entity = select.value;
+                    helpers.saveField("entity", card.entity);
+                });
+            panel.appendChild(field);
+            helpers.markCardPrimaryField(field, "entity");
+            helpers.requireField(select, "Choose an OBS audio input before saving.");
+            const note = document.createElement("p");
+            note.className = "sp-setting-note";
+            note.textContent = "Loading audio inputs from OBS…";
+            field.appendChild(note);
+            select.disabled = true;
+            void loadCompanionActions(true).then(actions => {
+                const inputs = actions.filter(action => action.id.startsWith(obsCoughPrefix));
+                const entries = inputs.map(input => new Option(input.label, input.id));
+                if (saved && !inputs.some(input => input.id === saved))
+                    entries.unshift(new Option("Saved OBS input (unavailable)", saved));
+                select.replaceChildren(new Option(placeholder, ""), ...entries);
+                select.value = saved;
+                select.disabled = inputs.length === 0;
+                note.textContent = inputs.length ? "Hold to mute the selected input in OBS."
+                    : "Connect OBS in the Mac Companion to choose an input.";
+            }).catch(() => { note.textContent = "Connect OBS in the Mac Companion to choose an input."; });
+            helpers.renderCardIconPicker(panel, card, helpers, coughMetadata.icon);
+        },
+    });
+
     const companionPickerDefinitions: readonly [string, string, string][] = [
         ["companion_app", "Applications", "app"],
         ["companion_shortcut", "Key Shortcut", "shortcut"],

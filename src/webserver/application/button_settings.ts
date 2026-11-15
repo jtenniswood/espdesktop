@@ -1015,6 +1015,7 @@ export function createButtonSettingsFeature(
                 ["companion_input_volume", "Audio Input"],
                 ["companion_input_mute", "Input Mute"],
                 ["companion_cough", "Input Cough"],
+                ["companion_obs_cough", "OBS Input Cough"],
                 ["companion_input_device", "Input per device level"],
             ];
             const subtype = selectField("Type", idPrefix + "audio-type", audioSubtypes, b.type,

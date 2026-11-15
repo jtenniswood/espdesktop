@@ -1383,6 +1383,7 @@ SAVED_CONFIG_STATIC_CARD_TYPES = (
     "companion_output_mute",
     "companion_input_mute",
     "companion_cough",
+    "companion_obs_cough",
     "light_brightness",
     "light_switch",
     "light_temperature",

@@ -259,6 +259,7 @@ enum CompanionProtocolDecoder {
                 let macControls = ["media.output_volume", "media.input_volume", "media.output_mute", "media.input_mute", "media.cough"]
                 return macControls.contains(text) || appVolumeBundleIdentifier(text) != nil ||
                     isInputDeviceControl(text) || OBSConnection.faderInputUUID(for: text) != nil ||
+                    OBSConnection.coughInputUUID(for: text) != nil ||
                     (pattern == "volume_control_id" && OBSConnection.meterInputUUID(for: text) != nil)
             }
             return true

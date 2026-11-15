@@ -121,7 +121,7 @@ final class OBSConnection: ObservableObject {
     }
 
     static func controlActions(_ state: State?) -> [(id: String, label: String)] {
-        productionActions(state) + sceneActions(state) + audioActions(state) + faderActions(state) + meterActions(state)
+        productionActions(state) + sceneActions(state) + audioActions(state) + faderActions(state) + meterActions(state) + coughActions(state)
     }
 
     static func sceneActions(_ state: State?) -> [(id: String, label: String)] {
@@ -165,6 +165,10 @@ final class OBSConnection: ObservableObject {
         audioInputUUID(for: controlID, prefix: "obs.meter.")
     }
 
+    nonisolated static func coughInputUUID(for controlID: String) -> UUID? {
+        audioInputUUID(for: controlID, prefix: "obs.cough.")
+    }
+
     private nonisolated static func audioInputUUID(for controlID: String, prefix: String) -> UUID? {
         guard controlID.hasPrefix(prefix),
               let uuid = UUID(uuidString: String(controlID.dropFirst(prefix.count))),
@@ -204,6 +208,23 @@ final class OBSConnection: ObservableObject {
         for (id, value) in state?.inputFaders ?? [:] {
             guard let uuid = UUID(uuidString: id) else { continue }
             values["obs.level." + uuid.uuidString.lowercased()] = value
+        }
+        return values
+    }
+
+    private static func coughActions(_ state: State?) -> [(id: String, label: String)] {
+        guard let state else { return [] }
+        return state.inputs.compactMap { input in
+            guard state.inputMutes[input.id] != nil, let uuid = UUID(uuidString: input.id) else { return nil }
+            return ("obs.cough." + uuid.uuidString.lowercased(), input.name)
+        }
+    }
+
+    static func audioValues(_ state: State?) -> [String: Int] {
+        var values = faderValues(state)
+        for (id, muted) in state?.inputMutes ?? [:] {
+            guard let uuid = UUID(uuidString: id) else { continue }
+            values["obs.cough." + uuid.uuidString.lowercased()] = muted ? 100 : 0
         }
         return values
     }
@@ -275,6 +296,16 @@ final class OBSConnection: ObservableObject {
     private var generation = UUID()
     private var collectionChanging = false
     private var pendingMuteCommands = Set<UUID>()
+    private struct CoughHold {
+        let session: ObjectIdentifier
+        var lastTouch: ContinuousClock.Instant
+        var wasMuted = false
+        var settingMute = false
+        var sawMute = false
+        var restore = false
+    }
+    private var coughHolds: [UUID: CoughHold] = [:]
+    private let coughTouchTimeout: Duration
     private var takingPreview = false
     private var transitionProbe: Task<Void, Never>?
     private let transitionProbeInterval: Duration
@@ -297,12 +328,14 @@ final class OBSConnection: ObservableObject {
 
     init(defaults: UserDefaults = .standard, socket: any OBSWebSocketTransport = OBSWebSocket(),
          transitionProbeInterval: Duration = .seconds(1),
-         meterInterval: Duration = .milliseconds(200), meterExpiry: Duration = .seconds(1)) {
+         meterInterval: Duration = .milliseconds(200), meterExpiry: Duration = .seconds(1),
+         coughTouchTimeout: Duration = .seconds(1)) {
         self.defaults = defaults
         self.socket = socket
         self.transitionProbeInterval = transitionProbeInterval
         self.meterInterval = meterInterval
         self.meterExpiry = meterExpiry
+        self.coughTouchTimeout = coughTouchTimeout
         enabled = defaults.bool(forKey: Keys.enabled)
         port = UInt16(exactly: defaults.integer(forKey: Keys.port)).flatMap { $0 == 0 ? nil : $0 } ?? 4455
 
@@ -423,6 +456,78 @@ final class OBSConnection: ObservableObject {
         return await command("SetInputMute", fields: ["inputUuid": id, "inputMuted": muted])
     }
 
+    func abandonCoughHolds(from session: ObjectIdentifier? = nil) {
+        if let session { coughHolds = coughHolds.filter { $0.value.session != session } }
+        else { coughHolds.removeAll() }
+    }
+
+    func setCough(_ value: Int, controlID: String, from session: ObjectIdentifier) async -> Bool {
+        guard let uuid = Self.coughInputUUID(for: controlID), let state,
+              let input = state.inputs.first(where: { UUID(uuidString: $0.id) == uuid }),
+              state.inputMutes[input.id] != nil else { return false }
+        let now = ContinuousClock.now
+        coughHolds = coughHolds.filter { $0.value.lastTouch.duration(to: now) < coughTouchTimeout }
+        if value == 50 {
+            guard var hold = coughHolds[uuid], hold.session == session else { return false }
+            hold.lastTouch = now
+            coughHolds[uuid] = hold
+            return true
+        }
+        guard value == 0 || value == 100, pendingMuteCommands.insert(uuid).inserted else { return false }
+        defer { pendingMuteCommands.remove(uuid) }
+        let active = generation
+        let collection = state.collection
+        if value == 100 {
+            guard coughHolds[uuid] == nil else { return false }
+            coughHolds[uuid] = CoughHold(session: session, lastTouch: now)
+            guard let muted = await micMute(id: input.id, collection: collection),
+                  active == generation, var hold = coughHolds[uuid], hold.session == session else {
+                coughHolds.removeValue(forKey: uuid)
+                return false
+            }
+            if muted {
+                hold.wasMuted = true
+                coughHolds[uuid] = hold
+                publishConfirmedMute(true, for: input.id)
+                return true
+            }
+            hold.settingMute = true
+            coughHolds[uuid] = hold
+            let accepted = await setMicMute(id: input.id, collection: collection, muted: true)
+            let confirmed = await micMute(id: input.id, collection: collection)
+            guard active == generation, var updated = coughHolds[uuid], updated.session == session else { return false }
+            publishConfirmedMute(confirmed, for: input.id)
+            guard confirmed == true else {
+                coughHolds.removeValue(forKey: uuid)
+                return false
+            }
+            updated.settingMute = false
+            updated.restore = accepted && updated.sawMute
+            coughHolds[uuid] = updated
+            return true
+        }
+
+        guard let hold = coughHolds[uuid], hold.session == session else { return false }
+        defer { coughHolds.removeValue(forKey: uuid) }
+        if hold.wasMuted { return true }
+        guard hold.restore else { return false }
+        guard await micMute(id: input.id, collection: collection) == true,
+              active == generation, let currentHold = coughHolds[uuid],
+              currentHold.session == session, currentHold.restore,
+              currentHold.lastTouch.duration(to: .now) < coughTouchTimeout else { return false }
+        let accepted = await setMicMute(id: input.id, collection: collection, muted: false)
+        let confirmed = await micMute(id: input.id, collection: collection)
+        guard active == generation else { return false }
+        publishConfirmedMute(confirmed, for: input.id)
+        return accepted && confirmed == false
+    }
+
+    private func publishConfirmedMute(_ muted: Bool?, for id: String) {
+        guard let muted, var current = state, current.inputMutes[id] != muted else { return }
+        current.inputMutes[id] = muted
+        state = current
+    }
+
     private func command(_ name: String, fields: OBSWebSocket.Fields) async -> Bool {
         let active = generation
         do {
@@ -531,6 +636,7 @@ final class OBSConnection: ObservableObject {
     }
 
     private func invalidate() {
+        abandonCoughHolds()
         meterPeaks.removeAll()
         meterSamples.removeAll()
         if !meterValues.isEmpty { meterValues = [:] }
@@ -652,6 +758,16 @@ final class OBSConnection: ObservableObject {
         case "InputMuteStateChanged":
             guard let id = fields["inputUuid"] as? String,
                   let muted = fields["inputMuted"] as? Bool else { return }
+            if let uuid = UUID(uuidString: id), var hold = coughHolds[uuid] {
+                // One mute event may belong to our touch-down. Any other change
+                // supersedes ownership, including an unmute followed by a mute.
+                if hold.settingMute, muted, !hold.sawMute {
+                    hold.sawMute = true
+                    coughHolds[uuid] = hold
+                } else {
+                    coughHolds.removeValue(forKey: uuid)
+                }
+            }
             if var current = state, current.inputMutes[id] != nil {
                 current.inputMutes[id] = muted
                 state = current

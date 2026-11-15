@@ -10,7 +10,7 @@
 // =============================================================================
 
 constexpr int CARD_CONTRACT_VERSION = 1;
-inline bool card_contract_type_stable(std::string_view type) { return type == "companion" || type == "companion_mac_lock" || type == "companion_app_volume" || type == "companion_output_volume" || type == "companion_input_volume" || type == "companion_output_mute" || type == "companion_input_mute" || type == "companion_cough" || type == "companion_input_device" || type == "subpage"; }
+inline bool card_contract_type_stable(std::string_view type) { return type == "companion" || type == "companion_mac_lock" || type == "companion_app_volume" || type == "companion_output_volume" || type == "companion_input_volume" || type == "companion_output_mute" || type == "companion_input_mute" || type == "companion_cough" || type == "companion_obs_cough" || type == "companion_input_device" || type == "subpage"; }
 inline bool card_contract_type_retired(const std::string &type) { return type == "companion_window" || type == "sensor" || type == "local_sensor" || type == "text_sensor" || type == "internal" || type == "wifi_qr" || type == "wifi_qr_card" || type == "screen_lock" || type == "screensaver" || type == "action" || type == "local" || type == "option_select" || type == "calendar" || type == "clock" || type == "timezone" || type == "webhook" || type == "companion_webapp" || type == "companion_audio" || type == "S" || type == "LS" || type == "I" || type == "SL" || type == "SS" || type == "A" || type == "U" || type == "WH"; }
 namespace espdesktop::card_runtime {
 
@@ -48,6 +48,7 @@ enum class CardTypeId : uint8_t {
   COMPANION_INPUT_VOLUME,
   COMPANION_OUTPUT_VOLUME,
   COMPANION_COUGH,
+  COMPANION_OBS_COUGH,
   COMPANION_INPUT_MUTE,
   COMPANION_OUTPUT_MUTE,
   SLIDER,
@@ -152,6 +153,7 @@ inline CardTypeId card_type_id(const std::string &type) {
   if (type == "companion_input_volume") return CardTypeId::COMPANION_INPUT_VOLUME;
   if (type == "companion_output_volume") return CardTypeId::COMPANION_OUTPUT_VOLUME;
   if (type == "companion_cough") return CardTypeId::COMPANION_COUGH;
+  if (type == "companion_obs_cough") return CardTypeId::COMPANION_OBS_COUGH;
   if (type == "companion_input_mute") return CardTypeId::COMPANION_INPUT_MUTE;
   if (type == "companion_output_mute") return CardTypeId::COMPANION_OUTPUT_MUTE;
   if (type == "slider") return CardTypeId::SLIDER;
@@ -197,6 +199,7 @@ inline CardRuntimeSpec card_runtime_spec(CardTypeId type) {
     case CardTypeId::COMPANION_INPUT_VOLUME: return {type, CardDriverId::NUMERIC, static_cast<uint16_t>(CAPABILITY_SUBSCRIPTIONS | CAPABILITY_ACTIONS | CAPABILITY_NUMERIC_CONTROL | CAPABILITY_RUNTIME_ALLOCATION | CAPABILITY_SUBPAGE)};
     case CardTypeId::COMPANION_OUTPUT_VOLUME: return {type, CardDriverId::NUMERIC, static_cast<uint16_t>(CAPABILITY_SUBSCRIPTIONS | CAPABILITY_ACTIONS | CAPABILITY_NUMERIC_CONTROL | CAPABILITY_RUNTIME_ALLOCATION | CAPABILITY_SUBPAGE)};
     case CardTypeId::COMPANION_COUGH: return {type, CardDriverId::NUMERIC, static_cast<uint16_t>(CAPABILITY_SUBSCRIPTIONS | CAPABILITY_ACTIONS | CAPABILITY_SUBPAGE)};
+    case CardTypeId::COMPANION_OBS_COUGH: return {type, CardDriverId::NUMERIC, static_cast<uint16_t>(CAPABILITY_SUBSCRIPTIONS | CAPABILITY_ACTIONS | CAPABILITY_SUBPAGE)};
     case CardTypeId::COMPANION_INPUT_MUTE: return {type, CardDriverId::NUMERIC, static_cast<uint16_t>(CAPABILITY_SUBSCRIPTIONS | CAPABILITY_ACTIONS | CAPABILITY_SUBPAGE)};
     case CardTypeId::COMPANION_OUTPUT_MUTE: return {type, CardDriverId::NUMERIC, static_cast<uint16_t>(CAPABILITY_SUBSCRIPTIONS | CAPABILITY_ACTIONS | CAPABILITY_SUBPAGE)};
     case CardTypeId::SLIDER: return {type, CardDriverId::NUMERIC, static_cast<uint16_t>(CAPABILITY_SUBSCRIPTIONS | CAPABILITY_ACTIONS | CAPABILITY_NUMERIC_CONTROL | CAPABILITY_RUNTIME_ALLOCATION | CAPABILITY_SUBPAGE)};
@@ -575,6 +578,7 @@ inline const char *card_contract_card_label(const std::string &type) {
   if (type == "companion_output_mute") return "Mute";
   if (type == "companion_input_mute") return "Mute";
   if (type == "companion_cough") return "Cough";
+  if (type == "companion_obs_cough") return "OBS Input Cough";
   if (type == "companion_mac_lock") return "Mac Lock";
   if (type == "companion") return "Companion";
   if (type == "slider") return "Legacy Slider";
@@ -619,6 +623,7 @@ inline bool card_contract_allow_in_subpage(const std::string &type) {
   if (type == "companion_output_mute") return true;
   if (type == "companion_input_mute") return true;
   if (type == "companion_cough") return true;
+  if (type == "companion_obs_cough") return true;
   if (type == "companion_mac_lock") return true;
   if (type == "companion") return true;
   if (type == "slider") return true;
@@ -663,6 +668,7 @@ inline const char *card_contract_default_icon_name(const std::string &type) {
   if (type == "companion_output_mute") return "Volume High";
   if (type == "companion_input_mute") return "Microphone";
   if (type == "companion_cough") return "Microphone";
+  if (type == "companion_obs_cough") return "Microphone";
   if (type == "companion_mac_lock") return "Lock";
   if (type == "companion") return "Monitor";
   if (type == "slider") return "Auto";
@@ -707,6 +713,7 @@ inline const char *card_contract_default_icon_on_name(const std::string &type) {
   if (type == "companion_output_mute") return "Auto";
   if (type == "companion_input_mute") return "Auto";
   if (type == "companion_cough") return "Auto";
+  if (type == "companion_obs_cough") return "Auto";
   if (type == "companion_mac_lock") return "Auto";
   if (type == "companion") return "Auto";
   if (type == "slider") return "Auto";
@@ -789,6 +796,7 @@ inline std::string_view card_contract_subpage_code_view(std::string_view type) {
   if (type == "companion_output_mute") return "OM";
   if (type == "companion_input_mute") return "IM";
   if (type == "companion_cough") return "CC";
+  if (type == "companion_obs_cough") return "OC";
   if (type == "subpage") return "G";
   return type;
 }
@@ -834,6 +842,7 @@ inline const char *card_contract_subpage_type_code(const std::string &type) {
   if (type == "companion_output_mute") return "OM";
   if (type == "companion_input_mute") return "IM";
   if (type == "companion_cough") return "CC";
+  if (type == "companion_obs_cough") return "OC";
   if (type == "subpage") return "G";
   return type.c_str();
 }
@@ -879,6 +888,7 @@ inline std::string_view card_contract_subpage_type_view(const std::string_view &
   if (code == "OM") return "companion_output_mute";
   if (code == "IM") return "companion_input_mute";
   if (code == "CC") return "companion_cough";
+  if (code == "OC") return "companion_obs_cough";
   if (code == "G") return "subpage";
   return code;
 }
@@ -924,6 +934,7 @@ inline std::string card_contract_subpage_type_from_code(const std::string &code)
   if (code == "OM") return "companion_output_mute";
   if (code == "IM") return "companion_input_mute";
   if (code == "CC") return "companion_cough";
+  if (code == "OC") return "companion_obs_cough";
   if (code == "G") return "subpage";
   return code;
 }

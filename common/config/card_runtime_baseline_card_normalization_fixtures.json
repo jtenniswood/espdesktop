@@ -1080,6 +1080,21 @@
     }
   },
   {
+    "name": "companion_obs_cough: hold_to_mute",
+    "input": "~obs.cough.69da3f8f-7f62-4abe-a594-4e40dd579858,OBS%20Input%20Cough,Microphone,Auto,,,companion_obs_cough,,",
+    "expected": {
+      "entity": "obs.cough.69da3f8f-7f62-4abe-a594-4e40dd579858",
+      "label": "OBS Input Cough",
+      "icon": "Microphone",
+      "icon_on": "Auto",
+      "sensor": "",
+      "unit": "",
+      "type": "companion_obs_cough",
+      "precision": "",
+      "options": ""
+    }
+  },
+  {
     "name": "slider: numeric",
     "input": "~input_number.example,,Auto,Auto,,,slider,,",
     "expected": {

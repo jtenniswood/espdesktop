@@ -39,7 +39,9 @@ protocol CompanionSessionResources: AnyObject {
     func setMediaControlValue(_ value: Int, controlIdentifier: String) async -> Bool
     func setCoughButtonValue(_ value: Int, from session: ObjectIdentifier) -> Bool
     func setOBSFader(_ value: Int, controlIdentifier: String) async -> Bool
-    func obsFaderValues() -> [String: Int]
+    func obsAudioValues() -> [String: Int]
+    func setOBSCough(_ value: Int, controlIdentifier: String, from session: ObjectIdentifier) async -> Bool
+    func abandonOBSCough(from session: ObjectIdentifier)
 }
 
 @MainActor
@@ -73,7 +75,9 @@ extension CompanionSessionResources {
     var applicationCatalogueReady: Bool { true }
     func obsControlActions() -> [(id: String, label: String)] { [] }
     func setOBSFader(_ value: Int, controlIdentifier: String) async -> Bool { false }
-    func obsFaderValues() -> [String: Int] { [:] }
+    func obsAudioValues() -> [String: Int] { [:] }
+    func setOBSCough(_ value: Int, controlIdentifier: String, from session: ObjectIdentifier) async -> Bool { false }
+    func abandonOBSCough(from session: ObjectIdentifier) {}
     func remoteCompanionCatalogues() -> RemoteCompanionCatalogues { .empty }
     func focusedCompanionActionIdentifiers(for targets: [(id: String, url: URL)]) async -> [String] {
         let identifier = await focusedCompanionActionIdentifier()

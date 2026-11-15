@@ -293,6 +293,11 @@
       "lifecycle": { "subscriptions": ["state"], "actions": ["local"], "modalOwner": "none" },
       "modes": [{ "name": "hold_to_mute", "config": {} }]
     },
+    "companion_obs_cough": {
+      "classification": "canonical", "canonicalType": "companion_obs_cough", "webRegistration": "companion_obs_cough", "firmwareFamily": "SLIDER",
+      "lifecycle": { "subscriptions": ["state"], "actions": ["local"], "modalOwner": "none" },
+      "modes": [{ "name": "hold_to_mute", "config": { "entity": "obs.cough.69da3f8f-7f62-4abe-a594-4e40dd579858" } }]
+    },
     "slider": {
       "classification": "canonical", "canonicalType": "slider", "webRegistration": "slider", "firmwareFamily": "SLIDER",
       "lifecycle": { "subscriptions": ["state"], "actions": ["home_assistant_service"], "modalOwner": "none" },

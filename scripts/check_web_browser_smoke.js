@@ -4263,12 +4263,14 @@ async function assertAppVolumeCard(browser) {
   nativeState.document.settings.button_order = "";
   const context = await browser.newContext({ viewport: testCase.viewport });
   await installRoutes(context, testCase.slug, { nativeState });
+  const coughID = "obs.cough.69da3f8f-7f62-4abe-a594-4e40dd579858";
   await context.route("**/companion/actions", route => route.fulfill({
     status: 200,
     json: [
       { id: "com.spotify.client", label: "Spotify" },
       { id: "com.google.Chrome", label: "Chrome" },
       { id: "folder.music", label: "Music folder" },
+      { id: coughID, label: "OBS Desk Mic" },
       { id: "input.level." + "a".repeat(64), label: "USB Microphone" },
     ],
   }));
@@ -4285,7 +4287,7 @@ async function assertAppVolumeCard(browser) {
     const subtype = page.locator('select[id$="audio-type"]');
     assert.deepEqual(await subtype.locator("option").allTextContents(),
       ["Audio Output", "Output Mute", "Output per application",
-        "Audio Input", "Input Mute", "Input Cough", "Input per device level"]);
+        "Audio Input", "Input Mute", "Input Cough", "OBS Input Cough", "Input per device level"]);
     await subtype.selectOption("companion_app_volume");
     const application = page.getByLabel("Application", { exact: true });
     await application.locator('option[value="app.volume.com.spotify.client"]').waitFor({ state: "attached" });
@@ -4332,7 +4334,23 @@ async function assertAppVolumeCard(browser) {
     await waitForNativeState(nativeState, () => Object.values(nativeState.document.buttons)
       .includes(inputID + ";USB Microphone;Microphone;Auto;;;companion_input_device"),
     "Input per device saves the chosen microphone");
-    console.log("Sound subtypes passed picker and save checks.");
+    await page.locator(".sp-main .sp-empty-cell").first().click();
+    await page.getByRole("button", { name: "Sound card type", exact: true }).click();
+    await subtype.selectOption("companion_obs_cough");
+    const cough = page.locator('select[id$="obs-cough"]');
+    await cough.getByRole("option", { name: "OBS Desk Mic" }).waitFor({ state: "attached" });
+    assert.equal(await cough.getByRole("option", { name: "USB Microphone" }).count(), 0);
+    await cough.selectOption(coughID);
+    await page.getByRole("button", { name: "Save", exact: true }).click();
+    await waitForNativeState(nativeState, () => Object.values(nativeState.document.buttons)
+      .includes(coughID + ";OBS Input Cough;Microphone;Auto;;;companion_obs_cough"),
+    "OBS Cough saves the selected mixer input");
+    const coughSlot = Object.keys(nativeState.document.buttons).find(key => nativeState.document.buttons[key].startsWith(coughID));
+    await page.locator(`.sp-main [data-slot="${coughSlot}"]`).click();
+    await page.getByRole("button", { name: "Edit", exact: true }).click();
+    await cough.getByRole("option", { name: "OBS Desk Mic" }).waitFor({ state: "attached" });
+    assert.equal(await cough.inputValue(), coughID);
+    console.log("Sound subtypes and OBS Cough passed picker and save checks.");
   } finally { await context.close(); }
 }
 

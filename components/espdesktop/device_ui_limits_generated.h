@@ -38,6 +38,7 @@ inline constexpr DeviceCardTypeSupport DEVICE_UI_CARD_TYPES_0[] = {
     {"companion_output_mute", true},
     {"companion_input_mute", true},
     {"companion_cough", true},
+    {"companion_obs_cough", true},
     {"companion_mac_lock", true},
     {"companion", true},
     {"slider", true},

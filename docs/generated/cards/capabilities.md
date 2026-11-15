@@ -42,6 +42,7 @@ This generated reference lists release availability and setup facts from the sha
 | Mute | companion_output_mute | None | Yes | Volume (companion_output_volume) | None | Stable |
 | Mute | companion_input_mute | None | Yes | Volume (companion_output_volume) | None | Stable |
 | Cough | companion_cough | None | Yes | Volume (companion_output_volume) | None | Stable |
+| OBS Input Cough | companion_obs_cough | None | Yes | Volume (companion_output_volume) | None | Stable |
 | Lock Machine | companion_mac_lock | None | Yes | Own picker item | None | Stable |
 | Companion | companion | None | Yes | Own picker item | App Subpage; Large Sensor Numbers; Show capacity label | Stable |
 | Legacy Slider | slider | light, fan, number, input_number | Yes | Own picker item | None | Retired |

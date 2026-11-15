@@ -14,6 +14,8 @@ private final class OBSPilotTransport: OBSWebSocketTransport {
     var hasAudioInput = false
     var lastFaderWrite: OBSWebSocket.Fields?
     var muted = true
+    var emitMuteEvents = true
+    var muteWrites: [Bool] = []
     var meterSubscriptions: [Bool] = []
     var faderDb = -20.0
     var faderMultiplier = 0.1
@@ -39,6 +41,12 @@ private final class OBSPilotTransport: OBSWebSocketTransport {
             let inputs = hasAudioInput ? [["inputUuid": Self.mic, "inputName": "Desk Mic"]] : []
             return ["inputs": inputs]
         case "GetInputMute": return ["inputMuted": muted]
+        case "SetInputMute":
+            guard fields["inputUuid"] as? String == Self.mic,
+                  let muted = fields["inputMuted"] as? Bool else { throw OBSWebSocket.Failure.requestRejected(204) }
+            muteWrites.append(muted)
+            updateMute(muted, emit: emitMuteEvents)
+            return [:]
         case "GetInputVolume": return ["inputVolumeDb": faderDb, "inputVolumeMul": faderMultiplier]
         case "SetInputVolume":
             lastFaderWrite = fields
@@ -59,6 +67,11 @@ private final class OBSPilotTransport: OBSWebSocketTransport {
         }
     }
 
+    func updateMute(_ muted: Bool, emit: Bool = true) {
+        self.muted = muted
+        if emit { onEvent?("InputMuteStateChanged", ["inputUuid": Self.mic, "inputMuted": muted]) }
+    }
+
     func scene(_ id: String) -> OBSWebSocket.Fields {
         ["sceneUuid": id, "sceneName": id == Self.program ? "Gameplay" : "BRB"]
     }
@@ -68,9 +81,11 @@ final class OBSProductionTests: XCTestCase {
     @MainActor
     private func open(_ transport: OBSPilotTransport,
                       transitionProbeInterval: Duration = .seconds(1),
-                      meterExpiry: Duration = .seconds(1)) async throws -> OBSConnection {
+                      meterExpiry: Duration = .seconds(1),
+                      coughTouchTimeout: Duration = .seconds(1)) async throws -> OBSConnection {
         let connection = OBSConnection(socket: transport, transitionProbeInterval: transitionProbeInterval,
-                                       meterInterval: .milliseconds(5), meterExpiry: meterExpiry)
+                                       meterInterval: .milliseconds(5), meterExpiry: meterExpiry,
+                                       coughTouchTimeout: coughTouchTimeout)
         transport.onReady?()
         for _ in 0..<100 {
             if connection.state != nil { return connection }
@@ -220,6 +235,82 @@ final class OBSProductionTests: XCTestCase {
         transport.onEvent?("InputVolumeMeters", sample)
         try await Task.sleep(for: .milliseconds(20))
         XCTAssertTrue(connection.meterValues.isEmpty)
+    }
+
+    @MainActor
+    func testOBSCoughRestoresOnlyTheHoldThatMutedTheInput() async throws {
+        let transport = OBSPilotTransport()
+        transport.hasAudioInput = true
+        transport.muted = false
+        let connection = try await open(transport)
+        let id = "obs.cough." + OBSPilotTransport.mic
+        let holder = NSObject()
+        let other = NSObject()
+        let session = ObjectIdentifier(holder)
+        XCTAssertTrue(OBSConnection.controlActions(connection.state).contains { $0.id == id })
+        let began = await connection.setCough(100, controlID: id, from: session)
+        XCTAssertTrue(began)
+        XCTAssertEqual(OBSConnection.audioValues(connection.state)[id], 100)
+        let refreshed = await connection.setCough(50, controlID: id, from: session)
+        XCTAssertTrue(refreshed)
+        let foreignRelease = await connection.setCough(0, controlID: id, from: ObjectIdentifier(other))
+        XCTAssertFalse(foreignRelease)
+        let released = await connection.setCough(0, controlID: id, from: session)
+        XCTAssertTrue(released)
+        XCTAssertEqual(transport.muteWrites, [true, false])
+        XCTAssertEqual(OBSConnection.audioValues(connection.state)[id], 0)
+
+        transport.updateMute(true)
+        let beganMuted = await connection.setCough(100, controlID: id, from: session)
+        let releasedMuted = await connection.setCough(0, controlID: id, from: session)
+        XCTAssertTrue(beganMuted)
+        XCTAssertTrue(releasedMuted)
+        XCTAssertEqual(transport.muteWrites, [true, false])
+        XCTAssertTrue(transport.muted)
+    }
+
+    @MainActor
+    func testOBSCoughAbandonsRestoreWhenMuteOwnershipIsLost() async throws {
+        let transport = OBSPilotTransport()
+        transport.hasAudioInput = true
+        transport.muted = false
+        let connection = try await open(transport, coughTouchTimeout: .milliseconds(120))
+        let id = "obs.cough." + OBSPilotTransport.mic
+        let holder = NSObject()
+        let session = ObjectIdentifier(holder)
+
+        let began = await connection.setCough(100, controlID: id, from: session)
+        XCTAssertTrue(began)
+        transport.updateMute(false)
+        transport.updateMute(true)
+        let releasedAfterOverride = await connection.setCough(0, controlID: id, from: session)
+        XCTAssertFalse(releasedAfterOverride)
+        XCTAssertTrue(transport.muted)
+
+        transport.updateMute(false)
+        let beganAgain = await connection.setCough(100, controlID: id, from: session)
+        XCTAssertTrue(beganAgain)
+        connection.abandonCoughHolds(from: session)
+        let releasedAfterDisconnect = await connection.setCough(0, controlID: id, from: session)
+        XCTAssertFalse(releasedAfterDisconnect)
+        XCTAssertTrue(transport.muted)
+
+        transport.updateMute(false)
+        let beganForExpiry = await connection.setCough(100, controlID: id, from: session)
+        XCTAssertTrue(beganForExpiry)
+        try await Task.sleep(for: .milliseconds(150))
+        let releasedAfterExpiry = await connection.setCough(0, controlID: id, from: session)
+        XCTAssertFalse(releasedAfterExpiry)
+        XCTAssertTrue(transport.muted)
+
+        transport.updateMute(false)
+        transport.emitMuteEvents = false
+        let beganWithoutEvent = await connection.setCough(100, controlID: id, from: session)
+        XCTAssertTrue(beganWithoutEvent)
+        let releasedWithoutEvent = await connection.setCough(0, controlID: id, from: session)
+        XCTAssertFalse(releasedWithoutEvent)
+        XCTAssertTrue(transport.muted)
+        XCTAssertEqual(transport.muteWrites, [true, true, true, true])
     }
 
     @MainActor

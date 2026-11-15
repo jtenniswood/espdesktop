@@ -10,9 +10,10 @@ controls = (root / 'components/espdesktop/companion_controls.h').read_text()
 driver = (root / 'components/espdesktop/button_grid_numeric_selectable_driver.h').read_text()
 production = '\n'.join(definition(controls, name)[1] for name in (
     'companion_render_mute', 'companion_apply_mute_state', 'companion_paint_mute_preview', 'companion_erase_mute_ref', 'companion_mute_deleted',
-    'companion_forget_mute', 'companion_track_mute'))
+    'companion_forget_mute', 'companion_tracked_mute_control', 'companion_track_mute'))
 production += definition(driver, 'numeric_selectable_driver_cleanup')[1]
 stubs = r'''
+#include "companion_audio_control.h"
 #include <algorithm>
 #include <cassert>
 #include <cstring>
@@ -106,6 +107,13 @@ int main() {
   callbacks.back().second(&event);
   assert(registry.mutes.size()==1 && registry.mutes.front().button==&second);
   assert(!companion_forget_mute(&first));
+  const std::string cough = "obs.cough.69da3f8f-7f62-4abe-a594-4e40dd579858";
+  companion_track_mute(&first, cough, &input_icon, "mic", "mic-off");
+  assert(companion_tracked_mute_control(&first) == cough);
+  companion_apply_mute_state(registry.mutes.back(), {true, {{cough, 100}}});
+  assert(first.checked && !first.disabled && input_icon.text == "mic-off");
+  assert(companion_forget_mute(&first));
+  assert(companion_tracked_mute_control(&first).empty());
 }
 '''
 with tempfile.TemporaryDirectory() as tmp:
@@ -113,6 +121,6 @@ with tempfile.TemporaryDirectory() as tmp:
     binary = Path(tmp) / 'test'
     source.write_text(stubs + production + checks)
     subprocess.run([sys.argv[1] if len(sys.argv) > 1 else 'c++', '-std=c++17',
-                    '-Wall', '-Wextra', '-Werror', str(source), '-o', str(binary)], check=True)
+                    '-Wall', '-Wextra', '-Werror', '-I', str(root / 'components/espdesktop'), str(source), '-o', str(binary)], check=True)
     subprocess.run([str(binary)], check=True)
 print('Mute icons, muted-only colour state, availability and persistent binding cleanup checks passed.')

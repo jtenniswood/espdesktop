@@ -2269,6 +2269,37 @@
       }
     },
     {
+      "name": "companion_obs_cough: hold_to_mute",
+      "sourceKind": "contract",
+      "sourceType": "companion_obs_cough",
+      "mode": "hold_to_mute",
+      "canonicalType": "companion_obs_cough",
+      "web": {
+        "registration": "companion_obs_cough",
+        "picker": {
+          "main": false,
+          "subpage": false,
+          "infoOnly": false
+        },
+        "preview": {
+          "available": true,
+          "fingerprint": "ece07bab3cb79b97"
+        }
+      },
+      "firmware": {
+        "family": "SLIDER"
+      },
+      "lifecycle": {
+        "subscriptions": [
+          "state"
+        ],
+        "actions": [
+          "local"
+        ],
+        "modalOwner": "none"
+      }
+    },
+    {
       "name": "slider: numeric",
       "sourceKind": "contract",
       "sourceType": "slider",

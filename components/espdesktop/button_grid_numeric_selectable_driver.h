@@ -3,11 +3,15 @@
 
 // Local Mac output/input volume sliders. Legacy numeric, light, fan and
 // option_select identifiers remain in the saved contract; their drivers retire.
-// Contract coverage markers: "companion_app_volume", "companion_cough", "slider", "light_brightness", "light_temperature",
+// Contract coverage markers: "companion_app_volume", "companion_cough", "companion_obs_cough", "slider", "light_brightness", "light_temperature",
 // "fan_speed", "fan_oscillate", "fan_direction", "fan_preset", "option_select".
 namespace espdesktop::cards {
+inline bool numeric_selectable_cough_card(const ParsedCfg &config) {
+  return config.type == "companion_cough" || config.type == "companion_obs_cough";
+}
+
 inline bool numeric_selectable_driver_matches(const Context &, const ParsedCfg &config) {
-  if (config.type == "companion_cough") return true;
+  if (numeric_selectable_cough_card(config)) return true;
   if (config.type == "companion_app_volume")
     return companion_app_volume_control_valid(config.entity);
   if (config.type == "companion_output_volume") return config.entity == "media.output_volume";
@@ -35,7 +39,7 @@ inline bool numeric_selectable_driver_setup_visual(
     BtnSlot &slot, const ParsedCfg &config, const Context &context,
     const CardPalette &palette, const DisplayProfile &) {
   if (!numeric_selectable_driver_matches(context, config)) return false;
-  if (config.type == "companion_cough" || companion_mute_control_valid(config.entity)) {
+  if (numeric_selectable_cough_card(config) || companion_mute_control_valid(config.entity)) {
     setup_toggle_visual(slot, config);
     remove_button_state_transitions(slot.btn);
   } else {
@@ -52,7 +56,7 @@ inline bool numeric_selectable_driver_attach_interaction(
 inline bool numeric_selectable_driver_refresh_layout(
     BtnSlot &slot, const ParsedCfg &config, const Context &context) {
   if (!numeric_selectable_driver_matches(context, config)) return false;
-  if (config.type != "companion_cough" && !companion_mute_control_valid(config.entity))
+  if (!numeric_selectable_cough_card(config) && !companion_mute_control_valid(config.entity))
     refresh_slider_card_layout(slot);
   return true;
 }
@@ -110,12 +114,18 @@ inline void numeric_selectable_driver_bind_slider(BtnSlot &slot, const ParsedCfg
   companion_track_slider(slider, config.entity, slot.icon_lbl, has_icon_on, icon_off, icon_on,
     obs_audio ? slot.text_lbl : nullptr, obs_audio ? config.label : std::string{});
 }
+inline void numeric_selectable_bind_cough(BtnSlot &slot, const ParsedCfg &config, bool subpage) {
+  const std::string control = config.type == "companion_cough" ? COMPANION_COUGH_ID : config.entity;
+  bind_cough_button(slot.btn, slot.icon_lbl, find_icon(config.icon.c_str()), find_icon("Microphone Off"), control, subpage);
+  if (config.type == "companion_obs_cough" && !companion_obs_cough_control(control))
+    set_card_disabled_state(slot.btn, true);
+}
 inline bool numeric_selectable_driver_bind_main(
     BtnSlot &slot, const ParsedCfg &config, const Context &context,
     const CardPalette &, const DisplayProfile &) {
   if (!numeric_selectable_driver_matches(context, config)) return false;
-  if (config.type == "companion_cough")
-    bind_cough_button(slot.btn, slot.icon_lbl, find_icon(config.icon.c_str()), find_icon("Microphone Off"), false);
+  if (numeric_selectable_cough_card(config))
+    numeric_selectable_bind_cough(slot, config, false);
   else
     numeric_selectable_driver_bind_slider(slot, config);
   return true;
@@ -129,8 +139,8 @@ inline bool numeric_selectable_driver_bind_subpage(
     BtnSlot &slot, const ParsedCfg &config, const Context &context,
     const NumericSelectableSubpageEnvironment &) {
   if (!numeric_selectable_driver_matches(context, config)) return false;
-  if (config.type == "companion_cough") {
-    bind_cough_button(slot.btn, slot.icon_lbl, find_icon(config.icon.c_str()), find_icon("Microphone Off"), true);
+  if (numeric_selectable_cough_card(config)) {
+    numeric_selectable_bind_cough(slot, config, true);
     return true;
   }
   numeric_selectable_driver_bind_slider(slot, config);
@@ -145,7 +155,7 @@ inline bool numeric_selectable_driver_bind_subpage(
 inline bool numeric_selectable_driver_handle_main_click(
     const Context &context, const ParsedCfg &config, lv_obj_t *) {
   if (!numeric_selectable_driver_matches(context, config)) return false;
-  if (config.type != "companion_cough" && companion_mute_control_valid(config.entity))
+  if (!numeric_selectable_cough_card(config) && companion_mute_control_valid(config.entity))
     companion_toggle_mute(config.entity);
   return true;
 }

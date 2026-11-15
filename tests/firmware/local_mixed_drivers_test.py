@@ -48,7 +48,9 @@ bool companion_mute_control_valid(const std::string &key);
 bool companion_volume_control_valid(const std::string &key);
 const char *companion_volume_control_label(const std::string &key) { return companion_mute_control_valid(key) ? "Mute" : key == "media.output_volume" ? "Lautstärke" : "Mic"; }
 void unbind_cough_button(lv_obj_t *) {}
-void bind_cough_button(lv_obj_t *, lv_obj_t *, const char *, const char *, bool) {}
+constexpr char COMPANION_COUGH_ID[] = "media.cough";
+bool companion_obs_cough_control(const std::string &id) { return id.rfind("obs.cough.", 0) == 0; }
+void bind_cough_button(lv_obj_t *, lv_obj_t *, const char *, const char *, const std::string &, bool) {}
 bool companion_forget_mute(lv_obj_t *) { return false; }
 void set_card_checked_state(lv_obj_t *, bool) {}
 void set_card_disabled_state(lv_obj_t *, bool) {}

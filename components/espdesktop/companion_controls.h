@@ -332,7 +332,8 @@ inline bool companion_volume_control_valid(const std::string &control_id) {
 }
 
 inline bool companion_value_control_valid(const std::string &control_id) {
-  return control_id == COMPANION_COUGH_ID || companion_volume_control_valid(control_id);
+  return control_id == COMPANION_COUGH_ID || companion_obs_cough_control(control_id) ||
+    companion_volume_control_valid(control_id);
 }
 
 inline bool companion_writable_value_control_valid(const std::string &control_id) {
@@ -354,7 +355,7 @@ inline void companion_set_value(const std::string &control_id, int value) {
   if (!companion_value_control_valid(control_id)) return;
   value = std::max(0, std::min(100, value));
   constexpr size_t max_mac_values = 256 + 5 + 16;
-  constexpr size_t max_obs_values = 40 + 12;
+  constexpr size_t max_obs_values = 40 + 40 + 12;
   const size_t limit = control_id.rfind("obs.", 0) == 0 ? max_obs_values : max_mac_values;
   companion_runtime_service().set_value(control_id, value, limit);
 }
@@ -936,12 +937,20 @@ inline bool companion_forget_mute(lv_obj_t *button) {
   return true;
 }
 
+inline std::string companion_tracked_mute_control(lv_obj_t *button) {
+  const auto &refs = companion_view_registry().mutes;
+  const auto found = std::find_if(refs.begin(), refs.end(), [button](const auto &ref) {
+    return ref.button == button;
+  });
+  return found == refs.end() ? std::string{} : found->control_id;
+}
+
 inline void companion_track_mute(lv_obj_t *button, const std::string &control_id,
                                   lv_obj_t *icon_label = nullptr,
                                   const char *icon_unmuted = nullptr,
                                   const char *icon_muted = nullptr) {
   if (!button || !(companion_mute_control_valid(control_id) ||
-                   control_id == COMPANION_COUGH_ID)) return;
+                   control_id == COMPANION_COUGH_ID || companion_obs_cough_control(control_id))) return;
   companion_forget_mute(button);
   companion_view_registry().mutes.push_back(
     {button, control_id, icon_label, icon_unmuted, icon_muted});

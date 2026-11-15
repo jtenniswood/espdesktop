@@ -91,11 +91,12 @@ final class CompanionConnection: NSObject {
     private var applicationFocusPublisher = CompanionApplicationFocusPublisher()
     private var catalogueGeneration: UInt32 = 0
     private var supportsOBSCards = false
+    private var supportsOBSCough = false
     private var supportsOBSMeters = false
     private(set) var obsMeterWatch: Set<String> = []
     private var lastOBSMeterValues: [String: Int] = [:]
     private var supportsOBSFaders = false
-    private var lastOBSFaderValues: [String: Int] = [:]
+    private var lastOBSAudioValues: [String: Int] = [:]
     private var definitionGeneration: UInt32 = 0
     private var lastPublishedSystemMetrics: CompanionSystemMetricsSnapshot?
     private var lastSystemMetricsPublication = Date.distantPast
@@ -430,6 +431,10 @@ final class CompanionConnection: NSObject {
     }
 
     private func releaseCoughButton() {
+        if supportsOBSCough {
+            supportsOBSCough = false
+            resources.abandonOBSCough(from: ObjectIdentifier(self))
+        }
         guard supportsCoughButton else { return }
         supportsCoughButton = false
         _ = resources.setCoughButtonValue(0, from: ObjectIdentifier(self))
@@ -528,9 +533,10 @@ final class CompanionConnection: NSObject {
             supportsOBSCards = payload.capabilityVersion >= 13
             supportsOBSFaders = payload.capabilityVersion >= 14
             supportsOBSMeters = payload.capabilityVersion >= 15
+            supportsOBSCough = payload.capabilityVersion >= 16
             obsMeterWatch.removeAll()
             lastOBSMeterValues.removeAll()
-            lastOBSFaderValues.removeAll()
+            lastOBSAudioValues.removeAll()
             appVolumeSupported = payload.capabilityVersion >= 10
             supportsCoughButton = payload.capabilityVersion >= 11
             supportsInputDevices = payload.capabilityVersion >= 12
@@ -644,6 +650,18 @@ final class CompanionConnection: NSObject {
             let requestIdentifier = payload.requestId
             let controlIdentifier = payload.controlId
             let value = Int(payload.value)
+            if OBSConnection.coughInputUUID(for: controlIdentifier) != nil {
+                guard supportsOBSCough, let requestingTask = task else { return false }
+                let changed = await resources.setOBSCough(value, controlIdentifier: controlIdentifier,
+                                                          from: ObjectIdentifier(self))
+                guard task === requestingTask, sessionAuthenticated else { return true }
+                if value != 50 {
+                    publishOBSAudioValues(resources.obsAudioValues(), forceControl: controlIdentifier)
+                }
+                sendJSON(["type": "action.result", "requestId": requestIdentifier,
+                          "status": changed ? "performed" : "not_allowed"])
+                return true
+            }
             if OBSConnection.faderInputUUID(for: controlIdentifier) != nil {
                 guard supportsOBSFaders, let requestingTask = task else { return false }
                 Task { [weak self, weak requestingTask] in
@@ -652,7 +670,7 @@ final class CompanionConnection: NSObject {
                     let changed = await self.resources.setOBSFader(value, controlIdentifier: controlIdentifier)
                     guard self.task === requestingTask, self.sessionAuthenticated else { return }
                     // A rejected or unchanged drag still needs to settle the panel at the confirmed value.
-                    self.publishOBSFaderValues(self.resources.obsFaderValues(), forceControl: controlIdentifier)
+                    self.publishOBSAudioValues(self.resources.obsAudioValues(), forceControl: controlIdentifier)
                     self.sendJSON(["type": "action.result", "requestId": requestIdentifier,
                                    "status": changed ? "performed" : "not_allowed"])
                 }
@@ -861,7 +879,8 @@ final class CompanionConnection: NSObject {
         let supportedOBSActions = supportsOBSCards ? obsActions ?? resources.obsControlActions() : []
         let obsEntries: [[String: String]] = supportedOBSActions.filter { entry in
             (supportsOBSFaders || OBSConnection.faderInputUUID(for: entry.id) == nil) &&
-            (supportsOBSMeters || OBSConnection.meterInputUUID(for: entry.id) == nil)
+            (supportsOBSMeters || OBSConnection.meterInputUUID(for: entry.id) == nil) &&
+            (supportsOBSCough || OBSConnection.coughInputUUID(for: entry.id) == nil)
         }.map { entry in
             ["id": entry.id, "label": Self.catalogueLabel(entry.label, fallback: "OBS scene")]
         }
@@ -965,18 +984,19 @@ final class CompanionConnection: NSObject {
         }
     }
 
-    func publishOBSFaderValues(_ values: [String: Int], force: Bool = false, forceControl: String? = nil) {
+    func publishOBSAudioValues(_ values: [String: Int], force: Bool = false, forceControl: String? = nil) {
         guard supportsOBSFaders, sessionAuthenticated else { return }
-        var removed = Set(lastOBSFaderValues.keys.filter { values[$0] == nil })
+        let values = values.filter { supportsOBSCough || OBSConnection.coughInputUUID(for: $0.key) == nil }
+        var removed = Set(lastOBSAudioValues.keys.filter { values[$0] == nil })
         if let forceControl, values[forceControl] == nil { removed.insert(forceControl) }
         for id in removed.sorted() {
             sendJSON(["type": "value.state", "controlId": id, "available": false])
         }
         for (id, value) in values.sorted(by: { $0.key < $1.key })
-            where force || id == forceControl || lastOBSFaderValues[id] != value {
+            where force || id == forceControl || lastOBSAudioValues[id] != value {
             sendJSON(["type": "value.state", "controlId": id, "available": true, "value": value])
         }
-        lastOBSFaderValues = values
+        lastOBSAudioValues = values
     }
 
     func publishOBSMeterValues(_ values: [String: Int]) {
