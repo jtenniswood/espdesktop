@@ -4876,17 +4876,32 @@ async function assertCompanionURLOpenBehavior(browser, testCase) {
 async function assertAppSubpageCapacity(browser, testCase) {
   if (testCase.slug !== "guition-esp32-s3-4848s040") return;
   const shortcuts = loadTypeScriptModule("src/webserver/application/companion_shortcut_folder.ts");
-  const { encodeConfigField } = loadTypeScriptModule("src/webserver/model/config_primitives.ts");
+  const { encodeConfigField, setConfigOptionValue } = loadTypeScriptModule("src/webserver/model/config_primitives.ts");
+  const appId = shortcuts.CODEX_BUNDLE_ID;
+  const application = shortcuts.COMPANION_SHORTCUT_APPS.find(app => app.appId === appId);
+  assert(application, "the bundled ChatGPT shortcut catalogue is available");
+  const customShortcut = "command+shift+f12";
+  // Capacity depends on distinct cards, regardless of which presets the catalogue offers.
+  const distinctPresets = new Map(application.shortcuts
+    .filter(preset => preset.shortcut !== customShortcut)
+    .map(preset => [preset.shortcut, preset]));
+  const presets = [...distinctPresets.values()];
+  assert(presets.length >= 7, "the capacity fixture needs seven distinct presets");
+  const initialTabs = presets.slice(0, 4).map(preset => preset.id);
+  const additionalShortcuts = presets.slice(4, 7);
+  const appOptions = setConfigOptionValue("app_shortcuts", shortcuts.COMPANION_APP_SHORTCUTS_TABS_OPTION, initialTabs.join("|"));
   for (const native of [false, true]) {
     const fixture = nativeConfigState(testCase.slug);
-    fixture.document.buttons[1] = "com.openai.codex;Codex;Auto;Auto;;;companion;;app_shortcuts,app_shortcuts_tabs=0%7C3%7C14%7C37";
-    const additionalShortcuts = [
-      ["7", "shortcut.command+n"],
-      ["10", "shortcut.command+f"],
-      ["19", "shortcut.command+shift+a"],
-    ];
-    const subpage = shortcuts.createCompanionShortcutSubpage("com.openai.codex", ["0", "3", "14", "37"]);
-    subpage.buttons.push({ type: "companion", entity: "shortcut.command+shift+p", label: "Custom shortcut", icon: "Application", icon_on: "Auto", options: "" });
+    fixture.document.buttons[1] = appId + ";Codex;Auto;Auto;;;companion;;" + appOptions;
+    const subpage = shortcuts.createCompanionShortcutSubpage(appId, initialTabs);
+    subpage.buttons.push({
+      type: "companion",
+      entity: shortcuts.COMPANION_SHORTCUT_PREFIX + customShortcut,
+      label: "Custom shortcut",
+      icon: "Application",
+      icon_on: "Auto",
+      options: setConfigOptionValue("", shortcuts.COMPANION_SHORTCUT_PRESET_OPTION, "custom"),
+    });
     subpage.order.push("5", "", "", "");
     fixture.document.subpages[1] = "~" + subpage.order.join(",") + "|" + subpage.buttons.map(card =>
       [card.type, card.entity, card.label, card.icon, card.icon_on, card.sensor, card.unit, card.precision, card.options]
@@ -4916,7 +4931,7 @@ async function assertAppSubpageCapacity(browser, testCase) {
       assert.strictEqual(await page.locator(".sp-main .sp-empty-cell").count(), 3);
       await page.locator(".sp-back-btn .sp-back-hit").click();
       let app = await openAppSettings();
-      for (const [id] of additionalShortcuts) {
+      for (const { id } of additionalShortcuts) {
         await page.locator("#sp-inp-companion-shortcut-" + id).evaluate(input => input.click());
         assert(await page.locator("#sp-inp-companion-shortcut-" + id).isChecked(), "available shortcut enables");
         assert.strictEqual(await app.getByText(/No free subpage space/).count(), 0, "three empty cells do not produce a full-page warning");
@@ -4927,14 +4942,15 @@ async function assertAppSubpageCapacity(browser, testCase) {
       const deadline = Date.now() + 10000;
       const hasAddedShortcuts = () => {
         const value = saved();
-        return additionalShortcuts.every(([, action]) => value?.includes(action));
+        return additionalShortcuts.every(({ shortcut }) =>
+          value?.includes("," + encodeConfigField(shortcuts.COMPANION_SHORTCUT_PREFIX + shortcut) + ","));
       };
       while (!hasAddedShortcuts() && Date.now() < deadline)
         await new Promise(resolve => setTimeout(resolve, 25));
       assert(hasAddedShortcuts(), "all three added shortcuts are saved");
       assert(saved().includes("Custom shortcut"), "the existing custom card is retained");
       app = await openAppSettings();
-      for (const [id] of additionalShortcuts)
+      for (const { id } of additionalShortcuts)
         assert(await page.locator("#sp-inp-companion-shortcut-" + id).isChecked(), "saved shortcut remains enabled when reopened");
       assert.deepStrictEqual(errors, []);
     } finally { await context.close(); }
