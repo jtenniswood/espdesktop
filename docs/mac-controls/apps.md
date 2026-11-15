@@ -104,7 +104,7 @@ Choose **Cough** and select the input to mute momentarily. The tile reads **Mute
 
 Add **Streaming Control** or **Recording Control** from the **OBS Studio** card menu. Tap the card to start or stop the output using its confirmation settings. The subtitle shows the current state, including reconnecting streams and paused recordings. Existing streaming and recording status cards open as the corresponding controls and ask for confirmation in both directions.
 
-Enable Replay Buffer in **OBS → Settings → Output**, then add **Replay Buffer** to start and stop it from the display. The card lights up while OBS is buffering. Use **Save Replay** to capture a clip while the buffer is running. Its subtitle changes from **Ready** to **Saving**, then shows **Saved** for five seconds after OBS confirms the file.
+Enable Replay Buffer in **OBS → Settings → Output**, then add a **Replay Buffer** card. Choose **Start / Stop Buffer** to control the buffer from the display. The card lights up while OBS is buffering. Choose **Save Replay** to capture a clip while the buffer is running. Its subtitle changes from **Ready** to **Saving**, then shows **Saved** for five seconds after OBS confirms the file.
 
 To get started, open **Screen → App Subpages → Add OBS starter page** in the display editor. Choose a main scene, a break scene, and a mic, then select **Pin to Home**. The **OBS Studio** folder uses one free Home slot. Open it in **Layout** to edit the individual cards. In Studio Mode, Preview fills with the card’s ON colour. When a different scene is on Program, its card fills with a darker shade of its own ON colour. In normal mode, the filled card shows Program.
 

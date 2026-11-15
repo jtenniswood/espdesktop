@@ -605,10 +605,12 @@ export function registerCompanionCardTypes(
 
     function renderOBSProductionSettings(panel: HTMLElement, card: { entity: string; icon: string; options: string }, helpers: any, mode: "obs_status" | "obs_replay" | "obs_replay_buffer" | "obs_output" | "obs_brb" | "obs_studio"): void {
         const studio = mode === "obs_studio" || card.entity === OBS_PROGRAM_ID;
-        if (studio || mode === "obs_output") {
-            const { field, select } = helpers.selectField(studio ? "Studio Mode" : "OBS output",
-                helpers.idPrefix + (studio ? "obs-studio" : "obs-output"),
-                studio ? OBS_STUDIO_OPTIONS : OBS_OUTPUT_OPTIONS, card.entity, () => {
+        const replay = mode === "obs_replay" || mode === "obs_replay_buffer";
+        const replayOptions = [[OBS_REPLAY_ID, "Save Replay"], [OBS_REPLAY_BUFFER_ID, "Start / Stop Buffer"]];
+        if (studio || replay || mode === "obs_output") {
+            const { field, select } = helpers.selectField(studio ? "Studio Mode" : replay ? "Type" : "OBS output",
+                helpers.idPrefix + (studio ? "obs-studio" : replay ? "obs-replay-type" : "obs-output"),
+                studio ? OBS_STUDIO_OPTIONS : replay ? replayOptions : OBS_OUTPUT_OPTIONS, card.entity, () => {
                     const previous = companionCardMode(card);
                     card.entity = select.value;
                     card.icon = companionGeneratedIcon(card.icon,
@@ -616,6 +618,7 @@ export function registerCompanionCardTypes(
                     iconPicker._setIcon(card.icon);
                     helpers.saveField("entity", card.entity);
                     cardUi.renderPreview();
+                    if (replay) cardUi.renderButtonSettings();
                 });
             panel.appendChild(field);
             helpers.markCardPrimaryField(field, "entity");
@@ -1968,8 +1971,7 @@ export function registerCompanionCardTypes(
         ["companion_obs_mic", "Input Mute", "obs_mic"],
         ["companion_obs_studio", "Studio Mode", "obs_studio"],
         ["companion_obs_brb", "Break", "obs_brb"],
-        ["companion_obs_replay_buffer", "Replay Buffer", "obs_replay_buffer"],
-        ["companion_obs_replay", "Save Replay", "obs_replay"],
+        ["companion_obs_replay", "Replay Buffer", "obs_replay"],
         ["companion_obs_stream", "Streaming Control", "obs_output", "obs.output.stream"],
         ["companion_obs_record", "Recording Control", "obs_output", "obs.output.record"],
     ];

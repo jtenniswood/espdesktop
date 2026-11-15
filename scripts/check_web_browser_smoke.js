@@ -4503,7 +4503,7 @@ async function assertOBSSceneCard(browser) {
     await obsGroup.click();
     assert.deepEqual((await obsCards.evaluateAll(cards => cards.map(card => card.getAttribute("aria-label")))).sort(),
       ["Audio Controls", "Break", "Recording Control",
-        "Replay Buffer", "Save Replay", "Scene", "Streaming Control", "Studio Mode"]
+        "Replay Buffer", "Scene", "Streaming Control", "Studio Mode"]
         .map(label => label + " card type"));
     assert((await obsCards.allTextContents()).every(copy => !/\bOBS\b/.test(copy)));
     assert.equal(await page.getByRole("button", { name: "Sound card type", exact: true }).count(), 0);
@@ -4560,7 +4560,12 @@ async function assertOBSSceneCard(browser) {
     await recordingControl.locator(".mdi-stop-circle").waitFor();
     const recordingIdle = await recordingControl.evaluate(tile => getComputedStyle(tile).backgroundColor);
     await page.locator(".sp-main .sp-empty-cell").first().click();
-    await chooseOBSCard(page, "Save Replay");
+    await chooseOBSCard(page, "Replay Buffer");
+    const replayType = page.locator('select[id$="obs-replay-type"]');
+    assert.equal(await replayType.inputValue(), "obs.replay");
+    await replayType.selectOption("obs.replay.buffer");
+    assert.equal(await replayType.inputValue(), "obs.replay.buffer");
+    await replayType.selectOption("obs.replay");
     await page.getByRole("button", { name: "Save", exact: true }).click();
     await waitForNativeState(fixture, () => fixture.document.buttons[7]?.startsWith("obs.replay;"),
       "The OBS replay card saves a stable ID");
