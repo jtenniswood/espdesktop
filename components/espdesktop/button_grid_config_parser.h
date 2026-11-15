@@ -1417,6 +1417,10 @@ inline ParsedCfg normalize_parsed_cfg(ParsedCfg p) {
     p.precision.clear();
   }
   if (p.type == "companion") {
+    if (companion_obs_audio_uuid(p.entity, "obs.scene.") ||
+        companion_obs_audio_uuid(p.entity, "obs.preview.")) {
+      p.entity = "obs.target." + p.entity.substr(p.entity.size() - 36);
+    }
     if (p.entity == "obs.status.stream" || p.entity == "obs.status.record") {
       p.entity = p.entity == "obs.status.stream" ? "obs.output.stream" : "obs.output.record";
       // Give previously read-only cards the normal confirmation in both directions.

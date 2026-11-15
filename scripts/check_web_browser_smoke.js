@@ -4455,7 +4455,8 @@ async function assertOBSSceneCard(browser) {
   fixture.document.settings.button_order = "1,2";
   const context = await browser.newContext({ viewport: testCase.viewport });
   await installRoutes(context, testCase.slug, { nativeState: fixture });
-  const id = "obs.scene.a51e30ff-0c88-418f-ac5a-fd2e33963c2b";
+  const sceneUUID = "a51e30ff-0c88-418f-ac5a-fd2e33963c2b";
+  const id = "obs.target." + sceneUUID;
   const mic = "obs.mute.69da3f8f-7f62-4abe-a594-4e40dd579858";
   const fader = "obs.level.69da3f8f-7f62-4abe-a594-4e40dd579858";
   let connectedToOBS = true;
@@ -4466,7 +4467,8 @@ async function assertOBSSceneCard(browser) {
   let transitionName = "Fade";
   await context.route("**/companion/actions", route => route.fulfill({
     json: connectedToOBS ? [
-      { id, label: "Program · Gameplay" },
+      { id: (studioModeOn ? "obs.preview." : "obs.scene.") + sceneUUID, label: "Gameplay" },
+      { id: id + "." + (studioModeOn ? "719a4778-fada-4bb3-aef6-1904669efae7" : "9ea47782-fada-4bb3-aef6-1904669efae7"), label: "Gameplay" },
       { id: mic, label: "Muted · Desk Mic" },
       { id: "obs.mute.45f44c62-1c70-4706-8930-f3ec000db026", label: "Unmuted · Master" },
       { id: fader, label: "Desk Mic" },
@@ -4529,7 +4531,7 @@ async function assertOBSSceneCard(browser) {
     assert.equal(await obsGroup.evaluate(group => document.activeElement === group), true);
     await chooseOBSCard(page, "Scene");
     const picker = page.locator("select[id$='obs-scene']");
-    await picker.getByRole("option", { name: "Program · Gameplay" }).waitFor({ state: "attached" });
+    await picker.getByRole("option", { name: "Gameplay", exact: true }).waitFor({ state: "attached" });
     await programTile.getByText("Gameplay", { exact: true }).waitFor();
     await replayBufferTile.getByText("Replay Buffer", { exact: true }).waitFor();
     await replayBufferTile.getByText("Off", { exact: true }).waitFor();
@@ -4537,7 +4539,7 @@ async function assertOBSSceneCard(browser) {
     await picker.selectOption(id);
     await page.getByRole("button", { name: "Save", exact: true }).click();
     await waitForNativeState(fixture, () => fixture.document.buttons[3]?.startsWith(id + ";"),
-      "The OBS scene UUID saves as a Companion card");
+      "The OBS scene saves under its mode-independent UUID without the action token");
     await page.locator('.sp-main [data-slot="3"] .mdi-image').waitFor();
 
     await page.locator(".sp-main .sp-empty-cell").first().click();
@@ -4624,6 +4626,8 @@ async function assertOBSSceneCard(browser) {
     replayBufferOn = true;
     await page.locator('.sp-main [data-slot="3"]').click();
     await page.getByRole("button", { name: "Edit", exact: true }).click();
+    await picker.getByRole("option", { name: "Gameplay", exact: true }).waitFor({ state: "attached" });
+    assert.equal(await picker.inputValue(), id);
     await studioTile.getByText("On", { exact: true }).waitFor();
     assert.notEqual(await studioTile.evaluate(tile => tile.style.backgroundColor), studioOff);
     await replayBufferTile.getByText("On", { exact: true }).waitFor();

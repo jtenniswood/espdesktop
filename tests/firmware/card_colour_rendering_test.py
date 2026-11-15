@@ -360,6 +360,12 @@ int main() {
     assert(lv_obj_has_state(&tile, LV_STATE_CHECKED));
     const auto migrated = parse_cfg("obs.status.record;;Monitor;Auto;;;companion;;obs_confirm=none,card_off_color=123456");
     assert(migrated.entity == "obs.output.record" && migrated.options == "card_off_color=123456");
+    for (const std::string prefix : {"obs.scene.", "obs.preview."}) {
+      const std::string uuid = "69da3f8f-7f62-4abe-a594-4e40dd579858";
+      const auto scene = parse_cfg(prefix + uuid + ";Gameplay;Image;Auto;;;companion;;card_off_color=123456");
+      assert(scene.entity == "obs.target." + uuid && scene.label == "Gameplay");
+      assert(scene.icon == "Image" && scene.options == "card_off_color=123456");
+    }
     for (const std::string id : {"obs.studio", "obs.replay.buffer"}) {
       const auto toggle = parse_cfg(id + ";;Auto;Auto;;;companion;;obs_confirm=both,confirm_yes=Proceed");
       assert(cfg_option_value(toggle.options, "obs_confirm") == "both");

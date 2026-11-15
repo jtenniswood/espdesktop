@@ -12,6 +12,9 @@ export function savedOBSSceneTarget(actionId: string): string {
   const id = /^obs\.target\.([0-9a-f-]{36})\.[0-9a-f-]{36}$/.exec(actionId)?.[1];
   return id ? "obs.target." + id : "";
 }
+export function obsSceneCardEntity(entity: string): string {
+  return entity.replace(/^obs\.(?:scene|preview)\.([0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12})$/, "obs.target.$1");
+}
 export const OBS_BRB_ID = "obs.brb";
 export const OBS_TAKE_ID = "obs.take";
 export const OBS_STUDIO_ID = "obs.studio";

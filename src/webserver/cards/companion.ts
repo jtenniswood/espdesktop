@@ -1,7 +1,7 @@
 import { targetedAudioCard } from "./companion_app_volume";
 import { childPageKey } from "../model/page_keys";
 import { renderCompanionStorageSelector } from "./companion_storage";
-import { COMPANION_FOLDER_PREFIX, COMPANION_OBS_PREFIX, OBS_BRB_ID, OBS_OUTPUT_OPTIONS, OBS_PROGRAM_ID, OBS_REPLAY_BUFFER_ID, OBS_REPLAY_ID, OBS_STUDIO_ID, OBS_STUDIO_OPTIONS, OBS_TAKE_ID, OBS_TRANSITION_ID, savedOBSSceneTarget, decodeCompanionCard, encodeCompanionCard, companionMetricForEntity, obsConfirmableToggle, obsInputName, obsOutputCardEntity } from "../model/companion_card_codec";
+import { COMPANION_FOLDER_PREFIX, COMPANION_OBS_PREFIX, OBS_BRB_ID, OBS_OUTPUT_OPTIONS, OBS_PROGRAM_ID, OBS_REPLAY_BUFFER_ID, OBS_REPLAY_ID, OBS_STUDIO_ID, OBS_STUDIO_OPTIONS, OBS_TAKE_ID, OBS_TRANSITION_ID, savedOBSSceneTarget, decodeCompanionCard, encodeCompanionCard, companionMetricForEntity, obsConfirmableToggle, obsInputName, obsOutputCardEntity, obsSceneCardEntity } from "../model/companion_card_codec";
 import { configOptionEnabled, configOptionValue, setConfigOption, setConfigOptionValue, normalizedCardColorOptions, preserveCardColorOptions, withoutCardColorOptions } from "../model/config_primitives";
 import { createCompanionCatalogue, createCompanionCatalogueMonitor } from "../api/companion_catalogue";
 import type { CompanionAction } from "../api/companion_catalogue";
@@ -395,6 +395,7 @@ export function normalizeCompanionCard(card: any): void {
 
 function normalizeCompanionCardFields(card: any): void {
     if (!card) return;
+    card.entity = obsSceneCardEntity(card.entity || "");
     const outputEntity = obsOutputCardEntity(card.entity);
     if (outputEntity !== card.entity) {
         card.entity = outputEntity;
@@ -484,7 +485,7 @@ export function registerCompanionCardTypes(
         obsControlLabels.get("obs.mute." + inputId)?.startsWith("Muted · ") === true;
 
     function rememberOBSControls(actions: readonly CompanionAction[]): readonly CompanionAction[] {
-        const targets = actions.filter(action => /^obs\.(scene|preview|mute)\.[a-f0-9-]{36}$/.test(action.id));
+        const targets = actions.filter(action => /^obs\.mute\.[a-f0-9-]{36}$/.test(action.id));
         obsControlLabels.clear();
         for (const target of targets) obsControlLabels.set(target.id, target.label);
         for (const action of actions) {
@@ -521,11 +522,9 @@ export function registerCompanionCardTypes(
     }
 
     function renderOBSControlSettings(panel: HTMLElement, card: { entity: string; label: string }, helpers: any, audio: boolean): void {
-        if (audio || card.entity.startsWith("obs.target.")) {
-            helpers.renderCardTextField(panel, card, helpers, {
-                label: "Label", idSuffix: "label", field: "label", rerender: true,
-            });
-        }
+        helpers.renderCardTextField(panel, card, helpers, {
+            label: "Label", idSuffix: "label", field: "label", rerender: true,
+        });
         const name = audio ? "Source" : "OBS scene";
         const target = audio ? "audio input" : name;
         const placeholder = "Select";
@@ -552,10 +551,8 @@ export function registerCompanionCardTypes(
         field.appendChild(note);
         select.disabled = true;
         void loadCompanionActions(true).then(actions => {
-            const adaptive = saved.startsWith("obs.target.");
-            const targets = rememberOBSControls(actions).filter(action => audio
-                ? action.id.startsWith("obs.mute.")
-                : adaptive === action.id.startsWith("obs.target.") && !action.id.startsWith("obs.mute."));
+            const targets = rememberOBSControls(actions).filter(action =>
+                action.id.startsWith(audio ? "obs.mute." : "obs.target."));
             const entries = targets.map(target => new Option(audio ? obsInputName(target.label) : target.label, target.id));
             if (!isNew && !targets.some(target => target.id === saved)) {
                 entries.unshift(new Option(unavailable, saved));
@@ -565,7 +562,7 @@ export function registerCompanionCardTypes(
             select.disabled = targets.length === 0;
             if (targets.length && audio) note.remove();
             else note.textContent = targets.length
-                ? "Studio Mode scene tiles select Preview. Set up the tile in the OBS mode you intend to use."
+                ? "Selects Preview in Studio Mode and Program otherwise."
                 : "Connect OBS in the Mac Companion and try again.";
             cardUi.renderPreview();
         }).catch(() => { note.textContent = "Connect OBS in the Mac Companion and try again."; });
@@ -1683,7 +1680,7 @@ export function registerCompanionCardTypes(
                     obs_output: OBS_OUTPUT_OPTIONS.find(([id]) => id === card.entity)?.[1] || "OBS Output Control",
                     obs_status: "Program",
                 };
-                const entity = obsOutputCardEntity(card.entity);
+                const entity = obsOutputCardEntity(obsSceneCardEntity(card.entity));
                 const currentLabel = obsControlLabels.get(entity);
                 const output = mode === "obs_output";
                 const record = entity === "obs.output.record";
@@ -1707,7 +1704,7 @@ export function registerCompanionCardTypes(
                     : ["Changing", "Reconnecting", "Stopping"].includes(outputStatus) ? "Progress Clock"
                     : !record ? (outputOn ? "Broadcast" : "Broadcast Off")
                     : outputStatus === "Paused" ? "Pause" : outputOn ? "Record" : "Stop Circle";
-                const alias = (mode === "obs_mic" || card.entity.startsWith("obs.target.")) && card.label;
+                const alias = (mode === "obs_mic" || scene) && card.label;
                 const muted = mode === "obs_mic" && currentLabel?.startsWith("Muted · ");
                 const live = mode === "obs_mic" && currentLabel?.startsWith("Unmuted · ");
                 const label = output ? (record ? (outputOn ? "Recording" : "Record") : "Stream")
