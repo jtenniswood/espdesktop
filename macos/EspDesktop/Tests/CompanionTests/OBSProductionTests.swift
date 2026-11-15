@@ -594,7 +594,7 @@ final class OBSProductionTests: XCTestCase {
     }
 
     @MainActor
-    func testBreakCancelsResumeWhenOBSOperatorTakesOver() async throws {
+    func testBreakCanStartAgainAfterTakingAnotherSceneLive() async throws {
         let domain = "EspDesktop.OBSBreak." + UUID().uuidString
         let defaults = try XCTUnwrap(UserDefaults(suiteName: domain))
         defer { defaults.removePersistentDomain(forName: domain) }
@@ -607,13 +607,28 @@ final class OBSProductionTests: XCTestCase {
         let away = await connection.performBreak(token: enter)
         XCTAssertTrue(away)
         let resume = try XCTUnwrap(connection.state?.breakCard?.token)
+        transport.preview = OBSPilotTransport.program
+        transport.onEvent?("CurrentPreviewSceneChanged", transport.scene(transport.preview))
+        let take = try XCTUnwrap(connection.state?.takeToken)
+        let taken = await connection.takeLive(token: take)
+        XCTAssertTrue(taken)
         transport.updateProgram(OBSPilotTransport.program)
-        transport.updateProgram(OBSPilotTransport.queued)
+        XCTAssertNil(connection.state?.breakCard?.token)
+        transport.onEvent?("SceneTransitionEnded", [:])
+        XCTAssertNil(defaults.object(forKey: "obs.breakRecovery"))
+        XCTAssertFalse(connection.breakNeedsReview)
+        let startAgain = try XCTUnwrap(connection.state?.breakCard?.token)
+        XCTAssertEqual(connection.state?.breakCard?.label, "BRB · BRB")
         let stale = await connection.performBreak(token: resume)
         XCTAssertFalse(stale)
         XCTAssertTrue(transport.muted)
         XCTAssertEqual(transport.breakRequests, ["mute", "scene:" + OBSPilotTransport.queued])
-        XCTAssertTrue(connection.breakNeedsReview)
+        let secondBreak = await connection.performBreak(token: startAgain)
+        XCTAssertTrue(secondBreak)
+        let secondResume = try XCTUnwrap(connection.state?.breakCard?.token)
+        let returned = await connection.performBreak(token: secondResume)
+        XCTAssertTrue(returned)
+        XCTAssertTrue(transport.muted, "A new break preserves the mic state it started with")
     }
 
     @MainActor

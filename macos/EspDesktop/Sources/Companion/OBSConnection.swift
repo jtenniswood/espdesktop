@@ -1201,8 +1201,15 @@ final class OBSConnection: ObservableObject {
             if var current = state {
                 if type == "CurrentProgramSceneChanged", let session = breakSession,
                    let incoming = Target(fields: fields, kind: "scene"), incoming.id != current.program?.id {
-                    if session.expectedProgram == incoming.id { breakSession?.expectedProgram = nil }
-                    else { abandonBreak() }
+                    if session.expectedProgram == incoming.id {
+                        breakSession?.expectedProgram = nil
+                    } else if !breakInFlight, current.program?.id == session.target {
+                        // Taking another scene live ends the break without changing the mic.
+                        breakSession = nil
+                        defaults.removeObject(forKey: Keys.breakRecovery)
+                    } else {
+                        abandonBreak()
+                    }
                 }
                 Self.apply(type, fields: fields, to: &current)
                 updateBreakCard(&current)
