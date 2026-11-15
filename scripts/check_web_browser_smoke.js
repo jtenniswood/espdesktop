@@ -7700,7 +7700,7 @@ async function assertOBSStarterPage(browser) {
   const mic = "33333333-3333-3333-3333-333333333333";
   const token = "44444444-4444-4444-4444-444444444444";
   await context.route("**/companion/actions", route => route.fulfill({ json: [
-    { id: `obs.target.${main}.${token}`, label: "Program · Gameplay" },
+    { id: `obs.target.${main}.${token}`, label: "Gameplay" },
     { id: `obs.target.${away}.${token}`, label: "Break Room" },
     { id: `obs.selected.${main}`, label: "Selected OBS scene" },
     { id: `obs.mute.${mic}`, label: "Muted · Desk Mic" },
@@ -7747,13 +7747,12 @@ async function assertOBSStarterPage(browser) {
     const breakTile = page.locator('.sp-main [data-slot="3"]');
     const micTile = page.locator('.sp-main [data-slot="4"]');
     await micTile.locator('.mdi-microphone-off').waitFor();
-    const colors = await Promise.all([mainTile, breakTile, micTile].map(tile => tile.evaluate(card => ({
-      background: getComputedStyle(card).backgroundColor,
-      onColor: getComputedStyle(card).getPropertyValue('--card-active-color').trim(),
-    }))));
-    assert.equal(colors[0].background, colors[2].background, "selected scene and muted mic use ON colour");
-    assert.notEqual(colors[0].background, colors[1].background, "unselected scene uses the default colour");
-    assert(colors[0].onColor);
+    const colors = await Promise.all([mainTile, breakTile, micTile].map(tile =>
+      tile.evaluate(card => getComputedStyle(card).backgroundColor)));
+    assert.notEqual(colors[0], colors[1], "selected scene uses ON colour");
+    assert.equal(colors[2], colors[1], "muted mic uses the default colour");
+    assert.equal(await mainTile.locator('.sp-btn-label').innerText(), "Main scene");
+    assert.equal(await micTile.locator('.sp-btn-label').innerText(), "Mic");
     console.log("OBS starter page pinned, preserved the Home card, and reopened for editing.");
   } finally {
     await context.close();

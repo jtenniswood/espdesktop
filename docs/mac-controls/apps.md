@@ -96,7 +96,7 @@ See [all app presets](/reference/shortcut-presets).
 
 A scene card created in normal mode switches the program scene. A scene card created in Studio Mode selects the preview scene. Each card is available in the mode it was set up for. Add **OBS Take Live** to send the preview named on that tile to the program. If the preview changes before the command reaches OBS, tap again after checking the updated name. The scene tile shows **Program**, **On air**, or **Preview** when OBS reports it as selected.
 
-An **OBS Mic Mute** card changes the selected input in the OBS mixer. When OBS reports the input is muted, the tile uses the ON colour and the muted microphone icon. Use the mic your broadcast captures when setting up the card, especially if it differs from the Mac’s default mic. Scene and input bindings are kept when a target is unavailable.
+An **OBS Mic Mute** card changes the selected input in the OBS mixer. The ON colour and microphone icon show an unmuted input. Muting the input turns the colour off and shows a crossed-out microphone. Use the mic your broadcast captures when setting up the card, especially if it differs from the Mac’s default mic. Scene and input bindings are kept when a target is unavailable.
 
 Under **Sound**, choose **OBS Input Level** to adjust a named mixer input. The tile shows the confirmed fader setting in dB. Dragging it leaves the input’s mute and track settings alone. Choose **OBS Input Mute** to change the mute state.
 

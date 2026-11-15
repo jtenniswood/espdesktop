@@ -724,21 +724,13 @@ inline std::string companion_default_action_label_with_fallback(
 
 inline std::string companion_obs_control_label(const std::string &action_id, const std::string &alias,
                                                const std::string &live_label) {
+  if (!alias.empty()) return alias;
   if (companion_obs_audio_uuid(action_id, "obs.mute.")) {
-    if (!alias.empty()) return alias;
     for (std::string_view prefix : {"Muted · ", "Unmuted · "}) {
       if (live_label.compare(0, prefix.size(), prefix) == 0) return live_label.substr(prefix.size());
     }
-    return live_label;
   }
-  if (alias.empty()) return live_label;
-  for (std::string_view status : {"Program", "On air", "Preview", "Queue"}) {
-    constexpr std::string_view separator = " · ";
-    if (live_label.compare(0, status.size(), status) == 0 &&
-        live_label.compare(status.size(), separator.size(), separator) == 0)
-      return alias + " · " + std::string(status);
-  }
-  return alias;
+  return live_label;
 }
 
 inline bool companion_metric_card_should_disable(bool connected, bool preserve_navigation) {
@@ -941,9 +933,9 @@ inline std::vector<std::string> companion_visible_obs_meters() {
   return ids;
 }
 
-inline void companion_render_mute(const CompanionMuteRef &ref, bool muted) {
-  if (lv_obj_has_state(ref.button, LV_STATE_CHECKED) != muted)
-    set_card_checked_state(ref.button, muted);
+inline void companion_render_mute(const CompanionMuteRef &ref, bool muted, bool checked) {
+  if (lv_obj_has_state(ref.button, LV_STATE_CHECKED) != checked)
+    set_card_checked_state(ref.button, checked);
   const char *icon = muted ? ref.icon_muted : ref.icon_unmuted;
   if (icon && ref.icon_label && lv_obj_is_valid(ref.icon_label) &&
       std::strcmp(lv_label_get_text(ref.icon_label), icon) != 0)
@@ -953,8 +945,10 @@ inline void companion_render_mute(const CompanionMuteRef &ref, bool muted) {
 inline void companion_render_obs_mute(const CompanionCardRef &ref, const CompanionRuntimeSnapshot &snapshot) {
   if (!ref.obs_mute_icon_label) return;
   const auto *action = companion_published_action(snapshot, ref.action_id);
+  const bool muted = action && action->label.rfind("Muted · ", 0) == 0;
+  const bool live = action && action->label.rfind("Unmuted · ", 0) == 0;
   companion_render_mute({ref.button, ref.action_id, ref.obs_mute_icon_label, ref.obs_mute_icon_off,
-                         ref.obs_mute_icon_on}, action && action->label.rfind("Muted · ", 0) == 0);
+                         ref.obs_mute_icon_on}, muted, live);
 }
 
 inline void companion_apply_mute_state(const CompanionMuteRef &ref,
@@ -965,14 +959,14 @@ inline void companion_apply_mute_state(const CompanionMuteRef &ref,
   const bool muted = available && companion_runtime_service().displayed_mute_value(ref.control_id, value->value) > 0;
   if (lv_obj_has_state(ref.button, LV_STATE_DISABLED) == available)
     set_card_disabled_state(ref.button, !available);
-  companion_render_mute(ref, muted);
+  companion_render_mute(ref, muted, muted);
 }
 
 inline void companion_paint_mute_preview(const std::string &control, int value) {
   for (const auto &ref : companion_view_registry().mutes) {
     if (ref.control_id == control && lv_obj_is_valid(ref.button) &&
         !lv_obj_has_state(ref.button, LV_STATE_DISABLED))
-      companion_render_mute(ref, value > 0);
+      companion_render_mute(ref, value > 0, value > 0);
   }
 }
 

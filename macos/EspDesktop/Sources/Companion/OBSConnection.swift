@@ -218,10 +218,7 @@ final class OBSConnection: ObservableObject {
         return state.scenes.prefix(40).compactMap { scene in
             guard let target = UUID(uuidString: scene.id) else { return nil }
             let action: SceneAction = state.studioMode ? .preview(target) : .program(target)
-            let selected = state.studioMode ? state.preview?.id == scene.id : state.program?.id == scene.id
-            let prefix = state.studioMode ? (selected ? "Preview · " : "Queue · ")
-                : (selected ? (state.streaming && !state.streamReconnecting ? "On air · " : "Program · ") : "")
-            return (action.id, prefix + scene.name)
+            return (action.id, scene.name)
         }
     }
 

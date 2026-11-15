@@ -17,7 +17,7 @@ export function obsStarterControls(actions: readonly CompanionAction[]) {
     const ids = new Set(actions.map(action => action.id));
     const scenes = actions.flatMap(action => {
         const id = savedOBSSceneTarget(action.id);
-        return id ? [{ id, label: action.label.replace(/^(Preview|Queue|Program|On air) · /, "") }] : [];
+        return id ? [{ id, label: action.label }] : [];
     });
     const mics = actions.filter(action => /^obs\.mute\.[0-9a-f-]{36}$/.test(action.id))
         .map(action => ({ id: action.id, label: action.label.replace(/^(Muted|Unmuted) · /, "") }));

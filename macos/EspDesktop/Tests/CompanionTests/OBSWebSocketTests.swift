@@ -55,7 +55,7 @@ final class OBSWebSocketTests: XCTestCase {
                                         streaming: true, streamReconnecting: false, recording: true)
         let program = try XCTUnwrap(OBSConnection.sceneActions(state).first)
         XCTAssertEqual(OBSConnection.SceneAction(id: program.id), .program(uuid))
-        XCTAssertEqual(program.label, "On air · Gameplay")
+        XCTAssertEqual(program.label, "Gameplay")
         XCTAssertEqual(selected(state), ["obs.selected." + uuid.uuidString.lowercased()])
 
         state.studioMode = true
@@ -63,7 +63,8 @@ final class OBSWebSocketTests: XCTestCase {
         state.preview = breakScene
         let preview = try XCTUnwrap(OBSConnection.sceneActions(state).last)
         XCTAssertEqual(OBSConnection.SceneAction(id: preview.id), .preview(breakID))
-        XCTAssertEqual(preview.label, "Preview · Break")
+        XCTAssertEqual(preview.label, "Break")
+        XCTAssertEqual(OBSConnection.sceneActions(state).first?.label, program.label)
         XCTAssertEqual(selected(state), ["obs.selected." + breakID.uuidString.lowercased()])
         XCTAssertNotEqual(program.id, preview.id)
         XCTAssertTrue(OBSConnection.sceneActions(nil).isEmpty)

@@ -1610,17 +1610,16 @@ export function registerCompanionCardTypes(
                 };
                 const currentLabel = obsControlLabels.get(card.entity);
                 const alias = (mode === "obs_mic" || card.entity.startsWith("obs.target.")) && card.label;
-                const status = currentLabel?.match(/^(Program|On air|Preview|Queue) · /)?.[1];
                 const muted = mode === "obs_mic" && currentLabel?.startsWith("Muted · ");
-                const label = mode === "obs_mic" ? alias || currentLabel?.replace(/^(Muted|Unmuted) · /, "") || fallback[mode]
-                    : alias ? (status ? `${alias} · ${status}` : alias) : currentLabel || fallback[mode];
+                const live = mode === "obs_mic" && currentLabel?.startsWith("Unmuted · ");
+                const label = alias || (mode === "obs_mic" ? currentLabel?.replace(/^(Muted|Unmuted) · /, "") : currentLabel) || fallback[mode];
                 return {
                     ...cardBadgePreview(muted ? { ...card, icon: "Microphone Off" } : card, helpers, {
                         label,
                         iconFallback: companionSubtypeDefaultIcon(mode),
                         badge: COMPANION_CARD_METADATA.preview.badge,
                     }),
-                    isOn: muted || (mode === "obs" && !!currentLabel && card.entity.slice(-37) === obsControlLabels.get("obs.selected")),
+                    isOn: live || (mode === "obs" && !!currentLabel && card.entity.slice(-37) === obsControlLabels.get("obs.selected")),
                     labelEditable: false,
                 };
             }
