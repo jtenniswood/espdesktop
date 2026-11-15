@@ -4322,11 +4322,13 @@ async function assertOBSSceneCard(browser) {
   await installRoutes(context, testCase.slug, { nativeState: fixture });
   const id = "obs.scene.a51e30ff-0c88-418f-ac5a-fd2e33963c2b";
   const mic = "obs.mute.69da3f8f-7f62-4abe-a594-4e40dd579858";
+  const fader = "obs.level.69da3f8f-7f62-4abe-a594-4e40dd579858";
   let connectedToOBS = true;
   await context.route("**/companion/actions", route => route.fulfill({
     json: connectedToOBS ? [
       { id, label: "Program · Gameplay" },
       { id: mic, label: "Muted · Desk Mic" },
+      { id: fader, label: "Desk Mic" },
       { id: "obs.take.9ea47782-fada-4bb3-aef6-1904669efae7", label: "Take Live · Setup" },
       { id: "obs.status.record", label: "Recording · Idle" },
       { id: "obs.replay", label: "Save Replay" },
@@ -4376,12 +4378,26 @@ async function assertOBSSceneCard(browser) {
       "The OBS replay card saves a stable ID");
 
 
+    await page.locator(".sp-main .sp-empty-cell").first().click();
+    await page.getByRole("button", { name: "OBS Input Level card type", exact: true }).click();
+    const faderPicker = page.locator("select[id$='obs-level']");
+    await faderPicker.getByRole("option", { name: "Desk Mic", exact: true }).waitFor({ state: "attached" });
+    await faderPicker.selectOption(fader);
+    await page.getByRole("button", { name: "Save", exact: true }).click();
+    await waitForNativeState(fixture, () => fixture.document.buttons[8]?.startsWith(fader + ";"),
+      "The OBS fader saves the selected input UUID");
+    await page.locator('.sp-main [data-slot="8"]').click();
+    await page.getByRole("button", { name: "Edit", exact: true }).click();
+    await faderPicker.getByRole("option", { name: "Desk Mic", exact: true }).waitFor({ state: "attached" });
+    assert.equal(await faderPicker.inputValue(), fader);
+    await page.locator(".sp-settings-overlay.sp-visible .sp-settings-close").click();
+
     connectedToOBS = false;
     await page.locator('.sp-main [data-slot="3"]').click();
     await page.getByRole("button", { name: "Edit", exact: true }).click();
     await picker.getByRole("option", { name: "Saved scene (unavailable)" }).waitFor({ state: "attached" });
     assert.equal(await picker.inputValue(), id);
-    console.log("OBS scene, microphone, Take Live, status and replay card checks passed.");
+    console.log("OBS scene, microphone, Take Live, status, replay and fader card checks passed.");
   } finally {
     await context.close();
   }

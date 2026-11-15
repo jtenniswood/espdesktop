@@ -26,6 +26,12 @@ export const CARD_CONFIG_FIELDS: readonly SavedConfigField[] = [
   "options",
 ];
 
+export const OBS_FADER_PREFIX = "obs.level.";
+
+export function isOBSFaderControlID(entity: unknown): entity is string {
+  return typeof entity === "string" && /^obs\.level\.[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}$/.test(entity);
+}
+
 export function isMacAudioCard(type: string, entity: string | null | undefined): boolean {
   return type === "slider" &&
     (entity === "media.output_volume" || entity === "media.input_volume" ||

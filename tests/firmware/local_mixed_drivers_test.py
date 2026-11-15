@@ -49,7 +49,9 @@ const char *find_icon(const char *name) { return name; }
 void companion_track_mute(lv_obj_t *, const std::string &key, lv_obj_t *, const char *, const char *) { assert(companion_mute_control_valid(key)); ++mute_bindings; }
 const char *slider_icon_off(const std::string &, const std::string &, const std::string &) { return "volume"; }
 const char *slider_icon_on(const std::string &, const std::string &, const std::string &, const std::string &) { return "volume-on"; }
-void companion_track_slider(lv_obj_t *, const std::string &key, lv_obj_t *, bool, const char *, const char *) { assert(companion_volume_control_valid(key)); ++bindings; }
+bool companion_obs_level_control(const std::string &) { return false; }
+void companion_track_slider(lv_obj_t *, const std::string &key, lv_obj_t *, bool, const char *, const char *,
+                            lv_obj_t *, const std::string &) { assert(companion_volume_control_valid(key)); ++bindings; }
 std::vector<std::pair<std::string,int>> commands;
 bool companion_toggle_mute(const std::string &key) { commands.emplace_back(key,100); return true; }
 unsigned companion_next_request_number() { return 1; }

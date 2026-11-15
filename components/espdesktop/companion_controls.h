@@ -17,6 +17,7 @@
 
 #include "app_shortcuts_generated.h"
 #include "companion_capabilities_generated.h"
+#include "companion_audio_control.h"
 #include "companion_runtime_access.h"
 #include "companion_shortcut_page.h"
 #ifdef USE_COMPANION
@@ -303,8 +304,7 @@ inline bool companion_mute_control_valid(const std::string &control_id) {
 }
 
 inline bool companion_volume_control_valid(const std::string &control_id) {
-  return control_id == "media.output_volume" || control_id == "media.input_volume" ||
-    companion_mute_control_valid(control_id);
+  return companion_audio_control_id(control_id);
 }
 
 inline const char *companion_volume_control_label(const std::string &control_id) {
@@ -721,6 +721,8 @@ struct CompanionSliderRef {
   bool has_icon_on = false;
   const char *icon_off = nullptr;
   const char *icon_on = nullptr;
+  lv_obj_t *text_label = nullptr;
+  std::string base_label{};
 };
 
 inline void companion_apply_card_focus(lv_obj_t *button, const std::string &action_id,
@@ -818,7 +820,8 @@ inline void companion_slider_deleted(lv_event_t *event) {
 
 inline void companion_track_slider(lv_obj_t *slider, const std::string &control_id,
                                    lv_obj_t *icon_label, bool has_icon_on,
-                                   const char *icon_off, const char *icon_on) {
+                                   const char *icon_off, const char *icon_on,
+                                   lv_obj_t *text_label = nullptr, const std::string &base_label = {}) {
   if (!slider || !companion_volume_control_valid(control_id)) return;
   auto &refs = companion_slider_refs();
   auto existing = std::find_if(refs.begin(), refs.end(), [slider](const CompanionSliderRef &ref) {
@@ -830,8 +833,10 @@ inline void companion_track_slider(lv_obj_t *slider, const std::string &control_
     existing->has_icon_on = has_icon_on;
     existing->icon_off = icon_off;
     existing->icon_on = icon_on;
+    existing->text_label = text_label;
+    existing->base_label = base_label;
   } else {
-    refs.push_back({slider, icon_label, control_id, has_icon_on, icon_off, icon_on});
+    refs.push_back({slider, icon_label, control_id, has_icon_on, icon_off, icon_on, text_label, base_label});
     lv_obj_add_event_cb(slider, companion_slider_deleted, LV_EVENT_DELETE, nullptr);
   }
   companion_request_card_refresh();
@@ -1074,6 +1079,17 @@ inline void companion_refresh_cards_if_requested() {
     const auto value = std::find_if(snapshot.values.begin(), snapshot.values.end(),
       [it](const CompanionValue &candidate) { return candidate.id == it->control_id; });
     const bool available = snapshot.connected && value != snapshot.values.end();
+    if (it->text_label && lv_obj_is_valid(it->text_label) && companion_obs_level_control(it->control_id)) {
+      char level[24]{};
+      if (available && value->value > 0)
+        snprintf(level, sizeof(level), "%+.1f dB", double(companion_obs_fader_decibels(value->value)));
+      const auto *action = companion_published_action(snapshot, it->control_id);
+      const std::string label = (action ? "OBS · " + action->label : it->base_label) + "\n" +
+        (available ? (value->value > 0 ? level : "-∞ dB") : espdesktop_i18n("Unavailable"));
+      const auto normalized = normalize_display_text(label);
+      if (normalized != lv_label_get_text(it->text_label))
+        lv_label_set_display_text(it->text_label, label.c_str());
+    }
     if (available) {
       lv_slider_set_value(it->slider, value->value, LV_ANIM_OFF);
       lv_obj_send_event(it->slider, LV_EVENT_VALUE_CHANGED, nullptr);
@@ -1098,7 +1114,8 @@ inline bool companion_forget_mute(void *) { return false; }
 inline void companion_track_mute(void *, const std::string &, void * = nullptr,
                                  const char * = nullptr, const char * = nullptr) {}
 inline void companion_track_slider(void *, const std::string &, void *, bool,
-                                   const char *, const char *) {}
+                                   const char *, const char *, void * = nullptr,
+                                   const std::string & = {}) {}
 inline void companion_refresh_cards_if_requested() {}
 inline void companion_require_card_focus(void *, const std::string &) {}
 #endif

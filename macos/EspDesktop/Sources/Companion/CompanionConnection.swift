@@ -88,6 +88,8 @@ final class CompanionConnection: NSObject {
     private var applicationFocusPublisher = CompanionApplicationFocusPublisher()
     private var catalogueGeneration: UInt32 = 0
     private var supportsOBSCards = false
+    private var supportsOBSFaders = false
+    private var lastOBSFaderValues: [String: Int] = [:]
     private var definitionGeneration: UInt32 = 0
     private var lastPublishedSystemMetrics: CompanionSystemMetricsSnapshot?
     private var lastSystemMetricsPublication = Date.distantPast
@@ -506,6 +508,8 @@ final class CompanionConnection: NSObject {
             supportsPairingReset = payload.capabilityVersion >= 8
             expandedShortcutsSupported = payload.capabilityVersion >= 9
             supportsOBSCards = payload.capabilityVersion >= 13
+            supportsOBSFaders = payload.capabilityVersion >= 14
+            lastOBSFaderValues.removeAll()
             // A Bonjour TXT record never authorizes a location change. Both the
             // pinned TLS certificate and the authenticated session must agree.
             let expectedFingerprint = preferences.stringPreference(forKey: certificateFingerprintKey)
@@ -609,6 +613,20 @@ final class CompanionConnection: NSObject {
             let requestIdentifier = payload.requestId
             let controlIdentifier = payload.controlId
             let value = Int(payload.value)
+            if OBSConnection.faderInputUUID(for: controlIdentifier) != nil {
+                guard supportsOBSFaders, let requestingTask = task else { return false }
+                Task { [weak self, weak requestingTask] in
+                    guard let self, let requestingTask, self.task === requestingTask,
+                          self.sessionAuthenticated else { return }
+                    let changed = await self.resources.setOBSFader(value, controlIdentifier: controlIdentifier)
+                    guard self.task === requestingTask, self.sessionAuthenticated else { return }
+                    // A rejected or unchanged drag still needs to settle the panel at the confirmed value.
+                    self.publishOBSFaderValues(self.resources.obsFaderValues(), forceControl: controlIdentifier)
+                    self.sendJSON(["type": "action.result", "requestId": requestIdentifier,
+                                   "status": changed ? "performed" : "not_allowed"])
+                }
+                return true
+            }
             let changed = resources.setMediaControlValue(value, controlIdentifier: controlIdentifier)
             sendJSON(["type": "action.result", "requestId": requestIdentifier,
                       "status": changed ? "performed" : "not_allowed"])
@@ -796,7 +814,9 @@ final class CompanionConnection: NSObject {
         // The browser receives identifiers, never application paths or shell commands.
         let apps = resources.launchableApps()
         let supportedOBSActions = supportsOBSCards ? obsActions ?? resources.obsControlActions() : []
-        let obsEntries: [[String: String]] = supportedOBSActions.map { entry in
+        let obsEntries: [[String: String]] = supportedOBSActions.filter { entry in
+            supportsOBSFaders || OBSConnection.faderInputUUID(for: entry.id) == nil
+        }.map { entry in
             ["id": entry.id, "label": Self.catalogueLabel(entry.label, fallback: "OBS scene")]
         }
         let entries: [[String: String]] = obsEntries + resources.folderActions().compactMap { folder -> [String: String]? in
@@ -894,6 +914,20 @@ final class CompanionConnection: NSObject {
                 self.sendJSON(["type": "focus.changed", "actionId": confirmed.first ?? "", "actionIds": confirmed])
             }
         }
+    }
+
+    func publishOBSFaderValues(_ values: [String: Int], force: Bool = false, forceControl: String? = nil) {
+        guard supportsOBSFaders, sessionAuthenticated else { return }
+        var removed = Set(lastOBSFaderValues.keys.filter { values[$0] == nil })
+        if let forceControl, values[forceControl] == nil { removed.insert(forceControl) }
+        for id in removed.sorted() {
+            sendJSON(["type": "value.state", "controlId": id, "available": false])
+        }
+        for (id, value) in values.sorted(by: { $0.key < $1.key })
+            where force || id == forceControl || lastOBSFaderValues[id] != value {
+            sendJSON(["type": "value.state", "controlId": id, "available": true, "value": value])
+        }
+        lastOBSFaderValues = values
     }
 
     func publishMediaControlValues(_ values: [String: Int], unavailable: Set<String>) {

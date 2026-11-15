@@ -41,6 +41,7 @@ def cpp(data):
 #include <variant>
 #include <vector>
 #include "companion_capabilities_generated.h"
+#include "companion_audio_control.h"
 
 namespace companion_protocol {
 using namespace ArduinoJson;
@@ -77,6 +78,8 @@ inline bool hex_valid(JsonVariantConst value) {
             e=f'string_valid({value}, {spec["minLength"]}, {spec["maxLength"]})'
             if 'enum' in spec: e+=' && ('+' || '.join(f'{value}.as<std::string>() == {json.dumps(v)}' for v in spec['enum'])+')'
             if spec.get('pattern')=='hex64': e+=f' && hex_valid({value})'
+            if spec.get('pattern')=='volume_control_id':
+                e+=f' && companion_audio_control_id({value}.as<const char *>())'
             return e
         if kind in ('number','integer'):
             return f'number_valid({value}, {spec["minimum"]}, {spec["maximum"]}, {str(kind=="integer").lower()})'
@@ -211,6 +214,10 @@ enum CompanionProtocolDirection: String { case panelToMac = "panel_to_mac", macT
             if let options = rule["enum"] as? [String], !options.contains(text) { return false }
             if rule["pattern"] as? String == "hex64" {
                 return text.utf8.count == 64 && text.utf8.allSatisfy { (48...57).contains($0) || (65...70).contains($0) || (97...102).contains($0) }
+            }
+            if rule["pattern"] as? String == "volume_control_id" {
+                let macControls = ["media.output_volume", "media.input_volume", "media.output_mute", "media.input_mute"]
+                return macControls.contains(text) || OBSConnection.faderInputUUID(for: text) != nil
             }
             return true
         case "integer", "number":

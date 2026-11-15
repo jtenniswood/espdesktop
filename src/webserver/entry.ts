@@ -204,6 +204,7 @@ function registerCards(
     context.controllers.settingsUi,
     !!context.device.profile.features?.companion,
     cardUi,
+    context.dom.fetch,
   );
   registerSubpageCardTypes(registry, context.configuration.codec, context.core, context.controllers.selection, fields, cardUi);
   registerSwitchCardTypes(registry, context.configuration.confirmationOptions, lightCards, fields);

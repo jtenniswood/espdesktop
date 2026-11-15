@@ -9,7 +9,14 @@ private final class OBSPilotTransport: OBSWebSocketTransport {
     var isReady = true
     var requests: [String] = []
     var preview = queued
+    var transitionCursor = 1.0
     var replayActive = false
+    var hasAudioInput = false
+    var lastFaderWrite: OBSWebSocket.Fields?
+    var muted = true
+    var faderDb = -20.0
+    var faderMultiplier = 0.1
+    static let mic = "69da3f8f-7f62-4abe-a594-4e40dd579858"
     static let program = "bd73192e-4d59-4ff4-afab-c88777454f98"
     static let queued = "0b3d47f0-c796-44c1-9e63-1a8cb0519101"
 
@@ -26,13 +33,22 @@ private final class OBSPilotTransport: OBSWebSocketTransport {
                 "currentPreviewSceneUuid": preview,
                 "scenes": [scene(Self.program), scene(Self.queued)],
             ]
-        case "GetInputList": return ["inputs": []]
+        case "GetInputList":
+            let inputs = hasAudioInput ? [["inputUuid": Self.mic, "inputName": "Desk Mic"]] : []
+            return ["inputs": inputs]
+        case "GetInputMute": return ["inputMuted": muted]
+        case "GetInputVolume": return ["inputVolumeDb": faderDb, "inputVolumeMul": faderMultiplier]
+        case "SetInputVolume":
+            lastFaderWrite = fields
+            faderDb = fields["inputVolumeDb"] as? Double ?? -100
+            faderMultiplier = fields["inputVolumeMul"] as? Double ?? pow(10, faderDb / 20)
+            return [:]
         case "GetStudioModeEnabled": return ["studioModeEnabled": true]
         case "GetStreamStatus": return ["outputActive": true, "outputReconnecting": true]
         case "GetRecordStatus": return ["outputActive": true, "outputPaused": true]
         case "GetReplayBufferStatus": return ["outputActive": replayActive]
         case "SaveReplayBuffer": return [:]
-        case "GetCurrentSceneTransitionCursor": return ["transitionCursor": 1.0]
+        case "GetCurrentSceneTransitionCursor": return ["transitionCursor": transitionCursor]
         case "GetCurrentPreviewScene": return scene(preview)
         case "TriggerStudioModeTransition":
             onEvent?("SceneTransitionStarted", [:])
@@ -48,8 +64,9 @@ private final class OBSPilotTransport: OBSWebSocketTransport {
 
 final class OBSProductionTests: XCTestCase {
     @MainActor
-    private func open(_ transport: OBSPilotTransport) async throws -> OBSConnection {
-        let connection = OBSConnection(socket: transport)
+    private func open(_ transport: OBSPilotTransport,
+                      transitionProbeInterval: Duration = .seconds(1)) async throws -> OBSConnection {
+        let connection = OBSConnection(socket: transport, transitionProbeInterval: transitionProbeInterval)
         transport.onReady?()
         for _ in 0..<100 {
             if connection.state != nil { return connection }
@@ -111,5 +128,52 @@ final class OBSProductionTests: XCTestCase {
         transport.onEvent?("ReplayBufferSaved", ["savedReplayPath": "/test/replay.mkv"])
         XCTAssertEqual(OBSConnection.productionActions(connection.state).last?.label, "Replay saved")
         XCTAssertEqual(transport.requests.filter { $0 == "SaveReplayBuffer" }.count, 1)
+    }
+
+    @MainActor
+    func testFaderSetsOnlyTheNamedOBSInputAndPreservesMute() async throws {
+        let transport = OBSPilotTransport()
+        transport.hasAudioInput = true
+        let connection = try await open(transport)
+        let id = "obs.level." + OBSPilotTransport.mic
+        XCTAssertEqual(OBSConnection.faderActions(connection.state).first?.id, id)
+        XCTAssertEqual(OBSConnection.faderValues(connection.state)[id], 64)
+        let unknown = await connection.setFader(
+            controlID: "obs.level.bd73192e-4d59-4ff4-afab-c88777454f98", value: 80)
+        XCTAssertFalse(unknown)
+        let unity = await connection.setFader(controlID: id, value: 80)
+        XCTAssertTrue(unity)
+        XCTAssertEqual(transport.lastFaderWrite?["inputUuid"] as? String, OBSPilotTransport.mic)
+        XCTAssertEqual(transport.lastFaderWrite?["inputVolumeDb"] as? Double, 0)
+        XCTAssertEqual(connection.state?.inputMutes[OBSPilotTransport.mic], true)
+        let silent = await connection.setFader(controlID: id, value: 0)
+        XCTAssertTrue(silent)
+        XCTAssertEqual(transport.lastFaderWrite?["inputVolumeMul"] as? Double, 0)
+        XCTAssertFalse(transport.requests.contains("SetInputMute"))
+        XCTAssertEqual(OBSConnection.faderValues(connection.state)[id], 0)
+
+        transport.onEvent?("InputVolumeChanged", [
+            "inputUuid": OBSPilotTransport.mic, "inputVolumeDb": 13.0, "inputVolumeMul": 4.47,
+        ])
+        XCTAssertEqual(OBSConnection.faderValues(connection.state)[id], 90)
+        transport.onEvent?("CurrentSceneCollectionChanging", [:])
+        XCTAssertTrue(OBSConnection.faderValues(connection.state).isEmpty)
+        let offline = await connection.setFader(controlID: id, value: 80)
+        XCTAssertFalse(offline)
+    }
+
+    @MainActor
+    func testInterruptedTransitionReenablesTakeWithoutEndEvent() async throws {
+        let transport = OBSPilotTransport()
+        let connection = try await open(transport, transitionProbeInterval: .milliseconds(1))
+        transport.transitionCursor = 0.5
+        transport.onEvent?("SceneTransitionStarted", [:])
+        XCTAssertFalse(connection.state?.canTakePreview ?? true)
+        transport.transitionCursor = 1
+        for _ in 0..<100 where connection.state?.canTakePreview != true {
+            try await Task.sleep(for: .milliseconds(1))
+        }
+        XCTAssertEqual(connection.state?.canTakePreview, true)
+        XCTAssertTrue(transport.requests.contains("GetCurrentSceneTransitionCursor"))
     }
 }

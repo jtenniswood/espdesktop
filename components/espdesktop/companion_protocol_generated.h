@@ -8,6 +8,7 @@
 #include <variant>
 #include <vector>
 #include "companion_capabilities_generated.h"
+#include "companion_audio_control.h"
 
 namespace companion_protocol {
 using namespace ArduinoJson;
@@ -649,7 +650,7 @@ inline std::optional<Message> decode(JsonObjectConst root, Direction direction, 
       if (!(string_valid(root["requestId"], 1, 64))) return std::nullopt;
     }
     {
-      if (!(string_valid(root["controlId"], 1, 19) && (root["controlId"].as<std::string>() == "media.output_volume" || root["controlId"].as<std::string>() == "media.input_volume" || root["controlId"].as<std::string>() == "media.output_mute" || root["controlId"].as<std::string>() == "media.input_mute"))) return std::nullopt;
+      if (!(string_valid(root["controlId"], 1, 46) && companion_audio_control_id(root["controlId"].as<const char *>()))) return std::nullopt;
     }
     {
       if (!(number_valid(root["value"], 0, 100, true))) return std::nullopt;
@@ -664,7 +665,7 @@ inline std::optional<Message> decode(JsonObjectConst root, Direction direction, 
     if (direction != Direction::MAC_TO_PANEL) return std::nullopt;
     if (!(state == SessionState::CONNECTED)) return std::nullopt;
     {
-      if (!(string_valid(root["controlId"], 1, 19) && (root["controlId"].as<std::string>() == "media.output_volume" || root["controlId"].as<std::string>() == "media.input_volume" || root["controlId"].as<std::string>() == "media.output_mute" || root["controlId"].as<std::string>() == "media.input_mute"))) return std::nullopt;
+      if (!(string_valid(root["controlId"], 1, 46) && companion_audio_control_id(root["controlId"].as<const char *>()))) return std::nullopt;
     }
     {
       if (!(root["available"].is<bool>())) return std::nullopt;

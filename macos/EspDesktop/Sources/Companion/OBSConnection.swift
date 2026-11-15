@@ -62,6 +62,7 @@ final class OBSConnection: ObservableObject {
         var streamReconnecting: Bool
         var recording: Bool
         var inputMutes: [String: Bool] = [:]
+        var inputFaders: [String: Int] = [:]
         var recordingPaused = false
         var replayBufferActive = false
         var replaySave = ReplaySave.ready
@@ -120,7 +121,7 @@ final class OBSConnection: ObservableObject {
     }
 
     static func controlActions(_ state: State?) -> [(id: String, label: String)] {
-        productionActions(state) + sceneActions(state) + audioActions(state)
+        productionActions(state) + sceneActions(state) + audioActions(state) + faderActions(state)
     }
 
     static func sceneActions(_ state: State?) -> [(id: String, label: String)] {
@@ -154,6 +155,65 @@ final class OBSConnection: ObservableObject {
             return ("obs.mute." + target.uuidString.lowercased(),
                     (muted ? "Muted · " : "Unmuted · ") + input.name)
         }
+    }
+
+    nonisolated static func faderInputUUID(for controlID: String) -> UUID? {
+        let prefix = "obs.level."
+        guard controlID.hasPrefix(prefix),
+              let uuid = UUID(uuidString: String(controlID.dropFirst(prefix.count))),
+              controlID == prefix + uuid.uuidString.lowercased() else { return nil }
+        return uuid
+    }
+
+    nonisolated static func faderDecibels(_ value: Int) -> Double {
+        value <= 80 ? Double(value - 80) * 1.25 : Double(value - 80) * 1.3
+    }
+
+    static func faderPosition(_ fields: OBSWebSocket.Fields) -> Int? {
+        if let gain = fields["inputVolumeMul"] as? Double, gain == 0 { return 0 }
+        guard let db = fields["inputVolumeDb"] as? Double, db.isFinite else { return nil }
+        let scaled = 80 + min(26, max(-100, db)) / (db <= 0 ? 1.25 : 1.3)
+        return min(100, max(1, Int(scaled.rounded())))
+    }
+
+    static func faderActions(_ state: State?) -> [(id: String, label: String)] {
+        guard let state else { return [] }
+        return state.inputs.compactMap { input in
+            guard state.inputFaders[input.id] != nil, let uuid = UUID(uuidString: input.id) else { return nil }
+            return ("obs.level." + uuid.uuidString.lowercased(), input.name)
+        }
+    }
+
+    static func faderValues(_ state: State?) -> [String: Int] {
+        var values: [String: Int] = [:]
+        for (id, value) in state?.inputFaders ?? [:] {
+            guard let uuid = UUID(uuidString: id) else { continue }
+            values["obs.level." + uuid.uuidString.lowercased()] = value
+        }
+        return values
+    }
+
+    func setFader(controlID: String, value: Int) async -> Bool {
+        guard (0...100).contains(value), let uuid = Self.faderInputUUID(for: controlID),
+              let state, let target = state.inputs.first(where: { UUID(uuidString: $0.id) == uuid }),
+              state.inputFaders[target.id] != nil,
+              pendingFaderCommands.insert(uuid).inserted else { return false }
+        defer { pendingFaderCommands.remove(uuid) }
+        let active = generation
+        var fields: OBSWebSocket.Fields = ["inputUuid": target.id]
+        if value == 0 {
+            fields["inputVolumeMul"] = 0.0
+        } else {
+            fields["inputVolumeDb"] = Self.faderDecibels(value)
+        }
+        // Use only OBS volume operations; a muted input stays muted at every level.
+        let accepted = await command("SetInputVolume", fields: fields)
+        guard active == generation else { return false }
+        let confirmed = try? await socket.request("GetInputVolume", fields: ["inputUuid": target.id])
+        guard active == generation, var current = self.state else { return false }
+        current.inputFaders[target.id] = confirmed.flatMap(Self.faderPosition)
+        self.state = current
+        return accepted && current.inputFaders[target.id] != nil
     }
 
     func toggleMicMute(id: UUID) async -> Bool {
@@ -200,6 +260,8 @@ final class OBSConnection: ObservableObject {
     private var collectionChanging = false
     private var pendingMuteCommands = Set<UUID>()
     private var takingPreview = false
+    private var transitionProbe: Task<Void, Never>?
+    private let transitionProbeInterval: Duration
     private struct PendingReplay {
         var accepted = false
         var saved = false
@@ -207,11 +269,15 @@ final class OBSConnection: ObservableObject {
     private var pendingReplay: PendingReplay?
     private var replayDeadline: Task<Void, Never>?
     private var bufferedMutes: [String: Bool] = [:]
+    private var bufferedFaders: [String: Int] = [:]
+    private var pendingFaderCommands = Set<UUID>()
     private var bufferedEvents: [(String, OBSWebSocket.Fields)] = []
 
-    init(defaults: UserDefaults = .standard, socket: any OBSWebSocketTransport = OBSWebSocket()) {
+    init(defaults: UserDefaults = .standard, socket: any OBSWebSocketTransport = OBSWebSocket(),
+         transitionProbeInterval: Duration = .seconds(1)) {
         self.defaults = defaults
         self.socket = socket
+        self.transitionProbeInterval = transitionProbeInterval
         enabled = defaults.bool(forKey: Keys.enabled)
         port = UInt16(exactly: defaults.integer(forKey: Keys.port)).flatMap { $0 == 0 ? nil : $0 } ?? 4455
 
@@ -395,8 +461,11 @@ final class OBSConnection: ObservableObject {
         generation = UUID()
         syncTask?.cancel()
         syncTask = nil
+        transitionProbe?.cancel()
+        transitionProbe = nil
         bufferedEvents.removeAll()
         bufferedMutes.removeAll()
+        bufferedFaders.removeAll()
         pendingReplay = nil
         replayDeadline?.cancel()
         replayDeadline = nil
@@ -436,11 +505,17 @@ final class OBSConnection: ObservableObject {
                 }
                 let inputTargets = Array(inputList.compactMap { Target(fields: $0, kind: "input") }.prefix(40))
                 var inputMutes: [String: Bool] = [:]
+                var inputFaders: [String: Int] = [:]
                 for input in inputTargets {
                     guard active == generation, !Task.isCancelled else { return }
                     do {
                         let result = try await socket.request("GetInputMute", fields: ["inputUuid": input.id])
                         inputMutes[input.id] = result["inputMuted"] as? Bool
+                        guard active == generation, !Task.isCancelled else { return }
+                        if inputMutes[input.id] != nil {
+                            let level = try await socket.request("GetInputVolume", fields: ["inputUuid": input.id])
+                            inputFaders[input.id] = Self.faderPosition(level)
+                        }
                     } catch OBSWebSocket.Failure.requestRejected {
                         // Video-only inputs do not expose the OBS mixer mute operation.
                     }
@@ -448,6 +523,8 @@ final class OBSConnection: ObservableObject {
                 guard active == generation else { return }
                 for (id, muted) in bufferedMutes where inputMutes[id] != nil { inputMutes[id] = muted }
                 bufferedMutes.removeAll()
+                for (id, position) in bufferedFaders where inputFaders[id] != nil { inputFaders[id] = position }
+                bufferedFaders.removeAll()
                 var snapshot = State(
                     collection: collectionName,
                     scenes: sceneTargets,
@@ -459,12 +536,14 @@ final class OBSConnection: ObservableObject {
                     streamReconnecting: stream["outputReconnecting"] as? Bool ?? false,
                     recording: recording,
                     inputMutes: inputMutes,
+                    inputFaders: inputFaders,
                     recordingPaused: record["outputPaused"] as? Bool ?? false,
                     replayBufferActive: replay?["outputActive"] as? Bool ?? false
                 )
                 for (type, fields) in bufferedEvents { Self.apply(type, fields: fields, to: &snapshot) }
                 bufferedEvents.removeAll()
                 state = snapshot
+                updateTransitionProbe()
                 status = .connected
             } catch {
                 guard active == generation else { return }
@@ -501,6 +580,14 @@ final class OBSConnection: ObservableObject {
             } else if state == nil, !collectionChanging, bufferedMutes.count < 128 {
                 bufferedMutes[id] = muted
             }
+        case "InputVolumeChanged":
+            guard let id = fields["inputUuid"] as? String, let position = Self.faderPosition(fields) else { return }
+            if var current = state, current.inputFaders[id] != nil, current.inputFaders[id] != position {
+                current.inputFaders[id] = position
+                state = current
+            } else if state == nil, !collectionChanging, bufferedFaders.count < 128 {
+                bufferedFaders[id] = position
+            }
         case "ReplayBufferSaved":
             // OBS sends a global event. Require an accepted request as well as
             // a confirmed saved file, and keep the file path local to OBS.
@@ -513,6 +600,7 @@ final class OBSConnection: ObservableObject {
             if var current = state {
                 Self.apply(type, fields: fields, to: &current)
                 state = current
+                if type == "SceneTransitionStarted" || type == "SceneTransitionEnded" { updateTransitionProbe() }
                 if type == "ReplayBufferStateChanged", !current.replayBufferActive, pendingReplay != nil {
                     finishReplay(.ready)
                 }
@@ -524,6 +612,33 @@ final class OBSConnection: ObservableObject {
                 bufferedEvents.append((type, fields))
             }
         default: break
+        }
+    }
+
+    private func updateTransitionProbe() {
+        guard state?.studioMode == true, state?.transitionInProgress == true else {
+            transitionProbe?.cancel()
+            transitionProbe = nil
+            return
+        }
+        guard transitionProbe == nil else { return }
+        let active = generation
+        let interval = transitionProbeInterval
+        transitionProbe = Task { [weak self] in
+            while !Task.isCancelled {
+                do { try await Task.sleep(for: interval) } catch { return }
+                guard let self, let token = state?.takeToken, state?.transitionInProgress == true else { return }
+                // OBS may omit SceneTransitionEnded when a transition is interrupted.
+                let response = try? await snapshotRequest("GetCurrentSceneTransitionCursor", generation: active)
+                guard !Task.isCancelled, active == generation else { return }
+                if response?["transitionCursor"] as? Double == 1,
+                   var current = state, current.takeToken == token {
+                    transitionProbe = nil
+                    current.transitionInProgress = false
+                    state = current
+                    return
+                }
+            }
         }
     }
 

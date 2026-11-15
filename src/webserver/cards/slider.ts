@@ -1,3 +1,5 @@
+import { createCompanionCatalogue } from "../api/companion_catalogue";
+import { OBS_FADER_PREFIX, isOBSFaderControlID } from "../model/card";
 import { renderRetiredCardSettings } from "../application/card_registry";
 import { preserveCardColorOptions } from "../model/config_primitives";
 import {
@@ -28,6 +30,7 @@ export const COMPANION_OUTPUT_MUTE_ID = "media.output_mute";
 export const COMPANION_INPUT_MUTE_ID = "media.input_mute";
 
 export function companionSliderMode(card: any): string {
+    if (card?.entity === OBS_FADER_PREFIX || isOBSFaderControlID(card?.entity)) return "obs_level";
     if (card?.entity === COMPANION_OUTPUT_VOLUME_ID) return "mac_output";
     if (card?.entity === COMPANION_INPUT_VOLUME_ID) return "mac_input";
     if (card?.entity === COMPANION_OUTPUT_MUTE_ID) return "mac_output_mute";
@@ -36,6 +39,7 @@ export function companionSliderMode(card: any): string {
 }
 
 function companionSliderDefaultLabel(mode: string): string {
+    if (mode === "obs_level") return "OBS Input Level";
     if (mode === "mac_output") return "Volume";
     if (mode === "mac_input") return "Mic";
     if (mode === "mac_output_mute" || mode === "mac_input_mute") return "Mute";
@@ -43,6 +47,7 @@ function companionSliderDefaultLabel(mode: string): string {
 }
 
 function companionSliderDefaultIcon(mode: string): string {
+    if (mode === "obs_level") return "Microphone";
     if (mode === "mac_output") return "Volume High";
     if (mode === "mac_input") return "Microphone";
     if (mode === "mac_output_mute") return "Volume High";
@@ -73,8 +78,47 @@ export function registerSliderCardTypes(
     settingsUi: Pick<SettingsUiFeature, "inlineDisclosure">,
     companionSupported: boolean,
     cardUi: CardUiServices,
+    fetchImpl: typeof fetch,
 ): void {
     const { cardBadgeLabelHtml } = fields;
+    const obsCatalogue = createCompanionCatalogue(fetchImpl);
+
+    function renderOBSFaderSettings(panel: HTMLElement, card: { entity: string; label: string }, helpers: any): void {
+        const saved = isOBSFaderControlID(card.entity) ? card.entity : "";
+        const names = new Map<string, string>();
+        const legacyLabel = card.label || "Saved OBS input";
+        const placeholder = "Choose an OBS audio input…";
+        const { field, select } = helpers.selectField("OBS audio input", helpers.idPrefix + "obs-level",
+            [["", placeholder], ...(saved ? [[saved, legacyLabel]] : [])], saved, () => {
+                const name = names.get(select.value);
+                if (!name) return;
+                card.entity = select.value;
+                card.label = "OBS · " + name;
+                helpers.saveField("entity", card.entity);
+                helpers.saveField("label", card.label);
+                cardUi.renderPreview();
+            });
+        panel.appendChild(field);
+        helpers.markCardPrimaryField(field, "entity");
+        helpers.requireField(select, "Choose an OBS audio input before saving.");
+        const note = panel.ownerDocument.createElement("p");
+        note.className = "sp-setting-note";
+        note.textContent = "Loading audio inputs from OBS…";
+        field.appendChild(note);
+        select.disabled = true;
+        void obsCatalogue.load(true).then(actions => {
+            for (const action of actions) if (isOBSFaderControlID(action.id)) names.set(action.id, action.label);
+            const items = [...names].map(([id, name]) => new Option(name, id));
+            if (saved && !names.has(saved)) items.unshift(new Option(legacyLabel + " (unavailable)", saved));
+            select.replaceChildren(new Option(placeholder, ""), ...items);
+            select.value = saved;
+            select.disabled = names.size === 0;
+            note.textContent = names.size
+                ? "Adjusts the selected OBS input without changing its mute state."
+                : "Connect OBS in the Mac Companion to choose an input.";
+        }).catch(() => { note.textContent = "Connect OBS in the Mac Companion to choose an input."; });
+        helpers.renderCardIconPicker(panel, card, helpers, { fallback: "Microphone" });
+    }
     const { inlineDisclosure } = settingsUi;
     const { renderControlTypeField: renderLightControlTypeField } = lightCards;
     const { renderButtonSettings } = cardUi;
@@ -179,6 +223,10 @@ export function registerSliderCardTypes(
             },
             renderSettings: function (this: any, panel?: any, b?: any, slot?: any, helpers?: any) {
                 if (opts.type !== "slider" || companionSliderMode(b) === "home_assistant") return renderRetiredCardSettings(panel);
+                if (companionSliderMode(b) === "obs_level") {
+                    renderOBSFaderSettings(panel, b, helpers);
+                    return;
+                }
                 var cardSettingsPanel: any = null;
                 var modalSettingsPanel: any = null;
                 var modalSettingsDisclosure: any = null;
@@ -524,7 +572,7 @@ export function registerSliderCardTypes(
         labelAfterEntity: true,
         lightControlType: true,
     }));
-    registry.register("slider", sliderTypeFactory({
+    const legacySlider = registry.register("slider", sliderTypeFactory({
         type: "slider",
         placeholder: "e.g. Living Room",
         entityPlaceholder: "e.g. light.living_room",
@@ -539,6 +587,16 @@ export function registerSliderCardTypes(
         iconOnFieldLabel: "On Icon",
         companionVolumeModes: true,
     }));
+    registry.register("companion_obs_fader", {
+        ...legacySlider,
+        label: "OBS Input Level",
+        hidden: false,
+        pickerKey: null,
+        onSelect: (card) => Object.assign(card, cardContractDefaultConfig("slider"), {
+            entity: OBS_FADER_PREFIX,
+            icon: "Microphone",
+        }),
+    });
     registry.register("cover", sliderTypeFactory({
         type: "cover",
         placeholder: "e.g. Office Blind",

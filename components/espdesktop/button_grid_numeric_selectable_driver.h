@@ -93,8 +93,9 @@ inline void numeric_selectable_driver_bind_slider(BtnSlot &slot, const ParsedCfg
     lv_label_set_display_text(
       slot.text_lbl, companion_volume_control_label(config.entity));
   }
-  companion_track_slider(
-    slider, config.entity, slot.icon_lbl, has_icon_on, icon_off, icon_on);
+  const bool obs_fader = companion_obs_level_control(config.entity);
+  companion_track_slider(slider, config.entity, slot.icon_lbl, has_icon_on, icon_off, icon_on,
+    obs_fader ? slot.text_lbl : nullptr, obs_fader ? config.label : std::string{});
 }
 inline bool numeric_selectable_driver_bind_main(
     BtnSlot &slot, const ParsedCfg &config, const Context &context,

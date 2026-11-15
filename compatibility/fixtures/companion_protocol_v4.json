@@ -153,6 +153,32 @@
     "valid": true
   },
   {
+    "name": "set OBS input fader",
+    "message": {
+      "protocol": 4,
+      "type": "value.set",
+      "requestId": "obs-fader",
+      "controlId": "obs.level.69da3f8f-7f62-4abe-a594-4e40dd579858",
+      "value": 80
+    },
+    "direction": "panel_to_mac",
+    "state": "connected",
+    "valid": true
+  },
+  {
+    "name": "reject malformed OBS input fader",
+    "message": {
+      "protocol": 4,
+      "type": "value.set",
+      "requestId": "obs-fader",
+      "controlId": "obs.level.69da3f8f-7f62-4abe_a594-4e40dd579858",
+      "value": 80
+    },
+    "direction": "panel_to_mac",
+    "state": "connected",
+    "valid": false
+  },
+  {
     "name": "set volume",
     "message": {
       "protocol": 4,

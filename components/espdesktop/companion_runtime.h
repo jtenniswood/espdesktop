@@ -286,8 +286,13 @@ class CompanionRuntimeService {
     std::lock_guard<std::mutex> lock(mutex_);
     auto item = std::find_if(values_.begin(), values_.end(),
       [&control_id](const CompanionValue &candidate) { return candidate.id == control_id; });
-    if (item == values_.end()) values_.push_back({control_id, value});
-    else item->value = value;
+    constexpr size_t max_control_values = 64;
+    if (item == values_.end()) {
+      if (values_.size() >= max_control_values) return;
+      values_.push_back({control_id, value});
+    } else {
+      item->value = value;
+    }
     request_refresh_();
   }
 

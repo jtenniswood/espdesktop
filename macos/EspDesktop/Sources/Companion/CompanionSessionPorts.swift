@@ -36,6 +36,8 @@ protocol CompanionSessionResources: AnyObject {
     func performResultStatus(actionIdentifier: String, folderOpenBehavior: String, shortcutAppID: String?) async -> String
     func openURL(encodedURL: String, newWindow: Bool) async -> Bool
     func setMediaControlValue(_ value: Int, controlIdentifier: String) -> Bool
+    func setOBSFader(_ value: Int, controlIdentifier: String) async -> Bool
+    func obsFaderValues() -> [String: Int]
 }
 
 @MainActor
@@ -65,6 +67,8 @@ extension CompanionSessionResources {
     func immediateFocusedApplicationIdentifier() -> String? { nil }
     var applicationCatalogueReady: Bool { true }
     func obsControlActions() -> [(id: String, label: String)] { [] }
+    func setOBSFader(_ value: Int, controlIdentifier: String) async -> Bool { false }
+    func obsFaderValues() -> [String: Int] { [:] }
     func remoteCompanionCatalogues() -> RemoteCompanionCatalogues { .empty }
     func focusedCompanionActionIdentifiers(for targets: [(id: String, url: URL)]) async -> [String] {
         let identifier = await focusedCompanionActionIdentifier()

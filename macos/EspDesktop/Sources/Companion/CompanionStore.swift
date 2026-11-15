@@ -99,6 +99,7 @@ final class CompanionStore: NSObject, ObservableObject {
     let updater = CompanionUpdater()
     let obs: OBSConnection
     private var obsCatalogueObservation: AnyCancellable?
+    private var obsFaderObservation: AnyCancellable?
     @Published var settingsRequestID: UUID?
     var requestedSettingsDestination: CompanionSettingsDestination = .displays
     static let privacyPolicyURL = URL(string: "https://espdesktop.com/reference/privacy")!
@@ -198,6 +199,9 @@ final class CompanionStore: NSObject, ObservableObject {
             .sink { [weak self] actions in
                 self?.publishToConnectedDisplays { $0.publishCatalogue(obsActions: actions) }
             }
+        obsFaderObservation = obs.$state.map(OBSConnection.faderValues).removeDuplicates().sink { [weak self] values in
+            self?.publishToConnectedDisplays { $0.publishOBSFaderValues(values) }
+        }
         sessionLock.onChange = { [weak self] locked, displayAwake in
             self?.publishToConnectedDisplays { $0.publishSessionLock(locked, displayAwake: displayAwake) }
         }
@@ -772,6 +776,7 @@ final class CompanionStore: NSObject, ObservableObject {
                 display.connection.publishSystemMetrics(snapshot, force: true)
             }
             publishMediaControlValues(force: true, to: display)
+            display.connection.publishOBSFaderValues(OBSConnection.faderValues(obs.state), force: true)
         }
     }
 
@@ -863,6 +868,15 @@ final class CompanionStore: NSObject, ObservableObject {
         }
         updateStatus("\(name) did not become active")
         return false
+    }
+
+    func obsFaderValues() -> [String: Int] {
+        OBSConnection.faderValues(obs.state)
+    }
+
+    func setOBSFader(_ value: Int, controlIdentifier: String) async -> Bool {
+        guard !sessionLock.refresh() else { return false }
+        return await obs.setFader(controlID: controlIdentifier, value: value)
     }
 
     func obsControlActions() -> [(id: String, label: String)] {
