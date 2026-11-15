@@ -360,6 +360,11 @@ int main() {
     assert(lv_obj_has_state(&tile, LV_STATE_CHECKED));
     const auto migrated = parse_cfg("obs.status.record;;Monitor;Auto;;;companion;;obs_confirm=none,card_off_color=123456");
     assert(migrated.entity == "obs.output.record" && migrated.options == "card_off_color=123456");
+    for (const std::string id : {"obs.studio", "obs.replay.buffer"}) {
+      const auto toggle = parse_cfg(id + ";;Auto;Auto;;;companion;;obs_confirm=both,confirm_yes=Proceed");
+      assert(cfg_option_value(toggle.options, "obs_confirm") == "both");
+      assert(cfg_option_value(toggle.options, "confirm_yes") == "Proceed");
+    }
   }
   {
     lv_obj_t tile, title, detail;

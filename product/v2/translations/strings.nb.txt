@@ -362,3 +362,8 @@ mute=Demp
 muted=Dempet
 mac_update_required=Oppdater Mac-appen
 mac_update_reconnect=Oppdater EspDesktop på Macen for å koble til igjen.
+
+turn_on_studio_mode=Slå på studiomodus?
+turn_off_studio_mode=Slå av studiomodus?
+start_replay_buffer_prompt=Start avspillingsbufferen?
+stop_replay_buffer_prompt=Stopp avspillingsbufferen?

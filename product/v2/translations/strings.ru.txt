@@ -362,3 +362,8 @@ mute=Без звука
 muted=Без звука
 mac_update_required=Обновите приложение для Mac
 mac_update_reconnect=Обновите EspDesktop на Mac, чтобы восстановить соединение.
+
+turn_on_studio_mode=Включить режим студии?
+turn_off_studio_mode=Выключить режим студии?
+start_replay_buffer_prompt=Запустить буфер повтора?
+stop_replay_buffer_prompt=Остановить буфер повтора?

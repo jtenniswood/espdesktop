@@ -363,3 +363,8 @@ mute=השתקה
 muted=מושתק
 mac_update_required=עדכון האפליקציה ב-Mac
 mac_update_reconnect=כדי להתחבר מחדש, יש לעדכן את EspDesktop ב-Mac.
+
+turn_on_studio_mode=להפעיל את מצב האולפן?
+turn_off_studio_mode=לכבות את מצב האולפן?
+start_replay_buffer_prompt=להפעיל את מאגר השידור החוזר?
+stop_replay_buffer_prompt=לעצור את מאגר השידור החוזר?

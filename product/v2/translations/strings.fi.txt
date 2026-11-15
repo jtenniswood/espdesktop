@@ -362,3 +362,8 @@ mute=Mykistä
 muted=Mykistetty
 mac_update_required=Päivitä Mac-sovellus
 mac_update_reconnect=Muodosta yhteys uudelleen päivittämällä EspDesktop Macissa.
+
+turn_on_studio_mode=Otetaanko studiotila käyttöön?
+turn_off_studio_mode=Poistetaanko studiotila käytöstä?
+start_replay_buffer_prompt=Käynnistetäänkö toistopuskuri?
+stop_replay_buffer_prompt=Pysäytetäänkö toistopuskuri?

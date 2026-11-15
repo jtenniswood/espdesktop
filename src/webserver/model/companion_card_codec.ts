@@ -16,6 +16,9 @@ export const OBS_TRANSITION_ID = "obs.transition";
 export const OBS_PROGRAM_ID = "obs.status.program";
 export const OBS_REPLAY_ID = "obs.replay";
 export const OBS_REPLAY_BUFFER_ID = "obs.replay.buffer";
+export function obsConfirmableToggle(entity: string): boolean {
+  return entity === OBS_STUDIO_ID || entity === OBS_REPLAY_BUFFER_ID;
+}
 export const OBS_OUTPUT_OPTIONS = [
   ["obs.output.stream", "Streaming"],
   ["obs.output.record", "Recording"],

@@ -4488,6 +4488,23 @@ async function assertOBSSceneCard(browser) {
     const studioPicker = page.locator("select[id$='obs-studio']");
     const replayBufferTile = page.locator('.sp-main [data-slot="1"]');
     const programTile = page.locator('.sp-main [data-slot="2"]');
+    const confirmation = page.locator("input[id$='obs-confirm-toggle']");
+    const confirmationDirection = page.locator(".sp-segment")
+      .filter({ has: page.getByRole("button", { name: "Both", exact: true }) }).locator("button.active");
+    const openCardSettings = async () => {
+      if (!(await confirmation.isVisible())) await page.getByRole("button", { name: "Card Settings", exact: true }).click();
+    };
+    await replayBufferTile.click();
+    await page.getByRole("button", { name: "Edit", exact: true }).click();
+    await openCardSettings();
+    assert(await confirmation.isChecked());
+    assert.equal(await confirmationDirection.textContent(), "Stop");
+    await page.getByRole("button", { name: "Both", exact: true }).click();
+    await page.getByLabel("Confirm Button", { exact: true }).fill("Proceed");
+    await page.getByRole("button", { name: "Save", exact: true }).click();
+    await waitForNativeState(fixture, () => fixture.document.buttons[1]?.includes("obs_confirm=both") &&
+      fixture.document.buttons[1]?.includes("confirm_yes=Proceed"),
+      "Replay Buffer saves confirmation for both directions and a custom button label");
     await programTile.getByText("Program", { exact: true }).waitFor();
     await programTile.click();
     await page.getByRole("button", { name: "Edit", exact: true }).click();
@@ -4591,6 +4608,9 @@ async function assertOBSSceneCard(browser) {
 
     await page.locator(".sp-main .sp-empty-cell").first().click();
     await chooseOBSCard(page, "Studio Mode");
+    await openCardSettings();
+    assert(await confirmation.isChecked());
+    assert.equal(await confirmationDirection.textContent(), "Off");
     await page.getByRole("button", { name: "Save", exact: true }).click();
     await waitForNativeState(fixture, () => fixture.document.buttons[9]?.startsWith("obs.studio;"),
       "Studio Mode saves without the ephemeral OBS token");
@@ -4612,6 +4632,7 @@ async function assertOBSSceneCard(browser) {
     await studioTile.click();
     await page.getByRole("button", { name: "Edit", exact: true }).click();
     await studioPicker.selectOption("obs.transition");
+    await confirmation.waitFor({ state: "detached" });
     const transitionTitle = studioTile.locator(".sp-btn-label");
     const transitionDetail = studioTile.locator(".sp-obs-detail");
     await page.getByRole("button", { name: "Save", exact: true }).click();

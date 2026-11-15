@@ -362,3 +362,8 @@ mute=Slå lyd fra
 muted=Lyd slået fra
 mac_update_required=Opdater Mac-appen
 mac_update_reconnect=Opdater EspDesktop på din Mac for at oprette forbindelse igen.
+
+turn_on_studio_mode=Slå studietilstand til?
+turn_off_studio_mode=Slå studietilstand fra?
+start_replay_buffer_prompt=Start genafspilningsbuffer?
+stop_replay_buffer_prompt=Stop genafspilningsbuffer?

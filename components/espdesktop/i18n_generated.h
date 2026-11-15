@@ -322,6 +322,10 @@ inline const char *espdesktop_i18n_cs(const char *text) {
   if (std::strcmp(text, "Muted") == 0) return "Ztlumeno";
   if (std::strcmp(text, "Update Mac app") == 0) return "Aktualizovat aplikaci pro Mac";
   if (std::strcmp(text, "Update EspDesktop on your Mac to reconnect.") == 0) return "Pro opětovné připojení aktualizujte EspDesktop na Macu.";
+  if (std::strcmp(text, "Turn on Studio Mode?") == 0) return "Zapnout režim studia?";
+  if (std::strcmp(text, "Turn off Studio Mode?") == 0) return "Vypnout režim studia?";
+  if (std::strcmp(text, "Start Replay Buffer?") == 0) return "Spustit vyrovnávací paměť záznamu?";
+  if (std::strcmp(text, "Stop Replay Buffer?") == 0) return "Zastavit vyrovnávací paměť záznamu?";
   return text;
 }
 
@@ -621,6 +625,10 @@ inline const char *espdesktop_i18n_da(const char *text) {
   if (std::strcmp(text, "Muted") == 0) return "Lyd slået fra";
   if (std::strcmp(text, "Update Mac app") == 0) return "Opdater Mac-appen";
   if (std::strcmp(text, "Update EspDesktop on your Mac to reconnect.") == 0) return "Opdater EspDesktop på din Mac for at oprette forbindelse igen.";
+  if (std::strcmp(text, "Turn on Studio Mode?") == 0) return "Slå studietilstand til?";
+  if (std::strcmp(text, "Turn off Studio Mode?") == 0) return "Slå studietilstand fra?";
+  if (std::strcmp(text, "Start Replay Buffer?") == 0) return "Start genafspilningsbuffer?";
+  if (std::strcmp(text, "Stop Replay Buffer?") == 0) return "Stop genafspilningsbuffer?";
   return text;
 }
 
@@ -925,6 +933,10 @@ inline const char *espdesktop_i18n_de(const char *text) {
   if (std::strcmp(text, "Muted") == 0) return "Stumm";
   if (std::strcmp(text, "Update Mac app") == 0) return "Mac-App aktualisieren";
   if (std::strcmp(text, "Update EspDesktop on your Mac to reconnect.") == 0) return "Aktualisiere EspDesktop auf deinem Mac, um die Verbindung wiederherzustellen.";
+  if (std::strcmp(text, "Turn on Studio Mode?") == 0) return "Studiomodus einschalten?";
+  if (std::strcmp(text, "Turn off Studio Mode?") == 0) return "Studiomodus ausschalten?";
+  if (std::strcmp(text, "Start Replay Buffer?") == 0) return "Replay-Puffer starten?";
+  if (std::strcmp(text, "Stop Replay Buffer?") == 0) return "Replay-Puffer stoppen?";
   return text;
 }
 
@@ -1242,6 +1254,10 @@ inline const char *espdesktop_i18n_es(const char *text) {
   if (std::strcmp(text, "Muted") == 0) return "Silenciado";
   if (std::strcmp(text, "Update Mac app") == 0) return "Actualizar la app de Mac";
   if (std::strcmp(text, "Update EspDesktop on your Mac to reconnect.") == 0) return "Actualiza EspDesktop en tu Mac para volver a conectar.";
+  if (std::strcmp(text, "Turn on Studio Mode?") == 0) return "¿Activar el modo estudio?";
+  if (std::strcmp(text, "Turn off Studio Mode?") == 0) return "¿Desactivar el modo estudio?";
+  if (std::strcmp(text, "Start Replay Buffer?") == 0) return "¿Iniciar el búfer de repetición?";
+  if (std::strcmp(text, "Stop Replay Buffer?") == 0) return "¿Detener el búfer de repetición?";
   return text;
 }
 
@@ -1562,6 +1578,10 @@ inline const char *espdesktop_i18n_fi(const char *text) {
   if (std::strcmp(text, "Muted") == 0) return "Mykistetty";
   if (std::strcmp(text, "Update Mac app") == 0) return "Päivitä Mac-sovellus";
   if (std::strcmp(text, "Update EspDesktop on your Mac to reconnect.") == 0) return "Muodosta yhteys uudelleen päivittämällä EspDesktop Macissa.";
+  if (std::strcmp(text, "Turn on Studio Mode?") == 0) return "Otetaanko studiotila käyttöön?";
+  if (std::strcmp(text, "Turn off Studio Mode?") == 0) return "Poistetaanko studiotila käytöstä?";
+  if (std::strcmp(text, "Start Replay Buffer?") == 0) return "Käynnistetäänkö toistopuskuri?";
+  if (std::strcmp(text, "Stop Replay Buffer?") == 0) return "Pysäytetäänkö toistopuskuri?";
   return text;
 }
 
@@ -1873,6 +1893,10 @@ inline const char *espdesktop_i18n_fr(const char *text) {
   if (std::strcmp(text, "Muted") == 0) return "Muet";
   if (std::strcmp(text, "Update Mac app") == 0) return "Mettre à jour l’app Mac";
   if (std::strcmp(text, "Update EspDesktop on your Mac to reconnect.") == 0) return "Mettez à jour EspDesktop sur votre Mac pour rétablir la connexion.";
+  if (std::strcmp(text, "Turn on Studio Mode?") == 0) return "Activer le mode Studio ?";
+  if (std::strcmp(text, "Turn off Studio Mode?") == 0) return "Désactiver le mode Studio ?";
+  if (std::strcmp(text, "Start Replay Buffer?") == 0) return "Démarrer le tampon de replay ?";
+  if (std::strcmp(text, "Stop Replay Buffer?") == 0) return "Arrêter le tampon de replay ?";
   return text;
 }
 
@@ -2200,6 +2224,10 @@ inline const char *espdesktop_i18n_he(const char *text) {
   if (std::strcmp(text, "Muted") == 0) return "מושתק";
   if (std::strcmp(text, "Update Mac app") == 0) return "עדכון האפליקציה ב-Mac";
   if (std::strcmp(text, "Update EspDesktop on your Mac to reconnect.") == 0) return "כדי להתחבר מחדש, יש לעדכן את EspDesktop ב-Mac.";
+  if (std::strcmp(text, "Turn on Studio Mode?") == 0) return "להפעיל את מצב האולפן?";
+  if (std::strcmp(text, "Turn off Studio Mode?") == 0) return "לכבות את מצב האולפן?";
+  if (std::strcmp(text, "Start Replay Buffer?") == 0) return "להפעיל את מאגר השידור החוזר?";
+  if (std::strcmp(text, "Stop Replay Buffer?") == 0) return "לעצור את מאגר השידור החוזר?";
   return text;
 }
 
@@ -2518,6 +2546,10 @@ inline const char *espdesktop_i18n_hu(const char *text) {
   if (std::strcmp(text, "Muted") == 0) return "Némítva";
   if (std::strcmp(text, "Update Mac app") == 0) return "Frissítse a Mac-alkalmazást";
   if (std::strcmp(text, "Update EspDesktop on your Mac to reconnect.") == 0) return "A csatlakozáshoz frissítse az EspDesktopot a Macen.";
+  if (std::strcmp(text, "Turn on Studio Mode?") == 0) return "Bekapcsolja a stúdió módot?";
+  if (std::strcmp(text, "Turn off Studio Mode?") == 0) return "Kikapcsolja a stúdió módot?";
+  if (std::strcmp(text, "Start Replay Buffer?") == 0) return "Elindítja a visszajátszási puffert?";
+  if (std::strcmp(text, "Stop Replay Buffer?") == 0) return "Leállítja a visszajátszási puffert?";
   return text;
 }
 
@@ -2834,6 +2866,10 @@ inline const char *espdesktop_i18n_it(const char *text) {
   if (std::strcmp(text, "Muted") == 0) return "Muto";
   if (std::strcmp(text, "Update Mac app") == 0) return "Aggiorna l’app per Mac";
   if (std::strcmp(text, "Update EspDesktop on your Mac to reconnect.") == 0) return "Aggiorna EspDesktop sul Mac per riconnetterti.";
+  if (std::strcmp(text, "Turn on Studio Mode?") == 0) return "Attivare la modalità Studio?";
+  if (std::strcmp(text, "Turn off Studio Mode?") == 0) return "Disattivare la modalità Studio?";
+  if (std::strcmp(text, "Start Replay Buffer?") == 0) return "Avviare il buffer di replay?";
+  if (std::strcmp(text, "Stop Replay Buffer?") == 0) return "Fermare il buffer di replay?";
   return text;
 }
 
@@ -3141,6 +3177,10 @@ inline const char *espdesktop_i18n_nb(const char *text) {
   if (std::strcmp(text, "Muted") == 0) return "Dempet";
   if (std::strcmp(text, "Update Mac app") == 0) return "Oppdater Mac-appen";
   if (std::strcmp(text, "Update EspDesktop on your Mac to reconnect.") == 0) return "Oppdater EspDesktop på Macen for å koble til igjen.";
+  if (std::strcmp(text, "Turn on Studio Mode?") == 0) return "Slå på studiomodus?";
+  if (std::strcmp(text, "Turn off Studio Mode?") == 0) return "Slå av studiomodus?";
+  if (std::strcmp(text, "Start Replay Buffer?") == 0) return "Start avspillingsbufferen?";
+  if (std::strcmp(text, "Stop Replay Buffer?") == 0) return "Stopp avspillingsbufferen?";
   return text;
 }
 
@@ -3447,6 +3487,10 @@ inline const char *espdesktop_i18n_nl(const char *text) {
   if (std::strcmp(text, "Muted") == 0) return "Gedempt";
   if (std::strcmp(text, "Update Mac app") == 0) return "Update de Mac-app";
   if (std::strcmp(text, "Update EspDesktop on your Mac to reconnect.") == 0) return "Werk EspDesktop op je Mac bij om opnieuw verbinding te maken.";
+  if (std::strcmp(text, "Turn on Studio Mode?") == 0) return "Studiomodus inschakelen?";
+  if (std::strcmp(text, "Turn off Studio Mode?") == 0) return "Studiomodus uitschakelen?";
+  if (std::strcmp(text, "Start Replay Buffer?") == 0) return "Replaybuffer starten?";
+  if (std::strcmp(text, "Stop Replay Buffer?") == 0) return "Replaybuffer stoppen?";
   return text;
 }
 
@@ -3754,6 +3798,10 @@ inline const char *espdesktop_i18n_pl(const char *text) {
   if (std::strcmp(text, "Muted") == 0) return "Wyciszony";
   if (std::strcmp(text, "Update Mac app") == 0) return "Zaktualizuj aplikację na Macu";
   if (std::strcmp(text, "Update EspDesktop on your Mac to reconnect.") == 0) return "Zaktualizuj EspDesktop na Macu, aby ponownie się połączyć.";
+  if (std::strcmp(text, "Turn on Studio Mode?") == 0) return "Włączyć tryb studia?";
+  if (std::strcmp(text, "Turn off Studio Mode?") == 0) return "Wyłączyć tryb studia?";
+  if (std::strcmp(text, "Start Replay Buffer?") == 0) return "Uruchomić bufor powtórek?";
+  if (std::strcmp(text, "Stop Replay Buffer?") == 0) return "Zatrzymać bufor powtórek?";
   return text;
 }
 
@@ -4063,6 +4111,10 @@ inline const char *espdesktop_i18n_pt_br(const char *text) {
   if (std::strcmp(text, "Muted") == 0) return "Silenciado";
   if (std::strcmp(text, "Update Mac app") == 0) return "Atualizar o app do Mac";
   if (std::strcmp(text, "Update EspDesktop on your Mac to reconnect.") == 0) return "Atualize o EspDesktop no Mac para se reconectar.";
+  if (std::strcmp(text, "Turn on Studio Mode?") == 0) return "Ativar o modo estúdio?";
+  if (std::strcmp(text, "Turn off Studio Mode?") == 0) return "Desativar o modo estúdio?";
+  if (std::strcmp(text, "Start Replay Buffer?") == 0) return "Iniciar o buffer de replay?";
+  if (std::strcmp(text, "Stop Replay Buffer?") == 0) return "Parar o buffer de replay?";
   return text;
 }
 
@@ -4379,6 +4431,10 @@ inline const char *espdesktop_i18n_pt(const char *text) {
   if (std::strcmp(text, "Muted") == 0) return "Silenciado";
   if (std::strcmp(text, "Update Mac app") == 0) return "Atualizar a app para Mac";
   if (std::strcmp(text, "Update EspDesktop on your Mac to reconnect.") == 0) return "Atualize o EspDesktop no Mac para voltar a ligar.";
+  if (std::strcmp(text, "Turn on Studio Mode?") == 0) return "Ativar o modo de estúdio?";
+  if (std::strcmp(text, "Turn off Studio Mode?") == 0) return "Desativar o modo de estúdio?";
+  if (std::strcmp(text, "Start Replay Buffer?") == 0) return "Iniciar o buffer de replay?";
+  if (std::strcmp(text, "Stop Replay Buffer?") == 0) return "Parar o buffer de replay?";
   return text;
 }
 
@@ -4697,6 +4753,10 @@ inline const char *espdesktop_i18n_ro(const char *text) {
   if (std::strcmp(text, "Muted") == 0) return "Fără sunet";
   if (std::strcmp(text, "Update Mac app") == 0) return "Actualizează aplicația pentru Mac";
   if (std::strcmp(text, "Update EspDesktop on your Mac to reconnect.") == 0) return "Actualizează EspDesktop pe Mac pentru a te reconecta.";
+  if (std::strcmp(text, "Turn on Studio Mode?") == 0) return "Activezi modul studio?";
+  if (std::strcmp(text, "Turn off Studio Mode?") == 0) return "Dezactivezi modul studio?";
+  if (std::strcmp(text, "Start Replay Buffer?") == 0) return "Pornești bufferul de reluare?";
+  if (std::strcmp(text, "Stop Replay Buffer?") == 0) return "Oprești bufferul de reluare?";
   return text;
 }
 
@@ -5023,6 +5083,10 @@ inline const char *espdesktop_i18n_ru(const char *text) {
   if (std::strcmp(text, "Muted") == 0) return "Без звука";
   if (std::strcmp(text, "Update Mac app") == 0) return "Обновите приложение для Mac";
   if (std::strcmp(text, "Update EspDesktop on your Mac to reconnect.") == 0) return "Обновите EspDesktop на Mac, чтобы восстановить соединение.";
+  if (std::strcmp(text, "Turn on Studio Mode?") == 0) return "Включить режим студии?";
+  if (std::strcmp(text, "Turn off Studio Mode?") == 0) return "Выключить режим студии?";
+  if (std::strcmp(text, "Start Replay Buffer?") == 0) return "Запустить буфер повтора?";
+  if (std::strcmp(text, "Stop Replay Buffer?") == 0) return "Остановить буфер повтора?";
   return text;
 }
 
@@ -5334,6 +5398,10 @@ inline const char *espdesktop_i18n_sk(const char *text) {
   if (std::strcmp(text, "Muted") == 0) return "Stlmené";
   if (std::strcmp(text, "Update Mac app") == 0) return "Aktualizujte aplikáciu pre Mac";
   if (std::strcmp(text, "Update EspDesktop on your Mac to reconnect.") == 0) return "Na opätovné pripojenie aktualizujte EspDesktop na Macu.";
+  if (std::strcmp(text, "Turn on Studio Mode?") == 0) return "Zapnúť režim štúdia?";
+  if (std::strcmp(text, "Turn off Studio Mode?") == 0) return "Vypnúť režim štúdia?";
+  if (std::strcmp(text, "Start Replay Buffer?") == 0) return "Spustiť vyrovnávaciu pamäť záznamu?";
+  if (std::strcmp(text, "Stop Replay Buffer?") == 0) return "Zastaviť vyrovnávaciu pamäť záznamu?";
   return text;
 }
 
@@ -5649,6 +5717,10 @@ inline const char *espdesktop_i18n_sl(const char *text) {
   if (std::strcmp(text, "Muted") == 0) return "Utišano";
   if (std::strcmp(text, "Update Mac app") == 0) return "Posodobite aplikacijo za Mac";
   if (std::strcmp(text, "Update EspDesktop on your Mac to reconnect.") == 0) return "Za ponovno povezavo posodobite EspDesktop na Macu.";
+  if (std::strcmp(text, "Turn on Studio Mode?") == 0) return "Vklopiš studijski način?";
+  if (std::strcmp(text, "Turn off Studio Mode?") == 0) return "Izklopiš studijski način?";
+  if (std::strcmp(text, "Start Replay Buffer?") == 0) return "Zaženeš medpomnilnik ponovitev?";
+  if (std::strcmp(text, "Stop Replay Buffer?") == 0) return "Ustaviš medpomnilnik ponovitev?";
   return text;
 }
 
@@ -5953,6 +6025,10 @@ inline const char *espdesktop_i18n_sv(const char *text) {
   if (std::strcmp(text, "Muted") == 0) return "Tystad";
   if (std::strcmp(text, "Update Mac app") == 0) return "Uppdatera Mac-appen";
   if (std::strcmp(text, "Update EspDesktop on your Mac to reconnect.") == 0) return "Uppdatera EspDesktop på din Mac för att ansluta igen.";
+  if (std::strcmp(text, "Turn on Studio Mode?") == 0) return "Slå på studioläget?";
+  if (std::strcmp(text, "Turn off Studio Mode?") == 0) return "Slå av studioläget?";
+  if (std::strcmp(text, "Start Replay Buffer?") == 0) return "Starta reprisbuffer?";
+  if (std::strcmp(text, "Stop Replay Buffer?") == 0) return "Stoppa reprisbuffer?";
   return text;
 }
 
@@ -6272,6 +6348,10 @@ inline const char *espdesktop_i18n_tr(const char *text) {
   if (std::strcmp(text, "Muted") == 0) return "Sessiz";
   if (std::strcmp(text, "Update Mac app") == 0) return "Mac uygulamasını güncelleyin";
   if (std::strcmp(text, "Update EspDesktop on your Mac to reconnect.") == 0) return "Yeniden bağlanmak için Mac’inizde EspDesktop’u güncelleyin.";
+  if (std::strcmp(text, "Turn on Studio Mode?") == 0) return "Stüdyo modu açılsın mı?";
+  if (std::strcmp(text, "Turn off Studio Mode?") == 0) return "Stüdyo modu kapatılsın mı?";
+  if (std::strcmp(text, "Start Replay Buffer?") == 0) return "Tekrar tamponu başlatılsın mı?";
+  if (std::strcmp(text, "Stop Replay Buffer?") == 0) return "Tekrar tamponu durdurulsun mu?";
   return text;
 }
 
@@ -6593,6 +6673,10 @@ inline const char *espdesktop_i18n_uk(const char *text) {
   if (std::strcmp(text, "Muted") == 0) return "Без звуку";
   if (std::strcmp(text, "Update Mac app") == 0) return "Оновіть застосунок для Mac";
   if (std::strcmp(text, "Update EspDesktop on your Mac to reconnect.") == 0) return "Оновіть EspDesktop на Mac, щоб відновити з’єднання.";
+  if (std::strcmp(text, "Turn on Studio Mode?") == 0) return "Увімкнути режим студії?";
+  if (std::strcmp(text, "Turn off Studio Mode?") == 0) return "Вимкнути режим студії?";
+  if (std::strcmp(text, "Start Replay Buffer?") == 0) return "Запустити буфер повтору?";
+  if (std::strcmp(text, "Stop Replay Buffer?") == 0) return "Зупинити буфер повтору?";
   return text;
 }
 
@@ -6954,6 +7038,10 @@ inline const char *espdesktop_i18n_key_en(const char *key) {
   if (std::strcmp(key, "muted") == 0) return "Muted";
   if (std::strcmp(key, "mac_update_required") == 0) return "Update Mac app";
   if (std::strcmp(key, "mac_update_reconnect") == 0) return "Update EspDesktop on your Mac to reconnect.";
+  if (std::strcmp(key, "turn_on_studio_mode") == 0) return "Turn on Studio Mode?";
+  if (std::strcmp(key, "turn_off_studio_mode") == 0) return "Turn off Studio Mode?";
+  if (std::strcmp(key, "start_replay_buffer_prompt") == 0) return "Start Replay Buffer?";
+  if (std::strcmp(key, "stop_replay_buffer_prompt") == 0) return "Stop Replay Buffer?";
   return key;
 }
 
@@ -7279,6 +7367,10 @@ inline const char *espdesktop_i18n_key_cs(const char *key) {
   if (std::strcmp(key, "muted") == 0) return "Ztlumeno";
   if (std::strcmp(key, "mac_update_required") == 0) return "Aktualizovat aplikaci pro Mac";
   if (std::strcmp(key, "mac_update_reconnect") == 0) return "Pro opětovné připojení aktualizujte EspDesktop na Macu.";
+  if (std::strcmp(key, "turn_on_studio_mode") == 0) return "Zapnout režim studia?";
+  if (std::strcmp(key, "turn_off_studio_mode") == 0) return "Vypnout režim studia?";
+  if (std::strcmp(key, "start_replay_buffer_prompt") == 0) return "Spustit vyrovnávací paměť záznamu?";
+  if (std::strcmp(key, "stop_replay_buffer_prompt") == 0) return "Zastavit vyrovnávací paměť záznamu?";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -7590,6 +7682,10 @@ inline const char *espdesktop_i18n_key_da(const char *key) {
   if (std::strcmp(key, "muted") == 0) return "Lyd slået fra";
   if (std::strcmp(key, "mac_update_required") == 0) return "Opdater Mac-appen";
   if (std::strcmp(key, "mac_update_reconnect") == 0) return "Opdater EspDesktop på din Mac for at oprette forbindelse igen.";
+  if (std::strcmp(key, "turn_on_studio_mode") == 0) return "Slå studietilstand til?";
+  if (std::strcmp(key, "turn_off_studio_mode") == 0) return "Slå studietilstand fra?";
+  if (std::strcmp(key, "start_replay_buffer_prompt") == 0) return "Start genafspilningsbuffer?";
+  if (std::strcmp(key, "stop_replay_buffer_prompt") == 0) return "Stop genafspilningsbuffer?";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -7907,6 +8003,10 @@ inline const char *espdesktop_i18n_key_de(const char *key) {
   if (std::strcmp(key, "muted") == 0) return "Stumm";
   if (std::strcmp(key, "mac_update_required") == 0) return "Mac-App aktualisieren";
   if (std::strcmp(key, "mac_update_reconnect") == 0) return "Aktualisiere EspDesktop auf deinem Mac, um die Verbindung wiederherzustellen.";
+  if (std::strcmp(key, "turn_on_studio_mode") == 0) return "Studiomodus einschalten?";
+  if (std::strcmp(key, "turn_off_studio_mode") == 0) return "Studiomodus ausschalten?";
+  if (std::strcmp(key, "start_replay_buffer_prompt") == 0) return "Replay-Puffer starten?";
+  if (std::strcmp(key, "stop_replay_buffer_prompt") == 0) return "Replay-Puffer stoppen?";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -8238,6 +8338,10 @@ inline const char *espdesktop_i18n_key_es(const char *key) {
   if (std::strcmp(key, "muted") == 0) return "Silenciado";
   if (std::strcmp(key, "mac_update_required") == 0) return "Actualizar la app de Mac";
   if (std::strcmp(key, "mac_update_reconnect") == 0) return "Actualiza EspDesktop en tu Mac para volver a conectar.";
+  if (std::strcmp(key, "turn_on_studio_mode") == 0) return "¿Activar el modo estudio?";
+  if (std::strcmp(key, "turn_off_studio_mode") == 0) return "¿Desactivar el modo estudio?";
+  if (std::strcmp(key, "start_replay_buffer_prompt") == 0) return "¿Iniciar el búfer de repetición?";
+  if (std::strcmp(key, "stop_replay_buffer_prompt") == 0) return "¿Detener el búfer de repetición?";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -8573,6 +8677,10 @@ inline const char *espdesktop_i18n_key_fi(const char *key) {
   if (std::strcmp(key, "muted") == 0) return "Mykistetty";
   if (std::strcmp(key, "mac_update_required") == 0) return "Päivitä Mac-sovellus";
   if (std::strcmp(key, "mac_update_reconnect") == 0) return "Muodosta yhteys uudelleen päivittämällä EspDesktop Macissa.";
+  if (std::strcmp(key, "turn_on_studio_mode") == 0) return "Otetaanko studiotila käyttöön?";
+  if (std::strcmp(key, "turn_off_studio_mode") == 0) return "Poistetaanko studiotila käytöstä?";
+  if (std::strcmp(key, "start_replay_buffer_prompt") == 0) return "Käynnistetäänkö toistopuskuri?";
+  if (std::strcmp(key, "stop_replay_buffer_prompt") == 0) return "Pysäytetäänkö toistopuskuri?";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -8897,6 +9005,10 @@ inline const char *espdesktop_i18n_key_fr(const char *key) {
   if (std::strcmp(key, "muted") == 0) return "Muet";
   if (std::strcmp(key, "mac_update_required") == 0) return "Mettre à jour l’app Mac";
   if (std::strcmp(key, "mac_update_reconnect") == 0) return "Mettez à jour EspDesktop sur votre Mac pour rétablir la connexion.";
+  if (std::strcmp(key, "turn_on_studio_mode") == 0) return "Activer le mode Studio ?";
+  if (std::strcmp(key, "turn_off_studio_mode") == 0) return "Désactiver le mode Studio ?";
+  if (std::strcmp(key, "start_replay_buffer_prompt") == 0) return "Démarrer le tampon de replay ?";
+  if (std::strcmp(key, "stop_replay_buffer_prompt") == 0) return "Arrêter le tampon de replay ?";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -9239,6 +9351,10 @@ inline const char *espdesktop_i18n_key_he(const char *key) {
   if (std::strcmp(key, "muted") == 0) return "מושתק";
   if (std::strcmp(key, "mac_update_required") == 0) return "עדכון האפליקציה ב-Mac";
   if (std::strcmp(key, "mac_update_reconnect") == 0) return "כדי להתחבר מחדש, יש לעדכן את EspDesktop ב-Mac.";
+  if (std::strcmp(key, "turn_on_studio_mode") == 0) return "להפעיל את מצב האולפן?";
+  if (std::strcmp(key, "turn_off_studio_mode") == 0) return "לכבות את מצב האולפן?";
+  if (std::strcmp(key, "start_replay_buffer_prompt") == 0) return "להפעיל את מאגר השידור החוזר?";
+  if (std::strcmp(key, "stop_replay_buffer_prompt") == 0) return "לעצור את מאגר השידור החוזר?";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -9572,6 +9688,10 @@ inline const char *espdesktop_i18n_key_hu(const char *key) {
   if (std::strcmp(key, "muted") == 0) return "Némítva";
   if (std::strcmp(key, "mac_update_required") == 0) return "Frissítse a Mac-alkalmazást";
   if (std::strcmp(key, "mac_update_reconnect") == 0) return "A csatlakozáshoz frissítse az EspDesktopot a Macen.";
+  if (std::strcmp(key, "turn_on_studio_mode") == 0) return "Bekapcsolja a stúdió módot?";
+  if (std::strcmp(key, "turn_off_studio_mode") == 0) return "Kikapcsolja a stúdió módot?";
+  if (std::strcmp(key, "start_replay_buffer_prompt") == 0) return "Elindítja a visszajátszási puffert?";
+  if (std::strcmp(key, "stop_replay_buffer_prompt") == 0) return "Leállítja a visszajátszási puffert?";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -9902,6 +10022,10 @@ inline const char *espdesktop_i18n_key_it(const char *key) {
   if (std::strcmp(key, "muted") == 0) return "Muto";
   if (std::strcmp(key, "mac_update_required") == 0) return "Aggiorna l’app per Mac";
   if (std::strcmp(key, "mac_update_reconnect") == 0) return "Aggiorna EspDesktop sul Mac per riconnetterti.";
+  if (std::strcmp(key, "turn_on_studio_mode") == 0) return "Attivare la modalità Studio?";
+  if (std::strcmp(key, "turn_off_studio_mode") == 0) return "Disattivare la modalità Studio?";
+  if (std::strcmp(key, "start_replay_buffer_prompt") == 0) return "Avviare il buffer di replay?";
+  if (std::strcmp(key, "stop_replay_buffer_prompt") == 0) return "Fermare il buffer di replay?";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -10222,6 +10346,10 @@ inline const char *espdesktop_i18n_key_nb(const char *key) {
   if (std::strcmp(key, "muted") == 0) return "Dempet";
   if (std::strcmp(key, "mac_update_required") == 0) return "Oppdater Mac-appen";
   if (std::strcmp(key, "mac_update_reconnect") == 0) return "Oppdater EspDesktop på Macen for å koble til igjen.";
+  if (std::strcmp(key, "turn_on_studio_mode") == 0) return "Slå på studiomodus?";
+  if (std::strcmp(key, "turn_off_studio_mode") == 0) return "Slå av studiomodus?";
+  if (std::strcmp(key, "start_replay_buffer_prompt") == 0) return "Start avspillingsbufferen?";
+  if (std::strcmp(key, "stop_replay_buffer_prompt") == 0) return "Stopp avspillingsbufferen?";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -10539,6 +10667,10 @@ inline const char *espdesktop_i18n_key_nl(const char *key) {
   if (std::strcmp(key, "muted") == 0) return "Gedempt";
   if (std::strcmp(key, "mac_update_required") == 0) return "Update de Mac-app";
   if (std::strcmp(key, "mac_update_reconnect") == 0) return "Werk EspDesktop op je Mac bij om opnieuw verbinding te maken.";
+  if (std::strcmp(key, "turn_on_studio_mode") == 0) return "Studiomodus inschakelen?";
+  if (std::strcmp(key, "turn_off_studio_mode") == 0) return "Studiomodus uitschakelen?";
+  if (std::strcmp(key, "start_replay_buffer_prompt") == 0) return "Replaybuffer starten?";
+  if (std::strcmp(key, "stop_replay_buffer_prompt") == 0) return "Replaybuffer stoppen?";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -10861,6 +10993,10 @@ inline const char *espdesktop_i18n_key_pl(const char *key) {
   if (std::strcmp(key, "muted") == 0) return "Wyciszony";
   if (std::strcmp(key, "mac_update_required") == 0) return "Zaktualizuj aplikację na Macu";
   if (std::strcmp(key, "mac_update_reconnect") == 0) return "Zaktualizuj EspDesktop na Macu, aby ponownie się połączyć.";
+  if (std::strcmp(key, "turn_on_studio_mode") == 0) return "Włączyć tryb studia?";
+  if (std::strcmp(key, "turn_off_studio_mode") == 0) return "Wyłączyć tryb studia?";
+  if (std::strcmp(key, "start_replay_buffer_prompt") == 0) return "Uruchomić bufor powtórek?";
+  if (std::strcmp(key, "stop_replay_buffer_prompt") == 0) return "Zatrzymać bufor powtórek?";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -11184,6 +11320,10 @@ inline const char *espdesktop_i18n_key_pt_br(const char *key) {
   if (std::strcmp(key, "muted") == 0) return "Silenciado";
   if (std::strcmp(key, "mac_update_required") == 0) return "Atualizar o app do Mac";
   if (std::strcmp(key, "mac_update_reconnect") == 0) return "Atualize o EspDesktop no Mac para se reconectar.";
+  if (std::strcmp(key, "turn_on_studio_mode") == 0) return "Ativar o modo estúdio?";
+  if (std::strcmp(key, "turn_off_studio_mode") == 0) return "Desativar o modo estúdio?";
+  if (std::strcmp(key, "start_replay_buffer_prompt") == 0) return "Iniciar o buffer de replay?";
+  if (std::strcmp(key, "stop_replay_buffer_prompt") == 0) return "Parar o buffer de replay?";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -11514,6 +11654,10 @@ inline const char *espdesktop_i18n_key_pt(const char *key) {
   if (std::strcmp(key, "muted") == 0) return "Silenciado";
   if (std::strcmp(key, "mac_update_required") == 0) return "Atualizar a app para Mac";
   if (std::strcmp(key, "mac_update_reconnect") == 0) return "Atualize o EspDesktop no Mac para voltar a ligar.";
+  if (std::strcmp(key, "turn_on_studio_mode") == 0) return "Ativar o modo de estúdio?";
+  if (std::strcmp(key, "turn_off_studio_mode") == 0) return "Desativar o modo de estúdio?";
+  if (std::strcmp(key, "start_replay_buffer_prompt") == 0) return "Iniciar o buffer de replay?";
+  if (std::strcmp(key, "stop_replay_buffer_prompt") == 0) return "Parar o buffer de replay?";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -11847,6 +11991,10 @@ inline const char *espdesktop_i18n_key_ro(const char *key) {
   if (std::strcmp(key, "muted") == 0) return "Fără sunet";
   if (std::strcmp(key, "mac_update_required") == 0) return "Actualizează aplicația pentru Mac";
   if (std::strcmp(key, "mac_update_reconnect") == 0) return "Actualizează EspDesktop pe Mac pentru a te reconecta.";
+  if (std::strcmp(key, "turn_on_studio_mode") == 0) return "Activezi modul studio?";
+  if (std::strcmp(key, "turn_off_studio_mode") == 0) return "Dezactivezi modul studio?";
+  if (std::strcmp(key, "start_replay_buffer_prompt") == 0) return "Pornești bufferul de reluare?";
+  if (std::strcmp(key, "stop_replay_buffer_prompt") == 0) return "Oprești bufferul de reluare?";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -12188,6 +12336,10 @@ inline const char *espdesktop_i18n_key_ru(const char *key) {
   if (std::strcmp(key, "muted") == 0) return "Без звука";
   if (std::strcmp(key, "mac_update_required") == 0) return "Обновите приложение для Mac";
   if (std::strcmp(key, "mac_update_reconnect") == 0) return "Обновите EspDesktop на Mac, чтобы восстановить соединение.";
+  if (std::strcmp(key, "turn_on_studio_mode") == 0) return "Включить режим студии?";
+  if (std::strcmp(key, "turn_off_studio_mode") == 0) return "Выключить режим студии?";
+  if (std::strcmp(key, "start_replay_buffer_prompt") == 0) return "Запустить буфер повтора?";
+  if (std::strcmp(key, "stop_replay_buffer_prompt") == 0) return "Остановить буфер повтора?";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -12514,6 +12666,10 @@ inline const char *espdesktop_i18n_key_sk(const char *key) {
   if (std::strcmp(key, "muted") == 0) return "Stlmené";
   if (std::strcmp(key, "mac_update_required") == 0) return "Aktualizujte aplikáciu pre Mac";
   if (std::strcmp(key, "mac_update_reconnect") == 0) return "Na opätovné pripojenie aktualizujte EspDesktop na Macu.";
+  if (std::strcmp(key, "turn_on_studio_mode") == 0) return "Zapnúť režim štúdia?";
+  if (std::strcmp(key, "turn_off_studio_mode") == 0) return "Vypnúť režim štúdia?";
+  if (std::strcmp(key, "start_replay_buffer_prompt") == 0) return "Spustiť vyrovnávaciu pamäť záznamu?";
+  if (std::strcmp(key, "stop_replay_buffer_prompt") == 0) return "Zastaviť vyrovnávaciu pamäť záznamu?";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -12844,6 +13000,10 @@ inline const char *espdesktop_i18n_key_sl(const char *key) {
   if (std::strcmp(key, "muted") == 0) return "Utišano";
   if (std::strcmp(key, "mac_update_required") == 0) return "Posodobite aplikacijo za Mac";
   if (std::strcmp(key, "mac_update_reconnect") == 0) return "Za ponovno povezavo posodobite EspDesktop na Macu.";
+  if (std::strcmp(key, "turn_on_studio_mode") == 0) return "Vklopiš studijski način?";
+  if (std::strcmp(key, "turn_off_studio_mode") == 0) return "Izklopiš studijski način?";
+  if (std::strcmp(key, "start_replay_buffer_prompt") == 0) return "Zaženeš medpomnilnik ponovitev?";
+  if (std::strcmp(key, "stop_replay_buffer_prompt") == 0) return "Ustaviš medpomnilnik ponovitev?";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -13161,6 +13321,10 @@ inline const char *espdesktop_i18n_key_sv(const char *key) {
   if (std::strcmp(key, "muted") == 0) return "Tystad";
   if (std::strcmp(key, "mac_update_required") == 0) return "Uppdatera Mac-appen";
   if (std::strcmp(key, "mac_update_reconnect") == 0) return "Uppdatera EspDesktop på din Mac för att ansluta igen.";
+  if (std::strcmp(key, "turn_on_studio_mode") == 0) return "Slå på studioläget?";
+  if (std::strcmp(key, "turn_off_studio_mode") == 0) return "Slå av studioläget?";
+  if (std::strcmp(key, "start_replay_buffer_prompt") == 0) return "Starta reprisbuffer?";
+  if (std::strcmp(key, "stop_replay_buffer_prompt") == 0) return "Stoppa reprisbuffer?";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -13495,6 +13659,10 @@ inline const char *espdesktop_i18n_key_tr(const char *key) {
   if (std::strcmp(key, "muted") == 0) return "Sessiz";
   if (std::strcmp(key, "mac_update_required") == 0) return "Mac uygulamasını güncelleyin";
   if (std::strcmp(key, "mac_update_reconnect") == 0) return "Yeniden bağlanmak için Mac’inizde EspDesktop’u güncelleyin.";
+  if (std::strcmp(key, "turn_on_studio_mode") == 0) return "Stüdyo modu açılsın mı?";
+  if (std::strcmp(key, "turn_off_studio_mode") == 0) return "Stüdyo modu kapatılsın mı?";
+  if (std::strcmp(key, "start_replay_buffer_prompt") == 0) return "Tekrar tamponu başlatılsın mı?";
+  if (std::strcmp(key, "stop_replay_buffer_prompt") == 0) return "Tekrar tamponu durdurulsun mu?";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -13831,6 +13999,10 @@ inline const char *espdesktop_i18n_key_uk(const char *key) {
   if (std::strcmp(key, "muted") == 0) return "Без звуку";
   if (std::strcmp(key, "mac_update_required") == 0) return "Оновіть застосунок для Mac";
   if (std::strcmp(key, "mac_update_reconnect") == 0) return "Оновіть EspDesktop на Mac, щоб відновити з’єднання.";
+  if (std::strcmp(key, "turn_on_studio_mode") == 0) return "Увімкнути режим студії?";
+  if (std::strcmp(key, "turn_off_studio_mode") == 0) return "Вимкнути режим студії?";
+  if (std::strcmp(key, "start_replay_buffer_prompt") == 0) return "Запустити буфер повтору?";
+  if (std::strcmp(key, "stop_replay_buffer_prompt") == 0) return "Зупинити буфер повтору?";
   return espdesktop_i18n_key_en(key);
 }
 

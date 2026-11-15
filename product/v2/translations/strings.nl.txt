@@ -362,3 +362,8 @@ mute=Dempen
 muted=Gedempt
 mac_update_required=Update de Mac-app
 mac_update_reconnect=Werk EspDesktop op je Mac bij om opnieuw verbinding te maken.
+
+turn_on_studio_mode=Studiomodus inschakelen?
+turn_off_studio_mode=Studiomodus uitschakelen?
+start_replay_buffer_prompt=Replaybuffer starten?
+stop_replay_buffer_prompt=Replaybuffer stoppen?

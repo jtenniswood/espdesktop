@@ -76,7 +76,7 @@ inline bool basic_action_driver_refresh_layout(
       config.entity == "obs.transition" || config.entity == "obs.replay.buffer")
     companion_setup_obs_detail(slot.btn, display_small_text_font(display),
       status || (output && companion_obs_output_auto_icon(config.entity, config.icon)) ? slot.icon_lbl : nullptr);
-  if (output)
+  if (companion_obs_confirmation_supported(config.entity))
     obs_confirmation_fonts() = {display_switch_confirmation_message_font(display), display.fonts.icon};
   return basic_action_driver_matches(context, config);
 }
@@ -144,12 +144,13 @@ struct CompanionSubpageActionContext {
   std::string required_focus_id;
 };
 
-inline bool invoke_obs_output(const ParsedCfg &card, lv_obj_t *button, const std::string &request_id) {
+inline bool invoke_confirmable_obs_action(const ParsedCfg &card, lv_obj_t *button,
+                                          const std::string &request_id) {
   if (!button || screen_lock_enabled()) return false;
   const auto shown = companion_rendered_obs_action(button);
   if (shown.id.empty() || !companion_action_available(shown.id)) return false;
   const auto mode = cfg_option_value(card.options, "obs_confirm");
-  if (!companion_obs_output_needs_confirmation(mode, shown.label))
+  if (!companion_obs_needs_confirmation(card.entity, mode, shown.label))
     return invoke_companion_action(shown.id, request_id);
 
   using Kind = ControlModalKind;
@@ -160,8 +161,17 @@ inline bool invoke_obs_output(const ParsedCfg &card, lv_obj_t *button, const std
   if (!shell.panel) return false;
   const auto &layout = shell.layout;
   const auto *font = lv_obj_get_style_text_font(button, LV_PART_MAIN);
-  const auto message = cfg_option_value(card.options, "confirm_message");
-  auto *prompt = control_modal_create_title(shell.panel, message.empty() ? shown.label + "?" : message,
+  auto message = cfg_option_value(card.options, "confirm_message");
+  if (message.empty()) {
+    if (card.entity == "obs.studio") {
+      message = espdesktop_i18n_key(shown.label == "On" ? "turn_off_studio_mode" : "turn_on_studio_mode");
+    } else if (card.entity == "obs.replay.buffer") {
+      message = espdesktop_i18n_key(shown.label == "On" ? "stop_replay_buffer_prompt" : "start_replay_buffer_prompt");
+    } else {
+      message = shown.label + "?";
+    }
+  }
+  auto *prompt = control_modal_create_title(shell.panel, message,
       shell.content_w, fonts.message ? fonts.message : font, 100);
   lv_label_set_long_mode(prompt, LV_LABEL_LONG_WRAP);
 
@@ -217,7 +227,8 @@ inline bool invoke_obs_output(const ParsedCfg &card, lv_obj_t *button, const std
 inline bool invoke_saved_companion_card(const ParsedCfg &card, const std::string &request_id,
                                          const std::string &required_focus = {},
                                          lv_obj_t *button = nullptr) {
-  if (companion_obs_output_card(card.entity)) return invoke_obs_output(card, button, request_id);
+  if (companion_obs_confirmation_supported(card.entity))
+    return invoke_confirmable_obs_action(card, button, request_id);
   if (companion_obs_tokenized_card(card.entity))
     return invoke_companion_action(companion_rendered_obs_action(button).id, request_id);
   if (companion_obs_status_card(card.entity)) return false;

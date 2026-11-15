@@ -363,3 +363,8 @@ mute=Mute
 muted=Muted
 mac_update_required=Update Mac app
 mac_update_reconnect=Update EspDesktop on your Mac to reconnect.
+
+turn_on_studio_mode=Turn on Studio Mode?
+turn_off_studio_mode=Turn off Studio Mode?
+start_replay_buffer_prompt=Start Replay Buffer?
+stop_replay_buffer_prompt=Stop Replay Buffer?

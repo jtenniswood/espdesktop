@@ -18,6 +18,7 @@
 #include "ha_state_limits.h"
 #include "camera_refresh_policy.h"
 #include "companion_audio_control.h"
+#include "companion_obs_confirmation.h"
 #include "companion_capabilities_generated.h"
 #include "companion_shortcut_page.h"
 #include "app_shortcuts_generated.h"
@@ -1315,9 +1316,12 @@ inline std::string companion_card_options_normalized(const ParsedCfg &p) {
     if (!out.empty()) out += ",";
     out += token;
   };
-  if (p.entity == "obs.output.stream" || p.entity == "obs.output.record") {
+  if (companion_obs_confirmation_supported(p.entity)) {
     const auto mode = cfg_option_value(p.options, "obs_confirm");
-    if (mode == "on" || mode == "off" || mode == "none") add_token("obs_confirm=" + mode);
+    if (mode == "on" || mode == "off" || mode == "none" ||
+        (mode == "both" && companion_obs_confirmable_toggle(p.entity))) {
+      add_token("obs_confirm=" + mode);
+    }
     for (const char *name : {"confirm_message", "confirm_yes", "confirm_no"}) {
       const auto value = cfg_option_value(p.options, name);
       if (!value.empty()) add_token(std::string(name) + "=" + encode_compact_field(value));

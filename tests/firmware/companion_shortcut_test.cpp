@@ -254,15 +254,25 @@ int main() {
     assert(companion_obs_output_card("obs.output.record"));
     assert(!companion_obs_output_card(record_action));
     for (const auto *mode : {"", "both", "unknown"}) {
-      assert(companion_obs_output_needs_confirmation(mode, "Start Recording"));
-      assert(companion_obs_output_needs_confirmation(mode, "Stop Recording"));
+      assert(companion_obs_needs_confirmation("obs.output.record", mode, "Start Recording"));
+      assert(companion_obs_needs_confirmation("obs.output.record", mode, "Stop Recording"));
     }
-    assert(companion_obs_output_needs_confirmation("on", "Start Streaming"));
-    assert(!companion_obs_output_needs_confirmation("on", "Stop Streaming"));
-    assert(!companion_obs_output_needs_confirmation("off", "Start Streaming"));
-    assert(companion_obs_output_needs_confirmation("off", "Stop Streaming"));
-    assert(companion_obs_output_needs_confirmation("on", "Unknown direction"));
-    assert(!companion_obs_output_needs_confirmation("none", "Start Recording"));
+    assert(companion_obs_needs_confirmation("obs.output.stream", "on", "Start Streaming"));
+    assert(!companion_obs_needs_confirmation("obs.output.stream", "on", "Stop Streaming"));
+    assert(!companion_obs_needs_confirmation("obs.output.stream", "off", "Start Streaming"));
+    assert(companion_obs_needs_confirmation("obs.output.stream", "off", "Stop Streaming"));
+    assert(companion_obs_needs_confirmation("obs.output.stream", "on", "Unknown direction"));
+    assert(!companion_obs_needs_confirmation("obs.output.record", "none", "Start Recording"));
+    for (const auto *toggle : {"obs.studio", "obs.replay.buffer"}) {
+      assert(companion_obs_confirmation_supported(toggle));
+      assert(!companion_obs_needs_confirmation(toggle, "", "Off"));
+      assert(companion_obs_needs_confirmation(toggle, "", "On"));
+      assert(companion_obs_needs_confirmation(toggle, "on", "Off"));
+      assert(!companion_obs_needs_confirmation(toggle, "on", "On"));
+      assert(companion_obs_needs_confirmation(toggle, "both", "Off"));
+      assert(companion_obs_needs_confirmation(toggle, "both", "On"));
+      assert(!companion_obs_needs_confirmation(toggle, "none", "On"));
+    }
     assert(companion_action_available(obs, "obs.output.record"));
     assert(!companion_action_available(obs, "obs.output.stream"));
     assert(companion_published_action(obs, "obs.output.record")->id == record_action);

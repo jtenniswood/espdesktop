@@ -58,7 +58,7 @@ export function replaceCompanionDefinitions(apps: readonly AppShortcutApplicatio
     return shortcutChanged;
 }
 
-import { companionSavedCardMode } from "../model/companion_card_codec";
+import { companionSavedCardMode, obsConfirmableToggle } from "../model/companion_card_codec";
 import {
     configOptionEnabled,
     configOptionValue,
@@ -197,9 +197,11 @@ export function normalizeCompanionCardOptions(card: any): string {
             behavior === "new_window" ? behavior : ""));
     }
     let options = normalizeCompanionAppShortcutOptions(card);
-    if (mode === "obs_output") {
+    const obsToggle = obsConfirmableToggle(card.entity);
+    if (mode === "obs_output" || obsToggle) {
         const confirmation = configOptionValue(card.options, "obs_confirm");
-        if (["on", "off", "none"].includes(confirmation)) options = setConfigOptionValue(options, "obs_confirm", confirmation);
+        if (["on", "off", "none"].includes(confirmation) || (obsToggle && confirmation === "both"))
+            options = setConfigOptionValue(options, "obs_confirm", confirmation);
         for (const key of ["confirm_message", "confirm_yes", "confirm_no"])
             options = setConfigOptionValue(options, key, configOptionValue(card.options, key));
     }
