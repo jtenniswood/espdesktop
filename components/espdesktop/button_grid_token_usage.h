@@ -72,7 +72,7 @@ inline void setup_token_usage_card(BtnSlot &slot, const ParsedCfg &config,
   const auto service = token_usage_service(cfg_option_value(config.options, "services"));
   lv_obj_clear_flag(slot.btn, LV_OBJ_FLAG_CLICKABLE);
   // Use the standard icon label so the glyph follows the card size and theme.
-  constexpr const char *glyphs[] = {"\uE900", "\uE901", "\uE902", "\uE901", "\uE902", "\uE903"};
+  constexpr const char *glyphs[] = {"\uE900", "\uE901", "\uE902", "\uE901", "\uE902", "\uE903", "\uE904"};
   static_assert(sizeof(glyphs) / sizeof(*glyphs) == static_cast<size_t>(TokenUsageService::COUNT));
   lv_obj_clear_flag(slot.icon_lbl, LV_OBJ_FLAG_HIDDEN);
   lv_label_set_text(slot.icon_lbl, glyphs[static_cast<size_t>(service)]);

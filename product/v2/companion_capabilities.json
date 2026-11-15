@@ -1,5 +1,5 @@
 {
-  "version": 14,
+  "version": 15,
   "protocol": {
     "version": 4,
     "path": "/companion/v4",
@@ -473,7 +473,7 @@
         "fields": {
           "readings": {
             "type": "array",
-            "maxItems": 5,
+            "maxItems": 6,
             "items": {
               "type": "object",
               "fields": {
@@ -486,7 +486,8 @@
                     "claude",
                     "opencode-go",
                     "opencode-go-monthly",
-                    "cursor"
+                    "cursor",
+                    "antigravity"
                   ]
                 },
                 "remainingPercent": {
@@ -496,7 +497,7 @@
                 },
                 "resetsAt": {
                   "type": "integer",
-                  "minimum": 1,
+                  "minimum": 0,
                   "maximum": 4294967295
                 },
                 "observedAt": {

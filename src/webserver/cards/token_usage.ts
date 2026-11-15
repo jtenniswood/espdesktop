@@ -8,6 +8,7 @@ const SERVICES = [
   ["claude", "Claude"],
   ["opencode-go", "OpenCode Go"],
   ["cursor", "Cursor"],
+  ["antigravity", "Google Antigravity (Gemini)"],
 ] as const;
 
 function selectedServices(options: string): typeof SERVICES[number][0] | "claude-enterprise" {
@@ -69,7 +70,7 @@ export function registerTokenUsageCard(
       const selected = selectedServices(card.options);
       const unavailable = selected === "claude-enterprise";
       const glyphs = { codex: "\uE900", claude: "\uE901", "opencode-go": "\uE902",
-        "claude-enterprise": "\uE901", cursor: "\uE903" };
+        "claude-enterprise": "\uE901", cursor: "\uE903", antigravity: "\uE904" };
       const glyph = glyphs[selected];
       const icon = '<span class="sp-btn-icon sp-token-usage-icon" role="img" aria-label="' +
         (unavailable ? "Claude" : selected === "codex" ? "Codex" : SERVICES.find(([id]) => id === selected)![1]) +

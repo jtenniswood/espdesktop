@@ -55,7 +55,7 @@ enum TokenUsage {
                           "/opt/homebrew/bin/claude", "/usr/local/bin/claude"]
         guard let executable = candidates.first(where: { FileManager.default.isExecutableFile(atPath: $0) })
         else { return (.missingCLI, nil) }
-        guard let auth = runClaude(executable, arguments: ["auth", "status"], from: home, timeout: 5),
+        guard let auth = runUsageCommand(executable, arguments: ["auth", "status"], from: home, timeout: 5),
               let reply = try? JSONDecoder().decode(ClaudeAuthReply.self, from: auth)
         else { return (.unknown, nil) }
 
@@ -65,7 +65,7 @@ enum TokenUsage {
         // Use Claude Code's built-in local usage command with custom commands and tools disabled.
         let arguments = ["--safe-mode", "--strict-mcp-config", "--tools", "",
                          "--no-session-persistence", "--output-format", "json", "-p", "/usage"]
-        let result = runClaude(executable, arguments: arguments, from: home, timeout: 15)
+        let result = runUsageCommand(executable, arguments: arguments, from: home, timeout: 15)
         return (account, result.flatMap { parseClaude($0) })
     }
 
@@ -103,13 +103,13 @@ enum TokenUsage {
         return reading.valid ? reading : nil
     }
 
-    private static func runClaude(_ executable: String, arguments: [String],
-                                  from home: URL, timeout: Double) -> Data? {
+    private static func runUsageCommand(_ executable: String, arguments: [String],
+                                  from home: URL, directory: URL? = nil, timeout: Double) -> Data? {
         let process = Process()
         let output = Pipe()
         process.executableURL = URL(fileURLWithPath: executable)
         process.arguments = arguments
-        process.currentDirectoryURL = home
+        process.currentDirectoryURL = directory ?? home
         var environment = ProcessInfo.processInfo.environment
         environment["PATH"] = "\(home.path)/.local/bin:/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin"
         environment["LC_ALL"] = "en_US.UTF-8"
@@ -126,10 +126,22 @@ enum TokenUsage {
         }
         deadline.resume()
         defer {
+            if process.isRunning { kill(process.processIdentifier, SIGKILL) }
             process.waitUntilExit()
             deadline.cancel()
         }
-        return output.fileHandleForReading.readDataToEndOfFile()
+        let maximumBytes = 1024 * 1024
+        var data = Data()
+        do {
+            while let chunk = try output.fileHandleForReading.read(upToCount: 16384), !chunk.isEmpty {
+                guard data.count + chunk.count <= maximumBytes else { return nil }
+                data.append(chunk)
+            }
+        } catch {
+            return nil
+        }
+        process.waitUntilExit()
+        return data
     }
 
     enum OpenCodeGoStatus: Equatable, Sendable {
@@ -430,6 +442,78 @@ enum TokenUsage {
                                          resetsAt: UInt32(date.timeIntervalSince1970),
                                          observedAt: UInt32(observedAt.timeIntervalSince1970))
         return reading.valid ? reading : nil
+    }
+
+    private struct AntigravityReport: Decodable {
+        struct Command: Decodable {
+            struct Quotas: Decodable {
+                struct Group: Decodable {
+                    struct Bucket: Decodable {
+                        let id: String
+                        let window: String?
+                        let remainingFraction: Double?
+                        let resetTime: String?
+                        let disabled: Bool?
+                    }
+
+                    let buckets: [Bucket]
+                }
+
+                let groups: [Group]
+            }
+
+            let name: String
+            let data: Quotas
+        }
+
+        let status: String
+        let numTurns: Int
+        let command: Command
+    }
+
+    static func readAntigravity() async -> WeeklyUsageReading? {
+        await Task.detached(priority: .utility) {
+            let home = FileManager.default.homeDirectoryForCurrentUser
+            let binaries = [home.appendingPathComponent(".local/bin/agy").path,
+                            "/opt/homebrew/bin/agy", "/usr/local/bin/agy"]
+            guard let executable = binaries.first(where: FileManager.default.isExecutableFile(atPath:)) else { return nil }
+            // The standalone usage command is answered by the CLI without running an agent.
+            let data = runUsageCommand(executable, arguments: ["-p", "/usage", "--output-format", "json"],
+                                       from: home, directory: FileManager.default.temporaryDirectory, timeout: 20)
+            return data.flatMap { parseAntigravity($0) }
+        }.value
+    }
+
+    static func parseAntigravity(_ data: Data, observedAt: Date = .now) -> WeeklyUsageReading? {
+        let decoder = JSONDecoder()
+        decoder.keyDecodingStrategy = .convertFromSnakeCase
+        guard let report = try? decoder.decode(AntigravityReport.self, from: data),
+              report.status == "SUCCESS", report.numTurns == 0, report.command.name == "usage"
+        else { return nil }
+
+        // Gemini, Claude/GPT, and other model pools have separate quotas.
+        let matches = report.command.data.groups.flatMap { $0.buckets }.filter { $0.id == "gemini-weekly" }
+        let timestamp = observedAt.timeIntervalSince1970
+        guard matches.count == 1, let bucket = matches.first, bucket.window == "weekly",
+              bucket.disabled != true, let fraction = bucket.remainingFraction, (0...1).contains(fraction),
+              (1...Double(UInt32.max)).contains(timestamp) else { return nil }
+
+        var resetsAt: UInt32 = 0
+        if let value = bucket.resetTime {
+            let formatter = ISO8601DateFormatter()
+            let wholeSeconds = formatter.date(from: value)
+            formatter.formatOptions.insert(.withFractionalSeconds)
+            if let reset = wholeSeconds ?? formatter.date(from: value) {
+                let resetTime = reset.timeIntervalSince1970
+                if resetTime.rounded(.down) > timestamp.rounded(.down),
+                   resetTime - timestamp <= 8 * 86400, resetTime <= Double(UInt32.max) {
+                    resetsAt = UInt32(resetTime)
+                }
+            }
+        }
+
+        return WeeklyUsageReading(remainingPercent: Int((fraction * 100).rounded()),
+                                  resetsAt: resetsAt, observedAt: UInt32(timestamp))
     }
 
     private struct Reply: Decodable {

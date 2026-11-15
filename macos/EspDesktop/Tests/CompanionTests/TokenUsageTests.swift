@@ -40,6 +40,42 @@ final class TokenUsageTests: XCTestCase {
         ])
     }
 
+    func testAntigravityUsesOnlyTheGeminiWeeklyBucket() throws {
+        let now = try XCTUnwrap(ISO8601DateFormatter().date(from: "2026-08-10T00:00:00Z"))
+        let report = #"""
+        {"status":"SUCCESS","num_turns":0,"command":{"name":"usage","data":{"groups":[
+            {"buckets":[{"id":"3p-weekly","window":"weekly","remaining_fraction":0.04}]},
+            {"buckets":[
+                {"id":"gemini-5h","window":"5h","remaining_fraction":0.25},
+                {"id":"gemini-weekly","window":"weekly","remaining_fraction":0.61,
+                 "reset_time":"2026-08-13T12:00:00.000Z"}
+            ]}
+        ]}}}
+        """#
+        let reading = try XCTUnwrap(TokenUsage.parseAntigravity(Data(report.utf8), observedAt: now))
+        XCTAssertEqual(reading.remainingPercent, 61)
+        XCTAssertEqual(reading.resetsAt, UInt32(now.timeIntervalSince1970) + 84 * 3600)
+        for (original, replacement) in [("gemini-weekly", "gemini-argon-wtu-weekly"), ("SUCCESS", "ERROR"),
+                                        (#""num_turns":0"#, #""num_turns":1"#), ("0.61", "1.5")] {
+            let invalid = report.replacingOccurrences(of: original, with: replacement)
+            XCTAssertNil(TokenUsage.parseAntigravity(Data(invalid.utf8), observedAt: now))
+        }
+    }
+
+    func testAntigravityShowsRemainingQuotaWhenNoResetIsAvailable() throws {
+        let report = #"""
+        {"status":"SUCCESS","num_turns":0,"command":{"name":"usage","data":{"groups":[
+            {"buckets":[{"id":"gemini-weekly","window":"weekly","remaining_fraction":1.0}]}
+        ]}}}
+        """#
+        let reading = try XCTUnwrap(TokenUsage.parseAntigravity(Data(report.utf8)))
+        XCTAssertEqual(reading.remainingPercent, 100)
+        XCTAssertEqual(reading.resetsAt, 0)
+        let disabled = report.replacingOccurrences(of: #""remaining_fraction":1.0"#,
+                                                   with: #""remaining_fraction":1.0,"disabled":true"#)
+        XCTAssertNil(TokenUsage.parseAntigravity(Data(disabled.utf8)))
+    }
+
     func testCursorChoosesSharedWeeklyAllowanceOverOldMonthlyUsage() throws {
         let now = try XCTUnwrap(ISO8601DateFormatter().date(from: "2026-08-10T00:00:00Z"))
         let monthly = Data(#"{"billingCycleEnd":"2026-09-01T00:00:00Z","individualUsage":{"plan":{"totalPercentUsed":0.36,"used":73,"limit":100}}}"#.utf8)

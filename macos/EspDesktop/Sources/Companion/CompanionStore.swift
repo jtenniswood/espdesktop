@@ -133,6 +133,8 @@ final class CompanionStore: NSObject, ObservableObject {
     private var lastOpenCodeGoUsageAttempt = Date.distantPast
     private var cursorUsage: WeeklyUsageReading?
     private var lastCursorUsageAttempt = Date.distantPast
+    private var antigravityUsage: WeeklyUsageReading?
+    private var lastAntigravityUsageAttempt = Date.distantPast
 
     private var claudeAccount = TokenUsage.ClaudeAccount.checking
     private var claudeUsage: WeeklyUsageReading?
@@ -827,7 +829,8 @@ final class CompanionStore: NSObject, ObservableObject {
             codex: codexUsage,
             claude: claudeUsage,
             openCodeGo: openCodeGoUsage,
-            cursor: cursorUsage
+            cursor: cursorUsage,
+            antigravity: antigravityUsage
         )
     }
 
@@ -890,6 +893,17 @@ final class CompanionStore: NSObject, ObservableObject {
             lastCursorUsageAttempt = .now
             if cursorUsage != reading {
                 cursorUsage = reading
+                for display in tokenUsageDisplays { publishTokenUsage(to: display) }
+            }
+        }
+        let antigravityInterval: TimeInterval = antigravityUsage == nil ? 60 : 300
+        if tokenUsageDisplays.contains(where: { $0.connection.supportsAntigravityUsage }),
+           Date().timeIntervalSince(lastAntigravityUsageAttempt) >= antigravityInterval {
+            let reading = await TokenUsage.readAntigravity()
+            guard !Task.isCancelled else { return }
+            lastAntigravityUsageAttempt = .now
+            if antigravityUsage != reading {
+                antigravityUsage = reading
                 for display in tokenUsageDisplays { publishTokenUsage(to: display) }
             }
         }

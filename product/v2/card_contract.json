@@ -3036,7 +3036,8 @@
             "codex",
             "claude",
             "opencode-go",
-            "cursor"
+            "cursor",
+            "antigravity"
           ],
           "defaultValue": "codex",
           "omitDefault": true

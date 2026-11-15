@@ -10,7 +10,7 @@ from fontTools.pens.ttGlyphPen import TTGlyphPen
 from fontTools.svgLib.path import parse_path
 
 ASSETS = Path(__file__).resolve().parents[1] / "common" / "assets"
-ICONS = {0xE900: "codex", 0xE901: "claude", 0xE902: "opencode-go", 0xE903: "cursor"}
+ICONS = {0xE900: "codex", 0xE901: "claude", 0xE902: "opencode-go", 0xE903: "cursor", 0xE904: "antigravity"}
 
 
 def main():

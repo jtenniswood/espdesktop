@@ -541,15 +541,16 @@ int main() {
   assert(audio_folder[1].type == "slider" && audio_folder[1].entity == "number.level");
 
   const auto usage_folder = parse_subpage_config(
-      "~B,1,2,3,4,5|TU,,,,,,,,services=opencode-go%2Climit=monthly"
-      "|TU,,,,,,,,services=opencode-go|TU,,,,,,,,services=claude|TU|TU,,,,,,,,services=cursor");
-  assert(usage_folder.size() == 5);
+      "~B,1,2,3,4,5,6|TU,,,,,,,,services=opencode-go%2Climit=monthly"
+      "|TU,,,,,,,,services=opencode-go|TU,,,,,,,,services=claude|TU|TU,,,,,,,,services=cursor|TU,,,,,,,,services=antigravity");
+  assert(usage_folder.size() == 6);
   for (const auto &card : usage_folder) assert(card.type == "token_usage");
   assert(parsed_cfg_from_subpage_btn(usage_folder[0]).options == "services=opencode-go,limit=monthly");
   assert(parsed_cfg_from_subpage_btn(usage_folder[1]).options == "services=opencode-go");
   assert(parsed_cfg_from_subpage_btn(usage_folder[2]).options == "services=claude");
   assert(parsed_cfg_from_subpage_btn(usage_folder[3]).options.empty());
   assert(parsed_cfg_from_subpage_btn(usage_folder[4]).options == "services=cursor");
+  assert(parsed_cfg_from_subpage_btn(usage_folder[5]).options == "services=antigravity");
 
   auto weather_today = parse_cfg("weather.home;;;;;;weather;today;large_numbers");
   assert(weather_today.type == "weather");
