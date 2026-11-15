@@ -643,13 +643,22 @@ inline bool companion_obs_status_card(const std::string &id) {
   return id.rfind("obs.status.", 0) == 0;
 }
 
+inline bool companion_obs_output_card(const std::string &id) {
+  return id == "obs.output.stream" || id == "obs.output.record";
+}
+
+inline bool companion_obs_tokenized_card(const std::string &id) {
+  return id == "obs.take" || companion_obs_output_card(id);
+}
+
 inline const CompanionAction *companion_published_action(const CompanionRuntimeSnapshot &snapshot,
                                                           const std::string &id) {
   if (!snapshot.connected && id.rfind("obs.", 0) == 0) return nullptr;
   const auto item = std::find_if(snapshot.actions.begin(), snapshot.actions.end(), [&](const CompanionAction &action) {
-    // A Take Live card keeps a fixed saved ID. OBS publishes a short-lived
-    // action for the particular preview presented to the operator.
-    return id == "obs.take" ? action.id.rfind("obs.take.", 0) == 0 : action.id == id;
+    // Saved tiles outlive the short-lived action for the state they show.
+    return companion_obs_tokenized_card(id)
+      ? action.id.size() > id.size() && action.id[id.size()] == '.' && action.id.compare(0, id.size(), id) == 0
+      : action.id == id;
   });
   return item == snapshot.actions.end() ? nullptr : &*item;
 }
@@ -747,7 +756,7 @@ struct CompanionCardRef {
   bool focus_draw_seen = false;
   bool last_drawn_focus = false;
   std::string required_focus_id{};
-  std::string rendered_take_action{};
+  CompanionAction rendered_obs_action{};
 };
 
 struct CompanionSliderRef {
@@ -1003,18 +1012,22 @@ inline void companion_track_card(lv_obj_t *button, const std::string &action_id,
   lv_obj_add_event_cb(button, companion_card_focus_drawn, LV_EVENT_DRAW_POST_END, nullptr);
 }
 
-inline void companion_remember_rendered_take(lv_obj_t *button, const CompanionRuntimeSnapshot &snapshot) {
+inline void companion_set_rendered_obs_action(CompanionCardRef &ref, const CompanionRuntimeSnapshot &snapshot) {
+  const auto *action = companion_published_action(snapshot, ref.action_id);
+  ref.rendered_obs_action = action ? *action : CompanionAction{};
+}
+
+inline void companion_remember_rendered_obs(lv_obj_t *button, const CompanionRuntimeSnapshot &snapshot) {
   for (auto &ref : companion_card_refs()) {
-    if (ref.button != button || ref.action_id != "obs.take") continue;
-    const auto *action = companion_published_action(snapshot, ref.action_id);
-    ref.rendered_take_action = action ? action->id : "";
+    if (ref.button != button || !companion_obs_tokenized_card(ref.action_id)) continue;
+    companion_set_rendered_obs_action(ref, snapshot);
     return;
   }
 }
 
-inline std::string companion_rendered_take_action(lv_obj_t *button) {
+inline CompanionAction companion_rendered_obs_action(lv_obj_t *button) {
   for (const auto &ref : companion_card_refs())
-    if (ref.button == button && ref.action_id == "obs.take") return ref.rendered_take_action;
+    if (ref.button == button && companion_obs_tokenized_card(ref.action_id)) return ref.rendered_obs_action;
   return {};
 }
 
@@ -1126,10 +1139,7 @@ inline void companion_refresh_cards_if_requested() {
       if (normalize_display_text(label) != lv_label_get_text(it->text_label))
         lv_label_set_display_text(it->text_label, label.c_str());
     }
-    if (it->action_id == "obs.take") {
-      const auto *action = companion_published_action(snapshot, it->action_id);
-      it->rendered_take_action = action ? action->id : "";
-    }
+    if (companion_obs_tokenized_card(it->action_id)) companion_set_rendered_obs_action(*it, snapshot);
     const bool action_available = it->url_config.empty()
       ? companion_action_available(snapshot, it->action_id)
       : companion_url_available(it->action_id, it->url_config);

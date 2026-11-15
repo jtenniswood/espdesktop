@@ -249,6 +249,14 @@ int main() {
     assert(companion_action_available(obs, "obs.take"));
     assert(companion_published_action(obs, "obs.take")->id == take_action);
     assert(companion_default_action_label("obs.take", "", &obs) == "Take Live: BRB");
+    const std::string record_action = "obs.output.record.45f44c62-1c70-4706-8930-f3ec000db026";
+    obs.actions.push_back({record_action, "Start Recording"});
+    assert(companion_obs_output_card("obs.output.record"));
+    assert(!companion_obs_output_card(record_action));
+    assert(companion_action_available(obs, "obs.output.record"));
+    assert(!companion_action_available(obs, "obs.output.stream"));
+    assert(companion_published_action(obs, "obs.output.record")->id == record_action);
+    assert(companion_default_action_label("obs.output.record", "", &obs) == "Start Recording");
     assert(companion_obs_status_card("obs.status.stream"));
     obs.connected = false;
     assert(!companion_action_available(obs, "obs.take"));

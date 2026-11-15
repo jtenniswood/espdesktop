@@ -125,11 +125,55 @@ struct CompanionSubpageActionContext {
   std::string required_focus_id;
 };
 
+inline bool show_obs_output_confirmation(lv_obj_t *button) {
+  if (!button || screen_lock_enabled()) return false;
+  const auto shown = companion_rendered_obs_action(button);
+  if (shown.id.empty() || !companion_action_available(shown.id)) return false;
+  using Kind = ControlModalKind;
+  auto shell = control_modal_open_shell(Kind::OBS_OUTPUT_CONFIRMATION, button, 100, nullptr, [] {
+    control_modal_delete_overlay(Kind::OBS_OUTPUT_CONFIRMATION, control_modal_active().overlay);
+  });
+  if (!shell.panel) return false;
+  if (shell.close_btn) lv_obj_add_flag(shell.close_btn, LV_OBJ_FLAG_HIDDEN);
+  auto *prompt = control_modal_create_title(shell.panel, shown.label + "?", shell.content_w, nullptr, 100);
+  lv_obj_align(prompt, LV_ALIGN_CENTER, 0, -shell.layout.panel_h / 4);
+  auto *confirm = control_modal_create_text_button(shell.panel, espdesktop_i18n("Confirm"), shell.content_w,
+      shell.content_w / 2, shell.layout.panel_h / 6, control_modal_card_radius(button),
+      theme_display_color(current_theme().surface_secondary), nullptr);
+  lv_obj_align(confirm, LV_ALIGN_CENTER, 0, 0);
+  auto *cancel = control_modal_create_text_button(shell.panel, espdesktop_i18n("Cancel"), shell.content_w,
+      shell.content_w / 2, shell.layout.panel_h / 6, control_modal_card_radius(button),
+      theme_display_color(current_theme().surface_secondary), nullptr);
+  lv_obj_align(cancel, LV_ALIGN_CENTER, 0, shell.layout.panel_h / 4);
+  lv_obj_add_event_cb(cancel, [](lv_event_t *) {
+    control_modal_force_close_active();
+  }, LV_EVENT_CLICKED, nullptr);
+
+  struct Confirmation {
+    std::string action;
+    lv_obj_t *screen;
+    uint32_t armed_at;
+  };
+  auto *checked = grid_delete_with_owner(confirm,
+      new Confirmation{shown.id, lv_obj_get_screen(button), esphome::millis()});
+  lv_obj_add_event_cb(confirm, [](lv_event_t *event) {
+    auto *checked = static_cast<Confirmation *>(lv_event_get_user_data(event));
+    if (checked && !screen_lock_enabled() && checked->screen == lv_scr_act() &&
+        esphome::millis() - checked->armed_at <= 15000) {
+      const auto request = "obs-" + std::to_string(companion_next_request_number());
+      invoke_companion_action(checked->action, request);
+    }
+    control_modal_force_close_active();
+  }, LV_EVENT_CLICKED, checked);
+  return true;
+}
+
 inline bool invoke_saved_companion_card(const ParsedCfg &card, const std::string &request_id,
                                          const std::string &required_focus = {},
                                          lv_obj_t *button = nullptr) {
   if (card.entity == "obs.take")
-    return invoke_companion_action(companion_rendered_take_action(button), request_id);
+    return invoke_companion_action(companion_rendered_obs_action(button).id, request_id);
+  if (companion_obs_output_card(card.entity)) return show_obs_output_confirmation(button);
   if (companion_obs_status_card(card.entity)) return false;
   return companion_encoded_url(card.sensor).empty()
     ? invoke_companion_action_for_app(card.entity, request_id, required_focus,

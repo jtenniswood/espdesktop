@@ -91,6 +91,7 @@ final class CompanionConnection: NSObject {
     private var applicationFocusPublisher = CompanionApplicationFocusPublisher()
     private var catalogueGeneration: UInt32 = 0
     private var supportsOBSCards = false
+    private var supportsOBSOutputs = false
     private var supportsOBSCough = false
     private var supportsOBSMeters = false
     private(set) var obsMeterWatch: Set<String> = []
@@ -534,6 +535,7 @@ final class CompanionConnection: NSObject {
             supportsOBSFaders = payload.capabilityVersion >= 14
             supportsOBSMeters = payload.capabilityVersion >= 15
             supportsOBSCough = payload.capabilityVersion >= 16
+            supportsOBSOutputs = payload.capabilityVersion >= 17
             obsMeterWatch.removeAll()
             lastOBSMeterValues.removeAll()
             lastOBSAudioValues.removeAll()
@@ -586,18 +588,27 @@ final class CompanionConnection: NSObject {
             let requestIdentifier = payload.requestId
             let kind = payload.kind
             if kind == "action", let actionIdentifier = payload.actionId {
-                if actionIdentifier.hasPrefix("obs.") && !supportsOBSCards {
+                if (actionIdentifier.hasPrefix("obs.") && !supportsOBSCards) ||
+                    (actionIdentifier.hasPrefix("obs.output.") && !supportsOBSOutputs) {
                     sendJSON(["type": "action.result", "requestId": requestIdentifier, "status": "not_allowed"])
                     return true
                 }
                 let requestingTask = task
                 Task { [weak self, weak requestingTask] in
                     guard let self, let requestingTask, self.task === requestingTask, self.sessionAuthenticated else { return }
-                    let status = await self.resources.performResultStatus(
-                        actionIdentifier: actionIdentifier,
-                        folderOpenBehavior: payload.folderOpenBehavior ?? "new_window",
-                        shortcutAppID: payload.appId
-                    )
+                    let status: String
+                    if actionIdentifier.hasPrefix("obs.output.") {
+                        let performed = await self.resources.performOBSOutput(actionIdentifier: actionIdentifier) {
+                            self.task === requestingTask && self.sessionAuthenticated
+                        }
+                        status = performed ? "performed" : "not_allowed"
+                    } else {
+                        status = await self.resources.performResultStatus(
+                            actionIdentifier: actionIdentifier,
+                            folderOpenBehavior: payload.folderOpenBehavior ?? "new_window",
+                            shortcutAppID: payload.appId
+                        )
+                    }
                     guard self.task === requestingTask, self.sessionAuthenticated else { return }
                     self.sendJSON(["type": "action.result", "requestId": requestIdentifier, "status": status])
                     if status == "activated" {
@@ -870,6 +881,7 @@ final class CompanionConnection: NSObject {
         capabilities.append("url_card_focus")
         if supportsOBSCards { capabilities.append("obs_scene_cards") }
         if supportsOBSMeters { capabilities.append("obs_input_meters") }
+        if supportsOBSOutputs { capabilities.append("obs_output_controls") }
         if obsActions == nil { sendJSON(["type": "capabilities", "values": capabilities]) }
         // The browser receives identifiers, never application paths or shell commands.
         let apps = resources.launchableApps()
@@ -880,7 +892,8 @@ final class CompanionConnection: NSObject {
         let obsEntries: [[String: String]] = supportedOBSActions.filter { entry in
             (supportsOBSFaders || OBSConnection.faderInputUUID(for: entry.id) == nil) &&
             (supportsOBSMeters || OBSConnection.meterInputUUID(for: entry.id) == nil) &&
-            (supportsOBSCough || OBSConnection.coughInputUUID(for: entry.id) == nil)
+            (supportsOBSCough || OBSConnection.coughInputUUID(for: entry.id) == nil) &&
+            (supportsOBSOutputs || !entry.id.hasPrefix("obs.output."))
         }.map { entry in
             ["id": entry.id, "label": Self.catalogueLabel(entry.label, fallback: "OBS scene")]
         }

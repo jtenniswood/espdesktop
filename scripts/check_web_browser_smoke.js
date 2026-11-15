@@ -4350,7 +4350,21 @@ async function assertAppVolumeCard(browser) {
     await page.getByRole("button", { name: "Edit", exact: true }).click();
     await cough.getByRole("option", { name: "OBS Desk Mic" }).waitFor({ state: "attached" });
     assert.equal(await cough.inputValue(), coughID);
-    console.log("Sound subtypes and OBS Cough passed picker and save checks.");
+    await page.keyboard.press("Escape");
+    await page.locator(".sp-main .sp-empty-cell").first().click();
+    await page.getByRole("button", { name: "OBS Output Control card type", exact: true }).click();
+    const output = page.locator('select[id$="obs-output"]');
+    await output.selectOption("obs.output.record");
+    await page.getByRole("button", { name: "Save", exact: true }).click();
+    await waitForNativeState(nativeState, () => Object.values(nativeState.document.buttons)
+      .some(card => card.startsWith("obs.output.record;") && card.endsWith(";companion")),
+    "OBS Output Control saves its stable recording target");
+    const outputSlot = Object.keys(nativeState.document.buttons).find(key =>
+      nativeState.document.buttons[key].startsWith("obs.output.record;"));
+    await page.locator(`.sp-main [data-slot="${outputSlot}"]`).click();
+    await page.getByRole("button", { name: "Edit", exact: true }).click();
+    assert.equal(await output.inputValue(), "obs.output.record");
+    console.log("Sound subtypes, OBS Cough, and OBS output passed picker and save checks.");
   } finally { await context.close(); }
 }
 

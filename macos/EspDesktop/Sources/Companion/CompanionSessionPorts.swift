@@ -35,6 +35,7 @@ protocol CompanionSessionResources: AnyObject {
     func focusedCompanionActionIdentifiers(for targets: [(id: String, url: URL)]) async -> [String]
     func remoteCompanionCatalogues() -> RemoteCompanionCatalogues
     func performResultStatus(actionIdentifier: String, folderOpenBehavior: String, shortcutAppID: String?) async -> String
+    func performOBSOutput(actionIdentifier: String, isValid: @escaping @MainActor () -> Bool) async -> Bool
     func openURL(encodedURL: String, newWindow: Bool) async -> Bool
     func setMediaControlValue(_ value: Int, controlIdentifier: String) async -> Bool
     func setCoughButtonValue(_ value: Int, from session: ObjectIdentifier) -> Bool
@@ -74,6 +75,7 @@ extension CompanionSessionResources {
     func immediateFocusedApplicationIdentifier() -> String? { nil }
     var applicationCatalogueReady: Bool { true }
     func obsControlActions() -> [(id: String, label: String)] { [] }
+    func performOBSOutput(actionIdentifier: String, isValid: @escaping @MainActor () -> Bool) async -> Bool { false }
     func setOBSFader(_ value: Int, controlIdentifier: String) async -> Bool { false }
     func obsAudioValues() -> [String: Int] { [:] }
     func setOBSCough(_ value: Int, controlIdentifier: String, from session: ObjectIdentifier) async -> Bool { false }

@@ -51,6 +51,24 @@ final class OBSConnection: ObservableObject {
         }
     }
 
+    enum Output: String, CaseIterable {
+        case stream, record
+
+        var statusRequest: String { self == .stream ? "GetStreamStatus" : "GetRecordStatus" }
+        var savedID: String { "obs.output." + rawValue }
+        var name: String { self == .stream ? "Stream" : "Recording" }
+
+        static func command(_ id: String) -> (Output, UUID)? {
+            for output in allCases {
+                let prefix = output.savedID + "."
+                guard id.hasPrefix(prefix) else { continue }
+                if let token = UUID(uuidString: String(id.dropFirst(prefix.count))),
+                   id == prefix + token.uuidString.lowercased() { return (output, token) }
+            }
+            return nil
+        }
+    }
+
     struct State: Equatable {
         let collection: String
         let scenes: [Target]
@@ -68,13 +86,29 @@ final class OBSConnection: ObservableObject {
         var replaySave = ReplaySave.ready
         var transitionInProgress = false
         var takeToken = UUID()
+        var outputTokens: [Output: UUID] = [.stream: UUID(), .record: UUID()]
+        var outputsTransitioning: Set<Output> = []
+        var outputsPending: Set<Output> = []
+
+        func outputActive(_ output: Output) -> Bool { output == .stream ? streaming : recording }
+
+        func outputControlReady(_ output: Output) -> Bool {
+            !outputsTransitioning.contains(output) && !outputsPending.contains(output) &&
+                (output != .stream || !streamReconnecting)
+        }
 
         var streamStatus: String {
             if streamReconnecting { return "Stream · Reconnecting" }
+            if outputsTransitioning.contains(.stream) || outputsPending.contains(.stream) {
+                return "Stream · Changing"
+            }
             return streaming ? "Stream · Live" : "Stream · Idle"
         }
 
         var recordStatus: String {
+            if outputsTransitioning.contains(.record) || outputsPending.contains(.record) {
+                return "Recording · Changing"
+            }
             if recordingPaused { return "Recording · Paused" }
             return recording ? "Recording · Active" : "Recording · Idle"
         }
@@ -121,7 +155,16 @@ final class OBSConnection: ObservableObject {
     }
 
     static func controlActions(_ state: State?) -> [(id: String, label: String)] {
-        productionActions(state) + sceneActions(state) + audioActions(state) + faderActions(state) + meterActions(state) + coughActions(state)
+        productionActions(state) + sceneActions(state) + audioActions(state) + faderActions(state) + meterActions(state) + coughActions(state) + outputActions(state)
+    }
+
+    static func outputActions(_ state: State?) -> [(id: String, label: String)] {
+        guard let state else { return [] }
+        return Output.allCases.compactMap { output in
+            guard state.outputControlReady(output), let token = state.outputTokens[output] else { return nil }
+            let verb = state.outputActive(output) ? "Stop " : "Start "
+            return (output.savedID + "." + token.uuidString.lowercased(), verb + output.name)
+        }
     }
 
     static func sceneActions(_ state: State?) -> [(id: String, label: String)] {
@@ -295,6 +338,7 @@ final class OBSConnection: ObservableObject {
     private var syncTask: Task<Void, Never>?
     private var generation = UUID()
     private var collectionChanging = false
+    private var outputCommands: Set<Output> = []
     private var pendingMuteCommands = Set<UUID>()
     private struct CoughHold {
         let session: ObjectIdentifier
@@ -402,6 +446,69 @@ final class OBSConnection: ObservableObject {
               active == generation, let current = self.state,
               current.canTakePreview, current.takeToken == token else { return false }
         return await command("TriggerStudioModeTransition", fields: [:])
+    }
+
+    func performOutput(_ output: Output, token: UUID, isValid: () -> Bool = { true }) async -> Bool {
+        guard isValid(), let shown = state, shown.outputControlReady(output), shown.outputTokens[output] == token,
+              outputCommands.insert(output).inserted else { return false }
+        defer { outputCommands.remove(output) }
+        let active = generation
+        let previous = shown.outputActive(output)
+        let fresh = try? await snapshotRequest(output.statusRequest, generation: active)
+        guard isValid(), let fresh, active == generation, var current = state,
+              current.outputTokens[output] == token, current.outputControlReady(output) else { return false }
+        // Refresh the tile even when the event for a changed output wasn't delivered.
+        refreshOutput(output, fields: fresh, state: &current)
+        guard fresh["outputActive"] as? Bool == previous,
+              current.outputControlReady(output), current.outputTokens[output] == token,
+              fresh[output == .stream ? "outputReconnecting" : "outputPaused"] is Bool else {
+            state = current
+            return false
+        }
+        let request = switch (output, previous) {
+        case (.stream, false): "StartStream"
+        case (.stream, true): "StopStream"
+        case (.record, false): "StartRecord"
+        case (.record, true): "StopRecord"
+        }
+        current.outputsPending.insert(output)
+        current.outputTokens[output] = UUID()
+        state = current
+        let accepted = await command(request, fields: [:])
+        guard active == generation else { return false }
+
+        for _ in 0..<20 {
+            guard let confirmed = try? await snapshotRequest(output.statusRequest, generation: active),
+                  active == generation, var latest = state else { break }
+            refreshOutput(output, fields: confirmed, state: &latest)
+            if confirmed["outputActive"] as? Bool != nil, !latest.outputsTransitioning.contains(output),
+               (latest.outputActive(output) != previous || !accepted),
+               (output != .stream || !latest.streamReconnecting) {
+                latest.outputsPending.remove(output)
+                state = latest
+                return accepted && latest.outputActive(output) != previous
+            }
+            state = latest
+            do { try await Task.sleep(for: .milliseconds(250)) } catch { break }
+        }
+
+        if active == generation { sync() }
+        return false
+    }
+
+    private func refreshOutput(_ output: Output, fields: OBSWebSocket.Fields, state: inout State) {
+        guard let active = fields["outputActive"] as? Bool else { return }
+        let before = state.outputActive(output)
+        let beforeDetail = output == .stream ? state.streamReconnecting : state.recordingPaused
+        let detail = (output == .stream ? fields["outputReconnecting"] : fields["outputPaused"]) as? Bool ?? beforeDetail
+        if output == .stream {
+            state.streaming = active
+            state.streamReconnecting = detail
+        } else {
+            state.recording = active
+            state.recordingPaused = active && detail
+        }
+        if before != active || beforeDetail != detail { state.outputTokens[output] = UUID() }
     }
 
     func saveReplay() async -> Bool {
@@ -836,6 +943,16 @@ final class OBSConnection: ObservableObject {
         }
     }
 
+    private static func recordOutputEvent(_ output: Output, fields: OBSWebSocket.Fields, state: inout State) {
+        state.outputTokens[output] = UUID()
+        switch fields["outputState"] as? String {
+        case "OBS_WEBSOCKET_OUTPUT_STARTING", "OBS_WEBSOCKET_OUTPUT_STOPPING":
+            state.outputsTransitioning.insert(output)
+        default:
+            state.outputsTransitioning.remove(output)
+        }
+    }
+
     private static func apply(_ type: String, fields: OBSWebSocket.Fields, to state: inout State) {
         switch type {
         case "CurrentProgramSceneChanged":
@@ -847,9 +964,11 @@ final class OBSConnection: ObservableObject {
         case "StreamStateChanged":
             state.streaming = fields["outputActive"] as? Bool ?? state.streaming
             state.streamReconnecting = fields["outputState"] as? String == "OBS_WEBSOCKET_OUTPUT_RECONNECTING"
+            recordOutputEvent(.stream, fields: fields, state: &state)
         case "RecordStateChanged":
             state.recording = fields["outputActive"] as? Bool ?? state.recording
             state.recordingPaused = fields["outputState"] as? String == "OBS_WEBSOCKET_OUTPUT_PAUSED"
+            recordOutputEvent(.record, fields: fields, state: &state)
         case "SceneTransitionStarted":
             state.transitionInProgress = true
             state.takeToken = UUID()

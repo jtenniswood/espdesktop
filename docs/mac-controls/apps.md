@@ -106,6 +106,8 @@ Add an **OBS Status** tile and choose **Program scene**, **Streaming**, or **Rec
 
 Add **OBS Save Replay** to capture a clip. Enable and start the Replay Buffer in OBS first. The tile displays **Replay saved** after OBS confirms that it wrote a file.
 
+Add **OBS Output Control** separately for streaming or recording. The card displays the available action, such as **Stop Recording**, then asks you to confirm it. If OBS changes the output while the prompt is open, close the prompt and check the updated card before trying again.
+
 Use matching display firmware and Mac app builds that support OBS cards. Before going live, try the cards with a test recording and listen back to check the mix.
 
 ## Website cards {#open-a-website}

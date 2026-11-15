@@ -11,6 +11,12 @@ private final class OBSPilotTransport: OBSWebSocketTransport {
     var preview = queued
     var transitionCursor = 1.0
     var replayActive = false
+    var streaming = true
+    var streamReconnecting = true
+    var recording = true
+    var recordingPaused = true
+    var recordStatusRead: (() -> Void)?
+    var outputWrites: [String] = []
     var hasAudioInput = false
     var lastFaderWrite: OBSWebSocket.Fields?
     var muted = true
@@ -54,8 +60,26 @@ private final class OBSPilotTransport: OBSWebSocketTransport {
             faderMultiplier = fields["inputVolumeMul"] as? Double ?? pow(10, faderDb / 20)
             return [:]
         case "GetStudioModeEnabled": return ["studioModeEnabled": true]
-        case "GetStreamStatus": return ["outputActive": true, "outputReconnecting": true]
-        case "GetRecordStatus": return ["outputActive": true, "outputPaused": true]
+        case "GetStreamStatus":
+            return ["outputActive": streaming, "outputReconnecting": streamReconnecting]
+        case "GetRecordStatus":
+            recordStatusRead?()
+            return ["outputActive": recording, "outputPaused": recordingPaused]
+        case "StartRecord", "StopRecord":
+            outputWrites.append(type)
+            recording = type == "StartRecord"
+            recordingPaused = false
+            onEvent?("RecordStateChanged", [
+                "outputActive": recording, "outputState": recording ? "OBS_WEBSOCKET_OUTPUT_STARTED" : "OBS_WEBSOCKET_OUTPUT_STOPPED",
+            ])
+            return [:]
+        case "StartStream", "StopStream":
+            outputWrites.append(type)
+            streaming = type == "StartStream"
+            onEvent?("StreamStateChanged", [
+                "outputActive": streaming, "outputState": streaming ? "OBS_WEBSOCKET_OUTPUT_STARTED" : "OBS_WEBSOCKET_OUTPUT_STOPPED",
+            ])
+            return [:]
         case "GetReplayBufferStatus": return ["outputActive": replayActive]
         case "SaveReplayBuffer": return [:]
         case "GetCurrentSceneTransitionCursor": return ["transitionCursor": transitionCursor]
@@ -311,6 +335,74 @@ final class OBSProductionTests: XCTestCase {
         XCTAssertFalse(releasedWithoutEvent)
         XCTAssertTrue(transport.muted)
         XCTAssertEqual(transport.muteWrites, [true, true, true, true])
+    }
+
+    @MainActor
+    func testGuardedOutputRequiresTheDisplayedStateAndFreshOBSConfirmation() async throws {
+        let transport = OBSPilotTransport()
+        transport.recording = false
+        transport.recordingPaused = false
+        let connection = try await open(transport)
+        let start = try XCTUnwrap(OBSConnection.outputActions(connection.state).first)
+        XCTAssertEqual(start.label, "Start Recording")
+        let token = try XCTUnwrap(OBSConnection.Output.command(start.id)?.1)
+
+        let started = await connection.performOutput(.record, token: token)
+        XCTAssertTrue(started)
+        XCTAssertEqual(transport.outputWrites, ["StartRecord"])
+        XCTAssertEqual(connection.state?.recordStatus, "Recording · Active")
+        let oldPrompt = await connection.performOutput(.record, token: token)
+        XCTAssertFalse(oldPrompt)
+
+        let stop = try XCTUnwrap(OBSConnection.outputActions(connection.state).first)
+        XCTAssertEqual(stop.label, "Stop Recording")
+        let stopToken = try XCTUnwrap(OBSConnection.Output.command(stop.id)?.1)
+        transport.recording = false // OBS event deliberately withheld.
+        let stale = await connection.performOutput(.record, token: stopToken)
+        XCTAssertFalse(stale)
+        XCTAssertEqual(transport.outputWrites, ["StartRecord"])
+        XCTAssertEqual(connection.state?.recordStatus, "Recording · Idle")
+    }
+
+    @MainActor
+    func testGuardedOutputCancelsIfTheDisplayLeavesDuringTheStatusCheck() async throws {
+        let transport = OBSPilotTransport()
+        let connection = try await open(transport)
+        let token = try XCTUnwrap(connection.state?.outputTokens[.record])
+        var connected = true
+        transport.recordStatusRead = { connected = false }
+        let stopped = await connection.performOutput(.record, token: token) { connected }
+        XCTAssertFalse(stopped)
+        XCTAssertTrue(transport.outputWrites.isEmpty)
+    }
+
+    @MainActor
+    func testGuardedStreamCancelsWhenTheOutputChangesAfterShowingTheAction() async throws {
+        let transport = OBSPilotTransport()
+        transport.streaming = false
+        transport.streamReconnecting = false
+        let connection = try await open(transport)
+        let token = try XCTUnwrap(connection.state?.outputTokens[.stream])
+        transport.onEvent?("StreamStateChanged", [
+            "outputActive": false, "outputState": "OBS_WEBSOCKET_OUTPUT_STARTING",
+        ])
+        let stale = await connection.performOutput(.stream, token: token)
+        XCTAssertFalse(stale)
+        XCTAssertTrue(transport.outputWrites.isEmpty)
+
+        transport.onEvent?("StreamStateChanged", [
+            "outputActive": false, "outputState": "OBS_WEBSOCKET_OUTPUT_STOPPED",
+        ])
+        let fresh = try XCTUnwrap(connection.state?.outputTokens[.stream])
+        let started = await connection.performOutput(.stream, token: fresh)
+        XCTAssertTrue(started)
+        XCTAssertEqual(transport.outputWrites, ["StartStream"])
+        XCTAssertEqual(connection.state?.streamStatus, "Stream · Live")
+        let stop = try XCTUnwrap(connection.state?.outputTokens[.stream])
+        let stopped = await connection.performOutput(.stream, token: stop)
+        XCTAssertTrue(stopped)
+        XCTAssertEqual(transport.outputWrites, ["StartStream", "StopStream"])
+        XCTAssertEqual(connection.state?.streamStatus, "Stream · Idle")
     }
 
     @MainActor
