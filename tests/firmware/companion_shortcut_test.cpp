@@ -241,6 +241,19 @@ int main() {
     assert(companion_action_available(keyboard_only, "shortcut.tab"));
     assert(companion_action_available(keyboard_only, "shortcut.escape"));
   }
+  {
+    CompanionRuntimeSnapshot obs;
+    const std::string take_action = "obs.take.45f44c62-1c70-4706-8930-f3ec000db026";
+    obs.actions = {{take_action, "Take Live: BRB"}, {"obs.status.stream", "Stream: Live"}};
+    obs.connected = true;
+    assert(companion_action_available(obs, "obs.take"));
+    assert(companion_published_action(obs, "obs.take")->id == take_action);
+    assert(companion_default_action_label("obs.take", "", &obs) == "Take Live: BRB");
+    assert(companion_obs_status_card("obs.status.stream"));
+    obs.connected = false;
+    assert(!companion_action_available(obs, "obs.take"));
+    assert(companion_default_action_label("obs.status.stream", "", &obs) == espdesktop_i18n("Unavailable"));
+  }
   assert(companion_shortcut_label("shortcut.shift+escape") == "\U000F0636" "Esc");
   assert(!companion_shortcut_action_valid("shortcut.shift+tab"));
 

@@ -493,12 +493,14 @@ inline void setup_companion_card(BtnSlot &s, const ParsedCfg &p,
                                 !cfg_option_token_present(p.options, "stat_labels_off"));
     return;
   }
+  const bool take_card = p.entity == "obs.take";
+  const auto take_snapshot = take_card ? companion_runtime_snapshot() : CompanionRuntimeSnapshot{};
   const bool url_card = !companion_encoded_url(p.sensor).empty();
   const bool available = url_card
     ? companion_url_available(p.entity, p.sensor)
-    : companion_action_available(p.entity);
-  std::string label = p.label.empty()
-    ? companion_default_action_label(p.entity, p.sensor) : p.label;
+    : (take_card ? companion_action_available(take_snapshot, p.entity) : companion_action_available(p.entity));
+  std::string label = (take_card || p.label.empty())
+    ? companion_default_action_label(p.entity, p.sensor, take_card ? &take_snapshot : nullptr) : p.label;
   lv_label_set_display_text(s.text_lbl, label.c_str());
   if (companion_app_launch_card(p) &&
       (cfg_option_token_present(p.options, "app_hide_label") ||
@@ -528,9 +530,13 @@ inline void setup_companion_card(BtnSlot &s, const ParsedCfg &p,
     companion_disable_card_app_icon_palette(s);
 #endif
   }
-  companion_track_card(s.btn, p.entity, p.sensor, s.text_lbl, p.label.empty());
+  companion_track_card(s.btn, p.entity, p.sensor, s.text_lbl, take_card || p.label.empty());
+  if (take_card) companion_remember_rendered_take(s.btn, take_snapshot);
   set_card_disabled_state(s.btn, !available);
-  if (companion_app_launch_card(p)) {
+  if (companion_obs_status_card(p.entity)) {
+    lv_obj_clear_flag(s.btn, LV_OBJ_FLAG_CLICKABLE);
+    clear_push_button_transition(s.btn);
+  } else if (companion_app_launch_card(p)) {
     apply_instant_button_feedback(s.btn);
   } else if (available) {
     apply_push_button_transition(s.btn);

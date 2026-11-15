@@ -49,6 +49,23 @@ final class OBSConnection: ObservableObject {
         var streamReconnecting: Bool
         var recording: Bool
         var inputMutes: [String: Bool] = [:]
+        var recordingPaused = false
+        var transitionInProgress = false
+        var takeToken = UUID()
+
+        var streamStatus: String {
+            if streamReconnecting { return "Stream · Reconnecting" }
+            return streaming ? "Stream · Live" : "Stream · Idle"
+        }
+
+        var recordStatus: String {
+            if recordingPaused { return "Recording · Paused" }
+            return recording ? "Recording · Active" : "Recording · Idle"
+        }
+
+        var canTakePreview: Bool {
+            studioMode && !transitionInProgress && preview != nil && preview?.id != program?.id
+        }
     }
 
     enum SceneAction: Equatable {
@@ -68,6 +85,24 @@ final class OBSConnection: ObservableObject {
             case .preview(let target): return "obs.preview." + target.uuidString.lowercased()
             }
         }
+    }
+
+    static func productionActions(_ state: State?) -> [(id: String, label: String)] {
+        guard let state else { return [] }
+        var actions = [
+            (id: "obs.status.program", label: "Program · " + (state.program?.name ?? "Unknown")),
+            (id: "obs.status.stream", label: state.streamStatus),
+            (id: "obs.status.record", label: state.recordStatus),
+        ]
+        if state.canTakePreview, let preview = state.preview {
+            actions.append((id: "obs.take." + state.takeToken.uuidString.lowercased(),
+                            label: "Take Live · " + preview.name))
+        }
+        return actions
+    }
+
+    static func controlActions(_ state: State?) -> [(id: String, label: String)] {
+        productionActions(state) + sceneActions(state) + audioActions(state)
     }
 
     static func sceneActions(_ state: State?) -> [(id: String, label: String)] {
@@ -139,17 +174,18 @@ final class OBSConnection: ObservableObject {
     @Published private(set) var port: UInt16
     @Published private(set) var enabled: Bool
 
-    private let socket: OBSWebSocket
+    private let socket: any OBSWebSocketTransport
     private let defaults: UserDefaults
     private var reconnectTask: Task<Void, Never>?
     private var syncTask: Task<Void, Never>?
     private var generation = UUID()
     private var collectionChanging = false
     private var pendingMuteCommands = Set<UUID>()
+    private var takingPreview = false
     private var bufferedMutes: [String: Bool] = [:]
     private var bufferedEvents: [(String, OBSWebSocket.Fields)] = []
 
-    init(defaults: UserDefaults = .standard, socket: OBSWebSocket = OBSWebSocket()) {
+    init(defaults: UserDefaults = .standard, socket: any OBSWebSocketTransport = OBSWebSocket()) {
         self.defaults = defaults
         self.socket = socket
         enabled = defaults.bool(forKey: Keys.enabled)
@@ -194,7 +230,7 @@ final class OBSConnection: ObservableObject {
         reconnectTask = nil
         invalidate()
         collectionChanging = false
-        socket.close()
+        socket.close(nil)
         status = .off
     }
 
@@ -205,9 +241,18 @@ final class OBSConnection: ObservableObject {
                              fields: ["sceneUuid": id])
     }
 
-    func takeLive(collection: String, previewID: String) async -> Bool {
-        guard let state, state.collection == collection, state.studioMode,
-              state.preview?.id == previewID else { return false }
+    func takeLive(token: UUID) async -> Bool {
+        guard let state, state.canTakePreview, state.takeToken == token,
+              let expectedPreview = state.preview?.id, !takingPreview else { return false }
+        takingPreview = true
+        defer { takingPreview = false }
+        let active = generation
+        guard let cursor = try? await snapshotRequest("GetCurrentSceneTransitionCursor", generation: active),
+              cursor["transitionCursor"] as? Double == 1,
+              let preview = try? await snapshotRequest("GetCurrentPreviewScene", generation: active),
+              preview["sceneUuid"] as? String == expectedPreview,
+              active == generation, let current = self.state,
+              current.canTakePreview, current.takeToken == token else { return false }
         return await command("TriggerStudioModeTransition", fields: [:])
     }
 
@@ -350,7 +395,8 @@ final class OBSConnection: ObservableObject {
                     streaming: streaming,
                     streamReconnecting: stream["outputReconnecting"] as? Bool ?? false,
                     recording: recording,
-                    inputMutes: inputMutes
+                    inputMutes: inputMutes,
+                    recordingPaused: record["outputPaused"] as? Bool ?? false
                 )
                 for (type, fields) in bufferedEvents { Self.apply(type, fields: fields, to: &snapshot) }
                 bufferedEvents.removeAll()
@@ -365,7 +411,7 @@ final class OBSConnection: ObservableObject {
 
     private func snapshotRequest(_ name: String, generation active: UUID) async throws -> OBSWebSocket.Fields {
         guard active == generation, !Task.isCancelled else { throw CancellationError() }
-        return try await socket.request(name)
+        return try await socket.request(name, fields: [:])
     }
 
     private func receive(_ type: String, fields: OBSWebSocket.Fields) {
@@ -391,13 +437,16 @@ final class OBSConnection: ObservableObject {
             } else if state == nil, !collectionChanging, bufferedMutes.count < 128 {
                 bufferedMutes[id] = muted
             }
-        case "CurrentProgramSceneChanged", "CurrentPreviewSceneChanged", "StreamStateChanged", "RecordStateChanged":
+        case "CurrentProgramSceneChanged", "CurrentPreviewSceneChanged", "StreamStateChanged", "RecordStateChanged",
+             "SceneTransitionStarted", "SceneTransitionEnded":
             if var current = state {
                 Self.apply(type, fields: fields, to: &current)
                 state = current
             } else if !collectionChanging {
                 // Retain the latest event per field while fetching the initial snapshot.
-                bufferedEvents.removeAll { $0.0 == type }
+                bufferedEvents.removeAll { previous in
+                    previous.0 == type || (type.hasPrefix("SceneTransition") && previous.0.hasPrefix("SceneTransition"))
+                }
                 bufferedEvents.append((type, fields))
             }
         default: break
@@ -409,12 +458,20 @@ final class OBSConnection: ObservableObject {
         case "CurrentProgramSceneChanged":
             state.program = Target(fields: fields, kind: "scene")
         case "CurrentPreviewSceneChanged":
-            state.preview = Target(fields: fields, kind: "scene")
+            let preview = Target(fields: fields, kind: "scene")
+            if preview?.id != state.preview?.id { state.takeToken = UUID() }
+            state.preview = preview
         case "StreamStateChanged":
             state.streaming = fields["outputActive"] as? Bool ?? state.streaming
             state.streamReconnecting = fields["outputState"] as? String == "OBS_WEBSOCKET_OUTPUT_RECONNECTING"
         case "RecordStateChanged":
             state.recording = fields["outputActive"] as? Bool ?? state.recording
+            state.recordingPaused = fields["outputState"] as? String == "OBS_WEBSOCKET_OUTPUT_PAUSED"
+        case "SceneTransitionStarted":
+            state.transitionInProgress = true
+            state.takeToken = UUID()
+        case "SceneTransitionEnded":
+            state.transitionInProgress = false
         default: break
         }
     }

@@ -5,6 +5,12 @@ import { retiredSavedCardType } from "./card";
 
 export const COMPANION_FOLDER_PREFIX = "folder.";
 export const COMPANION_OBS_PREFIX = "obs.";
+export const OBS_TAKE_ID = "obs.take";
+export const OBS_STATUS_OPTIONS = [
+  ["obs.status.program", "Program scene"],
+  ["obs.status.stream", "Streaming"],
+  ["obs.status.record", "Recording"],
+] as const;
 
 export function companionMetricForEntity(entity: unknown) {
   const baseEntity = typeof entity === "string" ? entity.split(":", 1)[0] : entity;
@@ -15,6 +21,8 @@ export function companionSavedCardMode(config: Partial<CardConfig>): CompanionCa
   const entity = config.entity || "";
   if (entity.startsWith("shortcut.")) return "shortcut";
   if (entity.startsWith(COMPANION_FOLDER_PREFIX)) return "folder";
+  if (entity === OBS_TAKE_ID) return "obs_take";
+  if (OBS_STATUS_OPTIONS.some(([id]) => entity === id)) return "obs_status";
   if (entity.startsWith("obs.mute.")) return "obs_mic";
   if (entity.startsWith(COMPANION_OBS_PREFIX)) return "obs";
   if (entity === "stats" || companionMetricForEntity(entity)) return "stats";
@@ -34,6 +42,8 @@ export function decodeCompanionCard(config: Partial<CardConfig>, mode = companio
     case "app": return { mode, applicationId: entity };
     case "shortcut": return { mode, shortcutId: entity };
     case "folder": return { mode, folderId: entity };
+    case "obs_status":
+    case "obs_take":
     case "obs_mic":
     case "obs": return { mode, actionId: entity };
     case "url": return { mode, applicationId: entity, encodedUrl: config.sensor || "" };
@@ -49,6 +59,8 @@ export function encodeCompanionCard(model: CompanionCardModel, original: CardCon
     case "app": config.entity = model.applicationId; break;
     case "shortcut": config.entity = model.shortcutId; break;
     case "folder": config.entity = model.folderId; break;
+    case "obs_status":
+    case "obs_take":
     case "obs_mic":
     case "obs": config.entity = model.actionId; break;
     case "url": config.entity = model.applicationId; config.sensor = model.encodedUrl; break;

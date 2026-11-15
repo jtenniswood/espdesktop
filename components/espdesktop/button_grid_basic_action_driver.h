@@ -38,7 +38,7 @@ inline bool basic_action_driver_setup_visual(
 inline bool basic_action_driver_attach_interaction(
     BtnSlot &slot, const ParsedCfg &config, const Context &context) {
   if (context.runtime.driver == card_runtime::CardDriverId::COMPANION &&
-      companion_metric_key_valid(config.entity)) {
+      (companion_metric_key_valid(config.entity) || companion_obs_status_card(config.entity))) {
     lv_obj_clear_flag(slot.btn, LV_OBJ_FLAG_CLICKABLE);
   }
   return basic_action_driver_matches(context, config);
@@ -126,7 +126,11 @@ struct CompanionSubpageActionContext {
 };
 
 inline bool invoke_saved_companion_card(const ParsedCfg &card, const std::string &request_id,
-                                         const std::string &required_focus = {}) {
+                                         const std::string &required_focus = {},
+                                         lv_obj_t *button = nullptr) {
+  if (card.entity == "obs.take")
+    return invoke_companion_action(companion_rendered_take_action(button), request_id);
+  if (companion_obs_status_card(card.entity)) return false;
   return companion_encoded_url(card.sensor).empty()
     ? invoke_companion_action_for_app(card.entity, request_id, required_focus,
                                      companion_folder_open_behavior(card),
@@ -142,7 +146,7 @@ inline bool basic_action_driver_bind_subpage(
   if (!basic_action_driver_matches(context, config)) return false;
   switch (context.runtime.driver) {
     case Driver::COMPANION: {
-      if (companion_metric_key_valid(config.entity)) break;
+      if (companion_metric_key_valid(config.entity) || companion_obs_status_card(config.entity)) break;
       std::string required_focus_id;
       if (config.type == "companion" && environment.parent_config &&
           companion_app_shortcuts_enabled(*environment.parent_config) &&
@@ -171,7 +175,8 @@ inline bool basic_action_driver_bind_subpage(
         char request_id[24];
         snprintf(request_id, sizeof(request_id), "sub-%08lx",
                  static_cast<unsigned long>(companion_next_request_number()));
-        const bool invoked = invoke_saved_companion_card(*card, request_id, context->required_focus_id);
+        const bool invoked = invoke_saved_companion_card(*card, request_id, context->required_focus_id,
+          static_cast<lv_obj_t *>(lv_event_get_target(event)));
         if (!invoked) {
           ESP_LOGW("companion", "Action unavailable: %s", card->entity.c_str());
         }
@@ -191,7 +196,7 @@ inline bool basic_action_driver_handle_main_click(
   if (!basic_action_driver_matches(context, config)) return false;
   switch (context.runtime.driver) {
     case Driver::COMPANION: {
-      if (companion_metric_key_valid(config.entity)) break;
+      if (companion_metric_key_valid(config.entity) || companion_obs_status_card(config.entity)) break;
       char request_id[24];
       snprintf(request_id, sizeof(request_id), "%08lx-%d",
                static_cast<unsigned long>(companion_next_request_number()), slot_number);
@@ -217,7 +222,7 @@ inline bool basic_action_driver_handle_main_click(
           }
         }
       }
-      const bool invoked = invoke_saved_companion_card(config, request_id);
+      const bool invoked = invoke_saved_companion_card(config, request_id, {}, button);
       if (!invoked) {
         companion_cancel_action_result(request_id);
         ESP_LOGW("companion", "Action unavailable: %s", config.entity.c_str());

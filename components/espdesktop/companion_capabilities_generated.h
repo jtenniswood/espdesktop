@@ -67,6 +67,8 @@ inline constexpr CompanionCardModeCapability COMPANION_CARD_MODES[] = {
   {"folder", "Open folder", "folders", "Folder Outline"},
   {"obs", "OBS Scene", "obs_scene_cards", "Monitor"},
   {"obs_mic", "OBS Mic Mute", "obs_scene_cards", "Microphone"},
+  {"obs_take", "OBS Take Live", "obs_scene_cards", "Arrow Right"},
+  {"obs_status", "OBS Status", "obs_scene_cards", "Monitor"},
   {"stats", "Stats", "system_metrics", "Gauge"},
 };
 

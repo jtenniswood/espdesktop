@@ -603,15 +603,28 @@ inline std::string companion_shortcut_label(const std::string &action_id) {
 }
 
 
+inline bool companion_obs_status_card(const std::string &id) {
+  return id.rfind("obs.status.", 0) == 0;
+}
+
+inline const CompanionAction *companion_published_action(const CompanionRuntimeSnapshot &snapshot,
+                                                          const std::string &id) {
+  if (!snapshot.connected && id.rfind("obs.", 0) == 0) return nullptr;
+  const auto item = std::find_if(snapshot.actions.begin(), snapshot.actions.end(), [&](const CompanionAction &action) {
+    // A Take Live card keeps a fixed saved ID. OBS publishes a short-lived
+    // action for the particular preview presented to the operator.
+    return id == "obs.take" ? action.id.rfind("obs.take.", 0) == 0 : action.id == id;
+  });
+  return item == snapshot.actions.end() ? nullptr : &*item;
+}
+
 inline bool companion_action_available(const CompanionRuntimeSnapshot &snapshot, const std::string &action_id) {
   if (action_id.empty()) return false;
   if (!snapshot.connected) return false;
   if (companion_shortcut_action_valid(action_id)) return snapshot.keyboard_actions_supported;
   // An older Companion may still advertise retired window identifiers.
   if (action_id.rfind("window.", 0) == 0) return false;
-  return std::any_of(snapshot.actions.begin(), snapshot.actions.end(), [&action_id](const CompanionAction &action) {
-    return action.id == action_id;
-  });
+  return companion_published_action(snapshot, action_id) != nullptr;
 }
 
 inline bool companion_action_available(const std::string &action_id) {
@@ -638,9 +651,8 @@ inline std::string companion_default_action_label(const std::string &action_id,
   if (!companion_encoded_url(url_config).empty()) return espdesktop_i18n("Open URL");
   const auto owned = state ? CompanionRuntimeSnapshot{} : companion_runtime_snapshot();
   const auto &snapshot = state ? *state : owned;
-  const auto action = std::find_if(snapshot.actions.begin(), snapshot.actions.end(),
-    [&action_id](const CompanionAction &candidate) { return candidate.id == action_id; });
-  if (action != snapshot.actions.end() && !action->label.empty()) return action->label;
+  const auto *action = companion_published_action(snapshot, action_id);
+  if (action && !action->label.empty()) return action->label;
   if (action_id.rfind("obs.", 0) == 0) return espdesktop_i18n("Unavailable");
   return action_id.empty() ? espdesktop_i18n("Mac App") : action_id;
 }
@@ -699,6 +711,7 @@ struct CompanionCardRef {
   bool focus_draw_seen = false;
   bool last_drawn_focus = false;
   std::string required_focus_id{};
+  std::string rendered_take_action{};
 };
 
 struct CompanionSliderRef {
@@ -913,6 +926,21 @@ inline void companion_track_card(lv_obj_t *button, const std::string &action_id,
   lv_obj_add_event_cb(button, companion_card_focus_drawn, LV_EVENT_DRAW_POST_END, nullptr);
 }
 
+inline void companion_remember_rendered_take(lv_obj_t *button, const CompanionRuntimeSnapshot &snapshot) {
+  for (auto &ref : companion_card_refs()) {
+    if (ref.button != button || ref.action_id != "obs.take") continue;
+    const auto *action = companion_published_action(snapshot, ref.action_id);
+    ref.rendered_take_action = action ? action->id : "";
+    return;
+  }
+}
+
+inline std::string companion_rendered_take_action(lv_obj_t *button) {
+  for (const auto &ref : companion_card_refs())
+    if (ref.button == button && ref.action_id == "obs.take") return ref.rendered_take_action;
+  return {};
+}
+
 inline void companion_track_metric_card(lv_obj_t *button, lv_obj_t *value_label,
                                         lv_obj_t *unit_label, const std::string &metric_key,
                                         const std::string &unit, int precision,
@@ -1021,6 +1049,10 @@ inline void companion_refresh_cards_if_requested() {
       if (normalize_display_text(label) != lv_label_get_text(it->text_label))
         lv_label_set_display_text(it->text_label, label.c_str());
     }
+    if (it->action_id == "obs.take") {
+      const auto *action = companion_published_action(snapshot, it->action_id);
+      it->rendered_take_action = action ? action->id : "";
+    }
     const bool action_available = it->url_config.empty()
       ? companion_action_available(snapshot, it->action_id)
       : companion_url_available(it->action_id, it->url_config);
@@ -1082,7 +1114,8 @@ inline bool companion_toggle_mute(const std::string &control_id) {
 inline bool invoke_companion_action(const std::string &action_id,
                                     const std::string &request_id,
                                     const std::string &folder_open_behavior = "new_window") {
-  if (!companion_action_available(action_id) || !companion_action_sender()) return false;
+  if (companion_obs_status_card(action_id) ||
+      !companion_action_available(action_id) || !companion_action_sender()) return false;
   if (companion_scoped_shortcut(action_id)) return false;
   return companion_action_sender()(action_id, request_id, folder_open_behavior, {});
 }

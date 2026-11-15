@@ -1,10 +1,21 @@
 import CryptoKit
 import Foundation
 
+@MainActor
+protocol OBSWebSocketTransport: AnyObject {
+    var onReady: (() -> Void)? { get set }
+    var onEvent: ((String, OBSWebSocket.Fields) -> Void)? { get set }
+    var onClose: ((OBSWebSocket.Failure) -> Void)? { get set }
+    var isReady: Bool { get }
+    func connect(port: UInt16, password: String?)
+    func close(_ failure: OBSWebSocket.Failure?)
+    func request(_ type: String, fields: OBSWebSocket.Fields) async throws -> OBSWebSocket.Fields
+}
+
 /// OBS WebSocket v5 transport. Lives on the Companion's main actor so replies
 /// and OBS events are consumed in the same order as they arrive.
 @MainActor
-final class OBSWebSocket {
+final class OBSWebSocket: OBSWebSocketTransport {
     enum Failure: Error, Equatable {
         case disconnected
         case authenticationRequired

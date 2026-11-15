@@ -1,6 +1,6 @@
 import { childPageKey } from "../model/page_keys";
 import { renderCompanionStorageSelector } from "./companion_storage";
-import { COMPANION_FOLDER_PREFIX, COMPANION_OBS_PREFIX, decodeCompanionCard, encodeCompanionCard, companionMetricForEntity } from "../model/companion_card_codec";
+import { COMPANION_FOLDER_PREFIX, COMPANION_OBS_PREFIX, OBS_STATUS_OPTIONS, OBS_TAKE_ID, decodeCompanionCard, encodeCompanionCard, companionMetricForEntity } from "../model/companion_card_codec";
 import { configOptionEnabled, configOptionValue, setConfigOption, setConfigOptionValue, normalizedCardColorOptions, preserveCardColorOptions, withoutCardColorOptions } from "../model/config_primitives";
 import { createCompanionCatalogue, createCompanionCatalogueMonitor } from "../api/companion_catalogue";
 import type { CompanionAction } from "../api/companion_catalogue";
@@ -332,6 +332,8 @@ export function companionEntityForMode(mode: string): string {
     if (mode === "folder") return COMPANION_FOLDER_PREFIX;
     if (mode === "obs") return COMPANION_OBS_PREFIX;
     if (mode === "obs_mic") return "obs.mute.";
+    if (mode === "obs_take") return OBS_TAKE_ID;
+    if (mode === "obs_status") return OBS_STATUS_OPTIONS[0][0];
     if (mode === "stats") return COMPANION_SYSTEM_METRICS[0]?.id || "";
     return COMPANION_SYSTEM_METRICS.find((metric) => metric.mode === mode)?.id || "";
 }
@@ -468,10 +470,17 @@ export function registerCompanionCardTypes(
     const obsControlLabels = new Map<string, string>();
 
     function rememberOBSControls(actions: readonly CompanionAction[]): readonly CompanionAction[] {
-        const scenes = actions.filter(action => /^obs\.(scene|preview|mute)\.[a-f0-9-]{36}$/.test(action.id));
+        const targets = actions.filter(action => /^obs\.(scene|preview|mute)\.[a-f0-9-]{36}$/.test(action.id));
         obsControlLabels.clear();
-        for (const scene of scenes) obsControlLabels.set(scene.id, scene.label);
-        return scenes;
+        for (const target of targets) obsControlLabels.set(target.id, target.label);
+        for (const action of actions) {
+            if (/^obs\.take\.[a-f0-9-]{36}$/.test(action.id)) {
+                obsControlLabels.set(OBS_TAKE_ID, action.label);
+            } else if (OBS_STATUS_OPTIONS.some(([id]) => action.id === id)) {
+                obsControlLabels.set(action.id, action.label);
+            }
+        }
+        return targets;
     }
 
     function renderOBSControlSettings(panel: HTMLElement, card: { entity: string }, helpers: any, audio: boolean): void {
@@ -514,6 +523,26 @@ export function registerCompanionCardTypes(
         }).catch(() => { note.textContent = "Connect OBS in the Mac Companion and try again."; });
         helpers.renderCardIconPicker(panel, card, helpers, COMPANION_CARD_METADATA.icon);
     }
+    function renderOBSProductionSettings(panel: HTMLElement, card: { entity: string }, helpers: any, status: boolean): void {
+        if (status) {
+            const { field, select } = helpers.selectField("OBS status", helpers.idPrefix + "obs-status",
+                OBS_STATUS_OPTIONS, card.entity, () => {
+                    card.entity = select.value;
+                    helpers.saveField("entity", card.entity);
+                    cardUi.renderPreview();
+                });
+            panel.appendChild(field);
+            helpers.markCardPrimaryField(field, "entity");
+        }
+        const note = document.createElement("p");
+        note.className = "sp-setting-note";
+        note.textContent = status
+            ? "Displays the selected status reported by OBS Studio."
+            : "In Studio Mode, checks the named Preview scene before sending it to Program.";
+        panel.appendChild(note);
+        helpers.renderCardIconPicker(panel, card, helpers, COMPANION_CARD_METADATA.icon);
+    }
+
     let companionApplications: readonly CompanionAction[] = [];
     const companionApplicationLabels = new Map<string, string>();
 
@@ -662,6 +691,10 @@ export function registerCompanionCardTypes(
             const initialMode = companionCardMode(card);
             if ((initialMode === "obs" || initialMode === "obs_mic") && panel) {
                 renderOBSControlSettings(panel, card, helpers, initialMode === "obs_mic");
+                return;
+            }
+            if ((initialMode === "obs_take" || initialMode === "obs_status") && panel) {
+                renderOBSProductionSettings(panel, card, helpers, initialMode === "obs_status");
                 return;
             }
             const parentPage = helpers.isSub ? state.editingSubpage : null;
@@ -1532,10 +1565,16 @@ export function registerCompanionCardTypes(
                     badge: COMPANION_CARD_METADATA.preview.badge,
                 });
             }
-            if (mode === "obs" || mode === "obs_mic") {
+            if (mode === "obs" || mode === "obs_mic" || mode === "obs_take" || mode === "obs_status") {
+                const fallback = {
+                    obs: "OBS Scene",
+                    obs_mic: "OBS Mic Mute",
+                    obs_take: "Take Live",
+                    obs_status: OBS_STATUS_OPTIONS.find(([id]) => id === card.entity)?.[1] || "OBS Status",
+                };
                 return {
                     ...cardBadgePreview(card, helpers, {
-                        label: obsControlLabels.get(card.entity) || (mode === "obs_mic" ? "OBS Mic Mute" : "OBS Scene"),
+                        label: obsControlLabels.get(card.entity) || fallback[mode],
                         iconFallback: companionSubtypeDefaultIcon(mode),
                         badge: COMPANION_CARD_METADATA.preview.badge,
                     }),
@@ -1674,6 +1713,8 @@ export function registerCompanionCardTypes(
         ["companion_folder", "Finder Folder", "folder"],
         ["companion_obs", "OBS Scene", "obs"],
         ["companion_obs_mic", "OBS Mic Mute", "obs_mic"],
+        ["companion_obs_take", "OBS Take Live", "obs_take"],
+        ["companion_obs_status", "OBS Status", "obs_status"],
     ];
     companionPickerDefinitions.forEach(function (definition) {
         const key = definition[0];

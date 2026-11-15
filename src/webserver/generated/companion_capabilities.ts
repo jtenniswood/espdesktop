@@ -50,6 +50,18 @@ export const COMPANION_CARD_MODES = [
     defaultIcon: "Microphone"
   },
   {
+    id: "obs_take",
+    label: "OBS Take Live",
+    capability: "obs_scene_cards",
+    defaultIcon: "Arrow Right"
+  },
+  {
+    id: "obs_status",
+    label: "OBS Status",
+    capability: "obs_scene_cards",
+    defaultIcon: "Monitor"
+  },
+  {
     id: "stats",
     label: "Stats",
     capability: "system_metrics",

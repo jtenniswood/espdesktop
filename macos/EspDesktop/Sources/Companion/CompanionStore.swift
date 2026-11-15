@@ -191,7 +191,7 @@ final class CompanionStore: NSObject, ObservableObject {
         onboardingCompleted = stableDefaults.bool(forKey: Keys.onboardingCompleted) || !records.isEmpty
         super.init()
         displays = records.map(makeDisplay)
-        obsCatalogueObservation = obs.$state.map { OBSConnection.sceneActions($0) + OBSConnection.audioActions($0) }
+        obsCatalogueObservation = obs.$state.map(OBSConnection.controlActions)
             .removeDuplicates(by: { old, new in
                 old.elementsEqual(new) { $0.id == $1.id && $0.label == $1.label }
             })
@@ -866,13 +866,17 @@ final class CompanionStore: NSObject, ObservableObject {
     }
 
     func obsControlActions() -> [(id: String, label: String)] {
-        OBSConnection.sceneActions(obs.state) + OBSConnection.audioActions(obs.state)
+        OBSConnection.controlActions(obs.state)
     }
 
     func performResultStatus(actionIdentifier: String,
                              folderOpenBehavior: String = "new_window",
                              shortcutAppID: String? = nil) async -> String {
         guard !sessionLock.refresh() else { return "not_allowed" }
+        if actionIdentifier.hasPrefix("obs.take."),
+           let token = UUID(uuidString: String(actionIdentifier.dropFirst("obs.take.".count))) {
+            return await obs.takeLive(token: token) ? "performed" : "not_allowed"
+        }
         if actionIdentifier.hasPrefix("obs.mute."),
            let target = UUID(uuidString: String(actionIdentifier.dropFirst("obs.mute.".count))) {
             return await obs.toggleMicMute(id: target) ? "performed" : "not_allowed"

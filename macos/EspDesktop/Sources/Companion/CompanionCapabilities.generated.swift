@@ -57,6 +57,8 @@ enum CompanionCapabilities {
         "folder": "Open folder",
         "obs": "OBS Scene",
         "obs_mic": "OBS Mic Mute",
+        "obs_take": "OBS Take Live",
+        "obs_status": "OBS Status",
         "stats": "Stats",
     ]
 }

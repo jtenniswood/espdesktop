@@ -4327,6 +4327,8 @@ async function assertOBSSceneCard(browser) {
     json: connectedToOBS ? [
       { id, label: "Program · Gameplay" },
       { id: mic, label: "Muted · Desk Mic" },
+      { id: "obs.take.9ea47782-fada-4bb3-aef6-1904669efae7", label: "Take Live · Setup" },
+      { id: "obs.status.record", label: "Recording · Idle" },
     ] : [],
   }));
   const page = await context.newPage();
@@ -4354,12 +4356,25 @@ async function assertOBSSceneCard(browser) {
     await page.getByRole("button", { name: "Save", exact: true }).click();
     await waitForNativeState(fixture, () => fixture.document.buttons[4]?.startsWith(mic + ";"),
       "The OBS mic UUID saves as a Companion card");
+    await page.locator(".sp-main .sp-empty-cell").first().click();
+    await page.getByRole("button", { name: "OBS Take Live card type", exact: true }).click();
+    await page.getByRole("button", { name: "Save", exact: true }).click();
+    await waitForNativeState(fixture, () => fixture.document.buttons[5]?.startsWith("obs.take;"),
+      "The Take Live card saves without its transient preview token");
+
+    await page.locator(".sp-main .sp-empty-cell").first().click();
+    await page.getByRole("button", { name: "OBS Status card type", exact: true }).click();
+    await page.locator("select[id$='obs-status']").selectOption("obs.status.record");
+    await page.getByRole("button", { name: "Save", exact: true }).click();
+    await waitForNativeState(fixture, () => fixture.document.buttons[6]?.startsWith("obs.status.record;"),
+      "The read-only OBS recording indicator saves its selected status");
+
     connectedToOBS = false;
     await page.locator('.sp-main [data-slot="3"]').click();
     await page.getByRole("button", { name: "Edit", exact: true }).click();
     await picker.getByRole("option", { name: "Saved scene (unavailable)" }).waitFor({ state: "attached" });
     assert.equal(await picker.inputValue(), id);
-    console.log("OBS scene and mic card save and offline binding checks passed.");
+    console.log("OBS scene, microphone, Take Live and status card checks passed.");
   } finally {
     await context.close();
   }
