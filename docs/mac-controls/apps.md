@@ -98,7 +98,7 @@ In the OBS Studio card menu, choose **Studio Mode** to add **Toggle Studio Mode*
 
 A **Mute** card changes the selected input in the OBS mixer. The ON colour and microphone icon show an unmuted input. Muting the input turns the colour off and shows a crossed-out microphone. Use the mic your broadcast captures when setting up the card, especially if it differs from the Mac’s default mic. Scene and input bindings are kept when a target is unavailable.
 
-Choose **Level** to adjust a named mixer input. The tile shows the confirmed fader setting in dB. The fill turns grey while the input is muted, and you can still drag to adjust the level.
+Choose **Level** to adjust a named mixer input. The fill turns grey while the input is muted, and you can still drag to adjust the level.
 
 Choose **Cough** and select the input to mute momentarily. The tile reads **Muted** whenever that input is muted, including during a break. Release it to restore the input’s previous mute state.
 

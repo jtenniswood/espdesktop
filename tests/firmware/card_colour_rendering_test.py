@@ -426,7 +426,7 @@ int main() {
     snapshot.actions = {{fader.control_id, "Desk Mic"}};
     snapshot.values = {{fader.control_id, 75}, {fader.obs_cough_id, 100}};
     companion_render_slider(fader, snapshot);
-    assert(title.content.rfind("Desk Mic\n", 0) == 0);
+    assert(title.content == "Desk Mic");
     assert(fill.background[0] == 0x808080 && slider.slider_value == 75);
     assert(!lv_obj_has_state(&slider, LV_STATE_DISABLED));
     snapshot.values[1].value = 0;

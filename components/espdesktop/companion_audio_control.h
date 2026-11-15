@@ -38,10 +38,3 @@ inline bool companion_writable_audio_control_id(std::string_view id) {
 inline bool companion_audio_control_id(std::string_view id) {
   return companion_writable_audio_control_id(id) || companion_obs_meter_control(id);
 }
-
-// Keep this aligned with OBSConnection.faderDecibels. The scale reserves 80
-// for unity gain and 0 for digital silence.
-inline float companion_obs_fader_decibels(int value) {
-  return value <= 80 ? static_cast<float>(value - 80) * 1.25f
-                     : static_cast<float>(value - 80) * 1.3f;
-}

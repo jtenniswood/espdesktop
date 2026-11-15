@@ -1321,16 +1321,9 @@ inline void companion_render_slider(const CompanionSliderRef &ref, const Compani
       lv_obj_set_style_bg_color(ref.obs_fader_fill, color, LV_PART_MAIN);
   }
   if (ref.text_label && lv_obj_is_valid(ref.text_label)) {
-    char level[24]{};
-    if (available && value->value > 0) {
-      const double db = companion_obs_fader_decibels(value->value);
-      snprintf(level, sizeof(level), "%+.1f dB", db);
-    }
     const auto *action = companion_published_action(snapshot, ref.control_id);
     const std::string &title = action ? action->label : ref.base_label;
-    const std::string label = title + "\n" + (available
-      ? (value->value > 0 ? level : "-∞ dB")
-      : espdesktop_i18n("Unavailable"));
+    const std::string label = available ? title : title + "\n" + espdesktop_i18n("Unavailable");
     const auto normalized = normalize_display_text(label);
     if (normalized != lv_label_get_text(ref.text_label))
       lv_label_set_display_text(ref.text_label, label.c_str());
