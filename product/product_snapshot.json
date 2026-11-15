@@ -13,7 +13,7 @@
     "cardTypes": 41,
     "entityNames": 92,
     "icons": 362,
-    "structuralIcons": 41,
+    "structuralIcons": 42,
     "compatibilityFixtureGroups": 2
   },
   "deviceProfiles": {
@@ -7168,6 +7168,12 @@
         "codepoint": "F1721",
         "mdi": "broadcast-off",
         "comment": "OBS stream status"
+      },
+      {
+        "name": "Stop Circle",
+        "codepoint": "F0666",
+        "mdi": "stop-circle",
+        "comment": "OBS recording status"
       }
     ],
     "icons": [

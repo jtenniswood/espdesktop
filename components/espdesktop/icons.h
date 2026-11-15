@@ -58,6 +58,7 @@ static const IconEntry ICON_ENTRIES[] = {
     {"Battery Status 90%",           "\U000F0082"},
     {"Broadcast",                    "\U000F1720"},
     {"Broadcast Off",                "\U000F1721"},
+    {"Stop Circle",                  "\U000F0666"},
     {"Shortcut Command",             "\U000F0633"},
     {"Account",                      "\U000F0004"},
     {"Application",                  "\U000F0614"},

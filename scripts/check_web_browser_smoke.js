@@ -4543,7 +4543,7 @@ async function assertOBSSceneCard(browser) {
     const recordingStatus = page.locator('.sp-main [data-slot="6"]');
     await recordingStatus.getByText("Recording", { exact: true }).waitFor();
     await recordingStatus.getByText("Idle", { exact: true }).waitFor();
-    await recordingStatus.locator(".mdi-stop").waitFor();
+    await recordingStatus.locator(".mdi-stop-circle").waitFor();
     assert.equal(await recordingStatus.evaluate(tile => getComputedStyle(tile).backgroundColor), "rgb(33, 33, 33)");
     await page.locator(".sp-main .sp-empty-cell").first().click();
     await chooseOBSCard(page, "OBS Save Replay");

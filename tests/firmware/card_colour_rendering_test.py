@@ -309,7 +309,7 @@ int main() {
     sensor.obs_detail = &detail;
     sensor.obs_status_icon = &icon;
     companion_render_obs_detail(sensor, "Recording · Idle");
-    assert(title.content == "Recording" && detail.content == "Idle" && icon.content == "Stop");
+    assert(title.content == "Recording" && detail.content == "Idle" && icon.content == "Stop Circle");
     companion_render_obs_detail(sensor, "Recording · Active");
     assert(title.content == "Recording" && detail.content == "Active" && icon.content == "Record");
     companion_render_obs_detail(sensor, "Recording · Paused");

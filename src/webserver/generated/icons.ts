@@ -45,6 +45,7 @@ export const GENERATED_ICON_SLUGS: Readonly<Record<string, string>> = {
     "Battery Status 90%": "battery-90",
     "Broadcast": "broadcast",
     "Broadcast Off": "broadcast-off",
+    "Stop Circle": "stop-circle",
     "Shortcut Command": "apple-keyboard-command",
     "Account": "account",
     "Application": "application-outline",

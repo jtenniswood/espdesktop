@@ -244,6 +244,12 @@
       "codepoint": "F1721",
       "mdi": "broadcast-off",
       "comment": "OBS stream status"
+    },
+    {
+      "name": "Stop Circle",
+      "codepoint": "F0666",
+      "mdi": "stop-circle",
+      "comment": "OBS recording status"
     }
   ],
   "icons": [

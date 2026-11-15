@@ -1121,7 +1121,7 @@ inline const char *companion_obs_status_icon(const std::string &id, const std::s
   if (status == "Changing" || status == "Reconnecting") return "Progress Clock";
   if (id == "obs.status.stream") return status == "Live" ? "Broadcast" : "Broadcast Off";
   if (status == "Paused") return "Pause";
-  return status == "Active" ? "Record" : "Stop";
+  return status == "Active" ? "Record" : "Stop Circle";
 }
 
 inline void companion_render_obs_detail(CompanionCardRef &ref, const std::string &label, bool stopping = false) {

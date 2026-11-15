@@ -1682,7 +1682,7 @@ export function registerCompanionCardTypes(
                     : program ? "Monitor"
                     : statusValue === "Changing" || statusValue === "Reconnecting" ? "Progress Clock"
                     : stream ? (statusValue === "Live" ? "Broadcast" : "Broadcast Off")
-                    : statusValue === "Paused" ? "Pause" : statusValue === "Active" ? "Record" : "Stop";
+                    : statusValue === "Paused" ? "Pause" : statusValue === "Active" ? "Record" : "Stop Circle";
                 const alias = (mode === "obs_mic" || card.entity.startsWith("obs.target.")) && card.label;
                 const muted = mode === "obs_mic" && currentLabel?.startsWith("Muted · ");
                 const live = mode === "obs_mic" && currentLabel?.startsWith("Unmuted · ");

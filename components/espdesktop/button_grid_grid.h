@@ -342,7 +342,7 @@ inline void reset_card_slot_dynamic_children(BtnSlot &s) {
   slider_bind_text_contrast(s.text_lbl, nullptr);
   slider_bind_text_contrast(s.sensor_container, nullptr);
   lv_obj_clear_flag(s.btn, LV_OBJ_FLAG_HIDDEN);
-  lv_obj_clear_state(s.btn, LV_STATE_CHECKED | LV_STATE_USER_1);
+  lv_obj_clear_state(s.btn, static_cast<lv_state_t>(LV_STATE_CHECKED | LV_STATE_USER_1));
   sync_card_checked_text_color(s.btn);
   set_card_disabled_state(s.btn, false);
   lv_obj_set_style_opa(s.btn, LV_OPA_COVER, LV_PART_MAIN);
@@ -399,7 +399,7 @@ inline void setup_card_visual(BtnSlot &s, const ParsedCfg &p,
   apply_button_colors(s.btn, palette.has_on, palette.on_val,
     palette.has_off, palette.off_val);
   if (p.type == "companion" && companion_obs_scene_card(p.entity)) {
-    const auto program_outline = LV_PART_MAIN | LV_STATE_USER_1;
+    const auto program_outline = static_cast<lv_style_selector_t>(LV_PART_MAIN) | LV_STATE_USER_1;
     lv_obj_set_style_outline_color(s.btn, lv_color_hex(palette.on_val), program_outline);
     lv_obj_set_style_outline_width(s.btn, 3, program_outline);
     lv_obj_set_style_outline_pad(s.btn, -3, program_outline);
