@@ -2,6 +2,7 @@ import { createCompanionCatalogue, type CompanionAction } from "../api/companion
 import type { CardConfig } from "../contracts/types";
 import type { NativePanelConfigController } from "../controllers/native_panel_config_controller";
 import { emptyCardConfig, isEmptyCardConfig, OBS_FADER_PREFIX } from "../model/card";
+import { companionCardDefaultIcon } from "../model/companion_card";
 import { OBS_BRB_ID, OBS_TAKE_ID, savedOBSSceneTarget } from "../model/companion_card_codec";
 import { parseGridOrder } from "../model/grid";
 import type { NativeLayoutDraft } from "../model/native_layout_draft";
@@ -48,23 +49,23 @@ export function pinOBSStarterPage(draft: NativeLayoutDraft, current: NativePanel
         throw new Error("Choose two different scenes and a mic from the current OBS collection.");
     }
     const { slot, order } = starterSlot(current, geometry);
-    const card = (entity: string, icon: string, type = "companion", label = ""): CardConfig =>
+    const card = (entity: string, icon: string, label = "", type = "companion"): CardConfig =>
         ({ ...emptyCardConfig(), entity, icon, type, label });
     const cards = [
         card("obs.status.program", "Monitor"),
-        card(choices.main, "Monitor", "companion", "Main scene"),
-        card(choices.away, "Monitor", "companion", "Break scene"),
-        card(choices.mic, "Microphone", "companion", "Mic"),
+        card(choices.main, companionCardDefaultIcon("obs"), "Main scene"),
+        card(choices.away, companionCardDefaultIcon("obs"), "Break scene"),
+        card(choices.mic, "Microphone", "Mic"),
         card(OBS_TAKE_ID, "Arrow Right"),
         card("obs.status.stream", "Monitor"),
     ];
     const awayUuid = choices.away.slice("obs.target.".length);
     if (ids.has("obs.brb.scene." + awayUuid)) cards.push(card(OBS_BRB_ID, "Monitor"));
     const micLevel = OBS_FADER_PREFIX + choices.mic.slice("obs.mute.".length);
-    if (ids.has(micLevel)) cards.push(card(micLevel, "Microphone", "slider", "Mic level"));
+    if (ids.has(micLevel)) cards.push(card(micLevel, "Microphone", "Mic level", "slider"));
     if (ids.has("obs.replay")) cards.push(card("obs.replay", "History"));
     const visible = cards.slice(0, geometry.numSlots - 1);
-    const folder = card("", "Monitor", "subpage", "OBS Studio");
+    const folder = card("", "Monitor", "OBS Studio", "subpage");
     folder.options = "subpage_connector=mac_companion";
     draft.writeRootCard(slot, folder);
     draft.writePage(slot, { order: ["B", ...visible.map((_, index) => String(index + 1))].join(","), cards: visible });

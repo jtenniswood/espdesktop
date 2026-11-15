@@ -4470,6 +4470,7 @@ async function assertOBSSceneCard(browser) {
     await page.getByRole("button", { name: "Save", exact: true }).click();
     await waitForNativeState(fixture, () => fixture.document.buttons[3]?.startsWith(id + ";"),
       "The OBS scene UUID saves as a Companion card");
+    await page.locator('.sp-main [data-slot="3"] .mdi-image').waitFor();
 
     await page.locator(".sp-main .sp-empty-cell").first().click();
     await page.getByRole("button", { name: "Sound card type", exact: true }).click();
@@ -7759,6 +7760,8 @@ async function assertOBSStarterPage(browser) {
     const mainTile = page.locator('.sp-main [data-slot="2"]');
     const breakTile = page.locator('.sp-main [data-slot="3"]');
     const micTile = page.locator('.sp-main [data-slot="4"]');
+    await mainTile.locator('.mdi-image').waitFor();
+    await breakTile.locator('.mdi-image').waitFor();
     await micTile.locator('.mdi-microphone-off').waitFor();
     const colors = await Promise.all([mainTile, breakTile, micTile].map(tile =>
       tile.evaluate(card => getComputedStyle(card).backgroundColor)));

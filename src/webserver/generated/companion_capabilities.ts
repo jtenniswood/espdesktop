@@ -41,7 +41,7 @@ export const COMPANION_CARD_MODES = [
     id: "obs",
     label: "OBS Scene",
     capability: "obs_scene_cards",
-    defaultIcon: "Monitor"
+    defaultIcon: "Image Card Loading"
   },
   {
     id: "obs_mic",
