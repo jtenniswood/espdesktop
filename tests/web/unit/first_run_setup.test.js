@@ -126,6 +126,9 @@ test("OBS starter pins a native subpage without replacing an existing wide card"
     "obs.status.program", choices.main, choices.away, choices.mic, "obs.take", "obs.status.stream",
     "obs.brb", "obs.level." + mic,
   ]);
+  assert.deepEqual(result.layout.pages[0].cards.map(card => card.config.label), [
+    "", "Main scene", "Break scene", "Mic", "", "", "", "Mic level",
+  ]);
   assert.throws(() => pinOBSStarterPage(draft, current, controls, { ...choices, away: choices.main }, geometry),
     /Choose two different scenes/);
   assert.throws(() => pinOBSStarterPage(draft, current, controls, choices,

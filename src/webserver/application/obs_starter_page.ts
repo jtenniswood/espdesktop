@@ -52,19 +52,16 @@ export function pinOBSStarterPage(draft: NativeLayoutDraft, current: NativePanel
         ({ ...emptyCardConfig(), entity, icon, type, label });
     const cards = [
         card("obs.status.program", "Monitor"),
-        card(choices.main, "Monitor"),
-        card(choices.away, "Monitor"),
-        card(choices.mic, "Microphone"),
+        card(choices.main, "Monitor", "companion", "Main scene"),
+        card(choices.away, "Monitor", "companion", "Break scene"),
+        card(choices.mic, "Microphone", "companion", "Mic"),
         card(OBS_TAKE_ID, "Arrow Right"),
         card("obs.status.stream", "Monitor"),
     ];
     const awayUuid = choices.away.slice("obs.target.".length);
     if (ids.has("obs.brb.scene." + awayUuid)) cards.push(card(OBS_BRB_ID, "Monitor"));
     const micLevel = OBS_FADER_PREFIX + choices.mic.slice("obs.mute.".length);
-    if (ids.has(micLevel)) {
-        const micName = mics.find(mic => mic.id === choices.mic)?.label || "Mic";
-        cards.push(card(micLevel, "Microphone", "slider", "OBS · " + micName));
-    }
+    if (ids.has(micLevel)) cards.push(card(micLevel, "Microphone", "slider", "Mic level"));
     if (ids.has("obs.replay")) cards.push(card("obs.replay", "History"));
     const visible = cards.slice(0, geometry.numSlots - 1);
     const folder = card("", "Monitor", "subpage", "OBS Studio");

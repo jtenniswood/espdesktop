@@ -717,6 +717,17 @@ inline std::string companion_default_action_label_with_fallback(
   return label;
 }
 
+inline std::string companion_obs_control_label(const std::string &alias, const std::string &live_label) {
+  if (alias.empty()) return live_label;
+  for (std::string_view status : {"Program", "On air", "Preview", "Queue", "Muted", "Unmuted"}) {
+    constexpr std::string_view separator = " · ";
+    if (live_label.starts_with(status) &&
+        std::string_view(live_label).substr(status.size()).starts_with(separator))
+      return alias + " · " + std::string(status);
+  }
+  return alias;
+}
+
 inline bool companion_metric_card_should_disable(bool connected, bool preserve_navigation) {
   return !connected && !preserve_navigation;
 }
@@ -763,6 +774,7 @@ struct CompanionCardRef {
   bool last_drawn_focus = false;
   std::string required_focus_id{};
   CompanionAction rendered_obs_action{};
+  std::string obs_label_alias{};
 };
 
 struct CompanionSliderRef {
@@ -977,7 +989,8 @@ inline void companion_track_card(lv_obj_t *button, const std::string &action_id,
                                  const std::string &url_config = "",
                                  lv_obj_t *text_label = nullptr,
                                  bool dynamic_default_label = false,
-                                 bool show_focus = true) {
+                                 bool show_focus = true,
+                                 const std::string &obs_label_alias = "") {
   if (!button) return;
   auto &refs = companion_card_refs();
   auto existing = std::find_if(refs.begin(), refs.end(), [button](const CompanionCardRef &ref) {
@@ -992,6 +1005,7 @@ inline void companion_track_card(lv_obj_t *button, const std::string &action_id,
     existing->action_id = action_id;
     existing->url_config = url_config;
     existing->dynamic_default_label = dynamic_default_label;
+    existing->obs_label_alias = obs_label_alias;
     existing->show_focus = show_focus;
     if (dynamic_default_label) {
       (void) companion_default_action_label_with_fallback(
@@ -1014,6 +1028,7 @@ inline void companion_track_card(lv_obj_t *button, const std::string &action_id,
   }
   refs.push_back({button, text_label, action_id, url_config, nullptr, nullptr, "", "", 0, false,
                   false, dynamic_default_label, resolved_default_label, show_focus});
+  refs.back().obs_label_alias = obs_label_alias;
   lv_obj_add_event_cb(button, companion_card_deleted, LV_EVENT_DELETE, nullptr);
   lv_obj_add_event_cb(button, companion_card_focus_drawn, LV_EVENT_DRAW_POST_END, nullptr);
 }
@@ -1140,8 +1155,9 @@ inline void companion_refresh_cards_if_requested() {
     if (it->dynamic_default_label && it->text_label && lv_obj_is_valid(it->text_label)) {
       // A disconnected Companion temporarily has no action catalogue. Keep
       // the friendly name seen before the outage instead of showing its ID.
-      const std::string label = companion_default_action_label_with_fallback(
+      const std::string live_label = companion_default_action_label_with_fallback(
         it->action_id, it->url_config, it->resolved_default_label, &snapshot);
+      const std::string label = companion_obs_control_label(it->obs_label_alias, live_label);
       if (normalize_display_text(label) != lv_label_get_text(it->text_label))
         lv_label_set_display_text(it->text_label, label.c_str());
     }
@@ -1197,7 +1213,7 @@ inline void companion_refresh_cards_if_requested() {
 }
 #else
 inline void companion_track_card(void *, const std::string &, const std::string & = "",
-                                 void * = nullptr, bool = false, bool = true) {}
+                                 void * = nullptr, bool = false, bool = true, const std::string & = "") {}
 inline void companion_track_metric_card(void *, void *, void *, const std::string &,
                                         const std::string &, int) {}
 inline void companion_apply_card_focus(void *, const std::string &, const std::string & = "", bool = true) {}

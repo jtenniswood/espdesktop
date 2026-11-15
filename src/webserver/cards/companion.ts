@@ -499,7 +499,12 @@ export function registerCompanionCardTypes(
         return targets;
     }
 
-    function renderOBSControlSettings(panel: HTMLElement, card: { entity: string }, helpers: any, audio: boolean): void {
+    function renderOBSControlSettings(panel: HTMLElement, card: { entity: string; label: string }, helpers: any, audio: boolean): void {
+        if (audio || card.entity.startsWith("obs.target.")) {
+            helpers.renderCardTextField(panel, card, helpers, {
+                label: "Label", idSuffix: "label", field: "label", placeholder: "Use the name from OBS", rerender: true,
+            });
+        }
         const name = audio ? "OBS audio input" : "OBS scene";
         const placeholder = "Choose an " + name + "…";
         const unavailable = audio ? "Saved OBS input (unavailable)" : "Saved scene (unavailable)";
@@ -1601,9 +1606,13 @@ export function registerCompanionCardTypes(
                     obs_output: OBS_OUTPUT_OPTIONS.find(([id]) => id === card.entity)?.[1] || "OBS Output Control",
                     obs_status: OBS_STATUS_OPTIONS.find(([id]) => id === card.entity)?.[1] || "OBS Status",
                 };
+                const currentLabel = obsControlLabels.get(card.entity);
+                const alias = (mode === "obs_mic" || card.entity.startsWith("obs.target.")) && card.label;
+                const status = currentLabel?.match(/^(Program|On air|Preview|Queue|Muted|Unmuted) · /)?.[1];
+                const label = alias ? (status ? `${alias} · ${status}` : alias) : currentLabel || fallback[mode];
                 return {
                     ...cardBadgePreview(card, helpers, {
-                        label: obsControlLabels.get(card.entity) || fallback[mode],
+                        label,
                         iconFallback: companionSubtypeDefaultIcon(mode),
                         badge: COMPANION_CARD_METADATA.preview.badge,
                     }),

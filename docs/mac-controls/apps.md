@@ -108,7 +108,7 @@ Add an **OBS Status** tile and choose **Program scene**, **Streaming**, or **Rec
 
 Add **OBS Save Replay** to capture a clip. Enable and start the Replay Buffer in OBS first. The tile displays **Replay saved** after OBS confirms that it wrote a file.
 
-To get started, open **Screen → App Subpages → Add OBS starter page** in the display editor. Choose a main scene, a break scene, and a mic, then select **Pin to Home**. The **OBS Studio** folder uses one free Home slot. Open it in **Layout** to edit the individual cards. Its scene cards select Preview in Studio Mode and Program otherwise.
+To get started, open **Screen → App Subpages → Add OBS starter page** in the display editor. Choose a main scene, a break scene, and a mic, then select **Pin to Home**. The **OBS Studio** folder uses one free Home slot. Open it in **Layout** to edit the individual cards. The **Main scene** and **Break scene** cards select Preview in Studio Mode and Program otherwise. The separate status card shows the current Program scene.
 
 In the Mac Companion’s **OBS** settings, choose a **Break scene** and optionally select a **Mute during break** input. Add **OBS BRB** to the display. It verifies the mic is muted before switching Program. **Resume** returns to the previous scene and restores a mic that EspDesktop muted when it can verify those changes. If the card says **Check OBS**, check the Program scene and microphone in OBS, then clear the alert in the Mac Companion.
 

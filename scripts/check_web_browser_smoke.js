@@ -7734,6 +7734,9 @@ async function assertOBSStarterPage(browser) {
     await page.locator('.sp-main [data-slot="2"]').click({ button: "right" });
     await page.getByText("Edit Subpage", { exact: true }).click();
     await page.locator(".sp-back-btn").waitFor();
+    await page.locator('.sp-main').getByText(/^Main scene/).waitFor();
+    await page.locator('.sp-main').getByText(/^Break scene/).waitFor();
+    await page.locator('.sp-main').getByText(/^Mic(?: · Unmuted)?$/).waitFor();
     await page.locator('.sp-main [data-slot="2"]').click({ button: "right" });
     await page.getByText("Edit Card", { exact: true }).click();
     const scene = page.locator('select[id$="obs-scene"]');
