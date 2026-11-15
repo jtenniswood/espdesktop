@@ -4271,6 +4271,7 @@ async function assertAppVolumeCard(browser) {
       { id: "com.google.Chrome", label: "Chrome" },
       { id: "folder.music", label: "Music folder" },
       { id: coughID, label: "OBS Desk Mic" },
+      { id: coughID.replace("obs.cough.", "obs.mute."), label: "Muted · OBS Desk Mic" },
       { id: "input.level." + "a".repeat(64), label: "USB Microphone" },
     ],
   }));
@@ -4347,7 +4348,12 @@ async function assertAppVolumeCard(browser) {
       .includes(coughID + ";OBS Input Cough;Microphone;Auto;;;companion_obs_cough"),
     "OBS Cough saves the selected mixer input");
     const coughSlot = Object.keys(nativeState.document.buttons).find(key => nativeState.document.buttons[key].startsWith(coughID));
-    await page.locator(`.sp-main [data-slot="${coughSlot}"]`).click();
+    const coughTile = page.locator(`.sp-main [data-slot="${coughSlot}"]`);
+    await coughTile.getByText("OBS Input Cough", { exact: true }).waitFor();
+    await coughTile.locator(".mdi-microphone").waitFor();
+    assert.equal(await coughTile.evaluate(tile => tile.style.backgroundColor),
+      await card.evaluate(tile => tile.style.backgroundColor), "Cough preview stays off when the OBS input is muted");
+    await coughTile.click();
     await page.getByRole("button", { name: "Edit", exact: true }).click();
     await cough.getByRole("option", { name: "OBS Desk Mic" }).waitFor({ state: "attached" });
     assert.equal(await cough.inputValue(), coughID);

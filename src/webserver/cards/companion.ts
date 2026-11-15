@@ -1874,14 +1874,10 @@ export function registerCompanionCardTypes(
         pickerKey: cardContractPickerKey("companion_obs_cough"),
         defaultConfig: () => obsCoughDefaults,
         onSelect: (card) => Object.assign(card, obsCoughDefaults),
-        renderPreview: (card, helpers) => {
-            const muted = isOBSInputMuted(card.entity.slice(obsCoughPrefix.length));
-            const preview = cardBadgePreview(muted ? { ...card, icon: "Microphone Off" } : card, helpers, {
-                ...coughMetadata.preview,
-                label: muted ? "Muted" : card.label || obsCoughDefaults.label,
-            });
-            return { ...preview, isOn: muted };
-        },
+        renderPreview: (card, helpers) => cardBadgePreview(card, helpers, {
+            ...coughMetadata.preview,
+            label: card.label || obsCoughDefaults.label,
+        }),
         renderSettings: (panel, card, _slot, helpers) => {
             const saved = card.entity;
             const placeholder = "Choose an OBS audio input…";
