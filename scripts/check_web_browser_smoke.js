@@ -4341,7 +4341,7 @@ async function assertAppVolumeCard(browser) {
       .includes(inputID + ";USB Microphone;Microphone;Auto;;;companion_input_device"),
     "Input per device saves the chosen microphone");
     await page.locator(".sp-main .sp-empty-cell").first().click();
-    await chooseOBSCard(page, "OBS Input Cough");
+    await chooseOBSCard(page, "Input Cough");
     const cough = page.locator('select[id$="obs-cough"]');
     await cough.getByRole("option", { name: "OBS Desk Mic" }).waitFor({ state: "attached" });
     assert.equal(await cough.getByRole("option", { name: "USB Microphone" }).count(), 0);
@@ -4499,13 +4499,14 @@ async function assertOBSSceneCard(browser) {
     assert.equal(await obsCards.count(), 0, "individual OBS cards are absent from the top level");
     await obsGroup.click();
     assert.deepEqual((await obsCards.evaluateAll(cards => cards.map(card => card.getAttribute("aria-label")))).sort(),
-      ["Break", "OBS Input Cough", "OBS Input Level", "OBS Input Mute", "OBS Replay Buffer",
-        "OBS Save Replay", "OBS Scene", "Recording Control", "Streaming Control", "Studio Mode"]
+      ["Break", "Input Cough", "Input Level", "Input Mute", "Recording Control",
+        "Replay Buffer", "Save Replay", "Scene", "Streaming Control", "Studio Mode"]
         .map(label => label + " card type"));
+    assert((await obsCards.allTextContents()).every(copy => !/\bOBS\b/.test(copy)));
     assert.equal(await page.getByRole("button", { name: "Sound card type", exact: true }).count(), 0);
     await page.getByRole("button", { name: "Back to card types", exact: true }).click();
     assert.equal(await obsGroup.evaluate(group => document.activeElement === group), true);
-    await chooseOBSCard(page, "OBS Scene");
+    await chooseOBSCard(page, "Scene");
     const picker = page.locator("select[id$='obs-scene']");
     await picker.getByRole("option", { name: "Program · Gameplay" }).waitFor({ state: "attached" });
     await programTile.getByText("Gameplay", { exact: true }).waitFor();
@@ -4519,7 +4520,7 @@ async function assertOBSSceneCard(browser) {
     await page.locator('.sp-main [data-slot="3"] .mdi-image').waitFor();
 
     await page.locator(".sp-main .sp-empty-cell").first().click();
-    await chooseOBSCard(page, "OBS Input Mute");
+    await chooseOBSCard(page, "Input Mute");
     const micPicker = page.locator("select[id$='obs-mic']");
     await micPicker.getByRole("option", { name: "Muted · Desk Mic" }).waitFor({ state: "attached" });
     assert.equal(await micPicker.getByRole("option", { name: "Program · Gameplay" }).count(), 0);
@@ -4553,7 +4554,7 @@ async function assertOBSSceneCard(browser) {
     await recordingControl.locator(".mdi-stop-circle").waitFor();
     const recordingIdle = await recordingControl.evaluate(tile => getComputedStyle(tile).backgroundColor);
     await page.locator(".sp-main .sp-empty-cell").first().click();
-    await chooseOBSCard(page, "OBS Save Replay");
+    await chooseOBSCard(page, "Save Replay");
     await page.getByRole("button", { name: "Save", exact: true }).click();
     await waitForNativeState(fixture, () => fixture.document.buttons[7]?.startsWith("obs.replay;"),
       "The OBS replay card saves a stable ID");
@@ -4562,7 +4563,7 @@ async function assertOBSSceneCard(browser) {
     await replayTile.getByText("Start Replay Buffer", { exact: true }).waitFor();
 
     await page.locator(".sp-main .sp-empty-cell").first().click();
-    await chooseOBSCard(page, "OBS Input Level");
+    await chooseOBSCard(page, "Input Level");
     const faderPicker = page.locator("select[id$='obs-level']");
     await faderPicker.getByRole("option", { name: "Desk Mic", exact: true }).waitFor({ state: "attached" });
     await faderPicker.selectOption(fader);

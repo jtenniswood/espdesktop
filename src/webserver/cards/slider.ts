@@ -592,7 +592,7 @@ export function registerSliderCardTypes(
     }));
     registry.register("companion_obs_fader", {
         ...legacySlider,
-        label: "OBS Input Level",
+        label: "Input Level",
         hidden: false,
         pickerKey: null,
         onSelect: (card) => Object.assign(card, cardContractDefaultConfig("slider"), {

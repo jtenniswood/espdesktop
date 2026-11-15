@@ -1916,7 +1916,7 @@ export function registerCompanionCardTypes(
     const obsCoughPrefix = "obs.cough.";
     registry.register("companion_obs_cough", {
         ...registry.definitions.companion_cough,
-        label: obsCoughDefaults.label,
+        label: "Input Cough",
         pickerKey: cardContractPickerKey("companion_obs_cough"),
         defaultConfig: () => obsCoughDefaults,
         onSelect: (card) => Object.assign(card, obsCoughDefaults),
@@ -1963,12 +1963,12 @@ export function registerCompanionCardTypes(
         ["companion_shortcut", "Key Shortcut", "shortcut"],
         ["companion_url", "Website", "url"],
         ["companion_folder", "Finder Folder", "folder"],
-        ["companion_obs", "OBS Scene", "obs"],
-        ["companion_obs_mic", "OBS Input Mute", "obs_mic"],
+        ["companion_obs", "Scene", "obs"],
+        ["companion_obs_mic", "Input Mute", "obs_mic"],
         ["companion_obs_studio", "Studio Mode", "obs_studio"],
         ["companion_obs_brb", "Break", "obs_brb"],
-        ["companion_obs_replay_buffer", "OBS Replay Buffer", "obs_replay_buffer"],
-        ["companion_obs_replay", "OBS Save Replay", "obs_replay"],
+        ["companion_obs_replay_buffer", "Replay Buffer", "obs_replay_buffer"],
+        ["companion_obs_replay", "Save Replay", "obs_replay"],
         ["companion_obs_stream", "Streaming Control", "obs_output", "obs.output.stream"],
         ["companion_obs_record", "Recording Control", "obs_output", "obs.output.record"],
     ];
