@@ -473,12 +473,10 @@ export function registerCompanionCardTypes(
     const catalogue = createCompanionCatalogue(fetchImpl);
     const loadCompanionActions = catalogue.load;
     const obsControlLabels = new Map<string, string>();
-    let selectedOBSScene = "";
 
     function rememberOBSControls(actions: readonly CompanionAction[]): readonly CompanionAction[] {
         const targets = actions.filter(action => /^obs\.(scene|preview|mute)\.[a-f0-9-]{36}$/.test(action.id));
         obsControlLabels.clear();
-        selectedOBSScene = actions.find(action => /^obs\.selected\.[a-f0-9-]{36}$/.test(action.id))?.id.slice(13) || "";
         for (const target of targets) obsControlLabels.set(target.id, target.label);
         for (const action of actions) {
             const scene = savedOBSSceneTarget(action.id);
@@ -489,6 +487,8 @@ export function registerCompanionCardTypes(
             }
             if (/^obs\.take\.[a-f0-9-]{36}$/.test(action.id)) {
                 obsControlLabels.set(OBS_TAKE_ID, action.label);
+            } else if (action.id.startsWith("obs.selected.")) {
+                obsControlLabels.set("obs.selected", action.id.slice(12));
             } else if (action.id === OBS_BRB_ID || action.id.startsWith(OBS_BRB_ID + ".")) {
                 obsControlLabels.set(OBS_BRB_ID, action.label);
             } else if (action.id.startsWith("obs.output.")) {
@@ -504,7 +504,7 @@ export function registerCompanionCardTypes(
     function renderOBSControlSettings(panel: HTMLElement, card: { entity: string; label: string }, helpers: any, audio: boolean): void {
         if (audio || card.entity.startsWith("obs.target.")) {
             helpers.renderCardTextField(panel, card, helpers, {
-                label: "Label", idSuffix: "label", field: "label", placeholder: "Use the name from OBS", rerender: true,
+                label: "Label", idSuffix: "label", field: "label", rerender: true,
             });
         }
         const name = audio ? "OBS audio input" : "OBS scene";
@@ -582,12 +582,12 @@ export function registerCompanionCardTypes(
     const companionCatalogueMonitor = createCompanionCatalogueMonitor(
         () => loadCompanionActions(true),
         function (actions) {
-            const previousOBS = JSON.stringify([selectedOBSScene, ...obsControlLabels]);
+            const previousOBS = JSON.stringify([...obsControlLabels]);
             rememberOBSControls(actions);
             const folders = actions.filter(action => action.id.startsWith(COMPANION_FOLDER_PREFIX));
             const foldersChanged = publishFinderFolders(folders);
             if (rememberCompanionApplications(actions) || foldersChanged ||
-                previousOBS !== JSON.stringify([selectedOBSScene, ...obsControlLabels])) cardUi.renderPreview();
+                previousOBS !== JSON.stringify([...obsControlLabels])) cardUi.renderPreview();
         },
     );
 
@@ -627,7 +627,6 @@ export function registerCompanionCardTypes(
                 companionCatalogueMonitor.stop();
                 const hadOBSControls = obsControlLabels.size > 0;
                 obsControlLabels.clear();
-                selectedOBSScene = "";
                 if (publishFinderFolders([]) || hadOBSControls) cardUi.renderPreview();
             }
             document.dispatchEvent(new CustomEvent("espdesktop:app-icon-cache-cleared", { detail: {
@@ -1615,15 +1614,13 @@ export function registerCompanionCardTypes(
                 const muted = mode === "obs_mic" && currentLabel?.startsWith("Muted · ");
                 const label = mode === "obs_mic" ? alias || currentLabel?.replace(/^(Muted|Unmuted) · /, "") || fallback[mode]
                     : alias ? (status ? `${alias} · ${status}` : alias) : currentLabel || fallback[mode];
-                const icon = muted ? "Microphone Off"
-                    : mode === "obs_mic" && card.icon === "Microphone Off" ? "Microphone" : card.icon;
                 return {
-                    ...cardBadgePreview({ ...card, icon }, helpers, {
+                    ...cardBadgePreview(muted ? { ...card, icon: "Microphone Off" } : card, helpers, {
                         label,
                         iconFallback: companionSubtypeDefaultIcon(mode),
                         badge: COMPANION_CARD_METADATA.preview.badge,
                     }),
-                    isOn: muted || (mode === "obs" && !!currentLabel && !!selectedOBSScene && card.entity.endsWith("." + selectedOBSScene)),
+                    isOn: muted || (mode === "obs" && !!currentLabel && card.entity.slice(-37) === obsControlLabels.get("obs.selected")),
                     labelEditable: false,
                 };
             }

@@ -536,15 +536,14 @@ export function createPreviewRenderFeature(dependencies: PreviewRenderDependenci
                     (typePreview && typePreview.buttonClass ? " " + typePreview.buttonClass : "") +
                     sizeClass(slotSz) +
                     (c.selected.indexOf(slot) !== -1 ? " sp-selected" : "");
-                const previewOn = typePreview?.isOn === true;
-                btn.style.backgroundColor = "#" + (previewOn ? cardOnColor : cardOffColor || color);
+                let contrastBackground = (typePreview?.isOn ? cardOnColor : cardOffColor) || color;
+                btn.style.backgroundColor = "#" + contrastBackground;
                 btn.style.setProperty("--card-active-color", "#" + (cardOnColor || state.onColor || WEB_UI_COLORS.primary));
                 var activeMode: any = configOptionValue(b.options, "card_active_color");
                 var customActive: any = configOptionValue(b.options, "card_on_color").replace(/^#/, "");
                 var explicitActive: any = activeMode === "theme" || (activeMode === "custom" && /^[0-9A-F]{6}$/i.test(customActive));
                 var sliderFillColor: any = cardSliderFillColor(cardOffColor, explicitActive ? cardOnColor : "") || cardOnColor;
                 if (sliderFillColor) btn.style.setProperty("--card-slider-fill-color", "#" + sliderFillColor);
-                var contrastBackground: any = previewOn ? cardOnColor : cardOffColor || color;
                 btn.draggable = !isPreviewReadOnly();
                 btn.setAttribute("data-pos", pos);
                 btn.setAttribute("data-slot", slot);
@@ -557,7 +556,7 @@ export function createPreviewRenderFeature(dependencies: PreviewRenderDependenci
                             " 12px,#" + cardPatternHighlightColor(onColor) + " 12px,#" + cardPatternHighlightColor(onColor) + " 20px)";
                 }
                 if (!btn.classList.contains("sp-image-card")) {
-                    btn.style.setProperty("--card-text-color", previewOn || cardOffColor || contrastBackground !== color
+                    btn.style.setProperty("--card-text-color", cardOffColor || contrastBackground !== color
                         ? cardPreviewTextColor(contrastBackground) : "#" + previewColors.textPrimary);
                 }
                 var badgeIcon: any = b.sensor ? "gauge" : "swap-horizontal";

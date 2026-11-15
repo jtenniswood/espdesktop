@@ -188,17 +188,20 @@ final class OBSConnection: ObservableObject {
         if state.replayBufferActive {
             actions.append((id: "obs.replay", label: state.replaySave.label))
         }
-        if let selected = state.studioMode ? state.preview : state.program,
-           let sceneID = UUID(uuidString: selected.id) {
-            actions.append((id: "obs.selected." + sceneID.uuidString.lowercased(), label: "Selected OBS scene"))
-        }
         return actions
     }
 
     static func controlActions(_ state: State?) -> [(id: String, label: String)] {
         productionActions(state) + sceneActions(state) + audioActions(state) + faderActions(state) + meterActions(state) + coughActions(state) + outputActions(state) + adaptiveSceneActions(state) +
+            selectedSceneActions(state) +
             (state?.breakCard.map { [($0.actionID, $0.label)] } ?? []) +
             (state?.breakSceneID.map { [("obs.brb.scene." + $0, "Configured BRB scene")] } ?? [])
+    }
+
+    private static func selectedSceneActions(_ state: State?) -> [(id: String, label: String)] {
+        guard let state, let selected = state.studioMode ? state.preview : state.program,
+              let sceneID = UUID(uuidString: selected.id) else { return [] }
+        return [(id: "obs.selected." + sceneID.uuidString.lowercased(), label: "Selected OBS scene")]
     }
 
     static func outputActions(_ state: State?) -> [(id: String, label: String)] {

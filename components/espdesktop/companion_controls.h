@@ -727,15 +727,15 @@ inline std::string companion_obs_control_label(const std::string &action_id, con
   if (companion_obs_audio_uuid(action_id, "obs.mute.")) {
     if (!alias.empty()) return alias;
     for (std::string_view prefix : {"Muted · ", "Unmuted · "}) {
-      if (live_label.starts_with(prefix)) return live_label.substr(prefix.size());
+      if (live_label.compare(0, prefix.size(), prefix) == 0) return live_label.substr(prefix.size());
     }
     return live_label;
   }
   if (alias.empty()) return live_label;
   for (std::string_view status : {"Program", "On air", "Preview", "Queue"}) {
     constexpr std::string_view separator = " · ";
-    if (live_label.starts_with(status) &&
-        std::string_view(live_label).substr(status.size()).starts_with(separator))
+    if (live_label.compare(0, status.size(), status) == 0 &&
+        live_label.compare(status.size(), separator.size(), separator) == 0)
       return alias + " · " + std::string(status);
   }
   return alias;
@@ -954,7 +954,7 @@ inline void companion_render_obs_mute(const CompanionCardRef &ref, const Compani
   if (!ref.obs_mute_icon_label) return;
   const auto *action = companion_published_action(snapshot, ref.action_id);
   companion_render_mute({ref.button, ref.action_id, ref.obs_mute_icon_label, ref.obs_mute_icon_off,
-                         ref.obs_mute_icon_on}, action && action->label.starts_with("Muted · "));
+                         ref.obs_mute_icon_on}, action && action->label.rfind("Muted · ", 0) == 0);
 }
 
 inline void companion_apply_mute_state(const CompanionMuteRef &ref,
