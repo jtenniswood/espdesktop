@@ -88,7 +88,7 @@ export function registerSliderCardTypes(
         const saved = isOBSFaderControlID(card.entity) ? card.entity : "";
         const names = new Map<string, string>();
         const legacyLabel = card.label?.replace(/^OBS · /, "") || "Saved OBS input";
-        const placeholder = "Choose an audio input…";
+        const placeholder = "Select";
         const { field, select } = helpers.selectField("Source", helpers.idPrefix + "obs-level",
             [["", placeholder], ...(saved ? [[saved, legacyLabel]] : [])], saved, () => {
                 const name = names.get(select.value);

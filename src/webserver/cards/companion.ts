@@ -528,7 +528,7 @@ export function registerCompanionCardTypes(
         }
         const name = audio ? "Source" : "OBS scene";
         const target = audio ? "audio input" : name;
-        const placeholder = "Choose an " + target + "…";
+        const placeholder = "Select";
         const unavailable = audio ? "Saved OBS input (unavailable)" : "Saved scene (unavailable)";
         const isNew = card.entity === (audio ? "obs.mute." : COMPANION_OBS_PREFIX);
         const saved = card.entity;
@@ -1081,7 +1081,7 @@ export function registerCompanionCardTypes(
             keySelect.id = helpers.idPrefix + "shortcut-key";
             const keyPlaceholder = document.createElement("option");
             keyPlaceholder.value = "";
-            keyPlaceholder.textContent = "Choose a key…";
+            keyPlaceholder.textContent = "Select";
             keySelect.appendChild(keyPlaceholder);
             const keyGroups: [string, readonly string[]][] = [
                 ["Letters", Array.from("abcdefghijklmnopqrstuvwxyz")],
@@ -1135,7 +1135,7 @@ export function registerCompanionCardTypes(
             const catalogApp = document.createElement("select");
             catalogApp.className = "sp-select";
             catalogApp.id = helpers.idPrefix + "shortcut-catalog-app";
-            for (const [value, label] of [["", "Choose an app…"], ...catalogueApps.map((app) => [app.appId, app.label] as const)] as const) {
+            for (const [value, label] of [["", "Select"], ...catalogueApps.map((app) => [app.appId, app.label] as const)] as const) {
                 const option = document.createElement("option");
                 option.value = value;
                 option.textContent = label;
@@ -1514,7 +1514,7 @@ export function registerCompanionCardTypes(
                 select.replaceChildren();
                 const placeholder = document.createElement("option");
                 placeholder.value = "";
-                placeholder.textContent = applicationActions.length ? "Choose a Mac app…" : "No Mac apps are available";
+                placeholder.textContent = applicationActions.length ? "Select" : "No Mac apps are available";
                 select.appendChild(placeholder);
                 applicationActions.forEach(function (action) {
                     const option = document.createElement("option");
@@ -1537,7 +1537,7 @@ export function registerCompanionCardTypes(
                 const folderPlaceholder = document.createElement("option");
                 folderPlaceholder.value = "";
                 folderPlaceholder.textContent = folderActions.length
-                    ? "Choose a folder…" : "Add a folder in the Companion app";
+                    ? "Select" : "Add a folder in the Companion app";
                 folderPlaceholder.disabled = true;
                 folderPlaceholder.hidden = true;
                 folderPlaceholder.selected = !folderActions.some(function (action) { return action.id === card.entity; });
@@ -1936,7 +1936,7 @@ export function registerCompanionCardTypes(
         }),
         renderSettings: (panel, card, _slot, helpers) => {
             const saved = card.entity;
-            const placeholder = "Choose an audio input…";
+            const placeholder = "Select";
             const choices: [string, string][] = [["", placeholder]];
             if (saved) choices.push([saved, "Saved OBS input"]);
             const { field, select } = helpers.selectField("Source", helpers.idPrefix + "obs-cough",

@@ -29,7 +29,7 @@ export function targetedAudioCard(
         renderSettingsBeforeLabel: (panel, card, _slot, helpers) => {
             const savedEntity = card.entity;
             const apps = new Map<string, string>();
-            const placeholder = ["", inputDevice ? "Choose an input device…" : "Choose an app…"];
+            const placeholder = ["", "Select"];
             const savedLabel = card.label || savedEntity.slice(prefix.length);
             const savedOption = savedEntity ? [[savedEntity, savedLabel]] : [];
             const { field, select } = helpers.selectField(

@@ -4297,7 +4297,7 @@ async function assertAppVolumeCard(browser) {
     await subtype.selectOption("companion_app_volume");
     const application = page.getByLabel("Application", { exact: true });
     await application.locator('option[value="app.volume.com.spotify.client"]').waitFor({ state: "attached" });
-    assert.deepEqual(await application.locator("option").allTextContents(), ["Choose an app…", "Chrome", "Spotify"]);
+    assert.deepEqual(await application.locator("option").allTextContents(), ["Select", "Chrome", "Spotify"]);
     await application.selectOption("app.volume.com.spotify.client");
     await page.getByRole("button", { name: "Save", exact: true }).click();
     await waitForNativeState(nativeState, () =>
@@ -4547,7 +4547,7 @@ async function assertOBSSceneCard(browser) {
     await obsAudioType.selectOption({ label: "Mute" });
     const micPicker = page.locator("select[id$='obs-mic']");
     await micPicker.getByRole("option", { name: "Desk Mic", exact: true }).waitFor({ state: "attached" });
-    assert.deepEqual(await micPicker.locator("option").allTextContents(), ["Choose an audio input…", "Desk Mic", "Master"]);
+    assert.deepEqual(await micPicker.locator("option").allTextContents(), ["Select", "Desk Mic", "Master"]);
     await micPicker.selectOption(mic);
     await page.getByRole("button", { name: "Save", exact: true }).click();
     await waitForNativeState(fixture, () => fixture.document.buttons[4]?.startsWith(mic + ";"),
@@ -4748,7 +4748,7 @@ async function assertShortcutCatalogSettings(browser, testCase) {
     assert.strictEqual(await action.isVisible(), false, "choose an app first");
     assert.strictEqual(await search.isVisible(), false, "search appears after choosing an app");
     const appLabels = await app.locator("option").allTextContents();
-    assert.strictEqual(appLabels[0], "Choose an app…");
+    assert.strictEqual(appLabels[0], "Select");
     assert.deepStrictEqual(appLabels.filter(label => label.startsWith("ChatGPT")), ["ChatGPT"]);
     assert(appLabels.includes("Safari") && appLabels.includes("Slack") && appLabels.includes("Figma"),
       "the Application tab includes bundled presets for Safari and other apps");
