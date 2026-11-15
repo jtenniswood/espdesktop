@@ -4364,16 +4364,18 @@ async function assertAppVolumeCard(browser) {
     await page.locator(".sp-main .sp-empty-cell").first().click();
     await chooseOBSCard(page, "OBS Output Control");
     const output = page.locator('select[id$="obs-output"]');
-    await output.selectOption("obs.output.record");
+    await output.selectOption("obs.output.stream");
+    await page.getByRole("button", { name: "Card Settings", exact: true }).click();
+    await page.getByRole("button", { name: "Stop", exact: true }).click();
     await page.getByRole("button", { name: "Save", exact: true }).click();
     await waitForNativeState(nativeState, () => Object.values(nativeState.document.buttons)
-      .some(card => card.startsWith("obs.output.record;") && card.endsWith(";companion")),
-    "OBS Output Control saves its stable recording target");
+      .some(card => card.startsWith("obs.output.stream;") && card.includes("obs_confirm=off")),
+    "The streaming Stop option saves the existing stop-only setting");
     const outputSlot = Object.keys(nativeState.document.buttons).find(key =>
-      nativeState.document.buttons[key].startsWith("obs.output.record;"));
+      nativeState.document.buttons[key].startsWith("obs.output.stream;"));
     await page.locator(`.sp-main [data-slot="${outputSlot}"]`).click();
     await page.getByRole("button", { name: "Edit", exact: true }).click();
-    assert.equal(await output.inputValue(), "obs.output.record");
+    assert.equal(await output.inputValue(), "obs.output.stream");
     await page.keyboard.press("Escape");
     await page.locator(".sp-main .sp-empty-cell").first().click();
     await chooseOBSCard(page, "OBS BRB");
@@ -7792,7 +7794,8 @@ async function assertOBSStarterPage(browser) {
     await page.getByRole("button", { name: "Card Settings", exact: true }).click();
     const confirmation = page.locator("input[id$='obs-confirm-toggle']");
     assert(await confirmation.isChecked(), "existing and new OBS cards confirm both directions by default");
-    await page.getByRole("button", { name: "On", exact: true }).click();
+    assert.equal(await page.getByText("Off means stopping the output. On means starting it.", { exact: true }).count(), 0);
+    await page.getByRole("button", { name: "Start", exact: true }).click();
     await page.getByLabel("Message", { exact: true }).fill("Record a local clip?");
     await page.getByLabel("Confirm Button", { exact: true }).fill("Record");
     await page.getByLabel("Cancel Button", { exact: true }).fill("Back");

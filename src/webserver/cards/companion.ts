@@ -571,7 +571,7 @@ export function registerCompanionCardTypes(
             },
         });
         helpers.renderCardSegmentControl(section, card, helpers, {
-            label: "When", options: [["off", "Off"], ["on", "On"], ["both", "Both"]], value: when,
+            label: "When", options: [["on", "Start"], ["off", "Stop"], ["both", "Both"]], value: when,
             onSelect: (_: unknown, __: unknown, mode: string) => { when = mode; save("obs_confirm", mode); },
         });
         for (const [key, label, placeholder, limit] of [
@@ -608,18 +608,20 @@ export function registerCompanionCardTypes(
             panel.appendChild(field);
             helpers.markCardPrimaryField(field, "entity");
         }
-        if (mode === "obs_output") renderOBSOutputConfirmation(panel, card, helpers);
-        const note = document.createElement("p");
-        note.className = "sp-setting-note";
-        const descriptions = {
-            obs_brb: "Choose your break scene and optional mic in the Mac Companion’s OBS settings.",
-            obs_status: "Displays the selected status reported by OBS Studio.",
-            obs_studio: "Toggle Studio Mode, show Program, or send Preview to Program.",
-            obs_output: "Off means stopping the output. On means starting it.",
-            obs_replay: "Saves a clip while the OBS Replay Buffer is running.",
-        };
-        note.textContent = descriptions[studio ? "obs_studio" : mode];
-        panel.appendChild(note);
+        if (mode === "obs_output") {
+            renderOBSOutputConfirmation(panel, card, helpers);
+        } else {
+            const note = document.createElement("p");
+            note.className = "sp-setting-note";
+            const descriptions = {
+                obs_brb: "Choose your break scene and optional mic in the Mac Companion’s OBS settings.",
+                obs_status: "Displays the selected status reported by OBS Studio.",
+                obs_studio: "Toggle Studio Mode, show Program, or send Preview to Program.",
+                obs_replay: "Saves a clip while the OBS Replay Buffer is running.",
+            };
+            note.textContent = descriptions[studio ? "obs_studio" : mode];
+            panel.appendChild(note);
+        }
         const iconPicker = helpers.renderCardIconPicker(panel, card, helpers, COMPANION_CARD_METADATA.icon);
     }
 
