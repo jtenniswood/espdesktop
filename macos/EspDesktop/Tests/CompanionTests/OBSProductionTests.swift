@@ -639,6 +639,9 @@ final class OBSProductionTests: XCTestCase {
         let studioToken = try XCTUnwrap(connection.state?.adaptiveSceneToken)
         let preview = await connection.performAdaptiveScene(scene, token: studioToken) { true }
         XCTAssertTrue(preview)
+        let studioActions = OBSConnection.controlActions(connection.state).map(\.id)
+        XCTAssertTrue(studioActions.contains("obs.selected." + OBSPilotTransport.queued))
+        XCTAssertTrue(studioActions.contains("obs.program." + OBSPilotTransport.program))
         XCTAssertEqual(transport.requests.filter { $0 == "SetCurrentPreviewScene" }.count, 1)
         XCTAssertFalse(transport.requests.contains("SetCurrentProgramScene"))
 
@@ -652,6 +655,9 @@ final class OBSProductionTests: XCTestCase {
         }
         let programToken = try XCTUnwrap(connection.state?.adaptiveSceneToken)
         XCTAssertNotEqual(studioToken, programToken)
+        let normalActions = OBSConnection.controlActions(connection.state).map(\.id)
+        XCTAssertTrue(normalActions.contains("obs.selected." + OBSPilotTransport.program))
+        XCTAssertFalse(normalActions.contains { $0.hasPrefix("obs.program.") })
         let program = await connection.performAdaptiveScene(scene, token: programToken) { true }
         XCTAssertTrue(program)
         XCTAssertEqual(transport.programID, OBSPilotTransport.queued)

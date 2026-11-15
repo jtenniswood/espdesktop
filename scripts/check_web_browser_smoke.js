@@ -7771,10 +7771,12 @@ async function assertOBSStarterPage(browser) {
   let muted = true;
   let streaming = false;
   let onBreak = false;
+  let studioProgram = "";
   await context.route("**/companion/actions", route => route.fulfill({ json: [
     { id: `obs.target.${main}.${token}`, label: "Gameplay" },
     { id: `obs.target.${away}.${token}`, label: "Break Room" },
-    { id: `obs.selected.${main}`, label: "Selected OBS scene" },
+    { id: `obs.selected.${studioProgram ? away : main}`, label: "Selected OBS scene" },
+    ...(studioProgram ? [{ id: `obs.program.${studioProgram}`, label: "OBS Program scene" }] : []),
     { id: `obs.mute.${mic}`, label: (muted ? "Muted" : "Unmuted") + " · Desk Mic" },
     { id: "obs.take", label: "Take Live · Enable Studio Mode" },
     { id: "obs.status.stream", label: streaming ? "Stream · Live" : "Stream · Idle" },
@@ -7847,6 +7849,7 @@ async function assertOBSStarterPage(browser) {
     const colors = await Promise.all([mainTile, breakTile, micTile].map(tile =>
       tile.evaluate(card => getComputedStyle(card).backgroundColor)));
     assert.notEqual(colors[0], colors[1], "selected scene uses ON colour");
+    assert.equal(await mainTile.evaluate(card => card.classList.contains("sp-obs-program")), false);
     assert.equal(colors[2], colors[1], "muted mic uses the default colour");
     assert.equal(await mainTile.locator('.sp-btn-label').innerText(), "Main scene");
     assert.equal(await breakTile.locator('.sp-btn-label').innerText(), "Break scene");
@@ -7873,11 +7876,17 @@ async function assertOBSStarterPage(browser) {
     recording = true;
     streaming = true;
     onBreak = true;
+    studioProgram = main;
     await mainTile.click({ button: "right" });
     await page.getByText("Edit Card", { exact: true }).click();
     await micTile.locator('.mdi-microphone').waitFor();
     await streamTile.locator(".mdi-broadcast").waitFor();
     await brbTile.getByText("Resume", { exact: true }).waitFor();
+    const programOutline = page.locator('.sp-main [data-slot="2"].sp-obs-program > .sp-card-outline');
+    await programOutline.waitFor();
+    assert.equal(await programOutline.evaluate(outline => getComputedStyle(outline).stroke), colors[0]);
+    assert.equal(await mainTile.evaluate(card => getComputedStyle(card).backgroundColor), colors[1]);
+    assert.equal(await breakTile.evaluate(card => getComputedStyle(card).backgroundColor), colors[0]);
     assert.equal(await brbTile.locator('.sp-btn-label').innerText(), "Break");
     assert.equal(await brbTile.evaluate(card => getComputedStyle(card).backgroundColor), colors[0]);
     assert.equal(await streamTile.locator(".sp-obs-detail").innerText(), "Live");
@@ -7887,11 +7896,15 @@ async function assertOBSStarterPage(browser) {
     await recordTile.getByText("Recording", { exact: true }).waitFor({ timeout: 12000 });
     assert.notEqual(await recordTile.evaluate(tile => getComputedStyle(tile).backgroundColor), idleColor);
     stopping = true;
+    studioProgram = away;
     await page.locator('.sp-main [data-slot="2"]').click({ button: "right" });
     await page.getByText("Edit Subpage", { exact: true }).click();
     await mainTile.click({ button: "right" });
     await page.getByText("Edit Card", { exact: true }).click();
     await scene.locator(`option[value="obs.target.${main}"]`).waitFor({ state: "attached" });
+    await page.locator('.sp-main [data-slot="3"].sp-obs-program > .sp-card-outline').waitFor();
+    assert.equal(await mainTile.evaluate(card => card.classList.contains("sp-obs-program")), false);
+    assert.equal(await breakTile.evaluate(card => getComputedStyle(card).backgroundColor), colors[1]);
     await closeSettings.click();
     await page.locator(".sp-back-btn .sp-back-hit").click();
     await recordTile.getByText("Recording", { exact: true }).waitFor();

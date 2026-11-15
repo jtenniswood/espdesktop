@@ -240,9 +240,16 @@ final class OBSConnection: ObservableObject {
     }
 
     private static func selectedSceneActions(_ state: State?) -> [(id: String, label: String)] {
-        guard let state, let selected = state.studioMode ? state.preview : state.program,
-              let sceneID = UUID(uuidString: selected.id) else { return [] }
-        return [(id: "obs.selected." + sceneID.uuidString.lowercased(), label: "Selected OBS scene")]
+        guard let state else { return [] }
+        var actions: [(id: String, label: String)] = []
+        if let selected = state.studioMode ? state.preview : state.program,
+           let sceneID = UUID(uuidString: selected.id) {
+            actions.append(("obs.selected." + sceneID.uuidString.lowercased(), "Selected OBS scene"))
+        }
+        if state.studioMode, let program = state.program, let sceneID = UUID(uuidString: program.id) {
+            actions.append(("obs.program." + sceneID.uuidString.lowercased(), "OBS Program scene"))
+        }
+        return actions
     }
 
     static func outputActions(_ state: State?) -> [(id: String, label: String)] {

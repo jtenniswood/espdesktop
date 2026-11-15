@@ -831,6 +831,7 @@ inline void companion_apply_card_focus(lv_obj_t *button, const std::string &acti
   // A URL card targets a page inside the app, but Companion only reports the
   // frontmost app. Keep URL cards from appearing active for the wrong page.
   bool active = false;
+  bool on_program = false;
   if (show_focus && companion_card_focus_allowed(url_config)) {
     const std::string focus_id = url_config.empty() ? action_id : companion_url_card_focus_id(url_config);
     if (companion_obs_scene_card(action_id) || action_id == "obs.output.record" || action_id == "obs.studio" ||
@@ -846,13 +847,19 @@ inline void companion_apply_card_focus(lv_obj_t *button, const std::string &acti
         const auto *action = companion_published_action(current, action_id);
         active = action && companion_obs_break_active(action->label);
       } else {
-        const std::string selection = "obs.selected." + action_id.substr(action_id.rfind('.') + 1);
-        active = companion_action_available(current, action_id) && companion_published_action(current, selection);
+        const std::string scene_id = action_id.substr(action_id.rfind('.') + 1);
+        on_program = companion_published_action(current, "obs.program." + scene_id) != nullptr;
+        active = !on_program && companion_action_available(current, action_id) &&
+          companion_published_action(current, "obs.selected." + scene_id);
       }
     } else {
       active = snapshot ? companion_action_focused(*snapshot, focus_id, true)
                         : companion_action_active(focus_id, true);
     }
+  }
+  if (lv_obj_has_state(button, LV_STATE_USER_1) != on_program) {
+    if (on_program) lv_obj_add_state(button, LV_STATE_USER_1);
+    else lv_obj_clear_state(button, LV_STATE_USER_1);
   }
   // Focus is a background visual update, never a prerequisite for a touch
   // action. Avoid resyncing descendants/redrawing cards on unchanged snapshots.

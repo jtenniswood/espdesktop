@@ -495,7 +495,9 @@ export function registerCompanionCardTypes(
             } else if (action.id === OBS_TRANSITION_ID || action.id.startsWith(OBS_TRANSITION_ID + ".")) {
                 obsControlLabels.set(OBS_TRANSITION_ID, action.label);
             } else if (action.id.startsWith("obs.selected.")) {
-                obsControlLabels.set("obs.selected", action.id.slice(12));
+                obsControlLabels.set("obs.selected", action.id.slice("obs.selected.".length));
+            } else if (action.id.startsWith("obs.program.")) {
+                obsControlLabels.set("obs.program", action.id.slice("obs.program.".length));
             } else if (/^obs\.brb(?:\.[a-f0-9-]{36})?$/.test(action.id)) {
                 const label = action.label;
                 obsControlLabels.set(OBS_BRB_ID, label.startsWith("Resum") ? "Resume"
@@ -1668,6 +1670,8 @@ export function registerCompanionCardTypes(
                 const record = card.entity === "obs.output.record";
                 const recording = record && obsControlLabels.has("obs.record.active");
                 const scene = mode === "obs";
+                const sceneId = card.entity.slice(-36);
+                const onProgram = scene && sceneId === obsControlLabels.get("obs.program");
                 const sensor = mode === "obs_status";
                 const studio = mode === "obs_studio";
                 const brb = mode === "obs_brb";
@@ -1701,9 +1705,10 @@ export function registerCompanionCardTypes(
                 }
                 return {
                     ...preview,
+                    buttonClass: onProgram ? "sp-obs-program" : undefined,
                     sensorSurface: sensor,
                     isOn: live || recording || (studio && currentLabel === "On") || (brb && currentLabel === "Resume") ||
-                        (scene && !!currentLabel && card.entity.slice(-37) === obsControlLabels.get("obs.selected")),
+                        (scene && !onProgram && !!currentLabel && sceneId === obsControlLabels.get("obs.selected")),
                     labelEditable: false,
                 };
             }
