@@ -40,6 +40,57 @@ final class TokenUsageTests: XCTestCase {
         ])
     }
 
+    func testCursorChoosesSharedWeeklyAllowanceOverOldMonthlyUsage() throws {
+        let now = try XCTUnwrap(ISO8601DateFormatter().date(from: "2026-08-10T00:00:00Z"))
+        let monthly = Data(#"{"billingCycleEnd":"2026-09-01T00:00:00Z","individualUsage":{"plan":{"totalPercentUsed":0.36,"used":73,"limit":100}}}"#.utf8)
+        let weekly = Data(#"{"isUnified":true,"usagePercent":59,"nextResetTimestampUtc":"2026-08-13T00:00:00.000Z"}"#.utf8)
+        let reading = try XCTUnwrap(TokenUsage.parseCursor(monthly: monthly, weekly: weekly, observedAt: now))
+        XCTAssertEqual(reading.remainingPercent, 41)
+        XCTAssertEqual(reading.resetsAt, UInt32(now.timeIntervalSince1970) + 3 * 86400)
+
+        let separate = Data(#"{"isUnified":false,"usagePercent":99,"nextResetTimestampUtc":"2026-08-13T00:00:00Z"}"#.utf8)
+        let monthlyReading = TokenUsage.parseCursor(monthly: monthly, weekly: separate, observedAt: now)
+        XCTAssertEqual(monthlyReading?.remainingPercent, 100, "0.36 is a percentage, not a fraction")
+        let missingWeekly = Data(#"{"isUnified":true,"usagePercent":59}"#.utf8)
+        XCTAssertNil(TokenUsage.parseCursor(monthly: monthly, weekly: missingWeekly, observedAt: now))
+    }
+
+    func testCursorDoesNotInventAnAllowanceFromSpendOrExpiredData() throws {
+        let now = try XCTUnwrap(ISO8601DateFormatter().date(from: "2026-08-10T00:00:00Z"))
+        func summary(reset: String, plan: String) -> Data {
+            Data("""
+            {"billingCycleEnd":"\(reset)","individualUsage":{"plan":\(plan),"onDemand":{"used":1800}}}
+            """.utf8)
+        }
+        let reset = "2026-09-01T00:00:00Z"
+        XCTAssertEqual(TokenUsage.parseCursor(monthly: summary(reset: reset, plan: #"{"used":350,"limit":1000}"#),
+                                               weekly: nil, observedAt: now)?.remainingPercent, 65)
+        XCTAssertNil(TokenUsage.parseCursor(monthly: summary(reset: reset, plan: #"{"used":350,"limit":0}"#),
+                                            weekly: nil, observedAt: now))
+        XCTAssertNil(TokenUsage.parseCursor(monthly: summary(reset: "2026-08-01T00:00:00Z", plan: #"{"totalPercentUsed":30}"#),
+                                            weekly: nil, observedAt: now))
+    }
+
+    func testCursorCookieUsesTheCliAccountAndRejectsAnExpiredOrMalformedLogin() throws {
+        let now = Date(timeIntervalSince1970: 1_800_000_000)
+        func token(subject: String, expiration: Int) throws -> String {
+            let identity = try JSONSerialization.data(withJSONObject: ["sub": subject, "exp": expiration])
+            let payload = identity.base64EncodedString().replacingOccurrences(of: "+", with: "-")
+                .replacingOccurrences(of: "/", with: "_").replacingOccurrences(of: "=", with: "")
+            return "header.\(payload).signature"
+        }
+        let login = try token(subject: "auth0|user_example", expiration: 1_800_000_600)
+        func auth(_ token: String) throws -> Data {
+            try JSONSerialization.data(withJSONObject: ["accessToken": token])
+        }
+        XCTAssertEqual(TokenUsage.cursorSessionCookie(from: try auth(login), now: now),
+                       "WorkosCursorSessionToken=user_example%3A%3A\(login)")
+        let expired = try token(subject: "user_example", expiration: 1_799_999_999)
+        let malformed = try token(subject: "user_example;other=value", expiration: 1_800_000_600)
+        XCTAssertNil(TokenUsage.cursorSessionCookie(from: try auth(expired), now: now))
+        XCTAssertNil(TokenUsage.cursorSessionCookie(from: try auth(malformed), now: now))
+    }
+
     func testOpenCodeGoReadsWeeklyAndMonthlyPercentUsed() throws {
         let now = try XCTUnwrap(ISO8601DateFormatter().date(from: "2025-08-10T18:00:00Z"))
         let output = #"{"usage":{"rolling":{"percent":75},"weekly":{"percent":1,"resetsAt":"2025-08-13T07:59:23.880Z"},"monthly":{"percent":93,"resetsAt":"2025-09-01T00:00:00Z"}}}"#

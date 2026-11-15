@@ -4283,7 +4283,7 @@ async function assertTokenUsageCard(browser) {
     await load();
     await page.locator(".sp-main .sp-empty-cell").first().click();
     await page.getByRole("button", { name: "Token Usage card type", exact: true }).click();
-    assert.deepStrictEqual(await service.locator("option").evaluateAll(options => options.map(option => option.value)), ["codex", "claude", "opencode-go"]);
+    assert.deepStrictEqual(await service.locator("option").evaluateAll(options => options.map(option => option.value)), ["codex", "claude", "opencode-go", "cursor"]);
     await service.selectOption("claude");
     await save();
     await waitForNativeState(nativeState, () => {
@@ -4333,6 +4333,15 @@ async function assertTokenUsageCard(browser) {
       "Token Usage saves Codex");
     await tile().getByRole("img", { name: "Codex" }).waitFor();
     assert.strictEqual(await tile().getByRole("img", { name: "Claude" }).count(), 0);
+    await edit();
+    await service.selectOption("cursor");
+    assert.equal(await limit.isVisible(), false);
+    await save();
+    await waitForNativeState(nativeState, () => parseRawButtonConfig(nativeState.document.buttons[slot]).options === "services=cursor",
+      "Token Usage saves Cursor");
+    await page.reload();
+    await load();
+    await tile().getByRole("img", { name: "Cursor" }).waitFor();
     console.log("Token Usage picker, weekly previews, save and reload passed.");
   } finally {
     await context.close();

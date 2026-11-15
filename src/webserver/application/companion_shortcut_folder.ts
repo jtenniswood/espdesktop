@@ -471,13 +471,16 @@ export function companionShortcutPresetCards(bundleIdentifier: string): Companio
     }));
 }
 
-function appTokenUsageService(bundleIdentifier: string): "codex" | "claude" | undefined {
+type AppTokenUsageService = "codex" | "claude" | "cursor";
+
+function appTokenUsageService(bundleIdentifier: string): AppTokenUsageService | undefined {
+    if (bundleIdentifier === "com.todesktop.230313mzl4w4u92") return "cursor";
     if (bundleIdentifier === CLAUDE_DESKTOP_BUNDLE_ID) return "claude";
     if (bundleIdentifier === CODEX_BUNDLE_ID || bundleIdentifier === "com.openai.chat") return "codex";
 }
 
-function appTokenUsageCard(service: "codex" | "claude") {
-    return { ...cardContractDefaultConfig("token_usage"), options: service === "claude" ? "services=claude" : "" };
+function appTokenUsageCard(service: AppTokenUsageService) {
+    return { ...cardContractDefaultConfig("token_usage"), options: service === "codex" ? "" : "services=" + service };
 }
 
 export function addAppTokenUsageCard(bundleIdentifier: string, page: any, maxSlots: number): boolean {

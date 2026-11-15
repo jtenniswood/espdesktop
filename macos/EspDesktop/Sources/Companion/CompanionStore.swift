@@ -131,6 +131,8 @@ final class CompanionStore: NSObject, ObservableObject {
     private var openCodeGoStatus = TokenUsage.OpenCodeGoStatus.checking
     private var openCodeGoUsage: TokenUsage.OpenCodeGoUsage?
     private var lastOpenCodeGoUsageAttempt = Date.distantPast
+    private var cursorUsage: WeeklyUsageReading?
+    private var lastCursorUsageAttempt = Date.distantPast
 
     private var claudeAccount = TokenUsage.ClaudeAccount.checking
     private var claudeUsage: WeeklyUsageReading?
@@ -824,7 +826,8 @@ final class CompanionStore: NSObject, ObservableObject {
         display.connection.publishTokenUsage(
             codex: codexUsage,
             claude: claudeUsage,
-            openCodeGo: openCodeGoUsage
+            openCodeGo: openCodeGoUsage,
+            cursor: cursorUsage
         )
     }
 
@@ -878,6 +881,17 @@ final class CompanionStore: NSObject, ObservableObject {
                 openCodeGoUsage = nil
             }
             for display in tokenUsageDisplays { publishTokenUsage(to: display) }
+        }
+        let cursorInterval: TimeInterval = cursorUsage == nil ? 60 : 300
+        if tokenUsageDisplays.contains(where: { $0.connection.supportsCursorUsage }),
+           Date().timeIntervalSince(lastCursorUsageAttempt) >= cursorInterval {
+            let reading = await TokenUsage.readCursor()
+            guard !Task.isCancelled else { return }
+            lastCursorUsageAttempt = .now
+            if cursorUsage != reading {
+                cursorUsage = reading
+                for display in tokenUsageDisplays { publishTokenUsage(to: display) }
+            }
         }
     }
 

@@ -108,6 +108,18 @@ test("Athena presets use the installed Safari web app ID and preserve existing t
   assert.deepEqual(api.companionShortcutDefaultTabs(appId), defaultShortcutIds);
 });
 
+test("Cursor subpages put the Cursor allowance before shortcuts", () => {
+  const api = loadTypeScriptModule("src/webserver/application/companion_shortcut_folder.ts");
+  const { appId, defaultShortcutIds } = require("../../../product/v2/app_shortcuts/cursor.json");
+  const selected = api.companionShortcutTabsForCapacity(defaultShortcutIds, 9, appId);
+  const page = api.createCompanionShortcutSubpage(appId, selected);
+  assert.equal(page.order.length, 9);
+  assert.equal(page.order[0], "B");
+  assert.equal(page.buttons[0].type, "token_usage");
+  assert.equal(page.buttons[0].options, "services=cursor");
+  assert.deepEqual(api.companionShortcutTabsFromSubpage(appId, page), selected);
+});
+
 test("ChatGPT Desktop subpages use the curated catalogue and preserve custom cards", () => {
   const api = loadTypeScriptModule("src/webserver/application/companion_shortcut_folder.ts");
   const app = require("../../../product/v2/app_shortcuts/codex.json");
@@ -260,7 +272,7 @@ test("every packed offline shortcut preserves the authored ID, keys, icon and la
     } else {
       assert(app.defaultShortcutIds?.length <= 8, filename);
       assert.deepEqual(defaults, app.defaultShortcutIds, filename);
-      const usageSlots = ["com.openai.codex", "com.openai.chat", "com.anthropic.claudefordesktop"].includes(app.appId) ? 1 : 0;
+      const usageSlots = ["com.openai.codex", "com.openai.chat", "com.anthropic.claudefordesktop", "com.todesktop.230313mzl4w4u92"].includes(app.appId) ? 1 : 0;
       assert.equal(createCompanionShortcutSubpage(app.appId).buttons.length, defaults.length + usageSlots, filename);
     }
   }

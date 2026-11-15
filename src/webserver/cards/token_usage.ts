@@ -7,6 +7,7 @@ const SERVICES = [
   ["codex", "ChatGPT (Codex)"],
   ["claude", "Claude"],
   ["opencode-go", "OpenCode Go"],
+  ["cursor", "Cursor"],
 ] as const;
 
 function selectedServices(options: string): typeof SERVICES[number][0] | "claude-enterprise" {
@@ -67,7 +68,9 @@ export function registerTokenUsageCard(
     renderPreview: (card, helpers) => {
       const selected = selectedServices(card.options);
       const unavailable = selected === "claude-enterprise";
-      const glyph = selected === "codex" ? "\uE900" : selected === "opencode-go" ? "\uE902" : "\uE901";
+      const glyphs = { codex: "\uE900", claude: "\uE901", "opencode-go": "\uE902",
+        "claude-enterprise": "\uE901", cursor: "\uE903" };
+      const glyph = glyphs[selected];
       const icon = '<span class="sp-btn-icon sp-token-usage-icon" role="img" aria-label="' +
         (unavailable ? "Claude" : selected === "codex" ? "Codex" : SERVICES.find(([id]) => id === selected)![1]) +
         '">' + glyph + '</span>';

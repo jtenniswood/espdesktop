@@ -3035,7 +3035,8 @@
           "values": [
             "codex",
             "claude",
-            "opencode-go"
+            "opencode-go",
+            "cursor"
           ],
           "defaultValue": "codex",
           "omitDefault": true

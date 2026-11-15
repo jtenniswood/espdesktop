@@ -312,6 +312,126 @@ enum TokenUsage {
         return reading.valid ? reading : nil
     }
 
+    private struct CursorCLIAuth: Decodable {
+        let accessToken: String
+    }
+
+    private struct CursorIdentity: Decodable {
+        let sub: String
+        let exp: Double
+    }
+
+    private struct CursorMonthlyUsage: Decodable {
+        struct Individual: Decodable {
+            struct Plan: Decodable {
+                let enabled: Bool?
+                let totalPercentUsed: Double?
+                let used: Double?
+                let limit: Double?
+            }
+
+            let plan: Plan?
+        }
+
+        let billingCycleEnd: String
+        let individualUsage: Individual?
+        let membershipType: String?
+        let isUnlimited: Bool?
+    }
+
+    private struct CursorWeeklyUsage: Decodable {
+        let isUnified: Bool
+        let usagePercent: Double?
+        let nextResetTimestampUtc: String?
+        let includedLimitZero: Bool?
+    }
+
+    static func cursorSessionCookie(from data: Data, now: Date = .now) -> String? {
+        guard let token = try? JSONDecoder().decode(CursorCLIAuth.self, from: data).accessToken
+        else { return nil }
+        let base64URL = CharacterSet(charactersIn: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_")
+        let parts = token.split(separator: ".", omittingEmptySubsequences: false)
+        guard parts.count == 3,
+              parts.allSatisfy({ !$0.isEmpty && $0.unicodeScalars.allSatisfy(base64URL.contains) })
+        else { return nil }
+        var payload = parts[1].replacingOccurrences(of: "-", with: "+").replacingOccurrences(of: "_", with: "/")
+        payload += String(repeating: "=", count: (4 - payload.utf8.count % 4) % 4)
+        guard let decoded = Data(base64Encoded: payload),
+              let identity = try? JSONDecoder().decode(CursorIdentity.self, from: decoded),
+              identity.exp > now.timeIntervalSince1970 + 60,
+              let user = identity.sub.split(separator: "|").last,
+              user.unicodeScalars.allSatisfy(base64URL.contains)
+        else { return nil }
+        return "WorkosCursorSessionToken=\(user)%3A%3A\(token)"
+    }
+
+    static func readCursor() async -> WeeklyUsageReading? {
+        let home = FileManager.default.homeDirectoryForCurrentUser
+        let authFile = home.appendingPathComponent(".cursor/auth.json")
+        guard let data = try? Data(contentsOf: authFile), let cookie = cursorSessionCookie(from: data)
+        else { return nil }
+
+        let configuration = URLSessionConfiguration.ephemeral
+        configuration.httpShouldSetCookies = false
+        configuration.timeoutIntervalForResource = 12
+        let session = URLSession(configuration: configuration)
+        defer { session.finishTasksAndInvalidate() }
+        // The shared X subscription pool takes priority over legacy monthly usage.
+        async let weekly = fetchCursorUsage("api/dashboard/get-sand-usage-status", method: "POST", cookie: cookie, session: session)
+        async let monthly = fetchCursorUsage("api/usage-summary", method: "GET", cookie: cookie, session: session)
+        return await parseCursor(monthly: monthly, weekly: weekly)
+    }
+
+    private static func fetchCursorUsage(_ route: String, method: String, cookie: String, session: URLSession) async -> Data? {
+        var request = URLRequest(url: URL(string: "https://cursor.com/\(route)")!, timeoutInterval: 10)
+        request.httpMethod = method
+        request.setValue(cookie, forHTTPHeaderField: "Cookie")
+        request.setValue("application/json", forHTTPHeaderField: "Accept")
+        if method == "POST" {
+            request.setValue("https://cursor.com", forHTTPHeaderField: "Origin")
+            request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+            request.httpBody = Data("{}".utf8)
+        }
+        guard let (payload, response) = try? await session.data(for: request, delegate: RejectUsageRedirects()),
+              (response as? HTTPURLResponse)?.statusCode == 200 else { return nil }
+        return payload
+    }
+
+    static func parseCursor(monthly: Data?, weekly: Data?, observedAt: Date = .now) -> WeeklyUsageReading? {
+        let decoder = JSONDecoder()
+        if let weekly, let usage = try? decoder.decode(CursorWeeklyUsage.self, from: weekly), usage.isUnified {
+            // A confirmed shared plan must never fall back to an unrelated legacy pool.
+            guard usage.includedLimitZero != true, let percent = usage.usagePercent,
+                  let reset = usage.nextResetTimestampUtc else { return nil }
+            return cursorReading(usedPercent: percent, reset: reset, observedAt: observedAt, maxDays: 8)
+        }
+        guard let monthly, let usage = try? decoder.decode(CursorMonthlyUsage.self, from: monthly),
+              usage.isUnlimited != true, let plan = usage.individualUsage?.plan, plan.enabled != false,
+              !["team", "enterprise"].contains(usage.membershipType?.lowercased() ?? "") else { return nil }
+        if let percent = plan.totalPercentUsed {
+            return cursorReading(usedPercent: percent, reset: usage.billingCycleEnd, observedAt: observedAt, maxDays: 32)
+        }
+        guard let used = plan.used, let limit = plan.limit, limit > 0 else { return nil }
+        return cursorReading(usedPercent: used / limit * 100,
+                             reset: usage.billingCycleEnd, observedAt: observedAt, maxDays: 32)
+    }
+
+    private static func cursorReading(usedPercent: Double, reset: String, observedAt: Date, maxDays: Int) -> WeeklyUsageReading? {
+        guard usedPercent.isFinite, usedPercent >= 0 else { return nil }
+        let formatter = ISO8601DateFormatter()
+        let wholeSeconds = formatter.date(from: reset)
+        formatter.formatOptions.insert(.withFractionalSeconds)
+        guard let date = wholeSeconds ?? formatter.date(from: reset),
+              date.timeIntervalSince(observedAt) <= Double(maxDays * 86400),
+              observedAt.timeIntervalSince1970 >= 1,
+              date.timeIntervalSince1970 <= Double(UInt32.max),
+              date > observedAt else { return nil }
+        let reading = WeeklyUsageReading(remainingPercent: Int((100 - min(100, usedPercent)).rounded()),
+                                         resetsAt: UInt32(date.timeIntervalSince1970),
+                                         observedAt: UInt32(observedAt.timeIntervalSince1970))
+        return reading.valid ? reading : nil
+    }
+
     private struct Reply: Decodable {
         struct Limits: Decodable {
             struct Window: Decodable {
