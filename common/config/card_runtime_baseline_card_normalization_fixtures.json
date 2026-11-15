@@ -1216,10 +1216,10 @@
   },
   {
     "name": "companion_obs_fader: picker_alias",
-    "input": "~obs.level.69da3f8f-7f62-4abe-a594-4e40dd579858,OBS%20%C2%B7%20Desk%20Mic,Microphone,Auto,,,slider,,",
+    "input": "~obs.level.69da3f8f-7f62-4abe-a594-4e40dd579858,Desk%20Mic,Microphone,Auto,,,slider,,",
     "expected": {
       "entity": "obs.level.69da3f8f-7f62-4abe-a594-4e40dd579858",
-      "label": "OBS · Desk Mic",
+      "label": "Desk Mic",
       "icon": "Microphone",
       "icon_on": "Auto",
       "sensor": "",
