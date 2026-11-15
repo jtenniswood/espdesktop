@@ -49,6 +49,8 @@ Right-click a card to open its menu.
 
 <a href="/images/web-editor-choose-card.webp"><picture><source type="image/avif" srcset="/images/web-editor-choose-card-480.avif 480w, /images/web-editor-choose-card-960.avif 960w" sizes="(min-width: 768px) 688px, 90vw"><img src="/images/web-editor-choose-card.webp" alt="Choose Card dialog with Applications, Folder, Key Shortcut, Lock Machine, Subpage and Website options" width="1269" height="1022" loading="lazy"></picture></a>
 
+Use a [Webhook card](/card-types/webhooks) to trigger a service such as Node-RED directly from the touchscreen.
+
 ## Create a custom subpage
 
 Group related cards behind a single card on Home. For example, create a **Work** subpage for Slack, your calendar and a project folder.

@@ -10,8 +10,8 @@
 // =============================================================================
 
 constexpr int CARD_CONTRACT_VERSION = 1;
-inline bool card_contract_type_stable(std::string_view type) { return type == "companion" || type == "companion_mac_lock" || type == "subpage"; }
-inline bool card_contract_type_retired(const std::string &type) { return type == "companion_window" || type == "sensor" || type == "local_sensor" || type == "text_sensor" || type == "internal" || type == "wifi_qr" || type == "wifi_qr_card" || type == "screen_lock" || type == "screensaver" || type == "action" || type == "local" || type == "option_select" || type == "calendar" || type == "clock" || type == "timezone" || type == "webhook" || type == "companion_webapp" || type == "companion_audio" || type == "S" || type == "LS" || type == "I" || type == "SL" || type == "SS" || type == "A" || type == "U" || type == "WH"; }
+inline bool card_contract_type_stable(std::string_view type) { return type == "companion" || type == "companion_mac_lock" || type == "subpage" || type == "webhook"; }
+inline bool card_contract_type_retired(const std::string &type) { return type == "companion_window" || type == "sensor" || type == "local_sensor" || type == "text_sensor" || type == "internal" || type == "wifi_qr" || type == "wifi_qr_card" || type == "screen_lock" || type == "screensaver" || type == "action" || type == "local" || type == "option_select" || type == "calendar" || type == "clock" || type == "timezone" || type == "companion_webapp" || type == "companion_audio" || type == "S" || type == "LS" || type == "I" || type == "SL" || type == "SS" || type == "A" || type == "U"; }
 namespace espdesktop::card_runtime {
 
 enum class CardTypeId : uint8_t {
@@ -48,6 +48,7 @@ enum class CardTypeId : uint8_t {
   WEATHER,
   IMAGE,
   WEATHER_FORECAST,
+  WEBHOOK,
   UNKNOWN,
 };
 
@@ -87,6 +88,7 @@ enum class CardDriverId : uint8_t {
   WEATHER,
   IMAGE,
   TIMER,
+  WEBHOOK,
   UNKNOWN,
 };
 
@@ -145,6 +147,7 @@ inline CardTypeId card_type_id(const std::string &type) {
   if (type == "weather") return CardTypeId::WEATHER;
   if (type == "image") return CardTypeId::IMAGE;
   if (type == "weather_forecast") return CardTypeId::WEATHER_FORECAST;
+  if (type == "webhook") return CardTypeId::WEBHOOK;
   return CardTypeId::UNKNOWN;
 }
 
@@ -183,6 +186,7 @@ inline CardRuntimeSpec card_runtime_spec(CardTypeId type) {
     case CardTypeId::WEATHER: return {type, CardDriverId::WEATHER, static_cast<uint16_t>(CAPABILITY_INFORMATION_ONLY | CAPABILITY_SUBSCRIPTIONS | CAPABILITY_ACTIONS | CAPABILITY_MODAL | CAPABILITY_RUNTIME_ALLOCATION | CAPABILITY_SUBPAGE)};
     case CardTypeId::IMAGE: return {type, CardDriverId::IMAGE, static_cast<uint16_t>(CAPABILITY_INFORMATION_ONLY | CAPABILITY_SUBSCRIPTIONS | CAPABILITY_ACTIONS | CAPABILITY_MODAL | CAPABILITY_RUNTIME_ALLOCATION | CAPABILITY_SUBPAGE)};
     case CardTypeId::WEATHER_FORECAST: return {type, CardDriverId::WEATHER, static_cast<uint16_t>(CAPABILITY_INFORMATION_ONLY | CAPABILITY_SUBSCRIPTIONS | CAPABILITY_ACTIONS | CAPABILITY_MODAL | CAPABILITY_RUNTIME_ALLOCATION | CAPABILITY_SUBPAGE)};
+    case CardTypeId::WEBHOOK: return {type, CardDriverId::WEBHOOK, static_cast<uint16_t>(CAPABILITY_SUBSCRIPTIONS | CAPABILITY_ACTIONS | CAPABILITY_SUBPAGE)};
     default: return {};
   }
 }
@@ -323,6 +327,7 @@ constexpr const char *CARD_CONTRACT_OPTION_NAME_URL_OPEN_BEHAVIOR = "url_open_be
 constexpr const char *CARD_CONTRACT_OPTION_NAME_VACUUM_MODE = "vacuum_mode";
 constexpr const char *CARD_CONTRACT_OPTION_NAME_VOLUME_MAX = "volume_max";
 constexpr const char *CARD_CONTRACT_OPTION_NAME_WEATHER_MODE = "weather_mode";
+constexpr const char *CARD_CONTRACT_OPTION_NAME_WEBHOOK_HEADERS = "webhook_headers";
 constexpr const char *CARD_CONTRACT_OPTION_NAME_WIND_SOURCE = "wind_source";
 constexpr const char *CARD_CONTRACT_GARAGE_LABEL_DISPLAY_DEFAULT = "label";
 constexpr const char *CARD_CONTRACT_GATE_LABEL_DISPLAY_DEFAULT = "label";
@@ -554,6 +559,7 @@ inline const char *card_contract_card_label(const std::string &type) {
   if (type == "weather") return "Weather";
   if (type == "image") return "Camera Card";
   if (type == "weather_forecast") return "Weather Forecast";
+  if (type == "webhook") return "Webhook";
   return type.empty() ? "Switch" : type.c_str();
 }
 
@@ -591,6 +597,7 @@ inline bool card_contract_allow_in_subpage(const std::string &type) {
   if (type == "weather") return true;
   if (type == "image") return true;
   if (type == "weather_forecast") return true;
+  if (type == "webhook") return true;
   return false;
 }
 
@@ -628,6 +635,7 @@ inline const char *card_contract_default_icon_name(const std::string &type) {
   if (type == "weather") return "Auto";
   if (type == "image") return "Auto";
   if (type == "weather_forecast") return "Auto";
+  if (type == "webhook") return "Auto";
   return "Auto";
 }
 
@@ -665,6 +673,7 @@ inline const char *card_contract_default_icon_on_name(const std::string &type) {
   if (type == "weather") return "Auto";
   if (type == "image") return "Auto";
   if (type == "weather_forecast") return "Auto";
+  if (type == "webhook") return "Auto";
   return "Auto";
 }
 
@@ -734,6 +743,7 @@ inline std::string_view card_contract_subpage_code_view(std::string_view type) {
   if (type == "companion") return "CP";
   if (type == "companion_mac_lock") return "ML";
   if (type == "subpage") return "G";
+  if (type == "webhook") return "WH";
   return type;
 }
 
@@ -772,6 +782,7 @@ inline const char *card_contract_subpage_type_code(const std::string &type) {
   if (type == "companion") return "CP";
   if (type == "companion_mac_lock") return "ML";
   if (type == "subpage") return "G";
+  if (type == "webhook") return "WH";
   return type.c_str();
 }
 
@@ -810,6 +821,7 @@ inline std::string_view card_contract_subpage_type_view(const std::string_view &
   if (code == "CP") return "companion";
   if (code == "ML") return "companion_mac_lock";
   if (code == "G") return "subpage";
+  if (code == "WH") return "webhook";
   return code;
 }
 
@@ -848,5 +860,6 @@ inline std::string card_contract_subpage_type_from_code(const std::string &code)
   if (code == "CP") return "companion";
   if (code == "ML") return "companion_mac_lock";
   if (code == "G") return "subpage";
+  if (code == "WH") return "webhook";
   return code;
 }

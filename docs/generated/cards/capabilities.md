@@ -42,6 +42,7 @@ This generated reference lists release availability and setup facts from the sha
 | Weather | weather | weather, sensor, input_number | Yes | Own picker item | Type: default, today, tomorrow, daily, wind, rainfall; Wind Source: weather, sensors; Rainfall Source: sensor, forecast | Retired |
 | Camera Card | image | camera, image | Yes | Own picker item | None | Retired |
 | Weather Forecast | weather_forecast | weather | Yes | Own picker item | None | Retired |
+| Webhook | webhook | None | Yes | Own picker item | Headers | Stable |
 
 ## Preview cards
 

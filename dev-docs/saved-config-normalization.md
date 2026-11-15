@@ -56,6 +56,7 @@ same parity test as part of `firmware-parser`.
 | Subpage | Apply named visual preset; validate kind; keep `large_numbers` only for a suitable non-indicator sensor and numeric precision; drop unknown options | Declarative + Hook | `config_subpage_options.ts`, card preset helper | `subpage_card_options_normalized` and runtime preset handling |
 | Weather | Alias `weather_forecast` to tomorrow; clear sensor; validate current/today/tomorrow mode; only forecast modes keep `large_numbers`; clear legacy default label | Declarative + Migration | `cards/weather.ts`, `normalizeButtonConfig` | weather branches and `weather_card_options_normalized` |
 | Image | Clear sensor/unit/precision and active icon; label/icon only survive when enabled; validate modal mode; retired refresh options are ignored; omit defaults | Declarative + Migration | `config_image_options.ts` | image helpers and image branch |
+| Webhook | Normalize HTTP method; only body-capable methods keep body; preserve encoded headers; clear precision and unknown options | Declarative + Hook | `cards/webhook.ts` | webhook helpers and webhook branch |
 | Unknown type | Preserve the nine ordinary fields so the card remains inspectable, but remove unknown options under the current no-forward-preservation policy | Declarative | final preservation guard | final preservation guard |
 
 ## Current Decisions

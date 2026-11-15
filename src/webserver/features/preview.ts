@@ -83,6 +83,7 @@ const CARD_TYPE_PICKER_DETAILS: Readonly<Record<string, PickerDetails>> = {
   push: { icon: "gesture-tap-button", description: "Fire a momentary button event." },
   subpage: { icon: "view-grid-plus", description: "Create a subpage for additional cards" },
   vacuum: { icon: "robot-vacuum", description: "Show or control a vacuum cleaner." },
+  webhook: { icon: "webhook", description: "Send an HTTP request from the display." },
   weather: { icon: "weather-partly-cloudy", description: "Show weather or forecast data." },
 };
 

@@ -330,21 +330,6 @@
     }
   },
   {
-    "name": "retired webhook drops its URL, body, and headers",
-    "input": "https://example.invalid/hook;Door Alert;Flash;Auto;POST;{};webhook;;webhook_headers=Authorization%3A%20example",
-    "expected": {
-      "entity": "",
-      "label": "",
-      "icon": "Auto",
-      "icon_on": "Auto",
-      "sensor": "",
-      "unit": "",
-      "type": "webhook",
-      "precision": "",
-      "options": ""
-    }
-  },
-  {
     "name": "retired Mac output_volume card",
     "input": "media.output_volume;Volume;Auto;Auto;;;slider;;",
     "expected": {

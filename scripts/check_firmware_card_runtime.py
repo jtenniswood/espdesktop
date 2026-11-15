@@ -208,10 +208,10 @@ def check_root(root: Path) -> list[str]:
             'sb_cfg.type == "weather"', 'sb_cfg.type == "weather_forecast"',
             'p.type == "push"',
             'p.type == "alarm_action"',
-            'p.type == "local"',
+            'p.type == "local"', 'p.type == "webhook"',
             'sb_cfg.type == "push"',
             'sb_cfg.type == "alarm_action"',
-            'sb_cfg.type == "local"',
+            'sb_cfg.type == "local"', 'sb_cfg.type == "webhook"',
             'p.type == "slider"', 'p.type == "light_brightness"',
             'p.type == "light_temperature"', 'p.type == "fan_speed"',
             'p.type == "fan_oscillate"', 'p.type == "fan_direction"',
@@ -405,6 +405,7 @@ def check_root(root: Path) -> list[str]:
             "basic_action_driver_refresh_layout",
             "basic_action_driver_cleanup",
             "basic_action_driver_handle_main_click",
+            "send_webhook_action",
         )
         for needle in required:
             if needle not in text:

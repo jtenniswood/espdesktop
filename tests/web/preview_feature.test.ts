@@ -112,11 +112,12 @@ export function runPreviewFeatureTests(): void {
       companion_folder: { label: "Folder", allowInSubpage: true },
       companion_subpage: { label: "Subpage", pickerKey: "subpage", allowInSubpage: false },
       push: { label: "Trigger", allowInSubpage: true },
+      webhook: { label: "Webhook", allowInSubpage: true },
       slider: { label: "Slider", allowInSubpage: true },
     }, [], false, false, null, "mac_companion");
   deepEqual(
     companionOptions.map((option) => option.key),
-    ["companion_app", "companion_folder", "companion_shortcut", "subpage", "companion_url"],
+    ["companion_app", "companion_folder", "companion_shortcut", "subpage", "webhook", "companion_url"],
     "Companion picker excludes retired controls and Home Assistant-only controls",
   );
   equal(

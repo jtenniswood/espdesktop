@@ -18,7 +18,7 @@ prelude = r'''
 #include <functional>
 #include <string>
 #include <vector>
-namespace card_runtime { enum class CardDriverId { ACTION, INTERNAL, COMPANION, SCREEN_LOCK, SCREENSAVER, TOGGLE, PUSH, ALARM_ACTION, FAN, SENSOR }; enum class CardTypeId { SENSOR, LOCAL_SENSOR }; }
+namespace card_runtime { enum class CardDriverId { ACTION, INTERNAL, COMPANION, SCREEN_LOCK, SCREENSAVER, WEBHOOK, TOGGLE, PUSH, ALARM_ACTION, FAN, SENSOR }; enum class CardTypeId { SENSOR, LOCAL_SENSOR }; }
 struct Context { struct { card_runtime::CardDriverId driver; card_runtime::CardTypeId type = card_runtime::CardTypeId::SENSOR; } runtime; };
 struct ParsedCfg { std::string type, entity, sensor, icon, icon_on, label; };
 struct lv_obj_t { void *data = nullptr; std::string text; };
@@ -75,8 +75,7 @@ int main() {
  Context c{{Driver::COMPANION}};
  ParsedCfg config;
  for (Driver retired : {Driver::ACTION,Driver::TOGGLE,Driver::PUSH,Driver::ALARM_ACTION,Driver::FAN,Driver::INTERNAL,Driver::SCREEN_LOCK,Driver::SCREENSAVER}) { c.runtime.driver = retired; assert(!basic_action_driver_matches(c,config)); }
- c.runtime.driver = Driver::COMPANION;
- assert(basic_action_driver_matches(c,config));
+ for (Driver local : {Driver::COMPANION,Driver::WEBHOOK}) { c.runtime.driver = local; assert(basic_action_driver_matches(c,config)); }
  lv_obj_t button, container, slider, icon, label; container.data = &slider;
  BtnSlot slot{&button,&container,&icon,&label}; CardPalette palette; DisplayProfile display;
  for (const char *key : {"media.output_volume","media.input_volume"}) {
