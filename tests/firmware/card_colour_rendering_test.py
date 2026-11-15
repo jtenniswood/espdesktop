@@ -264,7 +264,7 @@ groups = (
     ("button_grid_touch.h", "", ("consume_button_touch_press",)),
     ("button_grid_layout.h", "", ("parse_hex_color", "apply_button_colors", "apply_button_on_pattern")),
     ("companion_controls.h", "", ("companion_obs_scene_target", "companion_obs_scene_card", "companion_apply_card_focus", "companion_required_focus_ready", "companion_refresh_card_focus")),
-    ("companion_controls.h", "", ("companion_obs_status_icon", "companion_render_obs_detail", "companion_update_obs_detail_contrast", "companion_render_slider")),
+    ("companion_controls.h", "", ("companion_obs_status_card", "companion_obs_status_icon", "companion_render_obs_detail", "companion_update_obs_detail_contrast", "companion_render_slider")),
     ("button_grid_grid.h", "", ("card_palette_for_config", "card_slot_static_child", "reset_card_slot_dynamic_children")),
     ("button_grid_grid.h", "", ("apply_subpage_back_colors",)),
     ("button_grid_subscriptions.h", "", ("apply_sensor_active_color",)),
@@ -293,6 +293,15 @@ source += r'''
 int main() {
   {
     lv_obj_t tile, title, detail, icon;
+    ParsedCfg config;
+    config.type = "companion";
+    config.entity = "obs.status.record";
+    CardPalette defaults;
+    defaults.sensor_val = 0xFFFFFF;
+    defaults.surface_sensor_val = 0xF5F5F5;
+    assert(card_palette_for_config(defaults, config, DisplayProfile{}).sensor_val == 0xF5F5F5);
+    config.entity = "obs.output.record";
+    assert(card_palette_for_config(defaults, config, DisplayProfile{}).sensor_val == 0xFFFFFF);
     CompanionCardRef sensor{&tile, "obs.status.record", "", ""};
     sensor.text_label = &title;
     sensor.obs_detail = &detail;
