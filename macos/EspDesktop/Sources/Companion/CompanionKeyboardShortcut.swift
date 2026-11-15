@@ -69,6 +69,17 @@ struct CompanionKeyboardShortcut {
         return expected == premiere && frontmost.range(of: #"^com\.adobe\.PremierePro\.[0-9]+$"#,
                                                       options: .regularExpression) != nil
     }
+    static func scopedWebAppDefinition(_ target: String, keys: String, frontmost: String,
+                                       approved: Set<String>,
+                                       definitions: [RemoteWebApplicationDefinition]) -> RemoteWebApplicationDefinition? {
+        guard frontmost == safariBundleIdentifier || frontmost == "com.google.Chrome",
+              approved.contains(frontmost) else { return nil }
+        return definitions.first { definition in
+            target == "webapp.\(definition.id)" &&
+                definition.shortcuts.contains { scopedPrefix + $0.shortcut == keys }
+        }
+    }
+
     static let claudeDesktopBundleIdentifier = "com.anthropic.claudefordesktop"
     private static let claudeEscapeShortcut = "claude-escape"
     static let claudeRewindShortcut = "escape-twice"

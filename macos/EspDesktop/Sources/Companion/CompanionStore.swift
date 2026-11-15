@@ -943,6 +943,28 @@ final class CompanionStore: NSObject, ObservableObject {
         return true
     }
 
+    private func performWebAppShortcut(_ keys: String, target: String) async -> Bool {
+        // Read the active tab at delivery time. Focus notifications and shared
+        // preview queries can still describe the tab the user just left.
+        guard let application = NSWorkspace.shared.frontmostApplication,
+              let bundleID = application.bundleIdentifier,
+              let definition = CompanionKeyboardShortcut.scopedWebAppDefinition(
+                target, keys: keys, frontmost: bundleID, approved: approvedApplicationIdentifiers,
+                definitions: remoteCatalogueStore.value.webApplications
+              ),
+              let stroke = CompanionKeyboardShortcut.scopedStrokes(keys)?.first,
+              ActiveTabURLMatcher.matchingWebAppIDs(
+                url: await activeBrowserTabURL(bundleIdentifier: bundleID), definitions: [definition]
+              ).contains(definition.id) else {
+            updateStatus("Bring this Web App to the front in approved Safari or Google Chrome")
+            return false
+        }
+        guard !Task.isCancelled, !sessionLock.refresh(),
+              approvedApplicationIdentifiers.contains(bundleID),
+              NSWorkspace.shared.frontmostApplication?.processIdentifier == application.processIdentifier else { return false }
+        return stroke.replay(to: application.processIdentifier)
+    }
+
     func perform(actionIdentifier: String, folderOpenBehavior: String = "new_window",
                  shortcutAppID: String? = nil) async -> Bool {
         if actionIdentifier.hasPrefix(ApprovedFolder.actionPrefix) {
@@ -977,6 +999,9 @@ final class CompanionStore: NSObject, ObservableObject {
         }
         let keys = String(actionIdentifier.dropFirst(CompanionKeyboardShortcut.actionPrefix.count))
         if keys.hasPrefix(CompanionKeyboardShortcut.scopedPrefix) {
+            if let shortcutAppID, shortcutAppID.hasPrefix("webapp.") {
+                return await performWebAppShortcut(keys, target: shortcutAppID)
+            }
             guard let shortcutAppID, let application = NSWorkspace.shared.frontmostApplication,
                   let bundleID = application.bundleIdentifier,
                   CompanionKeyboardShortcut.scopedTargetMatches(shortcutAppID, frontmost: bundleID,

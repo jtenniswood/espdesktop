@@ -83,6 +83,35 @@ final class CompanionKeyboardShortcutTests: XCTestCase {
             "org.videolan.vlc", frontmost: "com.apple.Safari", approved: ["com.apple.Safari"]))
     }
 
+    func testScopedWebAppShortcutRequiresAnApprovedBrowserAndMatchingTab() throws {
+        let docs = RemoteWebApplicationDefinition(
+            version: 1, id: "google-docs", label: "Google Docs", url: "https://docs.google.com/document/",
+            matchHost: "docs.google.com", matchPath: "/document/", icon: "Web",
+            shortcuts: [RemoteShortcutDefinition(id: "0", label: "Bold", shortcut: "command+b", icon: "Web")]
+        )
+        let safari = "com.apple.Safari"
+        let chrome = "com.google.Chrome"
+        func definition(_ browser: String, approved: Set<String>, keys: String = "scoped.command+b") -> RemoteWebApplicationDefinition? {
+            CompanionKeyboardShortcut.scopedWebAppDefinition(
+                "webapp.google-docs", keys: keys, frontmost: browser, approved: approved, definitions: [docs]
+            )
+        }
+
+        XCTAssertEqual(definition(safari, approved: [safari]), docs)
+        XCTAssertEqual(definition(chrome, approved: [chrome]), docs)
+        XCTAssertNil(definition(safari, approved: [chrome]))
+        XCTAssertNil(definition("org.mozilla.firefox", approved: ["org.mozilla.firefox"]))
+        XCTAssertNil(definition(safari, approved: [safari], keys: "scoped.command+w"))
+        XCTAssertNil(definition(safari, approved: [safari], keys: "scoped.command+b~command+w"))
+
+        let target = try XCTUnwrap(definition(safari, approved: [safari]))
+        XCTAssertEqual(ActiveTabURLMatcher.matchingWebAppIDs(
+            url: URL(string: "https://docs.google.com/document/d/123/edit"), definitions: [target]), [docs.id])
+        for url in ["https://docs.google.com/spreadsheets/d/123/edit", "https://example.org/document/d/123/edit"] {
+            XCTAssertTrue(ActiveTabURLMatcher.matchingWebAppIDs(url: URL(string: url), definitions: [target]).isEmpty)
+        }
+    }
+
     func testRejectsLegacyWindowActionsAndFreeFormFn() {
         XCTAssertNil(CompanionKeyboardShortcut(actionIdentifier: "window.close"))
         XCTAssertNil(CompanionKeyboardShortcut(actionIdentifier: "window.left"))

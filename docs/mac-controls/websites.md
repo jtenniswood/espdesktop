@@ -22,4 +22,4 @@ Use matching versions of the EspDesktop Mac app and display firmware. Safari and
 
 ## Add a Web App card
 
-Choose **Web App** under **Companion** to give a supported site, such as Google Docs, a tile with its own artwork and keyboard shortcuts. Select the site and save. Use matching Mac app and display firmware builds. When the Mac app detects the matching browser tab, the tile shows it as active. For any other web address, use a **Website** card.
+Choose **Web App** under **Companion** to give a supported site, such as Google Docs, a tile with its own artwork and keyboard shortcuts. Select the site and save. Use matching Mac app and display firmware builds. When the Mac app detects the matching browser tab, the tile shows it as active. To run the Web App’s shortcuts, approve Safari or Google Chrome in EspDesktop, allow Automation for that browser, and keep the matching tab in front. For any other web address, use a **Website** card.
