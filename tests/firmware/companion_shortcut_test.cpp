@@ -497,6 +497,17 @@ int main() {
   companion_remove_value("media.output_volume");
   assert(!companion_value("media.output_volume", output_volume));
 
+  CompanionCatalogueLimits catalogue_limits;
+  for (int index = 0; index < 256; ++index)
+    assert(catalogue_limits.retain("obs.scene." + std::to_string(index), false));
+  assert(!catalogue_limits.retain("obs.status.stream", false));
+  for (int index = 0; index < 16; ++index)
+    assert(catalogue_limits.retain("input.level." + std::to_string(index), true));
+  assert(!catalogue_limits.retain("input.level.overflow", true));
+  for (int index = 0; index < 256; ++index)
+    assert(catalogue_limits.retain("com.example.App" + std::to_string(index), false));
+  assert(!catalogue_limits.retain("com.example.Overflow", false));
+
   const char *system_controls[] = {"media.output_volume", "media.input_volume",
                                   "media.output_mute", "media.input_mute", "media.cough"};
   for (const auto *control : system_controls) companion_set_value(control, 100);

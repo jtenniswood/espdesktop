@@ -39,8 +39,6 @@ static constexpr uint32_t RETRY_DELAY_MS = 30 * 1000;
 static constexpr size_t MAX_WEBSOCKET_FRAME_BYTES = COMPANION_MAXIMUM_TEXT_FRAME_BYTES;
 static constexpr size_t MAX_LEGACY_AUTH_FRAME_BYTES = 512;
 static constexpr char LEGACY_PROTOCOL_ROUTE[] = "/companion/v*";
-static constexpr size_t MAX_CATALOGUE_ACTIONS = 256;
-static constexpr size_t MAX_CATALOGUE_INPUTS = 16;
 static constexpr size_t MAX_APP_ICON_CHUNK_BYTES = COMPANION_APP_ICON_CHUNK_BYTES;
 static constexpr uint32_t AUTHENTICATION_TIMEOUT_MS = 15 * 1000;
 static constexpr char PAIRING_ALPHABET[] = "ABCDEFGHJKLMNPQRSTUVWXYZ";
@@ -663,7 +661,7 @@ void CompanionService::handle_json_(int socket_fd, const std::string &message) {
           page != (page == 0 ? 0 : this->catalogue_next_page_)) return false;
       if (page == 0) {
         this->catalogue_actions_.clear();
-        this->catalogue_input_count_ = 0;
+        this->catalogue_limits_ = {};
         this->catalogue_enabled_icons_.clear();
         this->catalogue_generation_ = catalogue_generation;
         this->catalogue_next_page_ = 0;
@@ -673,15 +671,13 @@ void CompanionService::handle_json_(int socket_fd, const std::string &message) {
         const std::string label = item.label;
         if (!safe_field(id, 96) || !safe_utf8_field(label, 96) || id.rfind("webapp.", 0) == 0) continue;
         const bool input = companion_input_device_control_valid(id);
-        const bool retain_action = input ? this->catalogue_input_count_ < MAX_CATALOGUE_INPUTS :
-            this->catalogue_actions_.size() - this->catalogue_input_count_ < MAX_CATALOGUE_ACTIONS;
-        if (retain_action && input) ++this->catalogue_input_count_;
+        const bool retain_action = this->catalogue_limits_.retain(id, input);
         if (retain_action) this->catalogue_actions_.emplace_back(id, label);
         // Keep icon eligibility for configured cards even when their app is
         // outside the bounded browser catalogue. The reference set is bounded
         // by the panel configuration rather than the Mac's installed app count.
         if ((retain_action || app_icon_store().is_referenced(id)) &&
-            id.rfind("folder.", 0) != 0 && !companion_input_device_control_valid(id) && id.rfind("shortcut.", 0) != 0 &&
+            id.rfind("folder.", 0) != 0 && !input && id.rfind("shortcut.", 0) != 0 &&
             id.rfind("window.", 0) != 0 && id.rfind("metrics.", 0) != 0 &&
             id.rfind("urlcard.", 0) != 0 && id.rfind("obs.", 0) != 0 &&
             std::find(this->catalogue_enabled_icons_.begin(), this->catalogue_enabled_icons_.end(), id) ==

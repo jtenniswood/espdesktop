@@ -126,7 +126,7 @@ class CompanionService final : public Component {
   uint32_t last_obs_meter_check_{0};
   std::vector<std::string> published_obs_meters_;
   std::vector<std::pair<std::string, std::string>> catalogue_actions_;
-  size_t catalogue_input_count_{0};
+  CompanionCatalogueLimits catalogue_limits_;
   std::vector<std::string> catalogue_enabled_icons_;
   std::vector<CompanionRemoteDefinition> remote_definitions_;
   uint16_t application_definition_count_{0};

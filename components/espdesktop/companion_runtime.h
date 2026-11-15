@@ -14,6 +14,7 @@
 #include <mutex>
 #include <optional>
 #include <string>
+#include <string_view>
 #include <utility>
 #include <vector>
 
@@ -35,6 +36,24 @@ struct CompanionAction {
   bool operator==(const CompanionAction &other) const {
     return id == other.id && label == other.label;
   }
+};
+
+// Keep OBS and input-device entries from displacing existing Mac actions.
+class CompanionCatalogueLimits {
+ public:
+  bool retain(std::string_view id, bool input_device) {
+    const bool obs = id.rfind("obs.", 0) == 0;
+    auto &count = input_device ? inputs_ : (obs ? obs_ : mac_);
+    const size_t limit = input_device ? 16 : 256;
+    if (count >= limit) return false;
+    ++count;
+    return true;
+  }
+
+ private:
+  size_t inputs_{0};
+  size_t obs_{0};
+  size_t mac_{0};
 };
 
 struct CompanionValue {

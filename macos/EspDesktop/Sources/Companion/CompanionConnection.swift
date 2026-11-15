@@ -865,14 +865,16 @@ final class CompanionConnection: NSObject {
         }.map { entry in
             ["id": entry.id, "label": Self.catalogueLabel(entry.label, fallback: "OBS scene")]
         }
-        let entries: [[String: String]] = obsEntries + resources.folderActions().compactMap { folder -> [String: String]? in
+        let entries: [[String: String]] = resources.folderActions().compactMap { folder -> [String: String]? in
             guard Self.validCatalogueIdentifier(folder.actionIdentifier) else { return nil }
             return ["id": folder.actionIdentifier, "label": Self.catalogueLabel(folder.name, fallback: "Folder")]
         } + apps.compactMap { app -> [String: String]? in
             guard Self.validCatalogueIdentifier(app.bundleIdentifier) else { return nil }
             return ["id": app.bundleIdentifier, "label": Self.catalogueLabel(app.name, fallback: app.bundleIdentifier)]
         }
-        let catalogue = inputs + entries
+        // Older panels share a limit across Mac and OBS actions. Keep their
+        // existing application order before appending the OBS catalogue.
+        let catalogue = inputs + entries + obsEntries
         catalogueGeneration &+= 1
         if catalogueGeneration == 0 { catalogueGeneration = 1 }
         let pages = stride(from: 0, to: max(catalogue.count, 1), by: 48).map {

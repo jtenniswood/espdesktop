@@ -1201,7 +1201,7 @@
   },
   {
     "name": "companion_obs_fader: picker_alias",
-    "input": "~obs.level.69da3f8f-7f62-4abe-a594-4e40dd579858,OBS%20%C2%B7%20Desk%20Mic,Microphone,,,,slider,,",
+    "input": "~obs.level.69da3f8f-7f62-4abe-a594-4e40dd579858,OBS%20%C2%B7%20Desk%20Mic,Microphone,Auto,,,slider,,",
     "expected": {
       "entity": "obs.level.69da3f8f-7f62-4abe-a594-4e40dd579858",
       "label": "OBS · Desk Mic",
@@ -1216,7 +1216,7 @@
   },
   {
     "name": "companion_obs_meter: picker_alias",
-    "input": "~obs.meter.69da3f8f-7f62-4abe-a594-4e40dd579858,OBS%20Meter%20%C2%B7%20Desk%20Mic,Microphone,,,,slider,,",
+    "input": "~obs.meter.69da3f8f-7f62-4abe-a594-4e40dd579858,OBS%20Meter%20%C2%B7%20Desk%20Mic,Microphone,Auto,,,slider,,",
     "expected": {
       "entity": "obs.meter.69da3f8f-7f62-4abe-a594-4e40dd579858",
       "label": "OBS Meter · Desk Mic",
