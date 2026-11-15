@@ -166,6 +166,7 @@ start_dock=Start / Dock
 still=Fixe
 subpage=Sous-page
 stop=Arrêter
+start_replay_buffer=Démarrer le tampon de replay
 stopped=Arrêté
 stopping=Arrêt en cours
 sunny=Ensoleillé

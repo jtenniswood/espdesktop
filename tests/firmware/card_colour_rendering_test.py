@@ -312,6 +312,18 @@ int main() {
     assert(lv_obj_has_state(&title, LV_STATE_DISABLED));
   }
   {
+    lv_obj_t tile, title, detail;
+    CompanionCardRef replay{&tile, "obs.replay", "", ""};
+    replay.text_label = &title;
+    replay.obs_detail = &detail;
+    companion_render_obs_detail(replay, "Start Replay Buffer");
+    assert(title.content == "Save Replay" && detail.content == "Start Replay Buffer");
+    companion_render_obs_detail(replay, "Replay saved");
+    assert(title.content == "Save Replay" && detail.content == "Replay saved");
+    companion_render_obs_detail(replay, "Save Replay");
+    assert(title.content == "Save Replay" && detail.content.empty());
+  }
+  {
     lv_obj_t slider, title, fill;
     CompanionSliderRef fader;
     fader.slider = &slider;

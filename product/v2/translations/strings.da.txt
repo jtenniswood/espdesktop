@@ -166,6 +166,7 @@ start_dock=Start / Dock
 still=Stille
 subpage=Underside
 stop=Stop
+start_replay_buffer=Start genafspilningsbuffer
 stopped=Stoppet
 stopping=Stopper
 sunny=Solrigt

@@ -166,6 +166,7 @@ start_dock=Start / Dock
 still=Parado
 subpage=Subpágina
 stop=Parar
+start_replay_buffer=Iniciar buffer de replay
 stopped=Parado
 stopping=Parando
 sunny=Ensolarado

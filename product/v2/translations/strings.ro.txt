@@ -166,6 +166,7 @@ start_dock=Start / Dock
 still=Nemișcat
 subpage=Subpagină
 stop=Oprire
+start_replay_buffer=Pornește bufferul de reluare
 stopped=Oprit
 stopping=Se oprește
 sunny=Însorit

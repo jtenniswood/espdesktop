@@ -4452,7 +4452,7 @@ async function assertOBSSceneCard(browser) {
       { id: fader, label: "Desk Mic" },
       { id: "obs.take.9ea47782-fada-4bb3-aef6-1904669efae7", label: "Take Live · Setup" },
       { id: "obs.status.record", label: "Recording · Idle" },
-      { id: "obs.replay", label: "Save Replay" },
+      { id: "obs.status.program", label: "Program · Gameplay" },
     ] : [],
   }));
   const page = await context.newPage();
@@ -4498,7 +4498,9 @@ async function assertOBSSceneCard(browser) {
     await page.getByRole("button", { name: "Save", exact: true }).click();
     await waitForNativeState(fixture, () => fixture.document.buttons[7]?.startsWith("obs.replay;"),
       "The OBS replay card saves a stable ID");
-
+    const replayTile = page.locator('.sp-main [data-slot="7"]');
+    await replayTile.getByText("Save Replay", { exact: true }).waitFor();
+    await replayTile.getByText("Start Replay Buffer", { exact: true }).waitFor();
 
     await page.locator(".sp-main .sp-empty-cell").first().click();
     await page.getByRole("button", { name: "Sound card type", exact: true }).click();

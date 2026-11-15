@@ -497,7 +497,7 @@ inline void setup_companion_card(BtnSlot &s, const ParsedCfg &p,
   const bool obs_mute = companion_obs_audio_uuid(p.entity, "obs.mute.");
   const bool supports_obs_alias = companion_obs_scene_target(p.entity) || obs_mute;
   const std::string obs_alias = supports_obs_alias ? p.label : "";
-  const bool dynamic_label = tokenized_card || p.label.empty() || !obs_alias.empty();
+  const bool dynamic_label = tokenized_card || p.entity == "obs.replay" || p.label.empty() || !obs_alias.empty();
   const auto obs_snapshot = tokenized_card ? companion_runtime_snapshot() : CompanionRuntimeSnapshot{};
   const bool recording = p.entity == "obs.output.record" && companion_published_action(obs_snapshot, "obs.record.active");
   const bool url_card = !companion_encoded_url(p.sensor).empty();

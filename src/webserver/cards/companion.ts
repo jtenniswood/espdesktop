@@ -1656,8 +1656,9 @@ export function registerCompanionCardTypes(
                 const preview = cardBadgePreview(muted ? { ...card, icon: "Microphone Off" } : card, helpers, {
                     label, iconFallback: companionSubtypeDefaultIcon(mode), badge: COMPANION_CARD_METADATA.preview.badge,
                 });
-                if (mode === "obs_take" || mode === "obs_brb" || (record && currentLabel === "Stopping")) {
-                    const [name, detail] = (currentLabel || "").split(" · ", 2);
+                if (mode === "obs_take" || mode === "obs_brb" || mode === "obs_replay" || (record && currentLabel === "Stopping")) {
+                    const status = currentLabel || (mode === "obs_replay" && obsControlLabels.has("obs.status.program") ? "Start Replay Buffer" : "");
+                    const [name, detail] = status.split(" · ", 2);
                     const title = record ? label : name === "Resume" ? name : fallback[mode];
                     const note = detail || (name === title ? "" : name || "Unavailable");
                     preview.labelHtml = '<span class="sp-btn-label-row sp-obs-label"><span class="sp-btn-label">' +

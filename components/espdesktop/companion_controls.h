@@ -721,6 +721,8 @@ inline std::string companion_default_action_label(const std::string &action_id,
   const auto &snapshot = state ? *state : owned;
   const auto *action = companion_published_action(snapshot, action_id);
   if (action && !action->label.empty()) return action->label;
+  if (action_id == "obs.replay" && companion_published_action(snapshot, "obs.status.program"))
+    return espdesktop_i18n("Start Replay Buffer");
   if (action_id.rfind("obs.", 0) == 0) return espdesktop_i18n("Unavailable");
   return action_id.empty() ? espdesktop_i18n("Mac App") : action_id;
 }
@@ -1096,6 +1098,7 @@ inline void companion_render_obs_detail(CompanionCardRef &ref, const std::string
   const std::string separator = " · ";
   const auto split = label.find(separator);
   const char *name = ref.action_id == "obs.take" ? "Take Live"
+    : ref.action_id == "obs.replay" ? "Save Replay"
     : (label.rfind("Resume", 0) == 0 ? "Resume" : "BRB");
   const bool record = ref.action_id == "obs.output.record";
   const std::string primary = record ? label : espdesktop_i18n(name);

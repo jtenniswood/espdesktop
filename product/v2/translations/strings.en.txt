@@ -166,6 +166,7 @@ start_dock=Start / Dock
 still=Still
 subpage=Subpage
 stop=Stop
+start_replay_buffer=Start Replay Buffer
 stopped=Stopped
 stopping=Stopping
 sunny=Sunny

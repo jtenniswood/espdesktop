@@ -104,7 +104,7 @@ Under **Sound**, choose **OBS Input Cough** and select the input to mute momenta
 
 Add an **OBS Status** tile and choose **Program scene**, **Streaming**, or **Recording**. These tiles display OBS state. You can check for an active stream, reconnecting stream, or paused recording while you work in another app.
 
-Add **OBS Save Replay** to capture a clip. Enable and start the Replay Buffer in OBS first. The tile displays **Replay saved** after OBS confirms that it wrote a file.
+Add **OBS Save Replay** to capture a clip. If the tile says **Start Replay Buffer**, enable and start it in OBS. The tile displays **Replay saved** after OBS confirms that it wrote a file.
 
 To get started, open **Screen → App Subpages → Add OBS starter page** in the display editor. Choose a main scene, a break scene, and a mic, then select **Pin to Home**. The **OBS Studio** folder uses one free Home slot. Open it in **Layout** to edit the individual cards. The **Main scene** and **Break scene** cards select Preview in Studio Mode and Program otherwise. The selected card uses the ON colour. The separate status card shows the current Program scene.
 

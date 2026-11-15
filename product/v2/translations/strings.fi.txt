@@ -166,6 +166,7 @@ start_dock=Start / Dock
 still=Paikallaan
 subpage=Alisivu
 stop=Pysäytä
+start_replay_buffer=Käynnistä toistopuskuri
 stopped=Pysäytetty
 stopping=Pysäytetään
 sunny=Aurinkoista

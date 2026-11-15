@@ -166,6 +166,7 @@ start_dock=Start / Dock
 still=Stabilny
 subpage=Podstrona
 stop=Zatrzymaj
+start_replay_buffer=Uruchom bufor powtórek
 stopped=Zatrzymane
 stopping=Zatrzymywanie
 sunny=Słonecznie

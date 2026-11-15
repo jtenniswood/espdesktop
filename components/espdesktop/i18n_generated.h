@@ -166,6 +166,7 @@ inline const char *espdesktop_i18n_cs(const char *text) {
   if (std::strcmp(text, "Still") == 0) return "Stojí";
   if (std::strcmp(text, "Subpage") == 0) return "Podstránka";
   if (std::strcmp(text, "Stop") == 0) return "Zastavit";
+  if (std::strcmp(text, "Start Replay Buffer") == 0) return "Spustit vyrovnávací paměť záznamu";
   if (std::strcmp(text, "Stopped") == 0) return "Zastaveno";
   if (std::strcmp(text, "Stopping") == 0) return "Zastavování";
   if (std::strcmp(text, "Sunny") == 0) return "Slunečno";
@@ -460,6 +461,7 @@ inline const char *espdesktop_i18n_da(const char *text) {
   if (std::strcmp(text, "Spot Clean") == 0) return "Pletrengøring";
   if (std::strcmp(text, "Still") == 0) return "Stille";
   if (std::strcmp(text, "Subpage") == 0) return "Underside";
+  if (std::strcmp(text, "Start Replay Buffer") == 0) return "Start genafspilningsbuffer";
   if (std::strcmp(text, "Stopped") == 0) return "Stoppet";
   if (std::strcmp(text, "Stopping") == 0) return "Stopper";
   if (std::strcmp(text, "Sunny") == 0) return "Solrigt";
@@ -749,6 +751,7 @@ inline const char *espdesktop_i18n_de(const char *text) {
   if (std::strcmp(text, "Spot Clean") == 0) return "Punktreinigung";
   if (std::strcmp(text, "Subpage") == 0) return "Unterseite";
   if (std::strcmp(text, "Stop") == 0) return "Stopp";
+  if (std::strcmp(text, "Start Replay Buffer") == 0) return "Replay-Puffer starten";
   if (std::strcmp(text, "Stopped") == 0) return "Gestoppt";
   if (std::strcmp(text, "Stopping") == 0) return "Wird gestoppt";
   if (std::strcmp(text, "Sunny") == 0) return "Sonnig";
@@ -1050,6 +1053,7 @@ inline const char *espdesktop_i18n_es(const char *text) {
   if (std::strcmp(text, "Still") == 0) return "Quieto";
   if (std::strcmp(text, "Subpage") == 0) return "Subpágina";
   if (std::strcmp(text, "Stop") == 0) return "Detener";
+  if (std::strcmp(text, "Start Replay Buffer") == 0) return "Iniciar búfer de repetición";
   if (std::strcmp(text, "Stopped") == 0) return "Detenido";
   if (std::strcmp(text, "Stopping") == 0) return "Deteniendo";
   if (std::strcmp(text, "Sunny") == 0) return "Soleado";
@@ -1362,6 +1366,7 @@ inline const char *espdesktop_i18n_fi(const char *text) {
   if (std::strcmp(text, "Still") == 0) return "Paikallaan";
   if (std::strcmp(text, "Subpage") == 0) return "Alisivu";
   if (std::strcmp(text, "Stop") == 0) return "Pysäytä";
+  if (std::strcmp(text, "Start Replay Buffer") == 0) return "Käynnistä toistopuskuri";
   if (std::strcmp(text, "Stopped") == 0) return "Pysäytetty";
   if (std::strcmp(text, "Stopping") == 0) return "Pysäytetään";
   if (std::strcmp(text, "Sunny") == 0) return "Aurinkoista";
@@ -1656,6 +1661,7 @@ inline const char *espdesktop_i18n_fr(const char *text) {
   if (std::strcmp(text, "Still") == 0) return "Fixe";
   if (std::strcmp(text, "Subpage") == 0) return "Sous-page";
   if (std::strcmp(text, "Stop") == 0) return "Arrêter";
+  if (std::strcmp(text, "Start Replay Buffer") == 0) return "Démarrer le tampon de replay";
   if (std::strcmp(text, "Stopped") == 0) return "Arrêté";
   if (std::strcmp(text, "Stopping") == 0) return "Arrêt en cours";
   if (std::strcmp(text, "Sunny") == 0) return "Ensoleillé";
@@ -1975,6 +1981,7 @@ inline const char *espdesktop_i18n_he(const char *text) {
   if (std::strcmp(text, "Still") == 0) return "קבוע";
   if (std::strcmp(text, "Subpage") == 0) return "תת-עמוד";
   if (std::strcmp(text, "Stop") == 0) return "עצירה";
+  if (std::strcmp(text, "Start Replay Buffer") == 0) return "הפעלת מאגר שידור חוזר";
   if (std::strcmp(text, "Stopped") == 0) return "הופסק";
   if (std::strcmp(text, "Stopping") == 0) return "מתבצעת עצירה";
   if (std::strcmp(text, "Sunny") == 0) return "שמשי";
@@ -2283,6 +2290,7 @@ inline const char *espdesktop_i18n_hu(const char *text) {
   if (std::strcmp(text, "Still") == 0) return "Álló";
   if (std::strcmp(text, "Subpage") == 0) return "Aloldal";
   if (std::strcmp(text, "Stop") == 0) return "Leállítás";
+  if (std::strcmp(text, "Start Replay Buffer") == 0) return "Visszajátszási puffer indítása";
   if (std::strcmp(text, "Stopped") == 0) return "Leállítva";
   if (std::strcmp(text, "Stopping") == 0) return "Leállítás";
   if (std::strcmp(text, "Sunny") == 0) return "Napos";
@@ -2586,6 +2594,7 @@ inline const char *espdesktop_i18n_it(const char *text) {
   if (std::strcmp(text, "Still") == 0) return "Fermo";
   if (std::strcmp(text, "Subpage") == 0) return "Sottopagina";
   if (std::strcmp(text, "Stop") == 0) return "Arresta";
+  if (std::strcmp(text, "Start Replay Buffer") == 0) return "Avvia buffer di replay";
   if (std::strcmp(text, "Stopped") == 0) return "Interrotto";
   if (std::strcmp(text, "Stopping") == 0) return "Arresto in corso";
   if (std::strcmp(text, "Sunny") == 0) return "Soleggiato";
@@ -2885,6 +2894,7 @@ inline const char *espdesktop_i18n_nb(const char *text) {
   if (std::strcmp(text, "Still") == 0) return "Stille";
   if (std::strcmp(text, "Subpage") == 0) return "Underside";
   if (std::strcmp(text, "Stop") == 0) return "Stopp";
+  if (std::strcmp(text, "Start Replay Buffer") == 0) return "Start repetisjonsbuffer";
   if (std::strcmp(text, "Stopped") == 0) return "Stoppet";
   if (std::strcmp(text, "Stopping") == 0) return "Stopper";
   if (std::strcmp(text, "Sunny") == 0) return "Sol";
@@ -3185,6 +3195,7 @@ inline const char *espdesktop_i18n_nl(const char *text) {
   if (std::strcmp(text, "Still") == 0) return "Vast";
   if (std::strcmp(text, "Subpage") == 0) return "Subpagina";
   if (std::strcmp(text, "Stop") == 0) return "Stoppen";
+  if (std::strcmp(text, "Start Replay Buffer") == 0) return "Replaybuffer starten";
   if (std::strcmp(text, "Stopped") == 0) return "Gestopt";
   if (std::strcmp(text, "Stopping") == 0) return "Bezig met stoppen";
   if (std::strcmp(text, "Sunny") == 0) return "Zonnig";
@@ -3477,6 +3488,7 @@ inline const char *espdesktop_i18n_pl(const char *text) {
   if (std::strcmp(text, "Still") == 0) return "Stabilny";
   if (std::strcmp(text, "Subpage") == 0) return "Podstrona";
   if (std::strcmp(text, "Stop") == 0) return "Zatrzymaj";
+  if (std::strcmp(text, "Start Replay Buffer") == 0) return "Uruchom bufor powtórek";
   if (std::strcmp(text, "Stopped") == 0) return "Zatrzymane";
   if (std::strcmp(text, "Stopping") == 0) return "Zatrzymywanie";
   if (std::strcmp(text, "Sunny") == 0) return "Słonecznie";
@@ -3777,6 +3789,7 @@ inline const char *espdesktop_i18n_pt_br(const char *text) {
   if (std::strcmp(text, "Still") == 0) return "Parado";
   if (std::strcmp(text, "Subpage") == 0) return "Subpágina";
   if (std::strcmp(text, "Stop") == 0) return "Parar";
+  if (std::strcmp(text, "Start Replay Buffer") == 0) return "Iniciar buffer de replay";
   if (std::strcmp(text, "Stopped") == 0) return "Parado";
   if (std::strcmp(text, "Stopping") == 0) return "Parando";
   if (std::strcmp(text, "Sunny") == 0) return "Ensolarado";
@@ -4075,6 +4088,7 @@ inline const char *espdesktop_i18n_pt(const char *text) {
   if (std::strcmp(text, "Still") == 0) return "Parado";
   if (std::strcmp(text, "Subpage") == 0) return "Subpágina";
   if (std::strcmp(text, "Stop") == 0) return "Parar";
+  if (std::strcmp(text, "Start Replay Buffer") == 0) return "Iniciar memória de repetição";
   if (std::strcmp(text, "Stopped") == 0) return "Parado";
   if (std::strcmp(text, "Stopping") == 0) return "A parar";
   if (std::strcmp(text, "Sunny") == 0) return "Solarengo";
@@ -4383,6 +4397,7 @@ inline const char *espdesktop_i18n_ro(const char *text) {
   if (std::strcmp(text, "Still") == 0) return "Nemișcat";
   if (std::strcmp(text, "Subpage") == 0) return "Subpagină";
   if (std::strcmp(text, "Stop") == 0) return "Oprire";
+  if (std::strcmp(text, "Start Replay Buffer") == 0) return "Pornește bufferul de reluare";
   if (std::strcmp(text, "Stopped") == 0) return "Oprit";
   if (std::strcmp(text, "Stopping") == 0) return "Se oprește";
   if (std::strcmp(text, "Sunny") == 0) return "Însorit";
@@ -4695,6 +4710,7 @@ inline const char *espdesktop_i18n_ru(const char *text) {
   if (std::strcmp(text, "Still") == 0) return "Неподвижно";
   if (std::strcmp(text, "Subpage") == 0) return "Подстраница";
   if (std::strcmp(text, "Stop") == 0) return "Стоп";
+  if (std::strcmp(text, "Start Replay Buffer") == 0) return "Запустить буфер повтора";
   if (std::strcmp(text, "Stopped") == 0) return "Остановлено";
   if (std::strcmp(text, "Stopping") == 0) return "Остановка";
   if (std::strcmp(text, "Sunny") == 0) return "Солнечно";
@@ -4998,6 +5014,7 @@ inline const char *espdesktop_i18n_sk(const char *text) {
   if (std::strcmp(text, "Still") == 0) return "Stojí";
   if (std::strcmp(text, "Subpage") == 0) return "Podstránka";
   if (std::strcmp(text, "Stop") == 0) return "Zastaviť";
+  if (std::strcmp(text, "Start Replay Buffer") == 0) return "Spustiť vyrovnávaciu pamäť záznamu";
   if (std::strcmp(text, "Stopped") == 0) return "Zastavené";
   if (std::strcmp(text, "Stopping") == 0) return "Zastavuje sa";
   if (std::strcmp(text, "Sunny") == 0) return "Slnečno";
@@ -5301,6 +5318,7 @@ inline const char *espdesktop_i18n_sl(const char *text) {
   if (std::strcmp(text, "Still") == 0) return "Mirovanje";
   if (std::strcmp(text, "Subpage") == 0) return "Podstran";
   if (std::strcmp(text, "Stop") == 0) return "Ustavi";
+  if (std::strcmp(text, "Start Replay Buffer") == 0) return "Zaženi medpomnilnik ponovitev";
   if (std::strcmp(text, "Stopped") == 0) return "Ustavljeno";
   if (std::strcmp(text, "Stopping") == 0) return "Ustavljanje";
   if (std::strcmp(text, "Sunny") == 0) return "Sončno";
@@ -5599,6 +5617,7 @@ inline const char *espdesktop_i18n_sv(const char *text) {
   if (std::strcmp(text, "Start") == 0) return "Starta";
   if (std::strcmp(text, "Subpage") == 0) return "Undersida";
   if (std::strcmp(text, "Stop") == 0) return "Stoppa";
+  if (std::strcmp(text, "Start Replay Buffer") == 0) return "Starta reprisbuffer";
   if (std::strcmp(text, "Stopped") == 0) return "Stoppad";
   if (std::strcmp(text, "Stopping") == 0) return "Stoppar";
   if (std::strcmp(text, "Sunny") == 0) return "Soligt";
@@ -5902,6 +5921,7 @@ inline const char *espdesktop_i18n_tr(const char *text) {
   if (std::strcmp(text, "Still") == 0) return "Durgun";
   if (std::strcmp(text, "Subpage") == 0) return "Alt sayfa";
   if (std::strcmp(text, "Stop") == 0) return "Durdur";
+  if (std::strcmp(text, "Start Replay Buffer") == 0) return "Tekrar tamponunu başlat";
   if (std::strcmp(text, "Stopped") == 0) return "Durduruldu";
   if (std::strcmp(text, "Stopping") == 0) return "Durduruluyor";
   if (std::strcmp(text, "Sunny") == 0) return "Güneşli";
@@ -6212,6 +6232,7 @@ inline const char *espdesktop_i18n_uk(const char *text) {
   if (std::strcmp(text, "Still") == 0) return "Нерухомо";
   if (std::strcmp(text, "Subpage") == 0) return "Підсторінка";
   if (std::strcmp(text, "Stop") == 0) return "Зупинити";
+  if (std::strcmp(text, "Start Replay Buffer") == 0) return "Запустити буфер повтору";
   if (std::strcmp(text, "Stopped") == 0) return "Зупинено";
   if (std::strcmp(text, "Stopping") == 0) return "Зупинення";
   if (std::strcmp(text, "Sunny") == 0) return "Сонячно";
@@ -6528,6 +6549,7 @@ inline const char *espdesktop_i18n_key_en(const char *key) {
   if (std::strcmp(key, "still") == 0) return "Still";
   if (std::strcmp(key, "subpage") == 0) return "Subpage";
   if (std::strcmp(key, "stop") == 0) return "Stop";
+  if (std::strcmp(key, "start_replay_buffer") == 0) return "Start Replay Buffer";
   if (std::strcmp(key, "stopped") == 0) return "Stopped";
   if (std::strcmp(key, "stopping") == 0) return "Stopping";
   if (std::strcmp(key, "sunny") == 0) return "Sunny";
@@ -6857,6 +6879,7 @@ inline const char *espdesktop_i18n_key_cs(const char *key) {
   if (std::strcmp(key, "still") == 0) return "Stojí";
   if (std::strcmp(key, "subpage") == 0) return "Podstránka";
   if (std::strcmp(key, "stop") == 0) return "Zastavit";
+  if (std::strcmp(key, "start_replay_buffer") == 0) return "Spustit vyrovnávací paměť záznamu";
   if (std::strcmp(key, "stopped") == 0) return "Zastaveno";
   if (std::strcmp(key, "stopping") == 0) return "Zastavování";
   if (std::strcmp(key, "sunny") == 0) return "Slunečno";
@@ -7161,6 +7184,7 @@ inline const char *espdesktop_i18n_key_da(const char *key) {
   if (std::strcmp(key, "spot_clean") == 0) return "Pletrengøring";
   if (std::strcmp(key, "still") == 0) return "Stille";
   if (std::strcmp(key, "subpage") == 0) return "Underside";
+  if (std::strcmp(key, "start_replay_buffer") == 0) return "Start genafspilningsbuffer";
   if (std::strcmp(key, "stopped") == 0) return "Stoppet";
   if (std::strcmp(key, "stopping") == 0) return "Stopper";
   if (std::strcmp(key, "sunny") == 0) return "Solrigt";
@@ -7458,6 +7482,7 @@ inline const char *espdesktop_i18n_key_de(const char *key) {
   if (std::strcmp(key, "spot_clean") == 0) return "Punktreinigung";
   if (std::strcmp(key, "subpage") == 0) return "Unterseite";
   if (std::strcmp(key, "stop") == 0) return "Stopp";
+  if (std::strcmp(key, "start_replay_buffer") == 0) return "Replay-Puffer starten";
   if (std::strcmp(key, "stopped") == 0) return "Gestoppt";
   if (std::strcmp(key, "stopping") == 0) return "Wird gestoppt";
   if (std::strcmp(key, "sunny") == 0) return "Sonnig";
@@ -7767,6 +7792,7 @@ inline const char *espdesktop_i18n_key_es(const char *key) {
   if (std::strcmp(key, "still") == 0) return "Quieto";
   if (std::strcmp(key, "subpage") == 0) return "Subpágina";
   if (std::strcmp(key, "stop") == 0) return "Detener";
+  if (std::strcmp(key, "start_replay_buffer") == 0) return "Iniciar búfer de repetición";
   if (std::strcmp(key, "stopped") == 0) return "Detenido";
   if (std::strcmp(key, "stopping") == 0) return "Deteniendo";
   if (std::strcmp(key, "sunny") == 0) return "Soleado";
@@ -8088,6 +8114,7 @@ inline const char *espdesktop_i18n_key_fi(const char *key) {
   if (std::strcmp(key, "still") == 0) return "Paikallaan";
   if (std::strcmp(key, "subpage") == 0) return "Alisivu";
   if (std::strcmp(key, "stop") == 0) return "Pysäytä";
+  if (std::strcmp(key, "start_replay_buffer") == 0) return "Käynnistä toistopuskuri";
   if (std::strcmp(key, "stopped") == 0) return "Pysäytetty";
   if (std::strcmp(key, "stopping") == 0) return "Pysäytetään";
   if (std::strcmp(key, "sunny") == 0) return "Aurinkoista";
@@ -8392,6 +8419,7 @@ inline const char *espdesktop_i18n_key_fr(const char *key) {
   if (std::strcmp(key, "still") == 0) return "Fixe";
   if (std::strcmp(key, "subpage") == 0) return "Sous-page";
   if (std::strcmp(key, "stop") == 0) return "Arrêter";
+  if (std::strcmp(key, "start_replay_buffer") == 0) return "Démarrer le tampon de replay";
   if (std::strcmp(key, "stopped") == 0) return "Arrêté";
   if (std::strcmp(key, "stopping") == 0) return "Arrêt en cours";
   if (std::strcmp(key, "sunny") == 0) return "Ensoleillé";
@@ -8720,6 +8748,7 @@ inline const char *espdesktop_i18n_key_he(const char *key) {
   if (std::strcmp(key, "still") == 0) return "קבוע";
   if (std::strcmp(key, "subpage") == 0) return "תת-עמוד";
   if (std::strcmp(key, "stop") == 0) return "עצירה";
+  if (std::strcmp(key, "start_replay_buffer") == 0) return "הפעלת מאגר שידור חוזר";
   if (std::strcmp(key, "stopped") == 0) return "הופסק";
   if (std::strcmp(key, "stopping") == 0) return "מתבצעת עצירה";
   if (std::strcmp(key, "sunny") == 0) return "שמשי";
@@ -9038,6 +9067,7 @@ inline const char *espdesktop_i18n_key_hu(const char *key) {
   if (std::strcmp(key, "still") == 0) return "Álló";
   if (std::strcmp(key, "subpage") == 0) return "Aloldal";
   if (std::strcmp(key, "stop") == 0) return "Leállítás";
+  if (std::strcmp(key, "start_replay_buffer") == 0) return "Visszajátszási puffer indítása";
   if (std::strcmp(key, "stopped") == 0) return "Leállítva";
   if (std::strcmp(key, "stopping") == 0) return "Leállítás";
   if (std::strcmp(key, "sunny") == 0) return "Napos";
@@ -9351,6 +9381,7 @@ inline const char *espdesktop_i18n_key_it(const char *key) {
   if (std::strcmp(key, "still") == 0) return "Fermo";
   if (std::strcmp(key, "subpage") == 0) return "Sottopagina";
   if (std::strcmp(key, "stop") == 0) return "Arresta";
+  if (std::strcmp(key, "start_replay_buffer") == 0) return "Avvia buffer di replay";
   if (std::strcmp(key, "stopped") == 0) return "Interrotto";
   if (std::strcmp(key, "stopping") == 0) return "Arresto in corso";
   if (std::strcmp(key, "sunny") == 0) return "Soleggiato";
@@ -9659,6 +9690,7 @@ inline const char *espdesktop_i18n_key_nb(const char *key) {
   if (std::strcmp(key, "still") == 0) return "Stille";
   if (std::strcmp(key, "subpage") == 0) return "Underside";
   if (std::strcmp(key, "stop") == 0) return "Stopp";
+  if (std::strcmp(key, "start_replay_buffer") == 0) return "Start repetisjonsbuffer";
   if (std::strcmp(key, "stopped") == 0) return "Stoppet";
   if (std::strcmp(key, "stopping") == 0) return "Stopper";
   if (std::strcmp(key, "sunny") == 0) return "Sol";
@@ -9967,6 +9999,7 @@ inline const char *espdesktop_i18n_key_nl(const char *key) {
   if (std::strcmp(key, "still") == 0) return "Vast";
   if (std::strcmp(key, "subpage") == 0) return "Subpagina";
   if (std::strcmp(key, "stop") == 0) return "Stoppen";
+  if (std::strcmp(key, "start_replay_buffer") == 0) return "Replaybuffer starten";
   if (std::strcmp(key, "stopped") == 0) return "Gestopt";
   if (std::strcmp(key, "stopping") == 0) return "Bezig met stoppen";
   if (std::strcmp(key, "sunny") == 0) return "Zonnig";
@@ -10266,6 +10299,7 @@ inline const char *espdesktop_i18n_key_pl(const char *key) {
   if (std::strcmp(key, "still") == 0) return "Stabilny";
   if (std::strcmp(key, "subpage") == 0) return "Podstrona";
   if (std::strcmp(key, "stop") == 0) return "Zatrzymaj";
+  if (std::strcmp(key, "start_replay_buffer") == 0) return "Uruchom bufor powtórek";
   if (std::strcmp(key, "stopped") == 0) return "Zatrzymane";
   if (std::strcmp(key, "stopping") == 0) return "Zatrzymywanie";
   if (std::strcmp(key, "sunny") == 0) return "Słonecznie";
@@ -10576,6 +10610,7 @@ inline const char *espdesktop_i18n_key_pt_br(const char *key) {
   if (std::strcmp(key, "still") == 0) return "Parado";
   if (std::strcmp(key, "subpage") == 0) return "Subpágina";
   if (std::strcmp(key, "stop") == 0) return "Parar";
+  if (std::strcmp(key, "start_replay_buffer") == 0) return "Iniciar buffer de replay";
   if (std::strcmp(key, "stopped") == 0) return "Parado";
   if (std::strcmp(key, "stopping") == 0) return "Parando";
   if (std::strcmp(key, "sunny") == 0) return "Ensolarado";
@@ -10883,6 +10918,7 @@ inline const char *espdesktop_i18n_key_pt(const char *key) {
   if (std::strcmp(key, "still") == 0) return "Parado";
   if (std::strcmp(key, "subpage") == 0) return "Subpágina";
   if (std::strcmp(key, "stop") == 0) return "Parar";
+  if (std::strcmp(key, "start_replay_buffer") == 0) return "Iniciar memória de repetição";
   if (std::strcmp(key, "stopped") == 0) return "Parado";
   if (std::strcmp(key, "stopping") == 0) return "A parar";
   if (std::strcmp(key, "sunny") == 0) return "Solarengo";
@@ -11200,6 +11236,7 @@ inline const char *espdesktop_i18n_key_ro(const char *key) {
   if (std::strcmp(key, "still") == 0) return "Nemișcat";
   if (std::strcmp(key, "subpage") == 0) return "Subpagină";
   if (std::strcmp(key, "stop") == 0) return "Oprire";
+  if (std::strcmp(key, "start_replay_buffer") == 0) return "Pornește bufferul de reluare";
   if (std::strcmp(key, "stopped") == 0) return "Oprit";
   if (std::strcmp(key, "stopping") == 0) return "Se oprește";
   if (std::strcmp(key, "sunny") == 0) return "Însorit";
@@ -11522,6 +11559,7 @@ inline const char *espdesktop_i18n_key_ru(const char *key) {
   if (std::strcmp(key, "still") == 0) return "Неподвижно";
   if (std::strcmp(key, "subpage") == 0) return "Подстраница";
   if (std::strcmp(key, "stop") == 0) return "Стоп";
+  if (std::strcmp(key, "start_replay_buffer") == 0) return "Запустить буфер повтора";
   if (std::strcmp(key, "stopped") == 0) return "Остановлено";
   if (std::strcmp(key, "stopping") == 0) return "Остановка";
   if (std::strcmp(key, "sunny") == 0) return "Солнечно";
@@ -11835,6 +11873,7 @@ inline const char *espdesktop_i18n_key_sk(const char *key) {
   if (std::strcmp(key, "still") == 0) return "Stojí";
   if (std::strcmp(key, "subpage") == 0) return "Podstránka";
   if (std::strcmp(key, "stop") == 0) return "Zastaviť";
+  if (std::strcmp(key, "start_replay_buffer") == 0) return "Spustiť vyrovnávaciu pamäť záznamu";
   if (std::strcmp(key, "stopped") == 0) return "Zastavené";
   if (std::strcmp(key, "stopping") == 0) return "Zastavuje sa";
   if (std::strcmp(key, "sunny") == 0) return "Slnečno";
@@ -12148,6 +12187,7 @@ inline const char *espdesktop_i18n_key_sl(const char *key) {
   if (std::strcmp(key, "still") == 0) return "Mirovanje";
   if (std::strcmp(key, "subpage") == 0) return "Podstran";
   if (std::strcmp(key, "stop") == 0) return "Ustavi";
+  if (std::strcmp(key, "start_replay_buffer") == 0) return "Zaženi medpomnilnik ponovitev";
   if (std::strcmp(key, "stopped") == 0) return "Ustavljeno";
   if (std::strcmp(key, "stopping") == 0) return "Ustavljanje";
   if (std::strcmp(key, "sunny") == 0) return "Sončno";
@@ -12456,6 +12496,7 @@ inline const char *espdesktop_i18n_key_sv(const char *key) {
   if (std::strcmp(key, "start") == 0) return "Starta";
   if (std::strcmp(key, "subpage") == 0) return "Undersida";
   if (std::strcmp(key, "stop") == 0) return "Stoppa";
+  if (std::strcmp(key, "start_replay_buffer") == 0) return "Starta reprisbuffer";
   if (std::strcmp(key, "stopped") == 0) return "Stoppad";
   if (std::strcmp(key, "stopping") == 0) return "Stoppar";
   if (std::strcmp(key, "sunny") == 0) return "Soligt";
@@ -12767,6 +12808,7 @@ inline const char *espdesktop_i18n_key_tr(const char *key) {
   if (std::strcmp(key, "still") == 0) return "Durgun";
   if (std::strcmp(key, "subpage") == 0) return "Alt sayfa";
   if (std::strcmp(key, "stop") == 0) return "Durdur";
+  if (std::strcmp(key, "start_replay_buffer") == 0) return "Tekrar tamponunu başlat";
   if (std::strcmp(key, "stopped") == 0) return "Durduruldu";
   if (std::strcmp(key, "stopping") == 0) return "Durduruluyor";
   if (std::strcmp(key, "sunny") == 0) return "Güneşli";
@@ -13087,6 +13129,7 @@ inline const char *espdesktop_i18n_key_uk(const char *key) {
   if (std::strcmp(key, "still") == 0) return "Нерухомо";
   if (std::strcmp(key, "subpage") == 0) return "Підсторінка";
   if (std::strcmp(key, "stop") == 0) return "Зупинити";
+  if (std::strcmp(key, "start_replay_buffer") == 0) return "Запустити буфер повтору";
   if (std::strcmp(key, "stopped") == 0) return "Зупинено";
   if (std::strcmp(key, "stopping") == 0) return "Зупинення";
   if (std::strcmp(key, "sunny") == 0) return "Сонячно";
