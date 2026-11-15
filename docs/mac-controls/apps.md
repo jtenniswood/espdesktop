@@ -102,6 +102,8 @@ Under **Sound**, choose **OBS Input Level** to adjust a named mixer input. The t
 
 Under **Sound**, choose **OBS Input Meter** to check signal on a named input. It shows the strongest channel before the fader, so it can move even while that input is muted. Check the mute card separately. A meter shows **Unavailable** when OBS stops reporting that input.
 
+Under **Sound**, choose **OBS Input Cough** and select the input to mute momentarily. Hold the card while you cough, then release it to restore the previous mute state. An input that was already muted stays muted.
+
 Add an **OBS Status** tile and choose **Program scene**, **Streaming**, or **Recording**. These tiles display OBS state. You can check for an active stream, reconnecting stream, or paused recording while you work in another app.
 
 Add **OBS Save Replay** to capture a clip. Enable and start the Replay Buffer in OBS first. The tile displays **Replay saved** after OBS confirms that it wrote a file.
