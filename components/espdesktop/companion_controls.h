@@ -1102,7 +1102,8 @@ inline void companion_render_obs_detail(CompanionCardRef &ref, const std::string
     : (label.rfind("Resume", 0) == 0 ? "Resume" : "BRB");
   const bool record = ref.action_id == "obs.output.record";
   const std::string primary = record ? label : espdesktop_i18n(name);
-  const std::string detail = record ? (stopping ? espdesktop_i18n("Stopping") : "")
+  const bool already_on_break = ref.action_id == "obs.brb" && label == "BRB · Already on break";
+  const std::string detail = already_on_break ? "" : record ? (stopping ? espdesktop_i18n("Stopping") : "")
     : (split != std::string::npos ? label.substr(split + separator.size()) : (label == name ? "" : label));
   if (normalize_display_text(primary) != lv_label_get_text(ref.text_label))
     lv_label_set_display_text(ref.text_label, primary.c_str());
@@ -1113,7 +1114,7 @@ inline void companion_render_obs_detail(CompanionCardRef &ref, const std::string
   lv_obj_align(ref.text_label, LV_ALIGN_BOTTOM_LEFT, 0, detail.empty() ? 0 : -lv_obj_get_height(ref.obs_detail) - 2);
 }
 
-inline void companion_update_record_detail_contrast(const CompanionCardRef &ref, bool stopping) {
+inline void companion_update_obs_detail_contrast(const CompanionCardRef &ref, bool stopping) {
   const bool dim = lv_obj_has_state(ref.button, LV_STATE_DISABLED) && !stopping;
   if (lv_obj_has_state(ref.text_label, LV_STATE_DISABLED) != dim ||
       lv_obj_has_state(ref.obs_detail, LV_STATE_DISABLED) != dim)
@@ -1136,7 +1137,7 @@ inline void companion_setup_obs_detail(lv_obj_t *button, const lv_font_t *font) 
     const auto live = companion_default_action_label(ref.action_id, "", &snapshot);
     const bool recording = record && companion_published_action(snapshot, "obs.record.active");
     companion_render_obs_detail(ref, companion_obs_control_label(ref.action_id, "", live, recording), stopping);
-    if (record) companion_update_record_detail_contrast(ref, stopping);
+    companion_update_obs_detail_contrast(ref, stopping);
     return;
   }
 }
@@ -1321,7 +1322,7 @@ inline void companion_refresh_cards_if_requested() {
     if (lv_obj_has_state(it->button, LV_STATE_DISABLED) == available)
       set_card_disabled_state(it->button, !available);
     companion_apply_card_focus(it->button, it->action_id, it->url_config, it->show_focus, &snapshot);
-    if (record && it->obs_detail) companion_update_record_detail_contrast(*it, stopping);
+    if (it->obs_detail) companion_update_obs_detail_contrast(*it, stopping);
     companion_render_obs_mute(*it, snapshot);
     ++it;
   }

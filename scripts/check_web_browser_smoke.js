@@ -7766,7 +7766,7 @@ async function assertOBSStarterPage(browser) {
     assert.equal(await takeTile.locator('.sp-obs-detail').innerText(), "Enable Studio Mode");
     const brbTile = page.locator('.sp-main [data-slot="7"]');
     assert.equal(await brbTile.locator('.sp-btn-label').innerText(), "BRB");
-    assert.equal(await brbTile.locator('.sp-obs-detail').innerText(), "Already on break");
+    assert.equal(await brbTile.locator('.sp-obs-detail').innerText(), "");
     const fader = page.locator(".sp-main .sp-slider-fill");
     const fillColor = () => fader.evaluate(fill => getComputedStyle(fill).backgroundColor);
     assert.equal(await fillColor(), "rgb(128, 128, 128)", "muted mic fader is grey");

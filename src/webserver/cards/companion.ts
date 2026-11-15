@@ -1660,7 +1660,7 @@ export function registerCompanionCardTypes(
                     const status = currentLabel || (mode === "obs_replay" && obsControlLabels.has("obs.status.program") ? "Start Replay Buffer" : "");
                     const [name, detail] = status.split(" · ", 2);
                     const title = record ? label : name === "Resume" ? name : fallback[mode];
-                    const note = detail || (name === title ? "" : name || "Unavailable");
+                    const note = status === "BRB · Already on break" ? "" : detail || (name === title ? "" : name || "Unavailable");
                     preview.labelHtml = '<span class="sp-btn-label-row sp-obs-label"><span class="sp-btn-label">' +
                         helpers.escHtml(title) + '</span><span class="sp-obs-detail">' + helpers.escHtml(note) + '</span></span>';
                 }

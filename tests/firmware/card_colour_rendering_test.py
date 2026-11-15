@@ -263,7 +263,7 @@ groups = (
     ("button_grid_touch.h", "", ("consume_button_touch_press",)),
     ("button_grid_layout.h", "", ("parse_hex_color", "apply_button_colors", "apply_button_on_pattern")),
     ("companion_controls.h", "", ("companion_obs_scene_target", "companion_obs_scene_card", "companion_apply_card_focus", "companion_required_focus_ready", "companion_refresh_card_focus")),
-    ("companion_controls.h", "", ("companion_render_obs_detail", "companion_update_record_detail_contrast", "companion_render_slider")),
+    ("companion_controls.h", "", ("companion_render_obs_detail", "companion_update_obs_detail_contrast", "companion_render_slider")),
     ("button_grid_grid.h", "", ("card_palette_for_config", "card_slot_static_child", "reset_card_slot_dynamic_children")),
     ("button_grid_grid.h", "", ("apply_subpage_back_colors",)),
     ("button_grid_subscriptions.h", "", ("apply_sensor_active_color",)),
@@ -300,26 +300,43 @@ int main() {
     set_card_content_disabled(&tile, true);
     set_card_checked_state(&tile, true);
     companion_render_obs_detail(record, "Recording", true);
-    companion_update_record_detail_contrast(record, true);
+    companion_update_obs_detail_contrast(record, true);
     assert(title.content == "Recording" && detail.content == "Stopping" && title.y_offset < 0);
     assert(lv_obj_has_state(&tile, LV_STATE_DISABLED) && lv_obj_has_state(&tile, LV_STATE_CHECKED));
     assert(!lv_obj_has_state(&title, LV_STATE_DISABLED) && !lv_obj_has_state(&icon, LV_STATE_DISABLED));
 
     set_card_checked_state(&tile, false);
     companion_render_obs_detail(record, "Record", false);
-    companion_update_record_detail_contrast(record, false);
+    companion_update_obs_detail_contrast(record, false);
     assert(title.content == "Record" && detail.content.empty() && title.y_offset == 0);
     assert(lv_obj_has_state(&title, LV_STATE_DISABLED));
   }
   {
     lv_obj_t tile, title, detail;
+    tile.children = {&title, &detail};
     CompanionCardRef replay{&tile, "obs.replay", "", ""};
     replay.text_label = &title;
     replay.obs_detail = &detail;
     companion_render_obs_detail(replay, "Start Replay Buffer");
     assert(title.content == "Save Replay" && detail.content == "Start Replay Buffer");
+    set_card_disabled_state(&tile, true);
+    lv_obj_add_state(&title, LV_STATE_DISABLED);  // Subtitle was added after the tile was disabled.
+    companion_update_obs_detail_contrast(replay, false);
+    assert(lv_obj_has_state(&detail, LV_STATE_DISABLED));
+    replay.action_id = "obs.brb";
+    companion_render_obs_detail(replay, "BRB · Check OBS");
+    lv_obj_clear_state(&detail, LV_STATE_DISABLED);
+    companion_update_obs_detail_contrast(replay, false);
+    assert(title.content == "BRB" && detail.content == "Check OBS");
+    assert(lv_obj_has_state(&detail, LV_STATE_DISABLED));
+    companion_render_obs_detail(replay, "BRB · Already on break");
+    assert(title.content == "BRB" && detail.content.empty() && title.y_offset == 0);
+    replay.action_id = "obs.replay";
+    set_card_disabled_state(&tile, false);
     companion_render_obs_detail(replay, "Replay saved");
+    companion_update_obs_detail_contrast(replay, false);
     assert(title.content == "Save Replay" && detail.content == "Replay saved");
+    assert(!lv_obj_has_state(&detail, LV_STATE_DISABLED));
     companion_render_obs_detail(replay, "Save Replay");
     assert(title.content == "Save Replay" && detail.content.empty());
   }
