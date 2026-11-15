@@ -41,6 +41,7 @@ struct lv_obj_t {
   uint32_t background[3] = {}, text[3] = {}, gradient[3] = {}, border[3] = {}, outline[3] = {};
   int gradient_direction[3] = {};
   int state = 0;
+  int slider_value = 0, slider_events = 0, y_offset = 0;
   bool instant_feedback = false;
   int flags = 0;
   std::vector<lv_event_cb_t> events;
@@ -115,8 +116,14 @@ struct MediaNowPlayingCtx {
   uint32_t fallback_background_color = 0;
 };
 bool image_card_media_artwork_visible(const ImageCardCtx *ctx) { return ctx && ctx->artwork_visible; }
-void set_card_content_disabled(lv_obj_t *, bool) {}
 constexpr int LV_STATE_DISABLED = 4, LV_OBJ_FLAG_HIDDEN = 1, LV_OBJ_FLAG_USER_2 = 1<<28;
+void set_card_content_disabled(lv_obj_t *obj, bool disabled) {
+  for (auto *child : obj->children) {
+    if (disabled) lv_obj_add_state(child, LV_STATE_DISABLED);
+    else lv_obj_clear_state(child, LV_STATE_DISABLED);
+    set_card_content_disabled(child, disabled);
+  }
+}
 void set_card_disabled_state(lv_obj_t *obj, bool disabled) {
   if (!obj) return;
   if (disabled) lv_obj_add_state(obj, LV_STATE_DISABLED);
@@ -192,10 +199,23 @@ bool companion_card_focus_allowed(const std::string &) { return focus_allowed; }
 std::string companion_url_card_focus_id(const std::string &) { return "browser"; }
 unsigned focus_reads = 0;
 bool companion_action_active(const std::string &id, bool = false) { ++focus_reads; return id == focused_app; }
-struct CompanionRuntimeSnapshot { std::string selected_scene{}; };
+struct CompanionAction { std::string id, label; };
+struct CompanionValue { std::string id; int value; };
+struct CompanionRuntimeSnapshot {
+  std::string selected_scene{};
+  bool connected = true;
+  std::vector<CompanionAction> actions{};
+  std::vector<CompanionValue> values{};
+};
 CompanionRuntimeSnapshot companion_runtime_snapshot() { return {}; }
-const std::string *companion_published_action(const CompanionRuntimeSnapshot &snapshot, const std::string &id) {
-  return id == snapshot.selected_scene ? &snapshot.selected_scene : nullptr;
+const CompanionAction *companion_published_action(const CompanionRuntimeSnapshot &snapshot, const std::string &id) {
+  static const CompanionAction selected{};
+  if (!snapshot.connected) return nullptr;
+  if (id == snapshot.selected_scene) return &selected;
+  for (const auto &action : snapshot.actions) {
+    if (action.id == id) return &action;
+  }
+  return nullptr;
 }
 bool companion_action_focused(const CompanionRuntimeSnapshot &, const std::string &id, bool = false) {
   return companion_action_active(id);
@@ -205,7 +225,25 @@ struct CompanionCardRef {
   std::string action_id, url_config, metric_key;
   bool show_focus = true;
   std::string required_focus_id{};
+  lv_obj_t *text_label = nullptr, *obs_detail = nullptr;
 };
+struct CompanionSliderRef {
+  lv_obj_t *slider = nullptr, *icon_label = nullptr, *text_label = nullptr, *obs_fader_fill = nullptr;
+  std::string control_id, obs_cough_id, base_label;
+  bool has_icon_on = false;
+  const char *icon_off = nullptr, *icon_on = nullptr;
+  uint32_t obs_fader_live_color = 0;
+};
+constexpr int LV_ALIGN_BOTTOM_LEFT = 1, LV_ANIM_OFF = 0, LV_EVENT_VALUE_CHANGED = 21;
+const char *lv_label_get_text(lv_obj_t *label) { return label->content.c_str(); }
+void lv_obj_align(lv_obj_t *obj, int, int, int y) { obj->y_offset = y; }
+void lv_obj_update_layout(lv_obj_t *) {}
+void lv_slider_set_value(lv_obj_t *obj, int value, int) { obj->slider_value = value; }
+int lv_slider_get_value(lv_obj_t *obj) { return obj->slider_value; }
+void lv_obj_send_event(lv_obj_t *obj, int event, void *) {
+  assert(event == LV_EVENT_VALUE_CHANGED);
+  ++obj->slider_events;
+}
 bool companion_action_available(const std::string &) { return true; }
 bool companion_action_available(const CompanionRuntimeSnapshot &, const std::string &) { return true; }
 std::vector<CompanionCardRef> focus_cards;
@@ -225,6 +263,7 @@ groups = (
     ("button_grid_touch.h", "", ("consume_button_touch_press",)),
     ("button_grid_layout.h", "", ("parse_hex_color", "apply_button_colors", "apply_button_on_pattern")),
     ("companion_controls.h", "", ("companion_obs_scene_target", "companion_obs_scene_card", "companion_apply_card_focus", "companion_required_focus_ready", "companion_refresh_card_focus")),
+    ("companion_controls.h", "", ("companion_render_obs_detail", "companion_update_record_detail_contrast", "companion_render_slider")),
     ("button_grid_grid.h", "", ("card_palette_for_config", "card_slot_static_child", "reset_card_slot_dynamic_children")),
     ("button_grid_grid.h", "", ("apply_subpage_back_colors",)),
     ("button_grid_subscriptions.h", "", ("apply_sensor_active_color",)),
@@ -251,6 +290,47 @@ source += f'\n#line {line} "button_grid_cards.h"\n{code}\n'
 source += r'''
 #line 1 "card_colour_rendering_cases"
 int main() {
+  {
+    lv_obj_t tile, title, detail, icon;
+    tile.children = {&title, &detail, &icon};
+    CompanionCardRef record{&tile, "obs.output.record", "", ""};
+    record.text_label = &title;
+    record.obs_detail = &detail;
+    set_card_disabled_state(&tile, true);
+    set_card_content_disabled(&tile, true);
+    set_card_checked_state(&tile, true);
+    companion_render_obs_detail(record, "Recording", true);
+    companion_update_record_detail_contrast(record, true);
+    assert(title.content == "Recording" && detail.content == "Stopping" && title.y_offset < 0);
+    assert(lv_obj_has_state(&tile, LV_STATE_DISABLED) && lv_obj_has_state(&tile, LV_STATE_CHECKED));
+    assert(!lv_obj_has_state(&title, LV_STATE_DISABLED) && !lv_obj_has_state(&icon, LV_STATE_DISABLED));
+
+    set_card_checked_state(&tile, false);
+    companion_render_obs_detail(record, "Record", false);
+    companion_update_record_detail_contrast(record, false);
+    assert(title.content == "Record" && detail.content.empty() && title.y_offset == 0);
+    assert(lv_obj_has_state(&title, LV_STATE_DISABLED));
+  }
+  {
+    lv_obj_t slider, title;
+    CompanionSliderRef meter;
+    meter.slider = &slider;
+    meter.text_label = &title;
+    meter.base_label = "Mic meter";
+    meter.control_id = "obs.meter.11111111-1111-1111-1111-111111111111";
+    CompanionRuntimeSnapshot snapshot;
+    snapshot.actions = {{meter.control_id, "Long OBS audio input name"}};
+    snapshot.values = {{meter.control_id, 75}};
+    companion_render_slider(meter, snapshot);
+    assert(title.content == "Mic meter\n-15.0 dBFS" && slider.slider_value == 75);
+    snapshot.values.clear();
+    companion_render_slider(meter, snapshot);
+    assert(title.content == "Mic meter\nNo signal" && slider.slider_value == 0);
+    assert(slider.slider_events == 2 && lv_obj_has_state(&slider, LV_STATE_DISABLED));
+    snapshot.connected = false;
+    companion_render_slider(meter, snapshot);
+    assert(title.content == "Mic meter\nUnavailable" && slider.slider_events == 2);
+  }
   {
     lv_obj_t old_app, new_app, unrelated_app, metric;
     old_app.state = metric.state = LV_STATE_CHECKED;
@@ -623,4 +703,4 @@ with tempfile.TemporaryDirectory(prefix="card-colour-rendering-") as directory:
     subprocess.run([sys.argv[1] if len(sys.argv) > 1 else "c++", "-std=c++17", "-Wall", "-Wextra", "-Werror",
                     "-I" + str(root / "tests/firmware/stubs"), "-I" + str(headers), str(cpp), "-o", str(binary)], check=True)
     subprocess.run([str(binary)], check=True)
-print("Card colour rendering checks passed: main/subpage contrast, defaults, display correction and Mac focus.")
+print("Card colour rendering checks passed: main/subpage contrast, display correction, Mac focus and OBS feedback.")

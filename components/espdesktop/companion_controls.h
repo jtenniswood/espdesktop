@@ -1215,6 +1215,51 @@ inline void companion_refresh_card_focus(const CompanionRuntimeSnapshot &snapsho
   }
 }
 
+inline void companion_render_slider(const CompanionSliderRef &ref, const CompanionRuntimeSnapshot &snapshot) {
+  const auto value = std::find_if(snapshot.values.begin(), snapshot.values.end(),
+    [&ref](const CompanionValue &candidate) { return candidate.id == ref.control_id; });
+  const bool available = snapshot.connected && value != snapshot.values.end();
+  const bool meter = companion_obs_meter_control(ref.control_id);
+  if (ref.obs_fader_fill) {
+    const bool muted = snapshot.connected && std::any_of(snapshot.values.begin(), snapshot.values.end(),
+      [&ref](const CompanionValue &candidate) { return candidate.id == ref.obs_cough_id && candidate.value > 0; });
+    const auto color = muted ? lv_color_hex(0x808080) : ref.obs_fader_live_color;
+    if (!lv_color_eq(lv_obj_get_style_bg_color(ref.obs_fader_fill, LV_PART_MAIN), color))
+      lv_obj_set_style_bg_color(ref.obs_fader_fill, color, LV_PART_MAIN);
+  }
+  if (ref.text_label && lv_obj_is_valid(ref.text_label)) {
+    char level[24]{};
+    if (available && value->value > 0) {
+      const double db = meter ? (value->value - 100) * 0.6 : companion_obs_fader_decibels(value->value);
+      snprintf(level, sizeof(level), meter ? "%.1f dBFS" : "%+.1f dB", db);
+    }
+    const auto *action = companion_published_action(snapshot, ref.control_id);
+    const std::string title = meter && !ref.base_label.empty() ? ref.base_label
+      : (action ? (meter ? "OBS Meter · " : "OBS · ") + action->label : ref.base_label);
+    const std::string label = title + "\n" + (available
+      ? (value->value > 0 ? level : meter ? "≤ -60 dBFS" : "-∞ dB")
+      : espdesktop_i18n(meter && action ? "No signal" : "Unavailable"));
+    const auto normalized = normalize_display_text(label);
+    if (normalized != lv_label_get_text(ref.text_label))
+      lv_label_set_display_text(ref.text_label, label.c_str());
+  }
+  if (available) {
+    lv_slider_set_value(ref.slider, value->value, LV_ANIM_OFF);
+    lv_obj_send_event(ref.slider, LV_EVENT_VALUE_CHANGED, nullptr);
+    if (ref.has_icon_on && ref.icon_label && lv_obj_is_valid(ref.icon_label)) {
+      lv_label_set_text(
+        ref.icon_label, value->value > 0 ? ref.icon_on : ref.icon_off);
+    }
+    lv_obj_clear_state(ref.slider, LV_STATE_DISABLED);
+  } else {
+    if (meter && lv_slider_get_value(ref.slider) != 0) {
+      lv_slider_set_value(ref.slider, 0, LV_ANIM_OFF);
+      lv_obj_send_event(ref.slider, LV_EVENT_VALUE_CHANGED, nullptr);
+    }
+    lv_obj_add_state(ref.slider, LV_STATE_DISABLED);
+  }
+}
+
 inline void companion_refresh_cards_if_requested() {
   const bool full_refresh = companion_card_refresh_requested().exchange(false);
   const bool focus_refresh = companion_runtime_service().consume_focus_refresh_request();
@@ -1297,48 +1342,7 @@ inline void companion_refresh_cards_if_requested() {
       it = sliders.erase(it);
       continue;
     }
-    const auto value = std::find_if(snapshot.values.begin(), snapshot.values.end(),
-      [it](const CompanionValue &candidate) { return candidate.id == it->control_id; });
-    const bool available = snapshot.connected && value != snapshot.values.end();
-    const bool meter = companion_obs_meter_control(it->control_id);
-    if (it->obs_fader_fill) {
-      const bool muted = snapshot.connected && std::any_of(snapshot.values.begin(), snapshot.values.end(),
-        [it](const CompanionValue &candidate) { return candidate.id == it->obs_cough_id && candidate.value > 0; });
-      const auto color = muted ? lv_color_hex(0x808080) : it->obs_fader_live_color;
-      if (!lv_color_eq(lv_obj_get_style_bg_color(it->obs_fader_fill, LV_PART_MAIN), color))
-        lv_obj_set_style_bg_color(it->obs_fader_fill, color, LV_PART_MAIN);
-    }
-    if (it->text_label && lv_obj_is_valid(it->text_label)) {
-      char level[24]{};
-      if (available && value->value > 0) {
-        const double db = meter ? (value->value - 100) * 0.6 : companion_obs_fader_decibels(value->value);
-        snprintf(level, sizeof(level), meter ? "%.1f dBFS" : "%+.1f dB", db);
-      }
-      const auto *action = companion_published_action(snapshot, it->control_id);
-      const std::string title = meter && !it->base_label.empty() ? it->base_label
-        : (action ? (meter ? "OBS Meter · " : "OBS · ") + action->label : it->base_label);
-      const std::string label = title + "\n" + (available
-        ? (value->value > 0 ? level : meter ? "≤ -60 dBFS" : "-∞ dB")
-        : espdesktop_i18n(meter && action ? "No signal" : "Unavailable"));
-      const auto normalized = normalize_display_text(label);
-      if (normalized != lv_label_get_text(it->text_label))
-        lv_label_set_display_text(it->text_label, label.c_str());
-    }
-    if (available) {
-      lv_slider_set_value(it->slider, value->value, LV_ANIM_OFF);
-      lv_obj_send_event(it->slider, LV_EVENT_VALUE_CHANGED, nullptr);
-      if (it->has_icon_on && it->icon_label && lv_obj_is_valid(it->icon_label)) {
-        lv_label_set_text(
-          it->icon_label, value->value > 0 ? it->icon_on : it->icon_off);
-      }
-      lv_obj_clear_state(it->slider, LV_STATE_DISABLED);
-    } else {
-      if (meter && lv_slider_get_value(it->slider) != 0) {
-        lv_slider_set_value(it->slider, 0, LV_ANIM_OFF);
-        lv_obj_send_event(it->slider, LV_EVENT_VALUE_CHANGED, nullptr);
-      }
-      lv_obj_add_state(it->slider, LV_STATE_DISABLED);
-    }
+    companion_render_slider(*it, snapshot);
     ++it;
   }
 }
