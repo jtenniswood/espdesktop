@@ -167,6 +167,7 @@ still=Parado
 subpage=Subpágina
 stop=Parar
 stopped=Parado
+stopping=Parando
 sunny=Ensolarado
 sunny_alert=Alerta de sol
 sunset=Pôr do sol

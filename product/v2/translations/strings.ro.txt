@@ -167,6 +167,7 @@ still=Nemișcat
 subpage=Subpagină
 stop=Oprire
 stopped=Oprit
+stopping=Se oprește
 sunny=Însorit
 sunny_alert=Alertă soare
 sunset=Apus

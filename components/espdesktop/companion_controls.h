@@ -690,6 +690,11 @@ inline bool companion_action_available(const CompanionRuntimeSnapshot &snapshot,
   return action && (!companion_obs_tokenized_card(action_id) || action->id != action_id);
 }
 
+inline bool companion_obs_record_stopping(const CompanionRuntimeSnapshot &snapshot) {
+  const auto *action = companion_published_action(snapshot, "obs.output.record");
+  return action && action->id == "obs.output.record" && action->label == "Stopping";
+}
+
 inline bool companion_action_available(const std::string &action_id) {
   return companion_action_available(companion_runtime_snapshot(), action_id);
 }
@@ -1092,15 +1097,16 @@ inline void companion_track_card(lv_obj_t *button, const std::string &action_id,
   lv_obj_add_event_cb(button, companion_card_focus_drawn, LV_EVENT_DRAW_POST_END, nullptr);
 }
 
-inline void companion_render_obs_detail(CompanionCardRef &ref, const std::string &label) {
+inline void companion_render_obs_detail(CompanionCardRef &ref, const std::string &label, bool stopping = false) {
   if (!ref.obs_detail || !lv_obj_is_valid(ref.obs_detail) || !ref.text_label) return;
   const std::string separator = " · ";
   const auto split = label.find(separator);
   const char *name = ref.action_id == "obs.take" ? "Take Live"
     : (label.rfind("Resume", 0) == 0 ? "Resume" : "BRB");
-  const std::string primary = espdesktop_i18n(name);
-  const std::string detail = split != std::string::npos ? label.substr(split + separator.size())
-    : (label == name ? "" : label);
+  const bool record = ref.action_id == "obs.output.record";
+  const std::string primary = record ? label : espdesktop_i18n(name);
+  const std::string detail = record ? (stopping ? espdesktop_i18n("Stopping") : "")
+    : (split != std::string::npos ? label.substr(split + separator.size()) : (label == name ? "" : label));
   if (normalize_display_text(primary) != lv_label_get_text(ref.text_label))
     lv_label_set_display_text(ref.text_label, primary.c_str());
   if (normalize_display_text(detail) != lv_label_get_text(ref.obs_detail))
@@ -1110,9 +1116,16 @@ inline void companion_render_obs_detail(CompanionCardRef &ref, const std::string
   lv_obj_align(ref.text_label, LV_ALIGN_BOTTOM_LEFT, 0, detail.empty() ? 0 : -lv_obj_get_height(ref.obs_detail) - 2);
 }
 
+inline void companion_update_record_detail_contrast(const CompanionCardRef &ref, bool stopping) {
+  const bool dim = lv_obj_has_state(ref.button, LV_STATE_DISABLED) && !stopping;
+  if (lv_obj_has_state(ref.text_label, LV_STATE_DISABLED) != dim ||
+      lv_obj_has_state(ref.obs_detail, LV_STATE_DISABLED) != dim)
+    set_card_content_disabled(ref.button, dim);
+}
+
 inline void companion_setup_obs_detail(lv_obj_t *button, const lv_font_t *font) {
   for (auto &ref : companion_card_refs()) {
-    if (ref.button != button || (ref.action_id != "obs.take" && ref.action_id != "obs.brb")) continue;
+    if (ref.button != button) continue;
     if (!ref.obs_detail) {
       ref.obs_detail = lv_label_create(button);
       lv_obj_set_width(ref.obs_detail, lv_pct(100));
@@ -1120,7 +1133,13 @@ inline void companion_setup_obs_detail(lv_obj_t *button, const lv_font_t *font) 
       lv_obj_set_style_text_opa(ref.obs_detail, LV_OPA_80, LV_PART_MAIN);
     }
     if (font) lv_obj_set_style_text_font(ref.obs_detail, font, LV_PART_MAIN);
-    companion_render_obs_detail(ref, companion_default_action_label(ref.action_id));
+    const auto snapshot = companion_runtime_snapshot();
+    const bool record = ref.action_id == "obs.output.record";
+    const bool stopping = record && companion_obs_record_stopping(snapshot);
+    const auto live = companion_default_action_label(ref.action_id, "", &snapshot);
+    const bool recording = record && companion_published_action(snapshot, "obs.record.active");
+    companion_render_obs_detail(ref, companion_obs_control_label(ref.action_id, "", live, recording), stopping);
+    if (record) companion_update_record_detail_contrast(ref, stopping);
     return;
   }
 }
@@ -1244,14 +1263,16 @@ inline void companion_refresh_cards_if_requested() {
       ++it;
       continue;
     }
+    const bool record = it->action_id == "obs.output.record";
+    const bool stopping = record && companion_obs_record_stopping(snapshot);
     if (it->dynamic_default_label && it->text_label && lv_obj_is_valid(it->text_label)) {
       // A disconnected Companion temporarily has no action catalogue. Keep
       // the friendly name seen before the outage instead of showing its ID.
       const std::string live_label = companion_default_action_label_with_fallback(
         it->action_id, it->url_config, it->resolved_default_label, &snapshot);
-      const bool recording = it->action_id == "obs.output.record" && companion_published_action(snapshot, "obs.record.active");
+      const bool recording = record && companion_published_action(snapshot, "obs.record.active");
       const std::string label = companion_obs_control_label(it->action_id, it->obs_label_alias, live_label, recording);
-      if (it->obs_detail) companion_render_obs_detail(*it, label);
+      if (it->obs_detail) companion_render_obs_detail(*it, label, stopping);
       else if (normalize_display_text(label) != lv_label_get_text(it->text_label))
         lv_label_set_display_text(it->text_label, label.c_str());
     }
@@ -1264,6 +1285,7 @@ inline void companion_refresh_cards_if_requested() {
     if (lv_obj_has_state(it->button, LV_STATE_DISABLED) == available)
       set_card_disabled_state(it->button, !available);
     companion_apply_card_focus(it->button, it->action_id, it->url_config, it->show_focus, &snapshot);
+    if (record && it->obs_detail) companion_update_record_detail_contrast(*it, stopping);
     companion_render_obs_mute(*it, snapshot);
     ++it;
   }

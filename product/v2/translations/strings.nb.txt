@@ -167,6 +167,7 @@ still=Stille
 subpage=Underside
 stop=Stopp
 stopped=Stoppet
+stopping=Stopper
 sunny=Sol
 sunny_alert=Solvarsel
 sunset=Solnedgang

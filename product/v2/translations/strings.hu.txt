@@ -167,6 +167,7 @@ still=Álló
 subpage=Aloldal
 stop=Leállítás
 stopped=Leállítva
+stopping=Leállítás
 sunny=Napos
 sunny_alert=Napsütés riasztás
 sunset=Naplemente

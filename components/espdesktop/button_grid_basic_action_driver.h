@@ -69,7 +69,7 @@ inline bool basic_action_driver_refresh_layout(
       lv_obj_set_style_text_font(slot.sensor_lbl, display_sensor_font(display), LV_PART_MAIN);
     }
   }
-  if (config.entity == "obs.take" || config.entity == "obs.brb")
+  if (config.entity == "obs.take" || config.entity == "obs.brb" || config.entity == "obs.output.record")
     companion_setup_obs_detail(slot.btn, display_small_text_font(display));
   if (companion_obs_output_card(config.entity))
     obs_confirmation_fonts() = {display_switch_confirmation_message_font(display), display.fonts.icon};

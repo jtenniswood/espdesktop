@@ -167,6 +167,7 @@ inline const char *espdesktop_i18n_cs(const char *text) {
   if (std::strcmp(text, "Subpage") == 0) return "Podstránka";
   if (std::strcmp(text, "Stop") == 0) return "Zastavit";
   if (std::strcmp(text, "Stopped") == 0) return "Zastaveno";
+  if (std::strcmp(text, "Stopping") == 0) return "Zastavování";
   if (std::strcmp(text, "Sunny") == 0) return "Slunečno";
   if (std::strcmp(text, "Sunny Alert") == 0) return "Sluneční varování";
   if (std::strcmp(text, "Sunset") == 0) return "Západ slunce";
@@ -460,6 +461,7 @@ inline const char *espdesktop_i18n_da(const char *text) {
   if (std::strcmp(text, "Still") == 0) return "Stille";
   if (std::strcmp(text, "Subpage") == 0) return "Underside";
   if (std::strcmp(text, "Stopped") == 0) return "Stoppet";
+  if (std::strcmp(text, "Stopping") == 0) return "Stopper";
   if (std::strcmp(text, "Sunny") == 0) return "Solrigt";
   if (std::strcmp(text, "Sunny Alert") == 0) return "Solvarsel";
   if (std::strcmp(text, "Sunset") == 0) return "Solnedgang";
@@ -748,6 +750,7 @@ inline const char *espdesktop_i18n_de(const char *text) {
   if (std::strcmp(text, "Subpage") == 0) return "Unterseite";
   if (std::strcmp(text, "Stop") == 0) return "Stopp";
   if (std::strcmp(text, "Stopped") == 0) return "Gestoppt";
+  if (std::strcmp(text, "Stopping") == 0) return "Wird gestoppt";
   if (std::strcmp(text, "Sunny") == 0) return "Sonnig";
   if (std::strcmp(text, "Sunny Alert") == 0) return "Sonnenwarnung";
   if (std::strcmp(text, "Sunset") == 0) return "Sonnenuntergang";
@@ -1048,6 +1051,7 @@ inline const char *espdesktop_i18n_es(const char *text) {
   if (std::strcmp(text, "Subpage") == 0) return "Subpágina";
   if (std::strcmp(text, "Stop") == 0) return "Detener";
   if (std::strcmp(text, "Stopped") == 0) return "Detenido";
+  if (std::strcmp(text, "Stopping") == 0) return "Deteniendo";
   if (std::strcmp(text, "Sunny") == 0) return "Soleado";
   if (std::strcmp(text, "Sunny Alert") == 0) return "Alerta de sol";
   if (std::strcmp(text, "Sunset") == 0) return "Puesta de sol";
@@ -1359,6 +1363,7 @@ inline const char *espdesktop_i18n_fi(const char *text) {
   if (std::strcmp(text, "Subpage") == 0) return "Alisivu";
   if (std::strcmp(text, "Stop") == 0) return "Pysäytä";
   if (std::strcmp(text, "Stopped") == 0) return "Pysäytetty";
+  if (std::strcmp(text, "Stopping") == 0) return "Pysäytetään";
   if (std::strcmp(text, "Sunny") == 0) return "Aurinkoista";
   if (std::strcmp(text, "Sunny Alert") == 0) return "Aurinkohälytys";
   if (std::strcmp(text, "Sunset") == 0) return "Auringonlasku";
@@ -1652,6 +1657,7 @@ inline const char *espdesktop_i18n_fr(const char *text) {
   if (std::strcmp(text, "Subpage") == 0) return "Sous-page";
   if (std::strcmp(text, "Stop") == 0) return "Arrêter";
   if (std::strcmp(text, "Stopped") == 0) return "Arrêté";
+  if (std::strcmp(text, "Stopping") == 0) return "Arrêt en cours";
   if (std::strcmp(text, "Sunny") == 0) return "Ensoleillé";
   if (std::strcmp(text, "Sunny Alert") == 0) return "Alerte soleil";
   if (std::strcmp(text, "Sunset") == 0) return "Coucher du soleil";
@@ -1970,6 +1976,7 @@ inline const char *espdesktop_i18n_he(const char *text) {
   if (std::strcmp(text, "Subpage") == 0) return "תת-עמוד";
   if (std::strcmp(text, "Stop") == 0) return "עצירה";
   if (std::strcmp(text, "Stopped") == 0) return "הופסק";
+  if (std::strcmp(text, "Stopping") == 0) return "מתבצעת עצירה";
   if (std::strcmp(text, "Sunny") == 0) return "שמשי";
   if (std::strcmp(text, "Sunny Alert") == 0) return "התראת שמש";
   if (std::strcmp(text, "Sunset") == 0) return "שקיעה";
@@ -2277,6 +2284,7 @@ inline const char *espdesktop_i18n_hu(const char *text) {
   if (std::strcmp(text, "Subpage") == 0) return "Aloldal";
   if (std::strcmp(text, "Stop") == 0) return "Leállítás";
   if (std::strcmp(text, "Stopped") == 0) return "Leállítva";
+  if (std::strcmp(text, "Stopping") == 0) return "Leállítás";
   if (std::strcmp(text, "Sunny") == 0) return "Napos";
   if (std::strcmp(text, "Sunny Alert") == 0) return "Napsütés riasztás";
   if (std::strcmp(text, "Sunset") == 0) return "Naplemente";
@@ -2579,6 +2587,7 @@ inline const char *espdesktop_i18n_it(const char *text) {
   if (std::strcmp(text, "Subpage") == 0) return "Sottopagina";
   if (std::strcmp(text, "Stop") == 0) return "Arresta";
   if (std::strcmp(text, "Stopped") == 0) return "Interrotto";
+  if (std::strcmp(text, "Stopping") == 0) return "Arresto in corso";
   if (std::strcmp(text, "Sunny") == 0) return "Soleggiato";
   if (std::strcmp(text, "Sunny Alert") == 0) return "Allerta sole";
   if (std::strcmp(text, "Sunset") == 0) return "Tramonto";
@@ -2877,6 +2886,7 @@ inline const char *espdesktop_i18n_nb(const char *text) {
   if (std::strcmp(text, "Subpage") == 0) return "Underside";
   if (std::strcmp(text, "Stop") == 0) return "Stopp";
   if (std::strcmp(text, "Stopped") == 0) return "Stoppet";
+  if (std::strcmp(text, "Stopping") == 0) return "Stopper";
   if (std::strcmp(text, "Sunny") == 0) return "Sol";
   if (std::strcmp(text, "Sunny Alert") == 0) return "Solvarsel";
   if (std::strcmp(text, "Sunset") == 0) return "Solnedgang";
@@ -3176,6 +3186,7 @@ inline const char *espdesktop_i18n_nl(const char *text) {
   if (std::strcmp(text, "Subpage") == 0) return "Subpagina";
   if (std::strcmp(text, "Stop") == 0) return "Stoppen";
   if (std::strcmp(text, "Stopped") == 0) return "Gestopt";
+  if (std::strcmp(text, "Stopping") == 0) return "Bezig met stoppen";
   if (std::strcmp(text, "Sunny") == 0) return "Zonnig";
   if (std::strcmp(text, "Sunny Alert") == 0) return "Zonwaarschuwing";
   if (std::strcmp(text, "Sunset") == 0) return "Zonsondergang";
@@ -3467,6 +3478,7 @@ inline const char *espdesktop_i18n_pl(const char *text) {
   if (std::strcmp(text, "Subpage") == 0) return "Podstrona";
   if (std::strcmp(text, "Stop") == 0) return "Zatrzymaj";
   if (std::strcmp(text, "Stopped") == 0) return "Zatrzymane";
+  if (std::strcmp(text, "Stopping") == 0) return "Zatrzymywanie";
   if (std::strcmp(text, "Sunny") == 0) return "Słonecznie";
   if (std::strcmp(text, "Sunny Alert") == 0) return "Ostrzeżenie słoneczne";
   if (std::strcmp(text, "Sunset") == 0) return "Zachód słońca";
@@ -3766,6 +3778,7 @@ inline const char *espdesktop_i18n_pt_br(const char *text) {
   if (std::strcmp(text, "Subpage") == 0) return "Subpágina";
   if (std::strcmp(text, "Stop") == 0) return "Parar";
   if (std::strcmp(text, "Stopped") == 0) return "Parado";
+  if (std::strcmp(text, "Stopping") == 0) return "Parando";
   if (std::strcmp(text, "Sunny") == 0) return "Ensolarado";
   if (std::strcmp(text, "Sunny Alert") == 0) return "Alerta de sol";
   if (std::strcmp(text, "Sunset") == 0) return "Pôr do sol";
@@ -4063,6 +4076,7 @@ inline const char *espdesktop_i18n_pt(const char *text) {
   if (std::strcmp(text, "Subpage") == 0) return "Subpágina";
   if (std::strcmp(text, "Stop") == 0) return "Parar";
   if (std::strcmp(text, "Stopped") == 0) return "Parado";
+  if (std::strcmp(text, "Stopping") == 0) return "A parar";
   if (std::strcmp(text, "Sunny") == 0) return "Solarengo";
   if (std::strcmp(text, "Sunny Alert") == 0) return "Alerta de sol";
   if (std::strcmp(text, "Sunset") == 0) return "Pôr do sol";
@@ -4370,6 +4384,7 @@ inline const char *espdesktop_i18n_ro(const char *text) {
   if (std::strcmp(text, "Subpage") == 0) return "Subpagină";
   if (std::strcmp(text, "Stop") == 0) return "Oprire";
   if (std::strcmp(text, "Stopped") == 0) return "Oprit";
+  if (std::strcmp(text, "Stopping") == 0) return "Se oprește";
   if (std::strcmp(text, "Sunny") == 0) return "Însorit";
   if (std::strcmp(text, "Sunny Alert") == 0) return "Alertă soare";
   if (std::strcmp(text, "Sunset") == 0) return "Apus";
@@ -4681,6 +4696,7 @@ inline const char *espdesktop_i18n_ru(const char *text) {
   if (std::strcmp(text, "Subpage") == 0) return "Подстраница";
   if (std::strcmp(text, "Stop") == 0) return "Стоп";
   if (std::strcmp(text, "Stopped") == 0) return "Остановлено";
+  if (std::strcmp(text, "Stopping") == 0) return "Остановка";
   if (std::strcmp(text, "Sunny") == 0) return "Солнечно";
   if (std::strcmp(text, "Sunny Alert") == 0) return "Солнечно, предупреждение";
   if (std::strcmp(text, "Sunset") == 0) return "Закат";
@@ -4983,6 +4999,7 @@ inline const char *espdesktop_i18n_sk(const char *text) {
   if (std::strcmp(text, "Subpage") == 0) return "Podstránka";
   if (std::strcmp(text, "Stop") == 0) return "Zastaviť";
   if (std::strcmp(text, "Stopped") == 0) return "Zastavené";
+  if (std::strcmp(text, "Stopping") == 0) return "Zastavuje sa";
   if (std::strcmp(text, "Sunny") == 0) return "Slnečno";
   if (std::strcmp(text, "Sunny Alert") == 0) return "Slnečné varovanie";
   if (std::strcmp(text, "Sunset") == 0) return "Západ slnka";
@@ -5285,6 +5302,7 @@ inline const char *espdesktop_i18n_sl(const char *text) {
   if (std::strcmp(text, "Subpage") == 0) return "Podstran";
   if (std::strcmp(text, "Stop") == 0) return "Ustavi";
   if (std::strcmp(text, "Stopped") == 0) return "Ustavljeno";
+  if (std::strcmp(text, "Stopping") == 0) return "Ustavljanje";
   if (std::strcmp(text, "Sunny") == 0) return "Sončno";
   if (std::strcmp(text, "Sunny Alert") == 0) return "Opozorilo za sonce";
   if (std::strcmp(text, "Sunset") == 0) return "Sončni zahod";
@@ -5582,6 +5600,7 @@ inline const char *espdesktop_i18n_sv(const char *text) {
   if (std::strcmp(text, "Subpage") == 0) return "Undersida";
   if (std::strcmp(text, "Stop") == 0) return "Stoppa";
   if (std::strcmp(text, "Stopped") == 0) return "Stoppad";
+  if (std::strcmp(text, "Stopping") == 0) return "Stoppar";
   if (std::strcmp(text, "Sunny") == 0) return "Soligt";
   if (std::strcmp(text, "Sunny Alert") == 0) return "Solvarning";
   if (std::strcmp(text, "Sunset") == 0) return "Solnedgång";
@@ -5884,6 +5903,7 @@ inline const char *espdesktop_i18n_tr(const char *text) {
   if (std::strcmp(text, "Subpage") == 0) return "Alt sayfa";
   if (std::strcmp(text, "Stop") == 0) return "Durdur";
   if (std::strcmp(text, "Stopped") == 0) return "Durduruldu";
+  if (std::strcmp(text, "Stopping") == 0) return "Durduruluyor";
   if (std::strcmp(text, "Sunny") == 0) return "Güneşli";
   if (std::strcmp(text, "Sunny Alert") == 0) return "Güneş uyarısı";
   if (std::strcmp(text, "Sunset") == 0) return "Gün batımı";
@@ -6193,6 +6213,7 @@ inline const char *espdesktop_i18n_uk(const char *text) {
   if (std::strcmp(text, "Subpage") == 0) return "Підсторінка";
   if (std::strcmp(text, "Stop") == 0) return "Зупинити";
   if (std::strcmp(text, "Stopped") == 0) return "Зупинено";
+  if (std::strcmp(text, "Stopping") == 0) return "Зупинення";
   if (std::strcmp(text, "Sunny") == 0) return "Сонячно";
   if (std::strcmp(text, "Sunny Alert") == 0) return "Попередження про сонце";
   if (std::strcmp(text, "Sunset") == 0) return "Захід сонця";
@@ -6508,6 +6529,7 @@ inline const char *espdesktop_i18n_key_en(const char *key) {
   if (std::strcmp(key, "subpage") == 0) return "Subpage";
   if (std::strcmp(key, "stop") == 0) return "Stop";
   if (std::strcmp(key, "stopped") == 0) return "Stopped";
+  if (std::strcmp(key, "stopping") == 0) return "Stopping";
   if (std::strcmp(key, "sunny") == 0) return "Sunny";
   if (std::strcmp(key, "sunny_alert") == 0) return "Sunny Alert";
   if (std::strcmp(key, "sunset") == 0) return "Sunset";
@@ -6836,6 +6858,7 @@ inline const char *espdesktop_i18n_key_cs(const char *key) {
   if (std::strcmp(key, "subpage") == 0) return "Podstránka";
   if (std::strcmp(key, "stop") == 0) return "Zastavit";
   if (std::strcmp(key, "stopped") == 0) return "Zastaveno";
+  if (std::strcmp(key, "stopping") == 0) return "Zastavování";
   if (std::strcmp(key, "sunny") == 0) return "Slunečno";
   if (std::strcmp(key, "sunny_alert") == 0) return "Sluneční varování";
   if (std::strcmp(key, "sunset") == 0) return "Západ slunce";
@@ -7139,6 +7162,7 @@ inline const char *espdesktop_i18n_key_da(const char *key) {
   if (std::strcmp(key, "still") == 0) return "Stille";
   if (std::strcmp(key, "subpage") == 0) return "Underside";
   if (std::strcmp(key, "stopped") == 0) return "Stoppet";
+  if (std::strcmp(key, "stopping") == 0) return "Stopper";
   if (std::strcmp(key, "sunny") == 0) return "Solrigt";
   if (std::strcmp(key, "sunny_alert") == 0) return "Solvarsel";
   if (std::strcmp(key, "sunset") == 0) return "Solnedgang";
@@ -7435,6 +7459,7 @@ inline const char *espdesktop_i18n_key_de(const char *key) {
   if (std::strcmp(key, "subpage") == 0) return "Unterseite";
   if (std::strcmp(key, "stop") == 0) return "Stopp";
   if (std::strcmp(key, "stopped") == 0) return "Gestoppt";
+  if (std::strcmp(key, "stopping") == 0) return "Wird gestoppt";
   if (std::strcmp(key, "sunny") == 0) return "Sonnig";
   if (std::strcmp(key, "sunny_alert") == 0) return "Sonnenwarnung";
   if (std::strcmp(key, "sunset") == 0) return "Sonnenuntergang";
@@ -7743,6 +7768,7 @@ inline const char *espdesktop_i18n_key_es(const char *key) {
   if (std::strcmp(key, "subpage") == 0) return "Subpágina";
   if (std::strcmp(key, "stop") == 0) return "Detener";
   if (std::strcmp(key, "stopped") == 0) return "Detenido";
+  if (std::strcmp(key, "stopping") == 0) return "Deteniendo";
   if (std::strcmp(key, "sunny") == 0) return "Soleado";
   if (std::strcmp(key, "sunny_alert") == 0) return "Alerta de sol";
   if (std::strcmp(key, "sunset") == 0) return "Puesta de sol";
@@ -8063,6 +8089,7 @@ inline const char *espdesktop_i18n_key_fi(const char *key) {
   if (std::strcmp(key, "subpage") == 0) return "Alisivu";
   if (std::strcmp(key, "stop") == 0) return "Pysäytä";
   if (std::strcmp(key, "stopped") == 0) return "Pysäytetty";
+  if (std::strcmp(key, "stopping") == 0) return "Pysäytetään";
   if (std::strcmp(key, "sunny") == 0) return "Aurinkoista";
   if (std::strcmp(key, "sunny_alert") == 0) return "Aurinkohälytys";
   if (std::strcmp(key, "sunset") == 0) return "Auringonlasku";
@@ -8366,6 +8393,7 @@ inline const char *espdesktop_i18n_key_fr(const char *key) {
   if (std::strcmp(key, "subpage") == 0) return "Sous-page";
   if (std::strcmp(key, "stop") == 0) return "Arrêter";
   if (std::strcmp(key, "stopped") == 0) return "Arrêté";
+  if (std::strcmp(key, "stopping") == 0) return "Arrêt en cours";
   if (std::strcmp(key, "sunny") == 0) return "Ensoleillé";
   if (std::strcmp(key, "sunny_alert") == 0) return "Alerte soleil";
   if (std::strcmp(key, "sunset") == 0) return "Coucher du soleil";
@@ -8693,6 +8721,7 @@ inline const char *espdesktop_i18n_key_he(const char *key) {
   if (std::strcmp(key, "subpage") == 0) return "תת-עמוד";
   if (std::strcmp(key, "stop") == 0) return "עצירה";
   if (std::strcmp(key, "stopped") == 0) return "הופסק";
+  if (std::strcmp(key, "stopping") == 0) return "מתבצעת עצירה";
   if (std::strcmp(key, "sunny") == 0) return "שמשי";
   if (std::strcmp(key, "sunny_alert") == 0) return "התראת שמש";
   if (std::strcmp(key, "sunset") == 0) return "שקיעה";
@@ -9010,6 +9039,7 @@ inline const char *espdesktop_i18n_key_hu(const char *key) {
   if (std::strcmp(key, "subpage") == 0) return "Aloldal";
   if (std::strcmp(key, "stop") == 0) return "Leállítás";
   if (std::strcmp(key, "stopped") == 0) return "Leállítva";
+  if (std::strcmp(key, "stopping") == 0) return "Leállítás";
   if (std::strcmp(key, "sunny") == 0) return "Napos";
   if (std::strcmp(key, "sunny_alert") == 0) return "Napsütés riasztás";
   if (std::strcmp(key, "sunset") == 0) return "Naplemente";
@@ -9322,6 +9352,7 @@ inline const char *espdesktop_i18n_key_it(const char *key) {
   if (std::strcmp(key, "subpage") == 0) return "Sottopagina";
   if (std::strcmp(key, "stop") == 0) return "Arresta";
   if (std::strcmp(key, "stopped") == 0) return "Interrotto";
+  if (std::strcmp(key, "stopping") == 0) return "Arresto in corso";
   if (std::strcmp(key, "sunny") == 0) return "Soleggiato";
   if (std::strcmp(key, "sunny_alert") == 0) return "Allerta sole";
   if (std::strcmp(key, "sunset") == 0) return "Tramonto";
@@ -9629,6 +9660,7 @@ inline const char *espdesktop_i18n_key_nb(const char *key) {
   if (std::strcmp(key, "subpage") == 0) return "Underside";
   if (std::strcmp(key, "stop") == 0) return "Stopp";
   if (std::strcmp(key, "stopped") == 0) return "Stoppet";
+  if (std::strcmp(key, "stopping") == 0) return "Stopper";
   if (std::strcmp(key, "sunny") == 0) return "Sol";
   if (std::strcmp(key, "sunny_alert") == 0) return "Solvarsel";
   if (std::strcmp(key, "sunset") == 0) return "Solnedgang";
@@ -9936,6 +9968,7 @@ inline const char *espdesktop_i18n_key_nl(const char *key) {
   if (std::strcmp(key, "subpage") == 0) return "Subpagina";
   if (std::strcmp(key, "stop") == 0) return "Stoppen";
   if (std::strcmp(key, "stopped") == 0) return "Gestopt";
+  if (std::strcmp(key, "stopping") == 0) return "Bezig met stoppen";
   if (std::strcmp(key, "sunny") == 0) return "Zonnig";
   if (std::strcmp(key, "sunny_alert") == 0) return "Zonwaarschuwing";
   if (std::strcmp(key, "sunset") == 0) return "Zonsondergang";
@@ -10234,6 +10267,7 @@ inline const char *espdesktop_i18n_key_pl(const char *key) {
   if (std::strcmp(key, "subpage") == 0) return "Podstrona";
   if (std::strcmp(key, "stop") == 0) return "Zatrzymaj";
   if (std::strcmp(key, "stopped") == 0) return "Zatrzymane";
+  if (std::strcmp(key, "stopping") == 0) return "Zatrzymywanie";
   if (std::strcmp(key, "sunny") == 0) return "Słonecznie";
   if (std::strcmp(key, "sunny_alert") == 0) return "Ostrzeżenie słoneczne";
   if (std::strcmp(key, "sunset") == 0) return "Zachód słońca";
@@ -10543,6 +10577,7 @@ inline const char *espdesktop_i18n_key_pt_br(const char *key) {
   if (std::strcmp(key, "subpage") == 0) return "Subpágina";
   if (std::strcmp(key, "stop") == 0) return "Parar";
   if (std::strcmp(key, "stopped") == 0) return "Parado";
+  if (std::strcmp(key, "stopping") == 0) return "Parando";
   if (std::strcmp(key, "sunny") == 0) return "Ensolarado";
   if (std::strcmp(key, "sunny_alert") == 0) return "Alerta de sol";
   if (std::strcmp(key, "sunset") == 0) return "Pôr do sol";
@@ -10849,6 +10884,7 @@ inline const char *espdesktop_i18n_key_pt(const char *key) {
   if (std::strcmp(key, "subpage") == 0) return "Subpágina";
   if (std::strcmp(key, "stop") == 0) return "Parar";
   if (std::strcmp(key, "stopped") == 0) return "Parado";
+  if (std::strcmp(key, "stopping") == 0) return "A parar";
   if (std::strcmp(key, "sunny") == 0) return "Solarengo";
   if (std::strcmp(key, "sunny_alert") == 0) return "Alerta de sol";
   if (std::strcmp(key, "sunset") == 0) return "Pôr do sol";
@@ -11165,6 +11201,7 @@ inline const char *espdesktop_i18n_key_ro(const char *key) {
   if (std::strcmp(key, "subpage") == 0) return "Subpagină";
   if (std::strcmp(key, "stop") == 0) return "Oprire";
   if (std::strcmp(key, "stopped") == 0) return "Oprit";
+  if (std::strcmp(key, "stopping") == 0) return "Se oprește";
   if (std::strcmp(key, "sunny") == 0) return "Însorit";
   if (std::strcmp(key, "sunny_alert") == 0) return "Alertă soare";
   if (std::strcmp(key, "sunset") == 0) return "Apus";
@@ -11486,6 +11523,7 @@ inline const char *espdesktop_i18n_key_ru(const char *key) {
   if (std::strcmp(key, "subpage") == 0) return "Подстраница";
   if (std::strcmp(key, "stop") == 0) return "Стоп";
   if (std::strcmp(key, "stopped") == 0) return "Остановлено";
+  if (std::strcmp(key, "stopping") == 0) return "Остановка";
   if (std::strcmp(key, "sunny") == 0) return "Солнечно";
   if (std::strcmp(key, "sunny_alert") == 0) return "Солнечно, предупреждение";
   if (std::strcmp(key, "sunset") == 0) return "Закат";
@@ -11798,6 +11836,7 @@ inline const char *espdesktop_i18n_key_sk(const char *key) {
   if (std::strcmp(key, "subpage") == 0) return "Podstránka";
   if (std::strcmp(key, "stop") == 0) return "Zastaviť";
   if (std::strcmp(key, "stopped") == 0) return "Zastavené";
+  if (std::strcmp(key, "stopping") == 0) return "Zastavuje sa";
   if (std::strcmp(key, "sunny") == 0) return "Slnečno";
   if (std::strcmp(key, "sunny_alert") == 0) return "Slnečné varovanie";
   if (std::strcmp(key, "sunset") == 0) return "Západ slnka";
@@ -12110,6 +12149,7 @@ inline const char *espdesktop_i18n_key_sl(const char *key) {
   if (std::strcmp(key, "subpage") == 0) return "Podstran";
   if (std::strcmp(key, "stop") == 0) return "Ustavi";
   if (std::strcmp(key, "stopped") == 0) return "Ustavljeno";
+  if (std::strcmp(key, "stopping") == 0) return "Ustavljanje";
   if (std::strcmp(key, "sunny") == 0) return "Sončno";
   if (std::strcmp(key, "sunny_alert") == 0) return "Opozorilo za sonce";
   if (std::strcmp(key, "sunset") == 0) return "Sončni zahod";
@@ -12417,6 +12457,7 @@ inline const char *espdesktop_i18n_key_sv(const char *key) {
   if (std::strcmp(key, "subpage") == 0) return "Undersida";
   if (std::strcmp(key, "stop") == 0) return "Stoppa";
   if (std::strcmp(key, "stopped") == 0) return "Stoppad";
+  if (std::strcmp(key, "stopping") == 0) return "Stoppar";
   if (std::strcmp(key, "sunny") == 0) return "Soligt";
   if (std::strcmp(key, "sunny_alert") == 0) return "Solvarning";
   if (std::strcmp(key, "sunset") == 0) return "Solnedgång";
@@ -12727,6 +12768,7 @@ inline const char *espdesktop_i18n_key_tr(const char *key) {
   if (std::strcmp(key, "subpage") == 0) return "Alt sayfa";
   if (std::strcmp(key, "stop") == 0) return "Durdur";
   if (std::strcmp(key, "stopped") == 0) return "Durduruldu";
+  if (std::strcmp(key, "stopping") == 0) return "Durduruluyor";
   if (std::strcmp(key, "sunny") == 0) return "Güneşli";
   if (std::strcmp(key, "sunny_alert") == 0) return "Güneş uyarısı";
   if (std::strcmp(key, "sunset") == 0) return "Gün batımı";
@@ -13046,6 +13088,7 @@ inline const char *espdesktop_i18n_key_uk(const char *key) {
   if (std::strcmp(key, "subpage") == 0) return "Підсторінка";
   if (std::strcmp(key, "stop") == 0) return "Зупинити";
   if (std::strcmp(key, "stopped") == 0) return "Зупинено";
+  if (std::strcmp(key, "stopping") == 0) return "Зупинення";
   if (std::strcmp(key, "sunny") == 0) return "Сонячно";
   if (std::strcmp(key, "sunny_alert") == 0) return "Попередження про сонце";
   if (std::strcmp(key, "sunset") == 0) return "Захід сонця";

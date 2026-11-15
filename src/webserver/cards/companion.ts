@@ -492,7 +492,7 @@ export function registerCompanionCardTypes(
             } else if (/^obs\.brb(?:\.[a-f0-9-]{36})?$/.test(action.id)) {
                 obsControlLabels.set(OBS_BRB_ID, action.label);
             } else if (action.id.startsWith("obs.output.")) {
-                const output = OBS_OUTPUT_OPTIONS.find(([id]) => action.id.startsWith(id + "."));
+                const output = OBS_OUTPUT_OPTIONS.find(([id]) => action.id === id || action.id.startsWith(id + "."));
                 if (output) obsControlLabels.set(output[0], action.label);
             } else if (action.id === "obs.record.active" || action.id === OBS_REPLAY_ID || OBS_STATUS_OPTIONS.some(([id]) => action.id === id)) {
                 obsControlLabels.set(action.id, action.label);
@@ -1654,9 +1654,9 @@ export function registerCompanionCardTypes(
                 const preview = cardBadgePreview(muted ? { ...card, icon: "Microphone Off" } : card, helpers, {
                     label, iconFallback: companionSubtypeDefaultIcon(mode), badge: COMPANION_CARD_METADATA.preview.badge,
                 });
-                if (mode === "obs_take" || mode === "obs_brb") {
+                if (mode === "obs_take" || mode === "obs_brb" || (record && currentLabel === "Stopping")) {
                     const [name, detail] = (currentLabel || "").split(" · ", 2);
-                    const title = name === "Resume" ? name : fallback[mode];
+                    const title = record ? label : name === "Resume" ? name : fallback[mode];
                     const note = detail || (name === title ? "" : name || "Unavailable");
                     preview.labelHtml = '<span class="sp-btn-label-row sp-obs-label"><span class="sp-btn-label">' +
                         helpers.escHtml(title) + '</span><span class="sp-obs-detail">' + helpers.escHtml(note) + '</span></span>';

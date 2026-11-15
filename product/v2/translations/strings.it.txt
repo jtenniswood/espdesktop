@@ -167,6 +167,7 @@ still=Fermo
 subpage=Sottopagina
 stop=Arresta
 stopped=Interrotto
+stopping=Arresto in corso
 sunny=Soleggiato
 sunny_alert=Allerta sole
 sunset=Tramonto

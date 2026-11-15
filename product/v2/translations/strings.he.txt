@@ -167,6 +167,7 @@ still=קבוע
 subpage=תת-עמוד
 stop=עצירה
 stopped=הופסק
+stopping=מתבצעת עצירה
 sunny=שמשי
 sunny_alert=התראת שמש
 sunset=שקיעה

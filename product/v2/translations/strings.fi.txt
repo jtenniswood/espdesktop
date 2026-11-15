@@ -167,6 +167,7 @@ still=Paikallaan
 subpage=Alisivu
 stop=Pysäytä
 stopped=Pysäytetty
+stopping=Pysäytetään
 sunny=Aurinkoista
 sunny_alert=Aurinkohälytys
 sunset=Auringonlasku

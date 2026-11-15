@@ -167,6 +167,7 @@ still=Vast
 subpage=Subpagina
 stop=Stoppen
 stopped=Gestopt
+stopping=Bezig met stoppen
 sunny=Zonnig
 sunny_alert=Zonwaarschuwing
 sunset=Zonsondergang

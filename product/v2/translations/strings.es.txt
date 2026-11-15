@@ -167,6 +167,7 @@ still=Quieto
 subpage=Subpágina
 stop=Detener
 stopped=Detenido
+stopping=Deteniendo
 sunny=Soleado
 sunny_alert=Alerta de sol
 sunset=Puesta de sol

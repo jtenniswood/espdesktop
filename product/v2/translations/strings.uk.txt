@@ -167,6 +167,7 @@ still=Нерухомо
 subpage=Підсторінка
 stop=Зупинити
 stopped=Зупинено
+stopping=Зупинення
 sunny=Сонячно
 sunny_alert=Попередження про сонце
 sunset=Захід сонця

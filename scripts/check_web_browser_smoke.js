@@ -7700,6 +7700,7 @@ async function assertOBSStarterPage(browser) {
   const mic = "33333333-3333-3333-3333-333333333333";
   const token = "44444444-4444-4444-4444-444444444444";
   let recording = false;
+  let stopping = false;
   let muted = true;
   await context.route("**/companion/actions", route => route.fulfill({ json: [
     { id: `obs.target.${main}.${token}`, label: "Gameplay" },
@@ -7711,6 +7712,7 @@ async function assertOBSStarterPage(browser) {
     { id: `obs.brb.scene.${away}`, label: "Configured BRB scene" },
     { id: `obs.level.${mic}`, label: "Desk Mic" },
     ...(recording ? [{ id: "obs.record.active", label: "Recording" }] : []),
+    ...(stopping ? [{ id: "obs.output.record", label: "Stopping" }] : []),
   ] }));
   const page = await context.newPage();
   await installFakeEventSource(page);
@@ -7795,6 +7797,17 @@ async function assertOBSStarterPage(browser) {
     await closeSettings.click();
     await page.locator(".sp-back-btn .sp-back-hit").click();
     await recordTile.getByText("Recording", { exact: true }).waitFor({ timeout: 12000 });
+    assert.notEqual(await recordTile.evaluate(tile => getComputedStyle(tile).backgroundColor), idleColor);
+    stopping = true;
+    await page.locator('.sp-main [data-slot="2"]').click({ button: "right" });
+    await page.getByText("Edit Subpage", { exact: true }).click();
+    await mainTile.click({ button: "right" });
+    await page.getByText("Edit Card", { exact: true }).click();
+    await scene.locator(`option[value="obs.target.${main}"]`).waitFor({ state: "attached" });
+    await closeSettings.click();
+    await page.locator(".sp-back-btn .sp-back-hit").click();
+    await recordTile.getByText("Recording", { exact: true }).waitFor();
+    await recordTile.getByText("Stopping", { exact: true }).waitFor();
     assert.notEqual(await recordTile.evaluate(tile => getComputedStyle(tile).backgroundColor), idleColor);
     console.log("OBS starter page pinned, preserved the Home card, and reopened for editing.");
   } finally {

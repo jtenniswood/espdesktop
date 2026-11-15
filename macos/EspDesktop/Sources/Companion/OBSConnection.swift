@@ -116,6 +116,7 @@ final class OBSConnection: ObservableObject {
         var inputMutes: [String: Bool] = [:]
         var inputFaders: [String: Int] = [:]
         var recordingPaused = false
+        var recordingStopping = false
         var replayBufferActive = false
         var replaySave = ReplaySave.ready
         var transitionInProgress = false
@@ -197,7 +198,10 @@ final class OBSConnection: ObservableObject {
             unavailableTakeAction(state) +
             (state?.breakCard.map { [($0.actionID, $0.label)] } ?? []) +
             (state?.breakSceneID.map { [("obs.brb.scene." + $0, "Configured BRB scene")] } ?? [])
-        if state?.recording == true { actions.append(("obs.record.active", "Recording")) }
+        if state?.recording == true || state?.recordingStopping == true {
+            actions.append(("obs.record.active", "Recording"))
+        }
+        if state?.recordingStopping == true { actions.append((Output.record.savedID, "Stopping")) }
         return actions
     }
 
@@ -569,6 +573,7 @@ final class OBSConnection: ObservableObject {
         case (.record, true): "StopRecord"
         }
         current.outputsPending.insert(output)
+        if output == .record { current.recordingStopping = previous }
         current.outputTokens[output] = UUID()
         state = current
         let accepted = await command(request, fields: [:])
@@ -582,6 +587,7 @@ final class OBSConnection: ObservableObject {
                (latest.outputActive(output) != previous || !accepted),
                (output != .stream || !latest.streamReconnecting) {
                 latest.outputsPending.remove(output)
+                if output == .record { latest.recordingStopping = false }
                 state = latest
                 return accepted && latest.outputActive(output) != previous
             }
@@ -1257,6 +1263,7 @@ final class OBSConnection: ObservableObject {
             recordOutputEvent(.stream, fields: fields, state: &state)
         case "RecordStateChanged":
             let outputState = fields["outputState"] as? String
+            state.recordingStopping = outputState == "OBS_WEBSOCKET_OUTPUT_STOPPING"
             state.recordingPaused = outputState == "OBS_WEBSOCKET_OUTPUT_PAUSED"
             // OBS may report outputActive=false while paused, but the recording can still be stopped.
             state.recording = state.recordingPaused || outputState == "OBS_WEBSOCKET_OUTPUT_RESUMED" ||

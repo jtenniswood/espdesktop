@@ -167,6 +167,7 @@ still=Still
 subpage=Subpage
 stop=Stop
 stopped=Stopped
+stopping=Stopping
 sunny=Sunny
 sunny_alert=Sunny Alert
 sunset=Sunset

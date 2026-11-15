@@ -426,6 +426,26 @@ final class OBSProductionTests: XCTestCase {
     }
 
     @MainActor
+    func testStoppingRecordingPublishesFeedbackWithoutAnotherStopAction() async throws {
+        let transport = OBSPilotTransport()
+        let connection = try await open(transport)
+        transport.onEvent?("RecordStateChanged", [
+            "outputActive": false, "outputState": "OBS_WEBSOCKET_OUTPUT_STOPPING",
+        ])
+        let stopping = Dictionary(uniqueKeysWithValues: OBSConnection.controlActions(connection.state))
+        XCTAssertEqual(stopping["obs.output.record"], "Stopping")
+        XCTAssertEqual(stopping["obs.record.active"], "Recording")
+        XCTAssertFalse(stopping.keys.contains { $0.hasPrefix("obs.output.record.") })
+        transport.onEvent?("RecordStateChanged", [
+            "outputActive": false, "outputState": "OBS_WEBSOCKET_OUTPUT_STOPPED",
+        ])
+        let stopped = Dictionary(uniqueKeysWithValues: OBSConnection.controlActions(connection.state))
+        XCTAssertNil(stopped["obs.output.record"])
+        XCTAssertNil(stopped["obs.record.active"])
+        XCTAssertTrue(stopped.contains { $0.key.hasPrefix("obs.output.record.") && $0.value == "Start Recording" })
+    }
+
+    @MainActor
     func testGuardedOutputCancelsIfTheDisplayLeavesDuringTheStatusCheck() async throws {
         let transport = OBSPilotTransport()
         let connection = try await open(transport)

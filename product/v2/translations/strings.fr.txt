@@ -167,6 +167,7 @@ still=Fixe
 subpage=Sous-page
 stop=Arrêter
 stopped=Arrêté
+stopping=Arrêt en cours
 sunny=Ensoleillé
 sunny_alert=Alerte soleil
 sunset=Coucher du soleil
