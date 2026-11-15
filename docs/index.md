@@ -1,7 +1,7 @@
 ---
 title: "EspDesktop: A touchscreen controller for your Mac"
 titleTemplate: :title
-description: Launch apps, open websites and Finder folders, and run keyboard shortcuts from a 4-inch touchscreen paired with the free EspDesktop Mac app.
+description: Launch apps, run keyboard shortcuts, and track AI usage from a 4-inch touchscreen paired with the free EspDesktop Mac app.
 layout: home
 ---
 
@@ -116,17 +116,15 @@ Tap the Lock Machine tile when you step away from your desk.
 <article>
 
 <svg class="homepage-feature-icon" viewBox="0 0 24 24" aria-hidden="true">
-  <path d="M5 3v9m0 4v5M12 3v4m0 4v10M19 3v12m0 4v2" />
-  <rect x="2" y="12" width="6" height="4" rx="1" />
-  <rect x="9" y="7" width="6" height="4" rx="1" />
-  <rect x="16" y="15" width="6" height="4" rx="1" />
+  <path d="M4.9 17a9 9 0 1 1 14.2 0H4.9Z" />
+  <path d="m12 14 4-4M7 13h1m4-5v1m4 4h1" />
 </svg>
 
-### Make the layout your own
+### Track AI usage
 
-Resize tiles, choose their icons and colours, and group related controls into subpages.
+See how much of your ChatGPT (Codex), Claude, OpenCode Go, Cursor, or Google Antigravity allowance is left and when it resets.
 
-[Customise the layout](/features/home)
+[Set up Token Usage](/card-types/token-usage)
 
 </article>
 
@@ -140,15 +138,13 @@ Resize tiles, choose their icons and colours, and group related controls into su
 
 ## EspDesktop in action {#a-look-at-the-web-editor}
 
-Tap Safari, Slack, Notes, ChatGPT, or Claude to see their shortcuts, or tap Finder to see its folders. Tap the app icon on any subpage to go back home.
+Tap ChatGPT or Claude to see a sample Token Usage card above the shortcuts. Try Safari, Slack, or Notes for more shortcuts, or tap Finder to see its folders. Tap the app icon on any subpage to go back home.
 
 <div class="homepage-editor-actions">
 
 [Getting Started](/screens/4848s040) <a href="./editor-demo/index.html" target="_self">Preview Editor</a>
 
 </div>
-
-[Track your AI usage allowance](/card-types/token-usage) from the touchscreen while you work.
 
 </div>
 

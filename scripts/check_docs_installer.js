@@ -144,6 +144,8 @@ async function checkBrowser() {
       await page.emulateMedia({ colorScheme });
       await page.goto(home);
       assert.equal(await page.getByRole('heading', { level: 1 }).count(), 1);
+      const usageLink = page.locator('.homepage-features').getByRole('link', { name: 'Set up Token Usage' });
+      assert.equal(await usageLink.getAttribute('href'), '/card-types/token-usage');
       assert(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth),
         `Homepage must fit a ${width}px viewport`);
       const action = await setup.boundingBox();
@@ -282,7 +284,15 @@ async function checkBrowser() {
       await backIcon.waitFor();
       const icon = await backIcon.evaluate(image => image.src);
       assert.equal(hash('sha256', icon), touchscreenIcons[launcherApps.indexOf(app)], app + ' Back tile artwork');
-      const shortcutTiles = page.locator('.sp-main button.sp-btn:not(.sp-back-btn)');
+      const showsUsage = app === 'ChatGPT' || app === 'Claude';
+      const usage = page.locator('.sp-main .sp-token-usage-value');
+      assert.equal(await usage.count(), showsUsage ? 1 : 0);
+      if (showsUsage) {
+        assert.equal(await usage.textContent(), '41% left', app + ' displays sample allowance');
+        assert.equal(await page.locator('.sp-main .sp-btn:not(.sp-back-btn)').first()
+          .locator('.sp-token-usage-value').count(), 1, app + ' leads with Token Usage');
+      }
+      const shortcutTiles = page.locator('.sp-main button.sp-btn:not(.sp-back-btn):not(:has(.sp-token-usage-value))');
       assert.deepEqual(await shortcutTiles.evaluateAll(tiles => tiles.map(tile => tile.getAttribute('aria-label'))),
         expectedTiles, app + ' subpage tile order');
       await shortcutTiles.first().click();

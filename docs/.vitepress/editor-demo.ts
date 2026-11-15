@@ -3,6 +3,7 @@ import {
   setCompanionShortcutTabs,
 } from '../../src/webserver/application/companion_shortcut_folder'
 import type { CardConfig } from '../../src/webserver/contracts/types'
+import { cardContractSubpageTypeCode } from '../../src/webserver/generated/card_contract'
 import { COMPANION_APP_ICON_SIDE } from '../../src/webserver/generated/companion_capabilities'
 import { COMPANION_FOLDER_PREFIX, companionCardHasAppIcon } from '../../src/webserver/model/companion_card_codec'
 import { appShortcutPageOwner } from '../../src/webserver/model/companion_shortcut_page'
@@ -75,14 +76,14 @@ function entity(id: string, value: Entity['value'], details?: Partial<Entity>): 
   return { ...details, id, value, state }
 }
 
-type SamplePageCard = Pick<CardConfig, 'entity' | 'label' | 'icon'> & { options?: string }
+type SamplePageCard = Pick<CardConfig, 'type' | 'entity' | 'label' | 'icon'> & { options?: string }
 
 function samplePageCards(appId: string, tabs: readonly string[]): SamplePageCard[] {
   if (appId === finderAppId) {
     return demoFolders.filter(({ label }) => finderFolderLabels.includes(label))
-      .map(({ id, label }) => ({ entity: id, label, icon: 'Folder Outline' }))
+      .map(({ id, label }) => ({ type: 'companion', entity: id, label, icon: 'Folder Outline' }))
   }
-  return createCompanionShortcutSubpage(appId, tabs).buttons.filter(card => card.type !== "token_usage")
+  return createCompanionShortcutSubpage(appId, tabs).buttons
 }
 
 const sampleButtons: Record<number, string> = {}
@@ -97,8 +98,8 @@ for (const [index, { id, label }] of startingApps.entries()) {
     const cards = samplePageCards(id, tabs)
     sampleSubpages[slot] = serializeCompactSubpageConfig(
       ['B', ...cards.map((_, index) => String(index + 1))],
-      cards.map(({ entity, label, icon, options }) => trimConfigFields([
-        'CP', encodeConfigField(entity), encodeConfigField(label), encodeConfigField(icon),
+      cards.map(({ type, entity, label, icon, options }) => trimConfigFields([
+        cardContractSubpageTypeCode(type), encodeConfigField(entity), encodeConfigField(label), encodeConfigField(icon),
         '', '', '', '', encodeConfigField(options),
       ])),
     )
