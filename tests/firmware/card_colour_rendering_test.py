@@ -21,7 +21,7 @@ source = r'''
 #include <vector>
 #define ESP_LOGD(...) ((void)0)
 struct lv_obj_t;
-void lv_label_set_text(lv_obj_t *, const char *) {}
+void lv_label_set_text(lv_obj_t *, const char *);
 #include "i18n_generated.h"
 #include "button_grid_config_parser.h"
 #include "companion_audio_control.h"
@@ -51,6 +51,7 @@ struct lv_obj_t {
   lv_obj_t *parent = nullptr;
 };
 struct BtnSlot { lv_obj_t *btn, *icon_lbl = nullptr, *text_lbl = nullptr, *sensor_container = nullptr, *subpage_lbl = nullptr; };
+void lv_label_set_text(lv_obj_t *obj, const char *text) { obj->content = text; }
 struct AlarmCardCtx { lv_obj_t *btn; uint32_t off_color; bool off_theme_owned = false; int theme_red_percent = 100, theme_green_percent = 100, theme_blue_percent = 100; };
 struct DisplayProfile {
   struct { int red_percent = 100, green_percent = 100, blue_percent = 100; } color;
@@ -225,7 +226,7 @@ struct CompanionCardRef {
   std::string action_id, url_config, metric_key;
   bool show_focus = true;
   std::string required_focus_id{};
-  lv_obj_t *text_label = nullptr, *obs_detail = nullptr;
+  lv_obj_t *text_label = nullptr, *obs_detail = nullptr, *obs_status_icon = nullptr;
 };
 struct CompanionSliderRef {
   lv_obj_t *slider = nullptr, *icon_label = nullptr, *text_label = nullptr, *obs_fader_fill = nullptr;
@@ -263,7 +264,7 @@ groups = (
     ("button_grid_touch.h", "", ("consume_button_touch_press",)),
     ("button_grid_layout.h", "", ("parse_hex_color", "apply_button_colors", "apply_button_on_pattern")),
     ("companion_controls.h", "", ("companion_obs_scene_target", "companion_obs_scene_card", "companion_apply_card_focus", "companion_required_focus_ready", "companion_refresh_card_focus")),
-    ("companion_controls.h", "", ("companion_render_obs_detail", "companion_update_obs_detail_contrast", "companion_render_slider")),
+    ("companion_controls.h", "", ("companion_obs_status_icon", "companion_render_obs_detail", "companion_update_obs_detail_contrast", "companion_render_slider")),
     ("button_grid_grid.h", "", ("card_palette_for_config", "card_slot_static_child", "reset_card_slot_dynamic_children")),
     ("button_grid_grid.h", "", ("apply_subpage_back_colors",)),
     ("button_grid_subscriptions.h", "", ("apply_sensor_active_color",)),
@@ -290,6 +291,27 @@ source += f'\n#line {line} "button_grid_cards.h"\n{code}\n'
 source += r'''
 #line 1 "card_colour_rendering_cases"
 int main() {
+  {
+    lv_obj_t tile, title, detail, icon;
+    CompanionCardRef sensor{&tile, "obs.status.record", "", ""};
+    sensor.text_label = &title;
+    sensor.obs_detail = &detail;
+    sensor.obs_status_icon = &icon;
+    companion_render_obs_detail(sensor, "Recording · Idle");
+    assert(title.content == "Recording" && detail.content == "Idle" && icon.content == "Circle Outline");
+    companion_render_obs_detail(sensor, "Recording · Active");
+    assert(title.content == "Recording" && detail.content == "Active" && icon.content == "Record");
+    companion_render_obs_detail(sensor, "Recording · Paused");
+    assert(title.content == "Recording" && detail.content == "Paused" && icon.content == "Pause");
+    sensor.action_id = "obs.status.stream";
+    companion_render_obs_detail(sensor, "Stream · Reconnecting");
+    assert(title.content == "Stream" && detail.content == "Reconnecting" && icon.content == "Progress Clock");
+    sensor.action_id = "obs.status.program";
+    companion_render_obs_detail(sensor, "Program · Break");
+    assert(title.content == "Program" && detail.content == "Break" && icon.content == "Monitor");
+    companion_render_obs_detail(sensor, "Unavailable");
+    assert(title.content == "Program" && detail.content == "Unavailable" && icon.content == "Monitor Off");
+  }
   {
     lv_obj_t tile, title, detail, icon;
     tile.children = {&title, &detail, &icon};

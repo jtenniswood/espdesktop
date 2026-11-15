@@ -69,9 +69,10 @@ inline bool basic_action_driver_refresh_layout(
       lv_obj_set_style_text_font(slot.sensor_lbl, display_sensor_font(display), LV_PART_MAIN);
     }
   }
-  if (config.entity == "obs.take" || config.entity == "obs.brb" ||
+  const bool status = companion_obs_status_card(config.entity);
+  if (status || config.entity == "obs.take" || config.entity == "obs.brb" ||
       config.entity == "obs.replay" || config.entity == "obs.output.record")
-    companion_setup_obs_detail(slot.btn, display_small_text_font(display));
+    companion_setup_obs_detail(slot.btn, display_small_text_font(display), status ? slot.icon_lbl : nullptr);
   if (companion_obs_output_card(config.entity))
     obs_confirmation_fonts() = {display_switch_confirmation_message_font(display), display.fonts.icon};
   return basic_action_driver_matches(context, config);

@@ -4493,6 +4493,11 @@ async function assertOBSSceneCard(browser) {
     await page.getByRole("button", { name: "Save", exact: true }).click();
     await waitForNativeState(fixture, () => fixture.document.buttons[6]?.startsWith("obs.status.record;"),
       "The read-only OBS recording indicator saves its selected status");
+    const recordingStatus = page.locator('.sp-main [data-slot="6"]');
+    await recordingStatus.getByText("Recording", { exact: true }).waitFor();
+    await recordingStatus.getByText("Idle", { exact: true }).waitFor();
+    await recordingStatus.locator(".mdi-circle-outline").waitFor();
+    assert.equal(await recordingStatus.evaluate(tile => getComputedStyle(tile).backgroundColor), "rgb(33, 33, 33)");
     await page.locator(".sp-main .sp-empty-cell").first().click();
     await page.getByRole("button", { name: "OBS Save Replay card type", exact: true }).click();
     await page.getByRole("button", { name: "Save", exact: true }).click();

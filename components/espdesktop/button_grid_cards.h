@@ -493,11 +493,12 @@ inline void setup_companion_card(BtnSlot &s, const ParsedCfg &p,
                                 !cfg_option_token_present(p.options, "stat_labels_off"));
     return;
   }
+  const bool obs_status = companion_obs_status_card(p.entity);
   const bool tokenized_card = companion_obs_tokenized_card(p.entity);
   const bool obs_mute = companion_obs_audio_uuid(p.entity, "obs.mute.");
   const bool supports_obs_alias = companion_obs_scene_target(p.entity) || obs_mute;
   const std::string obs_alias = supports_obs_alias ? p.label : "";
-  const bool dynamic_label = tokenized_card || p.entity == "obs.replay" || p.label.empty() || !obs_alias.empty();
+  const bool dynamic_label = obs_status || tokenized_card || p.entity == "obs.replay" || p.label.empty() || !obs_alias.empty();
   const auto obs_snapshot = tokenized_card ? companion_runtime_snapshot() : CompanionRuntimeSnapshot{};
   const bool recording = p.entity == "obs.output.record" && companion_published_action(obs_snapshot, "obs.record.active");
   const bool url_card = !companion_encoded_url(p.sensor).empty();
@@ -542,7 +543,9 @@ inline void setup_companion_card(BtnSlot &s, const ParsedCfg &p,
     obs_mute ? find_icon("Microphone Off") : nullptr);
   if (tokenized_card) companion_remember_rendered_obs(s.btn, obs_snapshot);
   set_card_disabled_state(s.btn, !available);
-  if (companion_obs_status_card(p.entity)) {
+  if (obs_status) {
+    apply_button_colors(s.btn, false, 0, true, sensor_color);
+    sync_card_checked_text_color(s.btn);
     lv_obj_clear_flag(s.btn, LV_OBJ_FLAG_CLICKABLE);
     clear_push_button_transition(s.btn);
   } else if (companion_app_launch_card(p)) {

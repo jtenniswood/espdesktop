@@ -435,7 +435,7 @@ inline void setup_card_visual(BtnSlot &s, const ParsedCfg &p,
   }
 
   if (espdesktop::cards::basic_action_driver_setup_visual(
-        s, p, context, palette.sensor_val)) {
+        s, p, context, companion_obs_status_card(p.entity) ? palette.surface_sensor_val : palette.sensor_val)) {
 #ifdef USE_COMPANION
     if (p.type == "companion")
       grid_update_companion_app_icon_palette(s, p, palette, display);

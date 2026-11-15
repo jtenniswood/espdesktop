@@ -21,6 +21,7 @@
 #include "companion_audio_control.h"
 #include "companion_runtime_access.h"
 #include "companion_shortcut_page.h"
+#include "icons.h"
 #ifdef USE_COMPANION
 #include "../companion/app_icon_store.h"
 #endif
@@ -799,6 +800,7 @@ struct CompanionCardRef {
   const char *obs_mute_icon_off = nullptr;
   const char *obs_mute_icon_on = nullptr;
   lv_obj_t *obs_detail = nullptr;
+  lv_obj_t *obs_status_icon = nullptr;
 };
 
 struct CompanionSliderRef {
@@ -1058,6 +1060,7 @@ inline void companion_track_card(lv_obj_t *button, const std::string &action_id,
     existing->dynamic_default_label = dynamic_default_label;
     existing->obs_label_alias = obs_label_alias;
     existing->obs_detail = nullptr;
+    existing->obs_status_icon = nullptr;
     existing->obs_mute_icon_label = obs_mute_icon_label;
     existing->obs_mute_icon_off = obs_mute_icon_off;
     existing->obs_mute_icon_on = obs_mute_icon_on;
@@ -1093,18 +1096,35 @@ inline void companion_track_card(lv_obj_t *button, const std::string &action_id,
   lv_obj_add_event_cb(button, companion_card_focus_drawn, LV_EVENT_DRAW_POST_END, nullptr);
 }
 
+inline const char *companion_obs_status_icon(const std::string &id, const std::string &status, bool available) {
+  if (!available || status == "Unknown") return "Monitor Off";
+  if (id == "obs.status.program") return "Monitor";
+  if (status == "Changing" || status == "Reconnecting") return "Progress Clock";
+  if (id == "obs.status.stream") return status == "Live" ? "Cast" : "Wifi Off";
+  if (status == "Paused") return "Pause";
+  return status == "Active" ? "Record" : "Circle Outline";
+}
+
 inline void companion_render_obs_detail(CompanionCardRef &ref, const std::string &label, bool stopping = false) {
   if (!ref.obs_detail || !lv_obj_is_valid(ref.obs_detail) || !ref.text_label) return;
   const std::string separator = " · ";
   const auto split = label.find(separator);
   const char *name = ref.action_id == "obs.take" ? "Take Live"
     : ref.action_id == "obs.replay" ? "Save Replay"
+    : ref.action_id == "obs.status.program" ? "Program"
+    : ref.action_id == "obs.status.stream" ? "Stream"
+    : ref.action_id == "obs.status.record" ? "Recording"
     : (label.rfind("Resume", 0) == 0 ? "Resume" : "BRB");
   const bool record = ref.action_id == "obs.output.record";
   const std::string primary = record ? label : espdesktop_i18n(name);
   const bool already_on_break = ref.action_id == "obs.brb" && label == "BRB · Already on break";
-  const std::string detail = already_on_break ? "" : record ? (stopping ? espdesktop_i18n("Stopping") : "")
+  std::string detail = already_on_break ? "" : record ? (stopping ? espdesktop_i18n("Stopping") : "")
     : (split != std::string::npos ? label.substr(split + separator.size()) : (label == name ? "" : label));
+  if (ref.obs_status_icon) {
+    const auto *icon = find_icon(companion_obs_status_icon(ref.action_id, detail, split != std::string::npos));
+    if (std::strcmp(icon, lv_label_get_text(ref.obs_status_icon)) != 0) lv_label_set_text(ref.obs_status_icon, icon);
+    if (ref.action_id != "obs.status.program") detail = espdesktop_i18n(detail);
+  }
   if (normalize_display_text(primary) != lv_label_get_text(ref.text_label))
     lv_label_set_display_text(ref.text_label, primary.c_str());
   if (normalize_display_text(detail) != lv_label_get_text(ref.obs_detail))
@@ -1121,7 +1141,7 @@ inline void companion_update_obs_detail_contrast(const CompanionCardRef &ref, bo
     set_card_content_disabled(ref.button, dim);
 }
 
-inline void companion_setup_obs_detail(lv_obj_t *button, const lv_font_t *font) {
+inline void companion_setup_obs_detail(lv_obj_t *button, const lv_font_t *font, lv_obj_t *status_icon = nullptr) {
   for (auto &ref : companion_card_refs()) {
     if (ref.button != button) continue;
     if (!ref.obs_detail) {
@@ -1130,6 +1150,7 @@ inline void companion_setup_obs_detail(lv_obj_t *button, const lv_font_t *font) 
       lv_label_set_long_mode(ref.obs_detail, LV_LABEL_LONG_DOT);
       lv_obj_set_style_text_opa(ref.obs_detail, LV_OPA_80, LV_PART_MAIN);
     }
+    ref.obs_status_icon = status_icon;
     if (font) lv_obj_set_style_text_font(ref.obs_detail, font, LV_PART_MAIN);
     const auto snapshot = companion_runtime_snapshot();
     const bool record = ref.action_id == "obs.output.record";
@@ -1344,7 +1365,7 @@ inline void companion_track_card(void *, const std::string &, const std::string 
                                  void * = nullptr, const char * = nullptr, const char * = nullptr) {}
 inline void companion_track_metric_card(void *, void *, void *, const std::string &,
                                         const std::string &, int) {}
-inline void companion_setup_obs_detail(void *, const void *) {}
+inline void companion_setup_obs_detail(void *, const void *, void * = nullptr) {}
 inline void companion_apply_card_focus(void *, const std::string &, const std::string & = "", bool = true) {}
 inline bool companion_forget_mute(void *) { return false; }
 inline void companion_track_mute(void *, const std::string &, void * = nullptr,
