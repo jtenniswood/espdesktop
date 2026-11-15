@@ -17,6 +17,11 @@ def validate_contract(data):
             assert 0 <= spec['minLength'] <= spec['maxLength'] <= 16384
         if kind in {'integer', 'number'}:
             assert spec['minimum'] <= spec['maximum']
+        if kind == 'integer':
+            if spec['minimum'] < 0:
+                assert -(2 ** 31) <= spec['minimum'] and spec['maximum'] < 2 ** 31
+            else:
+                assert spec['maximum'] < 2 ** 32
         if kind == 'array':
             assert 0 < spec['maxItems'] <= 256
             field(spec['items'])
@@ -64,13 +69,19 @@ inline bool hex_valid(JsonVariantConst value) {
   return true;
 }
 ''']
+    def scalar_type(spec):
+        kind = spec['type']
+        if kind == 'integer':
+            return 'int32_t' if spec['minimum'] < 0 else 'uint32_t'
+        return {'string': 'std::string', 'number': 'double', 'boolean': 'bool'}[kind]
+
     def type_for(spec, ident):
         kind = spec['type']
         if kind == 'object':
             struct(ident, spec['fields'])
             return ident
         if kind == 'array': return 'std::vector<' + type_for(spec['items'], ident + 'Item') + '>'
-        return {'string':'std::string','integer':'uint32_t','number':'double','boolean':'bool'}[kind]
+        return scalar_type(spec)
     def expr(spec, value):
         kind=spec['type']
         if kind=='string':
@@ -106,7 +117,7 @@ inline bool hex_valid(JsonVariantConst value) {
             declarations.append(f'  {typ} {key}{{}};')
         out.append('struct '+ident+' {\n'+'\n'.join(declarations)+'\n};\n')
     def read(spec,value,ident):
-        return value+'.as<'+{'string':'std::string','integer':'uint32_t','number':'double','boolean':'bool'}[spec['type']]+'>()'
+        return value+'.as<'+scalar_type(spec)+'>()'
     for m in data['protocol']['messages']:struct(name(m['id']),m['fields'])
     for m in data['protocol']['messages']:
         ident = name(m['id'])
@@ -185,7 +196,8 @@ enum CompanionProtocolDirection: String { case panelToMac = "panel_to_mac", macT
         k=spec['type']
         if k=='object':struct(ident,spec['fields']);return 'CompanionWire'+ident
         if k=='array':return '['+typ(spec['items'],ident+'Item')+']'
-        return {'string':'String','integer':'UInt32','number':'Double','boolean':'Bool'}[k]
+        if k == 'integer': return 'Int32' if spec['minimum'] < 0 else 'UInt32'
+        return {'string':'String','number':'Double','boolean':'Bool'}[k]
     def struct(ident,fields):
         decl=[]
         for key,spec in fields.items():decl.append('    let '+key+': '+typ(spec,ident+name(key))+('?' if spec.get('optional') else ''))

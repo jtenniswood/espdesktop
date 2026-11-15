@@ -182,7 +182,7 @@ enum TokenUsage {
         let usage: Usage
     }
 
-    private final class RejectUsageRedirects: NSObject, URLSessionTaskDelegate {
+    final class RejectUsageRedirects: NSObject, URLSessionTaskDelegate {
         func urlSession(_ session: URLSession, task: URLSessionTask,
                         willPerformHTTPRedirection response: HTTPURLResponse,
                         newRequest request: URLRequest,
@@ -268,7 +268,7 @@ enum TokenUsage {
         return await fetchOpenCodeGo(token: key, workspace: nil)
     }
 
-    private static func fetchOpenCodeGo(token: String, workspace: String?) async
+    static func fetchOpenCodeGo(token: String, workspace: String?) async
         -> (status: OpenCodeGoStatus, reading: OpenCodeGoUsage?) {
         var request = URLRequest(url: URL(string: "https://opencode.ai/zen/go/v1/usage")!, timeoutInterval: 12)
         request.setValue("Bearer " + token, forHTTPHeaderField: "Authorization")
@@ -278,6 +278,8 @@ enum TokenUsage {
         request.setValue("application/json", forHTTPHeaderField: "Accept")
         let configuration = URLSessionConfiguration.ephemeral
         configuration.httpShouldSetCookies = false
+        configuration.urlCache = nil
+        configuration.urlCredentialStorage = nil
         configuration.timeoutIntervalForResource = 15
         let session = URLSession(configuration: configuration)
         defer { session.finishTasksAndInvalidate() }

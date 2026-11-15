@@ -12,31 +12,56 @@ struct TokenUsageTile {
   lv_timer_t *timer{nullptr};
   TokenUsageTileRow row;
   size_t service{0};
+  std::optional<ProviderUsageService> provider;
 };
 
+inline std::string token_usage_countdown(int64_t remaining) {
+  std::string detail = espdesktop_i18n_key("token_usage_resets");
+  const auto total_hours = remaining / 3600;
+  const auto days = total_hours / 24;
+  const auto hours = total_hours % 24;
+  if (days > 0) detail += " " + std::to_string(days) + "d";
+  if (hours > 0) detail += " " + std::to_string(hours) + "h";
+  if (total_hours == 0) detail += " " + std::to_string(std::max<int64_t>(1, remaining / 60)) + "m";
+  return detail;
+}
+
+inline std::string token_usage_money(int32_t amount_minor, ProviderUsageUnit unit) {
+  const auto magnitude = std::abs(static_cast<int64_t>(amount_minor));
+  const auto cents = magnitude % 100;
+  return std::string(amount_minor < 0 ? "-" : "") + (unit == ProviderUsageUnit::USD ? "$" : "CNY ") +
+      std::to_string(magnitude / 100) + (cents < 10 ? ".0" : ".") + std::to_string(cents);
+}
+
 inline void refresh_token_usage_tile(const TokenUsageTile &tile) {
-  const auto [connected, readings] = companion_runtime_service().token_usage();
   const auto now = std::time(nullptr);
-  constexpr int64_t seconds_per_hour = 3600;
-  constexpr int64_t hours_per_day = 24;
-  const auto &row = tile.row;
-  const auto &reading = readings[tile.service];
-  const int64_t remaining = static_cast<int64_t>(reading.resets_at) - now;
   const bool clock_ready = now > 1700000000;
-  const int64_t age = now - reading.observed_at;
-  const bool reset_known = connected && clock_ready && remaining > 0 && age <= 15 * 60;
+  const auto &row = tile.row;
   std::string value = espdesktop_i18n("Unavailable");
   std::string detail;
-  if (reading.observed_at) {
-    value = std::to_string(reading.remaining_percent) + espdesktop_i18n("% left");
-    if (reset_known) {
-      detail = espdesktop_i18n_key("token_usage_resets");
-      const auto total_hours = remaining / seconds_per_hour;
-      const auto days = total_hours / hours_per_day;
-      const auto hours = total_hours % hours_per_day;
-      if (days > 0) detail += " " + std::to_string(days) + "d";
-      if (hours > 0) detail += " " + std::to_string(hours) + "h";
-      if (total_hours == 0) detail += " " + std::to_string(std::max<int64_t>(1, remaining / 60)) + "m";
+  if (tile.provider) {
+    const auto [connected, reading] = companion_runtime_service().provider_usage(*tile.provider);
+    const int64_t age = now - reading.observed_at;
+    if (connected && clock_ready && reading.observed_at && age >= -60 && age <= 15 * 60) {
+      if (reading.metric == ProviderUsageMetric::PERCENT_LEFT) {
+        value = std::to_string((reading.amount_minor + 50) / 100) + espdesktop_i18n("% left");
+        const int64_t remaining = static_cast<int64_t>(reading.resets_at) - now;
+        if (remaining > 0) detail = token_usage_countdown(remaining);
+      } else {
+        value = token_usage_money(reading.amount_minor, reading.unit);
+        const char *key = reading.metric == ProviderUsageMetric::KEY_BUDGET ? "provider_usage_key_budget" :
+            reading.metric == ProviderUsageMetric::KEY_SPEND ? "provider_usage_key_spend" : "provider_usage_balance";
+        detail = espdesktop_i18n_key(key);
+      }
+    }
+  } else {
+    const auto [connected, readings] = companion_runtime_service().token_usage();
+    const auto &reading = readings[tile.service];
+    if (reading.observed_at) {
+      value = std::to_string(reading.remaining_percent) + espdesktop_i18n("% left");
+      const int64_t remaining = static_cast<int64_t>(reading.resets_at) - now;
+      if (connected && clock_ready && remaining > 0 && now - reading.observed_at <= 15 * 60)
+        detail = token_usage_countdown(remaining);
     }
   }
   const bool show_detail = !detail.empty();
@@ -69,13 +94,18 @@ inline void token_usage_tile_tick(lv_timer_t *timer) {
 // Contract coverage marker: "token_usage".
 inline void setup_token_usage_card(BtnSlot &slot, const ParsedCfg &config,
                                     const DisplayProfile &display, const CardPalette &palette) {
-  const auto service = token_usage_service(cfg_option_value(config.options, "services"));
+  const auto configured_service = cfg_option_value(config.options, "services");
+  const auto provider = provider_usage_service(configured_service);
+  const auto service = token_usage_service(configured_service);
   lv_obj_clear_flag(slot.btn, LV_OBJ_FLAG_CLICKABLE);
   // Use the standard icon label so the glyph follows the card size and theme.
   constexpr const char *glyphs[] = {"\uE900", "\uE901", "\uE902", "\uE901", "\uE902", "\uE903", "\uE904"};
   static_assert(sizeof(glyphs) / sizeof(*glyphs) == static_cast<size_t>(TokenUsageService::COUNT));
   lv_obj_clear_flag(slot.icon_lbl, LV_OBJ_FLAG_HIDDEN);
-  lv_label_set_text(slot.icon_lbl, glyphs[static_cast<size_t>(service)]);
+  constexpr const char *provider_icons[] = {"Gauge", "Router Network", "Database"};
+  static_assert(sizeof(provider_icons) / sizeof(*provider_icons) == static_cast<size_t>(ProviderUsageService::COUNT));
+  lv_label_set_text(slot.icon_lbl, provider ? find_icon(provider_icons[static_cast<size_t>(*provider)]) :
+      glyphs[static_cast<size_t>(service)]);
   lv_obj_add_flag(slot.text_lbl, LV_OBJ_FLAG_HIDDEN);
   lv_obj_add_flag(slot.sensor_container, LV_OBJ_FLAG_HIDDEN);
   lv_obj_set_style_bg_color(slot.btn, lv_color_hex(palette.has_off ? palette.off_val : palette.sensor_val),
@@ -94,6 +124,7 @@ inline void setup_token_usage_card(BtnSlot &slot, const ParsedCfg &config,
   const auto usage_window = service == TokenUsageService::OPENCODE_GO &&
       cfg_option_value(config.options, "limit") == "monthly" ? TokenUsageService::OPENCODE_GO_MONTHLY : service;
   tile->service = static_cast<size_t>(usage_window);
+  tile->provider = provider;
   auto *value = lv_label_create(container);
   auto *reset = lv_label_create(container);
   for (auto *label : {value, reset}) {

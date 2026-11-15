@@ -344,3 +344,6 @@ mute=Ztlumit
 mac_update_required=Aktualizovat aplikaci pro Mac
 mac_update_reconnect=Pro opětovné připojení aktualizujte EspDesktop na Macu.
 token_usage_resets=Obnova za
+provider_usage_balance=Zůstatek
+provider_usage_key_spend=Útrata klíče
+provider_usage_key_budget=Zbývající rozpočet

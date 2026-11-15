@@ -345,3 +345,6 @@ mute=Mute
 mac_update_required=Update Mac app
 mac_update_reconnect=Update EspDesktop on your Mac to reconnect.
 token_usage_resets=Resets
+provider_usage_balance=Balance
+provider_usage_key_spend=Key spend
+provider_usage_key_budget=Key budget left

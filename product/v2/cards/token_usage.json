@@ -7,7 +7,7 @@
       "name": "services",
       "label": "Service",
       "kind": "choice",
-      "values": ["codex", "claude", "opencode-go", "cursor", "antigravity"],
+      "values": ["codex", "claude", "opencode-go", "cursor", "antigravity", "synthetic", "openrouter", "deepseek"],
       "defaultValue": "codex",
       "omitDefault": true
     },

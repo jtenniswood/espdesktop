@@ -3037,7 +3037,10 @@
             "claude",
             "opencode-go",
             "cursor",
-            "antigravity"
+            "antigravity",
+            "synthetic",
+            "openrouter",
+            "deepseek"
           ],
           "defaultValue": "codex",
           "omitDefault": true

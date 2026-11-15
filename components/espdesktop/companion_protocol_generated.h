@@ -139,6 +139,17 @@ struct SystemMetrics {
   std::optional<std::vector<SystemMetricsStorageDevicesItem>> storageDevices{};
   std::optional<std::vector<SystemMetricsNetworkInterfacesItem>> networkInterfaces{};
 };
+struct ProviderUsageReadingsItem {
+  std::string service{};
+  std::string metric{};
+  std::string unit{};
+  int32_t amountMinor{};
+  uint32_t observedAt{};
+  uint32_t resetsAt{};
+};
+struct ProviderUsage {
+  std::vector<ProviderUsageReadingsItem> readings{};
+};
 struct ArtworkBegin {
   uint32_t generation{};
   uint32_t byteLength{};
@@ -376,6 +387,20 @@ inline void encode(JsonObject root, const SystemMetrics &message) {
   }
   }
 }
+inline void encode(JsonObject root, const ProviderUsage &message) {
+  root["type"] = "provider_usage";
+  root["protocol"] = COMPANION_PROTOCOL_VERSION;
+  auto values_readings = root["readings"].to<JsonArray>();
+  for (const auto &item : message.readings) {
+    auto entry = values_readings.add<JsonObject>();
+    entry["service"] = item.service;
+    entry["metric"] = item.metric;
+    entry["unit"] = item.unit;
+    entry["amountMinor"] = item.amountMinor;
+    entry["observedAt"] = item.observedAt;
+    entry["resetsAt"] = item.resetsAt;
+  }
+}
 inline void encode(JsonObject root, const ArtworkBegin &message) {
   root["type"] = "artwork.begin";
   root["protocol"] = COMPANION_PROTOCOL_VERSION;
@@ -495,7 +520,7 @@ inline void encode(JsonObject root, const PairReset &message) {
   root["protocol"] = COMPANION_PROTOCOL_VERSION;
   (void) message;
 }
-using Message = std::variant<Hello, PairRequest, PairAccepted, AuthRequest, AuthAccepted, Capabilities, CatalogueRequest, CataloguePage, ActionInvoke, ActionResult, ValueSet, ValueState, FocusChanged, TimezoneChanged, NowPlaying, TokenUsage, SystemMetrics, ArtworkBegin, ArtworkAck, ArtworkEnd, ArtworkAbort, ArtworkRequest, AppIconRequest, AppIconBegin, AppIconUnchanged, AppIconUnavailable, AppIconAck, AppIconEnd, AppIconAbort, Error, CatalogueDefinitionsPage, FocusTargets, SessionLock, PairReset>;
+using Message = std::variant<Hello, PairRequest, PairAccepted, AuthRequest, AuthAccepted, Capabilities, CatalogueRequest, CataloguePage, ActionInvoke, ActionResult, ValueSet, ValueState, FocusChanged, TimezoneChanged, NowPlaying, TokenUsage, SystemMetrics, ProviderUsage, ArtworkBegin, ArtworkAck, ArtworkEnd, ArtworkAbort, ArtworkRequest, AppIconRequest, AppIconBegin, AppIconUnchanged, AppIconUnavailable, AppIconAck, AppIconEnd, AppIconAbort, Error, CatalogueDefinitionsPage, FocusTargets, SessionLock, PairReset>;
 inline std::optional<Message> decode(JsonObjectConst root, Direction direction, SessionState state) {
   if (!number_valid(root["protocol"], COMPANION_PROTOCOL_VERSION, COMPANION_PROTOCOL_VERSION, true) || !root["type"].is<const char *>()) return std::nullopt;
   const std::string type = root["type"].as<std::string>();
@@ -901,6 +926,39 @@ inline std::optional<Message> decode(JsonObjectConst root, Direction direction, 
     for (JsonVariantConst item : root["networkInterfaces"].as<JsonArrayConst>()) {
       result.networkInterfaces->push_back({item["id"].as<std::string>(), item["label"].as<std::string>(), item["address"].as<std::string>()});
     }
+    }
+    return result;
+  }
+  if (type == "provider_usage") {
+    if (direction != Direction::MAC_TO_PANEL) return std::nullopt;
+    if (!(state == SessionState::CONNECTED)) return std::nullopt;
+    {
+      if (!(root["readings"].is<JsonArrayConst>() && root["readings"].size() <= 3)) return std::nullopt;
+      for (JsonVariantConst item : root["readings"].as<JsonArrayConst>()) {
+        if (!(item.is<JsonObjectConst>())) return std::nullopt;
+        {
+          if (!(string_valid(item.as<JsonObjectConst>()["service"], 8, 10) && (item.as<JsonObjectConst>()["service"].as<std::string>() == "synthetic" || item.as<JsonObjectConst>()["service"].as<std::string>() == "openrouter" || item.as<JsonObjectConst>()["service"].as<std::string>() == "deepseek"))) return std::nullopt;
+        }
+        {
+          if (!(string_valid(item.as<JsonObjectConst>()["metric"], 7, 12) && (item.as<JsonObjectConst>()["metric"].as<std::string>() == "balance" || item.as<JsonObjectConst>()["metric"].as<std::string>() == "key_spend" || item.as<JsonObjectConst>()["metric"].as<std::string>() == "key_budget" || item.as<JsonObjectConst>()["metric"].as<std::string>() == "percent_left"))) return std::nullopt;
+        }
+        {
+          if (!(string_valid(item.as<JsonObjectConst>()["unit"], 3, 7) && (item.as<JsonObjectConst>()["unit"].as<std::string>() == "USD" || item.as<JsonObjectConst>()["unit"].as<std::string>() == "CNY" || item.as<JsonObjectConst>()["unit"].as<std::string>() == "percent"))) return std::nullopt;
+        }
+        {
+          if (!(number_valid(item.as<JsonObjectConst>()["amountMinor"], -1000000000, 1000000000, true))) return std::nullopt;
+        }
+        {
+          if (!(number_valid(item.as<JsonObjectConst>()["observedAt"], 1, 4294967295, true))) return std::nullopt;
+        }
+        {
+          if (!(number_valid(item.as<JsonObjectConst>()["resetsAt"], 0, 4294967295, true))) return std::nullopt;
+        }
+      }
+    }
+    ProviderUsage result;
+    for (JsonVariantConst item : root["readings"].as<JsonArrayConst>()) {
+      result.readings.push_back({item["service"].as<std::string>(), item["metric"].as<std::string>(), item["unit"].as<std::string>(), item["amountMinor"].as<int32_t>(), item["observedAt"].as<uint32_t>(), item["resetsAt"].as<uint32_t>()});
     }
     return result;
   }

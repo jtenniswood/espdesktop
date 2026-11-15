@@ -1,11 +1,11 @@
 ---
 title: Track AI Usage on Your EspDesktop Touchscreen
-description: See how much of your Codex, Claude, OpenCode Go, Cursor or Google Antigravity allowance remains and when it resets.
+description: See how much of your Codex, Claude, OpenCode Go, Cursor or Google Antigravity allowance remains. See Synthetic quota, OpenRouter key budget and DeepSeek balance on your display.
 ---
 
 # Token Usage
 
-Show a weekly or monthly allowance on a paired display. Each card shows one service, the percentage remaining, and the time until its next reset. Add a card for each service to see multiple services.
+Show an allowance, key budget, or balance on a paired display. Each card shows one service and includes a reset countdown when the provider reports one. Add a card for each service you want to track.
 
 1. Pair the display with the EspDesktop Mac app.
 2. For ChatGPT (Codex), install the official Codex CLI and sign in with ChatGPT.
@@ -13,7 +13,17 @@ Show a weekly or monthly allowance on a paired display. Each card shows one serv
 4. For OpenCode Go, run `/connect` in OpenCode, select **OpenCode Go**, and enter your Go API key. The Mac uses your saved OpenCode login to read the account’s current Go limits directly from OpenCode. Select **Weekly** or **Monthly** under **Time period** on the card. Existing cards use Weekly. The card shows percentage remaining and the reset countdown for the chosen limit. The key stays on the Mac and is sent only to OpenCode’s usage endpoint.
 5. For Cursor, install the [Cursor CLI](https://cursor.com/docs/cli/installation) and sign in with your Cursor account using `AGENT_CLI_CREDENTIAL_STORE=file agent login`. This saves the CLI login under `~/.cursor/auth.json` so EspDesktop can read it without a Keychain prompt. The Mac queries Cursor’s dashboard directly for the personal included allowance and its reset. This is monthly on legacy personal plans and weekly on accounts with the shared X Subscription allowance. If the saved login expires, repeat the login.
 6. For Google Antigravity, install the [Antigravity CLI](https://antigravity.google/docs/cli/tutorial/), run `agy`, and sign in to your Google account. Choose **Google Antigravity (Gemini)** on the card to show the Gemini model group’s weekly allowance. EspDesktop reads the CLI’s built-in quota report in the background.
-7. In the panel’s web editor, add **Token Usage**, select a service, and apply the layout.
+7. For Synthetic, OpenRouter, DeepSeek, or OpenCode Go without an existing OpenCode login, open **EspDesktop → Settings → Usage Providers**, choose **Connect**, and enter your personal API key there.
+8. In the panel’s web editor, add **Token Usage**, select a service, and apply the layout.
+
+| Personal key connection | Card reading |
+| --- | --- |
+| Synthetic | Remaining subscription quota and its next reset when reported |
+| OpenCode Go | Weekly or monthly allowance. A key saved in EspDesktop takes precedence over the automatically detected OpenCode login. |
+| OpenRouter | Remaining budget for the connected key, or the key's total spend if it has no budget |
+| DeepSeek | Prepaid account balance in the currency reported by DeepSeek |
+
+EspDesktop stores keys in the login Keychain and shares only usage readings with paired displays. Account keys never appear in the web editor or in display backups. Use **Usage Providers → Manage** to test, replace, or remove a key.
 
 The Mac app automatically refreshes usage in the background every few minutes when a compatible display is connected. The provider apps can be closed. EspDesktop must be running on your Mac. The paired display receives the allowance readings and reset times. Provider credentials stay on the Mac and are used by the relevant provider tools or requests. The panel hides the reset countdown when the reading is stale or the reset time is unknown. It shows **Unavailable** until it has a reading for the selected limit.
 

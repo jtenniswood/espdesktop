@@ -344,3 +344,6 @@ mute=Slå lyd fra
 mac_update_required=Opdater Mac-appen
 mac_update_reconnect=Opdater EspDesktop på din Mac for at oprette forbindelse igen.
 token_usage_resets=Nulstilles om
+provider_usage_balance=Saldo
+provider_usage_key_spend=Nøgleforbrug
+provider_usage_key_budget=Restbudget

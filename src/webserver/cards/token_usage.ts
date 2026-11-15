@@ -9,6 +9,9 @@ const SERVICES = [
   ["opencode-go", "OpenCode Go"],
   ["cursor", "Cursor"],
   ["antigravity", "Google Antigravity (Gemini)"],
+  ["synthetic", "Synthetic"],
+  ["openrouter", "OpenRouter"],
+  ["deepseek", "DeepSeek"],
 ] as const;
 
 function selectedServices(options: string): typeof SERVICES[number][0] | "claude-enterprise" {
@@ -69,19 +72,36 @@ export function registerTokenUsageCard(
     renderPreview: (card, helpers) => {
       const selected = selectedServices(card.options);
       const unavailable = selected === "claude-enterprise";
-      const glyphs = { codex: "\uE900", claude: "\uE901", "opencode-go": "\uE902",
-        "claude-enterprise": "\uE901", cursor: "\uE903", antigravity: "\uE904" };
+      const glyphs: Partial<Record<typeof selected, string>> = {
+        codex: "\uE900", claude: "\uE901", "opencode-go": "\uE902",
+        "claude-enterprise": "\uE901", cursor: "\uE903", antigravity: "\uE904",
+      };
+      const name = unavailable ? "Claude" : selected === "codex" ? "Codex" : SERVICES.find(([id]) => id === selected)![1];
+      const iconLabel = ' role="img" aria-label="' + helpers.escHtml(name) + '"></span>';
       const glyph = glyphs[selected];
-      const icon = '<span class="sp-btn-icon sp-token-usage-icon" role="img" aria-label="' +
-        (unavailable ? "Claude" : selected === "codex" ? "Codex" : SERVICES.find(([id]) => id === selected)![1]) +
-        '">' + glyph + '</span>';
+      const icon = glyph
+        ? '<span class="sp-btn-icon sp-token-usage-icon" role="img" aria-label="' + helpers.escHtml(name) + '">' + glyph + '</span>'
+        : selected === "openrouter" ? '<span class="sp-btn-icon mdi mdi-router-network"' + iconLabel
+        : selected === "deepseek" ? '<span class="sp-btn-icon mdi mdi-database-outline"' + iconLabel
+        : '<span class="sp-btn-icon mdi mdi-gauge"' + iconLabel;
+      let sampleValue = "41% left";
+      let sampleDetail = selected === "opencode-go" && openCodeLimit(card.options) === "monthly" ? "Resets 19d 9h" : "Resets 2d 9h";
+      if (selected === "openrouter") {
+        sampleValue = "$12.40";
+        sampleDetail = "Key budget left";
+      } else if (selected === "deepseek") {
+        sampleValue = "$8.50";
+        sampleDetail = "Balance";
+      } else if (selected === "synthetic") {
+        sampleDetail = "Resets 2h";
+      }
       const value = (left: string) =>
         '<span class="sp-btn-label sp-token-usage-value">' + helpers.escHtml(left) + '</span>';
       const reset = (text: string) =>
         '<span class="sp-token-usage-reset">' + helpers.escHtml(text) + '</span>';
       return {
         iconHtml: icon,
-        labelHtml: '<span class="sp-btn-label-row sp-token-usage-single">' + value(unavailable ? "Unavailable" : "41% left") + (unavailable ? "" : reset(selected === "opencode-go" && openCodeLimit(card.options) === "monthly" ? "Resets 19d 9h" : "Resets 2d 9h")) + '</span>',
+        labelHtml: '<span class="sp-btn-label-row sp-token-usage-single">' + value(unavailable ? "Unavailable" : sampleValue) + (unavailable ? "" : reset(sampleDetail)) + '</span>',
         labelEditable: false,
       };
     },

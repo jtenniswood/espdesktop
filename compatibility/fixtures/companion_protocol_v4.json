@@ -31,6 +31,21 @@
     "valid": false
   },
   {
+    "name": "personal usage readings expose amounts and optional reset only",
+    "message": {
+      "protocol": 4,
+      "type": "provider_usage",
+      "readings": [
+        { "service": "synthetic", "metric": "percent_left", "unit": "percent", "amountMinor": 4100, "observedAt": 1700000000, "resetsAt": 1700010000 },
+        { "service": "openrouter", "metric": "key_budget", "unit": "USD", "amountMinor": 1240, "observedAt": 1700000000, "resetsAt": 0 },
+        { "service": "deepseek", "metric": "balance", "unit": "CNY", "amountMinor": -85, "observedAt": 1700000000, "resetsAt": 0 }
+      ]
+    },
+    "direction": "mac_to_panel",
+    "state": "connected",
+    "valid": true
+  },
+  {
     "name": "hello",
     "message": {
       "protocol": 4,

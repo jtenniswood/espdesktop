@@ -157,6 +157,7 @@ final class CompanionStore: NSObject, ObservableObject {
     private static let preferencesSuite = "io.espdesktop.app"
     private let defaults: UserDefaults
     private let savedDisplays: CompanionSavedDisplays
+    let providerUsage: ProviderUsageStore
     private var forgettingDisplays: Set<UUID> = []
     private lazy var pairingDisplay = makeDisplay(CompanionDisplayRecord())
     private(set) var isRePairing = false
@@ -194,6 +195,7 @@ final class CompanionStore: NSObject, ObservableObject {
             ? UserDefaults.standard
             : (UserDefaults(suiteName: Self.preferencesSuite) ?? .standard))
         self.defaults = stableDefaults
+        providerUsage = ProviderUsageStore(defaults: stableDefaults)
         let savedDisplays = CompanionSavedDisplays(defaults: stableDefaults)
         self.savedDisplays = savedDisplays
         approvedApplicationIdentifiers = Set(
@@ -206,8 +208,14 @@ final class CompanionStore: NSObject, ObservableObject {
         onboardingCompleted = stableDefaults.bool(forKey: Keys.onboardingCompleted) || !records.isEmpty
         super.init()
         displays = records.map(makeDisplay)
+        providerUsage.onChange = { [weak self] in
+            guard let self else { return }
+            for display in tokenUsageDisplays { publishTokenUsage(to: display) }
+        }
         sessionLock.onChange = { [weak self] locked, displayAwake in
-            self?.publishToConnectedDisplays { $0.publishSessionLock(locked, displayAwake: displayAwake) }
+            guard let self else { return }
+            if locked { providerUsage.pause() }
+            publishToConnectedDisplays { $0.publishSessionLock(locked, displayAwake: displayAwake) }
         }
         sessionLock.start()
         NSWorkspace.shared.notificationCenter.addObserver(
@@ -825,10 +833,25 @@ final class CompanionStore: NSObject, ObservableObject {
     }
 
     private func publishTokenUsage(to display: CompanionDisplay) {
+        let openCodeGo: TokenUsage.OpenCodeGoUsage?
+        if providerUsage.hasConfiguredKey(.openCodeGo) {
+            if case let .openCodeGo(reading) = providerUsage.readings[.openCodeGo] {
+                openCodeGo = reading
+            } else {
+                openCodeGo = nil
+            }
+            // Never keep a reading from the automatically detected account
+            // around after choosing a different account in Settings.
+            openCodeGoUsage = nil
+            lastOpenCodeGoUsageAttempt = .distantPast
+        } else {
+            openCodeGo = openCodeGoUsage
+        }
+        display.connection.publishProviderUsage(providerUsage.readings)
         display.connection.publishTokenUsage(
             codex: codexUsage,
             claude: claudeUsage,
-            openCodeGo: openCodeGoUsage,
+            openCodeGo: openCodeGo,
             cursor: cursorUsage,
             antigravity: antigravityUsage
         )
@@ -836,6 +859,7 @@ final class CompanionStore: NSObject, ObservableObject {
 
     private func updateTokenUsageTask() {
         guard !tokenUsageDisplays.isEmpty else {
+            providerUsage.pause()
             tokenUsageTask?.cancel()
             tokenUsageTask = nil
             return
@@ -850,6 +874,7 @@ final class CompanionStore: NSObject, ObservableObject {
     }
 
     private func refreshTokenUsage() async {
+        if !sessionLock.refresh() { providerUsage.refreshIfNeeded() }
         if Date().timeIntervalSince(lastCodexUsageAttempt) >= 300 {
             let reading = await TokenUsage.readCodex()
             guard !Task.isCancelled else { return }
@@ -873,9 +898,10 @@ final class CompanionStore: NSObject, ObservableObject {
             for display in tokenUsageDisplays { publishTokenUsage(to: display) }
         }
         let openCodeGoInterval: TimeInterval = openCodeGoStatus == .missingLogin ? 60 : 300
-        if Date().timeIntervalSince(lastOpenCodeGoUsageAttempt) >= openCodeGoInterval {
+        if !providerUsage.hasConfiguredKey(.openCodeGo),
+           Date().timeIntervalSince(lastOpenCodeGoUsageAttempt) >= openCodeGoInterval {
             let (status, reading) = await TokenUsage.readOpenCodeGo()
-            guard !Task.isCancelled else { return }
+            guard !Task.isCancelled, !providerUsage.hasConfiguredKey(.openCodeGo) else { return }
             lastOpenCodeGoUsageAttempt = .now
             if openCodeGoStatus != status { openCodeGoStatus = status }
             if let reading {
