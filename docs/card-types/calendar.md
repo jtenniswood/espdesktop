@@ -18,7 +18,7 @@ Use a Clock card to show the local time, or a [World Clock](/card-types/timezone
 ## How It Works on the Panel
 
 - The card uses the panel's own synced time source and shows no date label.
-- The time follows the timezone and 12/24-hour setting selected in [Time Settings](/features/clock).
+- The time follows the timezone and 12/24-hour setting selected in [Time settings](/settings/system#preferences).
 - The card uses the fixed **tertiary** background colour.
 - If the panel has not synced time yet, the card shows `--` until time becomes available.
 

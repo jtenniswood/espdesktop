@@ -20,7 +20,9 @@
     "mac-controls/websites.md",
     "mac-controls/folders.md",
     "mac-controls/shortcuts.md",
-    "reference/shortcut-presets.md"
+    "reference/shortcut-presets.md",
+    "card-types/calendar.md",
+    "card-types/timezones.md"
   ],
   "Settings and permissions": [
     "settings/screen.md",

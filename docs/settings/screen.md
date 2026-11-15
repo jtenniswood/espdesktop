@@ -16,7 +16,7 @@ Choose **Apply Configuration** at the bottom of the tab when you’re ready to r
 - **Active Colour** sets the accent colour. **Card Style** sets the card curve and default app icon size.
 - **App Subpages** controls whether shortcut pages open when an app comes into focus and what happens when you switch apps. See [app page behaviour](/features/subpages#app-page-behavior).
 - **Theme** offers Dark, Light or Automatic. Automatic follows sunrise and sunset or times you set.
-- **Clock Bar** shows or hides the status bar on the home screen.
+- **Clock Bar** shows or hides the status bar on the home screen. To put a clock in the layout, add a [Clock or World Clock card](/card-types/calendar).
 
 <a href="/images/web-editor-card-style.png"><picture><source type="image/avif" srcset="/images/web-editor-card-style-480.avif 480w, /images/web-editor-card-style-960.avif 960w" sizes="(min-width: 768px) 688px, 90vw"><img src="/images/web-editor-card-style.png" alt="Card Style controls for card curve and default app icon size" width="1694" height="1470" loading="lazy"></picture></a>
 
