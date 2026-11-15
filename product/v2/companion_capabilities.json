@@ -1,5 +1,5 @@
 {
-  "version": 15,
+  "version": 16,
   "protocol": {
     "version": 4,
     "path": "/companion/v4",
@@ -621,6 +621,71 @@
               "storageUsagePercent"
             ]
           }
+        ]
+      },
+      {
+        "id": "provider_usage",
+        "direction": "mac_to_panel",
+        "authorization": "session",
+        "fields": {
+          "readings": {
+            "type": "array",
+            "maxItems": 3,
+            "items": {
+              "type": "object",
+              "fields": {
+                "service": {
+                  "type": "string",
+                  "minLength": 8,
+                  "maxLength": 10,
+                  "enum": [
+                    "synthetic",
+                    "openrouter",
+                    "deepseek"
+                  ]
+                },
+                "metric": {
+                  "type": "string",
+                  "minLength": 7,
+                  "maxLength": 12,
+                  "enum": [
+                    "balance",
+                    "key_spend",
+                    "key_budget",
+                    "percent_left"
+                  ]
+                },
+                "unit": {
+                  "type": "string",
+                  "minLength": 3,
+                  "maxLength": 7,
+                  "enum": [
+                    "USD",
+                    "CNY",
+                    "percent"
+                  ]
+                },
+                "amountMinor": {
+                  "type": "integer",
+                  "minimum": -1000000000,
+                  "maximum": 1000000000
+                },
+                "observedAt": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 4294967295
+                },
+                "resetsAt": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 4294967295
+                }
+              }
+            }
+          }
+        },
+        "states": [
+          "connected"
         ]
       },
       {

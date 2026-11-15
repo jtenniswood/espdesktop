@@ -75,6 +75,27 @@ struct CompanionTokenUsageReading {
 
 using CompanionTokenUsage = std::array<CompanionTokenUsageReading, static_cast<size_t>(TokenUsageService::COUNT)>;
 
+enum class ProviderUsageService : size_t { SYNTHETIC, OPENROUTER, DEEPSEEK, COUNT };
+enum class ProviderUsageMetric : uint8_t { PERCENT_LEFT, KEY_BUDGET, KEY_SPEND, BALANCE };
+enum class ProviderUsageUnit : uint8_t { PERCENT, USD, CNY };
+
+inline std::optional<ProviderUsageService> provider_usage_service(std::string_view service) {
+  if (service == "synthetic") return ProviderUsageService::SYNTHETIC;
+  if (service == "openrouter") return ProviderUsageService::OPENROUTER;
+  if (service == "deepseek") return ProviderUsageService::DEEPSEEK;
+  return std::nullopt;
+}
+
+struct CompanionProviderUsageReading {
+  ProviderUsageMetric metric{ProviderUsageMetric::PERCENT_LEFT};
+  ProviderUsageUnit unit{ProviderUsageUnit::PERCENT};
+  int32_t amount_minor{0};
+  uint32_t observed_at{0};
+  uint32_t resets_at{0};
+};
+
+using CompanionProviderUsage = std::array<CompanionProviderUsageReading, static_cast<size_t>(ProviderUsageService::COUNT)>;
+
 struct CompanionSystemMetricsSnapshot {
   uint32_t generation{0};
   float cpu_usage_percent{NAN};
@@ -332,6 +353,16 @@ class CompanionRuntimeService {
     token_usage_current_ = true;
   }
 
+  std::pair<bool, CompanionProviderUsageReading> provider_usage(ProviderUsageService service) const {
+    std::lock_guard<std::mutex> lock(mutex_);
+    return {connected_, provider_usage_[static_cast<size_t>(service)]};
+  }
+
+  void set_provider_usage(CompanionProviderUsage readings) {
+    std::lock_guard<std::mutex> lock(mutex_);
+    provider_usage_ = readings;
+  }
+
   void set_system_metrics(CompanionSystemMetricsSnapshot snapshot) {
     std::lock_guard<std::mutex> lock(mutex_);
     system_metrics_ = std::move(snapshot);
@@ -467,6 +498,7 @@ class CompanionRuntimeService {
       keyboard_actions_supported_ = false;
       system_metrics_ = {};
       token_usage_current_ = false;
+      provider_usage_ = {};
     }
     request_refresh_();
   }
@@ -500,6 +532,7 @@ class CompanionRuntimeService {
   bool connected_{false};
   CompanionSystemMetricsSnapshot system_metrics_;
   CompanionTokenUsage token_usage_{};
+  CompanionProviderUsage provider_usage_{};
   bool token_usage_current_{false};
   std::atomic<bool> mac_update_required_{false};
   std::atomic<bool> refresh_requested_{false};

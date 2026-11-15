@@ -552,6 +552,12 @@ int main() {
   assert(parsed_cfg_from_subpage_btn(usage_folder[4]).options == "services=cursor");
   assert(parsed_cfg_from_subpage_btn(usage_folder[5]).options == "services=antigravity");
 
+  for (const auto *provider : {"openrouter", "deepseek", "synthetic"}) {
+    const std::string options = std::string("services=") + provider;
+    const auto folder = parse_subpage_config("~B,1|TU,,,,,,,," + options);
+    assert(parsed_cfg_from_subpage_btn(folder.at(0)).options == options);
+  }
+
   auto weather_today = parse_cfg("weather.home;;;;;;weather;today;large_numbers");
   assert(weather_today.type == "weather");
   assert(weather_today.precision == "today");

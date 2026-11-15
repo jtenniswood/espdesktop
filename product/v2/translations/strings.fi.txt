@@ -344,3 +344,6 @@ mute=Mykistä
 mac_update_required=Päivitä Mac-sovellus
 mac_update_reconnect=Muodosta yhteys uudelleen päivittämällä EspDesktop Macissa.
 token_usage_resets=Nollautuu
+provider_usage_balance=Saldo
+provider_usage_key_spend=Avaimen kulut
+provider_usage_key_budget=Budjettia jäljellä

@@ -344,3 +344,6 @@ mute=Demp
 mac_update_required=Oppdater Mac-appen
 mac_update_reconnect=Oppdater EspDesktop på Macen for å koble til igjen.
 token_usage_resets=Nullstilles om
+provider_usage_balance=Saldo
+provider_usage_key_spend=Nøkkelutgifter
+provider_usage_key_budget=Gjenstående budsjett

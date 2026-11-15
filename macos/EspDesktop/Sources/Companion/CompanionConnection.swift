@@ -77,6 +77,7 @@ final class CompanionConnection: NSObject {
     private var supportsOpenCodeGoMonthly = false
     private(set) var supportsCursorUsage = false
     private(set) var supportsAntigravityUsage = false
+    private(set) var supportsProviderUsage = false
     private var pairingResetCompletion: CheckedContinuation<Void, Never>?
     private var pairingResetTimeout: Task<Void, Never>?
     private var remoteCatalogueDefinitionsSupported = false
@@ -514,6 +515,7 @@ final class CompanionConnection: NSObject {
             supportsOpenCodeGoMonthly = payload.capabilityVersion >= 13
             supportsCursorUsage = payload.capabilityVersion >= 14
             supportsAntigravityUsage = payload.capabilityVersion >= 15
+            supportsProviderUsage = payload.capabilityVersion >= 16
             // A Bonjour TXT record never authorizes a location change. Both the
             // pinned TLS certificate and the authenticated session must agree.
             let expectedFingerprint = preferences.stringPreference(forKey: certificateFingerprintKey)
@@ -776,6 +778,15 @@ final class CompanionConnection: NSObject {
             supportsAntigravityUsage ? antigravity?.wireValue(service: "antigravity") : nil,
         ].compactMap { $0 }
         sendJSON(["type": "token_usage", "readings": readings])
+    }
+
+    func publishProviderUsage(_ readings: [UsageProvider: UsageProvider.Reading]) {
+        guard sessionAuthenticated, supportsProviderUsage else { return }
+        let values = UsageProvider.allCases.compactMap { provider -> [String: Any]? in
+            guard case let .card(reading) = readings[provider] else { return nil }
+            return reading.wireValue(service: provider)
+        }
+        sendJSON(["type": "provider_usage", "readings": values])
     }
 
     func publishSessionLock(_ locked: Bool, displayAwake: Bool?) {

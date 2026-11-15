@@ -19,6 +19,15 @@ int main(int argc, char **argv) {
       return 1;
     }
   }
+  companion_protocol::ProviderUsage usage;
+  usage.readings.push_back({"deepseek", "balance", "CNY", -105, 1700000000, 0});
+  ArduinoJson::JsonDocument billing;
+  companion_protocol::encode(billing.to<ArduinoJson::JsonObject>(), usage);
+  const auto billing_roundtrip = companion_protocol::decode(billing.as<ArduinoJson::JsonObjectConst>(),
+    companion_protocol::Direction::MAC_TO_PANEL, companion_protocol::SessionState::CONNECTED);
+  if (!billing_roundtrip) return 1;
+  const auto &billing_readings = std::get<companion_protocol::ProviderUsage>(*billing_roundtrip).readings;
+  if (billing_readings.size() != 1 || billing_readings.front().amountMinor != -105) return 1;
   companion_protocol::SystemMetrics metrics;
   metrics.generation = 1;
   metrics.cpuUsagePercent = 10;

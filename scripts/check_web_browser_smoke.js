@@ -4283,7 +4283,7 @@ async function assertTokenUsageCard(browser) {
     await load();
     await page.locator(".sp-main .sp-empty-cell").first().click();
     await page.getByRole("button", { name: "Token Usage card type", exact: true }).click();
-    assert.deepStrictEqual(await service.locator("option").evaluateAll(options => options.map(option => option.value)), ["codex", "claude", "opencode-go", "cursor", "antigravity"]);
+    assert.deepStrictEqual(await service.locator("option").evaluateAll(options => options.map(option => option.value)), ["codex", "claude", "opencode-go", "cursor", "antigravity", "synthetic", "openrouter", "deepseek"]);
     await service.selectOption("claude");
     await save();
     await waitForNativeState(nativeState, () => {
@@ -4351,6 +4351,15 @@ async function assertTokenUsageCard(browser) {
     await page.reload();
     await load();
     await tile().getByRole("img", { name: "Google Antigravity (Gemini)", exact: true }).waitFor();
+    await edit();
+    await service.selectOption("openrouter");
+    await save();
+    await waitForNativeState(nativeState, () => parseRawButtonConfig(nativeState.document.buttons[slot]).options === "services=openrouter",
+      "Token Usage saves OpenRouter");
+    await page.reload();
+    await load();
+    await tile().getByRole("img", { name: "OpenRouter", exact: true }).waitFor();
+    await tile().getByText("Key budget left", { exact: true }).waitFor();
     console.log("Token Usage picker, weekly previews, save and reload passed.");
   } finally {
     await context.close();

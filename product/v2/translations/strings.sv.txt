@@ -344,3 +344,6 @@ mute=Tysta
 mac_update_required=Uppdatera Mac-appen
 mac_update_reconnect=Uppdatera EspDesktop på din Mac för att ansluta igen.
 token_usage_resets=Återställs om
+provider_usage_balance=Saldo
+provider_usage_key_spend=Nyckelutgifter
+provider_usage_key_budget=Återstående budget

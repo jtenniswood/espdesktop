@@ -122,7 +122,7 @@ Tap the Lock Machine tile when you step away from your desk.
 
 ### Track AI usage
 
-See how much of your ChatGPT (Codex), Claude, OpenCode Go, Cursor, or Google Antigravity allowance is left and when it resets.
+See when your ChatGPT (Codex) or Claude allowance resets, or check your OpenRouter key budget while you work.
 
 [Set up Token Usage](/card-types/token-usage)
 

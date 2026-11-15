@@ -344,3 +344,6 @@ mute=Némítás
 mac_update_required=Frissítse a Mac-alkalmazást
 mac_update_reconnect=A csatlakozáshoz frissítse az EspDesktopot a Macen.
 token_usage_resets=Visszaáll
+provider_usage_balance=Egyenleg
+provider_usage_key_spend=Kulcs költése
+provider_usage_key_budget=Fennmaradó keret

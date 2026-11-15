@@ -344,3 +344,6 @@ mute=Без звуку
 mac_update_required=Оновіть застосунок для Mac
 mac_update_reconnect=Оновіть EspDesktop на Mac, щоб відновити з’єднання.
 token_usage_resets=Скидання через
+provider_usage_balance=Баланс
+provider_usage_key_spend=Витрати ключа
+provider_usage_key_budget=Залишок бюджету

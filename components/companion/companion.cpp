@@ -893,6 +893,46 @@ void CompanionService::handle_json_(int socket_fd, const std::string &message) {
       return true;
     }
 
+    if (const auto *payload = std::get_if<companion_protocol::ProviderUsage>(&*decoded)) {
+      CompanionProviderUsage readings{};
+      for (const auto &reading : payload->readings) {
+        const auto service = provider_usage_service(reading.service);
+        if (!service) return false;
+        auto &entry = readings[static_cast<size_t>(*service)];
+        if (entry.observed_at != 0) return false;
+        const auto reset = reading.resetsAt;
+        switch (*service) {
+          case ProviderUsageService::SYNTHETIC:
+            if (reading.metric != "percent_left" || reading.unit != "percent" ||
+                reading.amountMinor < 0 || reading.amountMinor > 10000 ||
+                (reset && reset <= reading.observedAt)) return false;
+            entry.metric = ProviderUsageMetric::PERCENT_LEFT;
+            entry.unit = ProviderUsageUnit::PERCENT;
+            break;
+          case ProviderUsageService::OPENROUTER:
+            if (reading.unit != "USD" || reset ||
+                (reading.metric != "key_budget" && reading.metric != "key_spend") ||
+                (reading.metric == "key_spend" && reading.amountMinor < 0)) return false;
+            entry.metric = reading.metric == "key_budget" ? ProviderUsageMetric::KEY_BUDGET : ProviderUsageMetric::KEY_SPEND;
+            entry.unit = ProviderUsageUnit::USD;
+            break;
+          case ProviderUsageService::DEEPSEEK:
+            if (reading.metric != "balance" || reset ||
+                (reading.unit != "USD" && reading.unit != "CNY")) return false;
+            entry.metric = ProviderUsageMetric::BALANCE;
+            entry.unit = reading.unit == "USD" ? ProviderUsageUnit::USD : ProviderUsageUnit::CNY;
+            break;
+          case ProviderUsageService::COUNT:
+            return false;
+        }
+        entry.amount_minor = static_cast<int32_t>(reading.amountMinor);
+        entry.observed_at = static_cast<uint32_t>(reading.observedAt);
+        entry.resets_at = static_cast<uint32_t>(reset);
+      }
+      this->defer_session_([readings] { companion_runtime_service().set_provider_usage(readings); }, "provider_usage");
+      return true;
+    }
+
     const uint32_t generation = root["generation"] | 0;
     if (generation == 0) return false;
 

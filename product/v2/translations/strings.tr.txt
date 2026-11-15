@@ -344,3 +344,6 @@ mute=Sessiz
 mac_update_required=Mac uygulamasını güncelleyin
 mac_update_reconnect=Yeniden bağlanmak için Mac’inizde EspDesktop’u güncelleyin.
 token_usage_resets=Sıfırlanır
+provider_usage_balance=Bakiye
+provider_usage_key_spend=Anahtar harcaması
+provider_usage_key_budget=Kalan bütçe

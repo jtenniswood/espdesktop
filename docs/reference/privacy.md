@@ -59,6 +59,12 @@ the display receives names and opaque identifiers for approved applications and
 folders. EspDesktop can also share the focused application for its cards. System statistics are shared automatically with your paired display while connected; they contain overall resource usage
 and network throughput, not network contents.
 
+When you connect a provider in **Usage Providers**, EspDesktop stores the API key
+in the login Keychain on your Mac and sends it over HTTPS to that provider's
+usage endpoint. Paired displays receive usage figures and reset times. API keys
+are excluded from display configuration and backups. Remove a saved key in
+**Usage Providers → Manage**.
+
 Opening the display’s Companion setup page starts pairing on an unpaired
 display and shows a temporary code. This uses the display’s configured web
 authentication; without a web password, anyone who can reach that page can
