@@ -20,4 +20,8 @@ The table describes the public controls in [EspDesktop v1.2.6](https://github.co
 
 The v1.2.6 card picker omits Mac statistics and dedicated Mac volume controls. An older layout can still contain settings for a previously saved card. If the editor marks it unavailable, [replace or remove it](/getting-started/troubleshooting#a-card-does-not-work). Keep a backup of the original layout if you plan to return to its original firmware release.
 
+## Show Mac system statistics
+
+On matching Mac app and firmware builds that include **Stats**, select an empty card on Home or in a subpage. Choose **Companion → Stats**, select a **Statistic** such as Processor, Memory, Storage or Network, and save. The card shows the latest reading from the connected Mac.
+
 Check the [release notes](https://github.com/jtenniswood/espdesktop/releases) for controls added in a newer stable release.
