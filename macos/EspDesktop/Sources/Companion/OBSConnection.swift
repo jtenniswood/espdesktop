@@ -188,6 +188,10 @@ final class OBSConnection: ObservableObject {
         if state.replayBufferActive {
             actions.append((id: "obs.replay", label: state.replaySave.label))
         }
+        if let selected = state.studioMode ? state.preview : state.program,
+           let sceneID = UUID(uuidString: selected.id) {
+            actions.append((id: "obs.selected." + sceneID.uuidString.lowercased(), label: "Selected OBS scene"))
+        }
         return actions
     }
 

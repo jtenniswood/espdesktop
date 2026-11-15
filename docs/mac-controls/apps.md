@@ -96,7 +96,7 @@ See [all app presets](/reference/shortcut-presets).
 
 A scene card created in normal mode switches the program scene. A scene card created in Studio Mode selects the preview scene. Each card is available in the mode it was set up for. Add **OBS Take Live** to send the preview named on that tile to the program. If the preview changes before the command reaches OBS, tap again after checking the updated name. The scene tile shows **Program**, **On air**, or **Preview** when OBS reports it as selected.
 
-An **OBS Mic Mute** card changes the selected input in the OBS mixer. Its **Muted** and **Unmuted** labels come from OBS. Use the mic your broadcast captures when setting up the card, especially if it differs from the Mac’s default mic. Scene and input bindings are kept when a target is unavailable.
+An **OBS Mic Mute** card changes the selected input in the OBS mixer. When OBS reports the input is muted, the tile uses the ON colour and the muted microphone icon. Use the mic your broadcast captures when setting up the card, especially if it differs from the Mac’s default mic. Scene and input bindings are kept when a target is unavailable.
 
 Under **Sound**, choose **OBS Input Level** to adjust a named mixer input. The tile shows the confirmed fader setting in dB. Dragging it leaves the input’s mute and track settings alone. Choose **OBS Input Mute** to change the mute state.
 
@@ -108,7 +108,7 @@ Add an **OBS Status** tile and choose **Program scene**, **Streaming**, or **Rec
 
 Add **OBS Save Replay** to capture a clip. Enable and start the Replay Buffer in OBS first. The tile displays **Replay saved** after OBS confirms that it wrote a file.
 
-To get started, open **Screen → App Subpages → Add OBS starter page** in the display editor. Choose a main scene, a break scene, and a mic, then select **Pin to Home**. The **OBS Studio** folder uses one free Home slot. Open it in **Layout** to edit the individual cards. The **Main scene** and **Break scene** cards select Preview in Studio Mode and Program otherwise. The separate status card shows the current Program scene.
+To get started, open **Screen → App Subpages → Add OBS starter page** in the display editor. Choose a main scene, a break scene, and a mic, then select **Pin to Home**. The **OBS Studio** folder uses one free Home slot. Open it in **Layout** to edit the individual cards. The **Main scene** and **Break scene** cards select Preview in Studio Mode and Program otherwise. The selected card uses the ON colour. The separate status card shows the current Program scene.
 
 In the Mac Companion’s **OBS** settings, choose a **Break scene** and optionally select a **Mute during break** input. Add **OBS BRB** to the display. It verifies the mic is muted before switching Program. **Resume** returns to the previous scene and restores a mic that EspDesktop muted when it can verify those changes. If the card says **Check OBS**, check the Program scene and microphone in OBS, then clear the alert in the Mac Companion.
 

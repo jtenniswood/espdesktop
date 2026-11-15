@@ -473,10 +473,12 @@ export function registerCompanionCardTypes(
     const catalogue = createCompanionCatalogue(fetchImpl);
     const loadCompanionActions = catalogue.load;
     const obsControlLabels = new Map<string, string>();
+    let selectedOBSScene = "";
 
     function rememberOBSControls(actions: readonly CompanionAction[]): readonly CompanionAction[] {
         const targets = actions.filter(action => /^obs\.(scene|preview|mute)\.[a-f0-9-]{36}$/.test(action.id));
         obsControlLabels.clear();
+        selectedOBSScene = actions.find(action => /^obs\.selected\.[a-f0-9-]{36}$/.test(action.id))?.id.slice(13) || "";
         for (const target of targets) obsControlLabels.set(target.id, target.label);
         for (const action of actions) {
             const scene = savedOBSSceneTarget(action.id);
@@ -580,12 +582,12 @@ export function registerCompanionCardTypes(
     const companionCatalogueMonitor = createCompanionCatalogueMonitor(
         () => loadCompanionActions(true),
         function (actions) {
-            const previousOBS = JSON.stringify([...obsControlLabels]);
+            const previousOBS = JSON.stringify([selectedOBSScene, ...obsControlLabels]);
             rememberOBSControls(actions);
             const folders = actions.filter(action => action.id.startsWith(COMPANION_FOLDER_PREFIX));
             const foldersChanged = publishFinderFolders(folders);
             if (rememberCompanionApplications(actions) || foldersChanged ||
-                previousOBS !== JSON.stringify([...obsControlLabels])) cardUi.renderPreview();
+                previousOBS !== JSON.stringify([selectedOBSScene, ...obsControlLabels])) cardUi.renderPreview();
         },
     );
 
@@ -625,6 +627,7 @@ export function registerCompanionCardTypes(
                 companionCatalogueMonitor.stop();
                 const hadOBSControls = obsControlLabels.size > 0;
                 obsControlLabels.clear();
+                selectedOBSScene = "";
                 if (publishFinderFolders([]) || hadOBSControls) cardUi.renderPreview();
             }
             document.dispatchEvent(new CustomEvent("espdesktop:app-icon-cache-cleared", { detail: {
@@ -1608,14 +1611,19 @@ export function registerCompanionCardTypes(
                 };
                 const currentLabel = obsControlLabels.get(card.entity);
                 const alias = (mode === "obs_mic" || card.entity.startsWith("obs.target.")) && card.label;
-                const status = currentLabel?.match(/^(Program|On air|Preview|Queue|Muted|Unmuted) · /)?.[1];
-                const label = alias ? (status ? `${alias} · ${status}` : alias) : currentLabel || fallback[mode];
+                const status = currentLabel?.match(/^(Program|On air|Preview|Queue) · /)?.[1];
+                const muted = mode === "obs_mic" && currentLabel?.startsWith("Muted · ");
+                const label = mode === "obs_mic" ? alias || currentLabel?.replace(/^(Muted|Unmuted) · /, "") || fallback[mode]
+                    : alias ? (status ? `${alias} · ${status}` : alias) : currentLabel || fallback[mode];
+                const icon = muted ? "Microphone Off"
+                    : mode === "obs_mic" && card.icon === "Microphone Off" ? "Microphone" : card.icon;
                 return {
-                    ...cardBadgePreview(card, helpers, {
+                    ...cardBadgePreview({ ...card, icon }, helpers, {
                         label,
                         iconFallback: companionSubtypeDefaultIcon(mode),
                         badge: COMPANION_CARD_METADATA.preview.badge,
                     }),
+                    isOn: muted || (mode === "obs" && !!currentLabel && !!selectedOBSScene && card.entity.endsWith("." + selectedOBSScene)),
                     labelEditable: false,
                 };
             }

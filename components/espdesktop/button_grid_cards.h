@@ -494,8 +494,8 @@ inline void setup_companion_card(BtnSlot &s, const ParsedCfg &p,
     return;
   }
   const bool tokenized_card = companion_obs_tokenized_card(p.entity);
-  const bool supports_obs_alias = companion_obs_scene_target(p.entity) ||
-    companion_obs_audio_uuid(p.entity, "obs.mute.");
+  const bool obs_mute = companion_obs_audio_uuid(p.entity, "obs.mute.");
+  const bool supports_obs_alias = companion_obs_scene_target(p.entity) || obs_mute;
   const std::string obs_alias = supports_obs_alias ? p.label : "";
   const bool dynamic_label = tokenized_card || p.label.empty() || !obs_alias.empty();
   const auto obs_snapshot = tokenized_card ? companion_runtime_snapshot() : CompanionRuntimeSnapshot{};
@@ -504,7 +504,7 @@ inline void setup_companion_card(BtnSlot &s, const ParsedCfg &p,
     ? companion_url_available(p.entity, p.sensor)
     : (tokenized_card ? companion_action_available(obs_snapshot, p.entity) : companion_action_available(p.entity));
   const std::string label = dynamic_label
-    ? companion_obs_control_label(obs_alias,
+    ? companion_obs_control_label(p.entity, obs_alias,
         companion_default_action_label(p.entity, p.sensor, tokenized_card ? &obs_snapshot : nullptr))
     : p.label;
   lv_label_set_display_text(s.text_lbl, label.c_str());
@@ -521,7 +521,8 @@ inline void setup_companion_card(BtnSlot &s, const ParsedCfg &p,
     lv_obj_set_width(s.text_lbl, lv_pct(100));
   }
   const char *icon = (p.icon.empty() || p.icon == "Auto")
-    ? find_icon("Monitor") : find_icon(p.icon.c_str());
+    ? find_icon(obs_mute ? "Microphone" : "Monitor") : find_icon(p.icon.c_str());
+  const char *unmuted_icon = obs_mute && p.icon == "Microphone Off" ? find_icon("Microphone") : icon;
   lv_label_set_display_text(s.icon_lbl, icon);
   if (companion_app_icon_enabled(p)) {
 #ifdef USE_COMPANION
@@ -536,7 +537,9 @@ inline void setup_companion_card(BtnSlot &s, const ParsedCfg &p,
     companion_disable_card_app_icon_palette(s);
 #endif
   }
-  companion_track_card(s.btn, p.entity, p.sensor, s.text_lbl, dynamic_label, true, obs_alias);
+  companion_track_card(s.btn, p.entity, p.sensor, s.text_lbl, dynamic_label, true, obs_alias,
+    obs_mute ? s.icon_lbl : nullptr, obs_mute ? unmuted_icon : nullptr,
+    obs_mute ? find_icon("Microphone Off") : nullptr);
   if (tokenized_card) companion_remember_rendered_obs(s.btn, obs_snapshot);
   set_card_disabled_state(s.btn, !available);
   if (companion_obs_status_card(p.entity)) {

@@ -7702,7 +7702,8 @@ async function assertOBSStarterPage(browser) {
   await context.route("**/companion/actions", route => route.fulfill({ json: [
     { id: `obs.target.${main}.${token}`, label: "Program · Gameplay" },
     { id: `obs.target.${away}.${token}`, label: "Break Room" },
-    { id: `obs.mute.${mic}`, label: "Unmuted · Desk Mic" },
+    { id: `obs.selected.${main}`, label: "Selected OBS scene" },
+    { id: `obs.mute.${mic}`, label: "Muted · Desk Mic" },
     { id: `obs.brb.scene.${away}`, label: "Configured BRB scene" },
     { id: `obs.level.${mic}`, label: "Desk Mic" },
   ] }));
@@ -7736,12 +7737,23 @@ async function assertOBSStarterPage(browser) {
     await page.locator(".sp-back-btn").waitFor();
     await page.locator('.sp-main').getByText(/^Main scene/).waitFor();
     await page.locator('.sp-main').getByText(/^Break scene/).waitFor();
-    await page.locator('.sp-main').getByText(/^Mic(?: · Unmuted)?$/).waitFor();
+    await page.locator('.sp-main').getByText("Mic", { exact: true }).waitFor();
     await page.locator('.sp-main [data-slot="2"]').click({ button: "right" });
     await page.getByText("Edit Card", { exact: true }).click();
     const scene = page.locator('select[id$="obs-scene"]');
     await scene.locator(`option[value="obs.target.${main}"]`).waitFor({ state: "attached" });
     assert.equal(await scene.inputValue(), "obs.target." + main);
+    const mainTile = page.locator('.sp-main [data-slot="2"]');
+    const breakTile = page.locator('.sp-main [data-slot="3"]');
+    const micTile = page.locator('.sp-main [data-slot="4"]');
+    await micTile.locator('.mdi-microphone-off').waitFor();
+    const colors = await Promise.all([mainTile, breakTile, micTile].map(tile => tile.evaluate(card => ({
+      background: getComputedStyle(card).backgroundColor,
+      onColor: getComputedStyle(card).getPropertyValue('--card-active-color').trim(),
+    }))));
+    assert.equal(colors[0].background, colors[2].background, "selected scene and muted mic use ON colour");
+    assert.notEqual(colors[0].background, colors[1].background, "unselected scene uses the default colour");
+    assert(colors[0].onColor);
     console.log("OBS starter page pinned, preserved the Home card, and reopened for editing.");
   } finally {
     await context.close();

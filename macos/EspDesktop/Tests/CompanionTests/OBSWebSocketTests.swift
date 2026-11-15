@@ -43,18 +43,28 @@ final class OBSWebSocketTests: XCTestCase {
         let scene = try XCTUnwrap(OBSConnection.Target(fields: [
             "sceneName": "Gameplay", "sceneUuid": uuid.uuidString,
         ], kind: "scene"))
-        var state = OBSConnection.State(collection: "Show", scenes: [scene], inputs: [],
+        let breakID = UUID(uuidString: "191ede4a-93f9-4517-a306-089f1c0281bb")!
+        let breakScene = try XCTUnwrap(OBSConnection.Target(fields: [
+            "sceneName": "Break", "sceneUuid": breakID.uuidString,
+        ], kind: "scene"))
+        func selected(_ state: OBSConnection.State) -> [String] {
+            OBSConnection.controlActions(state).map(\.id).filter { $0.hasPrefix("obs.selected.") }
+        }
+        var state = OBSConnection.State(collection: "Show", scenes: [scene, breakScene], inputs: [],
                                         program: scene, preview: nil, studioMode: false,
                                         streaming: true, streamReconnecting: false, recording: true)
         let program = try XCTUnwrap(OBSConnection.sceneActions(state).first)
         XCTAssertEqual(OBSConnection.SceneAction(id: program.id), .program(uuid))
         XCTAssertEqual(program.label, "On air · Gameplay")
+        XCTAssertEqual(selected(state), ["obs.selected." + uuid.uuidString.lowercased()])
 
         state.studioMode = true
-        state.preview = scene
-        let preview = try XCTUnwrap(OBSConnection.sceneActions(state).first)
-        XCTAssertEqual(OBSConnection.SceneAction(id: preview.id), .preview(uuid))
-        XCTAssertEqual(preview.label, "Preview · Gameplay")
+        XCTAssertTrue(selected(state).isEmpty)
+        state.preview = breakScene
+        let preview = try XCTUnwrap(OBSConnection.sceneActions(state).last)
+        XCTAssertEqual(OBSConnection.SceneAction(id: preview.id), .preview(breakID))
+        XCTAssertEqual(preview.label, "Preview · Break")
+        XCTAssertEqual(selected(state), ["obs.selected." + breakID.uuidString.lowercased()])
         XCTAssertNotEqual(program.id, preview.id)
         XCTAssertTrue(OBSConnection.sceneActions(nil).isEmpty)
         XCTAssertNil(OBSConnection.SceneAction(id: "obs.scene.Gameplay"))

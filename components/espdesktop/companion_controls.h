@@ -651,6 +651,11 @@ inline bool companion_obs_scene_target(const std::string &id) {
   return companion_obs_audio_uuid(id, "obs.target.");
 }
 
+inline bool companion_obs_scene_card(const std::string &id) {
+  return companion_obs_scene_target(id) || companion_obs_audio_uuid(id, "obs.scene.") ||
+    companion_obs_audio_uuid(id, "obs.preview.");
+}
+
 inline bool companion_obs_tokenized_card(const std::string &id) {
   return id == "obs.take" || id == "obs.brb" || companion_obs_output_card(id) || companion_obs_scene_target(id);
 }
@@ -717,9 +722,17 @@ inline std::string companion_default_action_label_with_fallback(
   return label;
 }
 
-inline std::string companion_obs_control_label(const std::string &alias, const std::string &live_label) {
+inline std::string companion_obs_control_label(const std::string &action_id, const std::string &alias,
+                                               const std::string &live_label) {
+  if (companion_obs_audio_uuid(action_id, "obs.mute.")) {
+    if (!alias.empty()) return alias;
+    for (std::string_view prefix : {"Muted · ", "Unmuted · "}) {
+      if (live_label.starts_with(prefix)) return live_label.substr(prefix.size());
+    }
+    return live_label;
+  }
   if (alias.empty()) return live_label;
-  for (std::string_view status : {"Program", "On air", "Preview", "Queue", "Muted", "Unmuted"}) {
+  for (std::string_view status : {"Program", "On air", "Preview", "Queue"}) {
     constexpr std::string_view separator = " · ";
     if (live_label.starts_with(status) &&
         std::string_view(live_label).substr(status.size()).starts_with(separator))
@@ -775,6 +788,9 @@ struct CompanionCardRef {
   std::string required_focus_id{};
   CompanionAction rendered_obs_action{};
   std::string obs_label_alias{};
+  lv_obj_t *obs_mute_icon_label = nullptr;
+  const char *obs_mute_icon_off = nullptr;
+  const char *obs_mute_icon_on = nullptr;
 };
 
 struct CompanionSliderRef {
@@ -793,13 +809,21 @@ inline void companion_apply_card_focus(lv_obj_t *button, const std::string &acti
                                        bool show_focus = true,
                                        const CompanionRuntimeSnapshot *snapshot = nullptr) {
   if (!button) return;
+  if (companion_obs_audio_uuid(action_id, "obs.mute.")) return;
   // A URL card targets a page inside the app, but Companion only reports the
   // frontmost app. Keep URL cards from appearing active for the wrong page.
   bool active = false;
   if (show_focus && companion_card_focus_allowed(url_config)) {
     const std::string focus_id = url_config.empty() ? action_id : companion_url_card_focus_id(url_config);
-    active = snapshot ? companion_action_focused(*snapshot, focus_id, true)
-                      : companion_action_active(focus_id, true);
+    if (companion_obs_scene_card(action_id)) {
+      const auto owned = snapshot ? CompanionRuntimeSnapshot{} : companion_runtime_snapshot();
+      const auto &current = snapshot ? *snapshot : owned;
+      const std::string selection = "obs.selected." + action_id.substr(action_id.rfind('.') + 1);
+      active = companion_action_available(current, action_id) && companion_published_action(current, selection);
+    } else {
+      active = snapshot ? companion_action_focused(*snapshot, focus_id, true)
+                        : companion_action_active(focus_id, true);
+    }
   }
   // Focus is a background visual update, never a prerequisite for a touch
   // action. Avoid resyncing descendants/redrawing cards on unchanged snapshots.
@@ -926,6 +950,13 @@ inline void companion_render_mute(const CompanionMuteRef &ref, bool muted) {
     lv_label_set_text(ref.icon_label, icon);
 }
 
+inline void companion_render_obs_mute(const CompanionCardRef &ref, const CompanionRuntimeSnapshot &snapshot) {
+  if (!ref.obs_mute_icon_label) return;
+  const auto *action = companion_published_action(snapshot, ref.action_id);
+  companion_render_mute({ref.button, ref.action_id, ref.obs_mute_icon_label, ref.obs_mute_icon_off,
+                         ref.obs_mute_icon_on}, action && action->label.starts_with("Muted · "));
+}
+
 inline void companion_apply_mute_state(const CompanionMuteRef &ref,
                                        const CompanionRuntimeSnapshot &snapshot) {
   const auto value = std::find_if(snapshot.values.begin(), snapshot.values.end(),
@@ -990,7 +1021,10 @@ inline void companion_track_card(lv_obj_t *button, const std::string &action_id,
                                  lv_obj_t *text_label = nullptr,
                                  bool dynamic_default_label = false,
                                  bool show_focus = true,
-                                 const std::string &obs_label_alias = "") {
+                                 const std::string &obs_label_alias = "",
+                                 lv_obj_t *obs_mute_icon_label = nullptr,
+                                 const char *obs_mute_icon_off = nullptr,
+                                 const char *obs_mute_icon_on = nullptr) {
   if (!button) return;
   auto &refs = companion_card_refs();
   auto existing = std::find_if(refs.begin(), refs.end(), [button](const CompanionCardRef &ref) {
@@ -1006,6 +1040,10 @@ inline void companion_track_card(lv_obj_t *button, const std::string &action_id,
     existing->url_config = url_config;
     existing->dynamic_default_label = dynamic_default_label;
     existing->obs_label_alias = obs_label_alias;
+    existing->obs_mute_icon_label = obs_mute_icon_label;
+    existing->obs_mute_icon_off = obs_mute_icon_off;
+    existing->obs_mute_icon_on = obs_mute_icon_on;
+    if (obs_mute_icon_label) companion_render_obs_mute(*existing, companion_runtime_snapshot());
     existing->show_focus = show_focus;
     if (dynamic_default_label) {
       (void) companion_default_action_label_with_fallback(
@@ -1029,6 +1067,10 @@ inline void companion_track_card(lv_obj_t *button, const std::string &action_id,
   refs.push_back({button, text_label, action_id, url_config, nullptr, nullptr, "", "", 0, false,
                   false, dynamic_default_label, resolved_default_label, show_focus});
   refs.back().obs_label_alias = obs_label_alias;
+  refs.back().obs_mute_icon_label = obs_mute_icon_label;
+  refs.back().obs_mute_icon_off = obs_mute_icon_off;
+  refs.back().obs_mute_icon_on = obs_mute_icon_on;
+  if (obs_mute_icon_label) companion_render_obs_mute(refs.back(), companion_runtime_snapshot());
   lv_obj_add_event_cb(button, companion_card_deleted, LV_EVENT_DELETE, nullptr);
   lv_obj_add_event_cb(button, companion_card_focus_drawn, LV_EVENT_DRAW_POST_END, nullptr);
 }
@@ -1157,7 +1199,7 @@ inline void companion_refresh_cards_if_requested() {
       // the friendly name seen before the outage instead of showing its ID.
       const std::string live_label = companion_default_action_label_with_fallback(
         it->action_id, it->url_config, it->resolved_default_label, &snapshot);
-      const std::string label = companion_obs_control_label(it->obs_label_alias, live_label);
+      const std::string label = companion_obs_control_label(it->action_id, it->obs_label_alias, live_label);
       if (normalize_display_text(label) != lv_label_get_text(it->text_label))
         lv_label_set_display_text(it->text_label, label.c_str());
     }
@@ -1170,6 +1212,7 @@ inline void companion_refresh_cards_if_requested() {
     if (lv_obj_has_state(it->button, LV_STATE_DISABLED) == available)
       set_card_disabled_state(it->button, !available);
     companion_apply_card_focus(it->button, it->action_id, it->url_config, it->show_focus, &snapshot);
+    companion_render_obs_mute(*it, snapshot);
     ++it;
   }
   for (const auto &ref : companion_view_registry().mutes)
@@ -1213,7 +1256,8 @@ inline void companion_refresh_cards_if_requested() {
 }
 #else
 inline void companion_track_card(void *, const std::string &, const std::string & = "",
-                                 void * = nullptr, bool = false, bool = true, const std::string & = "") {}
+                                 void * = nullptr, bool = false, bool = true, const std::string & = "",
+                                 void * = nullptr, const char * = nullptr, const char * = nullptr) {}
 inline void companion_track_metric_card(void *, void *, void *, const std::string &,
                                         const std::string &, int) {}
 inline void companion_apply_card_focus(void *, const std::string &, const std::string & = "", bool = true) {}
