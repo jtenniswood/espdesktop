@@ -11,7 +11,7 @@
   "summary": {
     "deviceProfiles": 9,
     "cardTypes": 33,
-    "entityNames": 92,
+    "entityNames": 101,
     "icons": 360,
     "structuralIcons": 39,
     "compatibilityFixtureGroups": 2
@@ -5456,6 +5456,70 @@
         ]
       },
       {
+        "key": "special_page_config",
+        "domain": "text",
+        "name": "Special Page Config",
+        "groups": [
+          "special_page"
+        ]
+      },
+      {
+        "key": "special_page_config_ext",
+        "domain": "text",
+        "name": "Special Page Config Ext",
+        "groups": [
+          "special_page"
+        ]
+      },
+      {
+        "key": "special_page_config_ext_2",
+        "domain": "text",
+        "name": "Special Page Config Ext 2",
+        "groups": [
+          "special_page"
+        ]
+      },
+      {
+        "key": "special_page_config_ext_3",
+        "domain": "text",
+        "name": "Special Page Config Ext 3",
+        "groups": [
+          "special_page"
+        ]
+      },
+      {
+        "key": "special_page_config_ext_4",
+        "domain": "text",
+        "name": "Special Page Config Ext 4",
+        "groups": [
+          "special_page"
+        ]
+      },
+      {
+        "key": "special_page_config_ext_5",
+        "domain": "text",
+        "name": "Special Page Config Ext 5",
+        "groups": [
+          "special_page"
+        ]
+      },
+      {
+        "key": "special_page_config_ext_6",
+        "domain": "text",
+        "name": "Special Page Config Ext 6",
+        "groups": [
+          "special_page"
+        ]
+      },
+      {
+        "key": "special_page_config_ext_7",
+        "domain": "text",
+        "name": "Special Page Config Ext 7",
+        "groups": [
+          "special_page"
+        ]
+      },
+      {
         "key": "display_restart",
         "domain": "button",
         "name": "Restart"
@@ -5576,6 +5640,19 @@
           "screen__subpage_title_bar",
           "screen_subpage_title_bar",
           "subpage_title_bar_enabled"
+        ],
+        "groups": [
+          "settings"
+        ]
+      },
+      {
+        "key": "screen_swipe_up_page",
+        "domain": "switch",
+        "name": "Screen: Swipe-up Page",
+        "objectIds": [
+          "screen__swipe_up_page",
+          "screen_swipe_up_page",
+          "swipe_up_page_enabled"
         ],
         "groups": [
           "settings"

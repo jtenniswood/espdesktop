@@ -48,6 +48,38 @@ export const ENTITY_CATALOG = {
       "domain": "text",
       "template": "Subpage {slot} Config Ext 7"
     },
+    "special_page_config": {
+      "domain": "text",
+      "name": "Special Page Config"
+    },
+    "special_page_config_ext": {
+      "domain": "text",
+      "name": "Special Page Config Ext"
+    },
+    "special_page_config_ext_2": {
+      "domain": "text",
+      "name": "Special Page Config Ext 2"
+    },
+    "special_page_config_ext_3": {
+      "domain": "text",
+      "name": "Special Page Config Ext 3"
+    },
+    "special_page_config_ext_4": {
+      "domain": "text",
+      "name": "Special Page Config Ext 4"
+    },
+    "special_page_config_ext_5": {
+      "domain": "text",
+      "name": "Special Page Config Ext 5"
+    },
+    "special_page_config_ext_6": {
+      "domain": "text",
+      "name": "Special Page Config Ext 6"
+    },
+    "special_page_config_ext_7": {
+      "domain": "text",
+      "name": "Special Page Config Ext 7"
+    },
     "display_restart": {
       "domain": "button",
       "name": "Restart"
@@ -134,6 +166,15 @@ export const ENTITY_CATALOG = {
         "screen__subpage_title_bar",
         "screen_subpage_title_bar",
         "subpage_title_bar_enabled"
+      ]
+    },
+    "screen_swipe_up_page": {
+      "domain": "switch",
+      "name": "Screen: Swipe-up Page",
+      "objectIds": [
+        "screen__swipe_up_page",
+        "screen_swipe_up_page",
+        "swipe_up_page_enabled"
       ]
     },
     "screen_subpage_chevron": {
@@ -650,6 +691,16 @@ export const ENTITY_CATALOG = {
       "subpage_config_ext_6",
       "subpage_config_ext_7"
     ],
+    "special_page": [
+      "special_page_config",
+      "special_page_config_ext",
+      "special_page_config_ext_2",
+      "special_page_config_ext_3",
+      "special_page_config_ext_4",
+      "special_page_config_ext_5",
+      "special_page_config_ext_6",
+      "special_page_config_ext_7"
+    ],
     "settings": [
       "screen_clock_bar",
       "screen_clock_bar_time",
@@ -658,6 +709,7 @@ export const ENTITY_CATALOG = {
       "companion_auto_open_app_subpages",
       "companion_return_home_on_app_switch",
       "screen_subpage_title_bar",
+      "screen_swipe_up_page",
       "screen_subpage_chevron",
       "screensaver_mode",
       "screen_saver_action",

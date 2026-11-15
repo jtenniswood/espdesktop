@@ -336,6 +336,7 @@ export interface BackupPanelSettingsState {
   autoOpenAppSubpages: boolean;
   returnHomeOnAppSwitch: boolean;
   subpageTitleBar: boolean;
+  swipeUpPage: boolean;
   timezone: string;
   language: string;
   clockFormat: string;
@@ -427,7 +428,7 @@ export function normalizeBackupPanelSettings(
     clockBarTime: objectValue(settings, "clock_bar_time") != null ? !!settings.clock_bar_time : true,
     clockBarNightMode: objectValue(settings, "clock_bar_night_mode") != null ? !!settings.clock_bar_night_mode : false,
     networkStatusIcon: objectValue(settings, "network_status_icon") != null ? !!settings.network_status_icon : true,
-
+    swipeUpPage: objectValue(settings, "swipe_up_page") === true,
     subpageTitleBar: objectValue(settings, "subpage_title_bar") != null ? !!settings.subpage_title_bar : true,
     autoOpenAppSubpages: objectValue(settings, "auto_open_app_subpages") != null
       ? !!settings.auto_open_app_subpages

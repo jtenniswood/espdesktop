@@ -75,12 +75,16 @@ export function runStateContractTests(): void {
     auto_open_app_subpages: false,
     return_home_on_app_switch: false,
     subpage_title_bar: false,
+    swipe_up_page: true,
     screensaver_mode: "companion",
     cover_art_source: "Mac Companion",
   }, backupCurrent);
   equal(restoredCompanionSettings.autoOpenAppSubpages, false, "backup restore preserves manual app subpages");
   equal(restoredCompanionSettings.returnHomeOnAppSwitch, false, "backup restore preserves staying on an app page");
   equal(normalizeBackupPanelSettings({}, backupCurrent).returnHomeOnAppSwitch, true, "older backups default to returning home");
+  equal(restoredCompanionSettings.swipeUpPage, true, "backup restore preserves enabled swipe-up page");
+  equal(normalizeBackupPanelSettings({}, backupCurrent).swipeUpPage, false, "older backups leave swipe-up page off");
+  equal(normalizeBackupPanelSettings({ swipe_up_page: false }, backupCurrent).swipeUpPage, false, "backup restore preserves disabled swipe-up page");
   equal(restoredCompanionSettings.subpageTitleBar, false, "backup restore preserves hidden subpage title bars");
   equal(normalizeBackupPanelSettings({}, backupCurrent).subpageTitleBar, true, "older backups show subpage title bars by default");
   equal(normalizeBackupPanelSettings({}, backupCurrent).autoOpenAppSubpages, true, "older backups retain automatic app subpages");
@@ -121,6 +125,7 @@ export function runStateContractTests(): void {
     autoOpenAppSubpages: "switch-companion__auto_open_app_subpages",
     returnHomeOnAppSwitch: "switch-companion__return_home_on_app_switch",
     subpageTitleBar: "switch-screen__subpage_title_bar",
+    swipeUpPage: "switch-screen__swipe_up_page",
     screensaverTimeout: "number-screensaver_timeout",
     clockScreensaver: "switch-screen_saver__clock",
 

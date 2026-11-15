@@ -400,9 +400,9 @@ export function createPreviewClipboardFeature(
         }
         return -1;
     }
-    function clipboardSubpageFits(sp: any) {
+    function clipboardSubpageFits(sp: any, slot?: number) {
         var serialized: any = serializeSubpageConfig(sp);
-        return configPersistence.subpageConfigFits(serialized);
+        return configPersistence.subpageConfigFits(serialized, slot);
     }
     function planMainClipboardPaste(entries: any, pos: any) {
         var nextGrid: any = state.grid.slice();
@@ -481,7 +481,7 @@ export function createPreviewClipboardFeature(
             var entry: any = entries[i];
             var normalizedEntry: any = clipboardButtonConfig(entry);
             var typeDef: any = dependencies.cards.definitions[entry.type || ""];
-            if (entry.subpageConfig || entry.type === "subpage") {
+            if (entry.subpageConfig || entry.type === "subpage" || (homeSlot === -1 && cardOwnsSubpage(normalizedEntry))) {
                 return { error: "Subpage cards can only be pasted onto the home screen." };
             }
             if (!typeDef || !buttonTypeRegistryValue(typeDef, "allowInSubpage", false)) {
@@ -508,7 +508,7 @@ export function createPreviewClipboardFeature(
             slots.push(newSlot);
         }
         subpage.order = serializeSubpageGrid(subpage);
-        if (!clipboardSubpageFits(subpage)) {
+        if (!clipboardSubpageFits(subpage, homeSlot)) {
             return { error: "The updated subpage is too large to save on this controller." };
         }
         return { subpage: subpage, slots: slots, resized: resized };
@@ -546,9 +546,20 @@ export function createPreviewClipboardFeature(
         }
         if (targetIsSubpage) {
             var homeSlot: any = state.editingSubpage;
+            const previous = state.subpages[homeSlot];
             state.subpages[homeSlot] = plan.subpage;
-            saveSubpageConfig(homeSlot);
-            state.subpageSelectedSlots = [];
+            const saved = saveSubpageConfig(homeSlot);
+            if (homeSlot === -1 && await saved !== "saved") {
+                if (state.subpages[homeSlot] === plan.subpage) {
+                    if (previous) state.subpages[homeSlot] = previous;
+                    else delete state.subpages[homeSlot];
+                }
+                const error = "The cards could not be saved. Check the swipe-up page before trying again.";
+                showBanner(error, "error");
+                renderPreview();
+                return { ok: false, error };
+            }
+            if (state.editingSubpage === homeSlot) state.subpageSelectedSlots = [];
         }
         else {
             state.grid = plan.grid;
@@ -579,14 +590,21 @@ export function createPreviewClipboardFeature(
         return result;
     }
     async function pasteSubpageButton(this: any, pos?: any) {
-        if (!state.clipboard)
+        const clipboard = state.clipboard;
+        if (!clipboard)
             return;
         if (dependencies.nativeTransfers?.available()) return dependencies.nativeTransfers.paste(Number(pos), state.editingSubpage ?? 0);
-        if (state.clipboard.native) { showBanner("These copied pages require firmware with nested-page support.", "error"); return; }
-        var result: any = await performClipboardPaste(state.clipboard.buttons, pos, true);
+        if (clipboard.native && (state.editingSubpage !== -1 ||
+            clipboard.native.entries.some(entry => entry.nativeTree || entry.subtree))) {
+            showBanner(state.editingSubpage === -1
+                ? "Cards with subpages cannot be pasted onto the swipe-up page."
+                : "These copied pages require firmware with nested-page support.", "error");
+            return;
+        }
+        var result: any = await performClipboardPaste(clipboard.buttons, pos, true);
         if (!result.ok)
             return result;
-        state.clipboard = null;
+        if (state.clipboard === clipboard) state.clipboard = null;
         if (result.resized)
             showBanner("Cards pasted. Some were resized to fit.", "warning");
         return result;

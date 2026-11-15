@@ -20,10 +20,11 @@ export interface ConfigPersistenceFeature {
     connectRequestApi(requestApi: ApplicationApiFeature): void;
     connectFocusRegistrationPublisher(publish: () => void): void;
     subpageEntityKeys(): string[];
+    specialPageEntityKeys(): string[];
     buttonConfigByteLimit(): number;
     writableNavigationDepth(): number;
     beginAtomicEdit?(): { finish(ok: boolean): Promise<boolean>; cancel(): void } | undefined;
-    subpageConfigFits(value: string): boolean;
+    subpageConfigFits(value: string, slot?: number): boolean;
     saveButtonConfig(slot: number): Promise<any>;
     saveButtonConfigAndOrder(slot: number, order: string): Promise<any>;
     saveSubpageEntity(slot: number): unknown;
@@ -97,11 +98,11 @@ export function createConfigPersistenceFeature(
     function buttonConfigByteLimit(): number {
         return nativePanelConfig?.maxConfigValueBytes() ?? 255;
     }
-    function subpageConfigFits(value: string): boolean {
+    function subpageConfigFits(value: string, slot?: number): boolean {
         var nativeLimit = nativePanelConfig?.maxConfigValueBytes();
         return nativeLimit != null
-            ? new TextEncoder().encode(value).length <= nativeLimit
-            : !!EspDesktopModel.splitSubpageConfigChunks(value, subpageEntityKeys().length, 255);
+            ? new TextEncoder().encode(value).length <= nativeLimit - (slot === -1 ? 12 : 0)
+            : !!EspDesktopModel.splitSubpageConfigChunks(value, slot === -1 ? specialPageEntityKeys().length : subpageEntityKeys().length, 255);
     }
     function rejectOversizedSubpage() {
         requests().postQueueError = true;
@@ -156,11 +157,15 @@ export function createConfigPersistenceFeature(
         count = Math.max(1, Math.min(keys.length, parseInt(count, 10) || keys.length));
         return keys.slice(0, count);
     }
+    function specialPageEntityKeys(this: any) {
+        return Array.from(ENTITY_CATALOG.groups.special_page || []);
+    }
     const SUBPAGE_RAW_CHUNK_FIELDS = ["main", "ext", "ext2", "ext3", "ext4", "ext5", "ext6", "ext7"];
     function subpageChunkShouldPost(this: any, slot?: any, keys?: any, chunks?: any, index?: any, previousPendingChunks?: any) {
         if (chunks[index] || index === 0)
             return true;
-        var chunkName: any = entityNameForSlot(keys[index], slot);
+        var chunkName: any = Number(slot) === -1
+            ? entityName(keys[index]) : entityNameForSlot(keys[index], slot);
         if (hasRememberedPostPath("text", chunkName, []))
             return true;
         var raw: any = state.subpageRaw[slot];
@@ -169,7 +174,7 @@ export function createConfigPersistenceFeature(
             (previousPendingChunks && previousPendingChunks[index]));
     }
     function saveSubpageEntityLegacy(this: any, slot?: any, full?: any, direct?: any) {
-        var keys: any = subpageEntityKeys();
+        var keys: any = Number(slot) === -1 ? specialPageEntityKeys() : subpageEntityKeys();
         var chunks: any = EspDesktopModel.splitSubpageConfigChunks(full, keys.length, 255);
         if (!chunks)
             return rejectOversizedSubpage();
@@ -177,7 +182,8 @@ export function createConfigPersistenceFeature(
         state.subpageSavePending[slot] = full;
         var directPosts: any = [];
         for (var ki: any = 0; ki < keys.length; ki++) {
-            var chunkName: any = entityNameForSlot(keys[ki], slot);
+            var chunkName: any = Number(slot) === -1
+                ? entityName(keys[ki]) : entityNameForSlot(keys[ki], slot);
             var chunk: any = chunks[ki] || "";
             if (!subpageChunkShouldPost(slot, keys, chunks, ki, previousPendingChunks))
                 continue;
@@ -197,7 +203,7 @@ export function createConfigPersistenceFeature(
     function saveSubpageEntity(this: any, slot?: any, cleanedValue?: string) {
         delete runtime.pendingSliderSubpageMigrations?.[slot];
         var sp: any = state.subpages[slot];
-        if (cleanedValue === undefined && nativePanelConfig?.writableNavigationDepth() === 2) {
+        if (Number(slot) !== -1 && cleanedValue === undefined && nativePanelConfig?.writableNavigationDepth() === 2) {
             const snapshot = sp ? structuredClone(sp) : null;
             const order: string[] = snapshot ? codec!.subpageSerializedOrder(snapshot) : [];
             const cards = (snapshot?.buttons ?? []).map(savedCard);
@@ -207,13 +213,15 @@ export function createConfigPersistenceFeature(
             if (pending) return publishAfter(queueNativeSave(pending, () => saveSubpageEntityLegacy(slot, value(), true)));
         }
         var full: any = cleanedValue ?? (sp ? serializeSubpageConfig(sp) : "");
-        if (!subpageConfigFits(full)) return rejectOversizedSubpage();
+        if (!subpageConfigFits(full, Number(slot))) return rejectOversizedSubpage();
         if (cleanedValue !== undefined) {
             const cleanup = retireSavedWebApps(() => saveSubpageEntityLegacy(slot, full, true));
             return cleanup ?? publishAfter(saveSubpageEntityLegacy(slot, full, true));
         }
         var nativeSave: any = nativePanelConfig
-            ? nativePanelConfig.writeSubpage(Number.parseInt(String(slot), 10), full)
+            ? Number(slot) === -1
+                ? nativePanelConfig.writeSpecialPage(full)
+                : nativePanelConfig.writeSubpage(Number.parseInt(String(slot), 10), full)
             : null;
         if (nativeSave) {
             state.subpageSavePending[slot] = full;
@@ -264,6 +272,7 @@ export function createConfigPersistenceFeature(
         connectRequestApi,
         connectFocusRegistrationPublisher,
         subpageEntityKeys,
+        specialPageEntityKeys,
         buttonConfigByteLimit,
         writableNavigationDepth: () => nativePanelConfig?.writableNavigationDepth() ?? 1,
         subpageConfigFits,

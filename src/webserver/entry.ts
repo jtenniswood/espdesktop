@@ -537,6 +537,7 @@ function composeApplicationContext(liveFinderFolders: () => readonly CompanionAc
     gridMigration,
     {
       subpageEntityKeys: configurationPersistence.subpageEntityKeys,
+      specialPageEntityKeys: configurationPersistence.specialPageEntityKeys,
       connectEvents: () => appEvents.connect(),
       publishCompanionURLTargets: () => {
         void focusTargetCatalogue.saveFocusRegistrations(
@@ -725,6 +726,11 @@ function composeApplicationContext(liveFinderFolders: () => readonly CompanionAc
     canApply: () => !grid.hasPendingMainGridSave(),
   });
   configurationCodec.connectNativePageRefresh(() => nativePages.refresh());
+  const leaveSwipeUpPage = () => {
+    if (state.editingSubpage !== -1) return;
+    selection.closeSettings();
+    configurationCodec.exitSubpage();
+  };
   const stateEventHandlers = createAppStateEventHandlersFeature(
     runtime,
     core,
@@ -741,6 +747,7 @@ function composeApplicationContext(liveFinderFolders: () => readonly CompanionAc
     grid,
     settingsHelpers,
     preview,
+    leaveSwipeUpPage,
   );
   const backupModel = createBackupFeature({
     deviceId: layout.deviceId,
@@ -966,6 +973,7 @@ function composeApplicationContext(liveFinderFolders: () => readonly CompanionAc
         shell.showBanner("Could not save the theme. Check the display’s connection and try again.", "error");
       }
     },
+    leaveSwipeUpPage,
   );
   const firstRunSetup = createFirstRunSetup({
     ...dom, capacity: layout.numSlots, supported: !!layout.config.features?.companion,

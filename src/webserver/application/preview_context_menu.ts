@@ -403,7 +403,7 @@ export function createPreviewContextMenuFeature(dependencies: PreviewContextMenu
     }
     function addAppShortcutMenuItem() {
         const page = state.editingSubpage;
-        if (!page || !dependencies.codec.canCreateSubpage(parentPageKey(page) || null)) return;
+        if (!page || page === -1 || !dependencies.codec.canCreateSubpage(parentPageKey(page) || null)) return;
         const owner = previewSubpageOwner(page, state.buttons, key => state.subpages[key]);
         if (editableAppShortcutPage(owner)) {
             addCtxItem("keyboard-settings-outline", "Shortcut List", dependencies.openAppShortcutSettings);

@@ -98,6 +98,7 @@ esphome:
             clock_bar_enable_settings_access(id(network_status_button));
             clock_bar_time_widget() = id(display_time);
             clock_bar_subpage_title_bar_enabled() = id(subpage_title_bar_enabled).state;
+            navigation_set_special_page_enabled(id(swipe_up_page_enabled).state);
             clock_bar_companion_subpage_title_font() =
                 lv_obj_get_style_text_font(id(display_time), LV_PART_MAIN);
             navigation_subpage_clock_bar_refresh() = []() {
@@ -423,6 +424,20 @@ switch:
       - lambda: 'id(espdesktop_app).edit_panel_scalar(espdesktop::panel_settings::ScalarSetting::COMPANION_RETURN_HOME_ON_APP_SWITCH, "1");'
     turn_off_action:
       - lambda: 'id(espdesktop_app).edit_panel_scalar(espdesktop::panel_settings::ScalarSetting::COMPANION_RETURN_HOME_ON_APP_SWITCH, "0");'
+
+  - platform: template
+    name: "${entity_screen_swipe_up_page}"
+    internal: true
+    id: swipe_up_page_enabled
+    optimistic: true
+    restore_mode: RESTORE_DEFAULT_OFF
+    entity_category: config
+    icon: "mdi:gesture-swipe-up"
+    web_server:
+      sorting_group_id: sg_display
+    on_state:
+      - lambda: |-
+          navigation_set_special_page_enabled(x);
 
   - platform: template
     name: "${entity_screen_subpage_chevron}"

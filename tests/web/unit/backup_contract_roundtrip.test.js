@@ -11,8 +11,8 @@ const { createBackupContractFeature } = load("src/webserver/application/backup_c
 const contract = load("src/webserver/generated/card_contract.ts");
 const parse = raw => model.parseRawSubpageConfig(raw, contract.cardContractSubpageTypeFromCode);
 const fixture = JSON.parse(fs.readFileSync("compatibility/fixtures/companion_nested_pages.json", "utf8")).document;
-for (const version of [1, 2]) {
-  test(`application export/import round trip accepts native v${version}`, () => {
+for (const version of [1, 2]) for (const outerSpecial of [false, true]) {
+  test(`application export/import round trip accepts native v${version}, outer Special Page ${outerSpecial}`, () => {
     const document = structuredClone(fixture);
     if (version === 1) document.subpages = { 1: "~B,1|companion,shortcut.command%2Bl,Address" };
     document.buttons[2] = "media.output_volume;Saved volume;Auto;Auto;;;slider;;";
@@ -21,7 +21,7 @@ for (const version of [1, 2]) {
     const bytes = version === 1 ? model.encodePanelConfig(document) : graph.encodePanelPageDocument(document);
     const feature = createBackupFeature({ deviceId: document.deviceProfile, gridCols: 3, numSlots: 9,
       normalizeButtonConfig: model.cloneCardConfig, parseSubpageConfig: parse,
-      serializeSubpageConfig: () => document.subpages[1], buildSubpageGrid: sp => model.buildSubpageGrid(sp, 9, 3).grid });
+      serializeSubpageConfig: () => "", buildSubpageGrid: sp => model.buildSubpageGrid(sp, 9, 3).grid });
     const buttons = Array.from({ length: 9 }, (_, index) => model.parseRawButtonConfig(document.buttons[index + 1]));
     const outer = feature.createBackupConfig({ buttons, subpages: { 1: parse(document.subpages[1]) }, button_order: "1,2" });
     const exporter = createBackupExportController({ serializeButtonConfig: () => "", serializeSubpageConfig: () => "" });

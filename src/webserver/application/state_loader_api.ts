@@ -20,6 +20,7 @@ import type { ApplicationApiFeature } from "./api";
 import type { GridMigrationFeature } from "./grid_migration";
 export interface StateLoaderDependencies {
     readonly subpageEntityKeys: () => string[];
+    readonly specialPageEntityKeys: () => string[];
     readonly connectEvents: () => void;
     readonly publishCompanionURLTargets?: () => void;
 }
@@ -80,7 +81,8 @@ export function createStateLoaderFeature(runtime: UiRuntimeState, layout: Applic
         return items;
     }
     function subpageStateEntities(this: any) {
-        return entityStateItemsForSlots(dependencies.subpageEntityKeys());
+        return entityStateItemsForSlots(dependencies.subpageEntityKeys())
+            .concat(entityStateItems(dependencies.specialPageEntityKeys()));
     }
     let initialRead: Promise<void> | null = null;
     function loadStateItems(this: any, items?: any, handleState?: any, concurrency?: any, strict = false) {

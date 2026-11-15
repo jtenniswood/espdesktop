@@ -158,16 +158,17 @@ CompatibilityStatus PanelConfigLegacyAdapter::publish_v2_globals(
       !reader.record(PanelConfigV2Kind::PAGE, 0, &root))
     return CompatibilityStatus::NOT_REPRESENTABLE;
   const auto order = reader.string(root.third);
-  std::string_view color;
+  std::string_view color, special_page;
   for (size_t i = 0; i < reader.record_count(); ++i) {
     reader.record(i, &row);
     if (row.kind != PanelConfigV2Kind::SETTING) continue;
     const auto key = reader.string(row.id);
     if (key == "button_on_color") color = reader.string(row.first);
+    if (key == "special_page") special_page = reader.string(row.first);
     if (key == "button_order" && reader.string(row.first) != order)
       return CompatibilityStatus::NOT_REPRESENTABLE;
   }
-  const auto status = bindings_.publish_global_values(profile.text, order, color);
+  const auto status = bindings_.publish_global_values(profile.text, order, color, special_page);
   return status == CompatibilityStatus::OK ? CompatibilityStatus::NATIVE_ONLY : status;
 }
 

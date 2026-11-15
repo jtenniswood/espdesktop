@@ -31,3 +31,7 @@ Choose **Apply Configuration** at the bottom of the tab when you’re ready to r
 - **Night Schedule** sets a daily period to dim the screen, turn it off or show a clock. It takes priority over the screensaver. It is off on new displays. If you enable it with the preset hours and brightness, the screen dims to **15%** from **7:00 PM to 7:00 AM** in the display’s local time.
 
 When the display is asleep, tap once to wake it, then tap a card to use it.
+
+## Swipe-up page
+
+Turn on **Enable swipe-up page** to open a spare page of cards by swiping up from the bottom edge. The switch is off by default. See [how to set up the swipe-up page](/features/subpages#swipe-up-page).

@@ -41,6 +41,10 @@ class PanelConfigTextBindings {
   void set_button_on_color(PanelConfigTextValue *button_on_color) {
     button_on_color_ = button_on_color;
   }
+  void set_special_page_chunks(
+      const std::array<PanelConfigTextValue *, MAX_SUBPAGE_CHUNKS> &chunks) {
+    special_page_chunks_ = chunks;
+  }
   bool set_button(uint8_t slot, PanelConfigTextValue *button,
                   const std::array<PanelConfigTextValue *, MAX_SUBPAGE_CHUNKS>
                       &subpage_chunks);
@@ -59,17 +63,19 @@ class PanelConfigTextBindings {
   CompatibilityStatus persistence_admission(const uint8_t *document, size_t size);
   CompatibilityStatus persist_document_status(const uint8_t *document, size_t size);
   CompatibilityStatus publish_document_status(const uint8_t *document, size_t size);
-  // Native graph publication needs the root order and shared accent colour.
+  // Publish the live screen settings used outside the native card graph.
   // Update those live values without clearing per-card/subpage compatibility
   // fields or claiming that a complete legacy layout has been published.
   CompatibilityStatus publish_global_values(std::string_view profile,
-      std::string_view order, std::string_view on_color);
+      std::string_view order, std::string_view on_color, std::string_view special_page);
 
   bool validate_live_document(const uint8_t *document, size_t size) const {
     return compatible_document(document, size);
   }
  private:
   enum class ApplyMode { PUBLISH, CHECK_PERSIST, PREPARE_EMPTY, PERSIST };
+  bool apply_special_page_chunks(const std::array<PanelConfigTextValue *, MAX_SUBPAGE_CHUNKS> &chunks,
+      const char *value, size_t value_size, ApplyMode mode);
    struct ButtonSources {
      PanelConfigTextValue *button{nullptr};
      std::array<PanelConfigTextValue *, PANEL_CONFIG_TEXT_CHUNK_COUNT>
@@ -94,6 +100,7 @@ class PanelConfigTextBindings {
   std::string device_profile_;
   PanelConfigTextValue *button_order_{nullptr};
   PanelConfigTextValue *button_on_color_{nullptr};
+  std::array<PanelConfigTextValue *, MAX_SUBPAGE_CHUNKS> special_page_chunks_{};
   std::array<ButtonSources, PANEL_CONFIG_TEXT_SLOT_COUNT> buttons_{};
 };
 
