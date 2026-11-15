@@ -72,6 +72,7 @@ final class CompanionConnection: NSObject {
     private var supportsImmediateApplicationFocus = false
     private var supportsSessionLock = false
     private var supportsPairingReset = false
+    private var supportsHealthchecks = false
     private var pairingResetCompletion: CheckedContinuation<Void, Never>?
     private var pairingResetTimeout: Task<Void, Never>?
     private var remoteCatalogueDefinitionsSupported = false
@@ -87,6 +88,7 @@ final class CompanionConnection: NSObject {
     private var focusPublicationTask: Task<Void, Never>?
     private var applicationFocusPublisher = CompanionApplicationFocusPublisher()
     private var catalogueGeneration: UInt32 = 0
+    private var healthchecksGeneration: UInt32 = 0
     private var definitionGeneration: UInt32 = 0
     private var lastPublishedSystemMetrics: CompanionSystemMetricsSnapshot?
     private var lastSystemMetricsPublication = Date.distantPast
@@ -504,6 +506,7 @@ final class CompanionConnection: NSObject {
             supportsSessionLock = payload.capabilityVersion >= 7
             supportsPairingReset = payload.capabilityVersion >= 8
             expandedShortcutsSupported = payload.capabilityVersion >= 9
+            supportsHealthchecks = payload.capabilityVersion >= 10
             // A Bonjour TXT record never authorizes a location change. Both the
             // pinned TLS certificate and the authenticated session must agree.
             let expectedFingerprint = preferences.stringPreference(forKey: certificateFingerprintKey)
@@ -652,6 +655,21 @@ final class CompanionConnection: NSObject {
         case "pairing_reset": return authenticated || authenticating
         case "authentication_failed": return authenticating
         default: return false
+        }
+    }
+
+    func publishHealthchecks(_ update: HealthchecksUpdate) {
+        guard sessionAuthenticated, supportsHealthchecks else { return }
+        healthchecksGeneration &+= 1
+        if healthchecksGeneration == 0 { healthchecksGeneration = 1 }
+        let items = update.checks.map(\.wireValue)
+        let state = update.liveState.rawValue
+        let pageSize = 32
+        for start in stride(from: 0, to: max(items.count, 1), by: pageSize) {
+            let end = min(start + pageSize, items.count)
+            sendJSON(["type": "healthchecks.page", "generation": healthchecksGeneration,
+                      "page": start / pageSize, "total": items.count, "complete": end == items.count,
+                      "state": state, "items": Array(items[start..<end])])
         }
     }
 

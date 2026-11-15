@@ -38,7 +38,7 @@ inline bool basic_action_driver_setup_visual(
 inline bool basic_action_driver_attach_interaction(
     BtnSlot &slot, const ParsedCfg &config, const Context &context) {
   if (context.runtime.driver == card_runtime::CardDriverId::COMPANION &&
-      companion_metric_key_valid(config.entity)) {
+      (companion_metric_key_valid(config.entity) || espdesktop::healthcheck_card_entity(config.entity))) {
     lv_obj_clear_flag(slot.btn, LV_OBJ_FLAG_CLICKABLE);
   }
   return basic_action_driver_matches(context, config);
@@ -142,7 +142,7 @@ inline bool basic_action_driver_bind_subpage(
   if (!basic_action_driver_matches(context, config)) return false;
   switch (context.runtime.driver) {
     case Driver::COMPANION: {
-      if (companion_metric_key_valid(config.entity)) break;
+      if (companion_metric_key_valid(config.entity) || espdesktop::healthcheck_card_entity(config.entity)) break;
       std::string required_focus_id;
       if (config.type == "companion" && environment.parent_config &&
           companion_app_shortcuts_enabled(*environment.parent_config) &&
@@ -191,7 +191,7 @@ inline bool basic_action_driver_handle_main_click(
   if (!basic_action_driver_matches(context, config)) return false;
   switch (context.runtime.driver) {
     case Driver::COMPANION: {
-      if (companion_metric_key_valid(config.entity)) break;
+      if (companion_metric_key_valid(config.entity) || espdesktop::healthcheck_card_entity(config.entity)) break;
       char request_id[24];
       snprintf(request_id, sizeof(request_id), "%08lx-%d",
                static_cast<unsigned long>(companion_next_request_number()), slot_number);

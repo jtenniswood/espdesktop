@@ -1,6 +1,7 @@
 import { childPageKey } from "../model/page_keys";
+import { renderHealthcheckSettings } from "./companion_healthchecks";
 import { renderCompanionStorageSelector } from "./companion_storage";
-import { COMPANION_FOLDER_PREFIX, decodeCompanionCard, encodeCompanionCard, companionMetricForEntity } from "../model/companion_card_codec";
+import { COMPANION_FOLDER_PREFIX, COMPANION_HEALTHCHECK_PREFIX, decodeCompanionCard, encodeCompanionCard, companionMetricForEntity } from "../model/companion_card_codec";
 import { configOptionEnabled, configOptionValue, setConfigOption, setConfigOptionValue, normalizedCardColorOptions, preserveCardColorOptions, withoutCardColorOptions } from "../model/config_primitives";
 import { createCompanionCatalogue, createCompanionCatalogueMonitor } from "../api/companion_catalogue";
 import type { CompanionAction } from "../api/companion_catalogue";
@@ -330,6 +331,7 @@ export function companionEntityForMode(mode: string): string {
     if (mode === "url") return COMPANION_DEFAULT_BROWSER;
     if (mode === "shortcut") return COMPANION_SHORTCUT_PREFIX;
     if (mode === "folder") return COMPANION_FOLDER_PREFIX;
+    if (mode === "healthchecks") return COMPANION_HEALTHCHECK_PREFIX;
     if (mode === "stats") return COMPANION_SYSTEM_METRICS[0]?.id || "";
     return COMPANION_SYSTEM_METRICS.find((metric) => metric.mode === mode)?.id || "";
 }
@@ -392,6 +394,18 @@ function normalizeCompanionCardFields(card: any): void {
         card.icon_on = "Auto";
         if (!card.icon || card.icon === "Auto" || card.icon === "Monitor") {
             card.icon = companionSubtypeDefaultIcon("stats");
+        }
+        return;
+    }
+    if (companionCardMode(card) === "healthchecks") {
+        card.type = "companion";
+        card.sensor = "";
+        card.unit = "";
+        card.precision = "";
+        card.options = normalizedCardColorOptions(card.options);
+        card.icon_on = "Auto";
+        if (!card.icon || card.icon === "Auto" || card.icon === "Monitor") {
+            card.icon = companionSubtypeDefaultIcon("healthchecks");
         }
         return;
     }
@@ -602,6 +616,10 @@ export function registerCompanionCardTypes(
             const currentEntity = typeof card.entity === "string" ? card.entity : "";
             card.entity = currentEntity;
             const initialMode = companionCardMode(card);
+            if (initialMode === "healthchecks" && panel) {
+                renderHealthcheckSettings(panel, card, helpers, fetchImpl, renderPreview);
+                return;
+            }
             const parentPage = helpers.isSub ? state.editingSubpage : null;
             const canAddSubpage = codec.canCreateSubpage(parentPage);
             const subpageKey = canAddSubpage && slot ? childPageKey(parentPage ?? 0, Number(slot)) : null;
@@ -1463,6 +1481,13 @@ export function registerCompanionCardTypes(
                         companionMetricPreviewValue(card.precision), card.unit || metric?.unit || "%")),
                 };
             }
+            if (mode === "healthchecks") {
+                return cardBadgePreview(card, helpers, {
+                    label: card.label || "Healthchecks.io",
+                    iconFallback: companionSubtypeDefaultIcon("healthchecks"),
+                    labelEditable: false,
+                });
+            }
             if (mode === "stats") {
                 return cardBadgePreview(card, helpers, {
                     label: card.label || "Stats",
@@ -1600,6 +1625,7 @@ export function registerCompanionCardTypes(
         ["companion_shortcut", "Key Shortcut", "shortcut"],
         ["companion_url", "Website", "url"],
         ["companion_folder", "Finder Folder", "folder"],
+        ["companion_healthchecks", "Healthchecks.io", "healthchecks"],
     ];
     companionPickerDefinitions.forEach(function (definition) {
         const key = definition[0];

@@ -878,6 +878,29 @@ void CompanionService::handle_json_(int socket_fd, const std::string &message) {
       return true;
     }
 
+    if (const auto *payload = std::get_if<companion_protocol::HealthchecksPage>(&*decoded)) {
+      const auto state = espdesktop::parse_healthchecks_state(payload->state);
+      if (!state) return false;
+      std::vector<espdesktop::HealthcheckEntry> checks;
+      checks.reserve(payload->items.size());
+      for (const auto &item : payload->items) {
+        const auto status = espdesktop::parse_check_status(item.status);
+        if (!status || !espdesktop::healthcheck_id_valid(item.id) ||
+            item.label.empty() || item.label.size() > espdesktop::HEALTHCHECK_LABEL_BYTES ||
+            std::any_of(item.label.begin(), item.label.end(), [](unsigned char ch) { return ch < 0x20; }))
+          return false;
+        auto &check = checks.emplace_back();
+        std::copy(item.id.begin(), item.id.end(), check.id.begin());
+        std::copy(item.label.begin(), item.label.end(), check.label.begin());
+        check.status = *status;
+        check.started = item.started;
+      }
+      std::lock_guard<std::mutex> lock(this->pairing_mutex_);
+      if (!this->identity_.paired || socket_fd != this->session_.authenticated_socket()) return false;
+      return companion_runtime_service().healthchecks.receive(payload->generation, payload->page,
+          payload->total, payload->complete, *state, checks.data(), checks.size(), millis());
+    }
+
     const uint32_t generation = root["generation"] | 0;
     if (generation == 0) return false;
 
@@ -1061,6 +1084,7 @@ void CompanionService::set_connected_(bool connected, int closing_socket) {
     this->focus_targets_supported_ = false;
     this->reset_app_icon_transfer_();
   }
+  companion_runtime_service().healthchecks.set_connected(connected);
   this->defer_session_([connected]() {
     // Discard a stale awake state, but keep a sleeping panel dark until the
     // Mac reconnects and reports that its display woke or the session unlocked.
@@ -1279,6 +1303,7 @@ bool CompanionService::revoke_pairing_locked_(const PairingCode *code, bool show
   this->last_failed_pairing_at_.reset();
   companion_runtime_service().set_mac_update_required(false);
   this->set_connected_(false);
+  companion_runtime_service().healthchecks.clear();
   // Revoking trust also clears the Mac's lock. Ordinary disconnects retain it.
   this->defer([show_on_display] {
     screen_lock_set_mac_locked(false);

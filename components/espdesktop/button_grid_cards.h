@@ -474,6 +474,23 @@ inline void setup_toggle_visual(BtnSlot &s, const ParsedCfg &p) {
 inline void setup_companion_card(BtnSlot &s, const ParsedCfg &p,
                                  uint32_t sensor_color = theme_display_color(current_theme().surface_secondary)) {
   lv_obj_clear_flag(s.text_lbl, LV_OBJ_FLAG_HIDDEN);
+  if (espdesktop::healthcheck_card_entity(p.entity)) {
+    lv_obj_add_flag(s.sensor_container, LV_OBJ_FLAG_HIDDEN);
+    lv_label_set_display_text(s.icon_lbl, find_icon(p.icon.empty() ? "Check" : p.icon.c_str()));
+    lv_obj_clear_flag(s.icon_lbl, LV_OBJ_FLAG_HIDDEN);
+    lv_obj_clear_flag(s.btn, LV_OBJ_FLAG_CLICKABLE);
+    lv_obj_set_style_bg_color(s.btn, lv_color_hex(sensor_color), LV_PART_MAIN | LV_STATE_DEFAULT);
+    set_wrapped_button_label_text(s.text_lbl, p.label.empty() ? "Healthchecks.io" : p.label.c_str());
+    lv_obj_t *status = lv_label_create(s.btn);
+    lv_obj_set_style_text_font(status, lv_obj_get_style_text_font(s.text_lbl, LV_PART_MAIN), LV_PART_MAIN);
+    lv_obj_set_style_text_color(status, lv_obj_get_style_text_color(s.text_lbl, LV_PART_MAIN), LV_PART_MAIN);
+    lv_obj_set_style_text_align(status, LV_TEXT_ALIGN_RIGHT, LV_PART_MAIN);
+    lv_label_set_long_mode(status, LV_LABEL_LONG_DOT);
+    lv_obj_set_width(status, lv_pct(67));
+    lv_obj_align(status, LV_ALIGN_TOP_RIGHT, 0, 0);
+    healthcheck_track_card(s.text_lbl, status, p.entity, p.label);
+    return;
+  }
   if (companion_metric_key_valid(p.entity)) {
     lv_label_set_display_text(s.icon_lbl, find_icon(companion_metric_icon(p.entity)));
     lv_obj_clear_flag(s.icon_lbl, LV_OBJ_FLAG_HIDDEN);

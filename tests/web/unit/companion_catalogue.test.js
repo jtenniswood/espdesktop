@@ -199,3 +199,31 @@ test("connected catalogue refreshes changed icon hashes without label changes", 
   assert.equal(updates[2][0].iconHash, undefined);
   monitor.stop();
 });
+
+test("Healthchecks picker retries if checks change during a paged read", async () => {
+  const { loadHealthchecksCatalogue } = loadTypeScriptModule("src/webserver/api/healthchecks_catalogue.ts");
+  const first = { id: "1".repeat(40), label: "Backup" };
+  const second = { id: "2".repeat(40), label: "Sync" };
+  const pages = [
+    { generation: 1, hasMore: true, checks: [first] },
+    { generation: 2, hasMore: false, checks: [] },
+    { generation: 2, hasMore: true, checks: [second] },
+    { generation: 2, hasMore: false, checks: [first] },
+  ];
+  const requests = [];
+  const catalogue = await loadHealthchecksCatalogue(async (path, options) => {
+    requests.push(path);
+    assert.equal(options.cache, "no-store");
+    return { ok: true, json: async () => ({ state: "ready", ...pages.shift() }) };
+  });
+  assert.deepEqual(requests, [0, 1, 0, 1].map(page => "/companion/healthchecks?page=" + page));
+  assert.deepEqual(catalogue.checks, [second, first]);
+});
+
+test("saved Healthchecks cards keep their check ID without turning into app cards", () => {
+  const { decodeCompanionCard, companionCardHasAppIcon } = loadTypeScriptModule("src/webserver/model/companion_card_codec.ts");
+  const id = "a".repeat(40);
+  const card = { type: "companion", entity: "healthchecks." + id, label: "Backup" };
+  assert.deepEqual(decodeCompanionCard(card), { mode: "healthchecks", checkId: id });
+  assert.equal(companionCardHasAppIcon(card), false);
+});

@@ -1,5 +1,5 @@
 {
-  "version": 9,
+  "version": 10,
   "protocol": {
     "version": 4,
     "path": "/companion/v4",
@@ -155,6 +155,66 @@
                   "type": "string",
                   "minLength": 1,
                   "maxLength": 96
+                }
+              }
+            }
+          }
+        },
+        "states": [
+          "connected"
+        ]
+      },
+      {
+        "id": "healthchecks.page",
+        "direction": "mac_to_panel",
+        "authorization": "session",
+        "fields": {
+          "generation": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 4294967295
+          },
+          "page": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 31
+          },
+          "total": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 1024
+          },
+          "complete": {
+            "type": "boolean"
+          },
+          "state": {
+            "type": "string",
+            "minLength": 5,
+            "maxLength": 12
+          },
+          "items": {
+            "type": "array",
+            "maxItems": 32,
+            "items": {
+              "type": "object",
+              "fields": {
+                "id": {
+                  "type": "string",
+                  "minLength": 40,
+                  "maxLength": 40
+                },
+                "label": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 160
+                },
+                "status": {
+                  "type": "string",
+                  "minLength": 2,
+                  "maxLength": 7
+                },
+                "started": {
+                  "type": "boolean"
                 }
               }
             }
@@ -1009,6 +1069,12 @@
       "label": "Stats",
       "capability": "system_metrics",
       "defaultIcon": "Gauge"
+    },
+    {
+      "id": "healthchecks",
+      "label": "Healthchecks.io",
+      "capability": "healthchecks",
+      "defaultIcon": "Check"
     }
   ],
   "systemMetrics": [

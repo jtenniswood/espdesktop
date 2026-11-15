@@ -9,6 +9,7 @@
 #include <cctype>
 #include <cmath>
 #include <cstdlib>
+#include <cstring>
 #include <functional>
 #include <mutex>
 #include <string>
@@ -964,7 +965,78 @@ inline void companion_refresh_card_focus(const CompanionRuntimeSnapshot &snapsho
   }
 }
 
+struct HealthcheckCardView {
+  std::string id;
+  std::string saved_label;
+  lv_obj_t *label;
+  lv_obj_t *status;
+};
+
+inline const char *healthcheck_status_label(espdesktop::CheckStatus status) {
+  using Status = espdesktop::CheckStatus;
+  switch (status) {
+    case Status::UP: return espdesktop_i18n("Up");
+    case Status::DOWN: return espdesktop_i18n("Down");
+    case Status::GRACE: return espdesktop_i18n("Late");
+    case Status::PAUSED: return espdesktop_i18n("Paused");
+    case Status::NEW: return espdesktop_i18n("Awaiting ping");
+    case Status::UNKNOWN: return espdesktop_i18n("Unknown");
+  }
+  return espdesktop_i18n("Unknown");
+}
+
+inline void healthcheck_refresh_card(HealthcheckCardView &view) {
+  using State = espdesktop::HealthchecksState;
+  const auto reading = companion_runtime_service().healthchecks.reading(view.id, esphome::millis());
+  std::string status = espdesktop_i18n("Unavailable");
+  if (reading.state == State::UNCONFIGURED) {
+    status = espdesktop_i18n("Connect service");
+  } else if (reading.state == State::WAITING) {
+    status = espdesktop_i18n("Loading");
+  } else if (reading.check) {
+    status = healthcheck_status_label(reading.check->status);
+    if (reading.state == State::STALE) status = std::string(espdesktop_i18n("Stale")) + " · " + status;
+    else if (reading.check->started && reading.check->status == espdesktop::CheckStatus::UP)
+      status = espdesktop_i18n("Running");
+  } else if (reading.state == State::READY) {
+    status = espdesktop_i18n("Check removed");
+  } else if (reading.state == State::STALE) {
+    status = espdesktop_i18n("Stale");
+  }
+  const std::string label = reading.check ? reading.check->label.data() : view.saved_label;
+  if (normalize_display_text(label) != lv_label_get_text(view.label))
+    lv_label_set_display_text(view.label, label.c_str());
+  if (normalize_display_text(status) != lv_label_get_text(view.status))
+    lv_label_set_display_text(view.status, status.c_str());
+}
+
+inline std::vector<HealthcheckCardView> &healthcheck_card_views() {
+  static std::vector<HealthcheckCardView> views;
+  return views;
+}
+
+inline void healthcheck_track_card(lv_obj_t *label, lv_obj_t *status,
+                                   const std::string &entity, const std::string &saved_label) {
+  auto &views = healthcheck_card_views();
+  views.push_back({entity.substr(espdesktop::HEALTHCHECK_CARD_PREFIX.size()),
+                   saved_label.empty() ? "Healthchecks.io" : saved_label, label, status});
+  healthcheck_refresh_card(views.back());
+  lv_obj_add_event_cb(status, [](lv_event_t *event) {
+    const auto *status = static_cast<lv_obj_t *>(lv_event_get_target(event));
+    auto &views = healthcheck_card_views();
+    views.erase(std::remove_if(views.begin(), views.end(), [status](const HealthcheckCardView &view) {
+      return view.status == status;
+    }), views.end());
+  }, LV_EVENT_DELETE, nullptr);
+}
+
 inline void companion_refresh_cards_if_requested() {
+  static uint32_t last_healthcheck_refresh = 0;
+  const uint32_t now = esphome::millis();
+  if (!healthcheck_card_views().empty() && now - last_healthcheck_refresh >= 1000u) {
+    last_healthcheck_refresh = now;
+    for (auto &view : healthcheck_card_views()) healthcheck_refresh_card(view);
+  }
   const bool full_refresh = companion_card_refresh_requested().exchange(false);
   const bool focus_refresh = companion_runtime_service().consume_focus_refresh_request();
   if (!full_refresh && !focus_refresh) return;
@@ -1221,7 +1293,7 @@ class CompanionActionsHandler : public esphome::web_server_idf::AsyncWebHandler 
     char url_buf[esphome::web_server_idf::AsyncWebServerRequest::URL_BUF_SIZE];
     const auto url = request->url_to(url_buf);
     return url == "/companion/actions" || url == "/companion/networks" ||
-           url == "/companion/definitions";
+           url == "/companion/definitions" || url == "/companion/healthchecks";
   }
 
   void handleRequest(esphome::web_server_idf::AsyncWebServerRequest *request) override {
@@ -1230,6 +1302,10 @@ class CompanionActionsHandler : public esphome::web_server_idf::AsyncWebHandler 
     bool first = true;
     char url_buf[esphome::web_server_idf::AsyncWebServerRequest::URL_BUF_SIZE];
     const std::string requested_url = request->url_to(url_buf);
+    if (requested_url == "/companion/healthchecks") {
+      send_healthchecks(request);
+      return;
+    }
     const bool networks = requested_url == "/companion/networks";
     const bool definitions = requested_url == "/companion/definitions";
     auto &runtime = companion_runtime_service();
@@ -1310,6 +1386,45 @@ class CompanionActionsHandler : public esphome::web_server_idf::AsyncWebHandler 
     if (!definitions) json += "]";
     httpd_req_t *req = *request;
     httpd_resp_set_status(req, "200 OK");
+    httpd_resp_set_type(req, "application/json");
+    httpd_resp_set_hdr(req, "Cache-Control", "no-store");
+    httpd_resp_send(req, json.c_str(), HTTPD_RESP_USE_STRLEN);
+  }
+
+ private:
+  static void send_healthchecks(esphome::web_server_idf::AsyncWebServerRequest *request) {
+    httpd_req_t *req = *request;
+    char query[32] = {};
+    char page_text[4] = {};
+    if (httpd_req_get_url_query_str(req, query, sizeof(query)) != ESP_OK ||
+        httpd_query_key_value(query, "page", page_text, sizeof(page_text)) != ESP_OK ||
+        !*page_text || std::any_of(page_text, page_text + std::strlen(page_text),
+          [](char ch) { return ch < '0' || ch > '9'; })) {
+      httpd_resp_send_err(req, HTTPD_400_BAD_REQUEST, "Invalid catalogue page");
+      return;
+    }
+    const size_t page = std::strtoul(page_text, nullptr, 10);
+    if (page >= espdesktop::HEALTHCHECK_LIMIT / espdesktop::HEALTHCHECK_PAGE_SIZE) {
+      httpd_resp_send_err(req, HTTPD_400_BAD_REQUEST, "Invalid catalogue page");
+      return;
+    }
+    const auto result = companion_runtime_service().healthchecks.editor_page(page, esphome::millis());
+    using State = espdesktop::HealthchecksState;
+    const char *state = result.state == State::READY ? "ready" :
+                        result.state == State::STALE ? "stale" :
+                        result.state == State::WAITING ? "waiting" :
+                        result.state == State::UNCONFIGURED ? "unconfigured" : "unavailable";
+    std::string json = "{\"state\":\"" + std::string(state) + "\",\"generation\":" +
+        std::to_string(result.generation) + ",\"hasMore\":" +
+        (result.has_more ? "true" : "false") + ",\"checks\":[";
+    bool first = true;
+    for (const auto &check : result.checks) {
+      if (!first) json += ",";
+      first = false;
+      json += "{\"id\":\"" + std::string(check.id.data()) + "\",\"label\":\"" +
+          companion_json_escape(check.label.data()) + "\"}";
+    }
+    json += "]}";
     httpd_resp_set_type(req, "application/json");
     httpd_resp_set_hdr(req, "Cache-Control", "no-store");
     httpd_resp_send(req, json.c_str(), HTTPD_RESP_USE_STRLEN);

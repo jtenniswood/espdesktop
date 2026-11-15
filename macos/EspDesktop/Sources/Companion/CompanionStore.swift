@@ -143,6 +143,12 @@ final class CompanionStore: NSObject, ObservableObject {
     private lazy var pairingDisplay = makeDisplay(CompanionDisplayRecord())
     private(set) var isRePairing = false
     var canRetryRePairing: Bool { isRePairing && pairingDisplay.connection.isPairing }
+    @Published private(set) var healthchecksUpdate = HealthchecksUpdate()
+    private var healthchecksRefresh: Task<Void, Never>?
+    private static let healthchecksKeychainService = "io.espdesktop.app.healthchecks"
+    private static let healthchecksKeychainAccount = "read-only-api-key"
+    private static let healthchecksConfiguredPreference = "healthchecks.configured"
+
     private var connectedDisplays: [CompanionDisplay] { displays.filter { $0.state == .connected } }
     private var metricsDisplays: [CompanionDisplay] { connectedDisplays.filter(\.supportsSystemMetrics) }
     private var systemMetricsActive = false
@@ -211,6 +217,10 @@ final class CompanionStore: NSObject, ObservableObject {
             latestSystemMetricsSnapshot = snapshot
             systemMetricsStatus = "Sharing processor, memory, storage, network and battery statistics"
             for display in metricsDisplays { display.connection.publishSystemMetrics(snapshot) }
+        }
+        if stableDefaults.bool(forKey: Self.healthchecksConfiguredPreference) {
+            healthchecksUpdate.state = .waiting
+            startHealthchecksRefresh(immediately: true)
         }
         if supportsLaunchAtLogin { refreshLaunchAtLoginStatus() }
         refreshApplications()
@@ -761,6 +771,7 @@ final class CompanionStore: NSObject, ObservableObject {
             if display.supportsSystemMetrics, let snapshot = latestSystemMetricsSnapshot {
                 display.connection.publishSystemMetrics(snapshot, force: true)
             }
+            display.connection.publishHealthchecks(healthchecksUpdate)
             publishMediaControlValues(force: true, to: display)
         }
     }
@@ -800,6 +811,81 @@ final class CompanionStore: NSObject, ObservableObject {
 
     func updateStatus(_ message: String) {
         print("[EspDesktop] \(message)")
+    }
+
+    func connectHealthchecks(key: String) async -> String? {
+        guard !key.isEmpty, key.utf8.count <= 256, key.utf8.allSatisfy({ (33...126).contains($0) }) else {
+            return "Enter a valid read-only API key."
+        }
+        do {
+            let checks = try await HealthchecksClient.fetch(key: key, verifyReadOnly: true)
+            guard KeychainStore.save(Data(key.utf8), service: Self.healthchecksKeychainService,
+                                     account: Self.healthchecksKeychainAccount) else {
+                return "Could not save the API key in Keychain."
+            }
+            defaults.set(true, forKey: Self.healthchecksConfiguredPreference)
+            setHealthchecksUpdate(HealthchecksUpdate(state: .ready, checks: checks, lastSuccess: Date()))
+            startHealthchecksRefresh(immediately: false)
+            return nil
+        } catch let failure as HealthchecksClient.Failure {
+            return failure.errorDescription
+        } catch {
+            return HealthchecksClient.Failure.unavailable.errorDescription
+        }
+    }
+
+    func removeHealthchecks() -> String? {
+        guard KeychainStore.remove(service: Self.healthchecksKeychainService,
+                                   account: Self.healthchecksKeychainAccount) else {
+            return "Could not remove the API key from Keychain."
+        }
+        defaults.removeObject(forKey: Self.healthchecksConfiguredPreference)
+        healthchecksRefresh?.cancel()
+        healthchecksRefresh = nil
+        setHealthchecksUpdate(HealthchecksUpdate())
+        return nil
+    }
+
+    private func startHealthchecksRefresh(immediately: Bool) {
+        healthchecksRefresh?.cancel()
+        healthchecksRefresh = Task { [weak self] in
+            var delay: UInt64 = immediately ? 0 : 60
+            while !Task.isCancelled {
+                if delay > 0 {
+                    do { try await Task.sleep(nanoseconds: delay * 1_000_000_000) }
+                    catch { return }
+                }
+                guard let self, !Task.isCancelled else { return }
+                delay = await self.refreshHealthchecks()
+            }
+        }
+    }
+
+    private func refreshHealthchecks() async -> UInt64 {
+        do {
+            guard let data = KeychainStore.load(service: Self.healthchecksKeychainService,
+                                                account: Self.healthchecksKeychainAccount),
+                  let key = String(data: data, encoding: .utf8) else {
+                throw HealthchecksClient.Failure.invalidKey
+            }
+            let checks = try await HealthchecksClient.fetch(key: key)
+            try Task.checkCancellation()
+            setHealthchecksUpdate(HealthchecksUpdate(state: .ready, checks: checks, lastSuccess: Date()))
+        } catch {
+            guard !Task.isCancelled else { return 60 }
+            if healthchecksUpdate.state != .stale {
+                var update = healthchecksUpdate
+                update.state = .stale
+                setHealthchecksUpdate(update)
+            }
+            if (error as? HealthchecksClient.Failure) == .rateLimited { return 120 }
+        }
+        return 60
+    }
+
+    private func setHealthchecksUpdate(_ update: HealthchecksUpdate) {
+        healthchecksUpdate = update
+        publishToConnectedDisplays { $0.publishHealthchecks(update) }
     }
 
     private func updateSystemMetricsProvider() {

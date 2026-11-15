@@ -53,13 +53,11 @@ enum KeychainStore {
         return SecItemAdd(item as CFDictionary, nil) == errSecSuccess
     }
 
-    static func remove(service: String, account: String) {
-        removeExact(service: service, account: account)
-    }
-
-    private static func removeExact(service: String, account: String) {
+    @discardableResult
+    static func remove(service: String, account: String) -> Bool {
         let query: [String: Any] = [kSecClass as String: kSecClassGenericPassword, kSecAttrService as String: service, kSecAttrAccount as String: account]
-        SecItemDelete(query as CFDictionary)
+        let status = SecItemDelete(query as CFDictionary)
+        return status == errSecSuccess || status == errSecItemNotFound
     }
 
     static func accounts(service: String) -> [String] {

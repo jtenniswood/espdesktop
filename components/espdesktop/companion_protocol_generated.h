@@ -63,6 +63,20 @@ struct CataloguePage {
   bool complete{};
   std::vector<CataloguePageItemsItem> items{};
 };
+struct HealthchecksPageItemsItem {
+  std::string id{};
+  std::string label{};
+  std::string status{};
+  bool started{};
+};
+struct HealthchecksPage {
+  uint32_t generation{};
+  uint32_t page{};
+  uint32_t total{};
+  bool complete{};
+  std::string state{};
+  std::vector<HealthchecksPageItemsItem> items{};
+};
 struct ActionInvoke {
   std::string requestId{};
   std::string kind{};
@@ -259,6 +273,23 @@ inline void encode(JsonObject root, const CataloguePage &message) {
     auto entry = values_items.add<JsonObject>();
     entry["id"] = item.id;
     entry["label"] = item.label;
+  }
+}
+inline void encode(JsonObject root, const HealthchecksPage &message) {
+  root["type"] = "healthchecks.page";
+  root["protocol"] = COMPANION_PROTOCOL_VERSION;
+  root["generation"] = message.generation;
+  root["page"] = message.page;
+  root["total"] = message.total;
+  root["complete"] = message.complete;
+  root["state"] = message.state;
+  auto values_items = root["items"].to<JsonArray>();
+  for (const auto &item : message.items) {
+    auto entry = values_items.add<JsonObject>();
+    entry["id"] = item.id;
+    entry["label"] = item.label;
+    entry["status"] = item.status;
+    entry["started"] = item.started;
   }
 }
 inline void encode(JsonObject root, const ActionInvoke &message) {
@@ -474,7 +505,7 @@ inline void encode(JsonObject root, const PairReset &message) {
   root["protocol"] = COMPANION_PROTOCOL_VERSION;
   (void) message;
 }
-using Message = std::variant<Hello, PairRequest, PairAccepted, AuthRequest, AuthAccepted, Capabilities, CatalogueRequest, CataloguePage, ActionInvoke, ActionResult, ValueSet, ValueState, FocusChanged, TimezoneChanged, NowPlaying, SystemMetrics, ArtworkBegin, ArtworkAck, ArtworkEnd, ArtworkAbort, ArtworkRequest, AppIconRequest, AppIconBegin, AppIconUnchanged, AppIconUnavailable, AppIconAck, AppIconEnd, AppIconAbort, Error, CatalogueDefinitionsPage, FocusTargets, SessionLock, PairReset>;
+using Message = std::variant<Hello, PairRequest, PairAccepted, AuthRequest, AuthAccepted, Capabilities, CatalogueRequest, CataloguePage, HealthchecksPage, ActionInvoke, ActionResult, ValueSet, ValueState, FocusChanged, TimezoneChanged, NowPlaying, SystemMetrics, ArtworkBegin, ArtworkAck, ArtworkEnd, ArtworkAbort, ArtworkRequest, AppIconRequest, AppIconBegin, AppIconUnchanged, AppIconUnavailable, AppIconAck, AppIconEnd, AppIconAbort, Error, CatalogueDefinitionsPage, FocusTargets, SessionLock, PairReset>;
 inline std::optional<Message> decode(JsonObjectConst root, Direction direction, SessionState state) {
   if (!number_valid(root["protocol"], COMPANION_PROTOCOL_VERSION, COMPANION_PROTOCOL_VERSION, true) || !root["type"].is<const char *>()) return std::nullopt;
   const std::string type = root["type"].as<std::string>();
@@ -585,6 +616,53 @@ inline std::optional<Message> decode(JsonObjectConst root, Direction direction, 
     result.complete = root["complete"].as<bool>();
     for (JsonVariantConst item : root["items"].as<JsonArrayConst>()) {
       result.items.push_back({item["id"].as<std::string>(), item["label"].as<std::string>()});
+    }
+    return result;
+  }
+  if (type == "healthchecks.page") {
+    if (direction != Direction::MAC_TO_PANEL) return std::nullopt;
+    if (!(state == SessionState::CONNECTED)) return std::nullopt;
+    {
+      if (!(number_valid(root["generation"], 1, 4294967295, true))) return std::nullopt;
+    }
+    {
+      if (!(number_valid(root["page"], 0, 31, true))) return std::nullopt;
+    }
+    {
+      if (!(number_valid(root["total"], 0, 1024, true))) return std::nullopt;
+    }
+    {
+      if (!(root["complete"].is<bool>())) return std::nullopt;
+    }
+    {
+      if (!(string_valid(root["state"], 5, 12))) return std::nullopt;
+    }
+    {
+      if (!(root["items"].is<JsonArrayConst>() && root["items"].size() <= 32)) return std::nullopt;
+      for (JsonVariantConst item : root["items"].as<JsonArrayConst>()) {
+        if (!(item.is<JsonObjectConst>())) return std::nullopt;
+        {
+          if (!(string_valid(item.as<JsonObjectConst>()["id"], 40, 40))) return std::nullopt;
+        }
+        {
+          if (!(string_valid(item.as<JsonObjectConst>()["label"], 1, 160))) return std::nullopt;
+        }
+        {
+          if (!(string_valid(item.as<JsonObjectConst>()["status"], 2, 7))) return std::nullopt;
+        }
+        {
+          if (!(item.as<JsonObjectConst>()["started"].is<bool>())) return std::nullopt;
+        }
+      }
+    }
+    HealthchecksPage result;
+    result.generation = root["generation"].as<uint32_t>();
+    result.page = root["page"].as<uint32_t>();
+    result.total = root["total"].as<uint32_t>();
+    result.complete = root["complete"].as<bool>();
+    result.state = root["state"].as<std::string>();
+    for (JsonVariantConst item : root["items"].as<JsonArrayConst>()) {
+      result.items.push_back({item["id"].as<std::string>(), item["label"].as<std::string>(), item["status"].as<std::string>(), item["started"].as<bool>()});
     }
     return result;
   }

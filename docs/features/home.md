@@ -49,6 +49,14 @@ Right-click a card to open its menu.
 
 <a href="/images/web-editor-choose-card.webp"><picture><source type="image/avif" srcset="/images/web-editor-choose-card-480.avif 480w, /images/web-editor-choose-card-960.avif 960w" sizes="(min-width: 768px) 688px, 90vw"><img src="/images/web-editor-choose-card.webp" alt="Choose Card dialog with Applications, Folder, Key Shortcut, Lock Machine, Subpage and Website options" width="1269" height="1022" loading="lazy"></picture></a>
 
+### Add a Healthchecks.io card
+
+1. Open **Settings → Services** in the EspDesktop Mac app.
+2. Create a read-only key under **Project Settings → API Access** on Healthchecks.io. Enter it in the Mac app and choose **Test and Save**. The key is stored in your Mac’s Keychain.
+3. Open the paired display’s layout editor. Choose **Healthchecks.io** when adding a card, then search for a check and save it. Repeat for any other checks you want on Home or in a subpage.
+
+Keep the Mac app running for updates. If the connection drops, the card marks its last known status as stale.
+
 ## Create a custom subpage
 
 Group related cards behind a single card on Home. For example, create a **Work** subpage for Slack, your calendar and a project folder.

@@ -19,6 +19,7 @@
 #include "camera_refresh_policy.h"
 #include "companion_capabilities_generated.h"
 #include "companion_shortcut_page.h"
+#include "healthchecks_catalogue.h"
 #include "app_shortcuts_generated.h"
 #include "button_grid_saved_config_access_generated.h"
 #include "button_grid_saved_config_security_generated.h"
@@ -1249,7 +1250,8 @@ inline bool companion_app_launch_card(const ParsedCfg &p) {
   return p.type == "companion" && !p.entity.empty() && p.sensor.empty() &&
          p.entity.rfind("folder.", 0) != 0 &&
          p.entity.rfind("shortcut.", 0) != 0 &&
-         p.entity.rfind("stat.", 0) != 0;
+         p.entity.rfind("stat.", 0) != 0 &&
+         !espdesktop::healthcheck_card_entity(p.entity);
 }
 
 inline bool companion_app_icon_enabled(const ParsedCfg &p) {
@@ -1401,7 +1403,13 @@ inline ParsedCfg normalize_parsed_cfg(ParsedCfg p) {
   }
   if (p.type == "companion") {
     p.icon_on = "Auto";
-    if (companion_system_metric_config(p)) {
+    if (espdesktop::healthcheck_card_entity(p.entity)) {
+      p.sensor.clear();
+      p.unit.clear();
+      p.precision.clear();
+      p.options.clear();
+      if (p.icon.empty() || p.icon == "Auto" || p.icon == "Monitor") p.icon = "Check";
+    } else if (companion_system_metric_config(p)) {
       p.sensor.clear();
       if (p.entity.rfind("stat.ip_address", 0) == 0) p.unit.clear();
       else if (p.unit.empty()) {

@@ -27,6 +27,37 @@ int main() {
   assert(!second.companion_runtime().mac_update_required());
   assert(first.companion_runtime().snapshot().actions[0].id == "com.example.First");
   assert(second.companion_runtime().snapshot().actions[0].id == "com.example.Second");
+  using espdesktop::CheckStatus;
+  using espdesktop::HealthchecksState;
+  using espdesktop::HEALTHCHECK_PAGE_SIZE;
+  auto &healthchecks = first.companion_runtime().healthchecks;
+  constexpr std::string_view CHECK_ID = "0123456789abcdef0123456789abcdef01234567";
+  std::array<espdesktop::HealthcheckEntry, HEALTHCHECK_PAGE_SIZE> checks{};
+  auto &check = checks.front();
+  std::copy(CHECK_ID.begin(), CHECK_ID.end(), check.id.begin());
+  check.status = CheckStatus::UP;
+  healthchecks.set_connected(true);
+  assert(healthchecks.receive(1, 0, 1, true, HealthchecksState::READY, checks.data(), 1, 100));
+  assert(healthchecks.reading(CHECK_ID, 100).check->status == CheckStatus::UP);
+  assert(healthchecks.reading(CHECK_ID, 90101).state == HealthchecksState::STALE);
+  check.status = CheckStatus::DOWN;
+  assert(healthchecks.receive(2, 0, 33, false, HealthchecksState::READY, checks.data(), checks.size(), 60000));
+  assert(healthchecks.reading(CHECK_ID, 60000).check->status == CheckStatus::UP);
+  assert(!healthchecks.receive(3, 1, 33, true, HealthchecksState::READY, checks.data(), 1, 60000));
+  assert(healthchecks.receive(2, 1, 33, true, HealthchecksState::READY, checks.data(), 1, 60000));
+  assert(healthchecks.reading(CHECK_ID, 60000).check->status == CheckStatus::DOWN);
+  assert(healthchecks.editor_page(0, 60000).has_more);
+  assert(healthchecks.editor_page(1, 60000).checks.size() == 1);
+  healthchecks.set_connected(false);
+  assert(healthchecks.reading(CHECK_ID, 70000).state == HealthchecksState::STALE);
+  assert(healthchecks.editor_page(0, 70000).checks.empty());
+  healthchecks.set_connected(true);
+  assert(healthchecks.receive(1, 0, 0, true, HealthchecksState::READY, nullptr, 0, 75000));
+  assert(!healthchecks.reading(CHECK_ID, 75000).check);
+  assert(healthchecks.reading(CHECK_ID, 75000).state == HealthchecksState::READY);
+  healthchecks.clear();
+  assert(healthchecks.reading(CHECK_ID, 75000).state == HealthchecksState::UNAVAILABLE);
+
   const auto before = allocations;
   for (int i = 0; i < 1000; ++i) assert(first.companion_runtime().connected());
   assert(allocations == before); // Simple status reads never copy the catalogue.

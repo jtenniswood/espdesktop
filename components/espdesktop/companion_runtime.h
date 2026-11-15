@@ -16,6 +16,8 @@
 #include <utility>
 #include <vector>
 
+#include "healthchecks_catalogue.h"
+
 // Folder focus belongs to Finder; switching directories must keep its subpage open.
 inline std::string companion_focus_application_id(const std::string &action_id) {
   if (action_id.rfind("urlcard.", 0) == 0) return "";
@@ -159,6 +161,7 @@ class CompanionRuntimeService {
  public:
   // Wiring callbacks and pending requests share this service's lifetime.
   CompanionPendingActions pending_actions;
+  espdesktop::HealthchecksCatalogue healthchecks;
   CompanionActionSender action_sender;
   CompanionUrlSender url_sender;
   CompanionValueSender value_sender;
