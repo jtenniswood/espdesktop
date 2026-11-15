@@ -13,12 +13,13 @@ production = '\n'.join(definition(controls, name)[1] for name in (
     'companion_render_mute', 'companion_apply_mute_state', 'companion_paint_mute_preview', 'companion_erase_mute_ref', 'companion_mute_deleted',
     'companion_forget_mute', 'companion_tracked_mute_control', 'companion_track_mute'))
 production += definition(driver, 'numeric_selectable_driver_cleanup')[1]
-production += cough_card[cough_card.index('struct CoughTouch'):cough_card.index('inline bool send_cough_button_value')]
+production += '\n' + cough_card[cough_card.index('struct CoughTouch'):cough_card.index('inline bool send_cough_button_value')]
 production += '\n'.join(definition(cough_card, name)[1] for name in ('cough_button_release', 'cough_button_press'))
 stubs = r'''
 #include "companion_audio_control.h"
 #include <algorithm>
 #include <cassert>
+#include <cstdint>
 #include <cstring>
 #include <string>
 #include <vector>
