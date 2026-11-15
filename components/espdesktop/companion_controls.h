@@ -1106,15 +1106,6 @@ inline bool invoke_companion_action(const std::string &action_id,
   return companion_action_sender()(action_id, request_id, folder_open_behavior, {});
 }
 
-inline std::string companion_athena_shortcut_target(const std::string &preset) {
-  constexpr auto prefix = "com.apple.Safari.WebApp.";
-  const auto separator = preset.find(':');
-  if (preset.rfind(prefix, 0) != 0 || separator == std::string::npos ||
-      !companion_shortcut_catalog::has_shortcut("io.github.jtenniswood.athena", preset.substr(separator + 1)))
-    return {};
-  return preset.substr(0, separator);
-}
-
 inline std::string companion_shortcut_preset_app(const std::string &preset) {
   const auto separator = preset.rfind(':');
   if (separator == std::string::npos) return {};
@@ -1122,30 +1113,71 @@ inline std::string companion_shortcut_preset_app(const std::string &preset) {
   return companion_shortcut_page_app(app) ? app : std::string{};
 }
 
+// Route even legacy single-stroke shortcuts through the Companion's
+// app-scoped replay, which checks the frontmost process at delivery time.
+inline std::string companion_app_scoped_shortcut(const std::string &action_id) {
+  if (!companion_shortcut_action_valid(action_id)) return {};
+  if (companion_scoped_shortcut(action_id)) return action_id;
+  auto keys = action_id.substr(9);
+  if (keys == "claude-escape") keys = "escape";
+  if (keys == "escape-twice") keys = "escape~escape";
+  auto scoped = "shortcut.scoped." + keys;
+  return companion_shortcut_action_valid(scoped) ? scoped : std::string{};
+}
+
+inline bool companion_activate_then(const std::string &app, const std::string &request,
+                                    uint32_t deadline, CompanionActionResultHandler success) {
+  if (!companion_expect_action_result(request, std::move(success), deadline)) return false;
+  if (invoke_companion_action(app, request)) return true;
+  companion_cancel_action_result(request);
+  return false;
+}
+
+// Catalogue templates can match multiple installed apps. Use the focused
+// installation when possible, and only launch if there is a single match.
+inline std::string companion_shortcut_launch_target(const std::string &app) {
+  const auto mac = companion_runtime_snapshot();
+  if (companion_action_available(mac, app)) return app;
+  const bool premiere = app == "com.adobe.PremierePro";
+  if (!premiere && app != "com.apple.Safari.WebApp") return {};
+
+  std::string match;
+  bool ambiguous = false;
+  for (const auto &action : mac.actions) {
+    const bool matches = premiere ? companion_shortcut_catalog::is_versioned_premiere_pro(action.id)
+                                  : companion_shortcut_catalog::is_safari_web_app(action.id);
+    if (!matches) continue;
+    if (companion_action_focused(mac, action.id)) return action.id;
+    ambiguous |= !match.empty() && match != action.id;
+    match = action.id;
+  }
+  return ambiguous ? std::string{} : match;
+}
+
 inline bool invoke_companion_action_for_app(const std::string &action_id,
-                                             const std::string &request_id,
-                                             const std::string &required_focus_id,
-                                             const std::string &folder_open_behavior = "new_window",
-                                             const std::string &preset = {}) {
+                                            const std::string &request_id,
+                                            const std::string &required_focus_id,
+                                            const std::string &folder_open_behavior,
+                                            const std::string &preset,
+                                            uint32_t now) {
   // Never use the early visual highlight to authorize app-specific keys.
   if (!required_focus_id.empty() && !companion_action_focused(required_focus_id)) return false;
-  if (companion_scoped_shortcut(action_id)) {
-    const auto target = companion_shortcut_preset_app(preset);
-    if (target.empty() || !companion_action_available(action_id) || !companion_action_sender()) return false;
-    // Companion independently checks approval and the frontmost process before every stroke.
-    return companion_action_sender()(action_id, request_id, folder_open_behavior, target);
-  }
-  const auto athena_target = companion_athena_shortcut_target(preset);
-  if (!athena_target.empty()) {
-    if ((!required_focus_id.empty() && required_focus_id != athena_target) ||
-        !companion_action_focused(athena_target) || !companion_shortcut_action_valid(action_id) ||
-        !companion_action_available(action_id) || !companion_action_sender()) return false;
-    // The Mac must confirm the same installation is still frontmost when the
-    // command arrives. Older Macs reject this as an unrecognized shortcut.
-    return companion_action_sender()("shortcut.@" + athena_target + ":" + action_id.substr(9),
-                                    request_id, folder_open_behavior, {});
-  }
-  return invoke_companion_action(action_id, request_id, folder_open_behavior);
+  const auto app = companion_shortcut_preset_app(preset);
+  if (app.empty()) return invoke_companion_action(action_id, request_id, folder_open_behavior);
+
+  const auto shortcut = companion_app_scoped_shortcut(action_id);
+  if (shortcut.empty() || !companion_action_available(shortcut) || !companion_action_sender()) return false;
+  const auto target = companion_shortcut_launch_target(app);
+  if (target.empty()) return false;
+
+  // The Mac checks that the approved target is still frontmost before replay.
+  if (target == required_focus_id)
+    return companion_action_sender()(shortcut, request_id, "new_window", target);
+
+  return companion_activate_then(target, request_id, now + 10000, [shortcut, request_id, target] {
+    if (companion_action_available(shortcut) && companion_action_sender())
+      companion_action_sender()(shortcut, request_id + "-keys", "new_window", target);
+  });
 }
 
 inline bool invoke_companion_url(const std::string &url_config,

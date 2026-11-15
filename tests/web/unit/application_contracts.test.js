@@ -47,16 +47,15 @@ describe("browserless application contracts", () => {
 
   test("models connector onboarding and card sources", runConnectorsFeatureTests);
 
-  test("removes Home Assistant connector setup and keeps Companion guidance", () => {
+  test("keeps retired Home Assistant actions out of Connectors and preserves Companion guidance", () => {
     const connectors = fs.readFileSync(path.join(ROOT, "src/webserver/application/connectors_page.ts"), "utf8");
     const companion = fs.readFileSync(path.join(ROOT, "src/webserver/application/settings_companion_section.ts"), "utf8");
     const styles = fs.readFileSync(path.join(ROOT, "src/webserver/application/styles.ts"), "utf8");
-    assert.doesNotMatch(connectors, /buildHomeAssistantCard|connectors\/home-assistant|actions_confirmed|home_assistant:/);
+    assert.doesNotMatch(connectors, /connectors\/home-assistant|actions_confirmed|home_assistant:/);
     assert.match(connectors, /No external connectors are available on this display\./);
     assert.match(companion, /sp-action-btn sp-delete-btn sp-destructive-btn/);
     assert.match(companion, /setHidden\(badge, !value\.paired\)/);
     assert.match(companion, /Copy pairing code/);
-    assert.match(styles, /\.sp-connectors-config\{display:flex;flex-direction:column;gap:16px\}/);
     assert.match(styles, /\.sp-hidden\{display:none!important\}/);
     assert.match(styles, /\.sp-delete-btn\.sp-destructive-btn\{background:var\(--danger\)/);
   });

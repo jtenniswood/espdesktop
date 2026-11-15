@@ -37,11 +37,13 @@ Approve **Finder** in the Mac app to use its launch card. Touching an app card s
 
 ## Ready-Made app subpages
 
-An approved **Applications** card can offer an editable subpage when EspDesktop includes shortcut templates for that app. Current examples include **Safari**, **Slack**, and **Codex**; community contributions can add more apps.
+An approved **Applications** card can offer an editable subpage when EspDesktop includes shortcut templates for that app. Examples include **Safari**, **Slack**, **Codex**, and **OpenCode Desktop**.
 
 1. Add an **Applications** card for an app with a shortcut template.
 2. Open **App Subpage** in its card settings and turn on **Add app subpage**.
 3. Choose the shortcuts to include and drag them into order.
+
+For OpenCode Desktop on Mac, the starter tiles include **New Session**, **Command Palette**, **Find Files**, and **Review Changes**. See all 12 presets in the [OpenCode shortcut reference](/reference/shortcut-presets#ai-opencode-desktop).
 
 <a href="/images/web-editor-app-subpage-shortcuts.png"><picture><source type="image/avif" srcset="/images/web-editor-app-subpage-shortcuts-480.avif 480w, /images/web-editor-app-subpage-shortcuts-960.avif 960w" sizes="(min-width: 768px) 688px, 90vw"><img src="/images/web-editor-app-subpage-shortcuts.png" alt="Figma Applications card settings with Add app subpage on and shortcuts that can be enabled and reordered" width="1694" height="2266" loading="lazy"></picture></a>
 

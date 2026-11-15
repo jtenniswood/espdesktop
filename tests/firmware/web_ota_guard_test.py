@@ -52,7 +52,7 @@ class AsyncWebServerRequest {
  private:
   httpd_req_t *req_;
 };
-''' + decode + '\n' + url_to + '\nint dispatch(httpd_req_t *r) {\n' + guard + r'''
+''' + decode + '\n' + url_to + '\nint dispatch(httpd_req_t *r) {\n' + '\n[[maybe_unused]] AsyncWebServerRequest request(r);\n' + guard + r'''
   (void) r;
   return 42;  // Reached normal body/upload dispatch.
 }

@@ -125,10 +125,12 @@ final class RemoteCompanionCataloguesTests: XCTestCase {
         })
         let data = try JSONEncoder().encode(chatGPT)
         let legacy = try JSONDecoder().decode(LegacyDefinition.self, from: data)
-        XCTAssertEqual(legacy.shortcuts.count, 62)
+        XCTAssertEqual(legacy.shortcuts.count, 28)
+        XCTAssertTrue(legacy.shortcuts.contains { $0.shortcut == "control+tab" })
+        XCTAssertTrue(legacy.shortcuts.contains { $0.shortcut == "command+option+6" })
         XCTAssertNil(legacy.extendedShortcuts)
-        XCTAssertEqual(chatGPT.additionalShortcuts?.count, 10)
-        XCTAssertTrue(chatGPT.additionalShortcuts?.contains { $0.shortcut == "shift+escape" } == true)
+        XCTAssertNil(chatGPT.additionalShortcuts)
+        XCTAssertEqual(chatGPT.moreShortcuts?.map(\.shortcut), ["scoped.up"])
         let frame = try JSONSerialization.data(withJSONObject: [
             "type": "catalogue.definitions.page", "protocol": CompanionCapabilities.protocolVersion,
             "page": 0, "generation": 1, "complete": false,

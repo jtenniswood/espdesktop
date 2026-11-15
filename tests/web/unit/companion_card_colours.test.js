@@ -41,8 +41,16 @@ test("the picker can include a page's app using a bundled template", () => {
     "com.adobe.PremierePro.26",
   ]) {
     assert(!companionShortcutCatalogApps().some(app => app.appId === appId));
-    assert(companionShortcutCatalogApps(appId).some(app => app.appId === appId));
+    assert(companionShortcutCatalogApps({ pageAppId: appId }).some(app => app.appId === appId));
     const preset = companionShortcutPresetCards(appId)[0];
     assert.equal(companionShortcutCatalogSelection(preset)?.appId, appId);
   }
+});
+
+test("only a card saved with ChatGPT Classic can reopen its legacy preset", () => {
+  const appId = "com.openai.chat";
+  const preset = companionShortcutPresetCards(appId)[0];
+  assert(!companionShortcutCatalogApps({ pageAppId: appId }).some(app => app.appId === appId));
+  assert(companionShortcutCatalogApps({ savedAppId: appId }).some(app => app.appId === appId));
+  assert.equal(companionShortcutCatalogSelection(preset)?.appId, appId);
 });

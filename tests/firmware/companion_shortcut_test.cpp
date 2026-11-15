@@ -204,9 +204,6 @@ int main() {
   assert(!companion_connected());
   assert(!companion_card_refresh_requested().load());
   const std::string athena = "com.apple.Safari.WebApp.27234284-164C-41C9-97DD-7189CD41B456";
-  assert(companion_athena_shortcut_target(athena + ":100") == athena);
-  assert(companion_athena_shortcut_target(athena + ":2").empty());
-  assert(companion_athena_shortcut_target("com.apple.Safari:100").empty());
   assert(companion_shortcut_action_valid("shortcut.command+a"));
   assert(companion_shortcut_label("shortcut.command+a") == "\U000F0633" "A");
   assert(companion_shortcut_action_valid("shortcut.control+shift+tab"));
@@ -499,28 +496,84 @@ int main() {
   assert(companion_action_active("folder.one"));
   int guarded_invocations = 0;
   companion_set_keyboard_actions_supported(true);
-  std::string shortcut_target;
-  register_companion_action_sender([&](const std::string &, const std::string &, const std::string &, const std::string &app) {
+  std::string shortcut_target, sent_action, sent_request;
+  register_companion_action_sender([&](const std::string &action, const std::string &request, const std::string &, const std::string &app) {
+    sent_action = action;
+    sent_request = request;
     shortcut_target = app;
     ++guarded_invocations; return true;
   });
   companion_set_focused_actions({"A"});
   companion_runtime_service().set_application_highlight("B");
-  assert(!invoke_companion_action_for_app("shortcut.control+w", "guard-B", "B"));
-  assert(!invoke_companion_action_for_app("shortcut.control+w", "guard-A", "A"));
+  assert(!invoke_companion_action_for_app("shortcut.control+w", "guard-B", "B", "new_window", "custom", 0));
+  assert(!invoke_companion_action_for_app("shortcut.control+w", "guard-A", "A", "new_window", "custom", 0));
   assert(guarded_invocations == 0);
   companion_set_focused_actions({"B"});
-  assert(invoke_companion_action_for_app("shortcut.control+w", "confirmed-B", "B"));
+  assert(invoke_companion_action_for_app("shortcut.control+w", "confirmed-B", "B", "new_window", "custom", 0));
   assert(guarded_invocations == 1);
-  assert(invoke_companion_action_for_app("shortcut.control+w", "standalone", ""));
-  assert(guarded_invocations == 2);
+  assert(invoke_companion_action_for_app("shortcut.control+w", "standalone", "", "new_window", "custom", 0));
+  assert(guarded_invocations == 2 && sent_action == "shortcut.control+w" && shortcut_target.empty());
   assert(companion_shortcut_action_valid("shortcut.scoped.command+k~command+s"));
   assert(companion_shortcut_action_valid("shortcut.scoped.shift+keypadenter"));
   assert(!companion_shortcut_action_valid("shortcut.scoped.a~b~c~d"));
   assert(!companion_shortcut_action_valid("shortcut.scoped.command+command+a"));
-  assert(!invoke_companion_action_for_app("shortcut.scoped.space", "unscoped", ""));
-  assert(invoke_companion_action_for_app("shortcut.scoped.space", "app-preset", "", "new_window", "org.videolan.vlc:12"));
-  assert(shortcut_target == "org.videolan.vlc");
+  assert(!invoke_companion_action_for_app("shortcut.scoped.space", "unscoped", "", "new_window", "custom", 0));
+  assert(companion_app_scoped_shortcut("shortcut.command+w") == "shortcut.scoped.command+w");
+  assert(companion_app_scoped_shortcut("shortcut.escape-twice") == "shortcut.scoped.escape~escape");
+  assert(companion_app_scoped_shortcut("shortcut.scoped.command+k~command+s") ==
+         "shortcut.scoped.command+k~command+s");
+  assert(companion_app_scoped_shortcut("com.apple.Safari").empty());
+  const auto original_actions = companion_runtime_snapshot().actions;
+  companion_set_actions({{"com.apple.Safari", "Safari"}});
+  {
+    constexpr auto preset = "com.apple.Safari:0";
+    const int before = guarded_invocations;
+    assert(invoke_companion_action_for_app("shortcut.command+w", "preset", "", "new_window", preset, 0));
+    assert(guarded_invocations == before + 1 && sent_action == "com.apple.Safari" && shortcut_target.empty());
+    companion_deliver_action_result("other-preset", "activated");
+    assert(guarded_invocations == before + 1);
+    companion_deliver_action_result("preset", "activated");
+    companion_deliver_action_result("preset", "activated");
+    assert(guarded_invocations == before + 2 && sent_action == "shortcut.scoped.command+w");
+    assert(sent_request == "preset-keys" && shortcut_target == "com.apple.Safari");
+
+    assert(invoke_companion_action_for_app("shortcut.scoped.tab", "preset-denied", "", "new_window", preset, 0));
+    companion_deliver_action_result("preset-denied", "not_allowed");
+    assert(guarded_invocations == before + 3 && sent_action == "com.apple.Safari");
+    assert(!invoke_companion_action_for_app("shortcut.command+w", "missing", "", "new_window", "com.example.Missing:0", 0));
+    assert(guarded_invocations == before + 3);
+
+    companion_set_focused_action("com.apple.Safari");
+    assert(invoke_companion_action_for_app("shortcut.command+w", "same-app", "com.apple.Safari", "new_window", preset, 0));
+    assert(guarded_invocations == before + 4 && sent_action == "shortcut.scoped.command+w");
+    assert(sent_request == "same-app" && shortcut_target == "com.apple.Safari");
+  }
+  companion_set_actions({{"com.adobe.PremierePro.26", "Premiere Pro"}});
+  assert(companion_shortcut_launch_target("com.adobe.PremierePro") == "com.adobe.PremierePro.26");
+  const std::string web_app = "com.apple.Safari.WebApp.01234567-89ab-cdef-0123-456789abcdef";
+  const std::string other_web_app = "com.apple.Safari.WebApp.11234567-89ab-cdef-0123-456789abcdef";
+  companion_set_actions({{web_app, "Web App"}, {other_web_app, "Other Web App"}});
+  assert(companion_shortcut_launch_target("com.apple.Safari.WebApp").empty());
+  companion_set_focused_action(web_app);
+  assert(companion_shortcut_launch_target("com.apple.Safari.WebApp") == web_app);
+  companion_set_actions({{"com.apple.Safari", "Safari"}});
+  const int before_launch = guarded_invocations;
+  int shortcut_runs = 0;
+  assert(companion_activate_then("com.apple.Safari", "ha-launch", 1000, [&]() { ++shortcut_runs; }));
+  assert(guarded_invocations == before_launch + 1);
+  assert(shortcut_runs == 0);
+  companion_deliver_action_result("other-launch", "activated");
+  assert(shortcut_runs == 0);
+  companion_deliver_action_result("ha-launch", "activated");
+  companion_deliver_action_result("ha-launch", "activated");
+  assert(shortcut_runs == 1);
+  assert(companion_activate_then("com.apple.Safari", "ha-denied", 1000, [&]() { ++shortcut_runs; }));
+  companion_deliver_action_result("ha-denied", "not_allowed");
+  assert(shortcut_runs == 1);
+  assert(!companion_activate_then("com.example.Missing", "ha-missing", 1000, [&]() { ++shortcut_runs; }));
+  companion_deliver_action_result("ha-missing", "activated");
+  assert(shortcut_runs == 1);
+  companion_set_actions(original_actions);
   companion_set_value("media.output_volume", 72);
   bool volume_invoked = false;
   register_companion_value_sender([&volume_invoked](const std::string &control, int value,

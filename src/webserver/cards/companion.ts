@@ -161,7 +161,7 @@ export function companionShortcutCatalogSelection(card: any) {
     const separator = marker.lastIndexOf(":");
     if (separator < 0) return undefined;
     const appId = marker.slice(0, separator);
-    if (!companionShortcutCatalogApps(appId).some((app) => app.appId === appId)) return undefined;
+    if (!companionShortcutCatalogApps({ savedAppId: appId }).some((app) => app.appId === appId)) return undefined;
     const preset = companionShortcutPresetCards(appId).find((preset) =>
         preset.entity === card?.entity && preset.options === options);
     return preset ? { ...preset, appId } : undefined;
@@ -826,15 +826,18 @@ export function registerCompanionCardTypes(
             shortcutField.className = "sp-field sp-shortcut-settings";
             if (initialMode === "shortcut") panel?.classList.add("sp-shortcut-card-settings");
             const savedCatalogShortcut = companionShortcutCatalogSelection(card);
-            const pageApp = initialMode === "shortcut" && state.settingsDraft?.isNew
+            const isNewShortcut = initialMode === "shortcut" && state.settingsDraft?.isNew;
+            const pageApp = isNewShortcut
                 ? appShortcutPageOwner(previewSubpageOwner(parentPage, state.buttons, key => state.subpages[key]))
                 : undefined;
-            const catalogueApps = sortCompanionLabels(companionShortcutCatalogApps(savedCatalogShortcut?.appId || pageApp));
+            const catalogueApps = sortCompanionLabels(companionShortcutCatalogApps({
+                pageAppId: pageApp, savedAppId: savedCatalogShortcut?.appId,
+            }));
             const defaultCatalogApp = catalogueApps.find(app => app.appId === pageApp)?.appId;
-            const shortcutType = card._shortcutType || (savedCatalogShortcut || defaultCatalogApp ? "catalog" : "custom");
+            const shortcutType = card._shortcutType || (savedCatalogShortcut || isNewShortcut ? "catalog" : "custom");
             const typeId = helpers.idPrefix + "shortcut-type";
             const typeTabs = helpers.segmentControl([
-                ["custom", "Custom"], ["catalog", "Application"],
+                ["catalog", "Application"], ["custom", "Custom"],
             ], shortcutType, function (type: string, tab: HTMLButtonElement) {
                 if (type === shortcutType) return;
                 card._shortcutType = type;
@@ -983,61 +986,96 @@ export function registerCompanionCardTypes(
             catalogField.appendChild(catalogAppField);
             const catalogShortcutField = document.createElement("div");
             catalogShortcutField.className = "sp-field";
-            catalogShortcutField.appendChild(fieldLabel("Shortcut", helpers.idPrefix + "shortcut-catalog-action"));
-            const catalogShortcut = document.createElement("select");
-            catalogShortcut.className = "sp-select";
-            catalogShortcut.id = helpers.idPrefix + "shortcut-catalog-action";
-            const presets = sortCompanionLabels(companionShortcutPresetCards(catalogApp.value));
-            const choices = presets.map(preset => {
-                const keys = formatCompanionShortcutActionId(preset.entity);
-                return {
-                    label: preset.label.toLowerCase(), keys: shortcutSearchKeys(keys),
-                    option: new Option(preset.label + " (" + keys + ")", preset.options),
-                };
-            });
+            const fields = document.createElement("div");
+            fields.className = "sp-field-stack";
             const search = document.createElement("input");
             search.type = "search";
             search.className = "sp-input";
-            search.placeholder = "Search by name or keys";
+            search.id = helpers.idPrefix + "shortcut-catalog-search";
+            search.placeholder = "Find a keyboard shortcut…";
             search.setAttribute("aria-label", search.placeholder);
             search.value = card._shortcutCatalogSearch ?? "";
+            const list = document.createElement("div");
+            list.className = "sp-light-tab-list sp-shortcut-catalog-list";
+            list.id = helpers.idPrefix + "shortcut-catalog-action";
+            list.setAttribute("role", "radiogroup");
+            list.setAttribute("aria-label", "Keyboard shortcuts");
+            search.setAttribute("aria-controls", list.id);
             const noMatches = document.createElement("div");
             noMatches.className = "sp-field-info-text";
             noMatches.setAttribute("role", "status");
-            const fields = document.createElement("div");
-            fields.className = "sp-field-stack";
-            search.hidden = !catalogApp.value;
-            catalogShortcut.disabled = !catalogApp.value;
-            fields.append(search, catalogShortcut, noMatches);
+            fields.append(search, list, noMatches);
             catalogShortcutField.appendChild(fields);
+            if (catalogApp.value) catalogField.appendChild(catalogShortcutField);
+            shortcutPanel.section.appendChild(catalogField);
+
+            const presets = initialMode === "shortcut" && shortcutType === "catalog" && catalogApp.value
+                ? sortCompanionLabels(companionShortcutPresetCards(catalogApp.value)) : [];
+            const choices = presets.map((preset, index) => {
+                const row = document.createElement("label");
+                row.className = "sp-light-tab-row";
+                const name = document.createElement("span");
+                name.className = "sp-light-tab-label";
+                name.textContent = preset.label;
+                const keys = document.createElement("span");
+                keys.className = "sp-shortcut-catalog-keys";
+                keys.textContent = formatCompanionShortcutActionId(preset.entity);
+                const toggle = document.createElement("span");
+                toggle.className = "sp-toggle";
+                const input = document.createElement("input");
+                input.type = "radio";
+                input.name = list.id;
+                input.id = list.id + "-" + index;
+                input.value = preset.options;
+                input.checked = preset.options === savedCatalogShortcut?.options;
+                const track = document.createElement("span");
+                track.className = "sp-toggle-track";
+                toggle.append(input, track);
+                row.append(name, keys, toggle);
+                list.appendChild(row);
+                input.addEventListener("change", () => {
+                    card._shortcutType = "catalog";
+                    card._shortcutCatalogApp = catalogApp.value;
+                    card.label = companionAppLabel(card.label || "", savedCatalogShortcut?.label || "", preset.label);
+                    card.icon = companionGeneratedIcon(card.icon || "", savedCatalogShortcut?.icon || "Shortcut Command", preset.icon);
+                    card.entity = preset.entity;
+                    card.options = preserveCardColorOptions(card.options, preset.options);
+                    for (const field of ["entity", "options", "label", "icon"]) helpers.saveField(field, card[field]);
+                    const scrollTop = list.scrollTop;
+                    renderButtonSettings();
+                    const updatedList = document.getElementById(list.id);
+                    if (updatedList) updatedList.scrollTop = scrollTop;
+                    document.getElementById(input.id)?.focus({ preventScroll: true });
+                });
+                return { row, label: preset.label.toLowerCase(), keys: shortcutSearchKeys(keys.textContent) };
+            });
             function filterShortcuts() {
                 const query = search.value.trim().toLowerCase();
                 const keys = shortcutSearchKeys(query);
-                const selected = savedCatalogShortcut?.options ?? "";
-                const options = [new Option("Choose a shortcut…", "")];
                 let found = false;
                 for (const choice of choices) {
                     const matches = !query || choice.label.includes(query) ||
                         (keys.length > 0 && keys.every(key => choice.keys.includes(key)));
+                    choice.row.hidden = !matches;
                     found ||= matches;
-                    if (matches || choice.option.value === selected) options.push(choice.option);
                 }
-                catalogShortcut.replaceChildren(...options);
-                catalogShortcut.value = selected;
+                list.hidden = !found;
                 noMatches.textContent = query && !found ? "No matching shortcuts" : "";
                 noMatches.classList.toggle("sp-visible", !!noMatches.textContent);
             }
             search.addEventListener("input", () => {
                 card._shortcutCatalogSearch = search.value;
                 filterShortcuts();
+                list.scrollTop = 0;
             });
             filterShortcuts();
-            catalogField.appendChild(catalogShortcutField);
-            shortcutPanel.section.appendChild(catalogField);
-            helpers.requireField(catalogShortcut, "Choose an app and shortcut before saving.", function () {
+            helpers.requireField(catalogApp, "Choose an app before saving.", function () {
                 return initialMode === "shortcut" && shortcutType === "catalog";
+            });
+            helpers.requireField(search, "Choose a shortcut before saving.", function () {
+                return initialMode === "shortcut" && shortcutType === "catalog" && !!catalogApp.value;
             }, function () {
-                return !!catalogApp.value && companionShortcutCatalogSelection(card)?.appId === catalogApp.value;
+                return companionShortcutCatalogSelection(card)?.appId === catalogApp.value;
             });
             catalogApp.addEventListener("change", function () {
                 card._shortcutCatalogSearch = "";
@@ -1048,22 +1086,7 @@ export function registerCompanionCardTypes(
                 helpers.saveField("entity", card.entity);
                 helpers.saveField("options", card.options);
                 renderButtonSettings();
-            });
-            catalogShortcut.addEventListener("change", function () {
-                card._shortcutType = "catalog";
-                card._shortcutCatalogApp = catalogApp.value;
-                const preset = presets.find(item => item.options === catalogShortcut.value);
-                if (!preset) {
-                    card.entity = COMPANION_SHORTCUT_PREFIX;
-                    card.options = normalizedCardColorOptions(card.options);
-                } else {
-                    card.label = companionAppLabel(card.label || "", savedCatalogShortcut?.label || "", preset.label);
-                    card.icon = companionGeneratedIcon(card.icon || "", savedCatalogShortcut?.icon || "Shortcut Command", preset.icon);
-                    card.entity = preset.entity;
-                    card.options = preserveCardColorOptions(card.options, preset.options);
-                }
-                for (const field of ["entity", "options", "label", "icon"]) helpers.saveField(field, card[field]);
-                renderButtonSettings();
+                document.getElementById(catalogApp.id)?.focus({ preventScroll: true });
             });
             panel?.appendChild(shortcutField);
             helpers.markCardPrimaryField(shortcutField, "shortcut");
@@ -1638,7 +1661,7 @@ export function registerCompanionCardTypes(
         ["companion_app", "Applications", "app"],
         ["companion_shortcut", "Key Shortcut", "shortcut"],
         ["companion_url", "Website", "url"],
-        ["companion_folder", "Folder", "folder"],
+        ["companion_folder", "Finder Folder", "folder"],
         ["companion_webapp", "Web App", "webapp"],
     ];
     companionPickerDefinitions.forEach(function (definition) {

@@ -31,6 +31,9 @@ inline bool companion_reported_focus_matches(const std::string &requested,
 struct CompanionAction {
   std::string id;
   std::string label;
+  bool operator==(const CompanionAction &other) const {
+    return id == other.id && label == other.label;
+  }
 };
 
 struct CompanionValue {
@@ -188,6 +191,11 @@ class CompanionRuntimeService {
     return actions_;
   }
 
+  uint32_t action_catalogue_generation() const {
+    std::lock_guard<std::mutex> lock(mutex_);
+    return action_catalogue_generation_;
+  }
+
   uint32_t system_metrics_generation() const {
     std::lock_guard<std::mutex> lock(mutex_);
     return system_metrics_.generation;
@@ -275,6 +283,7 @@ class CompanionRuntimeService {
 
   void set_actions(std::vector<CompanionAction> actions) {
     std::lock_guard<std::mutex> lock(mutex_);
+    if (!actions.empty() && actions != actions_) ++action_catalogue_generation_;
     actions_ = std::move(actions);
     request_refresh_();
   }
@@ -461,6 +470,7 @@ class CompanionRuntimeService {
 
   mutable std::mutex mutex_;
   std::vector<CompanionAction> actions_;
+  uint32_t action_catalogue_generation_{0};
   bool application_highlight_known_{false};
   std::string application_highlight_id_;
   std::vector<CompanionRemoteDefinition> remote_definitions_;

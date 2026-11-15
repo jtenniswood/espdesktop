@@ -19,6 +19,10 @@ Open **Connectors → Mac Companion** to check the connection. While the display
 
 To replace a saved pairing, choose **Reset pairing** and confirm. The touchscreen shows a new code. If the Mac app shows **Pairing Required**, choose **Re-pair** in **Settings → Displays** and enter the code.
 
+### Home Assistant
+
+On supported 4-inch firmware, open **Connectors → Home Assistant** to enable ESPHome or choose **Resync buttons** to refresh the button list. [Run EspDesktop actions from Home Assistant](/getting-started/home-assistant-actions).
+
 ### Preferences
 
 - **Preferences → Language** changes the language shown on the touchscreen.
