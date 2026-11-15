@@ -398,6 +398,34 @@ final class OBSProductionTests: XCTestCase {
     }
 
     @MainActor
+    func testPausedRecordingStaysLitAndCanBeStopped() async throws {
+        let transport = OBSPilotTransport()
+        transport.recording = false
+        transport.recordingPaused = true
+        let connection = try await open(transport)
+        func showsRecording() -> Bool {
+            OBSConnection.controlActions(connection.state).contains { $0.id == "obs.record.active" }
+        }
+        XCTAssertTrue(showsRecording(), "Initial paused snapshot is active")
+        transport.onEvent?("RecordStateChanged", [
+            "outputActive": true, "outputState": "OBS_WEBSOCKET_OUTPUT_RESUMED",
+        ])
+        XCTAssertEqual(connection.state?.recordStatus, "Recording · Active")
+        transport.onEvent?("RecordStateChanged", [
+            "outputActive": false, "outputState": "OBS_WEBSOCKET_OUTPUT_PAUSED",
+        ])
+        XCTAssertEqual(connection.state?.recordStatus, "Recording · Paused")
+        XCTAssertTrue(showsRecording())
+        let stop = try XCTUnwrap(OBSConnection.outputActions(connection.state).first)
+        XCTAssertEqual(stop.label, "Stop Recording")
+        let token = try XCTUnwrap(OBSConnection.Output.command(stop.id)?.1)
+        let stopped = await connection.performOutput(.record, token: token)
+        XCTAssertTrue(stopped)
+        XCTAssertEqual(transport.outputWrites, ["StopRecord"])
+        XCTAssertFalse(showsRecording())
+    }
+
+    @MainActor
     func testGuardedOutputCancelsIfTheDisplayLeavesDuringTheStatusCheck() async throws {
         let transport = OBSPilotTransport()
         let connection = try await open(transport)

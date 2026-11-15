@@ -556,7 +556,7 @@ final class OBSConnection: ObservableObject {
               current.outputTokens[output] == token, current.outputControlReady(output) else { return false }
         // Refresh the tile even when the event for a changed output wasn't delivered.
         refreshOutput(output, fields: fresh, state: &current)
-        guard fresh["outputActive"] as? Bool == previous,
+        guard fresh["outputActive"] is Bool, current.outputActive(output) == previous,
               current.outputControlReady(output), current.outputTokens[output] == token,
               fresh[output == .stream ? "outputReconnecting" : "outputPaused"] is Bool else {
             state = current
@@ -594,18 +594,19 @@ final class OBSConnection: ObservableObject {
     }
 
     private func refreshOutput(_ output: Output, fields: OBSWebSocket.Fields, state: inout State) {
-        guard let active = fields["outputActive"] as? Bool else { return }
+        guard let reportedActive = fields["outputActive"] as? Bool else { return }
         let before = state.outputActive(output)
         let beforeDetail = output == .stream ? state.streamReconnecting : state.recordingPaused
-        let detail = (output == .stream ? fields["outputReconnecting"] : fields["outputPaused"]) as? Bool ?? beforeDetail
+        let reportedDetail = (output == .stream ? fields["outputReconnecting"] : fields["outputPaused"]) as? Bool
+        let detail = reportedDetail ?? (output == .stream || reportedActive ? beforeDetail : false)
         if output == .stream {
-            state.streaming = active
+            state.streaming = reportedActive
             state.streamReconnecting = detail
         } else {
-            state.recording = active
-            state.recordingPaused = active && detail
+            state.recording = reportedActive || detail
+            state.recordingPaused = detail
         }
-        if before != active || beforeDetail != detail { state.outputTokens[output] = UUID() }
+        if before != state.outputActive(output) || beforeDetail != detail { state.outputTokens[output] = UUID() }
     }
 
     var breakConfiguration: BreakConfiguration? {
@@ -1085,6 +1086,7 @@ final class OBSConnection: ObservableObject {
                 bufferedMutes.removeAll()
                 for (id, position) in bufferedFaders where inputFaders[id] != nil { inputFaders[id] = position }
                 bufferedFaders.removeAll()
+                let recordingPaused = record["outputPaused"] as? Bool ?? false
                 var snapshot = State(
                     collection: collectionName,
                     scenes: sceneTargets,
@@ -1094,10 +1096,10 @@ final class OBSConnection: ObservableObject {
                     studioMode: studioMode,
                     streaming: streaming,
                     streamReconnecting: stream["outputReconnecting"] as? Bool ?? false,
-                    recording: recording,
+                    recording: recording || recordingPaused,
                     inputMutes: inputMutes,
                     inputFaders: inputFaders,
-                    recordingPaused: record["outputPaused"] as? Bool ?? false,
+                    recordingPaused: recordingPaused,
                     replayBufferActive: replay?["outputActive"] as? Bool ?? false
                 )
                 for (type, fields) in bufferedEvents { Self.apply(type, fields: fields, to: &snapshot) }
@@ -1254,8 +1256,11 @@ final class OBSConnection: ObservableObject {
             state.streamReconnecting = fields["outputState"] as? String == "OBS_WEBSOCKET_OUTPUT_RECONNECTING"
             recordOutputEvent(.stream, fields: fields, state: &state)
         case "RecordStateChanged":
-            state.recording = fields["outputActive"] as? Bool ?? state.recording
-            state.recordingPaused = fields["outputState"] as? String == "OBS_WEBSOCKET_OUTPUT_PAUSED"
+            let outputState = fields["outputState"] as? String
+            state.recordingPaused = outputState == "OBS_WEBSOCKET_OUTPUT_PAUSED"
+            // OBS may report outputActive=false while paused, but the recording can still be stopped.
+            state.recording = state.recordingPaused || outputState == "OBS_WEBSOCKET_OUTPUT_RESUMED" ||
+                (fields["outputActive"] as? Bool ?? state.recording)
             recordOutputEvent(.record, fields: fields, state: &state)
         case "SceneTransitionStarted":
             state.transitionInProgress = true
