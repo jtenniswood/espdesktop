@@ -479,7 +479,7 @@ inline void setup_companion_card(BtnSlot &s, const ParsedCfg &p,
     lv_label_set_display_text(s.icon_lbl, find_icon(p.icon.empty() ? "Check" : p.icon.c_str()));
     lv_obj_clear_flag(s.icon_lbl, LV_OBJ_FLAG_HIDDEN);
     lv_obj_clear_flag(s.btn, LV_OBJ_FLAG_CLICKABLE);
-    lv_obj_set_style_bg_color(s.btn, lv_color_hex(sensor_color), LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_bg_color(s.btn, lv_color_hex(sensor_color), LV_PART_MAIN);
     set_wrapped_button_label_text(s.text_lbl, p.label.empty() ? "Healthchecks.io" : p.label.c_str());
     lv_obj_t *status = lv_label_create(s.btn);
     lv_obj_set_style_text_font(status, lv_obj_get_style_text_font(s.text_lbl, LV_PART_MAIN), LV_PART_MAIN);
