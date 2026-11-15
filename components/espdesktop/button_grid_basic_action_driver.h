@@ -130,7 +130,8 @@ inline bool invoke_saved_companion_card(const ParsedCfg &card, const std::string
   return companion_encoded_url(card.sensor).empty()
     ? invoke_companion_action_for_app(card.entity, request_id, required_focus,
                                      companion_folder_open_behavior(card),
-                                     cfg_option_value(card.options, "app_shortcut_preset"))
+                                     cfg_option_value(card.options, "app_shortcut_preset"),
+                                     esphome::millis())
     : invoke_companion_url(card.sensor, request_id, companion_url_opens_new_window(card));
 }
 
