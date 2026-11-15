@@ -28,7 +28,8 @@ inline bool numeric_selectable_driver_setup_visual(
   if (companion_mute_control_valid(config.entity)) {
     setup_toggle_visual(slot, config);
   } else {
-    setup_slider_visual(slot, config, card_slider_fill_color(palette));
+    setup_slider_visual(slot, config, card_slider_fill_color(palette),
+      !companion_obs_meter_control(config.entity));
     numeric_selectable_driver_track_slider_cleanup(slot);
   }
   return true;
@@ -93,9 +94,9 @@ inline void numeric_selectable_driver_bind_slider(BtnSlot &slot, const ParsedCfg
     lv_label_set_display_text(
       slot.text_lbl, companion_volume_control_label(config.entity));
   }
-  const bool obs_fader = companion_obs_level_control(config.entity);
+  const bool obs_audio = companion_obs_level_control(config.entity) || companion_obs_meter_control(config.entity);
   companion_track_slider(slider, config.entity, slot.icon_lbl, has_icon_on, icon_off, icon_on,
-    obs_fader ? slot.text_lbl : nullptr, obs_fader ? config.label : std::string{});
+    obs_audio ? slot.text_lbl : nullptr, obs_audio ? config.label : std::string{});
 }
 inline bool numeric_selectable_driver_bind_main(
     BtnSlot &slot, const ParsedCfg &config, const Context &context,

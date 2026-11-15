@@ -183,6 +183,11 @@ void CompanionService::loop() {
   if (focus_targets.connected && this->focus_targets_supported_.load() &&
       focus_targets.generation != this->focus_targets_generation_.load())
     this->publish_focus_targets_();
+  const uint32_t now = millis();
+  if (this->obs_meters_supported_.load() && now - this->last_obs_meter_check_ >= 250) {
+    this->last_obs_meter_check_ = now;
+    this->publish_obs_meter_watch_();
+  }
   const uint32_t authentication_deadline = this->authentication_expires_at_.load();
   if (authentication_deadline != 0 &&
       static_cast<int32_t>(millis() - authentication_deadline) >= 0 &&
@@ -609,6 +614,7 @@ void CompanionService::handle_json_(int socket_fd, const std::string &message) {
       bool app_icons_alpha_supported = false;
       bool app_icons_high_resolution_supported = false;
       bool focus_targets_supported = false;
+      bool obs_meters_supported = false;
       for (const auto &capability : payload->values) {
         if (capability == COMPANION_APP_ICONS_CAPABILITY) {
           app_icons_supported = true;
@@ -624,6 +630,8 @@ void CompanionService::handle_json_(int socket_fd, const std::string &message) {
           keyboard_actions_capability_received = true;
         } else if (capability == "url_card_focus") {
           focus_targets_supported = true;
+        } else if (capability == "obs_input_meters") {
+          obs_meters_supported = true;
         }
       }
       this->app_icons_supported_.store(app_icons_supported && app_icons_alpha_supported &&
@@ -634,9 +642,12 @@ void CompanionService::handle_json_(int socket_fd, const std::string &message) {
         if (app_icon_catalogue_ready) configured_icons = app_icon_requests;
       }
       for (const auto &id : configured_icons) this->request_app_icon(id);
-      this->defer_session_([this, keyboard_actions, keyboard_actions_capability_received, focus_targets_supported]() {
+      this->defer_session_([this, keyboard_actions, keyboard_actions_capability_received,
+                            focus_targets_supported, obs_meters_supported]() {
         if (keyboard_actions_capability_received) companion_set_keyboard_actions_supported(keyboard_actions);
         this->focus_targets_supported_.store(focus_targets_supported);
+        if (this->obs_meters_supported_.exchange(obs_meters_supported) != obs_meters_supported)
+          this->published_obs_meters_.clear();
         if (focus_targets_supported) this->focus_targets_generation_.store(0xFFFFFFFFu);
       });
       return true;
@@ -1054,6 +1065,7 @@ void CompanionService::set_connected_(bool connected, int closing_socket) {
       this->session_.disconnect();
     }
   }
+  this->obs_meters_supported_.store(false);
   if (connected) {
     this->focus_targets_generation_ = 0xFFFFFFFFu;
     this->focus_targets_supported_ = false;
@@ -1097,6 +1109,18 @@ void CompanionService::publish_focus_targets_() {
         companion_protocol::encode(root, payload);
       }))) {
     this->focus_targets_generation_.store(snapshot.url_focus_targets_generation);
+  }
+}
+
+void CompanionService::publish_obs_meter_watch_() {
+  const int socket_fd = this->session_.authenticated_socket();
+  if (socket_fd < 0) return;
+  companion_protocol::ObsMetersWatch payload{companion_visible_obs_meters()};
+  if (payload.controlIds == this->published_obs_meters_) return;
+  if (this->send_(socket_fd, json::build_json([&payload](JsonObject root) {
+        companion_protocol::encode(root, payload);
+      }))) {
+    this->published_obs_meters_ = std::move(payload.controlIds);
   }
 }
 
@@ -1175,7 +1199,7 @@ bool CompanionService::invoke_url_(const std::string &encoded_url, const std::st
 bool CompanionService::invoke_value_(const std::string &control_id, int value,
                                      const std::string &request_id) {
   const int socket_fd = this->session_.authenticated_socket();
-  if (socket_fd < 0 || !companion_volume_control_valid(control_id) ||
+  if (socket_fd < 0 || !companion_writable_audio_control_id(control_id) ||
       value < 0 || value > 100 || !safe_field(request_id, 64)) return false;
   const companion_protocol::ValueSet payload{request_id, control_id, static_cast<uint32_t>(value)};
   return this->send_(socket_fd, json::build_json([&payload](JsonObject root) {

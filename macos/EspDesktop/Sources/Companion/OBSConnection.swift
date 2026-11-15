@@ -121,7 +121,7 @@ final class OBSConnection: ObservableObject {
     }
 
     static func controlActions(_ state: State?) -> [(id: String, label: String)] {
-        productionActions(state) + sceneActions(state) + audioActions(state) + faderActions(state)
+        productionActions(state) + sceneActions(state) + audioActions(state) + faderActions(state) + meterActions(state)
     }
 
     static func sceneActions(_ state: State?) -> [(id: String, label: String)] {
@@ -158,7 +158,14 @@ final class OBSConnection: ObservableObject {
     }
 
     nonisolated static func faderInputUUID(for controlID: String) -> UUID? {
-        let prefix = "obs.level."
+        audioInputUUID(for: controlID, prefix: "obs.level.")
+    }
+
+    nonisolated static func meterInputUUID(for controlID: String) -> UUID? {
+        audioInputUUID(for: controlID, prefix: "obs.meter.")
+    }
+
+    private nonisolated static func audioInputUUID(for controlID: String, prefix: String) -> UUID? {
         guard controlID.hasPrefix(prefix),
               let uuid = UUID(uuidString: String(controlID.dropFirst(prefix.count))),
               controlID == prefix + uuid.uuidString.lowercased() else { return nil }
@@ -181,6 +188,14 @@ final class OBSConnection: ObservableObject {
         return state.inputs.compactMap { input in
             guard state.inputFaders[input.id] != nil, let uuid = UUID(uuidString: input.id) else { return nil }
             return ("obs.level." + uuid.uuidString.lowercased(), input.name)
+        }
+    }
+
+    private static func meterActions(_ state: State?) -> [(id: String, label: String)] {
+        guard let state else { return [] }
+        return state.inputs.compactMap { input in
+            guard state.inputFaders[input.id] != nil, let uuid = UUID(uuidString: input.id) else { return nil }
+            return ("obs.meter." + uuid.uuidString.lowercased(), input.name)
         }
     }
 
@@ -249,6 +264,7 @@ final class OBSConnection: ObservableObject {
 
     @Published private(set) var status: Status = .off
     @Published private(set) var state: State?
+    @Published private(set) var meterValues: [String: Int] = [:]
     @Published private(set) var port: UInt16
     @Published private(set) var enabled: Bool
 
@@ -270,14 +286,23 @@ final class OBSConnection: ObservableObject {
     private var replayDeadline: Task<Void, Never>?
     private var bufferedMutes: [String: Bool] = [:]
     private var bufferedFaders: [String: Int] = [:]
+    private var meterInputs: Set<String> = []
+    private var meterTask: Task<Void, Never>?
+    private var meterPeaks: [String: Int] = [:]
+    private var meterSamples: [String: (position: Int, observed: ContinuousClock.Instant)] = [:]
+    private let meterInterval: Duration
+    private let meterExpiry: Duration
     private var pendingFaderCommands = Set<UUID>()
     private var bufferedEvents: [(String, OBSWebSocket.Fields)] = []
 
     init(defaults: UserDefaults = .standard, socket: any OBSWebSocketTransport = OBSWebSocket(),
-         transitionProbeInterval: Duration = .seconds(1)) {
+         transitionProbeInterval: Duration = .seconds(1),
+         meterInterval: Duration = .milliseconds(200), meterExpiry: Duration = .seconds(1)) {
         self.defaults = defaults
         self.socket = socket
         self.transitionProbeInterval = transitionProbeInterval
+        self.meterInterval = meterInterval
+        self.meterExpiry = meterExpiry
         enabled = defaults.bool(forKey: Keys.enabled)
         port = UInt16(exactly: defaults.integer(forKey: Keys.port)).flatMap { $0 == 0 ? nil : $0 } ?? 4455
 
@@ -457,7 +482,58 @@ final class OBSConnection: ObservableObject {
         }
     }
 
+    func setMeterInputs(_ inputs: Set<String>) {
+        guard meterInputs != inputs else { return }
+        meterInputs = inputs
+        meterPeaks = meterPeaks.filter { inputs.contains($0.key) }
+        meterSamples = meterSamples.filter { inputs.contains($0.key) }
+        publishMeterSamples()
+        socket.setMeterEventsEnabled(!inputs.isEmpty)
+        if inputs.isEmpty {
+            meterTask?.cancel()
+            meterTask = nil
+        } else if meterTask == nil {
+            meterTask = Task { [weak self, meterInterval] in
+                while !Task.isCancelled {
+                    do { try await Task.sleep(for: meterInterval) } catch { return }
+                    guard let self else { return }
+                    publishMeterSamples()
+                }
+            }
+        }
+    }
+
+    private func receiveMeterSamples(_ fields: OBSWebSocket.Fields) {
+        guard !meterInputs.isEmpty, let state, let inputs = fields["inputs"] as? [OBSWebSocket.Fields] else { return }
+        for input in inputs {
+            guard let id = input["inputUuid"] as? String,
+                  let levels = input["inputLevelsMul"] as? [[Double]] else { continue }
+            let control = "obs.meter." + id.lowercased()
+            guard meterInputs.contains(control), state.inputFaders[id] != nil else { continue }
+            // The third value is the peak before the fader. Report the loudest channel.
+            let peaks = levels.compactMap { channel in
+                channel.count > 2 && channel[2].isFinite && channel[2] >= 0 ? channel[2] : nil
+            }
+            guard let peak = peaks.max() else { continue }
+            let db = 20 * log10(min(1, max(0.001, peak)))
+            let position = Int(((db + 60) * 100 / 60).rounded())
+            meterPeaks[control] = max(position, meterPeaks[control] ?? 0)
+        }
+    }
+
+    private func publishMeterSamples() {
+        let now = ContinuousClock.now
+        meterSamples = meterSamples.filter { $0.value.observed.duration(to: now) < meterExpiry }
+        for (id, position) in meterPeaks { meterSamples[id] = (position, now) }
+        meterPeaks.removeAll(keepingCapacity: true)
+        let values = meterSamples.mapValues(\.position)
+        if meterValues != values { meterValues = values }
+    }
+
     private func invalidate() {
+        meterPeaks.removeAll()
+        meterSamples.removeAll()
+        if !meterValues.isEmpty { meterValues = [:] }
         generation = UUID()
         syncTask?.cancel()
         syncTask = nil
@@ -571,6 +647,8 @@ final class OBSConnection: ObservableObject {
         case "SceneCreated", "SceneRemoved", "SceneNameChanged", "SceneListChanged",
              "InputCreated", "InputRemoved", "InputNameChanged", "StudioModeStateChanged":
             if !collectionChanging { sync() }
+        case "InputVolumeMeters":
+            receiveMeterSamples(fields)
         case "InputMuteStateChanged":
             guard let id = fields["inputUuid"] as? String,
                   let muted = fields["inputMuted"] as? Bool else { return }

@@ -14,12 +14,14 @@ private final class OBSPilotTransport: OBSWebSocketTransport {
     var hasAudioInput = false
     var lastFaderWrite: OBSWebSocket.Fields?
     var muted = true
+    var meterSubscriptions: [Bool] = []
     var faderDb = -20.0
     var faderMultiplier = 0.1
     static let mic = "69da3f8f-7f62-4abe-a594-4e40dd579858"
     static let program = "bd73192e-4d59-4ff4-afab-c88777454f98"
     static let queued = "0b3d47f0-c796-44c1-9e63-1a8cb0519101"
 
+    func setMeterEventsEnabled(_ enabled: Bool) { meterSubscriptions.append(enabled) }
     func connect(port: UInt16, password: String?) {}
     func close(_ failure: OBSWebSocket.Failure?) { isReady = false }
 
@@ -65,8 +67,10 @@ private final class OBSPilotTransport: OBSWebSocketTransport {
 final class OBSProductionTests: XCTestCase {
     @MainActor
     private func open(_ transport: OBSPilotTransport,
-                      transitionProbeInterval: Duration = .seconds(1)) async throws -> OBSConnection {
-        let connection = OBSConnection(socket: transport, transitionProbeInterval: transitionProbeInterval)
+                      transitionProbeInterval: Duration = .seconds(1),
+                      meterExpiry: Duration = .seconds(1)) async throws -> OBSConnection {
+        let connection = OBSConnection(socket: transport, transitionProbeInterval: transitionProbeInterval,
+                                       meterInterval: .milliseconds(5), meterExpiry: meterExpiry)
         transport.onReady?()
         for _ in 0..<100 {
             if connection.state != nil { return connection }
@@ -160,6 +164,62 @@ final class OBSProductionTests: XCTestCase {
         XCTAssertTrue(OBSConnection.faderValues(connection.state).isEmpty)
         let offline = await connection.setFader(controlID: id, value: 80)
         XCTAssertFalse(offline)
+    }
+
+    @MainActor
+    func testMeterWatchesTheSelectedInputUsesPreFaderPeakAndExpires() async throws {
+        let transport = OBSPilotTransport()
+        transport.hasAudioInput = true
+        let connection = try await open(transport, meterExpiry: .milliseconds(80))
+        let id = "obs.meter." + OBSPilotTransport.mic
+        XCTAssertTrue(OBSConnection.controlActions(connection.state).contains { $0.id == id })
+        let sample: OBSWebSocket.Fields = ["inputs": [
+            ["inputUuid": OBSPilotTransport.mic, "inputLevelsMul": [[0.002, 0.01, 0.1], [0.0, 0.0, 0.5]]],
+            ["inputUuid": OBSPilotTransport.program, "inputLevelsMul": [[1.0, 1.0, 1.0]]],
+        ]]
+        transport.onEvent?("InputVolumeMeters", sample)
+        XCTAssertTrue(connection.meterValues.isEmpty)
+
+        connection.setMeterInputs([id])
+        XCTAssertEqual(transport.meterSubscriptions, [true])
+        transport.onEvent?("InputVolumeMeters", sample)
+        transport.onEvent?("InputVolumeMeters", ["inputs": [
+            ["inputUuid": OBSPilotTransport.mic, "inputLevelsMul": [[0.001, 0.002, 0.01]]],
+        ]])
+        for _ in 0..<40 where connection.meterValues.isEmpty {
+            try await Task.sleep(for: .milliseconds(1))
+        }
+        XCTAssertEqual(connection.meterValues, [id: 90])
+        XCTAssertEqual(connection.state?.inputMutes[OBSPilotTransport.mic], true)
+
+        for _ in 0..<200 where !connection.meterValues.isEmpty {
+            try await Task.sleep(for: .milliseconds(1))
+        }
+        XCTAssertTrue(connection.meterValues.isEmpty)
+        connection.setMeterInputs([])
+        XCTAssertEqual(transport.meterSubscriptions, [true, false])
+    }
+
+    @MainActor
+    func testCollectionChangeClearsMeterAndDiscardsBufferedSamples() async throws {
+        let transport = OBSPilotTransport()
+        transport.hasAudioInput = true
+        let connection = try await open(transport)
+        let id = "obs.meter." + OBSPilotTransport.mic
+        connection.setMeterInputs([id])
+        let sample: OBSWebSocket.Fields = ["inputs": [
+            ["inputUuid": OBSPilotTransport.mic, "inputLevelsMul": [[0.001, 0.002, 1.0]]],
+        ]]
+        transport.onEvent?("InputVolumeMeters", sample)
+        for _ in 0..<40 where connection.meterValues.isEmpty {
+            try await Task.sleep(for: .milliseconds(1))
+        }
+        XCTAssertEqual(connection.meterValues, [id: 100])
+        transport.onEvent?("CurrentSceneCollectionChanging", [:])
+        XCTAssertTrue(connection.meterValues.isEmpty)
+        transport.onEvent?("InputVolumeMeters", sample)
+        try await Task.sleep(for: .milliseconds(20))
+        XCTAssertTrue(connection.meterValues.isEmpty)
     }
 
     @MainActor

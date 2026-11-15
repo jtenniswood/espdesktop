@@ -88,6 +88,9 @@ final class CompanionConnection: NSObject {
     private var applicationFocusPublisher = CompanionApplicationFocusPublisher()
     private var catalogueGeneration: UInt32 = 0
     private var supportsOBSCards = false
+    private var supportsOBSMeters = false
+    private(set) var obsMeterWatch: Set<String> = []
+    private var lastOBSMeterValues: [String: Int] = [:]
     private var supportsOBSFaders = false
     private var lastOBSFaderValues: [String: Int] = [:]
     private var definitionGeneration: UInt32 = 0
@@ -210,6 +213,8 @@ final class CompanionConnection: NSObject {
     }
 
     private func tearDownConnection() {
+        obsMeterWatch.removeAll()
+        lastOBSMeterValues.removeAll()
         finishPairingResetRequest()
         if !shouldReconnect { discovery.stop() }
         connectionGeneration &+= 1
@@ -509,6 +514,9 @@ final class CompanionConnection: NSObject {
             expandedShortcutsSupported = payload.capabilityVersion >= 9
             supportsOBSCards = payload.capabilityVersion >= 13
             supportsOBSFaders = payload.capabilityVersion >= 14
+            supportsOBSMeters = payload.capabilityVersion >= 15
+            obsMeterWatch.removeAll()
+            lastOBSMeterValues.removeAll()
             lastOBSFaderValues.removeAll()
             // A Bonjour TXT record never authorizes a location change. Both the
             // pinned TLS certificate and the authenticated session must agree.
@@ -608,6 +616,13 @@ final class CompanionConnection: NSObject {
             appIconIdentifier = ""
             appIconOffset = 0
             processNextAppIconRequest()
+        case .obsMetersWatch(let payload):
+            guard sessionAuthenticated, supportsOBSMeters else { return false }
+            let watch = Set(payload.controlIds)
+            if obsMeterWatch != watch {
+                obsMeterWatch = watch
+                onEvent?(.obsMeterWatchChanged)
+            }
         case .valueSet(let payload):
             guard sessionAuthenticated else { return false }
             let requestIdentifier = payload.requestId
@@ -810,12 +825,14 @@ final class CompanionConnection: NSObject {
         capabilities.append(CompanionCapabilities.appIconsHighResolutionCapability)
         capabilities.append("url_card_focus")
         if supportsOBSCards { capabilities.append("obs_scene_cards") }
+        if supportsOBSMeters { capabilities.append("obs_input_meters") }
         if obsActions == nil { sendJSON(["type": "capabilities", "values": capabilities]) }
         // The browser receives identifiers, never application paths or shell commands.
         let apps = resources.launchableApps()
         let supportedOBSActions = supportsOBSCards ? obsActions ?? resources.obsControlActions() : []
         let obsEntries: [[String: String]] = supportedOBSActions.filter { entry in
-            supportsOBSFaders || OBSConnection.faderInputUUID(for: entry.id) == nil
+            (supportsOBSFaders || OBSConnection.faderInputUUID(for: entry.id) == nil) &&
+            (supportsOBSMeters || OBSConnection.meterInputUUID(for: entry.id) == nil)
         }.map { entry in
             ["id": entry.id, "label": Self.catalogueLabel(entry.label, fallback: "OBS scene")]
         }
@@ -928,6 +945,18 @@ final class CompanionConnection: NSObject {
             sendJSON(["type": "value.state", "controlId": id, "available": true, "value": value])
         }
         lastOBSFaderValues = values
+    }
+
+    func publishOBSMeterValues(_ values: [String: Int]) {
+        guard sessionAuthenticated, supportsOBSMeters else { return }
+        let watchedValues = values.filter { obsMeterWatch.contains($0.key) }
+        for id in lastOBSMeterValues.keys where watchedValues[id] == nil {
+            sendJSON(["type": "value.state", "controlId": id, "available": false])
+        }
+        for (id, value) in watchedValues where lastOBSMeterValues[id] != value {
+            sendJSON(["type": "value.state", "controlId": id, "available": true, "value": value])
+        }
+        lastOBSMeterValues = watchedValues
     }
 
     func publishMediaControlValues(_ values: [String: Int], unavailable: Set<String>) {

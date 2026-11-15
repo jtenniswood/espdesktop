@@ -36,7 +36,7 @@ void lv_label_set_display_text(lv_obj_t *obj, const char *text) { obj->text = te
 uint32_t card_slider_fill_color(const CardPalette &) { return 0; }
 int layouts = 0, setups = 0, bindings = 0, local_bindings = 0;
 int mute_setups = 0, mute_bindings = 0;
-void setup_slider_visual(BtnSlot &, const ParsedCfg &, uint32_t) { ++setups; }
+void setup_slider_visual(BtnSlot &, const ParsedCfg &, uint32_t, bool) { ++setups; }
 void refresh_slider_card_layout(BtnSlot &) { ++layouts; }
 void setup_toggle_visual(BtnSlot &, const ParsedCfg &) { ++mute_setups; }
 bool companion_mute_control_valid(const std::string &key) { return key == "media.output_mute" || key == "media.input_mute"; }
@@ -50,6 +50,7 @@ void companion_track_mute(lv_obj_t *, const std::string &key, lv_obj_t *, const 
 const char *slider_icon_off(const std::string &, const std::string &, const std::string &) { return "volume"; }
 const char *slider_icon_on(const std::string &, const std::string &, const std::string &, const std::string &) { return "volume-on"; }
 bool companion_obs_level_control(const std::string &) { return false; }
+bool companion_obs_meter_control(const std::string &) { return false; }
 void companion_track_slider(lv_obj_t *, const std::string &key, lv_obj_t *, bool, const char *, const char *,
                             lv_obj_t *, const std::string &) { assert(companion_volume_control_valid(key)); ++bindings; }
 std::vector<std::pair<std::string,int>> commands;

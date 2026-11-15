@@ -1,5 +1,5 @@
 {
-  "version": 14,
+  "version": 15,
   "protocol": {
     "version": 4,
     "path": "/companion/v4",
@@ -283,7 +283,7 @@
           },
           "controlId": {
             "type": "string",
-            "pattern": "volume_control_id",
+            "pattern": "writable_volume_control_id",
             "minLength": 1,
             "maxLength": 46
           },
@@ -890,6 +890,24 @@
         "states": [
           "connected"
         ]
+      },
+      {
+        "id": "obs.meters.watch",
+        "direction": "panel_to_mac",
+        "authorization": "session",
+        "fields": {
+          "controlIds": {
+            "type": "array",
+            "maxItems": 12,
+            "items": {
+              "type": "string",
+              "minLength": 46,
+              "maxLength": 46,
+              "pattern": "obs_meter_control_id"
+            }
+          }
+        },
+        "states": ["connected"]
       },
       {
         "id": "focus.targets",

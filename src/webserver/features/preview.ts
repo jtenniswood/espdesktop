@@ -68,6 +68,7 @@ const CARD_TYPE_PICKER_DETAILS: Readonly<Record<string, PickerDetails>> = {
   companion_obs_take: { icon: "arrow-right", description: "Send the current OBS Studio Mode preview to Program." },
   companion_obs_replay: { icon: "history", description: "Save a clip from the running OBS replay buffer." },
   companion_obs_status: { icon: "monitor", description: "Show the OBS program scene, stream, or recording status." },
+  companion_obs_meter: { icon: "microphone", description: "Show live signal from a named OBS input." },
   companion_obs_fader: { icon: "tune-vertical", description: "Adjust a named audio input in the OBS mixer." },
   companion_obs_mic: { icon: "microphone", description: "Mute a named input in the OBS mixer." },
   companion_obs: { icon: "monitor", description: "Choose a scene from the connected OBS Studio." },
@@ -101,6 +102,7 @@ const CARD_TYPE_PICKER_DEFAULTS: Readonly<Record<string, string>> = {
   companion_folder: "companion",
   companion_obs: "companion",
   companion_obs_mic: "companion",
+  companion_obs_meter: "slider",
   companion_obs_fader: "slider",
   companion_obs_take: "companion",
   companion_obs_status: "companion",
@@ -130,7 +132,7 @@ export function cardPickerConnectors(
 export function cardTypeVisibleForConnector(key: string, connector: CardPickerConnector): boolean {
   return connector === "mac_companion" &&
     !MAC_COMPANION_HIDDEN_CARD_TYPES.has(key) &&
-    (key === "companion_obs_fader" || cardContractAvailability(defaultCardTypeForPicker(key)) === "stable") &&
+    (key === "companion_obs_fader" || key === "companion_obs_meter" || cardContractAvailability(defaultCardTypeForPicker(key)) === "stable") &&
     cardTypeConnector(key) !== "home_assistant";
 }
 

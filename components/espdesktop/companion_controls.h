@@ -842,6 +842,18 @@ inline void companion_track_slider(lv_obj_t *slider, const std::string &control_
   companion_request_card_refresh();
 }
 
+inline std::vector<std::string> companion_visible_obs_meters() {
+  std::vector<std::string> ids;
+  for (const auto &ref : companion_slider_refs()) {
+    if (ids.size() == 12) break;
+    if (!ref.slider || !lv_obj_is_valid(ref.slider) || lv_obj_get_screen(ref.slider) != lv_scr_act() ||
+        !companion_obs_meter_control(ref.control_id)) continue;
+    if (std::find(ids.begin(), ids.end(), ref.control_id) == ids.end()) ids.push_back(ref.control_id);
+  }
+  std::sort(ids.begin(), ids.end());
+  return ids;
+}
+
 inline void companion_apply_mute_state(const CompanionMuteRef &ref,
                                        const CompanionRuntimeSnapshot &snapshot) {
   const auto value = std::find_if(snapshot.values.begin(), snapshot.values.end(),
@@ -1079,13 +1091,16 @@ inline void companion_refresh_cards_if_requested() {
     const auto value = std::find_if(snapshot.values.begin(), snapshot.values.end(),
       [it](const CompanionValue &candidate) { return candidate.id == it->control_id; });
     const bool available = snapshot.connected && value != snapshot.values.end();
-    if (it->text_label && lv_obj_is_valid(it->text_label) && companion_obs_level_control(it->control_id)) {
+    if (it->text_label && lv_obj_is_valid(it->text_label)) {
+      const bool meter = companion_obs_meter_control(it->control_id);
       char level[24]{};
-      if (available && value->value > 0)
-        snprintf(level, sizeof(level), "%+.1f dB", double(companion_obs_fader_decibels(value->value)));
+      if (available && value->value > 0) {
+        const double db = meter ? (value->value - 100) * 0.6 : companion_obs_fader_decibels(value->value);
+        snprintf(level, sizeof(level), meter ? "%.1f dBFS" : "%+.1f dB", db);
+      }
       const auto *action = companion_published_action(snapshot, it->control_id);
-      const std::string label = (action ? "OBS · " + action->label : it->base_label) + "\n" +
-        (available ? (value->value > 0 ? level : "-∞ dB") : espdesktop_i18n("Unavailable"));
+      const std::string label = (action ? (meter ? "OBS Meter · " : "OBS · ") + action->label : it->base_label) + "\n" +
+        (available ? (value->value > 0 ? level : meter ? "≤ -60 dBFS" : "-∞ dB") : espdesktop_i18n("Unavailable"));
       const auto normalized = normalize_display_text(label);
       if (normalized != lv_label_get_text(it->text_label))
         lv_label_set_display_text(it->text_label, label.c_str());
@@ -1116,6 +1131,7 @@ inline void companion_track_mute(void *, const std::string &, void * = nullptr,
 inline void companion_track_slider(void *, const std::string &, void *, bool,
                                    const char *, const char *, void * = nullptr,
                                    const std::string & = {}) {}
+inline std::vector<std::string> companion_visible_obs_meters() { return {}; }
 inline void companion_refresh_cards_if_requested() {}
 inline void companion_require_card_focus(void *, const std::string &) {}
 #endif
@@ -1221,7 +1237,7 @@ inline bool invoke_companion_url(const std::string &url_config,
 
 inline bool invoke_companion_value(const std::string &control_id, int value,
                                    const std::string &request_id) {
-  if (!companion_connected() || !companion_volume_control_valid(control_id) ||
+  if (!companion_connected() || !companion_writable_audio_control_id(control_id) ||
       value < 0 || value > 100 || !companion_value_sender() ||
       (companion_mute_control_valid(control_id) && value != 0 && value != 100)) return false;
   return companion_value_sender()(control_id, value, request_id);
