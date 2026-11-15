@@ -309,6 +309,7 @@ inline const char *espdesktop_i18n_cs(const char *text) {
   if (std::strcmp(text, "Mic") == 0) return "Mikrofon";
   if (std::strcmp(text, "Mute") == 0) return "Ztlumit";
   if (std::strcmp(text, "Muted") == 0) return "Ztlumeno";
+  if (std::strcmp(text, "No signal") == 0) return "Bez signálu";
   if (std::strcmp(text, "Update Mac app") == 0) return "Aktualizovat aplikaci pro Mac";
   if (std::strcmp(text, "Update EspDesktop on your Mac to reconnect.") == 0) return "Pro opětovné připojení aktualizujte EspDesktop na Macu.";
   return text;
@@ -599,6 +600,7 @@ inline const char *espdesktop_i18n_da(const char *text) {
   if (std::strcmp(text, "Mic") == 0) return "Mikrofon";
   if (std::strcmp(text, "Mute") == 0) return "Slå lyd fra";
   if (std::strcmp(text, "Muted") == 0) return "Lyd slået fra";
+  if (std::strcmp(text, "No signal") == 0) return "Intet signal";
   if (std::strcmp(text, "Update Mac app") == 0) return "Opdater Mac-appen";
   if (std::strcmp(text, "Update EspDesktop on your Mac to reconnect.") == 0) return "Opdater EspDesktop på din Mac for at oprette forbindelse igen.";
   return text;
@@ -893,6 +895,7 @@ inline const char *espdesktop_i18n_de(const char *text) {
   if (std::strcmp(text, "Mic") == 0) return "Mikro";
   if (std::strcmp(text, "Mute") == 0) return "Stumm";
   if (std::strcmp(text, "Muted") == 0) return "Stumm";
+  if (std::strcmp(text, "No signal") == 0) return "Kein Signal";
   if (std::strcmp(text, "Update Mac app") == 0) return "Mac-App aktualisieren";
   if (std::strcmp(text, "Update EspDesktop on your Mac to reconnect.") == 0) return "Aktualisiere EspDesktop auf deinem Mac, um die Verbindung wiederherzustellen.";
   return text;
@@ -1198,6 +1201,7 @@ inline const char *espdesktop_i18n_es(const char *text) {
   if (std::strcmp(text, "Mic") == 0) return "Micrófono";
   if (std::strcmp(text, "Mute") == 0) return "Silenciar";
   if (std::strcmp(text, "Muted") == 0) return "Silenciado";
+  if (std::strcmp(text, "No signal") == 0) return "Sin señal";
   if (std::strcmp(text, "Update Mac app") == 0) return "Actualizar la app de Mac";
   if (std::strcmp(text, "Update EspDesktop on your Mac to reconnect.") == 0) return "Actualiza EspDesktop en tu Mac para volver a conectar.";
   return text;
@@ -1506,6 +1510,7 @@ inline const char *espdesktop_i18n_fi(const char *text) {
   if (std::strcmp(text, "Mic") == 0) return "Mikki";
   if (std::strcmp(text, "Mute") == 0) return "Mykistä";
   if (std::strcmp(text, "Muted") == 0) return "Mykistetty";
+  if (std::strcmp(text, "No signal") == 0) return "Ei signaalia";
   if (std::strcmp(text, "Update Mac app") == 0) return "Päivitä Mac-sovellus";
   if (std::strcmp(text, "Update EspDesktop on your Mac to reconnect.") == 0) return "Muodosta yhteys uudelleen päivittämällä EspDesktop Macissa.";
   return text;
@@ -1805,6 +1810,7 @@ inline const char *espdesktop_i18n_fr(const char *text) {
   if (std::strcmp(text, "Mic") == 0) return "Micro";
   if (std::strcmp(text, "Mute") == 0) return "Muet";
   if (std::strcmp(text, "Muted") == 0) return "Muet";
+  if (std::strcmp(text, "No signal") == 0) return "Aucun signal";
   if (std::strcmp(text, "Update Mac app") == 0) return "Mettre à jour l’app Mac";
   if (std::strcmp(text, "Update EspDesktop on your Mac to reconnect.") == 0) return "Mettez à jour EspDesktop sur votre Mac pour rétablir la connexion.";
   return text;
@@ -2120,6 +2126,7 @@ inline const char *espdesktop_i18n_he(const char *text) {
   if (std::strcmp(text, "Mic") == 0) return "מיקרופון";
   if (std::strcmp(text, "Mute") == 0) return "השתקה";
   if (std::strcmp(text, "Muted") == 0) return "מושתק";
+  if (std::strcmp(text, "No signal") == 0) return "אין אות";
   if (std::strcmp(text, "Update Mac app") == 0) return "עדכון האפליקציה ב-Mac";
   if (std::strcmp(text, "Update EspDesktop on your Mac to reconnect.") == 0) return "כדי להתחבר מחדש, יש לעדכן את EspDesktop ב-Mac.";
   return text;
@@ -2427,6 +2434,7 @@ inline const char *espdesktop_i18n_hu(const char *text) {
   if (std::strcmp(text, "Mic") == 0) return "Mikrofon";
   if (std::strcmp(text, "Mute") == 0) return "Némítás";
   if (std::strcmp(text, "Muted") == 0) return "Némítva";
+  if (std::strcmp(text, "No signal") == 0) return "Nincs jel";
   if (std::strcmp(text, "Update Mac app") == 0) return "Frissítse a Mac-alkalmazást";
   if (std::strcmp(text, "Update EspDesktop on your Mac to reconnect.") == 0) return "A csatlakozáshoz frissítse az EspDesktopot a Macen.";
   return text;
@@ -2731,6 +2739,7 @@ inline const char *espdesktop_i18n_it(const char *text) {
   if (std::strcmp(text, "Mic") == 0) return "Microfono";
   if (std::strcmp(text, "Mute") == 0) return "Muto";
   if (std::strcmp(text, "Muted") == 0) return "Muto";
+  if (std::strcmp(text, "No signal") == 0) return "Nessun segnale";
   if (std::strcmp(text, "Update Mac app") == 0) return "Aggiorna l’app per Mac";
   if (std::strcmp(text, "Update EspDesktop on your Mac to reconnect.") == 0) return "Aggiorna EspDesktop sul Mac per riconnetterti.";
   return text;
@@ -3027,6 +3036,7 @@ inline const char *espdesktop_i18n_nb(const char *text) {
   if (std::strcmp(text, "Mic") == 0) return "Mikrofon";
   if (std::strcmp(text, "Mute") == 0) return "Demp";
   if (std::strcmp(text, "Muted") == 0) return "Dempet";
+  if (std::strcmp(text, "No signal") == 0) return "Ingen signal";
   if (std::strcmp(text, "Update Mac app") == 0) return "Oppdater Mac-appen";
   if (std::strcmp(text, "Update EspDesktop on your Mac to reconnect.") == 0) return "Oppdater EspDesktop på Macen for å koble til igjen.";
   return text;
@@ -3323,6 +3333,7 @@ inline const char *espdesktop_i18n_nl(const char *text) {
   if (std::strcmp(text, "Mic") == 0) return "Microfoon";
   if (std::strcmp(text, "Mute") == 0) return "Dempen";
   if (std::strcmp(text, "Muted") == 0) return "Gedempt";
+  if (std::strcmp(text, "No signal") == 0) return "Geen signaal";
   if (std::strcmp(text, "Update Mac app") == 0) return "Update de Mac-app";
   if (std::strcmp(text, "Update EspDesktop on your Mac to reconnect.") == 0) return "Werk EspDesktop op je Mac bij om opnieuw verbinding te maken.";
   return text;
@@ -3619,6 +3630,7 @@ inline const char *espdesktop_i18n_pl(const char *text) {
   if (std::strcmp(text, "Mic") == 0) return "Mikrofon";
   if (std::strcmp(text, "Mute") == 0) return "Wycisz";
   if (std::strcmp(text, "Muted") == 0) return "Wyciszony";
+  if (std::strcmp(text, "No signal") == 0) return "Brak sygnału";
   if (std::strcmp(text, "Update Mac app") == 0) return "Zaktualizuj aplikację na Macu";
   if (std::strcmp(text, "Update EspDesktop on your Mac to reconnect.") == 0) return "Zaktualizuj EspDesktop na Macu, aby ponownie się połączyć.";
   return text;
@@ -3916,6 +3928,7 @@ inline const char *espdesktop_i18n_pt_br(const char *text) {
   if (std::strcmp(text, "Mic") == 0) return "Microfone";
   if (std::strcmp(text, "Mute") == 0) return "Silenciar";
   if (std::strcmp(text, "Muted") == 0) return "Silenciado";
+  if (std::strcmp(text, "No signal") == 0) return "Sem sinal";
   if (std::strcmp(text, "Update Mac app") == 0) return "Atualizar o app do Mac";
   if (std::strcmp(text, "Update EspDesktop on your Mac to reconnect.") == 0) return "Atualize o EspDesktop no Mac para se reconectar.";
   return text;
@@ -4220,6 +4233,7 @@ inline const char *espdesktop_i18n_pt(const char *text) {
   if (std::strcmp(text, "Mic") == 0) return "Microfone";
   if (std::strcmp(text, "Mute") == 0) return "Silenciar";
   if (std::strcmp(text, "Muted") == 0) return "Silenciado";
+  if (std::strcmp(text, "No signal") == 0) return "Sem sinal";
   if (std::strcmp(text, "Update Mac app") == 0) return "Atualizar a app para Mac";
   if (std::strcmp(text, "Update EspDesktop on your Mac to reconnect.") == 0) return "Atualize o EspDesktop no Mac para voltar a ligar.";
   return text;
@@ -4527,6 +4541,7 @@ inline const char *espdesktop_i18n_ro(const char *text) {
   if (std::strcmp(text, "Mic") == 0) return "Microfon";
   if (std::strcmp(text, "Mute") == 0) return "Mut";
   if (std::strcmp(text, "Muted") == 0) return "Fără sunet";
+  if (std::strcmp(text, "No signal") == 0) return "Fără semnal";
   if (std::strcmp(text, "Update Mac app") == 0) return "Actualizează aplicația pentru Mac";
   if (std::strcmp(text, "Update EspDesktop on your Mac to reconnect.") == 0) return "Actualizează EspDesktop pe Mac pentru a te reconecta.";
   return text;
@@ -4841,6 +4856,7 @@ inline const char *espdesktop_i18n_ru(const char *text) {
   if (std::strcmp(text, "Mic") == 0) return "Микрофон";
   if (std::strcmp(text, "Mute") == 0) return "Без звука";
   if (std::strcmp(text, "Muted") == 0) return "Без звука";
+  if (std::strcmp(text, "No signal") == 0) return "Нет сигнала";
   if (std::strcmp(text, "Update Mac app") == 0) return "Обновите приложение для Mac";
   if (std::strcmp(text, "Update EspDesktop on your Mac to reconnect.") == 0) return "Обновите EspDesktop на Mac, чтобы восстановить соединение.";
   return text;
@@ -5141,6 +5157,7 @@ inline const char *espdesktop_i18n_sk(const char *text) {
   if (std::strcmp(text, "Mic") == 0) return "Mikrofón";
   if (std::strcmp(text, "Mute") == 0) return "Stlmiť";
   if (std::strcmp(text, "Muted") == 0) return "Stlmené";
+  if (std::strcmp(text, "No signal") == 0) return "Bez signálu";
   if (std::strcmp(text, "Update Mac app") == 0) return "Aktualizujte aplikáciu pre Mac";
   if (std::strcmp(text, "Update EspDesktop on your Mac to reconnect.") == 0) return "Na opätovné pripojenie aktualizujte EspDesktop na Macu.";
   return text;
@@ -5445,6 +5462,7 @@ inline const char *espdesktop_i18n_sl(const char *text) {
   if (std::strcmp(text, "Mic") == 0) return "Mikrofon";
   if (std::strcmp(text, "Mute") == 0) return "Utišaj";
   if (std::strcmp(text, "Muted") == 0) return "Utišano";
+  if (std::strcmp(text, "No signal") == 0) return "Ni signala";
   if (std::strcmp(text, "Update Mac app") == 0) return "Posodobite aplikacijo za Mac";
   if (std::strcmp(text, "Update EspDesktop on your Mac to reconnect.") == 0) return "Za ponovno povezavo posodobite EspDesktop na Macu.";
   return text;
@@ -5739,6 +5757,7 @@ inline const char *espdesktop_i18n_sv(const char *text) {
   if (std::strcmp(text, "Mic") == 0) return "Mikrofon";
   if (std::strcmp(text, "Mute") == 0) return "Tysta";
   if (std::strcmp(text, "Muted") == 0) return "Tystad";
+  if (std::strcmp(text, "No signal") == 0) return "Ingen signal";
   if (std::strcmp(text, "Update Mac app") == 0) return "Uppdatera Mac-appen";
   if (std::strcmp(text, "Update EspDesktop on your Mac to reconnect.") == 0) return "Uppdatera EspDesktop på din Mac för att ansluta igen.";
   return text;
@@ -6047,6 +6066,7 @@ inline const char *espdesktop_i18n_tr(const char *text) {
   if (std::strcmp(text, "Mic") == 0) return "Mikrofon";
   if (std::strcmp(text, "Mute") == 0) return "Sessiz";
   if (std::strcmp(text, "Muted") == 0) return "Sessiz";
+  if (std::strcmp(text, "No signal") == 0) return "Sinyal yok";
   if (std::strcmp(text, "Update Mac app") == 0) return "Mac uygulamasını güncelleyin";
   if (std::strcmp(text, "Update EspDesktop on your Mac to reconnect.") == 0) return "Yeniden bağlanmak için Mac’inizde EspDesktop’u güncelleyin.";
   return text;
@@ -6356,6 +6376,7 @@ inline const char *espdesktop_i18n_uk(const char *text) {
   if (std::strcmp(text, "Mic") == 0) return "Мікрофон";
   if (std::strcmp(text, "Mute") == 0) return "Без звуку";
   if (std::strcmp(text, "Muted") == 0) return "Без звуку";
+  if (std::strcmp(text, "No signal") == 0) return "Немає сигналу";
   if (std::strcmp(text, "Update Mac app") == 0) return "Оновіть застосунок для Mac";
   if (std::strcmp(text, "Update EspDesktop on your Mac to reconnect.") == 0) return "Оновіть EspDesktop на Mac, щоб відновити з’єднання.";
   return text;
@@ -6700,6 +6721,7 @@ inline const char *espdesktop_i18n_key_en(const char *key) {
   if (std::strcmp(key, "mic") == 0) return "Mic";
   if (std::strcmp(key, "mute") == 0) return "Mute";
   if (std::strcmp(key, "muted") == 0) return "Muted";
+  if (std::strcmp(key, "no_signal") == 0) return "No signal";
   if (std::strcmp(key, "mac_update_required") == 0) return "Update Mac app";
   if (std::strcmp(key, "mac_update_reconnect") == 0) return "Update EspDesktop on your Mac to reconnect.";
   return key;
@@ -7009,6 +7031,7 @@ inline const char *espdesktop_i18n_key_cs(const char *key) {
   if (std::strcmp(key, "mic") == 0) return "Mikrofon";
   if (std::strcmp(key, "mute") == 0) return "Ztlumit";
   if (std::strcmp(key, "muted") == 0) return "Ztlumeno";
+  if (std::strcmp(key, "no_signal") == 0) return "Bez signálu";
   if (std::strcmp(key, "mac_update_required") == 0) return "Aktualizovat aplikaci pro Mac";
   if (std::strcmp(key, "mac_update_reconnect") == 0) return "Pro opětovné připojení aktualizujte EspDesktop na Macu.";
   return espdesktop_i18n_key_en(key);
@@ -7307,6 +7330,7 @@ inline const char *espdesktop_i18n_key_da(const char *key) {
   if (std::strcmp(key, "mic") == 0) return "Mikrofon";
   if (std::strcmp(key, "mute") == 0) return "Slå lyd fra";
   if (std::strcmp(key, "muted") == 0) return "Lyd slået fra";
+  if (std::strcmp(key, "no_signal") == 0) return "Intet signal";
   if (std::strcmp(key, "mac_update_required") == 0) return "Opdater Mac-appen";
   if (std::strcmp(key, "mac_update_reconnect") == 0) return "Opdater EspDesktop på din Mac for at oprette forbindelse igen.";
   return espdesktop_i18n_key_en(key);
@@ -7609,6 +7633,7 @@ inline const char *espdesktop_i18n_key_de(const char *key) {
   if (std::strcmp(key, "mic") == 0) return "Mikro";
   if (std::strcmp(key, "mute") == 0) return "Stumm";
   if (std::strcmp(key, "muted") == 0) return "Stumm";
+  if (std::strcmp(key, "no_signal") == 0) return "Kein Signal";
   if (std::strcmp(key, "mac_update_required") == 0) return "Mac-App aktualisieren";
   if (std::strcmp(key, "mac_update_reconnect") == 0) return "Aktualisiere EspDesktop auf deinem Mac, um die Verbindung wiederherzustellen.";
   return espdesktop_i18n_key_en(key);
@@ -7923,6 +7948,7 @@ inline const char *espdesktop_i18n_key_es(const char *key) {
   if (std::strcmp(key, "mic") == 0) return "Micrófono";
   if (std::strcmp(key, "mute") == 0) return "Silenciar";
   if (std::strcmp(key, "muted") == 0) return "Silenciado";
+  if (std::strcmp(key, "no_signal") == 0) return "Sin señal";
   if (std::strcmp(key, "mac_update_required") == 0) return "Actualizar la app de Mac";
   if (std::strcmp(key, "mac_update_reconnect") == 0) return "Actualiza EspDesktop en tu Mac para volver a conectar.";
   return espdesktop_i18n_key_en(key);
@@ -8241,6 +8267,7 @@ inline const char *espdesktop_i18n_key_fi(const char *key) {
   if (std::strcmp(key, "mic") == 0) return "Mikki";
   if (std::strcmp(key, "mute") == 0) return "Mykistä";
   if (std::strcmp(key, "muted") == 0) return "Mykistetty";
+  if (std::strcmp(key, "no_signal") == 0) return "Ei signaalia";
   if (std::strcmp(key, "mac_update_required") == 0) return "Päivitä Mac-sovellus";
   if (std::strcmp(key, "mac_update_reconnect") == 0) return "Muodosta yhteys uudelleen päivittämällä EspDesktop Macissa.";
   return espdesktop_i18n_key_en(key);
@@ -8549,6 +8576,7 @@ inline const char *espdesktop_i18n_key_fr(const char *key) {
   if (std::strcmp(key, "mic") == 0) return "Micro";
   if (std::strcmp(key, "mute") == 0) return "Muet";
   if (std::strcmp(key, "muted") == 0) return "Muet";
+  if (std::strcmp(key, "no_signal") == 0) return "Aucun signal";
   if (std::strcmp(key, "mac_update_required") == 0) return "Mettre à jour l’app Mac";
   if (std::strcmp(key, "mac_update_reconnect") == 0) return "Mettez à jour EspDesktop sur votre Mac pour rétablir la connexion.";
   return espdesktop_i18n_key_en(key);
@@ -8874,6 +8902,7 @@ inline const char *espdesktop_i18n_key_he(const char *key) {
   if (std::strcmp(key, "mic") == 0) return "מיקרופון";
   if (std::strcmp(key, "mute") == 0) return "השתקה";
   if (std::strcmp(key, "muted") == 0) return "מושתק";
+  if (std::strcmp(key, "no_signal") == 0) return "אין אות";
   if (std::strcmp(key, "mac_update_required") == 0) return "עדכון האפליקציה ב-Mac";
   if (std::strcmp(key, "mac_update_reconnect") == 0) return "כדי להתחבר מחדש, יש לעדכן את EspDesktop ב-Mac.";
   return espdesktop_i18n_key_en(key);
@@ -9191,6 +9220,7 @@ inline const char *espdesktop_i18n_key_hu(const char *key) {
   if (std::strcmp(key, "mic") == 0) return "Mikrofon";
   if (std::strcmp(key, "mute") == 0) return "Némítás";
   if (std::strcmp(key, "muted") == 0) return "Némítva";
+  if (std::strcmp(key, "no_signal") == 0) return "Nincs jel";
   if (std::strcmp(key, "mac_update_required") == 0) return "Frissítse a Mac-alkalmazást";
   if (std::strcmp(key, "mac_update_reconnect") == 0) return "A csatlakozáshoz frissítse az EspDesktopot a Macen.";
   return espdesktop_i18n_key_en(key);
@@ -9504,6 +9534,7 @@ inline const char *espdesktop_i18n_key_it(const char *key) {
   if (std::strcmp(key, "mic") == 0) return "Microfono";
   if (std::strcmp(key, "mute") == 0) return "Muto";
   if (std::strcmp(key, "muted") == 0) return "Muto";
+  if (std::strcmp(key, "no_signal") == 0) return "Nessun segnale";
   if (std::strcmp(key, "mac_update_required") == 0) return "Aggiorna l’app per Mac";
   if (std::strcmp(key, "mac_update_reconnect") == 0) return "Aggiorna EspDesktop sul Mac per riconnetterti.";
   return espdesktop_i18n_key_en(key);
@@ -9809,6 +9840,7 @@ inline const char *espdesktop_i18n_key_nb(const char *key) {
   if (std::strcmp(key, "mic") == 0) return "Mikrofon";
   if (std::strcmp(key, "mute") == 0) return "Demp";
   if (std::strcmp(key, "muted") == 0) return "Dempet";
+  if (std::strcmp(key, "no_signal") == 0) return "Ingen signal";
   if (std::strcmp(key, "mac_update_required") == 0) return "Oppdater Mac-appen";
   if (std::strcmp(key, "mac_update_reconnect") == 0) return "Oppdater EspDesktop på Macen for å koble til igjen.";
   return espdesktop_i18n_key_en(key);
@@ -10111,6 +10143,7 @@ inline const char *espdesktop_i18n_key_nl(const char *key) {
   if (std::strcmp(key, "mic") == 0) return "Microfoon";
   if (std::strcmp(key, "mute") == 0) return "Dempen";
   if (std::strcmp(key, "muted") == 0) return "Gedempt";
+  if (std::strcmp(key, "no_signal") == 0) return "Geen signaal";
   if (std::strcmp(key, "mac_update_required") == 0) return "Update de Mac-app";
   if (std::strcmp(key, "mac_update_reconnect") == 0) return "Werk EspDesktop op je Mac bij om opnieuw verbinding te maken.";
   return espdesktop_i18n_key_en(key);
@@ -10417,6 +10450,7 @@ inline const char *espdesktop_i18n_key_pl(const char *key) {
   if (std::strcmp(key, "mic") == 0) return "Mikrofon";
   if (std::strcmp(key, "mute") == 0) return "Wycisz";
   if (std::strcmp(key, "muted") == 0) return "Wyciszony";
+  if (std::strcmp(key, "no_signal") == 0) return "Brak sygnału";
   if (std::strcmp(key, "mac_update_required") == 0) return "Zaktualizuj aplikację na Macu";
   if (std::strcmp(key, "mac_update_reconnect") == 0) return "Zaktualizuj EspDesktop na Macu, aby ponownie się połączyć.";
   return espdesktop_i18n_key_en(key);
@@ -10723,6 +10757,7 @@ inline const char *espdesktop_i18n_key_pt_br(const char *key) {
   if (std::strcmp(key, "mic") == 0) return "Microfone";
   if (std::strcmp(key, "mute") == 0) return "Silenciar";
   if (std::strcmp(key, "muted") == 0) return "Silenciado";
+  if (std::strcmp(key, "no_signal") == 0) return "Sem sinal";
   if (std::strcmp(key, "mac_update_required") == 0) return "Atualizar o app do Mac";
   if (std::strcmp(key, "mac_update_reconnect") == 0) return "Atualize o EspDesktop no Mac para se reconectar.";
   return espdesktop_i18n_key_en(key);
@@ -11036,6 +11071,7 @@ inline const char *espdesktop_i18n_key_pt(const char *key) {
   if (std::strcmp(key, "mic") == 0) return "Microfone";
   if (std::strcmp(key, "mute") == 0) return "Silenciar";
   if (std::strcmp(key, "muted") == 0) return "Silenciado";
+  if (std::strcmp(key, "no_signal") == 0) return "Sem sinal";
   if (std::strcmp(key, "mac_update_required") == 0) return "Atualizar a app para Mac";
   if (std::strcmp(key, "mac_update_reconnect") == 0) return "Atualize o EspDesktop no Mac para voltar a ligar.";
   return espdesktop_i18n_key_en(key);
@@ -11353,6 +11389,7 @@ inline const char *espdesktop_i18n_key_ro(const char *key) {
   if (std::strcmp(key, "mic") == 0) return "Microfon";
   if (std::strcmp(key, "mute") == 0) return "Mut";
   if (std::strcmp(key, "muted") == 0) return "Fără sunet";
+  if (std::strcmp(key, "no_signal") == 0) return "Fără semnal";
   if (std::strcmp(key, "mac_update_required") == 0) return "Actualizează aplicația pentru Mac";
   if (std::strcmp(key, "mac_update_reconnect") == 0) return "Actualizează EspDesktop pe Mac pentru a te reconecta.";
   return espdesktop_i18n_key_en(key);
@@ -11677,6 +11714,7 @@ inline const char *espdesktop_i18n_key_ru(const char *key) {
   if (std::strcmp(key, "mic") == 0) return "Микрофон";
   if (std::strcmp(key, "mute") == 0) return "Без звука";
   if (std::strcmp(key, "muted") == 0) return "Без звука";
+  if (std::strcmp(key, "no_signal") == 0) return "Нет сигнала";
   if (std::strcmp(key, "mac_update_required") == 0) return "Обновите приложение для Mac";
   if (std::strcmp(key, "mac_update_reconnect") == 0) return "Обновите EspDesktop на Mac, чтобы восстановить соединение.";
   return espdesktop_i18n_key_en(key);
@@ -11987,6 +12025,7 @@ inline const char *espdesktop_i18n_key_sk(const char *key) {
   if (std::strcmp(key, "mic") == 0) return "Mikrofón";
   if (std::strcmp(key, "mute") == 0) return "Stlmiť";
   if (std::strcmp(key, "muted") == 0) return "Stlmené";
+  if (std::strcmp(key, "no_signal") == 0) return "Bez signálu";
   if (std::strcmp(key, "mac_update_required") == 0) return "Aktualizujte aplikáciu pre Mac";
   if (std::strcmp(key, "mac_update_reconnect") == 0) return "Na opätovné pripojenie aktualizujte EspDesktop na Macu.";
   return espdesktop_i18n_key_en(key);
@@ -12301,6 +12340,7 @@ inline const char *espdesktop_i18n_key_sl(const char *key) {
   if (std::strcmp(key, "mic") == 0) return "Mikrofon";
   if (std::strcmp(key, "mute") == 0) return "Utišaj";
   if (std::strcmp(key, "muted") == 0) return "Utišano";
+  if (std::strcmp(key, "no_signal") == 0) return "Ni signala";
   if (std::strcmp(key, "mac_update_required") == 0) return "Posodobite aplikacijo za Mac";
   if (std::strcmp(key, "mac_update_reconnect") == 0) return "Za ponovno povezavo posodobite EspDesktop na Macu.";
   return espdesktop_i18n_key_en(key);
@@ -12603,6 +12643,7 @@ inline const char *espdesktop_i18n_key_sv(const char *key) {
   if (std::strcmp(key, "mic") == 0) return "Mikrofon";
   if (std::strcmp(key, "mute") == 0) return "Tysta";
   if (std::strcmp(key, "muted") == 0) return "Tystad";
+  if (std::strcmp(key, "no_signal") == 0) return "Ingen signal";
   if (std::strcmp(key, "mac_update_required") == 0) return "Uppdatera Mac-appen";
   if (std::strcmp(key, "mac_update_reconnect") == 0) return "Uppdatera EspDesktop på din Mac för att ansluta igen.";
   return espdesktop_i18n_key_en(key);
@@ -12921,6 +12962,7 @@ inline const char *espdesktop_i18n_key_tr(const char *key) {
   if (std::strcmp(key, "mic") == 0) return "Mikrofon";
   if (std::strcmp(key, "mute") == 0) return "Sessiz";
   if (std::strcmp(key, "muted") == 0) return "Sessiz";
+  if (std::strcmp(key, "no_signal") == 0) return "Sinyal yok";
   if (std::strcmp(key, "mac_update_required") == 0) return "Mac uygulamasını güncelleyin";
   if (std::strcmp(key, "mac_update_reconnect") == 0) return "Yeniden bağlanmak için Mac’inizde EspDesktop’u güncelleyin.";
   return espdesktop_i18n_key_en(key);
@@ -13240,6 +13282,7 @@ inline const char *espdesktop_i18n_key_uk(const char *key) {
   if (std::strcmp(key, "mic") == 0) return "Мікрофон";
   if (std::strcmp(key, "mute") == 0) return "Без звуку";
   if (std::strcmp(key, "muted") == 0) return "Без звуку";
+  if (std::strcmp(key, "no_signal") == 0) return "Немає сигналу";
   if (std::strcmp(key, "mac_update_required") == 0) return "Оновіть застосунок для Mac";
   if (std::strcmp(key, "mac_update_reconnect") == 0) return "Оновіть EspDesktop на Mac, щоб відновити з’єднання.";
   return espdesktop_i18n_key_en(key);

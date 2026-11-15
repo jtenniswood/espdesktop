@@ -343,5 +343,6 @@ microphone_mute=Microfoon dempen
 mic=Microfoon
 mute=Dempen
 muted=Gedempt
+no_signal=Geen signaal
 mac_update_required=Update de Mac-app
 mac_update_reconnect=Werk EspDesktop op je Mac bij om opnieuw verbinding te maken.

@@ -1300,6 +1300,7 @@ inline void companion_refresh_cards_if_requested() {
     const auto value = std::find_if(snapshot.values.begin(), snapshot.values.end(),
       [it](const CompanionValue &candidate) { return candidate.id == it->control_id; });
     const bool available = snapshot.connected && value != snapshot.values.end();
+    const bool meter = companion_obs_meter_control(it->control_id);
     if (it->obs_fader_fill) {
       const bool muted = snapshot.connected && std::any_of(snapshot.values.begin(), snapshot.values.end(),
         [it](const CompanionValue &candidate) { return candidate.id == it->obs_cough_id && candidate.value > 0; });
@@ -1308,15 +1309,17 @@ inline void companion_refresh_cards_if_requested() {
         lv_obj_set_style_bg_color(it->obs_fader_fill, color, LV_PART_MAIN);
     }
     if (it->text_label && lv_obj_is_valid(it->text_label)) {
-      const bool meter = companion_obs_meter_control(it->control_id);
       char level[24]{};
       if (available && value->value > 0) {
         const double db = meter ? (value->value - 100) * 0.6 : companion_obs_fader_decibels(value->value);
         snprintf(level, sizeof(level), meter ? "%.1f dBFS" : "%+.1f dB", db);
       }
       const auto *action = companion_published_action(snapshot, it->control_id);
-      const std::string label = (action ? (meter ? "OBS Meter · " : "OBS · ") + action->label : it->base_label) + "\n" +
-        (available ? (value->value > 0 ? level : meter ? "≤ -60 dBFS" : "-∞ dB") : espdesktop_i18n("Unavailable"));
+      const std::string title = meter && !it->base_label.empty() ? it->base_label
+        : (action ? (meter ? "OBS Meter · " : "OBS · ") + action->label : it->base_label);
+      const std::string label = title + "\n" + (available
+        ? (value->value > 0 ? level : meter ? "≤ -60 dBFS" : "-∞ dB")
+        : espdesktop_i18n(meter && action ? "No signal" : "Unavailable"));
       const auto normalized = normalize_display_text(label);
       if (normalized != lv_label_get_text(it->text_label))
         lv_label_set_display_text(it->text_label, label.c_str());
@@ -1330,6 +1333,10 @@ inline void companion_refresh_cards_if_requested() {
       }
       lv_obj_clear_state(it->slider, LV_STATE_DISABLED);
     } else {
+      if (meter && lv_slider_get_value(it->slider) != 0) {
+        lv_slider_set_value(it->slider, 0, LV_ANIM_OFF);
+        lv_obj_send_event(it->slider, LV_EVENT_VALUE_CHANGED, nullptr);
+      }
       lv_obj_add_state(it->slider, LV_STATE_DISABLED);
     }
     ++it;

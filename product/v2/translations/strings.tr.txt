@@ -343,5 +343,6 @@ microphone_mute=Mikrofonu sessize al
 mic=Mikrofon
 mute=Sessiz
 muted=Sessiz
+no_signal=Sinyal yok
 mac_update_required=Mac uygulamasını güncelleyin
 mac_update_reconnect=Yeniden bağlanmak için Mac’inizde EspDesktop’u güncelleyin.
