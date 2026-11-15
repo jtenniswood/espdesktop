@@ -5,6 +5,10 @@ import { retiredSavedCardType } from "./card";
 
 export const COMPANION_FOLDER_PREFIX = "folder.";
 export const COMPANION_OBS_PREFIX = "obs.";
+export function savedOBSSceneTarget(actionId: string): string {
+  const id = /^obs\.target\.([0-9a-f-]{36})\.[0-9a-f-]{36}$/.exec(actionId)?.[1];
+  return id ? "obs.target." + id : "";
+}
 export const OBS_BRB_ID = "obs.brb";
 export const OBS_TAKE_ID = "obs.take";
 export const OBS_REPLAY_ID = "obs.replay";

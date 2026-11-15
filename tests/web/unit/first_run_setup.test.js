@@ -92,3 +92,42 @@ test("replacing setup preserves other settings and rejects concurrent changes to
   const combined = decodePanelPageSnapshot(setup(otherSetting.finish(), [custom], false, 4, original));
   assert.equal(combined.document.settings.button_on_color, "00FF00");
 });
+
+
+test("OBS starter pins a native subpage without replacing an existing wide card", () => {
+  const { obsStarterControls, pinOBSStarterPage } = loadTypescriptTest("src/webserver/application/obs_starter_page.ts");
+  const main = "11111111-1111-1111-1111-111111111111";
+  const away = "22222222-2222-2222-2222-222222222222";
+  const mic = "33333333-3333-3333-3333-333333333333";
+  const token = "44444444-4444-4444-4444-444444444444";
+  const controls = obsStarterControls([
+    { id: `obs.target.${main}.${token}`, label: "On air · Gameplay" },
+    { id: `obs.target.${away}.${token}`, label: "BRB" },
+    { id: `obs.mute.${mic}`, label: "Unmuted · Commentary" },
+    { id: `obs.level.${mic}`, label: "Commentary" },
+    { id: `obs.brb.scene.${away}`, label: "Configured BRB scene" },
+    { id: "com.apple.Safari", label: "Safari" },
+  ]);
+  const geometry = { numSlots: 9, previewSlots: 9, totalSlots: 9, gridCols: 3 };
+  const choices = { main: "obs.target." + main, away: "obs.target." + away, mic: "obs.mute." + mic };
+  const input = empty({
+    buttons: { 1: "com.apple.Safari;Safari;Auto;Auto;;;companion" },
+    settings: { button_order: "1w", button_on_color: "FF0000" },
+  });
+  const current = decodePanelPageSnapshot(input);
+  const draft = new NativeLayoutDraft(input);
+  pinOBSStarterPage(draft, current, controls, choices, geometry);
+  const result = decodePanelPageSnapshot(draft.finish());
+  assert.equal(result.layout.rootCards[0].config.entity, safari.id);
+  assert.equal(result.document.settings.button_order, "1w,,2");
+  assert.equal(result.layout.rootCards[1].config.label, "OBS Studio");
+  assert.equal(result.layout.pages[0].key, 2);
+  assert.deepEqual(result.layout.pages[0].cards.map(card => card.config.entity), [
+    "obs.status.program", choices.main, choices.away, choices.mic, "obs.take", "obs.status.stream",
+    "obs.brb", "obs.level." + mic,
+  ]);
+  assert.throws(() => pinOBSStarterPage(draft, current, controls, { ...choices, away: choices.main }, geometry),
+    /Choose two different scenes/);
+  assert.throws(() => pinOBSStarterPage(draft, current, controls, choices,
+    { ...geometry, numSlots: 2, previewSlots: 2, gridCols: 2 }), /Make room/);
+});

@@ -930,6 +930,9 @@ final class CompanionStore: NSObject, ObservableObject {
         func canSend() -> Bool {
             isValid() && !self.sessionLock.locked && self.sessionLock.displayAwake != false
         }
+        if let (scene, token) = OBSConnection.AdaptiveScene.command(actionIdentifier) {
+            return await obs.performAdaptiveScene(scene, token: token, isValid: canSend)
+        }
         if let token = OBSConnection.BreakCard.token(for: actionIdentifier) {
             return await obs.performBreak(token: token, isValid: canSend)
         }

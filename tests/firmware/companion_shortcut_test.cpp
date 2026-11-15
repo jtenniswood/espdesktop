@@ -264,6 +264,13 @@ int main() {
     obs.actions.back() = {"obs.brb", "BRB Check OBS"};
     assert(!companion_action_available(obs, "obs.brb"));
     assert(companion_default_action_label("obs.brb", "", &obs) == "BRB Check OBS");
+    const std::string adaptive_scene = "obs.target.69da3f8f-7f62-4abe-a594-4e40dd579858";
+    const std::string armed_scene = adaptive_scene + ".45f44c62-1c70-4706-8930-f3ec000db026";
+    obs.actions.push_back({armed_scene, "Preview Gameplay"});
+    assert(companion_obs_scene_target(adaptive_scene));
+    assert(!companion_obs_scene_target(armed_scene));
+    assert(companion_action_available(obs, adaptive_scene));
+    assert(companion_published_action(obs, adaptive_scene)->id == armed_scene);
     assert(companion_obs_status_card("obs.status.stream"));
     obs.connected = false;
     assert(!companion_action_available(obs, "obs.take"));

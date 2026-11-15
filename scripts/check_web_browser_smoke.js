@@ -7680,6 +7680,67 @@ async function assertNestedCompanionPages(browser) {
   } catch(error) { await page.screenshot({ path: "/tmp/nested-browser.png" }); fs.writeFileSync("/tmp/nested-browser.html", await page.content()); throw error; } finally { await context.close(); }
 }
 
+async function assertOBSStarterPage(browser) {
+  const testCase = CASES.find(item => item.slug === "guition-esp32-s3-4848s040");
+  const fixture = nativeConfigState(testCase.slug);
+  fixture.document = {
+    deviceProfile: testCase.slug,
+    buttons: { 1: "com.apple.Safari;Safari;Monitor;Auto;;;companion" },
+    subpages: {},
+    settings: { button_order: "1", web_onboarding_complete: "1" },
+  };
+  const context = await browser.newContext({ viewport: testCase.viewport });
+  await installRoutes(context, testCase.slug, { nativeState: fixture, nativeV2: true, nativeAppSubpagePreference: true });
+  const main = "11111111-1111-1111-1111-111111111111";
+  const away = "22222222-2222-2222-2222-222222222222";
+  const mic = "33333333-3333-3333-3333-333333333333";
+  const token = "44444444-4444-4444-4444-444444444444";
+  await context.route("**/companion/actions", route => route.fulfill({ json: [
+    { id: `obs.target.${main}.${token}`, label: "Program · Gameplay" },
+    { id: `obs.target.${away}.${token}`, label: "Break Room" },
+    { id: `obs.mute.${mic}`, label: "Unmuted · Desk Mic" },
+    { id: `obs.brb.scene.${away}`, label: "Configured BRB scene" },
+    { id: `obs.level.${mic}`, label: "Desk Mic" },
+  ] }));
+  const page = await context.newPage();
+  await installFakeEventSource(page);
+  try {
+    await page.goto("http://espdesktop.test/" + testCase.slug + "?events=1");
+    await page.waitForFunction(() => window.__eventSources?.length > 0);
+    await page.evaluate(events => window.__seedEspState(events), nativeDocumentEvents(fixture.document));
+    await page.locator('.sp-main [data-slot="1"]').waitFor();
+    await page.getByRole("tab", { name: "Screen", exact: true }).click();
+    const section = page.locator("#sp-settings .card").filter({ has: page.locator("#sp-set-auto-open-app-subpages") });
+    if (await section.evaluate(node => node.classList.contains("collapsed"))) await section.locator(".card-header").click();
+    await page.getByRole("button", { name: "Add OBS starter page", exact: true }).click();
+    const setup = page.getByRole("dialog", { name: "Add OBS starter page" });
+    await setup.getByRole("option", { name: "Gameplay" }).first().waitFor({ state: "attached" });
+    await setup.getByLabel("Main scene").selectOption("obs.target." + main);
+    await setup.getByLabel("Break scene").selectOption("obs.target." + away);
+    await setup.getByLabel("Microphone").selectOption("obs.mute." + mic);
+    await setup.getByRole("button", { name: "Pin to Home" }).click();
+    await waitForNativeState(fixture, () => fixture.document.subpages[2]?.includes(main),
+      "OBS starter page saves native children and their scene UUIDs");
+    assert.match(fixture.document.buttons[1], /Safari/);
+    assert.match(fixture.document.buttons[2], /OBS Studio/);
+    assert.equal(fixture.document.settings.button_order, "1,2");
+    assert(fixture.document.subpages[2].includes("obs.brb"));
+    assert(!fixture.document.subpages[2].includes(token));
+    await page.getByRole("tab", { name: "Layout", exact: true }).click();
+    await page.locator('.sp-main [data-slot="2"]').click({ button: "right" });
+    await page.getByText("Edit Subpage", { exact: true }).click();
+    await page.locator(".sp-back-btn").waitFor();
+    await page.locator('.sp-main [data-slot="2"]').click({ button: "right" });
+    await page.getByText("Edit Card", { exact: true }).click();
+    const scene = page.locator('select[id$="obs-scene"]');
+    await scene.locator(`option[value="obs.target.${main}"]`).waitFor({ state: "attached" });
+    assert.equal(await scene.inputValue(), "obs.target." + main);
+    console.log("OBS starter page pinned, preserved the Home card, and reopened for editing.");
+  } finally {
+    await context.close();
+  }
+}
+
 async function assertFirstRunSetup(browser) {
   const testCase = CASES.find(item => item.slug === "guition-esp32-s3-4848s040");
   const fixture = nativeConfigState(testCase.slug);
@@ -8016,6 +8077,10 @@ async function assertFirstRunSetup(browser) {
       await assertReorderAfterDelete(browser);
       return;
     }
+    if (process.env.ESPDESKTOP_OBS_STARTER_ONLY === "1") {
+      await assertOBSStarterPage(browser);
+      return;
+    }
     if (process.env.ESPDESKTOP_FIRST_RUN_ONLY === "1") {
       await assertFirstRunSetup(browser);
       return;
@@ -8037,6 +8102,7 @@ async function assertFirstRunSetup(browser) {
       return;
     }
     await assertOBSSceneCard(browser);
+    await assertOBSStarterPage(browser);
     await assertRetiredCardRemoval(browser);
     if (process.env.ESPDESKTOP_RETIRED_CARDS_ONLY === "1") return;
     await assertMacLockCard(browser);

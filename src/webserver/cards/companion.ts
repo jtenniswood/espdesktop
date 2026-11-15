@@ -1,7 +1,7 @@
 import { targetedAudioCard } from "./companion_app_volume";
 import { childPageKey } from "../model/page_keys";
 import { renderCompanionStorageSelector } from "./companion_storage";
-import { COMPANION_FOLDER_PREFIX, COMPANION_OBS_PREFIX, OBS_BRB_ID, OBS_OUTPUT_OPTIONS, OBS_REPLAY_ID, OBS_STATUS_OPTIONS, OBS_TAKE_ID, decodeCompanionCard, encodeCompanionCard, companionMetricForEntity } from "../model/companion_card_codec";
+import { COMPANION_FOLDER_PREFIX, COMPANION_OBS_PREFIX, OBS_BRB_ID, OBS_OUTPUT_OPTIONS, OBS_REPLAY_ID, OBS_STATUS_OPTIONS, OBS_TAKE_ID, savedOBSSceneTarget, decodeCompanionCard, encodeCompanionCard, companionMetricForEntity } from "../model/companion_card_codec";
 import { configOptionEnabled, configOptionValue, setConfigOption, setConfigOptionValue, normalizedCardColorOptions, preserveCardColorOptions, withoutCardColorOptions } from "../model/config_primitives";
 import { createCompanionCatalogue, createCompanionCatalogueMonitor } from "../api/companion_catalogue";
 import type { CompanionAction } from "../api/companion_catalogue";
@@ -479,6 +479,12 @@ export function registerCompanionCardTypes(
         obsControlLabels.clear();
         for (const target of targets) obsControlLabels.set(target.id, target.label);
         for (const action of actions) {
+            const scene = savedOBSSceneTarget(action.id);
+            if (scene) {
+                targets.push({ ...action, id: scene });
+                obsControlLabels.set(scene, action.label);
+                continue;
+            }
             if (/^obs\.take\.[a-f0-9-]{36}$/.test(action.id)) {
                 obsControlLabels.set(OBS_TAKE_ID, action.label);
             } else if (action.id === OBS_BRB_ID || action.id.startsWith(OBS_BRB_ID + ".")) {
@@ -518,7 +524,10 @@ export function registerCompanionCardTypes(
         field.appendChild(note);
         select.disabled = true;
         void loadCompanionActions(true).then(actions => {
-            const targets = rememberOBSControls(actions).filter(action => action.id.startsWith("obs.mute.") === audio);
+            const adaptive = saved.startsWith("obs.target.");
+            const targets = rememberOBSControls(actions).filter(action => audio
+                ? action.id.startsWith("obs.mute.")
+                : adaptive === action.id.startsWith("obs.target.") && !action.id.startsWith("obs.mute."));
             const entries = targets.map(target => new Option(target.label, target.id));
             if (!isNew && !targets.some(target => target.id === saved)) {
                 entries.unshift(new Option(unavailable, saved));

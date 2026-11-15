@@ -1,5 +1,6 @@
 import { screenSchedulePreferencesFromState } from "./model/screen_schedule_preferences";
 import { displayThemePreferencesFromState } from "./model/display_theme_preferences";
+import { createOBSStarterPage } from "./application/obs_starter_page";
 import { createFirstRunSetup } from "./application/first_run_setup";
 import { resetAwareFetch } from "./api/reset_session";
 import type { CardConfig } from "./contracts/types";
@@ -940,7 +941,7 @@ function composeApplicationContext(liveFinderFolders: () => readonly CompanionAc
     screensaverTimeout, screenRotation, appearance, clockBarState, entityState,
     shell, requestApi, statusPreview, schedulePostApi,
     clockBarPostApi, fields, settingsHelpers, scheduleSection,
-    systemSection, preview, connectorsPage, () => firstRunSetup.open(),
+    systemSection, preview, connectorsPage, () => firstRunSetup.open(), () => openOBSStarterPage(),
     async enabled => {
       if (await nativePanelConfig.waitForDiscovery() !== true || !nativePanelConfig.client?.supportsAppSubpagePreference()) {
         shell.showBanner("Could not save automatic app switching. Check the display’s connection and firmware.", "error");
@@ -968,6 +969,15 @@ function composeApplicationContext(liveFinderFolders: () => readonly CompanionAc
       }
     },
   );
+  const openOBSStarterPage = createOBSStarterPage({
+    ...dom, native: nativePanelConfig, layout, shell,
+    onSaved: (mirrorFailed) => {
+      shell.switchTab("screen");
+      nativePages.invalidate();
+      void nativePages.refresh();
+      if (!mirrorFailed) shell.showBanner("OBS page pinned to Home.", "success");
+    },
+  });
   const firstRunSetup = createFirstRunSetup({
     ...dom, capacity: layout.numSlots, supported: !!layout.config.features?.companion,
     native: nativePanelConfig, connectors: connectorsPage, fields, shell,

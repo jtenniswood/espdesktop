@@ -647,17 +647,22 @@ inline bool companion_obs_output_card(const std::string &id) {
   return id == "obs.output.stream" || id == "obs.output.record";
 }
 
+inline bool companion_obs_scene_target(const std::string &id) {
+  return companion_obs_audio_uuid(id, "obs.target.");
+}
+
 inline bool companion_obs_tokenized_card(const std::string &id) {
-  return id == "obs.take" || id == "obs.brb" || companion_obs_output_card(id);
+  return id == "obs.take" || id == "obs.brb" || companion_obs_output_card(id) || companion_obs_scene_target(id);
 }
 
 inline const CompanionAction *companion_published_action(const CompanionRuntimeSnapshot &snapshot,
                                                           const std::string &id) {
   if (!snapshot.connected && id.rfind("obs.", 0) == 0) return nullptr;
+  const bool tokenized = companion_obs_tokenized_card(id);
   const auto item = std::find_if(snapshot.actions.begin(), snapshot.actions.end(), [&](const CompanionAction &action) {
     // Saved tiles outlive the short-lived action for the state they show.
     if (action.id == id) return true;
-    return companion_obs_tokenized_card(id) && action.id.size() > id.size() &&
+    return tokenized && action.id.size() == id.size() + 37 &&
       action.id[id.size()] == '.' && action.id.compare(0, id.size(), id) == 0;
   });
   return item == snapshot.actions.end() ? nullptr : &*item;

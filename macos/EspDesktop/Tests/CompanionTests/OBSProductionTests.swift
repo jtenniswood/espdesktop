@@ -16,6 +16,7 @@ private final class OBSPilotTransport: OBSWebSocketTransport {
     var afterMute: (() -> Void)?
     var transitionCursor = 1.0
     var replayActive = false
+    var studioMode = true
     var streaming = true
     var streamReconnecting = true
     var recording = true
@@ -74,7 +75,11 @@ private final class OBSPilotTransport: OBSWebSocketTransport {
             faderDb = fields["inputVolumeDb"] as? Double ?? -100
             faderMultiplier = fields["inputVolumeMul"] as? Double ?? pow(10, faderDb / 20)
             return [:]
-        case "GetStudioModeEnabled": return ["studioModeEnabled": true]
+        case "GetStudioModeEnabled": return ["studioModeEnabled": studioMode]
+        case "SetCurrentPreviewScene":
+            preview = fields["sceneUuid"] as? String ?? ""
+            onEvent?("CurrentPreviewSceneChanged", scene(preview))
+            return [:]
         case "GetStreamStatus":
             return ["outputActive": streaming, "outputReconnecting": streamReconnecting]
         case "GetRecordStatus":
@@ -536,17 +541,50 @@ final class OBSProductionTests: XCTestCase {
     }
 
     @MainActor
+    func testStarterSceneRechecksStudioModeBeforeChoosingPreviewOrProgram() async throws {
+        let transport = OBSPilotTransport()
+        let connection = try await open(transport)
+        let scene = try XCTUnwrap(UUID(uuidString: OBSPilotTransport.queued))
+        let studioToken = try XCTUnwrap(connection.state?.adaptiveSceneToken)
+        let preview = await connection.performAdaptiveScene(scene, token: studioToken) { true }
+        XCTAssertTrue(preview)
+        XCTAssertEqual(transport.requests.filter { $0 == "SetCurrentPreviewScene" }.count, 1)
+        XCTAssertFalse(transport.requests.contains("SetCurrentProgramScene"))
+
+        transport.studioMode = false
+        let stale = await connection.performAdaptiveScene(scene, token: studioToken) { true }
+        XCTAssertFalse(stale)
+        XCTAssertFalse(transport.requests.contains("SetCurrentProgramScene"))
+        transport.onEvent?("StudioModeStateChanged", ["studioModeEnabled": false])
+        for _ in 0..<40 where connection.state?.studioMode != false {
+            try await Task.sleep(for: .milliseconds(10))
+        }
+        let programToken = try XCTUnwrap(connection.state?.adaptiveSceneToken)
+        XCTAssertNotEqual(studioToken, programToken)
+        let program = await connection.performAdaptiveScene(scene, token: programToken) { true }
+        XCTAssertTrue(program)
+        XCTAssertEqual(transport.programID, OBSPilotTransport.queued)
+    }
+
+    @MainActor
     func testInterruptedTransitionReenablesTakeWithoutEndEvent() async throws {
         let transport = OBSPilotTransport()
-        let connection = try await open(transport, transitionProbeInterval: .milliseconds(1))
+        let domain = "EspDesktop.OBSBreak." + UUID().uuidString
+        let defaults = try XCTUnwrap(UserDefaults(suiteName: domain))
+        defer { defaults.removePersistentDomain(forName: domain) }
+        let connection = try await open(transport, transitionProbeInterval: .milliseconds(1), defaults: defaults)
+        connection.configureBreak(sceneID: OBSPilotTransport.queued, micID: nil)
+        XCTAssertNotNil(connection.state?.breakCard?.token)
         transport.transitionCursor = 0.5
         transport.onEvent?("SceneTransitionStarted", [:])
         XCTAssertFalse(connection.state?.canTakePreview ?? true)
+        XCTAssertNil(connection.state?.breakCard?.token)
         transport.transitionCursor = 1
         for _ in 0..<100 where connection.state?.canTakePreview != true {
             try await Task.sleep(for: .milliseconds(1))
         }
         XCTAssertEqual(connection.state?.canTakePreview, true)
+        XCTAssertNotNil(connection.state?.breakCard?.token)
         XCTAssertTrue(transport.requests.contains("GetCurrentSceneTransitionCursor"))
     }
 }

@@ -69,6 +69,20 @@ final class OBSConnection: ObservableObject {
         }
     }
 
+    struct AdaptiveScene {
+        static let prefix = "obs.target."
+
+        static func command(_ id: String) -> (UUID, UUID)? {
+            guard id.hasPrefix(prefix) else { return nil }
+            let parts = id.dropFirst(prefix.count).split(separator: ".", omittingEmptySubsequences: false)
+            guard parts.count == 2, let scene = UUID(uuidString: String(parts[0])),
+                  let token = UUID(uuidString: String(parts[1])),
+                  id == prefix + scene.uuidString.lowercased() + "." + token.uuidString.lowercased()
+            else { return nil }
+            return (scene, token)
+        }
+    }
+
     struct BreakConfiguration: Codable, Equatable {
         var sceneID: String
         var micID: String?
@@ -106,7 +120,9 @@ final class OBSConnection: ObservableObject {
         var replaySave = ReplaySave.ready
         var transitionInProgress = false
         var takeToken = UUID()
+        var adaptiveSceneToken = UUID()
         var breakCard: BreakCard?
+        var breakSceneID: String?
         var outputTokens: [Output: UUID] = [.stream: UUID(), .record: UUID()]
         var outputsTransitioning: Set<Output> = []
         var outputsPending: Set<Output> = []
@@ -176,8 +192,9 @@ final class OBSConnection: ObservableObject {
     }
 
     static func controlActions(_ state: State?) -> [(id: String, label: String)] {
-        productionActions(state) + sceneActions(state) + audioActions(state) + faderActions(state) + meterActions(state) + coughActions(state) + outputActions(state) +
-            (state?.breakCard.map { [($0.actionID, $0.label)] } ?? [])
+        productionActions(state) + sceneActions(state) + audioActions(state) + faderActions(state) + meterActions(state) + coughActions(state) + outputActions(state) + adaptiveSceneActions(state) +
+            (state?.breakCard.map { [($0.actionID, $0.label)] } ?? []) +
+            (state?.breakSceneID.map { [("obs.brb.scene." + $0, "Configured BRB scene")] } ?? [])
     }
 
     static func outputActions(_ state: State?) -> [(id: String, label: String)] {
@@ -199,6 +216,25 @@ final class OBSConnection: ObservableObject {
                 : (selected ? (state.streaming && !state.streamReconnecting ? "On air · " : "Program · ") : "")
             return (action.id, prefix + scene.name)
         }
+    }
+
+    private static func adaptiveSceneActions(_ state: State?) -> [(id: String, label: String)] {
+        guard let state else { return [] }
+        let token = state.adaptiveSceneToken.uuidString.lowercased()
+        return sceneActions(state).compactMap { action in
+            guard let uuid = action.id.split(separator: ".").last else { return nil }
+            return (AdaptiveScene.prefix + uuid + "." + token, action.label)
+        }
+    }
+
+    func performAdaptiveScene(_ sceneID: UUID, token: UUID, isValid: () -> Bool) async -> Bool {
+        guard isValid(), !breakInFlight, let shown = state, shown.adaptiveSceneToken == token,
+              let scene = shown.scenes.first(where: { UUID(uuidString: $0.id) == sceneID }) else { return false }
+        let active = generation
+        let mode = try? await snapshotRequest("GetStudioModeEnabled", generation: active)
+        guard isValid(), active == generation, !breakInFlight, state?.adaptiveSceneToken == token,
+              mode?["studioModeEnabled"] as? Bool == shown.studioMode else { return false }
+        return await selectScene(id: scene.id, collection: shown.collection, expectedStudioMode: shown.studioMode)
     }
 
     func performSceneAction(_ action: SceneAction) async -> Bool {
@@ -583,6 +619,10 @@ final class OBSConnection: ObservableObject {
 
     private func updateBreakCard(_ snapshot: inout State) {
         let label: String
+        let configured = breakConfigurations[snapshot.collection]
+        snapshot.breakSceneID = configured.flatMap { config in
+            snapshot.scenes.contains(where: { $0.id == config.sceneID }) ? config.sceneID.lowercased() : nil
+        }
         var enabled = false
         if breakNeedsReview {
             label = "BRB · Check OBS"
@@ -592,7 +632,7 @@ final class OBSConnection: ObservableObject {
             label = "Resume"
             enabled = !snapshot.transitionInProgress && snapshot.program?.id == session.target
         } else {
-            guard let configured = breakConfigurations[snapshot.collection],
+            guard let configured,
                   let target = snapshot.scenes.first(where: { $0.id == configured.sceneID }) else {
                 snapshot.breakCard = nil
                 return
@@ -1163,6 +1203,7 @@ final class OBSConnection: ObservableObject {
                    var current = state, current.takeToken == token {
                     transitionProbe = nil
                     current.transitionInProgress = false
+                    updateBreakCard(&current)
                     state = current
                     return
                 }
