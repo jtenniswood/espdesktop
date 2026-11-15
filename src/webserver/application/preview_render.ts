@@ -538,7 +538,7 @@ export function createPreviewRenderFeature(dependencies: PreviewRenderDependenci
                     sizeClass(slotSz) +
                     (c.selected.indexOf(slot) !== -1 ? " sp-selected" : "");
                 const activeColor = cardOnColor || state.onColor || WEB_UI_COLORS.primary;
-                const programColor = btn.classList.contains("sp-obs-program") ? darkerCardColor(activeColor) : "";
+                const programColor = btn.classList.contains("sp-obs-program") ? darkerCardColor(activeColor, 50) : "";
                 let contrastBackground = programColor || (typePreview?.isOn ? cardOnColor : cardOffColor) ||
                     (typePreview?.sensorSurface ? previewColors.surfaceSensor : color);
                 btn.style.backgroundColor = "#" + contrastBackground;

@@ -7901,7 +7901,7 @@ async function assertOBSStarterPage(browser) {
     await streamTile.locator(".mdi-broadcast").waitFor();
     await brbTile.getByText("Resume", { exact: true }).waitFor();
     await page.locator('.sp-main [data-slot="2"].sp-obs-program').waitFor();
-    assert.equal(await mainTile.evaluate(card => getComputedStyle(card).backgroundColor), "rgb(165, 91, 0)");
+    assert.equal(await mainTile.evaluate(card => getComputedStyle(card).backgroundColor), "rgb(127, 70, 0)");
     assert.equal(await breakTile.evaluate(card => getComputedStyle(card).backgroundColor), colors[0]);
     assert.equal(await brbTile.locator('.sp-btn-label').innerText(), "Break");
     assert.equal(await brbTile.evaluate(card => getComputedStyle(card).backgroundColor), colors[0]);
@@ -7910,7 +7910,7 @@ async function assertOBSStarterPage(browser) {
     await page.getByRole("button", { name: "Custom Colours", exact: true }).click();
     await page.getByRole("group", { name: "Active state colour", exact: true }).getByRole("button", { name: "Custom", exact: true }).click();
     await page.getByRole("group", { name: "Active state colour presets", exact: true }).locator('input[type="color"]').fill("#64ad54");
-    assert.equal(await mainTile.evaluate(card => getComputedStyle(card).backgroundColor), "rgb(65, 112, 54)");
+    assert.equal(await mainTile.evaluate(card => getComputedStyle(card).backgroundColor), "rgb(50, 86, 42)");
     await closeSettings.click();
     await page.locator(".sp-back-btn .sp-back-hit").click();
     await recordTile.getByText("Recording", { exact: true }).waitFor({ timeout: 12000 });

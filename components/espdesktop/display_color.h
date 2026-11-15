@@ -129,15 +129,15 @@ constexpr uint32_t card_slider_fill_color(uint32_t rgb) {
   return active;
 }
 
-constexpr uint32_t darker_card_color(uint32_t rgb) {
-  const auto channel = [](uint32_t value) { return value * 65 / 100; };
+constexpr uint32_t darker_card_color(uint32_t rgb, uint32_t percent) {
+  const auto channel = [percent](uint32_t value) { return value * percent / 100; };
   return (channel((rgb >> 16) & 255) << 16) |
          (channel((rgb >> 8) & 255) << 8) | channel(rgb & 255);
 }
 
 // Stripes must preserve the foreground contrast of the active background.
 constexpr uint32_t card_pattern_highlight_color(uint32_t rgb) {
-  if (display_text_color_for_bg(rgb) == 0xFFFFFF) return darker_card_color(rgb);
+  if (display_text_color_for_bg(rgb) == 0xFFFFFF) return darker_card_color(rgb, 65);
   const auto channel = [](uint32_t value) { return value + (255 - value) * 35 / 100; };
   return (channel((rgb >> 16) & 255) << 16) |
          (channel((rgb >> 8) & 255) << 8) | channel(rgb & 255);

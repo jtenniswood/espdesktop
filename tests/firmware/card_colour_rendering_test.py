@@ -29,7 +29,7 @@ void lv_label_set_text(lv_obj_t *, const char *);
 #include "button_grid_subpages.h"
 #include "display_color.h"
 #include "button_grid_style.h"
-static_assert(darker_card_color(0x64AD54) == 0x417036);
+static_assert(darker_card_color(0x64AD54, 50) == 0x32562A);
 using lv_color_t = uint32_t;
 using lv_style_selector_t = int;
 constexpr int LV_PART_MAIN = 0, LV_STATE_DEFAULT = 0, LV_STATE_CHECKED = 1, LV_STATE_PRESSED = 2;

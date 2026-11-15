@@ -401,7 +401,7 @@ inline void setup_card_visual(BtnSlot &s, const ParsedCfg &p,
     palette.has_off, palette.off_val);
   if (p.type == "companion" && companion_obs_scene_card(p.entity)) {
     const auto program = static_cast<lv_style_selector_t>(LV_PART_MAIN) | LV_STATE_USER_1;
-    const uint32_t shade = darker_card_color(palette.on_val);
+    const uint32_t shade = darker_card_color(palette.on_val, 50);
     lv_obj_set_style_bg_color(s.btn, lv_color_hex(shade), program);
     lv_obj_set_style_text_color(s.btn, lv_color_hex(display_text_color_for_bg(shade)), program);
   }
