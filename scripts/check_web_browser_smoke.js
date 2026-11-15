@@ -4255,6 +4255,11 @@ async function assertNativeProfileJourney(browser, testCase) {
   }
 }
 
+async function chooseOBSCard(page, label) {
+  await page.getByRole("button", { name: "OBS Studio card type", exact: true }).click();
+  await page.getByRole("button", { name: label + " card type", exact: true }).click();
+}
+
 async function assertAppVolumeCard(browser) {
   const testCase = CASES.find(item => item.slug === "guition-esp32-s3-4848s040");
   const nativeState = nativeConfigState(testCase.slug);
@@ -4288,8 +4293,7 @@ async function assertAppVolumeCard(browser) {
     const subtype = page.locator('select[id$="audio-type"]');
     assert.deepEqual(await subtype.locator("option").allTextContents(),
       ["Audio Output", "Output Mute", "Output per application",
-        "Audio Input", "Input Mute", "Input Cough", "Input per device level",
-        "OBS Input Level", "OBS Input Mute", "OBS Input Cough"]);
+        "Audio Input", "Input Mute", "Input Cough", "Input per device level"]);
     await subtype.selectOption("companion_app_volume");
     const application = page.getByLabel("Application", { exact: true });
     await application.locator('option[value="app.volume.com.spotify.client"]').waitFor({ state: "attached" });
@@ -4337,8 +4341,7 @@ async function assertAppVolumeCard(browser) {
       .includes(inputID + ";USB Microphone;Microphone;Auto;;;companion_input_device"),
     "Input per device saves the chosen microphone");
     await page.locator(".sp-main .sp-empty-cell").first().click();
-    await page.getByRole("button", { name: "Sound card type", exact: true }).click();
-    await subtype.selectOption("companion_obs_cough");
+    await chooseOBSCard(page, "OBS Input Cough");
     const cough = page.locator('select[id$="obs-cough"]');
     await cough.getByRole("option", { name: "OBS Desk Mic" }).waitFor({ state: "attached" });
     assert.equal(await cough.getByRole("option", { name: "USB Microphone" }).count(), 0);
@@ -4359,7 +4362,7 @@ async function assertAppVolumeCard(browser) {
     assert.equal(await cough.inputValue(), coughID);
     await page.keyboard.press("Escape");
     await page.locator(".sp-main .sp-empty-cell").first().click();
-    await page.getByRole("button", { name: "OBS Output Control card type", exact: true }).click();
+    await chooseOBSCard(page, "OBS Output Control");
     const output = page.locator('select[id$="obs-output"]');
     await output.selectOption("obs.output.record");
     await page.getByRole("button", { name: "Save", exact: true }).click();
@@ -4373,7 +4376,7 @@ async function assertAppVolumeCard(browser) {
     assert.equal(await output.inputValue(), "obs.output.record");
     await page.keyboard.press("Escape");
     await page.locator(".sp-main .sp-empty-cell").first().click();
-    await page.getByRole("button", { name: "OBS BRB card type", exact: true }).click();
+    await chooseOBSCard(page, "OBS BRB");
     await page.getByRole("button", { name: "Save", exact: true }).click();
     await waitForNativeState(nativeState, () => Object.values(nativeState.document.buttons)
       .some(card => card.startsWith("obs.brb;") && card.endsWith(";companion")),
@@ -4471,7 +4474,19 @@ async function assertOBSSceneCard(browser) {
     await page.getByRole("tab", { name: "Layout", exact: true }).click();
     await seedNativeDocument(page, fixture);
     await page.locator(".sp-main .sp-empty-cell").first().click();
-    await page.getByRole("button", { name: "OBS Scene card type", exact: true }).click();
+    const obsGroup = page.getByRole("button", { name: "OBS Studio card type", exact: true });
+    const obsCards = page.locator('#sp-card-type-picker [data-card-type^="companion_obs"]');
+    await obsGroup.waitFor();
+    assert.equal(await obsCards.count(), 0, "individual OBS cards are absent from the top level");
+    await obsGroup.click();
+    assert.deepEqual((await obsCards.evaluateAll(cards => cards.map(card => card.getAttribute("aria-label")))).sort(),
+      ["OBS BRB", "OBS Input Cough", "OBS Input Level", "OBS Input Mute", "OBS Output Control",
+        "OBS Save Replay", "OBS Scene", "OBS Status", "OBS Studio Mode", "OBS Take Live"]
+        .map(label => label + " card type"));
+    assert.equal(await page.getByRole("button", { name: "Sound card type", exact: true }).count(), 0);
+    await page.getByRole("button", { name: "Back to card types", exact: true }).click();
+    assert.equal(await obsGroup.evaluate(group => document.activeElement === group), true);
+    await chooseOBSCard(page, "OBS Scene");
     const picker = page.locator("select[id$='obs-scene']");
     await picker.getByRole("option", { name: "Program · Gameplay" }).waitFor({ state: "attached" });
     await picker.selectOption(id);
@@ -4481,8 +4496,7 @@ async function assertOBSSceneCard(browser) {
     await page.locator('.sp-main [data-slot="3"] .mdi-image').waitFor();
 
     await page.locator(".sp-main .sp-empty-cell").first().click();
-    await page.getByRole("button", { name: "Sound card type", exact: true }).click();
-    await page.locator('select[id$="audio-type"]').selectOption("companion_obs_mic");
+    await chooseOBSCard(page, "OBS Input Mute");
     const micPicker = page.locator("select[id$='obs-mic']");
     await micPicker.getByRole("option", { name: "Muted · Desk Mic" }).waitFor({ state: "attached" });
     assert.equal(await micPicker.getByRole("option", { name: "Program · Gameplay" }).count(), 0);
@@ -4491,13 +4505,13 @@ async function assertOBSSceneCard(browser) {
     await waitForNativeState(fixture, () => fixture.document.buttons[4]?.startsWith(mic + ";"),
       "The OBS mic UUID saves as a Companion card");
     await page.locator(".sp-main .sp-empty-cell").first().click();
-    await page.getByRole("button", { name: "OBS Take Live card type", exact: true }).click();
+    await chooseOBSCard(page, "OBS Take Live");
     await page.getByRole("button", { name: "Save", exact: true }).click();
     await waitForNativeState(fixture, () => fixture.document.buttons[5]?.startsWith("obs.take;"),
       "The Take Live card saves without its transient preview token");
 
     await page.locator(".sp-main .sp-empty-cell").first().click();
-    await page.getByRole("button", { name: "OBS Status card type", exact: true }).click();
+    await chooseOBSCard(page, "OBS Status");
     await page.locator("select[id$='obs-status']").selectOption("obs.status.record");
     await page.getByRole("button", { name: "Save", exact: true }).click();
     await waitForNativeState(fixture, () => fixture.document.buttons[6]?.startsWith("obs.status.record;"),
@@ -4508,7 +4522,7 @@ async function assertOBSSceneCard(browser) {
     await recordingStatus.locator(".mdi-stop").waitFor();
     assert.equal(await recordingStatus.evaluate(tile => getComputedStyle(tile).backgroundColor), "rgb(33, 33, 33)");
     await page.locator(".sp-main .sp-empty-cell").first().click();
-    await page.getByRole("button", { name: "OBS Save Replay card type", exact: true }).click();
+    await chooseOBSCard(page, "OBS Save Replay");
     await page.getByRole("button", { name: "Save", exact: true }).click();
     await waitForNativeState(fixture, () => fixture.document.buttons[7]?.startsWith("obs.replay;"),
       "The OBS replay card saves a stable ID");
@@ -4517,8 +4531,7 @@ async function assertOBSSceneCard(browser) {
     await replayTile.getByText("Start Replay Buffer", { exact: true }).waitFor();
 
     await page.locator(".sp-main .sp-empty-cell").first().click();
-    await page.getByRole("button", { name: "Sound card type", exact: true }).click();
-    await page.locator('select[id$="audio-type"]').selectOption("companion_obs_fader");
+    await chooseOBSCard(page, "OBS Input Level");
     const faderPicker = page.locator("select[id$='obs-level']");
     await faderPicker.getByRole("option", { name: "Desk Mic", exact: true }).waitFor({ state: "attached" });
     await faderPicker.selectOption(fader);
@@ -4532,7 +4545,7 @@ async function assertOBSSceneCard(browser) {
     await page.locator(".sp-settings-overlay.sp-visible .sp-settings-close").click();
 
     await page.locator(".sp-main .sp-empty-cell").first().click();
-    await page.getByRole("button", { name: "OBS Studio Mode card type", exact: true }).click();
+    await chooseOBSCard(page, "OBS Studio Mode");
     await page.getByRole("button", { name: "Save", exact: true }).click();
     await waitForNativeState(fixture, () => fixture.document.buttons[9]?.startsWith("obs.studio;"),
       "Studio Mode saves without the ephemeral OBS token");
@@ -7755,7 +7768,7 @@ async function assertOBSStarterPage(browser) {
     assert(!fixture.document.subpages[2].includes(token));
     await page.getByRole("tab", { name: "Layout", exact: true }).click();
     await page.locator(".sp-main .sp-empty-cell").first().click();
-    await page.getByRole("button", { name: "OBS Output Control card type", exact: true }).click();
+    await chooseOBSCard(page, "OBS Output Control");
     await page.getByLabel("OBS output", { exact: true }).selectOption("obs.output.record");
     await page.getByRole("button", { name: "Card Settings", exact: true }).click();
     const confirmation = page.locator("input[id$='obs-confirm-toggle']");

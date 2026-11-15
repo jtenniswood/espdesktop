@@ -1927,7 +1927,7 @@ export function registerCompanionCardTypes(
         ["companion_url", "Website", "url"],
         ["companion_folder", "Finder Folder", "folder"],
         ["companion_obs", "OBS Scene", "obs"],
-        ["companion_obs_mic", "OBS Mic Mute", "obs_mic"],
+        ["companion_obs_mic", "OBS Input Mute", "obs_mic"],
         ["companion_obs_take", "OBS Take Live", "obs_take"],
         ["companion_obs_studio", "OBS Studio Mode", "obs_studio"],
         ["companion_obs_brb", "OBS BRB", "obs_brb"],
@@ -1942,7 +1942,7 @@ export function registerCompanionCardTypes(
         registry.register(key, {
             ...companionDefinition,
             label,
-            pickerKey: mode === "obs_mic" ? "companion_output_volume" : null,
+            pickerKey: null,
             runtimeSpec: CARD_RUNTIME_SPECS.companion,
             onSelect: function (card?: any) {
                 companionDefinition.onSelect(card);

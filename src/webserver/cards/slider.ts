@@ -594,7 +594,7 @@ export function registerSliderCardTypes(
         ...legacySlider,
         label: "OBS Input Level",
         hidden: false,
-        pickerKey: "companion_output_volume",
+        pickerKey: null,
         onSelect: (card) => Object.assign(card, cardContractDefaultConfig("slider"), {
             entity: OBS_FADER_PREFIX,
             icon: "Microphone",

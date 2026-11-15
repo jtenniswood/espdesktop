@@ -2913,7 +2913,6 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
   },
   "companion_obs_cough": {
     "label": "OBS Input Cough",
-    "pickerKey": "companion_output_volume",
     "allowInSubpage": true,
     "domains": [],
     "normalization": {

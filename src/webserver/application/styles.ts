@@ -360,6 +360,7 @@ export function createWebStyles(dragAnimation: boolean): string {
         ".sp-card-type-tab:focus-visible{outline:none;box-shadow:0 0 0 3px var(--accent-soft);border-radius:4px}" +
         ".sp-card-type-readonly .sp-readonly-value{padding:10px 12px;border:1px solid var(--border);border-radius:6px;background:var(--surface2);color:var(--text);font-size:.9rem}" +
         ".sp-card-type-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px}" +
+        ".sp-card-type-back{margin-bottom:12px}" +
         ".sp-card-type-option{min-width:0;min-height:112px;display:flex;align-items:flex-start;gap:13px;" +
         "padding:16px;border:1px solid var(--border);border-radius:8px;background:var(--surface);" +
         "color:var(--text);font-family:inherit;text-align:left;cursor:pointer;transition:background .2s,border-color .2s,box-shadow .2s}" +

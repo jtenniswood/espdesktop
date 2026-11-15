@@ -1,6 +1,5 @@
 {
   "label": "OBS Input Cough",
-  "pickerKey": "companion_output_volume",
   "allowInSubpage": true,
   "domains": [],
   "normalization": {

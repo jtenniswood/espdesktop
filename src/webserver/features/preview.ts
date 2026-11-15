@@ -77,6 +77,7 @@ const CARD_TYPE_PICKER_DETAILS: Readonly<Record<string, PickerDetails>> = {
   companion_obs_replay: { icon: "history", description: "Save a clip from the running OBS replay buffer." },
   companion_obs_status: { icon: "monitor", description: "Show the OBS program scene, stream, or recording status." },
   companion_obs_fader: { icon: "tune-vertical", description: "Adjust a named audio input in the OBS mixer." },
+  companion_obs_cough: { icon: "microphone-off", description: "Hold to mute a named OBS input." },
   companion_obs_mic: { icon: "microphone", description: "Mute a named input in the OBS mixer." },
   companion_obs: { icon: "monitor", description: "Choose a scene from the connected OBS Studio." },
   companion_shortcut: { icon: "apple-keyboard-command", description: "Run a keyboard shortcut on the Mac." },
