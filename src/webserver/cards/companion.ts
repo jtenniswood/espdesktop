@@ -1,7 +1,7 @@
 import { targetedAudioCard } from "./companion_app_volume";
 import { childPageKey } from "../model/page_keys";
 import { renderCompanionStorageSelector } from "./companion_storage";
-import { COMPANION_FOLDER_PREFIX, COMPANION_OBS_PREFIX, OBS_BRB_ID, OBS_OUTPUT_OPTIONS, OBS_PROGRAM_ID, OBS_REPLAY_BUFFER_ID, OBS_REPLAY_ID, OBS_STUDIO_ID, OBS_STUDIO_OPTIONS, OBS_TAKE_ID, OBS_TRANSITION_ID, savedOBSSceneTarget, decodeCompanionCard, encodeCompanionCard, companionMetricForEntity, obsConfirmableToggle, obsOutputCardEntity } from "../model/companion_card_codec";
+import { COMPANION_FOLDER_PREFIX, COMPANION_OBS_PREFIX, OBS_BRB_ID, OBS_OUTPUT_OPTIONS, OBS_PROGRAM_ID, OBS_REPLAY_BUFFER_ID, OBS_REPLAY_ID, OBS_STUDIO_ID, OBS_STUDIO_OPTIONS, OBS_TAKE_ID, OBS_TRANSITION_ID, savedOBSSceneTarget, decodeCompanionCard, encodeCompanionCard, companionMetricForEntity, obsConfirmableToggle, obsInputName, obsOutputCardEntity } from "../model/companion_card_codec";
 import { configOptionEnabled, configOptionValue, setConfigOption, setConfigOptionValue, normalizedCardColorOptions, preserveCardColorOptions, withoutCardColorOptions } from "../model/config_primitives";
 import { createCompanionCatalogue, createCompanionCatalogueMonitor } from "../api/companion_catalogue";
 import type { CompanionAction } from "../api/companion_catalogue";
@@ -534,7 +534,8 @@ export function registerCompanionCardTypes(
         const saved = card.entity;
         const options: Array<[string, string]> = [["", placeholder]];
         if (!isNew) {
-            options.push([saved, obsControlLabels.get(saved) || unavailable]);
+            const label = obsControlLabels.get(saved);
+            options.push([saved, (audio ? obsInputName(label) : label) || unavailable]);
         }
         const { field, select } = helpers.selectField(name, helpers.idPrefix + (audio ? "obs-mic" : "obs-scene"), options,
             saved, () => {
@@ -555,7 +556,7 @@ export function registerCompanionCardTypes(
             const targets = rememberOBSControls(actions).filter(action => audio
                 ? action.id.startsWith("obs.mute.")
                 : adaptive === action.id.startsWith("obs.target.") && !action.id.startsWith("obs.mute."));
-            const entries = targets.map(target => new Option(target.label, target.id));
+            const entries = targets.map(target => new Option(audio ? obsInputName(target.label) : target.label, target.id));
             if (!isNew && !targets.some(target => target.id === saved)) {
                 entries.unshift(new Option(unavailable, saved));
             }
@@ -1709,7 +1710,7 @@ export function registerCompanionCardTypes(
                 const muted = mode === "obs_mic" && currentLabel?.startsWith("Muted · ");
                 const live = mode === "obs_mic" && currentLabel?.startsWith("Unmuted · ");
                 const label = output ? (record ? (outputOn ? "Recording" : "Record") : "Stream")
-                    : alias || (mode === "obs_mic" ? currentLabel?.replace(/^(Muted|Unmuted) · /, "") : currentLabel) || fallback[mode];
+                    : alias || (mode === "obs_mic" ? obsInputName(currentLabel) : currentLabel) || fallback[mode];
                 const preview = cardBadgePreview(sensor || automaticOutputIcon || muted
                     ? { ...card, icon: muted ? "Microphone Off" : statusIcon } : card, helpers, {
                     label, iconFallback: companionSubtypeDefaultIcon(mode), badge: COMPANION_CARD_METADATA.preview.badge,

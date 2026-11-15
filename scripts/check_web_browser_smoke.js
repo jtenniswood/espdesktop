@@ -4468,6 +4468,7 @@ async function assertOBSSceneCard(browser) {
     json: connectedToOBS ? [
       { id, label: "Program · Gameplay" },
       { id: mic, label: "Muted · Desk Mic" },
+      { id: "obs.mute.45f44c62-1c70-4706-8930-f3ec000db026", label: "Unmuted · Master" },
       { id: fader, label: "Desk Mic" },
       { id: "obs.take.9ea47782-fada-4bb3-aef6-1904669efae7", label: "Take Live · Setup" },
       { id: "obs.studio.9ea47782-fada-4bb3-aef6-1904669efae7", label: studioModeOn ? "On" : "Off" },
@@ -4545,12 +4546,13 @@ async function assertOBSSceneCard(browser) {
     assert.deepEqual(await obsAudioType.locator("option").allTextContents(), ["Level", "Mute", "Cough"]);
     await obsAudioType.selectOption({ label: "Mute" });
     const micPicker = page.locator("select[id$='obs-mic']");
-    await micPicker.getByRole("option", { name: "Muted · Desk Mic" }).waitFor({ state: "attached" });
-    assert.equal(await micPicker.getByRole("option", { name: "Program · Gameplay" }).count(), 0);
+    await micPicker.getByRole("option", { name: "Desk Mic", exact: true }).waitFor({ state: "attached" });
+    assert.deepEqual(await micPicker.locator("option").allTextContents(), ["Choose an audio input…", "Desk Mic", "Master"]);
     await micPicker.selectOption(mic);
     await page.getByRole("button", { name: "Save", exact: true }).click();
     await waitForNativeState(fixture, () => fixture.document.buttons[4]?.startsWith(mic + ";"),
       "The OBS mic UUID saves as a Companion card");
+    await page.locator('.sp-main [data-slot="4"] .mdi-microphone-off').waitFor();
     await page.locator(".sp-main .sp-empty-cell").first().click();
     await chooseOBSCard(page, "Studio Mode");
     await studioPicker.selectOption("obs.status.program");

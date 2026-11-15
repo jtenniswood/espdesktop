@@ -3,7 +3,7 @@ import type { CardConfig } from "../contracts/types";
 import type { NativePanelConfigController } from "../controllers/native_panel_config_controller";
 import { emptyCardConfig, isEmptyCardConfig, OBS_FADER_PREFIX } from "../model/card";
 import { companionCardDefaultIcon } from "../model/companion_card";
-import { OBS_BRB_ID, OBS_STUDIO_ID, OBS_TAKE_ID, savedOBSSceneTarget } from "../model/companion_card_codec";
+import { OBS_BRB_ID, OBS_STUDIO_ID, OBS_TAKE_ID, obsInputName, savedOBSSceneTarget } from "../model/companion_card_codec";
 import { parseGridOrder } from "../model/grid";
 import type { NativeLayoutDraft } from "../model/native_layout_draft";
 import type { NativePanelConfigGraph } from "../model/panel_config_conversion";
@@ -21,7 +21,7 @@ export function obsStarterControls(actions: readonly CompanionAction[]) {
         return id ? [{ id, label: action.label }] : [];
     });
     const mics = actions.filter(action => /^obs\.mute\.[0-9a-f-]{36}$/.test(action.id))
-        .map(action => ({ id: action.id, label: action.label.replace(/^(Muted|Unmuted) · /, "") }));
+        .map(action => ({ id: action.id, label: obsInputName(action.label) }));
     return { ids, scenes, mics };
 }
 
