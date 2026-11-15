@@ -587,4 +587,40 @@ final class OBSProductionTests: XCTestCase {
         XCTAssertNotNil(connection.state?.breakCard?.token)
         XCTAssertTrue(transport.requests.contains("GetCurrentSceneTransitionCursor"))
     }
+
+    @MainActor
+    func testInterruptedNormalModeTransitionReenablesBreakAndResume() async throws {
+        let domain = "EspDesktop.OBSBreak." + UUID().uuidString
+        let defaults = try XCTUnwrap(UserDefaults(suiteName: domain))
+        defer { defaults.removePersistentDomain(forName: domain) }
+        let transport = OBSPilotTransport()
+        transport.studioMode = false
+        let connection = try await open(transport, transitionProbeInterval: .milliseconds(1), defaults: defaults)
+        connection.configureBreak(sceneID: OBSPilotTransport.queued, micID: nil)
+
+        func recoverAfterInterruptedTransition() async throws -> UUID {
+            let original = try XCTUnwrap(connection.state?.breakCard?.token)
+            transport.transitionCursor = 0.5
+            transport.onEvent?("SceneTransitionStarted", [:])
+            XCTAssertNil(connection.state?.breakCard?.token)
+            transport.transitionCursor = 1
+            for _ in 0..<100 where connection.state?.breakCard?.token == nil {
+                try await Task.sleep(for: .milliseconds(1))
+            }
+            let recovered = try XCTUnwrap(connection.state?.breakCard?.token)
+            XCTAssertNotEqual(original, recovered)
+            XCTAssertFalse(connection.state?.canTakePreview ?? true)
+            return recovered
+        }
+
+        let enter = try await recoverAfterInterruptedTransition()
+        let didEnter = await connection.performBreak(token: enter)
+        XCTAssertTrue(didEnter)
+        XCTAssertEqual(connection.state?.breakCard?.label, "Resume")
+
+        let resume = try await recoverAfterInterruptedTransition()
+        let didResume = await connection.performBreak(token: resume)
+        XCTAssertTrue(didResume)
+        XCTAssertEqual(transport.programID, OBSPilotTransport.program)
+    }
 }

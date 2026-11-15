@@ -1188,7 +1188,7 @@ final class OBSConnection: ObservableObject {
     }
 
     private func updateTransitionProbe() {
-        guard state?.studioMode == true, state?.transitionInProgress == true else {
+        guard state?.transitionInProgress == true else {
             transitionProbe?.cancel()
             transitionProbe = nil
             return
