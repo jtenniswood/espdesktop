@@ -253,6 +253,16 @@ int main() {
     obs.actions.push_back({record_action, "Start Recording"});
     assert(companion_obs_output_card("obs.output.record"));
     assert(!companion_obs_output_card(record_action));
+    for (const auto *mode : {"", "both", "unknown"}) {
+      assert(companion_obs_output_needs_confirmation(mode, "Start Recording"));
+      assert(companion_obs_output_needs_confirmation(mode, "Stop Recording"));
+    }
+    assert(companion_obs_output_needs_confirmation("on", "Start Streaming"));
+    assert(!companion_obs_output_needs_confirmation("on", "Stop Streaming"));
+    assert(!companion_obs_output_needs_confirmation("off", "Start Streaming"));
+    assert(companion_obs_output_needs_confirmation("off", "Stop Streaming"));
+    assert(companion_obs_output_needs_confirmation("on", "Unknown direction"));
+    assert(!companion_obs_output_needs_confirmation("none", "Start Recording"));
     assert(companion_action_available(obs, "obs.output.record"));
     assert(!companion_action_available(obs, "obs.output.stream"));
     assert(companion_published_action(obs, "obs.output.record")->id == record_action);

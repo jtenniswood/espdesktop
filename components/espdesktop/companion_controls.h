@@ -647,6 +647,13 @@ inline bool companion_obs_output_card(const std::string &id) {
   return id == "obs.output.stream" || id == "obs.output.record";
 }
 
+inline bool companion_obs_output_needs_confirmation(const std::string &mode, const std::string &label) {
+  if (mode == "none") return false;
+  if (mode == "on" && label.rfind("Stop ", 0) == 0) return false;
+  if (mode == "off" && label.rfind("Start ", 0) == 0) return false;
+  return true;
+}
+
 inline bool companion_obs_scene_target(const std::string &id) {
   return companion_obs_audio_uuid(id, "obs.target.");
 }

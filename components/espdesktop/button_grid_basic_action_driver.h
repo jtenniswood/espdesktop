@@ -144,8 +144,7 @@ inline bool invoke_obs_output(const ParsedCfg &card, lv_obj_t *button, const std
   const auto shown = companion_rendered_obs_action(button);
   if (shown.id.empty() || !companion_action_available(shown.id)) return false;
   const auto mode = cfg_option_value(card.options, "obs_confirm");
-  if (mode == "none" || (mode == "on" && shown.label.rfind("Stop ", 0) == 0) ||
-      (mode == "off" && shown.label.rfind("Start ", 0) == 0))
+  if (!companion_obs_output_needs_confirmation(mode, shown.label))
     return invoke_companion_action(shown.id, request_id);
 
   using Kind = ControlModalKind;
