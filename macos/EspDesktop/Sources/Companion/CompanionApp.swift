@@ -100,6 +100,7 @@ final class CompanionApplicationDelegate: NSObject, NSApplicationDelegate, NSMen
             .removeDuplicates()
             .sink { [weak self] connected in self?.updateStatusItemImage(connected: connected) }
         store.connectSavedDisplays()
+        store.obs.start()
         let openedByUser = !launchedAsLoginItem()
         store.updater.startAutomaticChecks(checkOnLaunch: openedByUser)
         if openedByUser {
@@ -108,6 +109,7 @@ final class CompanionApplicationDelegate: NSObject, NSApplicationDelegate, NSMen
     }
 
     func applicationWillTerminate(_ notification: Notification) {
+        store.obs.stop()
         DistributedNotificationCenter.default().removeObserver(self)
         if instanceLockFileDescriptor >= 0 {
             Darwin.lockf(instanceLockFileDescriptor, F_ULOCK, 0)

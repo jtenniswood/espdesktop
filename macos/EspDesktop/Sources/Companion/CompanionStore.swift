@@ -97,6 +97,7 @@ struct ApprovedFolder: Codable, Identifiable, Hashable {
 @MainActor
 final class CompanionStore: NSObject, ObservableObject {
     let updater = CompanionUpdater()
+    let obs = OBSConnection()
     @Published var settingsRequestID: UUID?
     var requestedSettingsDestination: CompanionSettingsDestination = .displays
     static let privacyPolicyURL = URL(string: "https://espdesktop.com/reference/privacy")!
