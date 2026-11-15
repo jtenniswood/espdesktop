@@ -1917,8 +1917,8 @@ export function registerCompanionCardTypes(
     const obsCoughPrefix = "obs.cough.";
     registry.register("companion_obs_cough", {
         ...registry.definitions.companion_cough,
-        label: "Input Cough",
-        pickerKey: "companion_obs_fader",
+        label: obsCoughDefaults.label,
+        pickerKey: cardContractPickerKey("companion_obs_cough"),
         defaultConfig: () => obsCoughDefaults,
         onSelect: (card) => Object.assign(card, obsCoughDefaults),
         renderPreview: (card, helpers) => cardBadgePreview(card, helpers, {
@@ -1980,7 +1980,7 @@ export function registerCompanionCardTypes(
         registry.register(key, {
             ...companionDefinition,
             label,
-            pickerKey: key === "companion_obs_mic" ? "companion_obs_fader" : null,
+            pickerKey: null,
             runtimeSpec: CARD_RUNTIME_SPECS.companion,
             onSelect: function (card?: any) {
                 companionDefinition.onSelect(card);

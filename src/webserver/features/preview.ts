@@ -122,6 +122,7 @@ const CARD_TYPE_PICKER_DEFAULTS: Readonly<Record<string, string>> = {
 
 const MAC_COMPANION_HIDDEN_CARD_TYPES = new Set([
   "companion", "push", "slider",
+  "companion_obs_mic", "companion_obs_cough",
 ]);
 
 
