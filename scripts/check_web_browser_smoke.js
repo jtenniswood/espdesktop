@@ -4362,64 +4362,88 @@ async function assertShortcutCatalogSettings(browser, testCase) {
     const application = type.getByRole("tab", { name: "Application", exact: true });
     const app = page.locator('[id$="shortcut-catalog-app"]');
     const action = page.locator('[id$="shortcut-catalog-action"]');
-    const search = page.getByRole("searchbox", { name: "Search by name or keys" });
+    const search = page.getByRole("searchbox", { name: "Find a keyboard shortcut…" });
+    const rows = action.getByRole("radio");
+    const selected = action.getByRole("radio", { checked: true });
+    const preset = value => action.locator(`input[value="${value}"]`);
+    async function selectPreset(value) {
+      await preset(value).check();
+      assert.strictEqual(await selected.count(), 1, "only one shortcut is selected");
+      assert.strictEqual(await selected.inputValue(), value);
+    }
+    assert.deepStrictEqual(await type.getByRole("tab").allTextContents(), ["Application", "Custom"]);
     assert.strictEqual(await custom.getAttribute("aria-selected"), "true", "existing custom shortcuts open the Custom tab");
     assert.strictEqual(await page.locator('[id$="companion-shortcut"]').count(), 0, "the recording field is removed");
-    await custom.press("ArrowRight");
+    await custom.press("ArrowLeft");
     assert.strictEqual(await application.getAttribute("aria-selected"), "true");
     assert(await application.evaluate(tab => tab === document.activeElement), "arrow keys focus the selected tab");
     assert(await page.getByRole("tabpanel", { name: "Application" }).isVisible());
     assert.strictEqual(await shortcutPanel.locator('[id$="shortcut-catalog-app"]').count(), 1);
-    assert.strictEqual(await shortcutPanel.locator('[id$="shortcut-catalog-action"]').count(), 1);
     await shortcutToggle.click();
     assert.strictEqual(await app.isVisible(), false);
     assert.strictEqual(await action.isVisible(), false);
     await assertPanelSpacing();
     await shortcutToggle.click();
-    await assertPanelBottomPadding(shortcutPanel, action, "Application Shortcut field");
+    await assertPanelBottomPadding(shortcutPanel, app, "Application app field");
     await assertPanelSpacing();
-    assert.strictEqual(await action.isDisabled(), true, "choose an app first");
+    assert.strictEqual(await action.isVisible(), false, "choose an app first");
+    assert.strictEqual(await search.isVisible(), false, "search appears after choosing an app");
     const appLabels = await app.locator("option").allTextContents();
     assert.strictEqual(appLabels[0], "Choose an app…");
+    assert.deepStrictEqual(appLabels.filter(label => label.startsWith("ChatGPT")), ["ChatGPT"]);
     assert(appLabels.includes("Safari") && appLabels.includes("Slack") && appLabels.includes("Figma"),
       "the Application tab includes bundled presets for Safari and other apps");
     const names = appLabels.slice(1);
     assert.deepStrictEqual(names, [...names].sort((a, b) => a.localeCompare(b, undefined, { sensitivity: "base" })));
     await app.selectOption("com.apple.Safari");
+    assert.strictEqual(await shortcutPanel.locator('[id$="shortcut-catalog-action"]').count(), 1);
     const safariTemplate = JSON.parse(fs.readFileSync(
       path.join(ROOT, "product", "v2", "app_shortcuts", "safari.json"),
       "utf8",
     ));
     const safariShortcutCount = safariTemplate.shortcuts.length + (safariTemplate.safariShortcuts?.length || 0) + (safariTemplate.moreShortcuts?.length || 0);
-    assert.strictEqual(
-      await action.locator("option").count(),
-      safariShortcutCount + 1,
-      "Safari catalog shortcuts plus placeholder",
-    );
+    assert.strictEqual(await rows.count(), safariShortcutCount, "all Safari shortcuts are listed");
+    await assertPanelBottomPadding(shortcutPanel, action, "Application Shortcut list");
     const reloadPreset = "app_shortcut_preset=com.apple.Safari%3A2";
     for (const query of ["reload", "Cmd+R", "⌘R"]) {
       await search.fill(query);
-      const results = await action.locator("option").allTextContents();
-      assert(results.length < safariShortcutCount + 1);
-      assert(results.includes("Reload (⌘R)"), query);
+      assert((await rows.count()) < safariShortcutCount);
+      assert(await action.getByRole("radio", { name: "Reload ⌘R", exact: true }).isVisible(), query);
     }
     await search.fill("ctrl shift tab");
-    assert((await action.locator("option").allTextContents()).includes("Previous Tab (⌃⇧Tab)"));
+    assert(await action.getByRole("radio", { name: "Previous Tab ⌃⇧Tab", exact: true }).isVisible());
     await search.fill("tab");
-    assert((await action.locator("option").allTextContents()).includes("Next Field (Tab)"));
+    assert(await action.getByRole("radio", { name: "Next Field Tab", exact: true }).isVisible());
     await search.fill("zzzz");
     await page.getByRole("status").filter({ hasText: "No matching shortcuts" }).waitFor();
-    assert.strictEqual(await action.locator("option").count(), 1);
+    assert.strictEqual(await rows.count(), 0);
     const beforeInvalidSave = nativeState.puts.length;
     await page.getByRole("button", { name: "Save", exact: true }).click();
     assert.strictEqual(nativeState.puts.length, beforeInvalidSave, "incomplete catalog choice cannot save");
     await search.fill("reload");
-    await action.selectOption(reloadPreset);
+    await selectPreset(reloadPreset);
+    assert(await preset(reloadPreset).evaluate(input => input === document.activeElement),
+      "choosing a shortcut retains keyboard focus");
     assert.strictEqual(await search.inputValue(), "reload", "choosing a shortcut keeps the filter");
     await search.fill("zzzz");
-    assert.strictEqual(await action.inputValue(), reloadPreset, "filtering keeps the selected shortcut");
+    assert.strictEqual(await rows.count(), 0, "nonmatching rows are hidden");
     await search.fill("");
-    assert.strictEqual(await action.locator("option").count(), safariShortcutCount + 1);
+    assert.strictEqual(await selected.inputValue(), reloadPreset, "filtering keeps the selected shortcut");
+    assert.strictEqual(await rows.count(), safariShortcutCount);
+    const newTab = action.getByRole("radio", { name: "New Tab ⌘T", exact: true });
+    await newTab.press("Space");
+    assert(await newTab.isChecked(), "keyboard selection activates the new shortcut");
+    assert(await newTab.evaluate(input => {
+      const list = input.closest(".sp-shortcut-catalog-list");
+      const track = input.nextElementSibling;
+      const style = getComputedStyle(track);
+      const outlineOutset = parseFloat(style.outlineWidth) + parseFloat(style.outlineOffset);
+      const clipRight = list.getBoundingClientRect().left + list.clientLeft + list.clientWidth;
+      return input === document.activeElement && style.outlineStyle !== "none" &&
+        track.getBoundingClientRect().right + outlineOutset <= clipRight;
+    }), "the focused shortcut toggle's outline fits inside the scrolling list");
+    assert.strictEqual(await preset(reloadPreset).isChecked(), false, "selecting a new shortcut clears the previous one");
+    await selectPreset(reloadPreset);
     await saveCard();
     assert(String(nativeState.document.buttons[1]).includes("app_shortcut_preset=com.apple.Safari%3A2"));
     await page.reload({ waitUntil: "domcontentloaded" });
@@ -4430,21 +4454,21 @@ async function assertShortcutCatalogSettings(browser, testCase) {
     assert.strictEqual(await application.getAttribute("aria-selected"), "true", "saved presets open the Application tab");
     await application.click();
     assert.strictEqual(await app.inputValue(), "com.apple.Safari");
-    assert.strictEqual(await action.inputValue(), "app_shortcut_preset=com.apple.Safari%3A2");
+    assert.strictEqual(await selected.inputValue(), reloadPreset);
     const slack = require("../product/v2/app_shortcuts/slack.json");
     const slackPreset = "app_shortcut_preset=" + slack.appId + "%3A" + slack.shortcuts[0].id;
     await app.selectOption("com.apple.FinalCut");
-    assert((await action.locator("option").count()) > 350, "Final Cut Pro has a large catalog");
+    assert((await rows.count()) > 350, "Final Cut Pro has a large catalog");
     await search.fill("blade at playhead");
-    assert.deepStrictEqual(await action.locator("option").allTextContents(),
-      ["Choose a shortcut…", "Blade at Playhead (⌘B)"]);
+    assert.strictEqual(await rows.count(), 1);
+    assert(await action.getByRole("radio", { name: "Blade at Playhead ⌘B", exact: true }).isVisible());
     await search.fill("Cmd+B");
-    assert((await action.locator("option").allTextContents()).includes("Blade at Playhead (⌘B)"));
+    assert(await action.getByRole("radio", { name: "Blade at Playhead ⌘B", exact: true }).isVisible());
     await search.fill("reload");
     await app.selectOption(slack.appId);
     assert.strictEqual(await search.inputValue(), "", "switching apps clears the filter");
     assert.strictEqual(await application.getAttribute("aria-selected"), "true", "changing apps keeps the Application tab selected");
-    await action.selectOption(slackPreset);
+    await selectPreset(slackPreset);
     await saveCard();
     assert(String(nativeState.document.buttons[1]).includes(slackPreset));
     await page.reload({ waitUntil: "domcontentloaded" });
@@ -4454,7 +4478,7 @@ async function assertShortcutCatalogSettings(browser, testCase) {
     await openCard();
     assert.strictEqual(await application.getAttribute("aria-selected"), "true");
     assert.strictEqual(await app.inputValue(), slack.appId);
-    assert.strictEqual(await action.inputValue(), slackPreset);
+    assert.strictEqual(await selected.inputValue(), slackPreset);
     await custom.click();
     assert(await page.getByRole("tabpanel", { name: "Custom" }).isVisible());
     await page.locator('[id$="shortcut-key"]').selectOption("a");
@@ -4527,14 +4551,18 @@ async function assertShortcutCatalogSettings(browser, testCase) {
       await page.locator(".sp-main .sp-empty-cell").first().click();
       await chooseCardType(page, "Key Shortcut");
     };
+    await addShortcut();
+    assert.strictEqual(await application.getAttribute("aria-selected"), "true", "new shortcuts start on Application");
+    assert.strictEqual(await app.inputValue(), "", "new shortcuts on the main grid start without an app");
+    await page.locator(".sp-settings-close").click();
     await page.locator('.sp-main [data-slot="4"] .sp-subpage-badge').click();
     await addShortcut();
     assert.strictEqual(await application.getAttribute("aria-selected"), "true");
     assert.strictEqual(await app.inputValue(), "com.apple.Safari", "new shortcuts start with the page's app");
-    assert.strictEqual(await action.inputValue(), "", "the user still chooses a shortcut");
-    assert.strictEqual(await action.locator("option").count(), safariShortcutCount + 1);
+    assert.strictEqual(await selected.count(), 0, "the user still chooses a shortcut");
+    assert.strictEqual(await rows.count(), safariShortcutCount);
     await search.fill("new tab");
-    assert((await action.locator("option").allTextContents()).includes("New Tab (⌘T)"));
+    assert(await action.getByRole("radio", { name: "New Tab ⌘T", exact: true }).isVisible());
     await app.selectOption("");
     assert.strictEqual(await app.inputValue(), "", "the app selection can be cleared");
     await app.selectOption(slack.appId);
@@ -4542,7 +4570,7 @@ async function assertShortcutCatalogSettings(browser, testCase) {
     assert(await page.getByRole("tabpanel", { name: "Custom" }).isVisible());
     await application.click();
     assert.strictEqual(await app.inputValue(), slack.appId, "switching tabs retains the user's app choice");
-    await action.selectOption(slackPreset);
+    await selectPreset(slackPreset);
     await saveCard();
     const savedSubpage = nativeState.document.subpages[4];
     assert(decodeURIComponent(savedSubpage).includes(slackPreset), "the saved shortcut keeps the selected preset");
@@ -4552,7 +4580,8 @@ async function assertShortcutCatalogSettings(browser, testCase) {
     await page.locator(".sp-back-btn .sp-back-hit").click();
     await page.locator('.sp-main [data-slot="3"] .sp-subpage-badge').click();
     await addShortcut();
-    assert.strictEqual(await custom.getAttribute("aria-selected"), "true", "generic subpages still start on Custom");
+    assert.strictEqual(await application.getAttribute("aria-selected"), "true", "generic subpages start on Application too");
+    assert.strictEqual(await app.inputValue(), "", "generic subpages start without an app");
 
   } finally {
     await context.close();
@@ -4850,8 +4879,13 @@ async function assertAppSubpageCapacity(browser, testCase) {
   const { encodeConfigField } = loadTypeScriptModule("src/webserver/model/config_primitives.ts");
   for (const native of [false, true]) {
     const fixture = nativeConfigState(testCase.slug);
-    fixture.document.buttons[1] = "com.openai.codex;Codex;Auto;Auto;;;companion;;app_shortcuts,app_shortcuts_tabs=0%7C3%7C5%7C6";
-    const subpage = shortcuts.createCompanionShortcutSubpage("com.openai.codex", ["0", "3", "5", "6"]);
+    fixture.document.buttons[1] = "com.openai.codex;Codex;Auto;Auto;;;companion;;app_shortcuts,app_shortcuts_tabs=0%7C3%7C14%7C37";
+    const additionalShortcuts = [
+      ["7", "shortcut.command+n"],
+      ["10", "shortcut.command+f"],
+      ["19", "shortcut.command+shift+a"],
+    ];
+    const subpage = shortcuts.createCompanionShortcutSubpage("com.openai.codex", ["0", "3", "14", "37"]);
     subpage.buttons.push({ type: "companion", entity: "shortcut.command+shift+p", label: "Custom shortcut", icon: "Application", icon_on: "Auto", options: "" });
     subpage.order.push("5", "", "", "");
     fixture.document.subpages[1] = "~" + subpage.order.join(",") + "|" + subpage.buttons.map(card =>
@@ -4882,7 +4916,7 @@ async function assertAppSubpageCapacity(browser, testCase) {
       assert.strictEqual(await page.locator(".sp-main .sp-empty-cell").count(), 3);
       await page.locator(".sp-back-btn .sp-back-hit").click();
       let app = await openAppSettings();
-      for (const id of ["7", "2", "4"]) {
+      for (const [id] of additionalShortcuts) {
         await page.locator("#sp-inp-companion-shortcut-" + id).evaluate(input => input.click());
         assert(await page.locator("#sp-inp-companion-shortcut-" + id).isChecked(), "available shortcut enables");
         assert.strictEqual(await app.getByText(/No free subpage space/).count(), 0, "three empty cells do not produce a full-page warning");
@@ -4891,12 +4925,16 @@ async function assertAppSubpageCapacity(browser, testCase) {
       const saved = () => native ? fixture.document.subpages[1] : Object.entries(legacyTextState)
         .filter(([key]) => key.includes("subpage_1")).map(([,value]) => value).join("");
       const deadline = Date.now() + 10000;
-      while ((!saved()?.includes("shortcut.command+n") || !saved()?.includes("shortcut.option+command+b")) && Date.now() < deadline)
+      const hasAddedShortcuts = () => {
+        const value = saved();
+        return additionalShortcuts.every(([, action]) => value?.includes(action));
+      };
+      while (!hasAddedShortcuts() && Date.now() < deadline)
         await new Promise(resolve => setTimeout(resolve, 25));
-      assert(saved().includes("shortcut.command+n") && saved().includes("shortcut.command+t") && saved().includes("shortcut.option+command+b"), "all three added shortcuts are saved");
+      assert(hasAddedShortcuts(), "all three added shortcuts are saved");
       assert(saved().includes("Custom shortcut"), "the existing custom card is retained");
       app = await openAppSettings();
-      for (const id of ["7", "2", "4"])
+      for (const [id] of additionalShortcuts)
         assert(await page.locator("#sp-inp-companion-shortcut-" + id).isChecked(), "saved shortcut remains enabled when reopened");
       assert.deepStrictEqual(errors, []);
     } finally { await context.close(); }
