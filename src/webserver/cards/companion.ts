@@ -1,3 +1,4 @@
+import { targetedAudioCard } from "./companion_app_volume";
 import { childPageKey } from "../model/page_keys";
 import { renderCompanionStorageSelector } from "./companion_storage";
 import { COMPANION_FOLDER_PREFIX, decodeCompanionCard, encodeCompanionCard, companionMetricForEntity } from "../model/companion_card_codec";
@@ -24,7 +25,7 @@ import {
     type CompanionCardModeId,
 } from "../model/companion_card";
 export { COMPANION_SYSTEM_METRICS } from "../generated/companion_capabilities";
-import type { CardRegistry, CardUiServices } from "../application/card_registry";
+import type { CardDefinition, CardRegistry, CardUiServices } from "../application/card_registry";
 import type { ControlsFieldsFeature } from "../application/controls_fields";
 import type { ConfigCodecFeature } from "../application/config_codec";
 import type { ButtonSettingsSelectionFeature } from "../application/button_settings_selection";
@@ -336,7 +337,7 @@ export function companionEntityForMode(mode: string): string {
 
 export function companionApplicationActions(actions: readonly CompanionAction[]): readonly CompanionAction[] {
     return sortCompanionLabels(actions.filter((action) =>
-        !action.id.startsWith(COMPANION_FOLDER_PREFIX) &&
+        !action.id.startsWith(COMPANION_FOLDER_PREFIX) && !action.id.startsWith("input.level.") &&
         !["media.play_pause", "media.previous", "media.next"].includes(action.id)));
 }
 
@@ -1544,6 +1545,42 @@ export function registerCompanionCardTypes(
     };
     registry.register("companion", companionDefinition);
 
+    registry.register("companion_app_volume", targetedAudioCard(
+        supported, async () => companionApplicationActions(await loadCompanionActions(true)), cardUi, fields, "companion_app_volume"));
+    registry.register("companion_input_device", targetedAudioCard(
+        supported, async () => sortCompanionLabels(await loadCompanionActions(true)), cardUi, fields, "companion_input_device", true));
+
+    function deviceAudioCard(type: string, slider: boolean): CardDefinition {
+        const defaults = cardContractDefaultConfig(type);
+        const metadata = { icon: { fallback: defaults.icon } };
+        return {
+            label: defaults.label,
+            pickerLabel: cardContractCard(type)?.pickerLabel || defaults.label,
+            pickerKey: cardContractPickerKey(type),
+            cardMetadata: metadata,
+            allowInSubpage: cardContractAllowInSubpage(type),
+            isAvailable: () => supported,
+            labelPlaceholder: defaults.label,
+            defaultConfig: () => defaults,
+            onSelect: (card) => Object.assign(card, defaults),
+            renderSettings: (panel, card, _slot, helpers) => {
+                helpers.renderCardIconPicker(panel, card, helpers, metadata.icon);
+            },
+            renderPreview: (card, helpers) => cardBadgePreview(card, helpers, {
+                label: card.label || defaults.label,
+                iconFallback: defaults.icon,
+                iconExtraHtml: slider
+                    ? '<span class="sp-slider-preview"><span class="sp-slider-track"><span class="sp-slider-fill"></span></span></span>'
+                    : "",
+            }),
+        };
+    }
+
+    registry.register("companion_output_volume", deviceAudioCard("companion_output_volume", true));
+    registry.register("companion_input_volume", deviceAudioCard("companion_input_volume", true));
+    registry.register("companion_output_mute", deviceAudioCard("companion_output_mute", false));
+    registry.register("companion_input_mute", deviceAudioCard("companion_input_mute", false));
+
     const macLockDefaults = cardContractDefaultConfig("companion_mac_lock");
     const macLockMetadata = {
         icon: { fallback: macLockDefaults.icon },
@@ -1569,6 +1606,29 @@ export function registerCompanionCardTypes(
         renderPreview: (card, helpers) => cardBadgePreview(card, helpers, {
             ...macLockMetadata.preview,
             label: card.label || macLockDefaults.label,
+        }),
+    });
+
+    const coughDefaults = cardContractDefaultConfig("companion_cough");
+    const coughMetadata = {
+        icon: { fallback: coughDefaults.icon },
+        preview: { iconFallback: coughDefaults.icon, badge: COMPANION_CARD_METADATA.preview.badge },
+    };
+    registry.register("companion_cough", {
+        cardMetadata: coughMetadata,
+        label: coughDefaults.label,
+        pickerKey: cardContractPickerKey("companion_cough"),
+        allowInSubpage: cardContractAllowInSubpage("companion_cough"),
+        isAvailable: () => supported,
+        labelPlaceholder: coughDefaults.label,
+        defaultConfig: () => coughDefaults,
+        onSelect: (card) => Object.assign(card, coughDefaults),
+        renderSettings: (panel, card, _slot, helpers) => {
+            helpers.renderCardIconPicker(panel, card, helpers, coughMetadata.icon);
+        },
+        renderPreview: (card, helpers) => cardBadgePreview(card, helpers, {
+            ...coughMetadata.preview,
+            label: card.label || coughDefaults.label,
         }),
     });
 

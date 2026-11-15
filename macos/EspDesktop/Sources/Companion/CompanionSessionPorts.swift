@@ -26,6 +26,7 @@ extension CompanionSessionPreferences {
 protocol CompanionSessionResources: AnyObject {
     var applicationCatalogueReady: Bool { get }
     func folderActions() -> [ApprovedFolder]
+    func inputDeviceActions() -> [(id: String, label: String)]
     func launchableApps() -> [LaunchableApp]
     func appIconPixels(bundleIdentifier: String, pixelSide: Int) -> Data?
     func focusedCompanionActionIdentifier() async -> String
@@ -34,7 +35,8 @@ protocol CompanionSessionResources: AnyObject {
     func remoteCompanionCatalogues() -> RemoteCompanionCatalogues
     func performResultStatus(actionIdentifier: String, folderOpenBehavior: String, shortcutAppID: String?) async -> String
     func openURL(encodedURL: String, newWindow: Bool) async -> Bool
-    func setMediaControlValue(_ value: Int, controlIdentifier: String) -> Bool
+    func setMediaControlValue(_ value: Int, controlIdentifier: String) async -> Bool
+    func setCoughButtonValue(_ value: Int, from session: ObjectIdentifier) -> Bool
 }
 
 @MainActor
@@ -61,6 +63,8 @@ enum CompanionSessionEvent {
 
 @MainActor
 extension CompanionSessionResources {
+    func inputDeviceActions() -> [(id: String, label: String)] { [] }
+    func setCoughButtonValue(_ value: Int, from session: ObjectIdentifier) -> Bool { false }
     func immediateFocusedApplicationIdentifier() -> String? { nil }
     var applicationCatalogueReady: Bool { true }
     func remoteCompanionCatalogues() -> RemoteCompanionCatalogues { .empty }

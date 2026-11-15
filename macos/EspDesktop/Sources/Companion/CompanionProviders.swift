@@ -13,13 +13,23 @@ protocol SystemMetricsProviding: AnyObject {
 
 @MainActor
 protocol MediaControlling: AnyObject {
+    func refreshInputDevices() -> Bool
+    func inputDeviceActions() -> [(id: String, label: String)]
     func values() -> [String: Int]
     func setValue(_ value: Int, controlIdentifier: String) -> Bool
+    func beginCoughMute() -> Bool
+    func continueCoughMute() -> Bool
+    func endCoughMute() -> Bool
     func unavailableVolumeIDs(
         values: [String: Int],
         previousValues: [String: Int],
         force: Bool
     ) -> Set<String>
+}
+
+extension MediaControlling {
+    func refreshInputDevices() -> Bool { false }
+    func inputDeviceActions() -> [(id: String, label: String)] { [] }
 }
 
 extension SystemMetricsProvider: SystemMetricsProviding {}

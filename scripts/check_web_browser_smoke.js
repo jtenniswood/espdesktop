@@ -4255,6 +4255,87 @@ async function assertNativeProfileJourney(browser, testCase) {
   }
 }
 
+async function assertAppVolumeCard(browser) {
+  const testCase = CASES.find(item => item.slug === "guition-esp32-s3-4848s040");
+  const nativeState = nativeConfigState(testCase.slug);
+  nativeState.document.buttons = {};
+  nativeState.document.subpages = {};
+  nativeState.document.settings.button_order = "";
+  const context = await browser.newContext({ viewport: testCase.viewport });
+  await installRoutes(context, testCase.slug, { nativeState });
+  await context.route("**/companion/actions", route => route.fulfill({
+    status: 200,
+    json: [
+      { id: "com.spotify.client", label: "Spotify" },
+      { id: "com.google.Chrome", label: "Chrome" },
+      { id: "folder.music", label: "Music folder" },
+      { id: "input.level." + "a".repeat(64), label: "USB Microphone" },
+    ],
+  }));
+  try {
+    const page = await context.newPage();
+    await installFakeEventSource(page);
+    await page.goto(`http://espdesktop.test/${testCase.slug}?events=1`);
+    await page.waitForFunction(() => window.__eventSources?.length > 0);
+    await page.getByRole("tab", { name: "Layout", exact: true }).click();
+    await page.evaluate(events => window.__seedEspState(events), nativeDocumentEvents(nativeState.document));
+    await page.locator(".sp-main .sp-empty-cell").first().click();
+    assert.equal(await page.getByRole("button", { name: /^(Input|Output) card type$/ }).count(), 0);
+    await page.getByRole("button", { name: "Sound card type", exact: true }).click();
+    const subtype = page.locator('select[id$="audio-type"]');
+    assert.deepEqual(await subtype.locator("option").allTextContents(),
+      ["Audio Output", "Output Mute", "Output per application",
+        "Audio Input", "Input Mute", "Input Cough", "Input per device level"]);
+    await subtype.selectOption("companion_app_volume");
+    const application = page.getByLabel("Application", { exact: true });
+    await application.locator('option[value="app.volume.com.spotify.client"]').waitFor({ state: "attached" });
+    assert.deepEqual(await application.locator("option").allTextContents(), ["Choose an app…", "Chrome", "Spotify"]);
+    await application.selectOption("app.volume.com.spotify.client");
+    await page.getByRole("button", { name: "Save", exact: true }).click();
+    await waitForNativeState(nativeState, () =>
+      nativeState.document.buttons[1] === "app.volume.com.spotify.client;Spotify;Volume High;Auto;;;companion_app_volume",
+    "App Volume saves the selected app and its label");
+    const card = page.locator('.sp-main [data-slot="1"]');
+    await card.locator(".sp-slider-preview").waitFor();
+    await card.click();
+    await page.getByRole("button", { name: "Edit", exact: true }).click();
+    await application.locator('option[value="app.volume.com.spotify.client"]').waitFor({ state: "attached" });
+    assert.equal(await application.inputValue(), "app.volume.com.spotify.client");
+    await page.keyboard.press("Escape");
+    const deviceAudio = [
+      ["Volume", "output_volume", "Volume High", true],
+      ["Volume", "input_volume", "Microphone", true],
+      ["Mute", "output_mute", "Volume High", false],
+      ["Mute", "input_mute", "Microphone", false],
+    ];
+    for (const [label, control, icon, slider] of deviceAudio) {
+      await page.locator(".sp-main .sp-empty-cell").first().click();
+      await page.getByRole("button", { name: "Sound card type", exact: true }).click();
+      await subtype.selectOption("companion_" + control);
+      await page.getByRole("button", { name: "Save", exact: true }).click();
+      const expected = `media.${control};${label};${icon};Auto;;;companion_${control}`;
+      await waitForNativeState(nativeState, () => Object.values(nativeState.document.buttons).includes(expected),
+        label + " saves its own control");
+      const slot = Object.keys(nativeState.document.buttons).find(key => nativeState.document.buttons[key] === expected);
+      const preview = page.locator(`.sp-main [data-slot="${slot}"]`);
+      assert.equal(await preview.locator(".sp-btn-label").textContent(), label);
+      assert.equal(await preview.locator(".sp-slider-preview").count(), slider ? 1 : 0, label);
+    }
+    await page.locator(".sp-main .sp-empty-cell").first().click();
+    await page.getByRole("button", { name: "Sound card type", exact: true }).click();
+    await subtype.selectOption("companion_input_device");
+    const input = page.getByLabel("Input device", { exact: true });
+    const inputID = "input.level." + "a".repeat(64);
+    await input.locator('option[value="' + inputID + '"]').waitFor({ state: "attached" });
+    await input.selectOption(inputID);
+    await page.getByRole("button", { name: "Save", exact: true }).click();
+    await waitForNativeState(nativeState, () => Object.values(nativeState.document.buttons)
+      .includes(inputID + ";USB Microphone;Microphone;Auto;;;companion_input_device"),
+    "Input per device saves the chosen microphone");
+    console.log("Sound subtypes passed picker and save checks.");
+  } finally { await context.close(); }
+}
+
 async function assertMacLockCard(browser) {
   const testCase = CASES.find(item => item.slug === "guition-esp32-s3-4848s040");
   const nativeState = nativeConfigState(testCase.slug);
@@ -7736,6 +7817,10 @@ async function assertFirstRunSetup(browser) {
       await assertFirstRunSetup(browser);
       return;
     }
+    if (process.env.ESPDESKTOP_APP_VOLUME_ONLY === "1") {
+      await assertAppVolumeCard(browser);
+      return;
+    }
     if (process.env.ESPDESKTOP_MAC_LOCK_ONLY === "1") {
       await assertMacLockCard(browser);
       return;
@@ -7747,6 +7832,7 @@ async function assertFirstRunSetup(browser) {
     await assertRetiredCardRemoval(browser);
     if (process.env.ESPDESKTOP_RETIRED_CARDS_ONLY === "1") return;
     await assertMacLockCard(browser);
+    await assertAppVolumeCard(browser);
     if (process.env.ESPDESKTOP_RETIRED_SETTINGS_ONLY === "1") {
       for (const testCase of ACTIVE_CASES) await assertRetiredSettingsStayUnavailable(browser, testCase);
       await assertNamingOfflineBackups(browser);

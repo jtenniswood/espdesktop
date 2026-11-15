@@ -108,6 +108,7 @@ final class CompanionApplicationDelegate: NSObject, NSApplicationDelegate, NSMen
     }
 
     func applicationWillTerminate(_ notification: Notification) {
+        store.releaseCoughButtons()
         DistributedNotificationCenter.default().removeObserver(self)
         if instanceLockFileDescriptor >= 0 {
             Darwin.lockf(instanceLockFileDescriptor, F_ULOCK, 0)

@@ -9,6 +9,7 @@
 #include <cctype>
 #include <cmath>
 #include <cstdlib>
+#include <cstring>
 #include <functional>
 #include <mutex>
 #include <string>
@@ -83,6 +84,7 @@ inline void companion_cancel_action_result(const std::string &request_id = "") {
 }
 
 inline size_t companion_expire_action_results(uint32_t now) {
+  companion_runtime_service().expire_mute_previews(now);
   size_t expired = 0;
   auto &pending = companion_pending_actions();
   std::lock_guard<std::mutex> lock(pending.mutex);
@@ -98,6 +100,7 @@ inline size_t companion_expire_action_results(uint32_t now) {
 
 inline void companion_deliver_action_result(const std::string &request_id,
                                             const std::string &status) {
+  companion_runtime_service().acknowledge_mute(request_id, status == "performed");
   CompanionActionResultHandler success;
   {
     auto &pending = companion_pending_actions();
@@ -298,13 +301,38 @@ inline void companion_set_keyboard_actions_supported(bool supported) {
   companion_runtime_service().set_keyboard_actions_supported(supported);
 }
 
+inline constexpr char COMPANION_COUGH_ID[] = "media.cough";
+
 inline bool companion_mute_control_valid(const std::string &control_id) {
   return control_id == "media.output_mute" || control_id == "media.input_mute";
 }
 
+inline bool companion_app_volume_control_valid(const std::string &control_id) {
+  constexpr std::string_view prefix = "app.volume.";
+  if (control_id.size() <= prefix.size() || control_id.size() > 107 ||
+      control_id.compare(0, prefix.size(), prefix) != 0) return false;
+  return std::all_of(control_id.begin() + prefix.size(), control_id.end(), [](char c) {
+    return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') ||
+           (c >= '0' && c <= '9') || c == '.' || c == '-';
+  });
+}
+
+inline bool companion_input_device_control_valid(const std::string &id) {
+  constexpr std::string_view prefix = "input.level.";
+  return id.size() == prefix.size() + 64 && id.compare(0, prefix.size(), prefix) == 0 &&
+    std::all_of(id.begin() + prefix.size(), id.end(), [](char c) {
+      return (c >= '0' && c <= '9') || (c >= 'a' && c <= 'f');
+    });
+}
+
 inline bool companion_volume_control_valid(const std::string &control_id) {
   return control_id == "media.output_volume" || control_id == "media.input_volume" ||
-    companion_mute_control_valid(control_id);
+    companion_mute_control_valid(control_id) || companion_app_volume_control_valid(control_id) ||
+    companion_input_device_control_valid(control_id);
+}
+
+inline bool companion_value_control_valid(const std::string &control_id) {
+  return control_id == COMPANION_COUGH_ID || companion_volume_control_valid(control_id);
 }
 
 inline const char *companion_volume_control_label(const std::string &control_id) {
@@ -319,13 +347,19 @@ inline bool companion_value(const std::string &control_id, int &value) {
 }
 
 inline void companion_set_value(const std::string &control_id, int value) {
-  if (!companion_volume_control_valid(control_id)) return;
+  if (!companion_value_control_valid(control_id)) return;
   value = std::max(0, std::min(100, value));
-  companion_runtime_service().set_value(control_id, value);
+  if (companion_app_volume_control_valid(control_id) || companion_input_device_control_valid(control_id)) {
+    // The shared store needs room for the full Mac catalogue and five system controls.
+    constexpr size_t max_audio_values = 256 + 5 + 16;
+    companion_runtime_service().set_value(control_id, value, max_audio_values);
+  } else {
+    companion_runtime_service().set_value(control_id, value);
+  }
 }
 
 inline void companion_remove_value(const std::string &control_id) {
-  if (!companion_volume_control_valid(control_id)) return;
+  if (!companion_value_control_valid(control_id)) return;
   companion_runtime_service().remove_value(control_id);
 }
 
@@ -604,7 +638,7 @@ inline std::string companion_shortcut_label(const std::string &action_id) {
 
 
 inline bool companion_action_available(const CompanionRuntimeSnapshot &snapshot, const std::string &action_id) {
-  if (action_id.empty()) return false;
+  if (action_id.empty() || companion_input_device_control_valid(action_id)) return false;
   if (!snapshot.connected) return false;
   if (companion_shortcut_action_valid(action_id)) return snapshot.keyboard_actions_supported;
   // An older Companion may still advertise retired window identifiers.
@@ -823,17 +857,32 @@ inline void companion_track_slider(lv_obj_t *slider, const std::string &control_
   companion_request_card_refresh();
 }
 
+inline void companion_render_mute(const CompanionMuteRef &ref, bool muted) {
+  if (lv_obj_has_state(ref.button, LV_STATE_CHECKED) != muted)
+    set_card_checked_state(ref.button, muted);
+  const char *icon = muted ? ref.icon_muted : ref.icon_unmuted;
+  if (icon && ref.icon_label && lv_obj_is_valid(ref.icon_label) &&
+      std::strcmp(lv_label_get_text(ref.icon_label), icon) != 0)
+    lv_label_set_text(ref.icon_label, icon);
+}
+
 inline void companion_apply_mute_state(const CompanionMuteRef &ref,
                                        const CompanionRuntimeSnapshot &snapshot) {
   const auto value = std::find_if(snapshot.values.begin(), snapshot.values.end(),
     [&ref](const CompanionValue &candidate) { return candidate.id == ref.control_id; });
   const bool available = snapshot.connected && value != snapshot.values.end();
-  const bool muted = available && value->value > 0;
-  set_card_disabled_state(ref.button, !available);
-  set_card_checked_state(ref.button, muted);
-  const char *icon = muted ? ref.icon_muted : ref.icon_unmuted;
-  if (icon && ref.icon_label && lv_obj_is_valid(ref.icon_label))
-    lv_label_set_text(ref.icon_label, icon);
+  const bool muted = available && companion_runtime_service().displayed_mute_value(ref.control_id, value->value) > 0;
+  if (lv_obj_has_state(ref.button, LV_STATE_DISABLED) == available)
+    set_card_disabled_state(ref.button, !available);
+  companion_render_mute(ref, muted);
+}
+
+inline void companion_paint_mute_preview(const std::string &control, int value) {
+  for (const auto &ref : companion_view_registry().mutes) {
+    if (ref.control_id == control && lv_obj_is_valid(ref.button) &&
+        !lv_obj_has_state(ref.button, LV_STATE_DISABLED))
+      companion_render_mute(ref, value > 0);
+  }
 }
 
 inline bool companion_erase_mute_ref(lv_obj_t *button) {
@@ -859,7 +908,8 @@ inline void companion_track_mute(lv_obj_t *button, const std::string &control_id
                                   lv_obj_t *icon_label = nullptr,
                                   const char *icon_unmuted = nullptr,
                                   const char *icon_muted = nullptr) {
-  if (!button || !companion_mute_control_valid(control_id)) return;
+  if (!button || !(companion_mute_control_valid(control_id) ||
+                   control_id == COMPANION_COUGH_ID)) return;
   companion_forget_mute(button);
   companion_view_registry().mutes.push_back(
     {button, control_id, icon_label, icon_unmuted, icon_muted});
@@ -1067,6 +1117,7 @@ inline void companion_track_mute(void *, const std::string &, void * = nullptr,
 inline void companion_track_slider(void *, const std::string &, void *, bool,
                                    const char *, const char *) {}
 inline void companion_refresh_cards_if_requested() {}
+inline void companion_paint_mute_preview(const std::string &, int) {}
 inline void companion_require_card_focus(void *, const std::string &) {}
 #endif
 
@@ -1074,8 +1125,12 @@ inline bool companion_toggle_mute(const std::string &control_id) {
   int value = 0;
   if (!companion_mute_control_valid(control_id) || !companion_connected() ||
       !companion_value(control_id, value) || !companion_value_sender()) return false;
-  return companion_value_sender()(control_id, value > 0 ? 0 : 100,
-                                  "mute-" + std::to_string(companion_next_request_number()));
+  const int next = companion_runtime_service().displayed_mute_value(control_id, value) > 0 ? 0 : 100;
+  const auto request = "mute-" + std::to_string(companion_next_request_number());
+  if (!companion_value_sender()(control_id, next, request)) return false;
+  companion_runtime_service().preview_mute(control_id, next, request);
+  companion_paint_mute_preview(control_id, next);
+  return true;
 }
 
 inline bool invoke_companion_action(const std::string &action_id,
@@ -1158,7 +1213,7 @@ inline bool invoke_companion_url(const std::string &url_config,
 
 inline bool invoke_companion_value(const std::string &control_id, int value,
                                    const std::string &request_id) {
-  if (!companion_connected() || !companion_volume_control_valid(control_id) ||
+  if (!companion_connected() || !companion_value_control_valid(control_id) ||
       value < 0 || value > 100 || !companion_value_sender() ||
       (companion_mute_control_valid(control_id) && value != 0 && value != 100)) return false;
   return companion_value_sender()(control_id, value, request_id);

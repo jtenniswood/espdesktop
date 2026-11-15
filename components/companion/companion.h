@@ -122,6 +122,7 @@ class CompanionService final : public Component {
   std::atomic<uint32_t> focus_targets_generation_{0};
   std::atomic<bool> focus_targets_supported_{false};
   std::vector<std::pair<std::string, std::string>> catalogue_actions_;
+  size_t catalogue_input_count_{0};
   std::vector<std::string> catalogue_enabled_icons_;
   std::vector<CompanionRemoteDefinition> remote_definitions_;
   uint16_t application_definition_count_{0};
