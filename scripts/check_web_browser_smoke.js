@@ -4654,7 +4654,7 @@ async function assertOBSSceneCard(browser) {
     await recordingControl.getByText("Paused", { exact: true }).waitFor();
     await recordingControl.locator(".mdi-pause").waitFor();
     assert.notEqual(await recordingControl.evaluate(tile => getComputedStyle(tile).backgroundColor), recordingIdle);
-    assert.notEqual(await replayTile.evaluate(tile => tile.style.backgroundColor), replayReadyColor);
+    assert.equal(await replayTile.evaluate(tile => tile.style.backgroundColor), replayReadyColor);
     await page.locator(".sp-settings-overlay.sp-visible .sp-settings-close").click();
     connectedToOBS = false;
     await page.locator('.sp-main [data-slot="3"]').click();

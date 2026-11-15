@@ -20,7 +20,11 @@ inline bool send_slider_action(const std::string &entity_id, int value) {
 inline bool navigation_handle_button_press(const ParsedCfg &config, int slot_num,
                                           lv_obj_t *button);
 inline void handle_button_click(const std::string &cfg, int slot_num,
-                                lv_obj_t *btn_obj);
+                                lv_obj_t *btn_obj, bool touch_followup = false);
+
+inline bool save_replay_keeps_touch(const ParsedCfg &config) {
+  return config.type == "companion" && config.entity == "obs.replay";
+}
 
 inline void handle_button_press(const std::string &cfg, int slot_num,
                                 lv_obj_t *btn_obj) {
@@ -32,7 +36,8 @@ inline void handle_button_press(const std::string &cfg, int slot_num,
     return;
   }
   if (navigation_handle_button_press(p, slot_num, btn_obj)) return;
-  consume_button_touch_press(btn_obj);
+  // Save Replay stays on this page and uses the native pressed colour until release.
+  if (!save_replay_keeps_touch(p)) consume_button_touch_press(btn_obj);
   handle_button_click(cfg, slot_num, btn_obj);
 }
 
@@ -50,10 +55,11 @@ inline bool navigation_driver_handle_main_click(
 
 // Dispatch supported local and Mac card actions.
 inline void handle_button_click(const std::string &cfg, int slot_num,
-                                lv_obj_t *btn_obj) {
+                                lv_obj_t *btn_obj, bool touch_followup) {
   if (screen_lock_enabled()) return;
   (void) btn_obj;
   const ParsedCfg p = grid_layout_card_config(slot_num, cfg);
+  if (touch_followup && save_replay_keeps_touch(p)) return;
   if (card_runtime_type_retired(p.type) || retired_home_assistant_card(p)) return;
   const auto context = card_runtime_context(p);
   ESP_LOGI("button", "Main button %d clicked: type=%s entity=%s mode=%s label=%s",

@@ -256,7 +256,7 @@ inline bool basic_action_driver_bind_subpage(
       auto *click = grid_delete_with_owner(slot.btn,
         new CompanionSubpageActionContext{config, required_focus_id});
       companion_require_card_focus(slot.btn, required_focus_id);
-      bind_immediate_button_action(slot.btn, [](lv_event_t *event) {
+      const auto action = [](lv_event_t *event) {
         auto *context = static_cast<CompanionSubpageActionContext *>(lv_event_get_user_data(event));
         if (!context) return;
         const auto *card = &context->card;
@@ -281,7 +281,11 @@ inline bool basic_action_driver_bind_subpage(
         if (!invoked) {
           ESP_LOGW("companion", "Action unavailable: %s", card->entity.c_str());
         }
-      }, click);
+      };
+      if (config.entity == "obs.replay")
+        lv_obj_add_event_cb(slot.btn, action, LV_EVENT_PRESSED, click);
+      else
+        bind_immediate_button_action(slot.btn, action, click);
       break;
     }
     default:

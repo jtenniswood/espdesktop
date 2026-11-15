@@ -851,10 +851,10 @@ inline void companion_apply_card_focus(lv_obj_t *button, const std::string &acti
   // frontmost app. Keep URL cards from appearing active for the wrong page.
   bool active = false;
   bool on_program = false;
-  if (show_focus && companion_card_focus_allowed(url_config)) {
+  if (show_focus && action_id != "obs.replay" && companion_card_focus_allowed(url_config)) {
     const std::string focus_id = url_config.empty() ? action_id : companion_url_card_focus_id(url_config);
     if (companion_obs_scene_card(action_id) || companion_obs_output_card(action_id) || action_id == "obs.studio" ||
-        action_id == "obs.brb" || action_id == "obs.replay.buffer" || action_id == "obs.replay") {
+        action_id == "obs.brb" || action_id == "obs.replay.buffer") {
       const auto owned = snapshot ? CompanionRuntimeSnapshot{} : companion_runtime_snapshot();
       const auto &current = snapshot ? *snapshot : owned;
       if (companion_obs_output_card(action_id)) {
@@ -862,9 +862,6 @@ inline void companion_apply_card_focus(lv_obj_t *button, const std::string &acti
       } else if (action_id == "obs.studio" || action_id == "obs.replay.buffer") {
         const auto *mode = companion_published_action(current, action_id);
         active = mode && mode->label == "On";
-      } else if (action_id == "obs.replay") {
-        const auto *replay = companion_published_action(current, action_id);
-        active = replay && (replay->label == "Saving" || replay->label == "Saved");
       } else if (action_id == "obs.brb") {
         const auto *action = companion_published_action(current, action_id);
         active = action && companion_obs_break_active(action->label);

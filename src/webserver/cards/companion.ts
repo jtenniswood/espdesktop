@@ -1733,8 +1733,7 @@ export function registerCompanionCardTypes(
                     ...preview,
                     buttonClass: onProgram && !selectedScene ? "sp-obs-program" : undefined,
                     sensorSurface: sensor,
-                    isOn: live || outputOn || (toggle && currentLabel === "On") || (brb && currentLabel === "Resume") ||
-                        (replay && (currentLabel === "Saving" || currentLabel === "Saved")) || selectedScene,
+                    isOn: live || outputOn || (toggle && currentLabel === "On") || (brb && currentLabel === "Resume") || selectedScene,
                     labelEditable: false,
                 };
             }

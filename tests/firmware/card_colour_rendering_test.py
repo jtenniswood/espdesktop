@@ -401,12 +401,14 @@ int main() {
     replay.action_id = "obs.replay";
     set_card_disabled_state(&tile, false);
     CompanionRuntimeSnapshot replay_state;
+    lv_obj_add_state(&tile, LV_STATE_PRESSED);
     for (const auto *status : {"Saving", "Saved", "Ready"}) {
       replay_state.actions = {{"obs.replay", status}};
       companion_render_obs_detail(replay, status);
       companion_apply_card_focus(&tile, "obs.replay", "", true, &replay_state);
       assert(title.content == "Save Replay" && detail.content == status);
-      assert(lv_obj_has_state(&tile, LV_STATE_CHECKED) == (std::string_view(status) != "Ready"));
+      assert(!lv_obj_has_state(&tile, LV_STATE_CHECKED));
+      assert(lv_obj_has_state(&tile, LV_STATE_PRESSED));
     }
     companion_update_obs_detail_contrast(replay, false);
     assert(!lv_obj_has_state(&detail, LV_STATE_DISABLED));

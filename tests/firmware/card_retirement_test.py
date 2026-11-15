@@ -4,7 +4,9 @@ import json,re,subprocess,sys,tempfile
 from production_source import definition
 ROOT=Path(__file__).resolve().parents[2]
 fixtures=json.loads((ROOT/"common/config/card_retirement_fixtures.json").read_text())
-_,click=definition((ROOT/"components/espdesktop/button_grid_actions.h").read_text(),"handle_button_click")
+actions=(ROOT/"components/espdesktop/button_grid_actions.h").read_text()
+_,click=definition(actions,"handle_button_click")
+_,replay_touch=definition(actions,"save_replay_keeps_touch")
 harness=r'''
 #include <cassert>
 #include <string>
@@ -24,12 +26,13 @@ namespace cards {
 '''
 for name in set(re.findall(r'espdesktop::cards::(\w+_handle_main_click)',click)):
     harness+='template<typename... T> bool '+name+'(T&&...) {assert(false && "retired card reached a live action driver"); return false;}\n'
-harness+='}}\n'+click+'\nint main(){\n'
+harness+='}}\n'+replay_touch+'\n'+click+'\nint main(){\n'
 for fixture in fixtures:
     c=fixture['card']; fields=','.join(json.dumps(c.get(k,'')) for k in ('type','entity','sensor','label','options'))
     harness+='current={'+fields+'}; assert(retired_home_assistant_card(current)=='+str(fixture['retired']).lower()+');\n'
-    if fixture['retired']: harness+='handle_button_click("saved",1,nullptr);\n'
-harness+='for (const auto *type : {"action", "local", "option_select", "A", "U"}) { current={type,"old.entity","local","Saved action","keep=old"}; assert(card_runtime_type_retired(current.type)); handle_button_click("saved",1,nullptr); }\n'
+    if fixture['retired']: harness+='handle_button_click("saved",1,nullptr,false);\n'
+harness+='for (const auto *type : {"action", "local", "option_select", "A", "U"}) { current={type,"old.entity","local","Saved action","keep=old"}; assert(card_runtime_type_retired(current.type)); handle_button_click("saved",1,nullptr,false); }\n'
+harness+='current={"companion","obs.replay","","",""}; handle_button_click("replay",1,nullptr,true);\n'
 harness+='}\n'
 with tempfile.TemporaryDirectory() as directory:
     cpp=Path(directory)/'test.cpp'; exe=Path(directory)/'test'; cpp.write_text(harness)

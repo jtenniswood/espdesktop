@@ -39,21 +39,27 @@ TOUCH_HELPER
 bool locked = false;
 bool screen_lock_enabled() { return locked; }
 constexpr int MAX_GRID_SLOTS = 36;
-struct ParsedCfg { std::string type; };
-ParsedCfg grid_layout_card_config(int, const std::string &type) { return {type}; }
+struct ParsedCfg { std::string type, entity; };
+ParsedCfg grid_layout_card_config(int, const std::string &type) {
+  return type == "replay" ? ParsedCfg{"companion", "obs.replay"} : ParsedCfg{type, ""};
+}
 int cough_presses = 0;
 void cough_button_press(lv_obj_t *) { ++cough_presses; }
 bool navigation = false;
 bool navigation_handle_button_press(const ParsedCfg &, int, lv_obj_t *) { return navigation; }
 int calls = 0;
-void handle_button_click(const std::string &, int, lv_obj_t *) {
-  assert(pointer.waiting); ++calls;
+void handle_button_click(const std::string &config, int, lv_obj_t *button, bool touch_followup = false) {
+  assert(!touch_followup);
+  assert(pointer.waiting == (config != "replay"));
+  if (config == "replay") assert(button->state == LV_STATE_PRESSED);
+  ++calls;
 }
 '''
 code = code.replace('TOUCH_HELPER', (HEADERS / 'button_grid_touch.h').read_text().replace('#pragma once', '').replace('#include "card_text_contrast.h"', ''))
 actions = (HEADERS / "button_grid_actions.h").read_text()
-start = actions.index("inline void handle_button_press(")
-code += actions[start:actions.index("\n}", start) + 2]
+start = actions.index("inline bool save_replay_keeps_touch(")
+press = actions.index("inline void handle_button_press(", start)
+code += actions[start:actions.index("\n}", press) + 2]
 code += r'''
 int main() {
   lv_obj_t button;
@@ -90,6 +96,9 @@ int main() {
   navigation = false;
   handle_button_press("app", 1, &button);
   assert(calls == before + 1 && pointer.waiting);
+  pointer.waiting = false; button.state = LV_STATE_PRESSED;
+  handle_button_press("replay", 1, &button);
+  assert(calls == before + 2 && !pointer.waiting && button.state == LV_STATE_PRESSED);
   // Keyboard/programmatic events without a pointer remain supported.
   input = nullptr; consume_button_touch_press(&button);
 }
@@ -100,6 +109,7 @@ widget = (ROOT / "common/device/button_widget.yaml").read_text()
 assert 'event: "PRESS"' in widget and 'event: "TAP"' in widget and 'event: "HOLD"' in widget
 touch_binding = (ROOT / "common/device/button_widget_touch.yaml").read_text()
 assert touch_binding.index("decide_grid_touch(") < touch_binding.index("handle_button_press(")
+assert "/*touch_followup=*/true" in touch_binding
 assert "LV_EVENT_RELEASED" in (HEADERS / "button_grid_sliders.h").read_text()
 with tempfile.TemporaryDirectory(prefix="espdesktop-immediate-actions-") as temp:
     source, binary = Path(temp) / "test.cpp", Path(temp) / "test"
