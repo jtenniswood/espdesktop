@@ -1420,12 +1420,6 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
         "icon": "Chat Plus"
       },
       {
-        "id": "87",
-        "label": "New Chat",
-        "shortcut": "command+shift+o",
-        "icon": "Chat Plus"
-      },
-      {
         "id": "88",
         "label": "Quick Chat",
         "shortcut": "command+option+n",

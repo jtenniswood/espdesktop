@@ -347,7 +347,6 @@ export function runCompanionShortcutFeatureTests(): void {
   const expectedCodexShortcuts = [
     ["Chat Bar / Mini", "option+space"],
     ["New Chat", "command+n"],
-    ["New Chat", "command+shift+o"],
     ["Quick Chat", "command+option+n"],
     ["Temporary Chat", "command+shift+n"],
     ["Find Text", "command+f"],

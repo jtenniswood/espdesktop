@@ -46,6 +46,8 @@ See how to [move or copy cards between Home and a subpage](/features/home#organi
 
 Press **Command + /** in ChatGPT Desktop to see or customize its keyboard shortcuts. To search past chats from the display, assign **Switch chat…** (chat search) a shortcut in ChatGPT Desktop, then create a [custom Key Shortcut card](/mac-controls/shortcuts#create-a-shortcut-card) with the same keys.
 
+**New Chat** sends **Command + N**.
+
 **Chat Bar / Mini** sends **Option + Space**. ChatGPT Desktop may call this action **Toggle Mini** in its Keyboard Shortcuts settings.
 
 The **Next Tab** and **Previous Tab** tiles use **Control + Tab** and **Control + Shift + Tab**. To use those keys to cycle through recently viewed chats instead, assign them to **Next recently viewed chat** and **Previous recently viewed chat** under **Settings → Keyboard Shortcuts** in ChatGPT Desktop. Saved tiles keep their names and keys when the preset list changes.
