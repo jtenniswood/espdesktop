@@ -610,6 +610,7 @@ export function registerCompanionCardTypes(
     function renderOBSConfirmation(panel: HTMLElement, card: { entity: string; options: string }, helpers: any): void {
         const control = obsConfirmationControl(card.entity);
         if (!control) return;
+        const confirmation = helpers.disclosureSection("Confirmation", helpers.idPrefix + "obs-confirmation", false);
         const save = (key: string, value: string) => {
             card.options = setConfigOptionValue(card.options, key, value);
             helpers.saveField("options", card.options);
@@ -618,7 +619,7 @@ export function registerCompanionCardTypes(
         const section = document.createElement("div");
         section.hidden = stored === "none";
         let when = ["on", "off", "both"].includes(stored) ? stored : control.when;
-        helpers.renderCardOptionToggle(panel, card, helpers, {
+        helpers.renderCardOptionToggle(confirmation.section, card, helpers, {
             label: "Confirmation Required", idSuffix: "obs-confirm-toggle", checked: !section.hidden,
             onChange: (_: unknown, __: unknown, checked: boolean) => {
                 section.hidden = !checked;
@@ -641,7 +642,8 @@ export function registerCompanionCardTypes(
             input.maxLength = limit;
             input.addEventListener("input", () => save(key, input.value));
         }
-        panel.appendChild(section);
+        confirmation.section.appendChild(section);
+        panel.appendChild(confirmation.panel);
     }
 
     function renderOBSProductionSettings(panel: HTMLElement, card: { entity: string; icon: string; options: string; label: string }, helpers: any, mode: "obs_status" | "obs_replay" | "obs_replay_buffer" | "obs_output" | "obs_brb" | "obs_studio" | "obs_transition"): void {
@@ -720,9 +722,7 @@ export function registerCompanionCardTypes(
             note.textContent = descriptions[studio ? "obs_studio" : mode];
             panel.appendChild(note);
         }
-        if (obsConfirmationControl(card.entity)) {
-            renderOBSConfirmation(panel, card, helpers);
-        }
+        renderOBSConfirmation(panel, card, helpers);
         helpers.renderCardIconPicker(panel, card, helpers, COMPANION_CARD_METADATA.icon);
     }
 

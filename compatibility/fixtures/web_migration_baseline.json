@@ -169,6 +169,6 @@
   },
   "bundleBudget": {
     "minified": 2950000,
-    "gzip": 1158400
+    "gzip": 1158500
   }
 }

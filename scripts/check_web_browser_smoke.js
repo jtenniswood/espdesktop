@@ -4501,17 +4501,21 @@ async function assertOBSSceneCard(browser) {
     const replayBufferTile = page.locator('.sp-main [data-slot="1"]');
     const programTile = page.locator('.sp-main [data-slot="2"]');
     const confirmation = page.locator("input[id$='obs-confirm-toggle']");
+    const confirmationPanel = page.getByRole("button", { name: "Confirmation", exact: true });
     const confirmationDirection = page.locator(".sp-segment")
       .filter({ has: page.getByRole("button", { name: "Both", exact: true }) }).locator("button.active");
-    const openCardSettings = async () => {
-      if (!(await confirmation.isVisible())) await page.getByRole("button", { name: "Card Settings", exact: true }).click();
+    const openConfirmation = async () => {
+      assert.equal(await page.getByRole("button", { name: "Card Settings", exact: true }).getAttribute("aria-expanded"), "false");
+      assert.equal(await confirmationPanel.getAttribute("aria-expanded"), "false");
+      await confirmationPanel.click();
+      await page.getByText("Confirmation Required", { exact: true }).waitFor();
     };
     const editCard = async tile => {
       await tile.click({ button: "right" });
       await page.locator(".sp-ctx-menu").getByText("Edit Card", { exact: true }).click();
     };
     await editCard(replayBufferTile);
-    await openCardSettings();
+    await openConfirmation();
     assert(await confirmation.isChecked());
     assert.equal(await confirmationDirection.textContent(), "Stop");
     await page.getByRole("button", { name: "Both", exact: true }).click();
@@ -4630,7 +4634,7 @@ async function assertOBSSceneCard(browser) {
 
     await page.locator(".sp-main .sp-empty-cell").first().click();
     await chooseOBSCard(page, "Studio Mode");
-    await openCardSettings();
+    await openConfirmation();
     assert(await confirmation.isChecked());
     assert.equal(await confirmationDirection.textContent(), "Off");
     await page.getByRole("button", { name: "Save", exact: true }).click();
@@ -4660,7 +4664,7 @@ async function assertOBSSceneCard(browser) {
     const transitionType = page.locator("select[id$='obs-transition-type']");
     assert.deepEqual(await transitionType.locator("option").allTextContents(), ["Cycle transitions", "Select a transition"]);
     assert.equal(await transitionType.inputValue(), "obs.transition");
-    await confirmation.waitFor({ state: "detached" });
+    await confirmationPanel.waitFor({ state: "detached" });
     const transitionTitle = studioTile.locator(".sp-btn-label");
     const transitionDetail = studioTile.locator(".sp-obs-detail");
     await page.getByRole("button", { name: "Save", exact: true }).click();
@@ -4721,6 +4725,7 @@ async function assertOBSSceneCard(browser) {
     await page.locator(".sp-settings-overlay.sp-visible .sp-settings-close").click();
     await editCard(programTile);
     await studioPicker.selectOption("obs.multiview");
+    await confirmationPanel.waitFor({ state: "detached" });
     await page.getByRole("button", { name: "Save", exact: true }).click();
     await waitForNativeState(fixture, () => fixture.document.buttons[2]?.startsWith("obs.multiview;"),
       "Multiview saves as a Studio Mode action");
@@ -8007,8 +8012,9 @@ async function assertOBSStarterPage(browser, firstRun = false) {
     await page.locator(".sp-main .sp-empty-cell").first().click();
     await chooseOBSCard(page, "Output Controls");
     await page.getByLabel("OBS output", { exact: true }).selectOption("obs.output.record");
-    await page.getByRole("button", { name: "Card Settings", exact: true }).click();
+    await page.getByRole("button", { name: "Confirmation", exact: true }).click();
     const confirmation = page.locator("input[id$='obs-confirm-toggle']");
+    await page.getByText("Confirmation Required", { exact: true }).waitFor();
     assert(await confirmation.isChecked(), "existing and new OBS cards confirm both directions by default");
     assert.equal(await page.getByText("Off means stopping the output. On means starting it.", { exact: true }).count(), 0);
     await page.getByRole("button", { name: "Start", exact: true }).click();
