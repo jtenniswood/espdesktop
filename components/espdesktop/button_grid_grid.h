@@ -97,25 +97,27 @@ inline bool grid_update_finder_folders(const CompanionRuntimeSnapshot &snapshot)
   });
 }
 
-inline std::vector<CompanionAction> &grid_live_obs_tiles(bool sources) {
+inline std::vector<CompanionAction> &grid_live_obs_tiles(OBSSubpageKind kind) {
   static std::vector<CompanionAction> sources_catalogue;
   static std::vector<CompanionAction> transitions_catalogue;
-  return sources ? sources_catalogue : transitions_catalogue;
+  static std::vector<CompanionAction> audio_catalogue;
+  if (kind == OBSSubpageKind::audio) return audio_catalogue;
+  return kind == OBSSubpageKind::sources ? sources_catalogue : transitions_catalogue;
 }
 
-inline bool grid_update_obs_subpage(const CompanionRuntimeSnapshot &snapshot, bool sources) {
+inline bool grid_update_obs_subpage(const CompanionRuntimeSnapshot &snapshot, OBSSubpageKind kind) {
   // During a reconnect or collection switch, keep the old tiles disabled until
   // OBS has published the replacement list.
-  if (!companion_published_action(snapshot, sources ? "obs.sources" : "obs.status.program")) return false;
-  auto entries = obs_subpage_catalogue(snapshot, sources);
-  auto &previous = grid_live_obs_tiles(sources);
+  if (!companion_published_action(snapshot, kind == OBSSubpageKind::sources ? "obs.sources" : "obs.status.program")) return false;
+  auto entries = obs_subpage_catalogue(snapshot, kind);
+  auto &previous = grid_live_obs_tiles(kind);
   if (finder_folder_catalogue_equal(previous, entries)) return false;
   previous = std::move(entries);
   const auto *pages = espdesktop::grid_native_pages();
-  return pages && std::any_of(pages->pages.begin(), pages->pages.end(), [sources](const auto &page) {
+  return pages && std::any_of(pages->pages.begin(), pages->pages.end(), [kind](const auto &page) {
     const auto config = grid_layout_card_config(page.key, {});
     return config.type == "subpage" &&
-      cfg_option_value(config.options, "subpage_kind") == (sources ? "obs_sources" : "obs_transitions");
+      obs_subpage_kind(cfg_option_value(config.options, "subpage_kind")) == kind;
   });
 }
 
@@ -1435,12 +1437,11 @@ inline void grid_phase2(
                                  grid_live_finder_folders(),
                                  companion_folder_open_behavior(p));
     } else {
-      const auto kind = cfg_option_value(p.options, "subpage_kind");
-      if (kind == "obs_transitions" || kind == "obs_sources") {
-        const bool sources = kind == "obs_sources";
+      const auto kind = obs_subpage_kind(cfg_option_value(p.options, "subpage_kind"));
+      if (kind != OBSSubpageKind::none) {
         const int capacity = bounded_grid_slots(cfg.configured_slots > 0 ? cfg.configured_slots : NS);
         project_obs_subpage_tiles(sp_ord, sp_btns, NS, COLS, capacity,
-                                 grid_live_obs_tiles(sources), p.options, sources);
+                                 grid_live_obs_tiles(kind), p.options, kind);
       }
     }
 

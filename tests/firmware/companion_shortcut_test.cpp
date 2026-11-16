@@ -66,7 +66,7 @@ int main() {
     const std::string token = ".11111111-1111-1111-1111-111111111111";
     CompanionRuntimeSnapshot snapshot;
     snapshot.actions = {{prefix + a + token, "Fade"}, {prefix + b, "Cut"}, {prefix + c + token, "Slide"}};
-    const auto catalogue = obs_subpage_catalogue(snapshot, false);
+    const auto catalogue = obs_subpage_catalogue(snapshot, OBSSubpageKind::transitions);
     assert(catalogue.size() == 3 && catalogue.front().id == prefix + a);
     const auto folder = parse_cfg(";;Flip Horizontal;Auto;;;subpage;;subpage_kind=obs_transitions,obs_transition_order=" +
                                   c + "|!" + a);
@@ -74,7 +74,7 @@ int main() {
     SubpageOrder order;
     parse_subpage_order("B,1", 4, cards.size(), order);
     normalize_subpage_order_spans(order, 4, 2);
-    project_obs_subpage_tiles(order, cards, 4, 2, 4, catalogue, folder.options, false);
+    project_obs_subpage_tiles(order, cards, 4, 2, 4, catalogue, folder.options, OBSSubpageKind::transitions);
     assert(cards.size() == 3 && cards[0].entity == "obs.take" && cards[1].entity == prefix + c && cards[2].entity == prefix + b);
     assert(order.positions[1] == 1 && order.positions[2] == 2 && order.positions[3] == 3);
   }
@@ -86,14 +86,34 @@ int main() {
     CompanionRuntimeSnapshot snapshot;
     snapshot.connected = true;
     snapshot.actions = {{"obs.sources", "Preview"}, {command, "Camera"}, {marker, "Camera"}, {game, "Game"}};
-    const auto catalogue = obs_subpage_catalogue(snapshot, true);
+    const auto catalogue = obs_subpage_catalogue(snapshot, OBSSubpageKind::sources);
     assert(catalogue.size() == 2 && catalogue.front().id == camera);
     assert(companion_action_available(snapshot, camera) && !companion_action_available(snapshot, game));
     std::vector<SubpageBtn> cards;
     SubpageOrder order;
     parse_subpage_order("B", 4, cards.size(), order);
-    project_obs_subpage_tiles(order, cards, 4, 2, 4, catalogue, "obs_source_order=!" + std::string(32, 'a'), true);
+    project_obs_subpage_tiles(order, cards, 4, 2, 4, catalogue, "obs_source_order=!" + std::string(32, 'a'), OBSSubpageKind::sources);
     assert(cards.size() == 1 && cards.front().entity == game);
+  }
+  {
+    const std::string mic = "obs.level.33333333-3333-3333-3333-333333333333";
+    const std::string game = "obs.level.44444444-4444-4444-4444-444444444444";
+    const std::string music = "obs.level.55555555-5555-5555-5555-555555555555";
+    CompanionRuntimeSnapshot snapshot;
+    snapshot.actions = {{mic, "Mic"}, {"obs.level.invalid", "Invalid"}, {game, "Game"}, {music, "Music"}};
+    const auto catalogue = obs_subpage_catalogue(snapshot, OBSSubpageKind::audio);
+    assert(catalogue.size() == 3 && catalogue.front().id == mic);
+    const auto folder = parse_cfg(";;Microphone;Auto;;;subpage;;subpage_kind=obs_audio,obs_audio_order=" +
+                                  std::string(32, '5') + "|!" + std::string(32, '3'));
+    std::vector<SubpageBtn> cards{{"obs.take", "Take Live", "Arrow Right", "Auto", "", "", "companion", "", ""}};
+    SubpageOrder order;
+    parse_subpage_order("B,1", 4, cards.size(), order);
+    normalize_subpage_order_spans(order, 4, 2);
+    project_obs_subpage_tiles(order, cards, 4, 2, 4, catalogue, folder.options, OBSSubpageKind::audio);
+    assert(cards.size() == 3 && cards[0].entity == "obs.take" && cards[1].entity == music && cards[2].entity == game);
+    const auto fader = parsed_cfg_from_subpage_btn(cards[1]);
+    assert(fader.type == "slider" && fader.label == "Music" && fader.icon == "Microphone");
+    assert(companion_volume_control_valid(fader.entity));
   }
   assert_finder_folder_projection();
   const auto mac_lock = normalize_parsed_cfg(

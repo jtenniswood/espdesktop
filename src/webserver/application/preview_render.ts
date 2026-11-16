@@ -623,29 +623,41 @@ export function createPreviewRenderFeature(dependencies: PreviewRenderDependenci
                 empty.className = "sp-empty-cell";
                 empty.setAttribute("data-pos", pos);
                 empty.innerHTML = '<span class="sp-add-pill"><span class="sp-add-icon mdi mdi-plus"></span></span>';
+                main.appendChild(empty);
                 const folder = liveFolders?.get(pos);
                 if (folder) {
                     const tile = document.createElement("div");
                     tile.className = "sp-live-folder-preview";
                     tile.title = liveKind ? "Automatic OBS card. Click the cell to add a saved tile."
                         : "Live Finder folder. Click the cell to add a saved tile.";
-                    const icon = document.createElement("span");
-                    icon.className = "sp-btn-icon mdi mdi-" + iconSlug(liveKind ? OBS_SUBPAGES[liveKind].icon : companionCardDefaultIcon("folder"));
-                    icon.setAttribute("aria-hidden", "true");
-                    const label = document.createElement("span");
-                    label.className = "sp-btn-label";
-                    label.textContent = folder.label;
-                    tile.append(icon, label);
-                    empty.style.backgroundColor = "#" + defaultCardBackgroundColor("companion", state);
+                    const audio = liveKind === "obs_audio";
+                    const background = defaultCardBackgroundColor(audio ? "slider" : "companion", state);
+                    empty.style.backgroundColor = "#" + background;
+                    empty.appendChild(tile);
+                    const slider = audio ? dependencies.cards.definitions.slider?.renderPreview?.(
+                        { entity: folder.id, label: folder.label }, { escHtml }) as
+                        { iconHtml: string; labelHtml: string; sliderMuted: boolean } | undefined : undefined;
+                    if (slider) {
+                        tile.innerHTML = slider.iconHtml + slider.labelHtml;
+                        const fill = slider.sliderMuted ? "808080" : state.onColor || WEB_UI_COLORS.primary;
+                        tile.style.setProperty("--card-slider-fill-color", "#" + fill);
+                        applySliderPreviewTextContrast(tile, "#" + previewColors.textPrimary, fill);
+                    } else {
+                        const icon = document.createElement("span");
+                        icon.className = "sp-btn-icon mdi mdi-" + iconSlug(liveKind ? OBS_SUBPAGES[liveKind].icon : companionCardDefaultIcon("folder"));
+                        icon.setAttribute("aria-hidden", "true");
+                        const label = document.createElement("span");
+                        label.className = "sp-btn-label";
+                        label.textContent = folder.label;
+                        tile.append(icon, label);
+                    }
                     if (folder.id === selectedTransition || (liveKind === "obs_sources" &&
                         liveActions.some(action => action.id === folder.id.replace("obs.source.", "obs.source.visible.")))) {
                         const active = state.onColor || WEB_UI_COLORS.primary;
                         empty.style.backgroundColor = "#" + active;
                         tile.style.setProperty("--card-text-color", cardPreviewTextColor(active));
                     }
-                    empty.appendChild(tile);
                 }
-                main.appendChild(empty);
             }
         }
         if (focused && editor && editor.dataset.homeSlot === String(state.editingSubpage || "")) {

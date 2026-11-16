@@ -5361,7 +5361,8 @@
               "image",
               "companion_stat",
               "obs_transitions",
-              "obs_sources"
+              "obs_sources",
+              "obs_audio"
             ],
             "defaultValue": "",
             "omitDefault": true
@@ -5375,6 +5376,12 @@
           {
             "name": "obs_source_order",
             "label": "Source visibility and order",
+            "kind": "text",
+            "omitDefault": true
+          },
+          {
+            "name": "obs_audio_order",
+            "label": "Audio slider visibility and order",
             "kind": "text",
             "omitDefault": true
           },
@@ -5429,6 +5436,7 @@
             "subpage_kind",
             "obs_transition_order",
             "obs_source_order",
+            "obs_audio_order",
             "large_numbers"
           ],
           "optionHook": "normalize_subpage_options"

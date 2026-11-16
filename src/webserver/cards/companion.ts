@@ -693,6 +693,7 @@ export function registerCompanionCardTypes(
                 action.id === "obs.transition.selected" || action.id.startsWith("obs.source.visible.")),
             ...obsSubpageCatalogue("obs_transitions", actions),
             ...obsSubpageCatalogue("obs_sources", actions),
+            ...obsSubpageCatalogue("obs_audio", actions),
         ]);
     }
 

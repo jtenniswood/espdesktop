@@ -27,7 +27,8 @@ template<typename Accept>
 inline void project_live_folder_tiles(SubpageOrder &order, std::vector<SubpageBtn> &buttons,
                                      int slots, int columns, int capacity,
                                      const std::vector<CompanionAction> &entries,
-                                     const char *icon, const std::string &options, Accept accept) {
+                                     const char *icon, const std::string &options, Accept accept,
+                                     const char *type = "companion") {
   if (!order.has_back_token) return;
   std::array<bool, MAX_GRID_SLOTS> occupied{};
   auto occupy = [&](int position, int rows, int cols) {
@@ -51,7 +52,7 @@ inline void project_live_folder_tiles(SubpageOrder &order, std::vector<SubpageBt
       return index > 0 && buttons[index - 1].entity == folder.id;
     });
     if (placed) continue;
-    buttons.push_back({folder.id, folder.label, icon, "Auto", "", "", "companion", "", options});
+    buttons.push_back({folder.id, folder.label, icon, "Auto", "", "", type, "", options});
     order.positions[position++] = static_cast<int>(buttons.size());
   }
 }

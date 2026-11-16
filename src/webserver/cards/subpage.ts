@@ -1,5 +1,5 @@
 import { companionMetricForEntity } from "../model/companion_card_codec";
-import { OBS_SUBPAGES, type OBSSubpageKind, obsSubpageKind, orderedOBSTiles, setOBSSubpagePreferences, obsSubpageCatalogue } from "../model/obs_live_subpage";
+import { OBS_SUBPAGES, type OBSSubpageKind, obsSubpageKind, orderedOBSTiles, obsSubpageTileKey, setOBSSubpagePreferences, obsSubpageCatalogue } from "../model/obs_live_subpage";
 import type { CompanionAction } from "../api/companion_catalogue";
 import type { ConfigModalTabOptionsFeature } from "../application/config_modal_tab_options";
 import { renderCompanionStorageSelector } from "./companion_storage";
@@ -109,7 +109,7 @@ export function registerSubpageCardTypes(
                     note.className = "sp-setting-note";
                     note.textContent = "Hide or reorder cards. New cards fill available spaces automatically.";
                     list.appendChild(note);
-                    const key = (id: string) => id.slice(pageType.prefix.length);
+                    const key = (id: string) => obsSubpageTileKey(liveKind, id);
                     modalTabs.renderModalTabSettings(list, b, helpers, {
                         definitions: () => entries.map(item => ({ value: key(item.id), label: item.label })),
                         tabs: () => orderedOBSTiles(liveKind, entries, b.options).map(item => key(item.id)),
@@ -296,6 +296,7 @@ export function registerSubpageCardTypes(
     }
     registry.register("companion_obs_transitions", obsSubpageDefinition("obs_transitions"));
     registry.register("companion_obs_sources", obsSubpageDefinition("obs_sources"));
+    registry.register("companion_obs_audio", obsSubpageDefinition("obs_audio"));
     function subpageBadgeLabelHtml(this: any, helpers?: any, label?: any) {
         return '<span class="sp-btn-label-row"><span class="sp-btn-label">' +
             helpers.escHtml(label) +

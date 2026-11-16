@@ -2612,6 +2612,37 @@
       }
     },
     {
+      "name": "companion_obs_audio: picker_alias",
+      "sourceKind": "runtime_only",
+      "sourceType": "companion_obs_audio",
+      "mode": "picker_alias",
+      "canonicalType": "subpage",
+      "web": {
+        "registration": "companion_obs_audio",
+        "picker": {
+          "main": true,
+          "subpage": true,
+          "infoOnly": false
+        },
+        "preview": {
+          "available": true,
+          "fingerprint": "89362aca2f09ecf1"
+        }
+      },
+      "firmware": {
+        "family": null
+      },
+      "lifecycle": {
+        "subscriptions": [
+          "none"
+        ],
+        "actions": [
+          "navigation"
+        ],
+        "modalOwner": "none"
+      }
+    },
+    {
       "name": "companion_obs_fader: picker_alias",
       "sourceKind": "runtime_only",
       "sourceType": "companion_obs_fader",

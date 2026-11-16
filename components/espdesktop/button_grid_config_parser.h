@@ -683,6 +683,15 @@ inline std::string media_cover_art_secondary_entity(const ParsedCfg &p) {
 
 
 
+enum class OBSSubpageKind { none, transitions, sources, audio };
+
+inline OBSSubpageKind obs_subpage_kind(std::string_view kind) {
+  if (kind == "obs_transitions") return OBSSubpageKind::transitions;
+  if (kind == "obs_sources") return OBSSubpageKind::sources;
+  if (kind == "obs_audio") return OBSSubpageKind::audio;
+  return OBSSubpageKind::none;
+}
+
 inline std::string normalize_subpage_kind(const std::string &value) {
   return value == "lights" || value == "media" ||
     value == "climate" || value == "presence" ||
@@ -691,16 +700,22 @@ inline std::string normalize_subpage_kind(const std::string &value) {
     value == "lock" || value == "vacuum" ||
     value == "lawn_mower" ||
     value == "weather" || value == "sensor" ||
-    value == "image" || value == "companion_stat" || (value == "obs_transitions" || value == "obs_sources") ? value : "";
+    value == "image" || value == "companion_stat" || obs_subpage_kind(value) != OBSSubpageKind::none ? value : "";
 }
 
-inline const char *obs_subpage_order_option(bool sources) {
-  return sources ? "obs_source_order" : "obs_transition_order";
+inline const char *obs_subpage_order_option(OBSSubpageKind kind) {
+  switch (kind) {
+    case OBSSubpageKind::transitions: return "obs_transition_order";
+    case OBSSubpageKind::sources: return "obs_source_order";
+    case OBSSubpageKind::audio: return "obs_audio_order";
+    case OBSSubpageKind::none: return "";
+  }
+  return "";
 }
 
-inline std::vector<std::string> obs_subpage_preferences(const std::string &options, bool sources) {
+inline std::vector<std::string> obs_subpage_preferences(const std::string &options, OBSSubpageKind kind) {
   std::vector<std::string> result;
-  for (const auto &entry : split_config_fields(cfg_option_value(options, obs_subpage_order_option(sources)), '|')) {
+  for (const auto &entry : split_config_fields(cfg_option_value(options, obs_subpage_order_option(kind)), '|')) {
     std::string_view hash = entry;
     if (!hash.empty() && hash.front() == '!') hash.remove_prefix(1);
     if (hash.size() == 32 && std::all_of(hash.begin(), hash.end(), [](char c) {
@@ -722,15 +737,15 @@ inline std::string subpage_card_options_normalized(const std::string &options,
     if (!out.empty()) out += ",";
     out += "subpage_kind=" + kind;
   }
-  if (kind == "obs_transitions" || kind == "obs_sources") {
-    const bool sources = kind == "obs_sources";
-    const auto preferences = obs_subpage_preferences(options, sources);
+  const auto obs_kind = obs_subpage_kind(kind);
+  if (obs_kind != OBSSubpageKind::none) {
+    const auto preferences = obs_subpage_preferences(options, obs_kind);
     std::string value;
     for (const auto &entry : preferences) {
       if (!value.empty()) value += "|";
       value += entry;
     }
-    if (!value.empty()) out += "," + std::string(obs_subpage_order_option(sources)) + "=" + encode_compact_field(value);
+    if (!value.empty()) out += "," + std::string(obs_subpage_order_option(obs_kind)) + "=" + encode_compact_field(value);
   }
   if (!sensor.empty() && sensor != "indicator" && precision != "text" &&
       (cfg_option_token_present(options, "large_numbers") ||
@@ -1235,7 +1250,7 @@ inline const char *saved_config_subpage_default_icon(const std::string &kind) {
 
 inline void normalize_saved_config_subpage_fields(ParsedCfg &p) {
   const std::string kind = normalize_subpage_kind(cfg_option_value(p.options, "subpage_kind"));
-  if (kind.empty() || kind == "obs_transitions" || kind == "obs_sources") return;
+  if (kind.empty() || obs_subpage_kind(kind) != OBSSubpageKind::none) return;
   if (kind == "companion_stat") {
     if (!subpage_companion_stat_entity_valid(p.entity)) p.entity = "stat.cpu";
     if (p.label.empty()) p.label = subpage_companion_stat_default_label(p.entity);

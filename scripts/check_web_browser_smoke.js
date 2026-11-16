@@ -4527,7 +4527,7 @@ async function assertOBSSceneCard(browser) {
     assert.equal(await obsCards.count(), 0, "individual OBS cards are absent from the top level");
     await obsGroup.click();
     assert.deepEqual((await obsCards.evaluateAll(cards => cards.map(card => card.getAttribute("aria-label")))).sort(),
-      ["Audio Controls", "Break", "Recording Control",
+      ["Audio Controls", "Audio", "Break", "Recording Control",
         "Replay Buffer", "Scene", "Sources", "Streaming Control", "Studio Mode", "Transitions"]
         .map(label => label + " card type"));
     assert((await obsCards.allTextContents()).every(copy => !/\bOBS\b/.test(copy)));
@@ -7869,6 +7869,10 @@ async function assertOBSStarterPage(browser, firstRun = false) {
   let transitions = [[fade, "Fade"], [cut, "Cut"], [wipe, "Wipe"]];
   const camera = "e".repeat(32), overlay = "f".repeat(32), game = "1".repeat(32);
   let sources = [[camera, "Camera", true], [overlay, "Overlay", false]];
+  const desktop = "55555555-5555-5555-5555-555555555555";
+  const music = "66666666-6666-6666-6666-666666666666";
+  const gameAudio = "77777777-7777-7777-7777-777777777777";
+  let mixerInputs = [[mic, "Desk Mic"], [desktop, "Desktop Audio"], [music, "Music"]];
   await context.route("**/companion/actions", route => route.fulfill({ json: [
     { id: `obs.target.${main}.${token}`, label: "Gameplay" },
     { id: `obs.target.${away}.${token}`, label: "Break Room" },
@@ -7880,7 +7884,8 @@ async function assertOBSStarterPage(browser, firstRun = false) {
     { id: "obs.status.record", label: recording ? "Recording · Active" : "Recording · Idle" },
     { id: "obs.brb." + token, label: onBreak ? "Resume" : "BRB · Break Room" },
     { id: `obs.brb.scene.${away}`, label: "Configured BRB scene" },
-    { id: `obs.level.${mic}`, label: "Desk Mic" },
+    ...mixerInputs.map(([id, label]) => ({ id: `obs.level.${id}`, label })),
+    { id: `obs.mute.${music}`, label: "Muted · Music" },
     { id: `obs.cough.${mic}`, label: "Desk Mic" },
     { id: `obs.replay.buffer.${token}`, label: "Off" },
     { id: `obs.transition.${token}`, label: "Fade" },
@@ -8079,7 +8084,29 @@ async function assertOBSStarterPage(browser, firstRun = false) {
     await gameTile.waitFor();
     assert.deepEqual(await automaticTiles.allTextContents(), ["Game"]);
     assert.equal(await colour(gameTile.locator("..")), onColor);
-    console.log("OBS starter, Transitions, and Sources subpages saved and refreshed.");
+    await goBack();
+    await page.locator(".sp-main .sp-empty-cell").first().click();
+    await chooseOBSCard(page, "Audio");
+    const desktopRow = page.locator(".sp-light-tab-row").filter({
+      has: page.getByRole("checkbox", { name: "Desktop Audio", exact: true }),
+    });
+    await desktopRow.locator(".sp-light-tab-label").click();
+    await page.getByRole("button", { name: "Move Music up", exact: true }).click();
+    await page.getByRole("button", { name: "Save", exact: true }).click();
+    await waitForNativeState(fixture, () => fixture.document.buttons[6]?.includes("obs_audio_order"),
+      "Audio subpage saves the hidden and reordered faders");
+    await editFolder("Audio");
+    await automaticTiles.getByText("Desk Mic", { exact: true }).waitFor();
+    assert.deepEqual(await automaticTiles.allTextContents(), ["Music", "Desk Mic"]);
+    const musicTile = automaticTiles.filter({ hasText: "Music" });
+    assert.equal(await colour(musicTile.locator(".sp-slider-fill")), "rgb(128, 128, 128)");
+    assert.equal(await automaticTiles.locator(".sp-slider-fill").count(), 2);
+    const beforeAudioChange = fixture.puts.length;
+    mixerInputs = [[desktop, "Desktop Audio"], [music, "Music"], [gameAudio, "Game Audio"]];
+    await automaticTiles.getByText("Game Audio", { exact: true }).waitFor();
+    assert.deepEqual(await automaticTiles.allTextContents(), ["Music", "Game Audio"]);
+    assert.equal(fixture.puts.length, beforeAudioChange);
+    console.log("OBS starter, Transitions, Sources, and Audio subpages saved and refreshed.");
   } finally {
     await context.close();
   }
