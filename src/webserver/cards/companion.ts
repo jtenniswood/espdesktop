@@ -1787,8 +1787,11 @@ export function registerCompanionCardTypes(
                 const toggle = mode === "obs_studio" || mode === "obs_replay_buffer";
                 const replay = mode === "obs_replay";
                 const brb = mode === "obs_brb";
-                const unavailable = (virtualCamera && outputStatus === "Unavailable") || !output && (presentation?.obsAvailable === false ||
-                    (replay && !currentLabel && obsControlLabels.has("obs.status.program")));
+                const takingLive = mode === "obs_take" && (stateId === "take_transitioning" ||
+                    (!stateId && currentLabel === "Take Live · Transitioning"));
+                const unavailable = (virtualCamera && outputStatus === "Unavailable") ||
+                    (!output && !takingLive && (presentation?.obsAvailable === false ||
+                        (replay && !currentLabel && obsControlLabels.has("obs.status.program"))));
                 const programScene = sensor && currentLabel?.replace(/^Program · /, "");
                 const automaticOutputIcon = output && (!card.icon || ["Auto", "Monitor", virtualCamera ? "Video" : record ? "Record" : "Broadcast"].includes(card.icon));
                 const statusIcon = sensor ? (programScene && programScene !== "Unknown" ? "Monitor" : "Monitor Off")

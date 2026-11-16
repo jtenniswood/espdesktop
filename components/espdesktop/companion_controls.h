@@ -1247,8 +1247,17 @@ inline void companion_render_obs_detail(CompanionCardRef &ref, const std::string
   lv_obj_align(ref.text_label, LV_ALIGN_BOTTOM_LEFT, 0, detail.empty() ? 0 : -lv_obj_get_height(ref.obs_detail) - 2);
 }
 
-inline void companion_update_obs_detail_contrast(const CompanionCardRef &ref, bool show_output_state) {
-  const bool dim = lv_obj_has_state(ref.button, LV_STATE_DISABLED) && !show_output_state;
+inline bool companion_obs_keep_content_bright(const CompanionRuntimeSnapshot &snapshot, const std::string &id) {
+  if (companion_obs_output_card(id))
+    return companion_obs_output_status(snapshot, id) != "Unavailable";
+  if (id != "obs.take") return false;
+  const auto *action = companion_published_action(snapshot, id);
+  return action && (action->obs_state == OBSCardState::take_transitioning ||
+    (action->obs_state == OBSCardState::unknown && action->label == "Take Live · Transitioning"));
+}
+
+inline void companion_update_obs_detail_contrast(const CompanionCardRef &ref, bool keep_content_bright) {
+  const bool dim = lv_obj_has_state(ref.button, LV_STATE_DISABLED) && !keep_content_bright;
   if (lv_obj_has_state(ref.text_label, LV_STATE_DISABLED) != dim ||
       lv_obj_has_state(ref.obs_detail, LV_STATE_DISABLED) != dim)
     set_card_content_disabled(ref.button, dim);
@@ -1266,13 +1275,11 @@ inline void companion_setup_obs_detail(lv_obj_t *button, const lv_font_t *font, 
     ref.obs_status_icon = status_icon;
     if (font) lv_obj_set_style_text_font(ref.obs_detail, font, LV_PART_MAIN);
     const auto snapshot = companion_runtime_snapshot();
-    const bool show_output_state = companion_obs_output_card(ref.action_id) &&
-      companion_obs_output_status(snapshot, ref.action_id) != "Unavailable";
     const auto live = companion_default_action_label(ref.action_id, "", &snapshot);
     const std::string label = companion_obs_scene_card(ref.action_id) ? lv_label_get_text(ref.text_label)
       : companion_obs_control_label(ref.action_id, "", live, &snapshot);
     companion_render_obs_detail(ref, label, snapshot);
-    companion_update_obs_detail_contrast(ref, show_output_state);
+    companion_update_obs_detail_contrast(ref, companion_obs_keep_content_bright(snapshot, ref.action_id));
     return;
   }
 }
@@ -1428,8 +1435,6 @@ inline void companion_refresh_cards_if_requested() {
       ++it;
       continue;
     }
-    const bool show_output_state = companion_obs_output_card(it->action_id) &&
-      companion_obs_output_status(snapshot, it->action_id) != "Unavailable";
     if (companion_obs_tokenized_card(it->action_id)) companion_set_rendered_obs_action(*it, snapshot);
     if (it->dynamic_default_label && it->text_label && lv_obj_is_valid(it->text_label)) {
       // A disconnected Companion temporarily has no action catalogue. Keep
@@ -1449,7 +1454,8 @@ inline void companion_refresh_cards_if_requested() {
     if (lv_obj_has_state(it->button, LV_STATE_DISABLED) == available)
       set_card_disabled_state(it->button, !available);
     companion_apply_card_focus(it->button, it->action_id, it->url_config, it->show_focus, &snapshot);
-    if (it->obs_detail) companion_update_obs_detail_contrast(*it, show_output_state);
+    if (it->obs_detail)
+      companion_update_obs_detail_contrast(*it, companion_obs_keep_content_bright(snapshot, it->action_id));
     companion_render_obs_mute(*it, snapshot);
     ++it;
   }
