@@ -22,7 +22,7 @@ class LiveSubpagePreviewHandler final : public esphome::web_server_idf::AsyncWeb
                   size_t len, size_t index, size_t total) override {
     if (data == nullptr || index != body_.size() || total > maximumBodySize() ||
         len > maximumBodySize() - body_.size()) return;
-    body_.append(reinterpret_cast<const char *>(data), len);
+    body_.insert(body_.end(), data, data + len);
   }
 
   void handleRequest(esphome::web_server_idf::AsyncWebServerRequest *request) override {
@@ -108,7 +108,7 @@ class LiveSubpagePreviewHandler final : public esphome::web_server_idf::AsyncWeb
     return true;
   }
 
-  std::string body_;
+  std::vector<uint8_t> body_;
 };
 
 #endif
