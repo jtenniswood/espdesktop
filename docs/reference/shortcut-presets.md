@@ -1,6 +1,6 @@
 ---
 title: EspDesktop Mac keyboard shortcut presets by app
-description: Look up the action labels and keyboard combinations in the EspDesktop shortcut catalog for Mac apps such as Figma, Safari and Slack.
+description: Look up the action labels and keyboard combinations in the EspDesktop shortcut catalog for Mac apps such as Brave Browser, Figma and Safari.
 ---
 
 <script setup>
