@@ -4369,7 +4369,7 @@ async function assertAppVolumeCard(browser) {
     await chooseOBSCard(page, "Output Controls");
     const output = page.locator('select[id$="obs-output"]');
     assert.equal(await output.inputValue(), "obs.output.stream");
-    await page.getByRole("button", { name: "Card Settings", exact: true }).click();
+    await page.getByRole("button", { name: "Confirmation", exact: true }).click();
     await page.getByRole("button", { name: "Stop", exact: true }).click();
     await page.getByRole("button", { name: "Save", exact: true }).click();
     await waitForNativeState(nativeState, () => Object.values(nativeState.document.buttons)
