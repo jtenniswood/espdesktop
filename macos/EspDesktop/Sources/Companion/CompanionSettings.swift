@@ -323,7 +323,7 @@ struct CompanionSettings: View {
             .scrollContentBackground(.hidden)
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
             .background(Color(nsColor: .windowBackgroundColor))
-            .background(CompanionSettingsToolbar(selection: selectedPageBinding))
+            .background(CompanionSettingsToolbar(selection: selectedPageBinding, showsOBS: obsInstalled).id(obsInstalled))
             .navigationTitle("Settings")
             .safeAreaInset(edge: .bottom, alignment: .trailing, spacing: 0) {
                 floatingSupportButton
@@ -331,9 +331,18 @@ struct CompanionSettings: View {
                     .padding(.top, 16)
                     .padding(.bottom, 24)
             }
-        .onAppear(perform: refreshAccessibilityStatus)
+        .onAppear {
+            refreshAccessibilityStatus()
+            store.refreshApplications()
+        }
         .onReceive(NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification)) { _ in
             refreshAccessibilityStatus()
+            store.refreshApplications()
+        }
+        .onChange(of: obsInstalled) { installed in
+            if !installed, selectedPageID == CompanionSettingsPage.obs.rawValue {
+                selectedPageID = CompanionSettingsPage.connection.rawValue
+            }
         }
         .alert("Forget this display?", isPresented: Binding(
             get: { displayToForget != nil },
@@ -387,8 +396,13 @@ struct CompanionSettings: View {
         }
     }
 
+    private var obsInstalled: Bool {
+        store.availableApps.contains { $0.bundleIdentifier == OBSConnection.applicationBundleIdentifier }
+    }
+
     private var selectedPage: CompanionSettingsPage {
-        CompanionSettingsPage(rawValue: selectedPageID) ?? .connection
+        let page = CompanionSettingsPage(rawValue: selectedPageID) ?? .connection
+        return page == .obs && !obsInstalled ? .connection : page
     }
 
     private var selectedPageBinding: Binding<CompanionSettingsPage> {
@@ -1038,8 +1052,9 @@ struct CompanionSettings: View {
 /// their layout, selection appearance, accessibility, and light/dark styling.
 private struct CompanionSettingsToolbar: NSViewRepresentable {
     @Binding var selection: CompanionSettingsPage
+    let showsOBS: Bool
 
-    func makeCoordinator() -> Coordinator { Coordinator(selection: $selection) }
+    func makeCoordinator() -> Coordinator { Coordinator(selection: $selection, showsOBS: showsOBS) }
 
     func makeNSView(context: Context) -> WindowObserver {
         let view = WindowObserver()
@@ -1077,10 +1092,12 @@ private struct CompanionSettingsToolbar: NSViewRepresentable {
     final class Coordinator: NSObject, NSToolbarDelegate {
         var selection: Binding<CompanionSettingsPage>
         let toolbar = NSToolbar(identifier: "EspDesktopSettingsNavigation")
+        private let pageIdentifiers: [NSToolbarItem.Identifier]
         private weak var window: NSWindow?
 
-        init(selection: Binding<CompanionSettingsPage>) {
+        init(selection: Binding<CompanionSettingsPage>, showsOBS: Bool) {
             self.selection = selection
+            pageIdentifiers = CompanionSettingsPage.allCases.filter { showsOBS || $0 != .obs }.map { .init($0.rawValue) }
             super.init()
             toolbar.delegate = self
             toolbar.displayMode = .iconAndLabel
@@ -1120,10 +1137,6 @@ private struct CompanionSettingsToolbar: NSViewRepresentable {
             window.titlebarSeparatorStyle = .line
             window.toolbar = toolbar
             toolbar.selectedItemIdentifier = .init(selection.wrappedValue.rawValue)
-        }
-
-        private var pageIdentifiers: [NSToolbarItem.Identifier] {
-            CompanionSettingsPage.allCases.map { .init($0.rawValue) }
         }
 
         func toolbarDefaultItemIdentifiers(_ toolbar: NSToolbar) -> [NSToolbarItem.Identifier] {

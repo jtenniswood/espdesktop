@@ -604,6 +604,7 @@ final class OBSConnection: ObservableObject {
         return false
     }
 
+    static let applicationBundleIdentifier = "com.obsproject.obs-studio"
     static let legacyCredentialAccount = "obs.local-websocket"
 
     private enum Keys {
@@ -1294,7 +1295,7 @@ final class OBSConnection: ObservableObject {
         case .sessionRevoked:
             status = .accessRevoked
         default:
-            let running = !NSRunningApplication.runningApplications(withBundleIdentifier: "com.obsproject.obs-studio").isEmpty
+            let running = !NSRunningApplication.runningApplications(withBundleIdentifier: Self.applicationBundleIdentifier).isEmpty
             status = running ? .websocketUnavailable : .obsClosed
             reconnectTask?.cancel()
             reconnectTask = Task { [weak self] in
