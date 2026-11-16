@@ -976,12 +976,13 @@ function composeApplicationContext(liveFinderFolders: () => readonly CompanionAc
       shell.switchTab("screen");
       nativePages.invalidate();
       void nativePages.refresh();
-      if (!mirrorFailed) shell.showBanner("OBS page pinned to Home.", "success");
+      if (!mirrorFailed) shell.showBanner("OBS Studio pinned to Home.", "success");
     },
   });
   const firstRunSetup = createFirstRunSetup({
     ...dom, capacity: layout.numSlots, supported: !!layout.config.features?.companion,
     native: nativePanelConfig, connectors: connectorsPage, fields, shell,
+    openOBSSetup: openOBSStarterPage,
     autoSwitchEnabled: () => state.autoOpenAppSubpages,
     onSaved: (mirrorFailed) => {
       shell.switchTab("screen");

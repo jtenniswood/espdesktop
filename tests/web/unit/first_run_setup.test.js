@@ -105,7 +105,7 @@ test("replacing setup preserves other settings and rejects concurrent changes to
 });
 
 
-test("OBS starter pins a native subpage without replacing an existing wide card", () => {
+test("OBS starter groups its controls on a six-cell display and preserves Home cards", () => {
   const { obsStarterControls, pinOBSStarterPage } = loadTypescriptTest("src/webserver/application/obs_starter_page.ts");
   const main = "11111111-1111-1111-1111-111111111111";
   const away = "22222222-2222-2222-2222-222222222222";
@@ -116,10 +116,13 @@ test("OBS starter pins a native subpage without replacing an existing wide card"
     { id: `obs.target.${away}.${token}`, label: "BRB" },
     { id: `obs.mute.${mic}`, label: "Unmuted · Commentary" },
     { id: `obs.level.${mic}`, label: "Commentary" },
+    { id: `obs.cough.${mic}`, label: "Commentary" },
+    { id: `obs.replay.buffer.${token}`, label: "Off" },
+    { id: `obs.transition.${token}`, label: "Fade" },
     { id: `obs.brb.scene.${away}`, label: "Configured BRB scene" },
     { id: "com.apple.Safari", label: "Safari" },
   ]);
-  const geometry = { numSlots: 9, previewSlots: 9, totalSlots: 9, gridCols: 3 };
+  const geometry = { numSlots: 6, previewSlots: 6, totalSlots: 6, gridCols: 3 };
   const choices = { main: "obs.target." + main, away: "obs.target." + away, mic: "obs.mute." + mic };
   const input = empty({
     buttons: { 1: "com.apple.Safari;Safari;Auto;Auto;;;companion" },
@@ -132,16 +135,30 @@ test("OBS starter pins a native subpage without replacing an existing wide card"
   assert.equal(result.layout.rootCards[0].config.entity, safari.id);
   assert.equal(result.document.settings.button_order, "1w,,2");
   assert.equal(result.layout.rootCards[1].config.label, "OBS Studio");
-  assert.equal(result.layout.pages[0].key, 2);
-  assert.deepEqual(result.layout.pages[0].cards.map(card => card.config.entity), [
-    "obs.status.program", choices.main, choices.away, choices.mic, "obs.take", "obs.output.stream",
-    "obs.brb", "obs.level." + mic,
+  const [parent, switching, audio, outputs] = result.layout.pages;
+  assert.equal(parent.key, 2);
+  assert.deepEqual(parent.cards.map(({ config }) => config.label), ["Switching", "Audio", "Outputs", "", ""]);
+  assert.deepEqual(parent.cards.slice(3).map(({ config }) => config.entity), ["obs.status.program", "obs.brb"]);
+  assert.deepEqual(switching.cards.map(({ config }) => config.entity), [
+    choices.main, choices.away, "obs.studio", "obs.take", "obs.transition",
   ]);
-  assert.deepEqual(result.layout.pages[0].cards.map(card => card.config.label), [
-    "", "Main scene", "Break scene", "Mic", "", "", "", "Mic level",
-  ]);
+  assert.deepEqual(audio.cards.map(({ config }) => config.entity), [choices.mic, "obs.level." + mic, "obs.cough." + mic]);
+  assert.deepEqual(outputs.cards.map(({ config }) => config.entity), [
+    "obs.output.stream", "obs.output.record", "obs.replay.buffer", "obs.replay",
+  ], "Replay controls are present even when the buffer is off");
+  for (const page of result.layout.pages) {
+    assert(page.order.startsWith("B,"));
+    assert(page.cards.length < geometry.numSlots);
+  }
+  assert.equal(result.document.settings[FIRST_RUN_COMPLETE], "1");
+  const minimal = new NativeLayoutDraft(input);
+  pinOBSStarterPage(minimal, current, obsStarterControls([
+    { id: `obs.target.${main}.${token}`, label: "Gameplay" },
+  ]), { main: choices.main, away: "", mic: "" }, geometry);
+  assert.deepEqual(decodePanelPageSnapshot(minimal.finish()).layout.pages[0].cards.map(({ config }) => config.label),
+    ["Switching", "Outputs", ""]);
   assert.throws(() => pinOBSStarterPage(draft, current, controls, { ...choices, away: choices.main }, geometry),
-    /Choose two different scenes/);
+    /Choose scenes and a microphone/);
   assert.throws(() => pinOBSStarterPage(draft, current, controls, choices,
     { ...geometry, numSlots: 2, previewSlots: 2, gridCols: 2 }), /Make room/);
 

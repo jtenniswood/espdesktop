@@ -7813,17 +7813,23 @@ async function assertNestedCompanionPages(browser) {
   } catch(error) { await page.screenshot({ path: "/tmp/nested-browser.png" }); fs.writeFileSync("/tmp/nested-browser.html", await page.content()); throw error; } finally { await context.close(); }
 }
 
-async function assertOBSStarterPage(browser) {
+async function assertOBSStarterPage(browser, firstRun = false) {
   const testCase = CASES.find(item => item.slug === "guition-esp32-s3-4848s040");
   const fixture = nativeConfigState(testCase.slug);
   fixture.document = {
     deviceProfile: testCase.slug,
-    buttons: { 1: "com.apple.Safari;Safari;Monitor;Auto;;;companion" },
+    buttons: firstRun ? {} : { 1: "com.apple.Safari;Safari;Monitor;Auto;;;companion" },
     subpages: {},
-    settings: { button_order: "1", web_onboarding_complete: "1" },
+    settings: firstRun ? {} : { button_order: "1", web_onboarding_complete: "1" },
   };
   const context = await browser.newContext({ viewport: testCase.viewport });
-  await installRoutes(context, testCase.slug, { nativeState: fixture, nativeV2: true, nativeAppSubpagePreference: true });
+  await installRoutes(context, testCase.slug, {
+    nativeState: fixture, nativeV2: true, nativeAppSubpagePreference: true,
+    connectorsStatus: {
+      onboarding_complete: true,
+      mac_companion: { available: true, configured: true, paired: true, connected: true },
+    },
+  });
   const main = "11111111-1111-1111-1111-111111111111";
   const away = "22222222-2222-2222-2222-222222222222";
   const mic = "33333333-3333-3333-3333-333333333333";
@@ -7846,6 +7852,9 @@ async function assertOBSStarterPage(browser) {
     { id: "obs.brb." + token, label: onBreak ? "Resume" : "BRB · Break Room" },
     { id: `obs.brb.scene.${away}`, label: "Configured BRB scene" },
     { id: `obs.level.${mic}`, label: "Desk Mic" },
+    { id: `obs.cough.${mic}`, label: "Desk Mic" },
+    { id: `obs.replay.buffer.${token}`, label: "Off" },
+    { id: `obs.transition.${token}`, label: "Fade" },
     ...(recording ? [{ id: "obs.record.active", label: "Recording" }] : []),
     ...(stopping ? [{ id: "obs.output.record", label: "Stopping" }] : []),
   ] }));
@@ -7855,24 +7864,43 @@ async function assertOBSStarterPage(browser) {
     await page.goto("http://espdesktop.test/" + testCase.slug + "?events=1");
     await page.waitForFunction(() => window.__eventSources?.length > 0);
     await page.evaluate(events => window.__seedEspState(events), nativeDocumentEvents(fixture.document));
-    await page.locator('.sp-main [data-slot="1"]').waitFor();
-    await page.getByRole("tab", { name: "Screen", exact: true }).click();
-    const section = page.locator("#sp-settings .card").filter({ has: page.locator("#sp-set-auto-open-app-subpages") });
-    if (await section.evaluate(node => node.classList.contains("collapsed"))) await section.locator(".card-header").click();
-    await page.getByRole("button", { name: "Add OBS starter page", exact: true }).click();
+    if (firstRun) {
+      await page.getByRole("button", { name: "Set up OBS Studio", exact: true }).click();
+      await page.getByRole("dialog", { name: "Add OBS starter page" }).getByRole("button", { name: "Cancel" }).click();
+      await page.getByRole("button", { name: "Set up OBS Studio", exact: true }).click();
+    } else {
+      await page.locator('.sp-main [data-slot="1"]').waitFor();
+      await page.getByRole("tab", { name: "Screen", exact: true }).click();
+      const section = page.locator("#sp-settings .card").filter({ has: page.locator("#sp-set-auto-open-app-subpages") });
+      if (await section.evaluate(node => node.classList.contains("collapsed"))) await section.locator(".card-header").click();
+      await page.getByRole("button", { name: "Add OBS starter page", exact: true }).click();
+    }
     const setup = page.getByRole("dialog", { name: "Add OBS starter page" });
-    await setup.getByRole("option", { name: "Gameplay" }).first().waitFor({ state: "attached" });
-    await setup.getByLabel("Main scene").selectOption("obs.target." + main);
-    await setup.getByLabel("Break scene").selectOption("obs.target." + away);
-    await setup.getByLabel("Microphone").selectOption("obs.mute." + mic);
+    await setup.locator('button.sp-save-btn:enabled').waitFor();
+    assert.equal(await setup.getByLabel("Main scene").inputValue(), "obs.target." + main);
+    assert.equal(await setup.getByLabel("Break scene").inputValue(), "obs.target." + away);
+    assert.equal(await setup.getByLabel("Microphone").inputValue(), "obs.mute." + mic);
     await setup.getByRole("button", { name: "Pin to Home" }).click();
-    await waitForNativeState(fixture, () => fixture.document.subpages[2]?.includes(main),
-      "OBS starter page saves native children and their scene UUIDs");
-    assert.match(fixture.document.buttons[1], /Safari/);
-    assert.match(fixture.document.buttons[2], /OBS Studio/);
-    assert.equal(fixture.document.settings.button_order, "1,2");
-    assert(fixture.document.subpages[2].includes("obs.brb"));
-    assert(!fixture.document.subpages[2].includes(token));
+    const homeSlot = firstRun ? 1 : 2;
+    const switchingKey = 32 + (homeSlot - 1) * 32 + 1;
+    await waitForNativeState(fixture, () => fixture.puts.at(-1)?.layout?.pages.some(
+      group => group.key === switchingKey && group.cards.some(card => card.config.entity === "obs.target." + main)),
+      "OBS setup saves nested groups and their scene UUIDs");
+    if (!firstRun) assert.match(fixture.document.buttons[1], /Safari/);
+    assert.match(fixture.document.buttons[homeSlot], /OBS Studio/);
+    assert.equal(fixture.document.settings.button_order, firstRun ? "1" : "1,2");
+    assert.equal(fixture.document.settings.web_onboarding_complete, "1");
+    const savedPages = fixture.puts.at(-1).layout.pages;
+    const landing = savedPages.find(group => group.key === homeSlot);
+    assert.deepEqual(landing.cards.slice(0, 3).map(card => card.config.label), ["Switching", "Audio", "Outputs"]);
+    assert(landing.cards.some(card => card.config.entity === "obs.brb"));
+    assert(!JSON.stringify(savedPages).includes(token));
+    await page.getByRole("dialog", { name: "Add OBS starter page" }).waitFor({ state: "hidden" });
+    if (firstRun) {
+      await page.getByRole("heading", { name: "Choose your apps", exact: true }).waitFor({ state: "hidden" });
+      await page.locator('.sp-main').getByText("OBS Studio", { exact: true }).waitFor();
+      return;
+    }
     await page.getByRole("tab", { name: "Layout", exact: true }).click();
     await page.locator(".sp-main .sp-empty-cell").first().click();
     await chooseOBSCard(page, "Recording Control");
@@ -7892,90 +7920,92 @@ async function assertOBSStarterPage(browser) {
     const recordTile = page.locator('.sp-main [data-slot="3"]');
     await recordTile.getByText("Record", { exact: true }).waitFor();
     const idleColor = await recordTile.evaluate(tile => getComputedStyle(tile).backgroundColor);
-    await page.locator('.sp-main [data-slot="2"]').click({ button: "right" });
-    await page.getByText("Edit Subpage", { exact: true }).click();
-    await page.locator(".sp-back-btn").waitFor();
-    await page.locator('.sp-main').getByText(/^Main scene/).waitFor();
-    await page.locator('.sp-main').getByText(/^Break scene/).waitFor();
-    await page.locator('.sp-main').getByText("Mic", { exact: true }).waitFor();
-    await page.locator('.sp-main [data-slot="2"]').click({ button: "right" });
-    await page.getByText("Edit Card", { exact: true }).click();
+    const editFolder = async label => {
+      await page.locator(".sp-main").getByText(label, { exact: true }).click({ button: "right" });
+      await page.getByText("Edit Subpage", { exact: true }).click();
+    };
+    const goBack = () => page.locator(".sp-back-btn .sp-back-hit").click();
+    const closeSettings = page.locator(".sp-settings-overlay.sp-visible .sp-settings-close");
+    const editCard = async tile => {
+      await tile.click({ button: "right" });
+      await page.getByText("Edit Card", { exact: true }).click();
+    };
+    await editFolder("OBS Studio");
+    const brbTile = page.locator('.sp-main [data-slot="5"]');
+    await brbTile.locator(".mdi-coffee-to-go").waitFor();
+    await brbTile.getByText("Start", { exact: true }).waitFor();
+    await editFolder("Audio");
+    const micTile = page.locator('.sp-main [data-slot="1"]');
+    await micTile.locator(".mdi-microphone-off").waitFor();
+    const fader = page.locator(".sp-main .sp-slider-fill");
+    const fillColor = () => fader.evaluate(fill => getComputedStyle(fill).backgroundColor);
+    assert.equal(await fillColor(), "rgb(128, 128, 128)");
+    await goBack();
+    await editFolder("Outputs");
+    const streamTile = page.locator('.sp-main [data-slot="1"]');
+    await streamTile.locator(".mdi-broadcast-off").waitFor();
+    await streamTile.getByText("Idle", { exact: true }).waitFor();
+    await page.locator(".sp-main").getByText("Replay Buffer", { exact: true }).waitFor();
+    await page.locator(".sp-main").getByText("Save Replay", { exact: true }).waitFor();
+    await goBack();
+    await editFolder("Switching");
+    const mainTile = page.locator('.sp-main [data-slot="1"]');
+    const breakTile = page.locator('.sp-main [data-slot="2"]');
+    await mainTile.locator(".mdi-image").waitFor();
+    await breakTile.locator(".mdi-image").waitFor();
+    await mainTile.getByText("Gameplay", { exact: true }).waitFor();
+    await breakTile.getByText("Break Room", { exact: true }).waitFor();
+    const colour = tile => tile.evaluate(card => getComputedStyle(card).backgroundColor);
+    const onColor = await colour(mainTile);
+    assert.notEqual(onColor, await colour(breakTile));
+    for (const tile of [mainTile, breakTile])
+      assert.equal(await tile.locator(".sp-obs-detail").innerText(), "Scene");
+    await page.locator(".sp-main").getByText("Enable Studio Mode", { exact: true }).waitFor();
+    await editCard(mainTile);
     const scene = page.locator('select[id$="obs-scene"]');
     await scene.locator(`option[value="obs.target.${main}"]`).waitFor({ state: "attached" });
     assert.equal(await scene.inputValue(), "obs.target." + main);
-    const mainTile = page.locator('.sp-main [data-slot="2"]');
-    const breakTile = page.locator('.sp-main [data-slot="3"]');
-    const micTile = page.locator('.sp-main [data-slot="4"]');
-    await mainTile.locator('.mdi-image').waitFor();
-    await breakTile.locator('.mdi-image').waitFor();
-    await micTile.locator('.mdi-microphone-off').waitFor();
-    const colors = await Promise.all([mainTile, breakTile, micTile].map(tile =>
-      tile.evaluate(card => getComputedStyle(card).backgroundColor)));
-    assert.notEqual(colors[0], colors[1], "selected scene uses ON colour");
-    assert.equal(await mainTile.evaluate(card => card.classList.contains("sp-obs-program")), false);
-    assert.equal(colors[2], colors[1], "muted mic uses the default colour");
-    assert.equal(await mainTile.locator('.sp-btn-label').innerText(), "Main scene");
-    assert.equal(await breakTile.locator('.sp-btn-label').innerText(), "Break scene");
-    for (const sceneTile of [mainTile, breakTile])
-      assert.equal(await sceneTile.locator('.sp-obs-detail').innerText(), "Scene");
-    assert.equal(await micTile.locator('.sp-btn-label').innerText(), "Mic");
-    const takeTile = page.locator('.sp-main [data-slot="5"]');
-    assert.equal(await takeTile.locator('.sp-btn-label').innerText(), "Take Live");
-    assert.equal(await takeTile.locator('.sp-obs-detail').innerText(), "Enable Studio Mode");
-    const streamTile = page.locator('.sp-main [data-slot="6"]');
-    await streamTile.locator(".mdi-broadcast-off").waitFor();
-    assert.equal(await streamTile.locator(".sp-obs-detail").innerText(), "Idle");
-    const brbTile = page.locator('.sp-main [data-slot="7"]');
-    await brbTile.locator('.mdi-coffee-to-go').waitFor();
-    assert.equal(await brbTile.locator('.sp-btn-label').innerText(), "Break");
-    assert.equal(await brbTile.locator('.sp-obs-detail').innerText(), "Start");
-    assert.equal(await brbTile.evaluate(card => getComputedStyle(card).backgroundColor), colors[1]);
-    const fader = page.locator(".sp-main .sp-slider-fill");
-    const fillColor = () => fader.evaluate(fill => getComputedStyle(fill).backgroundColor);
-    assert.equal(await fillColor(), "rgb(128, 128, 128)", "muted mic fader is grey");
-    const closeSettings = page.locator(".sp-settings-overlay.sp-visible .sp-settings-close");
     await closeSettings.click();
     muted = false;
-    recording = true;
     streaming = true;
+    recording = true;
     onBreak = true;
     studioProgram = main;
-    await mainTile.click({ button: "right" });
-    await page.getByText("Edit Card", { exact: true }).click();
-    await micTile.locator('.mdi-microphone').waitFor();
-    await streamTile.locator(".mdi-broadcast").waitFor();
-    await brbTile.getByText("Resume", { exact: true }).waitFor();
-    await page.locator('.sp-main [data-slot="2"].sp-obs-program').waitFor();
-    assert.equal(await mainTile.evaluate(card => getComputedStyle(card).backgroundColor), "rgb(127, 70, 0)");
-    assert.equal(await breakTile.evaluate(card => getComputedStyle(card).backgroundColor), colors[0]);
-    assert.equal(await brbTile.locator('.sp-btn-label').innerText(), "Break");
-    assert.equal(await brbTile.evaluate(card => getComputedStyle(card).backgroundColor), colors[0]);
-    assert.equal(await streamTile.locator(".sp-obs-detail").innerText(), "Live");
-    assert.equal(await streamTile.evaluate(card => getComputedStyle(card).backgroundColor), colors[0]);
-    assert.notEqual(await fillColor(), "rgb(128, 128, 128)", "unmuted mic fader uses its active colour");
+    await editCard(mainTile);
+    await page.locator('.sp-main [data-slot="1"].sp-obs-program').waitFor();
+    assert.equal(await colour(mainTile), "rgb(127, 70, 0)");
+    assert.equal(await colour(breakTile), onColor);
     await page.getByRole("button", { name: "Custom Colours", exact: true }).click();
     await page.getByRole("group", { name: "Active state colour", exact: true }).getByRole("button", { name: "Custom", exact: true }).click();
     await page.getByRole("group", { name: "Active state colour presets", exact: true }).locator('input[type="color"]').fill("#64ad54");
-    assert.equal(await mainTile.evaluate(card => getComputedStyle(card).backgroundColor), "rgb(50, 86, 42)");
+    assert.equal(await colour(mainTile), "rgb(50, 86, 42)");
     await closeSettings.click();
-    await page.locator(".sp-back-btn .sp-back-hit").click();
-    await recordTile.getByText("Recording", { exact: true }).waitFor({ timeout: 12000 });
-    assert.notEqual(await recordTile.evaluate(tile => getComputedStyle(tile).backgroundColor), idleColor);
-    stopping = true;
     studioProgram = away;
-    await page.locator('.sp-main [data-slot="2"]').click({ button: "right" });
-    await page.getByText("Edit Subpage", { exact: true }).click();
-    await mainTile.click({ button: "right" });
-    await page.getByText("Edit Card", { exact: true }).click();
+    await editCard(mainTile);
     await scene.locator(`option[value="obs.target.${main}"]`).waitFor({ state: "attached" });
-    await page.locator('.sp-main [data-slot="2"]:not(.sp-obs-program)').waitFor();
+    await page.locator('.sp-main [data-slot="1"]:not(.sp-obs-program)').waitFor();
     assert.equal(await breakTile.evaluate(card => card.classList.contains("sp-obs-program")), false);
-    assert.equal(await breakTile.evaluate(card => getComputedStyle(card).backgroundColor), colors[0]);
+    assert.equal(await colour(breakTile), onColor);
     await closeSettings.click();
-    await page.locator(".sp-back-btn .sp-back-hit").click();
-    await recordTile.getByText("Recording", { exact: true }).waitFor();
+    await goBack();
+    await brbTile.getByText("Resume", { exact: true }).waitFor();
+    assert.equal(await colour(brbTile), onColor);
+    await editFolder("Audio");
+    await micTile.locator(".mdi-microphone").waitFor();
+    assert.notEqual(await fillColor(), "rgb(128, 128, 128)");
+    await goBack();
+    await editFolder("Outputs");
+    await streamTile.getByText("Live", { exact: true }).waitFor();
+    assert.equal(await colour(streamTile), onColor);
+    await goBack();
+    await goBack();
+    await recordTile.getByText("Recording", { exact: true }).waitFor({ timeout: 12000 });
+    assert.notEqual(await colour(recordTile), idleColor);
+    stopping = true;
+    await editCard(recordTile);
     await recordTile.getByText("Stopping", { exact: true }).waitFor();
-    assert.notEqual(await recordTile.evaluate(tile => getComputedStyle(tile).backgroundColor), idleColor);
+    assert.notEqual(await colour(recordTile), idleColor);
+    await closeSettings.click();
     console.log("OBS starter page pinned, preserved the Home card, and reopened for editing.");
   } finally {
     await context.close();
@@ -8320,6 +8350,7 @@ async function assertFirstRunSetup(browser) {
     }
     if (process.env.ESPDESKTOP_OBS_STARTER_ONLY === "1") {
       await assertOBSStarterPage(browser);
+      await assertOBSStarterPage(browser, true);
       return;
     }
     if (process.env.ESPDESKTOP_FIRST_RUN_ONLY === "1") {
@@ -8344,6 +8375,7 @@ async function assertFirstRunSetup(browser) {
     }
     await assertOBSSceneCard(browser);
     await assertOBSStarterPage(browser);
+    await assertOBSStarterPage(browser, true);
     await assertRetiredCardRemoval(browser);
     if (process.env.ESPDESKTOP_RETIRED_CARDS_ONLY === "1") return;
     await assertMacLockCard(browser);
