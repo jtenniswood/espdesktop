@@ -36,7 +36,7 @@ struct OBSSettings: View {
             }
 
             if let state = connection.state {
-                Section("Be Right Back") {
+                Section("Break Settings") {
                     Picker("Break scene", selection: Binding(
                         get: { connection.breakConfiguration?.sceneID ?? "" },
                         set: { connection.configureBreak(sceneID: $0, micID: connection.breakConfiguration?.micID) }
