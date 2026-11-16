@@ -8320,6 +8320,12 @@ async function assertStudioControlPage(browser) {
       ["obs.output.record", "obs.output.stream", "obs.studio", "obs.replay", "obs.replay.buffer"]);
     const studioButton = page.locator(`.sp-main [data-slot="${slot}"]`);
     await studioButton.locator(".mdi-movie").waitFor();
+    const chevron = studioButton.locator(".sp-subpage-badge");
+    const chevronOpacity = () => chevron.evaluate(badge => getComputedStyle(badge).opacity);
+    await page.mouse.move(0, 0);
+    assert.equal(await chevronOpacity(), "0", "idle folder cards match the device");
+    await studioButton.hover();
+    assert.equal(await chevronOpacity(), "1", "hover reveals the editor navigation control");
     const enter = async () => {
       await studioButton.click({ button: "right" });
       await page.getByText("Edit Subpage", { exact: true }).click();
