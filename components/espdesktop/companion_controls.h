@@ -1238,12 +1238,18 @@ inline void companion_render_obs_detail(CompanionCardRef &ref, const std::string
       if (*text) detail = espdesktop_i18n(text);
       else detail = action->obs_detail;
     }
-    if (take && action && (action->obs_state == OBSCardState::take_ready ||
-        (action->obs_state == OBSCardState::unknown && action->id != ref.action_id))) {
+    const bool take_ready = take && action && (action->obs_state == OBSCardState::take_ready ||
+      (action->obs_state == OBSCardState::unknown && action->id != ref.action_id));
+    if (take_ready) {
       if (!detail.empty() && (ref.obs_label_alias.empty() || ref.obs_label_alias == name))
         primary = std::string(espdesktop_i18n_key("label_obs_take")) + " " + detail;
       const auto *selected = companion_published_action(snapshot, "obs.transition");
       detail = selected ? selected->label : "";
+    } else if (take && action && (action->obs_state == OBSCardState::take_same_scene ||
+        (action->obs_state == OBSCardState::unknown && label == "Take Live · Already on Program"))) {
+      if (ref.obs_label_alias.empty() || ref.obs_label_alias == name)
+        primary = espdesktop_i18n_key("label_obs_currently_live");
+      detail.clear();
     }
   }
   if (ref.obs_state_icon) {

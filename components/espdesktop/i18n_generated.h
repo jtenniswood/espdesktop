@@ -7076,6 +7076,7 @@ inline const char *espdesktop_i18n_key_en(const char *key) {
   if (std::strcmp(key, "label_obs_virtual_camera") == 0) return "Virtual Camera";
   if (std::strcmp(key, "start_virtual_camera_prompt") == 0) return "Start Virtual Camera?";
   if (std::strcmp(key, "stop_virtual_camera_prompt") == 0) return "Stop Virtual Camera?";
+  if (std::strcmp(key, "label_obs_currently_live") == 0) return "Currently Live";
   if (std::strcmp(key, "label_obs_take") == 0) return "Take";
   if (std::strcmp(key, "label_obs_transition") == 0) return "Transition";
   if (std::strcmp(key, "wind_north") == 0) return "North";
@@ -7417,6 +7418,7 @@ inline const char *espdesktop_i18n_key_cs(const char *key) {
   if (std::strcmp(key, "label_obs_virtual_camera") == 0) return "Virtuální kamera";
   if (std::strcmp(key, "start_virtual_camera_prompt") == 0) return "Spustit virtuální kameru?";
   if (std::strcmp(key, "stop_virtual_camera_prompt") == 0) return "Zastavit virtuální kameru?";
+  if (std::strcmp(key, "label_obs_currently_live") == 0) return "Právě živě";
   if (std::strcmp(key, "label_obs_take") == 0) return "Přepnout na";
   if (std::strcmp(key, "label_obs_transition") == 0) return "Přechod";
   if (std::strcmp(key, "output_mute") == 0) return "Ztlumit výstup";
@@ -7736,6 +7738,7 @@ inline const char *espdesktop_i18n_key_da(const char *key) {
   if (std::strcmp(key, "label_obs_virtual_camera") == 0) return "Virtuelt kamera";
   if (std::strcmp(key, "start_virtual_camera_prompt") == 0) return "Start virtuelt kamera?";
   if (std::strcmp(key, "stop_virtual_camera_prompt") == 0) return "Stop virtuelt kamera?";
+  if (std::strcmp(key, "label_obs_currently_live") == 0) return "Live nu";
   if (std::strcmp(key, "label_obs_take") == 0) return "Skift til";
   if (std::strcmp(key, "label_obs_transition") == 0) return "Overgang";
   if (std::strcmp(key, "output_mute") == 0) return "Slå lyd fra";
@@ -8062,6 +8065,7 @@ inline const char *espdesktop_i18n_key_de(const char *key) {
   if (std::strcmp(key, "label_obs_virtual_camera") == 0) return "Virtuelle Kamera";
   if (std::strcmp(key, "start_virtual_camera_prompt") == 0) return "Virtuelle Kamera starten?";
   if (std::strcmp(key, "stop_virtual_camera_prompt") == 0) return "Virtuelle Kamera stoppen?";
+  if (std::strcmp(key, "label_obs_currently_live") == 0) return "Aktuell live";
   if (std::strcmp(key, "label_obs_take") == 0) return "Wechsel zu";
   if (std::strcmp(key, "label_obs_transition") == 0) return "Übergang";
   if (std::strcmp(key, "output_mute") == 0) return "Ausgabe stummschalten";
@@ -8402,6 +8406,7 @@ inline const char *espdesktop_i18n_key_es(const char *key) {
   if (std::strcmp(key, "label_obs_virtual_camera") == 0) return "Cámara virtual";
   if (std::strcmp(key, "start_virtual_camera_prompt") == 0) return "¿Iniciar la cámara virtual?";
   if (std::strcmp(key, "stop_virtual_camera_prompt") == 0) return "¿Detener la cámara virtual?";
+  if (std::strcmp(key, "label_obs_currently_live") == 0) return "En directo";
   if (std::strcmp(key, "label_obs_take") == 0) return "Pasar a";
   if (std::strcmp(key, "label_obs_transition") == 0) return "Transición";
   if (std::strcmp(key, "output_mute") == 0) return "Silenciar salida";
@@ -8745,6 +8750,7 @@ inline const char *espdesktop_i18n_key_fi(const char *key) {
   if (std::strcmp(key, "label_obs_virtual_camera") == 0) return "Virtuaalikamera";
   if (std::strcmp(key, "start_virtual_camera_prompt") == 0) return "Käynnistetäänkö virtuaalikamera?";
   if (std::strcmp(key, "stop_virtual_camera_prompt") == 0) return "Pysäytetäänkö virtuaalikamera?";
+  if (std::strcmp(key, "label_obs_currently_live") == 0) return "Suorana nyt";
   if (std::strcmp(key, "label_obs_take") == 0) return "Siirry kohteeseen";
   if (std::strcmp(key, "label_obs_transition") == 0) return "Siirtymä";
   if (std::strcmp(key, "output_mute") == 0) return "Mykistä ääni";
@@ -9079,6 +9085,7 @@ inline const char *espdesktop_i18n_key_fr(const char *key) {
   if (std::strcmp(key, "label_obs_virtual_camera") == 0) return "Caméra virtuelle";
   if (std::strcmp(key, "start_virtual_camera_prompt") == 0) return "Démarrer la caméra virtuelle ?";
   if (std::strcmp(key, "stop_virtual_camera_prompt") == 0) return "Arrêter la caméra virtuelle ?";
+  if (std::strcmp(key, "label_obs_currently_live") == 0) return "En direct";
   if (std::strcmp(key, "label_obs_take") == 0) return "Afficher";
   if (std::strcmp(key, "output_mute") == 0) return "Couper le son";
   if (std::strcmp(key, "microphone_mute") == 0) return "Couper le microphone";
@@ -9428,6 +9435,7 @@ inline const char *espdesktop_i18n_key_he(const char *key) {
   if (std::strcmp(key, "label_obs_virtual_camera") == 0) return "מצלמה וירטואלית";
   if (std::strcmp(key, "start_virtual_camera_prompt") == 0) return "להפעיל את המצלמה הווירטואלית?";
   if (std::strcmp(key, "stop_virtual_camera_prompt") == 0) return "להפסיק את המצלמה הווירטואלית?";
+  if (std::strcmp(key, "label_obs_currently_live") == 0) return "בשידור חי";
   if (std::strcmp(key, "label_obs_take") == 0) return "העבר אל";
   if (std::strcmp(key, "label_obs_transition") == 0) return "מעבר";
   if (std::strcmp(key, "output_mute") == 0) return "השתקת פלט";
@@ -9769,6 +9777,7 @@ inline const char *espdesktop_i18n_key_hu(const char *key) {
   if (std::strcmp(key, "label_obs_virtual_camera") == 0) return "Virtuális kamera";
   if (std::strcmp(key, "start_virtual_camera_prompt") == 0) return "Elindítja a virtuális kamerát?";
   if (std::strcmp(key, "stop_virtual_camera_prompt") == 0) return "Leállítja a virtuális kamerát?";
+  if (std::strcmp(key, "label_obs_currently_live") == 0) return "Élő adásban";
   if (std::strcmp(key, "label_obs_take") == 0) return "Váltás erre:";
   if (std::strcmp(key, "label_obs_transition") == 0) return "Átmenet";
   if (std::strcmp(key, "output_mute") == 0) return "Kimenet némítása";
@@ -10108,6 +10117,7 @@ inline const char *espdesktop_i18n_key_it(const char *key) {
   if (std::strcmp(key, "label_obs_virtual_camera") == 0) return "Videocamera virtuale";
   if (std::strcmp(key, "start_virtual_camera_prompt") == 0) return "Avviare la videocamera virtuale?";
   if (std::strcmp(key, "stop_virtual_camera_prompt") == 0) return "Arrestare la videocamera virtuale?";
+  if (std::strcmp(key, "label_obs_currently_live") == 0) return "In diretta";
   if (std::strcmp(key, "label_obs_take") == 0) return "Passa a";
   if (std::strcmp(key, "label_obs_transition") == 0) return "Transizione";
   if (std::strcmp(key, "output_mute") == 0) return "Disattiva audio";
@@ -10436,6 +10446,7 @@ inline const char *espdesktop_i18n_key_nb(const char *key) {
   if (std::strcmp(key, "label_obs_virtual_camera") == 0) return "Virtuelt kamera";
   if (std::strcmp(key, "start_virtual_camera_prompt") == 0) return "Starte det virtuelle kameraet?";
   if (std::strcmp(key, "stop_virtual_camera_prompt") == 0) return "Stoppe det virtuelle kameraet?";
+  if (std::strcmp(key, "label_obs_currently_live") == 0) return "Direkte nå";
   if (std::strcmp(key, "label_obs_take") == 0) return "Bytt til";
   if (std::strcmp(key, "label_obs_transition") == 0) return "Overgang";
   if (std::strcmp(key, "output_mute") == 0) return "Demp lyd";
@@ -10761,6 +10772,7 @@ inline const char *espdesktop_i18n_key_nl(const char *key) {
   if (std::strcmp(key, "label_obs_virtual_camera") == 0) return "Virtuele camera";
   if (std::strcmp(key, "start_virtual_camera_prompt") == 0) return "Virtuele camera starten?";
   if (std::strcmp(key, "stop_virtual_camera_prompt") == 0) return "Virtuele camera stoppen?";
+  if (std::strcmp(key, "label_obs_currently_live") == 0) return "Nu live";
   if (std::strcmp(key, "label_obs_take") == 0) return "Schakel naar";
   if (std::strcmp(key, "label_obs_transition") == 0) return "Overgang";
   if (std::strcmp(key, "output_mute") == 0) return "Uitvoer dempen";
@@ -11091,6 +11103,7 @@ inline const char *espdesktop_i18n_key_pl(const char *key) {
   if (std::strcmp(key, "label_obs_virtual_camera") == 0) return "Wirtualna kamera";
   if (std::strcmp(key, "start_virtual_camera_prompt") == 0) return "Uruchomić wirtualną kamerę?";
   if (std::strcmp(key, "stop_virtual_camera_prompt") == 0) return "Zatrzymać wirtualną kamerę?";
+  if (std::strcmp(key, "label_obs_currently_live") == 0) return "Teraz na żywo";
   if (std::strcmp(key, "label_obs_take") == 0) return "Przełącz na";
   if (std::strcmp(key, "label_obs_transition") == 0) return "Przejście";
   if (std::strcmp(key, "output_mute") == 0) return "Wycisz wyjście";
@@ -11423,6 +11436,7 @@ inline const char *espdesktop_i18n_key_pt_br(const char *key) {
   if (std::strcmp(key, "label_obs_virtual_camera") == 0) return "Câmera virtual";
   if (std::strcmp(key, "start_virtual_camera_prompt") == 0) return "Iniciar a câmera virtual?";
   if (std::strcmp(key, "stop_virtual_camera_prompt") == 0) return "Parar a câmera virtual?";
+  if (std::strcmp(key, "label_obs_currently_live") == 0) return "Ao vivo agora";
   if (std::strcmp(key, "label_obs_take") == 0) return "Mudar para";
   if (std::strcmp(key, "label_obs_transition") == 0) return "Transição";
   if (std::strcmp(key, "output_mute") == 0) return "Silenciar saída";
@@ -11762,6 +11776,7 @@ inline const char *espdesktop_i18n_key_pt(const char *key) {
   if (std::strcmp(key, "label_obs_virtual_camera") == 0) return "Câmara virtual";
   if (std::strcmp(key, "start_virtual_camera_prompt") == 0) return "Iniciar a câmara virtual?";
   if (std::strcmp(key, "stop_virtual_camera_prompt") == 0) return "Parar a câmara virtual?";
+  if (std::strcmp(key, "label_obs_currently_live") == 0) return "Em direto";
   if (std::strcmp(key, "label_obs_take") == 0) return "Mudar para";
   if (std::strcmp(key, "label_obs_transition") == 0) return "Transição";
   if (std::strcmp(key, "output_mute") == 0) return "Silenciar saída";
@@ -12103,6 +12118,7 @@ inline const char *espdesktop_i18n_key_ro(const char *key) {
   if (std::strcmp(key, "label_obs_virtual_camera") == 0) return "Cameră virtuală";
   if (std::strcmp(key, "start_virtual_camera_prompt") == 0) return "Porniți camera virtuală?";
   if (std::strcmp(key, "stop_virtual_camera_prompt") == 0) return "Opriți camera virtuală?";
+  if (std::strcmp(key, "label_obs_currently_live") == 0) return "Acum în direct";
   if (std::strcmp(key, "label_obs_take") == 0) return "Treci la";
   if (std::strcmp(key, "label_obs_transition") == 0) return "Tranziție";
   if (std::strcmp(key, "output_mute") == 0) return "Dezactivează sunetul";
@@ -12453,6 +12469,7 @@ inline const char *espdesktop_i18n_key_ru(const char *key) {
   if (std::strcmp(key, "label_obs_virtual_camera") == 0) return "Виртуальная камера";
   if (std::strcmp(key, "start_virtual_camera_prompt") == 0) return "Запустить виртуальную камеру?";
   if (std::strcmp(key, "stop_virtual_camera_prompt") == 0) return "Остановить виртуальную камеру?";
+  if (std::strcmp(key, "label_obs_currently_live") == 0) return "Сейчас в эфире";
   if (std::strcmp(key, "label_obs_take") == 0) return "Перейти к";
   if (std::strcmp(key, "label_obs_transition") == 0) return "Переход";
   if (std::strcmp(key, "output_mute") == 0) return "Выключить звук";
@@ -12787,6 +12804,7 @@ inline const char *espdesktop_i18n_key_sk(const char *key) {
   if (std::strcmp(key, "label_obs_virtual_camera") == 0) return "Virtuálna kamera";
   if (std::strcmp(key, "start_virtual_camera_prompt") == 0) return "Spustiť virtuálnu kameru?";
   if (std::strcmp(key, "stop_virtual_camera_prompt") == 0) return "Zastaviť virtuálnu kameru?";
+  if (std::strcmp(key, "label_obs_currently_live") == 0) return "Práve naživo";
   if (std::strcmp(key, "label_obs_take") == 0) return "Prepnúť na";
   if (std::strcmp(key, "label_obs_transition") == 0) return "Prechod";
   if (std::strcmp(key, "output_mute") == 0) return "Stlmiť výstup";
@@ -13125,6 +13143,7 @@ inline const char *espdesktop_i18n_key_sl(const char *key) {
   if (std::strcmp(key, "label_obs_virtual_camera") == 0) return "Navidezna kamera";
   if (std::strcmp(key, "start_virtual_camera_prompt") == 0) return "Zagnati navidezno kamero?";
   if (std::strcmp(key, "stop_virtual_camera_prompt") == 0) return "Ustaviti navidezno kamero?";
+  if (std::strcmp(key, "label_obs_currently_live") == 0) return "Trenutno v živo";
   if (std::strcmp(key, "label_obs_take") == 0) return "Preklopi na";
   if (std::strcmp(key, "label_obs_transition") == 0) return "Prehod";
   if (std::strcmp(key, "output_mute") == 0) return "Utišaj zvok";
@@ -13450,6 +13469,7 @@ inline const char *espdesktop_i18n_key_sv(const char *key) {
   if (std::strcmp(key, "label_obs_virtual_camera") == 0) return "Virtuell kamera";
   if (std::strcmp(key, "start_virtual_camera_prompt") == 0) return "Starta den virtuella kameran?";
   if (std::strcmp(key, "stop_virtual_camera_prompt") == 0) return "Stoppa den virtuella kameran?";
+  if (std::strcmp(key, "label_obs_currently_live") == 0) return "Live nu";
   if (std::strcmp(key, "label_obs_take") == 0) return "Växla till";
   if (std::strcmp(key, "label_obs_transition") == 0) return "Övergång";
   if (std::strcmp(key, "output_mute") == 0) return "Stäng av ljud";
@@ -13792,6 +13812,7 @@ inline const char *espdesktop_i18n_key_tr(const char *key) {
   if (std::strcmp(key, "label_obs_virtual_camera") == 0) return "Sanal Kamera";
   if (std::strcmp(key, "start_virtual_camera_prompt") == 0) return "Sanal kamera başlatılsın mı?";
   if (std::strcmp(key, "stop_virtual_camera_prompt") == 0) return "Sanal kamera durdurulsun mu?";
+  if (std::strcmp(key, "label_obs_currently_live") == 0) return "Şu anda yayında";
   if (std::strcmp(key, "label_obs_take") == 0) return "Geçiş yap";
   if (std::strcmp(key, "label_obs_transition") == 0) return "Geçiş";
   if (std::strcmp(key, "output_mute") == 0) return "Çıkışı sessize al";
@@ -14137,6 +14158,7 @@ inline const char *espdesktop_i18n_key_uk(const char *key) {
   if (std::strcmp(key, "label_obs_virtual_camera") == 0) return "Віртуальна камера";
   if (std::strcmp(key, "start_virtual_camera_prompt") == 0) return "Запустити віртуальну камеру?";
   if (std::strcmp(key, "stop_virtual_camera_prompt") == 0) return "Зупинити віртуальну камеру?";
+  if (std::strcmp(key, "label_obs_currently_live") == 0) return "Зараз наживо";
   if (std::strcmp(key, "label_obs_take") == 0) return "Перейти до";
   if (std::strcmp(key, "label_obs_transition") == 0) return "Перехід";
   if (std::strcmp(key, "output_mute") == 0) return "Вимкнути звук";

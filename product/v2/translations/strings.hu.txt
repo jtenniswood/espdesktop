@@ -350,6 +350,7 @@ obs_multiview=Multiview
 label_obs_virtual_camera=Virtuális kamera
 start_virtual_camera_prompt=Elindítja a virtuális kamerát?
 stop_virtual_camera_prompt=Leállítja a virtuális kamerát?
+label_obs_currently_live=Élő adásban
 label_obs_take=Váltás erre:
 label_obs_transition=Átmenet
 wind_north=North

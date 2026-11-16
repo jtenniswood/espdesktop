@@ -350,6 +350,7 @@ obs_multiview=Mehrfachansicht
 label_obs_virtual_camera=Virtuelle Kamera
 start_virtual_camera_prompt=Virtuelle Kamera starten?
 stop_virtual_camera_prompt=Virtuelle Kamera stoppen?
+label_obs_currently_live=Aktuell live
 label_obs_take=Wechsel zu
 label_obs_transition=Übergang
 wind_north=North

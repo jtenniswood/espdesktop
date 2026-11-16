@@ -4467,6 +4467,7 @@ async function assertOBSSceneCard(browser) {
   let recordingState = "Idle";
   let virtualCameraOn = false;
   let transitionName = "Fade";
+  let takeOnProgram = false;
   const fadeTransition = "obs.transition.select." + "a".repeat(32);
   const cutTransition = "obs.transition.select." + "b".repeat(32);
   await context.route("**/companion/actions", route => route.fulfill({
@@ -4476,7 +4477,9 @@ async function assertOBSSceneCard(browser) {
       { id: mic, label: "Muted · Desk Mic" },
       { id: "obs.mute.45f44c62-1c70-4706-8930-f3ec000db026", label: "Unmuted · Master" },
       { id: fader, label: "Desk Mic" },
-      { id: "obs.take.9ea47782-fada-4bb3-aef6-1904669efae7", label: "Take Live · Setup" },
+      takeOnProgram
+        ? { id: "obs.take", label: "Take Live · Already on Program", obsState: "take_same_scene", obsAvailable: false }
+        : { id: "obs.take.9ea47782-fada-4bb3-aef6-1904669efae7", label: "Take Live · Setup" },
       { id: "obs.studio.9ea47782-fada-4bb3-aef6-1904669efae7", label: studioModeOn ? "On" : "Off" },
       { id: "obs.multiview", label: "Multiview" },
       { id: "obs.transition.9ea47782-fada-4bb3-aef6-1904669efae7", label: transitionName },
@@ -4677,11 +4680,14 @@ async function assertOBSSceneCard(browser) {
     assert.equal(await transitionTitle.innerText(), "Transition");
     assert.equal(await transitionDetail.innerText(), "Fade");
     transitionName = "Cut";
+    takeOnProgram = true;
     replaySave = "replay_saving";
     recordingState = "Paused";
     await editCard(page.locator('.sp-main [data-slot="3"]'));
     await studioTile.getByText("Cut", { exact: true }).waitFor();
-    await takeTile.getByText("Cut", { exact: true }).waitFor();
+    await takeTile.getByText("Currently Live", { exact: true }).waitFor();
+    assert.equal(await takeTile.locator(".sp-obs-detail").textContent(), "");
+    assert.match(await takeTile.getAttribute("class"), /sp-obs-unavailable/);
     assert.equal(await transitionTitle.innerText(), "Transition");
     await replayTile.getByText("Saving", { exact: true }).waitFor();
     await recordingControl.getByText("Paused", { exact: true }).waitFor();

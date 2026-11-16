@@ -350,6 +350,7 @@ obs_multiview=Multiview
 label_obs_virtual_camera=Virtuaalikamera
 start_virtual_camera_prompt=Käynnistetäänkö virtuaalikamera?
 stop_virtual_camera_prompt=Pysäytetäänkö virtuaalikamera?
+label_obs_currently_live=Suorana nyt
 label_obs_take=Siirry kohteeseen
 label_obs_transition=Siirtymä
 wind_north=North

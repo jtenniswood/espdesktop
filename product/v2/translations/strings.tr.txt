@@ -350,6 +350,7 @@ obs_multiview=Multiview
 label_obs_virtual_camera=Sanal Kamera
 start_virtual_camera_prompt=Sanal kamera başlatılsın mı?
 stop_virtual_camera_prompt=Sanal kamera durdurulsun mu?
+label_obs_currently_live=Şu anda yayında
 label_obs_take=Geçiş yap
 label_obs_transition=Geçiş
 wind_north=North

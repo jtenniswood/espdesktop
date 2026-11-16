@@ -454,10 +454,10 @@ int main() {
       assert(!lv_obj_has_state(&tile, LV_STATE_PRESSED) && !lv_obj_has_state(&tile, LV_STATE_CHECKED));
       assert(lv_obj_has_state(&title, LV_STATE_DISABLED) && lv_obj_has_state(&detail, LV_STATE_DISABLED));
     }
-    replay_state.actions = {{"obs.take", "Take Live", OBSCardState::take_same_scene}};
+    replay_state.actions = {{"obs.take", "Take Live", OBSCardState::take_same_scene}, {"obs.transition", "Cut"}};
     companion_render_obs_detail(replay, "Take Live", replay_state);
     companion_update_obs_detail_contrast(replay, companion_obs_keep_content_bright(replay_state, replay.action_id));
-    assert(title.content == "Take Live" && detail.content == "Already on Program");
+    assert(title.content == "Currently Live" && detail.content.empty());
     assert(lv_obj_has_state(&title, LV_STATE_DISABLED) && lv_obj_has_state(&detail, LV_STATE_DISABLED));
     set_card_disabled_state(&tile, false);
     const std::string suffix = ".9ea47782-fada-4bb3-aef6-1904669efae7";

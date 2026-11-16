@@ -1830,14 +1830,17 @@ export function registerCompanionCardTypes(
                     const [name, detail] = status.split(" · ", 2);
                     const takeReady = stateId === "take_ready";
                     const takeScene = takeReady && (presentation?.obsDetail || status.slice("Take Live · ".length));
-                    const transition = takeReady && obsControlLabels.get(OBS_TRANSITION_ID);
-                    const defaultTitle = takeScene ? "Take " + takeScene : output || scene || directTransition ? label : fallback[mode];
-                    const title = (takeReady && card.label === "Take Live" ? "" : card.label) || defaultTitle;
+                    const takeSameScene = stateId === "take_same_scene" ||
+                        (mode === "obs_take" && !stateId && status === "Take Live · Already on Program");
+                    const defaultTitle = takeSameScene ? "Currently Live" : takeScene ? "Take " + takeScene
+                        : output || scene || directTransition ? label : fallback[mode];
+                    const title = ((takeReady || takeSameScene) && card.label === "Take Live" ? "" : card.label) || defaultTitle;
                     const presentationDetail = cardState && (mode === "obs_take" || toggle || replay || brb)
                         ? presentation?.obsDetail ?? cardState.detail : undefined;
                     const note = sensor ? programScene || "Unavailable"
                         : output ? outputStatus
-                        : takeReady ? transition || ""
+                        : takeSameScene ? ""
+                        : takeReady ? obsControlLabels.get(OBS_TRANSITION_ID) || ""
                         : scene ? "Scene"
                         : directTransition ? currentLabel ? "Transition" : "Unavailable"
                         : mode === "obs_transition" ? currentLabel || "Unavailable"
