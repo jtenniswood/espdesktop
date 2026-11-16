@@ -77,7 +77,7 @@ const CARD_TYPE_PICKER_DETAILS: Readonly<Record<string, PickerDetails>> = {
   companion_obs_scenes: { icon: "image", description: "Open a page of scenes from the current collection." },
   companion_obs_transition: { icon: "flip-horizontal", description: "Cycle through transitions or select a specific one." },
   companion_obs_transitions: { icon: "flip-horizontal", description: "Open a page that fills with the current transitions." },
-  companion_obs_output: { icon: "broadcast", description: "Start or stop recording or streaming and see the current output status." },
+  companion_obs_output: { icon: "broadcast", description: "Streaming and recordings state controls." },
   companion_obs_replay: { icon: "history", description: "Save a replay or start and stop the buffer." },
   companion_obs_fader: { icon: "tune-vertical", description: "Adjust levels, toggle mute, or hold to mute an audio input." },
   companion_obs: { icon: "monitor", description: "Choose a scene to switch to." },

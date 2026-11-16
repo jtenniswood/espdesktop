@@ -4366,7 +4366,7 @@ async function assertAppVolumeCard(browser) {
     assert.equal(await obsAudioType.inputValue(), "companion_obs_cough");
     await page.keyboard.press("Escape");
     await page.locator(".sp-main .sp-empty-cell").first().click();
-    await chooseOBSCard(page, "Output Control");
+    await chooseOBSCard(page, "Output Controls");
     const output = page.locator('select[id$="obs-output"]');
     assert.equal(await output.inputValue(), "obs.output.stream");
     await page.getByRole("button", { name: "Card Settings", exact: true }).click();
@@ -4532,13 +4532,13 @@ async function assertOBSSceneCard(browser) {
     const cardLabels = section => page.getByRole("region", { name: section, exact: true })
       .getByRole("button").evaluateAll(cards => cards.map(card => card.getAttribute("aria-label")));
     assert.deepEqual(await cardLabels("Card types"),
-      ["Audio Controls", "Break", "Output Control", "Replay Buffer", "Scene", "Studio Mode", "Transitions"]
+      ["Audio Controls", "Break", "Output Controls", "Replay Buffer", "Scene", "Studio Mode", "Transitions"]
         .map(label => label + " card type"));
     assert.deepEqual(await cardLabels("Grouped pages"),
       ["Audio", "Scenes", "Studio Control", "Transitions"].map(label => label + " card type"));
     assert((await obsCards.allTextContents()).every(copy => !/\bOBS\b/.test(copy)));
-    assert.match(await page.getByRole("button", { name: "Output Control card type", exact: true }).innerText(),
-      /Start or stop recording or streaming/);
+    assert.match(await page.getByRole("button", { name: "Output Controls card type", exact: true }).innerText(),
+      /Streaming and recordings state controls\./);
     assert.equal(await page.getByRole("button", { name: "Sound card type", exact: true }).count(), 0);
     await page.getByRole("button", { name: "Back to card types", exact: true }).click();
     assert.equal(await obsGroup.evaluate(group => document.activeElement === group), true);
@@ -4582,7 +4582,7 @@ async function assertOBSSceneCard(browser) {
       "The Take Live card saves its default icon and stays free of transient tokens");
 
     await page.locator(".sp-main .sp-empty-cell").first().click();
-    await chooseOBSCard(page, "Output Control");
+    await chooseOBSCard(page, "Output Controls");
     const outputPicker = page.locator("select[id$='obs-output']");
     await outputPicker.selectOption("obs.output.record");
     assert.equal(await outputPicker.inputValue(), "obs.output.record");
@@ -7964,7 +7964,7 @@ async function assertOBSStarterPage(browser, firstRun = false) {
     }
     await page.getByRole("tab", { name: "Layout", exact: true }).click();
     await page.locator(".sp-main .sp-empty-cell").first().click();
-    await chooseOBSCard(page, "Output Control");
+    await chooseOBSCard(page, "Output Controls");
     await page.getByLabel("OBS output", { exact: true }).selectOption("obs.output.record");
     await page.getByRole("button", { name: "Card Settings", exact: true }).click();
     const confirmation = page.locator("input[id$='obs-confirm-toggle']");

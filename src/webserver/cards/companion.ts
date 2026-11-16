@@ -2042,7 +2042,7 @@ export function registerCompanionCardTypes(
         ["companion_obs_transition", "Transitions", "obs_transition"],
         ["companion_obs_brb", "Break", "obs_brb"],
         ["companion_obs_replay", "Replay Buffer", "obs_replay"],
-        ["companion_obs_output", "Output Control", "obs_output"],
+        ["companion_obs_output", "Output Controls", "obs_output"],
     ];
     companionPickerDefinitions.forEach(function (definition) {
         const key = definition[0];
