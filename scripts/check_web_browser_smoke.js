@@ -8067,6 +8067,15 @@ async function assertOBSStarterPage(browser, firstRun = false) {
     const scene = page.locator('select[id$="obs-scene"]');
     await scene.locator(`option[value="obs.target.${main}"]`).waitFor({ state: "attached" });
     assert.equal(await scene.inputValue(), "obs.target." + main);
+    await page.getByRole("button", { name: "Card Settings", exact: true }).click();
+    const sceneLabel = page.getByRole("textbox", { name: "Label", exact: true });
+    assert.equal(await sceneLabel.inputValue(), "Gameplay");
+    await scene.selectOption("obs.target." + away);
+    assert.equal(await sceneLabel.inputValue(), "Break Room");
+    await sceneLabel.fill("Custom scene label");
+    await scene.selectOption("obs.target." + main);
+    assert.equal(await sceneLabel.inputValue(), "Custom scene label");
+    await sceneLabel.fill("");
     await closeSettings.click();
     muted = false;
     streaming = true;

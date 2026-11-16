@@ -547,9 +547,19 @@ export function registerCompanionCardTypes(
     }
 
     function renderOBSControlSettings(panel: HTMLElement, card: { entity: string; label: string }, helpers: any, audio: boolean): void {
-        helpers.renderCardTextField(panel, card, helpers, {
-            label: "Label", idSuffix: "label", field: "label", rerender: true,
+        const { input: labelInput } = helpers.renderCardTextField(panel, card, helpers, {
+            label: "Label", idSuffix: "label", bindName: audio ? "label" : null,
+            value: card.label || (!audio ? obsControlLabels.get(card.entity) : "") || "",
         });
+        // The scene name is the default. Store a label only when the user edits it.
+        if (!audio) labelInput.addEventListener("input", () => {
+            card.label = labelInput.value;
+            helpers.saveField("label", card.label);
+            cardUi.renderPreview();
+        });
+        const showSceneLabel = () => {
+            if (!audio && !card.label) labelInput.value = obsControlLabels.get(card.entity) || "";
+        };
         const name = audio ? "Source" : "OBS scene";
         const target = audio ? "audio input" : name;
         const placeholder = "Select";
@@ -566,6 +576,8 @@ export function registerCompanionCardTypes(
                 if (!select.value) return;
                 card.entity = select.value;
                 helpers.saveField("entity", card.entity);
+                showSceneLabel();
+                if (!audio) cardUi.renderPreview();
             });
         panel.appendChild(field);
         helpers.markCardPrimaryField(field, "entity");
@@ -585,6 +597,7 @@ export function registerCompanionCardTypes(
             select.replaceChildren(new Option(placeholder, ""), ...entries);
             select.value = isNew ? "" : saved;
             select.disabled = targets.length === 0;
+            showSceneLabel();
             if (targets.length) note.remove();
             else note.textContent = "Connect OBS in the Mac Companion and try again.";
             cardUi.renderPreview();
