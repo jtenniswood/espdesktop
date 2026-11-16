@@ -239,15 +239,16 @@ export class NativeLayoutDraft {
     }
   }
 
-  saveGeneratedCards(key: number, edits: ReadonlyMap<number, CardConfig>, order: string): void {
+  saveGeneratedCards(key: number, edits: ReadonlyMap<number, CardConfig>, order?: string,
+      exclusions = [...edits.values()].map(card => card.entity)): void {
     const owner = this.ownerAt(key);
     if (!owner) throw new PanelConfigError("The automatic page no longer exists.");
     const config = this.config(owner);
     if (!obsSubpageKind(config.options) && config.entity !== "com.apple.finder")
       throw new PanelConfigError("The automatic page changed. Reopen it before editing.");
     this.editScope.push(JSON.stringify(config));
-    this.patchPageCards(key, edits, order);
-    this.writeCard(owner, { ...config, options: excludeGeneratedCards(config.options, [...edits.values()].map(card => card.entity)) });
+    if (order !== undefined) this.patchPageCards(key, edits, order);
+    this.writeCard(owner, { ...config, options: excludeGeneratedCards(config.options, exclusions) });
   }
 
   writePage(key: number, change: NativePageEdit | null, geometry?: PresetPageGeometry): void {

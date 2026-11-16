@@ -14,6 +14,7 @@ import { PANEL_CONFIG_MAX_SLOT_COUNT } from "../model/panel_config";
 import { escHtml, iconSlug } from "./ui_primitives";
 import { appShortcutPageBackIcon, appShortcutPageOwner, previewSubpageOwner } from "../model/companion_shortcut_page";
 import { finderFolderPreview, liveSubpagePreview, scenePageControls } from "../model/finder_folder_preview";
+import { CARD_SIZE_SINGLE, CARD_SIZE_WIDE } from "../model/grid";
 import type { CompanionAction } from "../api/companion_catalogue";
 import { createWeatherDailyPreviewLayout } from "./weather_daily_preview";
 import {
@@ -257,6 +258,44 @@ export function createPreviewRenderFeature(dependencies: PreviewRenderDependenci
     const isPreviewReadOnly = () => dependencies.displayDemo || dependencies.shell.isPreviewReadOnly();
     const { ctx, resolveIcon, sizeClass } = dependencies.grid;
     const { renderSelectionBar, updatePreviewHint } = dependencies.selection;
+    type LivePlacement = { position: number; width: number; id: string; label: string };
+    let liveProjection: { key: string; tiles?: readonly LivePlacement[]; request: AbortController } | undefined;
+    function panelLiveProjection(kind: string | undefined, options: string, c: any,
+            catalogue: readonly CompanionAction[]): readonly LivePlacement[] | undefined {
+        if (!kind || dependencies.displayDemo || !document.defaultView?.fetch) {
+            liveProjection?.request.abort();
+            liveProjection = undefined;
+            return;
+        }
+        const columns = dependencies.layout.gridCols;
+        const slots = c.maxSlots;
+        const order = serializeSubpageGrid({ grid: c.grid, sizes: c.sizes }).join(",");
+        const body = JSON.stringify({ kind, order, options, columns, slots,
+            capacity: dependencies.layout.totalSlots, entities: c.buttons.map((card: { entity: string }) => card.entity) });
+        const key = JSON.stringify([state.editingSubpage, body, catalogue.map(action => [action.id, action.label])]);
+        if (liveProjection?.key === key) return liveProjection.tiles;
+        liveProjection?.request.abort();
+        const request = new AbortController();
+        const projection = liveProjection = { key, request };
+        void document.defaultView.fetch("/companion/page-preview", {
+            method: "POST", credentials: "same-origin", cache: "no-store",
+            headers: { "Content-Type": "application/json" }, body, signal: request.signal,
+        }).then(async response => response.ok ? await response.json() : undefined).then((tiles: unknown) => {
+            if (liveProjection !== projection || !Array.isArray(tiles)) return;
+            const occupied = c.grid.slice(0, slots);
+            for (const tile of tiles as LivePlacement[]) {
+                const { position, width, id, label } = tile || {};
+                if (!Number.isInteger(position) || position < 0 || position >= slots || occupied[position] !== 0 ||
+                    (width !== 1 && width !== 2) || typeof id !== "string" || typeof label !== "string" ||
+                    (width === 2 && (position + 1 >= slots || position % columns === columns - 1 || occupied[position + 1] !== 0))) return;
+                occupied[position] = -1;
+                if (width === 2) occupied[position + 1] = -1;
+            }
+            liveProjection.tiles = tiles;
+            renderPreview();
+        }).catch(() => { /* Older firmware and offline previews use the local projection. */ });
+        return;
+    }
     const appIconArtwork = new WeakMap<HTMLImageElement, CompanionAppIconPreview>();
     // Use a single measured side for square images at every card aspect ratio.
     function resizeCardIcon(button: Element): void {
@@ -448,19 +487,29 @@ export function createPreviewRenderFeature(dependencies: PreviewRenderDependenci
         const owner = previewSubpageOwner(pageKey, state.buttons, getSubpage);
         const shortcutOwner = appShortcutPageOwner(owner);
         const liveKind = obsSubpageKind(owner?.options);
+        const projectionKind = subpage ? liveKind || (shortcutOwner === "com.apple.finder" ? "finder" : undefined) : undefined;
         const excluded = new Set(generatedCardExclusions(owner?.options));
-        const liveActions = subpage && (liveKind || shortcutOwner === "com.apple.finder")
-            ? dependencies.liveGeneratedActions().filter(action => !excluded.has(generatedCardKey(action.id))) : [];
+        const catalogue = projectionKind ? dependencies.liveGeneratedActions() : [];
+        const actionsForPage = projectionKind === "finder" ? catalogue.filter(action => action.id.startsWith("folder."))
+            : projectionKind ? obsSubpageCatalogue(projectionKind, catalogue) : [];
+        const liveActions = actionsForPage.filter(action => !excluded.has(generatedCardKey(action.id)));
         const projectionGrid: number[] = c.grid.slice(0, c.maxSlots);
-        const sceneControls = liveKind === "obs_scenes"
+        const panelTiles = panelLiveProjection(projectionKind, owner?.options || "", c, liveActions);
+        const sceneControls = !panelTiles && liveKind === "obs_scenes"
             ? scenePageControls(projectionGrid, c.buttons, dependencies.layout.totalSlots, dependencies.layout.gridCols, excluded)
-            : new Map();
-        const liveFolders = subpage && shortcutOwner === "com.apple.finder"
-            ? finderFolderPreview(subpage.order, c.grid, c.buttons, dependencies.layout.totalSlots, liveActions)
-            : subpage && liveKind
-                ? liveSubpagePreview(projectionGrid, c.buttons, dependencies.layout.totalSlots - sceneControls.size,
-                    orderedOBSTiles(liveKind, obsSubpageCatalogue(liveKind, liveActions), owner?.options))
-                : undefined;
+            : new Map<number, { action: CompanionAction; size: number }>();
+        if (panelTiles) {
+            for (const tile of panelTiles) {
+                sceneControls.set(tile.position, { action: tile, size: tile.width === 2 ? CARD_SIZE_WIDE : CARD_SIZE_SINGLE });
+                if (tile.width === 2) projectionGrid[tile.position + 1] = -1;
+            }
+        } else if (projectionKind) {
+            const liveCards = projectionKind === "finder"
+                ? finderFolderPreview(subpage?.order ?? [], c.grid, c.buttons, dependencies.layout.totalSlots, liveActions)
+                : liveSubpagePreview(projectionGrid, c.buttons, dependencies.layout.totalSlots - sceneControls.size,
+                    orderedOBSTiles(projectionKind, liveActions, owner?.options));
+            for (const [position, action] of liveCards) sceneControls.set(position, { action, size: CARD_SIZE_SINGLE });
+        }
         for (var pos: any = 0; pos < c.maxSlots; pos++) {
             var slot: any = c.grid[pos];
             const control = sceneControls.get(pos);
@@ -498,9 +547,12 @@ export function createPreviewRenderFeature(dependencies: PreviewRenderDependenci
                         backBtn.querySelector(".sp-app-back-icon"), true);
                 }
             }
-            else if (slot > 0 || control || liveFolders?.has(pos)) {
-                const action = control?.action || liveFolders?.get(pos);
+            else if (slot > 0 || control) {
+                const action = control?.action;
                 const generated = action && generatedPageCard(action, liveKind, owner);
+                const draft = state.settingsDraft;
+                const selectedGenerated = generated && draft?.generated?.id === generated.entity &&
+                    draft.pos === pos && draft.homeSlot === pageKey && c.selected.includes(draft.slot);
                 if (!generated && (slot > PANEL_CONFIG_MAX_SLOT_COUNT || slot > c.buttons.length ||
                     (!c.isSub && slot > dependencies.layout.numSlots))) {
                     var unavailable: any = document.createElement("div");
@@ -510,7 +562,7 @@ export function createPreviewRenderFeature(dependencies: PreviewRenderDependenci
                     continue;
                 }
                 var bIdx: any = slot - 1;
-                var b: any = generated || c.buttons[bIdx];
+                var b: any = selectedGenerated && draft.dirty ? draft.button : generated || c.buttons[bIdx];
                 if (state.settingsDraft &&
                     state.settingsDraft.slot === slot &&
                     state.settingsDraft.isSub === c.isSub &&
@@ -548,7 +600,7 @@ export function createPreviewRenderFeature(dependencies: PreviewRenderDependenci
                 btn.className = "sp-btn" +
                     (typePreview && typePreview.buttonClass ? " " + typePreview.buttonClass : "") +
                     sizeClass(slotSz) +
-                    (c.selected.indexOf(slot) !== -1 ? " sp-selected" : "");
+                    (selectedGenerated || c.selected.indexOf(slot) !== -1 ? " sp-selected" : "");
                 const activeColor = cardOnColor || state.onColor || WEB_UI_COLORS.primary;
                 const programColor = btn.classList.contains("sp-obs-program") ? darkerCardColor(activeColor, 50) : "";
                 let contrastBackground = programColor || (typePreview?.isOn ? cardOnColor : cardOffColor) ||

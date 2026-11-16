@@ -1,4 +1,5 @@
 import type { CardConfig } from "../contracts/types";
+import type { SettingsDraft } from "../state/types";
 import { generatedCardElements } from "../model/generated_page_cards";
 import { cardTransferOwnsSubpage } from "../model/card_transfer";
 import { state } from "../state/app_instance";
@@ -49,6 +50,7 @@ export interface PreviewInteractionsFeature {
     deleteSlot(slot?: any): void;
     deleteButtons(slots?: any): void;
     emptyButtonConfig(): any;
+    saveGeneratedDraft(draft: SettingsDraft): Promise<boolean>;
 }
 
 export function createPreviewInteractionsFeature(
@@ -65,7 +67,7 @@ export function createPreviewInteractionsFeature(
     const { hideSettingsOverlay, selectClockBarItem } = dependencies.selection;
     const { findDuplicatePlacement, getCellFromEvent, planMove, applyMove, placeSlotAt } = dependencies.placement;
     const { renderPreview, renderButtonSettings } = dependencies;
-    const { showClockBar, showEmpty, showCard, showBack } = dependencies.contextMenu;
+    const { showClockBar, showEmpty, showCard, showBack, showGenerated } = dependencies.contextMenu;
     const els = runtime.els;
     const {
         isImageCard,
@@ -112,13 +114,37 @@ export function createPreviewInteractionsFeature(
         return { grid, edits, sizes, maxSlotId: c.buttons.length + edits.size };
     }
 
-    async function saveGeneratedAt(container: HTMLElement, pos: number): Promise<number> {
-        const page = state.editingSubpage;
-        if (!page || !dependencies.nativeTransfers?.available()) return 0;
-        const { grid, edits, sizes } = generatedPlan(container, [pos]);
-        const order = serializeSubpageGrid({ ...getSubpage(page), grid, sizes }).join(",");
-        if (!edits.size || !await dependencies.nativeTransfers.saveGenerated(edits, order)) return 0;
-        return state.editingSubpage === page ? ctx().grid[pos] : 0;
+    function selectGenerated(pos: number, card: CardConfig, size: number, edit: boolean) {
+        const homeSlot = state.editingSubpage;
+        if (!homeSlot || !dependencies.nativeTransfers?.available()) return;
+        state.clockBarSelectedItem = "";
+        hideSettingsOverlay();
+        const c = ctx();
+        const slot = c.buttons.length + 1;
+        const draft = cardEditorDraftController.newDraft({ slot, homeSlot, isSub: true, pos });
+        draft.button = { ...card };
+        draft.typeSelected = true;
+        draft.generated = { id: card.entity, size };
+        state.settingsDraft = draft;
+        c.setSelected([slot]);
+        c.setLastClicked(-1);
+        renderPreview();
+        if (edit) renderButtonSettings(true);
+    }
+
+    async function saveGeneratedDraft(draft: SettingsDraft): Promise<boolean> {
+        const c = ctx();
+        const position = draft.pos;
+        const generated = draft.generated;
+        if (!generated || position === undefined || !els.previewMain || !state.editingSubpage ||
+            draft.homeSlot !== state.editingSubpage || draft.slot !== c.buttons.length + 1) return false;
+        const plan = generatedPlan(els.previewMain, [position]);
+        if (plan.edits.get(draft.slot)?.entity !== generated.id || (plan.sizes[draft.slot] || 1) !== generated.size) {
+            showBanner("The automatic card moved. Reopen it before saving.", "error");
+            return false;
+        }
+        const order = serializeSubpageGrid({ ...getSubpage(draft.homeSlot), grid: plan.grid, sizes: plan.sizes }).join(",");
+        return dependencies.nativeTransfers?.saveGeneratedDraft(draft, order) ?? false;
     }
 
     function editCardTitle(title: HTMLElement) {
@@ -324,9 +350,8 @@ export function createPreviewInteractionsFeature(
                 }
             }
             else if (generatedCardElements.has(target)) {
-                if (!runtime.didDrag) void saveGeneratedAt(container, pos).then(saved => {
-                    if (saved > 0) handleBtnClick(e, saved, pos);
-                });
+                const entry = generatedCardElements.get(target)!;
+                if (!runtime.didDrag) selectGenerated(pos, entry.card, entry.size, false);
                 runtime.didDrag = false;
             }
             else if (slot === 0) {
@@ -361,8 +386,17 @@ export function createPreviewInteractionsFeature(
                 showBack(e);
             }
             else if (generatedCardElements.has(target)) {
-                void saveGeneratedAt(container, pos).then(saved => {
-                    if (saved > 0) showCard(e, saved);
+                const entry = generatedCardElements.get(target)!;
+                const page = state.editingSubpage;
+                showGenerated(e, () => {
+                    if (state.editingSubpage === page) selectGenerated(pos, entry.card, entry.size, true);
+                }, () => {
+                    if (state.editingSubpage !== page) return;
+                    if (state.settingsDraft?.generated && !state.settingsDraft.dirty) {
+                        state.settingsDraft = null;
+                        c.setSelected([]);
+                    }
+                    void dependencies.nativeTransfers?.hideGenerated(entry.card.entity);
                 });
             }
             else if (slot === 0) {
@@ -512,6 +546,10 @@ export function createPreviewInteractionsFeature(
         }
         state.clockBarSelectedItem = "";
         var c: any = ctx();
+        if (state.settingsDraft?.generated) {
+            state.settingsDraft = null;
+            c.setSelected([]);
+        }
         if (e.shiftKey || e.ctrlKey || e.metaKey)
             e.preventDefault();
         if (slot === -2) {
@@ -845,6 +883,7 @@ export function createPreviewInteractionsFeature(
         duplicateButton,
         duplicateSubpageButton,
         deleteSlot,
+        saveGeneratedDraft,
         deleteButtons,
         emptyButtonConfig,
     };

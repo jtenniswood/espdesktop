@@ -3,6 +3,7 @@ import { cloneCardConfig } from "../model/card";
 import { pageDepth } from "../model/page_keys";
 import type { ConfigCodecFeature } from "./config_codec";
 import { state } from "../state/app_instance";
+import type { SettingsDraft } from "../state/types";
 import { createClipboardEntry } from "../features/clipboard";
 import { captureNativePageCards, deleteNativePageCards, pasteNativePageCards, PageTransferConflict,
   type PageCardClipboard, type PageTransferCard, type PageTransferOrigin } from "../model/page_card_transfer";
@@ -26,6 +27,8 @@ export interface NativePageTransfersFeature {
   rename(slot: number, label: string): Promise<boolean>;
   place(order: string): Promise<boolean>;
   saveGenerated(edits: ReadonlyMap<number, CardConfig>, order: string): Promise<boolean>;
+  saveGeneratedDraft(edit: SettingsDraft, order: string): Promise<boolean>;
+  hideGenerated(id: string): Promise<boolean>;
 }
 /** Validate normalized temporary views, preserving the raw transfer payload. */
 export function validatePageTransferCards(
@@ -65,9 +68,10 @@ export function createNativePageTransfersFeature(options: {
   let unappliedSaveAttempt: number | null = null;
   const available = () => state.editingSubpage !== -1 && options.native.writableNavigationDepth() === 2;
   const page = () => state.editingSubpage ?? 0;
-  async function run(action: (layout: ReturnType<typeof currentLayout>) => Promise<void>): Promise<boolean> {
+  async function run(action: (layout: ReturnType<typeof currentLayout>) => Promise<void>, editorDraft?: SettingsDraft): Promise<boolean> {
     if (!available() || busy || options.shell.isConfigLocked()) return false;
-    if (state.settingsDraft?.dirty || state.settingsDraft?.isNew) {
+    if (state.settingsDraft !== editorDraft && (state.settingsDraft?.dirty ||
+        (state.settingsDraft?.isNew && !state.settingsDraft.generated))) {
       options.shell.showBanner("Save or cancel the open card before transferring cards.", "warning"); return false;
     }
     busy = true;
@@ -205,5 +209,16 @@ export function createNativePageTransfersFeature(options: {
     const targetPage = page();
     return run(() => save(draft => draft.saveGeneratedCards(targetPage, edits, order), true));
   }
-  return { available, capture, copy, paste, duplicate, delete: remove, rename, place, saveGenerated };
+  async function saveGeneratedDraft(edit: SettingsDraft, order: string): Promise<boolean> {
+    const id = edit.generated?.id;
+    const targetPage = page();
+    if (!id || state.settingsDraft !== edit || edit.homeSlot !== targetPage) return false;
+    const edits = new Map([[edit.slot, cloneCardConfig(edit.button)]]);
+    return run(() => save(draft => draft.saveGeneratedCards(targetPage, edits, order, [id]), true), edit);
+  }
+  async function hideGenerated(id: string): Promise<boolean> {
+    const targetPage = page();
+    return run(() => save(draft => draft.saveGeneratedCards(targetPage, new Map(), undefined, [id]), true));
+  }
+  return { available, capture, copy, paste, duplicate, delete: remove, rename, place, saveGenerated, saveGeneratedDraft, hideGenerated };
 }

@@ -183,6 +183,11 @@ assert.deepStrictEqual(Array.from(subpageKindOption.values), [
   "sensor",
   "image",
   "companion_stat",
+  "obs_transitions",
+  "obs_sources",
+  "obs_audio",
+  "obs_scenes",
+  "obs_studio_control",
 ], "subpage type options include status presets for newer card styles");
 assert.strictEqual(
   hooks.subpageKind({ options: "subpage_kind=vacuum" }),

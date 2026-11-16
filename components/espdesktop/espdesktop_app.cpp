@@ -43,6 +43,7 @@
 #include "home_assistant_card_actions.h"
 #include "native_card_buttons.h"
 #include "home_assistant_setup_endpoint.h"
+#include "live_subpage_preview_endpoint.h"
 #ifdef USE_COMPANION
 #include "../companion/companion.h"
 #endif
@@ -73,6 +74,7 @@ extern "C" void espdesktop_register_web_server_handlers(
   espdesktop::register_panel_identity_endpoint(*server);
   espdesktop::register_panel_diagnostics_endpoint(*server);
   register_companion_actions_endpoint(*server);
+  server->addHandler(new LiveSubpagePreviewHandler());
 #ifdef USE_COMPANION
   espdesktop::home_assistant::register_setup_endpoint(*server);
 #endif

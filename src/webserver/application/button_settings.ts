@@ -70,7 +70,7 @@ export function createButtonSettingsFeature(
     iconPicker: ButtonSettingsIconPickerFeature,
     selection: Pick<ButtonSettingsSelectionFeature, "closeSettings" | "hideSettingsOverlay">,
     preview: Pick<PreviewRenderFeature, "defaultTypeForPicker" | "pickerOptions" | "registryValue" | "render">,
-    interactions: Pick<PreviewInteractionsFeature, "deleteSlot" | "emptyButtonConfig">,
+    interactions: Pick<PreviewInteractionsFeature, "deleteSlot" | "emptyButtonConfig" | "saveGeneratedDraft">,
     fields: ControlsFieldsFeature,
     connectorState: CardPickerConnectorState,
 ): ButtonSettingsFeature {
@@ -485,6 +485,7 @@ export function createButtonSettingsFeature(
                 showBanner("Subpages are not available at this level on this firmware.", "error");
                 return Promise.resolve(false);
             }
+            if (draft.generated) return interactions.saveGeneratedDraft(draft);
             const previous = c.buttons[bIdx];
             if (!draft.isNew && previous && !sameCardAction(previous, draft.button)) {
                 draft.button.options = setCardExposure(draft.button.options, "", false);

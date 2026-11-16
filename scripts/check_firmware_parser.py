@@ -1120,6 +1120,8 @@ def main() -> int:
         shutil.copy2(ROOT / "components" / "espdesktop" / "sun_calc.h", tmp_path / "sun_calc.h")
         shutil.copy2(COMPANION_TIMEZONE_HEADER, tmp_path / "companion_timezone.h")
         shutil.copy2(COMPANION_CAPABILITIES_HEADER, tmp_path / "companion_capabilities_generated.h")
+        for name in ("companion_audio_control.h", "companion_obs_confirmation.h"):
+            shutil.copy2(PARSER_HEADER.with_name(name), tmp_path / name)
         shutil.copy2(PARSER_HEADER.parent / "app_shortcuts_generated.h", tmp_path / "app_shortcuts_generated.h")
         shutil.copy2(DISPLAY_COLOR_HEADER, tmp_path / "display_color.h")
         shutil.copy2(SCREEN_LOCK_STATE_HEADER, tmp_path / "screen_lock_state.h")
