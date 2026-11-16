@@ -129,7 +129,7 @@ Choose **Set up OBS Studio** during first-time display setup, or open **Screen �
 
 The **OBS Studio** folder uses one free Home slot. **Switching** contains scene selection, Studio Mode and Take Live, plus Transition when OBS reports one. **Audio** contains mute, level and Cough for the chosen microphone when those controls are available. **Outputs** contains Stream, Record and the replay controls if Replay Buffer is enabled in OBS. The folder also shows **Program** and includes **Break** if the second scene matches the break scene configured in Mac Companion. You can edit the pages in **Layout**.
 
-The scene on Program shows **Live** beneath its name and uses a television icon by default. In Studio Mode, the ON colour follows Preview. In normal mode, the ON colour follows Program.
+The scene on Program shows **Live** beneath its name and uses the Broadcast icon by default. In Studio Mode, the ON colour follows Preview. In normal mode, the ON colour follows Program.
 
 In the Mac app, open **Settings → OBS → Break Settings**. Choose a **Break scene** and optionally select an input under **Mute during break**. EspDesktop saves both settings for the current OBS scene collection. Add **Break** to the display. The card shows **Start** and verifies the selected input is muted before switching Program. During a break, the card lights up and shows **Resume**. Tapping it returns to the previous scene and restores an input that EspDesktop muted when it can verify those changes. Taking another scene live also ends the break and makes **Start** available again. Check the mic in OBS before speaking if it was muted during the break. If the card says **Check OBS**, check the Program scene and microphone in OBS, then clear the alert in **Break Settings**.
 

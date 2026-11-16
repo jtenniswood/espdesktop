@@ -540,7 +540,7 @@ int main() {
     main_card.obs_detail = &detail;
     main_card.obs_state_icon = &icon;
     companion_render_obs_detail(main_card, "Main", studio);
-    assert(title.content == "Main" && detail.content == "Live" && icon.content == "Television");
+    assert(title.content == "Main" && detail.content == "Live" && icon.content == "Broadcast");
     studio.actions[0].id = "obs.program." + break_id;
     companion_refresh_card_focus(studio);
     assert(lv_obj_has_state(&break_scene, LV_STATE_CHECKED));

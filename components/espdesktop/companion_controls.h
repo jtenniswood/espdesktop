@@ -1236,7 +1236,7 @@ inline void companion_render_obs_detail(CompanionCardRef &ref, const std::string
     }
   }
   if (ref.obs_state_icon) {
-    const auto *icon = find_icon(scene ? (scene_live ? "Television" : "Image Card Loading")
+    const auto *icon = find_icon(scene ? (scene_live ? "Broadcast" : "Image Card Loading")
       : companion_obs_status_icon(ref.action_id, detail, split != std::string::npos));
     if (std::strcmp(icon, lv_label_get_text(ref.obs_state_icon)) != 0) lv_label_set_text(ref.obs_state_icon, icon);
   }

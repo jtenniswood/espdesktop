@@ -8052,7 +8052,7 @@ async function assertOBSStarterPage(browser, firstRun = false) {
     await editFolder("Switching");
     const mainTile = page.locator('.sp-main [data-slot="1"]');
     const breakTile = page.locator('.sp-main [data-slot="2"]');
-    await mainTile.locator(".mdi-television").waitFor();
+    await mainTile.locator(".mdi-broadcast").waitFor();
     await breakTile.locator(".mdi-image").waitFor();
     await mainTile.getByText("Gameplay", { exact: true }).waitFor();
     await breakTile.getByText("Break Room", { exact: true }).waitFor();
@@ -8088,7 +8088,7 @@ async function assertOBSStarterPage(browser, firstRun = false) {
     await editCard(mainTile);
     await scene.locator(`option[value="obs.target.${main}"]`).waitFor({ state: "attached" });
     await breakTile.getByText("Live", { exact: true }).waitFor();
-    await breakTile.locator(".mdi-television").waitFor();
+    await breakTile.locator(".mdi-broadcast").waitFor();
     await mainTile.locator(".mdi-image").waitFor();
     assert.equal(await mainTile.locator(".sp-obs-detail").innerText(), "Scene");
     assert.equal(await colour(breakTile), onColor);
@@ -8196,7 +8196,7 @@ async function assertOBSStarterPage(browser, firstRun = false) {
     await page.clock.fastForward(30_000);
     await generatedProgram.getByText("Live", { exact: true }).waitFor();
     await generatedPreview.getByText("Scene", { exact: true }).waitFor();
-    await generatedProgram.locator(".mdi-television").waitFor();
+    await generatedProgram.locator(".mdi-broadcast").waitFor();
     await generatedPreview.locator(".mdi-image").waitFor();
     await page.waitForFunction(({ onColor, offColor }) => {
       const colours = new Map(Array.from(document.querySelectorAll(".sp-main [data-generated-card]"), tile =>

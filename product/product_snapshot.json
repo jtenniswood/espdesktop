@@ -12,7 +12,7 @@
     "deviceProfiles": 9,
     "cardTypes": 41,
     "entityNames": 92,
-    "icons": 364,
+    "icons": 363,
     "structuralIcons": 42,
     "compatibilityFixtureGroups": 2
   },
@@ -9049,11 +9049,6 @@
         "name": "Movie",
         "codepoint": "F0381",
         "mdi": "movie"
-      },
-      {
-        "name": "Television",
-        "codepoint": "F0502",
-        "mdi": "television"
       }
     ],
     "domain_defaults": {
