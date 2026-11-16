@@ -789,7 +789,6 @@ inline std::string companion_default_action_label_with_fallback(
 inline std::string companion_obs_control_label(const std::string &action_id, const std::string &alias,
                                                const std::string &live_label,
                                                const CompanionRuntimeSnapshot *snapshot = nullptr) {
-  if (action_id == "obs.take") return alias.empty() ? espdesktop_i18n("Take Live") : alias;
   if (action_id == "obs.multiview") return alias.empty() ? espdesktop_i18n_key("obs_multiview") : alias;
   if (snapshot && companion_obs_output_card(action_id)) {
     const char *title = action_id == "obs.output.virtualcam" ? "Virtual Camera" : action_id == "obs.output.stream" ? "Stream"
@@ -1193,11 +1192,13 @@ inline bool companion_obs_scene_on_program(const CompanionRuntimeSnapshot &snaps
 }
 
 inline void companion_render_obs_detail(CompanionCardRef &ref, const std::string &label,
-                                        const CompanionRuntimeSnapshot &snapshot) {
+                                        const CompanionRuntimeSnapshot &snapshot, bool refreshing = false) {
   if (!ref.obs_detail || !lv_obj_is_valid(ref.obs_detail) || !ref.text_label) return;
   const std::string separator = " · ";
   const auto split = label.find(separator);
-  const char *name = ref.action_id == "obs.replay" ? "Save Replay"
+  const bool take = ref.action_id == "obs.take";
+  const char *name = take ? "Take Live"
+    : ref.action_id == "obs.replay" ? "Save Replay"
     : ref.action_id == "obs.replay.buffer" ? "Replay Buffer"
     : ref.action_id == "obs.status.program" ? "Program"
     : ref.action_id == "obs.status.stream" ? "Stream"
@@ -1230,12 +1231,29 @@ inline void companion_render_obs_detail(CompanionCardRef &ref, const std::string
     else if (ref.rendered_obs_action.id.rfind("obs.brb.", 0) == 0 || label == "Starting BRB…")
       detail = espdesktop_i18n("Start");
   }
-  if (brb || studio || ref.action_id == "obs.replay" || ref.action_id == "obs.replay.buffer") {
+  if (brb || studio || ref.action_id == "obs.replay" || ref.action_id == "obs.replay.buffer" || take) {
     const auto *action = companion_published_action(snapshot, ref.action_id);
     if (action && action->obs_state != OBSCardState::unknown) {
       const auto *text = obs_card_presentation(action->obs_state).detail;
       if (*text) detail = espdesktop_i18n(text);
       else detail = action->obs_detail;
+    }
+    const bool take_ready = take && action && (action->obs_state == OBSCardState::take_ready ||
+      (action->obs_state == OBSCardState::unknown && action->id != ref.action_id));
+    if (take_ready) {
+      if (!detail.empty() && (ref.obs_label_alias.empty() || ref.obs_label_alias == name))
+        primary = std::string(espdesktop_i18n_key("label_obs_take")) + " " + detail;
+      const auto *selected = companion_published_action(snapshot, "obs.transition");
+      detail = selected ? selected->label : "";
+    } else if (take && action && (action->obs_state == OBSCardState::take_same_scene ||
+        (action->obs_state == OBSCardState::unknown && label == "Take Live · Already on Program"))) {
+      if (ref.obs_label_alias.empty() || ref.obs_label_alias == name)
+        primary = espdesktop_i18n_key("label_obs_currently_live");
+      detail.clear();
+    } else if (take && action && (action->obs_state == OBSCardState::take_transitioning ||
+        (action->obs_state == OBSCardState::unknown && label == "Take Live · Transitioning"))) {
+      if (refreshing) return;  // Keep the previous text until OBS sends the next settled state.
+      detail.clear();
     }
   }
   if (ref.obs_state_icon) {
@@ -1455,7 +1473,7 @@ inline void companion_refresh_cards_if_requested() {
           it->action_id, it->url_config, it->resolved_default_label, &snapshot);
         label = companion_obs_control_label(it->action_id, it->obs_label_alias, live_label, &snapshot);
       }
-      if (it->obs_detail) companion_render_obs_detail(*it, label, snapshot);
+      if (it->obs_detail) companion_render_obs_detail(*it, label, snapshot, true);
       else if (normalize_display_text(label) != lv_label_get_text(it->text_label))
         lv_label_set_display_text(it->text_label, label.c_str());
     }

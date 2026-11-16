@@ -96,7 +96,7 @@ See [all app presets](/reference/shortcut-presets).
 
 In the OBS Studio card menu, choose **Studio Mode** to add **Toggle Studio Mode**, **Program scene**, or **Take Live**. **Toggle Studio Mode** asks for confirmation before turning Studio Mode off by default. **Program scene** shows what OBS is sending to its output. Scene cards switch Program in normal mode and select Preview in Studio Mode.
 
-**Take Live** is available when Studio Mode is on and Preview shows a different scene from Program. The display card keeps its label as Preview and Program change. If Preview changes before the command reaches OBS, check the scene in OBS before tapping again.
+**Take Live** is available when Studio Mode is on and Preview shows a different scene from Program. The card shows the scene and transition, for example **Take Studio** with **Fade** underneath. When Preview and Program match, it shows **Currently Live**. If Preview changes before the command reaches OBS, check the updated name before tapping again.
 
 Under **Card types → Transitions**, **Cycle transitions** steps through the transitions configured in OBS and displays the selected name. Use **Select a transition** to make separate cards for Cut, Fade or a custom transition. Each card lights up when OBS has selected its transition.
 

@@ -440,19 +440,35 @@ int main() {
     companion_apply_card_focus(&tile, replay.action_id, "", true, &replay_state);
     assert(!lv_obj_has_state(&tile, LV_STATE_CHECKED) && lv_obj_has_state(&tile, LV_STATE_PRESSED));
     focused_app.clear();
-    for (const auto state : {OBSCardState::take_ready, OBSCardState::take_transitioning,
-                             OBSCardState::take_same_scene, OBSCardState::unknown}) {
-      replay_state.actions = {{"obs.take", "Take Live · Studio", state, "Studio"}};
-      const auto &label = replay_state.actions[0].label;
-      assert(companion_obs_control_label(replay.action_id, "", label, &replay_state) == "Take Live");
-      assert(companion_obs_control_label(replay.action_id, "Switch", label, &replay_state) == "Switch");
+    for (const auto state : {OBSCardState::take_transitioning, OBSCardState::unknown}) {
+      set_card_disabled_state(&tile, false);
+      lv_obj_add_state(&tile, LV_STATE_PRESSED);
+      replay_state.actions = {{"obs.take", "Take Live · Transitioning", state}};
+      title.content = "Take Studio";
+      detail.content = "Fade";
+      companion_render_obs_detail(replay, replay_state.actions[0].label, replay_state, true);
+      assert(title.content == "Take Studio" && detail.content == "Fade");
+      companion_update_obs_detail_contrast(replay, false);
+      assert(lv_obj_has_state(&tile, LV_STATE_PRESSED));
+      set_card_disabled_state(&tile, true);  // OBS updates before the user's finger lifts.
+      companion_render_obs_detail(replay, replay_state.actions[0].label, replay_state);
+      companion_update_obs_detail_contrast(replay, companion_obs_keep_content_bright(replay_state, replay.action_id));
+      assert(title.content == "Take Live" && detail.content.empty());
+      assert(lv_obj_has_state(&tile, LV_STATE_DISABLED));
+      assert(!lv_obj_has_state(&tile, LV_STATE_PRESSED) && !lv_obj_has_state(&tile, LV_STATE_CHECKED));
+      assert(lv_obj_has_state(&title, LV_STATE_DISABLED) && lv_obj_has_state(&detail, LV_STATE_DISABLED));
     }
-    replay.obs_detail = nullptr;
-    set_card_disabled_state(&tile, true);
-    companion_update_obs_detail_contrast(replay, false);
-    assert(!lv_obj_has_state(&tile, LV_STATE_PRESSED));
-    replay.obs_detail = &detail;
+    replay_state.actions = {{"obs.take", "Take Live", OBSCardState::take_same_scene}, {"obs.transition", "Cut"}};
+    companion_render_obs_detail(replay, "Take Live", replay_state);
+    companion_update_obs_detail_contrast(replay, companion_obs_keep_content_bright(replay_state, replay.action_id));
+    assert(title.content == "Currently Live" && detail.content.empty());
+    assert(lv_obj_has_state(&title, LV_STATE_DISABLED) && lv_obj_has_state(&detail, LV_STATE_DISABLED));
     set_card_disabled_state(&tile, false);
+    const std::string suffix = ".9ea47782-fada-4bb3-aef6-1904669efae7";
+    replay_state.actions = {{"obs.take" + suffix, "Take Live · Studio", OBSCardState::take_ready, "Studio"},
+                            {"obs.transition" + suffix, "Fade"}};
+    companion_render_obs_detail(replay, replay_state.actions[0].label, replay_state);
+    assert(title.content == "Take Studio" && detail.content == "Fade");
     replay.action_id = "obs.transition";
     companion_render_obs_detail(replay, "Fade · Short", {});
     assert(title.content == "Transition" && detail.content == "Fade · Short");
