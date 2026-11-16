@@ -666,6 +666,8 @@ final class OBSConnection: ObservableObject {
     private var transitionCatalogueTask: Task<Void, Never>?
     private var sourceTask: Task<Void, Never>?
     private var changingSource = false
+    private var openingMultiview = false
+    private let raiseMultiview: () async -> OBSMultiviewWindow.Result
     private let transitionProbeInterval: Duration
     private struct PendingReplay {
         let id = UUID()
@@ -681,13 +683,17 @@ final class OBSConnection: ObservableObject {
 
     init(defaults: UserDefaults = .standard, socket: any OBSWebSocketTransport = OBSWebSocket(),
          transitionProbeInterval: Duration = .seconds(1),
-         coughTouchTimeout: Duration = .seconds(1)) {
+         coughTouchTimeout: Duration = .seconds(1),
+         raiseMultiview: @escaping () async -> OBSMultiviewWindow.Result = {
+             await OBSMultiviewWindow.raiseExisting(bundleIdentifier: OBSConnection.applicationBundleIdentifier)
+         }) {
         self.defaults = defaults
         breakConfigurations = (try? JSONDecoder().decode([String: BreakConfiguration].self,
             from: defaults.data(forKey: Keys.breakConfigurations) ?? Data())) ?? [:]
         self.socket = socket
         self.transitionProbeInterval = transitionProbeInterval
         self.coughTouchTimeout = coughTouchTimeout
+        self.raiseMultiview = raiseMultiview
         breakNeedsReview = defaults.bool(forKey: Keys.breakRecovery)
         enabled = defaults.bool(forKey: Keys.enabled)
         port = UInt16(exactly: defaults.integer(forKey: Keys.port)).flatMap { $0 == 0 ? nil : $0 } ?? 4455
@@ -1251,7 +1257,17 @@ final class OBSConnection: ObservableObject {
     }
 
     func openMultiview() async -> Bool {
-        guard state != nil, socket.isReady else { return false }
+        guard state != nil, socket.isReady, !openingMultiview else { return false }
+        openingMultiview = true
+        defer { openingMultiview = false }
+        let active = generation
+        let projector = await raiseMultiview()
+        guard active == generation, state != nil, socket.isReady else { return false }
+        switch projector {
+        case .raised: return true
+        case .unavailable: return false
+        case .missing: break
+        }
         return await command("OpenVideoMixProjector", fields: [
             "videoMixType": "OBS_WEBSOCKET_VIDEO_MIX_TYPE_MULTIVIEW",
             "monitorIndex": 0,

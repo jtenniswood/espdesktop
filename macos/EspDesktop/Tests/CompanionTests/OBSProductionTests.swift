@@ -173,9 +173,10 @@ final class OBSProductionTests: XCTestCase {
     private func open(_ transport: OBSPilotTransport,
                       transitionProbeInterval: Duration = .seconds(1),
                       coughTouchTimeout: Duration = .seconds(1),
-                      defaults: UserDefaults = .standard) async throws -> OBSConnection {
+                      defaults: UserDefaults = .standard,
+                      raiseMultiview: @escaping () async -> OBSMultiviewWindow.Result = { .missing }) async throws -> OBSConnection {
         let connection = OBSConnection(defaults: defaults, socket: transport, transitionProbeInterval: transitionProbeInterval,
-                                       coughTouchTimeout: coughTouchTimeout)
+                                       coughTouchTimeout: coughTouchTimeout, raiseMultiview: raiseMultiview)
         transport.onReady?()
         for _ in 0..<100 {
             if connection.state != nil { return connection }
@@ -200,6 +201,31 @@ final class OBSProductionTests: XCTestCase {
         let unavailable = await connection.openMultiview()
         XCTAssertFalse(unavailable)
         XCTAssertEqual(transport.projectorRequests.count, 1)
+    }
+
+    @MainActor
+    func testMultiviewReusesTheExistingProjectorAndReopensAfterClose() async throws {
+        let transport = OBSPilotTransport()
+        var window = OBSMultiviewWindow.Result.missing
+        let connection = try await open(transport, raiseMultiview: { window })
+        let opened = await connection.openMultiview()
+        XCTAssertTrue(opened)
+        XCTAssertEqual(transport.projectorRequests.count, 1)
+
+        window = .raised
+        let reused = await connection.openMultiview()
+        XCTAssertTrue(reused)
+        XCTAssertEqual(transport.projectorRequests.count, 1)
+
+        window = .unavailable
+        let unavailable = await connection.openMultiview()
+        XCTAssertFalse(unavailable)
+        XCTAssertEqual(transport.projectorRequests.count, 1)
+
+        window = .missing
+        let reopened = await connection.openMultiview()
+        XCTAssertTrue(reopened)
+        XCTAssertEqual(transport.projectorRequests.count, 2)
     }
 
     @MainActor
