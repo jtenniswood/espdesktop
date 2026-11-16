@@ -219,6 +219,8 @@ const CompanionAction *companion_published_action(const CompanionRuntimeSnapshot
   if (id == snapshot.selected_scene) return &selected;
   for (const auto &action : snapshot.actions) {
     if (action.id == id) return &action;
+    if ((id == "obs.take" || id == "obs.transition") && action.id.size() == id.size() + 37 &&
+        action.id.rfind(id + ".", 0) == 0) return &action;
   }
   return nullptr;
 }
@@ -458,6 +460,11 @@ int main() {
     assert(title.content == "Take Live" && detail.content == "Already on Program");
     assert(lv_obj_has_state(&title, LV_STATE_DISABLED) && lv_obj_has_state(&detail, LV_STATE_DISABLED));
     set_card_disabled_state(&tile, false);
+    const std::string suffix = ".9ea47782-fada-4bb3-aef6-1904669efae7";
+    replay_state.actions = {{"obs.take" + suffix, "Take Live · Studio", OBSCardState::take_ready, "Studio"},
+                            {"obs.transition" + suffix, "Fade"}};
+    companion_render_obs_detail(replay, replay_state.actions[0].label, replay_state);
+    assert(title.content == "Take Studio" && detail.content == "Fade Transition");
     replay.action_id = "obs.transition";
     companion_render_obs_detail(replay, "Fade · Short", {});
     assert(title.content == "Transition" && detail.content == "Fade · Short");

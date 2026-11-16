@@ -350,6 +350,7 @@ obs_multiview=Multiview
 label_obs_virtual_camera=Cameră virtuală
 start_virtual_camera_prompt=Porniți camera virtuală?
 stop_virtual_camera_prompt=Opriți camera virtuală?
+label_obs_take=Treci la
 label_obs_transition=Tranziție
 wind_north=North
 wind_north_east=North East

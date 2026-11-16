@@ -1196,7 +1196,8 @@ inline void companion_render_obs_detail(CompanionCardRef &ref, const std::string
   if (!ref.obs_detail || !lv_obj_is_valid(ref.obs_detail) || !ref.text_label) return;
   const std::string separator = " · ";
   const auto split = label.find(separator);
-  const char *name = ref.action_id == "obs.take" ? "Take Live"
+  const bool take = ref.action_id == "obs.take";
+  const char *name = take ? "Take Live"
     : ref.action_id == "obs.replay" ? "Save Replay"
     : ref.action_id == "obs.replay.buffer" ? "Replay Buffer"
     : ref.action_id == "obs.status.program" ? "Program"
@@ -1209,7 +1210,7 @@ inline void companion_render_obs_detail(CompanionCardRef &ref, const std::string
   const bool transition = ref.action_id == "obs.transition";
   const bool direct_transition = companion_obs_transition_target(ref.action_id);
   const bool brb = ref.action_id == "obs.brb";
-  const std::string primary = !ref.obs_label_alias.empty() ? ref.obs_label_alias
+  std::string primary = !ref.obs_label_alias.empty() ? ref.obs_label_alias
     : (scene || direct_transition) ? label
     : output ? espdesktop_i18n(label.substr(0, split))
     : studio ? espdesktop_i18n_key("label_obs_studio_mode")
@@ -1230,12 +1231,20 @@ inline void companion_render_obs_detail(CompanionCardRef &ref, const std::string
     else if (ref.rendered_obs_action.id.rfind("obs.brb.", 0) == 0 || label == "Starting BRB…")
       detail = espdesktop_i18n("Start");
   }
-  if (brb || studio || ref.action_id == "obs.replay" || ref.action_id == "obs.replay.buffer" || ref.action_id == "obs.take") {
+  if (brb || studio || ref.action_id == "obs.replay" || ref.action_id == "obs.replay.buffer" || take) {
     const auto *action = companion_published_action(snapshot, ref.action_id);
     if (action && action->obs_state != OBSCardState::unknown) {
       const auto *text = obs_card_presentation(action->obs_state).detail;
       if (*text) detail = espdesktop_i18n(text);
       else detail = action->obs_detail;
+    }
+    if (take && action && (action->obs_state == OBSCardState::take_ready ||
+        (action->obs_state == OBSCardState::unknown && action->id != ref.action_id))) {
+      if (!detail.empty() && (ref.obs_label_alias.empty() || ref.obs_label_alias == name))
+        primary = std::string(espdesktop_i18n_key("label_obs_take")) + " " + detail;
+      const auto *selected = companion_published_action(snapshot, "obs.transition");
+      detail = selected && !selected->label.empty()
+        ? selected->label + " " + espdesktop_i18n_key("label_obs_transition") : "";
     }
   }
   if (ref.obs_state_icon) {

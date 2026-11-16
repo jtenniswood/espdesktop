@@ -350,6 +350,7 @@ obs_multiview=Multiview
 label_obs_virtual_camera=Virtuální kamera
 start_virtual_camera_prompt=Spustit virtuální kameru?
 stop_virtual_camera_prompt=Zastavit virtuální kameru?
+label_obs_take=Přepnout na
 label_obs_transition=Přechod
 wind_north=North
 wind_north_east=North East

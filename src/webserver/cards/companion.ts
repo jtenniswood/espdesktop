@@ -516,6 +516,8 @@ export function registerCompanionCardTypes(
             }
             if (action.id === OBS_TAKE_ID || /^obs\.take\.[a-f0-9-]{36}$/.test(action.id)) {
                 obsControlLabels.set(OBS_TAKE_ID, action.label);
+                if (!action.obsState && action.id !== OBS_TAKE_ID)
+                    obsCardStates.set(OBS_TAKE_ID, { ...action, obsState: "take_ready" });
             } else if (action.id === OBS_MULTIVIEW_ID) {
                 obsControlLabels.set(action.id, action.label);
             } else if (action.id === OBS_STUDIO_ID || action.id.startsWith(OBS_STUDIO_ID + ".")) {
@@ -1826,12 +1828,16 @@ export function registerCompanionCardTypes(
                     const status = replay && currentLabel === "Save Replay" ? "Ready"
                         : currentLabel || (replay && obsControlLabels.has("obs.status.program") ? "Start Replay Buffer" : "");
                     const [name, detail] = status.split(" · ", 2);
-                    const defaultTitle = output || scene || directTransition ? label : fallback[mode];
-                    const title = card.label || defaultTitle;
+                    const takeReady = stateId === "take_ready";
+                    const takeScene = takeReady && (presentation?.obsDetail || status.slice("Take Live · ".length));
+                    const transition = takeReady && obsControlLabels.get(OBS_TRANSITION_ID);
+                    const defaultTitle = takeScene ? "Take " + takeScene : output || scene || directTransition ? label : fallback[mode];
+                    const title = (takeReady && card.label === "Take Live" ? "" : card.label) || defaultTitle;
                     const presentationDetail = cardState && (mode === "obs_take" || toggle || replay || brb)
                         ? presentation?.obsDetail ?? cardState.detail : undefined;
                     const note = sensor ? programScene || "Unavailable"
                         : output ? outputStatus
+                        : takeReady ? transition ? transition + " Transition" : ""
                         : scene ? "Scene"
                         : directTransition ? currentLabel ? "Transition" : "Unavailable"
                         : mode === "obs_transition" ? currentLabel || "Unavailable"
