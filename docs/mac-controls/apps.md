@@ -98,8 +98,6 @@ In the OBS Studio card menu, choose **Studio Mode** to add **Toggle Studio Mode*
 
 Choose **Add Card → OBS Studio → Transitions** to add a subpage that fills empty cells with the current transitions from OBS. Edit the **Transitions** card to hide transitions or move your favourites to the front. New transitions appear when space is available. Use **Edit Subpage** to place your own cards alongside the automatic list.
 
-Use **Add Card → OBS Studio → Sources** for an automatically populated page of the current scene’s sources. It follows Preview in Studio Mode and Program in normal mode. Tap a source to show or hide it in OBS. Enabled sources light up. Edit the Sources card to hide or reorder tiles on the panel.
-
 Choose **Add Card → OBS Studio → Audio** to fill a subpage with sliders for the current mixer inputs. A muted source’s slider turns grey and stays adjustable. Edit the Audio card to hide or reorder sliders. New mixer inputs fill available cells alongside any cards you place manually.
 
 Choose **Add Card → OBS Studio → Scenes** for an automatic page of scenes from the current collection. Edit the Scenes card to hide or reorder scene buttons. The page follows collection changes and uses the same Preview and Program colours as individual scene cards.

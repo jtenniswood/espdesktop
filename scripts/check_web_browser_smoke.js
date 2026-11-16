@@ -4528,7 +4528,7 @@ async function assertOBSSceneCard(browser) {
     await obsGroup.click();
     assert.deepEqual((await obsCards.evaluateAll(cards => cards.map(card => card.getAttribute("aria-label")))).sort(),
       ["Audio Controls", "Audio", "Break", "Recording Control",
-        "Replay Buffer", "Scene", "Scenes", "Sources", "Streaming Control", "Studio Mode", "Transitions"]
+        "Replay Buffer", "Scene", "Scenes", "Streaming Control", "Studio Mode", "Transitions"]
         .map(label => label + " card type"));
     assert((await obsCards.allTextContents()).every(copy => !/\bOBS\b/.test(copy)));
     assert.equal(await page.getByRole("button", { name: "Sound card type", exact: true }).count(), 0);
@@ -7869,8 +7869,6 @@ async function assertOBSStarterPage(browser, firstRun = false) {
   let scenes = [[main, "Gameplay"], [away, "Break Room"]];
   const fade = "a".repeat(32), cut = "b".repeat(32), slide = "c".repeat(32), wipe = "d".repeat(32);
   let transitions = [[fade, "Fade"], [cut, "Cut"], [wipe, "Wipe"]];
-  const camera = "e".repeat(32), overlay = "f".repeat(32), game = "1".repeat(32);
-  let sources = [[camera, "Camera", true], [overlay, "Overlay", false]];
   const desktop = "55555555-5555-5555-5555-555555555555";
   const music = "66666666-6666-6666-6666-666666666666";
   const gameAudio = "77777777-7777-7777-7777-777777777777";
@@ -7891,10 +7889,6 @@ async function assertOBSStarterPage(browser, firstRun = false) {
     { id: `obs.replay.buffer.${token}`, label: "Off" },
     { id: `obs.transition.${token}`, label: "Fade" },
     ...transitions.map(([hash, name]) => ({ id: `obs.transition.select.${hash}.${token}`, label: name })),
-    ...sources.flatMap(([hash, name, visible]) => [
-      { id: `obs.source.${hash}.${token}`, label: name },
-      ...(visible ? [{ id: `obs.source.visible.${hash}`, label: name }] : []),
-    ]),
     ...(recording ? [{ id: "obs.record.active", label: "Recording" }] : []),
     ...(stopping ? [{ id: "obs.output.record", label: "Stopping" }] : []),
   ] }));
@@ -8071,25 +8065,6 @@ async function assertOBSStarterPage(browser, firstRun = false) {
     assert.equal(fixture.puts.length, savedCount, "New transition catalogue states never rewrite the saved layout");
     await goBack();
     await page.locator(".sp-main .sp-empty-cell").first().click();
-    await chooseOBSCard(page, "Sources");
-    const cameraRow = page.locator(".sp-light-tab-row").filter({
-      has: page.getByRole("checkbox", { name: "Camera", exact: true }),
-    });
-    await cameraRow.locator(".sp-light-tab-label").click();
-    await page.getByRole("button", { name: "Save", exact: true }).click();
-    await waitForNativeState(fixture, () => fixture.document.buttons[5]?.includes("obs_source_order"),
-      "Sources saves the hidden Camera preference");
-    await editFolder("Sources");
-    await automaticTiles.getByText("Overlay", { exact: true }).waitFor();
-    assert.deepEqual(await automaticTiles.allTextContents(), ["Overlay"]);
-    sources = [[game, "Game", true]];
-    await page.clock.fastForward(30_000);
-    const gameTile = automaticTiles.filter({ hasText: "Game" });
-    await gameTile.waitFor();
-    assert.deepEqual(await automaticTiles.allTextContents(), ["Game"]);
-    assert.equal(await colour(gameTile.locator("..")), onColor);
-    await goBack();
-    await page.locator(".sp-main .sp-empty-cell").first().click();
     await chooseOBSCard(page, "Audio");
     const desktopRow = page.locator(".sp-light-tab-row").filter({
       has: page.getByRole("checkbox", { name: "Desktop Audio", exact: true }),
@@ -8097,7 +8072,7 @@ async function assertOBSStarterPage(browser, firstRun = false) {
     await desktopRow.locator(".sp-light-tab-label").click();
     await page.getByRole("button", { name: "Move Music up", exact: true }).click();
     await page.getByRole("button", { name: "Save", exact: true }).click();
-    await waitForNativeState(fixture, () => fixture.document.buttons[6]?.includes("obs_audio_order"),
+    await waitForNativeState(fixture, () => fixture.document.buttons[5]?.includes("obs_audio_order"),
       "Audio subpage saves the hidden and reordered faders");
     await editFolder("Audio");
     await automaticTiles.getByText("Desk Mic", { exact: true }).waitFor();
@@ -8125,7 +8100,7 @@ async function assertOBSStarterPage(browser, firstRun = false) {
     await wrapRow.locator(".sp-light-tab-label").click();
     await page.getByRole("button", { name: "Move Break Room up", exact: true }).click();
     await page.getByRole("button", { name: "Save", exact: true }).click();
-    await waitForNativeState(fixture, () => fixture.document.buttons[7]?.includes("obs_scene_order"),
+    await waitForNativeState(fixture, () => fixture.document.buttons[6]?.includes("obs_scene_order"),
       "Scenes saves the hidden and reordered scene buttons");
     await editFolder("Scenes");
     await automaticTiles.getByText("Gameplay", { exact: true }).waitFor();
@@ -8153,7 +8128,7 @@ async function assertOBSStarterPage(browser, firstRun = false) {
     await automaticTiles.getByText("Gameplay", { exact: true }).waitFor();
     assert.deepEqual(await sceneNames(), ["Break Room", "Gameplay"]);
     assert.equal(fixture.puts.length, beforeCollectionChange);
-    console.log("OBS starter, Transitions, Sources, Audio, and Scenes subpages saved and refreshed.");
+    console.log("OBS starter, Transitions, Audio, and Scenes subpages saved and refreshed.");
   } finally {
     await context.close();
   }

@@ -338,14 +338,6 @@
       "config": { "label": "Transitions", "icon": "Flip Horizontal", "icon_on": "Auto", "type": "subpage", "options": "subpage_connector=mac_companion,subpage_kind=obs_transitions" },
       "lifecycle": { "subscriptions": ["none"], "actions": ["navigation"], "modalOwner": "none" }
     },
-    "companion_obs_sources": {
-      "classification": "picker_alias",
-      "canonicalType": "subpage",
-      "surfaces": ["web_registry"],
-      "webRegistration": "companion_obs_sources",
-      "config": { "label": "Sources", "icon": "Image Card Loading", "icon_on": "Auto", "type": "subpage", "options": "subpage_connector=mac_companion,subpage_kind=obs_sources" },
-      "lifecycle": { "subscriptions": ["none"], "actions": ["navigation"], "modalOwner": "none" }
-    },
     "companion_obs_scenes": {
       "classification": "picker_alias",
       "canonicalType": "subpage",

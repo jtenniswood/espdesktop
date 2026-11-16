@@ -1230,21 +1230,6 @@
     }
   },
   {
-    "name": "companion_obs_sources: picker_alias",
-    "input": "~,Sources,Image%20Card%20Loading,Auto,,,subpage,,subpage_connector%3Dmac_companion%2Csubpage_kind%3Dobs_sources",
-    "expected": {
-      "entity": "",
-      "label": "Sources",
-      "icon": "Image Card Loading",
-      "icon_on": "Auto",
-      "sensor": "",
-      "unit": "",
-      "type": "subpage",
-      "precision": "",
-      "options": "subpage_connector=mac_companion,subpage_kind=obs_sources"
-    }
-  },
-  {
     "name": "companion_obs_scenes: picker_alias",
     "input": "~,Scenes,Image%20Card%20Loading,Auto,,,subpage,,subpage_connector%3Dmac_companion%2Csubpage_kind%3Dobs_scenes",
     "expected": {
