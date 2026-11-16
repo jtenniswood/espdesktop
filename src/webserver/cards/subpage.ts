@@ -105,9 +105,14 @@ export function registerSubpageCardTypes(
                 helpers.markCardPrimaryField(list, "entity");
                 panel.appendChild(list);
                 const disclosure = liveKind === "obs_transitions"
-                    ? fields.disclosureSection(pageType.label, helpers.idPrefix + "transitions-list", false)
+                    ? fields.disclosureSection(pageType.label, helpers.idPrefix + "transitions-list", b._transitionListOpen === true)
                     : null;
-                if (disclosure) list.appendChild(disclosure.panel);
+                if (disclosure) {
+                    disclosure.button.addEventListener("click", () => {
+                        b._transitionListOpen = disclosure.button.getAttribute("aria-expanded") === "true";
+                    });
+                    list.appendChild(disclosure.panel);
+                }
                 const content = disclosure?.section ?? list;
                 void loadActions().catch(() => []).then(actions => {
                     if (!list.isConnected) return;
