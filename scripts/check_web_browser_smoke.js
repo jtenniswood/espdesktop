@@ -4316,7 +4316,7 @@ async function assertOnDemandShortcutSettings(browser, testCase) {
   const nativeState = nativeConfigState(testCase.slug);
   nativeState.document.buttons[1] = "shortcut.command+a;;Shortcut Command;Auto;;;companion;;";
   const context = await browser.newContext({ viewport: testCase.viewport });
-  await installRoutes(context, testCase.slug, { nativeState });
+  await installRoutes(context, testCase.slug, { nativeState, offlineFallback: true });
   const requests = [];
   let online = true;
   await context.route(url => url.pathname === "/companion/shortcut-page", async route => {
@@ -4340,8 +4340,8 @@ async function assertOnDemandShortcutSettings(browser, testCase) {
   const page = await context.newPage();
   await installFakeEventSource(page);
   async function openCard() {
-    await page.goto(`http://espdesktop.test/${testCase.slug}?events=1`);
-    await page.waitForFunction(() => window.__eventSources?.length > 0);
+    await page.goto(`http://espdesktop.test/${testCase.slug}?events=1&espdesktop_fallback=1`);
+    await page.waitForFunction(() => window.__eventSources?.length > 0 && window.__ESPDESKTOP_USING_EMBEDDED__);
     await seedNativeDocument(page, nativeState);
     await page.locator('.sp-main [data-slot="1"]').click();
     await page.getByRole("button", { name: "Edit", exact: true }).click();

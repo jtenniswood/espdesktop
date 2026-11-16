@@ -533,7 +533,6 @@ void CompanionService::handle_json_(int socket_fd, const std::string &message) {
       if (previous_socket != -1 && previous_socket != socket_fd)
         httpd_sess_trigger_close(this->server_, previous_socket);
       this->forget_unauthenticated_socket_(socket_fd);
-      companion_runtime_service().shortcut_catalogue.set_supported(shortcut_catalogue_supported);
       this->app_icons_supported_.store(false);
       this->set_connected_(true);
       pairing_lock.unlock();
@@ -641,6 +640,7 @@ void CompanionService::handle_json_(int socket_fd, const std::string &message) {
           shortcut_catalogue_supported = true;
         }
       }
+      companion_runtime_service().shortcut_catalogue.set_supported(shortcut_catalogue_supported);
       this->app_icons_supported_.store(app_icons_supported && app_icons_alpha_supported &&
                                        app_icons_high_resolution_supported);
       std::vector<std::string> configured_icons;
