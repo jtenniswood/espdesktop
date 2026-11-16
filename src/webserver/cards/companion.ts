@@ -2018,7 +2018,7 @@ export function registerCompanionCardTypes(
         },
     });
 
-    const companionPickerDefinitions: readonly [string, string, string, string?][] = [
+    const companionPickerDefinitions: readonly [string, string, string][] = [
         ["companion_app", "Applications", "app"],
         ["companion_shortcut", "Key Shortcut", "shortcut"],
         ["companion_url", "Website", "url"],
@@ -2028,8 +2028,7 @@ export function registerCompanionCardTypes(
         ["companion_obs_studio", "Studio Mode", "obs_studio"],
         ["companion_obs_brb", "Break", "obs_brb"],
         ["companion_obs_replay", "Replay Buffer", "obs_replay"],
-        ["companion_obs_stream", "Streaming Control", "obs_output", "obs.output.stream"],
-        ["companion_obs_record", "Recording Control", "obs_output", "obs.output.record"],
+        ["companion_obs_output", "Output Control", "obs_output"],
     ];
     companionPickerDefinitions.forEach(function (definition) {
         const key = definition[0];
@@ -2043,7 +2042,6 @@ export function registerCompanionCardTypes(
             onSelect: function (card?: any) {
                 companionDefinition.onSelect(card);
                 applyCompanionPickerPreset(card, mode);
-                if (card && definition[3]) card.entity = definition[3];
             },
         });
     });
