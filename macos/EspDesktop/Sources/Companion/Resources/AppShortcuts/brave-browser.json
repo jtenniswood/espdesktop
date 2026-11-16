@@ -61,27 +61,117 @@
       "label": "Private Window",
       "shortcut": "command+shift+n",
       "icon": "Incognito"
-    }
-  ],
-  "moreShortcuts": [
+    },
     {
       "id": "8",
       "label": "New Window",
-      "shortcut": "scoped.command+n",
+      "shortcut": "command+n",
       "icon": "New Window"
     },
     {
       "id": "9",
       "label": "Next Tab",
-      "shortcut": "scoped.command+option+right",
+      "shortcut": "command+option+right",
       "icon": "Tab"
     },
     {
       "id": "10",
       "label": "Previous Tab",
-      "shortcut": "scoped.command+option+left",
+      "shortcut": "command+option+left",
       "icon": "Tab"
     },
+    {
+      "id": "13",
+      "label": "Go to Tab 1",
+      "shortcut": "command+1",
+      "icon": "Tab"
+    },
+    {
+      "id": "14",
+      "label": "Go to Tab 2",
+      "shortcut": "command+2",
+      "icon": "Tab"
+    },
+    {
+      "id": "15",
+      "label": "Go to Tab 3",
+      "shortcut": "command+3",
+      "icon": "Tab"
+    },
+    {
+      "id": "16",
+      "label": "Go to Tab 4",
+      "shortcut": "command+4",
+      "icon": "Tab"
+    },
+    {
+      "id": "17",
+      "label": "Go to Tab 5",
+      "shortcut": "command+5",
+      "icon": "Tab"
+    },
+    {
+      "id": "18",
+      "label": "Go to Tab 6",
+      "shortcut": "command+6",
+      "icon": "Tab"
+    },
+    {
+      "id": "19",
+      "label": "Go to Tab 7",
+      "shortcut": "command+7",
+      "icon": "Tab"
+    },
+    {
+      "id": "20",
+      "label": "Go to Tab 8",
+      "shortcut": "command+8",
+      "icon": "Tab"
+    },
+    {
+      "id": "21",
+      "label": "Go to Last Tab",
+      "shortcut": "command+9",
+      "icon": "Tab"
+    },
+    {
+      "id": "29",
+      "label": "Toggle Bookmarks Bar",
+      "shortcut": "command+shift+b",
+      "icon": "Bookmark"
+    },
+    {
+      "id": "30",
+      "label": "Bookmark Manager",
+      "shortcut": "command+option+b",
+      "icon": "Bookmark"
+    },
+    {
+      "id": "31",
+      "label": "Brave Settings",
+      "shortcut": "command+keycomma",
+      "icon": "Settings"
+    },
+    {
+      "id": "34",
+      "label": "Find on Page",
+      "shortcut": "command+f",
+      "icon": "Search"
+    },
+    {
+      "id": "58",
+      "label": "Bookmark All Tabs",
+      "shortcut": "command+shift+d",
+      "icon": "Folder Plus"
+    },
+    {
+      "id": "62",
+      "label": "Reset Zoom",
+      "shortcut": "command+0",
+      "icon": "Search"
+    }
+  ],
+  "moreShortcuts": [
     {
       "id": "11",
       "label": "Cycle to Next Tab",
@@ -92,60 +182,6 @@
       "id": "12",
       "label": "Cycle to Previous Tab",
       "shortcut": "scoped.control+shift+tab",
-      "icon": "Tab"
-    },
-    {
-      "id": "13",
-      "label": "Go to Tab 1",
-      "shortcut": "scoped.command+1",
-      "icon": "Tab"
-    },
-    {
-      "id": "14",
-      "label": "Go to Tab 2",
-      "shortcut": "scoped.command+2",
-      "icon": "Tab"
-    },
-    {
-      "id": "15",
-      "label": "Go to Tab 3",
-      "shortcut": "scoped.command+3",
-      "icon": "Tab"
-    },
-    {
-      "id": "16",
-      "label": "Go to Tab 4",
-      "shortcut": "scoped.command+4",
-      "icon": "Tab"
-    },
-    {
-      "id": "17",
-      "label": "Go to Tab 5",
-      "shortcut": "scoped.command+5",
-      "icon": "Tab"
-    },
-    {
-      "id": "18",
-      "label": "Go to Tab 6",
-      "shortcut": "scoped.command+6",
-      "icon": "Tab"
-    },
-    {
-      "id": "19",
-      "label": "Go to Tab 7",
-      "shortcut": "scoped.command+7",
-      "icon": "Tab"
-    },
-    {
-      "id": "20",
-      "label": "Go to Tab 8",
-      "shortcut": "scoped.command+8",
-      "icon": "Tab"
-    },
-    {
-      "id": "21",
-      "label": "Go to Last Tab",
-      "shortcut": "scoped.command+9",
       "icon": "Tab"
     },
     {
@@ -191,24 +227,6 @@
       "icon": "Application Exit"
     },
     {
-      "id": "29",
-      "label": "Toggle Bookmarks Bar",
-      "shortcut": "scoped.command+shift+b",
-      "icon": "Bookmark"
-    },
-    {
-      "id": "30",
-      "label": "Bookmark Manager",
-      "shortcut": "scoped.command+option+b",
-      "icon": "Bookmark"
-    },
-    {
-      "id": "31",
-      "label": "Brave Settings",
-      "shortcut": "scoped.command+keycomma",
-      "icon": "Settings"
-    },
-    {
       "id": "32",
       "label": "History",
       "shortcut": "scoped.command+y",
@@ -219,12 +237,6 @@
       "label": "Downloads",
       "shortcut": "scoped.command+shift+j",
       "icon": "Download"
-    },
-    {
-      "id": "34",
-      "label": "Find on Page",
-      "shortcut": "scoped.command+f",
-      "icon": "Search"
     },
     {
       "id": "35",
@@ -365,12 +377,6 @@
       "icon": "Bookmark"
     },
     {
-      "id": "58",
-      "label": "Bookmark All Tabs",
-      "shortcut": "scoped.command+shift+d",
-      "icon": "Folder Plus"
-    },
-    {
       "id": "59",
       "label": "Toggle Full Screen",
       "shortcut": "scoped.command+control+f",
@@ -387,12 +393,6 @@
       "label": "Zoom Out",
       "shortcut": "scoped.command+keyminus",
       "icon": "Zoom Out"
-    },
-    {
-      "id": "62",
-      "label": "Reset Zoom",
-      "shortcut": "scoped.command+0",
-      "icon": "Search"
     },
     {
       "id": "63",

@@ -1310,6 +1310,114 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
         "label": "Private Window",
         "shortcut": "command+shift+n",
         "icon": "Incognito"
+      },
+      {
+        "id": "8",
+        "label": "New Window",
+        "shortcut": "command+n",
+        "icon": "New Window"
+      },
+      {
+        "id": "9",
+        "label": "Next Tab",
+        "shortcut": "command+option+right",
+        "icon": "Tab"
+      },
+      {
+        "id": "10",
+        "label": "Previous Tab",
+        "shortcut": "command+option+left",
+        "icon": "Tab"
+      },
+      {
+        "id": "13",
+        "label": "Go to Tab 1",
+        "shortcut": "command+1",
+        "icon": "Tab"
+      },
+      {
+        "id": "14",
+        "label": "Go to Tab 2",
+        "shortcut": "command+2",
+        "icon": "Tab"
+      },
+      {
+        "id": "15",
+        "label": "Go to Tab 3",
+        "shortcut": "command+3",
+        "icon": "Tab"
+      },
+      {
+        "id": "16",
+        "label": "Go to Tab 4",
+        "shortcut": "command+4",
+        "icon": "Tab"
+      },
+      {
+        "id": "17",
+        "label": "Go to Tab 5",
+        "shortcut": "command+5",
+        "icon": "Tab"
+      },
+      {
+        "id": "18",
+        "label": "Go to Tab 6",
+        "shortcut": "command+6",
+        "icon": "Tab"
+      },
+      {
+        "id": "19",
+        "label": "Go to Tab 7",
+        "shortcut": "command+7",
+        "icon": "Tab"
+      },
+      {
+        "id": "20",
+        "label": "Go to Tab 8",
+        "shortcut": "command+8",
+        "icon": "Tab"
+      },
+      {
+        "id": "21",
+        "label": "Go to Last Tab",
+        "shortcut": "command+9",
+        "icon": "Tab"
+      },
+      {
+        "id": "29",
+        "label": "Toggle Bookmarks Bar",
+        "shortcut": "command+shift+b",
+        "icon": "Bookmark"
+      },
+      {
+        "id": "30",
+        "label": "Bookmark Manager",
+        "shortcut": "command+option+b",
+        "icon": "Bookmark"
+      },
+      {
+        "id": "31",
+        "label": "Brave Settings",
+        "shortcut": "command+keycomma",
+        "icon": "Settings"
+      },
+      {
+        "id": "34",
+        "label": "Find on Page",
+        "shortcut": "command+f",
+        "icon": "Search"
+      },
+      {
+        "id": "58",
+        "label": "Bookmark All Tabs",
+        "shortcut": "command+shift+d",
+        "icon": "Folder Plus"
+      },
+      {
+        "id": "62",
+        "label": "Reset Zoom",
+        "shortcut": "command+0",
+        "icon": "Search"
       }
     ]
   },
@@ -6149,7 +6257,7 @@ export const EXPANDED_SHORTCUTS: Readonly<Record<string, string>> = {
   "com.bambulab.bambu-studio": "b1J491dSave Project As\n10L410yExport plate sliced file\n10y411lCut\n10w410cCopy to clipboard\n11s411jPaste from clipboard\n11Q410IPreferences\n11Q4114Toggle 3Dconnexion settings\n10A400eDelete selected\n1174811Show keyboard shortcuts list\n11T400aArrange all objects\n11T480aArrange objects on selected plates\n11T481bAuto orient objects\n10E481gCollapse or expand sidebar\n1084113Move in camera space Left\n109411cMove in camera space Right\n10a411iMove in camera space Up\n107410fMove in camera space Down\n10W401iMove selection 10 mm\n10W400fMove selection 10 mm\n10W4013Move selection 10 mm\n10W401cMove selection 10 mm\n1084813Change movement step to 1 mm Left\n109481cChange movement step to 1 mm Right\n10a481iChange movement step to 1 mm Up\n107480fChange movement step to 1 mm Down\n10B400jDeselect all\n12l4001Set filament for object or part 1\n12l4002Set filament for object or part 2\n12l4003Set filament for object or part 3\n12l4004Set filament for object or part 4\n12l4005Set filament for object or part 5\n12l4006Set filament for object or part 6\n12l4007Set filament for object or part 7\n12l4008Set filament for object or part 8\n12l4009Set filament for object or part 9\n1044100Set default camera view\n1044101Set top camera view\n1044102Set bottom camera view\n1044103Set front camera view\n1044104Set behind camera view\n1044105Set left camera view\n1044106Set right camera view\n1044107Set isometric camera view\n10W401nFit camera to scene or selection\n104411kReset window layout\n118410gShow labels by layer\n12l480gShow labels by object\n11T4112Show overhang\n10A490dDelete all\n11B411mRedo\n11T4014Activate Move gizmo\n11T401dActivate Scale gizmo\n11H401bActivate Rotate gizmo\n10y400cActivate Cut gizmo\n11T400kPlace face on bed\n11T4012Activate SLA support points gizmo\n10h4017Activate FDM paint-on-seam gizmo\n10B400jDeselect all in gizmo\n11T4001Set extruder 1 for objects and parts 1\n11T4002Set extruder 2 for objects and parts 2\n11T4003Set extruder 3 for objects and parts 3\n11T4004Set extruder 4 for objects and parts 4\n11T4005Set extruder 5 for objects and parts 5\n11T4006Set extruder 6 for objects and parts 6\n11T4007Set extruder 7 for objects and parts 7\n11T4008Set extruder 8 for objects and parts 8\n11T4009Set extruder 9 for objects and parts 9\n10A400eDelete objects, parts, or modifiers\n10B400jDeselect all in Objects List\n11D401eRename object or part\n10a401iMove active vertical slider thumb up\n107400fMove active vertical slider thumb down\n1084013Move active horizontal slider thumb left\n109401cMove active horizontal slider thumb right\n1184012Toggle one-layer slider mode\n1234813Move preview slider five times faster Left\n123481cMove preview slider five times faster Right\n123481iMove preview slider five times faster Up\n123480fMove preview slider five times faster Down\n1234113Move preview slider five times faster Left\n123411cMove preview slider five times faster Right\n123411iMove preview slider five times faster Up\n123410fMove preview slider five times faster Down",
   "net.shinyfrog.bear": "b0X4102Heading levels 2\n10X4103Heading levels 3\n10X4104Heading levels 4\n10X4105Heading levels 5\n10X4106Heading levels 6\n10v451dInsert line separator\n115410BItalic\n12i411hUnderline\n127491hStrikethrough\n119410dInsert wiki link\n11k4912Ordered list\n11T491fQuote\n10v450cInline code\n10v430cCode block\n11T4914Highlight / marker\n11y490gInsert footnote\n11y491jInsert file\n12o451fCreate table\n12o430fAdd table row\n12o431cAdd table column\n10A430eDelete table row\n10A4b0eDelete table column\n10v451cShift line right\n10v4513Shift line left\n10a451iMove line up\n107450fMove line down\n10z401gIndent / outdent list item\n10z481gIndent / outdent list item\n10l4907Insert long date and time\n10l4908Insert long-form date\n10l4909Insert short-form date\n11y4900Insert current time\n11O410aSelect all\n10o410iFinish editing\n11z4117Print note\n119490DOpen link\n11T410_Toggle folding\n10w4d12Copy link to note\n10w4d0BCopy note identifier\n12A490JZoom\n12A410KZoom out\n10P4100Reset zoom\n104490BToggle statistics panel\n12o490aToggle table of contents panel\n104490bToggle backlinks panel\n10O450kFind and replace in note\n11i4515New note in new window\n11j401iMove through notes or tags Up\n11j400fMove through notes or tags Down\n11m4013Move focus between areas / Toggle nested tags\n11m401cMove focus between areas / Toggle nested tags\n11j400iEdit note\n10A410eDelete note\n11j491bRestore note\n11v4917Pin / unpin note\n11O410aSelect all notes in list\n10A490eEmpty Trash\n10E4501Select sidebar section 1\n10E4502Select sidebar section 2\n10E4503Select sidebar section 3\n10E4504Select sidebar section 4\n10E4505Select sidebar section 5\n10E4506Select sidebar section 6\n10E4500Select sidebar section 0\n10E4509Select sidebar section 9\n11j410GNavigate back in note history\n11j410HNavigate forward in note history\n10L491dExport selected notes\n1104916Import notes\n1044201Change window layout 1\n1044202Change window layout 2\n1044203Change window layout 3\n11Q410IShow Preferences\n10U430kEnter full screen\n104410FOpen main Bear window",
   "com.apple.iBooksX": "y1n400fNext Page\n11n4018Next Page\n11o401iPrevious Page\n11o4019Previous Page",
-  "com.brave.Browser": "91i4115New Window\n12c451cNext Tab\n12c4513Previous Tab\n12c421gCycle to Next Tab\n12c4a1gCycle to Previous Tab\n12c4101Go to Tab 1\n12c4102Go to Tab 2\n12c4103Go to Tab 3\n12c4104Go to Tab 4\n12c4105Go to Tab 5\n12c4106Go to Tab 6\n12c4107Go to Tab 7\n12c4108Go to Tab 8\n12c4109Go to Last Tab\n11o4113Back (Arrow Key)\n11n411cForward (Arrow Key)\n10t411kClose Tab\n12v491kClose Window\n12x4114Minimize Window\n10M410zHide Brave\n105411aQuit Brave\n10f490bToggle Bookmarks Bar\n10f450bBookmark Manager\n11Q410IBrave Settings\n10Z411mHistory\n10G490CDownloads\n11N410kFind on Page\n10p410yNext Match\n10q490yPrevious Match\n11N410gFind Selected Text\n10v450BDeveloper Tools\n10A490eClear Browsing Data\n1004914Profile Menu\n11N400iSubmit Address Bar Search\n11N401gChoose Typed Search Engine\n12u420iComplete Typed Site Name\n11h4a0iComplete Site Name in New Tab\n11h410iOpen Typed URL in Background Tab\n10A500f80xRemove Address Bar Suggestion\n11z4117Print Page\n11J411dSave Page\n11z4517Page Setup\n11C491bReload Without Cache\n126400jStop Loading\n109401gFocus Next Page Item\n108481gFocus Previous Page Item\n11m4116Open File\n10v451hView Page Source\n12f450CJavaScript Console\n10f410dBookmark This Page\n10S490dBookmark All Tabs\n10U430kToggle Full Screen\n12z490JZoom In\n12A410KZoom Out\n11N4100Reset Zoom\n107401eScroll Down One Screen\n10a481eScroll Up One Screen\n12u450kSearch the Web\n1084413Move Cursor One Word Left\n109441cMove Cursor One Word Right\n10A440eDelete Previous Word\n10-490zOpen Home Page\n1124515Private Window with Tor\n11T4917Quick Commands\n11M491dTake Screenshot\n12s4214Mute or Unmute Tab\n12c410bToggle Side Panel\n12c451fOpen Split View\n12c490GPrevious Tab (Brackets)\n12c490HNext Tab (Brackets)",
+  "com.brave.Browser": "c2c421gCycle to Next Tab\n12c4a1gCycle to Previous Tab\na1o4113Back (Arrow Key)\n11n411cForward (Arrow Key)\n10t411kClose Tab\n12v491kClose Window\n12x4114Minimize Window\n10M410zHide Brave\n105411aQuit Brave\n40Z411mHistory\n10G490CDownloads\n20p410yNext Match\n10q490yPrevious Match\n11N410gFind Selected Text\n10v450BDeveloper Tools\n10A490eClear Browsing Data\n1004914Profile Menu\n11N400iSubmit Address Bar Search\n11N401gChoose Typed Search Engine\n12u420iComplete Typed Site Name\n11h4a0iComplete Site Name in New Tab\n11h410iOpen Typed URL in Background Tab\n10A500f80xRemove Address Bar Suggestion\n11z4117Print Page\n11J411dSave Page\n11z4517Page Setup\n11C491bReload Without Cache\n126400jStop Loading\n109401gFocus Next Page Item\n108481gFocus Previous Page Item\n11m4116Open File\n10v451hView Page Source\n12f450CJavaScript Console\n10f410dBookmark This Page\n20U430kToggle Full Screen\n12z490JZoom In\n12A410KZoom Out\n207401eScroll Down One Screen\n10a481eScroll Up One Screen\n12u450kSearch the Web\n1084413Move Cursor One Word Left\n109441cMove Cursor One Word Right\n10A440eDelete Previous Word\n10-490zOpen Home Page\n1124515Private Window with Tor\n11T4917Quick Commands\n11M491dTake Screenshot\n12s4214Mute or Unmute Tab\n12c410bToggle Side Panel\n12c451fOpen Split View\n12c490GPrevious Tab (Brackets)\n12c490HNext Tab (Brackets)",
   "com.apple.iCal": "909411cNext day, week, month, or year\n1084113Previous day, week, month, or year\n10l4103Month view\n1044104Year view\n10U430kFull-screen view\n10V400jExit full-screen view\n10X490JMake text bigger\n10X410KMake text smaller\n11C411bRefresh all calendars\n10B401eSelect or deselect checkbox next to selected\n11z4117Print day, week, month, or year calendar\n10l410gEdit selected event\n10l450BEdit selected event in inspector window\n10W401gSelect next event\n10W481gSelect previous event\n10W4013Select previous event\n10W401cSelect next event\n10W401iSelect previous event\n10W400fSelect next event\n10l461iMove selected event 15 minutes earlier\n10l460fMove selected event 15 minutes later\n10l461cMove selected event one day later\n10l4613Move selected event one day earlier\n10l410BShow information for calendar or event\n11z4117Print selected events or events in time range\n10M490aToggle Availability panel\n10l410IOpen Calendar settings",
   "com.openai.chat": "b1R4901Share main desktop (ChatGPT Classic)\n1044902Share window (ChatGPT Classic)",
   "com.openai.codex": "01x08401iRestore Last Prompt",
