@@ -168,7 +168,7 @@
     "gzipTolerance": 9216
   },
   "bundleBudget": {
-    "minified": 2937000,
-    "gzip": 1155800
+    "minified": 2938400,
+    "gzip": 1156250
   }
 }

@@ -1245,6 +1245,21 @@
     }
   },
   {
+    "name": "companion_obs_studio_control: picker_alias",
+    "input": "~,Studio%20Control,Movie,Auto,,,subpage,,subpage_connector%3Dmac_companion%2Csubpage_kind%3Dobs_studio_control",
+    "expected": {
+      "entity": "",
+      "label": "Studio Control",
+      "icon": "Movie",
+      "icon_on": "Auto",
+      "sensor": "",
+      "unit": "",
+      "type": "subpage",
+      "precision": "",
+      "options": "subpage_connector=mac_companion,subpage_kind=obs_studio_control"
+    }
+  },
+  {
     "name": "companion_obs_audio: picker_alias",
     "input": "~,Audio,Microphone,Auto,,,subpage,,subpage_connector%3Dmac_companion%2Csubpage_kind%3Dobs_audio",
     "expected": {

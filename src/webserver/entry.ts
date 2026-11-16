@@ -379,6 +379,7 @@ function composeApplicationContext(liveGeneratedActions: () => readonly Companio
   const nativePanelConfig = createNativePanelConfigMigrationController({
     deviceProfile: () => layout.deviceId,
     slotCount: () => layout.numSlots,
+    presetPageGeometry: () => ({ columns: layout.gridCols, slots: layout.previewSlots }),
     entityName: (name) => entityState.entityName(name),
     entityNameForSlot: (name, slot) => entityState.entityNameForSlot(name, slot),
     normalizeHexColor: (value, fallback) => Model.normalizeHexColor(value, fallback),

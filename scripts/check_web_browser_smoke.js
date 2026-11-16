@@ -4534,7 +4534,7 @@ async function assertOBSSceneCard(browser) {
       ["Audio Controls", "Break", "Output Control", "Replay Buffer", "Scene", "Studio Mode"]
         .map(label => label + " card type"));
     assert.deepEqual(await cardLabels("Grouped pages"),
-      ["Audio", "Scenes", "Transitions"].map(label => label + " card type"));
+      ["Audio", "Scenes", "Studio Control", "Transitions"].map(label => label + " card type"));
     assert((await obsCards.allTextContents()).every(copy => !/\bOBS\b/.test(copy)));
     assert.match(await page.getByRole("button", { name: "Output Control card type", exact: true }).innerText(),
       /Start or stop recording or streaming/);
@@ -8191,6 +8191,59 @@ async function assertOBSStarterPage(browser, firstRun = false) {
   }
 }
 
+async function assertStudioControlPage(browser) {
+  const testCase = CASES.find(item => item.slug === "guition-esp32-s3-4848s040");
+  const fixture = nativeConfigState(testCase.slug);
+  fixture.document.settings.web_onboarding_complete = "1";
+  const context = await browser.newContext({ viewport: testCase.viewport });
+  await installRoutes(context, testCase.slug, {
+    nativeState: fixture, nativeV2: true,
+    connectorsStatus: {
+      onboarding_complete: true,
+      mac_companion: { available: true, configured: true, paired: true, connected: true },
+    },
+  });
+  try {
+    const page = await context.newPage();
+    await installFakeEventSource(page);
+    await page.goto(`http://espdesktop.test/${testCase.slug}?events=1`);
+    await seedNativeDocument(page, fixture);
+    await page.locator(".sp-main .sp-empty-cell").first().click();
+    await chooseOBSCard(page, "Studio Control");
+    await page.getByRole("button", { name: "Save", exact: true }).click();
+    await waitForNativeState(fixture, () => Object.values(fixture.document.buttons).some(card => card.includes("Studio Control")),
+      "Studio Control saves the parent card");
+    const slot = Number(Object.entries(fixture.document.buttons).find(([, card]) => card.includes("Studio Control"))[0]);
+    assert.match(fixture.document.buttons[slot], /Movie/);
+    const savedPage = fixture.puts.at(-1)?.layout?.pages.find(group => group.key === slot);
+    assert.equal(savedPage?.order, "B,1,2,3,4b,,5");
+    assert.deepEqual(savedPage?.cards.map(card => card.config.entity),
+      ["obs.output.record", "obs.output.stream", "obs.studio", "obs.replay", "obs.replay.buffer"]);
+    const studioButton = page.locator(`.sp-main [data-slot="${slot}"]`);
+    await studioButton.locator(".mdi-movie").waitFor();
+    const enter = async () => {
+      await studioButton.click({ button: "right" });
+      await page.getByText("Edit Subpage", { exact: true }).click();
+    };
+    await enter();
+    for (const [pos, label] of [[1, "Record"], [2, "Stream"], [3, "Studio Mode"], [4, "Save Replay"], [6, "Replay Buffer"]]) {
+      await page.locator(`.sp-main [data-pos="${pos}"][data-slot]`).getByText(label, { exact: true }).waitFor();
+    }
+    const replay = page.locator('.sp-main [data-pos="4"].sp-btn-big');
+    await replay.waitFor();
+    await page.locator(".sp-back-btn .sp-back-hit").click();
+    await studioButton.click({ button: "right" });
+    await page.getByText("Edit Card", { exact: true }).click();
+    await page.getByRole("button", { name: "Card Settings", exact: true }).click();
+    await page.locator("#sp-inp-label").fill("My Studio");
+    await page.getByRole("button", { name: "Save", exact: true }).click();
+    await studioButton.getByText("My Studio", { exact: true }).waitFor();
+    await enter();
+    await replay.getByText("Save Replay", { exact: true }).waitFor();
+    console.log("Studio Control created with Movie icon and 2×2 Save Replay, and kept its cards after renaming.");
+  } finally { await context.close(); }
+}
+
 async function assertFirstRunSetup(browser) {
   const testCase = CASES.find(item => item.slug === "guition-esp32-s3-4848s040");
   const fixture = nativeConfigState(testCase.slug);
@@ -8531,6 +8584,10 @@ async function assertFirstRunSetup(browser) {
       await assertLiveFinderPreview(browser);
       return;
     }
+    if (process.env.ESPDESKTOP_OBS_STUDIO_CONTROL_ONLY === "1") {
+      await assertStudioControlPage(browser);
+      return;
+    }
     if (process.env.ESPDESKTOP_OBS_STARTER_ONLY === "1") {
       await assertOBSStarterPage(browser);
       await assertOBSStarterPage(browser, true);
@@ -8559,6 +8616,7 @@ async function assertFirstRunSetup(browser) {
     await assertOBSSceneCard(browser);
     await assertOBSStarterPage(browser);
     await assertOBSStarterPage(browser, true);
+    await assertStudioControlPage(browser);
     await assertRetiredCardRemoval(browser);
     if (process.env.ESPDESKTOP_RETIRED_CARDS_ONLY === "1") return;
     await assertMacLockCard(browser);

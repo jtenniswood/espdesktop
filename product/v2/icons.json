@@ -2069,6 +2069,11 @@
       "name": "Flip Horizontal",
       "codepoint": "F10E7",
       "mdi": "flip-horizontal"
+    },
+    {
+      "name": "Movie",
+      "codepoint": "F0381",
+      "mdi": "movie"
     }
   ],
   "domain_defaults": {

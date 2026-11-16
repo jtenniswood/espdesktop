@@ -346,6 +346,14 @@
       "config": { "label": "Scenes", "icon": "Image Card Loading", "icon_on": "Auto", "type": "subpage", "options": "subpage_connector=mac_companion,subpage_kind=obs_scenes" },
       "lifecycle": { "subscriptions": ["none"], "actions": ["navigation"], "modalOwner": "none" }
     },
+    "companion_obs_studio_control": {
+      "classification": "picker_alias",
+      "canonicalType": "subpage",
+      "surfaces": ["web_registry"],
+      "webRegistration": "companion_obs_studio_control",
+      "config": { "label": "Studio Control", "icon": "Movie", "icon_on": "Auto", "type": "subpage", "options": "subpage_connector=mac_companion,subpage_kind=obs_studio_control" },
+      "lifecycle": { "subscriptions": ["none"], "actions": ["navigation"], "modalOwner": "none" }
+    },
     "companion_obs_audio": {
       "classification": "picker_alias",
       "canonicalType": "subpage",

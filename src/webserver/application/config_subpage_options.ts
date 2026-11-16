@@ -1,3 +1,4 @@
+import { STUDIO_CONTROL_PAGE } from "../model/studio_control_page";
 import { preserveGeneratedCardExclusions } from "../model/generated_page_cards";
 import { preserveCardColorOptions } from "../model/config_primitives";
 import {
@@ -47,6 +48,7 @@ import { OBS_SUBPAGES, obsSubpageKind, obsSubpagePreferences } from "../model/ob
         { value: "sensor", label: "Sensor", preset: { label: "Sensor", icon: "Gauge", entityDomains: ["sensor", "binary_sensor", "text_sensor"], placeholder: "e.g. sensor.open_windows" } },
         { value: "image", label: "Camera/Image", preset: { label: "Camera", icon: "Camera", entityDomains: ["camera", "image"], placeholder: "e.g. camera.front_door" } },
         { value: "companion_stat", label: "Companion Stat" },
+        { value: STUDIO_CONTROL_PAGE, label: "Studio Control" },
         ...Object.entries(OBS_SUBPAGES).map(([value, { label }]) => ({ value, label })),
     ];
     function subpageKindOptions(this: any, connector?: any, homeAssistantConfigured?: any) {
@@ -55,7 +57,7 @@ import { OBS_SUBPAGES, obsSubpageKind, obsSubpagePreferences } from "../model/ob
         return SUBPAGE_KIND_PRESET_DEFINITIONS.filter(function (definition: any) {
             if (normalizedConnector === "mac_companion" || !includeHomeAssistantKinds)
                 return definition.value === "";
-            return definition.value !== "companion_stat" && !(definition.value in OBS_SUBPAGES);
+            return definition.value !== "companion_stat" && definition.value !== STUDIO_CONTROL_PAGE && !(definition.value in OBS_SUBPAGES);
         }).map(function (this: any, definition?: any) {
             return [definition.value, definition.label];
         });

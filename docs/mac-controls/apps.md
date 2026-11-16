@@ -102,6 +102,8 @@ Choose **Add Card → OBS Studio → Audio** to fill a subpage with sliders for 
 
 Choose **Add Card → OBS Studio → Scenes** for an automatic page of scenes from the current collection. Edit the Scenes card to hide or reorder scene buttons. The page follows collection changes and uses the same Preview and Program colours as individual scene cards. Break, Transition, and Take Live fill the bottom of the page when space is available. Take Live spans two columns by default.
 
+Choose **Add Card → OBS Studio → Studio Control** to add a page with Record, Stream, Studio Mode, Replay Buffer, and Save Replay. Save Replay spans two rows and two columns on layouts with enough space. The preset cards can be moved, edited, or deleted.
+
 On an automatic OBS or Finder page, select an automatic card to save it in place, or drag it to save it in a new position. Saved cards can be edited or deleted like other cards. New items still fill available space, and deleted cards stay out of the automatic list.
 
 A **Mute** card changes the selected input in the OBS mixer. The ON colour and microphone icon show an unmuted input. Muting the input turns the colour off and shows a crossed-out microphone. Use the mic your broadcast captures when setting up the card, especially if it differs from the Mac’s default mic. Scene and input bindings are kept when a target is unavailable.

@@ -1,3 +1,4 @@
+import { STUDIO_CONTROL_PAGE, isStudioControlPage } from "../model/studio_control_page";
 import { companionMetricForEntity } from "../model/companion_card_codec";
 import { OBS_SUBPAGES, type OBSSubpageKind, obsSubpageKind, orderedOBSTiles, obsSubpageTileKey, setOBSSubpagePreferences, obsSubpageCatalogue } from "../model/obs_live_subpage";
 import type { CompanionAction } from "../api/companion_catalogue";
@@ -89,6 +90,12 @@ export function registerSubpageCardTypes(
             b.options = "";
         },
         renderSettings: function (this: any, panel?: any, b?: any, slot?: any, helpers?: any) {
+            if (isStudioControlPage(b.options)) {
+                helpers.renderCardTextField(panel, b, helpers, SUBPAGE_CARD_METADATA.labelField);
+                helpers.renderCardIconPicker(panel, b, helpers, SUBPAGE_CARD_METADATA.icon);
+                appendEditSubpageButton(panel, slot);
+                return;
+            }
             const liveKind = obsSubpageKind(b.options);
             if (liveKind) {
                 const pageType = OBS_SUBPAGES[liveKind];
@@ -297,6 +304,17 @@ export function registerSubpageCardTypes(
     registry.register("companion_obs_transitions", obsSubpageDefinition("obs_transitions"));
     registry.register("companion_obs_audio", obsSubpageDefinition("obs_audio"));
     registry.register("companion_obs_scenes", obsSubpageDefinition("obs_scenes"));
+    registry.register("companion_obs_studio_control", {
+        ...registeredSubpageDefinition,
+        pickerKey: null,
+        label: "Studio Control",
+        onSelect: function (b: { label: string; icon: string; options: string }) {
+            b.label = "Studio Control";
+            b.icon = "Movie";
+            b.options = setConfigOptionValue(b.options, SUBPAGE_CONNECTOR_OPTION, "mac_companion");
+            b.options = setConfigOptionValue(b.options, SUBPAGE_KIND_OPTION, STUDIO_CONTROL_PAGE);
+        },
+    });
     function subpageBadgeLabelHtml(this: any, helpers?: any, label?: any) {
         return '<span class="sp-btn-label-row"><span class="sp-btn-label">' +
             helpers.escHtml(label) +

@@ -3303,7 +3303,8 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
           "obs_transitions",
           "obs_sources",
           "obs_audio",
-          "obs_scenes"
+          "obs_scenes",
+          "obs_studio_control"
         ],
         "defaultValue": "",
         "omitDefault": true

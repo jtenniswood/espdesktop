@@ -701,7 +701,7 @@ inline std::string normalize_subpage_kind(const std::string &value) {
     value == "lock" || value == "vacuum" ||
     value == "lawn_mower" ||
     value == "weather" || value == "sensor" ||
-    value == "image" || value == "companion_stat" || obs_subpage_kind(value) != OBSSubpageKind::none ? value : "";
+    value == "image" || value == "companion_stat" || value == "obs_studio_control" || obs_subpage_kind(value) != OBSSubpageKind::none ? value : "";
 }
 
 inline const char *obs_subpage_order_option(OBSSubpageKind kind) {
@@ -1254,7 +1254,7 @@ inline const char *saved_config_subpage_default_icon(const std::string &kind) {
 
 inline void normalize_saved_config_subpage_fields(ParsedCfg &p) {
   const std::string kind = normalize_subpage_kind(cfg_option_value(p.options, "subpage_kind"));
-  if (kind.empty() || obs_subpage_kind(kind) != OBSSubpageKind::none) return;
+  if (kind.empty() || kind == "obs_studio_control" || obs_subpage_kind(kind) != OBSSubpageKind::none) return;
   if (kind == "companion_stat") {
     if (!subpage_companion_stat_entity_valid(p.entity)) p.entity = "stat.cpu";
     if (p.label.empty()) p.label = subpage_companion_stat_default_label(p.entity);

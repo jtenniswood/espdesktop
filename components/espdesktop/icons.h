@@ -421,6 +421,7 @@ static const IconEntry ICON_ENTRIES[] = {
     {"Subtitles",                    "\U000F0A17"},
     {"Coffee to Go",                 "\U000F0177"},
     {"Flip Horizontal",              "\U000F10E7"},
+    {"Movie",                        "\U000F0381"},
     // --- GENERATED:ICONS END ---
 };
 

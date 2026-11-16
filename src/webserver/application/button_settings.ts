@@ -1,3 +1,4 @@
+import { isStudioControlPage } from "../model/studio_control_page";
 import { sameCardAction, setCardExposure } from "../model/home_assistant_cards";
 import { childPageKey, pageOwnerSlot, parentPageKey } from "../model/page_keys";
 import { previewSubpageOwner } from "../model/companion_shortcut_page";
@@ -542,8 +543,7 @@ export function createButtonSettingsFeature(
                 : null;
             var replacedFolderOwner: any = !c.isSub &&
                 cardOwnsSubpage(originalSubpageOwner) &&
-                (savedButton.type !== "companion" || savedButton.sensor ||
-                    originalSubpageOwner.type !== savedButton.type ||
+                (!cardOwnsSubpage(savedButton) || originalSubpageOwner.type !== savedButton.type ||
                     originalSubpageOwner.entity !== savedButton.entity);
             var sizeChanged: any = !shortcutPage && applyCardSizeConstraint(savedButton);
             var orderChanged: any = !saved.saveSubpage && (saved.saveGrid || sizeChanged);
@@ -594,6 +594,7 @@ export function createButtonSettingsFeature(
             }).then(async (ok: boolean) => {
                 const committed = atomicEdit ? await atomicEdit.finish(ok) : ok;
                 if (!committed) restoreDraftState();
+                else if (draft.isNew && isStudioControlPage(savedButton.options)) await codec.refreshNativePages();
                 return committed;
             }).catch(function () {
                 atomicEdit?.cancel();

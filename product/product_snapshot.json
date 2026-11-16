@@ -12,7 +12,7 @@
     "deviceProfiles": 9,
     "cardTypes": 41,
     "entityNames": 92,
-    "icons": 362,
+    "icons": 363,
     "structuralIcons": 42,
     "compatibilityFixtureGroups": 2
   },
@@ -5380,7 +5380,8 @@
               "obs_transitions",
               "obs_sources",
               "obs_audio",
-              "obs_scenes"
+              "obs_scenes",
+              "obs_studio_control"
             ],
             "defaultValue": "",
             "omitDefault": true
@@ -9043,6 +9044,11 @@
         "name": "Flip Horizontal",
         "codepoint": "F10E7",
         "mdi": "flip-horizontal"
+      },
+      {
+        "name": "Movie",
+        "codepoint": "F0381",
+        "mdi": "movie"
       }
     ],
     "domain_defaults": {
