@@ -176,6 +176,41 @@ export const OBS_STUDIO_CONTROL_PAGE = [
     icon: "Repeat"
   }
 ] as const;
+export const OBS_PROGRAM_TINT_PERCENT = 50;
+export const OBS_OUTPUT_STATUS_ICONS: Readonly<Record<string, readonly [string, string]>> = {
+  Idle: [
+    "Stop Circle",
+    "Broadcast Off"
+  ],
+  Active: [
+    "Record",
+    "Broadcast Off"
+  ],
+  Live: [
+    "Stop Circle",
+    "Broadcast"
+  ],
+  Paused: [
+    "Pause",
+    "Broadcast Off"
+  ],
+  Changing: [
+    "Progress Clock",
+    "Progress Clock"
+  ],
+  Stopping: [
+    "Progress Clock",
+    "Progress Clock"
+  ],
+  Reconnecting: [
+    "Progress Clock",
+    "Progress Clock"
+  ],
+  Unavailable: [
+    "Monitor Off",
+    "Monitor Off"
+  ]
+};
 export const OBS_CARD_STATES: Readonly<Record<string, { readonly detail: string; readonly lit: boolean }>> = {
   scene_idle: {
     detail: "",

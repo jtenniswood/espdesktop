@@ -37,8 +37,10 @@ struct CompanionAction {
   std::string label;
   OBSCardState obs_state{OBSCardState::unknown};
   std::string obs_detail{};
+  std::optional<bool> obs_available{};
   bool operator==(const CompanionAction &other) const {
-    return id == other.id && label == other.label && obs_state == other.obs_state && obs_detail == other.obs_detail;
+    return id == other.id && label == other.label && obs_state == other.obs_state && obs_detail == other.obs_detail &&
+      obs_available == other.obs_available;
   }
 };
 

@@ -154,6 +154,20 @@ int main() {
     assert(cards[0].entity == "obs.take" && footer.positions[6] == 2 && cards[1].entity == "obs.transition");
     assert(footer.positions[5] == 3 && cards[2].entity == "obs.brb");
 
+    std::vector<SubpageBtn> landscape_cards{{first, "Edited scene", "Image", "Auto", "", "", "companion", "", ""}};
+    SubpageOrder landscape;
+    parse_subpage_order("B,1b", 15, landscape_cards.size(), landscape);
+    normalize_subpage_order_spans(landscape, 15, 5);
+    project_obs_subpage_tiles(landscape, landscape_cards, 15, 5, 15, catalogue,
+        "generated_card_exclusions=" + std::string(32, '3'), OBSSubpageKind::scenes);
+    assert(landscape.positions[1] == 1 && landscape.col_span[0] == 2 && landscape.row_span[0] == 2);
+    assert(landscape.positions[13] == 2 && landscape.col_span[1] == 2 && landscape_cards[1].entity == "obs.take");
+    assert(landscape_cards.size() == 5 && landscape_cards.back().entity == second);
+
+    CompanionRuntimeSnapshot blocked = snapshot;
+    blocked.actions[0].obs_available = false;
+    assert(!companion_action_available(blocked, first));
+
     cards.resize(1);
     SubpageOrder manual_take;
     parse_subpage_order("B,1", 9, 1, manual_take);

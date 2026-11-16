@@ -254,6 +254,7 @@ final class OBSConnection: ObservableObject {
         let label: String
         var state: OBSCardState? = nil
         var detail: String? = nil
+        var available: Bool? = nil
     }
 
     enum SceneAction: Equatable {
@@ -344,41 +345,47 @@ final class OBSConnection: ObservableObject {
         let sourceStates = Dictionary((state.sources ?? []).map { ($0.key, $0.enabled) }, uniquingKeysWith: { first, _ in first })
         let selectedTransitionID = state.selectedTransition.map(transitionSelectionID)
         return controlActions(state).map { action in
-            func entry(_ presentation: OBSCardState?, detail: String? = nil) -> CatalogueEntry {
-                CatalogueEntry(id: action.id, label: action.label, state: presentation, detail: detail)
+            func entry(_ presentation: OBSCardState?, detail: String? = nil, available: Bool? = nil) -> CatalogueEntry {
+                CatalogueEntry(id: action.id, label: action.label, state: presentation, detail: detail, available: available)
             }
             if action.id == "obs.take" || action.id.hasPrefix("obs.take.") {
-                return entry(state.takePresentation, detail: state.canTakePreview ? state.preview?.name : nil)
+                return entry(state.takePresentation, detail: state.canTakePreview ? state.preview?.name : nil,
+                             available: state.canTakePreview)
             }
             if action.id == studioModeID || action.id.hasPrefix(studioModeID + ".") {
-                return entry(state.studioMode ? .toggleOn : .toggleOff)
+                return entry(state.studioMode ? .toggleOn : .toggleOff, available: !state.transitionInProgress)
             }
             if action.id.hasPrefix(replayBufferID + "."), let on = state.replayBufferActive {
-                return entry(on ? .toggleOn : .toggleOff)
+                return entry(on ? .toggleOn : .toggleOff, available: true)
             }
-            if action.id == "obs.replay" { return entry(state.replaySave.presentation) }
-            if action.id == "obs.status.record" || action.id == Output.record.savedID || action.id.hasPrefix(Output.record.savedID + ".") {
-                return entry(state.outputPresentation(.record))
+            if action.id == "obs.replay" { return entry(state.replaySave.presentation, available: true) }
+            if action.id == "obs.status.record" { return entry(state.outputPresentation(.record)) }
+            if action.id == Output.record.savedID || action.id.hasPrefix(Output.record.savedID + ".") {
+                return entry(state.outputPresentation(.record), available: action.id != Output.record.savedID && state.outputControlReady(.record))
             }
-            if action.id == "obs.status.stream" || action.id.hasPrefix(Output.stream.savedID + ".") {
-                return entry(state.outputPresentation(.stream))
+            if action.id == "obs.status.stream" { return entry(state.outputPresentation(.stream)) }
+            if action.id.hasPrefix(Output.stream.savedID + ".") {
+                return entry(state.outputPresentation(.stream), available: state.outputControlReady(.stream))
             }
-            if let card = state.breakCard, action.id == card.actionID { return entry(card.presentation) }
-            if let id = audioInputUUID(for: action.id, prefix: "obs.mute.") { return entry(inputStates[id]) }
+            if let card = state.breakCard, action.id == card.actionID { return entry(card.presentation, available: card.token != nil) }
+            if let id = audioInputUUID(for: action.id, prefix: "obs.mute.") { return entry(inputStates[id], available: true) }
             if action.id.hasPrefix(transitionSelectionPrefix) {
                 let id = action.id.dropFirst(transitionSelectionPrefix.count).prefix(32)
-                return entry(selectedTransitionID == transitionSelectionPrefix + id ? .transitionSelected : .transitionIdle)
+                return entry(selectedTransitionID == transitionSelectionPrefix + id ? .transitionSelected : .transitionIdle,
+                             available: !state.transitionInProgress && selectedTransitionID != nil)
             }
             if action.id.hasPrefix(sourcePrefix) {
                 let key = String(action.id.dropFirst(sourcePrefix.count).prefix(32))
-                if let visible = sourceStates[key] { return entry(visible ? .sourceVisible : .sourceHidden) }
+                if let visible = sourceStates[key] {
+                    return entry(visible ? .sourceVisible : .sourceHidden, available: !state.transitionInProgress)
+                }
             }
             let scene: UUID?
             switch SceneAction(id: action.id) {
             case .program(let id), .preview(let id): scene = id
             case nil: scene = AdaptiveScene.command(action.id)?.0
             }
-            return entry(scene.map(state.scenePresentation))
+            return entry(scene.map(state.scenePresentation), available: scene == nil ? nil : true)
         }
     }
 

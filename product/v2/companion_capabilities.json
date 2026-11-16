@@ -167,6 +167,10 @@
                   "minLength": 1,
                   "maxLength": 96,
                   "optional": true
+                },
+                "obsAvailable": {
+                  "type": "boolean",
+                  "optional": true
                 }
               }
             }
@@ -980,6 +984,17 @@
     "certificatePolicy": "trust_on_first_pair_then_pin",
     "transport": "tls_websocket",
     "browserAuthentication": "configured_device_web_auth"
+  },
+  "obsProgramTintPercent": 50,
+  "obsOutputStatusIcons": {
+    "Idle": ["Stop Circle", "Broadcast Off"],
+    "Active": ["Record", "Broadcast Off"],
+    "Live": ["Stop Circle", "Broadcast"],
+    "Paused": ["Pause", "Broadcast Off"],
+    "Changing": ["Progress Clock", "Progress Clock"],
+    "Stopping": ["Progress Clock", "Progress Clock"],
+    "Reconnecting": ["Progress Clock", "Progress Clock"],
+    "Unavailable": ["Monitor Off", "Monitor Off"]
   },
   "obsCardStates": [
     {"id": "scene_idle", "detail": "", "lit": false, "since": 20},

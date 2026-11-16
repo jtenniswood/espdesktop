@@ -20,8 +20,8 @@ int main(int argc, char **argv) {
     }
     if (decoded && std::string(fixture["name"].as<const char *>()) == "catalogue page") {
       const auto &items = std::get<companion_protocol::CataloguePage>(*decoded).items;
-      if (items.size() != 2 || items[0].obsState || items[0].obsDetail ||
-          items[1].obsState != "take_ready" || items[1].obsDetail != "BRB") return 1;
+      if (items.size() != 2 || items[0].obsState || items[0].obsDetail || items[0].obsAvailable ||
+          items[1].obsState != "take_ready" || items[1].obsDetail != "BRB" || items[1].obsAvailable != true) return 1;
     }
   }
   companion_protocol::SystemMetrics metrics;

@@ -888,19 +888,20 @@ final class CompanionConnection: NSObject {
             ["id": $0.id, "label": Self.catalogueLabel($0.label, fallback: "Input device")]
         } : []
         let supportedOBSActions = supportsOBSCards ? obsActions ?? resources.obsControlActions() : []
-        let obsEntries: [[String: String]] = supportedOBSActions.filter { entry in
+        let obsEntries: [[String: Any]] = supportedOBSActions.filter { entry in
             (supportsOBSFaders || OBSConnection.faderInputUUID(for: entry.id) == nil) &&
             (supportsOBSCough || OBSConnection.coughInputUUID(for: entry.id) == nil) &&
             (supportsOBSOutputs || !entry.id.hasPrefix("obs.output.")) &&
             (supportsOBSBreak || !(entry.id == "obs.brb" || entry.id.hasPrefix("obs.brb."))) &&
             (supportsOBSStarter || !entry.id.hasPrefix(OBSConnection.AdaptiveScene.prefix))
         }.map { entry in
-            var fields = ["id": entry.id, "label": Self.catalogueLabel(entry.label, fallback: "OBS scene")]
+            var fields: [String: Any] = ["id": entry.id, "label": Self.catalogueLabel(entry.label, fallback: "OBS scene")]
             if let state = entry.state, peerCapabilityVersion >= state.minimumCapability {
                 fields["obsState"] = state.rawValue
                 if let detail = entry.detail {
                     fields["obsDetail"] = Self.catalogueLabel(detail, fallback: "Unavailable")
                 }
+                if let available = entry.available { fields["obsAvailable"] = available }
             }
             return fields
         }
@@ -913,7 +914,7 @@ final class CompanionConnection: NSObject {
         }
         // Older panels share a limit across Mac and OBS actions. Keep their
         // existing application order before appending the OBS catalogue.
-        let catalogue = inputs + entries + obsEntries
+        let catalogue = (inputs + entries).map { $0 as [String: Any] } + obsEntries
         catalogueGeneration &+= 1
         if catalogueGeneration == 0 { catalogueGeneration = 1 }
         let pages = stride(from: 0, to: max(catalogue.count, 1), by: 48).map {

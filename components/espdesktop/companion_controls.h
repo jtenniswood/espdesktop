@@ -700,7 +700,8 @@ inline bool companion_action_available(const CompanionRuntimeSnapshot &snapshot,
   // An older Companion may still advertise retired window identifiers.
   if (action_id.rfind("window.", 0) == 0) return false;
   const auto *action = companion_published_action(snapshot, action_id);
-  return action && (!companion_obs_tokenized_card(action_id) || action->id != action_id);
+  return action && action->obs_available != false &&
+    (!companion_obs_tokenized_card(action_id) || action->id != action_id);
 }
 
 inline bool companion_obs_record_stopping(const CompanionRuntimeSnapshot &snapshot) {
@@ -1172,11 +1173,10 @@ inline void companion_track_card(lv_obj_t *button, const std::string &action_id,
 inline const char *companion_obs_status_icon(const std::string &id, const std::string &status, bool available) {
   if (!available || status == "Unknown") return "Monitor Off";
   if (id == "obs.status.program") return "Monitor";
-  if (status == "Unavailable") return "Monitor Off";
-  if (status == "Changing" || status == "Reconnecting" || status == "Stopping") return "Progress Clock";
-  if (id == "obs.status.stream" || id == "obs.output.stream") return status == "Live" ? "Broadcast" : "Broadcast Off";
-  if (status == "Paused") return "Pause";
-  return status == "Active" ? "Record" : "Stop Circle";
+  const bool stream = id == "obs.status.stream" || id == "obs.output.stream";
+  for (const auto &entry : OBS_OUTPUT_STATUS_ICONS)
+    if (status == entry.status) return stream ? entry.stream : entry.record;
+  return "Monitor Off";
 }
 
 inline void companion_render_obs_detail(CompanionCardRef &ref, const std::string &label,
@@ -1702,6 +1702,7 @@ class CompanionActionsHandler : public esphome::web_server_idf::AsyncWebHandler 
         if (action.obs_state != OBSCardState::unknown)
           json += std::string(",\"obsState\":\"") + obs_card_presentation(action.obs_state).id + "\"";
         if (!action.obs_detail.empty()) json += ",\"obsDetail\":\"" + companion_json_escape(action.obs_detail) + "\"";
+        if (action.obs_available) json += *action.obs_available ? ",\"obsAvailable\":true" : ",\"obsAvailable\":false";
 #ifdef USE_COMPANION
         // The browser already polls this catalogue. Include cache freshness so
         // updated icons refresh open previews without downloading unchanged pixels.

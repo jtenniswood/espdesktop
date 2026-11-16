@@ -320,11 +320,13 @@ final class OBSProductionTests: XCTestCase {
         XCTAssertEqual(entry("obs.target." + OBSPilotTransport.queued)?.state, .scenePreview)
         XCTAssertEqual(entry("obs.take")?.state, .takeReady)
         XCTAssertEqual(entry("obs.take")?.detail, "BRB")
+        XCTAssertEqual(entry("obs.take")?.available, true)
 
         transport.updateProgram(OBSPilotTransport.queued)
         XCTAssertEqual(entry("obs.target." + OBSPilotTransport.queued)?.state, .sceneProgramPreview)
         XCTAssertEqual(entry("obs.take")?.state, .takeSameScene)
         XCTAssertEqual(entry("obs.take")?.id, "obs.take")
+        XCTAssertEqual(entry("obs.take")?.available, false)
 
         transport.onEvent?("CurrentSceneCollectionChanging", [:])
         XCTAssertTrue(OBSConnection.controlCatalogue(connection.state).isEmpty)

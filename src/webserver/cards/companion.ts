@@ -19,6 +19,7 @@ import {
 import {
     COMPANION_SYSTEM_METRICS,
     OBS_CARD_STATES,
+    OBS_OUTPUT_STATUS_ICONS,
 } from "../generated/companion_capabilities";
 import {
     companionCardDefaultIcon,
@@ -486,7 +487,7 @@ export function registerCompanionCardTypes(
     const obsControlLabels = new Map<string, string>();
     const obsCardStates = new Map<string, CompanionAction>();
     const obsPresentationKey = () => JSON.stringify([...obsCardStates].map(([id, action]) =>
-        [id, action.obsState, action.obsDetail]));
+        [id, action.obsState, action.obsDetail, action.obsAvailable]));
     const isOBSInputMuted = (inputId: string) => {
         const id = "obs.mute." + inputId;
         const state = obsCardStates.get(id)?.obsState;
@@ -1783,13 +1784,12 @@ export function registerCompanionCardTypes(
                 const toggle = mode === "obs_studio" || mode === "obs_replay_buffer";
                 const replay = mode === "obs_replay";
                 const brb = mode === "obs_brb";
+                const unavailable = !output && (presentation?.obsAvailable === false ||
+                    (replay && !currentLabel && obsControlLabels.has("obs.status.program")));
                 const programScene = sensor && currentLabel?.replace(/^Program · /, "");
                 const automaticOutputIcon = output && (!card.icon || ["Auto", "Monitor", record ? "Record" : "Broadcast"].includes(card.icon));
                 const statusIcon = sensor ? (programScene && programScene !== "Unknown" ? "Monitor" : "Monitor Off")
-                    : outputStatus === "Unavailable" ? "Monitor Off"
-                    : ["Changing", "Reconnecting", "Stopping"].includes(outputStatus) ? "Progress Clock"
-                    : !record ? (outputOn ? "Broadcast" : "Broadcast Off")
-                    : outputStatus === "Paused" ? "Pause" : outputOn ? "Record" : "Stop Circle";
+                    : OBS_OUTPUT_STATUS_ICONS[outputStatus]?.[record ? 0 : 1] || "Monitor Off";
                 const alias = (mode === "obs_mic" || scene || source || directTransition) && card.label;
                 const muted = mode === "obs_mic" && (cardState ? stateId === "audio_muted" : currentLabel?.startsWith("Muted · "));
                 const live = mode === "obs_mic" && currentLabel?.startsWith("Unmuted · ");
@@ -1817,7 +1817,8 @@ export function registerCompanionCardTypes(
                 }
                 return {
                     ...preview,
-                    buttonClass: onProgram && !selectedScene ? "sp-obs-program" : undefined,
+                    buttonClass: [onProgram && !selectedScene && "sp-obs-program", unavailable && "sp-obs-unavailable"]
+                        .filter(Boolean).join(" ") || undefined,
                     sensorSurface: sensor,
                     isOn: cardState ? cardState.lit : live || outputOn || (toggle && currentLabel === "On") || (brb && currentLabel === "Resume") || selectedScene ||
                         (directTransition && entity === obsControlLabels.get("obs.transition.selected")) ||
