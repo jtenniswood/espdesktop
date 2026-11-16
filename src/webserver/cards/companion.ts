@@ -1807,6 +1807,7 @@ export function registerCompanionCardTypes(
                 const toggle = entity === OBS_STUDIO_ID || mode === "obs_replay_buffer";
                 const replay = mode === "obs_replay";
                 const brb = mode === "obs_brb";
+                const take = mode === "obs_take";
                 const unavailable = (multiview && !currentLabel) || (virtualCamera && outputStatus === "Unavailable") ||
                     (!output && (presentation?.obsAvailable === false ||
                         (replay && !currentLabel && obsControlLabels.has("obs.status.program"))));
@@ -1824,23 +1825,23 @@ export function registerCompanionCardTypes(
                     ? { ...card, icon: muted ? "Microphone Off" : statusIcon } : card, helpers, {
                     label, iconFallback: companionSubtypeDefaultIcon(mode, entity), badge: COMPANION_CARD_METADATA.preview.badge,
                 });
-                if (sensor || output || scene || toggle || mode === "obs_take" || mode === "obs_transition" || brb || replay) {
+                if (sensor || output || scene || toggle || take || mode === "obs_transition" || brb || replay) {
                     const status = replay && currentLabel === "Save Replay" ? "Ready"
                         : currentLabel || (replay && obsControlLabels.has("obs.status.program") ? "Start Replay Buffer" : "");
                     const [name, detail] = status.split(" · ", 2);
                     const takeReady = stateId === "take_ready";
                     const takeScene = takeReady && (presentation?.obsDetail || status.slice("Take Live · ".length));
-                    const takeSameScene = stateId === "take_same_scene" ||
-                        (mode === "obs_take" && !stateId && status === "Take Live · Already on Program");
+                    const legacyTakeDetail = take && !stateId && detail;
+                    const takeSameScene = stateId === "take_same_scene" || legacyTakeDetail === "Already on Program";
                     const defaultTitle = takeSameScene ? "Currently Live" : takeScene ? "Take " + takeScene
                         : output || scene || directTransition ? label : fallback[mode];
                     const title = ((takeReady || takeSameScene) && card.label === "Take Live" ? "" : card.label) || defaultTitle;
-                    const presentationDetail = cardState && (mode === "obs_take" || toggle || replay || brb)
+                    const presentationDetail = cardState && (take || toggle || replay || brb)
                         ? presentation?.obsDetail ?? cardState.detail : undefined;
                     const note = sensor ? programScene || "Unavailable"
                         : output ? outputStatus
-                        : takeSameScene ? ""
                         : takeReady ? obsControlLabels.get(OBS_TRANSITION_ID) || ""
+                        : takeSameScene || (take && (presentationDetail ?? detail) === "Transitioning") ? ""
                         : scene ? "Scene"
                         : directTransition ? currentLabel ? "Transition" : "Unavailable"
                         : mode === "obs_transition" ? currentLabel || "Unavailable"

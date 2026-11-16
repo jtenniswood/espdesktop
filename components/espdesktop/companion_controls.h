@@ -1192,7 +1192,7 @@ inline bool companion_obs_scene_on_program(const CompanionRuntimeSnapshot &snaps
 }
 
 inline void companion_render_obs_detail(CompanionCardRef &ref, const std::string &label,
-                                        const CompanionRuntimeSnapshot &snapshot) {
+                                        const CompanionRuntimeSnapshot &snapshot, bool refreshing = false) {
   if (!ref.obs_detail || !lv_obj_is_valid(ref.obs_detail) || !ref.text_label) return;
   const std::string separator = " · ";
   const auto split = label.find(separator);
@@ -1249,6 +1249,10 @@ inline void companion_render_obs_detail(CompanionCardRef &ref, const std::string
         (action->obs_state == OBSCardState::unknown && label == "Take Live · Already on Program"))) {
       if (ref.obs_label_alias.empty() || ref.obs_label_alias == name)
         primary = espdesktop_i18n_key("label_obs_currently_live");
+      detail.clear();
+    } else if (take && action && (action->obs_state == OBSCardState::take_transitioning ||
+        (action->obs_state == OBSCardState::unknown && label == "Take Live · Transitioning"))) {
+      if (refreshing) return;  // Keep the previous text until OBS sends the next settled state.
       detail.clear();
     }
   }
@@ -1469,7 +1473,7 @@ inline void companion_refresh_cards_if_requested() {
           it->action_id, it->url_config, it->resolved_default_label, &snapshot);
         label = companion_obs_control_label(it->action_id, it->obs_label_alias, live_label, &snapshot);
       }
-      if (it->obs_detail) companion_render_obs_detail(*it, label, snapshot);
+      if (it->obs_detail) companion_render_obs_detail(*it, label, snapshot, true);
       else if (normalize_display_text(label) != lv_label_get_text(it->text_label))
         lv_label_set_display_text(it->text_label, label.c_str());
     }

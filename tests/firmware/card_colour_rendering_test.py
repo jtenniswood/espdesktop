@@ -444,12 +444,16 @@ int main() {
       set_card_disabled_state(&tile, false);
       lv_obj_add_state(&tile, LV_STATE_PRESSED);
       replay_state.actions = {{"obs.take", "Take Live · Transitioning", state}};
+      title.content = "Take Studio";
+      detail.content = "Fade";
+      companion_render_obs_detail(replay, replay_state.actions[0].label, replay_state, true);
+      assert(title.content == "Take Studio" && detail.content == "Fade");
       companion_update_obs_detail_contrast(replay, false);
       assert(lv_obj_has_state(&tile, LV_STATE_PRESSED));
       set_card_disabled_state(&tile, true);  // OBS updates before the user's finger lifts.
       companion_render_obs_detail(replay, replay_state.actions[0].label, replay_state);
       companion_update_obs_detail_contrast(replay, companion_obs_keep_content_bright(replay_state, replay.action_id));
-      assert(title.content == "Take Live" && detail.content == "Transitioning");
+      assert(title.content == "Take Live" && detail.content.empty());
       assert(lv_obj_has_state(&tile, LV_STATE_DISABLED));
       assert(!lv_obj_has_state(&tile, LV_STATE_PRESSED) && !lv_obj_has_state(&tile, LV_STATE_CHECKED));
       assert(lv_obj_has_state(&title, LV_STATE_DISABLED) && lv_obj_has_state(&detail, LV_STATE_DISABLED));
