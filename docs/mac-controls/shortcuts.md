@@ -27,6 +27,8 @@ Enable **EspDesktop** in **System Settings → Privacy & Security → Accessibil
 
 If a tile still does nothing, follow [the shortcut and Mac Lock troubleshooting steps](/getting-started/troubleshooting#a-card-does-not-work).
 
+With Mac Companion connected, the editor loads the full list when you select an app. This works over your local network. The editor built into the display keeps a starter set for editing while Companion is disconnected, and saved cards keep their shortcut keys.
+
 ## Group shortcuts by app {#use-a-template-on-an-app-subpage}
 
 Use [ready-made app subpages](/mac-controls/apps#ready-made-app-subpages) to keep an app’s shortcuts together. New pages start with a selection of useful shortcuts for the app. Smaller displays show as many as will fit, with space for **Back**. From inside an app’s subpage in the web editor, right-click a card and choose **Shortcut List** to change which presets appear and how they’re ordered. This opens the full list, with **Find a shortcut** available for long lists. In the app card’s settings, use **Show all shortcuts** to expand a long list. You can add shortcuts or rearrange the ones on the page.

@@ -241,7 +241,7 @@ test("legacy icon sizes clear on save while label visibility and app subpages su
   assert.equal(api.normalizeCompanionCardOptions({ ...card, options: saved }), saved);
 });
 
-test("every packed offline shortcut preserves the authored ID, keys, icon and label", () => {
+test("every packed hosted shortcut preserves the authored ID, keys, icon and label", () => {
   const fs = require("node:fs");
   const path = require("node:path");
   const directory = path.resolve(__dirname, "../../../product/v2/app_shortcuts");
@@ -255,7 +255,8 @@ test("every packed offline shortcut preserves the authored ID, keys, icon and la
     const last = parts.pop();
     return [...parts.sort(), last].join("+");
   }).join("~");
-  for (const filename of fs.readdirSync(directory).filter(name => name.endsWith(".json") && name !== "manifest.json")) {
+  const manifest = JSON.parse(fs.readFileSync(path.join(directory, "manifest.json"), "utf8"));
+  for (const { path: filename } of manifest.entries.filter(entry => entry.offline)) {
     const app = JSON.parse(fs.readFileSync(path.join(directory, filename), "utf8"));
     const expected = app.moreShortcuts ?? [];
     const decoded = bundledExpandedShortcuts(app.appId);
@@ -293,4 +294,24 @@ test("every packed offline shortcut preserves the authored ID, keys, icon and la
   assert.equal(page.buttons[0].entity, "shortcut." + last.shortcut);
   assert(!companionShortcutActionIdValid("shortcut.scoped.a~b~c~d"));
   assert(!companionShortcutActionIdValid("shortcut.scoped.command+command+a"));
+});
+
+
+test("saved expanded presets can still be edited and reordered without their catalogue", () => {
+  const api = loadTypeScriptModule("src/webserver/application/companion_shortcut_folder.ts");
+  const appId = "com.example.Offline";
+  const saved = {
+    type: "companion", entity: "shortcut.scoped.tab", label: "My custom name", icon: "Arrow Right",
+    options: "app_shortcut_preset=com.example.Offline%3A901",
+  };
+  const parent = {
+    type: "companion", entity: appId, options: "app_shortcuts,app_shortcuts_tabs=901",
+  };
+  const page = { order: ["B", "1"], buttons: [saved] };
+  assert(api.editableAppShortcutPage(parent));
+  assert.deepEqual(api.companionShortcutTabDefinitions(appId, page), [{ value: "901", label: "My custom name" }]);
+  assert.deepEqual(api.companionShortcutTabsFromSubpage(appId, page), ["901"]);
+  assert.deepEqual(api.companionShortcutTabs(parent), ["901"]);
+  assert.deepEqual(api.syncCompanionShortcutSubpage(appId, ["901"], page, 3).buttons, [saved]);
+  assert.deepEqual(api.syncCompanionShortcutSubpage(appId, [], page, 3).buttons, []);
 });

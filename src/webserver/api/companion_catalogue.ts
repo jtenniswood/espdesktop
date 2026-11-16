@@ -126,23 +126,28 @@ export function createCompanionCatalogue(fetchImpl: typeof fetch) {
 
   async function fetchShortcutPage(appId: string, page: number, version?: number): Promise<ShortcutPage | null> {
     const url = `/companion/shortcut-page?appId=${encodeURIComponent(appId)}&page=${page}`;
-    const deadline = Date.now() + 7000;
-    let response: Response;
-    do {
-      response = await fetchImpl(url, { cache: "no-store", signal: AbortSignal.timeout(Math.max(1, deadline - Date.now())) });
-      if (response.status !== 202) break;
-      if (Date.now() >= deadline) throw new Error("Shortcut catalogue request timed out");
-      await new Promise(resolve => setTimeout(resolve, 150));
-    } while (true);
-    if (page === 0 && (response.status === 204 || response.status === 404)) return null;
-    if (response.status !== 200) throw new Error("Shortcut catalogue unavailable");
-    const data = await response.json() as (Partial<ShortcutPage> & { page?: number }) | null;
-    if (!data || data.page !== page || typeof data.complete !== "boolean" ||
-        typeof data.catalogueVersion !== "number" || !Number.isSafeInteger(data.catalogueVersion) ||
-        data.catalogueVersion < 1 || (version !== undefined && data.catalogueVersion !== version)) {
-      throw new Error("Shortcut catalogue changed or was incomplete");
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 7000);
+    try {
+      let response: Response;
+      do {
+        response = await fetchImpl(url, { cache: "no-store", signal: controller.signal });
+        if (response.status !== 202) break;
+        if (controller.signal.aborted) throw new Error("Shortcut catalogue request timed out");
+        await new Promise(resolve => setTimeout(resolve, 150));
+      } while (!controller.signal.aborted);
+      if (page === 0 && (response.status === 204 || response.status === 404)) return null;
+      if (response.status !== 200) throw new Error("Shortcut catalogue unavailable");
+      const data = await response.json() as (Partial<ShortcutPage> & { page?: number }) | null;
+      if (!data || data.page !== page || typeof data.complete !== "boolean" ||
+          typeof data.catalogueVersion !== "number" || !Number.isSafeInteger(data.catalogueVersion) ||
+          data.catalogueVersion < 1 || (version !== undefined && data.catalogueVersion !== version)) {
+        throw new Error("Shortcut catalogue changed or was incomplete");
+      }
+      return { catalogueVersion: data.catalogueVersion, complete: data.complete, application: data.application };
+    } finally {
+      clearTimeout(timeout);
     }
-    return { catalogueVersion: data.catalogueVersion, complete: data.complete, application: data.application };
   }
 
   async function fetchShortcutIndex(): Promise<CompanionDefinitions | null> {

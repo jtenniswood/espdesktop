@@ -99,6 +99,13 @@ const bundleSize = {
   minified: bytes.length,
   gzip: zlib.gzipSync(bytes, { level: 9, mtime: 0 }).length,
 };
-console.log(checkBundleBudget(bundleSize, fixture.bundleBudget));
+console.log("Embedded editor:", checkBundleBudget(bundleSize, fixture.bundleBudget));
+const assetManifest = JSON.parse(fs.readFileSync(path.join(freshOutput, "web-assets.json"), "utf8"));
+const current = assetManifest.bundles.find(bundle => bundle.firmwareVersions.includes("dev"));
+const hosted = fs.readFileSync(path.join(freshOutput, current.path));
+console.log("Hosted editor:", checkBundleBudget({
+  minified: hosted.length,
+  gzip: zlib.gzipSync(hosted, { level: 9, mtime: 0 }).length,
+}, fixture.hostedBundleBudget));
 
 console.log("Web migration characterization baseline checks passed.");

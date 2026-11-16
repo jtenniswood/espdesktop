@@ -1,256 +1,339 @@
 {
   "formatVersion": 1,
-  "catalogueVersion": 24,
+  "catalogueVersion": 25,
   "minimumCompanionVersion": "1.0.0",
   "entries": [
     {
-      "path": "1password.json"
+      "path": "1password.json",
+      "offline": true
     },
     {
-      "path": "adobe-acrobat-reader.json"
+      "path": "adobe-acrobat-reader.json",
+      "offline": true
     },
     {
-      "path": "adobe-illustrator.json"
+      "path": "adobe-illustrator.json",
+      "offline": true
     },
     {
-      "path": "adobe-lightroom.json"
+      "path": "adobe-lightroom.json",
+      "offline": true
     },
     {
-      "path": "adobe-photoshop.json"
+      "path": "adobe-photoshop.json",
+      "offline": true
     },
     {
-      "path": "adobe-premiere-pro.json"
+      "path": "adobe-premiere-pro.json",
+      "offline": true
     },
     {
-      "path": "affinity-designer.json"
+      "path": "affinity-designer.json",
+      "offline": true
     },
     {
-      "path": "affinity-photo.json"
+      "path": "affinity-photo.json",
+      "offline": true
     },
     {
-      "path": "affinity-publisher.json"
+      "path": "affinity-publisher.json",
+      "offline": true
     },
     {
-      "path": "alfred.json"
+      "path": "alfred.json",
+      "offline": true
     },
     {
-      "path": "arc.json"
+      "path": "arc.json",
+      "offline": true
     },
     {
-      "path": "athena.json"
+      "path": "athena.json",
+      "offline": true
     },
     {
-      "path": "audacity.json"
+      "path": "audacity.json",
+      "offline": true
     },
     {
-      "path": "bambu-studio.json"
+      "path": "bambu-studio.json",
+      "offline": true
     },
     {
-      "path": "bear.json"
+      "path": "bear.json",
+      "offline": true
     },
     {
-      "path": "books.json"
+      "path": "books.json",
+      "offline": true
     },
     {
-      "path": "brave-browser.json"
+      "path": "brave-browser.json",
+      "offline": true
     },
     {
-      "path": "calendar.json"
+      "path": "calendar.json",
+      "offline": true
     },
     {
-      "path": "chatgpt.json"
+      "path": "chatgpt.json",
+      "offline": true
     },
     {
-      "path": "claude-desktop.json"
+      "path": "claude-desktop.json",
+      "offline": true
     },
     {
-      "path": "codex.json"
+      "path": "codex.json",
+      "offline": true
     },
     {
-      "path": "cursor.json"
+      "path": "cursor.json",
+      "offline": true
     },
     {
-      "path": "davinci-resolve.json"
+      "path": "davinci-resolve.json",
+      "offline": true
     },
     {
-      "path": "discord.json"
+      "path": "discord.json",
+      "offline": true
     },
     {
-      "path": "evernote.json"
+      "path": "evernote.json",
+      "offline": true
     },
     {
-      "path": "facetime.json"
+      "path": "facetime.json",
+      "offline": true
     },
     {
-      "path": "figma.json"
+      "path": "figma.json",
+      "offline": true
     },
     {
-      "path": "final-cut-pro.json"
+      "path": "final-cut-pro.json",
+      "offline": true
     },
     {
-      "path": "finder.json"
+      "path": "finder.json",
+      "offline": true
     },
     {
-      "path": "firefox.json"
+      "path": "firefox.json",
+      "offline": true
     },
     {
-      "path": "freeform.json"
+      "path": "freeform.json",
+      "offline": true
     },
     {
-      "path": "garageband.json"
+      "path": "garageband.json",
+      "offline": true
     },
     {
-      "path": "github-desktop.json"
+      "path": "github-desktop.json",
+      "offline": true
     },
     {
-      "path": "gitkraken.json"
+      "path": "gitkraken.json",
+      "offline": true
     },
     {
-      "path": "google-chrome.json"
+      "path": "google-chrome.json",
+      "offline": true
     },
     {
-      "path": "hermes-agent.json"
+      "path": "hermes-agent.json",
+      "offline": true
     },
     {
-      "path": "iina.json"
+      "path": "iina.json",
+      "offline": true
     },
     {
-      "path": "imovie.json"
+      "path": "imovie.json",
+      "offline": true
     },
     {
-      "path": "iterm2.json"
+      "path": "iterm2.json",
+      "offline": true
     },
     {
-      "path": "keynote.json"
+      "path": "keynote.json",
+      "offline": true
     },
     {
-      "path": "logic-pro.json"
+      "path": "logic-pro.json",
+      "offline": true
     },
     {
-      "path": "mail-plus-for-gmail.json"
+      "path": "mail-plus-for-gmail.json",
+      "offline": true
     },
     {
-      "path": "mail.json"
+      "path": "mail.json",
+      "offline": true
     },
     {
-      "path": "maps.json"
+      "path": "maps.json",
+      "offline": true
     },
     {
-      "path": "messages.json"
+      "path": "messages.json",
+      "offline": true
     },
     {
-      "path": "microsoft-excel.json"
+      "path": "microsoft-excel.json",
+      "offline": true
     },
     {
-      "path": "microsoft-outlook.json"
+      "path": "microsoft-outlook.json",
+      "offline": true
     },
     {
-      "path": "microsoft-powerpoint.json"
+      "path": "microsoft-powerpoint.json",
+      "offline": true
     },
     {
-      "path": "microsoft-teams.json"
+      "path": "microsoft-teams.json",
+      "offline": true
     },
     {
-      "path": "microsoft-word.json"
+      "path": "microsoft-word.json",
+      "offline": true
     },
     {
-      "path": "music.json"
+      "path": "music.json",
+      "offline": true
     },
     {
-      "path": "notes.json"
+      "path": "notes.json",
+      "offline": true
     },
     {
-      "path": "notion.json"
+      "path": "notion.json",
+      "offline": true
     },
     {
-      "path": "numbers.json"
+      "path": "numbers.json",
+      "offline": true
     },
     {
-      "path": "obs-studio.json"
+      "path": "obs-studio.json",
+      "offline": true
     },
     {
-      "path": "obsidian.json"
+      "path": "obsidian.json",
+      "offline": true
     },
     {
-      "path": "opencode.json"
+      "path": "opencode.json",
+      "offline": true
     },
     {
-      "path": "orca-slicer.json"
+      "path": "orca-slicer.json",
+      "offline": true
     },
     {
-      "path": "pages.json"
+      "path": "pages.json",
+      "offline": true
     },
     {
-      "path": "photos.json"
+      "path": "photos.json",
+      "offline": true
     },
     {
-      "path": "pixelmator-pro.json"
+      "path": "pixelmator-pro.json",
+      "offline": true
     },
     {
-      "path": "podcasts.json"
+      "path": "podcasts.json",
+      "offline": true
     },
     {
-      "path": "preview.json"
+      "path": "preview.json",
+      "offline": true
     },
     {
-      "path": "quicktime-player.json"
+      "path": "quicktime-player.json",
+      "offline": true
     },
     {
-      "path": "raycast.json"
+      "path": "raycast.json",
+      "offline": true
     },
     {
-      "path": "reminders.json"
+      "path": "reminders.json",
+      "offline": true
     },
     {
-      "path": "safari.json"
+      "path": "safari.json",
+      "offline": true
     },
     {
-      "path": "safari-web-app.json"
+      "path": "safari-web-app.json",
+      "offline": true
     },
     {
-      "path": "signal.json"
+      "path": "signal.json",
+      "offline": true
     },
     {
-      "path": "sketch.json"
+      "path": "sketch.json",
+      "offline": true
     },
     {
-      "path": "slack.json"
+      "path": "slack.json",
+      "offline": true
     },
     {
-      "path": "spotify.json"
+      "path": "spotify.json",
+      "offline": true
     },
     {
-      "path": "telegram.json"
+      "path": "telegram.json",
+      "offline": true
     },
     {
-      "path": "things-3.json"
+      "path": "things-3.json",
+      "offline": true
     },
     {
-      "path": "todoist.json"
+      "path": "todoist.json",
+      "offline": true
     },
     {
-      "path": "transmit.json"
+      "path": "transmit.json",
+      "offline": true
     },
     {
-      "path": "tv.json"
+      "path": "tv.json",
+      "offline": true
     },
     {
-      "path": "visual-studio-code.json"
+      "path": "visual-studio-code.json",
+      "offline": true
     },
     {
-      "path": "vlc.json"
+      "path": "vlc.json",
+      "offline": true
     },
     {
-      "path": "warp.json"
+      "path": "warp.json",
+      "offline": true
     },
     {
-      "path": "whatsapp.json"
+      "path": "whatsapp.json",
+      "offline": true
     },
     {
-      "path": "xcode.json"
+      "path": "xcode.json",
+      "offline": true
     },
     {
-      "path": "zoom.json"
+      "path": "zoom.json",
+      "offline": true
     }
   ]
 }

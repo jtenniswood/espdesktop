@@ -92,6 +92,7 @@
     "macos/EspDesktop/Sources/Companion/CompanionCapabilities.generated.swift",
     "components/espdesktop/companion_protocol_generated.h",
     "macos/EspDesktop/Sources/Companion/CompanionProtocol.generated.swift",
+    "src/webserver/generated/app_shortcuts_offline.ts",
     "src/webserver/generated/app_shortcuts.ts",
     "components/espdesktop/app_shortcuts_generated.h",
     "macos/EspDesktop/Sources/Companion/Resources/AppShortcuts/manifest.json",

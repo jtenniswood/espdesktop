@@ -1,4 +1,4 @@
-import { COMPANION_SHORTCUT_APPS as BUNDLED_SHORTCUT_APPS } from "../generated/app_shortcuts";
+import { COMPANION_SHORTCUT_APPS as BUNDLED_SHORTCUT_APPS, SHORTCUT_CATALOGUE_STARTER_ONLY } from "../generated/app_shortcuts";
 import { bundledExpandedShortcuts, SCOPED_SHORTCUT_PREFIX } from "./companion_shortcut_data";
 import type { AppShortcutApplication } from "../generated/app_shortcuts";
 export { SCOPED_SHORTCUT_PREFIX } from "./companion_shortcut_data";
@@ -159,14 +159,12 @@ function companionShortcutApp(bundleIdentifier: string): AppShortcutApplication 
 }
 
 export function companionAppShortcutFolderEnabled(card: any): boolean {
-    return !!card && card.type === "companion" && !!companionShortcutFolderAppLabel(card.entity) &&
-        !card.sensor &&
-        configOptionEnabled(card.options, COMPANION_APP_SHORTCUTS_OPTION);
+    return !!appShortcutPageOwner(card) && !!companionShortcutFolderAppLabel(card.entity);
 }
 
 export function editableAppShortcutPage(card?: CardConfig): boolean {
     const app = appShortcutPageOwner(card);
-    return !!app && app !== "com.apple.finder" && companionShortcutChoices(app).length > 0;
+    return !!app && app !== "com.apple.finder";
 }
 
 export function normalizeCompanionAppShortcutOptions(card: any): string {
@@ -198,12 +196,6 @@ export function normalizeCompanionAppShortcutOptions(card: any): string {
         configOptionEnabled(card.options, COMPANION_APP_SHORTCUTS_OPTION),
     );
     if (!configOptionEnabled(options, COMPANION_APP_SHORTCUTS_OPTION)) return finish(options);
-    const savedTabs = configOptionValue(card.options, COMPANION_APP_SHORTCUTS_TABS_OPTION);
-    if (SAFARI_WEB_APP_BUNDLE_ID.test(card.entity) && /^\d{1,3}(?:\|\d{1,3})*$/.test(savedTabs) &&
-        !COMPANION_SHORTCUT_APPS.some((app) => app.appId === card.entity)) {
-        // The installed app definition may arrive after the saved card is parsed.
-        return finish(setConfigOptionValue(options, COMPANION_APP_SHORTCUTS_TABS_OPTION, savedTabs));
-    }
     const tabs = companionShortcutTabs(card);
     const defaults = companionShortcutDefaultTabs(card.entity);
     const value = tabs.length === 0 ? "none" :
@@ -284,8 +276,16 @@ export function syncInheritedFinderOpenBehavior(subpage: any, behavior: FinderOp
     }
 }
 
-export function companionShortcutTabDefinitions(bundleIdentifier: string): CompanionShortcutTabDefinition[] {
-    return companionShortcutChoices(bundleIdentifier).map((item) => ({ value: item.id, label: item.label }));
+export function companionShortcutTabDefinitions(
+    bundleIdentifier: string, subpage?: Pick<SubpageConfig, "buttons"> | null,
+): CompanionShortcutTabDefinition[] {
+    const definitions = new Map(companionShortcutChoices(bundleIdentifier).map(item =>
+        [item.id, { value: item.id, label: item.label }]));
+    for (const card of subpage?.buttons ?? []) {
+        const value = savedCompanionShortcutId(bundleIdentifier, card);
+        if (value && !definitions.has(value)) definitions.set(value, { value, label: card.label || "Saved shortcut" });
+    }
+    return [...definitions.values()];
 }
 
 export function companionShortcutDefaultTabs(bundleIdentifier: string): string[] {
@@ -305,18 +305,22 @@ export function companionShortcutTabs(card: any): string[] {
     const raw = configOptionValue(card?.options, COMPANION_APP_SHORTCUTS_TABS_OPTION);
     if (!raw) return defaults;
     if (raw === "none") return [];
-    const valid = new Set(companionShortcutChoices(card?.entity || "").map(item => item.id));
     const tabs: string[] = [];
     raw.split("|").forEach(function (value) {
-        if (valid.has(value) && tabs.indexOf(value) < 0) tabs.push(value);
+        if (/^(0|[1-9][0-9]{0,2})$/.test(value) && !tabs.includes(value)) tabs.push(value);
     });
     return tabs;
 }
 
-export function setCompanionShortcutTabs(card: any, tabs: readonly string[]): string {
+export function setCompanionShortcutTabs(
+    card: any, tabs: readonly string[], subpage?: Pick<SubpageConfig, "buttons"> | null,
+): string {
     if (!card) return "";
     const defaults = companionShortcutDefaultTabs(card.entity);
-    const valid = new Set(companionShortcutChoices(card?.entity || "").map(item => item.id));
+    const valid = new Set([
+        ...companionShortcutTabs(card),
+        ...companionShortcutTabDefinitions(card.entity, subpage).map(item => item.value),
+    ]);
     const normalized: string[] = [];
     (tabs || []).forEach(function (value) {
         if (valid.has(value) && normalized.indexOf(value) < 0) normalized.push(value);
@@ -605,6 +609,16 @@ function cardHasContent(card: any): boolean {
     });
 }
 
+function savedCompanionShortcutId(bundleIdentifier: string, card?: Partial<CardConfig>): string {
+    const identity = companionShortcutPresetIdentity(card, true);
+    if (!identity.startsWith(bundleIdentifier + ":") || !companionShortcutActionIdValid(card?.entity || "")) return "";
+    const id = identity.slice(bundleIdentifier.length + 1);
+    const hasFullCatalogue = liveShortcutApps.has(bundleIdentifier) ||
+        (!SHORTCUT_CATALOGUE_STARTER_ONLY && BUNDLED_SHORTCUT_APPS.some(app => app.appId === bundleIdentifier));
+    // A removed preset remains a custom tile when the full catalogue is known.
+    return !hasFullCatalogue || companionShortcutChoices(bundleIdentifier).some(item => item.id === id) ? id : "";
+}
+
 export function companionShortcutTabsFromSubpage(
     bundleIdentifier: string,
     subpage: any,
@@ -621,9 +635,8 @@ export function companionShortcutTabsFromSubpage(
         visited.add(index);
         const card = subpage?.buttons?.[index];
         const marker = configOptionValue(card?.options, COMPANION_SHORTCUT_PRESET_OPTION);
-        const identity = companionShortcutPresetIdentity(card);
-        const value = identity ? presetIndex.get(identity) :
-            marker ? undefined : presetIndex.get(legacyPresetKeys.get(card?.entity) || "");
+        const value = savedCompanionShortcutId(bundleIdentifier, card) ||
+            (marker ? undefined : presetIndex.get(legacyPresetKeys.get(card?.entity) || ""));
         if (value != null && tabs.indexOf(value) < 0) tabs.push(value);
     });
     return tabs;
@@ -663,10 +676,8 @@ export function syncCompanionShortcutSubpage(
     const presetKeyByEntity = legacyCompanionShortcutPresetKeys(bundleIdentifier, presets);
     function presetKey(card: any): string {
         const marker = configOptionValue(card?.options, COMPANION_SHORTCUT_PRESET_OPTION);
-        const identity = companionShortcutPresetIdentity(card);
-        if (identity) {
-            return identity.startsWith(bundleIdentifier + ":") ? identity : "";
-        }
+        const id = savedCompanionShortcutId(bundleIdentifier, card);
+        if (id) return bundleIdentifier + ":" + id;
         if (marker) return "";
         return presetKeyByEntity.get(card?.entity) || "";
     }
@@ -690,8 +701,8 @@ export function syncCompanionShortcutSubpage(
     }
     const desired = tabs.map(function (value) {
         const key = bundleIdentifier + ":" + value;
-        const preset = presets.find((card) => companionShortcutPresetIdentity(card) === key);
-        return preset ? { key, card: existingByKey.get(key) || preset } : null;
+        const card = existingByKey.get(key) || presets.find((preset) => companionShortcutPresetIdentity(preset) === key);
+        return card ? { key, card } : null;
     }).filter(Boolean);
     const suffixByKey = new Map<string, string>();
     (subpage.order || []).forEach(function (token: unknown) {
