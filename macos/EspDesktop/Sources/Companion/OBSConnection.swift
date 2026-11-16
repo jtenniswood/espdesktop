@@ -1525,6 +1525,7 @@ final class OBSConnection: ObservableObject {
                     }
                 }
                 let previousSourceScene = current.sourceScene
+                let previousProgram = current.program?.id
                 Self.apply(type, fields: fields, to: &current)
                 let sourceSceneChanged = previousSourceScene != current.sourceScene
                 if sourceSceneChanged {
@@ -1534,7 +1535,16 @@ final class OBSConnection: ObservableObject {
                 updateBreakCard(&current)
                 state = current
                 if sourceSceneChanged { refreshSources() }
-                if type == "SceneTransitionStarted" || type == "SceneTransitionEnded" { updateTransitionProbe() }
+                if type == "SceneTransitionStarted" {
+                    transitionProbe?.cancel()
+                    transitionProbe = nil
+                    updateTransitionProbe()
+                } else if type == "SceneTransitionEnded" {
+                    updateTransitionProbe()
+                } else if type == "CurrentProgramSceneChanged", current.transitionInProgress,
+                          previousProgram != current.program?.id {
+                    updateTransitionProbe(checkNow: true)
+                }
                 if type == "ReplayBufferStateChanged", current.replayBufferActive == false,
                    pendingReplay != nil || replayDeadline != nil {
                     finishReplay(.ready)
@@ -1621,24 +1631,27 @@ final class OBSConnection: ObservableObject {
         }
     }
 
-    private func updateTransitionProbe() {
-        guard state?.transitionInProgress == true else {
+    private func updateTransitionProbe(checkNow: Bool = false) {
+        if checkNow || state?.transitionInProgress != true {
             transitionProbe?.cancel()
             transitionProbe = nil
-            return
         }
-        guard transitionProbe == nil else { return }
+        guard state?.transitionInProgress == true, transitionProbe == nil else { return }
         let active = generation
         let interval = transitionProbeInterval
         transitionProbe = Task { [weak self] in
+            var wait = !checkNow
             while !Task.isCancelled {
-                do { try await Task.sleep(for: interval) } catch { return }
-                guard let self, let token = state?.takeToken, state?.transitionInProgress == true else { return }
+                if wait {
+                    do { try await Task.sleep(for: interval) } catch { return }
+                }
+                wait = true
+                guard let self, state?.transitionInProgress == true else { return }
                 // OBS may omit SceneTransitionEnded when a transition is interrupted.
                 let response = try? await snapshotRequest("GetCurrentSceneTransitionCursor", generation: active)
                 guard !Task.isCancelled, active == generation else { return }
                 if response?["transitionCursor"] as? Double == 1,
-                   var current = state, current.takeToken == token {
+                   var current = state, current.transitionInProgress {
                     transitionProbe = nil
                     current.transitionInProgress = false
                     updateBreakCard(&current)

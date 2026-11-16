@@ -201,6 +201,8 @@ final class CompanionStore: NSObject, ObservableObject {
         displays = records.map(makeDisplay)
         obsCatalogueObservation = obs.$state.map(OBSConnection.controlCatalogue)
             .removeDuplicates()
+            // Scene and transition events often arrive together. Send the latest catalogue in each burst.
+            .throttle(for: .milliseconds(30), scheduler: DispatchQueue.main, latest: true)
             .sink { [weak self] actions in
                 self?.publishToConnectedDisplays { $0.publishCatalogue(obsActions: actions) }
             }

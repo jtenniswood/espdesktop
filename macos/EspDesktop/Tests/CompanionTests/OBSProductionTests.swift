@@ -929,6 +929,24 @@ final class OBSProductionTests: XCTestCase {
     }
 
     @MainActor
+    func testProgramChangeChecksTransitionWithoutWaitingForFallback() async throws {
+        let transport = OBSPilotTransport()
+        let connection = try await open(transport, transitionProbeInterval: .seconds(30))
+        transport.transitionCursor = 0.5
+        transport.onEvent?("SceneTransitionStarted", [:])
+        XCTAssertEqual(connection.state?.takePresentation, .takeTransitioning)
+
+        transport.transitionCursor = 1
+        transport.updateProgram(OBSPilotTransport.queued)
+        transport.onEvent?("CurrentPreviewSceneChanged", transport.scene(OBSPilotTransport.program))
+        for _ in 0..<100 where connection.state?.canTakePreview != true {
+            try await Task.sleep(for: .milliseconds(1))
+        }
+        XCTAssertEqual(connection.state?.takePresentation, .takeReady)
+        XCTAssertEqual(transport.requests.filter { $0 == "GetCurrentSceneTransitionCursor" }.count, 1)
+    }
+
+    @MainActor
     func testInterruptedNormalModeTransitionReenablesBreakAndResume() async throws {
         let domain = "EspDesktop.OBSBreak." + UUID().uuidString
         let defaults = try XCTUnwrap(UserDefaults(suiteName: domain))
