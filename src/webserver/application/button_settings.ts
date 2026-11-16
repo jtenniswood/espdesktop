@@ -769,10 +769,8 @@ export function createButtonSettingsFeature(
                 });
                 field.appendChild(tabs);
             }
-            const grid = document.createElement("div");
-            grid.className = "sp-card-type-grid";
-            grid.id = "sp-card-type-picker";
-            grid.setAttribute("role", "list");
+            const picker = document.createElement("div");
+            picker.id = "sp-card-type-picker";
             const mainTitle = title.textContent;
             let showOBS = false;
             function pickerButton(o: CardPickerOption, select: () => void) {
@@ -795,19 +793,41 @@ export function createButtonSettingsFeature(
             back.addEventListener("click", () => {
                 showOBS = false;
                 renderOptions();
-                grid.querySelector<HTMLElement>('[data-card-type="obs_group"]')?.focus();
+                picker.querySelector<HTMLElement>('[data-card-type="obs_group"]')?.focus();
             });
-            function renderOptions() {
-                grid.replaceChildren();
-                title.textContent = showOBS ? "OBS Studio" : mainTitle;
-                if (showOBS) grid.before(back);
-                else back.remove();
-                const options: CardPickerOption[] = buttonTypePickerOptionList(!!isSub, selectedTypeKey, activeConnector);
-                const isOBS = (option: CardPickerOption) => option.key.startsWith("companion_obs");
-                for (const option of options) {
-                    if (isOBS(option) === showOBS) grid.appendChild(pickerButton(option, () => selectCardType(option.key)));
+            function renderGrid(options: readonly CardPickerOption[], heading?: string) {
+                const grid = document.createElement("div");
+                grid.className = "sp-card-type-grid";
+                for (const option of options) grid.appendChild(pickerButton(option, () => selectCardType(option.key)));
+                if (heading) {
+                    const section = document.createElement("section");
+                    section.setAttribute("aria-label", heading);
+                    const label = document.createElement("h3");
+                    label.className = "sp-card-type-heading";
+                    label.textContent = heading;
+                    section.append(label, grid);
+                    picker.appendChild(section);
+                } else {
+                    picker.appendChild(grid);
                 }
-                if (showOBS || !options.some(isOBS)) return;
+                return grid;
+            }
+            function renderOptions() {
+                picker.replaceChildren();
+                title.textContent = showOBS ? "OBS Studio" : mainTitle;
+                const options: CardPickerOption[] = buttonTypePickerOptionList(!!isSub, selectedTypeKey, activeConnector);
+                const obsOptions = options.filter(option => option.key.startsWith("companion_obs"));
+                if (showOBS) {
+                    picker.before(back);
+                    const isPage = (option: CardPickerOption) => defaultButtonTypeForPicker(option.key) === "subpage";
+                    renderGrid(obsOptions.filter(option => !isPage(option)), "Card types");
+                    const pages = obsOptions.filter(isPage);
+                    if (pages.length) renderGrid(pages, "Grouped pages");
+                    return;
+                }
+                back.remove();
+                const grid = renderGrid(options.filter(option => !option.key.startsWith("companion_obs")));
+                if (!obsOptions.length) return;
                 grid.appendChild(pickerButton({
                     key: "obs_group", label: "OBS Studio", icon: "monitor-multiple",
                     description: "Add scene, audio, and broadcast controls.",
@@ -818,7 +838,7 @@ export function createButtonSettingsFeature(
                     back.focus();
                 }));
             }
-            field.appendChild(grid);
+            field.appendChild(picker);
             renderOptions();
             return field;
         }

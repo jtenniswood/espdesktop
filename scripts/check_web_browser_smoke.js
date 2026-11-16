@@ -4526,10 +4526,15 @@ async function assertOBSSceneCard(browser) {
     await obsGroup.waitFor();
     assert.equal(await obsCards.count(), 0, "individual OBS cards are absent from the top level");
     await obsGroup.click();
-    assert.deepEqual((await obsCards.evaluateAll(cards => cards.map(card => card.getAttribute("aria-label")))).sort(),
-      ["Audio Controls", "Audio", "Break", "Output Control",
-        "Replay Buffer", "Scene", "Scenes", "Studio Mode", "Transitions"]
+    const obsSections = page.locator("#sp-card-type-picker > section");
+    assert.deepEqual(await obsSections.getByRole("heading").allTextContents(), ["Card types", "Grouped pages"]);
+    const cardLabels = section => page.getByRole("region", { name: section, exact: true })
+      .getByRole("button").evaluateAll(cards => cards.map(card => card.getAttribute("aria-label")));
+    assert.deepEqual(await cardLabels("Card types"),
+      ["Audio Controls", "Break", "Output Control", "Replay Buffer", "Scene", "Studio Mode"]
         .map(label => label + " card type"));
+    assert.deepEqual(await cardLabels("Grouped pages"),
+      ["Audio", "Scenes", "Transitions"].map(label => label + " card type"));
     assert((await obsCards.allTextContents()).every(copy => !/\bOBS\b/.test(copy)));
     assert.match(await page.getByRole("button", { name: "Output Control card type", exact: true }).innerText(),
       /Start or stop recording or streaming/);
