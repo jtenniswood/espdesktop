@@ -214,6 +214,9 @@ final class CompanionStore: NSObject, ObservableObject {
         }
         if supportsLaunchAtLogin { refreshLaunchAtLoginStatus() }
         refreshApplications()
+        applicationRefreshTimer = Timer.publish(every: 30, tolerance: 5, on: .main, in: .common)
+            .autoconnect()
+            .sink { [weak self] _ in self?.refreshApplications() }
         Task { await remoteCatalogueStore.refresh() }
     }
 
@@ -287,6 +290,7 @@ final class CompanionStore: NSObject, ObservableObject {
     }
 
     private let applicationCatalogue = ApplicationCatalogue()
+    private var applicationRefreshTimer: AnyCancellable?
     private var applicationScan: Task<Void, Never>?
     private(set) var applicationCatalogueReady = false
 
@@ -295,6 +299,9 @@ final class CompanionStore: NSObject, ObservableObject {
         applicationScan = Task { [weak self, applicationCatalogue] in
             let applications = await applicationCatalogue.scan()
             guard let self else { return }
+            applicationScan = nil
+            guard !applicationCatalogueReady || availableApps != applications else { return }
+
             let identifiers = Set(applications.map(\.bundleIdentifier))
             let previousIdentifiers = defaults.stringArray(forKey: Keys.knownApplications)
             // Preserve existing selections when upgrading. Fresh installs and newly
@@ -311,7 +318,6 @@ final class CompanionStore: NSObject, ObservableObject {
             }
             availableApps = applications
             applicationCatalogueReady = true
-            applicationScan = nil
             publishToConnectedDisplays { $0.publishCatalogue() }
         }
     }

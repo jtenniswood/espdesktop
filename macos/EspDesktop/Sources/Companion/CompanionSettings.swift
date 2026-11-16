@@ -827,7 +827,7 @@ struct CompanionSettings: View {
             if store.availableApps.isEmpty {
                 Section {
                     emptyState("No Applications Found", symbol: "app.dashed",
-                               detail: "Install applications in your Applications folder, then refresh this list.") {
+                               detail: "Apps in your Applications folder appear here automatically.") {
                         Button("Refresh Applications") { store.refreshApplications() }
                     }
                 }
@@ -850,6 +850,7 @@ struct CompanionSettings: View {
             }
         }
         .formStyle(.grouped)
+        .onAppear { store.refreshApplications() }
     }
 
     private var foldersPage: some View {
