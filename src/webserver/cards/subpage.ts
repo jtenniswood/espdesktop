@@ -104,20 +104,25 @@ export function registerSubpageCardTypes(
                 const list = panel.ownerDocument.createElement("div") as HTMLDivElement;
                 helpers.markCardPrimaryField(list, "entity");
                 panel.appendChild(list);
+                const disclosure = liveKind === "obs_transitions"
+                    ? fields.disclosureSection(pageType.label, helpers.idPrefix + "transitions-list", false)
+                    : null;
+                if (disclosure) list.appendChild(disclosure.panel);
+                const content = disclosure?.section ?? list;
                 void loadActions().catch(() => []).then(actions => {
                     if (!list.isConnected) return;
                     const entries = obsSubpageCatalogue(liveKind, actions);
                     if (!entries.length) {
-                        list.textContent = "No " + pageType.label.toLowerCase() + " available from OBS.";
+                        content.textContent = "No " + pageType.label.toLowerCase() + " available from OBS.";
                         return;
                     }
-                    list.appendChild(helpers.fieldLabel(pageType.label));
+                    if (!disclosure) content.appendChild(helpers.fieldLabel(pageType.label));
                     const note = list.ownerDocument.createElement("p");
                     note.className = "sp-setting-note";
                     note.textContent = "Hide or reorder automatic cards. New cards fill available spaces.";
-                    list.appendChild(note);
+                    content.appendChild(note);
                     const key = (id: string) => obsSubpageTileKey(liveKind, id);
-                    modalTabs.renderModalTabSettings(list, b, helpers, {
+                    modalTabs.renderModalTabSettings(content, b, helpers, {
                         definitions: () => entries.map(item => ({ value: key(item.id), label: item.label })),
                         tabs: () => orderedOBSTiles(liveKind, entries, b.options).map(item => key(item.id)),
                         normalizeOptions: (options: string) => options,

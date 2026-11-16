@@ -8069,12 +8069,18 @@ async function assertOBSStarterPage(browser, firstRun = false) {
     await closeSettings.click();
     await page.locator(".sp-main .sp-empty-cell").first().click();
     await chooseOBSCard(page, "Transitions", "Grouped pages");
+    const transitionsList = page.getByRole("button", { name: "Transitions", exact: true });
+    assert.equal(await transitionsList.getAttribute("aria-expanded"), "false");
+    await transitionsList.click();
     const fadeToggle = page.getByRole("checkbox", { name: "Fade", exact: true });
     const fadeRow = page.locator(".sp-light-tab-row").filter({ has: fadeToggle });
     await fadeRow.waitFor();
     assert(await fadeToggle.isChecked());
     await fadeRow.locator(".sp-light-tab-label").click();
     await page.getByRole("button", { name: "Move Wipe up", exact: true }).click();
+    assert.equal(await transitionsList.getAttribute("aria-expanded"), "true");
+    await transitionsList.click();
+    assert.equal(await transitionsList.getAttribute("aria-expanded"), "false");
     await page.getByRole("button", { name: "Save", exact: true }).click();
     await waitForNativeState(fixture, () => fixture.document.buttons[4]?.includes("obs_transition_order") &&
       fixture.puts.at(-1)?.layout?.pages.some(group => group.key === 4 && group.order === "B"),
