@@ -18,6 +18,11 @@ int main(int argc, char **argv) {
       std::cerr << fixture["name"].as<const char *>() << " failed\n";
       return 1;
     }
+    if (decoded && std::string(fixture["name"].as<const char *>()) == "catalogue page") {
+      const auto &items = std::get<companion_protocol::CataloguePage>(*decoded).items;
+      if (items.size() != 2 || items[0].obsState || items[0].obsDetail ||
+          items[1].obsState != "take_ready" || items[1].obsDetail != "BRB") return 1;
+    }
   }
   companion_protocol::SystemMetrics metrics;
   metrics.generation = 1;

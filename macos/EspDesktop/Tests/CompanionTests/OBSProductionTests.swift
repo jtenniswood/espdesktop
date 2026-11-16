@@ -309,6 +309,28 @@ final class OBSProductionTests: XCTestCase {
     }
 
     @MainActor
+    func testScenePresentationSharesProgramPreviewAndTakeState() async throws {
+        let transport = OBSPilotTransport()
+        let connection = try await open(transport)
+        func entry(_ prefix: String) -> OBSConnection.CatalogueEntry? {
+            OBSConnection.controlCatalogue(connection.state).first { $0.id.hasPrefix(prefix) }
+        }
+
+        XCTAssertEqual(entry("obs.target." + OBSPilotTransport.program)?.state, .sceneProgram)
+        XCTAssertEqual(entry("obs.target." + OBSPilotTransport.queued)?.state, .scenePreview)
+        XCTAssertEqual(entry("obs.take")?.state, .takeReady)
+        XCTAssertEqual(entry("obs.take")?.detail, "BRB")
+
+        transport.updateProgram(OBSPilotTransport.queued)
+        XCTAssertEqual(entry("obs.target." + OBSPilotTransport.queued)?.state, .sceneProgramPreview)
+        XCTAssertEqual(entry("obs.take")?.state, .takeSameScene)
+        XCTAssertEqual(entry("obs.take")?.id, "obs.take")
+
+        transport.onEvent?("CurrentSceneCollectionChanging", [:])
+        XCTAssertTrue(OBSConnection.controlCatalogue(connection.state).isEmpty)
+    }
+
+    @MainActor
     func testTakeRejectsStaleTokensAndRechecksPreviewBeforeCommand() async throws {
         let transport = OBSPilotTransport()
         let connection = try await open(transport)
@@ -322,6 +344,13 @@ final class OBSProductionTests: XCTestCase {
         XCTAssertFalse(transport.requests.contains("TriggerStudioModeTransition"))
 
         transport.preview = OBSPilotTransport.queued
+        var validityChecks = 0
+        let lostSession = await connection.takeLive(token: token) {
+            validityChecks += 1
+            return validityChecks == 1
+        }
+        XCTAssertFalse(lostSession)
+        XCTAssertFalse(transport.requests.contains("TriggerStudioModeTransition"))
         let currentPreviewResult = await connection.takeLive(token: token)
         XCTAssertTrue(currentPreviewResult)
         let duplicateResult = await connection.takeLive(token: token)

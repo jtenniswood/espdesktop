@@ -82,6 +82,8 @@ struct CatalogueRequest {
 struct CataloguePageItemsItem {
   std::string id{};
   std::string label{};
+  std::optional<std::string> obsState{};
+  std::optional<std::string> obsDetail{};
 };
 struct CataloguePage {
   uint32_t generation{};
@@ -285,6 +287,8 @@ inline void encode(JsonObject root, const CataloguePage &message) {
     auto entry = values_items.add<JsonObject>();
     entry["id"] = item.id;
     entry["label"] = item.label;
+    if (item.obsState) entry["obsState"] = *item.obsState;
+    if (item.obsDetail) entry["obsDetail"] = *item.obsDetail;
   }
 }
 inline void encode(JsonObject root, const ActionInvoke &message) {
@@ -603,6 +607,12 @@ inline std::optional<Message> decode(JsonObjectConst root, Direction direction, 
         {
           if (!(string_valid(item.as<JsonObjectConst>()["label"], 1, 96))) return std::nullopt;
         }
+        if (!item.as<JsonObjectConst>()["obsState"].isUnbound()) {
+          if (!(string_valid(item.as<JsonObjectConst>()["obsState"], 1, 32) && (item.as<JsonObjectConst>()["obsState"].as<std::string>() == "scene_idle" || item.as<JsonObjectConst>()["obsState"].as<std::string>() == "scene_live" || item.as<JsonObjectConst>()["obsState"].as<std::string>() == "scene_program" || item.as<JsonObjectConst>()["obsState"].as<std::string>() == "scene_preview" || item.as<JsonObjectConst>()["obsState"].as<std::string>() == "scene_program_preview" || item.as<JsonObjectConst>()["obsState"].as<std::string>() == "take_ready" || item.as<JsonObjectConst>()["obsState"].as<std::string>() == "take_studio_off" || item.as<JsonObjectConst>()["obsState"].as<std::string>() == "take_transitioning" || item.as<JsonObjectConst>()["obsState"].as<std::string>() == "take_no_preview" || item.as<JsonObjectConst>()["obsState"].as<std::string>() == "take_same_scene"))) return std::nullopt;
+        }
+        if (!item.as<JsonObjectConst>()["obsDetail"].isUnbound()) {
+          if (!(string_valid(item.as<JsonObjectConst>()["obsDetail"], 1, 96))) return std::nullopt;
+        }
       }
     }
     CataloguePage result;
@@ -610,7 +620,7 @@ inline std::optional<Message> decode(JsonObjectConst root, Direction direction, 
     result.page = root["page"].as<uint32_t>();
     result.complete = root["complete"].as<bool>();
     for (JsonVariantConst item : root["items"].as<JsonArrayConst>()) {
-      result.items.push_back({item["id"].as<std::string>(), item["label"].as<std::string>()});
+      result.items.push_back({item["id"].as<std::string>(), item["label"].as<std::string>(), item["obsState"].isUnbound() ? std::nullopt : std::optional<std::string>{item["obsState"].as<std::string>()}, item["obsDetail"].isUnbound() ? std::nullopt : std::optional<std::string>{item["obsDetail"].as<std::string>()}});
     }
     return result;
   }

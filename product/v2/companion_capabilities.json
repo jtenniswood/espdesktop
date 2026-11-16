@@ -1,5 +1,5 @@
 {
-  "version": 19,
+  "version": 20,
   "protocol": {
     "version": 4,
     "path": "/companion/v4",
@@ -155,6 +155,19 @@
                   "type": "string",
                   "minLength": 1,
                   "maxLength": 96
+                },
+                "obsState": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 32,
+                  "optional": true,
+                  "enum": ["scene_idle", "scene_live", "scene_program", "scene_preview", "scene_program_preview", "take_ready", "take_studio_off", "take_transitioning", "take_no_preview", "take_same_scene"]
+                },
+                "obsDetail": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 96,
+                  "optional": true
                 }
               }
             }

@@ -25,7 +25,7 @@ extension CompanionSessionPreferences {
 @MainActor
 protocol CompanionSessionResources: AnyObject {
     var applicationCatalogueReady: Bool { get }
-    func obsControlActions() -> [(id: String, label: String)]
+    func obsControlActions() -> [OBSConnection.CatalogueEntry]
     func folderActions() -> [ApprovedFolder]
     func inputDeviceActions() -> [(id: String, label: String)]
     func launchableApps() -> [LaunchableApp]
@@ -73,7 +73,7 @@ extension CompanionSessionResources {
     func setCoughButtonValue(_ value: Int, from session: ObjectIdentifier) -> Bool { false }
     func immediateFocusedApplicationIdentifier() -> String? { nil }
     var applicationCatalogueReady: Bool { true }
-    func obsControlActions() -> [(id: String, label: String)] { [] }
+    func obsControlActions() -> [OBSConnection.CatalogueEntry] { [] }
     func performGuardedOBSAction(actionIdentifier: String, isValid: @escaping @MainActor () -> Bool) async -> Bool { false }
     func setOBSFader(_ value: Int, controlIdentifier: String) async -> Bool { false }
     func obsAudioValues() -> [String: Int] { [:] }

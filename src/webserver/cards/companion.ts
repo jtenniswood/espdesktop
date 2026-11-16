@@ -483,22 +483,28 @@ export function registerCompanionCardTypes(
     const catalogue = createCompanionCatalogue(fetchImpl);
     const loadCompanionActions = catalogue.load;
     const obsControlLabels = new Map<string, string>();
+    const obsCardStates = new Map<string, CompanionAction>();
+    const obsPresentationKey = () => JSON.stringify([...obsCardStates].map(([id, action]) =>
+        [id, action.obsState, action.obsDetail]));
     const isOBSInputMuted = (inputId: string) =>
         obsControlLabels.get("obs.mute." + inputId)?.startsWith("Muted · ") === true;
 
     function rememberOBSControls(actions: readonly CompanionAction[]): readonly CompanionAction[] {
         const targets = actions.filter(action => /^obs\.mute\.[a-f0-9-]{36}$/.test(action.id));
         obsControlLabels.clear();
+        obsCardStates.clear();
         for (const target of targets) obsControlLabels.set(target.id, target.label);
         for (const action of actions) {
             const scene = savedOBSSceneTarget(action.id);
             if (scene) {
                 targets.push({ ...action, id: scene });
                 obsControlLabels.set(scene, action.label);
+                if (action.obsState) obsCardStates.set(scene, action);
                 continue;
             }
             if (action.id === OBS_TAKE_ID || /^obs\.take\.[a-f0-9-]{36}$/.test(action.id)) {
                 obsControlLabels.set(OBS_TAKE_ID, action.label);
+                if (action.obsState) obsCardStates.set(OBS_TAKE_ID, action);
             } else if (action.id === OBS_STUDIO_ID || action.id.startsWith(OBS_STUDIO_ID + ".")) {
                 obsControlLabels.set(OBS_STUDIO_ID, action.label);
             } else if (action.id === "obs.transition.selected") {
@@ -706,10 +712,12 @@ export function registerCompanionCardTypes(
         () => loadCompanionActions(true),
         function (actions) {
             const previousOBS = JSON.stringify([...obsControlLabels]);
+            const previousPresentation = obsPresentationKey();
             rememberOBSControls(actions);
             const foldersChanged = publishLiveSubpageActions(actions);
             if (rememberCompanionApplications(actions) || foldersChanged ||
-                previousOBS !== JSON.stringify([...obsControlLabels])) cardUi.renderPreview();
+                previousOBS !== JSON.stringify([...obsControlLabels]) ||
+                previousPresentation !== obsPresentationKey()) cardUi.renderPreview();
         },
     );
 
@@ -750,6 +758,7 @@ export function registerCompanionCardTypes(
                 companionCatalogueMonitor.stop();
                 const hadOBSControls = obsControlLabels.size > 0;
                 obsControlLabels.clear();
+                obsCardStates.clear();
                 if (publishGeneratedActions([]) || hadOBSControls) cardUi.renderPreview();
             }
             document.dispatchEvent(new CustomEvent("espdesktop:app-icon-cache-cleared", { detail: {
@@ -1755,8 +1764,12 @@ export function registerCompanionCardTypes(
                 const scene = mode === "obs" && !source;
                 const directTransition = entity.startsWith(OBS_TRANSITION_SELECT);
                 const sceneId = card.entity.slice(-36);
-                const onProgram = scene && sceneId === obsControlLabels.get("obs.program");
-                const selectedScene = scene && !!currentLabel && sceneId === obsControlLabels.get("obs.selected");
+                const presentation = obsCardStates.get(entity);
+                const sceneState = presentation?.obsState;
+                const onProgram = scene && (sceneState ? sceneState === "scene_program"
+                    : sceneId === obsControlLabels.get("obs.program"));
+                const selectedScene = scene && (sceneState ? sceneState === "scene_live" || sceneState === "scene_preview" ||
+                    sceneState === "scene_program_preview" : !!currentLabel && sceneId === obsControlLabels.get("obs.selected"));
                 const sensor = mode === "obs_status";
                 const toggle = mode === "obs_studio" || mode === "obs_replay_buffer";
                 const replay = mode === "obs_replay";
@@ -1782,12 +1795,20 @@ export function registerCompanionCardTypes(
                         : currentLabel || (replay && obsControlLabels.has("obs.status.program") ? "Start Replay Buffer" : "");
                     const [name, detail] = status.split(" · ", 2);
                     const title = output || scene || directTransition ? label : fallback[mode];
+                    const takeDetails: Record<string, string> = {
+                        take_ready: presentation?.obsDetail || "Unavailable",
+                        take_studio_off: "Enable Studio Mode",
+                        take_transitioning: "Transitioning",
+                        take_no_preview: "Choose a preview",
+                        take_same_scene: "Already on Program",
+                    };
+                    const takeDetail = mode === "obs_take" && sceneState ? takeDetails[sceneState] : undefined;
                     const note = sensor ? programScene || "Unavailable"
                         : output ? outputStatus
                         : scene ? "Scene"
                         : directTransition ? currentLabel ? "Transition" : "Unavailable"
                         : mode === "obs_transition" ? currentLabel || "Unavailable"
-                        : status === "BRB · Already on break" ? "" : detail || (name === title ? "" : name || "Unavailable");
+                        : status === "BRB · Already on break" ? "" : takeDetail ?? (detail || (name === title ? "" : name || "Unavailable"));
                     preview.labelHtml = '<span class="sp-btn-label-row sp-obs-label"><span class="sp-btn-label">' +
                         helpers.escHtml(title) + '</span><span class="sp-obs-detail">' + helpers.escHtml(note) + '</span></span>';
                 }

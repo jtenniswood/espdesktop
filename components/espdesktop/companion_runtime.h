@@ -33,8 +33,10 @@ inline bool companion_reported_focus_matches(const std::string &requested,
 struct CompanionAction {
   std::string id;
   std::string label;
+  std::string obs_state{};
+  std::string obs_detail{};
   bool operator==(const CompanionAction &other) const {
-    return id == other.id && label == other.label;
+    return id == other.id && label == other.label && obs_state == other.obs_state && obs_detail == other.obs_detail;
   }
 };
 

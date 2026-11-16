@@ -199,10 +199,8 @@ final class CompanionStore: NSObject, ObservableObject {
         super.init()
         if #available(macOS 14.2, *) { appVolumeController = AppVolumeController() }
         displays = records.map(makeDisplay)
-        obsCatalogueObservation = obs.$state.map(OBSConnection.controlActions)
-            .removeDuplicates(by: { old, new in
-                old.elementsEqual(new) { $0.id == $1.id && $0.label == $1.label }
-            })
+        obsCatalogueObservation = obs.$state.map(OBSConnection.controlCatalogue)
+            .removeDuplicates()
             .sink { [weak self] actions in
                 self?.publishToConnectedDisplays { $0.publishCatalogue(obsActions: actions) }
             }
@@ -923,6 +921,9 @@ final class CompanionStore: NSObject, ObservableObject {
         if let token = OBSConnection.BreakCard.token(for: actionIdentifier) {
             return await obs.performBreak(token: token, isValid: canSend)
         }
+        if let token = OBSConnection.controlToken(actionIdentifier, for: "obs.take") {
+            return await obs.takeLive(token: token) { canSend() && !self.sessionLock.refresh() }
+        }
         if let token = OBSConnection.controlToken(actionIdentifier, for: OBSConnection.studioModeID) {
             return await obs.toggleStudioMode(token: token, isValid: canSend)
         }
@@ -942,8 +943,8 @@ final class CompanionStore: NSObject, ObservableObject {
         return await obs.performOutput(output, token: token, isValid: canSend)
     }
 
-    func obsControlActions() -> [(id: String, label: String)] {
-        OBSConnection.controlActions(obs.state)
+    func obsControlActions() -> [OBSConnection.CatalogueEntry] {
+        OBSConnection.controlCatalogue(obs.state)
     }
 
     func performResultStatus(actionIdentifier: String,
@@ -952,10 +953,6 @@ final class CompanionStore: NSObject, ObservableObject {
         guard !sessionLock.refresh() else { return "not_allowed" }
         if actionIdentifier == "obs.replay" {
             return await obs.saveReplay() ? "performed" : "not_allowed"
-        }
-        if actionIdentifier.hasPrefix("obs.take."),
-           let token = UUID(uuidString: String(actionIdentifier.dropFirst("obs.take.".count))) {
-            return await obs.takeLive(token: token) ? "performed" : "not_allowed"
         }
         if actionIdentifier.hasPrefix("obs.mute."),
            let target = UUID(uuidString: String(actionIdentifier.dropFirst("obs.mute.".count))) {

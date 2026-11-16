@@ -889,10 +889,17 @@ inline void companion_apply_card_focus(lv_obj_t *button, const std::string &acti
         const auto *selected = companion_published_action(current, "obs.transition.selected");
         active = selected && selected->label == action_id;
       } else {
-        const std::string scene_id = action_id.substr(action_id.rfind('.') + 1);
-        on_program = companion_published_action(current, "obs.program." + scene_id) != nullptr;
-        active = companion_action_available(current, action_id) &&
-          companion_published_action(current, "obs.selected." + scene_id);
+        const auto *action = companion_published_action(current, action_id);
+        if (action && !action->obs_state.empty()) {
+          on_program = action->obs_state == "scene_program";
+          active = action->obs_state == "scene_live" || action->obs_state == "scene_preview" ||
+            action->obs_state == "scene_program_preview";
+        } else {
+          const std::string scene_id = action_id.substr(action_id.rfind('.') + 1);
+          on_program = companion_published_action(current, "obs.program." + scene_id) != nullptr;
+          active = companion_action_available(current, action_id) &&
+            companion_published_action(current, "obs.selected." + scene_id);
+        }
       }
     } else {
       active = snapshot ? companion_action_focused(*snapshot, focus_id, true)
@@ -1206,6 +1213,14 @@ inline void companion_render_obs_detail(CompanionCardRef &ref, const std::string
     if (companion_obs_break_active(label)) detail = espdesktop_i18n_key("label_obs_resume");
     else if (ref.rendered_obs_action.id.rfind("obs.brb.", 0) == 0 || label == "Starting BRB…")
       detail = espdesktop_i18n("Start");
+  }
+  if (ref.action_id == "obs.take") {
+    const auto &state = ref.rendered_obs_action.obs_state;
+    if (state == "take_ready") detail = ref.rendered_obs_action.obs_detail;
+    else if (state == "take_studio_off") detail = espdesktop_i18n("Enable Studio Mode");
+    else if (state == "take_transitioning") detail = espdesktop_i18n("Transitioning");
+    else if (state == "take_no_preview") detail = espdesktop_i18n("Choose a preview");
+    else if (state == "take_same_scene") detail = espdesktop_i18n("Already on Program");
   }
   if (ref.obs_status_icon) {
     const auto *icon = find_icon(companion_obs_status_icon(ref.action_id, detail, split != std::string::npos));
@@ -1682,6 +1697,8 @@ class CompanionActionsHandler : public esphome::web_server_idf::AsyncWebHandler 
         first = false;
         json += "{\"id\":\"" + companion_json_escape(action.id) +
           "\",\"label\":\"" + companion_json_escape(action.label) + "\"";
+        if (!action.obs_state.empty()) json += ",\"obsState\":\"" + companion_json_escape(action.obs_state) + "\"";
+        if (!action.obs_detail.empty()) json += ",\"obsDetail\":\"" + companion_json_escape(action.obs_detail) + "\"";
 #ifdef USE_COMPANION
         // The browser already polls this catalogue. Include cache freshness so
         // updated icons refresh open previews without downloading unchanged pixels.

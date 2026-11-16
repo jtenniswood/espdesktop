@@ -213,7 +213,26 @@ final class OBSConnection: ObservableObject {
         var sourceScene: Target? { studioMode ? preview : program }
 
         var canTakePreview: Bool {
-            studioMode && !transitionInProgress && preview != nil && preview?.id != program?.id
+            takePresentation == .takeReady
+        }
+
+        var takePresentation: CatalogueState {
+            if !studioMode { return .takeStudioOff }
+            if transitionInProgress { return .takeTransitioning }
+            guard let preview else { return .takeNoPreview }
+            return preview.id == program?.id ? .takeSameScene : .takeReady
+        }
+
+        func scenePresentation(_ scene: UUID) -> CatalogueState {
+            let onProgram = program.flatMap { UUID(uuidString: $0.id) } == scene
+            if !studioMode { return onProgram ? .sceneLive : .sceneIdle }
+            let inPreview = preview.flatMap { UUID(uuidString: $0.id) } == scene
+            switch (onProgram, inPreview) {
+            case (true, true): return .sceneProgramPreview
+            case (true, false): return .sceneProgram
+            case (false, true): return .scenePreview
+            case (false, false): return .sceneIdle
+            }
         }
 
         mutating func setSelectedTransition(_ name: String?) {
@@ -221,6 +240,36 @@ final class OBSConnection: ObservableObject {
             selectedTransition = name
             transitionToken = UUID()
         }
+    }
+
+    enum CatalogueState: String {
+        case sceneIdle = "scene_idle"
+        case sceneLive = "scene_live"
+        case sceneProgram = "scene_program"
+        case scenePreview = "scene_preview"
+        case sceneProgramPreview = "scene_program_preview"
+        case takeReady = "take_ready"
+        case takeStudioOff = "take_studio_off"
+        case takeTransitioning = "take_transitioning"
+        case takeNoPreview = "take_no_preview"
+        case takeSameScene = "take_same_scene"
+
+        var takeUnavailableReason: String? {
+            switch self {
+            case .takeStudioOff: return "Enable Studio Mode"
+            case .takeTransitioning: return "Transitioning"
+            case .takeNoPreview: return "Choose a preview"
+            case .takeSameScene: return "Already on Program"
+            default: return nil
+            }
+        }
+    }
+
+    struct CatalogueEntry: Equatable {
+        let id: String
+        let label: String
+        var state: CatalogueState? = nil
+        var detail: String? = nil
     }
 
     enum SceneAction: Equatable {
@@ -302,13 +351,25 @@ final class OBSConnection: ObservableObject {
         return actions
     }
 
+    static func controlCatalogue(_ state: State?) -> [CatalogueEntry] {
+        guard let state else { return [] }
+        return controlActions(state).map { action in
+            if action.id == "obs.take" || action.id.hasPrefix("obs.take.") {
+                return CatalogueEntry(id: action.id, label: action.label, state: state.takePresentation,
+                                      detail: state.canTakePreview ? state.preview?.name : nil)
+            }
+            let scene: UUID?
+            switch SceneAction(id: action.id) {
+            case .program(let id), .preview(let id): scene = id
+            case nil: scene = AdaptiveScene.command(action.id)?.0
+            }
+            return CatalogueEntry(id: action.id, label: action.label,
+                                  state: scene.map(state.scenePresentation))
+        }
+    }
+
     private static func unavailableTakeAction(_ state: State?) -> [(id: String, label: String)] {
-        guard let state, !state.canTakePreview else { return [] }
-        let reason: String
-        if !state.studioMode { reason = "Enable Studio Mode" }
-        else if state.transitionInProgress { reason = "Transitioning" }
-        else if state.preview == nil { reason = "Choose a preview" }
-        else { reason = "Already on Program" }
+        guard let reason = state?.takePresentation.takeUnavailableReason else { return [] }
         return [("obs.take", "Take Live · " + reason)]
     }
 
@@ -623,8 +684,9 @@ final class OBSConnection: ObservableObject {
                              fields: ["sceneUuid": id])
     }
 
-    func takeLive(token: UUID) async -> Bool {
-        guard !breakInFlight, !changingStudioMode, !cyclingTransition, let state, state.canTakePreview, state.takeToken == token,
+    func takeLive(token: UUID, isValid: () -> Bool = { true }) async -> Bool {
+        guard isValid(), !breakInFlight, !changingStudioMode, !cyclingTransition,
+              let state, state.canTakePreview, state.takeToken == token,
               let expectedPreview = state.preview?.id, !takingPreview else { return false }
         takingPreview = true
         defer { takingPreview = false }
@@ -633,7 +695,7 @@ final class OBSConnection: ObservableObject {
               cursor["transitionCursor"] as? Double == 1,
               let preview = try? await snapshotRequest("GetCurrentPreviewScene", generation: active),
               preview["sceneUuid"] as? String == expectedPreview,
-              active == generation, let current = self.state,
+              isValid(), active == generation, let current = self.state,
               current.canTakePreview, current.takeToken == token else { return false }
         return await command("TriggerStudioModeTransition", fields: [:])
     }

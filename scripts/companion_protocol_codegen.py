@@ -153,8 +153,11 @@ inline bool hex_valid(JsonVariantConst value) {
                 out.append(f'  for (const auto &item : {array}) {{\n')
                 if spec['items']['type'] == 'object':
                     out.append(f'    auto entry = values_{key}.add<JsonObject>();\n')
-                    for child in spec['items']['fields']:
-                        out.append(f'    entry["{child}"] = item.{child};\n')
+                    for child, child_spec in spec['items']['fields'].items():
+                        if child_spec.get('optional'):
+                            out.append(f'    if (item.{child}) entry["{child}"] = *item.{child};\n')
+                        else:
+                            out.append(f'    entry["{child}"] = item.{child};\n')
                 else: out.append(f'    values_{key}.add(item);\n')
                 out.append('  }\n')
                 if spec.get('optional'): out.append('  }\n')
@@ -189,8 +192,15 @@ inline bool hex_valid(JsonVariantConst value) {
                 else: target += '.'
                 out.append(f'    for (JsonVariantConst item : {value}.as<JsonArrayConst>()) {{\n')
                 if spec['items']['type']=='object':
-                    members=', '.join(read(v,f'item[{json.dumps(k)}]',ident) for k,v in spec['items']['fields'].items())
-                    out.append(f'      {target}push_back({{{members}}});\n')
+                    members=[]
+                    for key, child in spec['items']['fields'].items():
+                        value=f'item[{json.dumps(key)}]'
+                        expression=read(child,value,ident)
+                        if child.get('optional'):
+                            child_type=type_for(child,ident+name(key))
+                            expression=f'{value}.isUnbound() ? std::nullopt : std::optional<{child_type}>{{{expression}}}'
+                        members.append(expression)
+                    out.append(f'      {target}push_back({{{", ".join(members)}}});\n')
                 else:out.append(f'      {target}push_back({read(spec["items"],"item",ident)});\n')
                 out.append('    }\n')
                 if spec.get('optional'): out.append('    }\n')
@@ -201,7 +211,7 @@ inline bool hex_valid(JsonVariantConst value) {
     out.append('  return std::nullopt;\n}\n}  // namespace companion_protocol\n')
     # ArduinoJson 7 containsKey is deprecated; optional presence must distinguish null.
     result=''.join(out)
-    result=re.sub(r'root\.containsKey\(("[^"]+")\)',r'!root[\1].isUnbound()',result)
+    result=re.sub(r'(root|item\.as<JsonObjectConst>\(\))\.containsKey\(("[^"]+")\)',r'!\1[\2].isUnbound()',result)
     return result
 
 

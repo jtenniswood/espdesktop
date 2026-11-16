@@ -662,7 +662,10 @@ void CompanionService::handle_json_(int socket_fd, const std::string &message) {
         if (!safe_field(id, 96) || !safe_utf8_field(label, 96) || id.rfind("webapp.", 0) == 0) continue;
         const bool input = companion_input_device_control_valid(id);
         const bool retain_action = this->catalogue_limits_.retain(id, input);
-        if (retain_action) this->catalogue_actions_.emplace_back(id, label);
+        if (retain_action) {
+          const auto detail = item.obsDetail && safe_utf8_field(*item.obsDetail, 96) ? *item.obsDetail : std::string{};
+          this->catalogue_actions_.push_back({id, label, item.obsState.value_or(""), detail});
+        }
         // Keep icon eligibility for configured cards even when their app is
         // outside the bounded browser catalogue. The reference set is bounded
         // by the panel configuration rather than the Mac's installed app count.
@@ -676,9 +679,7 @@ void CompanionService::handle_json_(int socket_fd, const std::string &message) {
       }
       this->catalogue_next_page_ = page + 1;
       if (complete) {
-        std::vector<CompanionAction> actions;
-        actions.reserve(this->catalogue_actions_.size());
-        for (const auto &item : this->catalogue_actions_) actions.push_back({item.first, item.second});
+        auto actions = std::move(this->catalogue_actions_);
         this->defer_session_([actions = std::move(actions)]() mutable { companion_set_actions(std::move(actions)); }, "catalogue");
         std::vector<std::string> configured_icons;
         {

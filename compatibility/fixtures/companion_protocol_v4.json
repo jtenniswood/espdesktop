@@ -91,6 +91,12 @@
         {
           "id": "com.example.App",
           "label": "Caf\u00e9"
+        },
+        {
+          "id": "obs.take.7e86fcb8-7669-499e-ac4f-e4311555ed3b",
+          "label": "Take Live · BRB",
+          "obsState": "take_ready",
+          "obsDetail": "BRB"
         }
       ]
     },

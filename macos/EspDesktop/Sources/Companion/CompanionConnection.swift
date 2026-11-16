@@ -92,6 +92,7 @@ final class CompanionConnection: NSObject {
     private var catalogueGeneration: UInt32 = 0
     private var supportsOBSCards = false
     private var supportsOBSStarter = false
+    private var supportsOBSCardState = false
     private var supportsOBSBreak = false
     private var supportsOBSOutputs = false
     private var supportsOBSCough = false
@@ -534,6 +535,7 @@ final class CompanionConnection: NSObject {
             supportsOBSOutputs = payload.capabilityVersion >= 17
             supportsOBSBreak = payload.capabilityVersion >= 18
             supportsOBSStarter = payload.capabilityVersion >= 19
+            supportsOBSCardState = payload.capabilityVersion >= 20
             lastOBSAudioValues.removeAll()
             appVolumeSupported = payload.capabilityVersion >= 10
             supportsCoughButton = payload.capabilityVersion >= 11
@@ -596,6 +598,7 @@ final class CompanionConnection: NSObject {
                     guard let self, let requestingTask, self.task === requestingTask, self.sessionAuthenticated else { return }
                     let status: String
                     if actionIdentifier.hasPrefix("obs.output.") || actionIdentifier.hasPrefix("obs.brb.") ||
+                        actionIdentifier.hasPrefix("obs.take.") ||
                         actionIdentifier.hasPrefix(OBSConnection.AdaptiveScene.prefix) ||
                         actionIdentifier.hasPrefix(OBSConnection.studioModeID + ".") ||
                         actionIdentifier.hasPrefix(OBSConnection.transitionID + ".") ||
@@ -863,7 +866,7 @@ final class CompanionConnection: NSObject {
         send(value)
     }
 
-    func publishCatalogue(obsActions: [(id: String, label: String)]? = nil) {
+    func publishCatalogue(obsActions: [OBSConnection.CatalogueEntry]? = nil) {
         // An initial empty scan is provisional; publishing it would prune the
         // panel's persistent icons before discovery supplies the real app list.
         guard resources.applicationCatalogueReady else { return }
@@ -892,7 +895,14 @@ final class CompanionConnection: NSObject {
             (supportsOBSBreak || !(entry.id == "obs.brb" || entry.id.hasPrefix("obs.brb."))) &&
             (supportsOBSStarter || !entry.id.hasPrefix(OBSConnection.AdaptiveScene.prefix))
         }.map { entry in
-            ["id": entry.id, "label": Self.catalogueLabel(entry.label, fallback: "OBS scene")]
+            var fields = ["id": entry.id, "label": Self.catalogueLabel(entry.label, fallback: "OBS scene")]
+            if supportsOBSCardState, let state = entry.state {
+                fields["obsState"] = state.rawValue
+                if let detail = entry.detail {
+                    fields["obsDetail"] = Self.catalogueLabel(detail, fallback: "Unavailable")
+                }
+            }
+            return fields
         }
         let entries: [[String: String]] = resources.folderActions().compactMap { folder -> [String: String]? in
             guard Self.validCatalogueIdentifier(folder.actionIdentifier) else { return nil }
