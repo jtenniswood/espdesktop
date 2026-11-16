@@ -881,7 +881,7 @@ inline void companion_apply_card_focus(lv_obj_t *button, const std::string &acti
   // frontmost app. Keep URL cards from appearing active for the wrong page.
   bool active = false;
   bool on_program = false;
-  if (show_focus && action_id != "obs.replay" && companion_card_focus_allowed(url_config)) {
+  if (show_focus && !companion_obs_momentary_action(action_id) && companion_card_focus_allowed(url_config)) {
     const std::string focus_id = url_config.empty() ? action_id : companion_url_card_focus_id(url_config);
     if (companion_obs_scene_card(action_id) || companion_obs_output_card(action_id) || action_id == "obs.studio" ||
         action_id == "obs.brb" || action_id == "obs.replay.buffer" || companion_obs_transition_target(action_id) ||
@@ -1257,7 +1257,14 @@ inline bool companion_obs_keep_content_bright(const CompanionRuntimeSnapshot &sn
 }
 
 inline void companion_update_obs_detail_contrast(const CompanionCardRef &ref, bool keep_content_bright) {
-  const bool dim = lv_obj_has_state(ref.button, LV_STATE_DISABLED) && !keep_content_bright;
+  const bool disabled = lv_obj_has_state(ref.button, LV_STATE_DISABLED);
+  // LVGL skips the release event if OBS makes the card unavailable during touch.
+  if (disabled && companion_obs_momentary_action(ref.action_id) &&
+      lv_obj_has_state(ref.button, LV_STATE_PRESSED)) {
+    lv_obj_clear_state(ref.button, LV_STATE_PRESSED);
+    sync_card_checked_text_color(ref.button);
+  }
+  const bool dim = disabled && !keep_content_bright;
   if (lv_obj_has_state(ref.text_label, LV_STATE_DISABLED) != dim ||
       lv_obj_has_state(ref.obs_detail, LV_STATE_DISABLED) != dim)
     set_card_content_disabled(ref.button, dim);
