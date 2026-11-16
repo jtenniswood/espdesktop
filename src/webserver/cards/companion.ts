@@ -1777,10 +1777,12 @@ export function registerCompanionCardTypes(
                 const source = entity.startsWith("obs.source.");
                 const scene = mode === "obs" && !source;
                 const directTransition = entity.startsWith(OBS_TRANSITION_SELECT);
-                const sceneId = card.entity.slice(-36);
-                const onProgram = scene && (cardState ? stateId === "scene_program"
-                    : sceneId === obsControlLabels.get("obs.program"));
+                const sceneId = entity.slice(-36);
                 const selectedScene = scene && !!currentLabel && sceneId === obsControlLabels.get("obs.selected");
+                const onProgram = scene && (cardState
+                    ? stateId === "scene_live" || stateId === "scene_program" || stateId === "scene_program_preview"
+                    : sceneId === obsControlLabels.get("obs.program") ||
+                        (selectedScene && obsControlLabels.get(OBS_STUDIO_ID) === "Off"));
                 const sensor = mode === "obs_status";
                 const toggle = mode === "obs_studio" || mode === "obs_replay_buffer";
                 const replay = mode === "obs_replay";
@@ -1810,7 +1812,7 @@ export function registerCompanionCardTypes(
                         ? presentation?.obsDetail ?? cardState.detail : undefined;
                     const note = sensor ? programScene || "Unavailable"
                         : output ? outputStatus
-                        : scene ? "Scene"
+                        : scene ? (onProgram ? "Live" : "Scene")
                         : directTransition ? currentLabel ? "Transition" : "Unavailable"
                         : mode === "obs_transition" ? currentLabel || "Unavailable"
                         : status === "BRB · Already on break" ? "" : presentationDetail ?? (detail || (name === title ? "" : name || "Unavailable"));
@@ -1819,8 +1821,7 @@ export function registerCompanionCardTypes(
                 }
                 return {
                     ...preview,
-                    buttonClass: [onProgram && !selectedScene && "sp-obs-program", unavailable && "sp-obs-unavailable"]
-                        .filter(Boolean).join(" ") || undefined,
+                    buttonClass: unavailable ? "sp-obs-unavailable" : undefined,
                     sensorSurface: sensor,
                     isOn: cardState ? cardState.lit : live || outputOn || (toggle && currentLabel === "On") || (brb && currentLabel === "Resume") || selectedScene ||
                         (directTransition && entity === obsControlLabels.get("obs.transition.selected")) ||

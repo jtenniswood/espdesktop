@@ -29,11 +29,9 @@ void lv_label_set_text(lv_obj_t *, const char *);
 #include "button_grid_subpages.h"
 #include "display_color.h"
 #include "button_grid_style.h"
-static_assert(darker_card_color(0x64AD54, 50) == 0x32562A);
 using lv_color_t = uint32_t;
 using lv_style_selector_t = int;
 constexpr int LV_PART_MAIN = 0, LV_STATE_DEFAULT = 0, LV_STATE_CHECKED = 1, LV_STATE_PRESSED = 2;
-constexpr int LV_STATE_USER_1 = 1 << 12;
 constexpr int LV_EVENT_ALL = 0, LV_EVENT_PRESSED = 3, LV_EVENT_RELEASED = 4, LV_EVENT_PRESS_LOST = 5;
 constexpr int LV_OPA_COVER = 255, LV_OPA_TRANSP = 0;
 struct lv_event_t { lv_obj_t *target; int code; void *user_data = nullptr; void *param = nullptr; };
@@ -276,7 +274,7 @@ groups = (
     ("button_grid_layout.h", "", ("parse_hex_color", "apply_button_colors", "apply_button_on_pattern")),
     ("companion_controls.h", "", ("companion_obs_record_stopping", "companion_obs_output_status_id", "companion_obs_output_status", "companion_obs_output_active", "companion_obs_control_label")),
     ("companion_controls.h", "", ("companion_obs_scene_target", "companion_obs_hashed_target", "companion_obs_transition_target", "companion_obs_source_target", "companion_obs_scene_card", "companion_obs_break_active", "companion_obs_momentary_action", "companion_apply_card_focus", "companion_required_focus_ready", "companion_refresh_card_focus")),
-    ("companion_controls.h", "", ("companion_obs_status_card", "companion_obs_status_icon", "companion_render_obs_detail", "companion_obs_keep_content_bright", "companion_update_obs_detail_contrast", "companion_render_slider")),
+    ("companion_controls.h", "", ("companion_obs_status_card", "companion_obs_status_icon", "companion_obs_scene_on_program", "companion_render_obs_detail", "companion_obs_keep_content_bright", "companion_update_obs_detail_contrast", "companion_render_slider")),
     ("button_grid_grid.h", "", ("card_palette_for_config", "card_slot_static_child", "reset_card_slot_dynamic_children")),
     ("button_grid_grid.h", "", ("apply_subpage_back_colors",)),
     ("button_grid_subscriptions.h", "", ("apply_sensor_active_color",)),
@@ -534,17 +532,36 @@ int main() {
     CompanionRuntimeSnapshot studio{"obs.selected." + break_id};
     studio.actions = {{"obs.program." + main_id, ""}};
     companion_refresh_card_focus(studio);
-    assert(lv_obj_has_state(&main_scene, LV_STATE_USER_1));
     assert(!lv_obj_has_state(&main_scene, LV_STATE_CHECKED));
-    assert(!lv_obj_has_state(&break_scene, LV_STATE_USER_1));
     assert(lv_obj_has_state(&break_scene, LV_STATE_CHECKED));
+    lv_obj_t title, detail;
+    auto &main_card = focus_cards[0];
+    main_card.text_label = &title;
+    main_card.obs_detail = &detail;
+    companion_render_obs_detail(main_card, "Main", studio);
+    assert(title.content == "Main" && detail.content == "Live");
     studio.actions[0].id = "obs.program." + break_id;
     companion_refresh_card_focus(studio);
-    assert(!lv_obj_has_state(&main_scene, LV_STATE_USER_1));
-    assert(!lv_obj_has_state(&break_scene, LV_STATE_USER_1));
     assert(lv_obj_has_state(&break_scene, LV_STATE_CHECKED));
+    companion_render_obs_detail(main_card, "Main", studio);
+    assert(title.content == "Main" && detail.content == "Scene");
+    studio.actions = {{main_card.action_id, "Main"}};
+    for (const auto state : {OBSCardState::scene_live, OBSCardState::scene_program, OBSCardState::scene_program_preview}) {
+      studio.actions[0].obs_state = state;
+      companion_render_obs_detail(main_card, "Main", studio);
+      assert(detail.content == "Live");
+    }
+    studio.actions[0].obs_state = OBSCardState::scene_preview;
+    companion_render_obs_detail(main_card, "Main", studio);
+    assert(detail.content == "Scene");
+    CompanionRuntimeSnapshot normal{"obs.selected." + main_id};
+    normal.actions = {{"obs.studio", "Off"}};
+    companion_render_obs_detail(main_card, "Main", normal);
+    assert(detail.content == "Live");
+    normal.connected = false;
+    companion_render_obs_detail(main_card, "Main", normal);
+    assert(detail.content == "Scene");
     companion_refresh_card_focus({});
-    assert(!lv_obj_has_state(&break_scene, LV_STATE_USER_1));
     assert(!lv_obj_has_state(&break_scene, LV_STATE_CHECKED));
     lv_obj_t recording;
     focus_cards = {{&recording, "obs.output.record", "", ""}};

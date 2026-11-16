@@ -985,7 +985,6 @@
     "transport": "tls_websocket",
     "browserAuthentication": "configured_device_web_auth"
   },
-  "obsProgramTintPercent": 50,
   "obsOutputStatusIcons": {
     "Idle": ["Stop Circle", "Broadcast Off", "Video Off"],
     "Active": ["Record", "Broadcast Off", "Video"],

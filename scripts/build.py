@@ -408,9 +408,8 @@ def load_companion_capabilities_data():
     catalogue["fields"]["items"]["items"]["fields"]["obsState"]["enum"] = state_ids
     output_statuses = {state["detail"] for state in card_states if state["id"].startswith("output_")} | {"Unavailable"}
     icons = data["obsOutputStatusIcons"]
-    if (set(icons) != output_statuses or any(len(pair) != 3 or not all(pair) for pair in icons.values()) or
-            not 0 < data["obsProgramTintPercent"] < 100):
-        raise BuildError("Invalid OBS output icons or Program colour tint")
+    if set(icons) != output_statuses or any(len(pair) != 3 or not all(pair) for pair in icons.values()):
+        raise BuildError("Invalid OBS output icons")
 
     security = data.get("security")
     if not isinstance(security, dict) or security.get("pairingAuthorization") not in {"physical_presence", "device_web_access"}:
@@ -844,7 +843,6 @@ def gen_companion_capabilities_ts(data):
         f"export const OBS_CONFIRMATION_CONTROLS = {companion_ts_literal(data['obsConfirmationControls'])} as const;\n"
         f"export const OBS_SCENE_PAGE_CONTROLS = {companion_ts_literal(data['obsScenePageControls'])} as const;\n"
         f"export const OBS_STUDIO_CONTROL_PAGE = {companion_ts_literal(data['obsStudioControlPage'])} as const;\n"
-        f"export const OBS_PROGRAM_TINT_PERCENT = {data['obsProgramTintPercent']};\n"
         f"export const OBS_OUTPUT_STATUS_ICONS: Readonly<Record<string, readonly [string, string, string]>> = {companion_ts_literal(data['obsOutputStatusIcons'])};\n"
         f"export const OBS_CARD_STATES: Readonly<Record<string, {{ readonly detail: string; readonly lit: boolean }}>> = {companion_ts_literal({state['id']: {key: state[key] for key in ('detail', 'lit')} for state in data['obsCardStates']})};\n"
         f"export const COMPANION_PROTOCOL_MESSAGES: readonly CompanionProtocolMessage[] = {companion_ts_literal([{key: item[key] for key in ('id', 'direction', 'authorization')} for item in protocol['messages']])};\n"
@@ -926,7 +924,6 @@ def gen_companion_capabilities_h(data):
         "    if (id == OBS_CARD_PRESENTATION[i].id) return static_cast<OBSCardState>(i);\n",
         "  return OBSCardState::unknown;\n",
         "}\n\n",
-        f"inline constexpr int OBS_PROGRAM_TINT_PERCENT = {data['obsProgramTintPercent']};\n",
         "struct OBSOutputIcons { const char *status; const char *record; const char *stream; const char *virtualcam; };\n",
         "inline constexpr OBSOutputIcons OBS_OUTPUT_STATUS_ICONS[] = {\n",
         *[f"  {{{json.dumps(status)}, {json.dumps(record)}, {json.dumps(stream)}, {json.dumps(virtualcam)}}},\n"

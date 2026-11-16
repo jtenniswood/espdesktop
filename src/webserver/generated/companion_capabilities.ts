@@ -183,7 +183,6 @@ export const OBS_STUDIO_CONTROL_PAGE = [
     icon: "Repeat"
   }
 ] as const;
-export const OBS_PROGRAM_TINT_PERCENT = 50;
 export const OBS_OUTPUT_STATUS_ICONS: Readonly<Record<string, readonly [string, string, string]>> = {
   Idle: [
     "Stop Circle",

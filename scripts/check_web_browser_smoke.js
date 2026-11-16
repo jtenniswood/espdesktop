@@ -7942,6 +7942,7 @@ async function assertOBSStarterPage(browser, firstRun = false) {
     ...scenes.map(([id, label]) => ({ id: `obs.target.${id}.${token}`, label })),
     { id: `obs.selected.${selectedScene || (studioProgram ? away : main)}`, label: "Selected OBS scene" },
     ...(studioProgram ? [{ id: `obs.program.${studioProgram}`, label: "OBS Program scene" }] : []),
+    { id: "obs.studio." + token, label: studioProgram ? "On" : "Off" },
     { id: `obs.mute.${mic}`, label: (muted ? "Muted" : "Unmuted") + " · Desk Mic" },
     { id: "obs.take", label: "Take Live · Enable Studio Mode" },
     { id: "obs.status.stream", label: streaming ? "Stream · Live" : "Stream · Idle" },
@@ -8057,9 +8058,10 @@ async function assertOBSStarterPage(browser, firstRun = false) {
     await breakTile.getByText("Break Room", { exact: true }).waitFor();
     const colour = tile => tile.evaluate(card => getComputedStyle(card).backgroundColor);
     const onColor = await colour(mainTile);
-    assert.notEqual(onColor, await colour(breakTile));
-    for (const tile of [mainTile, breakTile])
-      assert.equal(await tile.locator(".sp-obs-detail").innerText(), "Scene");
+    const offColor = await colour(breakTile);
+    assert.notEqual(onColor, offColor);
+    assert.equal(await mainTile.locator(".sp-obs-detail").innerText(), "Live");
+    assert.equal(await breakTile.locator(".sp-obs-detail").innerText(), "Scene");
     await page.locator(".sp-main").getByText("Enable Studio Mode", { exact: true }).waitFor();
     await editCard(mainTile);
     const scene = page.locator('select[id$="obs-scene"]');
@@ -8072,19 +8074,21 @@ async function assertOBSStarterPage(browser, firstRun = false) {
     onBreak = true;
     studioProgram = main;
     await editCard(mainTile);
-    await page.locator('.sp-main [data-slot="1"].sp-obs-program').waitFor();
-    assert.equal(await colour(mainTile), "rgb(127, 70, 0)");
+    await page.waitForFunction(offColor =>
+      getComputedStyle(document.querySelector('.sp-main [data-slot="1"]')).backgroundColor === offColor, offColor);
+    assert.equal(await mainTile.locator(".sp-obs-detail").innerText(), "Live");
+    assert.equal(await colour(mainTile), offColor);
     assert.equal(await colour(breakTile), onColor);
     await page.getByRole("button", { name: "Custom Colours", exact: true }).click();
     await page.getByRole("group", { name: "Active state colour", exact: true }).getByRole("button", { name: "Custom", exact: true }).click();
     await page.getByRole("group", { name: "Active state colour presets", exact: true }).locator('input[type="color"]').fill("#64ad54");
-    assert.equal(await colour(mainTile), "rgb(50, 86, 42)");
+    assert.equal(await colour(mainTile), offColor);
     await closeSettings.click();
     studioProgram = away;
     await editCard(mainTile);
     await scene.locator(`option[value="obs.target.${main}"]`).waitFor({ state: "attached" });
-    await page.locator('.sp-main [data-slot="1"]:not(.sp-obs-program)').waitFor();
-    assert.equal(await breakTile.evaluate(card => card.classList.contains("sp-obs-program")), false);
+    await breakTile.getByText("Live", { exact: true }).waitFor();
+    assert.equal(await mainTile.locator(".sp-obs-detail").innerText(), "Scene");
     assert.equal(await colour(breakTile), onColor);
     await closeSettings.click();
     await goBack();
@@ -8175,7 +8179,7 @@ async function assertOBSStarterPage(browser, firstRun = false) {
       "Scenes saves the hidden and reordered scene buttons");
     await editFolder("Scenes");
     await automaticTiles.getByText("Gameplay", { exact: true }).waitFor();
-    const sceneCards = automaticTiles.filter({ has: page.locator(".sp-obs-detail").filter({ hasText: /^Scene$/ }) });
+    const sceneCards = automaticTiles.filter({ has: page.locator(".sp-obs-detail").filter({ hasText: /^(Scene|Live)$/ }) });
     const sceneNames = () => sceneCards.locator(".sp-btn-label").allTextContents();
     const automaticTake = automaticTiles.filter({ has: page.getByText("Take Live", { exact: true }) });
     assert.equal(await automaticTake.getAttribute("data-pos"), "7");
@@ -8185,14 +8189,16 @@ async function assertOBSStarterPage(browser, firstRun = false) {
     await page.locator('.sp-main [data-generated-card][data-pos="4"]').getByText("Break", { exact: true }).waitFor();
     servePanelProjection = false;
     assert.deepEqual(await sceneNames(), ["Break Room", "Gameplay"]);
-    assert.equal(await automaticTiles.locator(".sp-obs-detail").first().textContent(), "Scene");
     const generatedProgram = automaticTiles.filter({ hasText: "Gameplay" });
     const generatedPreview = automaticTiles.filter({ hasText: "Break Room" });
-    await page.waitForFunction(onColor => {
+    await page.clock.fastForward(30_000);
+    await generatedProgram.getByText("Live", { exact: true }).waitFor();
+    await generatedPreview.getByText("Scene", { exact: true }).waitFor();
+    await page.waitForFunction(({ onColor, offColor }) => {
       const colours = new Map(Array.from(document.querySelectorAll(".sp-main [data-generated-card]"), tile =>
         [tile.querySelector(".sp-btn-label")?.textContent, getComputedStyle(tile).backgroundColor]));
-      return colours.get("Gameplay") === "rgb(127, 70, 0)" && colours.get("Break Room") === onColor;
-    }, onColor);
+      return colours.get("Gameplay") === offColor && colours.get("Break Room") === onColor;
+    }, { onColor, offColor });
     assert.notEqual(await colour(generatedProgram), await colour(generatedPreview));
     const beforeCollectionChange = fixture.puts.length;
     scenes = [[welcome, "Welcome"]];

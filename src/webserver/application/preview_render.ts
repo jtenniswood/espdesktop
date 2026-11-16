@@ -6,7 +6,7 @@ import { cardRequiresHomeAssistant } from "../model/legacy_home_assistant";
 import { state } from "../state/app_instance";
 import { cardContractCard } from "../generated/card_contract";
 import { WEB_UI_COLORS } from "../state/ui_tokens";
-import { COMPANION_APP_ICON_SIDE, OBS_PROGRAM_TINT_PERCENT } from "../generated/companion_capabilities";
+import { COMPANION_APP_ICON_SIDE } from "../generated/companion_capabilities";
 import { appIconArtworkBounds, appIconFitSide } from "../model/app_icon_layout";
 import { PREVIEW_THEME_COLORS, defaultCardBackgroundColor, previewEffectiveTheme } from "../state/preview_theme";
 import { cardIconSize, configOptionValue, cardActiveColor } from "../model/config_primitives";
@@ -24,7 +24,6 @@ import {
     cardSliderFillColor,
     applySliderPreviewTextContrast,
     cardPatternHighlightColor,
-    darkerCardColor,
     cardTypePickerDetails,
     cardTypePickerOptions,
     defaultCardTypeForPicker,
@@ -603,8 +602,7 @@ export function createPreviewRenderFeature(dependencies: PreviewRenderDependenci
                     sizeClass(slotSz) +
                     (selectedGenerated || c.selected.indexOf(slot) !== -1 ? " sp-selected" : "");
                 const activeColor = cardOnColor || state.onColor || WEB_UI_COLORS.primary;
-                const programColor = btn.classList.contains("sp-obs-program") ? darkerCardColor(activeColor, OBS_PROGRAM_TINT_PERCENT) : "";
-                let contrastBackground = programColor || (typePreview?.isOn ? cardOnColor : cardOffColor) ||
+                let contrastBackground = (typePreview?.isOn ? cardOnColor : cardOffColor) ||
                     (typePreview?.sensorSurface ? previewColors.surfaceSensor : color);
                 btn.style.backgroundColor = "#" + contrastBackground;
                 btn.style.setProperty("--card-active-color", "#" + activeColor);
