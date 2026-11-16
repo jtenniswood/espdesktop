@@ -794,7 +794,8 @@ inline std::string companion_obs_control_label(const std::string &action_id, con
       : companion_obs_output_active(*snapshot, action_id) ? "Recording" : "Record";
     return std::string(title) + " · " + std::string(companion_obs_output_status(*snapshot, action_id));
   }
-  if (!alias.empty()) return alias;
+  if (!alias.empty() && (companion_obs_scene_card(action_id) || companion_obs_transition_target(action_id) ||
+      companion_obs_source_target(action_id) || companion_obs_audio_uuid(action_id, "obs.mute."))) return alias;
   if (companion_obs_audio_uuid(action_id, "obs.mute.")) {
     for (std::string_view prefix : {"Muted · ", "Unmuted · "}) {
       if (live_label.compare(0, prefix.size(), prefix) == 0) return live_label.substr(prefix.size());
@@ -1207,7 +1208,8 @@ inline void companion_render_obs_detail(CompanionCardRef &ref, const std::string
   const bool transition = ref.action_id == "obs.transition";
   const bool direct_transition = companion_obs_transition_target(ref.action_id);
   const bool brb = ref.action_id == "obs.brb";
-  const std::string primary = (scene || direct_transition) ? label
+  const std::string primary = !ref.obs_label_alias.empty() ? ref.obs_label_alias
+    : (scene || direct_transition) ? label
     : output ? espdesktop_i18n(label.substr(0, split))
     : studio ? espdesktop_i18n_key("label_obs_studio_mode")
     : transition ? espdesktop_i18n_key("label_obs_transition")

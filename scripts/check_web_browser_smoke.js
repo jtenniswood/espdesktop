@@ -8257,6 +8257,17 @@ async function assertOBSStarterPage(browser, firstRun = false) {
     await page.getByRole("button", { name: "Save", exact: true }).click();
     const savedTake = page.locator('.sp-main .sp-btn-wide[data-pos="7"][data-slot]');
     await savedTake.getByText("Take Live", { exact: true }).waitFor();
+    await savedTake.click({ button: "right" });
+    await page.locator(".sp-ctx-menu").getByText("Edit Card", { exact: true }).click();
+    await page.getByRole("button", { name: "Card Settings", exact: true }).click();
+    await page.getByRole("textbox", { name: "Label", exact: true }).fill("Send to Program");
+    await page.getByRole("button", { name: "Save", exact: true }).click();
+    await savedTake.getByText("Send to Program", { exact: true }).waitFor();
+    await savedTake.getByText("Enable Studio Mode", { exact: true }).waitFor();
+    await waitForNativeState(fixture, () => fixture.puts.at(-1)?.layout?.pages
+      .find(group => group.key === 6)?.cards.some(card =>
+        card.config.entity === "obs.take" && card.config.label === "Send to Program"),
+    "The renamed Take Live card saves its label and OBS action");
     console.log("OBS automatic Scenes controls and editable generated cards passed.");
   } finally {
     await context.close();

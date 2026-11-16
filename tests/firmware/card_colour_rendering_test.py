@@ -231,6 +231,7 @@ struct CompanionCardRef {
   bool show_focus = true;
   std::string required_focus_id{};
   lv_obj_t *text_label = nullptr, *obs_detail = nullptr, *obs_state_icon = nullptr;
+  std::string obs_label_alias{};
   CompanionAction rendered_obs_action{};
 };
 struct CompanionSliderRef {
@@ -272,8 +273,8 @@ groups = (
     ("card_text_contrast.h", "", ("apply_card_descendant_text_color", "sync_card_checked_text_color", "card_text_contrast_event_cb", "sync_bound_card_text_color", "bind_card_text_contrast_events", "set_card_checked_state")),
     ("button_grid_touch.h", "", ("consume_button_touch_press",)),
     ("button_grid_layout.h", "", ("parse_hex_color", "apply_button_colors", "apply_button_on_pattern")),
-    ("companion_controls.h", "", ("companion_obs_record_stopping", "companion_obs_output_status_id", "companion_obs_output_status", "companion_obs_output_active", "companion_obs_control_label")),
-    ("companion_controls.h", "", ("companion_obs_scene_target", "companion_obs_hashed_target", "companion_obs_transition_target", "companion_obs_source_target", "companion_obs_scene_card", "companion_obs_break_active", "companion_obs_momentary_action", "companion_apply_card_focus", "companion_required_focus_ready", "companion_refresh_card_focus")),
+    ("companion_controls.h", "", ("companion_obs_record_stopping", "companion_obs_output_status_id", "companion_obs_output_status", "companion_obs_output_active")),
+    ("companion_controls.h", "", ("companion_obs_scene_target", "companion_obs_hashed_target", "companion_obs_transition_target", "companion_obs_source_target", "companion_obs_scene_card", "companion_obs_control_label", "companion_obs_break_active", "companion_obs_momentary_action", "companion_apply_card_focus", "companion_required_focus_ready", "companion_refresh_card_focus")),
     ("companion_controls.h", "", ("companion_obs_status_card", "companion_obs_status_icon", "companion_obs_scene_on_program", "companion_render_obs_detail", "companion_obs_keep_content_bright", "companion_update_obs_detail_contrast", "companion_render_slider")),
     ("button_grid_grid.h", "", ("card_palette_for_config", "card_slot_static_child", "reset_card_slot_dynamic_children")),
     ("button_grid_grid.h", "", ("apply_subpage_back_colors",)),
@@ -348,6 +349,11 @@ int main() {
     assert(title.content == "Recording" && detail.content == "Stopping" && title.y_offset < 0);
     assert(lv_obj_has_state(&tile, LV_STATE_DISABLED) && lv_obj_has_state(&tile, LV_STATE_CHECKED));
     assert(!lv_obj_has_state(&title, LV_STATE_DISABLED) && !lv_obj_has_state(&icon, LV_STATE_DISABLED));
+
+    record.obs_label_alias = "Capture · Desk";
+    companion_render_obs_detail(record, companion_obs_control_label(record.action_id, record.obs_label_alias, "", &stopping), {});
+    assert(title.content == "Capture · Desk" && detail.content == "Stopping");
+    record.obs_label_alias.clear();
 
     CompanionRuntimeSnapshot idle;
     idle.actions = {{"obs.status.record", "Recording · Idle"}};

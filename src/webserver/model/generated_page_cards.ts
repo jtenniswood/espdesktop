@@ -27,12 +27,13 @@ export function excludeGeneratedCards(options: string, ids: readonly string[]): 
 }
 
 export function generatedPageCard(action: CompanionAction, kind: OBSSubpageKind | undefined, owner?: CardConfig): CardConfig {
+  const sceneControl = OBS_SCENE_PAGE_CONTROLS.find(control => control.id === action.id);
   return {
     ...emptyCardConfig(),
     entity: action.id,
-    label: action.label,
+    label: sceneControl ? "" : action.label,
     type: kind === "obs_audio" ? "slider" : "companion",
-    icon: OBS_SCENE_PAGE_CONTROLS.find(control => control.id === action.id)?.icon ||
+    icon: sceneControl?.icon ||
       (kind ? OBS_SUBPAGES[kind].icon : "Folder"),
     options: !kind && configOptionValue(owner?.options, "finder_open_behavior") === "same_window"
       ? "finder_open_behavior=same_window" : "",

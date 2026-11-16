@@ -629,6 +629,9 @@ export function registerCompanionCardTypes(
     }
 
     function renderOBSProductionSettings(panel: HTMLElement, card: { entity: string; icon: string; options: string; label: string }, helpers: any, mode: "obs_status" | "obs_replay" | "obs_replay_buffer" | "obs_output" | "obs_brb" | "obs_studio" | "obs_transition"): void {
+        const { input: labelInput } = helpers.renderCardTextField(panel, card, helpers, {
+            label: "Label", idSuffix: "label", field: "label", placeholder: "Automatic",
+        });
         const studio = mode === "obs_studio" || card.entity === OBS_PROGRAM_ID;
         const replay = mode === "obs_replay" || mode === "obs_replay_buffer";
         const transition = mode === "obs_transition";
@@ -642,7 +645,6 @@ export function registerCompanionCardTypes(
                     const previous = companionCardMode(card);
                     const wasVirtualCamera = card.entity === "obs.output.virtualcam";
                     card.entity = select.value;
-                    if (directTransition) card.label = "";
                     card.icon = companionGeneratedIcon(card.icon,
                         wasVirtualCamera ? "Video" : companionSubtypeDefaultIcon(previous),
                         card.entity === "obs.output.virtualcam" ? "Video" : companionSubtypeDefaultIcon(companionCardMode(card)));
@@ -660,10 +662,14 @@ export function registerCompanionCardTypes(
             const { field, select } = helpers.selectField("OBS transition", helpers.idPrefix + "obs-transition",
                 entries, saved, () => {
                     if (!select.value) return;
+                    const previousName = obsControlLabels.get(card.entity);
                     card.entity = select.value;
-                    card.label = select.selectedOptions[0]?.textContent || "";
+                    if (!card.label || card.label === previousName) {
+                        card.label = select.selectedOptions[0]?.textContent || "";
+                        labelInput.value = card.label;
+                        helpers.saveField("label", card.label);
+                    }
                     helpers.saveField("entity", card.entity);
-                    helpers.saveField("label", card.label);
                     cardUi.renderPreview();
                 });
             panel.appendChild(field);
@@ -1808,7 +1814,8 @@ export function registerCompanionCardTypes(
                     const status = replay && currentLabel === "Save Replay" ? "Ready"
                         : currentLabel || (replay && obsControlLabels.has("obs.status.program") ? "Start Replay Buffer" : "");
                     const [name, detail] = status.split(" · ", 2);
-                    const title = output || scene || directTransition ? label : fallback[mode];
+                    const defaultTitle = output || scene || directTransition ? label : fallback[mode];
+                    const title = card.label || defaultTitle;
                     const presentationDetail = cardState && (mode === "obs_take" || toggle || replay || brb)
                         ? presentation?.obsDetail ?? cardState.detail : undefined;
                     const note = sensor ? programScene || "Unavailable"
@@ -1816,7 +1823,7 @@ export function registerCompanionCardTypes(
                         : scene ? (onProgram ? "Live" : "Scene")
                         : directTransition ? currentLabel ? "Transition" : "Unavailable"
                         : mode === "obs_transition" ? currentLabel || "Unavailable"
-                        : status === "BRB · Already on break" ? "" : presentationDetail ?? (detail || (name === title ? "" : name || "Unavailable"));
+                        : status === "BRB · Already on break" ? "" : presentationDetail ?? (detail || (name === defaultTitle ? "" : name || "Unavailable"));
                     preview.labelHtml = '<span class="sp-btn-label-row sp-obs-label"><span class="sp-btn-label">' +
                         helpers.escHtml(title) + '</span><span class="sp-obs-detail">' + helpers.escHtml(note) + '</span></span>';
                 }
@@ -1827,7 +1834,6 @@ export function registerCompanionCardTypes(
                     isOn: cardState ? cardState.lit : live || outputOn || (toggle && currentLabel === "On") || (brb && currentLabel === "Resume") || selectedScene ||
                         (directTransition && entity === obsControlLabels.get("obs.transition.selected")) ||
                         (source && obsControlLabels.has(entity.replace("obs.source.", "obs.source.visible."))),
-                    labelEditable: false,
                 };
             }
             const shortcutLabel = formatCompanionShortcutActionId(card.entity);

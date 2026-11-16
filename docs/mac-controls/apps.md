@@ -102,6 +102,8 @@ Under **Card types → Transitions**, **Cycle transitions** steps through the tr
 
 **Take Live** and **Cycle transitions** light up while you press them.
 
+To rename an OBS card, open **Edit Card → Card Settings** and edit **Label**. Cards with a subtitle continue to show the current OBS state there.
+
 Open **Add Card → OBS Studio → Grouped pages** and choose a page:
 
 - **Transitions** fills free cells with the current transitions from OBS. Expand the **Transitions** list in the page card’s settings to hide or reorder transitions.

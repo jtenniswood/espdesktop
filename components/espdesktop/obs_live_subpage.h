@@ -55,7 +55,7 @@ inline void project_obs_scene_controls(SubpageOrder &order, std::vector<SubpageB
     order.col_span[buttons.size()] = width;
     occupied[anchor] = true;
     if (width == 2) occupied[anchor + 1] = true;
-    buttons.push_back({control.id, control.label, control.icon, "Auto", "", "", "companion", "", ""});
+    buttons.push_back({control.id, "", control.icon, "Auto", "", "", "companion", "", ""});
   }
 }
 
