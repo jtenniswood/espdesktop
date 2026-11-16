@@ -143,6 +143,7 @@ class CompanionService final : public Component {
   uint32_t app_icon_generation_{0};
   size_t app_icon_offset_{0};
   std::atomic<bool> app_icons_supported_{false};
+  std::atomic<bool> app_icon_catalogue_refresh_pending_{true};
   std::atomic<uint32_t> authentication_expires_at_{0};
   std::atomic<bool> authentication_expiry_queued_{false};
 };

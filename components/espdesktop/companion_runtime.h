@@ -342,7 +342,8 @@ class CompanionRuntimeService {
 
   void set_actions(std::vector<CompanionAction> actions) {
     std::lock_guard<std::mutex> lock(mutex_);
-    if (!actions.empty() && actions != actions_) ++action_catalogue_generation_;
+    if (actions == actions_) return;
+    if (!actions.empty()) ++action_catalogue_generation_;
     actions_ = std::move(actions);
     request_refresh_();
   }

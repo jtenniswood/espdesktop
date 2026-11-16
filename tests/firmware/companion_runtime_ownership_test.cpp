@@ -17,6 +17,9 @@ int main() {
   espdesktop::EspDesktopAppCore first, second;
   first.companion_runtime().set_actions({{"com.example.First", "First"}});
   first.companion_runtime().set_connected(true);
+  assert(first.companion_runtime().consume_refresh_request());
+  first.companion_runtime().set_actions({{"com.example.First", "First"}});
+  assert(!first.companion_runtime().consume_refresh_request());
   second.companion_runtime().set_actions({{"com.example.Second", "Second"}});
   assert(!second.companion_runtime().connected());
   second.companion_runtime().set_mac_update_required(true);

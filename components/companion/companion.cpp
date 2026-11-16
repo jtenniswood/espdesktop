@@ -628,6 +628,8 @@ void CompanionService::handle_json_(int socket_fd, const std::string &message) {
       }
       this->app_icons_supported_.store(app_icons_supported && app_icons_alpha_supported &&
                                        app_icons_high_resolution_supported);
+      // The Mac sends capabilities before a full catalogue, including rescans with the same app IDs.
+      this->app_icon_catalogue_refresh_pending_.store(true);
       std::vector<std::string> configured_icons;
       {
         std::lock_guard<std::mutex> lock(app_icon_state_mutex);
@@ -682,14 +684,13 @@ void CompanionService::handle_json_(int socket_fd, const std::string &message) {
       if (complete) {
         auto actions = std::move(this->catalogue_actions_);
         this->defer_session_([actions = std::move(actions)]() mutable { companion_set_actions(std::move(actions)); }, "catalogue");
-        std::vector<std::string> configured_icons;
+        const bool refresh_icons = this->app_icon_catalogue_refresh_pending_.exchange(false);
+        std::vector<std::string> configured_icons, enabled_icons;
         {
           std::lock_guard<std::mutex> lock(app_icon_state_mutex);
+          if (!refresh_icons && app_icon_catalogue_ready && enabled_app_icons == this->catalogue_enabled_icons_)
+            return true;  // An OBS-only update does not need icon cache or dashboard work.
           enabled_app_icons = this->catalogue_enabled_icons_;
-        }
-        std::vector<std::string> enabled_icons;
-        {
-          std::lock_guard<std::mutex> lock(app_icon_state_mutex);
           app_icon_catalogue_ready = true;
           enabled_icons = enabled_app_icons;
           configured_icons = app_icon_requests;
@@ -1061,6 +1062,7 @@ void CompanionService::set_connected_(bool connected, int closing_socket) {
   if (connected) {
     this->focus_targets_generation_ = 0xFFFFFFFFu;
     this->focus_targets_supported_ = false;
+    this->app_icon_catalogue_refresh_pending_.store(true);
   } else {
     this->focus_targets_supported_ = false;
     this->reset_app_icon_transfer_();
