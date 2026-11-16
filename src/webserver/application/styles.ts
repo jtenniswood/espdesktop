@@ -80,7 +80,7 @@ export function createWebStyles(dragAnimation: boolean): string {
         ".sp-screen.sp-theme-light{" + previewThemeCss("Light") + "}" +
         ".sp-screen{width:var(--screen-w);aspect-ratio:var(--screen-aspect);background:var(--preview-background);" +
         "border-radius:var(--radius);position:relative;overflow:hidden;" +
-        "box-shadow:0 2px 20px rgba(0,0,0,.35);border:2px solid var(--surface);" +
+        "box-shadow:0 2px 20px rgba(0,0,0,.35);outline:2px solid var(--surface);" +
         "container-type:inline-size;font-family:Roboto,sans-serif;user-select:none}" +
         ".sp-config-busy .sp-screen{pointer-events:none}" +
         ".sp-config-locked .sp-screen{filter:grayscale(1) brightness(.58);opacity:.62;pointer-events:none}" +
@@ -141,7 +141,7 @@ export function createWebStyles(dragAnimation: boolean): string {
         "display:block;stroke:var(--card-active-color);stroke-width:6}" +
         ".sp-btn.sp-companion-app-icon-card:active{background-color:var(--sp-companion-app-icon-active)!important;--card-text-color:var(--sp-companion-app-icon-active-text)!important;filter:none}" +
         ".sp-btn>.sp-btn-label,.sp-btn>.sp-btn-label-row{margin-top:auto}" +
-        ".sp-obs-label.sp-btn-label-row{display:block}.sp-obs-detail{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:var(--btn-sublabel,calc(var(--btn-label)*.82));opacity:.8}.sp-obs-detail:empty{display:none}.sp-obs-unavailable .sp-btn-label,.sp-obs-unavailable .sp-obs-detail,.sp-obs-unavailable .sp-btn-icon{opacity:.6}" +
+        ".sp-obs-label.sp-btn-label-row{display:block}.sp-obs-detail{display:block;margin-top:.1em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:var(--btn-sublabel,calc(var(--btn-label)*.82));opacity:.8}.sp-obs-detail:empty{display:none}.sp-obs-unavailable .sp-btn-label,.sp-obs-unavailable .sp-obs-detail,.sp-obs-unavailable .sp-btn-icon{opacity:.6}" +
         ".sp-btn-label{display:block;max-height:var(--btn-label-max-height);overflow:hidden;word-break:break-word;min-height:0}" +
         ".sp-btn.sp-weather-wind-card>.sp-btn-label{max-height:none}" +
         ".sp-weather-wind-speed{display:block;margin-top:.2em}" +

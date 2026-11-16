@@ -6750,6 +6750,11 @@ async function assertContinuousPreview(browser, testCase) {
     }));
     assert(Math.abs(gaps.row - gaps.expected) < .05 && Math.abs(gaps.column - gaps.expected) < .05,
       "preview card gaps must retain the configured scale after resizing");
+    const frame = await page.locator(".sp-screen").evaluate(screen => ({
+      gridWidth: screen.clientWidth,
+      previewWidth: screen.offsetWidth,
+    }));
+    assert.equal(frame.gridWidth, frame.previewWidth, "the editor frame stays outside the display area");
   } finally { await context.close(); }
 }
 
