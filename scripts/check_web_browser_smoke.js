@@ -4255,9 +4255,10 @@ async function assertNativeProfileJourney(browser, testCase) {
   }
 }
 
-async function chooseOBSCard(page, label) {
+async function chooseOBSCard(page, label, section) {
   await page.getByRole("button", { name: "OBS Studio card type", exact: true }).click();
-  await page.getByRole("button", { name: label + " card type", exact: true }).click();
+  const picker = section ? page.getByRole("region", { name: section, exact: true }) : page;
+  await picker.getByRole("button", { name: label + " card type", exact: true }).click();
 }
 
 async function assertAppVolumeCard(browser) {
@@ -4518,7 +4519,7 @@ async function assertOBSSceneCard(browser) {
     await page.getByRole("button", { name: "Edit", exact: true }).click();
     assert.equal(await studioPicker.inputValue(), "obs.status.program", "existing Program cards reopen in Studio Mode");
     assert.deepEqual(await studioPicker.locator("option").allTextContents(),
-      ["Toggle Studio Mode", "Program scene", "Take Live", "Cycle transitions", "Select a transition"]);
+      ["Toggle Studio Mode", "Program scene", "Take Live"]);
     await page.keyboard.press("Escape");
     await page.locator(".sp-main .sp-empty-cell").first().click();
     const obsGroup = page.getByRole("button", { name: "OBS Studio card type", exact: true });
@@ -4531,7 +4532,7 @@ async function assertOBSSceneCard(browser) {
     const cardLabels = section => page.getByRole("region", { name: section, exact: true })
       .getByRole("button").evaluateAll(cards => cards.map(card => card.getAttribute("aria-label")));
     assert.deepEqual(await cardLabels("Card types"),
-      ["Audio Controls", "Break", "Output Control", "Replay Buffer", "Scene", "Studio Mode"]
+      ["Audio Controls", "Break", "Output Control", "Replay Buffer", "Scene", "Studio Mode", "Transitions"]
         .map(label => label + " card type"));
     assert.deepEqual(await cardLabels("Grouped pages"),
       ["Audio", "Scenes", "Studio Control", "Transitions"].map(label => label + " card type"));
@@ -4648,9 +4649,14 @@ async function assertOBSSceneCard(browser) {
     await replayTile.getByText("Ready", { exact: true }).waitFor();
     const replayReadyColor = await replayTile.evaluate(tile => tile.style.backgroundColor);
     await page.locator(".sp-settings-overlay.sp-visible .sp-settings-close").click();
-    await studioTile.click();
-    await page.getByRole("button", { name: "Edit", exact: true }).click();
-    await studioPicker.selectOption("obs.transition");
+    await studioTile.click({ button: "right" });
+    await page.locator(".sp-ctx-menu").getByText("Delete", { exact: true }).click();
+    await studioTile.waitFor({ state: "detached" });
+    await page.locator(".sp-main .sp-empty-cell").first().click();
+    await chooseOBSCard(page, "Transitions", "Card types");
+    const transitionType = page.locator("select[id$='obs-transition-type']");
+    assert.deepEqual(await transitionType.locator("option").allTextContents(), ["Cycle transitions", "Select a transition"]);
+    assert.equal(await transitionType.inputValue(), "obs.transition");
     await confirmation.waitFor({ state: "detached" });
     const transitionTitle = studioTile.locator(".sp-btn-label");
     const transitionDetail = studioTile.locator(".sp-obs-detail");
@@ -4675,7 +4681,7 @@ async function assertOBSSceneCard(browser) {
     await page.locator(".sp-settings-overlay.sp-visible .sp-settings-close").click();
     await studioTile.click();
     await page.getByRole("button", { name: "Edit", exact: true }).click();
-    await studioPicker.selectOption("obs.transition.select.");
+    await transitionType.selectOption("obs.transition.select.");
     const transitionPicker = page.getByLabel("OBS transition", { exact: true });
     await transitionPicker.getByRole("option", { name: "Fade", exact: true }).waitFor({ state: "attached" });
     assert.deepEqual(await transitionPicker.locator("option").allTextContents(), ["Select", "Fade", "Cut"]);
@@ -8062,7 +8068,7 @@ async function assertOBSStarterPage(browser, firstRun = false) {
     assert.notEqual(await colour(recordTile), idleColor);
     await closeSettings.click();
     await page.locator(".sp-main .sp-empty-cell").first().click();
-    await chooseOBSCard(page, "Transitions");
+    await chooseOBSCard(page, "Transitions", "Grouped pages");
     const fadeToggle = page.getByRole("checkbox", { name: "Fade", exact: true });
     const fadeRow = page.locator(".sp-light-tab-row").filter({ has: fadeToggle });
     await fadeRow.waitFor();

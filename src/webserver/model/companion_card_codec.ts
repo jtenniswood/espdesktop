@@ -43,6 +43,8 @@ export const OBS_STUDIO_OPTIONS = [
   [OBS_STUDIO_ID, "Toggle Studio Mode"],
   [OBS_PROGRAM_ID, "Program scene"],
   [OBS_TAKE_ID, "Take Live"],
+] as const;
+export const OBS_TRANSITION_OPTIONS = [
   [OBS_TRANSITION_ID, "Cycle transitions"],
   [OBS_TRANSITION_SELECT, "Select a transition"],
 ] as const;

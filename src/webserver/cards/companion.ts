@@ -2,7 +2,7 @@ import { obsSubpageCatalogue } from "../model/obs_live_subpage";
 import { targetedAudioCard } from "./companion_app_volume";
 import { childPageKey } from "../model/page_keys";
 import { renderCompanionStorageSelector } from "./companion_storage";
-import { COMPANION_FOLDER_PREFIX, COMPANION_OBS_PREFIX, OBS_BRB_ID, OBS_OUTPUT_OPTIONS, OBS_PROGRAM_ID, OBS_REPLAY_BUFFER_ID, OBS_REPLAY_ID, OBS_STUDIO_ID, OBS_STUDIO_OPTIONS, OBS_TAKE_ID, OBS_TRANSITION_ID, OBS_TRANSITION_SELECT, savedOBSTransition, savedOBSSceneTarget, decodeCompanionCard, encodeCompanionCard, companionMetricForEntity, obsConfirmableToggle, obsInputName, obsOutputCardEntity, obsSceneCardEntity } from "../model/companion_card_codec";
+import { COMPANION_FOLDER_PREFIX, COMPANION_OBS_PREFIX, OBS_BRB_ID, OBS_OUTPUT_OPTIONS, OBS_PROGRAM_ID, OBS_REPLAY_BUFFER_ID, OBS_REPLAY_ID, OBS_STUDIO_ID, OBS_STUDIO_OPTIONS, OBS_TAKE_ID, OBS_TRANSITION_ID, OBS_TRANSITION_OPTIONS, OBS_TRANSITION_SELECT, savedOBSTransition, savedOBSSceneTarget, decodeCompanionCard, encodeCompanionCard, companionMetricForEntity, obsConfirmableToggle, obsInputName, obsOutputCardEntity, obsSceneCardEntity } from "../model/companion_card_codec";
 import { configOptionEnabled, configOptionValue, setConfigOption, setConfigOptionValue, normalizedCardColorOptions, preserveCardColorOptions, withoutCardColorOptions } from "../model/config_primitives";
 import { createCompanionCatalogue, createCompanionCatalogueMonitor } from "../api/companion_catalogue";
 import type { CompanionAction } from "../api/companion_catalogue";
@@ -337,6 +337,7 @@ export function companionEntityForMode(mode: string): string {
     if (mode === "obs_brb") return OBS_BRB_ID;
     if (mode === "obs_take") return OBS_TAKE_ID;
     if (mode === "obs_studio") return OBS_STUDIO_ID;
+    if (mode === "obs_transition") return OBS_TRANSITION_ID;
     if (mode === "obs_replay") return OBS_REPLAY_ID;
     if (mode === "obs_replay_buffer") return OBS_REPLAY_BUFFER_ID;
     if (mode === "obs_output") return OBS_OUTPUT_OPTIONS[0][0];
@@ -614,15 +615,16 @@ export function registerCompanionCardTypes(
         panel.appendChild(section);
     }
 
-    function renderOBSProductionSettings(panel: HTMLElement, card: { entity: string; icon: string; options: string; label: string }, helpers: any, mode: "obs_status" | "obs_replay" | "obs_replay_buffer" | "obs_output" | "obs_brb" | "obs_studio"): void {
+    function renderOBSProductionSettings(panel: HTMLElement, card: { entity: string; icon: string; options: string; label: string }, helpers: any, mode: "obs_status" | "obs_replay" | "obs_replay_buffer" | "obs_output" | "obs_brb" | "obs_studio" | "obs_transition"): void {
         const studio = mode === "obs_studio" || card.entity === OBS_PROGRAM_ID;
         const replay = mode === "obs_replay" || mode === "obs_replay_buffer";
+        const transition = mode === "obs_transition";
         const directTransition = card.entity.startsWith(OBS_TRANSITION_SELECT);
         const replayOptions = [[OBS_REPLAY_ID, "Save Replay"], [OBS_REPLAY_BUFFER_ID, "Start / Stop Buffer"]];
-        if (studio || replay || mode === "obs_output") {
-            const { field, select } = helpers.selectField(studio ? "Studio Mode" : replay ? "Type" : "OBS output",
-                helpers.idPrefix + (studio ? "obs-studio" : replay ? "obs-replay-type" : "obs-output"),
-                studio ? OBS_STUDIO_OPTIONS : replay ? replayOptions : OBS_OUTPUT_OPTIONS,
+        if (studio || replay || transition || mode === "obs_output") {
+            const { field, select } = helpers.selectField(studio ? "Studio Mode" : mode === "obs_output" ? "OBS output" : "Type",
+                helpers.idPrefix + (studio ? "obs-studio" : transition ? "obs-transition-type" : replay ? "obs-replay-type" : "obs-output"),
+                studio ? OBS_STUDIO_OPTIONS : transition ? OBS_TRANSITION_OPTIONS : replay ? replayOptions : OBS_OUTPUT_OPTIONS,
                 directTransition ? OBS_TRANSITION_SELECT : card.entity, () => {
                     const previous = companionCardMode(card);
                     card.entity = select.value;
@@ -667,7 +669,7 @@ export function registerCompanionCardTypes(
                 cardUi.renderPreview();
             }).catch(() => { /* Keep the saved transition when OBS is offline. */ });
         }
-        if (mode !== "obs_output" && !directTransition) {
+        if (mode !== "obs_output" && !transition) {
             const note = document.createElement("p");
             note.className = "sp-setting-note";
             const descriptions = {
@@ -854,8 +856,8 @@ export function registerCompanionCardTypes(
                 renderOBSControlSettings(panel, card, helpers, initialMode === "obs_mic");
                 return;
             }
-            const productionMode = initialMode === "obs_take" || initialMode === "obs_transition" ? "obs_studio" : initialMode;
-            if ((productionMode === "obs_status" || productionMode === "obs_replay" || productionMode === "obs_replay_buffer" || productionMode === "obs_output" || productionMode === "obs_brb" || productionMode === "obs_studio") && panel) {
+            const productionMode = initialMode === "obs_take" ? "obs_studio" : initialMode;
+            if ((productionMode === "obs_status" || productionMode === "obs_replay" || productionMode === "obs_replay_buffer" || productionMode === "obs_output" || productionMode === "obs_brb" || productionMode === "obs_studio" || productionMode === "obs_transition") && panel) {
                 renderOBSProductionSettings(panel, card, helpers, productionMode);
                 return;
             }
@@ -2037,6 +2039,7 @@ export function registerCompanionCardTypes(
         ["companion_obs", "Scene", "obs"],
         ["companion_obs_mic", "Input Mute", "obs_mic"],
         ["companion_obs_studio", "Studio Mode", "obs_studio"],
+        ["companion_obs_transition", "Transitions", "obs_transition"],
         ["companion_obs_brb", "Break", "obs_brb"],
         ["companion_obs_replay", "Replay Buffer", "obs_replay"],
         ["companion_obs_output", "Output Control", "obs_output"],
