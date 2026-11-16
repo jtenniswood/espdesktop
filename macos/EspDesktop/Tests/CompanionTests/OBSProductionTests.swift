@@ -390,16 +390,22 @@ final class OBSProductionTests: XCTestCase {
     func testReplayShowsSuccessOnlyAfterOBSConfirmsAFile() async throws {
         let transport = OBSPilotTransport()
         let connection = try await open(transport)
+        func replayPresentation() -> OBSCardState? {
+            OBSConnection.controlCatalogue(connection.state).first { $0.id == "obs.replay" }?.state
+        }
         let inactiveResult = await connection.saveReplay()
         XCTAssertFalse(inactiveResult)
+        XCTAssertNil(replayPresentation())
         XCTAssertFalse(transport.requests.contains("SaveReplayBuffer"))
 
         transport.onEvent?("ReplayBufferStateChanged", ["outputActive": true])
         XCTAssertEqual(OBSConnection.productionActions(connection.state).last?.label, "Ready")
+        XCTAssertEqual(replayPresentation(), .replayReady)
         let accepted = await connection.saveReplay()
         XCTAssertTrue(accepted)
         XCTAssertEqual(connection.state?.replaySave, .saving)
         XCTAssertEqual(OBSConnection.productionActions(connection.state).last?.label, "Saving")
+        XCTAssertEqual(replayPresentation(), .replaySaving)
         let duplicate = await connection.saveReplay()
         XCTAssertFalse(duplicate)
         transport.onEvent?("ReplayBufferSaved", ["savedReplayPath": ""])
@@ -407,6 +413,7 @@ final class OBSProductionTests: XCTestCase {
         let confirmedAt = ContinuousClock.now
         transport.onEvent?("ReplayBufferSaved", ["savedReplayPath": "/test/replay.mkv"])
         XCTAssertEqual(OBSConnection.productionActions(connection.state).last?.label, "Saved")
+        XCTAssertEqual(replayPresentation(), .replaySaved)
         XCTAssertEqual(transport.requests.filter { $0 == "SaveReplayBuffer" }.count, 1)
         try await Task.sleep(for: .seconds(4))
         XCTAssertEqual(connection.state?.replaySave, .saved)
@@ -415,6 +422,7 @@ final class OBSProductionTests: XCTestCase {
         }
         XCTAssertGreaterThanOrEqual(ContinuousClock.now - confirmedAt, .seconds(5))
         XCTAssertEqual(OBSConnection.productionActions(connection.state).last?.label, "Ready")
+        XCTAssertEqual(replayPresentation(), .replayReady)
     }
 
     @MainActor

@@ -368,6 +368,9 @@ int main() {
     assert(companion_obs_needs_confirmation("obs.output.stream", "off", "Stop Streaming"));
     assert(companion_obs_needs_confirmation("obs.output.stream", "on", "Unknown direction"));
     assert(!companion_obs_needs_confirmation("obs.output.record", "none", "Start Recording"));
+    assert(!companion_obs_needs_confirmation("obs.replay.buffer", "", "Legacy label", OBSCardState::toggle_off));
+    assert(companion_obs_needs_confirmation("obs.replay.buffer", "", "Legacy label", OBSCardState::toggle_on));
+    assert(companion_obs_needs_confirmation("obs.output.record", "off", "Legacy label", OBSCardState::output_paused));
     for (const auto *toggle : {"obs.studio", "obs.replay.buffer"}) {
       assert(companion_obs_confirmation_supported(toggle));
       assert(!companion_obs_needs_confirmation(toggle, "", "Off"));

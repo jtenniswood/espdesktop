@@ -150,7 +150,7 @@ inline bool invoke_confirmable_obs_action(const ParsedCfg &card, lv_obj_t *butto
   const auto shown = companion_rendered_obs_action(button);
   if (shown.id.empty() || !companion_action_available(shown.id)) return false;
   const auto mode = cfg_option_value(card.options, "obs_confirm");
-  if (!companion_obs_needs_confirmation(card.entity, mode, shown.label))
+  if (!companion_obs_needs_confirmation(card.entity, mode, shown.label, shown.obs_state))
     return invoke_companion_action(shown.id, request_id);
 
   using Kind = ControlModalKind;
@@ -163,10 +163,11 @@ inline bool invoke_confirmable_obs_action(const ParsedCfg &card, lv_obj_t *butto
   const auto *font = lv_obj_get_style_text_font(button, LV_PART_MAIN);
   auto message = cfg_option_value(card.options, "confirm_message");
   if (message.empty()) {
+    const bool turning_off = shown.obs_state == OBSCardState::unknown ? shown.label == "On" : shown.obs_state == OBSCardState::toggle_on;
     if (card.entity == "obs.studio") {
-      message = espdesktop_i18n_key(shown.label == "On" ? "turn_off_studio_mode" : "turn_on_studio_mode");
+      message = espdesktop_i18n_key(turning_off ? "turn_off_studio_mode" : "turn_on_studio_mode");
     } else if (card.entity == "obs.replay.buffer") {
-      message = espdesktop_i18n_key(shown.label == "On" ? "stop_replay_buffer_prompt" : "start_replay_buffer_prompt");
+      message = espdesktop_i18n_key(turning_off ? "stop_replay_buffer_prompt" : "start_replay_buffer_prompt");
     } else {
       message = shown.label + "?";
     }

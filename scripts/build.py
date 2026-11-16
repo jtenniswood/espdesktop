@@ -397,6 +397,16 @@ def load_companion_capabilities_data():
         if message.get("direction") not in allowed_directions or message.get("authorization") not in allowed_authorization:
             raise BuildError(f"Invalid Companion message policy for {message.get('id')}")
 
+    card_states = data["obsCardStates"]
+    state_ids = [state["id"] for state in card_states]
+    if (not state_ids or len(state_ids) != len(set(state_ids)) or
+            any(not re.fullmatch(r"[a-z]+(?:_[a-z]+)+", code) or len(code) > 32 for code in state_ids) or
+            any(not isinstance(state["detail"], str) or type(state["lit"]) is not bool or
+                not 20 <= state["since"] <= data["version"] for state in card_states)):
+        raise BuildError("Invalid OBS card states")
+    catalogue = next(message for message in messages if message["id"] == "catalogue.page")
+    catalogue["fields"]["items"]["items"]["fields"]["obsState"]["enum"] = state_ids
+
     security = data.get("security")
     if not isinstance(security, dict) or security.get("pairingAuthorization") not in {"physical_presence", "device_web_access"}:
         raise BuildError("Unsupported Companion pairing authorization")
@@ -829,6 +839,7 @@ def gen_companion_capabilities_ts(data):
         f"export const OBS_CONFIRMATION_CONTROLS = {companion_ts_literal(data['obsConfirmationControls'])} as const;\n"
         f"export const OBS_SCENE_PAGE_CONTROLS = {companion_ts_literal(data['obsScenePageControls'])} as const;\n"
         f"export const OBS_STUDIO_CONTROL_PAGE = {companion_ts_literal(data['obsStudioControlPage'])} as const;\n"
+        f"export const OBS_CARD_STATES: Readonly<Record<string, {{ readonly detail: string; readonly lit: boolean }}>> = {companion_ts_literal({state['id']: {key: state[key] for key in ('detail', 'lit')} for state in data['obsCardStates']})};\n"
         f"export const COMPANION_PROTOCOL_MESSAGES: readonly CompanionProtocolMessage[] = {companion_ts_literal([{key: item[key] for key in ('id', 'direction', 'authorization')} for item in protocol['messages']])};\n"
         f"export const COMPANION_SYSTEM_METRICS: readonly CompanionSystemMetric[] = {companion_ts_literal([{key: item[key] for key in ('mode', 'id', 'freeId', 'label', 'unit') if key in item} for item in data['systemMetrics']])};\n"
     )
@@ -891,6 +902,25 @@ def gen_companion_capabilities_h(data):
         lines.append(f"  {{{fields}}},\n")
     lines.extend([
         "};\n\n",
+        "enum class OBSCardState : uint8_t { unknown,\n",
+        *[f"  {state['id']},\n" for state in data["obsCardStates"]],
+        "};\n",
+        "struct OBSCardPresentation { const char *id; const char *detail; bool lit; };\n",
+        "inline constexpr OBSCardPresentation OBS_CARD_PRESENTATION[] = {\n",
+        '  {"", "", false},\n',
+        *[f"  {{{json.dumps(state['id'])}, {json.dumps(state['detail'])}, {str(state['lit']).lower()}}},\n"
+          for state in data["obsCardStates"]],
+        "};\n",
+        "inline constexpr const OBSCardPresentation &obs_card_presentation(OBSCardState state) {\n",
+        "  return OBS_CARD_PRESENTATION[static_cast<size_t>(state)];\n",
+        "}\n",
+        "inline OBSCardState obs_card_state(const std::string &id) {\n",
+        "  for (size_t i = 1; i < sizeof(OBS_CARD_PRESENTATION) / sizeof(*OBS_CARD_PRESENTATION); ++i)\n",
+        "    if (id == OBS_CARD_PRESENTATION[i].id) return static_cast<OBSCardState>(i);\n",
+        "  return OBSCardState::unknown;\n",
+        "}\n\n",
+    ])
+    lines.extend([
         "struct CompanionMetricCapability { const char *id; const char *label; const char *label_key; const char *unit; };\n",
         "inline constexpr CompanionMetricCapability COMPANION_METRIC_CAPABILITIES[] = {\n",
     ])
@@ -934,8 +964,22 @@ def gen_companion_capabilities_swift(data):
     lines.extend(f"        {json.dumps(item['id'])}: {json.dumps(item['label'])},\n" for item in data["cardModes"])
     lines.extend([
         "    ]\n",
-        "}\n",
+        "}\n\n",
+        "enum OBSCardState: String {\n",
     ])
+    def swift_case(state):
+        first, *parts = state["id"].split("_")
+        return first + "".join(part.title() for part in parts)
+    lines.extend(f"    case {swift_case(state)} = {json.dumps(state['id'])}\n" for state in data["obsCardStates"])
+    lines.extend(["\n    var detail: String {\n", "        switch self {\n"])
+    lines.extend(f"        case .{swift_case(state)}: return {json.dumps(state['detail'])}\n"
+                 for state in data["obsCardStates"] if state["detail"])
+    lines.extend(['        default: return ""\n', "        }\n", "    }\n"])
+    lines.extend(["\n    var minimumCapability: UInt32 {\n", "        switch self {\n"])
+    for version in sorted({state["since"] for state in data["obsCardStates"]}):
+        cases = ", ".join("." + swift_case(state) for state in data["obsCardStates"] if state["since"] == version)
+        lines.append(f"        case {cases}: return {version}\n")
+    lines.extend(["        }\n", "    }\n", "}\n"])
     return "".join(lines)
 
 

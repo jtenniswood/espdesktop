@@ -710,9 +710,10 @@ inline bool companion_obs_record_stopping(const CompanionRuntimeSnapshot &snapsh
 
 inline std::string_view companion_obs_output_status(const CompanionRuntimeSnapshot &snapshot,
                                                     const std::string &id) {
-  if (id == "obs.output.record" && companion_obs_record_stopping(snapshot)) return "Stopping";
   const auto *status = companion_published_action(snapshot,
     id == "obs.output.record" ? "obs.status.record" : "obs.status.stream");
+  if (status && status->obs_state != OBSCardState::unknown) return obs_card_presentation(status->obs_state).detail;
+  if (id == "obs.output.record" && companion_obs_record_stopping(snapshot)) return "Stopping";
   if (!status) return "Unavailable";
   const auto separator = status->label.find(" · ");
   return separator == std::string::npos ? "Unavailable"
@@ -721,6 +722,8 @@ inline std::string_view companion_obs_output_status(const CompanionRuntimeSnapsh
 
 inline bool companion_obs_output_active(const CompanionRuntimeSnapshot &snapshot, const std::string &id) {
   const bool record = id == "obs.output.record";
+  const auto *published = companion_published_action(snapshot, record ? "obs.status.record" : "obs.status.stream");
+  if (published && published->obs_state != OBSCardState::unknown) return obs_card_presentation(published->obs_state).lit;
   if (companion_published_action(snapshot, record ? "obs.record.active" : "obs.stream.active")) return true;
   const auto status = companion_obs_output_status(snapshot, id);
   return record ? status == "Active" || status == "Paused" || status == "Stopping"
@@ -875,8 +878,12 @@ inline void companion_apply_card_focus(lv_obj_t *button, const std::string &acti
         companion_obs_source_target(action_id)) {
       const auto owned = snapshot ? CompanionRuntimeSnapshot{} : companion_runtime_snapshot();
       const auto &current = snapshot ? *snapshot : owned;
+      const auto *published = companion_published_action(current, action_id);
       if (companion_obs_output_card(action_id)) {
         active = companion_obs_output_active(current, action_id);
+      } else if (published && published->obs_state != OBSCardState::unknown) {
+        on_program = published->obs_state == OBSCardState::scene_program;
+        active = obs_card_presentation(published->obs_state).lit;
       } else if (action_id == "obs.studio" || action_id == "obs.replay.buffer") {
         const auto *mode = companion_published_action(current, action_id);
         active = mode && mode->label == "On";
@@ -889,17 +896,10 @@ inline void companion_apply_card_focus(lv_obj_t *button, const std::string &acti
         const auto *selected = companion_published_action(current, "obs.transition.selected");
         active = selected && selected->label == action_id;
       } else {
-        const auto *action = companion_published_action(current, action_id);
-        if (action && !action->obs_state.empty()) {
-          on_program = action->obs_state == "scene_program";
-          active = action->obs_state == "scene_live" || action->obs_state == "scene_preview" ||
-            action->obs_state == "scene_program_preview";
-        } else {
-          const std::string scene_id = action_id.substr(action_id.rfind('.') + 1);
-          on_program = companion_published_action(current, "obs.program." + scene_id) != nullptr;
-          active = companion_action_available(current, action_id) &&
-            companion_published_action(current, "obs.selected." + scene_id);
-        }
+        const std::string scene_id = action_id.substr(action_id.rfind('.') + 1);
+        on_program = companion_published_action(current, "obs.program." + scene_id) != nullptr;
+        active = companion_action_available(current, action_id) &&
+          companion_published_action(current, "obs.selected." + scene_id);
       }
     } else {
       active = snapshot ? companion_action_focused(*snapshot, focus_id, true)
@@ -1035,8 +1035,9 @@ inline void companion_render_mute(const CompanionMuteRef &ref, bool muted, bool 
 inline void companion_render_obs_mute(const CompanionCardRef &ref, const CompanionRuntimeSnapshot &snapshot) {
   if (!ref.obs_mute_icon_label) return;
   const auto *action = companion_published_action(snapshot, ref.action_id);
-  const bool muted = action && action->label.rfind("Muted · ", 0) == 0;
-  const bool live = action && action->label.rfind("Unmuted · ", 0) == 0;
+  const bool typed = action && action->obs_state != OBSCardState::unknown;
+  const bool muted = action && (typed ? action->obs_state == OBSCardState::audio_muted : action->label.rfind("Muted · ", 0) == 0);
+  const bool live = action && (typed ? action->obs_state == OBSCardState::audio_live : action->label.rfind("Unmuted · ", 0) == 0);
   companion_render_mute({ref.button, ref.action_id, ref.obs_mute_icon_label, ref.obs_mute_icon_off,
                          ref.obs_mute_icon_on}, muted, live);
 }
@@ -1178,7 +1179,8 @@ inline const char *companion_obs_status_icon(const std::string &id, const std::s
   return status == "Active" ? "Record" : "Stop Circle";
 }
 
-inline void companion_render_obs_detail(CompanionCardRef &ref, const std::string &label) {
+inline void companion_render_obs_detail(CompanionCardRef &ref, const std::string &label,
+                                        const CompanionRuntimeSnapshot &snapshot) {
   if (!ref.obs_detail || !lv_obj_is_valid(ref.obs_detail) || !ref.text_label) return;
   const std::string separator = " · ";
   const auto split = label.find(separator);
@@ -1214,13 +1216,13 @@ inline void companion_render_obs_detail(CompanionCardRef &ref, const std::string
     else if (ref.rendered_obs_action.id.rfind("obs.brb.", 0) == 0 || label == "Starting BRB…")
       detail = espdesktop_i18n("Start");
   }
-  if (ref.action_id == "obs.take") {
-    const auto &state = ref.rendered_obs_action.obs_state;
-    if (state == "take_ready") detail = ref.rendered_obs_action.obs_detail;
-    else if (state == "take_studio_off") detail = espdesktop_i18n("Enable Studio Mode");
-    else if (state == "take_transitioning") detail = espdesktop_i18n("Transitioning");
-    else if (state == "take_no_preview") detail = espdesktop_i18n("Choose a preview");
-    else if (state == "take_same_scene") detail = espdesktop_i18n("Already on Program");
+  if (brb || studio || ref.action_id == "obs.replay" || ref.action_id == "obs.replay.buffer" || ref.action_id == "obs.take") {
+    const auto *action = companion_published_action(snapshot, ref.action_id);
+    if (action && action->obs_state != OBSCardState::unknown) {
+      const auto *text = obs_card_presentation(action->obs_state).detail;
+      if (*text) detail = espdesktop_i18n(text);
+      else detail = action->obs_detail;
+    }
   }
   if (ref.obs_status_icon) {
     const auto *icon = find_icon(companion_obs_status_icon(ref.action_id, detail, split != std::string::npos));
@@ -1260,7 +1262,7 @@ inline void companion_setup_obs_detail(lv_obj_t *button, const lv_font_t *font, 
     const auto live = companion_default_action_label(ref.action_id, "", &snapshot);
     const std::string label = companion_obs_scene_card(ref.action_id) ? lv_label_get_text(ref.text_label)
       : companion_obs_control_label(ref.action_id, "", live, &snapshot);
-    companion_render_obs_detail(ref, label);
+    companion_render_obs_detail(ref, label, snapshot);
     companion_update_obs_detail_contrast(ref, show_output_state);
     return;
   }
@@ -1426,7 +1428,7 @@ inline void companion_refresh_cards_if_requested() {
       const std::string live_label = companion_default_action_label_with_fallback(
         it->action_id, it->url_config, it->resolved_default_label, &snapshot);
       const std::string label = companion_obs_control_label(it->action_id, it->obs_label_alias, live_label, &snapshot);
-      if (it->obs_detail) companion_render_obs_detail(*it, label);
+      if (it->obs_detail) companion_render_obs_detail(*it, label, snapshot);
       else if (normalize_display_text(label) != lv_label_get_text(it->text_label))
         lv_label_set_display_text(it->text_label, label.c_str());
     }
@@ -1697,7 +1699,8 @@ class CompanionActionsHandler : public esphome::web_server_idf::AsyncWebHandler 
         first = false;
         json += "{\"id\":\"" + companion_json_escape(action.id) +
           "\",\"label\":\"" + companion_json_escape(action.label) + "\"";
-        if (!action.obs_state.empty()) json += ",\"obsState\":\"" + companion_json_escape(action.obs_state) + "\"";
+        if (action.obs_state != OBSCardState::unknown)
+          json += std::string(",\"obsState\":\"") + obs_card_presentation(action.obs_state).id + "\"";
         if (!action.obs_detail.empty()) json += ",\"obsDetail\":\"" + companion_json_escape(action.obs_detail) + "\"";
 #ifdef USE_COMPANION
         // The browser already polls this catalogue. Include cache freshness so

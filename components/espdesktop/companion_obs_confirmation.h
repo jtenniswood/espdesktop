@@ -24,10 +24,14 @@ inline bool companion_obs_confirmation_supported(std::string_view id) {
 }
 
 inline bool companion_obs_needs_confirmation(std::string_view id, std::string_view mode,
-                                             std::string_view label) {
+                                             std::string_view label, OBSCardState state = OBSCardState::unknown) {
   const auto *control = companion_obs_confirmation_control(id);
   if (!control || mode == "none") return false;
   if (mode != "on" && mode != "off" && mode != "both") mode = control->default_when;
+  if (state != OBSCardState::unknown) {
+    const bool stopping = obs_card_presentation(state).lit;
+    return mode == "both" || (mode == "off" ? stopping : !stopping);
+  }
   if (mode == "on") return control->toggle ? label != "On" : label.rfind("Stop ", 0) != 0;
   if (mode == "off") return control->toggle ? label != "Off" : label.rfind("Start ", 0) != 0;
   return true;

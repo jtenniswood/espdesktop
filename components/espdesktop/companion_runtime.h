@@ -18,6 +18,8 @@
 #include <utility>
 #include <vector>
 
+#include "companion_capabilities_generated.h"
+
 // Folder focus belongs to Finder; switching directories must keep its subpage open.
 inline std::string companion_focus_application_id(const std::string &action_id) {
   if (action_id.rfind("urlcard.", 0) == 0) return "";
@@ -33,7 +35,7 @@ inline bool companion_reported_focus_matches(const std::string &requested,
 struct CompanionAction {
   std::string id;
   std::string label;
-  std::string obs_state{};
+  OBSCardState obs_state{OBSCardState::unknown};
   std::string obs_detail{};
   bool operator==(const CompanionAction &other) const {
     return id == other.id && label == other.label && obs_state == other.obs_state && obs_detail == other.obs_detail;

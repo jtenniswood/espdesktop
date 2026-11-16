@@ -608,7 +608,7 @@ inline std::optional<Message> decode(JsonObjectConst root, Direction direction, 
           if (!(string_valid(item.as<JsonObjectConst>()["label"], 1, 96))) return std::nullopt;
         }
         if (!item.as<JsonObjectConst>()["obsState"].isUnbound()) {
-          if (!(string_valid(item.as<JsonObjectConst>()["obsState"], 1, 32) && (item.as<JsonObjectConst>()["obsState"].as<std::string>() == "scene_idle" || item.as<JsonObjectConst>()["obsState"].as<std::string>() == "scene_live" || item.as<JsonObjectConst>()["obsState"].as<std::string>() == "scene_program" || item.as<JsonObjectConst>()["obsState"].as<std::string>() == "scene_preview" || item.as<JsonObjectConst>()["obsState"].as<std::string>() == "scene_program_preview" || item.as<JsonObjectConst>()["obsState"].as<std::string>() == "take_ready" || item.as<JsonObjectConst>()["obsState"].as<std::string>() == "take_studio_off" || item.as<JsonObjectConst>()["obsState"].as<std::string>() == "take_transitioning" || item.as<JsonObjectConst>()["obsState"].as<std::string>() == "take_no_preview" || item.as<JsonObjectConst>()["obsState"].as<std::string>() == "take_same_scene"))) return std::nullopt;
+          if (!(string_valid(item.as<JsonObjectConst>()["obsState"], 1, 32) && (std::string_view(item.as<JsonObjectConst>()["obsState"].as<const char *>()) == "scene_idle" || std::string_view(item.as<JsonObjectConst>()["obsState"].as<const char *>()) == "scene_live" || std::string_view(item.as<JsonObjectConst>()["obsState"].as<const char *>()) == "scene_program" || std::string_view(item.as<JsonObjectConst>()["obsState"].as<const char *>()) == "scene_preview" || std::string_view(item.as<JsonObjectConst>()["obsState"].as<const char *>()) == "scene_program_preview" || std::string_view(item.as<JsonObjectConst>()["obsState"].as<const char *>()) == "take_ready" || std::string_view(item.as<JsonObjectConst>()["obsState"].as<const char *>()) == "take_studio_off" || std::string_view(item.as<JsonObjectConst>()["obsState"].as<const char *>()) == "take_transitioning" || std::string_view(item.as<JsonObjectConst>()["obsState"].as<const char *>()) == "take_no_preview" || std::string_view(item.as<JsonObjectConst>()["obsState"].as<const char *>()) == "take_same_scene" || std::string_view(item.as<JsonObjectConst>()["obsState"].as<const char *>()) == "toggle_on" || std::string_view(item.as<JsonObjectConst>()["obsState"].as<const char *>()) == "toggle_off" || std::string_view(item.as<JsonObjectConst>()["obsState"].as<const char *>()) == "replay_ready" || std::string_view(item.as<JsonObjectConst>()["obsState"].as<const char *>()) == "replay_saving" || std::string_view(item.as<JsonObjectConst>()["obsState"].as<const char *>()) == "replay_saved" || std::string_view(item.as<JsonObjectConst>()["obsState"].as<const char *>()) == "replay_unconfirmed" || std::string_view(item.as<JsonObjectConst>()["obsState"].as<const char *>()) == "output_idle" || std::string_view(item.as<JsonObjectConst>()["obsState"].as<const char *>()) == "output_active" || std::string_view(item.as<JsonObjectConst>()["obsState"].as<const char *>()) == "output_live" || std::string_view(item.as<JsonObjectConst>()["obsState"].as<const char *>()) == "output_paused" || std::string_view(item.as<JsonObjectConst>()["obsState"].as<const char *>()) == "output_stopping" || std::string_view(item.as<JsonObjectConst>()["obsState"].as<const char *>()) == "output_reconnecting" || std::string_view(item.as<JsonObjectConst>()["obsState"].as<const char *>()) == "output_changing" || std::string_view(item.as<JsonObjectConst>()["obsState"].as<const char *>()) == "output_changing_live" || std::string_view(item.as<JsonObjectConst>()["obsState"].as<const char *>()) == "audio_muted" || std::string_view(item.as<JsonObjectConst>()["obsState"].as<const char *>()) == "audio_live" || std::string_view(item.as<JsonObjectConst>()["obsState"].as<const char *>()) == "transition_selected" || std::string_view(item.as<JsonObjectConst>()["obsState"].as<const char *>()) == "transition_idle" || std::string_view(item.as<JsonObjectConst>()["obsState"].as<const char *>()) == "source_visible" || std::string_view(item.as<JsonObjectConst>()["obsState"].as<const char *>()) == "source_hidden" || std::string_view(item.as<JsonObjectConst>()["obsState"].as<const char *>()) == "break_start" || std::string_view(item.as<JsonObjectConst>()["obsState"].as<const char *>()) == "break_resume" || std::string_view(item.as<JsonObjectConst>()["obsState"].as<const char *>()) == "break_transitioning" || std::string_view(item.as<JsonObjectConst>()["obsState"].as<const char *>()) == "break_already" || std::string_view(item.as<JsonObjectConst>()["obsState"].as<const char *>()) == "break_check" || std::string_view(item.as<JsonObjectConst>()["obsState"].as<const char *>()) == "break_unavailable"))) return std::nullopt;
         }
         if (!item.as<JsonObjectConst>()["obsDetail"].isUnbound()) {
           if (!(string_valid(item.as<JsonObjectConst>()["obsDetail"], 1, 96))) return std::nullopt;
@@ -631,19 +631,19 @@ inline std::optional<Message> decode(JsonObjectConst root, Direction direction, 
       if (!(string_valid(root["requestId"], 1, 64))) return std::nullopt;
     }
     {
-      if (!(string_valid(root["kind"], 1, 6) && (root["kind"].as<std::string>() == "action" || root["kind"].as<std::string>() == "url"))) return std::nullopt;
+      if (!(string_valid(root["kind"], 1, 6) && (std::string_view(root["kind"].as<const char *>()) == "action" || std::string_view(root["kind"].as<const char *>()) == "url"))) return std::nullopt;
     }
     if (!root["actionId"].isUnbound()) {
       if (!(string_valid(root["actionId"], 1, 96))) return std::nullopt;
     }
     if (!root["folderOpenBehavior"].isUnbound()) {
-      if (!(string_valid(root["folderOpenBehavior"], 10, 11) && (root["folderOpenBehavior"].as<std::string>() == "new_window" || root["folderOpenBehavior"].as<std::string>() == "same_window"))) return std::nullopt;
+      if (!(string_valid(root["folderOpenBehavior"], 10, 11) && (std::string_view(root["folderOpenBehavior"].as<const char *>()) == "new_window" || std::string_view(root["folderOpenBehavior"].as<const char *>()) == "same_window"))) return std::nullopt;
     }
     if (!root["appId"].isUnbound()) {
       if (!(string_valid(root["appId"], 1, 96))) return std::nullopt;
     }
     if (!root["urlOpenBehavior"].isUnbound()) {
-      if (!(string_valid(root["urlOpenBehavior"], 7, 10) && (root["urlOpenBehavior"].as<std::string>() == "new_tab" || root["urlOpenBehavior"].as<std::string>() == "new_window"))) return std::nullopt;
+      if (!(string_valid(root["urlOpenBehavior"], 7, 10) && (std::string_view(root["urlOpenBehavior"].as<const char *>()) == "new_tab" || std::string_view(root["urlOpenBehavior"].as<const char *>()) == "new_window"))) return std::nullopt;
     }
     if (!root["encodedUrl"].isUnbound()) {
       if (!(string_valid(root["encodedUrl"], 1, 128))) return std::nullopt;
@@ -671,7 +671,7 @@ inline std::optional<Message> decode(JsonObjectConst root, Direction direction, 
       if (!(string_valid(root["requestId"], 1, 64))) return std::nullopt;
     }
     {
-      if (!(string_valid(root["status"], 1, 11) && (root["status"].as<std::string>() == "activated" || root["status"].as<std::string>() == "performed" || root["status"].as<std::string>() == "opened" || root["status"].as<std::string>() == "not_allowed" || root["status"].as<std::string>() == "not_found" || root["status"].as<std::string>() == "failed"))) return std::nullopt;
+      if (!(string_valid(root["status"], 1, 11) && (std::string_view(root["status"].as<const char *>()) == "activated" || std::string_view(root["status"].as<const char *>()) == "performed" || std::string_view(root["status"].as<const char *>()) == "opened" || std::string_view(root["status"].as<const char *>()) == "not_allowed" || std::string_view(root["status"].as<const char *>()) == "not_found" || std::string_view(root["status"].as<const char *>()) == "failed"))) return std::nullopt;
     }
     ActionResult result;
     result.requestId = root["requestId"].as<std::string>();
@@ -778,7 +778,7 @@ inline std::optional<Message> decode(JsonObjectConst root, Direction direction, 
       if (!(string_valid(root["album"], 0, 256))) return std::nullopt;
     }
     {
-      if (!(string_valid(root["state"], 1, 11) && (root["state"].as<std::string>() == "playing" || root["state"].as<std::string>() == "paused" || root["state"].as<std::string>() == "stopped" || root["state"].as<std::string>() == "unavailable"))) return std::nullopt;
+      if (!(string_valid(root["state"], 1, 11) && (std::string_view(root["state"].as<const char *>()) == "playing" || std::string_view(root["state"].as<const char *>()) == "paused" || std::string_view(root["state"].as<const char *>()) == "stopped" || std::string_view(root["state"].as<const char *>()) == "unavailable"))) return std::nullopt;
     }
     {
       if (!(number_valid(root["durationMs"], 0, 86400000, false))) return std::nullopt;
@@ -905,7 +905,7 @@ inline std::optional<Message> decode(JsonObjectConst root, Direction direction, 
       if (!(string_valid(root["sha256"], 1, 64) && hex_valid(root["sha256"]))) return std::nullopt;
     }
     {
-      if (!(string_valid(root["mimeType"], 1, 10) && (root["mimeType"].as<std::string>() == "image/jpeg"))) return std::nullopt;
+      if (!(string_valid(root["mimeType"], 1, 10) && (std::string_view(root["mimeType"].as<const char *>()) == "image/jpeg"))) return std::nullopt;
     }
     ArtworkBegin result;
     result.generation = root["generation"].as<uint32_t>();
@@ -987,7 +987,7 @@ inline std::optional<Message> decode(JsonObjectConst root, Direction direction, 
       if (!(string_valid(root["sha256"], 64, 64) && hex_valid(root["sha256"]))) return std::nullopt;
     }
     {
-      if (!(string_valid(root["format"], 8, 8) && (root["format"].as<std::string>() == "rgb565a8"))) return std::nullopt;
+      if (!(string_valid(root["format"], 8, 8) && (std::string_view(root["format"].as<const char *>()) == "rgb565a8"))) return std::nullopt;
     }
     AppIconBegin result;
     result.appId = root["appId"].as<std::string>();
@@ -1092,7 +1092,7 @@ inline std::optional<Message> decode(JsonObjectConst root, Direction direction, 
       for (JsonVariantConst item : root["items"].as<JsonArrayConst>()) {
         if (!(item.is<JsonObjectConst>())) return std::nullopt;
         {
-          if (!(string_valid(item.as<JsonObjectConst>()["kind"], 5, 11) && (item.as<JsonObjectConst>()["kind"].as<std::string>() == "application" || item.as<JsonObjectConst>()["kind"].as<std::string>() == "webapp"))) return std::nullopt;
+          if (!(string_valid(item.as<JsonObjectConst>()["kind"], 5, 11) && (std::string_view(item.as<JsonObjectConst>()["kind"].as<const char *>()) == "application" || std::string_view(item.as<JsonObjectConst>()["kind"].as<const char *>()) == "webapp"))) return std::nullopt;
         }
         {
           if (!(string_valid(item.as<JsonObjectConst>()["json"], 2, 12000))) return std::nullopt;

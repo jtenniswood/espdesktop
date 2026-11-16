@@ -18,6 +18,7 @@ import {
 } from "../generated/card_contract";
 import {
     COMPANION_SYSTEM_METRICS,
+    OBS_CARD_STATES,
 } from "../generated/companion_capabilities";
 import {
     companionCardDefaultIcon,
@@ -486,8 +487,11 @@ export function registerCompanionCardTypes(
     const obsCardStates = new Map<string, CompanionAction>();
     const obsPresentationKey = () => JSON.stringify([...obsCardStates].map(([id, action]) =>
         [id, action.obsState, action.obsDetail]));
-    const isOBSInputMuted = (inputId: string) =>
-        obsControlLabels.get("obs.mute." + inputId)?.startsWith("Muted · ") === true;
+    const isOBSInputMuted = (inputId: string) => {
+        const id = "obs.mute." + inputId;
+        const state = obsCardStates.get(id)?.obsState;
+        return state ? state === "audio_muted" : obsControlLabels.get(id)?.startsWith("Muted · ") === true;
+    };
 
     function rememberOBSControls(actions: readonly CompanionAction[]): readonly CompanionAction[] {
         const targets = actions.filter(action => /^obs\.mute\.[a-f0-9-]{36}$/.test(action.id));
@@ -496,15 +500,20 @@ export function registerCompanionCardTypes(
         for (const target of targets) obsControlLabels.set(target.id, target.label);
         for (const action of actions) {
             const scene = savedOBSSceneTarget(action.id);
+            if (action.obsState && Object.hasOwn(OBS_CARD_STATES, action.obsState)) {
+                const id = scene || savedOBSTransition(action.id) ||
+                    action.id.replace(/\.[a-f0-9-]{36}$/, match =>
+                        /^(obs\.take|obs\.studio|obs\.brb|obs\.replay\.buffer|obs\.output\.|obs\.source\.)/.test(action.id)
+                            ? "" : match);
+                obsCardStates.set(id, action);
+            }
             if (scene) {
                 targets.push({ ...action, id: scene });
                 obsControlLabels.set(scene, action.label);
-                if (action.obsState) obsCardStates.set(scene, action);
                 continue;
             }
             if (action.id === OBS_TAKE_ID || /^obs\.take\.[a-f0-9-]{36}$/.test(action.id)) {
                 obsControlLabels.set(OBS_TAKE_ID, action.label);
-                if (action.obsState) obsCardStates.set(OBS_TAKE_ID, action);
             } else if (action.id === OBS_STUDIO_ID || action.id.startsWith(OBS_STUDIO_ID + ".")) {
                 obsControlLabels.set(OBS_STUDIO_ID, action.label);
             } else if (action.id === "obs.transition.selected") {
@@ -1754,21 +1763,22 @@ export function registerCompanionCardTypes(
                 const currentLabel = obsControlLabels.get(entity);
                 const output = mode === "obs_output";
                 const record = entity === "obs.output.record";
-                const outputStatus = output ? (record && currentLabel === "Stopping" ? "Stopping"
-                    : obsControlLabels.get(record ? "obs.status.record" : "obs.status.stream")?.split(" · ")[1] || "Unavailable") : "";
-                const outputOn = output && (record
+                const outputKey = record ? "obs.status.record" : "obs.status.stream";
+                const presentation = obsCardStates.get(output ? outputKey : entity);
+                const stateId = presentation?.obsState;
+                const cardState = stateId && OBS_CARD_STATES[stateId];
+                const outputStatus = output ? (cardState ? cardState.detail : record && currentLabel === "Stopping" ? "Stopping"
+                    : obsControlLabels.get(outputKey)?.split(" · ")[1] || "Unavailable") : "";
+                const outputOn = output && (cardState ? cardState.lit : record
                     ? obsControlLabels.has("obs.record.active") || ["Active", "Paused", "Stopping"].includes(outputStatus)
                     : obsControlLabels.has("obs.stream.active") || ["Live", "Reconnecting"].includes(outputStatus));
                 const source = entity.startsWith("obs.source.");
                 const scene = mode === "obs" && !source;
                 const directTransition = entity.startsWith(OBS_TRANSITION_SELECT);
                 const sceneId = card.entity.slice(-36);
-                const presentation = obsCardStates.get(entity);
-                const sceneState = presentation?.obsState;
-                const onProgram = scene && (sceneState ? sceneState === "scene_program"
+                const onProgram = scene && (cardState ? stateId === "scene_program"
                     : sceneId === obsControlLabels.get("obs.program"));
-                const selectedScene = scene && (sceneState ? sceneState === "scene_live" || sceneState === "scene_preview" ||
-                    sceneState === "scene_program_preview" : !!currentLabel && sceneId === obsControlLabels.get("obs.selected"));
+                const selectedScene = scene && !!currentLabel && sceneId === obsControlLabels.get("obs.selected");
                 const sensor = mode === "obs_status";
                 const toggle = mode === "obs_studio" || mode === "obs_replay_buffer";
                 const replay = mode === "obs_replay";
@@ -1781,7 +1791,7 @@ export function registerCompanionCardTypes(
                     : !record ? (outputOn ? "Broadcast" : "Broadcast Off")
                     : outputStatus === "Paused" ? "Pause" : outputOn ? "Record" : "Stop Circle";
                 const alias = (mode === "obs_mic" || scene || source || directTransition) && card.label;
-                const muted = mode === "obs_mic" && currentLabel?.startsWith("Muted · ");
+                const muted = mode === "obs_mic" && (cardState ? stateId === "audio_muted" : currentLabel?.startsWith("Muted · "));
                 const live = mode === "obs_mic" && currentLabel?.startsWith("Unmuted · ");
                 const label = output ? (record ? (outputOn ? "Recording" : "Record") : "Stream")
                     : alias || (mode === "obs_mic" ? obsInputName(currentLabel) : currentLabel) || (directTransition && card.label) || fallback[mode];
@@ -1794,20 +1804,14 @@ export function registerCompanionCardTypes(
                         : currentLabel || (replay && obsControlLabels.has("obs.status.program") ? "Start Replay Buffer" : "");
                     const [name, detail] = status.split(" · ", 2);
                     const title = output || scene || directTransition ? label : fallback[mode];
-                    const takeDetails: Record<string, string> = {
-                        take_ready: presentation?.obsDetail || "Unavailable",
-                        take_studio_off: "Enable Studio Mode",
-                        take_transitioning: "Transitioning",
-                        take_no_preview: "Choose a preview",
-                        take_same_scene: "Already on Program",
-                    };
-                    const takeDetail = mode === "obs_take" && sceneState ? takeDetails[sceneState] : undefined;
+                    const presentationDetail = cardState && (mode === "obs_take" || toggle || replay || brb)
+                        ? presentation?.obsDetail ?? cardState.detail : undefined;
                     const note = sensor ? programScene || "Unavailable"
                         : output ? outputStatus
                         : scene ? "Scene"
                         : directTransition ? currentLabel ? "Transition" : "Unavailable"
                         : mode === "obs_transition" ? currentLabel || "Unavailable"
-                        : status === "BRB · Already on break" ? "" : takeDetail ?? (detail || (name === title ? "" : name || "Unavailable"));
+                        : status === "BRB · Already on break" ? "" : presentationDetail ?? (detail || (name === title ? "" : name || "Unavailable"));
                     preview.labelHtml = '<span class="sp-btn-label-row sp-obs-label"><span class="sp-btn-label">' +
                         helpers.escHtml(title) + '</span><span class="sp-obs-detail">' + helpers.escHtml(note) + '</span></span>';
                 }
@@ -1815,7 +1819,7 @@ export function registerCompanionCardTypes(
                     ...preview,
                     buttonClass: onProgram && !selectedScene ? "sp-obs-program" : undefined,
                     sensorSurface: sensor,
-                    isOn: live || outputOn || (toggle && currentLabel === "On") || (brb && currentLabel === "Resume") || selectedScene ||
+                    isOn: cardState ? cardState.lit : live || outputOn || (toggle && currentLabel === "On") || (brb && currentLabel === "Resume") || selectedScene ||
                         (directTransition && entity === obsControlLabels.get("obs.transition.selected")) ||
                         (source && obsControlLabels.has(entity.replace("obs.source.", "obs.source.visible."))),
                     labelEditable: false,

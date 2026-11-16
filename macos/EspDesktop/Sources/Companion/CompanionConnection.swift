@@ -92,7 +92,7 @@ final class CompanionConnection: NSObject {
     private var catalogueGeneration: UInt32 = 0
     private var supportsOBSCards = false
     private var supportsOBSStarter = false
-    private var supportsOBSCardState = false
+    private var peerCapabilityVersion: UInt32 = 0
     private var supportsOBSBreak = false
     private var supportsOBSOutputs = false
     private var supportsOBSCough = false
@@ -535,7 +535,7 @@ final class CompanionConnection: NSObject {
             supportsOBSOutputs = payload.capabilityVersion >= 17
             supportsOBSBreak = payload.capabilityVersion >= 18
             supportsOBSStarter = payload.capabilityVersion >= 19
-            supportsOBSCardState = payload.capabilityVersion >= 20
+            peerCapabilityVersion = payload.capabilityVersion
             lastOBSAudioValues.removeAll()
             appVolumeSupported = payload.capabilityVersion >= 10
             supportsCoughButton = payload.capabilityVersion >= 11
@@ -896,7 +896,7 @@ final class CompanionConnection: NSObject {
             (supportsOBSStarter || !entry.id.hasPrefix(OBSConnection.AdaptiveScene.prefix))
         }.map { entry in
             var fields = ["id": entry.id, "label": Self.catalogueLabel(entry.label, fallback: "OBS scene")]
-            if supportsOBSCardState, let state = entry.state {
+            if let state = entry.state, peerCapabilityVersion >= state.minimumCapability {
                 fields["obsState"] = state.rawValue
                 if let detail = entry.detail {
                     fields["obsDetail"] = Self.catalogueLabel(detail, fallback: "Unavailable")

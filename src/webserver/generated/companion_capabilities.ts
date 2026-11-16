@@ -5,7 +5,7 @@ export interface CompanionSystemMetric { readonly mode: string; readonly id: str
 export interface CompanionCardMode { readonly id: string; readonly label: string; readonly capability: string; readonly defaultIcon: string; }
 export interface CompanionProtocolMessage { readonly id: string; readonly direction: string; readonly authorization: string; }
 
-export const COMPANION_CAPABILITY_VERSION = 20 as const;
+export const COMPANION_CAPABILITY_VERSION = 21 as const;
 export const COMPANION_PROTOCOL_VERSION = 4 as const;
 export const COMPANION_PROTOCOL_PATH = "/companion/v4" as const;
 export const COMPANION_MAXIMUM_TEXT_FRAME_BYTES = 16384 as const;
@@ -176,6 +176,152 @@ export const OBS_STUDIO_CONTROL_PAGE = [
     icon: "Repeat"
   }
 ] as const;
+export const OBS_CARD_STATES: Readonly<Record<string, { readonly detail: string; readonly lit: boolean }>> = {
+  scene_idle: {
+    detail: "",
+    lit: false
+  },
+  scene_live: {
+    detail: "",
+    lit: true
+  },
+  scene_program: {
+    detail: "",
+    lit: false
+  },
+  scene_preview: {
+    detail: "",
+    lit: true
+  },
+  scene_program_preview: {
+    detail: "",
+    lit: true
+  },
+  take_ready: {
+    detail: "",
+    lit: false
+  },
+  take_studio_off: {
+    detail: "Enable Studio Mode",
+    lit: false
+  },
+  take_transitioning: {
+    detail: "Transitioning",
+    lit: false
+  },
+  take_no_preview: {
+    detail: "Choose a preview",
+    lit: false
+  },
+  take_same_scene: {
+    detail: "Already on Program",
+    lit: false
+  },
+  toggle_on: {
+    detail: "On",
+    lit: true
+  },
+  toggle_off: {
+    detail: "Off",
+    lit: false
+  },
+  replay_ready: {
+    detail: "Ready",
+    lit: false
+  },
+  replay_saving: {
+    detail: "Saving",
+    lit: false
+  },
+  replay_saved: {
+    detail: "Saved",
+    lit: false
+  },
+  replay_unconfirmed: {
+    detail: "Replay not confirmed",
+    lit: false
+  },
+  output_idle: {
+    detail: "Idle",
+    lit: false
+  },
+  output_active: {
+    detail: "Active",
+    lit: true
+  },
+  output_live: {
+    detail: "Live",
+    lit: true
+  },
+  output_paused: {
+    detail: "Paused",
+    lit: true
+  },
+  output_stopping: {
+    detail: "Stopping",
+    lit: true
+  },
+  output_reconnecting: {
+    detail: "Reconnecting",
+    lit: true
+  },
+  output_changing: {
+    detail: "Changing",
+    lit: false
+  },
+  output_changing_live: {
+    detail: "Changing",
+    lit: true
+  },
+  audio_muted: {
+    detail: "",
+    lit: false
+  },
+  audio_live: {
+    detail: "",
+    lit: true
+  },
+  transition_selected: {
+    detail: "",
+    lit: true
+  },
+  transition_idle: {
+    detail: "",
+    lit: false
+  },
+  source_visible: {
+    detail: "",
+    lit: true
+  },
+  source_hidden: {
+    detail: "",
+    lit: false
+  },
+  break_start: {
+    detail: "Start",
+    lit: false
+  },
+  break_resume: {
+    detail: "Resume",
+    lit: true
+  },
+  break_transitioning: {
+    detail: "Transitioning",
+    lit: false
+  },
+  break_already: {
+    detail: "",
+    lit: false
+  },
+  break_check: {
+    detail: "Check OBS",
+    lit: false
+  },
+  break_unavailable: {
+    detail: "Unavailable",
+    lit: false
+  }
+};
 export const COMPANION_PROTOCOL_MESSAGES: readonly CompanionProtocolMessage[] = [
   {
     id: "hello",

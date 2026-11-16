@@ -101,7 +101,7 @@ inline bool hex_valid(JsonVariantConst value) {
         kind=spec['type']
         if kind=='string':
             e=f'string_valid({value}, {spec["minLength"]}, {spec["maxLength"]})'
-            if 'enum' in spec: e+=' && ('+' || '.join(f'{value}.as<std::string>() == {json.dumps(v)}' for v in spec['enum'])+')'
+            if 'enum' in spec: e+=' && ('+' || '.join(f'std::string_view({value}.as<const char *>()) == {json.dumps(v)}' for v in spec['enum'])+')'
             if spec.get('pattern')=='hex64': e+=f' && hex_valid({value})'
             control_validators = {
                 'volume_control_id': 'volume_control_id_valid',

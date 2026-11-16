@@ -42,12 +42,12 @@ final class OBSConnection: ObservableObject {
     enum ReplaySave: Equatable {
         case ready, saving, saved, unconfirmed
 
-        var label: String {
+        var presentation: OBSCardState {
             switch self {
-            case .ready: return "Ready"
-            case .saving: return "Saving"
-            case .saved: return "Saved"
-            case .unconfirmed: return "Replay not confirmed"
+            case .ready: return .replayReady
+            case .saving: return .replaySaving
+            case .saved: return .replaySaved
+            case .unconfirmed: return .replayUnconfirmed
             }
         }
     }
@@ -116,6 +116,7 @@ final class OBSConnection: ObservableObject {
 
     struct BreakCard: Equatable {
         let label: String
+        let presentation: OBSCardState
         let programID: String?
         let token: UUID?
 
@@ -194,15 +195,21 @@ final class OBSConnection: ObservableObject {
                 (output != .stream || !streamReconnecting)
         }
 
-        var streamStatus: String {
-            if streamReconnecting { return "Stream · Reconnecting" }
-            if outputsTransitioning.contains(.stream) || outputsPending.contains(.stream) {
-                return "Stream · Changing"
+        func outputPresentation(_ output: Output) -> OBSCardState {
+            if output == .stream && streamReconnecting { return .outputReconnecting }
+            if output == .record && recordingStopping { return .outputStopping }
+            if outputsTransitioning.contains(output) || outputsPending.contains(output) {
+                return outputActive(output) ? .outputChangingLive : .outputChanging
             }
-            return streaming ? "Stream · Live" : "Stream · Idle"
+            if output == .record && recordingPaused { return .outputPaused }
+            guard outputActive(output) else { return .outputIdle }
+            return output == .record ? .outputActive : .outputLive
         }
 
+        var streamStatus: String { "Stream · " + outputPresentation(.stream).detail }
+
         var recordStatus: String {
+            // Older panels identify Stopping from the control entry.
             if outputsTransitioning.contains(.record) || outputsPending.contains(.record) {
                 return "Recording · Changing"
             }
@@ -216,14 +223,14 @@ final class OBSConnection: ObservableObject {
             takePresentation == .takeReady
         }
 
-        var takePresentation: CatalogueState {
+        var takePresentation: OBSCardState {
             if !studioMode { return .takeStudioOff }
             if transitionInProgress { return .takeTransitioning }
             guard let preview else { return .takeNoPreview }
             return preview.id == program?.id ? .takeSameScene : .takeReady
         }
 
-        func scenePresentation(_ scene: UUID) -> CatalogueState {
+        func scenePresentation(_ scene: UUID) -> OBSCardState {
             let onProgram = program.flatMap { UUID(uuidString: $0.id) } == scene
             if !studioMode { return onProgram ? .sceneLive : .sceneIdle }
             let inPreview = preview.flatMap { UUID(uuidString: $0.id) } == scene
@@ -242,33 +249,10 @@ final class OBSConnection: ObservableObject {
         }
     }
 
-    enum CatalogueState: String {
-        case sceneIdle = "scene_idle"
-        case sceneLive = "scene_live"
-        case sceneProgram = "scene_program"
-        case scenePreview = "scene_preview"
-        case sceneProgramPreview = "scene_program_preview"
-        case takeReady = "take_ready"
-        case takeStudioOff = "take_studio_off"
-        case takeTransitioning = "take_transitioning"
-        case takeNoPreview = "take_no_preview"
-        case takeSameScene = "take_same_scene"
-
-        var takeUnavailableReason: String? {
-            switch self {
-            case .takeStudioOff: return "Enable Studio Mode"
-            case .takeTransitioning: return "Transitioning"
-            case .takeNoPreview: return "Choose a preview"
-            case .takeSameScene: return "Already on Program"
-            default: return nil
-            }
-        }
-    }
-
     struct CatalogueEntry: Equatable {
         let id: String
         let label: String
-        var state: CatalogueState? = nil
+        var state: OBSCardState? = nil
         var detail: String? = nil
     }
 
@@ -309,7 +293,7 @@ final class OBSConnection: ObservableObject {
                             label: active ? "On" : "Off"))
         }
         if state.replayBufferActive == true {
-            actions.append((id: "obs.replay", label: state.replaySave.label))
+            actions.append((id: "obs.replay", label: state.replaySave.presentation.detail))
         }
         return actions
     }
@@ -353,24 +337,54 @@ final class OBSConnection: ObservableObject {
 
     static func controlCatalogue(_ state: State?) -> [CatalogueEntry] {
         guard let state else { return [] }
+        let inputStates = Dictionary(state.inputs.compactMap { input -> (UUID, OBSCardState)? in
+            guard let id = UUID(uuidString: input.id), let muted = state.inputMutes[input.id] else { return nil }
+            return (id, muted ? .audioMuted : .audioLive)
+        }, uniquingKeysWith: { first, _ in first })
+        let sourceStates = Dictionary((state.sources ?? []).map { ($0.key, $0.enabled) }, uniquingKeysWith: { first, _ in first })
+        let selectedTransitionID = state.selectedTransition.map(transitionSelectionID)
         return controlActions(state).map { action in
+            func entry(_ presentation: OBSCardState?, detail: String? = nil) -> CatalogueEntry {
+                CatalogueEntry(id: action.id, label: action.label, state: presentation, detail: detail)
+            }
             if action.id == "obs.take" || action.id.hasPrefix("obs.take.") {
-                return CatalogueEntry(id: action.id, label: action.label, state: state.takePresentation,
-                                      detail: state.canTakePreview ? state.preview?.name : nil)
+                return entry(state.takePresentation, detail: state.canTakePreview ? state.preview?.name : nil)
+            }
+            if action.id == studioModeID || action.id.hasPrefix(studioModeID + ".") {
+                return entry(state.studioMode ? .toggleOn : .toggleOff)
+            }
+            if action.id.hasPrefix(replayBufferID + "."), let on = state.replayBufferActive {
+                return entry(on ? .toggleOn : .toggleOff)
+            }
+            if action.id == "obs.replay" { return entry(state.replaySave.presentation) }
+            if action.id == "obs.status.record" || action.id == Output.record.savedID || action.id.hasPrefix(Output.record.savedID + ".") {
+                return entry(state.outputPresentation(.record))
+            }
+            if action.id == "obs.status.stream" || action.id.hasPrefix(Output.stream.savedID + ".") {
+                return entry(state.outputPresentation(.stream))
+            }
+            if let card = state.breakCard, action.id == card.actionID { return entry(card.presentation) }
+            if let id = audioInputUUID(for: action.id, prefix: "obs.mute.") { return entry(inputStates[id]) }
+            if action.id.hasPrefix(transitionSelectionPrefix) {
+                let id = action.id.dropFirst(transitionSelectionPrefix.count).prefix(32)
+                return entry(selectedTransitionID == transitionSelectionPrefix + id ? .transitionSelected : .transitionIdle)
+            }
+            if action.id.hasPrefix(sourcePrefix) {
+                let key = String(action.id.dropFirst(sourcePrefix.count).prefix(32))
+                if let visible = sourceStates[key] { return entry(visible ? .sourceVisible : .sourceHidden) }
             }
             let scene: UUID?
             switch SceneAction(id: action.id) {
             case .program(let id), .preview(let id): scene = id
             case nil: scene = AdaptiveScene.command(action.id)?.0
             }
-            return CatalogueEntry(id: action.id, label: action.label,
-                                  state: scene.map(state.scenePresentation))
+            return entry(scene.map(state.scenePresentation))
         }
     }
 
     private static func unavailableTakeAction(_ state: State?) -> [(id: String, label: String)] {
-        guard let reason = state?.takePresentation.takeUnavailableReason else { return [] }
-        return [("obs.take", "Take Live · " + reason)]
+        guard let state, !state.canTakePreview else { return [] }
+        return [("obs.take", "Take Live · " + state.takePresentation.detail)]
     }
 
     private static func selectedSceneActions(_ state: State?) -> [(id: String, label: String)] {
@@ -866,6 +880,7 @@ final class OBSConnection: ObservableObject {
 
     private func updateBreakCard(_ snapshot: inout State) {
         let label: String
+        let presentation: OBSCardState
         let configured = breakConfigurations[snapshot.collection]
         snapshot.breakSceneID = configured.flatMap { config in
             snapshot.scenes.contains(where: { $0.id == config.sceneID }) ? config.sceneID.lowercased() : nil
@@ -873,11 +888,15 @@ final class OBSConnection: ObservableObject {
         var enabled = false
         if breakNeedsReview {
             label = "BRB · Check OBS"
+            presentation = .breakCheck
         } else if breakInFlight {
-            label = breakSession?.returning == true ? "Resuming…" : "Starting BRB…"
+            let returning = breakSession?.returning == true
+            label = returning ? "Resuming…" : "Starting BRB…"
+            presentation = returning ? .breakResume : .breakStart
         } else if let session = breakSession {
             enabled = !snapshot.transitionInProgress && snapshot.program?.id == session.target
             label = enabled ? "Resume" : "Resume · Transitioning"
+            presentation = .breakResume
         } else {
             guard let configured,
                   let target = snapshot.scenes.first(where: { $0.id == configured.sceneID }) else {
@@ -886,15 +905,24 @@ final class OBSConnection: ObservableObject {
             }
             enabled = !snapshot.transitionInProgress && snapshot.program != nil && snapshot.program?.id != target.id &&
                 (configured.micID == nil || configured.micID.map { snapshot.inputMutes[$0] != nil } == true)
-            if enabled { label = "BRB · " + target.name }
-            else if snapshot.transitionInProgress { label = "BRB · Transitioning" }
-            else if snapshot.program?.id == target.id { label = "BRB · Already on break" }
-            else { label = "BRB · Unavailable" }
+            if enabled {
+                label = "BRB · " + target.name
+                presentation = .breakStart
+            } else if snapshot.transitionInProgress {
+                label = "BRB · Transitioning"
+                presentation = .breakTransitioning
+            } else if snapshot.program?.id == target.id {
+                label = "BRB · Already on break"
+                presentation = .breakAlready
+            } else {
+                label = "BRB · Unavailable"
+                presentation = .breakUnavailable
+            }
         }
         let program = snapshot.program?.id
         let previous = snapshot.breakCard
         let token = enabled ? (previous?.label == label && previous?.programID == program ? previous?.token : nil) ?? UUID() : nil
-        snapshot.breakCard = BreakCard(label: label, programID: program, token: token)
+        snapshot.breakCard = BreakCard(label: label, presentation: presentation, programID: program, token: token)
     }
 
     private func refreshBreakCard() {

@@ -664,7 +664,8 @@ void CompanionService::handle_json_(int socket_fd, const std::string &message) {
         const bool retain_action = this->catalogue_limits_.retain(id, input);
         if (retain_action) {
           const auto detail = item.obsDetail && safe_utf8_field(*item.obsDetail, 96) ? *item.obsDetail : std::string{};
-          this->catalogue_actions_.push_back({id, label, item.obsState.value_or(""), detail});
+          const auto state = item.obsState ? obs_card_state(*item.obsState) : OBSCardState::unknown;
+          this->catalogue_actions_.push_back({id, label, state, detail});
         }
         // Keep icon eligibility for configured cards even when their app is
         // outside the bounded browser catalogue. The reference set is bounded

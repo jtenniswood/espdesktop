@@ -4463,7 +4463,7 @@ async function assertOBSSceneCard(browser) {
   let connectedToOBS = true;
   let studioModeOn = false;
   let replayBufferOn = false;
-  let replaySave = "Ready";
+  let replaySave = "replay_ready";
   let recordingState = "Idle";
   let transitionName = "Fade";
   const fadeTransition = "obs.transition.select." + "a".repeat(32);
@@ -4482,7 +4482,7 @@ async function assertOBSSceneCard(browser) {
       { id: cutTransition + ".9ea47782-fada-4bb3-aef6-1904669efae7", label: "Cut" },
       { id: "obs.transition.selected", label: transitionName === "Fade" ? fadeTransition : cutTransition },
       { id: "obs.replay.buffer.9ea47782-fada-4bb3-aef6-1904669efae7", label: replayBufferOn ? "On" : "Off" },
-      ...(replayBufferOn ? [{ id: "obs.replay", label: replaySave }] : []),
+      ...(replayBufferOn ? [{ id: "obs.replay", label: "Save Replay", obsState: replaySave }] : []),
       { id: "obs.status.record", label: "Recording · " + recordingState },
       { id: "obs.status.program", label: "Program · Gameplay" },
     ] : [],
@@ -4667,23 +4667,26 @@ async function assertOBSSceneCard(browser) {
     assert.equal(await transitionTitle.innerText(), "Transition");
     assert.equal(await transitionDetail.innerText(), "Fade");
     transitionName = "Cut";
-    replaySave = "Saved";
+    replaySave = "replay_saving";
     recordingState = "Paused";
     await page.locator('.sp-main [data-slot="3"]').click();
     await page.getByRole("button", { name: "Edit", exact: true }).click();
     await studioTile.getByText("Cut", { exact: true }).waitFor();
     assert.equal(await transitionTitle.innerText(), "Transition");
-    await replayTile.getByText("Saved", { exact: true }).waitFor();
+    await replayTile.getByText("Saving", { exact: true }).waitFor();
     await recordingControl.getByText("Paused", { exact: true }).waitFor();
     await recordingControl.locator(".mdi-pause").waitFor();
     assert.notEqual(await recordingControl.evaluate(tile => getComputedStyle(tile).backgroundColor), recordingIdle);
     assert.equal(await replayTile.evaluate(tile => tile.style.backgroundColor), replayReadyColor);
     await page.locator(".sp-settings-overlay.sp-visible .sp-settings-close").click();
+    replaySave = "replay_saved";
     await studioTile.click();
     await page.getByRole("button", { name: "Edit", exact: true }).click();
     await transitionType.selectOption("obs.transition.select.");
     const transitionPicker = page.getByLabel("OBS transition", { exact: true });
     await transitionPicker.getByRole("option", { name: "Fade", exact: true }).waitFor({ state: "attached" });
+    await replayTile.getByText("Saved", { exact: true }).waitFor();
+    assert.equal(await replayTile.evaluate(tile => tile.style.backgroundColor), replayReadyColor);
     assert.deepEqual(await transitionPicker.locator("option").allTextContents(), ["Select", "Fade", "Cut"]);
     await transitionPicker.selectOption(fadeTransition);
     await page.getByRole("button", { name: "Save", exact: true }).click();
@@ -4692,9 +4695,11 @@ async function assertOBSSceneCard(browser) {
     await studioTile.getByText("Fade", { exact: true }).waitFor();
     const transitionOffColor = await studioTile.evaluate(tile => tile.style.backgroundColor);
     transitionName = "Fade";
+    replaySave = "replay_ready";
     await studioTile.click();
     await page.getByRole("button", { name: "Edit", exact: true }).click();
     await transitionPicker.getByRole("option", { name: "Fade", exact: true }).waitFor({ state: "attached" });
+    await replayTile.getByText("Ready", { exact: true }).waitFor();
     assert.equal(await transitionPicker.inputValue(), fadeTransition);
     await page.waitForFunction(offColor =>
       document.querySelector('.sp-main [data-slot="9"]')?.style.backgroundColor !== offColor, transitionOffColor);
