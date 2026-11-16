@@ -4590,7 +4590,7 @@ async function assertOBSSceneCard(browser) {
       "The Take Live card saves its default icon and stays free of transient tokens");
     const takeTile = page.locator('.sp-main [data-slot="5"]');
     await takeTile.getByText("Take Setup", { exact: true }).waitFor();
-    await takeTile.getByText("Fade Transition", { exact: true }).waitFor();
+    await takeTile.getByText("Fade", { exact: true }).waitFor();
 
     await page.locator(".sp-main .sp-empty-cell").first().click();
     await chooseOBSCard(page, "Output Controls");
@@ -4681,7 +4681,7 @@ async function assertOBSSceneCard(browser) {
     recordingState = "Paused";
     await editCard(page.locator('.sp-main [data-slot="3"]'));
     await studioTile.getByText("Cut", { exact: true }).waitFor();
-    await takeTile.getByText("Cut Transition", { exact: true }).waitFor();
+    await takeTile.getByText("Cut", { exact: true }).waitFor();
     assert.equal(await transitionTitle.innerText(), "Transition");
     await replayTile.getByText("Saving", { exact: true }).waitFor();
     await recordingControl.getByText("Paused", { exact: true }).waitFor();

@@ -1837,7 +1837,7 @@ export function registerCompanionCardTypes(
                         ? presentation?.obsDetail ?? cardState.detail : undefined;
                     const note = sensor ? programScene || "Unavailable"
                         : output ? outputStatus
-                        : takeReady ? transition ? transition + " Transition" : ""
+                        : takeReady ? transition || ""
                         : scene ? "Scene"
                         : directTransition ? currentLabel ? "Transition" : "Unavailable"
                         : mode === "obs_transition" ? currentLabel || "Unavailable"

@@ -1243,8 +1243,7 @@ inline void companion_render_obs_detail(CompanionCardRef &ref, const std::string
       if (!detail.empty() && (ref.obs_label_alias.empty() || ref.obs_label_alias == name))
         primary = std::string(espdesktop_i18n_key("label_obs_take")) + " " + detail;
       const auto *selected = companion_published_action(snapshot, "obs.transition");
-      detail = selected && !selected->label.empty()
-        ? selected->label + " " + espdesktop_i18n_key("label_obs_transition") : "";
+      detail = selected ? selected->label : "";
     }
   }
   if (ref.obs_state_icon) {

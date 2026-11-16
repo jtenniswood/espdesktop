@@ -464,7 +464,7 @@ int main() {
     replay_state.actions = {{"obs.take" + suffix, "Take Live · Studio", OBSCardState::take_ready, "Studio"},
                             {"obs.transition" + suffix, "Fade"}};
     companion_render_obs_detail(replay, replay_state.actions[0].label, replay_state);
-    assert(title.content == "Take Studio" && detail.content == "Fade Transition");
+    assert(title.content == "Take Studio" && detail.content == "Fade");
     replay.action_id = "obs.transition";
     companion_render_obs_detail(replay, "Fade · Short", {});
     assert(title.content == "Transition" && detail.content == "Fade · Short");
