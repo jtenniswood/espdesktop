@@ -554,7 +554,7 @@ inline void setup_companion_card(BtnSlot &s, const ParsedCfg &p,
     sync_card_checked_text_color(s.btn);
     lv_obj_clear_flag(s.btn, LV_OBJ_FLAG_CLICKABLE);
     clear_push_button_transition(s.btn);
-  } else if (companion_app_launch_card(p) || p.entity == "obs.replay") {
+  } else if (companion_app_launch_card(p) || companion_obs_momentary_action(p.entity)) {
     apply_instant_button_feedback(s.btn);
   } else if (available) {
     apply_push_button_transition(s.btn);

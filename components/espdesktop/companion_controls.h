@@ -674,6 +674,10 @@ inline bool companion_obs_break_active(std::string_view label) {
   return label == "Resume" || label == "Resuming…" || label.rfind("Resume · ", 0) == 0;
 }
 
+inline bool companion_obs_momentary_action(std::string_view id) {
+  return id == "obs.replay" || id == "obs.take" || id == "obs.transition";
+}
+
 inline bool companion_obs_tokenized_card(const std::string &id) {
   return id == "obs.take" || id == "obs.brb" || id == "obs.studio" || id == "obs.transition" ||
     id == "obs.replay.buffer" || companion_obs_output_card(id) || companion_obs_scene_target(id) ||

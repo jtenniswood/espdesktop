@@ -100,6 +100,8 @@ In the OBS Studio card menu, choose **Studio Mode** to add **Toggle Studio Mode*
 
 Under **Card types → Transitions**, **Cycle transitions** steps through the transitions configured in OBS and displays the selected name. Use **Select a transition** to make separate cards for Cut, Fade or a custom transition. Each card lights up when OBS has selected its transition.
 
+**Take Live** and **Cycle transitions** light up while you press them.
+
 Open **Add Card → OBS Studio → Grouped pages** and choose a page:
 
 - **Transitions** fills free cells with the current transitions from OBS. Expand the **Transitions** list in the page card’s settings to hide or reorder transitions.
