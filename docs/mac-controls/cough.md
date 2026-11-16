@@ -17,8 +17,12 @@ The card shows a crossed-out microphone when the Mac reports that the mic is mut
 
 ## Hold to mute an OBS input
 
-Choose **Add Card → OBS Studio → OBS Input Cough** in the display editor and select the OBS mixer input you want to mute. Hold the card to mute that input. Lift your finger or slide off the card to restore its previous state when EspDesktop can verify the change. A source that was already muted stays muted. If OBS or the display disconnects during the hold, check the mic in OBS before you unmute.
+In the display editor, choose **Add Card → OBS Studio → Audio Controls**. Set **Type** to **Cough**, choose an input under **Source**, then save. Hold the card to mute that input. Lift your finger or slide off the card to restore its previous state when EspDesktop can verify the change. A source that was already muted stays muted. If OBS or the display disconnects during the hold, check the input in OBS before you unmute.
 
 ## If the card is unavailable
 
-Check that the display is connected in the Mac app’s **Settings → Displays**. Then check the selected microphone under **System Settings → Sound → Input**. The card needs a microphone that macOS can mute or whose input volume it can adjust. It controls the default Mac input, so check that your call app is using that same microphone.
+Check that the display is connected in the Mac app’s **Settings → Displays**.
+
+For a Mac Cough card, check the selected microphone under **System Settings → Sound → Input**. The card needs a microphone that macOS can mute or whose input volume it can adjust. It controls the default Mac input, so check that your call app is using that same microphone.
+
+For an OBS Cough card, check the connection under **Settings → OBS** in the EspDesktop Mac app. Then check that the card’s **Source** appears in the OBS Audio Mixer for the current scene collection.

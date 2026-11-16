@@ -91,20 +91,23 @@ See [all app presets](/reference/shortcut-presets).
 ## OBS Studio controls
 
 1. In OBS Studio, open **Tools → WebSocket Server Settings** and enable the server. Keep authentication enabled.
-2. In the EspDesktop Mac app, open **Settings → OBS**. Enter the port and password shown in OBS, then choose **Connect**.
+2. In the EspDesktop Mac app, open **Settings → OBS**. The tab appears when EspDesktop finds OBS Studio installed in an Applications folder. Enter the port and password shown in OBS, then choose **Connect**. A saved password appears as dots until you click the field. Leave the field blank and choose **Reconnect** to reuse the saved password.
 3. In the display editor, open **Add Card → OBS Studio**. Choose **Scene** or **Audio Controls**. For audio, select **Level**, **Mute**, or **Cough** under **Type**, then choose a **Source**. Both cards are available on the home screen and in folders.
 
-In the OBS Studio card menu, choose **Studio Mode** to add **Toggle Studio Mode**, **Program scene**, **Take Live**. **Toggle Studio Mode** asks for confirmation before turning Studio Mode off by default. **Program scene** shows what OBS is sending to its output. Under **Card types → Transitions**, **Cycle transitions** steps through the transitions configured in OBS and displays the selected name. Use **Select a transition** to make separate cards for Cut, Fade or a custom transition. Each card lights up when OBS has selected its transition. Tap **Take Live** when you want to apply the transition to Preview. **Take Live** sends the preview named on that tile to Program. If the preview changes before the command reaches OBS, tap again after checking the updated name. Scene cards switch Program in normal mode and select Preview in Studio Mode.
+In the OBS Studio card menu, choose **Studio Mode** to add **Toggle Studio Mode**, **Program scene**, or **Take Live**. **Toggle Studio Mode** asks for confirmation before turning Studio Mode off by default. **Program scene** shows what OBS is sending to its output. Scene cards switch Program in normal mode and select Preview in Studio Mode.
 
-Choose **Add Card → OBS Studio → Transitions** to add a subpage that fills empty cells with the current transitions from OBS. Edit the **Transitions** card to hide transitions or move your favourites to the front. New transitions appear when space is available. Use **Edit Subpage** to place your own cards alongside the automatic list.
+**Take Live** is available when Studio Mode is on and Preview shows a different scene from Program. It sends the Preview scene named on the card to Program using the transition selected in OBS. If the preview changes before the command reaches OBS, check the updated name before tapping again.
 
-Choose **Add Card → OBS Studio → Audio** to fill a subpage with sliders for the current mixer inputs. A muted source’s slider turns grey and stays adjustable. Edit the Audio card to hide or reorder sliders. New mixer inputs fill available cells alongside any cards you place manually.
+Under **Card types → Transitions**, **Cycle transitions** steps through the transitions configured in OBS and displays the selected name. Use **Select a transition** to make separate cards for Cut, Fade or a custom transition. Each card lights up when OBS has selected its transition.
 
-Choose **Add Card → OBS Studio → Scenes** for an automatic page of scenes from the current collection. Edit the Scenes card to hide or reorder scene buttons. The page follows collection changes and uses the same Preview and Program colours as individual scene cards. Break, Transition, and Take Live fill the bottom of the page when space is available. Take Live spans two columns by default.
+Open **Add Card → OBS Studio → Grouped pages** and choose a page:
 
-Choose **Add Card → OBS Studio → Studio Control** to add a page with Record, Stream, Studio Mode, Replay Buffer, and Save Replay. Save Replay spans two rows and two columns on layouts with enough space. The preset cards can be moved, edited, or deleted.
+- **Transitions** fills free cells with the current transitions from OBS. Expand the **Transitions** list in the page card’s settings to hide or reorder transitions.
+- **Audio** fills free cells with sliders for the current mixer inputs. Edit the Audio page card to hide or reorder sliders. A muted input’s slider turns grey and stays adjustable.
+- **Scenes** follows the current OBS scene collection. Edit the Scenes page card to hide or reorder scene buttons. Break, Transition, and Take Live fill the bottom of the page when space is available. Take Live spans two columns by default.
+- **Studio Control** comes with Record, Stream, Studio Mode, Replay Buffer, and Save Replay. Save Replay spans two rows and two columns on layouts with enough space. You can move, edit, or delete the preset cards.
 
-On an automatic OBS or Finder page, select an automatic card to save it in place, or drag it to save it in a new position. Saved cards can be edited or deleted like other cards. New items still fill available space, and deleted cards stay out of the automatic list.
+Use **Edit Subpage** to customise the layout. Drag an automatic card to save it in a new position, or use **Edit Card → Save** to save it in place. Selecting a card opens a draft, and cancelling keeps it automatic. Use **Delete** to remove the card and keep that item out of the automatic list. New OBS items fill the remaining space alongside your saved cards.
 
 A **Mute** card changes the selected input in the OBS mixer. The ON colour and microphone icon show an unmuted input. Muting the input turns the colour off and shows a crossed-out microphone. Use the mic your broadcast captures when setting up the card, especially if it differs from the Mac’s default mic. Scene and input bindings are kept when a target is unavailable.
 
@@ -112,9 +115,13 @@ Choose **Level** to adjust a named mixer input. The fill turns grey while the in
 
 Choose **Cough** and select the input to mute momentarily. The tile reads **Muted** whenever that input is muted, including during a break. Release it to restore the input’s previous mute state.
 
-Add **Output Controls** from the **OBS Studio** card menu and choose **Streaming**, **Recording**, or **Virtual Camera**. Tap the card to start or stop the output using its confirmation settings. The subtitle shows the current state, including reconnecting streams and paused recordings. The Virtual Camera card lights up while OBS Virtual Camera is running. Existing streaming and recording status cards open as the corresponding controls and ask for confirmation in both directions.
+Add **Output Controls** from the **OBS Studio** card menu and choose **Streaming**, **Recording**, or **Virtual Camera**. Each card asks for confirmation before starting and stopping by default. With **Confirmation Required** enabled in **Card Settings**, set **When** to **Start**, **Stop**, or **Both** and customise the message and button labels. If OBS changes the output while a prompt is open, check the updated action before trying again.
+
+The subtitle shows the current output state, including reconnecting streams and paused recordings. The Virtual Camera card lights up while OBS Virtual Camera is running. The recording card says **Record** while idle and lights up as **Recording** when active. While OBS finishes stopping, **Stopping** appears under **Recording**. Existing streaming and recording status cards become the corresponding output controls with confirmation in both directions.
 
 Enable Replay Buffer in **OBS → Settings → Output**, then add a **Replay Buffer** card. Choose **Start / Stop Buffer** to control the buffer from the display. The card lights up while OBS is buffering and asks for confirmation before stopping by default. For both **Toggle Studio Mode** and **Start / Stop Buffer**, use **Card Settings** to choose when confirmation is required and customise the prompt and button labels. Choose **Save Replay** to capture a clip while the buffer is running. The card lights up while you press it. Its subtitle changes from **Ready** to **Saving**, then shows **Saved** for five seconds after OBS confirms the file.
+
+Look for the clip in the active OBS profile’s **Recording Path** under **Settings → Output**. To play it back in OBS, select the saved file in an OBS Media Source. See the [OBS recording output guide](https://obsproject.com/kb/standard-recording-output-guide) for file settings.
 
 Choose **Set up OBS Studio** during first-time display setup, or open **Screen → Appearance → App Subpages → Add OBS starter page** to add it later. The setup suggests scenes and a microphone from your connected OBS collection. Pick a main scene, adjust the optional second scene and microphone, and select **Pin to Home**.
 
@@ -122,9 +129,7 @@ The **OBS Studio** folder uses one free Home slot. **Switching** contains scene 
 
 In Studio Mode, Preview fills with the card’s ON colour. When a different scene is on Program, its card fills with a darker shade of its own ON colour. In normal mode, the filled card shows Program.
 
-In the Mac Companion’s **OBS** settings, choose a **Break scene** and optionally select a **Mute during break** input. Add **Break** to the display. The card shows **Break** with **Start** underneath and verifies the mic is muted before switching Program. During a break, the card lights up and shows **Resume** underneath. Tapping it returns to the previous scene and restores a mic that EspDesktop muted when it can verify those changes. Taking another scene live also ends the break and makes **Start** available again. Check the mic in OBS before speaking if it was muted during the break. If the card says **Check OBS**, check the Program scene and microphone in OBS, then clear the alert in the Mac Companion.
-
-The recording card says **Record** while idle and lights up as **Recording** when active. While OBS finishes stopping, **Stopping** appears under **Recording**. By default, it asks you to confirm both starting and stopping. Under **Confirmation Required**, choose **Start**, **Stop**, or **Both**, and customise the message and button labels. If OBS changes the output while a prompt is open, check the updated action before trying again.
+In the Mac app, open **Settings → OBS → Break Settings**. Choose a **Break scene** and optionally select an input under **Mute during break**. EspDesktop saves both settings for the current OBS scene collection. Add **Break** to the display. The card shows **Start** and verifies the selected input is muted before switching Program. During a break, the card lights up and shows **Resume**. Tapping it returns to the previous scene and restores an input that EspDesktop muted when it can verify those changes. Taking another scene live also ends the break and makes **Start** available again. Check the mic in OBS before speaking if it was muted during the break. If the card says **Check OBS**, check the Program scene and microphone in OBS, then clear the alert in **Break Settings**.
 
 Use matching display firmware and Mac app builds that support OBS cards. Before going live, try the cards with a test recording and listen back to check the mix.
 
