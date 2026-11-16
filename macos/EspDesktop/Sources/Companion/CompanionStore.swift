@@ -926,6 +926,9 @@ final class CompanionStore: NSObject, ObservableObject {
         if let token = OBSConnection.controlToken(actionIdentifier, for: OBSConnection.studioModeID) {
             return await obs.toggleStudioMode(token: token, isValid: canSend)
         }
+        if actionIdentifier.hasPrefix(OBSConnection.sourcePrefix) {
+            return await obs.toggleSource(actionID: actionIdentifier, isValid: canSend)
+        }
         if actionIdentifier.hasPrefix(OBSConnection.transitionSelectionPrefix) {
             return await obs.selectTransition(actionID: actionIdentifier, isValid: canSend)
         }

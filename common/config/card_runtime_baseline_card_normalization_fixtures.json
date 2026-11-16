@@ -1230,6 +1230,21 @@
     }
   },
   {
+    "name": "companion_obs_sources: picker_alias",
+    "input": "~,Sources,Image%20Card%20Loading,Auto,,,subpage,,subpage_connector%3Dmac_companion%2Csubpage_kind%3Dobs_sources",
+    "expected": {
+      "entity": "",
+      "label": "Sources",
+      "icon": "Image Card Loading",
+      "icon_on": "Auto",
+      "sensor": "",
+      "unit": "",
+      "type": "subpage",
+      "precision": "",
+      "options": "subpage_connector=mac_companion,subpage_kind=obs_sources"
+    }
+  },
+  {
     "name": "companion_obs_fader: picker_alias",
     "input": "~obs.level.69da3f8f-7f62-4abe-a594-4e40dd579858,Desk%20Mic,Microphone,Auto,,,slider,,",
     "expected": {

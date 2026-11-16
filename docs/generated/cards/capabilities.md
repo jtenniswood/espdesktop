@@ -46,7 +46,7 @@ This generated reference lists release availability and setup facts from the sha
 | Lock Machine | companion_mac_lock | None | Yes | Own picker item | None | Stable |
 | Companion | companion | None | Yes | Own picker item | App Subpage; Large Sensor Numbers; Show capacity label | Stable |
 | Legacy Slider | slider | light, fan, number, input_number | Yes | Own picker item | None | Retired |
-| Subpage | subpage | None | Yes | Own picker item | Subpage Connector: default, mac_companion; Subpage Type: default, switch, lights, climate, presence, media, alarm, cover, garage, gate, lock, vacuum, lawn_mower, weather, sensor, image, companion_stat, obs_transitions; Transition visibility and order; Large State Numbers | Stable |
+| Subpage | subpage | None | Yes | Own picker item | Subpage Connector: default, mac_companion; Subpage Type: default, switch, lights, climate, presence, media, alarm, cover, garage, gate, lock, vacuum, lawn_mower, weather, sensor, image, companion_stat, obs_transitions, obs_sources; Transition visibility and order; Source visibility and order; Large State Numbers | Stable |
 | Weather | weather | weather, sensor, input_number | Yes | Own picker item | Type: default, today, tomorrow, daily, wind, rainfall; Wind Source: weather, sensors; Rainfall Source: sensor, forecast | Retired |
 | Camera Card | image | camera, image | Yes | Own picker item | None | Retired |
 | Weather Forecast | weather_forecast | weather | Yes | Own picker item | None | Retired |

@@ -691,12 +691,16 @@ inline std::string normalize_subpage_kind(const std::string &value) {
     value == "lock" || value == "vacuum" ||
     value == "lawn_mower" ||
     value == "weather" || value == "sensor" ||
-    value == "image" || value == "companion_stat" || value == "obs_transitions" ? value : "";
+    value == "image" || value == "companion_stat" || (value == "obs_transitions" || value == "obs_sources") ? value : "";
 }
 
-inline std::vector<std::string> obs_transition_preferences(const std::string &options) {
+inline const char *obs_subpage_order_option(bool sources) {
+  return sources ? "obs_source_order" : "obs_transition_order";
+}
+
+inline std::vector<std::string> obs_subpage_preferences(const std::string &options, bool sources) {
   std::vector<std::string> result;
-  for (const auto &entry : split_config_fields(cfg_option_value(options, "obs_transition_order"), '|')) {
+  for (const auto &entry : split_config_fields(cfg_option_value(options, obs_subpage_order_option(sources)), '|')) {
     std::string_view hash = entry;
     if (!hash.empty() && hash.front() == '!') hash.remove_prefix(1);
     if (hash.size() == 32 && std::all_of(hash.begin(), hash.end(), [](char c) {
@@ -718,14 +722,15 @@ inline std::string subpage_card_options_normalized(const std::string &options,
     if (!out.empty()) out += ",";
     out += "subpage_kind=" + kind;
   }
-  if (kind == "obs_transitions") {
-    const auto preferences = obs_transition_preferences(options);
+  if (kind == "obs_transitions" || kind == "obs_sources") {
+    const bool sources = kind == "obs_sources";
+    const auto preferences = obs_subpage_preferences(options, sources);
     std::string value;
     for (const auto &entry : preferences) {
       if (!value.empty()) value += "|";
       value += entry;
     }
-    if (!value.empty()) out += ",obs_transition_order=" + encode_compact_field(value);
+    if (!value.empty()) out += "," + std::string(obs_subpage_order_option(sources)) + "=" + encode_compact_field(value);
   }
   if (!sensor.empty() && sensor != "indicator" && precision != "text" &&
       (cfg_option_token_present(options, "large_numbers") ||
@@ -1230,7 +1235,7 @@ inline const char *saved_config_subpage_default_icon(const std::string &kind) {
 
 inline void normalize_saved_config_subpage_fields(ParsedCfg &p) {
   const std::string kind = normalize_subpage_kind(cfg_option_value(p.options, "subpage_kind"));
-  if (kind.empty() || kind == "obs_transitions") return;
+  if (kind.empty() || kind == "obs_transitions" || kind == "obs_sources") return;
   if (kind == "companion_stat") {
     if (!subpage_companion_stat_entity_valid(p.entity)) p.entity = "stat.cpu";
     if (p.label.empty()) p.label = subpage_companion_stat_default_label(p.entity);

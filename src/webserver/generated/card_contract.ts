@@ -3283,7 +3283,8 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
           "sensor",
           "image",
           "companion_stat",
-          "obs_transitions"
+          "obs_transitions",
+          "obs_sources"
         ],
         "defaultValue": "",
         "omitDefault": true
@@ -3291,6 +3292,12 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
       {
         "name": "obs_transition_order",
         "label": "Transition visibility and order",
+        "kind": "text",
+        "omitDefault": true
+      },
+      {
+        "name": "obs_source_order",
+        "label": "Source visibility and order",
         "kind": "text",
         "omitDefault": true
       },
@@ -3344,6 +3351,7 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
         "subpage_connector",
         "subpage_kind",
         "obs_transition_order",
+        "obs_source_order",
         "large_numbers"
       ],
       "optionHook": "normalize_subpage_options"
@@ -4326,6 +4334,7 @@ export const CARD_CONTRACT_OPTION_NAMES: Readonly<Record<string, string>> = {
   "media_now_playing_controls": "media_now_playing_controls",
   "media_tabs": "media_tabs",
   "number_display": "number_display",
+  "obs_source_order": "obs_source_order",
   "obs_transition_order": "obs_transition_order",
   "on_pattern": "on_pattern",
   "pin_arm": "pin_arm",

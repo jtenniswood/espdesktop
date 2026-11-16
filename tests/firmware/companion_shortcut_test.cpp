@@ -10,7 +10,7 @@ inline void lv_label_set_text(lv_obj_t *, const char *) {}
 #define ESPDESKTOP_SUBPAGE_PARSER_ONLY
 #include "button_grid_subpages.h"
 #include "finder_folder_sync.h"
-#include "obs_transition_subpage.h"
+#include "obs_live_subpage.h"
 
 using namespace esphome::companion;
 
@@ -66,7 +66,7 @@ int main() {
     const std::string token = ".11111111-1111-1111-1111-111111111111";
     CompanionRuntimeSnapshot snapshot;
     snapshot.actions = {{prefix + a + token, "Fade"}, {prefix + b, "Cut"}, {prefix + c + token, "Slide"}};
-    const auto catalogue = obs_transition_subpage_catalogue(snapshot);
+    const auto catalogue = obs_subpage_catalogue(snapshot, false);
     assert(catalogue.size() == 3 && catalogue.front().id == prefix + a);
     const auto folder = parse_cfg(";;Flip Horizontal;Auto;;;subpage;;subpage_kind=obs_transitions,obs_transition_order=" +
                                   c + "|!" + a);
@@ -74,9 +74,26 @@ int main() {
     SubpageOrder order;
     parse_subpage_order("B,1", 4, cards.size(), order);
     normalize_subpage_order_spans(order, 4, 2);
-    project_obs_transition_tiles(order, cards, 4, 2, 4, catalogue, folder.options);
+    project_obs_subpage_tiles(order, cards, 4, 2, 4, catalogue, folder.options, false);
     assert(cards.size() == 3 && cards[0].entity == "obs.take" && cards[1].entity == prefix + c && cards[2].entity == prefix + b);
     assert(order.positions[1] == 1 && order.positions[2] == 2 && order.positions[3] == 3);
+  }
+  {
+    const std::string camera = "obs.source." + std::string(32, 'a');
+    const std::string game = "obs.source." + std::string(32, 'b');
+    const std::string marker = "obs.source.visible." + std::string(32, 'a');
+    const std::string command = camera + ".11111111-1111-1111-1111-111111111111";
+    CompanionRuntimeSnapshot snapshot;
+    snapshot.connected = true;
+    snapshot.actions = {{"obs.sources", "Preview"}, {command, "Camera"}, {marker, "Camera"}, {game, "Game"}};
+    const auto catalogue = obs_subpage_catalogue(snapshot, true);
+    assert(catalogue.size() == 2 && catalogue.front().id == camera);
+    assert(companion_action_available(snapshot, camera) && !companion_action_available(snapshot, game));
+    std::vector<SubpageBtn> cards;
+    SubpageOrder order;
+    parse_subpage_order("B", 4, cards.size(), order);
+    project_obs_subpage_tiles(order, cards, 4, 2, 4, catalogue, "obs_source_order=!" + std::string(32, 'a'), true);
+    assert(cards.size() == 1 && cards.front().entity == game);
   }
   assert_finder_folder_projection();
   const auto mac_lock = normalize_parsed_cfg(
@@ -562,6 +579,10 @@ int main() {
   for (int index = 0; index < 256; ++index)
     assert(catalogue_limits.retain("obs.scene." + std::to_string(index), false));
   assert(!catalogue_limits.retain("obs.status.stream", false));
+  assert(catalogue_limits.retain("obs.sources", false));
+  for (int index = 0; index < 96; ++index)
+    assert(catalogue_limits.retain("obs.source." + std::to_string(index), false));
+  assert(!catalogue_limits.retain("obs.source.overflow", false));
   for (int index = 0; index < 16; ++index)
     assert(catalogue_limits.retain("input.level." + std::to_string(index), true));
   assert(!catalogue_limits.retain("input.level.overflow", true));

@@ -4528,7 +4528,7 @@ async function assertOBSSceneCard(browser) {
     await obsGroup.click();
     assert.deepEqual((await obsCards.evaluateAll(cards => cards.map(card => card.getAttribute("aria-label")))).sort(),
       ["Audio Controls", "Break", "Recording Control",
-        "Replay Buffer", "Scene", "Streaming Control", "Studio Mode", "Transitions"]
+        "Replay Buffer", "Scene", "Sources", "Streaming Control", "Studio Mode", "Transitions"]
         .map(label => label + " card type"));
     assert((await obsCards.allTextContents()).every(copy => !/\bOBS\b/.test(copy)));
     assert.equal(await page.getByRole("button", { name: "Sound card type", exact: true }).count(), 0);
@@ -7867,6 +7867,8 @@ async function assertOBSStarterPage(browser, firstRun = false) {
   let studioProgram = "";
   const fade = "a".repeat(32), cut = "b".repeat(32), slide = "c".repeat(32), wipe = "d".repeat(32);
   let transitions = [[fade, "Fade"], [cut, "Cut"], [wipe, "Wipe"]];
+  const camera = "e".repeat(32), overlay = "f".repeat(32), game = "1".repeat(32);
+  let sources = [[camera, "Camera", true], [overlay, "Overlay", false]];
   await context.route("**/companion/actions", route => route.fulfill({ json: [
     { id: `obs.target.${main}.${token}`, label: "Gameplay" },
     { id: `obs.target.${away}.${token}`, label: "Break Room" },
@@ -7883,6 +7885,10 @@ async function assertOBSStarterPage(browser, firstRun = false) {
     { id: `obs.replay.buffer.${token}`, label: "Off" },
     { id: `obs.transition.${token}`, label: "Fade" },
     ...transitions.map(([hash, name]) => ({ id: `obs.transition.select.${hash}.${token}`, label: name })),
+    ...sources.flatMap(([hash, name, visible]) => [
+      { id: `obs.source.${hash}.${token}`, label: name },
+      ...(visible ? [{ id: `obs.source.visible.${hash}`, label: name }] : []),
+    ]),
     ...(recording ? [{ id: "obs.record.active", label: "Recording" }] : []),
     ...(stopping ? [{ id: "obs.output.record", label: "Stopping" }] : []),
   ] }));
@@ -8055,7 +8061,25 @@ async function assertOBSStarterPage(browser, firstRun = false) {
     await automaticTiles.getByText("Slide", { exact: true }).waitFor();
     assert.deepEqual(await automaticTiles.allTextContents(), ["Wipe", "Slide"]);
     assert.equal(fixture.puts.length, savedCount, "New transition catalogue states never rewrite the saved layout");
-    console.log("OBS starter page pinned, preserved the Home card, and reopened for editing.");
+    await goBack();
+    await page.locator(".sp-main .sp-empty-cell").first().click();
+    await chooseOBSCard(page, "Sources");
+    const cameraRow = page.locator(".sp-light-tab-row").filter({
+      has: page.getByRole("checkbox", { name: "Camera", exact: true }),
+    });
+    await cameraRow.locator(".sp-light-tab-label").click();
+    await page.getByRole("button", { name: "Save", exact: true }).click();
+    await waitForNativeState(fixture, () => fixture.document.buttons[5]?.includes("obs_source_order"),
+      "Sources saves the hidden Camera preference");
+    await editFolder("Sources");
+    await automaticTiles.getByText("Overlay", { exact: true }).waitFor();
+    assert.deepEqual(await automaticTiles.allTextContents(), ["Overlay"]);
+    sources = [[game, "Game", true]];
+    const gameTile = automaticTiles.filter({ hasText: "Game" });
+    await gameTile.waitFor();
+    assert.deepEqual(await automaticTiles.allTextContents(), ["Game"]);
+    assert.equal(await colour(gameTile.locator("..")), onColor);
+    console.log("OBS starter, Transitions, and Sources subpages saved and refreshed.");
   } finally {
     await context.close();
   }

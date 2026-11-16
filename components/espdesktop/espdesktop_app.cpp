@@ -794,8 +794,9 @@ void EspDesktopApp::sync_generated_subpages() {
   runtime.generated_subpage_poll_ms = now;
   const auto snapshot = companion_runtime_snapshot();
   const bool finder_changed = grid_update_finder_folders(snapshot);
-  const bool obs_changed = grid_update_obs_transition_subpages(snapshot);
-  if (finder_changed || obs_changed) layout_changed_.trigger();
+  const bool transitions_changed = grid_update_obs_subpage(snapshot, false);
+  const bool sources_changed = grid_update_obs_subpage(snapshot, true);
+  if (finder_changed || transitions_changed || sources_changed) layout_changed_.trigger();
 }
 
 void EspDesktopApp::loop() {

@@ -3819,7 +3819,8 @@
             "sensor",
             "image",
             "companion_stat",
-            "obs_transitions"
+            "obs_transitions",
+            "obs_sources"
           ],
           "defaultValue": "",
           "omitDefault": true
@@ -3827,6 +3828,12 @@
         {
           "name": "obs_transition_order",
           "label": "Transition visibility and order",
+          "kind": "text",
+          "omitDefault": true
+        },
+        {
+          "name": "obs_source_order",
+          "label": "Source visibility and order",
           "kind": "text",
           "omitDefault": true
         },
@@ -3880,6 +3887,7 @@
           "subpage_connector",
           "subpage_kind",
           "obs_transition_order",
+          "obs_source_order",
           "large_numbers"
         ],
         "optionHook": "normalize_subpage_options"

@@ -1,6 +1,5 @@
 import { companionMetricForEntity } from "../model/companion_card_codec";
-import { OBS_TRANSITION_SELECT } from "../model/companion_card_codec";
-import { OBS_TRANSITION_SUBPAGE_KIND, obsTransitionSubpage, orderedTransitions, setTransitionPreferences, transitionCatalogue } from "../model/obs_transition_subpage";
+import { OBS_SUBPAGES, type OBSSubpageKind, obsSubpageKind, orderedOBSTiles, setOBSSubpagePreferences, obsSubpageCatalogue } from "../model/obs_live_subpage";
 import type { CompanionAction } from "../api/companion_catalogue";
 import type { ConfigModalTabOptionsFeature } from "../application/config_modal_tab_options";
 import { renderCompanionStorageSelector } from "./companion_storage";
@@ -90,7 +89,9 @@ export function registerSubpageCardTypes(
             b.options = "";
         },
         renderSettings: function (this: any, panel?: any, b?: any, slot?: any, helpers?: any) {
-            if (obsTransitionSubpage(b.options)) {
+            const liveKind = obsSubpageKind(b.options);
+            if (liveKind) {
+                const pageType = OBS_SUBPAGES[liveKind];
                 helpers.renderCardTextField(panel, b, helpers, SUBPAGE_CARD_METADATA.labelField);
                 helpers.renderCardIconPicker(panel, b, helpers, SUBPAGE_CARD_METADATA.icon);
                 const list = panel.ownerDocument.createElement("div") as HTMLDivElement;
@@ -98,25 +99,25 @@ export function registerSubpageCardTypes(
                 panel.appendChild(list);
                 void loadActions().catch(() => []).then(actions => {
                     if (!list.isConnected) return;
-                    const transitions = transitionCatalogue(actions);
-                    if (!transitions.length) {
-                        list.textContent = "Connect OBS to customise the transition list.";
+                    const entries = obsSubpageCatalogue(liveKind, actions);
+                    if (!entries.length) {
+                        list.textContent = "No " + pageType.label.toLowerCase() + " available from OBS.";
                         return;
                     }
-                    list.appendChild(helpers.fieldLabel("Transitions"));
+                    list.appendChild(helpers.fieldLabel(pageType.label));
                     const note = list.ownerDocument.createElement("p");
                     note.className = "sp-setting-note";
-                    note.textContent = "Hide or reorder transitions. New transitions fill available spaces automatically.";
+                    note.textContent = "Hide or reorder cards. New cards fill available spaces automatically.";
                     list.appendChild(note);
-                    const key = (id: string) => id.slice(OBS_TRANSITION_SELECT.length);
+                    const key = (id: string) => id.slice(pageType.prefix.length);
                     modalTabs.renderModalTabSettings(list, b, helpers, {
-                        definitions: () => transitions.map(item => ({ value: key(item.id), label: item.label })),
-                        tabs: () => orderedTransitions(transitions, b.options).map(item => key(item.id)),
+                        definitions: () => entries.map(item => ({ value: key(item.id), label: item.label })),
+                        tabs: () => orderedOBSTiles(liveKind, entries, b.options).map(item => key(item.id)),
                         normalizeOptions: (options: string) => options,
                         setTabs: (card: { options: string }, visible: string[]) => {
-                            card.options = setTransitionPreferences(card.options, transitions, visible);
+                            card.options = setOBSSubpagePreferences(liveKind, card.options, entries, visible);
                         },
-                        idPrefix: "obs-transition-list-", hideHeading: true, allowEmpty: true,
+                        idPrefix: "obs-subpage-list-", hideHeading: true, allowEmpty: true,
                     });
                 });
                 appendEditSubpageButton(panel, slot);
@@ -279,17 +280,22 @@ export function registerSubpageCardTypes(
             b.options = setConfigOptionValue(b.options, SUBPAGE_CONNECTOR_OPTION, "mac_companion");
         },
     });
-    registry.register("companion_obs_transitions", {
-        ...registeredSubpageDefinition,
-        pickerKey: null,
-        label: "Transitions",
-        onSelect: function (b: { label: string; icon: string; options: string }) {
-            b.label = "Transitions";
-            b.icon = "Flip Horizontal";
-            b.options = setConfigOptionValue(b.options, SUBPAGE_CONNECTOR_OPTION, "mac_companion");
-            b.options = setConfigOptionValue(b.options, SUBPAGE_KIND_OPTION, OBS_TRANSITION_SUBPAGE_KIND);
-        },
-    });
+    function obsSubpageDefinition(kind: OBSSubpageKind) {
+        const pageType = OBS_SUBPAGES[kind];
+        return {
+            ...registeredSubpageDefinition,
+            pickerKey: null,
+            label: pageType.label,
+            onSelect: function (b: { label: string; icon: string; options: string }) {
+                b.label = pageType.label;
+                b.icon = pageType.icon;
+                b.options = setConfigOptionValue(b.options, SUBPAGE_CONNECTOR_OPTION, "mac_companion");
+                b.options = setConfigOptionValue(b.options, SUBPAGE_KIND_OPTION, kind);
+            },
+        };
+    }
+    registry.register("companion_obs_transitions", obsSubpageDefinition("obs_transitions"));
+    registry.register("companion_obs_sources", obsSubpageDefinition("obs_sources"));
     function subpageBadgeLabelHtml(this: any, helpers?: any, label?: any) {
         return '<span class="sp-btn-label-row"><span class="sp-btn-label">' +
             helpers.escHtml(label) +

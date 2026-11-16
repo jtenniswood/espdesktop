@@ -11,7 +11,7 @@ import {
     copyLargeNumbersOption,
     largeNumbersExplicitlyDisabled,
 } from "./config_option_core";
-import { OBS_TRANSITION_ORDER, OBS_TRANSITION_SUBPAGE_KIND, transitionPreferences } from "../model/obs_transition_subpage";
+import { OBS_SUBPAGES, obsSubpageKind, obsSubpagePreferences } from "../model/obs_live_subpage";
     // ── Subpage Card Options ───────────────────────────────────────────
     function normalizeSubpageKind(this: any, value?: any) {
         value = String(value || "").trim();
@@ -46,7 +46,7 @@ import { OBS_TRANSITION_ORDER, OBS_TRANSITION_SUBPAGE_KIND, transitionPreference
         { value: "sensor", label: "Sensor", preset: { label: "Sensor", icon: "Gauge", entityDomains: ["sensor", "binary_sensor", "text_sensor"], placeholder: "e.g. sensor.open_windows" } },
         { value: "image", label: "Camera/Image", preset: { label: "Camera", icon: "Camera", entityDomains: ["camera", "image"], placeholder: "e.g. camera.front_door" } },
         { value: "companion_stat", label: "Companion Stat" },
-        { value: OBS_TRANSITION_SUBPAGE_KIND, label: "Transitions" },
+        ...Object.entries(OBS_SUBPAGES).map(([value, { label }]) => ({ value, label })),
     ];
     function subpageKindOptions(this: any, connector?: any, homeAssistantConfigured?: any) {
         var normalizedConnector: any = normalizeSubpageConnector(connector);
@@ -54,7 +54,7 @@ import { OBS_TRANSITION_ORDER, OBS_TRANSITION_SUBPAGE_KIND, transitionPreference
         return SUBPAGE_KIND_PRESET_DEFINITIONS.filter(function (definition: any) {
             if (normalizedConnector === "mac_companion" || !includeHomeAssistantKinds)
                 return definition.value === "";
-            return definition.value !== "companion_stat" && definition.value !== OBS_TRANSITION_SUBPAGE_KIND;
+            return definition.value !== "companion_stat" && !(definition.value in OBS_SUBPAGES);
         }).map(function (this: any, definition?: any) {
             return [definition.value, definition.label];
         });
@@ -91,8 +91,9 @@ import { OBS_TRANSITION_ORDER, OBS_TRANSITION_SUBPAGE_KIND, transitionPreference
         var kind: any = normalizeSubpageKind(configOptionValue(options, SUBPAGE_KIND_OPTION));
         if (kind)
             out = setConfigOptionValue(out, SUBPAGE_KIND_OPTION, kind);
-        if (kind === OBS_TRANSITION_SUBPAGE_KIND)
-            out = setConfigOptionValue(out, OBS_TRANSITION_ORDER, transitionPreferences(options).join("|"));
+        const liveKind = obsSubpageKind(out);
+        if (liveKind)
+            out = setConfigOptionValue(out, OBS_SUBPAGES[liveKind].order, obsSubpagePreferences(liveKind, options).join("|"));
         if (sensor && sensor !== "indicator" && precision !== "text" &&
             (configOptionEnabled(options, SENSOR_LARGE_NUMBERS_OPTION) || largeNumbersExplicitlyDisabled(options))) {
             out = copyLargeNumbersOption(out, options);

@@ -98,6 +98,8 @@ In the OBS Studio card menu, choose **Studio Mode** to add **Toggle Studio Mode*
 
 Choose **Add Card → OBS Studio → Transitions** to add a subpage that fills empty cells with the current transitions from OBS. Edit the **Transitions** card to hide transitions or move your favourites to the front. New transitions appear when space is available. Use **Edit Subpage** to place your own cards alongside the automatic list.
 
+Use **Add Card → OBS Studio → Sources** for an automatically populated page of the current scene’s sources. It follows Preview in Studio Mode and Program in normal mode. Tap a source to show or hide it in OBS. Enabled sources light up. Edit the Sources card to hide or reorder tiles on the panel.
+
 A **Mute** card changes the selected input in the OBS mixer. The ON colour and microphone icon show an unmuted input. Muting the input turns the colour off and shows a crossed-out microphone. Use the mic your broadcast captures when setting up the card, especially if it differs from the Mac’s default mic. Scene and input bindings are kept when a target is unavailable.
 
 Choose **Level** to adjust a named mixer input. The fill turns grey while the input is muted, and you can still drag to adjust the level.

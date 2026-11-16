@@ -170,7 +170,7 @@ final class OBSWebSocket: OBSWebSocketTransport {
             guard rpcVersion >= 1 else { throw Failure.unsupportedProtocol }
             receivedHello = true
             // General, Config, Scenes, Inputs, Transitions, Outputs, UI.
-            var identify: Fields = ["rpcVersion": 1, "eventSubscriptions": 1 | 2 | 4 | 8 | 16 | 64 | 1024]
+            var identify: Fields = ["rpcVersion": 1, "eventSubscriptions": 1 | 2 | 4 | 8 | 16 | 64 | 128 | 1024]
             if let auth = fields["authentication"] as? Fields {
                 guard let salt = auth["salt"] as? String,
                       let challenge = auth["challenge"] as? String else { throw Failure.invalidMessage }

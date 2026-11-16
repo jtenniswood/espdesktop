@@ -43,8 +43,10 @@ class CompanionCatalogueLimits {
  public:
   bool retain(std::string_view id, bool input_device) {
     const bool obs = id.rfind("obs.", 0) == 0;
-    auto &count = input_device ? inputs_ : (obs ? obs_ : mac_);
-    const size_t limit = input_device ? 16 : 256;
+    const bool obs_source = id == "obs.sources" || id.rfind("obs.source.", 0) == 0;
+    auto &count = input_device ? inputs_ : obs_source ? obs_sources_ : obs ? obs_ : mac_;
+    // 48 scene items, up to 48 visibility markers, and one list marker.
+    const size_t limit = input_device ? 16 : obs_source ? 97 : 256;
     if (count >= limit) return false;
     ++count;
     return true;
@@ -53,6 +55,7 @@ class CompanionCatalogueLimits {
  private:
   size_t inputs_{0};
   size_t obs_{0};
+  size_t obs_sources_{0};
   size_t mac_{0};
 };
 

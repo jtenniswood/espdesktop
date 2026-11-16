@@ -129,6 +129,27 @@ final class OBSConnection: ObservableObject {
         }
     }
 
+    static let sourcePrefix = "obs.source."
+
+    struct SceneSource: Equatable {
+        let id: Int
+        let key: String
+        let name: String
+        let enabled: Bool
+
+        init?(fields: OBSWebSocket.Fields, scene: String) {
+            guard let id = fields["sceneItemId"] as? Int, id >= 0,
+                  let name = fields["sourceName"] as? String,
+                  let enabled = fields["sceneItemEnabled"] as? Bool else { return nil }
+            let identity = fields["sourceUuid"] as? String ?? name
+            self.id = id
+            self.name = name
+            self.enabled = enabled
+            self.key = SHA256.hash(data: Data("\(scene):\(id):\(identity)".utf8)).prefix(16)
+                .map { String(format: "%02x", $0) }.joined()
+        }
+    }
+
     struct State: Equatable {
         let collection: String
         let scenes: [Target]
@@ -150,6 +171,8 @@ final class OBSConnection: ObservableObject {
         var selectedTransition: String?
         var transitionNames: [String] = []
         var transitionToken = UUID()
+        var sources: [SceneSource]?
+        var sourceToken = UUID()
         var takeToken = UUID()
         var adaptiveSceneToken = UUID()
         var breakCard: BreakCard?
@@ -186,6 +209,8 @@ final class OBSConnection: ObservableObject {
             if recordingPaused { return "Recording · Paused" }
             return recording ? "Recording · Active" : "Recording · Idle"
         }
+
+        var sourceScene: Target? { studioMode ? preview : program }
 
         var canTakePreview: Bool {
             studioMode && !transitionInProgress && preview != nil && preview?.id != program?.id
@@ -264,6 +289,14 @@ final class OBSConnection: ObservableObject {
                     ? "" : "." + state.transitionToken.uuidString.lowercased()
                 actions.append((savedID + token, name))
                 if name == state.selectedTransition { actions.append(("obs.transition.selected", savedID)) }
+            }
+        }
+        if let state, let sources = state.sources {
+            actions.append(("obs.sources", state.sourceScene?.name ?? ""))
+            let suffix = state.transitionInProgress ? "" : "." + state.sourceToken.uuidString.lowercased()
+            for source in sources {
+                actions.append((sourcePrefix + source.key + suffix, source.name))
+                if source.enabled { actions.append((sourcePrefix + "visible." + source.key, source.name)) }
             }
         }
         return actions
@@ -512,6 +545,8 @@ final class OBSConnection: ObservableObject {
     private var cyclingTransition = false
     private var transitionProbe: Task<Void, Never>?
     private var transitionCatalogueTask: Task<Void, Never>?
+    private var sourceTask: Task<Void, Never>?
+    private var changingSource = false
     private let transitionProbeInterval: Duration
     private struct PendingReplay {
         let id = UUID()
@@ -1145,6 +1180,8 @@ final class OBSConnection: ObservableObject {
         transitionProbe = nil
         transitionCatalogueTask?.cancel()
         transitionCatalogueTask = nil
+        sourceTask?.cancel()
+        sourceTask = nil
         bufferedEvents.removeAll()
         bufferedMutes.removeAll()
         bufferedFaders.removeAll()
@@ -1233,6 +1270,7 @@ final class OBSConnection: ObservableObject {
                 state = snapshot
                 updateTransitionProbe()
                 monitorTransitionCatalogue(generation: active)
+                refreshSources()
                 status = .connected
             } catch {
                 guard active == generation else { return }
@@ -1260,6 +1298,9 @@ final class OBSConnection: ObservableObject {
         case "SceneCreated", "SceneRemoved", "SceneNameChanged", "SceneListChanged",
              "InputCreated", "InputRemoved", "InputNameChanged", "StudioModeStateChanged", "CurrentProfileChanged":
             if !collectionChanging { sync() }
+        case "SceneItemCreated", "SceneItemRemoved", "SceneItemListReindexed", "SceneItemEnableStateChanged":
+            if let scene = state?.sourceScene, fields["sceneUuid"] as? String == scene.id ||
+                fields["sceneName"] as? String == scene.name { refreshSources() }
         case "InputMuteStateChanged":
             guard let id = fields["inputUuid"] as? String,
                   let muted = fields["inputMuted"] as? Bool else { return }
@@ -1318,9 +1359,16 @@ final class OBSConnection: ObservableObject {
                         abandonBreak()
                     }
                 }
+                let previousSourceScene = current.sourceScene
                 Self.apply(type, fields: fields, to: &current)
+                let sourceSceneChanged = previousSourceScene != current.sourceScene
+                if sourceSceneChanged {
+                    current.sourceToken = UUID()
+                    current.sources = nil
+                }
                 updateBreakCard(&current)
                 state = current
+                if sourceSceneChanged { refreshSources() }
                 if type == "SceneTransitionStarted" || type == "SceneTransitionEnded" { updateTransitionProbe() }
                 if type == "ReplayBufferStateChanged", current.replayBufferActive == false,
                    pendingReplay != nil || replayDeadline != nil {
@@ -1335,6 +1383,57 @@ final class OBSConnection: ObservableObject {
             }
         default: break
         }
+    }
+
+    private func sceneSources(_ scene: Target) async throws -> [SceneSource]? {
+        let response = try await socket.request("GetSceneItemList", fields: ["sceneUuid": scene.id])
+        guard let items = response["sceneItems"] as? [OBSWebSocket.Fields] else { return nil }
+        return Array(items.reversed().lazy.compactMap { SceneSource(fields: $0, scene: scene.id) }.prefix(48))
+    }
+
+    private func refreshSources() {
+        sourceTask?.cancel()
+        guard let scene = state?.sourceScene else { return }
+        let active = generation
+        sourceTask = Task { [weak self] in
+            // OBS can send a burst of events after rearranging a scene.
+            do { try await Task.sleep(for: .milliseconds(100)) } catch { return }
+            guard let self, active == generation,
+                  let items = try? await sceneSources(scene),
+                  !Task.isCancelled, active == generation,
+                  var current = state, current.sourceScene == scene,
+                  current.sources != items else { return }
+            current.sources = items
+            current.sourceToken = UUID()
+            state = current
+        }
+    }
+
+    func toggleSource(actionID: String, isValid: () -> Bool) async -> Bool {
+        guard let separator = actionID.lastIndex(of: "."), isValid(), !changingSource,
+              let shown = state, !shown.transitionInProgress, let scene = shown.sourceScene else { return false }
+        let id = String(actionID[..<separator])
+        guard let token = Self.controlToken(actionID, for: id), token == shown.sourceToken,
+              let source = shown.sources?.first(where: { Self.sourcePrefix + $0.key == id }) else { return false }
+        let active = generation
+        changingSource = true
+        defer {
+            changingSource = false
+            if active == generation { refreshSources() }
+        }
+        let preview = shown.studioMode
+        let request = preview ? "GetCurrentPreviewScene" : "GetCurrentProgramScene"
+        guard let items = try? await sceneSources(scene), items.contains(source),
+              let mode = try? await snapshotRequest("GetStudioModeEnabled", generation: active),
+              mode["studioModeEnabled"] as? Bool == preview,
+              let actual = try? await snapshotRequest(request, generation: active),
+              actual["sceneUuid"] as? String == scene.id,
+              isValid(), active == generation, let current = state,
+              current.sourceToken == token, !current.transitionInProgress,
+              !takingPreview, !changingStudioMode, !breakInFlight else { return false }
+        return await command("SetSceneItemEnabled", fields: [
+            "sceneUuid": scene.id, "sceneItemId": source.id, "sceneItemEnabled": !source.enabled,
+        ])
     }
 
     private func monitorTransitionCatalogue(generation active: UUID) {

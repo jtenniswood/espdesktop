@@ -1,4 +1,4 @@
-import { obsTransitionSubpage, orderedTransitions, transitionCatalogue } from "../model/obs_transition_subpage";
+import { OBS_SUBPAGES, obsSubpageKind, orderedOBSTiles, obsSubpageCatalogue } from "../model/obs_live_subpage";
 import { removeRetiredCards } from "../features/retired_cards";
 import { cardContractTypeRetired } from "../generated/card_contract";
 import { cardRequiresHomeAssistant } from "../model/legacy_home_assistant";
@@ -447,16 +447,16 @@ export function createPreviewRenderFeature(dependencies: PreviewRenderDependenci
         const subpage = pageKey ? getSubpage(pageKey) : null;
         const owner = previewSubpageOwner(pageKey, state.buttons, getSubpage);
         const shortcutOwner = appShortcutPageOwner(owner);
-        const transitionPage = obsTransitionSubpage(owner?.options);
-        const liveActions = subpage && (transitionPage || shortcutOwner === "com.apple.finder")
+        const liveKind = obsSubpageKind(owner?.options);
+        const liveActions = subpage && (liveKind || shortcutOwner === "com.apple.finder")
             ? dependencies.liveGeneratedActions() : [];
         const liveFolders = subpage && shortcutOwner === "com.apple.finder"
             ? finderFolderPreview(subpage.order, c.grid, c.buttons, dependencies.layout.totalSlots, liveActions)
-            : subpage && transitionPage
+            : subpage && liveKind
                 ? liveSubpagePreview(c.grid, c.buttons, dependencies.layout.totalSlots,
-                    orderedTransitions(transitionCatalogue(liveActions), owner?.options))
+                    orderedOBSTiles(liveKind, obsSubpageCatalogue(liveKind, liveActions), owner?.options))
                 : undefined;
-        const selectedTransition = transitionPage && liveActions.find(action => action.id === "obs.transition.selected")?.label;
+        const selectedTransition = liveKind === "obs_transitions" && liveActions.find(action => action.id === "obs.transition.selected")?.label;
         for (var pos: any = 0; pos < c.maxSlots; pos++) {
             var slot: any = c.grid[pos];
             if (slot === -1)
@@ -627,17 +627,18 @@ export function createPreviewRenderFeature(dependencies: PreviewRenderDependenci
                 if (folder) {
                     const tile = document.createElement("div");
                     tile.className = "sp-live-folder-preview";
-                    tile.title = transitionPage ? "Automatic transition. Click the cell to add a saved tile."
+                    tile.title = liveKind ? "Automatic OBS card. Click the cell to add a saved tile."
                         : "Live Finder folder. Click the cell to add a saved tile.";
                     const icon = document.createElement("span");
-                    icon.className = "sp-btn-icon mdi mdi-" + iconSlug(companionCardDefaultIcon(transitionPage ? "obs_transition" : "folder"));
+                    icon.className = "sp-btn-icon mdi mdi-" + iconSlug(liveKind ? OBS_SUBPAGES[liveKind].icon : companionCardDefaultIcon("folder"));
                     icon.setAttribute("aria-hidden", "true");
                     const label = document.createElement("span");
                     label.className = "sp-btn-label";
                     label.textContent = folder.label;
                     tile.append(icon, label);
                     empty.style.backgroundColor = "#" + defaultCardBackgroundColor("companion", state);
-                    if (transitionPage && folder.id === selectedTransition) {
+                    if (folder.id === selectedTransition || (liveKind === "obs_sources" &&
+                        liveActions.some(action => action.id === folder.id.replace("obs.source.", "obs.source.visible.")))) {
                         const active = state.onColor || WEB_UI_COLORS.primary;
                         empty.style.backgroundColor = "#" + active;
                         tile.style.setProperty("--card-text-color", cardPreviewTextColor(active));

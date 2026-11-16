@@ -1,4 +1,4 @@
-import { transitionCatalogue } from "../model/obs_transition_subpage";
+import { obsSubpageCatalogue } from "../model/obs_live_subpage";
 import { targetedAudioCard } from "./companion_app_volume";
 import { childPageKey } from "../model/page_keys";
 import { renderCompanionStorageSelector } from "./companion_storage";
@@ -689,8 +689,10 @@ export function registerCompanionCardTypes(
 
     function publishLiveSubpageActions(actions: readonly CompanionAction[]): boolean {
         return publishGeneratedActions([
-            ...actions.filter(action => action.id.startsWith(COMPANION_FOLDER_PREFIX) || action.id === "obs.transition.selected"),
-            ...transitionCatalogue(actions),
+            ...actions.filter(action => action.id.startsWith(COMPANION_FOLDER_PREFIX) ||
+                action.id === "obs.transition.selected" || action.id.startsWith("obs.source.visible.")),
+            ...obsSubpageCatalogue("obs_transitions", actions),
+            ...obsSubpageCatalogue("obs_sources", actions),
         ]);
     }
 

@@ -15,6 +15,8 @@ private final class OBSPilotTransport: OBSWebSocketTransport {
     var breakRequests: [String] = []
     var afterMute: (() -> Void)?
     var transitionCursor = 1.0
+    var sourceItems: [String: [OBSWebSocket.Fields]] = [:]
+    var sourceWrites: [String] = []
     var transitionName = "Fade"
     var configuredTransitions = ["Fade", "Cut", "Slide"]
     var replayActive = false
@@ -55,6 +57,19 @@ private final class OBSPilotTransport: OBSWebSocketTransport {
             breakRequests.append("scene:" + target)
             if rejectProgramChange { throw OBSWebSocket.Failure.requestRejected(500) }
             updateProgram(target)
+            return [:]
+        case "GetSceneItemList":
+            let id = fields["sceneUuid"] as? String ?? ""
+            return ["sceneItems": sourceItems[id] ?? []]
+        case "SetSceneItemEnabled":
+            guard let scene = fields["sceneUuid"] as? String,
+                  let id = fields["sceneItemId"] as? Int,
+                  let enabled = fields["sceneItemEnabled"] as? Bool,
+                  let index = sourceItems[scene]?.firstIndex(where: { $0["sceneItemId"] as? Int == id })
+            else { throw OBSWebSocket.Failure.requestRejected(204) }
+            sourceWrites.append("\(scene):\(id):\(enabled)")
+            sourceItems[scene]?[index]["sceneItemEnabled"] = enabled
+            onEvent?("SceneItemEnableStateChanged", ["sceneUuid": scene])
             return [:]
         case "GetInputList":
             let inputs = hasAudioInput ? [["inputUuid": Self.mic, "inputName": "Desk Mic"]] : []
@@ -226,6 +241,45 @@ final class OBSProductionTests: XCTestCase {
         XCTAssertEqual(transport.programID, OBSPilotTransport.program)
         XCTAssertEqual(transport.preview, OBSPilotTransport.queued)
         XCTAssertFalse(transport.requests.contains("TriggerStudioModeTransition"))
+    }
+
+    @MainActor
+    func testSourcesFollowPreviewAndRejectStaleSceneOrVisibility() async throws {
+        let transport = OBSPilotTransport()
+        let program = OBSPilotTransport.program
+        let preview = OBSPilotTransport.queued
+        transport.sourceItems = [
+            preview: [["sceneItemId": 1, "sourceName": "Camera", "sceneItemEnabled": false]],
+            program: [["sceneItemId": 1, "sourceName": "Overlay", "sceneItemEnabled": true]],
+        ]
+        let connection = try await open(transport)
+        func publishedSource(named name: String) async throws -> String {
+            for _ in 0..<100 {
+                if let action = OBSConnection.controlActions(connection.state).first(where: {
+                    $0.id.hasPrefix(OBSConnection.sourcePrefix) &&
+                        !$0.id.hasPrefix("obs.source.visible.") && $0.label == name
+                }) { return action.id }
+                try await Task.sleep(for: .milliseconds(5))
+            }
+            return try XCTUnwrap(nil as String?, "Source catalogue did not arrive for \(name)")
+        }
+        let camera = try await publishedSource(named: "Camera")
+        transport.preview = program
+        let wrongScene = await connection.toggleSource(actionID: camera) { true }
+        XCTAssertFalse(wrongScene)
+        transport.preview = preview
+        let changed = await connection.toggleSource(actionID: camera) { true }
+        XCTAssertTrue(changed)
+        let staleVisibility = await connection.toggleSource(actionID: camera) { true }
+        XCTAssertFalse(staleVisibility)
+        XCTAssertEqual(transport.sourceWrites, ["\(preview):1:true"])
+        transport.studioMode = false
+        transport.onEvent?("StudioModeStateChanged", ["studioModeEnabled": false])
+        let overlay = try await publishedSource(named: "Overlay")
+        XCTAssertNotEqual(camera, overlay)
+        XCTAssertTrue(OBSConnection.controlActions(connection.state).contains {
+            $0.id.hasPrefix("obs.source.visible.") && $0.label == "Overlay"
+        })
     }
 
     @MainActor

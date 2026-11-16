@@ -649,13 +649,20 @@ inline bool companion_obs_scene_target(const std::string &id) {
   return companion_obs_audio_uuid(id, "obs.target.");
 }
 
-inline bool companion_obs_transition_target(std::string_view id) {
-  constexpr std::string_view prefix = "obs.transition.select.";
+inline bool companion_obs_hashed_target(std::string_view id, std::string_view prefix) {
   if (id.size() != prefix.size() + 32 || id.substr(0, prefix.size()) != prefix) return false;
   const auto key = id.substr(prefix.size());
   return std::all_of(key.begin(), key.end(), [](char ch) {
     return (ch >= '0' && ch <= '9') || (ch >= 'a' && ch <= 'f');
   });
+}
+
+inline bool companion_obs_transition_target(std::string_view id) {
+  return companion_obs_hashed_target(id, "obs.transition.select.");
+}
+
+inline bool companion_obs_source_target(std::string_view id) {
+  return companion_obs_hashed_target(id, "obs.source.");
 }
 
 inline bool companion_obs_scene_card(const std::string &id) {
@@ -670,7 +677,7 @@ inline bool companion_obs_break_active(std::string_view label) {
 inline bool companion_obs_tokenized_card(const std::string &id) {
   return id == "obs.take" || id == "obs.brb" || id == "obs.studio" || id == "obs.transition" ||
     id == "obs.replay.buffer" || companion_obs_output_card(id) || companion_obs_scene_target(id) ||
-    companion_obs_transition_target(id);
+    companion_obs_transition_target(id) || companion_obs_source_target(id);
 }
 
 inline const CompanionAction *companion_published_action(const CompanionRuntimeSnapshot &snapshot,
@@ -864,7 +871,8 @@ inline void companion_apply_card_focus(lv_obj_t *button, const std::string &acti
   if (show_focus && action_id != "obs.replay" && companion_card_focus_allowed(url_config)) {
     const std::string focus_id = url_config.empty() ? action_id : companion_url_card_focus_id(url_config);
     if (companion_obs_scene_card(action_id) || companion_obs_output_card(action_id) || action_id == "obs.studio" ||
-        action_id == "obs.brb" || action_id == "obs.replay.buffer" || companion_obs_transition_target(action_id)) {
+        action_id == "obs.brb" || action_id == "obs.replay.buffer" || companion_obs_transition_target(action_id) ||
+        companion_obs_source_target(action_id)) {
       const auto owned = snapshot ? CompanionRuntimeSnapshot{} : companion_runtime_snapshot();
       const auto &current = snapshot ? *snapshot : owned;
       if (companion_obs_output_card(action_id)) {
@@ -875,6 +883,8 @@ inline void companion_apply_card_focus(lv_obj_t *button, const std::string &acti
       } else if (action_id == "obs.brb") {
         const auto *action = companion_published_action(current, action_id);
         active = action && companion_obs_break_active(action->label);
+      } else if (companion_obs_source_target(action_id)) {
+        active = companion_published_action(current, "obs.source.visible." + action_id.substr(sizeof("obs.source.") - 1));
       } else if (companion_obs_transition_target(action_id)) {
         const auto *selected = companion_published_action(current, "obs.transition.selected");
         active = selected && selected->label == action_id;

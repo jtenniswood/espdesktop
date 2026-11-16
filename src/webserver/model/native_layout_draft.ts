@@ -1,4 +1,4 @@
-import { obsTransitionSubpage } from "./obs_transition_subpage";
+import { obsSubpageKind } from "./obs_live_subpage";
 import type { CardConfig } from "../contracts/types";
 import { CARD_CONFIG_FIELDS, emptyCardConfig } from "./card";
 import { cardTransferOwnsSubpage } from "./card_transfer";
@@ -105,7 +105,7 @@ export class NativeLayoutDraft {
       if (card.first !== 0 && this.records(K.Page).get(card.first!)?.first !== 0)
         throw new PanelConfigError("Subpages can be at most two levels deep.");
       if (!page) page = this.allocate({ kind: K.Page, first: card.first!, second: card.id!, flags: card.first === 0 ? ABSENT : 0 });
-      if (obsTransitionSubpage(config.options) && !page.third) {
+      if (obsSubpageKind(config.options) && !page.third) {
         page.flags = 1;
         page.third = this.intern("B");
       }
