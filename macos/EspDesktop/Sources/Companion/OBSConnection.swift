@@ -430,9 +430,10 @@ final class OBSConnection: ObservableObject {
             .removeDuplicates()
             .map { actions -> AnyPublisher<[CatalogueEntry], Never> in
                 let update = Just(actions)
-                if actions.contains(where: { $0.state == .takeTransitioning }) {
+                if actions.contains(where: { $0.state == .takeTransitioning || $0.state == .takeSameScene }) {
                     // A Cut can finish before the panel receives its busy state.
-                    // Let a settled update replace this one before it reaches the wire.
+                    // The Preview swap can also briefly match the previous Program.
+                    // Let the settled update replace either state before it reaches the wire.
                     return update.delay(for: .milliseconds(75), scheduler: DispatchQueue.main).eraseToAnyPublisher()
                 }
                 return update.eraseToAnyPublisher()

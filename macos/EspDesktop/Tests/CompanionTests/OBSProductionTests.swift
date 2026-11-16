@@ -971,7 +971,7 @@ final class OBSProductionTests: XCTestCase {
     }
 
     @MainActor
-    func testDisplaySkipsTheBusyStateForACutButPublishesItForALongerTransition() async throws {
+    func testDisplaySkipsBriefDisabledStatesForACutButShowsPersistentStates() async throws {
         let transport = OBSPilotTransport()
         let connection = try await open(transport, transitionProbeInterval: .seconds(30))
         var presentations: [OBSCardState] = []
@@ -985,9 +985,10 @@ final class OBSProductionTests: XCTestCase {
         XCTAssertEqual(presentations, [.takeReady])
 
         transport.onEvent?("SceneTransitionStarted", [:])
-        transport.updateProgram(OBSPilotTransport.queued)
         transport.onEvent?("CurrentPreviewSceneChanged", transport.scene(OBSPilotTransport.program))
         transport.onEvent?("SceneTransitionEnded", [:])
+        XCTAssertEqual(connection.state?.takePresentation, .takeSameScene)
+        transport.updateProgram(OBSPilotTransport.queued)
         for _ in 0..<100 where presentations.count < 2 { try await Task.sleep(for: .milliseconds(1)) }
         XCTAssertEqual(presentations, [.takeReady, .takeReady])
 
@@ -997,6 +998,13 @@ final class OBSProductionTests: XCTestCase {
             try await Task.sleep(for: .milliseconds(1))
         }
         XCTAssertEqual(presentations, [.takeReady, .takeReady, .takeTransitioning])
+
+        transport.onEvent?("CurrentPreviewSceneChanged", transport.scene(OBSPilotTransport.queued))
+        transport.onEvent?("SceneTransitionEnded", [:])
+        for _ in 0..<200 where presentations.last != .takeSameScene {
+            try await Task.sleep(for: .milliseconds(1))
+        }
+        XCTAssertEqual(presentations, [.takeReady, .takeReady, .takeTransitioning, .takeSameScene])
     }
 
     @MainActor
