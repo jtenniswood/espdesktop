@@ -8064,7 +8064,7 @@ async function assertOBSStarterPage(browser, firstRun = false) {
     await editFolder("Switching");
     const mainTile = page.locator('.sp-main [data-slot="1"]');
     const breakTile = page.locator('.sp-main [data-slot="2"]');
-    await mainTile.locator(".mdi-broadcast").waitFor();
+    await mainTile.locator(".mdi-image").waitFor();
     await breakTile.locator(".mdi-image").waitFor();
     await mainTile.getByText("Gameplay", { exact: true }).waitFor();
     await breakTile.getByText("Break Room", { exact: true }).waitFor();
@@ -8072,7 +8072,7 @@ async function assertOBSStarterPage(browser, firstRun = false) {
     const onColor = await colour(mainTile);
     const offColor = await colour(breakTile);
     assert.notEqual(onColor, offColor);
-    assert.equal(await mainTile.locator(".sp-obs-detail").innerText(), "Live");
+    assert.equal(await mainTile.locator(".sp-obs-detail").innerText(), "Scene");
     assert.equal(await breakTile.locator(".sp-obs-detail").innerText(), "Scene");
     await page.locator(".sp-main").getByText("Enable Studio Mode", { exact: true }).waitFor();
     await editCard(mainTile);
@@ -8097,7 +8097,7 @@ async function assertOBSStarterPage(browser, firstRun = false) {
     await editCard(mainTile);
     await page.waitForFunction(offColor =>
       getComputedStyle(document.querySelector('.sp-main [data-slot="1"]')).backgroundColor === offColor, offColor);
-    assert.equal(await mainTile.locator(".sp-obs-detail").innerText(), "Live");
+    assert.equal(await mainTile.locator(".sp-obs-detail").innerText(), "Scene");
     assert.equal(await colour(mainTile), offColor);
     assert.equal(await colour(breakTile), onColor);
     await page.getByRole("button", { name: "Custom Colours", exact: true }).click();
@@ -8108,8 +8108,10 @@ async function assertOBSStarterPage(browser, firstRun = false) {
     studioProgram = away;
     await editCard(mainTile);
     await scene.locator(`option[value="obs.target.${main}"]`).waitFor({ state: "attached" });
-    await breakTile.getByText("Live", { exact: true }).waitFor();
-    await breakTile.locator(".mdi-broadcast").waitFor();
+    await page.waitForFunction(onColor =>
+      getComputedStyle(document.querySelector('.sp-main [data-slot="2"]')).backgroundColor === onColor, onColor);
+    await breakTile.getByText("Scene", { exact: true }).waitFor();
+    await breakTile.locator(".mdi-image").waitFor();
     await mainTile.locator(".mdi-image").waitFor();
     assert.equal(await mainTile.locator(".sp-obs-detail").innerText(), "Scene");
     assert.equal(await colour(breakTile), onColor);
@@ -8202,7 +8204,7 @@ async function assertOBSStarterPage(browser, firstRun = false) {
       "Scenes saves the hidden and reordered scene buttons");
     await editFolder("Scenes");
     await automaticTiles.getByText("Gameplay", { exact: true }).waitFor();
-    const sceneCards = automaticTiles.filter({ has: page.locator(".sp-obs-detail").filter({ hasText: /^(Scene|Live)$/ }) });
+    const sceneCards = automaticTiles.filter({ has: page.locator(".sp-obs-detail").filter({ hasText: /^Scene$/ }) });
     const sceneNames = () => sceneCards.locator(".sp-btn-label").allTextContents();
     const automaticTake = automaticTiles.filter({ has: page.getByText("Take Live", { exact: true }) });
     assert.equal(await automaticTake.getAttribute("data-pos"), "7");
@@ -8215,9 +8217,9 @@ async function assertOBSStarterPage(browser, firstRun = false) {
     const generatedProgram = automaticTiles.filter({ hasText: "Gameplay" });
     const generatedPreview = automaticTiles.filter({ hasText: "Break Room" });
     await page.clock.fastForward(30_000);
-    await generatedProgram.getByText("Live", { exact: true }).waitFor();
+    await generatedProgram.getByText("Scene", { exact: true }).waitFor();
     await generatedPreview.getByText("Scene", { exact: true }).waitFor();
-    await generatedProgram.locator(".mdi-broadcast").waitFor();
+    await generatedProgram.locator(".mdi-image").waitFor();
     await generatedPreview.locator(".mdi-image").waitFor();
     await page.waitForFunction(({ onColor, offColor }) => {
       const colours = new Map(Array.from(document.querySelectorAll(".sp-main [data-generated-card]"), tile =>
