@@ -7899,6 +7899,7 @@ async function assertOBSStarterPage(browser, firstRun = false) {
     ...(stopping ? [{ id: "obs.output.record", label: "Stopping" }] : []),
   ] }));
   const page = await context.newPage();
+  await page.clock.install();
   await installFakeEventSource(page);
   try {
     await page.goto("http://espdesktop.test/" + testCase.slug + "?events=1");
@@ -8064,6 +8065,7 @@ async function assertOBSStarterPage(browser, firstRun = false) {
     assert.deepEqual(await automaticTiles.allTextContents(), ["Wipe", "Cut"]);
     const savedCount = fixture.puts.length;
     transitions = [[slide, "Slide"], [fade, "Fade"], [wipe, "Wipe"]];
+    await page.clock.fastForward(30_000);
     await automaticTiles.getByText("Slide", { exact: true }).waitFor();
     assert.deepEqual(await automaticTiles.allTextContents(), ["Wipe", "Slide"]);
     assert.equal(fixture.puts.length, savedCount, "New transition catalogue states never rewrite the saved layout");
@@ -8081,6 +8083,7 @@ async function assertOBSStarterPage(browser, firstRun = false) {
     await automaticTiles.getByText("Overlay", { exact: true }).waitFor();
     assert.deepEqual(await automaticTiles.allTextContents(), ["Overlay"]);
     sources = [[game, "Game", true]];
+    await page.clock.fastForward(30_000);
     const gameTile = automaticTiles.filter({ hasText: "Game" });
     await gameTile.waitFor();
     assert.deepEqual(await automaticTiles.allTextContents(), ["Game"]);
@@ -8104,6 +8107,7 @@ async function assertOBSStarterPage(browser, firstRun = false) {
     assert.equal(await automaticTiles.locator(".sp-slider-fill").count(), 2);
     const beforeAudioChange = fixture.puts.length;
     mixerInputs = [[desktop, "Desktop Audio"], [music, "Music"], [gameAudio, "Game Audio"]];
+    await page.clock.fastForward(30_000);
     await automaticTiles.getByText("Game Audio", { exact: true }).waitFor();
     assert.deepEqual(await automaticTiles.allTextContents(), ["Music", "Game Audio"]);
     assert.equal(fixture.puts.length, beforeAudioChange);
@@ -8140,10 +8144,12 @@ async function assertOBSStarterPage(browser, firstRun = false) {
     scenes = [[welcome, "Welcome"]];
     selectedScene = welcome;
     studioProgram = "";
+    await page.clock.fastForward(30_000);
     await automaticTiles.getByText("Welcome", { exact: true }).waitFor();
     assert.deepEqual(await sceneNames(), ["Welcome"]);
     scenes = originalScenes;
     selectedScene = "";
+    await page.clock.fastForward(30_000);
     await automaticTiles.getByText("Gameplay", { exact: true }).waitFor();
     assert.deepEqual(await sceneNames(), ["Break Room", "Gameplay"]);
     assert.equal(fixture.puts.length, beforeCollectionChange);
