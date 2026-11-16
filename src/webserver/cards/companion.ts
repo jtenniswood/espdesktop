@@ -585,10 +585,8 @@ export function registerCompanionCardTypes(
             select.replaceChildren(new Option(placeholder, ""), ...entries);
             select.value = isNew ? "" : saved;
             select.disabled = targets.length === 0;
-            if (targets.length && audio) note.remove();
-            else note.textContent = targets.length
-                ? "Selects Preview in Studio Mode and Program otherwise."
-                : "Connect OBS in the Mac Companion and try again.";
+            if (targets.length) note.remove();
+            else note.textContent = "Connect OBS in the Mac Companion and try again.";
             cardUi.renderPreview();
         }).catch(() => { note.textContent = "Connect OBS in the Mac Companion and try again."; });
         helpers.renderCardIconPicker(panel, card, helpers, COMPANION_CARD_METADATA.icon);
