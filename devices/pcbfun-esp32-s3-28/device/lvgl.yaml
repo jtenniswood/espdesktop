@@ -1,0 +1,112 @@
+# Main screen for the 240x320 portrait panel: six controls in a 2x3 grid.
+
+lvgl:
+  top_layer:
+    widgets:
+      - label:
+          text: "-°C"
+          id: temperatures
+          text_font: font_text_body
+          align: top_left
+          x: 5
+          y: 3
+          text_color: $theme_text_primary_color
+          hidden: true
+      - label:
+          text: "--:--"
+          id: display_time
+          text_font: font_text_body
+          align: top_left
+          x: 0
+          y: 3
+          text_align: left
+          text_color: $theme_text_primary_color
+          clickable: false
+          hidden: true
+      - obj:
+          id: network_status_button
+          align: top_right
+          x: -4
+          y: 1
+          width: 32
+          height: 30
+          bg_opa: 0%
+          border_width: 0
+          pad_all: 0
+          scrollable: false
+          scrollbar_mode: "off"
+          clickable: true
+          hidden: true
+          on_press:
+            then:
+              - script.execute: network_status_open_info
+          widgets:
+            - label:
+                id: network_status_icon_label
+                text: "\U000F0928"
+                text_font: font_icon_status
+                align: center
+                text_align: center
+                text_color: $theme_text_primary_color
+      - obj:
+          id: night_mode_status_icon
+          align: top_right
+          x: 0
+          y: 0
+          width: 30
+          height: 30
+          bg_opa: 0%
+          border_width: 0
+          pad_all: 0
+          scrollable: false
+          scrollbar_mode: "off"
+          clickable: false
+          hidden: true
+          widgets:
+            - label:
+                id: night_mode_status_icon_label
+                text: "\U000F00DC"
+                text_font: font_icon_status
+                align: center
+                text_align: center
+                text_color: $theme_text_primary_color
+
+  pages:
+    - id: main_page
+      scrollbar_mode: "off"
+      layout:
+        type: grid
+        grid_columns: [FR(1), FR(1)]
+        grid_rows: [FR(1), FR(1), FR(1)]
+        pad_row: ${main_page_card_gap}
+        pad_column: ${main_page_card_gap}
+      width: 100%
+      bg_color: $theme_background_color
+      bg_opa: cover
+      pad_top: ${main_page_pad_top}
+      pad_bottom: 4
+      pad_left: 4
+      pad_right: 4
+      widgets:
+        - !include { file: ../../../common/device/button_widget.yaml, vars: { num: "1" } }
+        - !include { file: ../../../common/device/button_widget.yaml, vars: { num: "2" } }
+        - !include { file: ../../../common/device/button_widget.yaml, vars: { num: "3" } }
+        - !include { file: ../../../common/device/button_widget.yaml, vars: { num: "4" } }
+        - !include { file: ../../../common/device/button_widget.yaml, vars: { num: "5" } }
+        - !include { file: ../../../common/device/button_widget.yaml, vars: { num: "6" } }
+
+interval:
+  - interval: 50ms
+    then:
+      - lambda: |-
+          navigation_return_from_companion_shortcuts_if_needed(id(main_page)->obj);
+          navigation_open_companion_subpage_if_requested(id(main_page)->obj);
+  - interval: 500ms
+    then:
+      - lambda: |-
+          static bool previous_companion_connection = false;
+          const bool connected = companion_connected();
+          if (connected != previous_companion_connection) {
+            previous_companion_connection = connected;
+            id(clock_bar_apply).execute();
+          }

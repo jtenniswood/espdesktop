@@ -1,0 +1,83 @@
+# Compact type sizes for the small 240x320 portrait display.
+
+font:
+  - file: '${mdi_font_file}'
+    id: font_icon_main
+    size: 28
+    bpp: 4
+    glyphs: !include ../../../common/assets/icon_glyphs.yaml
+  - file: '${mdi_font_file}'
+    id: font_icon_card
+    size: 22
+    bpp: 4
+    glyphs: !include ../../../common/assets/climate_card_icon_glyphs.yaml
+  - file: '${mdi_font_file}'
+    id: font_icon_status
+    size: 18
+    bpp: 4
+    glyphs: !include ../../../common/assets/network_status_glyphs.yaml
+  - file: "gfonts://Roboto"
+    id: font_text_body
+    size: 14
+    bpp: 4
+    glyphs: !include ../../../common/assets/text_glyphs.yaml
+    extras:
+      - file: '${mdi_font_file}'
+        glyphs: !include ../../../common/assets/shortcut_glyphs.yaml
+      - file: "gfonts://Heebo"
+        glyphs: !include ../../../common/assets/hebrew_glyphs.yaml
+  - file: "gfonts://Roboto"
+    id: font_text_small
+    size: 11
+    bpp: 4
+    glyphs: !include ../../../common/assets/text_glyphs.yaml
+    extras:
+      - file: "gfonts://Heebo"
+        glyphs: !include ../../../common/assets/hebrew_glyphs.yaml
+  - file: "gfonts://Roboto@Light"
+    id: font_text_title
+    size: 22
+    bpp: 4
+    glyphs: !include ../../../common/assets/text_glyphs.yaml
+    extras:
+      - file: "gfonts://Heebo@Light"
+        glyphs: !include ../../../common/assets/hebrew_glyphs.yaml
+  - file: "gfonts://Roboto@Light"
+    id: font_cover_art_title
+    size: 32
+    bpp: 4
+    glyphs: !include ../../../common/assets/text_glyphs.yaml
+    extras:
+      - file: "gfonts://Heebo@Light"
+        glyphs: !include ../../../common/assets/hebrew_glyphs.yaml
+  - file: "gfonts://Roboto@Light"
+    id: font_media_control_title
+    size: 28
+    bpp: 4
+    glyphs: !include ../../../common/assets/text_glyphs.yaml
+    extras:
+      - file: "gfonts://Heebo@Light"
+        glyphs: !include ../../../common/assets/hebrew_glyphs.yaml
+  - file: "gfonts://Roboto@Light"
+    id: font_cover_art_artist
+    size: 16
+    bpp: 4
+    glyphs: !include ../../../common/assets/text_glyphs.yaml
+    extras:
+      - file: "gfonts://Heebo@Light"
+        glyphs: !include ../../../common/assets/hebrew_glyphs.yaml
+  - file: "gfonts://Roboto@Light"
+    id: font_number_value
+    size: 28
+    bpp: 4
+    glyphs:
+      - "0123456789.-°/%"
+      - ":"
+      - " dhms"
+  - file: "gfonts://Roboto@Light"
+    id: font_number_value_large
+    size: 50
+    bpp: 2
+    glyphs:
+      - "0123456789.-°/%"
+      - ":"

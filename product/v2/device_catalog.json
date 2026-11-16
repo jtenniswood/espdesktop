@@ -1281,6 +1281,139 @@
           }
         }
       }
+    },
+    "pcbfun-esp32-s3-28": {
+      "profiles": {
+        "platform": "esp32-s3",
+        "modal": "compact-portrait",
+        "fonts": "compact-panel"
+      },
+      "config": {
+        "slots": 6,
+        "capabilities": {
+          "imageSlots": 2,
+          "companion": true
+        },
+        "public": {
+          "name": "PCBfun ESP32-S3 2.8-inch",
+          "docsPath": "/screens/pcbfun-esp32-s3-28",
+          "screenSize": "2.8 inches",
+          "resolution": "240 x 320",
+          "orientation": "Portrait"
+        },
+        "layout": {
+          "cols": 2,
+          "rows": 3,
+          "firmwareGrid": "3x2"
+        },
+        "rotation": {
+          "enabled": true,
+          "options": [
+            "0",
+            "180"
+          ],
+          "default": "0",
+          "displayOffset": 0
+        },
+        "web": {
+          "dragMode": "displace",
+          "dragAnimation": true,
+          "screen": {
+            "width": "74%",
+            "aspect": "3/4"
+          },
+          "topbar": {
+            "height": 11,
+            "padding": "2.5cqw 1.5cqw 1cqw",
+            "fontSize": 4
+          },
+          "grid": {
+            "top": 12,
+            "compactTop": 1,
+            "left": 1.5,
+            "right": 1.5,
+            "bottom": 1,
+            "gap": 2,
+            "fr": "1fr"
+          },
+          "btn": {
+            "radius": 4,
+            "padding": 2.5,
+            "iconSize": 10,
+            "labelSize": 4,
+            "mediaTitleSize": 5.5,
+            "coverArtTitleSize": 8,
+            "coverArtArtistSize": 5,
+            "labelLines": 2,
+            "labelLinesDouble": 3,
+            "smallTextSize": 3.5
+          },
+          "emptyCell": {
+            "radius": 4
+          },
+          "sensorBadge": {
+            "top": 1,
+            "right": 1,
+            "fontSize": 3
+          },
+          "subpageBadge": {
+            "bottom": 1,
+            "right": 1,
+            "fontSize": 3.5
+          },
+          "continuousCorners": true
+        },
+        "firmware": {
+          "display": {
+            "wrapTallLabels": true,
+            "refreshRebuildsSubpages": true,
+            "subpageChevronX": 1,
+            "subpageChevronY": 0,
+            "subpageChevronTextWidthPercent": 92
+          },
+          "package": {
+            "firmwareVersion": "dev",
+            "subpageConfigChunks": 4,
+            "substitutions": {
+              "screen_width": "\"240\"",
+              "screen_height": "\"320\"",
+              "content_width": "\"220\"",
+              "setup_icon_font_id": "font_icon_main",
+              "setup_title_font_id": "font_text_title",
+              "setup_body_font_id": "font_text_body",
+              "setup_pad_row": "\"8\"",
+              "setup_loading_pad_row": "\"8\"",
+              "setup_action_button_width": "\"190\"",
+              "setup_action_button_height": "\"42\"",
+              "setup_action_button_radius": "\"8\"",
+              "icon_font": "font_icon_main",
+              "subpage_chevron_font": "font_icon_status",
+              "label_font": "font_text_body",
+              "media_title_font": "font_text_title",
+              "unit_font": "font_text_small",
+              "sensor_value_font": "font_number_value",
+              "padding": "5px",
+              "radius": "10px",
+              "main_page_card_gap": "\"5\"",
+              "main_page_pad_top": "\"38\"",
+              "main_page_compact_pad_top": "\"4\"",
+              "clock_bar_item_gap": "\"40\"",
+              "clock_bar_visual_gap": "\"5\"",
+              "clock_font_size": "\"68\"",
+              "clock_cx": "\"120\"",
+              "clock_cy": "\"160\"",
+              "screen_saver_clock_min_brightness": "\"1\"",
+              "screen_saver_clock_default_brightness": "\"35\"",
+              "screen_schedule_clock_min_brightness": "\"1\"",
+              "screen_schedule_clock_default_brightness": "\"10\"",
+              "card_curve_small_radius": "6px",
+              "card_curve_medium_radius": "8px",
+              "button_radius": "6px",
+              "image_card_slot_capacity": "2"
+            }
+          }
+        }
+      }
     }
   }
 }

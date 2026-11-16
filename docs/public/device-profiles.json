@@ -216,6 +216,30 @@
       "rotation": true,
       "ethernetManualInstall": false,
       "subpages": true
+    },
+    {
+      "slug": "pcbfun-esp32-s3-28",
+      "installSlug": "pcbfun-esp32-s3-28",
+      "name": "PCBfun ESP32-S3 2.8-inch",
+      "docsPath": "/screens/pcbfun-esp32-s3-28",
+      "screenSize": "2.8 inches",
+      "resolution": "240 x 320",
+      "orientation": "Portrait",
+      "slots": 6,
+      "imageSlots": 2,
+      "imageCardTypes": [
+        "image",
+        "media_cover_art"
+      ],
+      "grid": {
+        "rows": 3,
+        "cols": 2
+      },
+      "chipFamily": "ESP32-S3",
+      "relays": 0,
+      "rotation": true,
+      "ethernetManualInstall": false,
+      "subpages": true
     }
   ]
 }

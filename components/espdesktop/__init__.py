@@ -84,14 +84,21 @@ def _empty_template_preference_ids(text_configs):
 
 @coroutine_with_priority(CoroPriority.DIAGNOSTICS)
 async def to_code(config):
+    panel_config = config.get(CONF_PANEL_CONFIG)
     if "api" in CORE.config and "companion" in CORE.config:
         cg.add_define("USE_ESPDESKTOP_NATIVE_CARD_BUTTONS")
         cg.add_global(cg.RawStatement(
             '#include "esphome/components/espdesktop/native_api_setting.h"'
         ), prepend=True)
-        # Root plus two levels of subpages on the 4-inch S3. Firmware
-        # checks this against the generated UI profile at compile time.
-        capacity = 9 + 9 * 8 + 9 * 8 * 8
+        # Root plus two levels of subpages, matching the active panel's slot
+        # count and the reserved Back slot on each child page.
+        slots = len(panel_config[CONF_BUTTONS]) if panel_config is not None else 9
+        cards_per_subpage = max(0, slots - 1)
+        capacity = (
+            slots
+            + slots * cards_per_subpage
+            + slots * cards_per_subpage * cards_per_subpage
+        )
         cg.add_define("ESPDESKTOP_NATIVE_CARD_BUTTON_CAPACITY", capacity)
         for _ in range(capacity):
             CORE.register_platform_component("button", None)
@@ -127,7 +134,6 @@ async def to_code(config):
     await cg.register_component(var, config)
     cg.add(var.set_web_auth_credentials(username, password))
 
-    panel_config = config.get(CONF_PANEL_CONFIG)
     if panel_config is not None:
         # Every translation unit includes these generated defines through the
         # component header, so the application's field layout stays consistent.

@@ -1,0 +1,249 @@
+# =============================================================================
+# DEVICE - PCBfun / LCDWiki ESP32-S3 2.8-inch touchscreen
+# =============================================================================
+# ESP32-S3 N16R8 with an ILI9341V 240x320 SPI panel and FT6336G touch.
+# =============================================================================
+
+substitutions:
+  espdesktop_component_url: "https://github.com/jtenniswood/espdesktop"
+  espdesktop_component_ref: "main"
+  mdi_font_file: "https://cdn.jsdelivr.net/npm/@mdi/font@7.4.47/fonts/materialdesignicons-webfont.ttf"
+
+esp32:
+  board: esp32-s3-devkitc-1
+  flash_size: 16MB
+  framework:
+    type: esp-idf
+    advanced:
+      loop_task_stack_size: 16384
+    sdkconfig_options:
+      CONFIG_MBEDTLS_EXTERNAL_MEM_ALLOC: "y"
+      CONFIG_MBEDTLS_HARDWARE_AES: "n"
+      CONFIG_ESP_TASK_WDT_TIMEOUT_S: "30"
+      CONFIG_ESP_WIFI_STATIC_RX_BUFFER_NUM: "8"
+      CONFIG_ESP_WIFI_RX_BA_WIN: "16"
+      CONFIG_SPIRAM_TRY_ALLOCATE_WIFI_LWIP: "y"
+      CONFIG_SPIRAM_USE_MALLOC: "y"
+      CONFIG_SPIRAM_MALLOC_ALWAYSINTERNAL: "0"
+      CONFIG_SPIRAM_MALLOC_RESERVE_INTERNAL: "32768"
+      CONFIG_SPIRAM_FETCH_INSTRUCTIONS: "y"
+      CONFIG_SPIRAM_RODATA: "y"
+
+external_components:
+  - source:
+      type: git
+      url: ${espdesktop_component_url}
+      ref: ${espdesktop_component_ref}
+      path: components
+    components: [espdesktop, web_server_idf, artwork_image, companion, captive_portal]
+    refresh: 1s
+
+companion:
+  id: mac_companion
+  port: 8443
+
+api:
+  encryption: {}
+  reboot_timeout: 0s
+  max_connections: 3
+  max_send_queue: 12
+
+espdesktop:
+  id: espdesktop_app
+  panel_config:
+    on_layout_changed:
+      - script.execute: refresh_subpage_grid
+    device_profile: ${device_slug}
+    storage: card_images
+    button_order: button_order
+    button_on_color: button_on_color
+    buttons:
+      - config: button_1_config
+        subpage_chunks: [subpage_1_config, subpage_1_config_ext, subpage_1_config_ext_2, subpage_1_config_ext_3]
+      - config: button_2_config
+        subpage_chunks: [subpage_2_config, subpage_2_config_ext, subpage_2_config_ext_2, subpage_2_config_ext_3]
+      - config: button_3_config
+        subpage_chunks: [subpage_3_config, subpage_3_config_ext, subpage_3_config_ext_2, subpage_3_config_ext_3]
+      - config: button_4_config
+        subpage_chunks: [subpage_4_config, subpage_4_config_ext, subpage_4_config_ext_2, subpage_4_config_ext_3]
+      - config: button_5_config
+        subpage_chunks: [subpage_5_config, subpage_5_config_ext, subpage_5_config_ext_2, subpage_5_config_ext_3]
+      - config: button_6_config
+        subpage_chunks: [subpage_6_config, subpage_6_config_ext, subpage_6_config_ext_2, subpage_6_config_ext_3]
+
+esphome:
+  name: ${name}
+  friendly_name: ${friendly_name}
+  build_flags:
+    - "-DESPDESKTOP_MAX_GRID_SLOTS=6"
+    - "-DESPDESKTOP_IMAGE_CARD_MAX_CONTEXTS=2"
+    - "-DESPDESKTOP_LOW_HEAP_MEDIA_CONTROL=1"
+    - "-mtext-section-literals"
+  on_boot:
+    - priority: 300
+      then:
+        - lambda: espdesktop::home_assistant::configure_native_api_at_boot();
+    - priority: -100
+      then:
+        - lambda: 'id(screen_rotation_ready) = true;'
+        - script.execute: apply_screen_rotation
+        - script.execute: clock_bar_apply
+
+psram:
+  mode: octal
+  speed: 80MHz
+
+ota:
+  - platform: esphome
+    on_begin:
+      then:
+        - script.execute: show_update_writing
+        - script.wait: show_update_writing
+    on_end:
+      then:
+        - globals.set:
+            id: firmware_update_complete_pending
+            value: 'true'
+        - lambda: 'global_preferences->sync();'
+        - lambda: |-
+            esp_sleep_enable_timer_wakeup(100000);
+            esp_deep_sleep_start();
+    on_error:
+      then:
+        - script.execute: show_update_failed
+  - platform: http_request
+    on_begin:
+      then:
+        - script.execute: show_update_writing
+        - script.wait: show_update_writing
+    on_end:
+      then:
+        - globals.set:
+            id: firmware_update_complete_pending
+            value: 'true'
+        - lambda: 'global_preferences->sync();'
+        - lambda: |-
+            esp_sleep_enable_timer_wakeup(100000);
+            esp_deep_sleep_start();
+    on_error:
+      then:
+        - script.execute: show_update_failed
+
+safe_mode:
+  id: pcbfun_28_safe_mode
+  boot_is_good_after: 10s
+
+packages:
+  core_infra: !include ../../../common/device/core_infra.yaml
+
+logger:
+  hardware_uart: USB_SERIAL_JTAG
+
+wifi:
+  use_psram: true
+
+output:
+  - platform: ledc
+    pin:
+      number: GPIO45
+      ignore_strapping_warning: true
+    id: gpio_backlight_pwm
+    frequency: 1000Hz
+    min_power: 0.01
+    zero_means_zero: true
+
+light:
+  - platform: monochromatic
+    output: gpio_backlight_pwm
+    name: Display Backlight
+    icon: mdi:lightbulb-on
+    id: display_backlight
+    restore_mode: RESTORE_DEFAULT_ON
+    default_transition_length: 0s
+    gamma_correct: 1.0
+    on_turn_on: !include ../../../common/device/display_backlight_on.yaml
+    on_turn_off:
+      then:
+        - script.execute: display_backlight_handle_off
+    on_state:
+      then:
+        - script.execute: display_backlight_handle_state
+
+spi:
+  - id: lcd_spi
+    clk_pin: GPIO12
+    mosi_pin: GPIO11
+    miso_pin: GPIO13
+
+i2c:
+  - id: touchscreen_i2c
+    sda: GPIO16
+    scl: GPIO15
+    frequency: 400kHz
+
+touchscreen:
+  - platform: ft63x6
+    id: my_touchscreen
+    display: my_display
+    update_interval: 16ms
+    reset_pin: GPIO18
+    interrupt_pin: GPIO17
+    calibration:
+      x_min: 0
+      x_max: 240
+      y_min: 0
+      y_max: 320
+    transform:
+      mirror_x: false
+      mirror_y: false
+    on_touch:
+      - script.execute: screensaver_wake
+
+display:
+  - platform: mipi_spi
+    model: ili9341
+    id: my_display
+    spi_id: lcd_spi
+    cs_pin: GPIO10
+    dc_pin:
+      number: GPIO46
+      ignore_strapping_warning: true
+    dimensions:
+      width: 240
+      height: 320
+    data_rate: 40MHz
+    color_order: bgr
+    invert_colors: false
+    color_depth: 16
+    buffer_size: 20%
+    update_interval: never
+    auto_clear_enabled: false
+
+lvgl:
+  id: main_lvgl
+  setup_priority: 230
+  buffer_size: 20%
+  on_draw_end:
+    - lambda: |-
+        #ifdef USE_COMPANION
+        companion_focus_frame_presented();
+        #endif
+  displays: my_display
+  rotation: 0
+  touchscreens:
+    - touchscreen_id: my_touchscreen
+      long_press_time: 3s
+
+script:
+  - id: apply_screen_rotation
+    then:
+      - !include
+        file: ../../../common/device/display_rotation_action.yaml
+        vars:
+          hardware_rotation_offset: 0
+
+select:
+  - !include
+    file: ../../../common/device/screen_rotation_select.yaml
+    vars:
+      rotation_refresh_script: clock_bar_apply

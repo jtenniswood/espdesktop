@@ -1,0 +1,15 @@
+# Production package entry point for the PCBfun ESP32-S3 2.8-inch display.
+
+substitutions:
+  name: "espdesktop-pcbfun-28"
+  friendly_name: "EspDesktop PCBfun 2.8"
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+
+packages:
+  setup:
+    url: https://github.com/jtenniswood/espdesktop/
+    file: devices/pcbfun-esp32-s3-28/packages.yaml
+    refresh: 1s
