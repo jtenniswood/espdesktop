@@ -1574,16 +1574,17 @@ inline void grid_phase2(
           }
           if (sb_cfg.type == "subpage") {
             espdesktop::cards::navigation_driver_bind_subpage(sub_slot, sb_cfg, context);
-            bind_immediate_button_action(sub_slot.btn, [](lv_event_t *event) {
+            lv_obj_add_event_cb(sub_slot.btn, [](lv_event_t *event) {
               auto *button = static_cast<lv_obj_t *>(lv_event_get_target(event));
               const auto started = esphome::millis();
+              navigation_consume_touch_press(button);
               auto *screen = navigation_screen_for_button(button);
               if (screen && lv_obj_is_valid(screen)) {
                 navigation_begin_page_open(screen, started);
                 lv_scr_load_anim(screen, LV_SCR_LOAD_ANIM_NONE, 0, 0, false);
                 refresh_visible_image_cards();
               }
-            }, nullptr);
+            }, LV_EVENT_PRESSED, nullptr);
             continue;
           }
         }
