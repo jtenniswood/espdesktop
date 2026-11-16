@@ -4,44 +4,67 @@ import type { AppShortcutApplication } from "../generated/app_shortcuts";
 export { SCOPED_SHORTCUT_PREFIX } from "./companion_shortcut_data";
 export const COMPANION_SHORTCUT_APPS: AppShortcutApplication[] = [...BUNDLED_SHORTCUT_APPS];
 
+function normalizeShortcutApplication(
+    { extendedShortcuts, additionalShortcuts, claudeShortcuts, safariShortcuts, ...app }: AppShortcutApplication,
+): AppShortcutApplication {
+    if (app.appId === CODEX_BUNDLE_ID && !app.catalog && Array.isArray(additionalShortcuts)) {
+        const additional = additionalShortcuts.filter((item) => {
+            const action = COMPANION_SHORTCUT_PREFIX + item?.shortcut;
+            return companionShortcutActionIdValid(action) && !isBooksExtendedShortcut(action) &&
+                !isSafariUnmodifiedShortcut(action) && !isClaudeScopedShortcut(action);
+        });
+        return { ...app, shortcuts: [...app.shortcuts, ...additional] };
+    }
+    const safari = safariShortcuts ?? extendedShortcuts;
+    if ((app.appId === SAFARI_BUNDLE_ID || app.appId === SAFARI_WEB_APP_TEMPLATE) && Array.isArray(safari)) {
+        const extended = safari.filter((item) =>
+            isSafariUnmodifiedShortcut(COMPANION_SHORTCUT_PREFIX + item?.shortcut));
+        return { ...app, shortcuts: [...app.shortcuts, ...extended] };
+    }
+    if (app.appId === CLAUDE_DESKTOP_BUNDLE_ID && !app.catalog && Array.isArray(claudeShortcuts)) {
+        const additional = claudeShortcuts.filter((item) => {
+            const action = COMPANION_SHORTCUT_PREFIX + item?.shortcut;
+            return companionShortcutActionIdValid(action) && !isBooksExtendedShortcut(action) &&
+                !isSafariUnmodifiedShortcut(action) && action !== CHATGPT_CLEAR_UNREADS_ACTION;
+        });
+        return { ...app, shortcuts: [...app.shortcuts, ...additional] };
+    }
+    if (app.appId !== "com.apple.iBooksX" || app.catalog || !Array.isArray(extendedShortcuts)) return app;
+    const extended = extendedShortcuts.filter((item) => isBooksExtendedShortcut(COMPANION_SHORTCUT_PREFIX + item?.shortcut));
+    return { ...app, shortcuts: [...extended, ...app.shortcuts] };
+}
+
+const liveShortcutApps = new Map<string, AppShortcutApplication>();
+
+export function applyCompanionShortcutApplication(app: AppShortcutApplication): boolean {
+    const normalized = normalizeShortcutApplication(app);
+    const moreShortcuts = normalized.moreShortcuts?.filter(validExpandedShortcut);
+    const definition = { ...normalized, ...(moreShortcuts ? { moreShortcuts } : {}) };
+    const previous = liveShortcutApps.get(app.appId);
+    if (JSON.stringify(previous) === JSON.stringify(definition)) return false;
+    liveShortcutApps.delete(app.appId);
+    liveShortcutApps.set(app.appId, definition);
+    if (liveShortcutApps.size > 8) liveShortcutApps.delete(liveShortcutApps.keys().next().value!);
+    return true;
+}
+
+function validExpandedShortcut(item: NonNullable<AppShortcutApplication["moreShortcuts"]>[number]): boolean {
+    return typeof item?.id === "string" && /^(0|[1-9][0-9]{0,2})$/.test(item.id) &&
+        typeof item.label === "string" && typeof item.icon === "string" && typeof item.shortcut === "string" &&
+        companionShortcutActionIdValid(COMPANION_SHORTCUT_PREFIX + item.shortcut);
+}
+
 export function replaceCompanionDefinitions(apps: readonly AppShortcutApplication[]): boolean {
-    const normalized = apps.map(({ extendedShortcuts, additionalShortcuts, claudeShortcuts, safariShortcuts, ...app }) => {
-        if (app.appId === CODEX_BUNDLE_ID && !app.catalog && Array.isArray(additionalShortcuts)) {
-            const additional = additionalShortcuts.filter((item) => {
-                const action = COMPANION_SHORTCUT_PREFIX + item?.shortcut;
-                return companionShortcutActionIdValid(action) && !isBooksExtendedShortcut(action) &&
-                    !isSafariUnmodifiedShortcut(action) && !isClaudeScopedShortcut(action);
-            });
-            return { ...app, shortcuts: [...app.shortcuts, ...additional] };
-        }
-        const safari = safariShortcuts ?? extendedShortcuts;
-        if ((app.appId === SAFARI_BUNDLE_ID || app.appId === SAFARI_WEB_APP_TEMPLATE) && Array.isArray(safari)) {
-            const extended = safari.filter((item) =>
-                isSafariUnmodifiedShortcut(COMPANION_SHORTCUT_PREFIX + item?.shortcut));
-            return { ...app, shortcuts: [...app.shortcuts, ...extended] };
-        }
-        if (app.appId === CLAUDE_DESKTOP_BUNDLE_ID && !app.catalog && Array.isArray(claudeShortcuts)) {
-            const additional = claudeShortcuts.filter((item) => {
-                const action = COMPANION_SHORTCUT_PREFIX + item?.shortcut;
-                return companionShortcutActionIdValid(action) && !isBooksExtendedShortcut(action) &&
-                    !isSafariUnmodifiedShortcut(action) && action !== CHATGPT_CLEAR_UNREADS_ACTION;
-            });
-            return { ...app, shortcuts: [...app.shortcuts, ...additional] };
-        }
-        if (app.appId !== "com.apple.iBooksX" || app.catalog || !Array.isArray(extendedShortcuts)) return app;
-        const extended = extendedShortcuts.filter((item) => isBooksExtendedShortcut(COMPANION_SHORTCUT_PREFIX + item?.shortcut));
-        return { ...app, shortcuts: [...extended, ...app.shortcuts] };
-    });
+    const normalized = apps.map(normalizeShortcutApplication);
     // Keep the bundled catalogue available when the Mac supplies fewer definitions.
     const byAppId = new Map(BUNDLED_SHORTCUT_APPS.map((app) => [app.appId, app]));
-    for (const app of normalized) {
-        const bundled = byAppId.get(app.appId);
+    for (const indexed of normalized) {
+        const bundled = byAppId.get(indexed.appId);
+        const app = bundled && !indexed.shortcuts.length ? { ...bundled, label: indexed.label } : indexed;
         const more = new Map(bundled?.moreShortcuts?.map(item => [item.id, item]));
         if (Array.isArray(app.moreShortcuts)) {
             for (const item of app.moreShortcuts) {
-                if (typeof item?.id === "string" && /^(0|[1-9][0-9]{0,2})$/.test(item.id) &&
-                    typeof item.label === "string" && typeof item.icon === "string" && typeof item.shortcut === "string" &&
-                    companionShortcutActionIdValid(COMPANION_SHORTCUT_PREFIX + item.shortcut)) {
+                if (validExpandedShortcut(item)) {
                     more.set(item.id, item);
                 }
             }
@@ -122,7 +145,8 @@ export function companionShortcutFolderAppLabel(bundleIdentifier: unknown): stri
 }
 
 function companionShortcutApp(bundleIdentifier: string): AppShortcutApplication | undefined {
-    const exact = COMPANION_SHORTCUT_APPS.find((app) => app.appId === bundleIdentifier);
+    const exact = liveShortcutApps.get(bundleIdentifier) ??
+        COMPANION_SHORTCUT_APPS.find((app) => app.appId === bundleIdentifier);
     if (SAFARI_WEB_APP_BUNDLE_ID.test(bundleIdentifier)) {
         const fallback = COMPANION_SHORTCUT_APPS.find((app) => app.appId === SAFARI_WEB_APP_TEMPLATE);
         if (!exact || !fallback) return exact ?? fallback;
@@ -459,13 +483,16 @@ export function companionShortcutCatalogApps(
 ): AppShortcutApplication[] {
     // The Mac sends Athena under the actual installed web app's bundle ID.
     const apps = COMPANION_SHORTCUT_APPS.filter(app =>
-        app.appId !== ATHENA_TEMPLATE_APP_ID && app.appId !== CHATGPT_CLASSIC_BUNDLE_ID && app.shortcuts?.length > 0);
+        app.appId !== ATHENA_TEMPLATE_APP_ID && app.appId !== CHATGPT_CLASSIC_BUNDLE_ID);
     const appId = savedAppId ?? pageAppId;
     // A saved Classic card still needs its original app and preset IDs when edited.
     if (appId && appId !== ATHENA_TEMPLATE_APP_ID &&
         (appId !== CHATGPT_CLASSIC_BUNDLE_ID || appId === savedAppId) && !apps.some(app => app.appId === appId)) {
         const template = companionShortcutApp(appId);
         if (template) apps.push({ ...template, appId });
+        else if (appId === savedAppId && /^[A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)+$/.test(appId)) {
+            apps.push({ appId, version: 1, label: appId, catalog: false, shortcuts: [] });
+        }
     }
     return apps.map(app => app.appId === CODEX_BUNDLE_ID ? { ...app, label: "ChatGPT" } : app);
 }

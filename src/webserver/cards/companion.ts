@@ -35,6 +35,7 @@ import {
     COMPANION_SHORTCUT_PREFIX,
     COMPANION_SHORTCUT_PRESET_OPTION,
     companionShortcutCatalogApps,
+    companionShortcutDefaultTabs,
     companionShortcutPresetCards,
     companionAppShortcutFolderEnabled,
     companionShortcutActionIdValid,
@@ -52,6 +53,7 @@ import {
     companionShortcutTabsFitSubpage,
     companionShortcutTabsFromSubpage,
     replaceCompanionDefinitions,
+    applyCompanionShortcutApplication,
     finderFolderTabs,
     reconnectAthenaShortcutSubpage,
     syncFinderFolderSelection,
@@ -157,12 +159,16 @@ export function companionShortcutCatalogSelection(card: any) {
     const options = withoutCardColorOptions(card?.options);
     const marker = configOptionValue(options, COMPANION_SHORTCUT_PRESET_OPTION);
     const separator = marker.lastIndexOf(":");
-    if (separator < 0) return undefined;
+    if (separator < 0 || !/^(0|[1-9][0-9]{0,2})$/.test(marker.slice(separator + 1))) return undefined;
     const appId = marker.slice(0, separator);
     if (!companionShortcutCatalogApps({ savedAppId: appId }).some((app) => app.appId === appId)) return undefined;
     const preset = companionShortcutPresetCards(appId).find((preset) =>
         preset.entity === card?.entity && preset.options === options);
-    return preset ? { ...preset, appId } : undefined;
+    if (preset) return { ...preset, appId };
+    // A saved card includes the actual keys, even when its preset is offline or has changed.
+    if (!companionShortcutActionIdValid(card?.entity)) return undefined;
+    return { appId, entity: card.entity, label: card.label || "Saved shortcut",
+        icon: card.icon || "Shortcut Command", options };
 }
 
 export function companionUrlConfig(rawValue: string): string {
@@ -533,8 +539,15 @@ export function registerCompanionCardTypes(
         card.icon = companionSubtypeDefaultIcon(mode);
     }
 
+    function loadAppShortcuts(appId: string, panel: HTMLElement): void {
+        void catalogue.loadShortcutApplication(appId).then(app => {
+            if (app && applyCompanionShortcutApplication(app) && panel.isConnected) renderButtonSettings();
+        });
+    }
+
     function renderAppShortcutSettings(panel: HTMLElement, card: any, page: number,
         helpers: { idPrefix: string; saveField: (field: string, value: unknown) => void }, showAll = false): void {
+        loadAppShortcuts(card.entity, panel);
         const savedShortcutSubpage = state.subpages[page];
         const savedParent = previewSubpageOwner(page, state.buttons, key => state.subpages[key]);
         if (savedShortcutSubpage &&
@@ -969,8 +982,14 @@ export function registerCompanionCardTypes(
             if (catalogApp.value) catalogField.appendChild(catalogShortcutField);
             shortcutPanel.section.appendChild(catalogField);
 
-            const presets = initialMode === "shortcut" && shortcutType === "catalog" && catalogApp.value
-                ? sortCompanionLabels(companionShortcutPresetCards(catalogApp.value)) : [];
+            if (initialMode === "shortcut" && shortcutType === "catalog" && catalogApp.value && panel) {
+                loadAppShortcuts(catalogApp.value, panel);
+            }
+            const options = initialMode === "shortcut" && shortcutType === "catalog" && catalogApp.value
+                ? companionShortcutPresetCards(catalogApp.value) : [];
+            const presets = sortCompanionLabels(savedCatalogShortcut?.appId === catalogApp.value &&
+                !options.some(item => item.options === savedCatalogShortcut.options && item.entity === savedCatalogShortcut.entity)
+                ? [...options.filter(item => item.options !== savedCatalogShortcut.options), savedCatalogShortcut] : options);
             const choices = presets.map((preset, index) => {
                 const row = document.createElement("label");
                 row.className = "sp-light-tab-row";
@@ -1127,11 +1146,16 @@ export function registerCompanionCardTypes(
                 helpers.idPrefix + "companion-app-shortcuts",
                 canAddSubpage && companionAppShortcutFolderEnabled(card),
             );
+            const needsStarter = initialMode === "app" && !!companionShortcutFolderAppLabel(card.entity) &&
+                card.entity !== "com.apple.finder" && companionShortcutDefaultTabs(card.entity).length === 0;
+            if (needsStarter && panel) loadAppShortcuts(card.entity, panel);
+            if (needsStarter && !folderToggle.input.checked) folderToggle.input.disabled = true;
             shortcutFolderField.appendChild(folderToggle.row);
             const shortcutFolderNote = document.createElement("div");
             shortcutFolderNote.className = "sp-field-info-text";
             const shortcutFolderApp = companionShortcutFolderAppLabel(card.entity);
-            shortcutFolderNote.textContent = card.entity === "com.apple.finder"
+            shortcutFolderNote.textContent = needsStarter ? "Connect Mac Companion to load this app’s shortcuts."
+                : card.entity === "com.apple.finder"
                 ? "Folders approved on your Mac appear in free cells. Pin a folder to keep it on the board and edit its name or position."
                 : "Launch " + shortcutFolderApp +
                 ", then open an editable subpage. It starts with " + shortcutFolderApp + " keyboard shortcuts.";

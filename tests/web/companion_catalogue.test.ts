@@ -18,6 +18,7 @@ export async function runCompanionCatalogueTests(): Promise<void> {
   const fetchImpl = (async (input: RequestInfo | URL, init?: RequestInit) => {
     const url = String(input);
     calls.push({ url, init });
+    if (url.startsWith("/companion/shortcut-page?")) return new Response(null, { status: 404 });
     if (url.startsWith("/companion/definitions?page=")) {
       const page = Number(url.slice(url.lastIndexOf("=") + 1));
       requestedPages.push(page);

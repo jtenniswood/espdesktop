@@ -160,8 +160,8 @@ def validate_manifest(directory, expected_paths):
     if not isinstance(manifest['minimumCompanionVersion'], str) or not re.fullmatch(r'\d+(?:\.\d+){0,3}', manifest['minimumCompanionVersion']):
         raise ValueError(f'{manifest_path.name}: minimumCompanionVersion must be numeric dotted version')
     entries = manifest['entries']
-    if not isinstance(entries, list) or not entries or len(entries) > 128:
-        raise ValueError(f'{manifest_path.name}: entries must contain 1–128 templates')
+    if not isinstance(entries, list) or not entries or len(entries) > 512:
+        raise ValueError(f'{manifest_path.name}: entries must contain 1–512 templates')
     paths = []
     for entry in entries:
         if not isinstance(entry, dict) or set(entry) != {'path'} or not isinstance(entry['path'], str):

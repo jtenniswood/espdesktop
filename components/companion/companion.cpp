@@ -144,6 +144,17 @@ void CompanionService::setup() {
                                          const std::string &request) {
     return this->invoke_value_(control, value, request);
   });
+  companion_runtime_service().shortcut_catalogue_sender =
+      [this](uint32_t request_id, const std::string &app_id, uint32_t page) {
+        return this->send_(this->session_.authenticated_socket(),
+            json::build_json([&](JsonObject root) {
+              root["type"] = "shortcut.catalogue.request";
+              root["protocol"] = COMPANION_PROTOCOL_VERSION;
+              root["requestId"] = request_id;
+              root["appId"] = app_id;
+              root["page"] = page;
+            }));
+      };
   companion_runtime_service().begin_pairing = [this] { this->begin_pairing(); };
   companion_runtime_service().reset_and_begin_pairing = [this] { return this->reset_and_begin_pairing(); };
   companion_runtime_service().request_pairing_display = [this] {
@@ -522,6 +533,7 @@ void CompanionService::handle_json_(int socket_fd, const std::string &message) {
       if (previous_socket != -1 && previous_socket != socket_fd)
         httpd_sess_trigger_close(this->server_, previous_socket);
       this->forget_unauthenticated_socket_(socket_fd);
+      companion_runtime_service().shortcut_catalogue.set_supported(shortcut_catalogue_supported);
       this->app_icons_supported_.store(false);
       this->set_connected_(true);
       pairing_lock.unlock();
@@ -609,6 +621,7 @@ void CompanionService::handle_json_(int socket_fd, const std::string &message) {
       bool app_icons_alpha_supported = false;
       bool app_icons_high_resolution_supported = false;
       bool focus_targets_supported = false;
+      bool shortcut_catalogue_supported = false;
       for (const auto &capability : payload->values) {
         if (capability == COMPANION_APP_ICONS_CAPABILITY) {
           app_icons_supported = true;
@@ -624,6 +637,8 @@ void CompanionService::handle_json_(int socket_fd, const std::string &message) {
           keyboard_actions_capability_received = true;
         } else if (capability == "url_card_focus") {
           focus_targets_supported = true;
+        } else if (capability == "shortcut_catalogue_on_demand") {
+          shortcut_catalogue_supported = true;
         }
       }
       this->app_icons_supported_.store(app_icons_supported && app_icons_alpha_supported &&
@@ -634,7 +649,9 @@ void CompanionService::handle_json_(int socket_fd, const std::string &message) {
         if (app_icon_catalogue_ready) configured_icons = app_icon_requests;
       }
       for (const auto &id : configured_icons) this->request_app_icon(id);
-      this->defer_session_([this, keyboard_actions, keyboard_actions_capability_received, focus_targets_supported]() {
+      this->defer_session_([this, keyboard_actions, keyboard_actions_capability_received,
+                            focus_targets_supported, shortcut_catalogue_supported]() {
+        if (shortcut_catalogue_supported) companion_set_remote_definitions({});
         if (keyboard_actions_capability_received) companion_set_keyboard_actions_supported(keyboard_actions);
         this->focus_targets_supported_.store(focus_targets_supported);
         if (focus_targets_supported) this->focus_targets_generation_.store(0xFFFFFFFFu);
@@ -780,6 +797,14 @@ void CompanionService::handle_json_(int socket_fd, const std::string &message) {
           payload->generation == this->app_icon_generation_) {
         this->reset_app_icon_transfer_();
       }
+      return true;
+    }
+
+    if (const auto *payload = std::get_if<companion_protocol::ShortcutCataloguePage>(&*decoded)) {
+      if (payload->json && !companion_json_payload_valid(*payload->json, 12000)) return false;
+      companion_runtime_service().shortcut_catalogue.receive({
+          payload->requestId, payload->appId, payload->page, payload->catalogueVersion,
+          payload->complete, payload->json.value_or("")});
       return true;
     }
 
@@ -1054,6 +1079,7 @@ void CompanionService::set_connected_(bool connected, int closing_socket) {
       this->session_.disconnect();
     }
   }
+  companion_runtime_service().shortcut_catalogue.set_supported(false);
   if (connected) {
     this->focus_targets_generation_ = 0xFFFFFFFFu;
     this->focus_targets_supported_ = false;

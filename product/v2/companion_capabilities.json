@@ -1,5 +1,5 @@
 {
-  "version": 9,
+  "version": 10,
   "protocol": {
     "version": 4,
     "path": "/companion/v4",
@@ -895,6 +895,72 @@
                 }
               }
             }
+          }
+        },
+        "states": [
+          "connected"
+        ]
+      },
+      {
+        "id": "shortcut.catalogue.request",
+        "direction": "panel_to_mac",
+        "authorization": "session",
+        "fields": {
+          "requestId": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 4294967295
+          },
+          "appId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 96,
+            "pattern": "^[A-Za-z0-9._-]{1,96}$"
+          },
+          "page": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 31
+          }
+        },
+        "states": [
+          "connected"
+        ]
+      },
+      {
+        "id": "shortcut.catalogue.page",
+        "direction": "mac_to_panel",
+        "authorization": "session",
+        "fields": {
+          "requestId": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 4294967295
+          },
+          "appId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 96,
+            "pattern": "^[A-Za-z0-9._-]{1,96}$"
+          },
+          "page": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 31
+          },
+          "catalogueVersion": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 4294967295
+          },
+          "complete": {
+            "type": "boolean"
+          },
+          "json": {
+            "type": "string",
+            "minLength": 2,
+            "maxLength": 12000,
+            "optional": true
           }
         },
         "states": [

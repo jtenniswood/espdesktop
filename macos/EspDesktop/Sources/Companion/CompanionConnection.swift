@@ -76,6 +76,7 @@ final class CompanionConnection: NSObject {
     private var pairingResetTimeout: Task<Void, Never>?
     private var remoteCatalogueDefinitionsSupported = false
     private var expandedShortcutsSupported = false
+    private var onDemandShortcutsSupported = false
     private var authenticationRequestOutstanding = false
     private var appIconData: Data?
     private var appIconIdentifier = ""
@@ -218,6 +219,7 @@ final class CompanionConnection: NSObject {
         supportsHighResolutionAppIcons = false
         remoteCatalogueDefinitionsSupported = false
         expandedShortcutsSupported = false
+        onDemandShortcutsSupported = false
         endpointRecovery.verifiedFingerprint = nil
         authenticationRequestOutstanding = false
         resetAppIconTransferState(clearPendingRequests: true)
@@ -399,6 +401,7 @@ final class CompanionConnection: NSObject {
         resetAppIconTransferState(clearPendingRequests: true)
         remoteCatalogueDefinitionsSupported = false
         expandedShortcutsSupported = false
+        onDemandShortcutsSupported = false
         connectionTimeoutTask?.cancel()
         connectionTimeoutTask = nil
         heartbeatTask?.cancel()
@@ -504,6 +507,7 @@ final class CompanionConnection: NSObject {
             supportsSessionLock = payload.capabilityVersion >= 7
             supportsPairingReset = payload.capabilityVersion >= 8
             expandedShortcutsSupported = payload.capabilityVersion >= 9
+            onDemandShortcutsSupported = payload.capabilityVersion >= 10
             // A Bonjour TXT record never authorizes a location change. Both the
             // pinned TLS certificate and the authenticated session must agree.
             let expectedFingerprint = preferences.stringPreference(forKey: certificateFingerprintKey)
@@ -533,6 +537,9 @@ final class CompanionConnection: NSObject {
         case .catalogueRequest:
             guard sessionAuthenticated else { return false }
             publishCatalogue()
+        case .shortcutCatalogueRequest(let payload):
+            guard sessionAuthenticated, onDemandShortcutsSupported else { return false }
+            publishShortcutCataloguePage(payload)
         case .focusTargets(let payload):
             guard sessionAuthenticated else { return false }
             let targets = payload.items.compactMap { item -> (id: String, url: URL)? in
@@ -784,6 +791,7 @@ final class CompanionConnection: NSObject {
         capabilities.append(CompanionCapabilities.appIconsAlphaCapability)
         capabilities.append(CompanionCapabilities.appIconsHighResolutionCapability)
         capabilities.append("url_card_focus")
+        if onDemandShortcutsSupported { capabilities.append("shortcut_catalogue_on_demand") }
         sendJSON(["type": "capabilities", "values": capabilities])
         // The browser receives identifiers, never application paths or shell commands.
         let apps = resources.launchableApps()
@@ -803,7 +811,7 @@ final class CompanionConnection: NSObject {
             sendJSON(["type": "catalogue.page", "generation": catalogueGeneration,
                       "page": page, "complete": page == pages.count - 1, "items": items])
         }
-        if remoteCatalogueDefinitionsSupported {
+        if remoteCatalogueDefinitionsSupported && !onDemandShortcutsSupported {
             let definitions = resources.remoteCompanionCatalogues().applicationsForDisplay(approvedApps: apps)
             let installedIDs = Set(apps.map(\.bundleIdentifier))
             let starter = definitions.map(\.starter)
@@ -836,6 +844,11 @@ final class CompanionConnection: NSObject {
             }
         }
         publishFocusedAction()
+    }
+
+    private func publishShortcutCataloguePage(_ request: CompanionWireShortcutCatalogueRequest) {
+        let catalogue = resources.remoteCompanionCatalogues()
+        sendJSON(catalogue.shortcutPageResponse(request, approvedApps: resources.launchableApps()))
     }
 
     nonisolated static func supportsRemoteCatalogueDefinitions(capabilityVersion: UInt32) -> Bool {
