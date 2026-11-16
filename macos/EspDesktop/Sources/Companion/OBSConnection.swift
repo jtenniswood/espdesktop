@@ -1254,6 +1254,7 @@ final class OBSConnection: ObservableObject {
         guard state != nil, socket.isReady else { return false }
         return await command("OpenVideoMixProjector", fields: [
             "videoMixType": "OBS_WEBSOCKET_VIDEO_MIX_TYPE_MULTIVIEW",
+            "monitorIndex": 0,
         ])
     }
 

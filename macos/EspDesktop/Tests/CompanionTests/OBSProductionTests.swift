@@ -186,7 +186,7 @@ final class OBSProductionTests: XCTestCase {
     }
 
     @MainActor
-    func testMultiviewOpensAWindowWithStudioModeOff() async throws {
+    func testMultiviewOpensFullScreenWithStudioModeOff() async throws {
         let transport = OBSPilotTransport()
         transport.studioMode = false
         let connection = try await open(transport)
@@ -195,7 +195,7 @@ final class OBSProductionTests: XCTestCase {
         XCTAssertTrue(opened)
         let fields = try XCTUnwrap(transport.projectorRequests.first)
         XCTAssertEqual(fields["videoMixType"] as? String, "OBS_WEBSOCKET_VIDEO_MIX_TYPE_MULTIVIEW")
-        XCTAssertNil(fields["monitorIndex"])
+        XCTAssertEqual(fields["monitorIndex"] as? Int, 0)
         transport.onEvent?("CurrentSceneCollectionChanging", [:])
         let unavailable = await connection.openMultiview()
         XCTAssertFalse(unavailable)

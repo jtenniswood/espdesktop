@@ -102,7 +102,7 @@ Under **Card types → Transitions**, **Cycle transitions** steps through the tr
 
 **Take Live** and **Cycle transitions** light up while you press them.
 
-Choose **Open Multiview** under the **Studio Mode** card type to open OBS Multiview in a new window on the Mac.
+Choose **Open Multiview** under the **Studio Mode** card type to open OBS Multiview full-screen on the first monitor listed by OBS. Press **Esc** on the Mac to close it.
 
 To rename an OBS card, open **Edit Card → Card Settings** and edit **Label**. Cards with a subtitle continue to show the current OBS state there.
 
