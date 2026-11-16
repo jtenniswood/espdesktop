@@ -1248,12 +1248,7 @@ inline void companion_render_obs_detail(CompanionCardRef &ref, const std::string
 }
 
 inline bool companion_obs_keep_content_bright(const CompanionRuntimeSnapshot &snapshot, const std::string &id) {
-  if (companion_obs_output_card(id))
-    return companion_obs_output_status(snapshot, id) != "Unavailable";
-  if (id != "obs.take") return false;
-  const auto *action = companion_published_action(snapshot, id);
-  return action && (action->obs_state == OBSCardState::take_transitioning ||
-    (action->obs_state == OBSCardState::unknown && action->label == "Take Live · Transitioning"));
+  return companion_obs_output_card(id) && companion_obs_output_status(snapshot, id) != "Unavailable";
 }
 
 inline void companion_update_obs_detail_contrast(const CompanionCardRef &ref, bool keep_content_bright) {

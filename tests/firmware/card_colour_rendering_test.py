@@ -446,7 +446,7 @@ int main() {
       assert(title.content == "Take Live" && detail.content == "Transitioning");
       assert(lv_obj_has_state(&tile, LV_STATE_DISABLED));
       assert(!lv_obj_has_state(&tile, LV_STATE_PRESSED) && !lv_obj_has_state(&tile, LV_STATE_CHECKED));
-      assert(!lv_obj_has_state(&title, LV_STATE_DISABLED) && !lv_obj_has_state(&detail, LV_STATE_DISABLED));
+      assert(lv_obj_has_state(&title, LV_STATE_DISABLED) && lv_obj_has_state(&detail, LV_STATE_DISABLED));
     }
     replay_state.actions = {{"obs.take", "Take Live", OBSCardState::take_same_scene}};
     companion_render_obs_detail(replay, "Take Live", replay_state);
