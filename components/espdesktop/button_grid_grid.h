@@ -2,6 +2,7 @@
 
 #include "grid_native_page_cards.h"
 #include "finder_folder_sync.h"
+#include "obs_transition_subpage.h"
 #include <initializer_list>
 
 #include "card_curve.h"
@@ -93,6 +94,26 @@ inline bool grid_update_finder_folders(const CompanionRuntimeSnapshot &snapshot)
   const auto *pages = espdesktop::grid_native_pages();
   return pages && std::any_of(pages->pages.begin(), pages->pages.end(), [](const auto &page) {
     return grid_layout_card_config(page.key, {}).entity == "com.apple.finder";
+  });
+}
+
+inline std::vector<CompanionAction> &grid_live_obs_transitions() {
+  static std::vector<CompanionAction> transitions;
+  return transitions;
+}
+
+inline bool grid_update_obs_transition_subpages(const CompanionRuntimeSnapshot &snapshot) {
+  // During a reconnect or collection switch, keep the old tiles disabled until
+  // OBS has published the replacement list.
+  if (!companion_published_action(snapshot, "obs.status.program")) return false;
+  auto transitions = obs_transition_subpage_catalogue(snapshot);
+  auto &previous = grid_live_obs_transitions();
+  if (finder_folder_catalogue_equal(previous, transitions)) return false;
+  previous = std::move(transitions);
+  const auto *pages = espdesktop::grid_native_pages();
+  return pages && std::any_of(pages->pages.begin(), pages->pages.end(), [](const auto &page) {
+    const auto config = grid_layout_card_config(page.key, {});
+    return config.type == "subpage" && cfg_option_value(config.options, "subpage_kind") == "obs_transitions";
   });
 }
 
@@ -1411,6 +1432,10 @@ inline void grid_phase2(
       finder_project_folder_tiles(sp_ord, sp_btns, NS, COLS, capacity,
                                  grid_live_finder_folders(),
                                  companion_folder_open_behavior(p));
+    } else if (cfg_option_value(p.options, "subpage_kind") == "obs_transitions") {
+      const int capacity = bounded_grid_slots(cfg.configured_slots > 0 ? cfg.configured_slots : NS);
+      project_obs_transition_tiles(sp_ord, sp_btns, NS, COLS, capacity,
+                                   grid_live_obs_transitions(), p.options);
     }
 
     lv_obj_t *sub_scr = lv_obj_create(nullptr);

@@ -691,7 +691,20 @@ inline std::string normalize_subpage_kind(const std::string &value) {
     value == "lock" || value == "vacuum" ||
     value == "lawn_mower" ||
     value == "weather" || value == "sensor" ||
-    value == "image" || value == "companion_stat" ? value : "";
+    value == "image" || value == "companion_stat" || value == "obs_transitions" ? value : "";
+}
+
+inline std::vector<std::string> obs_transition_preferences(const std::string &options) {
+  std::vector<std::string> result;
+  for (const auto &entry : split_config_fields(cfg_option_value(options, "obs_transition_order"), '|')) {
+    std::string_view hash = entry;
+    if (!hash.empty() && hash.front() == '!') hash.remove_prefix(1);
+    if (hash.size() == 32 && std::all_of(hash.begin(), hash.end(), [](char c) {
+          return (c >= '0' && c <= '9') || (c >= 'a' && c <= 'f');
+        })) result.push_back(entry);
+    if (result.size() == 48) break;
+  }
+  return result;
 }
 
 inline std::string subpage_card_options_normalized(const std::string &options,
@@ -704,6 +717,15 @@ inline std::string subpage_card_options_normalized(const std::string &options,
   if (!kind.empty()) {
     if (!out.empty()) out += ",";
     out += "subpage_kind=" + kind;
+  }
+  if (kind == "obs_transitions") {
+    const auto preferences = obs_transition_preferences(options);
+    std::string value;
+    for (const auto &entry : preferences) {
+      if (!value.empty()) value += "|";
+      value += entry;
+    }
+    if (!value.empty()) out += ",obs_transition_order=" + encode_compact_field(value);
   }
   if (!sensor.empty() && sensor != "indicator" && precision != "text" &&
       (cfg_option_token_present(options, "large_numbers") ||
@@ -1208,7 +1230,7 @@ inline const char *saved_config_subpage_default_icon(const std::string &kind) {
 
 inline void normalize_saved_config_subpage_fields(ParsedCfg &p) {
   const std::string kind = normalize_subpage_kind(cfg_option_value(p.options, "subpage_kind"));
-  if (kind.empty()) return;
+  if (kind.empty() || kind == "obs_transitions") return;
   if (kind == "companion_stat") {
     if (!subpage_companion_stat_entity_valid(p.entity)) p.entity = "stat.cpu";
     if (p.label.empty()) p.label = subpage_companion_stat_default_label(p.entity);

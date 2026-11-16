@@ -5359,9 +5359,16 @@
               "weather",
               "sensor",
               "image",
-              "companion_stat"
+              "companion_stat",
+              "obs_transitions"
             ],
             "defaultValue": "",
+            "omitDefault": true
+          },
+          {
+            "name": "obs_transition_order",
+            "label": "Transition visibility and order",
+            "kind": "text",
             "omitDefault": true
           },
           {
@@ -5413,6 +5420,7 @@
           "canonicalOptionOrder": [
             "subpage_connector",
             "subpage_kind",
+            "obs_transition_order",
             "large_numbers"
           ],
           "optionHook": "normalize_subpage_options"

@@ -23,10 +23,11 @@ inline bool finder_folder_catalogue_equal(const std::vector<CompanionAction> &le
       });
 }
 
-inline void finder_project_folder_tiles(SubpageOrder &order, std::vector<SubpageBtn> &buttons,
-                                       int slots, int columns, int capacity,
-                                       const std::vector<CompanionAction> &folders,
-                                       const std::string &open_behavior) {
+template<typename Accept>
+inline void project_live_folder_tiles(SubpageOrder &order, std::vector<SubpageBtn> &buttons,
+                                     int slots, int columns, int capacity,
+                                     const std::vector<CompanionAction> &entries,
+                                     const char *icon, const std::string &options, Accept accept) {
   if (!order.has_back_token) return;
   std::array<bool, MAX_GRID_SLOTS> occupied{};
   auto occupy = [&](int position, int rows, int cols) {
@@ -42,16 +43,23 @@ inline void finder_project_folder_tiles(SubpageOrder &order, std::vector<Subpage
   }
 
   int position = 0;
-  const std::string options = "finder_open_behavior=" + open_behavior;
-  for (const auto &folder : folders) {
+  for (const auto &folder : entries) {
     while (position < slots && occupied[position]) ++position;
     if (position == slots || buttons.size() >= size_t(capacity)) return;
-    if (!is_live_finder_folder(folder.id)) continue;
+    if (!accept(folder.id)) continue;
     const bool placed = std::any_of(order.positions, order.positions + slots, [&](int index) {
       return index > 0 && buttons[index - 1].entity == folder.id;
     });
     if (placed) continue;
-    buttons.push_back({folder.id, folder.label, finder_folder_default_icon(), "Auto", "", "", "companion", "", options});
+    buttons.push_back({folder.id, folder.label, icon, "Auto", "", "", "companion", "", options});
     order.positions[position++] = static_cast<int>(buttons.size());
   }
+}
+
+inline void finder_project_folder_tiles(SubpageOrder &order, std::vector<SubpageBtn> &buttons,
+                                       int slots, int columns, int capacity,
+                                       const std::vector<CompanionAction> &folders,
+                                       const std::string &open_behavior) {
+  project_live_folder_tiles(order, buttons, slots, columns, capacity, folders,
+      finder_folder_default_icon(), "finder_open_behavior=" + open_behavior, is_live_finder_folder);
 }

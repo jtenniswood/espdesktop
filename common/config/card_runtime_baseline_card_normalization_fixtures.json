@@ -1215,6 +1215,21 @@
     }
   },
   {
+    "name": "companion_obs_transitions: picker_alias",
+    "input": "~,Transitions,Flip%20Horizontal,Auto,,,subpage,,subpage_connector%3Dmac_companion%2Csubpage_kind%3Dobs_transitions",
+    "expected": {
+      "entity": "",
+      "label": "Transitions",
+      "icon": "Flip Horizontal",
+      "icon_on": "Auto",
+      "sensor": "",
+      "unit": "",
+      "type": "subpage",
+      "precision": "",
+      "options": "subpage_connector=mac_companion,subpage_kind=obs_transitions"
+    }
+  },
+  {
     "name": "companion_obs_fader: picker_alias",
     "input": "~obs.level.69da3f8f-7f62-4abe-a594-4e40dd579858,Desk%20Mic,Microphone,Auto,,,slider,,",
     "expected": {

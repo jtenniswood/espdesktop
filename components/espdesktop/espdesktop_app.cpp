@@ -226,7 +226,7 @@ class EspDesktopApp::NativeConfigurationRuntime {
    configuration::ConfigurationStore store;
    configuration::ConfigurationMainLoop transactions;
    configuration::ConfigurationCompatibilityRetry compatibility_retry;
-   uint32_t finder_poll_ms{0};
+   uint32_t generated_subpage_poll_ms{0};
    bool document_available{false};
    bool service_configured{false};
    bool storage_ready{false};
@@ -786,13 +786,16 @@ void EspDesktopApp::initialize_native_configuration() {
   register_panel_config_endpoints();
 }
 
-void EspDesktopApp::sync_finder_folders() {
+void EspDesktopApp::sync_generated_subpages() {
   if (!native_configuration_initialized_ || !native_configuration_runtime_) return;
   auto &runtime = *native_configuration_runtime_;
   const auto now = esphome::millis();
-  if (runtime.boot_configuration_pending || now - runtime.finder_poll_ms < 1000) return;
-  runtime.finder_poll_ms = now;
-  if (grid_update_finder_folders(companion_runtime_snapshot())) layout_changed_.trigger();
+  if (runtime.boot_configuration_pending || now - runtime.generated_subpage_poll_ms < 1000) return;
+  runtime.generated_subpage_poll_ms = now;
+  const auto snapshot = companion_runtime_snapshot();
+  const bool finder_changed = grid_update_finder_folders(snapshot);
+  const bool obs_changed = grid_update_obs_transition_subpages(snapshot);
+  if (finder_changed || obs_changed) layout_changed_.trigger();
 }
 
 void EspDesktopApp::loop() {
@@ -839,8 +842,8 @@ void EspDesktopApp::loop() {
   trace_phase("icon refresh");
 #endif
   grid_reclaim_hidden_render_memory();
-  sync_finder_folders();
-  trace_phase("Finder sync");
+  sync_generated_subpages();
+  trace_phase("generated subpage sync");
   // The IDF web server starts later, so retry idempotent registrations.
   if (shutting_down_) return;
   register_panel_config_endpoints();

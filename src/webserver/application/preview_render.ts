@@ -1,3 +1,4 @@
+import { obsTransitionSubpage, orderedTransitions, transitionCatalogue } from "../model/obs_transition_subpage";
 import { removeRetiredCards } from "../features/retired_cards";
 import { cardContractTypeRetired } from "../generated/card_contract";
 import { cardRequiresHomeAssistant } from "../model/legacy_home_assistant";
@@ -12,7 +13,7 @@ import { PANEL_CONFIG_MAX_SLOT_COUNT } from "../model/panel_config";
 import { escHtml, iconSlug } from "./ui_primitives";
 import { companionCardDefaultIcon } from "../model/companion_card";
 import { appShortcutPageBackIcon, appShortcutPageOwner, previewSubpageOwner } from "../model/companion_shortcut_page";
-import { finderFolderPreview } from "../model/finder_folder_preview";
+import { finderFolderPreview, liveSubpagePreview } from "../model/finder_folder_preview";
 import type { CompanionAction } from "../api/companion_catalogue";
 import { createWeatherDailyPreviewLayout } from "./weather_daily_preview";
 import {
@@ -55,7 +56,7 @@ export interface PreviewRenderDependencies {
     readonly grid: Pick<GridFeature, "ctx" | "resolveIcon" | "sizeClass">;
     readonly selection: Pick<ButtonSettingsSelectionFeature, "renderSelectionBar" | "updatePreviewHint">;
     readonly homeAssistantSupported: () => boolean;
-    readonly liveFinderFolders: () => readonly CompanionAction[];
+    readonly liveGeneratedActions: () => readonly CompanionAction[];
 }
 export interface PreviewRenderFeature {
     render(): void;
@@ -446,10 +447,16 @@ export function createPreviewRenderFeature(dependencies: PreviewRenderDependenci
         const subpage = pageKey ? getSubpage(pageKey) : null;
         const owner = previewSubpageOwner(pageKey, state.buttons, getSubpage);
         const shortcutOwner = appShortcutPageOwner(owner);
+        const transitionPage = obsTransitionSubpage(owner?.options);
+        const liveActions = subpage && (transitionPage || shortcutOwner === "com.apple.finder")
+            ? dependencies.liveGeneratedActions() : [];
         const liveFolders = subpage && shortcutOwner === "com.apple.finder"
-            ? finderFolderPreview(subpage.order, c.grid, c.buttons, dependencies.layout.totalSlots,
-                dependencies.liveFinderFolders())
-            : undefined;
+            ? finderFolderPreview(subpage.order, c.grid, c.buttons, dependencies.layout.totalSlots, liveActions)
+            : subpage && transitionPage
+                ? liveSubpagePreview(c.grid, c.buttons, dependencies.layout.totalSlots,
+                    orderedTransitions(transitionCatalogue(liveActions), owner?.options))
+                : undefined;
+        const selectedTransition = transitionPage && liveActions.find(action => action.id === "obs.transition.selected")?.label;
         for (var pos: any = 0; pos < c.maxSlots; pos++) {
             var slot: any = c.grid[pos];
             if (slot === -1)
@@ -620,15 +627,21 @@ export function createPreviewRenderFeature(dependencies: PreviewRenderDependenci
                 if (folder) {
                     const tile = document.createElement("div");
                     tile.className = "sp-live-folder-preview";
-                    tile.title = "Live Finder folder. Click the cell to add a saved tile.";
+                    tile.title = transitionPage ? "Automatic transition. Click the cell to add a saved tile."
+                        : "Live Finder folder. Click the cell to add a saved tile.";
                     const icon = document.createElement("span");
-                    icon.className = "sp-btn-icon mdi mdi-" + iconSlug(companionCardDefaultIcon("folder"));
+                    icon.className = "sp-btn-icon mdi mdi-" + iconSlug(companionCardDefaultIcon(transitionPage ? "obs_transition" : "folder"));
                     icon.setAttribute("aria-hidden", "true");
                     const label = document.createElement("span");
                     label.className = "sp-btn-label";
                     label.textContent = folder.label;
                     tile.append(icon, label);
                     empty.style.backgroundColor = "#" + defaultCardBackgroundColor("companion", state);
+                    if (transitionPage && folder.id === selectedTransition) {
+                        const active = state.onColor || WEB_UI_COLORS.primary;
+                        empty.style.backgroundColor = "#" + active;
+                        tile.style.setProperty("--card-text-color", cardPreviewTextColor(active));
+                    }
                     empty.appendChild(tile);
                 }
                 main.appendChild(empty);

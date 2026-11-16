@@ -1,3 +1,4 @@
+import { transitionCatalogue } from "../model/obs_transition_subpage";
 import { targetedAudioCard } from "./companion_app_volume";
 import { childPageKey } from "../model/page_keys";
 import { renderCompanionStorageSelector } from "./companion_storage";
@@ -474,7 +475,7 @@ export function registerCompanionCardTypes(
     selection: Pick<ButtonSettingsSelectionFeature, "closeSettings">,
     maxSlots: number,
     connectorStatus: Pick<ConnectorsPageFeature, "onCompanionConnectionChange">,
-    publishFinderFolders: (folders: readonly CompanionAction[]) => boolean,
+    publishGeneratedActions: (folders: readonly CompanionAction[]) => boolean,
 ): (inputId: string) => boolean {
     const { cardBadgePreview, cardBadgeLabelHtml, cardSensorPreviewHtml, fieldLabel } = fields;
     const { renderButtonSettings, renderPreview } = cardUi;
@@ -686,13 +687,19 @@ export function registerCompanionCardTypes(
     let companionApplications: readonly CompanionAction[] = [];
     const companionApplicationLabels = new Map<string, string>();
 
+    function publishLiveSubpageActions(actions: readonly CompanionAction[]): boolean {
+        return publishGeneratedActions([
+            ...actions.filter(action => action.id.startsWith(COMPANION_FOLDER_PREFIX) || action.id === "obs.transition.selected"),
+            ...transitionCatalogue(actions),
+        ]);
+    }
+
     const companionCatalogueMonitor = createCompanionCatalogueMonitor(
         () => loadCompanionActions(true),
         function (actions) {
             const previousOBS = JSON.stringify([...obsControlLabels]);
             rememberOBSControls(actions);
-            const folders = actions.filter(action => action.id.startsWith(COMPANION_FOLDER_PREFIX));
-            const foldersChanged = publishFinderFolders(folders);
+            const foldersChanged = publishLiveSubpageActions(actions);
             if (rememberCompanionApplications(actions) || foldersChanged ||
                 previousOBS !== JSON.stringify([...obsControlLabels])) cardUi.renderPreview();
         },
@@ -726,6 +733,7 @@ export function registerCompanionCardTypes(
         void loadCompanionActions().then(function (actions) {
             rememberCompanionApplications(actions);
             rememberOBSControls(actions);
+            publishLiveSubpageActions(actions);
             cardUi.renderPreview();
         }).catch(function () {});
         connectorStatus.onCompanionConnectionChange(function (connected) {
@@ -734,7 +742,7 @@ export function registerCompanionCardTypes(
                 companionCatalogueMonitor.stop();
                 const hadOBSControls = obsControlLabels.size > 0;
                 obsControlLabels.clear();
-                if (publishFinderFolders([]) || hadOBSControls) cardUi.renderPreview();
+                if (publishGeneratedActions([]) || hadOBSControls) cardUi.renderPreview();
             }
             document.dispatchEvent(new CustomEvent("espdesktop:app-icon-cache-cleared", { detail: {
                 name: "companion-connection", value: String(connected),

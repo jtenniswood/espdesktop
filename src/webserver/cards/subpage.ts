@@ -1,4 +1,8 @@
 import { companionMetricForEntity } from "../model/companion_card_codec";
+import { OBS_TRANSITION_SELECT } from "../model/companion_card_codec";
+import { OBS_TRANSITION_SUBPAGE_KIND, obsTransitionSubpage, orderedTransitions, setTransitionPreferences, transitionCatalogue } from "../model/obs_transition_subpage";
+import type { CompanionAction } from "../api/companion_catalogue";
+import type { ConfigModalTabOptionsFeature } from "../application/config_modal_tab_options";
 import { renderCompanionStorageSelector } from "./companion_storage";
 import { state } from "../state/app_instance";
 import { setConfigOptionValue } from "../model/config_primitives";
@@ -44,6 +48,8 @@ export function registerSubpageCardTypes(
     selection: Pick<ButtonSettingsSelectionFeature, "closeSettings">,
     fields: ControlsFieldsFeature,
     cardUi: CardUiServices,
+    modalTabs: Pick<ConfigModalTabOptionsFeature, "renderModalTabSettings">,
+    loadActions: () => Promise<readonly CompanionAction[]>,
 ): void {
     const { renderButtonSettings } = cardUi;
     const { fieldLabel } = fields;
@@ -84,6 +90,38 @@ export function registerSubpageCardTypes(
             b.options = "";
         },
         renderSettings: function (this: any, panel?: any, b?: any, slot?: any, helpers?: any) {
+            if (obsTransitionSubpage(b.options)) {
+                helpers.renderCardTextField(panel, b, helpers, SUBPAGE_CARD_METADATA.labelField);
+                helpers.renderCardIconPicker(panel, b, helpers, SUBPAGE_CARD_METADATA.icon);
+                const list = panel.ownerDocument.createElement("div") as HTMLDivElement;
+                helpers.markCardPrimaryField(list, "entity");
+                panel.appendChild(list);
+                void loadActions().catch(() => []).then(actions => {
+                    if (!list.isConnected) return;
+                    const transitions = transitionCatalogue(actions);
+                    if (!transitions.length) {
+                        list.textContent = "Connect OBS to customise the transition list.";
+                        return;
+                    }
+                    list.appendChild(helpers.fieldLabel("Transitions"));
+                    const note = list.ownerDocument.createElement("p");
+                    note.className = "sp-setting-note";
+                    note.textContent = "Hide or reorder transitions. New transitions fill available spaces automatically.";
+                    list.appendChild(note);
+                    const key = (id: string) => id.slice(OBS_TRANSITION_SELECT.length);
+                    modalTabs.renderModalTabSettings(list, b, helpers, {
+                        definitions: () => transitions.map(item => ({ value: key(item.id), label: item.label })),
+                        tabs: () => orderedTransitions(transitions, b.options).map(item => key(item.id)),
+                        normalizeOptions: (options: string) => options,
+                        setTabs: (card: { options: string }, visible: string[]) => {
+                            card.options = setTransitionPreferences(card.options, transitions, visible);
+                        },
+                        idPrefix: "obs-transition-list-", hideHeading: true, allowEmpty: true,
+                    });
+                });
+                appendEditSubpageButton(panel, slot);
+                return;
+            }
             var savedKind: any = subpageKind(b);
             var kind: any = savedKind === "companion_stat" ? savedKind : "";
             helpers.renderCardModeSelector(panel, b, helpers, {
@@ -239,6 +277,17 @@ export function registerSubpageCardTypes(
         label: "Subpage",
         onSelect: function (this: any, b?: any) {
             b.options = setConfigOptionValue(b.options, SUBPAGE_CONNECTOR_OPTION, "mac_companion");
+        },
+    });
+    registry.register("companion_obs_transitions", {
+        ...registeredSubpageDefinition,
+        pickerKey: null,
+        label: "Transitions",
+        onSelect: function (b: { label: string; icon: string; options: string }) {
+            b.label = "Transitions";
+            b.icon = "Flip Horizontal";
+            b.options = setConfigOptionValue(b.options, SUBPAGE_CONNECTOR_OPTION, "mac_companion");
+            b.options = setConfigOptionValue(b.options, SUBPAGE_KIND_OPTION, OBS_TRANSITION_SUBPAGE_KIND);
         },
     });
     function subpageBadgeLabelHtml(this: any, helpers?: any, label?: any) {

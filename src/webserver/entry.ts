@@ -144,7 +144,7 @@ const startupState = globalThis as typeof globalThis & {
 
 function registerCards(
   context: ApplicationContext,
-  publishFinderFolders: (folders: readonly CompanionAction[]) => boolean,
+  publishGeneratedActions: (folders: readonly CompanionAction[]) => boolean,
 ) {
   const registry = context.cards;
   const fields = context.controllers.fields;
@@ -167,7 +167,7 @@ function registerCards(
     context.controllers.selection,
     context.layout.numSlots,
     context.controllers.connectorsPage,
-    publishFinderFolders,
+    publishGeneratedActions,
   );
   registerClimateCardTypes(
     registry,
@@ -208,7 +208,9 @@ function registerCards(
     context.dom.fetch,
     isOBSInputMuted,
   );
-  registerSubpageCardTypes(registry, context.configuration.codec, context.core, context.controllers.selection, fields, cardUi);
+  const subpageCatalogue = createCompanionCatalogue(context.dom.fetch);
+  registerSubpageCardTypes(registry, context.configuration.codec, context.core, context.controllers.selection,
+    fields, cardUi, context.configuration.modalTabs, () => subpageCatalogue.load(true));
   registerSwitchCardTypes(registry, context.configuration.confirmationOptions, lightCards, fields);
   registerVacuumCardTypes(registry, context.configuration.robotOptions, fields, cardUi);
   const weatherCards = registerWeatherCardTypes(registry, context.configuration.weatherOptions, fields, cardUi);
@@ -255,7 +257,7 @@ function installTestHooks(context: ApplicationContext, lightCards: ReturnType<ty
   );
 }
 
-function composeApplicationContext(liveFinderFolders: () => readonly CompanionAction[]): ApplicationContext {
+function composeApplicationContext(liveGeneratedActions: () => readonly CompanionAction[]): ApplicationContext {
   const fetchService: typeof fetch = typeof fetch === "function"
     ? resetAwareFetch
     : (() => Promise.reject(new Error("Fetch is not available"))) as typeof fetch;
@@ -624,7 +626,7 @@ function composeApplicationContext(liveFinderFolders: () => readonly CompanionAc
     grid,
     selection,
     homeAssistantSupported: () => nativePanelConfig.homeAssistantSupportEnabled(),
-    liveFinderFolders,
+    liveGeneratedActions,
   });
   const nativeTransfers = createNativePageTransfersFeature({
     native: nativePanelConfig, editor: () => nativePages, layout, api: requestApi, grid, shell,
@@ -1081,14 +1083,14 @@ function startEspDesktop(): void {
   if (startupState.__ESPDESKTOP_UI_STARTED__ || startupState.__ESPDESKTOP_UI_STARTING__) return;
   AppInstance.initializeAppState();
 
-  let liveFinderFolders: readonly CompanionAction[] = [];
-  const context = composeApplicationContext(() => liveFinderFolders);
+  let liveGeneratedActions: readonly CompanionAction[] = [];
+  const context = composeApplicationContext(() => liveGeneratedActions);
 
   const lightCards = registerCards(context, folders => {
-    const changed = folders.length !== liveFinderFolders.length ||
-      folders.some((folder, index) => folder.id !== liveFinderFolders[index]?.id ||
-        folder.label !== liveFinderFolders[index]?.label);
-    if (changed) liveFinderFolders = folders;
+    const changed = folders.length !== liveGeneratedActions.length ||
+      folders.some((folder, index) => folder.id !== liveGeneratedActions[index]?.id ||
+        folder.label !== liveGeneratedActions[index]?.label);
+    if (changed) liveGeneratedActions = folders;
     return changed;
   });
   if (__ESPDESKTOP_TEST_HOOKS_ENABLED__) {

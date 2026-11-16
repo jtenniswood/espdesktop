@@ -10,6 +10,7 @@ inline void lv_label_set_text(lv_obj_t *, const char *) {}
 #define ESPDESKTOP_SUBPAGE_PARSER_ONLY
 #include "button_grid_subpages.h"
 #include "finder_folder_sync.h"
+#include "obs_transition_subpage.h"
 
 using namespace esphome::companion;
 
@@ -59,6 +60,24 @@ static void assert_finder_folder_projection() {
 }
 
 int main() {
+  {
+    const std::string a(32, 'a'), b(32, 'b'), c(32, 'c');
+    const std::string prefix = "obs.transition.select.";
+    const std::string token = ".11111111-1111-1111-1111-111111111111";
+    CompanionRuntimeSnapshot snapshot;
+    snapshot.actions = {{prefix + a + token, "Fade"}, {prefix + b, "Cut"}, {prefix + c + token, "Slide"}};
+    const auto catalogue = obs_transition_subpage_catalogue(snapshot);
+    assert(catalogue.size() == 3 && catalogue.front().id == prefix + a);
+    const auto folder = parse_cfg(";;Flip Horizontal;Auto;;;subpage;;subpage_kind=obs_transitions,obs_transition_order=" +
+                                  c + "|!" + a);
+    std::vector<SubpageBtn> cards{{"obs.take", "Take Live", "Arrow Right", "Auto", "", "", "companion", "", ""}};
+    SubpageOrder order;
+    parse_subpage_order("B,1", 4, cards.size(), order);
+    normalize_subpage_order_spans(order, 4, 2);
+    project_obs_transition_tiles(order, cards, 4, 2, 4, catalogue, folder.options);
+    assert(cards.size() == 3 && cards[0].entity == "obs.take" && cards[1].entity == prefix + c && cards[2].entity == prefix + b);
+    assert(order.positions[1] == 1 && order.positions[2] == 2 && order.positions[3] == 3);
+  }
   assert_finder_folder_projection();
   const auto mac_lock = normalize_parsed_cfg(
       ParsedCfg{"shortcut.command+a", "", "", "", "url.invalid", "%", "companion_mac_lock", "1", ""});

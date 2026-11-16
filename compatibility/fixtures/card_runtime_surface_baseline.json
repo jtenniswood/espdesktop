@@ -2550,6 +2550,37 @@
       }
     },
     {
+      "name": "companion_obs_transitions: picker_alias",
+      "sourceKind": "runtime_only",
+      "sourceType": "companion_obs_transitions",
+      "mode": "picker_alias",
+      "canonicalType": "subpage",
+      "web": {
+        "registration": "companion_obs_transitions",
+        "picker": {
+          "main": true,
+          "subpage": true,
+          "infoOnly": false
+        },
+        "preview": {
+          "available": true,
+          "fingerprint": "e440f351ac0138a7"
+        }
+      },
+      "firmware": {
+        "family": null
+      },
+      "lifecycle": {
+        "subscriptions": [
+          "none"
+        ],
+        "actions": [
+          "navigation"
+        ],
+        "modalOwner": "none"
+      }
+    },
+    {
       "name": "companion_obs_fader: picker_alias",
       "sourceKind": "runtime_only",
       "sourceType": "companion_obs_fader",

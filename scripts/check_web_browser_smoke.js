@@ -4528,7 +4528,7 @@ async function assertOBSSceneCard(browser) {
     await obsGroup.click();
     assert.deepEqual((await obsCards.evaluateAll(cards => cards.map(card => card.getAttribute("aria-label")))).sort(),
       ["Audio Controls", "Break", "Recording Control",
-        "Replay Buffer", "Scene", "Streaming Control", "Studio Mode"]
+        "Replay Buffer", "Scene", "Streaming Control", "Studio Mode", "Transitions"]
         .map(label => label + " card type"));
     assert((await obsCards.allTextContents()).every(copy => !/\bOBS\b/.test(copy)));
     assert.equal(await page.getByRole("button", { name: "Sound card type", exact: true }).count(), 0);
@@ -7865,6 +7865,8 @@ async function assertOBSStarterPage(browser, firstRun = false) {
   let streaming = false;
   let onBreak = false;
   let studioProgram = "";
+  const fade = "a".repeat(32), cut = "b".repeat(32), slide = "c".repeat(32), wipe = "d".repeat(32);
+  let transitions = [[fade, "Fade"], [cut, "Cut"], [wipe, "Wipe"]];
   await context.route("**/companion/actions", route => route.fulfill({ json: [
     { id: `obs.target.${main}.${token}`, label: "Gameplay" },
     { id: `obs.target.${away}.${token}`, label: "Break Room" },
@@ -7880,6 +7882,7 @@ async function assertOBSStarterPage(browser, firstRun = false) {
     { id: `obs.cough.${mic}`, label: "Desk Mic" },
     { id: `obs.replay.buffer.${token}`, label: "Off" },
     { id: `obs.transition.${token}`, label: "Fade" },
+    ...transitions.map(([hash, name]) => ({ id: `obs.transition.select.${hash}.${token}`, label: name })),
     ...(recording ? [{ id: "obs.record.active", label: "Recording" }] : []),
     ...(stopping ? [{ id: "obs.output.record", label: "Stopping" }] : []),
   ] }));
@@ -8031,6 +8034,27 @@ async function assertOBSStarterPage(browser, firstRun = false) {
     await recordTile.getByText("Stopping", { exact: true }).waitFor();
     assert.notEqual(await colour(recordTile), idleColor);
     await closeSettings.click();
+    await page.locator(".sp-main .sp-empty-cell").first().click();
+    await chooseOBSCard(page, "Transitions");
+    const fadeToggle = page.getByRole("checkbox", { name: "Fade", exact: true });
+    const fadeRow = page.locator(".sp-light-tab-row").filter({ has: fadeToggle });
+    await fadeRow.waitFor();
+    assert(await fadeToggle.isChecked());
+    await fadeRow.locator(".sp-light-tab-label").click();
+    await page.getByRole("button", { name: "Move Wipe up", exact: true }).click();
+    await page.getByRole("button", { name: "Save", exact: true }).click();
+    await waitForNativeState(fixture, () => fixture.document.buttons[4]?.includes("obs_transition_order") &&
+      fixture.puts.at(-1)?.layout?.pages.some(group => group.key === 4 && group.order === "B"),
+      "Automatic Transitions page saves its visibility settings and Back button");
+    await editFolder("Transitions");
+    const automaticTiles = page.locator(".sp-main .sp-live-folder-preview");
+    await automaticTiles.getByText("Cut", { exact: true }).waitFor();
+    assert.deepEqual(await automaticTiles.allTextContents(), ["Wipe", "Cut"]);
+    const savedCount = fixture.puts.length;
+    transitions = [[slide, "Slide"], [fade, "Fade"], [wipe, "Wipe"]];
+    await automaticTiles.getByText("Slide", { exact: true }).waitFor();
+    assert.deepEqual(await automaticTiles.allTextContents(), ["Wipe", "Slide"]);
+    assert.equal(fixture.puts.length, savedCount, "New transition catalogue states never rewrite the saved layout");
     console.log("OBS starter page pinned, preserved the Home card, and reopened for editing.");
   } finally {
     await context.close();

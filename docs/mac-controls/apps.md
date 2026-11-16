@@ -96,6 +96,8 @@ See [all app presets](/reference/shortcut-presets).
 
 In the OBS Studio card menu, choose **Studio Mode** to add **Toggle Studio Mode**, **Program scene**, **Take Live**, **Cycle transitions**, or **Select a transition**. **Toggle Studio Mode** asks for confirmation before turning Studio Mode off by default. **Program scene** shows what OBS is sending to its output. **Cycle transitions** steps through the transitions configured in OBS and displays the selected name. Use **Select a transition** to make separate cards for Cut, Fade or a custom transition. Each card lights up when OBS has selected its transition. Tap **Take Live** when you want to apply the transition to Preview. **Take Live** sends the preview named on that tile to Program. If the preview changes before the command reaches OBS, tap again after checking the updated name. Scene cards switch Program in normal mode and select Preview in Studio Mode.
 
+Choose **Add Card → OBS Studio → Transitions** to add a subpage that fills empty cells with the current transitions from OBS. Edit the **Transitions** card to hide transitions or move your favourites to the front. New transitions appear when space is available. Use **Edit Subpage** to place your own cards alongside the automatic list.
+
 A **Mute** card changes the selected input in the OBS mixer. The ON colour and microphone icon show an unmuted input. Muting the input turns the colour off and shows a crossed-out microphone. Use the mic your broadcast captures when setting up the card, especially if it differs from the Mac’s default mic. Scene and input bindings are kept when a target is unavailable.
 
 Choose **Level** to adjust a named mixer input. The fill turns grey while the input is muted, and you can still drag to adjust the level.
