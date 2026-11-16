@@ -26,7 +26,7 @@ using lv_style_prop_t = uint8_t;
 struct lv_style_value_t { lv_color_t color; };
 using lv_style_selector_t = int;
 constexpr int LV_OPA_TRANSP = 0;
-constexpr int LV_OPA_50 = 127;
+constexpr int LV_OPA_60 = 153;
 constexpr int LV_OPA_COVER = 255;
 enum lv_obj_flag_t : uint32_t {
   LV_OBJ_FLAG_USER_1 = 1u << 27,
@@ -765,7 +765,7 @@ static void test_custom_card_theme_preservation() {
     for (auto *child : {&label, &sub_label}) {
       assert(child->state & LV_STATE_DISABLED);
       assert(lv_obj_get_style_text_color(child, LV_PART_MAIN).full == 0xFFFFFF);
-      assert(lv_obj_get_style_text_opa(child, LV_PART_MAIN) == LV_OPA_50);
+      assert(lv_obj_get_style_text_opa(child, LV_PART_MAIN) == LV_OPA_60);
     }
     for (auto *slider : {&track, &sub_track}) {
       assert(slider->background.full == theme->track_background);
