@@ -259,6 +259,10 @@ auto &companion_card_refs() { return focus_cards; }
 bool lv_obj_is_valid(lv_obj_t *obj) { return obj != nullptr; }
 '''
 grid = (headers / "button_grid_grid.h").read_text()
+_, setup = definition(grid, "setup_card_visual")
+_, refresh = definition(grid, "refresh_card_layout")
+assert "basic_action_driver_refresh_layout(" not in setup
+assert refresh.index("apply_card_label_line_clamp(") < refresh.index("basic_action_driver_refresh_layout(")
 layout = (headers / "button_grid_layout.h").read_text()
 source += "\n" + "\n".join(re.findall(r"^constexpr char CARD_SIZE_.*?;$", layout, re.MULTILINE))
 

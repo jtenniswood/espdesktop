@@ -57,8 +57,8 @@ inline bool basic_action_driver_attach_interaction(
 inline bool basic_action_driver_refresh_layout(
     BtnSlot &slot, const ParsedCfg &config, const Context &context,
     const DisplayProfile &display, int row_span, int col_span) {
-  if (context.runtime.driver == card_runtime::CardDriverId::COMPANION &&
-      companion_metric_key_valid(config.entity)) {
+  if (!basic_action_driver_matches(context, config)) return false;
+  if (companion_metric_key_valid(config.entity)) {
     if (large_number_square_card_layout(row_span, col_span) &&
         card_large_numbers_active_for_layout(config, row_span, col_span) &&
         display_large_sensor_font(display)) {
@@ -78,7 +78,7 @@ inline bool basic_action_driver_refresh_layout(
       status || (output && companion_obs_output_auto_icon(config.entity, config.icon)) ? slot.icon_lbl : nullptr);
   if (companion_obs_confirmation_supported(config.entity))
     obs_confirmation_fonts() = {display_switch_confirmation_message_font(display), display.fonts.icon};
-  return basic_action_driver_matches(context, config);
+  return true;
 }
 
 inline bool basic_action_driver_cleanup(

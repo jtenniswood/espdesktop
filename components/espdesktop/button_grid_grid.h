@@ -409,9 +409,7 @@ inline bool info_only_hidden_card_type(const espdesktop::cards::Context &context
 inline void setup_card_visual(BtnSlot &s, const ParsedCfg &p,
                               const espdesktop::cards::Context &context,
                               const GridConfig &cfg,
-                              const CardPalette &default_palette,
-                              int row_span = 1,
-                              int col_span = 1) {
+                              const CardPalette &default_palette) {
   const DisplayProfile display = display_profile_from_grid_config(cfg);
   const CardPalette palette = card_palette_for_config(default_palette, p, display);
   const auto family = context.family;
@@ -477,8 +475,6 @@ inline void setup_card_visual(BtnSlot &s, const ParsedCfg &p,
       grid_update_companion_app_icon_palette(s, p, palette, display);
 #endif
     espdesktop::cards::basic_action_driver_attach_interaction(s, p, context);
-    espdesktop::cards::basic_action_driver_refresh_layout(
-      s, p, context, display, row_span, col_span);
     return;
   }
   if (espdesktop::cards::numeric_selectable_driver_setup_visual(
@@ -560,6 +556,11 @@ inline void refresh_card_layout(BtnSlot &s, const ParsedCfg &p,
     if (source) companion_layout_card_app_icon(*source, s.app_icon_img);
   }
 #endif
+  // The line clamp anchors the primary label at the bottom. Apply the OBS
+  // subtitle offset afterwards, before the page can draw its first frame.
+  if (espdesktop::cards::basic_action_driver_refresh_layout(
+        s, p, context, display, row_span, col_span)) return;
+
   if (espdesktop::cards::navigation_driver_refresh_layout(
         s, p, context, cfg)) return;
 
@@ -747,7 +748,7 @@ inline void grid_phase1(
     image_cards[idx - 1] = context.family == espdesktop::cards::Family::IMAGE;
     display_apply_main_width(s.icon_lbl, display);
     display_apply_slot_text_width(s, display);
-    setup_card_visual(s, p, context, cfg, palette, row_span, col_span);
+    setup_card_visual(s, p, context, cfg, palette);
     refresh_card_layout(s, p, cfg, row_span, col_span);
   }
   register_theme_grid(main_page_obj, slots, neutral_buttons, NS, sensor_surfaces,
@@ -1555,7 +1556,7 @@ inline void grid_phase2(
           context.family == espdesktop::cards::Family::IMAGE);
       display_apply_main_width(sub_slot.icon_lbl, display);
       display_apply_slot_text_width(sub_slot, display);
-      setup_card_visual(sub_slot, sb_cfg, context, cfg, page_palette, rs, cs);
+      setup_card_visual(sub_slot, sb_cfg, context, cfg, page_palette);
       // The line clamp re-anchors labels at the button content origin. Slider
       // cards remove button padding so their fill can reach the edges, so run
       // the card-specific refresh after clamping to restore the captured inset.
