@@ -84,6 +84,7 @@ inline constexpr OBSConfirmationControl OBS_CONFIRMATION_CONTROLS[] = {
   {"obs.replay.buffer", "off", true},
   {"obs.output.stream", "both", false},
   {"obs.output.record", "both", false},
+  {"obs.output.virtualcam", "both", false},
 };
 
 struct OBSScenePageControl { const char *id; const char *label; const char *icon; int width; };
@@ -181,16 +182,16 @@ inline OBSCardState obs_card_state(const std::string &id) {
 }
 
 inline constexpr int OBS_PROGRAM_TINT_PERCENT = 50;
-struct OBSOutputIcons { const char *status; const char *record; const char *stream; };
+struct OBSOutputIcons { const char *status; const char *record; const char *stream; const char *virtualcam; };
 inline constexpr OBSOutputIcons OBS_OUTPUT_STATUS_ICONS[] = {
-  {"Idle", "Stop Circle", "Broadcast Off"},
-  {"Active", "Record", "Broadcast Off"},
-  {"Live", "Stop Circle", "Broadcast"},
-  {"Paused", "Pause", "Broadcast Off"},
-  {"Changing", "Progress Clock", "Progress Clock"},
-  {"Stopping", "Progress Clock", "Progress Clock"},
-  {"Reconnecting", "Progress Clock", "Progress Clock"},
-  {"Unavailable", "Monitor Off", "Monitor Off"},
+  {"Idle", "Stop Circle", "Broadcast Off", "Video Off"},
+  {"Active", "Record", "Broadcast Off", "Video"},
+  {"Live", "Stop Circle", "Broadcast", "Video"},
+  {"Paused", "Pause", "Broadcast Off", "Video Off"},
+  {"Changing", "Progress Clock", "Progress Clock", "Progress Clock"},
+  {"Stopping", "Progress Clock", "Progress Clock", "Progress Clock"},
+  {"Reconnecting", "Progress Clock", "Progress Clock", "Progress Clock"},
+  {"Unavailable", "Monitor Off", "Monitor Off", "Video Off"},
 };
 
 struct CompanionMetricCapability { const char *id; const char *label; const char *label_key; const char *unit; };

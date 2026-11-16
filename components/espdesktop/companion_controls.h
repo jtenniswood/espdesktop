@@ -709,10 +709,14 @@ inline bool companion_obs_record_stopping(const CompanionRuntimeSnapshot &snapsh
   return action && action->id == "obs.output.record" && action->label == "Stopping";
 }
 
+inline const char *companion_obs_output_status_id(const std::string &id) {
+  if (id == "obs.output.virtualcam") return "obs.status.virtualcam";
+  return id == "obs.output.record" ? "obs.status.record" : "obs.status.stream";
+}
+
 inline std::string_view companion_obs_output_status(const CompanionRuntimeSnapshot &snapshot,
                                                     const std::string &id) {
-  const auto *status = companion_published_action(snapshot,
-    id == "obs.output.record" ? "obs.status.record" : "obs.status.stream");
+  const auto *status = companion_published_action(snapshot, companion_obs_output_status_id(id));
   if (status && status->obs_state != OBSCardState::unknown) return obs_card_presentation(status->obs_state).detail;
   if (id == "obs.output.record" && companion_obs_record_stopping(snapshot)) return "Stopping";
   if (!status) return "Unavailable";
@@ -723,8 +727,9 @@ inline std::string_view companion_obs_output_status(const CompanionRuntimeSnapsh
 
 inline bool companion_obs_output_active(const CompanionRuntimeSnapshot &snapshot, const std::string &id) {
   const bool record = id == "obs.output.record";
-  const auto *published = companion_published_action(snapshot, record ? "obs.status.record" : "obs.status.stream");
+  const auto *published = companion_published_action(snapshot, companion_obs_output_status_id(id));
   if (published && published->obs_state != OBSCardState::unknown) return obs_card_presentation(published->obs_state).lit;
+  if (id == "obs.output.virtualcam") return companion_obs_output_status(snapshot, id) == "Active";
   if (companion_published_action(snapshot, record ? "obs.record.active" : "obs.stream.active")) return true;
   const auto status = companion_obs_output_status(snapshot, id);
   return record ? status == "Active" || status == "Paused" || status == "Stopping"
@@ -733,7 +738,7 @@ inline bool companion_obs_output_active(const CompanionRuntimeSnapshot &snapshot
 
 inline bool companion_obs_output_auto_icon(const std::string &id, const std::string &icon) {
   return icon.empty() || icon == "Auto" || icon == "Monitor" ||
-    (id == "obs.output.record" ? icon == "Record" : icon == "Broadcast");
+    (id == "obs.output.virtualcam" ? icon == "Video" : id == "obs.output.record" ? icon == "Record" : icon == "Broadcast");
 }
 
 inline bool companion_action_available(const std::string &action_id) {
@@ -781,7 +786,7 @@ inline std::string companion_obs_control_label(const std::string &action_id, con
                                                const std::string &live_label,
                                                const CompanionRuntimeSnapshot *snapshot = nullptr) {
   if (snapshot && companion_obs_output_card(action_id)) {
-    const char *title = action_id == "obs.output.stream" ? "Stream"
+    const char *title = action_id == "obs.output.virtualcam" ? "Virtual Camera" : action_id == "obs.output.stream" ? "Stream"
       : companion_obs_output_active(*snapshot, action_id) ? "Recording" : "Record";
     return std::string(title) + " · " + std::string(companion_obs_output_status(*snapshot, action_id));
   }
@@ -1175,7 +1180,7 @@ inline const char *companion_obs_status_icon(const std::string &id, const std::s
   if (id == "obs.status.program") return "Monitor";
   const bool stream = id == "obs.status.stream" || id == "obs.output.stream";
   for (const auto &entry : OBS_OUTPUT_STATUS_ICONS)
-    if (status == entry.status) return stream ? entry.stream : entry.record;
+    if (status == entry.status) return id == "obs.output.virtualcam" ? entry.virtualcam : stream ? entry.stream : entry.record;
   return "Monitor Off";
 }
 

@@ -132,6 +132,13 @@ export const OBS_CONFIRMATION_CONTROLS = [
     when: "both",
     enableLabel: "Start",
     disableLabel: "Stop"
+  },
+  {
+    id: "obs.output.virtualcam",
+    kind: "output",
+    when: "both",
+    enableLabel: "Start",
+    disableLabel: "Stop"
   }
 ] as const;
 export const OBS_SCENE_PAGE_CONTROLS = [
@@ -177,38 +184,46 @@ export const OBS_STUDIO_CONTROL_PAGE = [
   }
 ] as const;
 export const OBS_PROGRAM_TINT_PERCENT = 50;
-export const OBS_OUTPUT_STATUS_ICONS: Readonly<Record<string, readonly [string, string]>> = {
+export const OBS_OUTPUT_STATUS_ICONS: Readonly<Record<string, readonly [string, string, string]>> = {
   Idle: [
     "Stop Circle",
-    "Broadcast Off"
+    "Broadcast Off",
+    "Video Off"
   ],
   Active: [
     "Record",
-    "Broadcast Off"
+    "Broadcast Off",
+    "Video"
   ],
   Live: [
     "Stop Circle",
-    "Broadcast"
+    "Broadcast",
+    "Video"
   ],
   Paused: [
     "Pause",
-    "Broadcast Off"
+    "Broadcast Off",
+    "Video Off"
   ],
   Changing: [
+    "Progress Clock",
     "Progress Clock",
     "Progress Clock"
   ],
   Stopping: [
     "Progress Clock",
+    "Progress Clock",
     "Progress Clock"
   ],
   Reconnecting: [
+    "Progress Clock",
     "Progress Clock",
     "Progress Clock"
   ],
   Unavailable: [
     "Monitor Off",
-    "Monitor Off"
+    "Monitor Off",
+    "Video Off"
   ]
 };
 export const OBS_CARD_STATES: Readonly<Record<string, { readonly detail: string; readonly lit: boolean }>> = {

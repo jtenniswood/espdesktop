@@ -36,6 +36,7 @@ export function obsConfirmableToggle(entity: string): boolean {
 export const OBS_OUTPUT_OPTIONS = [
   ["obs.output.stream", "Streaming"],
   ["obs.output.record", "Recording"],
+  ["obs.output.virtualcam", "Virtual Camera"],
 ] as const;
 export function obsOutputCardEntity(entity: string): string {
   if (entity === "obs.status.stream") return "obs.output.stream";

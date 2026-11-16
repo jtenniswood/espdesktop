@@ -4465,6 +4465,7 @@ async function assertOBSSceneCard(browser) {
   let replayBufferOn = false;
   let replaySave = "replay_ready";
   let recordingState = "Idle";
+  let virtualCameraOn = false;
   let transitionName = "Fade";
   const fadeTransition = "obs.transition.select." + "a".repeat(32);
   const cutTransition = "obs.transition.select." + "b".repeat(32);
@@ -4484,6 +4485,7 @@ async function assertOBSSceneCard(browser) {
       { id: "obs.replay.buffer.9ea47782-fada-4bb3-aef6-1904669efae7", label: replayBufferOn ? "On" : "Off" },
       ...(replayBufferOn ? [{ id: "obs.replay", label: "Save Replay", obsState: replaySave }] : []),
       { id: "obs.status.record", label: "Recording · " + recordingState },
+      { id: "obs.status.virtualcam", label: "Virtual Camera", obsState: virtualCameraOn ? "output_active" : "output_idle" },
       { id: "obs.status.program", label: "Program · Gameplay" },
     ] : [],
   }));
@@ -4538,7 +4540,7 @@ async function assertOBSSceneCard(browser) {
       ["Audio", "Scenes", "Studio Control", "Transitions"].map(label => label + " card type"));
     assert((await obsCards.allTextContents()).every(copy => !/\bOBS\b/.test(copy)));
     assert.match(await page.getByRole("button", { name: "Output Controls card type", exact: true }).innerText(),
-      /Streaming and recordings state controls\./);
+      /Control streaming, recording, and the virtual camera\./);
     assert.equal(await page.getByRole("button", { name: "Sound card type", exact: true }).count(), 0);
     await page.getByRole("button", { name: "Back to card types", exact: true }).click();
     assert.equal(await obsGroup.evaluate(group => document.activeElement === group), true);
@@ -4584,6 +4586,7 @@ async function assertOBSSceneCard(browser) {
     await page.locator(".sp-main .sp-empty-cell").first().click();
     await chooseOBSCard(page, "Output Controls");
     const outputPicker = page.locator("select[id$='obs-output']");
+    assert.deepEqual(await outputPicker.locator("option").allTextContents(), ["Streaming", "Recording", "Virtual Camera"]);
     await outputPicker.selectOption("obs.output.record");
     assert.equal(await outputPicker.inputValue(), "obs.output.record");
     await page.getByRole("button", { name: "Save", exact: true }).click();
@@ -4703,6 +4706,23 @@ async function assertOBSSceneCard(browser) {
     assert.equal(await transitionPicker.inputValue(), fadeTransition);
     await page.waitForFunction(offColor =>
       document.querySelector('.sp-main [data-slot="9"]')?.style.backgroundColor !== offColor, transitionOffColor);
+    await page.locator(".sp-settings-overlay.sp-visible .sp-settings-close").click();
+    await recordingControl.click();
+    await page.getByRole("button", { name: "Edit", exact: true }).click();
+    await outputPicker.selectOption("obs.output.virtualcam");
+    await page.getByRole("button", { name: "Save", exact: true }).click();
+    await waitForNativeState(fixture, () => fixture.document.buttons[6]?.startsWith("obs.output.virtualcam;"),
+      "Virtual Camera saves as an output control");
+    await recordingControl.getByText("Virtual Camera", { exact: true }).waitFor();
+    await recordingControl.getByText("Idle", { exact: true }).waitFor();
+    await recordingControl.locator(".mdi-video-off").waitFor();
+    const virtualCameraIdle = await recordingControl.evaluate(tile => getComputedStyle(tile).backgroundColor);
+    virtualCameraOn = true;
+    await page.locator('.sp-main [data-slot="3"]').click();
+    await page.getByRole("button", { name: "Edit", exact: true }).click();
+    await recordingControl.getByText("Active", { exact: true }).waitFor();
+    await recordingControl.locator(".mdi-video").waitFor();
+    assert.notEqual(await recordingControl.evaluate(tile => getComputedStyle(tile).backgroundColor), virtualCameraIdle);
     await page.locator(".sp-settings-overlay.sp-visible .sp-settings-close").click();
     connectedToOBS = false;
     await page.locator('.sp-main [data-slot="3"]').click();

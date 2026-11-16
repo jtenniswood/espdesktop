@@ -168,6 +168,10 @@ inline bool invoke_confirmable_obs_action(const ParsedCfg &card, lv_obj_t *butto
       message = espdesktop_i18n_key(turning_off ? "turn_off_studio_mode" : "turn_on_studio_mode");
     } else if (card.entity == "obs.replay.buffer") {
       message = espdesktop_i18n_key(turning_off ? "stop_replay_buffer_prompt" : "start_replay_buffer_prompt");
+    } else if (card.entity == "obs.output.virtualcam") {
+      const bool running = shown.obs_state == OBSCardState::unknown ? shown.label.rfind("Stop ", 0) == 0
+        : obs_card_presentation(shown.obs_state).lit;
+      message = espdesktop_i18n_key(running ? "stop_virtual_camera_prompt" : "start_virtual_camera_prompt");
     } else {
       message = shown.label + "?";
     }

@@ -25,6 +25,7 @@ private final class OBSPilotTransport: OBSWebSocketTransport {
     var streamReconnecting = true
     var recording = true
     var recordingPaused = true
+    var virtualCameraActive: Bool?
     var recordStatusRead: (() -> Void)?
     var outputWrites: [String] = []
     var hasAudioInput = false
@@ -112,6 +113,13 @@ private final class OBSPilotTransport: OBSWebSocketTransport {
         case "GetRecordStatus":
             recordStatusRead?()
             return ["outputActive": recording, "outputPaused": recordingPaused]
+        case "GetVirtualCamStatus":
+            guard let virtualCameraActive else { throw OBSWebSocket.Failure.requestRejected(204) }
+            return ["outputActive": virtualCameraActive]
+        case "StartVirtualCam", "StopVirtualCam":
+            outputWrites.append(type)
+            virtualCameraActive = type == "StartVirtualCam"
+            return [:]
         case "StartRecord", "StopRecord":
             outputWrites.append(type)
             recording = type == "StartRecord"
@@ -171,6 +179,33 @@ final class OBSProductionTests: XCTestCase {
         }
         _ = try XCTUnwrap(connection.state)
         return connection
+    }
+
+    @MainActor
+    func testVirtualCameraTracksOBSAndRejectsAStaleStart() async throws {
+        let transport = OBSPilotTransport()
+        transport.virtualCameraActive = false
+        let connection = try await open(transport)
+        let start = try XCTUnwrap(connection.state?.outputTokens[.virtualcam])
+        XCTAssertTrue(OBSConnection.outputActions(connection.state).contains { $0.label == "Start Virtual Camera" })
+
+        transport.virtualCameraActive = true
+        let stale = await connection.performOutput(.virtualcam, token: start)
+        XCTAssertFalse(stale)
+        XCTAssertTrue(transport.outputWrites.isEmpty)
+        XCTAssertEqual(connection.state?.outputPresentation(.virtualcam), .outputActive)
+
+        let stop = try XCTUnwrap(connection.state?.outputTokens[.virtualcam])
+        let stopped = await connection.performOutput(.virtualcam, token: stop)
+        XCTAssertTrue(stopped)
+        let restart = try XCTUnwrap(connection.state?.outputTokens[.virtualcam])
+        let restarted = await connection.performOutput(.virtualcam, token: restart)
+        XCTAssertTrue(restarted)
+        XCTAssertEqual(transport.outputWrites, ["StopVirtualCam", "StartVirtualCam"])
+
+        transport.onEvent?("VirtualcamStateChanged", ["outputActive": false, "outputState": "OBS_WEBSOCKET_OUTPUT_STOPPED"])
+        let status = OBSConnection.controlCatalogue(connection.state).first { $0.id == "obs.status.virtualcam" }
+        XCTAssertEqual(status?.state, .outputIdle)
     }
 
     @MainActor

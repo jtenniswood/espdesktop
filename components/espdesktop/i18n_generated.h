@@ -315,6 +315,8 @@ inline const char *espdesktop_i18n_cs(const char *text) {
   if (std::strcmp(text, "Thurs") == 0) return "čt";
   if (std::strcmp(text, "Fri") == 0) return "pá";
   if (std::strcmp(text, "Sat") == 0) return "so";
+  if (std::strcmp(text, "Start Virtual Camera?") == 0) return "Spustit virtuální kameru?";
+  if (std::strcmp(text, "Stop Virtual Camera?") == 0) return "Zastavit virtuální kameru?";
   if (std::strcmp(text, "Output Mute") == 0) return "Ztlumit výstup";
   if (std::strcmp(text, "Microphone Mute") == 0) return "Ztlumit mikrofon";
   if (std::strcmp(text, "Mic") == 0) return "Mikrofon";
@@ -618,6 +620,8 @@ inline const char *espdesktop_i18n_da(const char *text) {
   if (std::strcmp(text, "Thurs") == 0) return "tor.";
   if (std::strcmp(text, "Fri") == 0) return "fre.";
   if (std::strcmp(text, "Sat") == 0) return "lør.";
+  if (std::strcmp(text, "Start Virtual Camera?") == 0) return "Start virtuelt kamera?";
+  if (std::strcmp(text, "Stop Virtual Camera?") == 0) return "Stop virtuelt kamera?";
   if (std::strcmp(text, "Output Mute") == 0) return "Slå lyd fra";
   if (std::strcmp(text, "Microphone Mute") == 0) return "Slå mikrofon fra";
   if (std::strcmp(text, "Mic") == 0) return "Mikrofon";
@@ -926,6 +930,8 @@ inline const char *espdesktop_i18n_de(const char *text) {
   if (std::strcmp(text, "Thurs") == 0) return "Do.";
   if (std::strcmp(text, "Fri") == 0) return "Fr.";
   if (std::strcmp(text, "Sat") == 0) return "Sa.";
+  if (std::strcmp(text, "Start Virtual Camera?") == 0) return "Virtuelle Kamera starten?";
+  if (std::strcmp(text, "Stop Virtual Camera?") == 0) return "Virtuelle Kamera stoppen?";
   if (std::strcmp(text, "Output Mute") == 0) return "Ausgabe stummschalten";
   if (std::strcmp(text, "Microphone Mute") == 0) return "Mikrofon stummschalten";
   if (std::strcmp(text, "Mic") == 0) return "Mikro";
@@ -1247,6 +1253,8 @@ inline const char *espdesktop_i18n_es(const char *text) {
   if (std::strcmp(text, "Thurs") == 0) return "jue.";
   if (std::strcmp(text, "Fri") == 0) return "vie.";
   if (std::strcmp(text, "Sat") == 0) return "sáb.";
+  if (std::strcmp(text, "Start Virtual Camera?") == 0) return "¿Iniciar la cámara virtual?";
+  if (std::strcmp(text, "Stop Virtual Camera?") == 0) return "¿Detener la cámara virtual?";
   if (std::strcmp(text, "Output Mute") == 0) return "Silenciar salida";
   if (std::strcmp(text, "Microphone Mute") == 0) return "Silenciar micrófono";
   if (std::strcmp(text, "Mic") == 0) return "Micrófono";
@@ -1571,6 +1579,8 @@ inline const char *espdesktop_i18n_fi(const char *text) {
   if (std::strcmp(text, "Thurs") == 0) return "to";
   if (std::strcmp(text, "Fri") == 0) return "pe";
   if (std::strcmp(text, "Sat") == 0) return "la";
+  if (std::strcmp(text, "Start Virtual Camera?") == 0) return "Käynnistetäänkö virtuaalikamera?";
+  if (std::strcmp(text, "Stop Virtual Camera?") == 0) return "Pysäytetäänkö virtuaalikamera?";
   if (std::strcmp(text, "Output Mute") == 0) return "Mykistä ääni";
   if (std::strcmp(text, "Microphone Mute") == 0) return "Mykistä mikrofoni";
   if (std::strcmp(text, "Mic") == 0) return "Mikki";
@@ -1886,6 +1896,8 @@ inline const char *espdesktop_i18n_fr(const char *text) {
   if (std::strcmp(text, "Thurs") == 0) return "jeu.";
   if (std::strcmp(text, "Fri") == 0) return "ven.";
   if (std::strcmp(text, "Sat") == 0) return "sam.";
+  if (std::strcmp(text, "Start Virtual Camera?") == 0) return "Démarrer la caméra virtuelle ?";
+  if (std::strcmp(text, "Stop Virtual Camera?") == 0) return "Arrêter la caméra virtuelle ?";
   if (std::strcmp(text, "Output Mute") == 0) return "Couper le son";
   if (std::strcmp(text, "Microphone Mute") == 0) return "Couper le microphone";
   if (std::strcmp(text, "Mic") == 0) return "Micro";
@@ -2217,6 +2229,8 @@ inline const char *espdesktop_i18n_he(const char *text) {
   if (std::strcmp(text, "Thurs") == 0) return "ה׳";
   if (std::strcmp(text, "Fri") == 0) return "ו׳";
   if (std::strcmp(text, "Sat") == 0) return "ש׳";
+  if (std::strcmp(text, "Start Virtual Camera?") == 0) return "להפעיל את המצלמה הווירטואלית?";
+  if (std::strcmp(text, "Stop Virtual Camera?") == 0) return "להפסיק את המצלמה הווירטואלית?";
   if (std::strcmp(text, "Output Mute") == 0) return "השתקת פלט";
   if (std::strcmp(text, "Microphone Mute") == 0) return "השתקת מיקרופון";
   if (std::strcmp(text, "Mic") == 0) return "מיקרופון";
@@ -2539,6 +2553,8 @@ inline const char *espdesktop_i18n_hu(const char *text) {
   if (std::strcmp(text, "Thurs") == 0) return "csüt.";
   if (std::strcmp(text, "Fri") == 0) return "pén.";
   if (std::strcmp(text, "Sat") == 0) return "szomb.";
+  if (std::strcmp(text, "Start Virtual Camera?") == 0) return "Elindítja a virtuális kamerát?";
+  if (std::strcmp(text, "Stop Virtual Camera?") == 0) return "Leállítja a virtuális kamerát?";
   if (std::strcmp(text, "Output Mute") == 0) return "Kimenet némítása";
   if (std::strcmp(text, "Microphone Mute") == 0) return "Mikrofon némítása";
   if (std::strcmp(text, "Mic") == 0) return "Mikrofon";
@@ -2859,6 +2875,8 @@ inline const char *espdesktop_i18n_it(const char *text) {
   if (std::strcmp(text, "Thurs") == 0) return "gio.";
   if (std::strcmp(text, "Fri") == 0) return "ven.";
   if (std::strcmp(text, "Sat") == 0) return "sab.";
+  if (std::strcmp(text, "Start Virtual Camera?") == 0) return "Avviare la videocamera virtuale?";
+  if (std::strcmp(text, "Stop Virtual Camera?") == 0) return "Arrestare la videocamera virtuale?";
   if (std::strcmp(text, "Output Mute") == 0) return "Disattiva audio";
   if (std::strcmp(text, "Microphone Mute") == 0) return "Disattiva microfono";
   if (std::strcmp(text, "Mic") == 0) return "Microfono";
@@ -3170,6 +3188,8 @@ inline const char *espdesktop_i18n_nb(const char *text) {
   if (std::strcmp(text, "Thurs") == 0) return "tor.";
   if (std::strcmp(text, "Fri") == 0) return "fre.";
   if (std::strcmp(text, "Sat") == 0) return "lør.";
+  if (std::strcmp(text, "Start Virtual Camera?") == 0) return "Starte det virtuelle kameraet?";
+  if (std::strcmp(text, "Stop Virtual Camera?") == 0) return "Stoppe det virtuelle kameraet?";
   if (std::strcmp(text, "Output Mute") == 0) return "Demp lyd";
   if (std::strcmp(text, "Microphone Mute") == 0) return "Demp mikrofon";
   if (std::strcmp(text, "Mic") == 0) return "Mikrofon";
@@ -3480,6 +3500,8 @@ inline const char *espdesktop_i18n_nl(const char *text) {
   if (std::strcmp(text, "Thurs") == 0) return "do.";
   if (std::strcmp(text, "Fri") == 0) return "vr.";
   if (std::strcmp(text, "Sat") == 0) return "za.";
+  if (std::strcmp(text, "Start Virtual Camera?") == 0) return "Virtuele camera starten?";
+  if (std::strcmp(text, "Stop Virtual Camera?") == 0) return "Virtuele camera stoppen?";
   if (std::strcmp(text, "Output Mute") == 0) return "Uitvoer dempen";
   if (std::strcmp(text, "Microphone Mute") == 0) return "Microfoon dempen";
   if (std::strcmp(text, "Mic") == 0) return "Microfoon";
@@ -3791,6 +3813,8 @@ inline const char *espdesktop_i18n_pl(const char *text) {
   if (std::strcmp(text, "Thurs") == 0) return "czw.";
   if (std::strcmp(text, "Fri") == 0) return "pt.";
   if (std::strcmp(text, "Sat") == 0) return "sob.";
+  if (std::strcmp(text, "Start Virtual Camera?") == 0) return "Uruchomić wirtualną kamerę?";
+  if (std::strcmp(text, "Stop Virtual Camera?") == 0) return "Zatrzymać wirtualną kamerę?";
   if (std::strcmp(text, "Output Mute") == 0) return "Wycisz wyjście";
   if (std::strcmp(text, "Microphone Mute") == 0) return "Wycisz mikrofon";
   if (std::strcmp(text, "Mic") == 0) return "Mikrofon";
@@ -4104,6 +4128,8 @@ inline const char *espdesktop_i18n_pt_br(const char *text) {
   if (std::strcmp(text, "Thurs") == 0) return "qui.";
   if (std::strcmp(text, "Fri") == 0) return "sex.";
   if (std::strcmp(text, "Sat") == 0) return "sáb.";
+  if (std::strcmp(text, "Start Virtual Camera?") == 0) return "Iniciar a câmera virtual?";
+  if (std::strcmp(text, "Stop Virtual Camera?") == 0) return "Parar a câmera virtual?";
   if (std::strcmp(text, "Output Mute") == 0) return "Silenciar saída";
   if (std::strcmp(text, "Microphone Mute") == 0) return "Silenciar microfone";
   if (std::strcmp(text, "Mic") == 0) return "Microfone";
@@ -4424,6 +4450,8 @@ inline const char *espdesktop_i18n_pt(const char *text) {
   if (std::strcmp(text, "Thurs") == 0) return "qui.";
   if (std::strcmp(text, "Fri") == 0) return "sex.";
   if (std::strcmp(text, "Sat") == 0) return "sáb.";
+  if (std::strcmp(text, "Start Virtual Camera?") == 0) return "Iniciar a câmara virtual?";
+  if (std::strcmp(text, "Stop Virtual Camera?") == 0) return "Parar a câmara virtual?";
   if (std::strcmp(text, "Output Mute") == 0) return "Silenciar saída";
   if (std::strcmp(text, "Microphone Mute") == 0) return "Silenciar microfone";
   if (std::strcmp(text, "Mic") == 0) return "Microfone";
@@ -4746,6 +4774,8 @@ inline const char *espdesktop_i18n_ro(const char *text) {
   if (std::strcmp(text, "Thurs") == 0) return "joi";
   if (std::strcmp(text, "Fri") == 0) return "vin.";
   if (std::strcmp(text, "Sat") == 0) return "sâm.";
+  if (std::strcmp(text, "Start Virtual Camera?") == 0) return "Porniți camera virtuală?";
+  if (std::strcmp(text, "Stop Virtual Camera?") == 0) return "Opriți camera virtuală?";
   if (std::strcmp(text, "Output Mute") == 0) return "Dezactivează sunetul";
   if (std::strcmp(text, "Microphone Mute") == 0) return "Dezactivează microfonul";
   if (std::strcmp(text, "Mic") == 0) return "Microfon";
@@ -5076,6 +5106,8 @@ inline const char *espdesktop_i18n_ru(const char *text) {
   if (std::strcmp(text, "Thurs") == 0) return "чт";
   if (std::strcmp(text, "Fri") == 0) return "пт";
   if (std::strcmp(text, "Sat") == 0) return "сб";
+  if (std::strcmp(text, "Start Virtual Camera?") == 0) return "Запустить виртуальную камеру?";
+  if (std::strcmp(text, "Stop Virtual Camera?") == 0) return "Остановить виртуальную камеру?";
   if (std::strcmp(text, "Output Mute") == 0) return "Выключить звук";
   if (std::strcmp(text, "Microphone Mute") == 0) return "Выключить микрофон";
   if (std::strcmp(text, "Mic") == 0) return "Микрофон";
@@ -5391,6 +5423,8 @@ inline const char *espdesktop_i18n_sk(const char *text) {
   if (std::strcmp(text, "Thurs") == 0) return "št";
   if (std::strcmp(text, "Fri") == 0) return "pi";
   if (std::strcmp(text, "Sat") == 0) return "so";
+  if (std::strcmp(text, "Start Virtual Camera?") == 0) return "Spustiť virtuálnu kameru?";
+  if (std::strcmp(text, "Stop Virtual Camera?") == 0) return "Zastaviť virtuálnu kameru?";
   if (std::strcmp(text, "Output Mute") == 0) return "Stlmiť výstup";
   if (std::strcmp(text, "Microphone Mute") == 0) return "Stlmiť mikrofón";
   if (std::strcmp(text, "Mic") == 0) return "Mikrofón";
@@ -5710,6 +5744,8 @@ inline const char *espdesktop_i18n_sl(const char *text) {
   if (std::strcmp(text, "Thurs") == 0) return "čet.";
   if (std::strcmp(text, "Fri") == 0) return "pet.";
   if (std::strcmp(text, "Sat") == 0) return "sob.";
+  if (std::strcmp(text, "Start Virtual Camera?") == 0) return "Zagnati navidezno kamero?";
+  if (std::strcmp(text, "Stop Virtual Camera?") == 0) return "Ustaviti navidezno kamero?";
   if (std::strcmp(text, "Output Mute") == 0) return "Utišaj zvok";
   if (std::strcmp(text, "Microphone Mute") == 0) return "Utišaj mikrofon";
   if (std::strcmp(text, "Mic") == 0) return "Mikrofon";
@@ -6018,6 +6054,8 @@ inline const char *espdesktop_i18n_sv(const char *text) {
   if (std::strcmp(text, "Thurs") == 0) return "tor";
   if (std::strcmp(text, "Fri") == 0) return "fre";
   if (std::strcmp(text, "Sat") == 0) return "lör";
+  if (std::strcmp(text, "Start Virtual Camera?") == 0) return "Starta den virtuella kameran?";
+  if (std::strcmp(text, "Stop Virtual Camera?") == 0) return "Stoppa den virtuella kameran?";
   if (std::strcmp(text, "Output Mute") == 0) return "Stäng av ljud";
   if (std::strcmp(text, "Microphone Mute") == 0) return "Stäng av mikrofon";
   if (std::strcmp(text, "Mic") == 0) return "Mikrofon";
@@ -6341,6 +6379,8 @@ inline const char *espdesktop_i18n_tr(const char *text) {
   if (std::strcmp(text, "Thurs") == 0) return "Per";
   if (std::strcmp(text, "Fri") == 0) return "Cum";
   if (std::strcmp(text, "Sat") == 0) return "Cmt";
+  if (std::strcmp(text, "Start Virtual Camera?") == 0) return "Sanal kamera başlatılsın mı?";
+  if (std::strcmp(text, "Stop Virtual Camera?") == 0) return "Sanal kamera durdurulsun mu?";
   if (std::strcmp(text, "Output Mute") == 0) return "Çıkışı sessize al";
   if (std::strcmp(text, "Microphone Mute") == 0) return "Mikrofonu sessize al";
   if (std::strcmp(text, "Mic") == 0) return "Mikrofon";
@@ -6666,6 +6706,8 @@ inline const char *espdesktop_i18n_uk(const char *text) {
   if (std::strcmp(text, "Thurs") == 0) return "чт";
   if (std::strcmp(text, "Fri") == 0) return "пт";
   if (std::strcmp(text, "Sat") == 0) return "сб";
+  if (std::strcmp(text, "Start Virtual Camera?") == 0) return "Запустити віртуальну камеру?";
+  if (std::strcmp(text, "Stop Virtual Camera?") == 0) return "Зупинити віртуальну камеру?";
   if (std::strcmp(text, "Output Mute") == 0) return "Вимкнути звук";
   if (std::strcmp(text, "Microphone Mute") == 0) return "Вимкнути мікрофон";
   if (std::strcmp(text, "Mic") == 0) return "Мікрофон";
@@ -7022,6 +7064,9 @@ inline const char *espdesktop_i18n_key_en(const char *key) {
   if (std::strcmp(key, "label_obs_break") == 0) return "Break";
   if (std::strcmp(key, "label_obs_resume") == 0) return "Resume";
   if (std::strcmp(key, "label_obs_studio_mode") == 0) return "Studio Mode";
+  if (std::strcmp(key, "label_obs_virtual_camera") == 0) return "Virtual Camera";
+  if (std::strcmp(key, "start_virtual_camera_prompt") == 0) return "Start Virtual Camera?";
+  if (std::strcmp(key, "stop_virtual_camera_prompt") == 0) return "Stop Virtual Camera?";
   if (std::strcmp(key, "label_obs_transition") == 0) return "Transition";
   if (std::strcmp(key, "wind_north") == 0) return "North";
   if (std::strcmp(key, "wind_north_east") == 0) return "North East";
@@ -7359,6 +7404,9 @@ inline const char *espdesktop_i18n_key_cs(const char *key) {
   if (std::strcmp(key, "label_obs_break") == 0) return "Přestávka";
   if (std::strcmp(key, "label_obs_resume") == 0) return "Pokračovat";
   if (std::strcmp(key, "label_obs_studio_mode") == 0) return "Režim studia";
+  if (std::strcmp(key, "label_obs_virtual_camera") == 0) return "Virtuální kamera";
+  if (std::strcmp(key, "start_virtual_camera_prompt") == 0) return "Spustit virtuální kameru?";
+  if (std::strcmp(key, "stop_virtual_camera_prompt") == 0) return "Zastavit virtuální kameru?";
   if (std::strcmp(key, "label_obs_transition") == 0) return "Přechod";
   if (std::strcmp(key, "output_mute") == 0) return "Ztlumit výstup";
   if (std::strcmp(key, "microphone_mute") == 0) return "Ztlumit mikrofon";
@@ -7674,6 +7722,9 @@ inline const char *espdesktop_i18n_key_da(const char *key) {
   if (std::strcmp(key, "label_obs_break") == 0) return "Pause";
   if (std::strcmp(key, "label_obs_resume") == 0) return "Fortsæt";
   if (std::strcmp(key, "label_obs_studio_mode") == 0) return "Studiotilstand";
+  if (std::strcmp(key, "label_obs_virtual_camera") == 0) return "Virtuelt kamera";
+  if (std::strcmp(key, "start_virtual_camera_prompt") == 0) return "Start virtuelt kamera?";
+  if (std::strcmp(key, "stop_virtual_camera_prompt") == 0) return "Stop virtuelt kamera?";
   if (std::strcmp(key, "label_obs_transition") == 0) return "Overgang";
   if (std::strcmp(key, "output_mute") == 0) return "Slå lyd fra";
   if (std::strcmp(key, "microphone_mute") == 0) return "Slå mikrofon fra";
@@ -7995,6 +8046,9 @@ inline const char *espdesktop_i18n_key_de(const char *key) {
   if (std::strcmp(key, "label_obs_break") == 0) return "Pause";
   if (std::strcmp(key, "label_obs_resume") == 0) return "Fortsetzen";
   if (std::strcmp(key, "label_obs_studio_mode") == 0) return "Studiomodus";
+  if (std::strcmp(key, "label_obs_virtual_camera") == 0) return "Virtuelle Kamera";
+  if (std::strcmp(key, "start_virtual_camera_prompt") == 0) return "Virtuelle Kamera starten?";
+  if (std::strcmp(key, "stop_virtual_camera_prompt") == 0) return "Virtuelle Kamera stoppen?";
   if (std::strcmp(key, "label_obs_transition") == 0) return "Übergang";
   if (std::strcmp(key, "output_mute") == 0) return "Ausgabe stummschalten";
   if (std::strcmp(key, "microphone_mute") == 0) return "Mikrofon stummschalten";
@@ -8330,6 +8384,9 @@ inline const char *espdesktop_i18n_key_es(const char *key) {
   if (std::strcmp(key, "label_obs_break") == 0) return "Pausa";
   if (std::strcmp(key, "label_obs_resume") == 0) return "Reanudar";
   if (std::strcmp(key, "label_obs_studio_mode") == 0) return "Modo estudio";
+  if (std::strcmp(key, "label_obs_virtual_camera") == 0) return "Cámara virtual";
+  if (std::strcmp(key, "start_virtual_camera_prompt") == 0) return "¿Iniciar la cámara virtual?";
+  if (std::strcmp(key, "stop_virtual_camera_prompt") == 0) return "¿Detener la cámara virtual?";
   if (std::strcmp(key, "label_obs_transition") == 0) return "Transición";
   if (std::strcmp(key, "output_mute") == 0) return "Silenciar salida";
   if (std::strcmp(key, "microphone_mute") == 0) return "Silenciar micrófono";
@@ -8669,6 +8726,9 @@ inline const char *espdesktop_i18n_key_fi(const char *key) {
   if (std::strcmp(key, "label_obs_break") == 0) return "Tauko";
   if (std::strcmp(key, "label_obs_resume") == 0) return "Jatka";
   if (std::strcmp(key, "label_obs_studio_mode") == 0) return "Studiotila";
+  if (std::strcmp(key, "label_obs_virtual_camera") == 0) return "Virtuaalikamera";
+  if (std::strcmp(key, "start_virtual_camera_prompt") == 0) return "Käynnistetäänkö virtuaalikamera?";
+  if (std::strcmp(key, "stop_virtual_camera_prompt") == 0) return "Pysäytetäänkö virtuaalikamera?";
   if (std::strcmp(key, "label_obs_transition") == 0) return "Siirtymä";
   if (std::strcmp(key, "output_mute") == 0) return "Mykistä ääni";
   if (std::strcmp(key, "microphone_mute") == 0) return "Mykistä mikrofoni";
@@ -8998,6 +9058,9 @@ inline const char *espdesktop_i18n_key_fr(const char *key) {
   if (std::strcmp(key, "label_obs_break") == 0) return "Pause";
   if (std::strcmp(key, "label_obs_resume") == 0) return "Reprendre";
   if (std::strcmp(key, "label_obs_studio_mode") == 0) return "Mode studio";
+  if (std::strcmp(key, "label_obs_virtual_camera") == 0) return "Caméra virtuelle";
+  if (std::strcmp(key, "start_virtual_camera_prompt") == 0) return "Démarrer la caméra virtuelle ?";
+  if (std::strcmp(key, "stop_virtual_camera_prompt") == 0) return "Arrêter la caméra virtuelle ?";
   if (std::strcmp(key, "output_mute") == 0) return "Couper le son";
   if (std::strcmp(key, "microphone_mute") == 0) return "Couper le microphone";
   if (std::strcmp(key, "mic") == 0) return "Micro";
@@ -9343,6 +9406,9 @@ inline const char *espdesktop_i18n_key_he(const char *key) {
   if (std::strcmp(key, "label_obs_break") == 0) return "הפסקה";
   if (std::strcmp(key, "label_obs_resume") == 0) return "המשך";
   if (std::strcmp(key, "label_obs_studio_mode") == 0) return "מצב אולפן";
+  if (std::strcmp(key, "label_obs_virtual_camera") == 0) return "מצלמה וירטואלית";
+  if (std::strcmp(key, "start_virtual_camera_prompt") == 0) return "להפעיל את המצלמה הווירטואלית?";
+  if (std::strcmp(key, "stop_virtual_camera_prompt") == 0) return "להפסיק את המצלמה הווירטואלית?";
   if (std::strcmp(key, "label_obs_transition") == 0) return "מעבר";
   if (std::strcmp(key, "output_mute") == 0) return "השתקת פלט";
   if (std::strcmp(key, "microphone_mute") == 0) return "השתקת מיקרופון";
@@ -9680,6 +9746,9 @@ inline const char *espdesktop_i18n_key_hu(const char *key) {
   if (std::strcmp(key, "label_obs_break") == 0) return "Szünet";
   if (std::strcmp(key, "label_obs_resume") == 0) return "Folytatás";
   if (std::strcmp(key, "label_obs_studio_mode") == 0) return "Stúdió mód";
+  if (std::strcmp(key, "label_obs_virtual_camera") == 0) return "Virtuális kamera";
+  if (std::strcmp(key, "start_virtual_camera_prompt") == 0) return "Elindítja a virtuális kamerát?";
+  if (std::strcmp(key, "stop_virtual_camera_prompt") == 0) return "Leállítja a virtuális kamerát?";
   if (std::strcmp(key, "label_obs_transition") == 0) return "Átmenet";
   if (std::strcmp(key, "output_mute") == 0) return "Kimenet némítása";
   if (std::strcmp(key, "microphone_mute") == 0) return "Mikrofon némítása";
@@ -10014,6 +10083,9 @@ inline const char *espdesktop_i18n_key_it(const char *key) {
   if (std::strcmp(key, "label_obs_break") == 0) return "Pausa";
   if (std::strcmp(key, "label_obs_resume") == 0) return "Riprendi";
   if (std::strcmp(key, "label_obs_studio_mode") == 0) return "Modalità studio";
+  if (std::strcmp(key, "label_obs_virtual_camera") == 0) return "Videocamera virtuale";
+  if (std::strcmp(key, "start_virtual_camera_prompt") == 0) return "Avviare la videocamera virtuale?";
+  if (std::strcmp(key, "stop_virtual_camera_prompt") == 0) return "Arrestare la videocamera virtuale?";
   if (std::strcmp(key, "label_obs_transition") == 0) return "Transizione";
   if (std::strcmp(key, "output_mute") == 0) return "Disattiva audio";
   if (std::strcmp(key, "microphone_mute") == 0) return "Disattiva microfono";
@@ -10338,6 +10410,9 @@ inline const char *espdesktop_i18n_key_nb(const char *key) {
   if (std::strcmp(key, "label_obs_break") == 0) return "Pause";
   if (std::strcmp(key, "label_obs_resume") == 0) return "Fortsett";
   if (std::strcmp(key, "label_obs_studio_mode") == 0) return "Studiomodus";
+  if (std::strcmp(key, "label_obs_virtual_camera") == 0) return "Virtuelt kamera";
+  if (std::strcmp(key, "start_virtual_camera_prompt") == 0) return "Starte det virtuelle kameraet?";
+  if (std::strcmp(key, "stop_virtual_camera_prompt") == 0) return "Stoppe det virtuelle kameraet?";
   if (std::strcmp(key, "label_obs_transition") == 0) return "Overgang";
   if (std::strcmp(key, "output_mute") == 0) return "Demp lyd";
   if (std::strcmp(key, "microphone_mute") == 0) return "Demp mikrofon";
@@ -10659,6 +10734,9 @@ inline const char *espdesktop_i18n_key_nl(const char *key) {
   if (std::strcmp(key, "label_obs_break") == 0) return "Pauze";
   if (std::strcmp(key, "label_obs_resume") == 0) return "Hervatten";
   if (std::strcmp(key, "label_obs_studio_mode") == 0) return "Studiomodus";
+  if (std::strcmp(key, "label_obs_virtual_camera") == 0) return "Virtuele camera";
+  if (std::strcmp(key, "start_virtual_camera_prompt") == 0) return "Virtuele camera starten?";
+  if (std::strcmp(key, "stop_virtual_camera_prompt") == 0) return "Virtuele camera stoppen?";
   if (std::strcmp(key, "label_obs_transition") == 0) return "Overgang";
   if (std::strcmp(key, "output_mute") == 0) return "Uitvoer dempen";
   if (std::strcmp(key, "microphone_mute") == 0) return "Microfoon dempen";
@@ -10985,6 +11063,9 @@ inline const char *espdesktop_i18n_key_pl(const char *key) {
   if (std::strcmp(key, "label_obs_break") == 0) return "Przerwa";
   if (std::strcmp(key, "label_obs_resume") == 0) return "Wznów";
   if (std::strcmp(key, "label_obs_studio_mode") == 0) return "Tryb studia";
+  if (std::strcmp(key, "label_obs_virtual_camera") == 0) return "Wirtualna kamera";
+  if (std::strcmp(key, "start_virtual_camera_prompt") == 0) return "Uruchomić wirtualną kamerę?";
+  if (std::strcmp(key, "stop_virtual_camera_prompt") == 0) return "Zatrzymać wirtualną kamerę?";
   if (std::strcmp(key, "label_obs_transition") == 0) return "Przejście";
   if (std::strcmp(key, "output_mute") == 0) return "Wycisz wyjście";
   if (std::strcmp(key, "microphone_mute") == 0) return "Wycisz mikrofon";
@@ -11312,6 +11393,9 @@ inline const char *espdesktop_i18n_key_pt_br(const char *key) {
   if (std::strcmp(key, "label_obs_break") == 0) return "Pausa";
   if (std::strcmp(key, "label_obs_resume") == 0) return "Retomar";
   if (std::strcmp(key, "label_obs_studio_mode") == 0) return "Modo estúdio";
+  if (std::strcmp(key, "label_obs_virtual_camera") == 0) return "Câmera virtual";
+  if (std::strcmp(key, "start_virtual_camera_prompt") == 0) return "Iniciar a câmera virtual?";
+  if (std::strcmp(key, "stop_virtual_camera_prompt") == 0) return "Parar a câmera virtual?";
   if (std::strcmp(key, "label_obs_transition") == 0) return "Transição";
   if (std::strcmp(key, "output_mute") == 0) return "Silenciar saída";
   if (std::strcmp(key, "microphone_mute") == 0) return "Silenciar microfone";
@@ -11646,6 +11730,9 @@ inline const char *espdesktop_i18n_key_pt(const char *key) {
   if (std::strcmp(key, "label_obs_break") == 0) return "Pausa";
   if (std::strcmp(key, "label_obs_resume") == 0) return "Retomar";
   if (std::strcmp(key, "label_obs_studio_mode") == 0) return "Modo estúdio";
+  if (std::strcmp(key, "label_obs_virtual_camera") == 0) return "Câmara virtual";
+  if (std::strcmp(key, "start_virtual_camera_prompt") == 0) return "Iniciar a câmara virtual?";
+  if (std::strcmp(key, "stop_virtual_camera_prompt") == 0) return "Parar a câmara virtual?";
   if (std::strcmp(key, "label_obs_transition") == 0) return "Transição";
   if (std::strcmp(key, "output_mute") == 0) return "Silenciar saída";
   if (std::strcmp(key, "microphone_mute") == 0) return "Silenciar microfone";
@@ -11983,6 +12070,9 @@ inline const char *espdesktop_i18n_key_ro(const char *key) {
   if (std::strcmp(key, "label_obs_break") == 0) return "Pauză";
   if (std::strcmp(key, "label_obs_resume") == 0) return "Reia";
   if (std::strcmp(key, "label_obs_studio_mode") == 0) return "Mod studio";
+  if (std::strcmp(key, "label_obs_virtual_camera") == 0) return "Cameră virtuală";
+  if (std::strcmp(key, "start_virtual_camera_prompt") == 0) return "Porniți camera virtuală?";
+  if (std::strcmp(key, "stop_virtual_camera_prompt") == 0) return "Opriți camera virtuală?";
   if (std::strcmp(key, "label_obs_transition") == 0) return "Tranziție";
   if (std::strcmp(key, "output_mute") == 0) return "Dezactivează sunetul";
   if (std::strcmp(key, "microphone_mute") == 0) return "Dezactivează microfonul";
@@ -12328,6 +12418,9 @@ inline const char *espdesktop_i18n_key_ru(const char *key) {
   if (std::strcmp(key, "label_obs_break") == 0) return "Перерыв";
   if (std::strcmp(key, "label_obs_resume") == 0) return "Продолжить";
   if (std::strcmp(key, "label_obs_studio_mode") == 0) return "Режим студии";
+  if (std::strcmp(key, "label_obs_virtual_camera") == 0) return "Виртуальная камера";
+  if (std::strcmp(key, "start_virtual_camera_prompt") == 0) return "Запустить виртуальную камеру?";
+  if (std::strcmp(key, "stop_virtual_camera_prompt") == 0) return "Остановить виртуальную камеру?";
   if (std::strcmp(key, "label_obs_transition") == 0) return "Переход";
   if (std::strcmp(key, "output_mute") == 0) return "Выключить звук";
   if (std::strcmp(key, "microphone_mute") == 0) return "Выключить микрофон";
@@ -12658,6 +12751,9 @@ inline const char *espdesktop_i18n_key_sk(const char *key) {
   if (std::strcmp(key, "label_obs_break") == 0) return "Prestávka";
   if (std::strcmp(key, "label_obs_resume") == 0) return "Pokračovať";
   if (std::strcmp(key, "label_obs_studio_mode") == 0) return "Režim štúdia";
+  if (std::strcmp(key, "label_obs_virtual_camera") == 0) return "Virtuálna kamera";
+  if (std::strcmp(key, "start_virtual_camera_prompt") == 0) return "Spustiť virtuálnu kameru?";
+  if (std::strcmp(key, "stop_virtual_camera_prompt") == 0) return "Zastaviť virtuálnu kameru?";
   if (std::strcmp(key, "label_obs_transition") == 0) return "Prechod";
   if (std::strcmp(key, "output_mute") == 0) return "Stlmiť výstup";
   if (std::strcmp(key, "microphone_mute") == 0) return "Stlmiť mikrofón";
@@ -12992,6 +13088,9 @@ inline const char *espdesktop_i18n_key_sl(const char *key) {
   if (std::strcmp(key, "label_obs_break") == 0) return "Premor";
   if (std::strcmp(key, "label_obs_resume") == 0) return "Nadaljuj";
   if (std::strcmp(key, "label_obs_studio_mode") == 0) return "Studijski način";
+  if (std::strcmp(key, "label_obs_virtual_camera") == 0) return "Navidezna kamera";
+  if (std::strcmp(key, "start_virtual_camera_prompt") == 0) return "Zagnati navidezno kamero?";
+  if (std::strcmp(key, "stop_virtual_camera_prompt") == 0) return "Ustaviti navidezno kamero?";
   if (std::strcmp(key, "label_obs_transition") == 0) return "Prehod";
   if (std::strcmp(key, "output_mute") == 0) return "Utišaj zvok";
   if (std::strcmp(key, "microphone_mute") == 0) return "Utišaj mikrofon";
@@ -13313,6 +13412,9 @@ inline const char *espdesktop_i18n_key_sv(const char *key) {
   if (std::strcmp(key, "label_obs_break") == 0) return "Paus";
   if (std::strcmp(key, "label_obs_resume") == 0) return "Fortsätt";
   if (std::strcmp(key, "label_obs_studio_mode") == 0) return "Studioläge";
+  if (std::strcmp(key, "label_obs_virtual_camera") == 0) return "Virtuell kamera";
+  if (std::strcmp(key, "start_virtual_camera_prompt") == 0) return "Starta den virtuella kameran?";
+  if (std::strcmp(key, "stop_virtual_camera_prompt") == 0) return "Stoppa den virtuella kameran?";
   if (std::strcmp(key, "label_obs_transition") == 0) return "Övergång";
   if (std::strcmp(key, "output_mute") == 0) return "Stäng av ljud";
   if (std::strcmp(key, "microphone_mute") == 0) return "Stäng av mikrofon";
@@ -13651,6 +13753,9 @@ inline const char *espdesktop_i18n_key_tr(const char *key) {
   if (std::strcmp(key, "label_obs_break") == 0) return "Mola";
   if (std::strcmp(key, "label_obs_resume") == 0) return "Devam et";
   if (std::strcmp(key, "label_obs_studio_mode") == 0) return "Stüdyo Modu";
+  if (std::strcmp(key, "label_obs_virtual_camera") == 0) return "Sanal Kamera";
+  if (std::strcmp(key, "start_virtual_camera_prompt") == 0) return "Sanal kamera başlatılsın mı?";
+  if (std::strcmp(key, "stop_virtual_camera_prompt") == 0) return "Sanal kamera durdurulsun mu?";
   if (std::strcmp(key, "label_obs_transition") == 0) return "Geçiş";
   if (std::strcmp(key, "output_mute") == 0) return "Çıkışı sessize al";
   if (std::strcmp(key, "microphone_mute") == 0) return "Mikrofonu sessize al";
@@ -13991,6 +14096,9 @@ inline const char *espdesktop_i18n_key_uk(const char *key) {
   if (std::strcmp(key, "label_obs_break") == 0) return "Перерва";
   if (std::strcmp(key, "label_obs_resume") == 0) return "Продовжити";
   if (std::strcmp(key, "label_obs_studio_mode") == 0) return "Режим студії";
+  if (std::strcmp(key, "label_obs_virtual_camera") == 0) return "Віртуальна камера";
+  if (std::strcmp(key, "start_virtual_camera_prompt") == 0) return "Запустити віртуальну камеру?";
+  if (std::strcmp(key, "stop_virtual_camera_prompt") == 0) return "Зупинити віртуальну камеру?";
   if (std::strcmp(key, "label_obs_transition") == 0) return "Перехід";
   if (std::strcmp(key, "output_mute") == 0) return "Вимкнути звук";
   if (std::strcmp(key, "microphone_mute") == 0) return "Вимкнути мікрофон";

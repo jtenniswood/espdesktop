@@ -642,10 +642,12 @@ export function registerCompanionCardTypes(
                 studio ? OBS_STUDIO_OPTIONS : transition ? OBS_TRANSITION_OPTIONS : replay ? replayOptions : OBS_OUTPUT_OPTIONS,
                 directTransition ? OBS_TRANSITION_SELECT : card.entity, () => {
                     const previous = companionCardMode(card);
+                    const wasVirtualCamera = card.entity === "obs.output.virtualcam";
                     card.entity = select.value;
                     if (directTransition) card.label = "";
                     card.icon = companionGeneratedIcon(card.icon,
-                        companionSubtypeDefaultIcon(previous), companionSubtypeDefaultIcon(companionCardMode(card)));
+                        wasVirtualCamera ? "Video" : companionSubtypeDefaultIcon(previous),
+                        card.entity === "obs.output.virtualcam" ? "Video" : companionSubtypeDefaultIcon(companionCardMode(card)));
                     helpers.saveField("entity", card.entity);
                     cardUi.renderPreview();
                     cardUi.renderButtonSettings();
@@ -1764,13 +1766,14 @@ export function registerCompanionCardTypes(
                 const currentLabel = obsControlLabels.get(entity);
                 const output = mode === "obs_output";
                 const record = entity === "obs.output.record";
-                const outputKey = record ? "obs.status.record" : "obs.status.stream";
+                const virtualCamera = entity === "obs.output.virtualcam";
+                const outputKey = virtualCamera ? "obs.status.virtualcam" : record ? "obs.status.record" : "obs.status.stream";
                 const presentation = obsCardStates.get(output ? outputKey : entity);
                 const stateId = presentation?.obsState;
                 const cardState = stateId && OBS_CARD_STATES[stateId];
                 const outputStatus = output ? (cardState ? cardState.detail : record && currentLabel === "Stopping" ? "Stopping"
                     : obsControlLabels.get(outputKey)?.split(" · ")[1] || "Unavailable") : "";
-                const outputOn = output && (cardState ? cardState.lit : record
+                const outputOn = output && (cardState ? cardState.lit : virtualCamera ? outputStatus === "Active" : record
                     ? obsControlLabels.has("obs.record.active") || ["Active", "Paused", "Stopping"].includes(outputStatus)
                     : obsControlLabels.has("obs.stream.active") || ["Live", "Reconnecting"].includes(outputStatus));
                 const source = entity.startsWith("obs.source.");
@@ -1784,16 +1787,16 @@ export function registerCompanionCardTypes(
                 const toggle = mode === "obs_studio" || mode === "obs_replay_buffer";
                 const replay = mode === "obs_replay";
                 const brb = mode === "obs_brb";
-                const unavailable = !output && (presentation?.obsAvailable === false ||
+                const unavailable = (virtualCamera && outputStatus === "Unavailable") || !output && (presentation?.obsAvailable === false ||
                     (replay && !currentLabel && obsControlLabels.has("obs.status.program")));
                 const programScene = sensor && currentLabel?.replace(/^Program · /, "");
-                const automaticOutputIcon = output && (!card.icon || ["Auto", "Monitor", record ? "Record" : "Broadcast"].includes(card.icon));
+                const automaticOutputIcon = output && (!card.icon || ["Auto", "Monitor", virtualCamera ? "Video" : record ? "Record" : "Broadcast"].includes(card.icon));
                 const statusIcon = sensor ? (programScene && programScene !== "Unknown" ? "Monitor" : "Monitor Off")
-                    : OBS_OUTPUT_STATUS_ICONS[outputStatus]?.[record ? 0 : 1] || "Monitor Off";
+                    : OBS_OUTPUT_STATUS_ICONS[outputStatus]?.[virtualCamera ? 2 : record ? 0 : 1] || "Monitor Off";
                 const alias = (mode === "obs_mic" || scene || source || directTransition) && card.label;
                 const muted = mode === "obs_mic" && (cardState ? stateId === "audio_muted" : currentLabel?.startsWith("Muted · "));
                 const live = mode === "obs_mic" && currentLabel?.startsWith("Unmuted · ");
-                const label = output ? (record ? (outputOn ? "Recording" : "Record") : "Stream")
+                const label = output ? (virtualCamera ? "Virtual Camera" : record ? (outputOn ? "Recording" : "Record") : "Stream")
                     : alias || (mode === "obs_mic" ? obsInputName(currentLabel) : currentLabel) || (directTransition && card.label) || fallback[mode];
                 const preview = cardBadgePreview(sensor || automaticOutputIcon || muted
                     ? { ...card, icon: muted ? "Microphone Off" : statusIcon } : card, helpers, {

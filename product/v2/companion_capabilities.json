@@ -987,14 +987,14 @@
   },
   "obsProgramTintPercent": 50,
   "obsOutputStatusIcons": {
-    "Idle": ["Stop Circle", "Broadcast Off"],
-    "Active": ["Record", "Broadcast Off"],
-    "Live": ["Stop Circle", "Broadcast"],
-    "Paused": ["Pause", "Broadcast Off"],
-    "Changing": ["Progress Clock", "Progress Clock"],
-    "Stopping": ["Progress Clock", "Progress Clock"],
-    "Reconnecting": ["Progress Clock", "Progress Clock"],
-    "Unavailable": ["Monitor Off", "Monitor Off"]
+    "Idle": ["Stop Circle", "Broadcast Off", "Video Off"],
+    "Active": ["Record", "Broadcast Off", "Video"],
+    "Live": ["Stop Circle", "Broadcast", "Video"],
+    "Paused": ["Pause", "Broadcast Off", "Video Off"],
+    "Changing": ["Progress Clock", "Progress Clock", "Progress Clock"],
+    "Stopping": ["Progress Clock", "Progress Clock", "Progress Clock"],
+    "Reconnecting": ["Progress Clock", "Progress Clock", "Progress Clock"],
+    "Unavailable": ["Monitor Off", "Monitor Off", "Video Off"]
   },
   "obsCardStates": [
     {"id": "scene_idle", "detail": "", "lit": false, "since": 20},
@@ -1038,7 +1038,8 @@
     { "id": "obs.studio", "kind": "toggle", "when": "off", "enableLabel": "On", "disableLabel": "Off" },
     { "id": "obs.replay.buffer", "kind": "toggle", "when": "off", "enableLabel": "Start", "disableLabel": "Stop" },
     { "id": "obs.output.stream", "kind": "output", "when": "both", "enableLabel": "Start", "disableLabel": "Stop" },
-    { "id": "obs.output.record", "kind": "output", "when": "both", "enableLabel": "Start", "disableLabel": "Stop" }
+    { "id": "obs.output.record", "kind": "output", "when": "both", "enableLabel": "Start", "disableLabel": "Stop" },
+    { "id": "obs.output.virtualcam", "kind": "output", "when": "both", "enableLabel": "Start", "disableLabel": "Stop" }
   ],
   "obsScenePageControls": [
     { "id": "obs.take", "label": "Take Live", "icon": "Arrow Right", "width": 2 },

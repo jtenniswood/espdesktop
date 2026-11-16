@@ -53,11 +53,31 @@ final class OBSConnection: ObservableObject {
     }
 
     enum Output: String, CaseIterable {
-        case stream, record
+        case stream, record, virtualcam
 
-        var statusRequest: String { self == .stream ? "GetStreamStatus" : "GetRecordStatus" }
+        var requestName: String {
+            switch self {
+            case .stream: "Stream"
+            case .record: "Record"
+            case .virtualcam: "VirtualCam"
+            }
+        }
+        var statusRequest: String { "Get" + requestName + "Status" }
+        var detailField: String? {
+            switch self {
+            case .stream: "outputReconnecting"
+            case .record: "outputPaused"
+            case .virtualcam: nil
+            }
+        }
         var savedID: String { "obs.output." + rawValue }
-        var name: String { self == .stream ? "Stream" : "Recording" }
+        var name: String {
+            switch self {
+            case .stream: "Stream"
+            case .record: "Recording"
+            case .virtualcam: "Virtual Camera"
+            }
+        }
 
         static func command(_ id: String) -> (Output, UUID)? {
             for output in allCases {
@@ -161,6 +181,7 @@ final class OBSConnection: ObservableObject {
         var streaming: Bool
         var streamReconnecting: Bool
         var recording: Bool
+        var virtualCameraActive: Bool?
         var inputMutes: [String: Bool] = [:]
         var inputFaders: [String: Int] = [:]
         var recordingPaused = false
@@ -178,7 +199,7 @@ final class OBSConnection: ObservableObject {
         var adaptiveSceneToken = UUID()
         var breakCard: BreakCard?
         var breakSceneID: String?
-        var outputTokens: [Output: UUID] = [.stream: UUID(), .record: UUID()]
+        var outputTokens = Dictionary(uniqueKeysWithValues: Output.allCases.map { ($0, UUID()) })
         var outputsTransitioning: Set<Output> = []
         var outputsPending: Set<Output> = []
 
@@ -188,11 +209,17 @@ final class OBSConnection: ObservableObject {
             if active != true { replaySave = .ready }
         }
 
-        func outputActive(_ output: Output) -> Bool { output == .stream ? streaming : recording }
+        func outputActive(_ output: Output) -> Bool {
+            switch output {
+            case .stream: streaming
+            case .record: recording
+            case .virtualcam: virtualCameraActive == true
+            }
+        }
 
         func outputControlReady(_ output: Output) -> Bool {
             !outputsTransitioning.contains(output) && !outputsPending.contains(output) &&
-                (output != .stream || !streamReconnecting)
+                (output != .stream || !streamReconnecting) && (output != .virtualcam || virtualCameraActive != nil)
         }
 
         func outputPresentation(_ output: Output) -> OBSCardState {
@@ -203,7 +230,7 @@ final class OBSConnection: ObservableObject {
             }
             if output == .record && recordingPaused { return .outputPaused }
             guard outputActive(output) else { return .outputIdle }
-            return output == .record ? .outputActive : .outputLive
+            return output == .stream ? .outputLive : .outputActive
         }
 
         var streamStatus: String { "Stream · " + outputPresentation(.stream).detail }
@@ -312,6 +339,9 @@ final class OBSConnection: ObservableObject {
             actions.append(("obs.stream.active", "Live"))
         }
         if state?.recordingStopping == true { actions.append((Output.record.savedID, "Stopping")) }
+        if let state, state.virtualCameraActive != nil {
+            actions.append(("obs.status.virtualcam", "Virtual Camera · " + state.outputPresentation(.virtualcam).detail))
+        }
         if let state, let name = state.selectedTransition {
             let id = state.transitionInProgress ? transitionID : transitionID + "." + state.transitionToken.uuidString.lowercased()
             actions.append((id, name))
@@ -366,6 +396,10 @@ final class OBSConnection: ObservableObject {
             if action.id == "obs.status.stream" { return entry(state.outputPresentation(.stream)) }
             if action.id.hasPrefix(Output.stream.savedID + ".") {
                 return entry(state.outputPresentation(.stream), available: state.outputControlReady(.stream))
+            }
+            if action.id == "obs.status.virtualcam" { return entry(state.outputPresentation(.virtualcam)) }
+            if action.id.hasPrefix(Output.virtualcam.savedID + ".") {
+                return entry(state.outputPresentation(.virtualcam), available: state.outputControlReady(.virtualcam))
             }
             if let card = state.breakCard, action.id == card.actionID { return entry(card.presentation, available: card.token != nil) }
             if let id = audioInputUUID(for: action.id, prefix: "obs.mute.") { return entry(inputStates[id], available: true) }
@@ -806,16 +840,11 @@ final class OBSConnection: ObservableObject {
         refreshOutput(output, fields: fresh, state: &current)
         guard fresh["outputActive"] is Bool, current.outputActive(output) == previous,
               current.outputControlReady(output), current.outputTokens[output] == token,
-              fresh[output == .stream ? "outputReconnecting" : "outputPaused"] is Bool else {
+              output.detailField.map({ fresh[$0] is Bool }) ?? true else {
             state = current
             return false
         }
-        let request = switch (output, previous) {
-        case (.stream, false): "StartStream"
-        case (.stream, true): "StopStream"
-        case (.record, false): "StartRecord"
-        case (.record, true): "StopRecord"
-        }
+        let request = (previous ? "Stop" : "Start") + output.requestName
         current.outputsPending.insert(output)
         if output == .record { current.recordingStopping = previous }
         current.outputTokens[output] = UUID()
@@ -845,6 +874,11 @@ final class OBSConnection: ObservableObject {
 
     private func refreshOutput(_ output: Output, fields: OBSWebSocket.Fields, state: inout State) {
         guard let reportedActive = fields["outputActive"] as? Bool else { return }
+        if output == .virtualcam {
+            if state.virtualCameraActive != reportedActive { state.outputTokens[output] = UUID() }
+            state.virtualCameraActive = reportedActive
+            return
+        }
         let before = state.outputActive(output)
         let beforeDetail = output == .stream ? state.streamReconnecting : state.recordingPaused
         let reportedDetail = (output == .stream ? fields["outputReconnecting"] : fields["outputPaused"]) as? Bool
@@ -1302,6 +1336,7 @@ final class OBSConnection: ObservableObject {
                 let studio = try await snapshotRequest("GetStudioModeEnabled", generation: active)
                 let stream = try await snapshotRequest("GetStreamStatus", generation: active)
                 let record = try await snapshotRequest("GetRecordStatus", generation: active)
+                let virtualCamera = try? await snapshotRequest(Output.virtualcam.statusRequest, generation: active)
                 let replay = try? await snapshotRequest("GetReplayBufferStatus", generation: active)
                 let transition = try? await snapshotRequest("GetCurrentSceneTransition", generation: active)
                 let transitionList = try? await snapshotRequest("GetSceneTransitionList", generation: active)
@@ -1354,6 +1389,7 @@ final class OBSConnection: ObservableObject {
                     streaming: streaming,
                     streamReconnecting: stream["outputReconnecting"] as? Bool ?? false,
                     recording: recording || recordingPaused,
+                    virtualCameraActive: virtualCamera?["outputActive"] as? Bool,
                     inputMutes: inputMutes,
                     inputFaders: inputFaders,
                     recordingPaused: recordingPaused,
@@ -1441,7 +1477,7 @@ final class OBSConnection: ObservableObject {
                   let path = fields["savedReplayPath"] as? String, !path.isEmpty else { return }
             pendingReplay?.saved = true
             if pendingReplay?.accepted == true { finishReplay(.saved) }
-        case "CurrentProgramSceneChanged", "CurrentPreviewSceneChanged", "StreamStateChanged", "RecordStateChanged",
+        case "CurrentProgramSceneChanged", "CurrentPreviewSceneChanged", "StreamStateChanged", "RecordStateChanged", "VirtualcamStateChanged",
              "SceneTransitionStarted", "SceneTransitionEnded", "ReplayBufferStateChanged", "CurrentSceneTransitionChanged":
             if var current = state {
                 if type == "CurrentProgramSceneChanged", let session = breakSession,
@@ -1614,6 +1650,9 @@ final class OBSConnection: ObservableObject {
             state.recording = state.recordingPaused || outputState == "OBS_WEBSOCKET_OUTPUT_RESUMED" ||
                 (fields["outputActive"] as? Bool ?? state.recording)
             recordOutputEvent(.record, fields: fields, state: &state)
+        case "VirtualcamStateChanged":
+            if let active = fields["outputActive"] as? Bool { state.virtualCameraActive = active }
+            recordOutputEvent(.virtualcam, fields: fields, state: &state)
         case "SceneTransitionStarted":
             state.transitionInProgress = true
             state.takeToken = UUID()
