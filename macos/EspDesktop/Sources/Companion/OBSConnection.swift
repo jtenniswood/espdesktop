@@ -425,6 +425,23 @@ final class OBSConnection: ObservableObject {
         }
     }
 
+    static func displayCatalogues(from states: Published<State?>.Publisher) -> AnyPublisher<[CatalogueEntry], Never> {
+        states.map(controlCatalogue)
+            .removeDuplicates()
+            .map { actions -> AnyPublisher<[CatalogueEntry], Never> in
+                let update = Just(actions)
+                if actions.contains(where: { $0.state == .takeTransitioning }) {
+                    // A Cut can finish before the panel receives its busy state.
+                    // Let a settled update replace this one before it reaches the wire.
+                    return update.delay(for: .milliseconds(75), scheduler: DispatchQueue.main).eraseToAnyPublisher()
+                }
+                return update.eraseToAnyPublisher()
+            }
+            .switchToLatest()
+            .throttle(for: .milliseconds(30), scheduler: DispatchQueue.main, latest: true)
+            .eraseToAnyPublisher()
+    }
+
     private static func unavailableTakeAction(_ state: State?) -> [(id: String, label: String)] {
         guard let state, !state.canTakePreview else { return [] }
         return [("obs.take", "Take Live · " + state.takePresentation.detail)]

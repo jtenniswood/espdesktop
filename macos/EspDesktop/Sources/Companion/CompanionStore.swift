@@ -199,10 +199,7 @@ final class CompanionStore: NSObject, ObservableObject {
         super.init()
         if #available(macOS 14.2, *) { appVolumeController = AppVolumeController() }
         displays = records.map(makeDisplay)
-        obsCatalogueObservation = obs.$state.map(OBSConnection.controlCatalogue)
-            .removeDuplicates()
-            // Scene and transition events often arrive together. Send the latest catalogue in each burst.
-            .throttle(for: .milliseconds(30), scheduler: DispatchQueue.main, latest: true)
+        obsCatalogueObservation = OBSConnection.displayCatalogues(from: obs.$state)
             .sink { [weak self] actions in
                 self?.publishToConnectedDisplays { $0.publishCatalogue(obsActions: actions) }
             }

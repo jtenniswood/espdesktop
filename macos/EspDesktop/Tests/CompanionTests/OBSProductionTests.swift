@@ -971,6 +971,35 @@ final class OBSProductionTests: XCTestCase {
     }
 
     @MainActor
+    func testDisplaySkipsTheBusyStateForACutButPublishesItForALongerTransition() async throws {
+        let transport = OBSPilotTransport()
+        let connection = try await open(transport, transitionProbeInterval: .seconds(30))
+        var presentations: [OBSCardState] = []
+        let observed = OBSConnection.displayCatalogues(from: connection.$state).sink { catalogue in
+            if let state = catalogue.first(where: { $0.id == "obs.take" || $0.id.hasPrefix("obs.take.") })?.state {
+                presentations.append(state)
+            }
+        }
+        defer { observed.cancel() }
+        for _ in 0..<100 where presentations.isEmpty { try await Task.sleep(for: .milliseconds(1)) }
+        XCTAssertEqual(presentations, [.takeReady])
+
+        transport.onEvent?("SceneTransitionStarted", [:])
+        transport.updateProgram(OBSPilotTransport.queued)
+        transport.onEvent?("CurrentPreviewSceneChanged", transport.scene(OBSPilotTransport.program))
+        transport.onEvent?("SceneTransitionEnded", [:])
+        for _ in 0..<100 where presentations.count < 2 { try await Task.sleep(for: .milliseconds(1)) }
+        XCTAssertEqual(presentations, [.takeReady, .takeReady])
+
+        transport.transitionCursor = 0.5
+        transport.onEvent?("SceneTransitionStarted", [:])
+        for _ in 0..<200 where presentations.last != .takeTransitioning {
+            try await Task.sleep(for: .milliseconds(1))
+        }
+        XCTAssertEqual(presentations, [.takeReady, .takeReady, .takeTransitioning])
+    }
+
+    @MainActor
     func testInterruptedNormalModeTransitionReenablesBreakAndResume() async throws {
         let domain = "EspDesktop.OBSBreak." + UUID().uuidString
         let defaults = try XCTUnwrap(UserDefaults(suiteName: domain))
