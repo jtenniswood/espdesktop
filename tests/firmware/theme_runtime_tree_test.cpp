@@ -26,6 +26,7 @@ using lv_style_prop_t = uint8_t;
 struct lv_style_value_t { lv_color_t color; };
 using lv_style_selector_t = int;
 constexpr int LV_OPA_TRANSP = 0;
+constexpr int LV_OPA_50 = 127;
 constexpr int LV_OPA_COVER = 255;
 enum lv_obj_flag_t : uint32_t {
   LV_OBJ_FLAG_USER_1 = 1u << 27,
@@ -67,6 +68,8 @@ struct lv_obj_t {
   bool has_pressed_text = false;
   int border_width = 0;
   int opacity = LV_OPA_TRANSP;
+  int text_opacity = LV_OPA_COVER;
+  int disabled_text_opacity = LV_OPA_COVER;
   int state = 0;
   uint32_t flags = 0;
   lv_obj_t *parent = nullptr;
@@ -132,6 +135,12 @@ void lv_obj_set_style_text_color(lv_obj_t *obj, lv_color_t color, int selector) 
   else if (selector == LV_STATE_CHECKED) { obj->checked_text = color; obj->has_checked_text = true; }
   else if (selector == LV_STATE_PRESSED) { obj->pressed_text = color; obj->has_pressed_text = true; }
   else obj->text = color;
+}
+void lv_obj_set_style_text_opa(lv_obj_t *obj, int opacity, int selector) {
+  (selector == LV_STATE_DISABLED ? obj->disabled_text_opacity : obj->text_opacity) = opacity;
+}
+int lv_obj_get_style_text_opa(const lv_obj_t *obj, int) {
+  return (obj->state & LV_STATE_DISABLED) ? obj->disabled_text_opacity : obj->text_opacity;
 }
 void lv_obj_set_style_arc_color(lv_obj_t *obj, lv_color_t color, int) { obj->arc = color; }
 void lv_obj_set_style_border_color(lv_obj_t *obj, lv_color_t color, int selector) {
@@ -755,7 +764,8 @@ static void test_custom_card_theme_preservation() {
     assert(sub_custom.background.full == 0x313131 && sub_custom.text.full == 0xFFFFFF);
     for (auto *child : {&label, &sub_label}) {
       assert(child->state & LV_STATE_DISABLED);
-      assert(lv_obj_get_style_text_color(child, LV_PART_MAIN).full == theme->text_disabled);
+      assert(lv_obj_get_style_text_color(child, LV_PART_MAIN).full == 0xFFFFFF);
+      assert(lv_obj_get_style_text_opa(child, LV_PART_MAIN) == LV_OPA_50);
     }
     for (auto *slider : {&track, &sub_track}) {
       assert(slider->background.full == theme->track_background);
@@ -768,6 +778,8 @@ static void test_custom_card_theme_preservation() {
   apply_current_theme();
   assert(!(label.state & LV_STATE_DISABLED) && label.text.full == 0xFFFFFF);
   assert(!(sub_label.state & LV_STATE_DISABLED) && sub_label.text.full == 0xFFFFFF);
+  assert(lv_obj_get_style_text_opa(&label, LV_PART_MAIN) == LV_OPA_COVER);
+  assert(lv_obj_get_style_text_opa(&sub_label, LV_PART_MAIN) == LV_OPA_COVER);
   navigation_subpages().clear();
   lv_event_t deleted{&page};
   page.delete_callback(&deleted);

@@ -1,14 +1,12 @@
 #pragma once
 
 #include "lvgl.h"
-#include "theme_palette.h"
 
-// Labels include the MDI icon glyphs and nested sensor values. Use a separate
-// state style so their normal (including custom) colours survive reconnection.
+// Let disabled labels and icons blend with the card's own background.
 inline void set_card_content_disabled(lv_obj_t *obj, bool disabled) {
   if (!obj) return;
   if (lv_obj_check_type(obj, &lv_label_class)) {
-    lv_obj_set_style_text_color(obj, lv_color_hex(current_theme().text_disabled),
+    lv_obj_set_style_text_opa(obj, LV_OPA_50,
       static_cast<lv_style_selector_t>(LV_PART_MAIN) | LV_STATE_DISABLED);
     if (disabled) lv_obj_add_state(obj, LV_STATE_DISABLED);
     else lv_obj_clear_state(obj, LV_STATE_DISABLED);

@@ -141,7 +141,7 @@ export function createWebStyles(dragAnimation: boolean): string {
         "display:block;stroke:var(--card-active-color);stroke-width:6}" +
         ".sp-btn.sp-companion-app-icon-card:active{background-color:var(--sp-companion-app-icon-active)!important;--card-text-color:var(--sp-companion-app-icon-active-text)!important;filter:none}" +
         ".sp-btn>.sp-btn-label,.sp-btn>.sp-btn-label-row{margin-top:auto}" +
-        ".sp-obs-label.sp-btn-label-row{display:block}.sp-obs-detail{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:var(--btn-sublabel,calc(var(--btn-label)*.82));opacity:.8}.sp-obs-detail:empty{display:none}.sp-obs-unavailable .sp-obs-label,.sp-obs-unavailable .sp-btn-icon{opacity:.55}" +
+        ".sp-obs-label.sp-btn-label-row{display:block}.sp-obs-detail{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:var(--btn-sublabel,calc(var(--btn-label)*.82));opacity:.8}.sp-obs-detail:empty{display:none}.sp-obs-unavailable .sp-btn-label,.sp-obs-unavailable .sp-obs-detail,.sp-obs-unavailable .sp-btn-icon{opacity:.5}" +
         ".sp-btn-label{display:block;max-height:var(--btn-label-max-height);overflow:hidden;word-break:break-word;min-height:0}" +
         ".sp-btn.sp-weather-wind-card>.sp-btn-label{max-height:none}" +
         ".sp-weather-wind-speed{display:block;margin-top:.2em}" +
