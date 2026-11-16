@@ -495,20 +495,25 @@ inline void setup_companion_card(BtnSlot &s, const ParsedCfg &p,
   }
   const bool obs_status = companion_obs_status_card(p.entity);
   const bool tokenized_card = companion_obs_tokenized_card(p.entity);
+  const bool take_live = p.entity == "obs.take";
   const bool obs_mute = companion_obs_audio_uuid(p.entity, "obs.mute.");
   const bool direct_transition = companion_obs_transition_target(p.entity);
   const std::string obs_alias = p.entity.rfind("obs.", 0) == 0 ? p.label : "";
-  const bool dynamic_label = obs_status || tokenized_card || p.entity == "obs.replay" || p.label.empty() || !obs_alias.empty();
+  const bool dynamic_label = !take_live &&
+    (obs_status || tokenized_card || p.entity == "obs.replay" || p.label.empty() || !obs_alias.empty());
   const auto obs_snapshot = tokenized_card ? companion_runtime_snapshot() : CompanionRuntimeSnapshot{};
   const bool url_card = !companion_encoded_url(p.sensor).empty();
   const bool available = url_card
     ? companion_url_available(p.entity, p.sensor)
     : (tokenized_card ? companion_action_available(obs_snapshot, p.entity) : companion_action_available(p.entity));
-  const std::string label = dynamic_label
-    ? companion_obs_control_label(p.entity, obs_alias,
+  std::string label = p.label;
+  if (take_live) {
+    label = companion_obs_control_label(p.entity, obs_alias, "");
+  } else if (dynamic_label) {
+    label = companion_obs_control_label(p.entity, obs_alias,
         companion_default_action_label(p.entity, p.sensor, tokenized_card ? &obs_snapshot : nullptr),
-        tokenized_card ? &obs_snapshot : nullptr)
-    : p.label;
+        tokenized_card ? &obs_snapshot : nullptr);
+  }
   lv_label_set_display_text(s.text_lbl, label.c_str());
   if (companion_app_launch_card(p) &&
       (cfg_option_token_present(p.options, "app_hide_label") ||
@@ -553,6 +558,13 @@ inline void setup_companion_card(BtnSlot &s, const ParsedCfg &p,
     sync_card_checked_text_color(s.btn);
     lv_obj_clear_flag(s.btn, LV_OBJ_FLAG_CLICKABLE);
     clear_push_button_transition(s.btn);
+  } else if (take_live) {
+    // Keep the normal palette on touch-down, including custom card colours.
+    remove_button_state_transitions(s.btn);
+    lv_obj_remove_style(s.btn, nullptr, static_cast<lv_style_selector_t>(LV_PART_MAIN) |
+      static_cast<lv_style_selector_t>(LV_STATE_PRESSED));
+    lv_obj_remove_event_cb_with_user_data(s.btn, card_text_contrast_event_cb, nullptr);
+    sync_card_checked_text_color(s.btn);
   } else if (companion_app_launch_card(p) || companion_obs_momentary_action(p.entity)) {
     apply_instant_button_feedback(s.btn);
   } else if (available) {
