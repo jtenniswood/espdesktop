@@ -346,6 +346,7 @@ label_obs_scene=Scen
 label_obs_break=Paus
 label_obs_resume=Fortsätt
 label_obs_studio_mode=Studioläge
+obs_multiview=Multiview
 label_obs_virtual_camera=Virtuell kamera
 start_virtual_camera_prompt=Starta den virtuella kameran?
 stop_virtual_camera_prompt=Stoppa den virtuella kameran?

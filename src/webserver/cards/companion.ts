@@ -2,7 +2,7 @@ import { obsSubpageCatalogue } from "../model/obs_live_subpage";
 import { targetedAudioCard } from "./companion_app_volume";
 import { childPageKey } from "../model/page_keys";
 import { renderCompanionStorageSelector } from "./companion_storage";
-import { COMPANION_FOLDER_PREFIX, COMPANION_OBS_PREFIX, OBS_BRB_ID, OBS_OUTPUT_OPTIONS, OBS_PROGRAM_ID, OBS_REPLAY_BUFFER_ID, OBS_REPLAY_ID, OBS_STUDIO_ID, OBS_STUDIO_OPTIONS, OBS_TAKE_ID, OBS_TRANSITION_ID, OBS_TRANSITION_OPTIONS, OBS_TRANSITION_SELECT, savedOBSTransition, savedOBSSceneTarget, decodeCompanionCard, encodeCompanionCard, companionMetricForEntity, obsConfirmationControl, obsInputName, obsOutputCardEntity, obsSceneCardEntity } from "../model/companion_card_codec";
+import { COMPANION_FOLDER_PREFIX, COMPANION_OBS_PREFIX, OBS_BRB_ID, OBS_MULTIVIEW_ID, OBS_OUTPUT_OPTIONS, OBS_PROGRAM_ID, OBS_REPLAY_BUFFER_ID, OBS_REPLAY_ID, OBS_STUDIO_ID, OBS_STUDIO_OPTIONS, OBS_TAKE_ID, OBS_TRANSITION_ID, OBS_TRANSITION_OPTIONS, OBS_TRANSITION_SELECT, savedOBSTransition, savedOBSSceneTarget, decodeCompanionCard, encodeCompanionCard, companionMetricForEntity, obsConfirmationControl, obsInputName, obsOutputCardEntity, obsSceneCardEntity } from "../model/companion_card_codec";
 import { configOptionEnabled, configOptionValue, setConfigOption, setConfigOptionValue, normalizedCardColorOptions, preserveCardColorOptions, withoutCardColorOptions } from "../model/config_primitives";
 import { createCompanionCatalogue, createCompanionCatalogueMonitor } from "../api/companion_catalogue";
 import type { CompanionAction } from "../api/companion_catalogue";
@@ -211,7 +211,8 @@ export function companionGeneratedIcon(
         ? selectedGeneratedIcon : currentIcon;
 }
 
-export function companionSubtypeDefaultIcon(mode: string): string {
+export function companionSubtypeDefaultIcon(mode: string, entity = ""): string {
+    if (entity === OBS_MULTIVIEW_ID) return "View Grid";
     if (mode === "ip_address") return "Laptop";
 
     if (COMPANION_STATS_MODES.includes(mode)) {
@@ -462,7 +463,7 @@ function normalizeCompanionCardFields(card: any): void {
     if (!card.icon || card.icon === "Auto" ||
         (card.icon === "Monitor" && mode !== "app") ||
         (card.icon === "Folder" && mode === "folder")) {
-        card.icon = companionSubtypeDefaultIcon(mode);
+        card.icon = companionSubtypeDefaultIcon(mode, card.entity);
     }
 }
 
@@ -515,6 +516,8 @@ export function registerCompanionCardTypes(
             }
             if (action.id === OBS_TAKE_ID || /^obs\.take\.[a-f0-9-]{36}$/.test(action.id)) {
                 obsControlLabels.set(OBS_TAKE_ID, action.label);
+            } else if (action.id === OBS_MULTIVIEW_ID) {
+                obsControlLabels.set(action.id, action.label);
             } else if (action.id === OBS_STUDIO_ID || action.id.startsWith(OBS_STUDIO_ID + ".")) {
                 obsControlLabels.set(OBS_STUDIO_ID, action.label);
             } else if (action.id === "obs.transition.selected") {
@@ -655,12 +658,13 @@ export function registerCompanionCardTypes(
                 helpers.idPrefix + (studio ? "obs-studio" : transition ? "obs-transition-type" : replay ? "obs-replay-type" : "obs-output"),
                 studio ? OBS_STUDIO_OPTIONS : transition ? OBS_TRANSITION_OPTIONS : replay ? replayOptions : OBS_OUTPUT_OPTIONS,
                 directTransition ? OBS_TRANSITION_SELECT : card.entity, () => {
-                    const previous = companionCardMode(card);
-                    const wasVirtualCamera = card.entity === "obs.output.virtualcam";
+                    const previousIcon = card.entity === "obs.output.virtualcam" ? "Video"
+                        : companionSubtypeDefaultIcon(companionCardMode(card), card.entity);
                     card.entity = select.value;
                     card.icon = companionGeneratedIcon(card.icon,
-                        wasVirtualCamera ? "Video" : companionSubtypeDefaultIcon(previous),
-                        card.entity === "obs.output.virtualcam" ? "Video" : companionSubtypeDefaultIcon(companionCardMode(card)));
+                        previousIcon,
+                        card.entity === "obs.output.virtualcam" ? "Video"
+                            : companionSubtypeDefaultIcon(companionCardMode(card), card.entity));
                     helpers.saveField("entity", card.entity);
                     cardUi.renderPreview();
                     cardUi.renderButtonSettings();
@@ -1803,10 +1807,11 @@ export function registerCompanionCardTypes(
                     : sceneId === obsControlLabels.get("obs.program") ||
                         (selectedScene && obsControlLabels.get(OBS_STUDIO_ID) === "Off"));
                 const sensor = mode === "obs_status";
-                const toggle = mode === "obs_studio" || mode === "obs_replay_buffer";
+                const multiview = entity === OBS_MULTIVIEW_ID;
+                const toggle = entity === OBS_STUDIO_ID || mode === "obs_replay_buffer";
                 const replay = mode === "obs_replay";
                 const brb = mode === "obs_brb";
-                const unavailable = (virtualCamera && outputStatus === "Unavailable") ||
+                const unavailable = (multiview && !currentLabel) || (virtualCamera && outputStatus === "Unavailable") ||
                     (!output && (presentation?.obsAvailable === false ||
                         (replay && !currentLabel && obsControlLabels.has("obs.status.program"))));
                 const programScene = sensor && currentLabel?.replace(/^Program · /, "");
@@ -1816,12 +1821,13 @@ export function registerCompanionCardTypes(
                 const alias = (mode === "obs_mic" || scene || source || directTransition) && card.label;
                 const muted = mode === "obs_mic" && (cardState ? stateId === "audio_muted" : currentLabel?.startsWith("Muted · "));
                 const live = mode === "obs_mic" && currentLabel?.startsWith("Unmuted · ");
-                const label = output ? (virtualCamera ? "Virtual Camera" : record ? (outputOn ? "Recording" : "Record") : "Stream")
+                const label = multiview ? card.label || "Multiview"
+                    : output ? (virtualCamera ? "Virtual Camera" : record ? (outputOn ? "Recording" : "Record") : "Stream")
                     : alias || (mode === "obs_mic" ? obsInputName(currentLabel) : currentLabel) || (directTransition && card.label) || fallback[mode];
                 const liveSceneIcon = onProgram && (!card.icon || ["Auto", "Image", "Image Card Loading"].includes(card.icon));
                 const preview = cardBadgePreview(sensor || automaticOutputIcon || muted || liveSceneIcon
                     ? { ...card, icon: muted ? "Microphone Off" : liveSceneIcon ? "Broadcast" : statusIcon } : card, helpers, {
-                    label, iconFallback: companionSubtypeDefaultIcon(mode), badge: COMPANION_CARD_METADATA.preview.badge,
+                    label, iconFallback: companionSubtypeDefaultIcon(mode, entity), badge: COMPANION_CARD_METADATA.preview.badge,
                 });
                 if (sensor || output || scene || toggle || mode === "obs_take" || mode === "obs_transition" || brb || replay) {
                     const status = replay && currentLabel === "Save Replay" ? "Ready"

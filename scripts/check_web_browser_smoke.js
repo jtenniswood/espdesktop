@@ -4478,6 +4478,7 @@ async function assertOBSSceneCard(browser) {
       { id: fader, label: "Desk Mic" },
       { id: "obs.take.9ea47782-fada-4bb3-aef6-1904669efae7", label: "Take Live · Setup" },
       { id: "obs.studio.9ea47782-fada-4bb3-aef6-1904669efae7", label: studioModeOn ? "On" : "Off" },
+      { id: "obs.multiview", label: "Multiview" },
       { id: "obs.transition.9ea47782-fada-4bb3-aef6-1904669efae7", label: transitionName },
       { id: fadeTransition + ".9ea47782-fada-4bb3-aef6-1904669efae7", label: "Fade" },
       { id: cutTransition + ".9ea47782-fada-4bb3-aef6-1904669efae7", label: "Cut" },
@@ -4505,8 +4506,11 @@ async function assertOBSSceneCard(browser) {
     const openCardSettings = async () => {
       if (!(await confirmation.isVisible())) await page.getByRole("button", { name: "Card Settings", exact: true }).click();
     };
-    await replayBufferTile.click();
-    await page.getByRole("button", { name: "Edit", exact: true }).click();
+    const editCard = async tile => {
+      await tile.click({ button: "right" });
+      await page.locator(".sp-ctx-menu").getByText("Edit Card", { exact: true }).click();
+    };
+    await editCard(replayBufferTile);
     await openCardSettings();
     assert(await confirmation.isChecked());
     assert.equal(await confirmationDirection.textContent(), "Stop");
@@ -4517,11 +4521,10 @@ async function assertOBSSceneCard(browser) {
       fixture.document.buttons[1]?.includes("confirm_yes=Proceed"),
       "Replay Buffer saves confirmation for both directions and a custom button label");
     await programTile.getByText("Program", { exact: true }).waitFor();
-    await programTile.click();
-    await page.getByRole("button", { name: "Edit", exact: true }).click();
+    await editCard(programTile);
     assert.equal(await studioPicker.inputValue(), "obs.status.program", "existing Program cards reopen in Studio Mode");
     assert.deepEqual(await studioPicker.locator("option").allTextContents(),
-      ["Toggle Studio Mode", "Program scene", "Take Live"]);
+      ["Toggle Studio Mode", "Program scene", "Take Live", "Open Multiview"]);
     await page.keyboard.press("Escape");
     await page.locator(".sp-main .sp-empty-cell").first().click();
     const obsGroup = page.getByRole("button", { name: "OBS Studio card type", exact: true });
@@ -4576,8 +4579,7 @@ async function assertOBSSceneCard(browser) {
     await page.getByRole("button", { name: "Save", exact: true }).click();
     await waitForNativeState(fixture, () => fixture.document.buttons[5]?.startsWith("obs.status.program;;Monitor;"),
       "A new Program indicator saves from the Studio Mode group");
-    await page.locator('.sp-main [data-slot="5"]').click();
-    await page.getByRole("button", { name: "Edit", exact: true }).click();
+    await editCard(page.locator('.sp-main [data-slot="5"]'));
     await studioPicker.selectOption("obs.take");
     await page.getByRole("button", { name: "Save", exact: true }).click();
     await waitForNativeState(fixture, () => fixture.document.buttons[5]?.startsWith("obs.take;;Arrow Right;"),
@@ -4620,8 +4622,7 @@ async function assertOBSSceneCard(browser) {
     await page.getByRole("button", { name: "Save", exact: true }).click();
     await waitForNativeState(fixture, () => fixture.document.buttons[8]?.startsWith(fader + ";Desk Mic;"),
       "The OBS fader saves the selected input UUID and its unprefixed name");
-    await page.locator('.sp-main [data-slot="8"]').click();
-    await page.getByRole("button", { name: "Edit", exact: true }).click();
+    await editCard(page.locator('.sp-main [data-slot="8"]'));
     await faderPicker.getByRole("option", { name: "Desk Mic", exact: true }).waitFor({ state: "attached" });
     assert.equal(await faderPicker.inputValue(), fader);
     assert.equal(await obsAudioType.inputValue(), "companion_obs_fader");
@@ -4641,8 +4642,7 @@ async function assertOBSSceneCard(browser) {
     const studioOff = await studioTile.evaluate(tile => tile.style.backgroundColor);
     studioModeOn = true;
     replayBufferOn = true;
-    await page.locator('.sp-main [data-slot="3"]').click();
-    await page.getByRole("button", { name: "Edit", exact: true }).click();
+    await editCard(page.locator('.sp-main [data-slot="3"]'));
     await picker.getByRole("option", { name: "Gameplay", exact: true }).waitFor({ state: "attached" });
     assert.equal(await picker.inputValue(), id);
     await studioTile.getByText("On", { exact: true }).waitFor();
@@ -4672,8 +4672,7 @@ async function assertOBSSceneCard(browser) {
     transitionName = "Cut";
     replaySave = "replay_saving";
     recordingState = "Paused";
-    await page.locator('.sp-main [data-slot="3"]').click();
-    await page.getByRole("button", { name: "Edit", exact: true }).click();
+    await editCard(page.locator('.sp-main [data-slot="3"]'));
     await studioTile.getByText("Cut", { exact: true }).waitFor();
     assert.equal(await transitionTitle.innerText(), "Transition");
     await replayTile.getByText("Saving", { exact: true }).waitFor();
@@ -4683,8 +4682,7 @@ async function assertOBSSceneCard(browser) {
     assert.equal(await replayTile.evaluate(tile => tile.style.backgroundColor), replayReadyColor);
     await page.locator(".sp-settings-overlay.sp-visible .sp-settings-close").click();
     replaySave = "replay_saved";
-    await studioTile.click();
-    await page.getByRole("button", { name: "Edit", exact: true }).click();
+    await editCard(studioTile);
     await transitionType.selectOption("obs.transition.select.");
     const transitionPicker = page.getByLabel("OBS transition", { exact: true });
     await transitionPicker.getByRole("option", { name: "Fade", exact: true }).waitFor({ state: "attached" });
@@ -4699,16 +4697,14 @@ async function assertOBSSceneCard(browser) {
     const transitionOffColor = await studioTile.evaluate(tile => tile.style.backgroundColor);
     transitionName = "Fade";
     replaySave = "replay_ready";
-    await studioTile.click();
-    await page.getByRole("button", { name: "Edit", exact: true }).click();
+    await editCard(studioTile);
     await transitionPicker.getByRole("option", { name: "Fade", exact: true }).waitFor({ state: "attached" });
     await replayTile.getByText("Ready", { exact: true }).waitFor();
     assert.equal(await transitionPicker.inputValue(), fadeTransition);
     await page.waitForFunction(offColor =>
       document.querySelector('.sp-main [data-slot="9"]')?.style.backgroundColor !== offColor, transitionOffColor);
     await page.locator(".sp-settings-overlay.sp-visible .sp-settings-close").click();
-    await recordingControl.click();
-    await page.getByRole("button", { name: "Edit", exact: true }).click();
+    await editCard(recordingControl);
     await outputPicker.selectOption("obs.output.virtualcam");
     await page.getByRole("button", { name: "Save", exact: true }).click();
     await waitForNativeState(fixture, () => fixture.document.buttons[6]?.startsWith("obs.output.virtualcam;"),
@@ -4718,15 +4714,20 @@ async function assertOBSSceneCard(browser) {
     await recordingControl.locator(".mdi-video-off").waitFor();
     const virtualCameraIdle = await recordingControl.evaluate(tile => getComputedStyle(tile).backgroundColor);
     virtualCameraOn = true;
-    await page.locator('.sp-main [data-slot="3"]').click();
-    await page.getByRole("button", { name: "Edit", exact: true }).click();
+    await editCard(page.locator('.sp-main [data-slot="3"]'));
     await recordingControl.getByText("Active", { exact: true }).waitFor();
     await recordingControl.locator(".mdi-video").waitFor();
     assert.notEqual(await recordingControl.evaluate(tile => getComputedStyle(tile).backgroundColor), virtualCameraIdle);
     await page.locator(".sp-settings-overlay.sp-visible .sp-settings-close").click();
+    await editCard(programTile);
+    await studioPicker.selectOption("obs.multiview");
+    await page.getByRole("button", { name: "Save", exact: true }).click();
+    await waitForNativeState(fixture, () => fixture.document.buttons[2]?.startsWith("obs.multiview;"),
+      "Multiview saves as a Studio Mode action");
+    await programTile.getByText("Multiview", { exact: true }).waitFor();
+    await programTile.locator(".mdi-view-grid").waitFor();
     connectedToOBS = false;
-    await page.locator('.sp-main [data-slot="3"]').click();
-    await page.getByRole("button", { name: "Edit", exact: true }).click();
+    await editCard(page.locator('.sp-main [data-slot="3"]'));
     await picker.getByRole("option", { name: "Saved scene (unavailable)" }).waitFor({ state: "attached" });
     assert.equal(await picker.inputValue(), id);
     await replayBufferTile.getByText("Unavailable", { exact: true }).waitFor();

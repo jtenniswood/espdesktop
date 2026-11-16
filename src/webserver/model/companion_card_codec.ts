@@ -18,6 +18,7 @@ export function obsSceneCardEntity(entity: string): string {
 export const OBS_BRB_ID = "obs.brb";
 export const OBS_TAKE_ID = "obs.take";
 export const OBS_STUDIO_ID = "obs.studio";
+export const OBS_MULTIVIEW_ID = "obs.multiview";
 export const OBS_TRANSITION_ID = "obs.transition";
 export const OBS_TRANSITION_SELECT = OBS_TRANSITION_ID + ".select.";
 export function savedOBSTransition(id: string): string {
@@ -47,6 +48,7 @@ export const OBS_STUDIO_OPTIONS = [
   [OBS_STUDIO_ID, "Toggle Studio Mode"],
   [OBS_PROGRAM_ID, "Program scene"],
   [OBS_TAKE_ID, "Take Live"],
+  [OBS_MULTIVIEW_ID, "Open Multiview"],
 ] as const;
 export const OBS_TRANSITION_OPTIONS = [
   [OBS_TRANSITION_ID, "Cycle transitions"],
@@ -64,7 +66,7 @@ export function companionSavedCardMode(config: Partial<CardConfig>): CompanionCa
   if (entity.startsWith(COMPANION_FOLDER_PREFIX)) return "folder";
   if (entity === OBS_BRB_ID) return "obs_brb";
   if (entity === OBS_TAKE_ID) return "obs_take";
-  if (entity === OBS_STUDIO_ID) return "obs_studio";
+  if (entity === OBS_STUDIO_ID || entity === OBS_MULTIVIEW_ID) return "obs_studio";
   if (entity === OBS_TRANSITION_ID || entity.startsWith(OBS_TRANSITION_SELECT)) return "obs_transition";
   if (entity === OBS_REPLAY_ID) return "obs_replay";
   if (entity === OBS_REPLAY_BUFFER_ID) return "obs_replay_buffer";

@@ -524,7 +524,7 @@ inline void setup_companion_card(BtnSlot &s, const ParsedCfg &p,
   }
   const char *icon = (p.icon.empty() || p.icon == "Auto")
     ? find_icon(obs_mute ? "Microphone" : p.entity == "obs.brb" ? "Coffee to Go" :
-                p.entity == "obs.studio" ? "Split Vertical" :
+                p.entity == "obs.studio" ? "Split Vertical" : p.entity == "obs.multiview" ? "View Grid" :
                 (p.entity == "obs.transition" || direct_transition) ? "Flip Horizontal" :
                 p.entity == "obs.replay.buffer" ? "Repeat" :
                 companion_obs_scene_card(p.entity) ? "Image Card Loading" : "Monitor")

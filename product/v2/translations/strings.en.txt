@@ -347,6 +347,7 @@ label_obs_scene=Scene
 label_obs_break=Break
 label_obs_resume=Resume
 label_obs_studio_mode=Studio Mode
+obs_multiview=Multiview
 label_obs_virtual_camera=Virtual Camera
 start_virtual_camera_prompt=Start Virtual Camera?
 stop_virtual_camera_prompt=Stop Virtual Camera?

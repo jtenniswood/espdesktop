@@ -346,6 +346,7 @@ label_obs_scene=Jelenet
 label_obs_break=Szünet
 label_obs_resume=Folytatás
 label_obs_studio_mode=Stúdió mód
+obs_multiview=Multiview
 label_obs_virtual_camera=Virtuális kamera
 start_virtual_camera_prompt=Elindítja a virtuális kamerát?
 stop_virtual_camera_prompt=Leállítja a virtuális kamerát?

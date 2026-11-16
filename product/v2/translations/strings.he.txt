@@ -347,6 +347,7 @@ label_obs_scene=סצנה
 label_obs_break=הפסקה
 label_obs_resume=המשך
 label_obs_studio_mode=מצב אולפן
+obs_multiview=Multiview
 label_obs_virtual_camera=מצלמה וירטואלית
 start_virtual_camera_prompt=להפעיל את המצלמה הווירטואלית?
 stop_virtual_camera_prompt=להפסיק את המצלמה הווירטואלית?

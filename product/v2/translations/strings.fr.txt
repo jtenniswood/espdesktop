@@ -346,6 +346,7 @@ label_obs_scene=Scène
 label_obs_break=Pause
 label_obs_resume=Reprendre
 label_obs_studio_mode=Mode studio
+obs_multiview=Vue multiple
 label_obs_virtual_camera=Caméra virtuelle
 start_virtual_camera_prompt=Démarrer la caméra virtuelle ?
 stop_virtual_camera_prompt=Arrêter la caméra virtuelle ?

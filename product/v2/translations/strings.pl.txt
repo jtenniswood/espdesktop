@@ -346,6 +346,7 @@ label_obs_scene=Scena
 label_obs_break=Przerwa
 label_obs_resume=Wznów
 label_obs_studio_mode=Tryb studia
+obs_multiview=Multiview
 label_obs_virtual_camera=Wirtualna kamera
 start_virtual_camera_prompt=Uruchomić wirtualną kamerę?
 stop_virtual_camera_prompt=Zatrzymać wirtualną kamerę?

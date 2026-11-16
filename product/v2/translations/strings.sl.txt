@@ -346,6 +346,7 @@ label_obs_scene=Scena
 label_obs_break=Premor
 label_obs_resume=Nadaljuj
 label_obs_studio_mode=Studijski način
+obs_multiview=Multiview
 label_obs_virtual_camera=Navidezna kamera
 start_virtual_camera_prompt=Zagnati navidezno kamero?
 stop_virtual_camera_prompt=Ustaviti navidezno kamero?

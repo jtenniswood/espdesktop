@@ -675,7 +675,7 @@ inline bool companion_obs_break_active(std::string_view label) {
 }
 
 inline bool companion_obs_momentary_action(std::string_view id) {
-  return id == "obs.replay" || id == "obs.take" || id == "obs.transition";
+  return id == "obs.replay" || id == "obs.take" || id == "obs.transition" || id == "obs.multiview";
 }
 
 inline bool companion_obs_tokenized_card(const std::string &id) {
@@ -789,6 +789,7 @@ inline std::string companion_default_action_label_with_fallback(
 inline std::string companion_obs_control_label(const std::string &action_id, const std::string &alias,
                                                const std::string &live_label,
                                                const CompanionRuntimeSnapshot *snapshot = nullptr) {
+  if (action_id == "obs.multiview") return alias.empty() ? espdesktop_i18n_key("obs_multiview") : alias;
   if (snapshot && companion_obs_output_card(action_id)) {
     const char *title = action_id == "obs.output.virtualcam" ? "Virtual Camera" : action_id == "obs.output.stream" ? "Stream"
       : companion_obs_output_active(*snapshot, action_id) ? "Recording" : "Record";
@@ -1264,6 +1265,7 @@ inline void companion_update_obs_detail_contrast(const CompanionCardRef &ref, bo
     lv_obj_clear_state(ref.button, LV_STATE_PRESSED);
     sync_card_checked_text_color(ref.button);
   }
+  if (!ref.obs_detail) return;
   const bool dim = disabled && !keep_content_bright;
   if (lv_obj_has_state(ref.text_label, LV_STATE_DISABLED) != dim ||
       lv_obj_has_state(ref.obs_detail, LV_STATE_DISABLED) != dim)
@@ -1465,7 +1467,7 @@ inline void companion_refresh_cards_if_requested() {
     if (lv_obj_has_state(it->button, LV_STATE_DISABLED) == available)
       set_card_disabled_state(it->button, !available);
     companion_apply_card_focus(it->button, it->action_id, it->url_config, it->show_focus, &snapshot);
-    if (it->obs_detail)
+    if (it->obs_detail || companion_obs_momentary_action(it->action_id))
       companion_update_obs_detail_contrast(*it, companion_obs_keep_content_bright(snapshot, it->action_id));
     companion_render_obs_mute(*it, snapshot);
     ++it;

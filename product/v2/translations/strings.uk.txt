@@ -346,6 +346,7 @@ label_obs_scene=Сцена
 label_obs_break=Перерва
 label_obs_resume=Продовжити
 label_obs_studio_mode=Режим студії
+obs_multiview=Мультиперегляд
 label_obs_virtual_camera=Віртуальна камера
 start_virtual_camera_prompt=Запустити віртуальну камеру?
 stop_virtual_camera_prompt=Зупинити віртуальну камеру?

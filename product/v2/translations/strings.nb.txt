@@ -346,6 +346,7 @@ label_obs_scene=Scene
 label_obs_break=Pause
 label_obs_resume=Fortsett
 label_obs_studio_mode=Studiomodus
+obs_multiview=Multiview
 label_obs_virtual_camera=Virtuelt kamera
 start_virtual_camera_prompt=Starte det virtuelle kameraet?
 stop_virtual_camera_prompt=Stoppe det virtuelle kameraet?

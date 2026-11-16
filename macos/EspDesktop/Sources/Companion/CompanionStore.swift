@@ -954,6 +954,9 @@ final class CompanionStore: NSObject, ObservableObject {
         if actionIdentifier == "obs.replay" {
             return await obs.saveReplay() ? "performed" : "not_allowed"
         }
+        if actionIdentifier == OBSConnection.multiviewID {
+            return await obs.openMultiview() ? "performed" : "not_allowed"
+        }
         if actionIdentifier.hasPrefix("obs.mute."),
            let target = UUID(uuidString: String(actionIdentifier.dropFirst("obs.mute.".count))) {
             return await obs.toggleMicMute(id: target) ? "performed" : "not_allowed"

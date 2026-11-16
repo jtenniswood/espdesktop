@@ -346,6 +346,7 @@ label_obs_scene=Näkymä
 label_obs_break=Tauko
 label_obs_resume=Jatka
 label_obs_studio_mode=Studiotila
+obs_multiview=Multiview
 label_obs_virtual_camera=Virtuaalikamera
 start_virtual_camera_prompt=Käynnistetäänkö virtuaalikamera?
 stop_virtual_camera_prompt=Pysäytetäänkö virtuaalikamera?

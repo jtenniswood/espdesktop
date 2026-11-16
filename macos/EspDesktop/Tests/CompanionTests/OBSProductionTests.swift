@@ -8,6 +8,7 @@ private final class OBSPilotTransport: OBSWebSocketTransport {
     var onClose: ((OBSWebSocket.Failure) -> Void)?
     var isReady = true
     var requests: [String] = []
+    var projectorRequests: [OBSWebSocket.Fields] = []
     var preview = queued
     var programID = program
     var rejectProgramChange = false
@@ -140,6 +141,9 @@ private final class OBSPilotTransport: OBSWebSocketTransport {
             replayActive = type == "StartReplayBuffer"
             return [:]
         case "SaveReplayBuffer": return [:]
+        case "OpenVideoMixProjector":
+            projectorRequests.append(fields)
+            return [:]
         case "GetCurrentSceneTransitionCursor": return ["transitionCursor": transitionCursor]
         case "GetCurrentPreviewScene": return scene(preview)
         case "TriggerStudioModeTransition":
@@ -179,6 +183,23 @@ final class OBSProductionTests: XCTestCase {
         }
         _ = try XCTUnwrap(connection.state)
         return connection
+    }
+
+    @MainActor
+    func testMultiviewOpensAWindowWithStudioModeOff() async throws {
+        let transport = OBSPilotTransport()
+        transport.studioMode = false
+        let connection = try await open(transport)
+        XCTAssertTrue(OBSConnection.controlCatalogue(connection.state).contains { $0.id == OBSConnection.multiviewID })
+        let opened = await connection.openMultiview()
+        XCTAssertTrue(opened)
+        let fields = try XCTUnwrap(transport.projectorRequests.first)
+        XCTAssertEqual(fields["videoMixType"] as? String, "OBS_WEBSOCKET_VIDEO_MIX_TYPE_MULTIVIEW")
+        XCTAssertNil(fields["monitorIndex"])
+        transport.onEvent?("CurrentSceneCollectionChanging", [:])
+        let unavailable = await connection.openMultiview()
+        XCTAssertFalse(unavailable)
+        XCTAssertEqual(transport.projectorRequests.count, 1)
     }
 
     @MainActor

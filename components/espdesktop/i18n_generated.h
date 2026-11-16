@@ -930,6 +930,7 @@ inline const char *espdesktop_i18n_de(const char *text) {
   if (std::strcmp(text, "Thurs") == 0) return "Do.";
   if (std::strcmp(text, "Fri") == 0) return "Fr.";
   if (std::strcmp(text, "Sat") == 0) return "Sa.";
+  if (std::strcmp(text, "Multiview") == 0) return "Mehrfachansicht";
   if (std::strcmp(text, "Start Virtual Camera?") == 0) return "Virtuelle Kamera starten?";
   if (std::strcmp(text, "Stop Virtual Camera?") == 0) return "Virtuelle Kamera stoppen?";
   if (std::strcmp(text, "Output Mute") == 0) return "Ausgabe stummschalten";
@@ -1253,6 +1254,7 @@ inline const char *espdesktop_i18n_es(const char *text) {
   if (std::strcmp(text, "Thurs") == 0) return "jue.";
   if (std::strcmp(text, "Fri") == 0) return "vie.";
   if (std::strcmp(text, "Sat") == 0) return "sáb.";
+  if (std::strcmp(text, "Multiview") == 0) return "Vista múltiple";
   if (std::strcmp(text, "Start Virtual Camera?") == 0) return "¿Iniciar la cámara virtual?";
   if (std::strcmp(text, "Stop Virtual Camera?") == 0) return "¿Detener la cámara virtual?";
   if (std::strcmp(text, "Output Mute") == 0) return "Silenciar salida";
@@ -1896,6 +1898,7 @@ inline const char *espdesktop_i18n_fr(const char *text) {
   if (std::strcmp(text, "Thurs") == 0) return "jeu.";
   if (std::strcmp(text, "Fri") == 0) return "ven.";
   if (std::strcmp(text, "Sat") == 0) return "sam.";
+  if (std::strcmp(text, "Multiview") == 0) return "Vue multiple";
   if (std::strcmp(text, "Start Virtual Camera?") == 0) return "Démarrer la caméra virtuelle ?";
   if (std::strcmp(text, "Stop Virtual Camera?") == 0) return "Arrêter la caméra virtuelle ?";
   if (std::strcmp(text, "Output Mute") == 0) return "Couper le son";
@@ -2875,6 +2878,7 @@ inline const char *espdesktop_i18n_it(const char *text) {
   if (std::strcmp(text, "Thurs") == 0) return "gio.";
   if (std::strcmp(text, "Fri") == 0) return "ven.";
   if (std::strcmp(text, "Sat") == 0) return "sab.";
+  if (std::strcmp(text, "Multiview") == 0) return "Vista multipla";
   if (std::strcmp(text, "Start Virtual Camera?") == 0) return "Avviare la videocamera virtuale?";
   if (std::strcmp(text, "Stop Virtual Camera?") == 0) return "Arrestare la videocamera virtuale?";
   if (std::strcmp(text, "Output Mute") == 0) return "Disattiva audio";
@@ -4128,6 +4132,7 @@ inline const char *espdesktop_i18n_pt_br(const char *text) {
   if (std::strcmp(text, "Thurs") == 0) return "qui.";
   if (std::strcmp(text, "Fri") == 0) return "sex.";
   if (std::strcmp(text, "Sat") == 0) return "sáb.";
+  if (std::strcmp(text, "Multiview") == 0) return "Visualização múltipla";
   if (std::strcmp(text, "Start Virtual Camera?") == 0) return "Iniciar a câmera virtual?";
   if (std::strcmp(text, "Stop Virtual Camera?") == 0) return "Parar a câmera virtual?";
   if (std::strcmp(text, "Output Mute") == 0) return "Silenciar saída";
@@ -4450,6 +4455,7 @@ inline const char *espdesktop_i18n_pt(const char *text) {
   if (std::strcmp(text, "Thurs") == 0) return "qui.";
   if (std::strcmp(text, "Fri") == 0) return "sex.";
   if (std::strcmp(text, "Sat") == 0) return "sáb.";
+  if (std::strcmp(text, "Multiview") == 0) return "Vista múltipla";
   if (std::strcmp(text, "Start Virtual Camera?") == 0) return "Iniciar a câmara virtual?";
   if (std::strcmp(text, "Stop Virtual Camera?") == 0) return "Parar a câmara virtual?";
   if (std::strcmp(text, "Output Mute") == 0) return "Silenciar saída";
@@ -5106,6 +5112,7 @@ inline const char *espdesktop_i18n_ru(const char *text) {
   if (std::strcmp(text, "Thurs") == 0) return "чт";
   if (std::strcmp(text, "Fri") == 0) return "пт";
   if (std::strcmp(text, "Sat") == 0) return "сб";
+  if (std::strcmp(text, "Multiview") == 0) return "Мультипросмотр";
   if (std::strcmp(text, "Start Virtual Camera?") == 0) return "Запустить виртуальную камеру?";
   if (std::strcmp(text, "Stop Virtual Camera?") == 0) return "Остановить виртуальную камеру?";
   if (std::strcmp(text, "Output Mute") == 0) return "Выключить звук";
@@ -6706,6 +6713,7 @@ inline const char *espdesktop_i18n_uk(const char *text) {
   if (std::strcmp(text, "Thurs") == 0) return "чт";
   if (std::strcmp(text, "Fri") == 0) return "пт";
   if (std::strcmp(text, "Sat") == 0) return "сб";
+  if (std::strcmp(text, "Multiview") == 0) return "Мультиперегляд";
   if (std::strcmp(text, "Start Virtual Camera?") == 0) return "Запустити віртуальну камеру?";
   if (std::strcmp(text, "Stop Virtual Camera?") == 0) return "Зупинити віртуальну камеру?";
   if (std::strcmp(text, "Output Mute") == 0) return "Вимкнути звук";
@@ -7064,6 +7072,7 @@ inline const char *espdesktop_i18n_key_en(const char *key) {
   if (std::strcmp(key, "label_obs_break") == 0) return "Break";
   if (std::strcmp(key, "label_obs_resume") == 0) return "Resume";
   if (std::strcmp(key, "label_obs_studio_mode") == 0) return "Studio Mode";
+  if (std::strcmp(key, "obs_multiview") == 0) return "Multiview";
   if (std::strcmp(key, "label_obs_virtual_camera") == 0) return "Virtual Camera";
   if (std::strcmp(key, "start_virtual_camera_prompt") == 0) return "Start Virtual Camera?";
   if (std::strcmp(key, "stop_virtual_camera_prompt") == 0) return "Stop Virtual Camera?";
@@ -8046,6 +8055,7 @@ inline const char *espdesktop_i18n_key_de(const char *key) {
   if (std::strcmp(key, "label_obs_break") == 0) return "Pause";
   if (std::strcmp(key, "label_obs_resume") == 0) return "Fortsetzen";
   if (std::strcmp(key, "label_obs_studio_mode") == 0) return "Studiomodus";
+  if (std::strcmp(key, "obs_multiview") == 0) return "Mehrfachansicht";
   if (std::strcmp(key, "label_obs_virtual_camera") == 0) return "Virtuelle Kamera";
   if (std::strcmp(key, "start_virtual_camera_prompt") == 0) return "Virtuelle Kamera starten?";
   if (std::strcmp(key, "stop_virtual_camera_prompt") == 0) return "Virtuelle Kamera stoppen?";
@@ -8384,6 +8394,7 @@ inline const char *espdesktop_i18n_key_es(const char *key) {
   if (std::strcmp(key, "label_obs_break") == 0) return "Pausa";
   if (std::strcmp(key, "label_obs_resume") == 0) return "Reanudar";
   if (std::strcmp(key, "label_obs_studio_mode") == 0) return "Modo estudio";
+  if (std::strcmp(key, "obs_multiview") == 0) return "Vista múltiple";
   if (std::strcmp(key, "label_obs_virtual_camera") == 0) return "Cámara virtual";
   if (std::strcmp(key, "start_virtual_camera_prompt") == 0) return "¿Iniciar la cámara virtual?";
   if (std::strcmp(key, "stop_virtual_camera_prompt") == 0) return "¿Detener la cámara virtual?";
@@ -9058,6 +9069,7 @@ inline const char *espdesktop_i18n_key_fr(const char *key) {
   if (std::strcmp(key, "label_obs_break") == 0) return "Pause";
   if (std::strcmp(key, "label_obs_resume") == 0) return "Reprendre";
   if (std::strcmp(key, "label_obs_studio_mode") == 0) return "Mode studio";
+  if (std::strcmp(key, "obs_multiview") == 0) return "Vue multiple";
   if (std::strcmp(key, "label_obs_virtual_camera") == 0) return "Caméra virtuelle";
   if (std::strcmp(key, "start_virtual_camera_prompt") == 0) return "Démarrer la caméra virtuelle ?";
   if (std::strcmp(key, "stop_virtual_camera_prompt") == 0) return "Arrêter la caméra virtuelle ?";
@@ -10083,6 +10095,7 @@ inline const char *espdesktop_i18n_key_it(const char *key) {
   if (std::strcmp(key, "label_obs_break") == 0) return "Pausa";
   if (std::strcmp(key, "label_obs_resume") == 0) return "Riprendi";
   if (std::strcmp(key, "label_obs_studio_mode") == 0) return "Modalità studio";
+  if (std::strcmp(key, "obs_multiview") == 0) return "Vista multipla";
   if (std::strcmp(key, "label_obs_virtual_camera") == 0) return "Videocamera virtuale";
   if (std::strcmp(key, "start_virtual_camera_prompt") == 0) return "Avviare la videocamera virtuale?";
   if (std::strcmp(key, "stop_virtual_camera_prompt") == 0) return "Arrestare la videocamera virtuale?";
@@ -11393,6 +11406,7 @@ inline const char *espdesktop_i18n_key_pt_br(const char *key) {
   if (std::strcmp(key, "label_obs_break") == 0) return "Pausa";
   if (std::strcmp(key, "label_obs_resume") == 0) return "Retomar";
   if (std::strcmp(key, "label_obs_studio_mode") == 0) return "Modo estúdio";
+  if (std::strcmp(key, "obs_multiview") == 0) return "Visualização múltipla";
   if (std::strcmp(key, "label_obs_virtual_camera") == 0) return "Câmera virtual";
   if (std::strcmp(key, "start_virtual_camera_prompt") == 0) return "Iniciar a câmera virtual?";
   if (std::strcmp(key, "stop_virtual_camera_prompt") == 0) return "Parar a câmera virtual?";
@@ -11730,6 +11744,7 @@ inline const char *espdesktop_i18n_key_pt(const char *key) {
   if (std::strcmp(key, "label_obs_break") == 0) return "Pausa";
   if (std::strcmp(key, "label_obs_resume") == 0) return "Retomar";
   if (std::strcmp(key, "label_obs_studio_mode") == 0) return "Modo estúdio";
+  if (std::strcmp(key, "obs_multiview") == 0) return "Vista múltipla";
   if (std::strcmp(key, "label_obs_virtual_camera") == 0) return "Câmara virtual";
   if (std::strcmp(key, "start_virtual_camera_prompt") == 0) return "Iniciar a câmara virtual?";
   if (std::strcmp(key, "stop_virtual_camera_prompt") == 0) return "Parar a câmara virtual?";
@@ -12418,6 +12433,7 @@ inline const char *espdesktop_i18n_key_ru(const char *key) {
   if (std::strcmp(key, "label_obs_break") == 0) return "Перерыв";
   if (std::strcmp(key, "label_obs_resume") == 0) return "Продолжить";
   if (std::strcmp(key, "label_obs_studio_mode") == 0) return "Режим студии";
+  if (std::strcmp(key, "obs_multiview") == 0) return "Мультипросмотр";
   if (std::strcmp(key, "label_obs_virtual_camera") == 0) return "Виртуальная камера";
   if (std::strcmp(key, "start_virtual_camera_prompt") == 0) return "Запустить виртуальную камеру?";
   if (std::strcmp(key, "stop_virtual_camera_prompt") == 0) return "Остановить виртуальную камеру?";
@@ -14096,6 +14112,7 @@ inline const char *espdesktop_i18n_key_uk(const char *key) {
   if (std::strcmp(key, "label_obs_break") == 0) return "Перерва";
   if (std::strcmp(key, "label_obs_resume") == 0) return "Продовжити";
   if (std::strcmp(key, "label_obs_studio_mode") == 0) return "Режим студії";
+  if (std::strcmp(key, "obs_multiview") == 0) return "Мультиперегляд";
   if (std::strcmp(key, "label_obs_virtual_camera") == 0) return "Віртуальна камера";
   if (std::strcmp(key, "start_virtual_camera_prompt") == 0) return "Запустити віртуальну камеру?";
   if (std::strcmp(key, "stop_virtual_camera_prompt") == 0) return "Зупинити віртуальну камеру?";

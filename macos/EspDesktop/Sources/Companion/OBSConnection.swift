@@ -105,6 +105,7 @@ final class OBSConnection: ObservableObject {
     }
 
     static let studioModeID = "obs.studio"
+    static let multiviewID = "obs.multiview"
     static let transitionID = "obs.transition"
     static let transitionSelectionPrefix = transitionID + ".select."
 
@@ -332,6 +333,7 @@ final class OBSConnection: ObservableObject {
             unavailableTakeAction(state) +
             (state?.breakCard.map { [($0.actionID, $0.label)] } ?? []) +
             (state?.breakSceneID.map { [("obs.brb.scene." + $0, "Configured BRB scene")] } ?? [])
+        if state != nil { actions.append((multiviewID, "Multiview")) }
         if state?.recording == true || state?.recordingStopping == true {
             actions.append(("obs.record.active", "Recording"))
         }
@@ -1246,6 +1248,13 @@ final class OBSConnection: ObservableObject {
         guard let muted, var current = state, current.inputMutes[id] != muted else { return }
         current.inputMutes[id] = muted
         state = current
+    }
+
+    func openMultiview() async -> Bool {
+        guard state != nil, socket.isReady else { return false }
+        return await command("OpenVideoMixProjector", fields: [
+            "videoMixType": "OBS_WEBSOCKET_VIDEO_MIX_TYPE_MULTIVIEW",
+        ])
     }
 
     private func command(_ name: String, fields: OBSWebSocket.Fields) async -> Bool {
