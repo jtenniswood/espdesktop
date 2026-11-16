@@ -1,7 +1,7 @@
 import { targetedAudioCard } from "./companion_app_volume";
 import { childPageKey } from "../model/page_keys";
 import { renderCompanionStorageSelector } from "./companion_storage";
-import { COMPANION_FOLDER_PREFIX, COMPANION_OBS_PREFIX, OBS_BRB_ID, OBS_OUTPUT_OPTIONS, OBS_PROGRAM_ID, OBS_REPLAY_BUFFER_ID, OBS_REPLAY_ID, OBS_STUDIO_ID, OBS_STUDIO_OPTIONS, OBS_TAKE_ID, OBS_TRANSITION_ID, savedOBSSceneTarget, decodeCompanionCard, encodeCompanionCard, companionMetricForEntity, obsConfirmableToggle, obsInputName, obsOutputCardEntity, obsSceneCardEntity } from "../model/companion_card_codec";
+import { COMPANION_FOLDER_PREFIX, COMPANION_OBS_PREFIX, OBS_BRB_ID, OBS_OUTPUT_OPTIONS, OBS_PROGRAM_ID, OBS_REPLAY_BUFFER_ID, OBS_REPLAY_ID, OBS_STUDIO_ID, OBS_STUDIO_OPTIONS, OBS_TAKE_ID, OBS_TRANSITION_ID, OBS_TRANSITION_SELECT, savedOBSTransition, savedOBSSceneTarget, decodeCompanionCard, encodeCompanionCard, companionMetricForEntity, obsConfirmableToggle, obsInputName, obsOutputCardEntity, obsSceneCardEntity } from "../model/companion_card_codec";
 import { configOptionEnabled, configOptionValue, setConfigOption, setConfigOptionValue, normalizedCardColorOptions, preserveCardColorOptions, withoutCardColorOptions } from "../model/config_primitives";
 import { createCompanionCatalogue, createCompanionCatalogueMonitor } from "../api/companion_catalogue";
 import type { CompanionAction } from "../api/companion_catalogue";
@@ -499,6 +499,11 @@ export function registerCompanionCardTypes(
                 obsControlLabels.set(OBS_TAKE_ID, action.label);
             } else if (action.id === OBS_STUDIO_ID || action.id.startsWith(OBS_STUDIO_ID + ".")) {
                 obsControlLabels.set(OBS_STUDIO_ID, action.label);
+            } else if (action.id === "obs.transition.selected") {
+                obsControlLabels.set(action.id, action.label);
+            } else if (action.id.startsWith(OBS_TRANSITION_SELECT)) {
+                const id = savedOBSTransition(action.id);
+                if (id) obsControlLabels.set(id, action.label);
             } else if (action.id === OBS_TRANSITION_ID || action.id.startsWith(OBS_TRANSITION_ID + ".")) {
                 obsControlLabels.set(OBS_TRANSITION_ID, action.label);
             } else if (action.id.startsWith(OBS_REPLAY_BUFFER_ID + ".")) {
@@ -606,16 +611,19 @@ export function registerCompanionCardTypes(
         panel.appendChild(section);
     }
 
-    function renderOBSProductionSettings(panel: HTMLElement, card: { entity: string; icon: string; options: string }, helpers: any, mode: "obs_status" | "obs_replay" | "obs_replay_buffer" | "obs_output" | "obs_brb" | "obs_studio"): void {
+    function renderOBSProductionSettings(panel: HTMLElement, card: { entity: string; icon: string; options: string; label: string }, helpers: any, mode: "obs_status" | "obs_replay" | "obs_replay_buffer" | "obs_output" | "obs_brb" | "obs_studio"): void {
         const studio = mode === "obs_studio" || card.entity === OBS_PROGRAM_ID;
         const replay = mode === "obs_replay" || mode === "obs_replay_buffer";
+        const directTransition = card.entity.startsWith(OBS_TRANSITION_SELECT);
         const replayOptions = [[OBS_REPLAY_ID, "Save Replay"], [OBS_REPLAY_BUFFER_ID, "Start / Stop Buffer"]];
         if (studio || replay || mode === "obs_output") {
             const { field, select } = helpers.selectField(studio ? "Studio Mode" : replay ? "Type" : "OBS output",
                 helpers.idPrefix + (studio ? "obs-studio" : replay ? "obs-replay-type" : "obs-output"),
-                studio ? OBS_STUDIO_OPTIONS : replay ? replayOptions : OBS_OUTPUT_OPTIONS, card.entity, () => {
+                studio ? OBS_STUDIO_OPTIONS : replay ? replayOptions : OBS_OUTPUT_OPTIONS,
+                directTransition ? OBS_TRANSITION_SELECT : card.entity, () => {
                     const previous = companionCardMode(card);
                     card.entity = select.value;
+                    if (directTransition) card.label = "";
                     card.icon = companionGeneratedIcon(card.icon,
                         companionSubtypeDefaultIcon(previous), companionSubtypeDefaultIcon(companionCardMode(card)));
                     helpers.saveField("entity", card.entity);
@@ -623,9 +631,40 @@ export function registerCompanionCardTypes(
                     cardUi.renderButtonSettings();
                 });
             panel.appendChild(field);
-            helpers.markCardPrimaryField(field, "entity");
+            helpers.markCardPrimaryField(field, directTransition ? "type" : "entity");
         }
-        if (mode !== "obs_output") {
+        if (directTransition) {
+            const saved = savedOBSTransition(card.entity);
+            const entries = [["", "Select"]];
+            if (saved) entries.push([saved, obsControlLabels.get(saved) || card.label || "Saved transition"]);
+            const { field, select } = helpers.selectField("OBS transition", helpers.idPrefix + "obs-transition",
+                entries, saved, () => {
+                    if (!select.value) return;
+                    card.entity = select.value;
+                    card.label = select.selectedOptions[0]?.textContent || "";
+                    helpers.saveField("entity", card.entity);
+                    helpers.saveField("label", card.label);
+                    cardUi.renderPreview();
+                });
+            panel.appendChild(field);
+            helpers.markCardPrimaryField(field, "entity");
+            helpers.requireField(select, "Select a transition before saving.");
+            select.disabled = true;
+            void loadCompanionActions(true).then(actions => {
+                rememberOBSControls(actions);
+                const transitions = new Map<string, string>();
+                for (const action of actions) {
+                    const id = savedOBSTransition(action.id);
+                    if (id) transitions.set(id, action.label);
+                }
+                if (saved && !transitions.has(saved)) transitions.set(saved, card.label || "Saved transition (unavailable)");
+                select.replaceChildren(new Option("Select", ""), ...Array.from(transitions, ([id, label]) => new Option(label, id)));
+                select.value = saved;
+                select.disabled = transitions.size === 0;
+                cardUi.renderPreview();
+            }).catch(() => { /* Keep the saved transition when OBS is offline. */ });
+        }
+        if (mode !== "obs_output" && !directTransition) {
             const note = document.createElement("p");
             note.className = "sp-setting-note";
             const descriptions = {
@@ -1690,6 +1729,7 @@ export function registerCompanionCardTypes(
                     ? obsControlLabels.has("obs.record.active") || ["Active", "Paused", "Stopping"].includes(outputStatus)
                     : obsControlLabels.has("obs.stream.active") || ["Live", "Reconnecting"].includes(outputStatus));
                 const scene = mode === "obs";
+                const directTransition = entity.startsWith(OBS_TRANSITION_SELECT);
                 const sceneId = card.entity.slice(-36);
                 const onProgram = scene && sceneId === obsControlLabels.get("obs.program");
                 const selectedScene = scene && !!currentLabel && sceneId === obsControlLabels.get("obs.selected");
@@ -1708,7 +1748,7 @@ export function registerCompanionCardTypes(
                 const muted = mode === "obs_mic" && currentLabel?.startsWith("Muted · ");
                 const live = mode === "obs_mic" && currentLabel?.startsWith("Unmuted · ");
                 const label = output ? (record ? (outputOn ? "Recording" : "Record") : "Stream")
-                    : alias || (mode === "obs_mic" ? obsInputName(currentLabel) : currentLabel) || fallback[mode];
+                    : alias || (mode === "obs_mic" ? obsInputName(currentLabel) : currentLabel) || (directTransition && card.label) || fallback[mode];
                 const preview = cardBadgePreview(sensor || automaticOutputIcon || muted
                     ? { ...card, icon: muted ? "Microphone Off" : statusIcon } : card, helpers, {
                     label, iconFallback: companionSubtypeDefaultIcon(mode), badge: COMPANION_CARD_METADATA.preview.badge,
@@ -1717,10 +1757,11 @@ export function registerCompanionCardTypes(
                     const status = replay && currentLabel === "Save Replay" ? "Ready"
                         : currentLabel || (replay && obsControlLabels.has("obs.status.program") ? "Start Replay Buffer" : "");
                     const [name, detail] = status.split(" · ", 2);
-                    const title = output || scene ? label : fallback[mode];
+                    const title = output || scene || directTransition ? label : fallback[mode];
                     const note = sensor ? programScene || "Unavailable"
                         : output ? outputStatus
                         : scene ? "Scene"
+                        : directTransition ? currentLabel ? "Transition" : "Unavailable"
                         : mode === "obs_transition" ? currentLabel || "Unavailable"
                         : status === "BRB · Already on break" ? "" : detail || (name === title ? "" : name || "Unavailable");
                     preview.labelHtml = '<span class="sp-btn-label-row sp-obs-label"><span class="sp-btn-label">' +
@@ -1730,7 +1771,8 @@ export function registerCompanionCardTypes(
                     ...preview,
                     buttonClass: onProgram && !selectedScene ? "sp-obs-program" : undefined,
                     sensorSurface: sensor,
-                    isOn: live || outputOn || (toggle && currentLabel === "On") || (brb && currentLabel === "Resume") || selectedScene,
+                    isOn: live || outputOn || (toggle && currentLabel === "On") || (brb && currentLabel === "Resume") || selectedScene ||
+                        (directTransition && entity === obsControlLabels.get("obs.transition.selected")),
                     labelEditable: false,
                 };
             }

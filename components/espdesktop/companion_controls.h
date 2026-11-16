@@ -649,6 +649,15 @@ inline bool companion_obs_scene_target(const std::string &id) {
   return companion_obs_audio_uuid(id, "obs.target.");
 }
 
+inline bool companion_obs_transition_target(std::string_view id) {
+  constexpr std::string_view prefix = "obs.transition.select.";
+  if (id.size() != prefix.size() + 32 || id.substr(0, prefix.size()) != prefix) return false;
+  const auto key = id.substr(prefix.size());
+  return std::all_of(key.begin(), key.end(), [](char ch) {
+    return (ch >= '0' && ch <= '9') || (ch >= 'a' && ch <= 'f');
+  });
+}
+
 inline bool companion_obs_scene_card(const std::string &id) {
   return companion_obs_scene_target(id) || companion_obs_audio_uuid(id, "obs.scene.") ||
     companion_obs_audio_uuid(id, "obs.preview.");
@@ -660,7 +669,8 @@ inline bool companion_obs_break_active(std::string_view label) {
 
 inline bool companion_obs_tokenized_card(const std::string &id) {
   return id == "obs.take" || id == "obs.brb" || id == "obs.studio" || id == "obs.transition" ||
-    id == "obs.replay.buffer" || companion_obs_output_card(id) || companion_obs_scene_target(id);
+    id == "obs.replay.buffer" || companion_obs_output_card(id) || companion_obs_scene_target(id) ||
+    companion_obs_transition_target(id);
 }
 
 inline const CompanionAction *companion_published_action(const CompanionRuntimeSnapshot &snapshot,
@@ -854,7 +864,7 @@ inline void companion_apply_card_focus(lv_obj_t *button, const std::string &acti
   if (show_focus && action_id != "obs.replay" && companion_card_focus_allowed(url_config)) {
     const std::string focus_id = url_config.empty() ? action_id : companion_url_card_focus_id(url_config);
     if (companion_obs_scene_card(action_id) || companion_obs_output_card(action_id) || action_id == "obs.studio" ||
-        action_id == "obs.brb" || action_id == "obs.replay.buffer") {
+        action_id == "obs.brb" || action_id == "obs.replay.buffer" || companion_obs_transition_target(action_id)) {
       const auto owned = snapshot ? CompanionRuntimeSnapshot{} : companion_runtime_snapshot();
       const auto &current = snapshot ? *snapshot : owned;
       if (companion_obs_output_card(action_id)) {
@@ -865,6 +875,9 @@ inline void companion_apply_card_focus(lv_obj_t *button, const std::string &acti
       } else if (action_id == "obs.brb") {
         const auto *action = companion_published_action(current, action_id);
         active = action && companion_obs_break_active(action->label);
+      } else if (companion_obs_transition_target(action_id)) {
+        const auto *selected = companion_published_action(current, "obs.transition.selected");
+        active = selected && selected->label == action_id;
       } else {
         const std::string scene_id = action_id.substr(action_id.rfind('.') + 1);
         on_program = companion_published_action(current, "obs.program." + scene_id) != nullptr;
@@ -1163,14 +1176,17 @@ inline void companion_render_obs_detail(CompanionCardRef &ref, const std::string
   const bool scene = companion_obs_scene_card(ref.action_id);
   const bool studio = ref.action_id == "obs.studio";
   const bool transition = ref.action_id == "obs.transition";
+  const bool direct_transition = companion_obs_transition_target(ref.action_id);
   const bool brb = ref.action_id == "obs.brb";
-  const std::string primary = scene ? label
+  const std::string primary = (scene || direct_transition) ? label
     : output ? espdesktop_i18n(label.substr(0, split))
     : studio ? espdesktop_i18n_key("label_obs_studio_mode")
     : transition ? espdesktop_i18n_key("label_obs_transition")
     : brb ? espdesktop_i18n_key("label_obs_break") : espdesktop_i18n(name);
   const bool already_on_break = brb && label == "BRB · Already on break";
   std::string detail = scene ? espdesktop_i18n_key("label_obs_scene")
+    : direct_transition ? (ref.rendered_obs_action.id.size() > ref.action_id.size()
+        ? espdesktop_i18n_key("label_obs_transition") : espdesktop_i18n("Unavailable"))
     : (studio || ref.action_id == "obs.replay.buffer") ? espdesktop_i18n(label)
     : ref.action_id == "obs.replay" ? (label == name ? espdesktop_i18n("Ready") : espdesktop_i18n(label))
     : transition ? label

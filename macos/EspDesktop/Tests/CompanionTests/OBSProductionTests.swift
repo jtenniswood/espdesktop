@@ -229,6 +229,32 @@ final class OBSProductionTests: XCTestCase {
     }
 
     @MainActor
+    func testDedicatedTransitionSelectsOnlyItsConfiguredTarget() async throws {
+        let transport = OBSPilotTransport()
+        let connection = try await open(transport)
+        let cut = OBSConnection.transitionSelectionID("Cut")
+        let fade = OBSConnection.transitionSelectionID("Fade")
+        let initial = OBSConnection.controlActions(connection.state)
+        let cutAction = try XCTUnwrap(initial.first { $0.id.hasPrefix(cut + ".") })
+        XCTAssertEqual(cutAction.label, "Cut")
+        let selected = await connection.selectTransition(actionID: cutAction.id) { true }
+        XCTAssertTrue(selected)
+        XCTAssertEqual(transport.transitionName, "Cut")
+        XCTAssertTrue(OBSConnection.controlActions(connection.state)
+            .contains { $0.id == "obs.transition.selected" && $0.label == cut })
+        let stale = await connection.selectTransition(actionID: cutAction.id) { true }
+        XCTAssertFalse(stale)
+        let fadeAction = try XCTUnwrap(OBSConnection.controlActions(connection.state)
+            .first { $0.id.hasPrefix(fade + ".") })
+        transport.configuredTransitions = ["Cut", "Slide"]
+        let removed = await connection.selectTransition(actionID: fadeAction.id) { true }
+        XCTAssertFalse(removed)
+        XCTAssertEqual(transport.requests.filter { $0 == "SetCurrentSceneTransition" }.count, 1)
+        XCTAssertFalse(transport.requests.contains("TriggerStudioModeTransition"))
+        XCTAssertEqual(transport.programID, OBSPilotTransport.program)
+    }
+
+    @MainActor
     func testTakeRejectsStaleTokensAndRechecksPreviewBeforeCommand() async throws {
         let transport = OBSPilotTransport()
         let connection = try await open(transport)

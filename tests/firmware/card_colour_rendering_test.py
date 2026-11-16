@@ -267,7 +267,7 @@ groups = (
     ("button_grid_touch.h", "", ("consume_button_touch_press",)),
     ("button_grid_layout.h", "", ("parse_hex_color", "apply_button_colors", "apply_button_on_pattern")),
     ("companion_controls.h", "", ("companion_obs_record_stopping", "companion_obs_output_status", "companion_obs_output_active", "companion_obs_control_label")),
-    ("companion_controls.h", "", ("companion_obs_scene_target", "companion_obs_scene_card", "companion_obs_break_active", "companion_apply_card_focus", "companion_required_focus_ready", "companion_refresh_card_focus")),
+    ("companion_controls.h", "", ("companion_obs_scene_target", "companion_obs_transition_target", "companion_obs_scene_card", "companion_obs_break_active", "companion_apply_card_focus", "companion_required_focus_ready", "companion_refresh_card_focus")),
     ("companion_controls.h", "", ("companion_obs_status_card", "companion_obs_status_icon", "companion_render_obs_detail", "companion_update_obs_detail_contrast", "companion_render_slider")),
     ("button_grid_grid.h", "", ("card_palette_for_config", "card_slot_static_child", "reset_card_slot_dynamic_children")),
     ("button_grid_grid.h", "", ("apply_subpage_back_colors",)),
@@ -423,6 +423,17 @@ int main() {
     assert(title.content == "Transition" && detail.content == "Fade · Short");
     companion_render_obs_detail(replay, "Cut");
     assert(title.content == "Transition" && detail.content == "Cut");
+    replay.action_id = "obs.transition.select.0123456789abcdef0123456789abcdef";
+    replay.rendered_obs_action = {replay.action_id + ".11111111-1111-1111-1111-111111111111", "Cut"};
+    companion_render_obs_detail(replay, "Cut");
+    assert(title.content == "Cut" && detail.content == "Transition");
+    CompanionRuntimeSnapshot transition_state;
+    transition_state.actions = {{"obs.transition.selected", replay.action_id}};
+    companion_apply_card_focus(&tile, replay.action_id, "", true, &transition_state);
+    assert(lv_obj_has_state(&tile, LV_STATE_CHECKED));
+    transition_state.actions.clear();
+    companion_apply_card_focus(&tile, replay.action_id, "", true, &transition_state);
+    assert(!lv_obj_has_state(&tile, LV_STATE_CHECKED));
   }
   {
     lv_obj_t slider, title, fill;

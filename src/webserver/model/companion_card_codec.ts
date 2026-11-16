@@ -19,6 +19,11 @@ export const OBS_BRB_ID = "obs.brb";
 export const OBS_TAKE_ID = "obs.take";
 export const OBS_STUDIO_ID = "obs.studio";
 export const OBS_TRANSITION_ID = "obs.transition";
+export const OBS_TRANSITION_SELECT = OBS_TRANSITION_ID + ".select.";
+export function savedOBSTransition(id: string): string {
+  const match = /^obs\.transition\.select\.([a-f0-9]{32})(?:\.[a-f0-9-]{36})?$/.exec(id);
+  return match ? OBS_TRANSITION_SELECT + match[1] : "";
+}
 export const OBS_PROGRAM_ID = "obs.status.program";
 export const OBS_REPLAY_ID = "obs.replay";
 export const OBS_REPLAY_BUFFER_ID = "obs.replay.buffer";
@@ -38,7 +43,8 @@ export const OBS_STUDIO_OPTIONS = [
   [OBS_STUDIO_ID, "Toggle Studio Mode"],
   [OBS_PROGRAM_ID, "Program scene"],
   [OBS_TAKE_ID, "Take Live"],
-  [OBS_TRANSITION_ID, "Transition"],
+  [OBS_TRANSITION_ID, "Cycle transitions"],
+  [OBS_TRANSITION_SELECT, "Select a transition"],
 ] as const;
 
 export function companionMetricForEntity(entity: unknown) {
@@ -53,7 +59,7 @@ export function companionSavedCardMode(config: Partial<CardConfig>): CompanionCa
   if (entity === OBS_BRB_ID) return "obs_brb";
   if (entity === OBS_TAKE_ID) return "obs_take";
   if (entity === OBS_STUDIO_ID) return "obs_studio";
-  if (entity === OBS_TRANSITION_ID) return "obs_transition";
+  if (entity === OBS_TRANSITION_ID || entity.startsWith(OBS_TRANSITION_SELECT)) return "obs_transition";
   if (entity === OBS_REPLAY_ID) return "obs_replay";
   if (entity === OBS_REPLAY_BUFFER_ID) return "obs_replay_buffer";
   if (OBS_OUTPUT_OPTIONS.some(([id]) => obsOutputCardEntity(entity) === id)) return "obs_output";

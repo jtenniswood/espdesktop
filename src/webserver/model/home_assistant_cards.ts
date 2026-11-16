@@ -1,11 +1,12 @@
 import type { CardConfig } from "../contracts/types";
-import { OBS_BRB_ID, OBS_OUTPUT_OPTIONS, OBS_STUDIO_OPTIONS } from "./companion_card_codec";
+import { OBS_BRB_ID, OBS_OUTPUT_OPTIONS, OBS_STUDIO_OPTIONS, OBS_TRANSITION_SELECT } from "./companion_card_codec";
 import { configOptionEnabled, configOptionValue, setConfigOption, setConfigOptionValue } from "./config_primitives";
 
 export function canExposeCard(card: CardConfig): boolean {
     return card.type === "subpage" || card.type === "companion_mac_lock" ||
         (card.type === "companion" && !card.entity.startsWith("stat.") &&
             !card.entity.startsWith("obs.status.") && !card.entity.startsWith("obs.target.") &&
+            !card.entity.startsWith(OBS_TRANSITION_SELECT) &&
             card.entity !== OBS_BRB_ID && !OBS_STUDIO_OPTIONS.some(([id]) => id === card.entity) &&
             !OBS_OUTPUT_OPTIONS.some(([id]) => id === card.entity) && Boolean(card.entity || card.sensor));
 }

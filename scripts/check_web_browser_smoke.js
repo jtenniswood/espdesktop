@@ -4465,6 +4465,8 @@ async function assertOBSSceneCard(browser) {
   let replaySave = "Ready";
   let recordingState = "Idle";
   let transitionName = "Fade";
+  const fadeTransition = "obs.transition.select." + "a".repeat(32);
+  const cutTransition = "obs.transition.select." + "b".repeat(32);
   await context.route("**/companion/actions", route => route.fulfill({
     json: connectedToOBS ? [
       { id: (studioModeOn ? "obs.preview." : "obs.scene.") + sceneUUID, label: "Gameplay" },
@@ -4475,6 +4477,9 @@ async function assertOBSSceneCard(browser) {
       { id: "obs.take.9ea47782-fada-4bb3-aef6-1904669efae7", label: "Take Live · Setup" },
       { id: "obs.studio.9ea47782-fada-4bb3-aef6-1904669efae7", label: studioModeOn ? "On" : "Off" },
       { id: "obs.transition.9ea47782-fada-4bb3-aef6-1904669efae7", label: transitionName },
+      { id: fadeTransition + ".9ea47782-fada-4bb3-aef6-1904669efae7", label: "Fade" },
+      { id: cutTransition + ".9ea47782-fada-4bb3-aef6-1904669efae7", label: "Cut" },
+      { id: "obs.transition.selected", label: transitionName === "Fade" ? fadeTransition : cutTransition },
       { id: "obs.replay.buffer.9ea47782-fada-4bb3-aef6-1904669efae7", label: replayBufferOn ? "On" : "Off" },
       ...(replayBufferOn ? [{ id: "obs.replay", label: replaySave }] : []),
       { id: "obs.status.record", label: "Recording · " + recordingState },
@@ -4513,7 +4518,7 @@ async function assertOBSSceneCard(browser) {
     await page.getByRole("button", { name: "Edit", exact: true }).click();
     assert.equal(await studioPicker.inputValue(), "obs.status.program", "existing Program cards reopen in Studio Mode");
     assert.deepEqual(await studioPicker.locator("option").allTextContents(),
-      ["Toggle Studio Mode", "Program scene", "Take Live", "Transition"]);
+      ["Toggle Studio Mode", "Program scene", "Take Live", "Cycle transitions", "Select a transition"]);
     await page.keyboard.press("Escape");
     await page.locator(".sp-main .sp-empty-cell").first().click();
     const obsGroup = page.getByRole("button", { name: "OBS Studio card type", exact: true });
@@ -4659,6 +4664,26 @@ async function assertOBSSceneCard(browser) {
     await recordingControl.locator(".mdi-pause").waitFor();
     assert.notEqual(await recordingControl.evaluate(tile => getComputedStyle(tile).backgroundColor), recordingIdle);
     assert.equal(await replayTile.evaluate(tile => tile.style.backgroundColor), replayReadyColor);
+    await page.locator(".sp-settings-overlay.sp-visible .sp-settings-close").click();
+    await studioTile.click();
+    await page.getByRole("button", { name: "Edit", exact: true }).click();
+    await studioPicker.selectOption("obs.transition.select.");
+    const transitionPicker = page.getByLabel("OBS transition", { exact: true });
+    await transitionPicker.getByRole("option", { name: "Fade", exact: true }).waitFor({ state: "attached" });
+    assert.deepEqual(await transitionPicker.locator("option").allTextContents(), ["Select", "Fade", "Cut"]);
+    await transitionPicker.selectOption(fadeTransition);
+    await page.getByRole("button", { name: "Save", exact: true }).click();
+    await waitForNativeState(fixture, () => fixture.document.buttons[9]?.startsWith(fadeTransition + ";Fade;"),
+      "Dedicated transition card saves the selected transition without the action token");
+    await studioTile.getByText("Fade", { exact: true }).waitFor();
+    const transitionOffColor = await studioTile.evaluate(tile => tile.style.backgroundColor);
+    transitionName = "Fade";
+    await studioTile.click();
+    await page.getByRole("button", { name: "Edit", exact: true }).click();
+    await transitionPicker.getByRole("option", { name: "Fade", exact: true }).waitFor({ state: "attached" });
+    assert.equal(await transitionPicker.inputValue(), fadeTransition);
+    await page.waitForFunction(offColor =>
+      document.querySelector('.sp-main [data-slot="9"]')?.style.backgroundColor !== offColor, transitionOffColor);
     await page.locator(".sp-settings-overlay.sp-visible .sp-settings-close").click();
     connectedToOBS = false;
     await page.locator('.sp-main [data-slot="3"]').click();

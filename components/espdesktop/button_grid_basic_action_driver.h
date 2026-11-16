@@ -73,7 +73,7 @@ inline bool basic_action_driver_refresh_layout(
   const bool output = companion_obs_output_card(config.entity);
   if (status || companion_obs_scene_card(config.entity) || config.entity == "obs.take" || config.entity == "obs.brb" ||
       config.entity == "obs.replay" || output || config.entity == "obs.studio" ||
-      config.entity == "obs.transition" || config.entity == "obs.replay.buffer")
+      config.entity == "obs.transition" || companion_obs_transition_target(config.entity) || config.entity == "obs.replay.buffer")
     companion_setup_obs_detail(slot.btn, display_small_text_font(display),
       status || (output && companion_obs_output_auto_icon(config.entity, config.icon)) ? slot.icon_lbl : nullptr);
   if (companion_obs_confirmation_supported(config.entity))

@@ -496,7 +496,8 @@ inline void setup_companion_card(BtnSlot &s, const ParsedCfg &p,
   const bool obs_status = companion_obs_status_card(p.entity);
   const bool tokenized_card = companion_obs_tokenized_card(p.entity);
   const bool obs_mute = companion_obs_audio_uuid(p.entity, "obs.mute.");
-  const bool supports_obs_alias = companion_obs_scene_target(p.entity) || obs_mute;
+  const bool direct_transition = companion_obs_transition_target(p.entity);
+  const bool supports_obs_alias = companion_obs_scene_target(p.entity) || obs_mute || direct_transition;
   const std::string obs_alias = supports_obs_alias ? p.label : "";
   const bool dynamic_label = obs_status || tokenized_card || p.entity == "obs.replay" || p.label.empty() || !obs_alias.empty();
   const auto obs_snapshot = tokenized_card ? companion_runtime_snapshot() : CompanionRuntimeSnapshot{};
@@ -525,7 +526,7 @@ inline void setup_companion_card(BtnSlot &s, const ParsedCfg &p,
   const char *icon = (p.icon.empty() || p.icon == "Auto")
     ? find_icon(obs_mute ? "Microphone" : p.entity == "obs.brb" ? "Coffee to Go" :
                 p.entity == "obs.studio" ? "Split Vertical" :
-                p.entity == "obs.transition" ? "Flip Horizontal" :
+                (p.entity == "obs.transition" || direct_transition) ? "Flip Horizontal" :
                 p.entity == "obs.replay.buffer" ? "Repeat" :
                 companion_obs_scene_card(p.entity) ? "Image Card Loading" : "Monitor")
     : find_icon(p.icon.c_str());
