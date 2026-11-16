@@ -4,6 +4,8 @@ struct OBSSettings: View {
     @ObservedObject var connection: OBSConnection
     @State private var port = ""
     @State private var password = ""
+    @State private var hasSavedPassword = false
+    @FocusState private var passwordFocused: Bool
 
     private var validPort: UInt16? {
         UInt16(port).flatMap { $0 > 0 ? $0 : nil }
@@ -15,7 +17,9 @@ struct OBSSettings: View {
                 Text("In OBS Studio, open Tools → WebSocket Server Settings. Enable the server and enter its port and password here.")
                     .foregroundStyle(.secondary)
                 TextField("Port", text: $port)
-                SecureField("Password", text: $password)
+                SecureField("Password", text: $password,
+                            prompt: Text(hasSavedPassword && !passwordFocused ? "••••••••" : ""))
+                    .focused($passwordFocused)
                 LabeledContent("Status", value: connection.status.title)
 
                 HStack {
@@ -23,6 +27,8 @@ struct OBSSettings: View {
                         guard let validPort else { return }
                         connection.configure(port: validPort, password: password)
                         password = ""
+                        passwordFocused = false
+                        hasSavedPassword = connection.hasSavedPassword
                     }
                     .disabled(validPort == nil)
 
@@ -30,6 +36,8 @@ struct OBSSettings: View {
                         Button("Disconnect", role: .destructive) {
                             connection.disable()
                             password = ""
+                            passwordFocused = false
+                            hasSavedPassword = connection.hasSavedPassword
                         }
                     }
                 }
@@ -71,6 +79,9 @@ struct OBSSettings: View {
             }
         }
         .formStyle(.grouped)
-        .onAppear { port = String(connection.port) }
+        .onAppear {
+            port = String(connection.port)
+            hasSavedPassword = connection.hasSavedPassword
+        }
     }
 }

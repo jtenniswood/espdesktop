@@ -699,6 +699,11 @@ final class OBSConnection: ObservableObject {
         connect()
     }
 
+    var hasSavedPassword: Bool {
+        KeychainStore.accounts(service: Keys.credentialService).contains(Keys.credentialAccount) ||
+            KeychainStore.accounts(service: KeychainStore.service).contains(Self.legacyCredentialAccount)
+    }
+
     func configure(port: UInt16, password: String) {
         if !password.isEmpty,
            !KeychainStore.save(Data(password.utf8), service: Keys.credentialService, account: Keys.credentialAccount) {
