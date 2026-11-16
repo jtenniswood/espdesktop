@@ -3,6 +3,7 @@
   "allowInSubpage": true,
   "domains": [],
   "options": [
+    { "name": "generated_card_exclusions", "label": "Customized automatic cards", "kind": "text", "omitDefault": true, "hidden": true, "docsHidden": true },
     {
       "name": "subpage_connector", "label": "Subpage Connector", "kind": "choice",
       "values": ["", "mac_companion"],
@@ -32,7 +33,7 @@
       "options": { "policy": "hook", "hook": "normalize_subpage_options" }
     },
     "unknownOptions": "drop",
-    "canonicalOptionOrder": ["subpage_connector", "subpage_kind", "obs_transition_order", "obs_source_order", "obs_audio_order", "obs_scene_order", "large_numbers"],
+    "canonicalOptionOrder": ["subpage_connector", "subpage_kind", "obs_transition_order", "obs_source_order", "obs_audio_order", "obs_scene_order", "generated_card_exclusions", "large_numbers"],
     "optionHook": "normalize_subpage_options"
   },
   "default": {

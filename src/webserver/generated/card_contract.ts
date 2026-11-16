@@ -3028,6 +3028,14 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
     "domains": [],
     "options": [
       {
+        "name": "generated_card_exclusions",
+        "label": "Customized automatic cards",
+        "kind": "text",
+        "omitDefault": true,
+        "hidden": true,
+        "docsHidden": true
+      },
+      {
         "name": "custom_icon",
         "label": "Use custom icon",
         "kind": "flag",
@@ -3167,6 +3175,7 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
         "app_shortcuts",
         "url_open_behavior",
         "finder_open_behavior",
+        "generated_card_exclusions",
         "finder_open_override",
         "app_shortcuts_tabs",
         "app_shortcut_preset",
@@ -3250,6 +3259,14 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
     "allowInSubpage": true,
     "domains": [],
     "options": [
+      {
+        "name": "generated_card_exclusions",
+        "label": "Customized automatic cards",
+        "kind": "text",
+        "omitDefault": true,
+        "hidden": true,
+        "docsHidden": true
+      },
       {
         "name": "subpage_connector",
         "label": "Subpage Connector",
@@ -3368,6 +3385,7 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
         "obs_source_order",
         "obs_audio_order",
         "obs_scene_order",
+        "generated_card_exclusions",
         "large_numbers"
       ],
       "optionHook": "normalize_subpage_options"
@@ -4332,6 +4350,7 @@ export const CARD_CONTRACT_OPTION_NAMES: Readonly<Record<string, string>> = {
   "finder_open_override": "finder_open_override",
   "garage_mode": "garage_mode",
   "gate_mode": "gate_mode",
+  "generated_card_exclusions": "generated_card_exclusions",
   "icon_display": "icon_display",
   "image_icon": "image_icon",
   "image_label": "image_label",

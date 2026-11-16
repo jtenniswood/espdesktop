@@ -748,6 +748,8 @@ inline std::string subpage_card_options_normalized(const std::string &options,
       value += entry;
     }
     if (!value.empty()) out += "," + std::string(obs_subpage_order_option(obs_kind)) + "=" + encode_compact_field(value);
+    const auto exclusions = cfg_option_value(options, "generated_card_exclusions");
+    if (!exclusions.empty()) out += ",generated_card_exclusions=" + encode_compact_field(exclusions);
   }
   if (!sensor.empty() && sensor != "indicator" && precision != "text" &&
       (cfg_option_token_present(options, "large_numbers") ||
@@ -1372,6 +1374,10 @@ inline std::string companion_card_options_normalized(const ParsedCfg &p) {
     }
   }
   if (companion_folder_open_behavior(p) == "same_window") add_token("finder_open_behavior=same_window");
+  if (p.entity == "com.apple.finder") {
+    const auto exclusions = cfg_option_value(p.options, "generated_card_exclusions");
+    if (!exclusions.empty()) add_token("generated_card_exclusions=" + encode_compact_field(exclusions));
+  }
   if (companion_app_shortcuts_enabled(p)) {
     add_token("app_shortcuts");
     const std::string tabs = companion_app_shortcut_tabs_normalized(p);

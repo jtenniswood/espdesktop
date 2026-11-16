@@ -1,3 +1,4 @@
+import { excludeGeneratedCards } from "./generated_page_cards";
 import { obsSubpageKind } from "./obs_live_subpage";
 import type { CardConfig } from "../contracts/types";
 import { CARD_CONFIG_FIELDS, emptyCardConfig } from "./card";
@@ -226,6 +227,17 @@ export class NativeLayoutDraft {
       this.writeCard(card, config ?? emptyCardConfig());
       this.syncPageOwner(card, config);
     }
+  }
+
+  saveGeneratedCards(key: number, edits: ReadonlyMap<number, CardConfig>, order: string): void {
+    const owner = this.ownerAt(key);
+    if (!owner) throw new PanelConfigError("The automatic page no longer exists.");
+    const config = this.config(owner);
+    if (!obsSubpageKind(config.options) && config.entity !== "com.apple.finder")
+      throw new PanelConfigError("The automatic page changed. Reopen it before editing.");
+    this.editScope.push(JSON.stringify(config));
+    this.patchPageCards(key, edits, order);
+    this.writeCard(owner, { ...config, options: excludeGeneratedCards(config.options, [...edits.values()].map(card => card.entity)) });
   }
 
   writePage(key: number, change: NativePageEdit | null): void {

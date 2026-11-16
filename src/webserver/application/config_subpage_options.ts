@@ -1,3 +1,4 @@
+import { preserveGeneratedCardExclusions } from "../model/generated_page_cards";
 import { preserveCardColorOptions } from "../model/config_primitives";
 import {
     configOptionEnabled,
@@ -98,7 +99,7 @@ import { OBS_SUBPAGES, obsSubpageKind, obsSubpagePreferences } from "../model/ob
             (configOptionEnabled(options, SENSOR_LARGE_NUMBERS_OPTION) || largeNumbersExplicitlyDisabled(options))) {
             out = copyLargeNumbersOption(out, options);
         }
-        return preserveCardColorOptions(options, out);
+        return preserveCardColorOptions(options, liveKind ? preserveGeneratedCardExclusions(options, out) : out);
     }
 export {
     normalizeSubpageKind,

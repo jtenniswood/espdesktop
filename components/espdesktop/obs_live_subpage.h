@@ -23,13 +23,6 @@ inline std::vector<CompanionAction> obs_subpage_catalogue(const CompanionRuntime
   return entries;
 }
 
-inline std::string obs_subpage_tile_key(const std::string &id, OBSSubpageKind kind) {
-  if (kind != OBSSubpageKind::audio && kind != OBSSubpageKind::scenes) return id.substr(id.size() - 32);
-  auto uuid = id.substr(id.size() - 36);
-  uuid.erase(std::remove(uuid.begin(), uuid.end(), '-'), uuid.end());
-  return uuid;
-}
-
 inline void project_obs_subpage_tiles(SubpageOrder &order, std::vector<SubpageBtn> &buttons,
                                          int slots, int columns, int capacity,
                                          const std::vector<CompanionAction> &catalogue,
@@ -40,12 +33,12 @@ inline void project_obs_subpage_tiles(SubpageOrder &order, std::vector<SubpageBt
   for (const auto &hash : preferences) {
     if (hash.front() == '!') continue;
     const auto item = std::find_if(catalogue.begin(), catalogue.end(), [&](const auto &entry) {
-      return obs_subpage_tile_key(entry.id, kind) == hash;
+      return generated_card_key(entry.id) == hash;
     });
     if (item != catalogue.end()) sorted.push_back(*item);
   }
   for (const auto &entry : catalogue) {
-    const auto hash = obs_subpage_tile_key(entry.id, kind);
+    const auto hash = generated_card_key(entry.id);
     if (std::find(preferences.begin(), preferences.end(), hash) == preferences.end() &&
         std::find(preferences.begin(), preferences.end(), "!" + hash) == preferences.end())
       sorted.push_back(entry);
@@ -54,5 +47,6 @@ inline void project_obs_subpage_tiles(SubpageOrder &order, std::vector<SubpageBt
   const char *icon = audio ? "Microphone"
     : kind == OBSSubpageKind::transitions ? "Flip Horizontal" : "Image Card Loading";
   project_live_folder_tiles(order, buttons, slots, columns, capacity, sorted, icon, "",
-      obs_subpage_accepts(kind), audio ? "slider" : "companion");
+      obs_subpage_accepts(kind), audio ? "slider" : "companion",
+      cfg_option_value(options, "generated_card_exclusions"));
 }

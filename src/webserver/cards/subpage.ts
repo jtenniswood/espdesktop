@@ -107,7 +107,7 @@ export function registerSubpageCardTypes(
                     list.appendChild(helpers.fieldLabel(pageType.label));
                     const note = list.ownerDocument.createElement("p");
                     note.className = "sp-setting-note";
-                    note.textContent = "Hide or reorder cards. New cards fill available spaces automatically.";
+                    note.textContent = "Hide or reorder automatic cards. New cards fill available spaces.";
                     list.appendChild(note);
                     const key = (id: string) => obsSubpageTileKey(liveKind, id);
                     modalTabs.renderModalTabSettings(list, b, helpers, {

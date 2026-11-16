@@ -310,6 +310,7 @@ constexpr const char *CARD_CONTRACT_OPTION_NAME_FINDER_OPEN_BEHAVIOR = "finder_o
 constexpr const char *CARD_CONTRACT_OPTION_NAME_FINDER_OPEN_OVERRIDE = "finder_open_override";
 constexpr const char *CARD_CONTRACT_OPTION_NAME_GARAGE_MODE = "garage_mode";
 constexpr const char *CARD_CONTRACT_OPTION_NAME_GATE_MODE = "gate_mode";
+constexpr const char *CARD_CONTRACT_OPTION_NAME_GENERATED_CARD_EXCLUSIONS = "generated_card_exclusions";
 constexpr const char *CARD_CONTRACT_OPTION_NAME_ICON_DISPLAY = "icon_display";
 constexpr const char *CARD_CONTRACT_OPTION_NAME_IMAGE_ICON = "image_icon";
 constexpr const char *CARD_CONTRACT_OPTION_NAME_IMAGE_LABEL = "image_label";

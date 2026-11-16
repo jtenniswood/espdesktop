@@ -509,6 +509,8 @@ export function registerCompanionCardTypes(
                 obsControlLabels.set(OBS_TRANSITION_ID, action.label);
             } else if (action.id.startsWith(OBS_REPLAY_BUFFER_ID + ".")) {
                 obsControlLabels.set(OBS_REPLAY_BUFFER_ID, action.label);
+            } else if (action.id.startsWith("obs.source.visible.")) {
+                obsControlLabels.set(action.id, action.label);
             } else if (action.id.startsWith("obs.selected.")) {
                 obsControlLabels.set("obs.selected", action.id.slice("obs.selected.".length));
             } else if (action.id.startsWith("obs.program.")) {
@@ -841,6 +843,13 @@ export function registerCompanionCardTypes(
             const currentEntity = typeof card.entity === "string" ? card.entity : "";
             card.entity = currentEntity;
             const initialMode = companionCardMode(card);
+            if (currentEntity.startsWith("obs.source.") && panel) {
+                helpers.renderCardTextField(panel, card, helpers, {
+                    label: "Label", idSuffix: "label", field: "label", rerender: true,
+                });
+                helpers.renderCardIconPicker(panel, card, helpers, COMPANION_CARD_METADATA.icon);
+                return;
+            }
             if ((initialMode === "obs" || initialMode === "obs_mic") && panel) {
                 renderOBSControlSettings(panel, card, helpers, initialMode === "obs_mic");
                 return;
@@ -1740,7 +1749,8 @@ export function registerCompanionCardTypes(
                 const outputOn = output && (record
                     ? obsControlLabels.has("obs.record.active") || ["Active", "Paused", "Stopping"].includes(outputStatus)
                     : obsControlLabels.has("obs.stream.active") || ["Live", "Reconnecting"].includes(outputStatus));
-                const scene = mode === "obs";
+                const source = entity.startsWith("obs.source.");
+                const scene = mode === "obs" && !source;
                 const directTransition = entity.startsWith(OBS_TRANSITION_SELECT);
                 const sceneId = card.entity.slice(-36);
                 const onProgram = scene && sceneId === obsControlLabels.get("obs.program");
@@ -1756,7 +1766,7 @@ export function registerCompanionCardTypes(
                     : ["Changing", "Reconnecting", "Stopping"].includes(outputStatus) ? "Progress Clock"
                     : !record ? (outputOn ? "Broadcast" : "Broadcast Off")
                     : outputStatus === "Paused" ? "Pause" : outputOn ? "Record" : "Stop Circle";
-                const alias = (mode === "obs_mic" || scene) && card.label;
+                const alias = (mode === "obs_mic" || scene || source || directTransition) && card.label;
                 const muted = mode === "obs_mic" && currentLabel?.startsWith("Muted · ");
                 const live = mode === "obs_mic" && currentLabel?.startsWith("Unmuted · ");
                 const label = output ? (record ? (outputOn ? "Recording" : "Record") : "Stream")
@@ -1784,7 +1794,8 @@ export function registerCompanionCardTypes(
                     buttonClass: onProgram && !selectedScene ? "sp-obs-program" : undefined,
                     sensorSurface: sensor,
                     isOn: live || outputOn || (toggle && currentLabel === "On") || (brb && currentLabel === "Resume") || selectedScene ||
-                        (directTransition && entity === obsControlLabels.get("obs.transition.selected")),
+                        (directTransition && entity === obsControlLabels.get("obs.transition.selected")) ||
+                        (source && obsControlLabels.has(entity.replace("obs.source.", "obs.source.visible."))),
                     labelEditable: false,
                 };
             }

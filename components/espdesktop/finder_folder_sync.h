@@ -23,12 +23,19 @@ inline bool finder_folder_catalogue_equal(const std::vector<CompanionAction> &le
       });
 }
 
+inline std::string generated_card_key(const std::string &id) {
+  auto key = id.substr(id.rfind('.') + 1);
+  key.erase(std::remove(key.begin(), key.end(), '-'), key.end());
+  return key;
+}
+
 template<typename Accept>
 inline void project_live_folder_tiles(SubpageOrder &order, std::vector<SubpageBtn> &buttons,
                                      int slots, int columns, int capacity,
                                      const std::vector<CompanionAction> &entries,
                                      const char *icon, const std::string &options, Accept accept,
-                                     const char *type = "companion") {
+                                     const char *type = "companion",
+                                     const std::string &exclusions = {}) {
   if (!order.has_back_token) return;
   std::array<bool, MAX_GRID_SLOTS> occupied{};
   auto occupy = [&](int position, int rows, int cols) {
@@ -43,11 +50,14 @@ inline void project_live_folder_tiles(SubpageOrder &order, std::vector<SubpageBt
       occupy(position, order.row_span[index - 1], order.col_span[index - 1]);
   }
 
+  const auto excluded = split_config_fields(exclusions, '|');
   int position = 0;
   for (const auto &folder : entries) {
     while (position < slots && occupied[position]) ++position;
     if (position == slots || buttons.size() >= size_t(capacity)) return;
     if (!accept(folder.id)) continue;
+    if (!exclusions.empty() &&
+        std::find(excluded.begin(), excluded.end(), generated_card_key(folder.id)) != excluded.end()) continue;
     const bool placed = std::any_of(order.positions, order.positions + slots, [&](int index) {
       return index > 0 && buttons[index - 1].entity == folder.id;
     });
@@ -60,7 +70,7 @@ inline void project_live_folder_tiles(SubpageOrder &order, std::vector<SubpageBt
 inline void finder_project_folder_tiles(SubpageOrder &order, std::vector<SubpageBtn> &buttons,
                                        int slots, int columns, int capacity,
                                        const std::vector<CompanionAction> &folders,
-                                       const std::string &open_behavior) {
+                                       const std::string &open_behavior, const std::string &exclusions = {}) {
   project_live_folder_tiles(order, buttons, slots, columns, capacity, folders,
-      finder_folder_default_icon(), "finder_open_behavior=" + open_behavior, is_live_finder_folder);
+      finder_folder_default_icon(), "finder_open_behavior=" + open_behavior, is_live_finder_folder, "companion", exclusions);
 }

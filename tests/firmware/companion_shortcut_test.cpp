@@ -137,6 +137,14 @@ int main() {
     const auto scene = parsed_cfg_from_subpage_btn(cards[0]);
     assert(scene.type == "companion" && scene.label == "Break" && scene.icon == "Image Card Loading");
     assert(companion_obs_scene_card(scene.entity) && companion_action_available(snapshot, scene.entity));
+    cards.clear();
+    SubpageOrder after_delete;
+    parse_subpage_order("B", 4, 0, after_delete);
+    const auto customized = parse_cfg(";;Image Card Loading;Auto;;;subpage;;subpage_kind=obs_scenes,generated_card_exclusions=" +
+                                      std::string(32, '1'));
+    project_obs_subpage_tiles(after_delete, cards, 4, 2, 4, catalogue, customized.options, OBSSubpageKind::scenes);
+    assert(cards.size() == 2 && cards[0].entity == second && cards[1].entity == hidden);
+
   }
   assert_finder_folder_projection();
   const auto mac_lock = normalize_parsed_cfg(

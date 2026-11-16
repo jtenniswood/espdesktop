@@ -3564,6 +3564,14 @@
       "domains": [],
       "options": [
         {
+          "name": "generated_card_exclusions",
+          "label": "Customized automatic cards",
+          "kind": "text",
+          "omitDefault": true,
+          "hidden": true,
+          "docsHidden": true
+        },
+        {
           "name": "custom_icon",
           "label": "Use custom icon",
           "kind": "flag",
@@ -3703,6 +3711,7 @@
           "app_shortcuts",
           "url_open_behavior",
           "finder_open_behavior",
+          "generated_card_exclusions",
           "finder_open_override",
           "app_shortcuts_tabs",
           "app_shortcut_preset",
@@ -3786,6 +3795,14 @@
       "allowInSubpage": true,
       "domains": [],
       "options": [
+        {
+          "name": "generated_card_exclusions",
+          "label": "Customized automatic cards",
+          "kind": "text",
+          "omitDefault": true,
+          "hidden": true,
+          "docsHidden": true
+        },
         {
           "name": "subpage_connector",
           "label": "Subpage Connector",
@@ -3904,6 +3921,7 @@
           "obs_source_order",
           "obs_audio_order",
           "obs_scene_order",
+          "generated_card_exclusions",
           "large_numbers"
         ],
         "optionHook": "normalize_subpage_options"

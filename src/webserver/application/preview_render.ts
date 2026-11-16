@@ -1,4 +1,5 @@
-import { OBS_SUBPAGES, obsSubpageKind, orderedOBSTiles, obsSubpageCatalogue } from "../model/obs_live_subpage";
+import { generatedCardElements, generatedCardExclusions, generatedCardKey, generatedPageCard } from "../model/generated_page_cards";
+import { obsSubpageKind, orderedOBSTiles, obsSubpageCatalogue } from "../model/obs_live_subpage";
 import { removeRetiredCards } from "../features/retired_cards";
 import { cardContractTypeRetired } from "../generated/card_contract";
 import { cardRequiresHomeAssistant } from "../model/legacy_home_assistant";
@@ -11,7 +12,6 @@ import { PREVIEW_THEME_COLORS, defaultCardBackgroundColor, previewEffectiveTheme
 import { cardIconSize, configOptionValue, cardActiveColor } from "../model/config_primitives";
 import { PANEL_CONFIG_MAX_SLOT_COUNT } from "../model/panel_config";
 import { escHtml, iconSlug } from "./ui_primitives";
-import { companionCardDefaultIcon } from "../model/companion_card";
 import { appShortcutPageBackIcon, appShortcutPageOwner, previewSubpageOwner } from "../model/companion_shortcut_page";
 import { finderFolderPreview, liveSubpagePreview } from "../model/finder_folder_preview";
 import type { CompanionAction } from "../api/companion_catalogue";
@@ -448,15 +448,15 @@ export function createPreviewRenderFeature(dependencies: PreviewRenderDependenci
         const owner = previewSubpageOwner(pageKey, state.buttons, getSubpage);
         const shortcutOwner = appShortcutPageOwner(owner);
         const liveKind = obsSubpageKind(owner?.options);
+        const excluded = new Set(generatedCardExclusions(owner?.options));
         const liveActions = subpage && (liveKind || shortcutOwner === "com.apple.finder")
-            ? dependencies.liveGeneratedActions() : [];
+            ? dependencies.liveGeneratedActions().filter(action => !excluded.has(generatedCardKey(action.id))) : [];
         const liveFolders = subpage && shortcutOwner === "com.apple.finder"
             ? finderFolderPreview(subpage.order, c.grid, c.buttons, dependencies.layout.totalSlots, liveActions)
             : subpage && liveKind
                 ? liveSubpagePreview(c.grid, c.buttons, dependencies.layout.totalSlots,
                     orderedOBSTiles(liveKind, obsSubpageCatalogue(liveKind, liveActions), owner?.options))
                 : undefined;
-        const selectedTransition = liveKind === "obs_transitions" && liveActions.find(action => action.id === "obs.transition.selected")?.label;
         for (var pos: any = 0; pos < c.maxSlots; pos++) {
             var slot: any = c.grid[pos];
             if (slot === -1)
@@ -493,9 +493,11 @@ export function createPreviewRenderFeature(dependencies: PreviewRenderDependenci
                         backBtn.querySelector(".sp-app-back-icon"), true);
                 }
             }
-            else if (slot > 0) {
-                if (slot > PANEL_CONFIG_MAX_SLOT_COUNT || slot > c.buttons.length ||
-                    (!c.isSub && slot > dependencies.layout.numSlots)) {
+            else if (slot > 0 || liveFolders?.has(pos)) {
+                const action = liveFolders?.get(pos);
+                const generated = action && generatedPageCard(action, liveKind, owner);
+                if (!generated && (slot > PANEL_CONFIG_MAX_SLOT_COUNT || slot > c.buttons.length ||
+                    (!c.isSub && slot > dependencies.layout.numSlots))) {
                     var unavailable: any = document.createElement("div");
                     unavailable.className = "sp-empty-cell";
                     unavailable.setAttribute("data-pos", pos);
@@ -503,9 +505,7 @@ export function createPreviewRenderFeature(dependencies: PreviewRenderDependenci
                     continue;
                 }
                 var bIdx: any = slot - 1;
-                if (c.isSub && bIdx >= c.buttons.length)
-                    continue;
-                var b: any = c.buttons[bIdx];
+                var b: any = generated || c.buttons[bIdx];
                 if (state.settingsDraft &&
                     state.settingsDraft.slot === slot &&
                     state.settingsDraft.isSub === c.isSub &&
@@ -558,7 +558,10 @@ export function createPreviewRenderFeature(dependencies: PreviewRenderDependenci
                 if (sliderFillColor) btn.style.setProperty("--card-slider-fill-color", "#" + sliderFillColor);
                 btn.draggable = !isPreviewReadOnly();
                 btn.setAttribute("data-pos", pos);
-                btn.setAttribute("data-slot", slot);
+                if (generated) {
+                    btn.dataset.generatedCard = "";
+                    generatedCardElements.set(btn, generated);
+                } else btn.setAttribute("data-slot", slot);
                 var hasWhenOn: any = !typePreview && (b.sensor || (b.icon_on && b.icon_on !== "Auto"));
                 if (!typePreview && hasWhenOn && typeof cardOnPattern === "function" && cardOnPattern(b) === "stripes") {
                     var onColor: any = cardOnColor || (state.onColor && state.onColor.length === 6 ? state.onColor : WEB_UI_COLORS.primary);
@@ -591,7 +594,7 @@ export function createPreviewRenderFeature(dependencies: PreviewRenderDependenci
                     btn.appendChild(badge);
                 }
                 // Offer renaming only when the preview displays a name that can be saved.
-                if (cardContractCard(b.type)?.normalization?.fields.label.policy !== "clear" &&
+                if (!generated && cardContractCard(b.type)?.normalization?.fields.label.policy !== "clear" &&
                     previewHtmlValue(typePreview, "labelEditable", true)) {
                     makeTitleEditable(btn, b.type === "image");
                 }
@@ -599,7 +602,7 @@ export function createPreviewRenderFeature(dependencies: PreviewRenderDependenci
                     const visibleLabel = btn.querySelector(".sp-btn-label")?.textContent?.trim();
                     btn.setAttribute("aria-label", visibleLabel || label);
                 }
-                appendResizeHandle(btn);
+                if (!generated) appendResizeHandle(btn);
                 main.appendChild(btn);
                 const appIconSize = typePreview?.appIconId
                     ? cardIconSize(b.options, state.defaultIconSize) : "small";
@@ -624,48 +627,6 @@ export function createPreviewRenderFeature(dependencies: PreviewRenderDependenci
                 empty.setAttribute("data-pos", pos);
                 empty.innerHTML = '<span class="sp-add-pill"><span class="sp-add-icon mdi mdi-plus"></span></span>';
                 main.appendChild(empty);
-                const folder = liveFolders?.get(pos);
-                if (folder) {
-                    const tile = document.createElement("div");
-                    tile.className = "sp-live-folder-preview";
-                    tile.title = liveKind ? "Automatic OBS card. Click the cell to add a saved tile."
-                        : "Live Finder folder. Click the cell to add a saved tile.";
-                    const audio = liveKind === "obs_audio";
-                    const scene = liveKind === "obs_scenes";
-                    const background = defaultCardBackgroundColor(audio ? "slider" : "companion", state);
-                    empty.style.backgroundColor = "#" + background;
-                    empty.appendChild(tile);
-                    const cardType = audio ? "slider" : scene ? "companion" : "";
-                    const card = cardType && dependencies.cards.definitions[cardType]?.renderPreview?.(
-                        { entity: folder.id, label: folder.label, icon: OBS_SUBPAGES[liveKind!].icon }, { escHtml }) as
-                        { iconHtml: string; labelHtml: string; sliderMuted?: boolean; isOn?: boolean; buttonClass?: string } | undefined;
-                    const active = state.onColor || WEB_UI_COLORS.primary;
-                    if (card) {
-                        tile.innerHTML = card.iconHtml + card.labelHtml;
-                        if (audio) {
-                            const fill = card.sliderMuted ? "808080" : active;
-                            tile.style.setProperty("--card-slider-fill-color", "#" + fill);
-                            applySliderPreviewTextContrast(tile, "#" + previewColors.textPrimary, fill);
-                        } else if (card.isOn || card.buttonClass === "sp-obs-program") {
-                            const color = card.isOn ? active : darkerCardColor(active, 50);
-                            empty.style.backgroundColor = "#" + color;
-                            tile.style.setProperty("--card-text-color", cardPreviewTextColor(color));
-                        }
-                    } else {
-                        const icon = document.createElement("span");
-                        icon.className = "sp-btn-icon mdi mdi-" + iconSlug(liveKind ? OBS_SUBPAGES[liveKind].icon : companionCardDefaultIcon("folder"));
-                        icon.setAttribute("aria-hidden", "true");
-                        const label = document.createElement("span");
-                        label.className = "sp-btn-label";
-                        label.textContent = folder.label;
-                        tile.append(icon, label);
-                    }
-                    if (folder.id === selectedTransition || (liveKind === "obs_sources" &&
-                        liveActions.some(action => action.id === folder.id.replace("obs.source.", "obs.source.visible.")))) {
-                        empty.style.backgroundColor = "#" + active;
-                        tile.style.setProperty("--card-text-color", cardPreviewTextColor(active));
-                    }
-                }
             }
         }
         if (focused && editor && editor.dataset.homeSlot === String(state.editingSubpage || "")) {

@@ -1,3 +1,5 @@
+import type { CardConfig } from "../contracts/types";
+import { generatedCardElements } from "../model/generated_page_cards";
 import { cardTransferOwnsSubpage } from "../model/card_transfer";
 import { state } from "../state/app_instance";
 import type { NativePageTransfersFeature } from "./native_page_transfers";
@@ -93,6 +95,30 @@ export function createPreviewInteractionsFeature(
         saveSubpageConfig,
         subpageFirstFreeSlot,
     } = dependencies.codec;
+    function generatedPlan(container: HTMLElement, positions: readonly number[]) {
+        const c = ctx();
+        const grid: number[] = c.grid.slice();
+        const edits = new Map<number, CardConfig>();
+        for (const pos of new Set(positions)) {
+            const element = container.querySelector<HTMLElement>(`[data-pos="${pos}"]`);
+            const card = element && generatedCardElements.get(element);
+            if (grid[pos] !== 0 || !card) continue;
+            const slot = c.buttons.length + edits.size + 1;
+            edits.set(slot, card);
+            grid[pos] = slot;
+        }
+        return { grid, edits, maxSlotId: c.buttons.length + edits.size };
+    }
+
+    async function saveGeneratedAt(container: HTMLElement, pos: number): Promise<number> {
+        const page = state.editingSubpage;
+        if (!page || !dependencies.nativeTransfers?.available()) return 0;
+        const { grid, edits } = generatedPlan(container, [pos]);
+        const order = serializeSubpageGrid({ ...getSubpage(page), grid }).join(",");
+        if (!edits.size || !await dependencies.nativeTransfers.saveGenerated(edits, order)) return 0;
+        return state.editingSubpage === page ? ctx().grid[pos] : 0;
+    }
+
     function editCardTitle(title: HTMLElement) {
         if (title.querySelector("input")) return;
         const card = title.closest<HTMLElement>("[data-slot]");
@@ -175,6 +201,7 @@ export function createPreviewInteractionsFeature(
     function setupPreviewEvents(this: any) {
         var container: any = els.previewMain;
         var pendingCellIdx: any = -1;
+        let draggedGeneratedId: string | undefined;
         state.clockBarDragItem = "";
         if (els.topbar) {
             els.topbar.addEventListener("click", function (this: any, e?: any) {
@@ -294,6 +321,12 @@ export function createPreviewInteractionsFeature(
                     handleBtnClick(e, slot, pos);
                 }
             }
+            else if (generatedCardElements.has(target)) {
+                if (!runtime.didDrag) void saveGeneratedAt(container, pos).then(saved => {
+                    if (saved > 0) handleBtnClick(e, saved, pos);
+                });
+                runtime.didDrag = false;
+            }
             else if (slot === 0) {
                 if (state.clipboard) {
                     e.preventDefault();
@@ -325,6 +358,11 @@ export function createPreviewInteractionsFeature(
             else if (slot === -2) {
                 showBack(e);
             }
+            else if (generatedCardElements.has(target)) {
+                void saveGeneratedAt(container, pos).then(saved => {
+                    if (saved > 0) showCard(e, saved);
+                });
+            }
             else if (slot === 0) {
                 showEmpty(e, pos);
             }
@@ -344,6 +382,7 @@ export function createPreviewInteractionsFeature(
                 return;
             var pos: any = parseInt(target.getAttribute("data-pos"), 10);
             runtime.dragSrcPos = pos;
+            draggedGeneratedId = generatedCardElements.get(target)?.entity;
             if (dependencies.layout.config.dragAnimation)
                 runtime.dragSrcEl = target;
             runtime.didDrag = true;
@@ -440,14 +479,20 @@ export function createPreviewInteractionsFeature(
                 runtime.dragSrcPos = -1;
                 return;
             }
-            const move = planMove(runtime.dragSrcPos, toPos);
+            const projected = c.isSub && dependencies.nativeTransfers?.available()
+                ? generatedPlan(container, [runtime.dragSrcPos, toPos]) : undefined;
+            const fromPos = runtime.dragSrcPos;
+            const sourceId = projected?.edits.get(projected.grid[fromPos] ?? 0)?.entity;
             runtime.dragSrcPos = -1;
+            if (sourceId !== draggedGeneratedId) return;
+            const move = planMove(fromPos, toPos, projected);
             if (!move.accepted) return;
             if (dependencies.nativeTransfers?.available()) {
                 const order = c.isSub
                     ? serializeSubpageGrid({ ...getSubpage(state.editingSubpage), ...move }).join(",")
                     : serializeGridOrder(move.grid, move.sizes);
-                void dependencies.nativeTransfers.place(order);
+                if (projected?.edits.size) void dependencies.nativeTransfers.saveGenerated(projected.edits, order);
+                else void dependencies.nativeTransfers.place(order);
                 return;
             }
             applyMove(move);

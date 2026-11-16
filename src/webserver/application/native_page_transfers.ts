@@ -25,6 +25,7 @@ export interface NativePageTransfersFeature {
   delete(slots: readonly number[]): Promise<boolean>;
   rename(slot: number, label: string): Promise<boolean>;
   place(order: string): Promise<boolean>;
+  saveGenerated(edits: ReadonlyMap<number, CardConfig>, order: string): Promise<boolean>;
 }
 /** Validate normalized temporary views, preserving the raw transfer payload. */
 export function validatePageTransferCards(
@@ -200,5 +201,9 @@ export function createNativePageTransfersFeature(options: {
     const targetPage = page();
     return run(() => save(draft => draft.writePageOrder(targetPage, order), true));
   }
-  return { available, capture, copy, paste, duplicate, delete: remove, rename, place };
+  async function saveGenerated(edits: ReadonlyMap<number, CardConfig>, order: string): Promise<boolean> {
+    const targetPage = page();
+    return run(() => save(draft => draft.saveGeneratedCards(targetPage, edits, order), true));
+  }
+  return { available, capture, copy, paste, duplicate, delete: remove, rename, place, saveGenerated };
 }

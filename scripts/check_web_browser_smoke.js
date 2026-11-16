@@ -7646,7 +7646,11 @@ async function assertReorderAfterDelete(browser) {
 async function assertLiveFinderPreview(browser) {
   const testCase = CASES.find(item => item.slug === "guition-esp32-s3-4848s040");
   const fixture = nativeConfigState(testCase.slug);
-  const [example] = require("../compatibility/fixtures/finder_folder_preview.json");
+  const [fixtureExample] = require("../compatibility/fixtures/finder_folder_preview.json");
+  const example = structuredClone(fixtureExample);
+  const ids = new Map(example.expected.map(([, id], i) => [id, "folder.00000000-0000-0000-0000-" + String(i + 1).padStart(12, "0")]));
+  example.catalogue = example.catalogue.map(([id, label]) => [ids.get(id) || id, label]);
+  example.expected = example.expected.map(([pos, id, label]) => [pos, ids.get(id), label]);
   fixture.document.buttons = { 1: "com.apple.finder;Finder;Auto;Auto;;;companion;;app_shortcuts" };
   const tiles = example.buttons.map((id, index) => `companion,${id},Saved ${index + 1},Auto,Auto`);
   fixture.document.subpages = { 1: `~${example.order}|${tiles.join("|")}` };
@@ -7666,11 +7670,11 @@ async function assertLiveFinderPreview(browser) {
     await page.waitForFunction(() => window.__eventSources?.length > 0);
     await page.evaluate(events => window.__seedEspState(events), nativeDocumentEvents(fixture.document));
     await page.locator('.sp-main [data-slot="1"] .sp-subpage-badge').click();
-    const live = page.locator(".sp-main .sp-live-folder-preview");
+    const live = page.locator(".sp-main [data-generated-card]");
     await live.first().waitFor();
     async function assertProjectedTiles() {
       const values = await live.evaluateAll(tiles => tiles.map(tile =>
-        [Number(tile.parentElement.dataset.pos), tile.textContent, tile.parentElement.hasAttribute("data-slot")]));
+        [Number(tile.dataset.pos), tile.querySelector(".sp-btn-label").textContent, tile.hasAttribute("data-slot")]));
       assert.deepEqual(values, example.expected.map(([position, , label]) => [position, label, false]));
       assert.equal(await page.locator('.sp-main [data-slot="1"] .sp-btn-label').textContent(), "Saved 1");
       assert.equal(await page.locator(".sp-main .sp-back-btn").count(), 1);
@@ -7682,7 +7686,15 @@ async function assertLiveFinderPreview(browser) {
     await live.first().waitFor();
     await assertProjectedTiles();
     assert.equal(fixture.puts.length, 0, "live Finder activity never writes saved pages");
-    console.log("Live Finder placement, disconnect and reconnect browser checks passed.");
+    const [position, id, name] = example.expected[0];
+    await live.filter({ hasText: name }).click({ button: "right" });
+    await page.locator(".sp-ctx-menu").getByText("Delete", { exact: true }).click();
+    await waitForNativeState(fixture, () => fixture.document.buttons[1].includes(id.slice("folder.".length).replace(/-/g, "")) &&
+      !fixture.puts.at(-1)?.layout?.pages.find(group => group.key === 1)?.cards.some(card => card.config.entity === id),
+      "Deleting an automatic Finder card keeps its exclusion");
+    await page.locator(`.sp-main [data-pos="${position}"]`).first().waitFor();
+    assert.equal(await page.locator(".sp-main").getByText(name, { exact: true }).count(), 0);
+    console.log("Live Finder placement, reconnect, and deletion checks passed.");
   } finally { await context.close(); }
 }
 
@@ -8062,14 +8074,14 @@ async function assertOBSStarterPage(browser, firstRun = false) {
       fixture.puts.at(-1)?.layout?.pages.some(group => group.key === 4 && group.order === "B"),
       "Automatic Transitions page saves its visibility settings and Back button");
     await editFolder("Transitions");
-    const automaticTiles = page.locator(".sp-main .sp-live-folder-preview");
+    const automaticTiles = page.locator(".sp-main [data-generated-card]");
     await automaticTiles.getByText("Cut", { exact: true }).waitFor();
-    assert.deepEqual(await automaticTiles.allTextContents(), ["Wipe", "Cut"]);
+    assert.deepEqual(await automaticTiles.locator(".sp-btn-label").allTextContents(), ["Wipe", "Cut"]);
     const savedCount = fixture.puts.length;
     transitions = [[slide, "Slide"], [fade, "Fade"], [wipe, "Wipe"]];
     await page.clock.fastForward(30_000);
     await automaticTiles.getByText("Slide", { exact: true }).waitFor();
-    assert.deepEqual(await automaticTiles.allTextContents(), ["Wipe", "Slide"]);
+    assert.deepEqual(await automaticTiles.locator(".sp-btn-label").allTextContents(), ["Wipe", "Slide"]);
     assert.equal(fixture.puts.length, savedCount, "New transition catalogue states never rewrite the saved layout");
     await goBack();
     await page.locator(".sp-main .sp-empty-cell").first().click();
@@ -8084,7 +8096,7 @@ async function assertOBSStarterPage(browser, firstRun = false) {
       "Audio subpage saves the hidden and reordered faders");
     await editFolder("Audio");
     await automaticTiles.getByText("Desk Mic", { exact: true }).waitFor();
-    assert.deepEqual(await automaticTiles.allTextContents(), ["Music", "Desk Mic"]);
+    assert.deepEqual(await automaticTiles.locator(".sp-btn-label").allTextContents(), ["Music", "Desk Mic"]);
     const musicTile = automaticTiles.filter({ hasText: "Music" });
     assert.equal(await colour(musicTile.locator(".sp-slider-fill")), "rgb(128, 128, 128)");
     assert.equal(await automaticTiles.locator(".sp-slider-fill").count(), 2);
@@ -8092,7 +8104,7 @@ async function assertOBSStarterPage(browser, firstRun = false) {
     mixerInputs = [[desktop, "Desktop Audio"], [music, "Music"], [gameAudio, "Game Audio"]];
     await page.clock.fastForward(30_000);
     await automaticTiles.getByText("Game Audio", { exact: true }).waitFor();
-    assert.deepEqual(await automaticTiles.allTextContents(), ["Music", "Game Audio"]);
+    assert.deepEqual(await automaticTiles.locator(".sp-btn-label").allTextContents(), ["Music", "Game Audio"]);
     assert.equal(fixture.puts.length, beforeAudioChange);
     const wrap = "88888888-8888-8888-8888-888888888888";
     const welcome = "99999999-9999-9999-9999-999999999999";
@@ -8115,11 +8127,11 @@ async function assertOBSStarterPage(browser, firstRun = false) {
     const sceneNames = () => automaticTiles.locator(".sp-btn-label").allTextContents();
     assert.deepEqual(await sceneNames(), ["Break Room", "Gameplay"]);
     assert.equal(await automaticTiles.locator(".sp-obs-detail").first().textContent(), "Scene");
-    const generatedProgram = automaticTiles.filter({ hasText: "Gameplay" }).locator("..");
-    const generatedPreview = automaticTiles.filter({ hasText: "Break Room" }).locator("..");
+    const generatedProgram = automaticTiles.filter({ hasText: "Gameplay" });
+    const generatedPreview = automaticTiles.filter({ hasText: "Break Room" });
     await page.waitForFunction(onColor => {
-      const colours = new Map(Array.from(document.querySelectorAll(".sp-main .sp-live-folder-preview"), tile =>
-        [tile.querySelector(".sp-btn-label")?.textContent, getComputedStyle(tile.parentElement).backgroundColor]));
+      const colours = new Map(Array.from(document.querySelectorAll(".sp-main [data-generated-card]"), tile =>
+        [tile.querySelector(".sp-btn-label")?.textContent, getComputedStyle(tile).backgroundColor]));
       return colours.get("Gameplay") === "rgb(127, 70, 0)" && colours.get("Break Room") === onColor;
     }, onColor);
     assert.notEqual(await colour(generatedProgram), await colour(generatedPreview));
@@ -8136,7 +8148,33 @@ async function assertOBSStarterPage(browser, firstRun = false) {
     await automaticTiles.getByText("Gameplay", { exact: true }).waitFor();
     assert.deepEqual(await sceneNames(), ["Break Room", "Gameplay"]);
     assert.equal(fixture.puts.length, beforeCollectionChange);
-    console.log("OBS starter, Transitions, Audio, and Scenes subpages saved and refreshed.");
+    const empty = page.locator(".sp-main .sp-empty-cell").first();
+    const destination = await empty.getAttribute("data-pos");
+    const from = await generatedProgram.boundingBox();
+    const to = await empty.boundingBox();
+    await page.mouse.move(from.x + from.width / 2, from.y + from.height / 2);
+    await page.mouse.down();
+    await page.mouse.move(to.x + to.width / 2, to.y + to.height / 2, { steps: 10 });
+    await page.locator(`.sp-main .sp-drop-placeholder[data-pos="${destination}"]`).waitFor();
+    await page.mouse.up();
+    const movedScene = page.locator(`.sp-main .sp-btn[data-slot][data-pos="${destination}"]`)
+      .filter({ hasText: "Gameplay" });
+    await movedScene.waitFor();
+    await movedScene.click({ button: "right" });
+    await page.getByText("Edit Card", { exact: true }).click();
+    await page.getByRole("button", { name: "Card Settings", exact: true }).click();
+    await page.getByRole("textbox", { name: "Label", exact: true }).fill("Custom Scene");
+    await page.getByRole("button", { name: "Save", exact: true }).click();
+    const renamed = page.locator(".sp-main .sp-btn[data-slot]").filter({ hasText: "Custom Scene" });
+    await renamed.waitFor();
+    await renamed.click({ button: "right" });
+    await page.locator(".sp-ctx-menu").getByText("Delete", { exact: true }).click();
+    await waitForNativeState(fixture, () => fixture.document.buttons[6].includes("generated_card_exclusions") &&
+      !fixture.puts.at(-1)?.layout?.pages.find(group => group.key === 6)?.cards.some(card => card.config.entity === "obs.target." + main),
+      "The deleted scene stays excluded from automatic projection");
+    await renamed.waitFor({ state: "detached" });
+    assert.equal(await page.locator(".sp-main").getByText("Gameplay", { exact: true }).count(), 0);
+    console.log("OBS automatic subpages refreshed. A generated scene was moved, edited, and deleted.");
   } finally {
     await context.close();
   }
@@ -8476,6 +8514,10 @@ async function assertFirstRunSetup(browser) {
     }
     if (process.env.ESPDESKTOP_CARD_REORDER_ONLY === "1") {
       await assertReorderAfterDelete(browser);
+      return;
+    }
+    if (process.env.ESPDESKTOP_LIVE_FINDER_ONLY === "1") {
+      await assertLiveFinderPreview(browser);
       return;
     }
     if (process.env.ESPDESKTOP_OBS_STARTER_ONLY === "1") {

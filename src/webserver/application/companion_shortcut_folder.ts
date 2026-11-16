@@ -1,3 +1,4 @@
+import { preserveGeneratedCardExclusions } from "../model/generated_page_cards";
 import { COMPANION_SHORTCUT_APPS as BUNDLED_SHORTCUT_APPS } from "../generated/app_shortcuts";
 import { bundledExpandedShortcuts, SCOPED_SHORTCUT_PREFIX } from "./companion_shortcut_data";
 import type { AppShortcutApplication } from "../generated/app_shortcuts";
@@ -197,6 +198,7 @@ export function normalizeCompanionCardOptions(card: any): string {
             behavior === "new_window" ? behavior : ""));
     }
     let options = normalizeCompanionAppShortcutOptions(card);
+    if (card.entity === "com.apple.finder") options = preserveGeneratedCardExclusions(card.options, options);
     const obsToggle = obsConfirmableToggle(card.entity);
     if (mode === "obs_output" || obsToggle) {
         const confirmation = configOptionValue(card.options, "obs_confirm");

@@ -1437,7 +1437,8 @@ inline void grid_phase2(
       const int capacity = bounded_grid_slots(cfg.configured_slots > 0 ? cfg.configured_slots : NS);
       finder_project_folder_tiles(sp_ord, sp_btns, NS, COLS, capacity,
                                  grid_live_finder_folders(),
-                                 companion_folder_open_behavior(p));
+                                 companion_folder_open_behavior(p),
+                                 cfg_option_value(p.options, "generated_card_exclusions"));
     } else {
       const auto kind = obs_subpage_kind(cfg_option_value(p.options, "subpage_kind"));
       if (kind != OBSSubpageKind::none) {
