@@ -854,7 +854,7 @@ struct CompanionCardRef {
   const char *obs_mute_icon_off = nullptr;
   const char *obs_mute_icon_on = nullptr;
   lv_obj_t *obs_detail = nullptr;
-  lv_obj_t *obs_status_icon = nullptr;
+  lv_obj_t *obs_state_icon = nullptr;
 };
 
 struct CompanionSliderRef {
@@ -1132,7 +1132,7 @@ inline void companion_track_card(lv_obj_t *button, const std::string &action_id,
     existing->dynamic_default_label = dynamic_default_label;
     existing->obs_label_alias = obs_label_alias;
     existing->obs_detail = nullptr;
-    existing->obs_status_icon = nullptr;
+    existing->obs_state_icon = nullptr;
     existing->obs_mute_icon_label = obs_mute_icon_label;
     existing->obs_mute_icon_off = obs_mute_icon_off;
     existing->obs_mute_icon_on = obs_mute_icon_on;
@@ -1213,8 +1213,8 @@ inline void companion_render_obs_detail(CompanionCardRef &ref, const std::string
     : transition ? espdesktop_i18n_key("label_obs_transition")
     : brb ? espdesktop_i18n_key("label_obs_break") : espdesktop_i18n(name);
   const bool already_on_break = brb && label == "BRB · Already on break";
-  std::string detail = scene ? espdesktop_i18n_key(companion_obs_scene_on_program(snapshot, ref.action_id)
-      ? "live" : "label_obs_scene")
+  const bool scene_live = scene && companion_obs_scene_on_program(snapshot, ref.action_id);
+  std::string detail = scene ? espdesktop_i18n_key(scene_live ? "live" : "label_obs_scene")
     : direct_transition ? (ref.rendered_obs_action.id.size() > ref.action_id.size()
         ? espdesktop_i18n_key("label_obs_transition") : espdesktop_i18n("Unavailable"))
     : (studio || ref.action_id == "obs.replay.buffer") ? espdesktop_i18n(label)
@@ -1235,11 +1235,12 @@ inline void companion_render_obs_detail(CompanionCardRef &ref, const std::string
       else detail = action->obs_detail;
     }
   }
-  if (ref.obs_status_icon) {
-    const auto *icon = find_icon(companion_obs_status_icon(ref.action_id, detail, split != std::string::npos));
-    if (std::strcmp(icon, lv_label_get_text(ref.obs_status_icon)) != 0) lv_label_set_text(ref.obs_status_icon, icon);
+  if (ref.obs_state_icon) {
+    const auto *icon = find_icon(scene ? (scene_live ? "Television" : "Image Card Loading")
+      : companion_obs_status_icon(ref.action_id, detail, split != std::string::npos));
+    if (std::strcmp(icon, lv_label_get_text(ref.obs_state_icon)) != 0) lv_label_set_text(ref.obs_state_icon, icon);
   }
-  if (output || (ref.obs_status_icon && ref.action_id != "obs.status.program")) detail = espdesktop_i18n(detail);
+  if (output || (ref.obs_state_icon && !scene && ref.action_id != "obs.status.program")) detail = espdesktop_i18n(detail);
   if (normalize_display_text(primary) != lv_label_get_text(ref.text_label))
     lv_label_set_display_text(ref.text_label, primary.c_str());
   if (normalize_display_text(detail) != lv_label_get_text(ref.obs_detail))
@@ -1267,7 +1268,7 @@ inline void companion_update_obs_detail_contrast(const CompanionCardRef &ref, bo
     set_card_content_disabled(ref.button, dim);
 }
 
-inline void companion_setup_obs_detail(lv_obj_t *button, const lv_font_t *font, lv_obj_t *status_icon = nullptr) {
+inline void companion_setup_obs_detail(lv_obj_t *button, const lv_font_t *font, lv_obj_t *state_icon = nullptr) {
   for (auto &ref : companion_card_refs()) {
     if (ref.button != button) continue;
     if (!ref.obs_detail) {
@@ -1276,7 +1277,7 @@ inline void companion_setup_obs_detail(lv_obj_t *button, const lv_font_t *font, 
       lv_label_set_long_mode(ref.obs_detail, LV_LABEL_LONG_DOT);
       lv_obj_set_style_text_opa(ref.obs_detail, LV_OPA_80, LV_PART_MAIN);
     }
-    ref.obs_status_icon = status_icon;
+    ref.obs_state_icon = state_icon;
     if (font) lv_obj_set_style_text_font(ref.obs_detail, font, LV_PART_MAIN);
     const auto snapshot = companion_runtime_snapshot();
     const auto live = companion_default_action_label(ref.action_id, "", &snapshot);

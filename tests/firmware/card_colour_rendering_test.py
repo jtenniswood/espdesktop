@@ -230,7 +230,7 @@ struct CompanionCardRef {
   std::string action_id, url_config, metric_key;
   bool show_focus = true;
   std::string required_focus_id{};
-  lv_obj_t *text_label = nullptr, *obs_detail = nullptr, *obs_status_icon = nullptr;
+  lv_obj_t *text_label = nullptr, *obs_detail = nullptr, *obs_state_icon = nullptr;
   CompanionAction rendered_obs_action{};
 };
 struct CompanionSliderRef {
@@ -315,7 +315,7 @@ int main() {
     CompanionCardRef sensor{&tile, "obs.status.record", "", ""};
     sensor.text_label = &title;
     sensor.obs_detail = &detail;
-    sensor.obs_status_icon = &icon;
+    sensor.obs_state_icon = &icon;
     companion_render_obs_detail(sensor, "Recording · Idle", {});
     assert(title.content == "Recording" && detail.content == "Idle" && icon.content == "Stop Circle");
     companion_render_obs_detail(sensor, "Recording · Active", {});
@@ -337,7 +337,7 @@ int main() {
     CompanionCardRef record{&tile, "obs.output.record", "", ""};
     record.text_label = &title;
     record.obs_detail = &detail;
-    record.obs_status_icon = &icon;
+    record.obs_state_icon = &icon;
     set_card_disabled_state(&tile, true);
     set_card_content_disabled(&tile, true);
     CompanionRuntimeSnapshot stopping;
@@ -534,17 +534,18 @@ int main() {
     companion_refresh_card_focus(studio);
     assert(!lv_obj_has_state(&main_scene, LV_STATE_CHECKED));
     assert(lv_obj_has_state(&break_scene, LV_STATE_CHECKED));
-    lv_obj_t title, detail;
+    lv_obj_t title, detail, icon;
     auto &main_card = focus_cards[0];
     main_card.text_label = &title;
     main_card.obs_detail = &detail;
+    main_card.obs_state_icon = &icon;
     companion_render_obs_detail(main_card, "Main", studio);
-    assert(title.content == "Main" && detail.content == "Live");
+    assert(title.content == "Main" && detail.content == "Live" && icon.content == "Television");
     studio.actions[0].id = "obs.program." + break_id;
     companion_refresh_card_focus(studio);
     assert(lv_obj_has_state(&break_scene, LV_STATE_CHECKED));
     companion_render_obs_detail(main_card, "Main", studio);
-    assert(title.content == "Main" && detail.content == "Scene");
+    assert(title.content == "Main" && detail.content == "Scene" && icon.content == "Image Card Loading");
     studio.actions = {{main_card.action_id, "Main"}};
     for (const auto state : {OBSCardState::scene_live, OBSCardState::scene_program, OBSCardState::scene_program_preview}) {
       studio.actions[0].obs_state = state;

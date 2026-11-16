@@ -409,6 +409,7 @@ export const GENERATED_ICON_SLUGS: Readonly<Record<string, string>> = {
     "Coffee to Go": "coffee-to-go",
     "Flip Horizontal": "flip-horizontal",
     "Movie": "movie",
+    "Television": "television",
 };
 export const GENERATED_ICON_NAMES: readonly string[] = [
     "Shortcut Command", "Account", "Application", "Battery", "Battery Alert", "Battery Charging",
@@ -471,7 +472,7 @@ export const GENERATED_ICON_NAMES: readonly string[] = [
     "Card Text", "Font Size Decrease", "Font Size Increase", "Page Next", "Page Previous", "Duplicate",
     "Align Left", "Align Right", "Align Center", "Justify", "Strikethrough", "Numbered List",
     "Decrease Indent", "Increase Indent", "Paint Format", "Subscript", "Superscript", "Subtitles",
-    "Coffee to Go", "Flip Horizontal", "Movie",
+    "Coffee to Go", "Flip Horizontal", "Movie", "Television",
   ];
 // --- GENERATED:ICONS END ---
 

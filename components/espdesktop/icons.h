@@ -422,6 +422,7 @@ static const IconEntry ICON_ENTRIES[] = {
     {"Coffee to Go",                 "\U000F0177"},
     {"Flip Horizontal",              "\U000F10E7"},
     {"Movie",                        "\U000F0381"},
+    {"Television",                   "\U000F0502"},
     // --- GENERATED:ICONS END ---
 };
 

@@ -1799,8 +1799,9 @@ export function registerCompanionCardTypes(
                 const live = mode === "obs_mic" && currentLabel?.startsWith("Unmuted · ");
                 const label = output ? (virtualCamera ? "Virtual Camera" : record ? (outputOn ? "Recording" : "Record") : "Stream")
                     : alias || (mode === "obs_mic" ? obsInputName(currentLabel) : currentLabel) || (directTransition && card.label) || fallback[mode];
-                const preview = cardBadgePreview(sensor || automaticOutputIcon || muted
-                    ? { ...card, icon: muted ? "Microphone Off" : statusIcon } : card, helpers, {
+                const liveSceneIcon = onProgram && (!card.icon || ["Auto", "Image", "Image Card Loading"].includes(card.icon));
+                const preview = cardBadgePreview(sensor || automaticOutputIcon || muted || liveSceneIcon
+                    ? { ...card, icon: muted ? "Microphone Off" : liveSceneIcon ? "Television" : statusIcon } : card, helpers, {
                     label, iconFallback: companionSubtypeDefaultIcon(mode), badge: COMPANION_CARD_METADATA.preview.badge,
                 });
                 if (sensor || output || scene || toggle || mode === "obs_take" || mode === "obs_transition" || brb || replay) {

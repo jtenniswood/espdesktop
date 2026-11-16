@@ -71,11 +71,15 @@ inline bool basic_action_driver_refresh_layout(
   }
   const bool status = companion_obs_status_card(config.entity);
   const bool output = companion_obs_output_card(config.entity);
-  if (status || companion_obs_scene_card(config.entity) || config.entity == "obs.take" || config.entity == "obs.brb" ||
+  const bool scene = companion_obs_scene_card(config.entity);
+  const bool default_scene_icon = scene && (config.icon.empty() || config.icon == "Auto" ||
+    config.icon == "Image" || config.icon == "Image Card Loading");
+  if (status || scene || config.entity == "obs.take" || config.entity == "obs.brb" ||
       config.entity == "obs.replay" || output || config.entity == "obs.studio" ||
       config.entity == "obs.transition" || companion_obs_transition_target(config.entity) || config.entity == "obs.replay.buffer")
     companion_setup_obs_detail(slot.btn, display_small_text_font(display),
-      status || (output && companion_obs_output_auto_icon(config.entity, config.icon)) ? slot.icon_lbl : nullptr);
+      status || default_scene_icon || (output && companion_obs_output_auto_icon(config.entity, config.icon))
+        ? slot.icon_lbl : nullptr);
   if (companion_obs_confirmation_supported(config.entity))
     obs_confirmation_fonts() = {display_switch_confirmation_message_font(display), display.fonts.icon};
   return true;

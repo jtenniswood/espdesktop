@@ -2074,6 +2074,11 @@
       "name": "Movie",
       "codepoint": "F0381",
       "mdi": "movie"
+    },
+    {
+      "name": "Television",
+      "codepoint": "F0502",
+      "mdi": "television"
     }
   ],
   "domain_defaults": {
