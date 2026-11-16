@@ -1510,7 +1510,8 @@ final class OBSConnection: ObservableObject {
             pendingReplay?.saved = true
             if pendingReplay?.accepted == true { finishReplay(.saved) }
         case "CurrentProgramSceneChanged", "CurrentPreviewSceneChanged", "StreamStateChanged", "RecordStateChanged", "VirtualcamStateChanged",
-             "SceneTransitionStarted", "SceneTransitionEnded", "ReplayBufferStateChanged", "CurrentSceneTransitionChanged":
+             "SceneTransitionStarted", "SceneTransitionEnded", "SceneTransitionVideoEnded",
+             "ReplayBufferStateChanged", "CurrentSceneTransitionChanged":
             if var current = state {
                 if type == "CurrentProgramSceneChanged", let session = breakSession,
                    let incoming = Target(fields: fields, kind: "scene"), incoming.id != current.program?.id {
@@ -1541,15 +1542,16 @@ final class OBSConnection: ObservableObject {
                     updateTransitionProbe()
                 } else if type == "SceneTransitionEnded" {
                     updateTransitionProbe()
-                } else if type == "CurrentProgramSceneChanged", current.transitionInProgress,
-                          previousProgram != current.program?.id {
+                } else if current.transitionInProgress &&
+                            (type == "SceneTransitionVideoEnded" ||
+                             (type == "CurrentProgramSceneChanged" && previousProgram != current.program?.id)) {
                     updateTransitionProbe(checkNow: true)
                 }
                 if type == "ReplayBufferStateChanged", current.replayBufferActive == false,
                    pendingReplay != nil || replayDeadline != nil {
                     finishReplay(.ready)
                 }
-            } else if !collectionChanging {
+            } else if !collectionChanging, type != "SceneTransitionVideoEnded" {
                 // Retain the latest event per field while fetching the initial snapshot.
                 bufferedEvents.removeAll { previous in
                     previous.0 == type || (type.hasPrefix("SceneTransition") && previous.0.hasPrefix("SceneTransition"))
@@ -1641,9 +1643,14 @@ final class OBSConnection: ObservableObject {
         let interval = transitionProbeInterval
         transitionProbe = Task { [weak self] in
             var wait = !checkNow
+            var fastRetries = checkNow ? 4 : 0
             while !Task.isCancelled {
                 if wait {
-                    do { try await Task.sleep(for: interval) } catch { return }
+                    // Program and video events can arrive before the cursor settles,
+                    // even on a Cut. Retry briefly before returning to the slow fallback.
+                    let delay = fastRetries > 0 ? min(.milliseconds(50), interval) : interval
+                    fastRetries = max(0, fastRetries - 1)
+                    do { try await Task.sleep(for: delay) } catch { return }
                 }
                 wait = true
                 guard let self, state?.transitionInProgress == true else { return }

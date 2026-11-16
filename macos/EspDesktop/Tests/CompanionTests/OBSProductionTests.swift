@@ -947,6 +947,30 @@ final class OBSProductionTests: XCTestCase {
     }
 
     @MainActor
+    func testVideoEndRetriesTakeReadinessWhenTheCursorHasNotSettled() async throws {
+        let transport = OBSPilotTransport()
+        transport.transitionName = "Cut"
+        let connection = try await open(transport, transitionProbeInterval: .seconds(30))
+        transport.transitionCursor = 0.5
+        transport.onEvent?("SceneTransitionStarted", [:])
+        transport.updateProgram(OBSPilotTransport.queued)
+        transport.onEvent?("CurrentPreviewSceneChanged", transport.scene(OBSPilotTransport.program))
+        transport.onEvent?("SceneTransitionVideoEnded", [:])
+
+        for _ in 0..<100 where !transport.requests.contains("GetCurrentSceneTransitionCursor") {
+            try await Task.sleep(for: .milliseconds(1))
+        }
+        XCTAssertTrue(transport.requests.contains("GetCurrentSceneTransitionCursor"))
+        XCTAssertEqual(connection.state?.takePresentation, .takeTransitioning)
+        transport.transitionCursor = 1
+        for _ in 0..<200 where connection.state?.canTakePreview != true {
+            try await Task.sleep(for: .milliseconds(1))
+        }
+        XCTAssertEqual(connection.state?.takePresentation, .takeReady)
+        XCTAssertGreaterThanOrEqual(transport.requests.filter { $0 == "GetCurrentSceneTransitionCursor" }.count, 2)
+    }
+
+    @MainActor
     func testInterruptedNormalModeTransitionReenablesBreakAndResume() async throws {
         let domain = "EspDesktop.OBSBreak." + UUID().uuidString
         let defaults = try XCTUnwrap(UserDefaults(suiteName: domain))
