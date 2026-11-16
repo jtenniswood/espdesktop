@@ -300,7 +300,9 @@ export function createCompanionCatalogue(fetchImpl: typeof fetch) {
     loadDefinitions(refresh = false): Promise<CompanionDefinitions> {
       if (definitionsPending) return definitionsPending;
       if (definitions && (!refresh || definitionsExpires > Date.now())) return Promise.resolve(definitions);
-      const request = enqueueShortcutRequest(fetchShortcutIndex).then(async index => {
+      // Some older firmware closes the connection for an unknown endpoint.
+      // Only replace the cached definitions after a complete index or legacy sync.
+      const request = enqueueShortcutRequest(fetchShortcutIndex).catch(() => null).then(async index => {
         const value = index ?? await fetchLegacyDefinitions();
         if (index) definitionsExpires = Date.now() + 15000;
         definitions = value;
