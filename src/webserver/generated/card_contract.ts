@@ -3285,7 +3285,8 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
           "companion_stat",
           "obs_transitions",
           "obs_sources",
-          "obs_audio"
+          "obs_audio",
+          "obs_scenes"
         ],
         "defaultValue": "",
         "omitDefault": true
@@ -3305,6 +3306,12 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
       {
         "name": "obs_audio_order",
         "label": "Audio slider visibility and order",
+        "kind": "text",
+        "omitDefault": true
+      },
+      {
+        "name": "obs_scene_order",
+        "label": "Scene visibility and order",
         "kind": "text",
         "omitDefault": true
       },
@@ -3360,6 +3367,7 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
         "obs_transition_order",
         "obs_source_order",
         "obs_audio_order",
+        "obs_scene_order",
         "large_numbers"
       ],
       "optionHook": "normalize_subpage_options"
@@ -4343,6 +4351,7 @@ export const CARD_CONTRACT_OPTION_NAMES: Readonly<Record<string, string>> = {
   "media_tabs": "media_tabs",
   "number_display": "number_display",
   "obs_audio_order": "obs_audio_order",
+  "obs_scene_order": "obs_scene_order",
   "obs_source_order": "obs_source_order",
   "obs_transition_order": "obs_transition_order",
   "on_pattern": "on_pattern",

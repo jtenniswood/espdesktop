@@ -115,6 +115,29 @@ int main() {
     assert(fader.type == "slider" && fader.label == "Music" && fader.icon == "Microphone");
     assert(companion_volume_control_valid(fader.entity));
   }
+  {
+    const std::string first = "obs.target.11111111-1111-1111-1111-111111111111";
+    const std::string second = "obs.target.22222222-2222-2222-2222-222222222222";
+    const std::string hidden = "obs.target.33333333-3333-3333-3333-333333333333";
+    const std::string token = ".44444444-4444-4444-4444-444444444444";
+    CompanionRuntimeSnapshot snapshot;
+    snapshot.connected = true;
+    snapshot.actions = {{first + token, "Gameplay"}, {second + token, "Break"}, {hidden + token, "Wrap Up"},
+                        {"obs.program.11111111-1111-1111-1111-111111111111", "Program"}};
+    const auto catalogue = obs_subpage_catalogue(snapshot, OBSSubpageKind::scenes);
+    assert(catalogue.size() == 3 && catalogue.front().id == first);
+    const auto folder = parse_cfg(";;Image Card Loading;Auto;;;subpage;;subpage_kind=obs_scenes,obs_scene_order=" +
+                                  std::string(32, '2') + "|!" + std::string(32, '3'));
+    std::vector<SubpageBtn> cards;
+    SubpageOrder order;
+    parse_subpage_order("B", 4, cards.size(), order);
+    normalize_subpage_order_spans(order, 4, 2);
+    project_obs_subpage_tiles(order, cards, 4, 2, 4, catalogue, folder.options, OBSSubpageKind::scenes);
+    assert(cards.size() == 2 && cards[0].entity == second && cards[1].entity == first);
+    const auto scene = parsed_cfg_from_subpage_btn(cards[0]);
+    assert(scene.type == "companion" && scene.label == "Break" && scene.icon == "Image Card Loading");
+    assert(companion_obs_scene_card(scene.entity) && companion_action_available(snapshot, scene.entity));
+  }
   assert_finder_folder_projection();
   const auto mac_lock = normalize_parsed_cfg(
       ParsedCfg{"shortcut.command+a", "", "", "", "url.invalid", "%", "companion_mac_lock", "1", ""});

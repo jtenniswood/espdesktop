@@ -4528,7 +4528,7 @@ async function assertOBSSceneCard(browser) {
     await obsGroup.click();
     assert.deepEqual((await obsCards.evaluateAll(cards => cards.map(card => card.getAttribute("aria-label")))).sort(),
       ["Audio Controls", "Audio", "Break", "Recording Control",
-        "Replay Buffer", "Scene", "Sources", "Streaming Control", "Studio Mode", "Transitions"]
+        "Replay Buffer", "Scene", "Scenes", "Sources", "Streaming Control", "Studio Mode", "Transitions"]
         .map(label => label + " card type"));
     assert((await obsCards.allTextContents()).every(copy => !/\bOBS\b/.test(copy)));
     assert.equal(await page.getByRole("button", { name: "Sound card type", exact: true }).count(), 0);
@@ -7865,6 +7865,8 @@ async function assertOBSStarterPage(browser, firstRun = false) {
   let streaming = false;
   let onBreak = false;
   let studioProgram = "";
+  let selectedScene = "";
+  let scenes = [[main, "Gameplay"], [away, "Break Room"]];
   const fade = "a".repeat(32), cut = "b".repeat(32), slide = "c".repeat(32), wipe = "d".repeat(32);
   let transitions = [[fade, "Fade"], [cut, "Cut"], [wipe, "Wipe"]];
   const camera = "e".repeat(32), overlay = "f".repeat(32), game = "1".repeat(32);
@@ -7874,9 +7876,8 @@ async function assertOBSStarterPage(browser, firstRun = false) {
   const gameAudio = "77777777-7777-7777-7777-777777777777";
   let mixerInputs = [[mic, "Desk Mic"], [desktop, "Desktop Audio"], [music, "Music"]];
   await context.route("**/companion/actions", route => route.fulfill({ json: [
-    { id: `obs.target.${main}.${token}`, label: "Gameplay" },
-    { id: `obs.target.${away}.${token}`, label: "Break Room" },
-    { id: `obs.selected.${studioProgram ? away : main}`, label: "Selected OBS scene" },
+    ...scenes.map(([id, label]) => ({ id: `obs.target.${id}.${token}`, label })),
+    { id: `obs.selected.${selectedScene || (studioProgram ? away : main)}`, label: "Selected OBS scene" },
     ...(studioProgram ? [{ id: `obs.program.${studioProgram}`, label: "OBS Program scene" }] : []),
     { id: `obs.mute.${mic}`, label: (muted ? "Muted" : "Unmuted") + " · Desk Mic" },
     { id: "obs.take", label: "Take Live · Enable Studio Mode" },
@@ -8106,7 +8107,47 @@ async function assertOBSStarterPage(browser, firstRun = false) {
     await automaticTiles.getByText("Game Audio", { exact: true }).waitFor();
     assert.deepEqual(await automaticTiles.allTextContents(), ["Music", "Game Audio"]);
     assert.equal(fixture.puts.length, beforeAudioChange);
-    console.log("OBS starter, Transitions, Sources, and Audio subpages saved and refreshed.");
+    const wrap = "88888888-8888-8888-8888-888888888888";
+    const welcome = "99999999-9999-9999-9999-999999999999";
+    scenes = [...scenes, [wrap, "Wrap Up"]];
+    const originalScenes = scenes;
+    studioProgram = main;
+    await goBack();
+    await page.locator(".sp-main .sp-empty-cell").first().click();
+    await chooseOBSCard(page, "Scenes");
+    const wrapRow = page.locator(".sp-light-tab-row").filter({
+      has: page.getByRole("checkbox", { name: "Wrap Up", exact: true }),
+    });
+    await wrapRow.locator(".sp-light-tab-label").click();
+    await page.getByRole("button", { name: "Move Break Room up", exact: true }).click();
+    await page.getByRole("button", { name: "Save", exact: true }).click();
+    await waitForNativeState(fixture, () => fixture.document.buttons[7]?.includes("obs_scene_order"),
+      "Scenes saves the hidden and reordered scene buttons");
+    await editFolder("Scenes");
+    await automaticTiles.getByText("Gameplay", { exact: true }).waitFor();
+    const sceneNames = () => automaticTiles.locator(".sp-btn-label").allTextContents();
+    assert.deepEqual(await sceneNames(), ["Break Room", "Gameplay"]);
+    assert.equal(await automaticTiles.locator(".sp-obs-detail").first().textContent(), "Scene");
+    const generatedProgram = automaticTiles.filter({ hasText: "Gameplay" }).locator("..");
+    const generatedPreview = automaticTiles.filter({ hasText: "Break Room" }).locator("..");
+    await page.waitForFunction(onColor => {
+      const colours = new Map(Array.from(document.querySelectorAll(".sp-main .sp-live-folder-preview"), tile =>
+        [tile.querySelector(".sp-btn-label")?.textContent, getComputedStyle(tile.parentElement).backgroundColor]));
+      return colours.get("Gameplay") === "rgb(127, 70, 0)" && colours.get("Break Room") === onColor;
+    }, onColor);
+    assert.notEqual(await colour(generatedProgram), await colour(generatedPreview));
+    const beforeCollectionChange = fixture.puts.length;
+    scenes = [[welcome, "Welcome"]];
+    selectedScene = welcome;
+    studioProgram = "";
+    await automaticTiles.getByText("Welcome", { exact: true }).waitFor();
+    assert.deepEqual(await sceneNames(), ["Welcome"]);
+    scenes = originalScenes;
+    selectedScene = "";
+    await automaticTiles.getByText("Gameplay", { exact: true }).waitFor();
+    assert.deepEqual(await sceneNames(), ["Break Room", "Gameplay"]);
+    assert.equal(fixture.puts.length, beforeCollectionChange);
+    console.log("OBS starter, Transitions, Sources, Audio, and Scenes subpages saved and refreshed.");
   } finally {
     await context.close();
   }

@@ -329,6 +329,7 @@ constexpr const char *CARD_CONTRACT_OPTION_NAME_MEDIA_NOW_PLAYING_CONTROLS = "me
 constexpr const char *CARD_CONTRACT_OPTION_NAME_MEDIA_TABS = "media_tabs";
 constexpr const char *CARD_CONTRACT_OPTION_NAME_NUMBER_DISPLAY = "number_display";
 constexpr const char *CARD_CONTRACT_OPTION_NAME_OBS_AUDIO_ORDER = "obs_audio_order";
+constexpr const char *CARD_CONTRACT_OPTION_NAME_OBS_SCENE_ORDER = "obs_scene_order";
 constexpr const char *CARD_CONTRACT_OPTION_NAME_OBS_SOURCE_ORDER = "obs_source_order";
 constexpr const char *CARD_CONTRACT_OPTION_NAME_OBS_TRANSITION_ORDER = "obs_transition_order";
 constexpr const char *CARD_CONTRACT_OPTION_NAME_ON_PATTERN = "on_pattern";

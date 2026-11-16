@@ -1,11 +1,12 @@
 import type { CompanionAction } from "../api/companion_catalogue";
 import { OBS_FADER_PREFIX, isOBSFaderControlID } from "./card";
-import { OBS_TRANSITION_SELECT, savedOBSTransition } from "./companion_card_codec";
+import { OBS_TRANSITION_SELECT, savedOBSSceneTarget, savedOBSTransition } from "./companion_card_codec";
 import { configOptionValue, setConfigOptionValue } from "./config_primitives";
 
 export const OBS_SUBPAGES = {
     obs_transitions: { label: "Transitions", icon: "Flip Horizontal", prefix: OBS_TRANSITION_SELECT, order: "obs_transition_order" },
     obs_audio: { label: "Audio", icon: "Microphone", prefix: OBS_FADER_PREFIX, order: "obs_audio_order" },
+    obs_scenes: { label: "Scenes", icon: "Image Card Loading", prefix: "obs.target.", order: "obs_scene_order" },
     obs_sources: { label: "Sources", icon: "Image Card Loading", prefix: "obs.source.", order: "obs_source_order" },
 } as const;
 
@@ -30,6 +31,8 @@ export function obsSubpageCatalogue(kind: OBSSubpageKind, actions: readonly Comp
     for (const action of actions) {
         const id = kind === "obs_transitions" ? savedOBSTransition(action.id)
             : kind === "obs_sources" ? action.id.match(/^obs\.source\.[a-f0-9]{32}(?=\.|$)/)?.[0]
+            : kind === "obs_scenes" ? savedOBSSceneTarget(action.id) ||
+                (/^obs\.target\.[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}$/.test(action.id) ? action.id : "")
             : isOBSFaderControlID(action.id) ? action.id : "";
         if (id) entries.set(id, { id, label: action.label });
     }

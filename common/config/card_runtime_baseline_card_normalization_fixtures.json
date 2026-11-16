@@ -1245,6 +1245,21 @@
     }
   },
   {
+    "name": "companion_obs_scenes: picker_alias",
+    "input": "~,Scenes,Image%20Card%20Loading,Auto,,,subpage,,subpage_connector%3Dmac_companion%2Csubpage_kind%3Dobs_scenes",
+    "expected": {
+      "entity": "",
+      "label": "Scenes",
+      "icon": "Image Card Loading",
+      "icon_on": "Auto",
+      "sensor": "",
+      "unit": "",
+      "type": "subpage",
+      "precision": "",
+      "options": "subpage_connector=mac_companion,subpage_kind=obs_scenes"
+    }
+  },
+  {
     "name": "companion_obs_audio: picker_alias",
     "input": "~,Audio,Microphone,Auto,,,subpage,,subpage_connector%3Dmac_companion%2Csubpage_kind%3Dobs_audio",
     "expected": {

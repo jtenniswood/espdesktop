@@ -297,6 +297,7 @@ export function registerSubpageCardTypes(
     registry.register("companion_obs_transitions", obsSubpageDefinition("obs_transitions"));
     registry.register("companion_obs_sources", obsSubpageDefinition("obs_sources"));
     registry.register("companion_obs_audio", obsSubpageDefinition("obs_audio"));
+    registry.register("companion_obs_scenes", obsSubpageDefinition("obs_scenes"));
     function subpageBadgeLabelHtml(this: any, helpers?: any, label?: any) {
         return '<span class="sp-btn-label-row"><span class="sp-btn-label">' +
             helpers.escHtml(label) +

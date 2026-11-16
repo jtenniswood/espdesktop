@@ -4,6 +4,7 @@
 
 inline auto obs_subpage_accepts(OBSSubpageKind kind) {
   if (kind == OBSSubpageKind::audio) return companion_obs_level_control;
+  if (kind == OBSSubpageKind::scenes) return companion_obs_scene_target;
   return kind == OBSSubpageKind::sources ? companion_obs_source_target : companion_obs_transition_target;
 }
 
@@ -23,8 +24,8 @@ inline std::vector<CompanionAction> obs_subpage_catalogue(const CompanionRuntime
 }
 
 inline std::string obs_subpage_tile_key(const std::string &id, OBSSubpageKind kind) {
-  if (kind != OBSSubpageKind::audio) return id.substr(id.size() - 32);
-  auto uuid = id.substr(sizeof("obs.level.") - 1);
+  if (kind != OBSSubpageKind::audio && kind != OBSSubpageKind::scenes) return id.substr(id.size() - 32);
+  auto uuid = id.substr(id.size() - 36);
   uuid.erase(std::remove(uuid.begin(), uuid.end(), '-'), uuid.end());
   return uuid;
 }
@@ -51,7 +52,7 @@ inline void project_obs_subpage_tiles(SubpageOrder &order, std::vector<SubpageBt
   }
   const bool audio = kind == OBSSubpageKind::audio;
   const char *icon = audio ? "Microphone"
-    : kind == OBSSubpageKind::sources ? "Image Card Loading" : "Flip Horizontal";
+    : kind == OBSSubpageKind::transitions ? "Flip Horizontal" : "Image Card Loading";
   project_live_folder_tiles(order, buttons, slots, columns, capacity, sorted, icon, "",
       obs_subpage_accepts(kind), audio ? "slider" : "companion");
 }

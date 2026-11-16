@@ -797,7 +797,8 @@ void EspDesktopApp::sync_generated_subpages() {
   const bool transitions_changed = grid_update_obs_subpage(snapshot, OBSSubpageKind::transitions);
   const bool sources_changed = grid_update_obs_subpage(snapshot, OBSSubpageKind::sources);
   const bool audio_changed = grid_update_obs_subpage(snapshot, OBSSubpageKind::audio);
-  if (finder_changed || transitions_changed || sources_changed || audio_changed) layout_changed_.trigger();
+  const bool scenes_changed = grid_update_obs_subpage(snapshot, OBSSubpageKind::scenes);
+  if (finder_changed || transitions_changed || sources_changed || audio_changed || scenes_changed) layout_changed_.trigger();
 }
 
 void EspDesktopApp::loop() {

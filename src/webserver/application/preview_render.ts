@@ -631,17 +631,26 @@ export function createPreviewRenderFeature(dependencies: PreviewRenderDependenci
                     tile.title = liveKind ? "Automatic OBS card. Click the cell to add a saved tile."
                         : "Live Finder folder. Click the cell to add a saved tile.";
                     const audio = liveKind === "obs_audio";
+                    const scene = liveKind === "obs_scenes";
                     const background = defaultCardBackgroundColor(audio ? "slider" : "companion", state);
                     empty.style.backgroundColor = "#" + background;
                     empty.appendChild(tile);
-                    const slider = audio ? dependencies.cards.definitions.slider?.renderPreview?.(
-                        { entity: folder.id, label: folder.label }, { escHtml }) as
-                        { iconHtml: string; labelHtml: string; sliderMuted: boolean } | undefined : undefined;
-                    if (slider) {
-                        tile.innerHTML = slider.iconHtml + slider.labelHtml;
-                        const fill = slider.sliderMuted ? "808080" : state.onColor || WEB_UI_COLORS.primary;
-                        tile.style.setProperty("--card-slider-fill-color", "#" + fill);
-                        applySliderPreviewTextContrast(tile, "#" + previewColors.textPrimary, fill);
+                    const cardType = audio ? "slider" : scene ? "companion" : "";
+                    const card = cardType && dependencies.cards.definitions[cardType]?.renderPreview?.(
+                        { entity: folder.id, label: folder.label, icon: OBS_SUBPAGES[liveKind!].icon }, { escHtml }) as
+                        { iconHtml: string; labelHtml: string; sliderMuted?: boolean; isOn?: boolean; buttonClass?: string } | undefined;
+                    const active = state.onColor || WEB_UI_COLORS.primary;
+                    if (card) {
+                        tile.innerHTML = card.iconHtml + card.labelHtml;
+                        if (audio) {
+                            const fill = card.sliderMuted ? "808080" : active;
+                            tile.style.setProperty("--card-slider-fill-color", "#" + fill);
+                            applySliderPreviewTextContrast(tile, "#" + previewColors.textPrimary, fill);
+                        } else if (card.isOn || card.buttonClass === "sp-obs-program") {
+                            const color = card.isOn ? active : darkerCardColor(active, 50);
+                            empty.style.backgroundColor = "#" + color;
+                            tile.style.setProperty("--card-text-color", cardPreviewTextColor(color));
+                        }
                     } else {
                         const icon = document.createElement("span");
                         icon.className = "sp-btn-icon mdi mdi-" + iconSlug(liveKind ? OBS_SUBPAGES[liveKind].icon : companionCardDefaultIcon("folder"));
@@ -653,7 +662,6 @@ export function createPreviewRenderFeature(dependencies: PreviewRenderDependenci
                     }
                     if (folder.id === selectedTransition || (liveKind === "obs_sources" &&
                         liveActions.some(action => action.id === folder.id.replace("obs.source.", "obs.source.visible.")))) {
-                        const active = state.onColor || WEB_UI_COLORS.primary;
                         empty.style.backgroundColor = "#" + active;
                         tile.style.setProperty("--card-text-color", cardPreviewTextColor(active));
                     }

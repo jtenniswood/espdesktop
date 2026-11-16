@@ -102,6 +102,8 @@ Use **Add Card → OBS Studio → Sources** for an automatically populated page 
 
 Choose **Add Card → OBS Studio → Audio** to fill a subpage with sliders for the current mixer inputs. A muted source’s slider turns grey and stays adjustable. Edit the Audio card to hide or reorder sliders. New mixer inputs fill available cells alongside any cards you place manually.
 
+Choose **Add Card → OBS Studio → Scenes** for an automatic page of scenes from the current collection. Edit the Scenes card to hide or reorder scene buttons. The page follows collection changes and uses the same Preview and Program colours as individual scene cards.
+
 A **Mute** card changes the selected input in the OBS mixer. The ON colour and microphone icon show an unmuted input. Muting the input turns the colour off and shows a crossed-out microphone. Use the mic your broadcast captures when setting up the card, especially if it differs from the Mac’s default mic. Scene and input bindings are kept when a target is unavailable.
 
 Choose **Level** to adjust a named mixer input. The fill turns grey while the input is muted, and you can still drag to adjust the level.

@@ -645,7 +645,7 @@ inline bool companion_obs_status_card(const std::string &id) {
   return id.rfind("obs.status.", 0) == 0;
 }
 
-inline bool companion_obs_scene_target(const std::string &id) {
+inline bool companion_obs_scene_target(std::string_view id) {
   return companion_obs_audio_uuid(id, "obs.target.");
 }
 

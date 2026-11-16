@@ -694,6 +694,7 @@ export function registerCompanionCardTypes(
             ...obsSubpageCatalogue("obs_transitions", actions),
             ...obsSubpageCatalogue("obs_sources", actions),
             ...obsSubpageCatalogue("obs_audio", actions),
+            ...obsSubpageCatalogue("obs_scenes", actions),
         ]);
     }
 

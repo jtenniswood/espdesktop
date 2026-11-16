@@ -683,12 +683,13 @@ inline std::string media_cover_art_secondary_entity(const ParsedCfg &p) {
 
 
 
-enum class OBSSubpageKind { none, transitions, sources, audio };
+enum class OBSSubpageKind { none, transitions, sources, audio, scenes };
 
 inline OBSSubpageKind obs_subpage_kind(std::string_view kind) {
   if (kind == "obs_transitions") return OBSSubpageKind::transitions;
   if (kind == "obs_sources") return OBSSubpageKind::sources;
   if (kind == "obs_audio") return OBSSubpageKind::audio;
+  if (kind == "obs_scenes") return OBSSubpageKind::scenes;
   return OBSSubpageKind::none;
 }
 
@@ -708,6 +709,7 @@ inline const char *obs_subpage_order_option(OBSSubpageKind kind) {
     case OBSSubpageKind::transitions: return "obs_transition_order";
     case OBSSubpageKind::sources: return "obs_source_order";
     case OBSSubpageKind::audio: return "obs_audio_order";
+    case OBSSubpageKind::scenes: return "obs_scene_order";
     case OBSSubpageKind::none: return "";
   }
   return "";

@@ -101,7 +101,9 @@ inline std::vector<CompanionAction> &grid_live_obs_tiles(OBSSubpageKind kind) {
   static std::vector<CompanionAction> sources_catalogue;
   static std::vector<CompanionAction> transitions_catalogue;
   static std::vector<CompanionAction> audio_catalogue;
+  static std::vector<CompanionAction> scenes_catalogue;
   if (kind == OBSSubpageKind::audio) return audio_catalogue;
+  if (kind == OBSSubpageKind::scenes) return scenes_catalogue;
   return kind == OBSSubpageKind::sources ? sources_catalogue : transitions_catalogue;
 }
 
