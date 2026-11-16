@@ -2,11 +2,15 @@ import Foundation
 
 /// Filesystem discovery runs independently of the UI actor.
 actor ApplicationCatalogue {
+    static let sharedApplications = URL(fileURLWithPath: "/Applications", isDirectory: true)
+    static let userApplications = FileManager.default.homeDirectoryForCurrentUser
+        .appendingPathComponent("Applications", isDirectory: true)
+
     func scan() -> [LaunchableApp] {
         let standardRoots = [
-            URL(fileURLWithPath: "/Applications"),
+            Self.sharedApplications,
             URL(fileURLWithPath: "/System/Applications"),
-            FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent("Applications", isDirectory: true),
+            Self.userApplications,
         ]
         let cryptexRoots = [
             // Current macOS releases install Safari in the protected Cryptex
