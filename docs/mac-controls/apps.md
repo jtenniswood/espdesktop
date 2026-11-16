@@ -100,7 +100,7 @@ Choose **Add Card → OBS Studio → Transitions** to add a subpage that fills e
 
 Choose **Add Card → OBS Studio → Audio** to fill a subpage with sliders for the current mixer inputs. A muted source’s slider turns grey and stays adjustable. Edit the Audio card to hide or reorder sliders. New mixer inputs fill available cells alongside any cards you place manually.
 
-Choose **Add Card → OBS Studio → Scenes** for an automatic page of scenes from the current collection. Edit the Scenes card to hide or reorder scene buttons. The page follows collection changes and uses the same Preview and Program colours as individual scene cards.
+Choose **Add Card → OBS Studio → Scenes** for an automatic page of scenes from the current collection. Edit the Scenes card to hide or reorder scene buttons. The page follows collection changes and uses the same Preview and Program colours as individual scene cards. Break, Transition, and Take Live fill the bottom of the page when space is available. Take Live spans two columns by default.
 
 On an automatic OBS or Finder page, select an automatic card to save it in place, or drag it to save it in a new position. Saved cards can be edited or deleted like other cards. New items still fill available space, and deleted cards stay out of the automatic list.
 

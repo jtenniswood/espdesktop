@@ -8124,7 +8124,13 @@ async function assertOBSStarterPage(browser, firstRun = false) {
       "Scenes saves the hidden and reordered scene buttons");
     await editFolder("Scenes");
     await automaticTiles.getByText("Gameplay", { exact: true }).waitFor();
-    const sceneNames = () => automaticTiles.locator(".sp-btn-label").allTextContents();
+    const sceneCards = automaticTiles.filter({ has: page.locator(".sp-obs-detail").filter({ hasText: /^Scene$/ }) });
+    const sceneNames = () => sceneCards.locator(".sp-btn-label").allTextContents();
+    const automaticTake = automaticTiles.filter({ has: page.getByText("Take Live", { exact: true }) });
+    assert.equal(await automaticTake.getAttribute("data-pos"), "7");
+    assert.match(await automaticTake.getAttribute("class"), /sp-btn-wide/);
+    await automaticTiles.filter({ has: page.getByText("Transition", { exact: true }) }).waitFor();
+    await automaticTiles.filter({ has: page.getByText("Break", { exact: true }) }).waitFor();
     assert.deepEqual(await sceneNames(), ["Break Room", "Gameplay"]);
     assert.equal(await automaticTiles.locator(".sp-obs-detail").first().textContent(), "Scene");
     const generatedProgram = automaticTiles.filter({ hasText: "Gameplay" });
@@ -8174,7 +8180,12 @@ async function assertOBSStarterPage(browser, firstRun = false) {
       "The deleted scene stays excluded from automatic projection");
     await renamed.waitFor({ state: "detached" });
     assert.equal(await page.locator(".sp-main").getByText("Gameplay", { exact: true }).count(), 0);
-    console.log("OBS automatic subpages refreshed. A generated scene was moved, edited, and deleted.");
+    await automaticTake.click({ button: "right" });
+    await page.locator(".sp-ctx-menu").getByText("Edit Card", { exact: true }).click();
+    const savedTake = page.locator('.sp-main .sp-btn-wide[data-pos="7"][data-slot]');
+    await savedTake.getByText("Take Live", { exact: true }).waitFor();
+    assert.equal(await page.getByLabel("Studio Mode", { exact: true }).inputValue(), "obs.take");
+    console.log("OBS automatic Scenes controls and editable generated cards passed.");
   } finally {
     await context.close();
   }

@@ -23,10 +23,54 @@ inline std::vector<CompanionAction> obs_subpage_catalogue(const CompanionRuntime
   return entries;
 }
 
+inline void project_obs_scene_controls(SubpageOrder &order, std::vector<SubpageBtn> &buttons,
+                                       int slots, int columns, int capacity, const std::string &exclusions) {
+  if (!order.has_back_token || slots < 6) return;
+  struct Control { const char *id; const char *label; const char *icon; };
+  constexpr Control controls[] = {
+    {"obs.take", "Take Live", "Arrow Right"},
+    {"obs.transition", "Transition", "Flip Horizontal"},
+    {"obs.brb", "Break", "Coffee to Go"},
+  };
+  const auto excluded = split_config_fields(exclusions, '|');
+  auto occupied = live_page_occupied_cells(order, slots, columns);
+  for (const auto &control : controls) {
+    if (buttons.size() >= size_t(capacity)) return;
+    if (std::find(excluded.begin(), excluded.end(), generated_card_key(control.id)) != excluded.end() ||
+        std::any_of(order.positions, order.positions + slots, [&](int index) {
+          return index > 0 && buttons[index - 1].entity == control.id;
+        })) continue;
+    int anchor = -1, width = 1;
+    if (std::string_view(control.id) == "obs.take") {
+      for (int pos = slots - 2; pos >= 0; --pos) {
+        if (pos % columns < columns - 1 && !occupied[pos] && !occupied[pos + 1]) {
+          anchor = pos;
+          width = 2;
+          break;
+        }
+      }
+    }
+    if (anchor < 0) {
+      for (int pos = slots - 1; pos >= 0; --pos) {
+        if (!occupied[pos]) { anchor = pos; break; }
+      }
+    }
+    if (anchor < 0) return;
+    order.positions[anchor] = int(buttons.size()) + 1;
+    order.col_span[buttons.size()] = width;
+    occupied[anchor] = true;
+    if (width == 2) occupied[anchor + 1] = true;
+    buttons.push_back({control.id, control.label, control.icon, "Auto", "", "", "companion", "", ""});
+  }
+}
+
 inline void project_obs_subpage_tiles(SubpageOrder &order, std::vector<SubpageBtn> &buttons,
                                          int slots, int columns, int capacity,
                                          const std::vector<CompanionAction> &catalogue,
                                          const std::string &options, OBSSubpageKind kind) {
+  const auto exclusions = cfg_option_value(options, "generated_card_exclusions");
+  if (kind == OBSSubpageKind::scenes)
+    project_obs_scene_controls(order, buttons, slots, columns, capacity, exclusions);
   const auto preferences = obs_subpage_preferences(options, kind);
   std::vector<CompanionAction> sorted;
   sorted.reserve(catalogue.size());
@@ -48,5 +92,5 @@ inline void project_obs_subpage_tiles(SubpageOrder &order, std::vector<SubpageBt
     : kind == OBSSubpageKind::transitions ? "Flip Horizontal" : "Image Card Loading";
   project_live_folder_tiles(order, buttons, slots, columns, capacity, sorted, icon, "",
       obs_subpage_accepts(kind), audio ? "slider" : "companion",
-      cfg_option_value(options, "generated_card_exclusions"));
+      exclusions);
 }

@@ -29,14 +29,7 @@ inline std::string generated_card_key(const std::string &id) {
   return key;
 }
 
-template<typename Accept>
-inline void project_live_folder_tiles(SubpageOrder &order, std::vector<SubpageBtn> &buttons,
-                                     int slots, int columns, int capacity,
-                                     const std::vector<CompanionAction> &entries,
-                                     const char *icon, const std::string &options, Accept accept,
-                                     const char *type = "companion",
-                                     const std::string &exclusions = {}) {
-  if (!order.has_back_token) return;
+inline std::array<bool, MAX_GRID_SLOTS> live_page_occupied_cells(const SubpageOrder &order, int slots, int columns) {
   std::array<bool, MAX_GRID_SLOTS> occupied{};
   auto occupy = [&](int position, int rows, int cols) {
     for (int row = 0; row < rows; ++row)
@@ -50,6 +43,18 @@ inline void project_live_folder_tiles(SubpageOrder &order, std::vector<SubpageBt
       occupy(position, order.row_span[index - 1], order.col_span[index - 1]);
   }
 
+  return occupied;
+}
+
+template<typename Accept>
+inline void project_live_folder_tiles(SubpageOrder &order, std::vector<SubpageBtn> &buttons,
+                                     int slots, int columns, int capacity,
+                                     const std::vector<CompanionAction> &entries,
+                                     const char *icon, const std::string &options, Accept accept,
+                                     const char *type = "companion",
+                                     const std::string &exclusions = {}) {
+  if (!order.has_back_token) return;
+  const auto occupied = live_page_occupied_cells(order, slots, columns);
   const auto excluded = split_config_fields(exclusions, '|');
   int position = 0;
   for (const auto &folder : entries) {

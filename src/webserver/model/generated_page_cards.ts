@@ -4,7 +4,7 @@ import { emptyCardConfig } from "./card";
 import { configOptionValue, setConfigOptionValue } from "./config_primitives";
 import { OBS_SUBPAGES, type OBSSubpageKind } from "./obs_live_subpage";
 
-export const generatedCardElements = new WeakMap<HTMLElement, CardConfig>();
+export const generatedCardElements = new WeakMap<HTMLElement, { card: CardConfig; size: number }>();
 const EXCLUSIONS = "generated_card_exclusions";
 
 export function generatedCardKey(actionId: string): string {
@@ -13,7 +13,7 @@ export function generatedCardKey(actionId: string): string {
 
 export function generatedCardExclusions(options?: string): string[] {
   return configOptionValue(options, EXCLUSIONS).split("|")
-    .filter(id => /^[a-f0-9]{32}$/.test(id));
+    .filter(id => /^(?:[a-f0-9]{32}|take|transition|brb)$/.test(id));
 }
 
 export function preserveGeneratedCardExclusions(source: string, normalized: string): string {
@@ -31,8 +31,15 @@ export function generatedPageCard(action: CompanionAction, kind: OBSSubpageKind 
     entity: action.id,
     label: action.label,
     type: kind === "obs_audio" ? "slider" : "companion",
-    icon: kind ? OBS_SUBPAGES[kind].icon : "Folder",
+    icon: SCENE_PAGE_CONTROLS.find(control => control.id === action.id)?.icon ||
+      (kind ? OBS_SUBPAGES[kind].icon : "Folder"),
     options: !kind && configOptionValue(owner?.options, "finder_open_behavior") === "same_window"
       ? "finder_open_behavior=same_window" : "",
   };
 }
+
+export const SCENE_PAGE_CONTROLS = [
+  { id: "obs.take", label: "Take Live", icon: "Arrow Right" },
+  { id: "obs.transition", label: "Transition", icon: "Flip Horizontal" },
+  { id: "obs.brb", label: "Break", icon: "Coffee to Go" },
+] as const;

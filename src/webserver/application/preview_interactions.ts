@@ -99,22 +99,24 @@ export function createPreviewInteractionsFeature(
         const c = ctx();
         const grid: number[] = c.grid.slice();
         const edits = new Map<number, CardConfig>();
+        const sizes = { ...c.sizes };
         for (const pos of new Set(positions)) {
             const element = container.querySelector<HTMLElement>(`[data-pos="${pos}"]`);
-            const card = element && generatedCardElements.get(element);
-            if (grid[pos] !== 0 || !card) continue;
+            const generated = element && generatedCardElements.get(element);
+            if (grid[pos] !== 0 || !generated) continue;
             const slot = c.buttons.length + edits.size + 1;
-            edits.set(slot, card);
-            grid[pos] = slot;
+            edits.set(slot, generated.card);
+            if (generated.size > 1) sizes[slot] = generated.size;
+            placeSlotAt(grid, slot, pos, generated.size);
         }
-        return { grid, edits, maxSlotId: c.buttons.length + edits.size };
+        return { grid, edits, sizes, maxSlotId: c.buttons.length + edits.size };
     }
 
     async function saveGeneratedAt(container: HTMLElement, pos: number): Promise<number> {
         const page = state.editingSubpage;
         if (!page || !dependencies.nativeTransfers?.available()) return 0;
-        const { grid, edits } = generatedPlan(container, [pos]);
-        const order = serializeSubpageGrid({ ...getSubpage(page), grid }).join(",");
+        const { grid, edits, sizes } = generatedPlan(container, [pos]);
+        const order = serializeSubpageGrid({ ...getSubpage(page), grid, sizes }).join(",");
         if (!edits.size || !await dependencies.nativeTransfers.saveGenerated(edits, order)) return 0;
         return state.editingSubpage === page ? ctx().grid[pos] : 0;
     }
@@ -382,7 +384,7 @@ export function createPreviewInteractionsFeature(
                 return;
             var pos: any = parseInt(target.getAttribute("data-pos"), 10);
             runtime.dragSrcPos = pos;
-            draggedGeneratedId = generatedCardElements.get(target)?.entity;
+            draggedGeneratedId = generatedCardElements.get(target)?.card.entity;
             if (dependencies.layout.config.dragAnimation)
                 runtime.dragSrcEl = target;
             runtime.didDrag = true;

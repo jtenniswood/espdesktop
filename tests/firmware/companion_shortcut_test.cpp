@@ -145,6 +145,24 @@ int main() {
     project_obs_subpage_tiles(after_delete, cards, 4, 2, 4, catalogue, customized.options, OBSSubpageKind::scenes);
     assert(cards.size() == 2 && cards[0].entity == second && cards[1].entity == hidden);
 
+    cards.clear();
+    SubpageOrder footer;
+    parse_subpage_order("B", 9, 0, footer);
+    project_obs_subpage_tiles(footer, cards, 9, 3, 9, catalogue, "", OBSSubpageKind::scenes);
+    assert(cards.size() == 6);
+    assert(footer.positions[7] == 1 && footer.col_span[0] == 2 && footer.positions[8] == 0);
+    assert(cards[0].entity == "obs.take" && footer.positions[6] == 2 && cards[1].entity == "obs.transition");
+    assert(footer.positions[5] == 3 && cards[2].entity == "obs.brb");
+
+    cards.resize(1);
+    SubpageOrder manual_take;
+    parse_subpage_order("B,1", 9, 1, manual_take);
+    project_obs_subpage_tiles(manual_take, cards, 9, 3, 9, catalogue,
+        "generated_card_exclusions=brb", OBSSubpageKind::scenes);
+    assert(manual_take.positions[1] == 1 && manual_take.col_span[0] == 1);
+    assert(cards.size() == 5 && cards[1].entity == "obs.transition");
+
+
   }
   assert_finder_folder_projection();
   const auto mac_lock = normalize_parsed_cfg(

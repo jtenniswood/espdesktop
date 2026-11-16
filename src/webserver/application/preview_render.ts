@@ -13,7 +13,7 @@ import { cardIconSize, configOptionValue, cardActiveColor } from "../model/confi
 import { PANEL_CONFIG_MAX_SLOT_COUNT } from "../model/panel_config";
 import { escHtml, iconSlug } from "./ui_primitives";
 import { appShortcutPageBackIcon, appShortcutPageOwner, previewSubpageOwner } from "../model/companion_shortcut_page";
-import { finderFolderPreview, liveSubpagePreview } from "../model/finder_folder_preview";
+import { finderFolderPreview, liveSubpagePreview, scenePageControls } from "../model/finder_folder_preview";
 import type { CompanionAction } from "../api/companion_catalogue";
 import { createWeatherDailyPreviewLayout } from "./weather_daily_preview";
 import {
@@ -451,15 +451,20 @@ export function createPreviewRenderFeature(dependencies: PreviewRenderDependenci
         const excluded = new Set(generatedCardExclusions(owner?.options));
         const liveActions = subpage && (liveKind || shortcutOwner === "com.apple.finder")
             ? dependencies.liveGeneratedActions().filter(action => !excluded.has(generatedCardKey(action.id))) : [];
+        const projectionGrid: number[] = c.grid.slice(0, c.maxSlots);
+        const sceneControls = liveKind === "obs_scenes"
+            ? scenePageControls(projectionGrid, c.buttons, dependencies.layout.totalSlots, dependencies.layout.gridCols, excluded)
+            : new Map();
         const liveFolders = subpage && shortcutOwner === "com.apple.finder"
             ? finderFolderPreview(subpage.order, c.grid, c.buttons, dependencies.layout.totalSlots, liveActions)
             : subpage && liveKind
-                ? liveSubpagePreview(c.grid, c.buttons, dependencies.layout.totalSlots,
+                ? liveSubpagePreview(projectionGrid, c.buttons, dependencies.layout.totalSlots - sceneControls.size,
                     orderedOBSTiles(liveKind, obsSubpageCatalogue(liveKind, liveActions), owner?.options))
                 : undefined;
         for (var pos: any = 0; pos < c.maxSlots; pos++) {
             var slot: any = c.grid[pos];
-            if (slot === -1)
+            const control = sceneControls.get(pos);
+            if (projectionGrid[pos] === -1 && !control)
                 continue;
             if (slot === -2) {
                 var backBtn: any = document.createElement(dependencies.displayDemo ? "button" : "div");
@@ -493,8 +498,8 @@ export function createPreviewRenderFeature(dependencies: PreviewRenderDependenci
                         backBtn.querySelector(".sp-app-back-icon"), true);
                 }
             }
-            else if (slot > 0 || liveFolders?.has(pos)) {
-                const action = liveFolders?.get(pos);
+            else if (slot > 0 || control || liveFolders?.has(pos)) {
+                const action = control?.action || liveFolders?.get(pos);
                 const generated = action && generatedPageCard(action, liveKind, owner);
                 if (!generated && (slot > PANEL_CONFIG_MAX_SLOT_COUNT || slot > c.buttons.length ||
                     (!c.isSub && slot > dependencies.layout.numSlots))) {
@@ -526,7 +531,7 @@ export function createPreviewRenderFeature(dependencies: PreviewRenderDependenci
                 if (previewTypeDef && c.isSub && !buttonTypeRegistryValue(previewTypeDef, "allowInSubpage", false)) {
                     previewTypeDef = null;
                 }
-                var slotSz: any = c.sizes[slot];
+                var slotSz: any = control?.size || c.sizes[slot];
                 var cardOffColor: any = configOptionValue(b.options, "card_off_color").replace(/^#/, "").toUpperCase();
                 if (!/^[0-9A-F]{6}$/.test(cardOffColor)) cardOffColor = "";
                 var cardOnColor: any = cardActiveColor(b.options, state.onColor || WEB_UI_COLORS.primary);
@@ -560,7 +565,7 @@ export function createPreviewRenderFeature(dependencies: PreviewRenderDependenci
                 btn.setAttribute("data-pos", pos);
                 if (generated) {
                     btn.dataset.generatedCard = "";
-                    generatedCardElements.set(btn, generated);
+                    generatedCardElements.set(btn, { card: generated, size: slotSz || 1 });
                 } else btn.setAttribute("data-slot", slot);
                 var hasWhenOn: any = !typePreview && (b.sensor || (b.icon_on && b.icon_on !== "Auto"));
                 if (!typePreview && hasWhenOn && typeof cardOnPattern === "function" && cardOnPattern(b) === "stripes") {

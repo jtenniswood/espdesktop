@@ -21,7 +21,7 @@ export interface PreviewGridPlacementDependencies {
 export interface PreviewGridPlacementFeature {
     resolveSpanPos(position?: any): any;
     getCellFromEvent(event?: any, container?: any): any;
-    planMove(fromPosition: number, toPosition: number, projected?: Pick<PreviewPlacementContext, "grid" | "maxSlotId">): PreviewPlacementResult;
+    planMove(fromPosition: number, toPosition: number, projected?: Pick<PreviewPlacementContext, "grid" | "sizes" | "maxSlotId">): PreviewPlacementResult;
     applyMove(result: PreviewPlacementResult): void;
     canPlaceSlotAt(grid?: any, position?: any, size?: any, maxSlots?: any): boolean;
     findPlacementCell(grid?: any, start?: any, size?: any, maxSlots?: any): any;
@@ -57,7 +57,7 @@ export function createPreviewGridPlacementFeature(
         }
         return closestGridCell({ x: e.clientX, y: e.clientY }, cells);
     }
-    function planMove(fromPos: number, toPos: number, projected?: Pick<PreviewPlacementContext, "grid" | "maxSlotId">): PreviewPlacementResult {
+    function planMove(fromPos: number, toPos: number, projected?: Pick<PreviewPlacementContext, "grid" | "sizes" | "maxSlotId">): PreviewPlacementResult {
         const context = { ...ctx(), ...projected };
         const columns = dependencies.layout.gridCols;
         const selected = previewPlacementController.moveSelected(context, fromPos, toPos, columns);
