@@ -1,5 +1,5 @@
 import type { CardConfig } from "../contracts/types";
-import { COMPANION_SYSTEM_METRICS } from "../generated/companion_capabilities";
+import { COMPANION_SYSTEM_METRICS, OBS_CONFIRMATION_CONTROLS } from "../generated/companion_capabilities";
 import type { CompanionCardModel, CompanionCardModeId } from "./companion_card";
 import { retiredSavedCardType } from "./card";
 
@@ -27,8 +27,11 @@ export function savedOBSTransition(id: string): string {
 export const OBS_PROGRAM_ID = "obs.status.program";
 export const OBS_REPLAY_ID = "obs.replay";
 export const OBS_REPLAY_BUFFER_ID = "obs.replay.buffer";
+export function obsConfirmationControl(entity: string) {
+  return OBS_CONFIRMATION_CONTROLS.find(control => control.id === entity);
+}
 export function obsConfirmableToggle(entity: string): boolean {
-  return entity === OBS_STUDIO_ID || entity === OBS_REPLAY_BUFFER_ID;
+  return obsConfirmationControl(entity)?.kind === "toggle";
 }
 export const OBS_OUTPUT_OPTIONS = [
   ["obs.output.stream", "Streaming"],

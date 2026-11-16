@@ -1,6 +1,7 @@
 #pragma once
 
 #include "finder_folder_sync.h"
+#include "companion_capabilities_generated.h"
 
 inline auto obs_subpage_accepts(OBSSubpageKind kind) {
   if (kind == OBSSubpageKind::audio) return companion_obs_level_control;
@@ -26,22 +27,16 @@ inline std::vector<CompanionAction> obs_subpage_catalogue(const CompanionRuntime
 inline void project_obs_scene_controls(SubpageOrder &order, std::vector<SubpageBtn> &buttons,
                                        int slots, int columns, int capacity, const std::string &exclusions) {
   if (!order.has_back_token || slots < 6) return;
-  struct Control { const char *id; const char *label; const char *icon; };
-  constexpr Control controls[] = {
-    {"obs.take", "Take Live", "Arrow Right"},
-    {"obs.transition", "Transition", "Flip Horizontal"},
-    {"obs.brb", "Break", "Coffee to Go"},
-  };
   const auto excluded = split_config_fields(exclusions, '|');
   auto occupied = live_page_occupied_cells(order, slots, columns);
-  for (const auto &control : controls) {
+  for (const auto &control : OBS_SCENE_PAGE_CONTROLS) {
     if (buttons.size() >= size_t(capacity)) return;
     if (std::find(excluded.begin(), excluded.end(), generated_card_key(control.id)) != excluded.end() ||
         std::any_of(order.positions, order.positions + slots, [&](int index) {
           return index > 0 && buttons[index - 1].entity == control.id;
         })) continue;
     int anchor = -1, width = 1;
-    if (std::string_view(control.id) == "obs.take") {
+    if (control.width == 2) {
       for (int pos = slots - 2; pos >= 0; --pos) {
         if (pos % columns < columns - 1 && !occupied[pos] && !occupied[pos + 1]) {
           anchor = pos;

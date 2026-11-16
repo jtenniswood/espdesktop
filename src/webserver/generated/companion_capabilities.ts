@@ -104,6 +104,78 @@ export const COMPANION_CARD_MODES = [
     defaultIcon: "Gauge"
   }
 ] as const satisfies readonly CompanionCardMode[];
+export const OBS_CONFIRMATION_CONTROLS = [
+  {
+    id: "obs.studio",
+    kind: "toggle",
+    when: "off",
+    enableLabel: "On",
+    disableLabel: "Off"
+  },
+  {
+    id: "obs.replay.buffer",
+    kind: "toggle",
+    when: "off",
+    enableLabel: "Start",
+    disableLabel: "Stop"
+  },
+  {
+    id: "obs.output.stream",
+    kind: "output",
+    when: "both",
+    enableLabel: "Start",
+    disableLabel: "Stop"
+  },
+  {
+    id: "obs.output.record",
+    kind: "output",
+    when: "both",
+    enableLabel: "Start",
+    disableLabel: "Stop"
+  }
+] as const;
+export const OBS_SCENE_PAGE_CONTROLS = [
+  {
+    id: "obs.take",
+    label: "Take Live",
+    icon: "Arrow Right",
+    width: 2
+  },
+  {
+    id: "obs.transition",
+    label: "Transition",
+    icon: "Flip Horizontal",
+    width: 1
+  },
+  {
+    id: "obs.brb",
+    label: "Break",
+    icon: "Coffee to Go",
+    width: 1
+  }
+] as const;
+export const OBS_STUDIO_CONTROL_PAGE = [
+  {
+    id: "obs.output.record",
+    icon: "Record"
+  },
+  {
+    id: "obs.output.stream",
+    icon: "Broadcast"
+  },
+  {
+    id: "obs.studio",
+    icon: "Split Vertical"
+  },
+  {
+    id: "obs.replay",
+    icon: "History"
+  },
+  {
+    id: "obs.replay.buffer",
+    icon: "Repeat"
+  }
+] as const;
 export const COMPANION_PROTOCOL_MESSAGES: readonly CompanionProtocolMessage[] = [
   {
     id: "hello",

@@ -2,7 +2,7 @@ import { obsSubpageCatalogue } from "../model/obs_live_subpage";
 import { targetedAudioCard } from "./companion_app_volume";
 import { childPageKey } from "../model/page_keys";
 import { renderCompanionStorageSelector } from "./companion_storage";
-import { COMPANION_FOLDER_PREFIX, COMPANION_OBS_PREFIX, OBS_BRB_ID, OBS_OUTPUT_OPTIONS, OBS_PROGRAM_ID, OBS_REPLAY_BUFFER_ID, OBS_REPLAY_ID, OBS_STUDIO_ID, OBS_STUDIO_OPTIONS, OBS_TAKE_ID, OBS_TRANSITION_ID, OBS_TRANSITION_OPTIONS, OBS_TRANSITION_SELECT, savedOBSTransition, savedOBSSceneTarget, decodeCompanionCard, encodeCompanionCard, companionMetricForEntity, obsConfirmableToggle, obsInputName, obsOutputCardEntity, obsSceneCardEntity } from "../model/companion_card_codec";
+import { COMPANION_FOLDER_PREFIX, COMPANION_OBS_PREFIX, OBS_BRB_ID, OBS_OUTPUT_OPTIONS, OBS_PROGRAM_ID, OBS_REPLAY_BUFFER_ID, OBS_REPLAY_ID, OBS_STUDIO_ID, OBS_STUDIO_OPTIONS, OBS_TAKE_ID, OBS_TRANSITION_ID, OBS_TRANSITION_OPTIONS, OBS_TRANSITION_SELECT, savedOBSTransition, savedOBSSceneTarget, decodeCompanionCard, encodeCompanionCard, companionMetricForEntity, obsConfirmationControl, obsInputName, obsOutputCardEntity, obsSceneCardEntity } from "../model/companion_card_codec";
 import { configOptionEnabled, configOptionValue, setConfigOption, setConfigOptionValue, normalizedCardColorOptions, preserveCardColorOptions, withoutCardColorOptions } from "../model/config_primitives";
 import { createCompanionCatalogue, createCompanionCatalogueMonitor } from "../api/companion_catalogue";
 import type { CompanionAction } from "../api/companion_catalogue";
@@ -584,6 +584,8 @@ export function registerCompanionCardTypes(
         helpers.renderCardIconPicker(panel, card, helpers, COMPANION_CARD_METADATA.icon);
     }
     function renderOBSConfirmation(panel: HTMLElement, card: { entity: string; options: string }, helpers: any): void {
+        const control = obsConfirmationControl(card.entity);
+        if (!control) return;
         const save = (key: string, value: string) => {
             card.options = setConfigOptionValue(card.options, key, value);
             helpers.saveField("options", card.options);
@@ -591,8 +593,7 @@ export function registerCompanionCardTypes(
         const stored = configOptionValue(card.options, "obs_confirm");
         const section = document.createElement("div");
         section.hidden = stored === "none";
-        const toggle = obsConfirmableToggle(card.entity);
-        let when = ["on", "off", "both"].includes(stored) ? stored : toggle ? "off" : "both";
+        let when = ["on", "off", "both"].includes(stored) ? stored : control.when;
         helpers.renderCardOptionToggle(panel, card, helpers, {
             label: "Confirmation Required", idSuffix: "obs-confirm-toggle", checked: !section.hidden,
             onChange: (_: unknown, __: unknown, checked: boolean) => {
@@ -602,9 +603,7 @@ export function registerCompanionCardTypes(
         });
         helpers.renderCardSegmentControl(section, card, helpers, {
             label: "When", value: when,
-            options: card.entity === OBS_STUDIO_ID
-                ? [["on", "On"], ["off", "Off"], ["both", "Both"]]
-                : [["on", "Start"], ["off", "Stop"], ["both", "Both"]],
+            options: [["on", control.enableLabel], ["off", control.disableLabel], ["both", "Both"]],
             onSelect: (_: unknown, __: unknown, mode: string) => { when = mode; save("obs_confirm", mode); },
         });
         for (const [key, label, placeholder, limit] of [
@@ -688,7 +687,7 @@ export function registerCompanionCardTypes(
             note.textContent = descriptions[studio ? "obs_studio" : mode];
             panel.appendChild(note);
         }
-        if (mode === "obs_output" || obsConfirmableToggle(card.entity)) {
+        if (obsConfirmationControl(card.entity)) {
             renderOBSConfirmation(panel, card, helpers);
         }
         helpers.renderCardIconPicker(panel, card, helpers, COMPANION_CARD_METADATA.icon);

@@ -78,6 +78,21 @@ inline constexpr CompanionCardModeCapability COMPANION_CARD_MODES[] = {
   {"stats", "Stats", "system_metrics", "Gauge"},
 };
 
+struct OBSConfirmationControl { const char *id; const char *default_when; bool toggle; };
+inline constexpr OBSConfirmationControl OBS_CONFIRMATION_CONTROLS[] = {
+  {"obs.studio", "off", true},
+  {"obs.replay.buffer", "off", true},
+  {"obs.output.stream", "both", false},
+  {"obs.output.record", "both", false},
+};
+
+struct OBSScenePageControl { const char *id; const char *label; const char *icon; int width; };
+inline constexpr OBSScenePageControl OBS_SCENE_PAGE_CONTROLS[] = {
+  {"obs.take", "Take Live", "Arrow Right", 2},
+  {"obs.transition", "Transition", "Flip Horizontal", 1},
+  {"obs.brb", "Break", "Coffee to Go", 1},
+};
+
 struct CompanionMetricCapability { const char *id; const char *label; const char *label_key; const char *unit; };
 inline constexpr CompanionMetricCapability COMPANION_METRIC_CAPABILITIES[] = {
   {"stat.cpu", "Processor", "processor", "%"},

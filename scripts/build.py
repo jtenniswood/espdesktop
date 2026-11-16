@@ -409,6 +409,22 @@ def load_companion_capabilities_data():
         if not all(isinstance(mode.get(key), str) and mode[key] for key in ("label", "capability", "defaultIcon")):
             raise BuildError(f"Invalid Companion card mode: {mode.get('id')}")
 
+    confirmation_ids = set()
+    for control in data["obsConfirmationControls"]:
+        identifier = control["id"]
+        if (not identifier.startswith("obs.") or identifier in confirmation_ids or
+                control["kind"] not in ("toggle", "output") or control["when"] not in ("on", "off", "both") or
+                not control["enableLabel"] or not control["disableLabel"]):
+            raise BuildError(f"Invalid OBS confirmation control: {identifier}")
+        confirmation_ids.add(identifier)
+    for definition in ("obsScenePageControls", "obsStudioControlPage"):
+        page = data[definition]
+        ids = [card["id"] for card in page]
+        if not ids or len(ids) != len(set(ids)) or any(not card["icon"] or not card["id"].startswith("obs.") for card in page):
+            raise BuildError(f"Invalid OBS page definition: {definition}")
+    if any(control["width"] not in (1, 2) or not control["label"] for control in data["obsScenePageControls"]):
+        raise BuildError("Invalid OBS scene footer controls")
+
     identifiers = []
     for metric in data["systemMetrics"]:
         if not all(isinstance(metric.get(key), str) and (metric[key] or key == "unit") for key in ("mode", "id", "label", "labelKey", "unit")):
@@ -810,6 +826,9 @@ def gen_companion_capabilities_ts(data):
         f"export const COMPANION_APP_ICONS_CAPABILITY = {json.dumps(protocol['appIconsCapability'])} as const;\n"
         f"export const COMPANION_APP_ICONS_ALPHA_CAPABILITY = {json.dumps(protocol['appIconsAlphaCapability'])} as const;\n"
         f"export const COMPANION_CARD_MODES = {companion_ts_literal(data['cardModes'])} as const satisfies readonly CompanionCardMode[];\n"
+        f"export const OBS_CONFIRMATION_CONTROLS = {companion_ts_literal(data['obsConfirmationControls'])} as const;\n"
+        f"export const OBS_SCENE_PAGE_CONTROLS = {companion_ts_literal(data['obsScenePageControls'])} as const;\n"
+        f"export const OBS_STUDIO_CONTROL_PAGE = {companion_ts_literal(data['obsStudioControlPage'])} as const;\n"
         f"export const COMPANION_PROTOCOL_MESSAGES: readonly CompanionProtocolMessage[] = {companion_ts_literal([{key: item[key] for key in ('id', 'direction', 'authorization')} for item in protocol['messages']])};\n"
         f"export const COMPANION_SYSTEM_METRICS: readonly CompanionSystemMetric[] = {companion_ts_literal([{key: item[key] for key in ('mode', 'id', 'freeId', 'label', 'unit') if key in item} for item in data['systemMetrics']])};\n"
     )
@@ -854,6 +873,22 @@ def gen_companion_capabilities_h(data):
         "inline constexpr CompanionCardModeCapability COMPANION_CARD_MODES[] = {\n",
     ])
     lines.extend(f"  {{{json.dumps(item['id'])}, {json.dumps(item['label'])}, {json.dumps(item['capability'])}, {json.dumps(item['defaultIcon'])}}},\n" for item in data["cardModes"])
+    lines.extend([
+        "};\n\n",
+        "struct OBSConfirmationControl { const char *id; const char *default_when; bool toggle; };\n",
+        "inline constexpr OBSConfirmationControl OBS_CONFIRMATION_CONTROLS[] = {\n",
+    ])
+    for control in data["obsConfirmationControls"]:
+        toggle = str(control["kind"] == "toggle").lower()
+        lines.append(f"  {{{json.dumps(control['id'])}, {json.dumps(control['when'])}, {toggle}}},\n")
+    lines.extend([
+        "};\n\n",
+        "struct OBSScenePageControl { const char *id; const char *label; const char *icon; int width; };\n",
+        "inline constexpr OBSScenePageControl OBS_SCENE_PAGE_CONTROLS[] = {\n",
+    ])
+    for control in data["obsScenePageControls"]:
+        fields = ", ".join(json.dumps(control[key]) for key in ("id", "label", "icon", "width"))
+        lines.append(f"  {{{fields}}},\n")
     lines.extend([
         "};\n\n",
         "struct CompanionMetricCapability { const char *id; const char *label; const char *label_key; const char *unit; };\n",

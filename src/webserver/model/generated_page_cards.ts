@@ -3,6 +3,7 @@ import type { CardConfig } from "../contracts/types";
 import { emptyCardConfig } from "./card";
 import { configOptionValue, setConfigOptionValue } from "./config_primitives";
 import { OBS_SUBPAGES, type OBSSubpageKind } from "./obs_live_subpage";
+import { OBS_SCENE_PAGE_CONTROLS } from "../generated/companion_capabilities";
 
 export const generatedCardElements = new WeakMap<HTMLElement, { card: CardConfig; size: number }>();
 const EXCLUSIONS = "generated_card_exclusions";
@@ -31,15 +32,9 @@ export function generatedPageCard(action: CompanionAction, kind: OBSSubpageKind 
     entity: action.id,
     label: action.label,
     type: kind === "obs_audio" ? "slider" : "companion",
-    icon: SCENE_PAGE_CONTROLS.find(control => control.id === action.id)?.icon ||
+    icon: OBS_SCENE_PAGE_CONTROLS.find(control => control.id === action.id)?.icon ||
       (kind ? OBS_SUBPAGES[kind].icon : "Folder"),
     options: !kind && configOptionValue(owner?.options, "finder_open_behavior") === "same_window"
       ? "finder_open_behavior=same_window" : "",
   };
 }
-
-export const SCENE_PAGE_CONTROLS = [
-  { id: "obs.take", label: "Take Live", icon: "Arrow Right" },
-  { id: "obs.transition", label: "Transition", icon: "Flip Horizontal" },
-  { id: "obs.brb", label: "Break", icon: "Coffee to Go" },
-] as const;
