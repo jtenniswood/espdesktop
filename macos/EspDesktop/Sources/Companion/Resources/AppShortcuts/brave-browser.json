@@ -1,0 +1,488 @@
+{
+  "version": 1,
+  "appId": "com.brave.Browser",
+  "label": "Brave Browser",
+  "catalog": false,
+  "defaultShortcutIds": [
+    "0",
+    "1",
+    "2",
+    "3",
+    "4",
+    "5",
+    "6",
+    "7"
+  ],
+  "shortcuts": [
+    {
+      "id": "0",
+      "label": "New Tab",
+      "shortcut": "command+t",
+      "icon": "New Tab"
+    },
+    {
+      "id": "1",
+      "label": "Reopen Closed Tab",
+      "shortcut": "command+shift+t",
+      "icon": "Tab Restore"
+    },
+    {
+      "id": "2",
+      "label": "Search Tabs",
+      "shortcut": "command+shift+a",
+      "icon": "Search"
+    },
+    {
+      "id": "3",
+      "label": "Address Bar",
+      "shortcut": "command+l",
+      "icon": "Search"
+    },
+    {
+      "id": "4",
+      "label": "Back",
+      "shortcut": "command+keybracketleft",
+      "icon": "Page Previous"
+    },
+    {
+      "id": "5",
+      "label": "Forward",
+      "shortcut": "command+keybracketright",
+      "icon": "Page Next"
+    },
+    {
+      "id": "6",
+      "label": "Reload",
+      "shortcut": "command+r",
+      "icon": "Refresh"
+    },
+    {
+      "id": "7",
+      "label": "Private Window",
+      "shortcut": "command+shift+n",
+      "icon": "Incognito"
+    },
+    {
+      "id": "8",
+      "label": "New Window",
+      "shortcut": "command+n",
+      "icon": "New Window"
+    },
+    {
+      "id": "9",
+      "label": "Next Tab",
+      "shortcut": "command+option+right",
+      "icon": "Tab"
+    },
+    {
+      "id": "10",
+      "label": "Previous Tab",
+      "shortcut": "command+option+left",
+      "icon": "Tab"
+    },
+    {
+      "id": "13",
+      "label": "Go to Tab 1",
+      "shortcut": "command+1",
+      "icon": "Tab"
+    },
+    {
+      "id": "14",
+      "label": "Go to Tab 2",
+      "shortcut": "command+2",
+      "icon": "Tab"
+    },
+    {
+      "id": "15",
+      "label": "Go to Tab 3",
+      "shortcut": "command+3",
+      "icon": "Tab"
+    },
+    {
+      "id": "16",
+      "label": "Go to Tab 4",
+      "shortcut": "command+4",
+      "icon": "Tab"
+    },
+    {
+      "id": "17",
+      "label": "Go to Tab 5",
+      "shortcut": "command+5",
+      "icon": "Tab"
+    },
+    {
+      "id": "18",
+      "label": "Go to Tab 6",
+      "shortcut": "command+6",
+      "icon": "Tab"
+    },
+    {
+      "id": "19",
+      "label": "Go to Tab 7",
+      "shortcut": "command+7",
+      "icon": "Tab"
+    },
+    {
+      "id": "20",
+      "label": "Go to Tab 8",
+      "shortcut": "command+8",
+      "icon": "Tab"
+    },
+    {
+      "id": "21",
+      "label": "Go to Last Tab",
+      "shortcut": "command+9",
+      "icon": "Tab"
+    },
+    {
+      "id": "29",
+      "label": "Toggle Bookmarks Bar",
+      "shortcut": "command+shift+b",
+      "icon": "Bookmark"
+    },
+    {
+      "id": "30",
+      "label": "Bookmark Manager",
+      "shortcut": "command+option+b",
+      "icon": "Bookmark"
+    },
+    {
+      "id": "31",
+      "label": "Brave Settings",
+      "shortcut": "command+keycomma",
+      "icon": "Settings"
+    },
+    {
+      "id": "34",
+      "label": "Find on Page",
+      "shortcut": "command+f",
+      "icon": "Search"
+    },
+    {
+      "id": "58",
+      "label": "Bookmark All Tabs",
+      "shortcut": "command+shift+d",
+      "icon": "Folder Plus"
+    },
+    {
+      "id": "62",
+      "label": "Reset Zoom",
+      "shortcut": "command+0",
+      "icon": "Search"
+    }
+  ],
+  "moreShortcuts": [
+    {
+      "id": "11",
+      "label": "Cycle to Next Tab",
+      "shortcut": "scoped.control+tab",
+      "icon": "Tab"
+    },
+    {
+      "id": "12",
+      "label": "Cycle to Previous Tab",
+      "shortcut": "scoped.control+shift+tab",
+      "icon": "Tab"
+    },
+    {
+      "id": "22",
+      "label": "Back (Arrow Key)",
+      "shortcut": "scoped.command+left",
+      "icon": "Page Previous"
+    },
+    {
+      "id": "23",
+      "label": "Forward (Arrow Key)",
+      "shortcut": "scoped.command+right",
+      "icon": "Page Next"
+    },
+    {
+      "id": "24",
+      "label": "Close Tab",
+      "shortcut": "scoped.command+w",
+      "icon": "Close Tab"
+    },
+    {
+      "id": "25",
+      "label": "Close Window",
+      "shortcut": "scoped.command+shift+w",
+      "icon": "Window Close"
+    },
+    {
+      "id": "26",
+      "label": "Minimize Window",
+      "shortcut": "scoped.command+m",
+      "icon": "Window Minimise"
+    },
+    {
+      "id": "27",
+      "label": "Hide Brave",
+      "shortcut": "scoped.command+h",
+      "icon": "Eye Off"
+    },
+    {
+      "id": "28",
+      "label": "Quit Brave",
+      "shortcut": "scoped.command+q",
+      "icon": "Application Exit"
+    },
+    {
+      "id": "32",
+      "label": "History",
+      "shortcut": "scoped.command+y",
+      "icon": "History"
+    },
+    {
+      "id": "33",
+      "label": "Downloads",
+      "shortcut": "scoped.command+shift+j",
+      "icon": "Download"
+    },
+    {
+      "id": "35",
+      "label": "Next Match",
+      "shortcut": "scoped.command+g",
+      "icon": "Chevron Down"
+    },
+    {
+      "id": "36",
+      "label": "Previous Match",
+      "shortcut": "scoped.command+shift+g",
+      "icon": "Chevron Up"
+    },
+    {
+      "id": "37",
+      "label": "Find Selected Text",
+      "shortcut": "scoped.command+e",
+      "icon": "Search"
+    },
+    {
+      "id": "38",
+      "label": "Developer Tools",
+      "shortcut": "scoped.command+option+i",
+      "icon": "Code"
+    },
+    {
+      "id": "39",
+      "label": "Clear Browsing Data",
+      "shortcut": "scoped.command+shift+delete",
+      "icon": "Delete"
+    },
+    {
+      "id": "40",
+      "label": "Profile Menu",
+      "shortcut": "scoped.command+shift+m",
+      "icon": "Account"
+    },
+    {
+      "id": "41",
+      "label": "Submit Address Bar Search",
+      "shortcut": "scoped.enter",
+      "icon": "Search"
+    },
+    {
+      "id": "42",
+      "label": "Choose Typed Search Engine",
+      "shortcut": "scoped.tab",
+      "icon": "Search"
+    },
+    {
+      "id": "43",
+      "label": "Complete Typed Site Name",
+      "shortcut": "scoped.control+enter",
+      "icon": "Web"
+    },
+    {
+      "id": "44",
+      "label": "Complete Site Name in New Tab",
+      "shortcut": "scoped.control+shift+enter",
+      "icon": "New Tab"
+    },
+    {
+      "id": "45",
+      "label": "Open Typed URL in Background Tab",
+      "shortcut": "scoped.command+enter",
+      "icon": "New Tab"
+    },
+    {
+      "id": "46",
+      "label": "Remove Address Bar Suggestion",
+      "shortcut": "scoped.down~shift+forwarddelete",
+      "icon": "Delete"
+    },
+    {
+      "id": "47",
+      "label": "Print Page",
+      "shortcut": "scoped.command+p",
+      "icon": "Printer"
+    },
+    {
+      "id": "48",
+      "label": "Save Page",
+      "shortcut": "scoped.command+s",
+      "icon": "Save"
+    },
+    {
+      "id": "49",
+      "label": "Page Setup",
+      "shortcut": "scoped.command+option+p",
+      "icon": "Printer"
+    },
+    {
+      "id": "50",
+      "label": "Reload Without Cache",
+      "shortcut": "scoped.command+shift+r",
+      "icon": "Refresh"
+    },
+    {
+      "id": "51",
+      "label": "Stop Loading",
+      "shortcut": "scoped.escape",
+      "icon": "Stop"
+    },
+    {
+      "id": "52",
+      "label": "Focus Next Page Item",
+      "shortcut": "scoped.tab",
+      "icon": "Arrow Right"
+    },
+    {
+      "id": "53",
+      "label": "Focus Previous Page Item",
+      "shortcut": "scoped.shift+tab",
+      "icon": "Arrow Left"
+    },
+    {
+      "id": "54",
+      "label": "Open File",
+      "shortcut": "scoped.command+o",
+      "icon": "Open File"
+    },
+    {
+      "id": "55",
+      "label": "View Page Source",
+      "shortcut": "scoped.command+option+u",
+      "icon": "Code"
+    },
+    {
+      "id": "56",
+      "label": "JavaScript Console",
+      "shortcut": "scoped.command+option+j",
+      "icon": "Terminal"
+    },
+    {
+      "id": "57",
+      "label": "Bookmark This Page",
+      "shortcut": "scoped.command+d",
+      "icon": "Bookmark"
+    },
+    {
+      "id": "59",
+      "label": "Toggle Full Screen",
+      "shortcut": "scoped.command+control+f",
+      "icon": "Full Screen"
+    },
+    {
+      "id": "60",
+      "label": "Zoom In",
+      "shortcut": "scoped.command+shift+keyequal",
+      "icon": "Zoom In"
+    },
+    {
+      "id": "61",
+      "label": "Zoom Out",
+      "shortcut": "scoped.command+keyminus",
+      "icon": "Zoom Out"
+    },
+    {
+      "id": "63",
+      "label": "Scroll Down One Screen",
+      "shortcut": "scoped.space",
+      "icon": "Arrow Down"
+    },
+    {
+      "id": "64",
+      "label": "Scroll Up One Screen",
+      "shortcut": "scoped.shift+space",
+      "icon": "Arrow Up"
+    },
+    {
+      "id": "65",
+      "label": "Search the Web",
+      "shortcut": "scoped.command+option+f",
+      "icon": "Web"
+    },
+    {
+      "id": "66",
+      "label": "Move Cursor One Word Left",
+      "shortcut": "scoped.option+left",
+      "icon": "Arrow Left"
+    },
+    {
+      "id": "67",
+      "label": "Move Cursor One Word Right",
+      "shortcut": "scoped.option+right",
+      "icon": "Arrow Right"
+    },
+    {
+      "id": "68",
+      "label": "Delete Previous Word",
+      "shortcut": "scoped.option+delete",
+      "icon": "Delete"
+    },
+    {
+      "id": "69",
+      "label": "Open Home Page",
+      "shortcut": "scoped.command+shift+h",
+      "icon": "Home"
+    },
+    {
+      "id": "70",
+      "label": "Private Window with Tor",
+      "shortcut": "scoped.command+option+n",
+      "icon": "Incognito"
+    },
+    {
+      "id": "71",
+      "label": "Quick Commands",
+      "shortcut": "scoped.command+shift+p",
+      "icon": "Shortcut Command"
+    },
+    {
+      "id": "72",
+      "label": "Take Screenshot",
+      "shortcut": "scoped.command+shift+s",
+      "icon": "Screenshot"
+    },
+    {
+      "id": "73",
+      "label": "Mute or Unmute Tab",
+      "shortcut": "scoped.control+m",
+      "icon": "Volume Off"
+    },
+    {
+      "id": "74",
+      "label": "Toggle Side Panel",
+      "shortcut": "scoped.command+b",
+      "icon": "Tab"
+    },
+    {
+      "id": "75",
+      "label": "Open Split View",
+      "shortcut": "scoped.command+option+t",
+      "icon": "Tab"
+    },
+    {
+      "id": "76",
+      "label": "Previous Tab (Brackets)",
+      "shortcut": "scoped.command+shift+keybracketleft",
+      "icon": "Tab"
+    },
+    {
+      "id": "77",
+      "label": "Next Tab (Brackets)",
+      "shortcut": "scoped.command+shift+keybracketright",
+      "icon": "Tab"
+    }
+  ]
+}
