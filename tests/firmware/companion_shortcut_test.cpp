@@ -521,6 +521,20 @@ int main() {
   assert(companion_app_scoped_shortcut("shortcut.scoped.command+k~command+s") ==
          "shortcut.scoped.command+k~command+s");
   assert(companion_app_scoped_shortcut("com.apple.Safari").empty());
+  {
+    constexpr auto preset = "com.iracing.simulator:2";
+    const int before = guarded_invocations;
+    assert(!invoke_companion_action_for_app("shortcut.scoped.f3", "race-unfocused", "", "new_window", preset, 0));
+    assert(guarded_invocations == before);
+    companion_set_focused_action(IRACING_COMPANION_APP);
+    assert(invoke_companion_action_for_app("shortcut.scoped.f3", "race", "", "new_window", preset, 0));
+    assert(guarded_invocations == before + 1 && sent_action == "shortcut.scoped.f3");
+    assert(sent_request == "race" && shortcut_target == IRACING_COMPANION_APP);
+    assert(invoke_companion_action_for_app("shortcut.scoped.shift+f3", "race-custom",
+      IRACING_COMPANION_APP, "new_window", "custom", 0));
+    assert(guarded_invocations == before + 2 && sent_action == "shortcut.scoped.shift+f3");
+    companion_set_focused_action("");
+  }
   const auto original_actions = companion_runtime_snapshot().actions;
   companion_set_actions({{"com.apple.Safari", "Safari"}});
   {

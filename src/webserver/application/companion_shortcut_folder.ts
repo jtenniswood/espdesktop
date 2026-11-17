@@ -72,6 +72,7 @@ import type { CardConfig } from "../contracts/types";
 import { isBackOrderToken } from "../model/subpage";
 import type { SubpageConfig } from "../contracts/types";
 
+export const IRACING_COMPANION_APP = "com.iracing.simulator";
 export const COMPANION_APP_SHORTCUTS_OPTION = "app_shortcuts";
 export const COMPANION_APP_SHORTCUTS_TABS_OPTION = "app_shortcuts_tabs";
 export const COMPANION_URL_OPEN_BEHAVIOR = "url_open_behavior";

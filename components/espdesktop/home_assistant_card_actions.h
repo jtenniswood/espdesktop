@@ -148,6 +148,7 @@ inline std::string shortcut_application(const SharedCard &card) {
 
 inline bool press_app_shortcut(const SharedCard &card, const std::string &app,
                                 const std::string &request) {
+  if (app == IRACING_COMPANION_APP) return false;
   const auto shortcut = companion_app_scoped_shortcut(card.config.entity);
   const auto target = companion_shortcut_launch_target(app);
   if (shortcut.empty() || target.empty() || !companion_action_sender()) return false;

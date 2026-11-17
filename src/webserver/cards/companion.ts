@@ -43,6 +43,7 @@ import {
     isBooksExtendedShortcut,
     isClaudeScopedShortcut,
     SCOPED_SHORTCUT_PREFIX,
+    IRACING_COMPANION_APP,
     companionShortcutFolderAppLabel,
     companionShortcutFolderEditorAvailable,
     companionShortcutSelectionMatchesSavedParent,
@@ -787,9 +788,12 @@ export function registerCompanionCardTypes(
             if (initialMode === "shortcut") panel?.classList.add("sp-shortcut-card-settings");
             const savedCatalogShortcut = companionShortcutCatalogSelection(card);
             const isNewShortcut = initialMode === "shortcut" && state.settingsDraft?.isNew;
-            const pageApp = isNewShortcut
-                ? appShortcutPageOwner(previewSubpageOwner(parentPage, state.buttons, key => state.subpages[key]))
-                : undefined;
+            const pageApp = appShortcutPageOwner(previewSubpageOwner(parentPage, state.buttons, key => state.subpages[key]));
+            const presetMarker = configOptionValue(card.options, COMPANION_SHORTCUT_PRESET_OPTION);
+            const racingPreset = presetMarker.startsWith(IRACING_COMPANION_APP + ":") ? presetMarker : "";
+            const racingShortcut = pageApp === IRACING_COMPANION_APP || !!racingPreset;
+            const defaultRacingPreset = racingPreset && companionShortcutPresetCards(IRACING_COMPANION_APP)
+                .find(preset => configOptionValue(preset.options, COMPANION_SHORTCUT_PRESET_OPTION) === racingPreset);
             const catalogueApps = sortCompanionLabels(companionShortcutCatalogApps({
                 pageAppId: pageApp, savedAppId: savedCatalogShortcut?.appId,
             }));
@@ -804,10 +808,12 @@ export function registerCompanionCardTypes(
                 card._shortcutCatalogSearch = "";
                 if (!defaultCatalogApp) card._shortcutCatalogApp = "";
                 // Keep the selected combination when switching to Custom.
-                if (type === "catalog" || String(card.entity).startsWith(SCOPED_SHORTCUT_PREFIX)) {
+                if (type === "catalog" && defaultRacingPreset) {
+                    card.entity = defaultRacingPreset.entity;
+                } else if (type === "catalog" || (!racingShortcut && String(card.entity).startsWith(SCOPED_SHORTCUT_PREFIX))) {
                     card.entity = COMPANION_SHORTCUT_PREFIX;
                 }
-                card.options = preserveCardColorOptions(card.options, "app_shortcut_preset=custom");
+                card.options = preserveCardColorOptions(card.options, "app_shortcut_preset=" + (racingPreset || "custom"));
                 helpers.saveField("entity", card.entity);
                 helpers.saveField("options", card.options);
                 renderButtonSettings();
@@ -851,13 +857,18 @@ export function registerCompanionCardTypes(
             const modifierButtons = document.createElement("fieldset");
             modifierButtons.className = "sp-segment";
             modifierButtons.setAttribute("aria-label", "Shortcut modifiers");
-            const shortcutParts: string[] = currentEntity.slice(COMPANION_SHORTCUT_PREFIX.length).split("+");
+            const shortcutPrefix = racingShortcut ? SCOPED_SHORTCUT_PREFIX : COMPANION_SHORTCUT_PREFIX;
+            const currentPrefix = racingShortcut && currentEntity.startsWith(SCOPED_SHORTCUT_PREFIX)
+                ? SCOPED_SHORTCUT_PREFIX : COMPANION_SHORTCUT_PREFIX;
+            const shortcutParts: string[] = currentEntity.slice(currentPrefix.length).split("+");
             let selectedKey = shortcutParts.pop() || "";
-            const modifiers: [string, string][] = [
+            const modifiers: [string, string][] = racingShortcut
+                ? [["control", "Ctrl"], ["option", "Alt"], ["shift", "Shift"]]
+                : [
                 ["command", "⌘ Command"], ["control", "⌃ Control"],
                 ["option", "⌥ Option"], ["shift", "⇧ Shift"],
             ];
-            if (currentEntity === "shortcut.function+f") modifiers.push(["function", "Fn"]);
+            if (!racingShortcut && currentEntity === "shortcut.function+f") modifiers.push(["function", "Fn"]);
             const selectedModifiers = new Set(shortcutParts.filter((part) => modifiers.some(([key]) => part === key)));
             const modifierControls = new Map<string, HTMLButtonElement>();
             for (const [modifier, label] of modifiers) {
@@ -890,6 +901,7 @@ export function registerCompanionCardTypes(
                 ["Punctuation", Object.values(COMPANION_SHORTCUT_KEYS).filter((key) => key.startsWith("key"))],
                 ["Function keys", Array.from({ length: 20 }, (_, index) => "f" + (index + 1))],
             ];
+            if (racingShortcut) keyGroups.push(["Number pad", Array.from({ length: 10 }, (_, index) => "keypad" + index)]);
             if (currentEntity === "shortcut.claude-escape") keyGroups.push(["App shortcut", ["claude-escape"]]);
             if (currentEntity === "shortcut.escape-twice") keyGroups.push(["Sequence", ["escape-twice"]]);
             for (const [label, keys] of keyGroups) {
@@ -920,8 +932,8 @@ export function registerCompanionCardTypes(
             }
             function saveBuiltShortcut(): void {
                 const selected = modifiers.map(([modifier]) => modifier).filter((modifier) => selectedModifiers.has(modifier));
-                card.entity = COMPANION_SHORTCUT_PREFIX + [...selected, selectedKey].join("+");
-                card.options = preserveCardColorOptions(card.options, "app_shortcut_preset=custom");
+                card.entity = shortcutPrefix + [...selected, selectedKey].join("+");
+                card.options = preserveCardColorOptions(card.options, "app_shortcut_preset=" + (racingPreset || "custom"));
                 helpers.clearFieldError(keySelect);
                 helpers.saveField("entity", card.entity);
                 helpers.saveField("options", card.options);
@@ -1050,9 +1062,12 @@ export function registerCompanionCardTypes(
             });
             panel?.appendChild(shortcutField);
             helpers.markCardPrimaryField(shortcutField, "shortcut");
-            helpers.requireField(keySelect, "Choose a key with Command, Control, or Option before saving.", function () {
+            helpers.requireField(keySelect, racingShortcut ? "Choose an iRacing key before saving."
+                : "Choose a key with Command, Control, or Option before saving.", function () {
                 return initialMode === "shortcut" && shortcutType === "custom";
             }, function () {
+                if (racingShortcut) return companionShortcutActionIdValid(card.entity) && !!selectedKey &&
+                    !(selectedKey === "f4" && selectedModifiers.has("option"));
                 return companionShortcutActionIdValid(card.entity) && !!selectedKey &&
                     !String(card.entity).startsWith(SCOPED_SHORTCUT_PREFIX) &&
                     ((!isSafariUnmodifiedShortcut(card.entity) &&
@@ -1133,6 +1148,7 @@ export function registerCompanionCardTypes(
             const shortcutFolderApp = companionShortcutFolderAppLabel(card.entity);
             shortcutFolderNote.textContent = card.entity === "com.apple.finder"
                 ? "Folders approved on your Mac appear in free cells. Pin a folder to keep it on the board and edit its name or position."
+                : card.entity === IRACING_COMPANION_APP ? "Open a page of editable iRacing shortcuts."
                 : "Launch " + shortcutFolderApp +
                 ", then open an editable subpage. It starts with " + shortcutFolderApp + " keyboard shortcuts.";
             shortcutFolderField.appendChild(shortcutFolderNote);

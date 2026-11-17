@@ -88,3 +88,7 @@ If EspDesktop is useful to you, you can support ongoing development by buying me
 <a href="https://www.buymeacoffee.com/jtenniswood">
   <img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee" height="60" style="border-radius:999px;" />
 </a>
+
+## Windows iRacing testing
+
+The [Windows iRacing test app](windows/README.md) pairs with the 4848S040 to send editable iRacing shortcuts.

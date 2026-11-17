@@ -1143,6 +1143,12 @@ inline bool invoke_companion_action_for_app(const std::string &action_id,
   // Never use the early visual highlight to authorize app-specific keys.
   if (!required_focus_id.empty() && !companion_action_focused(required_focus_id)) return false;
   const auto app = companion_shortcut_preset_app(preset);
+  if (app == IRACING_COMPANION_APP || required_focus_id == IRACING_COMPANION_APP) {
+    const auto shortcut = companion_app_scoped_shortcut(action_id);
+    if (shortcut.empty() || !companion_action_available(shortcut) ||
+        !companion_action_focused(IRACING_COMPANION_APP) || !companion_action_sender()) return false;
+    return companion_action_sender()(shortcut, request_id, "new_window", IRACING_COMPANION_APP);
+  }
   if (app.empty()) return invoke_companion_action(action_id, request_id, folder_open_behavior);
 
   const auto shortcut = companion_app_scoped_shortcut(action_id);

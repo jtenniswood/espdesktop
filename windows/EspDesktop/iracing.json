@@ -1,0 +1,14 @@
+{
+  "version": 1,
+  "appId": "com.iracing.simulator",
+  "label": "iRacing",
+  "catalog": true,
+  "shortcuts": [
+    { "id": "0", "label": "Lap Timing", "shortcut": "scoped.f1", "icon": "Timer" },
+    { "id": "1", "label": "Standings", "shortcut": "scoped.f2", "icon": "Numbered List" },
+    { "id": "2", "label": "Relative", "shortcut": "scoped.f3", "icon": "Bullet List" },
+    { "id": "3", "label": "Fuel", "shortcut": "scoped.f4", "icon": "Gauge" },
+    { "id": "4", "label": "Pit Adjustments", "shortcut": "scoped.f7", "icon": "Cog" },
+    { "id": "5", "label": "In-Car Adjustments", "shortcut": "scoped.f8", "icon": "Car" }
+  ]
+}
