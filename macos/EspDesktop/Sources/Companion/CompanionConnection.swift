@@ -889,7 +889,8 @@ final class CompanionConnection: NSObject {
             (supportsOBSCough || OBSConnection.coughInputUUID(for: entry.id) == nil) &&
             (supportsOBSOutputs || !entry.id.hasPrefix("obs.output.")) &&
             (supportsOBSBreak || !(entry.id == "obs.brb" || entry.id.hasPrefix("obs.brb."))) &&
-            (supportsOBSStarter || !entry.id.hasPrefix(OBSConnection.AdaptiveScene.prefix))
+            (supportsOBSStarter || !entry.id.hasPrefix(OBSConnection.AdaptiveScene.prefix)) &&
+            (peerCapabilityVersion >= 22 || (entry.id != OBSConnection.broadcastStatusID && entry.id != YouTubeConnection.cardID))
         }.map { entry in
             var fields: [String: Any] = ["id": entry.id, "label": Self.catalogueLabel(entry.label, fallback: "OBS scene")]
             if let state = entry.state, peerCapabilityVersion >= state.minimumCapability {

@@ -1171,8 +1171,9 @@ inline void companion_track_card(lv_obj_t *button, const std::string &action_id,
 }
 
 inline const char *companion_obs_status_icon(const std::string &id, const std::string &status, bool available) {
-  if (!available || status == "Unknown") return "Monitor Off";
-  if (id == "obs.status.program") return "Monitor";
+  if (id == "obs.status.youtube") return "Broadcast";
+  if (!available || status == "Unknown" || status == "Disconnected") return "Monitor Off";
+  if (id == "obs.status.program" || id == "obs.status.connection") return "Monitor";
   const bool stream = id == "obs.status.stream" || id == "obs.output.stream";
   for (const auto &entry : OBS_OUTPUT_STATUS_ICONS)
     if (status == entry.status) return id == "obs.output.virtualcam" ? entry.virtualcam : stream ? entry.stream : entry.record;
@@ -1197,9 +1198,13 @@ inline void companion_render_obs_detail(CompanionCardRef &ref, const std::string
   const std::string separator = " · ";
   const auto split = label.find(separator);
   const bool take = ref.action_id == "obs.take";
+  const bool youtube = ref.action_id == "obs.status.youtube";
+  const bool connection = ref.action_id == "obs.status.connection";
   const char *name = take ? "Take Live"
     : ref.action_id == "obs.replay" ? "Save Replay"
     : ref.action_id == "obs.replay.buffer" ? "Replay Buffer"
+    : youtube ? "YouTube"
+    : connection ? "OBS"
     : ref.action_id == "obs.status.program" ? "Program"
     : ref.action_id == "obs.status.stream" ? "Stream"
     : ref.action_id == "obs.status.record" ? "Recording"
@@ -1212,6 +1217,7 @@ inline void companion_render_obs_detail(CompanionCardRef &ref, const std::string
   const bool brb = ref.action_id == "obs.brb";
   std::string primary = !ref.obs_label_alias.empty() ? ref.obs_label_alias
     : (scene || direct_transition) ? label
+    : youtube && split != std::string::npos ? label.substr(0, split)
     : output ? espdesktop_i18n(label.substr(0, split))
     : studio ? espdesktop_i18n_key("label_obs_studio_mode")
     : transition ? espdesktop_i18n_key("label_obs_transition")
@@ -1256,12 +1262,26 @@ inline void companion_render_obs_detail(CompanionCardRef &ref, const std::string
       detail.clear();
     }
   }
+  if (connection && !snapshot.connected) detail = "Mac unavailable";
   if (ref.obs_state_icon) {
     const auto *icon = find_icon(scene ? (scene_live ? "Broadcast" : "Image Card Loading")
       : companion_obs_status_icon(ref.action_id, detail, split != std::string::npos));
     if (std::strcmp(icon, lv_label_get_text(ref.obs_state_icon)) != 0) lv_label_set_text(ref.obs_state_icon, icon);
   }
-  if (output || (ref.obs_state_icon && !scene && ref.action_id != "obs.status.program")) detail = espdesktop_i18n(detail);
+  if (youtube) {
+    std::string translated;
+    size_t start = 0;
+    for (;;) {
+      const size_t end = detail.find(separator, start);
+      if (start) translated += separator;
+      translated += espdesktop_i18n(detail.substr(start, end == std::string::npos ? end : end - start));
+      if (end == std::string::npos) break;
+      start = end + separator.size();
+    }
+    detail = std::move(translated);
+  } else if (output || connection || (ref.obs_state_icon && !scene && ref.action_id != "obs.status.program")) {
+    detail = espdesktop_i18n(detail);
+  }
   if (normalize_display_text(primary) != lv_label_get_text(ref.text_label))
     lv_label_set_display_text(ref.text_label, primary.c_str());
   const bool detail_changed = normalize_display_text(detail) != lv_label_get_text(ref.obs_detail);
@@ -1306,12 +1326,15 @@ inline void companion_setup_obs_detail(lv_obj_t *button, const lv_font_t *font, 
     if (!ref.obs_detail) {
       ref.obs_detail = lv_label_create(button);
       lv_obj_set_width(ref.obs_detail, lv_pct(100));
-      lv_label_set_long_mode(ref.obs_detail, LV_LABEL_LONG_DOT);
+      lv_label_set_long_mode(ref.obs_detail, ref.action_id == "obs.status.youtube" ? LV_LABEL_LONG_WRAP : LV_LABEL_LONG_DOT);
       lv_obj_set_style_text_opa(ref.obs_detail, LV_OPA_80, LV_PART_MAIN);
     }
     ref.obs_state_icon = state_icon;
     if (font) lv_obj_set_style_text_font(ref.obs_detail, font, LV_PART_MAIN);
-    if (ref.action_id == "obs.take" || companion_obs_scene_card(ref.action_id)) {
+    if (ref.action_id == "obs.status.youtube") {
+      const auto *detail_font = lv_obj_get_style_text_font(ref.obs_detail, LV_PART_MAIN);
+      lv_obj_set_style_max_height(ref.obs_detail, 2 * lv_font_get_line_height(detail_font), LV_PART_MAIN);
+    } else if (ref.action_id == "obs.take" || companion_obs_scene_card(ref.action_id)) {
       const auto *detail_font = lv_obj_get_style_text_font(ref.obs_detail, LV_PART_MAIN);
       lv_obj_set_height(ref.obs_detail, lv_font_get_line_height(detail_font));
     }

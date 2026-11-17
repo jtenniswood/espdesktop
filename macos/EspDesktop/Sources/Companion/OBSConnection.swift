@@ -105,6 +105,19 @@ final class OBSConnection: ObservableObject {
     }
 
     static let studioModeID = "obs.studio"
+    static let broadcastStatusID = "obs.status.connection"
+
+    static func broadcastStatus(_ state: State?, warning: Bool) -> CatalogueEntry {
+        let detail: String
+        if let state {
+            if state.streamReconnecting { detail = "Reconnecting" }
+            else if state.streaming { detail = warning ? "Check upload" : "Sending" }
+            else { detail = "Ready" }
+        } else {
+            detail = "Disconnected"
+        }
+        return .init(id: broadcastStatusID, label: "OBS · " + detail)
+    }
     static let multiviewID = "obs.multiview"
     static let transitionID = "obs.transition"
     static let transitionSelectionPrefix = transitionID + ".select."
@@ -637,6 +650,7 @@ final class OBSConnection: ObservableObject {
     }
 
     @Published private(set) var status: Status = .off
+    @Published private(set) var uploadWarning = false
     @Published private(set) var state: State?
     @Published private(set) var port: UInt16
     @Published private(set) var enabled: Bool
@@ -682,6 +696,7 @@ final class OBSConnection: ObservableObject {
     private var cyclingTransition = false
     private var transitionProbe: Task<Void, Never>?
     private var transitionCatalogueTask: Task<Void, Never>?
+    private var streamHealthTask: Task<Void, Never>?
     private var sourceTask: Task<Void, Never>?
     private var changingSource = false
     private var openingMultiview = false
@@ -1361,6 +1376,9 @@ final class OBSConnection: ObservableObject {
         transitionProbe = nil
         transitionCatalogueTask?.cancel()
         transitionCatalogueTask = nil
+        streamHealthTask?.cancel()
+        streamHealthTask = nil
+        uploadWarning = false
         sourceTask?.cancel()
         sourceTask = nil
         bufferedEvents.removeAll()
@@ -1453,6 +1471,7 @@ final class OBSConnection: ObservableObject {
                 state = snapshot
                 updateTransitionProbe()
                 monitorTransitionCatalogue(generation: active)
+                if streamHealthTask == nil { monitorStreamHealth(generation: active) }
                 refreshSources()
                 status = .connected
             } catch {
@@ -1629,6 +1648,48 @@ final class OBSConnection: ObservableObject {
         return await command("SetSceneItemEnabled", fields: [
             "sceneUuid": scene.id, "sceneItemId": source.id, "sceneItemEnabled": !source.enabled,
         ])
+    }
+
+    struct UploadHealth {
+        private var previous: (total: Int, dropped: Int)?
+        private var consecutiveWarnings = 0
+
+        mutating func update(_ response: OBSWebSocket.Fields?) -> Bool {
+            guard let response, response["outputActive"] as? Bool == true,
+                  response["outputReconnecting"] as? Bool != true else {
+                self = .init()
+                return false
+            }
+
+            var dropping = false
+            if let total = response["outputTotalFrames"] as? Int, total >= 0,
+               let dropped = response["outputSkippedFrames"] as? Int, dropped >= 0 {
+                if let previous, total > previous.total, dropped > previous.dropped {
+                    dropping = Double(dropped - previous.dropped) / Double(total - previous.total) >= 0.02
+                }
+                previous = (total, dropped)
+            }
+            let congestion = response["outputCongestion"] as? Double ?? 0
+            consecutiveWarnings = dropping || congestion >= 0.7 ? min(2, consecutiveWarnings + 1) : 0
+            return consecutiveWarnings >= 2
+        }
+    }
+
+    private func monitorStreamHealth(generation active: UUID) {
+        streamHealthTask = Task { [weak self] in
+            var health = UploadHealth()
+            while !Task.isCancelled {
+                try? await Task.sleep(for: .seconds(4))
+                guard let self, active == generation, !Task.isCancelled else { return }
+                var response: OBSWebSocket.Fields?
+                if state?.streaming == true && state?.streamReconnecting == false {
+                    response = try? await snapshotRequest("GetStreamStatus", generation: active)
+                }
+                guard active == generation, !Task.isCancelled else { return }
+                let warning = health.update(state?.streaming == true && state?.streamReconnecting == false ? response : nil)
+                if uploadWarning != warning { uploadWarning = warning }
+            }
+        }
     }
 
     private func monitorTransitionCatalogue(generation active: UUID) {

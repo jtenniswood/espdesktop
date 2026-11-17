@@ -390,7 +390,7 @@ struct CompanionSettings: View {
         case .connection: connectionPage
         case .applications: applicationsPage
         case .folders: foldersPage
-        case .obs: OBSSettings(connection: store.obs)
+        case .obs: OBSSettings(connection: store.obs, youtube: store.youtube)
         case .updates: CompanionUpdateSettings(updater: store.updater)
         case .help: helpPage
         }

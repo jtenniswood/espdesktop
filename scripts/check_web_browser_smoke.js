@@ -7910,7 +7910,7 @@ async function assertNestedCompanionPages(browser) {
   } catch(error) { await page.screenshot({ path: "/tmp/nested-browser.png" }); fs.writeFileSync("/tmp/nested-browser.html", await page.content()); throw error; } finally { await context.close(); }
 }
 
-async function assertOBSStarterPage(browser, firstRun = false) {
+async function assertOBSStarterPage(browser, firstRun = false, youtube = false) {
   const testCase = CASES.find(item => item.slug === "guition-esp32-s3-4848s040");
   const fixture = nativeConfigState(testCase.slug);
   fixture.document = {
@@ -7966,6 +7966,8 @@ async function assertOBSStarterPage(browser, firstRun = false) {
     { id: "obs.studio." + token, label: studioProgram ? "On" : "Off" },
     { id: `obs.mute.${mic}`, label: (muted ? "Muted" : "Unmuted") + " · Desk Mic" },
     { id: "obs.take", label: "Take Live · Enable Studio Mode" },
+    { id: "obs.status.connection", label: "OBS · Sending" },
+    { id: "obs.status.youtube", label: "Workshop · Receiving · Waiting · Unlisted" },
     { id: "obs.status.stream", label: streaming ? "Stream · Live" : "Stream · Idle" },
     { id: "obs.status.record", label: recording ? "Recording · Active" : "Recording · Idle" },
     { id: "obs.brb." + token, label: onBreak ? "Resume" : "BRB · Break Room" },
@@ -8002,9 +8004,29 @@ async function assertOBSStarterPage(browser, firstRun = false) {
     assert.equal(await setup.getByLabel("Main scene").inputValue(), "obs.target." + main);
     assert.equal(await setup.getByLabel("Break scene").inputValue(), "obs.target." + away);
     assert.equal(await setup.getByLabel("Microphone").inputValue(), "obs.mute." + mic);
+    if (youtube) {
+      await setup.getByLabel("Layout").selectOption("youtube-live");
+      await setup.getByLabel("Second scene").waitFor();
+      await setup.getByLabel("Live action").selectOption("save-replay");
+    }
     await setup.getByRole("button", { name: "Pin to Home" }).click();
     const homeSlot = firstRun ? 1 : 2;
     const switchingKey = 32 + (homeSlot - 1) * 32 + 1;
+    if (youtube) {
+      await waitForNativeState(fixture, () => fixture.puts.at(-1)?.layout?.pages.some(
+        group => group.key === homeSlot && group.cards.some(card => card.config.entity === "obs.status.youtube")),
+        "YouTube setup saves broadcast status on the landing page");
+      assert.match(fixture.document.buttons[1], /Safari/);
+      assert.match(fixture.document.buttons[homeSlot], /YouTube Live/);
+      await setup.waitFor({ state: "hidden" });
+      await page.getByRole("tab", { name: "Layout", exact: true }).click();
+      await page.locator(".sp-main").getByText("YouTube Live", { exact: true }).click({ button: "right" });
+      await page.getByText("Edit Subpage", { exact: true }).click();
+      await page.locator(".sp-main").getByText("Workshop", { exact: true }).waitFor();
+      await page.locator(".sp-main").getByText("Receiving · Waiting · Unlisted", { exact: true }).waitFor();
+      await page.locator(".sp-main").getByText("Sending", { exact: true }).waitFor();
+      return;
+    }
     await waitForNativeState(fixture, () => fixture.puts.at(-1)?.layout?.pages.some(
       group => group.key === switchingKey && group.cards.some(card => card.config.entity === "obs.target." + main)),
       "OBS setup saves nested groups and their scene UUIDs");
@@ -8713,6 +8735,7 @@ async function assertFirstRunSetup(browser) {
     if (process.env.ESPDESKTOP_OBS_STARTER_ONLY === "1") {
       await assertOBSStarterPage(browser);
       await assertOBSStarterPage(browser, true);
+      await assertOBSStarterPage(browser, false, true);
       return;
     }
     if (process.env.ESPDESKTOP_FIRST_RUN_ONLY === "1") {
@@ -8738,6 +8761,7 @@ async function assertFirstRunSetup(browser) {
     await assertOBSSceneCard(browser);
     await assertOBSStarterPage(browser);
     await assertOBSStarterPage(browser, true);
+    await assertOBSStarterPage(browser, false, true);
     await assertStudioControlPage(browser);
     await assertRetiredCardRemoval(browser);
     if (process.env.ESPDESKTOP_RETIRED_CARDS_ONLY === "1") return;

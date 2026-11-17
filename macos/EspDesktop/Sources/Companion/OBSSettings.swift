@@ -2,6 +2,7 @@ import SwiftUI
 
 struct OBSSettings: View {
     @ObservedObject var connection: OBSConnection
+    @ObservedObject var youtube: YouTubeConnection
     @State private var port = ""
     @State private var password = ""
     @State private var hasSavedPassword = false
@@ -42,6 +43,8 @@ struct OBSSettings: View {
                     }
                 }
             }
+
+            YouTubeSettings(connection: youtube)
 
             if let state = connection.state {
                 Section("Break Settings") {

@@ -139,6 +139,23 @@ In the Mac app, open **Settings → OBS → Break Settings**. Choose a **Break s
 
 Use matching display firmware and Mac app builds that support OBS cards. Before going live, try the cards with a test recording and listen back to check the mix.
 
+## YouTube Live with OBS
+
+In the display editor, open **Screen → Appearance → App Subpages → Add OBS starter page** and choose **YouTube Live** as the layout. This option is also available during first-time OBS setup. Choose your main scene, optional second scene and OBS microphone. Put **Take Live** or **Save Replay** on the layout. Save Replay requires Replay Buffer to be enabled in OBS. If you configured a Break scene in Mac Companion, the layout includes Break and Resume. On smaller grids, some controls move to the **Controls** page.
+
+The **OBS** card reports the local connection separately from the **YouTube** card. **Sending** means OBS has started its stream output. **Check upload** appears after sustained congestion or frame drops. After you connect YouTube monitoring, a scheduled event can show **Receiving · Waiting** when YouTube is receiving video and the event is still waiting to go live. **Live** means YouTube reports the selected event is live, with its visibility shown underneath. Check your event in YouTube Studio before publishing.
+
+### Connect YouTube monitoring
+
+YouTube monitoring is optional and read-only. This preview uses a Google Cloud Desktop OAuth client you create.
+
+1. In a Google Cloud project, enable **YouTube Data API v3**. Configure the Google Auth consent screen and create an OAuth client of type **Desktop app**. If the project is in testing mode, add the Google account you'll use to the test users. Testing-mode authorizations may expire and require sign-in again. See [Google's Desktop OAuth setup](https://developers.google.com/identity/protocols/oauth2/native-app).
+2. On the Mac, open **EspDesktop → Settings → OBS → YouTube Broadcast**. Enter the Desktop client ID and secret, then choose **Connect to YouTube**. Sign in to the Google account for the YouTube channel that owns the event.
+3. Paste the event's YouTube watch link, Live Control Room link, or video ID. Select **Use Broadcast**. Use **Open Live Control Room** to verify that it is the correct event.
+4. Rehearse with a private event and auto-start turned off. Start the OBS output, check that YouTube reports it is receiving before publishing, and verify that the status changes when the private event goes live. Use matching EspDesktop Mac and display builds.
+
+If YouTube is unavailable or sign-in expires, verify the event in Live Control Room. You can continue using the OBS controls. Choose **Disconnect** to remove the saved Google connection from the Mac.
+
 ## Website cards {#open-a-website}
 
 To add a tile for a web address, see [Open Websites on Your Mac](/mac-controls/websites).

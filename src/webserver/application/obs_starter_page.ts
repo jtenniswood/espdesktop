@@ -3,7 +3,7 @@ import type { CardConfig } from "../contracts/types";
 import type { NativePanelConfigController } from "../controllers/native_panel_config_controller";
 import { emptyCardConfig, isEmptyCardConfig, OBS_FADER_PREFIX } from "../model/card";
 import { companionCardDefaultIcon } from "../model/companion_card";
-import { OBS_BRB_ID, OBS_REPLAY_BUFFER_ID, OBS_REPLAY_ID, OBS_STUDIO_ID, OBS_TAKE_ID, OBS_TRANSITION_ID, obsInputName, savedOBSSceneTarget } from "../model/companion_card_codec";
+import { COMPANION_DEFAULT_BROWSER, companionUrlConfig, OBS_BRB_ID, OBS_CONNECTION_ID, YOUTUBE_STATUS_ID, OBS_REPLAY_BUFFER_ID, OBS_REPLAY_ID, OBS_STUDIO_ID, OBS_TAKE_ID, OBS_TRANSITION_ID, obsInputName, savedOBSSceneTarget } from "../model/companion_card_codec";
 import { parseGridOrder } from "../model/grid";
 import { childPageKey } from "../model/page_keys";
 import { FIRST_RUN_COMPLETE } from "./first_run_setup";
@@ -13,7 +13,7 @@ import type { ApplicationLayoutState } from "./application_context";
 import type { ControlsShellFeature } from "./controls_shell";
 
 type Geometry = Pick<ApplicationLayoutState, "numSlots" | "previewSlots" | "totalSlots" | "gridCols">;
-type Choices = { main: string; away: string; mic: string };
+type Choices = { main: string; away: string; mic: string; layout?: "grouped" | "youtube-live"; liveAction?: "take" | "save-replay" };
 type Controls = ReturnType<typeof obsStarterControls>;
 
 export function obsStarterControls(actions: readonly CompanionAction[]) {
@@ -59,6 +59,33 @@ export function pinOBSStarterPage(draft: NativeLayoutDraft, current: NativePanel
         ({ ...card("", icon, label, "subpage"), options: "subpage_connector=mac_companion" });
     const savePage = (key: number, cards: CardConfig[]) =>
         draft.writePage(key, { order: ["B", ...cards.map((_, index) => index + 1)].join(","), cards });
+    if (choices.layout === "youtube-live") {
+        const status = [card(OBS_CONNECTION_ID, "Monitor"), card(YOUTUBE_STATUS_ID, "Broadcast")];
+        const controls = [card(choices.main, companionCardDefaultIcon("obs"))];
+        if (choices.mic) controls.push(card(choices.mic, "Microphone"));
+        if (choices.away) controls.push(card(choices.away, companionCardDefaultIcon("obs")));
+        const canReplay = [...ids].some(id => id.startsWith(OBS_REPLAY_BUFFER_ID + "."));
+        const replay = choices.liveAction === "save-replay" && canReplay;
+        controls.push(card(replay ? OBS_REPLAY_ID : OBS_TAKE_ID, replay ? "History" : "Arrow Right"));
+        controls.push(card("obs.output.record", "Record"));
+        if ([...ids].some(id => id.startsWith("obs.brb.scene."))) {
+            controls.push(card(OBS_BRB_ID, companionCardDefaultIcon("obs_brb")));
+        }
+        const controlRoom = card(COMPANION_DEFAULT_BROWSER, "Web", "YouTube Studio");
+        controlRoom.sensor = companionUrlConfig("https://studio.youtube.com/");
+        const tools = [card("obs.output.stream", "Broadcast"), controlRoom,
+            replay ? card(OBS_REPLAY_BUFFER_ID, "Repeat")
+                : card(OBS_STUDIO_ID, companionCardDefaultIcon("obs_studio"))];
+        const visibleControls = controls.splice(0, Math.max(0, geometry.numSlots - status.length - 2));
+        // Compact grids keep the same essential controls and move overflow to the controls page.
+        draft.writeRootCard(slot, folder("YouTube Live", "Broadcast"));
+        savePage(slot, [...status, ...visibleControls, folder("Controls", "View Grid")]);
+        const controlsSlot = status.length + visibleControls.length + 1;
+        savePage(childPageKey(slot, controlsSlot), [...controls, ...tools].slice(0, geometry.numSlots - 1));
+        draft.writeSetting("button_order", order);
+        draft.writeSetting(FIRST_RUN_COMPLETE, "1");
+        return;
+    }
     const switching = [card(choices.main, companionCardDefaultIcon("obs"))];
     if (choices.away) switching.push(card(choices.away, companionCardDefaultIcon("obs")));
     switching.push(card(OBS_STUDIO_ID, companionCardDefaultIcon("obs_studio")), card(OBS_TAKE_ID, "Arrow Right"));
@@ -130,9 +157,25 @@ export function createOBSStarterPage(deps: {
             row.append(select);
             return { row, select };
         }
+        const layoutChoice = field("Layout", true);
+        layoutChoice.select.append(new Option("OBS Studio", "grouped"), new Option("YouTube Live", "youtube-live"));
         const main = field("Main scene", true);
         const away = field("Break scene");
         const mic = field("Microphone");
+        const liveAction = field("Live action", true);
+        const replayOption = new Option("Save Replay", "save-replay");
+        liveAction.select.append(new Option("Take Live", "take"), replayOption);
+        liveAction.row.hidden = true;
+        const layoutInfo = () => {
+            const youtube = layoutChoice.select.value === "youtube-live";
+            liveAction.row.hidden = !youtube;
+            const awayLabel = away.row.firstChild;
+            if (awayLabel) awayLabel.textContent = youtube ? "Second scene" : "Break scene";
+            status.textContent = youtube
+                ? "Adds a YouTube Live page with your scenes, mic and broadcast status."
+                : "Adds an OBS Studio folder on Home with Switching, Outputs and optional Audio controls.";
+        };
+        layoutChoice.select.onchange = layoutInfo;
         const cancel = document.createElement("button");
         cancel.type = "button";
         cancel.className = "sp-action-btn sp-cancel-btn";
@@ -144,7 +187,7 @@ export function createOBSStarterPage(deps: {
         const buttons = document.createElement("div");
         buttons.className = "sp-setup-actions";
         buttons.append(cancel, pin);
-        form.append(title, status, main.row, away.row, mic.row, buttons);
+        form.append(title, status, layoutChoice.row, main.row, away.row, mic.row, liveAction.row, buttons);
         dialog.append(form);
         document.body.append(dialog);
         dialog.addEventListener("close", () => { dialog.remove(); open = null; });
@@ -177,7 +220,11 @@ export function createOBSStarterPage(deps: {
                 select.value = value ?? "";
                 select.disabled = items.length === 0;
             }
-            status.textContent = "Adds an OBS Studio folder on Home with Switching, Outputs and optional Audio controls.";
+            layoutChoice.select.disabled = false;
+            liveAction.select.disabled = false;
+            const replayAvailable = actions.some(action => action.id.startsWith(OBS_REPLAY_BUFFER_ID + "."));
+            replayOption.disabled = !replayAvailable;
+            layoutInfo();
             pin.disabled = false;
         }).catch(() => { status.textContent = "Could not load OBS. Check Mac Companion and reopen setup."; });
 
@@ -192,7 +239,11 @@ export function createOBSStarterPage(deps: {
             try {
                 if (deps.shell.isConfigLocked() || await native.waitForDiscovery() !== true ||
                     native.writableNavigationDepth() < 2) throw new Error("Reconnect the display before pinning the page.");
-                const choices = { main: main.select.value, away: away.select.value, mic: mic.select.value };
+                const choices: Choices = {
+                    main: main.select.value, away: away.select.value, mic: mic.select.value,
+                    layout: layoutChoice.select.value === "youtube-live" ? "youtube-live" : "grouped",
+                    liveAction: liveAction.select.value === "save-replay" ? "save-replay" : "take",
+                };
                 const fresh = obsStarterControls(await catalogue.load(true));
                 const existing = await native.readSnapshot();
                 if (!existing?.layout) throw new Error("Could not read the current Home layout.");

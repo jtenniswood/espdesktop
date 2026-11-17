@@ -98,6 +98,7 @@ struct ApprovedFolder: Codable, Identifiable, Hashable {
 final class CompanionStore: NSObject, ObservableObject {
     let updater = CompanionUpdater()
     let obs: OBSConnection
+    let youtube: YouTubeConnection
     private var obsCatalogueObservation: AnyCancellable?
     private var obsAudioObservation: AnyCancellable?
     @Published var settingsRequestID: UUID?
@@ -186,6 +187,7 @@ final class CompanionStore: NSObject, ObservableObject {
             : (UserDefaults(suiteName: Self.preferencesSuite) ?? .standard))
         self.defaults = stableDefaults
         obs = OBSConnection(defaults: stableDefaults)
+        youtube = YouTubeConnection(defaults: stableDefaults)
         let savedDisplays = CompanionSavedDisplays(defaults: stableDefaults)
         self.savedDisplays = savedDisplays
         approvedApplicationIdentifiers = Set(
@@ -199,10 +201,15 @@ final class CompanionStore: NSObject, ObservableObject {
         super.init()
         if #available(macOS 14.2, *) { appVolumeController = AppVolumeController() }
         displays = records.map(makeDisplay)
-        obsCatalogueObservation = OBSConnection.displayCatalogues(from: obs.$state)
-            .sink { [weak self] actions in
-                self?.publishToConnectedDisplays { $0.publishCatalogue(obsActions: actions) }
-            }
+        let broadcastStatus = obs.$state.combineLatest(obs.$uploadWarning, OBSConnection.broadcastStatus)
+            .removeDuplicates()
+        obsCatalogueObservation = Publishers.CombineLatest3(
+            OBSConnection.displayCatalogues(from: obs.$state), broadcastStatus, youtube.$status.map(\.card)
+        )
+        .removeDuplicates(by: { $0.0 == $1.0 && $0.1 == $1.1 && $0.2 == $1.2 })
+        .sink { [weak self] actions, local, youtube in
+            self?.publishToConnectedDisplays { $0.publishCatalogue(obsActions: [local, youtube] + actions) }
+        }
         obsAudioObservation = obs.$state.map(OBSConnection.audioValues).removeDuplicates().sink { [weak self] values in
             self?.publishToConnectedDisplays { $0.publishOBSAudioValues(values) }
         }
@@ -943,7 +950,8 @@ final class CompanionStore: NSObject, ObservableObject {
     }
 
     func obsControlActions() -> [OBSConnection.CatalogueEntry] {
-        OBSConnection.controlCatalogue(obs.state)
+        [OBSConnection.broadcastStatus(obs.state, warning: obs.uploadWarning), youtube.status.card]
+            + OBSConnection.controlCatalogue(obs.state)
     }
 
     func performResultStatus(actionIdentifier: String,
