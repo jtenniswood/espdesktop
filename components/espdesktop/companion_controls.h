@@ -938,7 +938,7 @@ struct CompanionViewRegistry {
   std::vector<CompanionSliderRef> sliders;
   std::vector<CompanionMuteRef> mutes;
   std::string pending_focus_frame;
-  std::optional<uint32_t> scene_refresh_at;
+  uint32_t scene_refresh_at = 0;
 };
 
 inline CompanionViewRegistry &companion_view_registry() {
@@ -1452,9 +1452,9 @@ inline void companion_refresh_cards_if_requested() {
   auto &scene_refresh_at = view.scene_refresh_at;
   if (!full_refresh && !focus_refresh && !scene_refresh_at) return;
   const auto now = esphome::millis();
-  const bool scene_refresh = scene_refresh_at && static_cast<int32_t>(now - *scene_refresh_at) >= 0;
+  const bool scene_refresh = scene_refresh_at && static_cast<int32_t>(now - scene_refresh_at) >= 0;
   if (!full_refresh && !focus_refresh && !scene_refresh) return;
-  if (scene_refresh) scene_refresh_at.reset();
+  if (scene_refresh) scene_refresh_at = 0;
   auto &refs = view.cards;
   const auto snapshot = companion_runtime_snapshot();
   if (!full_refresh) {
@@ -1518,7 +1518,11 @@ inline void companion_refresh_cards_if_requested() {
     if (companion_obs_scene_card(it->action_id) && !scene_refresh) {
       // Scene selection still uses the current token. Paint the indicator in
       // a later UI pass, coalescing a burst without postponing it indefinitely.
-      if (!scene_refresh_at) scene_refresh_at = now + scene_refresh_delay_ms;
+      if (!scene_refresh_at) {
+        scene_refresh_at = now + scene_refresh_delay_ms;
+        // Zero means idle, including when millis wraps during the delay.
+        if (!scene_refresh_at) scene_refresh_at = 1;
+      }
     } else {
       companion_refresh_action_card(*it, snapshot);
     }
