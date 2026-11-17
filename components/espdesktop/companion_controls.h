@@ -679,6 +679,41 @@ inline bool companion_card_focus_allowed(const std::string &url_config) {
   return url_config.empty() || !companion_encoded_url(url_config).empty();
 }
 
+enum class IracingReadout : uint8_t { NONE, FUEL, LAP, PIT };
+
+inline IracingReadout companion_iracing_readout(std::string_view preset) {
+  if (preset == "com.iracing.simulator:3") return IracingReadout::FUEL;
+  if (preset == "com.iracing.simulator:0") return IracingReadout::LAP;
+  if (preset == "com.iracing.simulator:4") return IracingReadout::PIT;
+  return IracingReadout::NONE;
+}
+
+inline std::string companion_iracing_readout_text(IracingReadout readout,
+    const std::optional<IracingPanelTelemetry> &telemetry) {
+  if (!telemetry) return "--";
+  char text[40];
+  if (readout == IracingReadout::FUEL && telemetry->fuel_litres) {
+    snprintf(text, sizeof(text), "%.1f L", *telemetry->fuel_litres);
+    return text;
+  }
+  if (readout == IracingReadout::LAP && telemetry->lap) {
+    snprintf(text, sizeof(text), "%d", *telemetry->lap);
+    std::string label = std::string(espdesktop_i18n_key("iracing_lap")) + " " + text;
+    if (telemetry->delta_seconds) {
+      snprintf(text, sizeof(text), "%+.2f s", *telemetry->delta_seconds);
+      label += " · " + std::string(text);
+    }
+    return label;
+  }
+  if (readout == IracingReadout::PIT) {
+    if (telemetry->flag == IracingFlag::CHECKERED) return espdesktop_i18n_key("iracing_checkered_flag");
+    if (telemetry->flag == IracingFlag::YELLOW) return espdesktop_i18n_key("iracing_yellow_flag");
+    if (telemetry->on_pit_road.value_or(false)) return espdesktop_i18n_key("iracing_pit_road");
+    if (telemetry->on_pit_road || telemetry->flag) return "";
+  }
+  return "--";
+}
+
 #ifdef USE_LVGL
 struct CompanionCardRef {
   lv_obj_t *button = nullptr;
@@ -698,6 +733,8 @@ struct CompanionCardRef {
   bool focus_draw_seen = false;
   bool last_drawn_focus = false;
   std::string required_focus_id{};
+  IracingReadout iracing_readout{IracingReadout::NONE};
+  std::string iracing_label{};
 };
 
 struct CompanionSliderRef {
@@ -882,6 +919,8 @@ inline void companion_track_card(lv_obj_t *button, const std::string &action_id,
     if (existing->action_id != action_id || existing->url_config != url_config) {
       existing->resolved_default_label.clear();
       existing->required_focus_id.clear();
+      existing->iracing_readout = IracingReadout::NONE;
+      existing->iracing_label.clear();
     }
     existing->action_id = action_id;
     existing->url_config = url_config;
@@ -910,6 +949,27 @@ inline void companion_track_card(lv_obj_t *button, const std::string &action_id,
                   false, dynamic_default_label, resolved_default_label, show_focus});
   lv_obj_add_event_cb(button, companion_card_deleted, LV_EVENT_DELETE, nullptr);
   lv_obj_add_event_cb(button, companion_card_focus_drawn, LV_EVENT_DRAW_POST_END, nullptr);
+}
+
+inline void companion_apply_iracing_readout(const CompanionCardRef &ref,
+    const std::optional<IracingPanelTelemetry> &telemetry) {
+  if (ref.iracing_readout == IracingReadout::NONE || !ref.text_label || !lv_obj_is_valid(ref.text_label)) return;
+  const auto current = companion_iracing_readout_text(ref.iracing_readout, telemetry);
+  const auto label = current.empty() ? ref.iracing_label : ref.iracing_label + "\n" + current;
+  if (normalize_display_text(label) != lv_label_get_text(ref.text_label))
+    lv_label_set_display_text(ref.text_label, label.c_str());
+}
+
+inline void companion_track_iracing_readout(lv_obj_t *button, IracingReadout readout, const std::string &label) {
+  auto &refs = companion_card_refs();
+  const auto ref = std::find_if(refs.begin(), refs.end(), [button](const CompanionCardRef &item) {
+    return item.button == button;
+  });
+  if (ref == refs.end()) return;
+  ref->iracing_readout = readout;
+  ref->iracing_label = readout == IracingReadout::NONE ? "" : label;
+  if (readout != IracingReadout::NONE)
+    companion_apply_iracing_readout(*ref, companion_runtime_snapshot().iracing);
 }
 
 inline void companion_track_metric_card(lv_obj_t *button, lv_obj_t *value_label,
@@ -1020,6 +1080,7 @@ inline void companion_refresh_cards_if_requested() {
       if (normalize_display_text(label) != lv_label_get_text(it->text_label))
         lv_label_set_display_text(it->text_label, label.c_str());
     }
+    companion_apply_iracing_readout(*it, snapshot.iracing);
     const bool action_available = it->url_config.empty()
       ? companion_action_available(snapshot, it->action_id)
       : companion_url_available(it->action_id, it->url_config);
@@ -1058,6 +1119,7 @@ inline void companion_refresh_cards_if_requested() {
 #else
 inline void companion_track_card(void *, const std::string &, const std::string & = "",
                                  void * = nullptr, bool = false, bool = true) {}
+inline void companion_track_iracing_readout(void *, IracingReadout, const std::string &) {}
 inline void companion_track_metric_card(void *, void *, void *, const std::string &,
                                         const std::string &, int) {}
 inline void companion_apply_card_focus(void *, const std::string &, const std::string & = "", bool = true) {}

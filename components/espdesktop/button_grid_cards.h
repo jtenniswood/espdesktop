@@ -529,6 +529,12 @@ inline void setup_companion_card(BtnSlot &s, const ParsedCfg &p,
 #endif
   }
   companion_track_card(s.btn, p.entity, p.sensor, s.text_lbl, p.label.empty());
+  const auto readout = companion_iracing_readout(cfg_option_value(p.options, "app_shortcut_preset"));
+  if (readout != IracingReadout::NONE) {
+    lv_label_set_long_mode(s.text_lbl, LV_LABEL_LONG_WRAP);
+    lv_obj_set_width(s.text_lbl, lv_pct(100));
+  }
+  companion_track_iracing_readout(s.btn, readout, label);
   set_card_disabled_state(s.btn, !available);
   if (companion_app_launch_card(p)) {
     apply_instant_button_feedback(s.btn);

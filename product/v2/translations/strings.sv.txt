@@ -343,3 +343,7 @@ mic=Mikrofon
 mute=Tysta
 mac_update_required=Uppdatera Mac-appen
 mac_update_reconnect=Uppdatera EspDesktop på din Mac för att ansluta igen.
+iracing_lap=Varv
+iracing_pit_road=Depåfil
+iracing_yellow_flag=Gul flagga
+iracing_checkered_flag=Rutig flagga

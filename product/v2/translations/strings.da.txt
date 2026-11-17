@@ -343,3 +343,7 @@ mic=Mikrofon
 mute=Slå lyd fra
 mac_update_required=Opdater Mac-appen
 mac_update_reconnect=Opdater EspDesktop på din Mac for at oprette forbindelse igen.
+iracing_lap=Omgang
+iracing_pit_road=Pitlane
+iracing_yellow_flag=Gult flag
+iracing_checkered_flag=Ternet flag

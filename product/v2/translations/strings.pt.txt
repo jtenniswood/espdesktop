@@ -343,3 +343,7 @@ mic=Microfone
 mute=Silenciar
 mac_update_required=Atualizar a app para Mac
 mac_update_reconnect=Atualize o EspDesktop no Mac para voltar a ligar.
+iracing_lap=Volta
+iracing_pit_road=Via das boxes
+iracing_yellow_flag=Bandeira amarela
+iracing_checkered_flag=Bandeira de xadrez

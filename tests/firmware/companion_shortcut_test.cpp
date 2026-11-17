@@ -60,6 +60,28 @@ static void assert_finder_folder_projection() {
 
 int main() {
   assert_finder_folder_projection();
+  {
+    CompanionRuntimeService runtime;
+    runtime.set_connected(true);
+    IracingPanelTelemetry frame;
+    frame.fuel_litres = 0;
+    frame.lap = 4;
+    frame.delta_seconds = -0.42f;
+    frame.on_pit_road = true;
+    frame.flag = IracingFlag::YELLOW;
+    runtime.set_iracing_telemetry(frame, 10);
+    assert(companion_iracing_readout("com.iracing.simulator:3") == IracingReadout::FUEL);
+    assert(companion_iracing_readout("com.iracing.simulator:2") == IracingReadout::NONE);
+    assert(companion_iracing_readout_text(IracingReadout::FUEL, runtime.snapshot().iracing) == "0.0 L");
+    assert(companion_iracing_readout_text(IracingReadout::LAP, runtime.snapshot().iracing).find("-0.42") != std::string::npos);
+    assert(!runtime.expire_iracing_telemetry(2009));
+    assert(runtime.expire_iracing_telemetry(2010));
+    assert(companion_iracing_readout_text(IracingReadout::FUEL, runtime.snapshot().iracing) == "--");
+    runtime.set_iracing_telemetry(frame, 2020);
+    runtime.set_connected(false);
+    assert(!runtime.snapshot().iracing);
+  }
+
   const auto mac_lock = normalize_parsed_cfg(
       ParsedCfg{"shortcut.command+a", "", "", "", "url.invalid", "%", "companion_mac_lock", "1", ""});
   assert(mac_lock.entity == "shortcut.command+control+q" && mac_lock.sensor.empty());

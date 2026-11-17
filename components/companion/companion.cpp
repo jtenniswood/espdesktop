@@ -179,6 +179,7 @@ void CompanionService::setup() {
 
 void CompanionService::loop() {
   companion_expire_action_results(millis());
+  companion_runtime_service().expire_iracing_telemetry(millis());
   const auto focus_targets = companion_runtime_service().focus_targets_state();
   if (focus_targets.connected && this->focus_targets_supported_.load() &&
       focus_targets.generation != this->focus_targets_generation_.load())
@@ -609,6 +610,7 @@ void CompanionService::handle_json_(int socket_fd, const std::string &message) {
       bool app_icons_alpha_supported = false;
       bool app_icons_high_resolution_supported = false;
       bool focus_targets_supported = false;
+      bool iracing_telemetry_supported = false;
       for (const auto &capability : payload->values) {
         if (capability == COMPANION_APP_ICONS_CAPABILITY) {
           app_icons_supported = true;
@@ -622,10 +624,13 @@ void CompanionService::handle_json_(int socket_fd, const std::string &message) {
         } else if (capability == "keyboard_shortcuts_unavailable") {
           keyboard_actions = false;
           keyboard_actions_capability_received = true;
+        } else if (capability == "iracing_telemetry") {
+          iracing_telemetry_supported = true;
         } else if (capability == "url_card_focus") {
           focus_targets_supported = true;
         }
       }
+      this->iracing_telemetry_supported_.store(iracing_telemetry_supported);
       this->app_icons_supported_.store(app_icons_supported && app_icons_alpha_supported &&
                                        app_icons_high_resolution_supported);
       std::vector<std::string> configured_icons;
@@ -878,6 +883,27 @@ void CompanionService::handle_json_(int socket_fd, const std::string &message) {
       return true;
     }
 
+    if (const auto *payload = std::get_if<companion_protocol::IracingTelemetry>(&*decoded)) {
+      if (!this->iracing_telemetry_supported_.load()) return false;
+      std::optional<IracingPanelTelemetry> snapshot;
+      if (payload->available) {
+        snapshot.emplace();
+        if (payload->fuelLitres) snapshot->fuel_litres = static_cast<float>(*payload->fuelLitres);
+        if (payload->lap) snapshot->lap = *payload->lap;
+        if (payload->deltaSeconds) snapshot->delta_seconds = static_cast<float>(*payload->deltaSeconds);
+        snapshot->on_pit_road = payload->onPitRoad;
+        if (payload->flag) {
+          snapshot->flag = *payload->flag == "yellow" ? IracingFlag::YELLOW :
+              (*payload->flag == "checkered" ? IracingFlag::CHECKERED : IracingFlag::NONE);
+        }
+      }
+      const auto received_at = millis();
+      this->defer_session_([snapshot, received_at]() {
+        companion_runtime_service().set_iracing_telemetry(snapshot, received_at);
+      }, "iracing_telemetry");
+      return true;
+    }
+
     const uint32_t generation = root["generation"] | 0;
     if (generation == 0) return false;
 
@@ -1054,6 +1080,7 @@ void CompanionService::set_connected_(bool connected, int closing_socket) {
       this->session_.disconnect();
     }
   }
+  this->iracing_telemetry_supported_.store(false);
   if (connected) {
     this->focus_targets_generation_ = 0xFFFFFFFFu;
     this->focus_targets_supported_ = false;

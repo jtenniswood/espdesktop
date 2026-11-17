@@ -1,5 +1,7 @@
 using EspDesktop.Windows;
 using System.Text.Json;
+using System.IO.MemoryMappedFiles;
+using System.Text;
 
 static void Check(bool value, string message)
 {
@@ -39,3 +41,64 @@ foreach (var invalid in new[] { "example.org", "8.8.8.8", "panel.local@10.0.0.5"
 }
 
 Console.WriteLine("iRacing profile, shortcuts and local endpoints passed.");
+
+const int header = 112, fieldSize = 144, row = 2048, rowSize = 64;
+using var fixture = MemoryMappedFile.CreateNew(null, 4096);
+using var view = fixture.CreateViewAccessor();
+var fields = new (string Name, int Type, int Offset)[]
+{
+    ("IsOnTrack", 1, 0), ("IsReplayPlaying", 1, 1), ("FuelLevel", 4, 4), ("Lap", 2, 8),
+    ("LapDeltaToSessionBestLap", 4, 12), ("LapDeltaToSessionBestLap_OK", 1, 16),
+    ("SessionNum", 2, 20), ("OnPitRoad", 1, 24), ("SessionFlags", 3, 28),
+};
+
+view.Write(0, 2);
+view.Write(4, 1);
+view.Write(24, fields.Length);
+view.Write(28, header);
+view.Write(32, 2);
+view.Write(36, rowSize);
+view.Write(48, 5);
+view.Write(52, row);
+view.Write(64, 4);
+view.Write(68, row + rowSize);
+for (var index = 0; index < fields.Length; index++)
+{
+    var entry = header + index * fieldSize;
+    var field = fields[index];
+    view.Write(entry, field.Type);
+    view.Write(entry + 4, field.Offset);
+    view.Write(entry + 8, 1);
+    var name = Encoding.ASCII.GetBytes(field.Name);
+    view.WriteArray(entry + 16, name, 0, name.Length);
+}
+view.Write(row, (byte)1);
+view.Write(row + 4, 23.4F);
+view.Write(row + 8, 4);
+view.Write(row + 12, -0.42F);
+view.Write(row + 16, (byte)1);
+view.Write(row + 20, 2);
+view.Write(row + 24, (byte)1);
+view.Write(row + 28, 0x08);
+
+var reader = new IracingTelemetryReader(view);
+Check(reader.TryRead(out var first) && first is { FuelLitres: 23.4F, Lap: 4, OnPitRoad: true, Flag: "yellow", DeltaSeconds: null },
+    "The newest buffer should supply live readings, and the first frame should withhold delta.");
+Check(!reader.TryRead(out _), "An unchanged tick should not count as a new sample.");
+view.Write(48, 6);
+view.Write(row + 4, 0F);
+view.Write(row + 28, 0x01);
+Check(reader.TryRead(out var next) && next is { FuelLitres: 0F, DeltaSeconds: -0.42F, Flag: "checkered" },
+    "The next frame should accept zero fuel and a valid signed delta.");
+view.Write(48, 7);
+view.Write(row + 20, 3);
+Check(reader.TryRead(out var changed) && changed is { DeltaSeconds: null }, "A new session should reset the delta.");
+view.Write(48, 8);
+view.Write(row + 1, (byte)1);
+Check(reader.TryRead(out var replay) && replay is null, "Replay should clear live readings.");
+view.Write(48, 9);
+view.Write(52, 4090);
+Check(!reader.TryRead(out _), "A buffer outside shared memory must be rejected.");
+view.Write(4, 0);
+Check(!reader.Connected, "The reader should recognise a stopped session.");
+Console.WriteLine("Synthetic iRacing shared-memory telemetry passed.");

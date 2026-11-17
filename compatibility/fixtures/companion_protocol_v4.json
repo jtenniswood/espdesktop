@@ -1431,5 +1431,56 @@
     "direction": "mac_to_panel",
     "state": "connected",
     "valid": true
+  },
+  {
+    "name": "iRacing telemetry frame",
+    "message": {
+      "protocol": 4,
+      "type": "iracing.telemetry",
+      "available": true,
+      "fuelLitres": 0,
+      "lap": 4,
+      "deltaSeconds": -0.42,
+      "onPitRoad": true,
+      "flag": "yellow"
+    },
+    "direction": "mac_to_panel",
+    "state": "connected",
+    "valid": true
+  },
+  {
+    "name": "iRacing telemetry unavailable",
+    "message": {
+      "protocol": 4,
+      "type": "iracing.telemetry",
+      "available": false
+    },
+    "direction": "mac_to_panel",
+    "state": "connected",
+    "valid": true
+  },
+  {
+    "name": "iRacing telemetry with invalid fuel",
+    "message": {
+      "protocol": 4,
+      "type": "iracing.telemetry",
+      "available": true,
+      "fuelLitres": -1
+    },
+    "direction": "mac_to_panel",
+    "state": "connected",
+    "valid": false
+  },
+  {
+    "name": "iRacing telemetry before authentication",
+    "message": {
+      "protocol": 4,
+      "type": "iracing.telemetry",
+      "available": true,
+      "fuelLitres": 23.4
+    },
+    "direction": "mac_to_panel",
+    "state": "authenticating",
+    "valid": false
   }
 ]

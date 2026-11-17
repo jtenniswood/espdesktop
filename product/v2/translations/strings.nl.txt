@@ -343,3 +343,7 @@ mic=Microfoon
 mute=Dempen
 mac_update_required=Update de Mac-app
 mac_update_reconnect=Werk EspDesktop op je Mac bij om opnieuw verbinding te maken.
+iracing_lap=Ronde
+iracing_pit_road=Pitstraat
+iracing_yellow_flag=Gele vlag
+iracing_checkered_flag=Geblokte vlag

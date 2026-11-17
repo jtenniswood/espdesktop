@@ -343,3 +343,7 @@ mic=Mikro
 mute=Stumm
 mac_update_required=Mac-App aktualisieren
 mac_update_reconnect=Aktualisiere EspDesktop auf deinem Mac, um die Verbindung wiederherzustellen.
+iracing_lap=Runde
+iracing_pit_road=Boxengasse
+iracing_yellow_flag=Gelbe Flagge
+iracing_checkered_flag=Zielflagge

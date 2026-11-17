@@ -9,6 +9,7 @@
   <ItemGroup>
     <Compile Include="../EspDesktop/CompanionClient.cs" Link="CompanionClient.cs" />
     <Compile Include="../EspDesktop/SimulatorInput.cs" Link="SimulatorInput.cs" />
+    <Compile Include="../EspDesktop/IracingTelemetry.cs" Link="IracingTelemetry.cs" />
     <EmbeddedResource Include="../EspDesktop/iracing.json" Link="iracing.json" />
   </ItemGroup>
 </Project>

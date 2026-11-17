@@ -344,3 +344,7 @@ mic=Mic
 mute=Mute
 mac_update_required=Update Mac app
 mac_update_reconnect=Update EspDesktop on your Mac to reconnect.
+iracing_lap=Lap
+iracing_pit_road=Pit road
+iracing_yellow_flag=Yellow flag
+iracing_checkered_flag=Chequered flag
