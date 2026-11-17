@@ -106,7 +106,31 @@ struct CompanionRuntimeSnapshot {
   uint32_t url_focus_targets_generation{0};
   bool application_highlight_known{false};
   std::string application_highlight_id;
+  std::string streamlabs_scene_id;
+  bool streamlabs_recording{false};
 };
+
+inline constexpr auto COMPANION_STREAMLABS_SCENE_PREFIX = "streamlabs.scene.";
+inline constexpr auto COMPANION_STREAMLABS_RECORDING = "streamlabs.recording";
+
+inline const char *companion_streamlabs_recording_request(const CompanionRuntimeSnapshot &snapshot) {
+  return snapshot.streamlabs_recording ? "streamlabs.recording.stop" : "streamlabs.recording.start";
+}
+
+inline bool companion_streamlabs_scene_id_valid(const std::string &id) {
+  constexpr size_t prefix_size = std::char_traits<char>::length(COMPANION_STREAMLABS_SCENE_PREFIX);
+  return id.size() == prefix_size + 32 && id.rfind(COMPANION_STREAMLABS_SCENE_PREFIX, 0) == 0 &&
+      std::all_of(id.begin() + prefix_size, id.end(), [](char ch) {
+        return (ch >= '0' && ch <= '9') || (ch >= 'a' && ch <= 'f');
+      });
+}
+
+inline bool companion_streamlabs_action_active(const CompanionRuntimeSnapshot &snapshot,
+                                               const std::string &id) {
+  if (!snapshot.connected) return false;
+  if (id == COMPANION_STREAMLABS_RECORDING) return snapshot.streamlabs_recording;
+  return companion_streamlabs_scene_id_valid(id) && snapshot.streamlabs_scene_id == id;
+}
 
 inline std::string companion_network_address(const CompanionRuntimeSnapshot &snapshot,
                                               const std::string &key) {
@@ -227,7 +251,8 @@ class CompanionRuntimeService {
     std::lock_guard<std::mutex> lock(mutex_);
     return {actions_, values_, focused_action_id_, focused_action_ids_, keyboard_actions_supported_,
             connected_, system_metrics_, url_focus_targets_,
-            url_focus_targets_generation_, application_highlight_known_, application_highlight_id_};
+            url_focus_targets_generation_, application_highlight_known_, application_highlight_id_,
+            streamlabs_scene_id_, streamlabs_recording_};
   }
 
   std::string highlighted_application() const {
@@ -412,6 +437,14 @@ class CompanionRuntimeService {
     return true;
   }
 
+  void set_streamlabs_state(std::string scene_id, bool recording) {
+    std::lock_guard<std::mutex> lock(mutex_);
+    if (!connected_ || (streamlabs_scene_id_ == scene_id && streamlabs_recording_ == recording)) return;
+    streamlabs_scene_id_ = std::move(scene_id);
+    streamlabs_recording_ = recording;
+    request_refresh_();
+  }
+
   bool mac_update_required() const { return mac_update_required_.load(); }
   void set_mac_update_required(bool required) { mac_update_required_.store(required); }
 
@@ -428,6 +461,8 @@ class CompanionRuntimeService {
       focused_action_ids_.clear();
       application_highlight_known_ = false;
       application_highlight_id_.clear();
+      streamlabs_scene_id_.clear();
+      streamlabs_recording_ = false;
       focused_auto_subpage_id_.clear();
       pending_auto_subpage_action_id_.clear();
       closed_app_subpage_action_id_.clear();
@@ -451,6 +486,8 @@ class CompanionRuntimeService {
   uint32_t action_catalogue_generation_{0};
   bool application_highlight_known_{false};
   std::string application_highlight_id_;
+  std::string streamlabs_scene_id_;
+  bool streamlabs_recording_{false};
   std::vector<CompanionRemoteDefinition> remote_definitions_;
   std::vector<CompanionURLFocusTarget> url_focus_targets_;
   uint32_t url_focus_targets_generation_{0};

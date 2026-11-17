@@ -4310,6 +4310,78 @@ async function assertMacLockCard(browser) {
   }
 }
 
+async function assertStreamlabsCards(browser) {
+  const testCase = CASES.find(item => item.slug === "guition-esp32-s3-4848s040");
+  const fixture = nativeConfigState(testCase.slug);
+  fixture.document.buttons = {};
+  fixture.document.subpages = {};
+  fixture.document.settings = { button_order: "", web_onboarding_complete: "1" };
+  const scene = { id: "streamlabs.scene." + "a".repeat(32), label: "Studio" };
+  const recording = { id: "streamlabs.recording", label: "Recording" };
+  let streamlabsOnline = true;
+  const context = await browser.newContext({ viewport: testCase.viewport });
+  await installRoutes(context, testCase.slug, { nativeState: fixture, nativeV2: true,
+    connectorsStatus: { onboarding_complete: true, mac_companion: {
+      available: true, configured: true, paired: true, connected: true,
+    } } });
+  await context.route("**/companion/actions", route => route.fulfill({
+    json: streamlabsOnline ? [scene, recording, { id: "com.apple.Safari", label: "Safari" }] : [],
+  }));
+  const page = await context.newPage();
+  await installFakeEventSource(page);
+  const grid = page.locator(".sp-main");
+  const chooseCard = async label => {
+    await grid.locator(".sp-empty-cell").first().click();
+    await page.getByRole("button", { name: label + " card type", exact: true }).click();
+  };
+  const loadEditor = async () => {
+    await page.goto("http://espdesktop.test/" + testCase.slug + "?events=1");
+    await page.waitForFunction(() => window.__eventSources?.length > 0);
+    await page.getByRole("tab", { name: "Layout", exact: true }).click();
+    await page.evaluate(events => window.__seedEspState(events), nativeDocumentEvents(fixture.document));
+    await page.locator('.sp-main[aria-disabled="false"]').waitFor();
+  };
+  try {
+    await loadEditor();
+    await chooseCard("Streamlabs Scene");
+    const select = page.getByRole("combobox", { name: "Scene", exact: true });
+    await select.selectOption(scene.id);
+    await page.getByRole("button", { name: "Save", exact: true }).click();
+    await waitForNativeState(fixture, () => Object.keys(fixture.document.buttons).length === 1,
+      "save the selected Streamlabs scene");
+    assert.deepEqual(Object.values(fixture.document.buttons).map(raw => {
+      const card = parseRawButtonConfig(raw);
+      return [card.entity, card.label, card.type];
+    }), [[scene.id, "Studio", "companion"]]);
+    await chooseCard("Streamlabs Recording");
+    await page.getByRole("button", { name: "Save", exact: true }).click();
+    await waitForNativeState(fixture, () => Object.keys(fixture.document.buttons).length === 2,
+      "save the Streamlabs recording card");
+    const recordingCard = Object.values(fixture.document.buttons).map(parseRawButtonConfig)
+      .find(card => card.entity === recording.id);
+    assert.equal(recordingCard?.label, "Recording");
+    assert.equal(recordingCard?.type, "companion");
+
+    streamlabsOnline = false;
+    await loadEditor();
+    await grid.locator('[data-slot="1"]').click();
+    await page.getByRole("button", { name: "Edit", exact: true }).click();
+    await select.locator("option").filter({ hasText: "Studio" }).waitFor({ state: "attached" });
+    assert.equal(await select.inputValue(), scene.id);
+    const label = page.locator("#sp-inp-label");
+    if (!await label.isVisible()) {
+      await page.getByRole("button", { name: "Card Settings", exact: true }).click();
+    }
+    await label.fill("Studio scene");
+    await page.getByRole("button", { name: "Save", exact: true }).click();
+    await waitForNativeState(fixture, () => parseRawButtonConfig(fixture.document.buttons[1]).label === "Studio scene",
+      "save scene label while Streamlabs is offline");
+    assert.equal(parseRawButtonConfig(fixture.document.buttons[1]).entity, scene.id,
+      "offline save keeps the selected scene");
+    console.log("Streamlabs scene and recording setup and offline editing passed.");
+  } finally { await context.close(); }
+}
+
 async function assertShortcutCatalogSettings(browser, testCase) {
   if (testCase.slug !== "guition-esp32-s3-4848s040") return;
   const nativeState = nativeConfigState(testCase.slug);
@@ -7790,6 +7862,10 @@ async function assertFirstRunSetup(browser) {
       await assertFirstRunSetup(browser);
       return;
     }
+    if (process.env.ESPDESKTOP_STREAMLABS_ONLY === "1") {
+      await assertStreamlabsCards(browser);
+      return;
+    }
     if (process.env.ESPDESKTOP_MAC_LOCK_ONLY === "1") {
       await assertMacLockCard(browser);
       return;
@@ -7801,6 +7877,7 @@ async function assertFirstRunSetup(browser) {
     await assertRetiredCardRemoval(browser);
     if (process.env.ESPDESKTOP_RETIRED_CARDS_ONLY === "1") return;
     await assertMacLockCard(browser);
+    await assertStreamlabsCards(browser);
     if (process.env.ESPDESKTOP_RETIRED_SETTINGS_ONLY === "1") {
       for (const testCase of ACTIVE_CASES) await assertRetiredSettingsStayUnavailable(browser, testCase);
       await assertNamingOfflineBackups(browser);

@@ -1,5 +1,5 @@
 {
-  "version": 9,
+  "version": 10,
   "protocol": {
     "version": 4,
     "path": "/companion/v4",
@@ -339,6 +339,24 @@
               "value"
             ]
           }
+        ]
+      },
+      {
+        "id": "streamlabs.state",
+        "direction": "mac_to_panel",
+        "authorization": "session",
+        "fields": {
+          "activeSceneId": {
+            "type": "string",
+            "minLength": 0,
+            "maxLength": 96
+          },
+          "recording": {
+            "type": "boolean"
+          }
+        },
+        "states": [
+          "connected"
         ]
       },
       {
@@ -1003,6 +1021,18 @@
       "label": "Open folder",
       "capability": "folders",
       "defaultIcon": "Folder Outline"
+    },
+    {
+      "id": "streamlabs_scene",
+      "label": "Streamlabs Scene",
+      "capability": "streamlabs",
+      "defaultIcon": "Video"
+    },
+    {
+      "id": "streamlabs_recording",
+      "label": "Streamlabs Recording",
+      "capability": "streamlabs",
+      "defaultIcon": "Record"
     },
     {
       "id": "stats",

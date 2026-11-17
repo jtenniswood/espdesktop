@@ -32,6 +32,7 @@ protocol CompanionSessionResources: AnyObject {
     func immediateFocusedApplicationIdentifier() -> String?
     func focusedCompanionActionIdentifiers(for targets: [(id: String, url: URL)]) async -> [String]
     func remoteCompanionCatalogues() -> RemoteCompanionCatalogues
+    func streamlabsSnapshot() -> StreamlabsSnapshot
     func performResultStatus(actionIdentifier: String, folderOpenBehavior: String, shortcutAppID: String?) async -> String
     func openURL(encodedURL: String, newWindow: Bool) async -> Bool
     func setMediaControlValue(_ value: Int, controlIdentifier: String) -> Bool
@@ -64,6 +65,7 @@ extension CompanionSessionResources {
     func immediateFocusedApplicationIdentifier() -> String? { nil }
     var applicationCatalogueReady: Bool { true }
     func remoteCompanionCatalogues() -> RemoteCompanionCatalogues { .empty }
+    func streamlabsSnapshot() -> StreamlabsSnapshot { StreamlabsSnapshot() }
     func focusedCompanionActionIdentifiers(for targets: [(id: String, url: URL)]) async -> [String] {
         let identifier = await focusedCompanionActionIdentifier()
         return identifier.isEmpty ? [] : [identifier]

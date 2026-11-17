@@ -86,6 +86,10 @@ struct ValueState {
   bool available{};
   std::optional<uint32_t> value{};
 };
+struct StreamlabsState {
+  std::string activeSceneId{};
+  bool recording{};
+};
 struct FocusChanged {
   std::optional<bool> applicationOnly{};
   std::string actionId{};
@@ -292,6 +296,12 @@ inline void encode(JsonObject root, const ValueState &message) {
   root["available"] = message.available;
   if (message.value) root["value"] = *message.value;
 }
+inline void encode(JsonObject root, const StreamlabsState &message) {
+  root["type"] = "streamlabs.state";
+  root["protocol"] = COMPANION_PROTOCOL_VERSION;
+  root["activeSceneId"] = message.activeSceneId;
+  root["recording"] = message.recording;
+}
 inline void encode(JsonObject root, const FocusChanged &message) {
   root["type"] = "focus.changed";
   root["protocol"] = COMPANION_PROTOCOL_VERSION;
@@ -474,7 +484,7 @@ inline void encode(JsonObject root, const PairReset &message) {
   root["protocol"] = COMPANION_PROTOCOL_VERSION;
   (void) message;
 }
-using Message = std::variant<Hello, PairRequest, PairAccepted, AuthRequest, AuthAccepted, Capabilities, CatalogueRequest, CataloguePage, ActionInvoke, ActionResult, ValueSet, ValueState, FocusChanged, TimezoneChanged, NowPlaying, SystemMetrics, ArtworkBegin, ArtworkAck, ArtworkEnd, ArtworkAbort, ArtworkRequest, AppIconRequest, AppIconBegin, AppIconUnchanged, AppIconUnavailable, AppIconAck, AppIconEnd, AppIconAbort, Error, CatalogueDefinitionsPage, FocusTargets, SessionLock, PairReset>;
+using Message = std::variant<Hello, PairRequest, PairAccepted, AuthRequest, AuthAccepted, Capabilities, CatalogueRequest, CataloguePage, ActionInvoke, ActionResult, ValueSet, ValueState, StreamlabsState, FocusChanged, TimezoneChanged, NowPlaying, SystemMetrics, ArtworkBegin, ArtworkAck, ArtworkEnd, ArtworkAbort, ArtworkRequest, AppIconRequest, AppIconBegin, AppIconUnchanged, AppIconUnavailable, AppIconAck, AppIconEnd, AppIconAbort, Error, CatalogueDefinitionsPage, FocusTargets, SessionLock, PairReset>;
 inline std::optional<Message> decode(JsonObjectConst root, Direction direction, SessionState state) {
   if (!number_valid(root["protocol"], COMPANION_PROTOCOL_VERSION, COMPANION_PROTOCOL_VERSION, true) || !root["type"].is<const char *>()) return std::nullopt;
   const std::string type = root["type"].as<std::string>();
@@ -679,6 +689,20 @@ inline std::optional<Message> decode(JsonObjectConst root, Direction direction, 
     result.controlId = root["controlId"].as<std::string>();
     result.available = root["available"].as<bool>();
     if (!root["value"].isUnbound()) result.value = root["value"].as<uint32_t>();
+    return result;
+  }
+  if (type == "streamlabs.state") {
+    if (direction != Direction::MAC_TO_PANEL) return std::nullopt;
+    if (!(state == SessionState::CONNECTED)) return std::nullopt;
+    {
+      if (!(string_valid(root["activeSceneId"], 0, 96))) return std::nullopt;
+    }
+    {
+      if (!(root["recording"].is<bool>())) return std::nullopt;
+    }
+    StreamlabsState result;
+    result.activeSceneId = root["activeSceneId"].as<std::string>();
+    result.recording = root["recording"].as<bool>();
     return result;
   }
   if (type == "focus.changed") {

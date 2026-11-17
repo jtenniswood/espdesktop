@@ -1431,5 +1431,29 @@
     "direction": "mac_to_panel",
     "state": "connected",
     "valid": true
+  },
+  {
+    "name": "confirmed Streamlabs scene and recording",
+    "message": {
+      "protocol": 4,
+      "type": "streamlabs.state",
+      "activeSceneId": "streamlabs.scene.aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "recording": true
+    },
+    "direction": "mac_to_panel",
+    "state": "connected",
+    "valid": true
+  },
+  {
+    "name": "Streamlabs state requires an authenticated session",
+    "message": {
+      "protocol": 4,
+      "type": "streamlabs.state",
+      "activeSceneId": "streamlabs.scene.aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "recording": true
+    },
+    "direction": "mac_to_panel",
+    "state": "authenticating",
+    "valid": false
   }
 ]
