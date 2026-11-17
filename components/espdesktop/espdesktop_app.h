@@ -174,7 +174,7 @@ class EspDesktopApp : public esphome::Component {
   class NativeConfigurationRuntime;
 
   void register_panel_config_endpoints();
-  void sync_finder_folders();
+  void sync_generated_subpages();
   void initialize_native_configuration();
   void defer_native_configuration_initialization();
   void apply_boot_configuration();

@@ -1,3 +1,6 @@
+import type { CardConfig } from "../contracts/types";
+import type { SettingsDraft } from "../state/types";
+import { generatedCardElements } from "../model/generated_page_cards";
 import { cardTransferOwnsSubpage } from "../model/card_transfer";
 import { state } from "../state/app_instance";
 import type { NativePageTransfersFeature } from "./native_page_transfers";
@@ -47,6 +50,7 @@ export interface PreviewInteractionsFeature {
     deleteSlot(slot?: any): void;
     deleteButtons(slots?: any): void;
     emptyButtonConfig(): any;
+    saveGeneratedDraft(draft: SettingsDraft): Promise<boolean>;
 }
 
 export function createPreviewInteractionsFeature(
@@ -63,7 +67,7 @@ export function createPreviewInteractionsFeature(
     const { hideSettingsOverlay, selectClockBarItem } = dependencies.selection;
     const { findDuplicatePlacement, getCellFromEvent, planMove, applyMove, placeSlotAt } = dependencies.placement;
     const { renderPreview, renderButtonSettings } = dependencies;
-    const { showClockBar, showEmpty, showCard, showBack } = dependencies.contextMenu;
+    const { showClockBar, showEmpty, showCard, showBack, showGenerated } = dependencies.contextMenu;
     const els = runtime.els;
     const {
         isImageCard,
@@ -93,6 +97,56 @@ export function createPreviewInteractionsFeature(
         saveSubpageConfig,
         subpageFirstFreeSlot,
     } = dependencies.codec;
+    function generatedPlan(container: HTMLElement, positions: readonly number[]) {
+        const c = ctx();
+        const grid: number[] = c.grid.slice();
+        const edits = new Map<number, CardConfig>();
+        const sizes = { ...c.sizes };
+        for (const pos of new Set(positions)) {
+            const element = container.querySelector<HTMLElement>(`[data-pos="${pos}"]`);
+            const generated = element && generatedCardElements.get(element);
+            if (grid[pos] !== 0 || !generated) continue;
+            const slot = c.buttons.length + edits.size + 1;
+            edits.set(slot, generated.card);
+            if (generated.size > 1) sizes[slot] = generated.size;
+            placeSlotAt(grid, slot, pos, generated.size);
+        }
+        return { grid, edits, sizes, maxSlotId: c.buttons.length + edits.size };
+    }
+
+    function selectGenerated(pos: number, card: CardConfig, size: number, edit: boolean) {
+        const homeSlot = state.editingSubpage;
+        if (!homeSlot || !dependencies.nativeTransfers?.available()) return;
+        state.clockBarSelectedItem = "";
+        hideSettingsOverlay();
+        const c = ctx();
+        const slot = c.buttons.length + 1;
+        const draft = cardEditorDraftController.newDraft({ slot, homeSlot, isSub: true, pos });
+        draft.button = { ...card };
+        draft.typeSelected = true;
+        draft.generated = { id: card.entity, size };
+        state.settingsDraft = draft;
+        c.setSelected([slot]);
+        c.setLastClicked(-1);
+        renderPreview();
+        if (edit) renderButtonSettings(true);
+    }
+
+    async function saveGeneratedDraft(draft: SettingsDraft): Promise<boolean> {
+        const c = ctx();
+        const position = draft.pos;
+        const generated = draft.generated;
+        if (!generated || position === undefined || !els.previewMain || !state.editingSubpage ||
+            draft.homeSlot !== state.editingSubpage || draft.slot !== c.buttons.length + 1) return false;
+        const plan = generatedPlan(els.previewMain, [position]);
+        if (plan.edits.get(draft.slot)?.entity !== generated.id || (plan.sizes[draft.slot] || 1) !== generated.size) {
+            showBanner("The automatic card moved. Reopen it before saving.", "error");
+            return false;
+        }
+        const order = serializeSubpageGrid({ ...getSubpage(draft.homeSlot), grid: plan.grid, sizes: plan.sizes }).join(",");
+        return dependencies.nativeTransfers?.saveGeneratedDraft(draft, order) ?? false;
+    }
+
     function editCardTitle(title: HTMLElement) {
         if (title.querySelector("input")) return;
         const card = title.closest<HTMLElement>("[data-slot]");
@@ -175,6 +229,7 @@ export function createPreviewInteractionsFeature(
     function setupPreviewEvents(this: any) {
         var container: any = els.previewMain;
         var pendingCellIdx: any = -1;
+        let draggedGeneratedId: string | undefined;
         state.clockBarDragItem = "";
         if (els.topbar) {
             els.topbar.addEventListener("click", function (this: any, e?: any) {
@@ -294,6 +349,11 @@ export function createPreviewInteractionsFeature(
                     handleBtnClick(e, slot, pos);
                 }
             }
+            else if (generatedCardElements.has(target)) {
+                const entry = generatedCardElements.get(target)!;
+                if (!runtime.didDrag) selectGenerated(pos, entry.card, entry.size, false);
+                runtime.didDrag = false;
+            }
             else if (slot === 0) {
                 if (state.clipboard) {
                     e.preventDefault();
@@ -325,6 +385,20 @@ export function createPreviewInteractionsFeature(
             else if (slot === -2) {
                 showBack(e);
             }
+            else if (generatedCardElements.has(target)) {
+                const entry = generatedCardElements.get(target)!;
+                const page = state.editingSubpage;
+                showGenerated(e, () => {
+                    if (state.editingSubpage === page) selectGenerated(pos, entry.card, entry.size, true);
+                }, () => {
+                    if (state.editingSubpage !== page) return;
+                    if (state.settingsDraft?.generated && !state.settingsDraft.dirty) {
+                        state.settingsDraft = null;
+                        c.setSelected([]);
+                    }
+                    void dependencies.nativeTransfers?.hideGenerated(entry.card.entity);
+                });
+            }
             else if (slot === 0) {
                 showEmpty(e, pos);
             }
@@ -344,6 +418,7 @@ export function createPreviewInteractionsFeature(
                 return;
             var pos: any = parseInt(target.getAttribute("data-pos"), 10);
             runtime.dragSrcPos = pos;
+            draggedGeneratedId = generatedCardElements.get(target)?.card.entity;
             if (dependencies.layout.config.dragAnimation)
                 runtime.dragSrcEl = target;
             runtime.didDrag = true;
@@ -440,14 +515,20 @@ export function createPreviewInteractionsFeature(
                 runtime.dragSrcPos = -1;
                 return;
             }
-            const move = planMove(runtime.dragSrcPos, toPos);
+            const projected = c.isSub && dependencies.nativeTransfers?.available()
+                ? generatedPlan(container, [runtime.dragSrcPos, toPos]) : undefined;
+            const fromPos = runtime.dragSrcPos;
+            const sourceId = projected?.edits.get(projected.grid[fromPos] ?? 0)?.entity;
             runtime.dragSrcPos = -1;
+            if (sourceId !== draggedGeneratedId) return;
+            const move = planMove(fromPos, toPos, projected);
             if (!move.accepted) return;
             if (dependencies.nativeTransfers?.available()) {
                 const order = c.isSub
                     ? serializeSubpageGrid({ ...getSubpage(state.editingSubpage), ...move }).join(",")
                     : serializeGridOrder(move.grid, move.sizes);
-                void dependencies.nativeTransfers.place(order);
+                if (projected?.edits.size) void dependencies.nativeTransfers.saveGenerated(projected.edits, order);
+                else void dependencies.nativeTransfers.place(order);
                 return;
             }
             applyMove(move);
@@ -465,6 +546,10 @@ export function createPreviewInteractionsFeature(
         }
         state.clockBarSelectedItem = "";
         var c: any = ctx();
+        if (state.settingsDraft?.generated) {
+            state.settingsDraft = null;
+            c.setSelected([]);
+        }
         if (e.shiftKey || e.ctrlKey || e.metaKey)
             e.preventDefault();
         if (slot === -2) {
@@ -798,6 +883,7 @@ export function createPreviewInteractionsFeature(
         duplicateButton,
         duplicateSubpageButton,
         deleteSlot,
+        saveGeneratedDraft,
         deleteButtons,
         emptyButtonConfig,
     };

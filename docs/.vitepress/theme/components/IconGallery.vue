@@ -42,6 +42,9 @@ const GROUP_ORDER = [
 ]
 
 const ICON_GROUPS = {
+  'Coffee to Go': 'General',
+  'Flip Horizontal': 'Creative & Development',
+  'Movie': 'Creative & Development',
   'Book Alphabet': 'Applications & Desktop',
   'Bookmark Multiple': 'Browser & Navigation',
   'Bookmark Plus': 'Browser & Navigation',

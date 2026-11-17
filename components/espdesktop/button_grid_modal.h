@@ -49,6 +49,7 @@ inline ControlModalDefinition control_modal_definition(ControlModalKind kind) {
     case ControlModalKind::MEDIA_CONTROL:
       return {ControlModalPresentation::TABBED_CONTROL, ControlModalChrome::BACK,
               ControlModalDismissPolicy::DISMISS};
+    case ControlModalKind::OBS_OUTPUT_CONFIRMATION:
     case ControlModalKind::SWITCH_CONFIRMATION:
       return {ControlModalPresentation::CONFIRMATION, ControlModalChrome::CLOSE,
               ControlModalDismissPolicy::DISMISS};
