@@ -298,7 +298,7 @@ internal sealed class CompanionClient(Action<string> status, Action<Pairing> sav
     {
         using var stream = typeof(CompanionClient).Assembly.GetManifestResourceStream("EspDesktop.Windows.iracing.json") ??
             throw new InvalidOperationException("The iRacing shortcut profile is missing.");
-        using var reader = new StreamReader(stream);
-        return reader.ReadToEnd();
+        using var document = JsonDocument.Parse(stream);
+        return JsonSerializer.Serialize(document.RootElement);
     }
 }
