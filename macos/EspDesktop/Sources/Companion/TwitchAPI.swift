@@ -13,6 +13,7 @@ struct TwitchAPI: Sendable {
         let status: Int
         let message: String?
         let retryAt: Date?
+        let rateLimitRemaining: Int?
 
         var invalidSession: Bool {
             status == 401 || message?.lowercased() == "invalid refresh token"
@@ -310,7 +311,9 @@ struct TwitchAPI: Sendable {
             let retry = response.value(forHTTPHeaderField: "Retry-After").flatMap(Double.init)
             let retryAt = retry.map { Date().addingTimeInterval($0) }
                 ?? reset.map(Date.init(timeIntervalSince1970:))
-            throw HTTPError(status: response.statusCode, message: message, retryAt: retryAt)
+            let remaining = response.value(forHTTPHeaderField: "Ratelimit-Remaining").flatMap(Int.init)
+            throw HTTPError(status: response.statusCode, message: message, retryAt: retryAt,
+                            rateLimitRemaining: remaining)
         }
         return data
     }

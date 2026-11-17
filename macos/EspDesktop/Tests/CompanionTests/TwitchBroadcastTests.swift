@@ -65,6 +65,36 @@ final class TwitchBroadcastTests: XCTestCase {
         XCTAssertTrue(twitch.panelControls.first { $0.id == "twitch.predictionLock" }?.enabled ?? false)
     }
 
+    func testAdCooldownLeavesOtherPanelActionsAvailableUntilTheTwitchRateLimitIsExhausted() async throws {
+        for remaining in [400, 0] {
+            let suite = "TwitchBroadcastTests." + UUID().uuidString
+            let defaults = try XCTUnwrap(UserDefaults(suiteName: suite))
+            defer { defaults.removePersistentDomain(forName: suite) }
+            defaults.set("exampleclient", forKey: "twitch.clientID")
+            let saved = try JSONSerialization.data(withJSONObject: [
+                "clientID": "exampleclient", "broadcasterID": "42",
+                "accessToken": "test-access", "refreshToken": "test-refresh",
+                "expiresAt": Date().addingTimeInterval(900).timeIntervalSinceReferenceDate,
+            ])
+            let requests = Requests(commercialRateLimitRemaining: remaining)
+            let twitch = TwitchBroadcast(defaults: defaults, api: TwitchAPI { try await requests.send($0) },
+                credentialStore: .init(load: { saved }, save: { _ in true }, remove: {}), monitorEvents: false)
+            defer { twitch.disconnect() }
+            twitch.configuration.adsEnabled = true
+            twitch.configuration.streamTitle = "Test stream"
+
+            for _ in 0..<100 where twitch.status != .live {
+                try await Task.sleep(for: .milliseconds(10))
+            }
+            let adCommand = try XCTUnwrap(twitch.panelControls.first { $0.id == "twitch.commercial" }?.command)
+            let started = await twitch.invokePanel(adCommand) { true }
+            XCTAssertFalse(started)
+            XCTAssertNil(twitch.panelControls.first { $0.id == "twitch.commercial" }?.command)
+            XCTAssertEqual(twitch.panelControls.first { $0.id == "twitch.details" }?.enabled, remaining > 0)
+            XCTAssertEqual(twitch.panelControls.first { $0.id == "twitch.marker" }?.enabled, remaining > 0)
+        }
+    }
+
     func testCanceledAuthorizationCannotClearNewDeviceCode() async throws {
         let suite = "TwitchBroadcastTests." + UUID().uuidString
         let defaults = try XCTUnwrap(UserDefaults(suiteName: suite))
@@ -121,6 +151,11 @@ final class TwitchBroadcastTests: XCTestCase {
     private actor Requests {
         private(set) var winners = [String]()
         private var startedPrediction = false
+        private let commercialRateLimitRemaining: Int?
+
+        init(commercialRateLimitRemaining: Int? = nil) {
+            self.commercialRateLimitRemaining = commercialRateLimitRemaining
+        }
 
         func send(_ request: URLRequest) throws -> (Data, HTTPURLResponse) {
             let url = try XCTUnwrap(request.url)
@@ -133,7 +168,13 @@ final class TwitchBroadcastTests: XCTestCase {
             case ("/helix/channels", _):
                 body = #"{"data":[{"title":"Tonight","game_id":"1","game_name":"Game","tags":[]}]}"#
             case ("/helix/users", _):
-                body = #"{"data":[{"broadcaster_type":"","display_name":"Streamer"}]}"#
+                let broadcasterType = commercialRateLimitRemaining == nil ? "" : "affiliate"
+                body = #"{"data":[{"broadcaster_type":"\#(broadcasterType)","display_name":"Streamer"}]}"#
+            case ("/helix/channels/commercial", "POST"):
+                let remaining = try XCTUnwrap(commercialRateLimitRemaining)
+                let response = try XCTUnwrap(HTTPURLResponse(url: url, statusCode: 429, httpVersion: nil,
+                    headerFields: ["Ratelimit-Remaining": String(remaining), "Retry-After": "120"]))
+                return (Data(), response)
             case ("/helix/predictions", "POST"):
                 let data = try XCTUnwrap(request.httpBody)
                 let update = try XCTUnwrap(try JSONSerialization.jsonObject(with: data) as? [String: Any])

@@ -309,8 +309,14 @@ final class TwitchBroadcast: ObservableObject {
             if let error = error as? TwitchAPI.HTTPError {
                 if error.status == 401 { validatedAt = nil }
                 if error.status == 429 {
-                    rateLimitedUntil = error.retryAt.flatMap { $0 > Date() ? $0 : nil }
-                        ?? Date().addingTimeInterval(60)
+                    let now = Date()
+                    let retryAt = error.retryAt.flatMap { $0 > now ? $0 : nil } ?? now.addingTimeInterval(60)
+                    // Twitch also returns 429 for an individual channel's ad cooldown.
+                    if control == .commercial, (error.rateLimitRemaining ?? 0) > 0 {
+                        commercialAvailableAt = retryAt
+                    } else {
+                        rateLimitedUntil = retryAt
+                    }
                 }
             }
             let failure = describe(error, control: control)
