@@ -670,6 +670,15 @@ inline bool companion_obs_scene_card(const std::string &id) {
     companion_obs_audio_uuid(id, "obs.preview.");
 }
 
+inline bool companion_obs_test_static_switching(const std::string &id) {
+#ifdef ESPDESKTOP_TEST_STATIC_OBS_SWITCHING
+  return id == "obs.take" || companion_obs_scene_card(id);
+#else
+  (void) id;
+  return false;
+#endif
+}
+
 inline bool companion_obs_break_active(std::string_view label) {
   return label == "Resume" || label == "Resuming…" || label.rfind("Resume · ", 0) == 0;
 }
@@ -1372,6 +1381,7 @@ inline void companion_require_card_focus(lv_obj_t *button, const std::string &re
 inline void companion_refresh_card_focus(const CompanionRuntimeSnapshot &snapshot) {
   for (auto &ref : companion_card_refs()) {
     if (!ref.button || !lv_obj_is_valid(ref.button) || !ref.metric_key.empty()) continue;
+    if (companion_obs_test_static_switching(ref.action_id)) continue;
     if (!ref.required_focus_id.empty()) {
       const bool available = companion_action_available(snapshot, ref.action_id) &&
         companion_required_focus_ready(ref.required_focus_id, snapshot);
@@ -1463,6 +1473,12 @@ inline void companion_refresh_cards_if_requested() {
       continue;
     }
     if (companion_obs_tokenized_card(it->action_id)) companion_set_rendered_obs_action(*it, snapshot);
+    // The test still replaces the command token when OBS changes its target.
+    // Skip LVGL updates so a touch reaches the same availability checks.
+    if (companion_obs_test_static_switching(it->action_id)) {
+      ++it;
+      continue;
+    }
     if (it->text_label && lv_obj_is_valid(it->text_label) &&
         (it->dynamic_default_label || it->obs_detail)) {
       // A disconnected Companion temporarily has no action catalogue. Keep

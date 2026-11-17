@@ -21,6 +21,7 @@ esphome:
   name_add_mac_suffix: true
   build_flags:
     - "-DESPDESKTOP_S3_DISPLAY_RESET_TEST"
+    - "-DESPDESKTOP_TEST_STATIC_OBS_SWITCHING"
   includes:
     - display_resync_test.h
   on_boot:

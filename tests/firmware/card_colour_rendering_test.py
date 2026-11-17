@@ -276,7 +276,7 @@ groups = (
     ("button_grid_touch.h", "", ("consume_button_touch_press",)),
     ("button_grid_layout.h", "", ("parse_hex_color", "apply_button_colors", "apply_button_on_pattern")),
     ("companion_controls.h", "", ("companion_obs_record_stopping", "companion_obs_output_status_id", "companion_obs_output_status", "companion_obs_output_active")),
-    ("companion_controls.h", "", ("companion_obs_scene_target", "companion_obs_hashed_target", "companion_obs_transition_target", "companion_obs_source_target", "companion_obs_scene_card", "companion_obs_control_label", "companion_obs_break_active", "companion_obs_momentary_action", "companion_apply_card_focus", "companion_required_focus_ready", "companion_refresh_card_focus")),
+    ("companion_controls.h", "", ("companion_obs_scene_target", "companion_obs_hashed_target", "companion_obs_transition_target", "companion_obs_source_target", "companion_obs_scene_card", "companion_obs_test_static_switching", "companion_obs_control_label", "companion_obs_break_active", "companion_obs_momentary_action", "companion_apply_card_focus", "companion_required_focus_ready", "companion_refresh_card_focus")),
     ("companion_controls.h", "", ("companion_obs_status_card", "companion_obs_status_icon", "companion_obs_scene_on_program", "companion_render_obs_detail", "companion_obs_keep_content_bright", "companion_update_obs_detail_contrast", "companion_render_slider")),
     ("button_grid_grid.h", "", ("card_palette_for_config", "card_slot_static_child", "reset_card_slot_dynamic_children")),
     ("button_grid_grid.h", "", ("apply_subpage_back_colors",)),
