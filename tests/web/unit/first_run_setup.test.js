@@ -7,11 +7,22 @@ const {
 } = loadTypescriptTest("src/webserver/application/first_run_setup.ts");
 const { NativeLayoutDraft } = loadTypescriptTest("src/webserver/model/native_layout_draft.ts");
 const { decodePanelPageSnapshot, encodePanelPageDocument } = loadTypescriptTest("src/webserver/model/panel_config_conversion.ts");
+const { canExposeCard } = loadTypescriptTest("src/webserver/model/home_assistant_cards.ts");
 const empty = overrides => encodePanelPageDocument({
   deviceProfile: "test", buttons: {}, subpages: {}, settings: { button_on_color: "FF0000" }, ...overrides,
 });
 const safari = { id: "com.apple.Safari", label: "Safari; Personal" };
 const custom = { id: "org.example.custom", label: "Custom" };
+
+test("OBS tiles that require a panel tap are excluded from Home Assistant export", () => {
+  const uuid = "11111111-1111-1111-1111-111111111111";
+  for (const entity of ["obs.take", "obs.studio", "obs.transition", "obs.brb", "obs.output.stream", "obs.output.record", "obs.target." + uuid, "obs.status.program"]) {
+    assert.equal(canExposeCard({ type: "companion", entity, sensor: "" }), false, entity);
+  }
+  for (const entity of ["obs.mute." + uuid, "obs.scene." + uuid, "obs.replay"]) {
+    assert.equal(canExposeCard({ type: "companion", entity, sensor: "" }), true, entity);
+  }
+});
 
 function setup(input, apps, shortcuts, capacity = 4, replacing, automaticSwitch) {
   const draft = new NativeLayoutDraft(input);
@@ -33,6 +44,8 @@ test("first-run setup only starts on an unconfigured display", () => {
 test("onboarding lists unique applications, excluding retired web apps and other actions", () => {
   assert.deepEqual(firstRunApplications([safari, safari, custom,
     { id: "webapp.notion", label: "Notion" },
+    { id: "input.level." + "a".repeat(64), label: "USB Microphone" },
+    { id: "obs.output.record", label: "Recording" },
     ...["folder.abc", "media.play_pause", "shortcut.command+k", "system.cpu", "window.left"].map(id => ({ id, label: id })),
   ]).map(app => app.id), [custom.id, safari.id]);
 });
@@ -89,4 +102,75 @@ test("replacing setup preserves other settings and rejects concurrent changes to
   otherSetting.writeSetting("button_on_color", "00FF00");
   const combined = decodePanelPageSnapshot(setup(otherSetting.finish(), [custom], false, 4, original));
   assert.equal(combined.document.settings.button_on_color, "00FF00");
+});
+
+
+test("OBS starter groups its controls on a six-cell display and preserves Home cards", () => {
+  const { obsStarterControls, pinOBSStarterPage } = loadTypescriptTest("src/webserver/application/obs_starter_page.ts");
+  const main = "11111111-1111-1111-1111-111111111111";
+  const away = "22222222-2222-2222-2222-222222222222";
+  const mic = "33333333-3333-3333-3333-333333333333";
+  const token = "44444444-4444-4444-4444-444444444444";
+  const controls = obsStarterControls([
+    { id: `obs.target.${main}.${token}`, label: "On air · Gameplay" },
+    { id: `obs.target.${away}.${token}`, label: "BRB" },
+    { id: `obs.mute.${mic}`, label: "Unmuted · Commentary" },
+    { id: `obs.level.${mic}`, label: "Commentary" },
+    { id: `obs.cough.${mic}`, label: "Commentary" },
+    { id: `obs.replay.buffer.${token}`, label: "Off" },
+    { id: `obs.transition.${token}`, label: "Fade" },
+    { id: `obs.brb.scene.${away}`, label: "Configured BRB scene" },
+    { id: "com.apple.Safari", label: "Safari" },
+  ]);
+  const geometry = { numSlots: 6, previewSlots: 6, totalSlots: 6, gridCols: 3 };
+  const choices = { main: "obs.target." + main, away: "obs.target." + away, mic: "obs.mute." + mic };
+  const input = empty({
+    buttons: { 1: "com.apple.Safari;Safari;Auto;Auto;;;companion" },
+    settings: { button_order: "1w", button_on_color: "FF0000" },
+  });
+  const current = decodePanelPageSnapshot(input);
+  const draft = new NativeLayoutDraft(input);
+  pinOBSStarterPage(draft, current, controls, choices, geometry);
+  const result = decodePanelPageSnapshot(draft.finish());
+  assert.equal(result.layout.rootCards[0].config.entity, safari.id);
+  assert.equal(result.document.settings.button_order, "1w,,2");
+  assert.equal(result.layout.rootCards[1].config.label, "OBS Studio");
+  const [parent, switching, audio, outputs] = result.layout.pages;
+  assert.equal(parent.key, 2);
+  assert.deepEqual(parent.cards.map(({ config }) => config.label), ["Switching", "Audio", "Outputs", "", ""]);
+  assert.deepEqual(parent.cards.slice(3).map(({ config }) => config.entity), ["obs.status.program", "obs.brb"]);
+  assert.deepEqual(switching.cards.map(({ config }) => config.entity), [
+    choices.main, choices.away, "obs.studio", "obs.take", "obs.transition",
+  ]);
+  assert.deepEqual(audio.cards.map(({ config }) => config.entity), [choices.mic, "obs.level." + mic, "obs.cough." + mic]);
+  assert.deepEqual(outputs.cards.map(({ config }) => config.entity), [
+    "obs.output.stream", "obs.output.record", "obs.replay.buffer", "obs.replay",
+  ], "Replay controls are present even when the buffer is off");
+  for (const page of result.layout.pages) {
+    assert(page.order.startsWith("B,"));
+    assert(page.cards.length < geometry.numSlots);
+  }
+  assert.equal(result.document.settings[FIRST_RUN_COMPLETE], "1");
+  const minimal = new NativeLayoutDraft(input);
+  pinOBSStarterPage(minimal, current, obsStarterControls([
+    { id: `obs.target.${main}.${token}`, label: "Gameplay" },
+  ]), { main: choices.main, away: "", mic: "" }, geometry);
+  assert.deepEqual(decodePanelPageSnapshot(minimal.finish()).layout.pages[0].cards.map(({ config }) => config.label),
+    ["Switching", "Outputs", ""]);
+  assert.throws(() => pinOBSStarterPage(draft, current, controls, { ...choices, away: choices.main }, geometry),
+    /Choose scenes and a microphone/);
+  assert.throws(() => pinOBSStarterPage(draft, current, controls, choices,
+    { ...geometry, numSlots: 2, previewSlots: 2, gridCols: 2 }), /Make room/);
+
+  const cleared = empty({
+    buttons: { 1: "com.apple.Safari;Safari;Auto;Auto;;;companion",
+      ...Object.fromEntries(Array.from({ length: 8 }, (_, index) => [index + 2, ";;Auto;Auto;;;;;"])) },
+  });
+  const clearedDraft = new NativeLayoutDraft(cleared);
+  pinOBSStarterPage(clearedDraft, decodePanelPageSnapshot(cleared), controls, choices, geometry);
+  const clearedResult = decodePanelPageSnapshot(clearedDraft.finish());
+  assert.equal(clearedResult.document.settings.button_order, "2");
+  assert.equal(clearedResult.layout.rootCards[0].config.entity, safari.id);
+  assert.equal(clearedResult.layout.rootCards[1].config.label, "OBS Studio");
+  assert.equal(clearedResult.layout.pages[0].key, 2);
 });

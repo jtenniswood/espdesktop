@@ -232,6 +232,24 @@
       "codepoint": "F0082",
       "mdi": "battery-90",
       "comment": "Battery status indicator"
+    },
+    {
+      "name": "Broadcast",
+      "codepoint": "F1720",
+      "mdi": "broadcast",
+      "comment": "OBS stream status"
+    },
+    {
+      "name": "Broadcast Off",
+      "codepoint": "F1721",
+      "mdi": "broadcast-off",
+      "comment": "OBS stream status"
+    },
+    {
+      "name": "Stop Circle",
+      "codepoint": "F0666",
+      "mdi": "stop-circle",
+      "comment": "OBS recording status"
     }
   ],
   "icons": [
@@ -2041,6 +2059,21 @@
       "name": "Subtitles",
       "codepoint": "F0A17",
       "mdi": "subtitles-outline"
+    },
+    {
+      "name": "Coffee to Go",
+      "codepoint": "F0177",
+      "mdi": "coffee-to-go"
+    },
+    {
+      "name": "Flip Horizontal",
+      "codepoint": "F10E7",
+      "mdi": "flip-horizontal"
+    },
+    {
+      "name": "Movie",
+      "codepoint": "F0381",
+      "mdi": "movie"
     }
   ],
   "domain_defaults": {

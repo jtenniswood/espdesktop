@@ -10,6 +10,7 @@ inline void lv_label_set_text(lv_obj_t *, const char *) {}
 #define ESPDESKTOP_SUBPAGE_PARSER_ONLY
 #include "button_grid_subpages.h"
 #include "finder_folder_sync.h"
+#include "obs_live_subpage.h"
 
 using namespace esphome::companion;
 
@@ -59,6 +60,124 @@ static void assert_finder_folder_projection() {
 }
 
 int main() {
+  {
+    const std::string a(32, 'a'), b(32, 'b'), c(32, 'c');
+    const std::string prefix = "obs.transition.select.";
+    const std::string token = ".11111111-1111-1111-1111-111111111111";
+    CompanionRuntimeSnapshot snapshot;
+    snapshot.actions = {{prefix + a + token, "Fade"}, {prefix + b, "Cut"}, {prefix + c + token, "Slide"}};
+    const auto catalogue = obs_subpage_catalogue(snapshot, OBSSubpageKind::transitions);
+    assert(catalogue.size() == 3 && catalogue.front().id == prefix + a);
+    const auto folder = parse_cfg(";;Flip Horizontal;Auto;;;subpage;;subpage_kind=obs_transitions,obs_transition_order=" +
+                                  c + "|!" + a);
+    std::vector<SubpageBtn> cards{{"obs.take", "Take Live", "Arrow Right", "Auto", "", "", "companion", "", ""}};
+    SubpageOrder order;
+    parse_subpage_order("B,1", 4, cards.size(), order);
+    normalize_subpage_order_spans(order, 4, 2);
+    project_obs_subpage_tiles(order, cards, 4, 2, 4, catalogue, folder.options, OBSSubpageKind::transitions);
+    assert(cards.size() == 3 && cards[0].entity == "obs.take" && cards[1].entity == prefix + c && cards[2].entity == prefix + b);
+    assert(order.positions[1] == 1 && order.positions[2] == 2 && order.positions[3] == 3);
+  }
+  {
+    const std::string camera = "obs.source." + std::string(32, 'a');
+    const std::string game = "obs.source." + std::string(32, 'b');
+    const std::string marker = "obs.source.visible." + std::string(32, 'a');
+    const std::string command = camera + ".11111111-1111-1111-1111-111111111111";
+    CompanionRuntimeSnapshot snapshot;
+    snapshot.connected = true;
+    snapshot.actions = {{"obs.sources", "Preview"}, {command, "Camera"}, {marker, "Camera"}, {game, "Game"}};
+    const auto catalogue = obs_subpage_catalogue(snapshot, OBSSubpageKind::sources);
+    assert(catalogue.size() == 2 && catalogue.front().id == camera);
+    assert(companion_action_available(snapshot, camera) && !companion_action_available(snapshot, game));
+    std::vector<SubpageBtn> cards;
+    SubpageOrder order;
+    parse_subpage_order("B", 4, cards.size(), order);
+    project_obs_subpage_tiles(order, cards, 4, 2, 4, catalogue, "obs_source_order=!" + std::string(32, 'a'), OBSSubpageKind::sources);
+    assert(cards.size() == 1 && cards.front().entity == game);
+  }
+  {
+    const std::string mic = "obs.level.33333333-3333-3333-3333-333333333333";
+    const std::string game = "obs.level.44444444-4444-4444-4444-444444444444";
+    const std::string music = "obs.level.55555555-5555-5555-5555-555555555555";
+    CompanionRuntimeSnapshot snapshot;
+    snapshot.actions = {{mic, "Mic"}, {"obs.level.invalid", "Invalid"}, {game, "Game"}, {music, "Music"}};
+    const auto catalogue = obs_subpage_catalogue(snapshot, OBSSubpageKind::audio);
+    assert(catalogue.size() == 3 && catalogue.front().id == mic);
+    const auto folder = parse_cfg(";;Microphone;Auto;;;subpage;;subpage_kind=obs_audio,obs_audio_order=" +
+                                  std::string(32, '5') + "|!" + std::string(32, '3'));
+    std::vector<SubpageBtn> cards{{"obs.take", "Take Live", "Arrow Right", "Auto", "", "", "companion", "", ""}};
+    SubpageOrder order;
+    parse_subpage_order("B,1", 4, cards.size(), order);
+    normalize_subpage_order_spans(order, 4, 2);
+    project_obs_subpage_tiles(order, cards, 4, 2, 4, catalogue, folder.options, OBSSubpageKind::audio);
+    assert(cards.size() == 3 && cards[0].entity == "obs.take" && cards[1].entity == music && cards[2].entity == game);
+    const auto fader = parsed_cfg_from_subpage_btn(cards[1]);
+    assert(fader.type == "slider" && fader.label == "Music" && fader.icon == "Microphone");
+    assert(companion_volume_control_valid(fader.entity));
+  }
+  {
+    const std::string first = "obs.target.11111111-1111-1111-1111-111111111111";
+    const std::string second = "obs.target.22222222-2222-2222-2222-222222222222";
+    const std::string hidden = "obs.target.33333333-3333-3333-3333-333333333333";
+    const std::string token = ".44444444-4444-4444-4444-444444444444";
+    CompanionRuntimeSnapshot snapshot;
+    snapshot.connected = true;
+    snapshot.actions = {{first + token, "Gameplay"}, {second + token, "Break"}, {hidden + token, "Wrap Up"},
+                        {"obs.program.11111111-1111-1111-1111-111111111111", "Program"}};
+    const auto catalogue = obs_subpage_catalogue(snapshot, OBSSubpageKind::scenes);
+    assert(catalogue.size() == 3 && catalogue.front().id == first);
+    const auto folder = parse_cfg(";;Image Card Loading;Auto;;;subpage;;subpage_kind=obs_scenes,obs_scene_order=" +
+                                  std::string(32, '2') + "|!" + std::string(32, '3'));
+    std::vector<SubpageBtn> cards;
+    SubpageOrder order;
+    parse_subpage_order("B", 4, cards.size(), order);
+    normalize_subpage_order_spans(order, 4, 2);
+    project_obs_subpage_tiles(order, cards, 4, 2, 4, catalogue, folder.options, OBSSubpageKind::scenes);
+    assert(cards.size() == 2 && cards[0].entity == second && cards[1].entity == first);
+    const auto scene = parsed_cfg_from_subpage_btn(cards[0]);
+    assert(scene.type == "companion" && scene.label == "Break" && scene.icon == "Image Card Loading");
+    assert(companion_obs_scene_card(scene.entity) && companion_action_available(snapshot, scene.entity));
+    cards.clear();
+    SubpageOrder after_delete;
+    parse_subpage_order("B", 4, 0, after_delete);
+    const auto customized = parse_cfg(";;Image Card Loading;Auto;;;subpage;;subpage_kind=obs_scenes,generated_card_exclusions=" +
+                                      std::string(32, '1'));
+    project_obs_subpage_tiles(after_delete, cards, 4, 2, 4, catalogue, customized.options, OBSSubpageKind::scenes);
+    assert(cards.size() == 2 && cards[0].entity == second && cards[1].entity == hidden);
+
+    cards.clear();
+    SubpageOrder footer;
+    parse_subpage_order("B", 9, 0, footer);
+    project_obs_subpage_tiles(footer, cards, 9, 3, 9, catalogue, "", OBSSubpageKind::scenes);
+    assert(cards.size() == 6);
+    assert(footer.positions[7] == 1 && footer.col_span[0] == 2 && footer.positions[8] == 0);
+    assert(cards[0].entity == "obs.take" && footer.positions[6] == 2 && cards[1].entity == "obs.transition");
+    assert(footer.positions[5] == 3 && cards[2].entity == "obs.brb");
+
+    std::vector<SubpageBtn> landscape_cards{{first, "Edited scene", "Image", "Auto", "", "", "companion", "", ""}};
+    SubpageOrder landscape;
+    parse_subpage_order("B,1b", 15, landscape_cards.size(), landscape);
+    normalize_subpage_order_spans(landscape, 15, 5);
+    project_obs_subpage_tiles(landscape, landscape_cards, 15, 5, 15, catalogue,
+        "generated_card_exclusions=" + std::string(32, '3'), OBSSubpageKind::scenes);
+    assert(landscape.positions[1] == 1 && landscape.col_span[0] == 2 && landscape.row_span[0] == 2);
+    assert(landscape.positions[13] == 2 && landscape.col_span[1] == 2 && landscape_cards[1].entity == "obs.take");
+    assert(landscape_cards.size() == 5 && landscape_cards.back().entity == second);
+
+    CompanionRuntimeSnapshot blocked = snapshot;
+    blocked.actions[0].obs_available = false;
+    assert(!companion_action_available(blocked, first));
+
+    cards.resize(1);
+    SubpageOrder manual_take;
+    parse_subpage_order("B,1", 9, 1, manual_take);
+    project_obs_subpage_tiles(manual_take, cards, 9, 3, 9, catalogue,
+        "generated_card_exclusions=brb", OBSSubpageKind::scenes);
+    assert(manual_take.positions[1] == 1 && manual_take.col_span[0] == 1);
+    assert(cards.size() == 5 && cards[1].entity == "obs.transition");
+
+
+  }
   assert_finder_folder_projection();
   const auto mac_lock = normalize_parsed_cfg(
       ParsedCfg{"shortcut.command+a", "", "", "", "url.invalid", "%", "companion_mac_lock", "1", ""});
@@ -240,6 +359,64 @@ int main() {
     // The Mac verifies Safari is active. A standalone keyboard card does not need app-launch approval.
     assert(companion_action_available(keyboard_only, "shortcut.tab"));
     assert(companion_action_available(keyboard_only, "shortcut.escape"));
+  }
+  {
+    CompanionRuntimeSnapshot obs;
+    const std::string take_action = "obs.take.45f44c62-1c70-4706-8930-f3ec000db026";
+    obs.actions = {{take_action, "Take Live: BRB"}, {"obs.status.stream", "Stream: Live"}};
+    obs.connected = true;
+    assert(companion_action_available(obs, "obs.take"));
+    assert(companion_published_action(obs, "obs.take")->id == take_action);
+    assert(companion_default_action_label("obs.take", "", &obs) == "Take Live: BRB");
+    const std::string record_action = "obs.output.record.45f44c62-1c70-4706-8930-f3ec000db026";
+    obs.actions.push_back({record_action, "Start Recording"});
+    assert(companion_obs_output_card("obs.output.record"));
+    assert(!companion_obs_output_card(record_action));
+    for (const auto *mode : {"", "both", "unknown"}) {
+      assert(companion_obs_needs_confirmation("obs.output.record", mode, "Start Recording"));
+      assert(companion_obs_needs_confirmation("obs.output.record", mode, "Stop Recording"));
+    }
+    assert(companion_obs_needs_confirmation("obs.output.stream", "on", "Start Streaming"));
+    assert(!companion_obs_needs_confirmation("obs.output.stream", "on", "Stop Streaming"));
+    assert(!companion_obs_needs_confirmation("obs.output.stream", "off", "Start Streaming"));
+    assert(companion_obs_needs_confirmation("obs.output.stream", "off", "Stop Streaming"));
+    assert(companion_obs_needs_confirmation("obs.output.stream", "on", "Unknown direction"));
+    assert(!companion_obs_needs_confirmation("obs.output.record", "none", "Start Recording"));
+    assert(!companion_obs_needs_confirmation("obs.replay.buffer", "", "Legacy label", OBSCardState::toggle_off));
+    assert(companion_obs_needs_confirmation("obs.replay.buffer", "", "Legacy label", OBSCardState::toggle_on));
+    assert(companion_obs_needs_confirmation("obs.output.record", "off", "Legacy label", OBSCardState::output_paused));
+    for (const auto *toggle : {"obs.studio", "obs.replay.buffer"}) {
+      assert(companion_obs_confirmation_supported(toggle));
+      assert(!companion_obs_needs_confirmation(toggle, "", "Off"));
+      assert(companion_obs_needs_confirmation(toggle, "", "On"));
+      assert(companion_obs_needs_confirmation(toggle, "on", "Off"));
+      assert(!companion_obs_needs_confirmation(toggle, "on", "On"));
+      assert(companion_obs_needs_confirmation(toggle, "both", "Off"));
+      assert(companion_obs_needs_confirmation(toggle, "both", "On"));
+      assert(!companion_obs_needs_confirmation(toggle, "none", "On"));
+    }
+    assert(companion_action_available(obs, "obs.output.record"));
+    assert(!companion_action_available(obs, "obs.output.stream"));
+    assert(companion_published_action(obs, "obs.output.record")->id == record_action);
+    assert(companion_default_action_label("obs.output.record", "", &obs) == "Start Recording");
+    const std::string brb_action = "obs.brb.45f44c62-1c70-4706-8930-f3ec000db026";
+    obs.actions.push_back({brb_action, "Resume"});
+    assert(companion_action_available(obs, "obs.brb"));
+    assert(companion_published_action(obs, "obs.brb")->id == brb_action);
+    obs.actions.back() = {"obs.brb", "BRB Check OBS"};
+    assert(!companion_action_available(obs, "obs.brb"));
+    assert(companion_default_action_label("obs.brb", "", &obs) == "BRB Check OBS");
+    const std::string adaptive_scene = "obs.target.69da3f8f-7f62-4abe-a594-4e40dd579858";
+    const std::string armed_scene = adaptive_scene + ".45f44c62-1c70-4706-8930-f3ec000db026";
+    obs.actions.push_back({armed_scene, "Preview Gameplay"});
+    assert(companion_obs_scene_target(adaptive_scene));
+    assert(!companion_obs_scene_target(armed_scene));
+    assert(companion_action_available(obs, adaptive_scene));
+    assert(companion_published_action(obs, adaptive_scene)->id == armed_scene);
+    assert(companion_obs_status_card("obs.status.stream"));
+    obs.connected = false;
+    assert(!companion_action_available(obs, "obs.take"));
+    assert(companion_default_action_label("obs.status.stream", "", &obs) == espdesktop_i18n("Unavailable"));
   }
   assert(companion_shortcut_label("shortcut.shift+escape") == "\U000F0636" "Esc");
   assert(!companion_shortcut_action_valid("shortcut.shift+tab"));
@@ -483,6 +660,57 @@ int main() {
   assert(output_volume == 72);
   companion_remove_value("media.output_volume");
   assert(!companion_value("media.output_volume", output_volume));
+
+  CompanionCatalogueLimits catalogue_limits;
+  for (int index = 0; index < 256; ++index)
+    assert(catalogue_limits.retain("obs.scene." + std::to_string(index), false));
+  assert(!catalogue_limits.retain("obs.status.stream", false));
+  assert(catalogue_limits.retain("obs.sources", false));
+  for (int index = 0; index < 96; ++index)
+    assert(catalogue_limits.retain("obs.source." + std::to_string(index), false));
+  assert(!catalogue_limits.retain("obs.source.overflow", false));
+  for (int index = 0; index < 16; ++index)
+    assert(catalogue_limits.retain("input.level." + std::to_string(index), true));
+  assert(!catalogue_limits.retain("input.level.overflow", true));
+  for (int index = 0; index < 256; ++index)
+    assert(catalogue_limits.retain("com.example.App" + std::to_string(index), false));
+  assert(!catalogue_limits.retain("com.example.Overflow", false));
+
+  const char *system_controls[] = {"media.output_volume", "media.input_volume",
+                                  "media.output_mute", "media.input_mute", "media.cough"};
+  for (const auto *control : system_controls) companion_set_value(control, 100);
+  for (int index = 0; index < 256; ++index) {
+    const std::string id = "app.volume.com.example.Player" + std::to_string(index);
+    companion_set_value(id, 35);
+    int level = 0;
+    assert(companion_value(id, level) && level == 35);
+  }
+  for (int index = 0; index < 16; ++index) {
+    const std::string id = "input.level." + std::string(63, 'a') + "0123456789abcdef"[index];
+    companion_set_value(id, 45);
+    int level = 0;
+    assert(companion_value(id, level) && level == 45);
+  }
+  const std::string obs_level = "obs.level.69da3f8f-7f62-4abe-a594-4e40dd579858";
+  const std::string obs_meter = "obs.meter.69da3f8f-7f62-4abe-a594-4e40dd579858";
+  assert(companion_writable_value_control_valid(obs_level));
+  assert(!companion_writable_value_control_valid(obs_meter));
+  companion_set_value(obs_level, 72);
+  companion_set_value(obs_meter, 85);
+  assert(companion_value(obs_level, output_volume) && output_volume == 72);
+  assert(!companion_value(obs_meter, output_volume));
+  companion_remove_value(obs_level);
+  companion_remove_value(obs_meter);
+  const std::string overflow_input = "input.level." + std::string(64, 'b');
+  companion_set_value(overflow_input, 45);
+  assert(!companion_value(overflow_input, output_volume));
+  companion_set_value("app.volume.com.example.Overflow", 35);
+  assert(!companion_value("app.volume.com.example.Overflow", output_volume));
+  for (int index = 0; index < 256; ++index)
+    companion_remove_value("app.volume.com.example.Player" + std::to_string(index));
+  for (const auto *control : system_controls) companion_remove_value(control);
+  for (int index = 0; index < 16; ++index)
+    companion_remove_value("input.level." + std::string(63, 'a') + "0123456789abcdef"[index]);
   companion_set_focused_actions({"com.apple.Safari", "webapp.google-docs"});
   companion_runtime_service().set_application_highlight("com.apple.finder");
   assert(companion_action_active("com.apple.finder", true));
@@ -593,13 +821,38 @@ int main() {
     companion_set_value(control, 0);
     assert(companion_toggle_mute(control));
     assert(mute_control == control && mute_value == 100 && !mute_request.empty());
-    companion_set_value(control, 100);
-    assert(companion_toggle_mute(control));
+    const auto press_request = mute_request;
+    assert(companion_value(control, output_volume) && output_volume == 0);
+    assert(companion_runtime_service().displayed_mute_value(control, output_volume) == 100);
+    assert(companion_toggle_mute(control)); // A second tap uses the preview.
     assert(mute_value == 0);
+    companion_set_value(control, 100); // The first reply can arrive late.
+    companion_deliver_action_result(press_request, "performed");
+    assert(companion_runtime_service().displayed_mute_value(control, 100) == 0);
+    companion_deliver_action_result(mute_request, "not_allowed");
+    assert(companion_runtime_service().displayed_mute_value(control, 100) == 100);
+    assert(companion_toggle_mute(control));
+    companion_deliver_action_result(mute_request, "performed");
+    companion_set_value(control, 0);
+    companion_set_value(control, 100); // An external change wins after confirmation.
+    assert(companion_runtime_service().displayed_mute_value(control, 100) == 100);
+    assert(companion_toggle_mute(control));
+    companion_expire_action_results(100);
+    companion_expire_action_results(800);
+    assert(companion_runtime_service().displayed_mute_value(control, 100) == 100);
     assert(!invoke_companion_value(control, 50, "invalid-mute"));
     companion_remove_value(control);
     assert(!companion_toggle_mute(control));
   }
+  companion_set_value("media.cough", 0);
+  companion_runtime_service().preview_mute("media.cough", 100, "cough-press");
+  assert(companion_runtime_service().displayed_mute_value("media.cough", 0) == 100);
+  companion_runtime_service().preview_mute("media.cough", 0, "cough-release");
+  companion_set_value("media.cough", 100);
+  companion_deliver_action_result("cough-press", "performed");
+  assert(companion_runtime_service().displayed_mute_value("media.cough", 100) == 0);
+  companion_deliver_action_result("cough-release", "performed");
+  companion_set_value("media.cough", 0);
   companion_set_value("media.input_mute", 100);
   companion_set_connected(false);
   assert(!companion_toggle_mute("media.input_mute"));

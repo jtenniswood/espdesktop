@@ -37,6 +37,9 @@
 - "\U000F0080"  # mdi-battery-70 (Battery status indicator)
 - "\U000F0081"  # mdi-battery-80 (Battery status indicator)
 - "\U000F0082"  # mdi-battery-90 (Battery status indicator)
+- "\U000F1720"  # mdi-broadcast (OBS stream status)
+- "\U000F1721"  # mdi-broadcast-off (OBS stream status)
+- "\U000F0666"  # mdi-stop-circle (OBS recording status)
 - "\U000F0633"  # mdi-apple-keyboard-command
 - "\U000F0004"  # mdi-account
 - "\U000F0614"  # mdi-application-outline
@@ -390,4 +393,7 @@
 - "\U000F0282"  # mdi-format-subscript
 - "\U000F0283"  # mdi-format-superscript
 - "\U000F0A17"  # mdi-subtitles-outline
+- "\U000F0177"  # mdi-coffee-to-go
+- "\U000F10E7"  # mdi-flip-horizontal
+- "\U000F0381"  # mdi-movie
 # --- GENERATED:ICONS END ---

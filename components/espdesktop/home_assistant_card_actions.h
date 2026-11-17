@@ -63,6 +63,7 @@ inline std::vector<SharedCard> shared_cards() {
       const bool mac = config.type == "companion" || config.type == "companion_mac_lock";
       const bool mute = config.type == "slider" && companion_mute_control_valid(config.entity);
       const bool remote_action = mac && !companion_metric_key_valid(config.entity) &&
+          !companion_obs_status_card(config.entity) && !companion_obs_tokenized_card(config.entity) &&
           (!config.entity.empty() || !companion_encoded_url(config.sensor).empty());
       if (config.type == "subpage" ? !key : !remote_action && !mute) continue;
       std::string focus;

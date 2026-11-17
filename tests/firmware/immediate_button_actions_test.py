@@ -2,12 +2,14 @@
 from pathlib import Path
 import subprocess
 import tempfile
+from production_source import definition
 
 ROOT = Path(__file__).resolve().parents[2]
 HEADERS = ROOT / "components/espdesktop"
 code = r'''
 #include <cassert>
 #include <string>
+#include <string_view>
 #include <vector>
 struct lv_event_t;
 using lv_event_cb_t = void (*)(lv_event_t *);
@@ -39,19 +41,31 @@ TOUCH_HELPER
 bool locked = false;
 bool screen_lock_enabled() { return locked; }
 constexpr int MAX_GRID_SLOTS = 36;
-struct ParsedCfg {};
-ParsedCfg grid_layout_card_config(int, const std::string &) { return {}; }
+struct ParsedCfg { std::string type, entity; };
+MOMENTARY_ACTION
+ParsedCfg grid_layout_card_config(int, const std::string &type) {
+  return type.rfind("obs.", 0) == 0 ? ParsedCfg{"companion", type} : ParsedCfg{type, ""};
+}
+int cough_presses = 0;
+void cough_button_press(lv_obj_t *) { ++cough_presses; }
 bool navigation = false;
 bool navigation_handle_button_press(const ParsedCfg &, int, lv_obj_t *) { return navigation; }
 int calls = 0;
-void handle_button_click(const std::string &, int, lv_obj_t *) {
-  assert(pointer.waiting); ++calls;
+void handle_button_click(const std::string &config, int, lv_obj_t *button, bool touch_followup = false) {
+  assert(!touch_followup);
+  const bool momentary = config == "obs.replay" || config == "obs.take" || config == "obs.transition";
+  assert(pointer.waiting != momentary);
+  assert(button->state == (momentary ? LV_STATE_PRESSED : 0));
+  ++calls;
 }
 '''
 code = code.replace('TOUCH_HELPER', (HEADERS / 'button_grid_touch.h').read_text().replace('#pragma once', '').replace('#include "card_text_contrast.h"', ''))
+_, momentary_action = definition((HEADERS / "companion_controls.h").read_text(), "companion_obs_momentary_action")
+code = code.replace("MOMENTARY_ACTION", momentary_action)
 actions = (HEADERS / "button_grid_actions.h").read_text()
-start = actions.index("inline void handle_button_press(")
-code += actions[start:actions.index("\n}", start) + 2]
+start = actions.index("inline bool obs_action_keeps_touch(")
+press = actions.index("inline void handle_button_press(", start)
+code += actions[start:actions.index("\n}", press) + 2]
 code += r'''
 int main() {
   lv_obj_t button;
@@ -73,7 +87,10 @@ int main() {
     assert(calls == before + 1);
   }
   const auto before = calls;
-  pointer.waiting = false; locked = true;
+  pointer.waiting = false;
+  handle_button_press("companion_cough", 1, &button);
+  assert(cough_presses == 1 && !pointer.waiting && calls == before);
+  locked = true;
   handle_button_press("app", 1, &button);
   assert(calls == before && !pointer.waiting);
   locked = false;
@@ -85,6 +102,12 @@ int main() {
   navigation = false;
   handle_button_press("app", 1, &button);
   assert(calls == before + 1 && pointer.waiting);
+  for (const auto *action : {"obs.replay", "obs.take", "obs.transition", "obs.studio", "obs.transition.select.cut"}) {
+    pointer.waiting = false; button.state = LV_STATE_PRESSED;
+    const auto before_touch = calls;
+    handle_button_press(action, 1, &button);
+    assert(calls == before_touch + 1);
+  }
   // Keyboard/programmatic events without a pointer remain supported.
   input = nullptr; consume_button_touch_press(&button);
 }
@@ -95,6 +118,7 @@ widget = (ROOT / "common/device/button_widget.yaml").read_text()
 assert 'event: "PRESS"' in widget and 'event: "TAP"' in widget and 'event: "HOLD"' in widget
 touch_binding = (ROOT / "common/device/button_widget_touch.yaml").read_text()
 assert touch_binding.index("decide_grid_touch(") < touch_binding.index("handle_button_press(")
+assert "/*touch_followup=*/true" in touch_binding
 assert "LV_EVENT_RELEASED" in (HEADERS / "button_grid_sliders.h").read_text()
 with tempfile.TemporaryDirectory(prefix="espdesktop-immediate-actions-") as temp:
     source, binary = Path(temp) / "test.cpp", Path(temp) / "test"

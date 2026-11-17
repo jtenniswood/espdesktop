@@ -26,6 +26,17 @@ export const CARD_CONFIG_FIELDS: readonly SavedConfigField[] = [
   "options",
 ];
 
+export const OBS_FADER_PREFIX = "obs.level.";
+export const OBS_METER_PREFIX = "obs.meter.";
+
+export function isOBSFaderControlID(entity: unknown): entity is string {
+  return typeof entity === "string" && /^obs\.level\.[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}$/.test(entity);
+}
+
+export function isOBSMeterControlID(entity: unknown): entity is string {
+  return typeof entity === "string" && /^obs\.meter\.[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}$/.test(entity);
+}
+
 export function isMacAudioCard(type: string, entity: string | null | undefined): boolean {
   return type === "slider" &&
     (entity === "media.output_volume" || entity === "media.input_volume" ||
@@ -54,6 +65,11 @@ export function emptyCardConfig(type?: string): CardConfig {
     precision: "",
     options: "",
   };
+}
+
+export function isEmptyCardConfig(card: CardConfig | undefined): boolean {
+  return !card || CARD_CONFIG_FIELDS.every(field => !card[field] ||
+    ((field === "icon" || field === "icon_on") && card[field] === "Auto"));
 }
 
 export function cloneCardConfig(src?: Partial<CardConfig> & Partial<DraftCardConfig>): DraftCardConfig {

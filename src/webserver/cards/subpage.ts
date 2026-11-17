@@ -1,4 +1,8 @@
+import { STUDIO_CONTROL_PAGE, isStudioControlPage } from "../model/studio_control_page";
 import { companionMetricForEntity } from "../model/companion_card_codec";
+import { OBS_SUBPAGES, type OBSSubpageKind, obsSubpageKind, orderedOBSTiles, obsSubpageTileKey, setOBSSubpagePreferences, obsSubpageCatalogue } from "../model/obs_live_subpage";
+import type { CompanionAction } from "../api/companion_catalogue";
+import type { ConfigModalTabOptionsFeature } from "../application/config_modal_tab_options";
 import { renderCompanionStorageSelector } from "./companion_storage";
 import { state } from "../state/app_instance";
 import { setConfigOptionValue } from "../model/config_primitives";
@@ -44,6 +48,8 @@ export function registerSubpageCardTypes(
     selection: Pick<ButtonSettingsSelectionFeature, "closeSettings">,
     fields: ControlsFieldsFeature,
     cardUi: CardUiServices,
+    modalTabs: Pick<ConfigModalTabOptionsFeature, "renderModalTabSettings">,
+    loadActions: () => Promise<readonly CompanionAction[]>,
 ): void {
     const { renderButtonSettings } = cardUi;
     const { fieldLabel } = fields;
@@ -84,6 +90,56 @@ export function registerSubpageCardTypes(
             b.options = "";
         },
         renderSettings: function (this: any, panel?: any, b?: any, slot?: any, helpers?: any) {
+            if (isStudioControlPage(b.options)) {
+                helpers.renderCardTextField(panel, b, helpers, SUBPAGE_CARD_METADATA.labelField);
+                helpers.renderCardIconPicker(panel, b, helpers, SUBPAGE_CARD_METADATA.icon);
+                appendEditSubpageButton(panel, slot);
+                return;
+            }
+            const liveKind = obsSubpageKind(b.options);
+            if (liveKind) {
+                const pageType = OBS_SUBPAGES[liveKind];
+                helpers.renderCardTextField(panel, b, helpers, SUBPAGE_CARD_METADATA.labelField);
+                helpers.renderCardIconPicker(panel, b, helpers, SUBPAGE_CARD_METADATA.icon);
+                const list = panel.ownerDocument.createElement("div") as HTMLDivElement;
+                helpers.markCardPrimaryField(list, "entity");
+                panel.appendChild(list);
+                const disclosure = liveKind === "obs_transitions"
+                    ? fields.disclosureSection(pageType.label, helpers.idPrefix + "transitions-list", b._transitionListOpen === true)
+                    : null;
+                if (disclosure) {
+                    disclosure.button.addEventListener("click", () => {
+                        b._transitionListOpen = disclosure.button.getAttribute("aria-expanded") === "true";
+                    });
+                    list.appendChild(disclosure.panel);
+                }
+                const content = disclosure?.section ?? list;
+                void loadActions().catch(() => []).then(actions => {
+                    if (!list.isConnected) return;
+                    const entries = obsSubpageCatalogue(liveKind, actions);
+                    if (!entries.length) {
+                        content.textContent = "No " + pageType.label.toLowerCase() + " available from OBS.";
+                        return;
+                    }
+                    if (!disclosure) content.appendChild(helpers.fieldLabel(pageType.label));
+                    const note = list.ownerDocument.createElement("p");
+                    note.className = "sp-setting-note";
+                    note.textContent = "Hide or reorder automatic cards. New cards fill available spaces.";
+                    content.appendChild(note);
+                    const key = (id: string) => obsSubpageTileKey(liveKind, id);
+                    modalTabs.renderModalTabSettings(content, b, helpers, {
+                        definitions: () => entries.map(item => ({ value: key(item.id), label: item.label })),
+                        tabs: () => orderedOBSTiles(liveKind, entries, b.options).map(item => key(item.id)),
+                        normalizeOptions: (options: string) => options,
+                        setTabs: (card: { options: string }, visible: string[]) => {
+                            card.options = setOBSSubpagePreferences(liveKind, card.options, entries, visible);
+                        },
+                        idPrefix: "obs-subpage-list-", hideHeading: true, allowEmpty: true,
+                    });
+                });
+                appendEditSubpageButton(panel, slot);
+                return;
+            }
             var savedKind: any = subpageKind(b);
             var kind: any = savedKind === "companion_stat" ? savedKind : "";
             helpers.renderCardModeSelector(panel, b, helpers, {
@@ -239,6 +295,34 @@ export function registerSubpageCardTypes(
         label: "Subpage",
         onSelect: function (this: any, b?: any) {
             b.options = setConfigOptionValue(b.options, SUBPAGE_CONNECTOR_OPTION, "mac_companion");
+        },
+    });
+    function obsSubpageDefinition(kind: OBSSubpageKind) {
+        const pageType = OBS_SUBPAGES[kind];
+        return {
+            ...registeredSubpageDefinition,
+            pickerKey: null,
+            label: pageType.label,
+            onSelect: function (b: { label: string; icon: string; options: string }) {
+                b.label = pageType.label;
+                b.icon = pageType.icon;
+                b.options = setConfigOptionValue(b.options, SUBPAGE_CONNECTOR_OPTION, "mac_companion");
+                b.options = setConfigOptionValue(b.options, SUBPAGE_KIND_OPTION, kind);
+            },
+        };
+    }
+    registry.register("companion_obs_transitions", obsSubpageDefinition("obs_transitions"));
+    registry.register("companion_obs_audio", obsSubpageDefinition("obs_audio"));
+    registry.register("companion_obs_scenes", obsSubpageDefinition("obs_scenes"));
+    registry.register("companion_obs_studio_control", {
+        ...registeredSubpageDefinition,
+        pickerKey: null,
+        label: "Studio Control",
+        onSelect: function (b: { label: string; icon: string; options: string }) {
+            b.label = "Studio Control";
+            b.icon = "Movie";
+            b.options = setConfigOptionValue(b.options, SUBPAGE_CONNECTOR_OPTION, "mac_companion");
+            b.options = setConfigOptionValue(b.options, SUBPAGE_KIND_OPTION, STUDIO_CONTROL_PAGE);
         },
     });
     function subpageBadgeLabelHtml(this: any, helpers?: any, label?: any) {
