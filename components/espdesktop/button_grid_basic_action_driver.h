@@ -74,10 +74,9 @@ inline bool basic_action_driver_refresh_layout(
   const bool scene = companion_obs_scene_card(config.entity);
   const bool default_scene_icon = scene && (config.icon.empty() || config.icon == "Auto" ||
     config.icon == "Image" || config.icon == "Image Card Loading");
-  if (!companion_obs_test_static_switching(config.entity) &&
-      (status || scene || config.entity == "obs.take" || config.entity == "obs.brb" ||
+  if (status || scene || config.entity == "obs.take" || config.entity == "obs.brb" ||
       config.entity == "obs.replay" || output || config.entity == "obs.studio" ||
-      config.entity == "obs.transition" || companion_obs_transition_target(config.entity) || config.entity == "obs.replay.buffer"))
+      config.entity == "obs.transition" || companion_obs_transition_target(config.entity) || config.entity == "obs.replay.buffer")
     companion_setup_obs_detail(slot.btn, display_small_text_font(display),
       status || default_scene_icon || (output && companion_obs_output_auto_icon(config.entity, config.icon))
         ? slot.icon_lbl : nullptr);

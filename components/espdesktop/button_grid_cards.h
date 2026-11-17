@@ -493,7 +493,6 @@ inline void setup_companion_card(BtnSlot &s, const ParsedCfg &p,
                                 !cfg_option_token_present(p.options, "stat_labels_off"));
     return;
   }
-  const bool static_switching = companion_obs_test_static_switching(p.entity);
   const bool obs_status = companion_obs_status_card(p.entity);
   const bool tokenized_card = companion_obs_tokenized_card(p.entity);
   const bool obs_mute = companion_obs_audio_uuid(p.entity, "obs.mute.");
@@ -510,9 +509,7 @@ inline void setup_companion_card(BtnSlot &s, const ParsedCfg &p,
         companion_default_action_label(p.entity, p.sensor, tokenized_card ? &obs_snapshot : nullptr),
         tokenized_card ? &obs_snapshot : nullptr)
     : p.label;
-  lv_label_set_display_text(s.text_lbl,
-    static_switching && p.entity == "obs.take"
-      ? (p.label.empty() ? espdesktop_i18n("Take Live") : p.label).c_str() : label.c_str());
+  lv_label_set_display_text(s.text_lbl, label.c_str());
   if (companion_app_launch_card(p) &&
       (cfg_option_token_present(p.options, "app_hide_label") ||
        (companion_app_icon_enabled(p) &&
@@ -550,13 +547,13 @@ inline void setup_companion_card(BtnSlot &s, const ParsedCfg &p,
     obs_mute ? s.icon_lbl : nullptr, obs_mute ? icon : nullptr,
     obs_mute ? find_icon("Microphone Off") : nullptr);
   if (tokenized_card) companion_remember_rendered_obs(s.btn, obs_snapshot);
-  set_card_disabled_state(s.btn, !static_switching && !available);
+  set_card_disabled_state(s.btn, !available);
   if (obs_status) {
     apply_button_colors(s.btn, false, 0, true, sensor_color);
     sync_card_checked_text_color(s.btn);
     lv_obj_clear_flag(s.btn, LV_OBJ_FLAG_CLICKABLE);
     clear_push_button_transition(s.btn);
-  } else if (p.entity == "obs.take" || static_switching) {
+  } else if (p.entity == "obs.take") {
     // Keep the normal palette on touch-down, including custom card colours.
     remove_button_state_transitions(s.btn);
     lv_obj_remove_style(s.btn, nullptr, static_cast<lv_style_selector_t>(LV_PART_MAIN) |
@@ -570,11 +567,7 @@ inline void setup_companion_card(BtnSlot &s, const ParsedCfg &p,
   } else {
     clear_push_button_transition(s.btn);
   }
-  if (static_switching) {
-    if (lv_obj_has_state(s.btn, LV_STATE_CHECKED)) set_card_checked_state(s.btn, false);
-  } else {
-    companion_apply_card_focus(s.btn, p.entity, p.sensor);
-  }
+  companion_apply_card_focus(s.btn, p.entity, p.sensor);
 }
 
 

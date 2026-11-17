@@ -670,15 +670,6 @@ inline bool companion_obs_scene_card(const std::string &id) {
     companion_obs_audio_uuid(id, "obs.preview.");
 }
 
-inline bool companion_obs_test_static_switching(const std::string &id) {
-#ifdef ESPDESKTOP_TEST_STATIC_OBS_SWITCHING
-  return id == "obs.take" || companion_obs_scene_card(id);
-#else
-  (void) id;
-  return false;
-#endif
-}
-
 inline bool companion_obs_break_active(std::string_view label) {
   return label == "Resume" || label == "Resuming…" || label.rfind("Resume · ", 0) == 0;
 }
@@ -947,6 +938,7 @@ struct CompanionViewRegistry {
   std::vector<CompanionSliderRef> sliders;
   std::vector<CompanionMuteRef> mutes;
   std::string pending_focus_frame;
+  std::optional<uint32_t> scene_refresh_at;
 };
 
 inline CompanionViewRegistry &companion_view_registry() {
@@ -1273,8 +1265,10 @@ inline void companion_render_obs_detail(CompanionCardRef &ref, const std::string
   if (output || (ref.obs_state_icon && !scene && ref.action_id != "obs.status.program")) detail = espdesktop_i18n(detail);
   if (normalize_display_text(primary) != lv_label_get_text(ref.text_label))
     lv_label_set_display_text(ref.text_label, primary.c_str());
-  if (normalize_display_text(detail) != lv_label_get_text(ref.obs_detail))
+  const bool detail_changed = normalize_display_text(detail) != lv_label_get_text(ref.obs_detail);
+  if (detail_changed)
     lv_label_set_display_text(ref.obs_detail, detail.c_str());
+  if (refreshing && !detail_changed) return;
   lv_obj_align(ref.obs_detail, LV_ALIGN_BOTTOM_LEFT, 0, 0);
   lv_obj_update_layout(ref.obs_detail);
   lv_obj_align(ref.text_label, LV_ALIGN_BOTTOM_LEFT, 0, detail.empty() ? 0 : -lv_obj_get_height(ref.obs_detail) - 2);
@@ -1381,7 +1375,6 @@ inline void companion_require_card_focus(lv_obj_t *button, const std::string &re
 inline void companion_refresh_card_focus(const CompanionRuntimeSnapshot &snapshot) {
   for (auto &ref : companion_card_refs()) {
     if (!ref.button || !lv_obj_is_valid(ref.button) || !ref.metric_key.empty()) continue;
-    if (companion_obs_test_static_switching(ref.action_id)) continue;
     if (!ref.required_focus_id.empty()) {
       const bool available = companion_action_available(snapshot, ref.action_id) &&
         companion_required_focus_ready(ref.required_focus_id, snapshot);
@@ -1424,19 +1417,68 @@ inline void companion_render_slider(const CompanionSliderRef &ref, const Compani
   }
 }
 
+inline void companion_refresh_action_card(CompanionCardRef &ref, const CompanionRuntimeSnapshot &snapshot) {
+  if (ref.text_label && lv_obj_is_valid(ref.text_label) &&
+      (ref.dynamic_default_label || ref.obs_detail)) {
+    // Keep the last friendly name if a disconnected Mac no longer supplies it.
+    std::string label = lv_label_get_text(ref.text_label);
+    if (ref.dynamic_default_label) {
+      const std::string live_label = companion_default_action_label_with_fallback(
+        ref.action_id, ref.url_config, ref.resolved_default_label, &snapshot);
+      label = companion_obs_control_label(ref.action_id, ref.obs_label_alias, live_label, &snapshot);
+    }
+    if (ref.obs_detail) companion_render_obs_detail(ref, label, snapshot, true);
+    else if (normalize_display_text(label) != lv_label_get_text(ref.text_label))
+      lv_label_set_display_text(ref.text_label, label.c_str());
+  }
+  const bool action_available = ref.url_config.empty()
+    ? companion_action_available(snapshot, ref.action_id)
+    : companion_url_available(ref.action_id, ref.url_config);
+  const bool available = action_available && companion_required_focus_ready(ref.required_focus_id, snapshot);
+
+  if (lv_obj_has_state(ref.button, LV_STATE_DISABLED) == available)
+    set_card_disabled_state(ref.button, !available);
+  companion_apply_card_focus(ref.button, ref.action_id, ref.url_config, ref.show_focus, &snapshot);
+  if (ref.obs_detail || companion_obs_momentary_action(ref.action_id))
+    companion_update_obs_detail_contrast(ref, companion_obs_keep_content_bright(snapshot, ref.action_id));
+  companion_render_obs_mute(ref, snapshot);
+}
+
 inline void companion_refresh_cards_if_requested() {
+  constexpr uint32_t scene_refresh_delay_ms = 45;
   const bool full_refresh = companion_card_refresh_requested().exchange(false);
   const bool focus_refresh = companion_runtime_service().consume_focus_refresh_request();
-  if (!full_refresh && !focus_refresh) return;
-  auto &refs = companion_card_refs();
+  auto &view = companion_view_registry();
+  auto &scene_refresh_at = view.scene_refresh_at;
+  if (!full_refresh && !focus_refresh && !scene_refresh_at) return;
+  const auto now = esphome::millis();
+  const bool scene_refresh = scene_refresh_at && static_cast<int32_t>(now - *scene_refresh_at) >= 0;
+  if (!full_refresh && !focus_refresh && !scene_refresh) return;
+  if (scene_refresh) scene_refresh_at.reset();
+  auto &refs = view.cards;
   const auto snapshot = companion_runtime_snapshot();
   if (!full_refresh) {
-    companion_refresh_card_focus(snapshot);
+    if (focus_refresh) companion_refresh_card_focus(snapshot);
+    if (scene_refresh) {
+      for (auto &ref : refs)
+        if (ref.button && lv_obj_is_valid(ref.button) && companion_obs_scene_card(ref.action_id))
+          companion_refresh_action_card(ref, snapshot);
+    }
     return;
+  }
+  // Keep the command and its label in sync before lower-priority card work.
+  for (auto &ref : refs) {
+    if (ref.action_id != "obs.take" || !ref.button || !lv_obj_is_valid(ref.button)) continue;
+    companion_set_rendered_obs_action(ref, snapshot);
+    companion_refresh_action_card(ref, snapshot);
   }
   for (auto it = refs.begin(); it != refs.end();) {
     if (!it->button || !lv_obj_is_valid(it->button)) {
       it = refs.erase(it);
+      continue;
+    }
+    if (it->action_id == "obs.take") {
+      ++it;
       continue;
     }
     if (!it->metric_key.empty()) {
@@ -1473,37 +1515,13 @@ inline void companion_refresh_cards_if_requested() {
       continue;
     }
     if (companion_obs_tokenized_card(it->action_id)) companion_set_rendered_obs_action(*it, snapshot);
-    // The test still replaces the command token when OBS changes its target.
-    // Skip LVGL updates so a touch reaches the same availability checks.
-    if (companion_obs_test_static_switching(it->action_id)) {
-      ++it;
-      continue;
+    if (companion_obs_scene_card(it->action_id) && !scene_refresh) {
+      // Scene selection still uses the current token. Paint the indicator in
+      // a later UI pass, coalescing a burst without postponing it indefinitely.
+      if (!scene_refresh_at) scene_refresh_at = now + scene_refresh_delay_ms;
+    } else {
+      companion_refresh_action_card(*it, snapshot);
     }
-    if (it->text_label && lv_obj_is_valid(it->text_label) &&
-        (it->dynamic_default_label || it->obs_detail)) {
-      // A disconnected Companion temporarily has no action catalogue. Keep
-      // the friendly name seen before the outage instead of showing its ID.
-      std::string label = lv_label_get_text(it->text_label);
-      if (it->dynamic_default_label) {
-        const std::string live_label = companion_default_action_label_with_fallback(
-          it->action_id, it->url_config, it->resolved_default_label, &snapshot);
-        label = companion_obs_control_label(it->action_id, it->obs_label_alias, live_label, &snapshot);
-      }
-      if (it->obs_detail) companion_render_obs_detail(*it, label, snapshot, true);
-      else if (normalize_display_text(label) != lv_label_get_text(it->text_label))
-        lv_label_set_display_text(it->text_label, label.c_str());
-    }
-    const bool action_available = it->url_config.empty()
-      ? companion_action_available(snapshot, it->action_id)
-      : companion_url_available(it->action_id, it->url_config);
-    const bool available = action_available && companion_required_focus_ready(it->required_focus_id, snapshot);
-
-    if (lv_obj_has_state(it->button, LV_STATE_DISABLED) == available)
-      set_card_disabled_state(it->button, !available);
-    companion_apply_card_focus(it->button, it->action_id, it->url_config, it->show_focus, &snapshot);
-    if (it->obs_detail || companion_obs_momentary_action(it->action_id))
-      companion_update_obs_detail_contrast(*it, companion_obs_keep_content_bright(snapshot, it->action_id));
-    companion_render_obs_mute(*it, snapshot);
     ++it;
   }
   for (const auto &ref : companion_view_registry().mutes)

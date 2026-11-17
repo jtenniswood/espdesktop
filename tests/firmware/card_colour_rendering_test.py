@@ -41,7 +41,7 @@ struct lv_obj_t {
   uint32_t background[3] = {}, text[3] = {}, gradient[3] = {}, border[3] = {}, outline[3] = {};
   int gradient_direction[3] = {};
   int state = 0;
-  int slider_value = 0, slider_events = 0, y_offset = 0;
+  int slider_value = 0, slider_events = 0, y_offset = 0, layout_updates = 0;
   bool instant_feedback = false;
   int flags = 0;
   std::vector<lv_event_cb_t> events;
@@ -246,7 +246,7 @@ struct CompanionSliderRef {
 constexpr int LV_ALIGN_BOTTOM_LEFT = 1, LV_ANIM_OFF = 0, LV_EVENT_VALUE_CHANGED = 21;
 const char *lv_label_get_text(lv_obj_t *label) { return label->content.c_str(); }
 void lv_obj_align(lv_obj_t *obj, int, int, int y) { obj->y_offset = y; }
-void lv_obj_update_layout(lv_obj_t *) {}
+void lv_obj_update_layout(lv_obj_t *obj) { ++obj->layout_updates; }
 void lv_slider_set_value(lv_obj_t *obj, int value, int) { obj->slider_value = value; }
 int lv_slider_get_value(lv_obj_t *obj) { return obj->slider_value; }
 void lv_obj_send_event(lv_obj_t *obj, int event, void *) {
@@ -276,7 +276,7 @@ groups = (
     ("button_grid_touch.h", "", ("consume_button_touch_press",)),
     ("button_grid_layout.h", "", ("parse_hex_color", "apply_button_colors", "apply_button_on_pattern")),
     ("companion_controls.h", "", ("companion_obs_record_stopping", "companion_obs_output_status_id", "companion_obs_output_status", "companion_obs_output_active")),
-    ("companion_controls.h", "", ("companion_obs_scene_target", "companion_obs_hashed_target", "companion_obs_transition_target", "companion_obs_source_target", "companion_obs_scene_card", "companion_obs_test_static_switching", "companion_obs_control_label", "companion_obs_break_active", "companion_obs_momentary_action", "companion_apply_card_focus", "companion_required_focus_ready", "companion_refresh_card_focus")),
+    ("companion_controls.h", "", ("companion_obs_scene_target", "companion_obs_hashed_target", "companion_obs_transition_target", "companion_obs_source_target", "companion_obs_scene_card", "companion_obs_control_label", "companion_obs_break_active", "companion_obs_momentary_action", "companion_apply_card_focus", "companion_required_focus_ready", "companion_refresh_card_focus")),
     ("companion_controls.h", "", ("companion_obs_status_card", "companion_obs_status_icon", "companion_obs_scene_on_program", "companion_render_obs_detail", "companion_obs_keep_content_bright", "companion_update_obs_detail_contrast", "companion_render_slider")),
     ("button_grid_grid.h", "", ("card_palette_for_config", "card_slot_static_child", "reset_card_slot_dynamic_children")),
     ("button_grid_grid.h", "", ("apply_subpage_back_colors",)),
@@ -469,6 +469,11 @@ int main() {
                             {"obs.transition" + suffix, "Fade"}};
     companion_render_obs_detail(replay, replay_state.actions[0].label, replay_state);
     assert(title.content == "Take Studio" && detail.content == "Fade");
+    const auto layout_updates = detail.layout_updates;
+    replay_state.actions[0].obs_detail = "Break";
+    companion_render_obs_detail(replay, "Take Live · Break", replay_state, true);
+    assert(title.content == "Take Break" && detail.content == "Fade");
+    assert(detail.layout_updates == layout_updates);
     replay.action_id = "obs.transition";
     companion_render_obs_detail(replay, "Fade · Short", {});
     assert(title.content == "Transition" && detail.content == "Fade · Short");
