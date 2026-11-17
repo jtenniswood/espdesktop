@@ -553,13 +553,6 @@ inline void setup_companion_card(BtnSlot &s, const ParsedCfg &p,
     sync_card_checked_text_color(s.btn);
     lv_obj_clear_flag(s.btn, LV_OBJ_FLAG_CLICKABLE);
     clear_push_button_transition(s.btn);
-  } else if (p.entity == "obs.take") {
-    // Keep the normal palette on touch-down, including custom card colours.
-    remove_button_state_transitions(s.btn);
-    lv_obj_remove_style(s.btn, nullptr, static_cast<lv_style_selector_t>(LV_PART_MAIN) |
-      static_cast<lv_style_selector_t>(LV_STATE_PRESSED));
-    lv_obj_remove_event_cb_with_user_data(s.btn, card_text_contrast_event_cb, nullptr);
-    sync_card_checked_text_color(s.btn);
   } else if (companion_app_launch_card(p) || companion_obs_momentary_action(p.entity)) {
     apply_instant_button_feedback(s.btn);
   } else if (available) {
