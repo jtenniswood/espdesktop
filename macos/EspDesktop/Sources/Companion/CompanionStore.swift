@@ -98,6 +98,7 @@ struct ApprovedFolder: Codable, Identifiable, Hashable {
 final class CompanionStore: NSObject, ObservableObject {
     let updater = CompanionUpdater()
     let obs: OBSConnection
+    let twitch: TwitchBroadcast
     private var obsCatalogueObservation: AnyCancellable?
     private var obsAudioObservation: AnyCancellable?
     @Published var settingsRequestID: UUID?
@@ -186,6 +187,7 @@ final class CompanionStore: NSObject, ObservableObject {
             : (UserDefaults(suiteName: Self.preferencesSuite) ?? .standard))
         self.defaults = stableDefaults
         obs = OBSConnection(defaults: stableDefaults)
+        twitch = TwitchBroadcast(defaults: stableDefaults)
         let savedDisplays = CompanionSavedDisplays(defaults: stableDefaults)
         self.savedDisplays = savedDisplays
         approvedApplicationIdentifiers = Set(
