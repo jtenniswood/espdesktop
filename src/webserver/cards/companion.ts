@@ -2,11 +2,12 @@ import { obsSubpageCatalogue } from "../model/obs_live_subpage";
 import { targetedAudioCard } from "./companion_app_volume";
 import { childPageKey } from "../model/page_keys";
 import { renderCompanionStorageSelector } from "./companion_storage";
-import { COMPANION_FOLDER_PREFIX, COMPANION_OBS_PREFIX, OBS_BRB_ID, OBS_MULTIVIEW_ID, OBS_OUTPUT_OPTIONS, OBS_PROGRAM_ID, OBS_REPLAY_BUFFER_ID, OBS_REPLAY_ID, OBS_STUDIO_ID, OBS_STUDIO_OPTIONS, OBS_TAKE_ID, OBS_TRANSITION_ID, OBS_TRANSITION_OPTIONS, OBS_TRANSITION_SELECT, savedOBSTransition, savedOBSSceneTarget, decodeCompanionCard, encodeCompanionCard, companionMetricForEntity, obsConfirmationControl, obsInputName, obsOutputCardEntity, obsSceneCardEntity } from "../model/companion_card_codec";
+import { COMPANION_DEFAULT_BROWSER, COMPANION_URL_PREFIX, companionUrlConfig, COMPANION_FOLDER_PREFIX, COMPANION_OBS_PREFIX, OBS_BRB_ID, OBS_MULTIVIEW_ID, OBS_OUTPUT_OPTIONS, OBS_PROGRAM_ID, OBS_CONNECTION_ID, YOUTUBE_STATUS_ID, OBS_BROADCAST_STATUS_OPTIONS, OBS_REPLAY_BUFFER_ID, OBS_REPLAY_ID, OBS_STUDIO_ID, OBS_STUDIO_OPTIONS, OBS_TAKE_ID, OBS_TRANSITION_ID, OBS_TRANSITION_OPTIONS, OBS_TRANSITION_SELECT, savedOBSTransition, savedOBSSceneTarget, decodeCompanionCard, encodeCompanionCard, companionMetricForEntity, obsConfirmationControl, obsInputName, obsOutputCardEntity, obsSceneCardEntity } from "../model/companion_card_codec";
 import { configOptionEnabled, configOptionValue, setConfigOption, setConfigOptionValue, normalizedCardColorOptions, preserveCardColorOptions, withoutCardColorOptions } from "../model/config_primitives";
 import { createCompanionCatalogue, createCompanionCatalogueMonitor } from "../api/companion_catalogue";
 import type { CompanionAction } from "../api/companion_catalogue";
 export type { CompanionAction } from "../api/companion_catalogue";
+export { companionUrlConfig } from "../model/companion_card_codec";
 import {
     cardContractAllowInSubpage,
     cardContractCard,
@@ -77,8 +78,6 @@ import {
 } from "../application/companion_shortcut_folder";
 import { appShortcutPageOwner, previewSubpageOwner } from "../model/companion_shortcut_page";
 
-const COMPANION_URL_PREFIX = "url.";
-const COMPANION_DEFAULT_BROWSER = "system.default_browser";
 const COMPANION_STATS_PLACEHOLDER = "stats";
 const COMPANION_STATS_MODES = ["stats", ...COMPANION_SYSTEM_METRICS.map((metric) => metric.mode)];
 export const COMPANION_STATS_OPTIONS = COMPANION_SYSTEM_METRICS
@@ -167,20 +166,6 @@ export function companionShortcutCatalogSelection(card: any) {
     const preset = companionShortcutPresetCards(appId).find((preset) =>
         preset.entity === card?.entity && preset.options === options);
     return preset ? { ...preset, appId } : undefined;
-}
-
-export function companionUrlConfig(rawValue: string): string {
-    const value = rawValue.trim();
-    if (!value) return "";
-    try {
-        const url = new URL(value);
-        if ((url.protocol !== "http:" && url.protocol !== "https:") || !url.hostname ||
-            url.username || url.password) return "";
-        const encoded = encodeURIComponent(url.href);
-        return encoded.length <= 128 ? COMPANION_URL_PREFIX + encoded : "";
-    } catch {
-        return "";
-    }
 }
 
 export function companionUrlValue(sensor: string): string {
@@ -344,7 +329,7 @@ export function companionEntityForMode(mode: string): string {
     if (mode === "obs_replay") return OBS_REPLAY_ID;
     if (mode === "obs_replay_buffer") return OBS_REPLAY_BUFFER_ID;
     if (mode === "obs_output") return OBS_OUTPUT_OPTIONS[0][0];
-    if (mode === "obs_status") return OBS_PROGRAM_ID;
+    if (mode === "obs_status") return OBS_CONNECTION_ID;
     if (mode === "stats") return COMPANION_SYSTEM_METRICS[0]?.id || "";
     return COMPANION_SYSTEM_METRICS.find((metric) => metric.mode === mode)?.id || "";
 }
@@ -655,10 +640,12 @@ export function registerCompanionCardTypes(
         const transition = mode === "obs_transition";
         const directTransition = card.entity.startsWith(OBS_TRANSITION_SELECT);
         const replayOptions = [[OBS_REPLAY_ID, "Save Replay"], [OBS_REPLAY_BUFFER_ID, "Start / Stop Buffer"]];
-        if (studio || replay || transition || mode === "obs_output") {
+        const broadcast = mode === "obs_status" && !studio;
+        if (studio || replay || transition || mode === "obs_output" || broadcast) {
             const { field, select } = helpers.selectField(studio ? "Studio Mode" : mode === "obs_output" ? "OBS output" : "Type",
                 helpers.idPrefix + (studio ? "obs-studio" : transition ? "obs-transition-type" : replay ? "obs-replay-type" : "obs-output"),
-                studio ? OBS_STUDIO_OPTIONS : transition ? OBS_TRANSITION_OPTIONS : replay ? replayOptions : OBS_OUTPUT_OPTIONS,
+                studio ? OBS_STUDIO_OPTIONS : transition ? OBS_TRANSITION_OPTIONS : replay ? replayOptions
+                    : broadcast ? OBS_BROADCAST_STATUS_OPTIONS : OBS_OUTPUT_OPTIONS,
                 directTransition ? OBS_TRANSITION_SELECT : card.entity, () => {
                     const previousIcon = card.entity === "obs.output.virtualcam" ? "Video"
                         : companionSubtypeDefaultIcon(companionCardMode(card), card.entity);
@@ -714,7 +701,7 @@ export function registerCompanionCardTypes(
             note.className = "sp-setting-note";
             const descriptions = {
                 obs_brb: "Choose your break scene and optional mic in the Mac Companion’s OBS settings.",
-                obs_status: "Displays the selected status reported by OBS Studio.",
+                obs_status: "Set up YouTube monitoring and choose an event in Mac Companion → Settings → OBS.",
                 obs_studio: "Choose a Studio Mode control.",
                 obs_replay: "Saves a clip while the OBS Replay Buffer is running.",
                 obs_replay_buffer: "Starts or stops the buffer. Enable Replay Buffer in OBS → Settings → Output first.",
@@ -1811,9 +1798,14 @@ export function registerCompanionCardTypes(
                 const unavailable = (multiview && !currentLabel) || (virtualCamera && outputStatus === "Unavailable") ||
                     (!output && (presentation?.obsAvailable === false ||
                         (replay && !currentLabel && obsControlLabels.has("obs.status.program"))));
-                const programScene = sensor && currentLabel?.replace(/^Program · /, "");
+                const statusParts = sensor ? currentLabel?.split(" · ") : undefined;
+                const statusTitle = entity === YOUTUBE_STATUS_ID ? statusParts?.[0] || "YouTube"
+                    : entity === OBS_CONNECTION_ID ? "OBS" : "Program";
+                const statusDetail = statusParts?.slice(1).join(" · ") ||
+                    (entity === OBS_CONNECTION_ID ? "Mac unavailable" : "Unavailable");
                 const automaticOutputIcon = output && (!card.icon || ["Auto", "Monitor", virtualCamera ? "Video" : record ? "Record" : "Broadcast"].includes(card.icon));
-                const statusIcon = sensor ? (programScene && programScene !== "Unknown" ? "Monitor" : "Monitor Off")
+                const statusIcon = sensor ? (entity === YOUTUBE_STATUS_ID ? "Broadcast"
+                    : statusParts && statusDetail !== "Unknown" ? "Monitor" : "Monitor Off")
                     : OBS_OUTPUT_STATUS_ICONS[outputStatus]?.[virtualCamera ? 2 : record ? 0 : 1] || "Monitor Off";
                 const alias = (mode === "obs_mic" || scene || source || directTransition) && card.label;
                 const muted = mode === "obs_mic" && (cardState ? stateId === "audio_muted" : currentLabel?.startsWith("Muted · "));
@@ -1834,11 +1826,11 @@ export function registerCompanionCardTypes(
                     const legacyTakeDetail = take && !stateId && detail;
                     const takeSameScene = stateId === "take_same_scene" || legacyTakeDetail === "Already on Program";
                     const defaultTitle = takeSameScene ? "Currently Live" : takeScene ? "Take " + takeScene
-                        : output || scene || directTransition ? label : fallback[mode];
+                        : sensor ? statusTitle : output || scene || directTransition ? label : fallback[mode];
                     const title = ((takeReady || takeSameScene) && card.label === "Take Live" ? "" : card.label) || defaultTitle;
                     const presentationDetail = cardState && (take || toggle || replay || brb)
                         ? presentation?.obsDetail ?? cardState.detail : undefined;
-                    const note = sensor ? programScene || "Unavailable"
+                    const note = sensor ? statusDetail
                         : output ? outputStatus
                         : takeReady ? obsControlLabels.get(OBS_TRANSITION_ID) || ""
                         : takeSameScene || (take && (presentationDetail ?? detail) === "Transitioning") ? ""
@@ -1847,7 +1839,9 @@ export function registerCompanionCardTypes(
                         : mode === "obs_transition" ? currentLabel || "Unavailable"
                         : status === "BRB · Already on break" ? "" : presentationDetail ?? (detail || (name === defaultTitle ? "" : name || "Unavailable"));
                     preview.labelHtml = '<span class="sp-btn-label-row sp-obs-label"><span class="sp-btn-label">' +
-                        helpers.escHtml(title) + '</span><span class="sp-obs-detail">' + helpers.escHtml(note) + '</span></span>';
+                        helpers.escHtml(title) + '</span><span class="sp-obs-detail' +
+                        (entity === YOUTUBE_STATUS_ID ? ' sp-obs-youtube-detail' : '') + '">' +
+                        helpers.escHtml(note) + '</span></span>';
                 }
                 return {
                     ...preview,
@@ -2100,6 +2094,7 @@ export function registerCompanionCardTypes(
         ["companion_obs_brb", "Break", "obs_brb"],
         ["companion_obs_replay", "Replay Buffer", "obs_replay"],
         ["companion_obs_output", "Output Controls", "obs_output"],
+        ["companion_obs_broadcast", "Broadcast Status", "obs_status"],
     ];
     companionPickerDefinitions.forEach(function (definition) {
         const key = definition[0];

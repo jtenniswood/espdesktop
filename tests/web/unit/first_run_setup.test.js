@@ -174,3 +174,45 @@ test("OBS starter groups its controls on a six-cell display and preserves Home c
   assert.equal(clearedResult.layout.rootCards[1].config.label, "OBS Studio");
   assert.equal(clearedResult.layout.pages[0].key, 2);
 });
+
+test("YouTube starter keeps essential controls and existing Home cards on small and standard grids", () => {
+  const { obsStarterControls, pinOBSStarterPage } = loadTypescriptTest("src/webserver/application/obs_starter_page.ts");
+  const main = "11111111-1111-1111-1111-111111111111";
+  const demo = "22222222-2222-2222-2222-222222222222";
+  const mic = "33333333-3333-3333-3333-333333333333";
+  const token = "44444444-4444-4444-4444-444444444444";
+  const controls = obsStarterControls([
+    { id: `obs.target.${main}.${token}`, label: "Camera" },
+    { id: `obs.target.${demo}.${token}`, label: "Demo" },
+    { id: `obs.mute.${mic}`, label: "Unmuted · Commentary" },
+    { id: `obs.replay.buffer.${token}`, label: "Off" },
+    { id: `obs.brb.scene.${demo}`, label: "Configured BRB scene" },
+  ]);
+  const input = empty({ buttons: { 1: "com.apple.Safari;Safari;Auto;Auto;;;companion" },
+    settings: { button_order: "1" } });
+  const current = decodePanelPageSnapshot(input);
+  const choices = { main: "obs.target." + main, away: "obs.target." + demo,
+    mic: "obs.mute." + mic, layout: "youtube-live", liveAction: "save-replay" };
+  for (const numSlots of [6, 9]) {
+    const draft = new NativeLayoutDraft(input);
+    pinOBSStarterPage(draft, current, controls, choices, { numSlots, previewSlots: numSlots, totalSlots: numSlots, gridCols: 3 });
+    const { layout } = decodePanelPageSnapshot(draft.finish());
+    assert.equal(layout.rootCards[0].config.entity, safari.id);
+    assert.equal(layout.rootCards[1].config.label, "YouTube Live");
+    assert.deepEqual(layout.pages[0].cards.slice(0, 4).map(({ config }) => config.entity),
+      ["obs.status.connection", "obs.status.youtube", choices.main, choices.mic]);
+    const entities = layout.pages.flatMap(page => {
+      assert(page.order.startsWith("B,"), JSON.stringify({ numSlots, order: page.order, key: page.key, count: page.cards.length }));
+      assert(page.cards.length < numSlots);
+      return page.cards.map(({ config }) => config.entity);
+    });
+    for (const id of [choices.away, "obs.brb", "obs.replay", "obs.output.record", "obs.output.stream"]) {
+      assert(entities.includes(id), `${id} is reachable on ${numSlots} cells`);
+    }
+    assert.equal(layout.pages.length, 2);
+    if (numSlots === 9) {
+      assert(entities.includes("obs.replay.buffer"));
+      assert(entities.includes("system.default_browser"));
+    }
+  }
+});

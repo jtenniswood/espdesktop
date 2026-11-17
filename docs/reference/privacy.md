@@ -84,6 +84,12 @@ enabled or you check manually. The hosting providers may receive ordinary reques
 information such as IP address and time. You can change automatic update settings
 in the Mac app’s **Updates** tab.
 
+### Optional YouTube broadcast monitoring
+
+If you connect YouTube monitoring, the Mac app uses Google's OAuth sign-in and YouTube Data API to read the selected event's title, visibility, broadcast state and incoming stream health. The Google OAuth client and refresh token are stored in macOS Keychain. A temporary loopback listener receives the sign-in callback from the browser on the same Mac. The paired display and its layout editor receive the event title and status. Protect the display web interface with authentication if you monitor private events on a shared network.
+
+The integration uses a read-only YouTube scope. Google receives the API requests directly from your Mac. You can delete the saved connection in EspDesktop and manage access in [your Google Account](https://myaccount.google.com/connections).
+
 ## Information you provide to the project
 
 If you open a GitHub issue, pull request, or discussion, GitHub processes your

@@ -101,6 +101,7 @@ final class CompanionApplicationDelegate: NSObject, NSApplicationDelegate, NSMen
             .sink { [weak self] connected in self?.updateStatusItemImage(connected: connected) }
         store.connectSavedDisplays()
         store.obs.start()
+        store.youtube.start()
         let openedByUser = !launchedAsLoginItem()
         store.updater.startAutomaticChecks(checkOnLaunch: openedByUser)
         if openedByUser {
@@ -109,6 +110,7 @@ final class CompanionApplicationDelegate: NSObject, NSApplicationDelegate, NSMen
     }
 
     func applicationWillTerminate(_ notification: Notification) {
+        store.youtube.stop()
         store.obs.stop()
         store.releaseCoughButtons()
         DistributedNotificationCenter.default().removeObserver(self)

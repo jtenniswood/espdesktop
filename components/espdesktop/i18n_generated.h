@@ -944,6 +944,23 @@ inline const char *espdesktop_i18n_de(const char *text) {
   if (std::strcmp(text, "Turn off Studio Mode?") == 0) return "Studiomodus ausschalten?";
   if (std::strcmp(text, "Start Replay Buffer?") == 0) return "Replay-Puffer starten?";
   if (std::strcmp(text, "Stop Replay Buffer?") == 0) return "Replay-Puffer stoppen?";
+  if (std::strcmp(text, "Public") == 0) return "Öffentlich";
+  if (std::strcmp(text, "Unlisted") == 0) return "Nicht gelistet";
+  if (std::strcmp(text, "Private") == 0) return "Privat";
+  if (std::strcmp(text, "Set up on Mac") == 0) return "Am Mac einrichten";
+  if (std::strcmp(text, "Choose broadcast") == 0) return "Stream auswählen";
+  if (std::strcmp(text, "Checking") == 0) return "Prüfe";
+  if (std::strcmp(text, "Sign in on Mac") == 0) return "Am Mac anmelden";
+  if (std::strcmp(text, "Starting") == 0) return "Startet";
+  if (std::strcmp(text, "Testing") == 0) return "Test";
+  if (std::strcmp(text, "Ended") == 0) return "Beendet";
+  if (std::strcmp(text, "Receiving") == 0) return "Empfängt";
+  if (std::strcmp(text, "Waiting") == 0) return "Wartet";
+  if (std::strcmp(text, "Waiting for video") == 0) return "Wartet auf Video";
+  if (std::strcmp(text, "Check signal") == 0) return "Signal prüfen";
+  if (std::strcmp(text, "Mac unavailable") == 0) return "Mac nicht verfügbar";
+  if (std::strcmp(text, "Check upload") == 0) return "Upload prüfen";
+  if (std::strcmp(text, "Sending") == 0) return "Sendet";
   return text;
 }
 
@@ -1268,6 +1285,23 @@ inline const char *espdesktop_i18n_es(const char *text) {
   if (std::strcmp(text, "Turn off Studio Mode?") == 0) return "¿Desactivar el modo estudio?";
   if (std::strcmp(text, "Start Replay Buffer?") == 0) return "¿Iniciar el búfer de repetición?";
   if (std::strcmp(text, "Stop Replay Buffer?") == 0) return "¿Detener el búfer de repetición?";
+  if (std::strcmp(text, "Public") == 0) return "Público";
+  if (std::strcmp(text, "Unlisted") == 0) return "Oculto";
+  if (std::strcmp(text, "Private") == 0) return "Privado";
+  if (std::strcmp(text, "Set up on Mac") == 0) return "Configurar en el Mac";
+  if (std::strcmp(text, "Choose broadcast") == 0) return "Elegir emisión";
+  if (std::strcmp(text, "Checking") == 0) return "Comprobando";
+  if (std::strcmp(text, "Sign in on Mac") == 0) return "Iniciar sesión en el Mac";
+  if (std::strcmp(text, "Starting") == 0) return "Iniciando";
+  if (std::strcmp(text, "Testing") == 0) return "En pruebas";
+  if (std::strcmp(text, "Ended") == 0) return "Finalizado";
+  if (std::strcmp(text, "Receiving") == 0) return "Recibiendo";
+  if (std::strcmp(text, "Waiting") == 0) return "En espera";
+  if (std::strcmp(text, "Waiting for video") == 0) return "Esperando vídeo";
+  if (std::strcmp(text, "Check signal") == 0) return "Revisar señal";
+  if (std::strcmp(text, "Mac unavailable") == 0) return "Mac no disponible";
+  if (std::strcmp(text, "Check upload") == 0) return "Revisar subida";
+  if (std::strcmp(text, "Sending") == 0) return "Enviando";
   return text;
 }
 
@@ -1912,6 +1946,22 @@ inline const char *espdesktop_i18n_fr(const char *text) {
   if (std::strcmp(text, "Turn off Studio Mode?") == 0) return "Désactiver le mode Studio ?";
   if (std::strcmp(text, "Start Replay Buffer?") == 0) return "Démarrer le tampon de replay ?";
   if (std::strcmp(text, "Stop Replay Buffer?") == 0) return "Arrêter le tampon de replay ?";
+  if (std::strcmp(text, "Unlisted") == 0) return "Non répertorié";
+  if (std::strcmp(text, "Private") == 0) return "Privé";
+  if (std::strcmp(text, "Set up on Mac") == 0) return "Configurer sur le Mac";
+  if (std::strcmp(text, "Choose broadcast") == 0) return "Choisir un direct";
+  if (std::strcmp(text, "Checking") == 0) return "Vérification";
+  if (std::strcmp(text, "Sign in on Mac") == 0) return "Se connecter sur le Mac";
+  if (std::strcmp(text, "Starting") == 0) return "Démarrage";
+  if (std::strcmp(text, "Testing") == 0) return "En test";
+  if (std::strcmp(text, "Ended") == 0) return "Terminé";
+  if (std::strcmp(text, "Receiving") == 0) return "Réception";
+  if (std::strcmp(text, "Waiting") == 0) return "En attente";
+  if (std::strcmp(text, "Waiting for video") == 0) return "En attente de vidéo";
+  if (std::strcmp(text, "Check signal") == 0) return "Vérifier le signal";
+  if (std::strcmp(text, "Mac unavailable") == 0) return "Mac indisponible";
+  if (std::strcmp(text, "Check upload") == 0) return "Vérifier l’envoi";
+  if (std::strcmp(text, "Sending") == 0) return "Envoi";
   return text;
 }
 
@@ -2892,6 +2942,23 @@ inline const char *espdesktop_i18n_it(const char *text) {
   if (std::strcmp(text, "Turn off Studio Mode?") == 0) return "Disattivare la modalità Studio?";
   if (std::strcmp(text, "Start Replay Buffer?") == 0) return "Avviare il buffer di replay?";
   if (std::strcmp(text, "Stop Replay Buffer?") == 0) return "Fermare il buffer di replay?";
+  if (std::strcmp(text, "Public") == 0) return "Pubblico";
+  if (std::strcmp(text, "Unlisted") == 0) return "Non in elenco";
+  if (std::strcmp(text, "Private") == 0) return "Privato";
+  if (std::strcmp(text, "Set up on Mac") == 0) return "Configura sul Mac";
+  if (std::strcmp(text, "Choose broadcast") == 0) return "Scegli la diretta";
+  if (std::strcmp(text, "Checking") == 0) return "Verifica";
+  if (std::strcmp(text, "Sign in on Mac") == 0) return "Accedi sul Mac";
+  if (std::strcmp(text, "Starting") == 0) return "Avvio";
+  if (std::strcmp(text, "Testing") == 0) return "In prova";
+  if (std::strcmp(text, "Ended") == 0) return "Terminato";
+  if (std::strcmp(text, "Receiving") == 0) return "In ricezione";
+  if (std::strcmp(text, "Waiting") == 0) return "In attesa";
+  if (std::strcmp(text, "Waiting for video") == 0) return "In attesa del video";
+  if (std::strcmp(text, "Check signal") == 0) return "Controlla il segnale";
+  if (std::strcmp(text, "Mac unavailable") == 0) return "Mac non disponibile";
+  if (std::strcmp(text, "Check upload") == 0) return "Controlla il caricamento";
+  if (std::strcmp(text, "Sending") == 0) return "In invio";
   return text;
 }
 
@@ -3517,6 +3584,23 @@ inline const char *espdesktop_i18n_nl(const char *text) {
   if (std::strcmp(text, "Turn off Studio Mode?") == 0) return "Studiomodus uitschakelen?";
   if (std::strcmp(text, "Start Replay Buffer?") == 0) return "Replaybuffer starten?";
   if (std::strcmp(text, "Stop Replay Buffer?") == 0) return "Replaybuffer stoppen?";
+  if (std::strcmp(text, "Public") == 0) return "Openbaar";
+  if (std::strcmp(text, "Unlisted") == 0) return "Verborgen";
+  if (std::strcmp(text, "Private") == 0) return "Privé";
+  if (std::strcmp(text, "Set up on Mac") == 0) return "Configureren op Mac";
+  if (std::strcmp(text, "Choose broadcast") == 0) return "Uitzending kiezen";
+  if (std::strcmp(text, "Checking") == 0) return "Controleren";
+  if (std::strcmp(text, "Sign in on Mac") == 0) return "Aanmelden op Mac";
+  if (std::strcmp(text, "Starting") == 0) return "Starten";
+  if (std::strcmp(text, "Testing") == 0) return "Testen";
+  if (std::strcmp(text, "Ended") == 0) return "Beëindigd";
+  if (std::strcmp(text, "Receiving") == 0) return "Ontvangen";
+  if (std::strcmp(text, "Waiting") == 0) return "Wachten";
+  if (std::strcmp(text, "Waiting for video") == 0) return "Wachten op video";
+  if (std::strcmp(text, "Check signal") == 0) return "Controleer signaal";
+  if (std::strcmp(text, "Mac unavailable") == 0) return "Mac niet beschikbaar";
+  if (std::strcmp(text, "Check upload") == 0) return "Controleer upload";
+  if (std::strcmp(text, "Sending") == 0) return "Verzenden";
   return text;
 }
 
@@ -4146,6 +4230,23 @@ inline const char *espdesktop_i18n_pt_br(const char *text) {
   if (std::strcmp(text, "Turn off Studio Mode?") == 0) return "Desativar o modo estúdio?";
   if (std::strcmp(text, "Start Replay Buffer?") == 0) return "Iniciar o buffer de replay?";
   if (std::strcmp(text, "Stop Replay Buffer?") == 0) return "Parar o buffer de replay?";
+  if (std::strcmp(text, "Public") == 0) return "Público";
+  if (std::strcmp(text, "Unlisted") == 0) return "Não listado";
+  if (std::strcmp(text, "Private") == 0) return "Privado";
+  if (std::strcmp(text, "Set up on Mac") == 0) return "Configurar no Mac";
+  if (std::strcmp(text, "Choose broadcast") == 0) return "Escolher transmissão";
+  if (std::strcmp(text, "Checking") == 0) return "Verificando";
+  if (std::strcmp(text, "Sign in on Mac") == 0) return "Fazer login no Mac";
+  if (std::strcmp(text, "Starting") == 0) return "Iniciando";
+  if (std::strcmp(text, "Testing") == 0) return "Em teste";
+  if (std::strcmp(text, "Ended") == 0) return "Encerrado";
+  if (std::strcmp(text, "Receiving") == 0) return "Recebendo";
+  if (std::strcmp(text, "Waiting") == 0) return "Aguardando";
+  if (std::strcmp(text, "Waiting for video") == 0) return "Aguardando vídeo";
+  if (std::strcmp(text, "Check signal") == 0) return "Verificar sinal";
+  if (std::strcmp(text, "Mac unavailable") == 0) return "Mac indisponível";
+  if (std::strcmp(text, "Check upload") == 0) return "Verificar envio";
+  if (std::strcmp(text, "Sending") == 0) return "Enviando";
   return text;
 }
 
@@ -4469,6 +4570,23 @@ inline const char *espdesktop_i18n_pt(const char *text) {
   if (std::strcmp(text, "Turn off Studio Mode?") == 0) return "Desativar o modo de estúdio?";
   if (std::strcmp(text, "Start Replay Buffer?") == 0) return "Iniciar o buffer de replay?";
   if (std::strcmp(text, "Stop Replay Buffer?") == 0) return "Parar o buffer de replay?";
+  if (std::strcmp(text, "Public") == 0) return "Público";
+  if (std::strcmp(text, "Unlisted") == 0) return "Não listado";
+  if (std::strcmp(text, "Private") == 0) return "Privado";
+  if (std::strcmp(text, "Set up on Mac") == 0) return "Configurar no Mac";
+  if (std::strcmp(text, "Choose broadcast") == 0) return "Escolher transmissão";
+  if (std::strcmp(text, "Checking") == 0) return "A verificar";
+  if (std::strcmp(text, "Sign in on Mac") == 0) return "Iniciar sessão no Mac";
+  if (std::strcmp(text, "Starting") == 0) return "A iniciar";
+  if (std::strcmp(text, "Testing") == 0) return "Em teste";
+  if (std::strcmp(text, "Ended") == 0) return "Terminado";
+  if (std::strcmp(text, "Receiving") == 0) return "A receber";
+  if (std::strcmp(text, "Waiting") == 0) return "Em espera";
+  if (std::strcmp(text, "Waiting for video") == 0) return "À espera de vídeo";
+  if (std::strcmp(text, "Check signal") == 0) return "Verificar sinal";
+  if (std::strcmp(text, "Mac unavailable") == 0) return "Mac indisponível";
+  if (std::strcmp(text, "Check upload") == 0) return "Verificar envio";
+  if (std::strcmp(text, "Sending") == 0) return "A enviar";
   return text;
 }
 
@@ -7098,6 +7216,25 @@ inline const char *espdesktop_i18n_key_en(const char *key) {
   if (std::strcmp(key, "turn_off_studio_mode") == 0) return "Turn off Studio Mode?";
   if (std::strcmp(key, "start_replay_buffer_prompt") == 0) return "Start Replay Buffer?";
   if (std::strcmp(key, "stop_replay_buffer_prompt") == 0) return "Stop Replay Buffer?";
+  if (std::strcmp(key, "label_youtube") == 0) return "YouTube";
+  if (std::strcmp(key, "label_obs") == 0) return "OBS";
+  if (std::strcmp(key, "broadcast_public") == 0) return "Public";
+  if (std::strcmp(key, "broadcast_unlisted") == 0) return "Unlisted";
+  if (std::strcmp(key, "broadcast_private") == 0) return "Private";
+  if (std::strcmp(key, "broadcast_setup_on_mac") == 0) return "Set up on Mac";
+  if (std::strcmp(key, "broadcast_choose") == 0) return "Choose broadcast";
+  if (std::strcmp(key, "broadcast_checking") == 0) return "Checking";
+  if (std::strcmp(key, "broadcast_sign_in_mac") == 0) return "Sign in on Mac";
+  if (std::strcmp(key, "broadcast_starting") == 0) return "Starting";
+  if (std::strcmp(key, "broadcast_testing") == 0) return "Testing";
+  if (std::strcmp(key, "broadcast_ended") == 0) return "Ended";
+  if (std::strcmp(key, "broadcast_receiving") == 0) return "Receiving";
+  if (std::strcmp(key, "broadcast_waiting") == 0) return "Waiting";
+  if (std::strcmp(key, "broadcast_waiting_for_video") == 0) return "Waiting for video";
+  if (std::strcmp(key, "broadcast_check_signal") == 0) return "Check signal";
+  if (std::strcmp(key, "broadcast_mac_unavailable") == 0) return "Mac unavailable";
+  if (std::strcmp(key, "broadcast_check_upload") == 0) return "Check upload";
+  if (std::strcmp(key, "broadcast_sending") == 0) return "Sending";
   return key;
 }
 
@@ -8079,6 +8216,23 @@ inline const char *espdesktop_i18n_key_de(const char *key) {
   if (std::strcmp(key, "turn_off_studio_mode") == 0) return "Studiomodus ausschalten?";
   if (std::strcmp(key, "start_replay_buffer_prompt") == 0) return "Replay-Puffer starten?";
   if (std::strcmp(key, "stop_replay_buffer_prompt") == 0) return "Replay-Puffer stoppen?";
+  if (std::strcmp(key, "broadcast_public") == 0) return "Öffentlich";
+  if (std::strcmp(key, "broadcast_unlisted") == 0) return "Nicht gelistet";
+  if (std::strcmp(key, "broadcast_private") == 0) return "Privat";
+  if (std::strcmp(key, "broadcast_setup_on_mac") == 0) return "Am Mac einrichten";
+  if (std::strcmp(key, "broadcast_choose") == 0) return "Stream auswählen";
+  if (std::strcmp(key, "broadcast_checking") == 0) return "Prüfe";
+  if (std::strcmp(key, "broadcast_sign_in_mac") == 0) return "Am Mac anmelden";
+  if (std::strcmp(key, "broadcast_starting") == 0) return "Startet";
+  if (std::strcmp(key, "broadcast_testing") == 0) return "Test";
+  if (std::strcmp(key, "broadcast_ended") == 0) return "Beendet";
+  if (std::strcmp(key, "broadcast_receiving") == 0) return "Empfängt";
+  if (std::strcmp(key, "broadcast_waiting") == 0) return "Wartet";
+  if (std::strcmp(key, "broadcast_waiting_for_video") == 0) return "Wartet auf Video";
+  if (std::strcmp(key, "broadcast_check_signal") == 0) return "Signal prüfen";
+  if (std::strcmp(key, "broadcast_mac_unavailable") == 0) return "Mac nicht verfügbar";
+  if (std::strcmp(key, "broadcast_check_upload") == 0) return "Upload prüfen";
+  if (std::strcmp(key, "broadcast_sending") == 0) return "Sendet";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -8420,6 +8574,23 @@ inline const char *espdesktop_i18n_key_es(const char *key) {
   if (std::strcmp(key, "turn_off_studio_mode") == 0) return "¿Desactivar el modo estudio?";
   if (std::strcmp(key, "start_replay_buffer_prompt") == 0) return "¿Iniciar el búfer de repetición?";
   if (std::strcmp(key, "stop_replay_buffer_prompt") == 0) return "¿Detener el búfer de repetición?";
+  if (std::strcmp(key, "broadcast_public") == 0) return "Público";
+  if (std::strcmp(key, "broadcast_unlisted") == 0) return "Oculto";
+  if (std::strcmp(key, "broadcast_private") == 0) return "Privado";
+  if (std::strcmp(key, "broadcast_setup_on_mac") == 0) return "Configurar en el Mac";
+  if (std::strcmp(key, "broadcast_choose") == 0) return "Elegir emisión";
+  if (std::strcmp(key, "broadcast_checking") == 0) return "Comprobando";
+  if (std::strcmp(key, "broadcast_sign_in_mac") == 0) return "Iniciar sesión en el Mac";
+  if (std::strcmp(key, "broadcast_starting") == 0) return "Iniciando";
+  if (std::strcmp(key, "broadcast_testing") == 0) return "En pruebas";
+  if (std::strcmp(key, "broadcast_ended") == 0) return "Finalizado";
+  if (std::strcmp(key, "broadcast_receiving") == 0) return "Recibiendo";
+  if (std::strcmp(key, "broadcast_waiting") == 0) return "En espera";
+  if (std::strcmp(key, "broadcast_waiting_for_video") == 0) return "Esperando vídeo";
+  if (std::strcmp(key, "broadcast_check_signal") == 0) return "Revisar señal";
+  if (std::strcmp(key, "broadcast_mac_unavailable") == 0) return "Mac no disponible";
+  if (std::strcmp(key, "broadcast_check_upload") == 0) return "Revisar subida";
+  if (std::strcmp(key, "broadcast_sending") == 0) return "Enviando";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -9098,6 +9269,22 @@ inline const char *espdesktop_i18n_key_fr(const char *key) {
   if (std::strcmp(key, "turn_off_studio_mode") == 0) return "Désactiver le mode Studio ?";
   if (std::strcmp(key, "start_replay_buffer_prompt") == 0) return "Démarrer le tampon de replay ?";
   if (std::strcmp(key, "stop_replay_buffer_prompt") == 0) return "Arrêter le tampon de replay ?";
+  if (std::strcmp(key, "broadcast_unlisted") == 0) return "Non répertorié";
+  if (std::strcmp(key, "broadcast_private") == 0) return "Privé";
+  if (std::strcmp(key, "broadcast_setup_on_mac") == 0) return "Configurer sur le Mac";
+  if (std::strcmp(key, "broadcast_choose") == 0) return "Choisir un direct";
+  if (std::strcmp(key, "broadcast_checking") == 0) return "Vérification";
+  if (std::strcmp(key, "broadcast_sign_in_mac") == 0) return "Se connecter sur le Mac";
+  if (std::strcmp(key, "broadcast_starting") == 0) return "Démarrage";
+  if (std::strcmp(key, "broadcast_testing") == 0) return "En test";
+  if (std::strcmp(key, "broadcast_ended") == 0) return "Terminé";
+  if (std::strcmp(key, "broadcast_receiving") == 0) return "Réception";
+  if (std::strcmp(key, "broadcast_waiting") == 0) return "En attente";
+  if (std::strcmp(key, "broadcast_waiting_for_video") == 0) return "En attente de vidéo";
+  if (std::strcmp(key, "broadcast_check_signal") == 0) return "Vérifier le signal";
+  if (std::strcmp(key, "broadcast_mac_unavailable") == 0) return "Mac indisponible";
+  if (std::strcmp(key, "broadcast_check_upload") == 0) return "Vérifier l’envoi";
+  if (std::strcmp(key, "broadcast_sending") == 0) return "Envoi";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -10131,6 +10318,23 @@ inline const char *espdesktop_i18n_key_it(const char *key) {
   if (std::strcmp(key, "turn_off_studio_mode") == 0) return "Disattivare la modalità Studio?";
   if (std::strcmp(key, "start_replay_buffer_prompt") == 0) return "Avviare il buffer di replay?";
   if (std::strcmp(key, "stop_replay_buffer_prompt") == 0) return "Fermare il buffer di replay?";
+  if (std::strcmp(key, "broadcast_public") == 0) return "Pubblico";
+  if (std::strcmp(key, "broadcast_unlisted") == 0) return "Non in elenco";
+  if (std::strcmp(key, "broadcast_private") == 0) return "Privato";
+  if (std::strcmp(key, "broadcast_setup_on_mac") == 0) return "Configura sul Mac";
+  if (std::strcmp(key, "broadcast_choose") == 0) return "Scegli la diretta";
+  if (std::strcmp(key, "broadcast_checking") == 0) return "Verifica";
+  if (std::strcmp(key, "broadcast_sign_in_mac") == 0) return "Accedi sul Mac";
+  if (std::strcmp(key, "broadcast_starting") == 0) return "Avvio";
+  if (std::strcmp(key, "broadcast_testing") == 0) return "In prova";
+  if (std::strcmp(key, "broadcast_ended") == 0) return "Terminato";
+  if (std::strcmp(key, "broadcast_receiving") == 0) return "In ricezione";
+  if (std::strcmp(key, "broadcast_waiting") == 0) return "In attesa";
+  if (std::strcmp(key, "broadcast_waiting_for_video") == 0) return "In attesa del video";
+  if (std::strcmp(key, "broadcast_check_signal") == 0) return "Controlla il segnale";
+  if (std::strcmp(key, "broadcast_mac_unavailable") == 0) return "Mac non disponibile";
+  if (std::strcmp(key, "broadcast_check_upload") == 0) return "Controlla il caricamento";
+  if (std::strcmp(key, "broadcast_sending") == 0) return "In invio";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -10786,6 +10990,23 @@ inline const char *espdesktop_i18n_key_nl(const char *key) {
   if (std::strcmp(key, "turn_off_studio_mode") == 0) return "Studiomodus uitschakelen?";
   if (std::strcmp(key, "start_replay_buffer_prompt") == 0) return "Replaybuffer starten?";
   if (std::strcmp(key, "stop_replay_buffer_prompt") == 0) return "Replaybuffer stoppen?";
+  if (std::strcmp(key, "broadcast_public") == 0) return "Openbaar";
+  if (std::strcmp(key, "broadcast_unlisted") == 0) return "Verborgen";
+  if (std::strcmp(key, "broadcast_private") == 0) return "Privé";
+  if (std::strcmp(key, "broadcast_setup_on_mac") == 0) return "Configureren op Mac";
+  if (std::strcmp(key, "broadcast_choose") == 0) return "Uitzending kiezen";
+  if (std::strcmp(key, "broadcast_checking") == 0) return "Controleren";
+  if (std::strcmp(key, "broadcast_sign_in_mac") == 0) return "Aanmelden op Mac";
+  if (std::strcmp(key, "broadcast_starting") == 0) return "Starten";
+  if (std::strcmp(key, "broadcast_testing") == 0) return "Testen";
+  if (std::strcmp(key, "broadcast_ended") == 0) return "Beëindigd";
+  if (std::strcmp(key, "broadcast_receiving") == 0) return "Ontvangen";
+  if (std::strcmp(key, "broadcast_waiting") == 0) return "Wachten";
+  if (std::strcmp(key, "broadcast_waiting_for_video") == 0) return "Wachten op video";
+  if (std::strcmp(key, "broadcast_check_signal") == 0) return "Controleer signaal";
+  if (std::strcmp(key, "broadcast_mac_unavailable") == 0) return "Mac niet beschikbaar";
+  if (std::strcmp(key, "broadcast_check_upload") == 0) return "Controleer upload";
+  if (std::strcmp(key, "broadcast_sending") == 0) return "Verzenden";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -11450,6 +11671,23 @@ inline const char *espdesktop_i18n_key_pt_br(const char *key) {
   if (std::strcmp(key, "turn_off_studio_mode") == 0) return "Desativar o modo estúdio?";
   if (std::strcmp(key, "start_replay_buffer_prompt") == 0) return "Iniciar o buffer de replay?";
   if (std::strcmp(key, "stop_replay_buffer_prompt") == 0) return "Parar o buffer de replay?";
+  if (std::strcmp(key, "broadcast_public") == 0) return "Público";
+  if (std::strcmp(key, "broadcast_unlisted") == 0) return "Não listado";
+  if (std::strcmp(key, "broadcast_private") == 0) return "Privado";
+  if (std::strcmp(key, "broadcast_setup_on_mac") == 0) return "Configurar no Mac";
+  if (std::strcmp(key, "broadcast_choose") == 0) return "Escolher transmissão";
+  if (std::strcmp(key, "broadcast_checking") == 0) return "Verificando";
+  if (std::strcmp(key, "broadcast_sign_in_mac") == 0) return "Fazer login no Mac";
+  if (std::strcmp(key, "broadcast_starting") == 0) return "Iniciando";
+  if (std::strcmp(key, "broadcast_testing") == 0) return "Em teste";
+  if (std::strcmp(key, "broadcast_ended") == 0) return "Encerrado";
+  if (std::strcmp(key, "broadcast_receiving") == 0) return "Recebendo";
+  if (std::strcmp(key, "broadcast_waiting") == 0) return "Aguardando";
+  if (std::strcmp(key, "broadcast_waiting_for_video") == 0) return "Aguardando vídeo";
+  if (std::strcmp(key, "broadcast_check_signal") == 0) return "Verificar sinal";
+  if (std::strcmp(key, "broadcast_mac_unavailable") == 0) return "Mac indisponível";
+  if (std::strcmp(key, "broadcast_check_upload") == 0) return "Verificar envio";
+  if (std::strcmp(key, "broadcast_sending") == 0) return "Enviando";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -11790,6 +12028,23 @@ inline const char *espdesktop_i18n_key_pt(const char *key) {
   if (std::strcmp(key, "turn_off_studio_mode") == 0) return "Desativar o modo de estúdio?";
   if (std::strcmp(key, "start_replay_buffer_prompt") == 0) return "Iniciar o buffer de replay?";
   if (std::strcmp(key, "stop_replay_buffer_prompt") == 0) return "Parar o buffer de replay?";
+  if (std::strcmp(key, "broadcast_public") == 0) return "Público";
+  if (std::strcmp(key, "broadcast_unlisted") == 0) return "Não listado";
+  if (std::strcmp(key, "broadcast_private") == 0) return "Privado";
+  if (std::strcmp(key, "broadcast_setup_on_mac") == 0) return "Configurar no Mac";
+  if (std::strcmp(key, "broadcast_choose") == 0) return "Escolher transmissão";
+  if (std::strcmp(key, "broadcast_checking") == 0) return "A verificar";
+  if (std::strcmp(key, "broadcast_sign_in_mac") == 0) return "Iniciar sessão no Mac";
+  if (std::strcmp(key, "broadcast_starting") == 0) return "A iniciar";
+  if (std::strcmp(key, "broadcast_testing") == 0) return "Em teste";
+  if (std::strcmp(key, "broadcast_ended") == 0) return "Terminado";
+  if (std::strcmp(key, "broadcast_receiving") == 0) return "A receber";
+  if (std::strcmp(key, "broadcast_waiting") == 0) return "Em espera";
+  if (std::strcmp(key, "broadcast_waiting_for_video") == 0) return "À espera de vídeo";
+  if (std::strcmp(key, "broadcast_check_signal") == 0) return "Verificar sinal";
+  if (std::strcmp(key, "broadcast_mac_unavailable") == 0) return "Mac indisponível";
+  if (std::strcmp(key, "broadcast_check_upload") == 0) return "Verificar envio";
+  if (std::strcmp(key, "broadcast_sending") == 0) return "A enviar";
   return espdesktop_i18n_key_en(key);
 }
 

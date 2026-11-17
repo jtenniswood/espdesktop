@@ -3,6 +3,22 @@ import { COMPANION_SYSTEM_METRICS, OBS_CONFIRMATION_CONTROLS } from "../generate
 import type { CompanionCardModel, CompanionCardModeId } from "./companion_card";
 import { retiredSavedCardType } from "./card";
 
+export const COMPANION_URL_PREFIX = "url.";
+export const COMPANION_DEFAULT_BROWSER = "system.default_browser";
+export function companionUrlConfig(rawValue: string): string {
+    const value = rawValue.trim();
+    if (!value) return "";
+    try {
+        const url = new URL(value);
+        if ((url.protocol !== "http:" && url.protocol !== "https:") || !url.hostname ||
+            url.username || url.password) return "";
+        const encoded = encodeURIComponent(url.href);
+        return encoded.length <= 128 ? COMPANION_URL_PREFIX + encoded : "";
+    } catch {
+        return "";
+    }
+}
+
 export const COMPANION_FOLDER_PREFIX = "folder.";
 export const COMPANION_OBS_PREFIX = "obs.";
 export function obsInputName(label = ""): string {
@@ -26,6 +42,12 @@ export function savedOBSTransition(id: string): string {
   return match ? OBS_TRANSITION_SELECT + match[1] : "";
 }
 export const OBS_PROGRAM_ID = "obs.status.program";
+export const OBS_CONNECTION_ID = "obs.status.connection";
+export const YOUTUBE_STATUS_ID = "obs.status.youtube";
+export const OBS_BROADCAST_STATUS_OPTIONS = [
+  [OBS_CONNECTION_ID, "OBS connection"],
+  [YOUTUBE_STATUS_ID, "YouTube broadcast"],
+] as const;
 export const OBS_REPLAY_ID = "obs.replay";
 export const OBS_REPLAY_BUFFER_ID = "obs.replay.buffer";
 export function obsConfirmationControl(entity: string) {
@@ -71,7 +93,7 @@ export function companionSavedCardMode(config: Partial<CardConfig>): CompanionCa
   if (entity === OBS_REPLAY_ID) return "obs_replay";
   if (entity === OBS_REPLAY_BUFFER_ID) return "obs_replay_buffer";
   if (OBS_OUTPUT_OPTIONS.some(([id]) => obsOutputCardEntity(entity) === id)) return "obs_output";
-  if (entity === OBS_PROGRAM_ID) return "obs_status";
+  if (entity === OBS_PROGRAM_ID || OBS_BROADCAST_STATUS_OPTIONS.some(([id]) => id === entity)) return "obs_status";
   if (entity.startsWith("obs.mute.")) return "obs_mic";
   if (entity.startsWith(COMPANION_OBS_PREFIX)) return "obs";
   if (entity === "stats" || companionMetricForEntity(entity)) return "stats";
