@@ -1698,7 +1698,9 @@ inline bool invoke_companion_action_for_app(const std::string &action_id,
                                             uint32_t now) {
   // Never use the early visual highlight to authorize app-specific keys.
   if (!required_focus_id.empty() && !companion_action_focused(required_focus_id)) return false;
-  const auto app = companion_shortcut_preset_app(preset);
+  auto app = companion_shortcut_preset_app(preset);
+  if (app.empty() && preset == "custom" && companion_scoped_shortcut(action_id) &&
+      required_focus_id.rfind("windows.", 0) == 0) app = required_focus_id;
   if (app.empty()) return invoke_companion_action(action_id, request_id, folder_open_behavior);
 
   const auto shortcut = companion_app_scoped_shortcut(action_id);
@@ -1706,7 +1708,7 @@ inline bool invoke_companion_action_for_app(const std::string &action_id,
   const auto target = companion_shortcut_launch_target(app);
   if (target.empty()) return false;
 
-  // The Mac checks that the approved target is still frontmost before replay.
+  // The companion checks that the approved target is still frontmost before replay.
   if (target == required_focus_id)
     return companion_action_sender()(shortcut, request_id, "new_window", target);
 

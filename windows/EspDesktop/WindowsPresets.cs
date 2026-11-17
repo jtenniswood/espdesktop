@@ -43,4 +43,26 @@ internal static class WindowsPresets
         var name = Path.GetFileName((executable ?? target).Replace('\\', '/'));
         return ByExecutable.GetValueOrDefault(name);
     }
+
+    public static string? IRacingInstallDirectory(string? launcher)
+    {
+        if (launcher is null) return null;
+        var path = launcher.Replace('\\', '/');
+        var name = Path.GetFileName(path);
+        var directory = Path.GetDirectoryName(path);
+        if (name.Equals("iRacingUI.exe", StringComparison.OrdinalIgnoreCase))
+            return string.Equals(Path.GetFileName(directory), "ui", StringComparison.OrdinalIgnoreCase)
+                ? Path.GetDirectoryName(directory) : directory;
+        return name.Equals("iRacingLauncher64.exe", StringComparison.OrdinalIgnoreCase) ? directory : null;
+    }
+
+    public static bool IsIRacingSimulator(string installDirectory, string? executable)
+    {
+        if (executable is null) return false;
+        var path = executable.Replace('\\', '/');
+        var name = Path.GetFileName(path);
+        return (name.Equals("iRacingSim64DX11.exe", StringComparison.OrdinalIgnoreCase) ||
+                name.Equals("iRacingSim64DX12.exe", StringComparison.OrdinalIgnoreCase)) &&
+            string.Equals(Path.GetDirectoryName(path), installDirectory, StringComparison.OrdinalIgnoreCase);
+    }
 }

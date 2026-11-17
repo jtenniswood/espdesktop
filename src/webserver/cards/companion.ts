@@ -1350,10 +1350,11 @@ export function registerCompanionCardTypes(
             if (initialMode === "shortcut") panel?.classList.add("sp-shortcut-card-settings");
             const savedCatalogShortcut = companionShortcutCatalogSelection(card);
             const isNewShortcut = initialMode === "shortcut" && state.settingsDraft?.isNew;
-            const pageApp = isNewShortcut
-                ? appShortcutPageOwner(previewSubpageOwner(parentPage, state.buttons, key => state.subpages[key]))
-                : undefined;
+            const ownerApp = appShortcutPageOwner(previewSubpageOwner(parentPage, state.buttons, key => state.subpages[key]));
+            const pageApp = isNewShortcut ? ownerApp : undefined;
+            const scopedCustomApp = ownerApp?.startsWith("windows.") ? ownerApp : undefined;
             const windowsShortcuts = useWindowsShortcuts();
+            const windowsCustomKeys = windowsShortcuts || !!scopedCustomApp;
             const platformPending = connectorStatus.companionPlatform() === undefined;
             const catalogueApps = platformPending ? [] : sortCompanionLabels(companionShortcutCatalogApps({
                 pageAppId: pageApp, savedAppId: savedCatalogShortcut?.appId, windows: windowsShortcuts,
@@ -1369,8 +1370,12 @@ export function registerCompanionCardTypes(
                 card._shortcutCatalogSearch = "";
                 if (!defaultCatalogApp) card._shortcutCatalogApp = "";
                 // Keep the selected combination when switching to Custom.
-                if (type === "catalog" || String(card.entity).startsWith(SCOPED_SHORTCUT_PREFIX)) {
+                if (type === "catalog" || (String(card.entity).startsWith(SCOPED_SHORTCUT_PREFIX) &&
+                    (!scopedCustomApp || String(card.entity).includes("~")))) {
                     card.entity = COMPANION_SHORTCUT_PREFIX;
+                } else if (scopedCustomApp && companionShortcutActionIdValid(card.entity) &&
+                    !String(card.entity).startsWith(SCOPED_SHORTCUT_PREFIX)) {
+                    card.entity = SCOPED_SHORTCUT_PREFIX + card.entity.slice(COMPANION_SHORTCUT_PREFIX.length);
                 }
                 card.options = preserveCardColorOptions(card.options, "app_shortcut_preset=custom");
                 helpers.saveField("entity", card.entity);
@@ -1416,14 +1421,16 @@ export function registerCompanionCardTypes(
             const modifierButtons = document.createElement("fieldset");
             modifierButtons.className = "sp-segment";
             modifierButtons.setAttribute("aria-label", "Keyboard shortcut modifiers");
-            const shortcutParts: string[] = currentEntity.slice(COMPANION_SHORTCUT_PREFIX.length).split("+");
+            const currentPrefix = scopedCustomApp && currentEntity.startsWith(SCOPED_SHORTCUT_PREFIX)
+                ? SCOPED_SHORTCUT_PREFIX : COMPANION_SHORTCUT_PREFIX;
+            const shortcutParts: string[] = currentEntity.slice(currentPrefix.length).split("+");
             let selectedKey = shortcutParts.pop() || "";
-            const modifiers: [string, string][] = windowsShortcuts
+            const modifiers: [string, string][] = windowsCustomKeys
                 ? [["control", "Ctrl"], ["option", "Alt"], ["shift", "Shift"]]
                 : [["command", "⌘ Command"], ["control", "⌃ Control"], ["option", "⌥ Option"], ["shift", "⇧ Shift"]];
-            if (currentEntity === "shortcut.function+f") modifiers.push(["function", "Fn"]);
+            if (!scopedCustomApp && currentEntity === "shortcut.function+f") modifiers.push(["function", "Fn"]);
             const selectedModifiers = new Set(shortcutParts
-                .map(part => windowsShortcuts && part === "command" ? "control" : part)
+                .map(part => windowsCustomKeys && part === "command" ? "control" : part)
                 .filter(part => modifiers.some(([key]) => key === part)));
             const modifierControls = new Map<string, HTMLButtonElement>();
             for (const [modifier, label] of modifiers) {
@@ -1456,6 +1463,7 @@ export function registerCompanionCardTypes(
                 ["Punctuation", Object.values(COMPANION_SHORTCUT_KEYS).filter((key) => key.startsWith("key"))],
                 ["Function keys", Array.from({ length: 20 }, (_, index) => "f" + (index + 1))],
             ];
+            if (scopedCustomApp) keyGroups.push(["Number pad", Array.from({ length: 10 }, (_, index) => "keypad" + index)]);
             if (currentEntity === "shortcut.claude-escape") keyGroups.push(["App keyboard shortcut", ["claude-escape"]]);
             if (currentEntity === "shortcut.escape-twice") keyGroups.push(["Sequence", ["escape-twice"]]);
             for (const [label, keys] of keyGroups) {
@@ -1464,7 +1472,7 @@ export function registerCompanionCardTypes(
                 for (const key of keys) {
                     const option = document.createElement("option");
                     option.value = key;
-                    option.textContent = companionShortcutKeyLabel(key, windowsShortcuts === true);
+                    option.textContent = companionShortcutKeyLabel(key, windowsCustomKeys);
                     group.appendChild(option);
                 }
                 keySelect.appendChild(group);
@@ -1486,7 +1494,8 @@ export function registerCompanionCardTypes(
             }
             function saveBuiltShortcut(): void {
                 const selected = modifiers.map(([modifier]) => modifier).filter((modifier) => selectedModifiers.has(modifier));
-                card.entity = COMPANION_SHORTCUT_PREFIX + [...selected, selectedKey].join("+");
+                const prefix = scopedCustomApp ? SCOPED_SHORTCUT_PREFIX : COMPANION_SHORTCUT_PREFIX;
+                card.entity = prefix + [...selected, selectedKey].join("+");
                 card.options = preserveCardColorOptions(card.options, "app_shortcut_preset=custom");
                 helpers.clearFieldError(keySelect);
                 helpers.saveField("entity", card.entity);
@@ -1626,11 +1635,20 @@ export function registerCompanionCardTypes(
             });
             panel?.appendChild(shortcutField);
             helpers.markCardPrimaryField(shortcutField, "shortcut");
-            helpers.requireField(keySelect, windowsShortcuts
+            helpers.requireField(keySelect, scopedCustomApp ? "Choose a supported Windows key combination before saving."
+                : windowsShortcuts
                 ? "Choose a key with Ctrl or Alt before saving."
                 : "Choose a key with Command, Control, or Option before saving.", function () {
                 return initialMode === "shortcut" && shortcutType === "custom";
             }, function () {
+                if (scopedCustomApp) {
+                    const alt = selectedModifiers.has("option");
+                    const ctrl = selectedModifiers.has("control");
+                    return !!selectedKey && companionShortcutActionIdValid(card.entity) &&
+                        !(alt && ["tab", "escape", "f4"].includes(selectedKey)) &&
+                        !(ctrl && selectedKey === "escape") &&
+                        !(ctrl && alt && selectedKey === "forwarddelete");
+                }
                 return companionShortcutActionIdValid(card.entity) && !!selectedKey &&
                     !String(card.entity).startsWith(SCOPED_SHORTCUT_PREFIX) &&
                     ((!isSafariUnmodifiedShortcut(card.entity) &&

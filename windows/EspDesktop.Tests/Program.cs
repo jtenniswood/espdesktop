@@ -161,6 +161,19 @@ Check(WindowsPresets.For(@"C:\Apps\Code.exe", "Visual Studio Code")?.Shortcuts.A
 Check(WindowsPresets.For(@"C:\Apps\vlc.exe", "VLC")?.Shortcuts.Any(preset =>
           preset.DisplayShortcut == "scoped.space") == true,
     "single-key shortcuts travel in app-scoped form");
+var racingPresets = WindowsPresets.For(@"D:\Games\iRacing\UI\iRacingUI.exe", "iRacing")?.Shortcuts ?? [];
+Check(racingPresets.Select(preset => preset.DisplayShortcut)
+        .SequenceEqual(["scoped.f1", "scoped.f2", "scoped.f3", "scoped.f4", "scoped.f7", "scoped.f8"]),
+    "iRacing Black Box presets are all scoped to the simulator");
+var racingInstall = WindowsPresets.IRacingInstallDirectory(@"D:\Games\iRacing\UI\iRacingUI.exe")!;
+Check(racingInstall == WindowsPresets.IRacingInstallDirectory(@"D:\Games\iRacing\iRacingLauncher64.exe") &&
+      WindowsPresets.IsIRacingSimulator(racingInstall, @"d:\games\iracing\iRacingSim64DX11.exe") &&
+      WindowsPresets.IsIRacingSimulator(racingInstall, @"D:\Games\iRacing\iRacingSim64DX12.exe") &&
+      !WindowsPresets.IsIRacingSimulator(racingInstall, @"D:\Games\iRacing\UI\iRacingUI.exe") &&
+      !WindowsPresets.IsIRacingSimulator(racingInstall, @"C:\Other\iRacingSim64DX11.exe"),
+    "recognize only simulator windows belonging to the approved iRacing installation");
+Check(SafeActions.Shortcut("shortcut.scoped.shift+keypad2")?.SequenceEqual(new ushort[] { 0x10, 0x62 }) == true &&
+      SafeActions.Shortcut("shortcut.shift+keypad2") is null, "number-pad bindings must be app-scoped");
 Check(Bound("🙂🙂a", 7) == "🙂", "truncate at UTF-8 boundary");
 using (var duplicate = JsonDocument.Parse("""{"type":"catalogue.request","type":"hello","protocol":4}"""))
     Check(!Valid(duplicate.RootElement, "panel_to_mac", "connected"), "reject ambiguous envelopes");

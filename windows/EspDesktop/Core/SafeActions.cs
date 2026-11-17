@@ -59,6 +59,8 @@ internal static class SafeActions
         }
         var key = parts[^1];
         if (key.Length == 1 && char.IsAsciiLetterOrDigit(key[0])) result.Add(char.ToUpperInvariant(key[0]));
+        else if (scoped && key.Length == 7 && key.StartsWith("keypad", StringComparison.Ordinal) &&
+                 char.IsAsciiDigit(key[6])) result.Add((ushort)(0x60 + key[6] - '0'));
         else if (key.StartsWith('f') && key.Length <= 3 && int.TryParse(key.AsSpan(1), out var f) && f is >= 1 and <= 20 &&
                  key == FormattableString.Invariant($"f{f}")) result.Add((ushort)(0x6f + f));
         else if (Keys.TryGetValue(key, out var vk)) result.Add(vk);

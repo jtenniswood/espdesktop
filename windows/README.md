@@ -29,6 +29,12 @@ In the display editor, open **System → Connectors → Companion** to check pai
 
 Use **Start EspDesktop when I sign in** to keep the display connected after login. To stop the app, choose **Quit EspDesktop** from its notification area icon.
 
+### iRacing shortcuts
+
+With keyboard shortcuts enabled, approve iRacing in the Windows companion’s **Applications** settings. In the display editor, add an **Application** card for iRacing and enable its app subpage. The six starter cards open Lap Timing, Standings, Relative, Fuel, Pit Adjustments and In-Car Adjustments. Start an iRacing Test Drive and bring the simulator window to the foreground before tapping a shortcut. For a changed binding, edit its card and choose **Custom** to match the key you set in iRacing.
+
+If you used the earlier standalone iRacing test app, pair the standard Windows companion and add the iRacing application card again to pick up its Windows app ID.
+
 The Display page shows the paired display’s name when available and its current address. If the display gets a new address on your local network, EspDesktop can rediscover it and resume the saved pairing. A new address is saved only after the display proves its identity and accepts the pairing. If you reset or replace the display, forget it in EspDesktop and pair again.
 
 If **Display** says it needs a newer version of EspDesktop for Windows, get the latest Windows installer from [GitHub Releases](https://github.com/jtenniswood/espdesktop/releases). EspDesktop keeps your pairing for the updated app.

@@ -15,7 +15,7 @@ using static EspDesktop.Core.Protocol;
 
 namespace EspDesktop;
 
-internal sealed record StartApp(string Id, string Name, string Target, string? Executable);
+internal sealed record StartApp(string Id, string Name, string Target, string? Executable, string? IRacingInstall = null);
 internal sealed class WindowsDesktop(LocalSettings settings, ObsConnection? obs = null) : IDesktop
 {
     // Older panels reserve this identifier for the file manager's live folders.
@@ -182,7 +182,8 @@ internal sealed class WindowsDesktop(LocalSettings settings, ObsConnection? obs 
             if (scoped && (target.Length == 0 || !apps.Any(app => app.Id == target && Allowed(app))))
                 return "not_allowed";
             var window = InputSession.GetForegroundWindow();
-            var app = Identify(window);
+            var identity = ReadWindow(window);
+            var app = Identify(identity);
             // The request never chooses a window or changes focus. The preset's
             // app ID must match the window Windows has already put in front.
             if (scoped && app?.Id != target)
@@ -191,6 +192,11 @@ internal sealed class WindowsDesktop(LocalSettings settings, ObsConnection? obs 
                 return "not_found";
             }
             if (app is null || !Allowed(app) || (app.Id == ExplorerId && !IsExplorerWindow(window))) return "not_allowed";
+            if (app.IRacingInstall is { } install && !WindowsPresets.IsIRacingSimulator(install, identity.Executable))
+            {
+                ShortcutFailed?.Invoke("Bring the iRacing simulator to the front and try again.");
+                return "not_found";
+            }
             for (var i = 0; i < strokes.Length; i++)
             {
                 if (i > 0) await Task.Delay(40, token);
@@ -314,7 +320,9 @@ internal sealed class WindowsDesktop(LocalSettings settings, ObsConnection? obs 
             }
         }
 
-        if (app != null && Allowed(app) && (app.Id != ExplorerId || IsExplorerWindow(window))) ids.Add(app.Id);
+        if (app != null && Allowed(app) && (app.Id != ExplorerId || IsExplorerWindow(window)) &&
+            (app.IRacingInstall is not { } install || WindowsPresets.IsIRacingSimulator(install, identity.Executable)))
+            ids.Add(app.Id);
         if (identity.Executable is { } executable && Browsers.Contains(Path.GetFileName(executable), StringComparer.OrdinalIgnoreCase) &&
             targets.Count != 0)
         {
@@ -457,7 +465,8 @@ internal sealed class WindowsDesktop(LocalSettings settings, ObsConnection? obs 
                         exe = target;
                     if (string.Equals(exe, ExplorerExe, StringComparison.OrdinalIgnoreCase) ||
                         target.Equals("Microsoft.Windows.Explorer", StringComparison.OrdinalIgnoreCase)) continue;
-                    list.Add(new("windows." + Hash(target.ToUpperInvariant())[..32], name, target, exe));
+                    list.Add(new("windows." + Hash(target.ToUpperInvariant())[..32], name, target, exe,
+                        WindowsPresets.IRacingInstallDirectory(exe)));
                 }
                 catch (Exception e) when (IsShellFailure(e)) { }
                 finally { Com.Release(item); }
@@ -477,7 +486,8 @@ internal sealed class WindowsDesktop(LocalSettings settings, ObsConnection? obs 
 
     private static bool Matches(StartApp app, (string? Aumid, string? Executable) identity) =>
         (!string.IsNullOrEmpty(identity.Aumid) && app.Target.Equals(identity.Aumid, StringComparison.OrdinalIgnoreCase)) ||
-        (app.Executable is not null && identity.Executable is not null && app.Executable.Equals(identity.Executable, StringComparison.OrdinalIgnoreCase));
+        (app.Executable is not null && identity.Executable is not null && app.Executable.Equals(identity.Executable, StringComparison.OrdinalIgnoreCase)) ||
+        (app.IRacingInstall is { } install && WindowsPresets.IsIRacingSimulator(install, identity.Executable));
 
     private static (string? Aumid, string? Executable) ReadWindow(nint window)
     {

@@ -1,0 +1,16 @@
+{
+  "label": "iRacing",
+  "executables": ["iracingui.exe", "iracinglauncher64.exe"],
+  "sources": [
+    "https://support.iracing.com/support/solutions/articles/31000133517-customizing-sim-hot-key-combinations"
+  ],
+  "note": "Start a session and bring the simulator window to the foreground to use these Black Box shortcuts.",
+  "shortcuts": [
+    {"id": "0", "label": "Lap Timing", "shortcut": "f1", "icon": "Timer"},
+    {"id": "1", "label": "Standings", "shortcut": "f2", "icon": "Numbered List"},
+    {"id": "2", "label": "Relative", "shortcut": "f3", "icon": "Bullet List"},
+    {"id": "3", "label": "Fuel", "shortcut": "f4", "icon": "Gauge"},
+    {"id": "4", "label": "Pit Adjustments", "shortcut": "f7", "icon": "Cog"},
+    {"id": "5", "label": "In-Car Adjustments", "shortcut": "f8", "icon": "Car"}
+  ]
+}

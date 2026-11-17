@@ -5033,11 +5033,15 @@ async function assertOBSSceneCard(browser) {
 async function assertWindowsShortcutSettings(browser, testCase) {
   if (testCase.slug !== "guition-esp32-s3-4848s040") return;
   const appId = "windows.abc123";
+  const racingId = "windows.def456";
   const connectorsStatus = { onboarding_complete: true, mac_companion: {
     available: true, configured: true, paired: true, connected: true, platform: "windows",
   } };
   const nativeState = nativeConfigState(testCase.slug);
   nativeState.document.buttons[1] = "shortcut.command+enter;;Shortcut Command;Auto;;;companion";
+  nativeState.document.buttons[3] = racingId + ";iRacing;Auto;Auto;;;companion;;app_shortcuts";
+  nativeState.document.subpages[3] =
+    "~B,1|companion,shortcut.scoped.f3,Relative,Bullet List,,,,,app_shortcut_preset=windows.def456%3A2";
   const context = await browser.newContext({ viewport: testCase.viewport });
   try {
     await installRoutes(context, testCase.slug, { nativeState, connectorsStatus });
@@ -5050,6 +5054,10 @@ async function assertWindowsShortcutSettings(browser, testCase) {
             { id: "0", label: "New Tab", shortcut: "control+t", icon: "New Tab" },
             { id: "1", label: "Find", shortcut: "control+f", icon: "Search" },
           ],
+        } },
+        { kind: "application", definition: {
+          appId: racingId, label: "iRacing", version: 1, catalog: false,
+          shortcuts: [{ id: "2", label: "Relative", shortcut: "scoped.f3", icon: "Bullet List" }],
         } },
       ] },
     }));
@@ -5075,7 +5083,7 @@ async function assertWindowsShortcutSettings(browser, testCase) {
     await openShortcut();
     await page.getByRole("tab", { name: "Application", exact: true }).click();
     const app = page.locator('[id$="shortcut-catalog-app"]');
-    assert.deepStrictEqual(await app.locator("option").allTextContents(), ["Select", "Google Chrome"]);
+    assert.deepStrictEqual(await app.locator("option").allTextContents(), ["Select", "Google Chrome", "iRacing"]);
     await app.selectOption(appId);
     const preset = page.locator(".sp-light-tab-row").filter({ hasText: "New Tab" });
     assert.strictEqual(await preset.locator(".sp-shortcut-catalog-keys").textContent(), "Ctrl+T");
@@ -5090,6 +5098,22 @@ async function assertWindowsShortcutSettings(browser, testCase) {
     await waitForNativeState(nativeState, () => nativeState.document.buttons[1].startsWith("shortcut.control+t;"),
       "Windows shortcut preset save");
     assert.match(nativeState.document.buttons[1], /app_shortcut_preset=windows\.abc123(?::|%3A)0/i);
+    await page.locator('.sp-main [data-slot="3"] .sp-subpage-badge').click();
+    await openShortcut();
+    assert.equal(await page.getByRole("tab", { name: "Application", exact: true }).getAttribute("aria-selected"), "true");
+    await page.getByRole("tab", { name: "Custom", exact: true }).click();
+    assert.equal(await key.inputValue(), "f3");
+    await key.selectOption("keypad2");
+    await page.getByRole("button", { name: "Shift", exact: true }).click();
+    await page.getByRole("button", { name: "Save", exact: true }).click();
+    await waitForNativeState(nativeState, () => {
+      const saved = decodeURIComponent(nativeState.document.subpages[3]);
+      return saved.includes("shortcut.scoped.shift+keypad2") && saved.includes("app_shortcut_preset=custom");
+    }, "iRacing custom binding keeps its Windows application scope");
+    await openShortcut();
+    assert.equal(await key.inputValue(), "keypad2");
+    await page.locator(".sp-settings-close").click();
+    await page.locator(".sp-back-btn .sp-back-hit").click();
     await openShortcut();
     await app.locator(`option[value="${appId}"]`).waitFor({ state: "attached" });
     delete connectorsStatus.mac_companion.platform;
