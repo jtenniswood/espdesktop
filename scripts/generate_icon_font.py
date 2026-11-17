@@ -60,8 +60,17 @@ def replace_outlines(font, symbols, names, mapping):
             glyph = pen.glyph()
             glyph.recalcBounds(glyph_table)
             glyph_table[target_name] = glyph
-            metrics[target_name] = (width, glyph.xMin)
             replaced.add(target_name)
+
+    # The upstream font relies on the TrueType flag that sets the left side
+    # bearing to xMin, even though its hmtx table stores zero bearings.
+    # Materialize those bearings so fontTools preserves the original alignment
+    # when it recalculates the flag and font bounds.
+    for name, (advance, _) in metrics.items():
+        glyph = glyph_table[name]
+        if glyph.numberOfContours:
+            glyph.recalcBounds(glyph_table)
+            metrics[name] = (advance, glyph.xMin)
 
     return len(replaced)
 
