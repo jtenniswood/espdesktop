@@ -80,7 +80,9 @@ export function createCompanionCatalogueMonitor(
         lastActions.some((action, index) =>
           action.id !== actions[index]?.id || action.label !== actions[index]?.label ||
           action.iconHash !== actions[index]?.iconHash || action.obsState !== actions[index]?.obsState ||
-          action.obsDetail !== actions[index]?.obsDetail || action.obsAvailable !== actions[index]?.obsAvailable);
+          action.obsDetail !== actions[index]?.obsDetail || action.obsAvailable !== actions[index]?.obsAvailable ||
+          action.twitchDetail !== actions[index]?.twitchDetail || action.twitchAvailable !== actions[index]?.twitchAvailable ||
+          action.twitchActive !== actions[index]?.twitchActive);
       if (changed) {
         lastActions = actions;
         onActions(actions);

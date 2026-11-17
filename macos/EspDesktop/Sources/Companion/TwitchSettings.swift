@@ -7,7 +7,17 @@ struct TwitchSettings: View {
     @State private var categorySearchFailed = false
     @State private var searching = false
     @State private var winner = ""
-    @State private var confirmation: TwitchControl?
+    private struct Confirmation {
+        let control: TwitchControl
+        let configuration: TwitchBroadcastConfiguration
+        let account: String?
+        let stream: String?
+        let poll: String?
+        let prediction: String?
+        let winner: String
+    }
+
+    @State private var confirmation: Confirmation?
 
     var body: some View {
         Form {
@@ -131,14 +141,22 @@ struct TwitchSettings: View {
         }
         .formStyle(.grouped)
         .onChange(of: twitch.prediction?.id) { _ in winner = "" }
-        .alert(confirmation?.title ?? "", isPresented: Binding(
+        .alert(confirmation?.control.title ?? "", isPresented: Binding(
             get: { confirmation != nil },
             set: { if !$0 { confirmation = nil } }
-        ), presenting: confirmation) { control in
-            Button("Continue") { invoke(control) }
+        ), presenting: confirmation) { pending in
+            Button("Continue") {
+                Task {
+                    _ = await twitch.invoke(pending.control, winner: pending.winner) {
+                        twitch.identity?.userId == pending.account && twitch.configuration == pending.configuration &&
+                            twitch.stream?.id == pending.stream && twitch.poll?.id == pending.poll &&
+                            twitch.prediction?.id == pending.prediction
+                    }
+                }
+            }
             Button("Cancel", role: .cancel) {}
-        } message: { control in
-            Text(control == .predictionWinner
+        } message: { pending in
+            Text(pending.control == .predictionWinner
                  ? "Award Channel Points to viewers who picked this outcome?"
                  : "Apply this action to your connected Twitch channel?")
         }
@@ -159,8 +177,13 @@ struct TwitchSettings: View {
 
     private func button(_ control: TwitchControl, confirm: Bool = false) -> some View {
         Button(control.title) {
-            if confirm { confirmation = control }
-            else { invoke(control) }
+            if confirm {
+                confirmation = Confirmation(control: control, configuration: twitch.configuration,
+                    account: twitch.identity?.userId, stream: twitch.stream?.id, poll: twitch.poll?.id,
+                    prediction: twitch.prediction?.id, winner: winner)
+            } else {
+                invoke(control)
+            }
         }
         .disabled(twitch.controls.first(where: { $0.control == control })?.enabled != true)
     }

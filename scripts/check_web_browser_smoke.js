@@ -4446,6 +4446,59 @@ async function assertMacLockCard(browser) {
   }
 }
 
+async function assertTwitchCards(browser) {
+  const testCase = CASES.find(item => item.slug === "guition-esp32-s3-4848s040");
+  const fixture = nativeConfigState(testCase.slug);
+  fixture.document.buttons = {
+    1: "twitch.status;Twitch Status;Broadcast;Auto;;;companion",
+    2: "obs.output.stream;;Broadcast;Auto;;;companion",
+  };
+  fixture.document.settings.button_order = "1,2";
+  const context = await browser.newContext({ viewport: testCase.viewport });
+  await installRoutes(context, testCase.slug, { nativeState: fixture, connectorsStatus: {
+    mac_companion: { available: true, configured: true, paired: true, connected: true },
+  } });
+  let live = false;
+  await context.route("**/companion/actions", route => route.fulfill({ json: [
+    { id: "twitch.status", label: live ? "Twitch Live" : "Twitch Offline", twitchActive: live,
+      twitchDetail: live ? "42 watching" : "", twitchAvailable: false },
+    { id: "twitch.marker", label: "Mark Moment", twitchDetail: live ? "Save a timestamp" : "Requires live stream",
+      twitchAvailable: live },
+    { id: "obs.status.stream", label: "Stream", obsState: "output_live" },
+  ] }));
+  const page = await context.newPage();
+  await installFakeEventSource(page);
+  await page.clock.install();
+  try {
+    await page.goto("http://espdesktop.test/" + testCase.slug + "?events=1");
+    await page.waitForFunction(() => window.__eventSources?.length > 0);
+    await page.getByRole("tab", { name: "Layout", exact: true }).click();
+    await seedNativeDocument(page, fixture);
+    const status = page.locator('.sp-main [data-slot="1"]');
+    try {
+      await status.getByText("Twitch Offline", { exact: true }).waitFor({ timeout: 4000 });
+    } catch (error) {
+      throw new Error("Twitch status tile: " + (await status.textContent({ timeout: 4000 })), { cause: error });
+    }
+    await page.locator(".sp-main .sp-empty-cell").first().click();
+    await page.getByRole("button", { name: "Twitch card type", exact: true }).click();
+    const control = page.locator("select[id$='twitch-control']");
+    await control.selectOption("twitch.marker");
+    await page.getByRole("button", { name: "Save", exact: true }).click();
+    await waitForNativeState(fixture, () => fixture.document.buttons[3]?.startsWith("twitch.marker;Mark Moment;Bookmark;"),
+      "Twitch marker uses its own stable card ID and icon");
+    const marker = page.locator('.sp-main [data-slot="3"]');
+    await marker.getByText("Requires live stream", { exact: true }).waitFor();
+    live = true;
+    await page.clock.fastForward(31_000);
+    await status.getByText("42 watching", { exact: true }).waitFor();
+    await marker.getByText("Save a timestamp", { exact: true }).waitFor();
+    console.log("Twitch picker, saved card, separate live status and live action feedback passed.");
+  } finally {
+    await context.close();
+  }
+}
+
 async function assertOBSSceneCard(browser) {
   const testCase = CASES.find(item => item.slug === "guition-esp32-s3-4848s040");
   const fixture = nativeConfigState(testCase.slug);
@@ -8719,6 +8772,10 @@ async function assertFirstRunSetup(browser) {
       await assertFirstRunSetup(browser);
       return;
     }
+    if (process.env.ESPDESKTOP_TWITCH_ONLY === "1") {
+      await assertTwitchCards(browser);
+      return;
+    }
     if (process.env.ESPDESKTOP_OBS_ONLY === "1") {
       await assertOBSSceneCard(browser);
       return;
@@ -8735,6 +8792,7 @@ async function assertFirstRunSetup(browser) {
       for (const testCase of ACTIVE_CASES) await runCase(browser, testCase);
       return;
     }
+    await assertTwitchCards(browser);
     await assertOBSSceneCard(browser);
     await assertOBSStarterPage(browser);
     await assertOBSStarterPage(browser, true);

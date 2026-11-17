@@ -1,0 +1,90 @@
+import Foundation
+import XCTest
+@testable import Companion
+
+@MainActor
+final class TwitchBroadcastTests: XCTestCase {
+    func testLiveStateAndPredictionCommandsFollowThePairedSnapshot() async throws {
+        let suite = "TwitchBroadcastTests." + UUID().uuidString
+        let defaults = try XCTUnwrap(UserDefaults(suiteName: suite))
+        defer { defaults.removePersistentDomain(forName: suite) }
+        defaults.set("exampleclient", forKey: "twitch.clientID")
+        var preferences = TwitchBroadcastConfiguration()
+        preferences.predictionsEnabled = true
+        defaults.set(try JSONEncoder().encode(preferences), forKey: "twitch.broadcastConfiguration")
+        let saved = try JSONSerialization.data(withJSONObject: [
+            "clientID": "exampleclient", "broadcasterID": "42",
+            "accessToken": "test-access", "refreshToken": "test-refresh",
+            "expiresAt": Date().addingTimeInterval(900).timeIntervalSinceReferenceDate,
+        ])
+        let requests = Requests()
+        let twitch = TwitchBroadcast(defaults: defaults, api: TwitchAPI { request in try await requests.send(request) },
+            credentialStore: .init(load: { saved }, save: { _ in true }, remove: {}),
+            monitorEvents: false)
+        defer { twitch.disconnect() }
+
+        for _ in 0..<100 where twitch.prediction == nil {
+            try await Task.sleep(for: .milliseconds(10))
+        }
+        XCTAssertEqual(twitch.status, .live)
+        let state = try XCTUnwrap(twitch.panelControls.first { $0.id == "twitch.status" })
+        XCTAssertTrue(state.active)
+        XCTAssertFalse(state.enabled)
+        XCTAssertEqual(state.detail, "12 watching")
+        XCTAssertFalse(twitch.panelControls.first { $0.id == "twitch.commercial" }?.enabled ?? true)
+
+        let winnerID = "twitch.predictionWinner.2"
+        let shown = try XCTUnwrap(twitch.panelControls.first { $0.id == winnerID })
+        XCTAssertEqual(shown.label, "Blue Team")
+        let oldCommand = try XCTUnwrap(shown.command)
+        twitch.configuration.markerDescription = "New marker note"
+        let staleWorked = await twitch.invokePanel(oldCommand) { true }
+        XCTAssertFalse(staleWorked)
+        let currentCommand = try XCTUnwrap(twitch.panelControls.first { $0.id == winnerID }?.command)
+        XCTAssertNotEqual(currentCommand, oldCommand)
+
+        let closedSessionWorked = await twitch.invokePanel(currentCommand) { false }
+        XCTAssertFalse(closedSessionWorked)
+        let resolved = await twitch.invokePanel(currentCommand) { true }
+        XCTAssertTrue(resolved)
+        let winners = await requests.winners
+        XCTAssertEqual(winners, ["blue"])
+        XCTAssertFalse(twitch.panelControls.contains { $0.id == winnerID })
+    }
+
+    private actor Requests {
+        private(set) var winners = [String]()
+
+        func send(_ request: URLRequest) throws -> (Data, HTTPURLResponse) {
+            let url = try XCTUnwrap(request.url)
+            let body: String
+            switch (url.path, request.httpMethod) {
+            case ("/oauth2/validate", _):
+                body = #"{"client_id":"exampleclient","user_id":"42","login":"streamer","scopes":["channel:manage:broadcast","clips:edit","channel:manage:predictions"],"expires_in":900}"#
+            case ("/helix/streams", _):
+                body = #"{"data":[{"id":"stream","viewer_count":12,"started_at":"2026-11-17T11:00:00Z"}]}"#
+            case ("/helix/channels", _):
+                body = #"{"data":[{"title":"Tonight","game_id":"1","game_name":"Game","tags":[]}]}"#
+            case ("/helix/users", _):
+                body = #"{"data":[{"broadcaster_type":"affiliate","display_name":"Streamer"}]}"#
+            case ("/helix/predictions", "PATCH"):
+                let data = try XCTUnwrap(request.httpBody)
+                let update = try XCTUnwrap(try JSONSerialization.jsonObject(with: data) as? [String: String])
+                XCTAssertEqual(update["id"], "prediction")
+                XCTAssertEqual(update["status"], "RESOLVED")
+                winners.append(try XCTUnwrap(update["winning_outcome_id"]))
+                fallthrough
+            case ("/helix/predictions", _):
+                body = winners.isEmpty
+                    ? #"{"data":[{"id":"prediction","title":"Which team wins?","status":"LOCKED","outcomes":[{"id":"red","title":"Red Team"},{"id":"blue","title":"Blue Team"}]}]}"#
+                    : #"{"data":[{"id":"prediction","title":"Which team wins?","status":"RESOLVED","outcomes":[]}]}"#
+            case ("/oauth2/revoke", _):
+                body = ""
+            default:
+                XCTFail("Unexpected request")
+                throw URLError(.badServerResponse)
+            }
+            return (Data(body.utf8), try XCTUnwrap(HTTPURLResponse(url: url, statusCode: 200, httpVersion: nil, headerFields: nil)))
+        }
+    }
+}

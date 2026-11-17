@@ -89,9 +89,20 @@ final class TwitchBroadcast: ObservableObject {
         let expiresAt: Date
     }
 
+    @MainActor
+    struct CredentialStore {
+        let load: () -> Data?
+        let save: (Data) -> Bool
+        let remove: () -> Void
+
+        static let keychain = Self(
+            load: { KeychainStore.load(service: "io.espdesktop.twitch", account: "broadcaster") },
+            save: { KeychainStore.save($0, service: "io.espdesktop.twitch", account: "broadcaster") },
+            remove: { KeychainStore.remove(service: "io.espdesktop.twitch", account: "broadcaster") }
+        )
+    }
+
     private enum OperationError: Error { case disconnected, unavailable, clipPending, unexpectedAccount, keychain }
-    private static let credentialService = "io.espdesktop.twitch"
-    private static let credentialAccount = "broadcaster"
     private static let configurationKey = "twitch.broadcastConfiguration"
     private static let clientKey = "twitch.clientID"
     private static let inspector = URL(string: "https://inspector.twitch.tv/")!
@@ -123,6 +134,8 @@ final class TwitchBroadcast: ObservableObject {
 
     private let api: TwitchAPI
     private let defaults: UserDefaults
+    private let credentialStore: CredentialStore
+    private let monitorEvents: Bool
     private var credential: Credential?
     private var validatedAt: Date?
     private var authorizationTask: Task<Void, Never>?
@@ -139,9 +152,12 @@ final class TwitchBroadcast: ObservableObject {
     private var commandContext: CommandContext?
     private var commandToken = UUID().uuidString.lowercased()
 
-    init(defaults: UserDefaults, api: TwitchAPI = TwitchAPI()) {
+    init(defaults: UserDefaults, api: TwitchAPI = TwitchAPI(), credentialStore: CredentialStore = .keychain,
+         monitorEvents: Bool = true) {
         self.defaults = defaults
         self.api = api
+        self.credentialStore = credentialStore
+        self.monitorEvents = monitorEvents
         clientID = defaults.string(forKey: Self.clientKey)
             ?? Bundle.main.object(forInfoDictionaryKey: "EspDesktopTwitchClientID") as? String
             ?? ""
@@ -149,7 +165,7 @@ final class TwitchBroadcast: ObservableObject {
             try? JSONDecoder().decode(TwitchBroadcastConfiguration.self, from: $0)
         } ?? TwitchBroadcastConfiguration()
         if !clientID.isEmpty {
-            credential = KeychainStore.load(service: Self.credentialService, account: Self.credentialAccount)
+            credential = credentialStore.load()
                 .flatMap { try? JSONDecoder().decode(Credential.self, from: $0) }
         }
         if credential != nil {
@@ -401,7 +417,7 @@ final class TwitchBroadcast: ObservableObject {
                                accessToken: tokens.accessToken, refreshToken: tokens.refreshToken,
                                expiresAt: Date().addingTimeInterval(Double(expires)))
         let data = try JSONEncoder().encode(value)
-        guard KeychainStore.save(data, service: Self.credentialService, account: Self.credentialAccount) else {
+        guard credentialStore.save(data) else {
             throw OperationError.keychain
         }
         credential = value
@@ -497,7 +513,7 @@ final class TwitchBroadcast: ObservableObject {
 
     private func startEvents() {
         eventTask?.cancel()
-        guard let value = credential else { return }
+        guard monitorEvents, let value = credential else { return }
         let active = generation
         let auth = TwitchAPI.Authorization(clientID: value.clientID, accessToken: value.accessToken,
                                            broadcasterID: value.broadcasterID)
@@ -594,7 +610,7 @@ final class TwitchBroadcast: ObservableObject {
         busy = nil
         status = .disconnected
         feedback = [:]
-        KeychainStore.remove(service: Self.credentialService, account: Self.credentialAccount)
+        credentialStore.remove()
         publishControls()
     }
 
