@@ -42,6 +42,12 @@ pairing. The code persists across reboots and rotates after successful pairing.
 The display only shows it while unpaired. Pairing is authorized by access to
 the device webserver.
 
+Capability 10 adds Streamlabs Scene and Recording cards. The Mac owns the
+local Streamlabs connection and credential, publishes the available actions
+through the Companion catalogue, and sends confirmed scene and recording state
+separately from Mac app focus. Recording cards send the desired state so that
+an already completed change does not issue a second Streamlabs toggle.
+
 ## Compatibility and testing
 
 Saved panel configuration compatibility remains separate from transport

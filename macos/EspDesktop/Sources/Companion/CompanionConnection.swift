@@ -75,6 +75,7 @@ final class CompanionConnection: NSObject {
     private var pairingResetCompletion: CheckedContinuation<Void, Never>?
     private var pairingResetTimeout: Task<Void, Never>?
     private var remoteCatalogueDefinitionsSupported = false
+    private var streamlabsSupported = false
     private var expandedShortcutsSupported = false
     private var authenticationRequestOutstanding = false
     private var appIconData: Data?
@@ -217,6 +218,7 @@ final class CompanionConnection: NSObject {
         supportsAlphaAppIcons = false
         supportsHighResolutionAppIcons = false
         remoteCatalogueDefinitionsSupported = false
+        streamlabsSupported = false
         expandedShortcutsSupported = false
         endpointRecovery.verifiedFingerprint = nil
         authenticationRequestOutstanding = false
@@ -398,6 +400,7 @@ final class CompanionConnection: NSObject {
         applicationFocusPublisher.reset()
         resetAppIconTransferState(clearPendingRequests: true)
         remoteCatalogueDefinitionsSupported = false
+        streamlabsSupported = false
         expandedShortcutsSupported = false
         connectionTimeoutTask?.cancel()
         connectionTimeoutTask = nil
@@ -504,6 +507,7 @@ final class CompanionConnection: NSObject {
             supportsSessionLock = payload.capabilityVersion >= 7
             supportsPairingReset = payload.capabilityVersion >= 8
             expandedShortcutsSupported = payload.capabilityVersion >= 9
+            streamlabsSupported = payload.capabilityVersion >= 10
             // A Bonjour TXT record never authorizes a location change. Both the
             // pinned TLS certificate and the authenticated session must agree.
             let expectedFingerprint = preferences.stringPreference(forKey: certificateFingerprintKey)
@@ -550,6 +554,7 @@ final class CompanionConnection: NSObject {
             let requestIdentifier = payload.requestId
             let kind = payload.kind
             if kind == "action", let actionIdentifier = payload.actionId {
+                guard streamlabsSupported || !StreamlabsSnapshot.isAction(actionIdentifier) else { return false }
                 let requestingTask = task
                 Task { [weak self, weak requestingTask] in
                     guard let self, let requestingTask, self.task === requestingTask, self.sessionAuthenticated else { return }
@@ -784,25 +789,10 @@ final class CompanionConnection: NSObject {
         capabilities.append(CompanionCapabilities.appIconsAlphaCapability)
         capabilities.append(CompanionCapabilities.appIconsHighResolutionCapability)
         capabilities.append("url_card_focus")
+        if streamlabsSupported { capabilities.append("streamlabs") }
         sendJSON(["type": "capabilities", "values": capabilities])
-        // The browser receives identifiers, never application paths or shell commands.
         let apps = resources.launchableApps()
-        let entries: [[String: String]] = resources.folderActions().compactMap { folder -> [String: String]? in
-            guard Self.validCatalogueIdentifier(folder.actionIdentifier) else { return nil }
-            return ["id": folder.actionIdentifier, "label": Self.catalogueLabel(folder.name, fallback: "Folder")]
-        } + apps.compactMap { app -> [String: String]? in
-            guard Self.validCatalogueIdentifier(app.bundleIdentifier) else { return nil }
-            return ["id": app.bundleIdentifier, "label": Self.catalogueLabel(app.name, fallback: app.bundleIdentifier)]
-        }
-        catalogueGeneration &+= 1
-        if catalogueGeneration == 0 { catalogueGeneration = 1 }
-        let pages = stride(from: 0, to: max(entries.count, 1), by: 48).map {
-            Array(entries[$0..<min($0 + 48, entries.count)])
-        }
-        for (page, items) in pages.enumerated() {
-            sendJSON(["type": "catalogue.page", "generation": catalogueGeneration,
-                      "page": page, "complete": page == pages.count - 1, "items": items])
-        }
+        publishActionCatalogue(apps)
         if remoteCatalogueDefinitionsSupported {
             let definitions = resources.remoteCompanionCatalogues().applicationsForDisplay(approvedApps: apps)
             let installedIDs = Set(apps.map(\.bundleIdentifier))
@@ -836,6 +826,38 @@ final class CompanionConnection: NSObject {
             }
         }
         publishFocusedAction()
+    }
+
+    private func publishActionCatalogue(_ apps: [LaunchableApp]) {
+        // The browser receives identifiers, never application paths, commands or API credentials.
+        var entries: [[String: String]] = resources.folderActions().compactMap { folder -> [String: String]? in
+            guard Self.validCatalogueIdentifier(folder.actionIdentifier) else { return nil }
+            return ["id": folder.actionIdentifier, "label": Self.catalogueLabel(folder.name, fallback: "Folder")]
+        } + apps.compactMap { app -> [String: String]? in
+            guard Self.validCatalogueIdentifier(app.bundleIdentifier) else { return nil }
+            return ["id": app.bundleIdentifier, "label": Self.catalogueLabel(app.name, fallback: app.bundleIdentifier)]
+        }
+        if streamlabsSupported {
+            entries += resources.streamlabsSnapshot().actions.map { action in
+                ["id": action.id, "label": Self.catalogueLabel(action.label, fallback: "Scene")]
+            }
+        }
+        catalogueGeneration &+= 1
+        if catalogueGeneration == 0 { catalogueGeneration = 1 }
+        let pages = stride(from: 0, to: max(entries.count, 1), by: 48).map {
+            Array(entries[$0..<min($0 + 48, entries.count)])
+        }
+        for (page, items) in pages.enumerated() {
+            sendJSON(["type": "catalogue.page", "generation": catalogueGeneration,
+                      "page": page, "complete": page == pages.count - 1, "items": items])
+        }
+    }
+
+    func publishStreamlabs(_ snapshot: StreamlabsSnapshot, catalogueChanged: Bool = false) {
+        guard sessionAuthenticated, streamlabsSupported else { return }
+        if catalogueChanged, resources.applicationCatalogueReady { publishActionCatalogue(resources.launchableApps()) }
+        sendJSON(["type": "streamlabs.state", "activeSceneId": snapshot.activeSceneActionID,
+                  "recording": snapshot.recording == true])
     }
 
     nonisolated static func supportsRemoteCatalogueDefinitions(capabilityVersion: UInt32) -> Bool {

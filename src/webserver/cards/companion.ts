@@ -1,6 +1,9 @@
 import { childPageKey } from "../model/page_keys";
 import { renderCompanionStorageSelector } from "./companion_storage";
-import { COMPANION_FOLDER_PREFIX, decodeCompanionCard, encodeCompanionCard, companionMetricForEntity } from "../model/companion_card_codec";
+import {
+    COMPANION_FOLDER_PREFIX, STREAMLABS_ACTION_PREFIX, STREAMLABS_SCENE_PREFIX, STREAMLABS_RECORDING, streamlabsSceneIdValid,
+    decodeCompanionCard, encodeCompanionCard, companionMetricForEntity,
+} from "../model/companion_card_codec";
 import { configOptionEnabled, configOptionValue, setConfigOption, setConfigOptionValue, normalizedCardColorOptions, preserveCardColorOptions, withoutCardColorOptions } from "../model/config_primitives";
 import { createCompanionCatalogue, createCompanionCatalogueMonitor } from "../api/companion_catalogue";
 import type { CompanionAction } from "../api/companion_catalogue";
@@ -330,6 +333,8 @@ export function companionEntityForMode(mode: string): string {
     if (mode === "url") return COMPANION_DEFAULT_BROWSER;
     if (mode === "shortcut") return COMPANION_SHORTCUT_PREFIX;
     if (mode === "folder") return COMPANION_FOLDER_PREFIX;
+    if (mode === "streamlabs_scene") return STREAMLABS_SCENE_PREFIX;
+    if (mode === "streamlabs_recording") return STREAMLABS_RECORDING;
     if (mode === "stats") return COMPANION_SYSTEM_METRICS[0]?.id || "";
     return COMPANION_SYSTEM_METRICS.find((metric) => metric.mode === mode)?.id || "";
 }
@@ -337,6 +342,7 @@ export function companionEntityForMode(mode: string): string {
 export function companionApplicationActions(actions: readonly CompanionAction[]): readonly CompanionAction[] {
     return sortCompanionLabels(actions.filter((action) =>
         !action.id.startsWith(COMPANION_FOLDER_PREFIX) &&
+        !action.id.startsWith(STREAMLABS_ACTION_PREFIX) &&
         !["media.play_pause", "media.previous", "media.next"].includes(action.id)));
 }
 
@@ -412,6 +418,19 @@ function normalizeCompanionCardFields(card: any): void {
         card.icon_on = "Auto";
         if (!card.icon || card.icon === "Auto" || card.icon === "Monitor") {
             card.icon = companionSubtypeDefaultIcon(metric.mode);
+        }
+        return;
+    }
+    const streamlabsMode = companionCardMode(card);
+    if (streamlabsMode === "streamlabs_scene" || streamlabsMode === "streamlabs_recording") {
+        card.type = "companion";
+        card.sensor = "";
+        card.unit = "";
+        card.precision = "";
+        card.options = normalizedCardColorOptions(card.options);
+        card.icon_on = "Auto";
+        if (!card.icon || card.icon === "Auto" || card.icon === "Monitor") {
+            card.icon = companionSubtypeDefaultIcon(streamlabsMode);
         }
         return;
     }
@@ -523,7 +542,7 @@ export function registerCompanionCardTypes(
         card.precision = "";
         card.options = normalizedCardColorOptions(card.options);
         card.icon_on = "Auto";
-        card.label = "";
+        card.label = mode === "streamlabs_recording" ? "Recording" : "";
 
         const metric = mode === "stats" ? COMPANION_SYSTEM_METRICS[0] : undefined;
         if (metric) {
@@ -581,6 +600,57 @@ export function registerCompanionCardTypes(
         }
     }
 
+    function renderStreamlabsCardSettings(panel: HTMLElement, card: any, helpers: any): void {
+        const mode = companionCardMode(card);
+        helpers.renderCardTextField(panel, card, helpers, {
+            label: "Label", idSuffix: "label", field: "label",
+            placeholder: mode === "streamlabs_scene" ? "Scene name" : "Recording", rerender: true,
+        });
+        if (mode === "streamlabs_scene") {
+            const savedScene = card.entity;
+            const field = document.createElement("div");
+            field.className = "sp-field";
+            const select = document.createElement("select");
+            select.id = helpers.idPrefix + "streamlabs-scene";
+            select.className = "sp-select";
+            field.append(fieldLabel("Scene", select.id), select);
+            panel.appendChild(field);
+            helpers.markCardPrimaryField(field, "entity");
+            let scenes: readonly CompanionAction[] = [];
+            helpers.requireField(select, "Choose a Streamlabs scene before saving.", () => true,
+                (value: string) => streamlabsSceneIdValid(value) &&
+                    (value === savedScene || scenes.some(scene => scene.id === value)));
+
+            function setScenes(actions: readonly CompanionAction[], emptyLabel: string): void {
+                scenes = sortCompanionLabels(actions.filter(action => streamlabsSceneIdValid(action.id)));
+                select.replaceChildren(new Option(scenes.length ? "Choose a scene…" : emptyLabel, ""));
+                if (streamlabsSceneIdValid(card.entity) && !scenes.some(scene => scene.id === card.entity)) {
+                    select.add(new Option(card.label || "Saved scene unavailable", card.entity));
+                }
+                for (const scene of scenes) select.add(new Option(scene.label, scene.id));
+                select.value = streamlabsSceneIdValid(card.entity) ? card.entity : "";
+                select.disabled = scenes.length === 0;
+            }
+            setScenes([], "Loading Streamlabs scenes…");
+            void loadCompanionActions(true).then(actions => {
+                setScenes(actions, "Connect Streamlabs in the EspDesktop Mac app");
+            }).catch(() => setScenes([], "Mac companion unavailable"));
+            select.addEventListener("change", () => {
+                const selected = scenes.find(scene => scene.id === select.value);
+                if (!selected) return;
+                const previous = scenes.find(scene => scene.id === card.entity);
+                card.label = companionAppLabel(card.label || "", previous?.label || "", selected.label);
+                card.entity = selected.id;
+                helpers.saveField("entity", card.entity);
+                helpers.saveField("label", card.label);
+                renderButtonSettings();
+            });
+        }
+        helpers.renderCardIconPicker(panel, card, helpers, {
+            ...COMPANION_CARD_METADATA.icon, fallback: companionSubtypeDefaultIcon(mode),
+        });
+    }
+
     const companionDefinition: any = {
         renderAppShortcutSettings,
         label: function () { return cardContractCardLabel("companion"); },
@@ -602,6 +672,10 @@ export function registerCompanionCardTypes(
             const currentEntity = typeof card.entity === "string" ? card.entity : "";
             card.entity = currentEntity;
             const initialMode = companionCardMode(card);
+            if (initialMode === "streamlabs_scene" || initialMode === "streamlabs_recording") {
+                if (panel) renderStreamlabsCardSettings(panel, card, helpers);
+                return;
+            }
             const parentPage = helpers.isSub ? state.editingSubpage : null;
             const canAddSubpage = codec.canCreateSubpage(parentPage);
             const subpageKey = canAddSubpage && slot ? childPageKey(parentPage ?? 0, Number(slot)) : null;
@@ -1470,6 +1544,13 @@ export function registerCompanionCardTypes(
                     badge: COMPANION_CARD_METADATA.preview.badge,
                 });
             }
+            if (mode === "streamlabs_scene" || mode === "streamlabs_recording") {
+                return cardBadgePreview(card, helpers, {
+                    label: card.label || (mode === "streamlabs_scene" ? "Streamlabs Scene" : "Recording"),
+                    iconFallback: companionSubtypeDefaultIcon(mode),
+                    badge: COMPANION_CARD_METADATA.preview.badge,
+                });
+            }
             const shortcutLabel = formatCompanionShortcutActionId(card.entity);
             const appLabel = mode === "app" || mode === "url"
                 ? companionApplicationLabel(card.entity) : "";
@@ -1600,6 +1681,8 @@ export function registerCompanionCardTypes(
         ["companion_shortcut", "Key Shortcut", "shortcut"],
         ["companion_url", "Website", "url"],
         ["companion_folder", "Finder Folder", "folder"],
+        ["companion_streamlabs_scene", "Streamlabs Scene", "streamlabs_scene"],
+        ["companion_streamlabs_recording", "Streamlabs Recording", "streamlabs_recording"],
     ];
     companionPickerDefinitions.forEach(function (definition) {
         const key = definition[0];

@@ -59,6 +59,16 @@ When you close the last visible window of the foreground app, the display return
 
 See [all app presets](/reference/shortcut-presets).
 
+## Streamlabs Desktop
+
+Use **Streamlabs Scene** and **Streamlabs Recording** cards to control Streamlabs Desktop running on the same Mac as EspDesktop. These cards work while another app is in front.
+
+1. In Streamlabs Desktop, open **Settings → Mobile → Third Party Connections** and turn on **Allow third party connections**. Copy the API token and note the port shown there. Some versions list the connection under **Remote Control**.
+2. In the EspDesktop Mac app, open **Settings → Streamlabs**, paste the token, enter the port and choose **Connect**.
+3. In the display editor, choose **Mac Companion → Streamlabs Scene** and select a scene. Add a separate **Streamlabs Recording** card to start and stop recording.
+
+The scene card highlights when its scene is active. The recording card highlights while Streamlabs is recording. The tiles reflect changes made in Streamlabs and dim if the connection is lost. EspDesktop stores the token in the Mac Keychain. **Forget Connection** removes it.
+
 ## Website cards {#open-a-website}
 
 To add a tile for a web address, see [Open Websites on Your Mac](/mac-controls/websites).

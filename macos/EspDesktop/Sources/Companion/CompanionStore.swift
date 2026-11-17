@@ -139,6 +139,7 @@ final class CompanionStore: NSObject, ObservableObject {
     private static let preferencesSuite = "io.espdesktop.app"
     private let defaults: UserDefaults
     private let savedDisplays: CompanionSavedDisplays
+    let streamlabs: StreamlabsConnection
     private var forgettingDisplays: Set<UUID> = []
     private lazy var pairingDisplay = makeDisplay(CompanionDisplayRecord())
     private(set) var isRePairing = false
@@ -176,6 +177,7 @@ final class CompanionStore: NSObject, ObservableObject {
             ? UserDefaults.standard
             : (UserDefaults(suiteName: Self.preferencesSuite) ?? .standard))
         self.defaults = stableDefaults
+        self.streamlabs = StreamlabsConnection(defaults: stableDefaults)
         let savedDisplays = CompanionSavedDisplays(defaults: stableDefaults)
         self.savedDisplays = savedDisplays
         approvedApplicationIdentifiers = Set(
@@ -188,6 +190,11 @@ final class CompanionStore: NSObject, ObservableObject {
         onboardingCompleted = stableDefaults.bool(forKey: Keys.onboardingCompleted) || !records.isEmpty
         super.init()
         displays = records.map(makeDisplay)
+        streamlabs.onSnapshot = { [weak self] previous, current in
+            let catalogueChanged = previous.actions != current.actions
+            self?.publishToConnectedDisplays { $0.publishStreamlabs(current, catalogueChanged: catalogueChanged) }
+        }
+        streamlabs.reconnect()
         sessionLock.onChange = { [weak self] locked, displayAwake in
             self?.publishToConnectedDisplays { $0.publishSessionLock(locked, displayAwake: displayAwake) }
         }
@@ -762,6 +769,7 @@ final class CompanionStore: NSObject, ObservableObject {
                 display.connection.publishSystemMetrics(snapshot, force: true)
             }
             publishMediaControlValues(force: true, to: display)
+            display.connection.publishStreamlabs(streamlabs.snapshot)
         }
     }
 
@@ -855,10 +863,16 @@ final class CompanionStore: NSObject, ObservableObject {
         return false
     }
 
+    func streamlabsSnapshot() -> StreamlabsSnapshot { streamlabs.snapshot }
+
     func performResultStatus(actionIdentifier: String,
                              folderOpenBehavior: String = "new_window",
                              shortcutAppID: String? = nil) async -> String {
         guard !sessionLock.refresh() else { return "not_allowed" }
+        if StreamlabsSnapshot.isAction(actionIdentifier) {
+            guard shortcutAppID == nil else { return "not_allowed" }
+            return await streamlabs.perform(actionIdentifier) ? "performed" : "failed"
+        }
         let performed = await perform(actionIdentifier: actionIdentifier,
                                       folderOpenBehavior: folderOpenBehavior, shortcutAppID: shortcutAppID)
         return Self.actionResultStatus(actionIdentifier: actionIdentifier, performed: performed)

@@ -667,7 +667,7 @@ void CompanionService::handle_json_(int socket_fd, const std::string &message) {
         if ((retain_action || app_icon_store().is_referenced(id)) &&
             id.rfind("folder.", 0) != 0 && id.rfind("shortcut.", 0) != 0 &&
             id.rfind("window.", 0) != 0 && id.rfind("metrics.", 0) != 0 &&
-            id.rfind("urlcard.", 0) != 0 &&
+            id.rfind("urlcard.", 0) != 0 && id.rfind("streamlabs.", 0) != 0 &&
             std::find(this->catalogue_enabled_icons_.begin(), this->catalogue_enabled_icons_.end(), id) ==
                 this->catalogue_enabled_icons_.end())
           this->catalogue_enabled_icons_.push_back(id);
@@ -838,6 +838,15 @@ void CompanionService::handle_json_(int socket_fd, const std::string &message) {
       const int value = payload->value ? static_cast<int>(*payload->value) : -1;
       if (value < 0 || value > 100) return false;
       this->defer_session_([control_id, value] { companion_set_value(control_id, value); });
+      return true;
+    }
+
+    if (const auto *payload = std::get_if<companion_protocol::StreamlabsState>(&*decoded)) {
+      const auto &scene = payload->activeSceneId;
+      if (!scene.empty() && !companion_streamlabs_scene_id_valid(scene)) return false;
+      this->defer_session_([scene, recording = payload->recording]() {
+        companion_runtime_service().set_streamlabs_state(scene, recording);
+      }, "streamlabs-state");
       return true;
     }
 

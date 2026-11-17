@@ -198,7 +198,7 @@ export function runCompanionShortcutFeatureTests(): void {
     COMPANION_SHORTCUT_APPS.pop();
   }
   const companionModes = companionCardModeOptions();
-  if (companionModes.map(([mode]) => mode).join() !== "app,shortcut,url,folder,stats" ||
+  if (companionModes.map(([mode]) => mode).join() !== "app,shortcut,url,folder,streamlabs_scene,streamlabs_recording,stats" ||
       companionCardModeValid("window") || companionCardModeValid("webapp") || companionCardModeValid("home_assistant") ||
       companionCardDefaultIcon("shortcut") !== "Shortcut Command") {
     throw new Error("Companion card modes must come from the generated product contract");

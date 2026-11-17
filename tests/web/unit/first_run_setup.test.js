@@ -33,7 +33,7 @@ test("first-run setup only starts on an unconfigured display", () => {
 test("onboarding lists unique applications, excluding retired web apps and other actions", () => {
   assert.deepEqual(firstRunApplications([safari, safari, custom,
     { id: "webapp.notion", label: "Notion" },
-    ...["folder.abc", "media.play_pause", "shortcut.command+k", "system.cpu", "window.left"].map(id => ({ id, label: id })),
+    ...["folder.abc", "media.play_pause", "shortcut.command+k", "system.cpu", "window.left", "streamlabs.recording"].map(id => ({ id, label: id })),
   ]).map(app => app.id), [custom.id, safari.id]);
 });
 

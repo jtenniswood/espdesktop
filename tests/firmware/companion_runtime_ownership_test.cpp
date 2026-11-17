@@ -46,9 +46,30 @@ int main() {
   assert(first.companion_runtime().remote_definitions_page(COMPANION_MAX_REMOTE_DEFINITIONS_PER_CATALOGUE - 4, 4, definitions_connected, has_more).size() == 4);
   assert(definitions_connected && !has_more);
   assert(first.start());
+  const std::string studio = "streamlabs.scene.aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
+  first.companion_runtime().set_actions({{studio, "Studio"}, {COMPANION_STREAMLABS_RECORDING, "Recording"}});
+  first.companion_runtime().set_streamlabs_state(studio, true);
+  assert(companion_action_focused(studio, /*visual_only=*/true));
+  assert(!companion_action_focused(studio)); // State must never trigger app-focus navigation.
+  assert(!second.companion_runtime().snapshot().streamlabs_recording);
+  std::string sent_action;
+  companion_action_sender() = [&sent_action](const std::string &id, const std::string &,
+                                              const std::string &, const std::string &) {
+    sent_action = id;
+    return true;
+  };
+  assert(invoke_companion_action(COMPANION_STREAMLABS_RECORDING, "recording-stop"));
+  assert(sent_action == "streamlabs.recording.stop");
+  first.companion_runtime().set_streamlabs_state(studio, false);
+  assert(invoke_companion_action(COMPANION_STREAMLABS_RECORDING, "recording-start"));
+  assert(sent_action == "streamlabs.recording.start");
+  first.companion_runtime().set_actions({{"com.example.First", "First"}});
   bool invoked = false;
   assert(companion_expect_action_result("old-session", [&] { invoked = true; }));
   companion_set_connected(false);
+  assert(!companion_action_focused(studio, /*visual_only=*/true));
+  assert(first.companion_runtime().snapshot().streamlabs_scene_id.empty());
+  assert(!invoke_companion_action(COMPANION_STREAMLABS_RECORDING, "recording-disconnected"));
   companion_deliver_action_result("old-session", "activated");
   assert(!invoked);
   auto lifetime = std::make_shared<int>(1);

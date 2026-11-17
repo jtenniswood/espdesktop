@@ -391,6 +391,8 @@ inline bool companion_action_focused(const CompanionRuntimeSnapshot &snapshot,
   if (action_id.empty() || action_id.rfind("shortcut.", 0) == 0 ||
       action_id.rfind("media.", 0) == 0) return false;
   if (!snapshot.connected) return false;
+  if (action_id.rfind("streamlabs.", 0) == 0)
+    return visual_only && companion_streamlabs_action_active(snapshot, action_id);
   if (visual_only && snapshot.application_highlight_known &&
       action_id.rfind("folder.", 0) != 0 &&
       action_id.rfind("urlcard.", 0) != 0 &&
@@ -1081,9 +1083,12 @@ inline bool companion_toggle_mute(const std::string &control_id) {
 inline bool invoke_companion_action(const std::string &action_id,
                                     const std::string &request_id,
                                     const std::string &folder_open_behavior = "new_window") {
-  if (!companion_action_available(action_id) || !companion_action_sender()) return false;
-  if (companion_scoped_shortcut(action_id)) return false;
-  return companion_action_sender()(action_id, request_id, folder_open_behavior, {});
+  if (!companion_action_sender() || companion_scoped_shortcut(action_id)) return false;
+  const auto snapshot = companion_runtime_snapshot();
+  if (!companion_action_available(snapshot, action_id)) return false;
+  const auto requested_action = action_id == COMPANION_STREAMLABS_RECORDING
+      ? companion_streamlabs_recording_request(snapshot) : action_id;
+  return companion_action_sender()(requested_action, request_id, folder_open_behavior, {});
 }
 
 inline std::string companion_shortcut_preset_app(const std::string &preset) {

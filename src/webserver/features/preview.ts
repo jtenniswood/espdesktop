@@ -66,6 +66,8 @@ const CARD_TYPE_PICKER_DETAILS: Readonly<Record<string, PickerDetails>> = {
   companion_folder: { icon: "folder", description: "Open an approved folder on the Mac." },
   companion_mac_lock: { icon: "lock", description: "Lock the paired Mac." },
   companion_shortcut: { icon: "apple-keyboard-command", description: "Run a keyboard shortcut on the Mac." },
+  companion_streamlabs_scene: { icon: "video", description: "Switch to a scene and highlight it when active in Streamlabs." },
+  companion_streamlabs_recording: { icon: "record-circle-outline", description: "Start or stop Streamlabs recording and show its state." },
   companion_subpage: { icon: "view-grid-plus", description: "Open a nested page of Mac Companion cards." },
   companion_url: { icon: "web", description: "Open a URL on the Mac." },
   cover: { icon: "window-shutter", description: "Control blinds, curtains, or covers." },
@@ -94,6 +96,8 @@ const CARD_TYPE_PICKER_DEFAULTS: Readonly<Record<string, string>> = {
   companion_app: "companion",
   companion_folder: "companion",
   companion_shortcut: "companion",
+  companion_streamlabs_scene: "companion",
+  companion_streamlabs_recording: "companion",
   companion_subpage: "subpage",
   companion_url: "companion",
 };
