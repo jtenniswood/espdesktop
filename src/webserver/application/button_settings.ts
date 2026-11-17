@@ -791,7 +791,7 @@ export function createButtonSettingsFeature(
                 item.addEventListener("click", select);
                 return item;
             }
-            const back = createActionButton("sp-action-btn sp-cancel-btn sp-card-type-back", "Back to card types");
+            const back = createActionButton("sp-action-btn sp-cancel-btn sp-card-type-back", "Back to card types", "chevron-left");
             back.addEventListener("click", () => {
                 showOBS = false;
                 renderOptions();
