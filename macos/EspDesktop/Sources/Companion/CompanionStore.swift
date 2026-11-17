@@ -232,6 +232,12 @@ final class CompanionStore: NSObject, ObservableObject {
             for display in metricsDisplays { display.connection.publishSystemMetrics(snapshot) }
         }
         if supportsLaunchAtLogin { refreshLaunchAtLoginStatus() }
+        applicationFolderMonitor = ApplicationFolderMonitor(
+            sharedApplications: ApplicationCatalogue.sharedApplications,
+            userApplications: ApplicationCatalogue.userApplications
+        ) { [weak self] in
+            Task { @MainActor in self?.refreshApplications() }
+        }
         refreshApplications()
         Task { await remoteCatalogueStore.refresh() }
     }
@@ -306,33 +312,46 @@ final class CompanionStore: NSObject, ObservableObject {
     }
 
     private let applicationCatalogue = ApplicationCatalogue()
+    private var applicationFolderMonitor: ApplicationFolderMonitor?
     private var applicationScan: Task<Void, Never>?
+    private var applicationRefreshPending = false
     private(set) var applicationCatalogueReady = false
 
     func refreshApplications() {
-        guard applicationScan == nil else { return }
-        applicationScan = Task { [weak self, applicationCatalogue] in
-            let applications = await applicationCatalogue.scan()
-            guard let self else { return }
-            let identifiers = Set(applications.map(\.bundleIdentifier))
-            let previousIdentifiers = defaults.stringArray(forKey: Keys.knownApplications)
-            // Preserve existing selections when upgrading. Fresh installs and newly
-            // discovered apps default on; previously disabled apps stay disabled.
-            let known = Set(previousIdentifiers ?? [])
-            if previousIdentifiers != nil {
-                approvedApplicationIdentifiers.formUnion(identifiers.subtracting(known))
-            } else if defaults.object(forKey: Keys.approvedApplications) == nil {
-                approvedApplicationIdentifiers.formUnion(identifiers)
-            }
-            if !identifiers.isEmpty {
-                defaults.set(known.union(identifiers).sorted(), forKey: Keys.knownApplications)
-                defaults.set(approvedApplicationIdentifiers.sorted(), forKey: Keys.approvedApplications)
-            }
-            availableApps = applications
-            applicationCatalogueReady = true
-            applicationScan = nil
-            publishToConnectedDisplays { $0.publishCatalogue() }
+        guard applicationScan == nil else {
+            applicationRefreshPending = true
+            return
         }
+        applicationScan = Task { [weak self, applicationCatalogue] in
+            repeat {
+                self?.applicationRefreshPending = false
+                let applications = await applicationCatalogue.scan()
+                self?.applyApplicationScan(applications)
+            } while self?.applicationRefreshPending == true
+            self?.applicationScan = nil
+        }
+    }
+
+    private func applyApplicationScan(_ applications: [LaunchableApp]) {
+        guard !applicationCatalogueReady || availableApps != applications else { return }
+
+        let identifiers = Set(applications.map(\.bundleIdentifier))
+        let previousIdentifiers = defaults.stringArray(forKey: Keys.knownApplications)
+        // Preserve existing selections when upgrading. Fresh installs and newly
+        // discovered apps default on; previously disabled apps stay disabled.
+        let known = Set(previousIdentifiers ?? [])
+        if previousIdentifiers != nil {
+            approvedApplicationIdentifiers.formUnion(identifiers.subtracting(known))
+        } else if defaults.object(forKey: Keys.approvedApplications) == nil {
+            approvedApplicationIdentifiers.formUnion(identifiers)
+        }
+        if !identifiers.isEmpty {
+            defaults.set(known.union(identifiers).sorted(), forKey: Keys.knownApplications)
+            defaults.set(approvedApplicationIdentifiers.sorted(), forKey: Keys.approvedApplications)
+        }
+        availableApps = applications
+        applicationCatalogueReady = true
+        publishToConnectedDisplays { $0.publishCatalogue() }
     }
 
     func inputDeviceActions() -> [(id: String, label: String)] { mediaController.inputDeviceActions() }
