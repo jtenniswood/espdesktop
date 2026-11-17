@@ -3635,7 +3635,8 @@ def embedded_web_icon_styles():
         "@font-face{font-family:'EspDesktop Icons';src:url(data:font/ttf;base64,",
         icon_font_data,
         ") format('truetype');font-weight:normal;font-style:normal;font-display:block}",
-        ".mdi{display:inline-block;font-family:'EspDesktop Icons';font-weight:normal;font-style:normal;line-height:1;text-rendering:auto;-webkit-font-smoothing:antialiased}",
+        ":root{--sp-icon-font:'EspDesktop Icons'}",
+        ".mdi{display:inline-block;font-family:var(--sp-icon-font);font-weight:normal;font-style:normal;line-height:1;text-rendering:auto;-webkit-font-smoothing:antialiased}",
         ".mdi::before{display:inline-block}",
     ]
     css.extend(
