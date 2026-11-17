@@ -938,7 +938,6 @@ struct CompanionViewRegistry {
   std::vector<CompanionSliderRef> sliders;
   std::vector<CompanionMuteRef> mutes;
   std::string pending_focus_frame;
-  uint32_t scene_refresh_at = 0;
 };
 
 inline CompanionViewRegistry &companion_view_registry() {
@@ -1270,6 +1269,14 @@ inline void companion_render_obs_detail(CompanionCardRef &ref, const std::string
     lv_label_set_display_text(ref.obs_detail, detail.c_str());
   if (refreshing && !detail_changed) return;
   lv_obj_align(ref.obs_detail, LV_ALIGN_BOTTOM_LEFT, 0, 0);
+  if (take || scene) {
+    // These subtitles are one line. Position the title without forcing LVGL
+    // to lay out the screen in the middle of an OBS update.
+    const auto *font = lv_obj_get_style_text_font(ref.obs_detail, LV_PART_MAIN);
+    lv_obj_align(ref.text_label, LV_ALIGN_BOTTOM_LEFT, 0,
+                 detail.empty() ? 0 : -static_cast<int>(lv_font_get_line_height(font)) - 2);
+    return;
+  }
   lv_obj_update_layout(ref.obs_detail);
   lv_obj_align(ref.text_label, LV_ALIGN_BOTTOM_LEFT, 0, detail.empty() ? 0 : -lv_obj_get_height(ref.obs_detail) - 2);
 }
@@ -1304,6 +1311,10 @@ inline void companion_setup_obs_detail(lv_obj_t *button, const lv_font_t *font, 
     }
     ref.obs_state_icon = state_icon;
     if (font) lv_obj_set_style_text_font(ref.obs_detail, font, LV_PART_MAIN);
+    if (ref.action_id == "obs.take" || companion_obs_scene_card(ref.action_id)) {
+      const auto *detail_font = lv_obj_get_style_text_font(ref.obs_detail, LV_PART_MAIN);
+      lv_obj_set_height(ref.obs_detail, lv_font_get_line_height(detail_font));
+    }
     const auto snapshot = companion_runtime_snapshot();
     const auto live = companion_default_action_label(ref.action_id, "", &snapshot);
     const std::string label = companion_obs_scene_card(ref.action_id) ? lv_label_get_text(ref.text_label)
@@ -1445,25 +1456,13 @@ inline void companion_refresh_action_card(CompanionCardRef &ref, const Companion
 }
 
 inline void companion_refresh_cards_if_requested() {
-  constexpr uint32_t scene_refresh_delay_ms = 45;
   const bool full_refresh = companion_card_refresh_requested().exchange(false);
   const bool focus_refresh = companion_runtime_service().consume_focus_refresh_request();
-  auto &view = companion_view_registry();
-  auto &scene_refresh_at = view.scene_refresh_at;
-  if (!full_refresh && !focus_refresh && !scene_refresh_at) return;
-  const auto now = esphome::millis();
-  const bool scene_refresh = scene_refresh_at && static_cast<int32_t>(now - scene_refresh_at) >= 0;
-  if (!full_refresh && !focus_refresh && !scene_refresh) return;
-  if (scene_refresh) scene_refresh_at = 0;
-  auto &refs = view.cards;
+  if (!full_refresh && !focus_refresh) return;
+  auto &refs = companion_card_refs();
   const auto snapshot = companion_runtime_snapshot();
   if (!full_refresh) {
-    if (focus_refresh) companion_refresh_card_focus(snapshot);
-    if (scene_refresh) {
-      for (auto &ref : refs)
-        if (ref.button && lv_obj_is_valid(ref.button) && companion_obs_scene_card(ref.action_id))
-          companion_refresh_action_card(ref, snapshot);
-    }
+    companion_refresh_card_focus(snapshot);
     return;
   }
   // Keep the command and its label in sync before lower-priority card work.
@@ -1515,17 +1514,7 @@ inline void companion_refresh_cards_if_requested() {
       continue;
     }
     if (companion_obs_tokenized_card(it->action_id)) companion_set_rendered_obs_action(*it, snapshot);
-    if (companion_obs_scene_card(it->action_id) && !scene_refresh) {
-      // Scene selection still uses the current token. Paint the indicator in
-      // a later UI pass, coalescing a burst without postponing it indefinitely.
-      if (!scene_refresh_at) {
-        scene_refresh_at = now + scene_refresh_delay_ms;
-        // Zero means idle, including when millis wraps during the delay.
-        if (!scene_refresh_at) scene_refresh_at = 1;
-      }
-    } else {
-      companion_refresh_action_card(*it, snapshot);
-    }
+    companion_refresh_action_card(*it, snapshot);
     ++it;
   }
   for (const auto &ref : companion_view_registry().mutes)

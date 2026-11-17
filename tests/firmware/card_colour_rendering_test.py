@@ -247,6 +247,8 @@ constexpr int LV_ALIGN_BOTTOM_LEFT = 1, LV_ANIM_OFF = 0, LV_EVENT_VALUE_CHANGED 
 const char *lv_label_get_text(lv_obj_t *label) { return label->content.c_str(); }
 void lv_obj_align(lv_obj_t *obj, int, int, int y) { obj->y_offset = y; }
 void lv_obj_update_layout(lv_obj_t *obj) { ++obj->layout_updates; }
+const int *lv_obj_get_style_text_font(lv_obj_t *, int) { static const int line_height = 20; return &line_height; }
+int lv_font_get_line_height(const int *font) { return *font; }
 void lv_slider_set_value(lv_obj_t *obj, int value, int) { obj->slider_value = value; }
 int lv_slider_get_value(lv_obj_t *obj) { return obj->slider_value; }
 void lv_obj_send_event(lv_obj_t *obj, int event, void *) {
@@ -471,8 +473,9 @@ int main() {
     assert(title.content == "Take Studio" && detail.content == "Fade");
     const auto layout_updates = detail.layout_updates;
     replay_state.actions[0].obs_detail = "Break";
+    replay_state.actions[1].label = "Cut";
     companion_render_obs_detail(replay, "Take Live · Break", replay_state, true);
-    assert(title.content == "Take Break" && detail.content == "Fade");
+    assert(title.content == "Take Break" && detail.content == "Cut" && title.y_offset == -22);
     assert(detail.layout_updates == layout_updates);
     replay.action_id = "obs.transition";
     companion_render_obs_detail(replay, "Fade · Short", {});
