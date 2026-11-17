@@ -1,5 +1,5 @@
 {
-  "version": 21,
+  "version": 22,
   "protocol": {
     "version": 4,
     "path": "/companion/v4",
@@ -127,6 +127,13 @@
         "direction": "mac_to_panel",
         "authorization": "session",
         "fields": {
+          "scope": {
+            "type": "string",
+            "enum": ["obs"],
+            "minLength": 3,
+            "maxLength": 3,
+            "optional": true
+          },
           "generation": {
             "type": "integer",
             "minimum": 1,

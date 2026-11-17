@@ -348,6 +348,17 @@ class CompanionRuntimeService {
     request_refresh_();
   }
 
+  void set_obs_actions(std::vector<CompanionAction> actions) {
+    std::lock_guard<std::mutex> lock(mutex_);
+    const auto is_obs = [](const CompanionAction &action) { return action.id.rfind("obs.", 0) == 0; };
+    const auto first_obs = std::find_if(actions_.begin(), actions_.end(), is_obs);
+    if (std::equal(first_obs, actions_.end(), actions.begin(), actions.end())) return;
+    actions_.erase(std::remove_if(first_obs, actions_.end(), is_obs), actions_.end());
+    for (auto &action : actions) actions_.push_back(std::move(action));
+    if (!actions_.empty()) ++action_catalogue_generation_;
+    request_refresh_();
+  }
+
   void set_keyboard_actions_supported(bool supported) {
     std::lock_guard<std::mutex> lock(mutex_);
     keyboard_actions_supported_ = supported;

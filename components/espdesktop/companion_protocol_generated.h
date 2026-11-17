@@ -87,6 +87,7 @@ struct CataloguePageItemsItem {
   std::optional<bool> obsAvailable{};
 };
 struct CataloguePage {
+  std::optional<std::string> scope{};
   uint32_t generation{};
   uint32_t page{};
   bool complete{};
@@ -280,6 +281,7 @@ inline void encode(JsonObject root, const CatalogueRequest &message) {
 inline void encode(JsonObject root, const CataloguePage &message) {
   root["type"] = "catalogue.page";
   root["protocol"] = COMPANION_PROTOCOL_VERSION;
+  if (message.scope) root["scope"] = *message.scope;
   root["generation"] = message.generation;
   root["page"] = message.page;
   root["complete"] = message.complete;
@@ -590,6 +592,9 @@ inline std::optional<Message> decode(JsonObjectConst root, Direction direction, 
   if (type == "catalogue.page") {
     if (direction != Direction::MAC_TO_PANEL) return std::nullopt;
     if (!(state == SessionState::CONNECTED)) return std::nullopt;
+    if (!root["scope"].isUnbound()) {
+      if (!(string_valid(root["scope"], 3, 3) && (std::string_view(root["scope"].as<const char *>()) == "obs"))) return std::nullopt;
+    }
     {
       if (!(number_valid(root["generation"], 1, 4294967295, true))) return std::nullopt;
     }
@@ -621,6 +626,7 @@ inline std::optional<Message> decode(JsonObjectConst root, Direction direction, 
       }
     }
     CataloguePage result;
+    if (!root["scope"].isUnbound()) result.scope = root["scope"].as<std::string>();
     result.generation = root["generation"].as<uint32_t>();
     result.page = root["page"].as<uint32_t>();
     result.complete = root["complete"].as<bool>();

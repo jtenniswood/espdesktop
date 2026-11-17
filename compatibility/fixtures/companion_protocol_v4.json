@@ -106,6 +106,36 @@
     "valid": true
   },
   {
+    "name": "OBS-only catalogue page",
+    "message": {
+      "protocol": 4,
+      "type": "catalogue.page",
+      "scope": "obs",
+      "generation": 2,
+      "page": 0,
+      "complete": true,
+      "items": []
+    },
+    "direction": "mac_to_panel",
+    "state": "connected",
+    "valid": true
+  },
+  {
+    "name": "catalogue page with unknown scope",
+    "message": {
+      "protocol": 4,
+      "type": "catalogue.page",
+      "scope": "all",
+      "generation": 2,
+      "page": 0,
+      "complete": true,
+      "items": []
+    },
+    "direction": "mac_to_panel",
+    "state": "connected",
+    "valid": false
+  },
+  {
     "name": "launch action",
     "message": {
       "protocol": 4,

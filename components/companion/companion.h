@@ -128,6 +128,7 @@ class CompanionService final : public Component {
   uint16_t application_definition_count_{0};
   uint32_t catalogue_generation_{0};
   uint16_t catalogue_next_page_{0};
+  bool catalogue_obs_only_{false};
   uint32_t definitions_generation_{0};
   uint16_t definitions_next_page_{0};
   struct UnauthenticatedSession {

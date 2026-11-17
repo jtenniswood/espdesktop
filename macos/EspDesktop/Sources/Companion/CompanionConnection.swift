@@ -882,11 +882,7 @@ final class CompanionConnection: NSObject {
         if supportsOBSOutputs { capabilities.append("obs_output_controls") }
         if supportsOBSBreak { capabilities.append("obs_brb") }
         if obsActions == nil { sendJSON(["type": "capabilities", "values": capabilities]) }
-        // The browser receives identifiers, never application paths or shell commands.
-        let apps = resources.launchableApps()
-        let inputs: [[String: String]] = supportsInputDevices ? resources.inputDeviceActions().map {
-            ["id": $0.id, "label": Self.catalogueLabel($0.label, fallback: "Input device")]
-        } : []
+        let obsOnly = obsActions != nil && peerCapabilityVersion >= 22
         let supportedOBSActions = supportsOBSCards ? obsActions ?? resources.obsControlActions() : []
         let obsEntries: [[String: Any]] = supportedOBSActions.filter { entry in
             (supportsOBSFaders || OBSConnection.faderInputUUID(for: entry.id) == nil) &&
@@ -905,7 +901,13 @@ final class CompanionConnection: NSObject {
             }
             return fields
         }
-        let entries: [[String: String]] = resources.folderActions().compactMap { folder -> [String: String]? in
+        // The browser receives identifiers, never application paths or shell commands.
+        let apps = obsOnly ? [] : resources.launchableApps()
+        let inputs: [[String: String]] = !obsOnly && supportsInputDevices ? resources.inputDeviceActions().map {
+            ["id": $0.id, "label": Self.catalogueLabel($0.label, fallback: "Input device")]
+        } : []
+        let folders = obsOnly ? [] : resources.folderActions()
+        let entries: [[String: String]] = folders.compactMap { folder -> [String: String]? in
             guard Self.validCatalogueIdentifier(folder.actionIdentifier) else { return nil }
             return ["id": folder.actionIdentifier, "label": Self.catalogueLabel(folder.name, fallback: "Folder")]
         } + apps.compactMap { app -> [String: String]? in
@@ -921,9 +923,12 @@ final class CompanionConnection: NSObject {
             Array(catalogue[$0..<min($0 + 48, catalogue.count)])
         }
         for (page, items) in pages.enumerated() {
-            sendJSON(["type": "catalogue.page", "generation": catalogueGeneration,
-                      "page": page, "complete": page == pages.count - 1, "items": items])
+            var message: [String: Any] = ["type": "catalogue.page", "generation": catalogueGeneration,
+                                         "page": page, "complete": page == pages.count - 1, "items": items]
+            if obsOnly { message["scope"] = "obs" }
+            sendJSON(message)
         }
+        if obsOnly { return }
         if obsActions == nil && remoteCatalogueDefinitionsSupported {
             let definitions = resources.remoteCompanionCatalogues().applicationsForDisplay(approvedApps: apps)
             let installedIDs = Set(apps.map(\.bundleIdentifier))

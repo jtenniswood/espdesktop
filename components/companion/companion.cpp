@@ -648,15 +648,20 @@ void CompanionService::handle_json_(int socket_fd, const std::string &message) {
       const uint32_t catalogue_generation = payload->generation;
       const uint16_t page = payload->page;
       const bool complete = payload->complete;
+      const bool obs_only = payload->scope.has_value();
       if (catalogue_generation == 0 ||
-          (page == 0 ? false : catalogue_generation != this->catalogue_generation_) ||
-          page != (page == 0 ? 0 : this->catalogue_next_page_)) return false;
+          (page != 0 && (catalogue_generation != this->catalogue_generation_ ||
+                         page != this->catalogue_next_page_ || obs_only != this->catalogue_obs_only_)))
+        return false;
+      if (obs_only && std::any_of(payload->items.begin(), payload->items.end(),
+          [](const auto &item) { return item.id.rfind("obs.", 0) != 0; })) return false;
       if (page == 0) {
         this->catalogue_actions_.clear();
         this->catalogue_limits_ = {};
         this->catalogue_enabled_icons_.clear();
         this->catalogue_generation_ = catalogue_generation;
         this->catalogue_next_page_ = 0;
+        this->catalogue_obs_only_ = obs_only;
       }
       for (const auto &item : payload->items) {
         const std::string id = item.id;
@@ -672,7 +677,7 @@ void CompanionService::handle_json_(int socket_fd, const std::string &message) {
         // Keep icon eligibility for configured cards even when their app is
         // outside the bounded browser catalogue. The reference set is bounded
         // by the panel configuration rather than the Mac's installed app count.
-        if ((retain_action || app_icon_store().is_referenced(id)) &&
+        if (!obs_only && (retain_action || app_icon_store().is_referenced(id)) &&
             id.rfind("folder.", 0) != 0 && !input && id.rfind("shortcut.", 0) != 0 &&
             id.rfind("window.", 0) != 0 && id.rfind("metrics.", 0) != 0 &&
             id.rfind("urlcard.", 0) != 0 && id.rfind("obs.", 0) != 0 &&
@@ -683,6 +688,12 @@ void CompanionService::handle_json_(int socket_fd, const std::string &message) {
       this->catalogue_next_page_ = page + 1;
       if (complete) {
         auto actions = std::move(this->catalogue_actions_);
+        if (obs_only) {
+          this->defer_session_([actions = std::move(actions)]() mutable {
+            companion_runtime_service().set_obs_actions(std::move(actions));
+          }, "OBS catalogue");
+          return true;
+        }
         this->defer_session_([actions = std::move(actions)]() mutable { companion_set_actions(std::move(actions)); }, "catalogue");
         const bool refresh_icons = this->app_icon_catalogue_refresh_pending_.exchange(false);
         std::vector<std::string> configured_icons, enabled_icons;

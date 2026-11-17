@@ -20,6 +20,16 @@ int main() {
   assert(first.companion_runtime().consume_refresh_request());
   first.companion_runtime().set_actions({{"com.example.First", "First"}});
   assert(!first.companion_runtime().consume_refresh_request());
+  const CompanionAction ready{"obs.take.token", "Take Live", OBSCardState::take_ready, "Studio", true};
+  first.companion_runtime().set_obs_actions({ready});
+  assert(first.companion_runtime().consume_refresh_request());
+  const auto ready_actions = first.companion_runtime().snapshot().actions;
+  assert(ready_actions.size() == 2 && ready_actions[0].id == "com.example.First" && ready_actions[1] == ready);
+  first.companion_runtime().set_obs_actions({ready});
+  assert(!first.companion_runtime().consume_refresh_request());
+  first.companion_runtime().set_obs_actions({});
+  assert(first.companion_runtime().consume_refresh_request());
+  assert(first.companion_runtime().snapshot().actions.size() == 1);
   second.companion_runtime().set_actions({{"com.example.Second", "Second"}});
   assert(!second.companion_runtime().connected());
   second.companion_runtime().set_mac_update_required(true);
