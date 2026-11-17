@@ -1,6 +1,6 @@
 {
   "formatVersion": 1,
-  "catalogueVersion": 24,
+  "catalogueVersion": 25,
   "minimumCompanionVersion": "1.0.0",
   "entries": [
     {
@@ -233,6 +233,9 @@
     },
     {
       "path": "tv.json"
+    },
+    {
+      "path": "twitch.json"
     },
     {
       "path": "visual-studio-code.json"

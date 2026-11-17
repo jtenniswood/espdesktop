@@ -84,6 +84,7 @@ const CLAUDE_DESKTOP_BUNDLE_ID = "com.anthropic.claudefordesktop";
 const SAFARI_WEB_APP_TEMPLATE = "com.apple.Safari.WebApp";
 const SAFARI_WEB_APP_BUNDLE_ID = /^com\.apple\.Safari\.WebApp\.[a-fA-F0-9]{8}(?:-[a-fA-F0-9]{4}){3}-[a-fA-F0-9]{12}$/;
 const ATHENA_TEMPLATE_APP_ID = "io.github.jtenniswood.athena";
+const TWITCH_TEMPLATE_APP_ID = "tv.twitch.web-app";
 const CHATGPT_CLASSIC_BUNDLE_ID = "com.openai.chat";
 export const CODEX_BUNDLE_ID = "com.openai.codex";
 export const CHATGPT_CLEAR_UNREADS_ACTION = "shortcut.shift+escape";
@@ -457,12 +458,13 @@ export function slackShortcutPresetCards(): CompanionShortcutPresetCard[] {
 export function companionShortcutCatalogApps(
     { pageAppId, savedAppId }: { pageAppId?: string | undefined; savedAppId?: string | undefined } = {},
 ): AppShortcutApplication[] {
-    // The Mac sends Athena under the actual installed web app's bundle ID.
+    // The Mac sends site presets under the actual installed Safari web app bundle ID.
     const apps = COMPANION_SHORTCUT_APPS.filter(app =>
-        app.appId !== ATHENA_TEMPLATE_APP_ID && app.appId !== CHATGPT_CLASSIC_BUNDLE_ID && app.shortcuts?.length > 0);
+        app.appId !== ATHENA_TEMPLATE_APP_ID && app.appId !== TWITCH_TEMPLATE_APP_ID &&
+        app.appId !== CHATGPT_CLASSIC_BUNDLE_ID && app.shortcuts?.length > 0);
     const appId = savedAppId ?? pageAppId;
     // A saved Classic card still needs its original app and preset IDs when edited.
-    if (appId && appId !== ATHENA_TEMPLATE_APP_ID &&
+    if (appId && appId !== ATHENA_TEMPLATE_APP_ID && appId !== TWITCH_TEMPLATE_APP_ID &&
         (appId !== CHATGPT_CLASSIC_BUNDLE_ID || appId === savedAppId) && !apps.some(app => app.appId === appId)) {
         const template = companionShortcutApp(appId);
         if (template) apps.push({ ...template, appId });

@@ -17,6 +17,7 @@ Additional primary sources used to verify or extend the supplied research:
 | Safari web apps | [Apple's dedicated web app shortcut list](https://support.apple.com/guide/safari/keyboard-and-other-shortcuts-for-web-apps-ibrw3ceda9e7/mac) documents scrolling, Reader, and window controls. The website may handle some keys itself. |
 | Visual Studio Code | [Default macOS keybindings](https://code.visualstudio.com/docs/reference/default-keybindings) fills gaps in the older printable reference, including the line comment chord. |
 | VLC | [VideoLAN's macOS defaults in VLC 3.0](https://github.com/videolan/vlc/blob/3.0.x/src/libvlc-module.c) list playback, jumps, volume, subtitles, disc navigation, and bookmarks. |
+| Twitch | [Make Tech Easier’s Twitch shortcut guide](https://maketecheasier.com/cheatsheet/twitch-keyboard-shortcuts/) lists the player bindings. [Twitch’s Clips guide](https://help.twitch.tv/s/article/how-to-use-clips) explains when clipping is available. |
 | Zoom | [Zoom keyboard shortcuts for macOS](https://support.zoom.com/hc/en/article?id=zm_kb&sysparm_article=KB0067050) lists separate microphone controls for meetings and Zoom Phone. |
 | Icons | [Material Design Icons](https://pictogrammers.com/library/mdi/) 7.4.47. New glyphs cover formatting, alignment, duplication, subtitles, repeat and shuffle. |
 
