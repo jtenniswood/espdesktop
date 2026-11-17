@@ -15,7 +15,7 @@ internal sealed class IracingTelemetry : IDisposable
     private RaceSnapshot? latest;
     private bool observedTick;
 
-    public RaceSnapshot? Sample()
+    public (RaceSnapshot? Snapshot, bool Fresh) Sample()
     {
         try
         {
@@ -30,20 +30,24 @@ internal sealed class IracingTelemetry : IDisposable
             if (reader!.TryRead(out var snapshot))
             {
                 lastTick = Environment.TickCount64;
-                if (observedTick) latest = snapshot;
+                if (observedTick)
+                {
+                    latest = snapshot;
+                    return (latest, true);
+                }
                 observedTick = true;
-                return latest;
+                return (null, false);
             }
 
             if (!reader.Connected || Environment.TickCount64 - lastTick >= 2000)
                 Dispose();
-            return latest;
+            return (latest, false);
         }
         catch (Exception error) when (error is IOException or UnauthorizedAccessException)
         {
             Dispose();
         }
-        return null;
+        return (null, false);
     }
 
     public void Dispose()
@@ -96,14 +100,17 @@ internal sealed class IracingTelemetryReader(MemoryMappedViewAccessor view)
         var rowSize = view.ReadInt32(36);
         var count = view.ReadInt32(24);
         var tableOffset = view.ReadInt32(28);
+        var tableEnd = tableOffset + (long)count * FieldEntryBytes;
         if (buffers is < 1 or > 4 || rowSize is < 1 or > 65536 || count is < 1 or > 4096 ||
-            tableOffset < HeaderBytes || tableOffset + (long)count * FieldEntryBytes > view.Capacity)
+            tableOffset < HeaderBytes || tableEnd > view.Capacity)
             return false;
 
         if (fieldTable != (count, tableOffset, rowSize))
         {
             fieldTable = (count, tableOffset, rowSize);
             ReadFieldOffsets(count, tableOffset, rowSize);
+            lastSampleTick = null;
+            lastSession = null;
         }
 
         var slot = BufferTable;
@@ -120,7 +127,8 @@ internal sealed class IracingTelemetryReader(MemoryMappedViewAccessor view)
             return false;
 
         var row = (long)view.ReadInt32(slot + 4);
-        if (row < HeaderBytes || row + rowSize > view.Capacity)
+        if (row < HeaderBytes || row + rowSize > view.Capacity ||
+            (row < tableEnd && row + rowSize > tableOffset))
             return false;
 
         var session = ReadInt("SessionNum", row);
@@ -140,8 +148,13 @@ internal sealed class IracingTelemetryReader(MemoryMappedViewAccessor view)
         ) : null;
 
         // The simulator can rotate into this buffer while the fields are being read.
-        if (view.ReadInt32(slot) != tick || view.ReadInt32(slot + 4) != row || !Connected)
+        if (view.ReadInt32(slot) != tick || view.ReadInt32(slot + 4) != row || !Connected ||
+            view.ReadInt32(24) != count || view.ReadInt32(28) != tableOffset ||
+            view.ReadInt32(32) != buffers || view.ReadInt32(36) != rowSize)
+        {
+            fieldTable = null;
             return false;
+        }
 
         lastSampleTick = tick;
         lastSession = driving ? session : null;

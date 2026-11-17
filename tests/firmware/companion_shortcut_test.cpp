@@ -69,17 +69,24 @@ int main() {
     frame.delta_seconds = -0.42f;
     frame.on_pit_road = true;
     frame.flag = IracingFlag::YELLOW;
-    runtime.set_iracing_telemetry(frame, 10);
+    runtime.consume_refresh_request();
+    runtime.set_iracing_telemetry(frame, 10, 10);
+    assert(runtime.consume_iracing_refresh_request());
+    assert(!runtime.consume_refresh_request());
     assert(companion_iracing_readout("com.iracing.simulator:3") == IracingReadout::FUEL);
     assert(companion_iracing_readout("com.iracing.simulator:2") == IracingReadout::NONE);
-    assert(companion_iracing_readout_text(IracingReadout::FUEL, runtime.snapshot().iracing) == "0.0 L");
-    assert(companion_iracing_readout_text(IracingReadout::LAP, runtime.snapshot().iracing).find("-0.42") != std::string::npos);
+    assert(companion_iracing_readout_text(IracingReadout::FUEL, runtime.iracing_telemetry()) == "0.0 L");
+    assert(companion_iracing_readout_text(IracingReadout::LAP, runtime.iracing_telemetry()).find("-0.42") != std::string::npos);
     assert(!runtime.expire_iracing_telemetry(2009));
     assert(runtime.expire_iracing_telemetry(2010));
-    assert(companion_iracing_readout_text(IracingReadout::FUEL, runtime.snapshot().iracing) == "--");
-    runtime.set_iracing_telemetry(frame, 2020);
+    assert(companion_iracing_readout_text(IracingReadout::FUEL, runtime.iracing_telemetry()) == "--");
+    assert(runtime.consume_iracing_refresh_request());
+    runtime.set_iracing_telemetry(frame, 10, 2020);
+    assert(!runtime.iracing_telemetry());
+    assert(!runtime.consume_iracing_refresh_request());
+    runtime.set_iracing_telemetry(frame, 2020, 2020);
     runtime.set_connected(false);
-    assert(!runtime.snapshot().iracing);
+    assert(!runtime.iracing_telemetry());
   }
 
   const auto mac_lock = normalize_parsed_cfg(

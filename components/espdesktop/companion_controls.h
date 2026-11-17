@@ -25,6 +25,7 @@
 #include "companion_pairing_policy.h"
 #include "companion_timezone.h"
 #include "i18n_generated.h"
+#include "iracing_readout.h"
 
 #ifdef USE_WEBSERVER
 #include "esphome/components/web_server_idf/web_server_idf.h"
@@ -679,41 +680,6 @@ inline bool companion_card_focus_allowed(const std::string &url_config) {
   return url_config.empty() || !companion_encoded_url(url_config).empty();
 }
 
-enum class IracingReadout : uint8_t { NONE, FUEL, LAP, PIT };
-
-inline IracingReadout companion_iracing_readout(std::string_view preset) {
-  if (preset == "com.iracing.simulator:3") return IracingReadout::FUEL;
-  if (preset == "com.iracing.simulator:0") return IracingReadout::LAP;
-  if (preset == "com.iracing.simulator:4") return IracingReadout::PIT;
-  return IracingReadout::NONE;
-}
-
-inline std::string companion_iracing_readout_text(IracingReadout readout,
-    const std::optional<IracingPanelTelemetry> &telemetry) {
-  if (!telemetry) return "--";
-  char text[40];
-  if (readout == IracingReadout::FUEL && telemetry->fuel_litres) {
-    snprintf(text, sizeof(text), "%.1f L", *telemetry->fuel_litres);
-    return text;
-  }
-  if (readout == IracingReadout::LAP && telemetry->lap) {
-    snprintf(text, sizeof(text), "%d", *telemetry->lap);
-    std::string label = std::string(espdesktop_i18n_key("iracing_lap")) + " " + text;
-    if (telemetry->delta_seconds) {
-      snprintf(text, sizeof(text), "%+.2f s", *telemetry->delta_seconds);
-      label += " · " + std::string(text);
-    }
-    return label;
-  }
-  if (readout == IracingReadout::PIT) {
-    if (telemetry->flag == IracingFlag::CHECKERED) return espdesktop_i18n_key("iracing_checkered_flag");
-    if (telemetry->flag == IracingFlag::YELLOW) return espdesktop_i18n_key("iracing_yellow_flag");
-    if (telemetry->on_pit_road.value_or(false)) return espdesktop_i18n_key("iracing_pit_road");
-    if (telemetry->on_pit_road || telemetry->flag) return "";
-  }
-  return "--";
-}
-
 #ifdef USE_LVGL
 struct CompanionCardRef {
   lv_obj_t *button = nullptr;
@@ -969,7 +935,7 @@ inline void companion_track_iracing_readout(lv_obj_t *button, IracingReadout rea
   ref->iracing_readout = readout;
   ref->iracing_label = readout == IracingReadout::NONE ? "" : label;
   if (readout != IracingReadout::NONE)
-    companion_apply_iracing_readout(*ref, companion_runtime_snapshot().iracing);
+    companion_apply_iracing_readout(*ref, companion_runtime_service().iracing_telemetry());
 }
 
 inline void companion_track_metric_card(lv_obj_t *button, lv_obj_t *value_label,
@@ -1027,13 +993,21 @@ inline void companion_refresh_card_focus(const CompanionRuntimeSnapshot &snapsho
 inline void companion_refresh_cards_if_requested() {
   const bool full_refresh = companion_card_refresh_requested().exchange(false);
   const bool focus_refresh = companion_runtime_service().consume_focus_refresh_request();
-  if (!full_refresh && !focus_refresh) return;
+  const bool race_refresh = companion_runtime_service().consume_iracing_refresh_request();
+  if (!full_refresh && !focus_refresh && !race_refresh) return;
   auto &refs = companion_card_refs();
-  const auto snapshot = companion_runtime_snapshot();
+  const auto race = (full_refresh || race_refresh)
+      ? companion_runtime_service().iracing_telemetry() : std::nullopt;
   if (!full_refresh) {
-    companion_refresh_card_focus(snapshot);
+    if (focus_refresh) companion_refresh_card_focus(companion_runtime_snapshot());
+    if (race_refresh) {
+      for (const auto &ref : refs) {
+        if (ref.button && lv_obj_is_valid(ref.button)) companion_apply_iracing_readout(ref, race);
+      }
+    }
     return;
   }
+  const auto snapshot = companion_runtime_snapshot();
   for (auto it = refs.begin(); it != refs.end();) {
     if (!it->button || !lv_obj_is_valid(it->button)) {
       it = refs.erase(it);
@@ -1080,7 +1054,7 @@ inline void companion_refresh_cards_if_requested() {
       if (normalize_display_text(label) != lv_label_get_text(it->text_label))
         lv_label_set_display_text(it->text_label, label.c_str());
     }
-    companion_apply_iracing_readout(*it, snapshot.iracing);
+    companion_apply_iracing_readout(*it, race);
     const bool action_available = it->url_config.empty()
       ? companion_action_available(snapshot, it->action_id)
       : companion_url_available(it->action_id, it->url_config);

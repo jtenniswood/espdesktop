@@ -99,6 +99,55 @@ Check(reader.TryRead(out var replay) && replay is null, "Replay should clear liv
 view.Write(48, 9);
 view.Write(52, 4090);
 Check(!reader.TryRead(out _), "A buffer outside shared memory must be rejected.");
+view.Write(52, header);
+Check(!reader.TryRead(out _), "A buffer overlapping the variable descriptors must be rejected.");
+view.Write(52, row);
+view.Write(row + 1, (byte)0);
+Check(reader.TryRead(out var recovered) && recovered is { FuelLitres: 0F },
+    "The reader should accept valid samples after malformed buffer pointers.");
 view.Write(4, 0);
 Check(!reader.Connected, "The reader should recognise a stopped session.");
 Console.WriteLine("Synthetic iRacing shared-memory telemetry passed.");
+
+using var protocolStream = typeof(CompanionClient).Assembly.GetManifestResourceStream("EspDesktop.Windows.companion_protocol_v4.json")!;
+using var protocolFixtures = JsonDocument.Parse(protocolStream);
+JsonElement ExpectedMessage(string name) => protocolFixtures.RootElement.EnumerateArray()
+    .Single(item => item.GetProperty("name").GetString() == name).GetProperty("message");
+
+var sample = new RaceSnapshot(0F, 4, -0.42F, true, "yellow");
+RaceSnapshot? current = sample;
+var wire = new List<IracingTelemetryMessage>();
+var liveStates = new List<bool>();
+var busy = true;
+var fresh = true;
+var publisher = new IracingTelemetryPublisher(() => (current, fresh), (message, _) =>
+{
+    if (!busy) wire.Add(message);
+    return Task.FromResult(!busy);
+}, liveStates.Add, 4);
+
+await publisher.PollAsync(CancellationToken.None);
+Check(wire.Count == 0, "A busy connection should drop the live sample.");
+current = sample with { FuelLitres = 12F };
+await publisher.PollAsync(CancellationToken.None);
+busy = false;
+current = sample;
+await publisher.PollAsync(CancellationToken.None);
+Check(wire.Count == 1 && JsonElement.DeepEquals(
+    JsonSerializer.SerializeToElement(wire[0]), ExpectedMessage("iRacing telemetry frame")),
+    "A recovered connection should send only the current sample using the shared protocol.");
+
+fresh = false;
+await publisher.PollAsync(CancellationToken.None);
+Check(wire.Count == 1, "An unchanged SDK tick should not extend the panel's freshness deadline.");
+busy = true;
+current = null;
+await publisher.PollAsync(CancellationToken.None);
+busy = false;
+await publisher.PollAsync(CancellationToken.None);
+await publisher.PollAsync(CancellationToken.None);
+Check(wire.Count == 2 && JsonElement.DeepEquals(
+    JsonSerializer.SerializeToElement(wire[1]), ExpectedMessage("iRacing telemetry unavailable")),
+    "An unavailable transition should retry until sent once.");
+Check(liveStates.SequenceEqual(new[] { true, false }), "Telemetry status should follow the feed independently of congestion.");
+Console.WriteLine("Telemetry publication, congestion and protocol fixtures passed.");

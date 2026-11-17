@@ -461,10 +461,10 @@ CompanionService::AuthenticationResult CompanionService::authenticate_locked_(
   return AuthenticationResult::AUTHENTICATED;
 }
 
-void CompanionService::defer_session_(std::function<void()> callback, const char *label) {
+void CompanionService::defer_session_(std::function<void()> callback, const char *label, bool replace_pending) {
   const uint32_t generation = this->session_.generation();
   const uint32_t queued_at = millis();
-  this->defer([this, generation, queued_at, label, callback = std::move(callback)]() {
+  auto work = [this, generation, queued_at, label, callback = std::move(callback)]() {
     if (!this->session_.current(generation)) return;
     const uint32_t started = millis();
     callback();
@@ -472,7 +472,9 @@ void CompanionService::defer_session_(std::function<void()> callback, const char
     if (started - queued_at > 100 || finished - started > 40)
       ESP_LOGD(TAG, "Deferred %s waited=%u ran=%u ms at=%u", label,
                unsigned(started - queued_at), unsigned(finished - started), unsigned(finished));
-  });
+  };
+  if (replace_pending) this->defer(label, std::move(work));
+  else this->defer(std::move(work));
 }
 
 void CompanionService::handle_message_(int socket_fd, const std::string &message) {
@@ -899,8 +901,8 @@ void CompanionService::handle_json_(int socket_fd, const std::string &message) {
       }
       const auto received_at = millis();
       this->defer_session_([snapshot, received_at]() {
-        companion_runtime_service().set_iracing_telemetry(snapshot, received_at);
-      }, "iracing_telemetry");
+        companion_runtime_service().set_iracing_telemetry(snapshot, received_at, millis());
+      }, "iracing_telemetry", /*replace_pending=*/true);
       return true;
     }
 

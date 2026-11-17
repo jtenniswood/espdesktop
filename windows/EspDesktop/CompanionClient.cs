@@ -94,7 +94,7 @@ internal sealed class CompanionClient(Action<string> status, Action<Pairing> sav
                     }
                     RequireType(reply, "auth.accepted");
                     if (!reply.TryGetProperty("capabilityVersion", out var version) ||
-                        !version.TryGetUInt32(out capability) || capability < 9)
+                        version.ValueKind != JsonValueKind.Number || !version.TryGetUInt32(out capability) || capability < 9)
                         throw new PairingException("Update the display firmware to use the iRacing shortcut page.");
                 }
 
@@ -213,33 +213,26 @@ internal sealed class CompanionClient(Action<string> status, Action<Pairing> sav
                 return;
             }
 
-            telemetryStatus("Telemetry: waiting for an iRacing session");
-            using var source = new IracingTelemetry();
-            using var timer = new PeriodicTimer(TimeSpan.FromMilliseconds(200));
-            bool? hasTelemetry = null;
-            do
+            async Task<bool> TrySendTelemetry(IracingTelemetryMessage message, CancellationToken cancellation)
             {
-                var snapshot = source.Sample();
-                var available = snapshot is not null;
-                if (hasTelemetry != available)
-                    telemetryStatus(available ? "Telemetry: live" : "Telemetry: waiting for an iRacing session");
-
-                if (available || hasTelemetry != false)
+                // Let shortcut and focus messages take the next send slot. A
+                // fresh sample will be available on the next telemetry poll.
+                if (!await sendGate.WaitAsync(0, cancellation))
+                    return false;
+                try
                 {
-                    var payload = new Dictionary<string, object>
-                    {
-                        ["type"] = "iracing.telemetry", ["protocol"] = Protocol, ["available"] = available
-                    };
-                    if (snapshot?.FuelLitres is { } fuel) payload["fuelLitres"] = fuel;
-                    if (snapshot?.Lap is { } lap) payload["lap"] = lap;
-                    if (snapshot?.DeltaSeconds is { } delta) payload["deltaSeconds"] = delta;
-                    if (snapshot?.OnPitRoad is { } pit) payload["onPitRoad"] = pit;
-                    if (snapshot?.Flag is { } flag) payload["flag"] = flag;
-                    await Send(payload);
+                    using var timeout = CancellationTokenSource.CreateLinkedTokenSource(cancellation);
+                    timeout.CancelAfter(TimeSpan.FromMilliseconds(500));
+                    await SendAsync(socket, message, timeout.Token);
+                    return true;
                 }
-                hasTelemetry = available;
+                finally { sendGate.Release(); }
             }
-            while (await timer.WaitForNextTickAsync(stop.Token));
+
+            using var source = new IracingTelemetry();
+            var publisher = new IracingTelemetryPublisher(source.Sample, TrySendTelemetry,
+                live => telemetryStatus(live ? "Telemetry: live" : "Telemetry: waiting for an iRacing session"), Protocol);
+            await publisher.RunAsync(stop.Token);
         }
 
         await PublishCatalogue();

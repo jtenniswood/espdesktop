@@ -80,7 +80,7 @@ class CompanionService final : public Component {
   AuthenticationResult authenticate_locked_(uint32_t sequence, const std::string &nonce,
                                             const std::string &signature, uint32_t &last_sequence,
                                             bool record_sequence = true);
-  void defer_session_(std::function<void()> callback, const char *label = "update");
+  void defer_session_(std::function<void()> callback, const char *label = "update", bool replace_pending = false);
   void handle_message_(int socket_fd, const std::string &message);
   void handle_json_(int socket_fd, const std::string &message);
   void handle_binary_(int socket_fd, const uint8_t *data, size_t size);
