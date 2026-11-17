@@ -141,6 +141,7 @@ constexpr int LV_GRID_ALIGN_STRETCH = 1;
 constexpr int LV_OPA_TRANSP = 0;
 constexpr int LV_OPA_COVER = 255;
 constexpr int LV_OPA_50 = 128;
+constexpr int LV_OPA_60 = 153;
 constexpr int LV_OBJ_FLAG_CLICKABLE = 1;
 constexpr int LV_OBJ_FLAG_HIDDEN = 2;
 constexpr int LV_OBJ_FLAG_USER_2 = 4;
