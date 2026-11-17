@@ -35,7 +35,6 @@ struct TwitchAPI: Sendable {
         let accessToken: String
         let refreshToken: String
         let expiresIn: Int
-        let scope: [String]?
     }
 
     struct Identity: Decodable, Sendable {

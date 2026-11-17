@@ -52,6 +52,59 @@ final class TwitchBroadcastTests: XCTestCase {
         XCTAssertFalse(twitch.panelControls.contains { $0.id == winnerID })
     }
 
+    func testCanceledAuthorizationCannotClearNewDeviceCode() async throws {
+        let suite = "TwitchBroadcastTests." + UUID().uuidString
+        let defaults = try XCTUnwrap(UserDefaults(suiteName: suite))
+        defer { defaults.removePersistentDomain(forName: suite) }
+        defaults.set("exampleclient", forKey: "twitch.clientID")
+        let service = DelayedDeviceCodes()
+        let twitch = TwitchBroadcast(defaults: defaults, api: TwitchAPI { request in
+            try await service.send(request)
+        }, credentialStore: .init(load: { nil }, save: { _ in true }, remove: {}), monitorEvents: false)
+        defer { twitch.cancelSignIn() }
+        twitch.connect()
+        for _ in 0..<100 {
+            if await service.requestCount == 1 { break }
+            try await Task.sleep(for: .milliseconds(10))
+        }
+        twitch.cancelSignIn()
+        twitch.connect()
+        for _ in 0..<100 where twitch.userCode == nil {
+            try await Task.sleep(for: .milliseconds(10))
+        }
+        XCTAssertEqual(twitch.userCode, "SECOND")
+        await service.finishFirst()
+        await Task.yield()
+        XCTAssertEqual(twitch.userCode, "SECOND")
+        XCTAssertTrue(twitch.connecting)
+    }
+
+    private actor DelayedDeviceCodes {
+        private(set) var requestCount = 0
+        private var release: CheckedContinuation<Void, Never>?
+
+        func send(_ request: URLRequest) async throws -> (Data, HTTPURLResponse) {
+            let url = try XCTUnwrap(request.url)
+            XCTAssertEqual(url.path, "/oauth2/device")
+            requestCount += 1
+            let number = requestCount
+            if number == 1 {
+                await withCheckedContinuation { release = $0 }
+            }
+            let code = number == 1 ? "FIRST" : "SECOND"
+            let body = try JSONSerialization.data(withJSONObject: [
+                "device_code": "private-code", "user_code": code, "verification_uri": "https://www.twitch.tv/activate",
+                "expires_in": 300, "interval": 5,
+            ])
+            return (body, try XCTUnwrap(HTTPURLResponse(url: url, statusCode: 200, httpVersion: nil, headerFields: nil)))
+        }
+
+        func finishFirst() {
+            release?.resume()
+            release = nil
+        }
+    }
+
     private actor Requests {
         private(set) var winners = [String]()
 

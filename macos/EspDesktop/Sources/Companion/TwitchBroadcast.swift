@@ -139,6 +139,7 @@ final class TwitchBroadcast: ObservableObject {
     private var credential: Credential?
     private var validatedAt: Date?
     private var authorizationTask: Task<Void, Never>?
+    private var signInAttempt = UUID()
     private var pollTask: Task<Void, Never>?
     private var eventTask: Task<Void, Never>?
     private var refreshTask: Task<Void, Error>?
@@ -196,13 +197,14 @@ final class TwitchBroadcast: ObservableObject {
         guard canConnect else { return }
         let client = clientID.trimmingCharacters(in: .whitespacesAndNewlines)
         let scopes = configuration.scopes
-        let attemptedGeneration = generation
+        let attempt = UUID()
+        signInAttempt = attempt
         connecting = true
         message = "Complete sign-in in your browser."
         authorizationTask = Task { [weak self] in
             guard let self else { return }
             defer {
-                if self.generation == attemptedGeneration {
+                if self.signInAttempt == attempt {
                     self.connecting = false
                     self.userCode = nil
                     self.verificationURL = nil
@@ -210,7 +212,7 @@ final class TwitchBroadcast: ObservableObject {
             }
             do {
                 let code = try await api.startDeviceAuthorization(clientID: client, scopes: scopes)
-                guard generation == attemptedGeneration, !Task.isCancelled,
+                guard signInAttempt == attempt, !Task.isCancelled,
                       code.verificationUri.scheme == "https",
                       ["www.twitch.tv", "twitch.tv"].contains(code.verificationUri.host ?? "") else { return }
                 userCode = code.userCode
@@ -223,7 +225,7 @@ final class TwitchBroadcast: ObservableObject {
                     do {
                         let tokens = try await api.exchangeDeviceCode(code.deviceCode, clientID: client, scopes: scopes)
                         let who = try await api.validate(tokens.accessToken)
-                        guard generation == attemptedGeneration, !Task.isCancelled else { return }
+                        guard signInAttempt == attempt, !Task.isCancelled else { return }
                         guard who.clientId == client, !who.userId.isEmpty else { throw OperationError.unexpectedAccount }
                         try save(tokens, identity: who)
                         restartMonitoring(identity: who)
@@ -239,13 +241,14 @@ final class TwitchBroadcast: ObservableObject {
             } catch is CancellationError {
                 return
             } catch {
-                guard generation == attemptedGeneration else { return }
+                guard signInAttempt == attempt else { return }
                 message = describe(error)
             }
         }
     }
 
     func cancelSignIn() {
+        signInAttempt = UUID()
         authorizationTask?.cancel()
         authorizationTask = nil
         connecting = false
@@ -587,6 +590,7 @@ final class TwitchBroadcast: ObservableObject {
 
     private func clear() {
         generation = UUID()
+        signInAttempt = UUID()
         authorizationTask?.cancel()
         pollTask?.cancel()
         eventTask?.cancel()
