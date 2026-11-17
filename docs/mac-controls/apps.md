@@ -163,4 +163,4 @@ Twitch cards use your connected Twitch channel. Keep an OBS **Streaming** card b
 | Resolve Prediction | Add a card for each outcome you want to select on the display. It shows the current outcome name. Check the name before confirming. |
 | Stream Manager and Twitch Inspector | Open the corresponding Twitch tool on the Mac. |
 
-Ads, polls, and predictions each need separate authorization and eligible Twitch accounts. Enable the controls you want in **Settings → Twitch**, then choose **Renew Authorization**. The display asks for confirmation before changing channel details, running an ad, or updating a poll or prediction.
+Ads, polls, and predictions each need separate authorization. The Twitch API requires Affiliate or Partner status for ads and polls. Predictions require Channel Points on your channel. Enable the controls you want in **Settings → Twitch**, then choose **Renew Authorization**. The display asks for confirmation before changing channel details, running an ad, or updating a poll or prediction.

@@ -96,8 +96,12 @@ struct TwitchSettings: View {
                 if twitch.needsAuthorizationUpdate {
                     Text("Renew authorization above to enable the selected controls.").foregroundStyle(.secondary)
                 }
-                if let account = twitch.account, !account.eligibleForCommercialsAndPolls {
-                    Text("Twitch offers these controls to Affiliates and Partners.").foregroundStyle(.secondary)
+                if let account = twitch.account, !account.eligibleForCommercialsAndPolls,
+                   twitch.configuration.adsEnabled || twitch.configuration.pollsEnabled {
+                    Text("Twitch’s API requires Affiliate or Partner status for ads and polls.").foregroundStyle(.secondary)
+                }
+                if twitch.configuration.predictionsEnabled {
+                    Text("Predictions require Channel Points on your Twitch channel.").foregroundStyle(.secondary)
                 }
             }
 

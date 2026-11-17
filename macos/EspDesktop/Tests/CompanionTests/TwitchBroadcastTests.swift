@@ -4,13 +4,19 @@ import XCTest
 
 @MainActor
 final class TwitchBroadcastTests: XCTestCase {
-    func testLiveStateAndPredictionCommandsFollowThePairedSnapshot() async throws {
+    func testLiveStateAndPredictionCommandsFollowThePairedSnapshotWithoutAffiliateStatus() async throws {
         let suite = "TwitchBroadcastTests." + UUID().uuidString
         let defaults = try XCTUnwrap(UserDefaults(suiteName: suite))
         defer { defaults.removePersistentDomain(forName: suite) }
         defaults.set("exampleclient", forKey: "twitch.clientID")
         var preferences = TwitchBroadcastConfiguration()
+        preferences.adsEnabled = true
+        preferences.pollsEnabled = true
+        preferences.poll.title = "What next?"
+        preferences.poll.choices = "Red\nBlue"
         preferences.predictionsEnabled = true
+        preferences.prediction.title = "Who wins next?"
+        preferences.prediction.choices = "Red Team\nBlue Team"
         defaults.set(try JSONEncoder().encode(preferences), forKey: "twitch.broadcastConfiguration")
         let saved = try JSONSerialization.data(withJSONObject: [
             "clientID": "exampleclient", "broadcasterID": "42",
@@ -32,6 +38,7 @@ final class TwitchBroadcastTests: XCTestCase {
         XCTAssertFalse(state.enabled)
         XCTAssertEqual(state.detail, "12 watching")
         XCTAssertFalse(twitch.panelControls.first { $0.id == "twitch.commercial" }?.enabled ?? true)
+        XCTAssertFalse(twitch.panelControls.first { $0.id == "twitch.pollStart" }?.enabled ?? true)
 
         let winnerID = "twitch.predictionWinner.2"
         let shown = try XCTUnwrap(twitch.panelControls.first { $0.id == winnerID })
@@ -50,6 +57,12 @@ final class TwitchBroadcastTests: XCTestCase {
         let winners = await requests.winners
         XCTAssertEqual(winners, ["blue"])
         XCTAssertFalse(twitch.panelControls.contains { $0.id == winnerID })
+
+        let startCommand = try XCTUnwrap(twitch.panelControls.first { $0.id == "twitch.predictionStart" }?.command)
+        let started = await twitch.invokePanel(startCommand) { true }
+        XCTAssertTrue(started)
+        XCTAssertEqual(twitch.prediction?.status, "ACTIVE")
+        XCTAssertTrue(twitch.panelControls.first { $0.id == "twitch.predictionLock" }?.enabled ?? false)
     }
 
     func testCanceledAuthorizationCannotClearNewDeviceCode() async throws {
@@ -107,19 +120,28 @@ final class TwitchBroadcastTests: XCTestCase {
 
     private actor Requests {
         private(set) var winners = [String]()
+        private var startedPrediction = false
 
         func send(_ request: URLRequest) throws -> (Data, HTTPURLResponse) {
             let url = try XCTUnwrap(request.url)
             let body: String
             switch (url.path, request.httpMethod) {
             case ("/oauth2/validate", _):
-                body = #"{"client_id":"exampleclient","user_id":"42","login":"streamer","scopes":["channel:manage:broadcast","clips:edit","channel:manage:predictions"],"expires_in":900}"#
+                body = #"{"client_id":"exampleclient","user_id":"42","login":"streamer","scopes":["channel:manage:broadcast","clips:edit","channel:edit:commercial","channel:manage:polls","channel:manage:predictions"],"expires_in":900}"#
             case ("/helix/streams", _):
                 body = #"{"data":[{"id":"stream","viewer_count":12,"started_at":"2026-11-17T11:00:00Z"}]}"#
             case ("/helix/channels", _):
                 body = #"{"data":[{"title":"Tonight","game_id":"1","game_name":"Game","tags":[]}]}"#
             case ("/helix/users", _):
-                body = #"{"data":[{"broadcaster_type":"affiliate","display_name":"Streamer"}]}"#
+                body = #"{"data":[{"broadcaster_type":"","display_name":"Streamer"}]}"#
+            case ("/helix/predictions", "POST"):
+                let data = try XCTUnwrap(request.httpBody)
+                let update = try XCTUnwrap(try JSONSerialization.jsonObject(with: data) as? [String: Any])
+                XCTAssertEqual(update["title"] as? String, "Who wins next?")
+                startedPrediction = true
+                fallthrough
+            case ("/helix/predictions", _) where startedPrediction:
+                body = #"{"data":[{"id":"prediction-2","title":"Who wins next?","status":"ACTIVE","outcomes":[{"id":"red","title":"Red Team"},{"id":"blue","title":"Blue Team"}]}]}"#
             case ("/helix/predictions", "PATCH"):
                 let data = try XCTUnwrap(request.httpBody)
                 let update = try XCTUnwrap(try JSONSerialization.jsonObject(with: data) as? [String: String])

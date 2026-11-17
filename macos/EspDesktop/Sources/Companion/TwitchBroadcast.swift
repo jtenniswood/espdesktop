@@ -561,9 +561,10 @@ final class TwitchBroadcast: ObservableObject {
                 channel = result.1
                 account = loadedAccount
                 status = stream == nil ? .offline : .live
-                if busy == nil, loadedAccount.eligibleForCommercialsAndPolls {
+                if busy == nil {
                     let revision = mutationRevision
-                    let nextPoll = configuration.pollsEnabled && identity?.allows(.polls) == true
+                    let nextPoll = loadedAccount.eligibleForCommercialsAndPolls && configuration.pollsEnabled
+                        && identity?.allows(.polls) == true
                         ? try? await api.latestPoll(auth: auth) : nil
                     let nextPrediction = configuration.predictionsEnabled && identity?.allows(.predictions) == true
                         ? try? await api.latestPrediction(auth: auth) : nil
@@ -621,7 +622,7 @@ final class TwitchBroadcast: ObservableObject {
     private func publishControls() {
         let ready = status == .offline || status == .live
         let live = status == .live
-        let eligible = account?.eligibleForCommercialsAndPolls == true
+        let eligibleForCommercialsAndPolls = account?.eligibleForCommercialsAndPolls == true
         let editablePrediction = prediction?.status == "ACTIVE" || prediction?.status == "LOCKED"
         let values = TwitchControl.allCases.map { control -> ControlState in
             var detail = ""
@@ -647,24 +648,25 @@ final class TwitchBroadcast: ObservableObject {
             case .commercial:
                 let coolingDown = commercialAvailableAt > Date()
                 detail = coolingDown ? "Cooling down" : live ? "\(configuration.commercialSeconds) seconds" : "Requires live stream"
-                enabled = live && eligible && !coolingDown && configuration.adsEnabled
+                enabled = live && eligibleForCommercialsAndPolls && !coolingDown && configuration.adsEnabled
                     && [30, 60, 90, 120, 150, 180].contains(configuration.commercialSeconds)
                 active = false
             case .pollStart:
                 detail = poll?.status == "ACTIVE" ? "Poll running" : configuration.validPoll ? configuration.poll.title : "Set up poll on Mac"
-                enabled = ready && eligible && configuration.pollsEnabled && configuration.validPoll && poll?.status != "ACTIVE"
+                enabled = ready && eligibleForCommercialsAndPolls && configuration.pollsEnabled
+                    && configuration.validPoll && poll?.status != "ACTIVE"
                 active = poll?.status == "ACTIVE"
             case .pollEnd:
                 detail = poll?.status == "ACTIVE" ? poll?.title ?? "" : "No active poll"
-                enabled = ready && eligible && configuration.pollsEnabled && poll?.status == "ACTIVE"
+                enabled = ready && eligibleForCommercialsAndPolls && configuration.pollsEnabled && poll?.status == "ACTIVE"
                 active = false
             case .predictionStart:
                 detail = editablePrediction ? "Prediction in progress" : configuration.validPrediction ? configuration.prediction.title : "Set up prediction on Mac"
-                enabled = ready && eligible && configuration.predictionsEnabled && configuration.validPrediction && !editablePrediction
+                enabled = ready && configuration.predictionsEnabled && configuration.validPrediction && !editablePrediction
                 active = editablePrediction
             case .predictionLock, .predictionCancel, .predictionWinner:
                 detail = editablePrediction ? prediction?.title ?? "" : "No open prediction"
-                enabled = ready && eligible && configuration.predictionsEnabled
+                enabled = ready && configuration.predictionsEnabled
                     && (control == .predictionLock ? prediction?.status == "ACTIVE" : editablePrediction)
                 active = false
             case .dashboard, .inspector:
