@@ -208,6 +208,14 @@ struct SessionLock {
 struct PairReset {
 
 };
+struct IracingTelemetry {
+  bool available{};
+  std::optional<double> fuelLitres{};
+  std::optional<uint32_t> lap{};
+  std::optional<double> deltaSeconds{};
+  std::optional<bool> onPitRoad{};
+  std::optional<std::string> flag{};
+};
 inline void encode(JsonObject root, const Hello &message) {
   root["type"] = "hello";
   root["protocol"] = COMPANION_PROTOCOL_VERSION;
@@ -474,7 +482,17 @@ inline void encode(JsonObject root, const PairReset &message) {
   root["protocol"] = COMPANION_PROTOCOL_VERSION;
   (void) message;
 }
-using Message = std::variant<Hello, PairRequest, PairAccepted, AuthRequest, AuthAccepted, Capabilities, CatalogueRequest, CataloguePage, ActionInvoke, ActionResult, ValueSet, ValueState, FocusChanged, TimezoneChanged, NowPlaying, SystemMetrics, ArtworkBegin, ArtworkAck, ArtworkEnd, ArtworkAbort, ArtworkRequest, AppIconRequest, AppIconBegin, AppIconUnchanged, AppIconUnavailable, AppIconAck, AppIconEnd, AppIconAbort, Error, CatalogueDefinitionsPage, FocusTargets, SessionLock, PairReset>;
+inline void encode(JsonObject root, const IracingTelemetry &message) {
+  root["type"] = "iracing.telemetry";
+  root["protocol"] = COMPANION_PROTOCOL_VERSION;
+  root["available"] = message.available;
+  if (message.fuelLitres) root["fuelLitres"] = *message.fuelLitres;
+  if (message.lap) root["lap"] = *message.lap;
+  if (message.deltaSeconds) root["deltaSeconds"] = *message.deltaSeconds;
+  if (message.onPitRoad) root["onPitRoad"] = *message.onPitRoad;
+  if (message.flag) root["flag"] = *message.flag;
+}
+using Message = std::variant<Hello, PairRequest, PairAccepted, AuthRequest, AuthAccepted, Capabilities, CatalogueRequest, CataloguePage, ActionInvoke, ActionResult, ValueSet, ValueState, FocusChanged, TimezoneChanged, NowPlaying, SystemMetrics, ArtworkBegin, ArtworkAck, ArtworkEnd, ArtworkAbort, ArtworkRequest, AppIconRequest, AppIconBegin, AppIconUnchanged, AppIconUnavailable, AppIconAck, AppIconEnd, AppIconAbort, Error, CatalogueDefinitionsPage, FocusTargets, SessionLock, PairReset, IracingTelemetry>;
 inline std::optional<Message> decode(JsonObjectConst root, Direction direction, SessionState state) {
   if (!number_valid(root["protocol"], COMPANION_PROTOCOL_VERSION, COMPANION_PROTOCOL_VERSION, true) || !root["type"].is<const char *>()) return std::nullopt;
   const std::string type = root["type"].as<std::string>();
@@ -1124,6 +1142,36 @@ inline std::optional<Message> decode(JsonObjectConst root, Direction direction, 
     if (!(state == SessionState::CONNECTED)) return std::nullopt;
 
     PairReset result;
+    return result;
+  }
+  if (type == "iracing.telemetry") {
+    if (direction != Direction::MAC_TO_PANEL) return std::nullopt;
+    if (!(state == SessionState::CONNECTED)) return std::nullopt;
+    {
+      if (!(root["available"].is<bool>())) return std::nullopt;
+    }
+    if (!root["fuelLitres"].isUnbound()) {
+      if (!(number_valid(root["fuelLitres"], 0, 1000, false))) return std::nullopt;
+    }
+    if (!root["lap"].isUnbound()) {
+      if (!(number_valid(root["lap"], 1, 10000, true))) return std::nullopt;
+    }
+    if (!root["deltaSeconds"].isUnbound()) {
+      if (!(number_valid(root["deltaSeconds"], -999, 999, false))) return std::nullopt;
+    }
+    if (!root["onPitRoad"].isUnbound()) {
+      if (!(root["onPitRoad"].is<bool>())) return std::nullopt;
+    }
+    if (!root["flag"].isUnbound()) {
+      if (!(string_valid(root["flag"], 4, 9) && (root["flag"].as<std::string>() == "none" || root["flag"].as<std::string>() == "yellow" || root["flag"].as<std::string>() == "checkered"))) return std::nullopt;
+    }
+    IracingTelemetry result;
+    result.available = root["available"].as<bool>();
+    if (!root["fuelLitres"].isUnbound()) result.fuelLitres = root["fuelLitres"].as<double>();
+    if (!root["lap"].isUnbound()) result.lap = root["lap"].as<uint32_t>();
+    if (!root["deltaSeconds"].isUnbound()) result.deltaSeconds = root["deltaSeconds"].as<double>();
+    if (!root["onPitRoad"].isUnbound()) result.onPitRoad = root["onPitRoad"].as<bool>();
+    if (!root["flag"].isUnbound()) result.flag = root["flag"].as<std::string>();
     return result;
   }
   return std::nullopt;

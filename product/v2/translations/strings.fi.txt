@@ -343,3 +343,7 @@ mic=Mikki
 mute=Mykistä
 mac_update_required=Päivitä Mac-sovellus
 mac_update_reconnect=Muodosta yhteys uudelleen päivittämällä EspDesktop Macissa.
+iracing_lap=Kierros
+iracing_pit_road=Varikkosuora
+iracing_yellow_flag=Keltainen lippu
+iracing_checkered_flag=Ruutulippu

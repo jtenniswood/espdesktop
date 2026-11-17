@@ -9,6 +9,9 @@
   <ItemGroup>
     <Compile Include="../EspDesktop/CompanionClient.cs" Link="CompanionClient.cs" />
     <Compile Include="../EspDesktop/SimulatorInput.cs" Link="SimulatorInput.cs" />
+    <Compile Include="../EspDesktop/IracingTelemetry.cs" Link="IracingTelemetry.cs" />
+    <Compile Include="../EspDesktop/IracingTelemetryPublisher.cs" Link="IracingTelemetryPublisher.cs" />
+    <EmbeddedResource Include="../../compatibility/fixtures/companion_protocol_v4.json" Link="companion_protocol_v4.json" />
     <EmbeddedResource Include="../EspDesktop/iracing.json" Link="iracing.json" />
   </ItemGroup>
 </Project>

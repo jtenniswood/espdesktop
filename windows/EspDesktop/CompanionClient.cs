@@ -10,9 +10,10 @@ internal sealed record Pairing(Uri Endpoint, string Fingerprint, byte[] Credenti
 
 internal sealed class PairingException(string message) : Exception(message);
 
-internal sealed class CompanionClient(Action<string> status, Action<Pairing> save)
+internal sealed class CompanionClient(Action<string> status, Action<Pairing> save, Action<string> telemetryStatus)
 {
     private const int Protocol = 4;
+    private const int TelemetryCapability = 10;
     private const string AppId = "com.iracing.simulator";
     private const string AppLabel = "iRacing";
     private const int MaximumMessageBytes = 16384;
@@ -67,6 +68,7 @@ internal sealed class CompanionClient(Action<string> status, Action<Pairing> sav
             try
             {
                 using var socket = OpenSocket(pairing.Fingerprint);
+                uint capability;
                 using (var timeout = CancellationTokenSource.CreateLinkedTokenSource(cancellation))
                 {
                     timeout.CancelAfter(HandshakeTimeout);
@@ -92,31 +94,34 @@ internal sealed class CompanionClient(Action<string> status, Action<Pairing> sav
                     }
                     RequireType(reply, "auth.accepted");
                     if (!reply.TryGetProperty("capabilityVersion", out var version) ||
-                        !version.TryGetUInt32(out var capability) || capability < 9)
+                        version.ValueKind != JsonValueKind.Number || !version.TryGetUInt32(out capability) || capability < 9)
                         throw new PairingException("Update the display firmware to use the iRacing shortcut page.");
                 }
 
                 delay = 1;
-                await ConnectedAsync(socket, cancellation);
+                await ConnectedAsync(socket, capability >= TelemetryCapability, cancellation);
             }
             catch (Exception error) when (error is WebSocketException or IOException or OperationCanceledException)
             {
                 if (cancellation.IsCancellationRequested)
                     return;
                 status("Display disconnected. Reconnecting…");
+                telemetryStatus("Telemetry: waiting for display");
             }
             await Task.Delay(TimeSpan.FromSeconds(delay), cancellation);
             delay = Math.Min(delay * 2, 15);
         }
     }
 
-    private async Task ConnectedAsync(ClientWebSocket socket, CancellationToken cancellation)
+    private async Task ConnectedAsync(ClientWebSocket socket, bool supportsTelemetry, CancellationToken cancellation)
     {
         using var stop = CancellationTokenSource.CreateLinkedTokenSource(cancellation);
         using var sendGate = new SemaphoreSlim(1);
         var requests = new Dictionary<string, string>(StringComparer.Ordinal);
         var requestOrder = new Queue<string>();
         uint generation = 0;
+        string[] capabilities = supportsTelemetry
+            ? ["keyboard_shortcuts", "iracing_telemetry"] : ["keyboard_shortcuts"];
 
         async Task Send(object payload)
         {
@@ -128,7 +133,7 @@ internal sealed class CompanionClient(Action<string> status, Action<Pairing> sav
         async Task PublishCatalogue()
         {
             generation++;
-            await Send(new { type = "capabilities", protocol = Protocol, values = new[] { "keyboard_shortcuts" } });
+            await Send(new { type = "capabilities", protocol = Protocol, values = capabilities });
             await Send(new
             {
                 type = "catalogue.page", protocol = Protocol, generation, page = 0, complete = true,
@@ -199,17 +204,49 @@ internal sealed class CompanionClient(Action<string> status, Action<Pairing> sav
             while (await timer.WaitForNextTickAsync(stop.Token));
         }
 
+        async Task PublishTelemetry()
+        {
+            if (!supportsTelemetry || !OperatingSystem.IsWindows())
+            {
+                telemetryStatus("Telemetry: update the display firmware");
+                await Task.Delay(Timeout.InfiniteTimeSpan, stop.Token);
+                return;
+            }
+
+            async Task<bool> TrySendTelemetry(IracingTelemetryMessage message, CancellationToken cancellation)
+            {
+                // Let shortcut and focus messages take the next send slot. A
+                // fresh sample will be available on the next telemetry poll.
+                if (!await sendGate.WaitAsync(0, cancellation))
+                    return false;
+                try
+                {
+                    using var timeout = CancellationTokenSource.CreateLinkedTokenSource(cancellation);
+                    timeout.CancelAfter(TimeSpan.FromMilliseconds(500));
+                    await SendAsync(socket, message, timeout.Token);
+                    return true;
+                }
+                finally { sendGate.Release(); }
+            }
+
+            using var source = new IracingTelemetry();
+            var publisher = new IracingTelemetryPublisher(source.Sample, TrySendTelemetry,
+                live => telemetryStatus(live ? "Telemetry: live" : "Telemetry: waiting for an iRacing session"), Protocol);
+            await publisher.RunAsync(stop.Token);
+        }
+
         await PublishCatalogue();
         var receive = ReadActions();
         var focus = PublishFocus();
+        var telemetry = PublishTelemetry();
         try
         {
-            await await Task.WhenAny(receive, focus);
+            await await Task.WhenAny(receive, focus, telemetry);
         }
         finally
         {
             await stop.CancelAsync();
-            try { await Task.WhenAll(receive, focus); }
+            try { await Task.WhenAll(receive, focus, telemetry); }
             catch (Exception error) when (error is OperationCanceledException or WebSocketException or IOException) { }
         }
     }

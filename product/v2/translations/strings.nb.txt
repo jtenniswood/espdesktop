@@ -343,3 +343,7 @@ mic=Mikrofon
 mute=Demp
 mac_update_required=Oppdater Mac-appen
 mac_update_reconnect=Oppdater EspDesktop på Macen for å koble til igjen.
+iracing_lap=Runde
+iracing_pit_road=Depotbane
+iracing_yellow_flag=Gult flagg
+iracing_checkered_flag=Rutete flagg

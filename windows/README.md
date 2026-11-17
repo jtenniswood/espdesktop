@@ -21,3 +21,11 @@ If the app cannot connect, check the display’s address and Wi-Fi. To move the 
 ## Developer checks
 
 Run `dotnet run --project windows/EspDesktop.Tests` to check the starter profile and key mappings. Use `dotnet build windows/EspDesktop` for the app. Key delivery and display pairing require a physical Windows rig and touchscreen.
+
+## Live telemetry
+
+Use the Windows app and 4848S040 firmware from the telemetry PR. With iRacing in a live driving session, **Fuel** shows litres remaining, **Lap Timing** shows the current lap and valid delta to the session best, and **Pit Adjustments** can show pit-road, yellow flag or chequered flag status. These buttons still open the same in-game panels. A dash indicates that the reading is unavailable.
+
+The Windows app shows telemetry status separately from the panel connection. It checks iRacing’s local shared-memory feed and sends the values to the paired display over Wi-Fi. If iRacing is running and no live readings appear, check that memory telemetry is enabled in iRacing’s `app.ini` with `irsdkEnableMem=1`, then restart the simulator. An iRacing web API login is unnecessary.
+
+For the rig test, compare the fuel reading with iRacing in Test Drive or an AI race, refuel, and compare again. Check that the display clears its readings back in the garage, in replay and after a Wi-Fi interruption. Confirm the lap delta uses the same reference in both displays. Compare each flag and pit status to iRacing before relying on it during a race.

@@ -12,6 +12,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <mutex>
+#include <optional>
 #include <string>
 #include <utility>
 #include <vector>
@@ -93,6 +94,21 @@ inline bool companion_remote_definition_capacity_available(const std::string &ki
                                                            size_t application_count) {
   return kind == "application" && application_count < COMPANION_MAX_REMOTE_DEFINITIONS_PER_CATALOGUE;
 }
+
+enum class IracingFlag : uint8_t { NONE, YELLOW, CHECKERED };
+
+struct IracingPanelTelemetry {
+  std::optional<float> fuel_litres;
+  std::optional<int> lap;
+  std::optional<float> delta_seconds;
+  std::optional<bool> on_pit_road;
+  std::optional<IracingFlag> flag;
+
+  bool operator==(const IracingPanelTelemetry &other) const {
+    return fuel_litres == other.fuel_litres && lap == other.lap &&
+        delta_seconds == other.delta_seconds && on_pit_road == other.on_pit_road && flag == other.flag;
+  }
+};
 
 struct CompanionRuntimeSnapshot {
   std::vector<CompanionAction> actions;
@@ -433,9 +449,35 @@ class CompanionRuntimeService {
       closed_app_subpage_action_id_.clear();
       keyboard_actions_supported_ = false;
       system_metrics_ = {};
+      iracing_.reset();
     }
     request_refresh_();
   }
+
+  std::optional<IracingPanelTelemetry> iracing_telemetry() const {
+    std::lock_guard<std::mutex> lock(mutex_);
+    return iracing_;
+  }
+
+  void set_iracing_telemetry(std::optional<IracingPanelTelemetry> telemetry, uint32_t received_at, uint32_t now) {
+    std::lock_guard<std::mutex> lock(mutex_);
+    if (!connected_) return;
+    if (now - received_at >= IRACING_STALE_MS) return;
+    iracing_updated_at_ = received_at;
+    if (iracing_ == telemetry) return;
+    iracing_ = std::move(telemetry);
+    iracing_refresh_requested_.store(true);
+  }
+
+  bool expire_iracing_telemetry(uint32_t now) {
+    std::lock_guard<std::mutex> lock(mutex_);
+    if (!iracing_ || now - iracing_updated_at_ < IRACING_STALE_MS) return false;
+    iracing_.reset();
+    iracing_refresh_requested_.store(true);
+    return true;
+  }
+
+  bool consume_iracing_refresh_request() { return iracing_refresh_requested_.exchange(false); }
 
   void request_refresh() { request_refresh_(); }
   bool consume_refresh_request() { return refresh_requested_.exchange(false); }
@@ -465,6 +507,10 @@ class CompanionRuntimeService {
   bool keyboard_actions_supported_{false};
   bool connected_{false};
   CompanionSystemMetricsSnapshot system_metrics_;
+  static constexpr uint32_t IRACING_STALE_MS = 2000;
+  std::optional<IracingPanelTelemetry> iracing_;
+  std::atomic<bool> iracing_refresh_requested_{false};
+  uint32_t iracing_updated_at_{0};
   std::atomic<bool> mac_update_required_{false};
   std::atomic<bool> refresh_requested_{false};
   std::atomic<bool> focus_refresh_requested_{false};

@@ -343,3 +343,7 @@ mic=Mikrofon
 mute=Ztlumit
 mac_update_required=Aktualizovat aplikaci pro Mac
 mac_update_reconnect=Pro opětovné připojení aktualizujte EspDesktop na Macu.
+iracing_lap=Kolo
+iracing_pit_road=Boxová ulička
+iracing_yellow_flag=Žlutá vlajka
+iracing_checkered_flag=Šachovnicová vlajka

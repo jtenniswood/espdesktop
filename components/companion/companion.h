@@ -80,7 +80,7 @@ class CompanionService final : public Component {
   AuthenticationResult authenticate_locked_(uint32_t sequence, const std::string &nonce,
                                             const std::string &signature, uint32_t &last_sequence,
                                             bool record_sequence = true);
-  void defer_session_(std::function<void()> callback, const char *label = "update");
+  void defer_session_(std::function<void()> callback, const char *label = "update", bool replace_pending = false);
   void handle_message_(int socket_fd, const std::string &message);
   void handle_json_(int socket_fd, const std::string &message);
   void handle_binary_(int socket_fd, const uint8_t *data, size_t size);
@@ -142,6 +142,7 @@ class CompanionService final : public Component {
   uint32_t app_icon_generation_{0};
   size_t app_icon_offset_{0};
   std::atomic<bool> app_icons_supported_{false};
+  std::atomic<bool> iracing_telemetry_supported_{false};
   std::atomic<uint32_t> authentication_expires_at_{0};
   std::atomic<bool> authentication_expiry_queued_{false};
 };

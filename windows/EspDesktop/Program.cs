@@ -28,6 +28,7 @@ internal sealed class CompanionWindow : Form
     private readonly Button pair = new() { Text = "Pair display", AutoSize = true };
     private readonly Button forget = new() { Text = "Forget pairing", AutoSize = true, Enabled = false };
     private readonly Label status = new() { AutoSize = true, MaximumSize = new Size(408, 0) };
+    private readonly Label telemetry = new() { AutoSize = true };
     private readonly NotifyIcon tray;
     private CancellationTokenSource? connection;
     private Task? connectionTask;
@@ -52,6 +53,7 @@ internal sealed class CompanionWindow : Form
         fields.Controls.Add(code);
         fields.Controls.Add(buttons);
         fields.Controls.Add(status);
+        fields.Controls.Add(telemetry);
         Controls.Add(fields);
         AcceptButton = pair;
         status.Text = "Open Companion settings on the display to get a pairing code.";
@@ -121,7 +123,19 @@ internal sealed class CompanionWindow : Form
         status.Text = message;
     }
 
-    private CompanionClient CreateClient() => new(ShowStatus, PairingStore.Save);
+    private void ShowTelemetry(string message)
+    {
+        if (IsDisposed || !IsHandleCreated)
+            return;
+        if (InvokeRequired)
+        {
+            BeginInvoke(() => ShowTelemetry(message));
+            return;
+        }
+        telemetry.Text = message;
+    }
+
+    private CompanionClient CreateClient() => new(ShowStatus, PairingStore.Save, ShowTelemetry);
 
     private async Task PairDisplay()
     {
@@ -155,6 +169,7 @@ internal sealed class CompanionWindow : Form
         {
             await StopConnection();
             PairingStore.Forget();
+            ShowTelemetry("");
             ShowStatus("Pairing removed from this PC. Reset pairing on the display to get a new code.");
         }
         catch (Exception error) when (IsExpected(error))

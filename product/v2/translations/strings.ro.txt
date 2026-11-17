@@ -343,3 +343,7 @@ mic=Microfon
 mute=Mut
 mac_update_required=Actualizează aplicația pentru Mac
 mac_update_reconnect=Actualizează EspDesktop pe Mac pentru a te reconecta.
+iracing_lap=Tur
+iracing_pit_road=Linia boxelor
+iracing_yellow_flag=Steag galben
+iracing_checkered_flag=Steag în carouri

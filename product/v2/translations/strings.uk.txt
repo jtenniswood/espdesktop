@@ -343,3 +343,7 @@ mic=Мікрофон
 mute=Без звуку
 mac_update_required=Оновіть застосунок для Mac
 mac_update_reconnect=Оновіть EspDesktop на Mac, щоб відновити з’єднання.
+iracing_lap=Коло
+iracing_pit_road=Піт-лейн
+iracing_yellow_flag=Жовтий прапор
+iracing_checkered_flag=Картатий прапор

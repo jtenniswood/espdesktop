@@ -103,3 +103,10 @@ can use `-DFETCHCONTENT_SOURCE_DIR_ARDUINOJSON=/path/to/ArduinoJson-7.4.3`.
 Companion registers `_espdesktop._tcp` with the existing ESPHome/ESP-IDF mDNS responder after its TLS server starts. The SRV port is the configured Companion port; TXT fields are `v=1`, `name` (friendly name), and `id` (lowercase SHA-256 of the stored DER certificate). Registration retries until the shared responder is ready. ESPHome continues to own the hostname, other services and network-interface lifecycle. Firmware without Companion does not advertise this service.
 
 The Mac browses only during display selection and reconnect recovery. Bonjour data is untrusted: hostname/TXT validation limits accepted records, and the existing certificate pin remains authoritative. The recovery candidate and in-flight endpoint are separate from the saved `panelHost`; only successful pinned TLS plus `auth.accepted` commits the attempted endpoint. `pairingAccount`, Keychain credentials and authentication sequence keys retain their existing identity. The browser pairing page uses HTTP's default port independently of the advertised TLS port. Existing firmware and pairings retain manual-address support.
+
+
+## iRacing telemetry
+
+The Windows shared-memory reader owns iRacing's buffer layout and produces a race snapshot. The telemetry publisher owns sampling and feed availability. It sends a typed protocol message through the paired connection and skips a sample if the send slot is busy. It acknowledges feed loss by retrying the unavailable transition until it is sent. Only new SDK ticks extend the panel's freshness deadline. The Windows test compares both live and unavailable messages with the shared Companion fixtures.
+
+On the display, telemetry replaces any pending telemetry update from the same connection. The runtime drops expired updates and invalidates only the race readouts when the values change. The readouts resolve by saved preset identity, so changing a key or label keeps its reading. When the connection changes, the general Companion refresh also clears the old readouts.
