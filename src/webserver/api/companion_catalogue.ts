@@ -7,6 +7,9 @@ export interface CompanionAction {
   readonly obsState?: string;
   readonly obsDetail?: string;
   readonly obsAvailable?: boolean;
+  readonly twitchDetail?: string;
+  readonly twitchAvailable?: boolean;
+  readonly twitchActive?: boolean;
 }
 export interface CompanionDefinitions {
   readonly applications: readonly AppShortcutApplication[];

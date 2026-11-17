@@ -644,6 +644,29 @@ void CompanionService::handle_json_(int socket_fd, const std::string &message) {
       return true;
     }
 
+    if (const auto *payload = std::get_if<companion_protocol::TwitchState>(&*decoded)) {
+      std::vector<CompanionTwitchControl> controls;
+      controls.reserve(payload->items.size());
+      for (const auto &item : payload->items) {
+        const auto text_safe = [](const std::string &value) {
+          return std::all_of(value.begin(), value.end(), [](unsigned char byte) { return byte >= 0x20; });
+        };
+        if (!companion_twitch_card(item.id) || !safe_application_id(item.id) ||
+            !text_safe(item.label) || !text_safe(item.detail)) return false;
+        const auto command = item.command.value_or("");
+        if (item.enabled != !command.empty() ||
+            (!command.empty() && (!safe_field(command, 96) || command.size() != item.id.size() + 37 ||
+                                  command.compare(0, item.id.size() + 1, item.id + ".") != 0)) ||
+            std::any_of(controls.begin(), controls.end(),
+                        [&item](const auto &value) { return value.id == item.id; })) return false;
+        controls.push_back({item.id, item.label, item.detail, command, item.enabled, item.active});
+      }
+      this->defer_session_([controls = std::move(controls)]() mutable {
+        companion_runtime_service().set_twitch_controls(std::move(controls));
+      }, "Twitch state");
+      return true;
+    }
+
     if (const auto *payload = std::get_if<companion_protocol::CataloguePage>(&*decoded)) {
       const uint32_t catalogue_generation = payload->generation;
       const uint16_t page = payload->page;

@@ -5,6 +5,31 @@ import { retiredSavedCardType } from "./card";
 
 export const COMPANION_FOLDER_PREFIX = "folder.";
 export const COMPANION_OBS_PREFIX = "obs.";
+export const COMPANION_TWITCH_PREFIX = "twitch.";
+export const TWITCH_STATUS_ID = "twitch.status";
+export const TWITCH_WINNER_PREFIX = "twitch.predictionWinner.";
+
+export const TWITCH_CONTROLS = [
+  [TWITCH_STATUS_ID, "Twitch Status", "Broadcast"],
+  ["twitch.details", "Apply Stream Details", "Rename"],
+  ["twitch.marker", "Mark Moment", "Bookmark"],
+  ["twitch.clip", "Clip That", "Cut"],
+  ["twitch.commercial", "Run Ad", "Movie Roll"],
+  ["twitch.pollStart", "Start Poll", "Play"],
+  ["twitch.pollEnd", "End Poll", "Stop"],
+  ["twitch.predictionStart", "Start Prediction", "Play"],
+  ["twitch.predictionLock", "Lock Prediction", "Lock"],
+  ["twitch.predictionCancel", "Cancel Prediction", "Close"],
+  ...Array.from({ length: 10 }, (_, index) =>
+    [TWITCH_WINNER_PREFIX + (index + 1), "Resolve Prediction · Outcome " + (index + 1), "Check"] as const),
+  ["twitch.dashboard", "Stream Manager", "Web"],
+  ["twitch.inspector", "Twitch Inspector", "Web"],
+] as const;
+
+export function twitchControl(entity: string) {
+  return TWITCH_CONTROLS.find(([id]) => id === entity);
+}
+
 export function obsInputName(label = ""): string {
   return label.replace(/^(Muted|Unmuted) · /, "");
 }
@@ -62,6 +87,7 @@ export function companionMetricForEntity(entity: unknown) {
 
 export function companionSavedCardMode(config: Partial<CardConfig>): CompanionCardModeId {
   const entity = config.entity || "";
+  if (entity.startsWith(COMPANION_TWITCH_PREFIX)) return "twitch";
   if (entity.startsWith("shortcut.")) return "shortcut";
   if (entity.startsWith(COMPANION_FOLDER_PREFIX)) return "folder";
   if (entity === OBS_BRB_ID) return "obs_brb";
@@ -92,6 +118,7 @@ export function decodeCompanionCard(config: Partial<CardConfig>, mode = companio
     case "shortcut": return { mode, shortcutId: entity };
     case "folder": return { mode, folderId: entity };
     case "obs_output": return { mode, actionId: obsOutputCardEntity(entity) };
+    case "twitch":
     case "obs_brb":
     case "obs_replay":
     case "obs_replay_buffer":
@@ -114,6 +141,7 @@ export function encodeCompanionCard(model: CompanionCardModel, original: CardCon
     case "app": config.entity = model.applicationId; break;
     case "shortcut": config.entity = model.shortcutId; break;
     case "folder": config.entity = model.folderId; break;
+    case "twitch":
     case "obs_output":
     case "obs_brb":
     case "obs_replay":

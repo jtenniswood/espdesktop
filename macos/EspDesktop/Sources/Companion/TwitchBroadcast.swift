@@ -63,6 +63,24 @@ final class TwitchBroadcast: ObservableObject {
         var id: String { control.id }
     }
 
+    struct PanelControl: Equatable {
+        let id: String
+        let label: String
+        let detail: String
+        let active: Bool
+        let enabled: Bool
+        let command: String?
+    }
+
+    private struct CommandContext: Equatable {
+        let account: UUID
+        let configuration: TwitchBroadcastConfiguration
+        let status: ServiceState
+        let streamID: String?
+        let poll: TwitchAPI.Poll?
+        let prediction: TwitchAPI.Prediction?
+    }
+
     private struct Credential: Codable, Sendable {
         let clientID: String
         let broadcasterID: String
@@ -87,6 +105,7 @@ final class TwitchBroadcast: ObservableObject {
             publishControls()
         }
     }
+    @Published private(set) var panelControls: [PanelControl] = []
     @Published private(set) var controls: [ControlState] = []
     @Published private(set) var userCode: String?
     @Published private(set) var verificationURL: URL?
@@ -111,16 +130,21 @@ final class TwitchBroadcast: ObservableObject {
     private var eventTask: Task<Void, Never>?
     private var refreshTask: Task<Void, Error>?
     private var snapshotTask: Task<Void, Never>?
+    private var pendingSnapshot = false
     private var generation = UUID()
     private var commercialAvailableAt = Date.distantPast
     private var rateLimitedUntil = Date.distantPast
     private var feedback: [TwitchControl: String] = [:]
     private var mutationRevision = 0
+    private var commandContext: CommandContext?
+    private var commandToken = UUID().uuidString.lowercased()
 
     init(defaults: UserDefaults, api: TwitchAPI = TwitchAPI()) {
         self.defaults = defaults
         self.api = api
-        clientID = defaults.string(forKey: Self.clientKey) ?? ""
+        clientID = defaults.string(forKey: Self.clientKey)
+            ?? Bundle.main.object(forInfoDictionaryKey: "EspDesktopTwitchClientID") as? String
+            ?? ""
         configuration = defaults.data(forKey: Self.configurationKey).flatMap {
             try? JSONDecoder().decode(TwitchBroadcastConfiguration.self, from: $0)
         } ?? TwitchBroadcastConfiguration()
@@ -277,6 +301,26 @@ final class TwitchBroadcast: ObservableObject {
         }
     }
 
+    func invokePanel(_ command: String, isValid: () -> Bool) async -> Bool {
+        guard let entry = panelControls.first(where: { $0.command == command }), entry.enabled else { return false }
+        let token = commandToken
+        let control: TwitchControl
+        let winner: String?
+        let winnerPrefix = TwitchControl.predictionWinner.id + "."
+        if entry.id.hasPrefix(winnerPrefix),
+           let index = Int(entry.id.dropFirst(winnerPrefix.count)), let outcomes = prediction?.outcomes,
+           outcomes.indices.contains(index - 1) {
+            control = .predictionWinner
+            winner = outcomes[index - 1].id
+        } else if let target = TwitchControl.allCases.first(where: { $0.id == entry.id }) {
+            control = target
+            winner = nil
+        } else {
+            return false
+        }
+        return await invoke(control, winner: winner) { isValid() && self.commandToken == token }
+    }
+
     private func perform(_ control: TwitchControl, winner: String?, originalPoll: TwitchAPI.Poll?,
                          originalPrediction: TwitchAPI.Prediction?, preset: TwitchBroadcastConfiguration,
                          auth: TwitchAPI.Authorization) async throws -> String {
@@ -419,6 +463,7 @@ final class TwitchBroadcast: ObservableObject {
         refreshTask?.cancel()
         generation = UUID()
         snapshotTask = nil
+        pendingSnapshot = false
         refreshTask = nil
         connecting = false
         userCode = nil
@@ -469,11 +514,23 @@ final class TwitchBroadcast: ObservableObject {
     }
 
     private func requestSnapshot() {
-        guard snapshotTask == nil, Date() >= rateLimitedUntil else { return }
+        guard Date() >= rateLimitedUntil else { return }
+        if snapshotTask != nil {
+            pendingSnapshot = true
+            return
+        }
         let active = generation
         snapshotTask = Task { [weak self] in
             guard let self else { return }
-            defer { if generation == active { snapshotTask = nil } }
+            defer {
+                if generation == active {
+                    snapshotTask = nil
+                    if pendingSnapshot {
+                        pendingSnapshot = false
+                        requestSnapshot()
+                    }
+                }
+            }
             do {
                 let auth = try await authorization()
                 async let currentStream = api.stream(auth)
@@ -521,6 +578,7 @@ final class TwitchBroadcast: ObservableObject {
         snapshotTask?.cancel()
         refreshTask = nil
         snapshotTask = nil
+        pendingSnapshot = false
         credential = nil
         validatedAt = nil
         identity = nil
@@ -596,6 +654,7 @@ final class TwitchBroadcast: ObservableObject {
             let authorized = control.scope.map { identity?.allows($0) == true } ?? true
             if busy == control { detail = "Working…" }
             else if !authorized { detail = "Authorize on Mac" }
+            else if control == .commercial && commercialAvailableAt > Date() { detail = "Cooling down" }
             else if let result = feedback[control] { detail = result }
             else if control.scope != nil && Date() < rateLimitedUntil { detail = "Try again shortly" }
             return ControlState(control: control, detail: detail,
@@ -603,6 +662,34 @@ final class TwitchBroadcast: ObservableObject {
                                 active: active)
         }
         if values != controls { controls = values }
+
+        let context = CommandContext(account: generation, configuration: configuration, status: status,
+                                     streamID: stream?.id, poll: poll, prediction: prediction)
+        if context != commandContext {
+            commandContext = context
+            commandToken = UUID().uuidString.lowercased()
+        }
+        let statusEntry = values.first { $0.control == .status }
+        let stateful = values.filter { $0.control != .predictionWinner && $0.control != .status }.map { value in
+            panelEntry(id: value.id, label: value.control.title, detail: value.detail,
+                       enabled: value.enabled, active: value.active)
+        }
+        var next = [PanelControl(id: TwitchControl.status.id, label: status.title, detail: statusEntry?.active == true
+                                ? statusEntry?.detail ?? "" : "", active: statusEntry?.active ?? false,
+                                enabled: false, command: nil)] + stateful
+        if let winner = values.first(where: { $0.control == .predictionWinner }),
+           let prediction, ["ACTIVE", "LOCKED"].contains(prediction.status) {
+            next += prediction.outcomes.prefix(10).enumerated().map { index, outcome in
+                panelEntry(id: TwitchControl.predictionWinner.id + "." + String(index + 1), label: outcome.title,
+                           detail: "Resolve prediction", enabled: winner.enabled, active: false)
+            }
+        }
+        if next != panelControls { panelControls = next }
+    }
+
+    private func panelEntry(id: String, label: String, detail: String, enabled: Bool, active: Bool) -> PanelControl {
+        PanelControl(id: id, label: label, detail: detail, active: active, enabled: enabled,
+                     command: enabled ? id + "." + commandToken : nil)
     }
 
     private func describe(_ error: Error, control: TwitchControl? = nil) -> String {

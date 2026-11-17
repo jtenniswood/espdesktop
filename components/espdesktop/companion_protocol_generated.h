@@ -93,6 +93,17 @@ struct CataloguePage {
   bool complete{};
   std::vector<CataloguePageItemsItem> items{};
 };
+struct TwitchStateItemsItem {
+  std::string id{};
+  std::string label{};
+  std::string detail{};
+  bool enabled{};
+  bool active{};
+  std::optional<std::string> command{};
+};
+struct TwitchState {
+  std::vector<TwitchStateItemsItem> items{};
+};
 struct ActionInvoke {
   std::string requestId{};
   std::string kind{};
@@ -293,6 +304,20 @@ inline void encode(JsonObject root, const CataloguePage &message) {
     if (item.obsState) entry["obsState"] = *item.obsState;
     if (item.obsDetail) entry["obsDetail"] = *item.obsDetail;
     if (item.obsAvailable) entry["obsAvailable"] = *item.obsAvailable;
+  }
+}
+inline void encode(JsonObject root, const TwitchState &message) {
+  root["type"] = "twitch.state";
+  root["protocol"] = COMPANION_PROTOCOL_VERSION;
+  auto values_items = root["items"].to<JsonArray>();
+  for (const auto &item : message.items) {
+    auto entry = values_items.add<JsonObject>();
+    entry["id"] = item.id;
+    entry["label"] = item.label;
+    entry["detail"] = item.detail;
+    entry["enabled"] = item.enabled;
+    entry["active"] = item.active;
+    if (item.command) entry["command"] = *item.command;
   }
 }
 inline void encode(JsonObject root, const ActionInvoke &message) {
@@ -508,7 +533,7 @@ inline void encode(JsonObject root, const PairReset &message) {
   root["protocol"] = COMPANION_PROTOCOL_VERSION;
   (void) message;
 }
-using Message = std::variant<Hello, PairRequest, PairAccepted, AuthRequest, AuthAccepted, Capabilities, CatalogueRequest, CataloguePage, ActionInvoke, ActionResult, ValueSet, ValueState, FocusChanged, TimezoneChanged, NowPlaying, SystemMetrics, ArtworkBegin, ArtworkAck, ArtworkEnd, ArtworkAbort, ArtworkRequest, AppIconRequest, AppIconBegin, AppIconUnchanged, AppIconUnavailable, AppIconAck, AppIconEnd, AppIconAbort, Error, CatalogueDefinitionsPage, FocusTargets, SessionLock, PairReset>;
+using Message = std::variant<Hello, PairRequest, PairAccepted, AuthRequest, AuthAccepted, Capabilities, CatalogueRequest, CataloguePage, TwitchState, ActionInvoke, ActionResult, ValueSet, ValueState, FocusChanged, TimezoneChanged, NowPlaying, SystemMetrics, ArtworkBegin, ArtworkAck, ArtworkEnd, ArtworkAbort, ArtworkRequest, AppIconRequest, AppIconBegin, AppIconUnchanged, AppIconUnavailable, AppIconAck, AppIconEnd, AppIconAbort, Error, CatalogueDefinitionsPage, FocusTargets, SessionLock, PairReset>;
 inline std::optional<Message> decode(JsonObjectConst root, Direction direction, SessionState state) {
   if (!number_valid(root["protocol"], COMPANION_PROTOCOL_VERSION, COMPANION_PROTOCOL_VERSION, true) || !root["type"].is<const char *>()) return std::nullopt;
   const std::string type = root["type"].as<std::string>();
@@ -632,6 +657,39 @@ inline std::optional<Message> decode(JsonObjectConst root, Direction direction, 
     result.complete = root["complete"].as<bool>();
     for (JsonVariantConst item : root["items"].as<JsonArrayConst>()) {
       result.items.push_back({item["id"].as<std::string>(), item["label"].as<std::string>(), item["obsState"].isUnbound() ? std::nullopt : std::optional<std::string>{item["obsState"].as<std::string>()}, item["obsDetail"].isUnbound() ? std::nullopt : std::optional<std::string>{item["obsDetail"].as<std::string>()}, item["obsAvailable"].isUnbound() ? std::nullopt : std::optional<bool>{item["obsAvailable"].as<bool>()}});
+    }
+    return result;
+  }
+  if (type == "twitch.state") {
+    if (direction != Direction::MAC_TO_PANEL) return std::nullopt;
+    if (!(state == SessionState::CONNECTED)) return std::nullopt;
+    {
+      if (!(root["items"].is<JsonArrayConst>() && root["items"].size() <= 24)) return std::nullopt;
+      for (JsonVariantConst item : root["items"].as<JsonArrayConst>()) {
+        if (!(item.is<JsonObjectConst>())) return std::nullopt;
+        {
+          if (!(string_valid(item.as<JsonObjectConst>()["id"], 8, 32))) return std::nullopt;
+        }
+        {
+          if (!(string_valid(item.as<JsonObjectConst>()["label"], 1, 96))) return std::nullopt;
+        }
+        {
+          if (!(string_valid(item.as<JsonObjectConst>()["detail"], 0, 96))) return std::nullopt;
+        }
+        {
+          if (!(item.as<JsonObjectConst>()["enabled"].is<bool>())) return std::nullopt;
+        }
+        {
+          if (!(item.as<JsonObjectConst>()["active"].is<bool>())) return std::nullopt;
+        }
+        if (!item.as<JsonObjectConst>()["command"].isUnbound()) {
+          if (!(string_valid(item.as<JsonObjectConst>()["command"], 8, 96))) return std::nullopt;
+        }
+      }
+    }
+    TwitchState result;
+    for (JsonVariantConst item : root["items"].as<JsonArrayConst>()) {
+      result.items.push_back({item["id"].as<std::string>(), item["label"].as<std::string>(), item["detail"].as<std::string>(), item["enabled"].as<bool>(), item["active"].as<bool>(), item["command"].isUnbound() ? std::nullopt : std::optional<std::string>{item["command"].as<std::string>()}});
     }
     return result;
   }

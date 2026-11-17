@@ -40,6 +40,20 @@ int main() {
   assert(!second.companion_runtime().mac_update_required());
   assert(first.companion_runtime().snapshot().actions[0].id == "com.example.First");
   assert(second.companion_runtime().snapshot().actions[0].id == "com.example.Second");
+  const std::string action_id = "twitch.predictionWinner.1";
+  const std::string old_command = action_id + ".12345678-1234-5678-1234-567812345678";
+  const std::string new_command = action_id + ".12345678-1234-5678-1234-567812345679";
+  auto &runtime = first.companion_runtime();
+  runtime.set_twitch_controls({{action_id, "Team A", "Resolve prediction", old_command, true, false}});
+  assert(companion_action_available(runtime.snapshot(), old_command));
+  runtime.set_twitch_controls({{action_id, "Team B", "Resolve prediction", new_command, true, false}});
+  assert(!companion_action_available(runtime.snapshot(), old_command));
+  assert(companion_action_available(runtime.snapshot(), new_command));
+  assert(runtime.snapshot().actions.front().id == "com.example.First");
+  runtime.set_connected(false);
+  assert(runtime.twitch_controls().empty());
+  assert(!companion_action_available(runtime.snapshot(), new_command));
+  runtime.set_connected(true);
   const auto before = allocations;
   for (int i = 0; i < 1000; ++i) assert(first.companion_runtime().connected());
   assert(allocations == before); // Simple status reads never copy the catalogue.

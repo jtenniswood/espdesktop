@@ -272,6 +272,7 @@ source += "\n" + "\n".join(re.findall(r"^constexpr char CARD_SIZE_.*?;$", layout
 source += "\nstruct lv_indev_t {}; lv_indev_t *lv_indev_get_act() { return nullptr; } void lv_indev_wait_release(lv_indev_t *) {}\n"
 
 groups = (
+    ("companion_runtime.h", "", ("companion_twitch_card",)),
     ("button_grid_slider_contrast.h", "", ("slider_text_contrast_event_cb", "slider_bind_text_contrast")),
     ("button_grid_display.h", "", ("display_correct_color",)),
     ("card_text_contrast.h", "", ("apply_card_descendant_text_color", "sync_card_checked_text_color", "card_text_contrast_event_cb", "sync_bound_card_text_color", "bind_card_text_contrast_events", "set_card_checked_state")),

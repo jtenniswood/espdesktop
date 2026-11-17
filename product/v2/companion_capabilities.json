@@ -1,5 +1,5 @@
 {
-  "version": 22,
+  "version": 23,
   "protocol": {
     "version": 4,
     "path": "/companion/v4",
@@ -177,6 +177,52 @@
                 },
                 "obsAvailable": {
                   "type": "boolean",
+                  "optional": true
+                }
+              }
+            }
+          }
+        },
+        "states": [
+          "connected"
+        ]
+      },
+      {
+        "id": "twitch.state",
+        "direction": "mac_to_panel",
+        "authorization": "session",
+        "fields": {
+          "items": {
+            "type": "array",
+            "maxItems": 24,
+            "items": {
+              "type": "object",
+              "fields": {
+                "id": {
+                  "type": "string",
+                  "minLength": 8,
+                  "maxLength": 32
+                },
+                "label": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 96
+                },
+                "detail": {
+                  "type": "string",
+                  "minLength": 0,
+                  "maxLength": 96
+                },
+                "enabled": {
+                  "type": "boolean"
+                },
+                "active": {
+                  "type": "boolean"
+                },
+                "command": {
+                  "type": "string",
+                  "minLength": 8,
+                  "maxLength": 96,
                   "optional": true
                 }
               }
@@ -1143,6 +1189,12 @@
       "label": "Break",
       "capability": "obs_brb",
       "defaultIcon": "Coffee to Go"
+    },
+    {
+      "id": "twitch",
+      "label": "Twitch",
+      "capability": "twitch_controls",
+      "defaultIcon": "Broadcast"
     },
     {
       "id": "stats",

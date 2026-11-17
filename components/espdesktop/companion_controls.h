@@ -697,9 +697,21 @@ inline const CompanionAction *companion_published_action(const CompanionRuntimeS
   return item == snapshot.actions.end() ? nullptr : &*item;
 }
 
+inline const CompanionTwitchControl *companion_twitch_control(const CompanionRuntimeSnapshot &snapshot,
+                                                              const std::string &id, bool match_command = false) {
+  if (!snapshot.connected) return nullptr;
+  const auto control = std::find_if(snapshot.twitch_controls.begin(), snapshot.twitch_controls.end(),
+    [&](const auto &item) { return item.id == id || (match_command && item.command == id); });
+  return control == snapshot.twitch_controls.end() ? nullptr : &*control;
+}
+
 inline bool companion_action_available(const CompanionRuntimeSnapshot &snapshot, const std::string &action_id) {
   if (action_id.empty() || companion_input_device_control_valid(action_id)) return false;
   if (!snapshot.connected) return false;
+  if (companion_twitch_card(action_id)) {
+    const auto *control = companion_twitch_control(snapshot, action_id, true);
+    return control && control->enabled;
+  }
   if (companion_shortcut_action_valid(action_id)) return snapshot.keyboard_actions_supported;
   // An older Companion may still advertise retired window identifiers.
   if (action_id.rfind("window.", 0) == 0) return false;
@@ -877,7 +889,7 @@ inline void companion_apply_card_focus(lv_obj_t *button, const std::string &acti
                                        const std::string &url_config = "",
                                        bool show_focus = true,
                                        const CompanionRuntimeSnapshot *snapshot = nullptr) {
-  if (!button) return;
+  if (!button || companion_twitch_card(action_id)) return;
   if (companion_obs_audio_uuid(action_id, "obs.mute.")) return;
   // A URL card targets a page inside the app, but Companion only reports the
   // frontmost app. Keep URL cards from appearing active for the wrong page.
@@ -1300,6 +1312,28 @@ inline void companion_update_obs_detail_contrast(const CompanionCardRef &ref, bo
     set_card_content_disabled(ref.button, dim);
 }
 
+inline void companion_render_twitch_detail(CompanionCardRef &ref, const CompanionRuntimeSnapshot &snapshot) {
+  const auto *control = companion_twitch_control(snapshot, ref.action_id);
+  const bool live = control && control->active;
+  const bool available = control && (control->enabled || ref.action_id == "twitch.status");
+  if (lv_obj_has_state(ref.button, LV_STATE_CHECKED) != live) set_card_checked_state(ref.button, live);
+  if (lv_obj_has_state(ref.button, LV_STATE_DISABLED) == available)
+    set_card_disabled_state(ref.button, !available);
+  ref.rendered_obs_action = control && control->enabled
+    ? CompanionAction{control->command, control->label} : CompanionAction{};
+  if (!ref.obs_detail || !ref.text_label) return;
+  const bool dynamic = ref.action_id == "twitch.status" || ref.action_id.rfind("twitch.predictionWinner.", 0) == 0;
+  const auto label = control && dynamic ? normalize_display_text(control->label) : ref.resolved_default_label;
+  if (!label.empty() && label != lv_label_get_text(ref.text_label))
+    lv_label_set_display_text(ref.text_label, label.c_str());
+  const auto detail = control ? normalize_display_text(control->detail) : std::string(espdesktop_i18n("Unavailable"));
+  if (detail != lv_label_get_text(ref.obs_detail)) lv_label_set_display_text(ref.obs_detail, detail.c_str());
+  const auto *font = lv_obj_get_style_text_font(ref.obs_detail, LV_PART_MAIN);
+  lv_obj_align(ref.obs_detail, LV_ALIGN_BOTTOM_LEFT, 0, 0);
+  lv_obj_align(ref.text_label, LV_ALIGN_BOTTOM_LEFT, 0,
+               detail.empty() ? 0 : -static_cast<int>(lv_font_get_line_height(font)) - 2);
+}
+
 inline void companion_setup_obs_detail(lv_obj_t *button, const lv_font_t *font, lv_obj_t *state_icon = nullptr) {
   for (auto &ref : companion_card_refs()) {
     if (ref.button != button) continue;
@@ -1316,6 +1350,11 @@ inline void companion_setup_obs_detail(lv_obj_t *button, const lv_font_t *font, 
       lv_obj_set_height(ref.obs_detail, lv_font_get_line_height(detail_font));
     }
     const auto snapshot = companion_runtime_snapshot();
+    if (companion_twitch_card(ref.action_id)) {
+      ref.resolved_default_label = lv_label_get_text(ref.text_label);
+      companion_render_twitch_detail(ref, snapshot);
+      return;
+    }
     const auto live = companion_default_action_label(ref.action_id, "", &snapshot);
     const std::string label = companion_obs_scene_card(ref.action_id) ? lv_label_get_text(ref.text_label)
       : companion_obs_control_label(ref.action_id, "", live, &snapshot);
@@ -1340,7 +1379,7 @@ inline void companion_remember_rendered_obs(lv_obj_t *button, const CompanionRun
 
 inline CompanionAction companion_rendered_obs_action(lv_obj_t *button) {
   for (const auto &ref : companion_card_refs())
-    if (ref.button == button && companion_obs_tokenized_card(ref.action_id)) return ref.rendered_obs_action;
+    if (ref.button == button && (companion_obs_tokenized_card(ref.action_id) || companion_twitch_card(ref.action_id))) return ref.rendered_obs_action;
   return {};
 }
 
@@ -1385,7 +1424,7 @@ inline void companion_require_card_focus(lv_obj_t *button, const std::string &re
 
 inline void companion_refresh_card_focus(const CompanionRuntimeSnapshot &snapshot) {
   for (auto &ref : companion_card_refs()) {
-    if (!ref.button || !lv_obj_is_valid(ref.button) || !ref.metric_key.empty()) continue;
+    if (!ref.button || !lv_obj_is_valid(ref.button) || !ref.metric_key.empty() || companion_twitch_card(ref.action_id)) continue;
     if (!ref.required_focus_id.empty()) {
       const bool available = companion_action_available(snapshot, ref.action_id) &&
         companion_required_focus_ready(ref.required_focus_id, snapshot);
@@ -1429,6 +1468,10 @@ inline void companion_render_slider(const CompanionSliderRef &ref, const Compani
 }
 
 inline void companion_refresh_action_card(CompanionCardRef &ref, const CompanionRuntimeSnapshot &snapshot) {
+  if (companion_twitch_card(ref.action_id)) {
+    companion_render_twitch_detail(ref, snapshot);
+    return;
+  }
   if (ref.text_label && lv_obj_is_valid(ref.text_label) &&
       (ref.dynamic_default_label || ref.obs_detail)) {
     // Keep the last friendly name if a disconnected Mac no longer supplies it.
@@ -1792,6 +1835,17 @@ class CompanionActionsHandler : public esphome::web_server_idf::AsyncWebHandler 
         }
 #endif
         json += "}";
+      }
+    }
+    if (connected && !networks && !definitions) {
+      for (const auto &control : runtime.twitch_controls()) {
+        if (!first) json += ",";
+        first = false;
+        json += "{\"id\":\"" + companion_json_escape(control.id) +
+          "\",\"label\":\"" + companion_json_escape(control.label) +
+          "\",\"twitchDetail\":\"" + companion_json_escape(control.detail) +
+          "\",\"twitchAvailable\":" + (control.enabled ? "true" : "false") +
+          ",\"twitchActive\":" + (control.active ? "true" : "false") + "}";
       }
     }
     if (!definitions) json += "]";

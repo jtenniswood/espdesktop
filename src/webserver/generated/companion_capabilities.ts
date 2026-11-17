@@ -5,7 +5,7 @@ export interface CompanionSystemMetric { readonly mode: string; readonly id: str
 export interface CompanionCardMode { readonly id: string; readonly label: string; readonly capability: string; readonly defaultIcon: string; }
 export interface CompanionProtocolMessage { readonly id: string; readonly direction: string; readonly authorization: string; }
 
-export const COMPANION_CAPABILITY_VERSION = 22 as const;
+export const COMPANION_CAPABILITY_VERSION = 23 as const;
 export const COMPANION_PROTOCOL_VERSION = 4 as const;
 export const COMPANION_PROTOCOL_PATH = "/companion/v4" as const;
 export const COMPANION_MAXIMUM_TEXT_FRAME_BYTES = 16384 as const;
@@ -96,6 +96,12 @@ export const COMPANION_CARD_MODES = [
     label: "Break",
     capability: "obs_brb",
     defaultIcon: "Coffee to Go"
+  },
+  {
+    id: "twitch",
+    label: "Twitch",
+    capability: "twitch_controls",
+    defaultIcon: "Broadcast"
   },
   {
     id: "stats",
@@ -409,6 +415,11 @@ export const COMPANION_PROTOCOL_MESSAGES: readonly CompanionProtocolMessage[] = 
   },
   {
     id: "catalogue.page",
+    direction: "mac_to_panel",
+    authorization: "session"
+  },
+  {
+    id: "twitch.state",
     direction: "mac_to_panel",
     authorization: "session"
   },

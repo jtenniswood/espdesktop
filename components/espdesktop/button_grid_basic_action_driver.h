@@ -48,7 +48,7 @@ inline bool basic_action_driver_setup_visual(
 inline bool basic_action_driver_attach_interaction(
     BtnSlot &slot, const ParsedCfg &config, const Context &context) {
   if (context.runtime.driver == card_runtime::CardDriverId::COMPANION &&
-      (companion_metric_key_valid(config.entity) || companion_obs_status_card(config.entity))) {
+      (companion_metric_key_valid(config.entity) || companion_obs_status_card(config.entity) || config.entity == "twitch.status")) {
     lv_obj_clear_flag(slot.btn, LV_OBJ_FLAG_CLICKABLE);
   }
   return basic_action_driver_matches(context, config);
@@ -76,11 +76,12 @@ inline bool basic_action_driver_refresh_layout(
     config.icon == "Image" || config.icon == "Image Card Loading");
   if (status || scene || config.entity == "obs.take" || config.entity == "obs.brb" ||
       config.entity == "obs.replay" || output || config.entity == "obs.studio" ||
-      config.entity == "obs.transition" || companion_obs_transition_target(config.entity) || config.entity == "obs.replay.buffer")
+      config.entity == "obs.transition" || companion_obs_transition_target(config.entity) || config.entity == "obs.replay.buffer" ||
+      companion_twitch_card(config.entity))
     companion_setup_obs_detail(slot.btn, display_small_text_font(display),
       status || default_scene_icon || (output && companion_obs_output_auto_icon(config.entity, config.icon))
         ? slot.icon_lbl : nullptr);
-  if (companion_obs_confirmation_supported(config.entity))
+  if (companion_obs_confirmation_supported(config.entity) || companion_twitch_card(config.entity))
     obs_confirmation_fonts() = {display_switch_confirmation_message_font(display), display.fonts.icon};
   return true;
 }
@@ -148,15 +149,8 @@ struct CompanionSubpageActionContext {
   std::string required_focus_id;
 };
 
-inline bool invoke_confirmable_obs_action(const ParsedCfg &card, lv_obj_t *button,
-                                          const std::string &request_id) {
-  if (!button || screen_lock_enabled()) return false;
-  const auto shown = companion_rendered_obs_action(button);
-  if (shown.id.empty() || !companion_action_available(shown.id)) return false;
-  const auto mode = cfg_option_value(card.options, "obs_confirm");
-  if (!companion_obs_needs_confirmation(card.entity, mode, shown.label, shown.obs_state))
-    return invoke_companion_action(shown.id, request_id);
-
+inline bool confirm_companion_action(const ParsedCfg &card, lv_obj_t *button,
+                                     const std::string &action, const std::string &message) {
   using Kind = ControlModalKind;
   const auto &fonts = obs_confirmation_fonts();
   auto shell = control_modal_open_shell(Kind::OBS_OUTPUT_CONFIRMATION, button, 100, fonts.icon, [] {
@@ -165,21 +159,6 @@ inline bool invoke_confirmable_obs_action(const ParsedCfg &card, lv_obj_t *butto
   if (!shell.panel) return false;
   const auto &layout = shell.layout;
   const auto *font = lv_obj_get_style_text_font(button, LV_PART_MAIN);
-  auto message = cfg_option_value(card.options, "confirm_message");
-  if (message.empty()) {
-    const bool turning_off = shown.obs_state == OBSCardState::unknown ? shown.label == "On" : shown.obs_state == OBSCardState::toggle_on;
-    if (card.entity == "obs.studio") {
-      message = espdesktop_i18n_key(turning_off ? "turn_off_studio_mode" : "turn_on_studio_mode");
-    } else if (card.entity == "obs.replay.buffer") {
-      message = espdesktop_i18n_key(turning_off ? "stop_replay_buffer_prompt" : "start_replay_buffer_prompt");
-    } else if (card.entity == "obs.output.virtualcam") {
-      const bool running = shown.obs_state == OBSCardState::unknown ? shown.label.rfind("Stop ", 0) == 0
-        : obs_card_presentation(shown.obs_state).lit;
-      message = espdesktop_i18n_key(running ? "stop_virtual_camera_prompt" : "start_virtual_camera_prompt");
-    } else {
-      message = shown.label + "?";
-    }
-  }
   auto *prompt = control_modal_create_title(shell.panel, message,
       shell.content_w, fonts.message ? fonts.message : font, 100);
   lv_label_set_long_mode(prompt, LV_LABEL_LONG_WRAP);
@@ -220,12 +199,12 @@ inline bool invoke_confirmable_obs_action(const ParsedCfg &card, lv_obj_t *butto
     uint32_t armed_at;
   };
   auto *checked = grid_delete_with_owner(confirm,
-      new Confirmation{shown.id, lv_obj_get_screen(button), esphome::millis()});
+      new Confirmation{action, lv_obj_get_screen(button), esphome::millis()});
   lv_obj_add_event_cb(confirm, [](lv_event_t *event) {
     auto *checked = static_cast<Confirmation *>(lv_event_get_user_data(event));
     if (checked && !screen_lock_enabled() && checked->screen == lv_scr_act() &&
         esphome::millis() - checked->armed_at <= 15000) {
-      const auto request = "obs-" + std::to_string(companion_next_request_number());
+      const auto request = "confirm-" + std::to_string(companion_next_request_number());
       invoke_companion_action(checked->action, request);
     }
     control_modal_force_close_active();
@@ -233,9 +212,50 @@ inline bool invoke_confirmable_obs_action(const ParsedCfg &card, lv_obj_t *butto
   return true;
 }
 
+inline bool invoke_confirmable_obs_action(const ParsedCfg &card, lv_obj_t *button,
+                                          const std::string &request_id) {
+  if (!button || screen_lock_enabled()) return false;
+  const auto shown = companion_rendered_obs_action(button);
+  if (shown.id.empty() || !companion_action_available(shown.id)) return false;
+  const auto mode = cfg_option_value(card.options, "obs_confirm");
+  if (!companion_obs_needs_confirmation(card.entity, mode, shown.label, shown.obs_state))
+    return invoke_companion_action(shown.id, request_id);
+
+  auto message = cfg_option_value(card.options, "confirm_message");
+  if (message.empty()) {
+    const bool turning_off = shown.obs_state == OBSCardState::unknown ? shown.label == "On" : shown.obs_state == OBSCardState::toggle_on;
+    if (card.entity == "obs.studio") {
+      message = espdesktop_i18n_key(turning_off ? "turn_off_studio_mode" : "turn_on_studio_mode");
+    } else if (card.entity == "obs.replay.buffer") {
+      message = espdesktop_i18n_key(turning_off ? "stop_replay_buffer_prompt" : "start_replay_buffer_prompt");
+    } else if (card.entity == "obs.output.virtualcam") {
+      const bool running = shown.obs_state == OBSCardState::unknown ? shown.label.rfind("Stop ", 0) == 0
+        : obs_card_presentation(shown.obs_state).lit;
+      message = espdesktop_i18n_key(running ? "stop_virtual_camera_prompt" : "start_virtual_camera_prompt");
+    } else {
+      message = shown.label + "?";
+    }
+  }
+  return confirm_companion_action(card, button, shown.id, message);
+}
+
+inline bool invoke_twitch_card(const ParsedCfg &card, lv_obj_t *button, const std::string &request_id) {
+  if (!button || screen_lock_enabled()) return false;
+  const auto shown = companion_rendered_obs_action(button);
+  if (shown.id.empty() || !companion_action_available(shown.id)) return false;
+  if (card.entity == "twitch.dashboard" || card.entity == "twitch.inspector" ||
+      card.entity == "twitch.marker" || card.entity == "twitch.clip")
+    return invoke_companion_action(shown.id, request_id);
+  const auto message = card.entity.rfind("twitch.predictionWinner.", 0) == 0
+    ? std::string(espdesktop_i18n("Resolve Prediction")) + ": " + shown.label + "?"
+    : shown.label + "?";
+  return confirm_companion_action(card, button, shown.id, message);
+}
+
 inline bool invoke_saved_companion_card(const ParsedCfg &card, const std::string &request_id,
                                          const std::string &required_focus = {},
                                          lv_obj_t *button = nullptr) {
+  if (companion_twitch_card(card.entity)) return invoke_twitch_card(card, button, request_id);
   if (companion_obs_confirmation_supported(card.entity))
     return invoke_confirmable_obs_action(card, button, request_id);
   if (companion_obs_tokenized_card(card.entity))
