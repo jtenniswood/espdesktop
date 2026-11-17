@@ -65,7 +65,7 @@ const CARD_TYPE_PICKER_DETAILS: Readonly<Record<string, PickerDetails>> = {
   companion_cough: { icon: "microphone-off", description: "Hold to mute the paired Mac’s microphone." },
   companion_app: { icon: "application-outline", description: "Launch a Mac app and set up a subpage for its keyboard shortcuts." },
   companion_folder: { icon: "folder", description: "Open an approved folder on the Mac." },
-  companion_twitch: { icon: "broadcast", description: "Check Twitch live status or manage your broadcast." },
+  companion_twitch: { icon: "twitch", description: "Check Twitch live status or manage your broadcast." },
   companion_output_volume: { icon: "volume-high", description: "Control speakers, mics, and apps." },
   companion_output_mute: { icon: "volume-off", description: "Mute or unmute the Mac’s sound output." },
   companion_input_mute: { icon: "microphone-off", description: "Mute or unmute the Mac’s microphone." },
