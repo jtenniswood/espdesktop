@@ -656,7 +656,7 @@ export function registerCompanionCardTypes(
         const directTransition = card.entity.startsWith(OBS_TRANSITION_SELECT);
         const replayOptions = [[OBS_REPLAY_ID, "Save Replay"], [OBS_REPLAY_BUFFER_ID, "Start / Stop Buffer"]];
         if (studio || replay || transition || mode === "obs_output") {
-            const { field, select } = helpers.selectField(studio ? "Studio Mode" : mode === "obs_output" ? "OBS output" : "Type",
+            const { field, select } = helpers.selectField(mode === "obs_output" ? "OBS output" : "Type",
                 helpers.idPrefix + (studio ? "obs-studio" : transition ? "obs-transition-type" : replay ? "obs-replay-type" : "obs-output"),
                 studio ? OBS_STUDIO_OPTIONS : transition ? OBS_TRANSITION_OPTIONS : replay ? replayOptions : OBS_OUTPUT_OPTIONS,
                 directTransition ? OBS_TRANSITION_SELECT : card.entity, () => {

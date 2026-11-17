@@ -4530,8 +4530,9 @@ async function assertOBSSceneCard(browser) {
     await programTile.getByText("Program", { exact: true }).waitFor();
     await editCard(programTile);
     assert.equal(await studioPicker.inputValue(), "obs.status.program", "existing Program cards reopen in Studio Mode");
+    assert.equal(await page.getByLabel("Type", { exact: true }).inputValue(), "obs.status.program");
     assert.deepEqual(await studioPicker.locator("option").allTextContents(),
-      ["Toggle Studio Mode", "Program scene", "Take Live", "Open Multiview"]);
+      ["Studio Mode", "Program scene", "Take Live", "Open Multiview"]);
     await page.keyboard.press("Escape");
     await page.locator(".sp-main .sp-empty-cell").first().click();
     const obsGroup = page.getByRole("button", { name: "OBS Studio card type", exact: true });
@@ -8285,7 +8286,7 @@ async function assertOBSStarterPage(browser, firstRun = false) {
     const beforeTakeEdit = fixture.puts.length;
     await automaticTake.click({ button: "right" });
     await page.locator(".sp-ctx-menu").getByText("Edit Card", { exact: true }).click();
-    assert.equal(await page.getByLabel("Studio Mode", { exact: true }).inputValue(), "obs.take");
+    assert.equal(await page.getByLabel("Type", { exact: true }).inputValue(), "obs.take");
     assert.equal(fixture.puts.length, beforeTakeEdit, "Opening Take Live settings does not save it");
     await page.getByRole("button", { name: "Save", exact: true }).click();
     const savedTake = page.locator('.sp-main .sp-btn-wide[data-pos="7"][data-slot]');

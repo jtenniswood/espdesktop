@@ -45,7 +45,7 @@ export function obsOutputCardEntity(entity: string): string {
   return entity;
 }
 export const OBS_STUDIO_OPTIONS = [
-  [OBS_STUDIO_ID, "Toggle Studio Mode"],
+  [OBS_STUDIO_ID, "Studio Mode"],
   [OBS_PROGRAM_ID, "Program scene"],
   [OBS_TAKE_ID, "Take Live"],
   [OBS_MULTIVIEW_ID, "Open Multiview"],
