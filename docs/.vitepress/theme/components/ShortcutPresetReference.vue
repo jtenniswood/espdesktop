@@ -3,7 +3,7 @@ import { computed, ref } from 'vue'
 import { COMPANION_SHORTCUT_APPS } from '../../../../src/webserver/generated/app_shortcuts'
 import { bundledExpandedShortcuts } from '../../../../src/webserver/application/companion_shortcut_data'
 
-const props = defineProps<{ appId?: string }>()
+const props = defineProps<{ appId?: string; flat?: boolean }>()
 const search = ref('')
 const guideSlugs: Record<string, string> = {
   'com.figma.Desktop': 'figma',
@@ -44,9 +44,9 @@ function anchor(appId: string) {
     <input v-model="search" type="search" placeholder="Search apps" aria-label="Search apps" />
     <p role="status">{{ matchingApps.length ? '' : 'No matching apps.' }}</p>
   </div>
-  <details v-for="app in apps" v-show="matchingApps.includes(app)"
-    :id="anchor(app.appId)" :key="app.appId" :open="!!appId">
-    <summary>
+  <component :is="flat ? 'div' : 'details'" v-for="app in apps" v-show="matchingApps.includes(app)"
+    :id="anchor(app.appId)" :key="app.appId" :open="flat ? undefined : !!appId">
+    <summary v-if="!flat">
       <span class="preset-name">{{ app.label }}</span>
       <a v-if="!appId && guideSlugs[app.appId]" class="preset-guide"
         :href="`/reference/shortcut-presets/${guideSlugs[app.appId]}`"
@@ -64,7 +64,7 @@ function anchor(appId: string) {
         </tr>
       </tbody>
     </table>
-  </details>
+  </component>
 </template>
 
 <style scoped>
@@ -158,12 +158,16 @@ details[open] .preset-chevron {
   transform: translateY(2px) rotate(225deg);
 }
 
-details > table {
+table {
   display: table;
-  width: calc(100% - 32px);
+  width: 100%;
   margin: 12px auto 0;
   border: 1px solid var(--vp-c-divider);
   table-layout: fixed;
+}
+
+details > table {
+  width: calc(100% - 32px);
 }
 
 table th,

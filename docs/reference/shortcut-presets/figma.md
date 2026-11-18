@@ -24,6 +24,6 @@ Start with **Duplicate**, **Frame**, and **New Component**. Duplicate a starting
 
 ## Figma shortcut reference
 
-<ShortcutPresetReference app-id="com.figma.Desktop" />
+<ShortcutPresetReference app-id="com.figma.Desktop" flat />
 
 [Browse all application shortcuts](/reference/shortcut-presets).
