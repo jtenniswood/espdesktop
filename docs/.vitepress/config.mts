@@ -27,7 +27,7 @@ const pageImages: Record<string, typeof defaultImage> = {
     'EspDesktop touchscreen with buttons for Mac apps next to a keyboard'),
   'screens/4848s040-stand.md': shareImage('4848s040-stand-printed.jpg', 1000, 1000,
     'The 3D-printed Guition 4848S040 stand with its mounting clips visible'),
-  'settings/screen.md': shareImage('web-editor-screen-settings.png', 1694, 2266,
+  'settings/screen.md': shareImage('web-editor-screen-settings.png', 1694, 2160,
     'EspDesktop Screen tab showing appearance, display, and sleep settings'),
   'settings/system.md': shareImage('web-editor-system-settings.png', 1694, 2266,
     'EspDesktop System tab showing device preferences and maintenance options'),

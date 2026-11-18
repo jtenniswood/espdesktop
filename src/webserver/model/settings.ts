@@ -1,5 +1,3 @@
-import { PANEL_SCALAR_SETTINGS } from "../generated/panel_settings";
-
 export const APP_SUBPAGE_PREFERENCE = "companion_auto_open_app_subpages";
 
 export function nativeAppSubpagePreference(settings?: Readonly<Record<string, string>>): boolean | undefined {
@@ -36,18 +34,6 @@ export function normalizeThemeMode(value: unknown): string {
   if (mode === "light") return "Light";
   if (mode === "auto" || mode === "schedule" || mode === "sun") return "Auto";
   return "Dark";
-}
-
-export function normalizeCardCurve(value: unknown): string {
-  const preset = String(value || "").trim().toLowerCase();
-  const rule = PANEL_SCALAR_SETTINGS.screen_card_curve;
-  return rule.choices.find(choice => choice.toLowerCase() === preset) ?? rule.defaultValue;
-}
-
-export function cardCurveRadius(baseRadius: number, preset: unknown, radii?: Readonly<Record<string, number>>): number {
-  const curve = normalizeCardCurve(preset);
-  if (radii?.[curve] !== undefined) return radii[curve];
-  return Math.round(baseRadius * (curve === "Small" ? .6 : curve === "Medium" ? .8 : 1));
 }
 
 export function normalizeThemeAutoMethod(value: unknown): string {
