@@ -43,11 +43,7 @@ Right-click a card to open its menu.
 
 ## Add a card
 
-1. Click the **+** in an empty spot on the grid.
-2. In **Choose Card**, pick what the card should do. For example, choose [**Applications**](/mac-controls/apps) to launch a Mac app, [**Folder**](/mac-controls/folders) to open an approved folder, or [**Key Shortcut**](/mac-controls/shortcuts) to run a keyboard shortcut.
-3. Fill in the settings for that card and select **Save**. The card appears on your touchscreen.
-
-<a href="/images/web-editor-choose-card.webp"><picture><source type="image/avif" srcset="/images/web-editor-choose-card-480.avif 480w, /images/web-editor-choose-card-960.avif 960w" sizes="(min-width: 768px) 688px, 90vw"><img src="/images/web-editor-choose-card.webp" alt="Choose Card dialog with Applications, Folder, Key Shortcut, Lock Machine, Subpage and Website options" width="1269" height="1022" loading="lazy"></picture></a>
+Select **+** in an empty spot. See [Adding a card](/features/adding-a-card) for choosing a card type and setting its name, icon, and colours.
 
 ## Create a custom subpage
 

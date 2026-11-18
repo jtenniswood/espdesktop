@@ -51,6 +51,7 @@ const softwareId = `${hostname}#software`
 const guideParents = {
   'screens/4848s040-stand.md': { name: '4848S040 setup guide', path: 'screens/4848s040.md' },
   'features/first-run.md': { name: '4848S040 setup guide', path: 'screens/4848s040.md' },
+  'features/adding-a-card.md': { name: 'Screen grid', path: 'features/home.md' },
   'features/subpages.md': { name: 'Customise the layout', path: 'features/home.md' },
   'mac-controls/apps.md': { name: 'Customise the layout', path: 'features/home.md' },
   'mac-controls/obs.md': { name: 'Customise the layout', path: 'features/home.md' },
@@ -67,6 +68,7 @@ const customiseLinks = [
   { text: 'First setup', link: '/features/first-run' },
   { text: 'Screen grid', link: '/features/home' },
   { text: 'Subpages', link: '/features/subpages' },
+  { text: 'Adding a card', link: '/features/adding-a-card' },
 ]
 
 const featureLinks = [
