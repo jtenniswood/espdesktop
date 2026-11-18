@@ -2421,8 +2421,13 @@ async function assertContextColourPicker(browser, testCase) {
       assert.strictEqual(await trigger.locator(".mdi-palette").count(), 1, `${label}: Card Colour uses the palette icon`);
       assert.strictEqual(await menu.locator(".sp-ctx-submenu.sp-ctx-colours").getByText(/^Card Colours?$/, { exact: true }).count(), 0,
         `${label}: the colour panel has no redundant title`);
-      assert(await trigger.evaluate(el => !["none", "normal", '""'].includes(getComputedStyle(el, "::after").content)),
-        `${label}: Card Colour shows a submenu chevron`);
+      assert(await trigger.evaluate(async el => {
+        const chevron = getComputedStyle(el, "::after");
+        const palette = getComputedStyle(el.querySelector(".mdi-palette"));
+        if (["none", "normal", '""'].includes(chevron.content) || chevron.fontFamily !== palette.fontFamily) return false;
+        const faces = await document.fonts.load(`${chevron.fontSize} ${chevron.fontFamily}`, chevron.content.slice(1, -1));
+        return faces.some(face => face.status === "loaded");
+      }), `${label}: the submenu chevron uses the bundled icon font`);
       assert(await menu.locator(":scope > .sp-ctx-item").count() > 0,
         `${label}: the original menu remains alongside the palette`);
       assert.strictEqual(await page.locator(".sp-settings-overlay.sp-visible").count(), 0,
