@@ -10,7 +10,7 @@ controls = (root / 'components/espdesktop/companion_controls.h').read_text()
 driver = (root / 'components/espdesktop/button_grid_numeric_selectable_driver.h').read_text()
 cough_card = (root / 'components/espdesktop/button_grid_cough.h').read_text()
 production = '\n'.join(definition(controls, name)[1] for name in (
-    'companion_render_mute', 'companion_apply_mute_state', 'companion_paint_mute_preview', 'companion_erase_mute_ref', 'companion_mute_deleted',
+    'companion_render_mic_detail', 'companion_render_mute', 'companion_apply_mute_state', 'companion_paint_mute_preview', 'companion_erase_mute_ref', 'companion_mute_deleted',
     'companion_forget_mute', 'companion_tracked_mute_control', 'companion_track_mute'))
 production += definition(driver, 'numeric_selectable_driver_cleanup')[1]
 production += '\n' + cough_card[cough_card.index('struct CoughTouch'):cough_card.index('inline bool send_cough_button_value')]
@@ -23,7 +23,7 @@ stubs = r'''
 #include <cstring>
 #include <string>
 #include <vector>
-struct lv_obj_t { bool checked=false, disabled=false; std::string text; } first, second, input_icon, output_icon;
+struct lv_obj_t { bool checked=false, disabled=false; std::string text; } first, second, input_icon, output_icon, mic_detail;
 struct lv_event_t { lv_obj_t *target; };
 constexpr int LV_EVENT_DELETE=1;
 struct CompanionMuteRef {
@@ -31,6 +31,7 @@ struct CompanionMuteRef {
   const char *icon_unmuted=nullptr, *icon_muted=nullptr;
   lv_obj_t *text_label=nullptr;
   std::string resting_label{};
+  lv_obj_t *detail_label=nullptr;
 };
 struct CompanionValue { std::string id; int value; };
 struct CompanionRuntimeSnapshot { bool connected=true; std::vector<CompanionValue> values; };
@@ -43,6 +44,11 @@ const char *lv_label_get_text(lv_obj_t *obj) { return obj->text.c_str(); }
 void lv_label_set_text(lv_obj_t *obj, const char *text) { obj->text=text; }
 std::string normalize_display_text(const char *text) { return text; }
 const char *espdesktop_i18n(const char *value) { return value; }
+const char *espdesktop_i18n_key(std::string_view key) {
+  return key == "live" ? "Live" : key == "muted" ? "Muted" : "Unavailable";
+}
+bool detail_deleted = false;
+void lv_obj_del(lv_obj_t *obj) { assert(obj == &mic_detail); detail_deleted = true; }
 struct Registry { std::vector<CompanionMuteRef> mutes; } registry;
 Registry &companion_view_registry() { return registry; }
 struct Runtime {
@@ -79,12 +85,13 @@ int main() {
   BtnSlot slot{&first};
   companion_track_mute(&first, "media.input_mute", &input_icon, "mic", "mic-off");
   companion_track_mute(&second, "media.output_mute", &output_icon, "speaker", "speaker-off");
+  registry.mutes.front().detail_label = &mic_detail;
   CompanionRuntimeSnapshot snapshot{true, {{"media.input_mute", 100}, {"media.output_mute", 0}}};
   for (const auto &ref : registry.mutes) companion_apply_mute_state(ref, snapshot);
-  assert(first.checked && !first.disabled && input_icon.text=="mic-off");
+  assert(first.checked && !first.disabled && input_icon.text=="mic-off" && mic_detail.text=="Muted");
   assert(!second.checked && !second.disabled && output_icon.text=="speaker");
   companion_paint_mute_preview("media.input_mute", 0);
-  assert(!first.checked && input_icon.text=="mic");
+  assert(!first.checked && input_icon.text=="mic" && mic_detail.text=="Live");
   assert(!second.checked && output_icon.text=="speaker");
   companion_paint_mute_preview("media.input_mute", 100);
   assert(first.checked && input_icon.text=="mic-off");
@@ -95,7 +102,7 @@ int main() {
   snapshot.connected=false;
   for (const auto &ref : registry.mutes) companion_apply_mute_state(ref, snapshot);
   assert(!first.checked && !second.checked && first.disabled && second.disabled);
-  assert(input_icon.text=="mic" && output_icon.text=="speaker");
+  assert(input_icon.text=="mic" && output_icon.text=="speaker" && mic_detail.text=="Unavailable");
   snapshot.connected=true; snapshot.values.clear();
   for (const auto &ref : registry.mutes) companion_apply_mute_state(ref, snapshot);
   assert(!first.checked && first.disabled && !second.checked && second.disabled);
@@ -103,7 +110,7 @@ int main() {
   // Cleanup runs even when the replacement uses a completely different driver.
   assert(!numeric_selectable_driver_cleanup(slot, {}, Context{false}));
   assert(registry.mutes.size()==1 && registry.mutes.front().button==&second);
-  assert(!first.checked && !first.disabled);
+  assert(!first.checked && !first.disabled && detail_deleted);
   assert(callbacks.size() == 1 && callbacks.front().first == &second);
   // Subsequent mute refreshes cannot alter the replacement card.
   for (const auto &ref : registry.mutes) ref.button->disabled=true;

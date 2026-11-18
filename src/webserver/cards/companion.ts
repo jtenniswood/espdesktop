@@ -1816,8 +1816,9 @@ export function registerCompanionCardTypes(
                 const statusIcon = sensor ? (programScene && programScene !== "Unknown" ? "Monitor" : "Monitor Off")
                     : OBS_OUTPUT_STATUS_ICONS[outputStatus]?.[virtualCamera ? 2 : record ? 0 : 1] || "Monitor Off";
                 const alias = (mode === "obs_mic" || scene || source || directTransition) && card.label;
-                const muted = mode === "obs_mic" && (cardState ? stateId === "audio_muted" : currentLabel?.startsWith("Muted · "));
-                const live = mode === "obs_mic" && currentLabel?.startsWith("Unmuted · ");
+                const mic = mode === "obs_mic";
+                const muted = mic && (cardState ? stateId === "audio_muted" : currentLabel?.startsWith("Muted · "));
+                const live = mic && (cardState ? stateId === "audio_live" : currentLabel?.startsWith("Unmuted · "));
                 const label = multiview ? card.label || "Multiview"
                     : output ? (virtualCamera ? "Virtual Camera" : record ? (outputOn ? "Recording" : "Record") : "Stream")
                     : alias || (mode === "obs_mic" ? obsInputName(currentLabel) : currentLabel) || (directTransition && card.label) || fallback[mode];
@@ -1825,7 +1826,7 @@ export function registerCompanionCardTypes(
                     ? { ...card, icon: muted ? "Microphone Off" : statusIcon } : card, helpers, {
                     label, iconFallback: companionSubtypeDefaultIcon(mode, entity), badge: COMPANION_CARD_METADATA.preview.badge,
                 });
-                if (sensor || output || scene || toggle || take || mode === "obs_transition" || brb || replay) {
+                if (mic || sensor || output || scene || toggle || take || mode === "obs_transition" || brb || replay) {
                     const status = replay && currentLabel === "Save Replay" ? "Ready"
                         : currentLabel || (replay && obsControlLabels.has("obs.status.program") ? "Start Replay Buffer" : "");
                     const [name, detail] = status.split(" · ", 2);
@@ -1834,11 +1835,12 @@ export function registerCompanionCardTypes(
                     const legacyTakeDetail = take && !stateId && detail;
                     const takeSameScene = stateId === "take_same_scene" || legacyTakeDetail === "Already on Program";
                     const defaultTitle = takeSameScene ? "Currently Live" : takeScene ? "Take " + takeScene
-                        : output || scene || directTransition ? label : fallback[mode];
+                        : mic || output || scene || directTransition ? label : fallback[mode];
                     const title = ((takeReady || takeSameScene) && card.label === "Take Live" ? "" : card.label) || defaultTitle;
                     const presentationDetail = cardState && (take || toggle || replay || brb)
                         ? presentation?.obsDetail ?? cardState.detail : undefined;
-                    const note = sensor ? programScene || "Unavailable"
+                    const note = mic ? (!unavailable && muted ? "Muted" : !unavailable && live ? "Live" : "Unavailable")
+                        : sensor ? programScene || "Unavailable"
                         : output ? outputStatus
                         : takeReady ? obsControlLabels.get(OBS_TRANSITION_ID) || ""
                         : takeSameScene || (take && (presentationDetail ?? detail) === "Transitioning") ? ""

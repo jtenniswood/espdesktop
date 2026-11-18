@@ -29,6 +29,8 @@ struct SliderCtx { lv_obj_t *fill = nullptr; };
 struct BtnSlot { lv_obj_t *btn, *sensor_container, *icon_lbl, *text_lbl; };
 struct CardPalette {};
 struct DisplayProfile {};
+const void *display_small_text_font(const DisplayProfile &) { return nullptr; }
+void companion_setup_mic_mute_detail(lv_obj_t *, const void *) {}
 struct ModalTarget {};
 constexpr int LV_EVENT_DELETE = 1;
 void *lv_obj_get_user_data(lv_obj_t *obj) { return obj->data; }
@@ -55,7 +57,7 @@ bool companion_forget_mute(lv_obj_t *) { return false; }
 void set_card_checked_state(lv_obj_t *, bool) {}
 void set_card_disabled_state(lv_obj_t *, bool) {}
 const char *find_icon(const char *name) { return name; }
-void companion_track_mute(lv_obj_t *, const std::string &key, lv_obj_t *, const char *, const char *) { assert(companion_mute_control_valid(key)); ++mute_bindings; }
+void companion_track_mute(lv_obj_t *, const std::string &key, lv_obj_t *, const char *, const char *, lv_obj_t *) { assert(companion_mute_control_valid(key)); ++mute_bindings; }
 const char *slider_icon_off(const std::string &, const std::string &, const std::string &) { return "volume"; }
 const char *slider_icon_on(const std::string &, const std::string &, const std::string &, const std::string &) { return "volume-on"; }
 bool companion_obs_level_control(const std::string &) { return false; }
@@ -104,7 +106,7 @@ int main() {
   assert(numeric_selectable_driver_bind_main(slot,config,c,palette,display));
   assert(numeric_selectable_driver_bind_subpage(slot,config,c,{}));
   assert(label.text == companion_volume_control_label(key));
-  assert(numeric_selectable_driver_refresh_layout(slot,config,c));
+  assert(numeric_selectable_driver_refresh_layout(slot,config,c,display));
   assert(numeric_selectable_driver_handle_main_click(c,config,&button));
   assert(callbacks.empty());
   assert(send_slider_action(key,42));
@@ -116,7 +118,7 @@ int main() {
   assert(numeric_selectable_driver_bind_main(slot,config,c,palette,display));
   assert(numeric_selectable_driver_bind_subpage(slot,config,c,{}));
   assert(label.text == "Mute");
-  assert(numeric_selectable_driver_refresh_layout(slot,config,c));
+  assert(numeric_selectable_driver_refresh_layout(slot,config,c,display));
   assert(numeric_selectable_driver_handle_main_click(c,config,&button));
   callbacks.back()();
   assert(commands.back() == std::make_pair(std::string(key),100));
