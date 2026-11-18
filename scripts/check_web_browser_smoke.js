@@ -8011,6 +8011,7 @@ async function assertAppleShortcutSubpage(browser, directCard = false) {
       const disclosure = subpage.getByRole("button", { name: "App Subpage", exact: true });
       if (await disclosure.getAttribute("aria-expanded") !== "true") await disclosure.click();
       await subpage.getByText("Add app subpage", { exact: true }).click();
+      assert.equal(await subpage.getByRole("button", { name: "Apple Shortcuts", exact: true }).count(), 0);
     }
     await row(workflows[21]).waitFor({ state: "attached" });
     assert.equal(await subpage.locator(".sp-light-tab-row:visible").count(), 22);

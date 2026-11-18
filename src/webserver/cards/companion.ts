@@ -848,7 +848,7 @@ export function registerCompanionCardTypes(
         const savedShortcutSubpage = state.subpages[page];
         const savedParent = previewSubpageOwner(page, state.buttons, key => state.subpages[key]);
         if (isAppleShortcutsPage(card)) {
-            renderAppleShortcutSettings(panel, card, helpers,
+            renderAppleShortcutSettings(panel, card, helpers, showAll,
                 isAppleShortcutsPage(savedParent) && savedParent?.type === card.type ? savedShortcutSubpage : undefined);
             return;
         }
@@ -900,19 +900,24 @@ export function registerCompanionCardTypes(
 
     function renderAppleShortcutSettings(panel: HTMLElement, card: any,
         helpers: { idPrefix: string; saveField: (field: string, value: unknown) => void },
-        savedPage?: typeof state.subpages[number]): void {
-        const disclosure = fields.disclosureSection(
-            "Apple Shortcuts", helpers.idPrefix + "apple-shortcuts-list", card._appleShortcutListOpen !== false,
-        );
-        disclosure.button.addEventListener("click", () => {
-            card._appleShortcutListOpen = disclosure.button.getAttribute("aria-expanded") === "true";
-        });
-        const list = disclosure.section;
+        inOwnSection: boolean, savedPage?: typeof state.subpages[number]): void {
+        const list = document.createElement("div");
+        if (inOwnSection) {
+            const disclosure = fields.disclosureSection(
+                "Apple Shortcuts", helpers.idPrefix + "apple-shortcuts-list", card._appleShortcutListOpen !== false,
+            );
+            disclosure.button.addEventListener("click", () => {
+                card._appleShortcutListOpen = disclosure.button.getAttribute("aria-expanded") === "true";
+            });
+            disclosure.section.appendChild(list);
+            panel.appendChild(disclosure.panel);
+        } else {
+            panel.appendChild(list);
+        }
         const status = document.createElement("div");
         status.className = "sp-field-info-text sp-visible";
         status.textContent = "Loading Apple Shortcuts…";
         list.appendChild(status);
-        panel.appendChild(disclosure.panel);
         function render(actions: readonly CompanionAction[]) {
             const source = savedPage ?? createAppleShortcutSubpage([], maxSlots);
             const savedSelection = appleShortcutPageTabs(savedPage);
