@@ -55,9 +55,26 @@ export default {
       const description = `Use ${app.label} keyboard shortcuts on an EspDesktop touchscreen beside your Mac. Try ${listFormatter.format(picks.map(preset => preset.label))}.`
       const starterKeys = listFormatter.format(picks.map(preset =>
         `**${markdownText(preset.label)}** (**${markdownText(displayKeys(preset.shortcut))}**)`))
-      const layout = picks.map(preset => {
-        const codepoint = icons.get(preset.icon) ?? iconCatalog.fallback.codepoint
-        return `<div class="shortcut-guide-card"><span class="shortcut-guide-glyph" data-glyph="&#x${codepoint};" aria-hidden="true"></span><span>${escapeHtml(preset.label)}</span></div>`
+      // The first slot is Back, as it is on the display's app subpages.
+      const shortcutsById = new Map(presets.map(preset => [preset.id, preset]))
+      const defaults = (app.defaultShortcutIds ?? []).flatMap(id => {
+        const preset = shortcutsById.get(id)
+        return preset ? [preset] : []
+      })
+      const returnLabel = 'Back to layout'
+      const labels = new Set([returnLabel.toLowerCase()])
+      const candidates = [...defaults, ...presets]
+      const compactLabels = candidates.filter(preset => preset.label.length <= 26)
+      const sample = [...picks, ...compactLabels, ...candidates].filter(preset => {
+        const label = preset.label.toLowerCase()
+        if (labels.has(label)) return false
+        labels.add(label)
+        return true
+      })
+      const buttons = [{ label: returnLabel, icon: 'Chevron Left' }, ...sample.slice(0, 8)]
+      const layout = buttons.map(({ label, icon }) => {
+        const codepoint = icons.get(icon) ?? iconCatalog.fallback.codepoint
+        return `<div class="shortcut-guide-card"><span class="shortcut-guide-glyph" data-glyph="&#x${codepoint};" aria-hidden="true"></span><span class="shortcut-guide-card-label">${escapeHtml(label)}</span></div>`
       }).join('\n  ')
 
       return {
