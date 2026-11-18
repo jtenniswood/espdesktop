@@ -47,14 +47,7 @@ Select **+** in an empty spot. See [Adding a card](/features/adding-a-card) for 
 
 ## Create a custom subpage
 
-Group related cards behind a single card on Home. For example, create a **Work** subpage for Slack, your calendar and a project folder.
-
-1. Click the **+** in an empty spot and choose **Subpage**.
-2. Give it a label and an icon, then select **Save**.
-3. Right-click the new card and choose **Edit Subpage**. Add, move and resize cards in its grid as you would on Home.
-4. Use the **Back** card to return to Home. On the touchscreen, tap the subpage card to open it.
-
-See how to add nested pages and organise app-specific shortcuts in the [Subpages guide](/features/subpages).
+See the [Subpages guide](/features/subpages) to create a subpage and group related cards.
 
 ### Use and customise the Back card
 
