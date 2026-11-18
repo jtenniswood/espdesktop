@@ -76,7 +76,7 @@ inline bool normalize_saved_config_static(Config &config) {
     return true;
   }
   if (config.type == "companion_obs_cough") {
-    if (config.label.empty()) config.label = "OBS Input Cough";
+    if (config.label.empty()) config.label = "Cough";
     if (config.icon == "") config.icon = "Microphone";
     if (config.icon == "Auto") config.icon = "Microphone";
     config.icon_on = "Auto";
