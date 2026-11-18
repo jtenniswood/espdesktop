@@ -94,6 +94,7 @@ inline const char *app_label(const std::string &app) {
   if (app == "com.bohemiancoding.sketch3") return "Sketch";
   if (app == "com.tinyspeck.slackmacgap") return "Slack";
   if (app == "com.spotify.client") return "Spotify";
+  if (app == "com.streamlabs.slobs") return "Streamlabs Desktop";
   if (app == "ru.keepcoder.Telegram") return "Telegram";
   if (app == "com.culturedcode.ThingsMac") return "Things 3";
   if (app == "com.todoist.mac.Todoist") return "Todoist";
@@ -181,6 +182,7 @@ inline bool has_shortcut(const std::string &app, const std::string &id) {
   if (app == "com.bohemiancoding.sketch3") return id == "0" || id == "1" || id == "2" || id == "3" || id == "4" || id == "5" || id == "6" || id == "7" || id == "8";
   if (app == "com.tinyspeck.slackmacgap") return id == "0" || id == "1" || id == "2" || id == "3" || id == "4" || id == "5" || id == "6" || id == "7" || id == "8" || id == "9";
   if (app == "com.spotify.client") return id == "0" || id == "1" || id == "2" || id == "3" || id == "4" || id == "5";
+  if (app == "com.streamlabs.slobs") return id == "0" || id == "1" || id == "2" || id == "3" || id == "4" || id == "5";
   if (app == "ru.keepcoder.Telegram") return id == "0" || id == "1" || id == "2" || id == "3" || id == "4";
   if (app == "com.culturedcode.ThingsMac") return id == "0" || id == "1" || id == "2" || id == "3" || id == "4" || id == "5" || id == "6" || id == "7";
   if (app == "com.todoist.mac.Todoist") return id == "0" || id == "1" || id == "2" || id == "3" || id == "4" || id == "5" || id == "6";

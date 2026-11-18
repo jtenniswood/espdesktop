@@ -1,0 +1,78 @@
+{
+  "version": 1,
+  "appId": "com.streamlabs.slobs",
+  "label": "Streamlabs Desktop",
+  "catalog": false,
+  "defaultShortcutIds": [
+    "0",
+    "1",
+    "2",
+    "3",
+    "4",
+    "5"
+  ],
+  "shortcuts": [
+    {
+      "id": "0",
+      "label": "Open Settings",
+      "shortcut": "command+keycomma",
+      "icon": "Settings"
+    },
+    {
+      "id": "1",
+      "label": "Undo",
+      "shortcut": "command+z",
+      "icon": "Undo"
+    },
+    {
+      "id": "2",
+      "label": "Redo",
+      "shortcut": "command+shift+z",
+      "icon": "Redo"
+    },
+    {
+      "id": "3",
+      "label": "Copy",
+      "shortcut": "command+c",
+      "icon": "Copy"
+    },
+    {
+      "id": "4",
+      "label": "Paste",
+      "shortcut": "command+v",
+      "icon": "Paste"
+    },
+    {
+      "id": "5",
+      "label": "Select All",
+      "shortcut": "command+a",
+      "icon": "Select All"
+    }
+  ],
+  "moreShortcuts": [
+    {
+      "id": "6",
+      "label": "Nudge Selection Up",
+      "shortcut": "scoped.up",
+      "icon": "Arrow Up"
+    },
+    {
+      "id": "7",
+      "label": "Nudge Selection Down",
+      "shortcut": "scoped.down",
+      "icon": "Arrow Down"
+    },
+    {
+      "id": "8",
+      "label": "Nudge Selection Left",
+      "shortcut": "scoped.left",
+      "icon": "Arrow Left"
+    },
+    {
+      "id": "9",
+      "label": "Nudge Selection Right",
+      "shortcut": "scoped.right",
+      "icon": "Arrow Right"
+    }
+  ]
+}

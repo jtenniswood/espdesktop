@@ -35,14 +35,34 @@ struct RemoteMacApplicationDefinition: Codable, Sendable, Equatable {
         page.additionalShortcuts = nil
         page.claudeShortcuts = nil
         page.safariShortcuts = nil
-        // The catalogue tests check the escaped frame sizes and the total
-        // number of pages against the panel's sync limits.
-        let pageSize = 54
-        return stride(from: 0, to: moreShortcuts.count, by: pageSize).map { offset in
-            var chunk = page
-            chunk.moreShortcuts = Array(moreShortcuts[offset..<min(offset + pageSize, moreShortcuts.count)])
-            return chunk
+        let encoder = JSONEncoder()
+        var pages: [Self] = []
+        var offset = 0
+        while offset < moreShortcuts.count {
+            var count = min(64, moreShortcuts.count - offset)
+            page.moreShortcuts = Array(moreShortcuts[offset..<(offset + count)])
+            // Fit more short entries per frame and back off for long labels
+            // or chords. A single entry always fits the validated field limits.
+            while count > 1 && !page.fitsExpandedFrame(encoder: encoder) {
+                count = max(1, count - 8)
+                page.moreShortcuts = Array(moreShortcuts[offset..<(offset + count)])
+            }
+            pages.append(page)
+            offset += count
         }
+        return pages
+    }
+
+    private func fitsExpandedFrame(encoder: JSONEncoder) -> Bool {
+        guard let data = try? encoder.encode(self), data.count <= 12_000 else { return false }
+        // Reserve space for the longest legal page and generation numbers.
+        let envelope: [String: Any] = [
+            "type": "catalogue.definitions.page", "protocol": CompanionCapabilities.protocolVersion,
+            "page": Int(UInt16.max), "generation": Int(UInt32.max), "complete": false,
+            "items": [["kind": "application", "json": String(decoding: data, as: UTF8.self)]],
+        ]
+        guard let frame = try? JSONSerialization.data(withJSONObject: envelope) else { return false }
+        return frame.count <= CompanionCapabilities.maximumTextFrameBytes
     }
 }
 

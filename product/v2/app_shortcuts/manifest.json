@@ -220,6 +220,9 @@
       "path": "spotify.json"
     },
     {
+      "path": "streamlabs-desktop.json"
+    },
+    {
       "path": "telegram.json"
     },
     {
