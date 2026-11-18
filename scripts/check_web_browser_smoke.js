@@ -2381,6 +2381,51 @@ async function assertAutomaticAppIcons(browser, testCase) {
   }
 }
 
+async function assertCardBoxSelection(page, label) {
+  const selectedSlots = () => page.locator(".sp-main .sp-btn.sp-selected").evaluateAll(cards =>
+    cards.map(card => Number(card.dataset.slot)));
+  const box = page.locator(".sp-selection-box");
+  const dragFromAbove = async (fromSlot, toSlot) => {
+    const wrap = await page.locator(".sp-wrap").boundingBox();
+    const from = await page.locator(`.sp-main [data-slot="${fromSlot}"]`).boundingBox();
+    const to = await page.locator(`.sp-main [data-slot="${toSlot}"]`).boundingBox();
+    await page.mouse.move(from.x + from.width * 0.75, wrap.y + 8);
+    await page.mouse.down();
+    await page.mouse.move(to.x + to.width * 0.25, to.y + to.height * 0.4, { steps: 8 });
+    await box.waitFor();
+  };
+
+  assert.deepStrictEqual(await selectedSlots(), [1], `${label}: starting selection`);
+  await dragFromAbove(2, 1);
+  assert.deepStrictEqual(await selectedSlots(), [1, 2], `${label}: cards highlight before release`);
+  await page.keyboard.press("Escape");
+  await page.mouse.up();
+  assert.strictEqual(await box.count(), 0);
+  assert.deepStrictEqual(await selectedSlots(), [1], `${label}: Escape restores the previous selection`);
+
+  await dragFromAbove(2, 2);
+  await page.mouse.up();
+  assert.deepStrictEqual(await selectedSlots(), [2], `${label}: drag replaces the previous selection`);
+  await page.keyboard.down("Shift");
+  await dragFromAbove(1, 1);
+  await page.mouse.up();
+  await page.keyboard.up("Shift");
+  assert.deepStrictEqual(await selectedSlots(), [1, 2], `${label}: Shift adds to the previous selection`);
+
+  const toggleKey = process.platform === "darwin" ? "Meta" : "Control";
+  await page.keyboard.down(toggleKey);
+  await dragFromAbove(1, 1);
+  await page.mouse.up();
+  await page.keyboard.up(toggleKey);
+  assert.deepStrictEqual(await selectedSlots(), [2], `${label}: Command/Ctrl toggles cards inside the box`);
+
+  await dragFromAbove(2, 1);
+  await page.mouse.up();
+  assert.deepStrictEqual(await selectedSlots(), [1, 2], `${label}: drag commits the cards within the box`);
+  assert.strictEqual(await box.count(), 0);
+  assert.strictEqual(await page.locator(".sp-selection-label").textContent(), "2 cards selected");
+}
+
 async function assertContextColourPicker(browser, testCase) {
   for (const native of [false, true]) {
     const fixture = nativeConfigState(testCase.slug);
@@ -2476,7 +2521,7 @@ async function assertContextColourPicker(browser, testCase) {
       await waitForSaved(() => !storedButton(1)?.includes("card_off_color="));
       assert(storedButton(1).includes("card_on_color=FFFFFF"));
 
-      await card(2).click({ modifiers: ["ControlOrMeta"] });
+      await assertCardBoxSelection(page, label);
       await openPicker(card(1));
       assert.strictEqual(await menu.locator('.sp-card-color-preset[aria-pressed="true"]').count(), 0,
         `${label}: mixed card backgrounds leave all presets unselected`);
@@ -8796,6 +8841,11 @@ async function assertFirstRunSetup(browser) {
   const browser = await (process.env.ESPDESKTOP_BROWSER_ENGINE === "webkit" ? webkit : chromium).launch();
   const acceptanceOnly = process.env.ESPDESKTOP_BROWSER_ACCEPTANCE_ONLY === "1";
   try {
+    if (process.env.ESPDESKTOP_CONTEXT_COLOUR_ONLY === "1") {
+      for (const testCase of ACTIVE_CASES) await assertContextColourPicker(browser, testCase);
+      console.log(`Drag selection and context colour checks passed for ${ACTIVE_CASES.length} layouts, native and legacy saves.`);
+      return;
+    }
     if (process.env.ESPDESKTOP_NAMING_ONLY === "1") {
       await assertPageTitleEvents(browser);
       await assertNamingOfflineBackups(browser);
@@ -8969,11 +9019,6 @@ async function assertFirstRunSetup(browser) {
         await assertAutomaticAppIcons(browser, testCase);
         }
       console.log("Right-click app icon sizes and chevrons passed for native and legacy configurations.");
-      return;
-    }
-    if (process.env.ESPDESKTOP_CONTEXT_COLOUR_ONLY === "1") {
-      for (const testCase of ACTIVE_CASES) await assertContextColourPicker(browser, testCase);
-      console.log(`Context colour picker browser checks passed for ${ACTIVE_CASES.length} layouts, native and legacy saves.`);
       return;
     }
     if (process.env.ESPDESKTOP_OUTLINES_ONLY === "1") {
