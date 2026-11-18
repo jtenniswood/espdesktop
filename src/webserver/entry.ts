@@ -927,6 +927,7 @@ function composeApplicationContext(liveGeneratedActions: () => readonly Companio
     () => buildHomeAssistantSettings(
       fields.makeCollapsibleCard, fields.toggleRow, settingsUi,
     ),
+    settingsUi,
   );
   let pickerHomeAssistantEnabled = connectorsPage.homeAssistantCardPickerEnabled();
   let pickerHomeAssistantConfigured = connectorsPage.homeAssistantConfigured();

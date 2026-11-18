@@ -50,7 +50,6 @@ export function createWebStyles(dragAnimation: boolean): string {
         ".sp-first-run .sp-toggle-row:has(input:disabled){opacity:.55}.sp-first-run .sp-toggle input:focus-visible+.sp-toggle-track{outline:2px solid var(--accent);outline-offset:2px}" +
         ".sp-first-run .sp-action-btn:disabled,.sp-first-run .sp-settings-close:disabled{opacity:.55;cursor:default}.sp-first-run .sp-setup-footer{flex-wrap:wrap;margin-top:0}.sp-setup-error{color:var(--danger)}" +
         ".sp-onboarding .sp-nav{display:none}" +
-        ".sp-connectors-unavailable{margin:0 2px;color:var(--text2);line-height:1.5}" +
         ".sp-connector-status{display:flex;align-items:center;gap:8px;margin:0 0 16px;color:var(--text2);font-size:.86rem}" +
         ".sp-connector-status::before{content:'';width:8px;height:8px;border-radius:50%;background:var(--text3);flex:0 0 auto}" +
         ".sp-connector-status-connected{color:var(--success)}" +
