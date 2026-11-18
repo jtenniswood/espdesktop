@@ -49,6 +49,9 @@ const author = { '@type': 'Person', name: 'jtenniswood', url: 'https://github.co
 const websiteId = `${hostname}#website`
 const softwareId = `${hostname}#software`
 const guideParents = {
+  'reference/shortcut-presets/figma.md': { name: 'Application shortcuts', path: 'reference/shortcut-presets.md' },
+  'reference/shortcut-presets/twitch.md': { name: 'Application shortcuts', path: 'reference/shortcut-presets.md' },
+  'reference/shortcut-presets/streamlabs-desktop.md': { name: 'Application shortcuts', path: 'reference/shortcut-presets.md' },
   'screens/4848s040-stand.md': { name: '4848S040 setup guide', path: 'screens/4848s040.md' },
   'features/first-run.md': { name: '4848S040 setup guide', path: 'screens/4848s040.md' },
   'features/subpages.md': { name: 'Customise the layout', path: 'features/home.md' },
