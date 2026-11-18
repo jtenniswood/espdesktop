@@ -7869,7 +7869,7 @@ async function assertAppleShortcutCard(browser) {
   const context = await browser.newContext({ viewport: testCase.viewport });
   await installRoutes(context, testCase.slug, { nativeState: fixture, connectorsStatus, nativeV2: true });
   await context.route("**/companion/actions", route => route.fulfill({
-    json: workflows,
+    json: [{ id: "com.apple.shortcuts", label: "Shortcuts" }, ...workflows],
   }));
   await mockShortcutsAppIcon(context);
   try {
@@ -7885,6 +7885,18 @@ async function assertAppleShortcutCard(browser) {
     }
     await open();
     await page.locator(".sp-main .sp-empty-cell").first().click();
+    const shortcutsGroup = page.getByRole("button", { name: "Apple Shortcuts card type", exact: true });
+    await shortcutsGroup.locator(".sp-card-type-app-icon").waitFor();
+    assert.equal(await page.getByRole("button", { name: "Run Apple Shortcut card type" }).count(), 0);
+    await shortcutsGroup.click();
+    const back = page.getByRole("button", { name: "Back to card types", exact: true });
+    assert.equal(await back.evaluate(button => button === document.activeElement), true);
+    assert.deepEqual(await page.locator("#sp-card-type-picker button").evaluateAll(
+      buttons => buttons.map(button => button.getAttribute("aria-label"))),
+      ["Create Shortcuts Subpage card type", "Run Apple Shortcut card type", "Open Shortcuts App card type"]);
+    await back.click();
+    assert.equal(await shortcutsGroup.evaluate(button => button === document.activeElement), true);
+    await shortcutsGroup.click();
     await page.getByRole("button", { name: "Run Apple Shortcut card type" })
       .locator(".sp-card-type-app-icon").waitFor();
     await chooseCardType(page, "Run Apple Shortcut");
@@ -7931,7 +7943,21 @@ async function assertAppleShortcutCard(browser) {
       "~" + replacementId + ",Stop Distractions,"
     ), "save the replacement Apple Shortcut with its label");
     await savedCard.getByText("Stop Distractions", { exact: true }).waitFor();
-    console.log("Apple Shortcut card creation, offline editing and replacement passed.");
+    await page.locator(".sp-main .sp-empty-cell").first().click();
+    await shortcutsGroup.click();
+    await chooseCardType(page, "Open Shortcuts App");
+    const application = page.getByRole("combobox", { name: "Application", exact: true });
+    await application.getByRole("option", { name: "Shortcuts", exact: true }).waitFor({ state: "attached" });
+    assert.equal(await application.inputValue(), "com.apple.shortcuts");
+    await page.getByRole("button", { name: "Save", exact: true }).click();
+    const { parseRawButtonConfig } = loadTypeScriptModule("src/webserver/model/card.ts");
+    const pinnedApp = () => Object.values(fixture.document.buttons).map(parseRawButtonConfig)
+      .find(card => card.entity === "com.apple.shortcuts");
+    await waitForNativeState(fixture, () => pinnedApp(), "save a preselected Shortcuts app card");
+    assert.equal(pinnedApp().type, "companion");
+    assert.equal(pinnedApp().sensor, "");
+    assert.doesNotMatch(pinnedApp().options, /app_shortcuts/);
+    console.log("The grouped Apple Shortcuts picker, Back button, workflow card, and pinned app passed.");
   } finally { await context.close(); }
 }
 
@@ -7975,7 +8001,8 @@ async function assertAppleShortcutSubpage(browser, directCard = false) {
       await page.locator(".sp-main .sp-empty-cell").first().click();
       await page.getByRole("button", { name: "Apple Shortcuts card type" })
         .locator(".sp-card-type-app-icon").waitFor();
-      await chooseCardType(page, "Apple Shortcuts");
+      await page.getByRole("button", { name: "Apple Shortcuts card type", exact: true }).click();
+      await chooseCardType(page, "Create Shortcuts Subpage");
     } else {
       await app.click({ button: "right" });
       await page.locator(".sp-ctx-menu").getByText("Edit Card", { exact: true }).click();

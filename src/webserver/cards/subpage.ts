@@ -361,6 +361,7 @@ export function registerSubpageCardTypes(
     });
     registry.register("companion_apple_shortcuts", {
         label: "Apple Shortcuts",
+        pickerLabel: "Create Shortcuts Subpage",
         cardMetadata: SUBPAGE_CARD_METADATA,
         runtimeSpec: registeredSubpageDefinition.runtimeSpec,
         allowInSubpage: false,

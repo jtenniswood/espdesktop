@@ -13,14 +13,14 @@ Use a **Run Apple Shortcut** card to run a workflow you created in the Mac’s *
 
 1. Create a workflow in Shortcuts and run it there to check that it works.
 2. In the EspDesktop Mac app, open **Shortcuts**. **All available shortcuts** is on by default. Choose **Manage Shortcuts** to open the Gallery in the Shortcuts app. The list updates when you return to EspDesktop.
-3. In the display’s web editor, select an empty tile, choose **Companion → Run Apple Shortcut**, select the workflow, and save.
+3. In the display’s web editor, select an empty tile, choose **Companion → Apple Shortcuts → Run Apple Shortcut**, select the workflow, and save.
 4. With your Mac unlocked, tap the tile. If the workflow asks for input or permission, respond on the Mac.
 
 To choose which workflows your displays can run, turn off **All available shortcuts** and turn on the workflows you want to allow.
 
-To open a page of workflows directly from your Home screen, add a **Companion → Apple Shortcuts** card. The editor selects up to eight workflows in alphabetical order, with one tile reserved for **Back**. Use the full list to choose and reorder the workflows you want. To edit them later, open the subpage in the web editor, right-click a tile, and choose **Apple Shortcut List**.
+To open a page of workflows directly from your Home screen, choose **Companion → Apple Shortcuts → Create Shortcuts Subpage**. The editor selects up to eight workflows in alphabetical order, with one tile reserved for **Back**. Use the full list to choose and reorder the workflows you want. To edit them later, open the subpage in the web editor, right-click a tile, and choose **Apple Shortcut List**.
 
-If you also want a card that opens the Mac app, add an **Applications** card for **Shortcuts** and turn on **Add app subpage**.
+Choose **Companion → Apple Shortcuts → Open Shortcuts App** to pin an **Applications** card with **Shortcuts** already selected. Turn on **Add app subpage** in its settings if you also want a page of workflows.
 
 When the Mac is connected, newly enabled workflows appear in any free spaces on either kind of Shortcuts subpage. Turn off a workflow in **Apple Shortcut List** to keep it off that page. Other saved tiles keep their positions.
 
