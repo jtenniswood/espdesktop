@@ -200,6 +200,14 @@ export function darkerCardColor(background: string, percent: number): string {
     Math.floor(parseInt(hex.slice(offset, offset + 2), 16) * percent / 100).toString(16).padStart(2, "0").toUpperCase()).join("");
 }
 
+export function cardSliderColors(background: string, active: string, explicitActive: boolean) {
+  const fill = cardSliderFillColor(background, explicitActive ? active : "") || active;
+  if (background && !explicitActive && cardRelativeLuminance(fill) < cardRelativeLuminance(background)) {
+    return { background: fill, fill: background };
+  }
+  return { background, fill };
+}
+
 export function cardPatternHighlightColor(background: string): string {
   const hex = background.replace(/^#/, "").toUpperCase();
   if (!/^[0-9A-F]{6}$/.test(hex)) return "";

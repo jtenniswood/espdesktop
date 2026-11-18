@@ -82,7 +82,7 @@ struct SliderCtx {
 };
 
 inline void setup_slider_visual(BtnSlot &slot, const ParsedCfg &config,
-                                uint32_t on_color, bool interactive = true);
+                                const CardPalette &palette, bool interactive = true);
 
 inline CardPadding capture_card_padding(lv_obj_t *btn) {
   CardPadding padding;
@@ -332,7 +332,7 @@ inline const char *slider_icon_on(const std::string &type, const std::string &en
   return find_icon(icon_on.c_str());
 }
 
-inline void setup_slider_visual(BtnSlot &s, const ParsedCfg &p, uint32_t on_color,
+inline void setup_slider_visual(BtnSlot &s, const ParsedCfg &p, const CardPalette &palette,
                                 bool interactive) {
   ESP_LOGI("slider", "Setup Mac volume slider for %s (%s)",
     p.entity.c_str(), p.type.c_str());
@@ -341,7 +341,8 @@ inline void setup_slider_visual(BtnSlot &s, const ParsedCfg &p, uint32_t on_colo
   const CardPadding padding = capture_card_padding(s.btn);
 
   bool horizontal = false;
-  lv_obj_t *slider = setup_slider_widget(s.btn, on_color, horizontal);
+  const auto colors = card_slider_colors(palette);
+  lv_obj_t *slider = setup_slider_widget(s.btn, colors.fill, horizontal);
   if (!slider) {
     ESP_LOGW("slider", "Slider setup failed for %s; falling back to toggle card",
       p.entity.c_str());
@@ -365,6 +366,10 @@ inline void setup_slider_visual(BtnSlot &s, const ParsedCfg &p, uint32_t on_colo
     if (s.icon_lbl) lv_obj_clear_flag(s.icon_lbl, LV_OBJ_FLAG_HIDDEN);
     if (s.sensor_container) lv_obj_add_flag(s.sensor_container, LV_OBJ_FLAG_HIDDEN);
     return;
+  }
+  if (colors.background != palette.off_val) {
+    apply_button_colors(s.btn, false, 0, true, colors.background);
+    sync_card_checked_text_color(s.btn);
   }
   // The local slider driver deletes this state with its LVGL slider.
   slider_bind_text_contrast(s.icon_lbl, fill);

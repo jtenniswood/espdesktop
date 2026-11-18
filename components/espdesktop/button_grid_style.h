@@ -48,8 +48,18 @@ struct CardPalette {
   uint32_t progress_val = DEFAULT_ACCENT_COLOR;
 };
 
-inline uint32_t card_slider_fill_color(const CardPalette &palette) {
-  if (palette.explicit_active_color) return palette.on_val;
-  return palette.custom_background ? card_slider_fill_color(palette.off_val)
-    : (palette.has_on ? palette.on_val : DEFAULT_ACCENT_COLOR);
+struct SliderCardColors {
+  uint32_t background;
+  uint32_t fill;
+};
+
+inline SliderCardColors card_slider_colors(const CardPalette &palette) {
+  if (palette.custom_background && !palette.explicit_active_color) {
+    const uint32_t shade = card_slider_fill_color(palette.off_val);
+    if (display_relative_luminance(shade) < display_relative_luminance(palette.off_val))
+      return {shade, palette.off_val};
+    return {palette.off_val, shade};
+  }
+  return {palette.off_val, palette.explicit_active_color || palette.has_on
+    ? palette.on_val : DEFAULT_ACCENT_COLOR};
 }

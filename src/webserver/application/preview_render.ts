@@ -21,7 +21,7 @@ import {
     buttonConfigDisabledForDevice as isButtonConfigDisabledForDevice,
     cardPreviewTextColor,
     cardProgressColor,
-    cardSliderFillColor,
+    cardSliderColors,
     applySliderPreviewTextContrast,
     cardPatternHighlightColor,
     cardTypePickerDetails,
@@ -602,15 +602,25 @@ export function createPreviewRenderFeature(dependencies: PreviewRenderDependenci
                     sizeClass(slotSz) +
                     (selectedGenerated || c.selected.indexOf(slot) !== -1 ? " sp-selected" : "");
                 const activeColor = cardOnColor || state.onColor || WEB_UI_COLORS.primary;
-                let contrastBackground = (typePreview?.isOn ? cardOnColor : cardOffColor) ||
+                var badgeIcon: any = b.sensor ? "gauge" : "swap-horizontal";
+                var hasWhenOn: any = !typePreview && (b.sensor || (b.icon_on && b.icon_on !== "Auto"));
+                var sensorBadge: any = hasWhenOn
+                    ? '<span class="sp-sensor-badge mdi mdi-' + badgeIcon + '"></span>'
+                    : '';
+                var labelHtml: any = previewHtmlValue(typePreview, "labelHtml", '<span class="sp-btn-label">' + escHtml(label) + '</span>');
+                var iconHtml: any = previewHtmlValue(typePreview, "iconHtml", '<span class="sp-btn-icon mdi mdi-' + iconName + '"></span>');
+                btn.innerHTML = sensorBadge + iconHtml + labelHtml;
+                const activeMode = configOptionValue(b.options, "card_active_color");
+                const customActive = configOptionValue(b.options, "card_on_color").replace(/^#/, "");
+                const explicitActive = activeMode === "theme" || (activeMode === "custom" && /^[0-9A-F]{6}$/i.test(customActive));
+                const isSlider = b.type !== "media" && btn.querySelector(".sp-slider-fill");
+                const sliderColors = isSlider ? cardSliderColors(cardOffColor, activeColor, explicitActive) : null;
+                const sliderFillColor = typePreview?.sliderMuted ? "808080" : sliderColors?.fill;
+                const offColor = sliderColors?.background ?? cardOffColor;
+                let contrastBackground = (typePreview?.isOn ? cardOnColor : offColor) ||
                     (typePreview?.sensorSurface ? previewColors.surfaceSensor : color);
                 btn.style.backgroundColor = "#" + contrastBackground;
                 btn.style.setProperty("--card-active-color", "#" + activeColor);
-                var activeMode: any = configOptionValue(b.options, "card_active_color");
-                var customActive: any = configOptionValue(b.options, "card_on_color").replace(/^#/, "");
-                var explicitActive: any = activeMode === "theme" || (activeMode === "custom" && /^[0-9A-F]{6}$/i.test(customActive));
-                var sliderFillColor: any = typePreview?.sliderMuted ? "808080"
-                    : cardSliderFillColor(cardOffColor, explicitActive ? cardOnColor : "") || cardOnColor;
                 if (sliderFillColor) btn.style.setProperty("--card-slider-fill-color", "#" + sliderFillColor);
                 btn.draggable = !isPreviewReadOnly();
                 btn.setAttribute("data-pos", pos);
@@ -618,7 +628,6 @@ export function createPreviewRenderFeature(dependencies: PreviewRenderDependenci
                     btn.dataset.generatedCard = "";
                     generatedCardElements.set(btn, { card: generated, size: slotSz || 1 });
                 } else btn.setAttribute("data-slot", slot);
-                var hasWhenOn: any = !typePreview && (b.sensor || (b.icon_on && b.icon_on !== "Auto"));
                 if (!typePreview && hasWhenOn && typeof cardOnPattern === "function" && cardOnPattern(b) === "stripes") {
                     var onColor: any = cardOnColor || (state.onColor && state.onColor.length === 6 ? state.onColor : WEB_UI_COLORS.primary);
                     contrastBackground = onColor;
@@ -630,16 +639,6 @@ export function createPreviewRenderFeature(dependencies: PreviewRenderDependenci
                     btn.style.setProperty("--card-text-color", cardOffColor || contrastBackground !== color
                         ? cardPreviewTextColor(contrastBackground) : "#" + previewColors.textPrimary);
                 }
-                var badgeIcon: any = b.sensor ? "gauge" : "swap-horizontal";
-                var sensorBadge: any = hasWhenOn
-                    ? '<span class="sp-sensor-badge mdi mdi-' + badgeIcon + '"></span>'
-                    : '';
-                var labelHtml: any = previewHtmlValue(typePreview, "labelHtml", '<span class="sp-btn-label">' + escHtml(label) + '</span>');
-                var iconHtml: any = previewHtmlValue(typePreview, "iconHtml", '<span class="sp-btn-icon mdi mdi-' + iconName + '"></span>');
-                btn.innerHTML =
-                    sensorBadge +
-                        iconHtml +
-                        labelHtml;
                 if (!dependencies.homeAssistantSupported() && cardRequiresHomeAssistant(b.type || "", b)) {
                     const warning = "Home Assistant unavailable. Saved configuration kept; replace or remove this card.";
                     btn.title = warning;
@@ -668,12 +667,12 @@ export function createPreviewRenderFeature(dependencies: PreviewRenderDependenci
                     const fallbackIcon = btn.querySelector(".sp-companion-app-icon-fallback") as HTMLElement | null;
                     const applicationId = typePreview.appIconId;
                     if (dependencies.displayDemo) btn.dataset.demoAppId = applicationId;
-                    const backgroundColor = cardOffColor || (typeof typePreview.appIconBackgroundColor === "string"
+                    const backgroundColor = offColor || (typeof typePreview.appIconBackgroundColor === "string"
                         ? typePreview.appIconBackgroundColor : "");
                     loadCardAppIcon(btn, applicationId, backgroundColor, fallbackIcon);
                 }
-                if (["light_brightness", "fan_speed", "cover", "slider", "companion_app_volume", "companion_output_volume", "companion_input_volume", "companion_input_device", "light_temperature"].indexOf(b.type) !== -1) {
-                    applySliderPreviewTextContrast(btn, cardOffColor ? cardPreviewTextColor(cardOffColor) : "#" + previewColors.textPrimary, sliderFillColor);
+                if (sliderFillColor) {
+                    applySliderPreviewTextContrast(btn, offColor ? cardPreviewTextColor(offColor) : "#" + previewColors.textPrimary, sliderFillColor);
                 }
                 if (btn.classList.contains("sp-weather-daily-card")) weatherLayout.observe(btn);
             }

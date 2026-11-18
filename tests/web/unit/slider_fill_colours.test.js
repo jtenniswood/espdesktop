@@ -3,7 +3,7 @@
 const assert = require("node:assert/strict");
 const { test } = require("node:test");
 const { loadTypescriptTest } = require("./helpers/load_typescript_test");
-const { cardSliderFillColor, cardPreviewTextColor, cardPatternHighlightColor, applySliderPreviewTextContrast } = loadTypescriptTest("src/webserver/features/preview.ts");
+const { cardSliderColors, cardSliderFillColor, cardPreviewTextColor, cardPatternHighlightColor, applySliderPreviewTextContrast } = loadTypescriptTest("src/webserver/features/preview.ts");
 const { activeCardColor } = loadTypescriptTest("src/webserver/model/config_primitives.ts");
 
 function luminance(hex) {
@@ -33,9 +33,20 @@ test("selected Theme and Custom slider fills preserve the resolved active colour
   for (const background of ["313131", "FFFFFF", "6633B9"]) {
     for (const active of ["FFFFFF", "FF8C00", "00BCD4", "000000"]) {
       assert.equal(cardSliderFillColor(background, active), active);
+      assert.deepEqual({ ...cardSliderColors(background, active, true) }, { background, fill: active });
     }
   }
   assert.equal(cardSliderFillColor("6633B9", "invalid"), "826AAA");
+});
+
+test("matching slider colours put the brighter shade in the fill", () => {
+  for (const selected of ["64AD54", "429471", "FFFFFF", "6633B9", "000000"]) {
+    const { background, fill } = cardSliderColors(selected, "FF8C00", false);
+    assert(luminance(fill) > luminance(background), selected);
+    assert([background, fill].includes(selected), selected);
+  }
+  assert.deepEqual({ ...cardSliderColors("FFFFFF", "FF8C00", false) }, { background: "BFBFBF", fill: "FFFFFF" });
+  assert.deepEqual({ ...cardSliderColors("", "FF8C00", false) }, { background: "", fill: "FF8C00" });
 });
 
 test("slider preview text changes contrast exactly where the fill crosses each label", () => {

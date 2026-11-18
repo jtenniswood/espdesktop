@@ -4392,6 +4392,22 @@ async function assertAppVolumeCard(browser) {
     await waitForNativeState(nativeState, () => Object.values(nativeState.document.buttons)
       .some(card => card.startsWith("obs.brb;") && card.endsWith(";companion")),
     "OBS BRB saves a stable action without the current break token");
+    await page.evaluate(events => window.__seedEspState(events), [
+      { id: "text-button_order", state: "1,2,3" },
+      { id: "text-button_1_config", state: "media.input_volume;Green;Microphone;Auto;;;companion_input_volume;;card_off_color=64AD54" },
+      { id: "text-button_2_config", state: "media.input_volume;White;Microphone;Auto;;;companion_input_volume;;card_off_color=FFFFFF" },
+      { id: "text-button_3_config", state: "media.input_mute;Mute;Microphone;Auto;;;companion_input_mute;;card_off_color=64AD54" },
+    ]);
+    await page.locator('.sp-main [data-slot="1"]').getByText("Green", { exact: true }).waitFor();
+    const audioColours = await page.locator(".sp-main > .sp-btn").evaluateAll(cards => cards.map(tile => {
+      const fill = tile.querySelector(".sp-slider-fill");
+      return [tile.style.backgroundColor, fill ? getComputedStyle(fill).backgroundColor : null];
+    }));
+    assert.deepEqual(audioColours, [
+      ["rgb(97, 124, 91)", "rgb(100, 173, 84)"],
+      ["rgb(191, 191, 191)", "rgb(255, 255, 255)"],
+      ["rgb(100, 173, 84)", null],
+    ]);
     console.log("Sound subtypes and guarded OBS cards passed picker and save checks.");
   } finally { await context.close(); }
 }

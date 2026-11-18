@@ -43,7 +43,7 @@ inline bool numeric_selectable_driver_setup_visual(
     setup_toggle_visual(slot, config);
     remove_button_state_transitions(slot.btn);
   } else {
-    setup_slider_visual(slot, config, card_slider_fill_color(palette),
+    setup_slider_visual(slot, config, palette,
       !companion_obs_meter_control(config.entity));
     numeric_selectable_driver_track_slider_cleanup(slot);
   }

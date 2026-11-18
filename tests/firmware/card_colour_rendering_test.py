@@ -849,7 +849,16 @@ int main() {
   defaults.on_val = 0xFF8C00;
   defaults.off_val = 0x313131;
   defaults.sensor_val = 0x212121;
-  assert(card_slider_fill_color(defaults) == defaults.on_val);
+  assert(card_slider_colors(defaults).fill == defaults.on_val);
+  assert(card_slider_colors(defaults).background == defaults.off_val);
+  for (const uint32_t rgb : {0x64AD54u, 0x429471u, 0xFFFFFFu, 0x6633B9u}) {
+    CardPalette custom = defaults;
+    custom.custom_background = true;
+    custom.off_val = rgb;
+    const auto colors = card_slider_colors(custom);
+    assert(display_relative_luminance(colors.fill) > display_relative_luminance(colors.background));
+    assert(colors.background == rgb || colors.fill == rgb);
+  }
   DisplayProfile display;
   for (const std::string type : {"", "presence", "door_window", "light_control", "fan_control", "media", "cover"}) {
     for (const std::string mode : {"matching", "theme", "custom"}) {
@@ -867,8 +876,9 @@ int main() {
             const auto palette = card_palette_for_config(defaults, config, display);
             const uint32_t expected = mode == "theme" ? accent : display_correct_color(mode == "custom" ? 0xFFFFFF : 0xA385D5, display);
             assert(palette.on_val == expected);
-            assert(card_slider_fill_color(palette) == (mode == "matching"
-              ? card_slider_fill_color(palette.off_val) : expected));
+            const auto slider = card_slider_colors(palette);
+            assert(slider.background == palette.off_val);
+            assert(slider.fill == (mode == "matching" ? card_slider_fill_color(palette.off_val) : expected));
             assert(palette.off_val == display_correct_color(0x6633B9, display));
             lv_obj_t button, label;
             button.children = {&label};
@@ -941,7 +951,8 @@ int main() {
   assert(corrected.sensor_val == 0x7F6900);
   assert(corrected.off_val == corrected.sensor_val);
   assert(corrected.on_val == 0x7F8B66);
-  assert(card_slider_fill_color(corrected) == card_slider_fill_color(corrected.off_val));
+  const auto slider = card_slider_colors(corrected);
+  assert(display_relative_luminance(slider.fill) > display_relative_luminance(slider.background));
   assert(defaults.sensor_val == 0x212121);
   const auto explicit_colour = card_palette_for_config(CardPalette{}, config, DisplayProfile{});
   assert(explicit_colour.has_on && explicit_colour.has_off && explicit_colour.has_sensor_color);
