@@ -42,7 +42,7 @@ Find these controls in **Screen → Appearance** on the [Screen settings](/setti
 
 ## App artwork
 
-Mac app artwork uses the large layout on Home and subpages. The icon fills the available card area and hides the label, including on cards that previously used a saved Small or Medium size.
+Mac app artwork fills the available card area and hides the label on Home and subpages.
 
 In the web setup preview, subpage arrows sit immediately after the label, or at
 the lower left when no label is shown. A soft shadow keeps the arrow visible
