@@ -8160,7 +8160,13 @@ async function assertOBSStarterPage(browser, firstRun = false) {
     await micTile.locator(".mdi-microphone-off").waitFor();
     const fader = page.locator(".sp-main .sp-slider-fill");
     const fillColor = () => fader.evaluate(fill => getComputedStyle(fill).backgroundColor);
-    assert.equal(await fillColor(), "rgb(128, 128, 128)");
+    const mutedFill = await fillColor();
+    const sliderUsesActiveColour = fill => fill.evaluate(element => {
+      const card = element.closest(".sp-btn");
+      return card.style.getPropertyValue("--card-slider-fill-color") ===
+        card.style.getPropertyValue("--card-active-color");
+    });
+    assert(await sliderUsesActiveColour(fader), "the muted mic slider uses its ON colour");
     await goBack();
     await editFolder("Outputs");
     const streamTile = page.locator('.sp-main [data-slot="1"]');
@@ -8229,7 +8235,7 @@ async function assertOBSStarterPage(browser, firstRun = false) {
     assert.equal(await colour(brbTile), onColor);
     await editFolder("Audio");
     await micTile.locator(".mdi-microphone").waitFor();
-    assert.notEqual(await fillColor(), "rgb(128, 128, 128)");
+    assert.equal(await fillColor(), mutedFill, "unmuting keeps the same fill colour");
     await goBack();
     await editFolder("Outputs");
     await streamTile.getByText("Live", { exact: true }).waitFor();
@@ -8286,7 +8292,8 @@ async function assertOBSStarterPage(browser, firstRun = false) {
     await automaticTiles.getByText("Desk Mic", { exact: true }).waitFor();
     assert.deepEqual(await automaticTiles.locator(".sp-btn-label").allTextContents(), ["Music", "Desk Mic"]);
     const musicTile = automaticTiles.filter({ hasText: "Music" });
-    assert.equal(await colour(musicTile.locator(".sp-slider-fill")), "rgb(128, 128, 128)");
+    assert(await sliderUsesActiveColour(musicTile.locator(".sp-slider-fill")),
+      "a muted slider on the automatic Audio page uses its ON colour");
     assert.equal(await automaticTiles.locator(".sp-slider-fill").count(), 2);
     const beforeAudioChange = fixture.puts.length;
     mixerInputs = [[desktop, "Desktop Audio"], [music, "Music"], [gameAudio, "Game Audio"]];

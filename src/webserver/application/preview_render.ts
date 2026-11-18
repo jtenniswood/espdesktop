@@ -610,8 +610,7 @@ export function createPreviewRenderFeature(dependencies: PreviewRenderDependenci
                 var iconHtml: any = previewHtmlValue(typePreview, "iconHtml", '<span class="sp-btn-icon mdi mdi-' + iconName + '"></span>');
                 btn.innerHTML = sensorBadge + iconHtml + labelHtml;
                 const isSlider = b.type !== "media" && btn.querySelector(".sp-slider-fill");
-                const sliderFillColor = typePreview?.sliderMuted ? "808080"
-                    : isSlider ? activeColor : "";
+                const sliderFillColor = isSlider ? activeColor : "";
                 let contrastBackground = (typePreview?.isOn ? cardOnColor : cardOffColor) ||
                     (typePreview?.sensorSurface ? previewColors.surfaceSensor : color);
                 btn.style.backgroundColor = "#" + contrastBackground;

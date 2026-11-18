@@ -239,11 +239,10 @@ struct CompanionCardRef {
   CompanionAction rendered_obs_action{};
 };
 struct CompanionSliderRef {
-  lv_obj_t *slider = nullptr, *icon_label = nullptr, *text_label = nullptr, *obs_fader_fill = nullptr;
-  std::string control_id, obs_cough_id, base_label;
+  lv_obj_t *slider = nullptr, *icon_label = nullptr, *text_label = nullptr;
+  std::string control_id, base_label;
   bool has_icon_on = false;
   const char *icon_off = nullptr, *icon_on = nullptr;
-  uint32_t obs_fader_live_color = 0;
 };
 constexpr int LV_ALIGN_BOTTOM_LEFT = 1, LV_ANIM_OFF = 0, LV_EVENT_VALUE_CHANGED = 21;
 const char *lv_label_get_text(lv_obj_t *label) { return label->content.c_str(); }
@@ -516,28 +515,25 @@ int main() {
     assert(!lv_obj_has_state(&tile, LV_STATE_CHECKED));
   }
   {
-    lv_obj_t slider, title, fill;
+    lv_obj_t slider, title;
     CompanionSliderRef fader;
     fader.slider = &slider;
     fader.text_label = &title;
-    fader.obs_fader_fill = &fill;
-    fader.obs_fader_live_color = 0xFF8C00;
     fader.control_id = "obs.level.11111111-1111-1111-1111-111111111111";
     fader.base_label = parse_cfg(fader.control_id + ";OBS · Desk Mic;Microphone;Auto;;;slider").label;
     assert(fader.base_label == "Desk Mic");
-    fader.obs_cough_id = "obs.cough.11111111-1111-1111-1111-111111111111";
     CompanionRuntimeSnapshot snapshot;
     snapshot.actions = {{fader.control_id, "Desk Mic"}};
-    snapshot.values = {{fader.control_id, 75}, {fader.obs_cough_id, 100}};
+    snapshot.values = {{fader.control_id, 75}, {"obs.cough.11111111-1111-1111-1111-111111111111", 100}};
     companion_render_slider(fader, snapshot);
     assert(title.content == "Desk Mic");
-    assert(fill.background[0] == 0x808080 && slider.slider_value == 75);
+    assert(slider.slider_value == 75);
     assert(!lv_obj_has_state(&slider, LV_STATE_DISABLED));
     snapshot.values[1].value = 0;
     fader.base_label = "Broadcast Mic";
     companion_render_slider(fader, snapshot);
     assert(title.content == "Broadcast Mic");
-    assert(fill.background[0] == 0xFF8C00 && slider.slider_value == 75);
+    assert(slider.slider_value == 75);
 
     snapshot.connected = false;
     companion_render_slider(fader, snapshot);

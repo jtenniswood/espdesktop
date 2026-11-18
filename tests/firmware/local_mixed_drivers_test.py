@@ -68,7 +68,7 @@ bool companion_audio_control_id(const std::string &key) {
     return key == "media.output_volume" || key == "media.input_volume" || companion_mute_control_valid(key);
 }
 void companion_track_slider(lv_obj_t *, const std::string &key, lv_obj_t *, bool, const char *, const char *,
-                            lv_obj_t *, const std::string &, lv_obj_t *) { assert(companion_volume_control_valid(key)); ++bindings; }
+                            lv_obj_t *, const std::string &) { assert(companion_volume_control_valid(key)); ++bindings; }
 std::vector<std::pair<std::string,int>> commands;
 bool companion_toggle_mute(const std::string &key) { commands.emplace_back(key,100); return true; }
 unsigned companion_next_request_number() { return 1; }
