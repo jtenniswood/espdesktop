@@ -208,6 +208,7 @@ jobs:
           compile_config() {
             config_file="$1"
             build_cache="$2"
+            local minimum_headroom="${3:-0}"
             container=$(${DOCKER} create \
               --user "$(id -u):$(id -g)" \
               -e HOME=/config \
@@ -233,12 +234,12 @@ jobs:
             set -e
             python3 scripts/report_firmware_size.py \
               --target "${config_file}" --build-root "${build_cache}" \
-              --compile-status "${status}" || status=1
+              --compile-status "${status}" --minimum-headroom-kib "${minimum_headroom}" || status=1
             cleanup_container
             trap - EXIT
             return "${status}"
           }
-          compile_config "${{ matrix.slug }}.factory.yaml" "${BUILD_CACHE}"
+          compile_config "${{ matrix.slug }}.factory.yaml" "${BUILD_CACHE}" 128
           if [ "${{ matrix.recovery }}" = "true" ]; then
             compile_config "${{ matrix.slug }}.recovery.yaml" "${RECOVERY_BUILD_CACHE}"
           fi

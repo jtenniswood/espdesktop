@@ -1,3 +1,21 @@
+import type { AppShortcutApplication } from '../../src/webserver/generated/app_shortcuts'
+
+export function shortcutCatalogue(definitions: AppShortcutApplication[]) {
+  return definitions
+    .toSorted((first, second) => first.label.localeCompare(second.label) || first.appId.localeCompare(second.appId))
+    .map(app => ({
+      ...app,
+      shortcuts: [
+        ...(app.extendedShortcuts ?? []),
+        ...app.shortcuts,
+        ...(app.safariShortcuts ?? []),
+        ...(app.additionalShortcuts ?? []),
+        ...(app.claudeShortcuts ?? []),
+        ...(app.moreShortcuts ?? []),
+      ],
+    }))
+}
+
 const keyLabels: Record<string, string> = {
   command: 'Command', control: 'Control', option: 'Option',
   shift: 'Shift', function: 'Fn', keycomma: ',', keyperiod: '.', keyslash: '/',

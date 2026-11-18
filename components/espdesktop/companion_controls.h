@@ -345,7 +345,8 @@ inline bool companion_writable_value_control_valid(const std::string &control_id
 inline const char *companion_volume_control_label(const std::string &control_id) {
   if (control_id == "media.output_volume") return espdesktop_i18n("Volume");
   if (control_id == "media.input_volume") return espdesktop_i18n("Mic");
-  if (companion_mute_control_valid(control_id)) return espdesktop_i18n("Mute");
+  if (control_id == "media.input_mute") return espdesktop_i18n_key("input_state");
+  if (control_id == "media.output_mute") return espdesktop_i18n("Mute");
   return espdesktop_i18n("Volume");
 }
 
@@ -797,11 +798,7 @@ inline std::string companion_obs_control_label(const std::string &action_id, con
   }
   if (!alias.empty() && (companion_obs_scene_card(action_id) || companion_obs_transition_target(action_id) ||
       companion_obs_source_target(action_id) || companion_obs_audio_uuid(action_id, "obs.mute."))) return alias;
-  if (companion_obs_audio_uuid(action_id, "obs.mute.")) {
-    for (std::string_view prefix : {"Muted · ", "Unmuted · "}) {
-      if (live_label.compare(0, prefix.size(), prefix) == 0) return live_label.substr(prefix.size());
-    }
-  }
+  if (companion_obs_audio_uuid(action_id, "obs.mute.")) return espdesktop_i18n_key("input_state");
   return live_label;
 }
 
@@ -931,6 +928,7 @@ struct CompanionMuteRef {
   const char *icon_muted = nullptr;
   lv_obj_t *text_label = nullptr;
   std::string resting_label{};
+  lv_obj_t *detail_label = nullptr;
 };
 
 struct CompanionViewRegistry {
@@ -1024,6 +1022,29 @@ inline void companion_track_slider(lv_obj_t *slider, const std::string &control_
   companion_request_card_refresh();
 }
 
+inline lv_obj_t *companion_create_card_detail(lv_obj_t *button) {
+  auto *detail = lv_label_create(button);
+  lv_obj_set_width(detail, lv_pct(100));
+  lv_label_set_long_mode(detail, LV_LABEL_LONG_DOT);
+  lv_obj_set_style_text_opa(detail, LV_OPA_80, LV_PART_MAIN);
+  return detail;
+}
+
+inline void companion_layout_mic_detail(lv_obj_t *title, lv_obj_t *detail) {
+  const auto *font = lv_obj_get_style_text_font(detail, LV_PART_MAIN);
+  const int height = lv_font_get_line_height(font);
+  lv_obj_set_height(detail, height);
+  lv_obj_align(detail, LV_ALIGN_BOTTOM_LEFT, 0, 0);
+  lv_obj_align(title, LV_ALIGN_BOTTOM_LEFT, 0, -height - 2);
+}
+
+inline void companion_render_mic_detail(lv_obj_t *detail, bool available, bool muted) {
+  if (!detail || !lv_obj_is_valid(detail)) return;
+  const auto label = normalize_display_text(espdesktop_i18n_key(
+    !available ? "unavailable" : muted ? "muted" : "live"));
+  if (label != lv_label_get_text(detail)) lv_label_set_text(detail, label.c_str());
+}
+
 inline void companion_render_mute(const CompanionMuteRef &ref, bool muted, bool checked) {
   if (lv_obj_has_state(ref.button, LV_STATE_CHECKED) != checked)
     set_card_checked_state(ref.button, checked);
@@ -1033,14 +1054,28 @@ inline void companion_render_mute(const CompanionMuteRef &ref, bool muted, bool 
     lv_label_set_text(ref.icon_label, icon);
 }
 
+inline OBSCardState companion_obs_mute_state(const CompanionAction *action) {
+  if (!action || action->obs_available == false) return OBSCardState::unknown;
+  if (action->obs_state != OBSCardState::unknown) return action->obs_state;
+  if (action->label.rfind("Muted · ", 0) == 0) return OBSCardState::audio_muted;
+  if (action->label.rfind("Unmuted · ", 0) == 0) return OBSCardState::audio_live;
+  return OBSCardState::unknown;
+}
+
 inline void companion_render_obs_mute(const CompanionCardRef &ref, const CompanionRuntimeSnapshot &snapshot) {
   if (!ref.obs_mute_icon_label) return;
-  const auto *action = companion_published_action(snapshot, ref.action_id);
-  const bool typed = action && action->obs_state != OBSCardState::unknown;
-  const bool muted = action && (typed ? action->obs_state == OBSCardState::audio_muted : action->label.rfind("Muted · ", 0) == 0);
-  const bool live = action && (typed ? action->obs_state == OBSCardState::audio_live : action->label.rfind("Unmuted · ", 0) == 0);
+  const auto state = companion_obs_mute_state(
+    snapshot.connected ? companion_published_action(snapshot, ref.action_id) : nullptr);
+  const bool muted = state == OBSCardState::audio_muted;
+  const bool live = state == OBSCardState::audio_live;
   companion_render_mute({ref.button, ref.action_id, ref.obs_mute_icon_label, ref.obs_mute_icon_off,
                          ref.obs_mute_icon_on}, muted, live);
+}
+
+inline void companion_render_value_mute(const CompanionMuteRef &ref, bool available, bool muted) {
+  const bool microphone = ref.control_id == "media.input_mute";
+  companion_render_mute(ref, muted, available && (microphone ? !muted : muted));
+  companion_render_mic_detail(ref.detail_label, available, muted);
 }
 
 inline void companion_apply_mute_state(const CompanionMuteRef &ref,
@@ -1051,7 +1086,7 @@ inline void companion_apply_mute_state(const CompanionMuteRef &ref,
   const bool muted = available && companion_runtime_service().displayed_mute_value(ref.control_id, value->value) > 0;
   if (lv_obj_has_state(ref.button, LV_STATE_DISABLED) == available)
     set_card_disabled_state(ref.button, !available);
-  companion_render_mute(ref, muted, muted);
+  companion_render_value_mute(ref, available, muted);
   if (companion_obs_cough_control(ref.control_id) && ref.text_label && lv_obj_is_valid(ref.text_label)) {
     const auto label = muted ? normalize_display_text(espdesktop_i18n("Muted")) : ref.resting_label;
     if (label != lv_label_get_text(ref.text_label)) lv_label_set_text(ref.text_label, label.c_str());
@@ -1061,8 +1096,9 @@ inline void companion_apply_mute_state(const CompanionMuteRef &ref,
 inline void companion_paint_mute_preview(const std::string &control, int value) {
   for (const auto &ref : companion_view_registry().mutes) {
     if (ref.control_id == control && lv_obj_is_valid(ref.button) &&
-        !lv_obj_has_state(ref.button, LV_STATE_DISABLED))
-      companion_render_mute(ref, value > 0, value > 0);
+        !lv_obj_has_state(ref.button, LV_STATE_DISABLED)) {
+      companion_render_value_mute(ref, true, value > 0);
+    }
   }
 }
 
@@ -1080,6 +1116,11 @@ inline void companion_mute_deleted(lv_event_t *event) {
 }
 
 inline bool companion_forget_mute(lv_obj_t *button) {
+  for (const auto &ref : companion_view_registry().mutes) {
+    if (ref.button != button) continue;
+    if (ref.detail_label && lv_obj_is_valid(ref.detail_label)) lv_obj_del(ref.detail_label);
+    break;
+  }
   if (!companion_erase_mute_ref(button)) return false;
   lv_obj_remove_event_cb(button, companion_mute_deleted);
   return true;
@@ -1107,6 +1148,21 @@ inline void companion_track_mute(lv_obj_t *button, const std::string &control_id
      text_label ? lv_label_get_text(text_label) : ""});
   lv_obj_add_event_cb(button, companion_mute_deleted, LV_EVENT_DELETE, nullptr);
   companion_request_card_refresh();
+}
+
+inline void companion_setup_mic_mute_detail(lv_obj_t *button, const lv_font_t *font) {
+  for (auto &ref : companion_view_registry().mutes) {
+    if (ref.button != button || !ref.text_label) continue;
+    if (!ref.detail_label) {
+      ref.detail_label = companion_create_card_detail(button);
+      companion_apply_mute_state(ref, companion_runtime_snapshot());
+      set_card_content_disabled(button, lv_obj_has_state(button, LV_STATE_DISABLED));
+      sync_card_checked_text_color(button);
+    }
+    if (font) lv_obj_set_style_text_font(ref.detail_label, font, LV_PART_MAIN);
+    companion_layout_mic_detail(ref.text_label, ref.detail_label);
+    return;
+  }
 }
 
 inline void companion_track_card(lv_obj_t *button, const std::string &action_id,
@@ -1194,6 +1250,17 @@ inline bool companion_obs_scene_on_program(const CompanionRuntimeSnapshot &snaps
 inline void companion_render_obs_detail(CompanionCardRef &ref, const std::string &label,
                                         const CompanionRuntimeSnapshot &snapshot, bool refreshing = false) {
   if (!ref.obs_detail || !lv_obj_is_valid(ref.obs_detail) || !ref.text_label) return;
+  if (companion_obs_audio_uuid(ref.action_id, "obs.mute.")) {
+    if (normalize_display_text(label) != lv_label_get_text(ref.text_label))
+      lv_label_set_display_text(ref.text_label, label.c_str());
+    const auto *action = companion_published_action(snapshot, ref.action_id);
+    const auto state = companion_obs_mute_state(action);
+    const bool muted = state == OBSCardState::audio_muted;
+    companion_render_mic_detail(ref.obs_detail, snapshot.connected &&
+      (muted || state == OBSCardState::audio_live), muted);
+    if (!refreshing) companion_layout_mic_detail(ref.text_label, ref.obs_detail);
+    return;
+  }
   const std::string separator = " · ";
   const auto split = label.find(separator);
   const bool take = ref.action_id == "obs.take";
@@ -1303,12 +1370,7 @@ inline void companion_update_obs_detail_contrast(const CompanionCardRef &ref, bo
 inline void companion_setup_obs_detail(lv_obj_t *button, const lv_font_t *font, lv_obj_t *state_icon = nullptr) {
   for (auto &ref : companion_card_refs()) {
     if (ref.button != button) continue;
-    if (!ref.obs_detail) {
-      ref.obs_detail = lv_label_create(button);
-      lv_obj_set_width(ref.obs_detail, lv_pct(100));
-      lv_label_set_long_mode(ref.obs_detail, LV_LABEL_LONG_DOT);
-      lv_obj_set_style_text_opa(ref.obs_detail, LV_OPA_80, LV_PART_MAIN);
-    }
+    if (!ref.obs_detail) ref.obs_detail = companion_create_card_detail(button);
     ref.obs_state_icon = state_icon;
     if (font) lv_obj_set_style_text_font(ref.obs_detail, font, LV_PART_MAIN);
     if (ref.action_id == "obs.take" || companion_obs_scene_card(ref.action_id)) {
@@ -1318,7 +1380,7 @@ inline void companion_setup_obs_detail(lv_obj_t *button, const lv_font_t *font, 
     const auto snapshot = companion_runtime_snapshot();
     const auto live = companion_default_action_label(ref.action_id, "", &snapshot);
     const std::string label = companion_obs_scene_card(ref.action_id) ? lv_label_get_text(ref.text_label)
-      : companion_obs_control_label(ref.action_id, "", live, &snapshot);
+      : companion_obs_control_label(ref.action_id, ref.obs_label_alias, live, &snapshot);
     companion_render_obs_detail(ref, label, snapshot);
     companion_update_obs_detail_contrast(ref, companion_obs_keep_content_bright(snapshot, ref.action_id));
     return;
@@ -1540,6 +1602,7 @@ inline void companion_track_card(void *, const std::string &, const std::string 
 inline void companion_track_metric_card(void *, void *, void *, const std::string &,
                                         const std::string &, int) {}
 inline void companion_setup_obs_detail(void *, const void *, void * = nullptr) {}
+inline void companion_setup_mic_mute_detail(void *, const void *) {}
 inline void companion_apply_card_focus(void *, const std::string &, const std::string & = "", bool = true) {}
 inline bool companion_forget_mute(void *) { return false; }
 inline void companion_track_mute(void *, const std::string &, void * = nullptr,
@@ -1701,6 +1764,59 @@ inline std::string companion_json_escape(const std::string &value) {
   return result;
 }
 
+inline void companion_send_shortcut_catalogue_page(httpd_req_t *req) {
+  char query[128] = {};
+  char app_id[97] = {};
+  char page_text[3] = {};
+  if (httpd_req_get_url_query_str(req, query, sizeof(query)) != ESP_OK ||
+      httpd_query_key_value(query, "appId", app_id, sizeof(app_id)) != ESP_OK ||
+      (std::strcmp(app_id, "index") != 0 && !companion_shortcut_app_id_valid(app_id)) ||
+      httpd_query_key_value(query, "page", page_text, sizeof(page_text)) != ESP_OK ||
+      !page_text[0] || !std::all_of(page_text, page_text + std::strlen(page_text),
+                                  [](char digit) { return digit >= '0' && digit <= '9'; })) {
+    httpd_resp_send_err(req, HTTPD_400_BAD_REQUEST, "Invalid shortcut catalogue page");
+    return;
+  }
+  const uint32_t page = static_cast<uint32_t>(std::atoi(page_text));
+  if (page > 31) {
+    httpd_resp_send_err(req, HTTPD_400_BAD_REQUEST, "Invalid shortcut catalogue page");
+    return;
+  }
+  auto &runtime = companion_runtime_service();
+  auto result = runtime.shortcut_catalogue.read(app_id, page, esphome::millis());
+  using Status = CompanionShortcutCatalogue::Status;
+  httpd_resp_set_hdr(req, "Cache-Control", "no-store");
+  switch (result.status) {
+    case Status::unavailable:
+      httpd_resp_set_status(req, "404 Not Found");
+      break;
+    case Status::request:
+      if (!runtime.shortcut_catalogue_sender ||
+          !runtime.shortcut_catalogue_sender(result.request_id, app_id, page)) {
+        runtime.shortcut_catalogue.cancel(result.request_id);
+        httpd_resp_set_status(req, "503 Service Unavailable");
+        break;
+      }
+      [[fallthrough]];
+    case Status::pending:
+      httpd_resp_set_status(req, "202 Accepted");
+      break;
+    case Status::ready: {
+      if (result.page.json.empty()) {
+        httpd_resp_set_status(req, "204 No Content");
+        break;
+      }
+      const std::string json = "{\"catalogueVersion\":" + std::to_string(result.page.version) +
+          ",\"page\":" + std::to_string(page) + ",\"complete\":" +
+          (result.page.complete ? "true" : "false") + ",\"application\":" + result.page.json + "}";
+      httpd_resp_set_type(req, "application/json");
+      httpd_resp_send(req, json.c_str(), json.size());
+      return;
+    }
+  }
+  httpd_resp_send(req, "", 0);
+}
+
 class CompanionActionsHandler : public esphome::web_server_idf::AsyncWebHandler {
  public:
   bool canHandle(esphome::web_server_idf::AsyncWebServerRequest *request) const override {
@@ -1708,7 +1824,7 @@ class CompanionActionsHandler : public esphome::web_server_idf::AsyncWebHandler 
     char url_buf[esphome::web_server_idf::AsyncWebServerRequest::URL_BUF_SIZE];
     const auto url = request->url_to(url_buf);
     return url == "/companion/actions" || url == "/companion/networks" ||
-           url == "/companion/definitions";
+           url == "/companion/definitions" || url == "/companion/shortcut-page";
   }
 
   void handleRequest(esphome::web_server_idf::AsyncWebServerRequest *request) override {
@@ -1717,6 +1833,10 @@ class CompanionActionsHandler : public esphome::web_server_idf::AsyncWebHandler 
     bool first = true;
     char url_buf[esphome::web_server_idf::AsyncWebServerRequest::URL_BUF_SIZE];
     const std::string requested_url = request->url_to(url_buf);
+    if (requested_url == "/companion/shortcut-page") {
+      companion_send_shortcut_catalogue_page(*request);
+      return;
+    }
     const bool networks = requested_url == "/companion/networks";
     const bool definitions = requested_url == "/companion/definitions";
     auto &runtime = companion_runtime_service();

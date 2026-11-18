@@ -1,8 +1,8 @@
-import { COMPANION_SHORTCUT_APPS } from '../../../src/webserver/generated/app_shortcuts'
-import { bundledExpandedShortcuts } from '../../../src/webserver/application/companion_shortcut_data'
+import { readdirSync, readFileSync } from 'node:fs'
+import type { AppShortcutApplication } from '../../../src/webserver/generated/app_shortcuts'
 import iconCatalog from '../../../product/v2/icons.json'
 import guides from '../../.vitepress/shortcut-guides.json'
-import { displayKeys } from '../../.vitepress/shortcut-format'
+import { displayKeys, shortcutCatalogue } from '../../.vitepress/shortcut-format'
 
 type Guide = {
   appId: string
@@ -13,7 +13,11 @@ type Guide = {
 }
 
 const copy = Object.entries(guides as Record<string, Guide>)
-const apps = new Map(COMPANION_SHORTCUT_APPS.map(app => [app.appId, app]))
+const sourceDir = new URL('../../../product/v2/app_shortcuts/', import.meta.url)
+const definitions = readdirSync(sourceDir)
+  .filter(name => name.endsWith('.json') && name !== 'manifest.json')
+  .map(name => JSON.parse(readFileSync(new URL(name, sourceDir), 'utf8')) as AppShortcutApplication)
+const apps = new Map(shortcutCatalogue(definitions).map(app => [app.appId, app]))
 const icons = new Map(iconCatalog.icons.map(icon => [icon.name, icon.codepoint]))
 const listFormatter = new Intl.ListFormat('en-GB', { type: 'conjunction' })
 
@@ -43,7 +47,7 @@ export default {
         throw new Error(`Missing workflow, starter shortcuts, or tip for ${app.label}`)
       }
 
-      const presets = [...app.shortcuts, ...bundledExpandedShortcuts(app.appId)]
+      const presets = app.shortcuts
       const picks = guide.shortcuts.map(label => {
         const preset = presets.find(candidate => candidate.label === label)
         if (!preset) throw new Error(`Unknown shortcut for ${app.label}: ${label}`)

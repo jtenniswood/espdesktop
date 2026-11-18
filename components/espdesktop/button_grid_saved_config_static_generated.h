@@ -51,8 +51,10 @@ inline bool normalize_saved_config_static(Config &config) {
   }
   if (config.type == "companion_input_mute") {
     config.entity = "media.input_mute";
-    if (config.label == "") config.label = "Mute";
-    if (config.label == "Input Mute") config.label = "Mute";
+    if (config.label == "") config.label = "Input State";
+    if (config.label == "Mute") config.label = "Input State";
+    if (config.label == "Input Mute") config.label = "Input State";
+    if (config.label == "Microphone Mute") config.label = "Input State";
     if (config.icon.empty()) config.icon = "Microphone";
     config.icon_on = "Auto";
     config.sensor.clear();

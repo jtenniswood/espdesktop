@@ -39,6 +39,7 @@ import {
     COMPANION_SHORTCUT_PREFIX,
     COMPANION_SHORTCUT_PRESET_OPTION,
     companionShortcutCatalogApps,
+    companionShortcutDefaultTabs,
     companionShortcutPresetCards,
     companionAppShortcutFolderEnabled,
     companionShortcutActionIdValid,
@@ -56,6 +57,7 @@ import {
     companionShortcutTabsFitSubpage,
     companionShortcutTabsFromSubpage,
     replaceCompanionDefinitions,
+    applyCompanionShortcutApplication,
     finderFolderTabs,
     reconnectAthenaShortcutSubpage,
     syncFinderFolderSelection,
@@ -161,12 +163,16 @@ export function companionShortcutCatalogSelection(card: any) {
     const options = withoutCardColorOptions(card?.options);
     const marker = configOptionValue(options, COMPANION_SHORTCUT_PRESET_OPTION);
     const separator = marker.lastIndexOf(":");
-    if (separator < 0) return undefined;
+    if (separator < 0 || !/^(0|[1-9][0-9]{0,2})$/.test(marker.slice(separator + 1))) return undefined;
     const appId = marker.slice(0, separator);
     if (!companionShortcutCatalogApps({ savedAppId: appId }).some((app) => app.appId === appId)) return undefined;
     const preset = companionShortcutPresetCards(appId).find((preset) =>
         preset.entity === card?.entity && preset.options === options);
-    return preset ? { ...preset, appId } : undefined;
+    if (preset) return { ...preset, appId };
+    // A saved card includes the actual keys, even when its preset is offline or has changed.
+    if (!companionShortcutActionIdValid(card?.entity)) return undefined;
+    return { appId, entity: card.entity, label: card.label || "Saved shortcut",
+        icon: card.icon || "Shortcut Command", options };
 }
 
 export function companionUrlConfig(rawValue: string): string {
@@ -817,20 +823,29 @@ export function registerCompanionCardTypes(
         card.icon = companionSubtypeDefaultIcon(mode);
     }
 
+    function loadAppShortcuts(appId: string, panel: HTMLElement): void {
+        void catalogue.loadShortcutApplication(appId).then(app => {
+            if (app && applyCompanionShortcutApplication(app) && panel.isConnected) renderButtonSettings();
+        });
+    }
+
     function renderAppShortcutSettings(panel: HTMLElement, card: any, page: number,
         helpers: { idPrefix: string; saveField: (field: string, value: unknown) => void }, showAll = false): void {
+        loadAppShortcuts(card.entity, panel);
         const savedShortcutSubpage = state.subpages[page];
         const savedParent = previewSubpageOwner(page, state.buttons, key => state.subpages[key]);
         if (savedShortcutSubpage &&
-            companionShortcutSelectionMatchesSavedParent(card, savedParent) &&
+            (companionShortcutSelectionMatchesSavedParent(card, savedParent) ||
+                (!!appShortcutPageOwner(card) && appShortcutPageOwner(card) === appShortcutPageOwner(savedParent))) &&
             card._appShortcutSelectionChanged !== true) {
             setCompanionShortcutTabs(
                 card,
                 companionShortcutTabsFromSubpage(card.entity, savedShortcutSubpage),
+                savedShortcutSubpage,
             );
         }
         modalTabs.renderModalTabSettings(panel, card, helpers, {
-            definitions: function () { return companionShortcutTabDefinitions(card.entity); },
+            definitions: function () { return companionShortcutTabDefinitions(card.entity, savedShortcutSubpage); },
             searchPlaceholder: "Find a shortcut…",
             showAll,
             dragOnly: true,
@@ -849,7 +864,7 @@ export function registerCompanionCardTypes(
                     return false;
                 }
                 delete button._appShortcutCapacityRejected;
-                setCompanionShortcutTabs(button, tabs);
+                setCompanionShortcutTabs(button, tabs, candidate);
                 button._appShortcutSelectionChanged = true;
                 return true;
             },
@@ -1269,8 +1284,14 @@ export function registerCompanionCardTypes(
             if (catalogApp.value) catalogField.appendChild(catalogShortcutField);
             shortcutPanel.section.appendChild(catalogField);
 
-            const presets = initialMode === "shortcut" && shortcutType === "catalog" && catalogApp.value
-                ? sortCompanionLabels(companionShortcutPresetCards(catalogApp.value)) : [];
+            if (initialMode === "shortcut" && shortcutType === "catalog" && catalogApp.value && panel) {
+                loadAppShortcuts(catalogApp.value, panel);
+            }
+            const options = initialMode === "shortcut" && shortcutType === "catalog" && catalogApp.value
+                ? companionShortcutPresetCards(catalogApp.value) : [];
+            const presets = sortCompanionLabels(savedCatalogShortcut?.appId === catalogApp.value &&
+                !options.some(item => item.options === savedCatalogShortcut.options && item.entity === savedCatalogShortcut.entity)
+                ? [...options.filter(item => item.options !== savedCatalogShortcut.options), savedCatalogShortcut] : options);
             const choices = presets.map((preset, index) => {
                 const row = document.createElement("label");
                 row.className = "sp-light-tab-row";
@@ -1425,13 +1446,18 @@ export function registerCompanionCardTypes(
             const folderToggle = helpers.toggleRow(
                 "Add app subpage",
                 helpers.idPrefix + "companion-app-shortcuts",
-                canAddSubpage && companionAppShortcutFolderEnabled(card),
+                canAddSubpage && !!appShortcutPageOwner(card),
             );
+            const needsStarter = initialMode === "app" && !!companionShortcutFolderAppLabel(card.entity) &&
+                card.entity !== "com.apple.finder" && companionShortcutDefaultTabs(card.entity).length === 0;
+            if (needsStarter && panel) loadAppShortcuts(card.entity, panel);
+            if (needsStarter && !folderToggle.input.checked) folderToggle.input.disabled = true;
             shortcutFolderField.appendChild(folderToggle.row);
             const shortcutFolderNote = document.createElement("div");
             shortcutFolderNote.className = "sp-field-info-text";
-            const shortcutFolderApp = companionShortcutFolderAppLabel(card.entity);
-            shortcutFolderNote.textContent = card.entity === "com.apple.finder"
+            const shortcutFolderApp = companionShortcutFolderAppLabel(card.entity) || card.label || card.entity;
+            shortcutFolderNote.textContent = needsStarter ? "Connect Mac Companion to load this app’s shortcuts."
+                : card.entity === "com.apple.finder"
                 ? "Folders approved on your Mac appear in free cells. Pin a folder to keep it on the board and edit its name or position."
                 : "Launch " + shortcutFolderApp +
                 ", then open an editable subpage. It starts with " + shortcutFolderApp + " keyboard shortcuts.";
@@ -1532,7 +1558,7 @@ export function registerCompanionCardTypes(
                 finderFolderList.className = "sp-app-subpage-folder-list";
                 appSubpageDisclosure.section.appendChild(finderFolderList);
             }
-            if (subpageKey && companionAppShortcutFolderEnabled(card) && card.entity !== "com.apple.finder") {
+            if (subpageKey && appShortcutPageOwner(card) && card.entity !== "com.apple.finder") {
                 const shortcutOptionsDivider = document.createElement("div");
                 shortcutOptionsDivider.className = "sp-app-subpage-options-divider";
                 appSubpageDisclosure.section.appendChild(shortcutOptionsDivider);
@@ -1547,7 +1573,7 @@ export function registerCompanionCardTypes(
                 urlField.style.display = mode === "url" ? "" : "none";
                 urlBehaviorField.style.display = urlField.style.display;
                 appSubpageDisclosure.panel.style.display = canAddSubpage && mode === "app" &&
-                    !!companionShortcutFolderAppLabel(card.entity) ? "" : "none";
+                    (appShortcutPageOwner(card) || !!companionShortcutFolderAppLabel(card.entity)) ? "" : "none";
                 finderOpenBehaviorField.style.display = canAddSubpage && mode === "app" &&
                     card.entity === "com.apple.finder" && companionAppShortcutFolderEnabled(card) ? "" : "none";
                 advancedFolderSettings.panel.style.display = mode === "folder" ? "" : "none";
@@ -1690,7 +1716,7 @@ export function registerCompanionCardTypes(
                 const reconnected = reconnectAthenaShortcutSubpage(
                     savedShortcutSubpage ?? undefined, savedParent?.entity, card.entity);
                 if (reconnected) {
-                    setCompanionShortcutTabs(card, companionShortcutTabsFromSubpage(card.entity, reconnected));
+                    setCompanionShortcutTabs(card, companionShortcutTabsFromSubpage(card.entity, reconnected), reconnected);
                 } else {
                     resetCompanionShortcutTabs(card);
                 }
@@ -1773,7 +1799,7 @@ export function registerCompanionCardTypes(
             if (mode === "obs" || mode === "obs_mic" || mode === "obs_take" || mode === "obs_transition" || mode === "obs_status" || mode === "obs_replay" || mode === "obs_replay_buffer" || mode === "obs_output" || mode === "obs_brb" || mode === "obs_studio") {
                 const fallback = {
                     obs: "OBS Scene",
-                    obs_mic: "OBS Mic Mute",
+                    obs_mic: "Input State",
                     obs_take: "Take Live",
                     obs_transition: "Transition",
                     obs_studio: "Studio Mode",
@@ -1816,16 +1842,17 @@ export function registerCompanionCardTypes(
                 const statusIcon = sensor ? (programScene && programScene !== "Unknown" ? "Monitor" : "Monitor Off")
                     : OBS_OUTPUT_STATUS_ICONS[outputStatus]?.[virtualCamera ? 2 : record ? 0 : 1] || "Monitor Off";
                 const alias = (mode === "obs_mic" || scene || source || directTransition) && card.label;
-                const muted = mode === "obs_mic" && (cardState ? stateId === "audio_muted" : currentLabel?.startsWith("Muted · "));
-                const live = mode === "obs_mic" && currentLabel?.startsWith("Unmuted · ");
+                const mic = mode === "obs_mic";
+                const muted = mic && (cardState ? stateId === "audio_muted" : currentLabel?.startsWith("Muted · "));
+                const live = mic && (cardState ? stateId === "audio_live" : currentLabel?.startsWith("Unmuted · "));
                 const label = multiview ? card.label || "Multiview"
                     : output ? (virtualCamera ? "Virtual Camera" : record ? (outputOn ? "Recording" : "Record") : "Stream")
-                    : alias || (mode === "obs_mic" ? obsInputName(currentLabel) : currentLabel) || (directTransition && card.label) || fallback[mode];
+                    : alias || (!mic && currentLabel) || (directTransition && card.label) || fallback[mode];
                 const preview = cardBadgePreview(sensor || automaticOutputIcon || muted
                     ? { ...card, icon: muted ? "Microphone Off" : statusIcon } : card, helpers, {
                     label, iconFallback: companionSubtypeDefaultIcon(mode, entity), badge: COMPANION_CARD_METADATA.preview.badge,
                 });
-                if (sensor || output || scene || toggle || take || mode === "obs_transition" || brb || replay) {
+                if (mic || sensor || output || scene || toggle || take || mode === "obs_transition" || brb || replay) {
                     const status = replay && currentLabel === "Save Replay" ? "Ready"
                         : currentLabel || (replay && obsControlLabels.has("obs.status.program") ? "Start Replay Buffer" : "");
                     const [name, detail] = status.split(" · ", 2);
@@ -1834,11 +1861,12 @@ export function registerCompanionCardTypes(
                     const legacyTakeDetail = take && !stateId && detail;
                     const takeSameScene = stateId === "take_same_scene" || legacyTakeDetail === "Already on Program";
                     const defaultTitle = takeSameScene ? "Currently Live" : takeScene ? "Take " + takeScene
-                        : output || scene || directTransition ? label : fallback[mode];
+                        : mic || output || scene || directTransition ? label : fallback[mode];
                     const title = ((takeReady || takeSameScene) && card.label === "Take Live" ? "" : card.label) || defaultTitle;
                     const presentationDetail = cardState && (take || toggle || replay || brb)
                         ? presentation?.obsDetail ?? cardState.detail : undefined;
-                    const note = sensor ? programScene || "Unavailable"
+                    const note = mic ? (!unavailable && muted ? "Muted" : !unavailable && live ? "Live" : "Unavailable")
+                        : sensor ? programScene || "Unavailable"
                         : output ? outputStatus
                         : takeReady ? obsControlLabels.get(OBS_TRANSITION_ID) || ""
                         : takeSameScene || (take && (presentationDetail ?? detail) === "Transitioning") ? ""
@@ -1853,7 +1881,7 @@ export function registerCompanionCardTypes(
                     ...preview,
                     buttonClass: unavailable ? "sp-obs-unavailable" : undefined,
                     sensorSurface: sensor,
-                    isOn: cardState ? cardState.lit : live || outputOn || (toggle && currentLabel === "On") || (brb && currentLabel === "Resume") || selectedScene ||
+                    isOn: mic ? (!unavailable && !!live) : cardState ? cardState.lit : outputOn || (toggle && currentLabel === "On") || (brb && currentLabel === "Resume") || selectedScene ||
                         (directTransition && entity === obsControlLabels.get("obs.transition.selected")) ||
                         (source && obsControlLabels.has(entity.replace("obs.source.", "obs.source.visible."))),
                 };
@@ -1915,8 +1943,8 @@ export function registerCompanionCardTypes(
             delete card._finderOpenBehaviorChanged;
             delete card._appShortcutDisabledTabs;
             delete card._appShortcutCapacityRejected;
-            if (!companionAppShortcutFolderEnabled(card)) return "saved";
             const existing = context?.reconnectedSubpage ?? state.subpages[slot];
+            if (!companionAppShortcutFolderEnabled(card) && (!existing || !appShortcutPageOwner(card))) return "saved";
             if (existing && !selectionChanged && !appChanged && !openBehaviorChanged) return "saved";
             const source = existing ? {
                 ...existing,
@@ -2094,7 +2122,7 @@ export function registerCompanionCardTypes(
         ["companion_url", "Website", "url"],
         ["companion_folder", "Finder Folder", "folder"],
         ["companion_obs", "Scene", "obs"],
-        ["companion_obs_mic", "Input Mute", "obs_mic"],
+        ["companion_obs_mic", "Input State", "obs_mic"],
         ["companion_obs_studio", "Studio Mode", "obs_studio"],
         ["companion_obs_transition", "Transitions", "obs_transition"],
         ["companion_obs_brb", "Break", "obs_brb"],

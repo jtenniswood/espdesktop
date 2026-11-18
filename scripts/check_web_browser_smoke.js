@@ -4299,7 +4299,7 @@ async function assertAppVolumeCard(browser) {
     const subtype = page.locator('select[id$="audio-type"]');
     assert.deepEqual(await subtype.locator("option").allTextContents(),
       ["Audio Output", "Output Mute", "Output per application",
-        "Audio Input", "Input Mute", "Input Cough", "Input per device level"]);
+        "Audio Input", "Input State", "Input Cough", "Input per device level"]);
     await subtype.selectOption("companion_app_volume");
     const application = page.getByLabel("Application", { exact: true });
     await application.locator('option[value="app.volume.com.spotify.client"]').waitFor({ state: "attached" });
@@ -4320,7 +4320,7 @@ async function assertAppVolumeCard(browser) {
       ["Volume", "output_volume", "Volume High", true],
       ["Volume", "input_volume", "Microphone", true],
       ["Mute", "output_mute", "Volume High", false],
-      ["Mute", "input_mute", "Microphone", false],
+      ["Input State", "input_mute", "Microphone", false],
     ];
     for (const [label, control, icon, slider] of deviceAudio) {
       await page.locator(".sp-main .sp-empty-cell").first().click();
@@ -4446,6 +4446,65 @@ async function assertMacLockCard(browser) {
     await editCard(2);
     await modal.getByRole("tablist", { name: "Shortcut type" }).waitFor();
     console.log("Mac Lock creation, legacy editing, reload and independent keyboard shortcuts passed.");
+  } finally {
+    await context.close();
+  }
+}
+
+async function assertOnDemandShortcutSettings(browser, testCase) {
+  if (testCase.slug !== "guition-esp32-s3-4848s040") return;
+  const appId = "org.example.RemoteEditor";
+  const nativeState = nativeConfigState(testCase.slug);
+  nativeState.document.buttons[1] = "shortcut.command+a;;Shortcut Command;Auto;;;companion;;";
+  const context = await browser.newContext({ viewport: testCase.viewport });
+  await installRoutes(context, testCase.slug, { nativeState, offlineFallback: true });
+  const requests = [];
+  let online = true;
+  await context.route(url => url.pathname === "/companion/shortcut-page", async route => {
+    if (!online) return route.fulfill({ status: 404 });
+    const { searchParams } = new URL(route.request().url());
+    const id = searchParams.get("appId");
+    const page = Number(searchParams.get("page"));
+    requests.push([id, page]);
+    assert(id === "index" || id === appId);
+    const application = id === "index" ? {
+      applications: [{ appId, label: "Remote Editor" }],
+    } : page === 0 ? {
+      appId, label: "Remote Editor", version: 1, catalog: false,
+      shortcuts: [{ id: "0", label: "Open", shortcut: "command+o", icon: "Open File" }],
+    } : {
+      appId, shortcuts: [],
+      moreShortcuts: [{ id: "72", label: "Focus next item", shortcut: "scoped.tab", icon: "Arrow Right" }],
+    };
+    return route.fulfill({ json: { catalogueVersion: 1, page, complete: id === "index" || page === 1, application } });
+  });
+  const page = await context.newPage();
+  await installFakeEventSource(page);
+  async function openCard() {
+    await page.goto(`http://espdesktop.test/${testCase.slug}?events=1&espdesktop_fallback=1`);
+    await page.waitForFunction(() => window.__eventSources?.length > 0 && window.__ESPDESKTOP_USING_EMBEDDED__);
+    await seedNativeDocument(page, nativeState);
+    await page.locator('.sp-main [data-slot="1"]').click();
+    await page.getByRole("button", { name: "Edit", exact: true }).click();
+  }
+  try {
+    await openCard();
+    await page.getByRole("tab", { name: "Application", exact: true }).click();
+    const apps = page.locator('[id$="shortcut-catalog-app"]');
+    await apps.locator(`option[value="${appId}"]`).waitFor({ state: "attached" });
+    assert.deepEqual(requests, [["index", 0]]);
+    await apps.selectOption(appId);
+    const preset = page.getByRole("radio", { name: /Focus next item/ });
+    await preset.check();
+    assert.deepEqual(requests, [["index", 0], [appId, 0], [appId, 1]]);
+    await page.getByRole("button", { name: "Save", exact: true }).click();
+    await waitForNativeState(nativeState, () => String(nativeState.document.buttons[1]).includes("shortcut.scoped.tab"),
+      "remote shortcut saves its actual keys");
+    online = false;
+    await openCard();
+    assert.equal(await apps.inputValue(), appId);
+    assert(await page.getByRole("radio", { name: /Focus next item/ }).isChecked());
+    console.log("On-demand app discovery, shortcut loading and offline reopening passed.");
   } finally {
     await context.close();
   }
@@ -8761,6 +8820,7 @@ async function assertFirstRunSetup(browser) {
       await assertCompanionShortcutSettings(browser, testCase);
       await assertAppSubpageCapacity(browser, testCase);
       await assertShortcutCatalogSettings(browser, testCase);
+      await assertOnDemandShortcutSettings(browser, testCase);
       await assertCompanionStorageSettings(browser, testCase);
       console.log("Companion shortcut, capacity, catalogue and storage browser checks passed.");
       return;
@@ -8944,6 +9004,7 @@ async function assertFirstRunSetup(browser) {
       await assertCompanionShortcutSettings(browser, testCase);
       await assertAppSubpageCapacity(browser, testCase);
       await assertShortcutCatalogSettings(browser, testCase);
+      await assertOnDemandShortcutSettings(browser, testCase);
       await assertCompanionStorageSettings(browser, testCase);
       await assertCompanionOnlyCardPicker(browser, testCase);
       await assertLegacyProfileFallback(browser, testCase);

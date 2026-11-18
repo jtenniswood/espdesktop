@@ -40,7 +40,7 @@ This generated reference lists release availability and setup facts from the sha
 | Input per device level | companion_input_device | None | Yes | Volume (companion_output_volume) | None | Stable |
 | Volume | companion_input_volume | None | Yes | Volume (companion_output_volume) | None | Stable |
 | Mute | companion_output_mute | None | Yes | Volume (companion_output_volume) | None | Stable |
-| Mute | companion_input_mute | None | Yes | Volume (companion_output_volume) | None | Stable |
+| Input State | companion_input_mute | None | Yes | Volume (companion_output_volume) | None | Stable |
 | Cough | companion_cough | None | Yes | Volume (companion_output_volume) | None | Stable |
 | OBS Input Cough | companion_obs_cough | None | Yes | Own picker item | None | Stable |
 | Lock Machine | companion_mac_lock | None | Yes | Own picker item | None | Stable |

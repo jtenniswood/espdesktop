@@ -12,6 +12,7 @@ headers = root / "components/espdesktop"
 source = r'''
 #include <cassert>
 #include <cstdint>
+#include <optional>
 #include <cstdlib>
 #include <cstdio>
 #include <cstring>
@@ -204,6 +205,7 @@ struct CompanionAction {
   std::string id, label;
   OBSCardState obs_state{OBSCardState::unknown};
   std::string obs_detail{};
+  std::optional<bool> obs_available{};
 };
 struct CompanionValue { std::string id; int value; };
 struct CompanionRuntimeSnapshot {
@@ -279,7 +281,7 @@ groups = (
     ("button_grid_layout.h", "", ("parse_hex_color", "apply_button_colors", "apply_button_on_pattern")),
     ("companion_controls.h", "", ("companion_obs_record_stopping", "companion_obs_output_status_id", "companion_obs_output_status", "companion_obs_output_active")),
     ("companion_controls.h", "", ("companion_obs_scene_target", "companion_obs_hashed_target", "companion_obs_transition_target", "companion_obs_source_target", "companion_obs_scene_card", "companion_obs_control_label", "companion_obs_break_active", "companion_obs_momentary_action", "companion_apply_card_focus", "companion_required_focus_ready", "companion_refresh_card_focus")),
-    ("companion_controls.h", "", ("companion_obs_status_card", "companion_obs_status_icon", "companion_obs_scene_on_program", "companion_render_obs_detail", "companion_obs_keep_content_bright", "companion_update_obs_detail_contrast", "companion_render_slider")),
+    ("companion_controls.h", "", ("companion_layout_mic_detail", "companion_render_mic_detail", "companion_obs_mute_state", "companion_obs_status_card", "companion_obs_status_icon", "companion_obs_scene_on_program", "companion_render_obs_detail", "companion_obs_keep_content_bright", "companion_update_obs_detail_contrast", "companion_render_slider")),
     ("button_grid_grid.h", "", ("card_palette_for_config", "card_slot_static_child", "reset_card_slot_dynamic_children")),
     ("button_grid_grid.h", "", ("apply_subpage_back_colors",)),
     ("button_grid_subscriptions.h", "", ("apply_sensor_active_color",)),
@@ -306,6 +308,25 @@ source += f'\n#line {line} "button_grid_cards.h"\n{code}\n'
 source += r'''
 #line 1 "card_colour_rendering_cases"
 int main() {
+  {
+    lv_obj_t tile, title, detail;
+    CompanionCardRef mic{&tile, "obs.mute.69da3f8f-7f62-4abe-a594-4e40dd579858", "", ""};
+    mic.text_label = &title;
+    mic.obs_detail = &detail;
+    CompanionRuntimeSnapshot snapshot;
+    snapshot.actions.push_back({mic.action_id, "Commentary", OBSCardState::audio_live});
+    companion_render_obs_detail(mic, "Desk mic", snapshot);
+    assert(title.content == "Desk mic" && detail.content == "Live" && title.y_offset == -22);
+    snapshot.actions.front().label = "Muted · Commentary";
+    snapshot.actions.front().obs_state = OBSCardState::unknown;
+    companion_render_obs_detail(mic, "Desk mic", snapshot, true);
+    assert(title.content == "Desk mic" && detail.content == "Muted" && detail.layout_updates == 0);
+    snapshot.actions.front().obs_available = false;
+    companion_render_obs_detail(mic, "Desk mic", snapshot, true);
+    assert(title.content == "Desk mic" && detail.content == "Unavailable");
+    assert(companion_obs_control_label(mic.action_id, "", "Unavailable") == "Input State");
+    assert(companion_obs_control_label(mic.action_id, "Desk mic", "Muted · Commentary") == "Desk mic");
+  }
   {
     lv_obj_t tile, title, detail, icon;
     ParsedCfg config;

@@ -1,21 +1,22 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
-import { COMPANION_SHORTCUT_APPS } from '../../../../src/webserver/generated/app_shortcuts'
-import { bundledExpandedShortcuts } from '../../../../src/webserver/application/companion_shortcut_data'
-import { displayKeys } from '../../shortcut-format'
+import type { AppShortcutApplication } from '../../../../src/webserver/generated/app_shortcuts'
+import { displayKeys, shortcutCatalogue } from '../../shortcut-format'
 import shortcutsGuides from '../../shortcut-guides.json'
 
+const definitions = import.meta.glob<AppShortcutApplication>(
+  ['../../../../product/v2/app_shortcuts/*.json', '!../../../../product/v2/app_shortcuts/manifest.json'],
+  { eager: true, import: 'default' },
+)
+const apps = shortcutCatalogue(Object.values(definitions))
 const props = defineProps<{ appId?: string }>()
 const search = ref('')
 const guideSlugs = new Map(Object.entries(shortcutsGuides).map(([slug, guide]) => [guide.appId, slug]))
-const app = computed(() => COMPANION_SHORTCUT_APPS.find(app => app.appId === props.appId))
-const shortcuts = computed(() => app.value
-  ? [...app.value.shortcuts, ...bundledExpandedShortcuts(app.value.appId)]
-  : [])
+const app = computed(() => apps.find(app => app.appId === props.appId))
 
 const matchingApps = computed(() => {
   const query = search.value.trim().toLowerCase()
-  return COMPANION_SHORTCUT_APPS.filter(app => app.label.toLowerCase().includes(query))
+  return apps.filter(app => app.label.toLowerCase().includes(query))
 })
 
 function anchor(appId: string) {
@@ -43,7 +44,7 @@ function anchor(appId: string) {
       <tr><th scope="col">Action</th><th scope="col">Keys</th></tr>
     </thead>
     <tbody>
-      <tr v-for="shortcut in shortcuts" :key="shortcut.id">
+      <tr v-for="shortcut in app.shortcuts" :key="shortcut.id">
         <td>{{ shortcut.label }}</td><td>{{ displayKeys(shortcut.shortcut) }}</td>
       </tr>
     </tbody>

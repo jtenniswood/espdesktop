@@ -223,6 +223,19 @@ struct CatalogueDefinitionsPage {
   bool complete{};
   std::vector<CatalogueDefinitionsPageItemsItem> items{};
 };
+struct ShortcutCatalogueRequest {
+  uint32_t requestId{};
+  std::string appId{};
+  uint32_t page{};
+};
+struct ShortcutCataloguePage {
+  uint32_t requestId{};
+  std::string appId{};
+  uint32_t page{};
+  uint32_t catalogueVersion{};
+  bool complete{};
+  std::optional<std::string> json{};
+};
 struct FocusTargetsItemsItem {
   std::string id{};
   std::string url{};
@@ -481,6 +494,23 @@ inline void encode(JsonObject root, const CatalogueDefinitionsPage &message) {
     entry["json"] = item.json;
   }
 }
+inline void encode(JsonObject root, const ShortcutCatalogueRequest &message) {
+  root["type"] = "shortcut.catalogue.request";
+  root["protocol"] = COMPANION_PROTOCOL_VERSION;
+  root["requestId"] = message.requestId;
+  root["appId"] = message.appId;
+  root["page"] = message.page;
+}
+inline void encode(JsonObject root, const ShortcutCataloguePage &message) {
+  root["type"] = "shortcut.catalogue.page";
+  root["protocol"] = COMPANION_PROTOCOL_VERSION;
+  root["requestId"] = message.requestId;
+  root["appId"] = message.appId;
+  root["page"] = message.page;
+  root["catalogueVersion"] = message.catalogueVersion;
+  root["complete"] = message.complete;
+  if (message.json) root["json"] = *message.json;
+}
 inline void encode(JsonObject root, const FocusTargets &message) {
   root["type"] = "focus.targets";
   root["protocol"] = COMPANION_PROTOCOL_VERSION;
@@ -508,7 +538,7 @@ inline void encode(JsonObject root, const PairReset &message) {
   root["protocol"] = COMPANION_PROTOCOL_VERSION;
   (void) message;
 }
-using Message = std::variant<Hello, PairRequest, PairAccepted, AuthRequest, AuthAccepted, Capabilities, CatalogueRequest, CataloguePage, ActionInvoke, ActionResult, ValueSet, ValueState, FocusChanged, TimezoneChanged, NowPlaying, SystemMetrics, ArtworkBegin, ArtworkAck, ArtworkEnd, ArtworkAbort, ArtworkRequest, AppIconRequest, AppIconBegin, AppIconUnchanged, AppIconUnavailable, AppIconAck, AppIconEnd, AppIconAbort, Error, CatalogueDefinitionsPage, FocusTargets, SessionLock, PairReset>;
+using Message = std::variant<Hello, PairRequest, PairAccepted, AuthRequest, AuthAccepted, Capabilities, CatalogueRequest, CataloguePage, ActionInvoke, ActionResult, ValueSet, ValueState, FocusChanged, TimezoneChanged, NowPlaying, SystemMetrics, ArtworkBegin, ArtworkAck, ArtworkEnd, ArtworkAbort, ArtworkRequest, AppIconRequest, AppIconBegin, AppIconUnchanged, AppIconUnavailable, AppIconAck, AppIconEnd, AppIconAbort, Error, CatalogueDefinitionsPage, ShortcutCatalogueRequest, ShortcutCataloguePage, FocusTargets, SessionLock, PairReset>;
 inline std::optional<Message> decode(JsonObjectConst root, Direction direction, SessionState state) {
   if (!number_valid(root["protocol"], COMPANION_PROTOCOL_VERSION, COMPANION_PROTOCOL_VERSION, true) || !root["type"].is<const char *>()) return std::nullopt;
   const std::string type = root["type"].as<std::string>();
@@ -1117,6 +1147,54 @@ inline std::optional<Message> decode(JsonObjectConst root, Direction direction, 
     for (JsonVariantConst item : root["items"].as<JsonArrayConst>()) {
       result.items.push_back({item["kind"].as<std::string>(), item["json"].as<std::string>()});
     }
+    return result;
+  }
+  if (type == "shortcut.catalogue.request") {
+    if (direction != Direction::PANEL_TO_MAC) return std::nullopt;
+    if (!(state == SessionState::CONNECTED)) return std::nullopt;
+    {
+      if (!(number_valid(root["requestId"], 1, 4294967295, true))) return std::nullopt;
+    }
+    {
+      if (!(string_valid(root["appId"], 1, 96))) return std::nullopt;
+    }
+    {
+      if (!(number_valid(root["page"], 0, 31, true))) return std::nullopt;
+    }
+    ShortcutCatalogueRequest result;
+    result.requestId = root["requestId"].as<uint32_t>();
+    result.appId = root["appId"].as<std::string>();
+    result.page = root["page"].as<uint32_t>();
+    return result;
+  }
+  if (type == "shortcut.catalogue.page") {
+    if (direction != Direction::MAC_TO_PANEL) return std::nullopt;
+    if (!(state == SessionState::CONNECTED)) return std::nullopt;
+    {
+      if (!(number_valid(root["requestId"], 1, 4294967295, true))) return std::nullopt;
+    }
+    {
+      if (!(string_valid(root["appId"], 1, 96))) return std::nullopt;
+    }
+    {
+      if (!(number_valid(root["page"], 0, 31, true))) return std::nullopt;
+    }
+    {
+      if (!(number_valid(root["catalogueVersion"], 1, 4294967295, true))) return std::nullopt;
+    }
+    {
+      if (!(root["complete"].is<bool>())) return std::nullopt;
+    }
+    if (!root["json"].isUnbound()) {
+      if (!(string_valid(root["json"], 2, 12000))) return std::nullopt;
+    }
+    ShortcutCataloguePage result;
+    result.requestId = root["requestId"].as<uint32_t>();
+    result.appId = root["appId"].as<std::string>();
+    result.page = root["page"].as<uint32_t>();
+    result.catalogueVersion = root["catalogueVersion"].as<uint32_t>();
+    result.complete = root["complete"].as<bool>();
+    if (!root["json"].isUnbound()) result.json = root["json"].as<std::string>();
     return result;
   }
   if (type == "focus.targets") {
