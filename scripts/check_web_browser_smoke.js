@@ -8394,13 +8394,14 @@ async function assertSavedOBSLayout(browser) {
     studioProgram = away;
     await editCard(mainTile);
     await scene.locator(`option[value="obs.target.${main}"]`).waitFor({ state: "attached" });
-    await page.waitForFunction(onColor =>
-      getComputedStyle(document.querySelector('.sp-main [data-slot="2"]')).backgroundColor === onColor, onColor);
     await breakTile.getByText("Scene", { exact: true }).waitFor();
     await breakTile.locator(".mdi-image").waitFor();
     await mainTile.locator(".mdi-image").waitFor();
     assert.equal(await mainTile.locator(".sp-obs-detail").innerText(), "Scene");
-    assert.equal(await colour(breakTile), onColor);
+    await page.waitForFunction(onColor => {
+      const tile = document.querySelector('.sp-main [data-slot="2"]');
+      return tile && getComputedStyle(tile).backgroundColor === onColor;
+    }, onColor);
     await closeSettings.click();
     await goBack();
     await brbTile.getByText("Resume", { exact: true }).waitFor();
@@ -8612,7 +8613,9 @@ async function assertStudioControlPage(browser) {
     assert.equal(savedPage?.order, "B,1,2,3,4b,,5");
     assert.deepEqual(savedPage?.cards.map(card => card.config.entity),
       ["obs.output.record", "obs.output.stream", "obs.studio", "obs.replay", "obs.replay.buffer"]);
-    const studioButton = page.locator(`.sp-main [data-slot="${slot}"]`);
+    const studioCard = name => page.locator(".sp-main .sp-btn[data-slot]")
+      .filter({ has: page.getByText(name, { exact: true }) });
+    const studioButton = studioCard("Studio Control");
     await studioButton.locator(".mdi-movie").waitFor();
     const chevron = studioButton.locator(".sp-subpage-badge");
     const chevronOpacity = () => chevron.evaluate(badge => getComputedStyle(badge).opacity);
@@ -8620,11 +8623,11 @@ async function assertStudioControlPage(browser) {
     assert.equal(await chevronOpacity(), "0", "idle folder cards match the device");
     await studioButton.hover();
     assert.equal(await chevronOpacity(), "1", "hover reveals the editor navigation control");
-    const enter = async () => {
-      await studioButton.click({ button: "right" });
+    const enter = async button => {
+      await button.click({ button: "right" });
       await page.getByText("Edit Subpage", { exact: true }).click();
     };
-    await enter();
+    await enter(studioButton);
     for (const [pos, label] of [[1, "Record"], [2, "Stream"], [3, "Studio Mode"], [4, "Save Replay"], [6, "Replay Buffer"]]) {
       await page.locator(`.sp-main [data-pos="${pos}"][data-slot]`).getByText(label, { exact: true }).waitFor();
     }
@@ -8636,8 +8639,7 @@ async function assertStudioControlPage(browser) {
     await page.getByRole("button", { name: "Card Settings", exact: true }).click();
     await page.locator("#sp-inp-label").fill("My Studio");
     await page.getByRole("button", { name: "Save", exact: true }).click();
-    await studioButton.getByText("My Studio", { exact: true }).waitFor();
-    await enter();
+    await enter(studioCard("My Studio"));
     await replay.getByText("Save Replay", { exact: true }).waitFor();
     console.log("Studio Control created with Movie icon and 2×2 Save Replay, and kept its cards after renaming.");
   } finally { await context.close(); }
