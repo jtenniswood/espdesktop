@@ -1,10 +1,23 @@
 <script setup lang="ts">
-import { COMPANION_SHORTCUT_APPS } from '../../../../src/webserver/generated/app_shortcuts'
-import { bundledExpandedShortcuts } from '../../../../src/webserver/application/companion_shortcut_data'
+import type { AppShortcutApplication } from '../../../../src/webserver/generated/app_shortcuts'
 
-const apps = COMPANION_SHORTCUT_APPS.map(app => ({
-  ...app, shortcuts: [...app.shortcuts, ...bundledExpandedShortcuts(app.appId)],
-}))
+const definitions = import.meta.glob<AppShortcutApplication>(
+  ['../../../../product/v2/app_shortcuts/*.json', '!../../../../product/v2/app_shortcuts/manifest.json'],
+  { eager: true, import: 'default' },
+)
+const apps = Object.values(definitions)
+  .sort((first, second) => first.label.localeCompare(second.label) || first.appId.localeCompare(second.appId))
+  .map(app => ({
+    ...app,
+    shortcuts: [
+      ...(app.extendedShortcuts ?? []),
+      ...app.shortcuts,
+      ...(app.safariShortcuts ?? []),
+      ...(app.additionalShortcuts ?? []),
+      ...(app.claudeShortcuts ?? []),
+      ...(app.moreShortcuts ?? []),
+    ],
+  }))
 
 const keyLabels: Record<string, string> = {
   command: 'Command', control: 'Control', option: 'Option',
