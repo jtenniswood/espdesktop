@@ -70,11 +70,11 @@ const customiseLinks = [
 ]
 
 const featureLinks = [
+  { text: 'Application shortcuts', link: '/reference/shortcut-presets' },
   { text: 'Apps', link: '/mac-controls/apps' },
   { text: 'Finder folders', link: '/mac-controls/folders' },
   { text: 'Keyboard shortcuts', link: '/mac-controls/shortcuts' },
   { text: 'OBS Support', link: '/mac-controls/obs' },
-  { text: 'Shortcut presets', link: '/reference/shortcut-presets' },
   { text: 'Websites', link: '/mac-controls/websites' },
 ]
 const screenSettingsLink = { text: 'Screen settings', link: '/settings/screen' }
