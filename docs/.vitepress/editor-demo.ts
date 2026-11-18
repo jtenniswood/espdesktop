@@ -117,7 +117,6 @@ const sample = {
     entity('switch/Screen: Clock Bar', false),
     entity('switch/Screen: Clock Bar Time', true),
     entity('switch/Screen: Subpage Chevron', false),
-    entity('select/Screen: Default Icon Size', 'Large'),
     entity(displayBacklightId, true, { brightness: 75 }),
   ],
 }
