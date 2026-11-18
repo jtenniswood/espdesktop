@@ -44,26 +44,6 @@ Nested layouts use the new saved-layout format and require firmware with two-lev
 
 See how to [move or copy cards between Home and a subpage](/features/home#organise-cards).
 
-## ChatGPT Desktop shortcuts
-
-Press **Command + /** in ChatGPT Desktop to see or customize its keyboard shortcuts. To search past chats from the display, assign **Switch chat…** (chat search) a shortcut in ChatGPT Desktop, then create a [custom Key Shortcut card](/mac-controls/shortcuts#create-a-shortcut-card) with the same keys.
-
-**New Chat** sends **Command + N**.
-
-**Chat Bar / Mini** sends **Option + Space**. ChatGPT Desktop may call this action **Toggle Mini** in its Keyboard Shortcuts settings.
-
-**Voice Chat** sends **Control + Shift + V**. Bring the main ChatGPT window to the front before using the tile. ChatGPT can start listening from its floating pet or Mini controls. If listening does not start, check **Toggle voice chat** in **Settings → Keyboard Shortcuts** and see [ChatGPT Voice](https://learn.chatgpt.com/docs/features/voice) for microphone setup. If you use a different binding, create a [custom Key Shortcut card](/mac-controls/shortcuts#create-a-shortcut-card) with the same keys.
-
-The **Next Tab** and **Previous Tab** tiles use **Control + Tab** and **Control + Shift + Tab**. To use those keys to cycle through recently viewed chats instead, assign them to **Next recently viewed chat** and **Previous recently viewed chat** under **Settings → Keyboard Shortcuts** in ChatGPT Desktop. Saved tiles keep their names and keys when the preset list changes.
-
-If you already have **Tab 1** through **Tab 9** tiles, they send **Command + 1** through **Command + 9**. In ChatGPT Desktop, set **Settings → Keyboard Shortcuts → Number shortcuts** to **⌘1–9 for Tabs**. Open two tabs in the current chat and try **Command + 2** on your Mac before testing the **Tab 2** tile. Each tile needs an open tab at that position.
-
-## Dictate in ChatGPT Desktop
-
-Use the **Dictate** microphone beside the message box to turn speech into draft text. If you have a saved **Start dictation** tile that sends **Control + Shift + D**, that combination is a browser shortcut.
-
-If **Single-tap dictation** is available under **Settings → Keyboard Shortcuts** in ChatGPT Desktop, assign it a shortcut with **Command**, **Control**, or **Option** plus a key. In EspDesktop, replace the old tile with a **Key Shortcut** card and enter the same keys in the **Custom** tab. Tap the tile once to start dictation and again to stop.
-
 ## Swipe back
 
 Swipe right from the left edge of a subpage to use its **Back** action. This also works on app subpages while the touchscreen is unlocked and showing its cards.
