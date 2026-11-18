@@ -138,8 +138,12 @@ function verifyManifest(webRoot) {
     "embedded editor must expose a clean fallback reload entry point");
   assert(embedded.includes("__ESPDESKTOP_UI_STARTING__"),
     "embedded editor must wait for deferred startup before using its fallback");
-  assert(embedded.includes(contents.toString("utf8")),
-    "embedded fallback must contain the immutable editor bundle");
+  assert(!embedded.includes(contents.toString("utf8")),
+    "embedded fallback must use the starter-only catalogue");
+  assert(embedded.includes("Brave Browser") && !embedded.includes("Remove Address Bar Suggestion"),
+    "embedded fallback must include Brave's starters without its expanded entries");
+  assert(contents.toString("utf8").includes("Remove Address Bar Suggestion"),
+    "hosted editor must retain the full bundled reference");
   const bridge = fs.readFileSync(path.join(webRoot, "www.js"), "utf8");
   assert(bridge.includes("web-assets.json") && bridge.includes("firmwareVersions"),
     "hosted www.js must select an immutable bundle from the manifest");

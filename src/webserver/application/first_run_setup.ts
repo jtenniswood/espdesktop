@@ -9,6 +9,8 @@ import type { ControlsShellFeature } from "./controls_shell";
 import { createCompanionPairingDetails, type CompanionPairingState } from "./settings_companion_section";
 import {
     companionShortcutDefaultTabs,
+    companionShortcutFolderAppLabel,
+    applyCompanionShortcutApplication,
     companionShortcutTabsForCapacity,
     createCompanionShortcutSubpage,
     replaceCompanionDefinitions,
@@ -127,7 +129,8 @@ export function createFirstRunSetup(deps: FirstRunSetupDependencies): { start():
     let previousFocus: HTMLElement | null = null;
 
     const selectedApps = () => apps.filter(app => selected.has(app.id));
-    const supportedApps = () => selectedApps().filter(app => supportsSetupShortcuts(app.id));
+    const hasShortcutPage = (id: string) => id !== "com.apple.finder" && !!companionShortcutFolderAppLabel(id);
+    const supportedApps = () => selectedApps().filter(app => hasShortcutPage(app.id));
 
     function element<K extends keyof HTMLElementTagNameMap>(tag: K, text = "", className = ""): HTMLElementTagNameMap[K] {
         const node = document.createElement(tag);
@@ -220,6 +223,12 @@ export function createFirstRunSetup(deps: FirstRunSetupDependencies): { start():
             if (!await supportsSetup())
                 throw new Error("Could not confirm the display can save app setup. Check its connection and firmware.");
             const chosen = skip ? [] : selectedApps();
+            if (addShortcutPages) await Promise.all(chosen.filter(app => hasShortcutPage(app.id) &&
+                !supportsSetupShortcuts(app.id)).map(async app => {
+                const definition = await catalogue.loadShortcutApplication(app.id);
+                if (!definition) throw new Error("Could not load " + app.label + " shortcuts. Check Mac Companion and try again.");
+                applyCompanionShortcutApplication(definition);
+            }));
             const automaticSwitch = skip ? undefined : addShortcutPages && supportedApps().length > 0 && autoSwitch;
             const result = await deps.native.schedule(Object.assign(
                 () => { throw new Error("App setup needs native layout support."); },

@@ -26,7 +26,11 @@ struct RemoteMacApplicationDefinition: Codable, Sendable, Equatable {
         return app
     }
 
-    func expandedPages() -> [Self] {
+    var onDemandExpandedPages: [Self] {
+        expandedPages(maximumEntries: 52)
+    }
+
+    func expandedPages(maximumEntries: Int = 64) -> [Self] {
         guard let moreShortcuts, !moreShortcuts.isEmpty else { return [] }
         var page = starter
         page.shortcuts = []
@@ -39,7 +43,7 @@ struct RemoteMacApplicationDefinition: Codable, Sendable, Equatable {
         var pages: [Self] = []
         var offset = 0
         while offset < moreShortcuts.count {
-            var count = min(64, moreShortcuts.count - offset)
+            var count = min(maximumEntries, moreShortcuts.count - offset)
             page.moreShortcuts = Array(moreShortcuts[offset..<(offset + count)])
             // Fit more short entries per frame and back off for long labels
             // or chords. A single entry always fits the validated field limits.
@@ -67,6 +71,8 @@ struct RemoteMacApplicationDefinition: Codable, Sendable, Equatable {
 }
 
 struct RemoteCatalogueManifest: Decodable, Sendable {
+    static let maximumEntries = 512
+
     struct Entry: Decodable, Sendable {
         let path: String
     }
@@ -85,7 +91,7 @@ func decodeBundledCatalogueEntries<T: Decodable>(
           manifest.formatVersion == 1,
           manifest.catalogueVersion > 0,
           !manifest.entries.isEmpty,
-          manifest.entries.count <= 128,
+          manifest.entries.count <= RemoteCatalogueManifest.maximumEntries,
           Set(manifest.entries.map(\.path)).count == manifest.entries.count,
           RemoteCompanionCatalogues.supports(manifest.minimumCompanionVersion, current: companionVersion) else {
         return nil
@@ -137,6 +143,50 @@ struct RemoteCompanionCatalogues: Codable, Sendable, Equatable {
             return template
         }
         return applications.filter { !templateIDs.contains($0.appId) } + installedTemplates
+    }
+
+    func shortcutApplication(_ appId: String, approvedApps: [LaunchableApp]) -> RemoteMacApplicationDefinition? {
+        let definitions = applicationsForDisplay(approvedApps: approvedApps)
+        if let exact = definitions.first(where: { $0.appId == appId }) { return exact }
+        guard approvedApps.contains(where: { $0.bundleIdentifier == appId }) else { return nil }
+        // Versioned Premiere and installed Safari web apps can use a template,
+        // but cards must still keep the actual application as their target.
+        var template = definitions.first {
+            CompanionKeyboardShortcut.scopedTargetMatches($0.appId, frontmost: appId, approved: [appId])
+        }
+        template?.appId = appId
+        return template
+    }
+
+    func shortcutPageResponse(_ request: CompanionWireShortcutCatalogueRequest,
+                              approvedApps: [LaunchableApp]) -> [String: Any] {
+        let page = Int(request.page)
+        var response: [String: Any] = [
+            "type": "shortcut.catalogue.page",
+            "requestId": request.requestId, "appId": request.appId, "page": page,
+            "catalogueVersion": UInt32(clamping: version), "complete": true,
+        ]
+        let data: Data?
+        // "index" is reserved because real application IDs contain a dot.
+        if request.appId == "index" {
+            let apps = applicationsForDisplay(approvedApps: approvedApps)
+            let start = min(page * 32, apps.count)
+            let end = min(start + 32, apps.count)
+            data = try? JSONSerialization.data(withJSONObject: [
+                "applications": apps[start..<end].map { ["appId": $0.appId, "label": $0.label] },
+            ])
+            response["complete"] = end == apps.count
+        } else {
+            let app = shortcutApplication(request.appId, approvedApps: approvedApps)
+            let expanded = app?.onDemandExpandedPages ?? []
+            let definition = page == 0 ? app?.starter : expanded.dropFirst(page - 1).first
+            data = definition.flatMap { try? JSONEncoder().encode($0) }
+            response["complete"] = page >= expanded.count
+        }
+        if let data, data.count <= 12_000 {
+            response["json"] = String(decoding: data, as: UTF8.self)
+        }
+        return response
     }
 
     static func decode(
@@ -303,23 +353,24 @@ final class RemoteCompanionCatalogueStore {
         let manifestData = try await download(manifestURL)
         let manifest = try JSONDecoder().decode(RemoteCatalogueManifest.self, from: manifestData)
         guard manifest.formatVersion == 1, manifest.catalogueVersion > 0,
-              !manifest.entries.isEmpty, manifest.entries.count <= 128,
+              !manifest.entries.isEmpty, manifest.entries.count <= RemoteCatalogueManifest.maximumEntries,
               Set(manifest.entries.map(\.path)).count == manifest.entries.count,
               RemoteCompanionCatalogues.supports(manifest.minimumCompanionVersion,
                   current: Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0.0") else {
             throw RemoteCompanionCatalogues.CatalogueError.incompatible
         }
-        var definitions: [Data] = []
+        var apps: [RemoteMacApplicationDefinition] = []
+        let decoder = JSONDecoder()
         for entry in manifest.entries {
             guard !entry.path.hasPrefix("/"), !entry.path.split(separator: "/").contains(".."),
                   entry.path.range(of: #"^[A-Za-z0-9._/-]+$"#, options: .regularExpression) != nil else {
                 throw RemoteCompanionCatalogues.CatalogueError.invalid
             }
-            definitions.append(try await download(manifestURL.deletingLastPathComponent().appendingPathComponent(entry.path)))
+            let url = manifestURL.deletingLastPathComponent().appendingPathComponent(entry.path)
+            let definition = try decoder.decode(RemoteMacApplicationDefinition.self, from: await download(url))
+            guard RemoteCompanionCatalogues.valid(definition) else { throw RemoteCompanionCatalogues.CatalogueError.invalid }
+            apps.append(definition)
         }
-        let decoder = JSONDecoder()
-        let apps = try definitions.map { try decoder.decode(RemoteMacApplicationDefinition.self, from: $0) }
-        guard apps.allSatisfy(RemoteCompanionCatalogues.valid) else { throw RemoteCompanionCatalogues.CatalogueError.invalid }
         return RemoteCompanionCatalogues(version: manifest.catalogueVersion, applications: apps)
     }
 

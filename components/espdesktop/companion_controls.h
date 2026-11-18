@@ -1764,6 +1764,59 @@ inline std::string companion_json_escape(const std::string &value) {
   return result;
 }
 
+inline void companion_send_shortcut_catalogue_page(httpd_req_t *req) {
+  char query[128] = {};
+  char app_id[97] = {};
+  char page_text[3] = {};
+  if (httpd_req_get_url_query_str(req, query, sizeof(query)) != ESP_OK ||
+      httpd_query_key_value(query, "appId", app_id, sizeof(app_id)) != ESP_OK ||
+      (std::strcmp(app_id, "index") != 0 && !companion_shortcut_app_id_valid(app_id)) ||
+      httpd_query_key_value(query, "page", page_text, sizeof(page_text)) != ESP_OK ||
+      !page_text[0] || !std::all_of(page_text, page_text + std::strlen(page_text),
+                                  [](char digit) { return digit >= '0' && digit <= '9'; })) {
+    httpd_resp_send_err(req, HTTPD_400_BAD_REQUEST, "Invalid shortcut catalogue page");
+    return;
+  }
+  const uint32_t page = static_cast<uint32_t>(std::atoi(page_text));
+  if (page > 31) {
+    httpd_resp_send_err(req, HTTPD_400_BAD_REQUEST, "Invalid shortcut catalogue page");
+    return;
+  }
+  auto &runtime = companion_runtime_service();
+  auto result = runtime.shortcut_catalogue.read(app_id, page, esphome::millis());
+  using Status = CompanionShortcutCatalogue::Status;
+  httpd_resp_set_hdr(req, "Cache-Control", "no-store");
+  switch (result.status) {
+    case Status::unavailable:
+      httpd_resp_set_status(req, "404 Not Found");
+      break;
+    case Status::request:
+      if (!runtime.shortcut_catalogue_sender ||
+          !runtime.shortcut_catalogue_sender(result.request_id, app_id, page)) {
+        runtime.shortcut_catalogue.cancel(result.request_id);
+        httpd_resp_set_status(req, "503 Service Unavailable");
+        break;
+      }
+      [[fallthrough]];
+    case Status::pending:
+      httpd_resp_set_status(req, "202 Accepted");
+      break;
+    case Status::ready: {
+      if (result.page.json.empty()) {
+        httpd_resp_set_status(req, "204 No Content");
+        break;
+      }
+      const std::string json = "{\"catalogueVersion\":" + std::to_string(result.page.version) +
+          ",\"page\":" + std::to_string(page) + ",\"complete\":" +
+          (result.page.complete ? "true" : "false") + ",\"application\":" + result.page.json + "}";
+      httpd_resp_set_type(req, "application/json");
+      httpd_resp_send(req, json.c_str(), json.size());
+      return;
+    }
+  }
+  httpd_resp_send(req, "", 0);
+}
+
 class CompanionActionsHandler : public esphome::web_server_idf::AsyncWebHandler {
  public:
   bool canHandle(esphome::web_server_idf::AsyncWebServerRequest *request) const override {
@@ -1771,7 +1824,7 @@ class CompanionActionsHandler : public esphome::web_server_idf::AsyncWebHandler 
     char url_buf[esphome::web_server_idf::AsyncWebServerRequest::URL_BUF_SIZE];
     const auto url = request->url_to(url_buf);
     return url == "/companion/actions" || url == "/companion/networks" ||
-           url == "/companion/definitions";
+           url == "/companion/definitions" || url == "/companion/shortcut-page";
   }
 
   void handleRequest(esphome::web_server_idf::AsyncWebServerRequest *request) override {
@@ -1780,6 +1833,10 @@ class CompanionActionsHandler : public esphome::web_server_idf::AsyncWebHandler 
     bool first = true;
     char url_buf[esphome::web_server_idf::AsyncWebServerRequest::URL_BUF_SIZE];
     const std::string requested_url = request->url_to(url_buf);
+    if (requested_url == "/companion/shortcut-page") {
+      companion_send_shortcut_catalogue_page(*request);
+      return;
+    }
     const bool networks = requested_url == "/companion/networks";
     const bool definitions = requested_url == "/companion/definitions";
     auto &runtime = companion_runtime_service();
