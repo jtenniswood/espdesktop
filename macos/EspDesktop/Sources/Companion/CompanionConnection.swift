@@ -80,6 +80,7 @@ final class CompanionConnection: NSObject {
     private var expandedShortcutsSupported = false
     private var onDemandShortcutsSupported = false
     private var appVolumeSupported = false
+    private(set) var appleShortcutsSupported = false
     private var authenticationRequestOutstanding = false
     private var appIconData: Data?
     private var appIconIdentifier = ""
@@ -233,6 +234,7 @@ final class CompanionConnection: NSObject {
         expandedShortcutsSupported = false
         onDemandShortcutsSupported = false
         appVolumeSupported = false
+        appleShortcutsSupported = false
         endpointRecovery.verifiedFingerprint = nil
         authenticationRequestOutstanding = false
         resetAppIconTransferState(clearPendingRequests: true)
@@ -417,6 +419,7 @@ final class CompanionConnection: NSObject {
         expandedShortcutsSupported = false
         onDemandShortcutsSupported = false
         appVolumeSupported = false
+        appleShortcutsSupported = false
         connectionTimeoutTask?.cancel()
         connectionTimeoutTask = nil
         heartbeatTask?.cancel()
@@ -544,6 +547,7 @@ final class CompanionConnection: NSObject {
             appVolumeSupported = payload.capabilityVersion >= 10
             supportsCoughButton = payload.capabilityVersion >= 11
             supportsInputDevices = payload.capabilityVersion >= 12
+            appleShortcutsSupported = payload.capabilityVersion >= 24
             // A Bonjour TXT record never authorizes a location change. Both the
             // pinned TLS certificate and the authenticated session must agree.
             let expectedFingerprint = preferences.stringPreference(forKey: certificateFingerprintKey)
@@ -603,6 +607,10 @@ final class CompanionConnection: NSObject {
                 let requestingTask = task
                 Task { [weak self, weak requestingTask] in
                     guard let self, let requestingTask, self.task === requestingTask, self.sessionAuthenticated else { return }
+                    if actionIdentifier.hasPrefix(AppleShortcut.actionPrefix), !self.appleShortcutsSupported {
+                        self.sendJSON(["type": "action.result", "requestId": requestIdentifier, "status": "not_allowed"])
+                        return
+                    }
                     let status: String
                     if actionIdentifier.hasPrefix("obs.output.") || actionIdentifier.hasPrefix("obs.brb.") ||
                         actionIdentifier.hasPrefix("obs.take.") ||
@@ -873,7 +881,7 @@ final class CompanionConnection: NSObject {
         send(value)
     }
 
-    func publishCatalogue(obsActions: [OBSConnection.CatalogueEntry]? = nil) {
+    func publishCatalogue(obsActions: [OBSConnection.CatalogueEntry]? = nil, includeDefinitions: Bool = true) {
         // An initial empty scan is provisional; publishing it would prune the
         // panel's persistent icons before discovery supplies the real app list.
         guard resources.applicationCatalogueReady else { return }
@@ -914,6 +922,11 @@ final class CompanionConnection: NSObject {
         let inputs: [[String: String]] = !obsOnly && supportsInputDevices ? resources.inputDeviceActions().map {
             ["id": $0.id, "label": Self.catalogueLabel($0.label, fallback: "Input device")]
         } : []
+        let appleShortcuts: [[String: String]] = !obsOnly && appleShortcutsSupported
+            ? resources.appleShortcutActions().map {
+                ["id": $0.actionIdentifier, "label": Self.catalogueLabel($0.name, fallback: "Apple Shortcut")]
+            }
+            : []
         let folders = obsOnly ? [] : resources.folderActions()
         let entries: [[String: String]] = folders.compactMap { folder -> [String: String]? in
             guard Self.validCatalogueIdentifier(folder.actionIdentifier) else { return nil }
@@ -924,11 +937,12 @@ final class CompanionConnection: NSObject {
         }
         // Older panels share a limit across Mac and OBS actions. Keep their
         // existing application order before appending the OBS catalogue.
-        let catalogue = (inputs + entries).map { $0 as [String: Any] } + obsEntries
+        let catalogue = (inputs + entries + appleShortcuts).map { $0 as [String: Any] } + obsEntries
         catalogueGeneration &+= 1
         if catalogueGeneration == 0 { catalogueGeneration = 1 }
-        let pages = stride(from: 0, to: max(catalogue.count, 1), by: 48).map {
-            Array(catalogue[$0..<min($0 + 48, catalogue.count)])
+        let pageSize = appleShortcutsSupported ? 16 : 48
+        let pages = stride(from: 0, to: max(catalogue.count, 1), by: pageSize).map {
+            Array(catalogue[$0..<min($0 + pageSize, catalogue.count)])
         }
         for (page, items) in pages.enumerated() {
             var message: [String: Any] = ["type": "catalogue.page", "generation": catalogueGeneration,
@@ -937,7 +951,7 @@ final class CompanionConnection: NSObject {
             sendJSON(message)
         }
         if obsOnly { return }
-        if obsActions == nil && remoteCatalogueDefinitionsSupported && !onDemandShortcutsSupported {
+        if includeDefinitions && obsActions == nil && remoteCatalogueDefinitionsSupported && !onDemandShortcutsSupported {
             let definitions = resources.remoteCompanionCatalogues().applicationsForDisplay(approvedApps: apps)
             let installedIDs = Set(apps.map(\.bundleIdentifier))
             let starter = definitions.map(\.starter)

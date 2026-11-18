@@ -795,12 +795,12 @@ void EspDesktopApp::sync_generated_subpages() {
   if (runtime.boot_configuration_pending || now - runtime.generated_subpage_poll_ms < 1000) return;
   runtime.generated_subpage_poll_ms = now;
   const auto snapshot = companion_runtime_snapshot();
-  const bool finder_changed = grid_update_finder_folders(snapshot);
+  const bool companion_changed = grid_update_live_companion_actions(snapshot);
   const bool transitions_changed = grid_update_obs_subpage(snapshot, OBSSubpageKind::transitions);
   const bool sources_changed = grid_update_obs_subpage(snapshot, OBSSubpageKind::sources);
   const bool audio_changed = grid_update_obs_subpage(snapshot, OBSSubpageKind::audio);
   const bool scenes_changed = grid_update_obs_subpage(snapshot, OBSSubpageKind::scenes);
-  if (finder_changed || transitions_changed || sources_changed || audio_changed || scenes_changed) layout_changed_.trigger();
+  if (companion_changed || transitions_changed || sources_changed || audio_changed || scenes_changed) layout_changed_.trigger();
 }
 
 void EspDesktopApp::loop() {

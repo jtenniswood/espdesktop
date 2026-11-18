@@ -560,7 +560,8 @@ inline void setup_companion_card(BtnSlot &s, const ParsedCfg &p,
       static_cast<lv_style_selector_t>(LV_STATE_PRESSED));
     lv_obj_remove_event_cb_with_user_data(s.btn, card_text_contrast_event_cb, nullptr);
     sync_card_checked_text_color(s.btn);
-  } else if (companion_app_launch_card(p) || companion_obs_momentary_action(p.entity)) {
+  } else if (companion_app_launch_card(p) || companion_obs_momentary_action(p.entity) ||
+             companion_apple_shortcut_action(p.entity)) {
     apply_instant_button_feedback(s.btn);
   } else if (available) {
     apply_push_button_transition(s.btn);

@@ -2,7 +2,7 @@ import { obsSubpageCatalogue } from "../model/obs_live_subpage";
 import { targetedAudioCard } from "./companion_app_volume";
 import { childPageKey } from "../model/page_keys";
 import { renderCompanionStorageSelector } from "./companion_storage";
-import { COMPANION_FOLDER_PREFIX, COMPANION_OBS_PREFIX, OBS_BRB_ID, OBS_MULTIVIEW_ID, OBS_OUTPUT_OPTIONS, OBS_PROGRAM_ID, OBS_REPLAY_BUFFER_ID, OBS_REPLAY_ID, OBS_STUDIO_ID, OBS_STUDIO_OPTIONS, OBS_TAKE_ID, OBS_TRANSITION_ID, OBS_TRANSITION_OPTIONS, OBS_TRANSITION_SELECT, savedOBSTransition, savedOBSSceneTarget, decodeCompanionCard, encodeCompanionCard, companionMetricForEntity, obsConfirmationControl, obsInputName, obsOutputCardEntity, obsSceneCardEntity } from "../model/companion_card_codec";
+import { APPLE_SHORTCUT_PREFIX, COMPANION_FOLDER_PREFIX, COMPANION_OBS_PREFIX, OBS_BRB_ID, OBS_MULTIVIEW_ID, OBS_OUTPUT_OPTIONS, OBS_PROGRAM_ID, OBS_REPLAY_BUFFER_ID, OBS_REPLAY_ID, OBS_STUDIO_ID, OBS_STUDIO_OPTIONS, OBS_TAKE_ID, OBS_TRANSITION_ID, OBS_TRANSITION_OPTIONS, OBS_TRANSITION_SELECT, savedOBSTransition, savedOBSSceneTarget, decodeCompanionCard, encodeCompanionCard, companionMetricForEntity, obsConfirmationControl, obsInputName, obsOutputCardEntity, obsSceneCardEntity } from "../model/companion_card_codec";
 import { configOptionEnabled, configOptionValue, setConfigOption, setConfigOptionValue, normalizedCardColorOptions, preserveCardColorOptions, withoutCardColorOptions } from "../model/config_primitives";
 import { createCompanionCatalogue, createCompanionCatalogueMonitor } from "../api/companion_catalogue";
 import type { CompanionAction } from "../api/companion_catalogue";
@@ -61,6 +61,11 @@ import {
     finderFolderTabs,
     reconnectAthenaShortcutSubpage,
     syncFinderFolderSelection,
+    appleShortcutPageActions,
+    appleShortcutPageTabs,
+    createAppleShortcutSubpage,
+    defaultAppleShortcutActions,
+    syncAppleShortcutSelection,
     createCompanionShortcutSubpage,
     normalizeCompanionCardOptions,
     normalizeCompanionAppShortcutOptions,
@@ -77,7 +82,9 @@ import {
     setCompanionShortcutTabs,
     syncCompanionShortcutSubpage,
 } from "../application/companion_shortcut_folder";
-import { appShortcutPageOwner, previewSubpageOwner } from "../model/companion_shortcut_page";
+import { APPLE_SHORTCUTS_APP_ID, APPLE_SHORTCUTS_HIDDEN_OPTION, appShortcutPageOwner, hiddenAppleShortcuts,
+    isAppleShortcutsPage, previewSubpageOwner } from "../model/companion_shortcut_page";
+import { appleShortcutPreview } from "../model/finder_folder_preview";
 
 const COMPANION_URL_PREFIX = "url.";
 const COMPANION_DEFAULT_BROWSER = "system.default_browser";
@@ -351,6 +358,7 @@ export function companionEntityForMode(mode: string): string {
     if (mode === "obs_replay_buffer") return OBS_REPLAY_BUFFER_ID;
     if (mode === "obs_output") return OBS_OUTPUT_OPTIONS[0][0];
     if (mode === "obs_status") return OBS_PROGRAM_ID;
+    if (mode === "apple_shortcut") return APPLE_SHORTCUT_PREFIX;
     if (mode === "stats") return COMPANION_SYSTEM_METRICS[0]?.id || "";
     return COMPANION_SYSTEM_METRICS.find((metric) => metric.mode === mode)?.id || "";
 }
@@ -358,6 +366,7 @@ export function companionEntityForMode(mode: string): string {
 export function companionApplicationActions(actions: readonly CompanionAction[]): readonly CompanionAction[] {
     return sortCompanionLabels(actions.filter((action) =>
         !action.id.startsWith(COMPANION_FOLDER_PREFIX) &&
+        !action.id.startsWith(APPLE_SHORTCUT_PREFIX) &&
         !action.id.startsWith(COMPANION_OBS_PREFIX) &&
         !action.id.startsWith("input.level.") &&
         !["media.play_pause", "media.previous", "media.next"].includes(action.id)));
@@ -444,6 +453,15 @@ function normalizeCompanionCardFields(card: any): void {
         }
         return;
     }
+    if (companionCardMode(card) === "apple_shortcut") {
+        card.sensor = "";
+        card.unit = "";
+        card.precision = "";
+        card.options = normalizedCardColorOptions(card.options);
+        card.icon_on = "Auto";
+        if (!card.icon || ["Auto", "Monitor"].includes(card.icon)) card.icon = companionSubtypeDefaultIcon("apple_shortcut");
+        return;
+    }
     const urlConfig = typeof card.sensor === "string" && card.sensor.startsWith(COMPANION_URL_PREFIX)
         ? card.sensor : "";
     card.type = "companion";
@@ -486,7 +504,7 @@ export function registerCompanionCardTypes(
     maxSlots: number,
     connectorStatus: Pick<ConnectorsPageFeature, "onCompanionConnectionChange">,
     publishGeneratedActions: (folders: readonly CompanionAction[]) => boolean,
-): void {
+) {
     const { cardBadgePreview, cardBadgeLabelHtml, cardSensorPreviewHtml, fieldLabel } = fields;
     const { renderButtonSettings, renderPreview } = cardUi;
     const catalogue = createCompanionCatalogue(fetchImpl);
@@ -728,10 +746,11 @@ export function registerCompanionCardTypes(
 
     let companionApplications: readonly CompanionAction[] = [];
     const companionApplicationLabels = new Map<string, string>();
+    const appleShortcutEditorActions = new WeakMap<object, readonly CompanionAction[]>();
 
     function publishLiveSubpageActions(actions: readonly CompanionAction[]): boolean {
         return publishGeneratedActions([
-            ...actions.filter(action => action.id.startsWith(COMPANION_FOLDER_PREFIX) ||
+            ...actions.filter(action => action.id.startsWith(COMPANION_FOLDER_PREFIX) || action.id.startsWith(APPLE_SHORTCUT_PREFIX) ||
                 action.id === "obs.transition.selected" || action.id.startsWith("obs.source.visible.")),
             ...obsSubpageCatalogue("obs_transitions", actions),
             ...obsSubpageCatalogue("obs_sources", actions),
@@ -828,6 +847,11 @@ export function registerCompanionCardTypes(
         loadAppShortcuts(card.entity, panel);
         const savedShortcutSubpage = state.subpages[page];
         const savedParent = previewSubpageOwner(page, state.buttons, key => state.subpages[key]);
+        if (isAppleShortcutsPage(card)) {
+            renderAppleShortcutSettings(panel, card, helpers,
+                isAppleShortcutsPage(savedParent) && savedParent?.type === card.type ? savedShortcutSubpage : undefined);
+            return;
+        }
         if (savedShortcutSubpage &&
             (companionShortcutSelectionMatchesSavedParent(card, savedParent) ||
                 (!!appShortcutPageOwner(card) && appShortcutPageOwner(card) === appShortcutPageOwner(savedParent))) &&
@@ -840,7 +864,7 @@ export function registerCompanionCardTypes(
         }
         modalTabs.renderModalTabSettings(panel, card, helpers, {
             definitions: function () { return companionShortcutTabDefinitions(card.entity, savedShortcutSubpage); },
-            searchPlaceholder: "Find a shortcut…",
+            searchPlaceholder: "Find a keyboard shortcut…",
             showAll,
             dragOnly: true,
             tabs: (button: any) => companionShortcutTabsForCapacity(
@@ -869,9 +893,98 @@ export function registerCompanionCardTypes(
         if (card._appShortcutCapacityRejected === true) {
             const capacityNote = document.createElement("div");
             capacityNote.className = "sp-field-info-text sp-visible";
-            capacityNote.textContent = "No free subpage space. Remove a custom card before enabling another shortcut.";
+            capacityNote.textContent = "No free subpage space. Remove a custom card before enabling another keyboard shortcut.";
             panel.appendChild(capacityNote);
         }
+    }
+
+    function renderAppleShortcutSettings(panel: HTMLElement, card: any,
+        helpers: { idPrefix: string; saveField: (field: string, value: unknown) => void },
+        savedPage?: typeof state.subpages[number]): void {
+        const list = document.createElement("div");
+        const status = document.createElement("div");
+        status.className = "sp-field-info-text sp-visible";
+        status.textContent = "Loading Apple Shortcuts…";
+        list.appendChild(status);
+        panel.appendChild(list);
+        function render(actions: readonly CompanionAction[]) {
+            const source = savedPage ?? createAppleShortcutSubpage([], maxSlots);
+            const savedSelection = appleShortcutPageTabs(savedPage);
+            const projected = savedPage ? appleShortcutPreview(savedPage.order, savedPage.grid.slice(0, maxSlots),
+                savedPage.buttons, actions, hiddenAppleShortcuts(card.options)) : undefined;
+            const savedIDs = new Set(savedSelection);
+            const pageSelection = projected?.size ? [...new Set(savedPage!.grid.flatMap((slot, position) => {
+                const id = projected.get(position)?.id ?? savedPage!.buttons[slot - 1]?.entity;
+                return id && (savedIDs.has(id) || projected.has(position)) ? [id] : [];
+            }))] : savedSelection;
+            const selected: string[] = card._appleShortcutTabs ?? (savedPage ? pageSelection :
+                defaultAppleShortcutActions(actions, maxSlots).map(action => action.id));
+            const definitions = new Map(actions.map(action => [action.id, action.label]));
+            for (const id of savedSelection) {
+                if (definitions.has(id)) continue;
+                const label = savedPage?.buttons.find(button => button.entity === id)?.label || "Apple Shortcut";
+                definitions.set(id, label + " (unavailable)");
+            }
+            if (!definitions.size) {
+                status.textContent = "Enable workflows in Shortcuts settings in the EspDesktop Mac app.";
+                return;
+            }
+            status.remove();
+            modalTabs.renderModalTabSettings(list, card, helpers, {
+                definitions: () => [...definitions].map(([value, label]) => ({ value, label })),
+                searchPlaceholder: "Find an Apple Shortcut…",
+                showAll: true,
+                dragOnly: true,
+                tabs: () => selected,
+                normalizeOptions: (options: string) => options,
+                setTabs: (button: any, tabs: string[]) => {
+                    if (!syncAppleShortcutSelection(source, actions, tabs, maxSlots, codec.buildSubpageGrid)) {
+                        button._appShortcutCapacityRejected = true;
+                        return false;
+                    }
+                    delete button._appShortcutCapacityRejected;
+                    const hidden = hiddenAppleShortcuts(button.options);
+                    for (const id of selected) if (!tabs.includes(id)) hidden.add(id);
+                    for (const id of tabs) hidden.delete(id);
+                    button.options = setConfigOptionValue(button.options, APPLE_SHORTCUTS_HIDDEN_OPTION,
+                        [...hidden].map(id => id.slice(APPLE_SHORTCUT_PREFIX.length)).join("|"));
+                    button._appleShortcutTabs = tabs;
+                    button._appShortcutSelectionChanged = true;
+                    return true;
+                },
+                idPrefix: "apple-shortcut-",
+                hideHeading: true,
+                allowEmpty: true,
+            });
+            if (card._appShortcutCapacityRejected) {
+                status.textContent = "No free subpage space. Turn off a shortcut or make room before adding another.";
+                list.appendChild(status);
+            }
+        }
+        const loaded = appleShortcutEditorActions.get(card);
+        if (loaded) {
+            render(loaded);
+        } else {
+            void loadCompanionActions(true).then(appleShortcutPageActions, () => []).then(actions => {
+                if (!list.isConnected || !isAppleShortcutsPage(card)) return;
+                appleShortcutEditorActions.set(card, actions);
+                render(actions);
+            });
+        }
+    }
+
+    async function saveAppleShortcutSubpage(page: number, selected: readonly string[] | undefined,
+        previous?: typeof state.subpages[number]) {
+        if (previous && !selected) return "saved";
+        const actions = await loadCompanionActions(true).then(appleShortcutPageActions, () => []);
+        const subpage = selected
+            ? syncAppleShortcutSelection(previous ?? createAppleShortcutSubpage([], maxSlots),
+                actions, selected, maxSlots, codec.buildSubpageGrid)
+            : createAppleShortcutSubpage(actions, maxSlots);
+        if (!subpage) return "failed";
+        codec.buildSubpageGrid(subpage);
+        state.subpages[page] = subpage;
+        return codec.saveSubpageConfig(page);
     }
 
     const companionDefinition: any = {
@@ -1043,6 +1156,66 @@ export function registerCompanionCardTypes(
                 return;
             }
 
+            if (initialMode === "apple_shortcut") {
+                const field = document.createElement("div");
+                field.className = "sp-field";
+                const picker = document.createElement("select");
+                picker.className = "sp-select";
+                picker.id = helpers.idPrefix + "apple-shortcut";
+                field.append(fieldLabel("Apple Shortcut", picker.id), picker);
+                const note = document.createElement("div");
+                note.className = "sp-field-info-text";
+                note.textContent = "Choose which workflows are available under Shortcuts in the EspDesktop Mac app.";
+                field.appendChild(note);
+                panel?.appendChild(field);
+                helpers.markCardPrimaryField(field, "entity");
+
+                const savedID = currentEntity === APPLE_SHORTCUT_PREFIX ? "" : currentEntity;
+                let workflows: readonly CompanionAction[] = [];
+                function showWorkflows(emptyMessage: string): void {
+                    picker.replaceChildren();
+                    const placeholder = document.createElement("option");
+                    placeholder.value = "";
+                    placeholder.textContent = workflows.length ? "Choose an Apple Shortcut…" : emptyMessage;
+                    placeholder.disabled = true;
+                    picker.appendChild(placeholder);
+                    for (const action of workflows) {
+                        const option = document.createElement("option");
+                        option.value = action.id;
+                        option.textContent = action.label;
+                        picker.appendChild(option);
+                    }
+                    const selectedID = card.entity === APPLE_SHORTCUT_PREFIX ? "" : card.entity;
+                    if (selectedID && !workflows.some(action => action.id === selectedID)) {
+                        const unavailable = document.createElement("option");
+                        unavailable.value = selectedID;
+                        unavailable.textContent = card.label ? card.label + " (unavailable)" : "Workflow unavailable";
+                        picker.appendChild(unavailable);
+                    }
+                    picker.value = selectedID;
+                    picker.disabled = workflows.length === 0;
+                }
+                showWorkflows("Loading Apple Shortcuts…");
+                void loadCompanionActions(true).then(actions => {
+                    workflows = sortCompanionLabels(actions.filter(action => action.id.startsWith(APPLE_SHORTCUT_PREFIX)));
+                    showWorkflows("No available Apple Shortcuts");
+                }).catch(() => showWorkflows("Apple Shortcuts unavailable"));
+                helpers.requireField(picker, "Choose an Apple Shortcut before saving.", () => true,
+                    (value: string) => !!value && (value === savedID || workflows.some(action => action.id === value)));
+                picker.addEventListener("change", () => {
+                    const selected = workflows.find(action => action.id === picker.value);
+                    if (!selected || selected.id === card.entity) return;
+                    card.entity = selected.id;
+                    card.label = selected.label;
+                    helpers.saveField("entity", selected.id);
+                    helpers.saveField("label", selected.label);
+                    const input = document.getElementById(helpers.idPrefix + "label") as HTMLInputElement | null;
+                    if (input) input.value = selected.label;
+                });
+                helpers.renderBasicCardFields(panel, card, helpers, COMPANION_CARD_METADATA, { entity: false });
+                return;
+            }
+
             const appField = document.createElement("div");
             appField.className = "sp-field";
             const appFieldLabel = fieldLabel("Application", helpers.idPrefix + "companion-action");
@@ -1124,7 +1297,7 @@ export function registerCompanionCardTypes(
             });
             typeTabs.segment.id = typeId;
             typeTabs.segment.setAttribute("role", "tablist");
-            typeTabs.segment.setAttribute("aria-label", "Shortcut type");
+            typeTabs.segment.setAttribute("aria-label", "Keyboard shortcut type");
             const customField = document.createElement("div");
             const catalogField = document.createElement("div");
             for (const [type, field] of [["custom", customField], ["catalog", catalogField]] as const) {
@@ -1147,7 +1320,7 @@ export function registerCompanionCardTypes(
             });
             shortcutField.appendChild(typeTabs.segment);
             const shortcutPanel = helpers.disclosureSection(
-                "Shortcut", helpers.idPrefix + "shortcut-panel", card._shortcutPanelOpen !== false,
+                "Keyboard Shortcut", helpers.idPrefix + "shortcut-panel", card._shortcutPanelOpen !== false,
             );
             shortcutPanel.button.addEventListener("click", function () {
                 card._shortcutPanelOpen = shortcutPanel.panel.classList.contains("sp-open");
@@ -1159,7 +1332,7 @@ export function registerCompanionCardTypes(
             customField.appendChild(modifierLabel);
             const modifierButtons = document.createElement("fieldset");
             modifierButtons.className = "sp-segment";
-            modifierButtons.setAttribute("aria-label", "Shortcut modifiers");
+            modifierButtons.setAttribute("aria-label", "Keyboard shortcut modifiers");
             const shortcutParts: string[] = currentEntity.slice(COMPANION_SHORTCUT_PREFIX.length).split("+");
             let selectedKey = shortcutParts.pop() || "";
             const modifiers: [string, string][] = [
@@ -1199,7 +1372,7 @@ export function registerCompanionCardTypes(
                 ["Punctuation", Object.values(COMPANION_SHORTCUT_KEYS).filter((key) => key.startsWith("key"))],
                 ["Function keys", Array.from({ length: 20 }, (_, index) => "f" + (index + 1))],
             ];
-            if (currentEntity === "shortcut.claude-escape") keyGroups.push(["App shortcut", ["claude-escape"]]);
+            if (currentEntity === "shortcut.claude-escape") keyGroups.push(["App keyboard shortcut", ["claude-escape"]]);
             if (currentEntity === "shortcut.escape-twice") keyGroups.push(["Sequence", ["escape-twice"]]);
             for (const [label, keys] of keyGroups) {
                 const group = document.createElement("optgroup");
@@ -1335,7 +1508,7 @@ export function registerCompanionCardTypes(
                     found ||= matches;
                 }
                 list.hidden = !found;
-                noMatches.textContent = query && !found ? "No matching shortcuts" : "";
+                noMatches.textContent = query && !found ? "No matching keyboard shortcuts" : "";
                 noMatches.classList.toggle("sp-visible", !!noMatches.textContent);
             }
             search.addEventListener("input", () => {
@@ -1443,7 +1616,8 @@ export function registerCompanionCardTypes(
                 canAddSubpage && !!appShortcutPageOwner(card),
             );
             const needsStarter = initialMode === "app" && !!companionShortcutFolderAppLabel(card.entity) &&
-                card.entity !== "com.apple.finder" && companionShortcutDefaultTabs(card.entity).length === 0;
+                card.entity !== "com.apple.finder" && card.entity !== APPLE_SHORTCUTS_APP_ID &&
+                companionShortcutDefaultTabs(card.entity).length === 0;
             if (needsStarter && panel) loadAppShortcuts(card.entity, panel);
             if (needsStarter && !folderToggle.input.checked) folderToggle.input.disabled = true;
             shortcutFolderField.appendChild(folderToggle.row);
@@ -1453,6 +1627,8 @@ export function registerCompanionCardTypes(
             shortcutFolderNote.textContent = needsStarter ? "Connect Mac Companion to load this app’s shortcuts."
                 : card.entity === "com.apple.finder"
                 ? "Folders approved on your Mac appear in free cells. Pin a folder to keep it on the board and edit its name or position."
+                : card.entity === APPLE_SHORTCUTS_APP_ID
+                ? "Choose which enabled Apple Shortcuts appear as tiles on this subpage."
                 : "Launch " + shortcutFolderApp +
                 ", then open an editable subpage. It starts with " + shortcutFolderApp + " keyboard shortcuts.";
             shortcutFolderField.appendChild(shortcutFolderNote);
@@ -1715,6 +1891,7 @@ export function registerCompanionCardTypes(
                     resetCompanionShortcutTabs(card);
                 }
                 if (appChanged) {
+                    delete card._appleShortcutTabs;
                     delete card._modalTabsExpanded;
                     delete card._modalTabsSearch;
                     delete card._appShortcutDisabledTabs;
@@ -1886,7 +2063,8 @@ export function registerCompanionCardTypes(
             let urlLabel = "";
             try { urlLabel = new URL(companionUrlValue(card.sensor || "")).hostname; } catch { /* incomplete URL */ }
             const preview = cardBadgePreview(card, helpers, {
-                label: card.label || shortcutLabel || urlLabel || appLabel || card.entity ||
+                label: card.label || (mode === "apple_shortcut" ? "Apple Shortcut" : "") ||
+                    shortcutLabel || urlLabel || appLabel || card.entity ||
                     (mode === "folder" ? "Folder" : "Mac App"),
                 iconFallback: companionSubtypeDefaultIcon(mode),
                 badge: COMPANION_CARD_METADATA.preview.badge,
@@ -1929,6 +2107,8 @@ export function registerCompanionCardTypes(
             slot = childPageKey(parent ?? 0, Number(slot));
             const folderSelection = card._finderFolderTabs;
             delete card._finderFolderTabs;
+            const appleShortcutSelection = card._appleShortcutTabs;
+            delete card._appleShortcutTabs;
             const selectionChanged = card._appShortcutSelectionChanged === true;
             const appChanged = card._appShortcutAppChanged === true;
             const openBehaviorChanged = card._finderOpenBehaviorChanged === true;
@@ -1940,6 +2120,9 @@ export function registerCompanionCardTypes(
             const existing = context?.reconnectedSubpage ?? state.subpages[slot];
             if (!companionAppShortcutFolderEnabled(card) && (!existing || !appShortcutPageOwner(card))) return "saved";
             if (existing && !selectionChanged && !appChanged && !openBehaviorChanged) return "saved";
+            if (card.entity === APPLE_SHORTCUTS_APP_ID) {
+                return saveAppleShortcutSubpage(slot, appleShortcutSelection, appChanged ? undefined : existing);
+            }
             const source = existing ? {
                 ...existing,
                 order: (existing.order || []).slice(),
@@ -2112,7 +2295,7 @@ export function registerCompanionCardTypes(
 
     const companionPickerDefinitions: readonly [string, string, string][] = [
         ["companion_app", "Applications", "app"],
-        ["companion_shortcut", "Key Shortcut", "shortcut"],
+        ["companion_shortcut", "Keyboard Shortcut", "shortcut"],
         ["companion_url", "Website", "url"],
         ["companion_folder", "Finder Folder", "folder"],
         ["companion_obs", "Scene", "obs"],
@@ -2122,6 +2305,7 @@ export function registerCompanionCardTypes(
         ["companion_obs_brb", "Break", "obs_brb"],
         ["companion_obs_replay", "Replay Buffer", "obs_replay"],
         ["companion_obs_output", "Output Controls", "obs_output"],
+        ["companion_apple_shortcut", "Run Apple Shortcut", "apple_shortcut"],
     ];
     companionPickerDefinitions.forEach(function (definition) {
         const key = definition[0];
@@ -2138,4 +2322,5 @@ export function registerCompanionCardTypes(
             },
         });
     });
+    return { renderAppShortcutSettings, saveAppleShortcutSubpage };
 }

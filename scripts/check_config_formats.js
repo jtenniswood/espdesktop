@@ -183,6 +183,7 @@ assert.deepStrictEqual(Array.from(subpageKindOption.values), [
   "sensor",
   "image",
   "companion_stat",
+  "apple_shortcuts",
   "obs_transitions",
   "obs_sources",
   "obs_audio",

@@ -1,5 +1,5 @@
 {
-  "version": 23,
+  "version": 24,
   "protocol": {
     "version": 4,
     "path": "/companion/v4",
@@ -1134,7 +1134,7 @@
     },
     {
       "id": "shortcut",
-      "label": "Keyboard shortcut",
+      "label": "Keyboard Shortcut",
       "capability": "keyboard_shortcuts",
       "defaultIcon": "Shortcut Command"
     },
@@ -1209,6 +1209,12 @@
       "label": "Break",
       "capability": "obs_brb",
       "defaultIcon": "Coffee to Go"
+    },
+    {
+      "id": "apple_shortcut",
+      "label": "Run Apple Shortcut",
+      "capability": "apple_shortcuts",
+      "defaultIcon": "Flash"
     },
     {
       "id": "stats",

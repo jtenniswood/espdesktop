@@ -10,6 +10,7 @@ export type DraftCardConfig = CardConfig & {
   _whenOnActive?: unknown;
   _whenOnMode?: unknown;
   _finderFolderTabs?: string[] | undefined;
+  _appleShortcutTabs?: string[] | undefined;
   _appShortcutSelectionChanged?: unknown;
   _appShortcutAppChanged?: unknown;
 };
@@ -97,6 +98,7 @@ export function cloneCardConfig(src?: Partial<CardConfig> & Partial<DraftCardCon
     button._appShortcutAppChanged = src._appShortcutAppChanged;
   }
   if (Array.isArray(src?._finderFolderTabs)) button._finderFolderTabs = [...src._finderFolderTabs];
+  if (Array.isArray(src?._appleShortcutTabs)) button._appleShortcutTabs = [...src._appleShortcutTabs];
   return button;
 }
 
@@ -111,6 +113,7 @@ export function copyCardConfig(
   target._whenOnActive = button._whenOnActive;
   target._whenOnMode = button._whenOnMode;
   target._finderFolderTabs = button._finderFolderTabs;
+  target._appleShortcutTabs = button._appleShortcutTabs;
   target._appShortcutSelectionChanged = button._appShortcutSelectionChanged;
   target._appShortcutAppChanged = button._appShortcutAppChanged;
   return target as DraftCardConfig;

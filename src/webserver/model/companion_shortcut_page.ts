@@ -1,13 +1,32 @@
 import type { CardConfig } from "../contracts/types";
-import { configOptionEnabled } from "./config_primitives";
+import { configOptionEnabled, configOptionValue } from "./config_primitives";
 import { pageOwnerSlot, parentPageKey } from "./page_keys";
+import { APPLE_SHORTCUT_PREFIX } from "./companion_card_codec";
+
+export const APPLE_SHORTCUTS_APP_ID = "com.apple.shortcuts";
+export const APPLE_SHORTCUTS_SUBPAGE_KIND = "apple_shortcuts";
+export const APPLE_SHORTCUTS_HIDDEN_OPTION = "apple_shortcuts_hidden";
+
+export function hiddenAppleShortcuts(options?: string): Set<string> {
+    return new Set(configOptionValue(options, APPLE_SHORTCUTS_HIDDEN_OPTION).split("|")
+        .filter(Boolean).map(id => APPLE_SHORTCUT_PREFIX + id));
+}
+
+export function isAppleShortcutsCard(card?: Partial<CardConfig> | null): boolean {
+    return card?.type === "subpage" &&
+        configOptionValue(card.options, "subpage_kind") === APPLE_SHORTCUTS_SUBPAGE_KIND;
+}
+
+export function isAppleShortcutsPage(card?: Partial<CardConfig> | null): boolean {
+    return isAppleShortcutsCard(card) || appShortcutPageOwner(card) === APPLE_SHORTCUTS_APP_ID;
+}
 
 /** Saved pages remain available for editing without a live app definition. */
 export function appShortcutPageOwner(card?: Partial<CardConfig> | null): string | undefined {
     const id = card?.entity || "";
     if (card?.type !== "companion" || card.sensor || !configOptionEnabled(card.options, "app_shortcuts")) return;
     if (id.length <= 96 && id.includes(".") && !/[^a-zA-Z0-9.-]/.test(id) &&
-        !/^(shortcut|folder|stat)\./.test(id)) return id;
+        !/^(shortcut|folder|stat)\./.test(id) && !id.startsWith(APPLE_SHORTCUT_PREFIX)) return id;
 }
 
 export function previewSubpageOwner(page: number | null, home: readonly CardConfig[],

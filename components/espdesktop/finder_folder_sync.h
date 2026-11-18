@@ -15,7 +15,7 @@ inline constexpr const char *finder_folder_default_icon() {
 
 // The live catalogue has no ownership of the saved grid. Projection only
 // fills unoccupied cells in the renderer's local copy.
-inline bool finder_folder_catalogue_equal(const std::vector<CompanionAction> &left,
+inline bool live_companion_catalogue_equal(const std::vector<CompanionAction> &left,
                                          const std::vector<CompanionAction> &right) {
   return left.size() == right.size() &&
       std::equal(left.begin(), left.end(), right.begin(), [](const auto &a, const auto &b) {
@@ -78,4 +78,34 @@ inline void finder_project_folder_tiles(SubpageOrder &order, std::vector<Subpage
                                        const std::string &open_behavior, const std::string &exclusions = {}) {
   project_live_folder_tiles(order, buttons, slots, columns, capacity, folders,
       finder_folder_default_icon(), "finder_open_behavior=" + open_behavior, is_live_finder_folder, "companion", exclusions);
+}
+
+inline void project_apple_shortcut_tiles(SubpageOrder &order, std::vector<SubpageBtn> &buttons,
+                                         int slots, int columns, int capacity,
+                                         const std::vector<CompanionAction> &actions,
+                                         const std::vector<std::string> &hidden) {
+  if (!order.has_back_token) return;
+  const auto occupied = live_page_occupied_cells(order, slots, columns);
+  const int cell_limit = std::min(slots, capacity);
+  constexpr std::string_view prefix = "appleshortcut.";
+  int position = 0;
+  for (const auto &action : actions) {
+    while (position < cell_limit && occupied[position]) ++position;
+    if (position == cell_limit) return;
+    if (!companion_apple_shortcut_action(action.id) || action.id.size() <= prefix.size()) continue;
+    const auto id = action.id.substr(prefix.size());
+    if (std::find(hidden.begin(), hidden.end(), id) != hidden.end()) continue;
+    const auto end = order.positions + slots;
+    if (std::any_of(order.positions, end, [&](int index) {
+          return index > 0 && buttons[index - 1].entity == action.id;
+        })) continue;
+    size_t index = 0;
+    while (index < buttons.size() && std::find(order.positions, end, int(index + 1)) != end) ++index;
+    if (index >= MAX_GRID_SLOTS) return;
+    SubpageBtn tile{action.id, action.label, "Flash", "Auto", "", "", "companion", "", ""};
+    if (index == buttons.size()) buttons.push_back(std::move(tile));
+    else buttons[index] = std::move(tile);
+    order.row_span[index] = order.col_span[index] = 1;
+    order.positions[position++] = static_cast<int>(index + 1);
+  }
 }

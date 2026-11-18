@@ -128,6 +128,12 @@ final class CompanionStore: NSObject, ObservableObject {
     @Published private(set) var approvedApplicationIdentifiers: Set<String>
     @Published private(set) var approvedFolders: [ApprovedFolder]
     @Published private(set) var folderMessage: String?
+    @Published private(set) var appleShortcuts: [AppleShortcut] = []
+    @Published private(set) var allAppleShortcutsApproved: Bool
+    @Published private var approvedAppleShortcutIDs: Set<UUID>
+    @Published private(set) var appleShortcutMessage: String?
+    @Published private(set) var refreshingAppleShortcuts = false
+    private var runningAppleShortcutIDs: Set<UUID> = []
     @Published private(set) var foldersNeedingAccess: Set<UUID> = []
     @Published private(set) var launchAtLoginEnabled = false
     @Published private(set) var launchAtLoginMessage = ""
@@ -138,6 +144,8 @@ final class CompanionStore: NSObject, ObservableObject {
         static let approvedApplications = "approvedApplications"
         static let knownApplications = "knownApplications"
         static let approvedFolders = "approvedFolders"
+        static let approvedAppleShortcuts = "approvedAppleShortcuts"
+        static let allAppleShortcutsApproved = "allAppleShortcutsApproved"
     }
     private static let preferencesSuite = "io.espdesktop.app"
     private let defaults: UserDefaults
@@ -159,6 +167,7 @@ final class CompanionStore: NSObject, ObservableObject {
     private var appVolumeRefresh: Task<Void, Never>?
     private var lastAppVolumeValues: [String: Int] = [:]
     private var focusTimer: Timer?
+    private var appleShortcutsTimer: Timer?
     private var activatedApplicationPID: pid_t?
     private var browserFocusQuery: Task<URL?, Never>?
     private var browserFocusGeneration = 0
@@ -191,6 +200,10 @@ final class CompanionStore: NSObject, ObservableObject {
         approvedApplicationIdentifiers = Set(
             stableDefaults.stringArray(forKey: Keys.approvedApplications) ?? []
         )
+        let savedShortcutIDs = stableDefaults.stringArray(forKey: Keys.approvedAppleShortcuts)
+        approvedAppleShortcutIDs = Set((savedShortcutIDs ?? []).compactMap(UUID.init(uuidString:)))
+        allAppleShortcutsApproved = stableDefaults.object(forKey: Keys.allAppleShortcutsApproved) as? Bool
+            ?? (savedShortcutIDs == nil)
         approvedFolders = stableDefaults.data(forKey: Keys.approvedFolders)
             .flatMap { try? JSONDecoder().decode([ApprovedFolder].self, from: $0) }
             ?? []
@@ -239,6 +252,7 @@ final class CompanionStore: NSObject, ObservableObject {
             Task { @MainActor in self?.refreshApplications() }
         }
         refreshApplications()
+        if allAppleShortcutsApproved || !approvedAppleShortcutIDs.isEmpty { refreshAppleShortcuts() }
         Task { await remoteCatalogueStore.refresh() }
     }
 
@@ -461,6 +475,61 @@ final class CompanionStore: NSObject, ObservableObject {
     }
 
     func folderActions() -> [ApprovedFolder] { approvedFolders }
+
+    func appleShortcutActions() -> [AppleShortcut] {
+        appleShortcuts.filter { appleShortcutIsApproved($0.id) }
+    }
+
+    func appleShortcutIsApproved(_ id: UUID) -> Bool {
+        allAppleShortcutsApproved || approvedAppleShortcutIDs.contains(id)
+    }
+
+    func setAllAppleShortcuts(approved: Bool) {
+        guard allAppleShortcutsApproved != approved else { return }
+        allAppleShortcutsApproved = approved
+        defaults.set(approved, forKey: Keys.allAppleShortcutsApproved)
+        publishToConnectedDisplays { $0.publishCatalogue(includeDefinitions: false) }
+        if approved { refreshSharedAppleShortcuts() }
+    }
+
+    func refreshAppleShortcuts() {
+        guard !refreshingAppleShortcuts else { return }
+        refreshingAppleShortcuts = true
+        appleShortcutMessage = nil
+        Task { [weak self] in
+            let shortcuts = await AppleShortcutsCLI.list()
+            guard let self else { return }
+            refreshingAppleShortcuts = false
+            guard let shortcuts else {
+                appleShortcutMessage = "Couldn’t load Apple Shortcuts. Reopen this tab to try again."
+                return
+            }
+            guard shortcuts != appleShortcuts else { return }
+            appleShortcuts = shortcuts
+            publishToConnectedDisplays { $0.publishCatalogue(includeDefinitions: false) }
+        }
+    }
+
+    func setAppleShortcut(_ shortcut: AppleShortcut, approved: Bool) {
+        if approved {
+            approvedAppleShortcutIDs.insert(shortcut.id)
+        } else {
+            approvedAppleShortcutIDs.remove(shortcut.id)
+        }
+        defaults.set(approvedAppleShortcutIDs.map(\.uuidString).sorted(), forKey: Keys.approvedAppleShortcuts)
+        publishToConnectedDisplays { $0.publishCatalogue(includeDefinitions: false) }
+    }
+
+    private func runAppleShortcut(_ actionIdentifier: String) async -> String {
+        guard let id = AppleShortcut.identifier(from: actionIdentifier),
+              appleShortcutIsApproved(id) else { return "not_allowed" }
+        guard appleShortcuts.contains(where: { $0.id == id }) else { return "not_found" }
+        guard runningAppleShortcutIDs.insert(id).inserted else { return "not_allowed" }
+        defer { runningAppleShortcutIDs.remove(id) }
+        if await AppleShortcutsCLI.run(id) { return "performed" }
+        refreshAppleShortcuts()
+        return "failed"
+    }
     func remoteCompanionCatalogues() -> RemoteCompanionCatalogues { remoteCatalogueStore.value }
     func focusedLaunchableApplicationIdentifier() -> String {
         guard let application = NSWorkspace.shared.frontmostApplication,
@@ -831,6 +900,15 @@ final class CompanionStore: NSObject, ObservableObject {
                 _ = mediaController.refreshInputDevices()
                 startMediaControlPublishing()
             }
+            if display.connection.appleShortcutsSupported && appleShortcutsTimer == nil {
+                let timer = Timer(timeInterval: 15, repeats: true) { [weak self] _ in
+                    Task { @MainActor [weak self] in self?.refreshSharedAppleShortcuts() }
+                }
+                timer.tolerance = 3
+                RunLoop.main.add(timer, forMode: .common)
+                appleShortcutsTimer = timer
+                refreshSharedAppleShortcuts()
+            }
             Task { [weak display] in
                 await remoteCatalogueStore.refresh()
                 if let display, display.state == .connected { display.connection.publishCatalogue() }
@@ -852,6 +930,15 @@ final class CompanionStore: NSObject, ObservableObject {
                 Task { await controller.reset() }
             }
         }
+        if !connectedDisplays.contains(where: { $0.connection.appleShortcutsSupported }) {
+            appleShortcutsTimer?.invalidate()
+            appleShortcutsTimer = nil
+        }
+    }
+
+    private func refreshSharedAppleShortcuts() {
+        guard allAppleShortcutsApproved || !approvedAppleShortcutIDs.isEmpty else { return }
+        refreshAppleShortcuts()
     }
 
     func updateStatus(_ message: String) {
@@ -969,6 +1056,9 @@ final class CompanionStore: NSObject, ObservableObject {
                              folderOpenBehavior: String = "new_window",
                              shortcutAppID: String? = nil) async -> String {
         guard !sessionLock.refresh() else { return "not_allowed" }
+        if actionIdentifier.hasPrefix(AppleShortcut.actionPrefix) {
+            return await runAppleShortcut(actionIdentifier)
+        }
         if actionIdentifier == "obs.replay" {
             return await obs.saveReplay() ? "performed" : "not_allowed"
         }
@@ -1053,7 +1143,7 @@ final class CompanionStore: NSObject, ObservableObject {
                     actionIdentifier, frontmostBundleIdentifier: application.bundleIdentifier,
                     approvedBundleIdentifiers: approvedApplicationIdentifiers
                   ) else {
-                updateStatus("Bring the approved Safari web app for this shortcut to the front")
+                updateStatus("Bring the approved Safari web app for this keyboard shortcut to the front")
                 return false
             }
             guard shortcut.replay(to: application.processIdentifier) else {
@@ -1069,7 +1159,7 @@ final class CompanionStore: NSObject, ObservableObject {
                   CompanionKeyboardShortcut.scopedTargetMatches(shortcutAppID, frontmost: bundleID,
                                                                approved: approvedApplicationIdentifiers),
                   let strokes = CompanionKeyboardShortcut.scopedStrokes(keys) else {
-                updateStatus("Bring the approved app for this shortcut to the front")
+                updateStatus("Bring the approved app for this keyboard shortcut to the front")
                 return false
             }
             for (index, stroke) in strokes.enumerated() {
@@ -1089,12 +1179,12 @@ final class CompanionStore: NSObject, ObservableObject {
         }
         if CompanionKeyboardShortcut.isSafariUnmodifiedShortcut(keys),
            !CompanionKeyboardShortcut.isSafariApplication(NSWorkspace.shared.frontmostApplication?.bundleIdentifier) {
-            updateStatus("Bring Safari or the installed Safari web app to the front to use this shortcut")
+            updateStatus("Bring Safari or the installed Safari web app to the front to use this keyboard shortcut")
             return false
         }
         if CompanionKeyboardShortcut.isBooksExtendedShortcut(keys),
            NSWorkspace.shared.frontmostApplication?.bundleIdentifier != CompanionKeyboardShortcut.booksBundleIdentifier {
-            updateStatus("Bring Books to the front to use this shortcut")
+            updateStatus("Bring Books to the front to use this keyboard shortcut")
             return false
         }
         var targetPID: pid_t?
@@ -1102,7 +1192,7 @@ final class CompanionStore: NSObject, ObservableObject {
            CompanionKeyboardShortcut.isClaudeScopedShortcut(keys) {
             guard let application = NSWorkspace.shared.frontmostApplication,
                   application.bundleIdentifier == CompanionKeyboardShortcut.claudeDesktopBundleIdentifier else {
-                updateStatus("Bring Claude Desktop to the front to use this shortcut")
+                updateStatus("Bring Claude Desktop to the front to use this keyboard shortcut")
                 return false
             }
             targetPID = application.processIdentifier

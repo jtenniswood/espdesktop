@@ -3,7 +3,7 @@ import { OBS_SCENE_PAGE_CONTROLS } from "../generated/companion_capabilities";
 import { CARD_SIZE_SINGLE, CARD_SIZE_WIDE } from "./grid";
 import type { CompanionAction } from "../api/companion_catalogue";
 import type { CardConfig } from "../contracts/types";
-import { COMPANION_FOLDER_PREFIX } from "./companion_card_codec";
+import { APPLE_SHORTCUT_PREFIX, COMPANION_FOLDER_PREFIX } from "./companion_card_codec";
 import { isBackOrderToken, parseBackOrderToken } from "./subpage";
 
 /** Live folders occupy empty cells without acquiring a saved card identity. */
@@ -25,6 +25,19 @@ export function liveSubpagePreview(
     tiles.set(position++, action);
   }
   return tiles;
+}
+
+export function appleShortcutPreview(
+  order: readonly string[],
+  grid: readonly number[],
+  cards: readonly CardConfig[],
+  actions: readonly CompanionAction[],
+  hidden: ReadonlySet<string>,
+): ReadonlyMap<number, CompanionAction> {
+  if (!order.some(item => isBackOrderToken(parseBackOrderToken(item).token))) return new Map();
+  return liveSubpagePreview(grid, cards, grid.length + cards.length, actions.filter(action =>
+    action.id.startsWith(APPLE_SHORTCUT_PREFIX) && action.id.length > APPLE_SHORTCUT_PREFIX.length &&
+    !hidden.has(action.id)));
 }
 
 export function finderFolderPreview(

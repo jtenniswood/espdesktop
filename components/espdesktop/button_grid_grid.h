@@ -76,24 +76,30 @@ struct GridConfig {
 
 // The approved Mac catalogue is only a render input. The native page store
 // continues to contain the user's placed tiles.
-inline std::vector<CompanionAction> &grid_live_finder_folders() {
-  static std::vector<CompanionAction> folders;
-  return folders;
+inline std::vector<CompanionAction> &grid_live_companion_actions() {
+  static std::vector<CompanionAction> actions;
+  return actions;
 }
 
-inline bool grid_update_finder_folders(const CompanionRuntimeSnapshot &snapshot) {
-  std::vector<CompanionAction> folders;
+inline bool grid_is_apple_shortcuts_page(const ParsedCfg &card) {
+  return (card.type == "companion" && card.entity == "com.apple.shortcuts" && companion_app_shortcuts_enabled(card)) ||
+      (card.type == "subpage" && cfg_option_value(card.options, "subpage_kind") == "apple_shortcuts");
+}
+
+inline bool grid_update_live_companion_actions(const CompanionRuntimeSnapshot &snapshot) {
+  std::vector<CompanionAction> actions;
   if (snapshot.connected) {
     for (const auto &action : snapshot.actions)
-      if (is_live_finder_folder(action.id))
-        folders.push_back(action);
+      if (is_live_finder_folder(action.id) || companion_apple_shortcut_action(action.id))
+        actions.push_back(action);
   }
-  auto &previous = grid_live_finder_folders();
-  if (finder_folder_catalogue_equal(previous, folders)) return false;
-  previous = std::move(folders);
+  auto &previous = grid_live_companion_actions();
+  if (live_companion_catalogue_equal(previous, actions)) return false;
+  previous = std::move(actions);
   const auto *pages = espdesktop::grid_native_pages();
   return pages && std::any_of(pages->pages.begin(), pages->pages.end(), [](const auto &page) {
-    return grid_layout_card_config(page.key, {}).entity == "com.apple.finder";
+    const auto owner = grid_layout_card_config(page.key, {});
+    return owner.entity == "com.apple.finder" || grid_is_apple_shortcuts_page(owner);
   });
 }
 
@@ -113,7 +119,7 @@ inline bool grid_update_obs_subpage(const CompanionRuntimeSnapshot &snapshot, OB
   if (!companion_published_action(snapshot, kind == OBSSubpageKind::sources ? "obs.sources" : "obs.status.program")) return false;
   auto entries = obs_subpage_catalogue(snapshot, kind);
   auto &previous = grid_live_obs_tiles(kind);
-  if (finder_folder_catalogue_equal(previous, entries)) return false;
+  if (live_companion_catalogue_equal(previous, entries)) return false;
   previous = std::move(entries);
   const auto *pages = espdesktop::grid_native_pages();
   return pages && std::any_of(pages->pages.begin(), pages->pages.end(), [kind](const auto &page) {
@@ -419,10 +425,17 @@ inline void setup_card_visual(BtnSlot &s, const ParsedCfg &p,
 #endif
   apply_grid_card_corners(s.btn, cfg.card_corner_radius, cfg.continuous_card_corners);
   theme_set_content_background(s.btn, palette.custom_background);
+  const bool apple_shortcut = p.type == "companion" && companion_apple_shortcut_action(p.entity);
+  const auto pressed_state = apple_shortcut ? APPLE_SHORTCUT_TAP_STATE : LV_STATE_PRESSED;
+  lv_obj_clear_state(s.btn, APPLE_SHORTCUT_TAP_STATE);
+  lv_obj_remove_local_style_prop(s.btn, LV_STYLE_BG_COLOR, APPLE_SHORTCUT_TAP_STATE);
+  lv_obj_remove_local_style_prop(s.btn, LV_STYLE_TEXT_COLOR, APPLE_SHORTCUT_TAP_STATE);
+  lv_obj_remove_local_style_prop(s.btn, LV_STYLE_BG_GRAD_COLOR, APPLE_SHORTCUT_TAP_STATE);
+  lv_obj_remove_local_style_prop(s.btn, LV_STYLE_BG_GRAD_DIR, APPLE_SHORTCUT_TAP_STATE);
   apply_button_colors(s.btn, palette.has_on, palette.on_val,
-    palette.has_off, palette.off_val);
+    palette.has_off, palette.off_val, pressed_state);
   sync_card_checked_text_color(s.btn);
-  apply_button_on_pattern(s.btn, p.options, palette.has_on, palette.on_val);
+  apply_button_on_pattern(s.btn, p.options, palette.has_on, palette.on_val, pressed_state);
   apply_standard_sensor_number_style(s, display);
   if (s.unit_lbl) lv_obj_clear_flag(s.unit_lbl, LV_OBJ_FLAG_HIDDEN);
   if (s.text_lbl) lv_obj_clear_flag(s.text_lbl, LV_OBJ_FLAG_HIDDEN);
@@ -1428,9 +1441,13 @@ inline void grid_phase2(
     if (p.entity == "com.apple.finder") {
       const int capacity = bounded_grid_slots(cfg.configured_slots > 0 ? cfg.configured_slots : NS);
       finder_project_folder_tiles(sp_ord, sp_btns, NS, COLS, capacity,
-                                 grid_live_finder_folders(),
+                                 grid_live_companion_actions(),
                                  companion_folder_open_behavior(p),
                                  cfg_option_value(p.options, "generated_card_exclusions"));
+    } else if (grid_is_apple_shortcuts_page(p)) {
+      const int capacity = bounded_grid_slots(cfg.configured_slots > 0 ? cfg.configured_slots : NS);
+      const auto hidden = split_config_fields(cfg_option_value(p.options, "apple_shortcuts_hidden"), '|');
+      project_apple_shortcut_tiles(sp_ord, sp_btns, NS, COLS, capacity, grid_live_companion_actions(), hidden);
     } else {
       const auto kind = obs_subpage_kind(cfg_option_value(p.options, "subpage_kind"));
       if (kind != OBSSubpageKind::none) {

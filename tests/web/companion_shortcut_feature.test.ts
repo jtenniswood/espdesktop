@@ -198,10 +198,18 @@ export function runCompanionShortcutFeatureTests(): void {
     COMPANION_SHORTCUT_APPS.pop();
   }
   const companionModes = companionCardModeOptions();
-  if (companionModes.map(([mode]) => mode).join() !== "app,shortcut,url,folder,obs,obs_mic,obs_studio,obs_take,obs_transition,obs_status,obs_replay,obs_replay_buffer,obs_output,obs_brb,stats" ||
+  if (companionModes.map(([mode]) => mode).join() !== "app,shortcut,url,folder,obs,obs_mic,obs_studio,obs_take,obs_transition,obs_status,obs_replay,obs_replay_buffer,obs_output,obs_brb,apple_shortcut,stats" ||
       companionCardModeValid("window") || companionCardModeValid("webapp") || companionCardModeValid("home_assistant") ||
       companionCardDefaultIcon("shortcut") !== "Shortcut Command") {
     throw new Error("Companion card modes must come from the generated product contract");
+  }
+  const appleShortcutID = "appleshortcut.00000000-0000-0000-0000-000000000001";
+  const appleShortcutCard = { ...emptyCardConfig("companion"), entity: appleShortcutID, label: "Start Design Session" };
+  const appleShortcutModel = decodeCompanionCard(appleShortcutCard);
+  if (appleShortcutModel.mode !== "apple_shortcut" || appleShortcutModel.actionId !== appleShortcutID ||
+      encodeCompanionCard(appleShortcutModel, appleShortcutCard).entity !== appleShortcutID ||
+      companionApplicationActions([{ id: appleShortcutID, label: "Start Design Session" }]).length !== 0) {
+    throw new Error("Apple Shortcut cards must preserve their ID offline and stay separate from app launch cards");
   }
   const storageCard = { ...emptyCardConfig("companion"), entity: "stat.storage_free:external-volume" };
   const legacyOBSStatus = { ...emptyCardConfig("companion"), entity: "obs.status.record",

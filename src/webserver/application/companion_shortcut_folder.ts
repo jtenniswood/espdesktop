@@ -82,7 +82,8 @@ export function replaceCompanionDefinitions(apps: readonly AppShortcutApplicatio
     return shortcutChanged;
 }
 
-import { companionSavedCardMode, obsConfirmableToggle } from "../model/companion_card_codec";
+import { APPLE_SHORTCUT_PREFIX, COMPANION_FOLDER_PREFIX, companionSavedCardMode, obsConfirmableToggle } from "../model/companion_card_codec";
+import type { CompanionAction } from "../api/companion_catalogue";
 import {
     configOptionEnabled,
     configOptionValue,
@@ -91,7 +92,7 @@ import {
     preserveCardColorOptions,
 } from "../model/config_primitives";
 import { cardTransferOwnsSubpage } from "../model/card_transfer";
-import { appShortcutPageOwner } from "../model/companion_shortcut_page";
+import { APPLE_SHORTCUTS_APP_ID, APPLE_SHORTCUTS_HIDDEN_OPTION, appShortcutPageOwner, isAppleShortcutsPage } from "../model/companion_shortcut_page";
 import type { CardConfig } from "../contracts/types";
 import { isBackOrderToken } from "../model/subpage";
 import type { SubpageConfig } from "../contracts/types";
@@ -142,6 +143,7 @@ export interface CompanionShortcutTabDefinition {
 
 export function companionShortcutFolderAppLabel(bundleIdentifier: unknown): string {
     if (bundleIdentifier === "com.apple.finder") return "Finder";
+    if (bundleIdentifier === APPLE_SHORTCUTS_APP_ID) return "Shortcuts";
     if (typeof bundleIdentifier !== "string") return "";
     return companionShortcutApp(bundleIdentifier)?.label || "";
 }
@@ -165,6 +167,7 @@ export function companionAppShortcutFolderEnabled(card: any): boolean {
 }
 
 export function editableAppShortcutPage(card?: CardConfig): boolean {
+    if (isAppleShortcutsPage(card)) return true;
     const app = appShortcutPageOwner(card);
     return !!app && app !== "com.apple.finder";
 }
@@ -198,6 +201,9 @@ export function normalizeCompanionAppShortcutOptions(card: any): string {
         configOptionEnabled(card.options, COMPANION_APP_SHORTCUTS_OPTION),
     );
     if (!configOptionEnabled(options, COMPANION_APP_SHORTCUTS_OPTION)) return finish(options);
+    if (card.entity === APPLE_SHORTCUTS_APP_ID)
+        return finish(setConfigOptionValue(options, APPLE_SHORTCUTS_HIDDEN_OPTION,
+            configOptionValue(card.options, APPLE_SHORTCUTS_HIDDEN_OPTION)));
     const tabs = companionShortcutTabs(card);
     const defaults = companionShortcutDefaultTabs(card.entity);
     const value = tabs.length === 0 ? "none" :
@@ -526,6 +532,10 @@ export function createCompanionShortcutSubpage(bundleIdentifier: string, tabs?: 
     const buttons = selected.map(function (value) {
         return presets.find((preset) => companionShortcutPresetIdentity(preset) === bundleIdentifier + ":" + value);
     }).filter(preset => preset !== undefined);
+    return createShortcutPage(buttons);
+}
+
+function createShortcutPage(buttons: CompanionShortcutPresetCard[]) {
     return {
         order: ["B"].concat(buttons.map((_button, index) => String(index + 1))),
         buttons,
@@ -540,12 +550,34 @@ export function companionShortcutTabsForCapacity(tabs: readonly string[], maxSlo
 }
 
 export function finderFolderTabs(subpage: any): string[] {
+    return companionActionPageTabs(subpage, COMPANION_FOLDER_PREFIX);
+}
+
+export function appleShortcutPageActions(actions: readonly CompanionAction[]): CompanionAction[] {
+    return [...new Map(actions.filter(action => action.id.startsWith(APPLE_SHORTCUT_PREFIX))
+        .map(action => [action.id, action])).values()].sort((a, b) => a.label.localeCompare(b.label));
+}
+
+export function createAppleShortcutSubpage(actions: readonly CompanionAction[], maxSlots: number) {
+    const buttons = defaultAppleShortcutActions(actions, maxSlots).map(action => shortcutCard(action.id, action.label, "Flash"));
+    return createShortcutPage(buttons);
+}
+
+export function defaultAppleShortcutActions(actions: readonly CompanionAction[], maxSlots: number): readonly CompanionAction[] {
+    return actions.slice(0, Math.min(8, Math.max(0, maxSlots - 1)));
+}
+
+export function appleShortcutPageTabs(subpage: any): string[] {
+    return companionActionPageTabs(subpage, APPLE_SHORTCUT_PREFIX);
+}
+
+function companionActionPageTabs(subpage: any, prefix: string): string[] {
     const tokens = subpage?.grid?.length ? subpage.grid : (subpage?.order || []);
     const selected: string[] = [];
     for (const token of tokens) {
         const index = Number.parseInt(String(token), 10) - 1;
         const card = subpage?.buttons?.[index];
-        if (card?.type === "companion" && card.entity?.startsWith("folder.") && !selected.includes(card.entity)) {
+        if (card?.type === "companion" && card.entity?.startsWith(prefix) && !selected.includes(card.entity)) {
             selected.push(card.entity);
         }
     }
@@ -556,10 +588,26 @@ export function syncFinderFolderSelection(
     source: any, folders: readonly { id: string; label: string }[], selected: readonly string[],
     maxSlots: number, buildGrid: (page: any) => unknown,
 ): any | null {
+    return syncCompanionActionSelection(source, folders, selected, maxSlots, buildGrid,
+        COMPANION_FOLDER_PREFIX, "Folder Outline");
+}
+
+export function syncAppleShortcutSelection(
+    source: any, actions: readonly CompanionAction[], selected: readonly string[],
+    maxSlots: number, buildGrid: (page: any) => unknown,
+): any | null {
+    return syncCompanionActionSelection(source, actions, selected, maxSlots, buildGrid,
+        APPLE_SHORTCUT_PREFIX, "Flash");
+}
+
+function syncCompanionActionSelection(
+    source: any, actions: readonly { id: string; label: string }[], selected: readonly string[],
+    maxSlots: number, buildGrid: (page: any) => unknown, prefix: string, icon: string,
+): any | null {
     const page = JSON.parse(JSON.stringify(source));
-    const managed = (card: any) => card?.type === "companion" && card.entity?.startsWith("folder.");
+    const managed = (card: any) => card?.type === "companion" && card.entity?.startsWith(prefix);
     const sizes = { ...(page.sizes || {}) };
-    const pinned = finderFolderTabs(page);
+    const pinned = companionActionPageTabs(page, prefix);
     const existing = pinned.filter(id => selected.includes(id));
     const reordered = existing.some((id, index) => selected[index] !== id);
     const suffixes = new Map<string, string>();
@@ -576,12 +624,12 @@ export function syncFinderFolderSelection(
         if (!reordered && existing.includes(id)) continue;
         let index = page.buttons.findIndex((card: any) => managed(card) && card.entity === id);
         if (index < 0) {
-            const folder = folders.find(folder => folder.id === id);
-            if (!folder) return null;
+            const action = actions.find(action => action.id === id);
+            if (!action) return null;
             index = page.buttons.findIndex((card: any) => managed(card) &&
                 !selected.includes(card.entity) && !pinned.includes(card.entity));
             if (index < 0) index = page.buttons.length;
-            page.buttons[index] = shortcutCard(folder.id, folder.label, "Folder Outline");
+            page.buttons[index] = shortcutCard(action.id, action.label, icon);
         }
         const suffix = suffixes.get(id) || "";
         const size = sizes[String(index + 1)] || 1;

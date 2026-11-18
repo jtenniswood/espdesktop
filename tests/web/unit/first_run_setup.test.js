@@ -24,9 +24,9 @@ test("OBS tiles that require a panel tap are excluded from Home Assistant export
   }
 });
 
-function setup(input, apps, shortcuts, capacity = 4, replacing, automaticSwitch) {
+function setup(input, apps, shortcuts, capacity = 4, replacing, automaticSwitch, workflows) {
   const draft = new NativeLayoutDraft(input);
-  applyFirstRunLayout(draft, decodePanelPageSnapshot(input), apps, shortcuts, capacity, replacing, automaticSwitch);
+  applyFirstRunLayout(draft, decodePanelPageSnapshot(input), apps, shortcuts, capacity, replacing, automaticSwitch, workflows);
   return draft.finish();
 }
 
@@ -76,6 +76,17 @@ test("skip saves completion without creating cards and launch-only creates no su
   const launchOnly = decodePanelPageSnapshot(setup(empty(), [safari], false));
   assert.deepEqual(launchOnly.layout.pages, []);
   assert.equal(launchOnly.layout.rootCards[0].config.options, "");
+});
+
+test("setup gives the Shortcuts app a page of enabled workflows within capacity", () => {
+  const shortcuts = { id: "com.apple.shortcuts", label: "Shortcuts" };
+  const workflows = Array.from({ length: 5 }, (_, index) => ({
+    id: "appleshortcut.727ed9bf-de97-42ed-b661-8967497b122" + index,
+    label: "Workflow " + index,
+  }));
+  const { layout } = decodePanelPageSnapshot(setup(empty(), [shortcuts], true, 4, undefined, true, workflows));
+  assert.equal(layout.pages[0].order, "B,1,2,3");
+  assert.deepEqual(layout.pages[0].cards.map(card => card.config.entity), workflows.slice(0, 3).map(action => action.id));
 });
 
 test("replacing setup preserves other settings and rejects concurrent changes to the layout or preference", () => {

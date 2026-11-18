@@ -1,7 +1,7 @@
 import { isStudioControlPage } from "../model/studio_control_page";
 import { sameCardAction, setCardExposure } from "../model/home_assistant_cards";
 import { childPageKey, pageOwnerSlot, parentPageKey } from "../model/page_keys";
-import { previewSubpageOwner } from "../model/companion_shortcut_page";
+import { APPLE_SHORTCUTS_HIDDEN_OPTION, isAppleShortcutsCard, isAppleShortcutsPage, previewSubpageOwner } from "../model/companion_shortcut_page";
 import { companionCardHasAppIcon } from "../model/companion_card_codec";
 import { state } from "../state/app_instance";
 import * as EspDesktopModel from "../model";
@@ -92,6 +92,7 @@ export function createButtonSettingsFeature(
     } = fields;
 
     function cardSettingsTitle(this: any, typeDefinition?: any, button?: any): string {
+        if (isAppleShortcutsCard(button)) return "Apple Shortcuts";
         var label: any = buttonTypeRegistryValue(typeDefinition, "label", "Card");
         var mode: any = typeDefinition && typeDefinition.cardMetadata && typeDefinition.cardMetadata.mode;
         var options: any = mode && (typeof mode.options === "function" ? mode.options(button) : mode.options);
@@ -544,6 +545,7 @@ export function createButtonSettingsFeature(
                 : null;
             var replacedFolderOwner: any = !c.isSub &&
                 cardOwnsSubpage(originalSubpageOwner) &&
+                !(isAppleShortcutsCard(originalSubpageOwner) && isAppleShortcutsCard(savedButton)) &&
                 (!cardOwnsSubpage(savedButton) || originalSubpageOwner.type !== savedButton.type ||
                     originalSubpageOwner.entity !== savedButton.entity);
             var sizeChanged: any = !shortcutPage && applyCardSizeConstraint(savedButton);
@@ -962,13 +964,15 @@ export function createButtonSettingsFeature(
                     c = ctx(homeSlot);
                     const owner = c.buttons[slot - 1];
                     if (state.editingSubpage !== shortcutPage || !editableAppShortcutPage(owner) ||
-                        owner.entity !== b.entity || !codec.canCreateSubpage(homeSlot)) {
+                        owner.entity !== b.entity || owner.type !== b.type || !codec.canCreateSubpage(homeSlot)) {
                         showBanner("This app subpage has changed. Reopen its shortcut settings to try again.", "error");
                         return;
                     }
-                    const tabs = configOptionValue(b.options, COMPANION_APP_SHORTCUTS_TABS_OPTION);
-                    const options = setConfigOptionValue(owner.options, COMPANION_APP_SHORTCUTS_TABS_OPTION, tabs);
-                    EspDesktopModel.copyCardConfig(b, { ...owner, options, _appShortcutSelectionChanged: true });
+                    const selectionOption = isAppleShortcutsPage(owner) ? APPLE_SHORTCUTS_HIDDEN_OPTION : COMPANION_APP_SHORTCUTS_TABS_OPTION;
+                    const options = setConfigOptionValue(owner.options, selectionOption, configOptionValue(b.options, selectionOption));
+                    EspDesktopModel.copyCardConfig(b, {
+                        ...owner, options, _appleShortcutTabs: b._appleShortcutTabs, _appShortcutSelectionChanged: true,
+                    });
                 }
                 if (!validateSettingsDraft() || !validateImageCardLimit() || !validateConfigSize()) return;
                 saveBtn.disabled = true;
@@ -982,11 +986,11 @@ export function createButtonSettingsFeature(
         }
         if (shortcutPage) {
             const renderShortcuts = cardRegistry.definitions.companion?.renderAppShortcutSettings;
-            if (!renderShortcuts || !editableAppShortcutPage(liveButton) || liveButton.entity !== b.entity) {
+            if (!renderShortcuts || !editableAppShortcutPage(liveButton) || liveButton.entity !== b.entity || liveButton.type !== b.type) {
                 closeSettings();
                 return;
             }
-            title.textContent = "Edit App Shortcuts";
+            title.textContent = isAppleShortcutsPage(b) ? "Edit Apple Shortcuts" : "Edit Keyboard Shortcuts";
             panel.classList.add("sp-app-subpage-settings");
             renderShortcuts(panel, b, shortcutPage, { idPrefix, saveField }, true);
             const footer = document.createElement("div");
