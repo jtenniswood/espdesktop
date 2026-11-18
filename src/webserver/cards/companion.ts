@@ -901,12 +901,18 @@ export function registerCompanionCardTypes(
     function renderAppleShortcutSettings(panel: HTMLElement, card: any,
         helpers: { idPrefix: string; saveField: (field: string, value: unknown) => void },
         savedPage?: typeof state.subpages[number]): void {
-        const list = document.createElement("div");
+        const disclosure = fields.disclosureSection(
+            "Apple Shortcuts", helpers.idPrefix + "apple-shortcuts-list", card._appleShortcutListOpen !== false,
+        );
+        disclosure.button.addEventListener("click", () => {
+            card._appleShortcutListOpen = disclosure.button.getAttribute("aria-expanded") === "true";
+        });
+        const list = disclosure.section;
         const status = document.createElement("div");
         status.className = "sp-field-info-text sp-visible";
         status.textContent = "Loading Apple Shortcuts…";
         list.appendChild(status);
-        panel.appendChild(list);
+        panel.appendChild(disclosure.panel);
         function render(actions: readonly CompanionAction[]) {
             const source = savedPage ?? createAppleShortcutSubpage([], maxSlots);
             const savedSelection = appleShortcutPageTabs(savedPage);

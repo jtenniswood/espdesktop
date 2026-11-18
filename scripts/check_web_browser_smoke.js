@@ -8053,6 +8053,13 @@ async function assertAppleShortcutSubpage(browser, directCard = false) {
       await row(workflows[21]).waitFor({ state: "attached" });
     }
     await editFromSubpage();
+    const shortcutList = modal.getByRole("button", { name: "Apple Shortcuts", exact: true });
+    assert.equal(await shortcutList.getAttribute("aria-expanded"), "true");
+    const firstWorkflow = modal.locator(`.sp-light-tab-row[data-tab="${workflows[0].id}"]`);
+    await shortcutList.click();
+    await firstWorkflow.waitFor({ state: "hidden" });
+    await shortcutList.click();
+    await firstWorkflow.waitFor({ state: "visible" });
     await row(workflows[0]).evaluate(input => input.click());
     await row(workflows[21]).evaluate(input => input.click());
     await modal.getByRole("button", { name: "Drag Workflow 22" }).press("ArrowUp");
