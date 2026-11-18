@@ -15,6 +15,8 @@ Put Twitch playback controls within reach on a small touchscreen beside your Mac
 
 Start with **Mute / Unmute**, **Play / Pause**, and **Toggle Full Screen**. Add **Clip Live Stream** if you like saving highlights on channels that allow clips.
 
+<a href="/images/espdesktop-desk.jpg"><picture><source type="image/avif" srcset="/images/espdesktop-desk-480.avif 480w, /images/espdesktop-desk-960.avif 960w" sizes="(min-width: 768px) 688px, 90vw"><img src="/images/espdesktop-desk.jpg" alt="EspDesktop touchscreen on a desk stand next to a Mac keyboard, showing a grid of app buttons" width="1320" height="1093" loading="lazy"></picture></a>
+
 ## How do I set up Twitch controls?
 
 1. Open **twitch.tv** in Safari and choose **File → Add to Dock**. Open Twitch from the Dock.

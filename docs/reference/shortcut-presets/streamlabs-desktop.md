@@ -15,6 +15,8 @@ Keep the Streamlabs Desktop commands you use to prepare a stream on a small touc
 
 Start with **Open Settings** and **Undo**. If you regularly adjust a webcam or overlay, add shortcuts such as **Nudge Selection Left**. Select the item in Streamlabs, then tap the button to move it a little at a time.
 
+<a href="/images/web-editor-choose-card.webp"><picture><source type="image/avif" srcset="/images/web-editor-choose-card-480.avif 480w, /images/web-editor-choose-card-960.avif 960w" sizes="(min-width: 768px) 688px, 90vw"><img src="/images/web-editor-choose-card.webp" alt="EspDesktop card picker showing the Key Shortcut and Applications options" width="1269" height="1022" loading="lazy"></picture></a>
+
 ## How do I add Streamlabs Desktop shortcuts?
 
 1. In the display editor, open **Layout** and add a **Key Shortcut** card. Choose **Application → Streamlabs Desktop**.
