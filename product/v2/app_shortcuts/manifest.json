@@ -1,6 +1,6 @@
 {
   "formatVersion": 1,
-  "catalogueVersion": 24,
+  "catalogueVersion": 25,
   "minimumCompanionVersion": "1.0.0",
   "entries": [
     {
@@ -218,6 +218,9 @@
     },
     {
       "path": "spotify.json"
+    },
+    {
+      "path": "streamlabs-desktop.json"
     },
     {
       "path": "telegram.json"

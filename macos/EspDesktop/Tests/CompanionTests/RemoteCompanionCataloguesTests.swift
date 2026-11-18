@@ -36,6 +36,39 @@ final class RemoteCompanionCataloguesTests: XCTestCase {
     }
 
     @MainActor
+    func testExpandedCatalogueFitsFramesWithLongEscapedEntries() throws {
+        let suite = "EscapedCatalogueTests." + UUID().uuidString
+        let defaults = try XCTUnwrap(UserDefaults(suiteName: suite))
+        defer { defaults.removePersistentDomain(forName: suite) }
+        var app = try XCTUnwrap(RemoteCompanionCatalogueStore(defaults: defaults).value.applications.first {
+            $0.appId == "com.streamlabs.slobs"
+        })
+        let entries = (100..<164).map { id in
+            RemoteShortcutDefinition(
+                id: String(id), label: String(repeating: "\"", count: 48),
+                shortcut: "scoped.command+control+option+shift+function+f20~command+control+option+shift+f20",
+                icon: String(repeating: "/", count: 48)
+            )
+        }
+        app.moreShortcuts = entries
+
+        let pages = app.expandedPages()
+        XCTAssertGreaterThan(pages.count, 1)
+        XCTAssertEqual(pages.flatMap { $0.moreShortcuts ?? [] }, entries)
+        for page in pages {
+            let payload = try JSONEncoder().encode(page)
+            XCTAssertLessThanOrEqual(payload.count, 12_000)
+            let frame = try JSONSerialization.data(withJSONObject: [
+                "type": "catalogue.definitions.page", "protocol": CompanionCapabilities.protocolVersion,
+                "page": Int(UInt16.max), "generation": Int(UInt32.max), "complete": false,
+                "items": [["kind": "application", "json": String(decoding: payload, as: UTF8.self)]],
+            ])
+            XCTAssertLessThanOrEqual(frame.count, CompanionCapabilities.maximumTextFrameBytes)
+            XCTAssertNotNil(CompanionProtocolDecoder.decode(frame, direction: .macToPanel, state: .connected))
+        }
+    }
+
+    @MainActor
     func testBundledClaudePresetsTakePriorityOverOlderCachedCatalogue() throws {
         let suite = "ClaudeCatalogueTests." + UUID().uuidString
         let defaults = try XCTUnwrap(UserDefaults(suiteName: suite))

@@ -35,4 +35,10 @@ When you add a **Key Shortcut** card inside an app subpage, the **Application** 
 
 The web editor dims these shortcuts when the app loses focus or the Mac disconnects. You can still edit and rearrange the tiles.
 
+## Control Streamlabs Desktop
+
+Approve **Streamlabs Desktop** in the EspDesktop Mac app. Choose **Key Shortcut → Application → Streamlabs Desktop** for menu shortcuts such as **Open Settings**, **Undo** and **Copy**, or enable **Add app subpage** on a Streamlabs Desktop application card. The nudge presets move a selected source in the Streamlabs editor.
+
+For scene switching, mic mute or recording, assign a key combination in [Streamlabs Desktop → Settings → Hotkeys](https://support.streamlabs.com/hc/en-us/articles/4413170379675-How-to-Set-up-Hotkeys-in-Streamlabs-Desktop). Choose a combination with Command, Control or Option that works from your Mac keyboard, then enter the same keys in a **Key Shortcut → Custom** tile. You can put these tiles on the Streamlabs app subpage. Bring Streamlabs to the front before using a Custom tile, which sends keys to the active Mac app.
+
 <span id="add-templates-for-another-app">Missing a preset?</span> [Suggest a shortcut](/mac-controls/improve-shortcuts).
