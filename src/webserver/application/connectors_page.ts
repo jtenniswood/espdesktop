@@ -1,3 +1,4 @@
+import type { SettingsUiFeature } from "../features/settings";
 import type { ApplicationDomServices } from "./application_context";
 import type { ControlsShellFeature } from "./controls_shell";
 import type { CompanionPairingState, SettingsCompanionSectionFeature } from "./settings_companion_section";
@@ -46,6 +47,7 @@ export function createConnectorsPageFeature(
     companionSection: SettingsCompanionSectionFeature,
     companionSupported: boolean,
     buildHomeAssistantCard: () => HTMLElement,
+    { infoPanel }: Pick<SettingsUiFeature, "infoPanel">,
 ): ConnectorsPageFeature {
     const { document, window, fetch } = dom;
     let current: ConnectorsStatus | null = null;
@@ -105,10 +107,10 @@ export function createConnectorsPageFeature(
             page.appendChild(companionSection.buildCompanionSettingsCard(applyCompanionStatus, !open, open));
             page.appendChild(buildHomeAssistantCard());
         } else {
-            const message = document.createElement("p");
-            message.className = "sp-connectors-unavailable";
-            message.textContent = "No external connectors are available on this display.";
-            page.appendChild(message);
+            page.appendChild(infoPanel(
+                "sp-connectors-unavailable",
+                "No external connectors are available on this display.",
+            ));
         }
         parent.appendChild(page);
     }

@@ -6448,10 +6448,12 @@ async function assertHomeAssistantConnectorLayout(browser) {
           `${testCase.name}: Mac Companion setup remains available`,
         );
       } else {
-        assert(
-          await connectors.getByText("No external connectors are available on this display.").isVisible(),
-          `${testCase.name}: unsupported profiles show a useful local connector state`,
-        );
+        const banner = connectors.getByRole("note").filter({
+          hasText: "No external connectors are available on this display.",
+        });
+        assert(await banner.isVisible(), `${testCase.name}: unsupported profiles show a connector info banner`);
+        assert(await banner.evaluate(element => element.classList.contains("sp-info-panel")),
+          `${testCase.name}: the connector note uses the shared info banner style`);
       }
       for (const query of ["tab=connectors", "tab=connectors&connector=mac_companion", "tab=device&connector=mac_companion"]) {
         await page.goto(`http://espdesktop.test/${testCase.slug}?events=1&${query}`, { waitUntil: "domcontentloaded" });
