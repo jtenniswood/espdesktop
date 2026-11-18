@@ -188,7 +188,7 @@ inline bool navigation_handle_button_press(const ParsedCfg &config, int slot_num
   const auto context = card_runtime_context(config);
   const bool subpage = espdesktop::cards::navigation_driver_matches(context);
   const bool app_subpage = companion_app_shortcuts_enabled(config) &&
-    (companion_auto_open_app_subpages() || companion_action_active(config.entity));
+    (config.entity == IRACING_COMPANION_APP || companion_auto_open_app_subpages() || companion_action_active(config.entity));
   if (!button || (!subpage && !app_subpage)) return false;
   // The selected driver opens the page after consuming the touch. Check the
   // owner here without building it early, so first-draw timing includes the build.

@@ -3,6 +3,8 @@
 #include <string>
 #include <string_view>
 
+inline constexpr char IRACING_COMPANION_APP[] = "com.iracing.simulator";
+
 inline bool companion_shortcut_app_id_valid(std::string_view value) {
   if (value.size() > 96 || value.find('.') == std::string_view::npos) return false;
   for (const char ch : value) {

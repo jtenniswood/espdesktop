@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <RootNamespace>EspDesktop.Windows</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="../EspDesktop/CompanionClient.cs" Link="CompanionClient.cs" />
+    <Compile Include="../EspDesktop/SimulatorInput.cs" Link="SimulatorInput.cs" />
+    <EmbeddedResource Include="../EspDesktop/iracing.json" Link="iracing.json" />
+  </ItemGroup>
+</Project>
