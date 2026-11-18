@@ -22,17 +22,6 @@ Start with **Duplicate**, **Frame**, and **New Component**. Duplicate a starting
   </picture>
 </div>
 
-## How do I add Figma shortcuts to EspDesktop?
-
-1. In the display editor, open **Layout** and tap or click an empty space. Choose **Applications**, then **Figma**.
-2. Turn on **Add app subpage**, choose the shortcuts you want, and save. Tap the Figma card on your display to open its shortcuts.
-
-New to EspDesktop? [Set up your display](/features/first-run) and [enable keyboard shortcuts on your Mac](/mac-controls/shortcuts#allow-accessibility-access). If you manage which apps EspDesktop can open, approve Figma in **Apps**.
-
-## Test your first shortcut
-
-Open a Figma design and tap **Actions** to open Figma’s command menu. To try **Duplicate**, select a layer first. If a card does nothing, try its shortcut on your Mac in the same Figma window.
-
 ## Figma shortcut reference
 
 <ShortcutPresetReference app-id="com.figma.Desktop" />
