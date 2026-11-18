@@ -1,5 +1,5 @@
 ---
-title: Figma Keyboard Shortcuts on an EspDesktop Touchscreen
+title: Figma keyboard shortcuts
 description: Keep your favourite Figma shortcuts one tap away. Use EspDesktop to duplicate layers, frame selections, and create components from a touchscreen beside your Mac.
 ---
 
@@ -7,7 +7,7 @@ description: Keep your favourite Figma shortcuts one tap away. Use EspDesktop to
 import ShortcutPresetReference from '../../.vitepress/theme/components/ShortcutPresetReference.vue'
 </script>
 
-# Figma shortcuts on an EspDesktop touchscreen
+# Figma keyboard shortcuts
 
 Keep your most-used Figma shortcuts on a small touchscreen beside your Mac. Give each action a labelled button so you can keep your eyes on the canvas and tap the command you want.
 
