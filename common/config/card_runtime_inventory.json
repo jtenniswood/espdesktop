@@ -383,7 +383,7 @@
       "canonicalType": "subpage",
       "surfaces": ["web_registry"],
       "webRegistration": "companion_apple_shortcuts",
-      "config": { "label": "Apple Shortcuts", "icon": "Flash", "icon_on": "Auto", "type": "subpage", "options": "subpage_connector=mac_companion,subpage_kind=apple_shortcuts" },
+      "config": { "label": "Shortcut List", "icon": "Flash", "icon_on": "Auto", "type": "subpage", "options": "subpage_connector=mac_companion,subpage_kind=apple_shortcuts" },
       "lifecycle": { "subscriptions": ["none"], "actions": ["navigation"], "modalOwner": "none" }
     },
     "media_cover_art": {

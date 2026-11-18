@@ -1306,10 +1306,10 @@
   },
   {
     "name": "companion_apple_shortcuts: picker_alias",
-    "input": "~,Apple%20Shortcuts,Flash,Auto,,,subpage,,subpage_connector%3Dmac_companion%2Csubpage_kind%3Dapple_shortcuts",
+    "input": "~,Shortcut%20List,Flash,Auto,,,subpage,,subpage_connector%3Dmac_companion%2Csubpage_kind%3Dapple_shortcuts",
     "expected": {
       "entity": "",
-      "label": "Apple Shortcuts",
+      "label": "Shortcut List",
       "icon": "Flash",
       "icon_on": "Auto",
       "sensor": "",

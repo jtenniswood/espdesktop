@@ -8021,6 +8021,7 @@ async function assertAppleShortcutSubpage(browser, directCard = false) {
       const { parseRawButtonConfig } = loadTypeScriptModule("src/webserver/model/card.ts");
       const owner = parseRawButtonConfig(fixture.document.buttons[1]);
       assert.equal(owner.type, "subpage");
+      assert.equal(owner.label, "Shortcut List");
       assert.equal(owner.entity, "", "navigation card has no Mac action");
       assert.match(owner.options, /subpage_kind=apple_shortcuts/);
     }

@@ -367,7 +367,7 @@ export function registerSubpageCardTypes(
         allowInSubpage: false,
         isAvailable: () => codec.canCreateSubpage(),
         onSelect: (card: any) => {
-            card.label = "Apple Shortcuts";
+            card.label = "Shortcut List";
             card.icon = "Flash";
             card.options = setConfigOptionValue("", SUBPAGE_CONNECTOR_OPTION, "mac_companion");
             card.options = setConfigOptionValue(card.options, SUBPAGE_KIND_OPTION, APPLE_SHORTCUTS_SUBPAGE_KIND);
