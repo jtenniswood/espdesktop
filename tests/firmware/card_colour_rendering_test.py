@@ -513,8 +513,22 @@ int main() {
     assert(fill.background[0] == 0x808080 && slider.slider_value == 75);
     assert(!lv_obj_has_state(&slider, LV_STATE_DISABLED));
     snapshot.values[1].value = 0;
+    fader.base_label = "Broadcast Mic";
     companion_render_slider(fader, snapshot);
+    assert(title.content == "Broadcast Mic");
     assert(fill.background[0] == 0xFF8C00 && slider.slider_value == 75);
+
+    snapshot.connected = false;
+    companion_render_slider(fader, snapshot);
+    assert(title.content == "Broadcast Mic\nUnavailable");
+    assert(lv_obj_has_state(&slider, LV_STATE_DISABLED));
+
+    fader.base_label.clear();
+    companion_render_slider(fader, snapshot);
+    assert(title.content == "Unavailable");
+    snapshot.connected = true;
+    companion_render_slider(fader, snapshot);
+    assert(title.content == "Desk Mic");
   }
   {
     lv_obj_t old_app, new_app, unrelated_app, metric;
