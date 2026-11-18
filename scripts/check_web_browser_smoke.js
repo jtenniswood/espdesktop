@@ -7941,6 +7941,13 @@ async function assertAppleShortcutSubpage(browser, directCard = false) {
   await context.route("**/companion/actions", route => route.fulfill({
     json: directCard ? available : [{ id: "com.apple.shortcuts", label: "Shortcuts" }, ...available],
   }));
+  if (directCard) {
+    const { COMPANION_APP_ICON_SIDE: side } = loadTypeScriptModule("src/webserver/generated/companion_capabilities.ts");
+    const pixels = Buffer.alloc(side * side * 3, 255);
+    await context.route("**/companion/app-icon?appId=com.apple.shortcuts", route => route.fulfill({
+      contentType: "application/octet-stream", body: pixels,
+    }));
+  }
   try {
     const page = await context.newPage();
     await installFakeEventSource(page);
@@ -7959,6 +7966,8 @@ async function assertAppleShortcutSubpage(browser, directCard = false) {
     const subpage = directCard ? modal : modal.locator(".sp-app-subpage-settings");
     if (directCard) {
       await page.locator(".sp-main .sp-empty-cell").first().click();
+      await page.getByRole("button", { name: "Apple Shortcuts card type" })
+        .locator(".sp-card-type-app-icon").waitFor();
       await chooseCardType(page, "Apple Shortcuts");
     } else {
       await app.click({ button: "right" });
@@ -7983,6 +7992,10 @@ async function assertAppleShortcutSubpage(browser, directCard = false) {
     }
     await modal.waitFor({ state: "hidden" });
     await open();
+    if (directCard) {
+      await app.locator(".sp-companion-app-icon").waitFor();
+      assert.equal(await app.getAttribute("data-icon-size"), "small");
+    }
     async function editFromSubpage() {
       await app.click({ button: "right" });
       await page.locator(".sp-ctx-menu").getByText("Edit Subpage", { exact: true }).click();

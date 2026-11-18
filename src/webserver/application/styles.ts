@@ -372,6 +372,7 @@ export function createWebStyles(dragAnimation: boolean): string {
         ".sp-card-type-option:disabled{opacity:.48;cursor:not-allowed}" +
         ".sp-card-type-icon{width:34px;height:34px;border-radius:8px;background:var(--accent-soft);" +
         "color:var(--accent-hover);position:relative;font-size:22px;line-height:1;flex:0 0 auto}" +
+        ".sp-card-type-app-icon{object-fit:contain;background:none}" +
         ".sp-card-type-icon::before{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);line-height:1}" +
         ".sp-card-type-copy{display:grid;gap:6px;min-width:0}" +
         ".sp-card-type-title{font-size:.93rem;font-weight:600;line-height:1.25;color:var(--text);overflow-wrap:anywhere}" +

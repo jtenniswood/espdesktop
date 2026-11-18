@@ -1304,6 +1304,12 @@ inline bool companion_app_launch_card(const ParsedCfg &p) {
          p.entity.rfind("stat.", 0) != 0 && !companion_apple_shortcut_action(p.entity);
 }
 
+inline constexpr char APPLE_SHORTCUTS_APP_ID[] = "com.apple.shortcuts";
+
+inline bool apple_shortcuts_navigation_card(const ParsedCfg &p) {
+  return p.type == "subpage" && cfg_option_value(p.options, "subpage_kind") == "apple_shortcuts";
+}
+
 inline bool companion_app_icon_enabled(const ParsedCfg &p) {
   return companion_app_launch_card(p);
 }

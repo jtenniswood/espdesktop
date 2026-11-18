@@ -104,9 +104,10 @@ static void sync_app_icons_from_panel_config(const uint8_t *document,
 #ifdef USE_COMPANION
   std::vector<std::string> application_ids;
   auto collect_card = [&application_ids](const ParsedCfg &card) {
-    if (!companion_app_icon_enabled(card)) return;
-    if (std::find(application_ids.begin(), application_ids.end(), card.entity) == application_ids.end())
-      application_ids.push_back(card.entity);
+    const std::string id = apple_shortcuts_navigation_card(card) ? APPLE_SHORTCUTS_APP_ID :
+        companion_app_icon_enabled(card) ? card.entity : "";
+    if (!id.empty() && std::find(application_ids.begin(), application_ids.end(), id) == application_ids.end())
+      application_ids.push_back(id);
   };
   auto collect_config = [&collect_card](const std::string &config) {
     collect_card(parse_cfg(config));

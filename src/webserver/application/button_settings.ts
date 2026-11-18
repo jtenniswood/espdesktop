@@ -1,7 +1,7 @@
 import { isStudioControlPage } from "../model/studio_control_page";
 import { sameCardAction, setCardExposure } from "../model/home_assistant_cards";
 import { childPageKey, pageOwnerSlot, parentPageKey } from "../model/page_keys";
-import { APPLE_SHORTCUTS_HIDDEN_OPTION, isAppleShortcutsCard, isAppleShortcutsPage, previewSubpageOwner } from "../model/companion_shortcut_page";
+import { APPLE_SHORTCUTS_APP_ID, APPLE_SHORTCUTS_HIDDEN_OPTION, isAppleShortcutsCard, isAppleShortcutsPage, previewSubpageOwner } from "../model/companion_shortcut_page";
 import { companionCardHasAppIcon } from "../model/companion_card_codec";
 import { state } from "../state/app_instance";
 import * as EspDesktopModel from "../model";
@@ -27,7 +27,7 @@ import type { ApplicationApiFeature } from "./api";
 import type { GridFeature } from "./grid";
 import type { ButtonSettingsIconPickerFeature } from "./button_settings_icon_picker";
 import type { ButtonSettingsSelectionFeature } from "./button_settings_selection";
-import type { PreviewRenderFeature } from "./preview_render";
+import { companionAppIconPreviewData, type PreviewRenderFeature } from "./preview_render";
 import { cardPickerConnectors, type CardPickerConnector, type CardPickerOption } from "../features/preview";
 import type { PreviewInteractionsFeature } from "./preview_interactions";
 import type { ControlsFieldsFeature } from "./controls_fields";
@@ -784,7 +784,18 @@ export function createButtonSettingsFeature(
                 item.disabled = o.disabled;
                 item.setAttribute("data-card-type", o.key);
                 item.setAttribute("aria-label", o.label + " card type");
-                item.appendChild(mdiIcon(o.icon, "sp-card-type-icon mdi"));
+                const icon = mdiIcon(o.icon, "sp-card-type-icon mdi");
+                item.appendChild(icon);
+                if (o.key === "companion_apple_shortcuts") {
+                    void companionAppIconPreviewData(APPLE_SHORTCUTS_APP_ID, "", document).then(preview => {
+                        if (!preview || !item.isConnected) return;
+                        const image = document.createElement("img");
+                        image.className = "sp-card-type-icon sp-card-type-app-icon";
+                        image.src = preview.dataUrl;
+                        image.alt = "";
+                        icon.replaceWith(image);
+                    });
+                }
                 const copy = document.createElement("span");
                 copy.className = "sp-card-type-copy";
                 copy.appendChild(textSpan(o.label, "sp-card-type-title"));

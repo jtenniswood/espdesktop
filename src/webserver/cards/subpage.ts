@@ -3,7 +3,7 @@ import { companionMetricForEntity } from "../model/companion_card_codec";
 import { OBS_SUBPAGES, type OBSSubpageKind, obsSubpageKind, orderedOBSTiles, obsSubpageTileKey, setOBSSubpagePreferences, obsSubpageCatalogue } from "../model/obs_live_subpage";
 import type { CompanionAction } from "../api/companion_catalogue";
 import type { ConfigModalTabOptionsFeature } from "../application/config_modal_tab_options";
-import { APPLE_SHORTCUTS_SUBPAGE_KIND, isAppleShortcutsCard } from "../model/companion_shortcut_page";
+import { APPLE_SHORTCUTS_APP_ID, APPLE_SHORTCUTS_SUBPAGE_KIND, isAppleShortcutsCard } from "../model/companion_shortcut_page";
 import { renderCompanionStorageSelector } from "./companion_storage";
 import { state } from "../state/app_instance";
 import { setConfigOptionValue } from "../model/config_primitives";
@@ -293,6 +293,14 @@ export function registerSubpageCardTypes(
                 };
             }
             var label: any = b.label || (defaults && defaults.label) || b.entity || "Configure";
+            if (isAppleShortcutsCard(b) && (!b.icon || b.icon === "Auto" || b.icon === "Flash")) {
+                return {
+                    appIconId: APPLE_SHORTCUTS_APP_ID,
+                    appIconSize: "small",
+                    iconHtml: '<span class="sp-btn-icon sp-companion-app-icon-fallback mdi mdi-flash"></span>',
+                    labelHtml: subpageBadgeLabelHtml(helpers, label),
+                };
+            }
             return {
                 iconHtml: '<span class="sp-btn-icon mdi mdi-' + (b.icon && b.icon !== "Auto" ? iconSlug(b.icon) : defaults ? iconSlug(defaults.icon) : "folder-outline") + '"></span>',
                 labelHtml: subpageBadgeLabelHtml(helpers, label),

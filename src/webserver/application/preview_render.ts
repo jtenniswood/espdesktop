@@ -660,7 +660,7 @@ export function createPreviewRenderFeature(dependencies: PreviewRenderDependenci
                 if (!generated) appendResizeHandle(btn);
                 main.appendChild(btn);
                 const appIconSize = typePreview?.appIconId
-                    ? cardIconSize(b.options, state.defaultIconSize) : "small";
+                    ? typePreview.appIconSize || cardIconSize(b.options, state.defaultIconSize) : "small";
                 btn.setAttribute("data-icon-size", appIconSize);
                 if (typePreview && typeof typePreview.appIconId === "string" &&
                     typePreview.appIconId.length > 0) {

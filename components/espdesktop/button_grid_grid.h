@@ -82,8 +82,8 @@ inline std::vector<CompanionAction> &grid_live_companion_actions() {
 }
 
 inline bool grid_is_apple_shortcuts_page(const ParsedCfg &card) {
-  return (card.type == "companion" && card.entity == "com.apple.shortcuts" && companion_app_shortcuts_enabled(card)) ||
-      (card.type == "subpage" && cfg_option_value(card.options, "subpage_kind") == "apple_shortcuts");
+  return apple_shortcuts_navigation_card(card) ||
+      (card.entity == APPLE_SHORTCUTS_APP_ID && companion_app_shortcuts_enabled(card));
 }
 
 inline bool grid_update_live_companion_actions(const CompanionRuntimeSnapshot &snapshot) {
