@@ -75,7 +75,7 @@ export function pinOBSStarterPage(draft: NativeLayoutDraft, current: NativePanel
     ];
     if (choices.mic) {
         const uuid = choices.mic.slice("obs.mute.".length);
-        const audio = [card(choices.mic, "Microphone", "Mic")];
+        const audio = [card(choices.mic, "Microphone")];
         if (ids.has(OBS_FADER_PREFIX + uuid))
             audio.push(card(OBS_FADER_PREFIX + uuid, "Microphone", "Mic level", "slider"));
         if (ids.has("obs.cough." + uuid))

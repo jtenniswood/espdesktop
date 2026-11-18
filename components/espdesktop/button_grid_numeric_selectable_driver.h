@@ -54,9 +54,11 @@ inline bool numeric_selectable_driver_attach_interaction(
   return numeric_selectable_driver_matches(context, config);
 }
 inline bool numeric_selectable_driver_refresh_layout(
-    BtnSlot &slot, const ParsedCfg &config, const Context &context) {
+    BtnSlot &slot, const ParsedCfg &config, const Context &context, const DisplayProfile &display) {
   if (!numeric_selectable_driver_matches(context, config)) return false;
-  if (!numeric_selectable_cough_card(config) && !companion_mute_control_valid(config.entity))
+  if (config.entity == "media.input_mute")
+    companion_setup_mic_mute_detail(slot.btn, display_small_text_font(display));
+  else if (!numeric_selectable_cough_card(config) && !companion_mute_control_valid(config.entity))
     refresh_slider_card_layout(slot);
   return true;
 }
@@ -73,12 +75,14 @@ inline bool numeric_selectable_driver_cleanup(
   // use the runtime registry; subpage allocations are tied to their owner.
   return numeric_selectable_driver_matches(context, config);
 }
-inline void numeric_selectable_driver_bind_slider(BtnSlot &slot, const ParsedCfg &config) {
+inline void numeric_selectable_driver_bind_slider(BtnSlot &slot, const ParsedCfg &config, const DisplayProfile &display) {
   if (companion_mute_control_valid(config.entity)) {
     const bool microphone = config.entity == "media.input_mute";
-    const char *previous_default_label = microphone ? "Microphone Mute" : "Output Mute";
-    if (slot.text_lbl && (config.label.empty() || (config.type == "slider" &&
-                         (config.label == "Mute" || config.label == previous_default_label))))
+    const bool default_label = config.label.empty() || (microphone
+      ? config.label == "Input State" || config.label == "Mute" ||
+        config.label == "Input Mute" || config.label == "Microphone Mute"
+      : config.type == "slider" && (config.label == "Mute" || config.label == "Output Mute"));
+    if (slot.text_lbl && default_label)
       lv_label_set_display_text(slot.text_lbl, companion_volume_control_label(config.entity));
     const char *muted_icon_name = microphone ? "Microphone Off" : "Volume Off";
     // Older cards saved the muted glyph as their default icon.
@@ -88,7 +92,9 @@ inline void numeric_selectable_driver_bind_slider(BtnSlot &slot, const ParsedCfg
       ? (microphone ? "Microphone" : "Volume High") : config.icon.c_str());
     const char *muted_icon = find_icon(muted_icon_name);
     if (slot.icon_lbl) lv_label_set_display_text(slot.icon_lbl, unmuted_icon);
-    companion_track_mute(slot.btn, config.entity, slot.icon_lbl, unmuted_icon, muted_icon);
+    companion_track_mute(slot.btn, config.entity, slot.icon_lbl, unmuted_icon, muted_icon,
+      microphone ? slot.text_lbl : nullptr);
+    if (microphone) companion_setup_mic_mute_detail(slot.btn, display_small_text_font(display));
     return;
   }
   lv_obj_t *slider = slot.sensor_container
@@ -124,12 +130,12 @@ inline void numeric_selectable_bind_cough(BtnSlot &slot, const ParsedCfg &config
 }
 inline bool numeric_selectable_driver_bind_main(
     BtnSlot &slot, const ParsedCfg &config, const Context &context,
-    const CardPalette &, const DisplayProfile &) {
+    const CardPalette &, const DisplayProfile &display) {
   if (!numeric_selectable_driver_matches(context, config)) return false;
   if (numeric_selectable_cough_card(config))
     numeric_selectable_bind_cough(slot, config, false);
   else
-    numeric_selectable_driver_bind_slider(slot, config);
+    numeric_selectable_driver_bind_slider(slot, config, display);
   return true;
 }
 struct NumericSelectableSubpageEnvironment {
@@ -139,13 +145,13 @@ struct NumericSelectableSubpageEnvironment {
 };
 inline bool numeric_selectable_driver_bind_subpage(
     BtnSlot &slot, const ParsedCfg &config, const Context &context,
-    const NumericSelectableSubpageEnvironment &) {
+    const NumericSelectableSubpageEnvironment &environment) {
   if (!numeric_selectable_driver_matches(context, config)) return false;
   if (numeric_selectable_cough_card(config)) {
     numeric_selectable_bind_cough(slot, config, true);
     return true;
   }
-  numeric_selectable_driver_bind_slider(slot, config);
+  numeric_selectable_driver_bind_slider(slot, config, environment.display);
   if (!companion_mute_control_valid(config.entity)) return true;
   std::string *entity = grid_delete_with_owner(slot.btn, new std::string(config.entity));
   bind_immediate_button_action(slot.btn, [](lv_event_t *event) {

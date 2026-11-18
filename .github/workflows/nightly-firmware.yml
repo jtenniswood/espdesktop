@@ -223,9 +223,13 @@ jobs:
                 # final exec replaces that child; this shell still reports size.
                 python3 /config/scripts/retry_firmware_downloads.py /entrypoint.sh compile "$1"
                 compile_status=$?
+                case "$2" in
+                  *.factory.yaml) minimum_headroom=128 ;;
+                  *) minimum_headroom=0 ;;
+                esac
                 python3 /config/scripts/report_firmware_size.py \
                   --target "$2" --build-root "$3" \
-                  --compile-status "$compile_status" \
+                  --compile-status "$compile_status" --minimum-headroom-kib "$minimum_headroom" \
                   --summary "$3/firmware-size-summary.md"
               ' sh "/config/${build_input_dir}/${target}" "${target}" \
               "/config/${build_input_dir}/.esphome")

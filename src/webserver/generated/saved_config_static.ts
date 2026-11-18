@@ -49,8 +49,10 @@ export function normalizeSavedConfigStatic(config: CardConfig): boolean {
   }
   if (config.type === "companion_input_mute") {
     config.entity = "media.input_mute";
-    if (config.label === "") config.label = "Mute";
-    if (config.label === "Input Mute") config.label = "Mute";
+    if (config.label === "") config.label = "Input State";
+    if (config.label === "Mute") config.label = "Input State";
+    if (config.label === "Input Mute") config.label = "Input State";
+    if (config.label === "Microphone Mute") config.label = "Input State";
     if (!config.icon) config.icon = "Microphone";
     config.icon_on = "Auto";
     config.sensor = "";

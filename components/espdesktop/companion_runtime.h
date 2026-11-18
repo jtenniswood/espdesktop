@@ -18,6 +18,7 @@
 #include <utility>
 #include <vector>
 
+#include "companion_shortcut_catalogue.h"
 #include "companion_capabilities_generated.h"
 
 // Folder focus belongs to Finder; switching directories must keep its subpage open.
@@ -188,6 +189,8 @@ class CompanionRuntimeService {
  public:
   // Wiring callbacks and pending requests share this service's lifetime.
   CompanionPendingActions pending_actions;
+  CompanionShortcutCatalogue shortcut_catalogue;
+  std::function<bool(uint32_t, const std::string &, uint32_t)> shortcut_catalogue_sender;
   CompanionActionSender action_sender;
   CompanionUrlSender url_sender;
   CompanionValueSender value_sender;

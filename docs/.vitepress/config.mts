@@ -177,6 +177,12 @@ export default defineConfig({
       frontmatter.macDownloadUrl = version ? `${releases}/download/${tag}/EspDesktop-${version}.dmg` : releases
     }
 
+    const shortcutGuide = relativePath.startsWith('reference/shortcut-presets/')
+    if (shortcutGuide && pageData.params) {
+      frontmatter.title = pageData.title = pageData.params.title
+      frontmatter.description = pageData.description = pageData.params.description
+    }
+
     const canonicalUrl = canonicalUrlFor(relativePath)
     const title = String(frontmatter.title ?? pageData.title)
     const description = String(frontmatter.description ?? '')
@@ -238,7 +244,9 @@ export default defineConfig({
       )
     } else {
       const breadcrumbs = `${canonicalUrl}#breadcrumbs`
-      const parent = guideParents[relativePath]
+      const parent = shortcutGuide
+        ? { name: 'Application shortcuts', path: 'reference/shortcut-presets.md' }
+        : guideParents[relativePath]
       const trail = [
         { name: 'EspDesktop', item: hostname },
         ...(parent ? [{ name: parent.name, item: canonicalUrlFor(parent.path) }] : []),

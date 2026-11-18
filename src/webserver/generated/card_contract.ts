@@ -2797,7 +2797,7 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
     }
   },
   "companion_input_mute": {
-    "label": "Mute",
+    "label": "Input State",
     "pickerKey": "companion_output_volume",
     "allowInSubpage": true,
     "domains": [],
@@ -2810,8 +2810,10 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
         "label": {
           "policy": "alias",
           "aliases": {
-            "": "Mute",
-            "Input Mute": "Mute"
+            "": "Input State",
+            "Mute": "Input State",
+            "Input Mute": "Input State",
+            "Microphone Mute": "Input State"
           }
         },
         "icon": {
@@ -2844,7 +2846,7 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
     },
     "default": {
       "entity": "media.input_mute",
-      "label": "Mute",
+      "label": "Input State",
       "icon": "Microphone",
       "icon_on": "Auto",
       "sensor": "",

@@ -17,8 +17,6 @@ final class RemoteCompanionCataloguesTests: XCTestCase {
         XCTAssertTrue(finalCut.expandedPages().allSatisfy { $0.defaultShortcutIds == nil })
         XCTAssertEqual(finalCut.expandedPages().flatMap { $0.moreShortcuts ?? [] }, more)
 
-        XCTAssertLessThanOrEqual(catalogue.applications.reduce(0) { $0 + 1 + $1.expandedPages().count }, 256)
-
         // Validate the actual escaped frames, including labels with punctuation.
         let encoder = JSONEncoder()
         for app in catalogue.applications {
@@ -33,6 +31,51 @@ final class RemoteCompanionCataloguesTests: XCTestCase {
                 XCTAssertLessThanOrEqual(frame.count, CompanionCapabilities.maximumTextFrameBytes)
             }
         }
+    }
+
+    @MainActor
+    func testRequestedAppWorksBeyondLegacyCatalogueLimit() throws {
+        let defaults = try XCTUnwrap(UserDefaults(suiteName: UUID().uuidString))
+        let bundled = RemoteCompanionCatalogueStore(defaults: defaults).value
+        let brave = try XCTUnwrap(bundled.applications.first { $0.appId == "com.brave.Browser" })
+        let applications = (0..<300).map { index in
+            var app = brave
+            app.appId = "org.example.App\(index)"
+            return app
+        }
+        let catalogue = RemoteCompanionCatalogues(version: 42, applications: applications)
+        var indexed: [String] = []
+        for page in 0..<10 {
+            let request = CompanionWireShortcutCatalogueRequest(
+                requestId: 1, appId: "index", page: UInt32(page))
+            let response = catalogue.shortcutPageResponse(request, approvedApps: [])
+            let json = try XCTUnwrap(response["json"] as? String)
+            let index = try XCTUnwrap(JSONSerialization.jsonObject(with: Data(json.utf8)) as? [String: [[String: String]]])
+            indexed += index["applications", default: []].compactMap { $0["appId"] }
+            XCTAssertEqual(response["complete"] as? Bool, page == 9)
+        }
+        XCTAssertEqual(indexed, applications.map(\.appId))
+        let appId = "org.example.App299"
+        let expandedPageCount = brave.onDemandExpandedPages.count
+        var ids: [String] = []
+        for page in 0...expandedPageCount {
+            let request = CompanionWireShortcutCatalogueRequest(
+                requestId: 1, appId: appId, page: UInt32(page))
+            var response = catalogue.shortcutPageResponse(request, approvedApps: [])
+            response["protocol"] = CompanionCapabilities.protocolVersion
+            let frame = try JSONSerialization.data(withJSONObject: response)
+            guard case .shortcutCataloguePage(let result)? = CompanionProtocolDecoder.decode(
+                frame, direction: .macToPanel, state: .connected) else {
+                return XCTFail("The requested app page did not fit the protocol")
+            }
+            XCTAssertEqual(result.appId, appId)
+            XCTAssertEqual(result.catalogueVersion, 42)
+            XCTAssertEqual(result.complete, page == expandedPageCount)
+            let json = try XCTUnwrap(result.json)
+            let app = try JSONDecoder().decode(RemoteMacApplicationDefinition.self, from: Data(json.utf8))
+            ids += (app.shortcuts + (app.moreShortcuts ?? [])).map(\.id)
+        }
+        XCTAssertEqual(ids, (brave.shortcuts + (brave.moreShortcuts ?? [])).map(\.id))
     }
 
     @MainActor

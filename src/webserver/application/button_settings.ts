@@ -1058,7 +1058,7 @@ export function createButtonSettingsFeature(
         if (obsAudioType) {
             const subtype = selectField("Type", idPrefix + "obs-audio-type", [
                 ["companion_obs_fader", "Level"],
-                ["companion_obs_mic", "Mute"],
+                ["companion_obs_mic", "Input State"],
                 ["companion_obs_cough", "Cough"],
             ], obsAudioType, (event: Event) => selectCardType((event.currentTarget as HTMLSelectElement).value));
             panel.appendChild(subtype.field);
@@ -1069,7 +1069,7 @@ export function createButtonSettingsFeature(
                 ["companion_output_mute", "Output Mute"],
                 ["companion_app_volume", "Output per application"],
                 ["companion_input_volume", "Audio Input"],
-                ["companion_input_mute", "Input Mute"],
+                ["companion_input_mute", "Input State"],
                 ["companion_cough", "Input Cough"],
                 ["companion_input_device", "Input per device level"],
             ];
