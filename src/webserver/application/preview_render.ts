@@ -13,7 +13,7 @@ import { cardIconSize, configOptionValue, cardActiveColor } from "../model/confi
 import { PANEL_CONFIG_MAX_SLOT_COUNT } from "../model/panel_config";
 import { escHtml, iconSlug } from "./ui_primitives";
 import { companionCardDefaultIcon } from "../model/companion_card";
-import { appShortcutPageBackIcon, appShortcutPageOwner, hiddenAppleShortcuts, isAppleShortcutsPage,
+import { APPLE_SHORTCUTS_APP_ID, appShortcutPageBackIcon, appShortcutPageOwner, hiddenAppleShortcuts, isAppleShortcutsPage,
     previewSubpageOwner } from "../model/companion_shortcut_page";
 import { appleShortcutPreview, finderFolderPreview, liveSubpagePreview, scenePageControls } from "../model/finder_folder_preview";
 import { CARD_SIZE_SINGLE, CARD_SIZE_WIDE } from "../model/grid";
@@ -695,6 +695,14 @@ export function createPreviewRenderFeature(dependencies: PreviewRenderDependenci
                     tile.append(icon, label);
                     empty.style.backgroundColor = "#" + defaultCardBackgroundColor("companion", state);
                     empty.appendChild(tile);
+                    void companionAppIconPreviewData(APPLE_SHORTCUTS_APP_ID, "", document).then(preview => {
+                        if (!preview || !tile.isConnected) return;
+                        const image = document.createElement("img");
+                        image.className = "sp-btn-icon sp-companion-app-icon";
+                        image.src = preview.dataUrl;
+                        image.alt = "";
+                        icon.replaceWith(image);
+                    });
                 }
                 main.appendChild(empty);
             }

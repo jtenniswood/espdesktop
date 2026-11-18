@@ -1310,6 +1310,11 @@ inline bool apple_shortcuts_navigation_card(const ParsedCfg &p) {
   return p.type == "subpage" && cfg_option_value(p.options, "subpage_kind") == "apple_shortcuts";
 }
 
+inline bool apple_shortcut_workflow_icon(const ParsedCfg &p) {
+  return p.type == "companion" && companion_apple_shortcut_action(p.entity) &&
+      (p.icon.empty() || p.icon == "Auto" || p.icon == "Flash");
+}
+
 inline bool companion_app_icon_enabled(const ParsedCfg &p) {
   return companion_app_launch_card(p);
 }

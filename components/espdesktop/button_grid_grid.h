@@ -475,7 +475,7 @@ inline void setup_card_visual(BtnSlot &s, const ParsedCfg &p,
   if (espdesktop::cards::basic_action_driver_setup_visual(
         s, p, context, palette.sensor_val)) {
 #ifdef USE_COMPANION
-    if (p.type == "companion")
+    if (p.type == "companion" && !apple_shortcut_workflow_icon(p))
       grid_update_companion_app_icon_palette(s, p, palette, display);
 #endif
     espdesktop::cards::basic_action_driver_attach_interaction(s, p, context);

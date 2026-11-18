@@ -7848,6 +7848,14 @@ async function assertReorderAfterDelete(browser) {
   } finally { await context.close(); }
 }
 
+async function mockShortcutsAppIcon(context) {
+  const { COMPANION_APP_ICON_SIDE: side } = loadTypeScriptModule("src/webserver/generated/companion_capabilities.ts");
+  const pixels = Buffer.alloc(side * side * 3, 255);
+  await context.route("**/companion/app-icon?appId=com.apple.shortcuts", route => route.fulfill({
+    contentType: "application/octet-stream", body: pixels,
+  }));
+}
+
 async function assertAppleShortcutCard(browser) {
   const testCase = CASES.find(item => item.slug === "guition-esp32-s3-4848s040");
   const fixture = nativeConfigState(testCase.slug);
@@ -7863,6 +7871,7 @@ async function assertAppleShortcutCard(browser) {
   await context.route("**/companion/actions", route => route.fulfill({
     json: workflows,
   }));
+  await mockShortcutsAppIcon(context);
   try {
     const page = await context.newPage();
     await installFakeEventSource(page);
@@ -7876,6 +7885,8 @@ async function assertAppleShortcutCard(browser) {
     }
     await open();
     await page.locator(".sp-main .sp-empty-cell").first().click();
+    await page.getByRole("button", { name: "Run Apple Shortcut card type" })
+      .locator(".sp-card-type-app-icon").waitFor();
     await chooseCardType(page, "Run Apple Shortcut");
     const picker = page.getByLabel("Apple Shortcut", { exact: true });
     await picker.locator(`option[value="${id}"]`).waitFor({ state: "attached" });
@@ -7893,6 +7904,8 @@ async function assertAppleShortcutCard(browser) {
     await open();
     const savedCard = page.locator('.sp-main [data-slot="1"]');
     await savedCard.getByText("Start Design Session", { exact: true }).waitFor();
+    await savedCard.locator("img.sp-companion-app-icon").waitFor();
+    assert.equal(await savedCard.getAttribute("data-icon-size"), "small");
     await savedCard.click({ button: "right" });
     await page.locator(".sp-ctx-menu").getByText("Edit Card", { exact: true }).click();
     await picker.locator(`option[value="${id}"]`).waitFor({ state: "attached" });
@@ -7941,13 +7954,7 @@ async function assertAppleShortcutSubpage(browser, directCard = false) {
   await context.route("**/companion/actions", route => route.fulfill({
     json: directCard ? available : [{ id: "com.apple.shortcuts", label: "Shortcuts" }, ...available],
   }));
-  if (directCard) {
-    const { COMPANION_APP_ICON_SIDE: side } = loadTypeScriptModule("src/webserver/generated/companion_capabilities.ts");
-    const pixels = Buffer.alloc(side * side * 3, 255);
-    await context.route("**/companion/app-icon?appId=com.apple.shortcuts", route => route.fulfill({
-      contentType: "application/octet-stream", body: pixels,
-    }));
-  }
+  if (directCard) await mockShortcutsAppIcon(context);
   try {
     const page = await context.newPage();
     await installFakeEventSource(page);
@@ -8068,7 +8075,8 @@ async function assertAppleShortcutSubpage(browser, directCard = false) {
       await page.locator(".sp-ctx-menu").getByText("Edit Subpage", { exact: true }).click();
       await page.locator(".sp-main").getByText("Nested Workflows", { exact: true }).click({ button: "right" });
       await page.locator(".sp-ctx-menu").getByText("Edit Subpage", { exact: true }).click();
-      await page.locator(".sp-main .sp-live-folder-preview").getByText("New Workflow", { exact: true }).waitFor();
+      const newWorkflowTile = page.locator(".sp-main .sp-live-folder-preview").filter({ hasText: "New Workflow" });
+      await newWorkflowTile.locator("img.sp-companion-app-icon").waitFor();
       assert.equal(await page.locator(".sp-main").getByText("Workflow 01", { exact: true }).count(), 0);
       console.log("Editing nested Apple Shortcuts saves to its own subpage.");
     }

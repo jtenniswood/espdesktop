@@ -2069,8 +2069,10 @@ export function registerCompanionCardTypes(
                 iconFallback: companionSubtypeDefaultIcon(mode),
                 badge: COMPANION_CARD_METADATA.preview.badge,
             });
-            if (companionAppIconEnabled(card)) {
-                preview.appIconId = card.entity;
+            const workflowIcon = mode === "apple_shortcut" && (!card.icon || card.icon === "Auto" || card.icon === "Flash");
+            if (workflowIcon || companionAppIconEnabled(card)) {
+                preview.appIconId = workflowIcon ? APPLE_SHORTCUTS_APP_ID : card.entity;
+                if (workflowIcon) preview.appIconSize = "small";
                 const background = configOptionValue(card.options, "app_bg_color").toUpperCase();
                 if (/^[0-9A-F]{6}$/.test(background)) preview.appIconBackgroundColor = background;
                 preview.iconHtml = preview.iconHtml.replace(
