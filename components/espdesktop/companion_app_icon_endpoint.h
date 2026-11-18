@@ -127,5 +127,9 @@ inline void register_companion_app_icon_preview_endpoint(
   registered = true;
 }
 #else
-inline void register_companion_app_icon_preview_endpoint(...) {}
+namespace esphome::web_server_idf {
+class AsyncWebServer;
+}
+// Passing the server through varargs copies it and the copy closes the listener.
+inline void register_companion_app_icon_preview_endpoint(esphome::web_server_idf::AsyncWebServer &) {}
 #endif
