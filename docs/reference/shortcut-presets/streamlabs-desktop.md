@@ -1,6 +1,6 @@
 ---
 title: Streamlabs Desktop Shortcuts on an EspDesktop Touchscreen
-description: Add Streamlabs Desktop shortcuts to EspDesktop on Mac. Open settings, undo edits, and nudge selected sources with touchscreen cards.
+description: Put Streamlabs Desktop shortcuts on an EspDesktop touchscreen. Open settings, undo edits, and fine-tune your stream layout with a tap on Mac.
 ---
 
 <script setup>
@@ -9,19 +9,22 @@ import ShortcutPresetReference from '../../.vitepress/theme/components/ShortcutP
 
 # Streamlabs Desktop shortcuts on an EspDesktop touchscreen
 
-EspDesktop pairs a small touchscreen with your Mac. Its Streamlabs Desktop presets can open settings, undo edits, copy items, and nudge selected sources in the editor.
+Keep the Streamlabs Desktop commands you use to prepare a stream on a small touchscreen beside your Mac. Open settings with a tap or undo an edit while you’re arranging your layout.
+
+## What can I do with it?
+
+Start with **Open Settings** and **Undo**. If you regularly adjust a webcam or overlay, add shortcuts such as **Nudge Selection Left**. Select the item in Streamlabs, then tap the button to move it a little at a time.
 
 ## How do I add Streamlabs Desktop shortcuts?
 
-Add a **Key Shortcut** card and choose **Application → Streamlabs Desktop**.
+1. In the display editor, open **Layout** and add a **Key Shortcut** card. Choose **Application → Streamlabs Desktop**.
+2. Pick **Open Settings** and save. To give several shortcuts a page of their own, use an **Applications** card with **Add app subpage** turned on.
 
-1. [Pair your display](/features/first-run), [allow macOS Accessibility access](/mac-controls/shortcuts#allow-accessibility-access), and approve **Streamlabs Desktop** in the EspDesktop Mac app.
-2. Open **Layout** in the display’s web editor and select an empty tile. Choose **Key Shortcut → Application → Streamlabs Desktop** and pick an action such as **Open Settings**.
-3. To keep several actions together, add an **Applications** card for Streamlabs Desktop, enable **Add app subpage**, and choose the shortcuts to include. Select **Save**.
+New to EspDesktop? [Set up your display](/features/first-run) and [enable keyboard shortcuts on your Mac](/mac-controls/shortcuts#allow-accessibility-access). If you manage which apps EspDesktop can open, approve Streamlabs Desktop in **Apps**.
 
 ## Test your first shortcut
 
-Tap **Open Settings** with the Streamlabs Desktop window open. To test a nudge shortcut, select a source in the Streamlabs editor first. If a tile does nothing, use the shortcut table to try the same keys in the app and check that the expected window or source has focus.
+Open Streamlabs Desktop and tap **Open Settings** on the display. If a shortcut does nothing, try the keys listed below in the same Streamlabs window. For nudge shortcuts, select the source you want to move first.
 
 ## Streamlabs Desktop shortcut reference
 

@@ -1,6 +1,6 @@
 ---
 title: Figma Keyboard Shortcuts on an EspDesktop Touchscreen
-description: Set up a touchscreen shortcut page for Figma on Mac. Use EspDesktop to open Actions, frame a selection, duplicate layers, or create components.
+description: Keep your favourite Figma shortcuts one tap away. Use EspDesktop to duplicate layers, frame selections, and create components from a touchscreen beside your Mac.
 ---
 
 <script setup>
@@ -9,19 +9,22 @@ import ShortcutPresetReference from '../../.vitepress/theme/components/ShortcutP
 
 # Figma shortcuts on an EspDesktop touchscreen
 
-EspDesktop pairs a small touchscreen with your Mac. In Figma, its shortcut cards can open **Actions**, frame selected layers, duplicate objects, and turn a selection into a component.
+Keep your most-used Figma shortcuts on a small touchscreen beside your Mac. Give each action a labelled button so you can keep your eyes on the canvas and tap the command you want.
+
+## What can I do with it?
+
+Start with **Duplicate**, **Frame**, and **New Component**. Duplicate a starting layout, wrap selected layers in a frame, or turn a design into a reusable component. Add **Actions** if you often search Figma for commands. Put the controls you reach for most where they’re easiest to tap.
 
 ## How do I add Figma shortcuts to EspDesktop?
 
-Add a Figma **Applications** card and enable **Add app subpage** to make a page of shortcuts.
+1. In the display editor, open **Layout** and tap or click an empty space. Choose **Applications**, then **Figma**.
+2. Turn on **Add app subpage**, choose the shortcuts you want, and save. Tap the Figma card on your display to open its shortcuts.
 
-1. [Pair your display](/features/first-run) with the EspDesktop Mac app and [allow macOS Accessibility access](/mac-controls/shortcuts#allow-accessibility-access). Approve Figma in **Apps** if you manage the approved list manually.
-2. In the display’s web editor, open **Layout**, select an empty tile, and choose **Applications**. Select **Figma**.
-3. Open **App Subpage**, turn on **Add app subpage**, choose your shortcuts, and select **Save**. For a single tile, choose **Key Shortcut → Application → Figma** and pick an action.
+New to EspDesktop? [Set up your display](/features/first-run) and [enable keyboard shortcuts on your Mac](/mac-controls/shortcuts#allow-accessibility-access). If you manage which apps EspDesktop can open, approve Figma in **Apps**.
 
 ## Test your first shortcut
 
-Open a Figma design, select a layer, and tap **Duplicate**. If the card brings Figma forward and the layer duplicates, the shortcut is reaching the app. **Frame** and **New Component** also need a suitable selection in the design. If nothing happens, try the same keys on your Mac in the same Figma window.
+Open a Figma design and tap **Actions** to open Figma’s command menu. To try **Duplicate**, select a layer first. If a card does nothing, try its shortcut on your Mac in the same Figma window.
 
 ## Figma shortcut reference
 
