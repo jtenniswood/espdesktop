@@ -65,10 +65,10 @@ const guideParents = {
 const guideMetadata = new Map<string, { title: string; description: string }>()
 
 const customiseLinks = [
+  { text: 'First setup', link: '/features/first-run' },
   { text: 'Apps', link: '/mac-controls/apps' },
   { text: 'Cough button', link: '/mac-controls/cough' },
   { text: 'Finder folders', link: '/mac-controls/folders' },
-  { text: 'First setup', link: '/features/first-run' },
   { text: 'Keyboard shortcuts', link: '/mac-controls/shortcuts' },
   { text: 'OBS Support', link: '/mac-controls/obs' },
   { text: 'Shortcut presets', link: '/reference/shortcut-presets' },
