@@ -333,17 +333,11 @@ export default defineConfig({
         ],
       },
       {
-        text: 'Support',
+        text: 'Support & reference',
         items: [
           { text: 'Troubleshooting', link: '/getting-started/troubleshooting' },
-        ],
-      },
-      {
-        text: 'Reference',
-        items: [
           { text: 'FAQ', link: '/reference/faq' },
           { text: 'Compatibility', link: '/reference/companion-compatibility' },
-          { text: 'Support', link: '/reference/support' },
           { text: 'Privacy', link: '/reference/privacy' },
         ],
       },
@@ -352,6 +346,7 @@ export default defineConfig({
         items: [
           { text: 'App shortcuts', link: '/mac-controls/improve-shortcuts' },
           { text: 'Request an icon', link: '/reference/request-icons' },
+          { text: 'Support this project', link: '/reference/support' },
         ],
       },
     ],
