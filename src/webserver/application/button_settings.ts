@@ -792,7 +792,7 @@ export function createButtonSettingsFeature(
                 item.setAttribute("aria-label", o.label + " card type");
                 const icon = mdiIcon(o.icon, "sp-card-type-icon mdi");
                 item.appendChild(icon);
-                if (isShortcutOption(o.key) || o.key === "apple_shortcuts_group" || o.key === openAppOption) {
+                if (isShortcutOption(o.key) || o.key === openAppOption) {
                     void companionAppIconPreviewData(APPLE_SHORTCUTS_APP_ID, "", document).then(preview => {
                         if (!preview || !item.isConnected) return;
                         const image = document.createElement("img");

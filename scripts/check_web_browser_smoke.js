@@ -7886,7 +7886,7 @@ async function assertAppleShortcutCard(browser) {
     await open();
     await page.locator(".sp-main .sp-empty-cell").first().click();
     const shortcutsGroup = page.getByRole("button", { name: "Apple Shortcuts card type", exact: true });
-    await shortcutsGroup.locator(".sp-card-type-app-icon").waitFor();
+    await shortcutsGroup.locator(".sp-card-type-icon.mdi-flash").waitFor();
     assert.equal(await page.getByRole("button", { name: "Run a shortcut card type" }).count(), 0);
     await shortcutsGroup.click();
     const back = page.getByRole("button", { name: "Back to card types", exact: true });
@@ -7999,9 +7999,9 @@ async function assertAppleShortcutSubpage(browser, directCard = false) {
     const subpage = directCard ? modal : modal.locator(".sp-app-subpage-settings");
     if (directCard) {
       await page.locator(".sp-main .sp-empty-cell").first().click();
-      await page.getByRole("button", { name: "Apple Shortcuts card type" })
-        .locator(".sp-card-type-app-icon").waitFor();
       await page.getByRole("button", { name: "Apple Shortcuts card type", exact: true }).click();
+      await page.getByRole("button", { name: "Create a list of shortcuts card type", exact: true })
+        .locator(".sp-card-type-app-icon").waitFor();
       await chooseCardType(page, "Create a list of shortcuts");
     } else {
       await app.click({ button: "right" });
