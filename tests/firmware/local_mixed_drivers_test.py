@@ -27,7 +27,7 @@ struct lv_obj_t { void *data = nullptr; std::string text; };
 struct lv_event_t { void *data; };
 struct SliderCtx { lv_obj_t *fill = nullptr; };
 struct BtnSlot { lv_obj_t *btn, *sensor_container, *icon_lbl, *text_lbl; };
-struct CardPalette {};
+struct CardPalette { uint32_t on_val = 0x64AD54; };
 struct DisplayProfile {};
 const void *display_small_text_font(const DisplayProfile &) { return nullptr; }
 void companion_setup_mic_mute_detail(lv_obj_t *, const void *) {}
@@ -37,10 +37,12 @@ void *lv_obj_get_user_data(lv_obj_t *obj) { return obj->data; }
 void *lv_event_get_user_data(lv_event_t *event) { return event->data; }
 void lv_obj_add_event_cb(lv_obj_t *, void(*)(lv_event_t *), int, void *) {}
 void lv_label_set_display_text(lv_obj_t *obj, const char *text) { obj->text = text; }
-uint32_t card_slider_fill_color(const CardPalette &) { return 0; }
 int layouts = 0, setups = 0, bindings = 0, local_bindings = 0;
 int mute_setups = 0, mute_bindings = 0;
-void setup_slider_visual(BtnSlot &, const ParsedCfg &, uint32_t, bool) { ++setups; }
+void setup_slider_visual(BtnSlot &, const ParsedCfg &, uint32_t fill, bool) {
+  assert(fill == CardPalette{}.on_val);
+  ++setups;
+}
 void refresh_slider_card_layout(BtnSlot &) { ++layouts; }
 void setup_toggle_visual(BtnSlot &, const ParsedCfg &) { ++mute_setups; }
 int transitions_removed = 0;
@@ -66,7 +68,7 @@ bool companion_audio_control_id(const std::string &key) {
     return key == "media.output_volume" || key == "media.input_volume" || companion_mute_control_valid(key);
 }
 void companion_track_slider(lv_obj_t *, const std::string &key, lv_obj_t *, bool, const char *, const char *,
-                            lv_obj_t *, const std::string &, lv_obj_t *) { assert(companion_volume_control_valid(key)); ++bindings; }
+                            lv_obj_t *, const std::string &) { assert(companion_volume_control_valid(key)); ++bindings; }
 std::vector<std::pair<std::string,int>> commands;
 bool companion_toggle_mute(const std::string &key) { commands.emplace_back(key,100); return true; }
 unsigned companion_next_request_number() { return 1; }

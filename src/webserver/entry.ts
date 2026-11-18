@@ -155,7 +155,7 @@ function registerCards(
   const coverLikeCards = createCoverLikeCardRegistration(registry, context.controllers.renderQueue, fields, cardUi);
   registerAlarmCardTypes(registry, context.configuration.accessClimateAlarm, context.controllers.renderQueue, fields, cardUi);
   registerTimerCardTypes(registry);
-  const isOBSInputMuted = registerCompanionCardTypes(
+  registerCompanionCardTypes(
     registry,
     !!context.device.profile.features?.companion,
     context.dom.document,
@@ -206,7 +206,6 @@ function registerCards(
     !!context.device.profile.features?.companion,
     cardUi,
     context.dom.fetch,
-    isOBSInputMuted,
   );
   const subpageCatalogue = createCompanionCatalogue(context.dom.fetch);
   registerSubpageCardTypes(registry, context.configuration.codec, context.core, context.controllers.selection,

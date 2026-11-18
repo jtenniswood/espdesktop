@@ -236,7 +236,6 @@ inline CardPalette card_palette_for_config(const CardPalette &defaults,
   CardPalette palette = defaults;
   bool valid = false;
   const std::string active_mode = cfg_option_value(config.options, "card_active_color");
-  palette.explicit_active_color = active_mode == "theme";
   const std::string off = cfg_option_value(config.options, "card_off_color");
   if (!off.empty()) {
     const uint32_t raw = parse_hex_color(off, valid);
@@ -259,7 +258,6 @@ inline CardPalette card_palette_for_config(const CardPalette &defaults,
     if (valid) {
       palette.has_on = true;
       palette.on_val = display_correct_color(on, display);
-      palette.explicit_active_color = true;
     }
   }
   if (config.type == "companion" && companion_obs_status_card(config.entity))

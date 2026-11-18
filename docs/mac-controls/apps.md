@@ -109,7 +109,7 @@ To rename an OBS card, open **Edit Card → Card Settings** and edit **Label**. 
 Open **Add Card → OBS Studio → Grouped pages** and choose a page:
 
 - **Transitions** fills free cells with the current transitions from OBS. Expand the **Transitions** list in the page card’s settings to hide or reorder transitions.
-- **Audio** fills free cells with sliders for the current mixer inputs. Edit the Audio page card to hide or reorder sliders. A muted input’s slider turns grey and stays adjustable.
+- **Audio** fills free cells with sliders for the current mixer inputs. Edit the Audio page card to hide or reorder sliders.
 - **Scenes** follows the current OBS scene collection. Edit the Scenes page card to hide or reorder scene buttons. Break, Transition, and Take Live fill the bottom of the page when space is available. Take Live spans two columns by default.
 - **Studio Control** comes with Record, Stream, Studio Mode, Replay Buffer, and Save Replay. Save Replay spans two rows and two columns on layouts with enough space. You can move, edit, or delete the preset cards.
 
@@ -117,7 +117,7 @@ Use **Edit Subpage** to customise the layout. Drag an automatic card to save it 
 
 A **Mute** card changes the selected input in the OBS mixer. The ON colour and microphone icon show an unmuted input. Muting the input turns the colour off and shows a crossed-out microphone. Use the mic your broadcast captures when setting up the card, especially if it differs from the Mac’s default mic. Scene and input bindings are kept when a target is unavailable.
 
-Choose **Level** to adjust a named mixer input. The fill turns grey while the input is muted, and you can still drag to adjust the level.
+Choose **Level** to adjust a named mixer input. The slider keeps its colours and stays adjustable while the input is muted.
 
 Choose **Cough** and select the input to mute momentarily. The tile reads **Muted** whenever that input is muted, including during a break. Release it to restore the input’s previous mute state.
 

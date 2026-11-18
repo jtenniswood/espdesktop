@@ -168,31 +168,6 @@ export function cardPreviewTextColor(background: string): string {
   return cardRelativeLuminance(background) < 450000 ? "#FFFFFF" : "#212121";
 }
 
-export function cardSliderFillColor(background: string, selectedActiveColor = ""): string {
-  const selected = selectedActiveColor.replace(/^#/, "").toUpperCase();
-  if (/^[0-9A-F]{6}$/.test(selected)) return selected;
-  const active = activeCardColor(background);
-  if (!active) return "";
-  const base = background.replace(/^#/, "").toUpperCase();
-  const foreground = cardPreviewTextColor(background);
-  const text = cardRelativeLuminance(foreground);
-  const readable = (color: string) => {
-    const fill = cardRelativeLuminance(color);
-    return (Math.max(text, fill) + 50000) * 1000 >= (Math.min(text, fill) + 50000) * 4500;
-  };
-  if (active !== base && readable(active)) return active;
-  for (let amount = 10; amount <= 100; amount += 10) {
-    const shade = [0, 2, 4].map(offset => {
-      const channel = parseInt(active.slice(offset, offset + 2), 16);
-      const value = foreground === "#FFFFFF" ? Math.floor((channel * (100 - amount) + 50) / 100)
-        : channel + Math.floor(((255 - channel) * amount + 50) / 100);
-      return value.toString(16).padStart(2, "0").toUpperCase();
-    }).join("");
-    if (shade !== base && readable(shade)) return shade;
-  }
-  return active;
-}
-
 export function darkerCardColor(background: string, percent: number): string {
   const hex = background.replace(/^#/, "").toUpperCase();
   if (!/^[0-9A-F]{6}$/.test(hex)) return "";

@@ -43,7 +43,7 @@ inline bool numeric_selectable_driver_setup_visual(
     setup_toggle_visual(slot, config);
     remove_button_state_transitions(slot.btn);
   } else {
-    setup_slider_visual(slot, config, card_slider_fill_color(palette),
+    setup_slider_visual(slot, config, palette.on_val,
       !companion_obs_meter_control(config.entity));
     numeric_selectable_driver_track_slider_cleanup(slot);
   }
@@ -117,10 +117,8 @@ inline void numeric_selectable_driver_bind_slider(BtnSlot &slot, const ParsedCfg
       slot.text_lbl, companion_volume_control_label(config.entity));
   }
   const bool obs_audio = companion_obs_level_control(config.entity) || companion_obs_meter_control(config.entity);
-  auto *slider_context = slider ? static_cast<SliderCtx *>(lv_obj_get_user_data(slider)) : nullptr;
-  auto *obs_fader_fill = slider_context && companion_obs_level_control(config.entity) ? slider_context->fill : nullptr;
   companion_track_slider(slider, config.entity, slot.icon_lbl, has_icon_on, icon_off, icon_on,
-    obs_audio ? slot.text_lbl : nullptr, obs_audio ? config.label : std::string{}, obs_fader_fill);
+    obs_audio ? slot.text_lbl : nullptr, obs_audio ? config.label : std::string{});
 }
 inline void numeric_selectable_bind_cough(BtnSlot &slot, const ParsedCfg &config, bool subpage) {
   const std::string control = config.type == "companion_cough" ? COMPANION_COUGH_ID : config.entity;

@@ -2801,17 +2801,24 @@ async function assertCardActiveColourControls(page, posts, label) {
 }
 
 async function assertSliderActiveColours(page, label) {
+  const sliders = [
+    ["companion_input_volume", "media.input_volume", "Audio Input", "Microphone", "64AD54"],
+    ["companion_output_volume", "media.output_volume", "Audio Output", "Volume High", "429471"],
+    ["companion_app_volume", "app.volume.com.spotify.client", "Spotify", "Volume High", "6633B9"],
+    ["slider", "obs.level.69da3f8f-7f62-4abe-a594-4e40dd579858", "OBS Mic", "Microphone", "FFFFFF"],
+  ];
+  const matchingFills = ["#A2CE98", "#8EBFAA", "#A385D5", "#BFBFBF"];
+  const offColours = ["rgb(100, 173, 84)", "rgb(66, 148, 113)", "rgb(102, 51, 185)", "rgb(255, 255, 255)"];
   for (const theme of ["Dark", "Light"]) {
     for (const mode of ["matching", "theme", "custom"]) for (const renderWhileHidden of [false, true]) {
-      const types = ["light_brightness", "fan_speed", "cover", "slider", "light_temperature"];
       const events = [
-        { id: "text-button_order", state: "1,2,3,4,5" },
         { id: "text-button_on_color", state: "FFFFFF" },
         { id: "select-screen__theme_mode", state: theme, value: theme },
-        ...types.map((type, index) => ({
+        ...sliders.map(([type, entity, name, icon, colour], index) => ({
           id: `text-button_${index + 1}_config`,
-          state: `light.test;${type};Lightbulb;Auto;;;${type};;card_off_color=313131,card_active_color=${mode},card_on_color=FFFFFF`,
+          state: `${entity};${name};${icon};Auto;;;${type};;card_off_color=${colour},card_active_color=${mode},card_on_color=F5F5F5`,
         })),
+        { id: "text-button_order", state: "1,2,3,4" },
       ];
       if (renderWhileHidden) {
         await page.getByRole("tab", { name: "Screen", exact: true }).click();
@@ -2820,31 +2827,35 @@ async function assertSliderActiveColours(page, label) {
       await page.evaluate(events => window.__seedEspState(events), events);
       await page.getByRole("tab", { name: "Layout" }).click();
       const cards = page.locator(".sp-main > .sp-btn");
-      await cards.first().locator(".sp-slider-fill").waitFor({ state: "visible" });
+      await cards.last().locator(".sp-slider-fill").waitFor({ state: "visible" });
       const rendered = await cards.evaluateAll(cards => cards.map(card => ({
+        slot: card.dataset.slot,
+        background: getComputedStyle(card).backgroundColor,
         fill: card.style.getPropertyValue("--card-slider-fill-color"),
-        fillTop: card.querySelector(".sp-slider-fill").getBoundingClientRect().top,
+        active: card.style.getPropertyValue("--card-active-color"),
         fillBottom: card.querySelector(".sp-slider-fill").getBoundingClientRect().bottom,
-        trackTop: card.querySelector(".sp-slider-track").getBoundingClientRect().top,
         trackBottom: card.querySelector(".sp-slider-track").getBoundingClientRect().bottom,
         texts: Array.from(card.querySelectorAll(".sp-btn-icon,.sp-btn-label")).map(label => ({
           gradient: label.style.backgroundImage,
           clip: getComputedStyle(label).backgroundClip,
         })),
       })));
+      assert.deepEqual(rendered.map(card => card.slot), ["1", "2", "3", "4"],
+        `${label}: expected four mock sliders, got slots ${rendered.map(card => card.slot).join(",")}`);
       for (const [index, card] of rendered.entries()) {
-        assert.strictEqual(card.fill, mode === "matching" ? "#767676" : "#FFFFFF", `${label}: ${theme}/${types[index]}/${mode} fill`);
-        const fromTop = types[index] === "cover";
-        assert(Math.abs(fromTop ? card.fillTop - card.trackTop : card.fillBottom - card.trackBottom) < .1,
-          `${label}: ${types[index]} fill grows from the ${fromTop ? "top" : "bottom"}`);
-        if (mode !== "matching") {
+        const name = `${label}: ${theme}/${sliders[index][2]}/${mode}`;
+        assert.equal(card.background, offColours[index], name + " uses its off-state colour");
+        assert.equal(card.fill, mode === "matching" ? matchingFills[index] : mode === "theme" ? "#FFFFFF" : "#F5F5F5", name + " fill colour");
+        assert.equal(card.fill, card.active, name + " uses its on-state colour");
+        assert(Math.abs(card.fillBottom - card.trackBottom) < .1, name + " fill grows from the bottom");
+        if (mode !== "matching" ? index < sliders.length - 1 : index === 0) {
           assert(card.texts.every(text => text.clip === "text" && text.gradient.includes("rgb(33, 33, 33)")),
-            `${label}: ${theme}/${types[index]}/${mode}${renderWhileHidden ? " after returning from Settings" : ""} text contrasts with the pale fill`);
-          assert(card.texts.every(text => text.gradient.startsWith(`linear-gradient(rgb(${fromTop ? "33, 33, 33" : "255, 255, 255"})`)),
-            `${label}: ${types[index]} text contrast follows the fill direction`);
+            name + " text contrasts with the pale fill");
+          assert(card.texts.every(text => text.gradient.startsWith("linear-gradient(rgb(255, 255, 255)")),
+            name + " text contrast follows the fill direction");
         }
       }
-      if (mode === "custom" && theme === "Dark" && process.env.ESPDESKTOP_SLIDER_COLOUR_SCREENSHOT) {
+      if (mode === "matching" && theme === "Dark" && !renderWhileHidden && process.env.ESPDESKTOP_SLIDER_COLOUR_SCREENSHOT) {
         await page.screenshot({ path: process.env.ESPDESKTOP_SLIDER_COLOUR_SCREENSHOT, fullPage: true });
       }
     }
@@ -4392,6 +4403,28 @@ async function assertAppVolumeCard(browser) {
     await waitForNativeState(nativeState, () => Object.values(nativeState.document.buttons)
       .some(card => card.startsWith("obs.brb;") && card.endsWith(";companion")),
     "OBS BRB saves a stable action without the current break token");
+    await page.evaluate(events => window.__seedEspState(events), [
+      { id: "text-button_order", state: "1,2,3" },
+      { id: "select-screen__theme_mode", state: "Dark", value: "Dark" },
+      { id: "text-button_1_config", state: "media.input_volume;Green;Microphone;Auto;;;companion_input_volume;;card_off_color=64AD54" },
+      { id: "text-button_2_config", state: "media.input_volume;White;Microphone;Auto;;;companion_input_volume;;card_off_color=FFFFFF" },
+      { id: "text-button_3_config", state: "media.input_mute;Mute;Microphone;Auto;;;companion_input_mute;;card_off_color=64AD54" },
+    ]);
+    await page.locator('.sp-main [data-slot="1"]').getByText("Green", { exact: true }).waitFor();
+    const audioColours = () => page.locator(".sp-main > .sp-btn").evaluateAll(cards => cards.map(tile => {
+      const fill = tile.querySelector(".sp-slider-fill");
+      return [tile.style.backgroundColor, fill ? getComputedStyle(fill).backgroundColor : null];
+    }));
+    const expectedAudioColours = [
+      ["rgb(100, 173, 84)", "rgb(162, 206, 152)"],
+      ["rgb(255, 255, 255)", "rgb(191, 191, 191)"],
+      ["rgb(100, 173, 84)", null],
+    ];
+    assert.deepEqual(await audioColours(), expectedAudioColours);
+    await page.evaluate(() => window.__seedEspState([
+      { id: "select-screen__theme_mode", state: "Light", value: "Light" },
+    ]));
+    assert.deepEqual(await audioColours(), expectedAudioColours);
     console.log("Sound subtypes and guarded OBS cards passed picker and save checks.");
   } finally { await context.close(); }
 }
@@ -8127,7 +8160,13 @@ async function assertOBSStarterPage(browser, firstRun = false) {
     await micTile.locator(".mdi-microphone-off").waitFor();
     const fader = page.locator(".sp-main .sp-slider-fill");
     const fillColor = () => fader.evaluate(fill => getComputedStyle(fill).backgroundColor);
-    assert.equal(await fillColor(), "rgb(128, 128, 128)");
+    const mutedFill = await fillColor();
+    const sliderUsesActiveColour = fill => fill.evaluate(element => {
+      const card = element.closest(".sp-btn");
+      return card.style.getPropertyValue("--card-slider-fill-color") ===
+        card.style.getPropertyValue("--card-active-color");
+    });
+    assert(await sliderUsesActiveColour(fader), "the muted mic slider uses its ON colour");
     await goBack();
     await editFolder("Outputs");
     const streamTile = page.locator('.sp-main [data-slot="1"]');
@@ -8196,7 +8235,7 @@ async function assertOBSStarterPage(browser, firstRun = false) {
     assert.equal(await colour(brbTile), onColor);
     await editFolder("Audio");
     await micTile.locator(".mdi-microphone").waitFor();
-    assert.notEqual(await fillColor(), "rgb(128, 128, 128)");
+    assert.equal(await fillColor(), mutedFill, "unmuting keeps the same fill colour");
     await goBack();
     await editFolder("Outputs");
     await streamTile.getByText("Live", { exact: true }).waitFor();
@@ -8253,7 +8292,8 @@ async function assertOBSStarterPage(browser, firstRun = false) {
     await automaticTiles.getByText("Desk Mic", { exact: true }).waitFor();
     assert.deepEqual(await automaticTiles.locator(".sp-btn-label").allTextContents(), ["Music", "Desk Mic"]);
     const musicTile = automaticTiles.filter({ hasText: "Music" });
-    assert.equal(await colour(musicTile.locator(".sp-slider-fill")), "rgb(128, 128, 128)");
+    assert(await sliderUsesActiveColour(musicTile.locator(".sp-slider-fill")),
+      "a muted slider on the automatic Audio page uses its ON colour");
     assert.equal(await automaticTiles.locator(".sp-slider-fill").count(), 2);
     const beforeAudioChange = fixture.puts.length;
     mixerInputs = [[desktop, "Desktop Audio"], [music, "Music"], [gameAudio, "Game Audio"]];
@@ -8796,6 +8836,32 @@ async function assertFirstRunSetup(browser) {
       await assertMacLockCard(browser);
       return;
     }
+    if (process.env.ESPDESKTOP_ACTIVE_COLOUR_ONLY === "1") {
+      const testCase = ACTIVE_CASES.find(item => item.slug === "guition-esp32-s3-4848s040") || ACTIVE_CASES[0];
+      const context = await browser.newContext({ viewport: testCase.viewport });
+      await installRoutes(context, testCase.slug);
+      const page = await context.newPage();
+      const posts = [];
+      page.on("request", request => {
+        if (request.method() === "POST") posts.push(postRecord(request.url()));
+      });
+      await installFakeEventSource(page);
+      try {
+        await page.goto(`http://espdesktop.test/${testCase.slug}?events=1`, { waitUntil: "domcontentloaded" });
+        await page.waitForSelector("#sp-app");
+        await page.waitForFunction(() => window.__eventSources?.length > 0);
+        await page.evaluate(events => window.__seedEspState(events), [
+          ...seededEvents(),
+          { id: "text-button_order", state: "1" },
+          { id: "text-button_1_config", state: COPY_SHORTCUT },
+        ]);
+        await page.waitForSelector(".sp-main > .sp-btn");
+        await assertCardActiveColourControls(page, posts, testCase.name);
+        await assertSliderActiveColours(page, testCase.name);
+      } finally { await context.close(); }
+      console.log("Card active colour browser checks passed.");
+      return;
+    }
     if (process.env.ESPDESKTOP_CARD_TRANSFER_ONLY === "1") {
       for (const testCase of ACTIVE_CASES) await runCase(browser, testCase);
       return;
@@ -8908,28 +8974,6 @@ async function assertFirstRunSetup(browser) {
     if (process.env.ESPDESKTOP_CONTEXT_COLOUR_ONLY === "1") {
       for (const testCase of ACTIVE_CASES) await assertContextColourPicker(browser, testCase);
       console.log(`Context colour picker browser checks passed for ${ACTIVE_CASES.length} layouts, native and legacy saves.`);
-      return;
-    }
-    if (process.env.ESPDESKTOP_ACTIVE_COLOUR_ONLY === "1") {
-      const testCase = ACTIVE_CASES.find(item => item.exerciseInteractions) || ACTIVE_CASES[0];
-      const context = await browser.newContext({ viewport: testCase.viewport });
-      await installRoutes(context, testCase.slug);
-      const page = await context.newPage();
-      const posts = [];
-      page.on("request", request => {
-        if (request.method() === "POST") posts.push(postRecord(request.url()));
-      });
-      await installFakeEventSource(page);
-      try {
-        await page.goto(`http://espdesktop.test/${testCase.slug}?events=1`, { waitUntil: "domcontentloaded" });
-        await page.waitForSelector("#sp-app");
-        await page.waitForFunction(() => window.__eventSources?.length > 0);
-        await page.evaluate(events => window.__seedEspState(events), seededEvents());
-        await page.waitForSelector(".sp-main > .sp-btn");
-        await assertCardActiveColourControls(page, posts, testCase.name);
-        await assertSliderActiveColours(page, testCase.name);
-      } finally { await context.close(); }
-      console.log("Card active colour browser checks passed.");
       return;
     }
     if (process.env.ESPDESKTOP_OUTLINES_ONLY === "1") {

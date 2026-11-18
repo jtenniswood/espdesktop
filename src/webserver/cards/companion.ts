@@ -486,7 +486,7 @@ export function registerCompanionCardTypes(
     maxSlots: number,
     connectorStatus: Pick<ConnectorsPageFeature, "onCompanionConnectionChange">,
     publishGeneratedActions: (folders: readonly CompanionAction[]) => boolean,
-): (inputId: string) => boolean {
+): void {
     const { cardBadgePreview, cardBadgeLabelHtml, cardSensorPreviewHtml, fieldLabel } = fields;
     const { renderButtonSettings, renderPreview } = cardUi;
     const catalogue = createCompanionCatalogue(fetchImpl);
@@ -495,12 +495,6 @@ export function registerCompanionCardTypes(
     const obsCardStates = new Map<string, CompanionAction>();
     const obsPresentationKey = () => JSON.stringify([...obsCardStates].map(([id, action]) =>
         [id, action.obsState, action.obsDetail, action.obsAvailable]));
-    const isOBSInputMuted = (inputId: string) => {
-        const id = "obs.mute." + inputId;
-        const state = obsCardStates.get(id)?.obsState;
-        return state ? state === "audio_muted" : obsControlLabels.get(id)?.startsWith("Muted · ") === true;
-    };
-
     function rememberOBSControls(actions: readonly CompanionAction[]): readonly CompanionAction[] {
         const targets = actions.filter(action => /^obs\.mute\.[a-f0-9-]{36}$/.test(action.id));
         obsControlLabels.clear();
@@ -2144,5 +2138,4 @@ export function registerCompanionCardTypes(
             },
         });
     });
-    return isOBSInputMuted;
 }

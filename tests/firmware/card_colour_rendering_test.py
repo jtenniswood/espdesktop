@@ -239,11 +239,10 @@ struct CompanionCardRef {
   CompanionAction rendered_obs_action{};
 };
 struct CompanionSliderRef {
-  lv_obj_t *slider = nullptr, *icon_label = nullptr, *text_label = nullptr, *obs_fader_fill = nullptr;
-  std::string control_id, obs_cough_id, base_label;
+  lv_obj_t *slider = nullptr, *icon_label = nullptr, *text_label = nullptr;
+  std::string control_id, base_label;
   bool has_icon_on = false;
   const char *icon_off = nullptr, *icon_on = nullptr;
-  uint32_t obs_fader_live_color = 0;
 };
 constexpr int LV_ALIGN_BOTTOM_LEFT = 1, LV_ANIM_OFF = 0, LV_EVENT_VALUE_CHANGED = 21;
 const char *lv_label_get_text(lv_obj_t *label) { return label->content.c_str(); }
@@ -516,28 +515,25 @@ int main() {
     assert(!lv_obj_has_state(&tile, LV_STATE_CHECKED));
   }
   {
-    lv_obj_t slider, title, fill;
+    lv_obj_t slider, title;
     CompanionSliderRef fader;
     fader.slider = &slider;
     fader.text_label = &title;
-    fader.obs_fader_fill = &fill;
-    fader.obs_fader_live_color = 0xFF8C00;
     fader.control_id = "obs.level.11111111-1111-1111-1111-111111111111";
     fader.base_label = parse_cfg(fader.control_id + ";OBS · Desk Mic;Microphone;Auto;;;slider").label;
     assert(fader.base_label == "Desk Mic");
-    fader.obs_cough_id = "obs.cough.11111111-1111-1111-1111-111111111111";
     CompanionRuntimeSnapshot snapshot;
     snapshot.actions = {{fader.control_id, "Desk Mic"}};
-    snapshot.values = {{fader.control_id, 75}, {fader.obs_cough_id, 100}};
+    snapshot.values = {{fader.control_id, 75}, {"obs.cough.11111111-1111-1111-1111-111111111111", 100}};
     companion_render_slider(fader, snapshot);
     assert(title.content == "Desk Mic");
-    assert(fill.background[0] == 0x808080 && slider.slider_value == 75);
+    assert(slider.slider_value == 75);
     assert(!lv_obj_has_state(&slider, LV_STATE_DISABLED));
     snapshot.values[1].value = 0;
     fader.base_label = "Broadcast Mic";
     companion_render_slider(fader, snapshot);
     assert(title.content == "Broadcast Mic");
-    assert(fill.background[0] == 0xFF8C00 && slider.slider_value == 75);
+    assert(slider.slider_value == 75);
 
     snapshot.connected = false;
     companion_render_slider(fader, snapshot);
@@ -803,9 +799,7 @@ int main() {
     assert(shadow.text[0] == 0x000000);
     assert(ordinary.text[0] == display_text_color_for_bg(0xFFEC16));
   }
-  assert(card_slider_fill_color(0x6633B9) == 0x826AAA);
   assert(active_card_color(0x6633B9) == 0xA385D5);
-  assert(card_slider_fill_color(0xFFFFFF) == 0xBFBFBF);
   const auto contrast = [](uint32_t text, uint32_t background) {
     const double a = display_relative_luminance(text) + 50000;
     const double b = display_relative_luminance(background) + 50000;
@@ -825,14 +819,9 @@ int main() {
   assert(striped_label.text[0] == display_text_color_for_bg(stripe_base));
   for (uint32_t value = 0; value <= 255; ++value) {
     const uint32_t background = value * 0x010101;
-    assert(card_slider_fill_color(background) != background);
     const auto active = active_card_color(background);
     const auto foreground = display_text_color_for_bg(active);
     assert(contrast(foreground, card_pattern_highlight_color(active)) >= contrast(foreground, active));
-  }
-  for (uint32_t background : {0x6D6D6Du, 0x6D6D6Eu, 0x6D6E6Du, 0x6E6D6Du, 0x6E6E6Du, 0x6D6E6Eu, 0x6E6D6Eu, 0x6E6E6Eu}) {
-    assert(card_slider_fill_color(background) != background);
-    assert(contrast(display_text_color_for_bg(background), card_slider_fill_color(background)) >= 4.5);
   }
   for (uint32_t base : {0xAAC93Fu, 0xEED146u, 0xEA3323u, 0x8F28ABu, 0xA0A0A0u}) {
     const auto active = active_card_color(base);
@@ -849,7 +838,6 @@ int main() {
   defaults.on_val = 0xFF8C00;
   defaults.off_val = 0x313131;
   defaults.sensor_val = 0x212121;
-  assert(card_slider_fill_color(defaults) == defaults.on_val);
   DisplayProfile display;
   for (const std::string type : {"", "presence", "door_window", "light_control", "fan_control", "media", "cover"}) {
     for (const std::string mode : {"matching", "theme", "custom"}) {
@@ -867,8 +855,6 @@ int main() {
             const auto palette = card_palette_for_config(defaults, config, display);
             const uint32_t expected = mode == "theme" ? accent : display_correct_color(mode == "custom" ? 0xFFFFFF : 0xA385D5, display);
             assert(palette.on_val == expected);
-            assert(card_slider_fill_color(palette) == (mode == "matching"
-              ? card_slider_fill_color(palette.off_val) : expected));
             assert(palette.off_val == display_correct_color(0x6633B9, display));
             lv_obj_t button, label;
             button.children = {&label};
@@ -941,7 +927,6 @@ int main() {
   assert(corrected.sensor_val == 0x7F6900);
   assert(corrected.off_val == corrected.sensor_val);
   assert(corrected.on_val == 0x7F8B66);
-  assert(card_slider_fill_color(corrected) == card_slider_fill_color(corrected.off_val));
   assert(defaults.sensor_val == 0x212121);
   const auto explicit_colour = card_palette_for_config(CardPalette{}, config, DisplayProfile{});
   assert(explicit_colour.has_on && explicit_colour.has_off && explicit_colour.has_sensor_color);
