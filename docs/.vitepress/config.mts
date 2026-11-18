@@ -332,7 +332,7 @@ export default defineConfig({
         ],
       },
       {
-        text: 'Support & reference',
+        text: 'Support & Reference',
         items: [
           { text: 'Troubleshooting', link: '/getting-started/troubleshooting' },
           { text: 'FAQ', link: '/reference/faq' },
