@@ -99,18 +99,9 @@ export function withoutCardColorOptions(options: unknown): string {
 
 export type CardIconSize = "small" | "medium" | "large";
 
-export function normalizeCardIconSize(value: unknown): CardIconSize {
-  const size = String(value || "").toLowerCase();
-  return size === "medium" || size === "large" ? size : "small";
-}
-
 export function cardIconSizeOverride(options: unknown): CardIconSize | "" {
   const size = configOptionValue(options, "icon_size");
   return size === "small" || size === "medium" || size === "large" ? size : "";
-}
-
-export function cardIconSize(options: unknown, defaultSize: unknown = "small"): CardIconSize {
-  return cardIconSizeOverride(options) || normalizeCardIconSize(defaultSize);
 }
 
 export function preserveCardIconSize(options: unknown, normalized: unknown): string {
@@ -118,7 +109,7 @@ export function preserveCardIconSize(options: unknown, normalized: unknown): str
 }
 
 export function preserveCardColorOptions(options: unknown, normalized: unknown): string {
-  // Type-specific editors preserve shared card presentation settings together.
+  // Preserve legacy app icon sizes when editing colours so older firmware can still read them.
   return preserveCardIconSize(options,
     [withoutCardColorOptions(normalized), normalizedCardColorOptions(options)].filter(Boolean).join(","));
 }

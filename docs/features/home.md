@@ -38,10 +38,7 @@ To move or copy a card between Home and a subpage, right-click it and choose **C
 Right-click a card to open its menu.
 
 - **Name.** Choose **Edit Card**, change the **Label**, and select **Save**. You can also click a visible card name in the grid, type the new name and press **Enter**.
-- **App icon size.** Choose **App Icon Size** and select **Small**, **Medium** or **Large**. Large fills the card with the app icon and hides the label.
 - **Background colour.** Open **Card Colour** and pick a preset or use the eyedropper to choose a custom colour. Choose **Reset Colour** to restore the default background.
-
-<a href="/images/web-editor-card-menu.webp"><picture><source type="image/avif" srcset="/images/web-editor-card-menu-480.avif 480w, /images/web-editor-card-menu-960.avif 960w" sizes="(min-width: 768px) 688px, 90vw"><img src="/images/web-editor-card-menu.webp" alt="Right-click menu on an app card showing Edit Card, App Icon Size, Card Colour and Edit Subpage" width="1205" height="1205" loading="lazy"></picture></a>
 
 ## Add a card
 

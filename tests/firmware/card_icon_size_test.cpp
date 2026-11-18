@@ -43,16 +43,4 @@ int main() {
     }
   }
   assert(parse_cfg("light.kitchen;Kitchen;Lightbulb;;;;;;icon_size=invalid").options.empty());
-  using espdesktop::resolved_card_icon_size;
-  using espdesktop::set_card_icon_default_size;
-  set_card_icon_default_size("Large");
-  assert(resolved_card_icon_size("") == "large");
-  assert(card_icon_zoom("", 48, 48, 200, 150) == 800);
-  assert(resolved_card_icon_size("small") == "small");
-  assert(card_icon_zoom("small", 48, 48, 200, 150) == 256);
-  set_card_icon_default_size("Medium");
-  assert(resolved_card_icon_size("") == "medium");
-  assert(resolved_card_icon_size("large") == "large");
-  set_card_icon_default_size("invalid");
-  assert(resolved_card_icon_size("") == "small");
 }
