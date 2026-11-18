@@ -238,6 +238,9 @@
       "path": "tv.json"
     },
     {
+      "path": "twitch.json"
+    },
+    {
       "path": "visual-studio-code.json"
     },
     {

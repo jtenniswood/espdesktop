@@ -185,18 +185,18 @@ final class RemoteCompanionCataloguesTests: XCTestCase {
     }
 
     @MainActor
-    func testAthenaTemplateUsesApprovedSafariInstallationIDs() throws {
+    func testWebsiteTemplatesUseApprovedSafariInstallationIDs() throws {
         let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
         try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
         defer { try? FileManager.default.removeItem(at: directory) }
 
-        func installedApp(id: String, manifestName: String, path: String) throws -> LaunchableApp {
+        func installedApp(id: String, manifest: [String: String], path: String) throws -> LaunchableApp {
             let url = directory.appendingPathComponent(path + ".app")
             let contents = url.appendingPathComponent("Contents")
             try FileManager.default.createDirectory(at: contents, withIntermediateDirectories: true)
             let plist: [String: Any] = [
                 "CFBundleIdentifier": id, "CFBundlePackageType": "AAPL",
-                "Manifest": ["name": manifestName],
+                "Manifest": manifest,
             ]
             try PropertyListSerialization.data(fromPropertyList: plist, format: .xml, options: 0)
                 .write(to: contents.appendingPathComponent("Info.plist"))
@@ -204,18 +204,28 @@ final class RemoteCompanionCataloguesTests: XCTestCase {
         }
 
         let athena = try installedApp(id: "com.apple.Safari.WebApp." + UUID().uuidString,
-                                      manifestName: "Athena for Hermes Agent", path: "Renamed App")
+                                      manifest: ["name": "Athena for Hermes Agent"], path: "Renamed App")
         let other = try installedApp(id: "com.apple.Safari.WebApp." + UUID().uuidString,
-                                      manifestName: "Different Site", path: "Athena")
+                                      manifest: ["name": "Twitch", "start_url": "https://www.twitch.tv.example.org/"],
+                                     path: "Athena")
         let native = try installedApp(id: "com.example.athena",
-                                       manifestName: "Athena for Hermes Agent", path: "Native App")
-        let suite = "AthenaCatalogueTests." + UUID().uuidString
+                                       manifest: ["name": "Athena for Hermes Agent"], path: "Native App")
+        let twitch = try installedApp(id: "com.apple.Safari.WebApp." + UUID().uuidString,
+                                      manifest: ["start_url": "https://www.twitch.tv/channel"],
+                                      path: "Renamed Streaming App")
+        let suite = "WebsiteCatalogueTests." + UUID().uuidString
         let defaults = try XCTUnwrap(UserDefaults(suiteName: suite))
         defer { defaults.removePersistentDomain(forName: suite) }
         let catalogue = RemoteCompanionCatalogueStore(defaults: defaults).value
         let template = try XCTUnwrap(catalogue.applications.first { $0.label == "Athena" })
         XCTAssertFalse(catalogue.applicationsForDisplay(approvedApps: [other, native]).contains { $0.label == "Athena" })
-        let resolved = catalogue.applicationsForDisplay(approvedApps: [athena, other, native])
+        let twitchTemplate = try XCTUnwrap(catalogue.applications.first { $0.label == "Twitch" })
+        XCTAssertFalse(catalogue.applicationsForDisplay(approvedApps: [other, native]).contains { $0.label == "Twitch" })
+        let resolved = catalogue.applicationsForDisplay(approvedApps: [athena, other, native, twitch])
+        let installedTwitch = try XCTUnwrap(resolved.first { $0.appId == twitch.bundleIdentifier })
+        XCTAssertEqual(resolved.filter { $0.label == "Twitch" }.map(\.appId), [twitch.bundleIdentifier])
+        XCTAssertEqual(installedTwitch.defaultShortcutIds, twitchTemplate.defaultShortcutIds)
+        XCTAssertEqual(installedTwitch.moreShortcuts, twitchTemplate.moreShortcuts)
         XCTAssertEqual(resolved.filter { $0.label == "Athena" }.map(\.appId), [athena.bundleIdentifier])
         XCTAssertEqual(resolved.first { $0.appId == athena.bundleIdentifier }?.shortcuts, template.shortcuts)
         XCTAssertEqual(resolved.first { $0.appId == athena.bundleIdentifier }?.defaultShortcutIds,

@@ -1,0 +1,22 @@
+{
+  "version": 1,
+  "appId": "tv.twitch.web-app",
+  "label": "Twitch",
+  "catalog": false,
+  "defaultShortcutIds": ["100", "102", "103", "105", "107", "108", "104", "109"],
+  "shortcuts": [
+    {"id": "105", "label": "Clip Live Stream", "shortcut": "option+x", "icon": "Cut"},
+    {"id": "106", "label": "Clip Past Broadcast", "shortcut": "option+k", "icon": "Cut"},
+    {"id": "107", "label": "Toggle Chat Panel", "shortcut": "option+r", "icon": "Dock Right"},
+    {"id": "108", "label": "Toggle Theater Mode", "shortcut": "option+t", "icon": "Movie Roll"}
+  ],
+  "moreShortcuts": [
+    {"id": "100", "label": "Play / Pause", "shortcut": "scoped.k", "icon": "Play Pause"},
+    {"id": "101", "label": "Play / Pause (Space)", "shortcut": "scoped.space", "icon": "Play Pause"},
+    {"id": "102", "label": "Mute / Unmute", "shortcut": "scoped.m", "icon": "Volume Off"},
+    {"id": "103", "label": "Toggle Full Screen", "shortcut": "scoped.f", "icon": "Arrow Expand"},
+    {"id": "104", "label": "Seek Back", "shortcut": "scoped.left", "icon": "Arrow Left"},
+    {"id": "109", "label": "Seek Forward", "shortcut": "scoped.right", "icon": "Arrow Right"},
+    {"id": "110", "label": "Show Keyboard Shortcuts", "shortcut": "scoped.shift+keyslash", "icon": "Keyboard Settings"}
+  ]
+}

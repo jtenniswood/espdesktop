@@ -111,21 +111,32 @@ struct RemoteCompanionCatalogues: Codable, Sendable, Equatable {
 
     func applicationsForDisplay(approvedApps: [LaunchableApp]) -> [RemoteMacApplicationDefinition] {
         let athenaTemplateID = "io.github.jtenniswood.athena"
-        guard let template = applications.first(where: { $0.appId == athenaTemplateID }) else { return applications }
+        let twitchTemplateID = "tv.twitch.web-app"
+        let templateIDs: Set<String> = [athenaTemplateID, twitchTemplateID]
         let existingIDs = Set(applications.map(\.appId))
         let installedTemplates = approvedApps.compactMap { app -> RemoteMacApplicationDefinition? in
-            // Safari generates a different bundle ID for each installation. Match
-            // Athena by its web manifest so renamed Dock icons still work.
+            // Safari gives each installation a unique bundle ID. Use its site
+            // metadata so changing the app's name does not affect its presets.
             let id = app.bundleIdentifier
             guard !existingIDs.contains(id), id != "com.apple.Safari",
                   CompanionKeyboardShortcut.isSafariApplication(id),
-                  let manifest = Bundle(url: app.url)?.object(forInfoDictionaryKey: "Manifest") as? [String: Any],
-                  manifest["name"] as? String == "Athena for Hermes Agent" else { return nil }
-            var installed = template
-            installed.appId = id
-            return installed
+                  let bundle = Bundle(url: app.url),
+                  let manifest = bundle.object(forInfoDictionaryKey: "Manifest") as? [String: Any] else { return nil }
+            let templateID: String
+            if let startURL = manifest["start_url"] as? String,
+               let url = URL(string: startURL), url.scheme?.lowercased() == "https",
+               let host = url.host?.lowercased(), ["www.twitch.tv", "twitch.tv"].contains(host) {
+                templateID = twitchTemplateID
+            } else if manifest["name"] as? String == "Athena for Hermes Agent" {
+                templateID = athenaTemplateID
+            } else {
+                return nil
+            }
+            guard var template = applications.first(where: { $0.appId == templateID }) else { return nil }
+            template.appId = id
+            return template
         }
-        return applications.filter { $0.appId != athenaTemplateID } + installedTemplates
+        return applications.filter { !templateIDs.contains($0.appId) } + installedTemplates
     }
 
     static func decode(

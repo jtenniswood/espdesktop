@@ -18,6 +18,7 @@ Additional primary sources used to verify or extend the supplied research:
 | Streamlabs Desktop | [Mac application menu](https://github.com/streamlabs/desktop/blob/master/app/services/application-menu.ts) defines the Settings, editing and nudge shortcuts. [Mac package settings](https://github.com/streamlabs/desktop/blob/master/electron-builder/base.config.js) confirm the bundle identifier. Streaming actions, scene switching and mute use [user-assigned hotkeys](https://support.streamlabs.com/hc/en-us/articles/4413170379675-How-to-Set-up-Hotkeys-in-Streamlabs-Desktop). |
 | Visual Studio Code | [Default macOS keybindings](https://code.visualstudio.com/docs/reference/default-keybindings) fills gaps in the older printable reference, including the line comment chord. |
 | VLC | [VideoLAN's macOS defaults in VLC 3.0](https://github.com/videolan/vlc/blob/3.0.x/src/libvlc-module.c) list playback, jumps, volume, subtitles, disc navigation, and bookmarks. |
+| Twitch | [Make Tech Easier’s Twitch shortcut guide](https://maketecheasier.com/cheatsheet/twitch-keyboard-shortcuts/) lists the player bindings. [Twitch’s Clips guide](https://help.twitch.tv/s/article/how-to-use-clips) explains when clipping is available. |
 | Zoom | [Zoom keyboard shortcuts for macOS](https://support.zoom.com/hc/en/article?id=zm_kb&sysparm_article=KB0067050) lists separate microphone controls for meetings and Zoom Phone. |
 | Icons | [Material Design Icons](https://pictogrammers.com/library/mdi/) 7.4.47. New glyphs cover formatting, alignment, duplication, subtitles, repeat and shuffle. |
 

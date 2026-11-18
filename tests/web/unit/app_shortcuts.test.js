@@ -111,6 +111,30 @@ test("Athena presets use the installed Safari web app ID and preserve existing t
   assert.deepEqual(api.companionShortcutDefaultTabs(appId), defaultShortcutIds);
 });
 
+test("Twitch presets target the installed Safari web app", async () => {
+  const api = loadTypeScriptModule("src/webserver/application/companion_shortcut_folder.ts");
+  const { appId: templateId, moreShortcuts, ...twitch } = require("../../../product/v2/app_shortcuts/twitch.json");
+  const appId = "com.apple.Safari.WebApp.12345678-1234-5678-1234-567812345678";
+  assert(!api.companionShortcutCatalogApps({ savedAppId: templateId }).some(app => app.appId === templateId));
+  const { createCompanionCatalogue } = loadTypeScriptModule("src/webserver/api/companion_catalogue.ts");
+  const catalogue = createCompanionCatalogue(async () => ({
+    ok: true,
+    json: async () => ({
+      page: 0, hasMore: false,
+      definitions: [
+        { kind: "application", definition: { ...twitch, appId } },
+        { kind: "application", definition: { appId, shortcuts: [], moreShortcuts } },
+      ],
+    }),
+  }));
+  assert(api.replaceCompanionDefinitions((await catalogue.loadDefinitions()).applications));
+  const page = api.createCompanionShortcutSubpage(appId);
+  assert.deepEqual(api.companionShortcutTabsFromSubpage(appId, page), twitch.defaultShortcutIds);
+  assert.equal(page.buttons[0].entity, "shortcut.scoped.k");
+  assert.equal(page.buttons[0].options, "app_shortcut_preset=" + appId + "%3A100");
+  assert(!api.companionShortcutPresetCards("com.apple.Safari").some(card => card.label === "Clip Live Stream"));
+});
+
 test("ChatGPT Desktop subpages use the curated catalogue and preserve custom cards", () => {
   const api = loadTypeScriptModule("src/webserver/application/companion_shortcut_folder.ts");
   const app = require("../../../product/v2/app_shortcuts/codex.json");
