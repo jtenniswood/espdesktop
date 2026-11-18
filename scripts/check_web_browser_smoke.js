@@ -4356,11 +4356,11 @@ async function assertAppVolumeCard(browser) {
     await cough.selectOption(coughID);
     await page.getByRole("button", { name: "Save", exact: true }).click();
     await waitForNativeState(nativeState, () => Object.values(nativeState.document.buttons)
-      .includes(coughID + ";OBS Input Cough;Microphone;Auto;;;companion_obs_cough"),
+      .includes(coughID + ";Cough;Microphone;Auto;;;companion_obs_cough"),
     "OBS Cough saves the selected mixer input");
     const coughSlot = Object.keys(nativeState.document.buttons).find(key => nativeState.document.buttons[key].startsWith(coughID));
     const coughTile = page.locator(`.sp-main [data-slot="${coughSlot}"]`);
-    await coughTile.getByText("OBS Input Cough", { exact: true }).waitFor();
+    await coughTile.getByText("Cough", { exact: true }).waitFor();
     await coughTile.locator(".mdi-microphone").waitFor();
     assert.equal(await coughTile.evaluate(tile => tile.style.backgroundColor),
       await card.evaluate(tile => tile.style.backgroundColor), "Cough preview stays off when the OBS input is muted");

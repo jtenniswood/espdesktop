@@ -74,7 +74,8 @@ export function normalizeSavedConfigStatic(config: CardConfig): boolean {
     return true;
   }
   if (config.type === "companion_obs_cough") {
-    if (!config.label) config.label = "OBS Input Cough";
+    if (config.label === "") config.label = "Cough";
+    if (config.label === "OBS Input Cough") config.label = "Cough";
     if (config.icon === "") config.icon = "Microphone";
     if (config.icon === "Auto") config.icon = "Microphone";
     config.icon_on = "Auto";
