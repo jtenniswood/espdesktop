@@ -1,9 +1,11 @@
 ---
-title: OBS Support
-description: Connect OBS Studio to EspDesktop and control scenes, audio, streaming, recording, and replays from your touchscreen.
+title: OBS Studio Touchscreen Controls
+description: Set up OBS Studio with EspDesktop. Switch scenes, adjust audio, and control live streams, recordings, and replays from a touchscreen.
 ---
 
 # OBS Support
+
+OBS Studio is a free, open-source app for live streaming and video recording. It combines sources such as your screen, camera, and microphone into scenes. With EspDesktop, you can switch scenes, adjust audio, and start or stop streams and recordings from your touchscreen. [Visit the official OBS Studio site](https://obsproject.com/).
 
 ## Connect OBS Studio
 
