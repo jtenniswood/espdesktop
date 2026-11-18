@@ -27,9 +27,9 @@ Open **Apps** in the Mac app. **All available apps** is on by default. To choose
 
    <a href="/images/web-editor-application-card.png"><picture><source type="image/avif" srcset="/images/web-editor-application-card-480.avif 480w, /images/web-editor-application-card-960.avif 960w" sizes="(min-width: 768px) 688px, 90vw"><img src="/images/web-editor-application-card.png" alt="Applications card form with Figma selected, the Add app subpage switch off, and the Save button visible" width="1694" height="2266" loading="lazy"></picture></a>
 
-The card uses the app's friendly name by default. Enter a custom title in its settings to show a different name.
+The card uses the app’s friendly name by default. Enter a custom title in its settings to give the card a different name.
 
-Use **Default app icon size** in Screen appearance settings to size Mac app artwork. Each app card also has an **App icon size** override in Card Settings and its right-click menu. Small keeps the original size, Medium enlarges the artwork above the label, and Large fills the available space and hides the label. Choose Default to follow the global setting. The app card uses its active fill colour while the Mac reports that app is in front; background apps use the normal fill.
+Mac app artwork fills the card and hides its title. The app card uses its active fill colour while the Mac reports that app is in front. Background apps use the normal fill.
 
 App cards use the normal card theme by default. Previously saved custom backgrounds are preserved. Backgrounds are not generated from app icons.
 

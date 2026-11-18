@@ -40,22 +40,9 @@ and redraw the physical cards after the display's brief refresh delay.
 
 Find these controls in **Screen → Appearance** on the [Screen settings](/settings/screen#appearance) page. Your selection is saved on the panel and applies without a reboot. Existing panels default to Dark.
 
-## App icon size
+## App artwork
 
-Set **Screen → Appearance → Card Style → Default app icon size** to choose the
-starting size for Mac application artwork, including apps inside subpages.
-The default is **Large** when the display has no saved choice.
-Small keeps the original size; Medium enlarges it to 1.5× above the label;
-Large fills the available card area and hides the label.
-
-Right-click an app card and choose **App Icon Size**, or use **App icon size**
-in **Card Settings**, to override the default for that app. Choose **Use Default**
-in the menu or **Default** in Card Settings to follow the global setting again.
-The display remembers the default after reboot, and backups include it. Older
-backups without this setting keep the current default.
-
-All other card icons keep their original small layout and have no size setting.
-Previously saved sizes for those icons are ignored.
+Mac app artwork uses the large layout on Home and subpages. The icon fills the available card area and hides the label, including on cards that previously used a saved Small or Medium size.
 
 In the web setup preview, subpage arrows sit immediately after the label, or at
 the lower left when no label is shown. A soft shadow keeps the arrow visible

@@ -76,7 +76,7 @@ inline bool navigation_driver_setup_visual(
         (config.icon.empty() || config.icon == "Auto" || config.icon == "Flash")) {
       lv_label_set_display_text(slot.icon_lbl, find_icon("Flash"));
 #ifdef USE_COMPANION
-      companion_set_card_icon_image(slot, APPLE_SHORTCUTS_APP_ID, "small");
+      companion_set_card_icon_image(slot, APPLE_SHORTCUTS_APP_ID, true);
 #endif
     }
   }

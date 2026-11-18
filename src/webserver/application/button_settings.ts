@@ -2,11 +2,10 @@ import { isStudioControlPage } from "../model/studio_control_page";
 import { sameCardAction, setCardExposure } from "../model/home_assistant_cards";
 import { childPageKey, pageOwnerSlot, parentPageKey } from "../model/page_keys";
 import { APPLE_SHORTCUTS_APP_ID, APPLE_SHORTCUTS_HIDDEN_OPTION, isAppleShortcutsCard, isAppleShortcutsPage, previewSubpageOwner } from "../model/companion_shortcut_page";
-import { companionCardHasAppIcon } from "../model/companion_card_codec";
 import { state } from "../state/app_instance";
 import * as EspDesktopModel from "../model";
 import { OBS_FADER_PREFIX } from "../model/card";
-import { cardIconSizeOverride, setConfigOptionValue, configOptionValue, setCardColor, cardActiveColorMode, cardActiveColor, setCardActiveColor, withoutCardColorOptions, preserveCardColorOptions } from "../model/config_primitives";
+import { setConfigOptionValue, configOptionValue, setCardColor, cardActiveColorMode, cardActiveColor, setCardActiveColor, withoutCardColorOptions, preserveCardColorOptions } from "../model/config_primitives";
 import { createColorSwatches } from "../components/color_swatches";
 import { defaultCardBackgroundColor } from "../state/preview_theme";
 import { applySpans, CARD_SIZE_SINGLE, clearSpans } from "../model/grid";
@@ -1223,18 +1222,6 @@ export function createButtonSettingsFeature(
             }
             syncActiveColorControls();
             colourControls.editor.appendChild(activeColorField);
-        }
-        if (companionCardHasAppIcon(b)) {
-            const iconSizes = segmentControl([
-                ["", "Default"], ["small", "Small"], ["medium", "Medium"], ["large", "Large"],
-            ], cardIconSizeOverride(b.options), function (size: string) {
-                b.options = setConfigOptionValue(b.options, "icon_size", size);
-                saveField("options", b.options);
-                renderPreview();
-            });
-            iconSizes.segment.setAttribute("role", "group");
-            iconSizes.segment.setAttribute("aria-label", "App icon size");
-            panel.appendChild(fieldWithControl("App icon size", null, iconSizes.segment));
         }
         groupCardSettingsFields(panel, idPrefix);
         Object.keys(openDisclosureIds).forEach(function (this: any, id?: any) {
