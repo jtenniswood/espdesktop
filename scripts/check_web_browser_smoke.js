@@ -7186,7 +7186,7 @@ async function assertFixedAppIconControls(browser, testCase) {
       await page.goto("http://espdesktop.test/" + testCase.slug + "?events=1", { waitUntil: "domcontentloaded" });
       await seedNativeDocument(page, fixture);
       await page.getByRole("tab", { name: "Screen", exact: true }).click();
-      await page.locator("#sp-set-card-curve").waitFor({ state: "attached" });
+      await page.getByRole("heading", { name: "Active Colour", exact: true }).waitFor();
       assert.strictEqual(await page.getByRole("group", { name: "Default app icon size", exact: true, includeHidden: true }).count(), 0);
       await page.getByRole("tab", { name: "Layout", exact: true }).click();
       await page.evaluate(() => window.__seedEspState([
