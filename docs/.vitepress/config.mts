@@ -65,16 +65,16 @@ const guideParents = {
 const guideMetadata = new Map<string, { title: string; description: string }>()
 
 const customiseLinks = [
-  { text: 'First setup', link: '/features/first-run' },
-  { text: 'Touchscreen layout', link: '/features/home' },
-  { text: 'Subpages', link: '/features/subpages' },
   { text: 'Apps', link: '/mac-controls/apps' },
-  { text: 'OBS Support', link: '/mac-controls/obs' },
-  { text: 'Websites', link: '/mac-controls/websites' },
-  { text: 'Finder folders', link: '/mac-controls/folders' },
-  { text: 'Keyboard shortcuts', link: '/mac-controls/shortcuts' },
   { text: 'Cough button', link: '/mac-controls/cough' },
+  { text: 'Finder folders', link: '/mac-controls/folders' },
+  { text: 'First setup', link: '/features/first-run' },
+  { text: 'Keyboard shortcuts', link: '/mac-controls/shortcuts' },
+  { text: 'OBS Support', link: '/mac-controls/obs' },
   { text: 'Shortcut presets', link: '/reference/shortcut-presets' },
+  { text: 'Subpages', link: '/features/subpages' },
+  { text: 'Touchscreen layout', link: '/features/home' },
+  { text: 'Websites', link: '/mac-controls/websites' },
 ]
 const screenSettingsLink = { text: 'Screen settings', link: '/settings/screen' }
 const systemSettingsLink = { text: 'System settings', link: '/settings/system' }
