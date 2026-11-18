@@ -8,7 +8,7 @@ substitutions:
   name: "espdesktop-7inch-p4"
   friendly_name: "EspDesktop 7inch P4"
   espdesktop_component_url: "../.."
-  mdi_font_file: "../../common/assets/fonts/materialdesignicons-webfont-7.4.47.ttf"
+  mdi_font_file: "../../common/assets/fonts/espdesktop-icons-1.ttf"
   espdesktop_component_ref: "HEAD"
 
 esp32:

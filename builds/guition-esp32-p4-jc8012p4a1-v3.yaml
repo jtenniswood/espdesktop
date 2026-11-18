@@ -3,7 +3,7 @@ substitutions:
   name: "espdesktop-jc8012p4a1-v3"
   friendly_name: "EspDesktop 10inch V3"
   espdesktop_component_url: "file:///config"
-  mdi_font_file: "/config/common/assets/fonts/materialdesignicons-webfont-7.4.47.ttf"
+  mdi_font_file: "/config/common/assets/fonts/espdesktop-icons-1.ttf"
   espdesktop_component_ref: "HEAD"
 
 esp32:

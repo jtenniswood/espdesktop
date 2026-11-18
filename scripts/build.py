@@ -43,7 +43,7 @@ from product_model_v2 import load_product_model_v2, render_catalogue, source_dir
 ROOT = Path(__file__).resolve().parent.parent
 MDI_VERSION = "7.4.47"
 MDI_CSS_URL = f"https://cdn.jsdelivr.net/npm/@mdi/font@{MDI_VERSION}/css/materialdesignicons.css"
-MDI_WEB_FONT = ROOT / "common" / "assets" / "fonts" / f"materialdesignicons-webfont-{MDI_VERSION}.ttf"
+WEB_ICON_FONT = ROOT / "common" / "assets" / "fonts" / "espdesktop-icons-1.ttf"
 ROBOTO_WEB_FONT = ROOT / "common" / "assets" / "fonts" / "roboto-latin.woff2"
 SUPPORT_BUTTON_IMAGE = ROOT / "common" / "assets" / "images" / "buy-me-a-coffee-button.png"
 WEB_SOURCE_DIR = ROOT / "src" / "webserver"
@@ -326,7 +326,7 @@ def run_generated_transaction_self_test():
             urllib.request.urlopen = lambda *_args, **_kwargs: (_ for _ in ()).throw(
                 AssertionError("web bundle build unexpectedly accessed the network")
             )
-            embedded_mdi_styles = embedded_web_mdi_styles()
+            embedded_mdi_styles = embedded_web_icon_styles()
         finally:
             urllib.request.urlopen = original_urlopen
         bundle_root = root / "bundle"
@@ -3601,15 +3601,15 @@ def web_mdi_icon_names(data, codepoints):
     return names
 
 
-def embedded_web_mdi_styles():
+def embedded_web_icon_styles():
     """Build the local preview and icon font CSS used by the browser bundle.
 
     Browsers receive this as part of www.js, rather than requesting a CDN
     stylesheet or font after the editor has started. This matters when a display
     is reachable on the local network but cannot reach the Internet.
     """
-    if not MDI_WEB_FONT.exists():
-        raise BuildError(f"Missing bundled web icon font: {MDI_WEB_FONT.relative_to(ROOT)}")
+    if not WEB_ICON_FONT.exists():
+        raise BuildError(f"Missing bundled web icon font: {WEB_ICON_FONT.relative_to(ROOT)}")
     if not ROBOTO_WEB_FONT.exists():
         raise BuildError(f"Missing bundled web preview font: {ROBOTO_WEB_FONT.relative_to(ROOT)}")
     if not SUPPORT_BUTTON_IMAGE.exists():
@@ -3624,7 +3624,7 @@ def embedded_web_mdi_styles():
 
     preview_font_data = base64.b64encode(ROBOTO_WEB_FONT.read_bytes()).decode("ascii")
     support_button_image_data = base64.b64encode(SUPPORT_BUTTON_IMAGE.read_bytes()).decode("ascii")
-    icon_font_data = base64.b64encode(MDI_WEB_FONT.read_bytes()).decode("ascii")
+    icon_font_data = base64.b64encode(WEB_ICON_FONT.read_bytes()).decode("ascii")
     css = [
         "@font-face{font-family:'Roboto';src:url(data:font/woff2;base64,",
         preview_font_data,
@@ -3632,10 +3632,11 @@ def embedded_web_mdi_styles():
         ".sp-support-link{background:center/contain no-repeat url(data:image/png;base64,",
         support_button_image_data,
         ")}",
-        "@font-face{font-family:'Material Design Icons';src:url(data:font/ttf;base64,",
+        "@font-face{font-family:'EspDesktop Icons';src:url(data:font/ttf;base64,",
         icon_font_data,
         ") format('truetype');font-weight:normal;font-style:normal;font-display:block}",
-        ".mdi{display:inline-block;font-family:'Material Design Icons';font-weight:normal;font-style:normal;line-height:1;text-rendering:auto;-webkit-font-smoothing:antialiased}",
+        ":root{--sp-icon-font:'EspDesktop Icons'}",
+        ".mdi{display:inline-block;font-family:var(--sp-icon-font);font-weight:normal;font-style:normal;line-height:1;text-rendering:auto;-webkit-font-smoothing:antialiased}",
         ".mdi::before{display:inline-block}",
     ]
     css.extend(
@@ -3959,7 +3960,7 @@ def build_www(
 ):
     """Build one shared www.js containing the validated device profiles."""
     devices = build_web_devices()
-    embedded_mdi_styles = embedded_web_mdi_styles()
+    embedded_mdi_styles = embedded_web_icon_styles()
     temporary_root = None
     if output_dir is None:
         temporary_root = tempfile.TemporaryDirectory(prefix="espdesktop-www-")

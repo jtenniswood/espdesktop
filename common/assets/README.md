@@ -3,9 +3,20 @@
 This directory contains internal firmware assets for icons and glyph sets. It is
 repository documentation for maintainers and is not part of the public docs site.
 
-The Material Design Icons font is committed under `common/assets/fonts/` so
-firmware builds do not depend on downloading it during ESPHome configuration.
-Keep its filename version aligned with `MDI_VERSION` in `scripts/build.py`.
+Firmware, the web configurator, and the docs icon gallery use the checked-in
+`fonts/espdesktop-icons-1.ttf`. It keeps the codepoints and advance widths from
+Material Design Icons 7.4.47. The replacements in `material_symbols.json` use
+Google Material Symbols Outlined at weight 400, grade 0, and optical size 24.
+The `filled` group gives actions such as Record and Stop the stronger silhouette
+expected for those controls. The original glyphs cover the rest of the catalog,
+including brand icons and the battery level series.
+
+To regenerate the font after changing a replacement, install FontTools 4.61.1
+in a Python environment and run `python3 scripts/generate_icon_font.py`. The
+generator downloads the pinned Google source and verifies its checksums. Normal
+local firmware and web builds use the checked-in output. The upstream licenses
+are in `fonts/materialdesignicons-LICENSE.txt` and
+`fonts/material-symbols-LICENSE.txt`.
 
 ## Font style names
 
