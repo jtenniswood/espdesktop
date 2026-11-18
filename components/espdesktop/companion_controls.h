@@ -1408,9 +1408,13 @@ inline void companion_render_slider(const CompanionSliderRef &ref, const Compani
       lv_obj_set_style_bg_color(ref.obs_fader_fill, color, LV_PART_MAIN);
   }
   if (ref.text_label && lv_obj_is_valid(ref.text_label)) {
-    const auto *action = companion_published_action(snapshot, ref.control_id);
+    const auto *action = ref.base_label.empty() ? companion_published_action(snapshot, ref.control_id) : nullptr;
     const std::string &title = action ? action->label : ref.base_label;
-    const std::string label = available ? title : title + "\n" + espdesktop_i18n("Unavailable");
+    std::string label = title;
+    if (!available) {
+      if (!label.empty()) label += '\n';
+      label += espdesktop_i18n("Unavailable");
+    }
     const auto normalized = normalize_display_text(label);
     if (normalized != lv_label_get_text(ref.text_label))
       lv_label_set_display_text(ref.text_label, label.c_str());

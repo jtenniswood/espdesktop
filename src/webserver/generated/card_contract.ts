@@ -2921,8 +2921,11 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
           "policy": "keep"
         },
         "label": {
-          "policy": "default_if_empty",
-          "value": "OBS Input Cough"
+          "policy": "alias",
+          "aliases": {
+            "": "Cough",
+            "OBS Input Cough": "Cough"
+          }
         },
         "icon": {
           "policy": "alias",
@@ -2957,7 +2960,7 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
     },
     "default": {
       "entity": "",
-      "label": "OBS Input Cough",
+      "label": "Cough",
       "icon": "Microphone",
       "icon_on": "Auto",
       "sensor": "",
