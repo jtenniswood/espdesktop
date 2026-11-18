@@ -2386,12 +2386,22 @@ async function assertCardBoxSelection(page, label) {
     cards.map(card => Number(card.dataset.slot)));
   const box = page.locator(".sp-selection-box");
   const dragFromAbove = async (fromSlot, toSlot) => {
-    const wrap = await page.locator(".sp-wrap").boundingBox();
-    const from = await page.locator(`.sp-main [data-slot="${fromSlot}"]`).boundingBox();
-    const to = await page.locator(`.sp-main [data-slot="${toSlot}"]`).boundingBox();
-    await page.mouse.move(from.x + from.width * 0.75, wrap.y + 8);
+    // Device updates can replace the card elements. Read all bounds in one frame.
+    const points = await page.waitForFunction(([fromSlot, toSlot]) => {
+      const wrap = document.querySelector(".sp-wrap")?.getBoundingClientRect();
+      const from = document.querySelector(`.sp-main [data-slot="${fromSlot}"]`)?.getBoundingClientRect();
+      const to = document.querySelector(`.sp-main [data-slot="${toSlot}"]`)?.getBoundingClientRect();
+      if (!wrap?.height || !from?.height || !to?.height) return null;
+      return {
+        start: [from.x + from.width * 0.75, wrap.y + 8],
+        end: [to.x + to.width * 0.25, to.y + to.height * 0.4],
+      };
+    }, [fromSlot, toSlot]);
+    const { start, end } = await points.jsonValue();
+    await points.dispose();
+    await page.mouse.move(...start);
     await page.mouse.down();
-    await page.mouse.move(to.x + to.width * 0.25, to.y + to.height * 0.4, { steps: 8 });
+    await page.mouse.move(...end, { steps: 8 });
     await box.waitFor();
   };
 
