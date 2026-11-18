@@ -8600,8 +8600,12 @@ async function assertStudioControlPage(browser) {
   try {
     const page = await context.newPage();
     await installFakeEventSource(page);
-    await page.goto(`http://espdesktop.test/${testCase.slug}?events=1`);
-    await seedNativeDocument(page, fixture);
+    await page.goto(`http://espdesktop.test/${testCase.slug}`);
+    // Start from the native snapshot. The bulk legacy reads enabled by
+    // events=1 can trigger layout refreshes while the card picker is open.
+    await page.waitForFunction(() => window.__eventSources?.some(source => source.readyState === 1));
+    await page.locator('.sp-main[aria-disabled="false"] [data-slot="2"]')
+      .getByText("Copy", { exact: true }).waitFor();
     await page.locator(".sp-main .sp-empty-cell").first().click();
     await chooseOBSCard(page, "Studio Control");
     await page.getByRole("button", { name: "Save", exact: true }).click();
