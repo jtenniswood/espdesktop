@@ -18,7 +18,7 @@ Use a **Run a shortcut** card to run a workflow you created in the Mac’s **Sho
 
 To choose which workflows your displays can run, turn off **All available shortcuts** and turn on the workflows you want to allow.
 
-To open a page of workflows directly from your Home screen, choose **Companion → Apple Shortcuts → Create Shortcuts Subpage**. The editor selects up to eight workflows in alphabetical order, with one tile reserved for **Back**. Use the full list to choose and reorder the workflows you want. To edit them later, open the subpage in the web editor, right-click a tile, and choose **Apple Shortcut List**.
+To open a page of workflows directly from your Home screen, choose **Companion → Apple Shortcuts → Create a list of shortcuts**. The editor selects up to eight workflows in alphabetical order, with one tile reserved for **Back**. Use the full list to choose and reorder the workflows you want. To edit them later, open the subpage in the web editor, right-click a tile, and choose **Apple Shortcut List**.
 
 Choose **Companion → Apple Shortcuts → Open Shortcuts App** to pin an **Applications** card with **Shortcuts** already selected. Turn on **Add app subpage** in its settings if you also want a page of workflows.
 

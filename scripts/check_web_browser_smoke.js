@@ -7893,7 +7893,7 @@ async function assertAppleShortcutCard(browser) {
     assert.equal(await back.evaluate(button => button === document.activeElement), true);
     assert.deepEqual(await page.locator("#sp-card-type-picker button").evaluateAll(
       buttons => buttons.map(button => button.getAttribute("aria-label"))),
-      ["Create Shortcuts Subpage card type", "Run a shortcut card type", "Open Shortcuts App card type"]);
+      ["Create a list of shortcuts card type", "Run a shortcut card type", "Open Shortcuts App card type"]);
     await back.click();
     assert.equal(await shortcutsGroup.evaluate(button => button === document.activeElement), true);
     await shortcutsGroup.click();
@@ -8002,7 +8002,7 @@ async function assertAppleShortcutSubpage(browser, directCard = false) {
       await page.getByRole("button", { name: "Apple Shortcuts card type" })
         .locator(".sp-card-type-app-icon").waitFor();
       await page.getByRole("button", { name: "Apple Shortcuts card type", exact: true }).click();
-      await chooseCardType(page, "Create Shortcuts Subpage");
+      await chooseCardType(page, "Create a list of shortcuts");
     } else {
       await app.click({ button: "right" });
       await page.locator(".sp-ctx-menu").getByText("Edit Card", { exact: true }).click();
