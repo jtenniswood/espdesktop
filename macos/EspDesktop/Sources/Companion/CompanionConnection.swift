@@ -93,7 +93,7 @@ final class CompanionConnection: NSObject {
     private var applicationFocusPublisher = CompanionApplicationFocusPublisher()
     private var catalogueGeneration: UInt32 = 0
     private var supportsOBSCards = false
-    private var supportsOBSStarter = false
+    private var supportsOBSAdaptiveScenes = false
     private var peerCapabilityVersion: UInt32 = 0
     private var supportsOBSBreak = false
     private var supportsOBSOutputs = false
@@ -541,7 +541,7 @@ final class CompanionConnection: NSObject {
             supportsOBSCough = payload.capabilityVersion >= 16
             supportsOBSOutputs = payload.capabilityVersion >= 17
             supportsOBSBreak = payload.capabilityVersion >= 18
-            supportsOBSStarter = payload.capabilityVersion >= 19
+            supportsOBSAdaptiveScenes = payload.capabilityVersion >= 19
             peerCapabilityVersion = payload.capabilityVersion
             lastOBSAudioValues.removeAll()
             appVolumeSupported = payload.capabilityVersion >= 10
@@ -600,7 +600,7 @@ final class CompanionConnection: NSObject {
                 if (actionIdentifier.hasPrefix("obs.") && !supportsOBSCards) ||
                     (actionIdentifier.hasPrefix("obs.output.") && !supportsOBSOutputs) ||
                     (actionIdentifier.hasPrefix("obs.brb.") && !supportsOBSBreak) ||
-                    (actionIdentifier.hasPrefix(OBSConnection.AdaptiveScene.prefix) && !supportsOBSStarter) {
+                    (actionIdentifier.hasPrefix(OBSConnection.AdaptiveScene.prefix) && !supportsOBSAdaptiveScenes) {
                     sendJSON(["type": "action.result", "requestId": requestIdentifier, "status": "not_allowed"])
                     return true
                 }
@@ -905,7 +905,7 @@ final class CompanionConnection: NSObject {
             (supportsOBSCough || OBSConnection.coughInputUUID(for: entry.id) == nil) &&
             (supportsOBSOutputs || !entry.id.hasPrefix("obs.output.")) &&
             (supportsOBSBreak || !(entry.id == "obs.brb" || entry.id.hasPrefix("obs.brb."))) &&
-            (supportsOBSStarter || !entry.id.hasPrefix(OBSConnection.AdaptiveScene.prefix))
+            (supportsOBSAdaptiveScenes || !entry.id.hasPrefix(OBSConnection.AdaptiveScene.prefix))
         }.map { entry in
             var fields: [String: Any] = ["id": entry.id, "label": Self.catalogueLabel(entry.label, fallback: "OBS scene")]
             if let state = entry.state, peerCapabilityVersion >= state.minimumCapability {
