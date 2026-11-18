@@ -27,6 +27,8 @@ Home is the main screen on your EspDesktop touchscreen. Open your display’s ad
 
 Moves and resizes save when you drop the card or release the handle. Choose **Save** when editing a card.
 
+To select several cards, drag a box from the space just outside the grid or from a gap between cards. On Home or a subpage, cards touched by the box are highlighted as you drag. Hold **Shift** to add to the selection, **Command** (**Ctrl** on Windows) to toggle cards, or press **Escape** to cancel the drag. Release the mouse, then right-click a selected card for actions such as **Copy**, **Cut** and **Delete**.
+
 To move or copy a card between Home and a subpage, right-click it and choose **Cut** or **Copy**, then right-click an empty tile on the destination page and choose **Paste**. Clipboard actions save the layout as you make them. You can also copy a card’s code to use it on another display.
 
 <a href="/images/web-editor-home.png"><picture><source type="image/avif" srcset="/images/web-editor-home-480.avif 480w, /images/web-editor-home-960.avif 960w" sizes="(min-width: 768px) 688px, 90vw"><img src="/images/web-editor-home.png" alt="Home layout in the web editor with eight app cards and an empty slot" width="1694" height="2266"></picture></a>

@@ -34,7 +34,7 @@ export interface PreviewInteractionsDependencies {
     readonly shell: Pick<ControlsShellFeature, "isConfigLocked" | "showBanner">;
     readonly requestApi: Pick<ApplicationApiFeature, "postText">;
     readonly grid: Pick<GridFeature, "ctx" | "serializeGrid">;
-    readonly selection: Pick<ButtonSettingsSelectionFeature, "hideSettingsOverlay" | "selectClockBarItem">;
+    readonly selection: Pick<ButtonSettingsSelectionFeature, "clearCardSelection" | "hideSettingsOverlay" | "selectClockBarItem">;
     readonly placement: Pick<PreviewGridPlacementFeature, "findDuplicatePlacement" | "getCellFromEvent" | "planMove" | "applyMove" | "placeSlotAt">;
     readonly contextMenu: PreviewContextMenuFeature;
     readonly renderPreview: () => void;
@@ -64,7 +64,7 @@ export function createPreviewInteractionsFeature(
     const { entityName } = dependencies.entityState;
     const { isConfigLocked, showBanner } = dependencies.shell;
     const { ctx, serializeGrid } = dependencies.grid;
-    const { hideSettingsOverlay, selectClockBarItem } = dependencies.selection;
+    const { clearCardSelection, hideSettingsOverlay, selectClockBarItem } = dependencies.selection;
     const { findDuplicatePlacement, getCellFromEvent, planMove, applyMove, placeSlotAt } = dependencies.placement;
     const { renderPreview, renderButtonSettings } = dependencies;
     const { showClockBar, showEmpty, showCard, showBack, showGenerated } = dependencies.contextMenu;
@@ -226,8 +226,100 @@ export function createPreviewInteractionsFeature(
         if (selection && selection.removeAllRanges)
             selection.removeAllRanges();
     }
+    function setupBoxSelection(wrap: HTMLElement, grid: HTMLElement) {
+        const box = grid.ownerDocument.createElement("div");
+        box.className = "sp-selection-box";
+        box.setAttribute("aria-hidden", "true");
+
+        wrap.addEventListener("pointerdown", (start) => {
+            if (!start.isPrimary || start.pointerType !== "mouse" || start.button !== 0 ||
+                isConfigLocked() || grid.classList.contains("sp-grid-loading") ||
+                (start.target as Element).closest("[data-pos], .sp-topbar")) return;
+
+            // Keep the previous selection available for modifiers until the drag commits.
+            start.preventDefault();
+            const page = state.editingSubpage;
+            const replace = !start.shiftKey && !start.metaKey && !start.ctrlKey;
+            const toggle = start.metaKey || start.ctrlKey;
+            const initial = new Set<number>(ctx().selected);
+            let selected = new Set<number>();
+            const listeners = new AbortController();
+            const options = { signal: listeners.signal };
+            wrap.setPointerCapture(start.pointerId);
+
+            function finish() {
+                listeners.abort();
+                box.remove();
+                if (wrap.hasPointerCapture(start.pointerId)) wrap.releasePointerCapture(start.pointerId);
+            }
+            function cancel() {
+                const active = box.isConnected;
+                finish();
+                if (active) renderPreview();
+            }
+            function update(event: PointerEvent) {
+                if (state.editingSubpage !== page || isConfigLocked()) {
+                    cancel();
+                    return;
+                }
+                const dx = event.clientX - start.clientX;
+                const dy = event.clientY - start.clientY;
+                if (!box.isConnected && Math.hypot(dx, dy) < 4) return;
+                const left = Math.min(start.clientX, event.clientX);
+                const top = Math.min(start.clientY, event.clientY);
+                const right = Math.max(start.clientX, event.clientX);
+                const bottom = Math.max(start.clientY, event.clientY);
+                selected = new Set<number>();
+                // Only saved cards can participate in the editor's batch actions.
+                const cards = Array.from(grid.querySelectorAll<HTMLElement>(".sp-btn"), card => {
+                    const slot = Number(card.dataset.slot);
+                    const rect = card.getBoundingClientRect();
+                    const hit = left < rect.right && right > rect.left && top < rect.bottom && bottom > rect.top;
+                    const wasSelected = !replace && initial.has(slot);
+                    const include = slot > 0 && (toggle ? hit !== wasSelected : hit || wasSelected);
+                    if (include) selected.add(slot);
+                    return { card, include };
+                });
+                for (const { card, include } of cards) card.classList.toggle("sp-selected", include);
+                Object.assign(box.style, {
+                    left: left + "px", top: top + "px", width: (right - left) + "px", height: (bottom - top) + "px",
+                });
+                if (!box.isConnected) wrap.appendChild(box);
+            }
+            wrap.addEventListener("pointermove", event => {
+                if (event.pointerId === start.pointerId) update(event);
+            }, options);
+            wrap.addEventListener("pointerup", event => {
+                if (event.pointerId !== start.pointerId) return;
+                update(event);
+                if (listeners.signal.aborted) return;
+                const active = box.isConnected;
+                finish();
+                if (!active) {
+                    if (replace && !grid.contains(start.target as Node)) clearCardSelection();
+                    return;
+                }
+                const c = ctx();
+                const slots = [...selected];
+                c.setSelected(slots);
+                c.setLastClicked(slots.at(-1) ?? -1);
+                state.clockBarSelectedItem = "";
+                if (state.settingsDraft?.generated) state.settingsDraft = null;
+                hideSettingsOverlay();
+                renderPreview();
+            }, options);
+            wrap.addEventListener("lostpointercapture", event => {
+                if (event.pointerId === start.pointerId) cancel();
+            }, options);
+            window.addEventListener("blur", cancel, options);
+            grid.ownerDocument.addEventListener("keydown", event => {
+                if (event.key === "Escape") cancel();
+            }, options);
+        });
+    }
     function setupPreviewEvents(this: any) {
         var container: any = els.previewMain;
+        if (els.previewWrap) setupBoxSelection(els.previewWrap, container);
         var pendingCellIdx: any = -1;
         let draggedGeneratedId: string | undefined;
         state.clockBarDragItem = "";
