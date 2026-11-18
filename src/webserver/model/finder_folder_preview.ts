@@ -5,6 +5,7 @@ import type { CompanionAction } from "../api/companion_catalogue";
 import type { CardConfig } from "../contracts/types";
 import { APPLE_SHORTCUT_PREFIX, COMPANION_FOLDER_PREFIX } from "./companion_card_codec";
 import { isBackOrderToken, parseBackOrderToken } from "./subpage";
+import { appleShortcutExclusionKey } from "./companion_shortcut_page";
 
 /** Live folders occupy empty cells without acquiring a saved card identity. */
 export function liveSubpagePreview(
@@ -37,7 +38,7 @@ export function appleShortcutPreview(
   if (!order.some(item => isBackOrderToken(parseBackOrderToken(item).token))) return new Map();
   return liveSubpagePreview(grid, cards, grid.length + cards.length, actions.filter(action =>
     action.id.startsWith(APPLE_SHORTCUT_PREFIX) && action.id.length > APPLE_SHORTCUT_PREFIX.length &&
-    !hidden.has(action.id)));
+    !hidden.has(appleShortcutExclusionKey(action.id))));
 }
 
 export function finderFolderPreview(

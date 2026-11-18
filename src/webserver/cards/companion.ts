@@ -82,7 +82,7 @@ import {
     setCompanionShortcutTabs,
     syncCompanionShortcutSubpage,
 } from "../application/companion_shortcut_folder";
-import { APPLE_SHORTCUTS_APP_ID, appShortcutPageOwner, hiddenAppleShortcuts,
+import { APPLE_SHORTCUTS_APP_ID, appleShortcutExclusionKey, appShortcutPageOwner, hiddenAppleShortcuts,
     isAppleShortcutsPage, previewSubpageOwner, setHiddenAppleShortcuts } from "../model/companion_shortcut_page";
 import { appleShortcutPreview } from "../model/finder_folder_preview";
 
@@ -956,8 +956,8 @@ export function registerCompanionCardTypes(
                     delete button._appShortcutCapacityRejected;
                     const hidden = hiddenAppleShortcuts(button.options);
                     const checked = new Set(tabs);
-                    for (const id of definitions.keys()) if (!checked.has(id)) hidden.add(id);
-                    for (const id of checked) hidden.delete(id);
+                    for (const id of definitions.keys()) if (!checked.has(id)) hidden.add(appleShortcutExclusionKey(id));
+                    for (const id of checked) hidden.delete(appleShortcutExclusionKey(id));
                     button.options = setHiddenAppleShortcuts(button.options, hidden);
                     button._appleShortcutTabs = tabs;
                     button._appShortcutSelectionChanged = true;

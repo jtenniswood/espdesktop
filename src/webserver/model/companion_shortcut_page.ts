@@ -7,14 +7,40 @@ export const APPLE_SHORTCUTS_APP_ID = "com.apple.shortcuts";
 export const APPLE_SHORTCUTS_SUBPAGE_KIND = "apple_shortcuts";
 export const APPLE_SHORTCUTS_HIDDEN_OPTION = "apple_shortcuts_hidden";
 
-export function hiddenAppleShortcuts(options?: string): Set<string> {
-    return new Set(configOptionValue(options, APPLE_SHORTCUTS_HIDDEN_OPTION).split("|")
-        .filter(Boolean).map(id => APPLE_SHORTCUT_PREFIX + id));
+const exclusionPrefix = "v1.";
+const exclusionWidth = 11;
+const exclusionAlphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_";
+
+// Match the firmware's 64-bit fingerprint. One full catalogue fits in a card's options.
+export function appleShortcutExclusionKey(actionId: string): string {
+    const id = actionId.slice(APPLE_SHORTCUT_PREFIX.length);
+    let hash = 0xcbf29ce484222325n;
+    for (let i = 0; i < id.length; ++i) {
+        hash = BigInt.asUintN(64, (hash ^ BigInt(id.charCodeAt(i))) * 0x100000001b3n);
+    }
+    let key = "";
+    for (let i = 0; i < exclusionWidth; ++i) {
+        key = exclusionAlphabet.charAt(Number(hash & 63n)) + key;
+        hash >>= 6n;
+    }
+    return key;
 }
 
-export function setHiddenAppleShortcuts(options: string, actionIds: Iterable<string>): string {
+export function hiddenAppleShortcuts(options?: string): Set<string> {
+    const value = configOptionValue(options, APPLE_SHORTCUTS_HIDDEN_OPTION);
+    if (value.startsWith(exclusionPrefix)) {
+        const keys = new Set<string>();
+        for (let i = exclusionPrefix.length; i + exclusionWidth <= value.length; i += exclusionWidth) {
+            keys.add(value.slice(i, i + exclusionWidth));
+        }
+        return keys;
+    }
+    return new Set(value.split("|").filter(Boolean).map(id => appleShortcutExclusionKey(APPLE_SHORTCUT_PREFIX + id)));
+}
+
+export function setHiddenAppleShortcuts(options: string, exclusions: ReadonlySet<string>): string {
     return setConfigOptionValue(options, APPLE_SHORTCUTS_HIDDEN_OPTION,
-        Array.from(actionIds, id => id.slice(APPLE_SHORTCUT_PREFIX.length)).join("|"));
+        exclusions.size ? exclusionPrefix + [...exclusions].join("") : "");
 }
 
 export function isAppleShortcutsCard(card?: Partial<CardConfig> | null): boolean {

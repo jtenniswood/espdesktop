@@ -1,6 +1,7 @@
 #pragma once
 
 #include "companion_capabilities_generated.h"
+#include "companion_shortcut_page.h"
 
 inline bool is_live_finder_folder(std::string_view id) {
   constexpr std::string_view prefix = "folder.";
@@ -83,7 +84,7 @@ inline void finder_project_folder_tiles(SubpageOrder &order, std::vector<Subpage
 inline void project_apple_shortcut_tiles(SubpageOrder &order, std::vector<SubpageBtn> &buttons,
                                          int slots, int columns, int capacity,
                                          const std::vector<CompanionAction> &actions,
-                                         const std::vector<std::string> &hidden) {
+                                         std::string_view hidden) {
   if (!order.has_back_token) return;
   const auto occupied = live_page_occupied_cells(order, slots, columns);
   const int cell_limit = std::min(slots, capacity);
@@ -93,8 +94,7 @@ inline void project_apple_shortcut_tiles(SubpageOrder &order, std::vector<Subpag
     while (position < cell_limit && occupied[position]) ++position;
     if (position == cell_limit) return;
     if (!companion_apple_shortcut_action(action.id) || action.id.size() <= prefix.size()) continue;
-    const auto id = action.id.substr(prefix.size());
-    if (std::find(hidden.begin(), hidden.end(), id) != hidden.end()) continue;
+    if (companion_apple_shortcut_hidden(std::string_view(action.id).substr(prefix.size()), hidden)) continue;
     const auto end = order.positions + slots;
     if (std::any_of(order.positions, end, [&](int index) {
           return index > 0 && buttons[index - 1].entity == action.id;

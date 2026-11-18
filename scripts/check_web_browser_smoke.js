@@ -7987,9 +7987,10 @@ async function assertAppleShortcutSubpage(browser, directCard = false) {
   fixture.document.buttons = directCard ? {} : { 1: "com.apple.shortcuts;Shortcuts;Auto;Auto;;;companion;;" };
   fixture.document.subpages = {};
   fixture.document.settings = { button_order: directCard ? "" : "1", web_onboarding_complete: "1" };
-  const workflows = Array.from({ length: 22 }, (_, index) => {
+  const workflows = Array.from({ length: directCard ? 256 : 255 }, (_, index) => {
     const number = String(index + 1).padStart(2, "0");
-    return { id: "appleshortcut.727ed9bf-de97-42ed-b661-8967497b12" + number, label: "Workflow " + number };
+    const uuidSuffix = String(index + 1).padStart(12, "0");
+    return { id: "appleshortcut.727ed9bf-de97-42ed-b661-" + uuidSuffix, label: "Workflow " + number };
   });
   let available = [...workflows].reverse();
   const connectorsStatus = { onboarding_complete: true, mac_companion: {
@@ -8032,7 +8033,7 @@ async function assertAppleShortcutSubpage(browser, directCard = false) {
       assert.equal(await subpage.getByRole("button", { name: "Apple Shortcuts", exact: true }).count(), 0);
     }
     await row(workflows[21]).waitFor({ state: "attached" });
-    assert.equal(await subpage.locator(".sp-light-tab-row:visible").count(), 22);
+    assert.equal(await subpage.locator(".sp-light-tab-row:visible").count(), workflows.length);
     if (directCard) {
       const spacing = await modal.evaluate(dialog => {
         const headers = [...dialog.querySelectorAll(".sp-disclosure-button")];
@@ -8103,7 +8104,7 @@ async function assertAppleShortcutSubpage(browser, directCard = false) {
     await firstWorkflow.waitFor({ state: "visible" });
     await row(workflows[0]).evaluate(input => input.click());
     await row(workflows[21]).evaluate(input => input.click());
-    await modal.getByRole("button", { name: "Drag Workflow 22" }).press("ArrowUp");
+    await modal.getByRole("button", { name: "Drag Workflow 22", exact: true }).press("ArrowUp");
     await modal.getByRole("button", { name: "Save", exact: true }).click();
     await waitForNativeState(fixture, () => fixture.document.subpages[1]?.includes(workflows[21].id),
       "save a replacement workflow from the complete list");
@@ -8120,12 +8121,14 @@ async function assertAppleShortcutSubpage(browser, directCard = false) {
     const deleted = page.locator(".sp-main").getByText("Workflow 02", { exact: true });
     await deleted.click({ button: "right" });
     await page.locator(".sp-ctx-menu").getByText("Delete", { exact: true }).click();
-    const workflowId = workflow => workflow.id.replace(/^appleshortcut\./, "");
+    const { parseRawButtonConfig } = loadTypeScriptModule("src/webserver/model/card.ts");
+    const { appleShortcutExclusionKey, hiddenAppleShortcuts } = loadTypeScriptModule("src/webserver/model/companion_shortcut_page.ts");
+    const savedExclusions = () => hiddenAppleShortcuts(parseRawButtonConfig(fixture.document.buttons[1]).options);
     await waitForNativeState(fixture, () => !fixture.document.subpages[1]?.includes(workflows[1].id) &&
-      fixture.document.buttons[1]?.includes("apple_shortcuts_hidden") &&
-      fixture.document.buttons[1].includes(workflowId(workflows[1])),
+      savedExclusions().has(appleShortcutExclusionKey(workflows[1].id)),
       "save the deletion and hide the workflow from automatic placement");
-    assert(fixture.document.buttons[1].includes(workflowId(workflows[0])), "preserve the previously hidden workflow");
+    assert(savedExclusions().has(appleShortcutExclusionKey(workflows[0].id)), "preserve the previously hidden workflow");
+    assert(savedExclusions().has(appleShortcutExclusionKey(workflows.at(-1).id)), "exclude workflows at the end of a full catalogue");
     const newlyAvailable = { id: "appleshortcut.727ed9bf-de97-42ed-b661-8967497b1224", label: "Newly Available Workflow" };
     available = [...workflows.slice(0, 9), newlyAvailable];
     await open();

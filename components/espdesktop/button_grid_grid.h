@@ -1446,7 +1446,7 @@ inline void grid_phase2(
                                  cfg_option_value(p.options, "generated_card_exclusions"));
     } else if (grid_is_apple_shortcuts_page(p)) {
       const int capacity = bounded_grid_slots(cfg.configured_slots > 0 ? cfg.configured_slots : NS);
-      const auto hidden = split_config_fields(cfg_option_value(p.options, "apple_shortcuts_hidden"), '|');
+      const auto hidden = cfg_option_value(p.options, "apple_shortcuts_hidden");
       project_apple_shortcut_tiles(sp_ord, sp_btns, NS, COLS, capacity, grid_live_companion_actions(), hidden);
     } else {
       const auto kind = obs_subpage_kind(cfg_option_value(p.options, "subpage_kind"));
