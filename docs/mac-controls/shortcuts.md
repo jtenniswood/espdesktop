@@ -20,7 +20,7 @@ To choose which workflows your displays can run, turn off **All available shortc
 
 To open a page of workflows directly from your Home screen, choose **Companion → Apple Shortcuts → Create a list of shortcuts**. The editor selects up to eight workflows in alphabetical order, with one tile reserved for **Back**. Use the full list to choose and reorder the workflows you want. To edit them later, open the subpage in the web editor, right-click a tile, and choose **Apple Shortcut List**.
 
-Choose **Companion → Apple Shortcuts → Open Shortcuts App** to pin an **Applications** card with **Shortcuts** already selected. Turn on **Add app subpage** in its settings if you also want a page of workflows.
+Choose **Companion → Apple Shortcuts → Open the Shortcuts App** to pin an **Applications** card with **Shortcuts** already selected. Turn on **Add app subpage** in its settings if you also want a page of workflows.
 
 When the Mac is connected, newly enabled workflows appear in any free spaces on either kind of Shortcuts subpage. Turn off a workflow in **Apple Shortcut List** to keep it off that page. Other saved tiles keep their positions.
 

@@ -853,7 +853,7 @@ export function createButtonSettingsFeature(
                 if (openGroup === "apple_shortcuts_group") {
                     picker.before(back);
                     if (appOption) shortcutOptions.push({
-                        ...appOption, key: openAppOption, label: "Open Shortcuts App",
+                        ...appOption, key: openAppOption, label: "Open the Shortcuts App",
                         description: "Add an Applications card that opens the Shortcuts app on your Mac.",
                     });
                     renderGrid(shortcutOptions);

@@ -7893,7 +7893,7 @@ async function assertAppleShortcutCard(browser) {
     assert.equal(await back.evaluate(button => button === document.activeElement), true);
     assert.deepEqual(await page.locator("#sp-card-type-picker button").evaluateAll(
       buttons => buttons.map(button => button.getAttribute("aria-label"))),
-      ["Create a list of shortcuts card type", "Run a shortcut card type", "Open Shortcuts App card type"]);
+      ["Create a list of shortcuts card type", "Run a shortcut card type", "Open the Shortcuts App card type"]);
     await back.click();
     assert.equal(await shortcutsGroup.evaluate(button => button === document.activeElement), true);
     await shortcutsGroup.click();
@@ -7945,7 +7945,7 @@ async function assertAppleShortcutCard(browser) {
     await savedCard.getByText("Stop Distractions", { exact: true }).waitFor();
     await page.locator(".sp-main .sp-empty-cell").first().click();
     await shortcutsGroup.click();
-    await chooseCardType(page, "Open Shortcuts App");
+    await chooseCardType(page, "Open the Shortcuts App");
     const application = page.getByRole("combobox", { name: "Application", exact: true });
     await application.getByRole("option", { name: "Shortcuts", exact: true }).waitFor({ state: "attached" });
     assert.equal(await application.inputValue(), "com.apple.shortcuts");
