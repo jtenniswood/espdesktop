@@ -8395,14 +8395,34 @@ async function assertNestedCompanionPages(browser) {
   } catch(error) { await page.screenshot({ path: "/tmp/nested-browser.png" }); fs.writeFileSync("/tmp/nested-browser.html", await page.content()); throw error; } finally { await context.close(); }
 }
 
-async function assertOBSStarterPage(browser, firstRun = false) {
+async function assertSavedOBSLayout(browser) {
   const testCase = CASES.find(item => item.slug === "guition-esp32-s3-4848s040");
   const fixture = nativeConfigState(testCase.slug);
+  const main = "11111111-1111-1111-1111-111111111111";
+  const away = "22222222-2222-2222-2222-222222222222";
+  const mic = "33333333-3333-3333-3333-333333333333";
   fixture.document = {
     deviceProfile: testCase.slug,
-    buttons: firstRun ? {} : { 1: "com.apple.Safari;Safari;Monitor;Auto;;;companion" },
-    subpages: {},
-    settings: firstRun ? {} : { button_order: "1", web_onboarding_complete: "1" },
+    buttons: {
+      1: "com.apple.Safari;Safari;Monitor;Auto;;;companion",
+      2: "~,OBS Studio,Monitor,Auto,,,subpage,,subpage_connector=mac_companion",
+      3: "obs.output.record;;Record;Auto;;;companion",
+    },
+    subpages: {
+      2: ["~B,1,2,3,4,5", "G,,Switching,Image,,,,,subpage_connector=mac_companion",
+        "G,,Audio,Microphone,,,,,subpage_connector=mac_companion",
+        "G,,Outputs,Broadcast,,,,,subpage_connector=mac_companion",
+        "CP,obs.status.program,,Monitor", "CP,obs.brb,,Coffee to Go"].join("|"),
+      65: ["B,1,2,3,4,5", `obs.target.${main}::Image Card Loading::::companion`,
+        `obs.target.${away}::Image Card Loading::::companion`, "obs.studio::Split Vertical::::companion",
+        "obs.take::Arrow Right::::companion", "obs.transition::Flip Horizontal::::companion"].join("|"),
+      66: ["B,1,2,3", `obs.mute.${mic}::Microphone::::companion`,
+        `obs.level.${mic}:Mic level:Microphone::::slider`,
+        `obs.cough.${mic}::Microphone Off::::companion_obs_cough`].join("|"),
+      67: ["B,1,2,3,4", "obs.output.stream::Broadcast::::companion", "obs.output.record::Record::::companion",
+        "obs.replay.buffer::Repeat::::companion", "obs.replay::History::::companion"].join("|"),
+    },
+    settings: { button_order: "1,2,3", web_onboarding_complete: "1" },
   };
   const context = await browser.newContext({ viewport: testCase.viewport });
   await installRoutes(context, testCase.slug, {
@@ -8412,9 +8432,6 @@ async function assertOBSStarterPage(browser, firstRun = false) {
       mac_companion: { available: true, configured: true, paired: true, connected: true },
     },
   });
-  const main = "11111111-1111-1111-1111-111111111111";
-  const away = "22222222-2222-2222-2222-222222222222";
-  const mic = "33333333-3333-3333-3333-333333333333";
   const token = "44444444-4444-4444-4444-444444444444";
   let recording = false;
   let stopping = false;
@@ -8454,7 +8471,6 @@ async function assertOBSStarterPage(browser, firstRun = false) {
     { id: "obs.status.stream", label: streaming ? "Stream · Live" : "Stream · Idle" },
     { id: "obs.status.record", label: recording ? "Recording · Active" : "Recording · Idle" },
     { id: "obs.brb." + token, label: onBreak ? "Resume" : "BRB · Break Room" },
-    { id: `obs.brb.scene.${away}`, label: "Configured BRB scene" },
     ...mixerInputs.map(([id, label]) => ({ id: `obs.level.${id}`, label })),
     { id: `obs.mute.${music}`, label: "Muted · Music" },
     { id: `obs.cough.${mic}`, label: "Desk Mic" },
@@ -8471,51 +8487,18 @@ async function assertOBSStarterPage(browser, firstRun = false) {
     await page.goto("http://espdesktop.test/" + testCase.slug + "?events=1");
     await page.waitForFunction(() => window.__eventSources?.length > 0);
     await page.evaluate(events => window.__seedEspState(events), nativeDocumentEvents(fixture.document));
-    if (firstRun) {
-      await page.getByRole("button", { name: "Set up OBS Studio", exact: true }).click();
-      await page.getByRole("dialog", { name: "Add OBS starter page" }).getByRole("button", { name: "Cancel" }).click();
-      await page.getByRole("button", { name: "Set up OBS Studio", exact: true }).click();
-    } else {
-      await page.locator('.sp-main [data-slot="1"]').waitFor();
-      await page.getByRole("tab", { name: "Screen", exact: true }).click();
-      const section = page.locator("#sp-settings .card").filter({ has: page.locator("#sp-set-auto-open-app-subpages") });
-      if (await section.evaluate(node => node.classList.contains("collapsed"))) await section.locator(".card-header").click();
-      await page.getByRole("button", { name: "Add OBS starter page", exact: true }).click();
-    }
-    const setup = page.getByRole("dialog", { name: "Add OBS starter page" });
-    await setup.locator('button.sp-save-btn:enabled').waitFor();
-    assert.equal(await setup.getByLabel("Main scene").inputValue(), "obs.target." + main);
-    assert.equal(await setup.getByLabel("Break scene").inputValue(), "obs.target." + away);
-    assert.equal(await setup.getByLabel("Microphone").inputValue(), "obs.mute." + mic);
-    await setup.getByRole("button", { name: "Pin to Home" }).click();
-    const homeSlot = firstRun ? 1 : 2;
-    const switchingKey = 32 + (homeSlot - 1) * 32 + 1;
-    await waitForNativeState(fixture, () => fixture.puts.at(-1)?.layout?.pages.some(
-      group => group.key === switchingKey && group.cards.some(card => card.config.entity === "obs.target." + main)),
-      "OBS setup saves nested groups and their scene UUIDs");
-    if (!firstRun) assert.match(fixture.document.buttons[1], /Safari/);
-    assert.match(fixture.document.buttons[homeSlot], /OBS Studio/);
-    assert.equal(fixture.document.settings.button_order, firstRun ? "1" : "1,2");
-    assert.equal(fixture.document.settings.web_onboarding_complete, "1");
-    const savedPages = fixture.puts.at(-1).layout.pages;
-    const landing = savedPages.find(group => group.key === homeSlot);
-    assert.deepEqual(landing.cards.slice(0, 3).map(card => card.config.label), ["Switching", "Audio", "Outputs"]);
-    assert(landing.cards.some(card => card.config.entity === "obs.brb"));
-    assert(!JSON.stringify(savedPages).includes(token));
-    await page.getByRole("dialog", { name: "Add OBS starter page" }).waitFor({ state: "hidden" });
-    if (firstRun) {
-      await page.getByRole("heading", { name: "Choose your apps", exact: true }).waitFor({ state: "hidden" });
-      await page.locator('.sp-main').getByText("OBS Studio", { exact: true }).waitFor();
-      return;
-    }
     await page.getByRole("tab", { name: "Layout", exact: true }).click();
-    await page.locator(".sp-main .sp-empty-cell").first().click();
-    await chooseOBSCard(page, "Output Controls");
-    await page.getByLabel("OBS output", { exact: true }).selectOption("obs.output.record");
+    await page.locator('.sp-main[aria-disabled="false"]').getByText("OBS Studio", { exact: true }).waitFor();
+    const editCard = async tile => {
+      await tile.click({ button: "right" });
+      await page.getByText("Edit Card", { exact: true }).click();
+    };
+    const recordTile = page.locator('.sp-main [data-slot="3"]');
+    await editCard(recordTile);
     await page.getByRole("button", { name: "Confirmation", exact: true }).click();
     const confirmation = page.locator("input[id$='obs-confirm-toggle']");
     await page.getByText("Confirmation Required", { exact: true }).waitFor();
-    assert(await confirmation.isChecked(), "existing and new OBS cards confirm both directions by default");
+    assert(await confirmation.isChecked(), "saved OBS output cards confirm both directions by default");
     assert.equal(await page.getByText("Off means stopping the output. On means starting it.", { exact: true }).count(), 0);
     await page.getByRole("button", { name: "Start", exact: true }).click();
     await page.getByLabel("Message", { exact: true }).fill("Record a local clip?");
@@ -8525,7 +8508,6 @@ async function assertOBSStarterPage(browser, firstRun = false) {
     await waitForNativeState(fixture, () => fixture.document.buttons[3]?.includes("obs_confirm=on") &&
       fixture.document.buttons[3].includes("confirm_yes=Record") && fixture.document.buttons[3].includes("confirm_no=Back"),
       "OBS output confirmation choices persist");
-    const recordTile = page.locator('.sp-main [data-slot="3"]');
     await recordTile.getByText("Record", { exact: true }).waitFor();
     const idleColor = await recordTile.evaluate(tile => getComputedStyle(tile).backgroundColor);
     const editFolder = async label => {
@@ -8534,10 +8516,6 @@ async function assertOBSStarterPage(browser, firstRun = false) {
     };
     const goBack = () => page.locator(".sp-back-btn .sp-back-hit").click();
     const closeSettings = page.locator(".sp-settings-overlay.sp-visible .sp-settings-close");
-    const editCard = async tile => {
-      await tile.click({ button: "right" });
-      await page.getByText("Edit Card", { exact: true }).click();
-    };
     await editFolder("OBS Studio");
     const brbTile = page.locator('.sp-main [data-slot="5"]');
     await brbTile.locator(".mdi-coffee-to-go").waitFor();
@@ -8920,6 +8898,7 @@ async function assertFirstRunSetup(browser) {
     await dialog.getByText("No apps available. Check app access on your Mac.", { exact: true }).waitFor();
     assert(await dialog.getByText("Step 1 of 2", { exact: true }).isVisible(),
       "an already connected Mac starts at app selection");
+    assert.equal(await dialog.getByRole("button", { name: "Set up OBS Studio", exact: true }).count(), 0);
     const title = dialog.getByRole("heading", { name: "Choose your apps", exact: true });
     assert(await title.evaluate(node => node === document.activeElement && getComputedStyle(node).outlineStyle === "none"),
       "the wizard heading receives focus without a visible outline");
@@ -9040,6 +9019,7 @@ async function assertFirstRunSetup(browser) {
     await waitForNativeState(fixture, () => fixture.document.settings.companion_auto_open_app_subpages === "0",
       "restore the editor toggle through native configuration");
     assert.deepEqual(switches, []);
+    assert.equal(await settingsCard.getByRole("button", { name: "Add OBS starter page", exact: true }).count(), 0);
     await page.getByRole("button", { name: "Setup Again", exact: true }).click();
     await dialog.getByLabel("Safari", { exact: true }).waitFor({ state: "attached" });
     assert(await dialog.getByLabel("Safari", { exact: true }).isChecked(), "settings restores home apps");
@@ -9207,9 +9187,8 @@ async function assertFirstRunSetup(browser) {
       await assertStudioControlPage(browser);
       return;
     }
-    if (process.env.ESPDESKTOP_OBS_STARTER_ONLY === "1") {
-      await assertOBSStarterPage(browser);
-      await assertOBSStarterPage(browser, true);
+    if (process.env.ESPDESKTOP_OBS_LAYOUT_ONLY === "1") {
+      await assertSavedOBSLayout(browser);
       return;
     }
     if (process.env.ESPDESKTOP_FIRST_RUN_ONLY === "1") {
@@ -9265,8 +9244,7 @@ async function assertFirstRunSetup(browser) {
       return;
     }
     await assertOBSSceneCard(browser);
-    await assertOBSStarterPage(browser);
-    await assertOBSStarterPage(browser, true);
+    await assertSavedOBSLayout(browser);
     await assertStudioControlPage(browser);
     await assertAppleShortcutCard(browser);
     await assertAppleShortcutSubpage(browser);

@@ -106,7 +106,6 @@ interface FirstRunSetupDependencies {
     fields: Pick<ControlsFieldsFeature, "textInput" | "toggleRow">;
     shell: Pick<ControlsShellFeature, "switchTab" | "isConfigLocked" | "showBanner" | "createMdiIcon" | "createActionButton">;
     onSaved: (mirrorFailed: boolean) => void;
-    openOBSSetup: (onPinned: () => void) => void;
     autoSwitchEnabled: () => boolean;
 }
 
@@ -364,9 +363,6 @@ export function createFirstRunSetup(deps: FirstRunSetupDependencies): { start():
         if (step === 0) {
             renderPairing(content);
         } else if (step === 1) {
-            if (!replacing) {
-                content.appendChild(button("Set up OBS Studio", () => deps.openOBSSetup(dismiss)));
-            }
             const search: HTMLInputElement = deps.fields.textInput("sp-setup-search", query, "Search apps");
             search.type = "search";
             search.setAttribute("aria-label", "Search apps");

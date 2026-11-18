@@ -199,7 +199,6 @@ final class OBSConnection: ObservableObject {
         var takeToken = UUID()
         var adaptiveSceneToken = UUID()
         var breakCard: BreakCard?
-        var breakSceneID: String?
         var outputTokens = Dictionary(uniqueKeysWithValues: Output.allCases.map { ($0, UUID()) })
         var outputsTransitioning: Set<Output> = []
         var outputsPending: Set<Output> = []
@@ -331,8 +330,7 @@ final class OBSConnection: ObservableObject {
         var actions = productionActions(state) + sceneActions(state) + audioActions(state) + faderActions(state) + coughActions(state) + outputActions(state) + adaptiveSceneActions(state) +
             selectedSceneActions(state) +
             unavailableTakeAction(state) +
-            (state?.breakCard.map { [($0.actionID, $0.label)] } ?? []) +
-            (state?.breakSceneID.map { [("obs.brb.scene." + $0, "Configured BRB scene")] } ?? [])
+            (state?.breakCard.map { [($0.actionID, $0.label)] } ?? [])
         if state != nil { actions.append((multiviewID, "Multiview")) }
         if state?.recording == true || state?.recordingStopping == true {
             actions.append(("obs.record.active", "Recording"))
@@ -955,9 +953,6 @@ final class OBSConnection: ObservableObject {
         let label: String
         let presentation: OBSCardState
         let configured = breakConfigurations[snapshot.collection]
-        snapshot.breakSceneID = configured.flatMap { config in
-            snapshot.scenes.contains(where: { $0.id == config.sceneID }) ? config.sceneID.lowercased() : nil
-        }
         var enabled = false
         if breakNeedsReview {
             label = "BRB · Check OBS"
