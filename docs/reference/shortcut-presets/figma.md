@@ -9,6 +9,11 @@ import ShortcutPresetReference from '../../.vitepress/theme/components/ShortcutP
 
 # Figma keyboard shortcuts
 
+<picture>
+  <source type="image/avif" srcset="/images/espdesktop-desk-480.avif 480w, /images/espdesktop-desk-960.avif 960w" sizes="(min-width: 768px) 688px, 90vw">
+  <img src="/images/espdesktop-desk.jpg" alt="EspDesktop touchscreen on a desk stand beside a Mac keyboard" width="1320" height="1093">
+</picture>
+
 Keep your most-used Figma shortcuts on a small touchscreen beside your Mac. Give each action a labelled button so you can keep your eyes on the canvas and tap the command you want.
 
 ## What can I do with it?
