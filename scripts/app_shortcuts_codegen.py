@@ -240,7 +240,15 @@ export interface AppShortcutApplication {
     readonly safariShortcuts?: readonly AppShortcutDefinition[];
     readonly moreShortcuts?: readonly AppShortcutDefinition[];
 }
-export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = ''' + json.dumps(apps, indent=2, ensure_ascii=False) + ';\n'
+type BundledShortcutApplication = Omit<AppShortcutApplication, "version" | "catalog"> & { readonly catalog?: true };
+const bundledShortcutApps: readonly BundledShortcutApplication[] = ''' + json.dumps([
+        {key: value for key, value in app.items() if key != 'version' and (key != 'catalog' or value)}
+        for app in apps
+    ], indent=2, ensure_ascii=False) + ''';\n
+// Bundled definitions are validated as version 1. Store only the non-default catalog flag.
+export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] =
+    bundledShortcutApps.map(app => ({ ...app, version: 1, catalog: app.catalog === true }));
+'''
     ts += 'export const EXPANDED_SHORTCUT_KEYS = ' + json.dumps(key_table, ensure_ascii=False) + ';\n'
     ts += 'export const EXPANDED_SHORTCUT_ICONS = ' + json.dumps(icon_table, ensure_ascii=False) + ';\n'
     ts += 'export const EXPANDED_SHORTCUTS: Readonly<Record<string, string>> = ' + json.dumps(packed, indent=2, ensure_ascii=False) + ';\n'

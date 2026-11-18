@@ -18,12 +18,11 @@ export interface AppShortcutApplication {
     readonly safariShortcuts?: readonly AppShortcutDefinition[];
     readonly moreShortcuts?: readonly AppShortcutDefinition[];
 }
-export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
+type BundledShortcutApplication = Omit<AppShortcutApplication, "version" | "catalog"> & { readonly catalog?: true };
+const bundledShortcutApps: readonly BundledShortcutApplication[] = [
   {
-    "version": 1,
     "appId": "com.1password.1password",
     "label": "1Password",
-    "catalog": false,
     "defaultShortcutIds": [
       "7",
       "1",
@@ -80,10 +79,8 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
     ]
   },
   {
-    "version": 1,
     "appId": "com.adobe.Reader",
     "label": "Adobe Acrobat Reader",
-    "catalog": false,
     "defaultShortcutIds": [
       "1",
       "58",
@@ -116,10 +113,8 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
     ]
   },
   {
-    "version": 1,
     "appId": "com.adobe.illustrator",
     "label": "Adobe Illustrator",
-    "catalog": false,
     "defaultShortcutIds": [
       "31",
       "32",
@@ -188,10 +183,8 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
     ]
   },
   {
-    "version": 1,
     "appId": "com.adobe.LightroomCC",
     "label": "Adobe Lightroom",
-    "catalog": false,
     "defaultShortcutIds": [
       "41",
       "10",
@@ -266,10 +259,8 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
     ]
   },
   {
-    "version": 1,
     "appId": "com.adobe.Photoshop",
     "label": "Adobe Photoshop",
-    "catalog": false,
     "defaultShortcutIds": [
       "11",
       "3",
@@ -320,10 +311,8 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
     ]
   },
   {
-    "version": 1,
     "appId": "com.adobe.PremierePro",
     "label": "Adobe Premiere Pro",
-    "catalog": false,
     "defaultShortcutIds": [
       "40",
       "59",
@@ -398,10 +387,8 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
     ]
   },
   {
-    "version": 1,
     "appId": "com.seriflabs.affinitydesigner2",
     "label": "Affinity Designer",
-    "catalog": false,
     "defaultShortcutIds": [
       "21",
       "23",
@@ -464,10 +451,8 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
     ]
   },
   {
-    "version": 1,
     "appId": "com.seriflabs.affinityphoto2",
     "label": "Affinity Photo",
-    "catalog": false,
     "defaultShortcutIds": [
       "6",
       "80",
@@ -530,10 +515,8 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
     ]
   },
   {
-    "version": 1,
     "appId": "com.seriflabs.affinitypublisher2",
     "label": "Affinity Publisher",
-    "catalog": false,
     "defaultShortcutIds": [
       "10",
       "75",
@@ -584,10 +567,8 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
     ]
   },
   {
-    "version": 1,
     "appId": "com.runningwithcrayons.Alfred",
     "label": "Alfred",
-    "catalog": false,
     "defaultShortcutIds": [
       "0",
       "39",
@@ -630,10 +611,8 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
     ]
   },
   {
-    "version": 1,
     "appId": "company.thebrowser.Browser",
     "label": "Arc",
-    "catalog": false,
     "defaultShortcutIds": [
       "0",
       "2",
@@ -708,10 +687,8 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
     ]
   },
   {
-    "version": 1,
     "appId": "io.github.jtenniswood.athena",
     "label": "Athena",
-    "catalog": false,
     "defaultShortcutIds": [
       "100",
       "101",
@@ -846,10 +823,8 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
     ]
   },
   {
-    "version": 1,
     "appId": "org.audacityteam.audacity",
     "label": "Audacity",
-    "catalog": false,
     "defaultShortcutIds": [
       "47",
       "51",
@@ -876,10 +851,8 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
     ]
   },
   {
-    "version": 1,
     "appId": "com.bambulab.bambu-studio",
     "label": "BambuStudio",
-    "catalog": false,
     "defaultShortcutIds": [
       "3",
       "19",
@@ -954,10 +927,8 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
     ]
   },
   {
-    "version": 1,
     "appId": "net.shinyfrog.bear",
     "label": "Bear",
-    "catalog": false,
     "defaultShortcutIds": [
       "8",
       "9",
@@ -1032,10 +1003,8 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
     ]
   },
   {
-    "version": 1,
     "appId": "com.apple.iBooksX",
     "label": "Books",
-    "catalog": false,
     "defaultShortcutIds": [
       "29",
       "30",
@@ -1248,10 +1217,8 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
     ]
   },
   {
-    "version": 1,
     "appId": "com.brave.Browser",
     "label": "Brave Browser",
-    "catalog": false,
     "defaultShortcutIds": [
       "0",
       "1",
@@ -1422,10 +1389,8 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
     ]
   },
   {
-    "version": 1,
     "appId": "com.apple.iCal",
     "label": "Calendar",
-    "catalog": false,
     "defaultShortcutIds": [
       "6",
       "0",
@@ -1488,10 +1453,8 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
     ]
   },
   {
-    "version": 1,
     "appId": "com.openai.chat",
     "label": "ChatGPT Classic",
-    "catalog": false,
     "defaultShortcutIds": [
       "2",
       "0",
@@ -1566,10 +1529,8 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
     ]
   },
   {
-    "version": 1,
     "appId": "com.openai.codex",
     "label": "ChatGPT Desktop",
-    "catalog": false,
     "defaultShortcutIds": [
       "7",
       "0",
@@ -1752,10 +1713,8 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
     ]
   },
   {
-    "version": 1,
     "appId": "com.anthropic.claudefordesktop",
     "label": "Claude Desktop",
-    "catalog": false,
     "defaultShortcutIds": [
       "2",
       "4",
@@ -2328,10 +2287,8 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
     ]
   },
   {
-    "version": 1,
     "appId": "com.todesktop.230313mzl4w4u92",
     "label": "Cursor",
-    "catalog": false,
     "defaultShortcutIds": [
       "25",
       "1",
@@ -2382,10 +2339,8 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
     ]
   },
   {
-    "version": 1,
     "appId": "com.blackmagic-design.DaVinciResolve",
     "label": "DaVinci Resolve",
-    "catalog": false,
     "defaultShortcutIds": [
       "27",
       "43",
@@ -2418,10 +2373,8 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
     ]
   },
   {
-    "version": 1,
     "appId": "com.hnc.Discord",
     "label": "Discord",
-    "catalog": false,
     "defaultShortcutIds": [
       "3",
       "1",
@@ -2478,10 +2431,8 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
     ]
   },
   {
-    "version": 1,
     "appId": "com.evernote.Evernote",
     "label": "Evernote",
-    "catalog": false,
     "defaultShortcutIds": [
       "1",
       "0",
@@ -2538,10 +2489,8 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
     ]
   },
   {
-    "version": 1,
     "appId": "com.apple.FaceTime",
     "label": "FaceTime",
-    "catalog": false,
     "defaultShortcutIds": [
       "0",
       "1",
@@ -2563,10 +2512,8 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
     ]
   },
   {
-    "version": 1,
     "appId": "com.figma.Desktop",
     "label": "Figma",
-    "catalog": false,
     "defaultShortcutIds": [
       "0",
       "1",
@@ -2815,10 +2762,8 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
     ]
   },
   {
-    "version": 1,
     "appId": "com.apple.FinalCut",
     "label": "Final Cut Pro",
-    "catalog": false,
     "defaultShortcutIds": [
       "279",
       "18",
@@ -2881,10 +2826,8 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
     ]
   },
   {
-    "version": 1,
     "appId": "com.apple.finder",
     "label": "Finder",
-    "catalog": false,
     "shortcuts": [
       {
         "id": "0",
@@ -2907,10 +2850,8 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
     ]
   },
   {
-    "version": 1,
     "appId": "org.mozilla.firefox",
     "label": "Firefox",
-    "catalog": false,
     "defaultShortcutIds": [
       "8",
       "9",
@@ -2973,10 +2914,8 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
     ]
   },
   {
-    "version": 1,
     "appId": "com.apple.freeform",
     "label": "Freeform",
-    "catalog": false,
     "defaultShortcutIds": [
       "0",
       "2",
@@ -3027,10 +2966,8 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
     ]
   },
   {
-    "version": 1,
     "appId": "com.apple.garageband10",
     "label": "GarageBand",
-    "catalog": false,
     "defaultShortcutIds": [
       "26",
       "29",
@@ -3069,10 +3006,8 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
     ]
   },
   {
-    "version": 1,
     "appId": "com.github.GitHubClient",
     "label": "GitHub Desktop",
-    "catalog": false,
     "defaultShortcutIds": [
       "4",
       "5",
@@ -3147,10 +3082,8 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
     ]
   },
   {
-    "version": 1,
     "appId": "com.axosoft.gitkraken",
     "label": "GitKraken",
-    "catalog": false,
     "defaultShortcutIds": [
       "30",
       "1",
@@ -3189,10 +3122,8 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
     ]
   },
   {
-    "version": 1,
     "appId": "com.google.Chrome",
     "label": "Google Chrome",
-    "catalog": false,
     "defaultShortcutIds": [
       "22",
       "24",
@@ -3267,10 +3198,8 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
     ]
   },
   {
-    "version": 1,
     "appId": "com.nousresearch.hermes",
     "label": "Hermes",
-    "catalog": false,
     "defaultShortcutIds": [
       "1",
       "2",
@@ -3345,10 +3274,8 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
     ]
   },
   {
-    "version": 1,
     "appId": "com.colliderli.iina",
     "label": "IINA",
-    "catalog": false,
     "defaultShortcutIds": [
       "8",
       "11",
@@ -3393,10 +3320,8 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
     ]
   },
   {
-    "version": 1,
     "appId": "com.apple.iMovieApp",
     "label": "iMovie",
-    "catalog": false,
     "defaultShortcutIds": [
       "4",
       "27",
@@ -3423,10 +3348,8 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
     ]
   },
   {
-    "version": 1,
     "appId": "com.googlecode.iterm2",
     "label": "iTerm2",
-    "catalog": false,
     "defaultShortcutIds": [
       "32",
       "0",
@@ -3465,10 +3388,8 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
     ]
   },
   {
-    "version": 1,
     "appId": "com.apple.iWork.Keynote",
     "label": "Keynote",
-    "catalog": false,
     "defaultShortcutIds": [
       "297",
       "298",
@@ -3525,10 +3446,8 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
     ]
   },
   {
-    "version": 1,
     "appId": "com.apple.logic10",
     "label": "Logic Pro",
-    "catalog": false,
     "defaultShortcutIds": [
       "13",
       "6",
@@ -3579,10 +3498,8 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
     ]
   },
   {
-    "version": 1,
     "appId": "com.apple.mail",
     "label": "Mail",
-    "catalog": false,
     "defaultShortcutIds": [
       "0",
       "7",
@@ -3651,10 +3568,8 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
     ]
   },
   {
-    "version": 1,
     "appId": "com.rockysandstudio.DeskApp-for-Gmail",
     "label": "Mail Plus for Gmail",
-    "catalog": false,
     "defaultShortcutIds": [
       "3",
       "4",
@@ -3681,10 +3596,8 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
     ]
   },
   {
-    "version": 1,
     "appId": "com.apple.Maps",
     "label": "Maps",
-    "catalog": false,
     "defaultShortcutIds": [
       "4",
       "14",
@@ -3723,10 +3636,8 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
     ]
   },
   {
-    "version": 1,
     "appId": "com.apple.MobileSMS",
     "label": "Messages",
-    "catalog": false,
     "defaultShortcutIds": [
       "0",
       "3",
@@ -3783,10 +3694,8 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
     ]
   },
   {
-    "version": 1,
     "appId": "com.microsoft.Excel",
     "label": "Microsoft Excel",
-    "catalog": false,
     "defaultShortcutIds": [
       "5",
       "57",
@@ -3837,10 +3746,8 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
     ]
   },
   {
-    "version": 1,
     "appId": "com.microsoft.Outlook",
     "label": "Microsoft Outlook",
-    "catalog": false,
     "defaultShortcutIds": [
       "1",
       "2",
@@ -3903,10 +3810,8 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
     ]
   },
   {
-    "version": 1,
     "appId": "com.microsoft.Powerpoint",
     "label": "Microsoft PowerPoint",
-    "catalog": false,
     "defaultShortcutIds": [
       "6",
       "7",
@@ -3975,10 +3880,8 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
     ]
   },
   {
-    "version": 1,
     "appId": "com.microsoft.teams2",
     "label": "Microsoft Teams",
-    "catalog": false,
     "defaultShortcutIds": [
       "88",
       "92",
@@ -4047,10 +3950,8 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
     ]
   },
   {
-    "version": 1,
     "appId": "com.microsoft.Word",
     "label": "Microsoft Word",
-    "catalog": false,
     "defaultShortcutIds": [
       "0",
       "1",
@@ -4095,10 +3996,8 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
     ]
   },
   {
-    "version": 1,
     "appId": "com.apple.Music",
     "label": "Music",
-    "catalog": false,
     "defaultShortcutIds": [
       "6",
       "11",
@@ -4149,10 +4048,8 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
     ]
   },
   {
-    "version": 1,
     "appId": "com.apple.Notes",
     "label": "Notes",
-    "catalog": false,
     "defaultShortcutIds": [
       "0",
       "2",
@@ -4197,10 +4094,8 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
     ]
   },
   {
-    "version": 1,
     "appId": "notion.id",
     "label": "Notion",
-    "catalog": false,
     "defaultShortcutIds": [
       "1",
       "6",
@@ -4275,10 +4170,8 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
     ]
   },
   {
-    "version": 1,
     "appId": "com.apple.iWork.Numbers",
     "label": "Numbers",
-    "catalog": false,
     "defaultShortcutIds": [
       "0",
       "237",
@@ -4335,10 +4228,8 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
     ]
   },
   {
-    "version": 1,
     "appId": "com.obsproject.obs-studio",
     "label": "OBS Studio",
-    "catalog": false,
     "defaultShortcutIds": [
       "4",
       "12",
@@ -4389,10 +4280,8 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
     ]
   },
   {
-    "version": 1,
     "appId": "md.obsidian",
     "label": "Obsidian",
-    "catalog": false,
     "defaultShortcutIds": [
       "1",
       "0",
@@ -4466,10 +4355,8 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
     ]
   },
   {
-    "version": 1,
     "appId": "ai.opencode.desktop",
     "label": "OpenCode",
-    "catalog": false,
     "defaultShortcutIds": [
       "0",
       "1",
@@ -4556,10 +4443,8 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
     ]
   },
   {
-    "version": 1,
     "appId": "com.orcaslicer.OrcaSlicer",
     "label": "OrcaSlicer",
-    "catalog": false,
     "defaultShortcutIds": [
       "4",
       "77",
@@ -4628,10 +4513,8 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
     ]
   },
   {
-    "version": 1,
     "appId": "com.apple.iWork.Pages",
     "label": "Pages",
-    "catalog": false,
     "defaultShortcutIds": [
       "0",
       "4",
@@ -4700,10 +4583,8 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
     ]
   },
   {
-    "version": 1,
     "appId": "com.apple.Photos",
     "label": "Photos",
-    "catalog": false,
     "defaultShortcutIds": [
       "1",
       "11",
@@ -4748,10 +4629,8 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
     ]
   },
   {
-    "version": 1,
     "appId": "com.pixelmatorteam.pixelmator.x",
     "label": "Pixelmator Pro",
-    "catalog": false,
     "defaultShortcutIds": [
       "7",
       "23",
@@ -4814,10 +4693,8 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
     ]
   },
   {
-    "version": 1,
     "appId": "com.apple.podcasts",
     "label": "Podcasts",
-    "catalog": false,
     "defaultShortcutIds": [
       "7",
       "9",
@@ -4856,10 +4733,8 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
     ]
   },
   {
-    "version": 1,
     "appId": "com.apple.Preview",
     "label": "Preview",
-    "catalog": false,
     "defaultShortcutIds": [
       "15",
       "14",
@@ -4898,10 +4773,8 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
     ]
   },
   {
-    "version": 1,
     "appId": "com.apple.QuickTimePlayerX",
     "label": "QuickTime Player",
-    "catalog": false,
     "defaultShortcutIds": [
       "14",
       "2",
@@ -4952,10 +4825,8 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
     ]
   },
   {
-    "version": 1,
     "appId": "com.raycast.macos",
     "label": "Raycast",
-    "catalog": false,
     "defaultShortcutIds": [
       "0",
       "2",
@@ -5012,10 +4883,8 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
     ]
   },
   {
-    "version": 1,
     "appId": "com.apple.reminders",
     "label": "Reminders",
-    "catalog": false,
     "defaultShortcutIds": [
       "0",
       "4",
@@ -5072,7 +4941,6 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
     ]
   },
   {
-    "version": 1,
     "appId": "com.apple.Safari",
     "label": "Safari",
     "catalog": true,
@@ -5222,10 +5090,8 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
     ]
   },
   {
-    "version": 1,
     "appId": "com.apple.Safari.WebApp",
     "label": "Safari Web App",
-    "catalog": false,
     "defaultShortcutIds": [
       "0",
       "1",
@@ -5342,10 +5208,8 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
     ]
   },
   {
-    "version": 1,
     "appId": "org.whispersystems.signal-desktop",
     "label": "Signal",
-    "catalog": false,
     "defaultShortcutIds": [
       "1",
       "2",
@@ -5402,10 +5266,8 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
     ]
   },
   {
-    "version": 1,
     "appId": "com.bohemiancoding.sketch3",
     "label": "Sketch",
-    "catalog": false,
     "defaultShortcutIds": [
       "9",
       "31",
@@ -5474,10 +5336,8 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
     ]
   },
   {
-    "version": 1,
     "appId": "com.tinyspeck.slackmacgap",
     "label": "Slack",
-    "catalog": false,
     "defaultShortcutIds": [
       "9",
       "1",
@@ -5552,10 +5412,8 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
     ]
   },
   {
-    "version": 1,
     "appId": "com.spotify.client",
     "label": "Spotify",
-    "catalog": false,
     "defaultShortcutIds": [
       "10",
       "25",
@@ -5606,10 +5464,8 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
     ]
   },
   {
-    "version": 1,
     "appId": "com.streamlabs.slobs",
     "label": "Streamlabs Desktop",
-    "catalog": false,
     "defaultShortcutIds": [
       "0",
       "1",
@@ -5658,10 +5514,8 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
     ]
   },
   {
-    "version": 1,
     "appId": "ru.keepcoder.Telegram",
     "label": "Telegram",
-    "catalog": false,
     "defaultShortcutIds": [
       "0",
       "1",
@@ -5704,10 +5558,8 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
     ]
   },
   {
-    "version": 1,
     "appId": "com.culturedcode.ThingsMac",
     "label": "Things 3",
-    "catalog": false,
     "defaultShortcutIds": [
       "0",
       "3",
@@ -5770,10 +5622,8 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
     ]
   },
   {
-    "version": 1,
     "appId": "com.todoist.mac.Todoist",
     "label": "Todoist",
-    "catalog": false,
     "defaultShortcutIds": [
       "1",
       "0",
@@ -5830,10 +5680,8 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
     ]
   },
   {
-    "version": 1,
     "appId": "com.panic.Transmit",
     "label": "Transmit",
-    "catalog": false,
     "defaultShortcutIds": [
       "54",
       "0",
@@ -5872,10 +5720,8 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
     ]
   },
   {
-    "version": 1,
     "appId": "com.apple.TV",
     "label": "TV",
-    "catalog": false,
     "defaultShortcutIds": [
       "5",
       "13",
@@ -5918,10 +5764,8 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
     ]
   },
   {
-    "version": 1,
     "appId": "com.microsoft.VSCode",
     "label": "Visual Studio Code",
-    "catalog": false,
     "defaultShortcutIds": [
       "0",
       "1",
@@ -5996,10 +5840,8 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
     ]
   },
   {
-    "version": 1,
     "appId": "org.videolan.vlc",
     "label": "VLC",
-    "catalog": false,
     "defaultShortcutIds": [
       "2",
       "11",
@@ -6020,10 +5862,8 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
     ]
   },
   {
-    "version": 1,
     "appId": "dev.warp.Warp-Stable",
     "label": "Warp",
-    "catalog": false,
     "defaultShortcutIds": [
       "0",
       "2",
@@ -6086,10 +5926,8 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
     ]
   },
   {
-    "version": 1,
     "appId": "net.whatsapp.WhatsApp",
     "label": "WhatsApp",
-    "catalog": false,
     "defaultShortcutIds": [
       "4",
       "9",
@@ -6158,10 +5996,8 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
     ]
   },
   {
-    "version": 1,
     "appId": "com.apple.dt.Xcode",
     "label": "Xcode",
-    "catalog": false,
     "defaultShortcutIds": [
       "1",
       "0",
@@ -6224,10 +6060,8 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
     ]
   },
   {
-    "version": 1,
     "appId": "us.zoom.xos",
     "label": "Zoom",
-    "catalog": false,
     "defaultShortcutIds": [
       "84",
       "1",
@@ -6290,6 +6124,10 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
     ]
   }
 ];
+
+// Bundled definitions are validated as version 1. Store only the non-default catalog flag.
+export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] =
+    bundledShortcutApps.map(app => ({ ...app, version: 1, catalog: app.catalog === true }));
 export const EXPANDED_SHORTCUT_KEYS = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "a", "b", "c", "d", "delete", "down", "e", "end", "enter", "escape", "f", "f1", "f10", "f11", "f12", "f2", "f3", "f4", "f5", "f6", "f7", "f8", "f9", "forwarddelete", "g", "h", "home", "i", "j", "k", "keybackquote", "keybackslash", "keybracketleft", "keybracketright", "keycomma", "keyequal", "keyminus", "keypad0", "keypad1", "keypad2", "keypad3", "keypad4", "keypad5", "keypad6", "keypad7", "keypad8", "keypad9", "keypaddecimal", "keypaddivide", "keypadenter", "keypadequal", "keypadmultiply", "keyperiod", "keyquote", "keysemicolon", "keyslash", "l", "left", "m", "n", "o", "p", "pagedown", "pageup", "q", "r", "right", "s", "space", "t", "tab", "u", "up", "v", "w", "x", "y", "z"];
 export const EXPANDED_SHORTCUT_ICONS = ["Account", "Align Center", "Align Left", "Align Right", "Application", "Application Exit", "Archive", "Arrow Down", "Arrow Left", "Arrow Right", "Arrow Up", "Audio Settings", "Back", "Bold", "Book", "Bookmark", "Bookmark Plus", "Brush", "Bug", "Bullet List", "Calculator", "Calendar", "Chat", "Chat Plus", "Check", "Chevron Down", "Chevron Up", "Clock", "Close", "Close Tab", "Cloud", "Code", "Copy", "Crop", "Cut", "Decrease Indent", "Delete", "Deselect", "Desktop", "Dock Bottom", "Dock Left", "Dock Top", "Download", "Draw", "Duplicate", "Eject", "Email", "Export", "Eye Off", "Filmstrip Stack", "Find Replace", "Fit to Screen", "Folder Home Outline", "Folder Open Outline", "Folder Plus", "Format Size", "Full Screen", "Full Screen Exit", "Group Selection", "Heading", "Help", "History", "Home", "Image", "Import", "Inbox", "Incognito", "Increase Indent", "Information", "Italic", "Justify", "Keyboard", "Layers", "Link", "Menu", "Message Unread", "Microphone", "Microphone Off", "Music", "Mute", "Network", "New Tab", "New Window", "Notes", "Numbered List", "Open External", "Open File", "Page Next", "Page Previous", "Paint Format", "Palette", "Paperclip", "Paste", "Pause", "Pin", "Pin Off", "Play", "Play Pause", "Plus", "Printer", "Record", "Redo", "Refresh", "Rename", "Repeat", "Reply", "Robot", "Rotate Left", "Run", "Save", "Save All", "Save As", "Screenshot", "Search", "Select All", "Send", "Settings", "Share", "Shortcut Backspace", "Shortcut Command", "Shortcut Escape", "Shortcut Return", "Shortcut Space", "Shortcut Tab", "Shuffle", "Skip Next", "Skip Previous", "Slideshow", "Source Branch", "Speaker", "Speed Down", "Speed Up", "Split Vertical", "Star", "Stop", "Strikethrough", "Subscript", "Subtitles", "Superscript", "Sync", "Tab", "Tab Restore", "Tag", "Terminal", "Timeline", "Trash Can", "Underline", "Undo", "Upload", "Vector", "Video", "Video Edit", "View Grid", "View Headline", "Volume Down", "Volume Medium", "Volume Off", "Volume Up", "Web", "Window Close", "Window Maximise", "Window Minimise", "Window Restore", "Zoom In", "Zoom Out"];
 export const EXPANDED_SHORTCUTS: Readonly<Record<string, string>> = {
