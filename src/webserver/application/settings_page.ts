@@ -1,5 +1,3 @@
-import { normalizeCardIconSize } from "../model/config_primitives";
-import { syncDefaultIconSizeUi } from "./default_icon_size_ui";
 import { state } from "../state/app_instance";
 import { NTP_SERVER_DEFAULTS } from "../state/app_state";
 import { WEB_UI_COLORS } from "../state/ui_tokens";
@@ -111,22 +109,6 @@ export function createSettingsPageFeature(codec: Pick<ConfigCodecFeature, "bindT
         cardStyleBody.appendChild(cardCurve.segment);
         els.setCardCurveButtons = cardCurve.buttons;
         syncCardCurveUi(state, runtime);
-        const defaultIconSize = segmentControl([
-            ["small", "Small"], ["medium", "Medium"], ["large", "Large"],
-        ], state.defaultIconSize, (value: string) => {
-            if (!state.defaultIconSizeSupported) return;
-            state.defaultIconSize = normalizeCardIconSize(value);
-            syncDefaultIconSizeUi(state, runtime);
-            renderPreview();
-            postSelect(entityName("screen_default_icon_size"), value.charAt(0).toUpperCase() + value.slice(1));
-        });
-        defaultIconSize.segment.id = "sp-set-default-icon-size";
-        defaultIconSize.segment.setAttribute("role", "group");
-        defaultIconSize.segment.setAttribute("aria-label", "Default app icon size");
-        cardStyleBody.appendChild(fieldLabel("Default app icon size"));
-        cardStyleBody.appendChild(defaultIconSize.segment);
-        els.setDefaultIconSizeButtons = defaultIconSize.buttons;
-        syncDefaultIconSizeUi(state, runtime);
         var themeModes: any = segmentControl([
             ["Dark", "Dark"], ["Light", "Light"], ["Auto", "Automatic"],
         ], normalizeThemeMode(state.themeMode), function (this: any, mode?: any) {

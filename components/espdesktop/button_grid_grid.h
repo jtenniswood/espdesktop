@@ -1514,7 +1514,7 @@ inline void grid_phase2(
       espdesktop::card_icons::attach(back_btn, back_slot.icon_lbl, back_slot.text_lbl,
           "large", display_main_width_percent(display), cfg.width_compensation_vertical);
 #ifdef USE_COMPANION
-      companion_set_card_icon_image(back_slot, p.entity, "large");
+      companion_set_card_icon_image(back_slot, p.entity);
       esphome::companion::request_app_icon(p.entity);
 #endif
     }

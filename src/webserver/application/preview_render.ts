@@ -9,7 +9,7 @@ import { WEB_UI_COLORS } from "../state/ui_tokens";
 import { COMPANION_APP_ICON_SIDE } from "../generated/companion_capabilities";
 import { appIconArtworkBounds, appIconFitSide } from "../model/app_icon_layout";
 import { PREVIEW_THEME_COLORS, defaultCardBackgroundColor, previewEffectiveTheme } from "../state/preview_theme";
-import { cardIconSize, configOptionValue, cardActiveColor } from "../model/config_primitives";
+import { configOptionValue, cardActiveColor } from "../model/config_primitives";
 import { PANEL_CONFIG_MAX_SLOT_COUNT } from "../model/panel_config";
 import { escHtml, iconSlug } from "./ui_primitives";
 import { companionCardDefaultIcon } from "../model/companion_card";
@@ -323,10 +323,8 @@ export function createPreviewRenderFeature(dependencies: PreviewRenderDependenci
         const height = button.clientHeight - parseFloat(style.paddingTop) - parseFloat(style.paddingBottom);
         const fitted = appIconFitSide(width, height, labelHeight, Math.max(3, smallSide / 4),
             artwork.artworkWidthFraction, artwork.artworkHeightFraction);
-        const size = button.getAttribute("data-icon-size");
-        const requested = size === "large" ? fitted : smallSide * (size === "medium" ? 1.5 : 1)
-            / artwork.artworkWidthFraction;
-        const side = Math.min(fitted, requested);
+        const side = button.getAttribute("data-icon-size") === "small"
+            ? Math.min(fitted, smallSide / artwork.artworkWidthFraction) : fitted;
         icon.style.width = side + "px";
         icon.style.height = side + "px";
         icon.style.left = (parseFloat(style.paddingLeft) - side * artwork.insetLeftPercent / 100) + "px";
@@ -659,9 +657,7 @@ export function createPreviewRenderFeature(dependencies: PreviewRenderDependenci
                 }
                 if (!generated) appendResizeHandle(btn);
                 main.appendChild(btn);
-                const appIconSize = typePreview?.appIconId
-                    ? typePreview.appIconSize || cardIconSize(b.options, state.defaultIconSize) : "small";
-                btn.setAttribute("data-icon-size", appIconSize);
+                btn.setAttribute("data-icon-size", typePreview?.appIconId ? typePreview.appIconSize || "large" : "small");
                 if (typePreview && typeof typePreview.appIconId === "string" &&
                     typePreview.appIconId.length > 0) {
                     const fallbackIcon = btn.querySelector(".sp-companion-app-icon-fallback") as HTMLElement | null;

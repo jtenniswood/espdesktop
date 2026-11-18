@@ -115,10 +115,7 @@ export function createStateLoaderFeature(runtime: UiRuntimeState, layout: Applic
         });
     }
     function loadInitialState(this: any, handleState?: any, onLoaded?: any) {
-        const previewSettings = entityStateItems(["screen_default_icon_size"]);
-        const remainingSettings = settingsStateEntities().filter((item: [string, string]) =>
-            !previewSettings.some((preview: [string, string]) => preview[0] === item[0] && preview[1] === item[1]));
-        initialRead = loadStateItems(previewSettings, handleState, 1).then(() => loadStateItems(cardStateEntities(), handleState, 4, true)).then(async (loadedCount) => {
+        initialRead = loadStateItems(cardStateEntities(), handleState, 4, true).then(async (loadedCount) => {
             if (loadedCount === 0) {
                 throw new Error("Could not read the saved configuration.");
             }
@@ -127,7 +124,7 @@ export function createStateLoaderFeature(runtime: UiRuntimeState, layout: Applic
             runtime.migrationTimer = setTimeout(gridMigration.schedule, 5000);
             clearTimeout(runtime.sliderMigrationTimer as any);
             runtime.pendingSliderSubpageMigrations = {};
-            await loadStateItems(remainingSettings, handleState, 2, true);
+            await loadStateItems(settingsStateEntities(), handleState, 2, true);
             await loadStateItems(subpageStateEntities(), handleState, 2, true);
             dependencies.publishCompanionURLTargets?.();
         });

@@ -1,7 +1,5 @@
 import { isRetiredLayoutCard, removeRetiredPanelRecords } from "../features/retired_cards";
 import { legacyHomeAssistantCards, legacyHomeAssistantWarning } from "../model/legacy_home_assistant";
-import { normalizeCardIconSize } from "../model/config_primitives";
-import { syncDefaultIconSizeUi } from "./default_icon_size_ui";
 import { clearScreensaverPinForRestore } from "./screensaver_pin";
 import { resetAwareFetch } from "../api/reset_session";
 import type { PanelIdentityBackup } from "../model/panel_identity";
@@ -291,7 +289,6 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
                 brightness_night: Math.round(state.brightnessNightVal),
                 brightness_mode: normalizeBrightnessMode(state.brightnessMode),
                 theme_mode: theme.themeMode,
-                default_icon_size: state.defaultIconSizeSupported ? state.defaultIconSize : undefined,
                 card_curve: state.cardCurveSupported ? normalizeCardCurve(state.cardCurve) : undefined,
                 theme_auto_method: theme.themeAutoMethod,
                 theme_light_start: theme.themeLightStart,
@@ -669,10 +666,6 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
                     state.brightnessDayVal = importedScreenSettings.brightnessDayVal;
                     state.brightnessNightVal = importedScreenSettings.brightnessNightVal;
                     state.brightnessMode = importedScreenSettings.brightnessMode;
-                    if (state.defaultIconSizeSupported && Object.prototype.hasOwnProperty.call(screenSettings, "default_icon_size")) {
-                        state.defaultIconSize = normalizeCardIconSize(screenSettings.default_icon_size);
-                        syncDefaultIconSizeUi(state, controllers.runtime);
-                    }
                     if (state.cardCurveSupported && Object.prototype.hasOwnProperty.call(screenSettings, "card_curve")) {
                         state.cardCurve = normalizeCardCurve(screenSettings.card_curve);
                         syncCardCurveUi(state, controllers.runtime);
@@ -704,8 +697,6 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
                         if (legacyThemePatch.themeMode !== undefined)
                             requestApi.postSelect(entityName("screen_theme_mode"), state.themeMode);
                     }
-                    if (state.defaultIconSizeSupported && Object.prototype.hasOwnProperty.call(screenSettings, "default_icon_size"))
-                        requestApi.postSelect(entityName("screen_default_icon_size"), state.defaultIconSize.charAt(0).toUpperCase() + state.defaultIconSize.slice(1));
                     if (state.cardCurveSupported && Object.prototype.hasOwnProperty.call(screenSettings, "card_curve"))
                         requestApi.postSelect(entityName("screen_card_curve"), state.cardCurve);
                     if (state.brightnessMode === "manual")

@@ -2,7 +2,6 @@
 
 // Internal implementation detail for button_grid.h. Include button_grid.h from device YAML.
 
-#include "card_icon_size.h"
 #include "instant_button_style.h"
 #include "companion_controls.h"
 #ifdef USE_COMPANION
@@ -46,7 +45,7 @@ struct CompanionAppIconImageData {
   }
   lv_obj_t *fallback_icon = nullptr;
   lv_obj_t *card_label = nullptr;
-  std::string icon_size;
+  bool compact_icon = false;
   std::string application_id;
   espdesktop::cover_art::AccentPalette accent_palette{};
   uint32_t custom_background_rgb = 0;
@@ -167,10 +166,9 @@ inline void companion_layout_card_app_icon(CompanionAppIconImageData &source, lv
   }
   const auto insets = source.artwork_insets;
   const int fitted = espdesktop::app_icon::fit_side(width, height, label_height, gap, canvas, insets);
-  const int requested = source.icon_size == "large" ? fitted :
-      (small_side * (source.icon_size == "medium" ? 150 : 100) / 100) * canvas /
-      std::max(1, canvas - static_cast<int>(insets.left + insets.right));
-  const int side = std::min(fitted, requested);
+  const int side = source.compact_icon
+      ? std::min(fitted, small_side * canvas / std::max(1, canvas - static_cast<int>(insets.left + insets.right)))
+      : fitted;
   source.layout_updating = true;
 #if ESPHOME_VERSION_CODE >= VERSION_CODE(2026, 4, 0)
   if (source.display_side != side && !source.pixels) {
@@ -309,7 +307,7 @@ inline bool companion_apply_cached_app_icon(CompanionAppIconImageData &source, l
 }
 
 inline void companion_set_card_icon_image(BtnSlot &slot, const std::string &application_id,
-                                          const std::string &icon_size) {
+                                          bool compact_icon = false) {
   if (!slot.btn || !slot.icon_lbl) return;
   esphome::companion::app_icon_store().begin();
   if (!slot.app_icon_img) slot.app_icon_img = grid_find_companion_app_icon_image(slot.btn);
@@ -336,7 +334,7 @@ inline void companion_set_card_icon_image(BtnSlot &slot, const std::string &appl
   source->application_id = application_id;
   source->fallback_icon = slot.icon_lbl;
   source->card_label = slot.text_lbl;
-  source->icon_size = icon_size;
+  source->compact_icon = compact_icon;
   source->app_icon_mode = true;
   source->companion_online = companion_connected();
   companion_apply_cached_app_icon(*source, slot.app_icon_img);
@@ -512,8 +510,7 @@ inline void setup_companion_card(BtnSlot &s, const ParsedCfg &p,
   lv_label_set_display_text(s.text_lbl, label.c_str());
   if (companion_app_launch_card(p) &&
       (cfg_option_token_present(p.options, "app_hide_label") ||
-       (companion_app_icon_enabled(p) &&
-        espdesktop::resolved_card_icon_size(cfg_option_value(p.options, "icon_size")) == "large"))) {
+       companion_app_icon_enabled(p))) {
     lv_obj_add_flag(s.text_lbl, LV_OBJ_FLAG_HIDDEN);
   } else {
     lv_obj_clear_flag(s.text_lbl, LV_OBJ_FLAG_HIDDEN);
@@ -534,8 +531,7 @@ inline void setup_companion_card(BtnSlot &s, const ParsedCfg &p,
   if (companion_app_icon_enabled(p) || workflow_icon) {
 #ifdef USE_COMPANION
     const std::string id = workflow_icon ? APPLE_SHORTCUTS_APP_ID : p.entity;
-    companion_set_card_icon_image(s, id, workflow_icon ? "small" :
-        espdesktop::resolved_card_icon_size(cfg_option_value(p.options, "icon_size")));
+    companion_set_card_icon_image(s, id, workflow_icon);
     esphome::companion::request_app_icon(id);
 #endif
   } else if (s.app_icon_img) {
