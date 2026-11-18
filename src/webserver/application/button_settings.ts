@@ -1,8 +1,11 @@
+import { isStudioControlPage } from "../model/studio_control_page";
+import { sameCardAction, setCardExposure } from "../model/home_assistant_cards";
 import { childPageKey, pageOwnerSlot, parentPageKey } from "../model/page_keys";
 import { previewSubpageOwner } from "../model/companion_shortcut_page";
-import { companionCardHasAppIcon, companionSavedCardMode } from "../model/companion_card_codec";
+import { companionCardHasAppIcon } from "../model/companion_card_codec";
 import { state } from "../state/app_instance";
 import * as EspDesktopModel from "../model";
+import { OBS_FADER_PREFIX } from "../model/card";
 import { cardIconSizeOverride, setConfigOptionValue, configOptionValue, setCardColor, cardActiveColorMode, cardActiveColor, setCardActiveColor, withoutCardColorOptions, preserveCardColorOptions } from "../model/config_primitives";
 import { createColorSwatches } from "../components/color_swatches";
 import { defaultCardBackgroundColor } from "../state/preview_theme";
@@ -25,7 +28,7 @@ import type { GridFeature } from "./grid";
 import type { ButtonSettingsIconPickerFeature } from "./button_settings_icon_picker";
 import type { ButtonSettingsSelectionFeature } from "./button_settings_selection";
 import type { PreviewRenderFeature } from "./preview_render";
-import { cardPickerConnectors, type CardPickerConnector } from "../features/preview";
+import { cardPickerConnectors, type CardPickerConnector, type CardPickerOption } from "../features/preview";
 import type { PreviewInteractionsFeature } from "./preview_interactions";
 import type { ControlsFieldsFeature } from "./controls_fields";
 import { cardOwnsSubpage, COMPANION_APP_SHORTCUTS_TABS_OPTION, editableAppShortcutPage,
@@ -67,7 +70,7 @@ export function createButtonSettingsFeature(
     iconPicker: ButtonSettingsIconPickerFeature,
     selection: Pick<ButtonSettingsSelectionFeature, "closeSettings" | "hideSettingsOverlay">,
     preview: Pick<PreviewRenderFeature, "defaultTypeForPicker" | "pickerOptions" | "registryValue" | "render">,
-    interactions: Pick<PreviewInteractionsFeature, "deleteSlot" | "emptyButtonConfig">,
+    interactions: Pick<PreviewInteractionsFeature, "deleteSlot" | "emptyButtonConfig" | "saveGeneratedDraft">,
     fields: ControlsFieldsFeature,
     connectorState: CardPickerConnectorState,
 ): ButtonSettingsFeature {
@@ -266,6 +269,9 @@ export function createButtonSettingsFeature(
         if (!pendingNewDraft)
             state.settingsDraft = cardEditorDraftController.ensureExistingDraft(state.settingsDraft, location, liveButton);
         var b: any = state.settingsDraft!.button;
+        const obsAudioType = b.type === "companion_obs_cough" ? "companion_obs_cough"
+            : b.type === "slider" && b.entity.startsWith(OBS_FADER_PREFIX) ? "companion_obs_fader"
+            : b.type === "companion" && b.entity.startsWith("obs.mute.") ? "companion_obs_mic" : "";
         var isNewDraft: any = !!state.settingsDraft!.isNew;
         var title: any = document.createElement("div");
         title.className = "sp-section-title";
@@ -479,6 +485,11 @@ export function createButtonSettingsFeature(
                 showBanner("Subpages are not available at this level on this firmware.", "error");
                 return Promise.resolve(false);
             }
+            if (draft.generated) return interactions.saveGeneratedDraft(draft);
+            const previous = c.buttons[bIdx];
+            if (!draft.isNew && previous && !sameCardAction(previous, draft.button)) {
+                draft.button.options = setCardExposure(draft.button.options, "", false);
+            }
             const originalPages = structuredClone(state.subpages);
             const originalPending = { ...state.subpageSavePending };
             var originalGrid: any = c.grid.slice();
@@ -533,8 +544,7 @@ export function createButtonSettingsFeature(
                 : null;
             var replacedFolderOwner: any = !c.isSub &&
                 cardOwnsSubpage(originalSubpageOwner) &&
-                (savedButton.type !== "companion" || savedButton.sensor ||
-                    originalSubpageOwner.type !== savedButton.type ||
+                (!cardOwnsSubpage(savedButton) || originalSubpageOwner.type !== savedButton.type ||
                     originalSubpageOwner.entity !== savedButton.entity);
             var sizeChanged: any = !shortcutPage && applyCardSizeConstraint(savedButton);
             var orderChanged: any = !saved.saveSubpage && (saved.saveGrid || sizeChanged);
@@ -585,6 +595,7 @@ export function createButtonSettingsFeature(
             }).then(async (ok: boolean) => {
                 const committed = atomicEdit ? await atomicEdit.finish(ok) : ok;
                 if (!committed) restoreDraftState();
+                else if (draft.isNew && isStudioControlPage(savedButton.options)) await codec.refreshNativePages();
                 return committed;
             }).catch(function () {
                 atomicEdit?.cancel();
@@ -760,35 +771,77 @@ export function createButtonSettingsFeature(
                 });
                 field.appendChild(tabs);
             }
-            var grid: any = document.createElement("div");
-            grid.className = "sp-card-type-grid";
-            grid.id = "sp-card-type-picker";
-            grid.setAttribute("role", "list");
-            function renderOptions(this: any) {
-                grid.innerHTML = "";
-                buttonTypePickerOptionList(!!isSub, selectedTypeKey, activeConnector).forEach(function (this: any, o?: any) {
-                var item: any = document.createElement("button");
+            const picker = document.createElement("div");
+            picker.id = "sp-card-type-picker";
+            const mainTitle = title.textContent;
+            let showOBS = false;
+            function pickerButton(o: CardPickerOption, select: () => void) {
+                const item = document.createElement("button");
                 item.type = "button";
                 item.className = "sp-card-type-option";
-                item.disabled = !!o.disabled;
+                item.disabled = o.disabled;
                 item.setAttribute("data-card-type", o.key);
                 item.setAttribute("aria-label", o.label + " card type");
-                item.appendChild(mdiIcon(o.icon || "card-outline", "sp-card-type-icon mdi"));
-                var copy: any = document.createElement("span");
+                item.appendChild(mdiIcon(o.icon, "sp-card-type-icon mdi"));
+                const copy = document.createElement("span");
                 copy.className = "sp-card-type-copy";
                 copy.appendChild(textSpan(o.label, "sp-card-type-title"));
-                copy.appendChild(textSpan(o.description || "", "sp-card-type-description"));
+                copy.appendChild(textSpan(o.description, "sp-card-type-description"));
                 item.appendChild(copy);
-                item.addEventListener("click", function (this: any) {
-                    if (item.disabled)
-                        return;
-                    selectCardType(o.key);
-                });
-                grid.appendChild(item);
-                });
+                item.addEventListener("click", select);
+                return item;
             }
+            const back = createActionButton("sp-action-btn sp-cancel-btn sp-card-type-back", "Back to card types", "chevron-left");
+            back.addEventListener("click", () => {
+                showOBS = false;
+                renderOptions();
+                picker.querySelector<HTMLElement>('[data-card-type="obs_group"]')?.focus();
+            });
+            function renderGrid(options: readonly CardPickerOption[], heading?: string) {
+                const grid = document.createElement("div");
+                grid.className = "sp-card-type-grid";
+                for (const option of options) grid.appendChild(pickerButton(option, () => selectCardType(option.key)));
+                if (heading) {
+                    const section = document.createElement("section");
+                    section.setAttribute("aria-label", heading);
+                    const label = document.createElement("h3");
+                    label.className = "sp-card-type-heading";
+                    label.textContent = heading;
+                    section.append(label, grid);
+                    picker.appendChild(section);
+                } else {
+                    picker.appendChild(grid);
+                }
+                return grid;
+            }
+            function renderOptions() {
+                picker.replaceChildren();
+                title.textContent = showOBS ? "OBS Studio" : mainTitle;
+                const options: CardPickerOption[] = buttonTypePickerOptionList(!!isSub, selectedTypeKey, activeConnector);
+                const obsOptions = options.filter(option => option.key.startsWith("companion_obs"));
+                if (showOBS) {
+                    picker.before(back);
+                    const isPage = (option: CardPickerOption) => defaultButtonTypeForPicker(option.key) === "subpage";
+                    renderGrid(obsOptions.filter(option => !isPage(option)), "Card types");
+                    const pages = obsOptions.filter(isPage);
+                    if (pages.length) renderGrid(pages, "Grouped pages");
+                    return;
+                }
+                back.remove();
+                const grid = renderGrid(options.filter(option => !option.key.startsWith("companion_obs")));
+                if (!obsOptions.length) return;
+                grid.appendChild(pickerButton({
+                    key: "obs_group", label: "OBS Studio", icon: "monitor-multiple",
+                    description: "Add scene, audio, and broadcast controls.",
+                    disabled: false, connector: "mac_companion",
+                }, () => {
+                    showOBS = true;
+                    renderOptions();
+                    back.focus();
+                }));
+            }
+            field.appendChild(picker);
             renderOptions();
-            field.appendChild(grid);
             return field;
         }
         function renderActiveDisplaySettings(this: any, panel?: any, button?: any, idPrefix?: any) {
@@ -960,7 +1013,7 @@ export function createButtonSettingsFeature(
                 container.appendChild(panel);
                 return;
             }
-            title.textContent = cardSettingsTitle(rawTypeDef, b);
+            title.textContent = obsAudioType ? "Audio Controls" : cardSettingsTitle(rawTypeDef, b);
         }
         var typeHelpers: any = {
             makeIconPicker: makeIconPicker,
@@ -1002,6 +1055,29 @@ export function createButtonSettingsFeature(
             homeAssistantEnabled: connectorState.homeAssistantEnabled,
             homeAssistantConfigured: connectorState.homeAssistantConfigured,
         };
+        if (obsAudioType) {
+            const subtype = selectField("Type", idPrefix + "obs-audio-type", [
+                ["companion_obs_fader", "Level"],
+                ["companion_obs_mic", "Mute"],
+                ["companion_obs_cough", "Cough"],
+            ], obsAudioType, (event: Event) => selectCardType((event.currentTarget as HTMLSelectElement).value));
+            panel.appendChild(subtype.field);
+            markCardPrimaryField(subtype.field, "type");
+        } else if ((buttonTypeRegistryValue(rawTypeDef, "pickerKey", "") || b.type) === "companion_output_volume") {
+            const audioSubtypes: [string, string][] = [
+                ["companion_output_volume", "Audio Output"],
+                ["companion_output_mute", "Output Mute"],
+                ["companion_app_volume", "Output per application"],
+                ["companion_input_volume", "Audio Input"],
+                ["companion_input_mute", "Input Mute"],
+                ["companion_cough", "Input Cough"],
+                ["companion_input_device", "Input per device level"],
+            ];
+            const subtype = selectField("Type", idPrefix + "audio-type", audioSubtypes, b.type,
+                (event: Event) => selectCardType((event.currentTarget as HTMLSelectElement).value));
+            panel.appendChild(subtype.field);
+            markCardPrimaryField(subtype.field, "type");
+        }
         if (typeDef && typeDef.renderSettingsBeforeLabel &&
             (!c.isSub || buttonTypeRegistryValue(typeDef, "allowInSubpage", false))) {
             typeDef.renderSettingsBeforeLabel(panel, b, slot, typeHelpers);

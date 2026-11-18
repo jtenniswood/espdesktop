@@ -302,3 +302,27 @@ for (const profile of [{ slots: 6, columns: 2 }, layout, { slots: 15, columns: 3
     });
   }
 }
+
+test("Home Assistant exposure follows a cut but is cleared on copies, including nested cards", () => {
+  const { NativeLayoutDraft } = load("native_layout_draft.ts");
+  const { cardExposure, setCardExposure } = load("home_assistant_cards.ts");
+  const draft = new NativeLayoutDraft(graph.encodePanelPageDocument(source()));
+  const original = draft.readPage(0).cards[0];
+  const id = "a".repeat(96);
+  draft.writeRootCard(1, { ...original, options: setCardExposure(original.options, id, true) });
+  const childPage = draft.readPage(1);
+  const childCard = childPage.cards[0];
+  draft.patchPageCards(1, new Map([[1, {
+    ...childCard, options: setCardExposure(childCard.options, "b".repeat(96), true),
+  }]]), childPage.order);
+  const captured = transfer.captureNativePageCards(graph.decodePanelPageDocument(draft.finish()),
+    graph.decodePanelPageSnapshot(draft.finish()).layout, 0, [1], layout);
+  const copied = new NativeLayoutDraft(draft.finish());
+  transfer.pasteNativePageCards(copied, 0, 3, captured.entries, layout);
+  assert.deepEqual(cardExposure(copied.readPage(0).cards[2].options), { identity: "", enabled: false });
+  assert.deepEqual(cardExposure(copied.readPage(3).cards[0].options), { identity: "", enabled: false });
+  transfer.deleteNativePageCards(draft, captured.origin, layout);
+  transfer.pasteNativePageCards(draft, 0, 3, captured.entries, layout, undefined, true);
+  const moved = draft.readPage(0).cards.find(card => card.label === original.label);
+  assert.deepEqual(cardExposure(moved.options), { identity: id, enabled: true });
+});

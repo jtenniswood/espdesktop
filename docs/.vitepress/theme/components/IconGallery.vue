@@ -17,7 +17,7 @@
           :class="{ copied: copiedName === icon.name }"
           @click="copy(icon.name)"
         >
-          <span class="icon-preview mdi" :class="'mdi-' + icon.mdi" />
+          <span class="icon-preview" aria-hidden="true">{{ icon.glyph }}</span>
           <span class="icon-name">{{ copiedName === icon.name ? 'Copied!' : icon.name }}</span>
         </button>
       </div>
@@ -26,8 +26,9 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
-import { iconOptions, iconSlug } from '../../../../src/webserver/application/ui_primitives'
+import { ref, computed } from 'vue'
+import { iconOptions } from '../../../../src/webserver/application/ui_primitives'
+import iconCatalog from '../../../../product/v2/icons.json'
 
 const GROUP_ORDER = [
   'Applications & Desktop',
@@ -42,6 +43,9 @@ const GROUP_ORDER = [
 ]
 
 const ICON_GROUPS = {
+  'Coffee to Go': 'General',
+  'Flip Horizontal': 'Creative & Development',
+  'Movie': 'Creative & Development',
   'Book Alphabet': 'Applications & Desktop',
   'Bookmark Multiple': 'Browser & Navigation',
   'Bookmark Plus': 'Browser & Navigation',
@@ -405,7 +409,11 @@ const ICON_GROUPS = {
   'Subtitles': 'Audio & Meetings',
 }
 
-const icons = iconOptions.map(name => ({ name, mdi: iconSlug(name) }))
+const iconCodepoints = new Map(iconCatalog.icons.map(icon => [icon.name, icon.codepoint]))
+const icons = iconOptions.map(name => ({
+  name,
+  glyph: String.fromCodePoint(parseInt(iconCodepoints.get(name) ?? iconCatalog.fallback.codepoint, 16)),
+}))
 const search = ref('')
 const copiedName = ref(null)
 let copyTimer = null
@@ -442,17 +450,15 @@ function copy(name) {
   clearTimeout(copyTimer)
   copyTimer = setTimeout(() => { copiedName.value = null }, 1200)
 }
-
-onMounted(() => {
-  if (document.querySelector('link[href*="materialdesignicons"]')) return
-  const link = document.createElement('link')
-  link.rel = 'stylesheet'
-  link.href = 'https://cdn.jsdelivr.net/npm/@mdi/font@7.4.47/css/materialdesignicons.min.css'
-  document.head.appendChild(link)
-})
 </script>
 
 <style scoped>
+@font-face {
+  font-family: 'EspDesktop Icons';
+  src: url('../../../../common/assets/fonts/espdesktop-icons-1.ttf') format('truetype');
+  font-display: block;
+}
+
 .icon-gallery {
   margin-top: 1rem;
 }
@@ -525,6 +531,7 @@ onMounted(() => {
 }
 
 .icon-preview {
+  font-family: 'EspDesktop Icons';
   font-size: 32px;
   line-height: 1;
   color: var(--vp-c-text-1);

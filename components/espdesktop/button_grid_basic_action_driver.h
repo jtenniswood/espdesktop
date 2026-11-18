@@ -8,6 +8,16 @@
 
 namespace espdesktop::cards {
 
+struct ObsConfirmationFonts {
+  const lv_font_t *message = nullptr;
+  const lv_font_t *icon = nullptr;
+};
+
+inline ObsConfirmationFonts &obs_confirmation_fonts() {
+  static ObsConfirmationFonts fonts;
+  return fonts;
+}
+
 inline bool basic_action_driver_matches(const Context &context,
                                         const ParsedCfg &) {
   using Driver = card_runtime::CardDriverId;
@@ -38,7 +48,7 @@ inline bool basic_action_driver_setup_visual(
 inline bool basic_action_driver_attach_interaction(
     BtnSlot &slot, const ParsedCfg &config, const Context &context) {
   if (context.runtime.driver == card_runtime::CardDriverId::COMPANION &&
-      companion_metric_key_valid(config.entity)) {
+      (companion_metric_key_valid(config.entity) || companion_obs_status_card(config.entity))) {
     lv_obj_clear_flag(slot.btn, LV_OBJ_FLAG_CLICKABLE);
   }
   return basic_action_driver_matches(context, config);
@@ -47,8 +57,8 @@ inline bool basic_action_driver_attach_interaction(
 inline bool basic_action_driver_refresh_layout(
     BtnSlot &slot, const ParsedCfg &config, const Context &context,
     const DisplayProfile &display, int row_span, int col_span) {
-  if (context.runtime.driver == card_runtime::CardDriverId::COMPANION &&
-      companion_metric_key_valid(config.entity)) {
+  if (!basic_action_driver_matches(context, config)) return false;
+  if (companion_metric_key_valid(config.entity)) {
     if (large_number_square_card_layout(row_span, col_span) &&
         card_large_numbers_active_for_layout(config, row_span, col_span) &&
         display_large_sensor_font(display)) {
@@ -59,7 +69,20 @@ inline bool basic_action_driver_refresh_layout(
       lv_obj_set_style_text_font(slot.sensor_lbl, display_sensor_font(display), LV_PART_MAIN);
     }
   }
-  return basic_action_driver_matches(context, config);
+  const bool status = companion_obs_status_card(config.entity);
+  const bool output = companion_obs_output_card(config.entity);
+  const bool scene = companion_obs_scene_card(config.entity);
+  const bool default_scene_icon = scene && (config.icon.empty() || config.icon == "Auto" ||
+    config.icon == "Image" || config.icon == "Image Card Loading");
+  if (status || scene || config.entity == "obs.take" || config.entity == "obs.brb" ||
+      config.entity == "obs.replay" || output || config.entity == "obs.studio" ||
+      config.entity == "obs.transition" || companion_obs_transition_target(config.entity) || config.entity == "obs.replay.buffer")
+    companion_setup_obs_detail(slot.btn, display_small_text_font(display),
+      status || default_scene_icon || (output && companion_obs_output_auto_icon(config.entity, config.icon))
+        ? slot.icon_lbl : nullptr);
+  if (companion_obs_confirmation_supported(config.entity))
+    obs_confirmation_fonts() = {display_switch_confirmation_message_font(display), display.fonts.icon};
+  return true;
 }
 
 inline bool basic_action_driver_cleanup(
@@ -125,6 +148,107 @@ struct CompanionSubpageActionContext {
   std::string required_focus_id;
 };
 
+inline bool invoke_confirmable_obs_action(const ParsedCfg &card, lv_obj_t *button,
+                                          const std::string &request_id) {
+  if (!button || screen_lock_enabled()) return false;
+  const auto shown = companion_rendered_obs_action(button);
+  if (shown.id.empty() || !companion_action_available(shown.id)) return false;
+  const auto mode = cfg_option_value(card.options, "obs_confirm");
+  if (!companion_obs_needs_confirmation(card.entity, mode, shown.label, shown.obs_state))
+    return invoke_companion_action(shown.id, request_id);
+
+  using Kind = ControlModalKind;
+  const auto &fonts = obs_confirmation_fonts();
+  auto shell = control_modal_open_shell(Kind::OBS_OUTPUT_CONFIRMATION, button, 100, fonts.icon, [] {
+    control_modal_delete_overlay(Kind::OBS_OUTPUT_CONFIRMATION, control_modal_active().overlay);
+  });
+  if (!shell.panel) return false;
+  const auto &layout = shell.layout;
+  const auto *font = lv_obj_get_style_text_font(button, LV_PART_MAIN);
+  auto message = cfg_option_value(card.options, "confirm_message");
+  if (message.empty()) {
+    const bool turning_off = shown.obs_state == OBSCardState::unknown ? shown.label == "On" : shown.obs_state == OBSCardState::toggle_on;
+    if (card.entity == "obs.studio") {
+      message = espdesktop_i18n_key(turning_off ? "turn_off_studio_mode" : "turn_on_studio_mode");
+    } else if (card.entity == "obs.replay.buffer") {
+      message = espdesktop_i18n_key(turning_off ? "stop_replay_buffer_prompt" : "start_replay_buffer_prompt");
+    } else if (card.entity == "obs.output.virtualcam") {
+      const bool running = shown.obs_state == OBSCardState::unknown ? shown.label.rfind("Stop ", 0) == 0
+        : obs_card_presentation(shown.obs_state).lit;
+      message = espdesktop_i18n_key(running ? "stop_virtual_camera_prompt" : "start_virtual_camera_prompt");
+    } else {
+      message = shown.label + "?";
+    }
+  }
+  auto *prompt = control_modal_create_title(shell.panel, message,
+      shell.content_w, fonts.message ? fonts.message : font, 100);
+  lv_label_set_long_mode(prompt, LV_LABEL_LONG_WRAP);
+
+  const auto scaled = [&](lv_coord_t value, lv_coord_t minimum) {
+    return std::max(minimum, control_modal_scaled_px(value, layout.short_side));
+  };
+  const lv_coord_t gap = scaled(12, 8);
+  const lv_coord_t message_gap = scaled(28, 18);
+  const lv_coord_t height = scaled(52, 36);
+  const lv_coord_t max_width = (shell.content_w - gap) / 2;
+  const lv_coord_t min_width = std::min(max_width, std::max<lv_coord_t>(56, height + scaled(16, 0)));
+  const uint32_t accent = current_button_primary_color();
+  auto *cancel = control_modal_create_text_button(shell.panel, switch_confirmation_no_text(card),
+      max_width, min_width, height, height / 2, theme_display_color(current_theme().border), font);
+  auto *confirm = control_modal_create_text_button(shell.panel, switch_confirmation_yes_text(card),
+      max_width, min_width, height, height / 2, accent, font);
+  lv_obj_set_style_text_color(lv_obj_get_child(confirm, 0), lv_color_hex(readable_text_color_for_bg(accent)), LV_PART_MAIN);
+  lv_obj_update_layout(shell.panel);
+  const lv_coord_t prompt_height = lv_obj_get_height(prompt);
+  const lv_coord_t actions_height = std::max(lv_obj_get_height(cancel), lv_obj_get_height(confirm));
+  const lv_coord_t group_height = prompt_height + message_gap + actions_height;
+  const lv_coord_t top_limit = layout.inset + layout.back_size + message_gap;
+  const lv_coord_t bottom_limit = layout.panel_h - layout.inset - group_height;
+  auto group_top = std::max<lv_coord_t>(top_limit, (layout.panel_h - group_height) / 2);
+  group_top = std::max(layout.inset, std::min(group_top, bottom_limit));
+  const lv_coord_t actions_y = group_top + prompt_height + message_gap + actions_height / 2 - layout.panel_h / 2;
+  lv_obj_align(prompt, LV_ALIGN_CENTER, 0, group_top + prompt_height / 2 - layout.panel_h / 2);
+  lv_obj_align(cancel, LV_ALIGN_CENTER, -(lv_obj_get_width(confirm) + gap) / 2, actions_y);
+  lv_obj_align(confirm, LV_ALIGN_CENTER, (lv_obj_get_width(cancel) + gap) / 2, actions_y);
+  lv_obj_add_event_cb(cancel, [](lv_event_t *) {
+    control_modal_force_close_active();
+  }, LV_EVENT_CLICKED, nullptr);
+
+  struct Confirmation {
+    std::string action;
+    lv_obj_t *screen;
+    uint32_t armed_at;
+  };
+  auto *checked = grid_delete_with_owner(confirm,
+      new Confirmation{shown.id, lv_obj_get_screen(button), esphome::millis()});
+  lv_obj_add_event_cb(confirm, [](lv_event_t *event) {
+    auto *checked = static_cast<Confirmation *>(lv_event_get_user_data(event));
+    if (checked && !screen_lock_enabled() && checked->screen == lv_scr_act() &&
+        esphome::millis() - checked->armed_at <= 15000) {
+      const auto request = "obs-" + std::to_string(companion_next_request_number());
+      invoke_companion_action(checked->action, request);
+    }
+    control_modal_force_close_active();
+  }, LV_EVENT_CLICKED, checked);
+  return true;
+}
+
+inline bool invoke_saved_companion_card(const ParsedCfg &card, const std::string &request_id,
+                                         const std::string &required_focus = {},
+                                         lv_obj_t *button = nullptr) {
+  if (companion_obs_confirmation_supported(card.entity))
+    return invoke_confirmable_obs_action(card, button, request_id);
+  if (companion_obs_tokenized_card(card.entity))
+    return invoke_companion_action(companion_rendered_obs_action(button).id, request_id);
+  if (companion_obs_status_card(card.entity)) return false;
+  return companion_encoded_url(card.sensor).empty()
+    ? invoke_companion_action_for_app(card.entity, request_id, required_focus,
+                                     companion_folder_open_behavior(card),
+                                     cfg_option_value(card.options, "app_shortcut_preset"),
+                                     esphome::millis())
+    : invoke_companion_url(card.sensor, request_id, companion_url_opens_new_window(card));
+}
+
 inline bool basic_action_driver_bind_subpage(
     BtnSlot &slot, const ParsedCfg &config, const Context &context,
     const BasicActionSubpageEnvironment &environment) {
@@ -132,7 +256,7 @@ inline bool basic_action_driver_bind_subpage(
   if (!basic_action_driver_matches(context, config)) return false;
   switch (context.runtime.driver) {
     case Driver::COMPANION: {
-      if (companion_metric_key_valid(config.entity)) break;
+      if (companion_metric_key_valid(config.entity) || companion_obs_status_card(config.entity)) break;
       std::string required_focus_id;
       if (config.type == "companion" && environment.parent_config &&
           companion_app_shortcuts_enabled(*environment.parent_config) &&
@@ -141,7 +265,7 @@ inline bool basic_action_driver_bind_subpage(
       auto *click = grid_delete_with_owner(slot.btn,
         new CompanionSubpageActionContext{config, required_focus_id});
       companion_require_card_focus(slot.btn, required_focus_id);
-      bind_immediate_button_action(slot.btn, [](lv_event_t *event) {
+      const auto action = [](lv_event_t *event) {
         auto *context = static_cast<CompanionSubpageActionContext *>(lv_event_get_user_data(event));
         if (!context) return;
         const auto *card = &context->card;
@@ -161,16 +285,16 @@ inline bool basic_action_driver_bind_subpage(
         char request_id[24];
         snprintf(request_id, sizeof(request_id), "sub-%08lx",
                  static_cast<unsigned long>(companion_next_request_number()));
-        const bool invoked = companion_encoded_url(card->sensor).empty()
-          ? invoke_companion_action_for_app(card->entity, request_id, context->required_focus_id,
-                                    companion_folder_open_behavior(*card),
-                                    cfg_option_value(card->options, "app_shortcut_preset"))
-          : invoke_companion_url(card->sensor, request_id,
-                                 companion_url_opens_new_window(*card));
+        const bool invoked = invoke_saved_companion_card(*card, request_id, context->required_focus_id,
+          static_cast<lv_obj_t *>(lv_event_get_target(event)));
         if (!invoked) {
           ESP_LOGW("companion", "Action unavailable: %s", card->entity.c_str());
         }
-      }, click);
+      };
+      if (companion_obs_momentary_action(config.entity))
+        lv_obj_add_event_cb(slot.btn, action, LV_EVENT_PRESSED, click);
+      else
+        bind_immediate_button_action(slot.btn, action, click);
       break;
     }
     default:
@@ -186,7 +310,7 @@ inline bool basic_action_driver_handle_main_click(
   if (!basic_action_driver_matches(context, config)) return false;
   switch (context.runtime.driver) {
     case Driver::COMPANION: {
-      if (companion_metric_key_valid(config.entity)) break;
+      if (companion_metric_key_valid(config.entity) || companion_obs_status_card(config.entity)) break;
       char request_id[24];
       snprintf(request_id, sizeof(request_id), "%08lx-%d",
                static_cast<unsigned long>(companion_next_request_number()), slot_number);
@@ -212,12 +336,7 @@ inline bool basic_action_driver_handle_main_click(
           }
         }
       }
-      const bool invoked = companion_encoded_url(config.sensor).empty()
-        ? invoke_companion_action_for_app(config.entity, request_id, {},
-                                  companion_folder_open_behavior(config),
-                                  cfg_option_value(config.options, "app_shortcut_preset"))
-        : invoke_companion_url(config.sensor, request_id,
-                                 companion_url_opens_new_window(config));
+      const bool invoked = invoke_saved_companion_card(config, request_id, {}, button);
       if (!invoked) {
         companion_cancel_action_result(request_id);
         ESP_LOGW("companion", "Action unavailable: %s", config.entity.c_str());

@@ -1,6 +1,6 @@
 {
   "formatVersion": 1,
-  "catalogueVersion": 20,
+  "catalogueVersion": 24,
   "minimumCompanionVersion": "1.0.0",
   "entries": [
     {
@@ -50,6 +50,9 @@
     },
     {
       "path": "books.json"
+    },
+    {
+      "path": "brave-browser.json"
     },
     {
       "path": "calendar.json"
@@ -167,6 +170,9 @@
     },
     {
       "path": "obsidian.json"
+    },
+    {
+      "path": "opencode.json"
     },
     {
       "path": "orca-slicer.json"

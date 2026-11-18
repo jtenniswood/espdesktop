@@ -40,6 +40,10 @@
 #include "grid_page_runtime.h"
 #include "panel_config_page_append.h"
 #include "connector_state.h"
+#include "home_assistant_card_actions.h"
+#include "native_card_buttons.h"
+#include "home_assistant_setup_endpoint.h"
+#include "live_subpage_preview_endpoint.h"
 #ifdef USE_COMPANION
 #include "../companion/companion.h"
 #endif
@@ -56,6 +60,12 @@ extern "C" bool espdesktop_native_configuration_generation(uint32_t *generation)
   return true;
 }
 
+#if defined(USE_WEBSERVER) && defined(USE_ESPDESKTOP_NATIVE_CARD_BUTTONS)
+extern "C" bool espdesktop_is_native_card_web_press(const char *path, size_t size) {
+  return espdesktop::home_assistant::is_native_card_web_press({path, size});
+}
+#endif
+
 extern "C" void espdesktop_register_web_server_handlers(
     esphome::web_server_idf::AsyncWebServer *server) {
 #ifdef USE_WEBSERVER
@@ -64,6 +74,10 @@ extern "C" void espdesktop_register_web_server_handlers(
   espdesktop::register_panel_identity_endpoint(*server);
   espdesktop::register_panel_diagnostics_endpoint(*server);
   register_companion_actions_endpoint(*server);
+  server->addHandler(new LiveSubpagePreviewHandler());
+#ifdef USE_COMPANION
+  espdesktop::home_assistant::register_setup_endpoint(*server);
+#endif
   register_companion_app_icon_preview_endpoint(*server);
   espdesktop::connectors::register_connector_status_endpoint(*server);
   espdesktop::configuration::register_panel_config_capabilities_endpoint(*server);
@@ -214,7 +228,7 @@ class EspDesktopApp::NativeConfigurationRuntime {
    configuration::ConfigurationStore store;
    configuration::ConfigurationMainLoop transactions;
    configuration::ConfigurationCompatibilityRetry compatibility_retry;
-   uint32_t finder_poll_ms{0};
+   uint32_t generated_subpage_poll_ms{0};
    bool document_available{false};
    bool service_configured{false};
    bool storage_ready{false};
@@ -628,6 +642,13 @@ void EspDesktopApp::retry_configuration_compatibility() {
 }
 
 void EspDesktopApp::setup() {
+#ifdef USE_ESPDESKTOP_NATIVE_CARD_BUTTONS
+  home_assistant::native_buttons().setup();
+#endif
+#ifdef USE_COMPANION
+  home_assistant::hooks().list = home_assistant::list_cards;
+  home_assistant::hooks().press = home_assistant::press_card;
+#endif
   if (core_.start()) {
     cards::set_card_runtime_registry_service(&core_.card_runtime_registry());
   } else {
@@ -767,13 +788,19 @@ void EspDesktopApp::initialize_native_configuration() {
   register_panel_config_endpoints();
 }
 
-void EspDesktopApp::sync_finder_folders() {
+void EspDesktopApp::sync_generated_subpages() {
   if (!native_configuration_initialized_ || !native_configuration_runtime_) return;
   auto &runtime = *native_configuration_runtime_;
   const auto now = esphome::millis();
-  if (runtime.boot_configuration_pending || now - runtime.finder_poll_ms < 1000) return;
-  runtime.finder_poll_ms = now;
-  if (grid_update_finder_folders(companion_runtime_snapshot())) layout_changed_.trigger();
+  if (runtime.boot_configuration_pending || now - runtime.generated_subpage_poll_ms < 1000) return;
+  runtime.generated_subpage_poll_ms = now;
+  const auto snapshot = companion_runtime_snapshot();
+  const bool finder_changed = grid_update_finder_folders(snapshot);
+  const bool transitions_changed = grid_update_obs_subpage(snapshot, OBSSubpageKind::transitions);
+  const bool sources_changed = grid_update_obs_subpage(snapshot, OBSSubpageKind::sources);
+  const bool audio_changed = grid_update_obs_subpage(snapshot, OBSSubpageKind::audio);
+  const bool scenes_changed = grid_update_obs_subpage(snapshot, OBSSubpageKind::scenes);
+  if (finder_changed || transitions_changed || sources_changed || audio_changed || scenes_changed) layout_changed_.trigger();
 }
 
 void EspDesktopApp::loop() {
@@ -797,6 +824,9 @@ void EspDesktopApp::loop() {
     retry_configuration_compatibility();
   }
   if (shutting_down_) return;
+#ifdef USE_ESPDESKTOP_NATIVE_CARD_BUTTONS
+  home_assistant::native_buttons().refresh();
+#endif
   trace_phase("configuration");
   core_.run_once();
   trace_phase("app core");
@@ -817,8 +847,8 @@ void EspDesktopApp::loop() {
   trace_phase("icon refresh");
 #endif
   grid_reclaim_hidden_render_memory();
-  sync_finder_folders();
-  trace_phase("Finder sync");
+  sync_generated_subpages();
+  trace_phase("generated subpage sync");
   // The IDF web server starts later, so retry idempotent registrations.
   if (shutting_down_) return;
   register_panel_config_endpoints();

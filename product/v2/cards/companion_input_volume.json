@@ -1,0 +1,25 @@
+{
+  "label": "Volume",
+  "pickerKey": "companion_output_volume",
+  "allowInSubpage": true,
+  "domains": [],
+  "normalization": {
+    "fields": {
+      "entity": { "policy": "default", "value": "media.input_volume" },
+      "label": { "policy": "alias", "aliases": { "": "Volume", "Input Volume": "Volume", "Input Level": "Volume" } },
+      "icon": { "policy": "default_if_empty", "value": "Microphone" },
+      "icon_on": { "policy": "default", "value": "Auto" },
+      "sensor": { "policy": "clear" },
+      "unit": { "policy": "clear" },
+      "type": { "policy": "default", "value": "companion_input_volume" },
+      "precision": { "policy": "clear" },
+      "options": { "policy": "clear" }
+    },
+    "unknownOptions": "drop",
+    "canonicalOptionOrder": []
+  },
+  "default": {
+    "entity": "media.input_volume", "label": "Volume", "icon": "Microphone", "icon_on": "Auto",
+    "sensor": "", "unit": "", "type": "companion_input_volume", "precision": "", "options": ""
+  }
+}

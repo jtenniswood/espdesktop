@@ -11,14 +11,19 @@ test("the shortcut catalogue combines bundled and live presets and preserves sav
   const card = { type: "companion", entity: "shortcut.command+n", options: "app_shortcut_preset=org.example.Editor%3A12" };
   assert.equal(api.normalizeCompanionAppShortcutOptions(card), card.options, "keep the preset before its definition arrives");
   const updatedSafari = { ...safari, label: "Updated Safari" };
-  assert(api.replaceCompanionDefinitions([updatedSafari, live]));
+  const chatGPT = require("../../../product/v2/app_shortcuts/codex.json");
+  const classic = require("../../../product/v2/app_shortcuts/chatgpt.json");
+  assert(api.replaceCompanionDefinitions([updatedSafari, live, chatGPT, classic]));
   const apps = new Map(api.companionShortcutCatalogApps().map(app => [app.appId, app.label]));
   assert.equal(apps.get(safari.appId), updatedSafari.label);
   assert.equal(apps.get(live.appId), live.label);
   assert.equal(apps.get("com.tinyspeck.slackmacgap"), "Slack");
+  assert.equal(apps.get(chatGPT.appId), "ChatGPT");
+  assert(!apps.has(classic.appId));
   assert(!apps.has("io.github.jtenniswood.athena"), "Athena uses an installed web app ID");
   assert.equal(api.companionShortcutPresetCards(live.appId)[0].options, card.options);
-  assert.equal(api.replaceCompanionDefinitions([updatedSafari, live]), false, "reloading the same catalogue leaves it unchanged");
+  assert.equal(api.replaceCompanionDefinitions([updatedSafari, live, chatGPT, classic]), false,
+    "reloading the same catalogue leaves it unchanged");
 });
 
 test("Claude Desktop keeps its existing presets and exposes numbered and scoped shortcuts", () => {
@@ -106,33 +111,38 @@ test("Athena presets use the installed Safari web app ID and preserve existing t
   assert.deepEqual(api.companionShortcutDefaultTabs(appId), defaultShortcutIds);
 });
 
-test("ChatGPT Desktop uses the installed app identifier and keeps its numbered shortcuts distinct", () => {
+test("ChatGPT Desktop subpages use the curated catalogue and preserve custom cards", () => {
   const api = loadTypeScriptModule("src/webserver/application/companion_shortcut_folder.ts");
   const app = require("../../../product/v2/app_shortcuts/codex.json");
   const legacy = require("../../../product/v2/app_shortcuts/chatgpt.json");
   assert.equal(app.appId, "com.openai.codex");
   assert.equal(api.companionShortcutFolderAppLabel(app.appId), "ChatGPT Desktop");
   const presets = api.companionShortcutPresetCards(app.appId);
-  assert.equal(presets.length, 72 + app.moreShortcuts.length);
+  assert.equal(presets.length, app.shortcuts.length + app.moreShortcuts.length);
   assert.equal(api.companionShortcutPresetCards(legacy.appId).length, legacy.shortcuts.length + legacy.moreShortcuts.length);
   assert(presets.every(card => api.companionShortcutActionIdValid(card.entity)));
   assert(!api.companionShortcutActionIdValid("shortcut.shift+tab"));
-  const keys = ["command+9", "command+option+6", "control+9", "shift+escape"];
-  const entries = [...app.shortcuts, ...app.additionalShortcuts];
-  const ids = keys.map(key => entries.find(item => item.shortcut === key).id);
+  const ids = ["32", "17", "62", "97"];
   const page = api.createCompanionShortcutSubpage(app.appId, ids);
-  assert.deepEqual(page.buttons.map(card => card.entity), keys.map(key => "shortcut." + key));
+  assert.deepEqual(page.buttons.map(card => card.entity), [
+    "shortcut.option+space", "shortcut.control+shift+tab", "shortcut.command+option+6", "shortcut.scoped.up",
+  ]);
   assert.deepEqual(api.companionShortcutTabsFromSubpage(app.appId, page), ids);
   const custom = { ...page.buttons[0], entity: "shortcut.command+w", label: "My Close Card", options: "" };
-  page.buttons.push(custom);
-  page.order.push(String(page.buttons.length));
+  const savedAlternate = {
+    ...page.buttons[0],
+    entity: "shortcut.command+shift+o",
+    label: "New Chat",
+    options: "app_shortcut_preset=com.openai.codex%3A87",
+  };
+  page.buttons.push(custom, savedAlternate);
+  page.order.push(String(page.buttons.length - 1), String(page.buttons.length));
   assert.deepEqual(api.companionShortcutTabsFromSubpage(app.appId, page), ids);
   api.syncCompanionShortcutSubpage(app.appId, ids, page);
   assert(page.buttons.includes(custom), "a pre-existing custom shortcut must survive the new matching preset");
+  assert(page.buttons.includes(savedAlternate), "a saved New Chat tile must survive removal of the alternate preset");
   api.replaceCompanionDefinitions([app]);
   assert.deepEqual(api.companionShortcutPresetCards(app.appId), presets);
-  api.replaceCompanionDefinitions([{ ...app, additionalShortcuts: undefined }]);
-  assert.equal(api.companionShortcutPresetCards(app.appId).length, 62 + app.moreShortcuts.length);
 });
 
 test("Books presets work from both the bundled and Companion catalogues", () => {

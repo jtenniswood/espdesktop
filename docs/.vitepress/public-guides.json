@@ -17,6 +17,7 @@
     "features/home.md",
     "features/subpages.md",
     "mac-controls/apps.md",
+    "mac-controls/cough.md",
     "mac-controls/websites.md",
     "mac-controls/folders.md",
     "mac-controls/shortcuts.md",
@@ -25,6 +26,7 @@
   "Settings and permissions": [
     "settings/screen.md",
     "settings/system.md",
+    "getting-started/home-assistant-actions.md",
     "settings/mac-app.md",
     "settings/backup.md",
     "mac-controls/security.md"

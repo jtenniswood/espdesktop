@@ -5,15 +5,15 @@ description: Turn custom Mac keyboard shortcuts into tappable EspDesktop tiles o
 
 # Run Mac keyboard shortcuts
 
-Tap a **Key Shortcut** card to send a key combination to the active Mac app.
+A **Key Shortcut** card can run a preset for a specific Mac app or send a custom key combination to the active app.
 
 ## Create a shortcut card
 
 1. In the display’s web editor, select an empty tile and choose **Companion → Key Shortcut**.
-2. Select the **Custom** tab to enter keys such as **⌘ Command + F**, or the **Application** tab to pick a preset for an app.
-3. Save the card. Bring the app to the front on your Mac, then tap the card.
+2. Use the **Application** tab, which opens by default, to pick a preset for an app. Switch to **Custom** to enter keys such as **⌘ Command + F**.
+3. Save and tap the card. An Application preset opens or focuses the selected app before sending the keys. A Custom shortcut sends the keys to whichever app is already active.
 
-The **Application** tab lists apps with shortcut presets. After choosing an app, use **Search by name or keys** to narrow the list. For example, type **New Tab** or **Cmd+T**. Bundled presets are available while the Mac is offline. Expanded presets can include single keys and sequences, and need an updated display and Mac Companion. Bring the approved app to the front before tapping one.
+The **Application** tab lists apps with shortcut presets. After choosing an app, use **Find a keyboard shortcut…** to search by name or key combination, then select a row. For example, type **New Tab** or **Cmd+T**. Bundled presets are available while the Mac is offline. Expanded presets can include single keys and sequences, and need an updated display and Mac Companion. Approve the target app in EspDesktop on your Mac. The card skips the shortcut if the app cannot be brought to the front.
 
 Custom shortcuts need **Command**, **Control**, or **Option** plus a key. **Shift** is optional.
 
@@ -36,3 +36,7 @@ When you add a **Key Shortcut** card inside an app subpage, the **Application** 
 The web editor dims these shortcuts when the app loses focus or the Mac disconnects. You can still edit and rearrange the tiles.
 
 <span id="add-templates-for-another-app">Missing a preset?</span> [Suggest a shortcut](/mac-controls/improve-shortcuts).
+
+## Hold to mute your microphone
+
+Use the [Cough card](/mac-controls/cough) to mute the Mac’s default microphone for as long as you hold the tile.

@@ -35,10 +35,18 @@ This generated reference lists release availability and setup facts from the sha
 | Lock | lock | lock | Yes | Own picker item | Type: default, lock, unlock | Retired |
 | Media | media | media_player | Yes | Own picker item | None | Retired |
 | Trigger | push | None | Yes | Own picker item | None | Retired |
+| App Volume | companion_app_volume | None | Yes | Volume (companion_output_volume) | None | Stable |
+| Sound | companion_output_volume | None | Yes | Own picker item | None | Stable |
+| Input per device level | companion_input_device | None | Yes | Volume (companion_output_volume) | None | Stable |
+| Volume | companion_input_volume | None | Yes | Volume (companion_output_volume) | None | Stable |
+| Mute | companion_output_mute | None | Yes | Volume (companion_output_volume) | None | Stable |
+| Mute | companion_input_mute | None | Yes | Volume (companion_output_volume) | None | Stable |
+| Cough | companion_cough | None | Yes | Volume (companion_output_volume) | None | Stable |
+| OBS Input Cough | companion_obs_cough | None | Yes | Own picker item | None | Stable |
 | Lock Machine | companion_mac_lock | None | Yes | Own picker item | None | Stable |
 | Companion | companion | None | Yes | Own picker item | App Subpage; Large Sensor Numbers; Show capacity label | Stable |
 | Legacy Slider | slider | light, fan, number, input_number | Yes | Own picker item | None | Retired |
-| Subpage | subpage | None | Yes | Own picker item | Subpage Connector: default, mac_companion; Subpage Type: default, switch, lights, climate, presence, media, alarm, cover, garage, gate, lock, vacuum, lawn_mower, weather, sensor, image, companion_stat; Large State Numbers | Stable |
+| Subpage | subpage | None | Yes | Own picker item | Subpage Connector: default, mac_companion; Subpage Type: default, switch, lights, climate, presence, media, alarm, cover, garage, gate, lock, vacuum, lawn_mower, weather, sensor, image, companion_stat, obs_transitions, obs_sources, obs_audio, obs_scenes, obs_studio_control; Transition visibility and order; Source visibility and order; Audio slider visibility and order; Scene visibility and order; Large State Numbers | Stable |
 | Weather | weather | weather, sensor, input_number | Yes | Own picker item | Type: default, today, tomorrow, daily, wind, rainfall; Wind Source: weather, sensors; Rainfall Source: sensor, forecast | Retired |
 | Camera Card | image | camera, image | Yes | Own picker item | None | Retired |
 | Weather Forecast | weather_forecast | weather | Yes | Own picker item | None | Retired |

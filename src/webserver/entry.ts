@@ -1,5 +1,6 @@
 import { screenSchedulePreferencesFromState } from "./model/screen_schedule_preferences";
 import { displayThemePreferencesFromState } from "./model/display_theme_preferences";
+import { createOBSStarterPage } from "./application/obs_starter_page";
 import { createFirstRunSetup } from "./application/first_run_setup";
 import { resetAwareFetch } from "./api/reset_session";
 import type { CardConfig } from "./contracts/types";
@@ -59,6 +60,7 @@ import { createClockBarPostApiFeature } from "./application/clock_bar_post_api";
 import { createControlsShellFeature, renderPanelBrand } from "./application/controls_shell";
 import { createSettingsPageHelpersFeature, type SettingsPageHelpersFeature } from "./application/settings_page_helpers";
 import { createSettingsScheduleSectionFeature } from "./application/settings_schedule_section";
+import { buildHomeAssistantSettings } from "./application/settings_home_assistant";
 import { createSettingsSystemSectionFeature } from "./application/settings_system_section";
 import { createSettingsCompanionSectionFeature } from "./application/settings_companion_section";
 import { createConnectorsPageFeature, type ConnectorsPageFeature } from "./application/connectors_page";
@@ -142,7 +144,7 @@ const startupState = globalThis as typeof globalThis & {
 
 function registerCards(
   context: ApplicationContext,
-  publishFinderFolders: (folders: readonly CompanionAction[]) => boolean,
+  publishGeneratedActions: (folders: readonly CompanionAction[]) => boolean,
 ) {
   const registry = context.cards;
   const fields = context.controllers.fields;
@@ -153,7 +155,7 @@ function registerCards(
   const coverLikeCards = createCoverLikeCardRegistration(registry, context.controllers.renderQueue, fields, cardUi);
   registerAlarmCardTypes(registry, context.configuration.accessClimateAlarm, context.controllers.renderQueue, fields, cardUi);
   registerTimerCardTypes(registry);
-  registerCompanionCardTypes(
+  const isOBSInputMuted = registerCompanionCardTypes(
     registry,
     !!context.device.profile.features?.companion,
     context.dom.document,
@@ -165,7 +167,7 @@ function registerCards(
     context.controllers.selection,
     context.layout.numSlots,
     context.controllers.connectorsPage,
-    publishFinderFolders,
+    publishGeneratedActions,
   );
   registerClimateCardTypes(
     registry,
@@ -203,8 +205,12 @@ function registerCards(
     context.controllers.settingsUi,
     !!context.device.profile.features?.companion,
     cardUi,
+    context.dom.fetch,
+    isOBSInputMuted,
   );
-  registerSubpageCardTypes(registry, context.configuration.codec, context.core, context.controllers.selection, fields, cardUi);
+  const subpageCatalogue = createCompanionCatalogue(context.dom.fetch);
+  registerSubpageCardTypes(registry, context.configuration.codec, context.core, context.controllers.selection,
+    fields, cardUi, context.configuration.modalTabs, () => subpageCatalogue.load(true));
   registerSwitchCardTypes(registry, context.configuration.confirmationOptions, lightCards, fields);
   registerVacuumCardTypes(registry, context.configuration.robotOptions, fields, cardUi);
   const weatherCards = registerWeatherCardTypes(registry, context.configuration.weatherOptions, fields, cardUi);
@@ -251,7 +257,7 @@ function installTestHooks(context: ApplicationContext, lightCards: ReturnType<ty
   );
 }
 
-function composeApplicationContext(liveFinderFolders: () => readonly CompanionAction[]): ApplicationContext {
+function composeApplicationContext(liveGeneratedActions: () => readonly CompanionAction[]): ApplicationContext {
   const fetchService: typeof fetch = typeof fetch === "function"
     ? resetAwareFetch
     : (() => Promise.reject(new Error("Fetch is not available"))) as typeof fetch;
@@ -373,6 +379,7 @@ function composeApplicationContext(liveFinderFolders: () => readonly CompanionAc
   const nativePanelConfig = createNativePanelConfigMigrationController({
     deviceProfile: () => layout.deviceId,
     slotCount: () => layout.numSlots,
+    presetPageGeometry: () => ({ columns: layout.gridCols, slots: layout.previewSlots }),
     entityName: (name) => entityState.entityName(name),
     entityNameForSlot: (name, slot) => entityState.entityNameForSlot(name, slot),
     normalizeHexColor: (value, fallback) => Model.normalizeHexColor(value, fallback),
@@ -620,7 +627,7 @@ function composeApplicationContext(liveFinderFolders: () => readonly CompanionAc
     grid,
     selection,
     homeAssistantSupported: () => nativePanelConfig.homeAssistantSupportEnabled(),
-    liveFinderFolders,
+    liveGeneratedActions,
   });
   const nativeTransfers = createNativePageTransfersFeature({
     native: nativePanelConfig, editor: () => nativePages, layout, api: requestApi, grid, shell,
@@ -919,6 +926,9 @@ function composeApplicationContext(liveFinderFolders: () => readonly CompanionAc
   const companionSection = createSettingsCompanionSectionFeature(dom, shell, fields);
   connectorsPage = createConnectorsPageFeature(
     dom, shell, companionSection, !!layout.config.features?.companion,
+    () => buildHomeAssistantSettings(
+      fields.makeCollapsibleCard, fields.toggleRow, settingsUi,
+    ),
   );
   let pickerHomeAssistantEnabled = connectorsPage.homeAssistantCardPickerEnabled();
   let pickerHomeAssistantConfigured = connectorsPage.homeAssistantConfigured();
@@ -935,7 +945,7 @@ function composeApplicationContext(liveFinderFolders: () => readonly CompanionAc
     screensaverTimeout, screenRotation, appearance, clockBarState, entityState,
     shell, requestApi, statusPreview, schedulePostApi,
     clockBarPostApi, fields, settingsHelpers, scheduleSection,
-    systemSection, preview, connectorsPage, () => firstRunSetup.open(),
+    systemSection, preview, connectorsPage, () => firstRunSetup.open(), () => openOBSStarterPage(),
     async enabled => {
       if (await nativePanelConfig.waitForDiscovery() !== true || !nativePanelConfig.client?.supportsAppSubpagePreference()) {
         shell.showBanner("Could not save automatic app switching. Check the display’s connection and firmware.", "error");
@@ -963,9 +973,19 @@ function composeApplicationContext(liveFinderFolders: () => readonly CompanionAc
       }
     },
   );
+  const openOBSStarterPage = createOBSStarterPage({
+    ...dom, native: nativePanelConfig, layout, shell,
+    onSaved: (mirrorFailed) => {
+      shell.switchTab("screen");
+      nativePages.invalidate();
+      void nativePages.refresh();
+      if (!mirrorFailed) shell.showBanner("OBS Studio pinned to Home.", "success");
+    },
+  });
   const firstRunSetup = createFirstRunSetup({
     ...dom, capacity: layout.numSlots, supported: !!layout.config.features?.companion,
     native: nativePanelConfig, connectors: connectorsPage, fields, shell,
+    openOBSSetup: openOBSStarterPage,
     autoSwitchEnabled: () => state.autoOpenAppSubpages,
     onSaved: (mirrorFailed) => {
       shell.switchTab("screen");
@@ -1064,14 +1084,14 @@ function startEspDesktop(): void {
   if (startupState.__ESPDESKTOP_UI_STARTED__ || startupState.__ESPDESKTOP_UI_STARTING__) return;
   AppInstance.initializeAppState();
 
-  let liveFinderFolders: readonly CompanionAction[] = [];
-  const context = composeApplicationContext(() => liveFinderFolders);
+  let liveGeneratedActions: readonly CompanionAction[] = [];
+  const context = composeApplicationContext(() => liveGeneratedActions);
 
   const lightCards = registerCards(context, folders => {
-    const changed = folders.length !== liveFinderFolders.length ||
-      folders.some((folder, index) => folder.id !== liveFinderFolders[index]?.id ||
-        folder.label !== liveFinderFolders[index]?.label);
-    if (changed) liveFinderFolders = folders;
+    const changed = folders.length !== liveGeneratedActions.length ||
+      folders.some((folder, index) => folder.id !== liveGeneratedActions[index]?.id ||
+        folder.label !== liveGeneratedActions[index]?.label);
+    if (changed) liveGeneratedActions = folders;
     return changed;
   });
   if (__ESPDESKTOP_TEST_HOOKS_ENABLED__) {

@@ -1,3 +1,6 @@
+import { isStudioControlPage, studioControlPage } from "./studio_control_page";
+import { excludeGeneratedCards } from "./generated_page_cards";
+import { obsSubpageKind } from "./obs_live_subpage";
 import type { CardConfig } from "../contracts/types";
 import { CARD_CONFIG_FIELDS, emptyCardConfig } from "./card";
 import { cardTransferOwnsSubpage } from "./card_transfer";
@@ -13,6 +16,8 @@ interface NativeRootCardEdit {
   readonly card: CardConfig;
   readonly page?: NativePageEdit;
 }
+
+export interface PresetPageGeometry { readonly columns: number; readonly slots: number; }
 
 export interface NativePageEdit {
   readonly order: string;
@@ -98,12 +103,23 @@ export class NativeLayoutDraft {
     this.records(K.Card).delete(card.id!);
   }
 
-  private syncPageOwner(card: NativeV2Record, config?: CardConfig): void {
+  private syncPageOwner(card: NativeV2Record, config?: CardConfig, geometry?: PresetPageGeometry): void {
     let page = this.ownedPage(card);
     if (config && cardTransferOwnsSubpage(config)) {
       if (card.first !== 0 && this.records(K.Page).get(card.first!)?.first !== 0)
         throw new PanelConfigError("Subpages can be at most two levels deep.");
       if (!page) page = this.allocate({ kind: K.Page, first: card.first!, second: card.id!, flags: card.first === 0 ? ABSENT : 0 });
+      if (isStudioControlPage(config.options) && !page.third) {
+        const preset = studioControlPage(geometry?.columns ?? 3, geometry?.slots ?? 6);
+        page.flags = RAW;
+        this.setPageOrder(page, preset.order, preset.cards, []);
+        preset.cards.forEach((child, index) =>
+          this.writeCard(this.allocate({ kind: K.Card, first: page!.id!, second: index + 1 }), child));
+      }
+      if (obsSubpageKind(config.options) && !page.third) {
+        page.flags = 1;
+        page.third = this.intern("B");
+      }
       this.records(K.Navigation).set(card.id!, { kind: K.Navigation, id: card.id!, first: page.id! });
     } else if (page?.flags === ABSENT) {
       this.removePage(page);
@@ -133,12 +149,12 @@ export class NativeLayoutDraft {
     this.writeSetting("button_order", entries.map((_, index) => index + 1).join(","));
   }
 
-  writeRootCard(slot: number, config: CardConfig): void {
+  writeRootCard(slot: number, config: CardConfig, geometry?: PresetPageGeometry): void {
     const previous = this.cards(0).find(card => card.second === slot);
     this.editScope.push(JSON.stringify(previous ? [previous.id, this.config(previous)] : null));
     const card = previous ?? this.allocate({ kind: K.Card, first: 0, second: slot });
     this.writeCard(card, config);
-    this.syncPageOwner(card, config);
+    this.syncPageOwner(card, config, geometry);
   }
 
   writeSetting(key: string, value: string): void {
@@ -223,7 +239,19 @@ export class NativeLayoutDraft {
     }
   }
 
-  writePage(key: number, change: NativePageEdit | null): void {
+  saveGeneratedCards(key: number, edits: ReadonlyMap<number, CardConfig>, order?: string,
+      exclusions = [...edits.values()].map(card => card.entity)): void {
+    const owner = this.ownerAt(key);
+    if (!owner) throw new PanelConfigError("The automatic page no longer exists.");
+    const config = this.config(owner);
+    if (!obsSubpageKind(config.options) && config.entity !== "com.apple.finder")
+      throw new PanelConfigError("The automatic page changed. Reopen it before editing.");
+    this.editScope.push(JSON.stringify(config));
+    if (order !== undefined) this.patchPageCards(key, edits, order);
+    this.writeCard(owner, { ...config, options: excludeGeneratedCards(config.options, exclusions) });
+  }
+
+  writePage(key: number, change: NativePageEdit | null, geometry?: PresetPageGeometry): void {
     const parent = parentPageKey(key);
     const slot = pageOwnerSlot(key);
     let owner = this.ownerAt(key);
@@ -262,7 +290,7 @@ export class NativeLayoutDraft {
       return card;
     });
     before.forEach((card, index) => { if (!kept.has(index)) this.removeCard(card); });
-    next.forEach((card, index) => this.syncPageOwner(card, change.cards[index]));
+    next.forEach((card, index) => this.syncPageOwner(card, change.cards[index], geometry));
     this.syncPageOwner(owner, ownerConfig);
   }
 

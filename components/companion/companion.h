@@ -16,6 +16,7 @@
 #include <utility>
 #include <vector>
 #include "app_icon_store.h"
+#include "home_assistant_api.h"
 
 namespace esphome::companion {
 
@@ -105,6 +106,7 @@ class CompanionService final : public Component {
   bool pairing_active_locked_() const;
   static PairingCode generate_pairing_code_();
 
+  HomeAssistantApi home_assistant_;
   ESPPreferenceObject preferences_;
   ESPPreferenceObject sequence_preferences_;
   ESPPreferenceObject pairing_code_preferences_;
@@ -119,12 +121,14 @@ class CompanionService final : public Component {
   std::string pairing_code_;
   std::atomic<uint32_t> focus_targets_generation_{0};
   std::atomic<bool> focus_targets_supported_{false};
-  std::vector<std::pair<std::string, std::string>> catalogue_actions_;
+  std::vector<CompanionAction> catalogue_actions_;
+  CompanionCatalogueLimits catalogue_limits_;
   std::vector<std::string> catalogue_enabled_icons_;
   std::vector<CompanionRemoteDefinition> remote_definitions_;
   uint16_t application_definition_count_{0};
   uint32_t catalogue_generation_{0};
   uint16_t catalogue_next_page_{0};
+  bool catalogue_obs_only_{false};
   uint32_t definitions_generation_{0};
   uint16_t definitions_next_page_{0};
   struct UnauthenticatedSession {
@@ -140,6 +144,7 @@ class CompanionService final : public Component {
   uint32_t app_icon_generation_{0};
   size_t app_icon_offset_{0};
   std::atomic<bool> app_icons_supported_{false};
+  std::atomic<bool> app_icon_catalogue_refresh_pending_{true};
   std::atomic<uint32_t> authentication_expires_at_{0};
   std::atomic<bool> authentication_expiry_queued_{false};
 };

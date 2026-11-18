@@ -97,6 +97,9 @@ struct ApprovedFolder: Codable, Identifiable, Hashable {
 @MainActor
 final class CompanionStore: NSObject, ObservableObject {
     let updater = CompanionUpdater()
+    let obs: OBSConnection
+    private var obsCatalogueObservation: AnyCancellable?
+    private var obsAudioObservation: AnyCancellable?
     @Published var settingsRequestID: UUID?
     var requestedSettingsDestination: CompanionSettingsDestination = .displays
     static let privacyPolicyURL = URL(string: "https://espdesktop.com/reference/privacy")!
@@ -152,11 +155,17 @@ final class CompanionStore: NSObject, ObservableObject {
     private var latestSystemMetricsSnapshot: CompanionSystemMetricsSnapshot?
     private let sessionLock = MacSessionLockMonitor()
     private var mediaControlTimer: Timer?
+    private var appVolumeController: (any AppVolumeControlling)?
+    private var appVolumeRefresh: Task<Void, Never>?
+    private var lastAppVolumeValues: [String: Int] = [:]
     private var focusTimer: Timer?
     private var activatedApplicationPID: pid_t?
     private var browserFocusQuery: Task<URL?, Never>?
     private var browserFocusGeneration = 0
     private var lastMediaControlValues: [String: Int] = [:]
+    private var coughHolds: [ObjectIdentifier: Task<Void, Never>] = [:]
+    private var coughRestoreRetry: Task<Void, Never>?
+    private var coughStateRefresh: Task<Void, Never>?
 
     override convenience init() {
         self.init(
@@ -176,6 +185,7 @@ final class CompanionStore: NSObject, ObservableObject {
             ? UserDefaults.standard
             : (UserDefaults(suiteName: Self.preferencesSuite) ?? .standard))
         self.defaults = stableDefaults
+        obs = OBSConnection(defaults: stableDefaults)
         let savedDisplays = CompanionSavedDisplays(defaults: stableDefaults)
         self.savedDisplays = savedDisplays
         approvedApplicationIdentifiers = Set(
@@ -187,8 +197,17 @@ final class CompanionStore: NSObject, ObservableObject {
         let records = savedDisplays.load { KeychainStore.accounts(service: KeychainStore.service) }
         onboardingCompleted = stableDefaults.bool(forKey: Keys.onboardingCompleted) || !records.isEmpty
         super.init()
+        if #available(macOS 14.2, *) { appVolumeController = AppVolumeController() }
         displays = records.map(makeDisplay)
+        obsCatalogueObservation = OBSConnection.displayCatalogues(from: obs.$state)
+            .sink { [weak self] actions in
+                self?.publishToConnectedDisplays { $0.publishCatalogue(obsActions: actions) }
+            }
+        obsAudioObservation = obs.$state.map(OBSConnection.audioValues).removeDuplicates().sink { [weak self] values in
+            self?.publishToConnectedDisplays { $0.publishOBSAudioValues(values) }
+        }
         sessionLock.onChange = { [weak self] locked, displayAwake in
+            if locked || displayAwake == false { self?.releaseCoughButtons() }
             self?.publishToConnectedDisplays { $0.publishSessionLock(locked, displayAwake: displayAwake) }
         }
         sessionLock.start()
@@ -213,6 +232,12 @@ final class CompanionStore: NSObject, ObservableObject {
             for display in metricsDisplays { display.connection.publishSystemMetrics(snapshot) }
         }
         if supportsLaunchAtLogin { refreshLaunchAtLoginStatus() }
+        applicationFolderMonitor = ApplicationFolderMonitor(
+            sharedApplications: ApplicationCatalogue.sharedApplications,
+            userApplications: ApplicationCatalogue.userApplications
+        ) { [weak self] in
+            Task { @MainActor in self?.refreshApplications() }
+        }
         refreshApplications()
         Task { await remoteCatalogueStore.refresh() }
     }
@@ -287,34 +312,49 @@ final class CompanionStore: NSObject, ObservableObject {
     }
 
     private let applicationCatalogue = ApplicationCatalogue()
+    private var applicationFolderMonitor: ApplicationFolderMonitor?
     private var applicationScan: Task<Void, Never>?
+    private var applicationRefreshPending = false
     private(set) var applicationCatalogueReady = false
 
     func refreshApplications() {
-        guard applicationScan == nil else { return }
+        guard applicationScan == nil else {
+            applicationRefreshPending = true
+            return
+        }
         applicationScan = Task { [weak self, applicationCatalogue] in
-            let applications = await applicationCatalogue.scan()
-            guard let self else { return }
-            let identifiers = Set(applications.map(\.bundleIdentifier))
-            let previousIdentifiers = defaults.stringArray(forKey: Keys.knownApplications)
-            // Preserve existing selections when upgrading. Fresh installs and newly
-            // discovered apps default on; previously disabled apps stay disabled.
-            let known = Set(previousIdentifiers ?? [])
-            if previousIdentifiers != nil {
-                approvedApplicationIdentifiers.formUnion(identifiers.subtracting(known))
-            } else if defaults.object(forKey: Keys.approvedApplications) == nil {
-                approvedApplicationIdentifiers.formUnion(identifiers)
-            }
-            if !identifiers.isEmpty {
-                defaults.set(known.union(identifiers).sorted(), forKey: Keys.knownApplications)
-                defaults.set(approvedApplicationIdentifiers.sorted(), forKey: Keys.approvedApplications)
-            }
-            availableApps = applications
-            applicationCatalogueReady = true
-            applicationScan = nil
-            publishToConnectedDisplays { $0.publishCatalogue() }
+            repeat {
+                self?.applicationRefreshPending = false
+                let applications = await applicationCatalogue.scan()
+                self?.applyApplicationScan(applications)
+            } while self?.applicationRefreshPending == true
+            self?.applicationScan = nil
         }
     }
+
+    private func applyApplicationScan(_ applications: [LaunchableApp]) {
+        guard !applicationCatalogueReady || availableApps != applications else { return }
+
+        let identifiers = Set(applications.map(\.bundleIdentifier))
+        let previousIdentifiers = defaults.stringArray(forKey: Keys.knownApplications)
+        // Preserve existing selections when upgrading. Fresh installs and newly
+        // discovered apps default on; previously disabled apps stay disabled.
+        let known = Set(previousIdentifiers ?? [])
+        if previousIdentifiers != nil {
+            approvedApplicationIdentifiers.formUnion(identifiers.subtracting(known))
+        } else if defaults.object(forKey: Keys.approvedApplications) == nil {
+            approvedApplicationIdentifiers.formUnion(identifiers)
+        }
+        if !identifiers.isEmpty {
+            defaults.set(known.union(identifiers).sorted(), forKey: Keys.knownApplications)
+            defaults.set(approvedApplicationIdentifiers.sorted(), forKey: Keys.approvedApplications)
+        }
+        availableApps = applications
+        applicationCatalogueReady = true
+        publishToConnectedDisplays { $0.publishCatalogue() }
+    }
+
+    func inputDeviceActions() -> [(id: String, label: String)] { mediaController.inputDeviceActions() }
 
     func launchableApps() -> [LaunchableApp] {
         availableApps.filter { approvedApplicationIdentifiers.contains($0.bundleIdentifier) }
@@ -406,6 +446,7 @@ final class CompanionStore: NSObject, ObservableObject {
         }
         defaults.set(approvedApplicationIdentifiers.sorted(), forKey: Keys.approvedApplications)
         publishToConnectedDisplays { $0.publishCatalogue() }
+        refreshAppVolumeValues()
     }
 
     func setApplication(_ application: LaunchableApp, approved: Bool) {
@@ -416,6 +457,7 @@ final class CompanionStore: NSObject, ObservableObject {
         }
         defaults.set(approvedApplicationIdentifiers.sorted(), forKey: Keys.approvedApplications)
         publishToConnectedDisplays { $0.publishCatalogue() }
+        refreshAppVolumeValues()
     }
 
     func folderActions() -> [ApprovedFolder] { approvedFolders }
@@ -762,6 +804,9 @@ final class CompanionStore: NSObject, ObservableObject {
                 display.connection.publishSystemMetrics(snapshot, force: true)
             }
             publishMediaControlValues(force: true, to: display)
+            display.connection.publishOBSAudioValues(OBSConnection.audioValues(obs.state), force: true)
+            display.connection.publishMediaControlValues(lastAppVolumeValues, unavailable: [])
+            refreshAppVolumeValues()
         }
     }
 
@@ -782,7 +827,10 @@ final class CompanionStore: NSObject, ObservableObject {
         connectedDisplayCount = connectedDisplays.count
         updateSystemMetricsProvider()
         if state == .connected {
-            if previousCount == 0 { startMediaControlPublishing() }
+            if previousCount == 0 {
+                _ = mediaController.refreshInputDevices()
+                startMediaControlPublishing()
+            }
             Task { [weak display] in
                 await remoteCatalogueStore.refresh()
                 if let display, display.state == .connected { display.connection.publishCatalogue() }
@@ -795,6 +843,14 @@ final class CompanionStore: NSObject, ObservableObject {
             activatedApplicationPID = nil
             invalidateBrowserFocusQuery()
             lastMediaControlValues = [:]
+            coughStateRefresh?.cancel()
+            coughStateRefresh = nil
+            lastAppVolumeValues = [:]
+            appVolumeRefresh?.cancel()
+            appVolumeRefresh = nil
+            if let controller = appVolumeController {
+                Task { await controller.reset() }
+            }
         }
     }
 
@@ -855,10 +911,78 @@ final class CompanionStore: NSObject, ObservableObject {
         return false
     }
 
+    func setOBSCough(_ value: Int, controlIdentifier: String, from session: ObjectIdentifier) async -> Bool {
+        guard !sessionLock.locked, sessionLock.displayAwake != false else { return false }
+        return await obs.setCough(value, controlID: controlIdentifier, from: session)
+    }
+
+    func abandonOBSCough(from session: ObjectIdentifier) {
+        obs.abandonCoughHolds(from: session)
+    }
+
+    func obsAudioValues() -> [String: Int] {
+        OBSConnection.audioValues(obs.state)
+    }
+
+    func setOBSFader(_ value: Int, controlIdentifier: String) async -> Bool {
+        guard !sessionLock.refresh() else { return false }
+        return await obs.setFader(controlID: controlIdentifier, value: value)
+    }
+
+    func performGuardedOBSAction(actionIdentifier: String, isValid: @escaping @MainActor () -> Bool) async -> Bool {
+        func canSend() -> Bool {
+            isValid() && !self.sessionLock.locked && self.sessionLock.displayAwake != false
+        }
+        if let (scene, token) = OBSConnection.AdaptiveScene.command(actionIdentifier) {
+            return await obs.performAdaptiveScene(scene, token: token, isValid: canSend)
+        }
+        if let token = OBSConnection.BreakCard.token(for: actionIdentifier) {
+            return await obs.performBreak(token: token, isValid: canSend)
+        }
+        if let token = OBSConnection.controlToken(actionIdentifier, for: "obs.take") {
+            return await obs.takeLive(token: token) { canSend() && !self.sessionLock.refresh() }
+        }
+        if let token = OBSConnection.controlToken(actionIdentifier, for: OBSConnection.studioModeID) {
+            return await obs.toggleStudioMode(token: token, isValid: canSend)
+        }
+        if actionIdentifier.hasPrefix(OBSConnection.sourcePrefix) {
+            return await obs.toggleSource(actionID: actionIdentifier, isValid: canSend)
+        }
+        if actionIdentifier.hasPrefix(OBSConnection.transitionSelectionPrefix) {
+            return await obs.selectTransition(actionID: actionIdentifier, isValid: canSend)
+        }
+        if let token = OBSConnection.controlToken(actionIdentifier, for: OBSConnection.transitionID) {
+            return await obs.cycleTransition(token: token, isValid: canSend)
+        }
+        if let token = OBSConnection.controlToken(actionIdentifier, for: OBSConnection.replayBufferID) {
+            return await obs.toggleReplayBuffer(token: token, isValid: canSend)
+        }
+        guard let (output, token) = OBSConnection.Output.command(actionIdentifier) else { return false }
+        return await obs.performOutput(output, token: token, isValid: canSend)
+    }
+
+    func obsControlActions() -> [OBSConnection.CatalogueEntry] {
+        OBSConnection.controlCatalogue(obs.state)
+    }
+
     func performResultStatus(actionIdentifier: String,
                              folderOpenBehavior: String = "new_window",
                              shortcutAppID: String? = nil) async -> String {
         guard !sessionLock.refresh() else { return "not_allowed" }
+        if actionIdentifier == "obs.replay" {
+            return await obs.saveReplay() ? "performed" : "not_allowed"
+        }
+        if actionIdentifier == OBSConnection.multiviewID {
+            return await obs.openMultiview() ? "performed" : "not_allowed"
+        }
+        if actionIdentifier.hasPrefix("obs.mute."),
+           let target = UUID(uuidString: String(actionIdentifier.dropFirst("obs.mute.".count))) {
+            return await obs.toggleMicMute(id: target) ? "performed" : "not_allowed"
+        }
+        if actionIdentifier.hasPrefix("obs.") {
+            guard let action = OBSConnection.SceneAction(id: actionIdentifier) else { return "not_found" }
+            return await obs.performSceneAction(action) ? "performed" : "not_allowed"
+        }
         let performed = await perform(actionIdentifier: actionIdentifier,
                                       folderOpenBehavior: folderOpenBehavior, shortcutAppID: shortcutAppID)
         return Self.actionResultStatus(actionIdentifier: actionIdentifier, performed: performed)
@@ -1007,18 +1131,114 @@ final class CompanionStore: NSObject, ObservableObject {
         return true
     }
 
-    func setMediaControlValue(_ value: Int, controlIdentifier: String) -> Bool {
+    func setMediaControlValue(_ value: Int, controlIdentifier: String) async -> Bool {
         guard !sessionLock.refresh() else { return false }
+        if let bundleID = CompanionProtocolDecoder.appVolumeBundleIdentifier(controlIdentifier) {
+            guard let controller = appVolumeController,
+                  let url = launchableApps().first(where: { $0.bundleIdentifier == bundleID })?.url else {
+                return false
+            }
+            let changed = await controller.setLevel(value, for: bundleID, bundleURL: url)
+            if !changed {
+                // Return the slider to its normal level even if the failed
+                // request left the last published state at 100%.
+                publishToConnectedDisplays { $0.publishMediaControlValues([controlIdentifier: 100], unavailable: []) }
+            }
+            refreshAppVolumeValues()
+            return changed
+        }
         guard mediaController.setValue(value, controlIdentifier: controlIdentifier) else { return false }
         publishMediaControlValues(force: true)
         return true
+    }
+
+    func setCoughButtonValue(_ value: Int, from session: ObjectIdentifier) -> Bool {
+        // Always accept release, including when the session has just locked.
+        if value == 0 {
+            if let hold = coughHolds.removeValue(forKey: session) {
+                hold.cancel()
+                if coughHolds.isEmpty { restoreCoughInput() }
+            }
+            return true
+        }
+        guard value == 50 || value == 100, !sessionLock.refresh() else { return false }
+        // A renewal cannot start a new hold after disconnect, sleep or expiry.
+        guard coughHolds[session] != nil || value == 100 else { return false }
+        let changedInput: Bool
+        if coughHolds.isEmpty {
+            guard mediaController.beginCoughMute() else { return false }
+            coughRestoreRetry?.cancel()
+            coughRestoreRetry = nil
+            changedInput = true
+        } else {
+            changedInput = mediaController.continueCoughMute()
+        }
+        coughHolds[session]?.cancel()
+        coughHolds[session] = Task { [weak self] in
+            try? await Task.sleep(for: .seconds(1))
+            guard !Task.isCancelled else { return }
+            _ = self?.setCoughButtonValue(0, from: session)
+        }
+        if changedInput { publishCoughTransition() }
+        return true
+    }
+
+    func releaseCoughButtons() {
+        obs.abandonCoughHolds()
+        for hold in coughHolds.values { hold.cancel() }
+        coughHolds.removeAll()
+        restoreCoughInput()
+    }
+
+    private func restoreCoughInput() {
+        if mediaController.endCoughMute() {
+            coughRestoreRetry?.cancel()
+            coughRestoreRetry = nil
+            publishCoughTransition()
+        } else if coughRestoreRetry == nil {
+            // The original device can become temporarily unavailable while held.
+            coughRestoreRetry = Task { [weak self] in
+                try? await Task.sleep(for: .seconds(1))
+                guard !Task.isCancelled, let self else { return }
+                coughRestoreRetry = nil
+                restoreCoughInput()
+            }
+        }
+    }
+
+    private func publishCoughTransition() {
+        coughStateRefresh?.cancel()
+        coughStateRefresh = nil
+        guard connectedDisplayCount > 0 else { return }
+        let previous = lastMediaControlValues[SystemMediaController.coughID]
+        publishMediaControlValues()
+        let confirmed = lastMediaControlValues[SystemMediaController.coughID]
+        guard previous == nil || confirmed == previous else { return }
+
+        // Some input devices report the previous state immediately after a
+        // successful write. Recheck briefly so the icon can follow the device
+        // between the regular one-second snapshots.
+        coughStateRefresh = Task { [weak self] in
+            for _ in 0..<20 {
+                try? await Task.sleep(for: .milliseconds(50))
+                guard !Task.isCancelled, let self else { return }
+                self.publishMediaControlValues()
+                if self.lastMediaControlValues[SystemMediaController.coughID] != confirmed { break }
+            }
+            self?.coughStateRefresh = nil
+        }
     }
 
     private func startMediaControlPublishing() {
         if mediaControlTimer == nil {
             mediaControlTimer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { [weak self] _ in
                 Task { @MainActor [weak self] in
-                    self?.publishMediaControlValues()
+                    guard let self else { return }
+                    if self.mediaController.refreshInputDevices() {
+                        self.publishToConnectedDisplays { $0.publishCatalogue() }
+                    }
+                    self.publishMediaControlValues()
+                    self.refreshAppVolumeValues()
                 }
             }
         }
@@ -1048,6 +1268,29 @@ final class CompanionStore: NSObject, ObservableObject {
         } else {
             lastMediaControlValues = values
             publishToConnectedDisplays { $0.publishMediaControlValues(values, unavailable: unavailable) }
+        }
+    }
+
+    private func refreshAppVolumeValues() {
+        guard connectedDisplayCount > 0, appVolumeRefresh == nil,
+              let controller = appVolumeController else { return }
+        let selectedApps = Dictionary(uniqueKeysWithValues: launchableApps().map { ($0.bundleIdentifier, $0.url) })
+        appVolumeRefresh = Task { [weak self] in
+            let levels = await controller.levels(for: selectedApps)
+            guard !Task.isCancelled, let self else { return }
+            appVolumeRefresh = nil
+            let apps = launchableApps().prefix(max(0, 256 - folderActions().count))
+            let values: [String: Int] = Dictionary(uniqueKeysWithValues: apps.compactMap { app in
+                let id = "app.volume." + app.bundleIdentifier
+                guard CompanionProtocolDecoder.appVolumeBundleIdentifier(id) != nil else { return nil }
+                return (id, levels[app.bundleIdentifier] ?? 100)
+            })
+            let changed = values.filter { lastAppVolumeValues[$0.key] != $0.value }
+            let unavailable = Set(lastAppVolumeValues.keys).subtracting(values.keys)
+            lastAppVolumeValues = values
+            if !changed.isEmpty || !unavailable.isEmpty {
+                publishToConnectedDisplays { $0.publishMediaControlValues(changed, unavailable: unavailable) }
+            }
         }
     }
 

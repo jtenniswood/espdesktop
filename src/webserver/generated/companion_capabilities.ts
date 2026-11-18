@@ -5,7 +5,7 @@ export interface CompanionSystemMetric { readonly mode: string; readonly id: str
 export interface CompanionCardMode { readonly id: string; readonly label: string; readonly capability: string; readonly defaultIcon: string; }
 export interface CompanionProtocolMessage { readonly id: string; readonly direction: string; readonly authorization: string; }
 
-export const COMPANION_CAPABILITY_VERSION = 9 as const;
+export const COMPANION_CAPABILITY_VERSION = 22 as const;
 export const COMPANION_PROTOCOL_VERSION = 4 as const;
 export const COMPANION_PROTOCOL_PATH = "/companion/v4" as const;
 export const COMPANION_MAXIMUM_TEXT_FRAME_BYTES = 16384 as const;
@@ -38,12 +38,339 @@ export const COMPANION_CARD_MODES = [
     defaultIcon: "Folder Outline"
   },
   {
+    id: "obs",
+    label: "OBS Scene",
+    capability: "obs_scene_cards",
+    defaultIcon: "Image Card Loading"
+  },
+  {
+    id: "obs_mic",
+    label: "OBS Mic Mute",
+    capability: "obs_scene_cards",
+    defaultIcon: "Microphone"
+  },
+  {
+    id: "obs_studio",
+    label: "Studio Mode",
+    capability: "obs_scene_cards",
+    defaultIcon: "Split Vertical"
+  },
+  {
+    id: "obs_take",
+    label: "OBS Take Live",
+    capability: "obs_scene_cards",
+    defaultIcon: "Arrow Right"
+  },
+  {
+    id: "obs_transition",
+    label: "Transition",
+    capability: "obs_scene_cards",
+    defaultIcon: "Flip Horizontal"
+  },
+  {
+    id: "obs_status",
+    label: "Program scene",
+    capability: "obs_scene_cards",
+    defaultIcon: "Monitor"
+  },
+  {
+    id: "obs_replay",
+    label: "OBS Save Replay",
+    capability: "obs_scene_cards",
+    defaultIcon: "History"
+  },
+  {
+    id: "obs_replay_buffer",
+    label: "OBS Replay Buffer",
+    capability: "obs_scene_cards",
+    defaultIcon: "Repeat"
+  },
+  {
+    id: "obs_output",
+    label: "OBS Output Control",
+    capability: "obs_output_controls",
+    defaultIcon: "Monitor"
+  },
+  {
+    id: "obs_brb",
+    label: "Break",
+    capability: "obs_brb",
+    defaultIcon: "Coffee to Go"
+  },
+  {
     id: "stats",
     label: "Stats",
     capability: "system_metrics",
     defaultIcon: "Gauge"
   }
 ] as const satisfies readonly CompanionCardMode[];
+export const OBS_CONFIRMATION_CONTROLS = [
+  {
+    id: "obs.studio",
+    kind: "toggle",
+    when: "off",
+    enableLabel: "On",
+    disableLabel: "Off"
+  },
+  {
+    id: "obs.replay.buffer",
+    kind: "toggle",
+    when: "off",
+    enableLabel: "Start",
+    disableLabel: "Stop"
+  },
+  {
+    id: "obs.output.stream",
+    kind: "output",
+    when: "both",
+    enableLabel: "Start",
+    disableLabel: "Stop"
+  },
+  {
+    id: "obs.output.record",
+    kind: "output",
+    when: "both",
+    enableLabel: "Start",
+    disableLabel: "Stop"
+  },
+  {
+    id: "obs.output.virtualcam",
+    kind: "output",
+    when: "both",
+    enableLabel: "Start",
+    disableLabel: "Stop"
+  }
+] as const;
+export const OBS_SCENE_PAGE_CONTROLS = [
+  {
+    id: "obs.take",
+    label: "Take Live",
+    icon: "Arrow Right",
+    width: 2
+  },
+  {
+    id: "obs.transition",
+    label: "Transition",
+    icon: "Flip Horizontal",
+    width: 1
+  },
+  {
+    id: "obs.brb",
+    label: "Break",
+    icon: "Coffee to Go",
+    width: 1
+  }
+] as const;
+export const OBS_STUDIO_CONTROL_PAGE = [
+  {
+    id: "obs.output.record",
+    icon: "Record"
+  },
+  {
+    id: "obs.output.stream",
+    icon: "Broadcast"
+  },
+  {
+    id: "obs.studio",
+    icon: "Split Vertical"
+  },
+  {
+    id: "obs.replay",
+    icon: "History"
+  },
+  {
+    id: "obs.replay.buffer",
+    icon: "Repeat"
+  }
+] as const;
+export const OBS_OUTPUT_STATUS_ICONS: Readonly<Record<string, readonly [string, string, string]>> = {
+  Idle: [
+    "Stop Circle",
+    "Broadcast Off",
+    "Video Off"
+  ],
+  Active: [
+    "Record",
+    "Broadcast Off",
+    "Video"
+  ],
+  Live: [
+    "Stop Circle",
+    "Broadcast",
+    "Video"
+  ],
+  Paused: [
+    "Pause",
+    "Broadcast Off",
+    "Video Off"
+  ],
+  Changing: [
+    "Progress Clock",
+    "Progress Clock",
+    "Progress Clock"
+  ],
+  Stopping: [
+    "Progress Clock",
+    "Progress Clock",
+    "Progress Clock"
+  ],
+  Reconnecting: [
+    "Progress Clock",
+    "Progress Clock",
+    "Progress Clock"
+  ],
+  Unavailable: [
+    "Monitor Off",
+    "Monitor Off",
+    "Video Off"
+  ]
+};
+export const OBS_CARD_STATES: Readonly<Record<string, { readonly detail: string; readonly lit: boolean }>> = {
+  scene_idle: {
+    detail: "",
+    lit: false
+  },
+  scene_live: {
+    detail: "",
+    lit: true
+  },
+  scene_program: {
+    detail: "",
+    lit: false
+  },
+  scene_preview: {
+    detail: "",
+    lit: true
+  },
+  scene_program_preview: {
+    detail: "",
+    lit: true
+  },
+  take_ready: {
+    detail: "",
+    lit: false
+  },
+  take_studio_off: {
+    detail: "Enable Studio Mode",
+    lit: false
+  },
+  take_transitioning: {
+    detail: "Transitioning",
+    lit: false
+  },
+  take_no_preview: {
+    detail: "Choose a preview",
+    lit: false
+  },
+  take_same_scene: {
+    detail: "Already on Program",
+    lit: false
+  },
+  toggle_on: {
+    detail: "On",
+    lit: true
+  },
+  toggle_off: {
+    detail: "Off",
+    lit: false
+  },
+  replay_ready: {
+    detail: "Ready",
+    lit: false
+  },
+  replay_saving: {
+    detail: "Saving",
+    lit: false
+  },
+  replay_saved: {
+    detail: "Saved",
+    lit: false
+  },
+  replay_unconfirmed: {
+    detail: "Replay not confirmed",
+    lit: false
+  },
+  output_idle: {
+    detail: "Idle",
+    lit: false
+  },
+  output_active: {
+    detail: "Active",
+    lit: true
+  },
+  output_live: {
+    detail: "Live",
+    lit: true
+  },
+  output_paused: {
+    detail: "Paused",
+    lit: true
+  },
+  output_stopping: {
+    detail: "Stopping",
+    lit: true
+  },
+  output_reconnecting: {
+    detail: "Reconnecting",
+    lit: true
+  },
+  output_changing: {
+    detail: "Changing",
+    lit: false
+  },
+  output_changing_live: {
+    detail: "Changing",
+    lit: true
+  },
+  audio_muted: {
+    detail: "",
+    lit: false
+  },
+  audio_live: {
+    detail: "",
+    lit: true
+  },
+  transition_selected: {
+    detail: "",
+    lit: true
+  },
+  transition_idle: {
+    detail: "",
+    lit: false
+  },
+  source_visible: {
+    detail: "",
+    lit: true
+  },
+  source_hidden: {
+    detail: "",
+    lit: false
+  },
+  break_start: {
+    detail: "Start",
+    lit: false
+  },
+  break_resume: {
+    detail: "Resume",
+    lit: true
+  },
+  break_transitioning: {
+    detail: "Transitioning",
+    lit: false
+  },
+  break_already: {
+    detail: "",
+    lit: false
+  },
+  break_check: {
+    detail: "Check OBS",
+    lit: false
+  },
+  break_unavailable: {
+    detail: "Unavailable",
+    lit: false
+  }
+};
 export const COMPANION_PROTOCOL_MESSAGES: readonly CompanionProtocolMessage[] = [
   {
     id: "hello",

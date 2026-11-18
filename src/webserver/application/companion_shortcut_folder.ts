@@ -1,3 +1,4 @@
+import { preserveGeneratedCardExclusions } from "../model/generated_page_cards";
 import { COMPANION_SHORTCUT_APPS as BUNDLED_SHORTCUT_APPS } from "../generated/app_shortcuts";
 import { bundledExpandedShortcuts, SCOPED_SHORTCUT_PREFIX } from "./companion_shortcut_data";
 import type { AppShortcutApplication } from "../generated/app_shortcuts";
@@ -58,7 +59,7 @@ export function replaceCompanionDefinitions(apps: readonly AppShortcutApplicatio
     return shortcutChanged;
 }
 
-import { companionSavedCardMode } from "../model/companion_card_codec";
+import { companionSavedCardMode, obsConfirmableToggle } from "../model/companion_card_codec";
 import {
     configOptionEnabled,
     configOptionValue,
@@ -84,6 +85,7 @@ const CLAUDE_DESKTOP_BUNDLE_ID = "com.anthropic.claudefordesktop";
 const SAFARI_WEB_APP_TEMPLATE = "com.apple.Safari.WebApp";
 const SAFARI_WEB_APP_BUNDLE_ID = /^com\.apple\.Safari\.WebApp\.[a-fA-F0-9]{8}(?:-[a-fA-F0-9]{4}){3}-[a-fA-F0-9]{12}$/;
 const ATHENA_TEMPLATE_APP_ID = "io.github.jtenniswood.athena";
+const CHATGPT_CLASSIC_BUNDLE_ID = "com.openai.chat";
 export const CODEX_BUNDLE_ID = "com.openai.codex";
 export const CHATGPT_CLEAR_UNREADS_ACTION = "shortcut.shift+escape";
 const LAST_LEGACY_CHATGPT_PRESET_ID = 18;
@@ -196,6 +198,15 @@ export function normalizeCompanionCardOptions(card: any): string {
             behavior === "new_window" ? behavior : ""));
     }
     let options = normalizeCompanionAppShortcutOptions(card);
+    if (card.entity === "com.apple.finder") options = preserveGeneratedCardExclusions(card.options, options);
+    const obsToggle = obsConfirmableToggle(card.entity);
+    if (mode === "obs_output" || obsToggle) {
+        const confirmation = configOptionValue(card.options, "obs_confirm");
+        if (["on", "off", "none"].includes(confirmation) || (obsToggle && confirmation === "both"))
+            options = setConfigOptionValue(options, "obs_confirm", confirmation);
+        for (const key of ["confirm_message", "confirm_yes", "confirm_no"])
+            options = setConfigOptionValue(options, key, configOptionValue(card.options, key));
+    }
     if (mode !== "app") return options;
 
     // App launch cards now always use the Mac app icon. Drop the legacy opt-out
@@ -453,14 +464,20 @@ export function slackShortcutPresetCards(): CompanionShortcutPresetCard[] {
     return companionShortcutPresetCards(SLACK_BUNDLE_ID);
 }
 
-export function companionShortcutCatalogApps(appId?: string): AppShortcutApplication[] {
+export function companionShortcutCatalogApps(
+    { pageAppId, savedAppId }: { pageAppId?: string | undefined; savedAppId?: string | undefined } = {},
+): AppShortcutApplication[] {
     // The Mac sends Athena under the actual installed web app's bundle ID.
-    const apps = COMPANION_SHORTCUT_APPS.filter((app) => app.appId !== ATHENA_TEMPLATE_APP_ID && app.shortcuts?.length > 0);
-    if (appId && appId !== ATHENA_TEMPLATE_APP_ID && !apps.some(app => app.appId === appId)) {
+    const apps = COMPANION_SHORTCUT_APPS.filter(app =>
+        app.appId !== ATHENA_TEMPLATE_APP_ID && app.appId !== CHATGPT_CLASSIC_BUNDLE_ID && app.shortcuts?.length > 0);
+    const appId = savedAppId ?? pageAppId;
+    // A saved Classic card still needs its original app and preset IDs when edited.
+    if (appId && appId !== ATHENA_TEMPLATE_APP_ID &&
+        (appId !== CHATGPT_CLASSIC_BUNDLE_ID || appId === savedAppId) && !apps.some(app => app.appId === appId)) {
         const template = companionShortcutApp(appId);
         if (template) apps.push({ ...template, appId });
     }
-    return apps;
+    return apps.map(app => app.appId === CODEX_BUNDLE_ID ? { ...app, label: "ChatGPT" } : app);
 }
 
 export function companionShortcutPresetCards(bundleIdentifier: string): CompanionShortcutPresetCard[] {

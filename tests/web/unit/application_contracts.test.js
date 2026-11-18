@@ -47,16 +47,15 @@ describe("browserless application contracts", () => {
 
   test("models connector onboarding and card sources", runConnectorsFeatureTests);
 
-  test("removes Home Assistant connector setup and keeps Companion guidance", () => {
+  test("keeps retired Home Assistant actions out of Connectors and preserves Companion guidance", () => {
     const connectors = fs.readFileSync(path.join(ROOT, "src/webserver/application/connectors_page.ts"), "utf8");
     const companion = fs.readFileSync(path.join(ROOT, "src/webserver/application/settings_companion_section.ts"), "utf8");
     const styles = fs.readFileSync(path.join(ROOT, "src/webserver/application/styles.ts"), "utf8");
-    assert.doesNotMatch(connectors, /buildHomeAssistantCard|connectors\/home-assistant|actions_confirmed|home_assistant:/);
+    assert.doesNotMatch(connectors, /connectors\/home-assistant|actions_confirmed|home_assistant:/);
     assert.match(connectors, /No external connectors are available on this display\./);
     assert.match(companion, /sp-action-btn sp-delete-btn sp-destructive-btn/);
     assert.match(companion, /setHidden\(badge, !value\.paired\)/);
     assert.match(companion, /Copy pairing code/);
-    assert.match(styles, /\.sp-connectors-config\{display:flex;flex-direction:column;gap:16px\}/);
     assert.match(styles, /\.sp-hidden\{display:none!important\}/);
     assert.match(styles, /\.sp-delete-btn\.sp-destructive-btn\{background:var\(--danger\)/);
   });
@@ -92,9 +91,9 @@ describe("browserless application contracts", () => {
 
   test("connects native Mac settings navigation to the selected page", () => {
     const app = fs.readFileSync(path.join(ROOT, "macos/EspDesktop/Sources/Companion/CompanionSettings.swift"), "utf8");
-    assert.match(app, /CompanionSettingsToolbar\(selection: selectedPageBinding\)/);
+    assert.match(app, /CompanionSettingsToolbar\(selection: selectedPageBinding, showsOBS: obsInstalled\)/);
     assert.match(app, /set: \{ selectedPageID = \$0\.rawValue \}/);
-    assert.match(app, /CompanionSettingsPage\.allCases\.map/);
+    assert.match(app, /CompanionSettingsPage\.allCases\.filter \{ showsOBS \|\| \$0 != \.obs \}\.map/);
     assert.match(app, /item\.action = #selector\(selectPage\(_:\)\)/);
     assert.match(app, /selection\.wrappedValue = page/);
     assert.match(app, /context\.coordinator\.toolbar\.selectedItemIdentifier = \.init\(selection\.rawValue\)/);
@@ -570,7 +569,7 @@ describe("browserless application contracts", () => {
     const card = fs.readFileSync(path.join(ROOT, "src/webserver/cards/companion.ts"), "utf8");
     const styles = fs.readFileSync(path.join(ROOT, "src/webserver/application/styles.ts"), "utf8");
     assert.doesNotMatch(card, /\b(?:GlobalDescriptors|staticGlobal|liveGlobal|CFG)\b/);
-    assert.match(entry, /registerCompanionCardTypes\(\s*registry,\s*!!context\.device\.profile\.features\?\.companion,\s*context\.dom\.document,\s*context\.dom\.fetch,\s*fields,\s*cardUi,\s*context\.configuration\.modalTabs,\s*context\.configuration\.codec,\s*context\.controllers\.selection,\s*context\.layout\.numSlots,\s*context\.controllers\.connectorsPage,\s*publishFinderFolders,?\s*\);/);
+    assert.match(entry, /registerCompanionCardTypes\(\s*registry,\s*!!context\.device\.profile\.features\?\.companion,\s*context\.dom\.document,\s*context\.dom\.fetch,\s*fields,\s*cardUi,\s*context\.configuration\.modalTabs,\s*context\.configuration\.codec,\s*context\.controllers\.selection,\s*context\.layout\.numSlots,\s*context\.controllers\.connectorsPage,\s*publishGeneratedActions,?\s*\);/);
     assert.match(card, /disclosureSection\(\s*"App Subpage"/);
     assert.match(card, /createCompanionCatalogueMonitor\(\s*\(\) => loadCompanionActions\(true\)/);
     assert.match(card, /onCompanionConnectionChange\(function \(connected\)[\s\S]*companionCatalogueMonitor\.start\(\)[\s\S]*companionCatalogueMonitor\.stop\(\)[\s\S]*espdesktop:app-icon-cache-cleared/);
@@ -693,7 +692,7 @@ describe("browserless application contracts", () => {
     const card = fs.readFileSync(path.join(ROOT, "src/webserver/cards/subpage.ts"), "utf8");
     const globals = fs.readFileSync(path.join(ROOT, "src/webserver/runtime/application_globals.d.ts"), "utf8");
     assert.doesNotMatch(card, /\b(?:GlobalDescriptors|staticGlobal|liveGlobal)\b/);
-    assert.match(entry, /registerSubpageCardTypes\(registry, context\.configuration\.codec, context\.core, context\.controllers\.selection, fields, cardUi\);/);
+    assert.match(entry, /registerSubpageCardTypes\(registry, context\.configuration\.codec, context\.core, context\.controllers\.selection,\s*fields, cardUi, context\.configuration\.modalTabs, \(\) => subpageCatalogue\.load\(true\)\);/);
     assert.match(card, /core: Pick<CoreFeature, "subpageStateDisplayMode">/);
     assert.doesNotMatch(card, /const \{ subpageStateDisplayMode \} = core;/);
     assert.doesNotMatch(entry, /registerCompatibility\(registerSubpageCardTypes/);

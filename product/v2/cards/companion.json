@@ -3,6 +3,7 @@
   "allowInSubpage": true,
   "domains": [],
   "options": [
+    { "name": "generated_card_exclusions", "label": "Customized automatic cards", "kind": "text", "omitDefault": true, "hidden": true, "docsHidden": true },
     {
       "name": "custom_icon",
       "label": "Use custom icon",
@@ -140,6 +141,7 @@
       "app_shortcuts",
       "url_open_behavior",
       "finder_open_behavior",
+      "generated_card_exclusions",
       "finder_open_override",
       "app_shortcuts_tabs",
       "app_shortcut_preset",

@@ -198,12 +198,18 @@ export function runCompanionShortcutFeatureTests(): void {
     COMPANION_SHORTCUT_APPS.pop();
   }
   const companionModes = companionCardModeOptions();
-  if (companionModes.map(([mode]) => mode).join() !== "app,shortcut,url,folder,stats" ||
+  if (companionModes.map(([mode]) => mode).join() !== "app,shortcut,url,folder,obs,obs_mic,obs_studio,obs_take,obs_transition,obs_status,obs_replay,obs_replay_buffer,obs_output,obs_brb,stats" ||
       companionCardModeValid("window") || companionCardModeValid("webapp") || companionCardModeValid("home_assistant") ||
       companionCardDefaultIcon("shortcut") !== "Shortcut Command") {
     throw new Error("Companion card modes must come from the generated product contract");
   }
   const storageCard = { ...emptyCardConfig("companion"), entity: "stat.storage_free:external-volume" };
+  const legacyOBSStatus = { ...emptyCardConfig("companion"), entity: "obs.status.record",
+    options: "obs_confirm=none,card_off_color=123456" };
+  normalizeCompanionCard(legacyOBSStatus);
+  if (legacyOBSStatus.entity !== "obs.output.record" || legacyOBSStatus.options !== "card_off_color=123456") {
+    throw new Error("A read-only OBS status must become a control with default confirmations and saved colours");
+  }
   normalizeCompanionCard(storageCard);
   if (decodeCompanionCard(storageCard).mode !== "stats" || companionMetricDisplayMode(storageCard) !== "free" ||
       storageCard.entity !== "stat.storage_free:external-volume") throw new Error("Selected storage device must survive normalization");
@@ -345,38 +351,37 @@ export function runCompanionShortcutFeatureTests(): void {
   }
   const codexPreset = codexShortcutPresetCards();
   const expectedCodexShortcuts = [
-    "shortcut.command+n",
-    "shortcut.command+k",
-    "shortcut.option+command+a",
-    "shortcut.control+shift+g",
-    "shortcut.control+keybackquote",
-    "shortcut.command+f",
-    "shortcut.command+p",
-    "shortcut.command+t",
-    "shortcut.command+b",
-    "shortcut.command+shift+e",
-    "shortcut.option+command+shift+o",
-    "shortcut.control+shift+m",
-    "shortcut.command+o",
-    "shortcut.command+j",
-    "shortcut.option+command+b",
-    "shortcut.option+command+l",
-    "shortcut.control+shift+tab",
-    "shortcut.control+tab",
-  ];
-  if (codexPreset.slice(0, expectedCodexShortcuts.length).map((card) => card.entity).join("|") !== expectedCodexShortcuts.join("|")) {
-    throw new Error("Codex starter presets changed");
+    ["Chat Bar / Mini", "option+space"],
+    ["New Chat", "command+n"],
+    ["Quick Chat", "command+option+n"],
+    ["Temporary Chat", "command+shift+n"],
+    ["Find Text", "command+f"],
+    ["Next Match", "command+g"],
+    ["Previous Match", "command+shift+g"],
+    ["Next Tab", "control+tab"],
+    ["Previous Tab", "control+shift+tab"],
+    ...[1, 2, 3, 4, 5, 6].map(slot => [`Recent Chat ${slot}`, `command+option+${slot}`]),
+    ["Archive Chat", "command+shift+a"],
+    ["Mark Unread", "command+shift+u"],
+    ["Toggle Pin", "command+option+p"],
+    ["Rename Chat", "command+option+r"],
+    ["Copy Chat Link", "command+option+l"],
+    ["Choose Model", "control+shift+m"],
+    ["Voice Chat", "control+shift+v"],
+    ["Toggle Sidebar", "command+b"],
+    ["Toggle Sidebar", "command+shift+s"],
+    ["Command Menu", "command+k"],
+    ["Command Menu", "command+shift+p"],
+    ["Settings", "command+keycomma"],
+    ["Keyboard Shortcuts", "command+keyslash"],
+    ["Restore Last Prompt", "scoped.up"],
+  ].map(([label, keys]) => [label, "shortcut." + keys]);
+  const actualCodexShortcuts = codexPreset.map(card => [card.label, card.entity]);
+  if (JSON.stringify(actualCodexShortcuts) !== JSON.stringify(expectedCodexShortcuts)) {
+    throw new Error("ChatGPT Desktop presets should match the curated shortcut list");
   }
-  if (!codexPreset.every((card) => card.type === "companion" && companionShortcutActionIdValid(card.entity))) {
-    throw new Error("Codex presets must contain only Companion keyboard shortcuts");
-  }
-  const expectedCodexLabels = [
-    "New Chat", "Command Menu", "Needs Attention", "Review Changes", "Terminal", "Find Text", "Find Files",
-    "Browser Tab", "Sidebar", "File Tree", "Project Picker", "Model / Effort", "Open Folder", "Bottom Panel",
-    "Chat / Tabs", "Copy Link", "Previous Chat", "Next Chat",
-  ];
-  if (codexPreset.slice(0, expectedCodexLabels.length).map((card) => card.label).join("|") !== expectedCodexLabels.join("|")) {
-    throw new Error("Codex shortcut labels should stay short");
+  if (!codexPreset.every(card => card.type === "companion" && companionShortcutActionIdValid(card.entity))) {
+    throw new Error("ChatGPT Desktop presets must contain only Companion keyboard shortcuts");
   }
   const slackFolderCard = {
     type: "companion", entity: SLACK_BUNDLE_ID, options: "",
@@ -473,12 +478,14 @@ export function runCompanionShortcutFeatureTests(): void {
   const crossAppSubpage = createSafariShortcutSubpage();
   syncCompanionShortcutSubpage(SAFARI_BUNDLE_ID, ["0", "1", "2", "3", "4"], crossAppSubpage);
   crossAppSubpage.order = ["B", "1", "2", "3", "4", "5"];
-  const codexBrowserPreset = codexPreset.find((card) => card.entity === "shortcut.command+t");
-  crossAppSubpage.buttons.push({ ...codexBrowserPreset, label: "Pasted Browser" });
+  crossAppSubpage.buttons.push({
+    ...codexPreset[0], entity: "shortcut.command+2", label: "Pasted Tab 2", icon: "Tab",
+    options: "app_shortcut_preset=com.openai.codex%3A49",
+  });
   crossAppSubpage.order.push("6");
   syncCompanionShortcutSubpage(SAFARI_BUNDLE_ID, ["0"], crossAppSubpage);
   if (!crossAppSubpage.buttons.some((card: any) =>
-      card.options.includes("app_shortcut_preset=com.openai.codex%3A2") && card.label === "Pasted Browser") ||
+      card.options.includes("app_shortcut_preset=com.openai.codex%3A49") && card.label === "Pasted Tab 2") ||
       companionShortcutTabsFromSubpage(SAFARI_BUNDLE_ID, crossAppSubpage).join("|") !== "0") {
     throw new Error("Shortcut cards pasted from another app must remain custom content");
   }
@@ -524,10 +531,13 @@ export function runCompanionShortcutFeatureTests(): void {
     throw new Error("Users must be able to turn off every preset shortcut");
   }
   const codexSubpage = createCodexShortcutSubpage();
-  const codexDefaults = [0, 1, 2, 3, 4, 6, 11, 7].map(index => codexPreset[index]);
+  const codexDefaults = [
+    "shortcut.command+n", "shortcut.command+k", "shortcut.command+f", "shortcut.control+shift+m",
+    "shortcut.command+b", "shortcut.control+shift+v", "shortcut.command+keyslash", "shortcut.command+option+l",
+  ];
   if (codexSubpage.backLabel !== "Back" || codexSubpage.order.length !== codexDefaults.length + 1 ||
       codexSubpage.order[0] !== "B" ||
-      codexSubpage.buttons.map((card: any) => card.entity).join("|") !== codexDefaults.map((card) => card?.entity).join("|")) {
+      codexSubpage.buttons.map((card: any) => card.entity).join("|") !== codexDefaults.join("|")) {
     throw new Error("Codex app subpage layout changed");
   }
   const savedApprove = {

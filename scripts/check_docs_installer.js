@@ -214,7 +214,7 @@ async function checkBrowser() {
       await page.getByRole('button', { name: 'Edit', exact: true }).click();
       await applicationPicker.locator('option[value="demo.web.calendar"]').waitFor({ state: 'attached' });
       assert.deepEqual(await applicationPicker.locator('option').allTextContents(),
-        ['Choose a Mac app…', ...launcherApps.toSorted((a, b) => a.localeCompare(b))]);
+        ['Select', ...launcherApps.toSorted((a, b) => a.localeCompare(b))]);
     };
     await editApplication();
     await applicationPicker.selectOption('com.apple.Notes');
@@ -233,7 +233,7 @@ async function checkBrowser() {
     const folderPicker = page.getByRole('combobox', { name: 'Folder', exact: true });
     await folderPicker.locator('option[value="folder.downloads"]').waitFor({ state: 'attached' });
     assert.deepEqual(await folderPicker.locator('option').allTextContents(),
-      ['Choose a folder…', 'Camera Uploads', 'Desktop', 'Documents', 'Downloads', 'Git', 'Projects']);
+      ['Select', 'Camera Uploads', 'Desktop', 'Documents', 'Downloads', 'Git', 'Projects']);
     await folderPicker.selectOption('folder.downloads');
     await page.getByRole('button', { name: 'Save', exact: true }).click();
     await page.locator('.sp-settings-overlay.sp-visible').waitFor({ state: 'hidden' });
@@ -271,7 +271,7 @@ async function checkBrowser() {
       Safari: ['Reload', 'Search Bar', 'Tab Overview', 'Previous Tab', 'Next Tab'],
       Slack: ['New Message', 'Search', 'Browse DMs', 'Jump Unread', 'All Unread', 'Search chat', 'Shortcuts', 'Previous Unread'],
       Notes: ['New Note', 'New Folder', 'Search Notes', 'Checklist', 'Cell Paragraph'],
-      ChatGPT: ['Command', 'Approve', 'Browser', 'Sidebar', 'Bottom Terminal', 'Side Terminal', 'Side Terminal'],
+      ChatGPT: ['Command Menu', 'New Chat', 'Find Text', 'Next Tab', 'Previous Tab', 'Recent Chat 1', 'Keyboard Shortcuts'],
       Claude: ['Quick Entry', 'Code Shortcuts', 'New Session', 'Next Session'],
     };
     for (const [app, expectedTiles] of Object.entries(shortcutPages)) {

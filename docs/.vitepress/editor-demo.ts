@@ -37,17 +37,9 @@ const sampleShortcutTabs: Record<string, readonly string[]> = {
   'com.apple.Safari': ['2', '6', '7', '9', '8'],
   [slackAppId]: ['0', '1', '2', '3', '4', '5', '6', '7'],
   'com.apple.Notes': ['0', '1', '2', '3', '4'],
-  [chatgptAppId]: ['0', '2', '3', '4', '5', '6'],
+  [chatgptAppId]: ['0', '7', '10', '18', '17', '57', '46'],
   'com.anthropic.claudefordesktop': ['0', '1', '2', '3'],
 }
-const chatgptShortcutAppearance = [
-  { label: 'Command' },
-  { label: 'Browser', icon: 'Web' },
-  { icon: 'Dock Right' },
-  { label: 'Bottom Terminal', icon: 'Dock Bottom' },
-  { label: 'Side Terminal', icon: 'Dock Right' },
-  { label: 'Side Terminal', icon: 'Dock Right' },
-]
 const idleDelayMs = 5000
 const pressDurationMs = 180
 const embedded = !editable && window.parent !== window
@@ -90,18 +82,7 @@ function samplePageCards(appId: string, tabs: readonly string[]): SamplePageCard
     return demoFolders.filter(({ label }) => finderFolderLabels.includes(label))
       .map(({ id, label }) => ({ entity: id, label, icon: 'Folder Outline' }))
   }
-  const { buttons } = createCompanionShortcutSubpage(appId, tabs)
-  if (appId !== chatgptAppId) return buttons
-
-  // Keep the captured labels and the Approve shortcut, which was retired from the catalog.
-  const cards: SamplePageCard[] = buttons.map((card, index) => ({ ...card, ...chatgptShortcutAppearance[index] }))
-  cards.splice(1, 0, {
-    entity: 'shortcut.command+enter',
-    label: 'Approve',
-    icon: 'Check',
-    options: 'app_shortcut_preset=custom',
-  })
-  return cards
+  return createCompanionShortcutSubpage(appId, tabs).buttons
 }
 
 const sampleButtons: Record<number, string> = {}

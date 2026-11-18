@@ -2,11 +2,15 @@ import Foundation
 
 /// Filesystem discovery runs independently of the UI actor.
 actor ApplicationCatalogue {
+    static let sharedApplications = URL(fileURLWithPath: "/Applications", isDirectory: true)
+    static let userApplications = FileManager.default.homeDirectoryForCurrentUser
+        .appendingPathComponent("Applications", isDirectory: true)
+
     func scan() -> [LaunchableApp] {
         let standardRoots = [
-            URL(fileURLWithPath: "/Applications"),
+            Self.sharedApplications,
             URL(fileURLWithPath: "/System/Applications"),
-            FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent("Applications", isDirectory: true),
+            Self.userApplications,
         ]
         let cryptexRoots = [
             // Current macOS releases install Safari in the protected Cryptex
@@ -39,7 +43,13 @@ actor ApplicationCatalogue {
         appendApplication(at: URL(fileURLWithPath: "/System/Library/CoreServices/Finder.app"))
         scanApplicationRoots(standardRoots)
         scanApplicationRoots(cryptexRoots)
-        return Dictionary(grouping: found, by: \.bundleIdentifier).compactMap { $0.value.first }.sorted { $0.name.localizedCaseInsensitiveCompare($1.name) == .orderedAscending }
+        return Dictionary(grouping: found, by: \.bundleIdentifier)
+            .compactMap { $0.value.first }
+            .sorted { lhs, rhs in
+                let nameOrder = lhs.name.localizedCaseInsensitiveCompare(rhs.name)
+                if nameOrder == .orderedSame { return lhs.bundleIdentifier < rhs.bundleIdentifier }
+                return nameOrder == .orderedAscending
+            }
     }
 
 }
