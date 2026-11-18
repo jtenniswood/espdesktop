@@ -423,7 +423,7 @@ export function createWebStyles(dragAnimation: boolean): string {
         ".sp-shortcut-modifier:hover{color:var(--text);border-color:var(--text3)}" +
         ".sp-shortcut-modifier.active{background:var(--accent-soft);border-color:var(--accent);color:var(--text)}" +
         ".sp-shortcut-modifier:focus-visible{outline:2px solid var(--accent);outline-offset:2px}" +
-        ".sp-setting-note{margin:-2px 0 14px;color:var(--text2);font-size:var(--text-sm);line-height:1.4;overflow-wrap:anywhere}" +
+        ".sp-setting-note{margin:8px 0 14px;color:var(--text2);font-size:var(--text-sm);line-height:1.4;overflow-wrap:anywhere}" +
         ".sp-input,.sp-select{width:100%;padding:10px 12px;background:var(--surface2);" +
         "border:1px solid var(--border);border-radius:10px;color:var(--text);font-size:var(--text-md);" +
         "font-family:inherit;box-sizing:border-box;outline:none;" +

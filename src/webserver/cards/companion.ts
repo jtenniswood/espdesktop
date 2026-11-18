@@ -2046,7 +2046,7 @@ export function registerCompanionCardTypes(
     const obsCoughPrefix = "obs.cough.";
     registry.register("companion_obs_cough", {
         ...registry.definitions.companion_cough,
-        label: obsCoughDefaults.label,
+        label: cardContractCardLabel("companion_obs_cough"),
         pickerKey: cardContractPickerKey("companion_obs_cough"),
         defaultConfig: () => obsCoughDefaults,
         onSelect: (card) => Object.assign(card, obsCoughDefaults),
