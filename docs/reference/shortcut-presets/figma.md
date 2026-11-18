@@ -29,7 +29,7 @@ Start with **Duplicate**, **Frame**, and **New Component**. Duplicate a starting
 
 ## Figma shortcut reference
 
-<ShortcutPresetReference app-id="com.figma.Desktop" flat />
+<ShortcutPresetReference app-id="com.figma.Desktop" />
 
 ## Figma shortcuts FAQ
 
@@ -58,72 +58,3 @@ Check that EspDesktop has [macOS Accessibility permission](/mac-controls/shortcu
 </div>
 
 [Browse all application shortcuts](/reference/shortcut-presets).
-
-<style scoped>
-.shortcut-faq {
-  margin: 16px 0 32px;
-}
-
-.shortcut-faq .custom-block.details {
-  margin: 0;
-  padding: 0;
-  border: 0;
-  border-radius: 0;
-  background: transparent;
-}
-
-.shortcut-faq .custom-block.details + .details {
-  border-top: 1px solid var(--vp-c-divider);
-}
-
-.shortcut-faq .details > summary {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  min-height: 64px;
-  margin: 0;
-  padding: 20px 4px 20px 0;
-  list-style: none;
-  color: var(--vp-c-text-1);
-  font-size: 1rem;
-  font-weight: 600;
-}
-
-.shortcut-faq .details > summary::-webkit-details-marker {
-  display: none;
-}
-
-.shortcut-faq .details > summary::after {
-  content: '';
-  flex: 0 0 9px;
-  height: 9px;
-  margin: 0 3px 4px;
-  border-right: 2px solid currentColor;
-  border-bottom: 2px solid currentColor;
-  color: var(--vp-c-text-2);
-  transform: rotate(45deg);
-}
-
-.shortcut-faq .details[open] > summary::after {
-  margin: 4px 3px 0;
-  transform: rotate(225deg);
-}
-
-.shortcut-faq .details > summary:hover {
-  color: var(--vp-c-brand-1);
-}
-
-.shortcut-faq .details > summary:focus-visible {
-  outline: 2px solid var(--vp-c-brand-1);
-  outline-offset: 2px;
-}
-
-.shortcut-faq .details > summary + p {
-  margin: 0;
-  padding: 0 28px 24px 0;
-  color: var(--vp-c-text-2);
-  font-size: 0.9375rem;
-  line-height: 1.65;
-}
-</style>

@@ -49,9 +49,6 @@ const author = { '@type': 'Person', name: 'jtenniswood', url: 'https://github.co
 const websiteId = `${hostname}#website`
 const softwareId = `${hostname}#software`
 const guideParents = {
-  'reference/shortcut-presets/figma.md': { name: 'Application shortcuts', path: 'reference/shortcut-presets.md' },
-  'reference/shortcut-presets/twitch.md': { name: 'Application shortcuts', path: 'reference/shortcut-presets.md' },
-  'reference/shortcut-presets/streamlabs-desktop.md': { name: 'Application shortcuts', path: 'reference/shortcut-presets.md' },
   'screens/4848s040-stand.md': { name: '4848S040 setup guide', path: 'screens/4848s040.md' },
   'features/first-run.md': { name: '4848S040 setup guide', path: 'screens/4848s040.md' },
   'features/subpages.md': { name: 'Customise the layout', path: 'features/home.md' },
@@ -178,6 +175,12 @@ export default defineConfig({
       frontmatter.macDownloadUrl = version ? `${releases}/download/${tag}/EspDesktop-${version}.dmg` : releases
     }
 
+    const shortcutGuide = relativePath.startsWith('reference/shortcut-presets/')
+    if (shortcutGuide && pageData.params) {
+      frontmatter.title = pageData.title = pageData.params.title
+      frontmatter.description = pageData.description = pageData.params.description
+    }
+
     const canonicalUrl = canonicalUrlFor(relativePath)
     const title = String(frontmatter.title ?? pageData.title)
     const description = String(frontmatter.description ?? '')
@@ -239,7 +242,9 @@ export default defineConfig({
       )
     } else {
       const breadcrumbs = `${canonicalUrl}#breadcrumbs`
-      const parent = guideParents[relativePath]
+      const parent = shortcutGuide
+        ? { name: 'Application shortcuts', path: 'reference/shortcut-presets.md' }
+        : guideParents[relativePath]
       const trail = [
         { name: 'EspDesktop', item: hostname },
         ...(parent ? [{ name: parent.name, item: canonicalUrlFor(parent.path) }] : []),

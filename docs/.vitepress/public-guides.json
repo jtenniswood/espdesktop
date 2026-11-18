@@ -20,10 +20,7 @@
     "mac-controls/websites.md",
     "mac-controls/folders.md",
     "mac-controls/shortcuts.md",
-    "reference/shortcut-presets.md",
-    "reference/shortcut-presets/figma.md",
-    "reference/shortcut-presets/twitch.md",
-    "reference/shortcut-presets/streamlabs-desktop.md"
+    "reference/shortcut-presets.md"
   ],
   "Settings and permissions": [
     "settings/screen.md",
