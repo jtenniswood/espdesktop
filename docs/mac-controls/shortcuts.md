@@ -38,3 +38,7 @@ When you add a **Key Shortcut** card inside an app subpage, the **Application** 
 The web editor dims these shortcuts when the app loses focus or the Mac disconnects. You can still edit and rearrange the tiles.
 
 <span id="add-templates-for-another-app">Missing a preset?</span> [Suggest a shortcut](/mac-controls/improve-shortcuts).
+
+## Hold to mute your microphone
+
+Use the [Cough card](/mac-controls/cough) to mute the Mac’s default microphone for as long as you hold the tile.

@@ -114,6 +114,7 @@ export interface SettingsDraft {
   typeSelected?: boolean;
   appShortcutPage?: number;
   autoSelectedButton?: CardConfig | null;
+  generated?: { readonly id: string; readonly size: number };
 }
 
 export interface AppState {

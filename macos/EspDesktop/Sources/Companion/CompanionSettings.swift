@@ -7,7 +7,7 @@ private enum CompanionSettingsField: Hashable {
 
 private enum CompanionSettingsPage: String, CaseIterable, Identifiable {
     // Retain the saved selection identifiers from earlier versions.
-    case connection, applications, folders, updates, help
+    case connection, applications, folders, obs, updates, help
 
     var id: String { rawValue }
     var title: String {
@@ -15,6 +15,7 @@ private enum CompanionSettingsPage: String, CaseIterable, Identifiable {
         case .connection: return "Displays"
         case .applications: return "Apps"
         case .folders: return "Folders"
+        case .obs: return "OBS"
         case .updates: return "Updates"
         case .help: return "Support"
         }
@@ -24,6 +25,7 @@ private enum CompanionSettingsPage: String, CaseIterable, Identifiable {
         case .connection: return "display"
         case .applications: return "square.grid.2x2"
         case .folders: return "folder"
+        case .obs: return "video"
         case .updates: return "arrow.triangle.2.circlepath"
         case .help: return "questionmark.circle"
         }
@@ -321,7 +323,7 @@ struct CompanionSettings: View {
             .scrollContentBackground(.hidden)
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
             .background(Color(nsColor: .windowBackgroundColor))
-            .background(CompanionSettingsToolbar(selection: selectedPageBinding))
+            .background(CompanionSettingsToolbar(selection: selectedPageBinding, showsOBS: obsInstalled).id(obsInstalled))
             .navigationTitle("Settings")
             .safeAreaInset(edge: .bottom, alignment: .trailing, spacing: 0) {
                 floatingSupportButton
@@ -329,9 +331,18 @@ struct CompanionSettings: View {
                     .padding(.top, 16)
                     .padding(.bottom, 24)
             }
-        .onAppear(perform: refreshAccessibilityStatus)
+        .onAppear {
+            refreshAccessibilityStatus()
+            store.refreshApplications()
+        }
         .onReceive(NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification)) { _ in
             refreshAccessibilityStatus()
+            store.refreshApplications()
+        }
+        .onChange(of: obsInstalled) { installed in
+            if !installed, selectedPageID == CompanionSettingsPage.obs.rawValue {
+                selectedPageID = CompanionSettingsPage.connection.rawValue
+            }
         }
         .alert("Forget this display?", isPresented: Binding(
             get: { displayToForget != nil },
@@ -379,13 +390,19 @@ struct CompanionSettings: View {
         case .connection: connectionPage
         case .applications: applicationsPage
         case .folders: foldersPage
+        case .obs: OBSSettings(connection: store.obs)
         case .updates: CompanionUpdateSettings(updater: store.updater)
         case .help: helpPage
         }
     }
 
+    private var obsInstalled: Bool {
+        store.availableApps.contains { $0.bundleIdentifier == OBSConnection.applicationBundleIdentifier }
+    }
+
     private var selectedPage: CompanionSettingsPage {
-        CompanionSettingsPage(rawValue: selectedPageID) ?? .connection
+        let page = CompanionSettingsPage(rawValue: selectedPageID) ?? .connection
+        return page == .obs && !obsInstalled ? .connection : page
     }
 
     private var selectedPageBinding: Binding<CompanionSettingsPage> {
@@ -827,7 +844,7 @@ struct CompanionSettings: View {
             if store.availableApps.isEmpty {
                 Section {
                     emptyState("No Applications Found", symbol: "app.dashed",
-                               detail: "Install applications in your Applications folder, then refresh this list.") {
+                               detail: "Apps in your Applications folder appear here automatically.") {
                         Button("Refresh Applications") { store.refreshApplications() }
                     }
                 }
@@ -850,6 +867,7 @@ struct CompanionSettings: View {
             }
         }
         .formStyle(.grouped)
+        .onAppear { store.refreshApplications() }
     }
 
     private var foldersPage: some View {
@@ -1035,8 +1053,9 @@ struct CompanionSettings: View {
 /// their layout, selection appearance, accessibility, and light/dark styling.
 private struct CompanionSettingsToolbar: NSViewRepresentable {
     @Binding var selection: CompanionSettingsPage
+    let showsOBS: Bool
 
-    func makeCoordinator() -> Coordinator { Coordinator(selection: $selection) }
+    func makeCoordinator() -> Coordinator { Coordinator(selection: $selection, showsOBS: showsOBS) }
 
     func makeNSView(context: Context) -> WindowObserver {
         let view = WindowObserver()
@@ -1074,10 +1093,12 @@ private struct CompanionSettingsToolbar: NSViewRepresentable {
     final class Coordinator: NSObject, NSToolbarDelegate {
         var selection: Binding<CompanionSettingsPage>
         let toolbar = NSToolbar(identifier: "EspDesktopSettingsNavigation")
+        private let pageIdentifiers: [NSToolbarItem.Identifier]
         private weak var window: NSWindow?
 
-        init(selection: Binding<CompanionSettingsPage>) {
+        init(selection: Binding<CompanionSettingsPage>, showsOBS: Bool) {
             self.selection = selection
+            pageIdentifiers = CompanionSettingsPage.allCases.filter { showsOBS || $0 != .obs }.map { .init($0.rawValue) }
             super.init()
             toolbar.delegate = self
             toolbar.displayMode = .iconAndLabel
@@ -1117,10 +1138,6 @@ private struct CompanionSettingsToolbar: NSViewRepresentable {
             window.titlebarSeparatorStyle = .line
             window.toolbar = toolbar
             toolbar.selectedItemIdentifier = .init(selection.wrappedValue.rawValue)
-        }
-
-        private var pageIdentifiers: [NSToolbarItem.Identifier] {
-            CompanionSettingsPage.allCases.map { .init($0.rawValue) }
         }
 
         func toolbarDefaultItemIdentifiers(_ toolbar: NSToolbar) -> [NSToolbarItem.Identifier] {

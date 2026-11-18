@@ -21,9 +21,10 @@ source = r'''
 #include <vector>
 #define ESP_LOGD(...) ((void)0)
 struct lv_obj_t;
-void lv_label_set_text(lv_obj_t *, const char *) {}
+void lv_label_set_text(lv_obj_t *, const char *);
 #include "i18n_generated.h"
 #include "button_grid_config_parser.h"
+#include "companion_audio_control.h"
 #define ESPDESKTOP_SUBPAGE_PARSER_ONLY
 #include "button_grid_subpages.h"
 #include "display_color.h"
@@ -40,6 +41,7 @@ struct lv_obj_t {
   uint32_t background[3] = {}, text[3] = {}, gradient[3] = {}, border[3] = {}, outline[3] = {};
   int gradient_direction[3] = {};
   int state = 0;
+  int slider_value = 0, slider_events = 0, y_offset = 0, layout_updates = 0;
   bool instant_feedback = false;
   int flags = 0;
   std::vector<lv_event_cb_t> events;
@@ -49,6 +51,7 @@ struct lv_obj_t {
   lv_obj_t *parent = nullptr;
 };
 struct BtnSlot { lv_obj_t *btn, *icon_lbl = nullptr, *text_lbl = nullptr, *sensor_container = nullptr, *subpage_lbl = nullptr; };
+void lv_label_set_text(lv_obj_t *obj, const char *text) { obj->content = text; }
 struct AlarmCardCtx { lv_obj_t *btn; uint32_t off_color; bool off_theme_owned = false; int theme_red_percent = 100, theme_green_percent = 100, theme_blue_percent = 100; };
 struct DisplayProfile {
   struct { int red_percent = 100, green_percent = 100, blue_percent = 100; } color;
@@ -114,8 +117,14 @@ struct MediaNowPlayingCtx {
   uint32_t fallback_background_color = 0;
 };
 bool image_card_media_artwork_visible(const ImageCardCtx *ctx) { return ctx && ctx->artwork_visible; }
-void set_card_content_disabled(lv_obj_t *, bool) {}
 constexpr int LV_STATE_DISABLED = 4, LV_OBJ_FLAG_HIDDEN = 1, LV_OBJ_FLAG_USER_2 = 1<<28;
+void set_card_content_disabled(lv_obj_t *obj, bool disabled) {
+  for (auto *child : obj->children) {
+    if (disabled) lv_obj_add_state(child, LV_STATE_DISABLED);
+    else lv_obj_clear_state(child, LV_STATE_DISABLED);
+    set_card_content_disabled(child, disabled);
+  }
+}
 void set_card_disabled_state(lv_obj_t *obj, bool disabled) {
   if (!obj) return;
   if (disabled) lv_obj_add_state(obj, LV_STATE_DISABLED);
@@ -191,7 +200,30 @@ bool companion_card_focus_allowed(const std::string &) { return focus_allowed; }
 std::string companion_url_card_focus_id(const std::string &) { return "browser"; }
 unsigned focus_reads = 0;
 bool companion_action_active(const std::string &id, bool = false) { ++focus_reads; return id == focused_app; }
-struct CompanionRuntimeSnapshot {};
+struct CompanionAction {
+  std::string id, label;
+  OBSCardState obs_state{OBSCardState::unknown};
+  std::string obs_detail{};
+};
+struct CompanionValue { std::string id; int value; };
+struct CompanionRuntimeSnapshot {
+  std::string selected_scene{};
+  bool connected = true;
+  std::vector<CompanionAction> actions{};
+  std::vector<CompanionValue> values{};
+};
+CompanionRuntimeSnapshot companion_runtime_snapshot() { return {}; }
+const CompanionAction *companion_published_action(const CompanionRuntimeSnapshot &snapshot, const std::string &id) {
+  static const CompanionAction selected{};
+  if (!snapshot.connected) return nullptr;
+  if (id == snapshot.selected_scene) return &selected;
+  for (const auto &action : snapshot.actions) {
+    if (action.id == id) return &action;
+    if ((id == "obs.take" || id == "obs.transition") && action.id.size() == id.size() + 37 &&
+        action.id.rfind(id + ".", 0) == 0) return &action;
+  }
+  return nullptr;
+}
 bool companion_action_focused(const CompanionRuntimeSnapshot &, const std::string &id, bool = false) {
   return companion_action_active(id);
 }
@@ -200,7 +232,29 @@ struct CompanionCardRef {
   std::string action_id, url_config, metric_key;
   bool show_focus = true;
   std::string required_focus_id{};
+  lv_obj_t *text_label = nullptr, *obs_detail = nullptr, *obs_state_icon = nullptr;
+  std::string obs_label_alias{};
+  CompanionAction rendered_obs_action{};
 };
+struct CompanionSliderRef {
+  lv_obj_t *slider = nullptr, *icon_label = nullptr, *text_label = nullptr, *obs_fader_fill = nullptr;
+  std::string control_id, obs_cough_id, base_label;
+  bool has_icon_on = false;
+  const char *icon_off = nullptr, *icon_on = nullptr;
+  uint32_t obs_fader_live_color = 0;
+};
+constexpr int LV_ALIGN_BOTTOM_LEFT = 1, LV_ANIM_OFF = 0, LV_EVENT_VALUE_CHANGED = 21;
+const char *lv_label_get_text(lv_obj_t *label) { return label->content.c_str(); }
+void lv_obj_align(lv_obj_t *obj, int, int, int y) { obj->y_offset = y; }
+void lv_obj_update_layout(lv_obj_t *obj) { ++obj->layout_updates; }
+const int *lv_obj_get_style_text_font(lv_obj_t *, int) { static const int line_height = 20; return &line_height; }
+int lv_font_get_line_height(const int *font) { return *font; }
+void lv_slider_set_value(lv_obj_t *obj, int value, int) { obj->slider_value = value; }
+int lv_slider_get_value(lv_obj_t *obj) { return obj->slider_value; }
+void lv_obj_send_event(lv_obj_t *obj, int event, void *) {
+  assert(event == LV_EVENT_VALUE_CHANGED);
+  ++obj->slider_events;
+}
 bool companion_action_available(const std::string &) { return true; }
 bool companion_action_available(const CompanionRuntimeSnapshot &, const std::string &) { return true; }
 std::vector<CompanionCardRef> focus_cards;
@@ -208,6 +262,10 @@ auto &companion_card_refs() { return focus_cards; }
 bool lv_obj_is_valid(lv_obj_t *obj) { return obj != nullptr; }
 '''
 grid = (headers / "button_grid_grid.h").read_text()
+_, setup = definition(grid, "setup_card_visual")
+_, refresh = definition(grid, "refresh_card_layout")
+assert "basic_action_driver_refresh_layout(" not in setup
+assert refresh.index("apply_card_label_line_clamp(") < refresh.index("basic_action_driver_refresh_layout(")
 layout = (headers / "button_grid_layout.h").read_text()
 source += "\n" + "\n".join(re.findall(r"^constexpr char CARD_SIZE_.*?;$", layout, re.MULTILINE))
 
@@ -219,7 +277,9 @@ groups = (
     ("card_text_contrast.h", "", ("apply_card_descendant_text_color", "sync_card_checked_text_color", "card_text_contrast_event_cb", "sync_bound_card_text_color", "bind_card_text_contrast_events", "set_card_checked_state")),
     ("button_grid_touch.h", "", ("consume_button_touch_press",)),
     ("button_grid_layout.h", "", ("parse_hex_color", "apply_button_colors", "apply_button_on_pattern")),
-    ("companion_controls.h", "", ("companion_apply_card_focus", "companion_required_focus_ready", "companion_refresh_card_focus")),
+    ("companion_controls.h", "", ("companion_obs_record_stopping", "companion_obs_output_status_id", "companion_obs_output_status", "companion_obs_output_active")),
+    ("companion_controls.h", "", ("companion_obs_scene_target", "companion_obs_hashed_target", "companion_obs_transition_target", "companion_obs_source_target", "companion_obs_scene_card", "companion_obs_control_label", "companion_obs_break_active", "companion_obs_momentary_action", "companion_apply_card_focus", "companion_required_focus_ready", "companion_refresh_card_focus")),
+    ("companion_controls.h", "", ("companion_obs_status_card", "companion_obs_status_icon", "companion_obs_scene_on_program", "companion_render_obs_detail", "companion_obs_keep_content_bright", "companion_update_obs_detail_contrast", "companion_render_slider")),
     ("button_grid_grid.h", "", ("card_palette_for_config", "card_slot_static_child", "reset_card_slot_dynamic_children")),
     ("button_grid_grid.h", "", ("apply_subpage_back_colors",)),
     ("button_grid_subscriptions.h", "", ("apply_sensor_active_color",)),
@@ -247,6 +307,216 @@ source += r'''
 #line 1 "card_colour_rendering_cases"
 int main() {
   {
+    lv_obj_t tile, title, detail, icon;
+    ParsedCfg config;
+    config.type = "companion";
+    config.entity = "obs.status.record";
+    CardPalette defaults;
+    defaults.sensor_val = 0xFFFFFF;
+    defaults.surface_sensor_val = 0xF5F5F5;
+    assert(card_palette_for_config(defaults, config, DisplayProfile{}).sensor_val == 0xF5F5F5);
+    config.entity = "obs.output.record";
+    assert(card_palette_for_config(defaults, config, DisplayProfile{}).sensor_val == 0xFFFFFF);
+    CompanionCardRef sensor{&tile, "obs.status.record", "", ""};
+    sensor.text_label = &title;
+    sensor.obs_detail = &detail;
+    sensor.obs_state_icon = &icon;
+    companion_render_obs_detail(sensor, "Recording · Idle", {});
+    assert(title.content == "Recording" && detail.content == "Idle" && icon.content == "Stop Circle");
+    companion_render_obs_detail(sensor, "Recording · Active", {});
+    assert(title.content == "Recording" && detail.content == "Active" && icon.content == "Record");
+    companion_render_obs_detail(sensor, "Recording · Paused", {});
+    assert(title.content == "Recording" && detail.content == "Paused" && icon.content == "Pause");
+    sensor.action_id = "obs.status.stream";
+    companion_render_obs_detail(sensor, "Stream · Reconnecting", {});
+    assert(title.content == "Stream" && detail.content == "Reconnecting" && icon.content == "Progress Clock");
+    sensor.action_id = "obs.status.program";
+    companion_render_obs_detail(sensor, "Program · Break", {});
+    assert(title.content == "Program" && detail.content == "Break" && icon.content == "Monitor");
+    companion_render_obs_detail(sensor, "Unavailable", {});
+    assert(title.content == "Program" && detail.content == "Unavailable" && icon.content == "Monitor Off");
+  }
+  {
+    lv_obj_t tile, title, detail, icon;
+    tile.children = {&title, &detail, &icon};
+    CompanionCardRef record{&tile, "obs.output.record", "", ""};
+    record.text_label = &title;
+    record.obs_detail = &detail;
+    record.obs_state_icon = &icon;
+    set_card_disabled_state(&tile, true);
+    set_card_content_disabled(&tile, true);
+    CompanionRuntimeSnapshot stopping;
+    stopping.actions = {{"obs.output.record", "Stopping"}, {"obs.record.active", "Recording"}};
+    companion_apply_card_focus(&tile, record.action_id, "", true, &stopping);
+    companion_render_obs_detail(record, companion_obs_control_label(record.action_id, "", "", &stopping), {});
+    companion_update_obs_detail_contrast(record, true);
+    assert(title.content == "Recording" && detail.content == "Stopping" && title.y_offset < 0);
+    assert(lv_obj_has_state(&tile, LV_STATE_DISABLED) && lv_obj_has_state(&tile, LV_STATE_CHECKED));
+    assert(!lv_obj_has_state(&title, LV_STATE_DISABLED) && !lv_obj_has_state(&icon, LV_STATE_DISABLED));
+
+    record.obs_label_alias = "Capture · Desk";
+    companion_render_obs_detail(record, companion_obs_control_label(record.action_id, record.obs_label_alias, "", &stopping), {});
+    assert(title.content == "Capture · Desk" && detail.content == "Stopping");
+    record.obs_label_alias.clear();
+
+    CompanionRuntimeSnapshot idle;
+    idle.actions = {{"obs.status.record", "Recording · Idle"}};
+    companion_apply_card_focus(&tile, record.action_id, "", true, &idle);
+    companion_render_obs_detail(record, companion_obs_control_label(record.action_id, "", "", &idle), {});
+    companion_update_obs_detail_contrast(record, false);
+    assert(title.content == "Record" && detail.content == "Idle" && icon.content == "Stop Circle");
+    assert(!lv_obj_has_state(&tile, LV_STATE_CHECKED));
+    assert(lv_obj_has_state(&title, LV_STATE_DISABLED));
+    record.action_id = "obs.output.stream";
+    CompanionRuntimeSnapshot reconnecting;
+    reconnecting.actions = {{"obs.status.stream", "Stream · Reconnecting"}};
+    companion_apply_card_focus(&tile, record.action_id, "", true, &reconnecting);
+    companion_render_obs_detail(record, companion_obs_control_label(record.action_id, "", "", &reconnecting), {});
+    assert(title.content == "Stream" && detail.content == "Reconnecting" && icon.content == "Progress Clock");
+    assert(lv_obj_has_state(&tile, LV_STATE_CHECKED));
+    const auto migrated = parse_cfg("obs.status.record;;Monitor;Auto;;;companion;;obs_confirm=none,card_off_color=123456");
+    assert(migrated.entity == "obs.output.record" && migrated.options == "card_off_color=123456");
+    for (const std::string prefix : {"obs.scene.", "obs.preview."}) {
+      const std::string uuid = "69da3f8f-7f62-4abe-a594-4e40dd579858";
+      const auto scene = parse_cfg(prefix + uuid + ";Gameplay;Image;Auto;;;companion;;card_off_color=123456");
+      assert(scene.entity == "obs.target." + uuid && scene.label == "Gameplay");
+      assert(scene.icon == "Image" && scene.options == "card_off_color=123456");
+    }
+    for (const std::string id : {"obs.studio", "obs.replay.buffer"}) {
+      const auto toggle = parse_cfg(id + ";;Auto;Auto;;;companion;;obs_confirm=both,confirm_yes=Proceed");
+      assert(cfg_option_value(toggle.options, "obs_confirm") == "both");
+      assert(cfg_option_value(toggle.options, "confirm_yes") == "Proceed");
+    }
+  }
+  {
+    lv_obj_t tile, title, detail;
+    tile.children = {&title, &detail};
+    CompanionCardRef replay{&tile, "obs.replay", "", ""};
+    replay.text_label = &title;
+    replay.obs_detail = &detail;
+    companion_render_obs_detail(replay, "Start Replay Buffer", {});
+    assert(title.content == "Save Replay" && detail.content == "Start Replay Buffer");
+    set_card_disabled_state(&tile, true);
+    lv_obj_add_state(&title, LV_STATE_DISABLED);  // Subtitle was added after the tile was disabled.
+    companion_update_obs_detail_contrast(replay, false);
+    assert(lv_obj_has_state(&detail, LV_STATE_DISABLED));
+    replay.action_id = "obs.brb";
+    companion_render_obs_detail(replay, "BRB · Check OBS", {});
+    lv_obj_clear_state(&detail, LV_STATE_DISABLED);
+    companion_update_obs_detail_contrast(replay, false);
+    assert(title.content == "Break" && detail.content == "Check OBS");
+    assert(lv_obj_has_state(&detail, LV_STATE_DISABLED));
+    companion_render_obs_detail(replay, "BRB · Already on break", {});
+    assert(title.content == "Break" && detail.content.empty() && title.y_offset == 0);
+    replay.rendered_obs_action = {"obs.brb.11111111-1111-1111-1111-111111111111", "BRB · Test scene"};
+    companion_render_obs_detail(replay, replay.rendered_obs_action.label, {});
+    assert(title.content == "Break" && detail.content == "Start");
+    CompanionRuntimeSnapshot break_state;
+    break_state.actions = {{"obs.brb", "Resume"}};
+    companion_render_obs_detail(replay, "Resume", {});
+    companion_apply_card_focus(&tile, "obs.brb", "", true, &break_state);
+    assert(title.content == "Break" && detail.content == "Resume");
+    assert(lv_obj_has_state(&tile, LV_STATE_CHECKED));
+    break_state.actions[0].label = "BRB · Test scene";
+    companion_apply_card_focus(&tile, "obs.brb", "", true, &break_state);
+    assert(!lv_obj_has_state(&tile, LV_STATE_CHECKED));
+    replay.action_id = "obs.replay";
+    set_card_disabled_state(&tile, false);
+    CompanionRuntimeSnapshot replay_state;
+    lv_obj_add_state(&tile, LV_STATE_PRESSED);
+    for (const auto state : {OBSCardState::replay_ready, OBSCardState::replay_saving,
+                             OBSCardState::replay_saved, OBSCardState::replay_ready}) {
+      const auto *status = obs_card_presentation(state).detail;
+      replay_state.actions = {{"obs.replay", "Save Replay", state}};
+      companion_render_obs_detail(replay, "Save Replay", replay_state);
+      companion_apply_card_focus(&tile, "obs.replay", "", true, &replay_state);
+      assert(title.content == "Save Replay" && detail.content == status);
+      assert(!lv_obj_has_state(&tile, LV_STATE_CHECKED));
+      assert(lv_obj_has_state(&tile, LV_STATE_PRESSED));
+    }
+    companion_update_obs_detail_contrast(replay, false);
+    assert(!lv_obj_has_state(&detail, LV_STATE_DISABLED));
+    replay.action_id = "obs.take";
+    focused_app = replay.action_id;
+    lv_obj_add_state(&tile, LV_STATE_CHECKED);
+    companion_apply_card_focus(&tile, replay.action_id, "", true, &replay_state);
+    assert(!lv_obj_has_state(&tile, LV_STATE_CHECKED) && lv_obj_has_state(&tile, LV_STATE_PRESSED));
+    focused_app.clear();
+    for (const auto state : {OBSCardState::take_transitioning, OBSCardState::unknown}) {
+      set_card_disabled_state(&tile, false);
+      lv_obj_add_state(&tile, LV_STATE_PRESSED);
+      replay_state.actions = {{"obs.take", "Take Live · Transitioning", state}};
+      title.content = "Take Studio";
+      detail.content = "Fade";
+      companion_render_obs_detail(replay, replay_state.actions[0].label, replay_state, true);
+      assert(title.content == "Take Studio" && detail.content == "Fade");
+      companion_update_obs_detail_contrast(replay, false);
+      assert(lv_obj_has_state(&tile, LV_STATE_PRESSED));
+      set_card_disabled_state(&tile, true);  // OBS updates before the user's finger lifts.
+      companion_render_obs_detail(replay, replay_state.actions[0].label, replay_state);
+      companion_update_obs_detail_contrast(replay, companion_obs_keep_content_bright(replay_state, replay.action_id));
+      assert(title.content == "Take Live" && detail.content.empty());
+      assert(lv_obj_has_state(&tile, LV_STATE_DISABLED));
+      assert(!lv_obj_has_state(&tile, LV_STATE_PRESSED) && !lv_obj_has_state(&tile, LV_STATE_CHECKED));
+      assert(lv_obj_has_state(&title, LV_STATE_DISABLED) && lv_obj_has_state(&detail, LV_STATE_DISABLED));
+    }
+    replay_state.actions = {{"obs.take", "Take Live", OBSCardState::take_same_scene}, {"obs.transition", "Cut"}};
+    companion_render_obs_detail(replay, "Take Live", replay_state);
+    companion_update_obs_detail_contrast(replay, companion_obs_keep_content_bright(replay_state, replay.action_id));
+    assert(title.content == "Currently Live" && detail.content.empty());
+    assert(lv_obj_has_state(&title, LV_STATE_DISABLED) && lv_obj_has_state(&detail, LV_STATE_DISABLED));
+    set_card_disabled_state(&tile, false);
+    const std::string suffix = ".9ea47782-fada-4bb3-aef6-1904669efae7";
+    replay_state.actions = {{"obs.take" + suffix, "Take Live · Studio", OBSCardState::take_ready, "Studio"},
+                            {"obs.transition" + suffix, "Fade"}};
+    companion_render_obs_detail(replay, replay_state.actions[0].label, replay_state);
+    assert(title.content == "Take Studio" && detail.content == "Fade");
+    const auto layout_updates = detail.layout_updates;
+    replay_state.actions[0].obs_detail = "Break";
+    replay_state.actions[1].label = "Cut";
+    companion_render_obs_detail(replay, "Take Live · Break", replay_state, true);
+    assert(title.content == "Take Break" && detail.content == "Cut" && title.y_offset == -22);
+    assert(detail.layout_updates == layout_updates);
+    replay.action_id = "obs.transition";
+    companion_render_obs_detail(replay, "Fade · Short", {});
+    assert(title.content == "Transition" && detail.content == "Fade · Short");
+    companion_render_obs_detail(replay, "Cut", {});
+    assert(title.content == "Transition" && detail.content == "Cut");
+    replay.action_id = "obs.transition.select.0123456789abcdef0123456789abcdef";
+    replay.rendered_obs_action = {replay.action_id + ".11111111-1111-1111-1111-111111111111", "Cut"};
+    companion_render_obs_detail(replay, "Cut", {});
+    assert(title.content == "Cut" && detail.content == "Transition");
+    CompanionRuntimeSnapshot transition_state;
+    transition_state.actions = {{"obs.transition.selected", replay.action_id}};
+    companion_apply_card_focus(&tile, replay.action_id, "", true, &transition_state);
+    assert(lv_obj_has_state(&tile, LV_STATE_CHECKED));
+    transition_state.actions.clear();
+    companion_apply_card_focus(&tile, replay.action_id, "", true, &transition_state);
+    assert(!lv_obj_has_state(&tile, LV_STATE_CHECKED));
+  }
+  {
+    lv_obj_t slider, title, fill;
+    CompanionSliderRef fader;
+    fader.slider = &slider;
+    fader.text_label = &title;
+    fader.obs_fader_fill = &fill;
+    fader.obs_fader_live_color = 0xFF8C00;
+    fader.control_id = "obs.level.11111111-1111-1111-1111-111111111111";
+    fader.base_label = parse_cfg(fader.control_id + ";OBS · Desk Mic;Microphone;Auto;;;slider").label;
+    assert(fader.base_label == "Desk Mic");
+    fader.obs_cough_id = "obs.cough.11111111-1111-1111-1111-111111111111";
+    CompanionRuntimeSnapshot snapshot;
+    snapshot.actions = {{fader.control_id, "Desk Mic"}};
+    snapshot.values = {{fader.control_id, 75}, {fader.obs_cough_id, 100}};
+    companion_render_slider(fader, snapshot);
+    assert(title.content == "Desk Mic");
+    assert(fill.background[0] == 0x808080 && slider.slider_value == 75);
+    assert(!lv_obj_has_state(&slider, LV_STATE_DISABLED));
+    snapshot.values[1].value = 0;
+    companion_render_slider(fader, snapshot);
+    assert(fill.background[0] == 0xFF8C00 && slider.slider_value == 75);
+  }
+  {
     lv_obj_t old_app, new_app, unrelated_app, metric;
     old_app.state = metric.state = LV_STATE_CHECKED;
     focus_cards = {{&old_app, "old", "", ""}, {&new_app, "new", "", ""},
@@ -271,6 +541,61 @@ int main() {
     companion_refresh_card_focus(CompanionRuntimeSnapshot{});
     assert(!lv_obj_has_state(&shortcut, LV_STATE_DISABLED));
     focus_cards.clear(); focused_app.clear();
+  }
+  {
+    lv_obj_t main_scene, break_scene;
+    const std::string main_id = "11111111-1111-1111-1111-111111111111";
+    const std::string break_id = "22222222-2222-2222-2222-222222222222";
+    focus_cards = {{&main_scene, "obs.target." + main_id, "", ""},
+                   {&break_scene, "obs.target." + break_id, "", ""}};
+    companion_refresh_card_focus({"obs.selected." + main_id});
+    assert(lv_obj_has_state(&main_scene, LV_STATE_CHECKED));
+    assert(!lv_obj_has_state(&break_scene, LV_STATE_CHECKED));
+    companion_refresh_card_focus({"obs.selected." + break_id});
+    assert(!lv_obj_has_state(&main_scene, LV_STATE_CHECKED));
+    assert(lv_obj_has_state(&break_scene, LV_STATE_CHECKED));
+    CompanionRuntimeSnapshot studio{"obs.selected." + break_id};
+    studio.actions = {{"obs.program." + main_id, ""}};
+    companion_refresh_card_focus(studio);
+    assert(!lv_obj_has_state(&main_scene, LV_STATE_CHECKED));
+    assert(lv_obj_has_state(&break_scene, LV_STATE_CHECKED));
+    lv_obj_t title, detail, icon;
+    auto &main_card = focus_cards[0];
+    main_card.text_label = &title;
+    main_card.obs_detail = &detail;
+    main_card.obs_state_icon = &icon;
+    companion_render_obs_detail(main_card, "Main", studio);
+    assert(title.content == "Main" && detail.content == "Live" && icon.content == "Broadcast");
+    studio.actions[0].id = "obs.program." + break_id;
+    companion_refresh_card_focus(studio);
+    assert(lv_obj_has_state(&break_scene, LV_STATE_CHECKED));
+    companion_render_obs_detail(main_card, "Main", studio);
+    assert(title.content == "Main" && detail.content == "Scene" && icon.content == "Image Card Loading");
+    studio.actions = {{main_card.action_id, "Main"}};
+    for (const auto state : {OBSCardState::scene_live, OBSCardState::scene_program, OBSCardState::scene_program_preview}) {
+      studio.actions[0].obs_state = state;
+      companion_render_obs_detail(main_card, "Main", studio);
+      assert(detail.content == "Live");
+    }
+    studio.actions[0].obs_state = OBSCardState::scene_preview;
+    companion_render_obs_detail(main_card, "Main", studio);
+    assert(detail.content == "Scene");
+    CompanionRuntimeSnapshot normal{"obs.selected." + main_id};
+    normal.actions = {{"obs.studio", "Off"}};
+    companion_render_obs_detail(main_card, "Main", normal);
+    assert(detail.content == "Live");
+    normal.connected = false;
+    companion_render_obs_detail(main_card, "Main", normal);
+    assert(detail.content == "Scene");
+    companion_refresh_card_focus({});
+    assert(!lv_obj_has_state(&break_scene, LV_STATE_CHECKED));
+    lv_obj_t recording;
+    focus_cards = {{&recording, "obs.output.record", "", ""}};
+    companion_refresh_card_focus({"obs.record.active"});
+    assert(lv_obj_has_state(&recording, LV_STATE_CHECKED));
+    companion_refresh_card_focus({});
+    assert(!lv_obj_has_state(&recording, LV_STATE_CHECKED));
+    focus_cards.clear();
   }
   // An icon reload/reconnect after a light-theme change must not restore
   // the dark fallback captured when the card was first created.
@@ -596,4 +921,4 @@ with tempfile.TemporaryDirectory(prefix="card-colour-rendering-") as directory:
     subprocess.run([sys.argv[1] if len(sys.argv) > 1 else "c++", "-std=c++17", "-Wall", "-Wextra", "-Werror",
                     "-I" + str(root / "tests/firmware/stubs"), "-I" + str(headers), str(cpp), "-o", str(binary)], check=True)
     subprocess.run([str(binary)], check=True)
-print("Card colour rendering checks passed: main/subpage contrast, defaults, display correction and Mac focus.")
+print("Card colour rendering checks passed: main/subpage contrast, display correction, Mac focus and OBS feedback.")

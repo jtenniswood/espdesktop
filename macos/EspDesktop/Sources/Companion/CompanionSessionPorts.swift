@@ -25,7 +25,9 @@ extension CompanionSessionPreferences {
 @MainActor
 protocol CompanionSessionResources: AnyObject {
     var applicationCatalogueReady: Bool { get }
+    func obsControlActions() -> [OBSConnection.CatalogueEntry]
     func folderActions() -> [ApprovedFolder]
+    func inputDeviceActions() -> [(id: String, label: String)]
     func launchableApps() -> [LaunchableApp]
     func appIconPixels(bundleIdentifier: String, pixelSide: Int) -> Data?
     func focusedCompanionActionIdentifier() async -> String
@@ -33,8 +35,14 @@ protocol CompanionSessionResources: AnyObject {
     func focusedCompanionActionIdentifiers(for targets: [(id: String, url: URL)]) async -> [String]
     func remoteCompanionCatalogues() -> RemoteCompanionCatalogues
     func performResultStatus(actionIdentifier: String, folderOpenBehavior: String, shortcutAppID: String?) async -> String
+    func performGuardedOBSAction(actionIdentifier: String, isValid: @escaping @MainActor () -> Bool) async -> Bool
     func openURL(encodedURL: String, newWindow: Bool) async -> Bool
-    func setMediaControlValue(_ value: Int, controlIdentifier: String) -> Bool
+    func setMediaControlValue(_ value: Int, controlIdentifier: String) async -> Bool
+    func setCoughButtonValue(_ value: Int, from session: ObjectIdentifier) -> Bool
+    func setOBSFader(_ value: Int, controlIdentifier: String) async -> Bool
+    func obsAudioValues() -> [String: Int]
+    func setOBSCough(_ value: Int, controlIdentifier: String, from session: ObjectIdentifier) async -> Bool
+    func abandonOBSCough(from session: ObjectIdentifier)
 }
 
 @MainActor
@@ -61,8 +69,16 @@ enum CompanionSessionEvent {
 
 @MainActor
 extension CompanionSessionResources {
+    func inputDeviceActions() -> [(id: String, label: String)] { [] }
+    func setCoughButtonValue(_ value: Int, from session: ObjectIdentifier) -> Bool { false }
     func immediateFocusedApplicationIdentifier() -> String? { nil }
     var applicationCatalogueReady: Bool { true }
+    func obsControlActions() -> [OBSConnection.CatalogueEntry] { [] }
+    func performGuardedOBSAction(actionIdentifier: String, isValid: @escaping @MainActor () -> Bool) async -> Bool { false }
+    func setOBSFader(_ value: Int, controlIdentifier: String) async -> Bool { false }
+    func obsAudioValues() -> [String: Int] { [:] }
+    func setOBSCough(_ value: Int, controlIdentifier: String, from session: ObjectIdentifier) async -> Bool { false }
+    func abandonOBSCough(from session: ObjectIdentifier) {}
     func remoteCompanionCatalogues() -> RemoteCompanionCatalogues { .empty }
     func focusedCompanionActionIdentifiers(for targets: [(id: String, url: URL)]) async -> [String] {
         let identifier = await focusedCompanionActionIdentifier()

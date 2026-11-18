@@ -36,7 +36,8 @@ export function firstRunApplications(actions: readonly CompanionAction[]): Compa
     for (const action of actions) {
         if (!action.id.startsWith("folder.") && !action.id.startsWith("shortcut.") &&
             !action.id.startsWith("media.") && !action.id.startsWith("system.") &&
-            !action.id.startsWith("window.") && !action.id.startsWith("webapp.")) unique.set(action.id, action);
+            !action.id.startsWith("window.") && !action.id.startsWith("webapp.") &&
+            !action.id.startsWith("obs.") && !action.id.startsWith("input.level.")) unique.set(action.id, action);
     }
     return [...unique.values()].sort((a, b) => a.label.localeCompare(b.label));
 }
@@ -96,6 +97,7 @@ interface FirstRunSetupDependencies {
     fields: Pick<ControlsFieldsFeature, "textInput" | "toggleRow">;
     shell: Pick<ControlsShellFeature, "switchTab" | "isConfigLocked" | "showBanner" | "createMdiIcon" | "createActionButton">;
     onSaved: (mirrorFailed: boolean) => void;
+    openOBSSetup: (onPinned: () => void) => void;
     autoSwitchEnabled: () => boolean;
 }
 
@@ -348,6 +350,9 @@ export function createFirstRunSetup(deps: FirstRunSetupDependencies): { start():
         if (step === 0) {
             renderPairing(content);
         } else if (step === 1) {
+            if (!replacing) {
+                content.appendChild(button("Set up OBS Studio", () => deps.openOBSSetup(dismiss)));
+            }
             const search: HTMLInputElement = deps.fields.textInput("sp-setup-search", query, "Search apps");
             search.type = "search";
             search.setAttribute("aria-label", "Search apps");

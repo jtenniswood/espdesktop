@@ -43,6 +43,9 @@ export const GENERATED_ICON_SLUGS: Readonly<Record<string, string>> = {
     "Battery Status 70%": "battery-70",
     "Battery Status 80%": "battery-80",
     "Battery Status 90%": "battery-90",
+    "Broadcast": "broadcast",
+    "Broadcast Off": "broadcast-off",
+    "Stop Circle": "stop-circle",
     "Shortcut Command": "apple-keyboard-command",
     "Account": "account",
     "Application": "application-outline",
@@ -403,6 +406,9 @@ export const GENERATED_ICON_SLUGS: Readonly<Record<string, string>> = {
     "Subscript": "format-subscript",
     "Superscript": "format-superscript",
     "Subtitles": "subtitles-outline",
+    "Coffee to Go": "coffee-to-go",
+    "Flip Horizontal": "flip-horizontal",
+    "Movie": "movie",
 };
 export const GENERATED_ICON_NAMES: readonly string[] = [
     "Shortcut Command", "Account", "Application", "Battery", "Battery Alert", "Battery Charging",
@@ -465,6 +471,7 @@ export const GENERATED_ICON_NAMES: readonly string[] = [
     "Card Text", "Font Size Decrease", "Font Size Increase", "Page Next", "Page Previous", "Duplicate",
     "Align Left", "Align Right", "Align Center", "Justify", "Strikethrough", "Numbered List",
     "Decrease Indent", "Increase Indent", "Paint Format", "Subscript", "Superscript", "Subtitles",
+    "Coffee to Go", "Flip Horizontal", "Movie",
   ];
 // --- GENERATED:ICONS END ---
 

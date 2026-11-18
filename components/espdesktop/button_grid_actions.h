@@ -1,6 +1,7 @@
 #pragma once
 #include "grid_layout_config.h"
 #include "screen_lock_state.h"
+#include "button_grid_cough.h"
 
 
 // Internal implementation detail for button_grid.h. Include button_grid.h from device YAML.
@@ -19,15 +20,24 @@ inline bool send_slider_action(const std::string &entity_id, int value) {
 inline bool navigation_handle_button_press(const ParsedCfg &config, int slot_num,
                                           lv_obj_t *button);
 inline void handle_button_click(const std::string &cfg, int slot_num,
-                                lv_obj_t *btn_obj);
+                                lv_obj_t *btn_obj, bool touch_followup = false);
+
+inline bool obs_action_keeps_touch(const ParsedCfg &config) {
+  return config.type == "companion" && companion_obs_momentary_action(config.entity);
+}
 
 inline void handle_button_press(const std::string &cfg, int slot_num,
                                 lv_obj_t *btn_obj) {
   if (screen_lock_enabled()) return;
   if (slot_num <= 0 || slot_num > MAX_GRID_SLOTS) return;
   const ParsedCfg p = grid_layout_card_config(slot_num, cfg);
+  if (p.type == "companion_cough" || p.type == "companion_obs_cough") {
+    cough_button_press(btn_obj);
+    return;
+  }
   if (navigation_handle_button_press(p, slot_num, btn_obj)) return;
-  consume_button_touch_press(btn_obj);
+  // These OBS actions stay on the page and use the native pressed colour until release.
+  if (!obs_action_keeps_touch(p)) consume_button_touch_press(btn_obj);
   handle_button_click(cfg, slot_num, btn_obj);
 }
 
@@ -45,10 +55,11 @@ inline bool navigation_driver_handle_main_click(
 
 // Dispatch supported local and Mac card actions.
 inline void handle_button_click(const std::string &cfg, int slot_num,
-                                lv_obj_t *btn_obj) {
+                                lv_obj_t *btn_obj, bool touch_followup) {
   if (screen_lock_enabled()) return;
   (void) btn_obj;
   const ParsedCfg p = grid_layout_card_config(slot_num, cfg);
+  if (touch_followup && obs_action_keeps_touch(p)) return;
   if (card_runtime_type_retired(p.type) || retired_home_assistant_card(p)) return;
   const auto context = card_runtime_context(p);
   ESP_LOGI("button", "Main button %d clicked: type=%s entity=%s mode=%s label=%s",

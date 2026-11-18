@@ -1,5 +1,5 @@
 {
-  "version": 10,
+  "version": 23,
   "protocol": {
     "version": 4,
     "path": "/companion/v4",
@@ -127,6 +127,13 @@
         "direction": "mac_to_panel",
         "authorization": "session",
         "fields": {
+          "scope": {
+            "type": "string",
+            "enum": ["obs"],
+            "minLength": 3,
+            "maxLength": 3,
+            "optional": true
+          },
           "generation": {
             "type": "integer",
             "minimum": 1,
@@ -155,6 +162,22 @@
                   "type": "string",
                   "minLength": 1,
                   "maxLength": 96
+                },
+                "obsState": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 32,
+                  "optional": true
+                },
+                "obsDetail": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 96,
+                  "optional": true
+                },
+                "obsAvailable": {
+                  "type": "boolean",
+                  "optional": true
                 }
               }
             }
@@ -283,14 +306,9 @@
           },
           "controlId": {
             "type": "string",
-            "enum": [
-              "media.output_volume",
-              "media.input_volume",
-              "media.output_mute",
-              "media.input_mute"
-            ],
+            "pattern": "writable_volume_control_id",
             "minLength": 1,
-            "maxLength": 19
+            "maxLength": 107
           },
           "value": {
             "type": "integer",
@@ -309,14 +327,9 @@
         "fields": {
           "controlId": {
             "type": "string",
-            "enum": [
-              "media.output_volume",
-              "media.input_volume",
-              "media.output_mute",
-              "media.input_mute"
-            ],
+            "pattern": "volume_control_id",
             "minLength": 1,
-            "maxLength": 19
+            "maxLength": 107
           },
           "available": {
             "type": "boolean"
@@ -1045,6 +1058,73 @@
     "transport": "tls_websocket",
     "browserAuthentication": "configured_device_web_auth"
   },
+  "obsOutputStatusIcons": {
+    "Idle": ["Stop Circle", "Broadcast Off", "Video Off"],
+    "Active": ["Record", "Broadcast Off", "Video"],
+    "Live": ["Stop Circle", "Broadcast", "Video"],
+    "Paused": ["Pause", "Broadcast Off", "Video Off"],
+    "Changing": ["Progress Clock", "Progress Clock", "Progress Clock"],
+    "Stopping": ["Progress Clock", "Progress Clock", "Progress Clock"],
+    "Reconnecting": ["Progress Clock", "Progress Clock", "Progress Clock"],
+    "Unavailable": ["Monitor Off", "Monitor Off", "Video Off"]
+  },
+  "obsCardStates": [
+    {"id": "scene_idle", "detail": "", "lit": false, "since": 20},
+    {"id": "scene_live", "detail": "", "lit": true, "since": 20},
+    {"id": "scene_program", "detail": "", "lit": false, "since": 20},
+    {"id": "scene_preview", "detail": "", "lit": true, "since": 20},
+    {"id": "scene_program_preview", "detail": "", "lit": true, "since": 20},
+    {"id": "take_ready", "detail": "", "lit": false, "since": 20},
+    {"id": "take_studio_off", "detail": "Enable Studio Mode", "lit": false, "since": 20},
+    {"id": "take_transitioning", "detail": "Transitioning", "lit": false, "since": 20},
+    {"id": "take_no_preview", "detail": "Choose a preview", "lit": false, "since": 20},
+    {"id": "take_same_scene", "detail": "Already on Program", "lit": false, "since": 20},
+    {"id": "toggle_on", "detail": "On", "lit": true, "since": 21},
+    {"id": "toggle_off", "detail": "Off", "lit": false, "since": 21},
+    {"id": "replay_ready", "detail": "Ready", "lit": false, "since": 21},
+    {"id": "replay_saving", "detail": "Saving", "lit": false, "since": 21},
+    {"id": "replay_saved", "detail": "Saved", "lit": false, "since": 21},
+    {"id": "replay_unconfirmed", "detail": "Replay not confirmed", "lit": false, "since": 21},
+    {"id": "output_idle", "detail": "Idle", "lit": false, "since": 21},
+    {"id": "output_active", "detail": "Active", "lit": true, "since": 21},
+    {"id": "output_live", "detail": "Live", "lit": true, "since": 21},
+    {"id": "output_paused", "detail": "Paused", "lit": true, "since": 21},
+    {"id": "output_stopping", "detail": "Stopping", "lit": true, "since": 21},
+    {"id": "output_reconnecting", "detail": "Reconnecting", "lit": true, "since": 21},
+    {"id": "output_changing", "detail": "Changing", "lit": false, "since": 21},
+    {"id": "output_changing_live", "detail": "Changing", "lit": true, "since": 21},
+    {"id": "audio_muted", "detail": "", "lit": false, "since": 21},
+    {"id": "audio_live", "detail": "", "lit": true, "since": 21},
+    {"id": "transition_selected", "detail": "", "lit": true, "since": 21},
+    {"id": "transition_idle", "detail": "", "lit": false, "since": 21},
+    {"id": "source_visible", "detail": "", "lit": true, "since": 21},
+    {"id": "source_hidden", "detail": "", "lit": false, "since": 21},
+    {"id": "break_start", "detail": "Start", "lit": false, "since": 21},
+    {"id": "break_resume", "detail": "Resume", "lit": true, "since": 21},
+    {"id": "break_transitioning", "detail": "Transitioning", "lit": false, "since": 21},
+    {"id": "break_already", "detail": "", "lit": false, "since": 21},
+    {"id": "break_check", "detail": "Check OBS", "lit": false, "since": 21},
+    {"id": "break_unavailable", "detail": "Unavailable", "lit": false, "since": 21}
+  ],
+  "obsConfirmationControls": [
+    { "id": "obs.studio", "kind": "toggle", "when": "off", "enableLabel": "On", "disableLabel": "Off" },
+    { "id": "obs.replay.buffer", "kind": "toggle", "when": "off", "enableLabel": "Start", "disableLabel": "Stop" },
+    { "id": "obs.output.stream", "kind": "output", "when": "both", "enableLabel": "Start", "disableLabel": "Stop" },
+    { "id": "obs.output.record", "kind": "output", "when": "both", "enableLabel": "Start", "disableLabel": "Stop" },
+    { "id": "obs.output.virtualcam", "kind": "output", "when": "both", "enableLabel": "Start", "disableLabel": "Stop" }
+  ],
+  "obsScenePageControls": [
+    { "id": "obs.take", "label": "Take Live", "icon": "Arrow Right", "width": 2 },
+    { "id": "obs.transition", "label": "Transition", "icon": "Flip Horizontal", "width": 1 },
+    { "id": "obs.brb", "label": "Break", "icon": "Coffee to Go", "width": 1 }
+  ],
+  "obsStudioControlPage": [
+    { "id": "obs.output.record", "icon": "Record" },
+    { "id": "obs.output.stream", "icon": "Broadcast" },
+    { "id": "obs.studio", "icon": "Split Vertical" },
+    { "id": "obs.replay", "icon": "History" },
+    { "id": "obs.replay.buffer", "icon": "Repeat" }
+  ],
   "cardModes": [
     {
       "id": "app",
@@ -1069,6 +1149,66 @@
       "label": "Open folder",
       "capability": "folders",
       "defaultIcon": "Folder Outline"
+    },
+    {
+      "id": "obs",
+      "label": "OBS Scene",
+      "capability": "obs_scene_cards",
+      "defaultIcon": "Image Card Loading"
+    },
+    {
+      "id": "obs_mic",
+      "label": "OBS Mic Mute",
+      "capability": "obs_scene_cards",
+      "defaultIcon": "Microphone"
+    },
+    {
+      "id": "obs_studio",
+      "label": "Studio Mode",
+      "capability": "obs_scene_cards",
+      "defaultIcon": "Split Vertical"
+    },
+    {
+      "id": "obs_take",
+      "label": "OBS Take Live",
+      "capability": "obs_scene_cards",
+      "defaultIcon": "Arrow Right"
+    },
+    {
+      "id": "obs_transition",
+      "label": "Transition",
+      "capability": "obs_scene_cards",
+      "defaultIcon": "Flip Horizontal"
+    },
+    {
+      "id": "obs_status",
+      "label": "Program scene",
+      "capability": "obs_scene_cards",
+      "defaultIcon": "Monitor"
+    },
+    {
+      "id": "obs_replay",
+      "label": "OBS Save Replay",
+      "capability": "obs_scene_cards",
+      "defaultIcon": "History"
+    },
+    {
+      "id": "obs_replay_buffer",
+      "label": "OBS Replay Buffer",
+      "capability": "obs_scene_cards",
+      "defaultIcon": "Repeat"
+    },
+    {
+      "id": "obs_output",
+      "label": "OBS Output Control",
+      "capability": "obs_output_controls",
+      "defaultIcon": "Monitor"
+    },
+    {
+      "id": "obs_brb",
+      "label": "Break",
+      "capability": "obs_brb",
+      "defaultIcon": "Coffee to Go"
     },
     {
       "id": "stats",

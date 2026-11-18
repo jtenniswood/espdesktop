@@ -960,6 +960,21 @@
     }
   },
   {
+    "name": "companion_app_volume: approved_app",
+    "input": "~app.volume.com.example.Player,Player,Volume%20High,Auto,,,companion_app_volume,,",
+    "expected": {
+      "entity": "app.volume.com.example.Player",
+      "label": "Player",
+      "icon": "Volume High",
+      "icon_on": "Auto",
+      "sensor": "",
+      "unit": "",
+      "type": "companion_app_volume",
+      "precision": "",
+      "options": ""
+    }
+  },
+  {
     "name": "companion_mac_lock: lock",
     "input": "~shortcut.command%2Bcontrol%2Bq,Mac%20Lock,Lock,Auto,,,companion_mac_lock,,",
     "expected": {
@@ -970,6 +985,111 @@
       "sensor": "",
       "unit": "",
       "type": "companion_mac_lock",
+      "precision": "",
+      "options": ""
+    }
+  },
+  {
+    "name": "companion_output_volume: default_device",
+    "input": "~media.output_volume,Volume,Volume%20High,Auto,,,companion_output_volume,,",
+    "expected": {
+      "entity": "media.output_volume",
+      "label": "Volume",
+      "icon": "Volume High",
+      "icon_on": "Auto",
+      "sensor": "",
+      "unit": "",
+      "type": "companion_output_volume",
+      "precision": "",
+      "options": ""
+    }
+  },
+  {
+    "name": "companion_input_device: specific_input",
+    "input": "~input.level.0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef,USB%20Microphone,Microphone,Auto,,,companion_input_device,,",
+    "expected": {
+      "entity": "input.level.0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+      "label": "USB Microphone",
+      "icon": "Microphone",
+      "icon_on": "Auto",
+      "sensor": "",
+      "unit": "",
+      "type": "companion_input_device",
+      "precision": "",
+      "options": ""
+    }
+  },
+  {
+    "name": "companion_input_volume: default_device",
+    "input": "~media.input_volume,Volume,Microphone,Auto,,,companion_input_volume,,",
+    "expected": {
+      "entity": "media.input_volume",
+      "label": "Volume",
+      "icon": "Microphone",
+      "icon_on": "Auto",
+      "sensor": "",
+      "unit": "",
+      "type": "companion_input_volume",
+      "precision": "",
+      "options": ""
+    }
+  },
+  {
+    "name": "companion_output_mute: default_device",
+    "input": "~media.output_mute,Mute,Volume%20High,Auto,,,companion_output_mute,,",
+    "expected": {
+      "entity": "media.output_mute",
+      "label": "Mute",
+      "icon": "Volume High",
+      "icon_on": "Auto",
+      "sensor": "",
+      "unit": "",
+      "type": "companion_output_mute",
+      "precision": "",
+      "options": ""
+    }
+  },
+  {
+    "name": "companion_input_mute: default_device",
+    "input": "~media.input_mute,Mute,Microphone,Auto,,,companion_input_mute,,",
+    "expected": {
+      "entity": "media.input_mute",
+      "label": "Mute",
+      "icon": "Microphone",
+      "icon_on": "Auto",
+      "sensor": "",
+      "unit": "",
+      "type": "companion_input_mute",
+      "precision": "",
+      "options": ""
+    }
+  },
+  {
+    "name": "companion_cough: hold_to_mute",
+    "input": "~,Cough,Microphone,Auto,,,companion_cough,,",
+    "expected": {
+      "entity": "",
+      "label": "Cough",
+      "icon": "Microphone",
+      "icon_on": "Auto",
+      "sensor": "",
+      "unit": "",
+      "type": "companion_cough",
+      "precision": "",
+      "options": ""
+    }
+  },
+  {
+    "name": "companion_obs_cough: hold_to_mute",
+    "input": "~obs.cough.69da3f8f-7f62-4abe-a594-4e40dd579858,OBS%20Input%20Cough,Microphone,Auto,,,companion_obs_cough,,",
+    "expected": {
+      "entity": "obs.cough.69da3f8f-7f62-4abe-a594-4e40dd579858",
+      "label": "OBS Input Cough",
+      "icon": "Microphone",
+      "icon_on": "Auto",
+      "sensor": "",
+      "unit": "",
+      "type": "companion_obs_cough",
       "precision": "",
       "options": ""
     }
@@ -1091,6 +1211,81 @@
       "unit": "",
       "type": "weather",
       "precision": "tomorrow",
+      "options": ""
+    }
+  },
+  {
+    "name": "companion_obs_transitions: picker_alias",
+    "input": "~,Transitions,Flip%20Horizontal,Auto,,,subpage,,subpage_connector%3Dmac_companion%2Csubpage_kind%3Dobs_transitions",
+    "expected": {
+      "entity": "",
+      "label": "Transitions",
+      "icon": "Flip Horizontal",
+      "icon_on": "Auto",
+      "sensor": "",
+      "unit": "",
+      "type": "subpage",
+      "precision": "",
+      "options": "subpage_connector=mac_companion,subpage_kind=obs_transitions"
+    }
+  },
+  {
+    "name": "companion_obs_scenes: picker_alias",
+    "input": "~,Scenes,Image%20Card%20Loading,Auto,,,subpage,,subpage_connector%3Dmac_companion%2Csubpage_kind%3Dobs_scenes",
+    "expected": {
+      "entity": "",
+      "label": "Scenes",
+      "icon": "Image Card Loading",
+      "icon_on": "Auto",
+      "sensor": "",
+      "unit": "",
+      "type": "subpage",
+      "precision": "",
+      "options": "subpage_connector=mac_companion,subpage_kind=obs_scenes"
+    }
+  },
+  {
+    "name": "companion_obs_studio_control: picker_alias",
+    "input": "~,Studio%20Control,Movie,Auto,,,subpage,,subpage_connector%3Dmac_companion%2Csubpage_kind%3Dobs_studio_control",
+    "expected": {
+      "entity": "",
+      "label": "Studio Control",
+      "icon": "Movie",
+      "icon_on": "Auto",
+      "sensor": "",
+      "unit": "",
+      "type": "subpage",
+      "precision": "",
+      "options": "subpage_connector=mac_companion,subpage_kind=obs_studio_control"
+    }
+  },
+  {
+    "name": "companion_obs_audio: picker_alias",
+    "input": "~,Audio,Microphone,Auto,,,subpage,,subpage_connector%3Dmac_companion%2Csubpage_kind%3Dobs_audio",
+    "expected": {
+      "entity": "",
+      "label": "Audio",
+      "icon": "Microphone",
+      "icon_on": "Auto",
+      "sensor": "",
+      "unit": "",
+      "type": "subpage",
+      "precision": "",
+      "options": "subpage_connector=mac_companion,subpage_kind=obs_audio"
+    }
+  },
+  {
+    "name": "companion_obs_fader: picker_alias",
+    "input": "~obs.level.69da3f8f-7f62-4abe-a594-4e40dd579858,Desk%20Mic,Microphone,Auto,,,slider,,",
+    "expected": {
+      "entity": "obs.level.69da3f8f-7f62-4abe-a594-4e40dd579858",
+      "label": "Desk Mic",
+      "icon": "Microphone",
+      "icon_on": "Auto",
+      "sensor": "",
+      "unit": "",
+      "type": "slider",
+      "precision": "",
       "options": ""
     }
   },
