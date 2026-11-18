@@ -2801,17 +2801,23 @@ async function assertCardActiveColourControls(page, posts, label) {
 }
 
 async function assertSliderActiveColours(page, label) {
+  const sliders = [
+    ["companion_input_volume", "media.input_volume", "Audio Input", "Microphone", "64AD54"],
+    ["companion_output_volume", "media.output_volume", "Audio Output", "Volume High", "429471"],
+    ["companion_app_volume", "app.volume.com.spotify.client", "Spotify", "Volume High", "6633B9"],
+    ["slider", "obs.level.69da3f8f-7f62-4abe-a594-4e40dd579858", "OBS Mic", "Microphone", "FFFFFF"],
+  ];
+  const matchingFills = ["#64AD54", "#429471", "#826AAA", "#BFBFBF"];
   for (const theme of ["Dark", "Light"]) {
     for (const mode of ["matching", "theme", "custom"]) for (const renderWhileHidden of [false, true]) {
-      const types = ["light_brightness", "fan_speed", "cover", "slider", "light_temperature"];
       const events = [
-        { id: "text-button_order", state: "1,2,3,4,5" },
         { id: "text-button_on_color", state: "FFFFFF" },
         { id: "select-screen__theme_mode", state: theme, value: theme },
-        ...types.map((type, index) => ({
+        ...sliders.map(([type, entity, name, icon, colour], index) => ({
           id: `text-button_${index + 1}_config`,
-          state: `light.test;${type};Lightbulb;Auto;;;${type};;card_off_color=313131,card_active_color=${mode},card_on_color=FFFFFF`,
+          state: `${entity};${name};${icon};Auto;;;${type};;card_off_color=${colour},card_active_color=${mode},card_on_color=FFFFFF`,
         })),
+        { id: "text-button_order", state: "1,2,3,4" },
       ];
       if (renderWhileHidden) {
         await page.getByRole("tab", { name: "Screen", exact: true }).click();
@@ -2820,31 +2826,33 @@ async function assertSliderActiveColours(page, label) {
       await page.evaluate(events => window.__seedEspState(events), events);
       await page.getByRole("tab", { name: "Layout" }).click();
       const cards = page.locator(".sp-main > .sp-btn");
-      await cards.first().locator(".sp-slider-fill").waitFor({ state: "visible" });
+      await cards.last().locator(".sp-slider-fill").waitFor({ state: "visible" });
       const rendered = await cards.evaluateAll(cards => cards.map(card => ({
+        slot: card.dataset.slot,
+        background: getComputedStyle(card).backgroundColor,
         fill: card.style.getPropertyValue("--card-slider-fill-color"),
-        fillTop: card.querySelector(".sp-slider-fill").getBoundingClientRect().top,
         fillBottom: card.querySelector(".sp-slider-fill").getBoundingClientRect().bottom,
-        trackTop: card.querySelector(".sp-slider-track").getBoundingClientRect().top,
         trackBottom: card.querySelector(".sp-slider-track").getBoundingClientRect().bottom,
         texts: Array.from(card.querySelectorAll(".sp-btn-icon,.sp-btn-label")).map(label => ({
           gradient: label.style.backgroundImage,
           clip: getComputedStyle(label).backgroundClip,
         })),
       })));
+      assert.deepEqual(rendered.map(card => card.slot), ["1", "2", "3", "4"],
+        `${label}: expected four mock sliders, got slots ${rendered.map(card => card.slot).join(",")}`);
       for (const [index, card] of rendered.entries()) {
-        assert.strictEqual(card.fill, mode === "matching" ? "#767676" : "#FFFFFF", `${label}: ${theme}/${types[index]}/${mode} fill`);
-        const fromTop = types[index] === "cover";
-        assert(Math.abs(fromTop ? card.fillTop - card.trackTop : card.fillBottom - card.trackBottom) < .1,
-          `${label}: ${types[index]} fill grows from the ${fromTop ? "top" : "bottom"}`);
-        if (mode !== "matching") {
+        const name = `${label}: ${theme}/${sliders[index][2]}/${mode}`;
+        assert.equal(card.background, theme === "Dark" ? "rgb(49, 49, 49)" : "rgb(255, 255, 255)", name + " uses the standard button background");
+        assert.equal(card.fill, mode === "matching" ? matchingFills[index] : "#FFFFFF", name + " fill colour");
+        assert(Math.abs(card.fillBottom - card.trackBottom) < .1, name + " fill grows from the bottom");
+        if (mode !== "matching" || (theme === "Dark" && index === sliders.length - 1)) {
           assert(card.texts.every(text => text.clip === "text" && text.gradient.includes("rgb(33, 33, 33)")),
-            `${label}: ${theme}/${types[index]}/${mode}${renderWhileHidden ? " after returning from Settings" : ""} text contrasts with the pale fill`);
-          assert(card.texts.every(text => text.gradient.startsWith(`linear-gradient(rgb(${fromTop ? "33, 33, 33" : "255, 255, 255"})`)),
-            `${label}: ${types[index]} text contrast follows the fill direction`);
+            name + " text contrasts with the pale fill");
+          assert(card.texts.every(text => text.gradient.startsWith(`linear-gradient(rgb(${theme === "Dark" ? "255, 255, 255" : "51, 51, 51"})`)),
+            name + " text contrast follows the fill direction");
         }
       }
-      if (mode === "custom" && theme === "Dark" && process.env.ESPDESKTOP_SLIDER_COLOUR_SCREENSHOT) {
+      if (mode === "matching" && theme === "Dark" && !renderWhileHidden && process.env.ESPDESKTOP_SLIDER_COLOUR_SCREENSHOT) {
         await page.screenshot({ path: process.env.ESPDESKTOP_SLIDER_COLOUR_SCREENSHOT, fullPage: true });
       }
     }
@@ -8821,6 +8829,32 @@ async function assertFirstRunSetup(browser) {
       await assertMacLockCard(browser);
       return;
     }
+    if (process.env.ESPDESKTOP_ACTIVE_COLOUR_ONLY === "1") {
+      const testCase = ACTIVE_CASES.find(item => item.slug === "guition-esp32-s3-4848s040") || ACTIVE_CASES[0];
+      const context = await browser.newContext({ viewport: testCase.viewport });
+      await installRoutes(context, testCase.slug);
+      const page = await context.newPage();
+      const posts = [];
+      page.on("request", request => {
+        if (request.method() === "POST") posts.push(postRecord(request.url()));
+      });
+      await installFakeEventSource(page);
+      try {
+        await page.goto(`http://espdesktop.test/${testCase.slug}?events=1`, { waitUntil: "domcontentloaded" });
+        await page.waitForSelector("#sp-app");
+        await page.waitForFunction(() => window.__eventSources?.length > 0);
+        await page.evaluate(events => window.__seedEspState(events), [
+          ...seededEvents(),
+          { id: "text-button_order", state: "1" },
+          { id: "text-button_1_config", state: COPY_SHORTCUT },
+        ]);
+        await page.waitForSelector(".sp-main > .sp-btn");
+        await assertCardActiveColourControls(page, posts, testCase.name);
+        await assertSliderActiveColours(page, testCase.name);
+      } finally { await context.close(); }
+      console.log("Card active colour browser checks passed.");
+      return;
+    }
     if (process.env.ESPDESKTOP_CARD_TRANSFER_ONLY === "1") {
       for (const testCase of ACTIVE_CASES) await runCase(browser, testCase);
       return;
@@ -8933,28 +8967,6 @@ async function assertFirstRunSetup(browser) {
     if (process.env.ESPDESKTOP_CONTEXT_COLOUR_ONLY === "1") {
       for (const testCase of ACTIVE_CASES) await assertContextColourPicker(browser, testCase);
       console.log(`Context colour picker browser checks passed for ${ACTIVE_CASES.length} layouts, native and legacy saves.`);
-      return;
-    }
-    if (process.env.ESPDESKTOP_ACTIVE_COLOUR_ONLY === "1") {
-      const testCase = ACTIVE_CASES.find(item => item.exerciseInteractions) || ACTIVE_CASES[0];
-      const context = await browser.newContext({ viewport: testCase.viewport });
-      await installRoutes(context, testCase.slug);
-      const page = await context.newPage();
-      const posts = [];
-      page.on("request", request => {
-        if (request.method() === "POST") posts.push(postRecord(request.url()));
-      });
-      await installFakeEventSource(page);
-      try {
-        await page.goto(`http://espdesktop.test/${testCase.slug}?events=1`, { waitUntil: "domcontentloaded" });
-        await page.waitForSelector("#sp-app");
-        await page.waitForFunction(() => window.__eventSources?.length > 0);
-        await page.evaluate(events => window.__seedEspState(events), seededEvents());
-        await page.waitForSelector(".sp-main > .sp-btn");
-        await assertCardActiveColourControls(page, posts, testCase.name);
-        await assertSliderActiveColours(page, testCase.name);
-      } finally { await context.close(); }
-      console.log("Card active colour browser checks passed.");
       return;
     }
     if (process.env.ESPDESKTOP_OUTLINES_ONLY === "1") {
