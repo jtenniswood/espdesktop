@@ -955,8 +955,9 @@ export function registerCompanionCardTypes(
                     }
                     delete button._appShortcutCapacityRejected;
                     const hidden = hiddenAppleShortcuts(button.options);
-                    for (const id of selected) if (!tabs.includes(id)) hidden.add(id);
-                    for (const id of tabs) hidden.delete(id);
+                    const checked = new Set(tabs);
+                    for (const id of definitions.keys()) if (!checked.has(id)) hidden.add(id);
+                    for (const id of checked) hidden.delete(id);
                     button.options = setHiddenAppleShortcuts(button.options, hidden);
                     button._appleShortcutTabs = tabs;
                     button._appShortcutSelectionChanged = true;

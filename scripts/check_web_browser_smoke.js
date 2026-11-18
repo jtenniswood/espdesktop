@@ -7983,6 +7983,7 @@ async function assertAppleShortcutCard(browser) {
 async function assertAppleShortcutSubpage(browser, directCard = false) {
   const testCase = CASES.find(item => item.slug === "guition-esp32-s3-4848s040");
   const fixture = nativeConfigState(testCase.slug);
+  fixture.maxRecordBodyBytes = 4096;
   fixture.document.buttons = directCard ? {} : { 1: "com.apple.shortcuts;Shortcuts;Auto;Auto;;;companion;;" };
   fixture.document.subpages = {};
   fixture.document.settings = { button_order: directCard ? "" : "1", web_onboarding_complete: "1" };
@@ -8125,11 +8126,14 @@ async function assertAppleShortcutSubpage(browser, directCard = false) {
       fixture.document.buttons[1].includes(workflowId(workflows[1])),
       "save the deletion and hide the workflow from automatic placement");
     assert(fixture.document.buttons[1].includes(workflowId(workflows[0])), "preserve the previously hidden workflow");
-    available = workflows.slice(0, 9);
+    const newlyAvailable = { id: "appleshortcut.727ed9bf-de97-42ed-b661-8967497b1224", label: "Newly Available Workflow" };
+    available = [...workflows.slice(0, 9), newlyAvailable];
     await open();
     await app.click({ button: "right" });
     await page.locator(".sp-ctx-menu").getByText("Edit Subpage", { exact: true }).click();
-    await page.locator(".sp-main .sp-live-folder-preview").getByText("Workflow 09", { exact: true }).waitFor();
+    await page.locator(".sp-main .sp-live-folder-preview").getByText(newlyAvailable.label, { exact: true }).waitFor();
+    assert.equal(await page.locator(".sp-main").getByText("Workflow 09", { exact: true }).count(), 0,
+      "an already unchecked workflow stays hidden when a space opens");
     assert.equal(await deleted.count(), 0, "the deleted workflow stays hidden after reload");
     console.log(`${directCard ? "Apple Shortcuts navigation card" : "Shortcuts app subpage"} defaults, reordering, and persistent deletion passed.`);
 
