@@ -61,11 +61,7 @@ Check that EspDesktop has [macOS Accessibility permission](/mac-controls/shortcu
 
 <style scoped>
 .shortcut-faq {
-  margin: 16px 0 24px;
-  overflow: hidden;
-  border: 1px solid var(--vp-c-divider);
-  border-radius: 12px;
-  background: var(--vp-c-bg-soft);
+  margin: 8px 0 24px;
 }
 
 .shortcut-faq .custom-block.details {
@@ -85,9 +81,9 @@ Check that EspDesktop has [macOS Accessibility permission](/mac-controls/shortcu
   align-items: center;
   justify-content: space-between;
   gap: 16px;
-  min-height: 56px;
+  min-height: 48px;
   margin: 0;
-  padding: 14px 18px;
+  padding: 12px 4px 12px 0;
   list-style: none;
   color: var(--vp-c-text-1);
   font-size: 1rem;
@@ -111,23 +107,21 @@ Check that EspDesktop has [macOS Accessibility permission](/mac-controls/shortcu
 
 .shortcut-faq .details[open] > summary::after {
   margin: 4px 3px 0;
-  color: var(--vp-c-brand-1);
   transform: rotate(225deg);
 }
 
-.shortcut-faq .details > summary:hover,
-.shortcut-faq .details[open] > summary {
+.shortcut-faq .details > summary:hover {
   color: var(--vp-c-brand-1);
 }
 
 .shortcut-faq .details > summary:focus-visible {
   outline: 2px solid var(--vp-c-brand-1);
-  outline-offset: -3px;
+  outline-offset: 2px;
 }
 
 .shortcut-faq .details > summary + p {
   margin: 0;
-  padding: 0 18px 18px;
+  padding: 0 28px 16px 0;
   color: var(--vp-c-text-2);
   font-size: 0.9375rem;
   line-height: 1.65;
