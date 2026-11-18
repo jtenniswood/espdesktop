@@ -36,8 +36,7 @@ function anchor(appId: string) {
 
 <template>
   <div class="preset-search" role="search" aria-label="Application shortcuts">
-    <label for="preset-app-search">Search apps</label>
-    <input id="preset-app-search" v-model="search" type="search" />
+    <input v-model="search" type="search" placeholder="Search apps" aria-label="Search apps" />
     <p role="status">{{ matchingApps.length ? '' : 'No matching apps.' }}</p>
   </div>
   <details v-for="app in apps" v-show="matchingApps.includes(app)" :id="anchor(app.appId)" :key="app.appId">
@@ -64,16 +63,11 @@ function anchor(appId: string) {
   margin: 24px 0 12px;
 }
 
-.preset-search label {
-  display: block;
-  margin-bottom: 6px;
-  font-weight: 600;
-}
-
 .preset-search input {
   width: 100%;
   min-height: 44px;
   padding: 8px 12px;
+  font-size: 1rem;
   border: 1px solid var(--vp-c-divider);
   border-radius: 8px;
   background: var(--vp-c-bg-soft);
