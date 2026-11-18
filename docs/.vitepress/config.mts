@@ -65,7 +65,7 @@ const guideMetadata = new Map<string, { title: string; description: string }>()
 
 const customiseLinks = [
   { text: 'First setup', link: '/features/first-run' },
-  { text: 'Touchscreen layout', link: '/features/home' },
+  { text: 'Screen grid', link: '/features/home' },
   { text: 'Subpages', link: '/features/subpages' },
 ]
 
