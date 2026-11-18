@@ -3736,24 +3736,22 @@ async function assertClockBarEditorSmoke(page, posts, label) {
     `${label}: clock selection does not expose redundant actions menu button`,
   );
   const selectedClockItem = page.locator('[data-clockbar-item="time"]');
+  const readSelectedClockStyle = () => page.evaluate(() => {
+    const item = document.querySelector('[data-clockbar-item="time"]');
+    if (!item) return null;
+    const style = getComputedStyle(item);
+    return {
+      borderColor: style.borderTopColor,
+      backgroundColor: style.backgroundColor,
+    };
+  });
   await page.mouse.move(0, 0);
   await page.waitForTimeout(250);
-  const selectedClockStyle = await selectedClockItem.evaluate((el) => {
-    var style = getComputedStyle(el);
-    return {
-      borderColor: style.borderTopColor,
-      backgroundColor: style.backgroundColor,
-    };
-  });
+  const selectedClockStyle = await readSelectedClockStyle();
   await selectedClockItem.hover();
   await page.waitForTimeout(250);
-  const hoveredSelectedClockStyle = await selectedClockItem.evaluate((el) => {
-    var style = getComputedStyle(el);
-    return {
-      borderColor: style.borderTopColor,
-      backgroundColor: style.backgroundColor,
-    };
-  });
+  const hoveredSelectedClockStyle = await readSelectedClockStyle();
+  assert(selectedClockStyle?.borderColor, `${label}: selected clock bar item is rendered`);
   assert.notStrictEqual(
     selectedClockStyle.borderColor,
     "rgba(0, 0, 0, 0)",
