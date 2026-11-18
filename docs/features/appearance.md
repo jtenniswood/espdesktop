@@ -84,7 +84,7 @@ The eyedropper swatch has a dashed border while empty and a solid border once a 
 
 Text and icons keep white on dark and mid-tone backgrounds, including the orange, green, teal and blue presets. Pale backgrounds use dark grey content. The panel and web preview use the same rule. Custom cards use a brighter tint when active for darker colours, or a darker shade for pale colours and white, making on and off easier to distinguish.
 
-Sliders use the standard button background for the current theme. The filled portion uses the card’s active colour, whether it matches the card colour, follows the global accent or is chosen separately.
+The filled portion of a slider uses the card’s ON colour. The area above it uses the card’s OFF colour, which defaults to the standard button background.
 
 Striped active cards use lighter or darker stripes to keep text readable across both tones.
 

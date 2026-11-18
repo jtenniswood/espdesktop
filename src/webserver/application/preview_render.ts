@@ -612,8 +612,7 @@ export function createPreviewRenderFeature(dependencies: PreviewRenderDependenci
                 const isSlider = b.type !== "media" && btn.querySelector(".sp-slider-fill");
                 const sliderFillColor = typePreview?.sliderMuted ? "808080"
                     : isSlider ? activeColor : "";
-                const offColor = isSlider ? "" : cardOffColor;
-                let contrastBackground = (typePreview?.isOn ? cardOnColor : offColor) ||
+                let contrastBackground = (typePreview?.isOn ? cardOnColor : cardOffColor) ||
                     (typePreview?.sensorSurface ? previewColors.surfaceSensor : color);
                 btn.style.backgroundColor = "#" + contrastBackground;
                 btn.style.setProperty("--card-active-color", "#" + activeColor);
@@ -632,7 +631,7 @@ export function createPreviewRenderFeature(dependencies: PreviewRenderDependenci
                             " 12px,#" + cardPatternHighlightColor(onColor) + " 12px,#" + cardPatternHighlightColor(onColor) + " 20px)";
                 }
                 if (!btn.classList.contains("sp-image-card")) {
-                    btn.style.setProperty("--card-text-color", offColor || contrastBackground !== color
+                    btn.style.setProperty("--card-text-color", cardOffColor || contrastBackground !== color
                         ? cardPreviewTextColor(contrastBackground) : "#" + previewColors.textPrimary);
                 }
                 if (!dependencies.homeAssistantSupported() && cardRequiresHomeAssistant(b.type || "", b)) {
@@ -663,12 +662,12 @@ export function createPreviewRenderFeature(dependencies: PreviewRenderDependenci
                     const fallbackIcon = btn.querySelector(".sp-companion-app-icon-fallback") as HTMLElement | null;
                     const applicationId = typePreview.appIconId;
                     if (dependencies.displayDemo) btn.dataset.demoAppId = applicationId;
-                    const backgroundColor = offColor || (typeof typePreview.appIconBackgroundColor === "string"
+                    const backgroundColor = cardOffColor || (typeof typePreview.appIconBackgroundColor === "string"
                         ? typePreview.appIconBackgroundColor : "");
                     loadCardAppIcon(btn, applicationId, backgroundColor, fallbackIcon);
                 }
                 if (sliderFillColor) {
-                    applySliderPreviewTextContrast(btn, offColor ? cardPreviewTextColor(offColor) : "#" + previewColors.textPrimary, sliderFillColor);
+                    applySliderPreviewTextContrast(btn, cardOffColor ? cardPreviewTextColor(cardOffColor) : "#" + previewColors.textPrimary, sliderFillColor);
                 }
                 if (btn.classList.contains("sp-weather-daily-card")) weatherLayout.observe(btn);
             }

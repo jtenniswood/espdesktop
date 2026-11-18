@@ -37,13 +37,13 @@ inline void numeric_selectable_driver_track_slider_cleanup(BtnSlot &slot) {
 }
 inline bool numeric_selectable_driver_setup_visual(
     BtnSlot &slot, const ParsedCfg &config, const Context &context,
-    const CardPalette &palette, const DisplayProfile &display) {
+    const CardPalette &palette, const DisplayProfile &) {
   if (!numeric_selectable_driver_matches(context, config)) return false;
   if (numeric_selectable_cough_card(config) || companion_mute_control_valid(config.entity)) {
     setup_toggle_visual(slot, config);
     remove_button_state_transitions(slot.btn);
   } else {
-    setup_slider_visual(slot, config, palette, display,
+    setup_slider_visual(slot, config, palette.on_val,
       !companion_obs_meter_control(config.entity));
     numeric_selectable_driver_track_slider_cleanup(slot);
   }

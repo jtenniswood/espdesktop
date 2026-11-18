@@ -2808,6 +2808,7 @@ async function assertSliderActiveColours(page, label) {
     ["slider", "obs.level.69da3f8f-7f62-4abe-a594-4e40dd579858", "OBS Mic", "Microphone", "FFFFFF"],
   ];
   const matchingFills = ["#A2CE98", "#8EBFAA", "#A385D5", "#BFBFBF"];
+  const offColours = ["rgb(100, 173, 84)", "rgb(66, 148, 113)", "rgb(102, 51, 185)", "rgb(255, 255, 255)"];
   for (const theme of ["Dark", "Light"]) {
     for (const mode of ["matching", "theme", "custom"]) for (const renderWhileHidden of [false, true]) {
       const events = [
@@ -2843,14 +2844,14 @@ async function assertSliderActiveColours(page, label) {
         `${label}: expected four mock sliders, got slots ${rendered.map(card => card.slot).join(",")}`);
       for (const [index, card] of rendered.entries()) {
         const name = `${label}: ${theme}/${sliders[index][2]}/${mode}`;
-        assert.equal(card.background, theme === "Dark" ? "rgb(49, 49, 49)" : "rgb(255, 255, 255)", name + " uses the standard button background");
+        assert.equal(card.background, offColours[index], name + " uses its off-state colour");
         assert.equal(card.fill, mode === "matching" ? matchingFills[index] : mode === "theme" ? "#FFFFFF" : "#F5F5F5", name + " fill colour");
         assert.equal(card.fill, card.active, name + " uses its on-state colour");
         assert(Math.abs(card.fillBottom - card.trackBottom) < .1, name + " fill grows from the bottom");
-        if (mode !== "matching" || (theme === "Dark" && index === sliders.length - 1)) {
+        if (mode !== "matching" ? index < sliders.length - 1 : index === 0) {
           assert(card.texts.every(text => text.clip === "text" && text.gradient.includes("rgb(33, 33, 33)")),
             name + " text contrasts with the pale fill");
-          assert(card.texts.every(text => text.gradient.startsWith(`linear-gradient(rgb(${theme === "Dark" ? "255, 255, 255" : "51, 51, 51"})`)),
+          assert(card.texts.every(text => text.gradient.startsWith("linear-gradient(rgb(255, 255, 255)")),
             name + " text contrast follows the fill direction");
         }
       }
@@ -4414,19 +4415,16 @@ async function assertAppVolumeCard(browser) {
       const fill = tile.querySelector(".sp-slider-fill");
       return [tile.style.backgroundColor, fill ? getComputedStyle(fill).backgroundColor : null];
     }));
-    assert.deepEqual(await audioColours(), [
-      ["rgb(49, 49, 49)", "rgb(162, 206, 152)"],
-      ["rgb(49, 49, 49)", "rgb(191, 191, 191)"],
+    const expectedAudioColours = [
+      ["rgb(100, 173, 84)", "rgb(162, 206, 152)"],
+      ["rgb(255, 255, 255)", "rgb(191, 191, 191)"],
       ["rgb(100, 173, 84)", null],
-    ]);
+    ];
+    assert.deepEqual(await audioColours(), expectedAudioColours);
     await page.evaluate(() => window.__seedEspState([
       { id: "select-screen__theme_mode", state: "Light", value: "Light" },
     ]));
-    assert.deepEqual(await audioColours(), [
-      ["rgb(255, 255, 255)", "rgb(162, 206, 152)"],
-      ["rgb(255, 255, 255)", "rgb(191, 191, 191)"],
-      ["rgb(100, 173, 84)", null],
-    ]);
+    assert.deepEqual(await audioColours(), expectedAudioColours);
     console.log("Sound subtypes and guarded OBS cards passed picker and save checks.");
   } finally { await context.close(); }
 }
