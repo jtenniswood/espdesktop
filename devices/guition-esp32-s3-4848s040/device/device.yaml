@@ -9,7 +9,7 @@
 substitutions:
   espdesktop_component_url: "https://github.com/jtenniswood/espdesktop"
   espdesktop_component_ref: "main"
-  mdi_font_file: "https://cdn.jsdelivr.net/npm/@mdi/font@7.4.47/fonts/materialdesignicons-webfont.ttf"
+  mdi_font_file: "https://raw.githubusercontent.com/jtenniswood/espdesktop/${espdesktop_component_ref}/common/assets/fonts/espdesktop-icons-1.ttf"
 
 # ---------------------------------------------------------------------------
 # ESP32-S3 platform (16MB flash, ESP-IDF framework)
