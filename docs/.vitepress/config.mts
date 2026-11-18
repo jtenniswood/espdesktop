@@ -70,7 +70,6 @@ const customiseLinks = [
 ]
 
 const featureLinks = [
-  { text: 'Application shortcuts', link: '/reference/shortcut-presets' },
   { text: 'Apps', link: '/mac-controls/apps' },
   { text: 'Finder folders', link: '/mac-controls/folders' },
   { text: 'Keyboard shortcuts', link: '/mac-controls/shortcuts' },
@@ -339,6 +338,7 @@ export default defineConfig({
           { text: 'FAQ', link: '/reference/faq' },
           { text: 'Compatibility', link: '/reference/companion-compatibility' },
           { text: 'Privacy', link: '/reference/privacy' },
+          { text: 'Application shortcuts', link: '/reference/shortcut-presets' },
         ],
       },
       {
