@@ -17,7 +17,7 @@ All subpages hide the top title and clock bar so the cards use the full screen. 
 
 Under **Screen → Appearance → App Subpages**, **Return home when switching apps** is on by default. Turn it off to keep the current app page open when you switch apps on the Mac. With it on, the display opens a matching new app page when automatic opening is enabled, or returns to the immediate parent page. The setting is saved on the display and included in backups.
 
-<a href="/images/web-editor-app-subpages-settings.png"><picture><source type="image/avif" srcset="/images/web-editor-app-subpages-settings-480.avif 480w, /images/web-editor-app-subpages-settings-960.avif 960w" sizes="(min-width: 768px) 688px, 90vw"><img src="/images/web-editor-app-subpages-settings.png" alt="App Subpages settings with Open app subpages on focus turned off and Return home when switching apps turned on" width="1562" height="1268" loading="lazy"></picture></a>
+<a href="/images/web-editor-app-subpages-settings.png"><picture><source type="image/avif" srcset="/images/web-editor-app-subpages-settings-480.avif 480w, /images/web-editor-app-subpages-settings-960.avif 960w" sizes="(min-width: 768px) 688px, 90vw"><img src="/images/web-editor-app-subpages-settings.png" alt="App Subpages settings with Open app subpages on focus turned off and Return home when switching apps turned on" width="1562" height="1266" loading="lazy"></picture></a>
 
 ## Create a subpage
 
