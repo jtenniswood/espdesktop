@@ -96,6 +96,7 @@ export function registerSubpageCardTypes(
         renderSettings: function (this: any, panel?: any, b?: any, slot?: any, helpers?: any) {
             if (isAppleShortcutsCard(b)) {
                 const workflows = document.createElement("div");
+                workflows.className = "sp-app-subpage-settings";
                 helpers.markCardPrimaryField(workflows, "shortcut");
                 panel.appendChild(workflows);
                 const parent = helpers.isSub ? state.editingSubpage : null;

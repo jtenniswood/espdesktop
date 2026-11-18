@@ -8014,6 +8014,25 @@ async function assertAppleShortcutSubpage(browser, directCard = false) {
     }
     await row(workflows[21]).waitFor({ state: "attached" });
     assert.equal(await subpage.locator(".sp-light-tab-row:visible").count(), 22);
+    if (directCard) {
+      const spacing = await modal.evaluate(dialog => {
+        const headers = [...dialog.querySelectorAll(".sp-disclosure-button")];
+        const panel = title => headers.find(header => header.textContent.trim() === title).closest(".sp-disclosure");
+        const shortcuts = panel("Apple Shortcuts");
+        const cardSettings = panel("Card Settings").getBoundingClientRect();
+        const customColours = panel("Custom Colours").getBoundingClientRect();
+        const shortcutBounds = shortcuts.getBoundingClientRect();
+        const listBounds = shortcuts.querySelector(".sp-light-tab-list").getBoundingClientRect();
+        return {
+          bottomPadding: shortcutBounds.bottom - listBounds.bottom,
+          afterShortcuts: cardSettings.top - shortcutBounds.bottom,
+          afterCardSettings: customColours.top - cardSettings.bottom,
+        };
+      });
+      assert.ok(spacing.bottomPadding <= 12, "The shortcuts list has compact bottom padding");
+      assert.ok(spacing.afterShortcuts >= 12 && Math.abs(spacing.afterShortcuts - spacing.afterCardSettings) < 1,
+        "The settings panels have consistent spacing");
+    }
     assert.deepEqual(await subpage.locator(".sp-light-tab-row:has(input:checked)").evaluateAll(rows =>
       rows.map(item => item.getAttribute("data-tab"))), workflows.slice(0, 8).map(workflow => workflow.id));
     await modal.getByRole("button", { name: "Save", exact: true }).click();
