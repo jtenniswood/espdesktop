@@ -5182,6 +5182,14 @@
             "docsHidden": true
           },
           {
+            "name": "apple_shortcuts_hidden",
+            "label": "Hidden Apple Shortcuts",
+            "kind": "text",
+            "omitDefault": true,
+            "hidden": true,
+            "docsHidden": true
+          },
+          {
             "name": "large_numbers",
             "label": "Large Sensor Numbers",
             "kind": "flag",
@@ -5261,6 +5269,7 @@
             "finder_open_override",
             "app_shortcuts_tabs",
             "app_shortcut_preset",
+            "apple_shortcuts_hidden",
             "large_numbers",
             "stat_labels_off",
             "app_bg_color",
@@ -5382,6 +5391,7 @@
               "sensor",
               "image",
               "companion_stat",
+              "apple_shortcuts",
               "obs_transitions",
               "obs_sources",
               "obs_audio",
@@ -5390,6 +5400,14 @@
             ],
             "defaultValue": "",
             "omitDefault": true
+          },
+          {
+            "name": "apple_shortcuts_hidden",
+            "label": "Hidden Apple Shortcuts",
+            "kind": "text",
+            "omitDefault": true,
+            "hidden": true,
+            "docsHidden": true
           },
           {
             "name": "obs_transition_order",
@@ -5464,6 +5482,7 @@
           "canonicalOptionOrder": [
             "subpage_connector",
             "subpage_kind",
+            "apple_shortcuts_hidden",
             "obs_transition_order",
             "obs_source_order",
             "obs_audio_order",

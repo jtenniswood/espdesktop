@@ -1,5 +1,7 @@
 import { isStudioControlPage, studioControlPage } from "./studio_control_page";
 import { excludeGeneratedCards } from "./generated_page_cards";
+import { APPLE_SHORTCUT_PREFIX } from "./companion_card_codec";
+import { appleShortcutExclusionKey, hiddenAppleShortcuts, isAppleShortcutsPage, setHiddenAppleShortcuts } from "./companion_shortcut_page";
 import { obsSubpageKind } from "./obs_live_subpage";
 import type { CardConfig } from "../contracts/types";
 import { CARD_CONFIG_FIELDS, emptyCardConfig } from "./card";
@@ -237,6 +239,22 @@ export class NativeLayoutDraft {
       this.writeCard(card, config ?? emptyCardConfig());
       this.syncPageOwner(card, config);
     }
+  }
+
+  hideDeletedAppleShortcuts(key: number, deleted: readonly CardConfig[]): void {
+    const owner = this.ownerAt(key);
+    if (!owner) return;
+    const config = this.config(owner);
+    if (!isAppleShortcutsPage(config)) return;
+    const hidden = hiddenAppleShortcuts(config.options);
+    const previousCount = hidden.size;
+    for (const card of deleted) {
+      if (card.type === "companion" && card.entity.startsWith(APPLE_SHORTCUT_PREFIX) &&
+          card.entity.length > APPLE_SHORTCUT_PREFIX.length) hidden.add(appleShortcutExclusionKey(card.entity));
+    }
+    if (hidden.size === previousCount) return;
+    this.editScope.push(JSON.stringify([owner.id, config]));
+    this.writeCard(owner, { ...config, options: setHiddenAppleShortcuts(config.options, hidden) });
   }
 
   saveGeneratedCards(key: number, edits: ReadonlyMap<number, CardConfig>, order?: string,

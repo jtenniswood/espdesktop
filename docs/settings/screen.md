@@ -14,7 +14,7 @@ Choose **Apply Configuration** at the bottom of the tab when you’re ready to r
 ## Appearance
 
 - **Active Colour** sets the accent colour. **Card Style** sets the card curve and default app icon size.
-- **App Subpages** controls whether shortcut pages open when an app comes into focus and what happens when you switch apps. See [app page behaviour](/features/subpages#app-page-behavior).
+- **App Subpages** controls whether keyboard shortcut pages open when an app comes into focus and what happens when you switch apps. See [app page behaviour](/features/subpages#app-page-behavior).
 - **Theme** offers Dark, Light or Automatic. Automatic follows sunrise and sunset or times you set.
 - **Clock Bar** shows or hides the status bar on the home screen.
 

@@ -701,7 +701,7 @@ inline std::string normalize_subpage_kind(const std::string &value) {
     value == "lock" || value == "vacuum" ||
     value == "lawn_mower" ||
     value == "weather" || value == "sensor" ||
-    value == "image" || value == "companion_stat" || value == "obs_studio_control" || obs_subpage_kind(value) != OBSSubpageKind::none ? value : "";
+    value == "image" || value == "companion_stat" || value == "apple_shortcuts" || value == "obs_studio_control" || obs_subpage_kind(value) != OBSSubpageKind::none ? value : "";
 }
 
 inline const char *obs_subpage_order_option(OBSSubpageKind kind) {
@@ -739,6 +739,9 @@ inline std::string subpage_card_options_normalized(const std::string &options,
     if (!out.empty()) out += ",";
     out += "subpage_kind=" + kind;
   }
+  const auto hidden = cfg_option_value(options, "apple_shortcuts_hidden");
+  if (kind == "apple_shortcuts" && !hidden.empty())
+    out += ",apple_shortcuts_hidden=" + encode_compact_field(hidden);
   const auto obs_kind = obs_subpage_kind(kind);
   if (obs_kind != OBSSubpageKind::none) {
     const auto preferences = obs_subpage_preferences(options, obs_kind);
@@ -1254,7 +1257,7 @@ inline const char *saved_config_subpage_default_icon(const std::string &kind) {
 
 inline void normalize_saved_config_subpage_fields(ParsedCfg &p) {
   const std::string kind = normalize_subpage_kind(cfg_option_value(p.options, "subpage_kind"));
-  if (kind.empty() || kind == "obs_studio_control" || obs_subpage_kind(kind) != OBSSubpageKind::none) return;
+  if (kind.empty() || kind == "apple_shortcuts" || kind == "obs_studio_control" || obs_subpage_kind(kind) != OBSSubpageKind::none) return;
   if (kind == "companion_stat") {
     if (!subpage_companion_stat_entity_valid(p.entity)) p.entity = "stat.cpu";
     if (p.label.empty()) p.label = subpage_companion_stat_default_label(p.entity);
@@ -1298,7 +1301,18 @@ inline bool companion_app_launch_card(const ParsedCfg &p) {
          p.entity.rfind("folder.", 0) != 0 &&
          p.entity.rfind("shortcut.", 0) != 0 &&
          p.entity.rfind("obs.", 0) != 0 &&
-         p.entity.rfind("stat.", 0) != 0;
+         p.entity.rfind("stat.", 0) != 0 && !companion_apple_shortcut_action(p.entity);
+}
+
+inline constexpr char APPLE_SHORTCUTS_APP_ID[] = "com.apple.shortcuts";
+
+inline bool apple_shortcuts_navigation_card(const ParsedCfg &p) {
+  return p.type == "subpage" && cfg_option_value(p.options, "subpage_kind") == "apple_shortcuts";
+}
+
+inline bool apple_shortcut_workflow_icon(const ParsedCfg &p) {
+  return p.type == "companion" && companion_apple_shortcut_action(p.entity) &&
+      (p.icon.empty() || p.icon == "Auto" || p.icon == "Flash");
 }
 
 inline bool companion_app_icon_enabled(const ParsedCfg &p) {
@@ -1382,6 +1396,9 @@ inline std::string companion_card_options_normalized(const ParsedCfg &p) {
     add_token("app_shortcuts");
     const std::string tabs = companion_app_shortcut_tabs_normalized(p);
     if (!tabs.empty()) add_token("app_shortcuts_tabs=" + encode_compact_field(tabs));
+    const auto hidden = cfg_option_value(p.options, "apple_shortcuts_hidden");
+    if (p.entity == "com.apple.shortcuts" && !hidden.empty())
+      add_token("apple_shortcuts_hidden=" + encode_compact_field(hidden));
   }
   if (p.type == "companion" && p.entity.rfind("shortcut.", 0) != 0) {
     const std::string custom_color = cfg_option_value(p.options, "app_bg_color");

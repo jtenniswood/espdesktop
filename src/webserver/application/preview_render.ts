@@ -12,8 +12,10 @@ import { PREVIEW_THEME_COLORS, defaultCardBackgroundColor, previewEffectiveTheme
 import { cardIconSize, configOptionValue, cardActiveColor } from "../model/config_primitives";
 import { PANEL_CONFIG_MAX_SLOT_COUNT } from "../model/panel_config";
 import { escHtml, iconSlug } from "./ui_primitives";
-import { appShortcutPageBackIcon, appShortcutPageOwner, previewSubpageOwner } from "../model/companion_shortcut_page";
-import { finderFolderPreview, liveSubpagePreview, scenePageControls } from "../model/finder_folder_preview";
+import { companionCardDefaultIcon } from "../model/companion_card";
+import { APPLE_SHORTCUTS_APP_ID, appShortcutPageBackIcon, appShortcutPageOwner, hiddenAppleShortcuts, isAppleShortcutsPage,
+    previewSubpageOwner } from "../model/companion_shortcut_page";
+import { appleShortcutPreview, finderFolderPreview, liveSubpagePreview, scenePageControls } from "../model/finder_folder_preview";
 import { CARD_SIZE_SINGLE, CARD_SIZE_WIDE } from "../model/grid";
 import type { CompanionAction } from "../api/companion_catalogue";
 import { createWeatherDailyPreviewLayout } from "./weather_daily_preview";
@@ -509,6 +511,10 @@ export function createPreviewRenderFeature(dependencies: PreviewRenderDependenci
                     orderedOBSTiles(projectionKind, liveActions, owner?.options));
             for (const [position, action] of liveCards) sceneControls.set(position, { action, size: CARD_SIZE_SINGLE });
         }
+        const liveAppleShortcuts = subpage && isAppleShortcutsPage(owner)
+            ? appleShortcutPreview(subpage.order, projectionGrid, c.buttons,
+                dependencies.liveGeneratedActions(), hiddenAppleShortcuts(owner?.options))
+            : undefined;
         for (var pos: any = 0; pos < c.maxSlots; pos++) {
             var slot: any = c.grid[pos];
             const control = sceneControls.get(pos);
@@ -654,7 +660,7 @@ export function createPreviewRenderFeature(dependencies: PreviewRenderDependenci
                 if (!generated) appendResizeHandle(btn);
                 main.appendChild(btn);
                 const appIconSize = typePreview?.appIconId
-                    ? cardIconSize(b.options, state.defaultIconSize) : "small";
+                    ? typePreview.appIconSize || cardIconSize(b.options, state.defaultIconSize) : "small";
                 btn.setAttribute("data-icon-size", appIconSize);
                 if (typePreview && typeof typePreview.appIconId === "string" &&
                     typePreview.appIconId.length > 0) {
@@ -675,6 +681,29 @@ export function createPreviewRenderFeature(dependencies: PreviewRenderDependenci
                 empty.className = "sp-empty-cell";
                 empty.setAttribute("data-pos", pos);
                 empty.innerHTML = '<span class="sp-add-pill"><span class="sp-add-icon mdi mdi-plus"></span></span>';
+                const action = liveAppleShortcuts?.get(pos);
+                if (action) {
+                    const tile = document.createElement("div");
+                    tile.className = "sp-live-folder-preview";
+                    tile.title = "Automatically added Apple Shortcut.";
+                    const icon = document.createElement("span");
+                    icon.className = "sp-btn-icon mdi mdi-" + iconSlug(companionCardDefaultIcon("apple_shortcut"));
+                    icon.setAttribute("aria-hidden", "true");
+                    const label = document.createElement("span");
+                    label.className = "sp-btn-label";
+                    label.textContent = action.label;
+                    tile.append(icon, label);
+                    empty.style.backgroundColor = "#" + defaultCardBackgroundColor("companion", state);
+                    empty.appendChild(tile);
+                    void companionAppIconPreviewData(APPLE_SHORTCUTS_APP_ID, "", document).then(preview => {
+                        if (!preview || !tile.isConnected) return;
+                        const image = document.createElement("img");
+                        image.className = "sp-btn-icon sp-companion-app-icon";
+                        image.src = preview.dataUrl;
+                        image.alt = "";
+                        icon.replaceWith(image);
+                    });
+                }
                 main.appendChild(empty);
             }
         }

@@ -4532,7 +4532,7 @@ async function assertMacLockCard(browser) {
     await assertLockEditor();
     await page.getByRole("button", { name: "Save", exact: true }).click();
     await editCard(2);
-    await modal.getByRole("tablist", { name: "Shortcut type" }).waitFor();
+    await modal.getByRole("tablist", { name: "Keyboard shortcut type" }).waitFor();
     console.log("Mac Lock creation, legacy editing, reload and independent keyboard shortcuts passed.");
   } finally {
     await context.close();
@@ -4723,8 +4723,8 @@ async function assertOBSSceneCard(browser) {
     await page.locator(".sp-main .sp-empty-cell").first().click();
     await chooseOBSCard(page, "Audio Controls");
     const obsAudioType = page.locator('select[id$="obs-audio-type"]');
-    assert.deepEqual(await obsAudioType.locator("option").allTextContents(), ["Level", "Mute", "Cough"]);
-    await obsAudioType.selectOption({ label: "Mute" });
+    assert.deepEqual(await obsAudioType.locator("option").allTextContents(), ["Level", "Input State", "Cough"]);
+    await obsAudioType.selectOption({ label: "Input State" });
     const micPicker = page.locator("select[id$='obs-mic']");
     await micPicker.getByRole("option", { name: "Desk Mic", exact: true }).waitFor({ state: "attached" });
     assert.deepEqual(await micPicker.locator("option").allTextContents(), ["Select", "Desk Mic", "Master"]);
@@ -4916,7 +4916,7 @@ async function assertShortcutCatalogSettings(browser, testCase) {
   await installRoutes(context, testCase.slug, { nativeState });
   const page = await context.newPage();
   await installFakeEventSource(page);
-  const toggles = ["Shortcut", "Card Settings", "Custom Colours"].map(name => page.getByRole("button", { name, exact: true }));
+  const toggles = ["Keyboard Shortcut", "Card Settings", "Custom Colours"].map(name => page.getByRole("button", { name, exact: true }));
   const [shortcutToggle, settingsToggle, coloursToggle] = toggles;
   const panels = toggles.map(toggle => page.locator(".sp-disclosure").filter({ has: toggle }));
   const [shortcutPanel, settingsPanel, coloursPanel] = panels;
@@ -4953,7 +4953,7 @@ async function assertShortcutCatalogSettings(browser, testCase) {
       return icons.length === 1 && getComputedStyle(icons[0], "::before").content.includes(expectedGlyph);
     }, String.fromCodePoint(0xF0633));
     await openCard();
-    const type = page.getByRole("tablist", { name: "Shortcut type" });
+    const type = page.getByRole("tablist", { name: "Keyboard shortcut type" });
     const custom = type.getByRole("tab", { name: "Custom", exact: true });
     const application = type.getByRole("tab", { name: "Application", exact: true });
     const app = page.locator('[id$="shortcut-catalog-app"]');
@@ -5011,7 +5011,7 @@ async function assertShortcutCatalogSettings(browser, testCase) {
     await search.fill("tab");
     assert(await action.getByRole("radio", { name: "Next Field Tab", exact: true }).isVisible());
     await search.fill("zzzz");
-    await page.getByRole("status").filter({ hasText: "No matching shortcuts" }).waitFor();
+    await page.getByRole("status").filter({ hasText: "No matching keyboard shortcuts" }).waitFor();
     assert.strictEqual(await rows.count(), 0);
     const beforeInvalidSave = nativeState.puts.length;
     await page.getByRole("button", { name: "Save", exact: true }).click();
@@ -5083,12 +5083,12 @@ async function assertShortcutCatalogSettings(browser, testCase) {
     assert.strictEqual(await custom.getAttribute("aria-selected"), "true", "Custom tab selection survives save");
     assert.strictEqual(await page.locator('[id$="shortcut-key"]').inputValue(), "a");
     assert.strictEqual(await shortcutPanel.locator('[id$="shortcut-key"]').count(), 1, "key is inside Shortcut panel");
-    assert.strictEqual(await shortcutPanel.getByRole("group", { name: "Shortcut modifiers" }).count(), 1, "modifiers are inside Shortcut panel");
+    assert.strictEqual(await shortcutPanel.getByRole("group", { name: "Keyboard shortcut modifiers" }).count(), 1, "modifiers are inside Shortcut panel");
     await shortcutToggle.click();
     assert.strictEqual(await shortcutPanel.locator('[id$="shortcut-key"]').isVisible(), false);
     await assertPanelSpacing();
     await shortcutToggle.click();
-    const modifiers = page.getByRole("group", { name: "Shortcut modifiers" });
+    const modifiers = page.getByRole("group", { name: "Keyboard shortcut modifiers" });
     const command = modifiers.getByRole("button", { name: "⌘ Command", exact: true });
     const shift = modifiers.getByRole("button", { name: "⇧ Shift", exact: true });
     const control = modifiers.getByRole("button", { name: "⌃ Control", exact: true });
@@ -5145,7 +5145,7 @@ async function assertShortcutCatalogSettings(browser, testCase) {
     await page.getByRole("tab", { name: "Layout", exact: true }).click();
     const addShortcut = async () => {
       await page.locator(".sp-main .sp-empty-cell").first().click();
-      await chooseCardType(page, "Key Shortcut");
+      await chooseCardType(page, "Keyboard Shortcut");
     };
     await addShortcut();
     assert.strictEqual(await application.getAttribute("aria-selected"), "true", "new shortcuts start on Application");
@@ -5220,7 +5220,7 @@ async function assertCompanionShortcutSettings(browser, testCase) {
     const appCard = page.locator('.sp-main [data-slot="1"]');
     await appCard.click({ button: "right" });
     const menu = page.locator(".sp-ctx-menu");
-    assert.strictEqual(await menu.getByText("Shortcut List", { exact: true }).count(), 0,
+    assert.strictEqual(await menu.getByText("Keyboard Shortcut List", { exact: true }).count(), 0,
       "the shortcut editor is available inside app subpages");
     await menu.getByText("Edit Card", { exact: true }).click();
     await page.waitForSelector(".sp-settings-overlay.sp-visible");
@@ -5252,7 +5252,7 @@ async function assertCompanionShortcutSettings(browser, testCase) {
     const safariShortcuts = [...safariTemplate.shortcuts, ...(safariTemplate.safariShortcuts ?? []), ...(safariTemplate.moreShortcuts ?? [])];
     const safariShortcutLabel = (id) =>
       safariShortcuts.find((shortcut) => shortcut.id === String(id)).label;
-    const toggleList = appSubpage.getByRole("button", { name: /Show (all|fewer) shortcuts/ });
+    const toggleList = appSubpage.getByRole("button", { name: /Show (all|fewer) keyboard shortcuts/ });
     const toggleActions = appSubpage.locator(".sp-app-subpage-shortcut-actions");
     const visibleRows = appSubpage.locator(".sp-light-tab-row:visible");
     assert.strictEqual(await visibleRows.count(), 20);
@@ -5269,7 +5269,7 @@ async function assertCompanionShortcutSettings(browser, testCase) {
       assert(actions.y + actions.height > toggle.y + toggle.height, "the button has space below it");
     };
     await assertToggleBelowRows();
-    const filter = appSubpage.getByRole("searchbox", { name: "Find a shortcut…" });
+    const filter = appSubpage.getByRole("searchbox", { name: "Find a keyboard shortcut…" });
     const lastShortcut = safariShortcuts.at(-1);
     await filter.fill(lastShortcut.label);
     assert(!(await toggleActions.isVisible()), "search hides the button and its divider");
@@ -5392,14 +5392,14 @@ async function assertCompanionShortcutSettings(browser, testCase) {
     const dialog = page.locator(".sp-settings-modal");
     const showShortcuts = async (target = shortcutCard) => {
       await target.click({ button: "right" });
-      await menu.getByText("Shortcut List", { exact: true }).click();
-      await dialog.getByText("Edit App Shortcuts", { exact: true }).waitFor();
+      await menu.getByText("Keyboard Shortcut List", { exact: true }).click();
+      await dialog.getByText("Edit Keyboard Shortcuts", { exact: true }).waitFor();
     };
     await showShortcuts();
     const dialogRows = dialog.locator(".sp-light-tab-row:visible");
     assert.strictEqual(await dialogRows.count(), safariShortcuts.length, "the standalone editor shows every shortcut");
-    assert.strictEqual(await dialog.getByRole("button", { name: /Show (all|fewer) shortcuts/ }).count(), 0);
-    const dialogSearch = dialog.getByRole("searchbox", { name: "Find a shortcut…" });
+    assert.strictEqual(await dialog.getByRole("button", { name: /Show (all|fewer) keyboard shortcuts/ }).count(), 0);
+    const dialogSearch = dialog.getByRole("searchbox", { name: "Find a keyboard shortcut…" });
     await dialogSearch.fill(safariShortcutLabel(0));
     assert(await dialogRows.count() < safariShortcuts.length, "search still filters the standalone list");
     await dialogSearch.clear();
@@ -7848,6 +7848,338 @@ async function assertReorderAfterDelete(browser) {
   } finally { await context.close(); }
 }
 
+async function mockShortcutsAppIcon(context) {
+  const { COMPANION_APP_ICON_SIDE: side } = loadTypeScriptModule("src/webserver/generated/companion_capabilities.ts");
+  const pixels = Buffer.alloc(side * side * 3, 255);
+  await context.route("**/companion/app-icon?appId=com.apple.shortcuts", route => route.fulfill({
+    contentType: "application/octet-stream", body: pixels,
+  }));
+}
+
+async function assertAppleShortcutCard(browser) {
+  const testCase = CASES.find(item => item.slug === "guition-esp32-s3-4848s040");
+  const fixture = nativeConfigState(testCase.slug);
+  fixture.document.settings.web_onboarding_complete = "1";
+  const connectorsStatus = { onboarding_complete: true, mac_companion: {
+    available: true, configured: true, paired: true, connected: true,
+  } };
+  const id = "appleshortcut.727ed9bf-de97-42ed-b661-8967497b122c";
+  const replacementId = "appleshortcut.74e95dc0-0244-410f-b466-07aa47b8f1e5";
+  let workflows = [{ id, label: "Start Design Session" }];
+  const context = await browser.newContext({ viewport: testCase.viewport });
+  await installRoutes(context, testCase.slug, { nativeState: fixture, connectorsStatus, nativeV2: true });
+  await context.route("**/companion/actions", route => route.fulfill({
+    json: [{ id: "com.apple.shortcuts", label: "Shortcuts" }, ...workflows],
+  }));
+  await mockShortcutsAppIcon(context);
+  try {
+    const page = await context.newPage();
+    await installFakeEventSource(page);
+    async function open() {
+      await page.goto(`http://espdesktop.test/${testCase.slug}?events=1`);
+      await page.waitForSelector("#sp-app");
+      await page.waitForFunction(() => window.__eventSources?.length > 0);
+      await page.waitForLoadState("networkidle");
+      await page.evaluate(events => window.__seedEspState(events), nativeDocumentEvents(fixture.document));
+      await page.locator('.sp-main[aria-disabled="false"]').waitFor();
+    }
+    await open();
+    await page.locator(".sp-main .sp-empty-cell").first().click();
+    const shortcutsGroup = page.getByRole("button", { name: "Apple Shortcuts card type", exact: true });
+    await shortcutsGroup.locator(".sp-card-type-icon.mdi-flash").waitFor();
+    assert.equal(await page.getByRole("button", { name: "Run a shortcut card type" }).count(), 0);
+    await shortcutsGroup.click();
+    const back = page.getByRole("button", { name: "Back to card types", exact: true });
+    assert.equal(await back.evaluate(button => button === document.activeElement), true);
+    assert.deepEqual(await page.locator("#sp-card-type-picker button").evaluateAll(
+      buttons => buttons.map(button => button.getAttribute("aria-label"))),
+      ["Create a list of shortcuts card type", "Run a shortcut card type", "Open the Shortcuts App card type"]);
+    await back.click();
+    assert.equal(await shortcutsGroup.evaluate(button => button === document.activeElement), true);
+    await shortcutsGroup.click();
+    await page.getByRole("button", { name: "Run a shortcut card type" })
+      .locator(".sp-card-type-icon.mdi-flash").waitFor();
+    await page.getByRole("button", { name: "Open the Shortcuts App card type" })
+      .locator("img.sp-card-type-app-icon").waitFor();
+    await chooseCardType(page, "Run a shortcut");
+    const picker = page.getByLabel("Apple Shortcut", { exact: true });
+    await picker.locator(`option[value="${id}"]`).waitFor({ state: "attached" });
+    await picker.selectOption(id);
+    await page.getByRole("button", { name: "Save", exact: true }).click();
+    await waitForNativeState(fixture, () => fixture.puts.length > 0, "save an approved Apple Shortcut");
+    const slot = Object.keys(fixture.document.buttons).find(key => fixture.document.buttons[key].startsWith("~" + id + ","));
+    assert(slot, "the saved card keeps its Apple Shortcut identifier");
+    assert(fixture.document.buttons[slot].startsWith("~" + id + ",Start Design Session,"));
+    workflows = [];
+    connectorsStatus.mac_companion.connected = false;
+    // Reopen the saved record in a known visible cell after a fresh load.
+    fixture.document.buttons[1] = fixture.document.buttons[slot];
+    delete fixture.document.buttons[slot];
+    await open();
+    const savedCard = page.locator('.sp-main [data-slot="1"]');
+    await savedCard.getByText("Start Design Session", { exact: true }).waitFor();
+    await savedCard.locator("img.sp-companion-app-icon").waitFor();
+    assert.equal(await savedCard.getAttribute("data-icon-size"), "small");
+    await savedCard.click({ button: "right" });
+    await page.locator(".sp-ctx-menu").getByText("Edit Card", { exact: true }).click();
+    await picker.locator(`option[value="${id}"]`).waitFor({ state: "attached" });
+    assert.equal(await picker.inputValue(), id);
+    assert.equal(await picker.locator("option:checked").textContent(), "Start Design Session (unavailable)");
+    await page.getByRole("button", { name: "Save", exact: true }).click();
+    await page.locator(".sp-settings-modal").waitFor({ state: "hidden" });
+    assert(fixture.document.buttons[1].startsWith("~" + id + ","));
+
+    connectorsStatus.mac_companion.connected = true;
+    workflows = [{ id: replacementId, label: "Stop Distractions" }];
+    await open();
+    await savedCard.click({ button: "right" });
+    await page.locator(".sp-ctx-menu").getByText("Edit Card", { exact: true }).click();
+    await picker.selectOption(replacementId);
+    const label = page.locator("#sp-inp-label");
+    if (!(await label.isVisible())) {
+      await page.getByRole("button", { name: "Card Settings", exact: true }).click();
+    }
+    assert.equal(await label.inputValue(), "Stop Distractions");
+    await page.getByRole("button", { name: "Save", exact: true }).click();
+    await waitForNativeState(fixture, () => fixture.document.buttons[1].startsWith(
+      "~" + replacementId + ",Stop Distractions,"
+    ), "save the replacement Apple Shortcut with its label");
+    await savedCard.getByText("Stop Distractions", { exact: true }).waitFor();
+    await page.locator(".sp-main .sp-empty-cell").first().click();
+    await shortcutsGroup.click();
+    await chooseCardType(page, "Open the Shortcuts App");
+    const application = page.getByRole("combobox", { name: "Application", exact: true });
+    await application.getByRole("option", { name: "Shortcuts", exact: true }).waitFor({ state: "attached" });
+    assert.equal(await application.inputValue(), "com.apple.shortcuts");
+    const appSubpage = page.locator(".sp-app-subpage-settings");
+    const appSubpageToggle = appSubpage.getByRole("checkbox", { name: "Add app subpage", exact: true });
+    assert.equal(await appSubpage.getByRole("button", { name: "App Subpage", exact: true }).getAttribute("aria-expanded"), "true");
+    assert.equal(await appSubpageToggle.isChecked(), true);
+    await appSubpage.getByText("Stop Distractions", { exact: true }).waitFor();
+    assert.equal(await appSubpage.getByRole("button", { name: "Apple Shortcuts", exact: true }).count(), 0);
+    await page.getByRole("button", { name: "Save", exact: true }).click();
+    const { parseRawButtonConfig } = loadTypeScriptModule("src/webserver/model/card.ts");
+    const pinnedAppSlot = () => Object.keys(fixture.document.buttons).find(slot =>
+      parseRawButtonConfig(fixture.document.buttons[slot]).entity === "com.apple.shortcuts");
+    await waitForNativeState(fixture, () => fixture.document.subpages[pinnedAppSlot()]?.includes(replacementId),
+      "save the preselected Shortcuts app card and its default workflow subpage");
+    const pinnedApp = () => parseRawButtonConfig(fixture.document.buttons[pinnedAppSlot()]);
+    assert.equal(pinnedApp().type, "companion");
+    assert.equal(pinnedApp().sensor, "");
+    assert.match(pinnedApp().options, /(?:^|,)app_shortcuts(?:,|$)/);
+    await page.locator(".sp-settings-modal").waitFor({ state: "hidden" });
+    await page.locator(`.sp-main [data-slot="${pinnedAppSlot()}"]`).click({ button: "right" });
+    await page.locator(".sp-ctx-menu").getByText("Edit Card", { exact: true }).click();
+    const disclosure = appSubpage.getByRole("button", { name: "App Subpage", exact: true });
+    if (await disclosure.getAttribute("aria-expanded") !== "true") await disclosure.click();
+    await appSubpage.getByText("Add app subpage", { exact: true }).click();
+    assert.equal(await appSubpageToggle.isChecked(), false);
+    await page.getByRole("button", { name: "Save", exact: true }).click();
+    await waitForNativeState(fixture, () => !pinnedApp().options.includes("app_shortcuts"), "save a Shortcuts app card without a subpage");
+    console.log("The grouped Apple Shortcuts picker, Back button, workflow card, and pinned app passed.");
+  } finally { await context.close(); }
+}
+
+async function assertAppleShortcutSubpage(browser, directCard = false) {
+  const testCase = CASES.find(item => item.slug === "guition-esp32-s3-4848s040");
+  const fixture = nativeConfigState(testCase.slug);
+  fixture.maxRecordBodyBytes = 4096;
+  fixture.document.buttons = directCard ? {} : { 1: "com.apple.shortcuts;Shortcuts;Auto;Auto;;;companion;;" };
+  fixture.document.subpages = {};
+  fixture.document.settings = { button_order: directCard ? "" : "1", web_onboarding_complete: "1" };
+  const workflows = Array.from({ length: directCard ? 256 : 255 }, (_, index) => {
+    const number = String(index + 1).padStart(2, "0");
+    const uuidSuffix = String(index + 1).padStart(12, "0");
+    return { id: "appleshortcut.727ed9bf-de97-42ed-b661-" + uuidSuffix, label: "Workflow " + number };
+  });
+  let available = [...workflows].reverse();
+  const connectorsStatus = { onboarding_complete: true, mac_companion: {
+    available: true, configured: true, paired: true, connected: true,
+  } };
+  const context = await browser.newContext({ viewport: testCase.viewport });
+  await installRoutes(context, testCase.slug, { nativeState: fixture, connectorsStatus, nativeV2: true });
+  await context.route("**/companion/actions", route => route.fulfill({
+    json: directCard ? available : [{ id: "com.apple.shortcuts", label: "Shortcuts" }, ...available],
+  }));
+  if (directCard) await mockShortcutsAppIcon(context);
+  try {
+    const page = await context.newPage();
+    await installFakeEventSource(page);
+    async function open() {
+      await page.goto(`http://espdesktop.test/${testCase.slug}?events=1`);
+      await page.waitForFunction(() => window.__eventSources?.length > 0);
+      await page.waitForLoadState("networkidle");
+      await page.evaluate(events => window.__seedEspState(events), nativeDocumentEvents(fixture.document));
+      await page.getByRole("tab", { name: "Layout", exact: true }).click();
+    }
+    const app = page.locator('.sp-main [data-slot="1"]');
+    const modal = page.locator(".sp-settings-modal");
+    const row = workflow => modal.locator(`.sp-light-tab-row[data-tab="${workflow.id}"] input`);
+    await open();
+    await page.locator('.sp-main[aria-disabled="false"]').waitFor();
+    const subpage = directCard ? modal : modal.locator(".sp-app-subpage-settings");
+    if (directCard) {
+      await page.locator(".sp-main .sp-empty-cell").first().click();
+      await page.getByRole("button", { name: "Apple Shortcuts card type", exact: true }).click();
+      await page.getByRole("button", { name: "Create a list of shortcuts card type", exact: true })
+        .locator(".sp-card-type-icon.mdi-flash").waitFor();
+      await chooseCardType(page, "Create a list of shortcuts");
+    } else {
+      await app.click({ button: "right" });
+      await page.locator(".sp-ctx-menu").getByText("Edit Card", { exact: true }).click();
+      const disclosure = subpage.getByRole("button", { name: "App Subpage", exact: true });
+      if (await disclosure.getAttribute("aria-expanded") !== "true") await disclosure.click();
+      await subpage.getByText("Add app subpage", { exact: true }).click();
+      assert.equal(await subpage.getByRole("button", { name: "Apple Shortcuts", exact: true }).count(), 0);
+    }
+    await row(workflows[21]).waitFor({ state: "attached" });
+    assert.equal(await subpage.locator(".sp-light-tab-row:visible").count(), workflows.length);
+    if (directCard) {
+      const spacing = await modal.evaluate(dialog => {
+        const headers = [...dialog.querySelectorAll(".sp-disclosure-button")];
+        const panel = title => headers.find(header => header.textContent.trim() === title).closest(".sp-disclosure");
+        const shortcuts = panel("Apple Shortcuts");
+        const cardSettings = panel("Card Settings").getBoundingClientRect();
+        const customColours = panel("Custom Colours").getBoundingClientRect();
+        const shortcutBounds = shortcuts.getBoundingClientRect();
+        const listBounds = shortcuts.querySelector(".sp-light-tab-list").getBoundingClientRect();
+        return {
+          bottomPadding: shortcutBounds.bottom - listBounds.bottom,
+          afterShortcuts: cardSettings.top - shortcutBounds.bottom,
+          afterCardSettings: customColours.top - cardSettings.bottom,
+        };
+      });
+      assert.ok(spacing.bottomPadding <= 12, "The shortcuts list has compact bottom padding");
+      assert.ok(spacing.afterShortcuts >= 12 && Math.abs(spacing.afterShortcuts - spacing.afterCardSettings) < 1,
+        "The settings panels have consistent spacing");
+    }
+    assert.deepEqual(await subpage.locator(".sp-light-tab-row:has(input:checked)").evaluateAll(rows =>
+      rows.map(item => item.getAttribute("data-tab"))), workflows.slice(0, 8).map(workflow => workflow.id));
+    await modal.getByRole("button", { name: "Save", exact: true }).click();
+    await waitForNativeState(fixture, () => fixture.document.subpages[1]?.includes(workflows[7].id),
+      "save the first eight workflows and Back");
+    if (directCard) {
+      const { parseRawButtonConfig } = loadTypeScriptModule("src/webserver/model/card.ts");
+      const owner = parseRawButtonConfig(fixture.document.buttons[1]);
+      assert.equal(owner.type, "subpage");
+      assert.equal(owner.label, "Shortcut List");
+      assert.equal(owner.entity, "", "navigation card has no Mac action");
+      assert.match(owner.options, /subpage_kind=apple_shortcuts/);
+    }
+    await modal.waitFor({ state: "hidden" });
+    await open();
+    if (directCard) {
+      await app.locator(".sp-companion-app-icon").waitFor();
+      assert.equal(await app.getAttribute("data-icon-size"), "small");
+      for (const hover of [false, true]) {
+        if (hover) await app.hover();
+        const { gap, padding } = await app.evaluate(card => {
+          const tile = card.getBoundingClientRect();
+          const label = card.querySelector(".sp-btn-label").getBoundingClientRect();
+          const scale = tile.height / card.offsetHeight;
+          return {
+            gap: (tile.bottom - label.bottom) / scale,
+            padding: parseFloat(getComputedStyle(card).paddingBottom),
+          };
+        });
+        assert.ok(Math.abs(gap - padding) < 1,
+          `The Apple Shortcuts label sits at the bottom with ${hover ? "a visible" : "a hidden"} chevron (gap ${gap}, padding ${padding})`);
+      }
+    }
+    async function editFromSubpage() {
+      await app.click({ button: "right" });
+      await page.locator(".sp-ctx-menu").getByText("Edit Subpage", { exact: true }).click();
+      await page.locator(".sp-main").getByText("Workflow 02", { exact: true }).click({ button: "right" });
+      await page.locator(".sp-ctx-menu").getByText("Apple Shortcut List", { exact: true }).click();
+      await modal.getByText("Edit Apple Shortcuts", { exact: true }).waitFor();
+      await row(workflows[21]).waitFor({ state: "attached" });
+    }
+    await editFromSubpage();
+    const shortcutList = modal.getByRole("button", { name: "Apple Shortcuts", exact: true });
+    assert.equal(await shortcutList.getAttribute("aria-expanded"), "true");
+    const firstWorkflow = modal.locator(`.sp-light-tab-row[data-tab="${workflows[0].id}"]`);
+    await shortcutList.click();
+    await firstWorkflow.waitFor({ state: "hidden" });
+    await shortcutList.click();
+    await firstWorkflow.waitFor({ state: "visible" });
+    await row(workflows[0]).evaluate(input => input.click());
+    await row(workflows[21]).evaluate(input => input.click());
+    await modal.getByRole("button", { name: "Drag Workflow 22", exact: true }).press("ArrowUp");
+    await modal.getByRole("button", { name: "Save", exact: true }).click();
+    await waitForNativeState(fixture, () => fixture.document.subpages[1]?.includes(workflows[21].id),
+      "save a replacement workflow from the complete list");
+    available = available.filter(workflow => workflow.id !== workflows[21].id);
+    await open();
+    await editFromSubpage();
+    assert.equal(await row(workflows[0]).isChecked(), false);
+    assert.equal(await row(workflows[21]).isChecked(), true);
+    await modal.getByText("Workflow 22 (unavailable)", { exact: true }).waitFor();
+    const selected = await modal.locator(".sp-light-tab-row:has(input:checked)").evaluateAll(rows =>
+      rows.map(item => item.getAttribute("data-tab")));
+    assert.deepEqual(selected, [...workflows.slice(1, 7), workflows[21], workflows[7]].map(workflow => workflow.id));
+    await modal.locator(".sp-settings-close").click();
+    const deleted = page.locator(".sp-main").getByText("Workflow 02", { exact: true });
+    await deleted.click({ button: "right" });
+    await page.locator(".sp-ctx-menu").getByText("Delete", { exact: true }).click();
+    const { parseRawButtonConfig } = loadTypeScriptModule("src/webserver/model/card.ts");
+    const { appleShortcutExclusionKey, hiddenAppleShortcuts } = loadTypeScriptModule("src/webserver/model/companion_shortcut_page.ts");
+    const savedExclusions = () => hiddenAppleShortcuts(parseRawButtonConfig(fixture.document.buttons[1]).options);
+    await waitForNativeState(fixture, () => !fixture.document.subpages[1]?.includes(workflows[1].id) &&
+      savedExclusions().has(appleShortcutExclusionKey(workflows[1].id)),
+      "save the deletion and hide the workflow from automatic placement");
+    assert(savedExclusions().has(appleShortcutExclusionKey(workflows[0].id)), "preserve the previously hidden workflow");
+    assert(savedExclusions().has(appleShortcutExclusionKey(workflows.at(-1).id)), "exclude workflows at the end of a full catalogue");
+    const newlyAvailable = { id: "appleshortcut.727ed9bf-de97-42ed-b661-8967497b1224", label: "Newly Available Workflow" };
+    available = [...workflows.slice(0, 9), newlyAvailable];
+    await open();
+    await app.click({ button: "right" });
+    await page.locator(".sp-ctx-menu").getByText("Edit Subpage", { exact: true }).click();
+    await page.locator(".sp-main .sp-live-folder-preview").getByText(newlyAvailable.label, { exact: true }).waitFor();
+    assert.equal(await page.locator(".sp-main").getByText("Workflow 09", { exact: true }).count(), 0,
+      "an already unchecked workflow stays hidden when a space opens");
+    assert.equal(await deleted.count(), 0, "the deleted workflow stays hidden after reload");
+    console.log(`${directCard ? "Apple Shortcuts navigation card" : "Shortcuts app subpage"} defaults, reordering, and persistent deletion passed.`);
+
+    if (directCard) {
+      // A native clipboard transfer can nest a saved Apple Shortcuts card
+      // even though the picker offers it only on Home.
+      const { childPageKey } = loadTypeScriptModule("src/webserver/model/page_keys.ts");
+      const nestedPage = childPageKey(2, 1);
+      const homeWorkflows = fixture.document.subpages[1];
+      fixture.document.buttons[2] = ";Outer Folder;Folder Outline;Auto;;;subpage";
+      fixture.document.settings.button_order = "1,2";
+      fixture.document.subpages[2] = "B,1|:Nested Workflows:Flash:Auto:::subpage::subpage_connector=mac_companion,subpage_kind=apple_shortcuts";
+      fixture.document.subpages[nestedPage] = `~B,1|companion,${workflows[0].id},Workflow%2001,Flash`;
+      fixture.generation++;
+      await open();
+      await page.locator('.sp-main [data-slot="2"]').click({ button: "right" });
+      await page.locator(".sp-ctx-menu").getByText("Edit Subpage", { exact: true }).click();
+      await page.locator(".sp-main").getByText("Nested Workflows", { exact: true }).click({ button: "right" });
+      await page.locator(".sp-ctx-menu").getByText("Edit Card", { exact: true }).click();
+      await row(workflows[0]).waitFor({ state: "attached" });
+      assert.equal(await row(workflows[0]).isChecked(), true, "load the nested workflow selection");
+      assert.equal(await row(workflows[1]).isChecked(), true, "fill a free space in the nested page");
+      await row(workflows[0]).evaluate(input => input.click());
+      await modal.getByRole("button", { name: "Save", exact: true }).click();
+      await waitForNativeState(fixture, () => fixture.document.subpages[nestedPage]?.includes(workflows[1].id),
+        "save the replacement workflow to the nested owner");
+      assert.equal(fixture.document.subpages[1], homeWorkflows, "the unrelated Home subpage keeps its workflows");
+      assert.match(fixture.document.subpages[2], /apple_shortcuts_hidden/, "remember explicitly removed workflows");
+      const newWorkflow = { id: "appleshortcut.727ed9bf-de97-42ed-b661-8967497b1223", label: "New Workflow" };
+      available = [...workflows.slice(0, 8), newWorkflow];
+      await open();
+      await page.locator('.sp-main [data-slot="2"]').click({ button: "right" });
+      await page.locator(".sp-ctx-menu").getByText("Edit Subpage", { exact: true }).click();
+      await page.locator(".sp-main").getByText("Nested Workflows", { exact: true }).click({ button: "right" });
+      await page.locator(".sp-ctx-menu").getByText("Edit Subpage", { exact: true }).click();
+      const newWorkflowTile = page.locator(".sp-main .sp-live-folder-preview").filter({ hasText: "New Workflow" });
+      await newWorkflowTile.locator("img.sp-companion-app-icon").waitFor();
+      assert.equal(await page.locator(".sp-main").getByText("Workflow 01", { exact: true }).count(), 0);
+      console.log("Editing nested Apple Shortcuts saves to its own subpage.");
+    }
+  } finally { await context.close(); }
+}
+
 async function assertLiveFinderPreview(browser) {
   const testCase = CASES.find(item => item.slug === "guition-esp32-s3-4848s040");
   const fixture = nativeConfigState(testCase.slug);
@@ -7979,7 +8311,7 @@ async function assertNestedCompanionPages(browser) {
     await page.locator('.sp-main [data-slot="1"] .sp-subpage-badge').click();
     const folderAppCard = page.locator('.sp-main [data-slot="1"]');
     await folderAppCard.click({ button: "right" });
-    assert.strictEqual(await page.locator(".sp-ctx-menu").getByText("Shortcut List", { exact: true }).count(), 0,
+    assert.strictEqual(await page.locator(".sp-ctx-menu").getByText("Keyboard Shortcut List", { exact: true }).count(), 0,
       "ordinary folders do not have a shortcut editor");
     await page.locator(".sp-ctx-menu").getByText("Edit Card", { exact: true }).click();
     const creation = page.locator(".sp-settings-modal .sp-app-subpage-settings");
@@ -7993,14 +8325,14 @@ async function assertNestedCompanionPages(browser) {
     fixture.document = existing; fixture.generation++; fixture.puts = [];
     await open();
     await page.locator(".sp-main .sp-empty-cell").first().click();
-    await chooseCardType(page, "Key Shortcut");
+    await chooseCardType(page, "Keyboard Shortcut");
     assert.strictEqual(await page.getByRole("tab", { name: "Application", exact: true }).getAttribute("aria-selected"), "true");
     assert.strictEqual(await page.locator('[id$="shortcut-catalog-app"]').inputValue(), "com.apple.Safari",
       "a nested app page uses the app that owns the inner page");
     await page.locator(".sp-settings-close").click();
     await page.locator('.sp-main [data-slot="1"]').click({ button: "right" });
-    await page.locator(".sp-ctx-menu").getByText("Shortcut List", { exact: true }).click();
-    await page.locator(".sp-settings-modal").getByText("Edit App Shortcuts", { exact: true }).waitFor();
+    await page.locator(".sp-ctx-menu").getByText("Keyboard Shortcut List", { exact: true }).click();
+    await page.locator(".sp-settings-modal").getByText("Edit Keyboard Shortcuts", { exact: true }).waitFor();
     await page.locator('[id$="companion-shortcut-1"]').evaluate(input => input.click());
     let rejectNext = true;
     await page.route("**/api/v1/config", async route => {
@@ -8612,7 +8944,7 @@ async function assertFirstRunSetup(browser) {
     };
     await dialog.getByText("No apps available. Check app access on your Mac.", { exact: true }).waitFor();
     catalogueReady = true;
-    const addPages = dialog.getByRole("radio", { name: "Add shortcut pages", exact: true });
+    const addPages = dialog.getByRole("radio", { name: "Add keyboard shortcut pages", exact: true });
     const launchOnly = dialog.getByRole("radio", { name: "Launch apps only", exact: true });
     await setChecked(dialog.getByLabel("App 0", { exact: true }), true);
     await dialog.getByRole("button", { name: "Next", exact: true }).click();
@@ -8884,6 +9216,12 @@ async function assertFirstRunSetup(browser) {
       await assertFirstRunSetup(browser);
       return;
     }
+    if (process.env.ESPDESKTOP_APPLE_SHORTCUT_ONLY === "1") {
+      await assertAppleShortcutCard(browser);
+      await assertAppleShortcutSubpage(browser);
+      await assertAppleShortcutSubpage(browser, true);
+      return;
+    }
     if (process.env.ESPDESKTOP_OBS_ONLY === "1") {
       await assertOBSSceneCard(browser);
       return;
@@ -8930,6 +9268,9 @@ async function assertFirstRunSetup(browser) {
     await assertOBSStarterPage(browser);
     await assertOBSStarterPage(browser, true);
     await assertStudioControlPage(browser);
+    await assertAppleShortcutCard(browser);
+    await assertAppleShortcutSubpage(browser);
+    await assertAppleShortcutSubpage(browser, true);
     await assertRetiredCardRemoval(browser);
     if (process.env.ESPDESKTOP_RETIRED_CARDS_ONLY === "1") return;
     await assertMacLockCard(browser);

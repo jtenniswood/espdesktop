@@ -1,7 +1,7 @@
 import { isStudioControlPage } from "../model/studio_control_page";
 import { sameCardAction, setCardExposure } from "../model/home_assistant_cards";
 import { childPageKey, pageOwnerSlot, parentPageKey } from "../model/page_keys";
-import { previewSubpageOwner } from "../model/companion_shortcut_page";
+import { APPLE_SHORTCUTS_APP_ID, APPLE_SHORTCUTS_HIDDEN_OPTION, isAppleShortcutsCard, isAppleShortcutsPage, previewSubpageOwner } from "../model/companion_shortcut_page";
 import { companionCardHasAppIcon } from "../model/companion_card_codec";
 import { state } from "../state/app_instance";
 import * as EspDesktopModel from "../model";
@@ -27,12 +27,12 @@ import type { ApplicationApiFeature } from "./api";
 import type { GridFeature } from "./grid";
 import type { ButtonSettingsIconPickerFeature } from "./button_settings_icon_picker";
 import type { ButtonSettingsSelectionFeature } from "./button_settings_selection";
-import type { PreviewRenderFeature } from "./preview_render";
+import { companionAppIconPreviewData, type PreviewRenderFeature } from "./preview_render";
 import { cardPickerConnectors, type CardPickerConnector, type CardPickerOption } from "../features/preview";
 import type { PreviewInteractionsFeature } from "./preview_interactions";
 import type { ControlsFieldsFeature } from "./controls_fields";
 import { cardOwnsSubpage, COMPANION_APP_SHORTCUTS_TABS_OPTION, editableAppShortcutPage,
-    reconnectAthenaShortcutSubpage } from "./companion_shortcut_folder";
+    reconnectAthenaShortcutSubpage, setCompanionAppShortcutFolderEnabled } from "./companion_shortcut_folder";
 
 export function entityMatchesDomains(entityId?: any, domains?: any): boolean {
     var value: any = String(entityId || "").trim();
@@ -92,6 +92,7 @@ export function createButtonSettingsFeature(
     } = fields;
 
     function cardSettingsTitle(this: any, typeDefinition?: any, button?: any): string {
+        if (isAppleShortcutsCard(button)) return "Apple Shortcuts";
         var label: any = buttonTypeRegistryValue(typeDefinition, "label", "Card");
         var mode: any = typeDefinition && typeDefinition.cardMetadata && typeDefinition.cardMetadata.mode;
         var options: any = mode && (typeof mode.options === "function" ? mode.options(button) : mode.options);
@@ -544,6 +545,7 @@ export function createButtonSettingsFeature(
                 : null;
             var replacedFolderOwner: any = !c.isSub &&
                 cardOwnsSubpage(originalSubpageOwner) &&
+                !(isAppleShortcutsCard(originalSubpageOwner) && isAppleShortcutsCard(savedButton)) &&
                 (!cardOwnsSubpage(savedButton) || originalSubpageOwner.type !== savedButton.type ||
                     originalSubpageOwner.entity !== savedButton.entity);
             var sizeChanged: any = !shortcutPage && applyCardSizeConstraint(savedButton);
@@ -699,7 +701,7 @@ export function createButtonSettingsFeature(
             });
             draft.autoSelectedButton = null;
         }
-        function selectCardType(this: any, newType?: any) {
+        function selectCardType(this: any, newType?: any, applicationPreset?: { id: string; label: string }) {
             var previousCardOptions = b.options;
             var pickerType: any = newType;
             newType = defaultButtonTypeForPicker(newType);
@@ -731,6 +733,14 @@ export function createButtonSettingsFeature(
                 b.unit = "";
                 b.precision = "";
                 b.options = "";
+            }
+            if (applicationPreset) {
+                b.entity = applicationPreset.id;
+                b.label = applicationPreset.label;
+                if (codec.canCreateSubpage(homeSlot)) {
+                    setCompanionAppShortcutFolderEnabled(b, true);
+                    b._modalSettingsOpen = true;
+                }
             }
             b.options = preserveCardColorOptions(previousCardOptions, b.options);
             if (wasNewDraftWithoutType && state.settingsDraft && state.settingsDraft.key === draftKey) {
@@ -774,7 +784,9 @@ export function createButtonSettingsFeature(
             const picker = document.createElement("div");
             picker.id = "sp-card-type-picker";
             const mainTitle = title.textContent;
-            let showOBS = false;
+            let openGroup: "obs_group" | "apple_shortcuts_group" | null = null;
+            const isShortcutOption = (key: string) => key === "companion_apple_shortcuts" || key === "companion_apple_shortcut";
+            const openAppOption = "apple_shortcuts_open_app";
             function pickerButton(o: CardPickerOption, select: () => void) {
                 const item = document.createElement("button");
                 item.type = "button";
@@ -782,7 +794,18 @@ export function createButtonSettingsFeature(
                 item.disabled = o.disabled;
                 item.setAttribute("data-card-type", o.key);
                 item.setAttribute("aria-label", o.label + " card type");
-                item.appendChild(mdiIcon(o.icon, "sp-card-type-icon mdi"));
+                const icon = mdiIcon(o.icon, "sp-card-type-icon mdi");
+                item.appendChild(icon);
+                if (o.key === openAppOption) {
+                    void companionAppIconPreviewData(APPLE_SHORTCUTS_APP_ID, "", document).then(preview => {
+                        if (!preview || !item.isConnected) return;
+                        const image = document.createElement("img");
+                        image.className = "sp-card-type-icon sp-card-type-app-icon";
+                        image.src = preview.dataUrl;
+                        image.alt = "";
+                        icon.replaceWith(image);
+                    });
+                }
                 const copy = document.createElement("span");
                 copy.className = "sp-card-type-copy";
                 copy.appendChild(textSpan(o.label, "sp-card-type-title"));
@@ -793,14 +816,23 @@ export function createButtonSettingsFeature(
             }
             const back = createActionButton("sp-action-btn sp-cancel-btn sp-card-type-back", "Back to card types", "chevron-left");
             back.addEventListener("click", () => {
-                showOBS = false;
+                const previousGroup = openGroup;
+                openGroup = null;
                 renderOptions();
-                picker.querySelector<HTMLElement>('[data-card-type="obs_group"]')?.focus();
+                picker.querySelector<HTMLElement>(`[data-card-type="${previousGroup}"]`)?.focus();
             });
             function renderGrid(options: readonly CardPickerOption[], heading?: string) {
                 const grid = document.createElement("div");
                 grid.className = "sp-card-type-grid";
-                for (const option of options) grid.appendChild(pickerButton(option, () => selectCardType(option.key)));
+                for (const option of options) {
+                    grid.appendChild(pickerButton(option, () => {
+                        if (option.key === openAppOption) {
+                            selectCardType("companion_app", { id: APPLE_SHORTCUTS_APP_ID, label: "Shortcuts" });
+                        } else {
+                            selectCardType(option.key);
+                        }
+                    }));
+                }
                 if (heading) {
                     const section = document.createElement("section");
                     section.setAttribute("aria-label", heading);
@@ -816,10 +848,22 @@ export function createButtonSettingsFeature(
             }
             function renderOptions() {
                 picker.replaceChildren();
-                title.textContent = showOBS ? "OBS Studio" : mainTitle;
+                title.textContent = openGroup === "obs_group" ? "OBS Studio" :
+                    openGroup === "apple_shortcuts_group" ? "Apple Shortcuts" : mainTitle;
                 const options: CardPickerOption[] = buttonTypePickerOptionList(!!isSub, selectedTypeKey, activeConnector);
                 const obsOptions = options.filter(option => option.key.startsWith("companion_obs"));
-                if (showOBS) {
+                const shortcutOptions = options.filter(option => isShortcutOption(option.key));
+                const appOption = options.find(option => option.key === "companion_app");
+                if (openGroup === "apple_shortcuts_group") {
+                    picker.before(back);
+                    if (appOption) shortcutOptions.push({
+                        ...appOption, key: openAppOption, label: "Open the Shortcuts App",
+                        description: "Add an Applications card that opens the Shortcuts app on your Mac.",
+                    });
+                    renderGrid(shortcutOptions);
+                    return;
+                }
+                if (openGroup === "obs_group") {
                     picker.before(back);
                     const isPage = (option: CardPickerOption) => defaultButtonTypeForPicker(option.key) === "subpage";
                     renderGrid(obsOptions.filter(option => !isPage(option)), "Card types");
@@ -828,17 +872,21 @@ export function createButtonSettingsFeature(
                     return;
                 }
                 back.remove();
-                const grid = renderGrid(options.filter(option => !option.key.startsWith("companion_obs")));
-                if (!obsOptions.length) return;
-                grid.appendChild(pickerButton({
-                    key: "obs_group", label: "OBS Studio", icon: "monitor-multiple",
-                    description: "Add scene, audio, and broadcast controls.",
-                    disabled: false, connector: "mac_companion",
-                }, () => {
-                    showOBS = true;
-                    renderOptions();
-                    back.focus();
-                }));
+                const grid = renderGrid(options.filter(option => !option.key.startsWith("companion_obs") &&
+                    !isShortcutOption(option.key)));
+                const groupButton = (key: "obs_group" | "apple_shortcuts_group", label: string, icon: string, description: string) =>
+                    pickerButton({ key, label, icon, description, disabled: false, connector: "mac_companion" }, () => {
+                        openGroup = key;
+                        renderOptions();
+                        back.focus();
+                    });
+                if (shortcutOptions.length) {
+                    grid.prepend(groupButton("apple_shortcuts_group", "Apple Shortcuts", "flash",
+                        "Add a shortcut, a page of shortcuts, or a card that opens the app."));
+                }
+                if (obsOptions.length) {
+                    grid.appendChild(groupButton("obs_group", "OBS Studio", "monitor-multiple", "Add scene, audio, and broadcast controls."));
+                }
             }
             field.appendChild(picker);
             renderOptions();
@@ -962,13 +1010,15 @@ export function createButtonSettingsFeature(
                     c = ctx(homeSlot);
                     const owner = c.buttons[slot - 1];
                     if (state.editingSubpage !== shortcutPage || !editableAppShortcutPage(owner) ||
-                        owner.entity !== b.entity || !codec.canCreateSubpage(homeSlot)) {
+                        owner.entity !== b.entity || owner.type !== b.type || !codec.canCreateSubpage(homeSlot)) {
                         showBanner("This app subpage has changed. Reopen its shortcut settings to try again.", "error");
                         return;
                     }
-                    const tabs = configOptionValue(b.options, COMPANION_APP_SHORTCUTS_TABS_OPTION);
-                    const options = setConfigOptionValue(owner.options, COMPANION_APP_SHORTCUTS_TABS_OPTION, tabs);
-                    EspDesktopModel.copyCardConfig(b, { ...owner, options, _appShortcutSelectionChanged: true });
+                    const selectionOption = isAppleShortcutsPage(owner) ? APPLE_SHORTCUTS_HIDDEN_OPTION : COMPANION_APP_SHORTCUTS_TABS_OPTION;
+                    const options = setConfigOptionValue(owner.options, selectionOption, configOptionValue(b.options, selectionOption));
+                    EspDesktopModel.copyCardConfig(b, {
+                        ...owner, options, _appleShortcutTabs: b._appleShortcutTabs, _appShortcutSelectionChanged: true,
+                    });
                 }
                 if (!validateSettingsDraft() || !validateImageCardLimit() || !validateConfigSize()) return;
                 saveBtn.disabled = true;
@@ -982,11 +1032,11 @@ export function createButtonSettingsFeature(
         }
         if (shortcutPage) {
             const renderShortcuts = cardRegistry.definitions.companion?.renderAppShortcutSettings;
-            if (!renderShortcuts || !editableAppShortcutPage(liveButton) || liveButton.entity !== b.entity) {
+            if (!renderShortcuts || !editableAppShortcutPage(liveButton) || liveButton.entity !== b.entity || liveButton.type !== b.type) {
                 closeSettings();
                 return;
             }
-            title.textContent = "Edit App Shortcuts";
+            title.textContent = isAppleShortcutsPage(b) ? "Edit Apple Shortcuts" : "Edit Keyboard Shortcuts";
             panel.classList.add("sp-app-subpage-settings");
             renderShortcuts(panel, b, shortcutPage, { idPrefix, saveField }, true);
             const footer = document.createElement("div");

@@ -1,4 +1,6 @@
 import { createCompanionCatalogue, type CompanionAction } from "../api/companion_catalogue";
+import { APPLE_SHORTCUT_PREFIX } from "../model/companion_card_codec";
+import { APPLE_SHORTCUTS_APP_ID } from "../model/companion_shortcut_page";
 import type { NativeLayoutDraft } from "../model/native_layout_draft";
 import type { NativePanelConfigGraph } from "../model/panel_config_conversion";
 import type { NativePanelConfigSnapshot } from "../features/native_panel_config";
@@ -8,10 +10,12 @@ import type { ControlsFieldsFeature } from "./controls_fields";
 import type { ControlsShellFeature } from "./controls_shell";
 import { createCompanionPairingDetails, type CompanionPairingState } from "./settings_companion_section";
 import {
+    appleShortcutPageActions,
     companionShortcutDefaultTabs,
     companionShortcutFolderAppLabel,
     applyCompanionShortcutApplication,
     companionShortcutTabsForCapacity,
+    createAppleShortcutSubpage,
     createCompanionShortcutSubpage,
     replaceCompanionDefinitions,
     setCompanionAppShortcutFolderEnabled,
@@ -34,7 +38,7 @@ function hasNativeLayout(snapshot: NativePanelConfigSnapshot | null): snapshot i
 export function firstRunApplications(actions: readonly CompanionAction[]): CompanionAction[] {
     const unique = new Map<string, CompanionAction>();
     for (const action of actions) {
-        if (!action.id.startsWith("folder.") && !action.id.startsWith("shortcut.") &&
+        if (!action.id.startsWith(APPLE_SHORTCUT_PREFIX) && !action.id.startsWith("folder.") && !action.id.startsWith("shortcut.") &&
             !action.id.startsWith("media.") && !action.id.startsWith("system.") &&
             !action.id.startsWith("window.") && !action.id.startsWith("webapp.") &&
             !action.id.startsWith("obs.") && !action.id.startsWith("input.level.")) unique.set(action.id, action);
@@ -42,8 +46,8 @@ export function firstRunApplications(actions: readonly CompanionAction[]): Compa
     return [...unique.values()].sort((a, b) => a.label.localeCompare(b.label));
 }
 
-export function supportsSetupShortcuts(id: string): boolean {
-    return companionShortcutDefaultTabs(id).length > 0;
+export function supportsSetupShortcuts(id: string, workflows: readonly CompanionAction[] = []): boolean {
+    return id === APPLE_SHORTCUTS_APP_ID ? workflows.length > 0 : companionShortcutDefaultTabs(id).length > 0;
 }
 
 function layoutSignature({ document: { deviceProfile, settings }, layout }: NativePanelConfigGraph): string {
@@ -64,6 +68,7 @@ export function applyFirstRunLayout(
     capacity: number,
     replacing?: NativePanelConfigGraph,
     automaticSwitch?: boolean,
+    workflows: readonly CompanionAction[] = [],
 ): void {
     if (replacing && layoutSignature(current) !== layoutSignature(replacing)) {
         throw new Error("The layout changed while setup was open. Close and reopen setup to keep those changes.");
@@ -74,9 +79,13 @@ export function applyFirstRunLayout(
     const entries = apps.map(app => {
         const card = { entity: app.id, label: app.label, icon: "Auto", icon_on: "Auto",
             sensor: "", unit: "", type: "companion", precision: "", options: "" };
-        if (!addShortcutPages || !supportsSetupShortcuts(app.id)) return { card };
-        const tabs = companionShortcutTabsForCapacity(companionShortcutDefaultTabs(app.id), capacity);
+        if (!addShortcutPages || !supportsSetupShortcuts(app.id, workflows)) return { card };
         setCompanionAppShortcutFolderEnabled(card, true);
+        if (app.id === APPLE_SHORTCUTS_APP_ID) {
+            const { order, buttons } = createAppleShortcutSubpage(workflows, capacity);
+            return { card, page: { order: order.join(","), cards: buttons } };
+        }
+        const tabs = companionShortcutTabsForCapacity(companionShortcutDefaultTabs(app.id), capacity);
         card.options = setConfigOptionValue(card.options, "app_shortcuts_tabs", tabs.join("|") || "none");
         const { order, buttons } = createCompanionShortcutSubpage(app.id, tabs);
         return { card, page: { order: order.join(","), cards: buttons } };
@@ -117,6 +126,7 @@ export function createFirstRunSetup(deps: FirstRunSetupDependencies): { start():
     let includePairingStep = false;
     let step = 1;
     let apps: CompanionAction[] = [];
+    let workflows: CompanionAction[] = [];
     const selected = new Set<string>();
     let addShortcutPages = true;
     let autoSwitch = true;
@@ -129,7 +139,7 @@ export function createFirstRunSetup(deps: FirstRunSetupDependencies): { start():
     let previousFocus: HTMLElement | null = null;
 
     const selectedApps = () => apps.filter(app => selected.has(app.id));
-    const hasShortcutPage = (id: string) => id !== "com.apple.finder" && !!companionShortcutFolderAppLabel(id);
+    const hasShortcutPage = (id: string) => id !== "com.apple.finder" && (id === APPLE_SHORTCUTS_APP_ID ? workflows.length > 0 : !!companionShortcutFolderAppLabel(id));
     const supportedApps = () => selectedApps().filter(app => hasShortcutPage(app.id));
 
     function element<K extends keyof HTMLElementTagNameMap>(tag: K, text = "", className = ""): HTMLElementTagNameMap[K] {
@@ -188,6 +198,7 @@ export function createFirstRunSetup(deps: FirstRunSetupDependencies): { start():
                 }).catch(() => { /* Bundled shortcuts remain available on older firmware. */ }),
             ]);
             apps = firstRunApplications(actions);
+            workflows = appleShortcutPageActions(actions);
             if (apps.length > 0) {
                 const ids = new Set(apps.map(app => app.id));
                 for (const id of selected) if (!ids.has(id)) selected.delete(id);
@@ -224,7 +235,7 @@ export function createFirstRunSetup(deps: FirstRunSetupDependencies): { start():
                 throw new Error("Could not confirm the display can save app setup. Check its connection and firmware.");
             const chosen = skip ? [] : selectedApps();
             if (addShortcutPages) await Promise.all(chosen.filter(app => hasShortcutPage(app.id) &&
-                !supportsSetupShortcuts(app.id)).map(async app => {
+                !supportsSetupShortcuts(app.id, workflows)).map(async app => {
                 const definition = await catalogue.loadShortcutApplication(app.id);
                 if (!definition) throw new Error("Could not load " + app.label + " shortcuts. Check Mac Companion and try again.");
                 applyCompanionShortcutApplication(definition);
@@ -233,7 +244,7 @@ export function createFirstRunSetup(deps: FirstRunSetupDependencies): { start():
             const result = await deps.native.schedule(Object.assign(
                 () => { throw new Error("App setup needs native layout support."); },
                 { editNative: (draft: NativeLayoutDraft, current: NativePanelConfigGraph) => {
-                    applyFirstRunLayout(draft, current, chosen, addShortcutPages, deps.capacity, replacing, automaticSwitch);
+                    applyFirstRunLayout(draft, current, chosen, addShortcutPages, deps.capacity, replacing, automaticSwitch, workflows);
                 } },
             ));
             if (result !== "saved" && result !== "mirror-failed") throw new Error("Could not finish setup. Reload the page to check the display’s saved layout before trying again.");
@@ -322,9 +333,12 @@ export function createFirstRunSetup(deps: FirstRunSetupDependencies): { start():
             step = 0;
         }
         const supportedCount = supportedApps().length;
+        const includesWorkflows = selected.has(APPLE_SHORTCUTS_APP_ID) && workflows.length > 0;
+        const pageKind = includesWorkflows ? "app subpage" : "keyboard shortcut page";
         const lastStep = addShortcutPages && supportedCount > 0 ? 3 : 2;
         step = Math.min(step, lastStep);
-        const titles = ["Connect your Mac", "Choose your apps", "Shortcut pages", "Finish setup"];
+        const titles = ["Connect your Mac", "Choose your apps",
+            includesWorkflows ? "App subpages" : "Keyboard shortcut pages", "Finish setup"];
         const pairingOffset = Number(includePairingStep);
         const progress = element("p", `Step ${step + pairingOffset} of ${lastStep + pairingOffset}`, "sp-setup-step");
         const title = element("h1", titles[step], "sp-setup-title");
@@ -333,7 +347,7 @@ export function createFirstRunSetup(deps: FirstRunSetupDependencies): { start():
             "Connect to a Mac on the same network.",
             `Pick your favourite apps to display (up to ${appLimit} apps).`,
             "Choose what you can do from your app cards.",
-            "Choose when the display opens a shortcut page.",
+            `Choose when the display opens an app’s ${pageKind}.`,
         ];
         const description = element("p", explanations[step], "sp-setup-description");
         if (step === 1 && replacing && (replacing.layout.rootCards.length || replacing.layout.pages.length)) {
@@ -383,9 +397,11 @@ export function createFirstRunSetup(deps: FirstRunSetupDependencies): { start():
             modes.setAttribute("aria-label", "App card mode");
             const canAddPages = supportedCount > 0;
             modes.append(
-                modeChoice("sp-setup-add-pages", "Add shortcut pages", canAddPages
-                    ? `Add a page of ready-to-use shortcuts for ${supportedCount} of your selected apps.`
-                    : "The selected apps have no built-in shortcut pages.", addShortcutPages && canAddPages,
+                modeChoice("sp-setup-add-pages", includesWorkflows ? "Add app subpages" : "Add keyboard shortcut pages", canAddPages
+                    ? includesWorkflows
+                        ? "Include enabled Apple Shortcuts and keyboard shortcuts for supported apps."
+                        : `Add a page of ready-to-use keyboard shortcuts for ${supportedCount} of your selected apps.`
+                    : "The selected apps have no built-in keyboard shortcut pages.", addShortcutPages && canAddPages,
                     () => { addShortcutPages = true; render(); }, !canAddPages),
                 modeChoice("sp-setup-launch-only", "Launch apps only", "Tap a card to open or switch to its app.",
                     !addShortcutPages || !canAddPages, () => { addShortcutPages = false; render(); }),
@@ -394,11 +410,13 @@ export function createFirstRunSetup(deps: FirstRunSetupDependencies): { start():
         } else {
             const modes = element("div", "", "sp-setup-modes");
             modes.setAttribute("role", "radiogroup");
-            modes.setAttribute("aria-label", "Shortcut page opening mode");
+            modes.setAttribute("aria-label", includesWorkflows ? "App subpage opening mode" : "Keyboard shortcut page opening mode");
             modes.append(
-                modeChoice("sp-setup-auto-switch", "Follow the active app", "Open its shortcut page when you switch to the app on your Mac.",
+                modeChoice("sp-setup-auto-switch", "Follow the active app", `Open its ${pageKind} when you switch to the app on your Mac.`,
                     autoSwitch, () => { autoSwitch = true; }),
-                modeChoice("sp-setup-manual-switch", "Open from the display", "Tap the card of an active app to open its shortcuts.",
+                modeChoice("sp-setup-manual-switch", "Open from the display", includesWorkflows
+                    ? "Tap the card of an active app to open its subpage."
+                    : "Tap the card of an active app to open its keyboard shortcuts.",
                     !autoSwitch, () => { autoSwitch = false; }),
             );
             content.appendChild(modes);

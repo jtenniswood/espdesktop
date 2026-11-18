@@ -5,7 +5,7 @@ export interface CompanionSystemMetric { readonly mode: string; readonly id: str
 export interface CompanionCardMode { readonly id: string; readonly label: string; readonly capability: string; readonly defaultIcon: string; }
 export interface CompanionProtocolMessage { readonly id: string; readonly direction: string; readonly authorization: string; }
 
-export const COMPANION_CAPABILITY_VERSION = 23 as const;
+export const COMPANION_CAPABILITY_VERSION = 24 as const;
 export const COMPANION_PROTOCOL_VERSION = 4 as const;
 export const COMPANION_PROTOCOL_PATH = "/companion/v4" as const;
 export const COMPANION_MAXIMUM_TEXT_FRAME_BYTES = 16384 as const;
@@ -21,7 +21,7 @@ export const COMPANION_CARD_MODES = [
   },
   {
     id: "shortcut",
-    label: "Keyboard shortcut",
+    label: "Keyboard Shortcut",
     capability: "keyboard_shortcuts",
     defaultIcon: "Shortcut Command"
   },
@@ -96,6 +96,12 @@ export const COMPANION_CARD_MODES = [
     label: "Break",
     capability: "obs_brb",
     defaultIcon: "Coffee to Go"
+  },
+  {
+    id: "apple_shortcut",
+    label: "Run Apple Shortcut",
+    capability: "apple_shortcuts",
+    defaultIcon: "Flash"
   },
   {
     id: "stats",

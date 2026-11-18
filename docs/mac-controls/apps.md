@@ -1,6 +1,6 @@
 ---
 title: Launch Mac Apps from a Touchscreen
-description: Launch Mac apps, give individual apps their own volume sliders, and set up shortcut pages from your EspDesktop touchscreen.
+description: Launch Mac apps, give individual apps their own volume sliders, and set up keyboard shortcut pages from your EspDesktop touchscreen.
 ---
 
 # Launch Mac apps
@@ -66,25 +66,25 @@ The level cards display **Volume** or **Mic** by default. The output mute card d
 
 ## Ready-Made app subpages
 
-An approved **Applications** card can offer an editable subpage when EspDesktop includes shortcut templates for that app. Examples include **Safari**, **Slack**, **Codex**, and **OpenCode Desktop**.
+An approved **Applications** card can offer an editable subpage when EspDesktop includes keyboard shortcut templates for that app. Examples include **Safari**, **Slack**, **Codex**, and **OpenCode Desktop**.
 
-1. Add an **Applications** card for an app with a shortcut template.
+1. Add an **Applications** card for an app with a keyboard shortcut template.
 2. Open **App Subpage** in its card settings and turn on **Add app subpage**.
-3. Choose the shortcuts to include and drag them into order.
+3. Choose the keyboard shortcuts to include and drag them into order.
 
 For OpenCode Desktop on Mac, the starter tiles include **New Session**, **Command Palette**, **Find Files**, and **Review Changes**. See all 12 presets in the [OpenCode shortcut reference](/reference/shortcut-presets#ai-opencode-desktop).
 
 <a href="/images/web-editor-app-subpage-shortcuts.png"><picture><source type="image/avif" srcset="/images/web-editor-app-subpage-shortcuts-480.avif 480w, /images/web-editor-app-subpage-shortcuts-960.avif 960w" sizes="(min-width: 768px) 688px, 90vw"><img src="/images/web-editor-app-subpage-shortcuts.png" alt="Figma Applications card settings with Add app subpage on and shortcuts that can be enabled and reordered" width="1694" height="2266" loading="lazy"></picture></a>
 
-The page uses the same templates as the **Application** tab on a **Key Shortcut** card and remains editable. Turning the app subpage option off preserves your changes.
+The page uses the same templates as the **Application** tab on a **Keyboard Shortcut** card and remains editable. Turning the app subpage option off preserves your changes.
 
-<a href="/images/web-editor-figma-subpage.png"><picture><source type="image/avif" srcset="/images/web-editor-figma-subpage-480.avif 480w, /images/web-editor-figma-subpage-960.avif 960w" sizes="(min-width: 768px) 688px, 90vw"><img src="/images/web-editor-figma-subpage.png" alt="Figma app subpage in the web editor with a back tile and shortcuts such as Frame, Duplicate, and Copy PNG" width="1562" height="2134" loading="lazy"></picture></a>
+<a href="/images/web-editor-figma-subpage.png"><picture><source type="image/avif" srcset="/images/web-editor-figma-subpage-480.avif 480w, /images/web-editor-figma-subpage-960.avif 960w" sizes="(min-width: 768px) 688px, 90vw"><img src="/images/web-editor-figma-subpage.png" alt="Figma app subpage in the web editor with a back tile and keyboard shortcuts such as Frame, Duplicate, and Copy PNG" width="1562" height="2134" loading="lazy"></picture></a>
 
-You can [add a custom shortcut](/mac-controls/shortcuts#create-a-shortcut-card) in an empty tile on the app subpage.
+You can [add a custom keyboard shortcut](/mac-controls/shortcuts#create-a-shortcut-card) in an empty tile on the app subpage.
 
 For standalone pages, see [Subpages](/features/subpages). For folders, see [Open Finder folders](/mac-controls/folders).
 
-When you close the last visible window of the foreground app, the display returns to the Home page or subpage you were using before the shortcuts opened. This also applies to pages opened by tapping an app card. **Return home when switching apps** controls what happens when you switch to another Mac app.
+When you close the last visible window of the foreground app, the display returns to the Home page or subpage you were using before the app subpage opened. This also applies to pages opened by tapping an app card. **Return home when switching apps** controls what happens when you switch to another Mac app.
 
 See [all app presets](/reference/shortcut-presets).
 

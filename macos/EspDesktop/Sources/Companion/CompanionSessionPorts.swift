@@ -28,6 +28,7 @@ protocol CompanionSessionResources: AnyObject {
     func obsControlActions() -> [OBSConnection.CatalogueEntry]
     func folderActions() -> [ApprovedFolder]
     func inputDeviceActions() -> [(id: String, label: String)]
+    func appleShortcutActions() -> [AppleShortcut]
     func launchableApps() -> [LaunchableApp]
     func appIconPixels(bundleIdentifier: String, pixelSide: Int) -> Data?
     func focusedCompanionActionIdentifier() async -> String
@@ -79,6 +80,7 @@ extension CompanionSessionResources {
     func obsAudioValues() -> [String: Int] { [:] }
     func setOBSCough(_ value: Int, controlIdentifier: String, from session: ObjectIdentifier) async -> Bool { false }
     func abandonOBSCough(from session: ObjectIdentifier) {}
+    func appleShortcutActions() -> [AppleShortcut] { [] }
     func remoteCompanionCatalogues() -> RemoteCompanionCatalogues { .empty }
     func focusedCompanionActionIdentifiers(for targets: [(id: String, url: URL)]) async -> [String] {
         let identifier = await focusedCompanionActionIdentifier()

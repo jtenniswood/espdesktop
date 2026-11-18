@@ -54,6 +54,7 @@ export const OBS_TRANSITION_OPTIONS = [
   [OBS_TRANSITION_ID, "Cycle transitions"],
   [OBS_TRANSITION_SELECT, "Select a transition"],
 ] as const;
+export const APPLE_SHORTCUT_PREFIX = "appleshortcut.";
 
 export function companionMetricForEntity(entity: unknown) {
   const baseEntity = typeof entity === "string" ? entity.split(":", 1)[0] : entity;
@@ -74,6 +75,7 @@ export function companionSavedCardMode(config: Partial<CardConfig>): CompanionCa
   if (entity === OBS_PROGRAM_ID) return "obs_status";
   if (entity.startsWith("obs.mute.")) return "obs_mic";
   if (entity.startsWith(COMPANION_OBS_PREFIX)) return "obs";
+  if (entity.startsWith(APPLE_SHORTCUT_PREFIX)) return "apple_shortcut";
   if (entity === "stats" || companionMetricForEntity(entity)) return "stats";
   if (config.sensor?.startsWith("url.")) return "url";
   return "app";
@@ -101,6 +103,7 @@ export function decodeCompanionCard(config: Partial<CardConfig>, mode = companio
     case "obs_studio":
     case "obs_mic":
     case "obs": return { mode, actionId: entity };
+    case "apple_shortcut": return { mode, actionId: entity };
     case "url": return { mode, applicationId: entity, encodedUrl: config.sensor || "" };
     case "stats": return { mode, metricId: entity, precision: config.precision || "", unit: config.unit || "" };
   }
@@ -124,6 +127,7 @@ export function encodeCompanionCard(model: CompanionCardModel, original: CardCon
     case "obs_studio":
     case "obs_mic":
     case "obs": config.entity = model.actionId; break;
+    case "apple_shortcut": config.entity = model.actionId; break;
     case "url": config.entity = model.applicationId; config.sensor = model.encodedUrl; break;
     case "stats":
       config.entity = model.metricId; config.precision = model.precision; config.unit = model.unit;

@@ -2736,6 +2736,37 @@
       }
     },
     {
+      "name": "companion_apple_shortcuts: picker_alias",
+      "sourceKind": "runtime_only",
+      "sourceType": "companion_apple_shortcuts",
+      "mode": "picker_alias",
+      "canonicalType": "subpage",
+      "web": {
+        "registration": "companion_apple_shortcuts",
+        "picker": {
+          "main": true,
+          "subpage": false,
+          "infoOnly": false
+        },
+        "preview": {
+          "available": false,
+          "fingerprint": ""
+        }
+      },
+      "firmware": {
+        "family": null
+      },
+      "lifecycle": {
+        "subscriptions": [
+          "none"
+        ],
+        "actions": [
+          "navigation"
+        ],
+        "modalOwner": "none"
+      }
+    },
+    {
       "name": "media_cover_art: obsolete_implementation_residue",
       "sourceKind": "runtime_only",
       "sourceType": "media_cover_art",

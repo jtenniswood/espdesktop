@@ -72,6 +72,13 @@ inline bool navigation_driver_setup_visual(
     folder.entity.clear();
     folder.sensor.clear();
     setup_toggle_visual(slot, folder);
+    if (apple_shortcuts_navigation_card(config) &&
+        (config.icon.empty() || config.icon == "Auto" || config.icon == "Flash")) {
+      lv_label_set_display_text(slot.icon_lbl, find_icon("Flash"));
+#ifdef USE_COMPANION
+      companion_set_card_icon_image(slot, APPLE_SHORTCUTS_APP_ID, "small");
+#endif
+    }
   }
   apply_instant_button_feedback(slot.btn);
   return true;

@@ -31,7 +31,7 @@ const settingsSlides = [
     imageBase: '/images/mac-connector/mac_app2',
     alt: 'Apps tab with All available apps switched on',
     title: 'Apps',
-    caption: 'Leave All available apps on to make every installed app available for shortcuts on your display.',
+    caption: 'Leave All available apps on to make every installed app available for keyboard shortcuts on your display.',
   },
   {
     imageBase: '/images/mac-connector/mac_app3',

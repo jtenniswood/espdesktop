@@ -579,7 +579,7 @@ describe("browserless application contracts", () => {
     assert.match(card, /appendChild\(shortcutFolderField\);[\s\S]*sp-app-subpage-options-divider[\s\S]*renderAppShortcutSettings\(appSubpageDisclosure\.section/);
     assert.doesNotMatch(card, /autoSwitchField|Auto switch to subpage/);
     assert.match(styles, /\.sp-app-subpage-options-divider\{/);
-    assert.match(card, /No free subpage space\. Remove a custom card before enabling another shortcut\./);
+    assert.match(card, /No free subpage space\. Remove a custom card before enabling another keyboard shortcut\./);
     assert.match(card, /changedFromSavedApp = card\.entity !== savedParent\?\.entity/);
     assert.match(card, /delete card\._appShortcutAppChanged;[\s\S]*if \(!companionAppShortcutFolderEnabled\(card\) && \(!existing \|\| !appShortcutPageOwner\(card\)\)\)/);
     assert.doesNotMatch(entry, /registerCompatibility\(registerCompanionCardTypes/);
@@ -692,7 +692,7 @@ describe("browserless application contracts", () => {
     const card = fs.readFileSync(path.join(ROOT, "src/webserver/cards/subpage.ts"), "utf8");
     const globals = fs.readFileSync(path.join(ROOT, "src/webserver/runtime/application_globals.d.ts"), "utf8");
     assert.doesNotMatch(card, /\b(?:GlobalDescriptors|staticGlobal|liveGlobal)\b/);
-    assert.match(entry, /registerSubpageCardTypes\(registry, context\.configuration\.codec, context\.core, context\.controllers\.selection,\s*fields, cardUi, context\.configuration\.modalTabs, \(\) => subpageCatalogue\.load\(true\)\);/);
+    assert.match(entry, /registerSubpageCardTypes\(registry, context\.configuration\.codec, context\.core, context\.controllers\.selection,\s*fields, cardUi, context\.configuration\.modalTabs, \(\) => subpageCatalogue\.load\(true\), companionCards\);/);
     assert.match(card, /core: Pick<CoreFeature, "subpageStateDisplayMode">/);
     assert.doesNotMatch(card, /const \{ subpageStateDisplayMode \} = core;/);
     assert.doesNotMatch(entry, /registerCompatibility\(registerSubpageCardTypes/);

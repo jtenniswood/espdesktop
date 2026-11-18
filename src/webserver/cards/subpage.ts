@@ -3,9 +3,11 @@ import { companionMetricForEntity } from "../model/companion_card_codec";
 import { OBS_SUBPAGES, type OBSSubpageKind, obsSubpageKind, orderedOBSTiles, obsSubpageTileKey, setOBSSubpagePreferences, obsSubpageCatalogue } from "../model/obs_live_subpage";
 import type { CompanionAction } from "../api/companion_catalogue";
 import type { ConfigModalTabOptionsFeature } from "../application/config_modal_tab_options";
+import { APPLE_SHORTCUTS_APP_ID, APPLE_SHORTCUTS_SUBPAGE_KIND, isAppleShortcutsCard } from "../model/companion_shortcut_page";
 import { renderCompanionStorageSelector } from "./companion_storage";
 import { state } from "../state/app_instance";
 import { setConfigOptionValue } from "../model/config_primitives";
+import { childPageKey } from "../model/page_keys";
 import { escHtml, iconSlug } from "../application/ui_primitives";
 import {
     COMPANION_STATS_OPTIONS,
@@ -13,6 +15,7 @@ import {
     companionMetricPreviewValue,
     companionMetricIcon,
     companionMetricLabel,
+    type registerCompanionCardTypes,
 } from "./companion";
 import type { CardRegistry, CardUiServices } from "../application/card_registry";
 import type { ConfigCodecFeature } from "../application/config_codec";
@@ -50,6 +53,7 @@ export function registerSubpageCardTypes(
     cardUi: CardUiServices,
     modalTabs: Pick<ConfigModalTabOptionsFeature, "renderModalTabSettings">,
     loadActions: () => Promise<readonly CompanionAction[]>,
+    appleShortcuts: ReturnType<typeof registerCompanionCardTypes>,
 ): void {
     const { renderButtonSettings } = cardUi;
     const { fieldLabel } = fields;
@@ -90,6 +94,18 @@ export function registerSubpageCardTypes(
             b.options = "";
         },
         renderSettings: function (this: any, panel?: any, b?: any, slot?: any, helpers?: any) {
+            if (isAppleShortcutsCard(b)) {
+                const workflows = document.createElement("div");
+                workflows.className = "sp-app-subpage-settings";
+                helpers.markCardPrimaryField(workflows, "shortcut");
+                panel.appendChild(workflows);
+                const parent = helpers.isSub ? state.editingSubpage : null;
+                if (codec.canCreateSubpage(parent)) {
+                    appleShortcuts.renderAppShortcutSettings(workflows, b, childPageKey(parent ?? 0, Number(slot)), helpers, true);
+                }
+                helpers.renderBasicCardFields(panel, b, helpers, SUBPAGE_CARD_METADATA, { entity: false });
+                return;
+            }
             if (isStudioControlPage(b.options)) {
                 helpers.renderCardTextField(panel, b, helpers, SUBPAGE_CARD_METADATA.labelField);
                 helpers.renderCardIconPicker(panel, b, helpers, SUBPAGE_CARD_METADATA.icon);
@@ -278,6 +294,14 @@ export function registerSubpageCardTypes(
                 };
             }
             var label: any = b.label || (defaults && defaults.label) || b.entity || "Configure";
+            if (isAppleShortcutsCard(b) && (!b.icon || b.icon === "Auto" || b.icon === "Flash")) {
+                return {
+                    appIconId: APPLE_SHORTCUTS_APP_ID,
+                    appIconSize: "small",
+                    iconHtml: '<span class="sp-btn-icon sp-companion-app-icon-fallback mdi mdi-flash"></span>',
+                    labelHtml: subpageBadgeLabelHtml(helpers, label),
+                };
+            }
             return {
                 iconHtml: '<span class="sp-btn-icon mdi mdi-' + (b.icon && b.icon !== "Auto" ? iconSlug(b.icon) : defaults ? iconSlug(defaults.icon) : "folder-outline") + '"></span>',
                 labelHtml: subpageBadgeLabelHtml(helpers, label),
@@ -286,6 +310,17 @@ export function registerSubpageCardTypes(
         contextMenuItems: function (this: any, slot?: any, b?: any, helpers?: any) {
             const parent = state.editingSubpage;
             helpers.addCtxItem("cog", "Edit Subpage", function (this: any) { enterChildSubpage(parent, slot); });
+        },
+        afterSave: function (card: any, slot: number, context?: { isSub: boolean; page: number | null }) {
+            if (!isAppleShortcutsCard(card)) return "saved";
+            const parent = context?.isSub ? context.page ?? state.editingSubpage : null;
+            if (!codec.canCreateSubpage(parent)) return "saved";
+            const page = childPageKey(parent ?? 0, Number(slot));
+            const selected = card._appleShortcutTabs;
+            delete card._appleShortcutTabs;
+            delete card._appShortcutSelectionChanged;
+            delete card._appShortcutCapacityRejected;
+            return appleShortcuts.saveAppleShortcutSubpage(page, selected, state.subpages[page]);
         },
     };
     const registeredSubpageDefinition = registry.register("subpage", subpageDefinition);
@@ -323,6 +358,20 @@ export function registerSubpageCardTypes(
             b.icon = "Movie";
             b.options = setConfigOptionValue(b.options, SUBPAGE_CONNECTOR_OPTION, "mac_companion");
             b.options = setConfigOptionValue(b.options, SUBPAGE_KIND_OPTION, STUDIO_CONTROL_PAGE);
+        },
+    });
+    registry.register("companion_apple_shortcuts", {
+        label: "Apple Shortcuts",
+        pickerLabel: "Create a list of shortcuts",
+        cardMetadata: SUBPAGE_CARD_METADATA,
+        runtimeSpec: registeredSubpageDefinition.runtimeSpec,
+        allowInSubpage: false,
+        isAvailable: () => codec.canCreateSubpage(),
+        onSelect: (card: any) => {
+            card.label = "Shortcut List";
+            card.icon = "Flash";
+            card.options = setConfigOptionValue("", SUBPAGE_CONNECTOR_OPTION, "mac_companion");
+            card.options = setConfigOptionValue(card.options, SUBPAGE_KIND_OPTION, APPLE_SHORTCUTS_SUBPAGE_KIND);
         },
     });
     function subpageBadgeLabelHtml(this: any, helpers?: any, label?: any) {

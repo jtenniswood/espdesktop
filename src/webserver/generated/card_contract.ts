@@ -3105,6 +3105,14 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
         "docsHidden": true
       },
       {
+        "name": "apple_shortcuts_hidden",
+        "label": "Hidden Apple Shortcuts",
+        "kind": "text",
+        "omitDefault": true,
+        "hidden": true,
+        "docsHidden": true
+      },
+      {
         "name": "large_numbers",
         "label": "Large Sensor Numbers",
         "kind": "flag",
@@ -3184,6 +3192,7 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
         "finder_open_override",
         "app_shortcuts_tabs",
         "app_shortcut_preset",
+        "apple_shortcuts_hidden",
         "large_numbers",
         "stat_labels_off",
         "app_bg_color",
@@ -3305,6 +3314,7 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
           "sensor",
           "image",
           "companion_stat",
+          "apple_shortcuts",
           "obs_transitions",
           "obs_sources",
           "obs_audio",
@@ -3313,6 +3323,14 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
         ],
         "defaultValue": "",
         "omitDefault": true
+      },
+      {
+        "name": "apple_shortcuts_hidden",
+        "label": "Hidden Apple Shortcuts",
+        "kind": "text",
+        "omitDefault": true,
+        "hidden": true,
+        "docsHidden": true
       },
       {
         "name": "obs_transition_order",
@@ -3387,6 +3405,7 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
       "canonicalOptionOrder": [
         "subpage_connector",
         "subpage_kind",
+        "apple_shortcuts_hidden",
         "obs_transition_order",
         "obs_source_order",
         "obs_audio_order",
@@ -4337,6 +4356,7 @@ export const CARD_CONTRACT_OPTION_NAMES: Readonly<Record<string, string>> = {
   "app_shortcut_preset": "app_shortcut_preset",
   "app_shortcuts": "app_shortcuts",
   "app_shortcuts_tabs": "app_shortcuts_tabs",
+  "apple_shortcuts_hidden": "apple_shortcuts_hidden",
   "climate_tabs": "climate_tabs",
   "confirm_message": "confirm_message",
   "confirm_no": "confirm_no",

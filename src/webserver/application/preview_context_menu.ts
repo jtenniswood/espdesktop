@@ -1,7 +1,7 @@
 import { createColorSwatches } from "../components/color_swatches";
 import { cardIconSizeOverride, configOptionValue, setConfigOptionValue, setCardColor } from "../model/config_primitives";
 import { companionCardHasAppIcon, companionSavedCardMode } from "../model/companion_card_codec";
-import { previewSubpageOwner } from "../model/companion_shortcut_page";
+import { isAppleShortcutsPage, previewSubpageOwner } from "../model/companion_shortcut_page";
 import { parentPageKey } from "../model/page_keys";
 import { editableAppShortcutPage } from "./companion_shortcut_folder";
 import { defaultCardBackgroundColor } from "../state/preview_theme";
@@ -407,7 +407,9 @@ export function createPreviewContextMenuFeature(dependencies: PreviewContextMenu
         if (!page || !dependencies.codec.canCreateSubpage(parentPageKey(page) || null)) return;
         const owner = previewSubpageOwner(page, state.buttons, key => state.subpages[key]);
         if (editableAppShortcutPage(owner)) {
-            addCtxItem("keyboard-settings-outline", "Shortcut List", dependencies.openAppShortcutSettings);
+            const appleShortcuts = isAppleShortcutsPage(owner);
+            addCtxItem(appleShortcuts ? "flash" : "keyboard-settings-outline",
+                appleShortcuts ? "Apple Shortcut List" : "Keyboard Shortcut List", dependencies.openAppShortcutSettings);
         }
     }
     function addBulkCardMenuItems(this: any, slots?: any) {

@@ -179,6 +179,19 @@ int main() {
 
   }
   assert_finder_folder_projection();
+  for (const std::string_view hidden : {"inactive|hidden", "v1.JTckIJacIAYKAAxN8jFSi5"}) {
+    const std::string saved_id = "appleshortcut.saved";
+    const std::string new_id = "appleshortcut.new";
+    auto buttons = parse_subpage_config("~B,1|CP,appleshortcut.saved,Saved,Flash|CP,appleshortcut.hidden,Hidden,Flash");
+    SubpageOrder order;
+    parse_subpage_order("B,1", 4, buttons.size(), order);
+    normalize_subpage_order_spans(order, 4, 2);
+    project_apple_shortcut_tiles(order, buttons, 4, 2, 3,
+        {{saved_id, "Saved"}, {"appleshortcut.hidden", "Hidden"}, {new_id, "New"},
+         {"appleshortcut.extra", "Extra"}, {"folder.project", "Project"}}, hidden);
+    assert(order.back_pos == 0 && order.positions[1] == 1 && order.positions[2] == 2 && order.positions[3] == 0);
+    assert(buttons.size() == 2 && buttons.front().entity == saved_id && buttons.back().entity == new_id);
+  }
   const auto mac_lock = normalize_parsed_cfg(
       ParsedCfg{"shortcut.command+a", "", "", "", "url.invalid", "%", "companion_mac_lock", "1", ""});
   assert(mac_lock.entity == "shortcut.command+control+q" && mac_lock.sensor.empty());
@@ -192,6 +205,14 @@ int main() {
       mac_lock.type, mac_lock.sensor);
   assert(lock_runtime.runtime.driver == espdesktop::card_runtime::CardDriverId::COMPANION);
   assert(lock_runtime.allow_in_subpage && companion_shortcut_action_valid(mac_lock.entity));
+
+  const auto shortcuts_page = normalize_parsed_cfg(ParsedCfg{
+      "", "Apple Shortcuts", "Flash", "Auto", "", "", "subpage", "",
+      "subpage_connector=mac_companion,subpage_kind=apple_shortcuts"});
+  assert(shortcuts_page.type == "subpage" && shortcuts_page.entity.empty() && shortcuts_page.sensor.empty());
+  assert(shortcuts_page.label == "Apple Shortcuts" && shortcuts_page.icon == "Flash");
+  assert(cfg_option_value(shortcuts_page.options, "subpage_kind") == "apple_shortcuts");
+  assert(!companion_app_shortcuts_enabled(shortcuts_page));
 
   const auto saved_page = parse_subpage_config("~B,1|companion,com.example.RemoteEditor,Editor,,,,,,app_shortcuts");
   assert(saved_page.size() == 1);
@@ -298,8 +319,8 @@ int main() {
   const auto restored = project(concurrent_edit, folders);
   assert(restored[0].label == "Renamed while offline" && restored.size() == 2);
   assert(saved.size() == 1 && saved[0].label == "My folder");
-  assert(finder_folder_catalogue_equal(folders, folders));
-  assert(!finder_folder_catalogue_equal(folders, {{"folder.one", "Different"}, folders[1]}));
+  assert(live_companion_catalogue_equal(folders, folders));
+  assert(!live_companion_catalogue_equal(folders, {{"folder.one", "Different"}, folders[1]}));
 
   // Exercise the real translation tables at the device-label boundary.
   assert(std::string(companion_volume_control_label("media.input_mute")) == "Input State");

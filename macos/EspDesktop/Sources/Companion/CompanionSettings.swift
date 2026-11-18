@@ -7,7 +7,7 @@ private enum CompanionSettingsField: Hashable {
 
 private enum CompanionSettingsPage: String, CaseIterable, Identifiable {
     // Retain the saved selection identifiers from earlier versions.
-    case connection, applications, folders, obs, updates, help
+    case connection, applications, folders, appleShortcuts, obs, updates, help
 
     var id: String { rawValue }
     var title: String {
@@ -16,6 +16,7 @@ private enum CompanionSettingsPage: String, CaseIterable, Identifiable {
         case .applications: return "Apps"
         case .folders: return "Folders"
         case .obs: return "OBS"
+        case .appleShortcuts: return "Shortcuts"
         case .updates: return "Updates"
         case .help: return "Support"
         }
@@ -26,6 +27,7 @@ private enum CompanionSettingsPage: String, CaseIterable, Identifiable {
         case .applications: return "square.grid.2x2"
         case .folders: return "folder"
         case .obs: return "video"
+        case .appleShortcuts: return "bolt"
         case .updates: return "arrow.triangle.2.circlepath"
         case .help: return "questionmark.circle"
         }
@@ -116,7 +118,7 @@ private struct CompanionPermissionRow: View {
 private struct CompanionAccessibilityRow: View {
     var body: some View {
         HStack {
-            Text("Enable Shortcuts")
+            Text("Enable Keyboard Shortcuts")
                 .help("Accessibility access is required to let your display send keyboard shortcuts to this Mac.")
             Spacer()
             Button {
@@ -391,6 +393,7 @@ struct CompanionSettings: View {
         case .applications: applicationsPage
         case .folders: foldersPage
         case .obs: OBSSettings(connection: store.obs)
+        case .appleShortcuts: appleShortcutsPage
         case .updates: CompanionUpdateSettings(updater: store.updater)
         case .help: helpPage
         }
@@ -836,7 +839,7 @@ struct CompanionSettings: View {
                     Text("Apps")
                     CompanionInfoButton(
                         title: "Apps",
-                        information: "All available apps includes every installed app. Switch it off to start with no apps selected, then switch on the apps you want to make available for app shortcuts on your display."
+                        information: "All available apps includes every installed app. Switch it off to start with no apps selected, then switch on the apps you want to make available for app cards on your display."
                     )
                 }
             }
@@ -868,6 +871,60 @@ struct CompanionSettings: View {
         }
         .formStyle(.grouped)
         .onAppear { store.refreshApplications() }
+    }
+
+    private var appleShortcutsPage: some View {
+        Form {
+            Section {
+                Toggle("All available shortcuts", isOn: Binding(
+                    get: { store.allAppleShortcutsApproved },
+                    set: { store.setAllAppleShortcuts(approved: $0) }
+                ))
+                .toggleStyle(SwitchToggleStyle(tint: .accentColor))
+
+                if store.refreshingAppleShortcuts && store.appleShortcuts.isEmpty {
+                    ProgressView("Loading Apple Shortcuts…")
+                } else if let message = store.appleShortcutMessage {
+                    Text(message)
+                } else if store.appleShortcuts.isEmpty {
+                    Text("Create or add a workflow in the Shortcuts app, then return here.")
+                }
+                if !store.allAppleShortcutsApproved {
+                    ForEach(store.appleShortcuts) { shortcut in
+                        Toggle(shortcut.name, isOn: Binding(
+                            get: { store.appleShortcutIsApproved(shortcut.id) },
+                            set: { store.setAppleShortcut(shortcut, approved: $0) }
+                        ))
+                        .toggleStyle(SwitchToggleStyle(tint: .accentColor))
+                        .padding(.vertical, 2)
+                    }
+                }
+                Button("Manage Shortcuts") {
+                    guard let gallery = URL(string: "shortcuts://gallery") else { return }
+                    NSWorkspace.shared.open(gallery)
+                }
+                .buttonStyle(.bordered)
+                .controlSize(.large)
+                .modifier(CompanionCapsuleButton())
+            } header: {
+                HStack(spacing: 6) {
+                    Text("Shortcuts")
+                    CompanionInfoButton(
+                        title: "Shortcuts",
+                        information: """
+                        Apple Shortcuts are automations you create or add in the Shortcuts app. \
+                        Tap a tile to run one, such as opening your work apps and a project folder together. \
+                        Your Mac must be unlocked. Turn off All available shortcuts to choose which ones your display can run.
+                        """
+                    )
+                }
+            }
+        }
+        .formStyle(.grouped)
+        .onAppear { store.refreshAppleShortcuts() }
+        .onReceive(NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification)) { _ in
+            store.refreshAppleShortcuts()
+        }
     }
 
     private var foldersPage: some View {

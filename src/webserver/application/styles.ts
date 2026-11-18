@@ -372,6 +372,7 @@ export function createWebStyles(dragAnimation: boolean): string {
         ".sp-card-type-option:disabled{opacity:.48;cursor:not-allowed}" +
         ".sp-card-type-icon{width:34px;height:34px;border-radius:8px;background:var(--accent-soft);" +
         "color:var(--accent-hover);position:relative;font-size:22px;line-height:1;flex:0 0 auto}" +
+        ".sp-card-type-app-icon{object-fit:contain;background:none}" +
         ".sp-card-type-icon::before{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);line-height:1}" +
         ".sp-card-type-copy{display:grid;gap:6px;min-width:0}" +
         ".sp-card-type-title{font-size:.93rem;font-weight:600;line-height:1.25;color:var(--text);overflow-wrap:anywhere}" +
@@ -574,7 +575,7 @@ export function createWebStyles(dragAnimation: boolean): string {
         ".sp-action-confirm-section.sp-visible{margin-bottom:28px}" +
         ".sp-cond-field.sp-climate-settings-gap.sp-visible{margin-bottom:24px}" +
         ".sp-disclosure{border:1px solid var(--border);border-radius:8px;background:rgba(255,255,255,.02);margin-top:4px}" +
-        ".sp-disclosure+.sp-disclosure{margin-top:14px}" +
+        ".sp-disclosure+.sp-disclosure,.sp-app-subpage-settings+.sp-disclosure{margin-top:14px}" +
         ".sp-field.sp-shortcut-settings{margin-bottom:14px}" +
         ".sp-shortcut-settings fieldset.sp-segment{margin-inline:0;padding:0;min-width:0}" +
         ".sp-disclosure-button{width:100%;display:flex;align-items:center;justify-content:space-between;gap:12px;" +
@@ -767,6 +768,7 @@ export function createWebStyles(dragAnimation: boolean): string {
         ".sp-fw-btn.sp-fw-btn-busy:hover{background:rgba(35,37,43,.5);border-color:rgba(74,77,84,.45)}" +
         ".sp-btn-label-row{display:flex;align-items:last baseline;gap:4px;width:100%;overflow:hidden;position:relative;z-index:1}" +
         ".sp-btn-label-row .sp-btn-label{flex:0 1 auto;min-width:0}" +
+        ".sp-btn-label-row:has(>.sp-subpage-badge){align-items:flex-end}" +
         ".sp-subpage-badge{font-size:var(--btn-label);line-height:1.35;color:#fff;flex-shrink:0;" +
         "display:inline-block;text-align:center;width:1.35em;height:1.35em;" +
         "cursor:pointer;padding:0;background:transparent;text-shadow:0 1px 3px rgba(0,0,0,.9),0 0 2px rgba(0,0,0,.65)}" +
