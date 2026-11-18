@@ -302,10 +302,10 @@ int main() {
   assert(!finder_folder_catalogue_equal(folders, {{"folder.one", "Different"}, folders[1]}));
 
   // Exercise the real translation tables at the device-label boundary.
-  assert(std::string(companion_volume_control_label("media.input_mute")) == "Mute");
+  assert(std::string(companion_volume_control_label("media.input_mute")) == "Input State");
   assert(std::string(companion_volume_control_label("media.output_mute")) == "Mute");
   set_espdesktop_language("de");
-  assert(std::string(companion_volume_control_label("media.input_mute")) == "Stumm");
+  assert(std::string(companion_volume_control_label("media.input_mute")) == "Eingangsstatus");
   assert(std::string(companion_volume_control_label("media.output_volume")) == "Lautstärke");
   assert(std::string(companion_volume_control_label("media.input_volume")) == "Mikro");
   assert(companion_default_action_label("", "url.https%3A%2F%2Fexample.com") == "URL öffnen");

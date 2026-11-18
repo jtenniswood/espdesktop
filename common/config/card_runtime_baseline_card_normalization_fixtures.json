@@ -1051,10 +1051,10 @@
   },
   {
     "name": "companion_input_mute: default_device",
-    "input": "~media.input_mute,Mute,Microphone,Auto,,,companion_input_mute,,",
+    "input": "~media.input_mute,Input%20State,Microphone,Auto,,,companion_input_mute,,",
     "expected": {
       "entity": "media.input_mute",
-      "label": "Mute",
+      "label": "Input State",
       "icon": "Microphone",
       "icon_on": "Auto",
       "sensor": "",

@@ -66,7 +66,7 @@ inline constexpr CompanionCardModeCapability COMPANION_CARD_MODES[] = {
   {"url", "Open URL", "applications", "Web"},
   {"folder", "Open folder", "folders", "Folder Outline"},
   {"obs", "OBS Scene", "obs_scene_cards", "Image Card Loading"},
-  {"obs_mic", "OBS Mic Mute", "obs_scene_cards", "Microphone"},
+  {"obs_mic", "Input State", "obs_scene_cards", "Microphone"},
   {"obs_studio", "Studio Mode", "obs_scene_cards", "Split Vertical"},
   {"obs_take", "OBS Take Live", "obs_scene_cards", "Arrow Right"},
   {"obs_transition", "Transition", "obs_scene_cards", "Flip Horizontal"},

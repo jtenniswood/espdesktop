@@ -57,12 +57,12 @@ In the display editor, select an empty tile on Home or in a folder. Choose **Sou
 | **Audio Output** | Drag to set the Mac’s overall sound level on its current default output. |
 | **Audio Input** | Drag to set the level of the Mac’s current default microphone or audio input. |
 | **Output Mute** | Tap to mute the Mac’s sound output. Tap again to restore it. |
-| **Input Mute** | Tap to mute the Mac’s microphone. Tap again to restore it. |
+| **Input State** | Tap to mute or unmute the Mac’s microphone. The card uses the on colour for **Live** and the off colour for **Muted**. |
 | **Input Cough** | Hold to mute the default microphone until you release. |
 | **Input per device level** | Choose a connected audio input with adjustable gain. The card follows that device even when you change the default microphone. It becomes unavailable while that device is disconnected. |
 | **Output per application** | Choose an enabled app and adjust its sound independently. |
 
-The level cards display **Volume** and the mute cards display **Mute** by default. The speaker and microphone icons identify which device each card controls. Mute cards show a crossed-out icon when the Mac reports mute. If a card is unavailable, check the Mac connection and whether the selected audio device exposes that control in macOS. Raising a level above zero also unmutes that device.
+The level cards display **Volume** or **Mic** by default. The output mute card displays **Mute**. The speaker and microphone icons identify which device each card controls. Mute cards show a crossed-out icon when the Mac reports mute. If a card is unavailable, check the Mac connection and whether the selected audio device exposes that control in macOS. Raising a level above zero also unmutes that device.
 
 ## Ready-Made app subpages
 
@@ -92,7 +92,7 @@ See [all app presets](/reference/shortcut-presets).
 
 1. In OBS Studio, open **Tools → WebSocket Server Settings** and enable the server. Keep authentication enabled.
 2. In the EspDesktop Mac app, open **Settings → OBS**. The tab appears when EspDesktop finds OBS Studio installed in an Applications folder. Enter the port and password shown in OBS, then choose **Connect**. A saved password appears as dots until you click the field. Leave the field blank and choose **Reconnect** to reuse the saved password.
-3. In the display editor, open **Add Card → OBS Studio**. Choose **Scene** or **Audio Controls**. For audio, select **Level**, **Mute**, or **Cough** under **Type**, then choose a **Source**. Both cards are available on the home screen and in folders.
+3. In the display editor, open **Add Card → OBS Studio**. Choose **Scene** or **Audio Controls**. For audio, select **Level**, **Input State**, or **Cough** under **Type**, then choose a **Source**. Tap **Input State** to mute or unmute that source. It uses the on colour for **Live** and the off colour for **Muted**. These cards are available on the home screen and in folders.
 
 In the OBS Studio card menu, choose **Studio Mode**, then use **Type** to select **Studio Mode**, **Program scene**, or **Take Live**. The **Studio Mode** control asks for confirmation before turning Studio Mode off by default. **Program scene** shows what OBS is sending to its output. Scene cards switch Program in normal mode and select Preview in Studio Mode.
 
@@ -131,7 +131,7 @@ Look for the clip in the active OBS profile’s **Recording Path** under **Setti
 
 Choose **Set up OBS Studio** during first-time display setup, or open **Screen → Appearance → App Subpages → Add OBS starter page** to add it later. The setup suggests scenes and a microphone from your connected OBS collection. Pick a main scene, adjust the optional second scene and microphone, and select **Pin to Home**.
 
-The **OBS Studio** folder uses one free Home slot. **Switching** contains scene selection, Studio Mode and Take Live, plus Transition when OBS reports one. **Audio** contains mute, level and Cough for the chosen microphone when those controls are available. **Outputs** contains Stream, Record and the replay controls if Replay Buffer is enabled in OBS. The folder also shows **Program** and includes **Break** if the second scene matches the break scene configured in Mac Companion. You can edit the pages in **Layout**.
+The **OBS Studio** folder uses one free Home slot. **Switching** contains scene selection, Studio Mode and Take Live, plus Transition when OBS reports one. **Audio** contains Input State, Level and Cough for the chosen microphone when those controls are available. **Outputs** contains Stream, Record and the replay controls if Replay Buffer is enabled in OBS. The folder also shows **Program** and includes **Break** if the second scene matches the break scene configured in Mac Companion. You can edit the pages in **Layout**.
 
 The scene on Program shows **Live** beneath its name and uses the Broadcast icon by default. In Studio Mode, the ON colour follows Preview. In normal mode, the ON colour follows Program.
 

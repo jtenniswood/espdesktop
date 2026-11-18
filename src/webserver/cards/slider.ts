@@ -42,7 +42,8 @@ function companionSliderDefaultLabel(mode: string): string {
     if (mode === "obs_level") return "OBS Input Level";
     if (mode === "mac_output") return "Volume";
     if (mode === "mac_input") return "Mic";
-    if (mode === "mac_output_mute" || mode === "mac_input_mute") return "Mute";
+    if (mode === "mac_output_mute") return "Mute";
+    if (mode === "mac_input_mute") return "Input State";
     return "";
 }
 
@@ -192,7 +193,7 @@ export function registerSliderCardTypes(
                         ["mac_output", "Mac output volume"],
                         ["mac_input", "Mic"],
                         ["mac_output_mute", "Output mute"],
-                        ["mac_input_mute", "Microphone mute"],
+                        ["mac_input_mute", "Input State"],
                     ],
                     value: companionSliderMode,
                 },
@@ -242,7 +243,7 @@ export function registerSliderCardTypes(
                         mode: Object.assign({}, metadata.companionVolume.mode, {
                             value: function (this: any) { return sliderMode; },
                             onChange: function (this: HTMLSelectElement) {
-                                const defaultLabels = ["Volume", "Output Volume", "Mic", "Input Volume", "Input volume", "Mute", "Output Mute", "Microphone Mute"];
+                                const defaultLabels = ["Volume", "Output Volume", "Mic", "Input Volume", "Input volume", "Mute", "Output Mute", "Input State", "Input Mute", "Microphone Mute"];
                                 const identifiers: Record<string, string> = {
                                     mac_output: COMPANION_OUTPUT_VOLUME_ID,
                                     mac_input: COMPANION_INPUT_VOLUME_ID,
@@ -532,7 +533,7 @@ export function registerSliderCardTypes(
                 var oldDefaultLabel = (sliderMode === "mac_output" && b.label === "Output Volume") ||
                     (sliderMode === "mac_input" && (b.label === "Input Volume" || b.label === "Input volume")) ||
                     (sliderMode === "mac_output_mute" && b.label === "Output Mute") ||
-                    (sliderMode === "mac_input_mute" && b.label === "Microphone Mute");
+                    (sliderMode === "mac_input_mute" && ["Mute", "Input Mute", "Microphone Mute"].includes(b.label));
                 var label: any = oldDefaultLabel ? defaultLabel : b.label || defaultLabel;
                 if (sliderMode === "obs_level") label = label.replace(/^OBS · /, "") || defaultLabel;
                 var iconName: any = sliderMode !== "home_assistant"

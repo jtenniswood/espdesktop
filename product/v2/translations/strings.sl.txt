@@ -363,6 +363,7 @@ wind_west=West
 wind_north_west=North West
 output_mute=Utišaj zvok
 microphone_mute=Utišaj mikrofon
+input_state=Stanje vhoda
 mic=Mikrofon
 mute=Utišaj
 muted=Utišano

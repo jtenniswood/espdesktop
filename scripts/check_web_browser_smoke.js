@@ -4299,7 +4299,7 @@ async function assertAppVolumeCard(browser) {
     const subtype = page.locator('select[id$="audio-type"]');
     assert.deepEqual(await subtype.locator("option").allTextContents(),
       ["Audio Output", "Output Mute", "Output per application",
-        "Audio Input", "Input Mute", "Input Cough", "Input per device level"]);
+        "Audio Input", "Input State", "Input Cough", "Input per device level"]);
     await subtype.selectOption("companion_app_volume");
     const application = page.getByLabel("Application", { exact: true });
     await application.locator('option[value="app.volume.com.spotify.client"]').waitFor({ state: "attached" });
@@ -4320,7 +4320,7 @@ async function assertAppVolumeCard(browser) {
       ["Volume", "output_volume", "Volume High", true],
       ["Volume", "input_volume", "Microphone", true],
       ["Mute", "output_mute", "Volume High", false],
-      ["Mute", "input_mute", "Microphone", false],
+      ["Input State", "input_mute", "Microphone", false],
     ];
     for (const [label, control, icon, slider] of deviceAudio) {
       await page.locator(".sp-main .sp-empty-cell").first().click();
