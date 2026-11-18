@@ -7887,19 +7887,19 @@ async function assertAppleShortcutCard(browser) {
     await page.locator(".sp-main .sp-empty-cell").first().click();
     const shortcutsGroup = page.getByRole("button", { name: "Apple Shortcuts card type", exact: true });
     await shortcutsGroup.locator(".sp-card-type-app-icon").waitFor();
-    assert.equal(await page.getByRole("button", { name: "Run Apple Shortcut card type" }).count(), 0);
+    assert.equal(await page.getByRole("button", { name: "Run a shortcut card type" }).count(), 0);
     await shortcutsGroup.click();
     const back = page.getByRole("button", { name: "Back to card types", exact: true });
     assert.equal(await back.evaluate(button => button === document.activeElement), true);
     assert.deepEqual(await page.locator("#sp-card-type-picker button").evaluateAll(
       buttons => buttons.map(button => button.getAttribute("aria-label"))),
-      ["Create Shortcuts Subpage card type", "Run Apple Shortcut card type", "Open Shortcuts App card type"]);
+      ["Create Shortcuts Subpage card type", "Run a shortcut card type", "Open Shortcuts App card type"]);
     await back.click();
     assert.equal(await shortcutsGroup.evaluate(button => button === document.activeElement), true);
     await shortcutsGroup.click();
-    await page.getByRole("button", { name: "Run Apple Shortcut card type" })
+    await page.getByRole("button", { name: "Run a shortcut card type" })
       .locator(".sp-card-type-app-icon").waitFor();
-    await chooseCardType(page, "Run Apple Shortcut");
+    await chooseCardType(page, "Run a shortcut");
     const picker = page.getByLabel("Apple Shortcut", { exact: true });
     await picker.locator(`option[value="${id}"]`).waitFor({ state: "attached" });
     await picker.selectOption(id);

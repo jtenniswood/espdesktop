@@ -9,11 +9,11 @@ A **Keyboard Shortcut** card can run a preset for a specific Mac app or send a c
 
 ## Run an Apple Shortcuts workflow
 
-Use a **Run Apple Shortcut** card to run a workflow you created in the Mac’s **Shortcuts** app. Use matching versions of the EspDesktop Mac app and display firmware.
+Use a **Run a shortcut** card to run a workflow you created in the Mac’s **Shortcuts** app. Use matching versions of the EspDesktop Mac app and display firmware.
 
 1. Create a workflow in Shortcuts and run it there to check that it works.
 2. In the EspDesktop Mac app, open **Shortcuts**. **All available shortcuts** is on by default. Choose **Manage Shortcuts** to open the Gallery in the Shortcuts app. The list updates when you return to EspDesktop.
-3. In the display’s web editor, select an empty tile, choose **Companion → Apple Shortcuts → Run Apple Shortcut**, select the workflow, and save.
+3. In the display’s web editor, select an empty tile, choose **Companion → Apple Shortcuts → Run a shortcut**, select the workflow, and save.
 4. With your Mac unlocked, tap the tile. If the workflow asks for input or permission, respond on the Mac.
 
 To choose which workflows your displays can run, turn off **All available shortcuts** and turn on the workflows you want to allow.
