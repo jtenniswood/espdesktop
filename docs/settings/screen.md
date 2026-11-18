@@ -13,12 +13,11 @@ Choose **Apply Configuration** at the bottom of the tab when you’re ready to r
 
 ## Appearance
 
-- **Active Colour** sets the accent colour. **Card Style** sets the card curve and default app icon size.
+- **Active Colour** sets the accent colour.
+- **Default App Icon Size** sets the starting artwork size for Mac app cards.
 - **App Subpages** controls whether keyboard shortcut pages open when an app comes into focus and what happens when you switch apps. See [app page behaviour](/features/subpages#app-page-behavior).
 - **Theme** offers Dark, Light or Automatic. Automatic follows sunrise and sunset or times you set.
 - **Clock Bar** shows or hides the status bar on the home screen.
-
-<a href="/images/web-editor-card-style.png"><picture><source type="image/avif" srcset="/images/web-editor-card-style-480.avif 480w, /images/web-editor-card-style-960.avif 960w" sizes="(min-width: 768px) 688px, 90vw"><img src="/images/web-editor-card-style.png" alt="Card Style controls for card curve and default app icon size" width="1694" height="1470" loading="lazy"></picture></a>
 
 ## Display
 

@@ -13,8 +13,6 @@ import {
 } from "../model/settings";
 import type { DisplayThemePreferences } from "../model/display_theme_preferences";
 import { syncThemeSettingsUi } from "./theme_settings_ui";
-import { syncCardCurveUi } from "./card_curve_ui";
-import { normalizeCardCurve } from "../model/settings";
 import type { ConfigCodecFeature } from "./config_codec";
 import type { UiRuntimeState } from "./state";
 import type { CoreFeature } from "./core";
@@ -87,7 +85,7 @@ export function createSettingsPageFeature(codec: Pick<ConfigCodecFeature, "bindT
         var deviceConfig: any = document.createElement("div");
         deviceConfig.className = "sp-config fade-in";
         var activeColourBody: any = document.createElement("div");
-        var cardStyleBody: any = document.createElement("div");
+        var defaultIconSizeBody: any = document.createElement("div");
         var themeBody: any = document.createElement("div");
         var onColor = createColorSwatches(state.onColor || WEB_UI_COLORS.primary, function (hex) {
             state.onColor = hex;
@@ -97,20 +95,6 @@ export function createSettingsPageFeature(codec: Pick<ConfigCodecFeature, "bindT
         onColor.id = "sp-set-on-color";
         activeColourBody.appendChild(onColor);
         els.setOnColor = onColor;
-        const cardCurve = segmentControl(["Small", "Medium", "Large"], normalizeCardCurve(state.cardCurve), (value: string) => {
-            state.cardCurve = normalizeCardCurve(value);
-            syncCardCurveUi(state, runtime);
-            syncPreviewOrientation(true);
-            renderPreview();
-            postSelect(entityName("screen_card_curve"), state.cardCurve);
-        });
-        cardCurve.segment.id = "sp-set-card-curve";
-        cardCurve.segment.setAttribute("role", "group");
-        cardCurve.segment.setAttribute("aria-label", "Card curve");
-        cardStyleBody.appendChild(fieldLabel("Card curve"));
-        cardStyleBody.appendChild(cardCurve.segment);
-        els.setCardCurveButtons = cardCurve.buttons;
-        syncCardCurveUi(state, runtime);
         const defaultIconSize = segmentControl([
             ["small", "Small"], ["medium", "Medium"], ["large", "Large"],
         ], state.defaultIconSize, (value: string) => {
@@ -123,8 +107,7 @@ export function createSettingsPageFeature(codec: Pick<ConfigCodecFeature, "bindT
         defaultIconSize.segment.id = "sp-set-default-icon-size";
         defaultIconSize.segment.setAttribute("role", "group");
         defaultIconSize.segment.setAttribute("aria-label", "Default app icon size");
-        cardStyleBody.appendChild(fieldLabel("Default app icon size"));
-        cardStyleBody.appendChild(defaultIconSize.segment);
+        defaultIconSizeBody.appendChild(defaultIconSize.segment);
         els.setDefaultIconSizeButtons = defaultIconSize.buttons;
         syncDefaultIconSizeUi(state, runtime);
         var themeModes: any = segmentControl([
@@ -185,7 +168,7 @@ export function createSettingsPageFeature(codec: Pick<ConfigCodecFeature, "bindT
             resetAppearanceColors(true);
         });
         var activeColourCard: any = makeCollapsibleCard("Active Colour", activeColourBody, true, null, appearanceResetButton);
-        var cardStyleCard: any = makeCollapsibleCard("Card Style", cardStyleBody, true);
+        var defaultIconSizeCard: any = makeCollapsibleCard("Default App Icon Size", defaultIconSizeBody, true);
         var themeCard: any = makeCollapsibleCard("Theme", themeBody, true);
         var languageBody: any = document.createElement("div");
         var languageField: any = document.createElement("div");
@@ -546,7 +529,7 @@ export function createSettingsPageFeature(codec: Pick<ConfigCodecFeature, "bindT
         const appSubpageCard = makeCollapsibleCard("App Subpages", appSubpageBody, true);
         appendSettingsSection(config, "Appearance", [
             activeColourCard,
-            cardStyleCard,
+            defaultIconSizeCard,
             appSubpageCard,
             themeCard,
             clockBarCard,

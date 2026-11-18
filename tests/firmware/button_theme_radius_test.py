@@ -1,4 +1,4 @@
-"""Keep ordinary controls at their existing radii when card curves change."""
+"""Keep ordinary controls at their original radii."""
 from pathlib import Path
 import argparse
 from string import Template
@@ -8,7 +8,7 @@ import yaml
 
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "scripts"))
-from device_profiles import load_device_profiles, web_config
+from device_profiles import load_device_profiles
 
 # These are the ordinary button sizes before introducing larger grid curves.
 BUTTON_RADII = {
@@ -36,12 +36,4 @@ for slug, profile in profiles.items():
             break
         radius = Template(radius).substitute(substitutions)
     assert radius == f"{BUTTON_RADII[slug]}px", (slug, radius)
-    # Card presets and browser previews continue using the larger card base.
-    card_radius = int(substitutions["radius"].removesuffix("px"))
-    assert card_radius > BUTTON_RADII[slug], slug
-    assert web_config(profile)["cardRadiusPixels"] == card_radius, slug
-
-s3 = profiles["guition-esp32-s3-4848s040"]
-assert web_config(s3)["cardRadiusPixels"] == 26
-assert web_config(s3)["cardCurveRadii"] == {"Small": 16, "Medium": 21}
-print("Ordinary button radii stay independent of card curves on all nine profiles.")
+print("Ordinary button radii match the expected values on all nine profiles.")

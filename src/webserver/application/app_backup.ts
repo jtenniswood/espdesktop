@@ -34,8 +34,6 @@ import {
 import { syncThemeSettingsUi } from "./theme_settings_ui";
 import { DISPLAY_THEME_PREFERENCES, decodeDisplayThemePreferences, displayThemePreferencesFromState,
     legacyDisplayThemePatch } from "../model/display_theme_preferences";
-import { normalizeCardCurve } from "../model/settings";
-import { syncCardCurveUi } from "./card_curve_ui";
 import type { BackupImportController } from "../features/backup_import_controller";
 import type { BackupExportController } from "../features/backup_export_controller";
 import type { BackupFileController } from "../features/backup_file_controller";
@@ -292,7 +290,6 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
                 brightness_mode: normalizeBrightnessMode(state.brightnessMode),
                 theme_mode: theme.themeMode,
                 default_icon_size: state.defaultIconSizeSupported ? state.defaultIconSize : undefined,
-                card_curve: state.cardCurveSupported ? normalizeCardCurve(state.cardCurve) : undefined,
                 theme_auto_method: theme.themeAutoMethod,
                 theme_light_start: theme.themeLightStart,
                 theme_dark_start: theme.themeDarkStart,
@@ -673,11 +670,6 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
                         state.defaultIconSize = normalizeCardIconSize(screenSettings.default_icon_size);
                         syncDefaultIconSizeUi(state, controllers.runtime);
                     }
-                    if (state.cardCurveSupported && Object.prototype.hasOwnProperty.call(screenSettings, "card_curve")) {
-                        state.cardCurve = normalizeCardCurve(screenSettings.card_curve);
-                        syncCardCurveUi(state, controllers.runtime);
-                        syncPreviewOrientation(true);
-                    }
                     state.manualBrightnessVal = importedScreenSettings.manualBrightnessVal;
                     state.brightnessDawnTime = importedScreenSettings.brightnessDawnTime;
                     state.brightnessDuskTime = importedScreenSettings.brightnessDuskTime;
@@ -706,8 +698,6 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
                     }
                     if (state.defaultIconSizeSupported && Object.prototype.hasOwnProperty.call(screenSettings, "default_icon_size"))
                         requestApi.postSelect(entityName("screen_default_icon_size"), state.defaultIconSize.charAt(0).toUpperCase() + state.defaultIconSize.slice(1));
-                    if (state.cardCurveSupported && Object.prototype.hasOwnProperty.call(screenSettings, "card_curve"))
-                        requestApi.postSelect(entityName("screen_card_curve"), state.cardCurve);
                     if (state.brightnessMode === "manual")
                         postDisplayBacklightBrightness(state.manualBrightnessVal);
                     postBrightnessDawnTime(state.brightnessDawnTime);

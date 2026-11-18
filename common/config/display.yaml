@@ -61,9 +61,6 @@ esphome:
             app.bind_panel_scalar(Setting::SCREEN_DEFAULT_ICON_SIZE, [](std::string_view value) {
               id(default_icon_size_select).publish_state(std::string(value));
             });
-            app.bind_panel_scalar(Setting::SCREEN_CARD_CURVE, [](std::string_view value) {
-              id(card_curve_select).publish_state(std::string(value));
-            });
             app.bind_panel_scalar(Setting::SCREEN_SAVER_ACTION, [](std::string_view value) {
               id(screensaver_action).publish_state(std::string(value));
             });
@@ -505,32 +502,6 @@ select:
     on_value:
       then:
         - lambda: 'espdesktop::set_card_icon_default_size(x);'
-        - if:
-            condition:
-              lambda: 'return grid_phase2_complete();'
-            then:
-              - script.execute: refresh_subpage_grid
-
-  - platform: template
-    name: "${entity_screen_card_curve}"
-    id: card_curve_select
-    entity_category: config
-    icon: "mdi:rounded-corner"
-    optimistic: false
-    restore_value: false
-    initial_option: "Large"
-    options:
-      - "Small"
-      - "Medium"
-      - "Large"
-    web_server:
-      sorting_group_id: sg_display
-    set_action:
-      - lambda: |-
-          id(espdesktop_app).edit_panel_scalar(espdesktop::panel_settings::ScalarSetting::SCREEN_CARD_CURVE,
-              std::string_view(x.c_str(), x.size()));
-    on_value:
-      then:
         - if:
             condition:
               lambda: 'return grid_phase2_complete();'

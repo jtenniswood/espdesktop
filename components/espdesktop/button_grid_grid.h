@@ -5,7 +5,6 @@
 #include "obs_live_subpage.h"
 #include <initializer_list>
 
-#include "card_curve.h"
 #include "card_icon_layout.h"
 
 // Internal implementation detail for button_grid.h. Include button_grid.h from device YAML.

@@ -374,15 +374,6 @@ export const ENTITY_CATALOG = {
         "default_icon_size_select"
       ]
     },
-    "screen_card_curve": {
-      "domain": "select",
-      "name": "Screen: Card Curve",
-      "objectIds": [
-        "screen__card_curve",
-        "screen_card_curve",
-        "card_curve_select"
-      ]
-    },
     "screen_theme_auto_method": {
       "domain": "select",
       "name": "Screen: Theme Auto Method"
@@ -693,7 +684,6 @@ export const ENTITY_CATALOG = {
       "screen_brightness_mode",
       "screen_theme_mode",
       "screen_default_icon_size",
-      "screen_card_curve",
       "screen_theme_auto_method",
       "screen_theme_light_start",
       "screen_theme_dark_start",

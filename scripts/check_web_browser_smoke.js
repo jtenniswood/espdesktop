@@ -6640,84 +6640,41 @@ async function assertScreensaverPinRemoval(browser) {
   } finally { await context.close(); }
 }
 
-async function assertCardCurveSettings(browser, testCase) {
+async function assertFixedCardCorners(browser, testCase) {
   const context = await browser.newContext({ viewport: testCase.viewport });
-  let savedPreset = "Large";
   try {
     await installRoutes(context, testCase.slug);
-    await context.route("**/select/screen__card_curve/set**", async route => {
-      savedPreset = new URL(route.request().url()).searchParams.get("option");
-      assert(["Small", "Medium", "Large"].includes(savedPreset));
-      await route.fulfill({ status: 200, contentType: "text/plain", body: "" });
-    });
     const page = await context.newPage();
     await installFakeEventSource(page);
-    const seed = async () => page.evaluate(events => window.__seedEspState(events), [
+    await page.goto(`http://espdesktop.test/${testCase.slug}?events=1`, { waitUntil: "domcontentloaded" });
+    await page.waitForFunction(() => window.__eventSources?.length > 0);
+    await page.evaluate(events => window.__seedEspState(events), [
       ...seededEvents(),
-      { id: "text-button_3_config", state: ";Rooms;Home;Auto;;;subpage" },
-      { id: "text-subpage_3_config", state: "~B,1|,light.kitchen,Kitchen,Lightbulb,Lightbulb" },
       { id: "select-screen__rotation", state: "0", value: "0", option: ["0", "90", "180", "270"] },
-      { id: "select-screen__card_curve", state: savedPreset, value: savedPreset, option: ["Small", "Medium", "Large"] },
+      { id: "select-screen__card_curve", state: "Small", value: "Small" }, // Older firmware.
     ]);
-    const open = async () => {
-      await page.goto(`http://espdesktop.test/${testCase.slug}?events=1`, { waitUntil: "domcontentloaded" });
-      await page.waitForFunction(() => window.__eventSources?.length > 0);
-      await seed();
-      await page.getByRole("tab", { name: "Screen", exact: true }).click();
-      const appearance = page.locator("#sp-settings .card").filter({ has: page.locator("#sp-set-card-curve") });
-      if (!(await page.locator("#sp-set-card-curve").isVisible())) await appearance.locator(".card-header").click();
-      await page.locator("#sp-set-card-curve").waitFor({ state: "visible" });
-      assert.deepStrictEqual(await page.locator("#sp-settings .card-header h3").allTextContents().then(titles => titles.slice(0, 4)),
-        ["Active Colour", "Card Style", "App Subpages", "Theme"], "Appearance settings include the global App Subpages panel");
-      assert.strictEqual(await page.locator("#sp-set-wallpaper, #sp-set-card-transparency, #sp-set-active-card-transparency").count(), 0,
-        "wallpaper controls belong exclusively to the wallpaper PR");
-    };
-    await open();
+    await page.getByRole("tab", { name: "Screen", exact: true }).click();
+    assert.strictEqual(await page.getByRole("heading", { name: "Card Style", exact: true }).count(), 0);
+    assert.strictEqual(await page.getByRole("group", { name: "Card curve", exact: true }).count(), 0);
+    assert.deepStrictEqual(await page.locator("#sp-settings .card-header h3").allTextContents().then(titles => titles.slice(0, 4)),
+      ["Active Colour", "Default App Icon Size", "App Subpages", "Theme"]);
+    assert.strictEqual(await page.locator("#sp-set-wallpaper, #sp-set-card-transparency, #sp-set-active-card-transparency").count(), 0,
+      "wallpaper controls belong exclusively to the wallpaper PR");
+
     const profile = readManifest().devices[testCase.slug];
     const substitutions = profile.firmware.package.substitutions;
     const width = Number(substitutions.screen_width.replaceAll('"', ""));
-    const base = Number(substitutions.radius.replace("px", ""));
-    const small = Number((substitutions.card_curve_small_radius || '').replace('px', '')) || Math.round(base * .6);
-    const medium = Number((substitutions.card_curve_medium_radius || '').replace('px', '')) || Math.round(base * .8);
-    for (const [preset, firmwareRadius] of [["Small", small], ["Medium", medium], ["Large", base]]) {
-      const expected = profile.web.cardCurveRadii?.[preset] ?? firmwareRadius;
-      const posted = page.waitForResponse(response => response.url().includes(`/select/screen__card_curve/set?option=${preset}`));
-      await page.locator("#sp-set-card-curve").getByRole("button", { name: preset, exact: true }).click();
-      await posted;
-      assert.strictEqual(savedPreset, preset, "curve changes must reach the saved firmware select");
-      const radius = await page.evaluate(logicalWidth => parseFloat(document.documentElement.style.getPropertyValue("--btn-r")) * logicalWidth / 100, width);
-      assert(Math.abs(radius - expected) < .001, `${testCase.slug}: ${preset} must match the configured preview radius ${expected}`);
-      await page.getByRole("tab", { name: "Layout", exact: true }).click();
-      const checkCards = async surface => {
-        await page.waitForFunction(() => [...document.querySelectorAll(".sp-main .sp-btn")].every(card => getComputedStyle(card).clipPath.startsWith("path(")));
-        const shapes = await page.locator(".sp-main .sp-btn").evaluateAll(cards => cards.map(card => {
-          const clip = getComputedStyle(card).clipPath;
-          const path = new Path2D(clip.slice(6, -2));
-          const radius = parseFloat(document.documentElement.style.getPropertyValue("--btn-r")) * document.querySelector(".sp-screen").clientWidth / 100;
-          const ctx = document.createElement("canvas").getContext("2d");
-          return !ctx.isPointInPath(path, radius, radius * .02) && ctx.isPointInPath(path, radius, radius * .1);
-        }));
-        assert(shapes.length >= 2 && shapes.every(Boolean), `${preset}: every ${surface} card must retain the gradual curve`);
-      };
-      await checkCards("home");
-      await page.locator('.sp-main [data-slot="3"] .sp-subpage-badge').click();
-      await page.waitForSelector(".sp-back-btn");
-      await checkCards("subpage, including Back");
-      await page.locator(".sp-back-btn .sp-back-hit").click();
-      await page.waitForSelector(".sp-back-btn", { state: "detached" });
-      await page.getByRole("tab", { name: "Screen", exact: true }).click();
-    }
-    const posted = page.waitForResponse(response => response.url().includes("/select/screen__card_curve/set?option=Medium"));
-    await page.locator("#sp-set-card-curve").getByRole("button", { name: "Medium", exact: true }).click();
-    await posted;
-    await open();
-    assert.strictEqual(await page.locator("#sp-set-card-curve").getByRole("button", { name: "Medium", exact: true }).getAttribute("aria-pressed"), "true", "reload follows the saved curve");
+    const expected = testCase.slug.startsWith("guition-esp32-p4-jc1060p470")
+      ? 24 : Number(substitutions.radius.replace("px", ""));
+    const radius = await page.evaluate(logicalWidth => parseFloat(document.documentElement.style.getPropertyValue("--btn-r")) * logicalWidth / 100, width);
+    assert(Math.abs(radius - expected) < .001, `${testCase.slug}: the preview must retain the Large radius of ${expected}px`);
+
     await openBackupControls(page);
     const downloadPromise = page.waitForEvent("download");
     await page.getByRole("button", { name: "Export", exact: true }).click();
     const download = await downloadPromise;
     const backup = JSON.parse(fs.readFileSync(await download.path(), "utf8"));
-    assert.strictEqual(backup.screen.card_curve, "Medium", "export includes the saved curve");
+    assert(!Object.hasOwn(backup.screen, "card_curve"), "New backups omit the retired preference");
   } finally { await context.close(); }
 }
 
@@ -6817,7 +6774,7 @@ async function assertPreviewOutlines(browser, testCase, exhaustive = false) {
     await page.waitForSelector('.sp-main > .sp-btn[data-slot="1"].sp-selected');
     const outlineStyle = await page.addStyleTag({ content: ".sp-btn,.sp-empty-cell{transition:none!important;--accent:#ff00ff!important;--card-outline-color:#ff00ff!important}" });
     // Keep the normal smoke run bounded: cover plain, image, artwork, slider
-    // and QR content. The opt-in sweep covers every card and curve preset.
+    // and QR content. The opt-in sweep covers every card type.
     const fixtures = await page.evaluate(exhaustive => {
       const hooks = window.__ESPDESKTOP_TEST_HOOKS__.config;
       const keys = exhaustive
@@ -6830,29 +6787,25 @@ async function assertPreviewOutlines(browser, testCase, exhaustive = false) {
     }, exhaustive);
     assert(fixtures.some(fixture => fixture.key === "image"), "outline sweep must include image cards");
     if (testCase.mediaCoverArtSupported) assert(fixtures.some(fixture => fixture.key === "media_cover_art"), "outline sweep must include Cover Art");
-    for (const preset of (exhaustive ? ["Small", "Medium", "Large"] : ["Medium"])) {
-      await page.evaluate(preset => window.__seedEspState([{ id: "select-screen__card_curve", state: preset, value: preset }]), preset);
-      for (const fixture of fixtures) {
-        await page.evaluate(config => window.__seedEspState([
-          { id: "text-button_order", state: "1" }, { id: "text-button_1_config", state: config },
-        ]), fixture.config);
-        const card = page.locator('.sp-main > .sp-btn[data-slot="1"]');
-        // Info-only profiles deliberately hide unsupported cards.
-        if (!(await card.count())) continue;
-        await assertPreviewOutlinePixels(page, '.sp-main > .sp-btn[data-slot="1"].sp-selected', `${testCase.slug}/${preset}/${fixture.key}`);
-      }
-      const empty = ".sp-main > .sp-empty-cell:not(.sp-info-only-hidden)";
-      await page.locator(empty).first().hover();
-      await assertPreviewOutlinePixels(page, empty, `${testCase.slug}/${preset}/empty`);
+    for (const fixture of fixtures) {
+      await page.evaluate(config => window.__seedEspState([
+        { id: "text-button_order", state: "1" }, { id: "text-button_1_config", state: config },
+      ]), fixture.config);
+      const card = page.locator('.sp-main > .sp-btn[data-slot="1"]');
+      // Info-only profiles deliberately hide unsupported cards.
+      if (!(await card.count())) continue;
+      await assertPreviewOutlinePixels(page, '.sp-main > .sp-btn[data-slot="1"].sp-selected', `${testCase.slug}/${fixture.key}`);
     }
+    const empty = ".sp-main > .sp-empty-cell:not(.sp-info-only-hidden)";
+    await page.locator(empty).first().hover();
+    await assertPreviewOutlinePixels(page, empty, `${testCase.slug}/empty`);
     if (testCase.slug === "guition-esp32-s3-4848s040") {
       await page.evaluate(() => window.__seedEspState([
-        { id: "select-screen__card_curve", state: "Large", value: "Large" },
         { id: "text-button_order", state: "1,2" },
         { id: "text-button_2_config", state: "media_player.living;Speakers;Auto;Auto;speaker_group;;media" },
       ]));
       await assertPreviewOutlinePixels(page, '.sp-main > .sp-media-group-active[data-slot="2"]:not(.sp-selected)',
-        `${testCase.slug}/Large/speaker group`, 3);
+        `${testCase.slug}/speaker group`, 3);
     }
     // A resized, large artwork card exercises mask regeneration as well as layering.
     if (testCase.mediaCoverArtSupported) {
@@ -7533,8 +7486,8 @@ async function assertAppSubpageOpeningPreference(browser) {
     await page.getByRole("tab", { name: "Screen", exact: true }).click();
     const card = page.locator("#sp-settings .card").filter({ has: page.locator("#sp-set-auto-open-app-subpages") });
     assert.strictEqual(await card.locator(".card-header h3").textContent(), "App Subpages");
-    assert.strictEqual(await card.evaluate(element => element.previousElementSibling.querySelector(".card-header h3").textContent), "Card Style",
-      "App Subpages appears directly below Card Style on the Screen tab");
+    assert.strictEqual(await card.evaluate(element => element.previousElementSibling.querySelector(".card-header h3").textContent), "Default App Icon Size",
+      "App Subpages appears directly below Default App Icon Size on the Screen tab");
     if (await card.evaluate(element => element.classList.contains("collapsed"))) await card.locator(".card-header").click();
   }
   try {
@@ -9377,13 +9330,8 @@ async function assertFirstRunSetup(browser) {
       console.log(`Preview outline pixel checks passed for ${ACTIVE_CASES.length} generated layouts.`);
       return;
     }
-    if (process.env.ESPDESKTOP_CURVE_PRESETS_ONLY === "1") {
-      for (const testCase of ACTIVE_CASES) await assertCardCurveSettings(browser, testCase);
-      console.log(`Card curve preset checks passed for ${ACTIVE_CASES.length} generated layouts.`);
-      return;
-    }
-    await assertCardCurveSettings(browser, ACTIVE_CASES[0]);
     for (const testCase of ACTIVE_CASES) {
+      await assertFixedCardCorners(browser, testCase);
       await assertContinuousPreview(browser, testCase);
       await assertPreviewOutlines(browser, testCase);
     }
