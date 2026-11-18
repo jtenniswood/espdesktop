@@ -803,9 +803,7 @@ int main() {
     assert(shadow.text[0] == 0x000000);
     assert(ordinary.text[0] == display_text_color_for_bg(0xFFEC16));
   }
-  assert(card_slider_fill_color(0x6633B9) == 0x826AAA);
   assert(active_card_color(0x6633B9) == 0xA385D5);
-  assert(card_slider_fill_color(0xFFFFFF) == 0xBFBFBF);
   const auto contrast = [](uint32_t text, uint32_t background) {
     const double a = display_relative_luminance(text) + 50000;
     const double b = display_relative_luminance(background) + 50000;
@@ -825,14 +823,9 @@ int main() {
   assert(striped_label.text[0] == display_text_color_for_bg(stripe_base));
   for (uint32_t value = 0; value <= 255; ++value) {
     const uint32_t background = value * 0x010101;
-    assert(card_slider_fill_color(background) != background);
     const auto active = active_card_color(background);
     const auto foreground = display_text_color_for_bg(active);
     assert(contrast(foreground, card_pattern_highlight_color(active)) >= contrast(foreground, active));
-  }
-  for (uint32_t background : {0x6D6D6Du, 0x6D6D6Eu, 0x6D6E6Du, 0x6E6D6Du, 0x6E6E6Du, 0x6D6E6Eu, 0x6E6D6Eu, 0x6E6E6Eu}) {
-    assert(card_slider_fill_color(background) != background);
-    assert(contrast(display_text_color_for_bg(background), card_slider_fill_color(background)) >= 4.5);
   }
   for (uint32_t base : {0xAAC93Fu, 0xEED146u, 0xEA3323u, 0x8F28ABu, 0xA0A0A0u}) {
     const auto active = active_card_color(base);
@@ -849,13 +842,6 @@ int main() {
   defaults.on_val = 0xFF8C00;
   defaults.off_val = 0x313131;
   defaults.sensor_val = 0x212121;
-  assert(card_slider_fill_color(defaults) == defaults.on_val);
-  CardPalette custom = defaults;
-  custom.custom_background = true;
-  custom.off_val = 0x64AD54;
-  assert(card_slider_fill_color(custom) == 0x64AD54);
-  custom.off_val = 0xFFFFFF;
-  assert(card_slider_fill_color(custom) == 0xBFBFBF);
   DisplayProfile display;
   for (const std::string type : {"", "presence", "door_window", "light_control", "fan_control", "media", "cover"}) {
     for (const std::string mode : {"matching", "theme", "custom"}) {
@@ -873,8 +859,6 @@ int main() {
             const auto palette = card_palette_for_config(defaults, config, display);
             const uint32_t expected = mode == "theme" ? accent : display_correct_color(mode == "custom" ? 0xFFFFFF : 0xA385D5, display);
             assert(palette.on_val == expected);
-            assert(card_slider_fill_color(palette) ==
-              (mode == "matching" ? card_slider_fill_color(palette.off_val) : expected));
             assert(palette.off_val == display_correct_color(0x6633B9, display));
             lv_obj_t button, label;
             button.children = {&label};
@@ -947,7 +931,6 @@ int main() {
   assert(corrected.sensor_val == 0x7F6900);
   assert(corrected.off_val == corrected.sensor_val);
   assert(corrected.on_val == 0x7F8B66);
-  assert(card_slider_fill_color(corrected) == card_slider_fill_color(corrected.off_val));
   assert(defaults.sensor_val == 0x212121);
   const auto explicit_colour = card_palette_for_config(CardPalette{}, config, DisplayProfile{});
   assert(explicit_colour.has_on && explicit_colour.has_off && explicit_colour.has_sensor_color);

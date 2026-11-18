@@ -40,24 +40,9 @@ struct CardPalette {
   bool has_off = false;
   bool has_sensor_color = false;
   bool custom_background = false;
-  bool explicit_active_color = false;
   uint32_t on_val = DEFAULT_ACCENT_COLOR;
   uint32_t off_val = theme_display_color(current_theme().surface_card);
   uint32_t sensor_val = theme_display_color(current_theme().surface_secondary);
   uint32_t surface_sensor_val = theme_display_color(current_theme().surface_sensor);
   uint32_t progress_val = DEFAULT_ACCENT_COLOR;
 };
-
-inline uint32_t card_slider_fill_color(const CardPalette &palette) {
-  if (palette.custom_background && !palette.explicit_active_color) {
-    const uint32_t shade = card_slider_fill_color(palette.off_val);
-    const bool selected_is_brighter =
-      display_relative_luminance(palette.off_val) > display_relative_luminance(shade);
-    const uint32_t brighter = selected_is_brighter ? palette.off_val : shade;
-    if (brighter == theme_display_color(DARK_THEME.surface_card) ||
-        brighter == theme_display_color(LIGHT_THEME.surface_card))
-      return selected_is_brighter ? shade : palette.off_val;
-    return brighter;
-  }
-  return palette.explicit_active_color || palette.has_on ? palette.on_val : DEFAULT_ACCENT_COLOR;
-}

@@ -21,7 +21,6 @@ import {
     buttonConfigDisabledForDevice as isButtonConfigDisabledForDevice,
     cardPreviewTextColor,
     cardProgressColor,
-    cardSliderPreviewFillColor,
     applySliderPreviewTextContrast,
     cardPatternHighlightColor,
     cardTypePickerDetails,
@@ -610,12 +609,9 @@ export function createPreviewRenderFeature(dependencies: PreviewRenderDependenci
                 var labelHtml: any = previewHtmlValue(typePreview, "labelHtml", '<span class="sp-btn-label">' + escHtml(label) + '</span>');
                 var iconHtml: any = previewHtmlValue(typePreview, "iconHtml", '<span class="sp-btn-icon mdi mdi-' + iconName + '"></span>');
                 btn.innerHTML = sensorBadge + iconHtml + labelHtml;
-                const activeMode = configOptionValue(b.options, "card_active_color");
-                const customActive = configOptionValue(b.options, "card_on_color").replace(/^#/, "");
-                const explicitActive = activeMode === "theme" || (activeMode === "custom" && /^[0-9A-F]{6}$/i.test(customActive));
                 const isSlider = b.type !== "media" && btn.querySelector(".sp-slider-fill");
                 const sliderFillColor = typePreview?.sliderMuted ? "808080"
-                    : isSlider ? cardSliderPreviewFillColor(cardOffColor, activeColor, explicitActive) : "";
+                    : isSlider ? activeColor : "";
                 const offColor = isSlider ? "" : cardOffColor;
                 let contrastBackground = (typePreview?.isOn ? cardOnColor : offColor) ||
                     (typePreview?.sensorSurface ? previewColors.surfaceSensor : color);

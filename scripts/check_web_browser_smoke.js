@@ -2807,7 +2807,7 @@ async function assertSliderActiveColours(page, label) {
     ["companion_app_volume", "app.volume.com.spotify.client", "Spotify", "Volume High", "6633B9"],
     ["slider", "obs.level.69da3f8f-7f62-4abe-a594-4e40dd579858", "OBS Mic", "Microphone", "FFFFFF"],
   ];
-  const matchingFills = ["#64AD54", "#429471", "#826AAA", "#BFBFBF"];
+  const matchingFills = ["#A2CE98", "#8EBFAA", "#A385D5", "#BFBFBF"];
   for (const theme of ["Dark", "Light"]) {
     for (const mode of ["matching", "theme", "custom"]) for (const renderWhileHidden of [false, true]) {
       const events = [
@@ -2815,7 +2815,7 @@ async function assertSliderActiveColours(page, label) {
         { id: "select-screen__theme_mode", state: theme, value: theme },
         ...sliders.map(([type, entity, name, icon, colour], index) => ({
           id: `text-button_${index + 1}_config`,
-          state: `${entity};${name};${icon};Auto;;;${type};;card_off_color=${colour},card_active_color=${mode},card_on_color=FFFFFF`,
+          state: `${entity};${name};${icon};Auto;;;${type};;card_off_color=${colour},card_active_color=${mode},card_on_color=F5F5F5`,
         })),
         { id: "text-button_order", state: "1,2,3,4" },
       ];
@@ -2831,6 +2831,7 @@ async function assertSliderActiveColours(page, label) {
         slot: card.dataset.slot,
         background: getComputedStyle(card).backgroundColor,
         fill: card.style.getPropertyValue("--card-slider-fill-color"),
+        active: card.style.getPropertyValue("--card-active-color"),
         fillBottom: card.querySelector(".sp-slider-fill").getBoundingClientRect().bottom,
         trackBottom: card.querySelector(".sp-slider-track").getBoundingClientRect().bottom,
         texts: Array.from(card.querySelectorAll(".sp-btn-icon,.sp-btn-label")).map(label => ({
@@ -2843,7 +2844,8 @@ async function assertSliderActiveColours(page, label) {
       for (const [index, card] of rendered.entries()) {
         const name = `${label}: ${theme}/${sliders[index][2]}/${mode}`;
         assert.equal(card.background, theme === "Dark" ? "rgb(49, 49, 49)" : "rgb(255, 255, 255)", name + " uses the standard button background");
-        assert.equal(card.fill, mode === "matching" ? matchingFills[index] : "#FFFFFF", name + " fill colour");
+        assert.equal(card.fill, mode === "matching" ? matchingFills[index] : mode === "theme" ? "#FFFFFF" : "#F5F5F5", name + " fill colour");
+        assert.equal(card.fill, card.active, name + " uses its on-state colour");
         assert(Math.abs(card.fillBottom - card.trackBottom) < .1, name + " fill grows from the bottom");
         if (mode !== "matching" || (theme === "Dark" && index === sliders.length - 1)) {
           assert(card.texts.every(text => text.clip === "text" && text.gradient.includes("rgb(33, 33, 33)")),
@@ -4413,7 +4415,7 @@ async function assertAppVolumeCard(browser) {
       return [tile.style.backgroundColor, fill ? getComputedStyle(fill).backgroundColor : null];
     }));
     assert.deepEqual(await audioColours(), [
-      ["rgb(49, 49, 49)", "rgb(100, 173, 84)"],
+      ["rgb(49, 49, 49)", "rgb(162, 206, 152)"],
       ["rgb(49, 49, 49)", "rgb(191, 191, 191)"],
       ["rgb(100, 173, 84)", null],
     ]);
@@ -4421,7 +4423,7 @@ async function assertAppVolumeCard(browser) {
       { id: "select-screen__theme_mode", state: "Light", value: "Light" },
     ]));
     assert.deepEqual(await audioColours(), [
-      ["rgb(255, 255, 255)", "rgb(100, 173, 84)"],
+      ["rgb(255, 255, 255)", "rgb(162, 206, 152)"],
       ["rgb(255, 255, 255)", "rgb(191, 191, 191)"],
       ["rgb(100, 173, 84)", null],
     ]);

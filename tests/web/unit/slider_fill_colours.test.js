@@ -3,7 +3,7 @@
 const assert = require("node:assert/strict");
 const { test } = require("node:test");
 const { loadTypescriptTest } = require("./helpers/load_typescript_test");
-const { cardSliderPreviewFillColor, cardSliderFillColor, cardPreviewTextColor, cardPatternHighlightColor, applySliderPreviewTextContrast } = loadTypescriptTest("src/webserver/features/preview.ts");
+const { cardPreviewTextColor, cardPatternHighlightColor, applySliderPreviewTextContrast } = loadTypescriptTest("src/webserver/features/preview.ts");
 const { activeCardColor } = loadTypescriptTest("src/webserver/model/config_primitives.ts");
 
 function luminance(hex) {
@@ -19,32 +19,6 @@ function contrast(a, b) {
   const first = luminance(a), second = luminance(b);
   return (Math.max(first, second) + 0.05) / (Math.min(first, second) + 0.05);
 }
-
-test("slider fills retain readable foregrounds without changing toggle on colours", () => {
-  assert.equal(activeCardColor("6633B9"), "A385D5");
-  assert(contrast("FFFFFF", activeCardColor("6633B9")) < 4.5);
-  assert.equal(cardSliderFillColor("6633B9"), "826AAA");
-  assert(contrast("FFFFFF", cardSliderFillColor("6633B9")) > 4.5);
-  assert.equal(cardSliderFillColor("#ffffff"), "BFBFBF");
-  assert.equal(cardSliderFillColor("invalid"), "");
-});
-
-test("selected Theme and Custom slider fills preserve the resolved active colour", () => {
-  for (const background of ["313131", "FFFFFF", "6633B9"]) {
-    for (const active of ["FFFFFF", "FF8C00", "00BCD4", "000000"]) {
-      assert.equal(cardSliderFillColor(background, active), active);
-      assert.equal(cardSliderPreviewFillColor(background, active, true), active);
-    }
-  }
-  assert.equal(cardSliderFillColor("6633B9", "invalid"), "826AAA");
-});
-
-test("matching slider fills keep the brighter shade when it differs from the standard button backgrounds", () => {
-  for (const [selected, fill] of [["64AD54", "64AD54"], ["429471", "429471"],
-    ["6633B9", "826AAA"], ["FFFFFF", "BFBFBF"], ["", "FF8C00"]]) {
-    assert.equal(cardSliderPreviewFillColor(selected, "FF8C00", false), fill, selected);
-  }
-});
 
 test("slider preview text changes contrast exactly where the fill crosses each label", () => {
   const labels = [
@@ -62,33 +36,6 @@ test("slider preview text changes contrast exactly where the fill crosses each l
     assert.equal(labels[index].style.backgroundImage, `linear-gradient(to bottom,#FFFFFF ${split}%,#212121 ${split}%)`);
     assert.equal(labels[index].style.backgroundClip, "text");
     assert.equal(labels[index].style.color, "transparent");
-  }
-});
-
-test("custom fills maintain contrast at partial and full values across the preset palette", () => {
-  const fs = require("node:fs");
-  const path = require("node:path");
-  const swatches = fs.readFileSync(path.resolve(__dirname, "../../../src/webserver/components/color_swatches.ts"), "utf8");
-  const presets = Array.from(swatches.matchAll(/\["([A-F0-9]{6})", "[^"]+"\]/g), match => match[1]);
-  assert.equal(presets.length, 19);
-  for (const base of [...presets, "FFFFFF", "000000", "6633B9", "00BCD4", "FFEC16", "BFEAFF"]) {
-    const foreground = cardPreviewTextColor(base);
-    const fill = cardSliderFillColor(base);
-    assert.notEqual(fill, base, base + " has a visible fill");
-    // At partial values text may cover either surface; the fill must not
-    // introduce lower contrast than the base or fall below 4.5:1 unnecessarily.
-    assert(contrast(foreground, fill) + 0.0001 >= Math.min(4.5, contrast(foreground, base)), base);
-  }
-});
-
-test("grey slider fills stay visible, including colours near the former rounding collision", () => {
-  for (let value = 0; value <= 255; value++) {
-    const base = value.toString(16).padStart(2, "0").repeat(3).toUpperCase();
-    assert.notEqual(cardSliderFillColor(base), base, base);
-  }
-  for (const base of ["6D6D6D", "6D6D6E", "6D6E6D", "6E6D6D", "6E6E6D", "6D6E6E", "6E6D6E", "6E6E6E"]) {
-    assert.notEqual(cardSliderFillColor(base), base, base);
-    assert(contrast(cardPreviewTextColor(base), cardSliderFillColor(base)) >= 4.5, base);
   }
 });
 

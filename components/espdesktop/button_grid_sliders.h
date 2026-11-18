@@ -342,7 +342,7 @@ inline void setup_slider_visual(BtnSlot &s, const ParsedCfg &p, const CardPalett
   const CardPadding padding = capture_card_padding(s.btn);
 
   bool horizontal = false;
-  lv_obj_t *slider = setup_slider_widget(s.btn, card_slider_fill_color(palette), horizontal);
+  lv_obj_t *slider = setup_slider_widget(s.btn, palette.on_val, horizontal);
   if (!slider) {
     ESP_LOGW("slider", "Slider setup failed for %s; falling back to toggle card",
       p.entity.c_str());
