@@ -32,7 +32,7 @@ import { cardPickerConnectors, type CardPickerConnector, type CardPickerOption }
 import type { PreviewInteractionsFeature } from "./preview_interactions";
 import type { ControlsFieldsFeature } from "./controls_fields";
 import { cardOwnsSubpage, COMPANION_APP_SHORTCUTS_TABS_OPTION, editableAppShortcutPage,
-    reconnectAthenaShortcutSubpage } from "./companion_shortcut_folder";
+    reconnectAthenaShortcutSubpage, setCompanionAppShortcutFolderEnabled } from "./companion_shortcut_folder";
 
 export function entityMatchesDomains(entityId?: any, domains?: any): boolean {
     var value: any = String(entityId || "").trim();
@@ -737,6 +737,10 @@ export function createButtonSettingsFeature(
             if (applicationPreset) {
                 b.entity = applicationPreset.id;
                 b.label = applicationPreset.label;
+                if (codec.canCreateSubpage(homeSlot)) {
+                    setCompanionAppShortcutFolderEnabled(b, true);
+                    b._modalSettingsOpen = true;
+                }
             }
             b.options = preserveCardColorOptions(previousCardOptions, b.options);
             if (wasNewDraftWithoutType && state.settingsDraft && state.settingsDraft.key === draftKey) {

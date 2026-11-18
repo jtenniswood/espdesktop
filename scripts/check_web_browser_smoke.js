@@ -7951,14 +7951,31 @@ async function assertAppleShortcutCard(browser) {
     const application = page.getByRole("combobox", { name: "Application", exact: true });
     await application.getByRole("option", { name: "Shortcuts", exact: true }).waitFor({ state: "attached" });
     assert.equal(await application.inputValue(), "com.apple.shortcuts");
+    const appSubpage = page.locator(".sp-app-subpage-settings");
+    const appSubpageToggle = appSubpage.getByRole("checkbox", { name: "Add app subpage", exact: true });
+    assert.equal(await appSubpage.getByRole("button", { name: "App Subpage", exact: true }).getAttribute("aria-expanded"), "true");
+    assert.equal(await appSubpageToggle.isChecked(), true);
+    await appSubpage.getByText("Stop Distractions", { exact: true }).waitFor();
+    assert.equal(await appSubpage.getByRole("button", { name: "Apple Shortcuts", exact: true }).count(), 0);
     await page.getByRole("button", { name: "Save", exact: true }).click();
     const { parseRawButtonConfig } = loadTypeScriptModule("src/webserver/model/card.ts");
-    const pinnedApp = () => Object.values(fixture.document.buttons).map(parseRawButtonConfig)
-      .find(card => card.entity === "com.apple.shortcuts");
-    await waitForNativeState(fixture, () => pinnedApp(), "save a preselected Shortcuts app card");
+    const pinnedAppSlot = () => Object.keys(fixture.document.buttons).find(slot =>
+      parseRawButtonConfig(fixture.document.buttons[slot]).entity === "com.apple.shortcuts");
+    await waitForNativeState(fixture, () => fixture.document.subpages[pinnedAppSlot()]?.includes(replacementId),
+      "save the preselected Shortcuts app card and its default workflow subpage");
+    const pinnedApp = () => parseRawButtonConfig(fixture.document.buttons[pinnedAppSlot()]);
     assert.equal(pinnedApp().type, "companion");
     assert.equal(pinnedApp().sensor, "");
-    assert.doesNotMatch(pinnedApp().options, /app_shortcuts/);
+    assert.match(pinnedApp().options, /(?:^|,)app_shortcuts(?:,|$)/);
+    await page.locator(".sp-settings-modal").waitFor({ state: "hidden" });
+    await page.locator(`.sp-main [data-slot="${pinnedAppSlot()}"]`).click({ button: "right" });
+    await page.locator(".sp-ctx-menu").getByText("Edit Card", { exact: true }).click();
+    const disclosure = appSubpage.getByRole("button", { name: "App Subpage", exact: true });
+    if (await disclosure.getAttribute("aria-expanded") !== "true") await disclosure.click();
+    await appSubpage.getByText("Add app subpage", { exact: true }).click();
+    assert.equal(await appSubpageToggle.isChecked(), false);
+    await page.getByRole("button", { name: "Save", exact: true }).click();
+    await waitForNativeState(fixture, () => !pinnedApp().options.includes("app_shortcuts"), "save a Shortcuts app card without a subpage");
     console.log("The grouped Apple Shortcuts picker, Back button, workflow card, and pinned app passed.");
   } finally { await context.close(); }
 }
