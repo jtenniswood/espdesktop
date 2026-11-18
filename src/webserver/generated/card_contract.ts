@@ -2921,8 +2921,11 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
           "policy": "keep"
         },
         "label": {
-          "policy": "default_if_empty",
-          "value": "Cough"
+          "policy": "alias",
+          "aliases": {
+            "": "Cough",
+            "OBS Input Cough": "Cough"
+          }
         },
         "icon": {
           "policy": "alias",
