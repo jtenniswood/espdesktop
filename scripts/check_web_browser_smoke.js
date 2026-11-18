@@ -4723,8 +4723,8 @@ async function assertOBSSceneCard(browser) {
     await page.locator(".sp-main .sp-empty-cell").first().click();
     await chooseOBSCard(page, "Audio Controls");
     const obsAudioType = page.locator('select[id$="obs-audio-type"]');
-    assert.deepEqual(await obsAudioType.locator("option").allTextContents(), ["Level", "Mute", "Cough"]);
-    await obsAudioType.selectOption({ label: "Mute" });
+    assert.deepEqual(await obsAudioType.locator("option").allTextContents(), ["Level", "Input State", "Cough"]);
+    await obsAudioType.selectOption({ label: "Input State" });
     const micPicker = page.locator("select[id$='obs-mic']");
     await micPicker.getByRole("option", { name: "Desk Mic", exact: true }).waitFor({ state: "attached" });
     assert.deepEqual(await micPicker.locator("option").allTextContents(), ["Select", "Desk Mic", "Master"]);
