@@ -53,7 +53,6 @@ const guideParents = {
   'features/first-run.md': { name: '4848S040 setup guide', path: 'screens/4848s040.md' },
   'features/subpages.md': { name: 'Customise the layout', path: 'features/home.md' },
   'mac-controls/apps.md': { name: 'Customise the layout', path: 'features/home.md' },
-  'mac-controls/cough.md': { name: 'Customise the layout', path: 'features/home.md' },
   'mac-controls/websites.md': { name: 'Customise the layout', path: 'features/home.md' },
   'mac-controls/folders.md': { name: 'Customise the layout', path: 'features/home.md' },
   'mac-controls/shortcuts.md': { name: 'Customise the layout', path: 'features/home.md' },
@@ -71,7 +70,6 @@ const customiseLinks = [
   { text: 'Websites', link: '/mac-controls/websites' },
   { text: 'Finder folders', link: '/mac-controls/folders' },
   { text: 'Keyboard shortcuts', link: '/mac-controls/shortcuts' },
-  { text: 'Cough button', link: '/mac-controls/cough' },
   { text: 'Shortcut presets', link: '/reference/shortcut-presets' },
 ]
 const screenSettingsLink = { text: 'Screen settings', link: '/settings/screen' }
