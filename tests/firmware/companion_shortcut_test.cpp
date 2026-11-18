@@ -179,14 +179,13 @@ int main() {
 
   }
   assert_finder_folder_projection();
-  {
+  for (const std::string_view hidden : {"inactive|hidden", "v1.JTckIJacIAYKAAxN8jFSi5"}) {
     const std::string saved_id = "appleshortcut.saved";
     const std::string new_id = "appleshortcut.new";
     auto buttons = parse_subpage_config("~B,1|CP,appleshortcut.saved,Saved,Flash|CP,appleshortcut.hidden,Hidden,Flash");
     SubpageOrder order;
     parse_subpage_order("B,1", 4, buttons.size(), order);
     normalize_subpage_order_spans(order, 4, 2);
-    const std::vector<std::string> hidden{"hidden"};
     project_apple_shortcut_tiles(order, buttons, 4, 2, 3,
         {{saved_id, "Saved"}, {"appleshortcut.hidden", "Hidden"}, {new_id, "New"},
          {"appleshortcut.extra", "Extra"}, {"folder.project", "Project"}}, hidden);
