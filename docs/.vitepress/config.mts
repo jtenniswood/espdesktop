@@ -68,6 +68,9 @@ const customiseLinks = [
   { text: 'First setup', link: '/features/first-run' },
   { text: 'Touchscreen layout', link: '/features/home' },
   { text: 'Subpages', link: '/features/subpages' },
+]
+
+const featureLinks = [
   { text: 'Apps', link: '/mac-controls/apps' },
   { text: 'Cough button', link: '/mac-controls/cough' },
   { text: 'Finder folders', link: '/mac-controls/folders' },
@@ -301,7 +304,7 @@ export default defineConfig({
       },
       {
         text: 'Customise',
-        items: [...customiseLinks, screenSettingsLink, systemSettingsLink],
+        items: [...customiseLinks, ...featureLinks, screenSettingsLink, systemSettingsLink],
       },
     ],
 
@@ -316,6 +319,10 @@ export default defineConfig({
       {
         text: 'Customise',
         items: customiseLinks,
+      },
+      {
+        text: 'Features',
+        items: featureLinks,
       },
       {
         text: 'Settings',
