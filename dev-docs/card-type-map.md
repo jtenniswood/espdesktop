@@ -69,8 +69,8 @@ The generated card contract and the public documentation mapping define this tab
 | [apps.md](../docs/mac-controls/apps.md) | `companion_input_volume` |
 | [apps.md](../docs/mac-controls/apps.md) | `companion_output_mute` |
 | [apps.md](../docs/mac-controls/apps.md) | `companion_input_mute` |
-| [cough.md](../docs/mac-controls/cough.md) | `companion_cough` |
-| [cough.md](../docs/mac-controls/cough.md) | `companion_obs_cough` |
+| Pending release | `companion_cough` |
+| Pending release | `companion_obs_cough` |
 | [index.md](../docs/index.md) | `companion_mac_lock` |
 | [index.md](../docs/index.md) | `companion` |
 | [sliders.md](../docs/card-types/sliders.md) | `slider` |
