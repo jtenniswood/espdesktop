@@ -1,5 +1,5 @@
 import type { CardConfig } from "../contracts/types";
-import { configOptionEnabled, configOptionValue } from "./config_primitives";
+import { configOptionEnabled, configOptionValue, setConfigOptionValue } from "./config_primitives";
 import { pageOwnerSlot, parentPageKey } from "./page_keys";
 import { APPLE_SHORTCUT_PREFIX } from "./companion_card_codec";
 
@@ -10,6 +10,11 @@ export const APPLE_SHORTCUTS_HIDDEN_OPTION = "apple_shortcuts_hidden";
 export function hiddenAppleShortcuts(options?: string): Set<string> {
     return new Set(configOptionValue(options, APPLE_SHORTCUTS_HIDDEN_OPTION).split("|")
         .filter(Boolean).map(id => APPLE_SHORTCUT_PREFIX + id));
+}
+
+export function setHiddenAppleShortcuts(options: string, actionIds: Iterable<string>): string {
+    return setConfigOptionValue(options, APPLE_SHORTCUTS_HIDDEN_OPTION,
+        Array.from(actionIds, id => id.slice(APPLE_SHORTCUT_PREFIX.length)).join("|"));
 }
 
 export function isAppleShortcutsCard(card?: Partial<CardConfig> | null): boolean {

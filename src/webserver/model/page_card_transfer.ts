@@ -196,7 +196,7 @@ function clearGridSlots(grid: number[], sizes: SlotSizeMap, slots: readonly numb
     delete sizes[String(slot)];
   }
 }
-function deleteCards<Tree>(editor: TransferEditor<Tree>, page: number, slots: readonly number[], layout: PageTransferLayout): void {
+function deleteCards<Tree>(editor: TransferEditor<Tree>, page: number, slots: readonly number[], layout: PageTransferLayout): CardConfig[] {
   const source = pageGrid(editor, page, layout);
   for (const slot of slots) {
     cardSlot(slot);
@@ -205,6 +205,7 @@ function deleteCards<Tree>(editor: TransferEditor<Tree>, page: number, slots: re
   clearGridSlots(source.grid, source.sizes, slots, layout);
   editor.writeCards(page, new Map(slots.map(slot => [slot, emptyCardConfig()])), updatedOrder(editor, page, source.grid, source.sizes, layout));
   for (const slot of slots) editor.writeTree(page, slot, null);
+  return slots.map(slot => source.cards[slot - 1]!);
 }
 export function planPageCardDelete(document: PanelConfigDocument, origin: PageTransferOrigin, layout: PageTransferLayout): PanelConfigDocument {
   const candidate = cloneDocument(document);
@@ -213,9 +214,9 @@ export function planPageCardDelete(document: PanelConfigDocument, origin: PageTr
   return candidate;
 }
 
-function deleteSelection<Tree>(editor: TransferEditor<Tree>, origin: PageTransferOrigin, layout: PageTransferLayout): void {
+function deleteSelection<Tree>(editor: TransferEditor<Tree>, origin: PageTransferOrigin, layout: PageTransferLayout): CardConfig[] {
   layoutCheck(layout); pageExists(editor, origin.page); verifyOrigin(editor, origin);
-  deleteCards(editor, origin.page, origin.slots, layout);
+  return deleteCards(editor, origin.page, origin.slots, layout);
 }
 
 /** Plan all owner, order, source and descendant changes before one native save. */
@@ -332,7 +333,8 @@ function nativeEditor(draft: NativeLayoutDraft): TransferEditor<NativeTransferTr
 }
 
 export function deleteNativePageCards(draft: NativeLayoutDraft, origin: PageTransferOrigin, grid: PageTransferLayout): void {
-  deleteSelection(nativeEditor(draft), origin, grid);
+  const deleted = deleteSelection(nativeEditor(draft), origin, grid);
+  if (origin.page) draft.hideDeletedAppleShortcuts(origin.page, deleted);
 }
 
 export function pasteNativePageCards(draft: NativeLayoutDraft, page: number, position: number,

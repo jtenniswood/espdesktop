@@ -82,8 +82,8 @@ import {
     setCompanionShortcutTabs,
     syncCompanionShortcutSubpage,
 } from "../application/companion_shortcut_folder";
-import { APPLE_SHORTCUTS_APP_ID, APPLE_SHORTCUTS_HIDDEN_OPTION, appShortcutPageOwner, hiddenAppleShortcuts,
-    isAppleShortcutsPage, previewSubpageOwner } from "../model/companion_shortcut_page";
+import { APPLE_SHORTCUTS_APP_ID, appShortcutPageOwner, hiddenAppleShortcuts,
+    isAppleShortcutsPage, previewSubpageOwner, setHiddenAppleShortcuts } from "../model/companion_shortcut_page";
 import { appleShortcutPreview } from "../model/finder_folder_preview";
 
 const COMPANION_URL_PREFIX = "url.";
@@ -957,8 +957,7 @@ export function registerCompanionCardTypes(
                     const hidden = hiddenAppleShortcuts(button.options);
                     for (const id of selected) if (!tabs.includes(id)) hidden.add(id);
                     for (const id of tabs) hidden.delete(id);
-                    button.options = setConfigOptionValue(button.options, APPLE_SHORTCUTS_HIDDEN_OPTION,
-                        [...hidden].map(id => id.slice(APPLE_SHORTCUT_PREFIX.length)).join("|"));
+                    button.options = setHiddenAppleShortcuts(button.options, hidden);
                     button._appleShortcutTabs = tabs;
                     button._appShortcutSelectionChanged = true;
                     return true;

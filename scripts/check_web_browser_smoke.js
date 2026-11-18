@@ -8115,7 +8115,23 @@ async function assertAppleShortcutSubpage(browser, directCard = false) {
     const selected = await modal.locator(".sp-light-tab-row:has(input:checked)").evaluateAll(rows =>
       rows.map(item => item.getAttribute("data-tab")));
     assert.deepEqual(selected, [...workflows.slice(1, 7), workflows[21], workflows[7]].map(workflow => workflow.id));
-    console.log(`${directCard ? "Apple Shortcuts navigation card" : "Shortcuts app subpage"} defaults, full catalogue, reordering and unavailable workflows passed.`);
+    await modal.locator(".sp-settings-close").click();
+    const deleted = page.locator(".sp-main").getByText("Workflow 02", { exact: true });
+    await deleted.click({ button: "right" });
+    await page.locator(".sp-ctx-menu").getByText("Delete", { exact: true }).click();
+    const workflowId = workflow => workflow.id.replace(/^appleshortcut\./, "");
+    await waitForNativeState(fixture, () => !fixture.document.subpages[1]?.includes(workflows[1].id) &&
+      fixture.document.buttons[1]?.includes("apple_shortcuts_hidden") &&
+      fixture.document.buttons[1].includes(workflowId(workflows[1])),
+      "save the deletion and hide the workflow from automatic placement");
+    assert(fixture.document.buttons[1].includes(workflowId(workflows[0])), "preserve the previously hidden workflow");
+    available = workflows.slice(0, 9);
+    await open();
+    await app.click({ button: "right" });
+    await page.locator(".sp-ctx-menu").getByText("Edit Subpage", { exact: true }).click();
+    await page.locator(".sp-main .sp-live-folder-preview").getByText("Workflow 09", { exact: true }).waitFor();
+    assert.equal(await deleted.count(), 0, "the deleted workflow stays hidden after reload");
+    console.log(`${directCard ? "Apple Shortcuts navigation card" : "Shortcuts app subpage"} defaults, reordering, and persistent deletion passed.`);
 
     if (directCard) {
       // A native clipboard transfer can nest a saved Apple Shortcuts card
