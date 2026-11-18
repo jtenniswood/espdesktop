@@ -51,6 +51,7 @@ inline constexpr DeviceCardTypeSupport DEVICE_UI_CARD_TYPES_0[] = {
 inline constexpr DeviceUiLimits DEVICE_UI_PROFILES[] = {
     {"guition-esp32-p4-jc1060p470", 5, 3, 15, 15, 14, 2, 6, 8, 255, DEVICE_UI_CARD_TYPES_0, sizeof(DEVICE_UI_CARD_TYPES_0) / sizeof(DeviceCardTypeSupport), 262144, 2097152, 524288},
     {"guition-esp32-p4-jc1060p470-v2", 5, 3, 15, 15, 14, 2, 6, 8, 255, DEVICE_UI_CARD_TYPES_0, sizeof(DEVICE_UI_CARD_TYPES_0) / sizeof(DeviceCardTypeSupport), 262144, 2097152, 524288},
+    {"guition-esp32-p4-jc1060p470-v3", 5, 3, 15, 15, 14, 2, 6, 8, 255, DEVICE_UI_CARD_TYPES_0, sizeof(DEVICE_UI_CARD_TYPES_0) / sizeof(DeviceCardTypeSupport), 262144, 2097152, 524288},
     {"guition-esp32-p4-jc4880p443", 2, 3, 6, 6, 5, 2, 6, 8, 255, DEVICE_UI_CARD_TYPES_0, sizeof(DEVICE_UI_CARD_TYPES_0) / sizeof(DeviceCardTypeSupport), 262144, 2097152, 524288},
     {"guition-esp32-p4-jc4880p443-v3", 2, 3, 6, 6, 5, 2, 6, 8, 255, DEVICE_UI_CARD_TYPES_0, sizeof(DEVICE_UI_CARD_TYPES_0) / sizeof(DeviceCardTypeSupport), 262144, 2097152, 524288},
     {"guition-esp32-p4-jc8012p4a1", 5, 4, 20, 20, 19, 2, 6, 8, 255, DEVICE_UI_CARD_TYPES_0, sizeof(DEVICE_UI_CARD_TYPES_0) / sizeof(DeviceCardTypeSupport), 262144, 2097152, 524288},
@@ -62,7 +63,7 @@ inline constexpr DeviceUiLimits DEVICE_UI_PROFILES[] = {
 
 }  // namespace espdesktop
 
-#if (defined(ESPDESKTOP_UI_PROFILE_GUITION_ESP32_P4_JC1060P470) + defined(ESPDESKTOP_UI_PROFILE_GUITION_ESP32_P4_JC1060P470_V2) + defined(ESPDESKTOP_UI_PROFILE_GUITION_ESP32_P4_JC4880P443) + defined(ESPDESKTOP_UI_PROFILE_GUITION_ESP32_P4_JC4880P443_V3) + defined(ESPDESKTOP_UI_PROFILE_GUITION_ESP32_P4_JC8012P4A1) + defined(ESPDESKTOP_UI_PROFILE_GUITION_ESP32_P4_JC8012P4A1_V2) + defined(ESPDESKTOP_UI_PROFILE_GUITION_ESP32_P4_JC8012P4A1_V3) + defined(ESPDESKTOP_UI_PROFILE_ESP32_P4_86) + defined(ESPDESKTOP_UI_PROFILE_GUITION_ESP32_S3_4848S040)) > 1
+#if (defined(ESPDESKTOP_UI_PROFILE_GUITION_ESP32_P4_JC1060P470) + defined(ESPDESKTOP_UI_PROFILE_GUITION_ESP32_P4_JC1060P470_V2) + defined(ESPDESKTOP_UI_PROFILE_GUITION_ESP32_P4_JC1060P470_V3) + defined(ESPDESKTOP_UI_PROFILE_GUITION_ESP32_P4_JC4880P443) + defined(ESPDESKTOP_UI_PROFILE_GUITION_ESP32_P4_JC4880P443_V3) + defined(ESPDESKTOP_UI_PROFILE_GUITION_ESP32_P4_JC8012P4A1) + defined(ESPDESKTOP_UI_PROFILE_GUITION_ESP32_P4_JC8012P4A1_V2) + defined(ESPDESKTOP_UI_PROFILE_GUITION_ESP32_P4_JC8012P4A1_V3) + defined(ESPDESKTOP_UI_PROFILE_ESP32_P4_86) + defined(ESPDESKTOP_UI_PROFILE_GUITION_ESP32_S3_4848S040)) > 1
 #error "Select only one EspDesktop UI device profile"
 #endif
 
@@ -76,39 +77,44 @@ inline constexpr DeviceUiLimits DEVICE_UI_LIMITS = DEVICE_UI_PROFILES[0];
 namespace espdesktop {
 inline constexpr DeviceUiLimits DEVICE_UI_LIMITS = DEVICE_UI_PROFILES[1];
 }  // namespace espdesktop
-#elif defined(ESPDESKTOP_UI_PROFILE_GUITION_ESP32_P4_JC4880P443)
-#define ESPDESKTOP_DEVICE_UI_SLOT_COUNT 6
+#elif defined(ESPDESKTOP_UI_PROFILE_GUITION_ESP32_P4_JC1060P470_V3)
+#define ESPDESKTOP_DEVICE_UI_SLOT_COUNT 15
 namespace espdesktop {
 inline constexpr DeviceUiLimits DEVICE_UI_LIMITS = DEVICE_UI_PROFILES[2];
 }  // namespace espdesktop
-#elif defined(ESPDESKTOP_UI_PROFILE_GUITION_ESP32_P4_JC4880P443_V3)
+#elif defined(ESPDESKTOP_UI_PROFILE_GUITION_ESP32_P4_JC4880P443)
 #define ESPDESKTOP_DEVICE_UI_SLOT_COUNT 6
 namespace espdesktop {
 inline constexpr DeviceUiLimits DEVICE_UI_LIMITS = DEVICE_UI_PROFILES[3];
 }  // namespace espdesktop
-#elif defined(ESPDESKTOP_UI_PROFILE_GUITION_ESP32_P4_JC8012P4A1)
-#define ESPDESKTOP_DEVICE_UI_SLOT_COUNT 20
+#elif defined(ESPDESKTOP_UI_PROFILE_GUITION_ESP32_P4_JC4880P443_V3)
+#define ESPDESKTOP_DEVICE_UI_SLOT_COUNT 6
 namespace espdesktop {
 inline constexpr DeviceUiLimits DEVICE_UI_LIMITS = DEVICE_UI_PROFILES[4];
 }  // namespace espdesktop
-#elif defined(ESPDESKTOP_UI_PROFILE_GUITION_ESP32_P4_JC8012P4A1_V2)
+#elif defined(ESPDESKTOP_UI_PROFILE_GUITION_ESP32_P4_JC8012P4A1)
 #define ESPDESKTOP_DEVICE_UI_SLOT_COUNT 20
 namespace espdesktop {
 inline constexpr DeviceUiLimits DEVICE_UI_LIMITS = DEVICE_UI_PROFILES[5];
 }  // namespace espdesktop
-#elif defined(ESPDESKTOP_UI_PROFILE_GUITION_ESP32_P4_JC8012P4A1_V3)
+#elif defined(ESPDESKTOP_UI_PROFILE_GUITION_ESP32_P4_JC8012P4A1_V2)
 #define ESPDESKTOP_DEVICE_UI_SLOT_COUNT 20
 namespace espdesktop {
 inline constexpr DeviceUiLimits DEVICE_UI_LIMITS = DEVICE_UI_PROFILES[6];
 }  // namespace espdesktop
+#elif defined(ESPDESKTOP_UI_PROFILE_GUITION_ESP32_P4_JC8012P4A1_V3)
+#define ESPDESKTOP_DEVICE_UI_SLOT_COUNT 20
+namespace espdesktop {
+inline constexpr DeviceUiLimits DEVICE_UI_LIMITS = DEVICE_UI_PROFILES[7];
+}  // namespace espdesktop
 #elif defined(ESPDESKTOP_UI_PROFILE_ESP32_P4_86)
 #define ESPDESKTOP_DEVICE_UI_SLOT_COUNT 9
 namespace espdesktop {
-inline constexpr DeviceUiLimits DEVICE_UI_LIMITS = DEVICE_UI_PROFILES[7];
+inline constexpr DeviceUiLimits DEVICE_UI_LIMITS = DEVICE_UI_PROFILES[8];
 }  // namespace espdesktop
 #elif defined(ESPDESKTOP_UI_PROFILE_GUITION_ESP32_S3_4848S040)
 #define ESPDESKTOP_DEVICE_UI_SLOT_COUNT 9
 namespace espdesktop {
-inline constexpr DeviceUiLimits DEVICE_UI_LIMITS = DEVICE_UI_PROFILES[8];
+inline constexpr DeviceUiLimits DEVICE_UI_LIMITS = DEVICE_UI_PROFILES[9];
 }  // namespace espdesktop
 #endif

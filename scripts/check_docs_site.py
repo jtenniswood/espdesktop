@@ -413,6 +413,7 @@ def check_build(dist):
         'screens/jc8012p4a1-v1': 'https://jtenniswood.github.io/espcontrol/screens/jc8012p4a1-v1',
         'screens/jc8012p4a1': 'https://jtenniswood.github.io/espcontrol/screens/jc8012p4a1',
         'screens/jc4880p443': 'https://jtenniswood.github.io/espcontrol/screens/jc4880p443',
+        'screens/jc1060p470-v3': 'https://jtenniswood.github.io/espcontrol/screens/jc1060p470-v3',
         'screens/jc1060p470-v2': 'https://jtenniswood.github.io/espcontrol/screens/jc1060p470-v2',
         'screens/jc1060p470-v1': 'https://jtenniswood.github.io/espcontrol/screens/jc1060p470-v1',
         'screens/jc1060p470': 'https://jtenniswood.github.io/espcontrol/screens/jc1060p470',
@@ -437,6 +438,7 @@ def check_build(dist):
     screen_guides = {
         '4848s040': (BASE + 'screens/4848s040', BASE + 'screens/4848s040#install'),
         'jc1060p470': ('https://jtenniswood.github.io/espcontrol/screens/jc1060p470', 'https://jtenniswood.github.io/espcontrol/screens/jc1060p470'),
+        'jc1060p470-v3': ('https://jtenniswood.github.io/espcontrol/screens/jc1060p470-v3', 'https://jtenniswood.github.io/espcontrol/screens/jc1060p470-v3'),
         'jc1060p470-v2': ('https://jtenniswood.github.io/espcontrol/screens/jc1060p470-v2', 'https://jtenniswood.github.io/espcontrol/screens/jc1060p470-v2'),
         'jc4880p443': ('https://jtenniswood.github.io/espcontrol/screens/jc4880p443', 'https://jtenniswood.github.io/espcontrol/screens/jc4880p443'),
         'jc4880p443-v3': ('https://jtenniswood.github.io/espcontrol/screens/jc4880p443-v3', 'https://jtenniswood.github.io/espcontrol/screens/jc4880p443-v3'),

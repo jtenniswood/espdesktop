@@ -1,0 +1,33 @@
+# =============================================================================
+# BUILD PROFILE - Guition ESP32-P4 JC1060P470 V3 (7" landscape)
+# =============================================================================
+# CI/local build entry point. Includes the full device package and adds
+# MAC suffix for unique naming. Bundles the matching web UI so branch/release
+# builds do not load the shared GitHub Pages copy from main.
+# =============================================================================
+
+substitutions:
+  name: "espdesktop-jc1060p470-v3"
+  friendly_name: "EspDesktop 7inch V3"
+  espdesktop_component_url: "file:///config"
+  mdi_font_file: "/config/common/assets/fonts/espdesktop-icons-1.ttf"
+  espdesktop_component_ref: "HEAD"
+
+esp32:
+  partitions: "../common/device/partitions_16mb_card_images.csv"
+
+esphome:
+  name_add_mac_suffix: true
+
+packages:
+  espdesktop: !include ../devices/guition-esp32-p4-jc1060p470-v3/packages.yaml
+
+wifi:
+  ap:
+    ssid: "${friendly_name}"
+
+captive_portal:
+
+web_server:
+  js_url: ""
+  js_include: "../docs/public/webserver/embedded/www.js"
