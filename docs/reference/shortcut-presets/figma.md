@@ -31,4 +31,26 @@ Start with **Duplicate**, **Frame**, and **New Component**. Duplicate a starting
 
 <ShortcutPresetReference app-id="com.figma.Desktop" flat />
 
+## Figma shortcuts FAQ
+
+::: details Can I use a touchscreen for Figma keyboard shortcuts on Mac?
+Yes. EspDesktop turns Figma keyboard shortcuts into labelled touchscreen buttons. When you tap a button, the EspDesktop Mac app sends its key combination to Figma. For example, tapping **Duplicate** sends **Command + D** to duplicate the selected layer.
+:::
+
+::: details Which Figma keyboard shortcuts should I put on my touchscreen?
+Start with **Actions** (**Command + K**) to find a command, **Duplicate** (**Command + D**) to copy a selected layer, and **Frame** (**Option + Command + G**) to wrap selected layers in a frame. Add **New Component** (**Option + Command + K**) if you often turn selections into reusable components.
+:::
+
+::: details Can I customise which Figma shortcuts appear on EspDesktop?
+Yes. A Figma app subpage lets you choose which shortcut cards appear and reorder them. For a key combination you already use in Figma, you can also [add a custom Key Shortcut card](/mac-controls/shortcuts#create-a-shortcut-card).
+:::
+
+::: details Can EspDesktop show my Figma shortcuts automatically when I switch to Figma?
+Yes. Once Figma has an app subpage, EspDesktop can open it when Figma becomes the active app on your Mac. This is the default behaviour, and you can change it in the [App Subpages settings](/mac-controls/apps).
+:::
+
+::: details Why are my Figma shortcut buttons not working on EspDesktop?
+Check that EspDesktop has [macOS Accessibility permission](/mac-controls/shortcuts#allow-accessibility-access), then try the same shortcut on your Mac with a Figma design open. Commands such as **Duplicate** and **Frame** need a selection on the canvas.
+:::
+
 [Browse all application shortcuts](/reference/shortcut-presets).
