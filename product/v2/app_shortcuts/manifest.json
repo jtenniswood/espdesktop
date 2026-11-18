@@ -292,6 +292,9 @@
       "offline": true
     },
     {
+      "path": "streamlabs-desktop.json"
+    },
+    {
       "path": "telegram.json",
       "offline": true
     },
@@ -310,6 +313,9 @@
     {
       "path": "tv.json",
       "offline": true
+    },
+    {
+      "path": "twitch.json"
     },
     {
       "path": "visual-studio-code.json",

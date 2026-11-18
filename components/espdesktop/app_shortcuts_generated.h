@@ -94,11 +94,13 @@ inline const char *app_label(const std::string &app) {
   if (app == "com.bohemiancoding.sketch3") return "Sketch";
   if (app == "com.tinyspeck.slackmacgap") return "Slack";
   if (app == "com.spotify.client") return "Spotify";
+  if (app == "com.streamlabs.slobs") return "Streamlabs Desktop";
   if (app == "ru.keepcoder.Telegram") return "Telegram";
   if (app == "com.culturedcode.ThingsMac") return "Things 3";
   if (app == "com.todoist.mac.Todoist") return "Todoist";
   if (app == "com.panic.Transmit") return "Transmit";
   if (app == "com.apple.TV") return "TV";
+  if (app == "tv.twitch.web-app") return "Twitch";
   if (app == "com.microsoft.VSCode") return "Visual Studio Code";
   if (app == "org.videolan.vlc") return "VLC";
   if (app == "dev.warp.Warp-Stable") return "Warp";
@@ -180,11 +182,13 @@ inline bool has_shortcut(const std::string &app, const std::string &id) {
   if (app == "com.bohemiancoding.sketch3") return id == "0" || id == "1" || id == "2" || id == "3" || id == "4" || id == "5" || id == "6" || id == "7" || id == "8";
   if (app == "com.tinyspeck.slackmacgap") return id == "0" || id == "1" || id == "2" || id == "3" || id == "4" || id == "5" || id == "6" || id == "7" || id == "8" || id == "9";
   if (app == "com.spotify.client") return id == "0" || id == "1" || id == "2" || id == "3" || id == "4" || id == "5";
+  if (app == "com.streamlabs.slobs") return id == "0" || id == "1" || id == "2" || id == "3" || id == "4" || id == "5";
   if (app == "ru.keepcoder.Telegram") return id == "0" || id == "1" || id == "2" || id == "3" || id == "4";
   if (app == "com.culturedcode.ThingsMac") return id == "0" || id == "1" || id == "2" || id == "3" || id == "4" || id == "5" || id == "6" || id == "7";
   if (app == "com.todoist.mac.Todoist") return id == "0" || id == "1" || id == "2" || id == "3" || id == "4" || id == "5" || id == "6";
   if (app == "com.panic.Transmit") return id == "0" || id == "1" || id == "2" || id == "3";
   if (app == "com.apple.TV") return id == "0" || id == "1" || id == "2" || id == "3" || id == "4";
+  if (app == "tv.twitch.web-app") return id == "105" || id == "106" || id == "107" || id == "108";
   if (app == "com.microsoft.VSCode") return id == "0" || id == "1" || id == "2" || id == "3" || id == "4" || id == "5" || id == "6" || id == "7" || id == "8" || id == "9";
   if (app == "org.videolan.vlc") return id == "0";
   if (app == "dev.warp.Warp-Stable") return id == "0" || id == "1" || id == "2" || id == "3" || id == "4" || id == "5" || id == "6" || id == "7";

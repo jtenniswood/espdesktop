@@ -26,15 +26,12 @@ struct RemoteMacApplicationDefinition: Codable, Sendable, Equatable {
         return app
     }
 
-    // Each chunk leaves room for JSON escaping in the 16 KiB wire frame.
-    private static let expandedPageSize = 52
-
-    var expandedPageCount: Int {
-        ((moreShortcuts?.count ?? 0) + Self.expandedPageSize - 1) / Self.expandedPageSize
+    var onDemandExpandedPages: [Self] {
+        expandedPages(maximumEntries: 52)
     }
 
-    func expandedPage(at index: Int) -> Self? {
-        guard index >= 0, index < expandedPageCount, let moreShortcuts else { return nil }
+    func expandedPages(maximumEntries: Int = 64) -> [Self] {
+        guard let moreShortcuts, !moreShortcuts.isEmpty else { return [] }
         var page = starter
         page.shortcuts = []
         page.defaultShortcutIds = nil
@@ -42,15 +39,35 @@ struct RemoteMacApplicationDefinition: Codable, Sendable, Equatable {
         page.additionalShortcuts = nil
         page.claudeShortcuts = nil
         page.safariShortcuts = nil
-        let offset = index * Self.expandedPageSize
-        page.moreShortcuts = Array(moreShortcuts[offset..<min(offset + Self.expandedPageSize, moreShortcuts.count)])
-        return page
+        let encoder = JSONEncoder()
+        var pages: [Self] = []
+        var offset = 0
+        while offset < moreShortcuts.count {
+            var count = min(maximumEntries, moreShortcuts.count - offset)
+            page.moreShortcuts = Array(moreShortcuts[offset..<(offset + count)])
+            // Fit more short entries per frame and back off for long labels
+            // or chords. A single entry always fits the validated field limits.
+            while count > 1 && !page.fitsExpandedFrame(encoder: encoder) {
+                count = max(1, count - 8)
+                page.moreShortcuts = Array(moreShortcuts[offset..<(offset + count)])
+            }
+            pages.append(page)
+            offset += count
+        }
+        return pages
     }
 
-    func expandedPages() -> [Self] {
-        (0..<expandedPageCount).compactMap { expandedPage(at: $0) }
+    private func fitsExpandedFrame(encoder: JSONEncoder) -> Bool {
+        guard let data = try? encoder.encode(self), data.count <= 12_000 else { return false }
+        // Reserve space for the longest legal page and generation numbers.
+        let envelope: [String: Any] = [
+            "type": "catalogue.definitions.page", "protocol": CompanionCapabilities.protocolVersion,
+            "page": Int(UInt16.max), "generation": Int(UInt32.max), "complete": false,
+            "items": [["kind": "application", "json": String(decoding: data, as: UTF8.self)]],
+        ]
+        guard let frame = try? JSONSerialization.data(withJSONObject: envelope) else { return false }
+        return frame.count <= CompanionCapabilities.maximumTextFrameBytes
     }
-
 }
 
 struct RemoteCatalogueManifest: Decodable, Sendable {
@@ -100,21 +117,32 @@ struct RemoteCompanionCatalogues: Codable, Sendable, Equatable {
 
     func applicationsForDisplay(approvedApps: [LaunchableApp]) -> [RemoteMacApplicationDefinition] {
         let athenaTemplateID = "io.github.jtenniswood.athena"
-        guard let template = applications.first(where: { $0.appId == athenaTemplateID }) else { return applications }
+        let twitchTemplateID = "tv.twitch.web-app"
+        let templateIDs: Set<String> = [athenaTemplateID, twitchTemplateID]
         let existingIDs = Set(applications.map(\.appId))
         let installedTemplates = approvedApps.compactMap { app -> RemoteMacApplicationDefinition? in
-            // Safari generates a different bundle ID for each installation. Match
-            // Athena by its web manifest so renamed Dock icons still work.
+            // Safari gives each installation a unique bundle ID. Use its site
+            // metadata so changing the app's name does not affect its presets.
             let id = app.bundleIdentifier
             guard !existingIDs.contains(id), id != "com.apple.Safari",
                   CompanionKeyboardShortcut.isSafariApplication(id),
-                  let manifest = Bundle(url: app.url)?.object(forInfoDictionaryKey: "Manifest") as? [String: Any],
-                  manifest["name"] as? String == "Athena for Hermes Agent" else { return nil }
-            var installed = template
-            installed.appId = id
-            return installed
+                  let bundle = Bundle(url: app.url),
+                  let manifest = bundle.object(forInfoDictionaryKey: "Manifest") as? [String: Any] else { return nil }
+            let templateID: String
+            if let startURL = manifest["start_url"] as? String,
+               let url = URL(string: startURL), url.scheme?.lowercased() == "https",
+               let host = url.host?.lowercased(), ["www.twitch.tv", "twitch.tv"].contains(host) {
+                templateID = twitchTemplateID
+            } else if manifest["name"] as? String == "Athena for Hermes Agent" {
+                templateID = athenaTemplateID
+            } else {
+                return nil
+            }
+            guard var template = applications.first(where: { $0.appId == templateID }) else { return nil }
+            template.appId = id
+            return template
         }
-        return applications.filter { $0.appId != athenaTemplateID } + installedTemplates
+        return applications.filter { !templateIDs.contains($0.appId) } + installedTemplates
     }
 
     func shortcutApplication(_ appId: String, approvedApps: [LaunchableApp]) -> RemoteMacApplicationDefinition? {
@@ -150,9 +178,10 @@ struct RemoteCompanionCatalogues: Codable, Sendable, Equatable {
             response["complete"] = end == apps.count
         } else {
             let app = shortcutApplication(request.appId, approvedApps: approvedApps)
-            let definition = page == 0 ? app?.starter : app?.expandedPage(at: page - 1)
+            let expanded = app?.onDemandExpandedPages ?? []
+            let definition = page == 0 ? app?.starter : expanded.dropFirst(page - 1).first
             data = definition.flatMap { try? JSONEncoder().encode($0) }
-            response["complete"] = page >= (app?.expandedPageCount ?? 0)
+            response["complete"] = page >= expanded.count
         }
         if let data, data.count <= 12_000 {
             response["json"] = String(decoding: data, as: UTF8.self)

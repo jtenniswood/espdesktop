@@ -581,7 +581,7 @@ inline const char *card_contract_card_label(const std::string &type) {
   if (type == "companion_input_device") return "Input per device level";
   if (type == "companion_input_volume") return "Volume";
   if (type == "companion_output_mute") return "Mute";
-  if (type == "companion_input_mute") return "Mute";
+  if (type == "companion_input_mute") return "Input State";
   if (type == "companion_cough") return "Cough";
   if (type == "companion_obs_cough") return "OBS Input Cough";
   if (type == "companion_mac_lock") return "Mac Lock";

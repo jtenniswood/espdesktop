@@ -13,4 +13,6 @@ These are the presets defined in the EspDesktop shortcut catalog. The options on
 
 [Create a shortcut tile](/mac-controls/shortcuts#create-a-shortcut-card) using the presets below.
 
+For [Twitch](#tv-twitch-web-app), open `www.twitch.tv` in Safari and choose **File → Add to Dock**. Approve the installed app in EspDesktop and select it for an **Application** card. Use the shortcuts with the Twitch player focused. Seeking needs a recording or another player view with a seek bar. Clipping depends on the channel’s clip settings.
+
 <ShortcutPresetReference />

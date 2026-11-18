@@ -363,6 +363,7 @@ wind_west=West
 wind_north_west=North West
 output_mute=Ztlumit výstup
 microphone_mute=Ztlumit mikrofon
+input_state=Stav vstupu
 mic=Mikrofon
 mute=Ztlumit
 muted=Ztlumeno

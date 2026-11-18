@@ -363,6 +363,7 @@ wind_west=West
 wind_north_west=North West
 output_mute=Kimenet némítása
 microphone_mute=Mikrofon némítása
+input_state=Bemenet állapota
 mic=Mikrofon
 mute=Némítás
 muted=Némítva

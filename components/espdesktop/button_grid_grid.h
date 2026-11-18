@@ -475,7 +475,7 @@ inline void setup_card_visual(BtnSlot &s, const ParsedCfg &p,
     espdesktop::cards::numeric_selectable_driver_attach_interaction(
       s, p, context);
     espdesktop::cards::numeric_selectable_driver_refresh_layout(
-      s, p, context);
+      s, p, context, display);
     return;
   }
   if (espdesktop::cards::navigation_driver_setup_visual(
@@ -558,7 +558,7 @@ inline void refresh_card_layout(BtnSlot &s, const ParsedCfg &p,
         s, p, context, cfg)) return;
 
   if (espdesktop::cards::numeric_selectable_driver_refresh_layout(
-        s, p, context)) return;
+        s, p, context, display)) return;
 
 }
 
