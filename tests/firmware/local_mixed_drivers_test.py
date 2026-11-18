@@ -48,7 +48,7 @@ void remove_button_state_transitions(lv_obj_t *) { ++transitions_removed; }
 
 bool companion_mute_control_valid(const std::string &key);
 bool companion_volume_control_valid(const std::string &key);
-const char *companion_volume_control_label(const std::string &key) { return companion_mute_control_valid(key) ? "Mute" : key == "media.output_volume" ? "Lautstärke" : "Mic"; }
+const char *companion_volume_control_label(const std::string &key) { return key == "media.input_mute" ? "Input State" : companion_mute_control_valid(key) ? "Mute" : key == "media.output_volume" ? "Lautstärke" : "Mic"; }
 void unbind_cough_button(lv_obj_t *) {}
 constexpr char COMPANION_COUGH_ID[] = "media.cough";
 bool companion_obs_cough_control(const std::string &id) { return id.rfind("obs.cough.", 0) == 0; }
@@ -117,7 +117,7 @@ int main() {
   assert(numeric_selectable_driver_setup_visual(slot,config,c,palette,display));
   assert(numeric_selectable_driver_bind_main(slot,config,c,palette,display));
   assert(numeric_selectable_driver_bind_subpage(slot,config,c,{}));
-  assert(label.text == "Mute");
+  assert(label.text == companion_volume_control_label(key));
   assert(numeric_selectable_driver_refresh_layout(slot,config,c,display));
   assert(numeric_selectable_driver_handle_main_click(c,config,&button));
   callbacks.back()();

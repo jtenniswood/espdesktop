@@ -10,7 +10,7 @@ controls = (root / 'components/espdesktop/companion_controls.h').read_text()
 driver = (root / 'components/espdesktop/button_grid_numeric_selectable_driver.h').read_text()
 cough_card = (root / 'components/espdesktop/button_grid_cough.h').read_text()
 production = '\n'.join(definition(controls, name)[1] for name in (
-    'companion_render_mic_detail', 'companion_render_mute', 'companion_apply_mute_state', 'companion_paint_mute_preview', 'companion_erase_mute_ref', 'companion_mute_deleted',
+    'companion_render_mic_detail', 'companion_render_mute', 'companion_render_value_mute', 'companion_apply_mute_state', 'companion_paint_mute_preview', 'companion_erase_mute_ref', 'companion_mute_deleted',
     'companion_forget_mute', 'companion_tracked_mute_control', 'companion_track_mute'))
 production += definition(driver, 'numeric_selectable_driver_cleanup')[1]
 production += '\n' + cough_card[cough_card.index('struct CoughTouch'):cough_card.index('inline bool send_cough_button_value')]
@@ -88,16 +88,16 @@ int main() {
   registry.mutes.front().detail_label = &mic_detail;
   CompanionRuntimeSnapshot snapshot{true, {{"media.input_mute", 100}, {"media.output_mute", 0}}};
   for (const auto &ref : registry.mutes) companion_apply_mute_state(ref, snapshot);
-  assert(first.checked && !first.disabled && input_icon.text=="mic-off" && mic_detail.text=="Muted");
+  assert(!first.checked && !first.disabled && input_icon.text=="mic-off" && mic_detail.text=="Muted");
   assert(!second.checked && !second.disabled && output_icon.text=="speaker");
   companion_paint_mute_preview("media.input_mute", 0);
-  assert(!first.checked && input_icon.text=="mic" && mic_detail.text=="Live");
+  assert(first.checked && input_icon.text=="mic" && mic_detail.text=="Live");
   assert(!second.checked && output_icon.text=="speaker");
   companion_paint_mute_preview("media.input_mute", 100);
-  assert(first.checked && input_icon.text=="mic-off");
+  assert(!first.checked && input_icon.text=="mic-off" && mic_detail.text=="Muted");
   snapshot.values[0].value=0; snapshot.values[1].value=100;
   for (const auto &ref : registry.mutes) companion_apply_mute_state(ref, snapshot);
-  assert(!first.checked && input_icon.text=="mic");
+  assert(first.checked && input_icon.text=="mic");
   assert(second.checked && output_icon.text=="speaker-off");
   snapshot.connected=false;
   for (const auto &ref : registry.mutes) companion_apply_mute_state(ref, snapshot);
@@ -153,4 +153,4 @@ with tempfile.TemporaryDirectory() as tmp:
     subprocess.run([sys.argv[1] if len(sys.argv) > 1 else 'c++', '-std=c++17',
                     '-Wall', '-Wextra', '-Werror', '-I', str(root / 'components/espdesktop'), str(source), '-o', str(binary)], check=True)
     subprocess.run([str(binary)], check=True)
-print('Mute icons, muted-only colour state, availability and persistent binding cleanup checks passed.')
+print('Mute icons, live microphone colour, availability and persistent binding cleanup checks passed.')

@@ -345,7 +345,8 @@ inline bool companion_writable_value_control_valid(const std::string &control_id
 inline const char *companion_volume_control_label(const std::string &control_id) {
   if (control_id == "media.output_volume") return espdesktop_i18n("Volume");
   if (control_id == "media.input_volume") return espdesktop_i18n("Mic");
-  if (companion_mute_control_valid(control_id)) return espdesktop_i18n("Mute");
+  if (control_id == "media.input_mute") return espdesktop_i18n_key("input_state");
+  if (control_id == "media.output_mute") return espdesktop_i18n("Mute");
   return espdesktop_i18n("Volume");
 }
 
@@ -797,12 +798,7 @@ inline std::string companion_obs_control_label(const std::string &action_id, con
   }
   if (!alias.empty() && (companion_obs_scene_card(action_id) || companion_obs_transition_target(action_id) ||
       companion_obs_source_target(action_id) || companion_obs_audio_uuid(action_id, "obs.mute."))) return alias;
-  if (companion_obs_audio_uuid(action_id, "obs.mute.")) {
-    if (live_label == espdesktop_i18n_key("unavailable")) return espdesktop_i18n_key("mic");
-    for (std::string_view prefix : {"Muted · ", "Unmuted · "}) {
-      if (live_label.compare(0, prefix.size(), prefix) == 0) return live_label.substr(prefix.size());
-    }
-  }
+  if (companion_obs_audio_uuid(action_id, "obs.mute.")) return espdesktop_i18n_key("input_state");
   return live_label;
 }
 
@@ -1059,7 +1055,7 @@ inline void companion_render_mute(const CompanionMuteRef &ref, bool muted, bool 
 }
 
 inline OBSCardState companion_obs_mute_state(const CompanionAction *action) {
-  if (!action) return OBSCardState::unknown;
+  if (!action || action->obs_available == false) return OBSCardState::unknown;
   if (action->obs_state != OBSCardState::unknown) return action->obs_state;
   if (action->label.rfind("Muted · ", 0) == 0) return OBSCardState::audio_muted;
   if (action->label.rfind("Unmuted · ", 0) == 0) return OBSCardState::audio_live;
@@ -1068,11 +1064,18 @@ inline OBSCardState companion_obs_mute_state(const CompanionAction *action) {
 
 inline void companion_render_obs_mute(const CompanionCardRef &ref, const CompanionRuntimeSnapshot &snapshot) {
   if (!ref.obs_mute_icon_label) return;
-  const auto state = companion_obs_mute_state(companion_published_action(snapshot, ref.action_id));
+  const auto state = companion_obs_mute_state(
+    snapshot.connected ? companion_published_action(snapshot, ref.action_id) : nullptr);
   const bool muted = state == OBSCardState::audio_muted;
   const bool live = state == OBSCardState::audio_live;
   companion_render_mute({ref.button, ref.action_id, ref.obs_mute_icon_label, ref.obs_mute_icon_off,
                          ref.obs_mute_icon_on}, muted, live);
+}
+
+inline void companion_render_value_mute(const CompanionMuteRef &ref, bool available, bool muted) {
+  const bool microphone = ref.control_id == "media.input_mute";
+  companion_render_mute(ref, muted, available && (microphone ? !muted : muted));
+  companion_render_mic_detail(ref.detail_label, available, muted);
 }
 
 inline void companion_apply_mute_state(const CompanionMuteRef &ref,
@@ -1083,8 +1086,7 @@ inline void companion_apply_mute_state(const CompanionMuteRef &ref,
   const bool muted = available && companion_runtime_service().displayed_mute_value(ref.control_id, value->value) > 0;
   if (lv_obj_has_state(ref.button, LV_STATE_DISABLED) == available)
     set_card_disabled_state(ref.button, !available);
-  companion_render_mute(ref, muted, muted);
-  companion_render_mic_detail(ref.detail_label, available, muted);
+  companion_render_value_mute(ref, available, muted);
   if (companion_obs_cough_control(ref.control_id) && ref.text_label && lv_obj_is_valid(ref.text_label)) {
     const auto label = muted ? normalize_display_text(espdesktop_i18n("Muted")) : ref.resting_label;
     if (label != lv_label_get_text(ref.text_label)) lv_label_set_text(ref.text_label, label.c_str());
@@ -1095,8 +1097,7 @@ inline void companion_paint_mute_preview(const std::string &control, int value) 
   for (const auto &ref : companion_view_registry().mutes) {
     if (ref.control_id == control && lv_obj_is_valid(ref.button) &&
         !lv_obj_has_state(ref.button, LV_STATE_DISABLED)) {
-      companion_render_mute(ref, value > 0, value > 0);
-      companion_render_mic_detail(ref.detail_label, true, value > 0);
+      companion_render_value_mute(ref, true, value > 0);
     }
   }
 }
@@ -1255,9 +1256,8 @@ inline void companion_render_obs_detail(CompanionCardRef &ref, const std::string
     const auto *action = companion_published_action(snapshot, ref.action_id);
     const auto state = companion_obs_mute_state(action);
     const bool muted = state == OBSCardState::audio_muted;
-    companion_render_mic_detail(ref.obs_detail,
-      snapshot.connected && action && action->obs_available != false &&
-        (muted || state == OBSCardState::audio_live), muted);
+    companion_render_mic_detail(ref.obs_detail, snapshot.connected &&
+      (muted || state == OBSCardState::audio_live), muted);
     if (!refreshing) companion_layout_mic_detail(ref.text_label, ref.obs_detail);
     return;
   }

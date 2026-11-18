@@ -324,7 +324,8 @@ int main() {
     snapshot.actions.front().obs_available = false;
     companion_render_obs_detail(mic, "Desk mic", snapshot, true);
     assert(title.content == "Desk mic" && detail.content == "Unavailable");
-    assert(companion_obs_control_label(mic.action_id, "", "Unavailable") == "Mic");
+    assert(companion_obs_control_label(mic.action_id, "", "Unavailable") == "Input State");
+    assert(companion_obs_control_label(mic.action_id, "Desk mic", "Muted · Commentary") == "Desk mic");
   }
   {
     lv_obj_t tile, title, detail, icon;

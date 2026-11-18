@@ -1773,7 +1773,7 @@ export function registerCompanionCardTypes(
             if (mode === "obs" || mode === "obs_mic" || mode === "obs_take" || mode === "obs_transition" || mode === "obs_status" || mode === "obs_replay" || mode === "obs_replay_buffer" || mode === "obs_output" || mode === "obs_brb" || mode === "obs_studio") {
                 const fallback = {
                     obs: "OBS Scene",
-                    obs_mic: "OBS Mic Mute",
+                    obs_mic: "Input State",
                     obs_take: "Take Live",
                     obs_transition: "Transition",
                     obs_studio: "Studio Mode",
@@ -1821,7 +1821,7 @@ export function registerCompanionCardTypes(
                 const live = mic && (cardState ? stateId === "audio_live" : currentLabel?.startsWith("Unmuted · "));
                 const label = multiview ? card.label || "Multiview"
                     : output ? (virtualCamera ? "Virtual Camera" : record ? (outputOn ? "Recording" : "Record") : "Stream")
-                    : alias || (mode === "obs_mic" ? obsInputName(currentLabel) : currentLabel) || (directTransition && card.label) || fallback[mode];
+                    : alias || (!mic && currentLabel) || (directTransition && card.label) || fallback[mode];
                 const preview = cardBadgePreview(sensor || automaticOutputIcon || muted
                     ? { ...card, icon: muted ? "Microphone Off" : statusIcon } : card, helpers, {
                     label, iconFallback: companionSubtypeDefaultIcon(mode, entity), badge: COMPANION_CARD_METADATA.preview.badge,
@@ -1855,7 +1855,7 @@ export function registerCompanionCardTypes(
                     ...preview,
                     buttonClass: unavailable ? "sp-obs-unavailable" : undefined,
                     sensorSurface: sensor,
-                    isOn: cardState ? cardState.lit : live || outputOn || (toggle && currentLabel === "On") || (brb && currentLabel === "Resume") || selectedScene ||
+                    isOn: mic ? (!unavailable && !!live) : cardState ? cardState.lit : outputOn || (toggle && currentLabel === "On") || (brb && currentLabel === "Resume") || selectedScene ||
                         (directTransition && entity === obsControlLabels.get("obs.transition.selected")) ||
                         (source && obsControlLabels.has(entity.replace("obs.source.", "obs.source.visible."))),
                 };
@@ -2096,7 +2096,7 @@ export function registerCompanionCardTypes(
         ["companion_url", "Website", "url"],
         ["companion_folder", "Finder Folder", "folder"],
         ["companion_obs", "Scene", "obs"],
-        ["companion_obs_mic", "Input Mute", "obs_mic"],
+        ["companion_obs_mic", "Input State", "obs_mic"],
         ["companion_obs_studio", "Studio Mode", "obs_studio"],
         ["companion_obs_transition", "Transitions", "obs_transition"],
         ["companion_obs_brb", "Break", "obs_brb"],

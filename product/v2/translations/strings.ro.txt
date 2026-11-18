@@ -363,6 +363,7 @@ wind_west=West
 wind_north_west=North West
 output_mute=Dezactivează sunetul
 microphone_mute=Dezactivează microfonul
+input_state=Stare intrare
 mic=Microfon
 mute=Mut
 muted=Fără sunet

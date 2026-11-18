@@ -45,7 +45,7 @@ export const COMPANION_CARD_MODES = [
   },
   {
     id: "obs_mic",
-    label: "OBS Mic Mute",
+    label: "Input State",
     capability: "obs_scene_cards",
     defaultIcon: "Microphone"
   },
