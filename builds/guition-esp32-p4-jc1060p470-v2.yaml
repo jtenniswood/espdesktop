@@ -10,7 +10,7 @@ substitutions:
   name: "espdesktop-jc1060p470-v2"
   friendly_name: "EspDesktop 7inch V2"
   espdesktop_component_url: "file:///config"
-  mdi_font_file: "/config/common/assets/fonts/materialdesignicons-webfont-7.4.47.ttf"
+  mdi_font_file: "/config/common/assets/fonts/espdesktop-icons-1.ttf"
   espdesktop_component_ref: "HEAD"
 
 esp32:

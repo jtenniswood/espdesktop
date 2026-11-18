@@ -149,7 +149,13 @@ inline bool navigation_return_home(lv_obj_t *main_page_obj) {
 }
 
 inline void navigation_consume_touch_press(lv_obj_t *button) {
-  // Share pointer consumption and contrast restoration with other buttons.
+  // Show the pressed card before the destination replaces the current screen.
+  if (button && lv_obj_has_state(button, LV_STATE_PRESSED) &&
+      !lv_obj_has_state(button, LV_STATE_CHECKED) &&
+      !lv_obj_has_state(button, LV_STATE_DISABLED)) {
+    sync_bound_card_text_color(button);
+    lv_refr_now(lv_obj_get_display(button));
+  }
   consume_button_touch_press(button);
 }
 

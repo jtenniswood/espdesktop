@@ -23,6 +23,6 @@ lambda: |-
     case GridTouchAction::CLICK:
       if (touch_kind == GridTouchEvent::HOLD)
         ESP_LOGD("button", "Treating grid card long press as normal tap for slot ${num}");
-      handle_button_click(id(button_${num}_config).state, ${num}, id(button_${num}));
+      handle_button_click(id(button_${num}_config).state, ${num}, id(button_${num}), /*touch_followup=*/true);
       break;
   }

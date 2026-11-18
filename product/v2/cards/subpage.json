@@ -3,6 +3,7 @@
   "allowInSubpage": true,
   "domains": [],
   "options": [
+    { "name": "generated_card_exclusions", "label": "Customized automatic cards", "kind": "text", "omitDefault": true, "hidden": true, "docsHidden": true },
     {
       "name": "subpage_connector", "label": "Subpage Connector", "kind": "choice",
       "values": ["", "mac_companion"],
@@ -10,9 +11,13 @@
     },
     {
       "name": "subpage_kind", "label": "Subpage Type", "kind": "choice",
-      "values": ["", "switch", "lights", "climate", "presence", "media", "alarm", "cover", "garage", "gate", "lock", "vacuum", "lawn_mower", "weather", "sensor", "image", "companion_stat"],
+      "values": ["", "switch", "lights", "climate", "presence", "media", "alarm", "cover", "garage", "gate", "lock", "vacuum", "lawn_mower", "weather", "sensor", "image", "companion_stat", "obs_transitions", "obs_sources", "obs_audio", "obs_scenes", "obs_studio_control"],
       "defaultValue": "", "omitDefault": true
     },
+    { "name": "obs_transition_order", "label": "Transition visibility and order", "kind": "text", "omitDefault": true },
+    { "name": "obs_source_order", "label": "Source visibility and order", "kind": "text", "omitDefault": true },
+    { "name": "obs_audio_order", "label": "Audio slider visibility and order", "kind": "text", "omitDefault": true },
+    { "name": "obs_scene_order", "label": "Scene visibility and order", "kind": "text", "omitDefault": true },
     { "name": "large_numbers", "label": "Large State Numbers", "kind": "flag", "omitDefault": true }
   ],
   "normalization": {
@@ -28,7 +33,7 @@
       "options": { "policy": "hook", "hook": "normalize_subpage_options" }
     },
     "unknownOptions": "drop",
-    "canonicalOptionOrder": ["subpage_connector", "subpage_kind", "large_numbers"],
+    "canonicalOptionOrder": ["subpage_connector", "subpage_kind", "obs_transition_order", "obs_source_order", "obs_audio_order", "obs_scene_order", "generated_card_exclusions", "large_numbers"],
     "optionHook": "normalize_subpage_options"
   },
   "default": {

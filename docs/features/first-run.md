@@ -7,6 +7,8 @@ description: Choose your favourite Mac apps, add ready-to-use shortcuts and deci
 
 The setup wizard helps you build your first Home screen. Open the web editor for an empty display. If your Mac isn’t connected yet, the wizard starts with **Connect your Mac**. Choose **Open EspDesktop** on your Mac if you have a version that supports the launch link, or choose **Download EspDesktop for Mac** to get the app. Use the pairing code if prompted. Once connected, choose **Next**. [Install and pair the Mac app](/screens/4848s040#pair-the-display).
 
+For an OBS control display, choose **Set up OBS Studio** during app selection. It creates Switching and Outputs pages for your connected OBS collection and adds an Audio page if you select a microphone. [Set up the OBS starter layout](/mac-controls/apps#obs-studio-controls).
+
 ## 1. Choose your apps
 
 Use **Search apps** to find the Mac apps you use most often. Turn on the apps you want on your display, then choose **Next**. You can pick up to eight, depending on your display’s grid size. Setup leaves at least one tile free.

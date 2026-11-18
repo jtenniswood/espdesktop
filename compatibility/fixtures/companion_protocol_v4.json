@@ -91,12 +91,49 @@
         {
           "id": "com.example.App",
           "label": "Caf\u00e9"
+        },
+        {
+          "id": "obs.take.7e86fcb8-7669-499e-ac4f-e4311555ed3b",
+          "label": "Take Live · BRB",
+          "obsState": "take_ready",
+          "obsDetail": "BRB",
+          "obsAvailable": true
         }
       ]
     },
     "direction": "mac_to_panel",
     "state": "connected",
     "valid": true
+  },
+  {
+    "name": "OBS-only catalogue page",
+    "message": {
+      "protocol": 4,
+      "type": "catalogue.page",
+      "scope": "obs",
+      "generation": 2,
+      "page": 0,
+      "complete": true,
+      "items": []
+    },
+    "direction": "mac_to_panel",
+    "state": "connected",
+    "valid": true
+  },
+  {
+    "name": "catalogue page with unknown scope",
+    "message": {
+      "protocol": 4,
+      "type": "catalogue.page",
+      "scope": "all",
+      "generation": 2,
+      "page": 0,
+      "complete": true,
+      "items": []
+    },
+    "direction": "mac_to_panel",
+    "state": "connected",
+    "valid": false
   },
   {
     "name": "launch action",
@@ -151,6 +188,32 @@
     "direction": "mac_to_panel",
     "state": "connected",
     "valid": true
+  },
+  {
+    "name": "set OBS input fader",
+    "message": {
+      "protocol": 4,
+      "type": "value.set",
+      "requestId": "obs-fader",
+      "controlId": "obs.level.69da3f8f-7f62-4abe-a594-4e40dd579858",
+      "value": 80
+    },
+    "direction": "panel_to_mac",
+    "state": "connected",
+    "valid": true
+  },
+  {
+    "name": "reject malformed OBS input fader",
+    "message": {
+      "protocol": 4,
+      "type": "value.set",
+      "requestId": "obs-fader",
+      "controlId": "obs.level.69da3f8f-7f62-4abe_a594-4e40dd579858",
+      "value": 80
+    },
+    "direction": "panel_to_mac",
+    "state": "connected",
+    "valid": false
   },
   {
     "name": "set volume",
@@ -1406,6 +1469,32 @@
     "valid": true
   },
   {
+    "name": "panel can confirm a held OBS Cough card",
+    "message": {
+      "protocol": 4,
+      "type": "value.set",
+      "controlId": "obs.cough.69da3f8f-7f62-4abe-a594-4e40dd579858",
+      "requestId": "obs-cough",
+      "value": 50
+    },
+    "direction": "panel_to_mac",
+    "state": "connected",
+    "valid": true
+  },
+  {
+    "name": "panel cannot set a retired OBS meter",
+    "message": {
+      "protocol": 4,
+      "type": "value.set",
+      "controlId": "obs.meter.69da3f8f-7f62-4abe-a594-4e40dd579858",
+      "requestId": "meter-test",
+      "value": 80
+    },
+    "direction": "panel_to_mac",
+    "state": "connected",
+    "valid": false
+  },
+  {
     "name": "authenticated Mac can reset pairing",
     "message": { "protocol": 4, "type": "pair.reset" },
     "direction": "mac_to_panel",
@@ -1431,5 +1520,172 @@
     "direction": "mac_to_panel",
     "state": "connected",
     "valid": true
+  },
+  {
+    "name": "app volume command",
+    "message": {
+      "protocol": 4,
+      "type": "value.set",
+      "controlId": "app.volume.com.example.Player",
+      "requestId": "v2",
+      "value": 35
+    },
+    "direction": "panel_to_mac",
+    "state": "connected",
+    "valid": true
+  },
+  {
+    "name": "app volume state",
+    "message": {
+      "protocol": 4,
+      "type": "value.state",
+      "controlId": "app.volume.com.example.Player",
+      "available": true,
+      "value": 35
+    },
+    "direction": "mac_to_panel",
+    "state": "connected",
+    "valid": true
+  },
+  {
+    "name": "app volume unavailable",
+    "message": {
+      "protocol": 4,
+      "type": "value.state",
+      "controlId": "app.volume.com.example.Player",
+      "available": false
+    },
+    "direction": "mac_to_panel",
+    "state": "connected",
+    "valid": true
+  },
+  {
+    "name": "app volume with invalid identifier",
+    "message": {
+      "protocol": 4,
+      "type": "value.set",
+      "controlId": "app.volume.com/example",
+      "requestId": "v2",
+      "value": 35
+    },
+    "direction": "panel_to_mac",
+    "state": "connected",
+    "valid": false
+  },
+  {
+    "name": "app volume with empty bundle identifier",
+    "message": {
+      "protocol": 4,
+      "type": "value.set",
+      "controlId": "app.volume.",
+      "requestId": "v2",
+      "value": 35
+    },
+    "direction": "panel_to_mac",
+    "state": "connected",
+    "valid": false
+  },
+  {
+    "name": "app volume before authentication",
+    "message": {
+      "protocol": 4,
+      "type": "value.set",
+      "controlId": "app.volume.com.example.Player",
+      "requestId": "v2",
+      "value": 35
+    },
+    "direction": "panel_to_mac",
+    "state": "authenticating",
+    "valid": false
+  },
+  {
+    "name": "Cough button press",
+    "message": {
+      "protocol": 4,
+      "type": "value.set",
+      "controlId": "media.cough",
+      "value": 100,
+      "requestId": "cough-test"
+    },
+    "direction": "panel_to_mac",
+    "state": "connected",
+    "valid": true
+  },
+  {
+    "name": "Cough button confirm",
+    "message": {
+      "protocol": 4,
+      "type": "value.set",
+      "controlId": "media.cough",
+      "value": 50,
+      "requestId": "cough-test"
+    },
+    "direction": "panel_to_mac",
+    "state": "connected",
+    "valid": true
+  },
+  {
+    "name": "Cough button release",
+    "message": {
+      "protocol": 4,
+      "type": "value.set",
+      "controlId": "media.cough",
+      "value": 0,
+      "requestId": "cough-test"
+    },
+    "direction": "panel_to_mac",
+    "state": "connected",
+    "valid": true
+  },
+  {
+    "name": "Cough button state",
+    "message": {
+      "protocol": 4,
+      "type": "value.state",
+      "controlId": "media.cough",
+      "value": 100,
+      "available": true
+    },
+    "direction": "mac_to_panel",
+    "state": "connected",
+    "valid": true
+  },
+  {
+    "name": "specific input level command",
+    "message": {
+      "protocol": 4,
+      "type": "value.set",
+      "controlId": "input.level.aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "requestId": "input-1",
+      "value": 45
+    },
+    "direction": "panel_to_mac",
+    "state": "connected",
+    "valid": true
+  },
+  {
+    "name": "specific input level unavailable",
+    "message": {
+      "protocol": 4,
+      "type": "value.state",
+      "controlId": "input.level.aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "available": false
+    },
+    "direction": "mac_to_panel",
+    "state": "connected",
+    "valid": true
+  },
+  {
+    "name": "specific input rejects malformed target",
+    "message": {
+      "protocol": 4,
+      "type": "value.set",
+      "controlId": "input.level.xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+      "requestId": "input-2",
+      "value": 45
+    },
+    "direction": "panel_to_mac",
+    "state": "connected",
+    "valid": false
   }
 ]

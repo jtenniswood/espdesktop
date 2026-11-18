@@ -2421,8 +2421,13 @@ async function assertContextColourPicker(browser, testCase) {
       assert.strictEqual(await trigger.locator(".mdi-palette").count(), 1, `${label}: Card Colour uses the palette icon`);
       assert.strictEqual(await menu.locator(".sp-ctx-submenu.sp-ctx-colours").getByText(/^Card Colours?$/, { exact: true }).count(), 0,
         `${label}: the colour panel has no redundant title`);
-      assert(await trigger.evaluate(el => !["none", "normal", '""'].includes(getComputedStyle(el, "::after").content)),
-        `${label}: Card Colour shows a submenu chevron`);
+      assert(await trigger.evaluate(async el => {
+        const chevron = getComputedStyle(el, "::after");
+        const palette = getComputedStyle(el.querySelector(".mdi-palette"));
+        if (["none", "normal", '""'].includes(chevron.content) || chevron.fontFamily !== palette.fontFamily) return false;
+        const faces = await document.fonts.load(`${chevron.fontSize} ${chevron.fontFamily}`, chevron.content.slice(1, -1));
+        return faces.some(face => face.status === "loaded");
+      }), `${label}: the submenu chevron uses the bundled icon font`);
       assert(await menu.locator(":scope > .sp-ctx-item").count() > 0,
         `${label}: the original menu remains alongside the palette`);
       assert.strictEqual(await page.locator(".sp-settings-overlay.sp-visible").count(), 0,
@@ -4255,6 +4260,142 @@ async function assertNativeProfileJourney(browser, testCase) {
   }
 }
 
+async function chooseOBSCard(page, label, section) {
+  await page.getByRole("button", { name: "OBS Studio card type", exact: true }).click();
+  const picker = section ? page.getByRole("region", { name: section, exact: true }) : page;
+  await picker.getByRole("button", { name: label + " card type", exact: true }).click();
+}
+
+async function assertAppVolumeCard(browser) {
+  const testCase = CASES.find(item => item.slug === "guition-esp32-s3-4848s040");
+  const nativeState = nativeConfigState(testCase.slug);
+  nativeState.document.buttons = {};
+  nativeState.document.subpages = {};
+  nativeState.document.settings.button_order = "";
+  const context = await browser.newContext({ viewport: testCase.viewport });
+  await installRoutes(context, testCase.slug, { nativeState });
+  const coughID = "obs.cough.69da3f8f-7f62-4abe-a594-4e40dd579858";
+  await context.route("**/companion/actions", route => route.fulfill({
+    status: 200,
+    json: [
+      { id: "com.spotify.client", label: "Spotify" },
+      { id: "com.google.Chrome", label: "Chrome" },
+      { id: "folder.music", label: "Music folder" },
+      { id: coughID, label: "OBS Desk Mic" },
+      { id: coughID.replace("obs.cough.", "obs.mute."), label: "Muted · OBS Desk Mic" },
+      { id: "input.level." + "a".repeat(64), label: "USB Microphone" },
+    ],
+  }));
+  try {
+    const page = await context.newPage();
+    await installFakeEventSource(page);
+    await page.goto(`http://espdesktop.test/${testCase.slug}?events=1`);
+    await page.waitForFunction(() => window.__eventSources?.length > 0);
+    await page.getByRole("tab", { name: "Layout", exact: true }).click();
+    await page.evaluate(events => window.__seedEspState(events), nativeDocumentEvents(nativeState.document));
+    await page.locator(".sp-main .sp-empty-cell").first().click();
+    assert.equal(await page.getByRole("button", { name: /^(Input|Output) card type$/ }).count(), 0);
+    await page.getByRole("button", { name: "Sound card type", exact: true }).click();
+    const subtype = page.locator('select[id$="audio-type"]');
+    assert.deepEqual(await subtype.locator("option").allTextContents(),
+      ["Audio Output", "Output Mute", "Output per application",
+        "Audio Input", "Input Mute", "Input Cough", "Input per device level"]);
+    await subtype.selectOption("companion_app_volume");
+    const application = page.getByLabel("Application", { exact: true });
+    await application.locator('option[value="app.volume.com.spotify.client"]').waitFor({ state: "attached" });
+    assert.deepEqual(await application.locator("option").allTextContents(), ["Select", "Chrome", "Spotify"]);
+    await application.selectOption("app.volume.com.spotify.client");
+    await page.getByRole("button", { name: "Save", exact: true }).click();
+    await waitForNativeState(nativeState, () =>
+      nativeState.document.buttons[1] === "app.volume.com.spotify.client;Spotify;Volume High;Auto;;;companion_app_volume",
+    "App Volume saves the selected app and its label");
+    const card = page.locator('.sp-main [data-slot="1"]');
+    await card.locator(".sp-slider-preview").waitFor();
+    await card.click();
+    await page.getByRole("button", { name: "Edit", exact: true }).click();
+    await application.locator('option[value="app.volume.com.spotify.client"]').waitFor({ state: "attached" });
+    assert.equal(await application.inputValue(), "app.volume.com.spotify.client");
+    await page.keyboard.press("Escape");
+    const deviceAudio = [
+      ["Volume", "output_volume", "Volume High", true],
+      ["Volume", "input_volume", "Microphone", true],
+      ["Mute", "output_mute", "Volume High", false],
+      ["Mute", "input_mute", "Microphone", false],
+    ];
+    for (const [label, control, icon, slider] of deviceAudio) {
+      await page.locator(".sp-main .sp-empty-cell").first().click();
+      await page.getByRole("button", { name: "Sound card type", exact: true }).click();
+      await subtype.selectOption("companion_" + control);
+      await page.getByRole("button", { name: "Save", exact: true }).click();
+      const expected = `media.${control};${label};${icon};Auto;;;companion_${control}`;
+      await waitForNativeState(nativeState, () => Object.values(nativeState.document.buttons).includes(expected),
+        label + " saves its own control");
+      const slot = Object.keys(nativeState.document.buttons).find(key => nativeState.document.buttons[key] === expected);
+      const preview = page.locator(`.sp-main [data-slot="${slot}"]`);
+      assert.equal(await preview.locator(".sp-btn-label").textContent(), label);
+      assert.equal(await preview.locator(".sp-slider-preview").count(), slider ? 1 : 0, label);
+    }
+    await page.locator(".sp-main .sp-empty-cell").first().click();
+    await page.getByRole("button", { name: "Sound card type", exact: true }).click();
+    await subtype.selectOption("companion_input_device");
+    const input = page.getByLabel("Input device", { exact: true });
+    const inputID = "input.level." + "a".repeat(64);
+    await input.locator('option[value="' + inputID + '"]').waitFor({ state: "attached" });
+    await input.selectOption(inputID);
+    await page.getByRole("button", { name: "Save", exact: true }).click();
+    await waitForNativeState(nativeState, () => Object.values(nativeState.document.buttons)
+      .includes(inputID + ";USB Microphone;Microphone;Auto;;;companion_input_device"),
+    "Input per device saves the chosen microphone");
+    await page.locator(".sp-main .sp-empty-cell").first().click();
+    await chooseOBSCard(page, "Audio Controls");
+    const obsAudioType = page.locator('select[id$="obs-audio-type"]');
+    await obsAudioType.selectOption({ label: "Cough" });
+    const cough = page.locator('select[id$="obs-cough"]');
+    await cough.getByRole("option", { name: "OBS Desk Mic" }).waitFor({ state: "attached" });
+    assert.equal(await cough.getByRole("option", { name: "USB Microphone" }).count(), 0);
+    await cough.selectOption(coughID);
+    await page.getByRole("button", { name: "Save", exact: true }).click();
+    await waitForNativeState(nativeState, () => Object.values(nativeState.document.buttons)
+      .includes(coughID + ";OBS Input Cough;Microphone;Auto;;;companion_obs_cough"),
+    "OBS Cough saves the selected mixer input");
+    const coughSlot = Object.keys(nativeState.document.buttons).find(key => nativeState.document.buttons[key].startsWith(coughID));
+    const coughTile = page.locator(`.sp-main [data-slot="${coughSlot}"]`);
+    await coughTile.getByText("OBS Input Cough", { exact: true }).waitFor();
+    await coughTile.locator(".mdi-microphone").waitFor();
+    assert.equal(await coughTile.evaluate(tile => tile.style.backgroundColor),
+      await card.evaluate(tile => tile.style.backgroundColor), "Cough preview stays off when the OBS input is muted");
+    await coughTile.click();
+    await page.getByRole("button", { name: "Edit", exact: true }).click();
+    await cough.getByRole("option", { name: "OBS Desk Mic" }).waitFor({ state: "attached" });
+    assert.equal(await cough.inputValue(), coughID);
+    assert.equal(await obsAudioType.inputValue(), "companion_obs_cough");
+    await page.keyboard.press("Escape");
+    await page.locator(".sp-main .sp-empty-cell").first().click();
+    await chooseOBSCard(page, "Output Controls");
+    const output = page.locator('select[id$="obs-output"]');
+    assert.equal(await output.inputValue(), "obs.output.stream");
+    await page.getByRole("button", { name: "Confirmation", exact: true }).click();
+    await page.getByRole("button", { name: "Stop", exact: true }).click();
+    await page.getByRole("button", { name: "Save", exact: true }).click();
+    await waitForNativeState(nativeState, () => Object.values(nativeState.document.buttons)
+      .some(card => card.startsWith("obs.output.stream;") && card.includes("obs_confirm=off")),
+    "The streaming Stop option saves the existing stop-only setting");
+    const outputSlot = Object.keys(nativeState.document.buttons).find(key =>
+      nativeState.document.buttons[key].startsWith("obs.output.stream;"));
+    await page.locator(`.sp-main [data-slot="${outputSlot}"]`).click();
+    await page.getByRole("button", { name: "Edit", exact: true }).click();
+    assert.equal(await output.inputValue(), "obs.output.stream");
+    await page.keyboard.press("Escape");
+    await page.locator(".sp-main .sp-empty-cell").first().click();
+    await chooseOBSCard(page, "Break");
+    await page.getByRole("button", { name: "Save", exact: true }).click();
+    await waitForNativeState(nativeState, () => Object.values(nativeState.document.buttons)
+      .some(card => card.startsWith("obs.brb;") && card.endsWith(";companion")),
+    "OBS BRB saves a stable action without the current break token");
+    console.log("Sound subtypes and guarded OBS cards passed picker and save checks.");
+  } finally { await context.close(); }
+}
+
 async function assertMacLockCard(browser) {
   const testCase = CASES.find(item => item.slug === "guition-esp32-s3-4848s040");
   const nativeState = nativeConfigState(testCase.slug);
@@ -4305,6 +4446,314 @@ async function assertMacLockCard(browser) {
     await editCard(2);
     await modal.getByRole("tablist", { name: "Shortcut type" }).waitFor();
     console.log("Mac Lock creation, legacy editing, reload and independent keyboard shortcuts passed.");
+  } finally {
+    await context.close();
+  }
+}
+
+async function assertOBSSceneCard(browser) {
+  const testCase = CASES.find(item => item.slug === "guition-esp32-s3-4848s040");
+  const fixture = nativeConfigState(testCase.slug);
+  fixture.document.buttons = {
+    1: "obs.replay.buffer;;Repeat;Auto;;;companion",
+    2: "obs.status.program;;Monitor;Auto;;;companion",
+  };
+  fixture.document.settings.button_order = "1,2";
+  const context = await browser.newContext({ viewport: testCase.viewport });
+  await installRoutes(context, testCase.slug, { nativeState: fixture });
+  const sceneUUID = "a51e30ff-0c88-418f-ac5a-fd2e33963c2b";
+  const id = "obs.target." + sceneUUID;
+  const mic = "obs.mute.69da3f8f-7f62-4abe-a594-4e40dd579858";
+  const fader = "obs.level.69da3f8f-7f62-4abe-a594-4e40dd579858";
+  let connectedToOBS = true;
+  let studioModeOn = false;
+  let replayBufferOn = false;
+  let replaySave = "replay_ready";
+  let recordingState = "Idle";
+  let virtualCameraOn = false;
+  let transitionName = "Fade";
+  let takeOnProgram = false;
+  const fadeTransition = "obs.transition.select." + "a".repeat(32);
+  const cutTransition = "obs.transition.select." + "b".repeat(32);
+  await context.route("**/companion/actions", route => route.fulfill({
+    json: connectedToOBS ? [
+      { id: (studioModeOn ? "obs.preview." : "obs.scene.") + sceneUUID, label: "Gameplay" },
+      { id: id + "." + (studioModeOn ? "719a4778-fada-4bb3-aef6-1904669efae7" : "9ea47782-fada-4bb3-aef6-1904669efae7"), label: "Gameplay" },
+      { id: mic, label: "Muted · Desk Mic" },
+      { id: "obs.mute.45f44c62-1c70-4706-8930-f3ec000db026", label: "Unmuted · Master" },
+      { id: fader, label: "Desk Mic" },
+      takeOnProgram
+        ? { id: "obs.take", label: "Take Live · Already on Program", obsState: "take_same_scene", obsAvailable: false }
+        : { id: "obs.take.9ea47782-fada-4bb3-aef6-1904669efae7", label: "Take Live · Setup" },
+      { id: "obs.studio.9ea47782-fada-4bb3-aef6-1904669efae7", label: studioModeOn ? "On" : "Off" },
+      { id: "obs.multiview", label: "Multiview" },
+      { id: "obs.transition.9ea47782-fada-4bb3-aef6-1904669efae7", label: transitionName },
+      { id: fadeTransition + ".9ea47782-fada-4bb3-aef6-1904669efae7", label: "Fade" },
+      { id: cutTransition + ".9ea47782-fada-4bb3-aef6-1904669efae7", label: "Cut" },
+      { id: "obs.transition.selected", label: transitionName === "Fade" ? fadeTransition : cutTransition },
+      { id: "obs.replay.buffer.9ea47782-fada-4bb3-aef6-1904669efae7", label: replayBufferOn ? "On" : "Off" },
+      ...(replayBufferOn ? [{ id: "obs.replay", label: "Save Replay", obsState: replaySave }] : []),
+      { id: "obs.status.record", label: "Recording · " + recordingState },
+      { id: "obs.status.virtualcam", label: "Virtual Camera", obsState: virtualCameraOn ? "output_active" : "output_idle" },
+      { id: "obs.status.program", label: "Program · Gameplay" },
+    ] : [],
+  }));
+  const page = await context.newPage();
+  await installFakeEventSource(page);
+  try {
+    await page.goto("http://espdesktop.test/" + testCase.slug + "?events=1");
+    await page.waitForFunction(() => window.__eventSources?.length > 0);
+    await page.getByRole("tab", { name: "Layout", exact: true }).click();
+    await seedNativeDocument(page, fixture);
+    const studioPicker = page.locator("select[id$='obs-studio']");
+    const replayBufferTile = page.locator('.sp-main [data-slot="1"]');
+    const programTile = page.locator('.sp-main [data-slot="2"]');
+    const confirmation = page.locator("input[id$='obs-confirm-toggle']");
+    const confirmationPanel = page.getByRole("button", { name: "Confirmation", exact: true });
+    const confirmationDirection = page.locator(".sp-segment")
+      .filter({ has: page.getByRole("button", { name: "Both", exact: true }) }).locator("button.active");
+    const openConfirmation = async () => {
+      assert.equal(await page.getByRole("button", { name: "Card Settings", exact: true }).getAttribute("aria-expanded"), "false");
+      assert.equal(await confirmationPanel.getAttribute("aria-expanded"), "false");
+      await confirmationPanel.click();
+      await page.getByText("Confirmation Required", { exact: true }).waitFor();
+    };
+    const editCard = async tile => {
+      await tile.click({ button: "right" });
+      await page.locator(".sp-ctx-menu").getByText("Edit Card", { exact: true }).click();
+    };
+    await editCard(replayBufferTile);
+    await openConfirmation();
+    assert(await confirmation.isChecked());
+    assert.equal(await confirmationDirection.textContent(), "Stop");
+    await page.getByRole("button", { name: "Both", exact: true }).click();
+    await page.getByLabel("Confirm Button", { exact: true }).fill("Proceed");
+    await page.getByRole("button", { name: "Save", exact: true }).click();
+    await waitForNativeState(fixture, () => fixture.document.buttons[1]?.includes("obs_confirm=both") &&
+      fixture.document.buttons[1]?.includes("confirm_yes=Proceed"),
+      "Replay Buffer saves confirmation for both directions and a custom button label");
+    await programTile.getByText("Program", { exact: true }).waitFor();
+    await editCard(programTile);
+    assert.equal(await studioPicker.inputValue(), "obs.status.program", "existing Program cards reopen in Studio Mode");
+    assert.equal(await page.getByLabel("Type", { exact: true }).inputValue(), "obs.status.program");
+    assert.deepEqual(await studioPicker.locator("option").allTextContents(),
+      ["Studio Mode", "Program scene", "Take Live", "Open Multiview"]);
+    await page.keyboard.press("Escape");
+    await page.locator(".sp-main .sp-empty-cell").first().click();
+    const obsGroup = page.getByRole("button", { name: "OBS Studio card type", exact: true });
+    const obsCards = page.locator('#sp-card-type-picker [data-card-type^="companion_obs"]');
+    await obsGroup.waitFor();
+    assert.equal(await obsCards.count(), 0, "individual OBS cards are absent from the top level");
+    await obsGroup.click();
+    const obsSections = page.locator("#sp-card-type-picker > section");
+    assert.deepEqual(await obsSections.getByRole("heading").allTextContents(), ["Card types", "Grouped pages"]);
+    const cardLabels = section => page.getByRole("region", { name: section, exact: true })
+      .getByRole("button").evaluateAll(cards => cards.map(card => card.getAttribute("aria-label")));
+    assert.deepEqual(await cardLabels("Card types"),
+      ["Audio Controls", "Break", "Output Controls", "Replay Buffer", "Scene", "Studio Mode", "Transitions"]
+        .map(label => label + " card type"));
+    assert.deepEqual(await cardLabels("Grouped pages"),
+      ["Audio", "Scenes", "Studio Control", "Transitions"].map(label => label + " card type"));
+    assert((await obsCards.allTextContents()).every(copy => !/\bOBS\b/.test(copy)));
+    assert.match(await page.getByRole("button", { name: "Output Controls card type", exact: true }).innerText(),
+      /Control streaming, recording, and the virtual camera\./);
+    assert.equal(await page.getByRole("button", { name: "Sound card type", exact: true }).count(), 0);
+    await page.getByRole("button", { name: "Back to card types", exact: true }).click();
+    assert.equal(await obsGroup.evaluate(group => document.activeElement === group), true);
+    await chooseOBSCard(page, "Scene");
+    const picker = page.locator("select[id$='obs-scene']");
+    await picker.getByRole("option", { name: "Gameplay", exact: true }).waitFor({ state: "attached" });
+    await programTile.getByText("Gameplay", { exact: true }).waitFor();
+    await replayBufferTile.getByText("Replay Buffer", { exact: true }).waitFor();
+    await replayBufferTile.getByText("Off", { exact: true }).waitFor();
+    const replayBufferOff = await replayBufferTile.evaluate(tile => tile.style.backgroundColor);
+    await picker.selectOption(id);
+    await page.getByRole("button", { name: "Save", exact: true }).click();
+    await waitForNativeState(fixture, () => fixture.document.buttons[3]?.startsWith(id + ";"),
+      "The OBS scene saves under its mode-independent UUID without the action token");
+    await page.locator('.sp-main [data-slot="3"] .mdi-image').waitFor();
+
+    await page.locator(".sp-main .sp-empty-cell").first().click();
+    await chooseOBSCard(page, "Audio Controls");
+    const obsAudioType = page.locator('select[id$="obs-audio-type"]');
+    assert.deepEqual(await obsAudioType.locator("option").allTextContents(), ["Level", "Mute", "Cough"]);
+    await obsAudioType.selectOption({ label: "Mute" });
+    const micPicker = page.locator("select[id$='obs-mic']");
+    await micPicker.getByRole("option", { name: "Desk Mic", exact: true }).waitFor({ state: "attached" });
+    assert.deepEqual(await micPicker.locator("option").allTextContents(), ["Select", "Desk Mic", "Master"]);
+    await micPicker.selectOption(mic);
+    await page.getByRole("button", { name: "Save", exact: true }).click();
+    await waitForNativeState(fixture, () => fixture.document.buttons[4]?.startsWith(mic + ";"),
+      "The OBS mic UUID saves as a Companion card");
+    await page.locator('.sp-main [data-slot="4"] .mdi-microphone-off').waitFor();
+    await page.locator(".sp-main .sp-empty-cell").first().click();
+    await chooseOBSCard(page, "Studio Mode");
+    await studioPicker.selectOption("obs.status.program");
+    await page.getByRole("button", { name: "Save", exact: true }).click();
+    await waitForNativeState(fixture, () => fixture.document.buttons[5]?.startsWith("obs.status.program;;Monitor;"),
+      "A new Program indicator saves from the Studio Mode group");
+    await editCard(page.locator('.sp-main [data-slot="5"]'));
+    await studioPicker.selectOption("obs.take");
+    await page.getByRole("button", { name: "Save", exact: true }).click();
+    await waitForNativeState(fixture, () => fixture.document.buttons[5]?.startsWith("obs.take;;Arrow Right;"),
+      "The Take Live card saves its default icon and stays free of transient tokens");
+    const takeTile = page.locator('.sp-main [data-slot="5"]');
+    await takeTile.getByText("Take Setup", { exact: true }).waitFor();
+    await takeTile.getByText("Fade", { exact: true }).waitFor();
+
+    await page.locator(".sp-main .sp-empty-cell").first().click();
+    await chooseOBSCard(page, "Output Controls");
+    const outputPicker = page.locator("select[id$='obs-output']");
+    assert.deepEqual(await outputPicker.locator("option").allTextContents(), ["Streaming", "Recording", "Virtual Camera"]);
+    await outputPicker.selectOption("obs.output.record");
+    assert.equal(await outputPicker.inputValue(), "obs.output.record");
+    await page.getByRole("button", { name: "Save", exact: true }).click();
+    await waitForNativeState(fixture, () => fixture.document.buttons[6]?.startsWith("obs.output.record;"),
+      "Recording Control saves the output ID");
+    const recordingControl = page.locator('.sp-main [data-slot="6"]');
+    await recordingControl.getByText("Record", { exact: true }).waitFor();
+    await recordingControl.getByText("Idle", { exact: true }).waitFor();
+    await recordingControl.locator(".mdi-stop-circle").waitFor();
+    const recordingIdle = await recordingControl.evaluate(tile => getComputedStyle(tile).backgroundColor);
+    await page.locator(".sp-main .sp-empty-cell").first().click();
+    await chooseOBSCard(page, "Replay Buffer");
+    const replayType = page.locator('select[id$="obs-replay-type"]');
+    assert.equal(await replayType.inputValue(), "obs.replay");
+    await replayType.selectOption("obs.replay.buffer");
+    assert.equal(await replayType.inputValue(), "obs.replay.buffer");
+    await replayType.selectOption("obs.replay");
+    await page.getByRole("button", { name: "Save", exact: true }).click();
+    await waitForNativeState(fixture, () => fixture.document.buttons[7]?.startsWith("obs.replay;"),
+      "The OBS replay card saves a stable ID");
+    const replayTile = page.locator('.sp-main [data-slot="7"]');
+    await replayTile.getByText("Save Replay", { exact: true }).waitFor();
+    await replayTile.getByText("Start Replay Buffer", { exact: true }).waitFor();
+
+    await page.locator(".sp-main .sp-empty-cell").first().click();
+    await chooseOBSCard(page, "Audio Controls");
+    assert.equal(await obsAudioType.inputValue(), "companion_obs_fader");
+    const faderPicker = page.locator("select[id$='obs-level']");
+    await faderPicker.getByRole("option", { name: "Desk Mic", exact: true }).waitFor({ state: "attached" });
+    await faderPicker.selectOption(fader);
+    await page.getByRole("button", { name: "Save", exact: true }).click();
+    await waitForNativeState(fixture, () => fixture.document.buttons[8]?.startsWith(fader + ";Desk Mic;"),
+      "The OBS fader saves the selected input UUID and its unprefixed name");
+    await editCard(page.locator('.sp-main [data-slot="8"]'));
+    await faderPicker.getByRole("option", { name: "Desk Mic", exact: true }).waitFor({ state: "attached" });
+    assert.equal(await faderPicker.inputValue(), fader);
+    assert.equal(await obsAudioType.inputValue(), "companion_obs_fader");
+    await page.locator(".sp-settings-overlay.sp-visible .sp-settings-close").click();
+
+    await page.locator(".sp-main .sp-empty-cell").first().click();
+    await chooseOBSCard(page, "Studio Mode");
+    await openConfirmation();
+    assert(await confirmation.isChecked());
+    assert.equal(await confirmationDirection.textContent(), "Off");
+    await page.getByRole("button", { name: "Save", exact: true }).click();
+    await waitForNativeState(fixture, () => fixture.document.buttons[9]?.startsWith("obs.studio;"),
+      "Studio Mode saves without the ephemeral OBS token");
+    const studioTile = page.locator('.sp-main [data-slot="9"]');
+    await studioTile.getByText("Studio Mode", { exact: true }).waitFor();
+    await studioTile.getByText("Off", { exact: true }).waitFor();
+    const studioOff = await studioTile.evaluate(tile => tile.style.backgroundColor);
+    studioModeOn = true;
+    replayBufferOn = true;
+    await editCard(page.locator('.sp-main [data-slot="3"]'));
+    await picker.getByRole("option", { name: "Gameplay", exact: true }).waitFor({ state: "attached" });
+    assert.equal(await picker.inputValue(), id);
+    await studioTile.getByText("On", { exact: true }).waitFor();
+    assert.notEqual(await studioTile.evaluate(tile => tile.style.backgroundColor), studioOff);
+    await replayBufferTile.getByText("On", { exact: true }).waitFor();
+    assert.notEqual(await replayBufferTile.evaluate(tile => tile.style.backgroundColor), replayBufferOff);
+    await replayTile.getByText("Ready", { exact: true }).waitFor();
+    const replayReadyColor = await replayTile.evaluate(tile => tile.style.backgroundColor);
+    await page.locator(".sp-settings-overlay.sp-visible .sp-settings-close").click();
+    await studioTile.click({ button: "right" });
+    await page.locator(".sp-ctx-menu").getByText("Delete", { exact: true }).click();
+    await studioTile.waitFor({ state: "detached" });
+    await page.locator(".sp-main .sp-empty-cell").first().click();
+    await chooseOBSCard(page, "Transitions", "Card types");
+    const transitionType = page.locator("select[id$='obs-transition-type']");
+    assert.deepEqual(await transitionType.locator("option").allTextContents(), ["Cycle transitions", "Select a transition"]);
+    assert.equal(await transitionType.inputValue(), "obs.transition");
+    await confirmationPanel.waitFor({ state: "detached" });
+    const transitionTitle = studioTile.locator(".sp-btn-label");
+    const transitionDetail = studioTile.locator(".sp-obs-detail");
+    await page.getByRole("button", { name: "Save", exact: true }).click();
+    await waitForNativeState(fixture, () => fixture.document.buttons[9]?.startsWith("obs.transition;;Flip Horizontal;"),
+      "Transition saves its own stable card and default icon");
+    await studioTile.locator(".mdi-flip-horizontal").waitFor();
+    assert.equal(await transitionTitle.innerText(), "Transition");
+    assert.equal(await transitionDetail.innerText(), "Fade");
+    transitionName = "Cut";
+    takeOnProgram = true;
+    replaySave = "replay_saving";
+    recordingState = "Paused";
+    await editCard(page.locator('.sp-main [data-slot="3"]'));
+    await studioTile.getByText("Cut", { exact: true }).waitFor();
+    await takeTile.getByText("Currently Live", { exact: true }).waitFor();
+    assert.equal(await takeTile.locator(".sp-obs-detail").textContent(), "");
+    assert.match(await takeTile.getAttribute("class"), /sp-obs-unavailable/);
+    assert.equal(await transitionTitle.innerText(), "Transition");
+    await replayTile.getByText("Saving", { exact: true }).waitFor();
+    await recordingControl.getByText("Paused", { exact: true }).waitFor();
+    await recordingControl.locator(".mdi-pause").waitFor();
+    assert.notEqual(await recordingControl.evaluate(tile => getComputedStyle(tile).backgroundColor), recordingIdle);
+    assert.equal(await replayTile.evaluate(tile => tile.style.backgroundColor), replayReadyColor);
+    await page.locator(".sp-settings-overlay.sp-visible .sp-settings-close").click();
+    replaySave = "replay_saved";
+    await editCard(studioTile);
+    await transitionType.selectOption("obs.transition.select.");
+    const transitionPicker = page.getByLabel("OBS transition", { exact: true });
+    await transitionPicker.getByRole("option", { name: "Fade", exact: true }).waitFor({ state: "attached" });
+    await replayTile.getByText("Saved", { exact: true }).waitFor();
+    assert.equal(await replayTile.evaluate(tile => tile.style.backgroundColor), replayReadyColor);
+    assert.deepEqual(await transitionPicker.locator("option").allTextContents(), ["Select", "Fade", "Cut"]);
+    await transitionPicker.selectOption(fadeTransition);
+    await page.getByRole("button", { name: "Save", exact: true }).click();
+    await waitForNativeState(fixture, () => fixture.document.buttons[9]?.startsWith(fadeTransition + ";Fade;"),
+      "Dedicated transition card saves the selected transition without the action token");
+    await studioTile.getByText("Fade", { exact: true }).waitFor();
+    const transitionOffColor = await studioTile.evaluate(tile => tile.style.backgroundColor);
+    transitionName = "Fade";
+    replaySave = "replay_ready";
+    await editCard(studioTile);
+    await transitionPicker.getByRole("option", { name: "Fade", exact: true }).waitFor({ state: "attached" });
+    await replayTile.getByText("Ready", { exact: true }).waitFor();
+    assert.equal(await transitionPicker.inputValue(), fadeTransition);
+    await page.waitForFunction(offColor =>
+      document.querySelector('.sp-main [data-slot="9"]')?.style.backgroundColor !== offColor, transitionOffColor);
+    await page.locator(".sp-settings-overlay.sp-visible .sp-settings-close").click();
+    await editCard(recordingControl);
+    await outputPicker.selectOption("obs.output.virtualcam");
+    await page.getByRole("button", { name: "Save", exact: true }).click();
+    await waitForNativeState(fixture, () => fixture.document.buttons[6]?.startsWith("obs.output.virtualcam;"),
+      "Virtual Camera saves as an output control");
+    await recordingControl.getByText("Virtual Camera", { exact: true }).waitFor();
+    await recordingControl.getByText("Idle", { exact: true }).waitFor();
+    await recordingControl.locator(".mdi-video-off").waitFor();
+    const virtualCameraIdle = await recordingControl.evaluate(tile => getComputedStyle(tile).backgroundColor);
+    virtualCameraOn = true;
+    await editCard(page.locator('.sp-main [data-slot="3"]'));
+    await recordingControl.getByText("Active", { exact: true }).waitFor();
+    await recordingControl.locator(".mdi-video").waitFor();
+    assert.notEqual(await recordingControl.evaluate(tile => getComputedStyle(tile).backgroundColor), virtualCameraIdle);
+    await page.locator(".sp-settings-overlay.sp-visible .sp-settings-close").click();
+    await editCard(programTile);
+    await studioPicker.selectOption("obs.multiview");
+    await confirmationPanel.waitFor({ state: "detached" });
+    await page.getByRole("button", { name: "Save", exact: true }).click();
+    await waitForNativeState(fixture, () => fixture.document.buttons[2]?.startsWith("obs.multiview;"),
+      "Multiview saves as a Studio Mode action");
+    await programTile.getByText("Multiview", { exact: true }).waitFor();
+    await programTile.locator(".mdi-view-grid").waitFor();
+    connectedToOBS = false;
+    await editCard(page.locator('.sp-main [data-slot="3"]'));
+    await picker.getByRole("option", { name: "Saved scene (unavailable)" }).waitFor({ state: "attached" });
+    assert.equal(await picker.inputValue(), id);
+    await replayBufferTile.getByText("Unavailable", { exact: true }).waitFor();
+    assert.equal(await replayBufferTile.evaluate(tile => tile.style.backgroundColor), replayBufferOff);
+    console.log("OBS scene, microphone, Take Live, status, replay, and fader card checks passed.");
   } finally {
     await context.close();
   }
@@ -4389,7 +4838,7 @@ async function assertShortcutCatalogSettings(browser, testCase) {
     assert.strictEqual(await action.isVisible(), false, "choose an app first");
     assert.strictEqual(await search.isVisible(), false, "search appears after choosing an app");
     const appLabels = await app.locator("option").allTextContents();
-    assert.strictEqual(appLabels[0], "Choose an app…");
+    assert.strictEqual(appLabels[0], "Select");
     assert.deepStrictEqual(appLabels.filter(label => label.startsWith("ChatGPT")), ["ChatGPT"]);
     assert(appLabels.includes("Safari") && appLabels.includes("Slack") && appLabels.includes("Figma"),
       "the Application tab includes bundled presets for Safari and other apps");
@@ -6317,6 +6766,11 @@ async function assertContinuousPreview(browser, testCase) {
     }));
     assert(Math.abs(gaps.row - gaps.expected) < .05 && Math.abs(gaps.column - gaps.expected) < .05,
       "preview card gaps must retain the configured scale after resizing");
+    const frame = await page.locator(".sp-screen").evaluate(screen => ({
+      gridWidth: screen.clientWidth,
+      previewWidth: screen.offsetWidth,
+    }));
+    assert.equal(frame.gridWidth, frame.previewWidth, "the editor frame stays outside the display area");
   } finally { await context.close(); }
 }
 
@@ -7250,7 +7704,11 @@ async function assertReorderAfterDelete(browser) {
 async function assertLiveFinderPreview(browser) {
   const testCase = CASES.find(item => item.slug === "guition-esp32-s3-4848s040");
   const fixture = nativeConfigState(testCase.slug);
-  const [example] = require("../compatibility/fixtures/finder_folder_preview.json");
+  const [fixtureExample] = require("../compatibility/fixtures/finder_folder_preview.json");
+  const example = structuredClone(fixtureExample);
+  const ids = new Map(example.expected.map(([, id], i) => [id, "folder.00000000-0000-0000-0000-" + String(i + 1).padStart(12, "0")]));
+  example.catalogue = example.catalogue.map(([id, label]) => [ids.get(id) || id, label]);
+  example.expected = example.expected.map(([pos, id, label]) => [pos, ids.get(id), label]);
   fixture.document.buttons = { 1: "com.apple.finder;Finder;Auto;Auto;;;companion;;app_shortcuts" };
   const tiles = example.buttons.map((id, index) => `companion,${id},Saved ${index + 1},Auto,Auto`);
   fixture.document.subpages = { 1: `~${example.order}|${tiles.join("|")}` };
@@ -7270,11 +7728,11 @@ async function assertLiveFinderPreview(browser) {
     await page.waitForFunction(() => window.__eventSources?.length > 0);
     await page.evaluate(events => window.__seedEspState(events), nativeDocumentEvents(fixture.document));
     await page.locator('.sp-main [data-slot="1"] .sp-subpage-badge').click();
-    const live = page.locator(".sp-main .sp-live-folder-preview");
+    const live = page.locator(".sp-main [data-generated-card]");
     await live.first().waitFor();
     async function assertProjectedTiles() {
       const values = await live.evaluateAll(tiles => tiles.map(tile =>
-        [Number(tile.parentElement.dataset.pos), tile.textContent, tile.parentElement.hasAttribute("data-slot")]));
+        [Number(tile.dataset.pos), tile.querySelector(".sp-btn-label").textContent, tile.hasAttribute("data-slot")]));
       assert.deepEqual(values, example.expected.map(([position, , label]) => [position, label, false]));
       assert.equal(await page.locator('.sp-main [data-slot="1"] .sp-btn-label').textContent(), "Saved 1");
       assert.equal(await page.locator(".sp-main .sp-back-btn").count(), 1);
@@ -7286,7 +7744,15 @@ async function assertLiveFinderPreview(browser) {
     await live.first().waitFor();
     await assertProjectedTiles();
     assert.equal(fixture.puts.length, 0, "live Finder activity never writes saved pages");
-    console.log("Live Finder placement, disconnect and reconnect browser checks passed.");
+    const [position, id, name] = example.expected[0];
+    await live.filter({ hasText: name }).click({ button: "right" });
+    await page.locator(".sp-ctx-menu").getByText("Delete", { exact: true }).click();
+    await waitForNativeState(fixture, () => fixture.document.buttons[1].includes(id.slice("folder.".length).replace(/-/g, "")) &&
+      !fixture.puts.at(-1)?.layout?.pages.find(group => group.key === 1)?.cards.some(card => card.config.entity === id),
+      "Deleting an automatic Finder card keeps its exclusion");
+    await page.locator(`.sp-main [data-pos="${position}"]`).first().waitFor();
+    assert.equal(await page.locator(".sp-main").getByText(name, { exact: true }).count(), 0);
+    console.log("Live Finder placement, reconnect, and deletion checks passed.");
   } finally { await context.close(); }
 }
 
@@ -7448,6 +7914,462 @@ async function assertNestedCompanionPages(browser) {
     assert.deepStrictEqual(errors, []);
     console.log("Nested Companion shortcut creation, editing, failed-save retry, reload, Back and two-tab conflict checks passed.");
   } catch(error) { await page.screenshot({ path: "/tmp/nested-browser.png" }); fs.writeFileSync("/tmp/nested-browser.html", await page.content()); throw error; } finally { await context.close(); }
+}
+
+async function assertOBSStarterPage(browser, firstRun = false) {
+  const testCase = CASES.find(item => item.slug === "guition-esp32-s3-4848s040");
+  const fixture = nativeConfigState(testCase.slug);
+  fixture.document = {
+    deviceProfile: testCase.slug,
+    buttons: firstRun ? {} : { 1: "com.apple.Safari;Safari;Monitor;Auto;;;companion" },
+    subpages: {},
+    settings: firstRun ? {} : { button_order: "1", web_onboarding_complete: "1" },
+  };
+  const context = await browser.newContext({ viewport: testCase.viewport });
+  await installRoutes(context, testCase.slug, {
+    nativeState: fixture, nativeV2: true, nativeAppSubpagePreference: true,
+    connectorsStatus: {
+      onboarding_complete: true,
+      mac_companion: { available: true, configured: true, paired: true, connected: true },
+    },
+  });
+  const main = "11111111-1111-1111-1111-111111111111";
+  const away = "22222222-2222-2222-2222-222222222222";
+  const mic = "33333333-3333-3333-3333-333333333333";
+  const token = "44444444-4444-4444-4444-444444444444";
+  let recording = false;
+  let stopping = false;
+  let muted = true;
+  let streaming = false;
+  let onBreak = false;
+  let studioProgram = "";
+  let selectedScene = "";
+  let scenes = [[main, "Gameplay"], [away, "Break Room"]];
+  const fade = "a".repeat(32), cut = "b".repeat(32), slide = "c".repeat(32), wipe = "d".repeat(32);
+  let transitions = [[fade, "Fade"], [cut, "Cut"], [wipe, "Wipe"]];
+  const desktop = "55555555-5555-5555-5555-555555555555";
+  const music = "66666666-6666-6666-6666-666666666666";
+  const gameAudio = "77777777-7777-7777-7777-777777777777";
+  let mixerInputs = [[mic, "Desk Mic"], [desktop, "Desktop Audio"], [music, "Music"]];
+  let servePanelProjection = true;
+  await context.route("**/companion/page-preview", route => {
+    const request = route.request().postDataJSON();
+    if (!servePanelProjection || request.kind !== "obs_scenes") return route.fulfill({ status: 503 });
+    assert.deepEqual([request.columns, request.slots, request.order], [3, 9, "B"]);
+    assert.deepEqual(request.entities, []);
+    return route.fulfill({ json: [
+      { position: 1, width: 1, id: `obs.target.${away}`, label: "Break Room" },
+      { position: 2, width: 1, id: `obs.target.${main}`, label: "Gameplay" },
+      { position: 4, width: 1, id: "obs.brb", label: "Break" },
+      { position: 6, width: 1, id: "obs.transition", label: "Transition" },
+      { position: 7, width: 2, id: "obs.take", label: "Take Live" },
+    ] });
+  });
+  await context.route("**/companion/actions", route => route.fulfill({ json: [
+    ...scenes.map(([id, label]) => ({ id: `obs.target.${id}.${token}`, label })),
+    { id: `obs.selected.${selectedScene || (studioProgram ? away : main)}`, label: "Selected OBS scene" },
+    ...(studioProgram ? [{ id: `obs.program.${studioProgram}`, label: "OBS Program scene" }] : []),
+    { id: "obs.studio." + token, label: studioProgram ? "On" : "Off" },
+    { id: `obs.mute.${mic}`, label: (muted ? "Muted" : "Unmuted") + " · Desk Mic" },
+    { id: "obs.take", label: "Take Live · Enable Studio Mode" },
+    { id: "obs.status.stream", label: streaming ? "Stream · Live" : "Stream · Idle" },
+    { id: "obs.status.record", label: recording ? "Recording · Active" : "Recording · Idle" },
+    { id: "obs.brb." + token, label: onBreak ? "Resume" : "BRB · Break Room" },
+    { id: `obs.brb.scene.${away}`, label: "Configured BRB scene" },
+    ...mixerInputs.map(([id, label]) => ({ id: `obs.level.${id}`, label })),
+    { id: `obs.mute.${music}`, label: "Muted · Music" },
+    { id: `obs.cough.${mic}`, label: "Desk Mic" },
+    { id: `obs.replay.buffer.${token}`, label: "Off" },
+    { id: `obs.transition.${token}`, label: "Fade" },
+    ...transitions.map(([hash, name]) => ({ id: `obs.transition.select.${hash}.${token}`, label: name })),
+    ...(recording ? [{ id: "obs.record.active", label: "Recording" }] : []),
+    ...(stopping ? [{ id: "obs.output.record", label: "Stopping" }] : []),
+  ] }));
+  const page = await context.newPage();
+  await page.clock.install();
+  await installFakeEventSource(page);
+  try {
+    await page.goto("http://espdesktop.test/" + testCase.slug + "?events=1");
+    await page.waitForFunction(() => window.__eventSources?.length > 0);
+    await page.evaluate(events => window.__seedEspState(events), nativeDocumentEvents(fixture.document));
+    if (firstRun) {
+      await page.getByRole("button", { name: "Set up OBS Studio", exact: true }).click();
+      await page.getByRole("dialog", { name: "Add OBS starter page" }).getByRole("button", { name: "Cancel" }).click();
+      await page.getByRole("button", { name: "Set up OBS Studio", exact: true }).click();
+    } else {
+      await page.locator('.sp-main [data-slot="1"]').waitFor();
+      await page.getByRole("tab", { name: "Screen", exact: true }).click();
+      const section = page.locator("#sp-settings .card").filter({ has: page.locator("#sp-set-auto-open-app-subpages") });
+      if (await section.evaluate(node => node.classList.contains("collapsed"))) await section.locator(".card-header").click();
+      await page.getByRole("button", { name: "Add OBS starter page", exact: true }).click();
+    }
+    const setup = page.getByRole("dialog", { name: "Add OBS starter page" });
+    await setup.locator('button.sp-save-btn:enabled').waitFor();
+    assert.equal(await setup.getByLabel("Main scene").inputValue(), "obs.target." + main);
+    assert.equal(await setup.getByLabel("Break scene").inputValue(), "obs.target." + away);
+    assert.equal(await setup.getByLabel("Microphone").inputValue(), "obs.mute." + mic);
+    await setup.getByRole("button", { name: "Pin to Home" }).click();
+    const homeSlot = firstRun ? 1 : 2;
+    const switchingKey = 32 + (homeSlot - 1) * 32 + 1;
+    await waitForNativeState(fixture, () => fixture.puts.at(-1)?.layout?.pages.some(
+      group => group.key === switchingKey && group.cards.some(card => card.config.entity === "obs.target." + main)),
+      "OBS setup saves nested groups and their scene UUIDs");
+    if (!firstRun) assert.match(fixture.document.buttons[1], /Safari/);
+    assert.match(fixture.document.buttons[homeSlot], /OBS Studio/);
+    assert.equal(fixture.document.settings.button_order, firstRun ? "1" : "1,2");
+    assert.equal(fixture.document.settings.web_onboarding_complete, "1");
+    const savedPages = fixture.puts.at(-1).layout.pages;
+    const landing = savedPages.find(group => group.key === homeSlot);
+    assert.deepEqual(landing.cards.slice(0, 3).map(card => card.config.label), ["Switching", "Audio", "Outputs"]);
+    assert(landing.cards.some(card => card.config.entity === "obs.brb"));
+    assert(!JSON.stringify(savedPages).includes(token));
+    await page.getByRole("dialog", { name: "Add OBS starter page" }).waitFor({ state: "hidden" });
+    if (firstRun) {
+      await page.getByRole("heading", { name: "Choose your apps", exact: true }).waitFor({ state: "hidden" });
+      await page.locator('.sp-main').getByText("OBS Studio", { exact: true }).waitFor();
+      return;
+    }
+    await page.getByRole("tab", { name: "Layout", exact: true }).click();
+    await page.locator(".sp-main .sp-empty-cell").first().click();
+    await chooseOBSCard(page, "Output Controls");
+    await page.getByLabel("OBS output", { exact: true }).selectOption("obs.output.record");
+    await page.getByRole("button", { name: "Confirmation", exact: true }).click();
+    const confirmation = page.locator("input[id$='obs-confirm-toggle']");
+    await page.getByText("Confirmation Required", { exact: true }).waitFor();
+    assert(await confirmation.isChecked(), "existing and new OBS cards confirm both directions by default");
+    assert.equal(await page.getByText("Off means stopping the output. On means starting it.", { exact: true }).count(), 0);
+    await page.getByRole("button", { name: "Start", exact: true }).click();
+    await page.getByLabel("Message", { exact: true }).fill("Record a local clip?");
+    await page.getByLabel("Confirm Button", { exact: true }).fill("Record");
+    await page.getByLabel("Cancel Button", { exact: true }).fill("Back");
+    await page.getByRole("button", { name: "Save", exact: true }).click();
+    await waitForNativeState(fixture, () => fixture.document.buttons[3]?.includes("obs_confirm=on") &&
+      fixture.document.buttons[3].includes("confirm_yes=Record") && fixture.document.buttons[3].includes("confirm_no=Back"),
+      "OBS output confirmation choices persist");
+    const recordTile = page.locator('.sp-main [data-slot="3"]');
+    await recordTile.getByText("Record", { exact: true }).waitFor();
+    const idleColor = await recordTile.evaluate(tile => getComputedStyle(tile).backgroundColor);
+    const editFolder = async label => {
+      await page.locator(".sp-main").getByText(label, { exact: true }).click({ button: "right" });
+      await page.getByText("Edit Subpage", { exact: true }).click();
+    };
+    const goBack = () => page.locator(".sp-back-btn .sp-back-hit").click();
+    const closeSettings = page.locator(".sp-settings-overlay.sp-visible .sp-settings-close");
+    const editCard = async tile => {
+      await tile.click({ button: "right" });
+      await page.getByText("Edit Card", { exact: true }).click();
+    };
+    await editFolder("OBS Studio");
+    const brbTile = page.locator('.sp-main [data-slot="5"]');
+    await brbTile.locator(".mdi-coffee-to-go").waitFor();
+    await brbTile.getByText("Start", { exact: true }).waitFor();
+    await editFolder("Audio");
+    const micTile = page.locator('.sp-main [data-slot="1"]');
+    await micTile.locator(".mdi-microphone-off").waitFor();
+    const fader = page.locator(".sp-main .sp-slider-fill");
+    const fillColor = () => fader.evaluate(fill => getComputedStyle(fill).backgroundColor);
+    assert.equal(await fillColor(), "rgb(128, 128, 128)");
+    await goBack();
+    await editFolder("Outputs");
+    const streamTile = page.locator('.sp-main [data-slot="1"]');
+    await streamTile.locator(".mdi-broadcast-off").waitFor();
+    await streamTile.getByText("Idle", { exact: true }).waitFor();
+    await page.locator(".sp-main").getByText("Replay Buffer", { exact: true }).waitFor();
+    await page.locator(".sp-main").getByText("Save Replay", { exact: true }).waitFor();
+    await goBack();
+    await editFolder("Switching");
+    const mainTile = page.locator('.sp-main [data-slot="1"]');
+    const breakTile = page.locator('.sp-main [data-slot="2"]');
+    await mainTile.locator(".mdi-image").waitFor();
+    await breakTile.locator(".mdi-image").waitFor();
+    await mainTile.getByText("Gameplay", { exact: true }).waitFor();
+    await breakTile.getByText("Break Room", { exact: true }).waitFor();
+    const colour = tile => tile.evaluate(card => getComputedStyle(card).backgroundColor);
+    const onColor = await colour(mainTile);
+    const offColor = await colour(breakTile);
+    assert.notEqual(onColor, offColor);
+    assert.equal(await mainTile.locator(".sp-obs-detail").innerText(), "Scene");
+    assert.equal(await breakTile.locator(".sp-obs-detail").innerText(), "Scene");
+    await page.locator(".sp-main").getByText("Enable Studio Mode", { exact: true }).waitFor();
+    await editCard(mainTile);
+    const scene = page.locator('select[id$="obs-scene"]');
+    await scene.locator(`option[value="obs.target.${main}"]`).waitFor({ state: "attached" });
+    assert.equal(await scene.inputValue(), "obs.target." + main);
+    await page.getByRole("button", { name: "Card Settings", exact: true }).click();
+    const sceneLabel = page.getByRole("textbox", { name: "Label", exact: true });
+    assert.equal(await sceneLabel.inputValue(), "Gameplay");
+    await scene.selectOption("obs.target." + away);
+    assert.equal(await sceneLabel.inputValue(), "Break Room");
+    await sceneLabel.fill("Custom scene label");
+    await scene.selectOption("obs.target." + main);
+    assert.equal(await sceneLabel.inputValue(), "Custom scene label");
+    await sceneLabel.fill("");
+    await closeSettings.click();
+    muted = false;
+    streaming = true;
+    recording = true;
+    onBreak = true;
+    studioProgram = main;
+    await editCard(mainTile);
+    await page.waitForFunction(offColor =>
+      getComputedStyle(document.querySelector('.sp-main [data-slot="1"]')).backgroundColor === offColor, offColor);
+    assert.equal(await mainTile.locator(".sp-obs-detail").innerText(), "Scene");
+    assert.equal(await colour(mainTile), offColor);
+    assert.equal(await colour(breakTile), onColor);
+    await page.getByRole("button", { name: "Custom Colours", exact: true }).click();
+    await page.getByRole("group", { name: "Active state colour", exact: true }).getByRole("button", { name: "Custom", exact: true }).click();
+    await page.getByRole("group", { name: "Active state colour presets", exact: true }).locator('input[type="color"]').fill("#64ad54");
+    assert.equal(await colour(mainTile), offColor);
+    await closeSettings.click();
+    studioProgram = away;
+    await editCard(mainTile);
+    await scene.locator(`option[value="obs.target.${main}"]`).waitFor({ state: "attached" });
+    await page.waitForFunction(onColor =>
+      getComputedStyle(document.querySelector('.sp-main [data-slot="2"]')).backgroundColor === onColor, onColor);
+    await breakTile.getByText("Scene", { exact: true }).waitFor();
+    await breakTile.locator(".mdi-image").waitFor();
+    await mainTile.locator(".mdi-image").waitFor();
+    assert.equal(await mainTile.locator(".sp-obs-detail").innerText(), "Scene");
+    assert.equal(await colour(breakTile), onColor);
+    await closeSettings.click();
+    await goBack();
+    await brbTile.getByText("Resume", { exact: true }).waitFor();
+    assert.equal(await colour(brbTile), onColor);
+    await editFolder("Audio");
+    await micTile.locator(".mdi-microphone").waitFor();
+    assert.notEqual(await fillColor(), "rgb(128, 128, 128)");
+    await goBack();
+    await editFolder("Outputs");
+    await streamTile.getByText("Live", { exact: true }).waitFor();
+    assert.equal(await colour(streamTile), onColor);
+    await goBack();
+    await goBack();
+    await recordTile.getByText("Recording", { exact: true }).waitFor({ timeout: 12000 });
+    assert.notEqual(await colour(recordTile), idleColor);
+    stopping = true;
+    await editCard(recordTile);
+    await recordTile.getByText("Stopping", { exact: true }).waitFor();
+    assert.notEqual(await colour(recordTile), idleColor);
+    await closeSettings.click();
+    await page.locator(".sp-main .sp-empty-cell").first().click();
+    await chooseOBSCard(page, "Transitions", "Grouped pages");
+    const transitionsList = page.getByRole("button", { name: "Transitions", exact: true });
+    assert.equal(await transitionsList.getAttribute("aria-expanded"), "false");
+    await transitionsList.click();
+    const fadeToggle = page.getByRole("checkbox", { name: "Fade", exact: true });
+    const fadeRow = page.locator(".sp-light-tab-row").filter({ has: fadeToggle });
+    await fadeRow.waitFor();
+    assert(await fadeToggle.isChecked());
+    await fadeRow.locator(".sp-light-tab-label").click();
+    await page.getByRole("button", { name: "Move Wipe up", exact: true }).click();
+    assert.equal(await transitionsList.getAttribute("aria-expanded"), "true");
+    await transitionsList.click();
+    assert.equal(await transitionsList.getAttribute("aria-expanded"), "false");
+    await page.getByRole("button", { name: "Save", exact: true }).click();
+    await waitForNativeState(fixture, () => fixture.document.buttons[4]?.includes("obs_transition_order") &&
+      fixture.puts.at(-1)?.layout?.pages.some(group => group.key === 4 && group.order === "B"),
+      "Automatic Transitions page saves its visibility settings and Back button");
+    await editFolder("Transitions");
+    const automaticTiles = page.locator(".sp-main [data-generated-card]");
+    await automaticTiles.getByText("Cut", { exact: true }).waitFor();
+    assert.deepEqual(await automaticTiles.locator(".sp-btn-label").allTextContents(), ["Wipe", "Cut"]);
+    const savedCount = fixture.puts.length;
+    transitions = [[slide, "Slide"], [fade, "Fade"], [wipe, "Wipe"]];
+    await page.clock.fastForward(30_000);
+    await automaticTiles.getByText("Slide", { exact: true }).waitFor();
+    assert.deepEqual(await automaticTiles.locator(".sp-btn-label").allTextContents(), ["Wipe", "Slide"]);
+    assert.equal(fixture.puts.length, savedCount, "New transition catalogue states never rewrite the saved layout");
+    await goBack();
+    await page.locator(".sp-main .sp-empty-cell").first().click();
+    await chooseOBSCard(page, "Audio");
+    const desktopRow = page.locator(".sp-light-tab-row").filter({
+      has: page.getByRole("checkbox", { name: "Desktop Audio", exact: true }),
+    });
+    await desktopRow.locator(".sp-light-tab-label").click();
+    await page.getByRole("button", { name: "Move Music up", exact: true }).click();
+    await page.getByRole("button", { name: "Save", exact: true }).click();
+    await waitForNativeState(fixture, () => fixture.document.buttons[5]?.includes("obs_audio_order"),
+      "Audio subpage saves the hidden and reordered faders");
+    await editFolder("Audio");
+    await automaticTiles.getByText("Desk Mic", { exact: true }).waitFor();
+    assert.deepEqual(await automaticTiles.locator(".sp-btn-label").allTextContents(), ["Music", "Desk Mic"]);
+    const musicTile = automaticTiles.filter({ hasText: "Music" });
+    assert.equal(await colour(musicTile.locator(".sp-slider-fill")), "rgb(128, 128, 128)");
+    assert.equal(await automaticTiles.locator(".sp-slider-fill").count(), 2);
+    const beforeAudioChange = fixture.puts.length;
+    mixerInputs = [[desktop, "Desktop Audio"], [music, "Music"], [gameAudio, "Game Audio"]];
+    await page.clock.fastForward(30_000);
+    await automaticTiles.getByText("Game Audio", { exact: true }).waitFor();
+    assert.deepEqual(await automaticTiles.locator(".sp-btn-label").allTextContents(), ["Music", "Game Audio"]);
+    assert.equal(fixture.puts.length, beforeAudioChange);
+    const wrap = "88888888-8888-8888-8888-888888888888";
+    const welcome = "99999999-9999-9999-9999-999999999999";
+    scenes = [...scenes, [wrap, "Wrap Up"]];
+    const originalScenes = scenes;
+    studioProgram = main;
+    await goBack();
+    await page.locator(".sp-main .sp-empty-cell").first().click();
+    await chooseOBSCard(page, "Scenes");
+    const wrapRow = page.locator(".sp-light-tab-row").filter({
+      has: page.getByRole("checkbox", { name: "Wrap Up", exact: true }),
+    });
+    await wrapRow.locator(".sp-light-tab-label").click();
+    await page.getByRole("button", { name: "Move Break Room up", exact: true }).click();
+    await page.getByRole("button", { name: "Save", exact: true }).click();
+    await waitForNativeState(fixture, () => fixture.document.buttons[6]?.includes("obs_scene_order"),
+      "Scenes saves the hidden and reordered scene buttons");
+    await editFolder("Scenes");
+    await automaticTiles.getByText("Gameplay", { exact: true }).waitFor();
+    const sceneCards = automaticTiles.filter({ has: page.locator(".sp-obs-detail").filter({ hasText: /^Scene$/ }) });
+    const sceneNames = () => sceneCards.locator(".sp-btn-label").allTextContents();
+    const automaticTake = automaticTiles.filter({ has: page.getByText("Take Live", { exact: true }) });
+    assert.equal(await automaticTake.getAttribute("data-pos"), "7");
+    assert.match(await automaticTake.getAttribute("class"), /sp-btn-wide/);
+    await automaticTiles.filter({ has: page.getByText("Transition", { exact: true }) }).waitFor();
+    await automaticTiles.filter({ has: page.getByText("Break", { exact: true }) }).waitFor();
+    await page.locator('.sp-main [data-generated-card][data-pos="4"]').getByText("Break", { exact: true }).waitFor();
+    servePanelProjection = false;
+    assert.deepEqual(await sceneNames(), ["Break Room", "Gameplay"]);
+    const generatedProgram = automaticTiles.filter({ hasText: "Gameplay" });
+    const generatedPreview = automaticTiles.filter({ hasText: "Break Room" });
+    await page.clock.fastForward(30_000);
+    await generatedProgram.getByText("Scene", { exact: true }).waitFor();
+    await generatedPreview.getByText("Scene", { exact: true }).waitFor();
+    await generatedProgram.locator(".mdi-image").waitFor();
+    await generatedPreview.locator(".mdi-image").waitFor();
+    await page.waitForFunction(({ onColor, offColor }) => {
+      const colours = new Map(Array.from(document.querySelectorAll(".sp-main [data-generated-card]"), tile =>
+        [tile.querySelector(".sp-btn-label")?.textContent, getComputedStyle(tile).backgroundColor]));
+      return colours.get("Gameplay") === offColor && colours.get("Break Room") === onColor;
+    }, { onColor, offColor });
+    assert.notEqual(await colour(generatedProgram), await colour(generatedPreview));
+    const beforeCollectionChange = fixture.puts.length;
+    scenes = [[welcome, "Welcome"]];
+    selectedScene = welcome;
+    studioProgram = "";
+    await page.clock.fastForward(30_000);
+    await automaticTiles.getByText("Welcome", { exact: true }).waitFor();
+    assert.deepEqual(await sceneNames(), ["Welcome"]);
+    scenes = originalScenes;
+    selectedScene = "";
+    await page.clock.fastForward(30_000);
+    await automaticTiles.getByText("Gameplay", { exact: true }).waitFor();
+    assert.deepEqual(await sceneNames(), ["Break Room", "Gameplay"]);
+    assert.equal(fixture.puts.length, beforeCollectionChange);
+    await generatedProgram.click();
+    assert.equal(fixture.puts.length, beforeCollectionChange, "Selecting an automatic scene does not save it");
+    await page.getByRole("button", { name: "Edit", exact: true }).click();
+    await page.getByLabel("OBS scene", { exact: true }).waitFor();
+    await closeSettings.click();
+    assert.equal(fixture.puts.length, beforeCollectionChange, "Cancelling an automatic scene edit leaves the layout untouched");
+    const empty = page.locator(".sp-main .sp-empty-cell").first();
+    const destination = await empty.getAttribute("data-pos");
+    const from = await generatedProgram.boundingBox();
+    const to = await empty.boundingBox();
+    await page.mouse.move(from.x + from.width / 2, from.y + from.height / 2);
+    await page.mouse.down();
+    await page.mouse.move(to.x + to.width / 2, to.y + to.height / 2, { steps: 10 });
+    await page.locator(`.sp-main .sp-drop-placeholder[data-pos="${destination}"]`).waitFor();
+    await page.mouse.up();
+    const movedScene = page.locator(`.sp-main .sp-btn[data-slot][data-pos="${destination}"]`)
+      .filter({ hasText: "Gameplay" });
+    await movedScene.waitFor();
+    await movedScene.click({ button: "right" });
+    await page.getByText("Edit Card", { exact: true }).click();
+    await page.getByRole("button", { name: "Card Settings", exact: true }).click();
+    await page.getByRole("textbox", { name: "Label", exact: true }).fill("Custom Scene");
+    await page.getByRole("button", { name: "Save", exact: true }).click();
+    const renamed = page.locator(".sp-main .sp-btn[data-slot]").filter({ hasText: "Custom Scene" });
+    await renamed.waitFor();
+    await renamed.click({ button: "right" });
+    await page.locator(".sp-ctx-menu").getByText("Delete", { exact: true }).click();
+    await waitForNativeState(fixture, () => fixture.document.buttons[6].includes("generated_card_exclusions") &&
+      !fixture.puts.at(-1)?.layout?.pages.find(group => group.key === 6)?.cards.some(card => card.config.entity === "obs.target." + main),
+      "The deleted scene stays excluded from automatic projection");
+    await renamed.waitFor({ state: "detached" });
+    assert.equal(await page.locator(".sp-main").getByText("Gameplay", { exact: true }).count(), 0);
+    const beforeTakeEdit = fixture.puts.length;
+    await automaticTake.click({ button: "right" });
+    await page.locator(".sp-ctx-menu").getByText("Edit Card", { exact: true }).click();
+    assert.equal(await page.getByLabel("Type", { exact: true }).inputValue(), "obs.take");
+    assert.equal(fixture.puts.length, beforeTakeEdit, "Opening Take Live settings does not save it");
+    await page.getByRole("button", { name: "Save", exact: true }).click();
+    const savedTake = page.locator('.sp-main .sp-btn-wide[data-pos="7"][data-slot]');
+    await savedTake.getByText("Take Live", { exact: true }).waitFor();
+    await savedTake.click({ button: "right" });
+    await page.locator(".sp-ctx-menu").getByText("Edit Card", { exact: true }).click();
+    await page.getByRole("button", { name: "Card Settings", exact: true }).click();
+    await page.getByRole("textbox", { name: "Label", exact: true }).fill("Send to Program");
+    await page.getByRole("button", { name: "Save", exact: true }).click();
+    await savedTake.getByText("Send to Program", { exact: true }).waitFor();
+    await savedTake.getByText("Enable Studio Mode", { exact: true }).waitFor();
+    await waitForNativeState(fixture, () => fixture.puts.at(-1)?.layout?.pages
+      .find(group => group.key === 6)?.cards.some(card =>
+        card.config.entity === "obs.take" && card.config.label === "Send to Program"),
+    "The renamed Take Live card saves its label and OBS action");
+    console.log("OBS automatic Scenes controls and editable generated cards passed.");
+  } finally {
+    await context.close();
+  }
+}
+
+async function assertStudioControlPage(browser) {
+  const testCase = CASES.find(item => item.slug === "guition-esp32-s3-4848s040");
+  const fixture = nativeConfigState(testCase.slug);
+  fixture.document.settings.web_onboarding_complete = "1";
+  const context = await browser.newContext({ viewport: testCase.viewport });
+  await installRoutes(context, testCase.slug, {
+    nativeState: fixture, nativeV2: true,
+    connectorsStatus: {
+      onboarding_complete: true,
+      mac_companion: { available: true, configured: true, paired: true, connected: true },
+    },
+  });
+  try {
+    const page = await context.newPage();
+    await installFakeEventSource(page);
+    await page.goto(`http://espdesktop.test/${testCase.slug}?events=1`);
+    await seedNativeDocument(page, fixture);
+    await page.locator(".sp-main .sp-empty-cell").first().click();
+    await chooseOBSCard(page, "Studio Control");
+    await page.getByRole("button", { name: "Save", exact: true }).click();
+    await waitForNativeState(fixture, () => Object.values(fixture.document.buttons).some(card => card.includes("Studio Control")),
+      "Studio Control saves the parent card");
+    const slot = Number(Object.entries(fixture.document.buttons).find(([, card]) => card.includes("Studio Control"))[0]);
+    assert.match(fixture.document.buttons[slot], /Movie/);
+    const savedPage = fixture.puts.at(-1)?.layout?.pages.find(group => group.key === slot);
+    assert.equal(savedPage?.order, "B,1,2,3,4b,,5");
+    assert.deepEqual(savedPage?.cards.map(card => card.config.entity),
+      ["obs.output.record", "obs.output.stream", "obs.studio", "obs.replay", "obs.replay.buffer"]);
+    const studioButton = page.locator(`.sp-main [data-slot="${slot}"]`);
+    await studioButton.locator(".mdi-movie").waitFor();
+    const chevron = studioButton.locator(".sp-subpage-badge");
+    const chevronOpacity = () => chevron.evaluate(badge => getComputedStyle(badge).opacity);
+    await page.mouse.move(0, 0);
+    assert.equal(await chevronOpacity(), "0", "idle folder cards match the device");
+    await studioButton.hover();
+    assert.equal(await chevronOpacity(), "1", "hover reveals the editor navigation control");
+    const enter = async () => {
+      await studioButton.click({ button: "right" });
+      await page.getByText("Edit Subpage", { exact: true }).click();
+    };
+    await enter();
+    for (const [pos, label] of [[1, "Record"], [2, "Stream"], [3, "Studio Mode"], [4, "Save Replay"], [6, "Replay Buffer"]]) {
+      await page.locator(`.sp-main [data-pos="${pos}"][data-slot]`).getByText(label, { exact: true }).waitFor();
+    }
+    const replay = page.locator('.sp-main [data-pos="4"].sp-btn-big');
+    await replay.waitFor();
+    await page.locator(".sp-back-btn .sp-back-hit").click();
+    await studioButton.click({ button: "right" });
+    await page.getByText("Edit Card", { exact: true }).click();
+    await page.getByRole("button", { name: "Card Settings", exact: true }).click();
+    await page.locator("#sp-inp-label").fill("My Studio");
+    await page.getByRole("button", { name: "Save", exact: true }).click();
+    await studioButton.getByText("My Studio", { exact: true }).waitFor();
+    await enter();
+    await replay.getByText("Save Replay", { exact: true }).waitFor();
+    console.log("Studio Control created with Movie icon and 2×2 Save Replay, and kept its cards after renaming.");
+  } finally { await context.close(); }
 }
 
 async function assertFirstRunSetup(browser) {
@@ -7786,8 +8708,29 @@ async function assertFirstRunSetup(browser) {
       await assertReorderAfterDelete(browser);
       return;
     }
+    if (process.env.ESPDESKTOP_LIVE_FINDER_ONLY === "1") {
+      await assertLiveFinderPreview(browser);
+      return;
+    }
+    if (process.env.ESPDESKTOP_OBS_STUDIO_CONTROL_ONLY === "1") {
+      await assertStudioControlPage(browser);
+      return;
+    }
+    if (process.env.ESPDESKTOP_OBS_STARTER_ONLY === "1") {
+      await assertOBSStarterPage(browser);
+      await assertOBSStarterPage(browser, true);
+      return;
+    }
     if (process.env.ESPDESKTOP_FIRST_RUN_ONLY === "1") {
       await assertFirstRunSetup(browser);
+      return;
+    }
+    if (process.env.ESPDESKTOP_OBS_ONLY === "1") {
+      await assertOBSSceneCard(browser);
+      return;
+    }
+    if (process.env.ESPDESKTOP_APP_VOLUME_ONLY === "1") {
+      await assertAppVolumeCard(browser);
       return;
     }
     if (process.env.ESPDESKTOP_MAC_LOCK_ONLY === "1") {
@@ -7798,9 +8741,14 @@ async function assertFirstRunSetup(browser) {
       for (const testCase of ACTIVE_CASES) await runCase(browser, testCase);
       return;
     }
+    await assertOBSSceneCard(browser);
+    await assertOBSStarterPage(browser);
+    await assertOBSStarterPage(browser, true);
+    await assertStudioControlPage(browser);
     await assertRetiredCardRemoval(browser);
     if (process.env.ESPDESKTOP_RETIRED_CARDS_ONLY === "1") return;
     await assertMacLockCard(browser);
+    await assertAppVolumeCard(browser);
     if (process.env.ESPDESKTOP_RETIRED_SETTINGS_ONLY === "1") {
       for (const testCase of ACTIVE_CASES) await assertRetiredSettingsStayUnavailable(browser, testCase);
       await assertNamingOfflineBackups(browser);
