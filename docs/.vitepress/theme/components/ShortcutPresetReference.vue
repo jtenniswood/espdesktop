@@ -1,10 +1,17 @@
 <script setup lang="ts">
+import { computed, ref } from 'vue'
 import { COMPANION_SHORTCUT_APPS } from '../../../../src/webserver/generated/app_shortcuts'
 import { bundledExpandedShortcuts } from '../../../../src/webserver/application/companion_shortcut_data'
 
 const apps = COMPANION_SHORTCUT_APPS.map(app => ({
   ...app, shortcuts: [...app.shortcuts, ...bundledExpandedShortcuts(app.appId)],
 }))
+
+const search = ref('')
+const matchingApps = computed(() => {
+  const query = search.value.trim().toLowerCase()
+  return apps.filter(app => app.label.toLowerCase().includes(query))
+})
 
 const keyLabels: Record<string, string> = {
   command: 'Command', control: 'Control', option: 'Option',
@@ -28,7 +35,12 @@ function anchor(appId: string) {
 </script>
 
 <template>
-  <details v-for="app in apps" :id="anchor(app.appId)" :key="app.appId">
+  <div class="preset-search" role="search" aria-label="Application shortcuts">
+    <label for="preset-app-search">Search apps</label>
+    <input id="preset-app-search" v-model="search" type="search" />
+    <p role="status">{{ matchingApps.length ? '' : 'No matching apps.' }}</p>
+  </div>
+  <details v-for="app in apps" v-show="matchingApps.includes(app)" :id="anchor(app.appId)" :key="app.appId">
     <summary>
       <span class="preset-name">{{ app.label }}</span>
       <span class="preset-count">{{ app.shortcuts.length }} {{ app.shortcuts.length === 1 ? 'shortcut' : 'shortcuts' }}</span>
@@ -48,6 +60,34 @@ function anchor(appId: string) {
 </template>
 
 <style scoped>
+.preset-search {
+  margin: 24px 0 12px;
+}
+
+.preset-search label {
+  display: block;
+  margin-bottom: 6px;
+  font-weight: 600;
+}
+
+.preset-search input {
+  width: 100%;
+  min-height: 44px;
+  padding: 8px 12px;
+  border: 1px solid var(--vp-c-divider);
+  border-radius: 8px;
+  background: var(--vp-c-bg-soft);
+}
+
+.preset-search input:focus-visible {
+  outline: 2px solid var(--vp-c-brand-1);
+  outline-offset: 2px;
+}
+
+.preset-search [role='status']:empty {
+  margin: 0;
+}
+
 details {
   border-bottom: 1px solid var(--vp-c-divider);
   scroll-margin-top: calc(var(--vp-nav-height) + 16px);
