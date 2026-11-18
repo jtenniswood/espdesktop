@@ -2,16 +2,21 @@ import { globSync } from 'node:fs'
 import { writeFile } from 'node:fs/promises'
 import { resolve } from 'node:path'
 import { hostname, redirects } from './discovery'
-import guideGroups from './public-guides.json'
+import standardGuideGroups from './public-guides.json'
+import shortcutGuides from './shortcut-guides.json'
 import productFacts from './product-facts.json'
 
 const docs = resolve(import.meta.dirname, '..')
+const guideGroups = {
+  ...standardGuideGroups,
+  'Application shortcuts': Object.keys(shortcutGuides).map(slug => `reference/shortcut-presets/${slug}.md`),
+}
 const guides = Object.values(guideGroups).flat()
-const publicPaths = new Set([...guides, '404.md'])
+const publicPaths = new Set([...guides, '404.md', 'reference/shortcut-presets/[app].md'])
 const retiredPaths = new Set(Object.keys(redirects).map(path => path + '.md'))
 
-if (publicPaths.size !== guides.length + 1) {
-  throw new Error('Duplicate public guide or 404 page listed in public-guides.json')
+if (publicPaths.size !== guides.length + 2) {
+  throw new Error('Duplicate public guide or reserved route listed in the guide registries')
 }
 for (const path of guides) {
   if (retiredPaths.has(path)) throw new Error(`Public guide is also a redirect: ${path}`)
