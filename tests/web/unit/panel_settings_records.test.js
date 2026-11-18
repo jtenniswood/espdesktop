@@ -23,8 +23,8 @@ for (const [name, records] of Object.entries(fixtures)) {
 test("native scalar settings enforce the authored choices", () => {
   assert.equal(validPanelScalarSetting("screen_clock_bar", "1"), true);
   assert.equal(validPanelScalarSetting("screen_clock_bar", "true"), false);
-  assert.equal(validPanelScalarSetting("screen_default_icon_size", "Medium"), true);
-  assert.equal(validPanelScalarSetting("screen_default_icon_size", "medium"), false);
+  assert.equal(validPanelScalarSetting("screen_clock_format", "12h"), true);
+  assert.equal(validPanelScalarSetting("screen_clock_format", "12H"), false);
   assert.equal(validPanelScalarSetting("screensaver_timeout", "3600"), true);
   assert.equal(validPanelScalarSetting("screensaver_timeout", "3601"), false);
   assert.equal(validPanelScalarSetting("screensaver_timeout", "1800\n"), false);

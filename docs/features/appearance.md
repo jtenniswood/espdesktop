@@ -7,26 +7,13 @@ description:
 # Appearance
 
 The **Appearance** section is at the top of **Screen**. It includes
-**Active Colour**, **Default App Icon Size**, **App Subpages**, **Theme**, and [Clock Bar](/features/clock-bar).
+**Active Colour**, **App Subpages**, **Theme**, and [Clock Bar](/features/clock-bar).
 
 Home and subpage cards use fixed continuous corners, including Back. Images, artwork and slider fills follow the card outline.
 
-## App icon size
+## App artwork
 
-Set **Screen → Appearance → Default App Icon Size** to choose the
-starting size for Mac application artwork, including apps inside subpages.
-The default is **Large** when the display has no saved choice.
-Small keeps the original size; Medium enlarges it to 1.5× above the label;
-Large fills the available card area and hides the label.
-
-Right-click an app card and choose **App Icon Size**, or use **App icon size**
-in **Card Settings**, to override the default for that app. Choose **Use Default**
-in the menu or **Default** in Card Settings to follow the global setting again.
-The display remembers the default after reboot, and backups include it. Older
-backups without this setting keep the current default.
-
-All other card icons keep their original small layout and have no size setting.
-Previously saved sizes for those icons are ignored.
+Mac app artwork uses the large layout on Home and subpages. The icon fills the available card area and hides the label, including on cards that previously used a saved Small or Medium size.
 
 In the web setup preview, subpage arrows sit immediately after the label, or at
 the lower left when no label is shown. A soft shadow keeps the arrow visible

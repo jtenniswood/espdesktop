@@ -58,9 +58,6 @@ esphome:
               id(companion_return_home_on_app_switch_enabled).publish_state(enabled);
               companion_set_return_home_on_app_switch(enabled);
             });
-            app.bind_panel_scalar(Setting::SCREEN_DEFAULT_ICON_SIZE, [](std::string_view value) {
-              id(default_icon_size_select).publish_state(std::string(value));
-            });
             app.bind_panel_scalar(Setting::SCREEN_SAVER_ACTION, [](std::string_view value) {
               id(screensaver_action).publish_state(std::string(value));
             });
@@ -88,7 +85,6 @@ esphome:
             app.bind_panel_scalar(Setting::SCREEN_SAVER_NIGHTTIME_CLOCK_BRIGHTNESS, [](std::string_view value) {
               id(clock_brightness_night).publish_state(std::atoi(std::string(value).c_str()));
             });
-            espdesktop::set_card_icon_default_size(id(default_icon_size_select).current_option());
     - priority: -100
       then:
         - lambda: |-
@@ -481,33 +477,6 @@ switch:
       - script.execute: clock_screensaver_update_time
 
 select:
-  - platform: template
-    name: "${entity_screen_default_icon_size}"
-    id: default_icon_size_select
-    entity_category: config
-    icon: "mdi:arrow-expand"
-    optimistic: false
-    restore_value: false
-    initial_option: "Large"
-    options:
-      - "Small"
-      - "Medium"
-      - "Large"
-    web_server:
-      sorting_group_id: sg_display
-    set_action:
-      - lambda: |-
-          id(espdesktop_app).edit_panel_scalar(espdesktop::panel_settings::ScalarSetting::SCREEN_DEFAULT_ICON_SIZE,
-              std::string_view(x.c_str(), x.size()));
-    on_value:
-      then:
-        - lambda: 'espdesktop::set_card_icon_default_size(x);'
-        - if:
-            condition:
-              lambda: 'return grid_phase2_complete();'
-            then:
-              - script.execute: refresh_subpage_grid
-
   - platform: template
     name: "${entity_screen_saver_action}"
     internal: true

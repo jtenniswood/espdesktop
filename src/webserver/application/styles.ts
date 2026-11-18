@@ -685,9 +685,6 @@ export function createWebStyles(dragAnimation: boolean): string {
         ".sp-ctx-colours>.sp-card-color-presets{margin:4px 14px 10px}" +
         ".sp-ctx-item{display:flex;align-items:center;gap:10px;padding:8px 14px;" +
         "cursor:pointer;font-size:.8rem;color:var(--text);transition:background .15s;white-space:nowrap}" +
-        ".sp-ctx-option{appearance:none;box-sizing:border-box;width:100%;margin:0;border:0;border-radius:0;background:transparent;box-shadow:none;font-family:inherit;font-weight:inherit;line-height:inherit;text-align:left}" +
-        ".sp-ctx-option:disabled{opacity:.5;cursor:wait}" +
-        ".sp-ctx-option:focus-visible{outline:2px solid var(--accent);outline-offset:-2px;background:var(--accent-soft)}" +
         ".sp-ctx-item:hover{background:var(--accent-soft)}" +
         ".sp-ctx-item .mdi{font-size:16px;width:18px;text-align:center;color:var(--text2)}" +
         ".sp-ctx-item.sp-ctx-danger{color:var(--danger)}" +
@@ -701,7 +698,6 @@ export function createWebStyles(dragAnimation: boolean): string {
         ".sp-ctx-submenu{display:none;position:fixed;background:var(--surface);" +
         "border:1px solid var(--border);border-radius:var(--radius);padding:4px 0;min-width:160px;" +
         "box-shadow:var(--shadow-3);z-index:201}" +
-        ".sp-ctx-check{display:inline-flex;justify-content:center;flex-shrink:0;font-size:14px;width:18px;text-align:center;color:var(--accent)}" +
         ".sp-banner{position:fixed;z-index:270;display:none;pointer-events:none;box-sizing:border-box;" +
         "left:max(var(--gap),env(safe-area-inset-left));right:max(var(--gap),env(safe-area-inset-right));" +
         "bottom:max(var(--gap),env(safe-area-inset-bottom));max-width:24rem;" +

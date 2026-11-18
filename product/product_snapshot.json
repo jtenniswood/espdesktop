@@ -11,7 +11,7 @@
   "summary": {
     "deviceProfiles": 9,
     "cardTypes": 41,
-    "entityNames": 91,
+    "entityNames": 90,
     "icons": 363,
     "structuralIcons": 42,
     "compatibilityFixtureGroups": 2
@@ -6561,19 +6561,6 @@
         "key": "screen_theme_mode",
         "domain": "select",
         "name": "Screen: Theme Mode",
-        "groups": [
-          "settings"
-        ]
-      },
-      {
-        "key": "screen_default_icon_size",
-        "domain": "select",
-        "name": "Screen: Default Icon Size",
-        "objectIds": [
-          "screen__default_icon_size",
-          "screen_default_icon_size",
-          "default_icon_size_select"
-        ],
         "groups": [
           "settings"
         ]
