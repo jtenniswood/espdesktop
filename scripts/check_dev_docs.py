@@ -176,7 +176,8 @@ SOURCE_TRUTH_ROWS: tuple[SourceTruthRow, ...] = (
 )
 
 
-PUBLIC_DOCS_BY_TYPE: dict[str, str] = {
+# Use None for card types that do not yet have a public guide.
+PUBLIC_DOCS_BY_TYPE: dict[str, str | None] = {
     "": "docs/card-types/switches.md",
     "alarm": "docs/card-types/alarms.md",
     "alarm_action": "docs/card-types/alarms.md",
@@ -188,8 +189,8 @@ PUBLIC_DOCS_BY_TYPE: dict[str, str] = {
     "companion_input_volume": "docs/mac-controls/apps.md",
     "companion_output_mute": "docs/mac-controls/apps.md",
     "companion_input_mute": "docs/mac-controls/apps.md",
-    "companion_cough": "docs/mac-controls/cough.md",
-    "companion_obs_cough": "docs/mac-controls/cough.md",
+    "companion_cough": None,
+    "companion_obs_cough": "docs/mac-controls/obs.md",
     "climate": "docs/card-types/climate.md",
     "climate_control": "docs/card-types/climate.md",
     "cover": "docs/card-types/covers.md",
@@ -586,7 +587,7 @@ def generated_card_map() -> str:
     for card_type, card in cards.items():
         type_label = "`(empty)`" if card_type == "" else f"`{card_type}`"
         public_doc = PUBLIC_DOCS_BY_TYPE[card_type]
-        public_rows.append((docs_link(public_doc), type_label))
+        public_rows.append((docs_link(public_doc) if public_doc else "Pending release", type_label))
 
         domains = ", ".join(f"`{domain}`" for domain in card.get("domains", [])) or "None"
         subpages = "Yes" if card.get("allowInSubpage") else "No"
@@ -798,7 +799,7 @@ def check_public_docs(errors: list[str]) -> None:
     if extra:
         errors.append("PUBLIC_DOCS_BY_TYPE has entries not in card contract: " + ", ".join(extra))
     for card_type, path in sorted(PUBLIC_DOCS_BY_TYPE.items()):
-        if not (ROOT / path).exists():
+        if path is not None and not (ROOT / path).exists():
             label = "(empty)" if card_type == "" else card_type
             errors.append(f"Public docs for card type {label} point to missing file: {path}")
 

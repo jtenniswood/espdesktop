@@ -34,7 +34,9 @@ A **Mute** card changes the selected input in the OBS mixer. The ON colour and m
 
 Choose **Level** to adjust a named mixer input. The fill turns grey while the input is muted, and you can still drag to adjust the level.
 
-Choose **Cough** and select the input to mute momentarily. The tile reads **Muted** whenever that input is muted, including during a break. Release it to restore the input’s previous mute state.
+Choose **Cough** and select the input to mute momentarily. The tile reads **Muted** whenever that input is muted, including during a break. Lift your finger or slide off the card to restore the previous mute state when EspDesktop can verify it. If OBS or the display disconnects while you’re holding the card, check the input in OBS before you unmute.
+
+If the card is unavailable, check the connection under **Settings → OBS** in the EspDesktop Mac app and make sure the selected source appears in the OBS Audio Mixer for the current scene collection.
 
 ## Streaming, recording and Virtual Camera
 

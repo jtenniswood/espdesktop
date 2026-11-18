@@ -54,7 +54,6 @@ const guideParents = {
   'features/subpages.md': { name: 'Customise the layout', path: 'features/home.md' },
   'mac-controls/apps.md': { name: 'Customise the layout', path: 'features/home.md' },
   'mac-controls/obs.md': { name: 'Customise the layout', path: 'features/home.md' },
-  'mac-controls/cough.md': { name: 'Customise the layout', path: 'features/home.md' },
   'mac-controls/websites.md': { name: 'Customise the layout', path: 'features/home.md' },
   'mac-controls/folders.md': { name: 'Customise the layout', path: 'features/home.md' },
   'mac-controls/shortcuts.md': { name: 'Customise the layout', path: 'features/home.md' },
@@ -72,7 +71,6 @@ const customiseLinks = [
 
 const featureLinks = [
   { text: 'Apps', link: '/mac-controls/apps' },
-  { text: 'Cough button', link: '/mac-controls/cough' },
   { text: 'Finder folders', link: '/mac-controls/folders' },
   { text: 'Keyboard shortcuts', link: '/mac-controls/shortcuts' },
   { text: 'OBS Support', link: '/mac-controls/obs' },
