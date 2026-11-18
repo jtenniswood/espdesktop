@@ -6664,8 +6664,7 @@ async function assertFixedCardCorners(browser, testCase) {
     const profile = readManifest().devices[testCase.slug];
     const substitutions = profile.firmware.package.substitutions;
     const width = Number(substitutions.screen_width.replaceAll('"', ""));
-    const expected = testCase.slug.startsWith("guition-esp32-p4-jc1060p470")
-      ? 24 : Number(substitutions.radius.replace("px", ""));
+    const expected = Number(substitutions.radius.replace("px", ""));
     const radius = await page.evaluate(logicalWidth => parseFloat(document.documentElement.style.getPropertyValue("--btn-r")) * logicalWidth / 100, width);
     assert(Math.abs(radius - expected) < .001, `${testCase.slug}: the preview must retain the Large radius of ${expected}px`);
 
@@ -6816,6 +6815,8 @@ async function assertPreviewOutlines(browser, testCase, exhaustive = false) {
       await page.setViewportSize({ width: 700, height: 900 });
       const card = page.locator('.sp-main > .sp-btn[data-slot="1"]');
       if (!(await card.evaluate(card => card.classList.contains("sp-selected")))) await card.click();
+      // Move away from the card so its resize handle does not cover the measured corner.
+      await page.mouse.move(0, 0);
       await assertPreviewOutlinePixels(page, '.sp-main > .sp-btn[data-slot="1"].sp-selected', `${testCase.slug}/resized artwork`);
     }
     await outlineStyle.evaluate(style => style.remove());

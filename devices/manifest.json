@@ -63,7 +63,7 @@
           "fr": "1fr"
         },
         "btn": {
-          "radius": 2.34375,
+          "radius": 3.125,
           "padding": 1.37,
           "iconSize": 4.69,
           "labelSize": 1.8,
@@ -74,7 +74,7 @@
           "smallTextSize": 1.757812
         },
         "emptyCell": {
-          "radius": 2.34375
+          "radius": 3.125
         },
         "sensorBadge": {
           "top": 1,
@@ -229,7 +229,7 @@
           "fr": "1fr"
         },
         "btn": {
-          "radius": 2.34375,
+          "radius": 3.125,
           "padding": 1.37,
           "iconSize": 4.69,
           "labelSize": 1.8,
@@ -240,7 +240,7 @@
           "smallTextSize": 1.757812
         },
         "emptyCell": {
-          "radius": 2.34375
+          "radius": 3.125
         },
         "sensorBadge": {
           "top": 1,
