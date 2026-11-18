@@ -70,6 +70,7 @@ export interface PreviewContextMenuFeature {
     showSelection(event?: any): void;
     showClockBar(event?: any, item?: any): void;
     showCard(event?: any, slot?: any): void;
+    showGenerated(event: MouseEvent, edit: () => void, remove: () => void): void;
     showBack(event?: any): void;
     showEmpty(event?: any, position?: any): void;
 }
@@ -525,6 +526,10 @@ export function createPreviewContextMenuFeature(dependencies: PreviewContextMenu
             return;
         hideContextMenu();
         var c: any = ctx();
+        if (state.settingsDraft?.generated) {
+            state.settingsDraft = null;
+            c.setSelected([]);
+        }
         if (c.selected.indexOf(slot) === -1) {
             if (c.selected.length > 1) {
                 c.selected.push(slot);
@@ -557,6 +562,16 @@ export function createPreviewContextMenuFeature(dependencies: PreviewContextMenu
         addBackButtonMenuItems();
         document.body.appendChild(ctxMenu);
         positionMenu(ctxMenu, e);
+    }
+    function showGenerated(event: MouseEvent, edit: () => void, remove: () => void) {
+        if (isConfigLocked()) return;
+        hideContextMenu();
+        ctxMenu = document.createElement("div");
+        ctxMenu.className = "sp-ctx-menu";
+        addCtxItem("pencil", "Edit Card", edit);
+        addCtxItem("trash-can-outline", "Delete", remove, true);
+        document.body.appendChild(ctxMenu);
+        positionMenu(ctxMenu, event);
     }
     function addBackButtonMenuItems(this: any) {
         addCtxItem("pencil", "Edit Label", function (this: any) { openCardSettings(-2); });
@@ -625,6 +640,7 @@ export function createPreviewContextMenuFeature(dependencies: PreviewContextMenu
         showSelection: showSelectionMenu,
         showClockBar: showClockBarContextMenu,
         showCard: showContextMenu,
+        showGenerated,
         showBack: showBackContextMenu,
         showEmpty: showEmptySlotMenu,
     };

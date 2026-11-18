@@ -253,10 +253,50 @@
       "lifecycle": { "subscriptions": ["none"], "actions": ["local"], "modalOwner": "none" },
       "modes": [{ "name": "approved_app", "config": { "entity": "com.apple.Safari", "label": "Safari" } }]
     },
+    "companion_app_volume": {
+      "classification": "canonical", "canonicalType": "companion_app_volume", "webRegistration": "companion_app_volume", "firmwareFamily": "SLIDER",
+      "lifecycle": { "subscriptions": ["state"], "actions": ["local"], "modalOwner": "none" },
+      "modes": [{ "name": "approved_app", "config": { "entity": "app.volume.com.example.Player", "label": "Player" } }]
+    },
     "companion_mac_lock": {
       "classification": "canonical", "canonicalType": "companion_mac_lock", "webRegistration": "companion_mac_lock", "firmwareFamily": "COMPANION",
       "lifecycle": { "subscriptions": ["none"], "actions": ["local"], "modalOwner": "none" },
       "modes": [{ "name": "lock", "config": {} }]
+    },
+    "companion_output_volume": {
+      "classification": "canonical", "canonicalType": "companion_output_volume", "webRegistration": "companion_output_volume", "firmwareFamily": "SLIDER",
+      "lifecycle": { "subscriptions": ["state"], "actions": ["local"], "modalOwner": "none" },
+      "modes": [{ "name": "default_device", "config": {} }]
+    },
+    "companion_input_device": {
+      "classification": "canonical", "canonicalType": "companion_input_device", "webRegistration": "companion_input_device", "firmwareFamily": "SLIDER",
+      "lifecycle": { "subscriptions": ["state"], "actions": ["local"], "modalOwner": "none" },
+      "modes": [{ "name": "specific_input", "config": { "entity": "input.level.0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef", "label": "USB Microphone" } }]
+    },
+    "companion_input_volume": {
+      "classification": "canonical", "canonicalType": "companion_input_volume", "webRegistration": "companion_input_volume", "firmwareFamily": "SLIDER",
+      "lifecycle": { "subscriptions": ["state"], "actions": ["local"], "modalOwner": "none" },
+      "modes": [{ "name": "default_device", "config": {} }]
+    },
+    "companion_output_mute": {
+      "classification": "canonical", "canonicalType": "companion_output_mute", "webRegistration": "companion_output_mute", "firmwareFamily": "SLIDER",
+      "lifecycle": { "subscriptions": ["state"], "actions": ["local"], "modalOwner": "none" },
+      "modes": [{ "name": "default_device", "config": {} }]
+    },
+    "companion_input_mute": {
+      "classification": "canonical", "canonicalType": "companion_input_mute", "webRegistration": "companion_input_mute", "firmwareFamily": "SLIDER",
+      "lifecycle": { "subscriptions": ["state"], "actions": ["local"], "modalOwner": "none" },
+      "modes": [{ "name": "default_device", "config": {} }]
+    },
+    "companion_cough": {
+      "classification": "canonical", "canonicalType": "companion_cough", "webRegistration": "companion_cough", "firmwareFamily": "SLIDER",
+      "lifecycle": { "subscriptions": ["state"], "actions": ["local"], "modalOwner": "none" },
+      "modes": [{ "name": "hold_to_mute", "config": {} }]
+    },
+    "companion_obs_cough": {
+      "classification": "canonical", "canonicalType": "companion_obs_cough", "webRegistration": "companion_obs_cough", "firmwareFamily": "SLIDER",
+      "lifecycle": { "subscriptions": ["state"], "actions": ["local"], "modalOwner": "none" },
+      "modes": [{ "name": "hold_to_mute", "config": { "entity": "obs.cough.69da3f8f-7f62-4abe-a594-4e40dd579858" } }]
     },
     "slider": {
       "classification": "canonical", "canonicalType": "slider", "webRegistration": "slider", "firmwareFamily": "SLIDER",
@@ -290,6 +330,46 @@
     }
   },
   "runtimeOnlyTypes": {
+    "companion_obs_transitions": {
+      "classification": "picker_alias",
+      "canonicalType": "subpage",
+      "surfaces": ["web_registry"],
+      "webRegistration": "companion_obs_transitions",
+      "config": { "label": "Transitions", "icon": "Flip Horizontal", "icon_on": "Auto", "type": "subpage", "options": "subpage_connector=mac_companion,subpage_kind=obs_transitions" },
+      "lifecycle": { "subscriptions": ["none"], "actions": ["navigation"], "modalOwner": "none" }
+    },
+    "companion_obs_scenes": {
+      "classification": "picker_alias",
+      "canonicalType": "subpage",
+      "surfaces": ["web_registry"],
+      "webRegistration": "companion_obs_scenes",
+      "config": { "label": "Scenes", "icon": "Image Card Loading", "icon_on": "Auto", "type": "subpage", "options": "subpage_connector=mac_companion,subpage_kind=obs_scenes" },
+      "lifecycle": { "subscriptions": ["none"], "actions": ["navigation"], "modalOwner": "none" }
+    },
+    "companion_obs_studio_control": {
+      "classification": "picker_alias",
+      "canonicalType": "subpage",
+      "surfaces": ["web_registry"],
+      "webRegistration": "companion_obs_studio_control",
+      "config": { "label": "Studio Control", "icon": "Movie", "icon_on": "Auto", "type": "subpage", "options": "subpage_connector=mac_companion,subpage_kind=obs_studio_control" },
+      "lifecycle": { "subscriptions": ["none"], "actions": ["navigation"], "modalOwner": "none" }
+    },
+    "companion_obs_audio": {
+      "classification": "picker_alias",
+      "canonicalType": "subpage",
+      "surfaces": ["web_registry"],
+      "webRegistration": "companion_obs_audio",
+      "config": { "label": "Audio", "icon": "Microphone", "icon_on": "Auto", "type": "subpage", "options": "subpage_connector=mac_companion,subpage_kind=obs_audio" },
+      "lifecycle": { "subscriptions": ["none"], "actions": ["navigation"], "modalOwner": "none" }
+    },
+    "companion_obs_fader": {
+      "classification": "picker_alias",
+      "canonicalType": "slider",
+      "surfaces": ["web_registry"],
+      "webRegistration": "companion_obs_fader",
+      "config": { "entity": "obs.level.69da3f8f-7f62-4abe-a594-4e40dd579858", "label": "Desk Mic", "icon": "Microphone", "icon_on": "Auto", "type": "slider" },
+      "lifecycle": { "subscriptions": ["local"], "actions": ["local"], "modalOwner": "none" }
+    },
     "companion_subpage": {
       "classification": "picker_alias",
       "canonicalType": "subpage",

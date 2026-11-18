@@ -73,6 +73,7 @@ inline bool navigation_driver_setup_visual(
     folder.sensor.clear();
     setup_toggle_visual(slot, folder);
   }
+  apply_instant_button_feedback(slot.btn);
   return true;
 }
 
@@ -195,10 +196,11 @@ inline bool navigation_handle_button_press(const ParsedCfg &config, int slot_num
   if (std::none_of(entries.begin(), entries.end(), [&](const auto &entry) {
         return entry.owner_button == button;
       })) return false;
-  navigation_consume_touch_press(button);
   if (subpage) {
+    navigation_consume_touch_press(button);
     espdesktop::cards::navigation_driver_handle_main_click(context, config, button);
   } else {
+    consume_button_touch_press(button);
     espdesktop::cards::basic_action_driver_handle_main_click(context, config, slot_num, button);
   }
   return true;

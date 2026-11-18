@@ -82,6 +82,16 @@ in `model/companion_card_codec.ts` retains current bytes and unknown options;
 `api/companion_catalogue.ts` owns isolated request/cache state. Offline catalogue
 availability never rewrites a saved card identity.
 
+OBS publishes card presentation alongside the action catalogue, in the same
+generation. `product/v2/companion_capabilities.json` defines the shared states,
+confirmation defaults, and preset controls. Older panels receive the legacy
+labels. Tokens still guard actions against changes after the card was rendered.
+
+The connected editor can submit a draft to `/companion/page-preview`. The
+display projects live entries with the same placement code it uses on screen.
+The request is read-only. The offline editor projects locally, and the native
+layout stores only deliberate edits and the IDs of removed generated cards.
+
 ## Release compatibility
 
 `product/generated/companion_compatibility.json` and the generated public

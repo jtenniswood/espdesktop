@@ -24,13 +24,15 @@ struct CompanionSavedDisplays {
     func load(readKeychainAccounts: () -> [String]) -> [CompanionDisplayRecord] {
         if let data = defaults.data(forKey: Self.key),
            let records = try? JSONDecoder().decode([CompanionDisplayRecord].self, from: data) {
-            return records
+            let displays = records.filter { $0.account != OBSConnection.legacyCredentialAccount }
+            if displays.count != records.count { save(displays) }
+            return displays
         }
         let legacyHost = defaults.string(forKey: "panelHost")
         let legacy = CompanionPairingSelection.restore(
             host: legacyHost,
             account: defaults.string(forKey: "pairingAccount"),
-            readKeychainAccounts: readKeychainAccounts
+            readKeychainAccounts: { readKeychainAccounts().filter { $0 != OBSConnection.legacyCredentialAccount } }
         )
         let records = legacy.account.isEmpty ? [] : [
             CompanionDisplayRecord(host: legacy.host, name: defaults.string(forKey: "panelDisplayName") ?? "",

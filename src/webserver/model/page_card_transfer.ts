@@ -1,7 +1,7 @@
 import { setCardExposure } from "./home_assistant_cards";
 import { cardTransferOwnsSubpage } from "./card_transfer";
 import type { CardConfig } from "../contracts/types";
-import { CARD_CONFIG_FIELDS, cloneCardConfig, emptyCardConfig, parseRawButtonConfig } from "./card";
+import { CARD_CONFIG_FIELDS, cloneCardConfig, emptyCardConfig, isEmptyCardConfig, parseRawButtonConfig } from "./card";
 import { encodeConfigField } from "./config_primitives";
 import { CARD_CONTRACT_SUBPAGE_TYPE_CODES, CARD_CONTRACT_SUBPAGE_TYPES_BY_CODE } from "../generated/card_contract";
 import { buildSubpageGrid, isBackOrderToken, parseBackOrderToken, parseRawSubpageConfig, parseSubpageOrder, serializeSubpageGrid } from "./subpage";
@@ -251,10 +251,8 @@ function pasteCards<Tree>(editor: TransferEditor<Tree>, target: number, start: n
     // Home runtime uses fixed grid identities; subpages can retain higher saved IDs.
     const maxIdentity = target ? PANEL_CONFIG_MAX_SLOT_COUNT : layout.slots;
     for (let possible = 1; possible <= maxIdentity; ++possible) {
-      const button = destination.cards[possible - 1];
-      const empty = !button || CARD_CONFIG_FIELDS.every(field => !button[field] ||
-        ((field === "icon" || field === "icon_on") && button[field] === "Auto"));
-      if (!destination.grid.includes(possible) && !edits.has(possible) && empty && !editor.subtreeAt(target, possible)) { slot = possible; break; }
+      if (!destination.grid.includes(possible) && !edits.has(possible) &&
+          isEmptyCardConfig(destination.cards[possible - 1]) && !editor.subtreeAt(target, possible)) { slot = possible; break; }
     }
     check(slot, "There is not enough room to paste every card without replacing saved cards");
     const placement = findDuplicatePlacement(destination.grid.slice(0, layout.slots), start, entry.size, layout.slots, layout.columns);

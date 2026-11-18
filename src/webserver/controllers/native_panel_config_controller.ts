@@ -29,6 +29,7 @@ export interface NativePanelConfigControllerDependencies {
   readonly fetch: NativePanelConfigFetch | null;
   readonly deviceProfile: () => string;
   readonly slotCount: () => number;
+  readonly presetPageGeometry?: () => { columns: number; slots: number };
   readonly entityName: (name: string) => string;
   readonly entityNameForSlot: (name: string, slot: number) => string;
   readonly normalizeHexColor: (value: string, fallback: string) => string;
@@ -304,7 +305,7 @@ export class NativePanelConfigController {
       );
     };
     return this.schedule(card ? this.withNativeEdit(update, draft => {
-      draft.writeRootCard(slot, card);
+      draft.writeRootCard(slot, card, this.dependencies.presetPageGeometry?.());
       if (order !== undefined) draft.writeSetting("button_order", order);
     }) : update);
   }
@@ -347,7 +348,7 @@ export class NativePanelConfigController {
       if (current.deviceProfile !== this.dependencies.deviceProfile()) throw new Error("Device profile changed");
       return updateEditorPage(current, slot, typeof value === "string" ? value : value());
     };
-    return this.schedule(page === undefined ? update : this.withNativeEdit(update, draft => draft.writePage(slot, page)));
+    return this.schedule(page === undefined ? update : this.withNativeEdit(update, draft => draft.writePage(slot, page, this.dependencies.presetPageGeometry?.())));
   }
 
 }

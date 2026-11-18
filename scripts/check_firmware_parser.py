@@ -141,6 +141,7 @@ constexpr int LV_GRID_ALIGN_STRETCH = 1;
 constexpr int LV_OPA_TRANSP = 0;
 constexpr int LV_OPA_COVER = 255;
 constexpr int LV_OPA_50 = 128;
+constexpr int LV_OPA_60 = 153;
 constexpr int LV_OBJ_FLAG_CLICKABLE = 1;
 constexpr int LV_OBJ_FLAG_HIDDEN = 2;
 constexpr int LV_OBJ_FLAG_USER_2 = 4;
@@ -1120,6 +1121,8 @@ def main() -> int:
         shutil.copy2(ROOT / "components" / "espdesktop" / "sun_calc.h", tmp_path / "sun_calc.h")
         shutil.copy2(COMPANION_TIMEZONE_HEADER, tmp_path / "companion_timezone.h")
         shutil.copy2(COMPANION_CAPABILITIES_HEADER, tmp_path / "companion_capabilities_generated.h")
+        for name in ("companion_audio_control.h", "companion_obs_confirmation.h"):
+            shutil.copy2(PARSER_HEADER.with_name(name), tmp_path / name)
         shutil.copy2(PARSER_HEADER.parent / "app_shortcuts_generated.h", tmp_path / "app_shortcuts_generated.h")
         shutil.copy2(DISPLAY_COLOR_HEADER, tmp_path / "display_color.h")
         shutil.copy2(SCREEN_LOCK_STATE_HEADER, tmp_path / "screen_lock_state.h")

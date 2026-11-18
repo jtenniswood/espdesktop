@@ -1,0 +1,25 @@
+{
+  "label": "Input per device level",
+  "pickerKey": "companion_output_volume",
+  "allowInSubpage": true,
+  "domains": [],
+  "normalization": {
+    "fields": {
+      "entity": { "policy": "keep" },
+      "label": { "policy": "keep" },
+      "icon": { "policy": "default_if_empty", "value": "Microphone" },
+      "icon_on": { "policy": "default", "value": "Auto" },
+      "sensor": { "policy": "clear" },
+      "unit": { "policy": "clear" },
+      "type": { "policy": "default", "value": "companion_input_device" },
+      "precision": { "policy": "clear" },
+      "options": { "policy": "clear" }
+    },
+    "unknownOptions": "drop",
+    "canonicalOptionOrder": []
+  },
+  "default": {
+    "entity": "", "label": "", "icon": "Microphone", "icon_on": "Auto",
+    "sensor": "", "unit": "", "type": "companion_input_device", "precision": "", "options": ""
+  }
+}

@@ -33,7 +33,12 @@ const TestApp *active_espdesktop_app_core() { return &app_core; }
 #include <map>
 #include <string>
 #include <vector>
-struct lv_obj_t { lv_obj_t *screen = nullptr; std::vector<lv_obj_t *> children{}; void *data = nullptr; bool checked = false; };
+struct lv_obj_t {
+  lv_obj_t *screen = nullptr;
+  std::vector<lv_obj_t *> children{};
+  void *data = nullptr;
+  int state = 0;
+};
 constexpr unsigned MALLOC_CAP_SPIRAM = 1, MALLOC_CAP_8BIT = 2;
 size_t test_free_psram = 8 * 1024 * 1024;
 size_t heap_caps_get_free_size(unsigned) { return test_free_psram; }
@@ -81,6 +86,18 @@ void *lv_obj_get_user_data(lv_obj_t *o) { return o->data; }
 // Model a costly image refresh: it must see the destination frame presented.
 lv_obj_t *last_presented = nullptr;
 unsigned frames_presented = 0, image_refreshes = 0;
+constexpr int LV_STATE_CHECKED = 1, LV_STATE_PRESSED = 2, LV_STATE_DISABLED = 4;
+bool lv_obj_has_state(lv_obj_t *obj, int state) { return (obj->state & state) == state; }
+lv_obj_t *pressed_card_to_present = nullptr;
+unsigned press_frames_presented = 0;
+bool press_consumed = false;
+void sync_bound_card_text_color(lv_obj_t *button) {
+  assert(lv_obj_has_state(button, LV_STATE_PRESSED));
+}
+void consume_button_touch_press(lv_obj_t *button) {
+  press_consumed = true;
+  button->state &= ~LV_STATE_PRESSED;
+}
 struct lv_display_t {} display;
 constexpr int LV_EVENT_REFR_READY = 100;
 void (*frame_callback)(lv_event_t *) = nullptr;
@@ -91,15 +108,21 @@ void lv_display_add_event_cb(lv_display_t *d, void (*cb)(lv_event_t *), int even
 }
 lv_display_t *lv_obj_get_display(lv_obj_t *) { return &display; }
 void lv_refr_now(lv_display_t *d) {
-  assert(d == &display); last_presented = active; ++frames_presented;
+  assert(d == &display);
+  if (pressed_card_to_present) {
+    assert(!press_consumed && lv_obj_has_state(pressed_card_to_present, LV_STATE_PRESSED));
+    assert(pressed_card_to_present->screen == active);
+    ++press_frames_presented;
+    return;
+  }
+  last_presented = active;
+  ++frames_presented;
 }
 void refresh_visible_image_cards() {
   assert(last_presented == active && frames_presented == image_refreshes + 1);
   ++image_refreshes;
 }
 unsigned applies = 0, title_refreshes = 0;
-constexpr int LV_STATE_CHECKED = 1;
-bool lv_obj_has_state(lv_obj_t *obj, int) { return obj->checked; }
 void companion_apply_app_icon_card_palette(CompanionAppIconImageData &, lv_obj_t *) {}
 void companion_apply_cached_app_icon(CompanionAppIconImageData &source, lv_obj_t *image) {
   ++applies;
@@ -130,6 +153,7 @@ code += function("components/espdesktop/button_grid_grid.h", "inline void compan
 code += function("components/espdesktop/button_grid_grid.h", "inline void grid_release_runtime_allocations(")
 code += function("components/espdesktop/button_grid_navigation.h", "inline std::function<void()> &navigation_subpage_clock_bar_refresh() {")
 code += function("components/espdesktop/button_grid_navigation.h", "inline void navigation_subpage_screen_changed(lv_event_t *) {")
+code += function("components/espdesktop/button_grid_navigation.h", "inline void navigation_consume_touch_press(")
 code += function("components/espdesktop/button_grid_navigation.h", "inline void navigation_present_page_before_image_refresh(uint32_t started) {")
 for signature in ("inline bool companion_app_icon_pixels_current(",
                   "inline void companion_refresh_cached_app_icon(",
@@ -147,6 +171,18 @@ void settle_icon_work() {
   }
 }
 int main() {
+  lv_obj_t subpage_button{&home};
+  subpage_button.state = LV_STATE_PRESSED;
+  pressed_card_to_present = &subpage_button;
+  navigation_consume_touch_press(&subpage_button);
+  assert(press_consumed && subpage_button.state == 0 && press_frames_presented == 1);
+  pressed_card_to_present = nullptr;
+  for (int state : {LV_STATE_CHECKED, LV_STATE_DISABLED}) {
+    subpage_button.state = state | LV_STATE_PRESSED;
+    press_consumed = false;
+    navigation_consume_touch_press(&subpage_button);
+    assert(press_consumed && subpage_button.state == state && frames_presented == 0);
+  }
   // Cache eviction frees only the hidden page's contexts without closing the
   // visible modal. Releasing its own context still closes it.
   int home_context = 0, subpage_context = 0;
@@ -302,7 +338,7 @@ int main() {
   // performs the old unbounded batch of all visible icons.
   esphome::companion::app_icon_store().hashes["app0"].fill(4);
   esphome::companion::app_icon_store().hashes["app1"].fill(5);
-  cached_owners[1].checked = true;
+  cached_owners[1].state = LV_STATE_CHECKED;
   companion_refresh_cached_app_icon("");
   assert(applies == before && cached[0].refresh_pending && cached[1].refresh_pending);
   companion_process_pending_app_icon_refresh();
