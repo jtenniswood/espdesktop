@@ -75,6 +75,7 @@ export async function runConnectorsFeatureTests(): Promise<void> {
     () => {
       const card = element(); card.id = "home-assistant-card"; return card as unknown as HTMLElement;
     },
+    { infoPanel() { throw new Error("Supported displays should show connector cards"); } },
   );
   if (feature.homeAssistantConfigured() || feature.homeAssistantConnected() ||
       feature.homeAssistantSettingsAvailable() || feature.homeAssistantCardPickerEnabled()) {
