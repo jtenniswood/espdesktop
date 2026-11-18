@@ -82,7 +82,8 @@ struct SliderCtx {
 };
 
 inline void setup_slider_visual(BtnSlot &slot, const ParsedCfg &config,
-                                const CardPalette &palette, bool interactive = true);
+                                const CardPalette &palette, const DisplayProfile &display,
+                                bool interactive = true);
 
 inline CardPadding capture_card_padding(lv_obj_t *btn) {
   CardPadding padding;
@@ -333,7 +334,7 @@ inline const char *slider_icon_on(const std::string &type, const std::string &en
 }
 
 inline void setup_slider_visual(BtnSlot &s, const ParsedCfg &p, const CardPalette &palette,
-                                bool interactive) {
+                                const DisplayProfile &display, bool interactive) {
   ESP_LOGI("slider", "Setup Mac volume slider for %s (%s)",
     p.entity.c_str(), p.type.c_str());
   setup_toggle_visual(s, p);
@@ -341,8 +342,7 @@ inline void setup_slider_visual(BtnSlot &s, const ParsedCfg &p, const CardPalett
   const CardPadding padding = capture_card_padding(s.btn);
 
   bool horizontal = false;
-  const auto colors = card_slider_colors(palette);
-  lv_obj_t *slider = setup_slider_widget(s.btn, colors.fill, horizontal);
+  lv_obj_t *slider = setup_slider_widget(s.btn, card_slider_fill_color(palette), horizontal);
   if (!slider) {
     ESP_LOGW("slider", "Slider setup failed for %s; falling back to toggle card",
       p.entity.c_str());
@@ -367,8 +367,9 @@ inline void setup_slider_visual(BtnSlot &s, const ParsedCfg &p, const CardPalett
     if (s.sensor_container) lv_obj_add_flag(s.sensor_container, LV_OBJ_FLAG_HIDDEN);
     return;
   }
-  if (colors.background != palette.off_val) {
-    apply_button_colors(s.btn, false, 0, true, colors.background);
+  if (palette.custom_background) {
+    theme_set_content_background(s.btn, false);
+    apply_button_colors(s.btn, false, 0, true, display_correct_color(current_theme().surface_card, display));
     sync_card_checked_text_color(s.btn);
   }
   // The local slider driver deletes this state with its LVGL slider.

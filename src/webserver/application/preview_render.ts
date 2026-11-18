@@ -21,7 +21,7 @@ import {
     buttonConfigDisabledForDevice as isButtonConfigDisabledForDevice,
     cardPreviewTextColor,
     cardProgressColor,
-    cardSliderColors,
+    cardSliderPreviewFillColor,
     applySliderPreviewTextContrast,
     cardPatternHighlightColor,
     cardTypePickerDetails,
@@ -614,9 +614,9 @@ export function createPreviewRenderFeature(dependencies: PreviewRenderDependenci
                 const customActive = configOptionValue(b.options, "card_on_color").replace(/^#/, "");
                 const explicitActive = activeMode === "theme" || (activeMode === "custom" && /^[0-9A-F]{6}$/i.test(customActive));
                 const isSlider = b.type !== "media" && btn.querySelector(".sp-slider-fill");
-                const sliderColors = isSlider ? cardSliderColors(cardOffColor, activeColor, explicitActive) : null;
-                const sliderFillColor = typePreview?.sliderMuted ? "808080" : sliderColors?.fill;
-                const offColor = sliderColors?.background ?? cardOffColor;
+                const sliderFillColor = typePreview?.sliderMuted ? "808080"
+                    : isSlider ? cardSliderPreviewFillColor(cardOffColor, activeColor, explicitActive) : "";
+                const offColor = isSlider ? "" : cardOffColor;
                 let contrastBackground = (typePreview?.isOn ? cardOnColor : offColor) ||
                     (typePreview?.sensorSurface ? previewColors.surfaceSensor : color);
                 btn.style.backgroundColor = "#" + contrastBackground;
@@ -636,7 +636,7 @@ export function createPreviewRenderFeature(dependencies: PreviewRenderDependenci
                             " 12px,#" + cardPatternHighlightColor(onColor) + " 12px,#" + cardPatternHighlightColor(onColor) + " 20px)";
                 }
                 if (!btn.classList.contains("sp-image-card")) {
-                    btn.style.setProperty("--card-text-color", cardOffColor || contrastBackground !== color
+                    btn.style.setProperty("--card-text-color", offColor || contrastBackground !== color
                         ? cardPreviewTextColor(contrastBackground) : "#" + previewColors.textPrimary);
                 }
                 if (!dependencies.homeAssistantSupported() && cardRequiresHomeAssistant(b.type || "", b)) {

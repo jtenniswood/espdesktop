@@ -39,7 +39,7 @@ void lv_obj_add_event_cb(lv_obj_t *, void(*)(lv_event_t *), int, void *) {}
 void lv_label_set_display_text(lv_obj_t *obj, const char *text) { obj->text = text; }
 int layouts = 0, setups = 0, bindings = 0, local_bindings = 0;
 int mute_setups = 0, mute_bindings = 0;
-void setup_slider_visual(BtnSlot &, const ParsedCfg &, const CardPalette &, bool) { ++setups; }
+void setup_slider_visual(BtnSlot &, const ParsedCfg &, const CardPalette &, const DisplayProfile &, bool) { ++setups; }
 void refresh_slider_card_layout(BtnSlot &) { ++layouts; }
 void setup_toggle_visual(BtnSlot &, const ParsedCfg &) { ++mute_setups; }
 int transitions_removed = 0;

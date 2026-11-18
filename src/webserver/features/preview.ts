@@ -4,6 +4,7 @@ export { cardTypeConnector, cardRequiresHomeAssistant } from "../model/legacy_ho
 import { configOptionValue } from "../model/config_primitives";
 
 import { activeCardColor, lighterCardColor } from "../model/config_primitives";
+import { PREVIEW_THEME_COLORS } from "../state/preview_theme";
 
 export interface Point {
   readonly x: number;
@@ -200,12 +201,15 @@ export function darkerCardColor(background: string, percent: number): string {
     Math.floor(parseInt(hex.slice(offset, offset + 2), 16) * percent / 100).toString(16).padStart(2, "0").toUpperCase()).join("");
 }
 
-export function cardSliderColors(background: string, active: string, explicitActive: boolean) {
-  const fill = cardSliderFillColor(background, explicitActive ? active : "") || active;
-  if (background && !explicitActive && cardRelativeLuminance(fill) < cardRelativeLuminance(background)) {
-    return { background: fill, fill: background };
+export function cardSliderPreviewFillColor(selected: string, active: string, explicitActive: boolean): string {
+  if (!selected || explicitActive) return active;
+  const shade = cardSliderFillColor(selected);
+  const selectedIsBrighter = cardRelativeLuminance(selected) > cardRelativeLuminance(shade);
+  const brighter = selectedIsBrighter ? selected : shade;
+  if (brighter === PREVIEW_THEME_COLORS.Dark.surfaceCard || brighter === PREVIEW_THEME_COLORS.Light.surfaceCard) {
+    return selectedIsBrighter ? shade : selected;
   }
-  return { background, fill };
+  return brighter;
 }
 
 export function cardPatternHighlightColor(background: string): string {
