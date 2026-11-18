@@ -33,6 +33,8 @@ Start with **Duplicate**, **Frame**, and **New Component**. Duplicate a starting
 
 ## Figma shortcuts FAQ
 
+<div class="shortcut-faq">
+
 ::: details Can I use a touchscreen for Figma keyboard shortcuts on Mac?
 Yes. EspDesktop turns Figma keyboard shortcuts into labelled touchscreen buttons. When you tap a button, the EspDesktop Mac app sends its key combination to Figma. For example, tapping **Duplicate** sends **Command + D** to duplicate the selected layer.
 :::
@@ -53,4 +55,81 @@ Yes. Once Figma has an app subpage, EspDesktop can open it when Figma becomes th
 Check that EspDesktop has [macOS Accessibility permission](/mac-controls/shortcuts#allow-accessibility-access), then try the same shortcut on your Mac with a Figma design open. Commands such as **Duplicate** and **Frame** need a selection on the canvas.
 :::
 
+</div>
+
 [Browse all application shortcuts](/reference/shortcut-presets).
+
+<style scoped>
+.shortcut-faq {
+  margin: 16px 0 24px;
+  overflow: hidden;
+  border: 1px solid var(--vp-c-divider);
+  border-radius: 12px;
+  background: var(--vp-c-bg-soft);
+}
+
+.shortcut-faq .custom-block.details {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+
+.shortcut-faq .custom-block.details + .details {
+  border-top: 1px solid var(--vp-c-divider);
+}
+
+.shortcut-faq .details > summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  min-height: 56px;
+  margin: 0;
+  padding: 14px 18px;
+  list-style: none;
+  color: var(--vp-c-text-1);
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.shortcut-faq .details > summary::-webkit-details-marker {
+  display: none;
+}
+
+.shortcut-faq .details > summary::after {
+  content: '';
+  flex: 0 0 9px;
+  height: 9px;
+  margin: 0 3px 4px;
+  border-right: 2px solid currentColor;
+  border-bottom: 2px solid currentColor;
+  color: var(--vp-c-text-2);
+  transform: rotate(45deg);
+}
+
+.shortcut-faq .details[open] > summary::after {
+  margin: 4px 3px 0;
+  color: var(--vp-c-brand-1);
+  transform: rotate(225deg);
+}
+
+.shortcut-faq .details > summary:hover,
+.shortcut-faq .details[open] > summary {
+  color: var(--vp-c-brand-1);
+}
+
+.shortcut-faq .details > summary:focus-visible {
+  outline: 2px solid var(--vp-c-brand-1);
+  outline-offset: -3px;
+}
+
+.shortcut-faq .details > summary + p {
+  margin: 0;
+  padding: 0 18px 18px;
+  color: var(--vp-c-text-2);
+  font-size: 0.9375rem;
+  line-height: 1.65;
+}
+</style>
