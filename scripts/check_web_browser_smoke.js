@@ -7995,6 +7995,20 @@ async function assertAppleShortcutSubpage(browser, directCard = false) {
     if (directCard) {
       await app.locator(".sp-companion-app-icon").waitFor();
       assert.equal(await app.getAttribute("data-icon-size"), "small");
+      for (const hover of [false, true]) {
+        if (hover) await app.hover();
+        const { gap, padding } = await app.evaluate(card => {
+          const tile = card.getBoundingClientRect();
+          const label = card.querySelector(".sp-btn-label").getBoundingClientRect();
+          const scale = tile.height / card.offsetHeight;
+          return {
+            gap: (tile.bottom - label.bottom) / scale,
+            padding: parseFloat(getComputedStyle(card).paddingBottom),
+          };
+        });
+        assert.ok(Math.abs(gap - padding) < 1,
+          `The Apple Shortcuts label sits at the bottom with ${hover ? "a visible" : "a hidden"} chevron (gap ${gap}, padding ${padding})`);
+      }
     }
     async function editFromSubpage() {
       await app.click({ button: "right" });
