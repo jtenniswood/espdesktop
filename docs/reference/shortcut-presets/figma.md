@@ -14,7 +14,7 @@ import ShortcutPresetReference from '../../.vitepress/theme/components/ShortcutP
   <img src="/images/espdesktop-desk.jpg" alt="EspDesktop touchscreen on a desk stand beside a Mac keyboard" width="1320" height="1093">
 </picture>
 
-Keep your most-used Figma shortcuts on a small touchscreen beside your Mac. Give each action a labelled button so you can keep your eyes on the canvas and tap the command you want.
+EspDesktop is a small touchscreen that pairs with your Mac and puts your favourite Figma keyboard shortcuts on labelled buttons. Select a layer in Figma and tap **Duplicate** on the display. EspDesktop sends **Command + D** to Figma, so you can make a copy with one tap. Build a page of the shortcuts you use most and keep them within reach beside your keyboard.
 
 ## What can I do with it?
 
