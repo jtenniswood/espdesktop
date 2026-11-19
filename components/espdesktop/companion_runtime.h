@@ -65,6 +65,24 @@ class CompanionCatalogueLimits {
   size_t mac_{0};
 };
 
+struct CompanionTwitchControl {
+  std::string id;
+  std::string label;
+  std::string detail;
+  std::string command;
+  bool enabled{false};
+  bool active{false};
+
+  bool operator==(const CompanionTwitchControl &other) const {
+    return id == other.id && label == other.label && detail == other.detail &&
+      command == other.command && enabled == other.enabled && active == other.active;
+  }
+};
+
+inline bool companion_twitch_card(std::string_view id) {
+  return id.rfind("twitch.", 0) == 0;
+}
+
 struct CompanionValue {
   std::string id;
   int value{0};
@@ -135,6 +153,7 @@ struct CompanionRuntimeSnapshot {
   uint32_t url_focus_targets_generation{0};
   bool application_highlight_known{false};
   std::string application_highlight_id;
+  std::vector<CompanionTwitchControl> twitch_controls{};
 };
 
 inline std::string companion_network_address(const CompanionRuntimeSnapshot &snapshot,
@@ -304,7 +323,7 @@ class CompanionRuntimeService {
     std::lock_guard<std::mutex> lock(mutex_);
     return {actions_, values_, focused_action_id_, focused_action_ids_, keyboard_actions_supported_,
             connected_, system_metrics_, url_focus_targets_,
-            url_focus_targets_generation_, application_highlight_known_, application_highlight_id_};
+            url_focus_targets_generation_, application_highlight_known_, application_highlight_id_, twitch_controls_};
   }
 
   std::string highlighted_application() const {
@@ -345,6 +364,19 @@ class CompanionRuntimeService {
     if (actions == actions_) return;
     if (!actions.empty()) ++action_catalogue_generation_;
     actions_ = std::move(actions);
+    request_refresh_();
+  }
+
+  std::vector<CompanionTwitchControl> twitch_controls() const {
+    std::lock_guard<std::mutex> lock(mutex_);
+    return twitch_controls_;
+  }
+
+  void set_twitch_controls(std::vector<CompanionTwitchControl> controls) {
+    std::lock_guard<std::mutex> lock(mutex_);
+    if (!connected_ || controls == twitch_controls_) return;
+    twitch_controls_ = std::move(controls);
+    ++action_catalogue_generation_;
     request_refresh_();
   }
 
@@ -527,6 +559,7 @@ class CompanionRuntimeService {
     }
     if (!connected_) {
       values_.clear();
+      twitch_controls_.clear();
       pending_mutes_ = {};
       focused_action_id_.clear();
       focused_action_ids_.clear();
@@ -552,6 +585,7 @@ class CompanionRuntimeService {
 
   mutable std::mutex mutex_;
   std::vector<CompanionAction> actions_;
+  std::vector<CompanionTwitchControl> twitch_controls_;
   uint32_t action_catalogue_generation_{0};
   bool application_highlight_known_{false};
   std::string application_highlight_id_;

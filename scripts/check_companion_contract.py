@@ -34,7 +34,7 @@ def main() -> int:
 
     required_messages = {
         "hello", "pair.request", "pair.accepted", "auth.request", "auth.accepted",
-        "capabilities", "catalogue.request", "catalogue.page", "action.invoke",
+        "capabilities", "catalogue.request", "catalogue.page", "twitch.state", "action.invoke",
         "action.result", "value.set", "value.state", "focus.changed",
         "timezone.changed", "now_playing", "system_metrics", "artwork.begin",
         "artwork.ack", "artwork.end", "artwork.abort", "artwork.request",

@@ -90,6 +90,7 @@ final class CompanionConnection: NSObject {
     private var focusPublicationTask: Task<Void, Never>?
     private var applicationFocusPublisher = CompanionApplicationFocusPublisher()
     private var catalogueGeneration: UInt32 = 0
+    private var supportsTwitchControls: Bool { peerCapabilityVersion >= 23 }
     private var supportsOBSCards = false
     private var supportsOBSStarter = false
     private var peerCapabilityVersion: UInt32 = 0
@@ -586,7 +587,8 @@ final class CompanionConnection: NSObject {
             let requestIdentifier = payload.requestId
             let kind = payload.kind
             if kind == "action", let actionIdentifier = payload.actionId {
-                if (actionIdentifier.hasPrefix("obs.") && !supportsOBSCards) ||
+                if (actionIdentifier.hasPrefix("twitch.") && !supportsTwitchControls) ||
+                    (actionIdentifier.hasPrefix("obs.") && !supportsOBSCards) ||
                     (actionIdentifier.hasPrefix("obs.output.") && !supportsOBSOutputs) ||
                     (actionIdentifier.hasPrefix("obs.brb.") && !supportsOBSBreak) ||
                     (actionIdentifier.hasPrefix(OBSConnection.AdaptiveScene.prefix) && !supportsOBSStarter) {
@@ -597,7 +599,12 @@ final class CompanionConnection: NSObject {
                 Task { [weak self, weak requestingTask] in
                     guard let self, let requestingTask, self.task === requestingTask, self.sessionAuthenticated else { return }
                     let status: String
-                    if actionIdentifier.hasPrefix("obs.output.") || actionIdentifier.hasPrefix("obs.brb.") ||
+                    if actionIdentifier.hasPrefix("twitch.") {
+                        let performed = await self.resources.performTwitchAction(actionIdentifier) {
+                            self.task === requestingTask && self.sessionAuthenticated
+                        }
+                        status = performed ? "performed" : "not_allowed"
+                    } else if actionIdentifier.hasPrefix("obs.output.") || actionIdentifier.hasPrefix("obs.brb.") ||
                         actionIdentifier.hasPrefix("obs.take.") ||
                         actionIdentifier.hasPrefix(OBSConnection.AdaptiveScene.prefix) ||
                         actionIdentifier.hasPrefix(OBSConnection.studioModeID + ".") ||
@@ -866,6 +873,20 @@ final class CompanionConnection: NSObject {
         send(value)
     }
 
+    func publishTwitchControls(_ controls: [TwitchBroadcast.PanelControl]) {
+        guard sessionAuthenticated, supportsTwitchControls else { return }
+        let items: [[String: Any]] = controls.map { control in
+            var item: [String: Any] = [
+                "id": control.id, "label": Self.twitchDisplayText(control.label, fallback: "Twitch"),
+                "detail": Self.twitchDisplayText(control.detail, fallback: ""),
+                "active": control.active, "enabled": control.enabled,
+            ]
+            if let command = control.command { item["command"] = command }
+            return item
+        }
+        sendJSON(["type": "twitch.state", "items": items])
+    }
+
     func publishCatalogue(obsActions: [OBSConnection.CatalogueEntry]? = nil) {
         // An initial empty scan is provisional; publishing it would prune the
         // panel's persistent icons before discovery supplies the real app list.
@@ -881,7 +902,11 @@ final class CompanionConnection: NSObject {
         if supportsOBSCards { capabilities.append("obs_scene_cards") }
         if supportsOBSOutputs { capabilities.append("obs_output_controls") }
         if supportsOBSBreak { capabilities.append("obs_brb") }
-        if obsActions == nil { sendJSON(["type": "capabilities", "values": capabilities]) }
+        if supportsTwitchControls { capabilities.append("twitch_controls") }
+        if obsActions == nil {
+            sendJSON(["type": "capabilities", "values": capabilities])
+            publishTwitchControls(resources.twitchControls())
+        }
         let obsOnly = obsActions != nil && peerCapabilityVersion >= 22
         let supportedOBSActions = supportsOBSCards ? obsActions ?? resources.obsControlActions() : []
         let obsEntries: [[String: Any]] = supportedOBSActions.filter { entry in
@@ -1108,6 +1133,15 @@ final class CompanionConnection: NSObject {
         if value == SystemMediaController.coughID { return supportsCoughButton }
         return SystemMediaController.volumeControlIDs.contains(value) ||
             (appVolumeSupported && CompanionProtocolDecoder.appVolumeBundleIdentifier(value) != nil)
+    }
+
+    private static func twitchDisplayText(_ value: String, fallback: String) -> String {
+        var text = ""
+        for character in value where !character.unicodeScalars.contains(where: CharacterSet.controlCharacters.contains) {
+            guard text.utf8.count + String(character).utf8.count <= 96 else { break }
+            text.append(character)
+        }
+        return text.isEmpty ? fallback : text
     }
 
     private static func catalogueLabel(_ value: String, fallback: String) -> String {

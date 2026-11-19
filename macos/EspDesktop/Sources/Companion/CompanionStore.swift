@@ -98,6 +98,8 @@ struct ApprovedFolder: Codable, Identifiable, Hashable {
 final class CompanionStore: NSObject, ObservableObject {
     let updater = CompanionUpdater()
     let obs: OBSConnection
+    let twitch: TwitchBroadcast
+    private var twitchObservation: AnyCancellable?
     private var obsCatalogueObservation: AnyCancellable?
     private var obsAudioObservation: AnyCancellable?
     @Published var settingsRequestID: UUID?
@@ -186,6 +188,7 @@ final class CompanionStore: NSObject, ObservableObject {
             : (UserDefaults(suiteName: Self.preferencesSuite) ?? .standard))
         self.defaults = stableDefaults
         obs = OBSConnection(defaults: stableDefaults)
+        twitch = TwitchBroadcast(defaults: stableDefaults)
         let savedDisplays = CompanionSavedDisplays(defaults: stableDefaults)
         self.savedDisplays = savedDisplays
         approvedApplicationIdentifiers = Set(
@@ -203,6 +206,9 @@ final class CompanionStore: NSObject, ObservableObject {
             .sink { [weak self] actions in
                 self?.publishToConnectedDisplays { $0.publishCatalogue(obsActions: actions) }
             }
+        twitchObservation = twitch.$panelControls.removeDuplicates().sink { [weak self] controls in
+            self?.publishToConnectedDisplays { $0.publishTwitchControls(controls) }
+        }
         obsAudioObservation = obs.$state.map(OBSConnection.audioValues).removeDuplicates().sink { [weak self] values in
             self?.publishToConnectedDisplays { $0.publishOBSAudioValues(values) }
         }
@@ -940,6 +946,12 @@ final class CompanionStore: NSObject, ObservableObject {
         }
         guard let (output, token) = OBSConnection.Output.command(actionIdentifier) else { return false }
         return await obs.performOutput(output, token: token, isValid: canSend)
+    }
+
+    func twitchControls() -> [TwitchBroadcast.PanelControl] { twitch.panelControls }
+
+    func performTwitchAction(_ command: String, isValid: @escaping @MainActor () -> Bool) async -> Bool {
+        await twitch.invokePanel(command) { isValid() && !self.sessionLock.refresh() }
     }
 
     func obsControlActions() -> [OBSConnection.CatalogueEntry] {

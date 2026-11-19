@@ -75,6 +75,13 @@ plutil -replace CFBundleVersion -string "${BUILD_NUMBER}" "${APP_DIR}/Contents/I
 if [[ "${ESPDESKTOP_RELEASE_BUILD:-0}" == "1" ]]; then
     plutil -replace EspDesktopDevelopmentBuild -bool NO "${APP_DIR}/Contents/Info.plist"
 fi
+if [[ -n "${ESPDESKTOP_TWITCH_CLIENT_ID:-}" ]]; then
+    if [[ ! "${ESPDESKTOP_TWITCH_CLIENT_ID}" =~ ^[a-zA-Z0-9]{10,64}$ ]]; then
+        echo "ESPDESKTOP_TWITCH_CLIENT_ID must be a public Twitch client ID." >&2
+        exit 1
+    fi
+    plutil -insert EspDesktopTwitchClientID -string "${ESPDESKTOP_TWITCH_CLIENT_ID}" "${APP_DIR}/Contents/Info.plist"
+fi
 plutil -lint "${APP_DIR}/Contents/Info.plist"
 plutil -lint "${APP_DIR}/Contents/Resources/PrivacyInfo.xcprivacy"
 

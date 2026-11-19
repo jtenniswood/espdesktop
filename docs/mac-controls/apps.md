@@ -95,3 +95,25 @@ See [OBS Support](/mac-controls/obs) for setup and touchscreen controls.
 ## Website cards {#open-a-website}
 
 To add a tile for a web address, see [Open Websites on Your Mac](/mac-controls/websites).
+
+## Twitch broadcast controls
+
+Twitch cards use your connected Twitch channel. Keep an OBS **Streaming** card beside **Twitch Status** to see when OBS is sending video and when Twitch has made the channel live. The Twitch card shows the viewer count while the channel is live.
+
+1. In the EspDesktop Mac app, open **Settings → Twitch**.
+2. If **Public Twitch client ID** is blank, register a public app in the [Twitch developer console](https://dev.twitch.tv/console/apps) and copy its client ID into that field. Select **Connect Twitch**, open **Enter code on Twitch**, and authorize your broadcast account. EspDesktop stores sign-in credentials in the Mac Keychain.
+3. In the display editor, choose **Add Card → Twitch**, then select a control. Put the cards on Home or organize them in a subpage.
+
+| Control | Setup and behaviour |
+| --- | --- |
+| Twitch Status | Shows Twitch’s confirmed live status independently of OBS. |
+| Apply Stream Details | Set a title on the Mac. You can also search for a category and replace tags. |
+| Mark Moment | Adds an editing marker when the channel is live with past broadcasts enabled. Set an optional note on the Mac. |
+| Clip That | Creates a Twitch clip when the channel is live and clipping is allowed. Open the finished clip in **Settings → Twitch**. |
+| Run Ad | Choose a length on the Mac. The card waits for Twitch’s cooldown before another ad can run. |
+| Start Poll and End Poll | Save a question, choices and duration on the Mac. |
+| Start, Lock and Cancel Prediction | Save a question, outcomes and duration on the Mac. Lock closes voting. Cancel refunds the Channel Points. |
+| Resolve Prediction | Add a card for each outcome you want to select on the display. It shows the current outcome name. Check the name before confirming. |
+| Stream Manager and Twitch Inspector | Open the corresponding Twitch tool on the Mac. |
+
+Ads, polls, and predictions each need separate authorization. The Twitch API requires Affiliate or Partner status for ads and polls. Predictions require Channel Points on your channel. Enable the controls you want in **Settings → Twitch**, then choose **Renew Authorization**. The display asks for confirmation before changing channel details, running an ad, or updating a poll or prediction.

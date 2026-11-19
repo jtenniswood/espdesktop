@@ -1687,5 +1687,86 @@
     "direction": "panel_to_mac",
     "state": "connected",
     "valid": false
+  },
+  {
+    "name": "paired Twitch state",
+    "message": {
+      "protocol": 4,
+      "type": "twitch.state",
+      "items": [
+        {
+          "id": "twitch.status",
+          "label": "Twitch Live",
+          "detail": "42 watching",
+          "active": true,
+          "enabled": false
+        },
+        {
+          "id": "twitch.marker",
+          "label": "Mark Moment",
+          "detail": "Marked at 12:05",
+          "active": false,
+          "enabled": true,
+          "command": "twitch.marker.12345678-1234-5678-1234-567812345678"
+        }
+      ]
+    },
+    "direction": "mac_to_panel",
+    "state": "connected",
+    "valid": true
+  },
+  {
+    "name": "Twitch state before authentication",
+    "message": {
+      "protocol": 4,
+      "type": "twitch.state",
+      "items": [
+        {
+          "id": "twitch.status",
+          "label": "Twitch Live",
+          "detail": "42 watching",
+          "active": true,
+          "enabled": false
+        },
+        {
+          "id": "twitch.marker",
+          "label": "Mark Moment",
+          "detail": "Marked at 12:05",
+          "active": false,
+          "enabled": true,
+          "command": "twitch.marker.12345678-1234-5678-1234-567812345678"
+        }
+      ]
+    },
+    "direction": "mac_to_panel",
+    "state": "authenticating",
+    "valid": false
+  },
+  {
+    "name": "Twitch state from panel",
+    "message": {
+      "protocol": 4,
+      "type": "twitch.state",
+      "items": [
+        {
+          "id": "twitch.status",
+          "label": "Twitch Live",
+          "detail": "42 watching",
+          "active": true,
+          "enabled": false
+        },
+        {
+          "id": "twitch.marker",
+          "label": "Mark Moment",
+          "detail": "Marked at 12:05",
+          "active": false,
+          "enabled": true,
+          "command": "twitch.marker.12345678-1234-5678-1234-567812345678"
+        }
+      ]
+    },
+    "direction": "panel_to_mac",
+    "state": "connected",
+    "valid": false
   }
 ]

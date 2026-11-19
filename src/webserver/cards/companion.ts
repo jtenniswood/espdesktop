@@ -1,3 +1,4 @@
+import { COMPANION_TWITCH_PREFIX, TWITCH_CONTROLS, TWITCH_STATUS_ID, TWITCH_WINNER_PREFIX, twitchControl } from "../model/companion_card_codec";
 import { obsSubpageCatalogue } from "../model/obs_live_subpage";
 import { targetedAudioCard } from "./companion_app_volume";
 import { childPageKey } from "../model/page_keys";
@@ -335,6 +336,7 @@ export function companionEntityForMode(mode: string): string {
     if (mode === "url") return COMPANION_DEFAULT_BROWSER;
     if (mode === "shortcut") return COMPANION_SHORTCUT_PREFIX;
     if (mode === "folder") return COMPANION_FOLDER_PREFIX;
+    if (mode === "twitch") return TWITCH_STATUS_ID;
     if (mode === "obs") return COMPANION_OBS_PREFIX;
     if (mode === "obs_mic") return "obs.mute.";
     if (mode === "obs_brb") return OBS_BRB_ID;
@@ -353,6 +355,7 @@ export function companionApplicationActions(actions: readonly CompanionAction[])
     return sortCompanionLabels(actions.filter((action) =>
         !action.id.startsWith(COMPANION_FOLDER_PREFIX) &&
         !action.id.startsWith(COMPANION_OBS_PREFIX) &&
+        !action.id.startsWith(COMPANION_TWITCH_PREFIX) &&
         !action.id.startsWith("input.level.") &&
         !["media.play_pause", "media.previous", "media.next"].includes(action.id)));
 }
@@ -401,6 +404,14 @@ export function normalizeCompanionCard(card: any): void {
 function normalizeCompanionCardFields(card: any): void {
     if (!card) return;
     card.entity = obsSceneCardEntity(card.entity || "");
+    if (card.entity.startsWith(COMPANION_TWITCH_PREFIX)) {
+        card.type = "companion";
+        card.sensor = "";
+        card.unit = "";
+        card.precision = "";
+        card.icon_on = "Auto";
+        return;
+    }
     const outputEntity = obsOutputCardEntity(card.entity);
     if (outputEntity !== card.entity) {
         card.entity = outputEntity;
@@ -494,6 +505,14 @@ export function registerCompanionCardTypes(
         const state = obsCardStates.get(id)?.obsState;
         return state ? state === "audio_muted" : obsControlLabels.get(id)?.startsWith("Muted · ") === true;
     };
+
+    let twitchActions = new Map<string, CompanionAction>();
+    function rememberTwitchControls(actions: readonly CompanionAction[]): boolean {
+        const next = new Map(actions.filter(action => twitchControl(action.id)).map(action => [action.id, action]));
+        const changed = JSON.stringify([...next]) !== JSON.stringify([...twitchActions]);
+        twitchActions = next;
+        return changed;
+    }
 
     function rememberOBSControls(actions: readonly CompanionAction[]): readonly CompanionAction[] {
         const targets = actions.filter(action => /^obs\.mute\.[a-f0-9-]{36}$/.test(action.id));
@@ -646,6 +665,36 @@ export function registerCompanionCardTypes(
         panel.appendChild(confirmation.panel);
     }
 
+    function renderTwitchSettings(panel: HTMLElement, card: any, helpers: any): void {
+        const choices = TWITCH_CONTROLS.map(([id, label]) => [id,
+            id.startsWith(TWITCH_WINNER_PREFIX) ? twitchActions.get(id)?.label || label : label] as const);
+        const { field, select } = helpers.selectField("Twitch control", helpers.idPrefix + "twitch-control",
+            choices, card.entity, () => {
+                const previous = twitchControl(card.entity);
+                const previousIcon = previous?.[2] || "Broadcast";
+                card.entity = select.value;
+                if (!card.label || card.label === previous?.[1]) {
+                    card.label = twitchControl(card.entity)?.[1] || "";
+                    helpers.saveField("label", card.label);
+                }
+                card.icon = companionGeneratedIcon(card.icon, previousIcon, twitchControl(card.entity)?.[2] || "Broadcast");
+                helpers.saveField("entity", card.entity);
+                helpers.saveField("icon", card.icon);
+                cardUi.renderPreview();
+                cardUi.renderButtonSettings();
+            });
+        panel.appendChild(field);
+        helpers.markCardPrimaryField(field, "entity");
+        const note = document.createElement("div");
+        note.className = "sp-field-info-text sp-visible";
+        note.textContent = "Connect your channel and configure presets in the Mac app under Settings → Twitch.";
+        panel.appendChild(note);
+        if (card.entity !== TWITCH_STATUS_ID && !card.entity.startsWith(TWITCH_WINNER_PREFIX)) {
+            helpers.renderCardTextField(panel, card, helpers, { label: "Label", idSuffix: "label", field: "label", rerender: true });
+        }
+        helpers.renderCardIconPicker(panel, card, helpers, COMPANION_CARD_METADATA.icon);
+    }
+
     function renderOBSProductionSettings(panel: HTMLElement, card: { entity: string; icon: string; options: string; label: string }, helpers: any, mode: "obs_status" | "obs_replay" | "obs_replay_buffer" | "obs_output" | "obs_brb" | "obs_studio" | "obs_transition"): void {
         const { input: labelInput } = helpers.renderCardTextField(panel, card, helpers, {
             label: "Label", idSuffix: "label", field: "label", placeholder: "Automatic",
@@ -746,8 +795,9 @@ export function registerCompanionCardTypes(
             const previousOBS = JSON.stringify([...obsControlLabels]);
             const previousPresentation = obsPresentationKey();
             rememberOBSControls(actions);
+            const twitchChanged = rememberTwitchControls(actions);
             const foldersChanged = publishLiveSubpageActions(actions);
-            if (rememberCompanionApplications(actions) || foldersChanged ||
+            if (rememberCompanionApplications(actions) || foldersChanged || twitchChanged ||
                 previousOBS !== JSON.stringify([...obsControlLabels]) ||
                 previousPresentation !== obsPresentationKey()) cardUi.renderPreview();
         },
@@ -781,6 +831,7 @@ export function registerCompanionCardTypes(
         void loadCompanionActions().then(function (actions) {
             rememberCompanionApplications(actions);
             rememberOBSControls(actions);
+            rememberTwitchControls(actions);
             publishLiveSubpageActions(actions);
             cardUi.renderPreview();
         }).catch(function () {});
@@ -791,7 +842,8 @@ export function registerCompanionCardTypes(
                 const hadOBSControls = obsControlLabels.size > 0;
                 obsControlLabels.clear();
                 obsCardStates.clear();
-                if (publishGeneratedActions([]) || hadOBSControls) cardUi.renderPreview();
+                const hadTwitch = rememberTwitchControls([]);
+                if (publishGeneratedActions([]) || hadOBSControls || hadTwitch) cardUi.renderPreview();
             }
             document.dispatchEvent(new CustomEvent("espdesktop:app-icon-cache-cleared", { detail: {
                 name: "companion-connection", value: String(connected),
@@ -814,7 +866,8 @@ export function registerCompanionCardTypes(
             card.unit = metric.unit;
             card.precision = "0";
         }
-        card.icon = companionSubtypeDefaultIcon(mode);
+        card.icon = mode === "twitch" ? twitchControl(card.entity)?.[2] || "Broadcast" : companionSubtypeDefaultIcon(mode);
+        if (mode === "twitch") card.label = twitchControl(card.entity)?.[1] || "";
     }
 
     function renderAppShortcutSettings(panel: HTMLElement, card: any, page: number,
@@ -886,6 +939,10 @@ export function registerCompanionCardTypes(
             const currentEntity = typeof card.entity === "string" ? card.entity : "";
             card.entity = currentEntity;
             const initialMode = companionCardMode(card);
+            if (initialMode === "twitch" && panel) {
+                renderTwitchSettings(panel, card, helpers);
+                return;
+            }
             if (currentEntity.startsWith("obs.source.") && panel) {
                 helpers.renderCardTextField(panel, card, helpers, {
                     label: "Label", idSuffix: "label", field: "label", rerender: true,
@@ -1763,6 +1820,21 @@ export function registerCompanionCardTypes(
                         companionMetricPreviewValue(card.precision), card.unit || metric?.unit || "%")),
                 };
             }
+            if (mode === "twitch") {
+                const action = twitchActions.get(card.entity);
+                const preset = twitchControl(card.entity);
+                const dynamic = card.entity === TWITCH_STATUS_ID || card.entity.startsWith(TWITCH_WINNER_PREFIX);
+                const label = (dynamic ? action?.label : card.label) || preset?.[1] || "Twitch";
+                const preview = cardBadgePreview(card, helpers, { label, iconFallback: preset?.[2] || "Broadcast" });
+                return {
+                    ...preview,
+                    labelHtml: '<span class="sp-btn-label-row sp-obs-label"><span class="sp-btn-label">' +
+                        helpers.escHtml(label) + '</span><span class="sp-obs-detail">' +
+                        helpers.escHtml(action?.twitchDetail ?? "Unavailable") + '</span></span>',
+                    isOn: action?.twitchActive === true,
+                    buttonClass: !action || (card.entity !== TWITCH_STATUS_ID && !action.twitchAvailable) ? "sp-obs-unavailable" : undefined,
+                };
+            }
             if (mode === "stats") {
                 return cardBadgePreview(card, helpers, {
                     label: card.label || "Stats",
@@ -2093,6 +2165,7 @@ export function registerCompanionCardTypes(
         ["companion_shortcut", "Key Shortcut", "shortcut"],
         ["companion_url", "Website", "url"],
         ["companion_folder", "Finder Folder", "folder"],
+        ["companion_twitch", "Twitch", "twitch"],
         ["companion_obs", "Scene", "obs"],
         ["companion_obs_mic", "Input Mute", "obs_mic"],
         ["companion_obs_studio", "Studio Mode", "obs_studio"],

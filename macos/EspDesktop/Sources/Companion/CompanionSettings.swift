@@ -7,7 +7,7 @@ private enum CompanionSettingsField: Hashable {
 
 private enum CompanionSettingsPage: String, CaseIterable, Identifiable {
     // Retain the saved selection identifiers from earlier versions.
-    case connection, applications, folders, obs, updates, help
+    case connection, applications, folders, obs, twitch, updates, help
 
     var id: String { rawValue }
     var title: String {
@@ -16,6 +16,7 @@ private enum CompanionSettingsPage: String, CaseIterable, Identifiable {
         case .applications: return "Apps"
         case .folders: return "Folders"
         case .obs: return "OBS"
+        case .twitch: return "Twitch"
         case .updates: return "Updates"
         case .help: return "Support"
         }
@@ -26,6 +27,7 @@ private enum CompanionSettingsPage: String, CaseIterable, Identifiable {
         case .applications: return "square.grid.2x2"
         case .folders: return "folder"
         case .obs: return "video"
+        case .twitch: return "dot.radiowaves.left.and.right"
         case .updates: return "arrow.triangle.2.circlepath"
         case .help: return "questionmark.circle"
         }
@@ -391,6 +393,7 @@ struct CompanionSettings: View {
         case .applications: applicationsPage
         case .folders: foldersPage
         case .obs: OBSSettings(connection: store.obs)
+        case .twitch: TwitchSettings(twitch: store.twitch)
         case .updates: CompanionUpdateSettings(updater: store.updater)
         case .help: helpPage
         }

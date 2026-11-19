@@ -198,10 +198,19 @@ export function runCompanionShortcutFeatureTests(): void {
     COMPANION_SHORTCUT_APPS.pop();
   }
   const companionModes = companionCardModeOptions();
-  if (companionModes.map(([mode]) => mode).join() !== "app,shortcut,url,folder,obs,obs_mic,obs_studio,obs_take,obs_transition,obs_status,obs_replay,obs_replay_buffer,obs_output,obs_brb,stats" ||
+  if (companionModes.map(([mode]) => mode).join() !== "app,shortcut,url,folder,obs,obs_mic,obs_studio,obs_take,obs_transition,obs_status,obs_replay,obs_replay_buffer,obs_output,obs_brb,twitch,stats" ||
       companionCardModeValid("window") || companionCardModeValid("webapp") || companionCardModeValid("home_assistant") ||
       companionCardDefaultIcon("shortcut") !== "Shortcut Command") {
     throw new Error("Companion card modes must come from the generated product contract");
+  }
+  const twitchCard = { ...emptyCardConfig("companion"), entity: "twitch.predictionWinner.4",
+    label: "Outcome 4", options: "card_off_color=123456" };
+  normalizeCompanionCard(twitchCard);
+  if (decodeCompanionCard(twitchCard).mode !== "twitch" || !companionCardModeValid("twitch") ||
+      companionAppIconEnabled(twitchCard) || twitchCard.entity !== "twitch.predictionWinner.4" ||
+      !twitchCard.options.includes("card_off_color=123456") ||
+      companionApplicationActions([{ id: twitchCard.entity, label: "Outcome 4" }]).length !== 0) {
+    throw new Error("Twitch cards must keep stable control IDs and stay separate from app launch cards");
   }
   const storageCard = { ...emptyCardConfig("companion"), entity: "stat.storage_free:external-volume" };
   const legacyOBSStatus = { ...emptyCardConfig("companion"), entity: "obs.status.record",
