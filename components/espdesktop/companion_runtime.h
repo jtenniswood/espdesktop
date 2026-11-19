@@ -368,6 +368,36 @@ class CompanionRuntimeService {
     request_refresh_();
   }
 
+  void set_timeline_controls_supported(bool supported) {
+    std::lock_guard<std::mutex> lock(mutex_);
+    timeline_controls_supported_ = connected_ && supported;
+  }
+
+  bool timeline_controls_ready(const std::string &owner) const {
+    std::lock_guard<std::mutex> lock(mutex_);
+    return connected_ && timeline_controls_supported_ && keyboard_actions_supported_ &&
+        companion_reported_focus_matches(owner, focused_action_id_, focused_action_ids_);
+  }
+
+  bool timeline_controls_supported() const {
+    std::lock_guard<std::mutex> lock(mutex_);
+    return timeline_controls_supported_;
+  }
+
+  // Keep at most one movement batch in flight during normal delivery.
+  bool begin_timeline_input(const std::string &request, uint32_t now) {
+    std::lock_guard<std::mutex> lock(mutex_);
+    if (!timeline_input_request_.empty() && now - timeline_input_sent_at_ < 750) return false;
+    timeline_input_request_ = request;
+    timeline_input_sent_at_ = now;
+    return true;
+  }
+
+  void finish_timeline_input(const std::string &request) {
+    std::lock_guard<std::mutex> lock(mutex_);
+    if (timeline_input_request_ == request) timeline_input_request_.clear();
+  }
+
   bool shortcut_page_ready(const std::string &owner) const {
     std::lock_guard<std::mutex> lock(mutex_);
     return connected_ && keyboard_actions_supported_ &&
@@ -539,6 +569,8 @@ class CompanionRuntimeService {
       pending_auto_subpage_action_id_.clear();
       closed_app_subpage_action_id_.clear();
       keyboard_actions_supported_ = false;
+      timeline_controls_supported_ = false;
+      timeline_input_request_.clear();
       system_metrics_ = {};
     }
     request_refresh_();
@@ -578,6 +610,9 @@ class CompanionRuntimeService {
   std::string pending_auto_subpage_action_id_;
   std::string closed_app_subpage_action_id_;
   bool keyboard_actions_supported_{false};
+  bool timeline_controls_supported_{false};
+  std::string timeline_input_request_;
+  uint32_t timeline_input_sent_at_{0};
   bool connected_{false};
   CompanionSystemMetricsSnapshot system_metrics_;
   std::atomic<bool> mac_update_required_{false};

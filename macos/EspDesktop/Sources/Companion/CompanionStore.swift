@@ -1137,6 +1137,14 @@ final class CompanionStore: NSObject, ObservableObject {
         guard actionIdentifier.hasPrefix(CompanionKeyboardShortcut.actionPrefix) else {
             return await launch(bundleIdentifier: actionIdentifier)
         }
+        if actionIdentifier.hasPrefix(CompanionTimelineInput.prefix) {
+            guard let input = CompanionTimelineInput(actionIdentifier: actionIdentifier),
+                  let shortcutAppID, let editor = CompanionTimelineInput.Editor(rawValue: shortcutAppID),
+                  approvedApplicationIdentifiers.contains(shortcutAppID),
+                  let application = NSWorkspace.shared.frontmostApplication,
+                  application.bundleIdentifier == shortcutAppID, !sessionLock.refresh() else { return false }
+            return input.post(to: editor, processID: application.processIdentifier)
+        }
         if actionIdentifier.hasPrefix(CompanionKeyboardShortcut.installedWebAppActionPrefix) {
             guard let application = NSWorkspace.shared.frontmostApplication,
                   let shortcut = CompanionKeyboardShortcut.installedWebAppShortcut(

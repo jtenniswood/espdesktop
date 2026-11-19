@@ -60,4 +60,11 @@ Approve **Streamlabs Desktop** in the EspDesktop Mac app. Choose **Keyboard Shor
 
 For scene switching, mic mute or recording, assign a key combination in [Streamlabs Desktop → Settings → Hotkeys](https://support.streamlabs.com/hc/en-us/articles/4413170379675-How-to-Set-up-Hotkeys-in-Streamlabs-Desktop). Choose a combination with Command, Control or Option that works from your Mac keyboard, then enter the same keys in a **Keyboard Shortcut → Custom** tile. You can put these tiles on the Streamlabs app subpage. Bring Streamlabs to the front before using a Custom tile, which sends keys to the active Mac app.
 
+## Control an editing timeline
+
+On a Final Cut Pro or DaVinci Resolve app subpage, tap **Timeline**. This control needs matching display firmware and Mac Companion, an approved editor and macOS Accessibility access.
+
+- **Jog** moves the playhead. Click the timeline in the editor, then drag the strip on the display. Tap either arrow for one frame. Use the editor's default Left and Right Arrow commands.
+- **Pan** scrolls the view. Zoom in, place the Mac pointer over the timeline, then drag on the display. In Final Cut Pro, turn off Continuous Scrolling. In DaVinci Resolve, use the Edit page for this experiment.
+
 <span id="add-templates-for-another-app">Missing a preset?</span> [Suggest a keyboard shortcut](/mac-controls/improve-shortcuts).

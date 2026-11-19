@@ -72,6 +72,7 @@ struct GridConfig {
 };
 
 #include "button_grid_image.h"
+#include "button_grid_timeline.h"
 
 // The approved Mac catalogue is only a render input. The native page store
 // continues to contain the user's placed tiles.
@@ -1489,6 +1490,12 @@ inline void grid_phase2(
     lv_obj_set_style_pad_column(sub_scr, mp_pad_col, LV_PART_MAIN);
     lv_obj_clear_flag(sub_scr, LV_OBJ_FLAG_SCROLLABLE);
     clock_bar_clear_responsive_grid_cards(sub_scr);
+#ifdef USE_COMPANION
+    if (companion_app_shortcuts_enabled(p) && companion_timeline_editor(p.entity)) {
+      companion_timeline_add_launcher(sub_scr, p.entity, mp_pad_bottom, mp_pad_row,
+          sp_btn_fnt, sp_icon_fnt, cfg.width_compensation_percent);
+    }
+#endif
 
     lv_obj_t *back_btn = create_grid_card_button(
       sub_scr, sp_radius, sp_pad, sp_btn_fnt, sp_txt_color, cfg.continuous_card_corners);

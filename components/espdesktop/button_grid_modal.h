@@ -47,6 +47,7 @@ inline ControlModalDefinition control_modal_definition(ControlModalKind kind) {
     case ControlModalKind::COVER_CONTROL:
     case ControlModalKind::LIGHT_CONTROL:
     case ControlModalKind::MEDIA_CONTROL:
+    case ControlModalKind::COMPANION_TIMELINE:
       return {ControlModalPresentation::TABBED_CONTROL, ControlModalChrome::BACK,
               ControlModalDismissPolicy::DISMISS};
     case ControlModalKind::OBS_OUTPUT_CONFIRMATION:
