@@ -4481,12 +4481,14 @@ async function assertTokenUsageCard(browser) {
     await load();
     const claudeIcon = tile().getByRole("img", { name: "Claude" });
     await claudeIcon.waitFor();
-    assert.strictEqual(await claudeIcon.evaluate(async (icon) => {
-      const { fontFamily, fontSize } = getComputedStyle(icon);
-      if (!fontFamily.includes("EspDesktop Usage Icons")) return false;
-      const fonts = await document.fonts.load(fontSize + " " + fontFamily, icon.textContent);
-      return fonts.some(font => font.status === "loaded");
-    }), true);
+    // Re-query the live tile while the editor finishes restoring its preview.
+    await page.waitForFunction(async (slot) => {
+      const icon = document.querySelector(
+        '.sp-main [data-slot="' + slot + '"] .sp-token-usage-icon[aria-label="Claude"]');
+      if (!icon || !getComputedStyle(icon).fontFamily.includes("EspDesktop Usage Icons")) return false;
+      const fonts = await document.fonts.load('16px "EspDesktop Usage Icons"', icon.textContent);
+      return icon.isConnected && fonts.some(font => font.status === "loaded");
+    }, slot);
     assert.deepStrictEqual(await tile().locator(".sp-token-usage-reset").allTextContents(),
       ["Resets 2d 9h"]);
     await edit();
