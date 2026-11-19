@@ -1,6 +1,13 @@
 import type { AppShortcutApplication } from "../generated/app_shortcuts";
 
-export interface CompanionAction { readonly id: string; readonly label: string; readonly iconHash?: string; }
+export interface CompanionAction {
+  readonly id: string;
+  readonly label: string;
+  readonly iconHash?: string;
+  readonly obsState?: string;
+  readonly obsDetail?: string;
+  readonly obsAvailable?: boolean;
+}
 export interface CompanionDefinitions {
   readonly applications: readonly AppShortcutApplication[];
 }
@@ -69,7 +76,8 @@ export function createCompanionCatalogueMonitor(
       const changed = lastActions === null || lastActions.length !== actions.length ||
         lastActions.some((action, index) =>
           action.id !== actions[index]?.id || action.label !== actions[index]?.label ||
-          action.iconHash !== actions[index]?.iconHash);
+          action.iconHash !== actions[index]?.iconHash || action.obsState !== actions[index]?.obsState ||
+          action.obsDetail !== actions[index]?.obsDetail || action.obsAvailable !== actions[index]?.obsAvailable);
       if (changed) {
         lastActions = actions;
         onActions(actions);
@@ -116,6 +124,106 @@ export function createCompanionCatalogue(fetchImpl: typeof fetch) {
   let pendingRefresh = false;
   let definitions: CompanionDefinitions | null = null;
   let definitionsPending: Promise<CompanionDefinitions> | null = null;
+  let definitionsExpires = 0;
+
+  const shortcutApplications = new Map<string, { app: AppShortcutApplication | null; expires: number }>();
+  const shortcutRequests = new Map<string, Promise<AppShortcutApplication | null>>();
+  let shortcutQueue = Promise.resolve();
+
+  type ShortcutPage = { catalogueVersion: number; complete: boolean; application: unknown };
+
+  async function fetchShortcutPage(appId: string, page: number, version?: number): Promise<ShortcutPage | null> {
+    const url = `/companion/shortcut-page?appId=${encodeURIComponent(appId)}&page=${page}`;
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 7000);
+    try {
+      let response: Response;
+      do {
+        response = await fetchImpl(url, { cache: "no-store", signal: controller.signal });
+        if (response.status !== 202) break;
+        if (controller.signal.aborted) throw new Error("Shortcut catalogue request timed out");
+        await new Promise(resolve => setTimeout(resolve, 150));
+      } while (!controller.signal.aborted);
+      if (page === 0 && (response.status === 204 || response.status === 404)) return null;
+      if (response.status !== 200) throw new Error("Shortcut catalogue unavailable");
+      const data = await response.json() as (Partial<ShortcutPage> & { page?: number }) | null;
+      if (!data || data.page !== page || typeof data.complete !== "boolean" ||
+          typeof data.catalogueVersion !== "number" || !Number.isSafeInteger(data.catalogueVersion) ||
+          data.catalogueVersion < 1 || (version !== undefined && data.catalogueVersion !== version)) {
+        throw new Error("Shortcut catalogue changed or was incomplete");
+      }
+      return { catalogueVersion: data.catalogueVersion, complete: data.complete, application: data.application };
+    } finally {
+      clearTimeout(timeout);
+    }
+  }
+
+  async function fetchShortcutIndex(): Promise<CompanionDefinitions | null> {
+    const applications = new Map<string, AppShortcutApplication>();
+    let version: number | undefined;
+    for (let page = 0; page < 32; page++) {
+      const data = await fetchShortcutPage("index", page, version);
+      if (!data) return null;
+      version = data.catalogueVersion;
+      const index = (data.application as { applications?: unknown } | null)?.applications;
+      if (!Array.isArray(index) || index.length > 32) throw new Error("Invalid shortcut catalogue index");
+      for (const item of index) {
+        if (typeof item?.appId !== "string" || typeof item.label !== "string") continue;
+        applications.set(item.appId, { version: 1, appId: item.appId, label: item.label, shortcuts: [], catalog: false });
+      }
+      if (data.complete) return { applications: [...applications.values()] };
+    }
+    throw new Error("Shortcut index has too many pages");
+  }
+
+  async function fetchShortcutApplication(appId: string): Promise<AppShortcutApplication | null> {
+    let starter: AppShortcutApplication | undefined;
+    let version: number | undefined;
+    const more: NonNullable<AppShortcutApplication["moreShortcuts"]>[number][] = [];
+    for (let page = 0; page < 32; page++) {
+      const data = await fetchShortcutPage(appId, page, version);
+      if (!data) return null;
+      version = data.catalogueVersion;
+      const app = data.application as Partial<AppShortcutApplication> | null;
+      if (app?.appId !== appId || !Array.isArray(app.shortcuts)) throw new Error("Invalid shortcut catalogue page");
+      if (page === 0 && app.shortcuts.length > 0 && typeof app.label === "string") {
+        starter = app as AppShortcutApplication;
+      } else if (page > 0 && !app.shortcuts.length && Array.isArray(app.moreShortcuts) &&
+                 app.moreShortcuts.length > 0 && app.moreShortcuts.length <= 52) {
+        more.push(...app.moreShortcuts);
+      } else {
+        throw new Error("Invalid shortcut catalogue page");
+      }
+      if (data.complete && starter) return { ...starter, moreShortcuts: more };
+    }
+    throw new Error("Shortcut catalogue has too many pages");
+  }
+
+  function enqueueShortcutRequest<T>(load: () => Promise<T>): Promise<T> {
+    const request = shortcutQueue.then(load);
+    shortcutQueue = request.then(() => {}, () => {});
+    return request;
+  }
+
+  function loadShortcutApplication(appId: string): Promise<AppShortcutApplication | null> {
+    if (!/^[A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)+$/.test(appId) || appId.length > 96) return Promise.resolve(null);
+    const cached = shortcutApplications.get(appId);
+    if (cached && cached.expires > Date.now()) return Promise.resolve(cached.app);
+    const pending = shortcutRequests.get(appId);
+    if (pending) return pending;
+    if (shortcutRequests.size >= 8) return Promise.resolve(null);
+    // The device relays one page at a time. Serialize editors' requests on this client.
+    const request = enqueueShortcutRequest(() => fetchShortcutApplication(appId))
+      .catch(() => null)
+      .then(app => {
+        shortcutApplications.delete(appId);
+        shortcutApplications.set(appId, { app, expires: Date.now() + (app ? 60000 : 3000) });
+        if (shortcutApplications.size > 8) shortcutApplications.delete(shortcutApplications.keys().next().value!);
+        return app;
+      }).finally(() => { shortcutRequests.delete(appId); });
+    shortcutRequests.set(appId, request);
+    return request;
+  }
 
   async function fetchActions(): Promise<readonly CompanionAction[]> {
     const response = await fetchImpl("/companion/actions", { cache: "no-store" });
@@ -126,7 +234,7 @@ export function createCompanionCatalogue(fetchImpl: typeof fetch) {
       typeof item?.id === "string" && typeof item?.label === "string");
   }
 
-  async function fetchDefinitions(): Promise<CompanionDefinitions> {
+  async function fetchLegacyDefinitions(): Promise<CompanionDefinitions> {
     const applications = new Map<string, AppShortcutApplication>();
     for (let page = 0; page < 64; page += 1) {
       const response = await fetchImpl(`/companion/definitions?page=${page}`, { cache: "no-store" });
@@ -181,6 +289,7 @@ export function createCompanionCatalogue(fetchImpl: typeof fetch) {
   }
 
   return {
+    loadShortcutApplication,
     async saveFocusRegistrations(registrations: CompanionFocusRegistrations): Promise<void> {
       const targets = [...new Set(registrations.urls)].slice(0, 64).flatMap((value) => {
         try {
@@ -198,8 +307,15 @@ export function createCompanionCatalogue(fetchImpl: typeof fetch) {
     },
     loadDefinitions(refresh = false): Promise<CompanionDefinitions> {
       if (definitionsPending) return definitionsPending;
-      if (!refresh && definitions) return Promise.resolve(definitions);
-      const request = fetchDefinitions().then((value) => { definitions = value; return value; });
+      if (definitions && (!refresh || definitionsExpires > Date.now())) return Promise.resolve(definitions);
+      // Some older firmware closes the connection for an unknown endpoint.
+      // Only replace the cached definitions after a complete index or legacy sync.
+      const request = enqueueShortcutRequest(fetchShortcutIndex).catch(() => null).then(async index => {
+        const value = index ?? await fetchLegacyDefinitions();
+        if (index) definitionsExpires = Date.now() + 15000;
+        definitions = value;
+        return value;
+      });
       definitionsPending = request;
       void request.then(() => { if (definitionsPending === request) definitionsPending = null; },
         () => { if (definitionsPending === request) definitionsPending = null; });

@@ -39,7 +39,6 @@ export const redirects: Record<string, string> = {
   'card-types/companion': macControls,
   'card-types/weather-forecast': espcontrol,
   'card-types/index': espcontrol,
-  'getting-started/home-assistant-actions': `${espcontrol}getting-started/home-assistant-actions`,
   'features/settings': `${hostname}settings/system`,
   'features/backup': `${hostname}settings/backup`,
   'features/media-cover-art': `${hostname}settings/screen`,
@@ -143,33 +142,60 @@ ${fragmentRedirect}
 // maintained answers, and no second parser with different link/format rules.
 export function faqSchema(md: MarkdownRenderer) {
   md.core.ruler.push('espdesktop-faq', (state) => {
-    if (state.env.relativePath !== 'reference/faq.md') return
+    if (state.inlineMode) return
+    const referenceFaq = state.env.relativePath === 'reference/faq.md'
     const entries = []
     const tokens = state.tokens
+    let inAccordion = false
+
+    function inlineText(token: (typeof tokens)[number]) {
+      return (token.children ?? []).map(child => {
+        if (child.type.endsWith('break')) return ' '
+        return ['text', 'code_inline', 'image'].includes(child.type) ? child.content : ''
+      }).join('').replace(/\u200b/g, '').trim()
+    }
+
     for (let index = 0; index < tokens.length; index++) {
-      if (tokens[index].type !== 'heading_open' || tokens[index].tag !== 'h3') continue
-      const heading = tokens[index + 1]
-      let end = index + 3
-      while (end < tokens.length && !(
-        tokens[end].type === 'heading_open' && Number(tokens[end].tag.slice(1)) <= 3
-      )) end++
-      const name = (heading.children ?? [])
-        .filter((token) => token.type === 'text' || token.type === 'code_inline')
-        .map((token) => token.content).join('').replace(/\u200b/g, '').trim()
-      // Rendering these tokens twice would mutate VitePress link URLs twice.
-      // Plain answer text uses the parsed inline tokens, including code spans.
-      const text = tokens.slice(index + 3, end)
-        .filter((token) => token.type === 'inline')
-        .map((token) => (token.children ?? [])
-          .filter((child) => ['text', 'code_inline', 'softbreak', 'hardbreak'].includes(child.type))
-          .map((child) => child.type.endsWith('break') ? ' ' : child.content).join(''))
-        .join(' ').trim()
-      if (name && text) entries.push({
-        '@type': 'Question', name,
+      const token = tokens[index]
+      if (token.type === 'html_block') {
+        const tag = token.content.trim()
+        if (tag === '<FaqAccordion>') inAccordion = true
+        if (tag === '</FaqAccordion>') inAccordion = false
+      }
+
+      let question
+      let answerStart
+      let answerEnd
+      if (inAccordion && token.type === 'container_details_open' && token.level === 0) {
+        const title = token.info.trim().slice('details'.length).trim()
+        question = inlineText(md.parseInline(title, { references: state.env.references })[0])
+        token.attrSet('data-faq-question', '')
+        answerStart = index + 1
+        answerEnd = answerStart
+        while (answerEnd < tokens.length && !(
+          tokens[answerEnd].type === 'container_details_close' && tokens[answerEnd].level === token.level
+        )) answerEnd++
+      } else if (referenceFaq && token.type === 'heading_open' && token.tag === 'h3') {
+        question = inlineText(tokens[index + 1])
+        answerStart = index + 3
+        answerEnd = answerStart
+        while (answerEnd < tokens.length && !(
+          tokens[answerEnd].type === 'heading_open' && Number(tokens[answerEnd].tag.slice(1)) <= 3
+        )) answerEnd++
+      } else {
+        continue
+      }
+
+      const text = tokens.slice(answerStart, answerEnd)
+        .filter(token => token.type === 'inline')
+        .map(inlineText).join(' ').trim()
+      if (!question || !text) throw new Error('Each FAQ item needs a question and an answer')
+      entries.push({
+        '@type': 'Question', name: question,
         acceptedAnswer: { '@type': 'Answer', text },
       })
     }
-    state.env.frontmatter.faqAnswers = entries
+    if (entries.length) state.env.frontmatter.faqAnswers = entries
   })
 }
 

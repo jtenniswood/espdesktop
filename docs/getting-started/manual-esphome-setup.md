@@ -12,7 +12,7 @@ The normal [browser install](/screens/4848s040#set-up-espdesktop) is the easiest
 ## What You Need
 
 - A supported ESP32 panel.
-- ESPHome 2026.10.2, matching this repository’s pinned toolchain, using Device Builder in Home Assistant or the ESPHome command line on your computer.
+- ESPHome 2026.11.0, matching this repository’s pinned toolchain, using Device Builder in Home Assistant or the ESPHome command line on your computer.
 - A USB-C data cable for the first install.
 - Your WiFi name and password, unless you are using an advanced wired Ethernet option.
 
@@ -183,4 +183,4 @@ If ESPHome cannot access the USB port directly, choose **Manual download** inste
 
 Because the package uses `refresh: 1sec`, ESPHome checks GitHub for EspDesktop updates each time it compiles. To update manually, open ESPHome Device Builder and run **Install** again. If the display is online, use OTA so you do not need to reconnect USB.
 
-The firmware has no native Home Assistant API. ESPHome remains the build and OTA tool; the display is configured through its own web page.
+Configure the display through its web page. The 4-inch 4848S040 can expose saved card actions through the [Home Assistant ESPHome integration](/getting-started/home-assistant-actions).

@@ -27,6 +27,8 @@ Home is the main screen on your EspDesktop touchscreen. Open your display’s ad
 
 Moves and resizes save when you drop the card or release the handle. Choose **Save** when editing a card.
 
+To select several cards, drag a box from the blank area beside, above, or below the preview, or from a gap between cards. On Home or a subpage, cards touched by the box are highlighted as you drag. Hold **Shift** to add to the selection, **Command** (**Ctrl** on Windows) to toggle cards, or press **Escape** to cancel the drag. Release the mouse, then right-click a selected card for actions such as **Copy**, **Cut** and **Delete**.
+
 To move or copy a card between Home and a subpage, right-click it and choose **Cut** or **Copy**, then right-click an empty tile on the destination page and choose **Paste**. Clipboard actions save the layout as you make them. You can also copy a card’s code to use it on another display.
 
 <a href="/images/web-editor-home.png"><picture><source type="image/avif" srcset="/images/web-editor-home-480.avif 480w, /images/web-editor-home-960.avif 960w" sizes="(min-width: 768px) 688px, 90vw"><img src="/images/web-editor-home.png" alt="Home layout in the web editor with eight app cards and an empty slot" width="1694" height="2266"></picture></a>
@@ -36,29 +38,15 @@ To move or copy a card between Home and a subpage, right-click it and choose **C
 Right-click a card to open its menu.
 
 - **Name.** Choose **Edit Card**, change the **Label**, and select **Save**. You can also click a visible card name in the grid, type the new name and press **Enter**.
-- **App icon size.** Choose **App Icon Size** and select **Small**, **Medium** or **Large**. Large fills the card with the app icon and hides the label.
 - **Background colour.** Open **Card Colour** and pick a preset or use the eyedropper to choose a custom colour. Choose **Reset Colour** to restore the default background.
-
-<a href="/images/web-editor-card-menu.webp"><picture><source type="image/avif" srcset="/images/web-editor-card-menu-480.avif 480w, /images/web-editor-card-menu-960.avif 960w" sizes="(min-width: 768px) 688px, 90vw"><img src="/images/web-editor-card-menu.webp" alt="Right-click menu on an app card showing Edit Card, App Icon Size, Card Colour and Edit Subpage" width="1205" height="1205" loading="lazy"></picture></a>
 
 ## Add a card
 
-1. Click the **+** in an empty spot on the grid.
-2. In **Choose Card**, pick what the card should do. For example, choose [**Applications**](/mac-controls/apps) to launch a Mac app, [**Folder**](/mac-controls/folders) to open an approved folder, or [**Key Shortcut**](/mac-controls/shortcuts) to run a keyboard shortcut.
-3. Fill in the settings for that card and select **Save**. The card appears on your touchscreen.
-
-<a href="/images/web-editor-choose-card.webp"><picture><source type="image/avif" srcset="/images/web-editor-choose-card-480.avif 480w, /images/web-editor-choose-card-960.avif 960w" sizes="(min-width: 768px) 688px, 90vw"><img src="/images/web-editor-choose-card.webp" alt="Choose Card dialog with Applications, Folder, Key Shortcut, Lock Machine, Subpage and Website options" width="1269" height="1022" loading="lazy"></picture></a>
+Select **+** in an empty spot. See [Adding a card](/features/adding-a-card) for choosing a card type and setting its name, icon, and colours.
 
 ## Create a custom subpage
 
-Group related cards behind a single card on Home. For example, create a **Work** subpage for Slack, your calendar and a project folder.
-
-1. Click the **+** in an empty spot and choose **Subpage**.
-2. Give it a label and an icon, then select **Save**.
-3. Right-click the new card and choose **Edit Subpage**. Add, move and resize cards in its grid as you would on Home.
-4. Use the **Back** card to return to Home. On the touchscreen, tap the subpage card to open it.
-
-See how to add nested pages and organise app-specific shortcuts in the [Subpages guide](/features/subpages).
+See the [Subpages guide](/features/subpages) to create a subpage and group related cards.
 
 ### Use and customise the Back card
 

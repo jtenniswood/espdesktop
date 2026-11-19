@@ -72,10 +72,15 @@ final class CompanionConnection: NSObject {
     private var supportsImmediateApplicationFocus = false
     private var supportsSessionLock = false
     private var supportsPairingReset = false
+    private var supportsCoughButton = false
+    private var supportsInputDevices = false
     private var pairingResetCompletion: CheckedContinuation<Void, Never>?
     private var pairingResetTimeout: Task<Void, Never>?
     private var remoteCatalogueDefinitionsSupported = false
     private var expandedShortcutsSupported = false
+    private var onDemandShortcutsSupported = false
+    private var appVolumeSupported = false
+    private(set) var appleShortcutsSupported = false
     private var authenticationRequestOutstanding = false
     private var appIconData: Data?
     private var appIconIdentifier = ""
@@ -87,6 +92,14 @@ final class CompanionConnection: NSObject {
     private var focusPublicationTask: Task<Void, Never>?
     private var applicationFocusPublisher = CompanionApplicationFocusPublisher()
     private var catalogueGeneration: UInt32 = 0
+    private var supportsOBSCards = false
+    private var supportsOBSAdaptiveScenes = false
+    private var peerCapabilityVersion: UInt32 = 0
+    private var supportsOBSBreak = false
+    private var supportsOBSOutputs = false
+    private var supportsOBSCough = false
+    private var supportsOBSFaders = false
+    private var lastOBSAudioValues: [String: Int] = [:]
     private var definitionGeneration: UInt32 = 0
     private var lastPublishedSystemMetrics: CompanionSystemMetricsSnapshot?
     private var lastSystemMetricsPublication = Date.distantPast
@@ -207,6 +220,7 @@ final class CompanionConnection: NSObject {
     }
 
     private func tearDownConnection() {
+        releaseCoughButton()
         finishPairingResetRequest()
         if !shouldReconnect { discovery.stop() }
         connectionGeneration &+= 1
@@ -218,6 +232,9 @@ final class CompanionConnection: NSObject {
         supportsHighResolutionAppIcons = false
         remoteCatalogueDefinitionsSupported = false
         expandedShortcutsSupported = false
+        onDemandShortcutsSupported = false
+        appVolumeSupported = false
+        appleShortcutsSupported = false
         endpointRecovery.verifiedFingerprint = nil
         authenticationRequestOutstanding = false
         resetAppIconTransferState(clearPendingRequests: true)
@@ -342,7 +359,7 @@ final class CompanionConnection: NSObject {
                 do {
                     let message = try await task.receive()
                     guard !Task.isCancelled, self.task === task else { return }
-                    if case .string(let value) = message { self.handle(value) }
+                    if case .string(let value) = message { await self.handle(value) }
                 } catch {
                     guard !Task.isCancelled else { return }
                     self.handleConnectionFailure(for: task, reason: "Receive failed: \(error.localizedDescription)")
@@ -386,6 +403,7 @@ final class CompanionConnection: NSObject {
 
     private func handleConnectionFailure(for failedTask: URLSessionWebSocketTask, reason: String = "Connection closed") {
         guard task === failedTask else { return }
+        releaseCoughButton()
         finishPairingResetRequest()
         print("[EspDesktop] Companion connection lost: \(reason)")
         if !hasTerminalConnectionError, case .pair = mode {
@@ -399,6 +417,9 @@ final class CompanionConnection: NSObject {
         resetAppIconTransferState(clearPendingRequests: true)
         remoteCatalogueDefinitionsSupported = false
         expandedShortcutsSupported = false
+        onDemandShortcutsSupported = false
+        appVolumeSupported = false
+        appleShortcutsSupported = false
         connectionTimeoutTask?.cancel()
         connectionTimeoutTask = nil
         heartbeatTask?.cancel()
@@ -412,6 +433,16 @@ final class CompanionConnection: NSObject {
         session?.invalidateAndCancel()
         session = nil
         scheduleReconnect()
+    }
+
+    private func releaseCoughButton() {
+        if supportsOBSCough {
+            supportsOBSCough = false
+            resources.abandonOBSCough(from: ObjectIdentifier(self))
+        }
+        guard supportsCoughButton else { return }
+        supportsCoughButton = false
+        _ = resources.setCoughButtonValue(0, from: ObjectIdentifier(self))
     }
 
     private func resetAppIconTransferState(clearPendingRequests: Bool = false) {
@@ -457,8 +488,8 @@ final class CompanionConnection: NSObject {
         }
     }
 
-    private func handle(_ message: String) {
-        guard handleJSON(message) else {
+    private func handle(_ message: String) async {
+        guard await handleJSON(message) else {
             hasTerminalConnectionError = true
             shouldReconnect = false
             tearDownConnection()
@@ -467,7 +498,7 @@ final class CompanionConnection: NSObject {
         }
     }
 
-    private func handleJSON(_ message: String) -> Bool {
+    private func handleJSON(_ message: String) async -> Bool {
         let state: CompanionProtocolState = sessionAuthenticated ? .connected : {
             if case .pair = mode { return .pairing }
             return .authenticating
@@ -504,6 +535,19 @@ final class CompanionConnection: NSObject {
             supportsSessionLock = payload.capabilityVersion >= 7
             supportsPairingReset = payload.capabilityVersion >= 8
             expandedShortcutsSupported = payload.capabilityVersion >= 9
+            onDemandShortcutsSupported = payload.capabilityVersion >= 23
+            supportsOBSCards = payload.capabilityVersion >= 13
+            supportsOBSFaders = payload.capabilityVersion >= 14
+            supportsOBSCough = payload.capabilityVersion >= 16
+            supportsOBSOutputs = payload.capabilityVersion >= 17
+            supportsOBSBreak = payload.capabilityVersion >= 18
+            supportsOBSAdaptiveScenes = payload.capabilityVersion >= 19
+            peerCapabilityVersion = payload.capabilityVersion
+            lastOBSAudioValues.removeAll()
+            appVolumeSupported = payload.capabilityVersion >= 10
+            supportsCoughButton = payload.capabilityVersion >= 11
+            supportsInputDevices = payload.capabilityVersion >= 12
+            appleShortcutsSupported = payload.capabilityVersion >= 24
             // A Bonjour TXT record never authorizes a location change. Both the
             // pinned TLS certificate and the authenticated session must agree.
             let expectedFingerprint = preferences.stringPreference(forKey: certificateFingerprintKey)
@@ -533,6 +577,9 @@ final class CompanionConnection: NSObject {
         case .catalogueRequest:
             guard sessionAuthenticated else { return false }
             publishCatalogue()
+        case .shortcutCatalogueRequest(let payload):
+            guard sessionAuthenticated, onDemandShortcutsSupported else { return false }
+            publishShortcutCataloguePage(payload)
         case .focusTargets(let payload):
             guard sessionAuthenticated else { return false }
             let targets = payload.items.compactMap { item -> (id: String, url: URL)? in
@@ -550,14 +597,39 @@ final class CompanionConnection: NSObject {
             let requestIdentifier = payload.requestId
             let kind = payload.kind
             if kind == "action", let actionIdentifier = payload.actionId {
+                if (actionIdentifier.hasPrefix("obs.") && !supportsOBSCards) ||
+                    (actionIdentifier.hasPrefix("obs.output.") && !supportsOBSOutputs) ||
+                    (actionIdentifier.hasPrefix("obs.brb.") && !supportsOBSBreak) ||
+                    (actionIdentifier.hasPrefix(OBSConnection.AdaptiveScene.prefix) && !supportsOBSAdaptiveScenes) {
+                    sendJSON(["type": "action.result", "requestId": requestIdentifier, "status": "not_allowed"])
+                    return true
+                }
                 let requestingTask = task
                 Task { [weak self, weak requestingTask] in
                     guard let self, let requestingTask, self.task === requestingTask, self.sessionAuthenticated else { return }
-                    let status = await self.resources.performResultStatus(
-                        actionIdentifier: actionIdentifier,
-                        folderOpenBehavior: payload.folderOpenBehavior ?? "new_window",
-                        shortcutAppID: payload.appId
-                    )
+                    if actionIdentifier.hasPrefix(AppleShortcut.actionPrefix), !self.appleShortcutsSupported {
+                        self.sendJSON(["type": "action.result", "requestId": requestIdentifier, "status": "not_allowed"])
+                        return
+                    }
+                    let status: String
+                    if actionIdentifier.hasPrefix("obs.output.") || actionIdentifier.hasPrefix("obs.brb.") ||
+                        actionIdentifier.hasPrefix("obs.take.") ||
+                        actionIdentifier.hasPrefix(OBSConnection.AdaptiveScene.prefix) ||
+                        actionIdentifier.hasPrefix(OBSConnection.studioModeID + ".") ||
+                        actionIdentifier.hasPrefix(OBSConnection.transitionID + ".") ||
+                        actionIdentifier.hasPrefix(OBSConnection.sourcePrefix) ||
+                        actionIdentifier.hasPrefix(OBSConnection.replayBufferID + ".") {
+                        let performed = await self.resources.performGuardedOBSAction(actionIdentifier: actionIdentifier) {
+                            self.task === requestingTask && self.sessionAuthenticated
+                        }
+                        status = performed ? "performed" : "not_allowed"
+                    } else {
+                        status = await self.resources.performResultStatus(
+                            actionIdentifier: actionIdentifier,
+                            folderOpenBehavior: payload.folderOpenBehavior ?? "new_window",
+                            shortcutAppID: payload.appId
+                        )
+                    }
                     guard self.task === requestingTask, self.sessionAuthenticated else { return }
                     self.sendJSON(["type": "action.result", "requestId": requestIdentifier, "status": status])
                     if status == "activated" {
@@ -603,7 +675,43 @@ final class CompanionConnection: NSObject {
             let requestIdentifier = payload.requestId
             let controlIdentifier = payload.controlId
             let value = Int(payload.value)
-            let changed = resources.setMediaControlValue(value, controlIdentifier: controlIdentifier)
+            if OBSConnection.coughInputUUID(for: controlIdentifier) != nil {
+                guard supportsOBSCough, let requestingTask = task else { return false }
+                let changed = await resources.setOBSCough(value, controlIdentifier: controlIdentifier,
+                                                          from: ObjectIdentifier(self))
+                guard task === requestingTask, sessionAuthenticated else { return true }
+                if value != 50 {
+                    publishOBSAudioValues(resources.obsAudioValues(), forceControl: controlIdentifier)
+                }
+                sendJSON(["type": "action.result", "requestId": requestIdentifier,
+                          "status": changed ? "performed" : "not_allowed"])
+                return true
+            }
+            if OBSConnection.faderInputUUID(for: controlIdentifier) != nil {
+                guard supportsOBSFaders, let requestingTask = task else { return false }
+                Task { [weak self, weak requestingTask] in
+                    guard let self, let requestingTask, self.task === requestingTask,
+                          self.sessionAuthenticated else { return }
+                    let changed = await self.resources.setOBSFader(value, controlIdentifier: controlIdentifier)
+                    guard self.task === requestingTask, self.sessionAuthenticated else { return }
+                    // A rejected or unchanged drag still needs to settle the panel at the confirmed value.
+                    self.publishOBSAudioValues(self.resources.obsAudioValues(), forceControl: controlIdentifier)
+                    self.sendJSON(["type": "action.result", "requestId": requestIdentifier,
+                                   "status": changed ? "performed" : "not_allowed"])
+                }
+                return true
+            }
+            if CompanionProtocolDecoder.appVolumeBundleIdentifier(controlIdentifier) != nil && !appVolumeSupported {
+                return false
+            }
+            if CompanionProtocolDecoder.isInputDeviceControl(controlIdentifier) && !supportsInputDevices { return false }
+            let activeTask = task
+            let changed = if controlIdentifier == SystemMediaController.coughID {
+                supportsCoughButton && resources.setCoughButtonValue(value, from: ObjectIdentifier(self))
+            } else {
+                await resources.setMediaControlValue(value, controlIdentifier: controlIdentifier)
+            }
+            guard task === activeTask, sessionAuthenticated else { return true }
             sendJSON(["type": "action.result", "requestId": requestIdentifier,
                       "status": changed ? "performed" : "not_allowed"])
         case .error(let payload):
@@ -773,37 +881,77 @@ final class CompanionConnection: NSObject {
         send(value)
     }
 
-    func publishCatalogue() {
+    func publishCatalogue(obsActions: [OBSConnection.CatalogueEntry]? = nil, includeDefinitions: Bool = true) {
         // An initial empty scan is provisional; publishing it would prune the
         // panel's persistent icons before discovery supplies the real app list.
         guard resources.applicationCatalogueReady else { return }
         guard sessionAuthenticated || task != nil else { return }
-        applicationFocusPublisher.reset()
+        if obsActions != nil && (!sessionAuthenticated || !supportsOBSCards) { return }
+        if obsActions == nil { applicationFocusPublisher.reset() }
         var capabilities = ["keyboard_shortcuts"]
         capabilities.append(CompanionCapabilities.appIconsCapability)
         capabilities.append(CompanionCapabilities.appIconsAlphaCapability)
         capabilities.append(CompanionCapabilities.appIconsHighResolutionCapability)
         capabilities.append("url_card_focus")
-        sendJSON(["type": "capabilities", "values": capabilities])
+        if onDemandShortcutsSupported { capabilities.append("shortcut_catalogue_on_demand") }
+        if supportsOBSCards { capabilities.append("obs_scene_cards") }
+        if supportsOBSOutputs { capabilities.append("obs_output_controls") }
+        if supportsOBSBreak { capabilities.append("obs_brb") }
+        if obsActions == nil { sendJSON(["type": "capabilities", "values": capabilities]) }
+        let obsOnly = obsActions != nil && peerCapabilityVersion >= 22
+        let supportedOBSActions = supportsOBSCards ? obsActions ?? resources.obsControlActions() : []
+        let obsEntries: [[String: Any]] = supportedOBSActions.filter { entry in
+            (supportsOBSFaders || OBSConnection.faderInputUUID(for: entry.id) == nil) &&
+            (supportsOBSCough || OBSConnection.coughInputUUID(for: entry.id) == nil) &&
+            (supportsOBSOutputs || !entry.id.hasPrefix("obs.output.")) &&
+            (supportsOBSBreak || !(entry.id == "obs.brb" || entry.id.hasPrefix("obs.brb."))) &&
+            (supportsOBSAdaptiveScenes || !entry.id.hasPrefix(OBSConnection.AdaptiveScene.prefix))
+        }.map { entry in
+            var fields: [String: Any] = ["id": entry.id, "label": Self.catalogueLabel(entry.label, fallback: "OBS scene")]
+            if let state = entry.state, peerCapabilityVersion >= state.minimumCapability {
+                fields["obsState"] = state.rawValue
+                if let detail = entry.detail {
+                    fields["obsDetail"] = Self.catalogueLabel(detail, fallback: "Unavailable")
+                }
+                if let available = entry.available { fields["obsAvailable"] = available }
+            }
+            return fields
+        }
         // The browser receives identifiers, never application paths or shell commands.
-        let apps = resources.launchableApps()
-        let entries: [[String: String]] = resources.folderActions().compactMap { folder -> [String: String]? in
+        let apps = obsOnly ? [] : resources.launchableApps()
+        let inputs: [[String: String]] = !obsOnly && supportsInputDevices ? resources.inputDeviceActions().map {
+            ["id": $0.id, "label": Self.catalogueLabel($0.label, fallback: "Input device")]
+        } : []
+        let appleShortcuts: [[String: String]] = !obsOnly && appleShortcutsSupported
+            ? resources.appleShortcutActions().map {
+                ["id": $0.actionIdentifier, "label": Self.catalogueLabel($0.name, fallback: "Apple Shortcut")]
+            }
+            : []
+        let folders = obsOnly ? [] : resources.folderActions()
+        let entries: [[String: String]] = folders.compactMap { folder -> [String: String]? in
             guard Self.validCatalogueIdentifier(folder.actionIdentifier) else { return nil }
             return ["id": folder.actionIdentifier, "label": Self.catalogueLabel(folder.name, fallback: "Folder")]
         } + apps.compactMap { app -> [String: String]? in
             guard Self.validCatalogueIdentifier(app.bundleIdentifier) else { return nil }
             return ["id": app.bundleIdentifier, "label": Self.catalogueLabel(app.name, fallback: app.bundleIdentifier)]
         }
+        // Older panels share a limit across Mac and OBS actions. Keep their
+        // existing application order before appending the OBS catalogue.
+        let catalogue = (inputs + entries + appleShortcuts).map { $0 as [String: Any] } + obsEntries
         catalogueGeneration &+= 1
         if catalogueGeneration == 0 { catalogueGeneration = 1 }
-        let pages = stride(from: 0, to: max(entries.count, 1), by: 48).map {
-            Array(entries[$0..<min($0 + 48, entries.count)])
+        let pageSize = appleShortcutsSupported ? 16 : 48
+        let pages = stride(from: 0, to: max(catalogue.count, 1), by: pageSize).map {
+            Array(catalogue[$0..<min($0 + pageSize, catalogue.count)])
         }
         for (page, items) in pages.enumerated() {
-            sendJSON(["type": "catalogue.page", "generation": catalogueGeneration,
-                      "page": page, "complete": page == pages.count - 1, "items": items])
+            var message: [String: Any] = ["type": "catalogue.page", "generation": catalogueGeneration,
+                                         "page": page, "complete": page == pages.count - 1, "items": items]
+            if obsOnly { message["scope"] = "obs" }
+            sendJSON(message)
         }
-        if remoteCatalogueDefinitionsSupported {
+        if obsOnly { return }
+        if includeDefinitions && obsActions == nil && remoteCatalogueDefinitionsSupported && !onDemandShortcutsSupported {
             let definitions = resources.remoteCompanionCatalogues().applicationsForDisplay(approvedApps: apps)
             let installedIDs = Set(apps.map(\.bundleIdentifier))
             let starter = definitions.map(\.starter)
@@ -836,6 +984,11 @@ final class CompanionConnection: NSObject {
             }
         }
         publishFocusedAction()
+    }
+
+    private func publishShortcutCataloguePage(_ request: CompanionWireShortcutCatalogueRequest) {
+        let catalogue = resources.remoteCompanionCatalogues()
+        sendJSON(catalogue.shortcutPageResponse(request, approvedApps: resources.launchableApps()))
     }
 
     nonisolated static func supportsRemoteCatalogueDefinitions(capabilityVersion: UInt32) -> Bool {
@@ -884,12 +1037,27 @@ final class CompanionConnection: NSObject {
         }
     }
 
+    func publishOBSAudioValues(_ values: [String: Int], force: Bool = false, forceControl: String? = nil) {
+        guard supportsOBSFaders, sessionAuthenticated else { return }
+        let values = values.filter { supportsOBSCough || OBSConnection.coughInputUUID(for: $0.key) == nil }
+        var removed = Set(lastOBSAudioValues.keys.filter { values[$0] == nil })
+        if let forceControl, values[forceControl] == nil { removed.insert(forceControl) }
+        for id in removed.sorted() {
+            sendJSON(["type": "value.state", "controlId": id, "available": false])
+        }
+        for (id, value) in values.sorted(by: { $0.key < $1.key })
+            where force || id == forceControl || lastOBSAudioValues[id] != value {
+            sendJSON(["type": "value.state", "controlId": id, "available": true, "value": value])
+        }
+        lastOBSAudioValues = values
+    }
+
     func publishMediaControlValues(_ values: [String: Int], unavailable: Set<String>) {
-        for identifier in unavailable.sorted() where Self.validMediaControlIdentifier(identifier) {
+        for identifier in unavailable.sorted() where validMediaControlIdentifier(identifier) {
             sendJSON(["type": "value.state", "controlId": identifier, "available": false])
         }
         for (identifier, value) in values.sorted(by: { $0.key < $1.key }) {
-            guard Self.validMediaControlIdentifier(identifier), (0...100).contains(value) else { continue }
+            guard validMediaControlIdentifier(identifier), (0...100).contains(value) else { continue }
             sendJSON(["type": "value.state", "controlId": identifier, "available": true, "value": value])
         }
     }
@@ -962,8 +1130,11 @@ final class CompanionConnection: NSObject {
         }
     }
 
-    private static func validMediaControlIdentifier(_ value: String) -> Bool {
-        SystemMediaController.volumeControlIDs.contains(value)
+    private func validMediaControlIdentifier(_ value: String) -> Bool {
+        if CompanionProtocolDecoder.isInputDeviceControl(value) { return supportsInputDevices }
+        if value == SystemMediaController.coughID { return supportsCoughButton }
+        return SystemMediaController.volumeControlIDs.contains(value) ||
+            (appVolumeSupported && CompanionProtocolDecoder.appVolumeBundleIdentifier(value) != nil)
     }
 
     private static func catalogueLabel(_ value: String, fallback: String) -> String {

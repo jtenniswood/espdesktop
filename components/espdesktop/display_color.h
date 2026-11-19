@@ -103,38 +103,16 @@ constexpr uint32_t active_card_color(uint32_t rgb) {
          active_channel(blue);
 }
 
-// Slider labels span the base and fill without changing checked state.
-// Keep the active shade only when the base foreground remains readable.
-constexpr uint32_t card_slider_fill_color(uint32_t rgb) {
-  const uint32_t active = active_card_color(rgb);
-  const uint32_t foreground = display_text_color_for_bg(rgb);
-  const uint32_t text = display_relative_luminance(foreground);
-  const auto readable = [text](uint32_t color) {
-    const uint32_t fill = display_relative_luminance(color);
-    const uint32_t light = fill > text ? fill : text;
-    const uint32_t dark = fill > text ? text : fill;
-    return uint64_t(light + 50000) * 1000 >= uint64_t(dark + 50000) * 4500;
-  };
-  if (active != rgb && readable(active)) return active;
-  // Move the fill away from the foreground until it reaches 4.5:1.
-  for (uint32_t amount = 10; amount <= 100; amount += 10) {
-    const auto channel = [foreground, amount](uint32_t value) {
-      return foreground == 0xFFFFFF ? (value * (100 - amount) + 50) / 100
-        : value + ((255 - value) * amount + 50) / 100;
-    };
-    const uint32_t shade = (channel((active >> 16) & 255) << 16) |
-      (channel((active >> 8) & 255) << 8) | channel(active & 255);
-    if (shade != rgb && readable(shade)) return shade;
-  }
-  return active;
+constexpr uint32_t darker_card_color(uint32_t rgb, uint32_t percent) {
+  const auto channel = [percent](uint32_t value) { return value * percent / 100; };
+  return (channel((rgb >> 16) & 255) << 16) |
+         (channel((rgb >> 8) & 255) << 8) | channel(rgb & 255);
 }
 
 // Stripes must preserve the foreground contrast of the active background.
 constexpr uint32_t card_pattern_highlight_color(uint32_t rgb) {
-  const bool white_text = display_text_color_for_bg(rgb) == 0xFFFFFF;
-  const auto channel = [white_text](uint32_t value) {
-    return white_text ? value * 65 / 100 : value + (255 - value) * 35 / 100;
-  };
+  if (display_text_color_for_bg(rgb) == 0xFFFFFF) return darker_card_color(rgb, 65);
+  const auto channel = [](uint32_t value) { return value + (255 - value) * 35 / 100; };
   return (channel((rgb >> 16) & 255) << 16) |
          (channel((rgb >> 8) & 255) << 8) | channel(rgb & 255);
 }

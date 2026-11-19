@@ -152,18 +152,22 @@ inline void set_grid_card_cell(lv_obj_t *btn,
 
 // ── Button visuals ────────────────────────────────────────────────────
 
+// Apple Shortcut cards keep their tap highlight through LVGL's press-lost event.
+inline constexpr lv_state_t APPLE_SHORTCUT_TAP_STATE = LV_STATE_USER_1;
+
 // Apply on/off background colors to a button's checked/pressed/default states
 inline void apply_button_colors(lv_obj_t *btn, bool has_on, uint32_t on_val,
-                                bool has_off, uint32_t off_val) {
+                                bool has_off, uint32_t off_val,
+                                lv_state_t pressed_state = LV_STATE_PRESSED) {
   if (has_on) {
     lv_obj_set_style_bg_color(btn, lv_color_hex(on_val),
       static_cast<lv_style_selector_t>(LV_PART_MAIN) | static_cast<lv_style_selector_t>(LV_STATE_CHECKED));
     lv_obj_set_style_text_color(btn, lv_color_hex(display_text_color_for_bg(on_val)),
       static_cast<lv_style_selector_t>(LV_PART_MAIN) | static_cast<lv_style_selector_t>(LV_STATE_CHECKED));
     lv_obj_set_style_bg_color(btn, lv_color_hex(on_val),
-      static_cast<lv_style_selector_t>(LV_PART_MAIN) | static_cast<lv_style_selector_t>(LV_STATE_PRESSED));
+      static_cast<lv_style_selector_t>(LV_PART_MAIN) | static_cast<lv_style_selector_t>(pressed_state));
     lv_obj_set_style_text_color(btn, lv_color_hex(display_text_color_for_bg(on_val)),
-      static_cast<lv_style_selector_t>(LV_PART_MAIN) | static_cast<lv_style_selector_t>(LV_STATE_PRESSED));
+      static_cast<lv_style_selector_t>(LV_PART_MAIN) | static_cast<lv_style_selector_t>(pressed_state));
   }
   if (has_off) {
     lv_obj_set_style_bg_color(btn, lv_color_hex(off_val),
@@ -175,7 +179,8 @@ inline void apply_button_colors(lv_obj_t *btn, bool has_on, uint32_t on_val,
 }
 
 inline void apply_button_on_pattern(lv_obj_t *btn, const std::string &options,
-                                    bool has_on, uint32_t on_val) {
+                                    bool has_on, uint32_t on_val,
+                                    lv_state_t pressed_state = LV_STATE_PRESSED) {
   if (!btn || !has_on) return;
   if (normalize_card_on_pattern(cfg_option_value(options, "on_pattern")) != "stripes") return;
   lv_style_selector_t checked =
@@ -183,7 +188,7 @@ inline void apply_button_on_pattern(lv_obj_t *btn, const std::string &options,
     static_cast<lv_style_selector_t>(LV_STATE_CHECKED);
   lv_style_selector_t pressed =
     static_cast<lv_style_selector_t>(LV_PART_MAIN) |
-    static_cast<lv_style_selector_t>(LV_STATE_PRESSED);
+    static_cast<lv_style_selector_t>(pressed_state);
   lv_color_t highlight = lv_color_hex(card_pattern_highlight_color(on_val));
   lv_obj_set_style_bg_grad_color(btn, highlight, checked);
   lv_obj_set_style_bg_grad_dir(btn, LV_GRAD_DIR_HOR, checked);

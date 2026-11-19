@@ -43,7 +43,7 @@ struct CompanionAppIconImageData {
   size_t display_bytes = 0;
   espdesktop::app_icon::Insets artwork_insets{};
   bool artwork_insets_ready = false;
-  std::string icon_size = "large";
+  bool compact_icon = false;
   struct {
     bool enabled = false;
     std::vector<uint8_t> storage;
@@ -133,22 +133,20 @@ int main() {
   button.width = 80;
   emit(button, LV_EVENT_LAYOUT_CHANGED);
   assert(icon.width == 80);
-  data.icon_size = "small";
+  data.compact_icon = true;
   emit(button, LV_EVENT_SIZE_CHANGED);
   assert(icon.width == 40);
-  data.icon_size = "medium";
-  emit(button, LV_EVENT_SIZE_CHANGED);
-  assert(icon.width == 60);
+  data.compact_icon = false;
   // A retained final image needs neither source pixels nor another scan.
-  data.display_pixels = pixels.data(); data.display_side = 60; data.pixels = nullptr;
+  data.display_pixels = pixels.data(); data.display_side = 80; data.pixels = nullptr;
   emit(button, LV_EVENT_LAYOUT_CHANGED);
-  assert(icon.width == 60 && reloads == 0 && !data.layout_updating);
+  assert(icon.width == 80 && reloads == 0 && !data.layout_updating);
   label.height = 90;
   emit(label, LV_EVENT_SIZE_CHANGED);
   assert(reloads == 1 && !data.layout_updating); // Real size change reloads the original.
   data.app_icon_mode = false; label.height = 0;
   emit(label, LV_EVENT_SIZE_CHANGED);
-  assert(icon.width == 60); // Reused non-app cards do not retain layout effects.
+  assert(icon.width == 80); // Reused non-app cards do not retain layout effects.
   assert(!data.layout_updating);
   // Visible pages must not retain nine full originals beside resized images.
   // Run the actual layout function with successful allocations, not just eviction.

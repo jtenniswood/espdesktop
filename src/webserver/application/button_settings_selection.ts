@@ -126,13 +126,15 @@ export function createButtonSettingsSelectionFeature(runtime: UiRuntimeState, cl
             });
             actions.appendChild(editBtn);
         }
-        var menuBtn: any = createActionButton("sp-selection-btn", "", "dots-horizontal", "Card actions");
-        menuBtn.addEventListener("click", function (this: any, e?: any) {
-            e.preventDefault();
-            e.stopPropagation();
-            showSelectionMenu(e);
-        });
-        actions.appendChild(menuBtn);
+        if (!state.settingsDraft?.generated) {
+            var menuBtn: any = createActionButton("sp-selection-btn", "", "dots-horizontal", "Card actions");
+            menuBtn.addEventListener("click", function (this: any, e?: any) {
+                e.preventDefault();
+                e.stopPropagation();
+                showSelectionMenu(e);
+            });
+            actions.appendChild(menuBtn);
+        }
         els.selectionBar.appendChild(actions);
     }
     function closeSettings(this: any) {
@@ -150,6 +152,7 @@ export function createButtonSettingsSelectionFeature(runtime: UiRuntimeState, cl
             return;
         c.setSelected([]);
         c.setLastClicked(-1);
+        if (state.settingsDraft?.generated) state.settingsDraft = null;
         state.clockBarSelectedItem = "";
         hideSettingsOverlay();
         updateClockBarItemUi();

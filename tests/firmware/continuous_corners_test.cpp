@@ -62,7 +62,6 @@ int dropped = 0;
 void lv_image_cache_drop(const void *) { ++dropped; }
 void lv_image_header_cache_drop(const void *) { ++dropped; }
 #include "../../components/espdesktop/button_grid_continuous_corners.h"
-#include "../../components/espdesktop/card_curve.h"
 
 int main() {
   using namespace espdesktop::corners;
@@ -117,28 +116,7 @@ int main() {
   assert(second.mask && mask_cache());
   send(second, LV_EVENT_DELETE);
   assert(mask_cache() == nullptr && dropped == 6);
-  // Switching saved presets must replace the outline and release the old
-  // mask. Exercise the S3's rounded whole-pixel sizes on a real card footprint.
-  for (const auto &radii : {std::array{20, 12, 16}, std::array{22, 13, 18},
-                            std::array{35, 21, 28}, std::array{26, 16, 21}}) {
-    assert(card_curve_radius(radii[0], "Small") == radii[1]);
-    assert(card_curve_radius(radii[0], "Medium") == radii[2]);
-    assert(card_curve_radius(radii[0], "Large") == radii[0]);
-  }
-  assert(card_curve_radius(25, "invalid") == 20);
-  lv_obj_t adjustable;
-  adjustable.width = 145; adjustable.height = 140; adjustable.radius = 26;
-  attach(&adjustable);
-  for (const auto &preset : {std::pair{"Small", 16}, std::pair{"Medium", 21}, std::pair{"Large", 26}}) {
-    apply_grid_card_corners(&adjustable, card_curve_radius(26, preset.first, 16, 21), true);
-    assert(adjustable.radius == preset.second);
-    assert(adjustable.pressed_radius == preset.second);
-    assert(mask_cache() && mask_cache()->radius == preset.second);
-    assert(mask_cache()->owners == 1 && !mask_cache()->next);
-  }
-  send(adjustable, LV_EVENT_DELETE);
-  assert(mask_cache() == nullptr && dropped == 14);
-  // A radius-only update used to retain a Large mask over a Small card.
+  // A radius-only update used to retain a mask with the previous radius.
   // Home navigation, nested cards and Back must all use the same policy.
   lv_obj_t home, nested, back;
   for (auto *card : {&home, &nested, &back}) {
@@ -156,7 +134,7 @@ int main() {
   for (auto *card : {&home, &nested, &back}) send(*card, LV_EVENT_DELETE);
   assert(mask_cache() == nullptr);
   // Hidden subpage cards start without usable dimensions; their first layout
-  // creates the same Small outline, without needing a radius style event.
+  // creates the configured outline, without needing a radius style event.
   lv_obj_t hidden;
   hidden.width = hidden.height = 0;
   apply_grid_card_corners(&hidden, 14, true);

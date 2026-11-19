@@ -2,7 +2,9 @@
 
 This folder contains the editable templates used for native Mac app shortcuts. The Mac Companion reads `manifest.json` and its listed templates from the EspDesktop GitHub repository at launch and reconnect. It sends the validated definitions to the paired display, where the web configurator uses them to build app subpages and shortcut choices. The display does not fetch GitHub directly.
 
-EspDesktop builds also bundle a starter copy for offline use. `python3 scripts/build.py companion` regenerates that starter copy and the browser/firmware lookup tables from the live catalogue files. Compatible template updates are fetched on launch or reconnect. Expanded presets require a display and Companion build with expanded shortcut support.
+Mac Companion bundles the full catalogue for local use without internet. Current displays forward the app index and the requested app's presets in bounded pages. The editor built into firmware includes a small starter set for offline editing when Companion is disconnected. Compatible template updates are fetched on launch or reconnect.
+
+`python3 scripts/build.py companion` regenerates the Mac, browser, and firmware data. Keep new apps as ordinary manifest entries so they appear through Companion without growing the editor bundles. Use `"offline": true` only for apps that should also appear when Companion is disconnected. The embedded editor includes up to eight defaults per opted-in app. Both editors have separate size budgets, and normal firmware must leave at least 128 KiB free in the smaller OTA slot.
 
 ## Add or update a native app
 
@@ -60,7 +62,7 @@ Use `moreShortcuts` for additional presets. These are available in the shortcut 
 - Use `scoped.` for app-specific commands, for example `scoped.space`, `scoped.shift+left` or `scoped.command+k~command+s`. Companion checks that the approved app is frontmost before sending each key. The separator `~` denotes a sequence of up to three strokes. Scoped keys also support `function` and distinct keypad keys, such as `keypad0` and `keypadenter`.
 - Use the regular shortcut syntax for documented global hotkeys. The display sends those to macOS regardless of the frontmost app.
 - Add a preset for each documented action and useful key alternative. Context-dependent actions can share the same keys. Avoid adding gestures, held keys, user-assigned shortcuts, or commands without a verified Mac binding.
-- Preserve the starter list order and existing IDs for older Companion and display builds. Older Companion installations ignore the expanded field. New builds carry the additional choices in bounded pages for approved apps, with a bundled offline copy in the editor.
+- Preserve the starter list order and existing IDs for older Companion and display builds. Older Companion installations ignore the expanded field. Current displays request additional choices when you select an app. With an older display, Companion sends the existing bounded legacy catalogue.
 
 The templates were compared with the original macOS shortcut research and supplemented with [first-party references](research-sources.md). Spotlight is system-wide. Finder shortcuts are available in the standalone picker alongside its dedicated folder page. Terminal-only OpenCode and browser-only Onshape are outside these native templates.
 

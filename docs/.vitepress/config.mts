@@ -27,7 +27,7 @@ const pageImages: Record<string, typeof defaultImage> = {
     'EspDesktop touchscreen with buttons for Mac apps next to a keyboard'),
   'screens/4848s040-stand.md': shareImage('4848s040-stand-printed.jpg', 1000, 1000,
     'The 3D-printed Guition 4848S040 stand with its mounting clips visible'),
-  'settings/screen.md': shareImage('web-editor-screen-settings.png', 1694, 2266,
+  'settings/screen.md': shareImage('web-editor-screen-settings.png', 1694, 2160,
     'EspDesktop Screen tab showing appearance, display, and sleep settings'),
   'settings/system.md': shareImage('web-editor-system-settings.png', 1694, 2266,
     'EspDesktop System tab showing device preferences and maintenance options'),
@@ -38,7 +38,7 @@ const pageImages: Record<string, typeof defaultImage> = {
   'features/home.md': shareImage('web-editor-home.png', 1694, 2266,
     'EspDesktop Home layout with Mac app cards in the web editor'),
   'features/subpages.md': shareImage('web-editor-figma-subpage.png', 1562, 2134,
-    'Figma app subpage with the Figma icon as the Back tile and a grid of shortcuts'),
+    'Figma app subpage with the Figma icon as the Back tile and a grid of keyboard shortcuts'),
   'mac-controls/apps.md': shareImage('web-editor-application-card.png', 1694, 2266,
     'Applications card form with Figma selected in the EspDesktop web editor'),
   'mac-controls/websites.md': shareImage('web-editor-website.jpg', 560, 530,
@@ -48,9 +48,14 @@ const pageImages: Record<string, typeof defaultImage> = {
 const author = { '@type': 'Person', name: 'jtenniswood', url: 'https://github.com/jtenniswood' }
 const websiteId = `${hostname}#website`
 const softwareId = `${hostname}#software`
+const obsStudioParent = { name: 'OBS Studio controls', path: 'mac-controls/obs-studio.md' }
 const guideParents = {
+  'mac-controls/obs-studio/studio-controls.md': obsStudioParent,
+  'mac-controls/obs-studio/scene-control-and-mixing.md': obsStudioParent,
+  'mac-controls/obs-studio/audio-controls.md': obsStudioParent,
   'screens/4848s040-stand.md': { name: '4848S040 setup guide', path: 'screens/4848s040.md' },
   'features/first-run.md': { name: '4848S040 setup guide', path: 'screens/4848s040.md' },
+  'features/adding-a-card.md': { name: 'Screen grid', path: 'features/home.md' },
   'features/subpages.md': { name: 'Customise the layout', path: 'features/home.md' },
   'mac-controls/apps.md': { name: 'Customise the layout', path: 'features/home.md' },
   'mac-controls/websites.md': { name: 'Customise the layout', path: 'features/home.md' },
@@ -64,21 +69,32 @@ const guideMetadata = new Map<string, { title: string; description: string }>()
 
 const customiseLinks = [
   { text: 'First setup', link: '/features/first-run' },
-  { text: 'Touchscreen layout', link: '/features/home' },
+  { text: 'Screen grid', link: '/features/home' },
   { text: 'Subpages', link: '/features/subpages' },
+  { text: 'Adding a card', link: '/features/adding-a-card' },
   { text: 'Apps', link: '/mac-controls/apps' },
   { text: 'Websites', link: '/mac-controls/websites' },
   { text: 'Finder folders', link: '/mac-controls/folders' },
   { text: 'Keyboard shortcuts', link: '/mac-controls/shortcuts' },
-  { text: 'Shortcut presets', link: '/reference/shortcut-presets' },
+  { text: 'Keyboard shortcut presets', link: '/reference/shortcut-presets' },
 ]
+const obsStudioLink = { text: 'OBS Studio', link: '/mac-controls/obs-studio' }
+const obsStudioSidebar = {
+  ...obsStudioLink,
+  collapsed: false,
+  items: [
+    { text: 'Studio controls', link: '/mac-controls/obs-studio/studio-controls' },
+    { text: 'Scene control and mixing', link: '/mac-controls/obs-studio/scene-control-and-mixing' },
+    { text: 'Audio controls', link: '/mac-controls/obs-studio/audio-controls' },
+  ],
+}
 const screenSettingsLink = { text: 'Screen settings', link: '/settings/screen' }
 const systemSettingsLink = { text: 'System settings', link: '/settings/system' }
 
 export default defineConfig({
   title: 'EspDesktop',
   description:
-    'Pair a small ESP32 touchscreen with your Mac to launch apps, open folders and websites, and run shortcuts.',
+    'Pair a small ESP32 touchscreen with your Mac to launch apps, open folders and websites, and run keyboard shortcuts.',
   lang: 'en-US',
   appearance: 'force-dark',
   cleanUrls: true,
@@ -175,6 +191,12 @@ export default defineConfig({
       frontmatter.macDownloadUrl = version ? `${releases}/download/${tag}/EspDesktop-${version}.dmg` : releases
     }
 
+    const shortcutGuide = relativePath.startsWith('reference/shortcut-presets/')
+    if (shortcutGuide && pageData.params) {
+      frontmatter.title = pageData.title = pageData.params.title
+      frontmatter.description = pageData.description = pageData.params.description
+    }
+
     const canonicalUrl = canonicalUrlFor(relativePath)
     const title = String(frontmatter.title ?? pageData.title)
     const description = String(frontmatter.description ?? '')
@@ -202,7 +224,12 @@ export default defineConfig({
     )
 
     const graph: Record<string, unknown>[] = []
+    const faqAnswers = frontmatter.faqAnswers
+    delete frontmatter.faqAnswers
     if (isHome) {
+      if (faqAnswers?.length) {
+        graph.push({ '@type': 'FAQPage', '@id': canonicalUrl, url: canonicalUrl, mainEntity: faqAnswers })
+      }
       graph.push(
         {
           '@type': 'WebSite',
@@ -236,7 +263,9 @@ export default defineConfig({
       )
     } else {
       const breadcrumbs = `${canonicalUrl}#breadcrumbs`
-      const parent = guideParents[relativePath]
+      const parent = shortcutGuide
+        ? { name: 'Application shortcuts', path: 'reference/shortcut-presets.md' }
+        : guideParents[relativePath]
       const trail = [
         { name: 'EspDesktop', item: hostname },
         ...(parent ? [{ name: parent.name, item: canonicalUrlFor(parent.path) }] : []),
@@ -252,11 +281,11 @@ export default defineConfig({
         isPartOf: { '@id': websiteId },
         breadcrumb: { '@id': breadcrumbs },
       }
-      if (relativePath === 'reference/faq.md') {
+      if (faqAnswers?.length) {
         page['@type'] = 'FAQPage'
-        page.mainEntity = frontmatter.faqAnswers
-        delete frontmatter.faqAnswers
-      } else if (isArticle) {
+        page.mainEntity = faqAnswers
+      }
+      if (isArticle) {
         // The page and its article are separate nodes. Breadcrumbs belong to the page.
         graph.push({
           '@type': 'TechArticle',
@@ -268,7 +297,7 @@ export default defineConfig({
           image: image.url,
           ...(pageData.lastUpdated ? { dateModified: new Date(pageData.lastUpdated).toISOString() } : {}),
         })
-        page.mainEntity = { '@id': `${canonicalUrl}#guide` }
+        page.mainEntity ??= { '@id': `${canonicalUrl}#guide` }
       }
       graph.push(page, {
         '@type': 'BreadcrumbList',
@@ -297,7 +326,7 @@ export default defineConfig({
       },
       {
         text: 'Customise',
-        items: [...customiseLinks, screenSettingsLink, systemSettingsLink],
+        items: [...customiseLinks, obsStudioLink, screenSettingsLink, systemSettingsLink],
       },
     ],
 
@@ -313,6 +342,7 @@ export default defineConfig({
         text: 'Customise',
         items: customiseLinks,
       },
+      obsStudioSidebar,
       {
         text: 'Settings',
         items: [
@@ -341,7 +371,7 @@ export default defineConfig({
       {
         text: 'Contribute',
         items: [
-          { text: 'App shortcuts', link: '/mac-controls/improve-shortcuts' },
+          { text: 'App keyboard shortcuts', link: '/mac-controls/improve-shortcuts' },
           { text: 'Request an icon', link: '/reference/request-icons' },
         ],
       },

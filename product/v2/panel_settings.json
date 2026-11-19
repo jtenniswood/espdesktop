@@ -10,7 +10,6 @@
     "companion_auto_open_app_subpages": { "default": "1", "type": "switch" },
     "companion_return_home_on_app_switch": { "default": "1", "type": "switch" },
     "screen_default_icon_size": { "default": "Large", "choices": ["Small", "Medium", "Large"] },
-    "screen_card_curve": { "default": "Large", "choices": ["Small", "Medium", "Large"] },
     "screensaver_mode": { "default": "disabled", "choices": ["disabled", "timer", "companion"] },
     "screen_saver_action": { "default": "Display Off", "choices": ["Display Off", "Screen Dimmed", "Clock"] },
     "screen_saver_show_date": { "default": "0", "type": "switch" },

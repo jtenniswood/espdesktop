@@ -7,15 +7,26 @@ const {
 } = loadTypescriptTest("src/webserver/application/first_run_setup.ts");
 const { NativeLayoutDraft } = loadTypescriptTest("src/webserver/model/native_layout_draft.ts");
 const { decodePanelPageSnapshot, encodePanelPageDocument } = loadTypescriptTest("src/webserver/model/panel_config_conversion.ts");
+const { canExposeCard } = loadTypescriptTest("src/webserver/model/home_assistant_cards.ts");
 const empty = overrides => encodePanelPageDocument({
   deviceProfile: "test", buttons: {}, subpages: {}, settings: { button_on_color: "FF0000" }, ...overrides,
 });
 const safari = { id: "com.apple.Safari", label: "Safari; Personal" };
 const custom = { id: "org.example.custom", label: "Custom" };
 
-function setup(input, apps, shortcuts, capacity = 4, replacing, automaticSwitch) {
+test("OBS tiles that require a panel tap are excluded from Home Assistant export", () => {
+  const uuid = "11111111-1111-1111-1111-111111111111";
+  for (const entity of ["obs.take", "obs.studio", "obs.transition", "obs.brb", "obs.output.stream", "obs.output.record", "obs.target." + uuid, "obs.status.program"]) {
+    assert.equal(canExposeCard({ type: "companion", entity, sensor: "" }), false, entity);
+  }
+  for (const entity of ["obs.mute." + uuid, "obs.scene." + uuid, "obs.replay"]) {
+    assert.equal(canExposeCard({ type: "companion", entity, sensor: "" }), true, entity);
+  }
+});
+
+function setup(input, apps, shortcuts, capacity = 4, replacing, automaticSwitch, workflows) {
   const draft = new NativeLayoutDraft(input);
-  applyFirstRunLayout(draft, decodePanelPageSnapshot(input), apps, shortcuts, capacity, replacing, automaticSwitch);
+  applyFirstRunLayout(draft, decodePanelPageSnapshot(input), apps, shortcuts, capacity, replacing, automaticSwitch, workflows);
   return draft.finish();
 }
 
@@ -33,6 +44,8 @@ test("first-run setup only starts on an unconfigured display", () => {
 test("onboarding lists unique applications, excluding retired web apps and other actions", () => {
   assert.deepEqual(firstRunApplications([safari, safari, custom,
     { id: "webapp.notion", label: "Notion" },
+    { id: "input.level." + "a".repeat(64), label: "USB Microphone" },
+    { id: "obs.output.record", label: "Recording" },
     ...["folder.abc", "media.play_pause", "shortcut.command+k", "system.cpu", "window.left"].map(id => ({ id, label: id })),
   ]).map(app => app.id), [custom.id, safari.id]);
 });
@@ -63,6 +76,17 @@ test("skip saves completion without creating cards and launch-only creates no su
   const launchOnly = decodePanelPageSnapshot(setup(empty(), [safari], false));
   assert.deepEqual(launchOnly.layout.pages, []);
   assert.equal(launchOnly.layout.rootCards[0].config.options, "");
+});
+
+test("setup gives the Shortcuts app a page of enabled workflows within capacity", () => {
+  const shortcuts = { id: "com.apple.shortcuts", label: "Shortcuts" };
+  const workflows = Array.from({ length: 5 }, (_, index) => ({
+    id: "appleshortcut.727ed9bf-de97-42ed-b661-8967497b122" + index,
+    label: "Workflow " + index,
+  }));
+  const { layout } = decodePanelPageSnapshot(setup(empty(), [shortcuts], true, 4, undefined, true, workflows));
+  assert.equal(layout.pages[0].order, "B,1,2,3");
+  assert.deepEqual(layout.pages[0].cards.map(card => card.config.entity), workflows.slice(0, 3).map(action => action.id));
 });
 
 test("replacing setup preserves other settings and rejects concurrent changes to the layout or preference", () => {

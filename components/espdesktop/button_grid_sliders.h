@@ -311,7 +311,8 @@ inline bool slider_has_alt_icon(const std::string &type, const std::string &icon
 
 inline const char *slider_icon_off(const std::string &type, const std::string &entity_id,
                                    const std::string &icon) {
-  if ((icon.empty() || icon == "Auto") && entity_id == "media.output_volume")
+  if ((icon.empty() || icon == "Auto") &&
+      (entity_id == "media.output_volume" || type == "companion_app_volume"))
     return find_icon("Volume High");
   if ((icon.empty() || icon == "Auto") && entity_id == "media.input_volume")
     return find_icon("Microphone");
@@ -333,7 +334,6 @@ inline const char *slider_icon_on(const std::string &type, const std::string &en
 
 inline void setup_slider_visual(BtnSlot &s, const ParsedCfg &p, uint32_t on_color,
                                 bool interactive) {
-  if (p.type != "slider" || !companion_volume_control_valid(p.entity)) return;
   ESP_LOGI("slider", "Setup Mac volume slider for %s (%s)",
     p.entity.c_str(), p.type.c_str());
   setup_toggle_visual(s, p);
@@ -385,6 +385,7 @@ inline void setup_slider_visual(BtnSlot &s, const ParsedCfg &p, uint32_t on_colo
   ctx->unit_lbl = s.unit_lbl;
   lv_obj_set_user_data(slider, (void *)ctx);
   slider_bind_geometry_refresh(s.btn, slider);
+  lv_obj_add_state(slider, LV_STATE_DISABLED);
   if (!interactive) lv_obj_clear_flag(slider, LV_OBJ_FLAG_CLICKABLE);
 
   lv_obj_add_event_cb(slider, [](lv_event_t *e) {
@@ -411,7 +412,7 @@ inline void setup_slider_visual(BtnSlot &s, const ParsedCfg &p, uint32_t on_colo
       auto *widget = static_cast<lv_obj_t *>(lv_event_get_target(event));
       auto *state = widget
           ? static_cast<SliderCtx *>(lv_obj_get_user_data(widget)) : nullptr;
-      if (!state || !state->available ||
+      if (!state || !state->available || lv_obj_has_state(widget, LV_STATE_DISABLED) ||
           !companion_volume_control_valid(state->entity_id)) return;
       slider_apply_vertical_pointer_value(widget);
       send_slider_action(state->entity_id, lv_slider_get_value(widget));

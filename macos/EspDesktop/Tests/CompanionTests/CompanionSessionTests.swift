@@ -20,7 +20,7 @@ private final class SessionFixture: CompanionSessionPreferences, CompanionSessio
     func focusedCompanionActionIdentifier() -> String { "" }
     func performResultStatus(actionIdentifier: String, folderOpenBehavior: String, shortcutAppID: String?) async -> String { "not_allowed" }
     func openURL(encodedURL: String, newWindow: Bool) async -> Bool { false }
-    func setMediaControlValue(_ value: Int, controlIdentifier: String) -> Bool { false }
+    func setMediaControlValue(_ value: Int, controlIdentifier: String) async -> Bool { false }
     func load(account: String) -> Data? { credentialReads += 1; return nil }
     func save(_ credential: Data, account: String) -> Bool { false }
 }

@@ -7,6 +7,8 @@ description: Group apps and keyboard shortcuts on your EspDesktop touchscreen, c
 
 Use a **Subpage** card to open a folder of related controls. Each subpage reserves one tile for **Back**, which takes you to its parent page. App subpages use the app’s large icon as their Back tile. Other subpages use an arrow and label.
 
+**Subpage** and **Back** cards briefly light up as you tap them to change pages.
+
 <a href="/images/espdesktop-slack-subpage.jpg"><picture><source type="image/avif" srcset="/images/espdesktop-slack-subpage-480.avif 480w, /images/espdesktop-slack-subpage-960.avif 960w" sizes="(min-width: 768px) 688px, 90vw"><img src="/images/espdesktop-slack-subpage.jpg" alt="EspDesktop touchscreen showing the Slack subpage with shortcuts for new messages, search, and direct messages" width="1320" height="1208" loading="eager"></picture></a>
 
 All subpages hide the top title and clock bar so the cards use the full screen. Clock Bar settings apply to the home screen only.
@@ -15,7 +17,7 @@ All subpages hide the top title and clock bar so the cards use the full screen. 
 
 Under **Screen → Appearance → App Subpages**, **Return home when switching apps** is on by default. Turn it off to keep the current app page open when you switch apps on the Mac. With it on, the display opens a matching new app page when automatic opening is enabled, or returns to the immediate parent page. The setting is saved on the display and included in backups.
 
-<a href="/images/web-editor-app-subpages-settings.png"><picture><source type="image/avif" srcset="/images/web-editor-app-subpages-settings-480.avif 480w, /images/web-editor-app-subpages-settings-960.avif 960w" sizes="(min-width: 768px) 688px, 90vw"><img src="/images/web-editor-app-subpages-settings.png" alt="App Subpages settings with Open app subpages on focus turned off and Return home when switching apps turned on" width="1562" height="1338" loading="lazy"></picture></a>
+<a href="/images/web-editor-app-subpages-settings.png"><picture><source type="image/avif" srcset="/images/web-editor-app-subpages-settings-480.avif 480w, /images/web-editor-app-subpages-settings-960.avif 960w" sizes="(min-width: 768px) 688px, 90vw"><img src="/images/web-editor-app-subpages-settings.png" alt="App Subpages settings with Open app subpages on focus turned off and Return home when switching apps turned on" width="1562" height="1266" loading="lazy"></picture></a>
 
 ## Create a subpage
 

@@ -1,3 +1,3 @@
 # Removed Mac audio cards
 
-Volume, Mic, Output mute, and Microphone mute cards have been removed. Saved cards leave empty spaces when a layout is loaded or restored.
+Legacy slider cards for Mac audio leave empty spaces when a layout is loaded or restored. Add the current **Sound** cards for volume, output mute, or microphone **Input State**. [Set up Mac audio cards](/mac-controls/apps#mac-audio).

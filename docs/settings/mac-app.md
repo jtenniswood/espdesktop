@@ -11,7 +11,7 @@ Choose **Add device** from the menu bar icon to search for and pair a display.
 
 <ScreenshotGallery label="Mac app settings preview" :width="1224" :height="1488" :slides="settingsSlides" />
 
-See how to choose [apps](/mac-controls/apps#choose-apps-in-the-mac-app) and [Finder folders](/mac-controls/folders#approve-a-folder) for your display. See [Permissions & Security](/mac-controls/security) for access to keyboard shortcuts and Mac Lock.
+Choose [apps](/mac-controls/apps#choose-apps-in-the-mac-app) and [Finder folders](/mac-controls/folders#approve-a-folder) for your display. Enabled apps also appear in the [App Volume picker](/mac-controls/apps#app-volume). See [Permissions & Security](/mac-controls/security) for macOS permissions.
 
 ## Check for Mac app updates
 
@@ -31,7 +31,7 @@ const settingsSlides = [
     imageBase: '/images/mac-connector/mac_app2',
     alt: 'Apps tab with All available apps switched on',
     title: 'Apps',
-    caption: 'Leave All available apps on to make every installed app available for shortcuts on your display.',
+    caption: 'Leave All available apps on to make every installed app available for keyboard shortcuts on your display.',
   },
   {
     imageBase: '/images/mac-connector/mac_app3',

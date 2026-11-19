@@ -2,7 +2,6 @@
 
 // Internal implementation detail for button_grid.h. Include button_grid.h from device YAML.
 
-#include "card_icon_size.h"
 #include "instant_button_style.h"
 #include "companion_controls.h"
 #ifdef USE_COMPANION
@@ -46,7 +45,7 @@ struct CompanionAppIconImageData {
   }
   lv_obj_t *fallback_icon = nullptr;
   lv_obj_t *card_label = nullptr;
-  std::string icon_size;
+  bool compact_icon = false;
   std::string application_id;
   espdesktop::cover_art::AccentPalette accent_palette{};
   uint32_t custom_background_rgb = 0;
@@ -167,10 +166,9 @@ inline void companion_layout_card_app_icon(CompanionAppIconImageData &source, lv
   }
   const auto insets = source.artwork_insets;
   const int fitted = espdesktop::app_icon::fit_side(width, height, label_height, gap, canvas, insets);
-  const int requested = source.icon_size == "large" ? fitted :
-      (small_side * (source.icon_size == "medium" ? 150 : 100) / 100) * canvas /
-      std::max(1, canvas - static_cast<int>(insets.left + insets.right));
-  const int side = std::min(fitted, requested);
+  const int side = source.compact_icon
+      ? std::min(fitted, small_side * canvas / std::max(1, canvas - static_cast<int>(insets.left + insets.right)))
+      : fitted;
   source.layout_updating = true;
 #if ESPHOME_VERSION_CODE >= VERSION_CODE(2026, 4, 0)
   if (source.display_side != side && !source.pixels) {
@@ -309,7 +307,7 @@ inline bool companion_apply_cached_app_icon(CompanionAppIconImageData &source, l
 }
 
 inline void companion_set_card_icon_image(BtnSlot &slot, const std::string &application_id,
-                                          const std::string &icon_size) {
+                                          bool compact_icon = false) {
   if (!slot.btn || !slot.icon_lbl) return;
   esphome::companion::app_icon_store().begin();
   if (!slot.app_icon_img) slot.app_icon_img = grid_find_companion_app_icon_image(slot.btn);
@@ -336,7 +334,7 @@ inline void companion_set_card_icon_image(BtnSlot &slot, const std::string &appl
   source->application_id = application_id;
   source->fallback_icon = slot.icon_lbl;
   source->card_label = slot.text_lbl;
-  source->icon_size = icon_size;
+  source->compact_icon = compact_icon;
   source->app_icon_mode = true;
   source->companion_online = companion_connected();
   companion_apply_cached_app_icon(*source, slot.app_icon_img);
@@ -493,17 +491,26 @@ inline void setup_companion_card(BtnSlot &s, const ParsedCfg &p,
                                 !cfg_option_token_present(p.options, "stat_labels_off"));
     return;
   }
+  const bool obs_status = companion_obs_status_card(p.entity);
+  const bool tokenized_card = companion_obs_tokenized_card(p.entity);
+  const bool obs_mute = companion_obs_audio_uuid(p.entity, "obs.mute.");
+  const bool direct_transition = companion_obs_transition_target(p.entity);
+  const std::string obs_alias = p.entity.rfind("obs.", 0) == 0 ? p.label : "";
+  const bool dynamic_label = obs_status || tokenized_card || p.entity == "obs.replay" || p.label.empty() || !obs_alias.empty();
+  const auto obs_snapshot = tokenized_card ? companion_runtime_snapshot() : CompanionRuntimeSnapshot{};
   const bool url_card = !companion_encoded_url(p.sensor).empty();
   const bool available = url_card
     ? companion_url_available(p.entity, p.sensor)
-    : companion_action_available(p.entity);
-  std::string label = p.label.empty()
-    ? companion_default_action_label(p.entity, p.sensor) : p.label;
+    : (tokenized_card ? companion_action_available(obs_snapshot, p.entity) : companion_action_available(p.entity));
+  const std::string label = dynamic_label
+    ? companion_obs_control_label(p.entity, obs_alias,
+        companion_default_action_label(p.entity, p.sensor, tokenized_card ? &obs_snapshot : nullptr),
+        tokenized_card ? &obs_snapshot : nullptr)
+    : p.label;
   lv_label_set_display_text(s.text_lbl, label.c_str());
   if (companion_app_launch_card(p) &&
       (cfg_option_token_present(p.options, "app_hide_label") ||
-       (companion_app_icon_enabled(p) &&
-        espdesktop::resolved_card_icon_size(cfg_option_value(p.options, "icon_size")) == "large"))) {
+       companion_app_icon_enabled(p))) {
     lv_obj_add_flag(s.text_lbl, LV_OBJ_FLAG_HIDDEN);
   } else {
     lv_obj_clear_flag(s.text_lbl, LV_OBJ_FLAG_HIDDEN);
@@ -512,14 +519,20 @@ inline void setup_companion_card(BtnSlot &s, const ParsedCfg &p,
     lv_label_set_long_mode(s.text_lbl, LV_LABEL_LONG_WRAP);
     lv_obj_set_width(s.text_lbl, lv_pct(100));
   }
+  const bool workflow_icon = apple_shortcut_workflow_icon(p);
   const char *icon = (p.icon.empty() || p.icon == "Auto")
-    ? find_icon("Monitor") : find_icon(p.icon.c_str());
+    ? find_icon(workflow_icon ? "Flash" : obs_mute ? "Microphone" : p.entity == "obs.brb" ? "Coffee to Go" :
+                p.entity == "obs.studio" ? "Split Vertical" : p.entity == "obs.multiview" ? "View Grid" :
+                (p.entity == "obs.transition" || direct_transition) ? "Flip Horizontal" :
+                p.entity == "obs.replay.buffer" ? "Repeat" :
+                companion_obs_scene_card(p.entity) ? "Image Card Loading" : "Monitor")
+    : find_icon(p.icon.c_str());
   lv_label_set_display_text(s.icon_lbl, icon);
-  if (companion_app_icon_enabled(p)) {
+  if (companion_app_icon_enabled(p) || workflow_icon) {
 #ifdef USE_COMPANION
-    companion_set_card_icon_image(s, p.entity,
-        espdesktop::resolved_card_icon_size(cfg_option_value(p.options, "icon_size")));
-    esphome::companion::request_app_icon(p.entity);
+    const std::string id = workflow_icon ? APPLE_SHORTCUTS_APP_ID : p.entity;
+    companion_set_card_icon_image(s, id, workflow_icon);
+    esphome::companion::request_app_icon(id);
 #endif
   } else if (s.app_icon_img) {
     lv_obj_add_flag(s.app_icon_img, LV_OBJ_FLAG_HIDDEN);
@@ -528,9 +541,25 @@ inline void setup_companion_card(BtnSlot &s, const ParsedCfg &p,
     companion_disable_card_app_icon_palette(s);
 #endif
   }
-  companion_track_card(s.btn, p.entity, p.sensor, s.text_lbl, p.label.empty());
+  companion_track_card(s.btn, p.entity, p.sensor, s.text_lbl, dynamic_label, true, obs_alias,
+    obs_mute ? s.icon_lbl : nullptr, obs_mute ? icon : nullptr,
+    obs_mute ? find_icon("Microphone Off") : nullptr);
+  if (tokenized_card) companion_remember_rendered_obs(s.btn, obs_snapshot);
   set_card_disabled_state(s.btn, !available);
-  if (companion_app_launch_card(p)) {
+  if (obs_status) {
+    apply_button_colors(s.btn, false, 0, true, sensor_color);
+    sync_card_checked_text_color(s.btn);
+    lv_obj_clear_flag(s.btn, LV_OBJ_FLAG_CLICKABLE);
+    clear_push_button_transition(s.btn);
+  } else if (p.entity == "obs.take") {
+    // Keep the normal palette on touch-down, including custom card colours.
+    remove_button_state_transitions(s.btn);
+    lv_obj_remove_style(s.btn, nullptr, static_cast<lv_style_selector_t>(LV_PART_MAIN) |
+      static_cast<lv_style_selector_t>(LV_STATE_PRESSED));
+    lv_obj_remove_event_cb_with_user_data(s.btn, card_text_contrast_event_cb, nullptr);
+    sync_card_checked_text_color(s.btn);
+  } else if (companion_app_launch_card(p) || companion_obs_momentary_action(p.entity) ||
+             companion_apple_shortcut_action(p.entity)) {
     apply_instant_button_feedback(s.btn);
   } else if (available) {
     apply_push_button_transition(s.btn);

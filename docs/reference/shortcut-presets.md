@@ -1,16 +1,14 @@
 ---
 title: EspDesktop Mac keyboard shortcut presets by app
-description: Look up the action labels and keyboard combinations in the EspDesktop shortcut catalog for Mac apps such as Figma, Safari and Slack.
+description: Look up the action labels and keyboard combinations in the EspDesktop keyboard shortcut catalog for Mac apps such as Brave Browser, Figma and Safari.
 ---
 
 <script setup>
 import ShortcutPresetReference from '../.vitepress/theme/components/ShortcutPresetReference.vue'
 </script>
 
-# EspDesktop Mac keyboard shortcut presets
+# Application shortcuts for EspDesktop
 
-These are the presets defined in the EspDesktop shortcut catalog. The options on your display depend on your EspDesktop version and the app you select. Enable [macOS Accessibility access](/mac-controls/shortcuts#allow-accessibility-access) and bring the app to the front before trying a shortcut. Some shortcuts also need a particular window, view or selection.
-
-[Create a shortcut tile](/mac-controls/shortcuts#create-a-shortcut-card) using the presets below.
+Find your app to see which Mac keyboard shortcuts you can put on your EspDesktop touchscreen. Each guide includes suggested buttons, a full shortcut reference, and answers to common questions.
 
 <ShortcutPresetReference />

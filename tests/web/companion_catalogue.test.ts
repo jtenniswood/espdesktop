@@ -14,10 +14,15 @@ export async function runCompanionCatalogueTests(): Promise<void> {
   const calls: Array<{ url: string; init: RequestInit | undefined }> = [];
   let definitionId = "example";
   let emptyDefinitions = false;
+  let closeUnknownEndpoint = true;
   const requestedPages: number[] = [];
   const fetchImpl = (async (input: RequestInfo | URL, init?: RequestInit) => {
     const url = String(input);
     calls.push({ url, init });
+    if (url.startsWith("/companion/shortcut-page?")) {
+      if (closeUnknownEndpoint) throw new TypeError("Network request failed");
+      return new Response(null, { status: 404 });
+    }
     if (url.startsWith("/companion/definitions?page=")) {
       const page = Number(url.slice(url.lastIndexOf("=") + 1));
       requestedPages.push(page);
@@ -44,6 +49,7 @@ export async function runCompanionCatalogueTests(): Promise<void> {
       definitions.applications[0]?.moreShortcuts?.[0]?.id !== "65" || requestedPages.slice(0, 2).join("|") !== "0|1") {
     throw new Error("Remote Companion definitions must load all pages and retain native application definitions");
   }
+  closeUnknownEndpoint = false;
   definitionId = "updated";
   const refreshed = await catalogue.loadDefinitions(true);
   if (refreshed.applications[0]?.appId !== "org.example.updated") throw new Error("A requested refresh must replace cached Companion definitions");

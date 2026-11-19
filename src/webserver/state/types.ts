@@ -19,8 +19,6 @@ export interface DeviceConfigFeatures {
 }
 
 export interface DeviceConfig {
-  readonly cardRadiusPixels?: number;
-  readonly cardCurveRadii?: Readonly<Record<string, number>>;
   readonly continuousCorners?: boolean;
   readonly slots: number;
   readonly cols: number;
@@ -114,6 +112,7 @@ export interface SettingsDraft {
   typeSelected?: boolean;
   appShortcutPage?: number;
   autoSelectedButton?: CardConfig | null;
+  generated?: { readonly id: string; readonly size: number };
 }
 
 export interface AppState {
@@ -174,10 +173,6 @@ export interface AppState {
   brightnessNightVal: number;
   brightnessMode: string;
   themeMode: string;
-  defaultIconSize: "small" | "medium" | "large";
-  defaultIconSizeSupported: boolean;
-  cardCurve: string;
-  cardCurveSupported: boolean;
   themeAutoMethod: string;
   themeActive: string;
   themeLightStart: string;

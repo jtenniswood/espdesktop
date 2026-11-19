@@ -144,3 +144,121 @@
   outline: 2px solid var(--vp-c-brand-1);
   outline-offset: 4px;
 }
+
+.vp-doc .docs-faq {
+  margin: 16px 0 32px;
+}
+
+.vp-doc .docs-faq .custom-block.details {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+
+.vp-doc .docs-faq .custom-block.details + .details {
+  border-top: 1px solid var(--vp-c-divider);
+}
+
+.vp-doc .docs-faq .details > summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  min-height: 64px;
+  margin: 0;
+  padding: 20px 4px 20px 0;
+  list-style: none;
+  color: var(--vp-c-text-1);
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.vp-doc .docs-faq .details > summary::-webkit-details-marker {
+  display: none;
+}
+
+.vp-doc .docs-faq .details > summary::after {
+  content: '';
+  flex: 0 0 9px;
+  height: 9px;
+  margin: 0 3px 4px;
+  border-right: 2px solid currentColor;
+  border-bottom: 2px solid currentColor;
+  color: var(--vp-c-text-2);
+  transform: rotate(45deg);
+}
+
+.vp-doc .docs-faq .details[open] > summary::after {
+  margin: 4px 3px 0;
+  transform: rotate(225deg);
+}
+
+.vp-doc .docs-faq .details > summary:hover {
+  color: var(--vp-c-brand-1);
+}
+
+.vp-doc .docs-faq .details > summary:focus-visible {
+  outline: 2px solid var(--vp-c-brand-1);
+  outline-offset: 2px;
+}
+
+.vp-doc .docs-faq .details > summary + p {
+  margin: 0;
+  padding: 0 28px 24px 0;
+  color: var(--vp-c-text-2);
+  font-size: 0.9375rem;
+  line-height: 1.65;
+}
+
+@font-face {
+  font-family: 'EspDesktop Shortcut Icons';
+  src: url('../../../common/assets/fonts/espdesktop-icons-1.ttf') format('truetype');
+  font-display: block;
+}
+
+.vp-doc .shortcut-guide-example {
+  margin: 24px 0;
+}
+
+.vp-doc .shortcut-guide-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: clamp(6px, 2vw, 12px);
+  padding: clamp(6px, 2vw, 12px);
+  border-radius: 14px;
+  background: #080808;
+}
+
+.vp-doc .shortcut-guide-card {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: clamp(3px, 1vw, 12px);
+  aspect-ratio: 1;
+  min-width: 0;
+  min-height: 0;
+  padding: clamp(6px, 2vw, 18px);
+  border-radius: clamp(14px, 4vw, 28px);
+  background: #303030;
+  color: #fff;
+  font-size: clamp(11px, 2.9vw, 18px);
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+}
+
+.vp-doc .shortcut-guide-glyph {
+  display: flex;
+}
+
+.vp-doc .shortcut-guide-glyph::before {
+  content: attr(data-glyph);
+  font: clamp(18px, 5vw, 44px)/1 'EspDesktop Shortcut Icons';
+}
+
+.vp-doc .shortcut-guide-example figcaption {
+  margin-top: 8px;
+  color: var(--vp-c-text-2);
+  font-size: 0.875rem;
+}

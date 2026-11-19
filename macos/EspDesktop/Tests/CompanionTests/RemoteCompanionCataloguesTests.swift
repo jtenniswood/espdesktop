@@ -17,8 +17,6 @@ final class RemoteCompanionCataloguesTests: XCTestCase {
         XCTAssertTrue(finalCut.expandedPages().allSatisfy { $0.defaultShortcutIds == nil })
         XCTAssertEqual(finalCut.expandedPages().flatMap { $0.moreShortcuts ?? [] }, more)
 
-        XCTAssertLessThanOrEqual(catalogue.applications.reduce(0) { $0 + 1 + $1.expandedPages().count }, 256)
-
         // Validate the actual escaped frames, including labels with punctuation.
         let encoder = JSONEncoder()
         for app in catalogue.applications {
@@ -32,6 +30,84 @@ final class RemoteCompanionCataloguesTests: XCTestCase {
                 XCTAssertNotNil(CompanionProtocolDecoder.decode(frame, direction: .macToPanel, state: .connected), app.appId)
                 XCTAssertLessThanOrEqual(frame.count, CompanionCapabilities.maximumTextFrameBytes)
             }
+        }
+    }
+
+    @MainActor
+    func testRequestedAppWorksBeyondLegacyCatalogueLimit() throws {
+        let defaults = try XCTUnwrap(UserDefaults(suiteName: UUID().uuidString))
+        let bundled = RemoteCompanionCatalogueStore(defaults: defaults).value
+        let brave = try XCTUnwrap(bundled.applications.first { $0.appId == "com.brave.Browser" })
+        let applications = (0..<300).map { index in
+            var app = brave
+            app.appId = "org.example.App\(index)"
+            return app
+        }
+        let catalogue = RemoteCompanionCatalogues(version: 42, applications: applications)
+        var indexed: [String] = []
+        for page in 0..<10 {
+            let request = CompanionWireShortcutCatalogueRequest(
+                requestId: 1, appId: "index", page: UInt32(page))
+            let response = catalogue.shortcutPageResponse(request, approvedApps: [])
+            let json = try XCTUnwrap(response["json"] as? String)
+            let index = try XCTUnwrap(JSONSerialization.jsonObject(with: Data(json.utf8)) as? [String: [[String: String]]])
+            indexed += index["applications", default: []].compactMap { $0["appId"] }
+            XCTAssertEqual(response["complete"] as? Bool, page == 9)
+        }
+        XCTAssertEqual(indexed, applications.map(\.appId))
+        let appId = "org.example.App299"
+        let expandedPageCount = brave.onDemandExpandedPages.count
+        var ids: [String] = []
+        for page in 0...expandedPageCount {
+            let request = CompanionWireShortcutCatalogueRequest(
+                requestId: 1, appId: appId, page: UInt32(page))
+            var response = catalogue.shortcutPageResponse(request, approvedApps: [])
+            response["protocol"] = CompanionCapabilities.protocolVersion
+            let frame = try JSONSerialization.data(withJSONObject: response)
+            guard case .shortcutCataloguePage(let result)? = CompanionProtocolDecoder.decode(
+                frame, direction: .macToPanel, state: .connected) else {
+                return XCTFail("The requested app page did not fit the protocol")
+            }
+            XCTAssertEqual(result.appId, appId)
+            XCTAssertEqual(result.catalogueVersion, 42)
+            XCTAssertEqual(result.complete, page == expandedPageCount)
+            let json = try XCTUnwrap(result.json)
+            let app = try JSONDecoder().decode(RemoteMacApplicationDefinition.self, from: Data(json.utf8))
+            ids += (app.shortcuts + (app.moreShortcuts ?? [])).map(\.id)
+        }
+        XCTAssertEqual(ids, (brave.shortcuts + (brave.moreShortcuts ?? [])).map(\.id))
+    }
+
+    @MainActor
+    func testExpandedCatalogueFitsFramesWithLongEscapedEntries() throws {
+        let suite = "EscapedCatalogueTests." + UUID().uuidString
+        let defaults = try XCTUnwrap(UserDefaults(suiteName: suite))
+        defer { defaults.removePersistentDomain(forName: suite) }
+        var app = try XCTUnwrap(RemoteCompanionCatalogueStore(defaults: defaults).value.applications.first {
+            $0.appId == "com.streamlabs.slobs"
+        })
+        let entries = (100..<164).map { id in
+            RemoteShortcutDefinition(
+                id: String(id), label: String(repeating: "\"", count: 48),
+                shortcut: "scoped.command+control+option+shift+function+f20~command+control+option+shift+f20",
+                icon: String(repeating: "/", count: 48)
+            )
+        }
+        app.moreShortcuts = entries
+
+        let pages = app.expandedPages()
+        XCTAssertGreaterThan(pages.count, 1)
+        XCTAssertEqual(pages.flatMap { $0.moreShortcuts ?? [] }, entries)
+        for page in pages {
+            let payload = try JSONEncoder().encode(page)
+            XCTAssertLessThanOrEqual(payload.count, 12_000)
+            let frame = try JSONSerialization.data(withJSONObject: [
+                "type": "catalogue.definitions.page", "protocol": CompanionCapabilities.protocolVersion,
+                "page": Int(UInt16.max), "generation": Int(UInt32.max), "complete": false,
+                "items": [["kind": "application", "json": String(decoding: payload, as: UTF8.self)]],
+            ])
+            XCTAssertLessThanOrEqual(frame.count, CompanionCapabilities.maximumTextFrameBytes)
+            XCTAssertNotNil(CompanionProtocolDecoder.decode(frame, direction: .macToPanel, state: .connected))
         }
     }
 
@@ -87,10 +163,12 @@ final class RemoteCompanionCataloguesTests: XCTestCase {
         })
         let data = try JSONEncoder().encode(chatGPT)
         let legacy = try JSONDecoder().decode(LegacyDefinition.self, from: data)
-        XCTAssertEqual(legacy.shortcuts.count, 62)
+        XCTAssertEqual(legacy.shortcuts.count, 28)
+        XCTAssertTrue(legacy.shortcuts.contains { $0.shortcut == "control+tab" })
+        XCTAssertTrue(legacy.shortcuts.contains { $0.shortcut == "command+option+6" })
         XCTAssertNil(legacy.extendedShortcuts)
-        XCTAssertEqual(chatGPT.additionalShortcuts?.count, 10)
-        XCTAssertTrue(chatGPT.additionalShortcuts?.contains { $0.shortcut == "shift+escape" } == true)
+        XCTAssertNil(chatGPT.additionalShortcuts)
+        XCTAssertEqual(chatGPT.moreShortcuts?.map(\.shortcut), ["scoped.up"])
         let frame = try JSONSerialization.data(withJSONObject: [
             "type": "catalogue.definitions.page", "protocol": CompanionCapabilities.protocolVersion,
             "page": 0, "generation": 1, "complete": false,
@@ -150,18 +228,18 @@ final class RemoteCompanionCataloguesTests: XCTestCase {
     }
 
     @MainActor
-    func testAthenaTemplateUsesApprovedSafariInstallationIDs() throws {
+    func testWebsiteTemplatesUseApprovedSafariInstallationIDs() throws {
         let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
         try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
         defer { try? FileManager.default.removeItem(at: directory) }
 
-        func installedApp(id: String, manifestName: String, path: String) throws -> LaunchableApp {
+        func installedApp(id: String, manifest: [String: String], path: String) throws -> LaunchableApp {
             let url = directory.appendingPathComponent(path + ".app")
             let contents = url.appendingPathComponent("Contents")
             try FileManager.default.createDirectory(at: contents, withIntermediateDirectories: true)
             let plist: [String: Any] = [
                 "CFBundleIdentifier": id, "CFBundlePackageType": "AAPL",
-                "Manifest": ["name": manifestName],
+                "Manifest": manifest,
             ]
             try PropertyListSerialization.data(fromPropertyList: plist, format: .xml, options: 0)
                 .write(to: contents.appendingPathComponent("Info.plist"))
@@ -169,18 +247,28 @@ final class RemoteCompanionCataloguesTests: XCTestCase {
         }
 
         let athena = try installedApp(id: "com.apple.Safari.WebApp." + UUID().uuidString,
-                                      manifestName: "Athena for Hermes Agent", path: "Renamed App")
+                                      manifest: ["name": "Athena for Hermes Agent"], path: "Renamed App")
         let other = try installedApp(id: "com.apple.Safari.WebApp." + UUID().uuidString,
-                                      manifestName: "Different Site", path: "Athena")
+                                      manifest: ["name": "Twitch", "start_url": "https://www.twitch.tv.example.org/"],
+                                     path: "Athena")
         let native = try installedApp(id: "com.example.athena",
-                                       manifestName: "Athena for Hermes Agent", path: "Native App")
-        let suite = "AthenaCatalogueTests." + UUID().uuidString
+                                       manifest: ["name": "Athena for Hermes Agent"], path: "Native App")
+        let twitch = try installedApp(id: "com.apple.Safari.WebApp." + UUID().uuidString,
+                                      manifest: ["start_url": "https://www.twitch.tv/channel"],
+                                      path: "Renamed Streaming App")
+        let suite = "WebsiteCatalogueTests." + UUID().uuidString
         let defaults = try XCTUnwrap(UserDefaults(suiteName: suite))
         defer { defaults.removePersistentDomain(forName: suite) }
         let catalogue = RemoteCompanionCatalogueStore(defaults: defaults).value
         let template = try XCTUnwrap(catalogue.applications.first { $0.label == "Athena" })
         XCTAssertFalse(catalogue.applicationsForDisplay(approvedApps: [other, native]).contains { $0.label == "Athena" })
-        let resolved = catalogue.applicationsForDisplay(approvedApps: [athena, other, native])
+        let twitchTemplate = try XCTUnwrap(catalogue.applications.first { $0.label == "Twitch" })
+        XCTAssertFalse(catalogue.applicationsForDisplay(approvedApps: [other, native]).contains { $0.label == "Twitch" })
+        let resolved = catalogue.applicationsForDisplay(approvedApps: [athena, other, native, twitch])
+        let installedTwitch = try XCTUnwrap(resolved.first { $0.appId == twitch.bundleIdentifier })
+        XCTAssertEqual(resolved.filter { $0.label == "Twitch" }.map(\.appId), [twitch.bundleIdentifier])
+        XCTAssertEqual(installedTwitch.defaultShortcutIds, twitchTemplate.defaultShortcutIds)
+        XCTAssertEqual(installedTwitch.moreShortcuts, twitchTemplate.moreShortcuts)
         XCTAssertEqual(resolved.filter { $0.label == "Athena" }.map(\.appId), [athena.bundleIdentifier])
         XCTAssertEqual(resolved.first { $0.appId == athena.bundleIdentifier }?.shortcuts, template.shortcuts)
         XCTAssertEqual(resolved.first { $0.appId == athena.bundleIdentifier }?.defaultShortcutIds,

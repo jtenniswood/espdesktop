@@ -73,7 +73,12 @@ Removing the application may leave preferences or Keychain items behind, so
 forget the display before uninstalling when you want to remove its pairing.
 EspDesktop does not send these local card data to an analytics service.
 
-The Mac app fetches public catalogues, including shortcut presets, from GitHub.
+App Volume uses macOS System Audio Recording permission to adjust selected apps’
+output on the Mac. The companion processes the audio in memory and plays it
+through the Mac’s output. The display receives volume percentages, and the
+companion does not store or transmit the audio.
+
+The Mac app fetches public catalogues, including keyboard shortcut presets, from GitHub.
 The packaged app also checks the EspDesktop update feed when automatic checks are
 enabled or you check manually. The hosting providers may receive ordinary request
 information such as IP address and time. You can change automatic update settings

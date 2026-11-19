@@ -39,7 +39,6 @@ static constexpr uint32_t RETRY_DELAY_MS = 30 * 1000;
 static constexpr size_t MAX_WEBSOCKET_FRAME_BYTES = COMPANION_MAXIMUM_TEXT_FRAME_BYTES;
 static constexpr size_t MAX_LEGACY_AUTH_FRAME_BYTES = 512;
 static constexpr char LEGACY_PROTOCOL_ROUTE[] = "/companion/v*";
-static constexpr size_t MAX_CATALOGUE_ACTIONS = 256;
 static constexpr size_t MAX_APP_ICON_CHUNK_BYTES = COMPANION_APP_ICON_CHUNK_BYTES;
 static constexpr uint32_t AUTHENTICATION_TIMEOUT_MS = 15 * 1000;
 static constexpr char PAIRING_ALPHABET[] = "ABCDEFGHJKLMNPQRSTUVWXYZ";
@@ -144,6 +143,17 @@ void CompanionService::setup() {
                                          const std::string &request) {
     return this->invoke_value_(control, value, request);
   });
+  companion_runtime_service().shortcut_catalogue_sender =
+      [this](uint32_t request_id, const std::string &app_id, uint32_t page) {
+        return this->send_(this->session_.authenticated_socket(),
+            json::build_json([&](JsonObject root) {
+              root["type"] = "shortcut.catalogue.request";
+              root["protocol"] = COMPANION_PROTOCOL_VERSION;
+              root["requestId"] = request_id;
+              root["appId"] = app_id;
+              root["page"] = page;
+            }));
+      };
   companion_runtime_service().begin_pairing = [this] { this->begin_pairing(); };
   companion_runtime_service().reset_and_begin_pairing = [this] { return this->reset_and_begin_pairing(); };
   companion_runtime_service().request_pairing_display = [this] {
@@ -183,6 +193,7 @@ void CompanionService::loop() {
   if (focus_targets.connected && this->focus_targets_supported_.load() &&
       focus_targets.generation != this->focus_targets_generation_.load())
     this->publish_focus_targets_();
+  const uint32_t now = millis();
   const uint32_t authentication_deadline = this->authentication_expires_at_.load();
   if (authentication_deadline != 0 &&
       static_cast<int32_t>(millis() - authentication_deadline) >= 0 &&
@@ -268,7 +279,7 @@ bool CompanionService::ensure_identity_() {
 
 bool CompanionService::start_server_() {
   httpd_ssl_config_t config = HTTPD_SSL_CONFIG_DEFAULT();
-  config.httpd.max_open_sockets = 2;
+  config.httpd.max_open_sockets = 3;
   // Detect a Mac that disappears without closing its WebSocket (power or
   // network loss), so connection-driven screensavers can still activate.
   config.httpd.keep_alive_enable = true;
@@ -304,7 +315,12 @@ bool CompanionService::start_server_() {
       .uri = LEGACY_PROTOCOL_ROUTE, .method = HTTP_GET, .handler = &CompanionService::legacy_websocket_handler_,
       .user_ctx = this, .is_websocket = true, .handle_ws_control_frames = false,
       .ws_post_handshake_cb = &CompanionService::websocket_opened_};
-  return httpd_register_uri_handler(this->server_, &legacy_websocket) == ESP_OK;
+  if (httpd_register_uri_handler(this->server_, &legacy_websocket) != ESP_OK) return false;
+  uint8_t digest[32]{};
+  return mbedtls_sha256(this->identity_.certificate, this->identity_.certificate_len, digest, 0) == 0 &&
+      this->home_assistant_.start(
+          [this](std::function<void()> callback) { this->defer(std::move(callback)); },
+          this->server_, hex(digest, sizeof(digest)));
 }
 
 void CompanionService::session_close_(httpd_handle_t server, int socket_fd) {
@@ -604,6 +620,7 @@ void CompanionService::handle_json_(int socket_fd, const std::string &message) {
       bool app_icons_alpha_supported = false;
       bool app_icons_high_resolution_supported = false;
       bool focus_targets_supported = false;
+      bool shortcut_catalogue_supported = false;
       for (const auto &capability : payload->values) {
         if (capability == COMPANION_APP_ICONS_CAPABILITY) {
           app_icons_supported = true;
@@ -619,20 +636,26 @@ void CompanionService::handle_json_(int socket_fd, const std::string &message) {
           keyboard_actions_capability_received = true;
         } else if (capability == "url_card_focus") {
           focus_targets_supported = true;
+        } else if (capability == "shortcut_catalogue_on_demand") {
+          shortcut_catalogue_supported = true;
         }
       }
+      companion_runtime_service().shortcut_catalogue.set_supported(shortcut_catalogue_supported);
       this->app_icons_supported_.store(app_icons_supported && app_icons_alpha_supported &&
                                        app_icons_high_resolution_supported);
+      // The Mac sends capabilities before a full catalogue, including rescans with the same app IDs.
+      this->app_icon_catalogue_refresh_pending_.store(true);
       std::vector<std::string> configured_icons;
       {
         std::lock_guard<std::mutex> lock(app_icon_state_mutex);
         if (app_icon_catalogue_ready) configured_icons = app_icon_requests;
       }
       for (const auto &id : configured_icons) this->request_app_icon(id);
-      this->defer_session_([this, keyboard_actions, keyboard_actions_capability_received, focus_targets_supported]() {
+      this->defer_session_([this, keyboard_actions, keyboard_actions_capability_received,
+                            focus_targets_supported, shortcut_catalogue_supported]() {
+        if (shortcut_catalogue_supported) companion_set_remote_definitions({});
         if (keyboard_actions_capability_received) companion_set_keyboard_actions_supported(keyboard_actions);
         this->focus_targets_supported_.store(focus_targets_supported);
-        if (focus_targets_supported) this->focus_targets_generation_.store(0xFFFFFFFFu);
       });
       return true;
     }
@@ -641,46 +664,61 @@ void CompanionService::handle_json_(int socket_fd, const std::string &message) {
       const uint32_t catalogue_generation = payload->generation;
       const uint16_t page = payload->page;
       const bool complete = payload->complete;
+      const bool obs_only = payload->scope.has_value();
       if (catalogue_generation == 0 ||
-          (page == 0 ? false : catalogue_generation != this->catalogue_generation_) ||
-          page != (page == 0 ? 0 : this->catalogue_next_page_)) return false;
+          (page != 0 && (catalogue_generation != this->catalogue_generation_ ||
+                         page != this->catalogue_next_page_ || obs_only != this->catalogue_obs_only_)))
+        return false;
+      if (obs_only && std::any_of(payload->items.begin(), payload->items.end(),
+          [](const auto &item) { return item.id.rfind("obs.", 0) != 0; })) return false;
       if (page == 0) {
         this->catalogue_actions_.clear();
+        this->catalogue_limits_ = {};
         this->catalogue_enabled_icons_.clear();
         this->catalogue_generation_ = catalogue_generation;
         this->catalogue_next_page_ = 0;
+        this->catalogue_obs_only_ = obs_only;
       }
       for (const auto &item : payload->items) {
         const std::string id = item.id;
         const std::string label = item.label;
         if (!safe_field(id, 96) || !safe_utf8_field(label, 96) || id.rfind("webapp.", 0) == 0) continue;
-        const bool retain_action = this->catalogue_actions_.size() < MAX_CATALOGUE_ACTIONS;
-        if (retain_action) this->catalogue_actions_.emplace_back(id, label);
+        const bool input = companion_input_device_control_valid(id);
+        const bool retain_action = this->catalogue_limits_.retain(id, input);
+        if (retain_action) {
+          const auto detail = item.obsDetail && safe_utf8_field(*item.obsDetail, 96) ? *item.obsDetail : std::string{};
+          const auto state = item.obsState ? obs_card_state(*item.obsState) : OBSCardState::unknown;
+          this->catalogue_actions_.push_back({id, label, state, detail, item.obsAvailable});
+        }
         // Keep icon eligibility for configured cards even when their app is
         // outside the bounded browser catalogue. The reference set is bounded
         // by the panel configuration rather than the Mac's installed app count.
-        if ((retain_action || app_icon_store().is_referenced(id)) &&
-            id.rfind("folder.", 0) != 0 && id.rfind("shortcut.", 0) != 0 &&
+        if (!obs_only && (retain_action || app_icon_store().is_referenced(id)) &&
+            id.rfind("folder.", 0) != 0 && !input && id.rfind("shortcut.", 0) != 0 &&
+            !companion_apple_shortcut_action(id) &&
             id.rfind("window.", 0) != 0 && id.rfind("metrics.", 0) != 0 &&
-            id.rfind("urlcard.", 0) != 0 &&
+            id.rfind("urlcard.", 0) != 0 && id.rfind("obs.", 0) != 0 &&
             std::find(this->catalogue_enabled_icons_.begin(), this->catalogue_enabled_icons_.end(), id) ==
                 this->catalogue_enabled_icons_.end())
           this->catalogue_enabled_icons_.push_back(id);
       }
       this->catalogue_next_page_ = page + 1;
       if (complete) {
-        std::vector<CompanionAction> actions;
-        actions.reserve(this->catalogue_actions_.size());
-        for (const auto &item : this->catalogue_actions_) actions.push_back({item.first, item.second});
-        this->defer_session_([actions = std::move(actions)]() mutable { companion_set_actions(std::move(actions)); }, "catalogue");
-        std::vector<std::string> configured_icons;
-        {
-          std::lock_guard<std::mutex> lock(app_icon_state_mutex);
-          enabled_app_icons = this->catalogue_enabled_icons_;
+        auto actions = std::move(this->catalogue_actions_);
+        if (obs_only) {
+          this->defer_session_([actions = std::move(actions)]() mutable {
+            companion_runtime_service().set_obs_actions(std::move(actions));
+          }, "OBS catalogue");
+          return true;
         }
-        std::vector<std::string> enabled_icons;
+        this->defer_session_([actions = std::move(actions)]() mutable { companion_set_actions(std::move(actions)); }, "catalogue");
+        const bool refresh_icons = this->app_icon_catalogue_refresh_pending_.exchange(false);
+        std::vector<std::string> configured_icons, enabled_icons;
         {
           std::lock_guard<std::mutex> lock(app_icon_state_mutex);
+          if (!refresh_icons && app_icon_catalogue_ready && enabled_app_icons == this->catalogue_enabled_icons_)
+            return true;  // An OBS-only update does not need icon cache or dashboard work.
+          enabled_app_icons = this->catalogue_enabled_icons_;
           app_icon_catalogue_ready = true;
           enabled_icons = enabled_app_icons;
           configured_icons = app_icon_requests;
@@ -778,6 +816,14 @@ void CompanionService::handle_json_(int socket_fd, const std::string &message) {
       return true;
     }
 
+    if (const auto *payload = std::get_if<companion_protocol::ShortcutCataloguePage>(&*decoded)) {
+      if (payload->json && !companion_json_payload_valid(*payload->json, 12000)) return false;
+      companion_runtime_service().shortcut_catalogue.receive({
+          payload->requestId, payload->appId, payload->page, payload->catalogueVersion,
+          payload->complete, payload->json.value_or("")});
+      return true;
+    }
+
     if (const auto *payload = std::get_if<companion_protocol::CatalogueDefinitionsPage>(&*decoded)) {
       const uint32_t generation = payload->generation;
       const uint16_t page = payload->page;
@@ -825,7 +871,7 @@ void CompanionService::handle_json_(int socket_fd, const std::string &message) {
 
     if (const auto *payload = std::get_if<companion_protocol::ValueState>(&*decoded)) {
       const std::string control_id = payload->controlId;
-      if (!companion_volume_control_valid(control_id)) return false;
+      if (!companion_value_control_valid(control_id)) return false;
       if (!payload->available) {
         this->defer_session_([control_id] { companion_remove_value(control_id); });
         return true;
@@ -1049,9 +1095,11 @@ void CompanionService::set_connected_(bool connected, int closing_socket) {
       this->session_.disconnect();
     }
   }
+  companion_runtime_service().shortcut_catalogue.set_supported(false);
   if (connected) {
     this->focus_targets_generation_ = 0xFFFFFFFFu;
     this->focus_targets_supported_ = false;
+    this->app_icon_catalogue_refresh_pending_.store(true);
   } else {
     this->focus_targets_supported_ = false;
     this->reset_app_icon_transfer_();
@@ -1170,7 +1218,7 @@ bool CompanionService::invoke_url_(const std::string &encoded_url, const std::st
 bool CompanionService::invoke_value_(const std::string &control_id, int value,
                                      const std::string &request_id) {
   const int socket_fd = this->session_.authenticated_socket();
-  if (socket_fd < 0 || !companion_volume_control_valid(control_id) ||
+  if (socket_fd < 0 || !companion_writable_value_control_valid(control_id) ||
       value < 0 || value > 100 || !safe_field(request_id, 64)) return false;
   const companion_protocol::ValueSet payload{request_id, control_id, static_cast<uint32_t>(value)};
   return this->send_(socket_fd, json::build_json([&payload](JsonObject root) {

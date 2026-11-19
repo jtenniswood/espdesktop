@@ -54,7 +54,8 @@ def measure(build_root: Path) -> tuple[int, int]:
     return used, capacity
 
 
-def report(target: str, build_root: Path, compile_status: int, summary: Path | None) -> int:
+def report(target: str, build_root: Path, compile_status: int, summary: Path | None,
+           minimum_headroom: int = 0) -> int:
     status = "passed" if compile_status == 0 else "failed"
     result = int(compile_status != 0)
     try:
@@ -66,6 +67,11 @@ def report(target: str, build_root: Path, compile_status: int, summary: Path | N
             print(f"::error::{target}: application exceeds OTA partition by {-free:,} bytes")
             result = 1
             status = "failed (oversize)"
+        elif free < minimum_headroom:
+            print(f"::error::{target}: {free / 1024:.1f} KiB OTA headroom is below the "
+                  f"{minimum_headroom / 1024:g} KiB deployment reserve")
+            result = 1
+            status = "failed (OTA reserve)"
         elif free < WARNING_BYTES:
             print(f"::warning::{target}: only {free / 1024:.1f} KiB application headroom (warning below 128 KiB)")
         row = f"| {target} | {used:,} | {capacity:,} | {100 * used / capacity:.2f}% | {free / 1024:.1f} KiB | {status} |\n"
@@ -88,8 +94,12 @@ def main() -> int:
     parser.add_argument("--build-root", type=Path, required=True)
     parser.add_argument("--compile-status", type=int, required=True)
     parser.add_argument("--summary", type=Path, default=os.environ.get("GITHUB_STEP_SUMMARY"))
+    parser.add_argument("--minimum-headroom-kib", type=int, default=0)
     args = parser.parse_args()
-    return report(args.target, args.build_root, args.compile_status, args.summary)
+    if args.minimum_headroom_kib < 0:
+        parser.error("--minimum-headroom-kib cannot be negative")
+    return report(args.target, args.build_root, args.compile_status, args.summary,
+                  args.minimum_headroom_kib * 1024)
 
 
 if __name__ == "__main__":

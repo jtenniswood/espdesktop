@@ -12,7 +12,6 @@ export const PANEL_SCALAR_SETTINGS = {
   companion_auto_open_app_subpages: { defaultValue: "1", choices: ["0", "1"] },
   companion_return_home_on_app_switch: { defaultValue: "1", choices: ["0", "1"] },
   screen_default_icon_size: { defaultValue: "Large", choices: ["Small", "Medium", "Large"] },
-  screen_card_curve: { defaultValue: "Large", choices: ["Small", "Medium", "Large"] },
   screensaver_mode: { defaultValue: "disabled", choices: ["disabled", "timer", "companion"] },
   screen_saver_action: { defaultValue: "Display Off", choices: ["Display Off", "Screen Dimmed", "Clock"] },
   screen_saver_show_date: { defaultValue: "0", choices: ["0", "1"] },

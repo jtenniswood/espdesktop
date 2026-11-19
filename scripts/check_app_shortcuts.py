@@ -72,7 +72,10 @@ class AppShortcutTests(unittest.TestCase):
     def test_chatgpt_extra_presets_preserve_the_regular_list(self):
         app = json.loads((ROOT / 'product/v2/app_shortcuts/codex.json').read_text())
         validate_app(app, self.icons)
-        validate_app({key: value for key, value in app.items() if key != 'additionalShortcuts'}, self.icons)
+        app['additionalShortcuts'] = [
+            {'id': '63', 'label': 'Clear Unreads', 'shortcut': 'shift+escape', 'icon': 'Check'},
+        ]
+        validate_app(app, self.icons)
         with self.assertRaisesRegex(ValueError, 'only on the ChatGPT Desktop'):
             validate_app(dict(app, appId='org.example.Editor'), self.icons)
         app['additionalShortcuts'][0]['shortcut'] = 'escape'
@@ -100,6 +103,36 @@ class AppShortcutTests(unittest.TestCase):
             (directory / 'duplicate.json').write_text(json.dumps(self.app))
             with self.assertRaisesRegex(ValueError, 'duplicate appId'):
                 load_apps(root)
+
+    def test_online_app_does_not_add_data_to_either_editor(self):
+        with TemporaryDirectory() as temp:
+            root = Path(temp)
+            directory = root / 'product/v2/app_shortcuts'
+            directory.mkdir(parents=True)
+            (root / 'product/v2/icons.json').write_text((ROOT / 'product/v2/icons.json').read_text())
+            starter = {
+                'version': 1, 'appId': 'org.example.Editor', 'label': 'Example Editor',
+                'catalog': False, 'defaultShortcutIds': ['9'],
+                'shortcuts': [{'id': '0', 'label': 'New Window', 'shortcut': 'command+n', 'icon': 'New Window'}],
+                'moreShortcuts': [{'id': '9', 'label': 'Next item', 'shortcut': 'scoped.tab', 'icon': 'Arrow Right'}],
+            }
+            manifest = {'formatVersion': 1, 'catalogueVersion': 1, 'minimumCompanionVersion': '1.0.0',
+                        'entries': [{'path': 'editor.json', 'offline': True}]}
+            (directory / 'editor.json').write_text(json.dumps(starter))
+            (directory / 'manifest.json').write_text(json.dumps(manifest))
+
+            def editor_outputs():
+                return {path.name: content for path, content in outputs(root) if path.suffix == '.ts'}
+
+            original = editor_outputs()
+            offline = original['app_shortcuts_offline.ts']
+            self.assertIn('"scoped.tab"', offline, 'expanded entries can be selected as offline defaults')
+            self.assertNotIn('"command+n"', offline, 'only defaults belong in the embedded editor')
+            (directory / 'online.json').write_text(json.dumps(dict(starter, appId='org.example.Online')))
+            manifest['entries'].append({'path': 'online.json'})
+            (directory / 'manifest.json').write_text(json.dumps(manifest))
+            self.assertEqual(editor_outputs(), original)
+            self.assertIn('org.example.Online', {app['appId'] for app in load_apps(root)})
 
 
 if __name__ == '__main__':

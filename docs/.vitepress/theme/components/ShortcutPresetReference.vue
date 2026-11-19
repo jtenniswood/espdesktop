@@ -1,26 +1,23 @@
 <script setup lang="ts">
-import { COMPANION_SHORTCUT_APPS } from '../../../../src/webserver/generated/app_shortcuts'
-import { bundledExpandedShortcuts } from '../../../../src/webserver/application/companion_shortcut_data'
+import { computed, ref } from 'vue'
+import type { AppShortcutApplication } from '../../../../src/webserver/generated/app_shortcuts'
+import { displayKeys, shortcutCatalogue } from '../../shortcut-format'
+import shortcutsGuides from '../../shortcut-guides.json'
 
-const apps = COMPANION_SHORTCUT_APPS.map(app => ({
-  ...app, shortcuts: [...app.shortcuts, ...bundledExpandedShortcuts(app.appId)],
-}))
+const definitions = import.meta.glob<AppShortcutApplication>(
+  ['../../../../product/v2/app_shortcuts/*.json', '!../../../../product/v2/app_shortcuts/manifest.json'],
+  { eager: true, import: 'default' },
+)
+const apps = shortcutCatalogue(Object.values(definitions))
+const props = defineProps<{ appId?: string }>()
+const search = ref('')
+const guideSlugs = new Map(Object.entries(shortcutsGuides).map(([slug, guide]) => [guide.appId, slug]))
+const app = computed(() => apps.find(app => app.appId === props.appId))
 
-const keyLabels: Record<string, string> = {
-  command: 'Command', control: 'Control', option: 'Option',
-  shift: 'Shift', function: 'Fn', keycomma: ',', keyperiod: '.', keyslash: '/',
-  keysemicolon: ';', keyquote: "'", keybackslash: '\\', keyminus: '-', keyequal: '=',
-  keybracketleft: '[', keybracketright: ']', keybackquote: '`',
-}
-
-function displayKeys(shortcut: string) {
-  if (shortcut === 'escape-twice') return 'Escape twice'
-  if (shortcut === 'claude-escape') return 'Escape (Claude)'
-  return shortcut.replace(/^scoped\./, '').split('~').map(stroke => stroke.split('+')
-    .map(key => keyLabels[key] ?? (key.startsWith('keypad')
-      ? 'Keypad ' + key.slice(6) : key[0].toUpperCase() + key.slice(1)))
-    .join(' + ')).join(' then ')
-}
+const matchingApps = computed(() => {
+  const query = search.value.trim().toLowerCase()
+  return apps.filter(app => app.label.toLowerCase().includes(query))
+})
 
 function anchor(appId: string) {
   return appId.toLowerCase().replaceAll('.', '-')
@@ -28,94 +25,108 @@ function anchor(appId: string) {
 </script>
 
 <template>
-  <details v-for="app in apps" :id="anchor(app.appId)" :key="app.appId">
-    <summary>
-      <span class="preset-name">{{ app.label }}</span>
-      <span class="preset-count">{{ app.shortcuts.length }} {{ app.shortcuts.length === 1 ? 'shortcut' : 'shortcuts' }}</span>
-      <span class="preset-chevron" aria-hidden="true"></span>
-    </summary>
-    <table :aria-label="`${app.label} shortcuts`">
-      <thead>
-        <tr><th scope="col">Action</th><th scope="col">Keys</th></tr>
-      </thead>
-      <tbody>
-        <tr v-for="shortcut in app.shortcuts" :key="shortcut.id">
-          <td>{{ shortcut.label }}</td><td>{{ displayKeys(shortcut.shortcut) }}</td>
-        </tr>
-      </tbody>
-    </table>
-  </details>
+  <template v-if="!appId">
+    <div class="preset-search" role="search" aria-label="Application shortcuts">
+      <input v-model="search" type="search" placeholder="Search apps" aria-label="Search apps" />
+      <p role="status">{{ matchingApps.length ? '' : 'No matching apps.' }}</p>
+    </div>
+    <ul class="preset-list" aria-label="Application shortcut guides">
+      <li v-for="entry in matchingApps" :id="anchor(entry.appId)" :key="entry.appId">
+        <a :href="`/reference/shortcut-presets/${guideSlugs.get(entry.appId)}`">
+          <span>{{ entry.label }}</span>
+          <span class="preset-chevron" aria-hidden="true"></span>
+        </a>
+      </li>
+    </ul>
+  </template>
+  <table v-else-if="app" :aria-label="`${app.label} shortcuts`">
+    <thead>
+      <tr><th scope="col">Action</th><th scope="col">Keys</th></tr>
+    </thead>
+    <tbody>
+      <tr v-for="shortcut in app.shortcuts" :key="shortcut.id">
+        <td>{{ shortcut.label }}</td><td>{{ displayKeys(shortcut.shortcut) }}</td>
+      </tr>
+    </tbody>
+  </table>
 </template>
 
 <style scoped>
-details {
+.preset-search {
+  margin: 24px 0 12px;
+}
+
+.preset-search input {
+  width: 100%;
+  min-height: 44px;
+  padding: 8px 12px;
+  font-size: 1rem;
+  border: 1px solid var(--vp-c-divider);
+  border-radius: 8px;
+  background: var(--vp-c-bg-soft);
+}
+
+.preset-search input:focus-visible {
+  outline: 2px solid var(--vp-c-brand-1);
+  outline-offset: 2px;
+}
+
+.preset-search [role='status']:empty {
+  margin: 0;
+}
+
+.preset-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.preset-list li {
+  margin: 0;
   border-bottom: 1px solid var(--vp-c-divider);
   scroll-margin-top: calc(var(--vp-nav-height) + 16px);
 }
 
-details[open] {
-  padding-bottom: 16px;
-}
-
-details > summary {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto 16px;
+.preset-list a {
+  display: flex;
+  justify-content: space-between;
   align-items: center;
-  gap: 12px;
+  gap: 16px;
   min-height: 48px;
-  margin: 0;
-  padding: 10px 8px;
-  cursor: pointer;
-  list-style: none;
+  padding: 10px 12px;
+  color: var(--vp-c-text-1);
+  font-weight: 600;
+  text-decoration: none;
 }
 
-summary::-webkit-details-marker {
-  display: none;
-}
-
-summary:hover,
-details[open] > summary {
+.preset-list a:hover {
+  color: var(--vp-c-brand-1);
   background: var(--vp-c-bg-soft);
 }
 
-summary:focus-visible {
+.preset-list a:focus-visible {
   outline: 2px solid var(--vp-c-brand-1);
   outline-offset: -2px;
 }
 
-.preset-name {
-  font-weight: 600;
-}
-
-.preset-count {
-  color: var(--vp-c-text-2);
-  font-size: 13px;
-  white-space: nowrap;
-}
-
 .preset-chevron {
-  justify-self: center;
-  width: 8px;
+  flex: 0 0 8px;
   height: 8px;
-  border-right: 2px solid var(--vp-c-text-2);
-  border-bottom: 2px solid var(--vp-c-text-2);
-  transform: translateY(-2px) rotate(45deg);
+  border-right: 2px solid currentColor;
+  border-bottom: 2px solid currentColor;
+  transform: rotate(-45deg);
 }
 
-details[open] .preset-chevron {
-  transform: translateY(2px) rotate(225deg);
-}
-
-details > table {
+table {
   display: table;
-  width: calc(100% - 32px);
+  width: 100%;
   margin: 12px auto 0;
   border: 1px solid var(--vp-c-divider);
   table-layout: fixed;
 }
 
-table th,
-table td {
+th,
+td {
   border: 0;
   padding: 8px 12px;
   text-align: left;
@@ -123,20 +134,20 @@ table td {
   overflow-wrap: anywhere;
 }
 
-table th + th,
-table td + td {
+th + th,
+td + td {
   border-inline-start: 1px solid var(--vp-c-divider);
 }
 
-table th {
+th {
   font-size: 13px;
 }
 
-table th:first-child {
+th:first-child {
   width: 45%;
 }
 
-table tbody tr:nth-child(even) {
+tbody tr:nth-child(even) {
   background: var(--vp-c-bg);
 }
 </style>

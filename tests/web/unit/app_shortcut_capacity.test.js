@@ -5,10 +5,10 @@ const { loadTypeScriptModule } = require("../../../scripts/load_typescript_modul
 const api = loadTypeScriptModule("src/webserver/application/companion_shortcut_folder.ts");
 const { buildSubpageGrid } = loadTypeScriptModule("src/webserver/model/subpage.ts");
 const appId = "com.openai.codex";
-const selected = ["0", "3", "5", "6"];
+const selected = ["0", "3", "10", "14"];
 function page() {
   const source = api.createCompanionShortcutSubpage(appId, selected);
-  source.buttons.push({ type: "companion", entity: "shortcut.command+shift+p", label: "Custom shortcut", options: "" });
+  source.buttons.push({ type: "companion", entity: "shortcut.command+shift+t", label: "Custom shortcut", options: "" });
   source.order.push("5", "", "", "");
   Object.assign(source, buildSubpageGrid(source, 9, 3));
   return source;
@@ -18,7 +18,7 @@ test("three visible empty slots accept three app shortcuts without altering the 
   const source = page();
   assert.equal(source.grid.filter(slot => slot === 0).length, 3);
   const unchanged = structuredClone(source);
-  for (const extra of [["7"], ["7", "2"], ["7", "2", "4"]]) {
+  for (const extra of [["7"], ["7", "19"], ["7", "19", "22"]]) {
     assert.equal(api.companionShortcutTabsFitSubpage(appId, [...selected, ...extra], source, 9), true);
     assert.deepEqual(source, unchanged, "checking capacity must not edit the saved subpage");
   }
