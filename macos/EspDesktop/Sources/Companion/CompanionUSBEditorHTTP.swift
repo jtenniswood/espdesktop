@@ -1,6 +1,10 @@
 import Foundation
 import zlib
 
+struct USBEditorWifiState: Codable {
+    let enabled: Bool
+}
+
 enum USBEditorError: LocalizedError {
     case disconnected, timedOut, invalidResponse, tooLarge, firmwareUpdateRequired
 

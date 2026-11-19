@@ -260,6 +260,7 @@ struct CompanionSettings: View {
     @State private var selectedUSBPort: String?
     @State private var usbPorts: [String] = []
     @State private var findingNetworkDisplay: CompanionDisplay?
+    @State private var showingWifiOff = false
     @State private var findingUSBDisplay: CompanionDisplay?
     @State private var showingUSBNotFound = false
     @State private var displayToConfigure: CompanionDisplay?
@@ -312,9 +313,17 @@ struct CompanionSettings: View {
         }
         .task(id: findingNetworkDisplay?.id) {
             guard let display = findingNetworkDisplay else { return }
+            let wifiEnabled = await display.connection.usbWifiEnabled()
+            guard !Task.isCancelled, display.usesUSB else { return }
+            if wifiEnabled == false {
+                showingWifiOff = true
+                findingNetworkDisplay = nil
+                return
+            }
             let result: DiscoveredDisplay?
             if let fingerprint = display.certificateFingerprint {
-                result = await CompanionDiscovery().findDisplay(fingerprint: fingerprint)
+                result = await CompanionDiscovery().findDisplay(
+                    fingerprint: fingerprint, timeout: wifiEnabled == true ? .seconds(15) : .seconds(6))
             } else {
                 result = nil
             }
@@ -343,6 +352,11 @@ struct CompanionSettings: View {
             Button("OK", role: .cancel) {}
         } message: {
             Text("Check the cable and make sure the display is running USB-capable firmware. You can also choose a port from the connection menu.")
+        }
+        .alert("Display Wi-Fi is off", isPresented: $showingWifiOff) {
+            Button("OK", role: .cancel) {}
+        } message: {
+            Text("Open Device → System → Wi-Fi to turn it on, then choose Switch to Network again.")
         }
         .alert("Network address", isPresented: $showingNetworkAddress, presenting: displayToConfigure) { display in
             TextField("IP address or name.local", text: $networkAddress)

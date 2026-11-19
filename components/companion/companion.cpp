@@ -203,7 +203,7 @@ void CompanionService::loop() {
 #ifdef USE_COMPANION_USB
   if (this->usb_bridge_) {
     this->usb_bridge_->loop(this->port_, now);
-    this->usb_editor_.update_wifi(this->session_.authenticated_socket());
+    this->usb_editor_.update_wifi();
   }
 #endif
   const uint32_t authentication_deadline = this->authentication_expires_at_.load();

@@ -11,6 +11,9 @@
 #include <vector>
 #ifdef USE_WIFI
 #include "esphome/components/wifi/wifi_component.h"
+#include "esphome/core/helpers.h"
+#include "esphome/core/log.h"
+#include "esphome/core/preferences.h"
 #endif
 
 namespace esphome::companion {
@@ -21,8 +24,10 @@ constexpr size_t MAX_CHUNK = 4096;
 enum Command : uint8_t { OPEN = 1, WRITE = 2, READ = 3, CLOSE = 4, WIFI_STATE = 5, WIFI_SET = 6 };
 enum Result : uint8_t { OK = 0, WAIT = 1, END = 2, ERROR = 3 };
 #ifdef USE_WIFI
-constexpr int WIFI_FOLLOWS_DEVICE = -1;
-constexpr int WIFI_ENABLE_REQUESTED = -2;
+ESPPreferenceObject &wifi_preference() {
+  static auto preference = global_preferences->make_preference<bool>(fnv1a_hash("companion_wifi_enabled"), true);
+  return preference;
+}
 #endif
 
 bool is_usb_socket(int fd) {
@@ -56,36 +61,30 @@ void CompanionUSBEditor::close_() {
 
 void CompanionUSBEditor::disconnect(int companion_socket) {
   if (companion_socket < 0 || companion_socket == this->owner_) this->close_();
-#ifdef USE_WIFI
-  if (companion_socket < 0) {
-    this->wifi_off_owner_.store(WIFI_FOLLOWS_DEVICE);
-  } else {
-    this->wifi_off_owner_.compare_exchange_strong(companion_socket, WIFI_FOLLOWS_DEVICE);
-  }
-#endif
 }
 
-void CompanionUSBEditor::update_wifi(int authenticated_socket) {
 #ifdef USE_WIFI
-  auto *wifi = esphome::wifi::global_wifi_component;
+void CompanionUSBEditor::restore_wifi_on_boot() {
+  bool enabled;
+  if (auto *wifi = wifi::global_wifi_component; wifi && wifi_preference().load(&enabled))
+    wifi->set_enable_on_boot(enabled);
+}
+#endif
+
+void CompanionUSBEditor::update_wifi() {
+#ifdef USE_WIFI
+  auto *wifi = wifi::global_wifi_component;
   if (!wifi) return;
-  const int owner = this->wifi_off_owner_.load();
-  const bool should_suspend = owner >= 0 && owner == authenticated_socket;
-  int enable_request = WIFI_ENABLE_REQUESTED;
-  const bool requested_on = owner == WIFI_ENABLE_REQUESTED &&
-      this->wifi_off_owner_.compare_exchange_strong(enable_request, WIFI_FOLLOWS_DEVICE);
-  if (should_suspend) {
-    if (!wifi->is_disabled()) {
-      this->suspended_wifi_ = true;
-      wifi->disable();
+  const int8_t requested = this->requested_wifi_state_.exchange(-1);
+  if (requested >= 0) {
+    const bool enabled = requested == 1;
+    if (!wifi_preference().save(&enabled) || !global_preferences->sync()) {
+      ESP_LOGW("companion.usb", "Could not save Wi-Fi preference");
     }
-  } else if (this->suspended_wifi_ || requested_on) {
-    this->suspended_wifi_ = false;
-    wifi->enable();
+    if (enabled) wifi->enable();
+    else wifi->disable();
   }
   this->wifi_enabled_.store(!wifi->is_disabled());
-#else
-  (void) authenticated_socket;
 #endif
 }
 
@@ -104,7 +103,7 @@ bool CompanionUSBEditor::handle(httpd_handle_t server, int companion_socket, con
   } else if (command == WIFI_SET && length == 1 && frame[HEADER] <= 1 &&
              esphome::wifi::global_wifi_component != nullptr) {
     const bool enabled = frame[HEADER] != 0;
-    this->wifi_off_owner_.store(enabled ? WIFI_ENABLE_REQUESTED : companion_socket);
+    this->requested_wifi_state_.store(frame[HEADER]);
     response.push_back(enabled);
     result = OK;
   } else

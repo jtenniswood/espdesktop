@@ -16,6 +16,16 @@
 # as well as release build entry points. An AP alone has no setup DNS/form.
 captive_portal:
 
+esphome:
+  on_boot:
+    # Restore the USB Wi-Fi setting before ESPHome starts the radio at priority 250.
+    - priority: 251
+      then:
+        - lambda: |-
+            #ifdef USE_COMPANION_USB
+            esphome::companion::CompanionUSBEditor::restore_wifi_on_boot();
+            #endif
+
 wifi:
   power_save_mode: none
   reboot_timeout: 30min

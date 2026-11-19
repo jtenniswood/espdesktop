@@ -15,7 +15,10 @@ class CompanionUSBEditor {
  public:
   bool handle(httpd_handle_t server, int companion_socket, const uint8_t *frame, size_t size);
   void disconnect(int companion_socket);
-  void update_wifi(int authenticated_socket);
+#ifdef USE_WIFI
+  static void restore_wifi_on_boot();
+#endif
+  void update_wifi();
 
  private:
   void close_();
@@ -23,9 +26,8 @@ class CompanionUSBEditor {
   int editor_socket_{-1};
   int owner_{-1};
 #ifdef USE_WIFI
-  std::atomic<int> wifi_off_owner_{-1};
+  std::atomic<int8_t> requested_wifi_state_{-1};
   std::atomic<bool> wifi_enabled_{true};
-  bool suspended_wifi_{false};
 #endif
 };
 

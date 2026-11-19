@@ -469,14 +469,21 @@ final class CompanionConnection: NSObject {
         return connectionGeneration
     }
 
-    private func requestUSBWifi(_ request: USBEditorRequest, generation: UInt64) async throws -> USBEditorResponse {
-        struct WifiState: Codable { let enabled: Bool }
+    func usbWifiEnabled() async -> Bool? {
+        guard usbEditorConnected, usbEditorSupported,
+              let request = USBEditorRequest(method: "GET", path: USBEditorRequest.wifiPath),
+              let response = try? await requestUSBEditor(request), response.status == 200,
+              let state = try? JSONDecoder().decode(USBEditorWifiState.self, from: response.body)
+        else { return nil }
+        return state.enabled
+    }
 
+    private func requestUSBWifi(_ request: USBEditorRequest, generation: UInt64) async throws -> USBEditorResponse {
         let result: Data
         if request.method == "GET" {
             result = try await editorCommand(5, generation: generation)
         } else {
-            guard let state = try? JSONDecoder().decode(WifiState.self, from: request.body) else {
+            guard let state = try? JSONDecoder().decode(USBEditorWifiState.self, from: request.body) else {
                 return USBEditorResponse(status: 400, headers: [:], body: Data())
             }
             result = try await editorCommand(6, body: Data([state.enabled ? 1 : 0]), generation: generation)
@@ -487,7 +494,7 @@ final class CompanionConnection: NSObject {
         guard result.count == 2, result.first == 0, let enabled = result.last, enabled <= 1 else {
             throw USBEditorError.invalidResponse
         }
-        let body = try JSONEncoder().encode(WifiState(enabled: enabled == 1))
+        let body = try JSONEncoder().encode(USBEditorWifiState(enabled: enabled == 1))
         return USBEditorResponse(status: 200, headers: ["content-type": "application/json"], body: body)
     }
 
