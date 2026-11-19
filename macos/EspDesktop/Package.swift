@@ -20,6 +20,7 @@ let package = Package(
                 .unsafeFlags(["-Xlinker", "-rpath", "-Xlinker", "@executable_path/../Frameworks"]),
                 .linkedFramework("IOKit"),
                 .linkedFramework("SystemConfiguration"),
+                .linkedLibrary("sqlite3"),
             ]
         ),
         .testTarget(

@@ -24,7 +24,7 @@ const LOCAL_CARD_TYPES = new Set([
 ]);
 
 export function cardTypeConnector(key: string): SavedCardConnector {
-  if (key === "slider" || key === "companion" || key.startsWith("companion_")) return "mac_companion";
+  if (key === "token_usage" || key === "slider" || key === "companion" || key.startsWith("companion_")) return "mac_companion";
   if (HOME_ASSISTANT_ONLY_CARD_TYPES.has(key)) return "home_assistant";
   if (key === "action" || key === "sensor") {
     return "home_assistant_or_local";

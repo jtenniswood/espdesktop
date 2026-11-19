@@ -51,6 +51,7 @@ interface PickerDetails {
 }
 
 const INFO_ONLY_CARD_TYPES = new Set([
+  "token_usage",
   "door_window",
   "image",
   "presence",
@@ -71,6 +72,7 @@ const CARD_TYPE_PICKER_DETAILS: Readonly<Record<string, PickerDetails>> = {
   companion_output_mute: { icon: "volume-off", description: "Mute or unmute the Mac’s sound output." },
   companion_input_mute: { icon: "microphone-off", description: "Mute or unmute the Mac’s microphone." },
   companion_app_volume: { icon: "volume-high", description: "Adjust the sound from one Mac app." },
+  token_usage: { icon: "gauge", description: "See your AI allowance." },
   companion_mac_lock: { icon: "lock", description: "Lock the paired Mac." },
   companion_obs_brb: { icon: "coffee-to-go", description: "Switch to your break scene and resume when ready." },
   companion_obs_studio_control: { icon: "movie", description: "Open a page for recording, streaming, Studio Mode, and replay." },

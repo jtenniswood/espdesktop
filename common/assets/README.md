@@ -18,6 +18,12 @@ local firmware and web builds use the checked-in output. The upstream licenses
 are in `fonts/materialdesignicons-LICENSE.txt` and
 `fonts/material-symbols-LICENSE.txt`.
 
+Token Usage service glyphs come from the SVG outlines in `token_usage/`.
+Run `python3 scripts/generate_token_usage_font.py` with FontTools installed
+to regenerate the shared font used by the S3 and offline editor. The
+ChatGPT knot and Claude mark come from Simple Icons (CC0), and the OpenCode
+glyph uses the outer shape of the OpenCode mark.
+
 ## Font style names
 
 Device fonts use functional style IDs instead of physical names such as

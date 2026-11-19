@@ -10,7 +10,7 @@ type LargeNumbersRule = true | {
 };
 
 export const CARD_CONTRACT_VERSION = 1 as const;
-const STABLE_CARD_TYPES: readonly string[] = ["companion", "companion_mac_lock", "companion_app_volume", "companion_output_volume", "companion_input_volume", "companion_output_mute", "companion_input_mute", "companion_cough", "companion_obs_cough", "companion_input_device", "subpage"];
+const STABLE_CARD_TYPES: readonly string[] = ["token_usage", "companion", "companion_mac_lock", "companion_app_volume", "companion_output_volume", "companion_input_volume", "companion_output_mute", "companion_input_mute", "companion_cough", "companion_obs_cough", "companion_input_device", "subpage"];
 const PREVIEW_CARD_TYPES: readonly string[] = ["companion_window"];
 const REMOVE_ON_EDIT: readonly string[] = ["companion_webapp", "companion_audio", "wifi_qr", "wifi_qr_card", "companion_window"];
 export const CARD_CONTRACT_RETIRED_TYPES: readonly string[] = ["companion_window", "sensor", "local_sensor", "text_sensor", "internal", "wifi_qr", "wifi_qr_card", "screen_lock", "screensaver", "action", "local", "option_select", "calendar", "clock", "timezone", "webhook", "companion_webapp", "companion_audio", "S", "LS", "I", "SL", "SS", "A", "U", "WH"];
@@ -3027,6 +3027,49 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
       "options": ""
     }
   },
+  "token_usage": {
+    "label": "Token Usage",
+    "allowInSubpage": true,
+    "domains": [],
+    "options": [
+      {
+        "name": "services",
+        "label": "Service",
+        "kind": "choice",
+        "values": [
+          "codex",
+          "claude",
+          "opencode-go",
+          "cursor",
+          "antigravity"
+        ],
+        "defaultValue": "codex",
+        "omitDefault": true
+      },
+      {
+        "name": "limit",
+        "label": "Time period",
+        "kind": "choice",
+        "values": [
+          "weekly",
+          "monthly"
+        ],
+        "defaultValue": "weekly",
+        "omitDefault": true
+      }
+    ],
+    "default": {
+      "entity": "",
+      "label": "",
+      "icon": "Auto",
+      "icon_on": "Auto",
+      "sensor": "",
+      "unit": "",
+      "type": "token_usage",
+      "precision": "",
+      "options": ""
+    }
+  },
   "companion": {
     "label": "Companion",
     "allowInSubpage": true,
@@ -4063,6 +4106,18 @@ export const CARD_RUNTIME_SPECS: Readonly<Record<string, CardRuntimeSpec>> = {
       "subpage": true
     }
   },
+  "token_usage": {
+    "driver": "token_usage",
+    "capabilities": {
+      "informationOnly": true,
+      "subscriptions": false,
+      "actions": false,
+      "numericControl": false,
+      "modal": false,
+      "runtimeAllocation": false,
+      "subpage": true
+    }
+  },
   "companion_mac_lock": {
     "driver": "companion",
     "capabilities": {
@@ -4285,6 +4340,7 @@ export const CARD_CONTRACT_SUBPAGE_TYPE_CODES: Readonly<Record<string, string>> 
   "climate_control": "HC",
   "push": "P",
   "companion": "CP",
+  "token_usage": "TU",
   "companion_mac_lock": "ML",
   "companion_app_volume": "AV",
   "companion_output_volume": "OV",
@@ -4329,6 +4385,7 @@ export const CARD_CONTRACT_SUBPAGE_TYPES_BY_CODE: Readonly<Record<string, string
   "HC": "climate_control",
   "P": "push",
   "CP": "companion",
+  "TU": "token_usage",
   "ML": "companion_mac_lock",
   "AV": "companion_app_volume",
   "OV": "companion_output_volume",
@@ -4388,6 +4445,7 @@ export const CARD_CONTRACT_OPTION_NAMES: Readonly<Record<string, string>> = {
   "large_numbers": "large_numbers",
   "lawn_mower_mode": "lawn_mower_mode",
   "light_tabs": "light_tabs",
+  "limit": "limit",
   "lock_mode": "lock_mode",
   "media_cover_art": "media_cover_art",
   "media_display": "media_display",
@@ -4407,6 +4465,7 @@ export const CARD_CONTRACT_OPTION_NAMES: Readonly<Record<string, string>> = {
   "playlist_player_source": "playlist_player_source",
   "power_entity": "power_entity",
   "rainfall_source": "rainfall_source",
+  "services": "services",
   "speaker_group_entity": "speaker_group_entity",
   "stat_labels_off": "stat_labels_off",
   "state_high_label": "state_high_label",

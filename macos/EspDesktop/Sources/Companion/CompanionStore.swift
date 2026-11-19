@@ -137,6 +137,24 @@ final class CompanionStore: NSObject, ObservableObject {
     @Published private(set) var foldersNeedingAccess: Set<UUID> = []
     @Published private(set) var launchAtLoginEnabled = false
     @Published private(set) var launchAtLoginMessage = ""
+    private var openCodeGoStatus = TokenUsage.OpenCodeGoStatus.checking
+    private var openCodeGoUsage: TokenUsage.OpenCodeGoUsage?
+    private var lastOpenCodeGoUsageAttempt = Date.distantPast
+    private var cursorUsage: WeeklyUsageReading?
+    private var lastCursorUsageAttempt = Date.distantPast
+    private var antigravityUsage: WeeklyUsageReading?
+    private var lastAntigravityUsageAttempt = Date.distantPast
+
+    private var claudeAccount = TokenUsage.ClaudeAccount.checking
+    private var claudeUsage: WeeklyUsageReading?
+    private var codexUsage: WeeklyUsageReading?
+    private var lastClaudeUsageAttempt = Date.distantPast
+    private var lastCodexUsageAttempt = Date.distantPast
+    private var tokenUsageTask: Task<Void, Never>?
+    private var tokenUsageDisplays: [CompanionDisplay] {
+        connectedDisplays.filter { $0.connection.supportsTokenUsage }
+    }
+
     @Published private(set) var systemMetricsStatus = "Waiting for a display connection"
 
     private enum Keys {
@@ -896,6 +914,10 @@ final class CompanionStore: NSObject, ObservableObject {
         connectedDisplayCount = connectedDisplays.count
         updateSystemMetricsProvider()
         if state == .connected {
+            publishTokenUsage(to: display)
+        }
+        updateTokenUsageTask()
+        if state == .connected {
             if previousCount == 0 {
                 _ = mediaController.refreshInputDevices()
                 startMediaControlPublishing()
@@ -943,6 +965,89 @@ final class CompanionStore: NSObject, ObservableObject {
 
     func updateStatus(_ message: String) {
         print("[EspDesktop] \(message)")
+    }
+
+    private func publishTokenUsage(to display: CompanionDisplay) {
+        display.connection.publishTokenUsage(
+            codex: codexUsage,
+            claude: claudeUsage,
+            openCodeGo: openCodeGoUsage,
+            cursor: cursorUsage,
+            antigravity: antigravityUsage
+        )
+    }
+
+    private func updateTokenUsageTask() {
+        guard !tokenUsageDisplays.isEmpty else {
+            tokenUsageTask?.cancel()
+            tokenUsageTask = nil
+            return
+        }
+        guard tokenUsageTask == nil else { return }
+        tokenUsageTask = Task { [weak self] in
+            while !Task.isCancelled {
+                await self?.refreshTokenUsage()
+                try? await Task.sleep(for: .seconds(15))
+            }
+        }
+    }
+
+    private func refreshTokenUsage() async {
+        if Date().timeIntervalSince(lastCodexUsageAttempt) >= 300 {
+            let reading = await TokenUsage.readCodex()
+            guard !Task.isCancelled else { return }
+            lastCodexUsageAttempt = .now
+            if let reading {
+                codexUsage = reading
+                for display in tokenUsageDisplays { publishTokenUsage(to: display) }
+            }
+        }
+        let claudeInterval: TimeInterval = claudeAccount == .detected ? 300 : 60
+        if Date().timeIntervalSince(lastClaudeUsageAttempt) >= claudeInterval {
+            let (account, reading) = await TokenUsage.readClaude()
+            guard !Task.isCancelled else { return }
+            lastClaudeUsageAttempt = .now
+            if claudeAccount != account { claudeAccount = account }
+            if let reading {
+                claudeUsage = reading
+            } else if account != .detected && account != .unknown {
+                claudeUsage = nil
+            }
+            for display in tokenUsageDisplays { publishTokenUsage(to: display) }
+        }
+        let openCodeGoInterval: TimeInterval = openCodeGoStatus == .missingLogin ? 60 : 300
+        if Date().timeIntervalSince(lastOpenCodeGoUsageAttempt) >= openCodeGoInterval {
+            let (status, reading) = await TokenUsage.readOpenCodeGo()
+            guard !Task.isCancelled else { return }
+            lastOpenCodeGoUsageAttempt = .now
+            if openCodeGoStatus != status { openCodeGoStatus = status }
+            if let reading {
+                openCodeGoUsage = reading
+            } else if status == .missingLogin || status == .rejected || status == .noSubscription {
+                openCodeGoUsage = nil
+            }
+            for display in tokenUsageDisplays { publishTokenUsage(to: display) }
+        }
+        let cursorInterval: TimeInterval = cursorUsage == nil ? 60 : 300
+        if Date().timeIntervalSince(lastCursorUsageAttempt) >= cursorInterval {
+            let reading = await TokenUsage.readCursor()
+            guard !Task.isCancelled else { return }
+            lastCursorUsageAttempt = .now
+            if cursorUsage != reading {
+                cursorUsage = reading
+                for display in tokenUsageDisplays { publishTokenUsage(to: display) }
+            }
+        }
+        let antigravityInterval: TimeInterval = antigravityUsage == nil ? 60 : 300
+        if Date().timeIntervalSince(lastAntigravityUsageAttempt) >= antigravityInterval {
+            let reading = await TokenUsage.readAntigravity()
+            guard !Task.isCancelled else { return }
+            lastAntigravityUsageAttempt = .now
+            if antigravityUsage != reading {
+                antigravityUsage = reading
+                for display in tokenUsageDisplays { publishTokenUsage(to: display) }
+            }
+        }
     }
 
     private func updateSystemMetricsProvider() {

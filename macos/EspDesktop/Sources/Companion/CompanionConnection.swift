@@ -74,6 +74,7 @@ final class CompanionConnection: NSObject {
     private var supportsPairingReset = false
     private var supportsCoughButton = false
     private var supportsInputDevices = false
+    private(set) var supportsTokenUsage = false
     private var pairingResetCompletion: CheckedContinuation<Void, Never>?
     private var pairingResetTimeout: Task<Void, Never>?
     private var remoteCatalogueDefinitionsSupported = false
@@ -548,6 +549,7 @@ final class CompanionConnection: NSObject {
             supportsCoughButton = payload.capabilityVersion >= 11
             supportsInputDevices = payload.capabilityVersion >= 12
             appleShortcutsSupported = payload.capabilityVersion >= 24
+            supportsTokenUsage = payload.capabilityVersion >= 25
             // A Bonjour TXT record never authorizes a location change. Both the
             // pinned TLS certificate and the authenticated session must agree.
             let expectedFingerprint = preferences.stringPreference(forKey: certificateFingerprintKey)
@@ -859,6 +861,21 @@ final class CompanionConnection: NSObject {
         sendJSON(["type": "app_icon.begin", "appId": payload.appId,
                   "generation": appIconGeneration, "byteLength": transferPixels.count,
                   "sha256": hash, "format": transferFormat])
+    }
+
+    func publishTokenUsage(codex: WeeklyUsageReading?, claude: WeeklyUsageReading?,
+                           openCodeGo: TokenUsage.OpenCodeGoUsage?, cursor: WeeklyUsageReading?,
+                           antigravity: WeeklyUsageReading?) {
+        guard sessionAuthenticated, supportsTokenUsage else { return }
+        let readings = [
+            codex?.wireValue(service: "codex"),
+            claude?.wireValue(service: "claude"),
+            openCodeGo?.weekly?.wireValue(service: "opencode-go"),
+            openCodeGo?.monthly?.wireValue(service: "opencode-go-monthly"),
+            cursor?.wireValue(service: "cursor"),
+            antigravity?.wireValue(service: "antigravity"),
+        ].compactMap { $0 }
+        sendJSON(["type": "token_usage", "readings": readings])
     }
 
     func publishSessionLock(_ locked: Bool, displayAwake: Bool?) {

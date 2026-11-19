@@ -44,6 +44,7 @@ This generated reference lists release availability and setup facts from the sha
 | Cough | companion_cough | None | Yes | Volume (companion_output_volume) | None | Stable |
 | OBS Input Cough | companion_obs_cough | None | Yes | Own picker item | None | Stable |
 | Lock Machine | companion_mac_lock | None | Yes | Own picker item | None | Stable |
+| Token Usage | token_usage | None | Yes | Own picker item | Service: codex, claude, opencode-go, cursor, antigravity; Time period: weekly, monthly | Stable |
 | Companion | companion | None | Yes | Own picker item | App Subpage; Large Sensor Numbers; Show capacity label | Stable |
 | Legacy Slider | slider | light, fan, number, input_number | Yes | Own picker item | None | Retired |
 | Subpage | subpage | None | Yes | Own picker item | Subpage Connector: default, mac_companion; Subpage Type: default, switch, lights, climate, presence, media, alarm, cover, garage, gate, lock, vacuum, lawn_mower, weather, sensor, image, companion_stat, apple_shortcuts, obs_transitions, obs_sources, obs_audio, obs_scenes, obs_studio_control; Transition visibility and order; Source visibility and order; Audio slider visibility and order; Scene visibility and order; Large State Numbers | Stable |

@@ -12,6 +12,7 @@ Cards show information and controls on the display. Mac controls use the paired 
 | Goal | Card |
 |---|---|
 | Launch apps, run keyboard shortcuts, or open websites and folders | [Companion](/#what-you-can-control) |
+| See your AI allowance and when it resets | [Token Usage](/card-types/token-usage) |
 | Open another page of cards | [Subpage](/features/subpages) |
 
 ## Removed Mac audio cards

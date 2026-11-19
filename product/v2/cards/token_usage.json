@@ -1,0 +1,27 @@
+{
+  "label": "Token Usage",
+  "allowInSubpage": true,
+  "domains": [],
+  "options": [
+    {
+      "name": "services",
+      "label": "Service",
+      "kind": "choice",
+      "values": ["codex", "claude", "opencode-go", "cursor", "antigravity"],
+      "defaultValue": "codex",
+      "omitDefault": true
+    },
+    {
+      "name": "limit",
+      "label": "Time period",
+      "kind": "choice",
+      "values": ["weekly", "monthly"],
+      "defaultValue": "weekly",
+      "omitDefault": true
+    }
+  ],
+  "default": {
+    "entity": "", "label": "", "icon": "Auto", "icon_on": "Auto",
+    "sensor": "", "unit": "", "type": "token_usage", "precision": "", "options": ""
+  }
+}

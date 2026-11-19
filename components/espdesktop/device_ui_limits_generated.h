@@ -40,6 +40,7 @@ inline constexpr DeviceCardTypeSupport DEVICE_UI_CARD_TYPES_0[] = {
     {"companion_cough", true},
     {"companion_obs_cough", true},
     {"companion_mac_lock", true},
+    {"token_usage", true},
     {"companion", true},
     {"slider", true},
     {"subpage", true},

@@ -191,6 +191,7 @@ PUBLIC_DOCS_BY_TYPE: dict[str, str | None] = {
     "companion_input_mute": "docs/mac-controls/apps.md",
     "companion_cough": None,
     "companion_obs_cough": None,
+    "token_usage": "docs/card-types/token-usage.md",
     "climate": "docs/card-types/climate.md",
     "climate_control": "docs/card-types/climate.md",
     "cover": "docs/card-types/covers.md",

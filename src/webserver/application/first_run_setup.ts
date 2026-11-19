@@ -85,7 +85,7 @@ export function applyFirstRunLayout(
             const { order, buttons } = createAppleShortcutSubpage(workflows, capacity);
             return { card, page: { order: order.join(","), cards: buttons } };
         }
-        const tabs = companionShortcutTabsForCapacity(companionShortcutDefaultTabs(app.id), capacity);
+        const tabs = companionShortcutTabsForCapacity(companionShortcutDefaultTabs(app.id), capacity, app.id);
         card.options = setConfigOptionValue(card.options, "app_shortcuts_tabs", tabs.join("|") || "none");
         const { order, buttons } = createCompanionShortcutSubpage(app.id, tabs);
         return { card, page: { order: order.join(","), cards: buttons } };

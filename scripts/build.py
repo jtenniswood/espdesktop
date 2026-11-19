@@ -45,6 +45,7 @@ MDI_VERSION = "7.4.47"
 MDI_CSS_URL = f"https://cdn.jsdelivr.net/npm/@mdi/font@{MDI_VERSION}/css/materialdesignicons.css"
 WEB_ICON_FONT = ROOT / "common" / "assets" / "fonts" / "espdesktop-icons-1.ttf"
 ROBOTO_WEB_FONT = ROOT / "common" / "assets" / "fonts" / "roboto-latin.woff2"
+TOKEN_USAGE_WEB_FONT = ROOT / "common" / "assets" / "fonts" / "token-usage-icons.ttf"
 SUPPORT_BUTTON_IMAGE = ROOT / "common" / "assets" / "images" / "buy-me-a-coffee-button.png"
 WEB_SOURCE_DIR = ROOT / "src" / "webserver"
 WEB_BUNDLE_RETENTION = ROOT / "docs" / "public" / "webserver" / "bundle-retention.json"
@@ -3625,6 +3626,7 @@ def embedded_web_icon_styles():
     preview_font_data = base64.b64encode(ROBOTO_WEB_FONT.read_bytes()).decode("ascii")
     support_button_image_data = base64.b64encode(SUPPORT_BUTTON_IMAGE.read_bytes()).decode("ascii")
     icon_font_data = base64.b64encode(WEB_ICON_FONT.read_bytes()).decode("ascii")
+    usage_font_data = base64.b64encode(TOKEN_USAGE_WEB_FONT.read_bytes()).decode("ascii")
     css = [
         "@font-face{font-family:'Roboto';src:url(data:font/woff2;base64,",
         preview_font_data,
@@ -3635,6 +3637,10 @@ def embedded_web_icon_styles():
         "@font-face{font-family:'EspDesktop Icons';src:url(data:font/ttf;base64,",
         icon_font_data,
         ") format('truetype');font-weight:normal;font-style:normal;font-display:block}",
+        "@font-face{font-family:'EspDesktop Usage Icons';src:url(data:font/ttf;base64,",
+        usage_font_data,
+        ") format('truetype');font-display:block}",
+        ".sp-token-usage-icon{font-family:'EspDesktop Usage Icons';font-weight:normal;font-style:normal}",
         ":root{--sp-icon-font:'EspDesktop Icons'}",
         ".mdi{display:inline-block;font-family:var(--sp-icon-font);font-weight:normal;font-style:normal;line-height:1;text-rendering:auto;-webkit-font-smoothing:antialiased}",
         ".mdi::before{display:inline-block}",

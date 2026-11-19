@@ -1474,6 +1474,19 @@ inline ParsedCfg normalize_parsed_cfg(ParsedCfg p) {
   normalize_saved_config_light_control(p, normalize_saved_config_light_control_options);
   normalize_saved_config_subpage(
       p, normalize_saved_config_subpage_fields, normalize_saved_config_subpage_options);
+  if (p.type == "token_usage") {
+    const auto services = cfg_option_value(p.options, "services");
+    p.entity.clear();
+    p.label.clear();
+    p.icon = "Auto";
+    p.icon_on = "Auto";
+    p.sensor.clear();
+    p.unit.clear();
+    p.precision.clear();
+    const bool monthly = services == "opencode-go" && cfg_option_value(p.options, "limit") == "monthly";
+    p.options = (services == "claude" || services == "opencode-go" || services == "claude-enterprise" || services == "cursor" || services == "antigravity") ? "services=" + services : "";
+    if (monthly) p.options += ",limit=monthly";
+  }
   if (p.type == "companion_mac_lock") {
     p.entity = "shortcut.command+control+q";
     if (p.label.empty()) p.label = card_runtime_label(p.type);
@@ -1528,7 +1541,7 @@ inline ParsedCfg normalize_parsed_cfg(ParsedCfg p) {
   const bool normalized_saved_occupancy = normalize_saved_config_occupancy(
       p, normalize_saved_config_occupancy_fields,
       normalize_saved_config_occupancy_options);
-  if (!normalized_saved_static && !normalized_saved_fan && !normalized_saved_mower && !normalized_saved_occupancy && !normalized_saved_access && !p.type.empty() && p.type != "action" && p.type != "alarm" && p.type != "alarm_action" && !climate_card_type(p.type) && p.type != "media" && p.type != "companion" && p.type != "subpage" && p.type != "image" && p.type != "light_control" && p.type != "vacuum" && p.type != "weather" && !card_large_numbers_supported(p)) {
+  if (!normalized_saved_static && !normalized_saved_fan && !normalized_saved_mower && !normalized_saved_occupancy && !normalized_saved_access && !p.type.empty() && p.type != "action" && p.type != "alarm" && p.type != "alarm_action" && !climate_card_type(p.type) && p.type != "media" && p.type != "companion" && p.type != "token_usage" && p.type != "subpage" && p.type != "image" && p.type != "light_control" && p.type != "vacuum" && p.type != "weather" && !card_large_numbers_supported(p)) {
     p.options.clear();
   }
   if (!card_colors.empty()) {

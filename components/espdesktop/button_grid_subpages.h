@@ -240,7 +240,7 @@ inline SubpageBtn normalize_subpage_btn(SubpageBtn b) {
       !climate_card_type(b.type) && b.type != "cover" && b.type != "garage" && b.type != "gate" &&
       b.type != "sensor" && b.type != "door_window" && b.type != "presence" &&
       b.type != "subpage" && b.type != "light_control" && b.type != "media" &&
-      b.type != "image" && b.type != "weather" &&
+      b.type != "image" && b.type != "weather" && b.type != "token_usage" &&
       !fan_card_type(b.type) && !card_large_numbers_supported(p)) {
     b.options.clear();
   }

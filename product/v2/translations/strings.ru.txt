@@ -374,3 +374,4 @@ turn_on_studio_mode=Включить режим студии?
 turn_off_studio_mode=Выключить режим студии?
 start_replay_buffer_prompt=Запустить буфер повтора?
 stop_replay_buffer_prompt=Остановить буфер повтора?
+token_usage_resets=Сброс через

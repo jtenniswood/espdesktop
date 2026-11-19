@@ -67,6 +67,9 @@ import {
     defaultAppleShortcutActions,
     syncAppleShortcutSelection,
     createCompanionShortcutSubpage,
+    addAppTokenUsageCard,
+    appTokenUsageService,
+    subpageHasAppTokenUsage,
     normalizeCompanionCardOptions,
     normalizeCompanionAppShortcutOptions,
     resetCompanionShortcutTabs,
@@ -852,23 +855,37 @@ export function registerCompanionCardTypes(
                 isAppleShortcutsPage(savedParent) && savedParent?.type === card.type ? savedShortcutSubpage : undefined);
             return;
         }
-        if (savedShortcutSubpage &&
-            (companionShortcutSelectionMatchesSavedParent(card, savedParent) ||
-                (!!appShortcutPageOwner(card) && appShortcutPageOwner(card) === appShortcutPageOwner(savedParent))) &&
-            card._appShortcutSelectionChanged !== true) {
+        const matchesSavedParent = companionShortcutSelectionMatchesSavedParent(card, savedParent) ||
+            (!!appShortcutPageOwner(card) && appShortcutPageOwner(card) === appShortcutPageOwner(savedParent));
+        if (savedShortcutSubpage && matchesSavedParent && card._appShortcutSelectionChanged !== true) {
             setCompanionShortcutTabs(
                 card,
                 companionShortcutTabsFromSubpage(card.entity, savedShortcutSubpage),
                 savedShortcutSubpage,
             );
         }
+        const service = appTokenUsageService(card.entity);
+        const showUsage = service && (!savedShortcutSubpage || !matchesSavedParent ||
+            subpageHasAppTokenUsage(savedShortcutSubpage, service));
+        let includedRow: HTMLElement | undefined;
+        if (showUsage) {
+            includedRow = document.createElement("div");
+            includedRow.className = "sp-light-tab-row sp-app-subpage-included";
+            const name = document.createElement("span");
+            name.className = "sp-light-tab-label";
+            name.textContent = "Token Usage";
+            const status = document.createElement("span");
+            status.textContent = "Included";
+            includedRow.append(name, status);
+        }
         modalTabs.renderModalTabSettings(panel, card, helpers, {
             definitions: function () { return companionShortcutTabDefinitions(card.entity, savedShortcutSubpage); },
+            includedRow,
             searchPlaceholder: "Find a keyboard shortcut…",
             showAll,
             dragOnly: true,
             tabs: (button: any) => companionShortcutTabsForCapacity(
-                companionShortcutTabs(button), maxSlots,
+                companionShortcutTabs(button), maxSlots, savedShortcutSubpage && matchesSavedParent ? undefined : button.entity,
             ),
             normalizeOptions: function (options: string) {
                 return normalizeCompanionAppShortcutOptions({ ...card, options });
@@ -876,7 +893,7 @@ export function registerCompanionCardTypes(
             setTabs: function (button: any, tabs: string[]) {
                 const candidate = reconnectAthenaShortcutSubpage(
                     savedShortcutSubpage ?? undefined, savedParent?.entity, button.entity,
-                ) ?? savedShortcutSubpage;
+                ) ?? (matchesSavedParent ? savedShortcutSubpage : undefined);
                 if (!companionShortcutTabsFitSubpage(button.entity, tabs, candidate, maxSlots)) {
                     button._appShortcutCapacityRejected = true;
                     return false;
@@ -2132,8 +2149,8 @@ export function registerCompanionCardTypes(
             delete card._appShortcutCapacityRejected;
             const existing = context?.reconnectedSubpage ?? state.subpages[slot];
             if (!companionAppShortcutFolderEnabled(card) && (!existing || !appShortcutPageOwner(card))) return "saved";
-            if (existing && !selectionChanged && !appChanged && !openBehaviorChanged) return "saved";
             if (card.entity === APPLE_SHORTCUTS_APP_ID) {
+                if (existing && !selectionChanged && !appChanged && !openBehaviorChanged) return "saved";
                 return saveAppleShortcutSubpage(slot, appleShortcutSelection, appChanged ? undefined : existing);
             }
             const source = existing ? {
@@ -2143,6 +2160,13 @@ export function registerCompanionCardTypes(
                 grid: (existing.grid || []).slice(),
                 sizes: { ...(existing.sizes || {}) },
             } : null;
+            if (source && !selectionChanged && !appChanged && !openBehaviorChanged) {
+                codec.buildSubpageGrid(source);
+                if (!addAppTokenUsageCard(card.entity, source, maxSlots)) return "saved";
+                codec.buildSubpageGrid(source);
+                state.subpages[slot] = source;
+                return codec.saveSubpageConfig(slot);
+            }
             let subpage;
             if (source && context?.reconnectedSubpage) {
                 const tabs = companionShortcutTabs(card);
@@ -2154,7 +2178,7 @@ export function registerCompanionCardTypes(
                     syncCompanionShortcutSubpage(card.entity, companionShortcutTabs(card), source, maxSlots);
             } else {
                 subpage = createCompanionShortcutSubpage(card.entity,
-                    companionShortcutTabsForCapacity(companionShortcutTabs(card), maxSlots));
+                    companionShortcutTabsForCapacity(companionShortcutTabs(card), maxSlots, card.entity));
             }
             if (card.entity === "com.apple.finder") {
                 codec.buildSubpageGrid(subpage);
@@ -2167,6 +2191,7 @@ export function registerCompanionCardTypes(
                 syncInheritedFinderOpenBehavior(subpage, finderOpenBehavior(card));
             }
             codec.buildSubpageGrid(subpage);
+            if (addAppTokenUsageCard(card.entity, subpage, maxSlots)) codec.buildSubpageGrid(subpage);
             state.subpages[slot] = subpage;
             return codec.saveSubpageConfig(slot);
         },

@@ -86,7 +86,7 @@ For standalone pages, see [Subpages](/features/subpages). For folders, see [Open
 
 When you close the last visible window of the foreground app, the display returns to the Home page or subpage you were using before the app subpage opened. This also applies to pages opened by tapping an app card. **Return home when switching apps** controls what happens when you switch to another Mac app.
 
-See [all app presets](/reference/shortcut-presets).
+See [all app presets](/reference/shortcut-presets). You can also [show your remaining AI allowance and reset time](/card-types/token-usage) on an app subpage or on Home.
 
 ## OBS Studio controls
 

@@ -329,6 +329,7 @@ inline const char *espdesktop_i18n_cs(const char *text) {
   if (std::strcmp(text, "Turn off Studio Mode?") == 0) return "Vypnout režim studia?";
   if (std::strcmp(text, "Start Replay Buffer?") == 0) return "Spustit vyrovnávací paměť záznamu?";
   if (std::strcmp(text, "Stop Replay Buffer?") == 0) return "Zastavit vyrovnávací paměť záznamu?";
+  if (std::strcmp(text, "Resets") == 0) return "Obnova za";
   return text;
 }
 
@@ -635,6 +636,7 @@ inline const char *espdesktop_i18n_da(const char *text) {
   if (std::strcmp(text, "Turn off Studio Mode?") == 0) return "Slå studietilstand fra?";
   if (std::strcmp(text, "Start Replay Buffer?") == 0) return "Start genafspilningsbuffer?";
   if (std::strcmp(text, "Stop Replay Buffer?") == 0) return "Stop genafspilningsbuffer?";
+  if (std::strcmp(text, "Resets") == 0) return "Nulstilles om";
   return text;
 }
 
@@ -947,6 +949,7 @@ inline const char *espdesktop_i18n_de(const char *text) {
   if (std::strcmp(text, "Turn off Studio Mode?") == 0) return "Studiomodus ausschalten?";
   if (std::strcmp(text, "Start Replay Buffer?") == 0) return "Replay-Puffer starten?";
   if (std::strcmp(text, "Stop Replay Buffer?") == 0) return "Replay-Puffer stoppen?";
+  if (std::strcmp(text, "Resets") == 0) return "Reset in";
   return text;
 }
 
@@ -1272,6 +1275,7 @@ inline const char *espdesktop_i18n_es(const char *text) {
   if (std::strcmp(text, "Turn off Studio Mode?") == 0) return "¿Desactivar el modo estudio?";
   if (std::strcmp(text, "Start Replay Buffer?") == 0) return "¿Iniciar el búfer de repetición?";
   if (std::strcmp(text, "Stop Replay Buffer?") == 0) return "¿Detener el búfer de repetición?";
+  if (std::strcmp(text, "Resets") == 0) return "Se reinicia en";
   return text;
 }
 
@@ -1599,6 +1603,7 @@ inline const char *espdesktop_i18n_fi(const char *text) {
   if (std::strcmp(text, "Turn off Studio Mode?") == 0) return "Poistetaanko studiotila käytöstä?";
   if (std::strcmp(text, "Start Replay Buffer?") == 0) return "Käynnistetäänkö toistopuskuri?";
   if (std::strcmp(text, "Stop Replay Buffer?") == 0) return "Pysäytetäänkö toistopuskuri?";
+  if (std::strcmp(text, "Resets") == 0) return "Nollautuu";
   return text;
 }
 
@@ -1918,6 +1923,7 @@ inline const char *espdesktop_i18n_fr(const char *text) {
   if (std::strcmp(text, "Turn off Studio Mode?") == 0) return "Désactiver le mode Studio ?";
   if (std::strcmp(text, "Start Replay Buffer?") == 0) return "Démarrer le tampon de replay ?";
   if (std::strcmp(text, "Stop Replay Buffer?") == 0) return "Arrêter le tampon de replay ?";
+  if (std::strcmp(text, "Resets") == 0) return "Réinit. dans";
   return text;
 }
 
@@ -2252,6 +2258,7 @@ inline const char *espdesktop_i18n_he(const char *text) {
   if (std::strcmp(text, "Turn off Studio Mode?") == 0) return "לכבות את מצב האולפן?";
   if (std::strcmp(text, "Start Replay Buffer?") == 0) return "להפעיל את מאגר השידור החוזר?";
   if (std::strcmp(text, "Stop Replay Buffer?") == 0) return "לעצור את מאגר השידור החוזר?";
+  if (std::strcmp(text, "Resets") == 0) return "איפוס בעוד";
   return text;
 }
 
@@ -2577,6 +2584,7 @@ inline const char *espdesktop_i18n_hu(const char *text) {
   if (std::strcmp(text, "Turn off Studio Mode?") == 0) return "Kikapcsolja a stúdió módot?";
   if (std::strcmp(text, "Start Replay Buffer?") == 0) return "Elindítja a visszajátszási puffert?";
   if (std::strcmp(text, "Stop Replay Buffer?") == 0) return "Leállítja a visszajátszási puffert?";
+  if (std::strcmp(text, "Resets") == 0) return "Visszaáll";
   return text;
 }
 
@@ -2901,6 +2909,7 @@ inline const char *espdesktop_i18n_it(const char *text) {
   if (std::strcmp(text, "Turn off Studio Mode?") == 0) return "Disattivare la modalità Studio?";
   if (std::strcmp(text, "Start Replay Buffer?") == 0) return "Avviare il buffer di replay?";
   if (std::strcmp(text, "Stop Replay Buffer?") == 0) return "Fermare il buffer di replay?";
+  if (std::strcmp(text, "Resets") == 0) return "Si azzera tra";
   return text;
 }
 
@@ -3215,6 +3224,7 @@ inline const char *espdesktop_i18n_nb(const char *text) {
   if (std::strcmp(text, "Turn off Studio Mode?") == 0) return "Slå av studiomodus?";
   if (std::strcmp(text, "Start Replay Buffer?") == 0) return "Start avspillingsbufferen?";
   if (std::strcmp(text, "Stop Replay Buffer?") == 0) return "Stopp avspillingsbufferen?";
+  if (std::strcmp(text, "Resets") == 0) return "Nullstilles om";
   return text;
 }
 
@@ -3528,6 +3538,7 @@ inline const char *espdesktop_i18n_nl(const char *text) {
   if (std::strcmp(text, "Turn off Studio Mode?") == 0) return "Studiomodus uitschakelen?";
   if (std::strcmp(text, "Start Replay Buffer?") == 0) return "Replaybuffer starten?";
   if (std::strcmp(text, "Stop Replay Buffer?") == 0) return "Replaybuffer stoppen?";
+  if (std::strcmp(text, "Resets") == 0) return "Reset over";
   return text;
 }
 
@@ -3842,6 +3853,7 @@ inline const char *espdesktop_i18n_pl(const char *text) {
   if (std::strcmp(text, "Turn off Studio Mode?") == 0) return "Wyłączyć tryb studia?";
   if (std::strcmp(text, "Start Replay Buffer?") == 0) return "Uruchomić bufor powtórek?";
   if (std::strcmp(text, "Stop Replay Buffer?") == 0) return "Zatrzymać bufor powtórek?";
+  if (std::strcmp(text, "Resets") == 0) return "Reset za";
   return text;
 }
 
@@ -4159,6 +4171,7 @@ inline const char *espdesktop_i18n_pt_br(const char *text) {
   if (std::strcmp(text, "Turn off Studio Mode?") == 0) return "Desativar o modo estúdio?";
   if (std::strcmp(text, "Start Replay Buffer?") == 0) return "Iniciar o buffer de replay?";
   if (std::strcmp(text, "Stop Replay Buffer?") == 0) return "Parar o buffer de replay?";
+  if (std::strcmp(text, "Resets") == 0) return "Reinicia em";
   return text;
 }
 
@@ -4483,6 +4496,7 @@ inline const char *espdesktop_i18n_pt(const char *text) {
   if (std::strcmp(text, "Turn off Studio Mode?") == 0) return "Desativar o modo de estúdio?";
   if (std::strcmp(text, "Start Replay Buffer?") == 0) return "Iniciar o buffer de replay?";
   if (std::strcmp(text, "Stop Replay Buffer?") == 0) return "Parar o buffer de replay?";
+  if (std::strcmp(text, "Resets") == 0) return "Reinicia em";
   return text;
 }
 
@@ -4808,6 +4822,7 @@ inline const char *espdesktop_i18n_ro(const char *text) {
   if (std::strcmp(text, "Turn off Studio Mode?") == 0) return "Dezactivezi modul studio?";
   if (std::strcmp(text, "Start Replay Buffer?") == 0) return "Pornești bufferul de reluare?";
   if (std::strcmp(text, "Stop Replay Buffer?") == 0) return "Oprești bufferul de reluare?";
+  if (std::strcmp(text, "Resets") == 0) return "Resetare în";
   return text;
 }
 
@@ -5142,6 +5157,7 @@ inline const char *espdesktop_i18n_ru(const char *text) {
   if (std::strcmp(text, "Turn off Studio Mode?") == 0) return "Выключить режим студии?";
   if (std::strcmp(text, "Start Replay Buffer?") == 0) return "Запустить буфер повтора?";
   if (std::strcmp(text, "Stop Replay Buffer?") == 0) return "Остановить буфер повтора?";
+  if (std::strcmp(text, "Resets") == 0) return "Сброс через";
   return text;
 }
 
@@ -5460,6 +5476,7 @@ inline const char *espdesktop_i18n_sk(const char *text) {
   if (std::strcmp(text, "Turn off Studio Mode?") == 0) return "Vypnúť režim štúdia?";
   if (std::strcmp(text, "Start Replay Buffer?") == 0) return "Spustiť vyrovnávaciu pamäť záznamu?";
   if (std::strcmp(text, "Stop Replay Buffer?") == 0) return "Zastaviť vyrovnávaciu pamäť záznamu?";
+  if (std::strcmp(text, "Resets") == 0) return "Obnova o";
   return text;
 }
 
@@ -5782,6 +5799,7 @@ inline const char *espdesktop_i18n_sl(const char *text) {
   if (std::strcmp(text, "Turn off Studio Mode?") == 0) return "Izklopiš studijski način?";
   if (std::strcmp(text, "Start Replay Buffer?") == 0) return "Zaženeš medpomnilnik ponovitev?";
   if (std::strcmp(text, "Stop Replay Buffer?") == 0) return "Ustaviš medpomnilnik ponovitev?";
+  if (std::strcmp(text, "Resets") == 0) return "Ponastavitev čez";
   return text;
 }
 
@@ -6093,6 +6111,7 @@ inline const char *espdesktop_i18n_sv(const char *text) {
   if (std::strcmp(text, "Turn off Studio Mode?") == 0) return "Slå av studioläget?";
   if (std::strcmp(text, "Start Replay Buffer?") == 0) return "Starta reprisbuffer?";
   if (std::strcmp(text, "Stop Replay Buffer?") == 0) return "Stoppa reprisbuffer?";
+  if (std::strcmp(text, "Resets") == 0) return "Återställs om";
   return text;
 }
 
@@ -6419,6 +6438,7 @@ inline const char *espdesktop_i18n_tr(const char *text) {
   if (std::strcmp(text, "Turn off Studio Mode?") == 0) return "Stüdyo modu kapatılsın mı?";
   if (std::strcmp(text, "Start Replay Buffer?") == 0) return "Tekrar tamponu başlatılsın mı?";
   if (std::strcmp(text, "Stop Replay Buffer?") == 0) return "Tekrar tamponu durdurulsun mu?";
+  if (std::strcmp(text, "Resets") == 0) return "Sıfırlanır";
   return text;
 }
 
@@ -6748,6 +6768,7 @@ inline const char *espdesktop_i18n_uk(const char *text) {
   if (std::strcmp(text, "Turn off Studio Mode?") == 0) return "Вимкнути режим студії?";
   if (std::strcmp(text, "Start Replay Buffer?") == 0) return "Запустити буфер повтору?";
   if (std::strcmp(text, "Stop Replay Buffer?") == 0) return "Зупинити буфер повтору?";
+  if (std::strcmp(text, "Resets") == 0) return "Скидання через";
   return text;
 }
 
@@ -7120,6 +7141,7 @@ inline const char *espdesktop_i18n_key_en(const char *key) {
   if (std::strcmp(key, "turn_off_studio_mode") == 0) return "Turn off Studio Mode?";
   if (std::strcmp(key, "start_replay_buffer_prompt") == 0) return "Start Replay Buffer?";
   if (std::strcmp(key, "stop_replay_buffer_prompt") == 0) return "Stop Replay Buffer?";
+  if (std::strcmp(key, "token_usage_resets") == 0) return "Resets";
   return key;
 }
 
@@ -7455,6 +7477,7 @@ inline const char *espdesktop_i18n_key_cs(const char *key) {
   if (std::strcmp(key, "turn_off_studio_mode") == 0) return "Vypnout režim studia?";
   if (std::strcmp(key, "start_replay_buffer_prompt") == 0) return "Spustit vyrovnávací paměť záznamu?";
   if (std::strcmp(key, "stop_replay_buffer_prompt") == 0) return "Zastavit vyrovnávací paměť záznamu?";
+  if (std::strcmp(key, "token_usage_resets") == 0) return "Obnova za";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -7776,6 +7799,7 @@ inline const char *espdesktop_i18n_key_da(const char *key) {
   if (std::strcmp(key, "turn_off_studio_mode") == 0) return "Slå studietilstand fra?";
   if (std::strcmp(key, "start_replay_buffer_prompt") == 0) return "Start genafspilningsbuffer?";
   if (std::strcmp(key, "stop_replay_buffer_prompt") == 0) return "Stop genafspilningsbuffer?";
+  if (std::strcmp(key, "token_usage_resets") == 0) return "Nulstilles om";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -8104,6 +8128,7 @@ inline const char *espdesktop_i18n_key_de(const char *key) {
   if (std::strcmp(key, "turn_off_studio_mode") == 0) return "Studiomodus ausschalten?";
   if (std::strcmp(key, "start_replay_buffer_prompt") == 0) return "Replay-Puffer starten?";
   if (std::strcmp(key, "stop_replay_buffer_prompt") == 0) return "Replay-Puffer stoppen?";
+  if (std::strcmp(key, "token_usage_resets") == 0) return "Reset in";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -8446,6 +8471,7 @@ inline const char *espdesktop_i18n_key_es(const char *key) {
   if (std::strcmp(key, "turn_off_studio_mode") == 0) return "¿Desactivar el modo estudio?";
   if (std::strcmp(key, "start_replay_buffer_prompt") == 0) return "¿Iniciar el búfer de repetición?";
   if (std::strcmp(key, "stop_replay_buffer_prompt") == 0) return "¿Detener el búfer de repetición?";
+  if (std::strcmp(key, "token_usage_resets") == 0) return "Se reinicia en";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -8791,6 +8817,7 @@ inline const char *espdesktop_i18n_key_fi(const char *key) {
   if (std::strcmp(key, "turn_off_studio_mode") == 0) return "Poistetaanko studiotila käytöstä?";
   if (std::strcmp(key, "start_replay_buffer_prompt") == 0) return "Käynnistetäänkö toistopuskuri?";
   if (std::strcmp(key, "stop_replay_buffer_prompt") == 0) return "Pysäytetäänkö toistopuskuri?";
+  if (std::strcmp(key, "token_usage_resets") == 0) return "Nollautuu";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -9126,6 +9153,7 @@ inline const char *espdesktop_i18n_key_fr(const char *key) {
   if (std::strcmp(key, "turn_off_studio_mode") == 0) return "Désactiver le mode Studio ?";
   if (std::strcmp(key, "start_replay_buffer_prompt") == 0) return "Démarrer le tampon de replay ?";
   if (std::strcmp(key, "stop_replay_buffer_prompt") == 0) return "Arrêter le tampon de replay ?";
+  if (std::strcmp(key, "token_usage_resets") == 0) return "Réinit. dans";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -9478,6 +9506,7 @@ inline const char *espdesktop_i18n_key_he(const char *key) {
   if (std::strcmp(key, "turn_off_studio_mode") == 0) return "לכבות את מצב האולפן?";
   if (std::strcmp(key, "start_replay_buffer_prompt") == 0) return "להפעיל את מאגר השידור החוזר?";
   if (std::strcmp(key, "stop_replay_buffer_prompt") == 0) return "לעצור את מאגר השידור החוזר?";
+  if (std::strcmp(key, "token_usage_resets") == 0) return "איפוס בעוד";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -9821,6 +9850,7 @@ inline const char *espdesktop_i18n_key_hu(const char *key) {
   if (std::strcmp(key, "turn_off_studio_mode") == 0) return "Kikapcsolja a stúdió módot?";
   if (std::strcmp(key, "start_replay_buffer_prompt") == 0) return "Elindítja a visszajátszási puffert?";
   if (std::strcmp(key, "stop_replay_buffer_prompt") == 0) return "Leállítja a visszajátszási puffert?";
+  if (std::strcmp(key, "token_usage_resets") == 0) return "Visszaáll";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -10162,6 +10192,7 @@ inline const char *espdesktop_i18n_key_it(const char *key) {
   if (std::strcmp(key, "turn_off_studio_mode") == 0) return "Disattivare la modalità Studio?";
   if (std::strcmp(key, "start_replay_buffer_prompt") == 0) return "Avviare il buffer di replay?";
   if (std::strcmp(key, "stop_replay_buffer_prompt") == 0) return "Fermare il buffer di replay?";
+  if (std::strcmp(key, "token_usage_resets") == 0) return "Si azzera tra";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -10492,6 +10523,7 @@ inline const char *espdesktop_i18n_key_nb(const char *key) {
   if (std::strcmp(key, "turn_off_studio_mode") == 0) return "Slå av studiomodus?";
   if (std::strcmp(key, "start_replay_buffer_prompt") == 0) return "Start avspillingsbufferen?";
   if (std::strcmp(key, "stop_replay_buffer_prompt") == 0) return "Stopp avspillingsbufferen?";
+  if (std::strcmp(key, "token_usage_resets") == 0) return "Nullstilles om";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -10819,6 +10851,7 @@ inline const char *espdesktop_i18n_key_nl(const char *key) {
   if (std::strcmp(key, "turn_off_studio_mode") == 0) return "Studiomodus uitschakelen?";
   if (std::strcmp(key, "start_replay_buffer_prompt") == 0) return "Replaybuffer starten?";
   if (std::strcmp(key, "stop_replay_buffer_prompt") == 0) return "Replaybuffer stoppen?";
+  if (std::strcmp(key, "token_usage_resets") == 0) return "Reset over";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -11151,6 +11184,7 @@ inline const char *espdesktop_i18n_key_pl(const char *key) {
   if (std::strcmp(key, "turn_off_studio_mode") == 0) return "Wyłączyć tryb studia?";
   if (std::strcmp(key, "start_replay_buffer_prompt") == 0) return "Uruchomić bufor powtórek?";
   if (std::strcmp(key, "stop_replay_buffer_prompt") == 0) return "Zatrzymać bufor powtórek?";
+  if (std::strcmp(key, "token_usage_resets") == 0) return "Reset za";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -11485,6 +11519,7 @@ inline const char *espdesktop_i18n_key_pt_br(const char *key) {
   if (std::strcmp(key, "turn_off_studio_mode") == 0) return "Desativar o modo estúdio?";
   if (std::strcmp(key, "start_replay_buffer_prompt") == 0) return "Iniciar o buffer de replay?";
   if (std::strcmp(key, "stop_replay_buffer_prompt") == 0) return "Parar o buffer de replay?";
+  if (std::strcmp(key, "token_usage_resets") == 0) return "Reinicia em";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -11826,6 +11861,7 @@ inline const char *espdesktop_i18n_key_pt(const char *key) {
   if (std::strcmp(key, "turn_off_studio_mode") == 0) return "Desativar o modo de estúdio?";
   if (std::strcmp(key, "start_replay_buffer_prompt") == 0) return "Iniciar o buffer de replay?";
   if (std::strcmp(key, "stop_replay_buffer_prompt") == 0) return "Parar o buffer de replay?";
+  if (std::strcmp(key, "token_usage_resets") == 0) return "Reinicia em";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -12169,6 +12205,7 @@ inline const char *espdesktop_i18n_key_ro(const char *key) {
   if (std::strcmp(key, "turn_off_studio_mode") == 0) return "Dezactivezi modul studio?";
   if (std::strcmp(key, "start_replay_buffer_prompt") == 0) return "Pornești bufferul de reluare?";
   if (std::strcmp(key, "stop_replay_buffer_prompt") == 0) return "Oprești bufferul de reluare?";
+  if (std::strcmp(key, "token_usage_resets") == 0) return "Resetare în";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -12521,6 +12558,7 @@ inline const char *espdesktop_i18n_key_ru(const char *key) {
   if (std::strcmp(key, "turn_off_studio_mode") == 0) return "Выключить режим студии?";
   if (std::strcmp(key, "start_replay_buffer_prompt") == 0) return "Запустить буфер повтора?";
   if (std::strcmp(key, "stop_replay_buffer_prompt") == 0) return "Остановить буфер повтора?";
+  if (std::strcmp(key, "token_usage_resets") == 0) return "Сброс через";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -12857,6 +12895,7 @@ inline const char *espdesktop_i18n_key_sk(const char *key) {
   if (std::strcmp(key, "turn_off_studio_mode") == 0) return "Vypnúť režim štúdia?";
   if (std::strcmp(key, "start_replay_buffer_prompt") == 0) return "Spustiť vyrovnávaciu pamäť záznamu?";
   if (std::strcmp(key, "stop_replay_buffer_prompt") == 0) return "Zastaviť vyrovnávaciu pamäť záznamu?";
+  if (std::strcmp(key, "token_usage_resets") == 0) return "Obnova o";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -13197,6 +13236,7 @@ inline const char *espdesktop_i18n_key_sl(const char *key) {
   if (std::strcmp(key, "turn_off_studio_mode") == 0) return "Izklopiš studijski način?";
   if (std::strcmp(key, "start_replay_buffer_prompt") == 0) return "Zaženeš medpomnilnik ponovitev?";
   if (std::strcmp(key, "stop_replay_buffer_prompt") == 0) return "Ustaviš medpomnilnik ponovitev?";
+  if (std::strcmp(key, "token_usage_resets") == 0) return "Ponastavitev čez";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -13524,6 +13564,7 @@ inline const char *espdesktop_i18n_key_sv(const char *key) {
   if (std::strcmp(key, "turn_off_studio_mode") == 0) return "Slå av studioläget?";
   if (std::strcmp(key, "start_replay_buffer_prompt") == 0) return "Starta reprisbuffer?";
   if (std::strcmp(key, "stop_replay_buffer_prompt") == 0) return "Stoppa reprisbuffer?";
+  if (std::strcmp(key, "token_usage_resets") == 0) return "Återställs om";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -13868,6 +13909,7 @@ inline const char *espdesktop_i18n_key_tr(const char *key) {
   if (std::strcmp(key, "turn_off_studio_mode") == 0) return "Stüdyo modu kapatılsın mı?";
   if (std::strcmp(key, "start_replay_buffer_prompt") == 0) return "Tekrar tamponu başlatılsın mı?";
   if (std::strcmp(key, "stop_replay_buffer_prompt") == 0) return "Tekrar tamponu durdurulsun mu?";
+  if (std::strcmp(key, "token_usage_resets") == 0) return "Sıfırlanır";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -14215,6 +14257,7 @@ inline const char *espdesktop_i18n_key_uk(const char *key) {
   if (std::strcmp(key, "turn_off_studio_mode") == 0) return "Вимкнути режим студії?";
   if (std::strcmp(key, "start_replay_buffer_prompt") == 0) return "Запустити буфер повтору?";
   if (std::strcmp(key, "stop_replay_buffer_prompt") == 0) return "Зупинити буфер повтору?";
+  if (std::strcmp(key, "token_usage_resets") == 0) return "Скидання через";
   return espdesktop_i18n_key_en(key);
 }
 

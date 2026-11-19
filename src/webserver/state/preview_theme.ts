@@ -17,7 +17,7 @@ export const PREVIEW_THEME_COLORS = {
 
 const SENSOR_SURFACE_CARD_TYPES: ReadonlySet<string> = new Set([
   "sensor", "local_sensor", "door_window", "presence", "weather",
-  "weather_forecast", "calendar", "clock", "timezone",
+  "token_usage", "weather_forecast", "calendar", "clock", "timezone",
 ]);
 
 export function defaultCardBackgroundColor(type: string, state: Pick<AppState, "themeMode" | "themeActive">): string {
