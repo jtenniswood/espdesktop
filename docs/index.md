@@ -90,43 +90,40 @@ Give Downloads, client files or your current project a tile of its own.
   <path d="M6 9h.01M10 9h.01M14 9h.01M18 9h.01M6 12h.01M10 12h.01M14 12h.01M18 12h.01M8 15h8" />
 </svg>
 
-### Run keyboard shortcuts and automations
+### Run keyboard shortcuts
 
-Turn key combinations into labelled buttons, or run an Apple Shortcuts workflow with a tap. Keyboard shortcut pages can follow the app you’re using, such as Safari or Figma.
+Turn key combinations into labelled buttons. Shortcut pages can follow the app you’re using, such as Safari or Figma.
 
-[Keyboard shortcuts](/mac-controls/shortcuts#create-a-shortcut-card) · [Apple Shortcuts](/mac-controls/shortcuts#run-an-apple-shortcuts-workflow)
-
-</article>
-
-<article>
-
-<svg class="homepage-feature-icon" viewBox="0 0 24 24" aria-hidden="true">
-  <rect x="5" y="10" width="14" height="11" rx="2" />
-  <path d="M8 10V7a4 4 0 1 1 8 0v3m-4 5v2" />
-</svg>
-
-### Lock your Mac
-
-Tap the Lock Machine tile when you step away from your desk.
-
-[Set up Mac Lock](/mac-controls/security)
+[Keyboard shortcuts](/mac-controls/shortcuts#create-a-shortcut-card)
 
 </article>
 
 <article>
 
 <svg class="homepage-feature-icon" viewBox="0 0 24 24" aria-hidden="true">
-  <path d="M5 3v9m0 4v5M12 3v4m0 4v10M19 3v12m0 4v2" />
-  <rect x="2" y="12" width="6" height="4" rx="1" />
-  <rect x="9" y="7" width="6" height="4" rx="1" />
-  <rect x="16" y="15" width="6" height="4" rx="1" />
+  <path d="m12 3 9 5-9 5-9-5 9-5ZM3 12l9 5 9-5M3 16l9 5 9-5" />
 </svg>
 
-### Make the layout your own
+### Run Apple Shortcuts
 
-Resize tiles, choose their icons and colours, and group related controls into subpages.
+Run an Apple Shortcuts workflow with one tap, or group your workflows on a page of their own.
 
-[Customise the layout](/features/home)
+[Apple Shortcuts](/mac-controls/shortcuts#run-an-apple-shortcuts-workflow)
+
+</article>
+
+<article>
+
+<svg class="homepage-feature-icon" viewBox="0 0 24 24" aria-hidden="true">
+  <rect x="3" y="4" width="18" height="13" rx="2" />
+  <path d="m10 8 5 2.5-5 2.5V8ZM8 21h8m-4-4v4" />
+</svg>
+
+### Control OBS Studio
+
+Switch scenes, mute audio inputs, and start or stop streaming and recording from your touchscreen.
+
+[OBS Studio controls](/mac-controls/apps#obs-studio-controls)
 
 </article>
 
