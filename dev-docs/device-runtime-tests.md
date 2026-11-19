@@ -119,3 +119,27 @@ opening an existing nested shortcut page and using Back five times. The
 latest open and Back first-frame times in milliseconds. Compare the largest
 internal heap and PSRAM blocks with the same layout and build at each
 checkpoint. Use the same shortcut and return path for each visit.
+
+## Test USB and network together on the 4848S040
+
+Use the S3's [USB development profile](../devices/guition-esp32-s3-4848s040/usb-dev.yaml)
+and the Mac app from the same branch. The profile gives USB to Companion and
+keeps the normal Wi-Fi setup. ESPHome logs are available over the network
+instead of the USB cable.
+
+1. Before changing the connection, save the panel's network address and keep a
+   second display connected over the network.
+2. In the app's **Displays** settings, open the S3's **Network** menu and choose
+   its USB port. For a new panel, choose **Add Display**, select **Connect by
+   USB**, and enter the code from the panel's **Settings → Paired** screen.
+3. Run an approved shortcut and check a live Mac stat on the USB display. Use
+   the second display to confirm its network connection still works.
+4. Unplug and reconnect the USB cable. If macOS gives it a different port name,
+   choose that port from the display's **USB** menu. Verify the same display
+   reconnects using its saved pairing and the other display stays connected.
+5. Use **USB → Switch to Network**, enter the S3's address, then switch back to
+   USB. Confirm each switch keeps one saved display and requires no pairing
+   code. Repeat with two USB displays if both have the USB development firmware.
+
+Fresh setup with the panel's Wi-Fi radio off and layout editing over USB are
+tracked in [issue #307](https://github.com/jtenniswood/espdesktop/issues/307).

@@ -28,6 +28,52 @@ private final class DisplayMediaFixture: MediaControlling {
 
 final class CompanionDisplayTests: XCTestCase {
     @MainActor
+    func testDisplayCanSwitchTransportsWithoutReplacingPairingOrOtherDisplays() {
+        let suite = "CompanionDisplayTests.\(UUID())"
+        let defaults = UserDefaults(suiteName: suite)!
+        defer { defaults.removePersistentDomain(forName: suite) }
+        let office = CompanionDisplayRecord(host: "office.local", name: "Office", account: "office")
+        let desk = CompanionDisplayRecord(host: "desk.local", name: "Desk", account: "desk")
+        let saved = CompanionSavedDisplays(defaults: defaults)
+        saved.save([office, desk])
+        defaults.set("office-pin", forKey: "companion.certificateFingerprint.office")
+        let store = CompanionStore(mediaController: DisplayMediaFixture(), systemMetricsProvider: DisplayMetricsFixture(),
+                                   defaults: defaults)
+        let display = store.displays[0]
+        let port = "/dev/cu.wchusbserial20130"
+        display.panelHost = CompanionUSBPort.endpoint(for: port)
+
+        XCTAssertTrue(display.usesUSB)
+        XCTAssertTrue(store.isUSBPortInUse(port))
+        XCTAssertFalse(store.isUSBPortInUse(port, except: display))
+        XCTAssertEqual(display.record.host, office.host)
+        XCTAssertEqual(display.certificateFingerprint, "office-pin")
+        XCTAssertEqual(saved.load { [] }.first?.usbPort, port)
+        XCTAssertEqual(saved.load { [] }.last, desk)
+
+        display.panelHost = "office-new.local"
+        XCTAssertFalse(display.usesUSB)
+        XCTAssertEqual(display.record.usbPort, port)
+        XCTAssertEqual(display.id, office.id)
+        XCTAssertEqual(display.pairingAccount, office.account)
+        XCTAssertEqual(saved.load { [] }.first?.host, "office-new.local")
+        XCTAssertEqual(saved.load { [] }.last, desk)
+    }
+
+    func testUSBRelayRecoversFramingAfterBootNoiseAndAnOversizedFrame() {
+        let payload: [UInt8] = [1, 0xc0, 0xdb, 0, 3]
+        let data = CompanionUSBBridge.Frame.data.encode(payload[...])
+        let oversized = [UInt8(0xc0), 2] + [UInt8](repeating: 7, count: 1025) + [0xc0]
+        let stream = Array("ESP-ROM:esp32s3".utf8) + oversized + data + CompanionUSBBridge.Frame.close.encode()
+        var decoder = CompanionUSBBridge.Decoder()
+        let frames = stream.compactMap { decoder.append($0) }
+        XCTAssertEqual(frames.map(\.0), [.data, .close])
+        XCTAssertEqual(Array(frames[0].1), payload)
+        XCTAssertTrue(frames[1].1.isEmpty)
+        XCTAssertNil(CompanionUSBPort.path(from: "usb:/dev/../anything"))
+    }
+
+    @MainActor
     func testCoughReleaseWaitsForAllHoldsAndLateRenewalCannotMuteAgain() {
         let suite = "CompanionDisplayTests.\(UUID())"
         let defaults = UserDefaults(suiteName: suite)!

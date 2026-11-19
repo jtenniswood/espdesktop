@@ -355,7 +355,10 @@ final class CompanionConnection: NSObject {
         } else if let saved, saved != fingerprint {
             shouldReconnect = false
             hasTerminalConnectionError = true
-            updateConnectionStatus("Blocked: display certificate changed", state: .failed, recovery: "The display’s identity has changed. If you reset or replaced it, forget this display and pair again using the code shown on its touchscreen.")
+            let recovery = usbBridge == nil
+                ? "Check the display address. If you reset or replaced the display, forget it and pair again."
+                : "Select the USB port for the paired display. If you reset or replaced the display, forget it and pair again."
+            updateConnectionStatus("Blocked: display identity does not match", state: .failed, recovery: recovery)
             completionHandler(.cancelAuthenticationChallenge, nil)
         } else if saved != nil {
             endpointRecovery.verifiedFingerprint = fingerprint

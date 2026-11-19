@@ -559,7 +559,8 @@ struct CompanionSettings: View {
                     Button("Use USB (\(URL(fileURLWithPath: port).lastPathComponent))") {
                         store.setDisplayEndpoint(CompanionUSBPort.endpoint(for: port), for: display)
                     }
-                    .disabled(display.usesUSB && display.record.usbPort == port)
+                    .disabled((display.usesUSB && display.record.usbPort == port) ||
+                              store.isUSBPortInUse(port, except: display))
                 }
             }
         } label: {
@@ -718,6 +719,7 @@ struct CompanionSettings: View {
                     )
                 }
                 .buttonStyle(.plain)
+                .disabled(store.isUSBPortInUse(port))
                 .accessibilityAddTraits(selectedUSBPort == port ? .isSelected : [])
             }
             ForEach(discovery.displays) { display in
@@ -839,7 +841,9 @@ struct CompanionSettings: View {
     }
 
     private var canRequestPairingCode: Bool {
-        if let selectedUSBPort { return usbPorts.contains(selectedUSBPort) }
+        if let selectedUSBPort {
+            return usbPorts.contains(selectedUSBPort) && !store.isUSBPortInUse(selectedUSBPort)
+        }
         return manualAddress ? CompanionStore.panelWebServerURL(from: store.panelHost) != nil
             : discovery.displays.contains { $0.id == selectedDisplayID && !store.isSavedDisplay(fingerprint: $0.id) }
     }
