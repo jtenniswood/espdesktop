@@ -35,7 +35,7 @@ esp32:
       disable_vfs_support_termios: false
       disable_vfs_support_select: false
       disable_vfs_support_dir: false
-      # The 28-slot grid refresh runs on ESPHome's loop task.
+      # Grid refresh needs stack headroom on ESPHome's loop task.
       loop_task_stack_size: 16384
     sdkconfig_options:
       CONFIG_SDMMC_HOST_DEFAULT: "y"
@@ -123,26 +123,6 @@ espdesktop:
         subpage_chunks: [subpage_17_config, subpage_17_config_ext, subpage_17_config_ext_2, subpage_17_config_ext_3, subpage_17_config_ext_4, subpage_17_config_ext_5, subpage_17_config_ext_6, subpage_17_config_ext_7]
       - config: button_18_config
         subpage_chunks: [subpage_18_config, subpage_18_config_ext, subpage_18_config_ext_2, subpage_18_config_ext_3, subpage_18_config_ext_4, subpage_18_config_ext_5, subpage_18_config_ext_6, subpage_18_config_ext_7]
-      - config: button_19_config
-        subpage_chunks: [subpage_19_config, subpage_19_config_ext, subpage_19_config_ext_2, subpage_19_config_ext_3, subpage_19_config_ext_4, subpage_19_config_ext_5, subpage_19_config_ext_6, subpage_19_config_ext_7]
-      - config: button_20_config
-        subpage_chunks: [subpage_20_config, subpage_20_config_ext, subpage_20_config_ext_2, subpage_20_config_ext_3, subpage_20_config_ext_4, subpage_20_config_ext_5, subpage_20_config_ext_6, subpage_20_config_ext_7]
-      - config: button_21_config
-        subpage_chunks: [subpage_21_config, subpage_21_config_ext, subpage_21_config_ext_2, subpage_21_config_ext_3, subpage_21_config_ext_4, subpage_21_config_ext_5, subpage_21_config_ext_6, subpage_21_config_ext_7]
-      - config: button_22_config
-        subpage_chunks: [subpage_22_config, subpage_22_config_ext, subpage_22_config_ext_2, subpage_22_config_ext_3, subpage_22_config_ext_4, subpage_22_config_ext_5, subpage_22_config_ext_6, subpage_22_config_ext_7]
-      - config: button_23_config
-        subpage_chunks: [subpage_23_config, subpage_23_config_ext, subpage_23_config_ext_2, subpage_23_config_ext_3, subpage_23_config_ext_4, subpage_23_config_ext_5, subpage_23_config_ext_6, subpage_23_config_ext_7]
-      - config: button_24_config
-        subpage_chunks: [subpage_24_config, subpage_24_config_ext, subpage_24_config_ext_2, subpage_24_config_ext_3, subpage_24_config_ext_4, subpage_24_config_ext_5, subpage_24_config_ext_6, subpage_24_config_ext_7]
-      - config: button_25_config
-        subpage_chunks: [subpage_25_config, subpage_25_config_ext, subpage_25_config_ext_2, subpage_25_config_ext_3, subpage_25_config_ext_4, subpage_25_config_ext_5, subpage_25_config_ext_6, subpage_25_config_ext_7]
-      - config: button_26_config
-        subpage_chunks: [subpage_26_config, subpage_26_config_ext, subpage_26_config_ext_2, subpage_26_config_ext_3, subpage_26_config_ext_4, subpage_26_config_ext_5, subpage_26_config_ext_6, subpage_26_config_ext_7]
-      - config: button_27_config
-        subpage_chunks: [subpage_27_config, subpage_27_config_ext, subpage_27_config_ext_2, subpage_27_config_ext_3, subpage_27_config_ext_4, subpage_27_config_ext_5, subpage_27_config_ext_6, subpage_27_config_ext_7]
-      - config: button_28_config
-        subpage_chunks: [subpage_28_config, subpage_28_config_ext, subpage_28_config_ext_2, subpage_28_config_ext_3, subpage_28_config_ext_4, subpage_28_config_ext_5, subpage_28_config_ext_6, subpage_28_config_ext_7]
 # ---------------------------------------------------------------------------
 # ESPHome core (device name from substitutions)
 # ---------------------------------------------------------------------------

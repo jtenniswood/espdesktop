@@ -361,7 +361,7 @@
     },
     "guition-esp32-p4-jc1060p470-v3": {
       "slug": "guition-esp32-p4-jc1060p470-v3",
-      "slots": 28,
+      "slots": 18,
       "capabilities": {
         "imageSlots": 6,
         "companion": true
@@ -374,10 +374,10 @@
         "orientation": "Landscape"
       },
       "layout": {
-        "cols": 7,
-        "rows": 4,
-        "firmwareGrid": "4x7",
-        "portraitCols": 4
+        "cols": 6,
+        "rows": 3,
+        "firmwareGrid": "3x6",
+        "portraitCols": 3
       },
       "rotation": {
         "enabled": true,
@@ -400,8 +400,8 @@
           "aspect": "1024/600"
         },
         "portrait": {
-          "cols": 4,
-          "rows": 7,
+          "cols": 3,
+          "rows": 6,
           "screen": {
             "width": "59%",
             "aspect": "600/1024"
