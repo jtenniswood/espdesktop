@@ -35,6 +35,8 @@ esp32:
       disable_vfs_support_termios: false
       disable_vfs_support_select: false
       disable_vfs_support_dir: false
+      # The 28-slot grid refresh runs on ESPHome's loop task.
+      loop_task_stack_size: 16384
     sdkconfig_options:
       CONFIG_SDMMC_HOST_DEFAULT: "y"
       # Leave room for the web editor, artwork, OTA, and the four sockets
