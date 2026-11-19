@@ -12,7 +12,7 @@ The normal [browser install](/screens/4848s040#set-up-espdesktop) is the easiest
 ## What You Need
 
 - A supported ESP32 panel.
-- ESPHome 2026.10.2, matching this repository’s pinned toolchain, using Device Builder in Home Assistant or the ESPHome command line on your computer.
+- ESPHome 2026.11.0, matching this repository’s pinned toolchain, using Device Builder in Home Assistant or the ESPHome command line on your computer.
 - A USB-C data cable for the first install.
 - Your WiFi name and password, unless you are using an advanced wired Ethernet option.
 
