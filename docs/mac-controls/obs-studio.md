@@ -1,7 +1,6 @@
 ---
 title: Control OBS Studio from a Touchscreen on Mac
 description: Connect OBS Studio to EspDesktop to switch scenes, mix audio, and control streaming, recording, and replays from a Mac-connected touchscreen.
-outline: [2, 3]
 ---
 
 # OBS Studio controls
@@ -30,22 +29,26 @@ On a grouped page, use **Edit Subpage** to customise the layout. Drag an automat
 
 ## FAQ
 
-### Can I control OBS Studio from a touchscreen on my Mac?
+<FaqAccordion>
 
+::: details Can I control OBS Studio from a touchscreen on my Mac?
 Yes. Pair your display with the EspDesktop Mac app, then connect the app to OBS Studio using its built-in WebSocket server. Add OBS Studio cards to the display for the scenes, audio inputs, and broadcast controls you use.
+:::
 
-### Why is the OBS tab missing in EspDesktop?
-
+::: details Why is the OBS tab missing in EspDesktop?
 EspDesktop shows **Settings → OBS** when it finds OBS Studio installed in an Applications folder on your Mac. Check where OBS Studio is installed if the tab is missing.
+:::
 
-### Why can’t EspDesktop connect to OBS Studio?
-
+::: details Why can’t EspDesktop connect to OBS Studio?
 Open OBS Studio and check that the WebSocket server is enabled. Match the port and password in **Settings → OBS** in EspDesktop. A saved password appears as dots until you click the field. Leave the field blank and choose **Reconnect** to reuse the saved password.
+:::
 
-### Can I switch scenes without putting them live immediately?
-
+::: details Can I switch scenes without putting them live immediately?
 Yes. Turn on **Studio Mode** and tap a scene card to select it in Preview. Use **Take Live** to send that scene to Program, the feed OBS is outputting.
+:::
 
-### Can I mute my OBS microphone from the touchscreen?
-
+::: details Can I mute my OBS microphone from the touchscreen?
 Yes. Add an **Audio Controls** card, set **Type** to **Input State**, and choose the microphone from the OBS mixer. Use **Cough** to mute it only while you hold the card.
+:::
+
+</FaqAccordion>

@@ -224,7 +224,12 @@ export default defineConfig({
     )
 
     const graph: Record<string, unknown>[] = []
+    const faqAnswers = frontmatter.faqAnswers
+    delete frontmatter.faqAnswers
     if (isHome) {
+      if (faqAnswers?.length) {
+        graph.push({ '@type': 'FAQPage', '@id': canonicalUrl, url: canonicalUrl, mainEntity: faqAnswers })
+      }
       graph.push(
         {
           '@type': 'WebSite',
@@ -276,11 +281,11 @@ export default defineConfig({
         isPartOf: { '@id': websiteId },
         breadcrumb: { '@id': breadcrumbs },
       }
-      if (frontmatter.faqAnswers?.length) {
+      if (faqAnswers?.length) {
         page['@type'] = 'FAQPage'
-        page.mainEntity = frontmatter.faqAnswers
-        delete frontmatter.faqAnswers
-      } else if (isArticle) {
+        page.mainEntity = faqAnswers
+      }
+      if (isArticle) {
         // The page and its article are separate nodes. Breadcrumbs belong to the page.
         graph.push({
           '@type': 'TechArticle',
@@ -292,7 +297,7 @@ export default defineConfig({
           image: image.url,
           ...(pageData.lastUpdated ? { dateModified: new Date(pageData.lastUpdated).toISOString() } : {}),
         })
-        page.mainEntity = { '@id': `${canonicalUrl}#guide` }
+        page.mainEntity ??= { '@id': `${canonicalUrl}#guide` }
       }
       graph.push(page, {
         '@type': 'BreadcrumbList',
