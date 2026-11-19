@@ -7,3 +7,11 @@ logger:
 
 companion:
   usb_serial_jtag: true
+
+substitutions:
+  companion_native_usb_socket_count: "20"
+
+esp32:
+  framework:
+    sdkconfig_options:
+      CONFIG_LWIP_MAX_SOCKETS: "${companion_native_usb_socket_count}"
