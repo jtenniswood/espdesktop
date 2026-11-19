@@ -150,7 +150,10 @@ final class CompanionUSBBridge: @unchecked Sendable {
             throw error
         }
         port = UInt16(bigEndian: address.sin_port)
-        DispatchQueue.global(qos: .userInitiated).async { self.relay(listener: listener, serial: serial) }
+        let nativeUSB = CompanionUSBPort.isNative(path)
+        DispatchQueue.global(qos: .userInitiated).async {
+            self.relay(listener: listener, serial: serial, nativeUSB: nativeUSB)
+        }
     }
 
     func stop() { stopped.withLock { cancelled = true } }
@@ -170,7 +173,7 @@ final class CompanionUSBBridge: @unchecked Sendable {
         guard ioctl(fd, UInt(TIOCMBIC), &resetLines) == 0 else { throw systemError() }
     }
 
-    private func relay(listener: Int32, serial: Int32) {
+    private func relay(listener: Int32, serial: Int32, nativeUSB: Bool) {
         defer { close(serial); close(listener) }
         while !stopped.withLock({ cancelled }) {
             var incoming = pollfd(fd: listener, events: Int16(POLLIN), revents: 0)
@@ -183,12 +186,12 @@ final class CompanionUSBBridge: @unchecked Sendable {
             guard fcntl(client, F_SETFL, O_NONBLOCK) == 0,
                   setsockopt(client, SOL_SOCKET, SO_NOSIGPIPE, &one, socklen_t(MemoryLayout<Int32>.size)) == 0
             else { return }
-            forward(client: client, serial: serial)
+            forward(client: client, serial: serial, nativeUSB: nativeUSB)
             return
         }
     }
 
-    private func forward(client: Int32, serial: Int32) {
+    private func forward(client: Int32, serial: Int32, nativeUSB: Bool) {
         guard writeAll(Frame.open.encode(), to: serial) else { return }
         defer { _ = writeAll(Frame.close.encode(), to: serial) }
         var decoder = Decoder()
@@ -208,7 +211,12 @@ final class CompanionUSBBridge: @unchecked Sendable {
                 if count < 0 && (errno == EINTR || errno == EAGAIN) { continue }
                 guard count > 0 else { return }
                 if descriptor.fd == client {
-                    guard writeAll(Frame.data.encode(buffer.prefix(count)), to: serial) else { return }
+                    let frame = Frame.data.encode(buffer.prefix(count))
+                    guard writeAll(frame, to: serial) else { return }
+                    // Native USB can fill the panel's receive ring faster than
+                    // its main loop drains it. Keep bursts within the serial
+                    // rate that the bridge can forward while the screen is busy.
+                    if nativeUSB { Thread.sleep(forTimeInterval: Double(frame.count) / 32_000) }
                 } else {
                     for byte in buffer.prefix(count) {
                         guard let (kind, payload) = decoder.append(byte) else { continue }
