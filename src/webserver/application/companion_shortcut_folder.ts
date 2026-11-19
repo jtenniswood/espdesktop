@@ -565,7 +565,8 @@ export function addAppTokenUsageCard(bundleIdentifier: string, page: any, maxSlo
         return index >= 0 && page.buttons[index]?.type === "companion" &&
             page.buttons[index].entity?.startsWith(COMPANION_SHORTCUT_PREFIX);
     });
-    const start = firstShortcut < 0 ? order.findIndex(isBackOrderToken) + 1 : firstShortcut;
+    const afterBack = order.findIndex(isBackOrderToken) + 1;
+    const start = firstShortcut < 0 || page.grid[afterBack] === 0 ? afterBack : firstShortcut;
     // Shift only consecutive one-cell shortcuts starting at the first shortcut.
     // Preserve custom layouts if another tile or span blocks the available space.
     const legacyPresets = legacyCompanionShortcutPresetKeys(bundleIdentifier, companionShortcutPresetCards(bundleIdentifier));

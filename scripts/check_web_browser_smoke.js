@@ -5583,8 +5583,11 @@ async function assertAutomaticAppTokenUsage(browser, testCase) {
 async function assertManualAppTokenUsage(browser, testCase) {
   if (testCase.slug !== "guition-esp32-s3-4848s040") return;
   const fixture = nativeConfigState(testCase.slug);
-  fixture.document.buttons = {1: "com.google.antigravity;Antigravity;Auto;Auto;;;companion;;app_shortcuts"};
-  fixture.document.settings.button_order = "1";
+  fixture.document.buttons = {
+    1: "com.google.antigravity;Antigravity;Auto;Auto;;;companion;;app_shortcuts",
+    2: COPY_SHORTCUT,
+  };
+  fixture.document.settings.button_order = "1,2";
   fixture.document.subpages = {1: "~B,1|CP,shortcut.command%2Bc,Custom%20copy,Copy"};
   const context = await browser.newContext({ viewport: testCase.viewport });
   await installRoutes(context, testCase.slug, { nativeState: fixture });
@@ -5606,7 +5609,7 @@ async function assertManualAppTokenUsage(browser, testCase) {
     await page.getByRole("button", { name: "Save", exact: true }).click();
     assert(!fixture.document.subpages[1].includes("|TU"), "saving keeps the custom layout");
 
-    fixture.document.subpages[1] = "~B";
+    fixture.document.subpages[1] = "~B,,1|CP,shortcut.command%2Bc,Custom%20copy,Copy";
     await page.reload();
     await page.waitForFunction(() => window.__eventSources?.length > 0);
     await seedNativeDocument(page, fixture);
@@ -5615,6 +5618,8 @@ async function assertManualAppTokenUsage(browser, testCase) {
     await page.getByRole("button", { name: "Add Token Usage", exact: true }).click();
     await page.getByRole("button", { name: "Save", exact: true }).click();
     await waitForNativeState(fixture, () => fixture.document.subpages[1]?.includes("|TU"), "explicit Token Usage save");
+    const [order] = decodeURIComponent(fixture.document.subpages[1]).split("|");
+    assert(order.startsWith("~B,2,1"), "adding Token Usage leaves the custom shortcut in place");
   } finally {
     await context.close();
   }
