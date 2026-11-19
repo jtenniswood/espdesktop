@@ -57,14 +57,14 @@
       "screenSize": "7 inches",
       "resolution": "1024 x 600",
       "orientation": "Landscape",
-      "slots": 28,
+      "slots": 21,
       "imageSlots": 6,
       "imageCardTypes": [
         "image",
         "media_cover_art"
       ],
       "grid": {
-        "rows": 4,
+        "rows": 3,
         "cols": 7
       },
       "chipFamily": "ESP32-P4",

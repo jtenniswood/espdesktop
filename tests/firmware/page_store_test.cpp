@@ -19,7 +19,7 @@ using namespace espdesktop::configuration;
 namespace {
 
 struct Document {
-  std::array<uint8_t, 64 * 1024> buffer{};
+  std::array<uint8_t, 40 * 1024> buffer{};
   PanelConfigWriter writer{buffer.data(), buffer.size()};
   size_t size{0};
 
