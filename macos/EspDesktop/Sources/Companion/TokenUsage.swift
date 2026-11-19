@@ -2,19 +2,28 @@ import Foundation
 import SQLite3
 import Darwin
 
-struct WeeklyUsageReading: Codable, Equatable, Sendable {
+enum AllowancePeriod: String, Codable, Sendable {
+    case weekly, monthly
+}
+
+enum AllowanceProvider: String, CaseIterable, Sendable {
+    case codex, claude, openCodeGo = "opencode-go", cursor, antigravity
+}
+
+struct AllowanceReading: Codable, Equatable, Sendable {
     var remainingPercent: Int
-    var resetsAt: UInt32
+    var resetsAt: UInt32?
+    var period: AllowancePeriod = .weekly
     var observedAt: UInt32
 
     var valid: Bool {
-        (0...100).contains(remainingPercent) && observedAt > 0 && resetsAt > observedAt
+        (0...100).contains(remainingPercent) && observedAt > 0 && (resetsAt.map { $0 > observedAt } ?? true)
             && Double(observedAt) <= Date().timeIntervalSince1970 + 60
     }
 
     func wireValue(service: String) -> [String: Any] {
         ["service": service, "remainingPercent": remainingPercent,
-         "resetsAt": resetsAt, "observedAt": observedAt]
+         "resetsAt": resetsAt ?? 0, "observedAt": observedAt]
     }
 }
 
@@ -45,11 +54,11 @@ enum TokenUsage {
         let result: String
     }
 
-    static func readClaude() async -> (account: ClaudeAccount, reading: WeeklyUsageReading?) {
+    static func readClaude() async -> (account: ClaudeAccount, reading: AllowanceReading?) {
         await Task.detached(priority: .utility) { fetchClaude() }.value
     }
 
-    private static func fetchClaude() -> (ClaudeAccount, WeeklyUsageReading?) {
+    private static func fetchClaude() -> (ClaudeAccount, AllowanceReading?) {
         let home = FileManager.default.homeDirectoryForCurrentUser
         let candidates = [home.appendingPathComponent(".local/bin/claude").path,
                           "/opt/homebrew/bin/claude", "/usr/local/bin/claude"]
@@ -69,7 +78,7 @@ enum TokenUsage {
         return (account, result.flatMap { parseClaude($0) })
     }
 
-    static func parseClaude(_ data: Data, observedAt: Date = .now) -> WeeklyUsageReading? {
+    static func parseClaude(_ data: Data, observedAt: Date = .now) -> AllowanceReading? {
         guard let reply = try? JSONDecoder().decode(ClaudeUsageReply.self, from: data),
               !reply.is_error, reply.num_turns == 0, reply.local_command == "usage" else { return nil }
         // The CLI also prints session limits and model-specific weekly limits.
@@ -98,7 +107,7 @@ enum TokenUsage {
         let now = observedAt.timeIntervalSince1970
         let resetTime = reset.timeIntervalSince1970
         guard now >= 1, resetTime <= Double(UInt32.max) else { return nil }
-        let reading = WeeklyUsageReading(remainingPercent: 100 - used,
+        let reading = AllowanceReading(remainingPercent: 100 - used,
                                          resetsAt: UInt32(resetTime), observedAt: UInt32(now))
         return reading.valid ? reading : nil
     }
@@ -199,8 +208,8 @@ enum TokenUsage {
     }
 
     struct OpenCodeGoUsage: Equatable, Sendable {
-        let weekly: WeeklyUsageReading?
-        let monthly: WeeklyUsageReading?
+        let weekly: AllowanceReading?
+        let monthly: AllowanceReading?
     }
 
     private struct OpenCodeLogin: Decodable {
@@ -300,13 +309,13 @@ enum TokenUsage {
 
     static func parseOpenCodeGo(_ data: Data, observedAt: Date = .now) -> OpenCodeGoUsage? {
         guard let usage = try? JSONDecoder().decode(OpenCodeGoReply.self, from: data).usage else { return nil }
-        let weekly = usage.weekly.flatMap { openCodeReading($0, observedAt: observedAt) }
-        let monthly = usage.monthly.flatMap { openCodeReading($0, observedAt: observedAt) }
+        let weekly = usage.weekly.flatMap { openCodeReading($0, period: .weekly, observedAt: observedAt) }
+        let monthly = usage.monthly.flatMap { openCodeReading($0, period: .monthly, observedAt: observedAt) }
         guard weekly != nil || monthly != nil else { return nil }
         return OpenCodeGoUsage(weekly: weekly, monthly: monthly)
     }
 
-    private static func openCodeReading(_ window: OpenCodeGoReply.Usage.Window, observedAt: Date) -> WeeklyUsageReading? {
+    private static func openCodeReading(_ window: OpenCodeGoReply.Usage.Window, period: AllowancePeriod, observedAt: Date) -> AllowanceReading? {
         guard (0...100).contains(window.percent) else { return nil }
         let formatter = ISO8601DateFormatter()
         formatter.formatOptions.insert(.withFractionalSeconds)
@@ -319,8 +328,8 @@ enum TokenUsage {
         let now = observedAt.timeIntervalSince1970
         let resetTime = reset.timeIntervalSince1970
         guard now >= 1, resetTime <= Double(UInt32.max) else { return nil }
-        let reading = WeeklyUsageReading(remainingPercent: Int((100 - window.percent).rounded()),
-                                         resetsAt: UInt32(resetTime), observedAt: UInt32(now))
+        let reading = AllowanceReading(remainingPercent: Int((100 - window.percent).rounded()),
+                                         resetsAt: UInt32(resetTime), period: period, observedAt: UInt32(now))
         return reading.valid ? reading : nil
     }
 
@@ -377,7 +386,7 @@ enum TokenUsage {
         return "WorkosCursorSessionToken=\(user)%3A%3A\(token)"
     }
 
-    static func readCursor() async -> WeeklyUsageReading? {
+    static func readCursor() async -> AllowanceReading? {
         let home = FileManager.default.homeDirectoryForCurrentUser
         let authFile = home.appendingPathComponent(".cursor/auth.json")
         guard let data = try? Data(contentsOf: authFile), let cookie = cursorSessionCookie(from: data)
@@ -409,26 +418,26 @@ enum TokenUsage {
         return payload
     }
 
-    static func parseCursor(monthly: Data?, weekly: Data?, observedAt: Date = .now) -> WeeklyUsageReading? {
+    static func parseCursor(monthly: Data?, weekly: Data?, observedAt: Date = .now) -> AllowanceReading? {
         let decoder = JSONDecoder()
         if let weekly, let usage = try? decoder.decode(CursorWeeklyUsage.self, from: weekly), usage.isUnified {
             // A confirmed shared plan must never fall back to an unrelated legacy pool.
             guard usage.includedLimitZero != true, let percent = usage.usagePercent,
                   let reset = usage.nextResetTimestampUtc else { return nil }
-            return cursorReading(usedPercent: percent, reset: reset, observedAt: observedAt, maxDays: 8)
+            return cursorReading(usedPercent: percent, reset: reset, observedAt: observedAt, maxDays: 8, period: .weekly)
         }
         guard let monthly, let usage = try? decoder.decode(CursorMonthlyUsage.self, from: monthly),
               usage.isUnlimited != true, let plan = usage.individualUsage?.plan, plan.enabled != false,
               !["team", "enterprise"].contains(usage.membershipType?.lowercased() ?? "") else { return nil }
         if let percent = plan.totalPercentUsed {
-            return cursorReading(usedPercent: percent, reset: usage.billingCycleEnd, observedAt: observedAt, maxDays: 32)
+            return cursorReading(usedPercent: percent, reset: usage.billingCycleEnd, observedAt: observedAt, maxDays: 32, period: .monthly)
         }
         guard let used = plan.used, let limit = plan.limit, limit > 0 else { return nil }
         return cursorReading(usedPercent: used / limit * 100,
-                             reset: usage.billingCycleEnd, observedAt: observedAt, maxDays: 32)
+                             reset: usage.billingCycleEnd, observedAt: observedAt, maxDays: 32, period: .monthly)
     }
 
-    private static func cursorReading(usedPercent: Double, reset: String, observedAt: Date, maxDays: Int) -> WeeklyUsageReading? {
+    private static func cursorReading(usedPercent: Double, reset: String, observedAt: Date, maxDays: Int, period: AllowancePeriod) -> AllowanceReading? {
         guard usedPercent.isFinite, usedPercent >= 0 else { return nil }
         let formatter = ISO8601DateFormatter()
         let wholeSeconds = formatter.date(from: reset)
@@ -438,8 +447,8 @@ enum TokenUsage {
               observedAt.timeIntervalSince1970 >= 1,
               date.timeIntervalSince1970 <= Double(UInt32.max),
               date > observedAt else { return nil }
-        let reading = WeeklyUsageReading(remainingPercent: Int((100 - min(100, usedPercent)).rounded()),
-                                         resetsAt: UInt32(date.timeIntervalSince1970),
+        let reading = AllowanceReading(remainingPercent: Int((100 - min(100, usedPercent)).rounded()),
+                                         resetsAt: UInt32(date.timeIntervalSince1970), period: period,
                                          observedAt: UInt32(observedAt.timeIntervalSince1970))
         return reading.valid ? reading : nil
     }
@@ -471,7 +480,7 @@ enum TokenUsage {
         let command: Command
     }
 
-    static func readAntigravity() async -> WeeklyUsageReading? {
+    static func readAntigravity() async -> AllowanceReading? {
         await Task.detached(priority: .utility) {
             let home = FileManager.default.homeDirectoryForCurrentUser
             let binaries = [home.appendingPathComponent(".local/bin/agy").path,
@@ -484,7 +493,7 @@ enum TokenUsage {
         }.value
     }
 
-    static func parseAntigravity(_ data: Data, observedAt: Date = .now) -> WeeklyUsageReading? {
+    static func parseAntigravity(_ data: Data, observedAt: Date = .now) -> AllowanceReading? {
         let decoder = JSONDecoder()
         decoder.keyDecodingStrategy = .convertFromSnakeCase
         guard let report = try? decoder.decode(AntigravityReport.self, from: data),
@@ -498,7 +507,7 @@ enum TokenUsage {
               bucket.disabled != true, let fraction = bucket.remainingFraction, (0...1).contains(fraction),
               (1...Double(UInt32.max)).contains(timestamp) else { return nil }
 
-        var resetsAt: UInt32 = 0
+        var resetsAt: UInt32?
         if let value = bucket.resetTime {
             let formatter = ISO8601DateFormatter()
             let wholeSeconds = formatter.date(from: value)
@@ -512,7 +521,7 @@ enum TokenUsage {
             }
         }
 
-        return WeeklyUsageReading(remainingPercent: Int((fraction * 100).rounded()),
+        return AllowanceReading(remainingPercent: Int((fraction * 100).rounded()),
                                   resetsAt: resetsAt, observedAt: UInt32(timestamp))
     }
 
@@ -538,7 +547,7 @@ enum TokenUsage {
         let result: Result?
     }
 
-    static func parseCodex(_ line: Data, observedAt: UInt32) -> WeeklyUsageReading? {
+    static func parseCodex(_ line: Data, observedAt: UInt32) -> AllowanceReading? {
         guard let reply = try? JSONDecoder().decode(Reply.self, from: line), reply.id == 2,
               let result = reply.result,
               let limits = result.rateLimitsByLimitId?["codex"] ?? result.rateLimits,
@@ -546,16 +555,16 @@ enum TokenUsage {
               let window = [limits.primary, limits.secondary].compactMap({ $0 })
                   .first(where: { $0.windowDurationMins == 7 * 24 * 60 }),
               let resetsAt = window.resetsAt, (0...100).contains(window.usedPercent) else { return nil }
-        let reading = WeeklyUsageReading(remainingPercent: Int((100 - window.usedPercent).rounded()),
+        let reading = AllowanceReading(remainingPercent: Int((100 - window.usedPercent).rounded()),
                                          resetsAt: resetsAt, observedAt: observedAt)
         return reading.valid ? reading : nil
     }
 
-    static func readCodex() async -> WeeklyUsageReading? {
+    static func readCodex() async -> AllowanceReading? {
         await Task.detached(priority: .utility) { fetchCodex() }.value
     }
 
-    private static func fetchCodex() -> WeeklyUsageReading? {
+    private static func fetchCodex() -> AllowanceReading? {
         let candidates = ["/opt/homebrew/bin/codex", "/usr/local/bin/codex",
                           FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent(".local/bin/codex").path,
                           "/Applications/ChatGPT.app/Contents/Resources/codex-cli/bin/codex"]

@@ -95,9 +95,14 @@ inline TokenUsageService token_usage_service(std::string_view service) {
   return TokenUsageService::CODEX;
 }
 
+inline uint8_t token_usage_provider_bit(TokenUsageService service) {
+  constexpr uint8_t provider_bits[] = {1, 2, 4, 0, 4, 8, 16};
+  return provider_bits[static_cast<size_t>(service)];
+}
+
 struct CompanionTokenUsageReading {
   uint8_t remaining_percent{0};
-  uint32_t resets_at{0};
+  std::optional<uint32_t> resets_at;
   uint32_t observed_at{0};
 };
 
@@ -425,6 +430,9 @@ class CompanionRuntimeService {
     request_refresh_();
   }
 
+  void set_token_usage_demand(uint8_t mask) { token_usage_demand_.store(mask); }
+  uint8_t token_usage_demand() const { return token_usage_demand_.load(); }
+
   std::pair<bool, CompanionTokenUsage> token_usage() const {
     std::lock_guard<std::mutex> lock(mutex_);
     return {connected_ && token_usage_current_, token_usage_};
@@ -612,6 +620,7 @@ class CompanionRuntimeService {
   bool keyboard_actions_supported_{false};
   bool connected_{false};
   CompanionSystemMetricsSnapshot system_metrics_;
+  std::atomic<uint8_t> token_usage_demand_{0};
   CompanionTokenUsage token_usage_{};
   bool token_usage_current_{false};
   std::atomic<bool> mac_update_required_{false};

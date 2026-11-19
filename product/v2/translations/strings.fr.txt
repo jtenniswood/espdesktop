@@ -375,3 +375,4 @@ turn_off_studio_mode=Désactiver le mode Studio ?
 start_replay_buffer_prompt=Démarrer le tampon de replay ?
 stop_replay_buffer_prompt=Arrêter le tampon de replay ?
 token_usage_resets=Réinit. dans
+token_usage_last_known=Dernière valeur

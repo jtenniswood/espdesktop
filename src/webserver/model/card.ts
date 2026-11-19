@@ -13,6 +13,7 @@ export type DraftCardConfig = CardConfig & {
   _appleShortcutTabs?: string[] | undefined;
   _appShortcutSelectionChanged?: unknown;
   _appShortcutAppChanged?: unknown;
+  _addTokenUsage?: boolean;
 };
 
 export const CARD_CONFIG_FIELDS: readonly SavedConfigField[] = [
@@ -97,6 +98,7 @@ export function cloneCardConfig(src?: Partial<CardConfig> & Partial<DraftCardCon
   if (src && Object.prototype.hasOwnProperty.call(src, "_appShortcutAppChanged")) {
     button._appShortcutAppChanged = src._appShortcutAppChanged;
   }
+  if (src?._addTokenUsage === true) button._addTokenUsage = true;
   if (Array.isArray(src?._finderFolderTabs)) button._finderFolderTabs = [...src._finderFolderTabs];
   if (Array.isArray(src?._appleShortcutTabs)) button._appleShortcutTabs = [...src._appleShortcutTabs];
   return button;
@@ -116,6 +118,8 @@ export function copyCardConfig(
   target._appleShortcutTabs = button._appleShortcutTabs;
   target._appShortcutSelectionChanged = button._appShortcutSelectionChanged;
   target._appShortcutAppChanged = button._appShortcutAppChanged;
+  if (button._addTokenUsage) target._addTokenUsage = true;
+  else delete target._addTokenUsage;
   return target as DraftCardConfig;
 }
 

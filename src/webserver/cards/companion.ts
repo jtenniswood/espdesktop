@@ -868,6 +868,29 @@ export function registerCompanionCardTypes(
         const showUsage = service && (!savedShortcutSubpage || !matchesSavedParent ||
             subpageHasAppTokenUsage(savedShortcutSubpage, service));
         let includedRow: HTMLElement | undefined;
+        if (service && savedShortcutSubpage && matchesSavedParent && !showUsage) {
+            const candidate = { ...savedShortcutSubpage, buttons: [...savedShortcutSubpage.buttons] };
+            codec.buildSubpageGrid(candidate);
+            const canAdd = addAppTokenUsageCard(card.entity, candidate, maxSlots);
+            const title = "Add Token Usage";
+            const add = document.createElement("button");
+            add.type = "button";
+            add.className = "sp-action-btn";
+            add.textContent = card._addTokenUsage ? "Token Usage will be added on save" : title;
+            add.disabled = !canAdd;
+            add.setAttribute("aria-pressed", String(card._addTokenUsage === true));
+            add.addEventListener("click", () => {
+                card._addTokenUsage = !card._addTokenUsage;
+                renderButtonSettings();
+            });
+            panel.appendChild(add);
+            if (!canAdd) {
+                const note = document.createElement("div");
+                note.className = "sp-field-info-text sp-visible";
+                note.textContent = "Make room in the subpage or place Token Usage in another free cell.";
+                panel.appendChild(note);
+            }
+        }
         if (showUsage) {
             includedRow = document.createElement("div");
             includedRow.className = "sp-light-tab-row sp-app-subpage-included";
@@ -2142,6 +2165,8 @@ export function registerCompanionCardTypes(
             delete card._finderFolderTabs;
             const appleShortcutSelection = card._appleShortcutTabs;
             delete card._appleShortcutTabs;
+            const addTokenUsage = card._addTokenUsage === true;
+            delete card._addTokenUsage;
             const selectionChanged = card._appShortcutSelectionChanged === true;
             const appChanged = card._appShortcutAppChanged === true;
             const openBehaviorChanged = card._finderOpenBehaviorChanged === true;
@@ -2163,13 +2188,7 @@ export function registerCompanionCardTypes(
                 grid: (existing.grid || []).slice(),
                 sizes: { ...(existing.sizes || {}) },
             } : null;
-            if (source && !selectionChanged && !appChanged && !openBehaviorChanged) {
-                codec.buildSubpageGrid(source);
-                if (!addAppTokenUsageCard(card.entity, source, maxSlots)) return "saved";
-                codec.buildSubpageGrid(source);
-                state.subpages[slot] = source;
-                return codec.saveSubpageConfig(slot);
-            }
+            if (source && !addTokenUsage && !selectionChanged && !appChanged && !openBehaviorChanged) return "saved";
             let subpage;
             if (source && context?.reconnectedSubpage) {
                 const tabs = companionShortcutTabs(card);
@@ -2194,7 +2213,10 @@ export function registerCompanionCardTypes(
                 syncInheritedFinderOpenBehavior(subpage, finderOpenBehavior(card));
             }
             codec.buildSubpageGrid(subpage);
-            if (addAppTokenUsageCard(card.entity, subpage, maxSlots)) codec.buildSubpageGrid(subpage);
+            if (source && addTokenUsage) {
+                if (!addAppTokenUsageCard(card.entity, subpage, maxSlots)) return "failed";
+                codec.buildSubpageGrid(subpage);
+            }
             state.subpages[slot] = subpage;
             return codec.saveSubpageConfig(slot);
         },

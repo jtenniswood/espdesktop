@@ -121,6 +121,8 @@ class CompanionService final : public Component {
   std::string pairing_code_;
   std::atomic<uint32_t> focus_targets_generation_{0};
   std::atomic<bool> focus_targets_supported_{false};
+  std::atomic<bool> allowance_demand_supported_{false};
+  std::atomic<uint8_t> published_allowance_demand_{0xff};
   std::vector<CompanionAction> catalogue_actions_;
   CompanionCatalogueLimits catalogue_limits_;
   std::vector<std::string> catalogue_enabled_icons_;

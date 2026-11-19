@@ -253,6 +253,7 @@ inline void lv_obj_move_foreground(lv_obj_t *obj) {
 inline void lv_obj_move_background(lv_obj_t *) { lv_obj_move_background_calls++; }
 
 #include "display_color.h"
+#include "token_usage_state.h"
 #include "button_grid_config_parser.h"
 #define ESPDESKTOP_SUBPAGE_PARSER_ONLY
 #include "button_grid_subpages.h"
@@ -1115,6 +1116,20 @@ def check_button_grid_facade() -> None:
         )
 
 
+def token_usage_state_assertions() -> str:
+    cases = json.loads((ROOT / "compatibility/fixtures/token_usage_states.json").read_text())
+    assertions = []
+    for case in cases:
+        connected = str(case["connected"]).lower()
+        reset = "std::nullopt" if case["resetsAt"] is None else str(case["resetsAt"])
+        expected = case["state"].upper()
+        assertions.append(
+            f'  assert(allowance_state({connected}, {case["now"]}, {case["observedAt"]}, {reset})'
+            f' == AllowanceState::{expected}); // {case["name"]}'
+        )
+    return "\n".join(assertions)
+
+
 def main() -> int:
     check_button_grid_facade()
     check_clock_bar_visual_gaps()
@@ -1126,7 +1141,7 @@ def main() -> int:
         tmp_path = Path(tmp)
         for helper in (
             "button_grid_order_parser.h", "button_grid_subpages.h", "config_field_decode.h",
-            "display_utf8_case.h", "ha_state_limits.h", "companion_shortcut_page.h",
+            "display_utf8_case.h", "ha_state_limits.h", "companion_shortcut_page.h", "token_usage_state.h",
         ):
             shutil.copy2(PARSER_HEADER.parent / helper, tmp_path / helper)
         shutil.copy2(PARSER_HEADER, tmp_path / "button_grid_config_parser.h")
@@ -1201,6 +1216,7 @@ def main() -> int:
                 "  return 0;\n}",
                 generated_card_normalization_assertions()
                 + generated_card_runtime_assertions()
+                + token_usage_state_assertions()
                 + "\n  return 0;\n}",
             ),
             encoding="utf-8",

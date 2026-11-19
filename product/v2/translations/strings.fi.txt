@@ -375,3 +375,4 @@ turn_off_studio_mode=Poistetaanko studiotila käytöstä?
 start_replay_buffer_prompt=Käynnistetäänkö toistopuskuri?
 stop_replay_buffer_prompt=Pysäytetäänkö toistopuskuri?
 token_usage_resets=Nollautuu
+token_usage_last_known=Viimeisin tieto

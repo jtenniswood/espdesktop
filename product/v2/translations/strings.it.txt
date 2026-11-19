@@ -375,3 +375,4 @@ turn_off_studio_mode=Disattivare la modalità Studio?
 start_replay_buffer_prompt=Avviare il buffer di replay?
 stop_replay_buffer_prompt=Fermare il buffer di replay?
 token_usage_resets=Si azzera tra
+token_usage_last_known=Ultimo dato

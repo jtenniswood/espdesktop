@@ -146,7 +146,7 @@ export function companionShortcutFolderAppLabel(bundleIdentifier: unknown): stri
     if (bundleIdentifier === "com.apple.finder") return "Finder";
     if (bundleIdentifier === APPLE_SHORTCUTS_APP_ID) return "Shortcuts";
     if (typeof bundleIdentifier !== "string") return "";
-    return companionShortcutApp(bundleIdentifier)?.label || (isAntigravityApp(bundleIdentifier) ? "Google Antigravity" : "");
+    return companionShortcutApp(bundleIdentifier)?.label || (appTokenUsageService(bundleIdentifier) === "antigravity" ? "Google Antigravity" : "");
 }
 
 function companionShortcutApp(bundleIdentifier: string): AppShortcutApplication | undefined {
@@ -527,22 +527,26 @@ export function companionShortcutPresetCards(bundleIdentifier: string): Companio
     }));
 }
 
-type AppTokenUsageService = "codex" | "claude" | "cursor" | "opencode-go" | "antigravity";
-
-function isAntigravityApp(bundleIdentifier: string): boolean {
-    return bundleIdentifier === "com.google.antigravity" || bundleIdentifier === "com.google.antigravity-ide";
-}
+const appUsageDefaults = {
+    "com.openai.codex": "codex",
+    "com.openai.chat": "codex",
+    "com.anthropic.claudefordesktop": "claude",
+    "com.todesktop.230313mzl4w4u92": "cursor",
+    "ai.opencode.desktop": "opencode-go",
+    "com.google.antigravity": "antigravity",
+    "com.google.antigravity-ide": "antigravity",
+} as const;
+type AppTokenUsageService = typeof appUsageDefaults[keyof typeof appUsageDefaults];
 
 export function appTokenUsageService(bundleIdentifier: string): AppTokenUsageService | undefined {
-    if (bundleIdentifier === "com.todesktop.230313mzl4w4u92") return "cursor";
-    if (bundleIdentifier === "ai.opencode.desktop") return "opencode-go";
-    if (isAntigravityApp(bundleIdentifier)) return "antigravity";
-    if (bundleIdentifier === CLAUDE_DESKTOP_BUNDLE_ID) return "claude";
-    if (bundleIdentifier === CODEX_BUNDLE_ID || bundleIdentifier === "com.openai.chat") return "codex";
+    return Object.hasOwn(appUsageDefaults, bundleIdentifier)
+        ? appUsageDefaults[bundleIdentifier as keyof typeof appUsageDefaults] : undefined;
 }
 
-function appTokenUsageCard(service: AppTokenUsageService) {
-    return { ...cardContractDefaultConfig("token_usage"), options: service === "codex" ? "" : "services=" + service };
+function appPageDefaultCards(bundleIdentifier: string): CompanionShortcutPresetCard[] {
+    const service = appTokenUsageService(bundleIdentifier);
+    return service ? [{ ...cardContractDefaultConfig("token_usage"),
+        options: service === "codex" ? "" : "services=" + service }] : [];
 }
 
 export function subpageHasAppTokenUsage(page: any, service: AppTokenUsageService): boolean {
@@ -578,7 +582,7 @@ export function addAppTokenUsageCard(bundleIdentifier: string, page: any, maxSlo
     }
     if (end >= maxSlots || page.grid[end] !== 0 || page.buttons.length >= maxSlots - 1) return false;
     for (let position = end; position > start; position -= 1) order[position] = order[position - 1];
-    order[start] = String(page.buttons.push(appTokenUsageCard(service)));
+    order[start] = String(page.buttons.push(...appPageDefaultCards(bundleIdentifier)));
     page.order = order;
     return true;
 }
@@ -589,9 +593,7 @@ export function createCompanionShortcutSubpage(bundleIdentifier: string, tabs?: 
     const shortcuts = selected.map(function (value) {
         return presets.find((preset) => companionShortcutPresetIdentity(preset) === bundleIdentifier + ":" + value);
     }).filter(preset => preset !== undefined);
-    const service = appTokenUsageService(bundleIdentifier);
-    const buttons = service ? [appTokenUsageCard(service), ...shortcuts] : shortcuts;
-    return createShortcutPage(buttons);
+    return createShortcutPage([...appPageDefaultCards(bundleIdentifier), ...shortcuts]);
 }
 
 function createShortcutPage(buttons: CompanionShortcutPresetCard[]) {
@@ -605,7 +607,7 @@ function createShortcutPage(buttons: CompanionShortcutPresetCard[]) {
 }
 
 export function companionShortcutTabsForCapacity(tabs: readonly string[], maxSlots: number, bundleIdentifier?: string): string[] {
-    const reserved = bundleIdentifier && appTokenUsageService(bundleIdentifier) ? 2 : 1;
+    const reserved = 1 + (bundleIdentifier ? appPageDefaultCards(bundleIdentifier).length : 0);
     return tabs.slice(0, Math.max(0, maxSlots - reserved));
 }
 

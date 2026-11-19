@@ -375,3 +375,4 @@ turn_off_studio_mode=Izklopiš studijski način?
 start_replay_buffer_prompt=Zaženeš medpomnilnik ponovitev?
 stop_replay_buffer_prompt=Ustaviš medpomnilnik ponovitev?
 token_usage_resets=Ponastavitev čez
+token_usage_last_known=Zadnja vrednost

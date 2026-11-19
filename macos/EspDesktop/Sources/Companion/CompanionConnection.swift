@@ -74,7 +74,8 @@ final class CompanionConnection: NSObject {
     private var supportsPairingReset = false
     private var supportsCoughButton = false
     private var supportsInputDevices = false
-    private(set) var supportsTokenUsage = false
+    private var supportsTokenUsage = false
+    private(set) var requestedAllowanceProviders: Set<AllowanceProvider> = []
     private var pairingResetCompletion: CheckedContinuation<Void, Never>?
     private var pairingResetTimeout: Task<Void, Never>?
     private var remoteCatalogueDefinitionsSupported = false
@@ -226,6 +227,8 @@ final class CompanionConnection: NSObject {
         if !shouldReconnect { discovery.stop() }
         connectionGeneration &+= 1
         sessionAuthenticated = false
+        supportsTokenUsage = false
+        requestedAllowanceProviders = []
         pendingCertificateFingerprint = nil
         focusTargets = []
         applicationFocusPublisher.reset()
@@ -550,6 +553,8 @@ final class CompanionConnection: NSObject {
             supportsInputDevices = payload.capabilityVersion >= 12
             appleShortcutsSupported = payload.capabilityVersion >= 24
             supportsTokenUsage = payload.capabilityVersion >= 25
+            // Version 25 test builds used unsolicited snapshots.
+            requestedAllowanceProviders = payload.capabilityVersion == 25 ? Set(AllowanceProvider.allCases) : []
             // A Bonjour TXT record never authorizes a location change. Both the
             // pinned TLS certificate and the authenticated session must agree.
             let expectedFingerprint = preferences.stringPreference(forKey: certificateFingerprintKey)
@@ -576,6 +581,13 @@ final class CompanionConnection: NSObject {
             publishTimezone()
             publishCatalogue()
             onEvent?(.publishCurrentState)
+        case .tokenUsageDemand(let payload):
+            guard sessionAuthenticated, peerCapabilityVersion >= 26 else { return false }
+            let requested = Set(payload.providers.compactMap { AllowanceProvider(rawValue: $0) })
+            if requested != requestedAllowanceProviders {
+                requestedAllowanceProviders = requested
+                onEvent?(.allowanceDemand)
+            }
         case .catalogueRequest:
             guard sessionAuthenticated else { return false }
             publishCatalogue()
@@ -863,18 +875,15 @@ final class CompanionConnection: NSObject {
                   "sha256": hash, "format": transferFormat])
     }
 
-    func publishTokenUsage(codex: WeeklyUsageReading?, claude: WeeklyUsageReading?,
-                           openCodeGo: TokenUsage.OpenCodeGoUsage?, cursor: WeeklyUsageReading?,
-                           antigravity: WeeklyUsageReading?) {
-        guard sessionAuthenticated, supportsTokenUsage else { return }
-        let readings = [
-            codex?.wireValue(service: "codex"),
-            claude?.wireValue(service: "claude"),
-            openCodeGo?.weekly?.wireValue(service: "opencode-go"),
-            openCodeGo?.monthly?.wireValue(service: "opencode-go-monthly"),
-            cursor?.wireValue(service: "cursor"),
-            antigravity?.wireValue(service: "antigravity"),
-        ].compactMap { $0 }
+    func publishTokenUsage(_ snapshot: [AllowanceProvider: [AllowanceReading]]) {
+        guard sessionAuthenticated, supportsTokenUsage, !requestedAllowanceProviders.isEmpty else { return }
+        let readings = AllowanceProvider.allCases.filter(requestedAllowanceProviders.contains).flatMap { provider in
+            (snapshot[provider] ?? []).map { reading in
+                let service = provider == .openCodeGo && reading.period == .monthly
+                    ? "opencode-go-monthly" : provider.rawValue
+                return reading.wireValue(service: service)
+            }
+        }
         sendJSON(["type": "token_usage", "readings": readings])
     }
 
@@ -899,9 +908,6 @@ final class CompanionConnection: NSObject {
     }
 
     func publishCatalogue(obsActions: [OBSConnection.CatalogueEntry]? = nil, includeDefinitions: Bool = true) {
-        // An initial empty scan is provisional; publishing it would prune the
-        // panel's persistent icons before discovery supplies the real app list.
-        guard resources.applicationCatalogueReady else { return }
         guard sessionAuthenticated || task != nil else { return }
         if obsActions != nil && (!sessionAuthenticated || !supportsOBSCards) { return }
         if obsActions == nil { applicationFocusPublisher.reset() }
@@ -910,11 +916,15 @@ final class CompanionConnection: NSObject {
         capabilities.append(CompanionCapabilities.appIconsAlphaCapability)
         capabilities.append(CompanionCapabilities.appIconsHighResolutionCapability)
         capabilities.append("url_card_focus")
+        if peerCapabilityVersion >= 26 { capabilities.append("token_usage_demand") }
         if onDemandShortcutsSupported { capabilities.append("shortcut_catalogue_on_demand") }
         if supportsOBSCards { capabilities.append("obs_scene_cards") }
         if supportsOBSOutputs { capabilities.append("obs_output_controls") }
         if supportsOBSBreak { capabilities.append("obs_brb") }
         if obsActions == nil { sendJSON(["type": "capabilities", "values": capabilities]) }
+        // An initial empty scan is provisional; publishing it would prune the
+        // panel's persistent icons before discovery supplies the real app list.
+        guard resources.applicationCatalogueReady else { return }
         let obsOnly = obsActions != nil && peerCapabilityVersion >= 22
         let supportedOBSActions = supportsOBSCards ? obsActions ?? resources.obsControlActions() : []
         let obsEntries: [[String: Any]] = supportedOBSActions.filter { entry in

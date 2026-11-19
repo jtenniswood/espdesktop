@@ -1,5 +1,43 @@
 [
   {
+    "name": "token usage demand selects only configured providers",
+    "message": {
+      "protocol": 4,
+      "type": "token_usage.demand",
+      "providers": [
+        "codex",
+        "opencode-go"
+      ]
+    },
+    "direction": "panel_to_mac",
+    "state": "connected",
+    "valid": true
+  },
+  {
+    "name": "empty token usage demand stops polling",
+    "message": {
+      "protocol": 4,
+      "type": "token_usage.demand",
+      "providers": []
+    },
+    "direction": "panel_to_mac",
+    "state": "connected",
+    "valid": true
+  },
+  {
+    "name": "token usage demand requires authentication",
+    "message": {
+      "protocol": 4,
+      "type": "token_usage.demand",
+      "providers": [
+        "codex"
+      ]
+    },
+    "direction": "panel_to_mac",
+    "state": "authenticating",
+    "valid": false
+  },
+  {
     "name": "weekly token usage",
     "message": {
       "protocol": 4,

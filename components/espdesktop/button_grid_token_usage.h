@@ -2,6 +2,8 @@
 
 #include <ctime>
 
+#include "token_usage_state.h"
+
 struct TokenUsageTileRow {
   lv_obj_t *value{nullptr};
   lv_obj_t *reset{nullptr};
@@ -21,15 +23,15 @@ inline void refresh_token_usage_tile(const TokenUsageTile &tile) {
   constexpr int64_t hours_per_day = 24;
   const auto &row = tile.row;
   const auto &reading = readings[tile.service];
-  const int64_t remaining = static_cast<int64_t>(reading.resets_at) - now;
-  const bool clock_ready = now > 1700000000;
-  const int64_t age = now - reading.observed_at;
-  const bool reset_known = connected && clock_ready && remaining > 0 && age <= 15 * 60;
+  const auto status = allowance_state(connected, now, reading.observed_at, reading.resets_at);
   std::string value = espdesktop_i18n("Unavailable");
   std::string detail;
-  if (reading.observed_at) {
+  if (status != AllowanceState::UNAVAILABLE) {
     value = std::to_string(reading.remaining_percent) + espdesktop_i18n("% left");
-    if (reset_known) {
+    if (status == AllowanceState::LAST_KNOWN) {
+      detail = espdesktop_i18n_key("token_usage_last_known");
+    } else if (status == AllowanceState::COUNTDOWN) {
+      const int64_t remaining = static_cast<int64_t>(*reading.resets_at) - now;
       detail = espdesktop_i18n_key("token_usage_resets");
       const auto total_hours = remaining / seconds_per_hour;
       const auto days = total_hours / hours_per_day;

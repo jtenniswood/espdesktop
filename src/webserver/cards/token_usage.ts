@@ -3,6 +3,8 @@ import type { ControlsFieldsFeature } from "../application/controls_fields";
 import { cardContractDefaultConfig } from "../generated/card_contract";
 import { configOptionValue, setConfigOptionValue } from "../model/config_primitives";
 
+import { allowanceTileText } from "../model/token_usage_state";
+
 const SERVICES = [
   ["codex", "ChatGPT (Codex)"],
   ["claude", "Claude"],
@@ -75,13 +77,16 @@ export function registerTokenUsageCard(
       const icon = '<span class="sp-btn-icon sp-token-usage-icon" role="img" aria-label="' +
         (unavailable ? "Claude" : selected === "codex" ? "Codex" : SERVICES.find(([id]) => id === selected)![1]) +
         '">' + glyph + '</span>';
+      const now = 1750000000;
+      const days = selected === "opencode-go" && openCodeLimit(card.options) === "monthly" ? 19 : 2;
+      const preview = allowanceTileText(41, true, now, unavailable ? 0 : now, now + (days * 24 + 9) * 3600);
       const value = (left: string) =>
         '<span class="sp-btn-label sp-token-usage-value">' + helpers.escHtml(left) + '</span>';
       const reset = (text: string) =>
         '<span class="sp-token-usage-reset">' + helpers.escHtml(text) + '</span>';
       return {
         iconHtml: icon,
-        labelHtml: '<span class="sp-btn-label-row sp-token-usage-single">' + value(unavailable ? "Unavailable" : "41% left") + (unavailable ? "" : reset(selected === "opencode-go" && openCodeLimit(card.options) === "monthly" ? "Resets 19d 9h" : "Resets 2d 9h")) + '</span>',
+        labelHtml: '<span class="sp-btn-label-row sp-token-usage-single">' + value(preview.value) + (preview.detail ? reset(preview.detail) : "") + '</span>',
         labelEditable: false,
       };
     },

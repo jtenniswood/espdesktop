@@ -1,5 +1,5 @@
 {
-  "version": 25,
+  "version": 26,
   "protocol": {
     "version": 4,
     "path": "/companion/v4",
@@ -473,6 +473,32 @@
             "maxLength": 64,
             "pattern": "hex64",
             "optional": true
+          }
+        },
+        "states": [
+          "connected"
+        ]
+      },
+      {
+        "id": "token_usage.demand",
+        "direction": "panel_to_mac",
+        "authorization": "session",
+        "fields": {
+          "providers": {
+            "type": "array",
+            "maxItems": 5,
+            "items": {
+              "type": "string",
+              "enum": [
+                "codex",
+                "claude",
+                "opencode-go",
+                "cursor",
+                "antigravity"
+              ],
+              "minLength": 5,
+              "maxLength": 11
+            }
           }
         },
         "states": [

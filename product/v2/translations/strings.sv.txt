@@ -375,3 +375,4 @@ turn_off_studio_mode=Slå av studioläget?
 start_replay_buffer_prompt=Starta reprisbuffer?
 stop_replay_buffer_prompt=Stoppa reprisbuffer?
 token_usage_resets=Återställs om
+token_usage_last_known=Senast känt

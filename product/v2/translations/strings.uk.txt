@@ -375,3 +375,4 @@ turn_off_studio_mode=Вимкнути режим студії?
 start_replay_buffer_prompt=Запустити буфер повтору?
 stop_replay_buffer_prompt=Зупинити буфер повтору?
 token_usage_resets=Скидання через
+token_usage_last_known=Останнє значення

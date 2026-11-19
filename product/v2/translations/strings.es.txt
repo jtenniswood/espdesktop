@@ -375,3 +375,4 @@ turn_off_studio_mode=¿Desactivar el modo estudio?
 start_replay_buffer_prompt=¿Iniciar el búfer de repetición?
 stop_replay_buffer_prompt=¿Detener el búfer de repetición?
 token_usage_resets=Se reinicia en
+token_usage_last_known=Último dato

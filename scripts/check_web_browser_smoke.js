@@ -5580,6 +5580,46 @@ async function assertAutomaticAppTokenUsage(browser, testCase) {
   }
 }
 
+async function assertManualAppTokenUsage(browser, testCase) {
+  if (testCase.slug !== "guition-esp32-s3-4848s040") return;
+  const fixture = nativeConfigState(testCase.slug);
+  fixture.document.buttons = {1: "com.google.antigravity;Antigravity;Auto;Auto;;;companion;;app_shortcuts"};
+  fixture.document.settings.button_order = "1";
+  fixture.document.subpages = {1: "~B,1|CP,shortcut.command%2Bc,Custom%20copy,Copy"};
+  const context = await browser.newContext({ viewport: testCase.viewport });
+  await installRoutes(context, testCase.slug, { nativeState: fixture });
+  const page = await context.newPage();
+  await installFakeEventSource(page);
+  try {
+    await page.goto(`http://espdesktop.test/${testCase.slug}?events=1`, { waitUntil: "domcontentloaded" });
+    await page.waitForFunction(() => window.__eventSources?.length > 0);
+    await seedNativeDocument(page, fixture);
+    await page.getByRole("tab", { name: "Layout", exact: true }).click();
+    const openSettings = async () => {
+      await page.locator('.sp-main [data-slot="1"]').click();
+      await page.getByRole("button", { name: "Edit", exact: true }).click();
+      const header = page.locator(".sp-app-subpage-settings .sp-disclosure-button");
+      if (await header.getAttribute("aria-expanded") !== "true") await header.click();
+    };
+    await openSettings();
+    assert.equal(await page.getByRole("button", { name: "Add Token Usage", exact: true }).isDisabled(), true);
+    await page.getByRole("button", { name: "Save", exact: true }).click();
+    assert(!fixture.document.subpages[1].includes("|TU"), "saving keeps the custom layout");
+
+    fixture.document.subpages[1] = "~B";
+    await page.reload();
+    await page.waitForFunction(() => window.__eventSources?.length > 0);
+    await seedNativeDocument(page, fixture);
+    await page.getByRole("tab", { name: "Layout", exact: true }).click();
+    await openSettings();
+    await page.getByRole("button", { name: "Add Token Usage", exact: true }).click();
+    await page.getByRole("button", { name: "Save", exact: true }).click();
+    await waitForNativeState(fixture, () => fixture.document.subpages[1]?.includes("|TU"), "explicit Token Usage save");
+  } finally {
+    await context.close();
+  }
+}
+
 async function assertAppSubpageCapacity(browser, testCase) {
   if (testCase.slug !== "guition-esp32-s3-4848s040") return;
   const shortcuts = loadTypeScriptModule("src/webserver/application/companion_shortcut_folder.ts");
@@ -9250,6 +9290,7 @@ async function assertFirstRunSetup(browser) {
       await assertCompanionURLOpenBehavior(browser, testCase);
       await assertCompanionShortcutSettings(browser, testCase);
       await assertAutomaticAppTokenUsage(browser, testCase);
+      await assertManualAppTokenUsage(browser, testCase);
       await assertAppSubpageCapacity(browser, testCase);
       await assertShortcutCatalogSettings(browser, testCase);
       await assertOnDemandShortcutSettings(browser, testCase);
@@ -9381,6 +9422,7 @@ async function assertFirstRunSetup(browser) {
       await assertCompanionURLOpenBehavior(browser, testCase);
       await assertCompanionShortcutSettings(browser, testCase);
       await assertAutomaticAppTokenUsage(browser, testCase);
+      await assertManualAppTokenUsage(browser, testCase);
       await assertAppSubpageCapacity(browser, testCase);
       await assertShortcutCatalogSettings(browser, testCase);
       await assertOnDemandShortcutSettings(browser, testCase);

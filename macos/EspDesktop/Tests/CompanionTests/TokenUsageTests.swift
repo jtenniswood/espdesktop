@@ -70,7 +70,7 @@ final class TokenUsageTests: XCTestCase {
         """#
         let reading = try XCTUnwrap(TokenUsage.parseAntigravity(Data(report.utf8)))
         XCTAssertEqual(reading.remainingPercent, 100)
-        XCTAssertEqual(reading.resetsAt, 0)
+        XCTAssertNil(reading.resetsAt)
         let disabled = report.replacingOccurrences(of: #""remaining_fraction":1.0"#,
                                                    with: #""remaining_fraction":1.0,"disabled":true"#)
         XCTAssertNil(TokenUsage.parseAntigravity(Data(disabled.utf8)))
@@ -165,5 +165,42 @@ final class TokenUsageTests: XCTestCase {
         let snapshot = #"{"id":2,"result":{"rateLimits":{"limitId":"codex_other","secondary":{"usedPercent":95,"windowDurationMins":10080,"resetsAt":1700172800}},"rateLimitsByLimitId":{"codex":{"limitId":"codex","secondary":{"usedPercent":0,"windowDurationMins":10080,"resetsAt":1700172800}}}}}"#
         let reading = try XCTUnwrap(TokenUsage.parseCodex(Data(snapshot.utf8), observedAt: 1_700_000_000))
         XCTAssertEqual(reading.remainingPercent, 100)
+    }
+}
+
+
+private actor AllowanceReadProbe {
+    private var called: Set<AllowanceProvider> = []
+
+    func read(_ provider: AllowanceProvider) async -> AllowanceResult {
+        called.insert(provider)
+        if provider == .cursor {
+            try? await Task.sleep(for: .seconds(30))
+            return .unavailable
+        }
+        return .readings([AllowanceReading(remainingPercent: 41, resetsAt: nil, observedAt: 1750000000)])
+    }
+
+    func providers() -> Set<AllowanceProvider> { called }
+}
+
+extension TokenUsageTests {
+    @MainActor
+    func testRequestedProvidersRefreshIndependently() async throws {
+        let probe = AllowanceReadProbe()
+        let codexUpdated = expectation(description: "Codex refreshed despite stalled Cursor")
+        let refresh = AllowanceRefresh(read: { await probe.read($0) }) { codexUpdated.fulfill() }
+        refresh.request([.codex, .cursor])
+        defer { refresh.request([]) }
+
+        await fulfillment(of: [codexUpdated], timeout: 2)
+        for _ in 0..<100 {
+            if await probe.providers().contains(.cursor) { break }
+            try await Task.sleep(for: .milliseconds(10))
+        }
+        let called = await probe.providers()
+        XCTAssertEqual(called, [.codex, .cursor])
+        XCTAssertEqual(refresh.readings[.codex]?.first?.remainingPercent, 41)
+        XCTAssertNil(refresh.readings[.cursor])
     }
 }
