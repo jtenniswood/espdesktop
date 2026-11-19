@@ -6447,9 +6447,11 @@ async function assertHomeAssistantConnectorLayout(browser) {
         );
       } else {
         const banner = connectors.getByRole("note").filter({
-          hasText: "No external connectors are available on this display.",
+          hasText: "Use the EspDesktop Mac app to pair a compatible display.",
         });
-        assert(await banner.isVisible(), `${testCase.name}: unsupported profiles show a connector info banner`);
+        const guide = banner.getByRole("link", { name: "Download and setup guide", exact: true });
+        assert(await guide.isVisible(), `${testCase.name}: unsupported profiles show the Mac app setup guide`);
+        assert.strictEqual(await guide.getAttribute("href"), "https://espdesktop.com/screens/4848s040#download");
         assert(await banner.evaluate(element => element.classList.contains("sp-info-panel")),
           `${testCase.name}: the connector note uses the shared info banner style`);
       }
