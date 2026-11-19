@@ -78,5 +78,6 @@ async def to_code(config):
         cg.add_define("USE_COMPANION_USB_JTAG")
         esp32.include_builtin_idf_component("esp_driver_usb_serial_jtag")
         esp32.add_idf_sdkconfig_option("CONFIG_USJ_ENABLE_USB_SERIAL_JTAG", True)
+        esp32.add_idf_sdkconfig_option("CONFIG_ESP_CONSOLE_NONE", True)
         esp32.add_idf_sdkconfig_option("CONFIG_ESP_CONSOLE_SECONDARY_NONE", True)
         cg.add(var.enable_usb_serial_jtag())

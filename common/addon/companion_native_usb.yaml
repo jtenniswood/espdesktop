@@ -3,6 +3,7 @@
 # traffic. ESPHome logs remain available through its network API.
 logger:
   baud_rate: 0
+  hardware_uart: UART0
 
 companion:
   usb_serial_jtag: true
