@@ -469,9 +469,24 @@ final class CompanionConnection: NSObject {
         return connectionGeneration
     }
 
-    func usbWifiEnabled() async -> Bool? {
+    func prepareWifiForNetworkSwitch() async -> Bool? {
+        guard let enabled = await usbWifiEnabled() else { return nil }
+        if enabled { return true }
+        guard !Task.isCancelled else { return false }
+        return await usbWifiEnabled(setting: true) == true
+    }
+
+    private func usbWifiEnabled(setting: Bool? = nil) async -> Bool? {
+        let body: Data
+        if let setting {
+            guard let encoded = try? JSONEncoder().encode(USBEditorWifiState(enabled: setting)) else { return nil }
+            body = encoded
+        } else {
+            body = Data()
+        }
         guard usbEditorConnected, usbEditorSupported,
-              let request = USBEditorRequest(method: "GET", path: USBEditorRequest.wifiPath),
+              let request = USBEditorRequest(method: setting == nil ? "GET" : "POST",
+                                             path: USBEditorRequest.wifiPath, body: body),
               let response = try? await requestUSBEditor(request), response.status == 200,
               let state = try? JSONDecoder().decode(USBEditorWifiState.self, from: response.body)
         else { return nil }

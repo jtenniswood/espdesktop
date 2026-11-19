@@ -313,7 +313,7 @@ struct CompanionSettings: View {
         }
         .task(id: findingNetworkDisplay?.id) {
             guard let display = findingNetworkDisplay else { return }
-            let wifiEnabled = await display.connection.usbWifiEnabled()
+            let wifiEnabled = await display.connection.prepareWifiForNetworkSwitch()
             guard !Task.isCancelled, display.usesUSB else { return }
             if wifiEnabled == false {
                 showingWifiOff = true

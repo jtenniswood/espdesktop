@@ -78,7 +78,7 @@ export function createSettingsSystemSectionFeature(
         const body = document.createElement("div");
         const { row, input } = toggleRow("Wi-Fi enabled", "sp-usb-wifi-enabled", false);
         row.classList.add("sp-hidden");
-        const note = infoPanel("sp-usb-wifi-note", "Wi-Fi stays off until you turn it back on here.");
+        const note = infoPanel("sp-usb-wifi-note", "Wi-Fi stays off when you unplug USB.");
         const error = document.createElement("p");
         error.setAttribute("role", "status");
         error.hidden = true;
