@@ -7,8 +7,8 @@ connection to the Mac.
 
 import esphome.codegen as cg
 import esphome.config_validation as cv
-from esphome.components import esp32, network, socket
-from esphome.const import CONF_ID, CONF_PORT
+from esphome.components import esp32, network, socket, uart
+from esphome.const import CONF_ID, CONF_PORT, CONF_UART_ID
 
 DEPENDENCIES = ["network"]
 AUTO_LOAD = ["json", "mdns"]
@@ -25,6 +25,8 @@ def _reserve_network_resources(config):
         1, "companion_secure_websocket", socket.SocketType.TCP_LISTEN
     )(config)
     socket.consume_sockets(3, "companion_secure_websocket")(config)
+    if CONF_UART_ID in config:
+        socket.consume_sockets(1, "companion_usb_loopback")(config)
     return config
 
 
@@ -32,6 +34,7 @@ CONFIG_SCHEMA = cv.All(
     cv.Schema(
         {
             cv.GenerateID(): cv.declare_id(CompanionService),
+            cv.Optional(CONF_UART_ID): cv.use_id(uart.UARTComponent),
             cv.Optional(CONF_PORT, default=8443): cv.port,
         }
     ).extend(cv.COMPONENT_SCHEMA),
@@ -56,3 +59,6 @@ async def to_code(config):
     var = cg.new_Pvariable(config[CONF_ID])
     await cg.register_component(var, config)
     cg.add(var.set_port(config[CONF_PORT]))
+    if uart_id := config.get(CONF_UART_ID):
+        cg.add_define("USE_COMPANION_USB")
+        cg.add(var.set_usb_uart(await cg.get_variable(uart_id)))

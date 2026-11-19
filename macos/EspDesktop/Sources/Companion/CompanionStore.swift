@@ -761,8 +761,17 @@ final class CompanionStore: NSObject, ObservableObject {
         }
     }
 
+    func setDisplayEndpoint(_ endpoint: String, for display: CompanionDisplay) {
+        guard displays.contains(where: { $0 === display }),
+              CompanionUSBPort.path(from: endpoint) != nil || ConnectionEndpointPolicy.isLocalEndpoint(endpoint),
+              display.panelHost != endpoint else { return }
+        display.connection.disconnect()
+        display.panelHost = endpoint
+        if display.record.connectAtLaunch { display.connection.connect(mode: .authenticate) }
+    }
+
     func openPanelWebServer(_ display: CompanionDisplay) {
-        _ = openPanelWebServer(host: display.panelHost, tab: nil)
+        _ = openPanelWebServer(host: display.record.host, tab: nil)
     }
 
     func openPanelPairing() -> Bool {
@@ -836,8 +845,9 @@ final class CompanionStore: NSObject, ObservableObject {
 
     func pair(code: String) {
         guard isRePairing || !pairingDisplay.hasSavedPairing,
-              !pairingState.isBusy, ConnectionEndpointPolicy.isLocalEndpoint(panelHost),
-              let normalizedCode = CompanionPairingInput.normalizedCode(code) else { return }
+              !pairingState.isBusy,
+              let normalizedCode = CompanionPairingInput.normalizedCode(code),
+              CompanionPairingInput.isValid(host: panelHost, code: normalizedCode) else { return }
         pairingDisplay.connection.connect(mode: .pair(code: normalizedCode))
     }
 

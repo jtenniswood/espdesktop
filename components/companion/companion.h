@@ -11,6 +11,9 @@
 #include <atomic>
 #include <array>
 #include <mutex>
+#ifdef USE_COMPANION_USB
+#include "usb_bridge.h"
+#endif
 #include <optional>
 #include <string>
 #include <utility>
@@ -47,6 +50,9 @@ struct CompanionFocusTargetsPreference {
 class CompanionService final : public Component {
  public:
   void set_port(uint16_t port) { this->port_ = port; }
+#ifdef USE_COMPANION_USB
+  void set_usb_uart(uart::UARTComponent *uart) { this->usb_bridge_.emplace(uart); }
+#endif
   // The Companion bridge registers callbacks owned by EspDesktopApp during
   // setup, so it must run after that app starts at AFTER_WIFI.
   float get_setup_priority() const override { return setup_priority::AFTER_WIFI - 1.0f; }
@@ -112,6 +118,9 @@ class CompanionService final : public Component {
   ESPPreferenceObject pairing_code_preferences_;
   ESPPreferenceObject focus_targets_preferences_;
   CompanionIdentityPreference identity_{};
+#ifdef USE_COMPANION_USB
+  std::optional<CompanionUSBBridge> usb_bridge_;
+#endif
   httpd_handle_t server_{nullptr};
   uint16_t port_{8443};
   CompanionSessionState session_{};

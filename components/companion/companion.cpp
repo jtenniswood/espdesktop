@@ -194,6 +194,9 @@ void CompanionService::loop() {
       focus_targets.generation != this->focus_targets_generation_.load())
     this->publish_focus_targets_();
   const uint32_t now = millis();
+#ifdef USE_COMPANION_USB
+  if (this->usb_bridge_) this->usb_bridge_->loop(this->port_, now);
+#endif
   const uint32_t authentication_deadline = this->authentication_expires_at_.load();
   if (authentication_deadline != 0 &&
       static_cast<int32_t>(millis() - authentication_deadline) >= 0 &&

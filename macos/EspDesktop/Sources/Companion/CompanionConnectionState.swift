@@ -41,6 +41,7 @@ enum CompanionPairingInput {
     }
 
     static func isValid(host: String, code: String, letterCount: Int? = nil) -> Bool {
-        ConnectionEndpointPolicy.isLocalEndpoint(host) && normalizedCode(code, letterCount: letterCount) != nil
+        (CompanionUSBPort.path(from: host) != nil || ConnectionEndpointPolicy.isLocalEndpoint(host))
+            && normalizedCode(code, letterCount: letterCount) != nil
     }
 }

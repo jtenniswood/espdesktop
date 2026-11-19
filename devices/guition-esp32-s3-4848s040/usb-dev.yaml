@@ -1,0 +1,27 @@
+# Experimental USB + IP image for the 4-inch Guition S3. The standard
+# development and release profiles retain USB serial diagnostics.
+packages:
+  base: !include ../../builds/guition-esp32-s3-4848s040.factory.yaml
+
+substitutions:
+  mdi_font_file: "../../common/assets/fonts/espdesktop-icons-1.ttf"
+
+logger:
+  baud_rate: 0
+
+uart:
+  id: companion_usb_uart
+  tx_pin: GPIO43
+  rx_pin: GPIO44
+  baud_rate: 460800
+  rx_buffer_size: 16384
+  tx_buffer_size: 4096
+
+companion:
+  uart_id: companion_usb_uart
+
+esp32:
+  partitions: "../../common/device/partitions_16mb_card_images.csv"
+
+web_server:
+  js_include: "../../docs/public/webserver/embedded/www.js"

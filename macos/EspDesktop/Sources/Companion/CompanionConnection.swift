@@ -51,6 +51,7 @@ final class CompanionConnection: NSObject {
     var onEvent: ((CompanionSessionEvent) -> Void)?
     private let discovery: CompanionDiscovery
     private var endpointRecovery = CompanionEndpointRecovery()
+    private var usbBridge: CompanionUSBBridge?
     private var session: URLSession?
     private var task: URLSessionWebSocketTask?
     private var mode: Mode = .authenticate
@@ -161,14 +162,31 @@ final class CompanionConnection: NSObject {
             updateConnectionStatus("Enter the display address first", state: .failed)
             return
         }
-        endpointRecovery.begin(savedEndpoint: preferences.panelHost)
-        guard let url = connectionURL() else {
-            shouldReconnect = false
-            return
-        }
         self.mode = mode
+        let usbPort = CompanionUSBPort.path(from: preferences.panelHost)
+        let url: URL
+        if let usbPort {
+            do {
+                let bridge = try CompanionUSBBridge(path: usbPort)
+                usbBridge = bridge
+                url = URL(string: "wss://127.0.0.1:\(bridge.port)\(CompanionCapabilities.protocolPath)")!
+            } catch {
+                let help = "Check the USB cable and close any serial monitor for this port."
+                updateConnectionStatus("Could not open the USB display", state: .failed, recovery: help)
+                scheduleReconnect()
+                return
+            }
+        } else {
+            endpointRecovery.begin(savedEndpoint: preferences.panelHost)
+            guard let networkURL = connectionURL() else {
+                shouldReconnect = false
+                return
+            }
+            url = networkURL
+        }
         let configuration = URLSessionConfiguration.ephemeral
-        configuration.waitsForConnectivity = true
+        configuration.waitsForConnectivity = usbPort == nil
+        if usbPort != nil { configuration.connectionProxyDictionary = [:] }
         session = URLSession(configuration: configuration, delegate: makeSessionDelegate(), delegateQueue: nil)
         guard let task = session?.webSocketTask(with: url) else {
             updateConnectionStatus("Could not create the display connection", state: .failed)
@@ -250,6 +268,8 @@ final class CompanionConnection: NSObject {
         task = nil
         session?.invalidateAndCancel()
         session = nil
+        usbBridge?.stop()
+        usbBridge = nil
         lastPublishedSystemMetrics = nil
         lastSystemMetricsPublication = .distantPast
     }
@@ -432,6 +452,8 @@ final class CompanionConnection: NSObject {
         failedTask.cancel(with: .goingAway, reason: nil)
         session?.invalidateAndCancel()
         session = nil
+        usbBridge?.stop()
+        usbBridge = nil
         scheduleReconnect()
     }
 
@@ -463,15 +485,16 @@ final class CompanionConnection: NSObject {
             updateConnectionStatus("Display disconnected", state: .disconnected)
             return
         }
-        let savedFingerprint = preferences.stringPreference(forKey: certificateFingerprintKey)
-        // A name refresh can keep an earlier discovery session open. Seed the
-        // recovery candidate from its current results before changing handlers.
-        endpointRecovery.discovered(discovery.displays, expectedFingerprint: savedFingerprint)
-        discovery.onChange = { [weak self] displays in
-            guard let self, self.shouldReconnect, !self.hasTerminalConnectionError else { return }
-            self.endpointRecovery.discovered(displays, expectedFingerprint: savedFingerprint)
+        if CompanionUSBPort.path(from: preferences.panelHost) == nil {
+            let savedFingerprint = preferences.stringPreference(forKey: certificateFingerprintKey)
+            // A name refresh can keep an earlier discovery session open.
+            endpointRecovery.discovered(discovery.displays, expectedFingerprint: savedFingerprint)
+            discovery.onChange = { [weak self] displays in
+                guard let self, self.shouldReconnect, !self.hasTerminalConnectionError else { return }
+                self.endpointRecovery.discovered(displays, expectedFingerprint: savedFingerprint)
+            }
+            discovery.start()
         }
-        discovery.start()
         guard reconnectTask == nil else { return }
         updateConnectionStatus("Display unavailable — reconnecting…", state: .reconnecting)
         reconnectTask = Task { [weak self] in
@@ -560,11 +583,12 @@ final class CompanionConnection: NSObject {
                 preferences.setPreference(displayName, forKey: displayNameKey)
             }
             endpointRecovery = CompanionEndpointRecovery()
-            refreshDisplayName(expectedFingerprint: expectedFingerprint)
+            if usbBridge == nil { refreshDisplayName(expectedFingerprint: expectedFingerprint) }
             connectionTimeoutTask?.cancel()
             connectionTimeoutTask = nil
             reconnectAttempt = 0
-            updateConnectionStatus("Connected to \(preferences.panelHost)", state: .connected)
+            let message = usbBridge == nil ? "Connected to \(preferences.panelHost)" : "Connected over USB"
+            updateConnectionStatus(message, state: .connected)
             let capabilityVersion = payload.capabilityVersion
             onEvent?(.capabilities(systemMetrics: capabilityVersion >= 2))
             remoteCatalogueDefinitionsSupported = Self.supportsRemoteCatalogueDefinitions(
