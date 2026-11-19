@@ -60,6 +60,34 @@ final class CompanionDisplayTests: XCTestCase {
         XCTAssertEqual(saved.load { [] }.last, desk)
     }
 
+    @MainActor
+    func testTwoUSBDisplaysKeepTheirOwnPortsAndPairings() {
+        let suite = "CompanionDisplayTests.\(UUID())"
+        let defaults = UserDefaults(suiteName: suite)!
+        defer { defaults.removePersistentDomain(forName: suite) }
+        let office = CompanionDisplayRecord(host: "office.local", name: "Office", account: "office")
+        let desk = CompanionDisplayRecord(host: "desk.local", name: "Desk", account: "desk")
+        let saved = CompanionSavedDisplays(defaults: defaults)
+        saved.save([office, desk])
+        let store = CompanionStore(mediaController: DisplayMediaFixture(), systemMetricsProvider: DisplayMetricsFixture(),
+                                   defaults: defaults)
+        let first = store.displays[0]
+        let second = store.displays[1]
+        let firstPort = CompanionUSBPort.endpoint(for: "/dev/cu.wchusbserial20130")
+        let secondPort = CompanionUSBPort.endpoint(for: "/dev/cu.usbmodem1101")
+
+        first.panelHost = firstPort
+        second.panelHost = secondPort
+        XCTAssertTrue(first.usesUSB)
+        XCTAssertTrue(second.usesUSB)
+        XCTAssertFalse(first.connection === second.connection)
+        store.setDisplayEndpoint(firstPort, for: second)
+        XCTAssertEqual(second.panelHost, secondPort, "A second display cannot take over another display's USB port")
+        XCTAssertEqual(saved.load { [] }.map(\.account), [office.account, desk.account])
+        XCTAssertEqual(saved.load { [] }.compactMap(\.usbPort),
+                       ["/dev/cu.wchusbserial20130", "/dev/cu.usbmodem1101"])
+    }
+
     func testUSBRelayRecoversFramingAfterBootNoiseAndAnOversizedFrame() {
         let payload: [UInt8] = [1, 0xc0, 0xdb, 0, 3]
         let data = CompanionUSBBridge.Frame.data.encode(payload[...])

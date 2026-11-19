@@ -9,8 +9,52 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <unistd.h>
+#ifdef USE_COMPANION_USB_JTAG
+#include <driver/usb_serial_jtag.h>
+#endif
 
 namespace esphome::companion {
+
+bool CompanionUSBBridge::setup() {
+#ifdef USE_COMPANION_USB_UART
+  if (this->uart_) return true;
+#endif
+#ifdef USE_COMPANION_USB_JTAG
+  usb_serial_jtag_driver_config_t config{.tx_buffer_size = 4096, .rx_buffer_size = 16384};
+  return usb_serial_jtag_driver_install(&config) == ESP_OK;
+#else
+  return false;
+#endif
+}
+
+size_t CompanionUSBBridge::read_serial_(uint8_t *data, size_t capacity) {
+#ifdef USE_COMPANION_USB_UART
+  if (this->uart_) {
+    const size_t size = std::min(capacity, this->uart_->available());
+    return size != 0 && this->uart_->read_array(data, size) ? size : 0;
+  }
+#endif
+#ifdef USE_COMPANION_USB_JTAG
+  return std::max(0, usb_serial_jtag_read_bytes(data, capacity, 0));
+#else
+  return 0;
+#endif
+}
+
+size_t CompanionUSBBridge::write_serial_(const uint8_t *data, size_t length) {
+#ifdef USE_COMPANION_USB_UART
+  if (this->uart_) {
+    const size_t size = std::min(length, this->uart_->available_for_write());
+    if (size) this->uart_->write_array(data, size);
+    return size;
+  }
+#endif
+#ifdef USE_COMPANION_USB_JTAG
+  return std::max(0, usb_serial_jtag_write_bytes(data, length, 0));
+#else
+  return 0;
+#endif
+}
 
 void CompanionUSBBridge::close_(bool notify_peer) {
   if (this->socket_ >= 0) ::close(this->socket_);
@@ -97,10 +141,13 @@ void CompanionUSBBridge::loop(uint16_t port, uint32_t now) {
   // panel recover even when pulling USB prevents the host from sending CLOSE.
   if (this->socket_ >= 0 && now - this->last_input_ >= 40000) this->close_(true);
 
-  for (size_t budget = 0; budget < 4096 && this->write_size_ == 0 && this->uart_->available(); budget++) {
-    uint8_t byte;
-    if (!this->uart_->read_byte(&byte)) break;
-    this->receive_byte_(byte, port, now);
+  for (size_t budget = 0; budget < 4096 && this->write_size_ == 0; budget++) {
+    if (this->serial_offset_ == this->serial_size_) {
+      this->serial_offset_ = 0;
+      this->serial_size_ = this->read_serial_(this->serial_input_.data(), this->serial_input_.size());
+      if (this->serial_size_ == 0) break;
+    }
+    this->receive_byte_(this->serial_input_[this->serial_offset_++], port, now);
   }
 
   if (this->write_size_ != 0) {
@@ -122,10 +169,8 @@ void CompanionUSBBridge::loop(uint16_t port, uint32_t now) {
   }
 
   if (this->output_size_ != 0) {
-    const auto length = std::min(this->output_size_ - this->output_offset_, this->uart_->available_for_write());
-    if (length == 0) return;
-    this->uart_->write_array(this->output_.data() + this->output_offset_, length);
-    this->output_offset_ += length;
+    this->output_offset_ += this->write_serial_(this->output_.data() + this->output_offset_,
+                                               this->output_size_ - this->output_offset_);
     if (this->output_offset_ == this->output_size_) this->output_offset_ = this->output_size_ = 0;
   }
 }

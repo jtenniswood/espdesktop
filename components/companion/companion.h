@@ -50,8 +50,11 @@ struct CompanionFocusTargetsPreference {
 class CompanionService final : public Component {
  public:
   void set_port(uint16_t port) { this->port_ = port; }
-#ifdef USE_COMPANION_USB
+#ifdef USE_COMPANION_USB_UART
   void set_usb_uart(uart::UARTComponent *uart) { this->usb_bridge_.emplace(uart); }
+#endif
+#ifdef USE_COMPANION_USB_JTAG
+  void enable_usb_serial_jtag() { this->usb_bridge_.emplace(); }
 #endif
   // The Companion bridge registers callbacks owned by EspDesktopApp during
   // setup, so it must run after that app starts at AFTER_WIFI.

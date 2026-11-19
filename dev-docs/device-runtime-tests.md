@@ -145,3 +145,10 @@ instead of the USB cable.
 
 Fresh setup with the panel's Wi-Fi radio off and layout editing over USB are
 tracked in [issue #307](https://github.com/jtenniswood/espdesktop/issues/307).
+
+For a second USB display, use another 4848S040 with the USB development profile,
+or an ESP32-P4 profile that includes Companion and exposes its native USB
+Serial/JTAG port. For the 7-inch JC1060P470 V3 profile, add the
+[Companion native USB package](../common/addon/companion_native_usb.yaml) to the
+local test build. Choose a different port for each saved display. With both
+connected, switch one to **Network** and verify the other stays on USB.

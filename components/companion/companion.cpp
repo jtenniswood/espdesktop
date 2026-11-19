@@ -182,6 +182,12 @@ void CompanionService::setup() {
     this->mark_failed();
     return;
   }
+#ifdef USE_COMPANION_USB
+  if (this->usb_bridge_ && !this->usb_bridge_->setup()) {
+    this->usb_bridge_.reset();
+    ESP_LOGE(TAG, "Could not start Companion USB serial");
+  }
+#endif
   // ESPHome owns mDNS initialization and network-interface lifecycle. It starts
   // later than Companion, so retry registration until that shared responder is ready.
   this->set_interval("discovery", 5000, [this] { this->advertise_discovery_(); });

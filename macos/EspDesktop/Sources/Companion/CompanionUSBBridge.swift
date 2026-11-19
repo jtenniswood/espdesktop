@@ -1,8 +1,12 @@
 import Darwin
 import Foundation
+import IOKit
 
 enum CompanionUSBPort {
-    private static let calloutPrefixes = ["cu.wchusbserial", "cu.usbserial-"]
+    private static let nativePrefix = "/dev/cu.usbmodem"
+    private static let calloutPrefixes = ["cu.wchusbserial", "cu.usbserial-", "cu.usbmodem"]
+
+    static func isNative(_ path: String) -> Bool { path.hasPrefix(nativePrefix) }
 
     static func isSupported(_ path: String) -> Bool {
         guard path.hasPrefix("/dev/") else { return false }
@@ -19,8 +23,32 @@ enum CompanionUSBPort {
     }
 
     static func available() -> [String] {
-        ((try? FileManager.default.contentsOfDirectory(atPath: "/dev")) ?? [])
-            .map { "/dev/" + $0 }.filter(isSupported).sorted()
+        let bridges = ((try? FileManager.default.contentsOfDirectory(atPath: "/dev")) ?? [])
+            .map { "/dev/" + $0 }.filter { isSupported($0) && !isNative($0) }
+        return (bridges + nativePorts()).sorted()
+    }
+
+    private static func nativePorts() -> [String] {
+        var iterator: io_iterator_t = 0
+        guard IOServiceGetMatchingServices(kIOMainPortDefault, IOServiceMatching("IOSerialBSDClient"), &iterator)
+            == KERN_SUCCESS else { return [] }
+        defer { IOObjectRelease(iterator) }
+
+        var ports: [String] = []
+        while case let service = IOIteratorNext(iterator), service != 0 {
+            defer { IOObjectRelease(service) }
+            guard let path = IORegistryEntryCreateCFProperty(service, "IOCalloutDevice" as CFString,
+                                                              kCFAllocatorDefault, 0)?.takeRetainedValue() as? String,
+                  isNative(path), isSupported(path) else { continue }
+            let parents = IOOptionBits(kIORegistryIterateRecursively | kIORegistryIterateParents)
+            let vendor = IORegistryEntrySearchCFProperty(service, kIOServicePlane, "idVendor" as CFString,
+                                                         kCFAllocatorDefault, parents) as? NSNumber
+            let product = IORegistryEntrySearchCFProperty(service, kIOServicePlane, "idProduct" as CFString,
+                                                          kCFAllocatorDefault, parents) as? NSNumber
+            // Espressif's built-in serial interface. Ignore unrelated CDC modems.
+            if vendor?.intValue == 0x303a && product?.intValue == 0x1001 { ports.append(path) }
+        }
+        return ports
     }
 
     static func endpoint(for path: String) -> String { "usb:" + path }
@@ -87,6 +115,9 @@ final class CompanionUSBBridge: @unchecked Sendable {
 
     init(path: String) throws {
         guard CompanionUSBPort.isSupported(path) else { throw POSIXError(.EINVAL) }
+        if CompanionUSBPort.isNative(path) && !CompanionUSBPort.available().contains(path) {
+            throw POSIXError(.ENODEV)
+        }
         let listener = socket(AF_INET, SOCK_STREAM, 0)
         guard listener >= 0 else { throw Self.systemError() }
         var address = sockaddr_in()
@@ -112,7 +143,7 @@ final class CompanionUSBBridge: @unchecked Sendable {
             throw error
         }
         do {
-            try Self.configure(serial)
+            try Self.configure(serial, nativeUSB: CompanionUSBPort.isNative(path))
         } catch {
             close(serial)
             close(listener)
@@ -126,13 +157,14 @@ final class CompanionUSBBridge: @unchecked Sendable {
 
     private static func systemError() -> POSIXError { POSIXError(POSIXErrorCode(rawValue: errno) ?? .EIO) }
 
-    private static func configure(_ fd: Int32) throws {
+    private static func configure(_ fd: Int32, nativeUSB: Bool) throws {
         var settings = termios()
         guard ioctl(fd, UInt(TIOCEXCL)) == 0, tcgetattr(fd, &settings) == 0 else { throw systemError() }
         cfmakeraw(&settings)
         settings.c_cflag |= tcflag_t(CLOCAL | CREAD)
         settings.c_cflag &= ~tcflag_t(HUPCL | CRTSCTS)
-        guard cfsetspeed(&settings, 460800) == 0, tcsetattr(fd, TCSANOW, &settings) == 0 else { throw systemError() }
+        let baud: speed_t = nativeUSB ? 115200 : 460800
+        guard cfsetspeed(&settings, baud) == 0, tcsetattr(fd, TCSANOW, &settings) == 0 else { throw systemError() }
         // These lines can reset the S3 or put it into the ROM loader.
         var resetLines = TIOCM_DTR | TIOCM_RTS
         guard ioctl(fd, UInt(TIOCMBIC), &resetLines) == 0 else { throw systemError() }

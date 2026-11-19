@@ -1,0 +1,8 @@
+# Opt-in experiment for ESP32-P4 profiles that include Companion and expose
+# the native USB Serial/JTAG port. Reserve that port for encrypted Companion
+# traffic. ESPHome logs remain available through its network API.
+logger:
+  baud_rate: 0
+
+companion:
+  usb_serial_jtag: true
