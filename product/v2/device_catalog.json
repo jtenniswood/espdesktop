@@ -580,6 +580,13 @@
         }
       },
       "overrides": {
+        "slots": 24,
+        "layout": {
+          "cols": 6,
+          "rows": 4,
+          "firmwareGrid": "4x6",
+          "portraitCols": 4
+        },
         "firmware": {
           "package": {
             "backlightPwmFrequency": {
@@ -589,6 +596,10 @@
           }
         },
         "web": {
+          "portrait": {
+            "cols": 4,
+            "rows": 6
+          },
           "grid": {
             "gap": 0.976562
           }
