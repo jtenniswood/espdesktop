@@ -2392,6 +2392,38 @@ async function assertCardBoxSelection(page, label) {
   assert.deepStrictEqual(await selectedSlots(), [1, 2], `${label}: drag commits the cards within the box`);
   assert.strictEqual(await box.count(), 0);
   assert.strictEqual(await page.locator(".sp-selection-label").textContent(), "2 cards selected");
+
+  const viewport = page.viewportSize();
+  await page.setViewportSize({ width: 1440, height: 1800 });
+  try {
+    const points = await page.evaluate(() => {
+      const app = document.querySelector("#sp-app").getBoundingClientRect();
+      const wrap = document.querySelector(".sp-wrap").getBoundingClientRect();
+      const hint = document.querySelector("#sp-screen .sp-hint").getBoundingClientRect();
+      const card = document.querySelector('.sp-main [data-slot="1"]').getBoundingClientRect();
+      const end = [card.left + card.width / 2, card.top + card.height / 2];
+      return {
+        end,
+        starts: {
+          "left of": [app.left - 16, end[1]],
+          "right of": [app.right + 16, end[1]],
+          above: [app.left - 16, wrap.top - 8],
+          below: [end[0], Math.max(wrap.bottom, hint.bottom) + 16],
+        },
+      };
+    });
+    for (const [edge, start] of Object.entries(points.starts)) {
+      await page.mouse.move(...start);
+      await page.mouse.down();
+      await page.mouse.move(...points.end, { steps: 8 });
+      assert.strictEqual(await box.count(), 1, `${label}: drag starts in blank space ${edge} the preview`);
+      await page.keyboard.press("Escape");
+      await page.mouse.up();
+      assert.deepStrictEqual(await selectedSlots(), [1, 2], `${label}: Escape restores the selection after dragging from ${edge} the preview`);
+    }
+  } finally {
+    await page.setViewportSize(viewport);
+  }
 }
 
 async function assertContextColourPicker(browser, testCase) {

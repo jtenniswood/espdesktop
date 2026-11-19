@@ -227,14 +227,18 @@ export function createPreviewInteractionsFeature(
             selection.removeAllRanges();
     }
     function setupBoxSelection(wrap: HTMLElement, grid: HTMLElement) {
-        const box = grid.ownerDocument.createElement("div");
+        const document = grid.ownerDocument;
+        const box = document.createElement("div");
         box.className = "sp-selection-box";
         box.setAttribute("aria-hidden", "true");
 
-        wrap.addEventListener("pointerdown", (start) => {
-            if (!start.isPrimary || start.pointerType !== "mouse" || start.button !== 0 ||
-                isConfigLocked() || grid.classList.contains("sp-grid-loading") ||
-                (start.target as Element).closest("[data-pos], .sp-topbar")) return;
+        document.addEventListener("pointerdown", (start) => {
+            const target = start.target;
+            if (!(target instanceof Element) || !start.isPrimary || start.pointerType !== "mouse" || start.button !== 0 ||
+                isConfigLocked() || grid.classList.contains("sp-grid-loading")) return;
+
+            const insidePreview = wrap.contains(target);
+            if (insidePreview ? target.closest("[data-pos], .sp-topbar") : !isLayoutBackground(target, start.clientY)) return;
 
             // Keep the previous selection available for modifiers until the drag commits.
             start.preventDefault();
@@ -296,7 +300,7 @@ export function createPreviewInteractionsFeature(
                 const active = box.isConnected;
                 finish();
                 if (!active) {
-                    if (replace && !grid.contains(start.target as Node)) clearCardSelection();
+                    if (replace && insidePreview && !grid.contains(target)) clearCardSelection();
                     return;
                 }
                 const c = ctx();
@@ -312,10 +316,17 @@ export function createPreviewInteractionsFeature(
                 if (event.pointerId === start.pointerId) cancel();
             }, options);
             window.addEventListener("blur", cancel, options);
-            grid.ownerDocument.addEventListener("keydown", event => {
+            document.addEventListener("keydown", event => {
                 if (event.key === "Escape") cancel();
             }, options);
         });
+
+        function isLayoutBackground(target: Element, y: number) {
+            const page = els.screenPage;
+            if (!page.classList.contains("active")) return false;
+            return (target === document.body || target === document.documentElement ||
+                target === els.root || target === page || target === els.previewHint) && y >= page.getBoundingClientRect().top;
+        }
     }
     function setupPreviewEvents(this: any) {
         var container: any = els.previewMain;
