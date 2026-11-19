@@ -260,6 +260,8 @@ struct CompanionSettings: View {
     @State private var selectedUSBPort: String?
     @State private var usbPorts: [String] = []
     @State private var findingNetworkDisplay: CompanionDisplay?
+    @State private var findingUSBDisplay: CompanionDisplay?
+    @State private var showingUSBNotFound = false
     @State private var displayToConfigure: CompanionDisplay?
     @State private var networkAddress = ""
     @State private var showingNetworkAddress = false
@@ -323,6 +325,24 @@ struct CompanionSettings: View {
             } else {
                 showNetworkAddress(for: display)
             }
+        }
+        .task(id: findingUSBDisplay?.id) {
+            guard let display = findingUSBDisplay else { return }
+            let previous = display.panelHost
+            let port = await store.findUSBPort(for: display, among: CompanionUSBPort.available())
+            guard !Task.isCancelled else { return }
+            findingUSBDisplay = nil
+            guard display.panelHost == previous, store.displays.contains(where: { $0 === display }) else { return }
+            if let port {
+                store.setDisplayEndpoint(CompanionUSBPort.endpoint(for: port), for: display)
+            } else {
+                showingUSBNotFound = true
+            }
+        }
+        .alert("Paired USB display not found", isPresented: $showingUSBNotFound) {
+            Button("OK", role: .cancel) {}
+        } message: {
+            Text("Check the cable and make sure the display is running USB-capable firmware. You can also choose a port from the connection menu.")
         }
         .alert("Network address", isPresented: $showingNetworkAddress, presenting: displayToConfigure) { display in
             TextField("IP address or name.local", text: $networkAddress)
@@ -572,19 +592,27 @@ struct CompanionSettings: View {
                 showNetworkAddress(for: display)
             }
 
-            if usbPorts.isEmpty {
-                Button("No USB display detected") {}.disabled(true)
-            } else {
-                ForEach(usbPorts, id: \.self) { port in
-                    Button("Use USB (\(URL(fileURLWithPath: port).lastPathComponent))") {
-                        store.setDisplayEndpoint(CompanionUSBPort.endpoint(for: port), for: display)
+            if !display.usesUSB, display.certificateFingerprint != nil {
+                Button("Switch to USB") { findingUSBDisplay = display }
+                    .disabled(findingUSBDisplay != nil || usbPorts.allSatisfy { store.isUSBPortInUse($0) })
+            }
+
+            if !usbPorts.isEmpty {
+                Menu("Choose USB Port") {
+                    ForEach(usbPorts, id: \.self) { port in
+                        Button(URL(fileURLWithPath: port).lastPathComponent) {
+                            store.setDisplayEndpoint(CompanionUSBPort.endpoint(for: port), for: display)
+                        }
+                        .disabled((display.usesUSB && display.record.usbPort == port) ||
+                                  store.isUSBPortInUse(port, except: display))
                     }
-                    .disabled((display.usesUSB && display.record.usbPort == port) ||
-                              store.isUSBPortInUse(port, except: display))
                 }
+                .disabled(findingUSBDisplay != nil)
             }
         } label: {
-            if findingNetworkDisplay?.id == display.id {
+            if findingUSBDisplay?.id == display.id {
+                Label("Finding display…", systemImage: "cable.connector")
+            } else if findingNetworkDisplay?.id == display.id {
                 Label("Finding display…", systemImage: "network")
             } else {
                 Label(display.usesUSB ? "USB" : "Network", systemImage: display.usesUSB ? "cable.connector" : "network")

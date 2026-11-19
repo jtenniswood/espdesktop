@@ -765,6 +765,29 @@ final class CompanionStore: NSObject, ObservableObject {
         displays.contains { $0 !== display && $0.usesUSB && $0.record.usbPort == port }
     }
 
+    func findUSBPort(
+        for display: CompanionDisplay,
+        among ports: [String],
+        matches: (String, String) async -> Bool = CompanionConnection.usbPortMatches
+    ) async -> String? {
+        guard displays.contains(where: { $0 === display }), let fingerprint = display.certificateFingerprint else {
+            return nil
+        }
+        let ordered = ports.sorted { ($0 != display.record.usbPort ? 1 : 0, $0) <
+                                    ($1 != display.record.usbPort ? 1 : 0, $1) }
+        for port in ordered {
+            guard !Task.isCancelled else { return nil }
+            guard !isUSBPortInUse(port, except: display) else { continue }
+            if await matches(port, fingerprint) {
+                guard !Task.isCancelled, displays.contains(where: { $0 === display }),
+                      display.certificateFingerprint == fingerprint,
+                      !isUSBPortInUse(port, except: display) else { return nil }
+                return port
+            }
+        }
+        return nil
+    }
+
     func switchDisplayToNetwork(_ display: CompanionDisplay, discovered: DiscoveredDisplay) {
         guard displays.contains(where: { $0 === display }), display.usesUSB,
               display.certificateFingerprint == discovered.id else { return }

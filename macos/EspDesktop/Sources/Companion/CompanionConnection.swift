@@ -160,6 +160,50 @@ final class CompanionConnection: NSObject {
         startConnection(mode: .authenticate, resetBackoff: true)
     }
 
+    static func usbPortMatches(_ path: String, fingerprint expected: String) async -> Bool {
+        guard !Task.isCancelled, let bridge = try? CompanionUSBBridge(path: path) else { return false }
+        let delegate = CompanionSessionDelegate()
+        var verified = false
+        delegate.onChallenge = { challenge, completion in
+            Task { @MainActor in
+                guard let identity = serverIdentity(from: challenge), identity.fingerprint == expected else {
+                    completion(.cancelAuthenticationChallenge, nil)
+                    return
+                }
+                verified = true
+                completion(.useCredential, URLCredential(trust: identity.trust))
+            }
+        }
+
+        let configuration = URLSessionConfiguration.ephemeral
+        configuration.connectionProxyDictionary = [:]
+        let session = URLSession(configuration: configuration, delegate: delegate, delegateQueue: nil)
+        let socket = session.webSocketTask(with: bridge.webSocketURL)
+        socket.maximumMessageSize = 1024
+        // A verified TLS handshake and Companion hello identify the port. Do not
+        // authenticate a Companion session or displace the panel's IP connection.
+        socket.resume()
+        let timeout = Task {
+            try? await Task.sleep(for: .seconds(3))
+            if !Task.isCancelled { socket.cancel(with: .goingAway, reason: nil) }
+        }
+        let message = try? await withTaskCancellationHandler {
+            try await socket.receive()
+        } onCancel: {
+            socket.cancel(with: .goingAway, reason: nil)
+        }
+        timeout.cancel()
+        socket.cancel(with: .goingAway, reason: nil)
+        session.invalidateAndCancel()
+        await bridge.stopAndWait()
+
+        guard !Task.isCancelled, verified, case let .string(text) = message,
+              case .hello = CompanionProtocolDecoder.decode(Data(text.utf8), direction: .panelToMac,
+                                                           state: .authenticating)
+        else { return false }
+        return true
+    }
+
     private func startConnection(mode: Mode, resetBackoff: Bool) {
         reconnectTask?.cancel()
         reconnectTask = nil
@@ -182,7 +226,7 @@ final class CompanionConnection: NSObject {
             do {
                 let bridge = try CompanionUSBBridge(path: usbPort)
                 usbBridge = bridge
-                url = URL(string: "wss://127.0.0.1:\(bridge.port)\(CompanionCapabilities.protocolPath)")!
+                url = bridge.webSocketURL
             } catch {
                 let help = "Check the USB cable and close any serial monitor for this port."
                 updateConnectionStatus("Could not open the USB display", state: .failed, recovery: help)
@@ -352,13 +396,10 @@ final class CompanionConnection: NSObject {
         _ challenge: URLAuthenticationChallenge,
         completionHandler: AuthenticationChallengeCompletion
     ) {
-        guard challenge.protectionSpace.authenticationMethod == NSURLAuthenticationMethodServerTrust,
-              let trust = challenge.protectionSpace.serverTrust,
-              let certificates = SecTrustCopyCertificateChain(trust) as? [SecCertificate],
-              let certificate = certificates.first else {
-            completionHandler(.performDefaultHandling, nil); return
+        guard let (trust, fingerprint) = Self.serverIdentity(from: challenge) else {
+            completionHandler(.performDefaultHandling, nil)
+            return
         }
-        let fingerprint = SHA256.hash(data: SecCertificateCopyData(certificate) as Data).map { String(format: "%02x", $0) }.joined()
         let saved = preferences.stringPreference(forKey: certificateFingerprintKey)
         if case .pair = mode, !preferences.allowsPairing(certificateFingerprint: fingerprint) {
             shouldReconnect = false
@@ -387,6 +428,19 @@ final class CompanionConnection: NSObject {
             updateConnectionStatus("Start pairing on the display and enter its code", state: .failed)
             completionHandler(.cancelAuthenticationChallenge, nil)
         }
+    }
+
+    private static func serverIdentity(from challenge: URLAuthenticationChallenge)
+        -> (trust: SecTrust, fingerprint: String)? {
+        guard challenge.protectionSpace.authenticationMethod == NSURLAuthenticationMethodServerTrust,
+              let trust = challenge.protectionSpace.serverTrust,
+              let certificates = SecTrustCopyCertificateChain(trust) as? [SecCertificate],
+              let certificate = certificates.first else {
+            return nil
+        }
+        let fingerprint = SHA256.hash(data: SecCertificateCopyData(certificate) as Data)
+            .map { String(format: "%02x", $0) }.joined()
+        return (trust, fingerprint)
     }
 
     private func receive(from task: URLSessionWebSocketTask) {

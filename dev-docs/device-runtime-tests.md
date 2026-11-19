@@ -130,12 +130,12 @@ instead of the USB cable.
 1. Before changing the connection, save the panel's network address and keep a
    second display connected over the network.
 2. In the app's **Displays** settings, open the S3's **Network** menu and choose
-   its USB port. For a new panel, choose **Add Display**, select **Connect by
+   **Switch to USB**. The app checks the paired display's identity before switching. For a new panel, choose **Add Display**, select **Connect by
    USB**, and enter the code from the panel's **Settings → Paired** screen.
 3. Run an approved shortcut and check a live Mac stat on the USB display. Use
    the second display to confirm its network connection still works.
 4. Unplug and reconnect the USB cable. If macOS gives it a different port name,
-   choose that port from the display's **USB** menu. Verify the same display
+   use **Choose USB Port** from the display's **USB** menu. Verify the same display
    reconnects using its saved pairing and the other display stays connected.
 5. Use **USB → Switch to Network** and check that the app finds the same S3.
    Switch back to USB. Confirm each switch keeps one saved display and requires
@@ -150,5 +150,5 @@ For a second USB display, use another 4848S040 with the USB development profile,
 or an ESP32-P4 profile that includes Companion and exposes its native USB
 Serial/JTAG port. For the 7-inch JC1060P470 V3 profile, add the
 [Companion native USB package](../common/addon/companion_native_usb.yaml) to the
-local test build. Choose a different port for each saved display. With both
+local test build. Use **Switch to USB** on each saved display. With both
 connected, switch one to **Network** and verify the other stays on USB.

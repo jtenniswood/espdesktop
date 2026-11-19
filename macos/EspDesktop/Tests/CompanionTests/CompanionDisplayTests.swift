@@ -88,6 +88,40 @@ final class CompanionDisplayTests: XCTestCase {
                        ["/dev/cu.wchusbserial20130", "/dev/cu.usbmodem1101"])
     }
 
+    @MainActor
+    func testUSBDiscoverySkipsPortsInUseAndRequiresTheSavedIdentity() async {
+        let suite = "CompanionDisplayTests.\(UUID())"
+        let defaults = UserDefaults(suiteName: suite)!
+        defer { defaults.removePersistentDomain(forName: suite) }
+        let remembered = "/dev/cu.usbserial-remembered"
+        let correct = "/dev/cu.wchusbserial20130"
+        let occupied = "/dev/cu.usbmodem1101"
+        var office = CompanionDisplayRecord(host: "office.local", name: "Office", account: "office")
+        office.usbPort = remembered
+        var desk = CompanionDisplayRecord(host: "desk.local", name: "Desk", account: "desk")
+        desk.usbPort = occupied
+        desk.prefersUSB = true
+        let saved = CompanionSavedDisplays(defaults: defaults)
+        saved.save([office, desk])
+        defaults.set("office-pin", forKey: "companion.certificateFingerprint.office")
+        let store = CompanionStore(mediaController: DisplayMediaFixture(), systemMetricsProvider: DisplayMetricsFixture(),
+                                   defaults: defaults)
+        let officeDisplay = store.displays[0]
+        let ports = [correct, occupied, remembered]
+        var checked: [String] = []
+        let discovered = await store.findUSBPort(for: officeDisplay, among: ports) { port, fingerprint in
+            checked.append(port)
+            XCTAssertEqual(fingerprint, "office-pin")
+            return port == correct
+        }
+        XCTAssertEqual(discovered, correct)
+        XCTAssertEqual(checked, [remembered, correct])
+        XCTAssertEqual(officeDisplay.panelHost, "office.local", "Searching must leave the current endpoint alone")
+        XCTAssertEqual(saved.load { [] }, [office, desk])
+        let missing = await store.findUSBPort(for: officeDisplay, among: [occupied, remembered]) { _, _ in false }
+        XCTAssertNil(missing)
+    }
+
     func testUSBRelayRecoversFramingAfterBootNoiseAndAnOversizedFrame() {
         let payload: [UInt8] = [1, 0xc0, 0xdb, 0, 3]
         let data = CompanionUSBBridge.Frame.data.encode(payload[...])

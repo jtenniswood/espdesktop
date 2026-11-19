@@ -110,6 +110,7 @@ final class CompanionUSBBridge: @unchecked Sendable {
     }
 
     private let stopped = NSLock()
+    private let relayFinished = DispatchGroup()
     private var cancelled = false
     let port: UInt16
 
@@ -151,12 +152,25 @@ final class CompanionUSBBridge: @unchecked Sendable {
         }
         port = UInt16(bigEndian: address.sin_port)
         let nativeUSB = CompanionUSBPort.isNative(path)
+        relayFinished.enter()
         DispatchQueue.global(qos: .userInitiated).async {
             self.relay(listener: listener, serial: serial, nativeUSB: nativeUSB)
+            self.relayFinished.leave()
         }
     }
 
     func stop() { stopped.withLock { cancelled = true } }
+
+    func stopAndWait() async {
+        stop()
+        await withCheckedContinuation { continuation in
+            relayFinished.notify(queue: .global()) { continuation.resume() }
+        }
+    }
+
+    var webSocketURL: URL {
+        URL(string: "wss://127.0.0.1:\(port)\(CompanionCapabilities.protocolPath)")!
+    }
 
     private static func systemError() -> POSIXError { POSIXError(POSIXErrorCode(rawValue: errno) ?? .EIO) }
 
