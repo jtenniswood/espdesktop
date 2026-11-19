@@ -28,6 +28,32 @@ private final class DisplayMediaFixture: MediaControlling {
 
 final class CompanionDisplayTests: XCTestCase {
     @MainActor
+    func testUnavailableUSBPortLeavesBothSavedDisplaysIntact() {
+        let suite = "CompanionDisplayTests.\(UUID())"
+        let defaults = UserDefaults(suiteName: suite)!
+        defer { defaults.removePersistentDomain(forName: suite) }
+        let records = [
+            CompanionDisplayRecord(host: "office.local", name: "Office", account: "office"),
+            CompanionDisplayRecord(host: "desk.local", name: "Desk", account: "desk"),
+        ]
+        let saved = CompanionSavedDisplays(defaults: defaults)
+        saved.save(records)
+        defaults.set("office-pin", forKey: "companion.certificateFingerprint.office")
+        let store = CompanionStore(mediaController: DisplayMediaFixture(), systemMetricsProvider: DisplayMetricsFixture(),
+                                   defaults: defaults)
+        let display = store.displays[0]
+        defer { display.connection.disconnect() }
+
+        let missingPort = "/dev/cu.wchusbserial-missing-\(UUID())"
+        store.setDisplayEndpoint(CompanionUSBPort.endpoint(for: missingPort), for: display)
+
+        XCTAssertNil(display.connection.pendingEndpoint)
+        XCTAssertEqual(display.panelHost, records[0].host)
+        XCTAssertEqual(display.certificateFingerprint, "office-pin")
+        XCTAssertEqual(saved.load { [] }, records)
+    }
+
+    @MainActor
     func testDisplayCanSwitchTransportsWithoutReplacingPairingOrOtherDisplays() {
         let suite = "CompanionDisplayTests.\(UUID())"
         let defaults = UserDefaults(suiteName: suite)!

@@ -51,9 +51,10 @@ final class CompanionConnection: NSObject {
     var onEvent: ((CompanionSessionEvent) -> Void)?
     private let discovery: CompanionDiscovery
     private var endpointRecovery = CompanionEndpointRecovery()
-    private var switchingToNetwork = false
+    private(set) var pendingEndpoint: String?
     private var editorRequestID: UInt32 = 0
-    private var editorPending: (id: UInt32, callback: CheckedContinuation<Data, Error>, timeout: Task<Void, Never>)?
+    private var editorPending: [UInt32: (callback: CheckedContinuation<Data, Error>, timeout: Task<Void, Never>)] = [:]
+    private var wifiCommandBusy = false
     private var editorBusy = false
     var usbEditorConnected: Bool { usbBridge != nil && sessionAuthenticated }
     private(set) var usbEditorSupported = false
@@ -148,7 +149,7 @@ final class CompanionConnection: NSObject {
     }
 
     func connect(mode: Mode) {
-        switchingToNetwork = false
+        pendingEndpoint = nil
         discovery.stop()
         endpointRecovery = CompanionEndpointRecovery()
         startConnection(mode: mode, resetBackoff: true)
@@ -158,11 +159,23 @@ final class CompanionConnection: NSObject {
         let fingerprint = preferences.stringPreference(forKey: certificateFingerprintKey)
         guard CompanionUSBPort.path(from: preferences.panelHost) != nil,
               display.id == fingerprint, ConnectionEndpointPolicy.isLocalEndpoint(display.endpoint) else { return }
+        switchEndpoint(display.endpoint)
+    }
+
+    func switchEndpoint(_ endpoint: String) {
+        guard endpoint != preferences.panelHost, preferences.hasSavedPairing,
+              preferences.stringPreference(forKey: certificateFingerprintKey) != nil else { return }
         discovery.stop()
         endpointRecovery = CompanionEndpointRecovery()
-        endpointRecovery.discovered([display], expectedFingerprint: fingerprint)
-        switchingToNetwork = true
+        pendingEndpoint = endpoint
         startConnection(mode: .authenticate, resetBackoff: true)
+    }
+
+    @discardableResult
+    private func restoreSavedEndpoint() -> Bool {
+        guard pendingEndpoint != nil else { return false }
+        connect(mode: .authenticate)
+        return true
     }
 
     static func usbPortMatches(_ path: String, fingerprint expected: String) async -> Bool {
@@ -225,7 +238,7 @@ final class CompanionConnection: NSObject {
             return
         }
         self.mode = mode
-        let usbPort = switchingToNetwork ? nil : CompanionUSBPort.path(from: preferences.panelHost)
+        let usbPort = CompanionUSBPort.path(from: pendingEndpoint ?? preferences.panelHost)
         let url: URL
         if let usbPort {
             do {
@@ -233,6 +246,7 @@ final class CompanionConnection: NSObject {
                 usbBridge = bridge
                 url = bridge.webSocketURL
             } catch {
+                if restoreSavedEndpoint() { return }
                 let help = "Check the USB cable and close any serial monitor for this port."
                 updateConnectionStatus("Could not open the USB display", state: .failed, recovery: help)
                 scheduleReconnect()
@@ -241,6 +255,7 @@ final class CompanionConnection: NSObject {
         } else {
             endpointRecovery.begin(savedEndpoint: preferences.panelHost)
             guard let networkURL = connectionURL() else {
+                if restoreSavedEndpoint() { return }
                 shouldReconnect = false
                 return
             }
@@ -251,6 +266,7 @@ final class CompanionConnection: NSObject {
         if usbPort != nil { configuration.connectionProxyDictionary = [:] }
         session = URLSession(configuration: configuration, delegate: makeSessionDelegate(), delegateQueue: nil)
         guard let task = session?.webSocketTask(with: url) else {
+            if restoreSavedEndpoint() { return }
             updateConnectionStatus("Could not create the display connection", state: .failed)
             return
         }
@@ -262,7 +278,7 @@ final class CompanionConnection: NSObject {
     }
 
     func disconnect() {
-        switchingToNetwork = false
+        pendingEndpoint = nil
         shouldReconnect = false
         discovery.stop()
         endpointRecovery = CompanionEndpointRecovery()
@@ -384,7 +400,8 @@ final class CompanionConnection: NSObject {
     }
 
     private func connectionURL() -> URL? {
-        let raw = (endpointRecovery.attempted ?? preferences.panelHost).trimmingCharacters(in: .whitespacesAndNewlines)
+        let raw = (pendingEndpoint ?? endpointRecovery.attempted ?? preferences.panelHost)
+            .trimmingCharacters(in: .whitespacesAndNewlines)
         guard let parsed = URL(string: raw.contains("://") ? raw : "wss://\(raw)"),
               let host = parsed.host,
               ConnectionEndpointPolicy.isLocalHost(host) else {
@@ -451,11 +468,16 @@ final class CompanionConnection: NSObject {
     }
 
     func requestUSBEditor(_ request: USBEditorRequest) async throws -> USBEditorResponse {
+        if request.path == USBEditorRequest.wifiPath {
+            guard usbEditorConnected else { throw USBEditorError.disconnected }
+            guard usbEditorSupported else { throw USBEditorError.firmwareUpdateRequired }
+            guard !wifiCommandBusy else { throw USBEditorError.timedOut }
+            wifiCommandBusy = true
+            defer { wifiCommandBusy = false }
+            return try await requestUSBWifi(request, generation: connectionGeneration)
+        }
         let generation = try await beginUSBEditorRequest()
         defer { editorBusy = false }
-        if request.path == USBEditorRequest.wifiPath {
-            return try await requestUSBWifi(request, generation: generation)
-        }
         return try await requestUSBEditorHTTP(request, generation: generation)
     }
 
@@ -494,14 +516,23 @@ final class CompanionConnection: NSObject {
     }
 
     private func requestUSBWifi(_ request: USBEditorRequest, generation: UInt64) async throws -> USBEditorResponse {
-        let result: Data
+        var result: Data
         if request.method == "GET" {
             result = try await editorCommand(5, generation: generation)
         } else {
             guard let state = try? JSONDecoder().decode(USBEditorWifiState.self, from: request.body) else {
                 return USBEditorResponse(status: 400, headers: [:], body: Data())
             }
-            result = try await editorCommand(6, body: Data([state.enabled ? 1 : 0]), generation: generation)
+            result = try await editorCommand(7, body: Data([state.enabled ? 1 : 0]), generation: generation)
+            guard result == Data([1]) else { throw USBEditorError.wifiSaveUnsupported }
+            let clock = ContinuousClock()
+            let deadline = clock.now.advanced(by: .seconds(5))
+            while result == Data([1]) {
+                guard clock.now < deadline else { throw USBEditorError.timedOut }
+                try await Task.sleep(for: .milliseconds(100))
+                result = try await editorCommand(7, generation: generation)
+            }
+            if result == Data([3]) { throw USBEditorError.wifiSaveFailed }
         }
         if result == Data([3]) {
             return USBEditorResponse(status: 404, headers: [:], body: Data())
@@ -563,7 +594,7 @@ final class CompanionConnection: NSObject {
 
     private func editorCommand(_ command: UInt8, body: Data = Data(), generation: UInt64) async throws -> Data {
         try Task.checkCancellation()
-        guard usbEditorConnected, connectionGeneration == generation, let task, editorPending == nil
+        guard usbEditorConnected, connectionGeneration == generation, let task
         else { throw USBEditorError.disconnected }
         editorRequestID &+= 1
         let id = editorRequestID
@@ -577,7 +608,7 @@ final class CompanionConnection: NSObject {
                     try? await Task.sleep(for: .seconds(7))
                     if !Task.isCancelled { self?.finishEditorCommand(.failure(USBEditorError.timedOut), id: id) }
                 }
-                editorPending = (id, callback, timeout)
+                editorPending[id] = (callback, timeout)
                 task.send(.data(frame)) { [weak self] error in
                     if error != nil {
                         Task { @MainActor [weak self] in
@@ -602,10 +633,11 @@ final class CompanionConnection: NSObject {
     }
 
     private func finishEditorCommand(_ result: Result<Data, Error>, id: UInt32? = nil) {
-        guard let pending = editorPending, id == nil || id == pending.id else { return }
-        editorPending = nil
-        pending.timeout.cancel()
-        pending.callback.resume(with: result)
+        for key in id.map({ [$0] }) ?? Array(editorPending.keys) {
+            guard let pending = editorPending.removeValue(forKey: key) else { continue }
+            pending.timeout.cancel()
+            pending.callback.resume(with: result)
+        }
     }
 
     private func receive(from task: URLSessionWebSocketTask) {
@@ -696,12 +728,7 @@ final class CompanionConnection: NSObject {
         finishEditorCommand(.failure(USBEditorError.disconnected))
         usbBridge?.stop()
         usbBridge = nil
-        if switchingToNetwork {
-            // Discovery is only a hint. Keep the user's saved USB connection
-            // if the advertised endpoint cannot authenticate as this panel.
-            connect(mode: .authenticate)
-            return
-        }
+        if restoreSavedEndpoint() { return }
         scheduleReconnect()
     }
 
@@ -761,6 +788,7 @@ final class CompanionConnection: NSObject {
 
     private func handle(_ message: String) async {
         guard await handleJSON(message) else {
+            if restoreSavedEndpoint() { return }
             hasTerminalConnectionError = true
             shouldReconnect = false
             tearDownConnection()
@@ -823,7 +851,7 @@ final class CompanionConnection: NSObject {
             // A Bonjour TXT record never authorizes a location change. Both the
             // pinned TLS certificate and the authenticated session must agree.
             let expectedFingerprint = preferences.stringPreference(forKey: certificateFingerprintKey)
-            if let endpoint = endpointRecovery.authenticatedEndpoint(
+            if let endpoint = pendingEndpoint ?? endpointRecovery.authenticatedEndpoint(
                 expectedFingerprint: expectedFingerprint) {
                 preferences.panelHost = endpoint
             }
@@ -831,7 +859,7 @@ final class CompanionConnection: NSObject {
                 expectedFingerprint: expectedFingerprint) {
                 preferences.setPreference(displayName, forKey: displayNameKey)
             }
-            switchingToNetwork = false
+            pendingEndpoint = nil
             endpointRecovery = CompanionEndpointRecovery()
             if usbBridge == nil { refreshDisplayName(expectedFingerprint: expectedFingerprint) }
             connectionTimeoutTask?.cancel()
@@ -993,6 +1021,7 @@ final class CompanionConnection: NSObject {
             if code == "pairing_reset_failed" { finishPairingResetRequest() }
             if Self.requiresNewPairing(errorCode: code, authenticated: sessionAuthenticated,
                                        authenticating: authenticationRequestOutstanding) {
+                if restoreSavedEndpoint() { return true }
                 let isForgetting = pairingResetCompletion != nil
                 hasTerminalConnectionError = true
                 shouldReconnect = false
@@ -1012,6 +1041,7 @@ final class CompanionConnection: NSObject {
                 if sessionAuthenticated {
                     onEvent?(.status(message))
                 } else {
+                    if restoreSavedEndpoint() { return true }
                     hasTerminalConnectionError = true
                     shouldReconnect = false
                     tearDownConnection()

@@ -21,7 +21,7 @@ namespace {
 constexpr char MAGIC[] = "UED1";
 constexpr size_t HEADER = 9;
 constexpr size_t MAX_CHUNK = 4096;
-enum Command : uint8_t { OPEN = 1, WRITE = 2, READ = 3, CLOSE = 4, WIFI_STATE = 5, WIFI_SET = 6 };
+enum Command : uint8_t { OPEN = 1, WRITE = 2, READ = 3, CLOSE = 4, WIFI_STATE = 5, WIFI_SET = 6, WIFI_SAVE = 7 };
 enum Result : uint8_t { OK = 0, WAIT = 1, END = 2, ERROR = 3 };
 #ifdef USE_WIFI
 ESPPreferenceObject &wifi_preference() {
@@ -78,11 +78,19 @@ void CompanionUSBEditor::update_wifi() {
   const int8_t requested = this->requested_wifi_state_.exchange(-1);
   if (requested >= 0) {
     const bool enabled = requested == 1;
+    this->wifi_save_succeeded_.store(false);
     if (!wifi_preference().save(&enabled) || !global_preferences->sync()) {
       ESP_LOGW("companion.usb", "Could not save Wi-Fi preference");
+      const bool previous = !wifi->is_disabled();
+      wifi_preference().save(&previous);
+      global_preferences->sync();
+    } else {
+      if (enabled) wifi->enable();
+      else wifi->disable();
+      this->wifi_enabled_.store(!wifi->is_disabled());
+      this->wifi_save_succeeded_.store(true);
     }
-    if (enabled) wifi->enable();
-    else wifi->disable();
+    this->wifi_save_pending_.store(false);
   }
   this->wifi_enabled_.store(!wifi->is_disabled());
 #endif
@@ -100,12 +108,20 @@ bool CompanionUSBEditor::handle(httpd_handle_t server, int companion_socket, con
   if (command == WIFI_STATE && length == 0 && esphome::wifi::global_wifi_component != nullptr) {
     response.push_back(this->wifi_enabled_.load());
     result = OK;
-  } else if (command == WIFI_SET && length == 1 && frame[HEADER] <= 1 &&
+  } else if ((command == WIFI_SET || command == WIFI_SAVE) && length == 1 && frame[HEADER] <= 1 &&
              esphome::wifi::global_wifi_component != nullptr) {
-    const bool enabled = frame[HEADER] != 0;
-    this->requested_wifi_state_.store(frame[HEADER]);
-    response.push_back(enabled);
-    result = OK;
+    if (!this->wifi_save_pending_.exchange(true)) {
+      this->requested_wifi_state_.store(frame[HEADER]);
+      if (command == WIFI_SET) response.push_back(frame[HEADER]);
+      result = command == WIFI_SAVE ? WAIT : OK;
+    }
+  } else if (command == WIFI_SAVE && length == 0 && esphome::wifi::global_wifi_component != nullptr) {
+    if (this->wifi_save_pending_.load()) {
+      result = WAIT;
+    } else if (this->wifi_save_succeeded_.load()) {
+      response.push_back(this->wifi_enabled_.load());
+      result = OK;
+    }
   } else
 #endif
   if (command == OPEN && length == 0) {

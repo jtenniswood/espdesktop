@@ -762,7 +762,11 @@ final class CompanionStore: NSObject, ObservableObject {
     }
 
     func isUSBPortInUse(_ port: String, except display: CompanionDisplay? = nil) -> Bool {
-        displays.contains { $0 !== display && $0.usesUSB && $0.record.usbPort == port }
+        displays.contains { candidate in
+            guard candidate !== display else { return false }
+            if candidate.usesUSB && candidate.record.usbPort == port { return true }
+            return candidate.connection.pendingEndpoint.flatMap(CompanionUSBPort.path(from:)) == port
+        }
     }
 
     func findUSBPort(
@@ -802,9 +806,7 @@ final class CompanionStore: NSObject, ObservableObject {
         } else {
             guard ConnectionEndpointPolicy.isLocalEndpoint(endpoint) else { return }
         }
-        display.connection.disconnect()
-        display.panelHost = endpoint
-        setConnection(true, for: display)
+        display.connection.switchEndpoint(endpoint)
     }
 
     private var usbEditorWindows: [UUID: CompanionUSBEditorWindow] = [:]

@@ -142,6 +142,8 @@ instead of the USB cable.
    no pairing code. Use **Enter Network Address** if local discovery is
    unavailable. Repeat with two USB displays if both have the USB development
    firmware.
+   Try a different panel's address or USB port and check that the saved
+   connection and pairing stay intact on both displays.
 
 6. In **Displays**, select **Device** while connected by USB. Wait for the
    panel’s embedded editor to load in the Mac app. Save a layout change and
@@ -156,6 +158,10 @@ instead of the USB cable.
    stays off, including after a display restart. Reconnect USB and choose
    **Switch to Network**. Check that it turns on Wi-Fi, finds the paired
    display, and that **Device** opens its local address in your default browser.
+
+Record the exact Mac build, firmware source revision, board profile, and
+embedded editor SHA-256 for each USB test. Compile both USB profiles
+explicitly. The regular PR firmware matrix is not USB profile coverage.
 
 Fresh setup with the panel's Wi-Fi radio off is tracked in
 [issue #307](https://github.com/jtenniswood/espdesktop/issues/307).
