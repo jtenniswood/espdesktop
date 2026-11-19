@@ -123,7 +123,7 @@ Run an Apple Shortcuts workflow with one tap, or group your workflows on a page 
 
 Switch scenes, mute audio inputs, and start or stop streaming and recording from your touchscreen.
 
-[OBS Studio controls](/mac-controls/apps#obs-studio-controls)
+[OBS Studio controls](/mac-controls/obs-studio)
 
 </article>
 
