@@ -807,8 +807,16 @@ final class CompanionStore: NSObject, ObservableObject {
         setConnection(true, for: display)
     }
 
+    private var usbEditorWindows: [UUID: CompanionUSBEditorWindow] = [:]
+
     func openPanelWebServer(_ display: CompanionDisplay) {
-        _ = openPanelWebServer(host: display.record.host, tab: nil)
+        if display.usesUSB {
+            let editor = usbEditorWindows[display.id] ?? CompanionUSBEditorWindow(display: display)
+            usbEditorWindows[display.id] = editor
+            editor.open()
+        } else {
+            _ = openPanelWebServer(host: display.record.host, tab: nil)
+        }
     }
 
     func openPanelPairing() -> Bool {
@@ -897,6 +905,7 @@ final class CompanionStore: NSObject, ObservableObject {
         display.connection.disconnect()
         display.onRecordChange = nil
         display.connection.onEvent = nil
+        usbEditorWindows.removeValue(forKey: display.id)?.invalidate()
         displays.removeAll { $0.id == display.id }
         savedDisplays.save(displays.map(\.record))
         let account = display.pairingAccount

@@ -143,8 +143,16 @@ instead of the USB cable.
    unavailable. Repeat with two USB displays if both have the USB development
    firmware.
 
-Fresh setup with the panel's Wi-Fi radio off and layout editing over USB are
-tracked in [issue #307](https://github.com/jtenniswood/espdesktop/issues/307).
+6. In **Displays**, select **Device** while connected by USB. Wait for the
+   panel’s embedded editor to load in the Mac app. Save a layout change and
+   confirm it persists after reopening the editor.
+7. Disconnect the cable during a save and reconnect it. The editor keeps the
+   submitted layout and reads back the saved one before retrying. If the
+   layout changed in the meantime, check that the editor leaves it alone and
+   offers **Export Unsaved Layout**.
+
+Fresh setup with the panel's Wi-Fi radio off is tracked in
+[issue #307](https://github.com/jtenniswood/espdesktop/issues/307).
 
 For a second USB display, use another 4848S040 with the USB development profile,
 or an ESP32-P4 profile that includes Companion and exposes its native USB

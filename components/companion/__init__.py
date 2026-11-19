@@ -28,7 +28,7 @@ def _reserve_network_resources(config):
     )(config)
     socket.consume_sockets(3, "companion_secure_websocket")(config)
     if CONF_UART_ID in config or config.get(CONF_USB_SERIAL_JTAG):
-        socket.consume_sockets(1, "companion_usb_loopback")(config)
+        socket.consume_sockets(2, "companion_usb_loopback")(config)
     return config
 
 

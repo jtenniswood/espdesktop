@@ -564,7 +564,7 @@ struct CompanionSettings: View {
                         .padding(.vertical, 4)
                 }
                 .modifier(CompanionCapsuleButton())
-                .disabled(display.record.host.isEmpty)
+                .disabled(!display.usesUSB && display.record.host.isEmpty)
 
                 Button(role: .destructive) {
                     displayToForget = display

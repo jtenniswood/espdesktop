@@ -13,6 +13,7 @@
 #include <mutex>
 #ifdef USE_COMPANION_USB
 #include "usb_bridge.h"
+#include "usb_editor.h"
 #endif
 #include <optional>
 #include <string>
@@ -123,6 +124,7 @@ class CompanionService final : public Component {
   CompanionIdentityPreference identity_{};
 #ifdef USE_COMPANION_USB
   std::optional<CompanionUSBBridge> usb_bridge_;
+  CompanionUSBEditor usb_editor_;
 #endif
   httpd_handle_t server_{nullptr};
   uint16_t port_{8443};

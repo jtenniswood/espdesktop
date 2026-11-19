@@ -52,6 +52,10 @@ final class CompanionConnection: NSObject {
     private let discovery: CompanionDiscovery
     private var endpointRecovery = CompanionEndpointRecovery()
     private var switchingToNetwork = false
+    private var editorRequestID: UInt32 = 0
+    private var editorPending: (id: UInt32, callback: CheckedContinuation<Data, Error>, timeout: Task<Void, Never>)?
+    private var editorBusy = false
+    var usbEditorConnected: Bool { usbBridge != nil && sessionAuthenticated }
     private var usbBridge: CompanionUSBBridge?
     private var session: URLSession?
     private var task: URLSessionWebSocketTask?
@@ -326,6 +330,7 @@ final class CompanionConnection: NSObject {
         task = nil
         session?.invalidateAndCancel()
         session = nil
+        finishEditorCommand(.failure(USBEditorError.disconnected))
         usbBridge?.stop()
         usbBridge = nil
         lastPublishedSystemMetrics = nil
@@ -443,6 +448,108 @@ final class CompanionConnection: NSObject {
         return (trust, fingerprint)
     }
 
+    func requestUSBEditor(_ request: USBEditorRequest) async throws -> USBEditorResponse {
+        // The panel has one editor socket per paired display. Wait for this
+        // display's current HTTP request without serializing other panels.
+        while editorBusy { try await Task.sleep(for: .milliseconds(15)) }
+        guard usbEditorConnected else { throw USBEditorError.disconnected }
+        editorBusy = true
+        defer { editorBusy = false }
+        let generation = connectionGeneration
+        do {
+            let open = try await editorCommand(1, generation: generation)
+            guard open.first == 0 else { throw USBEditorError.invalidResponse }
+            let requestBytes = request.wireBytes
+            let clock = ContinuousClock()
+            let end = clock.now.advanced(by: .seconds(100))
+            var offset = 0
+            while offset < requestBytes.count {
+                guard clock.now < end else { throw USBEditorError.timedOut }
+                let limit = min(offset + 4096, requestBytes.count)
+                let result = try await editorCommand(2, body: Data(requestBytes[offset..<limit]), generation: generation)
+                if result.first == 1 {
+                    try await Task.sleep(for: .milliseconds(15))
+                    continue
+                }
+                guard result.count == 3, result.first == 0 else { throw USBEditorError.invalidResponse }
+                let count = Int(result[result.startIndex + 1]) * 256 + Int(result[result.startIndex + 2])
+                guard count > 0, count <= limit - offset else { throw USBEditorError.invalidResponse }
+                offset += count
+            }
+            var bytes = Data()
+            while clock.now < end {
+                let result = try await editorCommand(3, generation: generation)
+                switch result.first {
+                case 0:
+                    bytes.append(contentsOf: result.dropFirst())
+                    guard bytes.count <= USBEditorResponse.maximumBytes else { throw USBEditorError.tooLarge }
+                case 1:
+                    try await Task.sleep(for: .milliseconds(15))
+                    continue
+                case 2: break
+                default: throw USBEditorError.invalidResponse
+                }
+                if let response = try USBEditorResponse.parse(bytes, ended: result.first == 2) {
+                    _ = try? await editorCommand(4, generation: generation)
+                    return response
+                }
+            }
+            throw USBEditorError.timedOut
+        } catch {
+            // A later OPEN replaces any incomplete upstream request if the
+            // current WebSocket disappeared before CLOSE could be delivered.
+            _ = try? await editorCommand(4, generation: generation)
+            throw error
+        }
+    }
+
+    private func editorCommand(_ command: UInt8, body: Data = Data(), generation: UInt64) async throws -> Data {
+        try Task.checkCancellation()
+        guard usbEditorConnected, connectionGeneration == generation, let task, editorPending == nil
+        else { throw USBEditorError.disconnected }
+        editorRequestID &+= 1
+        let id = editorRequestID
+        var frame = Data("UED1".utf8)
+        frame.append(command)
+        withUnsafeBytes(of: id.bigEndian) { frame.append(contentsOf: $0) }
+        frame.append(body)
+        return try await withTaskCancellationHandler {
+            try await withCheckedThrowingContinuation { callback in
+                let timeout = Task { [weak self] in
+                    try? await Task.sleep(for: .seconds(7))
+                    if !Task.isCancelled { self?.finishEditorCommand(.failure(USBEditorError.timedOut), id: id) }
+                }
+                editorPending = (id, callback, timeout)
+                task.send(.data(frame)) { [weak self] error in
+                    if error != nil {
+                        Task { @MainActor [weak self] in
+                            self?.finishEditorCommand(.failure(USBEditorError.disconnected), id: id)
+                        }
+                    }
+                }
+            }
+        } onCancel: {
+            Task { @MainActor [weak self] in
+                self?.finishEditorCommand(.failure(CancellationError()), id: id)
+            }
+        }
+    }
+
+    private func receiveEditorCommand(_ bytes: Data) {
+        guard bytes.count >= 9, bytes.prefix(4) == Data("UED1".utf8) else { return }
+        let id = bytes.dropFirst(5).prefix(4).reduce(UInt32(0)) { ($0 << 8) | UInt32($1) }
+        var result = Data(bytes.dropFirst(4).prefix(1))
+        result.append(bytes.dropFirst(9))
+        finishEditorCommand(.success(result), id: id)
+    }
+
+    private func finishEditorCommand(_ result: Result<Data, Error>, id: UInt32? = nil) {
+        guard let pending = editorPending, id == nil || id == pending.id else { return }
+        editorPending = nil
+        pending.timeout.cancel()
+        pending.callback.resume(with: result)
+    }
+
     private func receive(from task: URLSessionWebSocketTask) {
         receiveTask = Task { [weak self] in
             guard let self else { return }
@@ -450,7 +557,11 @@ final class CompanionConnection: NSObject {
                 do {
                     let message = try await task.receive()
                     guard !Task.isCancelled, self.task === task else { return }
-                    if case .string(let value) = message { await self.handle(value) }
+                    switch message {
+                    case .string(let value): await self.handle(value)
+                    case .data(let data): self.receiveEditorCommand(data)
+                    @unknown default: break
+                    }
                 } catch {
                     guard !Task.isCancelled else { return }
                     self.handleConnectionFailure(for: task, reason: "Receive failed: \(error.localizedDescription)")
@@ -523,6 +634,7 @@ final class CompanionConnection: NSObject {
         failedTask.cancel(with: .goingAway, reason: nil)
         session?.invalidateAndCancel()
         session = nil
+        finishEditorCommand(.failure(USBEditorError.disconnected))
         usbBridge?.stop()
         usbBridge = nil
         if switchingToNetwork {

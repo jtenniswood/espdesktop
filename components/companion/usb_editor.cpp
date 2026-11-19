@@ -1,0 +1,97 @@
+#include "usb_editor.h"
+
+#ifdef USE_COMPANION_USB
+#include <cerrno>
+#include <cstring>
+#include <fcntl.h>
+#include <netinet/in.h>
+#include <sys/socket.h>
+#include <unistd.h>
+#include <vector>
+
+namespace esphome::companion {
+namespace {
+constexpr char MAGIC[] = "UED1";
+constexpr size_t HEADER = 9;
+constexpr size_t MAX_CHUNK = 4096;
+enum Command : uint8_t { OPEN = 1, WRITE = 2, READ = 3, CLOSE = 4 };
+enum Result : uint8_t { OK = 0, WAIT = 1, END = 2, ERROR = 3 };
+
+bool is_usb_socket(int fd) {
+  sockaddr_in peer{};
+  socklen_t length = sizeof(peer);
+  return getpeername(fd, reinterpret_cast<sockaddr *>(&peer), &length) == 0 &&
+         peer.sin_family == AF_INET && ntohl(peer.sin_addr.s_addr) == INADDR_LOOPBACK;
+}
+
+bool would_block() {
+  return errno == EAGAIN || errno == EWOULDBLOCK || errno == ENOTCONN || errno == EINPROGRESS;
+}
+}  // namespace
+
+void CompanionUSBEditor::close_() {
+  if (this->editor_socket_ >= 0) ::close(this->editor_socket_);
+  this->editor_socket_ = this->owner_ = -1;
+}
+
+void CompanionUSBEditor::disconnect(int companion_socket) {
+  if (companion_socket < 0 || companion_socket == this->owner_) this->close_();
+}
+
+bool CompanionUSBEditor::handle(httpd_handle_t server, int companion_socket, const uint8_t *frame, size_t size) {
+  if (size < 4 || std::memcmp(frame, MAGIC, 4) != 0) return false;
+  if (size < HEADER || size > HEADER + MAX_CHUNK || !is_usb_socket(companion_socket)) return true;
+
+  std::vector<uint8_t> response(frame, frame + HEADER);
+  const auto command = frame[4];
+  const size_t length = size - HEADER;
+  Result result = ERROR;
+  if (command == OPEN && length == 0) {
+    this->close_();
+    this->editor_socket_ = ::socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+    if (this->editor_socket_ >= 0 && fcntl(this->editor_socket_, F_SETFL, O_NONBLOCK) == 0) {
+      sockaddr_in address{};
+      address.sin_family = AF_INET;
+      address.sin_port = htons(80);
+      address.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
+      if (::connect(this->editor_socket_, reinterpret_cast<const sockaddr *>(&address), sizeof(address)) == 0 ||
+          errno == EINPROGRESS) {
+        this->owner_ = companion_socket;
+        result = OK;
+      }
+    }
+    if (result == ERROR) this->close_();
+  } else if (this->owner_ == companion_socket && this->editor_socket_ >= 0) {
+    if (command == WRITE && length > 0) {
+      const auto written = ::send(this->editor_socket_, frame + HEADER, length, 0);
+      if (written > 0) {
+        response.push_back(static_cast<uint8_t>(written >> 8));
+        response.push_back(static_cast<uint8_t>(written));
+        result = OK;
+      } else if (written < 0 && would_block()) {
+        result = WAIT;
+      }
+    } else if (command == READ && length == 0) {
+      response.resize(HEADER + MAX_CHUNK);
+      const auto read = ::recv(this->editor_socket_, response.data() + HEADER, MAX_CHUNK, 0);
+      response.resize(HEADER + (read > 0 ? read : 0));
+      if (read > 0) result = OK;
+      else if (read == 0) result = END;
+      else if (would_block()) result = WAIT;
+    } else if (command == CLOSE && length == 0) {
+      this->close_();
+      result = OK;
+    }
+    if (result == END || result == ERROR) this->close_();
+  }
+
+  response[4] = result;
+  httpd_ws_frame_t reply{};
+  reply.type = HTTPD_WS_TYPE_BINARY;
+  reply.payload = response.data();
+  reply.len = response.size();
+  if (httpd_ws_send_frame_async(server, companion_socket, &reply) != ESP_OK) this->close_();
+  return true;
+}
+}  // namespace esphome::companion
+#endif

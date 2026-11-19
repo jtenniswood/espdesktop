@@ -990,6 +990,9 @@ void CompanionService::handle_json_(int socket_fd, const std::string &message) {
 }
 
 void CompanionService::handle_binary_(int socket_fd, const uint8_t *data, size_t size) {
+#ifdef USE_COMPANION_USB
+  if (this->usb_editor_.handle(this->server_, socket_fd, data, size)) return;
+#endif
   if (this->app_icon_generation_ != 0) {
     if (size < 13 || size > MAX_APP_ICON_CHUNK_BYTES + 12 || std::memcmp(data, "ICON", 4) != 0) {
       this->reset_app_icon_transfer_();
@@ -1098,6 +1101,9 @@ void CompanionService::update_authentication_deadline_() {
 
 void CompanionService::set_connected_(bool connected, int closing_socket) {
   if (!connected) {
+#ifdef USE_COMPANION_USB
+    this->usb_editor_.disconnect(closing_socket);
+#endif
     if (closing_socket >= 0) {
       if (!this->session_.disconnect_socket(closing_socket)) return;
     } else {
