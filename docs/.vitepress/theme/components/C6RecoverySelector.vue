@@ -87,6 +87,13 @@ const devices = [
     warning: 'Use this only for rear case number 2628 or higher when chip information does not confirm V3 silicon.',
   },
   {
+    slug: 'guition-esp32-p4-jc1060p470-v3',
+    name: 'JC1060P470 V3 production-silicon panel',
+    size: '7 in',
+    detail: 'ESP32-P4 v3.1–v3.99; confirm the chip revision first',
+    warning: 'Use this when chip information confirms ESP32-P4 v3.1–v3.99 production silicon, regardless of the case marking.',
+  },
+  {
     slug: 'guition-esp32-p4-jc1060p470',
     name: 'JC1060P470 original panel',
     size: '7 in',
@@ -98,7 +105,7 @@ const devices = [
     name: 'JC1060P470 new panel',
     size: '7 in',
     detail: 'Case marked V2; board date 2622 or newer',
-    warning: 'Use this for a case marked V2. If unsure, disconnect power and check the screen-board date code: 2622 or newer is the new panel.',
+    warning: 'For earlier chips, use this for a case marked V2 or a screen-board date of 2622 or newer.',
   },
   {
     slug: 'guition-esp32-p4-jc4880p443',

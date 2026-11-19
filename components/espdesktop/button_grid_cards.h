@@ -196,15 +196,29 @@ inline void companion_layout_card_app_icon(CompanionAppIconImageData &source, lv
   }
   lv_image_set_antialias(image, true);
 #endif
+  const int compensation = width_compensation_scale(icon_width_compensation_percent());
+  const bool vertical = width_compensation_vertical_axis();
+  const int corrected_side = (side * compensation + 128) / 256;
   lv_obj_set_size(image, side, side);
   lv_obj_align(image, LV_ALIGN_TOP_LEFT,
-      -(insets.left * side + canvas / 2) / canvas,
-      -(insets.top * side + canvas / 2) / canvas);
+      -(insets.left * (vertical ? side : corrected_side) + canvas / 2) / canvas,
+      -(insets.top * (vertical ? corrected_side : side) + canvas / 2) / canvas);
 #if ESPHOME_VERSION_CODE >= VERSION_CODE(2026, 4, 0)
-  lv_image_set_inner_align(image, LV_IMAGE_ALIGN_CONTAIN);
+  if (compensation == 256) {
+    lv_image_set_inner_align(image, LV_IMAGE_ALIGN_CONTAIN);
+  } else {
+    // Scale the bitmap directly so LVGL does not allocate a transformed layer.
+    const int zoom = std::max(1, side * 256 / source.descriptor.header.w);
+    const int corrected_zoom = std::max(1, zoom * compensation / 256);
+    lv_image_set_inner_align(image, LV_IMAGE_ALIGN_TOP_LEFT);
+    lv_image_set_pivot(image, 0, 0);
+    lv_image_set_scale_x(image, vertical ? zoom : corrected_zoom);
+    lv_image_set_scale_y(image, vertical ? corrected_zoom : zoom);
+  }
 #else
   lv_img_set_zoom(image, static_cast<uint16_t>(std::min<uint32_t>(
       (static_cast<uint32_t>(side) * 256u + canvas - 1u) / canvas, UINT16_MAX)));
+  apply_width_compensation(image, icon_width_compensation_percent());
 #endif
   // Faint icon shadows can extend beyond the fitted artwork into the label.
   if (source.card_label) lv_obj_move_foreground(source.card_label);

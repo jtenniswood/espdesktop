@@ -19,7 +19,7 @@ source = r'''
 #define VERSION_CODE(a,b,c) ((a)*10000+(b)*100+(c))
 #define ESPHOME_VERSION_CODE VERSION_CODE(2026,9,1)
 constexpr int LV_PART_MAIN = 0, LV_OBJ_FLAG_HIDDEN = 1;
-constexpr int LV_ALIGN_TOP_LEFT = 0, LV_IMAGE_ALIGN_CONTAIN = 0;
+constexpr int LV_ALIGN_TOP_LEFT = 0, LV_IMAGE_ALIGN_CONTAIN = 0, LV_IMAGE_ALIGN_TOP_LEFT = 1;
 constexpr int LV_EVENT_LAYOUT_CHANGED = 1, LV_EVENT_SIZE_CHANGED = 2;
 namespace esphome::companion { constexpr int APP_ICON_SIDE = 8, APP_ICON_PIXEL_BYTES = 8 * 8 * 3; }
 struct lv_font_t { int line_height = 40; };
@@ -29,6 +29,7 @@ using Callback = void (*)(lv_event_t *);
 struct Event { int code; Callback callback; void *data; };
 struct lv_obj_t {
   int width = 100, height = 100;
+  int image_align = LV_IMAGE_ALIGN_CONTAIN, scale_x = 256, scale_y = 256;
   bool hidden = false;
   void *data = nullptr;
   lv_obj_t *parent = nullptr;
@@ -73,7 +74,13 @@ void lv_obj_move_foreground(lv_obj_t *o) {
   children.erase(std::remove(children.begin(), children.end(), o), children.end());
   children.push_back(o);
 }
-void lv_image_set_inner_align(lv_obj_t *, int) {}
+void lv_image_set_inner_align(lv_obj_t *o, int align) {
+  o->image_align = align;
+  if (align == LV_IMAGE_ALIGN_CONTAIN) o->scale_x = o->scale_y = 256;
+}
+void lv_image_set_pivot(lv_obj_t *, int, int) {}
+void lv_image_set_scale_x(lv_obj_t *o, int scale) { o->scale_x = scale; }
+void lv_image_set_scale_y(lv_obj_t *o, int scale) { o->scale_y = scale; }
 void lv_image_set_src(lv_obj_t *, void *) {}
 void lv_image_set_antialias(lv_obj_t *, bool) {}
 void *lv_event_get_user_data(lv_event_t *e) { return e->data; }
@@ -91,6 +98,11 @@ source += r'''
 unsigned reloads = 0;
 bool companion_apply_cached_app_icon(CompanionAppIconImageData &, lv_obj_t *) { ++reloads; return true; }
 '''
+layout = (ROOT / 'components/espdesktop/button_grid_layout.h').read_text()
+for name in ('normalize_width_compensation_percent', 'width_compensation_scale',
+             'width_compensation_vertical_axis', 'icon_width_compensation_percent'):
+    line, code = definition(layout, name)
+    source += f'\n#line {line} "button_grid_layout.h"\n{code}\n'
 header = (ROOT / 'components/espdesktop/button_grid_cards.h').read_text()
 for name in ('companion_layout_card_app_icon', 'companion_app_icon_layout_changed',
              'companion_track_app_icon_layout'):
@@ -136,6 +148,11 @@ int main() {
   data.compact_icon = true;
   emit(button, LV_EVENT_SIZE_CHANGED);
   assert(icon.width == 40);
+  icon_width_compensation_percent() = 95;
+  emit(button, LV_EVENT_LAYOUT_CHANGED);
+  // If the resized allocation fails, compensate the original image's fit zoom.
+  assert(icon.scale_x == 1215 && icon.scale_y == 1280);
+  icon_width_compensation_percent() = 100;
   data.compact_icon = false;
   // A retained final image needs neither source pixels nor another scan.
   data.display_pixels = pixels.data(); data.display_side = 80; data.pixels = nullptr;
@@ -166,8 +183,20 @@ int main() {
     assert(!entry.pixels && entry.source_releases == 1);
     assert(entry.image_loaded && entry.artwork_insets_ready);
     const auto *finished = entry.descriptor.data;
+    assert(image.image_align == LV_IMAGE_ALIGN_CONTAIN);
+    assert(image.scale_x == 256 && image.scale_y == 256);
+    // Rotation moves the pixel-shape correction to the other axis without
+    // reloading the original or resampling the retained icon.
+    icon_width_compensation_percent() = 95;
     companion_layout_card_app_icon(entry, &image);
+    assert(image.image_align == LV_IMAGE_ALIGN_TOP_LEFT);
+    assert(image.scale_x == 243 && image.scale_y == 256);
+    width_compensation_vertical_axis() = true;
+    companion_layout_card_app_icon(entry, &image);
+    assert(image.scale_x == 256 && image.scale_y == 243);
     assert(entry.descriptor.data == finished && entry.source_releases == 1);
+    icon_width_compensation_percent() = 100;
+    width_compensation_vertical_axis() = false;
     entry.fallback_icon = entry.card_label = nullptr;
   }
 }
