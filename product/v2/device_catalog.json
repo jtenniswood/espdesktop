@@ -558,6 +558,9 @@
         ]
       },
       "config": {
+        "capabilities": {
+          "companion": true
+        },
         "public": {
           "name": "Guition JC1060P470 V3 (production silicon)",
           "docsPath": "/screens/jc1060p470-v3"

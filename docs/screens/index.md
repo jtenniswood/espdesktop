@@ -5,7 +5,7 @@ description: Identify EspDesktop firmware profiles and match the panel hardware 
 
 # Supported EspDesktop Firmware Profiles
 
-The Mac Companion product currently supports the **4-inch Guition ESP32-S3 4848S040**. Other profiles below retain firmware builds for local panel features; a successful build does not establish Mac Companion support on that device.
+Public EspDesktop releases support Mac Companion on the **4-inch Guition ESP32-S3 4848S040**. Mac Companion setup on the **7-inch JC1060P470 V3** is available in its [test firmware](/screens/jc1060p470-v3).
 
 The 4-inch 4848S040 can [expose cards to Home Assistant](/getting-started/home-assistant-actions). For Home Assistant touchscreen controls, see [EspControl](https://jtenniswood.github.io/espcontrol/).
 

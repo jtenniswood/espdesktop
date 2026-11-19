@@ -436,7 +436,7 @@ def test_jc4880p443_v3_configuration() -> None:
         assert (ROOT / "builds" / f"{slug}{suffix}").is_file()
 
 
-def test_native_home_assistant_api_scope(profile_slugs: list[str]) -> None:
+def test_factory_connector_scope(profiles: dict[str, dict]) -> None:
     from esphome.components.packages import resolve_packages
     from esphome.core import CORE
     from esphome.yaml_util import load_yaml
@@ -447,6 +447,12 @@ def test_native_home_assistant_api_scope(profile_slugs: list[str]) -> None:
         CORE.config_path = str(path)
         try:
             config = resolve_packages(load_yaml(path))
+            slug = path.name.removesuffix(".factory.yaml")
+            if slug in profiles:
+                companion = bool(profiles[slug]["capabilities"].get("companion"))
+                assert ("companion" in config) == companion, (
+                    f"{slug}: firmware and web profile must agree on Mac Companion availability"
+                )
             native = path.name == "guition-esp32-s3-4848s040.factory.yaml"
             assert ("api" in config) == native, f"{path.name}: unexpected native ESPHome API scope"
             if native:
@@ -458,7 +464,7 @@ def test_native_home_assistant_api_scope(profile_slugs: list[str]) -> None:
                 )
         finally:
             CORE.reset()
-    for slug in profile_slugs:
+    for slug in profiles:
         public = (ROOT / "devices" / slug / "esphome.yaml").read_text()
         assert "api_encryption" not in public, f"{slug}: remove obsolete native API encryption package"
 
@@ -871,7 +877,7 @@ def main() -> int:
     test_generated_yaml(profiles)
     test_v3_release_configuration()
     test_jc4880p443_v3_configuration()
-    test_native_home_assistant_api_scope(profile_slugs)
+    test_factory_connector_scope(profiles)
     test_ota_preserves_deployed_partition_layouts()
     test_upgrades_do_not_reset_saved_panel_config()
     test_p4_crash_restart_preserves_safe_mode_counter()

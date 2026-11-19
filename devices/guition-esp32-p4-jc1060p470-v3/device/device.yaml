@@ -37,9 +37,8 @@ esp32:
       disable_vfs_support_dir: false
     sdkconfig_options:
       CONFIG_SDMMC_HOST_DEFAULT: "y"
-      # Eight API clients add five sockets above ESPHome's three-client
-      # baseline. Reserve those five explicitly on top of the generated
-      # 14-socket web, artwork, mDNS, OTA, and API budget.
+      # Leave room for the web editor, artwork, OTA, and the four sockets
+      # reserved by the Companion TLS listener and its clients.
       CONFIG_LWIP_MAX_SOCKETS: "19"
       # HTTPS firmware checks need more stack on ESP32-P4; the default main
       # task stack can trip the stack protector during mbedTLS setup.
@@ -68,8 +67,12 @@ external_components:
       url: ${espdesktop_component_url}
       ref: ${espdesktop_component_ref}
       path: components
-    components: [espdesktop, web_server_idf, artwork_image, captive_portal]
+    components: [espdesktop, web_server_idf, artwork_image, captive_portal, companion]
     refresh: 1s
+
+companion:
+  id: mac_companion
+  port: 8443
 
 espdesktop:
   id: espdesktop_app

@@ -363,7 +363,8 @@
       "slug": "guition-esp32-p4-jc1060p470-v3",
       "slots": 15,
       "capabilities": {
-        "imageSlots": 6
+        "imageSlots": 6,
+        "companion": true
       },
       "public": {
         "name": "Guition JC1060P470 V3 (production silicon)",
