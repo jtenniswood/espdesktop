@@ -137,9 +137,11 @@ instead of the USB cable.
 4. Unplug and reconnect the USB cable. If macOS gives it a different port name,
    choose that port from the display's **USB** menu. Verify the same display
    reconnects using its saved pairing and the other display stays connected.
-5. Use **USB → Switch to Network**, enter the S3's address, then switch back to
-   USB. Confirm each switch keeps one saved display and requires no pairing
-   code. Repeat with two USB displays if both have the USB development firmware.
+5. Use **USB → Switch to Network** and check that the app finds the same S3.
+   Switch back to USB. Confirm each switch keeps one saved display and requires
+   no pairing code. Use **Enter Network Address** if local discovery is
+   unavailable. Repeat with two USB displays if both have the USB development
+   firmware.
 
 Fresh setup with the panel's Wi-Fi radio off and layout editing over USB are
 tracked in [issue #307](https://github.com/jtenniswood/espdesktop/issues/307).

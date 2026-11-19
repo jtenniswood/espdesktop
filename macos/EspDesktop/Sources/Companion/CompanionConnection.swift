@@ -51,6 +51,7 @@ final class CompanionConnection: NSObject {
     var onEvent: ((CompanionSessionEvent) -> Void)?
     private let discovery: CompanionDiscovery
     private var endpointRecovery = CompanionEndpointRecovery()
+    private var switchingToNetwork = false
     private var usbBridge: CompanionUSBBridge?
     private var session: URLSession?
     private var task: URLSessionWebSocketTask?
@@ -142,9 +143,21 @@ final class CompanionConnection: NSObject {
     }
 
     func connect(mode: Mode) {
+        switchingToNetwork = false
         discovery.stop()
         endpointRecovery = CompanionEndpointRecovery()
         startConnection(mode: mode, resetBackoff: true)
+    }
+
+    func switchToDiscoveredNetwork(_ display: DiscoveredDisplay) {
+        let fingerprint = preferences.stringPreference(forKey: certificateFingerprintKey)
+        guard CompanionUSBPort.path(from: preferences.panelHost) != nil,
+              display.id == fingerprint, ConnectionEndpointPolicy.isLocalEndpoint(display.endpoint) else { return }
+        discovery.stop()
+        endpointRecovery = CompanionEndpointRecovery()
+        endpointRecovery.discovered([display], expectedFingerprint: fingerprint)
+        switchingToNetwork = true
+        startConnection(mode: .authenticate, resetBackoff: true)
     }
 
     private func startConnection(mode: Mode, resetBackoff: Bool) {
@@ -163,7 +176,7 @@ final class CompanionConnection: NSObject {
             return
         }
         self.mode = mode
-        let usbPort = CompanionUSBPort.path(from: preferences.panelHost)
+        let usbPort = switchingToNetwork ? nil : CompanionUSBPort.path(from: preferences.panelHost)
         let url: URL
         if let usbPort {
             do {
@@ -200,6 +213,7 @@ final class CompanionConnection: NSObject {
     }
 
     func disconnect() {
+        switchingToNetwork = false
         shouldReconnect = false
         discovery.stop()
         endpointRecovery = CompanionEndpointRecovery()
@@ -457,6 +471,12 @@ final class CompanionConnection: NSObject {
         session = nil
         usbBridge?.stop()
         usbBridge = nil
+        if switchingToNetwork {
+            // Discovery is only a hint. Keep the user's saved USB connection
+            // if the advertised endpoint cannot authenticate as this panel.
+            connect(mode: .authenticate)
+            return
+        }
         scheduleReconnect()
     }
 
@@ -585,6 +605,7 @@ final class CompanionConnection: NSObject {
                 expectedFingerprint: expectedFingerprint) {
                 preferences.setPreference(displayName, forKey: displayNameKey)
             }
+            switchingToNetwork = false
             endpointRecovery = CompanionEndpointRecovery()
             if usbBridge == nil { refreshDisplayName(expectedFingerprint: expectedFingerprint) }
             connectionTimeoutTask?.cancel()

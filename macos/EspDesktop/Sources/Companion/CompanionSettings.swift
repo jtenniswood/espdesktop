@@ -259,6 +259,7 @@ struct CompanionSettings: View {
     @State private var selectedDisplayID: String?
     @State private var selectedUSBPort: String?
     @State private var usbPorts: [String] = []
+    @State private var findingNetworkDisplay: CompanionDisplay?
     @State private var displayToConfigure: CompanionDisplay?
     @State private var networkAddress = ""
     @State private var showingNetworkAddress = false
@@ -305,6 +306,22 @@ struct CompanionSettings: View {
                 let ports = CompanionUSBPort.available()
                 if ports != usbPorts { usbPorts = ports }
                 try? await Task.sleep(for: .seconds(1))
+            }
+        }
+        .task(id: findingNetworkDisplay?.id) {
+            guard let display = findingNetworkDisplay else { return }
+            let result: DiscoveredDisplay?
+            if let fingerprint = display.certificateFingerprint {
+                result = await CompanionDiscovery().findDisplay(fingerprint: fingerprint)
+            } else {
+                result = nil
+            }
+            guard !Task.isCancelled, display.usesUSB else { return }
+            findingNetworkDisplay = nil
+            if let result {
+                store.switchDisplayToNetwork(display, discovered: result)
+            } else {
+                showNetworkAddress(for: display)
             }
         }
         .alert("Network address", isPresented: $showingNetworkAddress, presenting: displayToConfigure) { display in
@@ -546,10 +563,13 @@ struct CompanionSettings: View {
 
     private func connectionMenu(for display: CompanionDisplay) -> some View {
         Menu {
-            Button(display.usesUSB ? "Switch to Network…" : "Change Network Address…") {
-                networkAddress = display.record.host
-                displayToConfigure = display
-                showingNetworkAddress = true
+            if display.usesUSB {
+                Button("Switch to Network") { findingNetworkDisplay = display }
+                    .disabled(findingNetworkDisplay != nil)
+            }
+            Button(display.usesUSB ? "Enter Network Address…" : "Change Network Address…") {
+                findingNetworkDisplay = nil
+                showNetworkAddress(for: display)
             }
 
             if usbPorts.isEmpty {
@@ -564,10 +584,20 @@ struct CompanionSettings: View {
                 }
             }
         } label: {
-            Label(display.usesUSB ? "USB" : "Network", systemImage: display.usesUSB ? "cable.connector" : "network")
+            if findingNetworkDisplay?.id == display.id {
+                Label("Finding display…", systemImage: "network")
+            } else {
+                Label(display.usesUSB ? "USB" : "Network", systemImage: display.usesUSB ? "cable.connector" : "network")
+            }
         }
         .fixedSize()
         .accessibilityLabel("Connection for \(display.name)")
+    }
+
+    private func showNetworkAddress(for display: CompanionDisplay) {
+        networkAddress = display.record.host
+        displayToConfigure = display
+        showingNetworkAddress = true
     }
 
     private var displaySwitchSize: ControlSize {

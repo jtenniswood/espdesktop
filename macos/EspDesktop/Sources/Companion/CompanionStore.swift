@@ -765,6 +765,13 @@ final class CompanionStore: NSObject, ObservableObject {
         displays.contains { $0 !== display && $0.usesUSB && $0.record.usbPort == port }
     }
 
+    func switchDisplayToNetwork(_ display: CompanionDisplay, discovered: DiscoveredDisplay) {
+        guard displays.contains(where: { $0 === display }), display.usesUSB,
+              display.certificateFingerprint == discovered.id else { return }
+        display.record.connectAtLaunch = true
+        display.connection.switchToDiscoveredNetwork(discovered)
+    }
+
     func setDisplayEndpoint(_ endpoint: String, for display: CompanionDisplay) {
         guard displays.contains(where: { $0 === display }), display.panelHost != endpoint else { return }
         if let port = CompanionUSBPort.path(from: endpoint) {
