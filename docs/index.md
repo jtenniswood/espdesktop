@@ -127,38 +127,6 @@ Switch scenes, mute audio inputs, and start or stop streaming and recording from
 
 </article>
 
-<article>
-
-<svg class="homepage-feature-icon" viewBox="0 0 24 24" aria-hidden="true">
-  <rect x="5" y="10" width="14" height="11" rx="2" />
-  <path d="M8 10V7a4 4 0 1 1 8 0v3m-4 5v2" />
-</svg>
-
-### Lock your Mac
-
-Tap the Lock Machine tile when you step away from your desk.
-
-[Set up Mac Lock](/mac-controls/security)
-
-</article>
-
-<article>
-
-<svg class="homepage-feature-icon" viewBox="0 0 24 24" aria-hidden="true">
-  <path d="M5 3v9m0 4v5M12 3v4m0 4v10M19 3v12m0 4v2" />
-  <rect x="2" y="12" width="6" height="4" rx="1" />
-  <rect x="9" y="7" width="6" height="4" rx="1" />
-  <rect x="16" y="15" width="6" height="4" rx="1" />
-</svg>
-
-### Make the layout your own
-
-Resize tiles, choose their icons and colours, and group related controls into subpages.
-
-[Customise the layout](/features/home)
-
-</article>
-
 </div>
 
 </section>
@@ -405,16 +373,7 @@ Tap Safari, Slack, Notes, ChatGPT, or Claude to see their keyboard shortcuts, or
 
 @media (min-width: 960px) {
   .homepage-grid {
-    grid-template-columns: repeat(6, minmax(0, 1fr));
-  }
-
-  .homepage-grid article {
-    grid-column: span 2;
-  }
-
-  .homepage-grid article:nth-child(3n + 1):nth-last-child(2),
-  .homepage-grid article:nth-child(3n + 1):nth-last-child(2) + article {
-    grid-column: span 3;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 }
 </style>
