@@ -340,9 +340,16 @@ export default defineConfig({
         text: 'Get started',
         items: [
           { text: 'Choose your display', link: '/getting-started/choose-a-display' },
-          { text: '4-inch setup', link: '/screens/4848s040' },
-          { text: '7-inch V3 setup', link: '/screens/jc1060p470-v3' },
-          { text: 'Printable stand', link: '/screens/4848s040-stand' },
+          {
+            text: '4-inch setup',
+            link: '/screens/4848s040',
+            items: [{ text: 'Printable stand', link: '/screens/4848s040-stand' }],
+          },
+          {
+            text: '7-inch V3 setup',
+            link: '/screens/jc1060p470-v3',
+            items: [{ text: 'Printable stand', link: '/screens/jc1060p470-v3#printable-stand' }],
+          },
         ],
       },
       {
