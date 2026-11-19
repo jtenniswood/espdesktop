@@ -110,7 +110,7 @@ ${markdownText(guide.tip)}
 
 ## ${appName} shortcuts FAQ
 
-<div class="shortcut-faq">
+<FaqAccordion>
 
 ::: details Which ${app.label} keyboard shortcuts should I try first?
 Start with ${starterKeys}. Tapping a button sends its key combination to ${appName} on your Mac.
@@ -128,7 +128,7 @@ Yes. You can choose and reorder cards in the app subpage. You can also [add a cu
 Try the keys shown in the table on your Mac first, with ${appName} open and the right window or item selected. If the keys work on your Mac, check [EspDesktop’s Accessibility permission](/mac-controls/shortcuts#allow-accessibility-access).
 :::
 
-</div>
+</FaqAccordion>
 
 [Browse all application shortcuts](/reference/shortcut-presets).
 `,

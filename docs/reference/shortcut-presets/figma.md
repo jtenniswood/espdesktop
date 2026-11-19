@@ -33,7 +33,7 @@ Start with **Duplicate**, **Frame**, and **New Component**. Duplicate a starting
 
 ## Figma shortcuts FAQ
 
-<div class="shortcut-faq">
+<FaqAccordion>
 
 ::: details Can I use a touchscreen for Figma keyboard shortcuts on Mac?
 Yes. EspDesktop turns Figma keyboard shortcuts into labelled touchscreen buttons. When you tap a button, the EspDesktop Mac app sends its key combination to Figma. For example, tapping **Duplicate** sends **Command + D** to duplicate the selected layer.
@@ -55,6 +55,6 @@ Yes. Once Figma has an app subpage, EspDesktop can open it when Figma becomes th
 Check that EspDesktop has [macOS Accessibility permission](/mac-controls/shortcuts#allow-accessibility-access), then try the same shortcut on your Mac with a Figma design open. Commands such as **Duplicate** and **Frame** need a selection on the canvas.
 :::
 
-</div>
+</FaqAccordion>
 
 [Browse all application shortcuts](/reference/shortcut-presets).
