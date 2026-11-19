@@ -13,6 +13,20 @@ Choose **Add device** from the menu bar icon to search for and pair a display.
 
 Choose [apps](/mac-controls/apps#choose-apps-in-the-mac-app) and [Finder folders](/mac-controls/folders#approve-a-folder) for your display. Enabled apps also appear in the [App Volume picker](/mac-controls/apps#app-volume). See [Permissions & Security](/mac-controls/security) for macOS permissions.
 
+## Switch a display between USB and network
+
+USB control currently requires compatible development builds of both the Mac app and the display firmware. USB testing covers the 4-inch Guition 4848S040 and the 7-inch Guition JC1060P470 V3.
+
+1. Connect the paired display to your Mac with a USB data cable.
+2. In **Settings → Displays**, open the connection menu for that display and choose **Switch to USB**. The app matches the display to its existing pairing.
+3. Choose **Device** to open the editor inside the Mac app. You can edit and save the display’s layout over USB while Wi-Fi is off.
+
+Wi-Fi is on by default. To turn it off, open the USB editor’s **System** tab and find **Wi-Fi** in the **System** group. The display remembers your choice after unplugging USB or restarting.
+
+To return to the network, keep the USB cable connected and choose **USB → Switch to Network** in **Settings → Displays**. EspDesktop turns on the display’s Wi-Fi if needed and looks for the paired display on your network. Once connected, **Device** opens the display’s network address in your default browser.
+
+You can switch each display independently and use USB and network displays at the same time.
+
 ## Check for Mac app updates
 
 In **Settings → Updates**, choose **Check Now** or set your automatic update preferences. Follow [update the Mac app and display together](/settings/system#update-the-mac-app-and-display-together) to keep their releases matched.

@@ -22,7 +22,7 @@ EspDesktop runs Mac controls over your local network without Home Assistant. Use
 
 ### Can I use EspDesktop over USB without Wi-Fi?
 
-Use a USB-C data cable to install firmware on the Guition 4848S040. For Mac controls, the display needs 2.4 GHz Wi-Fi and must be on the same local network as your Mac. See [Wi-Fi setup and recovery](/getting-started/troubleshooting#wifi-setup-and-reset-recovery).
+Yes, with compatible USB development builds of the Mac app and display firmware. You can use Mac controls and edit the display’s layout over a USB data cable with Wi-Fi off. The standard firmware uses your local network for Mac controls. See [Switch a display between USB and network](/settings/mac-app#switch-a-display-between-usb-and-network).
 
 ### Can I use several EspDesktop displays with one Mac?
 
