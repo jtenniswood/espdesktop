@@ -90,11 +90,40 @@ Give Downloads, client files or your current project a tile of its own.
   <path d="M6 9h.01M10 9h.01M14 9h.01M18 9h.01M6 12h.01M10 12h.01M14 12h.01M18 12h.01M8 15h8" />
 </svg>
 
-### Run keyboard shortcuts and automations
+### Run keyboard shortcuts
 
-Turn key combinations into labelled buttons, or run an Apple Shortcuts workflow with a tap. Keyboard shortcut pages can follow the app you’re using, such as Safari or Figma.
+Turn key combinations into labelled buttons. Shortcut pages can follow the app you’re using, such as Safari or Figma.
 
-[Keyboard shortcuts](/mac-controls/shortcuts#create-a-shortcut-card) · [Apple Shortcuts](/mac-controls/shortcuts#run-an-apple-shortcuts-workflow)
+[Keyboard shortcuts](/mac-controls/shortcuts#create-a-shortcut-card)
+
+</article>
+
+<article>
+
+<svg class="homepage-feature-icon" viewBox="0 0 24 24" aria-hidden="true">
+  <path d="m12 3 9 5-9 5-9-5 9-5ZM3 12l9 5 9-5M3 16l9 5 9-5" />
+</svg>
+
+### Run Apple Shortcuts
+
+Run an Apple Shortcuts workflow with one tap, or group your workflows on a page of their own.
+
+[Apple Shortcuts](/mac-controls/shortcuts#run-an-apple-shortcuts-workflow)
+
+</article>
+
+<article>
+
+<svg class="homepage-feature-icon" viewBox="0 0 24 24" aria-hidden="true">
+  <rect x="3" y="4" width="18" height="13" rx="2" />
+  <path d="m10 8 5 2.5-5 2.5V8ZM8 21h8m-4-4v4" />
+</svg>
+
+### Control OBS Studio
+
+Switch scenes, mute audio inputs, and start or stop streaming and recording from your touchscreen.
+
+[OBS Studio controls](/mac-controls/apps#obs-studio-controls)
 
 </article>
 
@@ -376,7 +405,16 @@ Tap Safari, Slack, Notes, ChatGPT, or Claude to see their keyboard shortcuts, or
 
 @media (min-width: 960px) {
   .homepage-grid {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+  }
+
+  .homepage-grid article {
+    grid-column: span 2;
+  }
+
+  .homepage-grid article:nth-child(3n + 1):nth-last-child(2),
+  .homepage-grid article:nth-child(3n + 1):nth-last-child(2) + article {
+    grid-column: span 3;
   }
 }
 </style>
