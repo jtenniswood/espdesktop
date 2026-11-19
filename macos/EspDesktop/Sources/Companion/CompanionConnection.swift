@@ -56,6 +56,7 @@ final class CompanionConnection: NSObject {
     private var editorPending: (id: UInt32, callback: CheckedContinuation<Data, Error>, timeout: Task<Void, Never>)?
     private var editorBusy = false
     var usbEditorConnected: Bool { usbBridge != nil && sessionAuthenticated }
+    private(set) var usbEditorSupported = false
     private var usbBridge: CompanionUSBBridge?
     private var session: URLSession?
     private var task: URLSessionWebSocketTask?
@@ -330,6 +331,7 @@ final class CompanionConnection: NSObject {
         task = nil
         session?.invalidateAndCancel()
         session = nil
+        usbEditorSupported = false
         finishEditorCommand(.failure(USBEditorError.disconnected))
         usbBridge?.stop()
         usbBridge = nil
@@ -453,6 +455,7 @@ final class CompanionConnection: NSObject {
         // display's current HTTP request without serializing other panels.
         while editorBusy { try await Task.sleep(for: .milliseconds(15)) }
         guard usbEditorConnected else { throw USBEditorError.disconnected }
+        guard usbEditorSupported else { throw USBEditorError.firmwareUpdateRequired }
         editorBusy = true
         defer { editorBusy = false }
         let generation = connectionGeneration
@@ -634,6 +637,7 @@ final class CompanionConnection: NSObject {
         failedTask.cancel(with: .goingAway, reason: nil)
         session?.invalidateAndCancel()
         session = nil
+        usbEditorSupported = false
         finishEditorCommand(.failure(USBEditorError.disconnected))
         usbBridge?.stop()
         usbBridge = nil
@@ -741,6 +745,7 @@ final class CompanionConnection: NSObject {
             guard case .authenticate = mode, authenticationRequestOutstanding else { return false }
             authenticationRequestOutstanding = false
             sessionAuthenticated = true
+            usbEditorSupported = payload.usbEditor == true
             supportsAlphaAppIcons = payload.capabilityVersion >= 4
             supportsHighResolutionAppIcons = payload.capabilityVersion >= 5
             supportsImmediateApplicationFocus = payload.capabilityVersion >= 6

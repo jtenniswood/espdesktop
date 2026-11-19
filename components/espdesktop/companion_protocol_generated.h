@@ -72,6 +72,7 @@ struct AuthRequest {
 };
 struct AuthAccepted {
   uint32_t capabilityVersion{};
+  std::optional<bool> usbEditor{};
 };
 struct Capabilities {
   std::vector<std::string> values{};
@@ -277,6 +278,7 @@ inline void encode(JsonObject root, const AuthAccepted &message) {
   root["type"] = "auth.accepted";
   root["protocol"] = COMPANION_PROTOCOL_VERSION;
   root["capabilityVersion"] = message.capabilityVersion;
+  if (message.usbEditor) root["usbEditor"] = *message.usbEditor;
 }
 inline void encode(JsonObject root, const Capabilities &message) {
   root["type"] = "capabilities";
@@ -593,8 +595,12 @@ inline std::optional<Message> decode(JsonObjectConst root, Direction direction, 
     {
       if (!(number_valid(root["capabilityVersion"], 1, 4294967295, true))) return std::nullopt;
     }
+    if (!root["usbEditor"].isUnbound()) {
+      if (!(root["usbEditor"].is<bool>())) return std::nullopt;
+    }
     AuthAccepted result;
     result.capabilityVersion = root["capabilityVersion"].as<uint32_t>();
+    if (!root["usbEditor"].isUnbound()) result.usbEditor = root["usbEditor"].as<bool>();
     return result;
   }
   if (type == "capabilities") {

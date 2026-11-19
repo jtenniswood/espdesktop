@@ -5,6 +5,7 @@
 #include <cstring>
 #include <fcntl.h>
 #include <netinet/in.h>
+#include <sdkconfig.h>
 #include <sys/socket.h>
 #include <unistd.h>
 #include <vector>
@@ -25,12 +26,14 @@ bool is_usb_socket(int fd) {
     const auto &ipv4 = reinterpret_cast<const sockaddr_in &>(peer);
     return ntohl(ipv4.sin_addr.s_addr) == INADDR_LOOPBACK;
   }
+#ifdef CONFIG_LWIP_IPV6
   if (peer.ss_family == AF_INET6 && length >= sizeof(sockaddr_in6)) {
     // ESP-IDF can accept the serial bridge's IPv4 connection on a dual-stack listener.
     constexpr uint8_t mapped_loopback[16] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 255, 255, 127, 0, 0, 1};
     const auto &ipv6 = reinterpret_cast<const sockaddr_in6 &>(peer);
     return std::memcmp(&ipv6.sin6_addr, mapped_loopback, sizeof(mapped_loopback)) == 0;
   }
+#endif
   return false;
 }
 

@@ -545,9 +545,13 @@ void CompanionService::handle_json_(int socket_fd, const std::string &message) {
       this->app_icons_supported_.store(false);
       this->set_connected_(true);
       pairing_lock.unlock();
-      this->send_(socket_fd, "{\"type\":\"auth.accepted\",\"protocol\":" +
+      std::string accepted = "{\"type\":\"auth.accepted\",\"protocol\":" +
           std::to_string(COMPANION_PROTOCOL_VERSION) + ",\"capabilityVersion\":" +
-          std::to_string(COMPANION_CAPABILITY_VERSION) + "}");
+          std::to_string(COMPANION_CAPABILITY_VERSION);
+#ifdef USE_COMPANION_USB
+      if (this->usb_bridge_) accepted += ",\"usbEditor\":true";
+#endif
+      this->send_(socket_fd, accepted + "}");
       this->publish_catalogue_();
       return true;
     }

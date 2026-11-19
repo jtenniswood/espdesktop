@@ -2,7 +2,7 @@ import Foundation
 import zlib
 
 enum USBEditorError: LocalizedError {
-    case disconnected, timedOut, invalidResponse, tooLarge
+    case disconnected, timedOut, invalidResponse, tooLarge, firmwareUpdateRequired
 
     var errorDescription: String? {
         switch self {
@@ -10,6 +10,7 @@ enum USBEditorError: LocalizedError {
         case .timedOut: "The display did not respond. Check the USB cable and firmware."
         case .invalidResponse: "The display could not complete the editor request."
         case .tooLarge: "The display returned more data than the USB editor can handle."
+        case .firmwareUpdateRequired: "Update this display’s firmware to open its editor over USB."
         }
     }
 }

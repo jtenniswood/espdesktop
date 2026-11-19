@@ -88,6 +88,10 @@
             "type": "integer",
             "minimum": 1,
             "maximum": 4294967295
+          },
+          "usbEditor": {
+            "type": "boolean",
+            "optional": true
           }
         },
         "states": [
