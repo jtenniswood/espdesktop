@@ -451,14 +451,47 @@ final class CompanionConnection: NSObject {
     }
 
     func requestUSBEditor(_ request: USBEditorRequest) async throws -> USBEditorResponse {
+        let generation = try await beginUSBEditorRequest()
+        defer { editorBusy = false }
+        if request.path == USBEditorRequest.wifiPath {
+            return try await requestUSBWifi(request, generation: generation)
+        }
+        return try await requestUSBEditorHTTP(request, generation: generation)
+    }
+
+    private func beginUSBEditorRequest() async throws -> UInt64 {
         // The panel has one editor socket per paired display. Wait for this
         // display's current HTTP request without serializing other panels.
         while editorBusy { try await Task.sleep(for: .milliseconds(15)) }
         guard usbEditorConnected else { throw USBEditorError.disconnected }
         guard usbEditorSupported else { throw USBEditorError.firmwareUpdateRequired }
         editorBusy = true
-        defer { editorBusy = false }
-        let generation = connectionGeneration
+        return connectionGeneration
+    }
+
+    private func requestUSBWifi(_ request: USBEditorRequest, generation: UInt64) async throws -> USBEditorResponse {
+        struct WifiState: Codable { let enabled: Bool }
+
+        let result: Data
+        if request.method == "GET" {
+            result = try await editorCommand(5, generation: generation)
+        } else {
+            guard let state = try? JSONDecoder().decode(WifiState.self, from: request.body) else {
+                return USBEditorResponse(status: 400, headers: [:], body: Data())
+            }
+            result = try await editorCommand(6, body: Data([state.enabled ? 1 : 0]), generation: generation)
+        }
+        if result == Data([3]) {
+            return USBEditorResponse(status: 404, headers: [:], body: Data())
+        }
+        guard result.count == 2, result.first == 0, let enabled = result.last, enabled <= 1 else {
+            throw USBEditorError.invalidResponse
+        }
+        let body = try JSONEncoder().encode(WifiState(enabled: enabled == 1))
+        return USBEditorResponse(status: 200, headers: ["content-type": "application/json"], body: body)
+    }
+
+    private func requestUSBEditorHTTP(_ request: USBEditorRequest, generation: UInt64) async throws -> USBEditorResponse {
         do {
             let open = try await editorCommand(1, generation: generation)
             guard open.first == 0 else { throw USBEditorError.invalidResponse }

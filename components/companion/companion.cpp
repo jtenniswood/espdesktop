@@ -201,7 +201,10 @@ void CompanionService::loop() {
     this->publish_focus_targets_();
   const uint32_t now = millis();
 #ifdef USE_COMPANION_USB
-  if (this->usb_bridge_) this->usb_bridge_->loop(this->port_, now);
+  if (this->usb_bridge_) {
+    this->usb_bridge_->loop(this->port_, now);
+    this->usb_editor_.update_wifi(this->session_.authenticated_socket());
+  }
 #endif
   const uint32_t authentication_deadline = this->authentication_expires_at_.load();
   if (authentication_deadline != 0 &&

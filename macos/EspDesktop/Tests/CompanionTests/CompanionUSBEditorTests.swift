@@ -31,6 +31,15 @@ final class CompanionUSBEditorTests: XCTestCase {
         XCTAssertEqual(try USBEditorResponse.parse(chunked, ended: false)?.body, Data("abc".utf8))
     }
 
+    func testWifiRouteAllowsOnlyExactStatusAndSettingRequests() {
+        let path = USBEditorRequest.wifiPath
+        XCTAssertNotNil(USBEditorRequest(method: "GET", path: path))
+        XCTAssertNotNil(USBEditorRequest(method: "POST", path: path, body: Data("{\"enabled\":true}".utf8)))
+        XCTAssertNil(USBEditorRequest(method: "POST", path: path + "?enabled=true"))
+        XCTAssertNil(USBEditorRequest(method: "POST", path: path, body: Data(repeating: 0, count: 65)))
+        XCTAssertNil(USBEditorRequest(method: "PUT", path: path))
+    }
+
     func testAnInterruptedSaveOnlyRetriesAgainstItsOriginalGeneration() throws {
         let submitted = Data([7])
         let save = try XCTUnwrap(USBEditorRequest(method: "PUT", path: "/api/v1/config",

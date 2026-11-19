@@ -16,6 +16,8 @@ enum USBEditorError: LocalizedError {
 }
 
 struct USBEditorRequest {
+    static let wifiPath = "/companion/usb-wifi"
+
     let method: String
     let path: String
     let headers: [String: String]
@@ -26,13 +28,16 @@ struct USBEditorRequest {
               path.utf8.allSatisfy({ (33...126).contains($0) }), !path.contains("#"),
               !path.contains("\\"), body.count <= 512 * 1024 else { return nil }
         let route = String(path.split(separator: "?", maxSplits: 1)[0])
+        if route == Self.wifiPath {
+            guard path == route, body.count <= 64 else { return nil }
+        }
         switch method {
         case "GET":
             guard body.isEmpty, route != "/events", route != "/companion/pairing" || path == route else { return nil }
         case "PUT":
             guard path == "/api/v1/config" else { return nil }
         case "POST":
-            let allowed = ["/companion/page-preview", "/companion/focus-targets"]
+            let allowed = ["/companion/page-preview", "/companion/focus-targets", Self.wifiPath]
             let entity = route.split(separator: "/")
             let setting = entity.count == 3 && ["text", "number", "select", "switch"].contains(entity[0]) &&
                 ["set", "turn_on", "turn_off"].contains(entity[2])

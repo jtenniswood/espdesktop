@@ -22,7 +22,7 @@ wifi:
     - script.execute: network_status_refresh
     - if:
         condition:
-          lambda: 'return !id(boot_grace_period);'
+          lambda: 'return !id(boot_grace_period) && !wifi::global_wifi_component->is_disabled();'
         then:
           - script.execute: wifi_reconnect_flow
 
@@ -57,8 +57,7 @@ script:
       - delay: 60s
       - if:
           condition:
-            not:
-              wifi.connected:
+            lambda: 'return !wifi::global_wifi_component->is_disabled() && !wifi::global_wifi_component->is_connected();'
           then:
             - script.execute: wifi_show_reconnecting
 

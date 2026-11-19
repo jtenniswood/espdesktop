@@ -9,14 +9,21 @@
 #include <sys/socket.h>
 #include <unistd.h>
 #include <vector>
+#ifdef USE_WIFI
+#include "esphome/components/wifi/wifi_component.h"
+#endif
 
 namespace esphome::companion {
 namespace {
 constexpr char MAGIC[] = "UED1";
 constexpr size_t HEADER = 9;
 constexpr size_t MAX_CHUNK = 4096;
-enum Command : uint8_t { OPEN = 1, WRITE = 2, READ = 3, CLOSE = 4 };
+enum Command : uint8_t { OPEN = 1, WRITE = 2, READ = 3, CLOSE = 4, WIFI_STATE = 5, WIFI_SET = 6 };
 enum Result : uint8_t { OK = 0, WAIT = 1, END = 2, ERROR = 3 };
+#ifdef USE_WIFI
+constexpr int WIFI_FOLLOWS_DEVICE = -1;
+constexpr int WIFI_ENABLE_REQUESTED = -2;
+#endif
 
 bool is_usb_socket(int fd) {
   sockaddr_storage peer{};
@@ -49,6 +56,37 @@ void CompanionUSBEditor::close_() {
 
 void CompanionUSBEditor::disconnect(int companion_socket) {
   if (companion_socket < 0 || companion_socket == this->owner_) this->close_();
+#ifdef USE_WIFI
+  if (companion_socket < 0) {
+    this->wifi_off_owner_.store(WIFI_FOLLOWS_DEVICE);
+  } else {
+    this->wifi_off_owner_.compare_exchange_strong(companion_socket, WIFI_FOLLOWS_DEVICE);
+  }
+#endif
+}
+
+void CompanionUSBEditor::update_wifi(int authenticated_socket) {
+#ifdef USE_WIFI
+  auto *wifi = esphome::wifi::global_wifi_component;
+  if (!wifi) return;
+  const int owner = this->wifi_off_owner_.load();
+  const bool should_suspend = owner >= 0 && owner == authenticated_socket;
+  int enable_request = WIFI_ENABLE_REQUESTED;
+  const bool requested_on = owner == WIFI_ENABLE_REQUESTED &&
+      this->wifi_off_owner_.compare_exchange_strong(enable_request, WIFI_FOLLOWS_DEVICE);
+  if (should_suspend) {
+    if (!wifi->is_disabled()) {
+      this->suspended_wifi_ = true;
+      wifi->disable();
+    }
+  } else if (this->suspended_wifi_ || requested_on) {
+    this->suspended_wifi_ = false;
+    wifi->enable();
+  }
+  this->wifi_enabled_.store(!wifi->is_disabled());
+#else
+  (void) authenticated_socket;
+#endif
 }
 
 bool CompanionUSBEditor::handle(httpd_handle_t server, int companion_socket, const uint8_t *frame, size_t size) {
@@ -59,6 +97,18 @@ bool CompanionUSBEditor::handle(httpd_handle_t server, int companion_socket, con
   const auto command = frame[4];
   const size_t length = size - HEADER;
   Result result = ERROR;
+#ifdef USE_WIFI
+  if (command == WIFI_STATE && length == 0 && esphome::wifi::global_wifi_component != nullptr) {
+    response.push_back(this->wifi_enabled_.load());
+    result = OK;
+  } else if (command == WIFI_SET && length == 1 && frame[HEADER] <= 1 &&
+             esphome::wifi::global_wifi_component != nullptr) {
+    const bool enabled = frame[HEADER] != 0;
+    this->wifi_off_owner_.store(enabled ? WIFI_ENABLE_REQUESTED : companion_socket);
+    response.push_back(enabled);
+    result = OK;
+  } else
+#endif
   if (command == OPEN && length == 0) {
     this->close_();
     this->editor_socket_ = ::socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);

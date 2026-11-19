@@ -526,6 +526,7 @@ export function createSettingsPageFeature(codec: Pick<ConfigCodecFeature, "bindT
         ]);
         appendSettingsSection(deviceConfig, "System", [
             systemSettingsCards.identityCard,
+            systemSettingsCards.wifiCard,
             systemSettingsCards.backupCard,
             systemSettingsCards.firmwareCard,
             batteryStatusCard,
