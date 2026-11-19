@@ -6,7 +6,8 @@ struct USBEditorWifiState: Codable {
 }
 
 enum USBEditorError: LocalizedError {
-    case disconnected, timedOut, invalidResponse, tooLarge, firmwareUpdateRequired, wifiSaveFailed, wifiSaveUnsupported
+    case disconnected, timedOut, invalidResponse, tooLarge, firmwareUpdateRequired
+    case wifiSaveFailed, wifiSaveUnsupported, wifiSaveBusy
 
     var errorDescription: String? {
         switch self {
@@ -17,6 +18,7 @@ enum USBEditorError: LocalizedError {
         case .firmwareUpdateRequired: "Update this display’s firmware to open its editor over USB."
         case .wifiSaveFailed: "The display could not save its Wi-Fi setting."
         case .wifiSaveUnsupported: "Update this display’s firmware to save Wi-Fi settings over USB."
+        case .wifiSaveBusy: "The display is still saving Wi-Fi. Try again shortly."
         }
     }
 }

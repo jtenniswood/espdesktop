@@ -1,10 +1,12 @@
 import AppKit
+import OSLog
 @preconcurrency import WebKit
 
 @MainActor
 final class CompanionUSBEditorWindow: NSObject, WKNavigationDelegate,
                                       WKURLSchemeHandler, WKScriptMessageHandlerWithReply {
     private static let scheme = "espdesktop-usb"
+    private static let logger = Logger(subsystem: "io.espdesktop.app", category: "USBEditor")
     private let window: NSWindow
     private let status = NSTextField(labelWithString: "Loading editor from the display…")
     private let exportDraft = NSButton(title: "Export Unsaved Layout…", target: nil, action: nil)
@@ -153,6 +155,9 @@ final class CompanionUSBEditorWindow: NSObject, WKNavigationDelegate,
                               "body": response.body.base64EncodedString()], nil)
             } catch {
                 if !Task.isCancelled {
+                    if request.path == USBEditorRequest.wifiPath {
+                        Self.logger.error("Wi-Fi \(request.method, privacy: .public) failed: \(error.localizedDescription, privacy: .public)")
+                    }
                     self.status.stringValue = error.localizedDescription
                     if self.unsavedLayout != nil { self.exportDraft.isHidden = false }
                 }

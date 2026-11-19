@@ -471,7 +471,7 @@ final class CompanionConnection: NSObject {
         if request.path == USBEditorRequest.wifiPath {
             guard usbEditorConnected else { throw USBEditorError.disconnected }
             guard usbEditorSupported else { throw USBEditorError.firmwareUpdateRequired }
-            guard !wifiCommandBusy else { throw USBEditorError.timedOut }
+            guard !wifiCommandBusy else { throw USBEditorError.wifiSaveBusy }
             wifiCommandBusy = true
             defer { wifiCommandBusy = false }
             return try await requestUSBWifi(request, generation: connectionGeneration)
@@ -524,6 +524,7 @@ final class CompanionConnection: NSObject {
                 return USBEditorResponse(status: 400, headers: [:], body: Data())
             }
             result = try await editorCommand(7, body: Data([state.enabled ? 1 : 0]), generation: generation)
+            if result == Data([4]) { throw USBEditorError.wifiSaveBusy }
             guard result == Data([1]) else { throw USBEditorError.wifiSaveUnsupported }
             let clock = ContinuousClock()
             let deadline = clock.now.advanced(by: .seconds(5))

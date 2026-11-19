@@ -26,9 +26,8 @@ class CompanionUSBEditor {
   int editor_socket_{-1};
   int owner_{-1};
 #ifdef USE_WIFI
-  std::atomic<int8_t> requested_wifi_state_{-1};
-  std::atomic<bool> wifi_save_pending_{false};
-  std::atomic<bool> wifi_save_succeeded_{false};
+  enum class WifiSaveState { idle, disable_pending, enable_pending, disabled, enabled, failed };
+  std::atomic<WifiSaveState> wifi_save_state_{WifiSaveState::idle};
   std::atomic<bool> wifi_enabled_{true};
 #endif
 };
