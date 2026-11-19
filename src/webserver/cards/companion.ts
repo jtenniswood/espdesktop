@@ -1643,16 +1643,19 @@ export function registerCompanionCardTypes(
                 helpers.idPrefix + "companion-app-shortcuts",
                 canAddSubpage && !!appShortcutPageOwner(card),
             );
+            const hasTokenUsage = !!appTokenUsageService(card.entity);
             const needsStarter = initialMode === "app" && !!companionShortcutFolderAppLabel(card.entity) &&
                 card.entity !== "com.apple.finder" && card.entity !== APPLE_SHORTCUTS_APP_ID &&
                 companionShortcutDefaultTabs(card.entity).length === 0;
             if (needsStarter && panel) loadAppShortcuts(card.entity, panel);
-            if (needsStarter && !folderToggle.input.checked) folderToggle.input.disabled = true;
+            if (needsStarter && !hasTokenUsage && !folderToggle.input.checked) folderToggle.input.disabled = true;
             shortcutFolderField.appendChild(folderToggle.row);
             const shortcutFolderNote = document.createElement("div");
             shortcutFolderNote.className = "sp-field-info-text";
             const shortcutFolderApp = companionShortcutFolderAppLabel(card.entity) || card.label || card.entity;
-            shortcutFolderNote.textContent = needsStarter ? "Connect Mac Companion to load this app’s shortcuts."
+            shortcutFolderNote.textContent = hasTokenUsage && needsStarter
+                ? "Start with Token Usage. Connect Mac Companion to load this app’s shortcuts."
+                : needsStarter ? "Connect Mac Companion to load this app’s shortcuts."
                 : card.entity === "com.apple.finder"
                 ? "Folders approved on your Mac appear in free cells. Pin a folder to keep it on the board and edit its name or position."
                 : card.entity === APPLE_SHORTCUTS_APP_ID
