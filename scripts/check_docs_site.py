@@ -373,14 +373,18 @@ def check_build(dist):
     if 'noindex' not in missing.meta.get('robots', '') or missing.canonicals:
         errors.append('The 404 page must stay out of search and have no canonical URL')
 
-    faq = pages[BASE + 'reference/faq']
-    schemas = [schema for schema in faq.schemas if schema.get('@type') == 'FAQPage']
-    if len(schemas) != 1:
-        errors.append('FAQ must have exactly one generated FAQPage schema')
-    else:
+    faq_answers_verified = 0
+    for route in ('reference/faq', 'mac-controls/obs-studio'):
+        faq = pages[BASE + route]
+        schemas = [schema for schema in faq.schemas if schema.get('@type') == 'FAQPage']
+        if len(schemas) != 1:
+            errors.append(f'{route} must have exactly one generated FAQPage schema')
+            continue
         actual = [(entry['name'], text_only(entry['acceptedAnswer']['text'])) for entry in schemas[0]['mainEntity']]
-        if actual != faq.faq:
-            errors.append('FAQ structured answers differ from the rendered questions or answers')
+        if not actual or actual != faq.faq:
+            errors.append(f'{route} FAQ structured answers differ from the rendered questions or answers')
+        else:
+            faq_answers_verified += len(actual)
 
     redirects = {
         'card-types/climate': 'https://jtenniswood.github.io/espcontrol/card-types/climate',
@@ -455,9 +459,9 @@ def check_build(dist):
 
     if errors:
         raise SystemExit('\n'.join(sorted(set(errors))))
-    report['faq_answers_verified'] = len(faq.faq)
+    report['faq_answers_verified'] = faq_answers_verified
     print(f'Docs site checks passed: {len(pages)} reachable canonical pages with share metadata and Markdown editions, '
-          f'{len(faq.faq)} matching FAQ answers, {len(redirects)} redirects; links, images and breadcrumbs checked.')
+          f'{faq_answers_verified} matching FAQ answers, {len(redirects)} redirects; links, images and breadcrumbs checked.')
     return report
 
 

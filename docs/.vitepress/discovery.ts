@@ -142,12 +142,18 @@ ${fragmentRedirect}
 // maintained answers, and no second parser with different link/format rules.
 export function faqSchema(md: MarkdownRenderer) {
   md.core.ruler.push('espdesktop-faq', (state) => {
-    if (state.env.relativePath !== 'reference/faq.md') return
+    const referenceFaq = state.env.relativePath === 'reference/faq.md'
+    if (!referenceFaq && state.env.relativePath !== 'mac-controls/obs-studio.md') return
+    let inFaq = referenceFaq
     const entries = []
     const tokens = state.tokens
     for (let index = 0; index < tokens.length; index++) {
-      if (tokens[index].type !== 'heading_open' || tokens[index].tag !== 'h3') continue
+      if (tokens[index].type !== 'heading_open') continue
       const heading = tokens[index + 1]
+      if (!referenceFaq && tokens[index].tag === 'h2') {
+        inFaq = heading.content === 'FAQ'
+      }
+      if (!inFaq || tokens[index].tag !== 'h3') continue
       let end = index + 3
       while (end < tokens.length && !(
         tokens[end].type === 'heading_open' && Number(tokens[end].tag.slice(1)) <= 3
