@@ -125,6 +125,22 @@ espdesktop:
         subpage_chunks: [subpage_19_config, subpage_19_config_ext, subpage_19_config_ext_2, subpage_19_config_ext_3, subpage_19_config_ext_4, subpage_19_config_ext_5, subpage_19_config_ext_6, subpage_19_config_ext_7]
       - config: button_20_config
         subpage_chunks: [subpage_20_config, subpage_20_config_ext, subpage_20_config_ext_2, subpage_20_config_ext_3, subpage_20_config_ext_4, subpage_20_config_ext_5, subpage_20_config_ext_6, subpage_20_config_ext_7]
+      - config: button_21_config
+        subpage_chunks: [subpage_21_config, subpage_21_config_ext, subpage_21_config_ext_2, subpage_21_config_ext_3, subpage_21_config_ext_4, subpage_21_config_ext_5, subpage_21_config_ext_6, subpage_21_config_ext_7]
+      - config: button_22_config
+        subpage_chunks: [subpage_22_config, subpage_22_config_ext, subpage_22_config_ext_2, subpage_22_config_ext_3, subpage_22_config_ext_4, subpage_22_config_ext_5, subpage_22_config_ext_6, subpage_22_config_ext_7]
+      - config: button_23_config
+        subpage_chunks: [subpage_23_config, subpage_23_config_ext, subpage_23_config_ext_2, subpage_23_config_ext_3, subpage_23_config_ext_4, subpage_23_config_ext_5, subpage_23_config_ext_6, subpage_23_config_ext_7]
+      - config: button_24_config
+        subpage_chunks: [subpage_24_config, subpage_24_config_ext, subpage_24_config_ext_2, subpage_24_config_ext_3, subpage_24_config_ext_4, subpage_24_config_ext_5, subpage_24_config_ext_6, subpage_24_config_ext_7]
+      - config: button_25_config
+        subpage_chunks: [subpage_25_config, subpage_25_config_ext, subpage_25_config_ext_2, subpage_25_config_ext_3, subpage_25_config_ext_4, subpage_25_config_ext_5, subpage_25_config_ext_6, subpage_25_config_ext_7]
+      - config: button_26_config
+        subpage_chunks: [subpage_26_config, subpage_26_config_ext, subpage_26_config_ext_2, subpage_26_config_ext_3, subpage_26_config_ext_4, subpage_26_config_ext_5, subpage_26_config_ext_6, subpage_26_config_ext_7]
+      - config: button_27_config
+        subpage_chunks: [subpage_27_config, subpage_27_config_ext, subpage_27_config_ext_2, subpage_27_config_ext_3, subpage_27_config_ext_4, subpage_27_config_ext_5, subpage_27_config_ext_6, subpage_27_config_ext_7]
+      - config: button_28_config
+        subpage_chunks: [subpage_28_config, subpage_28_config_ext, subpage_28_config_ext_2, subpage_28_config_ext_3, subpage_28_config_ext_4, subpage_28_config_ext_5, subpage_28_config_ext_6, subpage_28_config_ext_7]
 # ---------------------------------------------------------------------------
 # ESPHome core (device name from substitutions)
 # ---------------------------------------------------------------------------
@@ -133,6 +149,7 @@ esphome:
   friendly_name: ${friendly_name}
   build_flags:
     - "-Wno-deprecated-declarations"
+    - "-DESPDESKTOP_MAX_GRID_SLOTS=28"
     # Force cached ESPHome objects to rebuild after the 2026.5
     # core/scheduler/watchdog changes; stale 2026.4 objects can boot-loop.
     - "-DESPDESKTOP_ESPHOME_2026_5_REBUILD=1"

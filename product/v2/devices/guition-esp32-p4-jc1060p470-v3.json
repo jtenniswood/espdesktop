@@ -33,11 +33,11 @@
     }
   },
   "overrides": {
-    "slots": 20,
+    "slots": 28,
     "layout": {
-      "cols": 5,
+      "cols": 7,
       "rows": 4,
-      "firmwareGrid": "4x5",
+      "firmwareGrid": "4x7",
       "portraitCols": 4
     },
     "firmware": {
@@ -51,7 +51,7 @@
     "web": {
       "portrait": {
         "cols": 4,
-        "rows": 5
+        "rows": 7
       },
       "grid": {
         "gap": 0.976562
