@@ -1,6 +1,8 @@
 ---
 title: Choose an EspDesktop Display
 description: Compare the 4-inch and 7-inch EspDesktop touchscreens before buying, then open the matching buying and installation guide.
+pageClass: display-chooser-page
+aside: false
 ---
 
 # Choose your display
@@ -11,7 +13,12 @@ Choose the screen size you want before you buy. Each model has its own firmware 
 
 <article class="display-choice">
 
-<img src="/images/espdesktop-desk-480.avif" alt="Square 4-inch touchscreen beside a keyboard" width="480" height="397">
+<picture>
+  <source type="image/avif" srcset="/images/espdesktop-desk-480.avif 480w, /images/espdesktop-desk-960.avif 960w" sizes="(min-width: 960px) 510px, (min-width: 560px) 48vw, 95vw">
+  <img src="/images/espdesktop-desk.jpg" alt="Square 4-inch touchscreen beside a keyboard" width="1320" height="1093">
+</picture>
+
+<div class="display-choice-copy">
 
 ## 4-inch square display
 
@@ -23,11 +30,15 @@ Use the public firmware and browser installer.
 
 <a class="docs-primary-action" href="/screens/4848s040">Choose 4-inch</a>
 
+</div>
+
 </article>
 
 <article class="display-choice">
 
 <img src="/images/jc1060p470-hero.jpg" alt="Wide 7-inch Guition JC1060P470 touchscreen" width="1024" height="798">
+
+<div class="display-choice-copy">
 
 ## 7-inch landscape display
 
@@ -39,11 +50,18 @@ EspDesktop firmware for this model is currently a test build. Check the V3 hardw
 
 <a class="docs-primary-action" href="/screens/jc1060p470-v3">Choose 7-inch</a>
 
+</div>
+
 </article>
 
 </div>
 
 <style scoped>
+:global(.display-chooser-page .VPDoc > .container > .content) {
+  width: 100%;
+  max-width: 1040px;
+}
+
 .display-choices {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(min(100%, 250px), 1fr));
@@ -54,22 +72,35 @@ EspDesktop firmware for this model is currently a test build. Check the V3 hardw
 .display-choice {
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
-  padding: 20px;
+  min-width: 0;
+  overflow: hidden;
   border: 1px solid var(--vp-c-divider);
   border-radius: 12px;
 }
 
+.display-choice picture {
+  display: block;
+}
+
 .display-choice img {
+  display: block;
   width: 100%;
-  aspect-ratio: 4 / 3;
+  height: auto;
+  aspect-ratio: 5 / 4;
   object-fit: contain;
   background: var(--vp-c-bg-soft);
-  border-radius: 8px;
+}
+
+.display-choice-copy {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: 20px;
 }
 
 .display-choice h2 {
-  margin: 18px 0 0;
+  margin: 0;
   padding: 0;
   border: 0;
   font-size: 1.25rem;
