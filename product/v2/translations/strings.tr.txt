@@ -374,3 +374,5 @@ turn_on_studio_mode=Stüdyo modu açılsın mı?
 turn_off_studio_mode=Stüdyo modu kapatılsın mı?
 start_replay_buffer_prompt=Tekrar tamponu başlatılsın mı?
 stop_replay_buffer_prompt=Tekrar tamponu durdurulsun mu?
+token_usage_resets=Sıfırlanır
+token_usage_last_known=Son bilinen

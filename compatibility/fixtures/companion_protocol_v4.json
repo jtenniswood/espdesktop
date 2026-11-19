@@ -1,5 +1,74 @@
 [
   {
+    "name": "token usage demand selects only configured providers",
+    "message": {
+      "protocol": 4,
+      "type": "token_usage.demand",
+      "providers": [
+        "codex",
+        "opencode-go"
+      ]
+    },
+    "direction": "panel_to_mac",
+    "state": "connected",
+    "valid": true
+  },
+  {
+    "name": "empty token usage demand stops polling",
+    "message": {
+      "protocol": 4,
+      "type": "token_usage.demand",
+      "providers": []
+    },
+    "direction": "panel_to_mac",
+    "state": "connected",
+    "valid": true
+  },
+  {
+    "name": "token usage demand requires authentication",
+    "message": {
+      "protocol": 4,
+      "type": "token_usage.demand",
+      "providers": [
+        "codex"
+      ]
+    },
+    "direction": "panel_to_mac",
+    "state": "authenticating",
+    "valid": false
+  },
+  {
+    "name": "weekly token usage",
+    "message": {
+      "protocol": 4,
+      "type": "token_usage",
+      "readings": [
+        { "service": "codex", "remainingPercent": 41, "resetsAt": 1700172800, "observedAt": 1700000000 },
+        { "service": "claude", "remainingPercent": 72, "resetsAt": 1700345600, "observedAt": 1700000000 },
+        { "service": "opencode-go", "remainingPercent": 54, "resetsAt": 1700432000, "observedAt": 1700000000 },
+        { "service": "opencode-go-monthly", "remainingPercent": 72, "resetsAt": 1701993600, "observedAt": 1700000000 },
+        { "service": "cursor", "remainingPercent": 41, "resetsAt": 1701993600, "observedAt": 1700000000 },
+        { "service": "antigravity", "remainingPercent": 100, "resetsAt": 0, "observedAt": 1700000000 }
+      ]
+    },
+    "direction": "mac_to_panel",
+    "state": "connected",
+    "valid": true
+  },
+  {
+    "name": "weekly token usage rejects an invalid percentage",
+    "message": {
+      "protocol": 4,
+      "type": "token_usage",
+      "readings": [
+        { "service": "claude", "remainingPercent": 101, "resetsAt": 1700345600, "observedAt": 1700000000 }
+      ]
+    },
+    "direction": "mac_to_panel",
+    "state": "connected",
+    "valid": false
+  },
+  {
     "name": "hello",
     "message": {
       "protocol": 4,

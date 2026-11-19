@@ -1,5 +1,5 @@
 {
-  "version": 24,
+  "version": 26,
   "protocol": {
     "version": 4,
     "path": "/companion/v4",
@@ -473,6 +473,79 @@
             "maxLength": 64,
             "pattern": "hex64",
             "optional": true
+          }
+        },
+        "states": [
+          "connected"
+        ]
+      },
+      {
+        "id": "token_usage.demand",
+        "direction": "panel_to_mac",
+        "authorization": "session",
+        "fields": {
+          "providers": {
+            "type": "array",
+            "maxItems": 5,
+            "items": {
+              "type": "string",
+              "enum": [
+                "codex",
+                "claude",
+                "opencode-go",
+                "cursor",
+                "antigravity"
+              ],
+              "minLength": 5,
+              "maxLength": 11
+            }
+          }
+        },
+        "states": [
+          "connected"
+        ]
+      },
+      {
+        "id": "token_usage",
+        "direction": "mac_to_panel",
+        "authorization": "session",
+        "fields": {
+          "readings": {
+            "type": "array",
+            "maxItems": 6,
+            "items": {
+              "type": "object",
+              "fields": {
+                "service": {
+                  "type": "string",
+                  "minLength": 5,
+                  "maxLength": 19,
+                  "enum": [
+                    "codex",
+                    "claude",
+                    "opencode-go",
+                    "opencode-go-monthly",
+                    "cursor",
+                    "antigravity"
+                  ]
+                },
+                "remainingPercent": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 100
+                },
+                "resetsAt": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 4294967295
+                },
+                "observedAt": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 4294967295
+                }
+              }
+            }
           }
         },
         "states": [

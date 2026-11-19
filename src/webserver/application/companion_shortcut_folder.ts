@@ -1,3 +1,4 @@
+import { cardContractDefaultConfig } from "../generated/card_contract";
 import { preserveGeneratedCardExclusions } from "../model/generated_page_cards";
 import { COMPANION_SHORTCUT_APPS as BUNDLED_SHORTCUT_APPS, SHORTCUT_CATALOGUE_STARTER_ONLY } from "../generated/app_shortcuts";
 import { bundledExpandedShortcuts, SCOPED_SHORTCUT_PREFIX } from "./companion_shortcut_data";
@@ -145,7 +146,7 @@ export function companionShortcutFolderAppLabel(bundleIdentifier: unknown): stri
     if (bundleIdentifier === "com.apple.finder") return "Finder";
     if (bundleIdentifier === APPLE_SHORTCUTS_APP_ID) return "Shortcuts";
     if (typeof bundleIdentifier !== "string") return "";
-    return companionShortcutApp(bundleIdentifier)?.label || "";
+    return companionShortcutApp(bundleIdentifier)?.label || (appTokenUsageService(bundleIdentifier) === "antigravity" ? "Google Antigravity" : "");
 }
 
 function companionShortcutApp(bundleIdentifier: string): AppShortcutApplication | undefined {
@@ -526,13 +527,74 @@ export function companionShortcutPresetCards(bundleIdentifier: string): Companio
     }));
 }
 
+const appUsageDefaults = {
+    "com.openai.codex": "codex",
+    "com.openai.chat": "codex",
+    "com.anthropic.claudefordesktop": "claude",
+    "com.todesktop.230313mzl4w4u92": "cursor",
+    "ai.opencode.desktop": "opencode-go",
+    "com.google.antigravity": "antigravity",
+    "com.google.antigravity-ide": "antigravity",
+} as const;
+type AppTokenUsageService = typeof appUsageDefaults[keyof typeof appUsageDefaults];
+
+export function appTokenUsageService(bundleIdentifier: string): AppTokenUsageService | undefined {
+    return Object.hasOwn(appUsageDefaults, bundleIdentifier)
+        ? appUsageDefaults[bundleIdentifier as keyof typeof appUsageDefaults] : undefined;
+}
+
+function appPageDefaultCards(bundleIdentifier: string): CompanionShortcutPresetCard[] {
+    const service = appTokenUsageService(bundleIdentifier);
+    return service ? [{ ...cardContractDefaultConfig("token_usage"),
+        options: service === "codex" ? "" : "services=" + service }] : [];
+}
+
+export function subpageHasAppTokenUsage(page: any, service: AppTokenUsageService): boolean {
+    return page?.buttons?.some((card: any) => card.type === "token_usage" &&
+        (configOptionValue(card.options, "services") || "codex") === service) ?? false;
+}
+
+export function addAppTokenUsageCard(bundleIdentifier: string, page: any, maxSlots: number): boolean {
+    const service = appTokenUsageService(bundleIdentifier);
+    if (!service || subpageHasAppTokenUsage(page, service)) return false;
+
+    const order = [...page.order];
+    if (!order.some(isBackOrderToken)) order.unshift("B");
+    const firstShortcut = order.findIndex(token => {
+        const index = subpageOrderButtonIndex(token);
+        return index >= 0 && page.buttons[index]?.type === "companion" &&
+            page.buttons[index].entity?.startsWith(COMPANION_SHORTCUT_PREFIX);
+    });
+    const afterBack = order.findIndex(isBackOrderToken) + 1;
+    const start = firstShortcut < 0 || page.grid[afterBack] === 0 ? afterBack : firstShortcut;
+    // Shift only consecutive one-cell shortcuts starting at the first shortcut.
+    // Preserve custom layouts if another tile or span blocks the available space.
+    const legacyPresets = legacyCompanionShortcutPresetKeys(bundleIdentifier, companionShortcutPresetCards(bundleIdentifier));
+    let end = start;
+    while (end < maxSlots && page.grid[end] > 0) {
+        const token = order[end];
+        const card = page.buttons[subpageOrderButtonIndex(token)];
+        if (subpageOrderButtonSuffix(token) || !card) return false;
+        const marker = configOptionValue(card.options, COMPANION_SHORTCUT_PRESET_OPTION);
+        const managed = marker ? companionShortcutPresetIdentity(card).startsWith(bundleIdentifier + ":")
+            : card.type === "companion" && legacyPresets.has(card.entity);
+        if (!managed) return false;
+        end += 1;
+    }
+    if (end >= maxSlots || page.grid[end] !== 0 || page.buttons.length >= maxSlots - 1) return false;
+    for (let position = end; position > start; position -= 1) order[position] = order[position - 1];
+    order[start] = String(page.buttons.push(...appPageDefaultCards(bundleIdentifier)));
+    page.order = order;
+    return true;
+}
+
 export function createCompanionShortcutSubpage(bundleIdentifier: string, tabs?: readonly string[]) {
     const presets = companionShortcutPresetCards(bundleIdentifier);
     const selected = tabs == null ? companionShortcutDefaultTabs(bundleIdentifier) : tabs;
-    const buttons = selected.map(function (value) {
+    const shortcuts = selected.map(function (value) {
         return presets.find((preset) => companionShortcutPresetIdentity(preset) === bundleIdentifier + ":" + value);
     }).filter(preset => preset !== undefined);
-    return createShortcutPage(buttons);
+    return createShortcutPage([...appPageDefaultCards(bundleIdentifier), ...shortcuts]);
 }
 
 function createShortcutPage(buttons: CompanionShortcutPresetCard[]) {
@@ -545,8 +607,9 @@ function createShortcutPage(buttons: CompanionShortcutPresetCard[]) {
     };
 }
 
-export function companionShortcutTabsForCapacity(tabs: readonly string[], maxSlots: number): string[] {
-    return tabs.slice(0, Math.max(0, maxSlots - 1));
+export function companionShortcutTabsForCapacity(tabs: readonly string[], maxSlots: number, bundleIdentifier?: string): string[] {
+    const reserved = 1 + (bundleIdentifier ? appPageDefaultCards(bundleIdentifier).length : 0);
+    return tabs.slice(0, Math.max(0, maxSlots - reserved));
 }
 
 export function finderFolderTabs(subpage: any): string[] {
@@ -836,7 +899,7 @@ export function companionShortcutTabsFitSubpage(
     subpage: any,
     maxSlots: number,
 ): boolean {
-    if (!subpage) return tabs.length + 1 <= maxSlots;
+    if (!subpage) return companionShortcutTabsForCapacity(tabs, maxSlots, bundleIdentifier).length === tabs.length;
     const source = {
         ...subpage,
         order: (subpage.order || []).slice(),

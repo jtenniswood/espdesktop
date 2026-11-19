@@ -1,7 +1,7 @@
 ---
 title: "EspDesktop: A touchscreen controller for your Mac"
 titleTemplate: :title
-description: Launch apps, open websites and Finder folders, and run keyboard shortcuts from a 4-inch touchscreen paired with the free EspDesktop Mac app.
+description: Launch apps, run keyboard shortcuts, and track AI usage from a 4-inch touchscreen paired with the free EspDesktop Mac app.
 layout: home
 ---
 
@@ -127,6 +127,21 @@ Switch scenes, mute audio inputs, and start or stop streaming and recording from
 
 </article>
 
+<article>
+
+<svg class="homepage-feature-icon" viewBox="0 0 24 24" aria-hidden="true">
+  <path d="M4.9 17a9 9 0 1 1 14.2 0H4.9Z" />
+  <path d="m12 14 4-4M7 13h1m4-5v1m4 4h1" />
+</svg>
+
+### Track AI usage
+
+See how much of your ChatGPT (Codex), Claude, OpenCode Go, Cursor, or Google Antigravity allowance is left and when it resets.
+
+[Set up Token Usage](/card-types/token-usage)
+
+</article>
+
 </div>
 
 </section>
@@ -137,7 +152,7 @@ Switch scenes, mute audio inputs, and start or stop streaming and recording from
 
 ## EspDesktop in action {#a-look-at-the-web-editor}
 
-Tap Safari, Slack, Notes, ChatGPT, or Claude to see their keyboard shortcuts, or tap Finder to see its folders. Tap the app icon on any subpage to go back home.
+Tap ChatGPT or Claude to see a sample Token Usage card above the shortcuts. Try Safari, Slack, or Notes for more shortcuts, or tap Finder to see its folders. Tap the app icon on any subpage to go back home.
 
 <div class="homepage-editor-actions">
 

@@ -1,0 +1,9 @@
+[
+  {"name":"no reading","connected":true,"now":1750000000,"observedAt":0,"resetsAt":null,"state":"unavailable"},
+  {"name":"fresh","connected":true,"now":1750000000,"observedAt":1750000000,"resetsAt":1750007200,"state":"countdown"},
+  {"name":"unknown reset","connected":true,"now":1750000000,"observedAt":1750000000,"resetsAt":null,"state":"available"},
+  {"name":"disconnected","connected":false,"now":1750000000,"observedAt":1750000000,"resetsAt":1750007200,"state":"last_known"},
+  {"name":"reset expired before another reading","connected":true,"now":1750000000,"observedAt":1749999990,"resetsAt":1750000000,"state":"last_known"},
+  {"name":"stale with unknown reset","connected":true,"now":1750000000,"observedAt":1749999099,"resetsAt":null,"state":"last_known"},
+  {"name":"panel clock not ready","connected":true,"now":0,"observedAt":1750000000,"resetsAt":1750007200,"state":"last_known"}
+]

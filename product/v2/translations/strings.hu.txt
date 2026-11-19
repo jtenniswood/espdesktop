@@ -374,3 +374,5 @@ turn_on_studio_mode=Bekapcsolja a stúdió módot?
 turn_off_studio_mode=Kikapcsolja a stúdió módot?
 start_replay_buffer_prompt=Elindítja a visszajátszási puffert?
 stop_replay_buffer_prompt=Leállítja a visszajátszási puffert?
+token_usage_resets=Visszaáll
+token_usage_last_known=Utolsó ismert

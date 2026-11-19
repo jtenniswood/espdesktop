@@ -4472,6 +4472,110 @@ async function assertAppVolumeCard(browser) {
   } finally { await context.close(); }
 }
 
+async function assertTokenUsageCard(browser) {
+  const testCase = CASES.find(item => item.slug === "guition-esp32-s3-4848s040");
+  const nativeState = nativeConfigState(testCase.slug);
+  nativeState.document.buttons = { 2: COPY_SHORTCUT };
+  nativeState.document.settings.button_order = "2";
+  nativeState.document.subpages = {};
+  const context = await browser.newContext({ viewport: testCase.viewport });
+  await installRoutes(context, testCase.slug, { nativeState });
+  const page = await context.newPage();
+  await installFakeEventSource(page);
+  let slot;
+  const tile = () => page.locator('.sp-main [data-slot="' + slot + '"]');
+  const service = page.getByLabel("Service", { exact: true });
+  const save = () => page.getByRole("button", { name: "Save", exact: true }).click();
+  const load = async () => {
+    await page.waitForFunction(() => window.__eventSources?.length > 0);
+    await page.getByRole("tab", { name: "Layout", exact: true }).click();
+    await seedNativeDocument(page, nativeState);
+  };
+  const edit = async () => {
+    await tile().click();
+    await page.getByRole("button", { name: "Edit", exact: true }).click();
+  };
+  try {
+    await page.goto(`http://espdesktop.test/${testCase.slug}?events=1`);
+    await load();
+    await page.locator(".sp-main .sp-empty-cell").first().click();
+    await page.getByRole("button", { name: "Token Usage card type", exact: true }).click();
+    assert.deepStrictEqual(await service.locator("option").evaluateAll(options => options.map(option => option.value)), ["codex", "claude", "opencode-go", "cursor", "antigravity"]);
+    await service.selectOption("claude");
+    await save();
+    await waitForNativeState(nativeState, () => {
+      slot = Object.keys(nativeState.document.buttons).find(key =>
+        parseRawButtonConfig(nativeState.document.buttons[key]).type === "token_usage");
+      return slot && parseRawButtonConfig(nativeState.document.buttons[slot]).options.includes("services=claude");
+    },
+      "Token Usage saves Claude");
+    await page.reload();
+    await load();
+    const claudeIcon = tile().getByRole("img", { name: "Claude" });
+    await claudeIcon.waitFor();
+    // Re-query the live tile while the editor finishes restoring its preview.
+    await page.waitForFunction(async (slot) => {
+      const icon = document.querySelector(
+        '.sp-main [data-slot="' + slot + '"] .sp-token-usage-icon[aria-label="Claude"]');
+      if (!icon || !getComputedStyle(icon).fontFamily.includes("EspDesktop Usage Icons")) return false;
+      const fonts = await document.fonts.load('16px "EspDesktop Usage Icons"', icon.textContent);
+      return icon.isConnected && fonts.some(font => font.status === "loaded");
+    }, slot);
+    assert.deepStrictEqual(await tile().locator(".sp-token-usage-reset").allTextContents(),
+      ["Resets 2d 9h"]);
+    await edit();
+    assert.strictEqual(await service.inputValue(), "claude");
+    await service.selectOption("opencode-go");
+    const limit = page.getByLabel("Time period", { exact: true });
+    assert.equal(await limit.inputValue(), "weekly");
+    await limit.selectOption("monthly");
+    await save();
+    await waitForNativeState(nativeState, () => parseRawButtonConfig(nativeState.document.buttons[slot]).options === "services=opencode-go,limit=monthly",
+      "Token Usage saves OpenCode Go");
+    await page.reload();
+    await load();
+    await tile().getByRole("img", { name: "OpenCode Go" }).waitFor();
+    await edit();
+    assert.strictEqual(await service.inputValue(), "opencode-go");
+    assert.strictEqual(await limit.inputValue(), "monthly");
+    await page.keyboard.press("Escape");
+    nativeState.document.buttons[slot] = nativeState.document.buttons[slot].replace("opencode-go,limit=monthly", "claude-enterprise");
+    await page.reload();
+    await load();
+    await tile().getByText("Unavailable", { exact: true }).waitFor();
+    assert.strictEqual(await tile().locator(".sp-token-usage-reset").count(), 0);
+    await edit();
+    assert.strictEqual(await service.inputValue(), "");
+    await service.selectOption("codex");
+    await save();
+    await waitForNativeState(nativeState, () => parseRawButtonConfig(nativeState.document.buttons[slot]).options === "",
+      "Token Usage saves Codex");
+    await tile().getByRole("img", { name: "Codex" }).waitFor();
+    assert.strictEqual(await tile().getByRole("img", { name: "Claude" }).count(), 0);
+    await edit();
+    await service.selectOption("cursor");
+    assert.equal(await limit.isVisible(), false);
+    await save();
+    await waitForNativeState(nativeState, () => parseRawButtonConfig(nativeState.document.buttons[slot]).options === "services=cursor",
+      "Token Usage saves Cursor");
+    await page.reload();
+    await load();
+    await tile().getByRole("img", { name: "Cursor" }).waitFor();
+    await edit();
+    await service.selectOption("antigravity");
+    assert.equal(await limit.isVisible(), false);
+    await save();
+    await waitForNativeState(nativeState, () => parseRawButtonConfig(nativeState.document.buttons[slot]).options === "services=antigravity",
+      "Token Usage saves Antigravity");
+    await page.reload();
+    await load();
+    await tile().getByRole("img", { name: "Google Antigravity (Gemini)", exact: true }).waitFor();
+    console.log("Token Usage picker, weekly previews, save and reload passed.");
+  } finally {
+    await context.close();
+  }
+}
+
 async function assertMacLockCard(browser) {
   const testCase = CASES.find(item => item.slug === "guition-esp32-s3-4848s040");
   const nativeState = nativeConfigState(testCase.slug);
@@ -5457,6 +5561,102 @@ async function assertCompanionURLOpenBehavior(browser, testCase) {
   }
 }
 
+async function assertAutomaticAppTokenUsage(browser, testCase) {
+  if (testCase.slug !== "guition-esp32-s3-4848s040") return;
+  const fixture = nativeConfigState(testCase.slug);
+  const apps = [
+    ["com.openai.codex", "ChatGPT", "TU", true],
+    ["ai.opencode.desktop", "OpenCode", "services=opencode-go", true],
+    ["com.google.antigravity", "Antigravity", "services=antigravity", true],
+    ["com.apple.Safari", "Safari", "", false],
+  ];
+  fixture.document.buttons = Object.fromEntries(apps.map(([id, name], index) =>
+    [index + 1, id + ";" + name + ";Auto;Auto;;;companion"]));
+  fixture.document.settings.button_order = "1,2,3,4";
+  fixture.document.subpages = {};
+  const context = await browser.newContext({ viewport: testCase.viewport });
+  await installRoutes(context, testCase.slug, { nativeState: fixture });
+  const page = await context.newPage();
+  await installFakeEventSource(page);
+  try {
+    await page.goto(`http://espdesktop.test/${testCase.slug}?events=1`, { waitUntil: "domcontentloaded" });
+    await page.waitForFunction(() => window.__eventSources?.length > 0);
+    await seedNativeDocument(page, fixture);
+    for (const [index, [, name, service, expectUsage]] of apps.entries()) {
+      const slot = index + 1;
+      await page.locator(`.sp-main [data-slot="${slot}"]`).click();
+      await page.getByRole("button", { name: "Edit", exact: true }).click();
+      const app = page.locator(".sp-settings-modal .sp-app-subpage-settings");
+      const header = app.locator(".sp-disclosure-button");
+      if (await header.getAttribute("aria-expanded") !== "true") await header.click();
+      const toggle = app.locator('input[id$="companion-app-shortcuts"]');
+      await toggle.evaluate(input => input.click());
+      const included = app.locator(".sp-app-subpage-included");
+      if (expectUsage) {
+        await included.waitFor();
+        assert.equal((await included.innerText()).replace(/\s+/g, " "), "Token Usage Included");
+        assert.equal(await app.locator(".sp-light-tab-list > :first-child").getAttribute("class"),
+          "sp-light-tab-row sp-app-subpage-included", name);
+      } else {
+        assert.equal(await included.count(), 0, name);
+      }
+      await page.getByRole("button", { name: "Save", exact: true }).click();
+      await waitForNativeState(fixture, () => !!fixture.document.subpages[slot], name + " subpage saves");
+      const [order, first] = decodeURIComponent(fixture.document.subpages[slot]).split("|");
+      assert(order.startsWith("~B,1"), name);
+      assert.equal(first.split(",")[0] === "TU", expectUsage, name);
+      if (expectUsage) assert(first.includes(service), name);
+    }
+  } finally {
+    await context.close();
+  }
+}
+
+async function assertManualAppTokenUsage(browser, testCase) {
+  if (testCase.slug !== "guition-esp32-s3-4848s040") return;
+  const fixture = nativeConfigState(testCase.slug);
+  fixture.document.buttons = {
+    1: "com.google.antigravity;Antigravity;Auto;Auto;;;companion;;app_shortcuts",
+    2: COPY_SHORTCUT,
+  };
+  fixture.document.settings.button_order = "1,2";
+  fixture.document.subpages = {1: "~B,1|CP,shortcut.command%2Bc,Custom%20copy,Copy"};
+  const context = await browser.newContext({ viewport: testCase.viewport });
+  await installRoutes(context, testCase.slug, { nativeState: fixture });
+  const page = await context.newPage();
+  await installFakeEventSource(page);
+  try {
+    await page.goto(`http://espdesktop.test/${testCase.slug}?events=1`, { waitUntil: "domcontentloaded" });
+    await page.waitForFunction(() => window.__eventSources?.length > 0);
+    await seedNativeDocument(page, fixture);
+    await page.getByRole("tab", { name: "Layout", exact: true }).click();
+    const openSettings = async () => {
+      await page.locator('.sp-main [data-slot="1"]').click();
+      await page.getByRole("button", { name: "Edit", exact: true }).click();
+      const header = page.locator(".sp-app-subpage-settings .sp-disclosure-button");
+      if (await header.getAttribute("aria-expanded") !== "true") await header.click();
+    };
+    await openSettings();
+    assert.equal(await page.getByRole("button", { name: "Add Token Usage", exact: true }).isDisabled(), true);
+    await page.getByRole("button", { name: "Save", exact: true }).click();
+    assert(!fixture.document.subpages[1].includes("|TU"), "saving keeps the custom layout");
+
+    fixture.document.subpages[1] = "~B,,1|CP,shortcut.command%2Bc,Custom%20copy,Copy";
+    await page.reload();
+    await page.waitForFunction(() => window.__eventSources?.length > 0);
+    await seedNativeDocument(page, fixture);
+    await page.getByRole("tab", { name: "Layout", exact: true }).click();
+    await openSettings();
+    await page.getByRole("button", { name: "Add Token Usage", exact: true }).click();
+    await page.getByRole("button", { name: "Save", exact: true }).click();
+    await waitForNativeState(fixture, () => fixture.document.subpages[1]?.includes("|TU"), "explicit Token Usage save");
+    const [order] = decodeURIComponent(fixture.document.subpages[1]).split("|");
+    assert(order.startsWith("~B,2,1"), "adding Token Usage leaves the custom shortcut in place");
+  } finally {
+    await context.close();
+  }
+}
+
 async function assertAppSubpageCapacity(browser, testCase) {
   if (testCase.slug !== "guition-esp32-s3-4848s040") return;
   const shortcuts = loadTypeScriptModule("src/webserver/application/companion_shortcut_folder.ts");
@@ -5478,6 +5678,8 @@ async function assertAppSubpageCapacity(browser, testCase) {
     const fixture = nativeConfigState(testCase.slug);
     fixture.document.buttons[1] = appId + ";Codex;Auto;Auto;;;companion;;" + appOptions;
     const subpage = shortcuts.createCompanionShortcutSubpage(appId, initialTabs);
+    subpage.buttons.shift();
+    subpage.order = ["B", "1", "2", "3", "4"];
     subpage.buttons.push({
       type: "companion",
       entity: shortcuts.COMPANION_SHORTCUT_PREFIX + customShortcut,
@@ -9115,6 +9317,7 @@ async function assertFirstRunSetup(browser) {
     if (process.env.ESPDESKTOP_RETIRED_CARDS_ONLY === "1") return;
     await assertMacLockCard(browser);
     await assertAppVolumeCard(browser);
+    await assertTokenUsageCard(browser);
     if (process.env.ESPDESKTOP_RETIRED_SETTINGS_ONLY === "1") {
       for (const testCase of ACTIVE_CASES) await assertRetiredSettingsStayUnavailable(browser, testCase);
       await assertNamingOfflineBackups(browser);
@@ -9125,6 +9328,8 @@ async function assertFirstRunSetup(browser) {
       const testCase = CASES.find(item => item.slug === "guition-esp32-s3-4848s040");
       await assertCompanionURLOpenBehavior(browser, testCase);
       await assertCompanionShortcutSettings(browser, testCase);
+      await assertAutomaticAppTokenUsage(browser, testCase);
+      await assertManualAppTokenUsage(browser, testCase);
       await assertAppSubpageCapacity(browser, testCase);
       await assertShortcutCatalogSettings(browser, testCase);
       await assertOnDemandShortcutSettings(browser, testCase);
@@ -9255,6 +9460,8 @@ async function assertFirstRunSetup(browser) {
       await assertFixedAppIconControls(browser, testCase);
       await assertCompanionURLOpenBehavior(browser, testCase);
       await assertCompanionShortcutSettings(browser, testCase);
+      await assertAutomaticAppTokenUsage(browser, testCase);
+      await assertManualAppTokenUsage(browser, testCase);
       await assertAppSubpageCapacity(browser, testCase);
       await assertShortcutCatalogSettings(browser, testCase);
       await assertOnDemandShortcutSettings(browser, testCase);

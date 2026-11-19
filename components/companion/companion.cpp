@@ -193,6 +193,19 @@ void CompanionService::loop() {
   if (focus_targets.connected && this->focus_targets_supported_.load() &&
       focus_targets.generation != this->focus_targets_generation_.load())
     this->publish_focus_targets_();
+  if (this->allowance_demand_supported_.load()) {
+    const uint8_t demand = companion_runtime_service().token_usage_demand();
+    if (demand != this->published_allowance_demand_.load()) {
+      constexpr const char *providers[] = {"codex", "claude", "opencode-go", "cursor", "antigravity"};
+      if (this->send_(this->session_.authenticated_socket(), json::build_json([&](JsonObject root) {
+            root["type"] = "token_usage.demand";
+            root["protocol"] = COMPANION_PROTOCOL_VERSION;
+            auto requested = root["providers"].to<JsonArray>();
+            for (size_t i = 0; i < sizeof(providers) / sizeof(providers[0]); ++i)
+              if (demand & (1u << i)) requested.add(providers[i]);
+          }))) this->published_allowance_demand_.store(demand);
+    }
+  }
   const uint32_t now = millis();
   const uint32_t authentication_deadline = this->authentication_expires_at_.load();
   if (authentication_deadline != 0 &&
@@ -620,6 +633,7 @@ void CompanionService::handle_json_(int socket_fd, const std::string &message) {
       bool app_icons_alpha_supported = false;
       bool app_icons_high_resolution_supported = false;
       bool focus_targets_supported = false;
+      bool allowance_demand_supported = false;
       bool shortcut_catalogue_supported = false;
       for (const auto &capability : payload->values) {
         if (capability == COMPANION_APP_ICONS_CAPABILITY) {
@@ -634,6 +648,8 @@ void CompanionService::handle_json_(int socket_fd, const std::string &message) {
         } else if (capability == "keyboard_shortcuts_unavailable") {
           keyboard_actions = false;
           keyboard_actions_capability_received = true;
+        } else if (capability == "token_usage_demand") {
+          allowance_demand_supported = true;
         } else if (capability == "url_card_focus") {
           focus_targets_supported = true;
         } else if (capability == "shortcut_catalogue_on_demand") {
@@ -652,10 +668,11 @@ void CompanionService::handle_json_(int socket_fd, const std::string &message) {
       }
       for (const auto &id : configured_icons) this->request_app_icon(id);
       this->defer_session_([this, keyboard_actions, keyboard_actions_capability_received,
-                            focus_targets_supported, shortcut_catalogue_supported]() {
+                            focus_targets_supported, shortcut_catalogue_supported, allowance_demand_supported]() {
         if (shortcut_catalogue_supported) companion_set_remote_definitions({});
         if (keyboard_actions_capability_received) companion_set_keyboard_actions_supported(keyboard_actions);
         this->focus_targets_supported_.store(focus_targets_supported);
+        this->allowance_demand_supported_.store(allowance_demand_supported);
       });
       return true;
     }
@@ -919,6 +936,21 @@ void CompanionService::handle_json_(int socket_fd, const std::string &message) {
       return true;
     }
 
+    if (const auto *payload = std::get_if<companion_protocol::TokenUsage>(&*decoded)) {
+      CompanionTokenUsage readings{};
+      for (const auto &reading : payload->readings) {
+        const auto service = token_usage_service(reading.service);
+        auto &entry = readings[static_cast<size_t>(service)];
+        // Antigravity can report quota before a reset time is assigned.
+        const bool reset_unknown = service == TokenUsageService::ANTIGRAVITY && reading.resetsAt == 0;
+        if (entry.observed_at != 0 || (!reset_unknown && reading.resetsAt <= reading.observedAt)) return false;
+        entry = {static_cast<uint8_t>(reading.remainingPercent),
+                 reset_unknown ? std::nullopt : std::optional<uint32_t>(reading.resetsAt), static_cast<uint32_t>(reading.observedAt)};
+      }
+      this->defer_session_([readings] { companion_runtime_service().set_token_usage(readings); }, "token_usage");
+      return true;
+    }
+
     const uint32_t generation = root["generation"] | 0;
     if (generation == 0) return false;
 
@@ -1096,6 +1128,8 @@ void CompanionService::set_connected_(bool connected, int closing_socket) {
     }
   }
   companion_runtime_service().shortcut_catalogue.set_supported(false);
+  this->allowance_demand_supported_.store(false);
+  this->published_allowance_demand_.store(0xff);
   if (connected) {
     this->focus_targets_generation_ = 0xFFFFFFFFu;
     this->focus_targets_supported_ = false;

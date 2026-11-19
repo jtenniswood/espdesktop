@@ -39,7 +39,9 @@ test("Claude Desktop keeps its existing presets and exposes numbered and scoped 
   const entries = [...claude.shortcuts, ...claude.claudeShortcuts];
   const ids = keys.map(key => entries.find(item => item.shortcut === key).id);
   const page = api.createCompanionShortcutSubpage(claude.appId, ids);
-  assert.deepEqual(page.buttons.map(card => card.entity), keys.map(key => "shortcut." + key));
+  assert.equal(page.buttons[0].type, "token_usage");
+  assert.equal(page.buttons[0].options, "services=claude");
+  assert.deepEqual(page.buttons.slice(1).map(card => card.entity), keys.map(key => "shortcut." + key));
   assert.deepEqual(api.companionShortcutTabsFromSubpage(claude.appId, page), ids);
   api.replaceCompanionDefinitions([claude]);
   assert.deepEqual(api.companionShortcutPresetCards(claude.appId), presets);
@@ -135,6 +137,18 @@ test("Twitch presets target the installed Safari web app", async () => {
   assert(!api.companionShortcutPresetCards("com.apple.Safari").some(card => card.label === "Clip Live Stream"));
 });
 
+test("Cursor subpages put the Cursor allowance before shortcuts", () => {
+  const api = loadTypeScriptModule("src/webserver/application/companion_shortcut_folder.ts");
+  const { appId, defaultShortcutIds } = require("../../../product/v2/app_shortcuts/cursor.json");
+  const selected = api.companionShortcutTabsForCapacity(defaultShortcutIds, 9, appId);
+  const page = api.createCompanionShortcutSubpage(appId, selected);
+  assert.equal(page.order.length, 9);
+  assert.equal(page.order[0], "B");
+  assert.equal(page.buttons[0].type, "token_usage");
+  assert.equal(page.buttons[0].options, "services=cursor");
+  assert.deepEqual(api.companionShortcutTabsFromSubpage(appId, page), selected);
+});
+
 test("ChatGPT Desktop subpages use the curated catalogue and preserve custom cards", () => {
   const api = loadTypeScriptModule("src/webserver/application/companion_shortcut_folder.ts");
   const app = require("../../../product/v2/app_shortcuts/codex.json");
@@ -148,13 +162,15 @@ test("ChatGPT Desktop subpages use the curated catalogue and preserve custom car
   assert(!api.companionShortcutActionIdValid("shortcut.shift+tab"));
   const ids = ["32", "17", "62", "97"];
   const page = api.createCompanionShortcutSubpage(app.appId, ids);
-  assert.deepEqual(page.buttons.map(card => card.entity), [
+  assert.equal(page.buttons[0].type, "token_usage");
+  assert.equal(page.buttons[0].options, "");
+  assert.deepEqual(page.buttons.slice(1).map(card => card.entity), [
     "shortcut.option+space", "shortcut.control+shift+tab", "shortcut.command+option+6", "shortcut.scoped.up",
   ]);
   assert.deepEqual(api.companionShortcutTabsFromSubpage(app.appId, page), ids);
-  const custom = { ...page.buttons[0], entity: "shortcut.command+w", label: "My Close Card", options: "" };
+  const custom = { ...page.buttons[1], entity: "shortcut.command+w", label: "My Close Card", options: "" };
   const savedAlternate = {
-    ...page.buttons[0],
+    ...page.buttons[1],
     entity: "shortcut.command+shift+o",
     label: "New Chat",
     options: "app_shortcut_preset=com.openai.codex%3A87",
@@ -293,7 +309,8 @@ test("every packed hosted shortcut preserves the authored ID, keys, icon and lab
     } else {
       assert(app.defaultShortcutIds?.length <= 8, filename);
       assert.deepEqual(defaults, app.defaultShortcutIds, filename);
-      assert.equal(createCompanionShortcutSubpage(app.appId).buttons.length, defaults.length, filename);
+      const usageSlots = ["com.openai.codex", "com.openai.chat", "com.anthropic.claudefordesktop", "com.todesktop.230313mzl4w4u92", "ai.opencode.desktop"].includes(app.appId) ? 1 : 0;
+      assert.equal(createCompanionShortcutSubpage(app.appId).buttons.length, defaults.length + usageSlots, filename);
     }
   }
 

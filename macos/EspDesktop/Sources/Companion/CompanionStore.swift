@@ -137,6 +137,12 @@ final class CompanionStore: NSObject, ObservableObject {
     @Published private(set) var foldersNeedingAccess: Set<UUID> = []
     @Published private(set) var launchAtLoginEnabled = false
     @Published private(set) var launchAtLoginMessage = ""
+    private lazy var allowanceRefresh = AllowanceRefresh { [weak self] in
+        guard let self else { return }
+        for display in self.connectedDisplays { self.publishTokenUsage(to: display) }
+    }
+
+
     @Published private(set) var systemMetricsStatus = "Waiting for a display connection"
 
     private enum Keys {
@@ -866,6 +872,9 @@ final class CompanionStore: NSObject, ObservableObject {
         case let .capabilities(systemMetrics):
             display.supportsSystemMetrics = systemMetrics
             updateSystemMetricsProvider()
+        case .allowanceDemand:
+            updateTokenUsageTask()
+            publishTokenUsage(to: display)
         case .publishCurrentState:
             sessionLock.refresh()
             display.connection.publishSessionLock(sessionLock.locked, displayAwake: sessionLock.displayAwake)
@@ -895,6 +904,10 @@ final class CompanionStore: NSObject, ObservableObject {
         let previousCount = connectedDisplayCount
         connectedDisplayCount = connectedDisplays.count
         updateSystemMetricsProvider()
+        if state == .connected {
+            publishTokenUsage(to: display)
+        }
+        updateTokenUsageTask()
         if state == .connected {
             if previousCount == 0 {
                 _ = mediaController.refreshInputDevices()
@@ -943,6 +956,14 @@ final class CompanionStore: NSObject, ObservableObject {
 
     func updateStatus(_ message: String) {
         print("[EspDesktop] \(message)")
+    }
+
+    private func publishTokenUsage(to display: CompanionDisplay) {
+        display.connection.publishTokenUsage(allowanceRefresh.readings)
+    }
+
+    private func updateTokenUsageTask() {
+        allowanceRefresh.request(Set(connectedDisplays.flatMap { $0.connection.requestedAllowanceProviders }))
     }
 
     private func updateSystemMetricsProvider() {

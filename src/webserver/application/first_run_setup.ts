@@ -11,6 +11,7 @@ import type { ControlsShellFeature } from "./controls_shell";
 import { createCompanionPairingDetails, type CompanionPairingState } from "./settings_companion_section";
 import {
     appleShortcutPageActions,
+    appTokenUsageService,
     companionShortcutDefaultTabs,
     companionShortcutFolderAppLabel,
     applyCompanionShortcutApplication,
@@ -79,13 +80,13 @@ export function applyFirstRunLayout(
     const entries = apps.map(app => {
         const card = { entity: app.id, label: app.label, icon: "Auto", icon_on: "Auto",
             sensor: "", unit: "", type: "companion", precision: "", options: "" };
-        if (!addShortcutPages || !supportsSetupShortcuts(app.id, workflows)) return { card };
+        if (!addShortcutPages || !(supportsSetupShortcuts(app.id, workflows) || appTokenUsageService(app.id))) return { card };
         setCompanionAppShortcutFolderEnabled(card, true);
         if (app.id === APPLE_SHORTCUTS_APP_ID) {
             const { order, buttons } = createAppleShortcutSubpage(workflows, capacity);
             return { card, page: { order: order.join(","), cards: buttons } };
         }
-        const tabs = companionShortcutTabsForCapacity(companionShortcutDefaultTabs(app.id), capacity);
+        const tabs = companionShortcutTabsForCapacity(companionShortcutDefaultTabs(app.id), capacity, app.id);
         card.options = setConfigOptionValue(card.options, "app_shortcuts_tabs", tabs.join("|") || "none");
         const { order, buttons } = createCompanionShortcutSubpage(app.id, tabs);
         return { card, page: { order: order.join(","), cards: buttons } };
@@ -236,6 +237,7 @@ export function createFirstRunSetup(deps: FirstRunSetupDependencies): { start():
             if (addShortcutPages) await Promise.all(chosen.filter(app => hasShortcutPage(app.id) &&
                 !supportsSetupShortcuts(app.id, workflows)).map(async app => {
                 const definition = await catalogue.loadShortcutApplication(app.id);
+                if (!definition && appTokenUsageService(app.id)) return;
                 if (!definition) throw new Error("Could not load " + app.label + " shortcuts. Check Mac Companion and try again.");
                 applyCompanionShortcutApplication(definition);
             }));

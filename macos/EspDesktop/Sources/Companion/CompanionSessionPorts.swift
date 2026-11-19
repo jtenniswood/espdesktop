@@ -65,6 +65,7 @@ enum CompanionSessionEvent {
     case connection(message: String, state: CompanionConnectionState, recovery: String?)
     case status(String)
     case capabilities(systemMetrics: Bool)
+    case allowanceDemand
     case publishCurrentState
 }
 

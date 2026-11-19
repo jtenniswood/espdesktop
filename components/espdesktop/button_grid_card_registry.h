@@ -25,6 +25,7 @@ enum class Family : uint8_t {
   OPTION_SELECT,
   PUSH,
   COMPANION,
+  TOKEN_USAGE,
   SLIDER,
   SUBPAGE,
   VACUUM,

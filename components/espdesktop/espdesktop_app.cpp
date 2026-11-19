@@ -99,11 +99,14 @@ constexpr uint32_t NATIVE_CONFIGURATION_INITIALIZATION_DELAY_MS = 5000;
 static uint8_t *allocate_configuration_slot(size_t size);
 static void release_configuration_slot(uint8_t *buffer);
 
-static void sync_app_icons_from_panel_config(const uint8_t *document,
+static void sync_companion_references_from_panel_config(const uint8_t *document,
                                              size_t document_size) {
 #ifdef USE_COMPANION
   std::vector<std::string> application_ids;
-  auto collect_card = [&application_ids](const ParsedCfg &card) {
+  uint8_t allowance_providers = 0;
+  auto collect_card = [&application_ids, &allowance_providers](const ParsedCfg &card) {
+    if (card.type == "token_usage")
+      allowance_providers |= token_usage_provider_bit(token_usage_service(cfg_option_value(card.options, "services")));
     const std::string id = (apple_shortcuts_navigation_card(card) ||
         (card.type == "companion" && companion_apple_shortcut_action(card.entity))) ? APPLE_SHORTCUTS_APP_ID :
         companion_app_icon_enabled(card) ? card.entity : "";
@@ -130,6 +133,7 @@ static void sync_app_icons_from_panel_config(const uint8_t *document,
       collect_card(card);
     }
     esphome::companion::sync_app_icon_references(application_ids);
+    companion_runtime_service().set_token_usage_demand(allowance_providers);
     return;
   }
   configuration::PanelConfigReader reader(document, document_size);
@@ -156,8 +160,10 @@ static void sync_app_icons_from_panel_config(const uint8_t *document,
       }
     }
   }
-  if (status == configuration::PanelConfigStatus::END)
+  if (status == configuration::PanelConfigStatus::END) {
     esphome::companion::sync_app_icon_references(application_ids);
+    companion_runtime_service().set_token_usage_demand(allowance_providers);
+  }
 #else
   (void) document;
   (void) document_size;
@@ -425,7 +431,7 @@ void EspDesktopApp::register_panel_config_endpoints() {
 #ifdef USE_COMPANION
       ,
       [](const uint8_t *document, size_t size) {
-        sync_app_icons_from_panel_config(document, size);
+        sync_companion_references_from_panel_config(document, size);
       }
 #endif
       );
@@ -484,7 +490,7 @@ void EspDesktopApp::apply_boot_configuration() {
              static_cast<unsigned>(loaded.status));
     return;
   }
-  sync_app_icons_from_panel_config(document, loaded.document_size);
+  sync_companion_references_from_panel_config(document, loaded.document_size);
 }
 
 void EspDesktopApp::bind_display_theme_preferences(std::function<void(const ThemeSettings &)> publish) {
