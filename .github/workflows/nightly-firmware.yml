@@ -212,6 +212,7 @@ jobs:
             ${DOCKER} run --rm --user 0:0 --entrypoint /bin/chown \
               -v "${target_cache_volume}:/cache" "${ESPHOME_IMAGE}" "$(id -u):$(id -g)" /cache || return 1
 
+            size_summary="${build_input_dir}/firmware-size-summary.md"
             # Limit compiler parallelism and container resources to reduce
             # pressure on the shared self-hosted runner host.
             container=$(${DOCKER} create \
@@ -237,9 +238,9 @@ jobs:
                 python3 /config/scripts/report_firmware_size.py \
                   --target "$2" --build-root "$3" \
                   --compile-status "$compile_status" --minimum-headroom-kib "$minimum_headroom" \
-                  --summary "${1%/*}/firmware-size-summary.md"
+                  --summary "$4"
               ' sh "/config/${build_input_dir}/${target}" "${target}" \
-              "/config/${build_input_dir}/.esphome")
+              "/config/${build_input_dir}/.esphome" "/config/${size_summary}")
             create_status=$?
             if [ "${create_status}" -ne 0 ]; then
               ${DOCKER} volume rm "${target_cache_volume}" >/dev/null 2>&1 || true
@@ -268,7 +269,6 @@ jobs:
                 "${container}" || true
             fi
             # Copy the report out before deleting this target's build files.
-            size_summary="${build_input_dir}/firmware-size-summary.md"
             if ${DOCKER} cp "${container}:/config/${size_summary}" "${size_summary}"; then
               if [ -f "$GITHUB_STEP_SUMMARY" ] && grep -Fq '## Firmware size and headroom' "$GITHUB_STEP_SUMMARY"; then
                 tail -n +5 "${size_summary}" >> "$GITHUB_STEP_SUMMARY"
