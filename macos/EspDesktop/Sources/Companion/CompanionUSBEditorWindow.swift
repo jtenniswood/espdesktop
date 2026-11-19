@@ -254,6 +254,8 @@ final class CompanionUSBEditorWindow: NSObject, WKNavigationDelegate,
 
     private static let fetchBridge = """
     (() => {
+      // The embedded editor falls back to its snapshot reader without SSE.
+      window.EventSource = undefined;
       window.fetch = async (input, init = {}) => {
         const url = new URL(input instanceof Request ? input.url : input, window.location.href);
         if (url.protocol !== 'espdesktop-usb:' || url.hostname !== 'display')
