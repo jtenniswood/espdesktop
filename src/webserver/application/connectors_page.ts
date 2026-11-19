@@ -107,9 +107,15 @@ export function createConnectorsPageFeature(
             page.appendChild(companionSection.buildCompanionSettingsCard(applyCompanionStatus, !open, open));
             page.appendChild(buildHomeAssistantCard());
         } else {
+            const setupGuide = document.createElement("a");
+            setupGuide.href = "https://espdesktop.com/screens/4848s040#download";
+            setupGuide.target = "_blank";
+            setupGuide.rel = "noopener noreferrer";
+            setupGuide.textContent = "Download and setup guide";
             page.appendChild(infoPanel(
-                "sp-connectors-unavailable",
-                "No external connectors are available on this display.",
+                "sp-connectors-setup",
+                "Use the EspDesktop Mac app to pair a compatible display. ",
+                setupGuide,
             ));
         }
         parent.appendChild(page);

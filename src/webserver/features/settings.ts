@@ -18,7 +18,7 @@ export interface SettingsUiDependencies {
 export interface SettingsUiFeature {
   settingsStatusHeader(title: string): HTMLElement;
   appendSettingsSection(parent: HTMLElement, title: string, cards: readonly (HTMLElement | null | undefined)[]): void;
-  infoPanel(id: string, text: string): HTMLElement;
+  infoPanel(id: string, ...content: (string | Node)[]): HTMLElement;
   statusBadge(label: string, text?: string): HTMLElement;
   disclosureBadge(text: string, label?: string): HTMLElement;
   inlineDisclosure(title: string, bodyElement: HTMLElement, defaultOpen: boolean, badgeElement?: HTMLElement): HTMLElement;
@@ -62,7 +62,7 @@ export function createSettingsUiFeature(dependencies: SettingsUiDependencies): S
       parent.appendChild(settingsStatusHeader(title));
       visibleCards.forEach((card) => parent.appendChild(card));
     },
-    infoPanel(id, text) {
+    infoPanel(id, ...content) {
       const panel = document.createElement("div");
       panel.className = "sp-info-panel";
       panel.id = id;
@@ -71,7 +71,7 @@ export function createSettingsUiFeature(dependencies: SettingsUiDependencies): S
       icon.className = "mdi mdi-information-outline";
       icon.setAttribute("aria-hidden", "true");
       const message = document.createElement("span");
-      message.textContent = text;
+      message.append(...content);
       panel.appendChild(icon);
       panel.appendChild(message);
       return panel;
