@@ -113,6 +113,28 @@ async function checkBrowser() {
       await canceled.getByText('Cancel', { exact: true }).click();
       await canceled.waitFor({ state: 'detached' });
     }
+    async function assertSetupLayout() {
+      const steps = page.locator('.display-setup-step');
+      assert.equal(await steps.count(), 4);
+      assert.equal(await steps.locator('img').count(), 4);
+      for (const width of [320, 768, 1440]) {
+        await page.setViewportSize({ width, height: 900 });
+        assert(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth),
+          `Display setup must fit a ${width}px viewport`);
+      }
+      for (const step of await steps.all()) {
+        const copy = await step.locator('.display-setup-copy').boundingBox();
+        const photo = await step.locator('img').boundingBox();
+        assert(copy.x + copy.width <= photo.x, 'Desktop setup images must appear to the right of the instructions');
+      }
+      await page.setViewportSize({ width: 390, height: 844 });
+      for (const step of await steps.all()) {
+        const copy = await step.locator('.display-setup-copy').boundingBox();
+        const photo = await step.locator('img').boundingBox();
+        assert(copy.y + copy.height <= photo.y, 'Phone setup images must appear below the instructions');
+      }
+      await page.setViewportSize({ width: 1440, height: 900 });
+    }
     const launcherApps = ['Finder', 'Safari', 'Calendar', 'Mail', 'Slack', 'Notes', 'Athena', 'ChatGPT', 'Claude'];
     async function checkLauncher(scope, touchscreen = false) {
       const grid = scope.locator('.sp-main[aria-disabled="false"]');
@@ -354,6 +376,7 @@ async function checkBrowser() {
     await page.getByText('Browser-installable firmware for this display has not been published yet.', { exact: false }).waitFor();
     assert.equal(await page.locator('esp-web-install-button').count(), 0);
     assert.deepEqual(manifests.slice(requestedBeforeV3), [`${base}${v3Manifest}`]);
+    await assertSetupLayout();
     await page.getByRole('link', { name: 'Install manually with ESPHome' }).click();
     await page.waitForURL(`${v3Page}#esphome-manual-setup`);
     v3ManifestPublished = true;
@@ -384,24 +407,7 @@ async function checkBrowser() {
     await buySection.getByRole('link', { name: 'AliExpress (Global)', exact: true }).waitFor();
     assert.equal(await buySection.getByRole('link', { name: 'Check Mac requirements' }).count(), 0);
     assert.equal(await page.locator('h2[id="_3-configure-your-cards"]').count(), 0);
-    for (const width of [320, 768, 1440]) {
-      await page.setViewportSize({ width, height: 900 });
-      assert(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth),
-        `Display setup must fit a ${width}px viewport`);
-    }
-    const steps = page.locator('.display-setup-step');
-    assert.equal(await steps.count(), 4);
-    for (const step of await steps.all()) {
-      const copy = await step.locator('.display-setup-copy').boundingBox();
-      const photo = await step.locator('img').boundingBox();
-      assert(copy.x + copy.width <= photo.x, 'Desktop setup images must appear to the right of the instructions');
-    }
-    await page.setViewportSize({ width: 390, height: 844 });
-    for (const step of await steps.all()) {
-      const copy = await step.locator('.display-setup-copy').boundingBox();
-      const photo = await step.locator('img').boundingBox();
-      assert(copy.y + copy.height <= photo.y, 'Phone setup images must appear below the instructions');
-    }
+    await assertSetupLayout();
     const canonicalSetup = 'https://espdesktop.com/screens/4848s040';
     // Intercept canonical redirect targets without contacting production.
     await page.route(canonicalSetup, route => route.fulfill({
