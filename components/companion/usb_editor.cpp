@@ -18,10 +18,20 @@ enum Command : uint8_t { OPEN = 1, WRITE = 2, READ = 3, CLOSE = 4 };
 enum Result : uint8_t { OK = 0, WAIT = 1, END = 2, ERROR = 3 };
 
 bool is_usb_socket(int fd) {
-  sockaddr_in peer{};
+  sockaddr_storage peer{};
   socklen_t length = sizeof(peer);
-  return getpeername(fd, reinterpret_cast<sockaddr *>(&peer), &length) == 0 &&
-         peer.sin_family == AF_INET && ntohl(peer.sin_addr.s_addr) == INADDR_LOOPBACK;
+  if (getpeername(fd, reinterpret_cast<sockaddr *>(&peer), &length) != 0) return false;
+  if (peer.ss_family == AF_INET && length >= sizeof(sockaddr_in)) {
+    const auto &ipv4 = reinterpret_cast<const sockaddr_in &>(peer);
+    return ntohl(ipv4.sin_addr.s_addr) == INADDR_LOOPBACK;
+  }
+  if (peer.ss_family == AF_INET6 && length >= sizeof(sockaddr_in6)) {
+    // ESP-IDF can accept the serial bridge's IPv4 connection on a dual-stack listener.
+    constexpr uint8_t mapped_loopback[16] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 255, 255, 127, 0, 0, 1};
+    const auto &ipv6 = reinterpret_cast<const sockaddr_in6 &>(peer);
+    return std::memcmp(&ipv6.sin6_addr, mapped_loopback, sizeof(mapped_loopback)) == 0;
+  }
+  return false;
 }
 
 bool would_block() {
