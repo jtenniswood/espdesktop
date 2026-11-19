@@ -162,11 +162,12 @@ final class CompanionUSBEditorWindow: NSObject, WKNavigationDelegate,
     }
 
     private func perform(_ request: USBEditorRequest) async throws -> USBEditorResponse {
-        try await waitForCable()
         guard request.method == "PUT", request.path == "/api/v1/config" else {
+            try await waitForCable()
             return try await connection.requestUSBEditor(request)
         }
         unsavedLayout = request
+        try await waitForCable(whileSaving: true)
         let response: USBEditorResponse
         do {
             response = try await connection.requestUSBEditor(request)

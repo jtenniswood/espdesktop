@@ -32,7 +32,7 @@ struct USBEditorRequest {
         case "PUT":
             guard path == "/api/v1/config" else { return nil }
         case "POST":
-            let allowed = ["/companion/page-preview", "/companion/url-targets"]
+            let allowed = ["/companion/page-preview", "/companion/focus-targets"]
             let entity = route.split(separator: "/")
             let setting = entity.count == 3 && ["text", "number", "select", "switch"].contains(entity[0]) &&
                 ["set", "turn_on", "turn_off"].contains(entity[2])
