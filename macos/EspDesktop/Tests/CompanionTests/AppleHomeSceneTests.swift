@@ -70,10 +70,10 @@ final class AppleHomeSceneTests: XCTestCase {
         let approvedBinding = UUID()
         defaults.set(["display.known": approvedBinding.uuidString], forKey: "appleHome.approvedDisplays")
         defaults.removeObject(forKey: "appleHome.connectionEnabled")
-        let home = AppleHomeScenes(defaults: defaults)
-        XCTAssertTrue(home.canRestore)
-        home.disconnect()
+        XCTAssertTrue(AppleHomeScenes(defaults: defaults).canRestore)
 
+        // Older builds set this preference when the user disconnected.
+        defaults.set(false, forKey: "appleHome.connectionEnabled")
         let restarted = AppleHomeScenes(defaults: defaults)
         XCTAssertFalse(restarted.canRestore)
         XCTAssertEqual(restarted.approvals["display.known"], approvedBinding)

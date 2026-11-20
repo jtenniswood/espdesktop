@@ -284,12 +284,6 @@ final class AppleHomeScenes: ObservableObject {
         onControlsChanged?()
     }
 
-    func disconnect() {
-        defaults.set(false, forKey: Self.connectionEnabledKey)
-        stop()
-        note = ""
-    }
-
     private func saveApprovals() {
         defaults.set(approvals.mapValues(\.uuidString), forKey: Self.approvalsKey)
     }
@@ -331,8 +325,6 @@ struct AppleHomeConnectionSection: View {
                 Spacer(minLength: 0)
                 if home.status == nil {
                     Button("Connect Apple Home") { home.connect() }
-                } else {
-                    Button("Disconnect Apple Home") { home.disconnect() }
                 }
             }
             if home.status == .chooseHome {
