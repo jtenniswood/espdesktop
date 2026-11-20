@@ -532,7 +532,6 @@ export function createWebStyles(dragAnimation: boolean): string {
         "#sp-set-clock-bar:checked+.sp-toggle-track{background:#0a84ff;border-color:#0a84ff}" +
         ".sp-toggle input:checked+.sp-toggle-track:before{transform:translateX(20px)}" +
         ".sp-light-tab-list{display:grid;gap:0;margin:-6px 0 18px}" +
-        ".sp-app-subpage-options-divider{height:1px;background:var(--border);margin:-6px 0 18px}" +
         ".sp-light-tab-row{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;" +
         "gap:10px;min-height:42px;padding:5px 0}" +
         ".sp-light-tab-row:has(~.sp-light-tab-row:not([hidden])){border-bottom:1px solid rgba(255,255,255,.08)}" +
@@ -599,7 +598,6 @@ export function createWebStyles(dragAnimation: boolean): string {
         ".sp-app-subpage-settings .sp-input[type=search]{margin-block:8px 12px}" +
         ".sp-app-subpage-settings .sp-light-tab-list{margin:0}" +
         ".sp-app-subpage-shortcut-actions{border-top:1px solid var(--border);padding:12px 0 10px}" +
-        ".sp-app-subpage-settings .sp-app-subpage-options-divider{margin:4px 0 8px}" +
         ".sp-app-subpage-folder-list{border-top:1px solid var(--border);padding-top:8px;margin-top:4px}" +
         ".sp-disclosure.sp-open .sp-disclosure-chevron{transform:rotate(180deg)}" +
         ".sp-disclosure.sp-open .sp-disclosure-body{display:block}" +

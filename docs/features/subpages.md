@@ -38,7 +38,7 @@ You can also right-click an empty space in the editor and choose **Create Subpag
 
 Two levels are supported: **Home → Folder → Subpage**, including **Home → Folder → App shortcuts**. Open a folder and repeat the steps above to add the second level. Back returns to the immediate parent page. A second-level page cannot contain another subpage.
 
-For an app inside a folder, edit its app card, enable **Add app subpage**, and save. Choose **Edit Subpage** to arrange its shortcuts. The opening mode also applies inside folders.
+Saving a supported app card inside a folder adds its app subpage automatically. Choose **Edit Subpage** to arrange its shortcuts. The selected opening mode also applies inside folders.
 
 Pages share the display's existing total card and saved-layout limits. A layout that exceeds them is rejected without replacing the saved layout.
 

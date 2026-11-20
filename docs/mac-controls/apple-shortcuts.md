@@ -49,14 +49,7 @@ Choose **Create a list of shortcuts**. The editor lists all shortcuts available 
 
 ## Launch the Shortcuts app
 
-Choose **Open the Shortcuts App**, leave **Add app subpage** on, and save.
-
-<a href="/images/apple-shortcuts/app-settings.png">
-  <picture>
-    <source type="image/avif" srcset="/images/apple-shortcuts/app-settings-480.avif 480w, /images/apple-shortcuts/app-settings-840.avif 840w" sizes="(min-width: 768px) 420px, min(420px, 90vw)">
-    <img class="apple-shortcuts-image apple-shortcuts-settings" src="/images/apple-shortcuts/app-settings.png" alt="Applications card settings with Shortcuts selected and Add app subpage enabled" width="892" height="1572" loading="lazy" decoding="async">
-  </picture>
-</a>
+Choose **Open the Shortcuts App** and save. EspDesktop adds a subpage for your shortcuts automatically.
 
 Tap the app tile to launch Shortcuts on your Mac. By default, the display shows your shortcut tiles when Shortcuts comes to the front.
 
