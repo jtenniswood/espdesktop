@@ -361,6 +361,7 @@ export default defineConfig({
           screenSettingsLink,
           systemSettingsLink,
           { text: 'Mac app settings', link: '/settings/mac-app' },
+          { text: 'Display connections (USB & IP)', link: '/settings/display-connections' },
           { text: 'Backup & restore', link: '/settings/backup' },
           { text: 'Permissions & security', link: '/mac-controls/security' },
         ],
