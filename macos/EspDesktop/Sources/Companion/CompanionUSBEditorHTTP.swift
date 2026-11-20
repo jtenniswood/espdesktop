@@ -69,18 +69,26 @@ struct USBEditorRequest {
         case "PUT":
             guard path == "/api/v1/config" else { return nil }
         case "POST":
-            let allowed = ["/companion/page-preview", "/companion/focus-targets", Self.wifiPath]
+            let allowed = ["/companion/page-preview", "/companion/focus-targets", Self.wifiPath,
+                           "/api/v1/identity", "/api/v1/home-assistant",
+                           "/button/Apply%20Configuration/press", "/button/apply_configuration/press"]
             let entity = route.split(separator: "/")
             let setting = entity.count == 3 && ["text", "number", "select", "switch"].contains(entity[0]) &&
                 ["set", "turn_on", "turn_off"].contains(entity[2])
-            guard allowed.contains(route) || setting else { return nil }
+            let backlight = ["/light/Display%20Backlight/turn_on", "/light/display_backlight/turn_on"].contains(route)
+            let clearPIN = path == "/api/v1/screensaver-pin" &&
+                (try? JSONDecoder().decode(ScreensaverPIN.self, from: body)) == ScreensaverPIN(enabled: false, pin: "")
+            guard (allowed.contains(route) && route == path) || setting || backlight || clearPIN else { return nil }
         default:
             return nil
         }
         var filtered: [String: String] = [:]
         for (name, value) in headers {
             let key = name.lowercased()
-            guard ["content-type", "if-match", "x-panel-config-version", "x-espdesktop-epoch"].contains(key),
+            let homeAssistantAction = route == "/api/v1/home-assistant" && key == "x-espdesktop-request" &&
+                ["enable-esphome", "disable-esphome", "resync-buttons"].contains(value)
+            guard (homeAssistantAction ||
+                   ["content-type", "if-match", "x-panel-config-version", "x-espdesktop-epoch"].contains(key)),
                   value.utf8.count <= 256, value.utf8.allSatisfy({ (32...126).contains($0) }) else { continue }
             filtered[key] = value
         }
@@ -90,9 +98,19 @@ struct USBEditorRequest {
         self.body = body
     }
 
+    private struct ScreensaverPIN: Decodable, Equatable {
+        let enabled: Bool
+        let pin: String
+    }
+
     var wireBytes: Data {
+        wireBytes(authorization: nil)
+    }
+
+    func wireBytes(authorization: String?) -> Data {
         var request = "\(method) \(path) HTTP/1.0\r\nHost: 127.0.0.1\r\nConnection: close\r\n"
         for (name, value) in headers { request += "\(name): \(value)\r\n" }
+        if let authorization { request += "Authorization: \(authorization)\r\n" }
         if method != "GET" { request += "Content-Length: \(body.count)\r\n" }
         var wire = Data((request + "\r\n").utf8)
         wire.append(body)

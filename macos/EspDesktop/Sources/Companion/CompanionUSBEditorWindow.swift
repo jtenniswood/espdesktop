@@ -19,6 +19,9 @@ final class CompanionUSBEditorWindow: NSObject, WKNavigationDelegate,
     private var scriptRequests: [UUID: Task<Void, Never>] = [:]
     private var editorScript: USBEditorResponse?
     private var assetLoadFailed = false
+    private var webChallenge: USBEditorWebChallenge?
+    private var webCredentials: USBEditorWebCredentials?
+    private var webSignIn: Task<USBEditorWebCredentials?, Never>?
 
     init(display: CompanionDisplay) {
         connection = display.connection
@@ -158,7 +161,7 @@ final class CompanionUSBEditorWindow: NSObject, WKNavigationDelegate,
                 } else {
                     let request = USBEditorRequest(method: "GET", path: "/0.js")!
                     try await self.waitForCable(whileLoading: true)
-                    response = try await self.connection.requestUSBEditor(request)
+                    response = try await self.requestPanel(request)
                     guard response.status == 200, !response.body.isEmpty else { throw USBEditorError.invalidResponse }
                     self.editorScript = response
                 }
@@ -173,6 +176,70 @@ final class CompanionUSBEditorWindow: NSObject, WKNavigationDelegate,
         }
     }
 
+    private func requestPanel(_ request: USBEditorRequest) async throws -> USBEditorResponse {
+        let previousCredentials = webCredentials
+        let initialAuthorization = previousCredentials.flatMap {
+            webChallenge?.authorization(for: request, credentials: $0)
+        }
+        let first = try await connection.requestUSBEditor(request, authorization: initialAuthorization)
+        guard first.status == 401 else { return first }
+        guard let challenge = USBEditorWebChallenge(first.headers["www-authenticate"]) else {
+            throw USBEditorSignInError.required
+        }
+        webChallenge = challenge
+        if initialAuthorization != nil && !challenge.stale && webCredentials == previousCredentials {
+            webCredentials = nil
+        }
+        if webCredentials == nil {
+            let credentials = await promptForWebCredentials()
+            try Task.checkCancellation()
+            webCredentials = credentials
+        }
+        guard let credentials = webCredentials else { throw USBEditorSignInError.required }
+        guard let authorization = webChallenge?.authorization(for: request, credentials: credentials) else {
+            webCredentials = nil
+            throw USBEditorSignInError.rejected
+        }
+        let response = try await connection.requestUSBEditor(request, authorization: authorization)
+        if response.status == 401 {
+            if webCredentials == credentials { webCredentials = nil }
+            throw USBEditorSignInError.rejected
+        }
+        return response
+    }
+
+    private func promptForWebCredentials() async -> USBEditorWebCredentials? {
+        if let webSignIn { return await webSignIn.value }
+        guard window.isVisible, window.attachedSheet == nil else { return nil }
+        let alert = NSAlert()
+        alert.messageText = "Sign in to the display"
+        alert.informativeText = "Enter the username and password for this display’s web editor."
+        alert.addButton(withTitle: "Sign In")
+        alert.addButton(withTitle: "Cancel")
+        let username = NSTextField(frame: NSRect(x: 0, y: 33, width: 260, height: 24))
+        username.placeholderString = "Username"
+        username.setAccessibilityLabel("Username")
+        let password = NSSecureTextField(frame: NSRect(x: 0, y: 3, width: 260, height: 24))
+        password.placeholderString = "Password"
+        password.setAccessibilityLabel("Password")
+        let fields = NSView(frame: NSRect(x: 0, y: 0, width: 260, height: 60))
+        fields.addSubview(username)
+        fields.addSubview(password)
+        alert.accessoryView = fields
+        alert.window.initialFirstResponder = username
+        let prompt = Task {
+            await withCheckedContinuation { continuation in
+                alert.beginSheetModal(for: window) { result in
+                    continuation.resume(returning: result == .alertFirstButtonReturn
+                        ? USBEditorWebCredentials(username: username.stringValue, password: password.stringValue) : nil)
+                }
+            }
+        }
+        webSignIn = prompt
+        defer { webSignIn = nil }
+        return await prompt.value
+    }
+
     func webView(_ webView: WKWebView, stop urlSchemeTask: any WKURLSchemeTask) {
         assetRequests.removeValue(forKey: ObjectIdentifier(urlSchemeTask as AnyObject))?.cancel()
     }
@@ -180,7 +247,24 @@ final class CompanionUSBEditorWindow: NSObject, WKNavigationDelegate,
     func userContentController(_ userContentController: WKUserContentController, didReceive message: WKScriptMessage,
                                replyHandler: @escaping @MainActor @Sendable (Any?, String?) -> Void) {
         guard message.frameInfo.isMainFrame, message.frameInfo.request.url?.scheme == Self.scheme,
-              let values = message.body as? [String: Any], let method = values["method"] as? String,
+              message.frameInfo.request.url?.host == "display", let values = message.body as? [String: Any] else {
+            replyHandler(nil, "Invalid USB editor request.")
+            return
+        }
+        if let filename = values["backup"] as? String {
+            guard let encoded = values["body"] as? String,
+                  encoded.utf8.count <= ((USBEditorResponse.maximumBytes + 2) / 3) * 4,
+                  let data = Data(base64Encoded: encoded), data.count <= USBEditorResponse.maximumBytes,
+                  !data.isEmpty else {
+                replyHandler(nil, "The backup is too large or could not be read.")
+                return
+            }
+            let name = URL(fileURLWithPath: filename).lastPathComponent
+            saveEditorFile(data, named: name.hasSuffix(".json") ? name : "EspDesktop Backup.json")
+            replyHandler(true, nil)
+            return
+        }
+        guard let method = values["method"] as? String,
               let path = values["path"] as? String, let encodedBody = values["body"] as? String,
               encodedBody.utf8.count <= 700_000, let body = Data(base64Encoded: encodedBody),
               let request = USBEditorRequest(method: method, path: path,
@@ -216,13 +300,13 @@ final class CompanionUSBEditorWindow: NSObject, WKNavigationDelegate,
     private func perform(_ request: USBEditorRequest) async throws -> USBEditorResponse {
         guard request.method == "PUT", request.path == "/api/v1/config" else {
             try await waitForCable()
-            return try await connection.requestUSBEditor(request)
+            return try await requestPanel(request)
         }
         unsavedLayout = request
         try await waitForCable(whileSaving: true)
         let response: USBEditorResponse
         do {
-            response = try await connection.requestUSBEditor(request)
+            response = try await requestPanel(request)
         } catch is USBEditorError {
             response = try await recoverSave(request)
         }
@@ -237,11 +321,16 @@ final class CompanionUSBEditorWindow: NSObject, WKNavigationDelegate,
 
     @objc private func exportUnsavedLayout() {
         guard let draft = unsavedLayout else { return }
+        saveEditorFile(draft.body, named: "Unsaved EspDesktop Layout.bin")
+    }
+
+    private func saveEditorFile(_ data: Data, named name: String) {
+        guard window.attachedSheet == nil else { return }
         let panel = NSSavePanel()
-        panel.nameFieldStringValue = "Unsaved EspDesktop Layout.bin"
+        panel.nameFieldStringValue = name
         panel.beginSheetModal(for: window) { [weak self] result in
             guard result == .OK, let url = panel.url else { return }
-            do { try draft.body.write(to: url, options: .atomic) }
+            do { try data.write(to: url, options: .atomic) }
             catch { self?.status.stringValue = error.localizedDescription }
         }
     }
@@ -256,7 +345,7 @@ final class CompanionUSBEditorWindow: NSObject, WKNavigationDelegate,
         while clock.now < deadline {
             do {
                 try await waitForCable(whileSaving: true)
-                let current = try await connection.requestUSBEditor(read)
+                let current = try await requestPanel(read)
                 guard current.status == 200 else { return current }
                 switch current.decideInterruptedSave(request) {
                 case .confirmed:
@@ -266,7 +355,7 @@ final class CompanionUSBEditorWindow: NSObject, WKNavigationDelegate,
                     status.stringValue = "The display layout changed. Your edits weren’t sent again."
                     return USBEditorResponse(status: 412, headers: [:], body: Data())
                 case .retry:
-                    let saved = try await connection.requestUSBEditor(request)
+                    let saved = try await requestPanel(request)
                     status.stringValue = "USB"
                     return saved
                 }
@@ -310,6 +399,38 @@ final class CompanionUSBEditorWindow: NSObject, WKNavigationDelegate,
     (() => {
       // The embedded editor falls back to its snapshot reader without SSE.
       window.EventSource = undefined;
+      const backupBlobs = new Map();
+      const createObjectURL = URL.createObjectURL.bind(URL);
+      const revokeObjectURL = URL.revokeObjectURL.bind(URL);
+      URL.createObjectURL = object => {
+        const url = createObjectURL(object);
+        if (object instanceof Blob && object.type === 'application/json') backupBlobs.set(url, object);
+        return url;
+      };
+      URL.revokeObjectURL = url => {
+        backupBlobs.delete(url);
+        revokeObjectURL(url);
+      };
+      const encode = bytes => {
+        let binary = '';
+        for (let i = 0; i < bytes.length; i += 8192)
+          binary += String.fromCharCode(...bytes.subarray(i, i + 8192));
+        return btoa(binary);
+      };
+      document.addEventListener('click', async event => {
+        const link = event.target.closest?.('a[download]');
+        const blob = backupBlobs.get(link?.href);
+        if (!blob || !link.download.endsWith('.json')) return;
+        event.preventDefault();
+        try {
+          if (blob.size > 8 * 1024 * 1024) throw new Error('The backup is too large.');
+          await window.webkit.messageHandlers.panel.postMessage({
+            backup: link.download, body: encode(new Uint8Array(await blob.arrayBuffer()))
+          });
+        } catch (error) {
+          window.alert(error.message || 'Could not export the backup.');
+        }
+      }, true);
       window.fetch = async (input, init = {}) => {
         const url = new URL(input instanceof Request ? input.url : input, window.location.href);
         if (url.protocol !== 'espdesktop-usb:' || url.hostname !== 'display')
@@ -319,10 +440,7 @@ final class CompanionUSBEditorWindow: NSObject, WKNavigationDelegate,
         let body = '';
         if (init.body != null) {
           const bytes = new Uint8Array(await new Response(init.body).arrayBuffer());
-          let binary = '';
-          for (let i = 0; i < bytes.length; i += 8192)
-            binary += String.fromCharCode(...bytes.subarray(i, i + 8192));
-          body = btoa(binary);
+          body = encode(bytes);
         }
         const reply = await window.webkit.messageHandlers.panel.postMessage({
           method: init.method ?? (input instanceof Request ? input.method : 'GET'),

@@ -20,6 +20,39 @@ final class CompanionUSBEditorTests: XCTestCase {
         XCTAssertFalse(wire.contains("Host: bad"))
     }
 
+    func testUSBSettingsActionsAreScopedToTheEditor() throws {
+        for path in ["/api/v1/identity", "/button/Apply%20Configuration/press",
+                     "/button/apply_configuration/press", "/light/display_backlight/turn_on?brightness=120"] {
+            XCTAssertNotNil(USBEditorRequest(method: "POST", path: path), path)
+        }
+        XCTAssertNil(USBEditorRequest(method: "POST", path: "/button/factory_reset/press"))
+        XCTAssertNil(USBEditorRequest(method: "POST", path: "/light/another_light/turn_on"))
+        let homeAssistant = try XCTUnwrap(USBEditorRequest(method: "POST", path: "/api/v1/home-assistant",
+            headers: ["X-EspDesktop-Request": "resync-buttons"]))
+        XCTAssertEqual(homeAssistant.headers["x-espdesktop-request"], "resync-buttons")
+        XCTAssertNotNil(USBEditorRequest(method: "POST", path: "/api/v1/screensaver-pin",
+            body: Data(#"{"enabled":false,"pin":""}"#.utf8)))
+        XCTAssertNil(USBEditorRequest(method: "POST", path: "/api/v1/screensaver-pin",
+            body: Data(#"{"enabled":true,"pin":"1234"}"#.utf8)))
+    }
+
+    func testUSBWebSignInUsesNativeCredentialsAndIncrementsDigestCount() throws {
+        let request = try XCTUnwrap(USBEditorRequest(method: "GET", path: "/api/v1/identity",
+            headers: ["Authorization": "from-script"]))
+        let credentials = USBEditorWebCredentials(username: "display", password: "example")
+        let nonce = String(repeating: "ab", count: 16)
+        let opaque = String(repeating: "cd", count: 16)
+        let challenge = #"Digest realm="Login Required", qop="auth", algorithm=MD5, nonce="\#(nonce)", opaque="\#(opaque)""#
+        var digest = try XCTUnwrap(USBEditorWebChallenge(challenge))
+        let first = try XCTUnwrap(digest.authorization(for: request, credentials: credentials))
+        XCTAssertTrue(first.contains("nc=00000001"))
+        XCTAssertTrue(digest.authorization(for: request, credentials: credentials)?.contains("nc=00000002") == true)
+        XCTAssertFalse(String(decoding: request.wireBytes, as: UTF8.self).contains("Authorization:"))
+        XCTAssertTrue(String(decoding: request.wireBytes(authorization: first), as: UTF8.self).contains(first))
+        XCTAssertTrue(USBEditorWebChallenge(challenge + ", stale=true")?.stale == true)
+        XCTAssertNil(USBEditorWebChallenge("Bearer realm=\"display\""))
+    }
+
     func testParsesAnIncrementalResponseAndKeepsTheGeneration() throws {
         let header = Data("HTTP/1.1 200 OK\r\nContent-Length: 3\r\nETag: \"4-v2\"\r\n\r\n".utf8)
         XCTAssertNil(try USBEditorResponse.parse(header + Data([1, 2]), ended: false))

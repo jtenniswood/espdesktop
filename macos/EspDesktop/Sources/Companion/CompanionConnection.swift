@@ -469,7 +469,7 @@ final class CompanionConnection: NSObject {
         return (trust, fingerprint)
     }
 
-    func requestUSBEditor(_ request: USBEditorRequest) async throws -> USBEditorResponse {
+    func requestUSBEditor(_ request: USBEditorRequest, authorization: String? = nil) async throws -> USBEditorResponse {
         if request.path == USBEditorRequest.wifiPath {
             guard usbEditorConnected else { throw USBEditorError.disconnected }
             guard usbEditorSupported else { throw USBEditorError.firmwareUpdateRequired }
@@ -480,7 +480,7 @@ final class CompanionConnection: NSObject {
         }
         let generation = try await beginUSBEditorRequest()
         defer { editorBusy = false }
-        return try await requestUSBEditorHTTP(request, generation: generation)
+        return try await requestUSBEditorHTTP(request, authorization: authorization, generation: generation)
     }
 
     private func beginUSBEditorRequest() async throws -> UInt64 {
@@ -578,11 +578,12 @@ final class CompanionConnection: NSObject {
         return USBEditorResponse(status: 200, headers: ["content-type": "application/json"], body: body)
     }
 
-    private func requestUSBEditorHTTP(_ request: USBEditorRequest, generation: UInt64) async throws -> USBEditorResponse {
+    private func requestUSBEditorHTTP(_ request: USBEditorRequest, authorization: String?,
+                                      generation: UInt64) async throws -> USBEditorResponse {
         do {
             let open = try await editorCommand(1, generation: generation)
             guard open.first == 0 else { throw USBEditorError.invalidResponse }
-            let requestBytes = request.wireBytes
+            let requestBytes = request.wireBytes(authorization: authorization)
             let clock = ContinuousClock()
             let end = clock.now.advanced(by: .seconds(100))
             var offset = 0
