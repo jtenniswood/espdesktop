@@ -609,7 +609,7 @@ struct CompanionSettings: View {
                 Button("Use Network") { findingNetworkDisplay = display }
                     .disabled(findingNetworkDisplay != nil)
 
-                Menu("Serial Ports") {
+                Menu("Change port") {
                     if usbPorts.isEmpty {
                         Text("No USB ports found")
                     }
