@@ -15,7 +15,7 @@ description: Adjust OBS mixer levels, mute individual microphones and other inpu
 2. Open **Edit Card** on the **Audio** page card to hide or reorder inputs. In the example below, **Mic/Aux** comes first. Turn off any capture inputs you rarely adjust. Choose **Save**.
 3. Use **Edit Subpage** to move or resize sliders and add other audio controls in the free cells. See [how to customise grouped pages](/mac-controls/obs-studio#customise-an-obs-card-or-page).
 
-<a href="/images/obs/audio-settings.png"><img src="/images/obs/audio-settings.png" alt="Audio subpage settings with reorder controls and visibility switches for Mic/Aux, capture cards and macOS Screen Capture inputs" width="1016" height="1321" loading="lazy"></a>
+<a href="/images/obs/audio-settings.png"><img src="/images/obs/audio-settings.png" alt="Audio settings with switches and reorder controls for Mic/Aux, capture cards, and macOS Screen Capture inputs" width="1016" height="1321" loading="lazy"></a>
 
 <a href="/images/obs/audio-layout.png"><img src="/images/obs/audio-layout.png" alt="Customised Audio page with Back, Cough, and Mic Live above sliders for Input 1, Input 2, and Mic" width="1198" height="1194" loading="lazy"></a>
 
