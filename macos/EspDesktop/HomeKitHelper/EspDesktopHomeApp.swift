@@ -16,9 +16,15 @@ struct EspDesktopHomeApp: App {
                     Picker("Home", selection: Binding(get: { home.selectedHomeID }, set: home.select)) {
                         if home.selectedHomeID == nil { Text("Choose a Home").tag(nil as UUID?) }
                         ForEach(home.homes, id: \.uniqueIdentifier) { house in
-                            Text(house.name).tag(Optional(house.uniqueIdentifier))
+                            let count = home.controlCounts[house.uniqueIdentifier, default: 0]
+                            Text("\(house.name) (\(count) available)").tag(Optional(house.uniqueIdentifier))
                         }
                     }
+                }
+                if home.canContinue {
+                    Button("Continue", action: home.continueSetup)
+                        .buttonStyle(.borderedProminent)
+                        .keyboardShortcut(.defaultAction)
                 }
             }
             .padding(24)
@@ -42,7 +48,7 @@ struct EspDesktopHomeApp: App {
                 Text("There are no compatible controls or scenes in this home.")
             }
         case .ready:
-            Text("Choose which Apple Home controls to add in EspDesktop’s display settings.")
+            Text("Choose controls to add to your display in EspDesktop.")
         }
     }
 }
@@ -61,6 +67,7 @@ final class EspDesktopHome: NSObject, ObservableObject, HMHomeManagerDelegate, H
     }
 
     @Published private(set) var homes: [HMHome] = []
+    @Published private(set) var controlCounts: [UUID: Int] = [:]
     @Published private(set) var status: AppleHomeSceneMessage.Status = .waiting
     @Published private(set) var selectedHomeID: UUID?
     private let defaults = UserDefaults.standard
@@ -71,6 +78,7 @@ final class EspDesktopHome: NSObject, ObservableObject, HMHomeManagerDelegate, H
     private var bindings = AppleHomeSceneBindings()
     private var targets: [UUID: Target] = [:]
     private var publishesCatalog = false
+    private var supportsContinue = false
     private var loadedHomes = false
 
     override init() {
@@ -78,6 +86,7 @@ final class EspDesktopHome: NSObject, ObservableObject, HMHomeManagerDelegate, H
         manager.delegate = self
         let arguments = ProcessInfo.processInfo.arguments
         publishesCatalog = arguments.contains("--espdesktop-home-cards")
+        supportsContinue = arguments.contains("--espdesktop-home-continue")
         guard let marker = arguments.firstIndex(of: "--espdesktop-home-connection"), marker + 2 < arguments.count,
               let portNumber = UInt16(arguments[marker + 1]), let port = NWEndpoint.Port(rawValue: portNumber),
               let secret = UUID(uuidString: arguments[marker + 2]) else { return }
@@ -129,11 +138,19 @@ final class EspDesktopHome: NSObject, ObservableObject, HMHomeManagerDelegate, H
         refresh()
     }
 
+    var canContinue: Bool { supportsContinue && channel != nil && status == .ready }
+
+    func continueSetup() {
+        guard canContinue, let bindingSet else { return }
+        channel?.send(.init(kind: .continueSetup, bindingSet: bindingSet))
+    }
+
     private func refresh() {
         guard manager.authorizationStatus.contains(.authorized) else {
             selectedHome = nil
             selectedHomeID = nil
             homes = []
+            controlCounts = [:]
             targets = [:]
             publish(manager.authorizationStatus.contains(.determined) ? .denied : .waiting)
             return
@@ -145,6 +162,7 @@ final class EspDesktopHome: NSObject, ObservableObject, HMHomeManagerDelegate, H
             let scenes = userScenes(in: home)
             return (home: home, scenes: scenes, controls: discoverControls(in: home, scenes: scenes))
         }
+        controlCounts = Dictionary(uniqueKeysWithValues: catalogs.map { ($0.home.uniqueIdentifier, $0.controls.count) })
         let saved = defaults.string(forKey: "selectedHome").flatMap(UUID.init(uuidString:))
         let eligibleHomes = catalogs.filter { !$0.controls.isEmpty }.map { $0.home.uniqueIdentifier }
         let selected = AppleHomeSceneBindings.chooseHome(from: homes.map(\.uniqueIdentifier), withControls: eligibleHomes,

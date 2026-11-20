@@ -499,6 +499,8 @@ struct CompanionSettings: View {
         switch store.requestedSettingsDestination {
         case .displays:
             selectedPageID = CompanionSettingsPage.connection.rawValue
+        case .appleHome:
+            selectedPageID = CompanionSettingsPage.appleHome.rawValue
         case .support:
             selectedPageID = CompanionSettingsPage.help.rawValue
         case .addDevice:

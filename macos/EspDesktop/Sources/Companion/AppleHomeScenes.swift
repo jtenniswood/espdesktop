@@ -18,6 +18,7 @@ final class AppleHomeScenes: ObservableObject {
     @Published private(set) var controls: [AppleHomeControl] = []
     @Published private(set) var cardLabels: [String: [UUID: String]]
     var onControlsChanged: (() -> Void)?
+    var onContinueSetup: (() -> Void)?
     private var incomingControls: [AppleHomeControl]?
     private let defaults: UserDefaults
     private var listener: NWListener?
@@ -58,7 +59,10 @@ final class AppleHomeScenes: ObservableObject {
 
     func connect(activate: Bool = true) {
         guard listener == nil else {
-            if activate { helper?.activate(options: []) }
+            if activate {
+                helper?.unhide()
+                helper?.activate(options: [])
+            }
             return
         }
         guard let url = Self.helperURL else {
@@ -106,7 +110,8 @@ final class AppleHomeScenes: ObservableObject {
         let configuration = NSWorkspace.OpenConfiguration()
         configuration.activates = activate
         configuration.createsNewApplicationInstance = true
-        configuration.arguments = ["--espdesktop-home-connection", String(port.rawValue), secret.uuidString, "--espdesktop-home-cards"]
+        configuration.arguments = ["--espdesktop-home-connection", String(port.rawValue), secret.uuidString,
+                                   "--espdesktop-home-cards", "--espdesktop-home-continue"]
         let currentListener = listener
         Task {
             do {
@@ -162,6 +167,10 @@ final class AppleHomeScenes: ObservableObject {
             if let incomingControls { controls = incomingControls }
             incomingControls = nil
             onControlsChanged?()
+        case .continueSetup:
+            guard status == .ready, let bindingSet, message.bindingSet == bindingSet, !controls.isEmpty else { return }
+            helper?.hide()
+            onContinueSetup?()
         case .result:
             if let pending = pendingRun, pending.0 == message.request {
                 pendingRun = nil

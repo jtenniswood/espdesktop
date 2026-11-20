@@ -50,7 +50,9 @@ struct AppleHomeControl: Codable, Equatable, Identifiable, Sendable {
 }
 
 struct AppleHomeSceneMessage: Codable, Equatable, Sendable {
-    enum Kind: String, Codable, Sendable { case hello, status, catalogStart, catalogControl, catalogEnd, run, result, disconnect }
+    enum Kind: String, Codable, Sendable {
+        case hello, status, catalogStart, catalogControl, catalogEnd, run, result, disconnect, continueSetup
+    }
     enum Status: String, Codable, Sendable { case waiting, chooseHome, denied, empty, ready }
 
     let kind: Kind

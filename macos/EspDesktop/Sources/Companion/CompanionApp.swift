@@ -89,6 +89,9 @@ final class CompanionApplicationDelegate: NSObject, NSApplicationDelegate, NSMen
             object: nil
         )
         NSApp.setActivationPolicy(.accessory)
+        store.appleHome.onContinueSetup = { [weak self] in
+            self?.openCompanionWindow(destination: .appleHome)
+        }
         let item = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
         statusItem = item
         if let button = item.button {
@@ -126,7 +129,11 @@ final class CompanionApplicationDelegate: NSObject, NSApplicationDelegate, NSMen
     }
 
     func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {
-        openCompanionWindow()
+        if let settingsWindow, settingsWindow.isVisible {
+            settingsWindow.makeKeyAndOrderFront(nil)
+        } else {
+            openCompanionWindow()
+        }
         return true
     }
 
