@@ -1244,14 +1244,11 @@ export function registerCompanionCardTypes(
                 }
                 showWorkflows(appleHome ? "Loading Apple Home controls…" : "Loading Apple Shortcuts…");
                 if (localAppleHome) {
-                    const setup = document.createElement("button");
-                    setup.type = "button";
-                    setup.className = "sp-action-btn sp-neutral-btn";
-                    setup.style.display = "none";
                     const status = document.createElement("div");
                     status.className = "sp-field-info-text";
                     status.setAttribute("role", "status");
-                    field.append(status, setup);
+                    field.appendChild(status);
+                    const requestedSetupStates = new Set<string>();
                     let latestRequest = 0;
 
                     async function loadAppleHome(method: "GET" | "POST"): Promise<void> {
@@ -1261,16 +1258,19 @@ export function registerCompanionCardTypes(
                             if (response.status === 426) throw new Error("Update the display firmware to add Apple Home controls.");
                             if (!response.ok) throw new Error("Apple Home unavailable");
                             const catalogue = await response.json() as {
-                                status: string; canChooseHome: boolean; note: string; controls: EditorAction[];
+                                status: string; note: string; controls: EditorAction[];
                             };
                             if (request !== latestRequest || !field.isConnected) return;
                             workflows = sortCompanionLabels(catalogue.controls.filter(action => action.id.startsWith(prefix)));
-                            showWorkflows(catalogue.status === "waiting" ? "Connecting to Apple Home…" : "No available Apple Home controls");
-                            setup.textContent = catalogue.status === "disconnected" ? "Connect Apple Home"
-                                : catalogue.status === "chooseHome" ? "Choose a Home"
-                                : catalogue.canChooseHome && (catalogue.status === "ready" || catalogue.status === "empty")
-                                    ? "Change Home…" : "";
-                            setup.style.display = setup.textContent ? "" : "none";
+                            if ((catalogue.status === "disconnected" || catalogue.status === "chooseHome") &&
+                                !requestedSetupStates.has(catalogue.status)) {
+                                requestedSetupStates.add(catalogue.status);
+                                showWorkflows("Connecting to Apple Home…");
+                                void loadAppleHome("POST");
+                                return;
+                            }
+                            showWorkflows(catalogue.status === "chooseHome" ? "Choose your home in EspDesktop Home…"
+                                : catalogue.status === "waiting" ? "Connecting to Apple Home…" : "No available Apple Home controls");
                             status.textContent = catalogue.status === "denied"
                                 ? "Allow EspDesktop Home in System Settings under Privacy & Security → HomeKit."
                                 : catalogue.note;
@@ -1279,15 +1279,9 @@ export function registerCompanionCardTypes(
                             if (request !== latestRequest || !field.isConnected) return;
                             workflows = [];
                             showWorkflows(error instanceof Error ? error.message : "Apple Home unavailable");
-                        } finally {
-                            if (request === latestRequest) setup.disabled = false;
                         }
                     }
 
-                    setup.addEventListener("click", () => {
-                        setup.disabled = true;
-                        void loadAppleHome("POST");
-                    });
                     refreshAppleHomePicker = () => {
                         if (field.isConnected) void loadAppleHome("GET");
                         else refreshAppleHomePicker = undefined;

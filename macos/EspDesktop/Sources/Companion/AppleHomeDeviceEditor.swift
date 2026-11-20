@@ -31,7 +31,7 @@ final class AppleHomeDeviceEditor {
         guard supportsNativeLayout else {
             return USBEditorResponse(status: 426, headers: [:], body: Data())
         }
-        if let onContinueSetup {
+        if let onContinueSetup, home.status == nil || home.status == .chooseHome {
             home.onContinueSetup = onContinueSetup
             home.connect()
         }
@@ -41,15 +41,13 @@ final class AppleHomeDeviceEditor {
             entry["suggestedIcon"] = control.suggestedIcon
             return entry
         }
-        let catalogue = LocalCatalogue(status: home.status?.rawValue ?? "disconnected", canChooseHome: home.canChooseHome,
-                                       note: home.note, controls: entries)
+        let catalogue = LocalCatalogue(status: home.status?.rawValue ?? "disconnected", note: home.note, controls: entries)
         return USBEditorResponse(status: 200, headers: ["content-type": "application/json"],
                                  body: try JSONEncoder().encode(catalogue))
     }
 
     private struct LocalCatalogue: Encodable {
         let status: String
-        let canChooseHome: Bool
         let note: String
         let controls: [[String: String]]
     }
