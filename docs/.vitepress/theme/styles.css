@@ -122,6 +122,17 @@
   }
 }
 
+@media (768px <= width < 1024px) {
+  .VPNavBar .VPNavBarSearch {
+    padding-left: 16px;
+  }
+
+  .VPNavBarMenu .VPNavBarMenuLink,
+  .VPNavBarMenu .VPNavBarMenuGroup > .button {
+    padding-inline: 6px;
+  }
+}
+
 .vp-doc .docs-primary-action {
   display: inline-flex;
   align-items: center;
