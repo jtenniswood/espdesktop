@@ -114,6 +114,7 @@ final class CompanionApplicationDelegate: NSObject, NSApplicationDelegate, NSMen
     }
 
     func applicationWillTerminate(_ notification: Notification) {
+        store.appleHome.stop()
         store.obs.stop()
         store.releaseCoughButtons()
         DistributedNotificationCenter.default().removeObserver(self)

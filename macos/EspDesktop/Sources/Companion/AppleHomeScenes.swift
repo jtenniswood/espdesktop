@@ -57,6 +57,10 @@ final class AppleHomeScenes: ObservableObject {
 
     var canRestore: Bool { approvals.values.contains { $0 != Self.inactive } }
 
+    private var setupNeedsNoHomeChoice: Bool {
+        !canChooseHome && (status == .ready || status == .empty)
+    }
+
     func connect(activate: Bool = true) {
         guard listener == nil else {
             if activate {
@@ -109,6 +113,7 @@ final class AppleHomeScenes: ObservableObject {
     private func launch(_ url: URL, port: NWEndpoint.Port, secret: UUID, activate: Bool) {
         let configuration = NSWorkspace.OpenConfiguration()
         configuration.activates = activate
+        configuration.hides = !activate
         configuration.createsNewApplicationInstance = true
         configuration.arguments = ["--espdesktop-home-connection", String(port.rawValue), secret.uuidString,
                                    "--espdesktop-home-cards", "--espdesktop-home-continue"]
@@ -118,6 +123,7 @@ final class AppleHomeScenes: ObservableObject {
                 let app = try await NSWorkspace.shared.openApplication(at: url, configuration: configuration)
                 guard self.listener === currentListener else { app.terminate(); return }
                 helper = app
+                if setupNeedsNoHomeChoice { app.hide() }
             } catch {
                 guard self.listener === currentListener else { return }
                 stop()
@@ -158,6 +164,7 @@ final class AppleHomeScenes: ObservableObject {
             status = message.status
             canChooseHome = message.canChooseHome == true
             if message.status != .ready { controls = [] }
+            if setupNeedsNoHomeChoice { helper?.hide() }
             onControlsChanged?()
         case .catalogStart:
             incomingControls = []
@@ -259,7 +266,7 @@ final class AppleHomeScenes: ObservableObject {
         defaults.set(approvals.mapValues(\.uuidString), forKey: Self.approvalsKey)
     }
 
-    private func stop() {
+    func stop() {
         let channel = peer
         peer = nil
         channel?.close()
