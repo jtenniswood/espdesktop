@@ -8,6 +8,8 @@ EspDesktop pairs an affordable ESP32 touchscreen with a native macOS menu-bar ap
 
 Set up the display from a normal web browser.
 
+A [Windows 11 companion preview](windows/README.md) is available for testing on Intel, AMD, and Arm PCs.
+
 **Documentation and setup guides:** [espdesktop.com](https://espdesktop.com/)
 
 ## What You Can Control
