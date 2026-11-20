@@ -15,6 +15,7 @@ let package = Package(
             resources: [
                 .copy("Resources/AppShortcuts"),
                 .copy("Resources/buy-me-a-coffee-button.png"),
+                .copy("Resources/screen-lock.jpg"),
             ],
             linkerSettings: [
                 .unsafeFlags(["-Xlinker", "-rpath", "-Xlinker", "@executable_path/../Frameworks"]),

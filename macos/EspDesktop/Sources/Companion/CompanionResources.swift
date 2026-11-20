@@ -26,6 +26,10 @@ enum CompanionArtwork {
         return loadSupportButton(bundledURL: bundledURL, cacheURL: cacheURL)
     }()
 
+    static let screenLockPhoto: NSImage? = Bundle.companionResources?
+        .url(forResource: "screen-lock", withExtension: "jpg")
+        .flatMap { NSImage(contentsOf: $0) }
+
     static func loadSupportButton(bundledURL: URL?, cacheURL: URL?) -> NSImage? {
         if let bundledURL, let data = try? Data(contentsOf: bundledURL), let image = NSImage(data: data) {
             if let cacheURL, (try? Data(contentsOf: cacheURL)) != data {
