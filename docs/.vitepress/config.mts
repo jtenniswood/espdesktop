@@ -4,6 +4,7 @@ import { createRequire } from 'node:module'
 import { resolve } from 'node:path'
 import { defineConfig } from 'vitepress'
 import { canonicalUrlFor, faqSchema, hostname, jsonLd, llmsIndexUrl, writeRedirects } from './discovery'
+import { imageCaptions } from './image-captions'
 import { writeMarkdownPages } from './markdown-export'
 import { unpublishedMarkdown, writeGuideIndex } from './public-guides'
 import productFacts from './product-facts.json'
@@ -104,7 +105,13 @@ export default defineConfig({
   cleanUrls: true,
   lastUpdated: true,
   srcExclude: unpublishedMarkdown,
-  markdown: { config: faqSchema, image: { lazyLoading: true } },
+  markdown: {
+    config(md) {
+      faqSchema(md)
+      imageCaptions(md)
+    },
+    image: { lazyLoading: true },
+  },
   async buildEnd({ outDir, pages }) {
     const demoRenderer = resolve(freshWebOutputDir({ testHooks: false }), 'app.js')
     await Promise.all([

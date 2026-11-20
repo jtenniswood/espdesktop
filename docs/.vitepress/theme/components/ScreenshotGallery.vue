@@ -52,6 +52,7 @@ function move(offset: number) {
         </a>
 
         <figcaption>
+          <div class="doc-image-caption" aria-hidden="true">{{ slide.alt }}</div>
           <p class="slide-position">{{ slideIndex + 1 }} / {{ slides.length }}</p>
           <strong class="slide-title">{{ slide.title }}</strong>
           <p class="slide-caption">{{ slide.caption }}</p>

@@ -10,8 +10,16 @@ function visibleText(node: Element) {
   return (node.textContent || '').replace(/\u200b/g, '').replace(/\s+/g, ' ').trim()
 }
 
+function removeImageCaptions(html: ParentNode) {
+  // Markdown image syntax already carries the alt text.
+  for (const caption of Array.from(html.querySelectorAll('.doc-image-caption'))) {
+    caption.parentNode.removeChild(caption)
+  }
+}
+
 function checkExportContent(html: Element, exportedHtml: string, page: string) {
   const exported = createDocument(exportedHtml)
+  removeImageCaptions(exported)
   for (const [selector, label] of [['ol > li', 'numbered instructions'], ['tr > th, tr > td', 'table cells']]) {
     const before = Array.from(html.querySelectorAll(selector), visibleText)
     const after = Array.from(exported.querySelectorAll(selector), visibleText)
@@ -74,6 +82,7 @@ export async function writeMarkdownPages(outDir: string, pages: string[]) {
     for (const node of Array.from(content.querySelectorAll('.header-anchor, button, script, style'))) {
       node.parentNode.removeChild(node)
     }
+    removeImageCaptions(content)
     const canonical = canonicalUrlFor(page)
     const installer = content.querySelector('.esp-install-wrapper')
     if (installer) {
