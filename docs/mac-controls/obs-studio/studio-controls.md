@@ -7,6 +7,8 @@ description: Use EspDesktop to control OBS Studio Mode, Multiview, streaming, re
 
 [Connect OBS Studio](/mac-controls/obs-studio#connect-obs-studio) to use your touchscreen for recording, streaming, and saving replay clips.
 
+<img src="/images/obs/studio.jpg" alt="EspDesktop touchscreen showing the Studio Control page with Record and Stream idle, Studio Mode on, and Replay Buffer off" width="1440" height="1440">
+
 ## Add the Studio Control grouped page
 
 Choose **Add Card → OBS Studio → Grouped pages → Studio Control** and save the card. It starts with **Record**, **Stream**, **Studio Mode**, **Replay Buffer**, and **Save Replay**. **Save Replay** spans two rows and two columns when there’s room.
