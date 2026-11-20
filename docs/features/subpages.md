@@ -28,7 +28,7 @@ Under **Screen → Appearance → App Subpages**, **Return home when switching a
 5. Add and arrange cards on the subpage as you would on the home screen.
 6. Choose its **Back** card to return to the parent page.
 
-<a href="/images/web-editor-subpage-home.png"><picture><source type="image/avif" srcset="/images/web-editor-home-480.avif 480w, /images/web-editor-home-960.avif 960w" sizes="(min-width: 768px) 688px, 90vw"><img src="/images/web-editor-subpage-home.png" alt="Home layout with chevrons marking app cards that have subpages and a dashed empty tile for adding a card" width="1694" height="2266" loading="lazy"></picture></a>
+<a href="/images/web-editor-subpage-home.png"><picture><source type="image/avif" srcset="/images/web-editor-subpage-home-480.avif 480w, /images/web-editor-subpage-home-960.avif 960w" sizes="(min-width: 768px) 688px, 90vw"><img src="/images/web-editor-subpage-home.png" alt="Home layout with chevrons marking app cards that have subpages and a dashed empty tile for adding a card" width="1694" height="2266" loading="lazy"></picture></a>
 
 You can also right-click an empty space in the editor and choose **Create Subpage**.
 

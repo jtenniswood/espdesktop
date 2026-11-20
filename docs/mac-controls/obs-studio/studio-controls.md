@@ -7,7 +7,10 @@ description: Use EspDesktop to control OBS Studio Mode, Multiview, streaming, re
 
 [Connect OBS Studio](/mac-controls/obs-studio#connect-obs-studio) to use your touchscreen for recording, streaming, and saving replay clips.
 
-<img src="/images/obs/studio.jpg" alt="EspDesktop touchscreen showing the Studio Control page with Record and Stream idle, Studio Mode on, and Replay Buffer off" width="1440" height="1440">
+<picture>
+  <source type="image/avif" srcset="/images/obs/studio-480.avif 480w, /images/obs/studio-960.avif 960w" sizes="(min-width: 768px) 688px, min(688px, 90vw)">
+  <img src="/images/obs/studio.jpg" alt="EspDesktop Studio Control page with Studio Mode on, Record and Stream idle, and Replay Buffer off" width="1440" height="1440">
+</picture>
 
 ## Add the Studio Control grouped page
 
@@ -15,7 +18,12 @@ Choose **Add Card → OBS Studio → Grouped pages → Studio Control** and save
 
 Use **Edit Subpage** to move, edit, or delete the preset cards. Add **Virtual Camera** or **Open Multiview** if you also use them during a session.
 
-<a href="/images/obs/studio-control-layout.png"><img src="/images/obs/studio-control-layout.png" alt="Studio Control with Record and Stream idle, Studio Mode on, Replay Buffer off, and Save Replay prompting you to start it" width="1202" height="1198" loading="lazy"></a>
+<a href="/images/obs/studio-control-layout.png">
+  <picture>
+    <source type="image/avif" srcset="/images/obs/studio-control-layout-480.avif 480w, /images/obs/studio-control-layout-960.avif 960w" sizes="(min-width: 768px) 688px, min(688px, 90vw)">
+    <img src="/images/obs/studio-control-layout.png" alt="Studio Control with Record and Stream idle, Studio Mode on, Replay Buffer off, and Save Replay prompting you to start it" width="1202" height="1198" loading="lazy" decoding="async">
+  </picture>
+</a>
 
 ## Studio Mode and Multiview
 
@@ -40,7 +48,12 @@ Add **Output Controls** and choose an **OBS output**.
 | **Recording** | Starts or stops a recording. The card shows **Record** when idle, **Recording** when active, and updates when recording pauses or stops. |
 | **Virtual Camera** | Starts or stops the OBS Virtual Camera. The card lights up while it’s running. |
 
-<a href="/images/obs/streaming.png"><img src="/images/obs/streaming.png" alt="EspDesktop Home layout with the Record, Stream, and Camera cards side by side, all showing Idle" width="1192" height="1190" loading="lazy"></a>
+<a href="/images/obs/streaming.png">
+  <picture>
+    <source type="image/avif" srcset="/images/obs/streaming-480.avif 480w, /images/obs/streaming-960.avif 960w" sizes="(min-width: 768px) 688px, min(688px, 90vw)">
+    <img src="/images/obs/streaming.png" alt="EspDesktop Home layout with the Record, Stream, and Camera cards side by side, all showing Idle" width="1192" height="1190" loading="lazy" decoding="async">
+  </picture>
+</a>
 
 Each output asks for confirmation before starting and stopping by default. In the **Confirmation** panel, use **When** to choose **Start**, **Stop**, or **Both**. You can edit the message and button labels, or turn off **Confirmation Required**. If OBS changes the output while a prompt is open, check the updated action before trying again.
 

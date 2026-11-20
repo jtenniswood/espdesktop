@@ -9,7 +9,10 @@ OBS Studio is a free, open-source app for recording video and live streaming. Yo
 
 EspDesktop turns your touchscreen into a controller for OBS Studio on your Mac. Start with a ready-made page for scenes, audio, or recording controls, then add the cards you want within easy reach.
 
-<img src="/images/obs/home.jpg" alt="EspDesktop home screen with Replay Buffer, Studio Mode, Multiview, Record, Stream, Camera, Break, Scenes and Audio cards" width="1343" height="1440">
+<picture>
+  <source type="image/avif" srcset="/images/obs/home-480.avif 480w, /images/obs/home-960.avif 960w" sizes="(min-width: 768px) 688px, min(688px, 90vw)">
+  <img src="/images/obs/home.jpg" alt="EspDesktop Home screen with OBS cards for recording, streaming, scenes and audio" width="1343" height="1440">
+</picture>
 
 This example puts recording and streaming controls on Home, with **Scenes** and **Audio** one tap away.
 
@@ -21,7 +24,12 @@ Use a [paired EspDesktop display](/screens/4848s040) and matching Mac app and di
 2. In the EspDesktop Mac app, open **Settings → OBS**. Enter the port and password from OBS. The usual port is **4455**, but use the value shown in OBS if you changed it. Choose **Connect** and wait for **Connected to OBS**. [OBS remote control guide](https://obsproject.com/kb/remote-control-guide)
 3. Open your display’s web editor and select an empty tile on **Layout**. In **Choose Card**, select **OBS Studio**. If the picker shows connector tabs, look under **Companion**.
 
-<a href="/images/obs/choose-card.png"><img src="/images/obs/choose-card.png" alt="Choose Card dialog with OBS Studio in the bottom right" width="1596" height="1074" loading="lazy"></a>
+<a href="/images/obs/choose-card.png">
+  <picture>
+    <source type="image/avif" srcset="/images/obs/choose-card-480.avif 480w, /images/obs/choose-card-960.avif 960w" sizes="(min-width: 768px) 688px, min(688px, 90vw)">
+    <img src="/images/obs/choose-card.png" alt="Choose Card dialog with OBS Studio in the bottom right" width="1596" height="1074" loading="lazy" decoding="async">
+  </picture>
+</a>
 
 ## Start with grouped pages
 
@@ -36,7 +44,12 @@ In the **OBS Studio** picker, look under **Grouped pages**. Pick one and choose 
 
 For a first check, add **Scenes** and **Audio**. With Studio Mode on, select a scene and check that it appears in Preview in OBS. Make a short test recording and listen back to check your mix.
 
-<a href="/images/obs/obs-card-picker.png"><img src="/images/obs/obs-card-picker.png" alt="OBS Studio picker with seven card types above the Audio, Scenes, Studio Control and Transitions grouped pages" width="1584" height="1657" loading="lazy"></a>
+<a href="/images/obs/obs-card-picker.png">
+  <picture>
+    <source type="image/avif" srcset="/images/obs/obs-card-picker-480.avif 480w, /images/obs/obs-card-picker-960.avif 960w" sizes="(min-width: 768px) 688px, min(688px, 90vw)">
+    <img src="/images/obs/obs-card-picker.png" alt="OBS Studio picker with seven card types above the Audio, Scenes, Studio Control and Transitions grouped pages" width="1584" height="1657" loading="lazy" decoding="async">
+  </picture>
+</a>
 
 ## Choose what to control
 
