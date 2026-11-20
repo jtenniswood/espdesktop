@@ -8,6 +8,7 @@ final class AppleHomeScenes: ObservableObject {
     private static let helperBundleID = "io.espdesktop.home"
     private static let approvalsKey = "appleHome.approvedDisplays"
     private static let cardsKey = "appleHome.cards"
+    private static let connectionEnabledKey = "appleHome.connectionEnabled"
     private static let inactive = UUID(uuid: (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0))
 
     @Published private(set) var status: AppleHomeSceneMessage.Status?
@@ -55,7 +56,10 @@ final class AppleHomeScenes: ObservableObject {
         return url
     }
 
-    var canRestore: Bool { approvals.values.contains { $0 != Self.inactive } }
+    var canRestore: Bool {
+        defaults.object(forKey: Self.connectionEnabledKey) as? Bool ??
+            approvals.values.contains { $0 != Self.inactive }
+    }
     var readyBinding: UUID? { status == .ready ? bindingSet : nil }
 
     private var setupNeedsNoHomeChoice: Bool {
@@ -164,6 +168,9 @@ final class AppleHomeScenes: ObservableObject {
             bindingSet = message.status == .ready ? message.bindingSet : nil
             status = message.status
             canChooseHome = message.canChooseHome == true
+            if status == .ready || status == .empty {
+                defaults.set(true, forKey: Self.connectionEnabledKey)
+            }
             if message.status != .ready { controls = [] }
             if setupNeedsNoHomeChoice && !runningAction { helper?.hide() }
             onControlsChanged?()
@@ -278,10 +285,9 @@ final class AppleHomeScenes: ObservableObject {
     }
 
     func disconnect() {
-        approvals = approvals.mapValues { _ in Self.inactive }
-        saveApprovals()
+        defaults.set(false, forKey: Self.connectionEnabledKey)
         stop()
-        note = "Apple Home is disconnected. Scene tiles are disabled."
+        note = ""
     }
 
     private func saveApprovals() {
@@ -308,48 +314,37 @@ final class AppleHomeScenes: ObservableObject {
     }
 }
 
-struct AppleHomeSceneSettings: View {
+struct AppleHomeConnectionSection: View {
     @ObservedObject var home: AppleHomeScenes
-    let displays: [CompanionDisplay]
-    let selectedDisplayID: UUID?
-    let openDevice: (CompanionDisplay) -> Void
-
-    private var eligibleDisplays: [CompanionDisplay] {
-        let connected = displays.filter { $0.state == .connected && !$0.usesUSB }
-        if let selected = connected.first(where: { $0.id == selectedDisplayID }) { return [selected] }
-        return connected
-    }
 
     var body: some View {
-        Form {
-            Section("Apple Home") {
+        Section("Apple Home") {
+            HStack(spacing: 12) {
+                switch home.status {
+                case nil: Text("Disconnected")
+                case .waiting: ProgressView("Connecting…").controlSize(.small)
+                case .chooseHome: Text("Choose a home to finish connecting")
+                case .denied: Text("HomeKit access required")
+                case .empty: Text("No compatible controls or scenes")
+                case .ready: Text("Connected")
+                }
+                Spacer(minLength: 0)
                 if home.status == nil {
                     Button("Connect Apple Home") { home.connect() }
                 } else {
                     Button("Disconnect Apple Home") { home.disconnect() }
                 }
-                switch home.status {
-                case .waiting: ProgressView("Waiting for Apple Home")
-                case .chooseHome: Button("Choose a Home") { home.connect() }
-                case .denied:
-                    Text("Allow EspDesktop Home in System Settings under Privacy & Security → HomeKit.")
-                case .empty: Text("No compatible controls or scenes are available in this home.")
-                case .ready:
-                    Text("Choose Apple Home controls while editing cards in Device Settings.")
-                    if eligibleDisplays.isEmpty {
-                        Text("Connect a display over Wi-Fi to open Device Settings.")
-                    }
-                    ForEach(eligibleDisplays) { display in
-                        Button("Open \(display.name) Device Settings") { openDevice(display) }
-                    }
-                case nil: EmptyView()
-                }
-                if home.canChooseHome && (home.status == .ready || home.status == .empty) {
-                    Button("Change Home…") { home.connect() }
-                }
-                if !home.note.isEmpty { Text(home.note).foregroundStyle(.secondary) }
             }
+            if home.status == .chooseHome {
+                Button("Choose a Home") { home.connect() }
+            } else if home.canChooseHome && (home.status == .ready || home.status == .empty) {
+                Button("Change Home…") { home.connect() }
+            }
+            if home.status == .denied {
+                Text("Allow EspDesktop Home in System Settings under Privacy & Security → HomeKit.")
+                    .foregroundStyle(.secondary)
+            }
+            if !home.note.isEmpty { Text(home.note).foregroundStyle(.secondary) }
         }
-        .formStyle(.grouped)
     }
 }

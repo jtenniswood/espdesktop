@@ -11,19 +11,17 @@ Use the experimental EspDesktop Mac build, its signed **EspDesktop Home**
 helper and a display paired over Wi-Fi with firmware that supports the version 2
 layout API. Check that your home appears in Apple Home on the Mac.
 
-1. In EspDesktop on the Mac, open **Settings → Displays**. Choose **Apple Home**
-   next to your display, click **Connect Apple Home**, and allow HomeKit access
-   when macOS asks.
+1. In EspDesktop on the Mac, open **Settings → Displays**. Under **Apple Home**,
+   click **Connect Apple Home** and allow HomeKit access when macOS asks.
 2. If only one home is set up, EspDesktop selects it automatically. If a home
    picker appears, choose your home and click **Continue**. EspDesktop remembers
    the choice and reconnects in the background the next time it starts.
-3. Click **Open [display name] Device Settings**. Select an empty tile, choose
-   **Apple Home**, and pick the control you want to run. Open Device Settings
-   from the Mac app to see the full list. The display's browser editor shows
-   only the controls already saved for that display.
-4. Replace the title in **Display Label** with the label you want on the
-   touchscreen. To choose a symbol, open **Card Settings → Icon** and pick an
-   EspDesktop icon. **Auto** uses a house. Click **Save**.
+3. Click **Device** next to your display. Select an empty tile, choose
+   **Apple Home**, and pick a control. The Mac editor lists every supported
+   control in the connected home. The display's browser editor shows only the
+   controls already saved for that display.
+4. Enter the label you want on the touchscreen in **Display Label**, then
+   click **Save**. **Card Settings → Icon** is optional. **Auto** uses a house.
 5. With your Mac awake and unlocked, tap the card and check that the accessory
    responds. The helper may briefly come forward if HomeKit requires foreground
    access, then return focus to the previous Mac app.

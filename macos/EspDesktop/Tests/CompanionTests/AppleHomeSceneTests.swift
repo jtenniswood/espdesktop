@@ -58,6 +58,29 @@ final class AppleHomeSceneTests: XCTestCase {
     }
 
     @MainActor
+    func testConnectionPreferenceRestoresWithoutCardsAndOverridesLegacyApprovals() {
+        let suite = "AppleHomeSceneTests.\(UUID())"
+        let defaults = UserDefaults(suiteName: suite)!
+        defer { defaults.removePersistentDomain(forName: suite) }
+        XCTAssertFalse(AppleHomeScenes(defaults: defaults).canRestore)
+
+        defaults.set(true, forKey: "appleHome.connectionEnabled")
+        XCTAssertTrue(AppleHomeScenes(defaults: defaults).canRestore)
+
+        let approvedBinding = UUID()
+        defaults.set(["display.known": approvedBinding.uuidString], forKey: "appleHome.approvedDisplays")
+        defaults.removeObject(forKey: "appleHome.connectionEnabled")
+        let home = AppleHomeScenes(defaults: defaults)
+        XCTAssertTrue(home.canRestore)
+        home.disconnect()
+
+        let restarted = AppleHomeScenes(defaults: defaults)
+        XCTAssertFalse(restarted.canRestore)
+        XCTAssertEqual(restarted.approvals["display.known"], approvedBinding)
+        XCTAssertTrue(restarted.cardActions(for: "display.known").isEmpty)
+    }
+
+    @MainActor
     func testNativeHomeCardUsesItsReferenceAndFailsClosedWhenUnassigned() async {
         let scene = AppleHomeControl(id: UUID(), name: "Private Scene")
         XCTAssertEqual(AppleHomeControl.reference(for: scene.action), scene.id)

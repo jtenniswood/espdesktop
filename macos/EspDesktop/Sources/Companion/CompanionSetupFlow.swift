@@ -1,7 +1,6 @@
 import Foundation
 
 enum CompanionSettingsDestination {
-    case appleHome
     case displays, addDevice, support
 }
 

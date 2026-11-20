@@ -1186,28 +1186,20 @@ export function registerCompanionCardTypes(
                 picker.className = "sp-select";
                 picker.id = helpers.idPrefix + (appleHome ? "apple-home" : "apple-shortcut");
                 field.append(fieldLabel(controlLabel, picker.id), picker);
-                const note = document.createElement("div");
-                note.className = "sp-field-info-text";
-                note.textContent = localAppleHome
-                    ? "Replace the Apple Home title with the label you want on the display."
-                    : appleHome
-                    ? "Open Device Settings from EspDesktop on the Mac to browse all Apple Home controls."
-                    : "Choose which workflows are available under Shortcuts in the EspDesktop Mac app.";
-                field.appendChild(note);
+                if (!localAppleHome) {
+                    const note = document.createElement("div");
+                    note.className = "sp-field-info-text";
+                    note.textContent = appleHome
+                        ? "Open Device Settings from EspDesktop on the Mac to browse all Apple Home controls."
+                        : "Choose which workflows are available under Shortcuts in the EspDesktop Mac app.";
+                    field.appendChild(note);
+                }
                 panel?.appendChild(field);
                 helpers.markCardPrimaryField(field, "entity");
 
                 const savedID = currentEntity === prefix ? "" : currentEntity;
                 let workflows: readonly CompanionAction[] = [];
                 let displayLabel: HTMLInputElement | null = null;
-                let suggestedTitle = "";
-                let needsOwnLabel = false;
-                function prefillLocalLabel(): void {
-                    if (!displayLabel || card.label) return;
-                    suggestedTitle = workflows.find(action => action.id === card.entity)?.label ?? "";
-                    displayLabel.value = suggestedTitle;
-                    needsOwnLabel = suggestedTitle !== "";
-                }
                 function showWorkflows(emptyMessage: string): void {
                     picker.replaceChildren();
                     const placeholder = document.createElement("option");
@@ -1230,7 +1222,6 @@ export function registerCompanionCardTypes(
                     }
                     picker.value = selectedID;
                     picker.disabled = workflows.length === 0;
-                    prefillLocalLabel();
                 }
                 showWorkflows(appleHome ? "Loading Apple Home controls…" : "Loading Apple Shortcuts…");
                 const available = localAppleHome ? fetchImpl("/espdesktop-local/apple-home").then(response => {
@@ -1240,7 +1231,8 @@ export function registerCompanionCardTypes(
                 }) : loadCompanionActions(true);
                 void available.then(actions => {
                     workflows = sortCompanionLabels(actions.filter(action => action.id.startsWith(prefix)));
-                    showWorkflows(appleHome ? "No available Apple Home controls" : "No available Apple Shortcuts");
+                    showWorkflows(localAppleHome ? "No controls available. Check Apple Home in Displays."
+                        : appleHome ? "No available Apple Home controls" : "No available Apple Shortcuts");
                 }).catch(error => showWorkflows(localAppleHome && error instanceof Error ? error.message :
                     appleHome ? "Apple Home unavailable" : "Apple Shortcuts unavailable"));
                 helpers.requireField(picker, appleHome ? "Choose an Apple Home card before saving." : "Choose an Apple Shortcut before saving.", () => true,
@@ -1253,9 +1245,7 @@ export function registerCompanionCardTypes(
                     // HomeKit names only populate the local picker. A card's
                     // label is authored separately before it is saved.
                     if (localAppleHome) {
-                        prefillLocalLabel();
                         displayLabel?.focus();
-                        if (needsOwnLabel) displayLabel?.select();
                         return;
                     }
                     card.label = selected.label;
@@ -1266,30 +1256,12 @@ export function registerCompanionCardTypes(
                 if (appleHome) {
                     if (localAppleHome) {
                         const field = helpers.renderCardTextField(panel, card, helpers, {
-                            label: "Display Label", field: "label", value: card.label, bindName: null,
-                            placeholder: "e.g. Open",
+                            label: "Display Label", field: "label", placeholder: "e.g. Open blind",
                         });
-                        const input = field.input as HTMLInputElement;
-                        displayLabel = input;
+                        displayLabel = field.input as HTMLInputElement;
                         helpers.markCardPrimaryField(field.field, "name");
-                        input.addEventListener("beforeinput", () => {
-                            if (input.selectionStart === 0 && input.selectionEnd === input.value.length) {
-                                needsOwnLabel = false;
-                            }
-                        });
-                        input.addEventListener("input", (event) => {
-                            // Undo can restore text from the local suggestion.
-                            if (suggestedTitle && (event.inputType === "historyUndo" || event.inputType === "historyRedo" ||
-                                input.value.trim() === suggestedTitle.trim())) {
-                                needsOwnLabel = true;
-                            }
-                            card.label = needsOwnLabel ? "" : input.value;
-                            helpers.saveField("label", card.label);
-                            cardUi.renderPreview();
-                        });
-                        helpers.requireField(input, "Replace the suggested title with a short display label.", () => true,
-                            (value: string) => !needsOwnLabel && !!value.trim() &&
-                                new TextEncoder().encode(value.trim()).length <= 80);
+                        helpers.requireField(displayLabel, "Enter a display label of up to 80 bytes.", () => true,
+                            (value: string) => !!value.trim() && new TextEncoder().encode(value.trim()).length <= 80);
                     }
                     helpers.renderBasicCardFields(panel, card, helpers, COMPANION_CARD_METADATA, {
                         entity: false, label: !localAppleHome,
