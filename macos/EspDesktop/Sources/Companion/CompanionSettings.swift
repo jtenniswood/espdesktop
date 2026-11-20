@@ -49,6 +49,16 @@ struct CompanionCapsuleButton: ViewModifier {
     }
 }
 
+private struct CompanionCapsuleMenu: ViewModifier {
+    func body(content: Content) -> some View {
+        content
+            .menuStyle(.button)
+            .buttonStyle(.plain)
+            .menuIndicator(.hidden)
+            .background(.primary.opacity(0.07), in: Capsule())
+    }
+}
+
 private struct CompanionSetupHeading: View {
     let step: Int
     let title: String
@@ -625,18 +635,24 @@ struct CompanionSettings: View {
                     Button("Switch to USB") { findingUSBDisplay = display }
                 }
             } label: {
-                Label(display.usesUSB ? "USB" : "Network",
-                      systemImage: display.usesUSB ? "cable.connector" : "network")
-                    .padding(.vertical, 4)
+                HStack(spacing: 6) {
+                    Label(display.usesUSB ? "USB" : "Network",
+                          systemImage: display.usesUSB ? "cable.connector" : "network")
+                    Image(systemName: "chevron.down")
+                        .font(.caption2.weight(.semibold))
+                        .accessibilityHidden(true)
+                }
+                .padding(.horizontal, 12)
+                .frame(height: 32)
+                .contentShape(Capsule())
             }
-            .modifier(CompanionCapsuleButton())
+            .modifier(CompanionCapsuleMenu())
             .accessibilityLabel("Connection for \(display.name)")
             .disabled(switching || (display.usesUSB ? findingNetworkDisplay != nil : findingUSBDisplay != nil))
 
             connectionDetails(for: display)
                 .disabled(switching)
         }
-        .menuStyle(.button)
         .fixedSize()
     }
 
@@ -668,10 +684,10 @@ struct CompanionSettings: View {
         } label: {
             Label("Connection Details", systemImage: "gearshape")
                 .labelStyle(.iconOnly)
-                .padding(.vertical, 4)
+                .frame(width: 32, height: 32)
+                .contentShape(Capsule())
         }
-        .modifier(CompanionCapsuleButton())
-        .menuIndicator(.hidden)
+        .modifier(CompanionCapsuleMenu())
         .help("Connection Details")
         .accessibilityLabel("Connection details for \(display.name)")
     }
