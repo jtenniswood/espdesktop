@@ -304,8 +304,10 @@ export function companionMetricDisplayMode(card: any): "used" | "free" | "remain
 
 export function companionLabelPlaceholder(card: any): string {
     const metric = companionMetricForEntity(card?.entity);
-    if (!metric && companionCardMode(card) === "folder") return "e.g. Folder Name";
-    if (!metric && companionCardMode(card) === "url") return "e.g. Website name";
+    const mode = companionCardMode(card);
+    if (mode === "apple_home") return "e.g. Close blinds or Movie Night";
+    if (!metric && mode === "folder") return "e.g. Folder Name";
+    if (!metric && mode === "url") return "e.g. Website name";
     return metric ? `e.g. ${metric.label}` : "e.g. Safari or Select all";
 }
 
@@ -1068,13 +1070,11 @@ export function registerCompanionCardTypes(
             let availableCompanionApps: readonly CompanionAction[] = [];
             let availableCompanionFolders: readonly CompanionAction[] = [];
 
-            if (!companionCardIsMetric(card)) {
-                helpers.renderCardTextField(panel, card, helpers, {
-                    label: "Label",
-                    idSuffix: "label", field: "label",
-                    placeholder: companionLabelPlaceholder(card), rerender: true,
-                });
-            }
+            const labelField = companionCardIsMetric(card) ? null : helpers.renderCardTextField(panel, card, helpers, {
+                label: "Label",
+                idSuffix: "label", field: "label",
+                placeholder: companionLabelPlaceholder(card), rerender: true,
+            });
 
             if (companionCardIsMetric(card)) {
                 const metric = companionMetricForEntity(card.entity);
@@ -1304,6 +1304,7 @@ export function registerCompanionCardTypes(
                     // label is authored separately before it is saved.
                     if (localAppleHome) {
                         updateIconSummary?.();
+                        helpers.openDisclosureForField(displayLabel);
                         displayLabel?.focus();
                         return;
                     }
@@ -1313,13 +1314,9 @@ export function registerCompanionCardTypes(
                     if (input) input.value = selected.label;
                 });
                 if (appleHome) {
-                    if (localAppleHome) {
-                        const field = helpers.renderCardTextField(panel, card, helpers, {
-                            label: "Display Label", field: "label", placeholder: "e.g. Open blind",
-                        });
-                        const labelInput = field.input as HTMLInputElement;
+                    if (localAppleHome && labelField) {
+                        const labelInput = labelField.input as HTMLInputElement;
                         displayLabel = labelInput;
-                        helpers.markCardPrimaryField(field.field, "name");
                         helpers.requireField(displayLabel, "Enter a display label of up to 80 bytes.", () => true,
                             (value: string) => !!value.trim() && new TextEncoder().encode(value.trim()).length <= 80);
                         const defaultIcon = companionSubtypeDefaultIcon("apple_home");
@@ -1337,7 +1334,7 @@ export function registerCompanionCardTypes(
                         useSuggested.className = "sp-action-btn sp-neutral-btn";
                         useSuggested.type = "button";
                         summary.append(current, document.createTextNode(" "), useSuggested);
-                        field.field.appendChild(summary);
+                        labelField.field.appendChild(summary);
 
                         function saveIcon(icon: string): void {
                             if (card.icon === icon) return;
@@ -1389,9 +1386,7 @@ export function registerCompanionCardTypes(
                         updateIconSummary();
                         return;
                     }
-                    helpers.renderBasicCardFields(panel, card, helpers, COMPANION_CARD_METADATA, {
-                        entity: false,
-                    });
+                    helpers.renderBasicCardFields(panel, card, helpers, COMPANION_CARD_METADATA, { entity: false });
                     return;
                 }
                 helpers.renderBasicCardFields(panel, card, helpers, COMPANION_CARD_METADATA, { entity: false, icon: false });

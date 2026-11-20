@@ -225,7 +225,7 @@ export function createControlsFieldsFeature(
         }
         return null;
     }
-    function groupCardSettingsFields(this: any, panel?: any, idPrefix?: any) {
+    function groupCardSettingsFields(this: any, panel?: any, idPrefix?: any, openByDefault = false) {
         if (!panel)
             return null;
         var primaryKinds: any = {
@@ -259,7 +259,7 @@ export function createControlsFieldsFeature(
             return cardSettingsDisclosureIn(panel);
         var disclosure: any = cardSettingsDisclosureIn(panel);
         if (!disclosure) {
-            disclosure = disclosureSection("Card Settings", (idPrefix || "sp-inp-") + "card-settings", false);
+            disclosure = disclosureSection("Card Settings", (idPrefix || "sp-inp-") + "card-settings", openByDefault);
             panel.insertBefore(disclosure.panel, firstDisclosure);
         }
         movable.forEach(function (this: any, child?: any) {

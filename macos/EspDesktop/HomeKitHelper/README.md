@@ -20,7 +20,7 @@ layout API. Check that your home appears in Apple Home on the Mac.
 3. Pick a control. The Mac editor lists every supported
    control in the connected home. The display's browser editor shows only the
    controls already saved for that display.
-4. Enter the label you want on the touchscreen in **Display Label**, then
+4. Enter the text you want on the touchscreen in **Card Settings → Label**, then
    click **Save**. The editor shows the icon the card will use. You can keep it,
    apply the suggested icon, or choose another under **Card Settings → Icon**.
 5. With your Mac awake and unlocked, tap the card and check that the accessory

@@ -610,6 +610,7 @@ export function runCompanionShortcutFeatureTests(): void {
     throw new Error("Companion statistic choices must use concise alphabetical labels");
   }
   if (companionLabelPlaceholder({ entity: "stat.cpu" }) !== "e.g. Processor" ||
+      companionLabelPlaceholder({ entity: "applehome.control." }) !== "e.g. Close blinds or Movie Night" ||
       companionLabelPlaceholder({ entity: "com.apple.Safari" }) !== "e.g. Safari or Select all") {
     throw new Error("Companion cards must use one mode-appropriate label field");
   }
