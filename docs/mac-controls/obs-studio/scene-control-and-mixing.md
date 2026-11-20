@@ -7,6 +7,10 @@ description: Select OBS scenes, preview a shot, take it live, choose transitions
 
 **Program** is the scene OBS sends to its output. **Preview** is where you line up the next scene with Studio Mode on. [Connect OBS Studio](/mac-controls/obs-studio#connect-obs-studio), then open **Add Card → OBS Studio** in the display editor.
 
+<img src="/images/obs/scenes.jpg" alt="EspDesktop Scenes page showing Studio live, Safari selected for Preview, Transition set to Cut, and Save Replay ready" width="1440" height="1440">
+
+On this customised Scenes page, **Studio** is live and **Safari** is selected in Preview. **Save Replay** was added next to **Take Safari** to keep clip capture within reach.
+
 ## Add grouped scene or transition pages
 
 ### Scenes
@@ -30,10 +34,6 @@ Choose **Grouped pages → Transitions** and save the card. It fills available c
 1. Use the **Scenes** page or add a **Scene** card and choose an **OBS scene**. With Studio Mode off, tapping the card changes **Program**. With Studio Mode on, it selects **Preview**. The card highlights the scene it controls. EspDesktop keeps the card’s binding if the scene becomes unavailable.
 2. To see what’s live, add a **Studio Mode** card and set **Type** to **Program scene**. The card shows the name of the current Program scene with **Live** underneath.
 3. To send Preview to Program, use **Take Live** on the Scenes page or add a **Studio Mode** card with **Type** set to **Take Live**. With Studio Mode on and Preview different from Program, the card is ready and shows the scene it will take live and the selected transition, such as **Take Safari** with **Cut** underneath. When both scenes match, it shows **Currently Live**. If Preview changes before the command reaches OBS, check the updated name before tapping again.
-
-On this customised Scenes page, **Studio** is live and **Safari** is selected in Preview. **Save Replay** was added next to **Take Safari** to keep clip capture within reach.
-
-<img src="/images/obs/scenes.jpg" alt="EspDesktop Scenes page showing Studio live, Safari selected for Preview, Transition set to Cut, and Save Replay ready" width="1440" height="1440" loading="lazy">
 
 ## Choose a transition
 
