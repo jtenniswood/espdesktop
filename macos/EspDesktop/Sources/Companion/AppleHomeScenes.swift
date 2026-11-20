@@ -1,7 +1,7 @@
 import AppKit
 import Network
 import Security
-import SwiftUI
+import Combine
 
 @MainActor
 final class AppleHomeScenes: ObservableObject {
@@ -305,38 +305,5 @@ final class AppleHomeScenes: ObservableObject {
         let pending = pendingRun
         pendingRun = nil
         pending?.1.resume(returning: nil)
-    }
-}
-
-struct AppleHomeConnectionSection: View {
-    @ObservedObject var home: AppleHomeScenes
-
-    var body: some View {
-        Section("Apple Home") {
-            HStack(spacing: 12) {
-                switch home.status {
-                case nil: Text("Disconnected")
-                case .waiting: ProgressView("Connecting…").controlSize(.small)
-                case .chooseHome: Text("Choose a home to finish connecting")
-                case .denied: Text("HomeKit access required")
-                case .empty: Text("No compatible controls or scenes")
-                case .ready: Text("Connected")
-                }
-                Spacer(minLength: 0)
-                if home.status == nil {
-                    Button("Connect Apple Home") { home.connect() }
-                }
-            }
-            if home.status == .chooseHome {
-                Button("Choose a Home") { home.connect() }
-            } else if home.canChooseHome && (home.status == .ready || home.status == .empty) {
-                Button("Change Home…") { home.connect() }
-            }
-            if home.status == .denied {
-                Text("Allow EspDesktop Home in System Settings under Privacy & Security → HomeKit.")
-                    .foregroundStyle(.secondary)
-            }
-            if !home.note.isEmpty { Text(home.note).foregroundStyle(.secondary) }
-        }
     }
 }

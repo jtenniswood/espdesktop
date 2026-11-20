@@ -510,9 +510,6 @@ struct CompanionSettings: View {
             pairingFlowPage
         } else {
             Form {
-                if AppleHomeDeviceEditor.asset != nil {
-                    AppleHomeConnectionSection(home: store.appleHome)
-                }
                 ForEach(store.displays) { display in
                     Section {
                         displayCard(display)

@@ -89,9 +89,6 @@ final class CompanionApplicationDelegate: NSObject, NSApplicationDelegate, NSMen
             object: nil
         )
         NSApp.setActivationPolicy(.accessory)
-        store.appleHome.onContinueSetup = { [weak self] in
-            self?.openCompanionWindow()
-        }
         let item = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
         statusItem = item
         if let button = item.button {

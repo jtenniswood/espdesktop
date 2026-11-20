@@ -216,7 +216,11 @@ final class CompanionStore: NSObject, ObservableObject {
         if #available(macOS 14.2, *) { appVolumeController = AppVolumeController() }
         displays = records.map(makeDisplay)
         appleHome.onControlsChanged = { [weak self] in
-            self?.publishToConnectedDisplays { $0.publishCatalogue(includeDefinitions: false) }
+            guard let self else { return }
+            self.publishToConnectedDisplays { $0.publishCatalogue(includeDefinitions: false) }
+            for editor in self.appleHomeEditorWindows.values where editor.isCurrent {
+                editor.appleHomeDidChange()
+            }
         }
         if AppleHomeDeviceEditor.asset != nil && appleHome.canRestore { appleHome.connect(activate: false) }
         obsCatalogueObservation = OBSConnection.displayCatalogues(from: obs.$state)

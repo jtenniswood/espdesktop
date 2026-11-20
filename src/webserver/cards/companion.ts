@@ -526,6 +526,8 @@ export function registerCompanionCardTypes(
     const catalogue = createCompanionCatalogue(fetchImpl);
     const loadCompanionActions = catalogue.load;
     const appleHomeAutomaticIcons = new WeakMap<object, boolean>();
+    let refreshAppleHomePicker: (() => void) | undefined;
+    document.addEventListener("espdesktop:apple-home-changed", () => refreshAppleHomePicker?.());
     const obsControlLabels = new Map<string, string>();
     const obsCardStates = new Map<string, CompanionAction>();
     const obsPresentationKey = () => JSON.stringify([...obsCardStates].map(([id, action]) =>
@@ -1241,17 +1243,62 @@ export function registerCompanionCardTypes(
                     updateIconSummary?.();
                 }
                 showWorkflows(appleHome ? "Loading Apple Home controls…" : "Loading Apple Shortcuts…");
-                const available = localAppleHome ? fetchImpl("/espdesktop-local/apple-home").then(response => {
-                    if (response.status === 426) throw new Error("Update the display firmware to add Apple Home controls.");
-                    if (!response.ok) throw new Error("Apple Home unavailable");
-                    return response.json() as Promise<EditorAction[]>;
-                }) : loadCompanionActions(true);
-                void available.then(actions => {
-                    workflows = sortCompanionLabels(actions.filter(action => action.id.startsWith(prefix)));
-                    showWorkflows(localAppleHome ? "No controls available. Check Apple Home in Displays."
-                        : appleHome ? "No available Apple Home controls" : "No available Apple Shortcuts");
-                }).catch(error => showWorkflows(localAppleHome && error instanceof Error ? error.message :
-                    appleHome ? "Apple Home unavailable" : "Apple Shortcuts unavailable"));
+                if (localAppleHome) {
+                    const setup = document.createElement("button");
+                    setup.type = "button";
+                    setup.className = "sp-action-btn sp-neutral-btn";
+                    setup.style.display = "none";
+                    const status = document.createElement("div");
+                    status.className = "sp-field-info-text";
+                    status.setAttribute("role", "status");
+                    field.append(status, setup);
+                    let latestRequest = 0;
+
+                    async function loadAppleHome(method: "GET" | "POST"): Promise<void> {
+                        const request = ++latestRequest;
+                        try {
+                            const response = await fetchImpl("/espdesktop-local/apple-home", { method });
+                            if (response.status === 426) throw new Error("Update the display firmware to add Apple Home controls.");
+                            if (!response.ok) throw new Error("Apple Home unavailable");
+                            const catalogue = await response.json() as {
+                                status: string; canChooseHome: boolean; note: string; controls: EditorAction[];
+                            };
+                            if (request !== latestRequest || !field.isConnected) return;
+                            workflows = sortCompanionLabels(catalogue.controls.filter(action => action.id.startsWith(prefix)));
+                            showWorkflows(catalogue.status === "waiting" ? "Connecting to Apple Home…" : "No available Apple Home controls");
+                            setup.textContent = catalogue.status === "disconnected" ? "Connect Apple Home"
+                                : catalogue.status === "chooseHome" ? "Choose a Home"
+                                : catalogue.canChooseHome && (catalogue.status === "ready" || catalogue.status === "empty")
+                                    ? "Change Home…" : "";
+                            setup.style.display = setup.textContent ? "" : "none";
+                            status.textContent = catalogue.status === "denied"
+                                ? "Allow EspDesktop Home in System Settings under Privacy & Security → HomeKit."
+                                : catalogue.note;
+                            status.classList.toggle("sp-visible", !!status.textContent);
+                        } catch (error) {
+                            if (request !== latestRequest || !field.isConnected) return;
+                            workflows = [];
+                            showWorkflows(error instanceof Error ? error.message : "Apple Home unavailable");
+                        } finally {
+                            if (request === latestRequest) setup.disabled = false;
+                        }
+                    }
+
+                    setup.addEventListener("click", () => {
+                        setup.disabled = true;
+                        void loadAppleHome("POST");
+                    });
+                    refreshAppleHomePicker = () => {
+                        if (field.isConnected) void loadAppleHome("GET");
+                        else refreshAppleHomePicker = undefined;
+                    };
+                    void loadAppleHome("GET");
+                } else {
+                    void loadCompanionActions(true).then(actions => {
+                        workflows = sortCompanionLabels(actions.filter(action => action.id.startsWith(prefix)));
+                        showWorkflows(appleHome ? "No available Apple Home controls" : "No available Apple Shortcuts");
+                    }).catch(() => showWorkflows(appleHome ? "Apple Home unavailable" : "Apple Shortcuts unavailable"));
+                }
                 helpers.requireField(picker, appleHome ? "Choose an Apple Home card before saving." : "Choose an Apple Shortcut before saving.", () => true,
                     (value: string) => !!value && (value === savedID || workflows.some(action => action.id === value)));
                 picker.addEventListener("change", () => {

@@ -93,7 +93,7 @@ describe("browserless application contracts", () => {
     assert.match(app, /CompanionSettingsToolbar\(selection: selectedPageBinding, showsOBS: obsInstalled\)/);
     assert.match(app, /set: \{ selectedPageID = \$0\.rawValue \}/);
     assert.match(app, /CompanionSettingsPage\.allCases\.filter \{ showsOBS \|\| \$0 != \.obs \}/);
-    assert.match(app, /private var connectionPage:[\s\S]*?if AppleHomeDeviceEditor\.asset != nil \{\s*AppleHomeConnectionSection\(home: store\.appleHome\)/);
+    assert.doesNotMatch(app, /AppleHomeConnectionSection/);
     assert.doesNotMatch(app, /case \.appleHome:/);
     assert.match(app, /item\.action = #selector\(selectPage\(_:\)\)/);
     assert.match(app, /selection\.wrappedValue = page/);

@@ -3,7 +3,6 @@ import JavaScriptCore
 
 @MainActor
 final class AppleHomeDeviceEditor {
-    static let controlsPath = "/espdesktop-local/apple-home"
     static var asset: URL? { Bundle.main.url(forResource: "apple-home-editor", withExtension: "js") }
 
     private let display: CompanionDisplay
@@ -25,12 +24,16 @@ final class AppleHomeDeviceEditor {
             CompanionStore.panelWebServerURL(from: display.record.host) == panel
     }
 
-    func localControls() throws -> USBEditorResponse {
+    func localControls(onContinueSetup: (() -> Void)? = nil) throws -> USBEditorResponse {
         guard isCurrent, display.state == .connected else {
             return USBEditorResponse(status: 503, headers: [:], body: Data())
         }
         guard supportsNativeLayout else {
             return USBEditorResponse(status: 426, headers: [:], body: Data())
+        }
+        if let onContinueSetup {
+            home.onContinueSetup = onContinueSetup
+            home.connect()
         }
         let controls = home.status == .ready ? home.controls : []
         let entries = controls.map { control in
@@ -38,8 +41,17 @@ final class AppleHomeDeviceEditor {
             entry["suggestedIcon"] = control.suggestedIcon
             return entry
         }
+        let catalogue = LocalCatalogue(status: home.status?.rawValue ?? "disconnected", canChooseHome: home.canChooseHome,
+                                       note: home.note, controls: entries)
         return USBEditorResponse(status: 200, headers: ["content-type": "application/json"],
-                                 body: try JSONEncoder().encode(entries))
+                                 body: try JSONEncoder().encode(catalogue))
+    }
+
+    private struct LocalCatalogue: Encodable {
+        let status: String
+        let canChooseHome: Bool
+        let note: String
+        let controls: [[String: String]]
     }
 
     func request(_ request: USBEditorRequest, authorization: String?) async throws -> USBEditorResponse {

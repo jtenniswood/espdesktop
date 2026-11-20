@@ -97,6 +97,10 @@ final class CompanionUSBEditorWindow: NSObject, WKNavigationDelegate, WKUIDelega
         NSApp.activate(ignoringOtherApps: true)
     }
 
+    func appleHomeDidChange() {
+        webView?.evaluateJavaScript("document.dispatchEvent(new Event('espdesktop:apple-home-changed'))")
+    }
+
     @objc private func loadEditor() {
         assetLoadFailed = false
         loading.isHidden = false
@@ -339,10 +343,16 @@ final class CompanionUSBEditorWindow: NSObject, WKNavigationDelegate, WKUIDelega
     }
 
     private func perform(_ request: USBEditorRequest) async throws -> USBEditorResponse {
-        if request.path.hasPrefix(AppleHomeDeviceEditor.controlsPath) {
-            guard request.method == "GET", request.path == AppleHomeDeviceEditor.controlsPath,
+        if request.path.hasPrefix(USBEditorRequest.appleHomePath) {
+            guard request.path == USBEditorRequest.appleHomePath,
                   let appleHomeEditor else {
                 return USBEditorResponse(status: 404, headers: [:], body: Data())
+            }
+            if request.method == "POST" {
+                return try appleHomeEditor.localControls(onContinueSetup: { [weak self] in
+                    guard let self, self.isCurrent, self.window.isVisible else { return }
+                    self.open()
+                })
             }
             return try appleHomeEditor.localControls()
         }
