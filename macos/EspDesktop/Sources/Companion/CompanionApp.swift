@@ -80,6 +80,8 @@ final class CompanionApplicationDelegate: NSObject, NSApplicationDelegate, NSMen
             NSApp.terminate(nil)
             return
         }
+        // Keep the artwork available if the running test app's bundle is removed.
+        _ = CompanionArtwork.supportButton
         DistributedNotificationCenter.default().addObserver(
             self,
             selector: #selector(existingInstanceWasOpened),

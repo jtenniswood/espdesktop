@@ -1253,17 +1253,9 @@ struct CompanionSettings: View {
         .formStyle(.grouped)
     }
 
-    private var supportButtonImage: NSImage? {
-        guard let imageURL = Bundle.companionResources?.url(
-            forResource: "buy-me-a-coffee-button",
-            withExtension: "png"
-        ) else { return nil }
-        return NSImage(contentsOf: imageURL)
-    }
-
     private var floatingSupportButton: some View {
         Link(destination: CompanionStore.buyMeACoffeeURL) {
-            if let supportButtonImage {
+            if let supportButtonImage = CompanionArtwork.supportButton {
                 Image(nsImage: supportButtonImage)
                     .resizable()
                     .scaledToFit()

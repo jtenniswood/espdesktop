@@ -1,4 +1,4 @@
-import Foundation
+import AppKit
 
 extension Bundle {
     static var companionResources: Bundle? {
@@ -9,4 +9,15 @@ extension Bundle {
         }
         return .module
     }
+}
+
+@MainActor
+enum CompanionArtwork {
+    static let supportButton: NSImage? = {
+        guard let url = Bundle.companionResources?.url(
+            forResource: "buy-me-a-coffee-button",
+            withExtension: "png"
+        ), let data = try? Data(contentsOf: url) else { return nil }
+        return NSImage(data: data)
+    }()
 }
