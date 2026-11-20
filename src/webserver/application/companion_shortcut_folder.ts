@@ -92,7 +92,7 @@ import {
     preserveCardColorOptions,
 } from "../model/config_primitives";
 import { cardTransferOwnsSubpage } from "../model/card_transfer";
-import { APPLE_SHORTCUTS_APP_ID, APPLE_SHORTCUTS_HIDDEN_OPTION, appShortcutPageOwner, isAppleShortcutsPage } from "../model/companion_shortcut_page";
+import { APPLE_SHORTCUT_CUSTOM_ICON_OPTION, APPLE_SHORTCUTS_APP_ID, APPLE_SHORTCUTS_HIDDEN_OPTION, appShortcutPageOwner, isAppleShortcutsPage } from "../model/companion_shortcut_page";
 import type { CardConfig } from "../contracts/types";
 import { isBackOrderToken } from "../model/subpage";
 import type { SubpageConfig } from "../contracts/types";
@@ -215,6 +215,10 @@ export function normalizeCompanionAppShortcutOptions(card: any): string {
 export function normalizeCompanionCardOptions(card: any): string {
     if (!card || card.type !== "companion") return "";
     const mode = companionSavedCardMode(card);
+    if (mode === "apple_shortcut") {
+        return preserveCardColorOptions(card.options, setConfigOption("", APPLE_SHORTCUT_CUSTOM_ICON_OPTION,
+            configOptionEnabled(card.options, APPLE_SHORTCUT_CUSTOM_ICON_OPTION)));
+    }
     if (mode === "url") {
         const behavior = configOptionValue(card.options, COMPANION_URL_OPEN_BEHAVIOR);
         return preserveCardColorOptions(card.options, setConfigOptionValue("", COMPANION_URL_OPEN_BEHAVIOR,

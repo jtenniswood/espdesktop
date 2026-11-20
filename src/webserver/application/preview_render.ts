@@ -13,8 +13,9 @@ import { configOptionValue, cardActiveColor } from "../model/config_primitives";
 import { PANEL_CONFIG_MAX_SLOT_COUNT } from "../model/panel_config";
 import { escHtml, iconSlug } from "./ui_primitives";
 import { companionCardDefaultIcon } from "../model/companion_card";
-import { APPLE_SHORTCUTS_APP_ID, appShortcutPageBackIcon, appShortcutPageOwner, hiddenAppleShortcuts, isAppleShortcutsPage,
-    previewSubpageOwner } from "../model/companion_shortcut_page";
+import { APPLE_SHORTCUT_PREFIX } from "../model/companion_card_codec";
+import { APPLE_SHORTCUTS_APP_ID, appleShortcutBackgroundColor, appShortcutPageBackIcon, appShortcutPageOwner,
+    hiddenAppleShortcuts, isAppleShortcutsPage, previewSubpageOwner } from "../model/companion_shortcut_page";
 import { appleShortcutPreview, finderFolderPreview, liveSubpagePreview, scenePageControls } from "../model/finder_folder_preview";
 import { CARD_SIZE_SINGLE, CARD_SIZE_WIDE } from "../model/grid";
 import type { CompanionAction } from "../api/companion_catalogue";
@@ -488,7 +489,7 @@ export function createPreviewRenderFeature(dependencies: PreviewRenderDependenci
         const liveKind = obsSubpageKind(owner?.options);
         const projectionKind = subpage ? liveKind || (shortcutOwner === "com.apple.finder" ? "finder" : undefined) : undefined;
         const excluded = new Set(generatedCardExclusions(owner?.options));
-        const catalogue = projectionKind ? dependencies.liveGeneratedActions() : [];
+        const catalogue = dependencies.liveGeneratedActions();
         const actionsForPage = projectionKind === "finder" ? catalogue.filter(action => action.id.startsWith("folder."))
             : projectionKind ? obsSubpageCatalogue(projectionKind, catalogue) : [];
         const liveActions = actionsForPage.filter(action => !excluded.has(generatedCardKey(action.id)));
@@ -511,7 +512,7 @@ export function createPreviewRenderFeature(dependencies: PreviewRenderDependenci
         }
         const liveAppleShortcuts = subpage && isAppleShortcutsPage(owner)
             ? appleShortcutPreview(subpage.order, projectionGrid, c.buttons,
-                dependencies.liveGeneratedActions(), hiddenAppleShortcuts(owner?.options))
+                catalogue, hiddenAppleShortcuts(owner?.options))
             : undefined;
         for (var pos: any = 0; pos < c.maxSlots; pos++) {
             var slot: any = c.grid[pos];
@@ -589,7 +590,10 @@ export function createPreviewRenderFeature(dependencies: PreviewRenderDependenci
                 var slotSz: any = control?.size || c.sizes[slot];
                 var cardOffColor: any = configOptionValue(b.options, "card_off_color").replace(/^#/, "").toUpperCase();
                 if (!/^[0-9A-F]{6}$/.test(cardOffColor)) cardOffColor = "";
-                var cardOnColor: any = cardActiveColor(b.options, state.onColor || WEB_UI_COLORS.primary);
+                if (!cardOffColor && b.type === "companion" && b.entity?.startsWith(APPLE_SHORTCUT_PREFIX)) {
+                    cardOffColor = appleShortcutBackgroundColor(catalogue.find(item => item.id === b.entity)?.shortcutColor);
+                }
+                var cardOnColor: any = cardActiveColor(b.options, state.onColor || WEB_UI_COLORS.primary, cardOffColor);
                 var typePreview: any = previewTypeDef && previewTypeDef.renderPreview
                     ? previewTypeDef.renderPreview(b, {
                         escHtml: escHtml, cardSize: slotSz || 1,
@@ -689,7 +693,11 @@ export function createPreviewRenderFeature(dependencies: PreviewRenderDependenci
                     label.className = "sp-btn-label";
                     label.textContent = action.label;
                     tile.append(icon, label);
-                    empty.style.backgroundColor = "#" + defaultCardBackgroundColor("companion", state);
+                    const shortcutColor = appleShortcutBackgroundColor(action.shortcutColor);
+                    empty.style.backgroundColor = "#" + (shortcutColor || defaultCardBackgroundColor("companion", state));
+                    if (shortcutColor) {
+                        tile.style.setProperty("--card-text-color", cardPreviewTextColor(shortcutColor));
+                    }
                     empty.appendChild(tile);
                     void companionAppIconPreviewData(APPLE_SHORTCUTS_APP_ID, "", document).then(preview => {
                         if (!preview || !tile.isConnected) return;

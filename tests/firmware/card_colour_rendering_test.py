@@ -207,6 +207,7 @@ struct CompanionAction {
   OBSCardState obs_state{OBSCardState::unknown};
   std::string obs_detail{};
   std::optional<bool> obs_available{};
+  std::optional<uint32_t> shortcut_color{};
 };
 struct CompanionValue { std::string id; int value; };
 struct CompanionRuntimeSnapshot {
@@ -282,7 +283,8 @@ groups = (
     ("companion_controls.h", "", ("companion_obs_record_stopping", "companion_obs_output_status_id", "companion_obs_output_status", "companion_obs_output_active")),
     ("companion_controls.h", "", ("companion_obs_scene_target", "companion_obs_hashed_target", "companion_obs_transition_target", "companion_obs_source_target", "companion_obs_scene_card", "companion_obs_control_label", "companion_obs_break_active", "companion_obs_momentary_action", "companion_apply_card_focus", "companion_required_focus_ready", "companion_refresh_card_focus")),
     ("companion_controls.h", "", ("companion_layout_mic_detail", "companion_render_mic_detail", "companion_obs_mute_state", "companion_obs_status_card", "companion_obs_status_icon", "companion_obs_scene_on_program", "companion_render_obs_detail", "companion_obs_keep_content_bright", "companion_update_obs_detail_contrast", "companion_render_slider")),
-    ("button_grid_grid.h", "", ("card_palette_for_config", "card_slot_static_child", "reset_card_slot_dynamic_children")),
+    ("finder_folder_sync.h", "", ("apple_shortcut_catalogue_color",)),
+    ("button_grid_grid.h", "", ("grid_live_companion_actions", "card_palette_for_config", "card_slot_static_child", "reset_card_slot_dynamic_children")),
     ("button_grid_grid.h", "", ("apply_subpage_back_colors",)),
     ("button_grid_subscriptions.h", "", ("apply_sensor_active_color",)),
 )
@@ -909,6 +911,16 @@ int main() {
     assert(palette.on_val == defaults.on_val && palette.off_val == defaults.off_val);
     assert(palette.sensor_val == defaults.sensor_val);
   }
+  const std::string shortcut = "appleshortcut.pomodoro";
+  grid_live_companion_actions() = {{shortcut, "Start Pomodoro", OBSCardState::unknown, {}, {}, 0xFF6363}};
+  auto workflow = parse_cfg(shortcut + ";Start Pomodoro;Flash;Auto;;;companion;;");
+  assert(card_palette_for_config(defaults, workflow, display).off_val == 0xFF6363);
+  workflow.options = "card_off_color=EED146";
+  assert(card_palette_for_config(defaults, workflow, display).off_val == 0xEED146);
+  workflow.options.clear();
+  grid_live_companion_actions().clear();
+  assert(card_palette_for_config(defaults, workflow, display).off_val == defaults.off_val);
+
   ParsedCfg config;
   config.options = "card_off_color=FF8C00";
   display.color.red_percent = 50;

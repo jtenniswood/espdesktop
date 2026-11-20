@@ -7,6 +7,7 @@ export interface CompanionAction {
   readonly obsState?: string;
   readonly obsDetail?: string;
   readonly obsAvailable?: boolean;
+  readonly shortcutColor?: number;
 }
 export interface CompanionDefinitions {
   readonly applications: readonly AppShortcutApplication[];
@@ -77,7 +78,8 @@ export function createCompanionCatalogueMonitor(
         lastActions.some((action, index) =>
           action.id !== actions[index]?.id || action.label !== actions[index]?.label ||
           action.iconHash !== actions[index]?.iconHash || action.obsState !== actions[index]?.obsState ||
-          action.obsDetail !== actions[index]?.obsDetail || action.obsAvailable !== actions[index]?.obsAvailable);
+          action.obsDetail !== actions[index]?.obsDetail || action.obsAvailable !== actions[index]?.obsAvailable ||
+          action.shortcutColor !== actions[index]?.shortcutColor);
       if (changed) {
         lastActions = actions;
         onActions(actions);

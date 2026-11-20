@@ -106,6 +106,51 @@
     "valid": true
   },
   {
+    "name": "catalogue page with Apple Shortcuts colours",
+    "message": {
+      "protocol": 4,
+      "type": "catalogue.page",
+      "generation": 1,
+      "page": 0,
+      "complete": true,
+      "items": [
+        {
+          "id": "appleshortcut.727ed9bf-de97-42ed-b661-8967497b122c",
+          "label": "Start Pomodoro",
+          "shortcutColor": 16737123
+        },
+        {
+          "id": "appleshortcut.74e95dc0-0244-410f-b466-07aa47b8f1e5",
+          "label": "Lights Off",
+          "shortcutColor": 0
+        }
+      ]
+    },
+    "direction": "mac_to_panel",
+    "state": "connected",
+    "valid": true
+  },
+  {
+    "name": "catalogue page with invalid shortcut colour",
+    "message": {
+      "protocol": 4,
+      "type": "catalogue.page",
+      "generation": 1,
+      "page": 0,
+      "complete": true,
+      "items": [
+        {
+          "id": "appleshortcut.727ed9bf-de97-42ed-b661-8967497b122c",
+          "label": "Start Pomodoro",
+          "shortcutColor": 16777216
+        }
+      ]
+    },
+    "direction": "mac_to_panel",
+    "state": "connected",
+    "valid": false
+  },
+  {
     "name": "OBS-only catalogue page",
     "message": {
       "protocol": 4,

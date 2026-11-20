@@ -1074,11 +1074,12 @@ function startEspDesktop(): void {
   let liveGeneratedActions: readonly CompanionAction[] = [];
   const context = composeApplicationContext(() => liveGeneratedActions);
 
-  const lightCards = registerCards(context, folders => {
-    const changed = folders.length !== liveGeneratedActions.length ||
-      folders.some((folder, index) => folder.id !== liveGeneratedActions[index]?.id ||
-        folder.label !== liveGeneratedActions[index]?.label);
-    if (changed) liveGeneratedActions = folders;
+  const lightCards = registerCards(context, actions => {
+    const changed = actions.length !== liveGeneratedActions.length ||
+      actions.some((action, index) => action.id !== liveGeneratedActions[index]?.id ||
+        action.label !== liveGeneratedActions[index]?.label ||
+        action.shortcutColor !== liveGeneratedActions[index]?.shortcutColor);
+    if (changed) liveGeneratedActions = actions;
     return changed;
   });
   if (__ESPDESKTOP_TEST_HOOKS_ENABLED__) {

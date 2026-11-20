@@ -91,7 +91,8 @@ test("striped custom cards render the readable stripe tones on both pages and th
       shell: { isPreviewReadOnly() { return false; } },
       grid: { ctx() { return { grid: [1], buttons: [button], maxSlots: 1, sizes: {}, selected: [], isSub: subpage }; }, resolveIcon() { return "lightbulb"; }, sizeClass() { return ""; } },
       selection: { renderSelectionBar() {}, updatePreviewHint() {} },
-          homeAssistantSupported: () => true,
+      homeAssistantSupported: () => true,
+      liveGeneratedActions: () => [],
     }).render();
     const card = main.children[0];
     assert.equal(card.style["--card-text-color"], "#FFFFFF", `${theme}/${subpage}`);

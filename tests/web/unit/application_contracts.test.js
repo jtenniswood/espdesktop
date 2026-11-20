@@ -987,7 +987,7 @@ describe("browserless application contracts", () => {
     assert.match(picker, /export function createButtonSettingsIconPickerFeature/);
     assert.doesNotMatch(picker, /GlobalDescriptors|staticGlobal|liveGlobal|installButtonSettingsIconPickerModule/);
     assert.match(settings, /iconPicker: ButtonSettingsIconPickerFeature/);
-    assert.match(settings, /iconPicker\.init\(picker, currentVal, onSelect\)/);
+    assert.match(settings, /iconPicker\.init\(picker, currentVal, onSelect, includeAuto\)/);
     assert.match(context, /readonly iconPicker: ButtonSettingsIconPickerFeature/);
     assert.match(entry, /createButtonSettingsIconPickerFeature\(dom\.document, \(\) => preview\.render\(\)\)/);
     assert.doesNotMatch(entry, /installGlobals\(installButtonSettingsIconPickerModule/);
