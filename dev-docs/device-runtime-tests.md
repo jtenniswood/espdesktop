@@ -129,17 +129,17 @@ instead of the USB cable.
 
 1. Before changing the connection, save the panel's network address and keep a
    second display connected over the network.
-2. In the app's **Displays** settings, choose **Network → Switch to USB** on the S3’s card.
+2. In the app's **Displays** settings, choose **Connection → Switch to USB** on the S3’s card.
    The app checks the paired display's identity before switching. For a new panel, choose **Add Display**, select **Connect by
    USB**, and enter the code from the panel's **Settings → Paired** screen.
 3. Run an approved shortcut and check a live Mac stat on the USB display. Use
    the second display to confirm its network connection still works.
 4. Unplug and reconnect the USB cable. If macOS gives it a different port name,
-   use **Connection Details** on the display’s card to select the port. Verify the same display
+   use **Details…** beside **USB** on the display’s card to select the port. Verify the same display
    reconnects using its saved pairing and the other display stays connected.
-5. Choose **USB → Switch to Network** and check that the app finds the same S3.
+5. Choose **Connection → Switch to Network** and check that the app finds the same S3.
    Switch back to USB. Confirm each switch keeps one saved display and requires
-   no pairing code. Use **Connection Details → Network Address…** if local discovery is
+   no pairing code. Use **Details…** beside **Network** if local discovery is
    unavailable. Repeat with two USB displays if both have the USB development
    firmware.
    Try a different panel's address or USB port and check that the saved
@@ -156,7 +156,7 @@ instead of the USB cable.
    off and confirm the editor and Mac controls still work over USB.
    Disconnect USB and wait for the USB session to time out. Confirm Wi-Fi
    stays off, including after a display restart. Reconnect USB and choose
-   **USB → Switch to Network**. Check that it turns on Wi-Fi, finds the paired
+   **Connection → Switch to Network**. Check that it turns on Wi-Fi, finds the paired
    display, and that **Device** opens its local address in your default browser.
 
 Record the exact Mac build, firmware source revision, board profile, and
