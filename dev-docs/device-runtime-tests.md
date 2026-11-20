@@ -135,7 +135,7 @@ instead of the USB cable.
 3. Run an approved shortcut and check a live Mac stat on the USB display. Use
    the second display to confirm its network connection still works.
 4. Unplug and reconnect the USB cable. If macOS gives it a different port name,
-   select the new port directly from the display's **USB** menu. Verify the same display
+   select the new port under **USB → Serial Ports**. Verify the same display
    reconnects using its saved pairing and the other display stays connected.
 5. Choose **USB → Use Network** and check that the app finds the same S3.
    Switch back to USB. Confirm each switch keeps one saved display and requires

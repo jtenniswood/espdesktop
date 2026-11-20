@@ -609,22 +609,24 @@ struct CompanionSettings: View {
                 Button("Use Network") { findingNetworkDisplay = display }
                     .disabled(findingNetworkDisplay != nil)
 
-                if usbPorts.isEmpty {
-                    Text("No USB ports found")
-                }
-                ForEach(usbPorts, id: \.self) { port in
-                    Button {
-                        store.setDisplayEndpoint(CompanionUSBPort.endpoint(for: port), for: display)
-                    } label: {
-                        let name = URL(fileURLWithPath: port).lastPathComponent
-                        if display.record.usbPort == port {
-                            Label(name, systemImage: "checkmark")
-                        } else {
-                            Text(name)
-                        }
+                Menu("Serial Ports") {
+                    if usbPorts.isEmpty {
+                        Text("No USB ports found")
                     }
-                    .disabled(findingNetworkDisplay?.id == display.id || display.record.usbPort == port ||
-                              store.isUSBPortInUse(port, except: display))
+                    ForEach(usbPorts, id: \.self) { port in
+                        Button {
+                            store.setDisplayEndpoint(CompanionUSBPort.endpoint(for: port), for: display)
+                        } label: {
+                            let name = URL(fileURLWithPath: port).lastPathComponent
+                            if display.record.usbPort == port {
+                                Label(name, systemImage: "checkmark")
+                            } else {
+                                Text(name)
+                            }
+                        }
+                        .disabled(findingNetworkDisplay?.id == display.id || display.record.usbPort == port ||
+                                  store.isUSBPortInUse(port, except: display))
+                    }
                 }
             } else {
                 if display.certificateFingerprint != nil {
