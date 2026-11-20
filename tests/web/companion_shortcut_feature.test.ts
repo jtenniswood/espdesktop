@@ -1,6 +1,7 @@
 import { buildSubpageGrid } from "../../src/webserver/model/subpage";
 import { decodeCompanionCard, encodeCompanionCard } from "../../src/webserver/model/companion_card_codec";
 import {
+  appleHomeIconForLabel,
   companionAppLabel,
   companionApplicationActions,
   companionApplicationActionIdCanSave,
@@ -665,6 +666,13 @@ export function runCompanionShortcutFeatureTests(): void {
   }
   if (companionSubtypeIcon("Star", "shortcut", "url") !== "Star") {
     throw new Error("Changing Companion subtypes must preserve a custom icon");
+  }
+  for (const [label, icon] of [
+    ["Open office blind", "Arrow Up"], ["Lower blinds", "Arrow Down"], ["Hall fan", "Fan"],
+    ["Outlet off", "Power Plug"], ["Desk lamp", "Sun"], ["Hall switch", "Power"],
+    ["Movie time", "Home"], ["Open or close", "Home"],
+  ] as const) {
+    if (appleHomeIconForLabel(label) !== icon) throw new Error(`Unexpected Apple Home icon for ${label}`);
   }
   const folderAction = "folder.00000000-0000-0000-0000-000000000001";
   if (companionCardMode({ entity: folderAction, sensor: "" }) !== "folder" ||

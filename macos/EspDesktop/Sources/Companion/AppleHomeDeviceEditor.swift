@@ -33,8 +33,13 @@ final class AppleHomeDeviceEditor {
             return USBEditorResponse(status: 426, headers: [:], body: Data())
         }
         let controls = home.status == .ready ? home.controls : []
+        let entries = controls.map { control in
+            var entry = ["id": control.action, "label": control.name]
+            entry["suggestedIcon"] = control.suggestedIcon
+            return entry
+        }
         return USBEditorResponse(status: 200, headers: ["content-type": "application/json"],
-                                 body: try JSONEncoder().encode(controls.map { ["id": $0.action, "label": $0.name] }))
+                                 body: try JSONEncoder().encode(entries))
     }
 
     func request(_ request: USBEditorRequest, authorization: String?) async throws -> USBEditorResponse {

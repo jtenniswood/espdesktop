@@ -92,6 +92,17 @@ final class AppleHomeSceneTests: XCTestCase {
         XCTAssertTrue(home.cardActions(for: "display.unknown").isEmpty)
     }
 
+    func testHomeControlIconSuggestionIsOptionalInTheMacCatalogue() throws {
+        let oldControl = AppleHomeControl(id: UUID(), name: "Private Scene")
+        let oldPayload = try JSONEncoder().encode(oldControl)
+        XCTAssertNil(try JSONDecoder().decode(AppleHomeControl.self, from: oldPayload).suggestedIcon)
+
+        let control = AppleHomeControl(id: oldControl.id, name: oldControl.name, suggestedIcon: "Home")
+        let payload = try JSONEncoder().encode(control)
+        XCTAssertEqual(try JSONDecoder().decode(AppleHomeControl.self, from: payload), control)
+        XCTAssertEqual(control.action, oldControl.action)
+    }
+
     @MainActor
     func testEditorReadsUserLabelsFromTheSavedLayout() throws {
         let reference = UUID()

@@ -34,6 +34,7 @@ import type { ConfigCodecFeature } from "../application/config_codec";
 import type { ButtonSettingsSelectionFeature } from "../application/button_settings_selection";
 import type { ConnectorsPageFeature } from "../application/connectors_page";
 import type { ConfigModalTabOptionsFeature } from "../application/config_modal_tab_options";
+import { mdiIcon } from "../application/ui_primitives";
 import { state } from "../state/app_instance";
 import {
     COMPANION_SHORTCUT_PREFIX,
@@ -235,6 +236,18 @@ export function companionSubtypeDefaultIcon(mode: string, entity = ""): string {
     return companionCardModeValid(mode)
         ? companionCardDefaultIcon(mode)
         : companionCardDefaultIcon("app");
+}
+
+export function appleHomeIconForLabel(label: string): string {
+    // Only the display label can determine the icon saved automatically.
+    const opens = /\b(open|raise)\b/i.test(label);
+    const closes = /\b(close|lower)\b/i.test(label);
+    if (opens !== closes) return opens ? "Arrow Up" : "Arrow Down";
+    if (/\bfans?\b/i.test(label)) return "Fan";
+    if (/\b(outlets?|sockets?|plugs?)\b/i.test(label)) return "Power Plug";
+    if (/\b(lights?|lamps?|bulbs?)\b/i.test(label)) return "Sun";
+    if (/\b(switch(es)?|power)\b/i.test(label)) return "Power";
+    return "Home";
 }
 
 export function companionSubtypeIcon(
@@ -512,6 +525,7 @@ export function registerCompanionCardTypes(
     const { renderButtonSettings, renderPreview } = cardUi;
     const catalogue = createCompanionCatalogue(fetchImpl);
     const loadCompanionActions = catalogue.load;
+    const appleHomeAutomaticIcons = new WeakMap<object, boolean>();
     const obsControlLabels = new Map<string, string>();
     const obsCardStates = new Map<string, CompanionAction>();
     const obsPresentationKey = () => JSON.stringify([...obsCardStates].map(([id, action]) =>
@@ -1198,8 +1212,10 @@ export function registerCompanionCardTypes(
                 helpers.markCardPrimaryField(field, "entity");
 
                 const savedID = currentEntity === prefix ? "" : currentEntity;
-                let workflows: readonly CompanionAction[] = [];
+                type EditorAction = CompanionAction & { readonly suggestedIcon?: string };
+                let workflows: readonly EditorAction[] = [];
                 let displayLabel: HTMLInputElement | null = null;
+                let updateIconSummary: (() => void) | undefined;
                 function showWorkflows(emptyMessage: string): void {
                     picker.replaceChildren();
                     const placeholder = document.createElement("option");
@@ -1222,12 +1238,13 @@ export function registerCompanionCardTypes(
                     }
                     picker.value = selectedID;
                     picker.disabled = workflows.length === 0;
+                    updateIconSummary?.();
                 }
                 showWorkflows(appleHome ? "Loading Apple Home controls…" : "Loading Apple Shortcuts…");
                 const available = localAppleHome ? fetchImpl("/espdesktop-local/apple-home").then(response => {
                     if (response.status === 426) throw new Error("Update the display firmware to add Apple Home controls.");
                     if (!response.ok) throw new Error("Apple Home unavailable");
-                    return response.json() as Promise<CompanionAction[]>;
+                    return response.json() as Promise<EditorAction[]>;
                 }) : loadCompanionActions(true);
                 void available.then(actions => {
                     workflows = sortCompanionLabels(actions.filter(action => action.id.startsWith(prefix)));
@@ -1245,6 +1262,7 @@ export function registerCompanionCardTypes(
                     // HomeKit names only populate the local picker. A card's
                     // label is authored separately before it is saved.
                     if (localAppleHome) {
+                        updateIconSummary?.();
                         displayLabel?.focus();
                         return;
                     }
@@ -1258,13 +1276,80 @@ export function registerCompanionCardTypes(
                         const field = helpers.renderCardTextField(panel, card, helpers, {
                             label: "Display Label", field: "label", placeholder: "e.g. Open blind",
                         });
-                        displayLabel = field.input as HTMLInputElement;
+                        const labelInput = field.input as HTMLInputElement;
+                        displayLabel = labelInput;
                         helpers.markCardPrimaryField(field.field, "name");
                         helpers.requireField(displayLabel, "Enter a display label of up to 80 bytes.", () => true,
                             (value: string) => !!value.trim() && new TextEncoder().encode(value.trim()).length <= 80);
+                        const defaultIcon = companionSubtypeDefaultIcon("apple_home");
+                        const draft = state.settingsDraft;
+                        const isNewCard = draft && draft.button === card && draft.isNew;
+                        const hasCustomIcon = card.icon && card.icon !== "Auto" && card.icon !== defaultIcon;
+                        const automatic = appleHomeAutomaticIcons.get(card) ?? Boolean(isNewCard && !hasCustomIcon);
+                        appleHomeAutomaticIcons.set(card, automatic);
+
+                        const summary = document.createElement("div");
+                        summary.className = "sp-field-info-text sp-visible";
+                        const current = document.createElement("span");
+                        current.setAttribute("role", "status");
+                        const useSuggested = document.createElement("button");
+                        useSuggested.className = "sp-action-btn sp-neutral-btn";
+                        useSuggested.type = "button";
+                        summary.append(current, document.createTextNode(" "), useSuggested);
+                        field.field.appendChild(summary);
+
+                        function saveIcon(icon: string): void {
+                            if (card.icon === icon) return;
+                            card.icon = icon;
+                            helpers.saveField("icon", icon);
+                            cardUi.renderPreview();
+                        }
+                        const iconPickerField = helpers.iconPickerField(helpers.idPrefix + "icon-picker",
+                            helpers.idPrefix + "icon", automatic ? "Auto" : card.icon || defaultIcon, (icon: string) => {
+                                appleHomeAutomaticIcons.set(card, icon === "Auto");
+                                saveIcon(icon === "Auto" ? appleHomeIconForLabel(card.label) : icon);
+                                updateIconSummary?.();
+                            }, "Icon");
+                        panel?.appendChild(iconPickerField);
+                        const iconPicker = iconPickerField.querySelector(".sp-icon-picker") as
+                            (HTMLElement & { _setIcon: (icon: string) => void }) | null;
+                        let suggestion: string | undefined;
+                        let displayedIcon: string | undefined;
+                        updateIconSummary = () => {
+                            const savedIcon = card.icon && card.icon !== "Auto" ? card.icon : defaultIcon;
+                            if (displayedIcon !== savedIcon) {
+                                const icon = mdiIcon(savedIcon);
+                                icon.setAttribute("aria-hidden", "true");
+                                current.replaceChildren("Display icon ", icon, " " + savedIcon);
+                                displayedIcon = savedIcon;
+                            }
+                            suggestion = workflows.find(action => action.id === card.entity)?.suggestedIcon;
+                            useSuggested.style.display = suggestion && suggestion !== savedIcon ? "" : "none";
+                            if (suggestion) {
+                                const suggestedGlyph = mdiIcon(suggestion);
+                                suggestedGlyph.setAttribute("aria-hidden", "true");
+                                useSuggested.replaceChildren(suggestedGlyph, "Use suggested " + suggestion.toLowerCase());
+                            }
+                        };
+                        useSuggested.addEventListener("click", () => {
+                            if (!suggestion) return;
+                            appleHomeAutomaticIcons.set(card, false);
+                            saveIcon(suggestion);
+                            iconPicker?._setIcon(suggestion);
+                            updateIconSummary?.();
+                            labelInput.focus();
+                        });
+                        labelInput.addEventListener("input", () => {
+                            if (appleHomeAutomaticIcons.get(card)) {
+                                saveIcon(appleHomeIconForLabel(labelInput.value));
+                                updateIconSummary?.();
+                            }
+                        });
+                        updateIconSummary();
+                        return;
                     }
                     helpers.renderBasicCardFields(panel, card, helpers, COMPANION_CARD_METADATA, {
-                        entity: false, label: !localAppleHome,
+                        entity: false,
                     });
                     return;
                 }
