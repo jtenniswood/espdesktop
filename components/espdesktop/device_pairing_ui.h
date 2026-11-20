@@ -15,6 +15,7 @@ struct DevicePairingButtonColors {
 // Match the website's dark-mode button blue.
 inline constexpr DevicePairingButtonColors DEVICE_PAIRING_BUTTON_BLUE{0x3E63DD, 0x3451B2};
 inline constexpr DevicePairingButtonColors DEVICE_PAIRING_BUTTON_GREY{0x6C6C6C, 0x555555};
+inline constexpr uint32_t DEVICE_PAIRING_TILE_FILL = 0x1A1A1A;
 // A mid-grey outline stays visible against both the dark and light panels.
 inline constexpr uint32_t DEVICE_PAIRING_TILE_BORDER = 0x6C6C6C;
 
@@ -209,12 +210,15 @@ inline void device_pairing_show(const lv_font_t *text_font, const lv_font_t *tit
     lv_obj_clear_flag(tile, LV_OBJ_FLAG_SCROLLABLE);
     lv_obj_clear_flag(tile, LV_OBJ_FLAG_CLICKABLE);
     lv_obj_set_size(tile, tile_width, tile_height);
+    theme_set_content_background(tile);
+    lv_obj_set_style_bg_color(tile, lv_color_hex(theme_display_color(DEVICE_PAIRING_TILE_FILL)), LV_PART_MAIN);
+    lv_obj_set_style_bg_opa(tile, LV_OPA_COVER, LV_PART_MAIN);
     lv_obj_set_style_border_width(tile, 2, LV_PART_MAIN);
     lv_obj_set_style_border_color(tile, lv_color_hex(theme_display_color(DEVICE_PAIRING_TILE_BORDER)), LV_PART_MAIN);
     lv_obj_set_style_radius(tile, tile_radius, LV_PART_MAIN);
     auto *letter = lv_label_create(tile);
     if (code_font) lv_obj_set_style_text_font(letter, code_font, LV_PART_MAIN);
-    lv_obj_set_style_text_color(letter, lv_color_hex(theme.text_primary), LV_PART_MAIN);
+    lv_obj_set_style_text_color(letter, lv_color_white(), LV_PART_MAIN);
     apply_text_width_compensation(letter);
     lv_obj_center(letter);
     ui.letters[i] = letter;
