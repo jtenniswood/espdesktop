@@ -21,13 +21,13 @@ Open **Edit Card** on the **Scenes** page card to hide or reorder scenes. In thi
 
 <a href="/images/obs/scenes-settings.png"><img src="/images/obs/scenes-settings.png" alt="Scenes subpage settings with reorder controls and visibility switches for Codex, Safari, Studio and Obsbot" width="1056" height="1252" loading="lazy"></a>
 
-<a href="/images/obs/scenes-layout.png"><img src="/images/obs/scenes-layout.png" alt="Scenes subpage in the Layout editor showing four scenes, Break, Transition set to Cut, and a wide Take Safari card" width="2240" height="1379" loading="lazy"></a>
+<a href="/images/obs/scenes-layout.png"><img src="/images/obs/scenes-layout.png" alt="Scenes grouped page with four scenes, Break, Transition set to Cut, and a wide Take Safari card" width="1189" height="1189" loading="lazy"></a>
 
 ### Transitions
 
 Choose **Grouped pages → Transitions** and save the card. It fills available cells with the transitions configured in OBS. Open **Edit Card** on the page card and expand the **Transitions** list to hide or reorder them.
 
-<a href="/images/obs/transitions-layout.png"><img src="/images/obs/transitions-layout.png" alt="Transitions subpage in the Layout editor with Fade and Cut cards, with Cut highlighted as the selected transition" width="2255" height="1384" loading="lazy"></a>
+<a href="/images/obs/transitions-layout.png"><img src="/images/obs/transitions-layout.png" alt="Transitions grouped page with Fade and Cut cards, with Cut highlighted as the selected transition" width="1188" height="1188" loading="lazy"></a>
 
 ## Preview a scene and take it live
 
