@@ -404,10 +404,13 @@ final class CompanionUSBEditorWindow: NSObject, WKNavigationDelegate, WKUIDelega
         task.didFinish()
     }
 
+    // Older embedded editors still render a reset card. Leave reset status
+    // requests available so their write sessions still track the reset epoch.
     private static let html = """
     <!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
     <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src espdesktop-usb: 'unsafe-inline';
      style-src 'unsafe-inline'; img-src data: blob: espdesktop-usb:; font-src data: blob:; connect-src 'none'">
+    <style>.card:has(.sp-reset-options) { display: none !important; }</style>
     </head><body><esp-app></esp-app><script src="/0.js"></script></body></html>
     """
 

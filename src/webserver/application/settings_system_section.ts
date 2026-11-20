@@ -340,7 +340,9 @@ export function createSettingsSystemSectionFeature(
         return {
             identityCard: actions.buildIdentityCard?.(),
             backupCard: backupCard,
-            resetCard: buildResetSettings(actions.exportBackup, makeCollapsibleCard, infoPanel),
+            resetCard: window.location.protocol === "espdesktop-usb:"
+                ? undefined
+                : buildResetSettings(actions.exportBackup, makeCollapsibleCard, infoPanel),
             firmwareCard: firmwareCard,
         };
     }
