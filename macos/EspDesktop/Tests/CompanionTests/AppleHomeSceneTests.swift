@@ -70,14 +70,16 @@ final class AppleHomeSceneTests: XCTestCase {
                 requests.append(request)
                 let headers = ["X-Panel-Config-Version": "2", "ETag": "\"v2-4\""]
                 let response = try XCTUnwrap(HTTPURLResponse(url: request.url!,
-                    statusCode: requests.count == 1 ? 200 : 409, httpVersion: nil, headerFields: headers))
-                return (Data([1]), response)
+                    statusCode: request.httpMethod == "PUT" ? 409 : 200, httpVersion: nil, headerFields: headers))
+                let data = request.url?.path == "/api/v1/reset" ? Data(#"{"epoch":2,"pending":false}"#.utf8) : Data([1])
+                return (data, response)
             }
             XCTFail("Expected the concurrent edit to be reported")
         } catch {
             XCTAssertTrue(error.localizedDescription.contains("layout changed"))
         }
-        XCTAssertEqual(requests.count, 2)
+        XCTAssertEqual(requests.count, 3)
+        XCTAssertEqual(requests.last?.value(forHTTPHeaderField: "X-EspDesktop-Epoch"), "2")
         XCTAssertEqual(requests.last?.value(forHTTPHeaderField: "If-Match"), "\"v2-4\"")
         XCTAssertEqual(requests.last?.httpBody, Data([2]))
     }

@@ -18,6 +18,20 @@ enum AppleHomePageInstaller {
     static func install(at panel: URL, source: String,
                         beforeSave: () throws -> Void = {},
                         fetch: (URLRequest) async throws -> (Data, URLResponse)) async throws -> String {
+        let resetURL = panel.appending(path: "api/v1/reset")
+        let (resetData, resetReply) = try await fetch(URLRequest(
+            url: resetURL, cachePolicy: .reloadIgnoringLocalCacheData, timeoutInterval: 8
+        ))
+        let epoch: UInt32?
+        switch (resetReply as? HTTPURLResponse)?.statusCode {
+        case 200:
+            let resetStatus = try JSONDecoder().decode(ResetStatus.self, from: resetData)
+            guard !resetStatus.pending else { throw InstallError("The display is resetting. Try again when it is ready.") }
+            epoch = resetStatus.epoch
+        case 404: epoch = nil
+        case 401, 403: throw InstallError("The display configuration is password protected.")
+        default: throw InstallError("The display could not confirm that it is ready to change settings.")
+        }
         let destination = panel.appending(path: "api/v1/config")
         var read = URLRequest(url: destination, cachePolicy: .reloadIgnoringLocalCacheData, timeoutInterval: 8)
         read.setValue("2", forHTTPHeaderField: "X-Panel-Config-Version")
@@ -38,13 +52,14 @@ enum AppleHomePageInstaller {
         write.httpMethod = "PUT"
         write.setValue(format, forHTTPHeaderField: "Content-Type")
         write.setValue(generation, forHTTPHeaderField: "If-Match")
+        if let epoch { write.setValue(String(epoch), forHTTPHeaderField: "X-EspDesktop-Epoch") }
         write.httpBody = layout
         let (_, result) = try await fetch(write)
         guard let saved = result as? HTTPURLResponse else { throw InstallError("The display did not respond.") }
         switch saved.statusCode {
         case 204: return "The Apple Home page is ready on your display."
         case 202: return "The Apple Home page is ready. The display could not update its legacy backup."
-        case 409, 412: throw InstallError("The display layout changed during setup. Try again to use its latest layout.")
+        case 409, 412, 428: throw InstallError("The display layout changed during setup. Try again to use its latest layout.")
         case 413: throw InstallError("There is not enough room on the display for the Apple Home page.")
         default: throw InstallError("Could not save the Apple Home page (HTTP \(saved.statusCode)).")
         }
@@ -66,6 +81,11 @@ enum AppleHomePageInstaller {
             throw InstallError("Could not prepare the Apple Home page.")
         }
         return Data(bytes)
+    }
+
+    private struct ResetStatus: Decodable {
+        let epoch: UInt32
+        let pending: Bool
     }
 
     struct InstallError: LocalizedError {
