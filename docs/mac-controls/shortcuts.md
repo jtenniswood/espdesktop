@@ -9,17 +9,39 @@ A **Keyboard Shortcut** card can run a preset for a specific Mac app or send a c
 
 ## Run an Apple Shortcuts workflow
 
-Use matching versions of the EspDesktop Mac app and display firmware.
+An Apple shortcut automates one or more tasks on your Mac, such as starting a focus timer, arranging windows, or saving a link for later. Create your own in **Shortcuts** or add one from its **Gallery**. [Apple’s guide to Shortcuts on Mac](https://support.apple.com/en-gb/guide/shortcuts-mac/apdf22b0444c/mac).
 
-1. Create and test a workflow in Apple’s **Shortcuts** app on your Mac.
-2. In the display’s web editor, select an empty tile and choose **Companion → Apple Shortcuts → Run a shortcut**. Pick the workflow and save.
-3. Unlock your Mac and tap the tile. Respond to any prompts on the Mac.
+Use matching versions of the EspDesktop Mac app and display firmware. Keep your Mac unlocked to run shortcuts and answer any prompts there.
 
-To limit which workflows your displays can run, open **Shortcuts** in the EspDesktop Mac app, turn off **All available shortcuts**, and enable the workflows you want.
+In your display’s web editor, select an empty tile and choose **Companion → Apple Shortcuts**. Then pick one of these three card types.
 
-Under **Companion → Apple Shortcuts**, you can also choose **Create a list of shortcuts** to group workflows on a subpage, or **Open the Shortcuts App** to add an app launcher with a workflow subpage. To make it a launcher only, turn off **Add app subpage**.
+<a href="/images/apple-shortcuts/card-types.png"><img class="apple-shortcuts-image" src="/images/apple-shortcuts/card-types.png" alt="Apple Shortcuts card picker showing Create a list of shortcuts, Run a shortcut, and Open the Shortcuts App" width="1500" height="608" loading="lazy"></a>
 
-To choose or reorder workflows on either subpage, right-click a tile there in the web editor and choose **Apple Shortcut List**. Newly enabled workflows fill empty spaces while the Mac is connected.
+### Pin a single shortcut
+
+Choose **Run a shortcut**, select the shortcut, and save. Tap its tile to run it directly, like **Start Pomodoro** below.
+
+<a href="/images/apple-shortcuts/home.jpg"><img class="apple-shortcuts-image apple-shortcuts-home" src="/images/apple-shortcuts/home.jpg" alt="EspDesktop Home screen with a pinned Start Pomodoro shortcut, a Shortcut List tile, and the Shortcuts app icon" width="1080" height="1080" loading="lazy"></a>
+
+### Group shortcuts on one page
+
+Choose **Create a list of shortcuts**. The editor lists all shortcuts available to EspDesktop. Use the switches to choose which ones appear and drag them into order. Save and tap **Shortcut List** on your display. The page shows as many shortcuts as fit alongside **Back**.
+
+<div class="apple-shortcuts-image-pair">
+  <a href="/images/apple-shortcuts/list.jpg"><img class="apple-shortcuts-image" src="/images/apple-shortcuts/list.jpg" alt="EspDesktop Shortcut List page with a Back tile and seven shortcuts" width="1080" height="1080" loading="lazy"></a>
+  <a href="/images/apple-shortcuts/list-settings.png"><img class="apple-shortcuts-image" src="/images/apple-shortcuts/list-settings.png" alt="Shortcut List settings with switches and drag handles for each shortcut" width="892" height="1458" loading="lazy"></a>
+</div>
+
+### Launch the Shortcuts app
+
+Choose **Open the Shortcuts App**, leave **Add app subpage** on, and save. Tap the app tile to launch Shortcuts on your Mac. By default, the display shows your shortcut tiles when Shortcuts comes to the front.
+
+<div class="apple-shortcuts-image-pair">
+  <a href="/images/apple-shortcuts/app.jpg"><img class="apple-shortcuts-image" src="/images/apple-shortcuts/app.jpg" alt="Shortcuts app subpage on the display with the app icon and seven shortcuts" width="1080" height="1080" loading="lazy"></a>
+  <a href="/images/apple-shortcuts/app-settings.png"><img class="apple-shortcuts-image" src="/images/apple-shortcuts/app-settings.png" alt="Applications card settings with Shortcuts selected and Add app subpage enabled" width="892" height="1572" loading="lazy"></a>
+</div>
+
+To edit either page later, right-click a tile on it in the web editor and choose **Apple Shortcut List**. To limit which shortcuts your displays can run, turn off **All available shortcuts** in the EspDesktop Mac app’s **Shortcuts** settings and enable the ones you want.
 
 ## Create a keyboard shortcut card {#create-a-shortcut-card}
 
@@ -58,3 +80,27 @@ Approve **Streamlabs Desktop** in the EspDesktop Mac app. Choose **Keyboard Shor
 For scene switching, mic mute or recording, assign a key combination in [Streamlabs Desktop → Settings → Hotkeys](https://support.streamlabs.com/hc/en-us/articles/4413170379675-How-to-Set-up-Hotkeys-in-Streamlabs-Desktop). Choose a combination with Command, Control or Option that works from your Mac keyboard, then enter the same keys in a **Keyboard Shortcut → Custom** tile. You can put these tiles on the Streamlabs app subpage. Bring Streamlabs to the front before using a Custom tile, which sends keys to the active Mac app.
 
 <span id="add-templates-for-another-app">Missing a preset?</span> [Suggest a keyboard shortcut](/mac-controls/improve-shortcuts).
+
+<style scoped>
+.apple-shortcuts-image {
+  display: block;
+  border-radius: 10px;
+}
+
+.apple-shortcuts-home {
+  max-width: min(100%, 440px);
+}
+
+.apple-shortcuts-image-pair {
+  display: grid;
+  grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+  align-items: start;
+  gap: 16px;
+}
+
+@media (max-width: 520px) {
+  .apple-shortcuts-image-pair {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+</style>
