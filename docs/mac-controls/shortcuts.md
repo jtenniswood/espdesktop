@@ -9,20 +9,17 @@ A **Keyboard Shortcut** card can run a preset for a specific Mac app or send a c
 
 ## Run an Apple Shortcuts workflow
 
-Use a **Run a shortcut** card to run a workflow you created in the Mac’s **Shortcuts** app. Use matching versions of the EspDesktop Mac app and display firmware.
+Use matching versions of the EspDesktop Mac app and display firmware.
 
-1. Create a workflow in Shortcuts and run it there to check that it works.
-2. In the EspDesktop Mac app, open **Shortcuts**. **All available shortcuts** is on by default. Choose **Manage Shortcuts** to open the Gallery in the Shortcuts app. The list updates when you return to EspDesktop.
-3. In the display’s web editor, select an empty tile, choose **Companion → Apple Shortcuts → Run a shortcut**, select the workflow, and save.
-4. With your Mac unlocked, tap the tile. If the workflow asks for input or permission, respond on the Mac.
+1. Create and test a workflow in Apple’s **Shortcuts** app on your Mac.
+2. In the display’s web editor, select an empty tile and choose **Companion → Apple Shortcuts → Run a shortcut**. Pick the workflow and save.
+3. Unlock your Mac and tap the tile. Respond to any prompts on the Mac.
 
-To choose which workflows your displays can run, turn off **All available shortcuts** and turn on the workflows you want to allow.
+To limit which workflows your displays can run, open **Shortcuts** in the EspDesktop Mac app, turn off **All available shortcuts**, and enable the workflows you want.
 
-To open a page of workflows directly from your Home screen, choose **Companion → Apple Shortcuts → Create a list of shortcuts**. The editor selects up to eight workflows in alphabetical order, with one tile reserved for **Back**. Use the full list to choose and reorder the workflows you want. To edit them later, open the subpage in the web editor, right-click a tile, and choose **Apple Shortcut List**.
+Under **Companion → Apple Shortcuts**, you can also choose **Create a list of shortcuts** to group workflows on a subpage, or **Open the Shortcuts App** to add an app launcher with a workflow subpage. To make it a launcher only, turn off **Add app subpage**.
 
-Choose **Companion → Apple Shortcuts → Open the Shortcuts App** to pin an **Applications** card with **Shortcuts** already selected. It includes a workflow subpage by default. Turn off **Add app subpage** if you only want to open the app.
-
-When the Mac is connected, newly enabled workflows appear in any free spaces on either kind of Shortcuts subpage. Turn off a workflow in **Apple Shortcut List** to keep it off that page. Other saved tiles keep their positions.
+To choose or reorder workflows on either subpage, right-click a tile there in the web editor and choose **Apple Shortcut List**. Newly enabled workflows fill empty spaces while the Mac is connected.
 
 ## Create a keyboard shortcut card {#create-a-shortcut-card}
 
