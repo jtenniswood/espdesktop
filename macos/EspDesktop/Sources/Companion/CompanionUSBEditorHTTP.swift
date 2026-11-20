@@ -1,8 +1,23 @@
 import Foundation
+import Network
 import zlib
 
 struct USBEditorWifiState: Codable {
     let enabled: Bool
+}
+
+struct USBEditorPanelIdentity: Decodable {
+    private let ipAddress: String
+
+    private enum CodingKeys: String, CodingKey {
+        case ipAddress = "ip_address"
+    }
+
+    var localNetworkAddress: String? {
+        guard let address = IPv4Address(ipAddress), address.rawValue.first != 127,
+              ConnectionEndpointPolicy.isLocalHost(ipAddress) else { return nil }
+        return ipAddress
+    }
 }
 
 enum USBEditorError: LocalizedError {

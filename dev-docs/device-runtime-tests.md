@@ -145,15 +145,17 @@ instead of the USB cable.
    Try a different panel's address or USB port and check that the saved
    connection and pairing stay intact on both displays.
 
-6. In **Displays**, select **Device** while connected by USB. Wait for the
-   panel’s embedded editor to load in the Mac app. Save a layout change and
-   confirm it persists after reopening the editor.
+6. In **Displays**, select **Device** while connected by USB with Wi-Fi connected.
+   Confirm the browser opens the display’s current IP and the display stays on
+   USB in the Mac app. Right-click **Device** and choose **Open USB Editor**.
+   Save a layout change and confirm it persists after reopening the USB editor.
 7. Disconnect the cable during a save and reconnect it. The editor keeps the
    submitted layout and reads back the saved one before retrying. If the
    layout changed in the meantime, check that the editor leaves it alone and
    offers **Export Unsaved Layout**.
 8. In the USB editor, open **Device Settings → System → Wi-Fi**. Turn Wi-Fi
-   off and confirm the editor and Mac controls still work over USB.
+   off and confirm **Device** opens the editor over USB and Mac controls
+   still work.
    Disconnect USB and wait for the USB session to time out. Confirm Wi-Fi
    stays off, including after a display restart. Reconnect USB and choose
    **Use Network**. Check that it turns on Wi-Fi, finds the paired

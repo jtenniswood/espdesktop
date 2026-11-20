@@ -498,6 +498,15 @@ final class CompanionConnection: NSObject {
         return await usbWifiEnabled(setting: true) == true
     }
 
+    func currentUSBWifiAddress() async -> String? {
+        guard await usbWifiEnabled() == true,
+              let request = USBEditorRequest(method: "GET", path: "/api/v1/identity"),
+              let response = try? await requestUSBEditor(request), response.status == 200,
+              let identity = try? JSONDecoder().decode(USBEditorPanelIdentity.self, from: response.body)
+        else { return nil }
+        return identity.localNetworkAddress
+    }
+
     private func usbWifiEnabled(setting: Bool? = nil) async -> Bool? {
         let body: Data
         if let setting {

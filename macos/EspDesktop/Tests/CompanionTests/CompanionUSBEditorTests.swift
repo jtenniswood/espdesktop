@@ -40,6 +40,18 @@ final class CompanionUSBEditorTests: XCTestCase {
         XCTAssertNil(USBEditorRequest(method: "PUT", path: path))
     }
 
+    func testDeviceEditorUsesOnlyAUsableLocalAddressReportedByTheDisplay() throws {
+        func address(_ value: String) throws -> String? {
+            let body = Data(#"{"ip_address":"\#(value)"}"#.utf8)
+            return try JSONDecoder().decode(USBEditorPanelIdentity.self, from: body).localNetworkAddress
+        }
+
+        XCTAssertEqual(try address("192.168.6.100"), "192.168.6.100")
+        for unusable in ["0.0.0.0", "127.0.0.1", "8.8.8.8", "screen.local", "192.168.6.100:80"] {
+            XCTAssertNil(try address(unusable), unusable)
+        }
+    }
+
     func testAnInterruptedSaveOnlyRetriesAgainstItsOriginalGeneration() throws {
         let submitted = Data([7])
         let save = try XCTUnwrap(USBEditorRequest(method: "PUT", path: "/api/v1/config",

@@ -810,15 +810,31 @@ final class CompanionStore: NSObject, ObservableObject {
     }
 
     private var usbEditorWindows: [UUID: CompanionUSBEditorWindow] = [:]
+    private var openingUSBDisplays: Set<UUID> = []
 
     func openPanelWebServer(_ display: CompanionDisplay) {
-        if display.usesUSB {
-            let editor = usbEditorWindows[display.id] ?? CompanionUSBEditorWindow(display: display)
-            usbEditorWindows[display.id] = editor
-            editor.open()
-        } else {
+        guard display.usesUSB else {
             _ = openPanelWebServer(host: display.record.host, tab: nil)
+            return
         }
+        guard openingUSBDisplays.insert(display.id).inserted else { return }
+        let port = display.record.usbPort
+        Task {
+            defer { openingUSBDisplays.remove(display.id) }
+            let address = await display.connection.currentUSBWifiAddress()
+            guard displays.contains(where: { $0 === display }), !forgettingDisplays.contains(display.id),
+                  display.usesUSB, display.record.usbPort == port else { return }
+            if let address, openPanelWebServer(host: address) { return }
+            openUSBEditor(display)
+        }
+    }
+
+    func openUSBEditor(_ display: CompanionDisplay) {
+        guard display.usesUSB, displays.contains(where: { $0 === display }),
+              !forgettingDisplays.contains(display.id) else { return }
+        let editor = usbEditorWindows[display.id] ?? CompanionUSBEditorWindow(display: display)
+        usbEditorWindows[display.id] = editor
+        editor.open()
     }
 
     func openPanelPairing() -> Bool {

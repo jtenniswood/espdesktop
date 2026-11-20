@@ -587,6 +587,11 @@ struct CompanionSettings: View {
                 }
                 .modifier(CompanionCapsuleButton())
                 .disabled(!display.usesUSB && display.record.host.isEmpty)
+                .contextMenu {
+                    if display.usesUSB {
+                        Button("Open USB Editor") { store.openUSBEditor(display) }
+                    }
+                }
 
                 Button(role: .destructive) {
                     displayToForget = display
