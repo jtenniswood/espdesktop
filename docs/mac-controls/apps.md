@@ -25,8 +25,6 @@ Open **Apps** in the Mac app. **All available apps** is on by default. To choose
 
 2. Select an approved application and choose **Save**.
 
-   <a href="/images/web-editor-application-card.png"><picture><source type="image/avif" srcset="/images/web-editor-application-card-480.avif 480w, /images/web-editor-application-card-960.avif 960w" sizes="(min-width: 768px) 688px, 90vw"><img src="/images/web-editor-application-card.png" alt="Applications card form with Figma selected, the Add app subpage switch off, and the Save button visible" width="1694" height="2266" loading="lazy"></picture></a>
-
 The card uses the app’s friendly name by default. Enter a custom title in its settings to give the card a different name.
 
 Mac app artwork fills the card and hides its title. The app card uses its active fill colour while the Mac reports that app is in front. Background apps use the normal fill.
@@ -66,17 +64,15 @@ The level cards display **Volume** or **Mic** by default. The output mute card d
 
 ## Ready-Made app subpages
 
-An approved **Applications** card can offer an editable subpage when EspDesktop includes keyboard shortcut templates for that app. Examples include **Safari**, **Slack**, **Codex**, and **OpenCode Desktop**.
+Saving an **Applications** card adds an editable subpage when EspDesktop has a keyboard shortcut template for that app. Examples include **Safari**, **Slack**, **Codex**, and **OpenCode Desktop**.
 
 1. Add an **Applications** card for an app with a keyboard shortcut template.
-2. Open **App Subpage** in its card settings and turn on **Add app subpage**.
-3. Choose the keyboard shortcuts to include and drag them into order.
+2. Open **App Subpage** in its card settings to choose and reorder the keyboard shortcuts.
+3. Choose **Save**.
 
 For OpenCode Desktop on Mac, the starter tiles include **New Session**, **Command Palette**, **Find Files**, and **Review Changes**. See all 12 presets in the [OpenCode shortcut reference](/reference/shortcut-presets#ai-opencode-desktop).
 
-<a href="/images/web-editor-app-subpage-shortcuts.png"><picture><source type="image/avif" srcset="/images/web-editor-app-subpage-shortcuts-480.avif 480w, /images/web-editor-app-subpage-shortcuts-960.avif 960w" sizes="(min-width: 768px) 688px, 90vw"><img src="/images/web-editor-app-subpage-shortcuts.png" alt="Figma Applications card settings with Add app subpage on and shortcuts that can be enabled and reordered" width="1694" height="2266" loading="lazy"></picture></a>
-
-The page uses the same templates as the **Application** tab on a **Keyboard Shortcut** card and remains editable. Turning the app subpage option off preserves your changes.
+The page uses the same templates as the **Application** tab on a **Keyboard Shortcut** card and remains editable.
 
 <a href="/images/web-editor-figma-subpage.png"><picture><source type="image/avif" srcset="/images/web-editor-figma-subpage-480.avif 480w, /images/web-editor-figma-subpage-960.avif 960w" sizes="(min-width: 768px) 688px, 90vw"><img src="/images/web-editor-figma-subpage.png" alt="Figma app subpage in the web editor with a back tile and keyboard shortcuts such as Frame, Duplicate, and Copy PNG" width="1562" height="2134" loading="lazy"></picture></a>
 

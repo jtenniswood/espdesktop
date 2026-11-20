@@ -4593,10 +4593,11 @@ async function assertOBSAppCard(browser) {
   fixture.document.subpages = {};
   fixture.document.settings = { button_order: "2", web_onboarding_complete: "1" };
   const appId = "com.obsproject.obs-studio";
+  const unsupportedAppId = "com.example.NoShortcuts";
   const context = await browser.newContext({ viewport: testCase.viewport });
   await installRoutes(context, testCase.slug, { nativeState: fixture });
   await context.route("**/companion/actions", route => route.fulfill({
-    json: [{ id: appId, label: "OBS Studio" }],
+    json: [{ id: appId, label: "OBS Studio" }, { id: unsupportedAppId, label: "No Shortcuts" }],
   }));
   await mockCompanionAppIcon(context, appId);
   try {
@@ -4614,7 +4615,7 @@ async function assertOBSAppCard(browser) {
     assert.equal(await application.inputValue(), appId);
     const appSubpage = page.locator(".sp-app-subpage-settings");
     assert.equal(await appSubpage.getByRole("button", { name: "App Subpage", exact: true }).getAttribute("aria-expanded"), "true");
-    assert(await appSubpage.getByRole("checkbox", { name: "Add app subpage", exact: true }).isChecked());
+    assert.equal(await appSubpage.getByText("Add app subpage", { exact: true }).count(), 0);
     await page.getByRole("button", { name: "Save", exact: true }).click();
     const { parseRawButtonConfig } = loadTypeScriptModule("src/webserver/model/card.ts");
     const savedApp = () => parseRawButtonConfig(fixture.document.buttons[1] || "");
@@ -4624,7 +4625,26 @@ async function assertOBSAppCard(browser) {
     assert.match(savedApp().options, /(?:^|,)app_shortcuts(?:,|$)/);
     await page.locator('.sp-main [data-slot="1"] .sp-subpage-badge').click();
     await page.locator(".sp-main").getByText("Edit Transform", { exact: true }).waitFor();
-    console.log("The OBS app launcher and its default shortcut subpage passed.");
+    await page.locator(".sp-main .sp-back-btn").click();
+    const editSavedApp = async () => {
+      await page.locator('.sp-main [data-slot="1"]').click({ button: "right" });
+      await page.locator(".sp-ctx-menu").getByText("Edit Card", { exact: true }).click();
+    };
+    const save = page.getByRole("button", { name: "Save", exact: true });
+    await editSavedApp();
+    await application.selectOption(unsupportedAppId);
+    assert.equal(await appSubpage.isVisible(), false);
+    await save.click();
+    await waitForNativeState(fixture, () => savedApp().entity === unsupportedAppId &&
+      !fixture.document.subpages[1], "changing to an app without shortcuts saves a launcher only");
+    assert.doesNotMatch(savedApp().options, /(?:^|,)app_shortcuts(?:,|$)/);
+
+    await editSavedApp();
+    await application.selectOption(appId);
+    await save.click();
+    await waitForNativeState(fixture, () => savedApp().entity === appId &&
+      fixture.document.subpages[1]?.includes("Edit Transform"), "selecting a supported app adds its subpage automatically");
+    console.log("The OBS app launcher, automatic shortcut subpage, and plain launcher checks passed.");
   } finally { await context.close(); }
 }
 
@@ -7836,9 +7856,8 @@ async function assertAppleShortcutCard(browser) {
     await application.getByRole("option", { name: "Shortcuts", exact: true }).waitFor({ state: "attached" });
     assert.equal(await application.inputValue(), "com.apple.shortcuts");
     const appSubpage = page.locator(".sp-app-subpage-settings");
-    const appSubpageToggle = appSubpage.getByRole("checkbox", { name: "Add app subpage", exact: true });
     assert.equal(await appSubpage.getByRole("button", { name: "App Subpage", exact: true }).getAttribute("aria-expanded"), "true");
-    assert.equal(await appSubpageToggle.isChecked(), true);
+    assert.equal(await appSubpage.getByText("Add app subpage", { exact: true }).count(), 0);
     await appSubpage.getByText("Stop Distractions", { exact: true }).waitFor();
     assert.equal(await appSubpage.getByRole("button", { name: "Apple Shortcuts", exact: true }).count(), 0);
     await page.getByRole("button", { name: "Save", exact: true }).click();
@@ -7856,10 +7875,10 @@ async function assertAppleShortcutCard(browser) {
     await page.locator(".sp-ctx-menu").getByText("Edit Card", { exact: true }).click();
     const disclosure = appSubpage.getByRole("button", { name: "App Subpage", exact: true });
     if (await disclosure.getAttribute("aria-expanded") !== "true") await disclosure.click();
-    await appSubpage.getByText("Add app subpage", { exact: true }).click();
-    assert.equal(await appSubpageToggle.isChecked(), false);
+    const savedPage = fixture.document.subpages[pinnedAppSlot()];
     await page.getByRole("button", { name: "Save", exact: true }).click();
-    await waitForNativeState(fixture, () => !pinnedApp().options.includes("app_shortcuts"), "save a Shortcuts app card without a subpage");
+    await page.locator(".sp-settings-modal").waitFor({ state: "hidden" });
+    assert.equal(fixture.document.subpages[pinnedAppSlot()], savedPage, "resaving keeps the existing app subpage");
     console.log("The grouped Apple Shortcuts picker, Back button, workflow card, and pinned app passed.");
   } finally { await context.close(); }
 }
@@ -7913,7 +7932,7 @@ async function assertAppleShortcutSubpage(browser, directCard = false) {
       await page.locator(".sp-ctx-menu").getByText("Edit Card", { exact: true }).click();
       const disclosure = subpage.getByRole("button", { name: "App Subpage", exact: true });
       if (await disclosure.getAttribute("aria-expanded") !== "true") await disclosure.click();
-      await subpage.getByText("Add app subpage", { exact: true }).click();
+      assert.equal(await subpage.getByText("Add app subpage", { exact: true }).count(), 0);
       assert.equal(await subpage.getByRole("button", { name: "Apple Shortcuts", exact: true }).count(), 0);
     }
     await row(workflows[21]).waitFor({ state: "attached" });
@@ -8109,8 +8128,7 @@ async function assertFinderCardPicker(browser) {
     const appSubpage = page.locator(".sp-app-subpage-settings");
     const disclosure = appSubpage.getByRole("button", { name: "App Subpage", exact: true });
     assert.equal(await disclosure.getAttribute("aria-expanded"), "true");
-    const subpageToggle = appSubpage.getByRole("checkbox", { name: "Add app subpage", exact: true });
-    assert(await subpageToggle.isChecked());
+    assert.equal(await appSubpage.getByText("Add app subpage", { exact: true }).count(), 0);
     await save.click();
 
     const slotFor = entity => Object.keys(fixture.document.buttons).find(slot =>
@@ -8277,7 +8295,7 @@ async function assertNestedCompanionPages(browser) {
     await page.locator(".sp-ctx-menu").getByText("Edit Card", { exact: true }).click();
     const creation = page.locator(".sp-settings-modal .sp-app-subpage-settings");
     if (await creation.locator(".sp-disclosure-button").getAttribute("aria-expanded") !== "true") await creation.locator(".sp-disclosure-button").click();
-    await page.locator('[id$="companion-app-shortcuts"]').evaluate(input => input.click());
+    assert.equal(await creation.getByText("Add app subpage", { exact: true }).count(), 0);
     await page.getByRole("button", { name: "Save", exact: true }).click();
     await waitForNativeState(fixture, () => fixture.puts.length === 1 && !!fixture.document.subpages[33], "create a nested app page atomically");
     assert(fixture.document.subpages[1].includes("app_shortcuts"));
