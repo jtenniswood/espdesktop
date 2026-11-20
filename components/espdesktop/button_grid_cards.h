@@ -520,8 +520,10 @@ inline void setup_companion_card(BtnSlot &s, const ParsedCfg &p,
     lv_obj_set_width(s.text_lbl, lv_pct(100));
   }
   const bool workflow_icon = apple_shortcut_workflow_icon(p);
+  const bool apple_home = companion_apple_home_action(p.entity);
   const char *icon = (p.icon.empty() || p.icon == "Auto")
-    ? find_icon(companion_apple_shortcut_action(p.entity) ? "Flash" : obs_mute ? "Microphone" : p.entity == "obs.brb" ? "Coffee to Go" :
+    ? find_icon(companion_apple_shortcut_action(p.entity) ? "Flash" : apple_home ? "Home" :
+                obs_mute ? "Microphone" : p.entity == "obs.brb" ? "Coffee to Go" :
                 p.entity == "obs.studio" ? "Split Vertical" : p.entity == "obs.multiview" ? "View Grid" :
                 (p.entity == "obs.transition" || direct_transition) ? "Flip Horizontal" :
                 p.entity == "obs.replay.buffer" ? "Repeat" :
@@ -559,7 +561,7 @@ inline void setup_companion_card(BtnSlot &s, const ParsedCfg &p,
     lv_obj_remove_event_cb_with_user_data(s.btn, card_text_contrast_event_cb, nullptr);
     sync_card_checked_text_color(s.btn);
   } else if (companion_app_launch_card(p) || companion_obs_momentary_action(p.entity) ||
-             companion_apple_shortcut_action(p.entity)) {
+             companion_apple_shortcut_action(p.entity) || apple_home) {
     apply_instant_button_feedback(s.btn);
   } else if (available) {
     apply_push_button_transition(s.btn);
