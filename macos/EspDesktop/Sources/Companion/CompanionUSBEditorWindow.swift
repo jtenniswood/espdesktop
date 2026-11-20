@@ -417,20 +417,27 @@ final class CompanionUSBEditorWindow: NSObject, WKNavigationDelegate,
           binary += String.fromCharCode(...bytes.subarray(i, i + 8192));
         return btoa(binary);
       };
-      document.addEventListener('click', async event => {
-        const link = event.target.closest?.('a[download]');
-        const blob = backupBlobs.get(link?.href);
-        if (!blob || !link.download.endsWith('.json')) return;
-        event.preventDefault();
+      const saveBackup = async (blob, filename) => {
         try {
           if (blob.size > 8 * 1024 * 1024) throw new Error('The backup is too large.');
           await window.webkit.messageHandlers.panel.postMessage({
-            backup: link.download, body: encode(new Uint8Array(await blob.arrayBuffer()))
+            backup: filename, body: encode(new Uint8Array(await blob.arrayBuffer()))
           });
         } catch (error) {
           window.alert(error.message || 'Could not export the backup.');
         }
-      }, true);
+      };
+      window.espdesktopUSBExportBackup = saveBackup;
+      // Older embedded editors export by clicking a temporary Blob link.
+      const click = HTMLAnchorElement.prototype.click;
+      HTMLAnchorElement.prototype.click = function() {
+        const blob = backupBlobs.get(this.getAttribute('href'));
+        if (blob && this.download.endsWith('.json')) {
+          void saveBackup(blob, this.download);
+          return;
+        }
+        click.call(this);
+      };
       window.fetch = async (input, init = {}) => {
         const url = new URL(input instanceof Request ? input.url : input, window.location.href);
         if (url.protocol !== 'espdesktop-usb:' || url.hostname !== 'display')
