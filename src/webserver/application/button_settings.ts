@@ -786,13 +786,8 @@ export function createButtonSettingsFeature(
             type PickerGroup = "obs_group" | "apple_shortcuts_group" | "companion_folder";
             let openGroup: PickerGroup | null = null;
             const isShortcutOption = (key: string) => key === "companion_apple_shortcuts" || key === "companion_apple_shortcut";
-            const openShortcutsOption = "apple_shortcuts_open_app";
-            const openFinderOption = "finder_open_app";
-            const applicationPresets = new Map([
-                [openShortcutsOption, { id: APPLE_SHORTCUTS_APP_ID, label: "Shortcuts" }],
-                [openFinderOption, { id: "com.apple.finder", label: "Finder" }],
-            ]);
-            function pickerButton(o: CardPickerOption, select: () => void) {
+            type PickerOption = CardPickerOption & { applicationPreset?: { id: string; label: string } };
+            function pickerButton(o: PickerOption, select: () => void) {
                 const item = document.createElement("button");
                 item.type = "button";
                 item.className = "sp-card-type-option";
@@ -801,9 +796,8 @@ export function createButtonSettingsFeature(
                 item.setAttribute("aria-label", o.label + " card type");
                 const icon = mdiIcon(o.icon, "sp-card-type-icon mdi");
                 item.appendChild(icon);
-                const app = applicationPresets.get(o.key);
-                if (app) {
-                    void companionAppIconPreviewData(app.id, "", document).then(preview => {
+                if (o.applicationPreset) {
+                    void companionAppIconPreviewData(o.applicationPreset.id, "", document).then(preview => {
                         if (!preview || !item.isConnected) return;
                         const image = document.createElement("img");
                         image.className = "sp-card-type-icon sp-card-type-app-icon";
@@ -832,18 +826,15 @@ export function createButtonSettingsFeature(
                 renderOptions();
                 back.focus();
             }
-            function renderGrid(options: readonly CardPickerOption[], heading?: string) {
+            function renderGrid(options: readonly PickerOption[], heading?: string) {
                 const grid = document.createElement("div");
                 grid.className = "sp-card-type-grid";
                 for (const option of options) {
                     grid.appendChild(pickerButton(option, () => {
-                        const app = applicationPresets.get(option.key);
                         if (option.key === "companion_folder" && !openGroup) {
                             openPickerGroup(option.key);
-                        } else if (app) {
-                            selectCardType("companion_app", app);
                         } else {
-                            selectCardType(option.key);
+                            selectCardType(option.applicationPreset ? "companion_app" : option.key, option.applicationPreset);
                         }
                     }));
                 }
@@ -867,13 +858,14 @@ export function createButtonSettingsFeature(
                     openGroup === "companion_folder" ? "Finder Folder" : mainTitle;
                 const options: CardPickerOption[] = buttonTypePickerOptionList(!!isSub, selectedTypeKey, activeConnector);
                 const obsOptions = options.filter(option => option.key.startsWith("companion_obs"));
-                const shortcutOptions = options.filter(option => isShortcutOption(option.key));
+                const shortcutOptions: PickerOption[] = options.filter(option => isShortcutOption(option.key));
                 const appOption = options.find(option => option.key === "companion_app");
                 if (openGroup === "apple_shortcuts_group") {
                     picker.before(back);
                     if (appOption) shortcutOptions.push({
-                        ...appOption, key: openShortcutsOption, label: "Open the Shortcuts App",
+                        ...appOption, key: "apple_shortcuts_open_app", label: "Open the Shortcuts App",
                         description: "Add an Applications card that opens the Shortcuts app on your Mac.",
+                        applicationPreset: { id: APPLE_SHORTCUTS_APP_ID, label: "Shortcuts" },
                     });
                     renderGrid(shortcutOptions);
                     return;
@@ -881,13 +873,14 @@ export function createButtonSettingsFeature(
                 if (openGroup === "companion_folder") {
                     picker.before(back);
                     const folderOption = options.find(option => option.key === "companion_folder");
-                    const finderOptions: CardPickerOption[] = [];
+                    const finderOptions: PickerOption[] = [];
                     const canAddSubpage = codec.canCreateSubpage(homeSlot);
                     if (appOption) finderOptions.push({
-                        ...appOption, key: openFinderOption, label: "Open Finder",
+                        ...appOption, key: "finder_open_app", label: "Open Finder",
                         description: canAddSubpage ? "Add a Finder card with a subpage of approved folders."
                             : "This page can’t contain another subpage.",
                         disabled: appOption.disabled || !canAddSubpage,
+                        applicationPreset: { id: "com.apple.finder", label: "Finder" },
                     });
                     if (folderOption) finderOptions.push({
                         ...folderOption, label: "Open a folder",
@@ -899,7 +892,13 @@ export function createButtonSettingsFeature(
                 if (openGroup === "obs_group") {
                     picker.before(back);
                     const isPage = (option: CardPickerOption) => defaultButtonTypeForPicker(option.key) === "subpage";
-                    renderGrid(obsOptions.filter(option => !isPage(option)), "Card types");
+                    const cards: PickerOption[] = obsOptions.filter(option => !isPage(option));
+                    if (appOption) cards.push({
+                        ...appOption, key: "obs_open_app", label: "Open the OBS Studio App",
+                        description: "Add an Applications card that opens OBS Studio on your Mac.",
+                        applicationPreset: { id: "com.obsproject.obs-studio", label: "OBS Studio" },
+                    });
+                    renderGrid(cards, "Card types");
                     const pages = obsOptions.filter(isPage);
                     if (pages.length) renderGrid(pages, "Grouped pages");
                     return;

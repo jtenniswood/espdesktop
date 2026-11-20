@@ -76,6 +76,8 @@ const customiseLinks = [
   { text: 'Screen grid', link: '/features/home' },
   { text: 'Subpages', link: '/features/subpages' },
   { text: 'Adding a card', link: '/features/adding-a-card' },
+]
+const cardLinks = [
   { text: 'Apps', link: '/mac-controls/apps' },
   { text: 'Websites', link: '/mac-controls/websites' },
   { text: 'Finder folders', link: '/mac-controls/folders' },
@@ -337,7 +339,7 @@ export default defineConfig({
       },
       {
         text: 'Customise',
-        items: [...customiseLinks, obsStudioLink, screenSettingsLink, systemSettingsLink],
+        items: [...customiseLinks, ...cardLinks, obsStudioLink, screenSettingsLink, systemSettingsLink],
       },
       { text: 'Docs', link: '/screens/4848s040#supported-display-4-inch-guition-4848s040' },
     ],
@@ -353,6 +355,10 @@ export default defineConfig({
       {
         text: 'Customise',
         items: customiseLinks,
+      },
+      {
+        text: 'Cards',
+        items: cardLinks,
       },
       obsStudioSidebar,
       {
