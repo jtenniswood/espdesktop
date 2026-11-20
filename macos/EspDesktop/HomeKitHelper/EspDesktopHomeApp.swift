@@ -67,7 +67,6 @@ final class EspDesktopHome: NSObject, ObservableObject, HMHomeManagerDelegate, H
         let key: String
         let name: String
         let target: Target
-        let suggestedIcon: String
     }
 
     @Published private(set) var homes: [HMHome] = []
@@ -206,14 +205,13 @@ final class EspDesktopHome: NSObject, ObservableObject, HMHomeManagerDelegate, H
     }
 
     private func discoverControls(in home: HMHome, scenes: [HMActionSet]) -> [Control] {
-        let powerIcons = [HMServiceTypeLightbulb: "Sun", HMServiceTypeSwitch: "Power",
-                          HMServiceTypeOutlet: "Power Plug", HMServiceTypeFan: "Fan"]
+        let powerTypes = Set([HMServiceTypeLightbulb, HMServiceTypeSwitch, HMServiceTypeOutlet, HMServiceTypeFan])
         var controls = scenes.map {
-            Control(key: "scene." + $0.uniqueIdentifier.uuidString, name: $0.name, target: .scene($0), suggestedIcon: "Home")
+            Control(key: "scene." + $0.uniqueIdentifier.uuidString, name: $0.name, target: .scene($0))
         }
         for accessory in home.accessories {
             let services = accessory.services.filter {
-                powerIcons[$0.serviceType] != nil || $0.serviceType == HMServiceTypeWindowCovering
+                powerTypes.contains($0.serviceType) || $0.serviceType == HMServiceTypeWindowCovering
             }
             for service in services {
                 let isCovering = service.serviceType == HMServiceTypeWindowCovering
@@ -227,10 +225,8 @@ final class EspDesktopHome: NSObject, ObservableObject, HMHomeManagerDelegate, H
                     : [("On", NSNumber(value: true)), ("Off", NSNumber(value: false))]
                 for (suffix, value) in actions {
                     let key = (isCovering ? "position." : "power.") + characteristic.uniqueIdentifier.uuidString + "." + suffix
-                    let icon = isCovering ? (value.intValue == 100 ? "Arrow Up" : "Arrow Down") :
-                        (powerIcons[service.serviceType] ?? "Home")
                     controls.append(Control(key: key, name: name + " · " + suffix,
-                                            target: .write(characteristic, value), suggestedIcon: icon))
+                                            target: .write(characteristic, value)))
                 }
             }
         }
@@ -251,7 +247,7 @@ final class EspDesktopHome: NSObject, ObservableObject, HMHomeManagerDelegate, H
             references[control.key] = id
             targets[id] = control.target
             let name = String(decoding: control.name.utf8.prefix(240), as: UTF8.self)
-            available.append(.init(id: id, name: name, suggestedIcon: control.suggestedIcon))
+            available.append(.init(id: id, name: name))
         }
         defaults.set(try? JSONEncoder().encode(references), forKey: referenceKey)
         if publishesCatalog {

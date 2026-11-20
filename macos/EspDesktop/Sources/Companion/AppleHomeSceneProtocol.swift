@@ -38,7 +38,6 @@ struct AppleHomeSceneBindings: Codable, Equatable {
 struct AppleHomeControl: Codable, Equatable, Identifiable, Sendable {
     let id: UUID
     let name: String
-    var suggestedIcon: String? = nil
 
     static let actionPrefix = "applehome.control."
 

@@ -34,7 +34,6 @@ import type { ConfigCodecFeature } from "../application/config_codec";
 import type { ButtonSettingsSelectionFeature } from "../application/button_settings_selection";
 import type { ConnectorsPageFeature } from "../application/connectors_page";
 import type { ConfigModalTabOptionsFeature } from "../application/config_modal_tab_options";
-import { mdiIcon } from "../application/ui_primitives";
 import { state } from "../state/app_instance";
 import {
     COMPANION_SHORTCUT_PREFIX,
@@ -1214,10 +1213,8 @@ export function registerCompanionCardTypes(
                 helpers.markCardPrimaryField(field, "entity");
 
                 const savedID = currentEntity === prefix ? "" : currentEntity;
-                type EditorAction = CompanionAction & { readonly suggestedIcon?: string };
-                let workflows: readonly EditorAction[] = [];
+                let workflows: readonly CompanionAction[] = [];
                 let displayLabel: HTMLInputElement | null = null;
-                let updateIconSummary: (() => void) | undefined;
                 function showWorkflows(emptyMessage: string): void {
                     picker.replaceChildren();
                     const placeholder = document.createElement("option");
@@ -1240,7 +1237,6 @@ export function registerCompanionCardTypes(
                     }
                     picker.value = selectedID;
                     picker.disabled = workflows.length === 0;
-                    updateIconSummary?.();
                 }
                 showWorkflows(appleHome ? "Loading Apple Home controls…" : "Loading Apple Shortcuts…");
                 if (localAppleHome) {
@@ -1258,7 +1254,7 @@ export function registerCompanionCardTypes(
                             if (response.status === 426) throw new Error("Update the display firmware to add Apple Home controls.");
                             if (!response.ok) throw new Error("Apple Home unavailable");
                             const catalogue = await response.json() as {
-                                status: string; note: string; controls: EditorAction[];
+                                status: string; note: string; controls: CompanionAction[];
                             };
                             if (request !== latestRequest || !field.isConnected) return;
                             workflows = sortCompanionLabels(catalogue.controls.filter(action => action.id.startsWith(prefix)));
@@ -1303,7 +1299,6 @@ export function registerCompanionCardTypes(
                     // HomeKit names only populate the local picker. A card's
                     // label is authored separately before it is saved.
                     if (localAppleHome) {
-                        updateIconSummary?.();
                         helpers.openDisclosureForField(displayLabel);
                         displayLabel?.focus();
                         return;
@@ -1326,16 +1321,6 @@ export function registerCompanionCardTypes(
                         const automatic = appleHomeAutomaticIcons.get(card) ?? Boolean(isNewCard && !hasCustomIcon);
                         appleHomeAutomaticIcons.set(card, automatic);
 
-                        const summary = document.createElement("div");
-                        summary.className = "sp-field-info-text sp-visible";
-                        const current = document.createElement("span");
-                        current.setAttribute("role", "status");
-                        const useSuggested = document.createElement("button");
-                        useSuggested.className = "sp-action-btn sp-neutral-btn";
-                        useSuggested.type = "button";
-                        summary.append(current, document.createTextNode(" "), useSuggested);
-                        labelField.field.appendChild(summary);
-
                         function saveIcon(icon: string): void {
                             if (card.icon === icon) return;
                             card.icon = icon;
@@ -1346,44 +1331,13 @@ export function registerCompanionCardTypes(
                             helpers.idPrefix + "icon", automatic ? "Auto" : card.icon || defaultIcon, (icon: string) => {
                                 appleHomeAutomaticIcons.set(card, icon === "Auto");
                                 saveIcon(icon === "Auto" ? appleHomeIconForLabel(card.label) : icon);
-                                updateIconSummary?.();
                             }, "Icon");
                         panel?.appendChild(iconPickerField);
-                        const iconPicker = iconPickerField.querySelector(".sp-icon-picker") as
-                            (HTMLElement & { _setIcon: (icon: string) => void }) | null;
-                        let suggestion: string | undefined;
-                        let displayedIcon: string | undefined;
-                        updateIconSummary = () => {
-                            const savedIcon = card.icon && card.icon !== "Auto" ? card.icon : defaultIcon;
-                            if (displayedIcon !== savedIcon) {
-                                const icon = mdiIcon(savedIcon);
-                                icon.setAttribute("aria-hidden", "true");
-                                current.replaceChildren("Display icon ", icon, " " + savedIcon);
-                                displayedIcon = savedIcon;
-                            }
-                            suggestion = workflows.find(action => action.id === card.entity)?.suggestedIcon;
-                            useSuggested.style.display = suggestion && suggestion !== savedIcon ? "" : "none";
-                            if (suggestion) {
-                                const suggestedGlyph = mdiIcon(suggestion);
-                                suggestedGlyph.setAttribute("aria-hidden", "true");
-                                useSuggested.replaceChildren(suggestedGlyph, "Use suggested " + suggestion.toLowerCase());
-                            }
-                        };
-                        useSuggested.addEventListener("click", () => {
-                            if (!suggestion) return;
-                            appleHomeAutomaticIcons.set(card, false);
-                            saveIcon(suggestion);
-                            iconPicker?._setIcon(suggestion);
-                            updateIconSummary?.();
-                            labelInput.focus();
-                        });
                         labelInput.addEventListener("input", () => {
                             if (appleHomeAutomaticIcons.get(card)) {
                                 saveIcon(appleHomeIconForLabel(labelInput.value));
-                                updateIconSummary?.();
                             }
                         });
-                        updateIconSummary();
                         return;
                     }
                     helpers.renderBasicCardFields(panel, card, helpers, COMPANION_CARD_METADATA, { entity: false });

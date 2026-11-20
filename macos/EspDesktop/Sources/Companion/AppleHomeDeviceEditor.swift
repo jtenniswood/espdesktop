@@ -36,11 +36,7 @@ final class AppleHomeDeviceEditor {
             home.connect()
         }
         let controls = home.status == .ready ? home.controls : []
-        let entries = controls.map { control in
-            var entry = ["id": control.action, "label": control.name]
-            entry["suggestedIcon"] = control.suggestedIcon
-            return entry
-        }
+        let entries = controls.map { ["id": $0.action, "label": $0.name] }
         let catalogue = LocalCatalogue(status: home.status?.rawValue ?? "disconnected", note: home.note, controls: entries)
         return USBEditorResponse(status: 200, headers: ["content-type": "application/json"],
                                  body: try JSONEncoder().encode(catalogue))
