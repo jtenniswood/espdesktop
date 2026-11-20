@@ -574,7 +574,7 @@ export function createWebStyles(dragAnimation: boolean): string {
         ".sp-action-confirm-section.sp-visible{margin-bottom:28px}" +
         ".sp-cond-field.sp-climate-settings-gap.sp-visible{margin-bottom:24px}" +
         ".sp-disclosure{border:1px solid var(--border);border-radius:8px;background:rgba(255,255,255,.02);margin-top:4px}" +
-        ".sp-disclosure+.sp-disclosure,.sp-app-subpage-settings+.sp-disclosure{margin-top:14px}" +
+        ":is(.sp-disclosure,.sp-app-subpage-settings,[data-sp-card-primary]:has(>.sp-disclosure))+.sp-disclosure{margin-top:14px}" +
         ".sp-field.sp-shortcut-settings{margin-bottom:14px}" +
         ".sp-shortcut-settings fieldset.sp-segment{margin-inline:0;padding:0;min-width:0}" +
         ".sp-disclosure-button{width:100%;display:flex;align-items:center;justify-content:space-between;gap:12px;" +
