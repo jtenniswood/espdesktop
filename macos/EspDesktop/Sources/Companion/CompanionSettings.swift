@@ -351,12 +351,12 @@ struct CompanionSettings: View {
         .alert("Paired USB display not found", isPresented: $showingUSBNotFound) {
             Button("OK", role: .cancel) {}
         } message: {
-            Text("Check the cable and make sure the display is running USB-capable firmware. You can also choose a port from the connection menu.")
+            Text("Check the cable and make sure the display is running USB-capable firmware. You can also choose a USB port in Connection Details.")
         }
         .alert("Display Wi-Fi is off", isPresented: $showingWifiOff) {
             Button("OK", role: .cancel) {}
         } message: {
-            Text("Open Device → System → Wi-Fi to turn it on, then choose Switch to Network again.")
+            Text("Open Device → System → Wi-Fi to turn it on, then select Network again.")
         }
         .alert("Network address", isPresented: $showingNetworkAddress, presenting: displayToConfigure) { display in
             TextField("IP address or name.local", text: $networkAddress)
@@ -552,7 +552,7 @@ struct CompanionSettings: View {
                     .help(display.panelHost)
                     .textSelection(.enabled)
 
-                connectionMenu(for: display)
+                connectionControls(for: display)
 
                 if display.state == .failed || display.state == .needsPairing {
                     Text(display.recoveryMessage)
@@ -595,45 +595,71 @@ struct CompanionSettings: View {
         .padding(.vertical, 24)
     }
 
-    private func connectionMenu(for display: CompanionDisplay) -> some View {
-        Menu {
-            if display.usesUSB {
-                Button("Switch to Network") { findingNetworkDisplay = display }
-                    .disabled(findingNetworkDisplay != nil)
+    private func connectionControls(for display: CompanionDisplay) -> some View {
+        let findingDisplay = findingUSBDisplay?.id == display.id || findingNetworkDisplay?.id == display.id
+        let switching = findingDisplay || display.connection.pendingEndpoint != nil
+        return VStack(spacing: 6) {
+            HStack(spacing: 6) {
+                Picker("Connection for \(display.name)", selection: Binding(
+                    get: { display.usesUSB },
+                    set: { usesUSB in
+                        guard usesUSB != display.usesUSB, !switching else { return }
+                        if usesUSB {
+                            findingUSBDisplay = display
+                        } else {
+                            findingNetworkDisplay = display
+                        }
+                    }
+                )) {
+                    Text("Network").tag(false)
+                    Text("USB").tag(true)
+                }
+                .pickerStyle(.segmented)
+                .labelsHidden()
+                .disabled(switching || (display.usesUSB ? findingNetworkDisplay != nil : findingUSBDisplay != nil))
+
+                connectionDetails(for: display)
+                    .disabled(switching)
             }
-            Button(display.usesUSB ? "Enter Network Address…" : "Change Network Address…") {
-                findingNetworkDisplay = nil
+            .fixedSize()
+            if findingDisplay {
+                Text("Finding display…")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+        }
+    }
+
+    private func connectionDetails(for display: CompanionDisplay) -> some View {
+        Menu {
+            Button("Network Address…") {
                 showNetworkAddress(for: display)
             }
 
-            if !display.usesUSB, display.certificateFingerprint != nil {
-                Button("Switch to USB") { findingUSBDisplay = display }
-                    .disabled(findingUSBDisplay != nil || usbPorts.allSatisfy { store.isUSBPortInUse($0) })
-            }
-
-            if !usbPorts.isEmpty {
-                Menu("Choose USB Port") {
-                    ForEach(usbPorts, id: \.self) { port in
-                        Button(URL(fileURLWithPath: port).lastPathComponent) {
-                            store.setDisplayEndpoint(CompanionUSBPort.endpoint(for: port), for: display)
+            Menu("USB Port") {
+                ForEach(usbPorts, id: \.self) { port in
+                    Button {
+                        store.setDisplayEndpoint(CompanionUSBPort.endpoint(for: port), for: display)
+                    } label: {
+                        let name = URL(fileURLWithPath: port).lastPathComponent
+                        if display.usesUSB && display.record.usbPort == port {
+                            Label(name, systemImage: "checkmark")
+                        } else {
+                            Text(name)
                         }
-                        .disabled((display.usesUSB && display.record.usbPort == port) ||
-                                  store.isUSBPortInUse(port, except: display))
                     }
+                    .disabled((display.usesUSB && display.record.usbPort == port) ||
+                              store.isUSBPortInUse(port, except: display))
                 }
-                .disabled(findingUSBDisplay != nil)
             }
+            .disabled(usbPorts.isEmpty)
         } label: {
-            if findingUSBDisplay?.id == display.id {
-                Label("Finding display…", systemImage: "cable.connector")
-            } else if findingNetworkDisplay?.id == display.id {
-                Label("Finding display…", systemImage: "network")
-            } else {
-                Label(display.usesUSB ? "USB" : "Network", systemImage: display.usesUSB ? "cable.connector" : "network")
-            }
+            Label("Connection Details", systemImage: "gearshape")
+                .labelStyle(.iconOnly)
         }
-        .fixedSize()
-        .accessibilityLabel("Connection for \(display.name)")
+        .menuIndicator(.hidden)
+        .help("Connection Details")
+        .accessibilityLabel("Connection details for \(display.name)")
     }
 
     private func showNetworkAddress(for display: CompanionDisplay) {
