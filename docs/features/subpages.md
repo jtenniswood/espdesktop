@@ -15,9 +15,13 @@ All subpages hide the top title and clock bar so the cards use the full screen. 
 
 ## App page behavior
 
-Under **Screen → Appearance → App Subpages**, **Return home when switching apps** is on by default. Turn it off to keep the current app page open when you switch apps on the Mac. With it on, the display opens a matching new app page when automatic opening is enabled, or returns to the immediate parent page. The setting is saved on the display and included in backups.
+Under **Screen → Appearance → App Subpages**, choose when the display opens an app’s subpage.
 
-<a href="/images/web-editor-app-subpages-settings.png"><picture><source type="image/avif" srcset="/images/web-editor-app-subpages-settings-480.avif 480w, /images/web-editor-app-subpages-settings-960.avif 960w" sizes="(min-width: 768px) 688px, 90vw"><img src="/images/web-editor-app-subpages-settings.png" alt="App Subpages settings with Open app subpages on focus turned off and Return home when switching apps turned on" width="1562" height="1266" loading="lazy"></picture></a>
+- **When the app gains focus** follows the app you switch to on your Mac.
+- **On app card press (default)** opens the app and its subpage with one press on the display.
+- **On a second app card press** opens or switches to the app first. Once it’s active, press its card again to open the subpage.
+
+The display returns to Home when you close the app’s last visible window, even if the app is still running. The opening mode is saved on the display and included in backups.
 
 ## Create a subpage
 
@@ -34,7 +38,7 @@ You can also right-click an empty space in the editor and choose **Create Subpag
 
 Two levels are supported: **Home → Folder → Subpage**, including **Home → Folder → App shortcuts**. Open a folder and repeat the steps above to add the second level. Back returns to the immediate parent page. A second-level page cannot contain another subpage.
 
-Saving a supported app card inside a folder adds its app subpage automatically where the display supports nested pages. Choose **Edit Subpage** to arrange its shortcuts. The normal app focus and automatic switching settings also apply inside folders.
+Saving a supported app card inside a folder adds its app subpage automatically. Choose **Edit Subpage** to arrange its shortcuts. The selected opening mode also applies inside folders.
 
 Pages share the display's existing total card and saved-layout limits. A layout that exceeds them is rejected without replacing the saved layout.
 

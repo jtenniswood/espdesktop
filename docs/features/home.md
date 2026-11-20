@@ -57,6 +57,6 @@ See the [Subpages guide](/features/subpages) to create a subpage and group relat
 
 To customise a Back card, edit its name and colours in the editor. Its default and active colours are saved with the subpage and included in backups.
 
-Subpage and Back buttons change page as soon as you touch them, without waiting for a highlight or release. App subpages with automatic opening enabled also open immediately, without waiting for the Mac to confirm focus. In manual mode, the first press still focuses the app and a later press opens its subpage.
+Subpage and Back buttons change page as soon as you touch them. In the default app subpage mode, a single press opens the subpage while the Mac opens or switches to the app. You can also open subpages when an app gains focus or after pressing the card again. [App subpage options](/features/subpages#app-page-behavior).
 
 Returning with **Back** or a swipe shows the destination page before loading any missing app artwork. Cached icons appear straight away; other icons can appear shortly afterward.

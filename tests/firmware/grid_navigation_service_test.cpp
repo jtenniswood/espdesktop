@@ -29,13 +29,11 @@ int main() {
     assert(decide_grid_touch(event, false, true) == GridTouchAction::CLICK);
   }
 
-  const auto focus = decide_companion_page_exit(true, false, false, true);
+  const auto focus = decide_companion_page_exit(true, false, true);
   assert(!focus.return_to_previous && focus.discard_focus_request);
-  const auto closed = decide_companion_page_exit(false, true, false, false);
-  assert(closed.return_to_previous && closed.discard_focus_request);
-  assert(!decide_companion_page_exit(true, true, true, true).return_to_previous);
-  assert(decide_companion_page_exit(true, false, true, false).return_to_previous);
-  assert(!decide_companion_page_exit(false, false, false, false).discard_focus_request);
+  assert(!decide_companion_page_exit(true, true, true).return_to_previous);
+  assert(decide_companion_page_exit(true, true, false).return_to_previous);
+  assert(!decide_companion_page_exit(false, false, false).discard_focus_request);
 
   CompanionPageHistory history;
   const int folder = 1;

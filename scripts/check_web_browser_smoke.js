@@ -373,6 +373,7 @@ async function installRoutes(context, slug, options = {}) {
             max_navigation_depth: options.nativeV2 ? 2 : 1, writable_navigation_depth: options.nativeV2 ? 2 : 1,
             max_v2_document_bytes: 524288, preserves_inactive_records: true,
             companion_auto_open_app_subpages: options.nativeAppSubpagePreference === true,
+            companion_app_subpage_mode: options.nativeAppSubpageMode === true,
             max_record_body_bytes: nativeState.maxRecordBodyBytes },
           web_assets: { versions: [1] },
         }),
@@ -7418,13 +7419,8 @@ async function assertAppSubpageOpeningPreference(browser) {
   const testCase = ACTIVE_CASES[0];
   const fixture = nativeConfigState(testCase.slug);
   const context = await browser.newContext({ viewport: testCase.viewport });
-  const routes = { nativeState: fixture, nativeAppSubpagePreference: true };
+  const routes = { nativeState: fixture, nativeAppSubpagePreference: true, nativeAppSubpageMode: true };
   await installRoutes(context, testCase.slug, routes);
-  const returnPosts = [];
-  await context.route("**/switch/*return_home_on_app_switch*/**", async route => {
-    returnPosts.push(new URL(route.request().url()).pathname.split("/").pop());
-    await route.fulfill({ status: 200, contentType: "text/plain", body: "" });
-  });
   const page = await context.newPage();
   const errors = [];
   page.on("pageerror", error => errors.push(error.message));
@@ -7435,7 +7431,7 @@ async function assertAppSubpageOpeningPreference(browser) {
     await seedNativeDocument(page, fixture);
     await page.waitForFunction(() => !document.querySelector("#sp-app").classList.contains("sp-onboarding"));
     await page.getByRole("tab", { name: "Screen", exact: true }).click();
-    const card = page.locator("#sp-settings .card").filter({ has: page.locator("#sp-set-auto-open-app-subpages") });
+    const card = page.locator("#sp-settings .card").filter({ has: page.locator("#sp-set-app-subpage-mode") });
     assert.strictEqual(await card.locator(".card-header h3").textContent(), "App Subpages");
     assert.strictEqual(await card.evaluate(element => element.previousElementSibling.querySelector(".card-header h3").textContent), "Active Colour",
       "App Subpages appears directly below Active Colour on the Screen tab");
@@ -7443,49 +7439,46 @@ async function assertAppSubpageOpeningPreference(browser) {
   }
   try {
     await open();
-    const toggle = page.locator("#sp-set-auto-open-app-subpages");
-    assert(await toggle.isChecked(), "automatic opening remains the default");
-    await toggle.locator("..").locator(".sp-toggle-track").click();
-    await waitForNativeState(fixture, () => fixture.document.settings.companion_auto_open_app_subpages === "0",
-      "save automatic app switching with the layout");
+    const mode = page.getByRole("combobox", { name: "Open app subpages", exact: true });
+    await page.waitForFunction(() => !document.querySelector("#sp-set-app-subpage-mode").disabled);
+    assert.equal(await mode.inputValue(), "card", "new displays default to a single card press");
+    for (const value of ["manual", "focus", "card"]) {
+      await mode.selectOption(value);
+      await waitForNativeState(fixture, () => fixture.document.settings.companion_app_subpage_mode === value,
+        "save the opening mode with the layout");
+    }
     await open();
-    await page.evaluate(() => window.__seedEspState([
-      { id: "switch-companion_auto_open_app_subpages_enabled", state: "OFF", value: false },
-    ]));
-    await page.waitForFunction(() => !document.querySelector("#sp-set-auto-open-app-subpages").checked);
-    await toggle.locator("..").locator(".sp-toggle-track").click();
-    await waitForNativeState(fixture, () => fixture.document.settings.companion_auto_open_app_subpages === "1",
-      "save automatic app switching with the layout");
-    const returnToggle = page.locator("#sp-set-return-home-on-app-switch");
-    assert(await returnToggle.isChecked(), "returning home remains the default");
-    await Promise.all([
-      page.waitForResponse(response => response.url().includes("return_home_on_app_switch") && response.url().endsWith("/turn_off")),
-      returnToggle.locator("..").locator(".sp-toggle-track").click(),
-    ]);
-    assert.deepStrictEqual(returnPosts, ["turn_off"], "staying on the page is saved to the device");
-    await open();
-    await page.evaluate(() => window.__seedEspState([
-      { id: "switch-companion_return_home_on_app_switch_enabled", state: "OFF", value: false },
-    ]));
-    await page.waitForFunction(() => !document.querySelector("#sp-set-return-home-on-app-switch").checked);
-    await Promise.all([
-      page.waitForResponse(response => response.url().includes("return_home_on_app_switch") && response.url().endsWith("/turn_on")),
-      returnToggle.locator("..").locator(".sp-toggle-track").click(),
-    ]);
-    assert.deepStrictEqual(returnPosts, ["turn_off", "turn_on"]);
+    await page.waitForFunction(() => !document.querySelector("#sp-set-app-subpage-mode").disabled);
+    assert.equal(await mode.inputValue(), "card");
+    const modern = backupFixture(testCase.slug, testCase.slots);
+    const modernLayout = structuredClone(fixture.document);
+    modernLayout.settings.companion_app_subpage_mode = "focus";
+    modern.native_config = createPanelConfigBackupPayload(encodePanelConfig(modernLayout));
+    await importBackup(page, modern, "restore-app-subpage-mode");
+    await page.locator(".sp-banner").filter({ hasText: "Configuration imported successfully" }).waitFor();
+    assert.equal(fixture.document.settings.companion_app_subpage_mode, "focus");
+    assert.equal(await page.locator("#sp-set-app-subpage-mode").inputValue(), "focus");
     const backup = backupFixture(testCase.slug, testCase.slots);
     backup.settings = { auto_open_app_subpages: false };
     delete backup.screen;
     const backupLayout = structuredClone(fixture.document);
     delete backupLayout.settings.companion_auto_open_app_subpages;
+    delete backupLayout.settings.companion_app_subpage_mode;
     backup.native_config = createPanelConfigBackupPayload(encodePanelConfig(backupLayout));
     await importBackup(page, backup, "restore-app-switching");
     await page.locator(".sp-banner").filter({ hasText: "Configuration imported successfully" }).waitFor();
-    assert.equal(fixture.document.settings.companion_auto_open_app_subpages, "0", "backup restores switching with the layout");
-
+    await waitForNativeState(fixture, () => fixture.document.settings.companion_auto_open_app_subpages === "0",
+      "older backup restores switching with the layout");
+    await page.waitForFunction(() => document.querySelector("#sp-set-app-subpage-mode").value === "manual");
+    routes.nativeAppSubpageMode = false;
+    await open();
+    await page.waitForFunction(() => !document.querySelector("#sp-set-app-subpage-mode").disabled);
+    assert.equal(await mode.locator('option[value="card"]').count(), 0, "older firmware offers its two supported choices");
+    const before = fixture.puts.length;
+    await importBackup(page, modern, "restore-app-subpage-mode-requires-update");
+    await page.locator(".sp-banner").filter({ hasText: "Update the panel firmware to restore the app subpage opening mode" }).waitFor();
     routes.nativeAppSubpagePreference = false;
     await open();
-    const before = fixture.puts.length;
     await importBackup(page, backup, "restore-app-switching-requires-update");
     await page.locator(".sp-banner").filter({ hasText: "Update the panel firmware before restoring the automatic app switching setting" }).waitFor();
     assert.equal(fixture.puts.length, before, "an incompatible backup leaves the saved layout alone");
@@ -8846,7 +8839,8 @@ async function assertFirstRunSetup(browser) {
   };
   const context = await browser.newContext({ viewport: { width: 900, height: 800 } });
   await installRoutes(context, testCase.slug, {
-    nativeState: fixture, connectorsStatus: status, nativeV2: true, nativeAppSubpagePreference: true,
+    nativeState: fixture, connectorsStatus: status, nativeV2: true,
+    nativeAppSubpagePreference: true, nativeAppSubpageMode: true,
   });
   let pairingUnavailable = false;
   const pairingState = {
@@ -8945,7 +8939,8 @@ async function assertFirstRunSetup(browser) {
     await dialog.getByRole("button", { name: "Next", exact: true }).click();
     assert(await addPages.isChecked(), "Back keeps the global shortcut choice");
     await dialog.getByRole("button", { name: "Next", exact: true }).click();
-    await dialog.getByRole("radio", { name: "Open from the display", exact: true }).check();
+    assert(await dialog.getByRole("radio", { name: "On app card press (default)", exact: true }).isChecked());
+    await dialog.getByRole("radio", { name: "On a second app card press", exact: true }).check();
     await page.setViewportSize({ width: 375, height: 650 });
     fs.mkdirSync(FAILURE_DIR, { recursive: true });
     await page.screenshot({ path: path.join(FAILURE_DIR, "first-run-mobile.png") });
@@ -8980,7 +8975,7 @@ async function assertFirstRunSetup(browser) {
       "the global choice also adds a page for Notes");
     assert.equal(pages.length, 2, "unsupported apps remain launch cards");
     assert.equal(fixture.puts.length, 1);
-    assert.equal(fixture.document.settings.companion_auto_open_app_subpages, "0");
+    assert.equal(fixture.document.settings.companion_app_subpage_mode, "manual");
     assert.deepEqual(switches, [], "setup uses only the layout PUT");
     await open();
     await page.waitForTimeout(200);
@@ -9007,16 +9002,15 @@ async function assertFirstRunSetup(browser) {
       { id: "switch-companion_auto_open_app_subpages_enabled", state: "OFF", value: false },
     ]));
     await page.getByRole("tab", { name: "Screen", exact: true }).click();
-    const settingsCard = page.locator("#sp-settings .card").filter({ has: page.locator("#sp-set-auto-open-app-subpages") });
+    const settingsCard = page.locator("#sp-settings .card").filter({ has: page.locator("#sp-set-app-subpage-mode") });
     if (await settingsCard.evaluate(node => node.classList.contains("collapsed"))) await settingsCard.locator(".card-header").click();
-    const toggle = page.locator("#sp-set-auto-open-app-subpages");
-    await setChecked(toggle, true);
-    await waitForNativeState(fixture, () => fixture.document.settings.companion_auto_open_app_subpages === "1",
-      "save the editor toggle through native configuration");
-    await page.waitForFunction(() => !document.querySelector("#sp-set-auto-open-app-subpages").disabled);
-    await setChecked(toggle, false);
-    await waitForNativeState(fixture, () => fixture.document.settings.companion_auto_open_app_subpages === "0",
-      "restore the editor toggle through native configuration");
+    const mode = page.getByRole("combobox", { name: "Open app subpages", exact: true });
+    await mode.selectOption("focus");
+    await waitForNativeState(fixture, () => fixture.document.settings.companion_app_subpage_mode === "focus",
+      "save the editor selection through native configuration");
+    await mode.selectOption("manual");
+    await waitForNativeState(fixture, () => fixture.document.settings.companion_app_subpage_mode === "manual",
+      "restore the two-press mode through native configuration");
     assert.deepEqual(switches, []);
     assert.equal(await settingsCard.getByRole("button", { name: "Add OBS starter page", exact: true }).count(), 0);
     await page.getByRole("button", { name: "Setup Again", exact: true }).click();
@@ -9030,7 +9024,7 @@ async function assertFirstRunSetup(browser) {
     await dialog.getByRole("button", { name: "Next", exact: true }).click();
     assert(await addPages.isChecked(), "settings restores the global shortcut choice");
     await dialog.getByRole("button", { name: "Next", exact: true }).click();
-    const followApp = dialog.getByRole("radio", { name: "Follow the active app", exact: true });
+    const followApp = dialog.getByRole("radio", { name: "When the app gains focus", exact: true });
     assert.equal(await followApp.isChecked(), false);
     await followApp.check();
     failLayout = true;
@@ -9044,7 +9038,7 @@ async function assertFirstRunSetup(browser) {
     await dialog.getByRole("button", { name: "Done", exact: true }).click();
     await dialog.waitFor({ state: "detached" });
     assert(fixture.puts.length >= 2, "the committed replacement finishes setup");
-    assert.equal(fixture.document.settings.companion_auto_open_app_subpages, "1");
+    assert.equal(fixture.document.settings.companion_app_subpage_mode, "focus");
     assert.deepEqual(switches, []);
     await page.getByText("The configuration saved, but its older-firmware copy did not. Do not downgrade this panel yet.", { exact: true }).waitFor();
     fixture.writeStatus = 204;
@@ -9057,8 +9051,8 @@ async function assertFirstRunSetup(browser) {
     await dialog.getByRole("button", { name: "Done", exact: true }).click();
     await dialog.getByRole("alert").waitFor();
     fixture.loseWriteResponse = false;
-    assert.equal(fixture.document.settings.companion_auto_open_app_subpages, "0",
-      "a lost response after commit leaves the entire new setup in place");
+    assert.equal(fixture.document.settings.companion_app_subpage_mode, "focus",
+      "launch-only setup keeps the previous opening mode even when the response is lost");
     assert.deepEqual(switches, []);
     await open();
     await dialog.waitFor({ state: "detached" });
@@ -9162,6 +9156,10 @@ async function assertFirstRunSetup(browser) {
   const browser = await (process.env.ESPDESKTOP_BROWSER_ENGINE === "webkit" ? webkit : chromium).launch();
   const acceptanceOnly = process.env.ESPDESKTOP_BROWSER_ACCEPTANCE_ONLY === "1";
   try {
+    if (process.env.ESPDESKTOP_APP_SUBPAGE_OPENING_ONLY === "1") {
+      await assertAppSubpageOpeningPreference(browser);
+      return;
+    }
     if (process.env.ESPDESKTOP_CONTEXT_COLOUR_ONLY === "1") {
       for (const testCase of ACTIVE_CASES) await assertContextColourPicker(browser, testCase);
       console.log(`Drag selection and context colour checks passed for ${ACTIVE_CASES.length} layouts, native and legacy saves.`);
@@ -9300,10 +9298,6 @@ async function assertFirstRunSetup(browser) {
     }
     if (process.env.ESPDESKTOP_SUBPAGE_CLOCK_BAR_ONLY === "1") {
       for (const testCase of ACTIVE_CASES) await assertSubpageClockBar(browser, testCase);
-      return;
-    }
-    if (process.env.ESPDESKTOP_APP_SUBPAGE_OPENING_ONLY === "1") {
-      await assertAppSubpageOpeningPreference(browser);
       return;
     }
     if (process.env.ESPDESKTOP_CONNECTOR_LAYOUT_ONLY === "1") {

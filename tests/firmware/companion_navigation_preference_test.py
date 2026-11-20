@@ -192,8 +192,7 @@ int main() {
   assert(navigation_return_from_companion_shortcuts_if_needed(&home));
   assert(screen == &folder);
 
-  // A window close returns even when the page was opened manually and app
-  // switching is set to keep the current page on screen.
+  // Closing the last window always returns Home, even from a nested page.
   return_home = false;
   navigation_show_companion_subpage(&other, true);
   closed_app = "first.app";
@@ -201,30 +200,21 @@ int main() {
   assert(screen == &other);
   closed_app = "second.app";
   assert(navigation_return_from_companion_shortcuts_if_needed(&home));
-  assert(screen == &folder);
+  assert(screen == &home);
   return_home = true;
-
-  // A nested app opened by a card returns to its containing app page. That
-  // page still remembers where it came from.
-  navigation_show_companion_subpage(&app, true);
-  navigation_show_companion_subpage(&other, true);
-  closed_app = "second.app";
-  assert(navigation_return_from_companion_shortcuts_if_needed(&home));
-  assert(screen == &app);
-  closed_app = "first.app";
-  assert(navigation_return_from_companion_shortcuts_if_needed(&home));
-  assert(screen == &folder);
 
   // If the Mac focuses the parent app directly, drop the child from history.
   navigation_show_companion_subpage(&app, true);
   navigation_show_companion_subpage(&other, true);
   pending_open = "first.app";
   assert(navigation_open_companion_subpage_if_requested(&home));
-  closed_app = "first.app";
+  assert(screen == &app);
+  pending_return = true;
   assert(navigation_return_from_companion_shortcuts_if_needed(&home));
-  assert(screen == &folder);
+  assert(screen == &home);
 
   // Following Mac focus through multiple app subpages keeps the original page.
+  screen = &folder;
   pending_open = "second.app";
   assert(navigation_open_companion_subpage_if_requested(&home));
   pending_return = true; pending_open = "first.app";

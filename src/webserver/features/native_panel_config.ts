@@ -80,6 +80,7 @@ interface Capabilities {
     durable_document_version?: unknown;
     preserves_inactive_records?: unknown;
     companion_auto_open_app_subpages?: unknown;
+    companion_app_subpage_mode?: unknown;
     display_theme_preferences?: unknown;
     screen_schedule_preferences?: unknown;
   };
@@ -133,6 +134,7 @@ export class NativePanelConfigClient {
   private maxDurableDocumentBytes_: number | null = null;
   private preservesInactiveRecords_ = false;
   private appSubpagePreference_ = false;
+  private appSubpageMode_ = false;
   private displayThemePreferences_ = false;
   private screenSchedulePreferences_ = false;
   private readDepth_ = 1;
@@ -154,6 +156,7 @@ export class NativePanelConfigClient {
   preservesInactiveRecords(): boolean { return this.supported_ && this.preservesInactiveRecords_; }
   supportsScreenSchedulePreferences(): boolean { return this.supported_ && this.screenSchedulePreferences_; }
   supportsDisplayThemePreferences(): boolean { return this.supported_ && this.displayThemePreferences_; }
+  supportsAppSubpageMode(): boolean { return this.supported_ && this.appSubpageMode_; }
   supportsAppSubpagePreference(): boolean { return this.supported_ && this.appSubpagePreference_; }
   readNavigationDepth(): number {
     return this.supported_ && this.documentVersion_ === V2_DOCUMENT_VERSION ? this.readDepth_ : 1;
@@ -203,6 +206,7 @@ export class NativePanelConfigClient {
         const configuration = (value as Capabilities | null)?.configuration;
         this.preservesInactiveRecords_ = supported === true && configuration?.preserves_inactive_records === true;
         this.appSubpagePreference_ = supported === true && configuration?.companion_auto_open_app_subpages === true;
+        this.appSubpageMode_ = supported === true && configuration?.companion_app_subpage_mode === true;
         this.displayThemePreferences_ = supported === true && configuration?.display_theme_preferences === true;
         this.screenSchedulePreferences_ = supported === true && configuration?.screen_schedule_preferences === true;
         // A readable/readonly/newer native contract must not be mistaken for

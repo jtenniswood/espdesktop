@@ -628,13 +628,16 @@ inline bool navigation_return_from_companion_shortcuts_if_needed(
   if (entry == nullptr || entry->kind != "app_shortcuts" || parent == nullptr) return false;
   const ParsedCfg parent_config = grid_layout_card_config(parent->slot, parent->config);
   if (!companion_app_shortcuts_enabled(parent_config)) return false;
-  const bool current_app_closed = !closed_app.empty() && closed_app == parent_config.entity;
+  if (!closed_app.empty() && closed_app == parent_config.entity) {
+    grid_navigation_service().companion_page_history.clear();
+    return navigation_return_home(main_page_obj);
+  }
   const bool return_on_app_switch = companion_return_home_on_app_switch();
   const std::string requested = companion_pending_auto_subpage_action();
-  const bool focus_has_page = (focus_changed || current_app_closed) && return_on_app_switch &&
+  const bool focus_has_page = focus_changed && return_on_app_switch &&
       (requested == parent_config.entity || navigation_companion_subpage_for_action(requested));
   const auto decision = decide_companion_page_exit(
-      focus_changed, current_app_closed, return_on_app_switch, focus_has_page);
+      focus_changed, return_on_app_switch, focus_has_page);
   if (decision.discard_focus_request && !requested.empty()) {
     companion_consume_auto_subpage_action(requested);
   }

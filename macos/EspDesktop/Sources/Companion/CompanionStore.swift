@@ -533,8 +533,6 @@ final class CompanionStore: NSObject, ObservableObject {
     func remoteCompanionCatalogues() -> RemoteCompanionCatalogues { remoteCatalogueStore.value }
     func focusedLaunchableApplicationIdentifier() -> String {
         guard let application = NSWorkspace.shared.frontmostApplication,
-              (application.bundleIdentifier == "com.apple.finder" ||
-               CompanionWindowDetector.hasVisibleWindow(for: application)),
               let identifier = application.bundleIdentifier,
               approvedApplicationIdentifiers.contains(identifier),
               availableApps.contains(where: { $0.bundleIdentifier == identifier }) else { return "" }
@@ -576,7 +574,18 @@ final class CompanionStore: NSObject, ObservableObject {
     private func queryFocusedCompanionActionIdentifiers(for targets: [(id: String, url: URL)]) async -> [String] {
         guard let application = NSWorkspace.shared.frontmostApplication,
               let bundleIdentifier = application.bundleIdentifier else { return [] }
-        if bundleIdentifier == "com.apple.Safari" || bundleIdentifier == "com.google.Chrome" {
+        let isBrowser = bundleIdentifier == "com.apple.Safari" || bundleIdentifier == "com.google.Chrome"
+        let isFinder = bundleIdentifier == "com.apple.finder"
+        guard approvedApplicationIdentifiers.contains(bundleIdentifier) ||
+                (isBrowser && !targets.isEmpty) || (isFinder && !approvedFolders.isEmpty) else { return [] }
+        let visible = await CompanionFocusQuery.waitForVisibleWindow(
+            isCurrentApplication: {
+                NSWorkspace.shared.frontmostApplication?.processIdentifier == application.processIdentifier
+            },
+            hasVisibleWindow: { CompanionWindowDetector.hasVisibleWindow(for: application) }
+        )
+        guard visible else { return [] }
+        if isBrowser {
             let browser = focusedLaunchableApplicationIdentifier()
             guard !targets.isEmpty else {
                 return browser.isEmpty ? [] : [browser]
@@ -589,19 +598,12 @@ final class CompanionStore: NSObject, ObservableObject {
             matches.append(contentsOf: ActiveTabURLMatcher.matchingURLCardIDs(url: url, targets: targets))
             return matches
         }
-        if bundleIdentifier == "com.apple.finder" {
+        if isFinder {
             let folder = await focusedFinderFolderActionIdentifier()
             let result = folder.isEmpty ? focusedLaunchableApplicationIdentifier() : folder
             return result.isEmpty ? [] : [result]
         }
         guard approvedApplicationIdentifiers.contains(bundleIdentifier) else { return [] }
-        let visible = await CompanionFocusQuery.waitForVisibleWindow(
-            isCurrentApplication: {
-                NSWorkspace.shared.frontmostApplication?.processIdentifier == application.processIdentifier
-            },
-            hasVisibleWindow: { CompanionWindowDetector.hasVisibleWindow(for: application) }
-        )
-        guard visible, approvedApplicationIdentifiers.contains(bundleIdentifier) else { return [] }
         return [bundleIdentifier]
     }
 

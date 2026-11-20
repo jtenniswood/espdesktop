@@ -138,11 +138,14 @@ int main() {
 
   using Scalar = panel_settings::ScalarSetting;
   std::vector<bool> applied;
+  std::vector<std::string> opening_modes;
   GridPageRuntime preference(limits, allocate, ConfigurationBuffer::release_host, {}, {}, {},
       [&](Scalar setting, std::string_view value) {
         if (setting == Scalar::COMPANION_AUTO_OPEN_APP_SUBPAGES) applied.push_back(value == "1");
+        if (setting == Scalar::COMPANION_APP_SUBPAGE_MODE) opening_modes.emplace_back(value);
       });
   assert(preference.scalar_setting_value(Scalar::COMPANION_AUTO_OPEN_APP_SUBPAGES) == "1");
+  assert(preference.scalar_setting_value(Scalar::COMPANION_APP_SUBPAGE_MODE) == "card");
   write_preference(preference_key, "0");
   assert(preference.prepare_write(2, updated.data(), size));
   assert(applied.empty());
@@ -167,6 +170,15 @@ int main() {
   assert((applied == std::vector<bool>{false, true}));
   assert(preference.activate_prepared(11, 1, updated.data(), size));
   assert((applied == std::vector<bool>{false, true, false}));
+  assert((opening_modes == std::vector<std::string>{"manual", "card", "manual"}));
+
+  PanelConfigPageAppend modern(reader);
+  assert(modern.set_setting(preference_key, "1"));
+  assert(modern.set_setting("companion_app_subpage_mode", "card"));
+  assert(modern.finish(updated.data(), updated.size(), &size, allocate, ConfigurationBuffer::release_host));
+  assert(preference.prepare_write(2, updated.data(), size));
+  assert(preference.activate_prepared(12, 2, updated.data(), size));
+  assert(opening_modes.back() == "card");
 
   const auto assert_old_theme = [](const ThemeSettings &settings) {
     assert(settings.mode == ThemeMode::AUTO && settings.auto_method == ThemeAutoMethod::SUNRISE_SUNSET);

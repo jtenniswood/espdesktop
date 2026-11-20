@@ -234,7 +234,9 @@ int main() {
     runtime.set_keyboard_actions_supported(false);
     assert(!runtime.shortcut_page_ready("com.apple.Safari"));
     runtime.set_keyboard_actions_supported(true);
-    runtime.consume_auto_subpage_action("com.apple.Safari");
+    assert(runtime.app_subpage_mode() == CompanionAppSubpageMode::CARD);
+    assert(runtime.pending_auto_subpage_action().empty());
+    runtime.set_app_subpage_mode(CompanionAppSubpageMode::FOCUS);
     runtime.set_application_highlight("com.apple.finder");
     auto state = runtime.snapshot();
     assert(state.application_highlight_known && state.application_highlight_id == "com.apple.finder");
@@ -259,7 +261,6 @@ int main() {
     CompanionRuntimeService runtime;
     const std::string app = "com.apple.Safari";
     runtime.set_connected(true);
-    runtime.set_auto_open_app_subpages(false);
     runtime.set_application_highlight(app);
     assert(!runtime.set_focused_actions({app}));
     assert(!runtime.set_focused_actions({}));
@@ -278,15 +279,16 @@ int main() {
   {
     CompanionRuntimeService runtime;
     runtime.set_connected(true);
+    runtime.set_app_subpage_mode(CompanionAppSubpageMode::FOCUS);
     runtime.set_focused_actions({"first.app"});
     assert(runtime.take_wake_subpage_action() == "first.app");
     assert(runtime.pending_auto_subpage_action().empty());
     assert(runtime.take_wake_subpage_action() == "first.app");  // No new focus event required.
     runtime.set_focused_actions({"second.app"});
     assert(runtime.take_wake_subpage_action() == "second.app");
-    runtime.set_auto_open_app_subpages(false);
+    runtime.set_app_subpage_mode(CompanionAppSubpageMode::MANUAL);
     assert(runtime.take_wake_subpage_action().empty());
-    runtime.set_auto_open_app_subpages(true);
+    runtime.set_app_subpage_mode(CompanionAppSubpageMode::FOCUS);
     runtime.set_connected(false);
     assert(runtime.take_wake_subpage_action().empty());
   }
@@ -609,7 +611,12 @@ int main() {
   assert(!companion_return_home_on_app_switch());
   companion_set_return_home_on_app_switch(true);
   assert(companion_return_home_on_app_switch());
+  companion_set_app_subpage_mode("card");
+  assert(companion_app_subpage_opens_on_press("com.apple.Safari"));
+  companion_set_app_subpage_mode("focus");
+  assert(!companion_app_subpage_opens_on_press("com.apple.Safari"));
   companion_set_focused_action("com.apple.Safari");
+  assert(companion_app_subpage_opens_on_press("com.apple.Safari"));
   assert(companion_pending_auto_subpage_action() == "com.apple.Safari");
   assert(companion_consume_auto_subpage_action("com.apple.Safari"));
   assert(companion_pending_auto_subpage_action().empty());
@@ -651,20 +658,22 @@ int main() {
   // opens or returns from a page because another app becomes focused.
   companion_set_focused_action("com.apple.Safari");
   assert(!companion_pending_auto_subpage_action().empty());
-  companion_set_auto_open_app_subpages(false);
-  assert(!companion_auto_open_app_subpages());
+  companion_set_app_subpage_mode("manual");
+  assert(companion_app_subpage_manual());
+  assert(!companion_app_subpage_opens_on_press("com.apple.finder"));
   assert(companion_pending_auto_subpage_action().empty());
   assert(!companion_consume_subpage_return_request());
   companion_set_focused_action("com.apple.finder");
   assert(companion_action_active("com.apple.finder"));
+  assert(companion_app_subpage_opens_on_press("com.apple.finder"));
   assert(companion_pending_auto_subpage_action().empty());
   assert(!companion_consume_subpage_return_request());
   companion_set_focused_actions({"com.apple.Safari", "webapp.google-docs"});
   assert(!companion_action_active("webapp.google-docs"));
   assert(companion_pending_auto_subpage_action().empty());
   assert(!companion_consume_subpage_return_request());
-  companion_set_auto_open_app_subpages(true);
-  assert(companion_auto_open_app_subpages());
+  companion_set_app_subpage_mode("focus");
+  assert(!companion_app_subpage_manual());
   assert(companion_pending_auto_subpage_action().empty());
   companion_set_focused_action("com.apple.finder");
   assert(companion_pending_auto_subpage_action() == "com.apple.finder");

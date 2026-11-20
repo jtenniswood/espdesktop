@@ -14,6 +14,7 @@ def function(file, signature):
 
 
 code = r'''
+#include <algorithm>
 #include <cassert>
 #define ESP_LOGD(...) ((void)0)
 #include <cstdio>
@@ -23,13 +24,17 @@ struct lv_obj_t { void *data = nullptr; bool valid = true; int state = 1; };
 struct lv_indev_t {};
 lv_indev_t touch;
 lv_indev_t *input = &touch;
-constexpr int LV_STATE_PRESSED = 1, LV_SCR_LOAD_ANIM_NONE = 0;
+constexpr int LV_STATE_PRESSED = 1, LV_STATE_CHECKED = 2, LV_STATE_DISABLED = 4;
+constexpr int LV_SCR_LOAD_ANIM_NONE = 0;
 std::vector<int> order;
 lv_indev_t *lv_indev_get_act() { return input; }
 void lv_indev_wait_release(lv_indev_t *) { order.push_back(1); }
 void lv_obj_clear_state(lv_obj_t *b, int s) { b->state &= ~s; order.push_back(2); }
 int contrast_syncs = 0;
-void sync_bound_card_text_color(lv_obj_t *b) { assert(!(b->state & LV_STATE_PRESSED)); ++contrast_syncs; }
+void sync_bound_card_text_color(lv_obj_t *) { ++contrast_syncs; }
+bool lv_obj_has_state(lv_obj_t *b, int state) { return b->state & state; }
+lv_obj_t *lv_obj_get_display(lv_obj_t *b) { return b; }
+void lv_refr_now(lv_obj_t *) {}
 void *lv_obj_get_user_data(lv_obj_t *b) { return b->data; }
 bool lv_obj_is_valid(lv_obj_t *b) { return b && b->valid; }
 lv_obj_t *active = nullptr;
@@ -39,29 +44,45 @@ void navigation_show_companion_subpage(lv_obj_t *s, bool from_card) {
   lv_scr_load_anim(s, LV_SCR_LOAD_ANIM_NONE, 0, 0, false);
 }
 void refresh_visible_image_cards() {}
-void navigation_present_page_before_image_refresh() {}
-struct ParsedCfg { std::string type, entity = "app", sensor; bool shortcuts = false; };
+void navigation_present_page_before_image_refresh(unsigned) {}
+namespace esphome { unsigned millis() { return 0; } }
+void navigation_begin_page_open(lv_obj_t *, unsigned) {}
+struct Subpage { lv_obj_t *owner_button; };
+std::vector<Subpage> entries;
+const auto &navigation_subpages() { return entries; }
+lv_obj_t *navigation_screen_for_button(lv_obj_t *button) {
+  auto *screen = static_cast<lv_obj_t *>(button->data);
+  return lv_obj_is_valid(screen) ? screen : nullptr;
+}
+struct ParsedCfg { std::string type, entity = "app"; bool shortcuts = false; };
 struct Context { bool subpage; };
 Context card_runtime_context(const ParsedCfg &c) { return {c.type == "subpage"}; }
-bool auto_open = true, app_active = false, invoked = true;
-bool companion_auto_open_app_subpages() { return auto_open; }
+enum class CompanionAppSubpageMode { FOCUS, CARD, MANUAL };
+struct CompanionRuntime {
+  CompanionAppSubpageMode mode = CompanionAppSubpageMode::CARD;
+  CompanionAppSubpageMode app_subpage_mode() const { return mode; }
+} runtime;
+const auto &companion_runtime_service() { return runtime; }
+bool app_active = false, connected = true, invoked = true;
+bool companion_connected() { return connected; }
 bool companion_action_active(const std::string &) { return app_active; }
 bool companion_app_shortcuts_enabled(const ParsedCfg &c) { return c.shortcuts; }
 bool companion_metric_key_valid(const std::string &) { return false; }
+bool companion_obs_status_card(const std::string &) { return false; }
+bool companion_apple_shortcut_action(const std::string &) { return false; }
+void run_apple_shortcut_card(lv_obj_t *, const std::string &, const char *) {}
 unsigned companion_next_request_number() { return 1; }
-std::string companion_encoded_url(const std::string &s) { return s; }
-int companion_folder_open_behavior(const ParsedCfg &) { return 0; }
-int invocations = 0;
-bool invoke_companion_action(const std::string &, const char *, int) {
-  ++invocations; order.push_back(4); return invoked;
-}
-bool companion_url_opens_new_window(const ParsedCfg &) { return false; }
-bool invoke_companion_url(const std::string &, const char *, bool) {
-  ++invocations; order.push_back(4); return invoked;
-}
 void companion_cancel_action_result(const char *) {}
 #define ESP_LOGW(...) ((void)0)
+'''
+code += function("companion_controls.h", "inline bool companion_app_subpage_manual(")
+code += function("companion_controls.h", "inline bool companion_app_subpage_opens_on_press(")
+code += r'''
 namespace espdesktop::cards {
+int invocations = 0;
+bool invoke_saved_companion_card(const ParsedCfg &, const char *, const std::string &, lv_obj_t *) {
+  ++invocations; order.push_back(4); return invoked;
+}
 bool navigation_driver_matches(const Context &c) { return c.subpage; }
 '''
 code += function("button_grid_navigation_driver.h", "inline bool navigation_driver_handle_main_click(")
@@ -95,13 +116,14 @@ void *back_data = nullptr;
 void lv_obj_add_event_cb(lv_obj_t *, void (*cb)(lv_event_t *), int filter, void *data) {
   assert(filter == LV_EVENT_PRESSED); back_callback = cb; back_data = data;
 }
-void bind_back(lv_obj_t *back_btn, lv_obj_t *main_page_obj,
-               bool is_nested_page=false, lv_obj_t *parent_screen=nullptr) {
-  struct { lv_obj_t *parent_screen; } task{parent_screen};
+void bind_back(lv_obj_t *back_btn, lv_obj_t *parent_screen) {
 ''' + back + "\n}\n"
 code += r'''
 int main() {
+  using Mode = CompanionAppSubpageMode;
+  using espdesktop::cards::invocations;
   lv_obj_t home, page, button{&page};
+  entries.push_back({&button});
   ParsedCfg config; config.type = "subpage";
   active = &home;
   assert(navigation_handle_button_press(config, 1, &button));
@@ -114,24 +136,27 @@ int main() {
   assert(active == &home && (order == std::vector<int>{1, 2, 3}));
   // Nested folders go to their parent instead of skipping back to Home.
   order.clear(); active=&home;
-  bind_back(&button, &home, true, &page);
+  bind_back(&button, &page);
   lv_event_t nested_event{&button, back_data}; back_callback(&nested_event);
   assert(active==&page && (order==std::vector<int>{1,2,3}));
   // Invalid/missing targets must not swallow unrelated interactions.
-  order.clear(); page.valid = false;
+  order.clear(); entries.clear();
   assert(!navigation_handle_button_press(config, 1, &button) && order.empty());
-  page.valid = true;
+  entries.push_back({&button});
   config.type = "companion"; config.shortcuts = true;
   for (bool available : {true, false}) {
     invoked = available; active = &home; order.clear(); invocations = 0;
     assert(navigation_handle_button_press(config, 1, &button));
-    // Page load precedes sending to the Mac, even if the Mac is unavailable.
+    // The default mode opens the page locally before sending the app action.
     assert(active == &page && invocations == 1);
     assert((order == std::vector<int>{1, 2, 3, 4}));
   }
-  // Manual mode keeps first-press focus, second-press navigation semantics.
-  auto_open = false; app_active = false; order.clear();
-  assert(!navigation_handle_button_press(config, 1, &button) && order.empty());
+  // Focus and manual modes let a press activate the app when it has no focus.
+  for (auto mode : {Mode::FOCUS, Mode::MANUAL}) {
+    runtime.mode = mode; app_active = false; order.clear();
+    assert(!navigation_handle_button_press(config, 1, &button) && order.empty());
+  }
+  // An already-focused app opens its page on the manual press.
   app_active = true; invocations = 0;
   assert(navigation_handle_button_press(config, 1, &button));
   assert(invocations == 0 && (order == std::vector<int>{1, 2, 3}));

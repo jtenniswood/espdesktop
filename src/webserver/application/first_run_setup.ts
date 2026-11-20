@@ -20,7 +20,10 @@ import {
     replaceCompanionDefinitions,
     setCompanionAppShortcutFolderEnabled,
 } from "./companion_shortcut_folder";
-import { APP_SUBPAGE_PREFERENCE, nativeAppSubpagePreference } from "../model/settings";
+import {
+    APP_SUBPAGE_MODE, APP_SUBPAGE_MODES, APP_SUBPAGE_PREFERENCE, DEFAULT_APP_SUBPAGE_MODE,
+    appSubpageModeFromSettings, nativeAppSubpagePreference, type AppSubpageMode,
+} from "../model/settings";
 import { configOptionEnabled, setConfigOptionValue } from "../model/config_primitives";
 
 export const FIRST_RUN_COMPLETE = "web_onboarding_complete";
@@ -52,7 +55,7 @@ export function supportsSetupShortcuts(id: string, workflows: readonly Companion
 
 function layoutSignature({ document: { deviceProfile, settings }, layout }: NativePanelConfigGraph): string {
     return JSON.stringify([deviceProfile, layout, settings.button_order ?? "", settings.special_page ?? "",
-        nativeAppSubpagePreference(settings), settings[FIRST_RUN_COMPLETE] ?? ""]);
+        settings[APP_SUBPAGE_MODE], settings[APP_SUBPAGE_PREFERENCE], settings[FIRST_RUN_COMPLETE] ?? ""]);
 }
 
 function setupAppLimit(capacity: number): number {
@@ -67,8 +70,9 @@ export function applyFirstRunLayout(
     addShortcutPages: boolean,
     capacity: number,
     replacing?: NativePanelConfigGraph,
-    automaticSwitch?: boolean,
+    openingMode?: AppSubpageMode,
     workflows: readonly CompanionAction[] = [],
+    legacyOpeningMode = false,
 ): void {
     if (replacing && layoutSignature(current) !== layoutSignature(replacing)) {
         throw new Error("The layout changed while setup was open. Close and reopen setup to keep those changes.");
@@ -92,7 +96,10 @@ export function applyFirstRunLayout(
     });
     draft.replaceRootLayout(entries);
     draft.writeSetting(FIRST_RUN_COMPLETE, "1");
-    if (automaticSwitch !== undefined) draft.writeSetting(APP_SUBPAGE_PREFERENCE, automaticSwitch ? "1" : "0");
+    if (openingMode !== undefined) {
+        if (legacyOpeningMode) draft.writeSetting(APP_SUBPAGE_PREFERENCE, openingMode === "focus" ? "1" : "0");
+        else draft.writeSetting(APP_SUBPAGE_MODE, openingMode);
+    }
 }
 
 interface FirstRunSetupDependencies {
@@ -128,7 +135,7 @@ export function createFirstRunSetup(deps: FirstRunSetupDependencies): { start():
     let workflows: CompanionAction[] = [];
     const selected = new Set<string>();
     let addShortcutPages = true;
-    let autoSwitch = true;
+    let openingMode: AppSubpageMode = DEFAULT_APP_SUBPAGE_MODE;
     let busy = false;
     let loading = false;
     let catalogueRetry: number | undefined;
@@ -215,7 +222,8 @@ export function createFirstRunSetup(deps: FirstRunSetupDependencies): { start():
     async function supportsSetup(): Promise<boolean> {
         const ready = await deps.native.waitForDiscovery() === true;
         const client = deps.native.client;
-        return ready && !!client?.supportsAppSubpagePreference() && client.writableNavigationDepth() === 2;
+        return ready && !!(client?.supportsAppSubpageMode() || client?.supportsAppSubpagePreference()) &&
+            client.writableNavigationDepth() === 2;
     }
 
     async function finish(skip = false): Promise<void> {
@@ -239,11 +247,13 @@ export function createFirstRunSetup(deps: FirstRunSetupDependencies): { start():
                 if (!definition) throw new Error("Could not load " + app.label + " shortcuts. Check Mac Companion and try again.");
                 applyCompanionShortcutApplication(definition);
             }));
-            const automaticSwitch = skip ? undefined : addShortcutPages && supportedApps().length > 0 && autoSwitch;
+            const selectedMode = !skip && addShortcutPages && supportedApps().length > 0 ? openingMode : undefined;
+            const legacyOpeningMode = !deps.native.client?.supportsAppSubpageMode();
             const result = await deps.native.schedule(Object.assign(
                 () => { throw new Error("App setup needs native layout support."); },
                 { editNative: (draft: NativeLayoutDraft, current: NativePanelConfigGraph) => {
-                    applyFirstRunLayout(draft, current, chosen, addShortcutPages, deps.capacity, replacing, automaticSwitch, workflows);
+                    applyFirstRunLayout(draft, current, chosen, addShortcutPages, deps.capacity,
+                        replacing, selectedMode, workflows, legacyOpeningMode);
                 } },
             ));
             if (result !== "saved" && result !== "mirror-failed") throw new Error("Could not finish setup. Reload the page to check the display’s saved layout before trying again.");
@@ -404,17 +414,15 @@ export function createFirstRunSetup(deps: FirstRunSetupDependencies): { start():
             );
             content.appendChild(modes);
         } else {
-            const modes = element("div", "", "sp-setup-modes");
+            const modes = element("div", "", "sp-setup-modes sp-setup-opening-modes");
             modes.setAttribute("role", "radiogroup");
-            modes.setAttribute("aria-label", includesWorkflows ? "App subpage opening mode" : "Keyboard shortcut page opening mode");
-            modes.append(
-                modeChoice("sp-setup-auto-switch", "Follow the active app", `Open its ${pageKind} when you switch to the app on your Mac.`,
-                    autoSwitch, () => { autoSwitch = true; }),
-                modeChoice("sp-setup-manual-switch", "Open from the display", includesWorkflows
-                    ? "Tap the card of an active app to open its subpage."
-                    : "Tap the card of an active app to open its keyboard shortcuts.",
-                    !autoSwitch, () => { autoSwitch = false; }),
-            );
+            modes.setAttribute("aria-label", "App subpage opening mode");
+            const supportsModes = deps.native.client?.supportsAppSubpageMode() === true;
+            for (const { value, label, description } of APP_SUBPAGE_MODES) {
+                if (value === "card" && !supportsModes) continue;
+                modes.append(modeChoice(`sp-setup-open-${value}`, label, description,
+                    value === openingMode, () => { openingMode = value; }));
+            }
             content.appendChild(modes);
         }
         dialog.appendChild(content);
@@ -484,7 +492,9 @@ export function createFirstRunSetup(deps: FirstRunSetupDependencies): { start():
                 }
                 if (!selected.size) addShortcutPages = true;
             }
-            autoSwitch = nativeAppSubpagePreference(saved.document.settings) ?? deps.autoSwitchEnabled();
+            openingMode = deps.native.client?.supportsAppSubpageMode()
+                ? appSubpageModeFromSettings(saved.document.settings)
+                : (nativeAppSubpagePreference(saved.document.settings) ?? deps.autoSwitchEnabled()) ? "focus" : "manual";
             query = "";
             error = "";
             eligible = true;
