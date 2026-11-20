@@ -21,7 +21,8 @@
     "mac-controls/websites.md",
     "mac-controls/folders.md",
     "mac-controls/shortcuts.md",
-    "reference/shortcut-presets.md"
+    "reference/shortcut-presets.md",
+    "mac-controls/apple-shortcuts.md"
   ],
   "OBS Studio controls": [
     "mac-controls/obs-studio.md",
