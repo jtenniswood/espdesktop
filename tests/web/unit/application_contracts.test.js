@@ -92,7 +92,8 @@ describe("browserless application contracts", () => {
     const app = fs.readFileSync(path.join(ROOT, "macos/EspDesktop/Sources/Companion/CompanionSettings.swift"), "utf8");
     assert.match(app, /CompanionSettingsToolbar\(selection: selectedPageBinding, showsOBS: obsInstalled\)/);
     assert.match(app, /set: \{ selectedPageID = \$0\.rawValue \}/);
-    assert.match(app, /CompanionSettingsPage\.allCases\.filter \{ showsOBS \|\| \$0 != \.obs \}\.map/);
+    assert.match(app, /CompanionSettingsPage\.allCases\.filter \{ \(showsOBS \|\| \$0 != \.obs\)/);
+    assert.match(app, /\(AppleHomePageInstaller\.asset != nil \|\| \$0 != \.appleHome\)/);
     assert.match(app, /item\.action = #selector\(selectPage\(_:\)\)/);
     assert.match(app, /selection\.wrappedValue = page/);
     assert.match(app, /context\.coordinator\.toolbar\.selectedItemIdentifier = \.init\(selection\.rawValue\)/);

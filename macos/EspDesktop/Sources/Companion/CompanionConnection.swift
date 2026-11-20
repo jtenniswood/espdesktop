@@ -962,6 +962,9 @@ final class CompanionConnection: NSObject {
                             self.task === requestingTask && self.sessionAuthenticated
                         }
                         status = performed ? "performed" : "not_allowed"
+                    } else if payload.appId == nil, let slot = AppleHomeSceneBindings.slot(for: actionIdentifier),
+                              let sceneStatus = await self.resources.performAppleHomeScene(slot: slot, pairingAccount: self.preferences.pairingAccount) {
+                        status = sceneStatus
                     } else {
                         status = await self.resources.performResultStatus(
                             actionIdentifier: actionIdentifier,

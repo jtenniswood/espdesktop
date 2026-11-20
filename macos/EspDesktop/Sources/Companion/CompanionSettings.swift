@@ -7,7 +7,7 @@ private enum CompanionSettingsField: Hashable {
 
 private enum CompanionSettingsPage: String, CaseIterable, Identifiable {
     // Retain the saved selection identifiers from earlier versions.
-    case connection, applications, folders, appleShortcuts, obs, updates, help
+    case connection, applications, folders, appleShortcuts, appleHome, obs, updates, help
 
     var id: String { rawValue }
     var title: String {
@@ -17,6 +17,7 @@ private enum CompanionSettingsPage: String, CaseIterable, Identifiable {
         case .folders: return "Folders"
         case .obs: return "OBS"
         case .appleShortcuts: return "Shortcuts"
+        case .appleHome: return "Apple Home"
         case .updates: return "Updates"
         case .help: return "Support"
         }
@@ -28,6 +29,7 @@ private enum CompanionSettingsPage: String, CaseIterable, Identifiable {
         case .folders: return "folder"
         case .obs: return "video"
         case .appleShortcuts: return "bolt"
+        case .appleHome: return "house"
         case .updates: return "arrow.triangle.2.circlepath"
         case .help: return "questionmark.circle"
         }
@@ -473,6 +475,7 @@ struct CompanionSettings: View {
         case .folders: foldersPage
         case .obs: OBSSettings(connection: store.obs)
         case .appleShortcuts: appleShortcutsPage
+        case .appleHome: AppleHomeSceneSettings(home: store.appleHome, displays: store.displays)
         case .updates: CompanionUpdateSettings(updater: store.updater)
         case .help: helpPage
         }
@@ -1330,7 +1333,7 @@ private struct CompanionSettingsToolbar: NSViewRepresentable {
 
         init(selection: Binding<CompanionSettingsPage>, showsOBS: Bool) {
             self.selection = selection
-            pageIdentifiers = CompanionSettingsPage.allCases.filter { showsOBS || $0 != .obs }.map { .init($0.rawValue) }
+            pageIdentifiers = CompanionSettingsPage.allCases.filter { (showsOBS || $0 != .obs) && (AppleHomePageInstaller.asset != nil || $0 != .appleHome) }.map { .init($0.rawValue) }
             super.init()
             toolbar.delegate = self
             toolbar.displayMode = .iconAndLabel

@@ -48,6 +48,10 @@ cp "${BUILD_BIN_PATH}/${EXECUTABLE_NAME}" "${APP_DIR}/Contents/MacOS/${EXECUTABL
 # SwiftPM resources must travel with the app, including the support button artwork.
 cp -R "${BUILD_BIN_PATH}/EspDesktop_Companion.bundle" "${APP_DIR}/Contents/Resources/"
 cp "${SCRIPT_DIR}/Info.plist" "${APP_DIR}/Contents/Info.plist"
+if [[ "${ESPDESKTOP_EXPERIMENTAL_APPLE_HOME:-0}" == "1" ]]; then
+    "${REPOSITORY_DIR}/node_modules/.bin/esbuild" "${SCRIPT_DIR}/apple_home_page_bundle.ts" \
+        --bundle --target=es2022 --outfile="${APP_DIR}/Contents/Resources/apple-home-page.js"
+fi
 cp "${SCRIPT_DIR}/PrivacyInfo.xcprivacy" "${APP_DIR}/Contents/Resources/PrivacyInfo.xcprivacy"
 
 # Embed the pinned SwiftPM binary, preserving Sparkle's bundle symlinks.

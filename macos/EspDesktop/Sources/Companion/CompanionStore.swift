@@ -134,6 +134,7 @@ final class CompanionStore: NSObject, ObservableObject {
     @Published private(set) var appleShortcutMessage: String?
     @Published private(set) var refreshingAppleShortcuts = false
     private var runningAppleShortcutIDs: Set<UUID> = []
+    let appleHome: AppleHomeScenes
     @Published private(set) var foldersNeedingAccess: Set<UUID> = []
     @Published private(set) var launchAtLoginEnabled = false
     @Published private(set) var launchAtLoginMessage = ""
@@ -195,6 +196,7 @@ final class CompanionStore: NSObject, ObservableObject {
             ? UserDefaults.standard
             : (UserDefaults(suiteName: Self.preferencesSuite) ?? .standard))
         self.defaults = stableDefaults
+        self.appleHome = AppleHomeScenes(defaults: stableDefaults)
         obs = OBSConnection(defaults: stableDefaults)
         let savedDisplays = CompanionSavedDisplays(defaults: stableDefaults)
         self.savedDisplays = savedDisplays
@@ -213,6 +215,7 @@ final class CompanionStore: NSObject, ObservableObject {
         super.init()
         if #available(macOS 14.2, *) { appVolumeController = AppVolumeController() }
         displays = records.map(makeDisplay)
+        if AppleHomePageInstaller.asset != nil && appleHome.canRestore { appleHome.connect(activate: false) }
         obsCatalogueObservation = OBSConnection.displayCatalogues(from: obs.$state)
             .sink { [weak self] actions in
                 self?.publishToConnectedDisplays { $0.publishCatalogue(obsActions: actions) }
@@ -1143,6 +1146,10 @@ final class CompanionStore: NSObject, ObservableObject {
 
     func obsControlActions() -> [OBSConnection.CatalogueEntry] {
         OBSConnection.controlCatalogue(obs.state)
+    }
+
+    func performAppleHomeScene(slot: Int, pairingAccount: String) async -> String? {
+        await appleHome.statusForAction(slot: slot, account: pairingAccount, isUnlocked: !sessionLock.refresh())
     }
 
     func performResultStatus(actionIdentifier: String,
