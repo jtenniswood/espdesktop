@@ -262,7 +262,7 @@ struct CompanionSettings: View {
     @State private var findingNetworkDisplay: CompanionDisplay?
     @State private var showingWifiOff = false
     @State private var findingUSBDisplay: CompanionDisplay?
-    @State private var showingUSBNotFound = false
+    @State private var usbDisplayNotFound: CompanionDisplay?
     @State private var displayToConfigure: CompanionDisplay?
     @State private var networkAddress = ""
     @State private var showingNetworkAddress = false
@@ -345,18 +345,26 @@ struct CompanionSettings: View {
             if let port {
                 store.setDisplayEndpoint(CompanionUSBPort.endpoint(for: port), for: display)
             } else {
-                showingUSBNotFound = true
+                usbDisplayNotFound = display
             }
         }
-        .alert("Paired USB display not found", isPresented: $showingUSBNotFound) {
+        .alert("Paired USB display not found", isPresented: Binding(
+            get: { usbDisplayNotFound != nil },
+            set: { if !$0 { usbDisplayNotFound = nil } }
+        ), presenting: usbDisplayNotFound) { display in
+            ForEach(usbPorts.filter { !store.isUSBPortInUse($0, except: display) }, id: \.self) { port in
+                Button(URL(fileURLWithPath: port).lastPathComponent) {
+                    store.setDisplayEndpoint(CompanionUSBPort.endpoint(for: port), for: display)
+                }
+            }
             Button("OK", role: .cancel) {}
-        } message: {
-            Text("Check the cable and make sure the display is running USB-capable firmware. You can also choose a port from the connection menu.")
+        } message: { _ in
+            Text("Check the cable and make sure the display is running USB-capable firmware. If your port is listed, you can select it here.")
         }
         .alert("Display Wi-Fi is off", isPresented: $showingWifiOff) {
             Button("OK", role: .cancel) {}
         } message: {
-            Text("Open Device → System → Wi-Fi to turn it on, then choose Switch to Network again.")
+            Text("Open Device → System → Wi-Fi to turn it on, then choose Use Network again.")
         }
         .alert("Network address", isPresented: $showingNetworkAddress, presenting: displayToConfigure) { display in
             TextField("IP address or name.local", text: $networkAddress)
@@ -598,30 +606,37 @@ struct CompanionSettings: View {
     private func connectionMenu(for display: CompanionDisplay) -> some View {
         Menu {
             if display.usesUSB {
-                Button("Switch to Network") { findingNetworkDisplay = display }
+                Button("Use Network") { findingNetworkDisplay = display }
                     .disabled(findingNetworkDisplay != nil)
-            }
-            Button(display.usesUSB ? "Enter Network Address…" : "Change Network Address…") {
-                findingNetworkDisplay = nil
-                showNetworkAddress(for: display)
-            }
 
-            if !display.usesUSB, display.certificateFingerprint != nil {
-                Button("Switch to USB") { findingUSBDisplay = display }
-                    .disabled(findingUSBDisplay != nil || usbPorts.allSatisfy { store.isUSBPortInUse($0) })
-            }
-
-            if !usbPorts.isEmpty {
-                Menu("Choose USB Port") {
-                    ForEach(usbPorts, id: \.self) { port in
-                        Button(URL(fileURLWithPath: port).lastPathComponent) {
-                            store.setDisplayEndpoint(CompanionUSBPort.endpoint(for: port), for: display)
-                        }
-                        .disabled((display.usesUSB && display.record.usbPort == port) ||
-                                  store.isUSBPortInUse(port, except: display))
-                    }
+                if usbPorts.isEmpty {
+                    Text("No USB ports found")
                 }
-                .disabled(findingUSBDisplay != nil)
+                ForEach(usbPorts, id: \.self) { port in
+                    Button {
+                        store.setDisplayEndpoint(CompanionUSBPort.endpoint(for: port), for: display)
+                    } label: {
+                        let name = URL(fileURLWithPath: port).lastPathComponent
+                        if display.record.usbPort == port {
+                            Label(name, systemImage: "checkmark")
+                        } else {
+                            Text(name)
+                        }
+                    }
+                    .disabled(findingNetworkDisplay?.id == display.id || display.record.usbPort == port ||
+                              store.isUSBPortInUse(port, except: display))
+                }
+            } else {
+                if display.certificateFingerprint != nil {
+                    Button("Use USB") { findingUSBDisplay = display }
+                        .disabled(findingUSBDisplay != nil || usbPorts.allSatisfy { store.isUSBPortInUse($0) })
+                }
+                Button("Change Network Address…") {
+                    if findingUSBDisplay?.id == display.id {
+                        findingUSBDisplay = nil
+                    }
+                    showNetworkAddress(for: display)
+                }
             }
         } label: {
             if findingUSBDisplay?.id == display.id {
