@@ -63,7 +63,7 @@ const CARD_TYPE_PICKER_DETAILS: Readonly<Record<string, PickerDetails>> = {
   alarm: { icon: "shield-home", description: "Control or trigger alarm panel actions." },
   climate: { icon: "thermostat", description: "Show climate status and temperature controls." },
   companion_cough: { icon: "microphone-off", description: "Hold to mute the paired Mac’s microphone." },
-  companion_apple_home: { icon: "home", description: "Run a control you enabled in EspDesktop’s Apple Home settings." },
+  companion_apple_home: { icon: "home", description: "Run an Apple Home control through the paired Mac." },
   companion_apple_shortcut: { icon: "flash", description: "Add one card that runs a selected Apple Shortcut." },
   companion_apple_shortcuts: { icon: "flash", description: "Add a card that opens a subpage of Apple Shortcuts workflows." },
   companion_app: { icon: "application-outline", description: "Launch a Mac app and set up a subpage for its keyboard shortcuts." },

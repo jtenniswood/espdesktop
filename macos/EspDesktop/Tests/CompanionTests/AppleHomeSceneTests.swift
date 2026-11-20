@@ -70,36 +70,21 @@ final class AppleHomeSceneTests: XCTestCase {
     }
 
     @MainActor
-    func testLayoutJavascriptCanRoundTripUTF8() throws {
-        let input = Data("Café 🏠".utf8)
+    func testEditorReadsUserLabelsFromTheSavedLayout() throws {
+        let reference = UUID()
+        let action = AppleHomeControl(id: reference, name: "Private scene name").action
         let source = """
-        function buildAppleHomePage(bytes) {
-          return appleHomeEncodeUTF8(appleHomeDecodeUTF8(bytes));
+        function appleHomeSavedCards(bytes) {
+            return [
+                {action: "\(action)", label: appleHomeDecodeUTF8(bytes)},
+                {action: "\(action)", label: ""},
+                {action: "\(action)", label: "x".repeat(81)},
+                {action: "shortcut.command+a", label: "Unrelated card"}
+            ];
         }
         """
-        XCTAssertEqual(try AppleHomePageInstaller.generate(input: input, source: source, action: "applehome.control.test", label: "Test"), input)
-    }
-
-    @MainActor
-    func testConcurrentLayoutChangeIsReportedWithNoBlindRetry() async throws {
-        let panel = try XCTUnwrap(URL(string: "http://espdesktop.local"))
-        var requests: [URLRequest] = []
-        do {
-            _ = try await AppleHomePageInstaller.install(at: panel, source: "function buildAppleHomePage() { return [2]; }", action: "applehome.control.test", label: "Test") { request in
-                requests.append(request)
-                let headers = ["X-Panel-Config-Version": "2", "ETag": "\"v2-4\""]
-                let response = try XCTUnwrap(HTTPURLResponse(url: request.url!,
-                    statusCode: request.httpMethod == "PUT" ? 409 : 200, httpVersion: nil, headerFields: headers))
-                let data = request.url?.path == "/api/v1/reset" ? Data(#"{"epoch":2,"pending":false}"#.utf8) : Data([1])
-                return (data, response)
-            }
-            XCTFail("Expected the concurrent edit to be reported")
-        } catch {
-            XCTAssertTrue(error.localizedDescription.contains("layout changed"))
-        }
-        XCTAssertEqual(requests.count, 3)
-        XCTAssertEqual(requests.last?.value(forHTTPHeaderField: "X-EspDesktop-Epoch"), "2")
-        XCTAssertEqual(requests.last?.value(forHTTPHeaderField: "If-Match"), "\"v2-4\"")
-        XCTAssertEqual(requests.last?.httpBody, Data([2]))
+        let layout = Data("  Café 🏠  ".utf8)
+        let cards = try AppleHomeDeviceEditor.savedCards(in: layout, source: source)
+        XCTAssertEqual(cards, [.init(reference: reference, label: "Café 🏠")])
     }
 }

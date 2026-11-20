@@ -51,7 +51,7 @@ final class CompanionUpdater: NSObject, ObservableObject, SPUUpdaterDelegate,
     private var sendingNotification = false
     private var updateRequestedFromNotification = false
 
-    var supportsUpdates: Bool { AppleHomePageInstaller.asset == nil }
+    var supportsUpdates: Bool { AppleHomeDeviceEditor.asset == nil }
 
     func startAutomaticChecks(checkOnLaunch: Bool = false) {
         guard !started else { return }

@@ -14,7 +14,6 @@ final class AppleHomeScenes: ObservableObject {
     @Published private(set) var canChooseHome = false
     @Published private(set) var note = ""
     @Published private(set) var approvals: [String: UUID]
-    @Published private(set) var saving = false
     @Published private(set) var controls: [AppleHomeControl] = []
     @Published private(set) var cardLabels: [String: [UUID: String]]
     var onControlsChanged: (() -> Void)?
@@ -56,6 +55,7 @@ final class AppleHomeScenes: ObservableObject {
     }
 
     var canRestore: Bool { approvals.values.contains { $0 != Self.inactive } }
+    var readyBinding: UUID? { status == .ready ? bindingSet : nil }
 
     private var setupNeedsNoHomeChoice: Bool {
         !canChooseHome && (status == .ready || status == .empty)
@@ -221,38 +221,20 @@ final class AppleHomeScenes: ObservableObject {
         return succeeded ? "performed" : "not_allowed"
     }
 
-    func saveCard(_ scene: AppleHomeControl, label: String, to display: CompanionDisplay) async {
-        guard status == .ready, let bindingSet, display.hasSavedPairing, display.state == .connected,
-              !display.usesUSB, let url = CompanionStore.panelWebServerURL(from: display.record.host),
-              controls.contains(where: { $0.id == scene.id }), !saving else { return }
-        let label = label.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !label.isEmpty, label.utf8.count <= 80 else {
-            note = "Enter a shorter display label."
-            return
-        }
-        let account = display.pairingAccount
-        saving = true
-        defer { saving = false }
-        do {
-            let result = try await AppleHomePageInstaller.install(at: url, action: scene.action, label: label) {
-                guard self.bindingSet == bindingSet, display.pairingAccount == account, display.state == .connected,
-                      self.controls.contains(where: { $0.id == scene.id }) else {
-                    throw AppleHomePageInstaller.InstallError("The display or control changed. Try again.")
-                }
-            }
-            guard self.bindingSet == bindingSet, display.pairingAccount == account else {
-                note = "Apple Home changed while the card was saved. Reconnect it to enable the card."
-                return
-            }
-            approvals[account] = bindingSet
-            cardLabels[account, default: [:]][scene.id] = label
-            saveApprovals()
-            defaults.set(try? JSONEncoder().encode(cardLabels), forKey: Self.cardsKey)
-            note = result
-            onControlsChanged?()
-        } catch {
-            note = error.localizedDescription
-        }
+    func updateEditorCards(_ cards: [AppleHomeDeviceEditor.SavedCard], for account: String, binding: UUID) {
+        guard readyBinding == binding else { return }
+        let available = Set(controls.map(\.id))
+        let current = cardLabels[account] ?? [:]
+        let labels = Dictionary(cards.filter { available.contains($0.reference) }
+            .map { ($0.reference, $0.label) }, uniquingKeysWith: { first, _ in first })
+        if labels.isEmpty && approvals[account] != binding { return }
+        let updated = current.filter { !available.contains($0.key) }.merging(labels) { _, label in label }
+        guard approvals[account] != binding || current != updated else { return }
+        approvals[account] = binding
+        cardLabels[account] = updated
+        saveApprovals()
+        defaults.set(try? JSONEncoder().encode(cardLabels), forKey: Self.cardsKey)
+        onControlsChanged?()
     }
 
     func disconnect() {
@@ -289,16 +271,13 @@ final class AppleHomeScenes: ObservableObject {
 struct AppleHomeSceneSettings: View {
     @ObservedObject var home: AppleHomeScenes
     let displays: [CompanionDisplay]
-    @Binding var selectedDisplayID: UUID?
-    @State private var sceneToSave: AppleHomeControl?
-    @State private var cardLabel = ""
+    let selectedDisplayID: UUID?
+    let openDevice: (CompanionDisplay) -> Void
 
     private var eligibleDisplays: [CompanionDisplay] {
-        displays.filter { $0.state == .connected && !$0.usesUSB }
-    }
-
-    private var display: CompanionDisplay? {
-        eligibleDisplays.first { $0.id == selectedDisplayID } ?? eligibleDisplays.first
+        let connected = displays.filter { $0.state == .connected && !$0.usesUSB }
+        if let selected = connected.first(where: { $0.id == selectedDisplayID }) { return [selected] }
+        return connected
     }
 
     var body: some View {
@@ -316,14 +295,12 @@ struct AppleHomeSceneSettings: View {
                     Text("Allow EspDesktop Home in System Settings under Privacy & Security → HomeKit.")
                 case .empty: Text("No compatible controls or scenes are available in this home.")
                 case .ready:
-                    if eligibleDisplays.count > 1 {
-                        Picker("Display", selection: Binding(get: { display?.id }, set: { selectedDisplayID = $0 })) {
-                            ForEach(eligibleDisplays) { item in Text(item.name).tag(Optional(item.id)) }
-                        }
-                    } else if let display {
-                        LabeledContent("Display", value: display.name)
-                    } else {
-                        Text("Connect a display over Wi-Fi to add scene cards.")
+                    Text("Choose Apple Home controls while editing cards in Device Settings.")
+                    if eligibleDisplays.isEmpty {
+                        Text("Connect a display over Wi-Fi to open Device Settings.")
+                    }
+                    ForEach(eligibleDisplays) { display in
+                        Button("Open \(display.name) Device Settings") { openDevice(display) }
                     }
                 case nil: EmptyView()
                 }
@@ -332,48 +309,7 @@ struct AppleHomeSceneSettings: View {
                 }
                 if !home.note.isEmpty { Text(home.note).foregroundStyle(.secondary) }
             }
-
-            if home.status == .ready {
-                Section("Available Controls") {
-                    if home.controls.isEmpty {
-                        Text("Update EspDesktop Home to load the control list.")
-                    }
-                    ForEach(home.controls) { scene in
-                        HStack {
-                            Text(scene.name)
-                            Spacer()
-                            let existingLabel = display.flatMap { home.cardLabels[$0.pairingAccount]?[scene.id] }
-                            Button(existingLabel == nil ? "Add Card…" : "Edit Label…") {
-                                cardLabel = existingLabel ?? ""
-                                sceneToSave = scene
-                            }
-                            .disabled(display == nil || home.saving)
-                        }
-                    }
-                }
-            }
         }
         .formStyle(.grouped)
-        .sheet(item: $sceneToSave) { scene in
-            VStack(alignment: .leading, spacing: 12) {
-                Text(scene.name).font(.headline)
-                TextField("Label on Display", text: $cardLabel)
-                HStack {
-                    Spacer()
-                    Button("Cancel") { sceneToSave = nil }.keyboardShortcut(.cancelAction)
-                    Button("Save Card") {
-                        guard let display else { return }
-                        let label = cardLabel
-                        sceneToSave = nil
-                        Task { await home.saveCard(scene, label: label, to: display) }
-                    }
-                    .keyboardShortcut(.defaultAction)
-                    .disabled(cardLabel.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ||
-                              cardLabel.utf8.count > 80 || display == nil)
-                }
-            }
-            .padding()
-            .frame(width: 350)
-        }
     }
 }

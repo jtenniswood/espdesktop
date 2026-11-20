@@ -218,7 +218,7 @@ final class CompanionStore: NSObject, ObservableObject {
         appleHome.onControlsChanged = { [weak self] in
             self?.publishToConnectedDisplays { $0.publishCatalogue(includeDefinitions: false) }
         }
-        if AppleHomePageInstaller.asset != nil && appleHome.canRestore { appleHome.connect(activate: false) }
+        if AppleHomeDeviceEditor.asset != nil && appleHome.canRestore { appleHome.connect(activate: false) }
         obsCatalogueObservation = OBSConnection.displayCatalogues(from: obs.$state)
             .sink { [weak self] actions in
                 self?.publishToConnectedDisplays { $0.publishCatalogue(obsActions: actions) }
@@ -833,10 +833,24 @@ final class CompanionStore: NSObject, ObservableObject {
     }
 
     private var usbEditorWindows: [UUID: CompanionUSBEditorWindow] = [:]
+    private var appleHomeEditorWindows: [UUID: CompanionUSBEditorWindow] = [:]
     @Published private(set) var openingUSBDisplays: Set<UUID> = []
 
     func openPanelWebServer(_ display: CompanionDisplay) {
         guard display.usesUSB else {
+            if AppleHomeDeviceEditor.asset != nil, display.hasSavedPairing,
+               let panel = Self.panelWebServerURL(from: display.record.host) {
+                if let editor = appleHomeEditorWindows[display.id], editor.isCurrent {
+                    editor.open()
+                    return
+                }
+                appleHomeEditorWindows[display.id]?.invalidate()
+                let local = AppleHomeDeviceEditor(display: display, panel: panel, home: appleHome)
+                let editor = CompanionUSBEditorWindow(display: display, appleHomeEditor: local)
+                appleHomeEditorWindows[display.id] = editor
+                editor.open()
+                return
+            }
             _ = openPanelWebServer(host: display.record.host, tab: nil)
             return
         }
@@ -947,6 +961,7 @@ final class CompanionStore: NSObject, ObservableObject {
         display.onRecordChange = nil
         display.connection.onEvent = nil
         usbEditorWindows.removeValue(forKey: display.id)?.invalidate()
+        appleHomeEditorWindows.removeValue(forKey: display.id)?.invalidate()
         displays.removeAll { $0.id == display.id }
         savedDisplays.save(displays.map(\.record))
         let account = display.pairingAccount

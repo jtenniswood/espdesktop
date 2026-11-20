@@ -49,6 +49,8 @@ cp "${BUILD_BIN_PATH}/${EXECUTABLE_NAME}" "${APP_DIR}/Contents/MacOS/${EXECUTABL
 cp -R "${BUILD_BIN_PATH}/EspDesktop_Companion.bundle" "${APP_DIR}/Contents/Resources/"
 cp "${SCRIPT_DIR}/Info.plist" "${APP_DIR}/Contents/Info.plist"
 if [[ "${ESPDESKTOP_EXPERIMENTAL_APPLE_HOME:-0}" == "1" ]]; then
+    python3 "${REPOSITORY_DIR}/scripts/build.py" www --temporary-output "${OUTPUT_DIR}/apple-home-editor"
+    cp "${OUTPUT_DIR}/apple-home-editor/embedded.js" "${APP_DIR}/Contents/Resources/apple-home-editor.js"
     "${REPOSITORY_DIR}/node_modules/.bin/esbuild" "${SCRIPT_DIR}/apple_home_page_bundle.ts" \
         --bundle --target=es2022 --outfile="${APP_DIR}/Contents/Resources/apple-home-page.js"
 fi

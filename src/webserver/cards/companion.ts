@@ -1175,6 +1175,9 @@ export function registerCompanionCardTypes(
 
             if (initialMode === "apple_shortcut" || initialMode === "apple_home") {
                 const appleHome = initialMode === "apple_home";
+                const location = document.defaultView?.location;
+                const localAppleHome = appleHome && location?.protocol === "espdesktop-usb:" &&
+                    location.hostname === "apple-home-display";
                 const prefix = appleHome ? APPLE_HOME_CONTROL_PREFIX : APPLE_SHORTCUT_PREFIX;
                 const controlLabel = appleHome ? "Apple Home" : "Apple Shortcut";
                 const field = document.createElement("div");
@@ -1185,8 +1188,10 @@ export function registerCompanionCardTypes(
                 field.append(fieldLabel(controlLabel, picker.id), picker);
                 const note = document.createElement("div");
                 note.className = "sp-field-info-text";
-                note.textContent = appleHome
-                    ? "Choose controls under Apple Home in the EspDesktop Mac app. The display shows the labels you set there."
+                note.textContent = localAppleHome
+                    ? "Enter the label you want to show on the display."
+                    : appleHome
+                    ? "Open Device Settings from EspDesktop on the Mac to browse all Apple Home controls."
                     : "Choose which workflows are available under Shortcuts in the EspDesktop Mac app.";
                 field.appendChild(note);
                 panel?.appendChild(field);
@@ -1194,11 +1199,16 @@ export function registerCompanionCardTypes(
 
                 const savedID = currentEntity === prefix ? "" : currentEntity;
                 let workflows: readonly CompanionAction[] = [];
+                let displayLabel: HTMLInputElement | null = null;
+                function suggestLocalLabel(): void {
+                    if (!displayLabel) return;
+                    displayLabel.placeholder = workflows.find(action => action.id === card.entity)?.label ?? "e.g. Open";
+                }
                 function showWorkflows(emptyMessage: string): void {
                     picker.replaceChildren();
                     const placeholder = document.createElement("option");
                     placeholder.value = "";
-                    placeholder.textContent = workflows.length ? (appleHome ? "Choose an Apple Home card…" : "Choose an Apple Shortcut…") : emptyMessage;
+                    placeholder.textContent = workflows.length ? (appleHome ? "Choose an Apple Home control…" : "Choose an Apple Shortcut…") : emptyMessage;
                     placeholder.disabled = true;
                     picker.appendChild(placeholder);
                     for (const action of workflows) {
@@ -1216,24 +1226,53 @@ export function registerCompanionCardTypes(
                     }
                     picker.value = selectedID;
                     picker.disabled = workflows.length === 0;
+                    suggestLocalLabel();
                 }
-                showWorkflows(appleHome ? "Loading Apple Home cards…" : "Loading Apple Shortcuts…");
-                void loadCompanionActions(true).then(actions => {
+                showWorkflows(appleHome ? "Loading Apple Home controls…" : "Loading Apple Shortcuts…");
+                const available = localAppleHome ? fetchImpl("/espdesktop-local/apple-home").then(response => {
+                    if (response.status === 426) throw new Error("Update the display firmware to add Apple Home controls.");
+                    if (!response.ok) throw new Error("Apple Home unavailable");
+                    return response.json() as Promise<CompanionAction[]>;
+                }) : loadCompanionActions(true);
+                void available.then(actions => {
                     workflows = sortCompanionLabels(actions.filter(action => action.id.startsWith(prefix)));
-                    showWorkflows(appleHome ? "No Apple Home cards for this display" : "No available Apple Shortcuts");
-                }).catch(() => showWorkflows(appleHome ? "Apple Home unavailable" : "Apple Shortcuts unavailable"));
+                    showWorkflows(appleHome ? "No available Apple Home controls" : "No available Apple Shortcuts");
+                }).catch(error => showWorkflows(localAppleHome && error instanceof Error ? error.message :
+                    appleHome ? "Apple Home unavailable" : "Apple Shortcuts unavailable"));
                 helpers.requireField(picker, appleHome ? "Choose an Apple Home card before saving." : "Choose an Apple Shortcut before saving.", () => true,
                     (value: string) => !!value && (value === savedID || workflows.some(action => action.id === value)));
                 picker.addEventListener("change", () => {
                     const selected = workflows.find(action => action.id === picker.value);
                     if (!selected || selected.id === card.entity) return;
                     card.entity = selected.id;
-                    card.label = selected.label;
                     helpers.saveField("entity", selected.id);
+                    // HomeKit names only populate the local picker. A card's
+                    // label is authored separately before it is saved.
+                    if (localAppleHome) {
+                        suggestLocalLabel();
+                        displayLabel?.focus();
+                        return;
+                    }
+                    card.label = selected.label;
                     helpers.saveField("label", selected.label);
                     const input = document.getElementById(helpers.idPrefix + "label") as HTMLInputElement | null;
                     if (input) input.value = selected.label;
                 });
+                if (appleHome) {
+                    if (localAppleHome) {
+                        const field = helpers.renderCardTextField(panel, card, helpers, {
+                            label: "Display Label", field: "label", placeholder: "e.g. Open",
+                        });
+                        displayLabel = field.input as HTMLInputElement;
+                        helpers.markCardPrimaryField(field.field, "name");
+                        helpers.requireField(displayLabel, "Enter a short display label.", () => true,
+                            (value: string) => !!value.trim() && new TextEncoder().encode(value.trim()).length <= 80);
+                    }
+                    helpers.renderBasicCardFields(panel, card, helpers, COMPANION_CARD_METADATA, {
+                        entity: false, label: !localAppleHome,
+                    });
+                    return;
+                }
                 helpers.renderBasicCardFields(panel, card, helpers, COMPANION_CARD_METADATA, { entity: false, icon: false });
                 const defaultIcon = companionSubtypeDefaultIcon("apple_shortcut");
                 const initialIconMode = appleShortcutUsesAppIcon(card) ? "app" : "custom";

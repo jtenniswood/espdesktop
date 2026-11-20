@@ -476,7 +476,9 @@ struct CompanionSettings: View {
         case .folders: foldersPage
         case .obs: OBSSettings(connection: store.obs)
         case .appleShortcuts: appleShortcutsPage
-        case .appleHome: AppleHomeSceneSettings(home: store.appleHome, displays: store.displays, selectedDisplayID: $appleHomeDisplayID)
+        case .appleHome:
+            AppleHomeSceneSettings(home: store.appleHome, displays: store.displays,
+                                   selectedDisplayID: appleHomeDisplayID, openDevice: store.openPanelWebServer)
         case .updates: CompanionUpdateSettings(updater: store.updater)
         case .help: helpPage
         }
@@ -600,7 +602,7 @@ struct CompanionSettings: View {
                     }
                 }
 
-                if AppleHomePageInstaller.asset != nil && !display.usesUSB {
+                if AppleHomeDeviceEditor.asset != nil && !display.usesUSB {
                     Button {
                         appleHomeDisplayID = display.id
                         selectedPageID = CompanionSettingsPage.appleHome.rawValue
@@ -1346,7 +1348,7 @@ private struct CompanionSettingsToolbar: NSViewRepresentable {
 
         init(selection: Binding<CompanionSettingsPage>, showsOBS: Bool) {
             self.selection = selection
-            pageIdentifiers = CompanionSettingsPage.allCases.filter { (showsOBS || $0 != .obs) && (AppleHomePageInstaller.asset != nil || $0 != .appleHome) }.map { .init($0.rawValue) }
+            pageIdentifiers = CompanionSettingsPage.allCases.filter { (showsOBS || $0 != .obs) && (AppleHomeDeviceEditor.asset != nil || $0 != .appleHome) }.map { .init($0.rawValue) }
             super.init()
             toolbar.delegate = self
             toolbar.displayMode = .iconAndLabel
