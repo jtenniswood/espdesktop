@@ -1,3 +1,25 @@
+export const APP_SUBPAGE_MODE = "companion_app_subpage_mode";
+export const DEFAULT_APP_SUBPAGE_MODE = "card";
+export const APP_SUBPAGE_MODES = [
+  { value: "focus", label: "When the app gains focus",
+    description: "Open the subpage when you switch to the app on your Mac." },
+  { value: "card", label: "On app card press (default)",
+    description: "Open the app and its subpage with one press on the display." },
+  { value: "manual", label: "On a second app card press",
+    description: "Press once to open or switch to the app. Press its card again once the app is active to open the subpage." },
+] as const;
+export type AppSubpageMode = typeof APP_SUBPAGE_MODES[number]["value"];
+
+export function nativeAppSubpageMode(settings?: Readonly<Record<string, string>>): AppSubpageMode | undefined {
+  const value = settings?.[APP_SUBPAGE_MODE];
+  return APP_SUBPAGE_MODES.find(mode => mode.value === value)?.value;
+}
+
+export function appSubpageModeFromSettings(settings?: Readonly<Record<string, string>>): AppSubpageMode {
+  const legacy = nativeAppSubpagePreference(settings);
+  return nativeAppSubpageMode(settings) ?? (legacy === undefined ? DEFAULT_APP_SUBPAGE_MODE : legacy ? "focus" : "manual");
+}
+
 export const APP_SUBPAGE_PREFERENCE = "companion_auto_open_app_subpages";
 
 export function nativeAppSubpagePreference(settings?: Readonly<Record<string, string>>): boolean | undefined {

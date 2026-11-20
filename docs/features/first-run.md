@@ -25,12 +25,11 @@ Choose **Launch apps only** if you want each card to open its app or bring it to
 
 If you added keyboard shortcut pages, choose how to open them.
 
-- **Follow the active app** opens its keyboard shortcut page on the display when you switch to that app on your Mac.
-- **Open from the display** lets you open the keyboard shortcuts by tapping the app’s card when that app is already active on your Mac.
+- **When the app gains focus** opens its subpage when you switch to the app on your Mac.
+- **On app card press (default)** opens the app and its subpage with one press on the display.
+- **On a second app card press** opens or switches to the app first. Once it’s active, press its card again to open the subpage.
 
-Choose **Save setup**. You can change this choice later under **Screen → Appearance → App Subpages → Open app subpages on focus**.
-
-<a href="/images/first-run-finish-setup.png"><picture><source type="image/avif" srcset="/images/first-run-finish-setup-480.avif 480w, /images/first-run-finish-setup-960.avif 960w" sizes="(min-width: 768px) 688px, 90vw"><img src="/images/first-run-finish-setup.png" alt="Finish setup screen showing Follow the active app and Open from the display" width="1554" height="1828" loading="lazy"></picture></a>
+Choose **Save setup**. You can change this choice later under **Screen → Appearance → App Subpages**.
 
 ## Your Home screen
 

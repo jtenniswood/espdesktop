@@ -10,7 +10,9 @@ import { SCREEN_SCHEDULE_PREFERENCES, decodeScreenSchedulePreferences,
 import { WEB_UI_COLORS } from "../state/ui_tokens";
 import * as EspDesktopModel from "../model";
 import {
+    APP_SUBPAGE_MODE,
     APP_SUBPAGE_PREFERENCE,
+    nativeAppSubpageMode,
     nativeAppSubpagePreference,
     normalizeBrightnessMode,
     normalizeHexColor,
@@ -415,6 +417,11 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
                     nativeController?.client?.preservesInactiveRecords() !== true) {
                     rejectBackup(NATIVE_BACKUP_UPDATE_REQUIRED_MESSAGE);
                 }
+                if (Object.hasOwn(nativeDocument.settings, APP_SUBPAGE_MODE)) {
+                    if (!nativeAppSubpageMode(nativeDocument.settings)) rejectBackup("Invalid app subpage opening mode in this backup.");
+                    if (nativeController?.client?.supportsAppSubpageMode() !== true)
+                        rejectBackup("Update the panel firmware to restore the app subpage opening mode from this backup.");
+                }
                 const savedAppSubpagePreference = nativeAppSubpagePreference(nativeDocument.settings);
                 if (Object.hasOwn(nativeDocument.settings, APP_SUBPAGE_PREFERENCE) && savedAppSubpagePreference === undefined)
                     rejectBackup("Invalid backup value for automatic app switching.");
@@ -520,8 +527,8 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
                     els.setOnColor._syncColor(state.onColor);
                 if (appSubpagePreference !== undefined) {
                     state.autoOpenAppSubpages = appSubpagePreference;
-                    if (els.setAutoOpenAppSubpages) els.setAutoOpenAppSubpages.checked = appSubpagePreference;
                 }
+                els.syncAppSubpageMode?.();
                 if (backupPlan.settings) {
                     var s: any = backupPlan.settings;
 
@@ -594,7 +601,6 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
                     state.subpageChevronsOn = importedSettings.subpageChevron;
                     state.returnHomeOnAppSwitch = importedSettings.returnHomeOnAppSwitch;
                     state.subpageTitleBarOn = importedSettings.subpageTitleBar;
-                    if (els.setReturnHomeOnAppSwitch) els.setReturnHomeOnAppSwitch.checked = state.returnHomeOnAppSwitch;
                     state.timezone = importedTimezone;
                     state.language = importedLanguage;
                     state.clockFormat = importedClockFormat;
