@@ -28,7 +28,7 @@ If a folder is moved or renamed, choose **Choose Again…** in the Mac app to re
 
 To access your approved folders from one Finder card, select an empty tile in the display’s web editor and choose **Finder Folder → Open Finder**. If you limit which apps the display can launch, first enable Finder under **Apps** in the Mac app.
 
-Finder is already selected and **Add app subpage** is on. Choose **Save**. While your Mac is connected, the Finder subpage automatically shows the folders you added in the Mac app, filling the available spaces on the touchscreen and in the web editor preview.
+Finder is already selected. Choose **Save** to add the Finder card and its subpage. While your Mac is connected, the Finder subpage automatically shows the folders you added in the Mac app, filling the available spaces on the touchscreen and in the web editor preview.
 
 Use **Pin Finder folders** to keep selected tiles in place and drag them into order. Pinned tiles stay visible when your Mac disconnects.
 

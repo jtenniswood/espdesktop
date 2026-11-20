@@ -51,7 +51,9 @@ esphome:
             app.bind_panel_scalar(Setting::COMPANION_AUTO_OPEN_APP_SUBPAGES, [](std::string_view value) {
               const bool enabled = value == "1";
               id(companion_auto_open_app_subpages_enabled).publish_state(enabled);
-              companion_set_auto_open_app_subpages(enabled);
+            });
+            app.bind_panel_scalar(Setting::COMPANION_APP_SUBPAGE_MODE, [](std::string_view value) {
+              companion_set_app_subpage_mode(value);
             });
             app.bind_panel_scalar(Setting::COMPANION_RETURN_HOME_ON_APP_SWITCH, [](std::string_view value) {
               const bool enabled = value == "1";

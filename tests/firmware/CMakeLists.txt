@@ -101,6 +101,8 @@ add_test(NAME companion_subpage_preference_boot_test COMMAND
 
 add_test(NAME companion_navigation_preference_test COMMAND
   ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/companion_navigation_preference_test.py)
+add_test(NAME navigation_press_test COMMAND
+  ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/navigation_press_test.py)
 
 
 add_executable(app_icon_custom_color_test app_icon_custom_color_test.cpp)

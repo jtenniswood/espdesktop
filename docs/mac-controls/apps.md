@@ -7,7 +7,7 @@ description: Launch Mac apps, give individual apps their own volume sliders, and
 
 Tap an Applications card to launch an approved app or bring it to the front on your Mac. To give an app its own slider, [add an App Volume card](#app-volume).
 
-App subpages open automatically when their app gains focus by default. Switching between apps with subpages goes directly to the matching page. Browser tabs and Finder folders are checked separately so they do not hold up app switches. To require a press instead, turn off **Screen → Appearance → App Subpages → Open app subpages on focus**. Press an app card to focus its app, then press it again once the app is active on the Mac to open the subpage. This setting applies to every app subpage on the display.
+By default, one press on an app card opens both the Mac app and its subpage. Use **Screen → Appearance → App Subpages** to open subpages when an app gains focus or after pressing its card again. [App subpage options](/features/subpages#app-page-behavior).
 
 ## Launch an app
 
@@ -24,8 +24,6 @@ Open **Apps** in the Mac app. **All available apps** is on by default. To choose
    <a href="/images/web-editor-choose-card.webp"><picture><source type="image/avif" srcset="/images/web-editor-choose-card-480.avif 480w, /images/web-editor-choose-card-960.avif 960w" sizes="(min-width: 768px) 688px, 90vw"><img src="/images/web-editor-choose-card.webp" alt="Choose Card dialog with Applications as the first option" width="1269" height="1022" loading="lazy"></picture></a>
 
 2. Select an approved application and choose **Save**.
-
-   <a href="/images/web-editor-application-card.png"><picture><source type="image/avif" srcset="/images/web-editor-application-card-480.avif 480w, /images/web-editor-application-card-960.avif 960w" sizes="(min-width: 768px) 688px, 90vw"><img src="/images/web-editor-application-card.png" alt="Applications card form with Figma selected, the Add app subpage switch off, and the Save button visible" width="1694" height="2266" loading="lazy"></picture></a>
 
 The card uses the app’s friendly name by default. Enter a custom title in its settings to give the card a different name.
 
@@ -66,17 +64,15 @@ The level cards display **Volume** or **Mic** by default. The output mute card d
 
 ## Ready-Made app subpages
 
-An approved **Applications** card can offer an editable subpage when EspDesktop includes keyboard shortcut templates for that app. Examples include **Safari**, **Slack**, **Codex**, and **OpenCode Desktop**.
+Saving an **Applications** card adds an editable subpage when EspDesktop has a keyboard shortcut template for that app. Examples include **Safari**, **Slack**, **Codex**, and **OpenCode Desktop**.
 
 1. Add an **Applications** card for an app with a keyboard shortcut template.
-2. Open **App Subpage** in its card settings and turn on **Add app subpage**.
-3. Choose the keyboard shortcuts to include and drag them into order.
+2. Open **App Subpage** in its card settings to choose and reorder the keyboard shortcuts.
+3. Choose **Save**.
 
 For OpenCode Desktop on Mac, the starter tiles include **New Session**, **Command Palette**, **Find Files**, and **Review Changes**. See all 12 presets in the [OpenCode shortcut reference](/reference/shortcut-presets#ai-opencode-desktop).
 
-<a href="/images/web-editor-app-subpage-shortcuts.png"><picture><source type="image/avif" srcset="/images/web-editor-app-subpage-shortcuts-480.avif 480w, /images/web-editor-app-subpage-shortcuts-960.avif 960w" sizes="(min-width: 768px) 688px, 90vw"><img src="/images/web-editor-app-subpage-shortcuts.png" alt="Figma Applications card settings with Add app subpage on and shortcuts that can be enabled and reordered" width="1694" height="2266" loading="lazy"></picture></a>
-
-The page uses the same templates as the **Application** tab on a **Keyboard Shortcut** card and remains editable. Turning the app subpage option off preserves your changes.
+The page uses the same templates as the **Application** tab on a **Keyboard Shortcut** card and remains editable.
 
 <a href="/images/web-editor-figma-subpage.png"><picture><source type="image/avif" srcset="/images/web-editor-figma-subpage-480.avif 480w, /images/web-editor-figma-subpage-960.avif 960w" sizes="(min-width: 768px) 688px, 90vw"><img src="/images/web-editor-figma-subpage.png" alt="Figma app subpage in the web editor with a back tile and keyboard shortcuts such as Frame, Duplicate, and Copy PNG" width="1562" height="2134" loading="lazy"></picture></a>
 
@@ -84,7 +80,7 @@ You can [add a custom keyboard shortcut](/mac-controls/shortcuts#create-a-shortc
 
 For standalone pages, see [Subpages](/features/subpages). For folders, see [Open Finder folders](/mac-controls/folders).
 
-When you close the last visible window of the foreground app, the display returns to the Home page or subpage you were using before the app subpage opened. This also applies to pages opened by tapping an app card. **Return home when switching apps** controls what happens when you switch to another Mac app.
+When you close the last visible window of the foreground app, the display returns to Home even if the app is still running.
 
 See [all app presets](/reference/shortcut-presets).
 

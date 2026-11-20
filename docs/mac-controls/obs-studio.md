@@ -65,7 +65,7 @@ Add individual controls from **Add Card → OBS Studio → Card types**. You can
 | [Studio Mode](/mac-controls/obs-studio/studio-controls#studio-mode-and-multiview) | **Studio Mode**, **Program scene**, **Take Live**, or **Open Multiview**. |
 | [Transitions](/mac-controls/obs-studio/scene-control-and-mixing#choose-a-transition) | **Cycle transitions** or **Select a transition**. |
 
-Choose **Open the OBS Studio App** to add an **Applications** card with **OBS Studio** already selected. Its app subpage starts with OBS Studio keyboard shortcuts. Turn off **Add app subpage** if you only want to open OBS Studio.
+Choose **Open the OBS Studio App** to add an **Applications** card with **OBS Studio** already selected. Saving the card adds an app subpage with OBS Studio keyboard shortcuts.
 
 ## Customise an OBS card or page
 

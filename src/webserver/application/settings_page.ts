@@ -3,12 +3,15 @@ import { NTP_SERVER_DEFAULTS } from "../state/app_state";
 import { WEB_UI_COLORS } from "../state/ui_tokens";
 import { createColorSwatches } from "../components/color_swatches";
 import {
+    APP_SUBPAGE_MODE, APP_SUBPAGE_MODES, APP_SUBPAGE_PREFERENCE, DEFAULT_APP_SUBPAGE_MODE, appSubpageModeFromSettings,
+    type AppSubpageMode,
     normalizeBrightnessMode,
     normalizeLanguage,
     normalizeTimeOfDay,
     normalizeThemeMode,
     normalizeThemeAutoMethod,
 } from "../model/settings";
+import type { NativePanelConfigController } from "../controllers/native_panel_config_controller";
 import type { DisplayThemePreferences } from "../model/display_theme_preferences";
 import { syncThemeSettingsUi } from "./theme_settings_ui";
 import type { ConfigCodecFeature } from "./config_codec";
@@ -41,7 +44,7 @@ export interface SettingsPageFeature {
     buildSettingsPage(...args: any[]): any;
 }
 
-export function createSettingsPageFeature(codec: Pick<ConfigCodecFeature, "bindTextPost">, runtime: UiRuntimeState, core: Pick<CoreFeature, "syncPreviewOrientation">, layout: ApplicationLayoutState, environment: EnvironmentStateFeature, schedule: ScreenScheduleStateFeature, screensaverTimeout: ScreensaverTimeoutFeature, screenRotation: ScreenRotationFeature, appearance: AppearanceFeature, clockBar: ClockBarFeature, entityState: Pick<EntityStateFeature, "entityName" | "entityInput">, shell: Pick<ControlsShellFeature, "createActionButton" | "buildApplyBar">, requestApi: Pick<ApplicationApiFeature, "postText" | "postSelect" | "postNumber" | "postScreensaverMode" | "postScreensaverTimeout">, statusPreview: Pick<AppStatusPreviewFeature, "appendTimezoneOption" | "syncInput" | "updateClock" | "updateSunInfo">, schedulePostApi: Pick<ScreenSchedulePostApiFeature, "postBrightnessMode" | "postDisplayBacklightBrightness" | "postBrightnessDawnTime" | "postBrightnessDuskTime">, clockBarPostApi: Pick<ClockBarPostApiFeature, "postClockBar" | "postBatteryStatus" | "postReturnHomeOnAppSwitch" | "postSubpageTitleBar">, fields: Pick<ControlsFieldsFeature, "colorField" | "condField" | "createRangeSlider" | "fieldLabel" | "makeCollapsibleCard" | "segmentControl" | "selectField" | "textInput" | "toggleRow">, helpers: Pick<SettingsPageHelpersFeature, "appendSettingsSection" | "createScreensaverThenControls" | "createTimeInput" | "statusBadge" | "syncClockScreensaverControls">, scheduleSection: SettingsScheduleSectionFeature, systemSection: SettingsSystemSectionFeature, preview: Pick<PreviewRenderFeature, "render">, connectorState: Pick<ConnectorsPageFeature, "buildPage" | "homeAssistantConnected" | "companionConfigured" | "onStatusChange">, openAppSetup: () => void, saveAppSubpagePreference: (enabled: boolean) => Promise<boolean>, saveDisplayThemePreference: (patch: Partial<DisplayThemePreferences>, legacySave: () => void) => Promise<void>): SettingsPageFeature {
+export function createSettingsPageFeature(codec: Pick<ConfigCodecFeature, "bindTextPost">, runtime: UiRuntimeState, core: Pick<CoreFeature, "syncPreviewOrientation">, layout: ApplicationLayoutState, environment: EnvironmentStateFeature, schedule: ScreenScheduleStateFeature, screensaverTimeout: ScreensaverTimeoutFeature, screenRotation: ScreenRotationFeature, appearance: AppearanceFeature, clockBar: ClockBarFeature, entityState: Pick<EntityStateFeature, "entityName" | "entityInput">, shell: Pick<ControlsShellFeature, "createActionButton" | "buildApplyBar">, requestApi: Pick<ApplicationApiFeature, "postText" | "postSelect" | "postNumber" | "postScreensaverMode" | "postScreensaverTimeout">, statusPreview: Pick<AppStatusPreviewFeature, "appendTimezoneOption" | "syncInput" | "updateClock" | "updateSunInfo">, schedulePostApi: Pick<ScreenSchedulePostApiFeature, "postBrightnessMode" | "postDisplayBacklightBrightness" | "postBrightnessDawnTime" | "postBrightnessDuskTime">, clockBarPostApi: Pick<ClockBarPostApiFeature, "postClockBar" | "postBatteryStatus" | "postSubpageTitleBar">, fields: Pick<ControlsFieldsFeature, "colorField" | "condField" | "createRangeSlider" | "fieldLabel" | "makeCollapsibleCard" | "segmentControl" | "selectField" | "textInput" | "toggleRow">, helpers: Pick<SettingsPageHelpersFeature, "appendSettingsSection" | "createScreensaverThenControls" | "createTimeInput" | "statusBadge" | "syncClockScreensaverControls">, scheduleSection: SettingsScheduleSectionFeature, systemSection: SettingsSystemSectionFeature, preview: Pick<PreviewRenderFeature, "render">, connectorState: Pick<ConnectorsPageFeature, "buildPage" | "homeAssistantConnected" | "companionConfigured" | "onStatusChange">, openAppSetup: () => void, native: NativePanelConfigController, saveDisplayThemePreference: (patch: Partial<DisplayThemePreferences>, legacySave: () => void) => Promise<void>): SettingsPageFeature {
     const { render: renderPreview } = preview;
     const { appendSettingsSection, createScreensaverThenControls, createTimeInput, statusBadge, syncClockScreensaverControls } = helpers;
     const { buildScreenScheduleSettingsCard } = scheduleSection;
@@ -55,7 +58,7 @@ export function createSettingsPageFeature(codec: Pick<ConfigCodecFeature, "bindT
     const { syncPreviewOrientation } = core;
     const { homeAssistantConnected, companionConfigured, onStatusChange } = connectorState;
     const { postBrightnessMode, postDisplayBacklightBrightness, postBrightnessDawnTime, postBrightnessDuskTime } = schedulePostApi;
-    const { postClockBar, postBatteryStatus, postReturnHomeOnAppSwitch } = clockBarPostApi;
+    const { postClockBar, postBatteryStatus } = clockBarPostApi;
     const els = runtime.els;
     const { timezoneOptionsWithFallback } = environment;
     const { syncUi: syncScreenScheduleUi } = schedule;
@@ -476,25 +479,53 @@ export function createSettingsPageFeature(codec: Pick<ConfigCodecFeature, "bindT
         syncScreensaverModeOptions();
         var systemSettingsCards: any = buildSystemSettingsCards();
         const appSubpageBody = document.createElement("div");
-        const autoOpenAppSubpages = toggleRow("Open app subpages on focus", "sp-set-auto-open-app-subpages", state.autoOpenAppSubpages);
-        appSubpageBody.appendChild(autoOpenAppSubpages.row);
-        els.setAutoOpenAppSubpages = autoOpenAppSubpages.input;
-        autoOpenAppSubpages.input.addEventListener("change", async function (this: HTMLInputElement) {
-            const enabled = this.checked;
-            this.disabled = true;
-            try {
-                if (await saveAppSubpagePreference(enabled)) state.autoOpenAppSubpages = enabled;
-                this.checked = state.autoOpenAppSubpages;
-            } finally {
-                this.disabled = false;
+        const modeOptions = APP_SUBPAGE_MODES.map(mode => [mode.value, mode.label]);
+        const { field: modeField, select: modeSelect } = selectField(
+            "Open app subpages", "sp-set-app-subpage-mode", modeOptions, DEFAULT_APP_SUBPAGE_MODE,
+        ) as { field: HTMLElement; select: HTMLSelectElement };
+        let loadedSettings: Readonly<Record<string, string>> | undefined;
+        let ready = false;
+        let saving = false;
+        const supportsModes = () => native.client?.supportsAppSubpageMode() === true;
+        const syncAppSubpageMode = () => {
+            const settings = state.nativePanelDocument?.settings ?? loadedSettings;
+            modeSelect.disabled = !ready || saving || (supportsModes() && !settings);
+            if (ready) {
+                modeSelect.value = supportsModes()
+                    ? appSubpageModeFromSettings(settings)
+                    : state.autoOpenAppSubpages ? "focus" : "manual";
             }
-        });
-        const returnHomeOnAppSwitch = toggleRow("Return home when switching apps", "sp-set-return-home-on-app-switch", state.returnHomeOnAppSwitch);
-        appSubpageBody.appendChild(returnHomeOnAppSwitch.row);
-        els.setReturnHomeOnAppSwitch = returnHomeOnAppSwitch.input;
-        returnHomeOnAppSwitch.input.addEventListener("change", function (this: HTMLInputElement) {
-            state.returnHomeOnAppSwitch = this.checked;
-            postReturnHomeOnAppSwitch(this.checked);
+        };
+        els.syncAppSubpageMode = syncAppSubpageMode;
+        modeSelect.disabled = true;
+        appSubpageBody.appendChild(modeField);
+        void (async () => {
+            if (await native.waitForDiscovery() !== true) return;
+            if (!supportsModes() && !native.client?.supportsAppSubpagePreference()) return;
+            ready = true;
+            if (supportsModes()) {
+                if (!state.nativePanelDocument) loadedSettings = (await native.readSnapshot())?.document.settings;
+            } else {
+                modeSelect.querySelector('option[value="card"]')?.remove();
+            }
+            syncAppSubpageMode();
+        })().catch(() => {});
+        modeSelect.addEventListener("change", async () => {
+            const mode = modeSelect.value as AppSubpageMode;
+            const modern = supportsModes();
+            saving = true;
+            modeSelect.disabled = true;
+            try {
+                const result = await (modern
+                    ? native.writeSetting(APP_SUBPAGE_MODE, mode)
+                    : native.writeSetting(APP_SUBPAGE_PREFERENCE, mode === "focus" ? "1" : "0"));
+                if (!modern && (result === "saved" || result === "mirror-failed")) {
+                    state.autoOpenAppSubpages = mode === "focus";
+                }
+            } finally {
+                saving = false;
+                syncAppSubpageMode();
+            }
         });
         if (layout.config.features?.companion && openAppSetup) {
             const setupButton = document.createElement("button");
