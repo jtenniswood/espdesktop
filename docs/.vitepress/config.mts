@@ -203,7 +203,7 @@ export default defineConfig({
     guideMetadata.set(relativePath, { title, description })
     const image = pageImages[relativePath] ?? defaultImage
     const isHome = relativePath === 'index.md'
-    const isArticle = !['index.md', 'reference/privacy.md', 'reference/faq.md', 'reference/support.md'].includes(relativePath)
+    const isArticle = !['index.md', 'docs.md', 'reference/privacy.md', 'reference/faq.md', 'reference/support.md'].includes(relativePath)
 
     frontmatter.head.push(
       ['link', { rel: 'canonical', href: canonicalUrl }],
@@ -328,6 +328,7 @@ export default defineConfig({
         text: 'Customise',
         items: [...customiseLinks, obsStudioLink, screenSettingsLink, systemSettingsLink],
       },
+      { text: 'Docs', link: '/docs' },
     ],
 
     sidebar: [
