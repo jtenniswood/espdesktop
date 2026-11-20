@@ -15,8 +15,6 @@ description: Adjust OBS mixer levels, mute individual microphones and other inpu
 
 <a href="/images/obs/audio-settings.png"><img src="/images/obs/audio-settings.png" alt="Audio subpage settings with reorder controls and visibility switches for Mic/Aux, capture cards and macOS Screen Capture inputs" width="1016" height="1321" loading="lazy"></a>
 
-<a href="/images/obs/audio-layout.png"><img src="/images/obs/audio-layout.png" alt="Audio subpage in the Layout editor with Back and five OBS mixer sliders" width="2230" height="1378" loading="lazy"></a>
-
 ## Add an audio control
 
 1. In the display editor, choose **Add Card → OBS Studio → Audio Controls** on Home or in a subpage.
