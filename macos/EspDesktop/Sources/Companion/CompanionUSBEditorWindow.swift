@@ -1,8 +1,9 @@
 import AppKit
+import UniformTypeIdentifiers
 @preconcurrency import WebKit
 
 @MainActor
-final class CompanionUSBEditorWindow: NSObject, WKNavigationDelegate,
+final class CompanionUSBEditorWindow: NSObject, WKNavigationDelegate, WKUIDelegate,
                                       WKURLSchemeHandler, WKScriptMessageHandlerWithReply {
     private static let scheme = "espdesktop-usb"
     private let window: NSWindow
@@ -41,6 +42,7 @@ final class CompanionUSBEditorWindow: NSObject, WKNavigationDelegate,
             WKUserScript(source: Self.fetchBridge, injectionTime: .atDocumentStart, forMainFrameOnly: true))
         let browser = WKWebView(frame: .zero, configuration: configuration)
         browser.navigationDelegate = self
+        browser.uiDelegate = self
         browser.translatesAutoresizingMaskIntoConstraints = false
         status.translatesAutoresizingMaskIntoConstraints = false
         status.lineBreakMode = .byTruncatingTail
@@ -135,6 +137,20 @@ final class CompanionUSBEditorWindow: NSObject, WKNavigationDelegate,
                  decisionHandler: @escaping @MainActor @Sendable (WKNavigationActionPolicy) -> Void) {
         let url = navigationAction.request.url
         decisionHandler(url?.scheme == Self.scheme && url?.host == "display" ? .allow : .cancel)
+    }
+
+    func webView(_ webView: WKWebView, runOpenPanelWith parameters: WKOpenPanelParameters,
+                 initiatedByFrame frame: WKFrameInfo, completionHandler: @escaping @MainActor @Sendable ([URL]?) -> Void) {
+        guard frame.isMainFrame, frame.request.url?.scheme == Self.scheme, frame.request.url?.host == "display",
+              window.attachedSheet == nil else {
+            completionHandler(nil)
+            return
+        }
+        let panel = NSOpenPanel()
+        panel.allowedContentTypes = [.json]
+        panel.beginSheetModal(for: window) { result in
+            completionHandler(result == .OK ? panel.urls : nil)
+        }
     }
 
     func webView(_ webView: WKWebView, start urlSchemeTask: any WKURLSchemeTask) {
