@@ -108,7 +108,7 @@ Turn key combinations into labelled buttons. Shortcut pages can follow the app y
 
 Run an Apple Shortcuts workflow with one tap, or group your workflows on a page of their own.
 
-[Apple Shortcuts](/mac-controls/shortcuts#run-an-apple-shortcuts-workflow)
+[Apple Shortcuts](/mac-controls/apple-shortcuts)
 
 </article>
 

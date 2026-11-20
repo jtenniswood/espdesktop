@@ -14,7 +14,7 @@ Set up the display from a normal web browser.
 
 - **Applications** — launch only the Mac apps you approve in EspDesktop.
 - **App keyboard shortcuts** — open an app-specific page of controls for common actions, or create your own keyboard shortcuts.
-- **Apple Shortcuts** — run a workflow from the Mac’s Shortcuts app with a tap, or group several workflows on a dedicated page. Your Mac must be unlocked. [Set up Apple Shortcuts](https://espdesktop.com/mac-controls/shortcuts#run-an-apple-shortcuts-workflow).
+- **Apple Shortcuts** — run a workflow from the Mac’s Shortcuts app with a tap, or group several workflows on a dedicated page. Your Mac must be unlocked. [Set up Apple Shortcuts](https://espdesktop.com/mac-controls/apple-shortcuts).
 - **OBS Studio** — switch scenes, adjust mixer levels, mute inputs, and control streaming, recording, and Studio Mode. Connect EspDesktop to OBS using the built-in OBS WebSocket server. [Set up OBS Studio controls](https://espdesktop.com/mac-controls/obs-studio).
 - **Mac Lock** — lock your Mac with a tap on the display.
 - **Finder folders** — open an approved folder with a tap.
