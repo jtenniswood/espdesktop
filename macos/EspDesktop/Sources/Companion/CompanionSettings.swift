@@ -633,7 +633,7 @@ struct CompanionSettings: View {
                     Button("Use USB") { findingUSBDisplay = display }
                         .disabled(findingUSBDisplay != nil || usbPorts.allSatisfy { store.isUSBPortInUse($0) })
                 }
-                Button("Change Network Address…") {
+                Button("Update Address") {
                     if findingUSBDisplay?.id == display.id {
                         findingUSBDisplay = nil
                     }
