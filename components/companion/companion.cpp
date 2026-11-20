@@ -553,6 +553,9 @@ void CompanionService::handle_json_(int socket_fd, const std::string &message) {
           std::to_string(COMPANION_CAPABILITY_VERSION);
 #ifdef USE_COMPANION_USB
       if (this->usb_bridge_) accepted += ",\"usbEditor\":true";
+#ifdef USE_WIFI
+      if (this->usb_bridge_) accepted += ",\"usbWifiAddress\":true";
+#endif
 #endif
       this->send_(socket_fd, accepted + "}");
       this->publish_catalogue_();

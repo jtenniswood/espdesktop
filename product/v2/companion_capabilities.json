@@ -92,6 +92,10 @@
           "usbEditor": {
             "type": "boolean",
             "optional": true
+          },
+          "usbWifiAddress": {
+            "type": "boolean",
+            "optional": true
           }
         },
         "states": [

@@ -582,11 +582,12 @@ struct CompanionSettings: View {
                 Button {
                     store.openPanelWebServer(display)
                 } label: {
-                    Label("Device", systemImage: "display")
+                    Label(store.openingUSBDisplays.contains(display.id) ? "Opening…" : "Device", systemImage: "display")
                         .padding(.vertical, 4)
                 }
                 .modifier(CompanionCapsuleButton())
-                .disabled(!display.usesUSB && display.record.host.isEmpty)
+                .disabled(store.openingUSBDisplays.contains(display.id) ||
+                          (!display.usesUSB && display.record.host.isEmpty))
                 .contextMenu {
                     if display.usesUSB {
                         Button("Open USB Editor") { store.openUSBEditor(display) }

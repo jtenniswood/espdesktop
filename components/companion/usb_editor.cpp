@@ -11,6 +11,7 @@
 #include <vector>
 #ifdef USE_WIFI
 #include "esphome/components/wifi/wifi_component.h"
+#include "esphome/core/hal.h"
 #include "esphome/core/helpers.h"
 #include "esphome/core/log.h"
 #include "esphome/core/preferences.h"
@@ -21,7 +22,9 @@ namespace {
 constexpr char MAGIC[] = "UED1";
 constexpr size_t HEADER = 9;
 constexpr size_t MAX_CHUNK = 4096;
-enum Command : uint8_t { OPEN = 1, WRITE = 2, READ = 3, CLOSE = 4, WIFI_STATE = 5, WIFI_SET = 6, WIFI_SAVE = 7 };
+enum Command : uint8_t {
+  OPEN = 1, WRITE = 2, READ = 3, CLOSE = 4, WIFI_STATE = 5, WIFI_SET = 6, WIFI_SAVE = 7, WIFI_ADDRESS = 8
+};
 enum Result : uint8_t { OK = 0, WAIT = 1, END = 2, ERROR = 3, BUSY = 4 };
 #ifdef USE_WIFI
 ESPPreferenceObject &wifi_preference() {
@@ -93,6 +96,16 @@ void CompanionUSBEditor::update_wifi() {
     }
   }
   this->wifi_enabled_.store(!wifi->is_disabled());
+  if (wifi->is_disabled() || !wifi->is_connected()) {
+    this->wifi_ipv4_.store(0);
+    this->wifi_ip_refresh_ms_ = 0;
+    return;
+  }
+  const uint32_t now = millis();
+  if (this->wifi_ip_refresh_ms_ != 0 && now - this->wifi_ip_refresh_ms_ < 250) return;
+  this->wifi_ip_refresh_ms_ = now;
+  const auto ip = wifi->get_ip_addresses()[0];
+  this->wifi_ipv4_.store(ip.is_ip4() && ip.is_set() ? ntohl(static_cast<ip4_addr_t>(ip).addr) : 0);
 #endif
 }
 
@@ -105,7 +118,13 @@ bool CompanionUSBEditor::handle(httpd_handle_t server, int companion_socket, con
   const size_t length = size - HEADER;
   Result result = ERROR;
 #ifdef USE_WIFI
-  if (command == WIFI_STATE && length == 0 && esphome::wifi::global_wifi_component != nullptr) {
+  if (command == WIFI_ADDRESS && length == 0) {
+    const uint32_t address = this->wifi_ipv4_.load();
+    if (address != 0) {
+      for (int shift = 24; shift >= 0; shift -= 8) response.push_back(static_cast<uint8_t>(address >> shift));
+    }
+    result = OK;
+  } else if (command == WIFI_STATE && length == 0 && esphome::wifi::global_wifi_component != nullptr) {
     response.push_back(this->wifi_enabled_.load());
     result = OK;
   } else if ((command == WIFI_SET || command == WIFI_SAVE) && length == 1 && frame[HEADER] <= 1 &&

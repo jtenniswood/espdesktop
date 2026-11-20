@@ -810,7 +810,7 @@ final class CompanionStore: NSObject, ObservableObject {
     }
 
     private var usbEditorWindows: [UUID: CompanionUSBEditorWindow] = [:]
-    private var openingUSBDisplays: Set<UUID> = []
+    @Published private(set) var openingUSBDisplays: Set<UUID> = []
 
     func openPanelWebServer(_ display: CompanionDisplay) {
         guard display.usesUSB else {

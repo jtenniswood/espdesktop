@@ -147,7 +147,9 @@ instead of the USB cable.
 
 6. In **Displays**, select **Device** while connected by USB with Wi-Fi connected.
    Confirm the browser opens the display’s current IP and the display stays on
-   USB in the Mac app. Right-click **Device** and choose **Open USB Editor**.
+   USB in the Mac app. Right-click **Device** and choose **Open USB Editor**,
+   then repeat the normal **Device** click while the USB editor is loading.
+   With updated firmware, the browser should open while the USB transfer continues.
    Save a layout change and confirm it persists after reopening the USB editor.
 7. Disconnect the cable during a save and reconnect it. The editor keeps the
    submitted layout and reads back the saved one before retrying. If the

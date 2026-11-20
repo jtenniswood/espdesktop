@@ -14,9 +14,18 @@ struct USBEditorPanelIdentity: Decodable {
     }
 
     var localNetworkAddress: String? {
-        guard let address = IPv4Address(ipAddress), address.rawValue.first != 127,
-              ConnectionEndpointPolicy.isLocalHost(ipAddress) else { return nil }
-        return ipAddress
+        Self.usableAddress(IPv4Address(ipAddress))
+    }
+
+    static func localNetworkAddress(fromWiFiReply reply: Data) -> String? {
+        guard reply.count == 5, reply.first == 0 else { return nil }
+        return usableAddress(IPv4Address(Data(reply.dropFirst())))
+    }
+
+    private static func usableAddress(_ address: IPv4Address?) -> String? {
+        guard let address, address.rawValue.first != 127,
+              ConnectionEndpointPolicy.isLocalHost(address.debugDescription) else { return nil }
+        return address.debugDescription
     }
 }
 

@@ -52,6 +52,14 @@ final class CompanionUSBEditorTests: XCTestCase {
         }
     }
 
+    func testDirectWiFiAddressReplyDistinguishesConnectedAndOfflineDisplays() {
+        XCTAssertEqual(USBEditorPanelIdentity.localNetworkAddress(fromWiFiReply: Data([0, 192, 168, 6, 107])),
+                       "192.168.6.107")
+        for reply: [UInt8] in [[0], [3], [0, 0, 0, 0, 0], [0, 127, 0, 0, 1], [0, 8, 8, 8, 8]] {
+            XCTAssertNil(USBEditorPanelIdentity.localNetworkAddress(fromWiFiReply: Data(reply)))
+        }
+    }
+
     func testAnInterruptedSaveOnlyRetriesAgainstItsOriginalGeneration() throws {
         let submitted = Data([7])
         let save = try XCTUnwrap(USBEditorRequest(method: "PUT", path: "/api/v1/config",

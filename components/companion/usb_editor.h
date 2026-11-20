@@ -29,6 +29,8 @@ class CompanionUSBEditor {
   enum class WifiSaveState { idle, disable_pending, enable_pending, disabled, enabled, failed };
   std::atomic<WifiSaveState> wifi_save_state_{WifiSaveState::idle};
   std::atomic<bool> wifi_enabled_{true};
+  std::atomic<uint32_t> wifi_ipv4_{0};
+  uint32_t wifi_ip_refresh_ms_{0};
 #endif
 };
 

@@ -58,6 +58,7 @@ final class CompanionConnection: NSObject {
     private var editorBusy = false
     var usbEditorConnected: Bool { usbBridge != nil && sessionAuthenticated }
     private(set) var usbEditorSupported = false
+    private var usbWifiAddressSupported = false
     private var usbBridge: CompanionUSBBridge?
     private var session: URLSession?
     private var task: URLSessionWebSocketTask?
@@ -348,6 +349,7 @@ final class CompanionConnection: NSObject {
         session?.invalidateAndCancel()
         session = nil
         usbEditorSupported = false
+        usbWifiAddressSupported = false
         finishEditorCommand(.failure(USBEditorError.disconnected))
         usbBridge?.stop()
         usbBridge = nil
@@ -499,9 +501,31 @@ final class CompanionConnection: NSObject {
     }
 
     func currentUSBWifiAddress() async -> String? {
+        guard usbEditorConnected, usbEditorSupported else { return nil }
+        return await withTaskGroup(of: String?.self) { group in
+            group.addTask { await self.readUSBWifiAddress() }
+            group.addTask {
+                try? await Task.sleep(for: .milliseconds(1500))
+                return nil
+            }
+            let address = await group.next() ?? nil
+            group.cancelAll()
+            return address
+        }
+    }
+
+    private func readUSBWifiAddress() async -> String? {
+        let generation = connectionGeneration
+        if usbWifiAddressSupported {
+            guard let result = try? await editorCommand(8, generation: generation),
+                  connectionGeneration == generation else { return nil }
+            return USBEditorPanelIdentity.localNetworkAddress(fromWiFiReply: result)
+        }
         guard await usbWifiEnabled() == true,
               let request = USBEditorRequest(method: "GET", path: "/api/v1/identity"),
+              connectionGeneration == generation,
               let response = try? await requestUSBEditor(request), response.status == 200,
+              connectionGeneration == generation,
               let identity = try? JSONDecoder().decode(USBEditorPanelIdentity.self, from: response.body)
         else { return nil }
         return identity.localNetworkAddress
@@ -735,6 +759,7 @@ final class CompanionConnection: NSObject {
         session?.invalidateAndCancel()
         session = nil
         usbEditorSupported = false
+        usbWifiAddressSupported = false
         finishEditorCommand(.failure(USBEditorError.disconnected))
         usbBridge?.stop()
         usbBridge = nil
@@ -839,6 +864,7 @@ final class CompanionConnection: NSObject {
             authenticationRequestOutstanding = false
             sessionAuthenticated = true
             usbEditorSupported = payload.usbEditor == true
+            usbWifiAddressSupported = payload.usbWifiAddress == true
             supportsAlphaAppIcons = payload.capabilityVersion >= 4
             supportsHighResolutionAppIcons = payload.capabilityVersion >= 5
             supportsImmediateApplicationFocus = payload.capabilityVersion >= 6
