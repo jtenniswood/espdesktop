@@ -262,7 +262,7 @@ struct CompanionSettings: View {
     @State private var findingNetworkDisplay: CompanionDisplay?
     @State private var showingWifiOff = false
     @State private var findingUSBDisplay: CompanionDisplay?
-    @State private var showingUSBNotFound = false
+    @State private var usbDisplayNotFound: CompanionDisplay?
     @State private var displayToConfigure: CompanionDisplay?
     @State private var networkAddress = ""
     @State private var showingNetworkAddress = false
@@ -345,13 +345,21 @@ struct CompanionSettings: View {
             if let port {
                 store.setDisplayEndpoint(CompanionUSBPort.endpoint(for: port), for: display)
             } else {
-                showingUSBNotFound = true
+                usbDisplayNotFound = display
             }
         }
-        .alert("Paired USB display not found", isPresented: $showingUSBNotFound) {
-            Button("OK", role: .cancel) {}
-        } message: {
-            Text("Check the cable and make sure the display is running USB-capable firmware. You can also choose a USB port in Connection Details.")
+        .alert("Paired USB display not found", isPresented: Binding(
+            get: { usbDisplayNotFound != nil },
+            set: { if !$0 { usbDisplayNotFound = nil } }
+        ), presenting: usbDisplayNotFound) { display in
+            ForEach(usbPorts.filter { !store.isUSBPortInUse($0, except: display) }, id: \.self) { port in
+                Button(URL(fileURLWithPath: port).lastPathComponent) {
+                    store.setDisplayEndpoint(CompanionUSBPort.endpoint(for: port), for: display)
+                }
+            }
+            Button("Cancel", role: .cancel) {}
+        } message: { _ in
+            Text("Check the cable and make sure the display is running USB-capable firmware. If your port is listed, you can select it here.")
         }
         .alert("Display Wi-Fi is off", isPresented: $showingWifiOff) {
             Button("OK", role: .cancel) {}
@@ -632,27 +640,29 @@ struct CompanionSettings: View {
 
     private func connectionDetails(for display: CompanionDisplay) -> some View {
         Menu {
-            Button("Network Address…") {
-                showNetworkAddress(for: display)
-            }
-
-            Menu("USB Port") {
+            if display.usesUSB {
+                if usbPorts.isEmpty {
+                    Text("No USB ports available")
+                }
                 ForEach(usbPorts, id: \.self) { port in
                     Button {
                         store.setDisplayEndpoint(CompanionUSBPort.endpoint(for: port), for: display)
                     } label: {
                         let name = URL(fileURLWithPath: port).lastPathComponent
-                        if display.usesUSB && display.record.usbPort == port {
+                        if display.record.usbPort == port {
                             Label(name, systemImage: "checkmark")
                         } else {
                             Text(name)
                         }
                     }
-                    .disabled((display.usesUSB && display.record.usbPort == port) ||
+                    .disabled(display.record.usbPort == port ||
                               store.isUSBPortInUse(port, except: display))
                 }
+            } else {
+                Button("Network Address…") {
+                    showNetworkAddress(for: display)
+                }
             }
-            .disabled(usbPorts.isEmpty)
         } label: {
             Label("Connection Details", systemImage: "gearshape")
                 .labelStyle(.iconOnly)

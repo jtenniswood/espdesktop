@@ -25,7 +25,7 @@ Wi-Fi is on by default. To turn it off, open the USB editor’s **System** tab a
 
 To return to the network, keep the USB cable connected and select **Network** on the display’s card. EspDesktop turns on the display’s Wi-Fi if needed and looks for the paired display on your network. Once connected, **Device** opens the display’s network address in your default browser.
 
-Use the gear beside **Network** and **USB** to open **Connection Details**. There you can enter a network address or choose a USB port manually.
+The gear beside the connection selector opens **Connection Details** for the selected mode. On **Network**, you can enter an address. On **USB**, you can choose a port.
 
 You can switch each display independently and use USB and network displays at the same time.
 
