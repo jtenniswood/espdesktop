@@ -40,6 +40,8 @@ Add **Output Controls** and choose an **OBS output**.
 | **Recording** | Starts or stops a recording. The card shows **Record** when idle, **Recording** when active, and updates when recording pauses or stops. |
 | **Virtual Camera** | Starts or stops the OBS Virtual Camera. The card lights up while it’s running. |
 
+<a href="/images/obs/streaming.png"><img src="/images/obs/streaming.png" alt="EspDesktop Home layout with the Record, Stream, and Camera cards side by side, all showing Idle" width="1192" height="1190" loading="lazy"></a>
+
 Each output asks for confirmation before starting and stopping by default. In the **Confirmation** panel, use **When** to choose **Start**, **Stop**, or **Both**. You can edit the message and button labels, or turn off **Confirmation Required**. If OBS changes the output while a prompt is open, check the updated action before trying again.
 
 Existing streaming and recording status cards become output controls with confirmation in both directions.
