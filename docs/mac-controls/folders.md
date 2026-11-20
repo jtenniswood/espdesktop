@@ -15,7 +15,7 @@ In the EspDesktop Mac app, open **Settings → Folders**, click **Add Folder…*
 
 ## Add a folder card
 
-1. In the display’s web editor, select an empty tile and choose **Folder**. If the card picker shows connector tabs, look under **Companion**.
+1. In the display’s web editor, select an empty tile and choose **Finder Folder → Open a folder**.
 2. Select the folder you approved and choose **Save**.
 
 <a href="/images/web-editor-choose-card.webp"><picture><source type="image/avif" srcset="/images/web-editor-choose-card-480.avif 480w, /images/web-editor-choose-card-960.avif 960w" sizes="(min-width: 768px) 688px, 90vw"><img src="/images/web-editor-choose-card.webp" alt="Choose Card dialog in the display’s web editor showing the Folder and Applications options" width="1269" height="1022" loading="lazy"></picture></a>
@@ -26,9 +26,9 @@ If a folder is moved or renamed, choose **Choose Again…** in the Mac app to re
 
 ## Finder folder subpage
 
-To access your approved folders from one Finder card, select an empty tile in the display’s web editor, choose **Applications** and pick **Finder**. If you limit which apps the display can launch, first enable Finder under **Apps** in the Mac app.
+To access your approved folders from one Finder card, select an empty tile in the display’s web editor and choose **Finder Folder → Open Finder**. If you limit which apps the display can launch, first enable Finder under **Apps** in the Mac app.
 
-In the Finder card’s settings, open **App Subpage**, turn on **Add app subpage** and choose **Save**. While your Mac is connected, the Finder subpage automatically shows the folders you added in the Mac app, filling the available spaces on the touchscreen and in the web editor preview.
+Finder is already selected and **Add app subpage** is on. Choose **Save**. While your Mac is connected, the Finder subpage automatically shows the folders you added in the Mac app, filling the available spaces on the touchscreen and in the web editor preview.
 
 Use **Pin Finder folders** to keep selected tiles in place and drag them into order. Pinned tiles stay visible when your Mac disconnects.
 

@@ -230,6 +230,7 @@ async function checkBrowser() {
     await editorGrid.locator('.sp-empty-cell[data-pos="2"]').waitFor();
     await ninthCell.click();
     await page.locator('[data-card-type="companion_folder"]').click();
+    await page.getByRole('button', { name: 'Open a folder card type', exact: true }).click();
     const folderPicker = page.getByRole('combobox', { name: 'Folder', exact: true });
     await folderPicker.locator('option[value="folder.downloads"]').waitFor({ state: 'attached' });
     assert.deepEqual(await folderPicker.locator('option').allTextContents(),
