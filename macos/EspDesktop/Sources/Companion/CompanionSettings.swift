@@ -614,18 +614,17 @@ struct CompanionSettings: View {
                         Text("No USB ports found")
                     }
                     ForEach(usbPorts, id: \.self) { port in
-                        Button {
-                            store.setDisplayEndpoint(CompanionUSBPort.endpoint(for: port), for: display)
-                        } label: {
-                            let name = URL(fileURLWithPath: port).lastPathComponent
-                            if display.record.usbPort == port {
-                                Label(name, systemImage: "checkmark")
-                            } else {
-                                Text(name)
+                        let name = URL(fileURLWithPath: port).lastPathComponent
+                        if display.record.usbPort == port {
+                            Toggle(name, isOn: .constant(true))
+                                .disabled(true)
+                        } else {
+                            Button(name) {
+                                store.setDisplayEndpoint(CompanionUSBPort.endpoint(for: port), for: display)
                             }
+                            .disabled(findingNetworkDisplay?.id == display.id ||
+                                      store.isUSBPortInUse(port, except: display))
                         }
-                        .disabled(findingNetworkDisplay?.id == display.id || display.record.usbPort == port ||
-                                  store.isUSBPortInUse(port, except: display))
                     }
                 }
             } else {
