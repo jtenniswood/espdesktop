@@ -525,31 +525,9 @@ struct CompanionSettings: View {
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 4)
                 }
-                screenLockSection
                 accessibilityAndStartupSections
             }
             .formStyle(.grouped)
-        }
-    }
-
-    private var screenLockSection: some View {
-        Section("Screen Lock") {
-            HStack(spacing: 16) {
-                Text("Your connected EspDesktop display locks automatically when you lock your Mac. Unlock your Mac to use the display again.")
-                    .font(.callout)
-                    .fixedSize(horizontal: false, vertical: true)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-
-                if let photo = CompanionArtwork.screenLockPhoto {
-                    Image(nsImage: photo)
-                        .resizable()
-                        .scaledToFit()
-                        .frame(width: 168)
-                        .clipShape(RoundedRectangle(cornerRadius: 8))
-                        .accessibilityLabel("EspDesktop display showing the Locked screen")
-                }
-            }
-            .padding(.vertical, 8)
         }
     }
 
