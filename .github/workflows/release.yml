@@ -295,46 +295,23 @@ jobs:
         working-directory: espdesktop-${{ matrix.slug }}
         run: bash scripts/reclaim_actions_disk.sh
 
-      - name: Prepare isolated ESPHome cache
+      - name: Prepare isolated firmware build directories
         working-directory: espdesktop-${{ matrix.slug }}
         run: |
-          RUN_CACHE_ROOT="${RUNNER_TEMP}/espdesktop-esphome/${{ github.run_id }}-${{ github.run_attempt }}/${{ matrix.slug }}"
-          PLATFORMIO_CACHE="${RUN_CACHE_ROOT}/platformio-${ESPHOME_VERSION}"
-          NORMAL_BUILD_CACHE="${RUN_CACHE_ROOT}/build-normal"
-          RECOVERY_BUILD_CACHE="${RUN_CACHE_ROOT}/build-recovery"
+          RUN_BUILD_OUTPUT="${RUNNER_TEMP}/espdesktop-esphome/${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}/${{ matrix.slug }}"
+          TOOLCHAIN_CACHE_VOLUME="espdesktop-release-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}-${{ matrix.slug }}"
+          NORMAL_BUILD_OUTPUT="${RUN_BUILD_OUTPUT}/build-normal"
+          RECOVERY_BUILD_OUTPUT="${RUN_BUILD_OUTPUT}/build-recovery"
           BUILD_INPUT_DIR=".firmware-builds"
-          rm -rf "${RUN_CACHE_ROOT}"
-          mkdir -p "${PLATFORMIO_CACHE}" "${NORMAL_BUILD_CACHE}" "${RECOVERY_BUILD_CACHE}"
-          export PLATFORMIO_CACHE
-          python3 - <<'PY'
-          import json
-          import os
-          import shutil
-          from pathlib import Path
-
-          cache_root = Path(os.environ["PLATFORMIO_CACHE"])
-          package_roots = [cache_root / "platformio" / "packages", cache_root / "packages"]
-          for packages in package_roots:
-              if not packages.is_dir():
-                  continue
-              for metadata in packages.glob("*/.piopm"):
-                  try:
-                      with metadata.open(encoding="utf-8") as handle:
-                          json.load(handle)
-                  except Exception as exc:
-                      package_dir = metadata.parent
-                      print(f"Removing corrupted PlatformIO package cache: {package_dir} ({exc})")
-                      shutil.rmtree(package_dir, ignore_errors=True)
-          PY
-          rm -rf .esphome
-          rm -rf "${BUILD_INPUT_DIR}"
+          mkdir -p "${NORMAL_BUILD_OUTPUT}" "${RECOVERY_BUILD_OUTPUT}"
+          rm -rf .esphome "${BUILD_INPUT_DIR}"
           mkdir -p "${BUILD_INPUT_DIR}"
           cp builds/*.yaml "${BUILD_INPUT_DIR}/"
-          echo "RUN_CACHE_ROOT=${RUN_CACHE_ROOT}" >> "$GITHUB_ENV"
-          echo "PLATFORMIO_CACHE=${PLATFORMIO_CACHE}" >> "$GITHUB_ENV"
-          echo "NORMAL_BUILD_CACHE=${NORMAL_BUILD_CACHE}" >> "$GITHUB_ENV"
-          echo "RECOVERY_BUILD_CACHE=${RECOVERY_BUILD_CACHE}" >> "$GITHUB_ENV"
-          echo "BUILD_INPUT_DIR=${BUILD_INPUT_DIR}" >> "$GITHUB_ENV"
+          echo "RUN_BUILD_OUTPUT=${RUN_BUILD_OUTPUT}" >> "${GITHUB_ENV}"
+          echo "TOOLCHAIN_CACHE_VOLUME=${TOOLCHAIN_CACHE_VOLUME}" >> "${GITHUB_ENV}"
+          echo "NORMAL_BUILD_OUTPUT=${NORMAL_BUILD_OUTPUT}" >> "${GITHUB_ENV}"
+          echo "RECOVERY_BUILD_OUTPUT=${RECOVERY_BUILD_OUTPUT}" >> "${GITHUB_ENV}"
+          echo "BUILD_INPUT_DIR=${BUILD_INPUT_DIR}" >> "${GITHUB_ENV}"
 
       - name: Prepare verified ESP32-C6 recovery firmware
         if: matrix.recovery
@@ -370,53 +347,56 @@ jobs:
         env:
           VERSION: ${{ inputs.release_tag }}
         run: |
-          SOURCE_DIR="${PWD}"
+          # The runner and Docker daemon have separate filesystems. Keep
+          # toolchain files on the daemon and copy back only the build output.
+          ${DOCKER} volume create "${TOOLCHAIN_CACHE_VOLUME}" >/dev/null
+          ${DOCKER} run --rm --user 0:0 --entrypoint /bin/chown \
+            -v "${TOOLCHAIN_CACHE_VOLUME}:/cache" "${ESPHOME_IMAGE}" "$(id -u):$(id -g)" /cache
+
           compile_config() {
-            config_file="$1"
-            build_cache="$2"
-            local minimum_headroom="${3:-0}"
+            local config_file="$1" build_output="$2" minimum_headroom="${3:-0}"
             container=$(${DOCKER} create \
               --user "$(id -u):$(id -g)" \
               -e HOME=/config \
-              -e PLATFORMIO_CORE_DIR=/config/.esphome/platformio \
+              -e PLATFORMIO_CORE_DIR=/cache/platformio \
+              -e UV_CACHE_DIR=/cache/uv-cache \
               -e PLATFORMIO_SETTING_ENABLE_TELEMETRY=false \
-              -v "${PLATFORMIO_CACHE}:/config/.esphome" \
-              -v "${build_cache}:/config/${BUILD_INPUT_DIR}/.esphome" \
+              -v "${TOOLCHAIN_CACHE_VOLUME}:/cache" \
               "${ESPHOME_IMAGE}" \
               -s firmware_version "${VERSION}" \
               compile "/config/${BUILD_INPUT_DIR}/${config_file}")
             cleanup_container() {
-              ${DOCKER} rm -f "${container}" >/dev/null 2>&1 || true
+              ${DOCKER} rm -fv "${container}" >/dev/null 2>&1 || true
             }
             trap cleanup_container EXIT
-            if ! ${DOCKER} cp "${SOURCE_DIR}/." "${container}:/config"; then
+            if ! ${DOCKER} cp "${PWD}/." "${container}:/config"; then
               cleanup_container
               trap - EXIT
               return 1
             fi
-            set +e
-            ${DOCKER} start -a "${container}"
-            status=$?
-            set -e
-            ${DOCKER} cp \
-              "${container}:/config/${BUILD_INPUT_DIR}/.esphome/build" \
-              "${build_cache}/" 2>/dev/null || true
+            local status=0
+            ${DOCKER} start -a "${container}" || status=$?
+            if ! ${DOCKER} cp \
+              "${container}:/config/${BUILD_INPUT_DIR}/.esphome/build" "${build_output}/"; then
+              echo "::error::Could not copy firmware build output for ${config_file}"
+              status=1
+            fi
             python3 scripts/report_firmware_size.py \
-              --target "${config_file}" --build-root "${build_cache}" \
+              --target "${config_file}" --build-root "${build_output}" \
               --compile-status "${status}" --minimum-headroom-kib "${minimum_headroom}" || status=1
             cleanup_container
             trap - EXIT
             return "${status}"
           }
-          compile_config "${{ matrix.slug }}.factory.yaml" "${NORMAL_BUILD_CACHE}" 128
+          compile_config "${{ matrix.slug }}.factory.yaml" "${NORMAL_BUILD_OUTPUT}" 128
           if [ "${{ matrix.recovery }}" = "true" ]; then
-            compile_config "${{ matrix.slug }}.recovery.yaml" "${RECOVERY_BUILD_CACHE}"
+            compile_config "${{ matrix.slug }}.recovery.yaml" "${RECOVERY_BUILD_OUTPUT}"
           fi
 
       - name: Collect firmware files and generate manifest
         id: firmware
         run: |
-          FIRMWARE_FACTORY=$(find "${NORMAL_BUILD_CACHE}/build" -name firmware.factory.bin -print -quit 2>/dev/null || true)
+          FIRMWARE_FACTORY=$(find "${NORMAL_BUILD_OUTPUT}/build" -name firmware.factory.bin -print -quit 2>/dev/null || true)
           mkdir -p dist/firmware
 
           if [ -z "${FIRMWARE_FACTORY}" ] || [ ! -f "${FIRMWARE_FACTORY}" ]; then
@@ -444,7 +424,7 @@ jobs:
             --ota "dist/firmware/${{ matrix.slug }}.ota.bin"
 
           if [ "${{ matrix.recovery }}" = "true" ]; then
-            RECOVERY_FACTORY=$(find "${RECOVERY_BUILD_CACHE}/build" -name firmware.factory.bin -print -quit 2>/dev/null || true)
+            RECOVERY_FACTORY=$(find "${RECOVERY_BUILD_OUTPUT}/build" -name firmware.factory.bin -print -quit 2>/dev/null || true)
             if [ -z "${RECOVERY_FACTORY}" ] || [ ! -f "${RECOVERY_FACTORY}" ]; then
               echo "::error::C6 recovery compilation failed — factory binary not found"
               exit 1
@@ -471,15 +451,17 @@ jobs:
           name: firmware-${{ matrix.slug }}
           path: dist/firmware/
 
-      - name: Clean firmware caches
+      - name: Clean firmware build resources
         if: always()
         working-directory: espdesktop-${{ matrix.slug }}
         run: |
-          if [ -z "${RUN_CACHE_ROOT:-}" ] || [ -z "${NORMAL_BUILD_CACHE:-}" ] || [ -z "${PLATFORMIO_CACHE:-}" ]; then
-            echo "No firmware cache paths were prepared."
+          if [ -z "${RUN_BUILD_OUTPUT:-}" ]; then
             exit 0
           fi
-          rm -rf "${RUN_CACHE_ROOT}"
+          if ${DOCKER} volume inspect "${TOOLCHAIN_CACHE_VOLUME}" >/dev/null 2>&1; then
+            ${DOCKER} volume rm "${TOOLCHAIN_CACHE_VOLUME}"
+          fi
+          rm -rf "${RUN_BUILD_OUTPUT}"
           bash scripts/reclaim_actions_disk.sh
 
   assemble-release:
