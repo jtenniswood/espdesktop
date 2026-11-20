@@ -186,6 +186,12 @@
                 "obsAvailable": {
                   "type": "boolean",
                   "optional": true
+                },
+                "shortcutColor": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 16777215,
+                  "optional": true
                 }
               }
             }

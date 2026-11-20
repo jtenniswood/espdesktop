@@ -20,8 +20,17 @@ inline bool live_companion_catalogue_equal(const std::vector<CompanionAction> &l
                                          const std::vector<CompanionAction> &right) {
   return left.size() == right.size() &&
       std::equal(left.begin(), left.end(), right.begin(), [](const auto &a, const auto &b) {
-        return a.id == b.id && a.label == b.label;
+        return a.id == b.id && a.label == b.label && a.shortcut_color == b.shortcut_color;
       });
+}
+
+inline std::optional<uint32_t> apple_shortcut_catalogue_color(
+    const std::vector<CompanionAction> &actions, std::string_view id) {
+  if (!companion_apple_shortcut_action(id)) return std::nullopt;
+  const auto action = std::find_if(actions.begin(), actions.end(), [id](const auto &item) {
+    return item.id == id;
+  });
+  return action != actions.end() ? action->shortcut_color : std::nullopt;
 }
 
 inline std::string generated_card_key(const std::string &id) {

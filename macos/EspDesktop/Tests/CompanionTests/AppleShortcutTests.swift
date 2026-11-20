@@ -1,7 +1,21 @@
+import CoreServices
 import XCTest
 @testable import Companion
 
 final class AppleShortcutTests: XCTestCase {
+    func testShortcutColorDecodesSixteenBitRGB() throws {
+        let channels: [UInt16] = [0xFFFF, 0x6363, 0x0000]
+        let color = try XCTUnwrap(NSAppleEventDescriptor(
+            descriptorType: DescType(typeRGBColor), data: channels.withUnsafeBytes { Data($0) }
+        ))
+        XCTAssertEqual(AppleShortcutColors.rgb24(color), 0xFF6300)
+        let black = try XCTUnwrap(NSAppleEventDescriptor(
+            descriptorType: DescType(typeRGBColor), data: Data(repeating: 0, count: 6)
+        ))
+        XCTAssertEqual(AppleShortcutColors.rgb24(black), 0)
+        XCTAssertNil(AppleShortcutColors.rgb24(.init(string: "FF6300")))
+    }
+
     @MainActor
     func testAllShortcutsAreAllowedByDefaultAndCustomSelectionPersists() {
         let suite = "AppleShortcutTests.\(UUID())"

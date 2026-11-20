@@ -7748,9 +7748,10 @@ async function assertReorderAfterDelete(browser) {
 async function mockCompanionAppIcon(context, appId) {
   const { COMPANION_APP_ICON_SIDE: side } = loadTypeScriptModule("src/webserver/generated/companion_capabilities.ts");
   const pixels = Buffer.alloc(side * side * 3, 255);
-  await context.route(`**/companion/app-icon?appId=${appId}`, route => route.fulfill({
-    contentType: "application/octet-stream", body: pixels,
-  }));
+  await context.route(url => url.pathname === "/companion/app-icon" && url.searchParams.get("appId") === appId,
+    route => route.fulfill({
+      contentType: "application/octet-stream", body: pixels,
+    }));
 }
 
 async function assertAppleShortcutCard(browser) {
@@ -7762,7 +7763,7 @@ async function assertAppleShortcutCard(browser) {
   } };
   const id = "appleshortcut.727ed9bf-de97-42ed-b661-8967497b122c";
   const replacementId = "appleshortcut.74e95dc0-0244-410f-b466-07aa47b8f1e5";
-  let workflows = [{ id, label: "Start Design Session" }];
+  let workflows = [{ id, label: "Start Design Session", shortcutColor: 0xFF6363 }];
   const context = await browser.newContext({ viewport: testCase.viewport });
   await installRoutes(context, testCase.slug, { nativeState: fixture, connectorsStatus, nativeV2: true });
   await context.route("**/companion/actions", route => route.fulfill({
@@ -7807,6 +7808,19 @@ async function assertAppleShortcutCard(browser) {
     const slot = Object.keys(fixture.document.buttons).find(key => fixture.document.buttons[key].startsWith("~" + id + ","));
     assert(slot, "the saved card keeps its Apple Shortcut identifier");
     assert(fixture.document.buttons[slot].startsWith("~" + id + ",Start Design Session,"));
+    assert(!fixture.document.buttons[slot].includes("FF6363"), "the inherited colour is not saved as an override");
+    await page.locator(`.sp-main [data-slot="${slot}"]`).waitFor();
+    await page.waitForFunction(slot =>
+      document.querySelector(`.sp-main [data-slot="${slot}"]`)?.style.backgroundColor === "rgb(255, 99, 99)", slot);
+
+    await page.locator(`.sp-main [data-slot="${slot}"]`).click({ button: "right" });
+    await page.locator(".sp-ctx-menu").getByText("Edit Card", { exact: true }).click();
+    await page.getByRole("button", { name: "Custom Colours", exact: true }).click();
+    await page.getByRole("button", { name: "Set colour to yellow", exact: true }).click();
+    await page.getByRole("button", { name: "Save", exact: true }).click();
+    await waitForNativeState(fixture, () => fixture.document.buttons[slot].includes("EED146"), "save the colour override");
+    await page.waitForFunction(slot =>
+      document.querySelector(`.sp-main [data-slot="${slot}"]`)?.style.backgroundColor === "rgb(238, 209, 70)", slot);
     workflows = [];
     connectorsStatus.mac_companion.connected = false;
     // Reopen the saved record in a known visible cell after a fresh load.
@@ -8025,12 +8039,16 @@ async function assertAppleShortcutSubpage(browser, directCard = false) {
       "save the deletion and hide the workflow from automatic placement");
     assert(savedExclusions().has(appleShortcutExclusionKey(workflows[0].id)), "preserve the previously hidden workflow");
     assert(savedExclusions().has(appleShortcutExclusionKey(workflows.at(-1).id)), "exclude workflows at the end of a full catalogue");
-    const newlyAvailable = { id: "appleshortcut.727ed9bf-de97-42ed-b661-8967497b1224", label: "Newly Available Workflow" };
+    const newlyAvailable = {
+      id: "appleshortcut.727ed9bf-de97-42ed-b661-8967497b1224", label: "Newly Available Workflow", shortcutColor: 0x198FFD,
+    };
     available = [...workflows.slice(0, 9), newlyAvailable];
     await open();
     await app.click({ button: "right" });
     await page.locator(".sp-ctx-menu").getByText("Edit Subpage", { exact: true }).click();
-    await page.locator(".sp-main .sp-live-folder-preview").getByText(newlyAvailable.label, { exact: true }).waitFor();
+    const generatedTile = page.locator(".sp-main .sp-empty-cell").filter({ hasText: newlyAvailable.label });
+    await generatedTile.waitFor();
+    assert.equal(await generatedTile.evaluate(tile => tile.style.backgroundColor), "rgb(25, 143, 253)");
     assert.equal(await page.locator(".sp-main").getByText("Workflow 09", { exact: true }).count(), 0,
       "an already unchecked workflow stays hidden when a space opens");
     assert.equal(await deleted.count(), 0, "the deleted workflow stays hidden after reload");

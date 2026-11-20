@@ -41,9 +41,10 @@ struct CompanionAction {
   OBSCardState obs_state{OBSCardState::unknown};
   std::string obs_detail{};
   std::optional<bool> obs_available{};
+  std::optional<uint32_t> shortcut_color{};
   bool operator==(const CompanionAction &other) const {
     return id == other.id && label == other.label && obs_state == other.obs_state && obs_detail == other.obs_detail &&
-      obs_available == other.obs_available;
+      obs_available == other.obs_available && shortcut_color == other.shortcut_color;
   }
 };
 

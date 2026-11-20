@@ -7,6 +7,11 @@ export const APPLE_SHORTCUTS_APP_ID = "com.apple.shortcuts";
 export const APPLE_SHORTCUTS_SUBPAGE_KIND = "apple_shortcuts";
 export const APPLE_SHORTCUTS_HIDDEN_OPTION = "apple_shortcuts_hidden";
 
+export function appleShortcutBackgroundColor(rgb: number | undefined): string {
+    return typeof rgb === "number" && Number.isInteger(rgb) && rgb >= 0 && rgb <= 0xFFFFFF
+        ? rgb.toString(16).padStart(6, "0").toUpperCase() : "";
+}
+
 const exclusionPrefix = "v1.";
 const exclusionWidth = 11;
 const exclusionAlphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_";

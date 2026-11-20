@@ -1263,9 +1263,13 @@ final class CompanionConnection: NSObject {
         let inputs: [[String: String]] = !obsOnly && supportsInputDevices ? resources.inputDeviceActions().map {
             ["id": $0.id, "label": Self.catalogueLabel($0.label, fallback: "Input device")]
         } : []
-        let appleShortcuts: [[String: String]] = !obsOnly && appleShortcutsSupported
-            ? resources.appleShortcutActions().map {
-                ["id": $0.actionIdentifier, "label": Self.catalogueLabel($0.name, fallback: "Apple Shortcut")]
+        let appleShortcuts: [[String: Any]] = !obsOnly && appleShortcutsSupported
+            ? resources.appleShortcutActions().map { shortcut in
+                var fields: [String: Any] = [
+                    "id": shortcut.actionIdentifier, "label": Self.catalogueLabel(shortcut.name, fallback: "Apple Shortcut"),
+                ]
+                if let color = shortcut.color { fields["shortcutColor"] = color }
+                return fields
             }
             : []
         let folders = obsOnly ? [] : resources.folderActions()
@@ -1278,7 +1282,7 @@ final class CompanionConnection: NSObject {
         }
         // Older panels share a limit across Mac and OBS actions. Keep their
         // existing application order before appending the OBS catalogue.
-        let catalogue = (inputs + entries + appleShortcuts).map { $0 as [String: Any] } + obsEntries
+        let catalogue = (inputs + entries).map { $0 as [String: Any] } + appleShortcuts + obsEntries
         catalogueGeneration &+= 1
         if catalogueGeneration == 0 { catalogueGeneration = 1 }
         let pageSize = appleShortcutsSupported ? 16 : 48

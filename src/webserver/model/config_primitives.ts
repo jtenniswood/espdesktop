@@ -126,14 +126,14 @@ export function setCardActiveColor(options: unknown, mode: "matching" | "theme" 
   return setConfigOptionValue(out, "card_on_color", mode === "custom" ? normalizedColor(color) : "");
 }
 
-export function cardActiveColor(options: unknown, themeColor: string): string {
+export function cardActiveColor(options: unknown, themeColor: string, backgroundColor?: string): string {
   const mode = cardActiveColorMode(options);
   if (mode === "custom") {
     const color = normalizedColor(configOptionValue(options, "card_on_color"));
     if (color) return color;
   }
   if (mode !== "theme") {
-    const matching = activeCardColor(configOptionValue(options, "card_off_color"));
+    const matching = activeCardColor(backgroundColor ?? configOptionValue(options, "card_off_color"));
     if (matching) return matching;
   }
   return normalizedColor(themeColor) || "FF8C00";

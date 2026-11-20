@@ -61,6 +61,16 @@ static void assert_finder_folder_projection() {
 
 int main() {
   {
+    const std::string id = "appleshortcut.colored";
+    const std::vector<CompanionAction> initial{{id, "Shortcut"}};
+    auto colored = initial;
+    colored.front().shortcut_color = 0;
+    assert(apple_shortcut_catalogue_color(colored, id) == 0);
+    assert(!apple_shortcut_catalogue_color(initial, id));
+    assert(!apple_shortcut_catalogue_color(colored, "folder.home"));
+    assert(initial != colored && !live_companion_catalogue_equal(initial, colored));
+  }
+  {
     const std::string a(32, 'a'), b(32, 'b'), c(32, 'c');
     const std::string prefix = "obs.transition.select.";
     const std::string token = ".11111111-1111-1111-1111-111111111111";

@@ -16,6 +16,8 @@ An Apple shortcut automates one or more tasks on your Mac, such as starting a fo
 
 Use matching versions of the EspDesktop Mac app and display firmware. Keep your Mac unlocked to run shortcuts and answer any prompts there.
 
+Open the **Shortcuts** tab in EspDesktop on your Mac and allow Automation access when macOS asks. Individual shortcut tiles and tiles in shortcut lists then use the background colour you picked in Shortcuts. Choose a custom card colour in the web editor to override it.
+
 In your display’s web editor, select an empty tile and choose **Companion → Apple Shortcuts**. Then pick one of these three card types.
 
 <a href="/images/apple-shortcuts/card-types.png">

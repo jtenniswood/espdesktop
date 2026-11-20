@@ -1890,6 +1890,7 @@ class CompanionActionsHandler : public esphome::web_server_idf::AsyncWebHandler 
           json += std::string(",\"obsState\":\"") + obs_card_presentation(action.obs_state).id + "\"";
         if (!action.obs_detail.empty()) json += ",\"obsDetail\":\"" + companion_json_escape(action.obs_detail) + "\"";
         if (action.obs_available) json += *action.obs_available ? ",\"obsAvailable\":true" : ",\"obsAvailable\":false";
+        if (action.shortcut_color) json += ",\"shortcutColor\":" + std::to_string(*action.shortcut_color);
 #ifdef USE_COMPANION
         // The browser already polls this catalogue. Include cache freshness so
         // updated icons refresh open previews without downloading unchanged pixels.

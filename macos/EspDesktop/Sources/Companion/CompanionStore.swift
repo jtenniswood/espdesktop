@@ -168,6 +168,7 @@ final class CompanionStore: NSObject, ObservableObject {
     private var lastAppVolumeValues: [String: Int] = [:]
     private var focusTimer: Timer?
     private var appleShortcutsTimer: Timer?
+    private var pendingAppleShortcutColorPrompt = false
     private var activatedApplicationPID: pid_t?
     private var browserFocusQuery: Task<URL?, Never>?
     private var browserFocusGeneration = 0
@@ -484,33 +485,46 @@ final class CompanionStore: NSObject, ObservableObject {
         allAppleShortcutsApproved || approvedAppleShortcutIDs.contains(id)
     }
 
-    func setAllAppleShortcuts(approved: Bool) {
+    func setAllAppleShortcuts(approved: Bool, allowColorPrompt: Bool = false) {
         guard allAppleShortcutsApproved != approved else { return }
         allAppleShortcutsApproved = approved
         defaults.set(approved, forKey: Keys.allAppleShortcutsApproved)
         publishToConnectedDisplays { $0.publishCatalogue(includeDefinitions: false) }
-        if approved { refreshSharedAppleShortcuts() }
+        if approved { refreshAppleShortcuts(allowColorPrompt: allowColorPrompt) }
     }
 
-    func refreshAppleShortcuts() {
-        guard !refreshingAppleShortcuts else { return }
+    func refreshAppleShortcuts(allowColorPrompt: Bool = false) {
+        guard !refreshingAppleShortcuts else {
+            if allowColorPrompt { pendingAppleShortcutColorPrompt = true }
+            return
+        }
         refreshingAppleShortcuts = true
         appleShortcutMessage = nil
         Task { [weak self] in
             let shortcuts = await AppleShortcutsCLI.list()
             guard let self else { return }
-            refreshingAppleShortcuts = false
+            defer {
+                refreshingAppleShortcuts = false
+                if pendingAppleShortcutColorPrompt {
+                    pendingAppleShortcutColorPrompt = false
+                    refreshAppleShortcuts(allowColorPrompt: true)
+                }
+            }
             guard let shortcuts else {
                 appleShortcutMessage = "Couldn’t load Apple Shortcuts. Reopen this tab to try again."
                 return
             }
-            guard shortcuts != appleShortcuts else { return }
-            appleShortcuts = shortcuts
+            let readsColors = allowColorPrompt || connectedDisplays.contains(where: { $0.connection.appleShortcutsSupported })
+            let approvedIDs = readsColors ? shortcuts.map(\.id).filter { appleShortcutIsApproved($0) } : []
+            let colors = await AppleShortcutColors.read(for: approvedIDs, allowPrompt: allowColorPrompt)
+            let updated = shortcuts.map { AppleShortcut(id: $0.id, name: $0.name, color: colors[$0.id]) }
+            guard updated != appleShortcuts else { return }
+            appleShortcuts = updated
             publishToConnectedDisplays { $0.publishCatalogue(includeDefinitions: false) }
         }
     }
 
-    func setAppleShortcut(_ shortcut: AppleShortcut, approved: Bool) {
+    func setAppleShortcut(_ shortcut: AppleShortcut, approved: Bool, allowColorPrompt: Bool = false) {
         if approved {
             approvedAppleShortcutIDs.insert(shortcut.id)
         } else {
@@ -518,6 +532,7 @@ final class CompanionStore: NSObject, ObservableObject {
         }
         defaults.set(approvedAppleShortcutIDs.map(\.uuidString).sorted(), forKey: Keys.approvedAppleShortcuts)
         publishToConnectedDisplays { $0.publishCatalogue(includeDefinitions: false) }
+        if approved { refreshAppleShortcuts(allowColorPrompt: allowColorPrompt) }
     }
 
     private func runAppleShortcut(_ actionIdentifier: String) async -> String {

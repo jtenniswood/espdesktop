@@ -1061,7 +1061,7 @@ struct CompanionSettings: View {
             Section {
                 Toggle("All available shortcuts", isOn: Binding(
                     get: { store.allAppleShortcutsApproved },
-                    set: { store.setAllAppleShortcuts(approved: $0) }
+                    set: { store.setAllAppleShortcuts(approved: $0, allowColorPrompt: true) }
                 ))
                 .toggleStyle(SwitchToggleStyle(tint: .accentColor))
 
@@ -1076,7 +1076,7 @@ struct CompanionSettings: View {
                     ForEach(store.appleShortcuts) { shortcut in
                         Toggle(shortcut.name, isOn: Binding(
                             get: { store.appleShortcutIsApproved(shortcut.id) },
-                            set: { store.setAppleShortcut(shortcut, approved: $0) }
+                            set: { store.setAppleShortcut(shortcut, approved: $0, allowColorPrompt: true) }
                         ))
                         .toggleStyle(SwitchToggleStyle(tint: .accentColor))
                         .padding(.vertical, 2)
@@ -1104,7 +1104,7 @@ struct CompanionSettings: View {
             }
         }
         .formStyle(.grouped)
-        .onAppear { store.refreshAppleShortcuts() }
+        .onAppear { store.refreshAppleShortcuts(allowColorPrompt: true) }
         .onReceive(NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification)) { _ in
             store.refreshAppleShortcuts()
         }
