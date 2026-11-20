@@ -15,7 +15,7 @@ Choose **Add Card → OBS Studio → Grouped pages → Studio Control** and save
 
 Use **Edit Subpage** to move, edit, or delete the preset cards. Add **Virtual Camera** or **Open Multiview** if you also use them during a session.
 
-<a href="/images/obs/studio-control-layout.png"><img src="/images/obs/studio-control-layout.png" alt="Studio Control layout with Record and Stream idle, Studio Mode and Replay Buffer on, and a large Save Replay card marked Ready" width="1184" height="1184" loading="lazy"></a>
+<a href="/images/obs/studio-control-layout.png"><img src="/images/obs/studio-control-layout.png" alt="Studio Control layout with Record and Stream idle, Studio Mode on, Replay Buffer off, and a large Save Replay card showing Start Replay Buffer" width="1202" height="1198" loading="lazy"></a>
 
 ## Studio Mode and Multiview
 
