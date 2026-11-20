@@ -15,7 +15,7 @@ struct DevicePairingButtonColors {
 // Match the website's dark-mode button blue.
 inline constexpr DevicePairingButtonColors DEVICE_PAIRING_BUTTON_BLUE{0x3E63DD, 0x3451B2};
 inline constexpr DevicePairingButtonColors DEVICE_PAIRING_BUTTON_GREY{0x6C6C6C, 0x555555};
-inline constexpr uint32_t DEVICE_PAIRING_TILE_BORDER = 0x595959;
+inline constexpr uint32_t DEVICE_PAIRING_TILE_BORDER = 0x383838;
 
 struct DevicePairingUi {
   lv_obj_t *overlay = nullptr;
