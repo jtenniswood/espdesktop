@@ -15,6 +15,8 @@ Use your local network for Mac controls with the standard EspDesktop release. Wi
 
 To find the display’s IP address, tap the network status icon on the touchscreen and look for **IP address**. If a paired display’s address changes, open its **Network** menu in **Settings → Displays**, choose **Update Address**, enter the current address, and choose **Connect**.
 
+<a href="/images/mac-connector/usb-connection.png"><img src="/images/mac-connector/usb-connection.png" alt="EspDesktop Mac app Displays settings with the Network menu open, showing Use USB and Update Address" width="480" height="649" loading="lazy"></a>
+
 ## Connect over USB
 
 Use a USB data cable to connect the display directly to your Mac. For the first firmware installation, follow the [USB installer guide](/screens/4848s040#install). The steps below are for using Mac controls after installing USB-capable firmware.
