@@ -34,4 +34,7 @@ When the display is asleep, tap once to wake it, then tap a card to use it.
 
 When your display is connected to the EspDesktop Mac app, locking your Mac also locks the touchscreen controls. The display shows **Locked** while its backlight is on. Unlock your Mac to use the display again.
 
-<img src="/images/display-locked-with-mac.jpg" alt="EspDesktop display showing a lock icon and the message ‘Unlock your Mac to use this screen’" width="640" height="640" loading="lazy">
+<picture>
+  <source type="image/avif" srcset="/images/display-locked-with-mac-640.avif">
+  <img src="/images/display-locked-with-mac.jpg" alt="EspDesktop display showing a lock icon and the message ‘Unlock your Mac to use this screen’" width="640" height="640" loading="lazy" decoding="async">
+</picture>

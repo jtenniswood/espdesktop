@@ -7,7 +7,10 @@ description: Select OBS scenes, preview a shot, take it live, choose transitions
 
 **Program** is the scene OBS sends to its output. **Preview** is where you line up the next scene with Studio Mode on. [Connect OBS Studio](/mac-controls/obs-studio#connect-obs-studio), then open **Add Card → OBS Studio** in the display editor.
 
-<img src="/images/obs/scenes.jpg" alt="EspDesktop Scenes page showing Studio live, Safari selected for Preview, Transition set to Cut, and Save Replay ready" width="1440" height="1440">
+<picture>
+  <source type="image/avif" srcset="/images/obs/scenes-480.avif 480w, /images/obs/scenes-960.avif 960w" sizes="(min-width: 768px) 688px, min(688px, 90vw)">
+  <img src="/images/obs/scenes.jpg" alt="EspDesktop Scenes page with Studio live, Safari in Preview and Cut selected" width="1440" height="1440">
+</picture>
 
 On this customised Scenes page, **Studio** is live and **Safari** is selected in Preview. **Save Replay** was added next to **Take Safari** to keep clip capture within reach.
 
@@ -19,15 +22,30 @@ Choose **Grouped pages → Scenes** and save the card. The page fills with scene
 
 Open **Edit Card** on the **Scenes** page card to hide or reorder scenes. In this example, all four are visible. Putting your most-used scenes first gives them the first available cells after **Back**.
 
-<a href="/images/obs/scenes-settings.png"><img src="/images/obs/scenes-settings.png" alt="Scenes subpage settings with reorder controls and visibility switches for Codex, Safari, Studio and Obsbot" width="1056" height="1252" loading="lazy"></a>
+<a href="/images/obs/scenes-settings.png">
+  <picture>
+    <source type="image/avif" srcset="/images/obs/scenes-settings-480.avif 480w, /images/obs/scenes-settings-960.avif 960w" sizes="(min-width: 768px) 688px, min(688px, 90vw)">
+    <img src="/images/obs/scenes-settings.png" alt="Scenes subpage settings with reorder controls and visibility switches for Codex, Safari, Studio and Obsbot" width="1056" height="1252" loading="lazy" decoding="async">
+  </picture>
+</a>
 
-<a href="/images/obs/scenes-layout.png"><img src="/images/obs/scenes-layout.png" alt="Scenes grouped page with four scenes, Break, Transition set to Cut, and a wide Take Safari card" width="1189" height="1189" loading="lazy"></a>
+<a href="/images/obs/scenes-layout.png">
+  <picture>
+    <source type="image/avif" srcset="/images/obs/scenes-layout-480.avif 480w, /images/obs/scenes-layout-960.avif 960w" sizes="(min-width: 768px) 688px, min(688px, 90vw)">
+    <img src="/images/obs/scenes-layout.png" alt="Scenes grouped page with four scenes, Break, Transition set to Cut, and a wide Take Safari card" width="1189" height="1189" loading="lazy" decoding="async">
+  </picture>
+</a>
 
 ### Transitions
 
 Choose **Grouped pages → Transitions** and save the card. It fills available cells with the transitions configured in OBS. Open **Edit Card** on the page card and expand the **Transitions** list to hide or reorder them.
 
-<a href="/images/obs/transitions-layout.png"><img src="/images/obs/transitions-layout.png" alt="Transitions grouped page with Fade and Cut cards, with Cut highlighted as the selected transition" width="1188" height="1188" loading="lazy"></a>
+<a href="/images/obs/transitions-layout.png">
+  <picture>
+    <source type="image/avif" srcset="/images/obs/transitions-layout-480.avif 480w, /images/obs/transitions-layout-960.avif 960w" sizes="(min-width: 768px) 688px, min(688px, 90vw)">
+    <img src="/images/obs/transitions-layout.png" alt="Transitions grouped page with Fade and Cut cards, with Cut highlighted as the selected transition" width="1188" height="1188" loading="lazy" decoding="async">
+  </picture>
+</a>
 
 ## Preview a scene and take it live
 
