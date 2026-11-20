@@ -1,5 +1,5 @@
 import { createCompanionCatalogue, type CompanionAction } from "../api/companion_catalogue";
-import { APPLE_SHORTCUT_PREFIX } from "../model/companion_card_codec";
+import { APPLE_HOME_CONTROL_PREFIX, APPLE_SHORTCUT_PREFIX } from "../model/companion_card_codec";
 import { APPLE_SHORTCUTS_APP_ID } from "../model/companion_shortcut_page";
 import type { NativeLayoutDraft } from "../model/native_layout_draft";
 import type { NativePanelConfigGraph } from "../model/panel_config_conversion";
@@ -41,7 +41,7 @@ function hasNativeLayout(snapshot: NativePanelConfigSnapshot | null): snapshot i
 export function firstRunApplications(actions: readonly CompanionAction[]): CompanionAction[] {
     const unique = new Map<string, CompanionAction>();
     for (const action of actions) {
-        if (!action.id.startsWith(APPLE_SHORTCUT_PREFIX) && !action.id.startsWith("folder.") && !action.id.startsWith("shortcut.") &&
+        if (!action.id.startsWith(APPLE_HOME_CONTROL_PREFIX) && !action.id.startsWith(APPLE_SHORTCUT_PREFIX) && !action.id.startsWith("folder.") && !action.id.startsWith("shortcut.") &&
             !action.id.startsWith("media.") && !action.id.startsWith("system.") &&
             !action.id.startsWith("window.") && !action.id.startsWith("webapp.") &&
             !action.id.startsWith("obs.") && !action.id.startsWith("input.level.")) unique.set(action.id, action);

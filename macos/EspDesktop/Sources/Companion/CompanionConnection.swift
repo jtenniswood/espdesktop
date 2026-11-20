@@ -962,6 +962,13 @@ final class CompanionConnection: NSObject {
                             self.task === requestingTask && self.sessionAuthenticated
                         }
                         status = performed ? "performed" : "not_allowed"
+                    } else if actionIdentifier.hasPrefix(AppleHomeControl.actionPrefix) {
+                        if payload.appId == nil, let reference = AppleHomeControl.reference(for: actionIdentifier) {
+                            status = await self.resources.performAppleHomeCard(reference: reference,
+                                                                             pairingAccount: self.preferences.pairingAccount)
+                        } else {
+                            status = "not_allowed"
+                        }
                     } else if payload.appId == nil, let slot = AppleHomeSceneBindings.slot(for: actionIdentifier),
                               let sceneStatus = await self.resources.performAppleHomeScene(slot: slot, pairingAccount: self.preferences.pairingAccount) {
                         status = sceneStatus
@@ -1285,7 +1292,10 @@ final class CompanionConnection: NSObject {
         }
         // Older panels share a limit across Mac and OBS actions. Keep their
         // existing application order before appending the OBS catalogue.
-        let catalogue = (inputs + entries).map { $0 as [String: Any] } + appleShortcuts + obsEntries
+        let homeCards = obsOnly ? [] : resources.appleHomeCardActions(for: preferences.pairingAccount).map {
+            ["id": $0.id, "label": Self.catalogueLabel($0.label, fallback: "Apple Home")]
+        }
+        let catalogue = (homeCards + inputs + entries).map { $0 as [String: Any] } + appleShortcuts + obsEntries
         catalogueGeneration &+= 1
         if catalogueGeneration == 0 { catalogueGeneration = 1 }
         let pageSize = appleShortcutsSupported ? 16 : 48

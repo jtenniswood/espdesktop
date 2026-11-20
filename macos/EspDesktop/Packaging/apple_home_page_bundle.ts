@@ -21,8 +21,8 @@ if (typeof TextEncoder === "undefined") {
 }
 
 Object.assign(globalThis, {
-    buildAppleHomePage(source: number[]): number[] | null {
-        const layout = buildAppleHomePage(Uint8Array.from(source));
+    buildAppleHomePage(source: number[], action: string, label: string): number[] | null {
+        const layout = buildAppleHomePage(Uint8Array.from(source), action, label);
         return layout === null ? null : Array.from(layout);
     },
 });

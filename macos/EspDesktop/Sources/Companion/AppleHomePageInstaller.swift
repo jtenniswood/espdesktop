@@ -7,15 +7,15 @@ enum AppleHomePageInstaller {
 
     static var asset: URL? { Bundle.main.url(forResource: "apple-home-page", withExtension: "js") }
 
-    static func install(at panel: URL, beforeSave: () throws -> Void) async throws -> String {
+    static func install(at panel: URL, action: String, label: String, beforeSave: () throws -> Void) async throws -> String {
         guard let asset else { throw InstallError("The Apple Home setup tool is missing.") }
         let session = URLSession(configuration: .ephemeral, delegate: DirectConnection(), delegateQueue: nil)
         defer { session.finishTasksAndInvalidate() }
         let source = try String(contentsOf: asset, encoding: .utf8)
-        return try await install(at: panel, source: source, beforeSave: beforeSave) { try await session.data(for: $0) }
+        return try await install(at: panel, source: source, action: action, label: label, beforeSave: beforeSave) { try await session.data(for: $0) }
     }
 
-    static func install(at panel: URL, source: String,
+    static func install(at panel: URL, source: String, action: String, label: String,
                         beforeSave: () throws -> Void = {},
                         fetch: (URLRequest) async throws -> (Data, URLResponse)) async throws -> String {
         let resetURL = panel.appending(path: "api/v1/reset")
@@ -42,10 +42,10 @@ enum AppleHomePageInstaller {
               let generation = response.value(forHTTPHeaderField: "ETag") else {
             throw InstallError("This display does not support Apple Home page setup.")
         }
-        let proposed = try generate(input: current, source: source)
+        let proposed = try generate(input: current, source: source, action: action, label: label)
         try beforeSave()
         guard let layout = proposed else {
-            return "The Apple Home page is already on this display."
+            return "This Apple Home card is already on the display."
         }
 
         var write = read
@@ -57,15 +57,15 @@ enum AppleHomePageInstaller {
         let (_, result) = try await fetch(write)
         guard let saved = result as? HTTPURLResponse else { throw InstallError("The display did not respond.") }
         switch saved.statusCode {
-        case 204: return "The Apple Home page is ready on your display."
-        case 202: return "The Apple Home page is ready. The display could not update its legacy backup."
+        case 204: return "Apple Home card saved."
+        case 202: return "Apple Home card saved. The display could not update its legacy backup."
         case 409, 412, 428: throw InstallError("The display layout changed during setup. Try again to use its latest layout.")
         case 413: throw InstallError("There is not enough room on the display for the Apple Home page.")
         default: throw InstallError("Could not save the Apple Home page (HTTP \(saved.statusCode)).")
         }
     }
 
-    static func generate(input: Data, source: String) throws -> Data? {
+    static func generate(input: Data, source: String, action: String, label: String) throws -> Data? {
         guard input.count <= 512 * 1024, let js = JSContext() else {
             throw InstallError("The display configuration could not be opened.")
         }
@@ -74,7 +74,7 @@ enum AppleHomePageInstaller {
         js.setObject(encode, forKeyedSubscript: "appleHomeEncodeUTF8" as NSString)
         js.setObject(decode, forKeyedSubscript: "appleHomeDecodeUTF8" as NSString)
         js.evaluateScript(source)
-        let result = js.objectForKeyedSubscript("buildAppleHomePage")?.call(withArguments: [Array(input)])
+        let result = js.objectForKeyedSubscript("buildAppleHomePage")?.call(withArguments: [Array(input), action, label])
         if let error = js.exception { throw InstallError(error.toString() ?? "Could not prepare the Apple Home page.") }
         if result?.isNull == true { return nil }
         guard let bytes = result?.toArray() as? [UInt8], !bytes.isEmpty else {

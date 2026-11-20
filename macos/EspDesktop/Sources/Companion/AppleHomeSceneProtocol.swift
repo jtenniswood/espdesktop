@@ -32,8 +32,22 @@ struct AppleHomeSceneBindings: Codable, Equatable {
     }
 }
 
+struct AppleHomeControl: Codable, Equatable, Identifiable, Sendable {
+    let id: UUID
+    let name: String
+
+    static let actionPrefix = "applehome.control."
+
+    var action: String { Self.actionPrefix + id.uuidString.lowercased() }
+
+    static func reference(for action: String) -> UUID? {
+        guard action.hasPrefix(actionPrefix) else { return nil }
+        return UUID(uuidString: String(action.dropFirst(actionPrefix.count)))
+    }
+}
+
 struct AppleHomeSceneMessage: Codable, Equatable, Sendable {
-    enum Kind: String, Codable, Sendable { case hello, status, run, result, disconnect }
+    enum Kind: String, Codable, Sendable { case hello, status, catalogStart, catalogControl, catalogEnd, run, result, disconnect }
     enum Status: String, Codable, Sendable { case waiting, chooseHome, denied, empty, ready }
 
     let kind: Kind
@@ -42,11 +56,13 @@ struct AppleHomeSceneMessage: Codable, Equatable, Sendable {
     var request: UUID? = nil
     var slot: Int? = nil
     var bindingSet: UUID? = nil
+    var reference: UUID? = nil
+    var control: AppleHomeControl? = nil
     var succeeded: Bool? = nil
 }
 
 // Both processes use a private, loopback connection. The companion gives the
-// helper a fresh secret at launch. Messages carry slots, never HomeKit IDs.
+// helper a fresh secret at launch. HomeKit scene names stay on this Mac.
 @MainActor
 final class AppleHomeSceneChannel {
     let connection: NWConnection

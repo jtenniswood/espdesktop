@@ -2,7 +2,7 @@ import { obsSubpageCatalogue } from "../model/obs_live_subpage";
 import { targetedAudioCard } from "./companion_app_volume";
 import { childPageKey } from "../model/page_keys";
 import { renderCompanionStorageSelector } from "./companion_storage";
-import { APPLE_SHORTCUT_PREFIX, COMPANION_FOLDER_PREFIX, COMPANION_OBS_PREFIX, OBS_BRB_ID, OBS_MULTIVIEW_ID, OBS_OUTPUT_OPTIONS, OBS_PROGRAM_ID, OBS_REPLAY_BUFFER_ID, OBS_REPLAY_ID, OBS_STUDIO_ID, OBS_STUDIO_OPTIONS, OBS_TAKE_ID, OBS_TRANSITION_ID, OBS_TRANSITION_OPTIONS, OBS_TRANSITION_SELECT, savedOBSTransition, savedOBSSceneTarget, decodeCompanionCard, encodeCompanionCard, companionMetricForEntity, obsConfirmationControl, obsInputName, obsOutputCardEntity, obsSceneCardEntity } from "../model/companion_card_codec";
+import { APPLE_HOME_CONTROL_PREFIX, APPLE_SHORTCUT_PREFIX, COMPANION_FOLDER_PREFIX, COMPANION_OBS_PREFIX, OBS_BRB_ID, OBS_MULTIVIEW_ID, OBS_OUTPUT_OPTIONS, OBS_PROGRAM_ID, OBS_REPLAY_BUFFER_ID, OBS_REPLAY_ID, OBS_STUDIO_ID, OBS_STUDIO_OPTIONS, OBS_TAKE_ID, OBS_TRANSITION_ID, OBS_TRANSITION_OPTIONS, OBS_TRANSITION_SELECT, savedOBSTransition, savedOBSSceneTarget, decodeCompanionCard, encodeCompanionCard, companionMetricForEntity, obsConfirmationControl, obsInputName, obsOutputCardEntity, obsSceneCardEntity } from "../model/companion_card_codec";
 import { configOptionEnabled, configOptionValue, setConfigOption, setConfigOptionValue, normalizedCardColorOptions, preserveCardColorOptions, withoutCardColorOptions } from "../model/config_primitives";
 import { createCompanionCatalogue, createCompanionCatalogueMonitor } from "../api/companion_catalogue";
 import type { CompanionAction } from "../api/companion_catalogue";
@@ -359,6 +359,7 @@ export function companionEntityForMode(mode: string): string {
     if (mode === "obs_replay_buffer") return OBS_REPLAY_BUFFER_ID;
     if (mode === "obs_output") return OBS_OUTPUT_OPTIONS[0][0];
     if (mode === "obs_status") return OBS_PROGRAM_ID;
+    if (mode === "apple_home") return APPLE_HOME_CONTROL_PREFIX;
     if (mode === "apple_shortcut") return APPLE_SHORTCUT_PREFIX;
     if (mode === "stats") return COMPANION_SYSTEM_METRICS[0]?.id || "";
     return COMPANION_SYSTEM_METRICS.find((metric) => metric.mode === mode)?.id || "";
@@ -367,6 +368,7 @@ export function companionEntityForMode(mode: string): string {
 export function companionApplicationActions(actions: readonly CompanionAction[]): readonly CompanionAction[] {
     return sortCompanionLabels(actions.filter((action) =>
         !action.id.startsWith(COMPANION_FOLDER_PREFIX) &&
+        !action.id.startsWith(APPLE_HOME_CONTROL_PREFIX) &&
         !action.id.startsWith(APPLE_SHORTCUT_PREFIX) &&
         !action.id.startsWith(COMPANION_OBS_PREFIX) &&
         !action.id.startsWith("input.level.") &&
@@ -1171,27 +1173,32 @@ export function registerCompanionCardTypes(
                 return;
             }
 
-            if (initialMode === "apple_shortcut") {
+            if (initialMode === "apple_shortcut" || initialMode === "apple_home") {
+                const appleHome = initialMode === "apple_home";
+                const prefix = appleHome ? APPLE_HOME_CONTROL_PREFIX : APPLE_SHORTCUT_PREFIX;
+                const controlLabel = appleHome ? "Apple Home" : "Apple Shortcut";
                 const field = document.createElement("div");
                 field.className = "sp-field";
                 const picker = document.createElement("select");
                 picker.className = "sp-select";
-                picker.id = helpers.idPrefix + "apple-shortcut";
-                field.append(fieldLabel("Apple Shortcut", picker.id), picker);
+                picker.id = helpers.idPrefix + (appleHome ? "apple-home" : "apple-shortcut");
+                field.append(fieldLabel(controlLabel, picker.id), picker);
                 const note = document.createElement("div");
                 note.className = "sp-field-info-text";
-                note.textContent = "Choose which workflows are available under Shortcuts in the EspDesktop Mac app.";
+                note.textContent = appleHome
+                    ? "Choose controls under Apple Home in the EspDesktop Mac app. The display shows the labels you set there."
+                    : "Choose which workflows are available under Shortcuts in the EspDesktop Mac app.";
                 field.appendChild(note);
                 panel?.appendChild(field);
                 helpers.markCardPrimaryField(field, "entity");
 
-                const savedID = currentEntity === APPLE_SHORTCUT_PREFIX ? "" : currentEntity;
+                const savedID = currentEntity === prefix ? "" : currentEntity;
                 let workflows: readonly CompanionAction[] = [];
                 function showWorkflows(emptyMessage: string): void {
                     picker.replaceChildren();
                     const placeholder = document.createElement("option");
                     placeholder.value = "";
-                    placeholder.textContent = workflows.length ? "Choose an Apple Shortcut…" : emptyMessage;
+                    placeholder.textContent = workflows.length ? (appleHome ? "Choose an Apple Home card…" : "Choose an Apple Shortcut…") : emptyMessage;
                     placeholder.disabled = true;
                     picker.appendChild(placeholder);
                     for (const action of workflows) {
@@ -1200,22 +1207,22 @@ export function registerCompanionCardTypes(
                         option.textContent = action.label;
                         picker.appendChild(option);
                     }
-                    const selectedID = card.entity === APPLE_SHORTCUT_PREFIX ? "" : card.entity;
+                    const selectedID = card.entity === prefix ? "" : card.entity;
                     if (selectedID && !workflows.some(action => action.id === selectedID)) {
                         const unavailable = document.createElement("option");
                         unavailable.value = selectedID;
-                        unavailable.textContent = card.label ? card.label + " (unavailable)" : "Workflow unavailable";
+                        unavailable.textContent = card.label ? card.label + " (unavailable)" : controlLabel + " unavailable";
                         picker.appendChild(unavailable);
                     }
                     picker.value = selectedID;
                     picker.disabled = workflows.length === 0;
                 }
-                showWorkflows("Loading Apple Shortcuts…");
+                showWorkflows(appleHome ? "Loading Apple Home cards…" : "Loading Apple Shortcuts…");
                 void loadCompanionActions(true).then(actions => {
-                    workflows = sortCompanionLabels(actions.filter(action => action.id.startsWith(APPLE_SHORTCUT_PREFIX)));
-                    showWorkflows("No available Apple Shortcuts");
-                }).catch(() => showWorkflows("Apple Shortcuts unavailable"));
-                helpers.requireField(picker, "Choose an Apple Shortcut before saving.", () => true,
+                    workflows = sortCompanionLabels(actions.filter(action => action.id.startsWith(prefix)));
+                    showWorkflows(appleHome ? "No Apple Home cards for this display" : "No available Apple Shortcuts");
+                }).catch(() => showWorkflows(appleHome ? "Apple Home unavailable" : "Apple Shortcuts unavailable"));
+                helpers.requireField(picker, appleHome ? "Choose an Apple Home card before saving." : "Choose an Apple Shortcut before saving.", () => true,
                     (value: string) => !!value && (value === savedID || workflows.some(action => action.id === value)));
                 picker.addEventListener("change", () => {
                     const selected = workflows.find(action => action.id === picker.value);
@@ -2081,7 +2088,7 @@ export function registerCompanionCardTypes(
             let urlLabel = "";
             try { urlLabel = new URL(companionUrlValue(card.sensor || "")).hostname; } catch { /* incomplete URL */ }
             const preview = cardBadgePreview(card, helpers, {
-                label: card.label || (mode === "apple_shortcut" ? "Apple Shortcut" : "") ||
+                label: card.label || (mode === "apple_home" ? "Apple Home" : mode === "apple_shortcut" ? "Apple Shortcut" : "") ||
                     shortcutLabel || urlLabel || appLabel || card.entity ||
                     (mode === "folder" ? "Folder" : "Mac App"),
                 iconFallback: companionSubtypeDefaultIcon(mode),
@@ -2329,6 +2336,7 @@ export function registerCompanionCardTypes(
         ["companion_obs_brb", "Break", "obs_brb"],
         ["companion_obs_replay", "Replay Buffer", "obs_replay"],
         ["companion_obs_output", "Output Controls", "obs_output"],
+        ["companion_apple_home", "Apple Home", "apple_home"],
         ["companion_apple_shortcut", "Run a shortcut", "apple_shortcut"],
     ];
     companionPickerDefinitions.forEach(function (definition) {

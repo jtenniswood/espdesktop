@@ -51,6 +51,18 @@ final class AppleHomeSceneTests: XCTestCase {
     }
 
     @MainActor
+    func testNativeHomeCardUsesItsReferenceAndFailsClosedWhenUnassigned() async {
+        let scene = AppleHomeControl(id: UUID(), name: "Private Scene")
+        XCTAssertEqual(AppleHomeControl.reference(for: scene.action), scene.id)
+        XCTAssertNil(CompanionKeyboardShortcut(actionIdentifier: scene.action))
+        let defaults = UserDefaults(suiteName: "AppleHomeSceneTests.\(UUID())")!
+        let home = AppleHomeScenes(defaults: defaults)
+        let status = await home.statusForCard(reference: scene.id, account: "display.unknown", isUnlocked: true)
+        XCTAssertEqual(status, "not_allowed")
+        XCTAssertTrue(home.cardActions(for: "display.unknown").isEmpty)
+    }
+
+    @MainActor
     func testLayoutJavascriptCanRoundTripUTF8() throws {
         let input = Data("Café 🏠".utf8)
         let source = """
@@ -58,7 +70,7 @@ final class AppleHomeSceneTests: XCTestCase {
           return appleHomeEncodeUTF8(appleHomeDecodeUTF8(bytes));
         }
         """
-        XCTAssertEqual(try AppleHomePageInstaller.generate(input: input, source: source), input)
+        XCTAssertEqual(try AppleHomePageInstaller.generate(input: input, source: source, action: "applehome.control.test", label: "Test"), input)
     }
 
     @MainActor
@@ -66,7 +78,7 @@ final class AppleHomeSceneTests: XCTestCase {
         let panel = try XCTUnwrap(URL(string: "http://espdesktop.local"))
         var requests: [URLRequest] = []
         do {
-            _ = try await AppleHomePageInstaller.install(at: panel, source: "function buildAppleHomePage() { return [2]; }") { request in
+            _ = try await AppleHomePageInstaller.install(at: panel, source: "function buildAppleHomePage() { return [2]; }", action: "applehome.control.test", label: "Test") { request in
                 requests.append(request)
                 let headers = ["X-Panel-Config-Version": "2", "ETag": "\"v2-4\""]
                 let response = try XCTUnwrap(HTTPURLResponse(url: request.url!,

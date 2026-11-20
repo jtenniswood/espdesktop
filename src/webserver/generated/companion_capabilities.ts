@@ -104,6 +104,12 @@ export const COMPANION_CARD_MODES = [
     defaultIcon: "Flash"
   },
   {
+    id: "apple_home",
+    label: "Apple Home",
+    capability: "apple_home_cards",
+    defaultIcon: "Home"
+  },
+  {
     id: "stats",
     label: "Stats",
     capability: "system_metrics",

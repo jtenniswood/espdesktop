@@ -31,24 +31,27 @@ struct EspDesktopHomeApp: App {
                 Button(house.name) { home.select(house) }
             }
         case .empty:
-            Text("Add a scene in Apple Home to use it on your display.")
+            Text("No compatible controls or scenes are available in this home.")
         case .ready:
-            ForEach(home.slots, id: \.number) { slot in
-                LabeledContent("Scene \(slot.number)", value: slot.name)
-            }
+            Text("Choose which Apple Home controls to add in EspDesktop’s display settings.")
         }
     }
 }
 
 @MainActor
 final class EspDesktopHome: NSObject, ObservableObject, HMHomeManagerDelegate, HMHomeDelegate {
-    struct Slot {
-        let number: Int
+    private enum Target {
+        case scene(HMActionSet)
+        case power(HMCharacteristic, Bool)
+    }
+
+    private struct Control {
+        let key: String
         let name: String
+        let target: Target
     }
 
     @Published private(set) var homes: [HMHome] = []
-    @Published private(set) var slots: [Slot] = []
     @Published private(set) var status: AppleHomeSceneMessage.Status = .waiting
     private let defaults = UserDefaults.standard
     private let manager = HMHomeManager()
@@ -56,11 +59,14 @@ final class EspDesktopHome: NSObject, ObservableObject, HMHomeManagerDelegate, H
     private var selectedHome: HMHome?
     private var bindingSet: UUID?
     private var bindings = AppleHomeSceneBindings()
+    private var targets: [UUID: Target] = [:]
+    private var publishesCatalog = false
 
     override init() {
         super.init()
         manager.delegate = self
         let arguments = ProcessInfo.processInfo.arguments
+        publishesCatalog = arguments.contains("--espdesktop-home-cards")
         guard let marker = arguments.firstIndex(of: "--espdesktop-home-connection"), marker + 2 < arguments.count,
               let portNumber = UInt16(arguments[marker + 1]), let port = NWEndpoint.Port(rawValue: portNumber),
               let secret = UUID(uuidString: arguments[marker + 2]) else { return }
@@ -94,6 +100,14 @@ final class EspDesktopHome: NSObject, ObservableObject, HMHomeManagerDelegate, H
         Task { @MainActor in refresh() }
     }
 
+    nonisolated func home(_ home: HMHome, didAdd accessory: HMAccessory) {
+        Task { @MainActor in refresh() }
+    }
+
+    nonisolated func home(_ home: HMHome, didRemove accessory: HMAccessory) {
+        Task { @MainActor in refresh() }
+    }
+
     func select(_ home: HMHome) {
         defaults.set(home.uniqueIdentifier.uuidString, forKey: "selectedHome")
         refresh()
@@ -103,7 +117,7 @@ final class EspDesktopHome: NSObject, ObservableObject, HMHomeManagerDelegate, H
         guard manager.authorizationStatus.contains(.authorized) else {
             selectedHome = nil
             homes = []
-            slots = []
+            targets = [:]
             publish(manager.authorizationStatus.contains(.determined) ? .denied : .waiting)
             return
         }
@@ -113,7 +127,7 @@ final class EspDesktopHome: NSObject, ObservableObject, HMHomeManagerDelegate, H
         let chosen = homes.first { $0.uniqueIdentifier == selected }
         guard let chosen else {
             selectedHome = nil
-            slots = []
+            targets = [:]
             publish(homes.isEmpty ? .empty : .chooseHome)
             return
         }
@@ -135,11 +149,52 @@ final class EspDesktopHome: NSObject, ObservableObject, HMHomeManagerDelegate, H
         bindingSet = generation
         bindings.discover(scenes.map(\.uniqueIdentifier))
         defaults.set(try? JSONEncoder().encode(bindings), forKey: key)
-        let names = Dictionary(uniqueKeysWithValues: scenes.map { ($0.uniqueIdentifier, $0.name) })
-        slots = bindings.sceneIDs.enumerated().compactMap { index, id in
-            names[id].map { Slot(number: index + 1, name: $0) }
+        refreshControls(in: chosen, scenes: scenes)
+    }
+
+    private func refreshControls(in home: HMHome, scenes: [HMActionSet]) {
+        let serviceTypes = Set([HMServiceTypeLightbulb, HMServiceTypeSwitch, HMServiceTypeOutlet, HMServiceTypeFan])
+        var controls = scenes.map { Control(key: "scene." + $0.uniqueIdentifier.uuidString, name: $0.name, target: .scene($0)) }
+        for accessory in home.accessories {
+            let services = accessory.services.filter { serviceTypes.contains($0.serviceType) }
+            for service in services {
+                guard let power = service.characteristics.first(where: {
+                    $0.characteristicType == HMCharacteristicTypePowerState &&
+                        $0.properties.contains(HMCharacteristicPropertyWritable)
+                }) else { continue }
+                let name = services.count == 1 ? accessory.name : accessory.name + " · " + service.name
+                for enabled in [true, false] {
+                    let suffix = enabled ? "On" : "Off"
+                    let key = "power." + power.uniqueIdentifier.uuidString + "." + suffix
+                    controls.append(Control(key: key, name: name + " · " + suffix, target: .power(power, enabled)))
+                }
+            }
         }
-        publish(slots.isEmpty ? .empty : .ready)
+        controls.sort {
+            if $0.name == $1.name { return $0.key < $1.key }
+            return $0.name.localizedStandardCompare($1.name) == .orderedAscending
+        }
+        let referenceKey = "cardControlReferences." + home.uniqueIdentifier.uuidString
+        var references = defaults.data(forKey: referenceKey)
+            .flatMap { try? JSONDecoder().decode([String: UUID].self, from: $0) } ?? [:]
+        var available: [AppleHomeControl] = []
+        targets = [:]
+        for control in controls {
+            let id = references[control.key] ?? UUID()
+            references[control.key] = id
+            targets[id] = control.target
+            let name = String(decoding: control.name.utf8.prefix(240), as: UTF8.self)
+            available.append(.init(id: id, name: name))
+        }
+        defaults.set(try? JSONEncoder().encode(references), forKey: referenceKey)
+        if publishesCatalog {
+            channel?.send(.init(kind: .catalogStart))
+            for control in available {
+                channel?.send(.init(kind: .catalogControl, control: control))
+            }
+            channel?.send(.init(kind: .catalogEnd))
+        }
+        publish(available.isEmpty ? .empty : .ready)
     }
 
     private func publish(_ update: AppleHomeSceneMessage.Status) {
@@ -152,18 +207,29 @@ final class EspDesktopHome: NSObject, ObservableObject, HMHomeManagerDelegate, H
             channel?.close()
             return
         }
-        guard message.kind == .run, let request = message.request, let slot = message.slot else { return }
-        let succeeded = await run(slot)
+        guard message.kind == .run, let request = message.request else { return }
+        let succeeded = await run(slot: message.slot, reference: message.reference)
         channel?.send(.init(kind: .result, request: request, succeeded: succeeded))
     }
 
-    private func run(_ slot: Int) async -> Bool {
+    private func run(slot: Int?, reference: UUID?) async -> Bool {
         guard manager.authorizationStatus.contains(.authorized), let selectedHome else { return false }
-        let scenes = selectedHome.actionSets.filter { $0.actionSetType == HMActionSetTypeUserDefined }
-        guard let id = bindings.scene(at: slot, available: Set(scenes.map(\.uniqueIdentifier))),
-              let scene = scenes.first(where: { $0.uniqueIdentifier == id }) else { return false }
+        let target: Target?
+        if let reference {
+            target = targets[reference]
+        } else if let slot {
+            let scenes = selectedHome.actionSets.filter { $0.actionSetType == HMActionSetTypeUserDefined }
+            let id = bindings.scene(at: slot, available: Set(scenes.map(\.uniqueIdentifier)))
+            target = scenes.first(where: { $0.uniqueIdentifier == id }).map(Target.scene)
+        } else {
+            target = nil
+        }
+        guard let target else { return false }
         do {
-            try await selectedHome.executeActionSet(scene)
+            switch target {
+            case .scene(let scene): try await selectedHome.executeActionSet(scene)
+            case .power(let characteristic, let enabled): try await characteristic.writeValue(NSNumber(value: enabled))
+            }
             return true
         } catch {
             return false

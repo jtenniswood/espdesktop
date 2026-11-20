@@ -215,6 +215,9 @@ final class CompanionStore: NSObject, ObservableObject {
         super.init()
         if #available(macOS 14.2, *) { appVolumeController = AppVolumeController() }
         displays = records.map(makeDisplay)
+        appleHome.onControlsChanged = { [weak self] in
+            self?.publishToConnectedDisplays { $0.publishCatalogue(includeDefinitions: false) }
+        }
         if AppleHomePageInstaller.asset != nil && appleHome.canRestore { appleHome.connect(activate: false) }
         obsCatalogueObservation = OBSConnection.displayCatalogues(from: obs.$state)
             .sink { [weak self] actions in
@@ -1146,6 +1149,14 @@ final class CompanionStore: NSObject, ObservableObject {
 
     func obsControlActions() -> [OBSConnection.CatalogueEntry] {
         OBSConnection.controlCatalogue(obs.state)
+    }
+
+    func appleHomeCardActions(for account: String) -> [(id: String, label: String)] {
+        appleHome.cardActions(for: account)
+    }
+
+    func performAppleHomeCard(reference: UUID, pairingAccount: String) async -> String {
+        await appleHome.statusForCard(reference: reference, account: pairingAccount, isUnlocked: !sessionLock.refresh())
     }
 
     func performAppleHomeScene(slot: Int, pairingAccount: String) async -> String? {

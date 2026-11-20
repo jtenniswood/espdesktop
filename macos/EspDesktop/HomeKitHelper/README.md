@@ -1,9 +1,9 @@
 # EspDesktop Home prototype
 
-The Catalyst app reads Apple Home scenes and runs them at the request of the paired
+The Catalyst app runs Apple Home scenes and compatible accessory power controls at the request of the paired
 EspDesktop companion. Home names, scene names, HomeKit IDs and accessory data stay
-within the Catalyst app. The display gets a standard subpage of numbered buttons.
-The Mac companion maps those buttons to locally authorised scene slots.
+on the Mac. The display gets dedicated Apple Home cards with the labels entered
+in EspDesktop. The companion sends only those labels and opaque action references.
 
 The companion build requires `ESPDESKTOP_EXPERIMENTAL_APPLE_HOME=1` and the
 repository's Node dependencies to include the page setup tool. The helper builds
@@ -17,12 +17,12 @@ and open it once so macOS can find it. The companion checks the helper's signing
 identity before launching it.
 
 For a local test, use a display paired over Wi-Fi with the version 2 configuration
-API and a free tile on its main page. In the companion, open **Apple Home** and
-choose **Connect Apple Home**. Allow macOS access and choose a home when there are
-several. Setup uses the only connected Wi-Fi display automatically, or lets you
-pick a display when there are several. Check the numbered assignments on the Mac,
-then test a scene that controls an ordinary light. Move another app to the front
-and verify the scene still runs. Repeat setup to check there is one Apple Home page.
+API and room for an Apple Home folder. In **Displays**, choose **Apple Home** for
+the display and connect Apple Home. Allow macOS access and choose a home when
+there are several. Pick a scene or an accessory’s on or off control, add a card and enter its display
+label. The first new card creates the folder or replaces the default numbered
+prototype cards inside it. Verify that a light-only scene runs while another Mac
+app is frontmost. Check that repeated saves update the card in place.
 
 Public distribution needs a supported path for the HomeKit entitlement. Apple's
 developer terms also restrict using HomeKit API data off the Apple device. Confirm

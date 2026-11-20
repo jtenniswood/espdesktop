@@ -7,12 +7,17 @@ import SwiftUI
 final class AppleHomeScenes: ObservableObject {
     private static let helperBundleID = "io.espdesktop.home"
     private static let approvalsKey = "appleHome.approvedDisplays"
+    private static let cardsKey = "appleHome.cards"
     private static let inactive = UUID(uuid: (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0))
 
     @Published private(set) var status: AppleHomeSceneMessage.Status?
     @Published private(set) var note = ""
     @Published private(set) var approvals: [String: UUID]
     @Published private(set) var saving = false
+    @Published private(set) var controls: [AppleHomeControl] = []
+    @Published private(set) var cardLabels: [String: [UUID: String]]
+    var onControlsChanged: (() -> Void)?
+    private var incomingControls: [AppleHomeControl]?
     private let defaults: UserDefaults
     private var listener: NWListener?
     private var peer: AppleHomeSceneChannel?
@@ -24,6 +29,9 @@ final class AppleHomeScenes: ObservableObject {
         self.defaults = defaults
         approvals = (defaults.dictionary(forKey: Self.approvalsKey) as? [String: String] ?? [:])
             .compactMapValues(UUID.init(uuidString:))
+        cardLabels = defaults.data(forKey: Self.cardsKey).flatMap {
+            try? JSONDecoder().decode([String: [UUID: String]].self, from: $0)
+        } ?? [:]
     }
 
     static var helperURL: URL? {
@@ -97,7 +105,7 @@ final class AppleHomeScenes: ObservableObject {
         let configuration = NSWorkspace.OpenConfiguration()
         configuration.activates = activate
         configuration.createsNewApplicationInstance = true
-        configuration.arguments = ["--espdesktop-home-connection", String(port.rawValue), secret.uuidString]
+        configuration.arguments = ["--espdesktop-home-connection", String(port.rawValue), secret.uuidString, "--espdesktop-home-cards"]
         let currentListener = listener
         Task {
             do {
@@ -142,6 +150,16 @@ final class AppleHomeScenes: ObservableObject {
         case .status:
             bindingSet = message.status == .ready ? message.bindingSet : nil
             status = message.status
+            if message.status != .ready { controls = [] }
+            onControlsChanged?()
+        case .catalogStart:
+            incomingControls = []
+        case .catalogControl:
+            if let control = message.control { incomingControls?.append(control) }
+        case .catalogEnd:
+            if let incomingControls { controls = incomingControls }
+            incomingControls = nil
+            onControlsChanged?()
         case .result:
             if let pending = pendingRun, pending.0 == message.request {
                 pendingRun = nil
@@ -151,15 +169,30 @@ final class AppleHomeScenes: ObservableObject {
         }
     }
 
+    func cardActions(for account: String) -> [(id: String, label: String)] {
+        guard status == .ready, let bindingSet, approvals[account] == bindingSet,
+              let labels = cardLabels[account] else { return [] }
+        return controls.compactMap { control in labels[control.id].map { (control.action, $0) } }
+    }
+
     func statusForAction(slot: Int, account: String, isUnlocked: Bool) async -> String? {
-        guard let approved = approvals[account] else { return nil }
-        guard isUnlocked, status == .ready, approved == bindingSet, let peer, pendingRun == nil else {
-            return "not_allowed"
-        }
+        guard approvals[account] != nil else { return nil }
+        return await run(account: account, isUnlocked: isUnlocked, slot: slot)
+    }
+
+    func statusForCard(reference: UUID, account: String, isUnlocked: Bool) async -> String {
+        guard cardLabels[account]?[reference] != nil,
+              controls.contains(where: { $0.id == reference }) else { return "not_allowed" }
+        return await run(account: account, isUnlocked: isUnlocked, reference: reference)
+    }
+
+    private func run(account: String, isUnlocked: Bool, slot: Int? = nil, reference: UUID? = nil) async -> String {
+        guard isUnlocked, status == .ready, let bindingSet, approvals[account] == bindingSet,
+              let peer, pendingRun == nil else { return "not_allowed" }
         let request = UUID()
         let succeeded = await withCheckedContinuation { continuation in
             pendingRun = (request, continuation)
-            peer.send(.init(kind: .run, request: request, slot: slot))
+            peer.send(.init(kind: .run, request: request, slot: slot, reference: reference))
             Task {
                 try? await Task.sleep(for: .seconds(6))
                 guard let pending = self.pendingRun, pending.0 == request else { return }
@@ -170,40 +203,38 @@ final class AppleHomeScenes: ObservableObject {
         return succeeded ? "performed" : "not_allowed"
     }
 
-    func addPage(to display: CompanionDisplay) async {
-        guard status == nil || status == .ready, display.hasSavedPairing, display.state == .connected,
+    func saveCard(_ scene: AppleHomeControl, label: String, to display: CompanionDisplay) async {
+        guard status == .ready, let bindingSet, display.hasSavedPairing, display.state == .connected,
               !display.usesUSB, let url = CompanionStore.panelWebServerURL(from: display.record.host),
-              !saving else { return }
-        let bindingSet = self.bindingSet
+              controls.contains(where: { $0.id == scene.id }), !saving else { return }
+        let label = label.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !label.isEmpty, label.utf8.count <= 80 else {
+            note = "Enter a shorter display label."
+            return
+        }
         let account = display.pairingAccount
         saving = true
         defer { saving = false }
         do {
-            let result = try await AppleHomePageInstaller.install(at: url) {
-                guard self.bindingSet == bindingSet, display.pairingAccount == account, display.state == .connected else {
-                    throw AppleHomePageInstaller.InstallError("The display or Apple Home connection changed. Try again.")
-                }
-                if self.approvals[account] == nil {
-                    // A lost HTTP response can leave the new page on the display.
-                    // Reserve the commands before saving so they cannot send keys.
-                    self.approvals[account] = Self.inactive
-                    self.saveApprovals()
+            let result = try await AppleHomePageInstaller.install(at: url, action: scene.action, label: label) {
+                guard self.bindingSet == bindingSet, display.pairingAccount == account, display.state == .connected,
+                      self.controls.contains(where: { $0.id == scene.id }) else {
+                    throw AppleHomePageInstaller.InstallError("The display or control changed. Try again.")
                 }
             }
             guard self.bindingSet == bindingSet, display.pairingAccount == account else {
-                note = "Apple Home changed during setup. Connect again to enable the page."
+                note = "Apple Home changed while the card was saved. Reconnect it to enable the card."
                 return
             }
-            approvals[account] = bindingSet ?? Self.inactive
+            approvals[account] = bindingSet
+            cardLabels[account, default: [:]][scene.id] = label
             saveApprovals()
-            note = bindingSet == nil ? result + " Connect Apple Home to enable the scene tiles." : result
+            defaults.set(try? JSONEncoder().encode(cardLabels), forKey: Self.cardsKey)
+            note = result
+            onControlsChanged?()
         } catch {
             note = error.localizedDescription
         }
-    }
-
-    func shouldSetUp(_ account: String) -> Bool {
-        bindingSet != nil && approvals[account] != bindingSet
     }
 
     func disconnect() {
@@ -227,6 +258,9 @@ final class AppleHomeScenes: ObservableObject {
         helper = nil
         status = nil
         bindingSet = nil
+        controls = []
+        incomingControls = nil
+        onControlsChanged?()
         let pending = pendingRun
         pendingRun = nil
         pending?.1.resume(returning: false)
@@ -236,46 +270,88 @@ final class AppleHomeScenes: ObservableObject {
 struct AppleHomeSceneSettings: View {
     @ObservedObject var home: AppleHomeScenes
     let displays: [CompanionDisplay]
+    @Binding var selectedDisplayID: UUID?
+    @State private var sceneToSave: AppleHomeControl?
+    @State private var cardLabel = ""
+
+    private var eligibleDisplays: [CompanionDisplay] {
+        displays.filter { $0.state == .connected && !$0.usesUSB }
+    }
+
+    private var display: CompanionDisplay? {
+        eligibleDisplays.first { $0.id == selectedDisplayID } ?? eligibleDisplays.first
+    }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text("Apple Home").font(.title2)
-            if home.status == nil {
-                Button("Connect Apple Home") { home.connect() }
-            } else {
-                Button("Disconnect Apple Home") { home.disconnect() }
-            }
-            switch home.status {
-            case .waiting:
-                ProgressView("Waiting for Apple Home")
-            case .chooseHome:
-                Text("Choose a home in EspDesktop Home.")
-            case .denied:
-                Text("Allow EspDesktop Home in System Settings under Privacy & Security → HomeKit.")
-            case .empty:
-                Text("Add a scene in Apple Home to use it on your display.")
-            case .ready:
-                Text("Match the numbered display tiles to your scenes in EspDesktop Home.")
-                Button("Show Scene Assignments") { home.connect() }
-            case nil: EmptyView()
-            }
-            if home.status == nil || home.status == .ready {
-                ForEach(displays.filter { $0.state == .connected && !$0.usesUSB }) { display in
-                    Button("Add Scene Page to \(display.name)") {
-                        Task { await home.addPage(to: display) }
+        Form {
+            Section("Apple Home") {
+                if home.status == nil {
+                    Button("Connect Apple Home") { home.connect() }
+                } else {
+                    Button("Disconnect Apple Home") { home.disconnect() }
+                }
+                switch home.status {
+                case .waiting: ProgressView("Waiting for Apple Home")
+                case .chooseHome: Button("Choose a Home") { home.connect() }
+                case .denied:
+                    Text("Allow EspDesktop Home in System Settings under Privacy & Security → HomeKit.")
+                case .empty: Text("No compatible controls or scenes are available in this home.")
+                case .ready:
+                    if eligibleDisplays.count > 1 {
+                        Picker("Display", selection: Binding(get: { display?.id }, set: { selectedDisplayID = $0 })) {
+                            ForEach(eligibleDisplays) { item in Text(item.name).tag(Optional(item.id)) }
+                        }
+                    } else if let display {
+                        LabeledContent("Display", value: display.name)
+                    } else {
+                        Text("Connect a display over Wi-Fi to add scene cards.")
                     }
-                    .disabled(home.saving)
+                case nil: EmptyView()
+                }
+                if !home.note.isEmpty { Text(home.note).foregroundStyle(.secondary) }
+            }
+
+            if home.status == .ready {
+                Section("Available Controls") {
+                    if home.controls.isEmpty {
+                        Text("Update EspDesktop Home to load the control list.")
+                    }
+                    ForEach(home.controls) { scene in
+                        HStack {
+                            Text(scene.name)
+                            Spacer()
+                            let existingLabel = display.flatMap { home.cardLabels[$0.pairingAccount]?[scene.id] }
+                            Button(existingLabel == nil ? "Add Card…" : "Edit Label…") {
+                                cardLabel = existingLabel ?? ""
+                                sceneToSave = scene
+                            }
+                            .disabled(display == nil || home.saving)
+                        }
+                    }
                 }
             }
-            if !home.note.isEmpty { Text(home.note).foregroundStyle(.secondary) }
         }
-        .padding()
-        .onReceive(home.$status.removeDuplicates()) { status in
-            guard status == .ready else { return }
-            let connected = displays.filter { $0.state == .connected && !$0.usesUSB }
-            guard connected.count == 1, let display = connected.first,
-                  home.shouldSetUp(display.pairingAccount) else { return }
-            Task { await home.addPage(to: display) }
+        .formStyle(.grouped)
+        .sheet(item: $sceneToSave) { scene in
+            VStack(alignment: .leading, spacing: 12) {
+                Text(scene.name).font(.headline)
+                TextField("Label on Display", text: $cardLabel)
+                HStack {
+                    Spacer()
+                    Button("Cancel") { sceneToSave = nil }.keyboardShortcut(.cancelAction)
+                    Button("Save Card") {
+                        guard let display else { return }
+                        let label = cardLabel
+                        sceneToSave = nil
+                        Task { await home.saveCard(scene, label: label, to: display) }
+                    }
+                    .keyboardShortcut(.defaultAction)
+                    .disabled(cardLabel.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ||
+                              cardLabel.utf8.count > 80 || display == nil)
+                }
+            }
+            .padding()
+            .frame(width: 350)
         }
     }
 }

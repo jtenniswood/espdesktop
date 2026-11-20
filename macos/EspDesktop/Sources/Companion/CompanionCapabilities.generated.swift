@@ -68,6 +68,7 @@ enum CompanionCapabilities {
         "obs_output": "OBS Output Control",
         "obs_brb": "Break",
         "apple_shortcut": "Run Apple Shortcut",
+        "apple_home": "Apple Home",
         "stats": "Stats",
     ]
 }

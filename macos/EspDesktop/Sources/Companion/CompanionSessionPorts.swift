@@ -35,6 +35,8 @@ protocol CompanionSessionResources: AnyObject {
     func immediateFocusedApplicationIdentifier() -> String?
     func focusedCompanionActionIdentifiers(for targets: [(id: String, url: URL)]) async -> [String]
     func remoteCompanionCatalogues() -> RemoteCompanionCatalogues
+    func appleHomeCardActions(for account: String) -> [(id: String, label: String)]
+    func performAppleHomeCard(reference: UUID, pairingAccount: String) async -> String
     func performAppleHomeScene(slot: Int, pairingAccount: String) async -> String?
     func performResultStatus(actionIdentifier: String, folderOpenBehavior: String, shortcutAppID: String?) async -> String
     func performGuardedOBSAction(actionIdentifier: String, isValid: @escaping @MainActor () -> Bool) async -> Bool
@@ -71,6 +73,8 @@ enum CompanionSessionEvent {
 
 @MainActor
 extension CompanionSessionResources {
+    func appleHomeCardActions(for account: String) -> [(id: String, label: String)] { [] }
+    func performAppleHomeCard(reference: UUID, pairingAccount: String) async -> String { "not_allowed" }
     func performAppleHomeScene(slot: Int, pairingAccount: String) async -> String? { nil }
     func inputDeviceActions() -> [(id: String, label: String)] { [] }
     func setCoughButtonValue(_ value: Int, from session: ObjectIdentifier) -> Bool { false }

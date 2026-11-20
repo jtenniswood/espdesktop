@@ -278,6 +278,7 @@ struct CompanionSettings: View {
     @State private var pairingPrompt: CompanionPairingPrompt = .unavailable
     @State private var pairingFlowActive = false
     @State private var pairingFlowError = ""
+    @State private var appleHomeDisplayID: UUID?
     @State private var selectedPageID = CompanionSettingsPage.connection.rawValue
     @FocusState private var focusedField: CompanionSettingsField?
 
@@ -475,7 +476,7 @@ struct CompanionSettings: View {
         case .folders: foldersPage
         case .obs: OBSSettings(connection: store.obs)
         case .appleShortcuts: appleShortcutsPage
-        case .appleHome: AppleHomeSceneSettings(home: store.appleHome, displays: store.displays)
+        case .appleHome: AppleHomeSceneSettings(home: store.appleHome, displays: store.displays, selectedDisplayID: $appleHomeDisplayID)
         case .updates: CompanionUpdateSettings(updater: store.updater)
         case .help: helpPage
         }
@@ -595,6 +596,16 @@ struct CompanionSettings: View {
                     if display.usesUSB {
                         Button("Open USB Editor") { store.openUSBEditor(display) }
                     }
+                }
+
+                if AppleHomePageInstaller.asset != nil && !display.usesUSB {
+                    Button {
+                        appleHomeDisplayID = display.id
+                        selectedPageID = CompanionSettingsPage.appleHome.rawValue
+                    } label: {
+                        Label("Apple Home", systemImage: "house")
+                    }
+                    .modifier(CompanionCapsuleButton())
                 }
 
                 Button(role: .destructive) {

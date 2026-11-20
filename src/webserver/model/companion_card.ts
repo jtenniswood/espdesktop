@@ -13,7 +13,7 @@ export type CompanionCardModel =
   | { readonly mode: "url"; readonly applicationId: string; readonly encodedUrl: string }
   | { readonly mode: "folder"; readonly folderId: string }
   | { readonly mode: "obs" | "obs_mic" | "obs_studio" | "obs_take" | "obs_transition" | "obs_status" | "obs_replay" | "obs_replay_buffer" | "obs_output" | "obs_brb"; readonly actionId: string }
-  | { readonly mode: "apple_shortcut"; readonly actionId: string }
+  | { readonly mode: "apple_shortcut" | "apple_home"; readonly actionId: string }
   | { readonly mode: "stats"; readonly metricId: string; readonly precision: string; readonly unit: string };
 
 export function companionCardModeContract(mode: unknown): CompanionCardMode | undefined {
