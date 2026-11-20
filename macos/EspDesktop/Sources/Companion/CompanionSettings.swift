@@ -364,7 +364,7 @@ struct CompanionSettings: View {
         .alert("Display Wi-Fi is off", isPresented: $showingWifiOff) {
             Button("OK", role: .cancel) {}
         } message: {
-            Text("Open Device → System → Wi-Fi to turn it on, then select Network again.")
+            Text("Open Device → System → Wi-Fi to turn it on, then choose Switch to Network again.")
         }
         .alert("Network address", isPresented: $showingNetworkAddress, presenting: displayToConfigure) { display in
             TextField("IP address or name.local", text: $networkAddress)
@@ -608,22 +608,17 @@ struct CompanionSettings: View {
         let switching = findingDisplay || display.connection.pendingEndpoint != nil
         return VStack(spacing: 6) {
             HStack(spacing: 6) {
-                Picker("Connection for \(display.name)", selection: Binding(
-                    get: { display.usesUSB },
-                    set: { usesUSB in
-                        guard usesUSB != display.usesUSB, !switching else { return }
-                        if usesUSB {
-                            findingUSBDisplay = display
-                        } else {
-                            findingNetworkDisplay = display
-                        }
+                Menu {
+                    if display.usesUSB {
+                        Button("Switch to Network") { findingNetworkDisplay = display }
+                    } else {
+                        Button("Switch to USB") { findingUSBDisplay = display }
                     }
-                )) {
-                    Text("Network").tag(false)
-                    Text("USB").tag(true)
+                } label: {
+                    Label(display.usesUSB ? "USB" : "Network",
+                          systemImage: display.usesUSB ? "cable.connector" : "network")
                 }
-                .pickerStyle(.segmented)
-                .labelsHidden()
+                .accessibilityLabel("Connection for \(display.name)")
                 .disabled(switching || (display.usesUSB ? findingNetworkDisplay != nil : findingUSBDisplay != nil))
 
                 connectionDetails(for: display)
