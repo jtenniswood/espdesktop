@@ -8,7 +8,11 @@ final class CompanionUSBEditorWindow: NSObject, WKNavigationDelegate,
     private static let scheme = "espdesktop-usb"
     private static let logger = Logger(subsystem: "io.espdesktop.app", category: "USBEditor")
     private let window: NSWindow
-    private let status = NSTextField(labelWithString: "Loading editor from the display…")
+    private let status = NSTextField(labelWithString: "USB")
+    private let loading = NSView()
+    private let loadingStatus = NSTextField(wrappingLabelWithString: "")
+    private let loadingIndicator = NSProgressIndicator()
+    private let retryButton = NSButton(title: "Retry", target: nil, action: nil)
     private let exportDraft = NSButton(title: "Export Unsaved Layout…", target: nil, action: nil)
     private var unsavedLayout: USBEditorRequest?
     private let connection: CompanionConnection
@@ -46,7 +50,21 @@ final class CompanionUSBEditorWindow: NSObject, WKNavigationDelegate,
         footer.translatesAutoresizingMaskIntoConstraints = false
         let content = NSView()
         content.addSubview(browser)
+        content.addSubview(loading)
         content.addSubview(footer)
+        loading.translatesAutoresizingMaskIntoConstraints = false
+        loading.wantsLayer = true
+        loading.layer?.backgroundColor = NSColor.windowBackgroundColor.cgColor
+        loadingStatus.alignment = .center
+        loadingIndicator.style = .spinning
+        retryButton.target = self
+        retryButton.action = #selector(loadEditor)
+        let loadingStack = NSStackView(views: [loadingIndicator, loadingStatus, retryButton])
+        loadingStack.orientation = .vertical
+        loadingStack.alignment = .centerX
+        loadingStack.spacing = 12
+        loadingStack.translatesAutoresizingMaskIntoConstraints = false
+        loading.addSubview(loadingStack)
         NSLayoutConstraint.activate([
             browser.topAnchor.constraint(equalTo: content.topAnchor),
             browser.leadingAnchor.constraint(equalTo: content.leadingAnchor),
@@ -55,21 +73,51 @@ final class CompanionUSBEditorWindow: NSObject, WKNavigationDelegate,
             footer.leadingAnchor.constraint(equalTo: content.leadingAnchor, constant: 12),
             footer.trailingAnchor.constraint(equalTo: content.trailingAnchor, constant: -12),
             footer.bottomAnchor.constraint(equalTo: content.bottomAnchor, constant: -8),
+            loading.topAnchor.constraint(equalTo: browser.topAnchor),
+            loading.leadingAnchor.constraint(equalTo: browser.leadingAnchor),
+            loading.trailingAnchor.constraint(equalTo: browser.trailingAnchor),
+            loading.bottomAnchor.constraint(equalTo: browser.bottomAnchor),
+            loadingStack.centerXAnchor.constraint(equalTo: loading.centerXAnchor),
+            loadingStack.centerYAnchor.constraint(equalTo: loading.centerYAnchor),
+            loadingStack.widthAnchor.constraint(lessThanOrEqualToConstant: 400),
         ])
         window.contentView = content
         window.center()
         webView = browser
-        browser.load(URLRequest(url: URL(string: "\(Self.scheme)://display/")!))
+        loadEditor()
     }
 
     func open() {
         window.makeKeyAndOrderFront(nil)
-        if assetLoadFailed {
-            assetLoadFailed = false
-            status.stringValue = "Loading editor from the display…"
-            webView?.reload()
-        }
         NSApp.activate(ignoringOtherApps: true)
+    }
+
+    @objc private func loadEditor() {
+        assetLoadFailed = false
+        loading.isHidden = false
+        retryButton.isHidden = true
+        loadingIndicator.isHidden = false
+        loadingIndicator.startAnimation(nil)
+        loadingStatus.stringValue = "Loading editor over USB…"
+        webView?.load(URLRequest(url: URL(string: "\(Self.scheme)://display/")!))
+    }
+
+    private func showLoadError(_ error: Error) {
+        assetLoadFailed = true
+        loadingStatus.stringValue = error.localizedDescription
+        loadingIndicator.stopAnimation(nil)
+        loadingIndicator.isHidden = true
+        retryButton.isHidden = false
+    }
+
+    func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
+        guard !assetLoadFailed else { return }
+        loadingIndicator.stopAnimation(nil)
+        loading.isHidden = true
+    }
+
+    func webView(_ webView: WKWebView, didFailProvisionalNavigation navigation: WKNavigation!, withError error: Error) {
+        showLoadError(error)
     }
 
     func invalidate() {
@@ -111,7 +159,7 @@ final class CompanionUSBEditorWindow: NSObject, WKNavigationDelegate,
                     response = cached
                 } else {
                     let request = USBEditorRequest(method: "GET", path: "/0.js")!
-                    try await self.waitForCable()
+                    try await self.waitForCable(whileLoading: true)
                     response = try await self.connection.requestUSBEditor(request)
                     guard response.status == 200, !response.body.isEmpty else { throw USBEditorError.invalidResponse }
                     self.editorScript = response
@@ -121,8 +169,7 @@ final class CompanionUSBEditorWindow: NSObject, WKNavigationDelegate,
                 self.status.stringValue = "USB"
             } catch {
                 guard !Task.isCancelled else { return }
-                self.assetLoadFailed = true
-                self.status.stringValue = error.localizedDescription
+                self.showLoadError(error)
                 urlSchemeTask.didFailWithError(error)
             }
         }
@@ -232,16 +279,18 @@ final class CompanionUSBEditorWindow: NSObject, WKNavigationDelegate,
         throw USBEditorError.timedOut
     }
 
-    private func waitForCable(whileSaving: Bool = false) async throws {
+    private func waitForCable(whileSaving: Bool = false, whileLoading: Bool = false) async throws {
         let clock = ContinuousClock()
         let end = clock.now.advanced(by: .seconds(90))
         while !connection.usbEditorConnected {
             guard whileSaving || clock.now < end else { throw USBEditorError.disconnected }
             status.stringValue = whileSaving ? "Save paused. Reconnect USB to check what the display saved."
                 : "USB disconnected. Reconnect the cable to continue."
+            if whileLoading { loadingStatus.stringValue = status.stringValue }
             try await Task.sleep(for: .milliseconds(250))
         }
         status.stringValue = "USB"
+        if whileLoading { loadingStatus.stringValue = "Loading editor over USB…" }
     }
 
     private func deliver(_ body: Data, type: String, to task: any WKURLSchemeTask, url: URL) {
