@@ -21,7 +21,12 @@ Home is the main screen on your EspDesktop touchscreen. Open your display’s ad
 - **Resize a card.** Hover over it and drag the handle in its bottom-right corner to make it wider, taller or smaller. The available sizes depend on the card and the space in the grid. Press **Escape** during the drag to keep the original size.
 
   <figure>
-    <a href="/images/web-editor-resize-handle.png"><img src="/images/web-editor-resize-handle.png" alt="Slack card beside empty tiles in the web editor, with its resize handle visible" width="576" height="566" loading="lazy"></a>
+    <a href="/images/web-editor-resize-handle.png">
+      <picture>
+        <source type="image/avif" srcset="/images/web-editor-resize-handle-576.avif">
+        <img src="/images/web-editor-resize-handle.png" alt="Slack card beside empty tiles in the web editor, with its resize handle visible" width="576" height="566" loading="lazy" decoding="async">
+      </picture>
+    </a>
     <figcaption>The white curve on the Slack card is the resize handle.</figcaption>
   </figure>
 

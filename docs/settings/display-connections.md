@@ -15,7 +15,12 @@ Use your local network for Mac controls with the standard EspDesktop release. Wi
 
 To find the display’s IP address, tap the network status icon on the touchscreen and look for **IP address**. If a paired display’s address changes, open its **Network** menu in **Settings → Displays**, choose **Update Address**, enter the current address, and choose **Connect**.
 
-<a href="/images/mac-connector/usb-connection.png"><img src="/images/mac-connector/usb-connection.png" alt="EspDesktop Mac app Displays settings with the Network menu open, showing Use USB and Update Address" width="480" height="649" loading="lazy"></a>
+<a href="/images/mac-connector/usb-connection.png">
+  <picture>
+    <source type="image/avif" srcset="/images/mac-connector/usb-connection-480.avif 480w, /images/mac-connector/usb-connection-960.avif 960w" sizes="(min-width: 768px) 480px, min(480px, 90vw)">
+    <img src="/images/mac-connector/usb-connection.png" alt="EspDesktop Mac app Displays settings with the Network menu open, showing Use USB and Update Address" width="480" height="649" loading="lazy" decoding="async">
+  </picture>
+</a>
 
 ## Connect over USB
 

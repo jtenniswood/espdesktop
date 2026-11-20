@@ -7,7 +7,10 @@ description: Adjust OBS mixer levels, mute individual microphones and other inpu
 
 [Connect OBS Studio](/mac-controls/obs-studio#connect-obs-studio) to control the inputs in its mixer. When selecting a microphone, choose the input your broadcast captures. It can differ from the Mac’s default microphone.
 
-<img src="/images/obs/audio.jpg" alt="EspDesktop touchscreen with Cough and Mic Live buttons above tall Input 1, Input 2 and Mic sliders" width="1440" height="1440">
+<picture>
+  <source type="image/avif" srcset="/images/obs/audio-480.avif 480w, /images/obs/audio-960.avif 960w" sizes="(min-width: 768px) 688px, min(688px, 90vw)">
+  <img src="/images/obs/audio.jpg" alt="EspDesktop Audio page with Cough and Mic Live above the Input 1, Input 2 and Mic sliders" width="1440" height="1440">
+</picture>
 
 ## Add the Audio grouped page
 
@@ -15,9 +18,19 @@ description: Adjust OBS mixer levels, mute individual microphones and other inpu
 2. Open **Edit Card** on the **Audio** page card to hide or reorder inputs. In the example below, **Mic/Aux** comes first. Turn off any capture inputs you rarely adjust. Choose **Save**.
 3. Use **Edit Subpage** to move or resize sliders and add other audio controls in the free cells. See [how to customise grouped pages](/mac-controls/obs-studio#customise-an-obs-card-or-page).
 
-<a href="/images/obs/audio-settings.png"><img src="/images/obs/audio-settings.png" alt="Audio settings with switches and reorder controls for Mic/Aux, capture cards, and macOS Screen Capture inputs" width="1016" height="1321" loading="lazy"></a>
+<a href="/images/obs/audio-settings.png">
+  <picture>
+    <source type="image/avif" srcset="/images/obs/audio-settings-480.avif 480w, /images/obs/audio-settings-960.avif 960w" sizes="(min-width: 768px) 688px, min(688px, 90vw)">
+    <img src="/images/obs/audio-settings.png" alt="Audio settings with switches and reorder controls for Mic/Aux, capture cards, and macOS Screen Capture inputs" width="1016" height="1321" loading="lazy" decoding="async">
+  </picture>
+</a>
 
-<a href="/images/obs/audio-layout.png"><img src="/images/obs/audio-layout.png" alt="Customised Audio page with Back, Cough, and Mic Live above sliders for Input 1, Input 2, and Mic" width="1198" height="1194" loading="lazy"></a>
+<a href="/images/obs/audio-layout.png">
+  <picture>
+    <source type="image/avif" srcset="/images/obs/audio-layout-480.avif 480w, /images/obs/audio-layout-960.avif 960w" sizes="(min-width: 768px) 688px, min(688px, 90vw)">
+    <img src="/images/obs/audio-layout.png" alt="Customised Audio page with Back, Cough, and Mic Live above sliders for Input 1, Input 2, and Mic" width="1198" height="1194" loading="lazy" decoding="async">
+  </picture>
+</a>
 
 ## Add an audio control
 
