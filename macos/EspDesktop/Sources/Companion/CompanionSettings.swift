@@ -560,15 +560,13 @@ struct CompanionSettings: View {
                     .help(display.panelHost)
                     .textSelection(.enabled)
 
-                connectionControls(for: display)
-
                 if display.state == .failed || display.state == .needsPairing {
                     Text(display.recoveryMessage)
                         .font(.callout)
                         .foregroundStyle(.secondary)
                 }
             }
-            HStack(spacing: 12) {
+            VStack(spacing: 8) {
                 if display.state == .needsPairing {
                     Button {
                         startRePairing(display)
@@ -579,22 +577,32 @@ struct CompanionSettings: View {
                     .modifier(CompanionCapsuleButton())
                 }
 
-                Button {
-                    store.openPanelWebServer(display)
-                } label: {
-                    Label("Device", systemImage: "display")
-                        .padding(.vertical, 4)
-                }
-                .modifier(CompanionCapsuleButton())
-                .disabled(!display.usesUSB && display.record.host.isEmpty)
+                HStack(spacing: 12) {
+                    connectionControls(for: display)
 
-                Button(role: .destructive) {
-                    displayToForget = display
-                } label: {
-                    Label("Forget", systemImage: "trash")
-                        .padding(.vertical, 4)
+                    Button {
+                        store.openPanelWebServer(display)
+                    } label: {
+                        Label("Device", systemImage: "display")
+                            .padding(.vertical, 4)
+                    }
+                    .modifier(CompanionCapsuleButton())
+                    .disabled(!display.usesUSB && display.record.host.isEmpty)
+
+                    Button(role: .destructive) {
+                        displayToForget = display
+                    } label: {
+                        Label("Forget", systemImage: "trash")
+                            .padding(.vertical, 4)
+                    }
+                    .modifier(CompanionCapsuleButton())
                 }
-                .modifier(CompanionCapsuleButton())
+
+                if findingConnection(for: display) {
+                    Text("Finding display…")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
             }
             .buttonStyle(.bordered)
         }
@@ -603,34 +611,33 @@ struct CompanionSettings: View {
         .padding(.vertical, 24)
     }
 
-    private func connectionControls(for display: CompanionDisplay) -> some View {
-        let findingDisplay = findingUSBDisplay?.id == display.id || findingNetworkDisplay?.id == display.id
-        let switching = findingDisplay || display.connection.pendingEndpoint != nil
-        return VStack(spacing: 6) {
-            HStack(spacing: 6) {
-                Menu {
-                    if display.usesUSB {
-                        Button("Switch to Network") { findingNetworkDisplay = display }
-                    } else {
-                        Button("Switch to USB") { findingUSBDisplay = display }
-                    }
-                } label: {
-                    Label(display.usesUSB ? "USB" : "Network",
-                          systemImage: display.usesUSB ? "cable.connector" : "network")
-                }
-                .accessibilityLabel("Connection for \(display.name)")
-                .disabled(switching || (display.usesUSB ? findingNetworkDisplay != nil : findingUSBDisplay != nil))
+    private func findingConnection(for display: CompanionDisplay) -> Bool {
+        findingUSBDisplay?.id == display.id || findingNetworkDisplay?.id == display.id
+    }
 
-                connectionDetails(for: display)
-                    .disabled(switching)
+    private func connectionControls(for display: CompanionDisplay) -> some View {
+        let switching = findingConnection(for: display) || display.connection.pendingEndpoint != nil
+        return HStack(spacing: 6) {
+            Menu {
+                if display.usesUSB {
+                    Button("Switch to Network") { findingNetworkDisplay = display }
+                } else {
+                    Button("Switch to USB") { findingUSBDisplay = display }
+                }
+            } label: {
+                Label(display.usesUSB ? "USB" : "Network",
+                      systemImage: display.usesUSB ? "cable.connector" : "network")
+                    .padding(.vertical, 4)
             }
-            .fixedSize()
-            if findingDisplay {
-                Text("Finding display…")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-            }
+            .modifier(CompanionCapsuleButton())
+            .accessibilityLabel("Connection for \(display.name)")
+            .disabled(switching || (display.usesUSB ? findingNetworkDisplay != nil : findingUSBDisplay != nil))
+
+            connectionDetails(for: display)
+                .disabled(switching)
         }
+        .menuStyle(.button)
+        .fixedSize()
     }
 
     private func connectionDetails(for display: CompanionDisplay) -> some View {
@@ -661,7 +668,9 @@ struct CompanionSettings: View {
         } label: {
             Label("Connection Details", systemImage: "gearshape")
                 .labelStyle(.iconOnly)
+                .padding(.vertical, 4)
         }
+        .modifier(CompanionCapsuleButton())
         .menuIndicator(.hidden)
         .help("Connection Details")
         .accessibilityLabel("Connection details for \(display.name)")
