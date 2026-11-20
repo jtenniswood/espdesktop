@@ -182,6 +182,12 @@ void CompanionService::setup() {
     this->mark_failed();
     return;
   }
+#ifdef USE_COMPANION_USB
+  if (this->usb_bridge_ && !this->usb_bridge_->setup()) {
+    this->usb_bridge_.reset();
+    ESP_LOGE(TAG, "Could not start Companion USB serial");
+  }
+#endif
   // ESPHome owns mDNS initialization and network-interface lifecycle. It starts
   // later than Companion, so retry registration until that shared responder is ready.
   this->set_interval("discovery", 5000, [this] { this->advertise_discovery_(); });
@@ -194,6 +200,12 @@ void CompanionService::loop() {
       focus_targets.generation != this->focus_targets_generation_.load())
     this->publish_focus_targets_();
   const uint32_t now = millis();
+#ifdef USE_COMPANION_USB
+  if (this->usb_bridge_) {
+    this->usb_bridge_->loop(this->port_, now);
+    this->usb_editor_.update_wifi();
+  }
+#endif
   const uint32_t authentication_deadline = this->authentication_expires_at_.load();
   if (authentication_deadline != 0 &&
       static_cast<int32_t>(millis() - authentication_deadline) >= 0 &&
@@ -536,9 +548,16 @@ void CompanionService::handle_json_(int socket_fd, const std::string &message) {
       this->app_icons_supported_.store(false);
       this->set_connected_(true);
       pairing_lock.unlock();
-      this->send_(socket_fd, "{\"type\":\"auth.accepted\",\"protocol\":" +
+      std::string accepted = "{\"type\":\"auth.accepted\",\"protocol\":" +
           std::to_string(COMPANION_PROTOCOL_VERSION) + ",\"capabilityVersion\":" +
-          std::to_string(COMPANION_CAPABILITY_VERSION) + "}");
+          std::to_string(COMPANION_CAPABILITY_VERSION);
+#ifdef USE_COMPANION_USB
+      if (this->usb_bridge_) accepted += ",\"usbEditor\":true";
+#ifdef USE_WIFI
+      if (this->usb_bridge_) accepted += ",\"usbWifiAddress\":true";
+#endif
+#endif
+      this->send_(socket_fd, accepted + "}");
       this->publish_catalogue_();
       return true;
     }
@@ -981,6 +1000,9 @@ void CompanionService::handle_json_(int socket_fd, const std::string &message) {
 }
 
 void CompanionService::handle_binary_(int socket_fd, const uint8_t *data, size_t size) {
+#ifdef USE_COMPANION_USB
+  if (this->usb_editor_.handle(this->server_, socket_fd, data, size)) return;
+#endif
   if (this->app_icon_generation_ != 0) {
     if (size < 13 || size > MAX_APP_ICON_CHUNK_BYTES + 12 || std::memcmp(data, "ICON", 4) != 0) {
       this->reset_app_icon_transfer_();
@@ -1089,6 +1111,9 @@ void CompanionService::update_authentication_deadline_() {
 
 void CompanionService::set_connected_(bool connected, int closing_socket) {
   if (!connected) {
+#ifdef USE_COMPANION_USB
+    this->usb_editor_.disconnect(closing_socket);
+#endif
     if (closing_socket >= 0) {
       if (!this->session_.disconnect_socket(closing_socket)) return;
     } else {

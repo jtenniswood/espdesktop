@@ -92,7 +92,7 @@ esphome:
               and:
                 - not:
                     wifi.connected:
-                - lambda: 'return !wifi::global_wifi_component->has_sta();'
+                - lambda: 'return !wifi::global_wifi_component->is_disabled() && !wifi::global_wifi_component->has_sta();'
             then:
               - globals.set:
                   id: connectivity_setup_display_active
@@ -134,7 +134,7 @@ esphome:
       then:
         - if:
             condition:
-              lambda: 'return wifi::global_wifi_component->has_sta();'
+              lambda: 'return !wifi::global_wifi_component->is_disabled() && wifi::global_wifi_component->has_sta();'
             then:
               - lambda: |-
                   lv_label_set_text(id(loading_status_label), espdesktop_i18n("Connecting to WiFi"));
@@ -156,6 +156,10 @@ esphome:
                           - script.execute: wifi_reconnect_flow
             else:
               - lambda: 'id(boot_grace_period) = false;'
-              # The loading page already contains the live hotspot name and
-              # connection instructions. Keep that proven-visible page active
-              # until WiFi connects instead of replacing it during late boot.
+              - if:
+                  condition:
+                    lambda: 'return wifi::global_wifi_component->is_disabled();'
+                  then:
+                    - script.execute: navigate_after_api
+              # With the radio enabled and no saved network, the loading page
+              # already shows the hotspot instructions.

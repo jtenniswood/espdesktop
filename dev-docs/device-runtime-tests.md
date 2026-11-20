@@ -119,3 +119,59 @@ opening an existing nested shortcut page and using Back five times. The
 latest open and Back first-frame times in milliseconds. Compare the largest
 internal heap and PSRAM blocks with the same layout and build at each
 checkpoint. Use the same shortcut and return path for each visit.
+
+## Test USB and network together on the 4848S040
+
+Use the S3's [USB development profile](../devices/guition-esp32-s3-4848s040/usb-dev.yaml)
+and the Mac app from the same branch. The profile gives USB to Companion and
+keeps the normal Wi-Fi setup. ESPHome logs are available over the network
+instead of the USB cable.
+
+1. Before changing the connection, save the panel's network address and keep a
+   second display connected over the network.
+2. In the app's **Displays** settings, open the S3's **Network** menu and choose
+   **Use USB**. The app checks the paired display's identity before switching. For a new panel, choose **Add Display**, select **Connect by
+   USB**, and enter the code from the panel's **Settings → Paired** screen.
+3. Run an approved shortcut and check a live Mac stat on the USB display. Use
+   the second display to confirm its network connection still works.
+4. Unplug and reconnect the USB cable. If macOS gives it a different port name,
+   select the new port under **USB → Change port**. Verify the same display
+   reconnects using its saved pairing and the other display stays connected.
+5. Choose **USB → Use Network** and check that the app finds the same S3.
+   Switch back to USB. Confirm each switch keeps one saved display and requires
+   no pairing code. The app prompts for a network address if local discovery is
+   unavailable. Repeat with two USB displays if both have the USB development
+   firmware.
+   Try a different panel's address or USB port and check that the saved
+   connection and pairing stay intact on both displays.
+
+6. In **Displays**, select **Device** while connected by USB with Wi-Fi connected.
+   Confirm the browser opens the display’s current IP and the display stays on
+   USB in the Mac app. Right-click **Device** and choose **Open USB Editor**,
+   then repeat the normal **Device** click while the USB editor is loading.
+   With updated firmware, the browser should open while the USB transfer continues.
+   Save a layout change and confirm it persists after reopening the USB editor.
+7. Disconnect the cable during a save and reconnect it. The editor keeps the
+   submitted layout and reads back the saved one before retrying. If the
+   layout changed in the meantime, check that the editor leaves it alone and
+   offers **Export Unsaved Layout**.
+8. In the USB editor, confirm **System** shows no Wi-Fi switch, including
+   when the display serves an older embedded editor. On a display that is
+   out of Wi-Fi range, confirm **Device** opens the editor over USB and
+   Mac controls still work. If Wi-Fi was switched off in a previous build,
+   choose **Use Network** while connected by USB. Check that it turns on Wi-Fi
+   and finds the paired display.
+
+Record the exact Mac build, firmware source revision, board profile, and
+embedded editor SHA-256 for each USB test. Compile both USB profiles
+explicitly. The regular PR firmware matrix is not USB profile coverage.
+
+Fresh setup with the panel's Wi-Fi radio off is tracked in
+[issue #307](https://github.com/jtenniswood/espdesktop/issues/307).
+
+For a second USB display, use another 4848S040 with the USB development profile,
+or an ESP32-P4 profile that includes Companion and exposes its native USB
+Serial/JTAG port. For the 7-inch JC1060P470 V3 profile, add the
+[Companion native USB package](../common/addon/companion_native_usb.yaml) to the
+local test build. Choose **Use USB** on each saved display. With both
+connected, switch one to **Network** and verify the other stays on USB.

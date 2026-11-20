@@ -761,8 +761,80 @@ final class CompanionStore: NSObject, ObservableObject {
         }
     }
 
+    func isUSBPortInUse(_ port: String, except display: CompanionDisplay? = nil) -> Bool {
+        displays.contains { candidate in
+            guard candidate !== display else { return false }
+            if candidate.usesUSB && candidate.record.usbPort == port { return true }
+            return candidate.connection.pendingEndpoint.flatMap(CompanionUSBPort.path(from:)) == port
+        }
+    }
+
+    func findUSBPort(
+        for display: CompanionDisplay,
+        among ports: [String],
+        matches: (String, String) async -> Bool = CompanionConnection.usbPortMatches
+    ) async -> String? {
+        guard displays.contains(where: { $0 === display }), let fingerprint = display.certificateFingerprint else {
+            return nil
+        }
+        let ordered = ports.sorted { ($0 != display.record.usbPort ? 1 : 0, $0) <
+                                    ($1 != display.record.usbPort ? 1 : 0, $1) }
+        for port in ordered {
+            guard !Task.isCancelled else { return nil }
+            guard !isUSBPortInUse(port, except: display) else { continue }
+            if await matches(port, fingerprint) {
+                guard !Task.isCancelled, displays.contains(where: { $0 === display }),
+                      display.certificateFingerprint == fingerprint,
+                      !isUSBPortInUse(port, except: display) else { return nil }
+                return port
+            }
+        }
+        return nil
+    }
+
+    func switchDisplayToNetwork(_ display: CompanionDisplay, discovered: DiscoveredDisplay) {
+        guard displays.contains(where: { $0 === display }), display.usesUSB,
+              display.certificateFingerprint == discovered.id else { return }
+        display.record.connectAtLaunch = true
+        display.connection.switchToDiscoveredNetwork(discovered)
+    }
+
+    func setDisplayEndpoint(_ endpoint: String, for display: CompanionDisplay) {
+        guard displays.contains(where: { $0 === display }), display.panelHost != endpoint else { return }
+        if let port = CompanionUSBPort.path(from: endpoint) {
+            guard !isUSBPortInUse(port, except: display) else { return }
+        } else {
+            guard ConnectionEndpointPolicy.isLocalEndpoint(endpoint) else { return }
+        }
+        display.connection.switchEndpoint(endpoint)
+    }
+
+    private var usbEditorWindows: [UUID: CompanionUSBEditorWindow] = [:]
+    @Published private(set) var openingUSBDisplays: Set<UUID> = []
+
     func openPanelWebServer(_ display: CompanionDisplay) {
-        _ = openPanelWebServer(host: display.panelHost, tab: nil)
+        guard display.usesUSB else {
+            _ = openPanelWebServer(host: display.record.host, tab: nil)
+            return
+        }
+        guard openingUSBDisplays.insert(display.id).inserted else { return }
+        let port = display.record.usbPort
+        Task {
+            defer { openingUSBDisplays.remove(display.id) }
+            let address = await display.connection.currentUSBWifiAddress()
+            guard displays.contains(where: { $0 === display }), !forgettingDisplays.contains(display.id),
+                  display.usesUSB, display.record.usbPort == port else { return }
+            if let address, openPanelWebServer(host: address) { return }
+            openUSBEditor(display)
+        }
+    }
+
+    func openUSBEditor(_ display: CompanionDisplay) {
+        guard display.usesUSB, displays.contains(where: { $0 === display }),
+              !forgettingDisplays.contains(display.id) else { return }
+        let editor = usbEditorWindows[display.id] ?? CompanionUSBEditorWindow(display: display)
+        usbEditorWindows[display.id] = editor
+        editor.open()
     }
 
     func openPanelPairing() -> Bool {
@@ -836,8 +908,11 @@ final class CompanionStore: NSObject, ObservableObject {
 
     func pair(code: String) {
         guard isRePairing || !pairingDisplay.hasSavedPairing,
-              !pairingState.isBusy, ConnectionEndpointPolicy.isLocalEndpoint(panelHost),
-              let normalizedCode = CompanionPairingInput.normalizedCode(code) else { return }
+              !pairingState.isBusy,
+              let normalizedCode = CompanionPairingInput.normalizedCode(code),
+              CompanionPairingInput.isValid(host: panelHost, code: normalizedCode) else { return }
+        if let port = CompanionUSBPort.path(from: panelHost),
+           isUSBPortInUse(port, except: pairingDisplay) { return }
         pairingDisplay.connection.connect(mode: .pair(code: normalizedCode))
     }
 
@@ -848,6 +923,7 @@ final class CompanionStore: NSObject, ObservableObject {
         display.connection.disconnect()
         display.onRecordChange = nil
         display.connection.onEvent = nil
+        usbEditorWindows.removeValue(forKey: display.id)?.invalidate()
         displays.removeAll { $0.id == display.id }
         savedDisplays.save(displays.map(\.record))
         let account = display.pairingAccount

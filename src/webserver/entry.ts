@@ -808,6 +808,11 @@ function composeApplicationContext(liveGeneratedActions: () => readonly Companio
     transport: {
       download(content, filename) {
         const blob = new Blob([content], { type: "application/json" });
+        const usbExport = (window as Window & { espdesktopUSBExportBackup?: (blob: Blob, filename: string) => Promise<void> }).espdesktopUSBExportBackup;
+        if (window.location.protocol === "espdesktop-usb:" && usbExport) {
+          void usbExport(blob, filename);
+          return;
+        }
         const url = URL.createObjectURL(blob);
         const link = dom.document.createElement("a");
         link.href = url;

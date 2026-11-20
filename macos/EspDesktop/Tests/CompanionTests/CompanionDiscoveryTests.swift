@@ -77,6 +77,26 @@ final class CompanionDiscoveryTests: XCTestCase {
         subject.stop()
     }
 
+    @MainActor
+    func testFindingPairedDisplayIgnoresOtherScreensWithTheSameName() async {
+        let backend = FakeDiscoveryBackend()
+        let discovery = CompanionDiscovery(backend: backend)
+        let other = display("another-screen.local", id: String(repeating: "b", count: 64))
+        let paired = display("current-address.local")
+        discovery.start()
+        backend.emit(.found(key: "other", display: other))
+        backend.emit(.found(key: "paired", display: paired))
+        let match = await discovery.findDisplay(fingerprint: fingerprint)
+        XCTAssertEqual(match, paired)
+        XCTAssertFalse(discovery.isSearching)
+
+        discovery.start()
+        backend.emit(.found(key: "other", display: other))
+        let unavailable = await discovery.findDisplay(fingerprint: fingerprint, timeout: .zero)
+        XCTAssertNil(unavailable)
+        XCTAssertFalse(discovery.isSearching)
+    }
+
     func testRecoveryRequiresVerifiedIdentityAndAuthentication() {
         var recovery = CompanionEndpointRecovery()
         recovery.begin(savedEndpoint: "192.168.1.10")

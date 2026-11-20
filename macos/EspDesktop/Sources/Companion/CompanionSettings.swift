@@ -257,6 +257,15 @@ struct CompanionSettings: View {
     @State private var manualAddress = false
     @State private var customizingApplications: Bool?
     @State private var selectedDisplayID: String?
+    @State private var selectedUSBPort: String?
+    @State private var usbPorts: [String] = []
+    @State private var findingNetworkDisplay: CompanionDisplay?
+    @State private var showingWifiOff = false
+    @State private var findingUSBDisplay: CompanionDisplay?
+    @State private var usbDisplayNotFound: CompanionDisplay?
+    @State private var displayToConfigure: CompanionDisplay?
+    @State private var networkAddress = ""
+    @State private var showingNetworkAddress = false
     @State private var pairingCode = ""
     @State private var displayToForget: CompanionDisplay?
     @State private var confirmingRestartSetup = false
@@ -295,6 +304,76 @@ struct CompanionSettings: View {
         }
         .background(OnboardingWindowTitle(hidden: !store.onboardingCompleted && !showingSupport))
         .onAppear(perform: applySettingsRequest)
+        .task {
+            while !Task.isCancelled {
+                let ports = CompanionUSBPort.available()
+                if ports != usbPorts { usbPorts = ports }
+                try? await Task.sleep(for: .seconds(1))
+            }
+        }
+        .task(id: findingNetworkDisplay?.id) {
+            guard let display = findingNetworkDisplay else { return }
+            let wifiEnabled = await display.connection.prepareWifiForNetworkSwitch()
+            guard !Task.isCancelled, display.usesUSB else { return }
+            if wifiEnabled == false {
+                showingWifiOff = true
+                findingNetworkDisplay = nil
+                return
+            }
+            let result: DiscoveredDisplay?
+            if let fingerprint = display.certificateFingerprint {
+                result = await CompanionDiscovery().findDisplay(
+                    fingerprint: fingerprint, timeout: wifiEnabled == true ? .seconds(15) : .seconds(6))
+            } else {
+                result = nil
+            }
+            guard !Task.isCancelled, display.usesUSB else { return }
+            findingNetworkDisplay = nil
+            if let result {
+                store.switchDisplayToNetwork(display, discovered: result)
+            } else {
+                showNetworkAddress(for: display)
+            }
+        }
+        .task(id: findingUSBDisplay?.id) {
+            guard let display = findingUSBDisplay else { return }
+            let previous = display.panelHost
+            let port = await store.findUSBPort(for: display, among: CompanionUSBPort.available())
+            guard !Task.isCancelled else { return }
+            findingUSBDisplay = nil
+            guard display.panelHost == previous, store.displays.contains(where: { $0 === display }) else { return }
+            if let port {
+                store.setDisplayEndpoint(CompanionUSBPort.endpoint(for: port), for: display)
+            } else {
+                usbDisplayNotFound = display
+            }
+        }
+        .alert("Paired USB display not found", isPresented: Binding(
+            get: { usbDisplayNotFound != nil },
+            set: { if !$0 { usbDisplayNotFound = nil } }
+        ), presenting: usbDisplayNotFound) { display in
+            ForEach(usbPorts.filter { !store.isUSBPortInUse($0, except: display) }, id: \.self) { port in
+                Button(URL(fileURLWithPath: port).lastPathComponent) {
+                    store.setDisplayEndpoint(CompanionUSBPort.endpoint(for: port), for: display)
+                }
+            }
+            Button("OK", role: .cancel) {}
+        } message: { _ in
+            Text("Check the cable and make sure the display is running USB-capable firmware. If your port is listed, you can select it here.")
+        }
+        .alert("Display Wi-Fi is off", isPresented: $showingWifiOff) {
+            Button("OK", role: .cancel) {}
+        } message: {
+            Text("Open Device → System → Wi-Fi to turn it on, then choose Use Network again.")
+        }
+        .alert("Network address", isPresented: $showingNetworkAddress, presenting: displayToConfigure) { display in
+            TextField("IP address or name.local", text: $networkAddress)
+            Button("Connect") { store.setDisplayEndpoint(networkAddress, for: display) }
+                .disabled(!ConnectionEndpointPolicy.isLocalEndpoint(networkAddress))
+            Button("Cancel", role: .cancel) {}
+        } message: { _ in
+            Text("Enter the network address of this display. Its existing pairing will be used.")
+        }
         .onChange(of: store.settingsRequestID) { _ in applySettingsRequest() }
         .onChange(of: store.pairingState) { state in
             guard pairingFlowActive else { return }
@@ -481,6 +560,8 @@ struct CompanionSettings: View {
                     .help(display.panelHost)
                     .textSelection(.enabled)
 
+                connectionMenu(for: display)
+
                 if display.state == .failed || display.state == .needsPairing {
                     Text(display.recoveryMessage)
                         .font(.callout)
@@ -501,10 +582,17 @@ struct CompanionSettings: View {
                 Button {
                     store.openPanelWebServer(display)
                 } label: {
-                    Label("Device", systemImage: "display")
+                    Label(store.openingUSBDisplays.contains(display.id) ? "Opening…" : "Device", systemImage: "display")
                         .padding(.vertical, 4)
                 }
                 .modifier(CompanionCapsuleButton())
+                .disabled(store.openingUSBDisplays.contains(display.id) ||
+                          (!display.usesUSB && display.record.host.isEmpty))
+                .contextMenu {
+                    if display.usesUSB {
+                        Button("Open USB Editor") { store.openUSBEditor(display) }
+                    }
+                }
 
                 Button(role: .destructive) {
                     displayToForget = display
@@ -519,6 +607,61 @@ struct CompanionSettings: View {
         .multilineTextAlignment(.center)
         .frame(maxWidth: .infinity)
         .padding(.vertical, 24)
+    }
+
+    private func connectionMenu(for display: CompanionDisplay) -> some View {
+        Menu {
+            if display.usesUSB {
+                Button("Use Network") { findingNetworkDisplay = display }
+                    .disabled(findingNetworkDisplay != nil)
+
+                Menu("Change port") {
+                    if usbPorts.isEmpty {
+                        Text("No USB ports found")
+                    }
+                    ForEach(usbPorts, id: \.self) { port in
+                        let name = URL(fileURLWithPath: port).lastPathComponent
+                        if display.record.usbPort == port {
+                            Toggle(name, isOn: .constant(true))
+                                .disabled(true)
+                        } else {
+                            Button(name) {
+                                store.setDisplayEndpoint(CompanionUSBPort.endpoint(for: port), for: display)
+                            }
+                            .disabled(findingNetworkDisplay?.id == display.id ||
+                                      store.isUSBPortInUse(port, except: display))
+                        }
+                    }
+                }
+            } else {
+                if display.certificateFingerprint != nil {
+                    Button("Use USB") { findingUSBDisplay = display }
+                        .disabled(findingUSBDisplay != nil || usbPorts.allSatisfy { store.isUSBPortInUse($0) })
+                }
+                Button("Update Address") {
+                    if findingUSBDisplay?.id == display.id {
+                        findingUSBDisplay = nil
+                    }
+                    showNetworkAddress(for: display)
+                }
+            }
+        } label: {
+            if findingUSBDisplay?.id == display.id {
+                Label("Finding display…", systemImage: "cable.connector")
+            } else if findingNetworkDisplay?.id == display.id {
+                Label("Finding display…", systemImage: "network")
+            } else {
+                Label(display.usesUSB ? "USB" : "Network", systemImage: display.usesUSB ? "cable.connector" : "network")
+            }
+        }
+        .fixedSize()
+        .accessibilityLabel("Connection for \(display.name)")
+    }
+
+    private func showNetworkAddress(for display: CompanionDisplay) {
+        networkAddress = display.record.host
+        displayToConfigure = display
+        showingNetworkAddress = true
     }
 
     private var displaySwitchSize: ControlSize {
@@ -576,11 +719,13 @@ struct CompanionSettings: View {
                                 .buttonStyle(.borderedProminent)
                                 .disabled(!canPair)
                         }
-                        Button("Open pairing webpage") {
-                            pairingFlowError = store.openPanelPairing() ? "" : "Could not open the display pairing page."
+                        if CompanionUSBPort.path(from: store.panelHost) == nil {
+                            Button("Open pairing webpage") {
+                                pairingFlowError = store.openPanelPairing() ? "" : "Could not open the display pairing page."
+                            }
+                            .buttonStyle(.link)
+                            .font(.callout)
                         }
-                        .buttonStyle(.link)
-                        .font(.callout)
                     }
                 case .requestingCode, .connecting:
                     ProgressView()
@@ -590,7 +735,11 @@ struct CompanionSettings: View {
                         Button("Cancel", action: finishPairingFlow)
                     }
                 case .connected:
-                    CompanionPairingActions(finishLabel: "Done", openSetup: store.openPanelSetup, onComplete: finishPairingFlow)
+                    if CompanionUSBPort.path(from: store.panelHost) != nil {
+                        Button("Done", action: finishPairingFlow).buttonStyle(.borderedProminent)
+                    } else {
+                        CompanionPairingActions(finishLabel: "Done", openSetup: store.openPanelSetup, onComplete: finishPairingFlow)
+                    }
                 }
             }
             .controlSize(.large)
@@ -600,8 +749,13 @@ struct CompanionSettings: View {
             .frame(maxWidth: .infinity)
         }
         .task(id: pairingStep) {
-            guard pairingStep == .requestingCode,
-                  let webServer = CompanionStore.panelWebServerURL(from: store.panelHost) else { return }
+            guard pairingStep == .requestingCode else { return }
+            if CompanionUSBPort.path(from: store.panelHost) != nil {
+                pairingPrompt = .unavailable
+                pairingStep = .code
+                return
+            }
+            guard let webServer = CompanionStore.panelWebServerURL(from: store.panelHost) else { return }
             let prompt = await CompanionPairingPrompt.request(on: webServer)
             guard !Task.isCancelled, pairingFlowActive, pairingStep == .requestingCode else { return }
             pairingPrompt = prompt
@@ -646,9 +800,26 @@ struct CompanionSettings: View {
                     Button("Retry discovery") { discovery.stop(); discovery.start() }
                 }
             }
+            ForEach(usbPorts, id: \.self) { port in
+                Button {
+                    selectedDisplayID = nil
+                    selectedUSBPort = port
+                } label: {
+                    displayOption(
+                        title: "Connect by USB",
+                        subtitle: URL(fileURLWithPath: port).lastPathComponent,
+                        icon: "cable.connector",
+                        selected: selectedUSBPort == port
+                    )
+                }
+                .buttonStyle(.plain)
+                .disabled(store.isUSBPortInUse(port))
+                .accessibilityAddTraits(selectedUSBPort == port ? .isSelected : [])
+            }
             ForEach(discovery.displays) { display in
                 let paired = store.isSavedDisplay(fingerprint: display.id)
                 Button {
+                    selectedUSBPort = nil
                     selectedDisplayID = display.id
                 } label: {
                     displayOption(
@@ -665,6 +836,7 @@ struct CompanionSettings: View {
             }
             Button {
                 manualAddress = true
+                selectedUSBPort = nil
                 selectedDisplayID = nil
                 store.panelDisplayName = ""
                 focusedField = .panelHost
@@ -735,10 +907,13 @@ struct CompanionSettings: View {
     private var pairingStepDescription: String {
         switch pairingStep {
         case .address:
-            return "Your Mac and display must be on the same network."
+            return "Choose a display connected by USB or on your local network."
         case .requestingCode:
             return "Looking for your display on the local network."
         case .code:
+            if CompanionUSBPort.path(from: store.panelHost) != nil {
+                return "On the display, open Settings → Paired and enter the code shown there."
+            }
             switch pairingPrompt {
             case .code:
                 return "Enter the code shown on your display."
@@ -748,7 +923,8 @@ struct CompanionSettings: View {
                 return "Open pairing from the display’s Settings or webpage, then enter the code."
             }
         case .connecting:
-            return "Keep your Mac and display on the same network."
+            return CompanionUSBPort.path(from: store.panelHost) != nil
+                ? "Keep the USB cable connected." : "Keep your Mac and display on the same network."
         case .connected:
             return "Your display is ready to use."
         }
@@ -759,7 +935,10 @@ struct CompanionSettings: View {
     }
 
     private var canRequestPairingCode: Bool {
-        manualAddress ? CompanionStore.panelWebServerURL(from: store.panelHost) != nil
+        if let selectedUSBPort {
+            return usbPorts.contains(selectedUSBPort) && !store.isUSBPortInUse(selectedUSBPort)
+        }
+        return manualAddress ? CompanionStore.panelWebServerURL(from: store.panelHost) != nil
             : discovery.displays.contains { $0.id == selectedDisplayID && !store.isSavedDisplay(fingerprint: $0.id) }
     }
 
@@ -767,6 +946,7 @@ struct CompanionSettings: View {
         store.resetPairing()
         pairingCode = ""
         selectedDisplayID = nil
+        selectedUSBPort = nil
         manualAddress = false
         pairingFlowActive = true
         pairingStep = .address
@@ -790,7 +970,10 @@ struct CompanionSettings: View {
 
     private func requestPairingCode() {
         guard pairingStep == .address else { return }
-        if !manualAddress {
+        if let selectedUSBPort, usbPorts.contains(selectedUSBPort) {
+            store.panelHost = CompanionUSBPort.endpoint(for: selectedUSBPort)
+            store.panelDisplayName = ""
+        } else if !manualAddress {
             guard let display = discovery.displays.first(where: { $0.id == selectedDisplayID }) else { return }
             store.panelHost = display.endpoint
             store.panelDisplayName = display.name
@@ -808,8 +991,8 @@ struct CompanionSettings: View {
             pairingFlowError = "Enter the pairing code shown on the display."
             return
         }
-        guard ConnectionEndpointPolicy.isLocalEndpoint(store.panelHost) else {
-            pairingFlowError = "Go back and choose a display or enter a valid local address."
+        guard CompanionUSBPort.path(from: store.panelHost) != nil || ConnectionEndpointPolicy.isLocalEndpoint(store.panelHost) else {
+            pairingFlowError = "Go back and choose a USB or network display."
             return
         }
         guard !store.pairingState.isBusy else { return }

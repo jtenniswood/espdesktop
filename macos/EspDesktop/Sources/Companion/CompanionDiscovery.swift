@@ -95,6 +95,19 @@ final class CompanionDiscovery: ObservableObject {
         }
     }
 
+    func findDisplay(fingerprint: String, timeout: Duration = .seconds(6)) async -> DiscoveredDisplay? {
+        start()
+        defer { stop() }
+        let clock = ContinuousClock()
+        let deadline = clock.now + timeout
+        while !Task.isCancelled {
+            if let display = displays.first(where: { $0.id == fingerprint }) { return display }
+            guard isSearching, clock.now < deadline else { return nil }
+            try? await Task.sleep(for: .milliseconds(100))
+        }
+        return nil
+    }
+
     func stop() {
         active = false
         isSearching = false
