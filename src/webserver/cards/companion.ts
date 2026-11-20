@@ -36,7 +36,6 @@ import type { ConnectorsPageFeature } from "../application/connectors_page";
 import type { ConfigModalTabOptionsFeature } from "../application/config_modal_tab_options";
 import { state } from "../state/app_instance";
 import {
-    COMPANION_APP_SHORTCUTS_OPTION,
     COMPANION_SHORTCUT_PREFIX,
     COMPANION_SHORTCUT_PRESET_OPTION,
     companionShortcutCatalogApps,
@@ -1870,23 +1869,24 @@ export function registerCompanionCardTypes(
                 );
                 const appChanged = card.entity !== select.value;
                 card.entity = select.value;
+                if (appChanged) {
+                    setCompanionAppShortcutFolderEnabled(card, canAddSubpage);
+                    const changedFromSavedApp = card.entity !== savedParent?.entity;
+                    card.options = setConfigOptionValue(card.options, APPLE_SHORTCUTS_HIDDEN_OPTION,
+                        changedFromSavedApp ? "" : configOptionValue(savedParent?.options, APPLE_SHORTCUTS_HIDDEN_OPTION));
+                    delete card._appleShortcutTabs;
+                    delete card._modalTabsExpanded;
+                    delete card._modalTabsSearch;
+                    card._appShortcutSelectionChanged = changedFromSavedApp;
+                    card._appShortcutAppChanged = changedFromSavedApp;
+                    card._modalSettingsOpen = true;
+                }
                 const reconnected = reconnectAthenaShortcutSubpage(
                     savedShortcutSubpage ?? undefined, savedParent?.entity, card.entity);
                 if (reconnected) {
                     setCompanionShortcutTabs(card, companionShortcutTabsFromSubpage(card.entity, reconnected), reconnected);
                 } else {
                     resetCompanionShortcutTabs(card);
-                }
-                if (appChanged) {
-                    card.options = setConfigOption(card.options, COMPANION_APP_SHORTCUTS_OPTION, false);
-                    card.options = setConfigOptionValue(card.options, APPLE_SHORTCUTS_HIDDEN_OPTION, "");
-                    delete card._appleShortcutTabs;
-                    delete card._modalTabsExpanded;
-                    delete card._modalTabsSearch;
-                    const changedFromSavedApp = card.entity !== savedParent?.entity;
-                    card._appShortcutSelectionChanged = changedFromSavedApp;
-                    card._appShortcutAppChanged = changedFromSavedApp;
-                    card._modalSettingsOpen = true;
                 }
                 card.options = normalizeCompanionAppOptions(card);
                 helpers.saveField("entity", card.entity);
