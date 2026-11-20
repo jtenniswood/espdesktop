@@ -14,7 +14,8 @@ Mac in that profile. If Xcode reports that the new app ID is missing the HomeKit
 entitlement, build once for the generic iOS destination with automatic signing,
 then rebuild for Mac Catalyst. Install the signed Mac helper in `~/Applications`
 and open it once so macOS can find it. The companion checks the helper's signing
-identity before launching it.
+identity before launching it. Release updates are disabled in the experimental
+companion build so it can stay on the feature branch during testing.
 
 For a local test, use a display paired over Wi-Fi with the version 2 configuration
 API and room for an Apple Home folder. In **Displays**, choose **Apple Home** for
