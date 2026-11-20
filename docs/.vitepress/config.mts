@@ -43,6 +43,8 @@ const pageImages: Record<string, typeof defaultImage> = {
     'Applications card form with Figma selected in the EspDesktop web editor'),
   'mac-controls/websites.md': shareImage('web-editor-website.jpg', 560, 530,
     'Website card form with an example web address in the EspDesktop web editor'),
+  'mac-controls/apple-shortcuts.md': shareImage('apple-shortcuts/list.jpg', 1080, 1080,
+    'EspDesktop touchscreen showing the Shortcut List page with a Back tile and seven shortcuts'),
 }
 
 const author = { '@type': 'Person', name: 'jtenniswood', url: 'https://github.com/jtenniswood' }
@@ -61,6 +63,7 @@ const guideParents = {
   'mac-controls/websites.md': { name: 'Customise the layout', path: 'features/home.md' },
   'mac-controls/folders.md': { name: 'Customise the layout', path: 'features/home.md' },
   'mac-controls/shortcuts.md': { name: 'Customise the layout', path: 'features/home.md' },
+  'mac-controls/apple-shortcuts.md': { name: 'Customise the layout', path: 'features/home.md' },
   'mac-controls/improve-shortcuts.md': { name: 'Keyboard shortcuts', path: 'mac-controls/shortcuts.md' },
   'reference/companion-compatibility.md': { name: 'Setup and compatibility FAQ', path: 'reference/faq.md' },
 } as Record<string, { name: string; path: string }>
@@ -77,6 +80,7 @@ const customiseLinks = [
   { text: 'Finder folders', link: '/mac-controls/folders' },
   { text: 'Keyboard shortcuts', link: '/mac-controls/shortcuts' },
   { text: 'Keyboard shortcut presets', link: '/reference/shortcut-presets' },
+  { text: 'Apple Shortcuts', link: '/mac-controls/apple-shortcuts' },
 ]
 const obsStudioLink = { text: 'OBS Studio', link: '/mac-controls/obs-studio' }
 const obsStudioSidebar = {
