@@ -71,61 +71,6 @@ export function createSettingsSystemSectionFeature(
     } = firmwarePostApi;
     const { installPublicFirmwareViaWebOta } = publicFirmwareInstall;
 
-    function buildUSBWifiCard(): HTMLElement | undefined {
-        if (window.location.protocol !== "espdesktop-usb:") return;
-
-        const endpoint = "/companion/usb-wifi";
-        const body = document.createElement("div");
-        const { row, input } = toggleRow("Wi-Fi enabled", "sp-usb-wifi-enabled", false);
-        row.classList.add("sp-hidden");
-        const note = infoPanel("sp-usb-wifi-note", "Wi-Fi stays off when you unplug USB.");
-        const error = document.createElement("p");
-        error.setAttribute("role", "status");
-        error.hidden = true;
-        input.setAttribute("aria-describedby", "sp-usb-wifi-note");
-        body.append(row, note, error);
-        const card: HTMLElement = makeCollapsibleCard("Wi-Fi", body, true);
-        card.classList.add("sp-hidden");
-        let enabled = false;
-
-        async function refresh(requested?: boolean): Promise<void> {
-            if (input.disabled) return;
-            input.disabled = true;
-            error.hidden = true;
-            try {
-                const response = await fetch(endpoint, requested === undefined ? undefined : {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ enabled: requested }),
-                });
-                if (response.status === 404) {
-                    card.classList.add("sp-hidden");
-                    return;
-                }
-                if (!response.ok) throw new Error("Wi-Fi request failed");
-                enabled = (await response.json()).enabled === true;
-                row.classList.remove("sp-hidden");
-                card.classList.remove("sp-hidden");
-            } catch {
-                card.classList.remove("sp-hidden");
-                error.textContent = requested === undefined
-                    ? "Couldn’t read Wi-Fi status. Check the USB connection."
-                    : "Couldn’t change Wi-Fi. Check the USB connection and try again.";
-                error.hidden = false;
-            } finally {
-                input.checked = enabled;
-                input.disabled = false;
-            }
-        }
-
-        input.addEventListener("change", () => { void refresh(input.checked); });
-        card.querySelector(".card-header")?.addEventListener("click", () => {
-            if (!card.classList.contains("collapsed")) void refresh();
-        });
-        void refresh();
-        return card;
-    }
-
     // ── Settings System Section ────────────────────────────────────────
     function buildSystemSettingsCards(this: any) {
         var backupBody: any = document.createElement("div");
@@ -394,7 +339,6 @@ export function createSettingsSystemSectionFeature(
         stateLoader.refreshFirmwareVersion();
         return {
             identityCard: actions.buildIdentityCard?.(),
-            wifiCard: buildUSBWifiCard(),
             backupCard: backupCard,
             resetCard: buildResetSettings(actions.exportBackup, makeCollapsibleCard, infoPanel),
             firmwareCard: firmwareCard,

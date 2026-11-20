@@ -1,12 +1,10 @@
 import AppKit
-import OSLog
 @preconcurrency import WebKit
 
 @MainActor
 final class CompanionUSBEditorWindow: NSObject, WKNavigationDelegate,
                                       WKURLSchemeHandler, WKScriptMessageHandlerWithReply {
     private static let scheme = "espdesktop-usb"
-    private static let logger = Logger(subsystem: "io.espdesktop.app", category: "USBEditor")
     private let window: NSWindow
     private let status = NSTextField(labelWithString: "USB")
     private let loading = NSView()
@@ -191,6 +189,11 @@ final class CompanionUSBEditorWindow: NSObject, WKNavigationDelegate,
             replyHandler(["status": 403, "headers": [:], "body": ""], nil)
             return
         }
+        // Older embedded editors hide their Wi-Fi setting when the route is absent.
+        guard request.path != USBEditorRequest.wifiPath else {
+            replyHandler(["status": 404, "headers": [:], "body": ""], nil)
+            return
+        }
 
         let id = UUID()
         scriptRequests[id] = Task { [weak self] in
@@ -202,9 +205,6 @@ final class CompanionUSBEditorWindow: NSObject, WKNavigationDelegate,
                               "body": response.body.base64EncodedString()], nil)
             } catch {
                 if !Task.isCancelled {
-                    if request.path == USBEditorRequest.wifiPath {
-                        Self.logger.error("Wi-Fi \(request.method, privacy: .public) failed: \(error.localizedDescription, privacy: .public)")
-                    }
                     self.status.stringValue = error.localizedDescription
                     if self.unsavedLayout != nil { self.exportDraft.isHidden = false }
                 }

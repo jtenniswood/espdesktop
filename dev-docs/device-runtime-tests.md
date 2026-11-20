@@ -155,13 +155,12 @@ instead of the USB cable.
    submitted layout and reads back the saved one before retrying. If the
    layout changed in the meantime, check that the editor leaves it alone and
    offers **Export Unsaved Layout**.
-8. In the USB editor, open **Device Settings → System → Wi-Fi**. Turn Wi-Fi
-   off and confirm **Device** opens the editor over USB and Mac controls
-   still work.
-   Disconnect USB and wait for the USB session to time out. Confirm Wi-Fi
-   stays off, including after a display restart. Reconnect USB and choose
-   **Use Network**. Check that it turns on Wi-Fi, finds the paired
-   display, and that **Device** opens its local address in your default browser.
+8. In the USB editor, confirm **System** shows no Wi-Fi switch, including
+   when the display serves an older embedded editor. On a display that is
+   out of Wi-Fi range, confirm **Device** opens the editor over USB and
+   Mac controls still work. If Wi-Fi was switched off in a previous build,
+   choose **Use Network** while connected by USB. Check that it turns on Wi-Fi
+   and finds the paired display.
 
 Record the exact Mac build, firmware source revision, board profile, and
 embedded editor SHA-256 for each USB test. Compile both USB profiles

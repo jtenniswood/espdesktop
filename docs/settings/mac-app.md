@@ -21,7 +21,7 @@ USB control currently requires compatible development builds of both the Mac app
 2. In **Settings → Displays**, open the connection menu for that display and choose **Use USB**. The app matches the display to its existing pairing.
 3. Choose **Device**. If the display is connected to Wi-Fi and reports a local address, the editor opens in your default browser. Otherwise it opens over USB inside the Mac app.
 
-Wi-Fi is on by default. To turn it off, right-click **Device** and choose **Open USB Editor**. Open the **System** tab and find **Wi-Fi** in the **System** group. The display remembers your choice after unplugging USB or restarting.
+Right-click **Device** and choose **Open USB Editor** to open the editor over USB while the display is on Wi-Fi.
 
 To return to the network, keep the USB cable connected and choose **USB → Use Network** in **Settings → Displays**. EspDesktop turns on the display’s Wi-Fi if needed and looks for the paired display on your network. Once connected, **Device** opens the display’s network address in your default browser.
 
