@@ -9,8 +9,11 @@ The companion build requires `ESPDESKTOP_EXPERIMENTAL_APPLE_HOME=1` and the
 repository's Node dependencies to include the page setup tool. The helper builds
 separately from `EspDesktopHome.xcodeproj`. Open the project in Xcode, select the
 **Mac Catalyst** destination and use an Apple Development identity and HomeKit
-provisioning profile from the same team as the signed companion. Register the helper
-with macOS by opening the built app once. The companion checks the helper's signing
+provisioning profile from the same team as the signed companion. Include the test
+Mac in that profile. If Xcode reports that the new app ID is missing the HomeKit
+entitlement, build once for the generic iOS destination with automatic signing,
+then rebuild for Mac Catalyst. Install the signed Mac helper in `~/Applications`
+and open it once so macOS can find it. The companion checks the helper's signing
 identity before launching it.
 
 For a local test, use a display paired over Wi-Fi with the version 2 configuration
