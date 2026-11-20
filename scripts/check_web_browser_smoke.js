@@ -4586,6 +4586,48 @@ async function assertOnDemandShortcutSettings(browser, testCase) {
   }
 }
 
+async function assertOBSAppCard(browser) {
+  const testCase = CASES.find(item => item.slug === "guition-esp32-s3-4848s040");
+  const fixture = nativeConfigState(testCase.slug);
+  fixture.document.buttons = { 2: COPY_SHORTCUT };
+  fixture.document.subpages = {};
+  fixture.document.settings = { button_order: "2", web_onboarding_complete: "1" };
+  const appId = "com.obsproject.obs-studio";
+  const context = await browser.newContext({ viewport: testCase.viewport });
+  await installRoutes(context, testCase.slug, { nativeState: fixture });
+  await context.route("**/companion/actions", route => route.fulfill({
+    json: [{ id: appId, label: "OBS Studio" }],
+  }));
+  await mockCompanionAppIcon(context, appId);
+  try {
+    const page = await context.newPage();
+    await installFakeEventSource(page);
+    await page.goto(`http://espdesktop.test/${testCase.slug}?events=1`);
+    await seedNativeDocument(page, fixture);
+    await page.locator(".sp-main .sp-empty-cell").first().click();
+    await chooseCardType(page, "OBS Studio");
+    await page.getByRole("button", { name: "Open the OBS Studio App card type", exact: true })
+      .locator("img.sp-card-type-app-icon").waitFor();
+    await chooseCardType(page, "Open the OBS Studio App");
+    const application = page.getByRole("combobox", { name: "Application", exact: true });
+    await application.getByRole("option", { name: "OBS Studio", exact: true }).waitFor({ state: "attached" });
+    assert.equal(await application.inputValue(), appId);
+    const appSubpage = page.locator(".sp-app-subpage-settings");
+    assert.equal(await appSubpage.getByRole("button", { name: "App Subpage", exact: true }).getAttribute("aria-expanded"), "true");
+    assert(await appSubpage.getByRole("checkbox", { name: "Add app subpage", exact: true }).isChecked());
+    await page.getByRole("button", { name: "Save", exact: true }).click();
+    const { parseRawButtonConfig } = loadTypeScriptModule("src/webserver/model/card.ts");
+    const savedApp = () => parseRawButtonConfig(fixture.document.buttons[1] || "");
+    await waitForNativeState(fixture, () => savedApp().entity === appId &&
+      fixture.document.subpages[1]?.includes("Edit Transform"), "save the OBS app and its default shortcuts");
+    assert.equal(savedApp().type, "companion");
+    assert.match(savedApp().options, /(?:^|,)app_shortcuts(?:,|$)/);
+    await page.locator('.sp-main [data-slot="1"] .sp-subpage-badge').click();
+    await page.locator(".sp-main").getByText("Edit Transform", { exact: true }).waitFor();
+    console.log("The OBS app launcher and its default shortcut subpage passed.");
+  } finally { await context.close(); }
+}
+
 async function assertOBSSceneCard(browser) {
   const testCase = CASES.find(item => item.slug === "guition-esp32-s3-4848s040");
   const fixture = nativeConfigState(testCase.slug);
@@ -4685,7 +4727,8 @@ async function assertOBSSceneCard(browser) {
     const cardLabels = section => page.getByRole("region", { name: section, exact: true })
       .getByRole("button").evaluateAll(cards => cards.map(card => card.getAttribute("aria-label")));
     assert.deepEqual(await cardLabels("Card types"),
-      ["Audio Controls", "Break", "Output Controls", "Replay Buffer", "Scene", "Studio Mode", "Transitions"]
+      ["Audio Controls", "Break", "Output Controls", "Replay Buffer", "Scene", "Studio Mode", "Transitions",
+        "Open the OBS Studio App"]
         .map(label => label + " card type"));
     assert.deepEqual(await cardLabels("Grouped pages"),
       ["Audio", "Scenes", "Studio Control", "Transitions"].map(label => label + " card type"));
@@ -7689,10 +7732,10 @@ async function assertReorderAfterDelete(browser) {
   } finally { await context.close(); }
 }
 
-async function mockShortcutsAppIcon(context) {
+async function mockCompanionAppIcon(context, appId) {
   const { COMPANION_APP_ICON_SIDE: side } = loadTypeScriptModule("src/webserver/generated/companion_capabilities.ts");
   const pixels = Buffer.alloc(side * side * 3, 255);
-  await context.route("**/companion/app-icon?appId=com.apple.shortcuts", route => route.fulfill({
+  await context.route(`**/companion/app-icon?appId=${appId}`, route => route.fulfill({
     contentType: "application/octet-stream", body: pixels,
   }));
 }
@@ -7712,7 +7755,7 @@ async function assertAppleShortcutCard(browser) {
   await context.route("**/companion/actions", route => route.fulfill({
     json: [{ id: "com.apple.shortcuts", label: "Shortcuts" }, ...workflows],
   }));
-  await mockShortcutsAppIcon(context);
+  await mockCompanionAppIcon(context, "com.apple.shortcuts");
   try {
     const page = await context.newPage();
     await installFakeEventSource(page);
@@ -7842,7 +7885,7 @@ async function assertAppleShortcutSubpage(browser, directCard = false) {
   await context.route("**/companion/actions", route => route.fulfill({
     json: directCard ? available : [{ id: "com.apple.shortcuts", label: "Shortcuts" }, ...available],
   }));
-  if (directCard) await mockShortcutsAppIcon(context);
+  if (directCard) await mockCompanionAppIcon(context, "com.apple.shortcuts");
   try {
     const page = await context.newPage();
     await installFakeEventSource(page);
@@ -9063,6 +9106,7 @@ async function assertFirstRunSetup(browser) {
       return;
     }
     if (process.env.ESPDESKTOP_OBS_ONLY === "1") {
+      await assertOBSAppCard(browser);
       await assertOBSSceneCard(browser);
       return;
     }
@@ -9119,6 +9163,7 @@ async function assertFirstRunSetup(browser) {
       console.log("Large app icon artwork and chevrons passed for native and legacy configurations.");
       return;
     }
+    await assertOBSAppCard(browser);
     await assertOBSSceneCard(browser);
     await assertSavedOBSLayout(browser);
     await assertStudioControlPage(browser);
