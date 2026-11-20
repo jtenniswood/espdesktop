@@ -7,6 +7,8 @@ description: Adjust OBS mixer levels, mute individual microphones and other inpu
 
 [Connect OBS Studio](/mac-controls/obs-studio#connect-obs-studio) to control the inputs in its mixer. When selecting a microphone, choose the input your broadcast captures. It can differ from the Mac’s default microphone.
 
+<img src="/images/obs/audio.jpg" alt="EspDesktop touchscreen with Cough and Mic Live buttons above tall Input 1, Input 2 and Mic sliders" width="1440" height="1440">
+
 ## Add the Audio grouped page
 
 1. Choose **Add Card → OBS Studio → Grouped pages → Audio**, then save the card. The page fills available cells with sliders for your current mixer inputs.
@@ -29,8 +31,6 @@ description: Adjust OBS mixer levels, mute individual microphones and other inpu
 | **Input State** | Tap to mute or unmute the input. The card uses its on colour for **Live** and its off colour and crossed-out microphone for **Muted**. |
 | **Cough** | Hold to mute temporarily. Releasing restores the previous mute state. The card shows **Muted** whenever that input is muted, including during a break. |
 
-The example below uses taller **Level** sliders and puts **Cough** beside the mic’s **Input State** button. To build a layout like this, set both buttons to the same **Source** so you can choose between a quick mute and one that stays on until you tap again.
-
-<img src="/images/obs/audio.jpg" alt="EspDesktop touchscreen with Cough and Mic Live buttons above tall Input 1, Input 2 and Mic sliders" width="1440" height="1440" loading="lazy">
+The layout in the photo uses taller **Level** sliders and puts **Cough** beside the mic’s **Input State** button. To build a layout like this, set both buttons to the same **Source** so you can choose between a quick mute and one that stays on until you tap again.
 
 To mute an input when you switch to a break scene, use [Break Settings](/mac-controls/obs-studio/scene-control-and-mixing#switch-to-a-break-scene).
