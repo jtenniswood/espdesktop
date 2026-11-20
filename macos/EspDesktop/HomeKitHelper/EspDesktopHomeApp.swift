@@ -12,6 +12,14 @@ struct EspDesktopHomeApp: App {
             VStack(alignment: .leading, spacing: 16) {
                 Text("Apple Home").font(.title)
                 content
+                if home.homes.count > 1 {
+                    Picker("Home", selection: Binding(get: { home.selectedHomeID }, set: home.select)) {
+                        if home.selectedHomeID == nil { Text("Choose a Home").tag(nil as UUID?) }
+                        ForEach(home.homes, id: \.uniqueIdentifier) { house in
+                            Text(house.name).tag(Optional(house.uniqueIdentifier))
+                        }
+                    }
+                }
             }
             .padding(24)
             .frame(minWidth: 370, minHeight: 260, alignment: .topLeading)
@@ -27,11 +35,12 @@ struct EspDesktopHomeApp: App {
             Text("Allow EspDesktop Home in System Settings under Privacy & Security → HomeKit.")
         case .chooseHome:
             Text("Choose which home to connect to EspDesktop.")
-            ForEach(home.homes, id: \.uniqueIdentifier) { house in
-                Button(house.name) { home.select(house) }
-            }
         case .empty:
-            Text("No compatible controls or scenes are available in this home.")
+            if home.homes.isEmpty {
+                Text("No homes are available. Check that your home appears in the Apple Home app on this Mac.")
+            } else {
+                Text("There are no compatible controls or scenes in this home.")
+            }
         case .ready:
             Text("Choose which Apple Home controls to add in EspDesktop’s display settings.")
         }
@@ -42,7 +51,7 @@ struct EspDesktopHomeApp: App {
 final class EspDesktopHome: NSObject, ObservableObject, HMHomeManagerDelegate, HMHomeDelegate {
     private enum Target {
         case scene(HMActionSet)
-        case power(HMCharacteristic, Bool)
+        case write(HMCharacteristic, NSNumber)
     }
 
     private struct Control {
@@ -53,6 +62,7 @@ final class EspDesktopHome: NSObject, ObservableObject, HMHomeManagerDelegate, H
 
     @Published private(set) var homes: [HMHome] = []
     @Published private(set) var status: AppleHomeSceneMessage.Status = .waiting
+    @Published private(set) var selectedHomeID: UUID?
     private let defaults = UserDefaults.standard
     private let manager = HMHomeManager()
     private var channel: AppleHomeSceneChannel?
@@ -61,6 +71,7 @@ final class EspDesktopHome: NSObject, ObservableObject, HMHomeManagerDelegate, H
     private var bindings = AppleHomeSceneBindings()
     private var targets: [UUID: Target] = [:]
     private var publishesCatalog = false
+    private var loadedHomes = false
 
     override init() {
         super.init()
@@ -81,7 +92,10 @@ final class EspDesktopHome: NSObject, ObservableObject, HMHomeManagerDelegate, H
     }
 
     nonisolated func homeManagerDidUpdateHomes(_ manager: HMHomeManager) {
-        Task { @MainActor in refresh() }
+        Task { @MainActor in
+            loadedHomes = true
+            refresh()
+        }
     }
 
     nonisolated func homeManager(_ manager: HMHomeManager, didUpdate status: HMHomeManagerAuthorizationStatus) {
@@ -108,37 +122,47 @@ final class EspDesktopHome: NSObject, ObservableObject, HMHomeManagerDelegate, H
         Task { @MainActor in refresh() }
     }
 
-    func select(_ home: HMHome) {
-        defaults.set(home.uniqueIdentifier.uuidString, forKey: "selectedHome")
+    func select(_ id: UUID?) {
+        guard let id, homes.contains(where: { $0.uniqueIdentifier == id }) else { return }
+        defaults.set(id.uuidString, forKey: "selectedHome")
+        defaults.set(true, forKey: "selectedHomeExplicit")
         refresh()
     }
 
     private func refresh() {
         guard manager.authorizationStatus.contains(.authorized) else {
             selectedHome = nil
+            selectedHomeID = nil
             homes = []
             targets = [:]
             publish(manager.authorizationStatus.contains(.determined) ? .denied : .waiting)
             return
         }
+        guard loadedHomes else { return }
         homes = manager.homes
+        for home in homes { home.delegate = self }
+        let catalogs = homes.map { home in
+            let scenes = userScenes(in: home)
+            return (home: home, scenes: scenes, controls: discoverControls(in: home, scenes: scenes))
+        }
         let saved = defaults.string(forKey: "selectedHome").flatMap(UUID.init(uuidString:))
-        let selected = AppleHomeSceneBindings.chooseHome(from: homes.map(\.uniqueIdentifier), saved: saved)
-        let chosen = homes.first { $0.uniqueIdentifier == selected }
-        guard let chosen else {
+        let eligibleHomes = catalogs.filter { !$0.controls.isEmpty }.map { $0.home.uniqueIdentifier }
+        let selected = AppleHomeSceneBindings.chooseHome(from: homes.map(\.uniqueIdentifier), withControls: eligibleHomes,
+                                                        saved: saved, explicit: defaults.bool(forKey: "selectedHomeExplicit"))
+        selectedHomeID = selected
+        guard let catalog = catalogs.first(where: { $0.home.uniqueIdentifier == selected }) else {
             selectedHome = nil
             targets = [:]
             publish(homes.isEmpty ? .empty : .chooseHome)
             return
         }
+        let chosen = catalog.home
+        if selectedHome?.uniqueIdentifier != selected { publish(.waiting) }
         selectedHome = chosen
-        chosen.delegate = self
-        defaults.set(chosen.uniqueIdentifier.uuidString, forKey: "selectedHome")
-        let scenes = chosen.actionSets.filter { $0.actionSetType == HMActionSetTypeUserDefined }
-            .sorted {
-                if $0.name == $1.name { return $0.uniqueIdentifier.uuidString < $1.uniqueIdentifier.uuidString }
-                return $0.name.localizedStandardCompare($1.name) == .orderedAscending
-            }
+        if saved != selected {
+            defaults.set(chosen.uniqueIdentifier.uuidString, forKey: "selectedHome")
+            defaults.removeObject(forKey: "selectedHomeExplicit")
+        }
         let key = "sceneSlots." + chosen.uniqueIdentifier.uuidString
         let savedBindings = defaults.data(forKey: key).flatMap { try? JSONDecoder().decode(AppleHomeSceneBindings.self, from: $0) }
         bindings = savedBindings ?? AppleHomeSceneBindings()
@@ -147,33 +171,48 @@ final class EspDesktopHome: NSObject, ObservableObject, HMHomeManagerDelegate, H
         let generation = (savedBindings != nil ? savedGeneration : nil) ?? UUID()
         defaults.set(generation.uuidString, forKey: bindingKey)
         bindingSet = generation
-        bindings.discover(scenes.map(\.uniqueIdentifier))
+        bindings.discover(catalog.scenes.map(\.uniqueIdentifier))
         defaults.set(try? JSONEncoder().encode(bindings), forKey: key)
-        refreshControls(in: chosen, scenes: scenes)
+        publishControls(catalog.controls, in: chosen)
     }
 
-    private func refreshControls(in home: HMHome, scenes: [HMActionSet]) {
-        let serviceTypes = Set([HMServiceTypeLightbulb, HMServiceTypeSwitch, HMServiceTypeOutlet, HMServiceTypeFan])
+    private func userScenes(in home: HMHome) -> [HMActionSet] {
+        home.actionSets.filter { $0.actionSetType == HMActionSetTypeUserDefined }.sorted {
+            if $0.name == $1.name { return $0.uniqueIdentifier.uuidString < $1.uniqueIdentifier.uuidString }
+            return $0.name.localizedStandardCompare($1.name) == .orderedAscending
+        }
+    }
+
+    private func discoverControls(in home: HMHome, scenes: [HMActionSet]) -> [Control] {
+        let powerTypes = Set([HMServiceTypeLightbulb, HMServiceTypeSwitch, HMServiceTypeOutlet, HMServiceTypeFan])
         var controls = scenes.map { Control(key: "scene." + $0.uniqueIdentifier.uuidString, name: $0.name, target: .scene($0)) }
         for accessory in home.accessories {
-            let services = accessory.services.filter { serviceTypes.contains($0.serviceType) }
+            let services = accessory.services.filter {
+                powerTypes.contains($0.serviceType) || $0.serviceType == HMServiceTypeWindowCovering
+            }
             for service in services {
-                guard let power = service.characteristics.first(where: {
-                    $0.characteristicType == HMCharacteristicTypePowerState &&
-                        $0.properties.contains(HMCharacteristicPropertyWritable)
+                let isCovering = service.serviceType == HMServiceTypeWindowCovering
+                let type = isCovering ? HMCharacteristicTypeTargetPosition : HMCharacteristicTypePowerState
+                guard let characteristic = service.characteristics.first(where: {
+                    $0.characteristicType == type && $0.properties.contains(HMCharacteristicPropertyWritable)
                 }) else { continue }
                 let name = services.count == 1 ? accessory.name : accessory.name + " · " + service.name
-                for enabled in [true, false] {
-                    let suffix = enabled ? "On" : "Off"
-                    let key = "power." + power.uniqueIdentifier.uuidString + "." + suffix
-                    controls.append(Control(key: key, name: name + " · " + suffix, target: .power(power, enabled)))
+                let actions: [(String, NSNumber)] = isCovering
+                    ? [("Open", NSNumber(value: 100)), ("Close", NSNumber(value: 0))]
+                    : [("On", NSNumber(value: true)), ("Off", NSNumber(value: false))]
+                for (suffix, value) in actions {
+                    let key = (isCovering ? "position." : "power.") + characteristic.uniqueIdentifier.uuidString + "." + suffix
+                    controls.append(Control(key: key, name: name + " · " + suffix, target: .write(characteristic, value)))
                 }
             }
         }
-        controls.sort {
+        return controls.sorted {
             if $0.name == $1.name { return $0.key < $1.key }
             return $0.name.localizedStandardCompare($1.name) == .orderedAscending
         }
+    }
+
+    private func publishControls(_ controls: [Control], in home: HMHome) {
         let referenceKey = "cardControlReferences." + home.uniqueIdentifier.uuidString
         var references = defaults.data(forKey: referenceKey)
             .flatMap { try? JSONDecoder().decode([String: UUID].self, from: $0) } ?? [:]
@@ -199,7 +238,8 @@ final class EspDesktopHome: NSObject, ObservableObject, HMHomeManagerDelegate, H
 
     private func publish(_ update: AppleHomeSceneMessage.Status) {
         status = update
-        channel?.send(.init(kind: .status, status: update, bindingSet: update == .ready ? bindingSet : nil))
+        channel?.send(.init(kind: .status, status: update, bindingSet: update == .ready ? bindingSet : nil,
+                            canChooseHome: homes.count > 1))
     }
 
     private func receive(_ message: AppleHomeSceneMessage) async {
@@ -208,7 +248,9 @@ final class EspDesktopHome: NSObject, ObservableObject, HMHomeManagerDelegate, H
             return
         }
         guard message.kind == .run, let request = message.request else { return }
-        let succeeded = await run(slot: message.slot, reference: message.reference)
+        let matchesHome = message.bindingSet == bindingSet ||
+            (message.bindingSet == nil && (message.reference != nil || homes.count == 1))
+        let succeeded = matchesHome ? await run(slot: message.slot, reference: message.reference) : false
         channel?.send(.init(kind: .result, request: request, succeeded: succeeded))
     }
 
@@ -218,7 +260,7 @@ final class EspDesktopHome: NSObject, ObservableObject, HMHomeManagerDelegate, H
         if let reference {
             target = targets[reference]
         } else if let slot {
-            let scenes = selectedHome.actionSets.filter { $0.actionSetType == HMActionSetTypeUserDefined }
+            let scenes = userScenes(in: selectedHome)
             let id = bindings.scene(at: slot, available: Set(scenes.map(\.uniqueIdentifier)))
             target = scenes.first(where: { $0.uniqueIdentifier == id }).map(Target.scene)
         } else {
@@ -228,7 +270,7 @@ final class EspDesktopHome: NSObject, ObservableObject, HMHomeManagerDelegate, H
         do {
             switch target {
             case .scene(let scene): try await selectedHome.executeActionSet(scene)
-            case .power(let characteristic, let enabled): try await characteristic.writeValue(NSNumber(value: enabled))
+            case .write(let characteristic, let value): try await characteristic.writeValue(value)
             }
             return true
         } catch {

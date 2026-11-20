@@ -5,10 +5,17 @@ import XCTest
 final class AppleHomeSceneTests: XCTestCase {
     func testOneHomeIsSelectedAutomaticallyAndSeveralRequireAChoice() {
         let home = UUID(), other = UUID()
-        XCTAssertEqual(AppleHomeSceneBindings.chooseHome(from: [home], saved: nil), home)
-        XCTAssertNil(AppleHomeSceneBindings.chooseHome(from: [home, other], saved: nil))
-        XCTAssertEqual(AppleHomeSceneBindings.chooseHome(from: [home, other], saved: other), other)
-        XCTAssertNil(AppleHomeSceneBindings.chooseHome(from: [other], saved: home))
+        XCTAssertEqual(AppleHomeSceneBindings.chooseHome(from: [home], withControls: [], saved: nil, explicit: false), home)
+        XCTAssertNil(AppleHomeSceneBindings.chooseHome(from: [home, other], withControls: [home, other], saved: nil, explicit: false))
+        XCTAssertEqual(AppleHomeSceneBindings.chooseHome(from: [home, other], withControls: [home, other], saved: other, explicit: false), other)
+        XCTAssertEqual(AppleHomeSceneBindings.chooseHome(from: [other], withControls: [other], saved: home, explicit: true), other)
+    }
+
+    func testPopulatedHomeReplacesAnEmptyAutomaticSelectionButRespectsAnExplicitChoice() {
+        let emptyHome = UUID(), populatedHome = UUID()
+        let homes = [emptyHome, populatedHome]
+        XCTAssertEqual(AppleHomeSceneBindings.chooseHome(from: homes, withControls: [populatedHome], saved: emptyHome, explicit: false), populatedHome)
+        XCTAssertEqual(AppleHomeSceneBindings.chooseHome(from: homes, withControls: [populatedHome], saved: emptyHome, explicit: true), emptyHome)
     }
 
     func testDeletedSceneDoesNotReassignItsTile() {

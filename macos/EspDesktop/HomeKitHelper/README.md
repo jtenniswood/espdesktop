@@ -1,6 +1,6 @@
 # EspDesktop Home prototype
 
-The Catalyst app runs Apple Home scenes and compatible accessory power controls at the request of the paired
+The Catalyst app runs Apple Home scenes and compatible accessory power and blind controls at the request of the paired
 EspDesktop companion. Home names, scene names, HomeKit IDs and accessory data stay
 on the Mac. The display gets dedicated Apple Home cards with the labels entered
 in EspDesktop. The companion sends only those labels and opaque action references.
@@ -18,8 +18,9 @@ identity before launching it.
 
 For a local test, use a display paired over Wi-Fi with the version 2 configuration
 API and room for an Apple Home folder. In **Displays**, choose **Apple Home** for
-the display and connect Apple Home. Allow macOS access and choose a home when
-there are several. Pick a scene or an accessory’s on or off control, add a card and enter its display
+the display and connect Apple Home. Allow macOS access. If several homes have
+compatible controls, choose one. Use **Change Home** to switch later. Pick a scene
+or an accessory control, add a card and enter its display
 label. The first new card creates the folder or replaces the default numbered
 prototype cards inside it. Verify that a light-only scene runs while another Mac
 app is frontmost. Check that repeated saves update the card in place.

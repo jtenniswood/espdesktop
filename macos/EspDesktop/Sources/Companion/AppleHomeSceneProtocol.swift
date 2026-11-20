@@ -5,8 +5,11 @@ struct AppleHomeSceneBindings: Codable, Equatable {
     static let limit = 8
     private(set) var sceneIDs: [UUID] = []
 
-    static func chooseHome(from homes: [UUID], saved: UUID?) -> UUID? {
-        if let saved { return homes.contains(saved) ? saved : nil }
+    static func chooseHome(from homes: [UUID], withControls: [UUID], saved: UUID?, explicit: Bool) -> UUID? {
+        if let saved, homes.contains(saved), explicit || withControls.contains(saved) {
+            return saved
+        }
+        if withControls.count == 1 { return withControls.first }
         return homes.count == 1 ? homes.first : nil
     }
 
@@ -56,6 +59,7 @@ struct AppleHomeSceneMessage: Codable, Equatable, Sendable {
     var request: UUID? = nil
     var slot: Int? = nil
     var bindingSet: UUID? = nil
+    var canChooseHome: Bool? = nil
     var reference: UUID? = nil
     var control: AppleHomeControl? = nil
     var succeeded: Bool? = nil

@@ -11,6 +11,7 @@ final class AppleHomeScenes: ObservableObject {
     private static let inactive = UUID(uuid: (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0))
 
     @Published private(set) var status: AppleHomeSceneMessage.Status?
+    @Published private(set) var canChooseHome = false
     @Published private(set) var note = ""
     @Published private(set) var approvals: [String: UUID]
     @Published private(set) var saving = false
@@ -150,6 +151,7 @@ final class AppleHomeScenes: ObservableObject {
         case .status:
             bindingSet = message.status == .ready ? message.bindingSet : nil
             status = message.status
+            canChooseHome = message.canChooseHome == true
             if message.status != .ready { controls = [] }
             onControlsChanged?()
         case .catalogStart:
@@ -192,7 +194,7 @@ final class AppleHomeScenes: ObservableObject {
         let request = UUID()
         let succeeded = await withCheckedContinuation { continuation in
             pendingRun = (request, continuation)
-            peer.send(.init(kind: .run, request: request, slot: slot, reference: reference))
+            peer.send(.init(kind: .run, request: request, slot: slot, bindingSet: bindingSet, reference: reference))
             Task {
                 try? await Task.sleep(for: .seconds(6))
                 guard let pending = self.pendingRun, pending.0 == request else { return }
@@ -257,6 +259,7 @@ final class AppleHomeScenes: ObservableObject {
         helper?.terminate()
         helper = nil
         status = nil
+        canChooseHome = false
         bindingSet = nil
         controls = []
         incomingControls = nil
@@ -307,6 +310,9 @@ struct AppleHomeSceneSettings: View {
                         Text("Connect a display over Wi-Fi to add scene cards.")
                     }
                 case nil: EmptyView()
+                }
+                if home.canChooseHome && (home.status == .ready || home.status == .empty) {
+                    Button("Change Home…") { home.connect() }
                 }
                 if !home.note.isEmpty { Text(home.note).foregroundStyle(.secondary) }
             }
