@@ -512,7 +512,7 @@ export function createPreviewRenderFeature(dependencies: PreviewRenderDependenci
         }
         const liveAppleShortcuts = subpage && isAppleShortcutsPage(owner)
             ? appleShortcutPreview(subpage.order, projectionGrid, c.buttons,
-                dependencies.liveGeneratedActions(), hiddenAppleShortcuts(owner?.options))
+                catalogue, hiddenAppleShortcuts(owner?.options))
             : undefined;
         for (var pos: any = 0; pos < c.maxSlots; pos++) {
             var slot: any = c.grid[pos];

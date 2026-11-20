@@ -162,14 +162,18 @@ test("disconnect stops catalogue refreshes and ignores an in-flight response", a
 });
 
 
-test("connected catalogue refreshes changed icon hashes without label changes", async () => {
+test("connected catalogue refreshes changed icon hashes and shortcut colours without label changes", async () => {
   const scheduled = new Map();
   let timerID = 0;
   let hash = "a".repeat(64);
+  let shortcutColor = 0xFF6363;
   const updates = [];
   const catalogue = createCompanionCatalogue(async () => ({
     ok: true,
-    json: async () => [{ id: "com.example.app", label: "Example", ...(hash ? { iconHash: hash } : {}) }],
+    json: async () => [
+      { id: "com.example.app", label: "Example", ...(hash ? { iconHash: hash } : {}) },
+      { id: "appleshortcut.pomodoro", label: "Start Pomodoro", shortcutColor },
+    ],
   }));
   const monitor = createCompanionCatalogueMonitor(
     () => catalogue.load(true),
@@ -197,6 +201,10 @@ test("connected catalogue refreshes changed icon hashes without label changes", 
   await refresh();
   assert.equal(updates.length, 3, "evicted icons also invalidate the previous preview");
   assert.equal(updates[2][0].iconHash, undefined);
+  shortcutColor = 0;
+  await refresh();
+  assert.equal(updates.length, 4, "changing only the shortcut colour refreshes the preview");
+  assert.equal(updates[3][1].shortcutColor, 0);
   monitor.stop();
 });
 

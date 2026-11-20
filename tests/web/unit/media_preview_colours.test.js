@@ -67,6 +67,7 @@ function mediaPreviewFixtures(homeAssistantSupported = true) {
           grid: { ctx() { return { grid: [1], buttons: [button], maxSlots: 1, sizes: {}, selected: [], isSub: subpage }; }, resolveIcon() { return "music"; }, sizeClass() { return ""; } },
           selection: { renderSelectionBar() {}, updatePreviewHint() {} },
           homeAssistantSupported: () => homeAssistantSupported,
+          liveGeneratedActions: () => [],
         }).render();
         const card = main.children[0];
         fixtures.push({
