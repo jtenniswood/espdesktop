@@ -5,7 +5,6 @@ import { resetAwareFetch } from "./api/reset_session";
 import type { CardConfig } from "./contracts/types";
 import * as DeviceConfig from "./device_config";
 import * as Model from "./model";
-import { APP_SUBPAGE_PREFERENCE } from "./model/settings";
 import { createDeviceApi } from "./api/device_api";
 import { companionFocusRegistrationValues, createCompanionCatalogue } from "./api/companion_catalogue";
 import type { CompanionAction } from "./api/companion_catalogue";
@@ -386,6 +385,7 @@ function composeApplicationContext(liveGeneratedActions: () => readonly Companio
     saved: document => {
       state.nativeHasNestedPages = panelPageDocumentDepth(document) > 1;
       state.nativePanelDocument = { ...document, buttons: { ...document.buttons }, subpages: { ...document.subpages }, settings: { ...document.settings } };
+      runtime.els.syncAppSubpageMode?.();
     },
   }, dom.fetch);
   const configurationPersistence = createConfigPersistenceFeature(nativePanelConfig, runtime, layout, entityState, shell);
@@ -950,14 +950,7 @@ function composeApplicationContext(liveGeneratedActions: () => readonly Companio
     shell, requestApi, statusPreview, schedulePostApi,
     clockBarPostApi, fields, settingsHelpers, scheduleSection,
     systemSection, preview, connectorsPage, () => firstRunSetup.open(),
-    async enabled => {
-      if (await nativePanelConfig.waitForDiscovery() !== true || !nativePanelConfig.client?.supportsAppSubpagePreference()) {
-        shell.showBanner("Could not save automatic app switching. Check the display’s connection and firmware.", "error");
-        return false;
-      }
-      const result = await nativePanelConfig.writeSetting(APP_SUBPAGE_PREFERENCE, enabled ? "1" : "0");
-      return result === "saved" || result === "mirror-failed";
-    },
+    nativePanelConfig,
     async (patch, legacySave) => {
       try {
         await stateLoader.waitForInitialState();

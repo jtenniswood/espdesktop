@@ -299,14 +299,13 @@ inline bool basic_action_driver_bind_subpage(
         if (companion_app_shortcuts_enabled(*card)) {
           auto *button = static_cast<lv_obj_t *>(lv_event_get_target(event));
           const auto started = esphome::millis();
-          const bool active = companion_action_active(card->entity);
-          auto *screen = (companion_auto_open_app_subpages() || active)
+          auto *screen = companion_app_subpage_opens_on_press(card->entity)
               ? navigation_screen_for_button(button) : nullptr;
           if (screen && lv_obj_is_valid(screen)) {
             navigation_begin_page_open(screen, started);
             navigation_show_companion_subpage(screen, /*from_card=*/true);
             refresh_visible_image_cards();
-            if (!companion_auto_open_app_subpages()) return;
+            if (companion_app_subpage_manual()) return;
           }
         }
         char request_id[24];
@@ -350,26 +349,15 @@ inline bool basic_action_driver_handle_main_click(
         run_apple_shortcut_card(button, config.entity, request_id);
         break;
       }
-      lv_obj_t *screen = nullptr;
-      if (companion_app_shortcuts_enabled(config) && button) {
+      if (companion_app_shortcuts_enabled(config) && button &&
+          companion_app_subpage_opens_on_press(config.entity)) {
         const auto started = esphome::millis();
-        if (companion_auto_open_app_subpages() || companion_action_active(config.entity))
-          screen = navigation_screen_for_button(button);
-        if (screen && !companion_auto_open_app_subpages()) {
-          // In manual mode, the first press focuses the app. Only an already
-          // active (on) card opens its subpage, without invoking the app again.
-          if (companion_action_active(config.entity) && lv_obj_is_valid(screen)) {
-            navigation_begin_page_open(screen, started);
-            navigation_show_companion_subpage(screen, /*from_card=*/true);
-            break;
-          }
-        }
-        if (screen && companion_auto_open_app_subpages()) {
-          // Navigation is local; do not wait for Mac focus/acknowledgement.
-          if (lv_obj_is_valid(screen)) {
-            navigation_begin_page_open(screen, started);
-            navigation_show_companion_subpage(screen, /*from_card=*/true);
-          }
+        auto *screen = navigation_screen_for_button(button);
+        if (screen && lv_obj_is_valid(screen)) {
+          navigation_begin_page_open(screen, started);
+          navigation_show_companion_subpage(screen, /*from_card=*/true);
+          // The manual press opens the page of an already active app.
+          if (companion_app_subpage_manual()) break;
         }
       }
       const bool invoked = invoke_saved_companion_card(config, request_id, {}, button);

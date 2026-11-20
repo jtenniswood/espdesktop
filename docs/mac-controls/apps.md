@@ -7,7 +7,7 @@ description: Launch Mac apps, give individual apps their own volume sliders, and
 
 Tap an Applications card to launch an approved app or bring it to the front on your Mac. To give an app its own slider, [add an App Volume card](#app-volume).
 
-App subpages open automatically when their app gains focus by default. Switching between apps with subpages goes directly to the matching page. Browser tabs and Finder folders are checked separately so they do not hold up app switches. To require a press instead, turn off **Screen → Appearance → App Subpages → Open app subpages on focus**. Press an app card to focus its app, then press it again once the app is active on the Mac to open the subpage. This setting applies to every app subpage on the display.
+By default, one press on an app card opens both the Mac app and its subpage. Use **Screen → Appearance → App Subpages** to open subpages when an app gains focus or after pressing its card again. [App subpage options](/features/subpages#app-page-behavior).
 
 ## Launch an app
 
@@ -84,7 +84,7 @@ You can [add a custom keyboard shortcut](/mac-controls/shortcuts#create-a-shortc
 
 For standalone pages, see [Subpages](/features/subpages). For folders, see [Open Finder folders](/mac-controls/folders).
 
-When you close the last visible window of the foreground app, the display returns to the Home page or subpage you were using before the app subpage opened. This also applies to pages opened by tapping an app card. **Return home when switching apps** controls what happens when you switch to another Mac app.
+When you close the last visible window of the foreground app, the display returns to Home even if the app is still running.
 
 See [all app presets](/reference/shortcut-presets).
 

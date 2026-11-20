@@ -239,7 +239,7 @@ window.fetch = async (input, init) => {
             durable_document_version: 2, max_navigation_depth: 2,
             writable_navigation_depth: 2, max_v2_document_bytes: maxConfigBytes,
             max_record_body_bytes: 4096, preserves_inactive_records: true,
-            companion_auto_open_app_subpages: true, display_theme_preferences: true,
+            companion_auto_open_app_subpages: true, companion_app_subpage_mode: true, display_theme_preferences: true,
             screen_schedule_preferences: true,
           },
         })
