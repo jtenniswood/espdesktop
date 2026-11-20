@@ -1312,6 +1312,7 @@ inline bool apple_shortcuts_navigation_card(const ParsedCfg &p) {
 
 inline bool apple_shortcut_workflow_icon(const ParsedCfg &p) {
   return p.type == "companion" && companion_apple_shortcut_action(p.entity) &&
+      !cfg_option_token_present(p.options, "custom_icon") &&
       (p.icon.empty() || p.icon == "Auto" || p.icon == "Flash");
 }
 
@@ -1376,6 +1377,8 @@ inline std::string companion_card_options_normalized(const ParsedCfg &p) {
     if (!out.empty()) out += ",";
     out += token;
   };
+  if (companion_apple_shortcut_action(p.entity) && cfg_option_token_present(p.options, "custom_icon"))
+    add_token("custom_icon");
   if (companion_obs_confirmation_supported(p.entity)) {
     const auto mode = cfg_option_value(p.options, "obs_confirm");
     if (mode == "on" || mode == "off" || mode == "none" ||

@@ -31,6 +31,8 @@ In your display’s web editor, select an empty tile and choose **Companion → 
 
 Choose **Run a shortcut**, select the shortcut, and save. Tap its tile to run it directly, like **Start Pomodoro** below.
 
+Under **Card Settings**, choose **Custom Icon** to pick a symbol for this tile. Choose **Shortcuts App Icon** to restore the default.
+
 <a href="/images/apple-shortcuts/home.jpg">
   <picture>
     <source type="image/avif" srcset="/images/apple-shortcuts/home-480.avif 480w, /images/apple-shortcuts/home-960.avif 960w" sizes="(min-width: 768px) 520px, min(520px, 90vw)">

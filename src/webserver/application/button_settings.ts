@@ -626,7 +626,7 @@ export function createButtonSettingsFeature(
                 }
             });
         }
-        function makeIconPicker(this: any, pickerId?: any, inputId?: any, currentVal?: any, onSelect?: any, labelText?: any) {
+        function makeIconPicker(this: any, pickerId?: any, inputId?: any, currentVal?: any, onSelect?: any, labelText?: any, includeAuto = true) {
             var icf: any = document.createElement("div");
             icf.className = "sp-field";
             if (labelText === "On Icon")
@@ -650,7 +650,7 @@ export function createButtonSettingsFeature(
             dropdown.className = "sp-icon-dropdown";
             picker.appendChild(dropdown);
             icf.appendChild(picker);
-            iconPicker.init(picker, currentVal, onSelect);
+            iconPicker.init(picker, currentVal, onSelect, includeAuto);
             return icf;
         }
         function entityField(this: any, labelText?: any, inputId?: any, value?: any, placeholder?: any, domains?: any, bindName?: any, rerender?: any, requiredMessage?: any) {

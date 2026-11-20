@@ -82,8 +82,9 @@ import {
     setCompanionShortcutTabs,
     syncCompanionShortcutSubpage,
 } from "../application/companion_shortcut_folder";
-import { APPLE_SHORTCUTS_APP_ID, APPLE_SHORTCUTS_HIDDEN_OPTION, appleShortcutExclusionKey, appShortcutPageOwner, hiddenAppleShortcuts,
-    isAppleShortcutsPage, previewSubpageOwner, setHiddenAppleShortcuts } from "../model/companion_shortcut_page";
+import { APPLE_SHORTCUT_CUSTOM_ICON_OPTION, APPLE_SHORTCUTS_APP_ID, APPLE_SHORTCUTS_HIDDEN_OPTION, appleShortcutExclusionKey,
+    appleShortcutUsesAppIcon, appShortcutPageOwner, hiddenAppleShortcuts, isAppleShortcutsPage, previewSubpageOwner,
+    setHiddenAppleShortcuts } from "../model/companion_shortcut_page";
 import { appleShortcutPreview } from "../model/finder_folder_preview";
 
 const COMPANION_URL_PREFIX = "url.";
@@ -457,9 +458,9 @@ function normalizeCompanionCardFields(card: any): void {
         card.sensor = "";
         card.unit = "";
         card.precision = "";
-        card.options = normalizedCardColorOptions(card.options);
+        card.options = normalizeCompanionCardOptions(card);
         card.icon_on = "Auto";
-        if (!card.icon || ["Auto", "Monitor"].includes(card.icon)) card.icon = companionSubtypeDefaultIcon("apple_shortcut");
+        if (!card.icon || card.icon === "Auto") card.icon = companionSubtypeDefaultIcon("apple_shortcut");
         return;
     }
     const urlConfig = typeof card.sensor === "string" && card.sensor.startsWith(COMPANION_URL_PREFIX)
@@ -1226,7 +1227,36 @@ export function registerCompanionCardTypes(
                     const input = document.getElementById(helpers.idPrefix + "label") as HTMLInputElement | null;
                     if (input) input.value = selected.label;
                 });
-                helpers.renderBasicCardFields(panel, card, helpers, COMPANION_CARD_METADATA, { entity: false });
+                helpers.renderBasicCardFields(panel, card, helpers, COMPANION_CARD_METADATA, { entity: false, icon: false });
+                const defaultIcon = companionSubtypeDefaultIcon("apple_shortcut");
+                const initialIconMode = appleShortcutUsesAppIcon(card) ? "app" : "custom";
+                let customIcon = initialIconMode === "custom" && card.icon && card.icon !== "Auto" ? card.icon : defaultIcon;
+                const customPicker = helpers.iconPickerField(
+                    helpers.idPrefix + "icon-picker", helpers.idPrefix + "icon", customIcon, (icon: string) => {
+                        customIcon = card.icon = icon;
+                        helpers.saveField("icon", icon);
+                    }, "Choose an icon", false,
+                );
+                const iconMode = helpers.segmentControl([
+                    ["app", "Shortcuts App Icon"], ["custom", "Custom Icon"],
+                ], initialIconMode, (value: "app" | "custom") => {
+                    const useCustom = value === "custom";
+                    card.icon = useCustom ? customIcon : defaultIcon;
+                    card.options = setConfigOption(card.options, APPLE_SHORTCUT_CUSTOM_ICON_OPTION, useCustom);
+                    helpers.saveField("icon", card.icon);
+                    helpers.saveField("options", card.options);
+                    syncIconControls(value);
+                    cardUi.renderPreview();
+                });
+                function syncIconControls(value: "app" | "custom"): void {
+                    iconMode.buttons.app.setAttribute("aria-pressed", String(value === "app"));
+                    iconMode.buttons.custom.setAttribute("aria-pressed", String(value === "custom"));
+                    customPicker.style.display = value === "custom" ? "" : "none";
+                }
+                iconMode.segment.setAttribute("role", "group");
+                iconMode.segment.setAttribute("aria-label", "Icon");
+                syncIconControls(initialIconMode);
+                panel?.append(helpers.fieldWithControl("Icon", null, iconMode.segment), customPicker);
                 return;
             }
 
@@ -2057,7 +2087,7 @@ export function registerCompanionCardTypes(
                 iconFallback: companionSubtypeDefaultIcon(mode),
                 badge: COMPANION_CARD_METADATA.preview.badge,
             });
-            const workflowIcon = mode === "apple_shortcut" && (!card.icon || card.icon === "Auto" || card.icon === "Flash");
+            const workflowIcon = mode === "apple_shortcut" && appleShortcutUsesAppIcon(card);
             if (workflowIcon || companionAppIconEnabled(card)) {
                 preview.appIconId = workflowIcon ? APPLE_SHORTCUTS_APP_ID : card.entity;
                 if (workflowIcon) preview.appIconSize = "small";

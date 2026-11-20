@@ -7813,6 +7813,39 @@ async function assertAppleShortcutCard(browser) {
     await page.waitForFunction(slot =>
       document.querySelector(`.sp-main [data-slot="${slot}"]`)?.style.backgroundColor === "rgb(255, 99, 99)", slot);
 
+    const shortcutTile = page.locator(`.sp-main [data-slot="${slot}"]`);
+    const appIconMode = page.getByRole("button", { name: "Shortcuts App Icon", exact: true });
+    const customIconMode = page.getByRole("button", { name: "Custom Icon", exact: true });
+    const customIconPicker = page.getByRole("textbox", { name: "Choose an icon", exact: true });
+    async function editShortcutAppearance() {
+      await shortcutTile.click({ button: "right" });
+      await page.locator(".sp-ctx-menu").getByText("Edit Card", { exact: true }).click();
+      const settings = page.getByRole("button", { name: "Card Settings", exact: true });
+      if (await settings.getAttribute("aria-expanded") !== "true") await settings.click();
+    }
+    await shortcutTile.locator("img.sp-companion-app-icon").waitFor();
+    await editShortcutAppearance();
+    assert.equal(await appIconMode.getAttribute("aria-pressed"), "true");
+    assert.equal(await customIconPicker.isVisible(), false);
+    await customIconMode.click();
+    await customIconPicker.fill("Timer");
+    await page.locator(".sp-icon-option").getByText("Timer", { exact: true }).click();
+    await shortcutTile.locator(".sp-btn-icon.mdi-timer-outline").waitFor();
+    assert.equal(await shortcutTile.locator("img.sp-companion-app-icon").count(), 0);
+    await page.getByRole("button", { name: "Save", exact: true }).click();
+    await waitForNativeState(fixture, () => fixture.document.buttons[slot].includes("custom_icon") &&
+      fixture.document.buttons[slot].includes(",Timer,"), "save the custom shortcut icon");
+    await page.locator(".sp-settings-modal").waitFor({ state: "hidden" });
+    await editShortcutAppearance();
+    assert.equal(await customIconMode.getAttribute("aria-pressed"), "true");
+    assert.equal(await customIconPicker.inputValue(), "Timer");
+    await appIconMode.click();
+    await page.getByRole("button", { name: "Save", exact: true }).click();
+    await waitForNativeState(fixture, () => !fixture.document.buttons[slot].includes("custom_icon"),
+      "restore the Shortcuts app icon");
+    await page.locator(".sp-settings-modal").waitFor({ state: "hidden" });
+    await shortcutTile.locator("img.sp-companion-app-icon").waitFor();
+
     await page.locator(`.sp-main [data-slot="${slot}"]`).click({ button: "right" });
     await page.locator(".sp-ctx-menu").getByText("Edit Card", { exact: true }).click();
     await page.getByRole("button", { name: "Custom Colours", exact: true }).click();

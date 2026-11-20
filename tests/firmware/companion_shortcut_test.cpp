@@ -61,6 +61,20 @@ static void assert_finder_folder_projection() {
 
 int main() {
   {
+    const std::string base = "appleshortcut.workflow;Shortcut;Flash;Auto;;;companion;;";
+    assert(apple_shortcut_workflow_icon(parse_cfg(base)));
+    const auto custom_flash = parse_cfg(base + "custom_icon,card_off_color=FF6363");
+    assert(!apple_shortcut_workflow_icon(custom_flash));
+    assert(custom_flash.icon == "Flash" && custom_flash.options == "custom_icon,card_off_color=FF6363");
+    const auto legacy_custom = parse_cfg("appleshortcut.workflow;Shortcut;Timer;Auto;;;companion;;");
+    assert(!apple_shortcut_workflow_icon(legacy_custom));
+    const auto custom_subpage = parsed_cfg_from_subpage_btn(
+        parse_subpage_config("~B,1|CP,appleshortcut.workflow,Shortcut,Flash,,,,,custom_icon").at(0));
+    assert(!apple_shortcut_workflow_icon(custom_subpage));
+    assert(cfg_option_token_present(custom_subpage.options, "custom_icon"));
+    assert(companion_card_options_normalized(parse_cfg("com.apple.Safari;Safari;Flash;Auto;;;companion;;custom_icon")).empty());
+  }
+  {
     const std::string id = "appleshortcut.colored";
     const std::vector<CompanionAction> initial{{id, "Shortcut"}};
     auto colored = initial;

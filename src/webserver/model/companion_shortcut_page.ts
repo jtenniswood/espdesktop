@@ -6,6 +6,12 @@ import { APPLE_SHORTCUT_PREFIX } from "./companion_card_codec";
 export const APPLE_SHORTCUTS_APP_ID = "com.apple.shortcuts";
 export const APPLE_SHORTCUTS_SUBPAGE_KIND = "apple_shortcuts";
 export const APPLE_SHORTCUTS_HIDDEN_OPTION = "apple_shortcuts_hidden";
+export const APPLE_SHORTCUT_CUSTOM_ICON_OPTION = "custom_icon";
+
+export function appleShortcutUsesAppIcon(card: Pick<CardConfig, "icon" | "options">): boolean {
+    return !configOptionEnabled(card.options, APPLE_SHORTCUT_CUSTOM_ICON_OPTION) &&
+        (!card.icon || card.icon === "Auto" || card.icon === "Flash");
+}
 
 export function appleShortcutBackgroundColor(rgb: number | undefined): string {
     return typeof rgb === "number" && Number.isInteger(rgb) && rgb >= 0 && rgb <= 0xFFFFFF
