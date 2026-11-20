@@ -8458,12 +8458,26 @@ async function assertSavedOBSLayout(browser) {
     await closeSettings.click();
     await page.locator(".sp-main .sp-empty-cell").first().click();
     await chooseOBSCard(page, "Transitions", "Grouped pages");
-    const transitionsList = page.getByRole("button", { name: "Transitions", exact: true });
+    const modal = page.locator(".sp-settings-modal");
+    const transitionsList = modal.getByRole("button", { name: "Transitions", exact: true });
+    async function assertTransitionSettingsSpacing() {
+      const gaps = await modal.evaluate(dialog => {
+        const headers = [...dialog.querySelectorAll(".sp-disclosure-button")];
+        const bounds = title => headers.find(header => header.textContent.trim() === title)
+          .closest(".sp-disclosure").getBoundingClientRect();
+        const cardSettings = bounds("Card Settings");
+        return [cardSettings.top - bounds("Transitions").bottom, bounds("Custom Colours").top - cardSettings.bottom];
+      });
+      assert.ok(gaps[0] >= 12 && Math.abs(gaps[0] - gaps[1]) < 1,
+        `Transitions and Card Settings should have matching gaps below them (got ${gaps.join("px and ")}px)`);
+    }
     assert.equal(await transitionsList.getAttribute("aria-expanded"), "false");
+    await assertTransitionSettingsSpacing();
     await transitionsList.click();
     const fadeToggle = page.getByRole("checkbox", { name: "Fade", exact: true });
     const fadeRow = page.locator(".sp-light-tab-row").filter({ has: fadeToggle });
     await fadeRow.waitFor();
+    await assertTransitionSettingsSpacing();
     assert(await fadeToggle.isChecked());
     await fadeRow.locator(".sp-light-tab-label").click();
     await page.getByRole("button", { name: "Move Wipe up", exact: true }).click();

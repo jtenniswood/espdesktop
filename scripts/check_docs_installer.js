@@ -313,7 +313,22 @@ async function checkBrowser() {
       assert(await page.getByRole('heading', { name: 'EspDesktop in action' }).isVisible());
     }
 
-    await page.setViewportSize({ width: 1440, height: 900 });
+    for (const width of [390, 768, 1440]) {
+      await page.setViewportSize({ width, height: 900 });
+      await page.goto(home);
+      if (width < 768) await page.getByRole('button', { name: 'mobile navigation' }).click();
+      const nav = page.locator(width < 768 ? '.VPNavScreen' : '.VPNavBarMenu');
+      const docs = nav.getByRole('link', { name: 'Docs', exact: true });
+      const link = await docs.boundingBox();
+      assert(link && link.x >= 0 && link.x + link.width <= width,
+        `Docs must be visible in the navigation at ${width}px`);
+      await docs.click();
+      await page.waitForURL(`${base}/docs`);
+      await page.getByRole('heading', { name: 'EspDesktop documentation', level: 1 }).waitFor();
+      const troubleshooting = page.locator('main').getByRole('link', { name: 'Troubleshooting', exact: true });
+      await troubleshooting.click();
+      await page.waitForURL(`${base}/getting-started/troubleshooting`);
+    }
     await page.goto(home);
     await setup.press('Enter');
     await page.waitForURL(`${home}screens/4848s040`);
