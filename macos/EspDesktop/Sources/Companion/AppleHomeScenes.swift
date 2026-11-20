@@ -171,9 +171,10 @@ final class AppleHomeScenes: ObservableObject {
     }
 
     func addPage(to display: CompanionDisplay) async {
-        guard status == .ready, let bindingSet, display.hasSavedPairing, display.state == .connected,
+        guard status == nil || status == .ready, display.hasSavedPairing, display.state == .connected,
               !display.usesUSB, let url = CompanionStore.panelWebServerURL(from: display.record.host),
               !saving else { return }
+        let bindingSet = self.bindingSet
         let account = display.pairingAccount
         saving = true
         defer { saving = false }
@@ -193,9 +194,9 @@ final class AppleHomeScenes: ObservableObject {
                 note = "Apple Home changed during setup. Connect again to enable the page."
                 return
             }
-            approvals[account] = bindingSet
+            approvals[account] = bindingSet ?? Self.inactive
             saveApprovals()
-            note = result
+            note = bindingSet == nil ? result + " Connect Apple Home to enable the scene tiles." : result
         } catch {
             note = error.localizedDescription
         }
@@ -256,13 +257,15 @@ struct AppleHomeSceneSettings: View {
             case .ready:
                 Text("Match the numbered display tiles to your scenes in EspDesktop Home.")
                 Button("Show Scene Assignments") { home.connect() }
+            case nil: EmptyView()
+            }
+            if home.status == nil || home.status == .ready {
                 ForEach(displays.filter { $0.state == .connected && !$0.usesUSB }) { display in
                     Button("Add Scene Page to \(display.name)") {
                         Task { await home.addPage(to: display) }
                     }
                     .disabled(home.saving)
                 }
-            case nil: EmptyView()
             }
             if !home.note.isEmpty { Text(home.note).foregroundStyle(.secondary) }
         }

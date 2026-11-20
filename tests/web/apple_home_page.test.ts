@@ -35,6 +35,13 @@ export function runAppleHomePageTests(): void {
         "Uses the existing shortcut action contract");
     check(buildAppleHomePage(configured) === null, "Repeated setup is idempotent");
 
+    const cleared = new NativeLayoutDraft(empty());
+    for (let slot = 1; slot <= 9; ++slot) cleared.writeRootCard(slot, emptyCardConfig());
+    cleared.writeSetting("button_order", "9,8,7,6,5,4,3,2,1");
+    const clearedPage = buildAppleHomePage(cleared.finish());
+    check(clearedPage && decodePanelPageSnapshot(clearedPage).document.settings.button_order === "1",
+        "Cleared cards stored as empty records do not occupy space");
+
     const smaller = buildAppleHomePage(empty("guition-esp32-p4-jc4880p443"));
     check(smaller && decodePanelPageSnapshot(smaller).layout.pages[0]?.cards.length === 5,
         "Respects smaller display capacity");

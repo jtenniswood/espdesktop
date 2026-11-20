@@ -1,5 +1,5 @@
 import manifest from "../../../devices/manifest.json";
-import { emptyCardConfig } from "./card";
+import { emptyCardConfig, isEmptyCardConfig } from "./card";
 import { configOptionValue, setConfigOptionValue } from "./config_primitives";
 import { parseGridOrder, serializeGridOrder } from "./grid";
 import { NativeLayoutDraft } from "./native_layout_draft";
@@ -28,11 +28,13 @@ export function buildAppleHomePage(input: Uint8Array): Uint8Array | null {
     }
     if (existingPage) return null;
 
-    const occupied = new Set(layout.rootCards.map(card => card.slot));
+    const occupied = new Set(layout.rootCards.filter(({ config }) => !isEmptyCardConfig(config)).map(card => card.slot));
     const newSlot = Array.from({ length: profile.slots }, (_, index) => index + 1)
         .find(slot => !occupied.has(slot));
-    const { grid, sizes } = parseGridOrder(document.settings.button_order ||
-        layout.rootCards.map(card => card.slot).join(","), profile.slots, profile.layout.cols);
+    const savedOrder = document.settings.button_order || [...occupied].join(",");
+    const occupiedOrder = savedOrder.split(",").map(token =>
+        occupied.has(Number.parseInt(token, 10)) ? token : "").join(",");
+    const { grid, sizes } = parseGridOrder(occupiedOrder, profile.slots, profile.layout.cols);
     const cell = grid.indexOf(0);
     if (newSlot === undefined || cell < 0) throw new Error("Free one tile on the display home page, then try again.");
 
