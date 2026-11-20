@@ -51,8 +51,8 @@ final class AppleHomeSceneTests: XCTestCase {
         defaults.set(["display.known": UUID().uuidString], forKey: "appleHome.approvedDisplays")
         let scenes = AppleHomeScenes(defaults: defaults)
 
-        let approved = await scenes.statusForAction(slot: 1, account: "display.known", isUnlocked: true)
-        let unapproved = await scenes.statusForAction(slot: 1, account: "display.other", isUnlocked: true)
+        let approved = await scenes.statusForAction(slot: 1, account: "display.known") { true }
+        let unapproved = await scenes.statusForAction(slot: 1, account: "display.other") { true }
         XCTAssertEqual(approved, "not_allowed")
         XCTAssertNil(unapproved)
     }
@@ -64,7 +64,7 @@ final class AppleHomeSceneTests: XCTestCase {
         XCTAssertNil(CompanionKeyboardShortcut(actionIdentifier: scene.action))
         let defaults = UserDefaults(suiteName: "AppleHomeSceneTests.\(UUID())")!
         let home = AppleHomeScenes(defaults: defaults)
-        let status = await home.statusForCard(reference: scene.id, account: "display.unknown", isUnlocked: true)
+        let status = await home.statusForCard(reference: scene.id, account: "display.unknown") { true }
         XCTAssertEqual(status, "not_allowed")
         XCTAssertTrue(home.cardActions(for: "display.unknown").isEmpty)
     }

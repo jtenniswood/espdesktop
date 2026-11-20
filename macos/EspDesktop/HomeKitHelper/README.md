@@ -23,8 +23,10 @@ In **Displays**, choose **Apple Home** for the display, connect and allow macOS
 access. A single home is selected automatically. If prompted to choose a home,
 click **Continue**. EspDesktop reconnects in the background when it starts.
 In the Mac app, open the display’s **Device Settings**, add an Apple Home card,
-select a control and enter the display label. Verify that the card runs while
-another Mac app is frontmost and that renaming it updates the label in place.
+select a control and replace the suggested title with a display label. Try the
+card while another Mac app is frontmost. If HomeKit requires foreground access,
+the helper briefly comes forward to run the action and then returns focus.
+Verify that renaming the card updates its label in place.
 
 Public distribution needs a supported path for the HomeKit entitlement. Apple's
 developer terms also restrict using HomeKit API data off the Apple device. Confirm

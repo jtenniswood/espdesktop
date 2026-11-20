@@ -1,7 +1,9 @@
 import Foundation
 import HomeKit
 import Network
+import OSLog
 import SwiftUI
+import UIKit
 
 @main
 struct EspDesktopHomeApp: App {
@@ -55,6 +57,7 @@ struct EspDesktopHomeApp: App {
 
 @MainActor
 final class EspDesktopHome: NSObject, ObservableObject, HMHomeManagerDelegate, HMHomeDelegate {
+    private static let log = Logger(subsystem: "io.espdesktop.home", category: "Actions")
     private enum Target {
         case scene(HMActionSet)
         case write(HMCharacteristic, NSNumber)
@@ -266,14 +269,25 @@ final class EspDesktopHome: NSObject, ObservableObject, HMHomeManagerDelegate, H
             return
         }
         guard message.kind == .run, let request = message.request else { return }
+        if message.needsForeground == true {
+            for _ in 0..<20 where UIApplication.shared.applicationState != .active {
+                try? await Task.sleep(for: .milliseconds(50))
+            }
+            guard UIApplication.shared.applicationState == .active else {
+                channel?.send(.init(kind: .result, request: request, succeeded: false))
+                return
+            }
+        }
         let matchesHome = message.bindingSet == bindingSet ||
             (message.bindingSet == nil && (message.reference != nil || homes.count == 1))
-        let succeeded = matchesHome ? await run(slot: message.slot, reference: message.reference) : false
-        channel?.send(.init(kind: .result, request: request, succeeded: succeeded))
+        let result = matchesHome ? await run(slot: message.slot, reference: message.reference) :
+            (succeeded: false, needsForeground: false)
+        channel?.send(.init(kind: .result, request: request, succeeded: result.succeeded,
+                            needsForeground: result.needsForeground))
     }
 
-    private func run(slot: Int?, reference: UUID?) async -> Bool {
-        guard manager.authorizationStatus.contains(.authorized), let selectedHome else { return false }
+    private func run(slot: Int?, reference: UUID?) async -> (succeeded: Bool, needsForeground: Bool) {
+        guard manager.authorizationStatus.contains(.authorized), let selectedHome else { return (false, false) }
         let target: Target?
         if let reference {
             target = targets[reference]
@@ -284,15 +298,21 @@ final class EspDesktopHome: NSObject, ObservableObject, HMHomeManagerDelegate, H
         } else {
             target = nil
         }
-        guard let target else { return false }
+        guard let target else { return (false, false) }
         do {
             switch target {
             case .scene(let scene): try await selectedHome.executeActionSet(scene)
             case .write(let characteristic, let value): try await characteristic.writeValue(value)
             }
-            return true
+            Self.log.info("Apple Home accepted the action")
+            return (true, false)
         } catch {
-            return false
+            let failure = error as NSError
+            let needsForeground = failure.domain == HMErrorDomain &&
+                failure.code == HMError.Code.missingEntitlement.rawValue &&
+                UIApplication.shared.applicationState != .active
+            Self.log.notice("Apple Home action failed, code \(failure.code, privacy: .public), foreground retry \(needsForeground, privacy: .public)")
+            return (false, needsForeground)
         }
     }
 }

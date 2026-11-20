@@ -24,7 +24,8 @@ final class AppleHomeScenes: ObservableObject {
     private var peer: AppleHomeSceneChannel?
     private var helper: NSRunningApplication?
     private var bindingSet: UUID?
-    private var pendingRun: (UUID, CheckedContinuation<Bool, Never>)?
+    private var runningAction = false
+    private var pendingRun: (UUID, CheckedContinuation<AppleHomeSceneMessage?, Never>)?
 
     init(defaults: UserDefaults) {
         self.defaults = defaults
@@ -164,7 +165,7 @@ final class AppleHomeScenes: ObservableObject {
             status = message.status
             canChooseHome = message.canChooseHome == true
             if message.status != .ready { controls = [] }
-            if setupNeedsNoHomeChoice { helper?.hide() }
+            if setupNeedsNoHomeChoice && !runningAction { helper?.hide() }
             onControlsChanged?()
         case .catalogStart:
             incomingControls = []
@@ -181,7 +182,7 @@ final class AppleHomeScenes: ObservableObject {
         case .result:
             if let pending = pendingRun, pending.0 == message.request {
                 pendingRun = nil
-                pending.1.resume(returning: message.succeeded == true)
+                pending.1.resume(returning: message)
             }
         default: break
         }
@@ -193,32 +194,71 @@ final class AppleHomeScenes: ObservableObject {
         return controls.compactMap { control in labels[control.id].map { (control.action, $0) } }
     }
 
-    func statusForAction(slot: Int, account: String, isUnlocked: Bool) async -> String? {
+    func statusForAction(slot: Int, account: String, isUnlocked: () -> Bool) async -> String? {
         guard approvals[account] != nil else { return nil }
         return await run(account: account, isUnlocked: isUnlocked, slot: slot)
     }
 
-    func statusForCard(reference: UUID, account: String, isUnlocked: Bool) async -> String {
+    func statusForCard(reference: UUID, account: String, isUnlocked: () -> Bool) async -> String {
         guard cardLabels[account]?[reference] != nil,
               controls.contains(where: { $0.id == reference }) else { return "not_allowed" }
         return await run(account: account, isUnlocked: isUnlocked, reference: reference)
     }
 
-    private func run(account: String, isUnlocked: Bool, slot: Int? = nil, reference: UUID? = nil) async -> String {
-        guard isUnlocked, status == .ready, let bindingSet, approvals[account] == bindingSet,
-              let peer, pendingRun == nil else { return "not_allowed" }
+    private func run(account: String, isUnlocked: () -> Bool, slot: Int? = nil, reference: UUID? = nil) async -> String {
+        guard isUnlocked(), let bindingSet = readyBinding, approvals[account] == bindingSet,
+              let peer, !runningAction else { return "not_allowed" }
+        runningAction = true
+        defer { runningAction = false }
+
+        var result = await sendRun(peer, slot: slot, reference: reference, binding: bindingSet)
+        if result?.needsForeground == true, !Task.isCancelled, isUnlocked(), self.peer === peer,
+           let helper, readyBinding == bindingSet, approvals[account] == bindingSet {
+            let previousApp = NSWorkspace.shared.frontmostApplication
+            let wasHidden = helper.isHidden
+            defer {
+                let restoreFocus = helper.isActive
+                if wasHidden { helper.hide() }
+                if restoreFocus, previousApp?.processIdentifier != helper.processIdentifier {
+                    previousApp?.activate(options: [])
+                }
+            }
+            if wasHidden { helper.unhide() }
+            if helper.isActive || helper.activate(options: [.activateIgnoringOtherApps]) {
+                // Wait for macOS to grant foreground access before retrying the
+                // command that HomeKit rejected without performing.
+                for _ in 0..<20 where !helper.isActive {
+                    try? await Task.sleep(for: .milliseconds(50))
+                }
+                if helper.isActive, !Task.isCancelled, isUnlocked(), self.peer === peer,
+                   readyBinding == bindingSet, approvals[account] == bindingSet {
+                    result = await sendRun(peer, slot: slot, reference: reference, binding: bindingSet,
+                                           needsForeground: true)
+                }
+            }
+        }
+        if result?.succeeded == true {
+            note = ""
+            return "performed"
+        }
+        note = "Apple Home could not run the control."
+        return "not_allowed"
+    }
+
+    private func sendRun(_ peer: AppleHomeSceneChannel, slot: Int?, reference: UUID?,
+                         binding: UUID, needsForeground: Bool = false) async -> AppleHomeSceneMessage? {
         let request = UUID()
-        let succeeded = await withCheckedContinuation { continuation in
+        return await withCheckedContinuation { continuation in
             pendingRun = (request, continuation)
-            peer.send(.init(kind: .run, request: request, slot: slot, bindingSet: bindingSet, reference: reference))
+            peer.send(.init(kind: .run, request: request, slot: slot, bindingSet: binding, reference: reference,
+                            needsForeground: needsForeground))
             Task {
                 try? await Task.sleep(for: .seconds(6))
                 guard let pending = self.pendingRun, pending.0 == request else { return }
                 self.pendingRun = nil
-                pending.1.resume(returning: false)
+                pending.1.resume(returning: nil)
             }
         }
-        return succeeded ? "performed" : "not_allowed"
     }
 
     func updateEditorCards(_ cards: [AppleHomeDeviceEditor.SavedCard], for account: String, binding: UUID) {
@@ -264,7 +304,7 @@ final class AppleHomeScenes: ObservableObject {
         onControlsChanged?()
         let pending = pendingRun
         pendingRun = nil
-        pending?.1.resume(returning: false)
+        pending?.1.resume(returning: nil)
     }
 }
 

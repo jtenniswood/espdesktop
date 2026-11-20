@@ -65,6 +65,7 @@ struct AppleHomeSceneMessage: Codable, Equatable, Sendable {
     var reference: UUID? = nil
     var control: AppleHomeControl? = nil
     var succeeded: Bool? = nil
+    var needsForeground: Bool? = nil
 }
 
 // Both processes use a private, loopback connection. The companion gives the

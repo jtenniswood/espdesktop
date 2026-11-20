@@ -1171,11 +1171,11 @@ final class CompanionStore: NSObject, ObservableObject {
     }
 
     func performAppleHomeCard(reference: UUID, pairingAccount: String) async -> String {
-        await appleHome.statusForCard(reference: reference, account: pairingAccount, isUnlocked: !sessionLock.refresh())
+        await appleHome.statusForCard(reference: reference, account: pairingAccount) { !sessionLock.refresh() }
     }
 
     func performAppleHomeScene(slot: Int, pairingAccount: String) async -> String? {
-        await appleHome.statusForAction(slot: slot, account: pairingAccount, isUnlocked: !sessionLock.refresh())
+        await appleHome.statusForAction(slot: slot, account: pairingAccount) { !sessionLock.refresh() }
     }
 
     func performResultStatus(actionIdentifier: String,
