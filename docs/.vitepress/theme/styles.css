@@ -145,11 +145,11 @@
   outline-offset: 4px;
 }
 
-.vp-doc .shortcut-faq {
+.vp-doc .docs-faq {
   margin: 16px 0 32px;
 }
 
-.vp-doc .shortcut-faq .custom-block.details {
+.vp-doc .docs-faq .custom-block.details {
   margin: 0;
   padding: 0;
   border: 0;
@@ -157,11 +157,11 @@
   background: transparent;
 }
 
-.vp-doc .shortcut-faq .custom-block.details + .details {
+.vp-doc .docs-faq .custom-block.details + .details {
   border-top: 1px solid var(--vp-c-divider);
 }
 
-.vp-doc .shortcut-faq .details > summary {
+.vp-doc .docs-faq .details > summary {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -175,11 +175,11 @@
   font-weight: 600;
 }
 
-.vp-doc .shortcut-faq .details > summary::-webkit-details-marker {
+.vp-doc .docs-faq .details > summary::-webkit-details-marker {
   display: none;
 }
 
-.vp-doc .shortcut-faq .details > summary::after {
+.vp-doc .docs-faq .details > summary::after {
   content: '';
   flex: 0 0 9px;
   height: 9px;
@@ -190,21 +190,21 @@
   transform: rotate(45deg);
 }
 
-.vp-doc .shortcut-faq .details[open] > summary::after {
+.vp-doc .docs-faq .details[open] > summary::after {
   margin: 4px 3px 0;
   transform: rotate(225deg);
 }
 
-.vp-doc .shortcut-faq .details > summary:hover {
+.vp-doc .docs-faq .details > summary:hover {
   color: var(--vp-c-brand-1);
 }
 
-.vp-doc .shortcut-faq .details > summary:focus-visible {
+.vp-doc .docs-faq .details > summary:focus-visible {
   outline: 2px solid var(--vp-c-brand-1);
   outline-offset: 2px;
 }
 
-.vp-doc .shortcut-faq .details > summary + p {
+.vp-doc .docs-faq .details > summary + p {
   margin: 0;
   padding: 0 28px 24px 0;
   color: var(--vp-c-text-2);

@@ -48,7 +48,11 @@ const pageImages: Record<string, typeof defaultImage> = {
 const author = { '@type': 'Person', name: 'jtenniswood', url: 'https://github.com/jtenniswood' }
 const websiteId = `${hostname}#website`
 const softwareId = `${hostname}#software`
+const obsStudioParent = { name: 'OBS Studio controls', path: 'mac-controls/obs-studio.md' }
 const guideParents = {
+  'mac-controls/obs-studio/studio-controls.md': obsStudioParent,
+  'mac-controls/obs-studio/scene-control-and-mixing.md': obsStudioParent,
+  'mac-controls/obs-studio/audio-controls.md': obsStudioParent,
   'screens/4848s040-stand.md': { name: '4848S040 setup guide', path: 'screens/4848s040.md' },
   'features/first-run.md': { name: '4848S040 setup guide', path: 'screens/4848s040.md' },
   'features/adding-a-card.md': { name: 'Screen grid', path: 'features/home.md' },
@@ -74,6 +78,16 @@ const customiseLinks = [
   { text: 'Keyboard shortcuts', link: '/mac-controls/shortcuts' },
   { text: 'Keyboard shortcut presets', link: '/reference/shortcut-presets' },
 ]
+const obsStudioLink = { text: 'OBS Studio', link: '/mac-controls/obs-studio' }
+const obsStudioSidebar = {
+  ...obsStudioLink,
+  collapsed: false,
+  items: [
+    { text: 'Studio controls', link: '/mac-controls/obs-studio/studio-controls' },
+    { text: 'Scene control and mixing', link: '/mac-controls/obs-studio/scene-control-and-mixing' },
+    { text: 'Audio controls', link: '/mac-controls/obs-studio/audio-controls' },
+  ],
+}
 const screenSettingsLink = { text: 'Screen settings', link: '/settings/screen' }
 const systemSettingsLink = { text: 'System settings', link: '/settings/system' }
 
@@ -210,7 +224,12 @@ export default defineConfig({
     )
 
     const graph: Record<string, unknown>[] = []
+    const faqAnswers = frontmatter.faqAnswers
+    delete frontmatter.faqAnswers
     if (isHome) {
+      if (faqAnswers?.length) {
+        graph.push({ '@type': 'FAQPage', '@id': canonicalUrl, url: canonicalUrl, mainEntity: faqAnswers })
+      }
       graph.push(
         {
           '@type': 'WebSite',
@@ -262,11 +281,11 @@ export default defineConfig({
         isPartOf: { '@id': websiteId },
         breadcrumb: { '@id': breadcrumbs },
       }
-      if (relativePath === 'reference/faq.md') {
+      if (faqAnswers?.length) {
         page['@type'] = 'FAQPage'
-        page.mainEntity = frontmatter.faqAnswers
-        delete frontmatter.faqAnswers
-      } else if (isArticle) {
+        page.mainEntity = faqAnswers
+      }
+      if (isArticle) {
         // The page and its article are separate nodes. Breadcrumbs belong to the page.
         graph.push({
           '@type': 'TechArticle',
@@ -278,7 +297,7 @@ export default defineConfig({
           image: image.url,
           ...(pageData.lastUpdated ? { dateModified: new Date(pageData.lastUpdated).toISOString() } : {}),
         })
-        page.mainEntity = { '@id': `${canonicalUrl}#guide` }
+        page.mainEntity ??= { '@id': `${canonicalUrl}#guide` }
       }
       graph.push(page, {
         '@type': 'BreadcrumbList',
@@ -307,7 +326,7 @@ export default defineConfig({
       },
       {
         text: 'Customise',
-        items: [...customiseLinks, screenSettingsLink, systemSettingsLink],
+        items: [...customiseLinks, obsStudioLink, screenSettingsLink, systemSettingsLink],
       },
     ],
 
@@ -323,6 +342,7 @@ export default defineConfig({
         text: 'Customise',
         items: customiseLinks,
       },
+      obsStudioSidebar,
       {
         text: 'Settings',
         items: [

@@ -100,11 +100,11 @@ class FirmwareSizeTests(unittest.TestCase):
             "/config/scripts/retry_firmware_downloads.py", str(repo / "scripts/retry_firmware_downloads.py"))
         self.app.write_bytes(b"firmware")
         result = subprocess.run(["/bin/sh", "-c", script, "sh", "test.yaml",
-                                 "test.yaml", str(self.root)],
+                                 "test.yaml", str(self.root), str(self.summary)],
                                 env={**os.environ, "TEST_COMPILE_STATUS": str(compile_status)},
                                 text=True, capture_output=True)
-        self.assertTrue((self.root / "firmware-size-summary.md").is_file(), result.stderr)
-        self.assertIn("test.yaml", (self.root / "firmware-size-summary.md").read_text())
+        self.assertTrue(self.summary.is_file(), result.stderr)
+        self.assertIn("test.yaml", self.summary.read_text())
         return result
 
     def test_nightly_reports_after_successful_exec_entrypoint(self):

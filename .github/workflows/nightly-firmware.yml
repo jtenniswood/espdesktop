@@ -206,6 +206,13 @@ jobs:
             mkdir -p "${build_input_dir}" || return 1
             cp builds/*.yaml "${build_input_dir}/" || return 1
 
+            cache_name=${target//./-}
+            target_cache_volume="${cache_volume}-t${cache_name}"
+            ${DOCKER} volume create "${target_cache_volume}" >/dev/null || return 1
+            ${DOCKER} run --rm --user 0:0 --entrypoint /bin/chown \
+              -v "${target_cache_volume}:/cache" "${ESPHOME_IMAGE}" "$(id -u):$(id -g)" /cache || return 1
+
+            size_summary="${build_input_dir}/firmware-size-summary.md"
             # Limit compiler parallelism and container resources to reduce
             # pressure on the shared self-hosted runner host.
             container=$(${DOCKER} create \
@@ -217,6 +224,7 @@ jobs:
               -e ESPHOME_DEFAULT_COMPILE_PROCESS_LIMIT=2 \
               -e PLATFORMIO_SETTING_ENABLE_TELEMETRY=false \
               -v "${cache_volume}:/cache" \
+              -v "${target_cache_volume}:/config/${build_input_dir}/.esphome" \
               --entrypoint /bin/sh \
               "${ESPHOME_IMAGE}" -c '
                 # Execute the cache-setting entrypoint as a child process. Its
@@ -230,15 +238,17 @@ jobs:
                 python3 /config/scripts/report_firmware_size.py \
                   --target "$2" --build-root "$3" \
                   --compile-status "$compile_status" --minimum-headroom-kib "$minimum_headroom" \
-                  --summary "$3/firmware-size-summary.md"
+                  --summary "$4"
               ' sh "/config/${build_input_dir}/${target}" "${target}" \
-              "/config/${build_input_dir}/.esphome")
+              "/config/${build_input_dir}/.esphome" "/config/${size_summary}")
             create_status=$?
             if [ "${create_status}" -ne 0 ]; then
+              ${DOCKER} volume rm "${target_cache_volume}" >/dev/null 2>&1 || true
               return "${create_status}"
             fi
             cleanup_container() {
               ${DOCKER} rm -fv "${container}" >/dev/null 2>&1 || true
+              ${DOCKER} volume rm "${target_cache_volume}" >/dev/null 2>&1 || true
               rm -rf "${build_input_dir}" || true
             }
             trap cleanup_container EXIT
@@ -259,8 +269,7 @@ jobs:
                 "${container}" || true
             fi
             # Copy the report out before deleting this target's build files.
-            size_summary="${build_input_dir}/firmware-size-summary.md"
-            if ${DOCKER} cp "${container}:/config/${build_input_dir}/.esphome/firmware-size-summary.md" "${size_summary}"; then
+            if ${DOCKER} cp "${container}:/config/${size_summary}" "${size_summary}"; then
               if [ -f "$GITHUB_STEP_SUMMARY" ] && grep -Fq '## Firmware size and headroom' "$GITHUB_STEP_SUMMARY"; then
                 tail -n +5 "${size_summary}" >> "$GITHUB_STEP_SUMMARY"
               else
@@ -300,9 +309,14 @@ jobs:
         working-directory: espdesktop-nightly
         run: |
           cache_volume="espdesktop-nightly-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
-          if ${DOCKER} volume inspect "${cache_volume}" >/dev/null 2>&1; then
-            ${DOCKER} volume rm "${cache_volume}"
-          fi
+          volumes=$(${DOCKER} volume ls --format '{{.Name}}')
+          while IFS= read -r volume; do
+            case "${volume}" in
+              "${cache_volume}"|"${cache_volume}"-t*)
+                ${DOCKER} volume rm "${volume}"
+                ;;
+            esac
+          done <<< "${volumes}"
           rm -rf .firmware-builds
           bash scripts/reclaim_actions_disk.sh
 
