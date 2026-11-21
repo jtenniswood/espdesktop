@@ -707,7 +707,8 @@ void CompanionService::handle_json_(int socket_fd, const std::string &message) {
         if (retain_action) {
           const auto detail = item.obsDetail && safe_utf8_field(*item.obsDetail, 96) ? *item.obsDetail : std::string{};
           const auto state = item.obsState ? obs_card_state(*item.obsState) : OBSCardState::unknown;
-          this->catalogue_actions_.push_back({id, label, state, detail, item.obsAvailable});
+          const auto shortcut_color = companion_apple_shortcut_action(id) ? item.shortcutColor : std::nullopt;
+          this->catalogue_actions_.push_back({id, label, state, detail, item.obsAvailable, shortcut_color});
         }
         // Keep icon eligibility for configured cards even when their app is
         // outside the bounded browser catalogue. The reference set is bounded

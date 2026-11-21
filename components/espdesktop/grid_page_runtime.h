@@ -107,9 +107,18 @@ public:
   bool apply(uint16_t, const uint8_t *, size_t) override { return false; }
 private:
   std::string_view scalar_value(const Snapshot *snapshot, size_t index) const {
-    const auto fallback = panel_settings::scalar_setting_default(
-        static_cast<panel_settings::ScalarSetting>(index), limits_.device_profile);
-    return snapshot ? snapshot->scalars[index].value_or(fallback) : fallback;
+    using Setting = panel_settings::ScalarSetting;
+    const auto setting = static_cast<Setting>(index);
+    const auto fallback = panel_settings::scalar_setting_default(setting, limits_.device_profile);
+    if (!snapshot) return fallback;
+    const auto explicit_mode = snapshot->scalars[size_t(Setting::COMPANION_APP_SUBPAGE_MODE)];
+    // Preserve an explicitly saved preference from firmware with the two-mode switch.
+    if (setting == Setting::COMPANION_APP_SUBPAGE_MODE && !explicit_mode) {
+      const auto legacy = snapshot->scalars[size_t(Setting::COMPANION_AUTO_OPEN_APP_SUBPAGES)];
+      if (legacy) return *legacy == "1" ? "focus" : "manual";
+    }
+    if (setting == Setting::COMPANION_RETURN_HOME_ON_APP_SWITCH && explicit_mode) return fallback;
+    return snapshot->scalars[index].value_or(fallback);
   }
 
   int key(const Store &store, pages::PageId id) const {

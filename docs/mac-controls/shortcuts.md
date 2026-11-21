@@ -3,26 +3,20 @@ title: Run Mac Keyboard Shortcuts from a Touchscreen
 description: Turn custom Mac keyboard shortcuts into tappable EspDesktop tiles or choose presets for apps such as Safari, Slack and Figma.
 ---
 
+<script setup>
+import { withBase } from 'vitepress'
+import { onMounted } from 'vue'
+
+onMounted(() => {
+  if (window.location.hash === '#run-an-apple-shortcuts-workflow') {
+    window.location.replace(withBase('/mac-controls/apple-shortcuts'))
+  }
+})
+</script>
+
 # Run Mac keyboard shortcuts
 
 A **Keyboard Shortcut** card can run a preset for a specific Mac app or send a custom key combination to the active app.
-
-## Run an Apple Shortcuts workflow
-
-Use a **Run a shortcut** card to run a workflow you created in the Mac’s **Shortcuts** app. Use matching versions of the EspDesktop Mac app and display firmware.
-
-1. Create a workflow in Shortcuts and run it there to check that it works.
-2. In the EspDesktop Mac app, open **Shortcuts**. **All available shortcuts** is on by default. Choose **Manage Shortcuts** to open the Gallery in the Shortcuts app. The list updates when you return to EspDesktop.
-3. In the display’s web editor, select an empty tile, choose **Companion → Apple Shortcuts → Run a shortcut**, select the workflow, and save.
-4. With your Mac unlocked, tap the tile. If the workflow asks for input or permission, respond on the Mac.
-
-To choose which workflows your displays can run, turn off **All available shortcuts** and turn on the workflows you want to allow.
-
-To open a page of workflows directly from your Home screen, choose **Companion → Apple Shortcuts → Create a list of shortcuts**. The editor selects up to eight workflows in alphabetical order, with one tile reserved for **Back**. Use the full list to choose and reorder the workflows you want. To edit them later, open the subpage in the web editor, right-click a tile, and choose **Apple Shortcut List**.
-
-Choose **Companion → Apple Shortcuts → Open the Shortcuts App** to pin an **Applications** card with **Shortcuts** already selected. It includes a workflow subpage by default. Turn off **Add app subpage** if you only want to open the app.
-
-When the Mac is connected, newly enabled workflows appear in any free spaces on either kind of Shortcuts subpage. Turn off a workflow in **Apple Shortcut List** to keep it off that page. Other saved tiles keep their positions.
 
 ## Create a keyboard shortcut card {#create-a-shortcut-card}
 
@@ -56,7 +50,7 @@ The web editor dims these keyboard shortcuts when the app loses focus or the Mac
 
 ## Control Streamlabs Desktop
 
-Approve **Streamlabs Desktop** in the EspDesktop Mac app. Choose **Keyboard Shortcut → Application → Streamlabs Desktop** for menu shortcuts such as **Open Settings**, **Undo** and **Copy**, or enable **Add app subpage** on a Streamlabs Desktop application card. The nudge presets move a selected source in the Streamlabs editor.
+Approve **Streamlabs Desktop** in the EspDesktop Mac app. Choose **Keyboard Shortcut → Application → Streamlabs Desktop** for menu shortcuts such as **Open Settings**, **Undo** and **Copy**, or save a Streamlabs Desktop application card to add its shortcut subpage. The nudge presets move a selected source in the Streamlabs editor.
 
 For scene switching, mic mute or recording, assign a key combination in [Streamlabs Desktop → Settings → Hotkeys](https://support.streamlabs.com/hc/en-us/articles/4413170379675-How-to-Set-up-Hotkeys-in-Streamlabs-Desktop). Choose a combination with Command, Control or Option that works from your Mac keyboard, then enter the same keys in a **Keyboard Shortcut → Custom** tile. You can put these tiles on the Streamlabs app subpage. Bring Streamlabs to the front before using a Custom tile, which sends keys to the active Mac app.
 

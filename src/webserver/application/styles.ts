@@ -45,7 +45,7 @@ export function createWebStyles(dragAnimation: boolean): string {
         ".sp-first-run .sp-setup-list{min-height:0;overflow:auto;margin:0}.sp-setup-list .sp-light-tab-row{grid-template-columns:minmax(0,1fr) auto;margin:0}" +
         ".sp-setup-modes{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:3px 3px 18px}.sp-setup-mode{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;align-content:start;min-height:144px;padding:16px;box-sizing:border-box;border:1px solid var(--border);border-radius:var(--radius);background:var(--surface);cursor:pointer}" +
         ".sp-setup-mode input{grid-column:2;grid-row:1;margin:2px 0 0;accent-color:var(--accent);width:16px;height:16px}.sp-setup-mode-copy{grid-column:1;grid-row:1;display:grid;gap:8px}.sp-setup-mode-description{color:var(--text2);font-size:var(--text-md);line-height:1.45}" +
-        ".sp-setup-mode:has(input:checked){border-color:var(--accent);background:var(--accent-soft)}.sp-setup-mode:has(input:focus-visible){outline:2px solid var(--accent);outline-offset:2px}.sp-setup-mode:has(input:disabled){opacity:.55;cursor:default}" +
+        ".sp-setup-opening-modes{grid-template-columns:1fr}.sp-setup-opening-modes .sp-setup-mode{min-height:0}.sp-setup-mode:has(input:checked){border-color:var(--accent);background:var(--accent-soft)}.sp-setup-mode:has(input:focus-visible){outline:2px solid var(--accent);outline-offset:2px}.sp-setup-mode:has(input:disabled){opacity:.55;cursor:default}" +
         "@media(max-width:600px){.sp-settings-modal.sp-first-run{width:100%;height:100dvh;padding:24px 16px 16px}.sp-first-run .sp-settings-close{top:12px;right:12px}.sp-setup-title{font-size:1.5rem}.sp-setup-modes{grid-template-columns:1fr}.sp-setup-mode{min-height:100px}}" +
         ".sp-first-run .sp-toggle-row:has(input:disabled){opacity:.55}.sp-first-run .sp-toggle input:focus-visible+.sp-toggle-track{outline:2px solid var(--accent);outline-offset:2px}" +
         ".sp-first-run .sp-action-btn:disabled,.sp-first-run .sp-settings-close:disabled{opacity:.55;cursor:default}.sp-first-run .sp-setup-footer{flex-wrap:wrap;margin-top:0}.sp-setup-error{color:var(--danger)}" +
@@ -532,7 +532,6 @@ export function createWebStyles(dragAnimation: boolean): string {
         "#sp-set-clock-bar:checked+.sp-toggle-track{background:#0a84ff;border-color:#0a84ff}" +
         ".sp-toggle input:checked+.sp-toggle-track:before{transform:translateX(20px)}" +
         ".sp-light-tab-list{display:grid;gap:0;margin:-6px 0 18px}" +
-        ".sp-app-subpage-options-divider{height:1px;background:var(--border);margin:-6px 0 18px}" +
         ".sp-light-tab-row{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;" +
         "gap:10px;min-height:42px;padding:5px 0}" +
         ".sp-light-tab-row:has(~.sp-light-tab-row:not([hidden])){border-bottom:1px solid rgba(255,255,255,.08)}" +
@@ -599,7 +598,6 @@ export function createWebStyles(dragAnimation: boolean): string {
         ".sp-app-subpage-settings .sp-input[type=search]{margin-block:8px 12px}" +
         ".sp-app-subpage-settings .sp-light-tab-list{margin:0}" +
         ".sp-app-subpage-shortcut-actions{border-top:1px solid var(--border);padding:12px 0 10px}" +
-        ".sp-app-subpage-settings .sp-app-subpage-options-divider{margin:4px 0 8px}" +
         ".sp-app-subpage-folder-list{border-top:1px solid var(--border);padding-top:8px;margin-top:4px}" +
         ".sp-disclosure.sp-open .sp-disclosure-chevron{transform:rotate(180deg)}" +
         ".sp-disclosure.sp-open .sp-disclosure-body{display:block}" +

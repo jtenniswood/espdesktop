@@ -14,7 +14,7 @@ Set up the display from a normal web browser.
 
 - **Applications** — launch only the Mac apps you approve in EspDesktop.
 - **App keyboard shortcuts** — open an app-specific page of controls for common actions, or create your own keyboard shortcuts.
-- **Apple Shortcuts** — run a workflow from the Mac’s Shortcuts app with a tap, or group several workflows on a dedicated page. Your Mac must be unlocked. [Set up Apple Shortcuts](https://espdesktop.com/mac-controls/shortcuts#run-an-apple-shortcuts-workflow).
+- **Apple Shortcuts** — run a workflow from the Mac’s Shortcuts app with a tap, or group several workflows on a dedicated page. Your Mac must be unlocked. [Set up Apple Shortcuts](https://espdesktop.com/mac-controls/apple-shortcuts).
 - **OBS Studio** — switch scenes, adjust mixer levels, mute inputs, and control streaming, recording, and Studio Mode. Connect EspDesktop to OBS using the built-in OBS WebSocket server. [Set up OBS Studio controls](https://espdesktop.com/mac-controls/obs-studio).
 - **Mac Lock** — lock your Mac with a tap on the display.
 - **Finder folders** — open an approved folder with a tap.
@@ -55,7 +55,7 @@ Pair on a trusted local network and remove a display from the Mac app before rep
 - A 2.4 GHz WiFi network shared by the display and Mac
 - An Apple silicon Mac running macOS 13 or newer
 
-The 4848S040 panel is available from AliExpress ([US](https://s.click.aliexpress.com/e/_c3IAOLXl) or [Global](https://s.click.aliexpress.com/e/_c4m73SzH)). A compatible [3D-printable stand is available on MakerWorld](https://makerworld.com/en/models/3592833-espdesktop-4inch-screen-stand#profileId-4115394).
+The 4848S040 panel is available from AliExpress ([US](https://s.click.aliexpress.com/e/_c3qyIYL7) or [Global](https://s.click.aliexpress.com/e/_c4m73SzH)). A compatible [3D-printable stand is available on MakerWorld](https://makerworld.com/en/models/3592833-espdesktop-4inch-screen-stand#profileId-4115394).
 
 ## Project Links
 

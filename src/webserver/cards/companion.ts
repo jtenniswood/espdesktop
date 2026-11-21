@@ -82,8 +82,9 @@ import {
     setCompanionShortcutTabs,
     syncCompanionShortcutSubpage,
 } from "../application/companion_shortcut_folder";
-import { APPLE_SHORTCUTS_APP_ID, appleShortcutExclusionKey, appShortcutPageOwner, hiddenAppleShortcuts,
-    isAppleShortcutsPage, previewSubpageOwner, setHiddenAppleShortcuts } from "../model/companion_shortcut_page";
+import { APPLE_SHORTCUT_CUSTOM_ICON_OPTION, APPLE_SHORTCUTS_APP_ID, APPLE_SHORTCUTS_HIDDEN_OPTION, appleShortcutExclusionKey,
+    appleShortcutUsesAppIcon, appShortcutPageOwner, hiddenAppleShortcuts, isAppleShortcutsPage, previewSubpageOwner,
+    setHiddenAppleShortcuts } from "../model/companion_shortcut_page";
 import { appleShortcutPreview } from "../model/finder_folder_preview";
 
 const COMPANION_URL_PREFIX = "url.";
@@ -457,9 +458,9 @@ function normalizeCompanionCardFields(card: any): void {
         card.sensor = "";
         card.unit = "";
         card.precision = "";
-        card.options = normalizedCardColorOptions(card.options);
+        card.options = normalizeCompanionCardOptions(card);
         card.icon_on = "Auto";
-        if (!card.icon || ["Auto", "Monitor"].includes(card.icon)) card.icon = companionSubtypeDefaultIcon("apple_shortcut");
+        if (!card.icon || card.icon === "Auto") card.icon = companionSubtypeDefaultIcon("apple_shortcut");
         return;
     }
     const urlConfig = typeof card.sensor === "string" && card.sensor.startsWith(COMPANION_URL_PREFIX)
@@ -1038,6 +1039,9 @@ export function registerCompanionCardTypes(
             const parentPage = helpers.isSub ? state.editingSubpage : null;
             const canAddSubpage = codec.canCreateSubpage(parentPage);
             const subpageKey = canAddSubpage && slot ? childPageKey(parentPage ?? 0, Number(slot)) : null;
+            if (canAddSubpage && initialMode === "app" && companionShortcutFolderAppLabel(card.entity)) {
+                setCompanionAppShortcutFolderEnabled(card, true);
+            }
             const savedParent = slot ? (helpers.isSub ? codec.getSubpage(parentPage).buttons[slot - 1] : state.buttons[slot - 1]) : null;
             let companionActions: readonly CompanionAction[] = [];
             void catalogue.loadDefinitions(true).then((definitions) => {
@@ -1223,7 +1227,36 @@ export function registerCompanionCardTypes(
                     const input = document.getElementById(helpers.idPrefix + "label") as HTMLInputElement | null;
                     if (input) input.value = selected.label;
                 });
-                helpers.renderBasicCardFields(panel, card, helpers, COMPANION_CARD_METADATA, { entity: false });
+                helpers.renderBasicCardFields(panel, card, helpers, COMPANION_CARD_METADATA, { entity: false, icon: false });
+                const defaultIcon = companionSubtypeDefaultIcon("apple_shortcut");
+                const initialIconMode = appleShortcutUsesAppIcon(card) ? "app" : "custom";
+                let customIcon = initialIconMode === "custom" && card.icon && card.icon !== "Auto" ? card.icon : defaultIcon;
+                const customPicker = helpers.iconPickerField(
+                    helpers.idPrefix + "icon-picker", helpers.idPrefix + "icon", customIcon, (icon: string) => {
+                        customIcon = card.icon = icon;
+                        helpers.saveField("icon", icon);
+                    }, "Choose an icon", false,
+                );
+                const iconMode = helpers.segmentControl([
+                    ["app", "Shortcuts App Icon"], ["custom", "Custom Icon"],
+                ], initialIconMode, (value: "app" | "custom") => {
+                    const useCustom = value === "custom";
+                    card.icon = useCustom ? customIcon : defaultIcon;
+                    card.options = setConfigOption(card.options, APPLE_SHORTCUT_CUSTOM_ICON_OPTION, useCustom);
+                    helpers.saveField("icon", card.icon);
+                    helpers.saveField("options", card.options);
+                    syncIconControls(value);
+                    cardUi.renderPreview();
+                });
+                function syncIconControls(value: "app" | "custom"): void {
+                    iconMode.buttons.app.setAttribute("aria-pressed", String(value === "app"));
+                    iconMode.buttons.custom.setAttribute("aria-pressed", String(value === "custom"));
+                    customPicker.style.display = value === "custom" ? "" : "none";
+                }
+                iconMode.segment.setAttribute("role", "group");
+                iconMode.segment.setAttribute("aria-label", "Icon");
+                syncIconControls(initialIconMode);
+                panel?.append(helpers.fieldWithControl("Icon", null, iconMode.segment), customPicker);
                 return;
             }
 
@@ -1619,47 +1652,22 @@ export function registerCompanionCardTypes(
             });
             panel?.appendChild(appSubpageDisclosure.panel);
             const savedShortcutSubpage = subpageKey ? state.subpages[subpageKey] : null;
-            const shortcutFolderField = document.createElement("div");
-            shortcutFolderField.className = "sp-field";
-            const folderToggle = helpers.toggleRow(
-                "Add app subpage",
-                helpers.idPrefix + "companion-app-shortcuts",
-                canAddSubpage && !!appShortcutPageOwner(card),
-            );
-            const needsStarter = initialMode === "app" && !!companionShortcutFolderAppLabel(card.entity) &&
-                card.entity !== "com.apple.finder" && card.entity !== APPLE_SHORTCUTS_APP_ID &&
-                companionShortcutDefaultTabs(card.entity).length === 0;
-            if (needsStarter && panel) loadAppShortcuts(card.entity, panel);
-            if (needsStarter && !folderToggle.input.checked) folderToggle.input.disabled = true;
-            shortcutFolderField.appendChild(folderToggle.row);
-            const shortcutFolderNote = document.createElement("div");
-            shortcutFolderNote.className = "sp-field-info-text";
-            const shortcutFolderApp = companionShortcutFolderAppLabel(card.entity) || card.label || card.entity;
-            shortcutFolderNote.textContent = needsStarter ? "Connect Mac Companion to load this app’s shortcuts."
-                : card.entity === "com.apple.finder"
-                ? "Folders approved on your Mac appear in free cells. Pin a folder to keep it on the board and edit its name or position."
-                : card.entity === APPLE_SHORTCUTS_APP_ID
-                ? "Choose which enabled Apple Shortcuts appear as tiles on this subpage."
-                : "Launch " + shortcutFolderApp +
-                ", then open an editable subpage. It starts with " + shortcutFolderApp + " keyboard shortcuts.";
-            shortcutFolderField.appendChild(shortcutFolderNote);
-            appSubpageDisclosure.section.appendChild(shortcutFolderField);
-            folderToggle.input.addEventListener("change", function () {
-                if (!folderToggle.input.checked) {
-                    card._appShortcutDisabledTabs = companionShortcutTabs(card);
+            if (subpageKey && appShortcutPageOwner(card)) {
+                const isFinder = card.entity === "com.apple.finder";
+                const needsStarter = !isFinder && card.entity !== APPLE_SHORTCUTS_APP_ID &&
+                    !!companionShortcutFolderAppLabel(card.entity) && !companionShortcutDefaultTabs(card.entity).length;
+                if (isFinder || needsStarter) {
+                    const noteField = document.createElement("div");
+                    noteField.className = "sp-field";
+                    const note = document.createElement("div");
+                    note.className = "sp-field-info-text";
+                    note.textContent = isFinder
+                        ? "Folders approved on your Mac appear in free cells. Pin a folder to keep it on the board and edit its name or position."
+                        : "Connect Mac Companion to load this app’s shortcuts.";
+                    noteField.appendChild(note);
+                    appSubpageDisclosure.section.appendChild(noteField);
                 }
-                if (folderToggle.input.checked && card.entity === "com.apple.finder") {
-                    card._appShortcutSelectionChanged = true;
-                }
-                setCompanionAppShortcutFolderEnabled(card, folderToggle.input.checked);
-                if (folderToggle.input.checked && Array.isArray(card._appShortcutDisabledTabs)) {
-                    setCompanionShortcutTabs(card, card._appShortcutDisabledTabs);
-                    delete card._appShortcutDisabledTabs;
-                }
-                card._modalSettingsOpen = true;
-                helpers.saveField("options", card.options);
-                renderButtonSettings();
-            });
+            }
 
             const finderOpenBehaviorField = document.createElement("div");
             finderOpenBehaviorField.className = "sp-field";
@@ -1740,9 +1748,6 @@ export function registerCompanionCardTypes(
                 appSubpageDisclosure.section.appendChild(finderFolderList);
             }
             if (subpageKey && appShortcutPageOwner(card) && card.entity !== "com.apple.finder") {
-                const shortcutOptionsDivider = document.createElement("div");
-                shortcutOptionsDivider.className = "sp-app-subpage-options-divider";
-                appSubpageDisclosure.section.appendChild(shortcutOptionsDivider);
                 renderAppShortcutSettings(appSubpageDisclosure.section, card, subpageKey, helpers);
             }
 
@@ -1754,7 +1759,7 @@ export function registerCompanionCardTypes(
                 urlField.style.display = mode === "url" ? "" : "none";
                 urlBehaviorField.style.display = urlField.style.display;
                 appSubpageDisclosure.panel.style.display = canAddSubpage && mode === "app" &&
-                    (appShortcutPageOwner(card) || !!companionShortcutFolderAppLabel(card.entity)) ? "" : "none";
+                    appShortcutPageOwner(card) ? "" : "none";
                 finderOpenBehaviorField.style.display = canAddSubpage && mode === "app" &&
                     card.entity === "com.apple.finder" && companionAppShortcutFolderEnabled(card) ? "" : "none";
                 advancedFolderSettings.panel.style.display = mode === "folder" ? "" : "none";
@@ -1894,22 +1899,24 @@ export function registerCompanionCardTypes(
                 );
                 const appChanged = card.entity !== select.value;
                 card.entity = select.value;
+                if (appChanged) {
+                    setCompanionAppShortcutFolderEnabled(card, canAddSubpage);
+                    const changedFromSavedApp = card.entity !== savedParent?.entity;
+                    card.options = setConfigOptionValue(card.options, APPLE_SHORTCUTS_HIDDEN_OPTION,
+                        changedFromSavedApp ? "" : configOptionValue(savedParent?.options, APPLE_SHORTCUTS_HIDDEN_OPTION));
+                    delete card._appleShortcutTabs;
+                    delete card._modalTabsExpanded;
+                    delete card._modalTabsSearch;
+                    card._appShortcutSelectionChanged = changedFromSavedApp;
+                    card._appShortcutAppChanged = changedFromSavedApp;
+                    card._modalSettingsOpen = true;
+                }
                 const reconnected = reconnectAthenaShortcutSubpage(
                     savedShortcutSubpage ?? undefined, savedParent?.entity, card.entity);
                 if (reconnected) {
                     setCompanionShortcutTabs(card, companionShortcutTabsFromSubpage(card.entity, reconnected), reconnected);
                 } else {
                     resetCompanionShortcutTabs(card);
-                }
-                if (appChanged) {
-                    delete card._appleShortcutTabs;
-                    delete card._modalTabsExpanded;
-                    delete card._modalTabsSearch;
-                    delete card._appShortcutDisabledTabs;
-                    const changedFromSavedApp = card.entity !== savedParent?.entity;
-                    card._appShortcutSelectionChanged = changedFromSavedApp;
-                    card._appShortcutAppChanged = changedFromSavedApp;
-                    card._modalSettingsOpen = true;
                 }
                 card.options = normalizeCompanionAppOptions(card);
                 helpers.saveField("entity", card.entity);
@@ -2080,7 +2087,7 @@ export function registerCompanionCardTypes(
                 iconFallback: companionSubtypeDefaultIcon(mode),
                 badge: COMPANION_CARD_METADATA.preview.badge,
             });
-            const workflowIcon = mode === "apple_shortcut" && (!card.icon || card.icon === "Auto" || card.icon === "Flash");
+            const workflowIcon = mode === "apple_shortcut" && appleShortcutUsesAppIcon(card);
             if (workflowIcon || companionAppIconEnabled(card)) {
                 preview.appIconId = workflowIcon ? APPLE_SHORTCUTS_APP_ID : card.entity;
                 if (workflowIcon) preview.appIconSize = "small";
@@ -2128,13 +2135,17 @@ export function registerCompanionCardTypes(
             delete card._appShortcutSelectionChanged;
             delete card._appShortcutAppChanged;
             delete card._finderOpenBehaviorChanged;
-            delete card._appShortcutDisabledTabs;
             delete card._appShortcutCapacityRejected;
             const existing = context?.reconnectedSubpage ?? state.subpages[slot];
             if (!companionAppShortcutFolderEnabled(card) && (!existing || !appShortcutPageOwner(card))) return "saved";
             if (existing && !selectionChanged && !appChanged && !openBehaviorChanged) return "saved";
             if (card.entity === APPLE_SHORTCUTS_APP_ID) {
                 return saveAppleShortcutSubpage(slot, appleShortcutSelection, appChanged ? undefined : existing);
+            }
+            if ((!existing || appChanged) && card.entity !== "com.apple.finder" &&
+                !companionShortcutDefaultTabs(card.entity).length) {
+                const app = await catalogue.loadShortcutApplication(card.entity);
+                if (app) applyCompanionShortcutApplication(app);
             }
             const source = existing ? {
                 ...existing,

@@ -15,8 +15,7 @@ struct DevicePairingButtonColors {
 // Match the website's dark-mode button blue.
 inline constexpr DevicePairingButtonColors DEVICE_PAIRING_BUTTON_BLUE{0x3E63DD, 0x3451B2};
 inline constexpr DevicePairingButtonColors DEVICE_PAIRING_BUTTON_GREY{0x6C6C6C, 0x555555};
-// A mid-grey outline stays visible against both the dark and light panels.
-inline constexpr uint32_t DEVICE_PAIRING_TILE_BORDER = 0x6C6C6C;
+inline constexpr uint32_t DEVICE_PAIRING_TILE_BORDER = 0x383838;
 
 struct DevicePairingUi {
   lv_obj_t *overlay = nullptr;
@@ -125,7 +124,7 @@ inline void device_pairing_show(const lv_font_t *text_font, const lv_font_t *tit
                                 bool confirm_reset) {
   const auto &theme = current_theme();
   const auto layout = control_modal_calc_layout(icon_width_compensation_percent());
-  const lv_coord_t radius = control_modal_card_radius(nullptr);
+  const lv_coord_t radius = confirm_reset ? control_modal_card_radius(nullptr) : 0;
   const auto shell = control_modal_open_nested_menu(layout.panel_w, radius, device_pairing_close);
   auto &ui = device_pairing_ui();
   ui.overlay = shell.overlay;
@@ -133,14 +132,19 @@ inline void device_pairing_show(const lv_font_t *text_font, const lv_font_t *tit
   control_modal_style_overlay(shell.overlay);
   control_modal_style_panel(shell.panel, radius);
   lv_obj_set_align(shell.panel, LV_ALIGN_TOP_LEFT);
-  control_modal_apply_panel_layout(shell.overlay, shell.panel, layout, radius);
-  lv_obj_set_style_pad_left(shell.panel, layout.inset, LV_PART_MAIN);
-  lv_obj_set_style_pad_right(shell.panel, layout.inset, LV_PART_MAIN);
+  if (confirm_reset) {
+    control_modal_apply_panel_layout(shell.overlay, shell.panel, layout, radius);
+  } else {
+    lv_obj_set_size(shell.panel, lv_pct(100), lv_pct(100));
+  }
+  const lv_coord_t content_width = layout.panel_w - layout.inset * 2;
+  const lv_coord_t side_padding = confirm_reset ? layout.inset : (layout.sw - content_width) / 2;
+  lv_obj_set_style_pad_left(shell.panel, side_padding, LV_PART_MAIN);
+  lv_obj_set_style_pad_right(shell.panel, side_padding, LV_PART_MAIN);
   lv_obj_set_style_pad_row(shell.panel, control_modal_scaled_px(14, layout.short_side), LV_PART_MAIN);
   lv_obj_set_flex_flow(shell.panel, LV_FLEX_FLOW_COLUMN);
   lv_obj_set_flex_align(shell.panel, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
 
-  const lv_coord_t content_width = layout.panel_w - layout.inset * 2;
   const lv_coord_t button_height = std::max<lv_coord_t>(layout.profile.base_touch_target,
       control_modal_scaled_px(60, layout.short_side));
   const lv_coord_t tile_radius = control_modal_scaled_px(10, layout.short_side);

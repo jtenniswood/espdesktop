@@ -14,7 +14,12 @@ A **Website** card opens a web address in your Mac’s default browser. Give a f
 3. In the **Open URL** form, enter an `http://` or `https://` address without an embedded username or password.
 4. Under **Open in**, keep **New tab** or choose **New window**, then select **Save**.
 
-<a href="/images/web-editor-website.jpg"><img src="/images/web-editor-website.jpg" alt="Open URL form with https://example.com/ entered and New tab selected" width="560" height="530" loading="lazy"></a>
+<a href="/images/web-editor-website.jpg">
+  <picture>
+    <source type="image/avif" srcset="/images/web-editor-website-560.avif">
+    <img src="/images/web-editor-website.jpg" alt="Open URL form with https://example.com/ entered and New tab selected" width="560" height="530" loading="lazy" decoding="async">
+  </picture>
+</a>
 
 ## Choose a tab or window
 

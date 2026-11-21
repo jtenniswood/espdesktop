@@ -87,6 +87,7 @@ struct CataloguePageItemsItem {
   std::optional<std::string> obsState{};
   std::optional<std::string> obsDetail{};
   std::optional<bool> obsAvailable{};
+  std::optional<uint32_t> shortcutColor{};
 };
 struct CataloguePage {
   std::optional<std::string> scope{};
@@ -310,6 +311,7 @@ inline void encode(JsonObject root, const CataloguePage &message) {
     if (item.obsState) entry["obsState"] = *item.obsState;
     if (item.obsDetail) entry["obsDetail"] = *item.obsDetail;
     if (item.obsAvailable) entry["obsAvailable"] = *item.obsAvailable;
+    if (item.shortcutColor) entry["shortcutColor"] = *item.shortcutColor;
   }
 }
 inline void encode(JsonObject root, const ActionInvoke &message) {
@@ -665,6 +667,9 @@ inline std::optional<Message> decode(JsonObjectConst root, Direction direction, 
         if (!item.as<JsonObjectConst>()["obsAvailable"].isUnbound()) {
           if (!(item.as<JsonObjectConst>()["obsAvailable"].is<bool>())) return std::nullopt;
         }
+        if (!item.as<JsonObjectConst>()["shortcutColor"].isUnbound()) {
+          if (!(number_valid(item.as<JsonObjectConst>()["shortcutColor"], 0, 16777215, true))) return std::nullopt;
+        }
       }
     }
     CataloguePage result;
@@ -673,7 +678,7 @@ inline std::optional<Message> decode(JsonObjectConst root, Direction direction, 
     result.page = root["page"].as<uint32_t>();
     result.complete = root["complete"].as<bool>();
     for (JsonVariantConst item : root["items"].as<JsonArrayConst>()) {
-      result.items.push_back({item["id"].as<std::string>(), item["label"].as<std::string>(), item["obsState"].isUnbound() ? std::nullopt : std::optional<std::string>{item["obsState"].as<std::string>()}, item["obsDetail"].isUnbound() ? std::nullopt : std::optional<std::string>{item["obsDetail"].as<std::string>()}, item["obsAvailable"].isUnbound() ? std::nullopt : std::optional<bool>{item["obsAvailable"].as<bool>()}});
+      result.items.push_back({item["id"].as<std::string>(), item["label"].as<std::string>(), item["obsState"].isUnbound() ? std::nullopt : std::optional<std::string>{item["obsState"].as<std::string>()}, item["obsDetail"].isUnbound() ? std::nullopt : std::optional<std::string>{item["obsDetail"].as<std::string>()}, item["obsAvailable"].isUnbound() ? std::nullopt : std::optional<bool>{item["obsAvailable"].as<bool>()}, item["shortcutColor"].isUnbound() ? std::nullopt : std::optional<uint32_t>{item["shortcutColor"].as<uint32_t>()}});
     }
     return result;
   }

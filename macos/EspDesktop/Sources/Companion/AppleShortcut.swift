@@ -1,9 +1,17 @@
-import Foundation
+import AppKit
+import CoreServices
 
 struct AppleShortcut: Identifiable, Equatable, Sendable {
     static let actionPrefix = "appleshortcut."
     let id: UUID
     let name: String
+    let color: UInt32?
+
+    init(id: UUID, name: String, color: UInt32? = nil) {
+        self.id = id
+        self.name = name
+        self.color = color
+    }
 
     var actionIdentifier: String { Self.actionPrefix + id.uuidString.lowercased() }
 
@@ -21,6 +29,79 @@ struct AppleShortcut: Identifiable, Equatable, Sendable {
             return Self(id: id, name: String(line[..<separator.lowerBound]))
         }
         .sorted { $0.name.localizedStandardCompare($1.name) == .orderedAscending }
+    }
+}
+
+enum AppleShortcutColors {
+    private static let helper = "com.apple.shortcuts.events"
+    private static let shortcutClass: OSType = 0x73726374 // 'srct'
+    private static let colorProperty: OSType = 0x636F6C72 // 'colr'
+
+    static func read(for ids: [UUID], allowPrompt: Bool) async -> [UUID: UInt32] {
+        guard !ids.isEmpty else { return [:] }
+        if NSRunningApplication.runningApplications(withBundleIdentifier: helper).isEmpty,
+           let url = NSWorkspace.shared.urlForApplication(withBundleIdentifier: helper) {
+            let configuration = NSWorkspace.OpenConfiguration()
+            configuration.activates = false
+            guard (try? await NSWorkspace.shared.openApplication(at: url, configuration: configuration)) != nil
+                else { return [:] }
+        }
+
+        return await Task.detached(priority: .utility) {
+            let target = NSAppleEventDescriptor(bundleIdentifier: helper)
+            var sendOptions: NSAppleEventDescriptor.SendOptions = [.waitForReply, .neverInteract]
+            if !allowPrompt { sendOptions.insert(.init(rawValue: UInt(kAEDoNotPromptForUserConsent))) }
+
+            var colors: [UUID: UInt32] = [:]
+            for id in ids {
+                guard let shortcut = objectSpecifier(
+                    shortcutClass, form: OSType(formUniqueID), key: .init(string: id.uuidString), container: .null()
+                ), let property = objectSpecifier(
+                    OSType(cProperty), form: OSType(formPropertyID), key: .init(typeCode: colorProperty), container: shortcut
+                ) else { break }
+                let event = NSAppleEventDescriptor(
+                    eventClass: AEEventClass(kAECoreSuite), eventID: AEEventID(kAEGetData), targetDescriptor: target,
+                    returnID: AEReturnID(kAutoGenerateReturnID), transactionID: AETransactionID(kAnyTransactionID)
+                )
+                event.setParam(property, forKeyword: AEKeyword(keyDirectObject))
+                // A denied or unavailable helper should cost one request per refresh.
+                guard let reply = try? event.sendEvent(options: sendOptions, timeout: 3) else { break }
+                if let error = reply.paramDescriptor(forKeyword: AEKeyword(keyErrorNumber)),
+                   error.int32Value != 0 {
+                    if error.int32Value == errAENoSuchObject { continue }
+                    break
+                }
+                if let value = reply.paramDescriptor(forKeyword: AEKeyword(keyDirectObject)),
+                   let color = rgb24(value) {
+                    colors[id] = color
+                }
+            }
+            return colors
+        }.value
+    }
+
+    private static func objectSpecifier(
+        _ type: OSType, form: OSType, key: NSAppleEventDescriptor, container: NSAppleEventDescriptor
+    ) -> NSAppleEventDescriptor? {
+        guard var keyDescriptor = key.aeDesc?.pointee, var containerDescriptor = container.aeDesc?.pointee
+            else { return nil }
+        var specifier = AEDesc()
+        let status = withExtendedLifetime((key, container)) {
+            CreateObjSpecifier(type, &containerDescriptor, form, &keyDescriptor, false, &specifier)
+        }
+        guard status == noErr else { return nil }
+        return NSAppleEventDescriptor(aeDescNoCopy: &specifier)
+    }
+
+    static func rgb24(_ descriptor: NSAppleEventDescriptor) -> UInt32? {
+        // Shortcuts exposes a Carbon RGBColor with three unsigned 16-bit channels.
+        guard descriptor.descriptorType == DescType(typeRGBColor), descriptor.data.count == 6 else { return nil }
+        return descriptor.data.withUnsafeBytes { bytes in
+            let red = UInt32(bytes.loadUnaligned(fromByteOffset: 0, as: UInt16.self))
+            let green = UInt32(bytes.loadUnaligned(fromByteOffset: 2, as: UInt16.self))
+            let blue = UInt32(bytes.loadUnaligned(fromByteOffset: 4, as: UInt16.self))
+            return ((red + 128) / 257) << 16 | ((green + 128) / 257) << 8 | (blue + 128) / 257
+        }
     }
 }
 

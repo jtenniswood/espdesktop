@@ -397,8 +397,10 @@ inline std::string companion_consume_closed_app_subpage_action() {
   return companion_runtime_service().consume_closed_app_subpage_action();
 }
 
-inline void companion_set_auto_open_app_subpages(bool enabled) {
-  companion_runtime_service().set_auto_open_app_subpages(enabled);
+inline void companion_set_app_subpage_mode(std::string_view value) {
+  using Mode = CompanionAppSubpageMode;
+  companion_runtime_service().set_app_subpage_mode(
+      value == "focus" ? Mode::FOCUS : value == "manual" ? Mode::MANUAL : Mode::CARD);
 }
 
 inline void companion_set_return_home_on_app_switch(bool enabled) {
@@ -409,8 +411,8 @@ inline bool companion_return_home_on_app_switch() {
   return companion_runtime_service().return_home_on_app_switch();
 }
 
-inline bool companion_auto_open_app_subpages() {
-  return companion_runtime_service().auto_open_app_subpages();
+inline bool companion_app_subpage_manual() {
+  return companion_runtime_service().app_subpage_mode() == CompanionAppSubpageMode::MANUAL;
 }
 
 inline std::string companion_pending_auto_subpage_action() {
@@ -471,6 +473,11 @@ inline bool companion_application_focused(const std::string &application_id) {
 
 inline bool companion_action_active(const std::string &action_id, bool visual_only = false) {
   return companion_action_focused(action_id, visual_only);
+}
+
+inline bool companion_app_subpage_opens_on_press(const std::string &action_id) {
+  const auto mode = companion_runtime_service().app_subpage_mode();
+  return mode == CompanionAppSubpageMode::CARD ? companion_connected() : companion_action_active(action_id);
 }
 
 inline uint32_t companion_next_request_number() {
@@ -1883,6 +1890,7 @@ class CompanionActionsHandler : public esphome::web_server_idf::AsyncWebHandler 
           json += std::string(",\"obsState\":\"") + obs_card_presentation(action.obs_state).id + "\"";
         if (!action.obs_detail.empty()) json += ",\"obsDetail\":\"" + companion_json_escape(action.obs_detail) + "\"";
         if (action.obs_available) json += *action.obs_available ? ",\"obsAvailable\":true" : ",\"obsAvailable\":false";
+        if (action.shortcut_color) json += ",\"shortcutColor\":" + std::to_string(*action.shortcut_color);
 #ifdef USE_COMPANION
         // The browser already polls this catalogue. Include cache freshness so
         // updated icons refresh open previews without downloading unchanged pixels.

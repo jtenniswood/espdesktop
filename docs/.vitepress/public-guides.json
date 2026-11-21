@@ -1,7 +1,6 @@
 {
   "Start here": [
     "index.md",
-    "docs.md",
     "screens/4848s040.md",
     "download.md",
     "reference/faq.md"
@@ -22,7 +21,8 @@
     "mac-controls/websites.md",
     "mac-controls/folders.md",
     "mac-controls/shortcuts.md",
-    "reference/shortcut-presets.md"
+    "reference/shortcut-presets.md",
+    "mac-controls/apple-shortcuts.md"
   ],
   "OBS Studio controls": [
     "mac-controls/obs-studio.md",
@@ -35,6 +35,7 @@
     "settings/system.md",
     "getting-started/home-assistant-actions.md",
     "settings/mac-app.md",
+    "settings/display-connections.md",
     "settings/backup.md",
     "mac-controls/security.md"
   ],

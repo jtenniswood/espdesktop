@@ -4,6 +4,7 @@ import { createRequire } from 'node:module'
 import { resolve } from 'node:path'
 import { defineConfig } from 'vitepress'
 import { canonicalUrlFor, faqSchema, hostname, jsonLd, llmsIndexUrl, writeRedirects } from './discovery'
+import { imageCaptions } from './image-captions'
 import { writeMarkdownPages } from './markdown-export'
 import { unpublishedMarkdown, writeGuideIndex } from './public-guides'
 import productFacts from './product-facts.json'
@@ -39,10 +40,12 @@ const pageImages: Record<string, typeof defaultImage> = {
     'EspDesktop Home layout with Mac app cards in the web editor'),
   'features/subpages.md': shareImage('web-editor-figma-subpage.png', 1562, 2134,
     'Figma app subpage with the Figma icon as the Back tile and a grid of keyboard shortcuts'),
-  'mac-controls/apps.md': shareImage('web-editor-application-card.png', 1694, 2266,
-    'Applications card form with Figma selected in the EspDesktop web editor'),
+  'mac-controls/apps.md': shareImage('web-editor-figma-subpage.png', 1562, 2134,
+    'Figma app subpage with keyboard shortcuts in the EspDesktop web editor'),
   'mac-controls/websites.md': shareImage('web-editor-website.jpg', 560, 530,
     'Website card form with an example web address in the EspDesktop web editor'),
+  'mac-controls/apple-shortcuts.md': shareImage('apple-shortcuts/list.jpg', 1080, 1080,
+    'EspDesktop touchscreen showing the Shortcut List page with a Back tile and seven shortcuts'),
 }
 
 const author = { '@type': 'Person', name: 'jtenniswood', url: 'https://github.com/jtenniswood' }
@@ -61,6 +64,7 @@ const guideParents = {
   'mac-controls/websites.md': { name: 'Customise the layout', path: 'features/home.md' },
   'mac-controls/folders.md': { name: 'Customise the layout', path: 'features/home.md' },
   'mac-controls/shortcuts.md': { name: 'Customise the layout', path: 'features/home.md' },
+  'mac-controls/apple-shortcuts.md': { name: 'Customise the layout', path: 'features/home.md' },
   'mac-controls/improve-shortcuts.md': { name: 'Keyboard shortcuts', path: 'mac-controls/shortcuts.md' },
   'reference/companion-compatibility.md': { name: 'Setup and compatibility FAQ', path: 'reference/faq.md' },
 } as Record<string, { name: string; path: string }>
@@ -72,11 +76,14 @@ const customiseLinks = [
   { text: 'Screen grid', link: '/features/home' },
   { text: 'Subpages', link: '/features/subpages' },
   { text: 'Adding a card', link: '/features/adding-a-card' },
+]
+const cardLinks = [
   { text: 'Apps', link: '/mac-controls/apps' },
   { text: 'Websites', link: '/mac-controls/websites' },
   { text: 'Finder folders', link: '/mac-controls/folders' },
   { text: 'Keyboard shortcuts', link: '/mac-controls/shortcuts' },
   { text: 'Keyboard shortcut presets', link: '/reference/shortcut-presets' },
+  { text: 'Apple Shortcuts', link: '/mac-controls/apple-shortcuts' },
 ]
 const obsStudioLink = { text: 'OBS Studio', link: '/mac-controls/obs-studio' }
 const obsStudioSidebar = {
@@ -100,7 +107,13 @@ export default defineConfig({
   cleanUrls: true,
   lastUpdated: true,
   srcExclude: unpublishedMarkdown,
-  markdown: { config: faqSchema, image: { lazyLoading: true } },
+  markdown: {
+    config(md) {
+      faqSchema(md)
+      imageCaptions(md)
+    },
+    image: { lazyLoading: true },
+  },
   async buildEnd({ outDir, pages }) {
     const demoRenderer = resolve(freshWebOutputDir({ testHooks: false }), 'app.js')
     await Promise.all([
@@ -203,7 +216,7 @@ export default defineConfig({
     guideMetadata.set(relativePath, { title, description })
     const image = pageImages[relativePath] ?? defaultImage
     const isHome = relativePath === 'index.md'
-    const isArticle = !['index.md', 'docs.md', 'reference/privacy.md', 'reference/faq.md', 'reference/support.md'].includes(relativePath)
+    const isArticle = !['index.md', 'reference/privacy.md', 'reference/faq.md', 'reference/support.md'].includes(relativePath)
 
     frontmatter.head.push(
       ['link', { rel: 'canonical', href: canonicalUrl }],
@@ -326,9 +339,9 @@ export default defineConfig({
       },
       {
         text: 'Customise',
-        items: [...customiseLinks, obsStudioLink, screenSettingsLink, systemSettingsLink],
+        items: [...customiseLinks, ...cardLinks, obsStudioLink, screenSettingsLink, systemSettingsLink],
       },
-      { text: 'Docs', link: '/docs' },
+      { text: 'Docs', link: '/screens/4848s040#supported-display-4-inch-guition-4848s040' },
     ],
 
     sidebar: [
@@ -343,6 +356,10 @@ export default defineConfig({
         text: 'Customise',
         items: customiseLinks,
       },
+      {
+        text: 'Cards',
+        items: cardLinks,
+      },
       obsStudioSidebar,
       {
         text: 'Settings',
@@ -350,6 +367,7 @@ export default defineConfig({
           screenSettingsLink,
           systemSettingsLink,
           { text: 'Mac app settings', link: '/settings/mac-app' },
+          { text: 'Display connections (USB & IP)', link: '/settings/display-connections' },
           { text: 'Backup & restore', link: '/settings/backup' },
           { text: 'Permissions & security', link: '/mac-controls/security' },
         ],

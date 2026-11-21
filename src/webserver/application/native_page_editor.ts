@@ -24,6 +24,7 @@ export function createNativePageEditorFeature(options: {
   canApply(): boolean;
 }): NativePageEditorLoader {
   const { native, codec, layout, runtime } = options;
+  const els = runtime.els;
   let removingOldCards = false;
   const cleanRetiredCards = (snapshot: PanelConfigDocument, nativeLayout?: NativePageLayout) => {
     const cleaned = structuredClone(snapshot);
@@ -46,6 +47,7 @@ export function createNativePageEditorFeature(options: {
       state.buttons = prepared.buttons;
       state.subpages = prepared.subpages;
       state.nativePanelDocument = prepared.source;
+      els.syncAppSubpageMode?.();
       state.nativePageSnapshotLoaded = true;
       native.client?.acceptSnapshot(prepared.source, cleaned === snapshot ? nativeLayout : undefined);
       state.nativeHasNestedPages = prepared.nested;

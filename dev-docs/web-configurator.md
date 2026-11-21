@@ -88,16 +88,15 @@ layout saves and rendering use the native document.
 
 ### Mac app setup
 
-Firmware that advertises `configuration.companion_auto_open_app_subpages`
-applies the automatic switching preference from the native layout document.
-The first-run wizard writes the home cards and shortcut pages directly to
-the native layout and commits them with the preference and completion marker
-in one generation-checked save. Setup Again reads the current layout and
+Firmware that advertises `configuration.companion_app_subpage_mode` accepts
+`focus`, `card`, or `manual` in the native layout document. A display with no
+saved preference uses `card`. If the new field is absent, the firmware reads
+an explicitly saved `companion_auto_open_app_subpages` value as `focus` or
+`manual`. The first-run wizard saves the mode, Home cards, shortcut pages,
+and completion marker in one generation-checked transaction. Setup Again
 stops if another editor changes the layout or preference before saving.
-The Screen settings toggle edits that field through the same API. A layout without the field
-retains the panel's previously saved preference. The switch publishes the
-live value to the editor after the layout commit. Existing backups can supply
-the preference through their portable settings.
+Screen settings use the same native API, and backups carry the mode in
+their native layout document.
 
 ### Reset and editing sessions
 

@@ -230,6 +230,7 @@ async function checkBrowser() {
     await editorGrid.locator('.sp-empty-cell[data-pos="2"]').waitFor();
     await ninthCell.click();
     await page.locator('[data-card-type="companion_folder"]').click();
+    await page.getByRole('button', { name: 'Open a folder card type', exact: true }).click();
     const folderPicker = page.getByRole('combobox', { name: 'Folder', exact: true });
     await folderPicker.locator('option[value="folder.downloads"]').waitFor({ state: 'attached' });
     assert.deepEqual(await folderPicker.locator('option').allTextContents(),
@@ -313,6 +314,10 @@ async function checkBrowser() {
       assert(await page.getByRole('heading', { name: 'EspDesktop in action' }).isVisible());
     }
 
+    const docsHeadingId = 'supported-display-4-inch-guition-4848s040';
+    const docsUrl = `${base}/screens/4848s040#${docsHeadingId}`;
+    assert.equal((await page.request.get(`${base}/docs`)).status(), 404);
+
     for (const width of [390, 768, 1440]) {
       await page.setViewportSize({ width, height: 900 });
       await page.goto(home);
@@ -323,11 +328,9 @@ async function checkBrowser() {
       assert(link && link.x >= 0 && link.x + link.width <= width,
         `Docs must be visible in the navigation at ${width}px`);
       await docs.click();
-      await page.waitForURL(`${base}/docs`);
-      await page.getByRole('heading', { name: 'EspDesktop documentation', level: 1 }).waitFor();
-      const troubleshooting = page.locator('main').getByRole('link', { name: 'Troubleshooting', exact: true });
-      await troubleshooting.click();
-      await page.waitForURL(`${base}/getting-started/troubleshooting`);
+      await page.waitForURL(docsUrl);
+      await page.getByRole('heading', { name: 'Getting started with EspDesktop', level: 1 })
+        .and(page.locator(`#${docsHeadingId}`)).waitFor();
     }
     await page.goto(home);
     await setup.press('Enter');

@@ -72,10 +72,9 @@ struct CompanionPageExit {
 };
 
 inline CompanionPageExit decide_companion_page_exit(
-    bool focus_changed, bool current_app_closed,
-    bool return_on_app_switch, bool focus_has_page) {
-  if (!focus_changed && !current_app_closed) return {false, false};
-  if (!return_on_app_switch) return {current_app_closed, true};
+    bool focus_changed, bool return_on_app_switch, bool focus_has_page) {
+  if (!focus_changed) return {false, false};
+  if (!return_on_app_switch) return {false, true};
   return {!focus_has_page, false};
 }
 

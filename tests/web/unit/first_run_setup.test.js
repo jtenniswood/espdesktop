@@ -24,9 +24,9 @@ test("OBS tiles that require a panel tap are excluded from Home Assistant export
   }
 });
 
-function setup(input, apps, shortcuts, capacity = 4, replacing, automaticSwitch, workflows) {
+function setup(input, apps, shortcuts, capacity = 4, replacing, openingMode, workflows) {
   const draft = new NativeLayoutDraft(input);
-  applyFirstRunLayout(draft, decodePanelPageSnapshot(input), apps, shortcuts, capacity, replacing, automaticSwitch, workflows);
+  applyFirstRunLayout(draft, decodePanelPageSnapshot(input), apps, shortcuts, capacity, replacing, openingMode, workflows);
   return draft.finish();
 }
 
@@ -51,12 +51,12 @@ test("onboarding lists unique applications, excluding retired web apps and other
 });
 
 test("setup writes native cards and shortcut pages within capacity together with the preference", () => {
-  const result = setup(empty(), [safari, custom], true, 4, undefined, false);
+  const result = setup(empty(), [safari, custom], true, 4, undefined, "manual");
   const { document, layout } = decodePanelPageSnapshot(result);
   assert.equal(document.settings.button_order, "1,2");
   assert.equal(document.settings.button_on_color, "FF0000");
   assert.equal(document.settings[FIRST_RUN_COMPLETE], "1");
-  assert.equal(document.settings.companion_auto_open_app_subpages, "0");
+  assert.equal(document.settings.companion_app_subpage_mode, "manual");
   assert.equal(layout.rootCards[0].config.label, safari.label);
   assert.match(layout.rootCards[0].config.options, /app_shortcuts/);
   assert.equal(layout.rootCards[1].config.options, "", "unknown apps remain launch cards");
@@ -84,16 +84,16 @@ test("setup gives the Shortcuts app a page of enabled workflows within capacity"
     id: "appleshortcut.727ed9bf-de97-42ed-b661-8967497b122" + index,
     label: "Workflow " + index,
   }));
-  const { layout } = decodePanelPageSnapshot(setup(empty(), [shortcuts], true, 4, undefined, true, workflows));
+  const { layout } = decodePanelPageSnapshot(setup(empty(), [shortcuts], true, 4, undefined, "focus", workflows));
   assert.equal(layout.pages[0].order, "B,1,2,3");
   assert.deepEqual(layout.pages[0].cards.map(card => card.config.entity), workflows.slice(0, 3).map(action => action.id));
 });
 
 test("replacing setup preserves other settings and rejects concurrent changes to the layout or preference", () => {
   const before = empty({ settings: { button_on_color: "FF0000", special_page: "existing special page" } });
-  const saved = setup(before, [safari, custom], true, 4, decodePanelPageSnapshot(before), true);
+  const saved = setup(before, [safari, custom], true, 4, decodePanelPageSnapshot(before), "focus");
   const original = decodePanelPageSnapshot(saved);
-  const replacement = decodePanelPageSnapshot(setup(saved, [custom], false, 4, original, false));
+  const replacement = decodePanelPageSnapshot(setup(saved, [custom], false, 4, original, "manual"));
   assert.equal(replacement.layout.rootCards.length, 1);
   assert.equal(replacement.layout.rootCards[0].config.entity, custom.id);
   assert.deepEqual(replacement.layout.pages, []);
@@ -103,7 +103,7 @@ test("replacing setup preserves other settings and rejects concurrent changes to
     draft => draft.writeRootCard(3, { ...original.layout.rootCards[0].config, label: "Changed card" }),
     draft => draft.writePage(1, { order: "B", cards: [] }),
     draft => draft.writeSetting("button_order", "2,1"),
-    draft => draft.writeSetting("companion_auto_open_app_subpages", "0"),
+    draft => draft.writeSetting("companion_app_subpage_mode", "card"),
   ]) {
     const draft = new NativeLayoutDraft(saved);
     change(draft);

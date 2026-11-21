@@ -26,6 +26,18 @@
   letter-spacing: normal;
 }
 
+.vp-doc .doc-image {
+  margin: 16px 0;
+}
+
+.vp-doc .doc-image-caption {
+  display: block;
+  margin: 8px 0 0;
+  color: var(--vp-c-text-2);
+  font-size: 0.875rem;
+  line-height: 1.45;
+}
+
 .screen-comparison-hint {
   display: none;
 }

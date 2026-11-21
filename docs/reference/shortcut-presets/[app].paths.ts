@@ -117,7 +117,7 @@ Start with ${starterKeys}. Tapping a button sends its key combination to ${appNa
 :::
 
 ::: details How do I add ${app.label} shortcuts to EspDesktop?
-Add an **Applications** card for ${appName}, turn on **Add app subpage**, and choose the shortcuts you want. For one button, use a **Key Shortcut** card and pick ${appName} in the **Application** tab. See [how to add shortcut cards](/mac-controls/shortcuts#create-a-shortcut-card).
+Add an **Applications** card for ${appName} and choose the shortcuts you want under **App Subpage**. For one button, use a **Key Shortcut** card and pick ${appName} in the **Application** tab. See [how to add shortcut cards](/mac-controls/shortcuts#create-a-shortcut-card).
 :::
 
 ::: details Can I choose which ${app.label} shortcuts appear on the display?

@@ -30,6 +30,7 @@ struct OBSSettings: View {
                         passwordFocused = false
                         hasSavedPassword = connection.hasSavedPassword
                     }
+                    .modifier(CompanionCapsuleButton())
                     .disabled(validPort == nil)
 
                     if connection.enabled {
@@ -39,8 +40,11 @@ struct OBSSettings: View {
                             passwordFocused = false
                             hasSavedPassword = connection.hasSavedPassword
                         }
+                        .modifier(CompanionCapsuleButton())
                     }
                 }
+                .buttonStyle(.bordered)
+                .controlSize(.large)
             }
 
             if let state = connection.state {
@@ -74,6 +78,9 @@ struct OBSSettings: View {
                     if connection.breakNeedsReview {
                         Text("Check the Program scene and microphone in OBS before continuing.")
                         Button("Clear BRB alert") { connection.acknowledgeBreakReview() }
+                            .buttonStyle(.bordered)
+                            .controlSize(.large)
+                            .modifier(CompanionCapsuleButton())
                     }
                 }
             }

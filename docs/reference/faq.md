@@ -18,11 +18,11 @@ The EspDesktop Mac app requires **Apple silicon and macOS 13 or newer**. Intel M
 
 ### Does EspDesktop need Home Assistant?
 
-EspDesktop runs Mac controls over your local network without Home Assistant. Use USB for the firmware installation, then connect the display to 2.4 GHz Wi-Fi for Mac control. For a touchscreen that controls Home Assistant devices, see the [EspDesktop and EspControl comparison](/reference/espdesktop-or-espcontrol).
+EspDesktop runs Mac controls without Home Assistant. With the standard firmware, connect the display to 2.4 GHz Wi-Fi on the same local network as your Mac. Compatible development builds also support direct USB control. See [Display connections (USB & IP)](/settings/display-connections). For a touchscreen that controls Home Assistant devices, see the [EspDesktop and EspControl comparison](/reference/espdesktop-or-espcontrol).
 
 ### Can I use EspDesktop over USB without Wi-Fi?
 
-Yes, with compatible USB development builds of the Mac app and display firmware. You can use Mac controls and edit the display’s layout over a USB data cable with Wi-Fi off. The standard firmware uses your local network for Mac controls. See [Switch a display between USB and network](/settings/mac-app#switch-a-display-between-usb-and-network).
+Yes, with compatible development builds of the Mac app and display firmware. You can use Mac controls and edit the display’s layout over a USB data cable with Wi-Fi off. [Connect over USB](/settings/display-connections#connect-over-usb).
 
 ### Can I use several EspDesktop displays with one Mac?
 
@@ -30,7 +30,7 @@ EspDesktop v1.2.6 supports multiple Guition 4848S040 displays connected to one M
 
 ### Why can't I see my display in the Mac app?
 
-Confirm that the Mac and display are on the same local network and allow EspDesktop local-network access if macOS asks. Some guest WiFi or network-isolation settings prevent discovery. Choose **Enter address manually** in the app and enter the display's IP address or `.local` name if needed.
+Confirm that the Mac and display are on the same local network and allow EspDesktop local-network access if macOS asks. Some guest WiFi or network-isolation settings prevent discovery. See [how to enter the display’s IP address or local name](/settings/display-connections#connect-over-your-local-network).
 
 ### Do the Mac app and display firmware need to match?
 

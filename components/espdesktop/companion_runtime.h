@@ -21,6 +21,8 @@
 #include "companion_shortcut_catalogue.h"
 #include "companion_capabilities_generated.h"
 
+enum class CompanionAppSubpageMode { FOCUS, CARD, MANUAL };
+
 // Folder focus belongs to Finder; switching directories must keep its subpage open.
 inline std::string companion_focus_application_id(const std::string &action_id) {
   if (action_id.rfind("urlcard.", 0) == 0) return "";
@@ -39,9 +41,10 @@ struct CompanionAction {
   OBSCardState obs_state{OBSCardState::unknown};
   std::string obs_detail{};
   std::optional<bool> obs_available{};
+  std::optional<uint32_t> shortcut_color{};
   bool operator==(const CompanionAction &other) const {
     return id == other.id && label == other.label && obs_state == other.obs_state && obs_detail == other.obs_detail &&
-      obs_available == other.obs_available;
+      obs_available == other.obs_available && shortcut_color == other.shortcut_color;
   }
 };
 
@@ -411,9 +414,9 @@ class CompanionRuntimeService {
     request_refresh_();
   }
 
-  void set_auto_open_app_subpages(bool enabled) {
+  void set_app_subpage_mode(CompanionAppSubpageMode mode) {
     std::lock_guard<std::mutex> lock(mutex_);
-    auto_open_app_subpages_ = enabled;
+    app_subpage_mode_ = mode;
     pending_auto_subpage_action_id_.clear();
     subpage_return_requested.store(false);
   }
@@ -428,9 +431,9 @@ class CompanionRuntimeService {
     return return_home_on_app_switch_;
   }
 
-  bool auto_open_app_subpages() const {
+  CompanionAppSubpageMode app_subpage_mode() const {
     std::lock_guard<std::mutex> lock(mutex_);
-    return auto_open_app_subpages_;
+    return app_subpage_mode_;
   }
 
   bool set_focused_action(std::string action_id) {
@@ -481,9 +484,10 @@ class CompanionRuntimeService {
     } else if (auto_subpage_id == closed_app_subpage_action_id_) {
       closed_app_subpage_action_id_.clear();
     }
-    const bool should_return = auto_open_app_subpages_ && connected_ && !previous_auto_subpage_id.empty() &&
+    const bool follows_focus = app_subpage_mode_ == CompanionAppSubpageMode::FOCUS;
+    const bool should_return = follows_focus && connected_ && !previous_auto_subpage_id.empty() &&
       auto_subpage_id != previous_auto_subpage_id;
-    if (!auto_open_app_subpages_ || accepted.empty() || !connected_) pending_auto_subpage_action_id_.clear();
+    if (!follows_focus || accepted.empty() || !connected_) pending_auto_subpage_action_id_.clear();
     else if (previous_auto_subpage_id != auto_subpage_id) pending_auto_subpage_action_id_ = auto_subpage_id;
     focused_action_ids_ = std::move(accepted);
     focused_action_id_ = parent_id(focused_action_ids_);
@@ -507,7 +511,7 @@ class CompanionRuntimeService {
     pending_auto_subpage_action_id_.clear();
     closed_app_subpage_action_id_.clear();
     subpage_return_requested.store(false);
-    return connected_ && auto_open_app_subpages_ ? focused_auto_subpage_id_ : std::string{};
+    return connected_ && app_subpage_mode_ == CompanionAppSubpageMode::FOCUS ? focused_auto_subpage_id_ : std::string{};
   }
 
   bool consume_auto_subpage_action(const std::string &action_id) {
@@ -572,7 +576,7 @@ class CompanionRuntimeService {
   std::array<PendingMute, 3> pending_mutes_{};
   std::string focused_action_id_;
   std::vector<std::string> focused_action_ids_;
-  bool auto_open_app_subpages_ = true;
+  CompanionAppSubpageMode app_subpage_mode_ = CompanionAppSubpageMode::CARD;
   bool return_home_on_app_switch_ = true;
   std::string focused_auto_subpage_id_;
   std::string pending_auto_subpage_action_id_;

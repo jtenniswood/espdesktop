@@ -521,7 +521,7 @@ inline void setup_companion_card(BtnSlot &s, const ParsedCfg &p,
   }
   const bool workflow_icon = apple_shortcut_workflow_icon(p);
   const char *icon = (p.icon.empty() || p.icon == "Auto")
-    ? find_icon(workflow_icon ? "Flash" : obs_mute ? "Microphone" : p.entity == "obs.brb" ? "Coffee to Go" :
+    ? find_icon(companion_apple_shortcut_action(p.entity) ? "Flash" : obs_mute ? "Microphone" : p.entity == "obs.brb" ? "Coffee to Go" :
                 p.entity == "obs.studio" ? "Split Vertical" : p.entity == "obs.multiview" ? "View Grid" :
                 (p.entity == "obs.transition" || direct_transition) ? "Flip Horizontal" :
                 p.entity == "obs.replay.buffer" ? "Repeat" :

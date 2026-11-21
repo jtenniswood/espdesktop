@@ -168,6 +168,7 @@ final class CompanionStore: NSObject, ObservableObject {
     private var lastAppVolumeValues: [String: Int] = [:]
     private var focusTimer: Timer?
     private var appleShortcutsTimer: Timer?
+    private var pendingAppleShortcutColorPrompt = false
     private var activatedApplicationPID: pid_t?
     private var browserFocusQuery: Task<URL?, Never>?
     private var browserFocusGeneration = 0
@@ -484,33 +485,46 @@ final class CompanionStore: NSObject, ObservableObject {
         allAppleShortcutsApproved || approvedAppleShortcutIDs.contains(id)
     }
 
-    func setAllAppleShortcuts(approved: Bool) {
+    func setAllAppleShortcuts(approved: Bool, allowColorPrompt: Bool = false) {
         guard allAppleShortcutsApproved != approved else { return }
         allAppleShortcutsApproved = approved
         defaults.set(approved, forKey: Keys.allAppleShortcutsApproved)
         publishToConnectedDisplays { $0.publishCatalogue(includeDefinitions: false) }
-        if approved { refreshSharedAppleShortcuts() }
+        if approved { refreshAppleShortcuts(allowColorPrompt: allowColorPrompt) }
     }
 
-    func refreshAppleShortcuts() {
-        guard !refreshingAppleShortcuts else { return }
+    func refreshAppleShortcuts(allowColorPrompt: Bool = false) {
+        guard !refreshingAppleShortcuts else {
+            if allowColorPrompt { pendingAppleShortcutColorPrompt = true }
+            return
+        }
         refreshingAppleShortcuts = true
         appleShortcutMessage = nil
         Task { [weak self] in
             let shortcuts = await AppleShortcutsCLI.list()
             guard let self else { return }
-            refreshingAppleShortcuts = false
+            defer {
+                refreshingAppleShortcuts = false
+                if pendingAppleShortcutColorPrompt {
+                    pendingAppleShortcutColorPrompt = false
+                    refreshAppleShortcuts(allowColorPrompt: true)
+                }
+            }
             guard let shortcuts else {
                 appleShortcutMessage = "Couldn’t load Apple Shortcuts. Reopen this tab to try again."
                 return
             }
-            guard shortcuts != appleShortcuts else { return }
-            appleShortcuts = shortcuts
+            let readsColors = allowColorPrompt || connectedDisplays.contains(where: { $0.connection.appleShortcutsSupported })
+            let approvedIDs = readsColors ? shortcuts.map(\.id).filter { appleShortcutIsApproved($0) } : []
+            let colors = await AppleShortcutColors.read(for: approvedIDs, allowPrompt: allowColorPrompt)
+            let updated = shortcuts.map { AppleShortcut(id: $0.id, name: $0.name, color: colors[$0.id]) }
+            guard updated != appleShortcuts else { return }
+            appleShortcuts = updated
             publishToConnectedDisplays { $0.publishCatalogue(includeDefinitions: false) }
         }
     }
 
-    func setAppleShortcut(_ shortcut: AppleShortcut, approved: Bool) {
+    func setAppleShortcut(_ shortcut: AppleShortcut, approved: Bool, allowColorPrompt: Bool = false) {
         if approved {
             approvedAppleShortcutIDs.insert(shortcut.id)
         } else {
@@ -518,6 +532,7 @@ final class CompanionStore: NSObject, ObservableObject {
         }
         defaults.set(approvedAppleShortcutIDs.map(\.uuidString).sorted(), forKey: Keys.approvedAppleShortcuts)
         publishToConnectedDisplays { $0.publishCatalogue(includeDefinitions: false) }
+        if approved { refreshAppleShortcuts(allowColorPrompt: allowColorPrompt) }
     }
 
     private func runAppleShortcut(_ actionIdentifier: String) async -> String {
@@ -533,8 +548,6 @@ final class CompanionStore: NSObject, ObservableObject {
     func remoteCompanionCatalogues() -> RemoteCompanionCatalogues { remoteCatalogueStore.value }
     func focusedLaunchableApplicationIdentifier() -> String {
         guard let application = NSWorkspace.shared.frontmostApplication,
-              (application.bundleIdentifier == "com.apple.finder" ||
-               CompanionWindowDetector.hasVisibleWindow(for: application)),
               let identifier = application.bundleIdentifier,
               approvedApplicationIdentifiers.contains(identifier),
               availableApps.contains(where: { $0.bundleIdentifier == identifier }) else { return "" }
@@ -576,7 +589,18 @@ final class CompanionStore: NSObject, ObservableObject {
     private func queryFocusedCompanionActionIdentifiers(for targets: [(id: String, url: URL)]) async -> [String] {
         guard let application = NSWorkspace.shared.frontmostApplication,
               let bundleIdentifier = application.bundleIdentifier else { return [] }
-        if bundleIdentifier == "com.apple.Safari" || bundleIdentifier == "com.google.Chrome" {
+        let isBrowser = bundleIdentifier == "com.apple.Safari" || bundleIdentifier == "com.google.Chrome"
+        let isFinder = bundleIdentifier == "com.apple.finder"
+        guard approvedApplicationIdentifiers.contains(bundleIdentifier) ||
+                (isBrowser && !targets.isEmpty) || (isFinder && !approvedFolders.isEmpty) else { return [] }
+        let visible = await CompanionFocusQuery.waitForVisibleWindow(
+            isCurrentApplication: {
+                NSWorkspace.shared.frontmostApplication?.processIdentifier == application.processIdentifier
+            },
+            hasVisibleWindow: { CompanionWindowDetector.hasVisibleWindow(for: application) }
+        )
+        guard visible else { return [] }
+        if isBrowser {
             let browser = focusedLaunchableApplicationIdentifier()
             guard !targets.isEmpty else {
                 return browser.isEmpty ? [] : [browser]
@@ -589,19 +613,12 @@ final class CompanionStore: NSObject, ObservableObject {
             matches.append(contentsOf: ActiveTabURLMatcher.matchingURLCardIDs(url: url, targets: targets))
             return matches
         }
-        if bundleIdentifier == "com.apple.finder" {
+        if isFinder {
             let folder = await focusedFinderFolderActionIdentifier()
             let result = folder.isEmpty ? focusedLaunchableApplicationIdentifier() : folder
             return result.isEmpty ? [] : [result]
         }
         guard approvedApplicationIdentifiers.contains(bundleIdentifier) else { return [] }
-        let visible = await CompanionFocusQuery.waitForVisibleWindow(
-            isCurrentApplication: {
-                NSWorkspace.shared.frontmostApplication?.processIdentifier == application.processIdentifier
-            },
-            hasVisibleWindow: { CompanionWindowDetector.hasVisibleWindow(for: application) }
-        )
-        guard visible, approvedApplicationIdentifiers.contains(bundleIdentifier) else { return [] }
         return [bundleIdentifier]
     }
 
