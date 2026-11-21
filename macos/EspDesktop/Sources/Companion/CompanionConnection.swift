@@ -1229,7 +1229,7 @@ final class CompanionConnection: NSObject {
         guard sessionAuthenticated || task != nil else { return }
         if obsActions != nil && (!sessionAuthenticated || !supportsOBSCards) { return }
         if obsActions == nil { applicationFocusPublisher.reset() }
-        var capabilities = ["keyboard_shortcuts"]
+        var capabilities = ["keyboard_shortcuts", CompanionTimelineInput.capability]
         capabilities.append(CompanionCapabilities.appIconsCapability)
         capabilities.append(CompanionCapabilities.appIconsAlphaCapability)
         capabilities.append(CompanionCapabilities.appIconsHighResolutionCapability)
