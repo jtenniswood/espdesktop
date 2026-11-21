@@ -78,6 +78,7 @@ inline constexpr CompanionCardModeCapability COMPANION_CARD_MODES[] = {
   {"obs_output", "OBS Output Control", "obs_output_controls", "Monitor"},
   {"obs_brb", "Break", "obs_brb", "Coffee to Go"},
   {"apple_shortcut", "Run Apple Shortcut", "apple_shortcuts", "Flash"},
+  {"apple_home", "Apple Home", "apple_home_cards", "Home"},
   {"stats", "Stats", "system_metrics", "Gauge"},
 };
 

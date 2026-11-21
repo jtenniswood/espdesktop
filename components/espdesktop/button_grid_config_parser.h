@@ -1301,7 +1301,8 @@ inline bool companion_app_launch_card(const ParsedCfg &p) {
          p.entity.rfind("folder.", 0) != 0 &&
          p.entity.rfind("shortcut.", 0) != 0 &&
          p.entity.rfind("obs.", 0) != 0 &&
-         p.entity.rfind("stat.", 0) != 0 && !companion_apple_shortcut_action(p.entity);
+         p.entity.rfind("stat.", 0) != 0 &&
+         !companion_apple_shortcut_action(p.entity) && !companion_apple_home_action(p.entity);
 }
 
 inline constexpr char APPLE_SHORTCUTS_APP_ID[] = "com.apple.shortcuts";

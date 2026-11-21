@@ -49,6 +49,7 @@ enum USBEditorError: LocalizedError {
 
 struct USBEditorRequest {
     static let wifiPath = "/companion/usb-wifi"
+    static let appleHomePath = "/espdesktop-local/apple-home"
 
     let method: String
     let path: String
@@ -63,13 +64,16 @@ struct USBEditorRequest {
         if route == Self.wifiPath {
             guard path == route, body.count <= 64 else { return nil }
         }
+        if route == Self.appleHomePath {
+            guard path == route, body.isEmpty else { return nil }
+        }
         switch method {
         case "GET":
             guard body.isEmpty, route != "/events", route != "/companion/pairing" || path == route else { return nil }
         case "PUT":
             guard path == "/api/v1/config" else { return nil }
         case "POST":
-            let allowed = ["/companion/page-preview", "/companion/focus-targets", Self.wifiPath,
+            let allowed = ["/companion/page-preview", "/companion/focus-targets", Self.wifiPath, Self.appleHomePath,
                            "/api/v1/identity", "/api/v1/home-assistant",
                            "/button/Apply%20Configuration/press", "/button/apply_configuration/press"]
             let entity = route.split(separator: "/")

@@ -43,7 +43,8 @@ inline std::string native_card_name(const SharedCard &card, const pages::PageSto
   const auto &entity = card.config.entity;
   const bool opens_folder = entity.rfind("folder.", 0) == 0;
   const bool opens_app = card.config.type == "companion" && entity.find('.') != std::string::npos &&
-      entity.rfind("shortcut.", 0) != 0 && companion_encoded_url(card.config.sensor).empty();
+      entity.rfind("shortcut.", 0) != 0 && !companion_apple_home_action(entity) &&
+      companion_encoded_url(card.config.sensor).empty();
   if (card.config.type == "subpage" || opens_folder || opens_app) name += " – Open";
 
   for (auto page_id = card.page; page_id != 0;) {

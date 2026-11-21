@@ -5,6 +5,7 @@ import { APPLE_SHORTCUTS_APP_ID, APPLE_SHORTCUTS_HIDDEN_OPTION, isAppleShortcuts
 import { state } from "../state/app_instance";
 import * as EspDesktopModel from "../model";
 import { OBS_FADER_PREFIX } from "../model/card";
+import { companionSavedCardMode } from "../model/companion_card_codec";
 import { setConfigOptionValue, configOptionValue, setCardColor, cardActiveColorMode, cardActiveColor, setCardActiveColor, withoutCardColorOptions, preserveCardColorOptions } from "../model/config_primitives";
 import { createColorSwatches } from "../components/color_swatches";
 import { defaultCardBackgroundColor } from "../state/preview_theme";
@@ -82,7 +83,7 @@ export function createButtonSettingsFeature(
     const { deleteSlot, emptyButtonConfig } = interactions;
     const {
         applyCardMetadataFields, condField, disclosureSection, fieldLabel, fieldWithControl,
-        groupCardSettingsFields, markCardPrimaryField, renderBasicCardFields,
+        cardSettingsDisclosureIn, groupCardSettingsFields, markCardPrimaryField, renderBasicCardFields,
         renderCardActiveColorToggle, renderCardEntityField, renderCardIconPair,
         renderCardIconPicker, renderCardLargeNumbersToggle, renderCardModeSelector,
         renderCardNumberField, renderCardOptionToggle, renderCardSegmentControl,
@@ -227,6 +228,9 @@ export function createButtonSettingsFeature(
         els.cardColorPresets = null;
         var container: any = els.buttonSettings;
         const scrollTop = forceOpen ? 0 : container.querySelector(".sp-panel")?.scrollTop ?? 0;
+        const previousAppleHomeSettings = !forceOpen && container.querySelector("select[id$='-apple-home']")
+            ? cardSettingsDisclosureIn(container.querySelector(".sp-panel"))?.button
+            : null;
         var openDisclosureIds: any = {};
         container.querySelectorAll(".sp-disclosure.sp-open").forEach(function (this: any, disclosure?: any) {
             var button: any = disclosure.querySelector(".sp-disclosure-button");
@@ -269,6 +273,7 @@ export function createButtonSettingsFeature(
         if (!pendingNewDraft)
             state.settingsDraft = cardEditorDraftController.ensureExistingDraft(state.settingsDraft, location, liveButton);
         var b: any = state.settingsDraft!.button;
+        const isAppleHomeCard = b.type === "companion" && companionSavedCardMode(b) === "apple_home";
         const obsAudioType = b.type === "companion_obs_cough" ? "companion_obs_cough"
             : b.type === "slider" && b.entity.startsWith(OBS_FADER_PREFIX) ? "companion_obs_fader"
             : b.type === "companion" && b.entity.startsWith("obs.mute.") ? "companion_obs_mic" : "";
@@ -1124,6 +1129,7 @@ export function createButtonSettingsFeature(
             requireField: requireField,
             requireEntityDomain: requireEntityDomain,
             clearFieldError: clearFieldError,
+            openDisclosureForField: openDisclosureForField,
             toggleRow: toggleRow,
             cardSize: c.sizes[slot] || 1,
             idPrefix: idPrefix,
@@ -1250,7 +1256,8 @@ export function createButtonSettingsFeature(
             syncActiveColorControls();
             colourControls.editor.appendChild(activeColorField);
         }
-        groupCardSettingsFields(panel, idPrefix);
+        groupCardSettingsFields(panel, idPrefix,
+            isAppleHomeCard && previousAppleHomeSettings?.getAttribute("aria-expanded") !== "false");
         Object.keys(openDisclosureIds).forEach(function (this: any, id?: any) {
             var disclosureButton: any = document.getElementById(id);
             if (!disclosureButton || !container.contains(disclosureButton)) return;

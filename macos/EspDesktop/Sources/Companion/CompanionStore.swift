@@ -134,6 +134,7 @@ final class CompanionStore: NSObject, ObservableObject {
     @Published private(set) var appleShortcutMessage: String?
     @Published private(set) var refreshingAppleShortcuts = false
     private var runningAppleShortcutIDs: Set<UUID> = []
+    let appleHome: AppleHomeScenes
     @Published private(set) var foldersNeedingAccess: Set<UUID> = []
     @Published private(set) var launchAtLoginEnabled = false
     @Published private(set) var launchAtLoginMessage = ""
@@ -195,6 +196,7 @@ final class CompanionStore: NSObject, ObservableObject {
             ? UserDefaults.standard
             : (UserDefaults(suiteName: Self.preferencesSuite) ?? .standard))
         self.defaults = stableDefaults
+        self.appleHome = AppleHomeScenes(defaults: stableDefaults)
         obs = OBSConnection(defaults: stableDefaults)
         let savedDisplays = CompanionSavedDisplays(defaults: stableDefaults)
         self.savedDisplays = savedDisplays
@@ -213,6 +215,14 @@ final class CompanionStore: NSObject, ObservableObject {
         super.init()
         if #available(macOS 14.2, *) { appVolumeController = AppVolumeController() }
         displays = records.map(makeDisplay)
+        appleHome.onControlsChanged = { [weak self] in
+            guard let self else { return }
+            self.publishToConnectedDisplays { $0.publishCatalogue(includeDefinitions: false) }
+            for editor in self.appleHomeEditorWindows.values where editor.isCurrent {
+                editor.appleHomeDidChange()
+            }
+        }
+        if AppleHomeDeviceEditor.asset != nil && appleHome.canRestore { appleHome.connect(activate: false) }
         obsCatalogueObservation = OBSConnection.displayCatalogues(from: obs.$state)
             .sink { [weak self] actions in
                 self?.publishToConnectedDisplays { $0.publishCatalogue(obsActions: actions) }
@@ -827,10 +837,24 @@ final class CompanionStore: NSObject, ObservableObject {
     }
 
     private var usbEditorWindows: [UUID: CompanionUSBEditorWindow] = [:]
+    private var appleHomeEditorWindows: [UUID: CompanionUSBEditorWindow] = [:]
     @Published private(set) var openingUSBDisplays: Set<UUID> = []
 
     func openPanelWebServer(_ display: CompanionDisplay) {
         guard display.usesUSB else {
+            if AppleHomeDeviceEditor.asset != nil, display.hasSavedPairing,
+               let panel = Self.panelWebServerURL(from: display.record.host) {
+                if let editor = appleHomeEditorWindows[display.id], editor.isCurrent {
+                    editor.open()
+                    return
+                }
+                appleHomeEditorWindows[display.id]?.invalidate()
+                let local = AppleHomeDeviceEditor(display: display, panel: panel, home: appleHome)
+                let editor = CompanionUSBEditorWindow(display: display, appleHomeEditor: local)
+                appleHomeEditorWindows[display.id] = editor
+                editor.open()
+                return
+            }
             _ = openPanelWebServer(host: display.record.host, tab: nil)
             return
         }
@@ -941,6 +965,7 @@ final class CompanionStore: NSObject, ObservableObject {
         display.onRecordChange = nil
         display.connection.onEvent = nil
         usbEditorWindows.removeValue(forKey: display.id)?.invalidate()
+        appleHomeEditorWindows.removeValue(forKey: display.id)?.invalidate()
         displays.removeAll { $0.id == display.id }
         savedDisplays.save(displays.map(\.record))
         let account = display.pairingAccount
@@ -1143,6 +1168,18 @@ final class CompanionStore: NSObject, ObservableObject {
 
     func obsControlActions() -> [OBSConnection.CatalogueEntry] {
         OBSConnection.controlCatalogue(obs.state)
+    }
+
+    func appleHomeCardActions(for account: String) -> [(id: String, label: String)] {
+        appleHome.cardActions(for: account)
+    }
+
+    func performAppleHomeCard(reference: UUID, pairingAccount: String) async -> String {
+        await appleHome.statusForCard(reference: reference, account: pairingAccount) { !sessionLock.refresh() }
+    }
+
+    func performAppleHomeScene(slot: Int, pairingAccount: String) async -> String? {
+        await appleHome.statusForAction(slot: slot, account: pairingAccount) { !sessionLock.refresh() }
     }
 
     func performResultStatus(actionIdentifier: String,

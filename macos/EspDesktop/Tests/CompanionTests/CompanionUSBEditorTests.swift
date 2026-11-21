@@ -73,6 +73,15 @@ final class CompanionUSBEditorTests: XCTestCase {
         XCTAssertNil(USBEditorRequest(method: "PUT", path: path))
     }
 
+    func testAppleHomeRouteAcceptsOnlyAnExactPathAndEmptyBody() {
+        let path = USBEditorRequest.appleHomePath
+        XCTAssertNotNil(USBEditorRequest(method: "GET", path: path))
+        XCTAssertNotNil(USBEditorRequest(method: "POST", path: path))
+        XCTAssertNil(USBEditorRequest(method: "POST", path: path + "?connect=true"))
+        XCTAssertNil(USBEditorRequest(method: "POST", path: path, body: Data([0])))
+        XCTAssertNil(USBEditorRequest(method: "PUT", path: path))
+    }
+
     func testDeviceEditorUsesOnlyAUsableLocalAddressReportedByTheDisplay() throws {
         func address(_ value: String) throws -> String? {
             let body = Data(#"{"ip_address":"\#(value)"}"#.utf8)

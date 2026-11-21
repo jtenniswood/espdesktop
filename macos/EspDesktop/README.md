@@ -34,6 +34,8 @@ The manual release workflow signs and notarizes this standalone app and its disk
 
 For Xcode debugging, open `Package.swift`, choose **EspDesktop**, and click Run. See the [public Mac app guide](https://espdesktop.com/screens/4848s040#install-and-pair-the-espdesktop-mac-app) for pairing, Accessibility and first-run setup.
 
+For the experimental Apple Home build, see the [Apple Home card setup and icon guide](HomeKitHelper/README.md).
+
 Use the menu-bar icon to connect or disconnect, open the browser editor with **Customize Display**, or open **Settings**. Add displays under **Settings → Displays**. The settings toolbar offers **Displays**, **Apps**, **Folders**, **Updates** and **Support**. **Launch at login** is available in the packaged app. The local Swift launcher shows installation guidance for this setting.
 
 The Mac shares approved app and folder names and identifiers with the paired display. Folder paths stay on the Mac. It also shares system statistics while connected.

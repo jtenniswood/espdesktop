@@ -430,7 +430,7 @@ inline bool companion_consume_auto_subpage_action(const std::string &action_id) 
 inline bool companion_action_focused(const CompanionRuntimeSnapshot &snapshot,
                                     const std::string &action_id, bool visual_only = false) {
   if (action_id.empty() || action_id.rfind("shortcut.", 0) == 0 ||
-      companion_apple_shortcut_action(action_id) ||
+      companion_apple_shortcut_action(action_id) || companion_apple_home_action(action_id) ||
       action_id.rfind("media.", 0) == 0) return false;
   if (!snapshot.connected) return false;
   if (visual_only && snapshot.application_highlight_known &&
@@ -780,6 +780,7 @@ inline std::string companion_default_action_label(const std::string &action_id,
   const auto &snapshot = state ? *state : owned;
   const auto *action = companion_published_action(snapshot, action_id);
   if (action && !action->label.empty()) return action->label;
+  if (companion_apple_home_action(action_id)) return "Apple Home";
   if (action_id == "obs.replay" && companion_published_action(snapshot, "obs.status.program"))
     return espdesktop_i18n("Start Replay Buffer");
   if (action_id.rfind("obs.", 0) == 0) return espdesktop_i18n("Unavailable");
