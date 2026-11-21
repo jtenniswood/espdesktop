@@ -55,7 +55,7 @@ Pair on a trusted local network and remove a display from the Mac app before rep
 - A 2.4 GHz WiFi network shared by the display and Mac
 - An Apple silicon Mac running macOS 13 or newer
 
-The 4848S040 panel is available from AliExpress ([US](https://s.click.aliexpress.com/e/_c3IAOLXl) or [Global](https://s.click.aliexpress.com/e/_c4m73SzH)). A compatible [3D-printable stand is available on MakerWorld](https://makerworld.com/en/models/3592833-espdesktop-4inch-screen-stand#profileId-4115394).
+The 4848S040 panel is available from AliExpress ([US](https://s.click.aliexpress.com/e/_c3qyIYL7) or [Global](https://s.click.aliexpress.com/e/_c4m73SzH)). A compatible [3D-printable stand is available on MakerWorld](https://makerworld.com/en/models/3592833-espdesktop-4inch-screen-stand#profileId-4115394).
 
 ## Project Links
 
