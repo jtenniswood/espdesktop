@@ -3139,6 +3139,14 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
         "omitDefault": true,
         "hidden": true,
         "docsHidden": true
+      },
+      {
+        "name": "app_show_label",
+        "label": "Show app label",
+        "kind": "flag",
+        "omitDefault": true,
+        "hidden": true,
+        "docsHidden": true
       }
     ],
     "normalization": {
@@ -3196,7 +3204,8 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
         "large_numbers",
         "stat_labels_off",
         "app_bg_color",
-        "app_hide_label"
+        "app_hide_label",
+        "app_show_label"
       ],
       "optionHook": "normalize_date_time_options"
     },
@@ -4356,6 +4365,7 @@ export const CARD_CONTRACT_OPTION_NAMES: Readonly<Record<string, string>> = {
   "app_shortcut_preset": "app_shortcut_preset",
   "app_shortcuts": "app_shortcuts",
   "app_shortcuts_tabs": "app_shortcuts_tabs",
+  "app_show_label": "app_show_label",
   "apple_shortcuts_hidden": "apple_shortcuts_hidden",
   "climate_tabs": "climate_tabs",
   "confirm_message": "confirm_message",

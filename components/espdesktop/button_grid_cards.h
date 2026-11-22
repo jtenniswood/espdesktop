@@ -544,9 +544,9 @@ inline void setup_companion_card(BtnSlot &s, const ParsedCfg &p,
     : p.label;
   lv_label_set_display_text(s.text_lbl, label.c_str());
   const bool app_artwork = companion_app_icon_enabled(p);
-  const bool hide_app_label = cfg_option_token_present(p.options, "app_hide_label");
-  const bool overlay_app_label = app_artwork && grid_app_icon_labels_enabled() && !hide_app_label;
-  if (companion_app_launch_card(p) && (hide_app_label || (app_artwork && !overlay_app_label))) {
+  const bool overlay_app_label = app_artwork && !cfg_option_token_present(p.options, "app_hide_label") &&
+      (grid_app_icon_labels_enabled() || cfg_option_token_present(p.options, "app_show_label"));
+  if (app_artwork && !overlay_app_label) {
     lv_obj_add_flag(s.text_lbl, LV_OBJ_FLAG_HIDDEN);
   } else {
     lv_obj_clear_flag(s.text_lbl, LV_OBJ_FLAG_HIDDEN);

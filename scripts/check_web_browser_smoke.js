@@ -2336,6 +2336,35 @@ async function assertAutomaticAppIcons(browser, testCase) {
         await page.mouse.up();
       }
 
+      if (native) {
+        const modal = page.locator(".sp-settings-modal");
+        const openLabelToggle = async () => {
+          await card(1).click({ button: "right" });
+          await page.locator(".sp-ctx-menu").getByText("Edit Card", { exact: true }).click();
+          const settings = modal.getByRole("button", { name: "Card Settings", exact: true });
+          if (await settings.getAttribute("aria-expanded") !== "true") await settings.click();
+          return modal.getByRole("checkbox", { name: "Show label", exact: true });
+        };
+        let showLabel = await openLabelToggle();
+        assert(!(await showLabel.isChecked()), "the app label defaults to hidden in Card Settings");
+        await showLabel.locator("..").locator(".sp-toggle-track").click();
+        await modal.getByRole("button", { name: "Save", exact: true }).click();
+        await waitForNativeState(fixture, () => fixture.document.buttons[1].includes("app_show_label"),
+          "showing one app label is saved with that card");
+        await modal.waitFor({ state: "hidden" });
+        await card(1).locator(".sp-btn-label").waitFor();
+        await assertLargeApp(2);
+
+        showLabel = await openLabelToggle();
+        assert(await showLabel.isChecked(), "the saved card preference is restored in Card Settings");
+        await showLabel.locator("..").locator(".sp-toggle-track").click();
+        await modal.getByRole("button", { name: "Save", exact: true }).click();
+        await waitForNativeState(fixture, () => fixture.document.buttons[1].includes("app_hide_label") &&
+          !fixture.document.buttons[1].includes("app_show_label"), "hiding one app label is saved with that card");
+        await modal.waitFor({ state: "hidden" });
+        await assertLargeApp(1);
+      }
+
       await page.getByRole("tab", { name: "Screen", exact: true }).click();
       const setting = page.getByRole("checkbox", { name: "Show labels over app icons" });
       if (native) {
@@ -2345,8 +2374,9 @@ async function assertAutomaticAppIcons(browser, testCase) {
         await waitForNativeState(fixture, () => fixture.document.settings.screen_app_icon_labels === "1",
           "the app artwork label setting is saved");
         await page.getByRole("tab", { name: "Layout", exact: true }).click();
-        const label = card(1).locator(".sp-btn-label");
-        await card(1).locator(".sp-companion-app-icon").waitFor();
+        await assertLargeApp(1);
+        const label = card(2).locator(".sp-btn-label");
+        await card(2).locator(".sp-companion-app-icon").waitFor();
         await label.waitFor();
         const overlay = await label.evaluate(node => {
           const icon = node.closest(".sp-btn").querySelector(".sp-companion-app-icon");
@@ -2358,7 +2388,7 @@ async function assertAutomaticAppIcons(browser, testCase) {
         });
         assert(overlay.overArtwork, "the label overlaps the icon");
         assert.match(overlay.filter, /drop-shadow/);
-        assert.strictEqual(await label.textContent(), "Safari");
+        assert.strictEqual(await label.textContent(), "Finder");
 
         await page.reload({ waitUntil: "domcontentloaded" });
         await page.waitForFunction(() => window.__eventSources?.length > 0);

@@ -291,6 +291,7 @@ constexpr const char *CARD_CONTRACT_OPTION_NAME_APP_HIDE_LABEL = "app_hide_label
 constexpr const char *CARD_CONTRACT_OPTION_NAME_APP_SHORTCUT_PRESET = "app_shortcut_preset";
 constexpr const char *CARD_CONTRACT_OPTION_NAME_APP_SHORTCUTS = "app_shortcuts";
 constexpr const char *CARD_CONTRACT_OPTION_NAME_APP_SHORTCUTS_TABS = "app_shortcuts_tabs";
+constexpr const char *CARD_CONTRACT_OPTION_NAME_APP_SHOW_LABEL = "app_show_label";
 constexpr const char *CARD_CONTRACT_OPTION_NAME_APPLE_SHORTCUTS_HIDDEN = "apple_shortcuts_hidden";
 constexpr const char *CARD_CONTRACT_OPTION_NAME_CLIMATE_TABS = "climate_tabs";
 constexpr const char *CARD_CONTRACT_OPTION_NAME_CONFIRM_MESSAGE = "confirm_message";

@@ -345,6 +345,11 @@ function companionAppLaunchCard(card: any): boolean {
     return companionCardMode(card) === "app" && !String(card?.sensor || "");
 }
 
+function companionAppLabelVisible(card: any): boolean {
+    return !configOptionEnabled(card.options, "app_hide_label") &&
+        (configOptionEnabled(card.options, "app_show_label") || state.appIconLabels);
+}
+
 export function companionEntityForMode(mode: string): string {
     if (mode === "url") return COMPANION_DEFAULT_BROWSER;
     if (mode === "shortcut") return COMPANION_SHORTCUT_PREFIX;
@@ -1050,6 +1055,17 @@ export function registerCompanionCardTypes(
             let availableCompanionApps: readonly CompanionAction[] = [];
             let availableCompanionFolders: readonly CompanionAction[] = [];
 
+            if (initialMode === "app") {
+                const showLabel = helpers.toggleRow("Show label", helpers.idPrefix + "companion-show-label",
+                    companionAppLabelVisible(card));
+                showLabel.input.addEventListener("change", () => {
+                    const visible = showLabel.input.checked;
+                    card.options = setConfigOption(card.options, "app_hide_label", !visible);
+                    card.options = setConfigOption(card.options, "app_show_label", visible);
+                    helpers.saveField("options", card.options);
+                });
+                panel?.appendChild(showLabel.row);
+            }
             if (!companionCardIsMetric(card)) {
                 helpers.renderCardTextField(panel, card, helpers, {
                     label: "Label",
@@ -2099,6 +2115,7 @@ export function registerCompanionCardTypes(
             }
             const hideAppLaunchLabel = companionAppLaunchCard(card) &&
                 configOptionEnabled(card.options, "app_hide_label");
+            preview.showAppIconLabel = companionAppLaunchCard(card) && companionAppLabelVisible(card);
             if (appShortcutPageOwner(card)) {
                 if (hideAppLaunchLabel) {
                     preview.labelHtml =

@@ -250,6 +250,11 @@ test("saved Companion app cards retain label and icon size options", () => {
   });
   assert.equal(options.configOptionEnabled(smallWithLabel, "app_hide_label"), false);
   assert.equal(options.configOptionEnabled(smallWithLabel, "app_icon_fill"), false);
+
+  const visibleLabel = api.normalizeCompanionCardOptions({ ...card, options: "app_show_label" });
+  assert.equal(visibleLabel, "app_show_label");
+  assert.equal(api.normalizeCompanionCardOptions({ ...card, options: "app_show_label,app_hide_label" }),
+    "app_hide_label");
 });
 
 test("legacy icon sizes clear on save while label visibility and app subpages survive", () => {

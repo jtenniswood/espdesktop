@@ -245,7 +245,10 @@ export function normalizeCompanionCardOptions(card: any): string {
     if (/^[0-9a-f]{6}$/i.test(customColor))
         options = setConfigOptionValue(options, "app_bg_color", customColor.toUpperCase());
     if (!card.sensor) {
-        options = setConfigOption(options, "app_hide_label", configOptionEnabled(card.options, "app_hide_label"));
+        const hideLabel = configOptionEnabled(card.options, "app_hide_label");
+        options = setConfigOption(options, "app_hide_label", hideLabel);
+        options = setConfigOption(options, "app_show_label", !hideLabel &&
+            configOptionEnabled(card.options, "app_show_label"));
     }
     return options;
 }

@@ -13,10 +13,13 @@ Home and subpage cards use fixed continuous corners, including Back. Images, art
 
 ## App artwork
 
-Mac app artwork fills the available card area. To show the app name over its icon,
-turn on **Screen → Appearance → App Artwork → Show labels over app icons**.
-Labels use the usual card font with a soft shadow for readability. This option
-is off by default and applies to app cards on Home and subpages.
+Mac app artwork fills the available card area, and app names are hidden by default.
+To show a name over its icon, edit that Applications card and turn on
+**Card Settings → Show label**. Labels use the usual card font with a soft shadow
+for readability.
+
+**Screen → Appearance → App Artwork → Show labels over app icons** sets the
+default for app cards on Home and subpages. A card's own saved choice takes precedence.
 
 In the web setup preview, subpage arrows sit immediately after the label, or at
 the lower left when no label is shown. A soft shadow keeps the arrow visible

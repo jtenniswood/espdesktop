@@ -1411,6 +1411,7 @@ inline std::string companion_card_options_normalized(const ParsedCfg &p) {
     }
     if (companion_app_launch_card(p)) {
       if (cfg_option_token_present(p.options, "app_hide_label")) add_token("app_hide_label");
+      else if (cfg_option_token_present(p.options, "app_show_label")) add_token("app_show_label");
     }
   }
   return out;

@@ -5196,6 +5196,14 @@
             "omitDefault": true,
             "hidden": true,
             "docsHidden": true
+          },
+          {
+            "name": "app_show_label",
+            "label": "Show app label",
+            "kind": "flag",
+            "omitDefault": true,
+            "hidden": true,
+            "docsHidden": true
           }
         ],
         "normalization": {
@@ -5253,7 +5261,8 @@
             "large_numbers",
             "stat_labels_off",
             "app_bg_color",
-            "app_hide_label"
+            "app_hide_label",
+            "app_show_label"
           ],
           "optionHook": "normalize_date_time_options"
         },

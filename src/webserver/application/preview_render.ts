@@ -675,9 +675,7 @@ export function createPreviewRenderFeature(dependencies: PreviewRenderDependenci
                     typePreview.appIconId.length > 0) {
                     const fallbackIcon = btn.querySelector(".sp-companion-app-icon-fallback") as HTMLElement | null;
                     const applicationId = typePreview.appIconId;
-                    const showLabel = state.appIconLabels && btn.getAttribute("data-icon-size") === "large" &&
-                        btn.querySelector(".sp-btn-label");
-                    if (showLabel) btn.classList.add("sp-show-app-icon-label");
+                    if (typePreview.showAppIconLabel) btn.classList.add("sp-show-app-icon-label");
                     if (dependencies.displayDemo) btn.dataset.demoAppId = applicationId;
                     const backgroundColor = cardOffColor || (typeof typePreview.appIconBackgroundColor === "string"
                         ? typePreview.appIconBackgroundColor : "");

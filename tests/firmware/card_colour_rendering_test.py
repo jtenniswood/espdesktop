@@ -657,6 +657,11 @@ int main() {
   filled_app.options = "app_icon_cover,app_hide_label";
   assert(!cfg_option_token_present(companion_card_options_normalized(filled_app), "app_icon_fill"));
   assert(!cfg_option_token_present(companion_card_options_normalized(filled_app), "app_icon_cover"));
+  filled_app.options = "app_show_label";
+  assert(cfg_option_token_present(companion_card_options_normalized(filled_app), "app_show_label"));
+  filled_app.options = "app_show_label,app_hide_label";
+  assert(!cfg_option_token_present(companion_card_options_normalized(filled_app), "app_show_label"));
+  assert(cfg_option_token_present(companion_card_options_normalized(filled_app), "app_hide_label"));
   app_icon.custom_background = true;
   companion_apply_app_icon_card_palette(app_icon, &app_card);
   assert(app_card.background[LV_STATE_DEFAULT] == 0x1565C0);
