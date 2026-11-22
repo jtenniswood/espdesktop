@@ -3,6 +3,10 @@
 #include <algorithm>
 #include "lvgl.h"
 
+#if !LV_DRAW_SW_SUPPORT_A8
+#error "App icon label shadows require LVGL alpha-only draw layers"
+#endif
+
 namespace espdesktop::app_icon {
 
 inline const lv_style_t *label_shadow_style() {

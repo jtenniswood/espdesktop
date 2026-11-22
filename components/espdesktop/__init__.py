@@ -96,10 +96,13 @@ async def to_code(config):
         for _ in range(capacity):
             CORE.register_platform_component("button", None)
     if "lvgl" in CORE.config:
-        from esphome.components.lvgl.defines import add_lv_use
+        from esphome.components.lvgl.defines import add_define, add_lv_use
 
         # App icons and image cards create their LVGL widgets at runtime.
         add_lv_use("image")
+        # Runtime label shadows use an alpha-only draw layer. ESPHome cannot
+        # infer this requirement from the static LVGL widget configuration.
+        add_define("LV_DRAW_SW_SUPPORT_A8", "1")
 
     # Run before safe_mode's early return and before any preference consumers.
     if CORE.config.get("preferences", {}).get("rtc_storage", False):
