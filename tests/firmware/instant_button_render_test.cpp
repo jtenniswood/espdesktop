@@ -40,7 +40,7 @@ static void check_app_icon_label(lv_display_t *display) {
   auto *artwork = lv_obj_create(lv_screen_active());
   lv_obj_set_pos(artwork, 20, 20);
   lv_obj_set_size(artwork, 100, 150);
-  lv_obj_set_style_bg_color(artwork, lv_color_hex(0xFFFF00), LV_PART_MAIN);
+  lv_obj_set_style_bg_color(artwork, lv_color_white(), LV_PART_MAIN);
   lv_obj_set_style_pad_all(artwork, 0, LV_PART_MAIN);
   lv_obj_set_style_border_width(artwork, 0, LV_PART_MAIN);
 
@@ -60,11 +60,13 @@ static void check_app_icon_label(lv_display_t *display) {
   lv_obj_get_coords(label, &label_bounds);
   assert(label_bounds.y2 < 120 && label_bounds.y2 > 110);
   assert(lv_obj_get_style_text_font(label, LV_PART_MAIN) == font);
-  int shadow_pixels = 0;
+  int dark_shadow_pixels = 0;
   for (int i = 0; i < SIDE * SIDE; ++i) {
-    if (plain[i] == 0xFFE0 && frame[i] != plain[i]) ++shadow_pixels;
+    // Require a dark halo on white artwork. The previous faint blur barely
+    // darkened the background enough to separate it from the white glyphs.
+    if (plain[i] == 0xFFFF && ((frame[i] >> 5) & 0x3F) <= 31) ++dark_shadow_pixels;
   }
-  assert(shadow_pixels > 20);
+  assert(dark_shadow_pixels > 80);
   save("app-icon-label.ppm");
 
   espdesktop::app_icon::remove_label_overlay(label);

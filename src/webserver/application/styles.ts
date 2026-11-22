@@ -773,7 +773,7 @@ export function createWebStyles(dragAnimation: boolean): string {
         "transform:translateY(-100%);margin:0;z-index:1}" +
         ".sp-show-app-icon-label.sp-companion-app-icon-fit-card>.sp-btn-label-row{overflow:visible}" +
         ".sp-show-app-icon-label.sp-companion-app-icon-fit-card .sp-btn-label{color:#fff;" +
-        "filter:drop-shadow(0 1px 2px rgb(0 0 0/.9)) drop-shadow(0 0 1px rgb(0 0 0/.7))}" +
+        "filter:drop-shadow(0 0 .6px #000) drop-shadow(0 0 1px #000) drop-shadow(0 1px 1.5px rgb(0 0 0/.8))}" +
         ".sp-hide-subpage-chevrons .sp-subpage-badge{display:none}" +
         "@media(max-width:768px){" +
         ":root{--gap:12px}" +
