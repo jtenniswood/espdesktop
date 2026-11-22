@@ -34,8 +34,9 @@ inline void remove_label_overlay(lv_obj_t *label) {
 inline void position_label_overlay(lv_obj_t *label, int artwork_width, int artwork_height) {
   constexpr int inset = 3;
   lv_obj_set_width(label, std::max(1, artwork_width - 2 * inset));
+  const int label_height = lv_obj_get_height(label);
   lv_obj_align(label, LV_ALIGN_TOP_LEFT, inset,
-               std::max(inset, artwork_height - inset - lv_obj_get_height(label)));
+               std::max(inset, artwork_height - inset - label_height));
 }
 
 }  // namespace espdesktop::app_icon
