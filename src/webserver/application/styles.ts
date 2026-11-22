@@ -767,7 +767,13 @@ export function createWebStyles(dragAnimation: boolean): string {
         "cursor:pointer;padding:0;background:transparent;text-shadow:0 1px 3px rgba(0,0,0,.9),0 0 2px rgba(0,0,0,.65)}" +
         "@media(hover:hover){.sp-btn:not(:hover,:focus-within) .sp-subpage-badge:not(.sp-back-badge){opacity:0}}" +
         ".sp-btn-label-row:has(>.sp-subpage-badge:only-child){justify-content:flex-start}" +
-        ".sp-btn[data-icon-size=large] .sp-btn-label{display:none}" +
+        ".sp-btn[data-icon-size=large]:not(.sp-show-app-icon-label) .sp-btn-label{display:none}" +
+        ".sp-show-app-icon-label.sp-companion-app-icon-fit-card> :is(.sp-btn-label,.sp-btn-label-row){" +
+        "position:absolute;left:var(--app-icon-label-left);top:var(--app-icon-label-bottom);width:var(--app-icon-label-width);" +
+        "transform:translateY(-100%);margin:0;z-index:1}" +
+        ".sp-show-app-icon-label.sp-companion-app-icon-fit-card>.sp-btn-label-row{overflow:visible}" +
+        ".sp-show-app-icon-label.sp-companion-app-icon-fit-card .sp-btn-label{color:#fff;" +
+        "filter:drop-shadow(0 1px 2px rgb(0 0 0/.9)) drop-shadow(0 0 1px rgb(0 0 0/.7))}" +
         ".sp-hide-subpage-chevrons .sp-subpage-badge{display:none}" +
         "@media(max-width:768px){" +
         ":root{--gap:12px}" +

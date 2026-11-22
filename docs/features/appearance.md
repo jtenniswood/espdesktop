@@ -7,13 +7,16 @@ description:
 # Appearance
 
 The **Appearance** section is at the top of **Screen**. It includes
-**Active Colour**, **App Subpages**, **Theme**, and [Clock Bar](/features/clock-bar).
+**Active Colour**, **App Subpages**, **App Artwork**, **Theme**, and [Clock Bar](/features/clock-bar).
 
 Home and subpage cards use fixed continuous corners, including Back. Images, artwork and slider fills follow the card outline.
 
 ## App artwork
 
-Mac app artwork fills the available card area and hides the label on Home and subpages.
+Mac app artwork fills the available card area. To show the app name over its icon,
+turn on **Screen → Appearance → App Artwork → Show labels over app icons**.
+Labels use the usual card font with a soft shadow for readability. This option
+is off by default and applies to app cards on Home and subpages.
 
 In the web setup preview, subpage arrows sit immediately after the label, or at
 the lower left when no label is shown. A soft shadow keeps the arrow visible

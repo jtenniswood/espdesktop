@@ -319,7 +319,8 @@ export function createPreviewRenderFeature(dependencies: PreviewRenderDependenci
         const style = view.getComputedStyle(button);
         const smallSide = parseFloat(view.getComputedStyle(icon).fontSize);
         const label = button.querySelector<HTMLElement>(".sp-btn-label");
-        const labelHeight = label ? label.getBoundingClientRect().height : 0;
+        const overlayLabel = button.classList.contains("sp-show-app-icon-label");
+        const labelHeight = label && !overlayLabel ? label.getBoundingClientRect().height : 0;
         const width = button.clientWidth - parseFloat(style.paddingLeft) - parseFloat(style.paddingRight);
         const height = button.clientHeight - parseFloat(style.paddingTop) - parseFloat(style.paddingBottom);
         const fitted = appIconFitSide(width, height, labelHeight, Math.max(3, smallSide / 4),
@@ -330,6 +331,14 @@ export function createPreviewRenderFeature(dependencies: PreviewRenderDependenci
         icon.style.height = side + "px";
         icon.style.left = (parseFloat(style.paddingLeft) - side * artwork.insetLeftPercent / 100) + "px";
         icon.style.top = (parseFloat(style.paddingTop) - side * artwork.insetTopPercent / 100) + "px";
+        if (overlayLabel) {
+            const tile = button as HTMLElement;
+            const inset = Math.max(1, smallSide / 16);
+            tile.style.setProperty("--app-icon-label-left", (parseFloat(style.paddingLeft) + inset) + "px");
+            tile.style.setProperty("--app-icon-label-bottom", (parseFloat(style.paddingTop) +
+                side * artwork.artworkHeightFraction - inset) + "px");
+            tile.style.setProperty("--app-icon-label-width", Math.max(1, side * artwork.artworkWidthFraction - 2 * inset) + "px");
+        }
     }
     const appIconResizeObserver = typeof ResizeObserver === "function"
         ? new ResizeObserver(entries => entries.forEach(entry => resizeCardIcon(entry.target.closest(".sp-btn") || entry.target))) : null;
@@ -666,6 +675,9 @@ export function createPreviewRenderFeature(dependencies: PreviewRenderDependenci
                     typePreview.appIconId.length > 0) {
                     const fallbackIcon = btn.querySelector(".sp-companion-app-icon-fallback") as HTMLElement | null;
                     const applicationId = typePreview.appIconId;
+                    const showLabel = state.appIconLabels && btn.getAttribute("data-icon-size") === "large" &&
+                        btn.querySelector(".sp-btn-label");
+                    if (showLabel) btn.classList.add("sp-show-app-icon-label");
                     if (dependencies.displayDemo) btn.dataset.demoAppId = applicationId;
                     const backgroundColor = cardOffColor || (typeof typePreview.appIconBackgroundColor === "string"
                         ? typePreview.appIconBackgroundColor : "");

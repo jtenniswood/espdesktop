@@ -48,6 +48,7 @@ export function createNativePageEditorFeature(options: {
       state.subpages = prepared.subpages;
       state.nativePanelDocument = prepared.source;
       els.syncAppSubpageMode?.();
+      els.syncAppIconLabels?.();
       state.nativePageSnapshotLoaded = true;
       native.client?.acceptSnapshot(prepared.source, cleaned === snapshot ? nativeLayout : undefined);
       state.nativeHasNestedPages = prepared.nested;

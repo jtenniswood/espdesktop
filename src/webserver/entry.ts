@@ -386,6 +386,7 @@ function composeApplicationContext(liveGeneratedActions: () => readonly Companio
       state.nativeHasNestedPages = panelPageDocumentDepth(document) > 1;
       state.nativePanelDocument = { ...document, buttons: { ...document.buttons }, subpages: { ...document.subpages }, settings: { ...document.settings } };
       runtime.els.syncAppSubpageMode?.();
+      runtime.els.syncAppIconLabels?.();
     },
   }, dom.fetch);
   const configurationPersistence = createConfigPersistenceFeature(nativePanelConfig, runtime, layout, entityState, shell);

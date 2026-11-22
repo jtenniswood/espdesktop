@@ -43,7 +43,7 @@ struct CompanionAppIconImageData {
   size_t display_bytes = 0;
   espdesktop::app_icon::Insets artwork_insets{};
   bool artwork_insets_ready = false;
-  bool compact_icon = false;
+  bool compact_icon = false, overlay_label_requested = false, overlay_label_active = false;
   struct {
     bool enabled = false;
     std::vector<uint8_t> storage;
@@ -72,6 +72,10 @@ void lv_obj_move_foreground(lv_obj_t *o) {
   auto &children = o->parent->children;
   children.erase(std::remove(children.begin(), children.end(), o), children.end());
   children.push_back(o);
+}
+namespace espdesktop::app_icon {
+void apply_label_overlay(lv_obj_t *) {}
+void position_label_overlay(lv_obj_t *, int, int) {}
 }
 void lv_image_set_inner_align(lv_obj_t *, int) {}
 void lv_image_set_src(lv_obj_t *, void *) {}
@@ -121,6 +125,11 @@ int main() {
   label.height = 20;
   emit(label, LV_EVENT_SIZE_CHANGED);
   assert(icon.height == 70);
+  data.overlay_label_requested = true;
+  emit(label, LV_EVENT_SIZE_CHANGED);
+  assert(icon.height == 100);  // Overlay labels reserve no space below the artwork.
+  assert(data.overlay_label_active);
+  data.overlay_label_requested = false;
   label.hidden = true;
   emit(label, LV_EVENT_SIZE_CHANGED);
   assert(icon.height == 100);

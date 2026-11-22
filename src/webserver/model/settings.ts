@@ -1,3 +1,5 @@
+export const APP_ICON_LABELS = "screen_app_icon_labels";
+
 export const APP_SUBPAGE_MODE = "companion_app_subpage_mode";
 export const DEFAULT_APP_SUBPAGE_MODE = "card";
 export const APP_SUBPAGE_MODES = [

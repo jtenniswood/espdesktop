@@ -4,8 +4,15 @@
 
 #include "instant_button_style.h"
 #include "companion_controls.h"
+
+inline bool &grid_app_icon_labels_enabled() {
+  static bool enabled = false;
+  return enabled;
+}
+
 #ifdef USE_COMPANION
 #include "../companion/app_icon_store.h"
+#include "app_icon_label.h"
 #include "app_icon_layout.h"
 #include "app_icon_resampler.h"
 #include "cover_art.h"
@@ -46,6 +53,8 @@ struct CompanionAppIconImageData {
   lv_obj_t *fallback_icon = nullptr;
   lv_obj_t *card_label = nullptr;
   bool compact_icon = false;
+  bool overlay_label_requested = false;
+  bool overlay_label_active = false;
   std::string application_id;
   espdesktop::cover_art::AccentPalette accent_palette{};
   uint32_t custom_background_rgb = 0;
@@ -148,6 +157,16 @@ inline void companion_update_app_icon_card_palette(
 
 inline void companion_refresh_app_icon_connection_state(bool online);
 
+inline void companion_clear_app_icon_label_overlay(CompanionAppIconImageData &source) {
+  if (!source.overlay_label_active) return;
+  source.overlay_label_active = false;
+  auto *label = source.card_label;
+  espdesktop::app_icon::remove_label_overlay(label);
+  lv_obj_set_width(label, lv_pct(100));
+  lv_obj_align(label, LV_ALIGN_BOTTOM_LEFT, 0, 0);
+  sync_card_checked_text_color(lv_obj_get_parent(label));
+}
+
 inline void companion_layout_card_app_icon(CompanionAppIconImageData &source, lv_obj_t *image) {
   if (!image || !source.app_icon_mode || !source.image_loaded || (!source.pixels && !source.display_pixels) || source.layout_updating) return;
   lv_obj_t *button = lv_obj_get_parent(image);
@@ -157,7 +176,9 @@ inline void companion_layout_card_app_icon(CompanionAppIconImageData &source, lv
       ? lv_obj_get_style_text_font(source.fallback_icon, LV_PART_MAIN) : nullptr;
   const int small_side = font ? font->line_height : 48;
   const int gap = std::max(3, small_side / 4);
-  const int label_height = source.card_label && !lv_obj_has_flag(source.card_label, LV_OBJ_FLAG_HIDDEN)
+  const bool overlay = source.overlay_label_requested && source.card_label &&
+      !lv_obj_has_flag(source.card_label, LV_OBJ_FLAG_HIDDEN);
+  const int label_height = !overlay && source.card_label && !lv_obj_has_flag(source.card_label, LV_OBJ_FLAG_HIDDEN)
       ? lv_obj_get_height(source.card_label) : 0;
   constexpr int canvas = esphome::companion::APP_ICON_SIDE;
   if (!source.artwork_insets_ready && source.pixels) {
@@ -206,6 +227,15 @@ inline void companion_layout_card_app_icon(CompanionAppIconImageData &source, lv
   lv_img_set_zoom(image, static_cast<uint16_t>(std::min<uint32_t>(
       (static_cast<uint32_t>(side) * 256u + canvas - 1u) / canvas, UINT16_MAX)));
 #endif
+  if (overlay) {
+    if (!source.overlay_label_active) {
+      source.overlay_label_active = true;
+      espdesktop::app_icon::apply_label_overlay(source.card_label);
+    }
+    const int artwork_width = (canvas - insets.left - insets.right) * side / canvas;
+    const int artwork_height = (canvas - insets.top - insets.bottom) * side / canvas;
+    espdesktop::app_icon::position_label_overlay(source.card_label, artwork_width, artwork_height);
+  }
   // Faint icon shadows can extend beyond the fitted artwork into the label.
   if (source.card_label) lv_obj_move_foreground(source.card_label);
   // Finished pixels are sufficient on visible pages too. Keeping every
@@ -234,6 +264,7 @@ inline bool companion_apply_cached_app_icon(CompanionAppIconImageData &source, l
   if (image && lv_obj_get_screen(image) != lv_scr_act()) {
     lv_obj_add_flag(image, LV_OBJ_FLAG_HIDDEN);
     source.release_pixels();
+    companion_clear_app_icon_label_overlay(source);
     source.accent_palette = {};
     if (source.fallback_icon) lv_obj_clear_flag(source.fallback_icon, LV_OBJ_FLAG_HIDDEN);
     companion_apply_app_icon_card_palette(source, lv_obj_get_parent(image));
@@ -246,6 +277,7 @@ inline bool companion_apply_cached_app_icon(CompanionAppIconImageData &source, l
     if (image && !source.application_id.empty())
       esphome::companion::request_app_icon(source.application_id);
     source.release_pixels();
+    companion_clear_app_icon_label_overlay(source);
     source.accent_palette = {};
     if (image) lv_obj_add_flag(image, LV_OBJ_FLAG_HIDDEN);
     if (source.fallback_icon) lv_obj_clear_flag(source.fallback_icon, LV_OBJ_FLAG_HIDDEN);
@@ -307,7 +339,7 @@ inline bool companion_apply_cached_app_icon(CompanionAppIconImageData &source, l
 }
 
 inline void companion_set_card_icon_image(BtnSlot &slot, const std::string &application_id,
-                                          bool compact_icon = false) {
+                                          bool compact_icon = false, bool overlay_label = false) {
   if (!slot.btn || !slot.icon_lbl) return;
   esphome::companion::app_icon_store().begin();
   if (!slot.app_icon_img) slot.app_icon_img = grid_find_companion_app_icon_image(slot.btn);
@@ -335,6 +367,7 @@ inline void companion_set_card_icon_image(BtnSlot &slot, const std::string &appl
   source->fallback_icon = slot.icon_lbl;
   source->card_label = slot.text_lbl;
   source->compact_icon = compact_icon;
+  source->overlay_label_requested = overlay_label;
   source->app_icon_mode = true;
   source->companion_online = companion_connected();
   companion_apply_cached_app_icon(*source, slot.app_icon_img);
@@ -359,6 +392,8 @@ inline void companion_reset_card_app_icon_palette(BtnSlot &slot) {
   auto *source = static_cast<CompanionAppIconImageData *>(
       lv_obj_get_user_data(slot.app_icon_img));
   if (source) {
+    source->overlay_label_requested = false;
+    companion_clear_app_icon_label_overlay(*source);
     static const lv_state_t states[] = {
         LV_STATE_DEFAULT, LV_STATE_CHECKED, LV_STATE_PRESSED,
         static_cast<lv_state_t>(LV_STATE_CHECKED | LV_STATE_PRESSED)};
@@ -508,9 +543,10 @@ inline void setup_companion_card(BtnSlot &s, const ParsedCfg &p,
         tokenized_card ? &obs_snapshot : nullptr)
     : p.label;
   lv_label_set_display_text(s.text_lbl, label.c_str());
-  if (companion_app_launch_card(p) &&
-      (cfg_option_token_present(p.options, "app_hide_label") ||
-       companion_app_icon_enabled(p))) {
+  const bool app_artwork = companion_app_icon_enabled(p);
+  const bool hide_app_label = cfg_option_token_present(p.options, "app_hide_label");
+  const bool overlay_app_label = app_artwork && grid_app_icon_labels_enabled() && !hide_app_label;
+  if (companion_app_launch_card(p) && (hide_app_label || (app_artwork && !overlay_app_label))) {
     lv_obj_add_flag(s.text_lbl, LV_OBJ_FLAG_HIDDEN);
   } else {
     lv_obj_clear_flag(s.text_lbl, LV_OBJ_FLAG_HIDDEN);
@@ -528,10 +564,10 @@ inline void setup_companion_card(BtnSlot &s, const ParsedCfg &p,
                 companion_obs_scene_card(p.entity) ? "Image Card Loading" : "Monitor")
     : find_icon(p.icon.c_str());
   lv_label_set_display_text(s.icon_lbl, icon);
-  if (companion_app_icon_enabled(p) || workflow_icon) {
+  if (app_artwork || workflow_icon) {
 #ifdef USE_COMPANION
     const std::string id = workflow_icon ? APPLE_SHORTCUTS_APP_ID : p.entity;
-    companion_set_card_icon_image(s, id, workflow_icon);
+    companion_set_card_icon_image(s, id, workflow_icon, overlay_app_label);
     esphome::companion::request_app_icon(id);
 #endif
   } else if (s.app_icon_img) {

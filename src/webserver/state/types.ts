@@ -142,6 +142,7 @@ export interface AppState {
   screensaverCameraSupported: boolean;
   clockDateSupported: boolean;
   clockDateOn: boolean;
+  appIconLabels: boolean;
   clockOverlaySupported: boolean;
   screensaverMetadataEntity: string;
   metadataOverlayOn: boolean;

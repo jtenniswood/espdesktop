@@ -5,6 +5,7 @@
 #include <cstring>
 #include "src/misc/cache/instance/lv_image_cache.h"
 #include "src/misc/cache/instance/lv_image_header_cache.h"
+#include "app_icon_label.h"
 #include "instant_button_style.h"
 #include "button_grid_continuous_corners.h"
 
@@ -33,6 +34,43 @@ static void save(const char *name) {
     std::fwrite(rgb, 1, sizeof(rgb), file);
   }
   std::fclose(file);
+}
+
+static void check_app_icon_label(lv_display_t *display) {
+  auto *artwork = lv_obj_create(lv_screen_active());
+  lv_obj_set_pos(artwork, 20, 20);
+  lv_obj_set_size(artwork, 100, 150);
+  lv_obj_set_style_bg_color(artwork, lv_color_hex(0xFFFF00), LV_PART_MAIN);
+  lv_obj_set_style_pad_all(artwork, 0, LV_PART_MAIN);
+  lv_obj_set_style_border_width(artwork, 0, LV_PART_MAIN);
+
+  auto *label = lv_label_create(artwork);
+  lv_label_set_text(label, "Safari");
+  lv_obj_set_style_text_color(label, lv_color_white(), LV_PART_MAIN);
+  const auto *font = lv_obj_get_style_text_font(label, LV_PART_MAIN);
+  lv_obj_update_layout(label);
+  espdesktop::app_icon::position_label_overlay(label, 100, 100);
+  lv_refr_now(display);
+  static uint16_t plain[SIDE * SIDE];
+  std::memcpy(plain, frame, sizeof(frame));
+
+  espdesktop::app_icon::apply_label_overlay(label);
+  lv_refr_now(display);
+  lv_area_t label_bounds;
+  lv_obj_get_coords(label, &label_bounds);
+  assert(label_bounds.y2 < 120 && label_bounds.y2 > 110);
+  assert(lv_obj_get_style_text_font(label, LV_PART_MAIN) == font);
+  int shadow_pixels = 0;
+  for (int i = 0; i < SIDE * SIDE; ++i) {
+    if (plain[i] == 0xFFE0 && frame[i] != plain[i]) ++shadow_pixels;
+  }
+  assert(shadow_pixels > 20);
+  save("app-icon-label.ppm");
+
+  espdesktop::app_icon::remove_label_overlay(label);
+  lv_refr_now(display);
+  assert(std::memcmp(plain, frame, sizeof(frame)) == 0);
+  lv_obj_delete(artwork);
 }
 
 int main() {
@@ -87,6 +125,7 @@ int main() {
   }
   lv_obj_delete(button);
   assert(espdesktop::corners::mask_cache() == nullptr);
+  check_app_icon_label(display);
   lv_display_delete(display);
   lv_deinit();
   std::puts("Real LVGL: immediate pressed/checked fills retain rounded corners across 200 delayed redraws.");

@@ -38,6 +38,7 @@ export function createInitialState(deviceConfig: DeviceConfig): AppState {
     subpageChevronsOn: true, autoOpenAppSubpages: true, returnHomeOnAppSwitch: true, subpageTitleBarOn: true, presenceEntity: "",
     screensaverCameraEntity: "", screensaverCameraImageMode: "Fit", screensaverCameraDimming: 0, screensaverCameraDimmingSupported: false, screensaverCameraSupported: false,
     clockDateSupported: false, clockDateOn: false,
+    appIconLabels: false,
     clockOverlaySupported: false,
     screensaverMetadataEntity: "",
     metadataOverlayOn: false,

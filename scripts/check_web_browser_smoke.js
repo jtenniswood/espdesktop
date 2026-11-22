@@ -374,6 +374,7 @@ async function installRoutes(context, slug, options = {}) {
             max_v2_document_bytes: 524288, preserves_inactive_records: true,
             companion_auto_open_app_subpages: options.nativeAppSubpagePreference === true,
             companion_app_subpage_mode: options.nativeAppSubpageMode === true,
+            app_icon_labels: options.nativeAppIconLabels === true,
             max_record_body_bytes: nativeState.maxRecordBodyBytes },
           web_assets: { versions: [1] },
         }),
@@ -2240,7 +2241,7 @@ async function assertAutomaticAppIcons(browser, testCase) {
     fixture.document.buttons[2] = "com.apple.finder;Finder;Auto;Auto;;;companion;;app_shortcuts,icon_size=small";
     fixture.document.subpages[2] = "~B,1|companion,com.apple.Safari,Safari,Auto,Auto,,,,icon_size=medium";
     const context = await browser.newContext({ viewport: testCase.viewport });
-    await installRoutes(context, testCase.slug, { nativeState: native ? fixture : null });
+    await installRoutes(context, testCase.slug, { nativeState: native ? fixture : null, nativeAppIconLabels: native });
     const { COMPANION_APP_ICON_SIDE: iconSide } = loadTypeScriptModule("src/webserver/generated/companion_capabilities.ts");
     const iconBytes = Buffer.alloc(iconSide * iconSide * 3);
     for (let y = iconSide / 8; y < iconSide * 7 / 8; y++)
@@ -2335,6 +2336,44 @@ async function assertAutomaticAppIcons(browser, testCase) {
         await page.mouse.up();
       }
 
+      await page.getByRole("tab", { name: "Screen", exact: true }).click();
+      const setting = page.getByRole("checkbox", { name: "Show labels over app icons" });
+      if (native) {
+        await page.getByRole("heading", { name: "App Artwork", exact: true }).click();
+        assert(!(await setting.isChecked()), "app artwork labels default to off");
+        await setting.locator("..").locator(".sp-toggle-track").click();
+        await waitForNativeState(fixture, () => fixture.document.settings.screen_app_icon_labels === "1",
+          "the app artwork label setting is saved");
+        await page.getByRole("tab", { name: "Layout", exact: true }).click();
+        const label = card(1).locator(".sp-btn-label");
+        await card(1).locator(".sp-companion-app-icon").waitFor();
+        await label.waitFor();
+        const overlay = await label.evaluate(node => {
+          const icon = node.closest(".sp-btn").querySelector(".sp-companion-app-icon");
+          const bounds = node.getBoundingClientRect();
+          const image = icon.getBoundingClientRect();
+          return { filter: getComputedStyle(node).filter,
+            overArtwork: bounds.left >= image.left && bounds.right <= image.right &&
+              bounds.top >= image.top && bounds.bottom <= image.bottom };
+        });
+        assert(overlay.overArtwork, "the label overlaps the icon");
+        assert.match(overlay.filter, /drop-shadow/);
+        assert.strictEqual(await label.textContent(), "Safari");
+
+        await page.reload({ waitUntil: "domcontentloaded" });
+        await page.waitForFunction(() => window.__eventSources?.length > 0);
+        await seedNativeDocument(page, fixture);
+        await page.getByRole("tab", { name: "Screen", exact: true }).click();
+        await page.getByRole("heading", { name: "App Artwork", exact: true }).click();
+        assert(await setting.isChecked(), "the app artwork label setting survives reload");
+        await setting.locator("..").locator(".sp-toggle-track").click();
+        await waitForNativeState(fixture, () => fixture.document.settings.screen_app_icon_labels === "0",
+          "turning the app artwork labels off is saved");
+        await page.getByRole("tab", { name: "Layout", exact: true }).click();
+        await assertLargeApp(1);
+      } else {
+        assert.strictEqual(await setting.count(), 0, "older firmware does not show the toggle");
+      }
       assert.deepStrictEqual(errors, []);
     } finally { await context.close(); }
   }

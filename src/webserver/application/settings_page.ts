@@ -3,7 +3,7 @@ import { NTP_SERVER_DEFAULTS } from "../state/app_state";
 import { WEB_UI_COLORS } from "../state/ui_tokens";
 import { createColorSwatches } from "../components/color_swatches";
 import {
-    APP_SUBPAGE_MODE, APP_SUBPAGE_MODES, APP_SUBPAGE_PREFERENCE, DEFAULT_APP_SUBPAGE_MODE, appSubpageModeFromSettings,
+    APP_ICON_LABELS, APP_SUBPAGE_MODE, APP_SUBPAGE_MODES, APP_SUBPAGE_PREFERENCE, DEFAULT_APP_SUBPAGE_MODE, appSubpageModeFromSettings,
     type AppSubpageMode,
     normalizeBrightnessMode,
     normalizeLanguage,
@@ -542,6 +542,41 @@ export function createSettingsPageFeature(codec: Pick<ConfigCodecFeature, "bindT
             themeCard,
             clockBarCard,
         ]);
+        const appIconLabels = toggleRow("Show labels over app icons", "sp-set-app-icon-labels", false);
+        const appArtworkBody = document.createElement("div");
+        appArtworkBody.appendChild(appIconLabels.row);
+        const appArtworkCard = makeCollapsibleCard("App Artwork", appArtworkBody, true);
+        let savingAppIconLabels = false;
+        let loadedAppIconSettings: Readonly<Record<string, string>> | undefined;
+        const syncAppIconLabels = () => {
+            const settings = state.nativePanelDocument?.settings ?? loadedAppIconSettings;
+            const enabled = settings?.[APP_ICON_LABELS] === "1" && native.client?.supportsAppIconLabels() === true;
+            appIconLabels.input.disabled = savingAppIconLabels || !settings;
+            appIconLabels.input.checked = enabled;
+            if (state.appIconLabels !== enabled) {
+                state.appIconLabels = enabled;
+                renderPreview();
+            }
+        };
+        els.syncAppIconLabels = syncAppIconLabels;
+        void (async () => {
+            if (!layout.config.features?.companion || await native.waitForDiscovery() !== true ||
+                !native.client?.supportsAppIconLabels()) return;
+            themeCard.before(appArtworkCard);
+            if (!state.nativePanelDocument) loadedAppIconSettings = (await native.readSnapshot())?.document.settings;
+            syncAppIconLabels();
+        })().catch(syncAppIconLabels);
+        appIconLabels.input.addEventListener("change", async () => {
+            const checked = appIconLabels.input.checked;
+            savingAppIconLabels = true;
+            appIconLabels.input.disabled = true;
+            try {
+                await native.writeSetting(APP_ICON_LABELS, checked ? "1" : "0");
+            } finally {
+                savingAppIconLabels = false;
+                syncAppIconLabels();
+            }
+        });
         appendSettingsSection(config, "Display", [
             backlightCard,
             rotationCard,

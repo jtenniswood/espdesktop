@@ -529,6 +529,7 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
                     state.autoOpenAppSubpages = appSubpagePreference;
                 }
                 els.syncAppSubpageMode?.();
+                els.syncAppIconLabels?.();
                 if (backupPlan.settings) {
                     var s: any = backupPlan.settings;
 

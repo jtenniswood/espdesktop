@@ -81,6 +81,7 @@ interface Capabilities {
     preserves_inactive_records?: unknown;
     companion_auto_open_app_subpages?: unknown;
     companion_app_subpage_mode?: unknown;
+    app_icon_labels?: unknown;
     display_theme_preferences?: unknown;
     screen_schedule_preferences?: unknown;
   };
@@ -135,6 +136,7 @@ export class NativePanelConfigClient {
   private preservesInactiveRecords_ = false;
   private appSubpagePreference_ = false;
   private appSubpageMode_ = false;
+  private appIconLabels_ = false;
   private displayThemePreferences_ = false;
   private screenSchedulePreferences_ = false;
   private readDepth_ = 1;
@@ -156,6 +158,7 @@ export class NativePanelConfigClient {
   preservesInactiveRecords(): boolean { return this.supported_ && this.preservesInactiveRecords_; }
   supportsScreenSchedulePreferences(): boolean { return this.supported_ && this.screenSchedulePreferences_; }
   supportsDisplayThemePreferences(): boolean { return this.supported_ && this.displayThemePreferences_; }
+  supportsAppIconLabels(): boolean { return this.supported_ && this.appIconLabels_; }
   supportsAppSubpageMode(): boolean { return this.supported_ && this.appSubpageMode_; }
   supportsAppSubpagePreference(): boolean { return this.supported_ && this.appSubpagePreference_; }
   readNavigationDepth(): number {
@@ -207,6 +210,7 @@ export class NativePanelConfigClient {
         this.preservesInactiveRecords_ = supported === true && configuration?.preserves_inactive_records === true;
         this.appSubpagePreference_ = supported === true && configuration?.companion_auto_open_app_subpages === true;
         this.appSubpageMode_ = supported === true && configuration?.companion_app_subpage_mode === true;
+        this.appIconLabels_ = supported === true && configuration?.app_icon_labels === true;
         this.displayThemePreferences_ = supported === true && configuration?.display_theme_preferences === true;
         this.screenSchedulePreferences_ = supported === true && configuration?.screen_schedule_preferences === true;
         // A readable/readonly/newer native contract must not be mistaken for

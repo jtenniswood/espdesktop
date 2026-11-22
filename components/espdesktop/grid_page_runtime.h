@@ -249,7 +249,9 @@ private:
             !setting(reader.string(record.id), reader.string(record.first))) return false;
       }
     }
+    constexpr auto app_icon_labels = size_t(panel_settings::ScalarSetting::SCREEN_APP_ICON_LABELS);
     staged_->refresh_layout = !active_ || active_->accent != staged_->accent ||
+        scalar_value(active_.get(), app_icon_labels) != scalar_value(staged_.get(), app_icon_labels) ||
         !same_layout(*active_->store, store);
     return true;
   }
