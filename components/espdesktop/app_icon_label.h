@@ -16,6 +16,7 @@ inline const lv_style_t *label_shadow_style() {
     lv_style_set_drop_shadow_color(&style, lv_color_black());
     lv_style_set_drop_shadow_opa(&style, LV_OPA_COVER);
     lv_style_set_drop_shadow_radius(&style, 2);
+    lv_style_set_drop_shadow_offset_y(&style, 1);
     return true;
   }();
   (void) initialized;
