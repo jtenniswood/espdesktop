@@ -1,6 +1,7 @@
 import { buildSubpageGrid } from "../../src/webserver/model/subpage";
 import { decodeCompanionCard, encodeCompanionCard } from "../../src/webserver/model/companion_card_codec";
 import {
+  appleHomeIconForLabel,
   companionAppLabel,
   companionApplicationActions,
   companionApplicationActionIdCanSave,
@@ -198,7 +199,7 @@ export function runCompanionShortcutFeatureTests(): void {
     COMPANION_SHORTCUT_APPS.pop();
   }
   const companionModes = companionCardModeOptions();
-  if (companionModes.map(([mode]) => mode).join() !== "app,shortcut,url,folder,obs,obs_mic,obs_studio,obs_take,obs_transition,obs_status,obs_replay,obs_replay_buffer,obs_output,obs_brb,apple_shortcut,stats" ||
+  if (companionModes.map(([mode]) => mode).join() !== "app,shortcut,url,folder,obs,obs_mic,obs_studio,obs_take,obs_transition,obs_status,obs_replay,obs_replay_buffer,obs_output,obs_brb,apple_shortcut,apple_home,stats" ||
       companionCardModeValid("window") || companionCardModeValid("webapp") || companionCardModeValid("home_assistant") ||
       companionCardDefaultIcon("shortcut") !== "Shortcut Command") {
     throw new Error("Companion card modes must come from the generated product contract");
@@ -609,6 +610,7 @@ export function runCompanionShortcutFeatureTests(): void {
     throw new Error("Companion statistic choices must use concise alphabetical labels");
   }
   if (companionLabelPlaceholder({ entity: "stat.cpu" }) !== "e.g. Processor" ||
+      companionLabelPlaceholder({ entity: "applehome.control." }) !== "e.g. Close blinds or Movie Night" ||
       companionLabelPlaceholder({ entity: "com.apple.Safari" }) !== "e.g. Safari or Select all") {
     throw new Error("Companion cards must use one mode-appropriate label field");
   }
@@ -665,6 +667,13 @@ export function runCompanionShortcutFeatureTests(): void {
   }
   if (companionSubtypeIcon("Star", "shortcut", "url") !== "Star") {
     throw new Error("Changing Companion subtypes must preserve a custom icon");
+  }
+  for (const [label, icon] of [
+    ["Open office blind", "Arrow Up"], ["Lower blinds", "Arrow Down"], ["Hall fan", "Fan"],
+    ["Outlet off", "Power Plug"], ["Desk lamp", "Sun"], ["Hall switch", "Power"],
+    ["Movie time", "Home"], ["Open or close", "Home"],
+  ] as const) {
+    if (appleHomeIconForLabel(label) !== icon) throw new Error(`Unexpected Apple Home icon for ${label}`);
   }
   const folderAction = "folder.00000000-0000-0000-0000-000000000001";
   if (companionCardMode({ entity: folderAction, sensor: "" }) !== "folder" ||

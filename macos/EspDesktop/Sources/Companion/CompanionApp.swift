@@ -34,7 +34,7 @@ private struct CompanionUpdateCommands: Commands {
     var body: some Commands {
         CommandGroup(after: .appSettings) {
             Button("Check for Updates…") { updater.check() }
-                .disabled(updater.isChecking)
+                .disabled(updater.isChecking || !updater.supportsUpdates)
         }
     }
 }
@@ -111,6 +111,7 @@ final class CompanionApplicationDelegate: NSObject, NSApplicationDelegate, NSMen
     }
 
     func applicationWillTerminate(_ notification: Notification) {
+        store.appleHome.stop()
         store.obs.stop()
         store.releaseCoughButtons()
         DistributedNotificationCenter.default().removeObserver(self)
@@ -126,7 +127,11 @@ final class CompanionApplicationDelegate: NSObject, NSApplicationDelegate, NSMen
     }
 
     func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {
-        openCompanionWindow()
+        if let settingsWindow, settingsWindow.isVisible {
+            settingsWindow.makeKeyAndOrderFront(nil)
+        } else {
+            openCompanionWindow()
+        }
         return true
     }
 
@@ -203,7 +208,8 @@ final class CompanionApplicationDelegate: NSObject, NSApplicationDelegate, NSMen
     }
 
     func validateMenuItem(_ menuItem: NSMenuItem) -> Bool {
-        menuItem.action != #selector(checkForUpdates) || !store.updater.isChecking
+        menuItem.action != #selector(checkForUpdates) ||
+            (store.updater.supportsUpdates && !store.updater.isChecking)
     }
 
     private func connectionDot(connected: Bool) -> NSImage {

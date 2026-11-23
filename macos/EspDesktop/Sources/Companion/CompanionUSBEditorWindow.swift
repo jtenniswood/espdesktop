@@ -15,6 +15,7 @@ final class CompanionUSBEditorWindow: NSObject, WKNavigationDelegate, WKUIDelega
     private let exportDraft = NSButton(title: "Export Unsaved Layout…", target: nil, action: nil)
     private var unsavedLayout: USBEditorRequest?
     private let connection: CompanionConnection
+    private let appleHomeEditor: AppleHomeDeviceEditor?
     private var webView: WKWebView?
     private var assetRequests: [ObjectIdentifier: Task<Void, Never>] = [:]
     private var scriptRequests: [UUID: Task<Void, Never>] = [:]
@@ -24,8 +25,9 @@ final class CompanionUSBEditorWindow: NSObject, WKNavigationDelegate, WKUIDelega
     private var webCredentials: USBEditorWebCredentials?
     private var webSignIn: Task<USBEditorWebCredentials?, Never>?
 
-    init(display: CompanionDisplay) {
+    init(display: CompanionDisplay, appleHomeEditor: AppleHomeDeviceEditor? = nil) {
         connection = display.connection
+        self.appleHomeEditor = appleHomeEditor
         window = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 1040, height: 760),
                           styleMask: [.titled, .closable, .miniaturizable, .resizable],
                           backing: .buffered, defer: false)
@@ -95,15 +97,22 @@ final class CompanionUSBEditorWindow: NSObject, WKNavigationDelegate, WKUIDelega
         NSApp.activate(ignoringOtherApps: true)
     }
 
+    func appleHomeDidChange() {
+        webView?.evaluateJavaScript("document.dispatchEvent(new Event('espdesktop:apple-home-changed'))")
+    }
+
     @objc private func loadEditor() {
         assetLoadFailed = false
         loading.isHidden = false
         retryButton.isHidden = true
         loadingIndicator.isHidden = false
         loadingIndicator.startAnimation(nil)
-        loadingStatus.stringValue = "Loading editor over USB…"
-        webView?.load(URLRequest(url: URL(string: "\(Self.scheme)://display/")!))
+        loadingStatus.stringValue = appleHomeEditor == nil ? "Loading editor over USB…" : "Loading Device Settings…"
+        webView?.load(URLRequest(url: URL(string: "\(Self.scheme)://\(editorHost)/")!))
     }
+
+    private var editorHost: String { appleHomeEditor == nil ? "display" : "apple-home-display" }
+    var isCurrent: Bool { appleHomeEditor?.isCurrent ?? true }
 
     private func showLoadError(_ error: Error) {
         assetLoadFailed = true
@@ -127,6 +136,7 @@ final class CompanionUSBEditorWindow: NSObject, WKNavigationDelegate, WKUIDelega
         for request in assetRequests.values { request.cancel() }
         for request in scriptRequests.values { request.cancel() }
         webView?.stopLoading()
+        appleHomeEditor?.invalidate()
         webView?.configuration.userContentController.removeScriptMessageHandler(forName: "panel", contentWorld: .page)
         webView = nil
         window.contentView = nil
@@ -136,12 +146,12 @@ final class CompanionUSBEditorWindow: NSObject, WKNavigationDelegate, WKUIDelega
     func webView(_ webView: WKWebView, decidePolicyFor navigationAction: WKNavigationAction,
                  decisionHandler: @escaping @MainActor @Sendable (WKNavigationActionPolicy) -> Void) {
         let url = navigationAction.request.url
-        decisionHandler(url?.scheme == Self.scheme && url?.host == "display" ? .allow : .cancel)
+        decisionHandler(url?.scheme == Self.scheme && url?.host == editorHost ? .allow : .cancel)
     }
 
     func webView(_ webView: WKWebView, runOpenPanelWith parameters: WKOpenPanelParameters,
                  initiatedByFrame frame: WKFrameInfo, completionHandler: @escaping @MainActor @Sendable ([URL]?) -> Void) {
-        guard frame.isMainFrame, frame.request.url?.scheme == Self.scheme, frame.request.url?.host == "display",
+        guard frame.isMainFrame, frame.request.url?.scheme == Self.scheme, frame.request.url?.host == editorHost,
               window.attachedSheet == nil else {
             completionHandler(nil)
             return
@@ -154,16 +164,30 @@ final class CompanionUSBEditorWindow: NSObject, WKNavigationDelegate, WKUIDelega
     }
 
     func webView(_ webView: WKWebView, start urlSchemeTask: any WKURLSchemeTask) {
-        guard let url = urlSchemeTask.request.url, url.host == "display" else {
+        guard let url = urlSchemeTask.request.url, url.host == editorHost else {
             urlSchemeTask.didFailWithError(USBEditorError.invalidResponse)
             return
         }
         if url.path == "/" || url.path.isEmpty {
-            deliver(Data(Self.html.utf8), type: "text/html", to: urlSchemeTask, url: url)
+            let html = appleHomeEditor == nil ? Self.html :
+                Self.html.replacingOccurrences(of: "script-src espdesktop-usb: 'unsafe-inline';",
+                    with: "script-src espdesktop-usb:; base-uri 'none'; form-action 'none';")
+            deliver(Data(html.utf8), type: "text/html", to: urlSchemeTask, url: url)
             return
         }
         guard url.path == "/0.js" else {
             urlSchemeTask.didFailWithError(USBEditorError.invalidResponse)
+            return
+        }
+        if appleHomeEditor != nil {
+            // Never load firmware-provided JavaScript in the editor that can
+            // see the local HomeKit catalogue.
+            guard let asset = AppleHomeDeviceEditor.asset, let body = try? Data(contentsOf: asset) else {
+                urlSchemeTask.didFailWithError(USBEditorError.invalidResponse)
+                return
+            }
+            deliver(body, type: "text/javascript", to: urlSchemeTask, url: url)
+            status.stringValue = "Wi-Fi"
             return
         }
         let id = ObjectIdentifier(urlSchemeTask as AnyObject)
@@ -197,7 +221,7 @@ final class CompanionUSBEditorWindow: NSObject, WKNavigationDelegate, WKUIDelega
         let initialAuthorization = previousCredentials.flatMap {
             webChallenge?.authorization(for: request, credentials: $0)
         }
-        let first = try await connection.requestUSBEditor(request, authorization: initialAuthorization)
+        let first = try await sendPanelRequest(request, authorization: initialAuthorization)
         guard first.status == 401 else { return first }
         guard let challenge = USBEditorWebChallenge(first.headers["www-authenticate"]) else {
             throw USBEditorSignInError.required
@@ -216,12 +240,17 @@ final class CompanionUSBEditorWindow: NSObject, WKNavigationDelegate, WKUIDelega
             webCredentials = nil
             throw USBEditorSignInError.rejected
         }
-        let response = try await connection.requestUSBEditor(request, authorization: authorization)
+        let response = try await sendPanelRequest(request, authorization: authorization)
         if response.status == 401 {
             if webCredentials == credentials { webCredentials = nil }
             throw USBEditorSignInError.rejected
         }
         return response
+    }
+
+    private func sendPanelRequest(_ request: USBEditorRequest, authorization: String?) async throws -> USBEditorResponse {
+        if let appleHomeEditor { return try await appleHomeEditor.request(request, authorization: authorization) }
+        return try await connection.requestUSBEditor(request, authorization: authorization)
     }
 
     private func promptForWebCredentials() async -> USBEditorWebCredentials? {
@@ -263,7 +292,7 @@ final class CompanionUSBEditorWindow: NSObject, WKNavigationDelegate, WKUIDelega
     func userContentController(_ userContentController: WKUserContentController, didReceive message: WKScriptMessage,
                                replyHandler: @escaping @MainActor @Sendable (Any?, String?) -> Void) {
         guard message.frameInfo.isMainFrame, message.frameInfo.request.url?.scheme == Self.scheme,
-              message.frameInfo.request.url?.host == "display", let values = message.body as? [String: Any] else {
+              message.frameInfo.request.url?.host == editorHost, let values = message.body as? [String: Any] else {
             replyHandler(nil, "Invalid USB editor request.")
             return
         }
@@ -314,6 +343,20 @@ final class CompanionUSBEditorWindow: NSObject, WKNavigationDelegate, WKUIDelega
     }
 
     private func perform(_ request: USBEditorRequest) async throws -> USBEditorResponse {
+        if request.path.hasPrefix(USBEditorRequest.appleHomePath) {
+            guard request.path == USBEditorRequest.appleHomePath,
+                  let appleHomeEditor else {
+                return USBEditorResponse(status: 404, headers: [:], body: Data())
+            }
+            if request.method == "POST" {
+                return try appleHomeEditor.localControls(onSetupCompleted: { [weak self] in
+                    guard let self, self.isCurrent, self.window.isVisible else { return }
+                    self.open()
+                })
+            }
+            return try appleHomeEditor.localControls()
+        }
+        if appleHomeEditor != nil { return try await requestPanel(request) }
         guard request.method == "PUT", request.path == "/api/v1/config" else {
             try await waitForCable()
             return try await requestPanel(request)
@@ -459,8 +502,8 @@ final class CompanionUSBEditorWindow: NSObject, WKNavigationDelegate, WKUIDelega
       };
       window.fetch = async (input, init = {}) => {
         const url = new URL(input instanceof Request ? input.url : input, window.location.href);
-        if (url.protocol !== 'espdesktop-usb:' || url.hostname !== 'display')
-          throw new TypeError('The USB editor is offline.');
+        if (url.protocol !== 'espdesktop-usb:' || url.hostname !== window.location.hostname)
+          throw new TypeError('Device Settings can only access this display.');
         if (init.signal?.aborted) throw new DOMException('Request cancelled', 'AbortError');
         const headers = Object.fromEntries(new Headers(init.headers ?? (input instanceof Request ? input.headers : {})));
         let body = '';

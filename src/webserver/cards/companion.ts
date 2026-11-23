@@ -2,7 +2,7 @@ import { obsSubpageCatalogue } from "../model/obs_live_subpage";
 import { targetedAudioCard } from "./companion_app_volume";
 import { childPageKey } from "../model/page_keys";
 import { renderCompanionStorageSelector } from "./companion_storage";
-import { APPLE_SHORTCUT_PREFIX, COMPANION_FOLDER_PREFIX, COMPANION_OBS_PREFIX, OBS_BRB_ID, OBS_MULTIVIEW_ID, OBS_OUTPUT_OPTIONS, OBS_PROGRAM_ID, OBS_REPLAY_BUFFER_ID, OBS_REPLAY_ID, OBS_STUDIO_ID, OBS_STUDIO_OPTIONS, OBS_TAKE_ID, OBS_TRANSITION_ID, OBS_TRANSITION_OPTIONS, OBS_TRANSITION_SELECT, savedOBSTransition, savedOBSSceneTarget, decodeCompanionCard, encodeCompanionCard, companionMetricForEntity, obsConfirmationControl, obsInputName, obsOutputCardEntity, obsSceneCardEntity } from "../model/companion_card_codec";
+import { APPLE_HOME_CONTROL_PREFIX, APPLE_SHORTCUT_PREFIX, COMPANION_FOLDER_PREFIX, COMPANION_OBS_PREFIX, OBS_BRB_ID, OBS_MULTIVIEW_ID, OBS_OUTPUT_OPTIONS, OBS_PROGRAM_ID, OBS_REPLAY_BUFFER_ID, OBS_REPLAY_ID, OBS_STUDIO_ID, OBS_STUDIO_OPTIONS, OBS_TAKE_ID, OBS_TRANSITION_ID, OBS_TRANSITION_OPTIONS, OBS_TRANSITION_SELECT, savedOBSTransition, savedOBSSceneTarget, decodeCompanionCard, encodeCompanionCard, companionMetricForEntity, obsConfirmationControl, obsInputName, obsOutputCardEntity, obsSceneCardEntity } from "../model/companion_card_codec";
 import { configOptionEnabled, configOptionValue, setConfigOption, setConfigOptionValue, normalizedCardColorOptions, preserveCardColorOptions, withoutCardColorOptions } from "../model/config_primitives";
 import { createCompanionCatalogue, createCompanionCatalogueMonitor } from "../api/companion_catalogue";
 import type { CompanionAction } from "../api/companion_catalogue";
@@ -237,6 +237,18 @@ export function companionSubtypeDefaultIcon(mode: string, entity = ""): string {
         : companionCardDefaultIcon("app");
 }
 
+export function appleHomeIconForLabel(label: string): string {
+    // Only the display label can determine the icon saved automatically.
+    const opens = /\b(open|raise)\b/i.test(label);
+    const closes = /\b(close|lower)\b/i.test(label);
+    if (opens !== closes) return opens ? "Arrow Up" : "Arrow Down";
+    if (/\bfans?\b/i.test(label)) return "Fan";
+    if (/\b(outlets?|sockets?|plugs?)\b/i.test(label)) return "Power Plug";
+    if (/\b(lights?|lamps?|bulbs?)\b/i.test(label)) return "Sun";
+    if (/\b(switch(es)?|power)\b/i.test(label)) return "Power";
+    return "Home";
+}
+
 export function companionSubtypeIcon(
     currentIcon: string,
     previousMode: string,
@@ -291,8 +303,10 @@ export function companionMetricDisplayMode(card: any): "used" | "free" | "remain
 
 export function companionLabelPlaceholder(card: any): string {
     const metric = companionMetricForEntity(card?.entity);
-    if (!metric && companionCardMode(card) === "folder") return "e.g. Folder Name";
-    if (!metric && companionCardMode(card) === "url") return "e.g. Website name";
+    const mode = companionCardMode(card);
+    if (mode === "apple_home") return "e.g. Close blinds or Movie Night";
+    if (!metric && mode === "folder") return "e.g. Folder Name";
+    if (!metric && mode === "url") return "e.g. Website name";
     return metric ? `e.g. ${metric.label}` : "e.g. Safari or Select all";
 }
 
@@ -359,6 +373,7 @@ export function companionEntityForMode(mode: string): string {
     if (mode === "obs_replay_buffer") return OBS_REPLAY_BUFFER_ID;
     if (mode === "obs_output") return OBS_OUTPUT_OPTIONS[0][0];
     if (mode === "obs_status") return OBS_PROGRAM_ID;
+    if (mode === "apple_home") return APPLE_HOME_CONTROL_PREFIX;
     if (mode === "apple_shortcut") return APPLE_SHORTCUT_PREFIX;
     if (mode === "stats") return COMPANION_SYSTEM_METRICS[0]?.id || "";
     return COMPANION_SYSTEM_METRICS.find((metric) => metric.mode === mode)?.id || "";
@@ -367,6 +382,7 @@ export function companionEntityForMode(mode: string): string {
 export function companionApplicationActions(actions: readonly CompanionAction[]): readonly CompanionAction[] {
     return sortCompanionLabels(actions.filter((action) =>
         !action.id.startsWith(COMPANION_FOLDER_PREFIX) &&
+        !action.id.startsWith(APPLE_HOME_CONTROL_PREFIX) &&
         !action.id.startsWith(APPLE_SHORTCUT_PREFIX) &&
         !action.id.startsWith(COMPANION_OBS_PREFIX) &&
         !action.id.startsWith("input.level.") &&
@@ -510,6 +526,9 @@ export function registerCompanionCardTypes(
     const { renderButtonSettings, renderPreview } = cardUi;
     const catalogue = createCompanionCatalogue(fetchImpl);
     const loadCompanionActions = catalogue.load;
+    const appleHomeAutomaticIcons = new WeakMap<object, boolean>();
+    let refreshAppleHomePicker: (() => void) | undefined;
+    document.addEventListener("espdesktop:apple-home-changed", () => refreshAppleHomePicker?.());
     const obsControlLabels = new Map<string, string>();
     const obsCardStates = new Map<string, CompanionAction>();
     const obsPresentationKey = () => JSON.stringify([...obsCardStates].map(([id, action]) =>
@@ -1050,13 +1069,11 @@ export function registerCompanionCardTypes(
             let availableCompanionApps: readonly CompanionAction[] = [];
             let availableCompanionFolders: readonly CompanionAction[] = [];
 
-            if (!companionCardIsMetric(card)) {
-                helpers.renderCardTextField(panel, card, helpers, {
-                    label: "Label",
-                    idSuffix: "label", field: "label",
-                    placeholder: companionLabelPlaceholder(card), rerender: true,
-                });
-            }
+            const labelField = companionCardIsMetric(card) ? null : helpers.renderCardTextField(panel, card, helpers, {
+                label: "Label",
+                idSuffix: "label", field: "label",
+                placeholder: companionLabelPlaceholder(card), rerender: true,
+            });
 
             if (companionCardIsMetric(card)) {
                 const metric = companionMetricForEntity(card.entity);
@@ -1171,27 +1188,38 @@ export function registerCompanionCardTypes(
                 return;
             }
 
-            if (initialMode === "apple_shortcut") {
+            if (initialMode === "apple_shortcut" || initialMode === "apple_home") {
+                const appleHome = initialMode === "apple_home";
+                const location = document.defaultView?.location;
+                const localAppleHome = appleHome && location?.protocol === "espdesktop-usb:" &&
+                    location.hostname === "apple-home-display";
+                const prefix = appleHome ? APPLE_HOME_CONTROL_PREFIX : APPLE_SHORTCUT_PREFIX;
+                const controlLabel = appleHome ? "Apple Home" : "Apple Shortcut";
                 const field = document.createElement("div");
                 field.className = "sp-field";
                 const picker = document.createElement("select");
                 picker.className = "sp-select";
-                picker.id = helpers.idPrefix + "apple-shortcut";
-                field.append(fieldLabel("Apple Shortcut", picker.id), picker);
-                const note = document.createElement("div");
-                note.className = "sp-field-info-text";
-                note.textContent = "Choose which workflows are available under Shortcuts in the EspDesktop Mac app.";
-                field.appendChild(note);
+                picker.id = helpers.idPrefix + (appleHome ? "apple-home" : "apple-shortcut");
+                field.append(fieldLabel(controlLabel, picker.id), picker);
+                if (!localAppleHome) {
+                    const note = document.createElement("div");
+                    note.className = "sp-field-info-text";
+                    note.textContent = appleHome
+                        ? "Open Device Settings from EspDesktop on the Mac to browse all Apple Home controls."
+                        : "Choose which workflows are available under Shortcuts in the EspDesktop Mac app.";
+                    field.appendChild(note);
+                }
                 panel?.appendChild(field);
                 helpers.markCardPrimaryField(field, "entity");
 
-                const savedID = currentEntity === APPLE_SHORTCUT_PREFIX ? "" : currentEntity;
+                const savedID = currentEntity === prefix ? "" : currentEntity;
                 let workflows: readonly CompanionAction[] = [];
+                let displayLabel: HTMLInputElement | null = null;
                 function showWorkflows(emptyMessage: string): void {
                     picker.replaceChildren();
                     const placeholder = document.createElement("option");
                     placeholder.value = "";
-                    placeholder.textContent = workflows.length ? "Choose an Apple Shortcut…" : emptyMessage;
+                    placeholder.textContent = workflows.length ? (appleHome ? "Choose an Apple Home control…" : "Choose an Apple Shortcut…") : emptyMessage;
                     placeholder.disabled = true;
                     picker.appendChild(placeholder);
                     for (const action of workflows) {
@@ -1200,33 +1228,121 @@ export function registerCompanionCardTypes(
                         option.textContent = action.label;
                         picker.appendChild(option);
                     }
-                    const selectedID = card.entity === APPLE_SHORTCUT_PREFIX ? "" : card.entity;
+                    const selectedID = card.entity === prefix ? "" : card.entity;
                     if (selectedID && !workflows.some(action => action.id === selectedID)) {
                         const unavailable = document.createElement("option");
                         unavailable.value = selectedID;
-                        unavailable.textContent = card.label ? card.label + " (unavailable)" : "Workflow unavailable";
+                        unavailable.textContent = card.label ? card.label + " (unavailable)" : controlLabel + " unavailable";
                         picker.appendChild(unavailable);
                     }
                     picker.value = selectedID;
                     picker.disabled = workflows.length === 0;
                 }
-                showWorkflows("Loading Apple Shortcuts…");
-                void loadCompanionActions(true).then(actions => {
-                    workflows = sortCompanionLabels(actions.filter(action => action.id.startsWith(APPLE_SHORTCUT_PREFIX)));
-                    showWorkflows("No available Apple Shortcuts");
-                }).catch(() => showWorkflows("Apple Shortcuts unavailable"));
-                helpers.requireField(picker, "Choose an Apple Shortcut before saving.", () => true,
+                showWorkflows(appleHome ? "Loading Apple Home controls…" : "Loading Apple Shortcuts…");
+                if (localAppleHome) {
+                    const status = document.createElement("div");
+                    status.className = "sp-field-info-text";
+                    status.setAttribute("role", "status");
+                    field.appendChild(status);
+                    const requestedSetupStates = new Set<string>();
+                    let latestRequest = 0;
+
+                    async function loadAppleHome(method: "GET" | "POST"): Promise<void> {
+                        const request = ++latestRequest;
+                        try {
+                            const response = await fetchImpl("/espdesktop-local/apple-home", { method });
+                            if (response.status === 426) throw new Error("Update the display firmware to add Apple Home controls.");
+                            if (!response.ok) throw new Error("Apple Home unavailable");
+                            const catalogue = await response.json() as {
+                                status: string; note: string; controls: CompanionAction[];
+                            };
+                            if (request !== latestRequest || !field.isConnected) return;
+                            workflows = sortCompanionLabels(catalogue.controls.filter(action => action.id.startsWith(prefix)));
+                            if ((catalogue.status === "disconnected" || catalogue.status === "chooseHome") &&
+                                !requestedSetupStates.has(catalogue.status)) {
+                                requestedSetupStates.add(catalogue.status);
+                                showWorkflows("Connecting to Apple Home…");
+                                void loadAppleHome("POST");
+                                return;
+                            }
+                            showWorkflows(catalogue.status === "chooseHome" ? "Choose your home in EspDesktop Home…"
+                                : catalogue.status === "waiting" ? "Connecting to Apple Home…" : "No available Apple Home controls");
+                            status.textContent = catalogue.status === "denied"
+                                ? "Allow EspDesktop Home in System Settings under Privacy & Security → HomeKit."
+                                : catalogue.note;
+                            status.classList.toggle("sp-visible", !!status.textContent);
+                        } catch (error) {
+                            if (request !== latestRequest || !field.isConnected) return;
+                            workflows = [];
+                            showWorkflows(error instanceof Error ? error.message : "Apple Home unavailable");
+                        }
+                    }
+
+                    refreshAppleHomePicker = () => {
+                        if (field.isConnected) void loadAppleHome("GET");
+                        else refreshAppleHomePicker = undefined;
+                    };
+                    void loadAppleHome("GET");
+                } else {
+                    void loadCompanionActions(true).then(actions => {
+                        workflows = sortCompanionLabels(actions.filter(action => action.id.startsWith(prefix)));
+                        showWorkflows(appleHome ? "No available Apple Home controls" : "No available Apple Shortcuts");
+                    }).catch(() => showWorkflows(appleHome ? "Apple Home unavailable" : "Apple Shortcuts unavailable"));
+                }
+                helpers.requireField(picker, appleHome ? "Choose an Apple Home card before saving." : "Choose an Apple Shortcut before saving.", () => true,
                     (value: string) => !!value && (value === savedID || workflows.some(action => action.id === value)));
                 picker.addEventListener("change", () => {
                     const selected = workflows.find(action => action.id === picker.value);
                     if (!selected || selected.id === card.entity) return;
                     card.entity = selected.id;
-                    card.label = selected.label;
                     helpers.saveField("entity", selected.id);
+                    // HomeKit names only populate the local picker. A card's
+                    // label is authored separately before it is saved.
+                    if (localAppleHome) {
+                        helpers.openDisclosureForField(displayLabel);
+                        displayLabel?.focus();
+                        return;
+                    }
+                    card.label = selected.label;
                     helpers.saveField("label", selected.label);
                     const input = document.getElementById(helpers.idPrefix + "label") as HTMLInputElement | null;
                     if (input) input.value = selected.label;
                 });
+                if (appleHome) {
+                    if (localAppleHome && labelField) {
+                        const labelInput = labelField.input as HTMLInputElement;
+                        displayLabel = labelInput;
+                        helpers.requireField(displayLabel, "Enter a display label of up to 80 bytes.", () => true,
+                            (value: string) => !!value.trim() && new TextEncoder().encode(value.trim()).length <= 80);
+                        const defaultIcon = companionSubtypeDefaultIcon("apple_home");
+                        const draft = state.settingsDraft;
+                        const isNewCard = draft && draft.button === card && draft.isNew;
+                        const hasCustomIcon = card.icon && card.icon !== "Auto" && card.icon !== defaultIcon;
+                        const automatic = appleHomeAutomaticIcons.get(card) ?? Boolean(isNewCard && !hasCustomIcon);
+                        appleHomeAutomaticIcons.set(card, automatic);
+
+                        function saveIcon(icon: string): void {
+                            if (card.icon === icon) return;
+                            card.icon = icon;
+                            helpers.saveField("icon", icon);
+                            cardUi.renderPreview();
+                        }
+                        const iconPickerField = helpers.iconPickerField(helpers.idPrefix + "icon-picker",
+                            helpers.idPrefix + "icon", automatic ? "Auto" : card.icon || defaultIcon, (icon: string) => {
+                                appleHomeAutomaticIcons.set(card, icon === "Auto");
+                                saveIcon(icon === "Auto" ? appleHomeIconForLabel(card.label) : icon);
+                            }, "Icon");
+                        panel?.appendChild(iconPickerField);
+                        labelInput.addEventListener("input", () => {
+                            if (appleHomeAutomaticIcons.get(card)) {
+                                saveIcon(appleHomeIconForLabel(labelInput.value));
+                            }
+                        });
+                        return;
+                    }
+                    helpers.renderBasicCardFields(panel, card, helpers, COMPANION_CARD_METADATA, { entity: false });
+                    return;
+                }
                 helpers.renderBasicCardFields(panel, card, helpers, COMPANION_CARD_METADATA, { entity: false, icon: false });
                 const defaultIcon = companionSubtypeDefaultIcon("apple_shortcut");
                 const initialIconMode = appleShortcutUsesAppIcon(card) ? "app" : "custom";
@@ -2081,7 +2197,7 @@ export function registerCompanionCardTypes(
             let urlLabel = "";
             try { urlLabel = new URL(companionUrlValue(card.sensor || "")).hostname; } catch { /* incomplete URL */ }
             const preview = cardBadgePreview(card, helpers, {
-                label: card.label || (mode === "apple_shortcut" ? "Apple Shortcut" : "") ||
+                label: card.label || (mode === "apple_home" ? "Apple Home" : mode === "apple_shortcut" ? "Apple Shortcut" : "") ||
                     shortcutLabel || urlLabel || appLabel || card.entity ||
                     (mode === "folder" ? "Folder" : "Mac App"),
                 iconFallback: companionSubtypeDefaultIcon(mode),
@@ -2329,6 +2445,7 @@ export function registerCompanionCardTypes(
         ["companion_obs_brb", "Break", "obs_brb"],
         ["companion_obs_replay", "Replay Buffer", "obs_replay"],
         ["companion_obs_output", "Output Controls", "obs_output"],
+        ["companion_apple_home", "Apple Home", "apple_home"],
         ["companion_apple_shortcut", "Run a shortcut", "apple_shortcut"],
     ];
     companionPickerDefinitions.forEach(function (definition) {

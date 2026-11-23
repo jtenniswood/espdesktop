@@ -51,8 +51,15 @@ final class CompanionUpdater: NSObject, ObservableObject, SPUUpdaterDelegate,
     private var sendingNotification = false
     private var updateRequestedFromNotification = false
 
+    var supportsUpdates: Bool { AppleHomeDeviceEditor.asset == nil }
+
     func startAutomaticChecks(checkOnLaunch: Bool = false) {
         guard !started else { return }
+        guard supportsUpdates else {
+            automaticallyChecks = false
+            message = "Use a release build for app updates."
+            return
+        }
         guard Bundle.main.bundleURL.pathExtension == "app" else {
             message = "Install the packaged app to check for updates."
             return
@@ -252,7 +259,7 @@ struct CompanionUpdateSettings: View {
                         .buttonStyle(.bordered)
                         .controlSize(.large)
                         .modifier(CompanionCapsuleButton())
-                        .disabled(updater.isChecking)
+                        .disabled(updater.isChecking || !updater.supportsUpdates)
                 }
                 if !updater.message.isEmpty {
                     Text(updater.message)
@@ -263,6 +270,7 @@ struct CompanionUpdateSettings: View {
             Section("Automatic Updates") {
                 Toggle("Automatically Check for Updates", isOn: $updater.automaticallyChecks)
                     .toggleStyle(SwitchToggleStyle(tint: .accentColor))
+                    .disabled(!updater.supportsUpdates)
                 Toggle("Automatically Install Updates", isOn: $updater.automaticallyInstalls)
                     .toggleStyle(SwitchToggleStyle(tint: .accentColor))
                     .disabled(!updater.automaticallyChecks)

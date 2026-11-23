@@ -804,6 +804,22 @@ int main() {
          "shortcut.scoped.command+k~command+s");
   assert(companion_app_scoped_shortcut("com.apple.Safari").empty());
   const auto original_actions = companion_runtime_snapshot().actions;
+  {
+    const std::string control = "applehome.control.01234567-89ab-cdef-0123-456789abcdef";
+    const auto card = normalize_parsed_cfg(ParsedCfg{
+        control, "Open", "Auto", "Auto", "", "", "companion", "", "app_hide_label,app_shortcuts"});
+    assert(card.label == "Open" && card.entity == control);
+    assert(!companion_app_launch_card(card) && !companion_app_icon_enabled(card));
+    assert(!companion_app_shortcuts_enabled(card) && !cfg_option_token_present(card.options, "app_hide_label"));
+    assert(companion_default_action_label(control) == "Apple Home");
+    const int before = guarded_invocations;
+    companion_set_actions({{control, "Saved control"}});
+    assert(companion_default_action_label(control) == "Saved control");
+    assert(invoke_companion_action_for_app(control, "home-control", "", "new_window", "", 0));
+    assert(guarded_invocations == before + 1 && sent_action == control && shortcut_target.empty());
+    companion_set_actions({});
+    assert(!invoke_companion_action(control, "home-unavailable"));
+  }
   companion_set_actions({{"com.apple.Safari", "Safari"}});
   {
     constexpr auto preset = "com.apple.Safari:0";
