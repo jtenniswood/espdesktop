@@ -14,7 +14,7 @@ struct EspDesktopHomeApp: App {
             VStack(alignment: .leading, spacing: 16) {
                 Text("Apple Home").font(.title)
                 content
-                if home.homes.count > 1 {
+                if home.homes.count > 1 && (home.status == .chooseHome || home.status == .empty) {
                     Picker("Home", selection: Binding(get: { home.selectedHomeID }, set: home.select)) {
                         if home.selectedHomeID == nil { Text("Choose a Home").tag(nil as UUID?) }
                         ForEach(home.homes, id: \.uniqueIdentifier) { house in
@@ -23,14 +23,10 @@ struct EspDesktopHomeApp: App {
                         }
                     }
                 }
-                if home.canContinue {
-                    Button("Continue", action: home.continueSetup)
-                        .buttonStyle(.borderedProminent)
-                        .keyboardShortcut(.defaultAction)
-                }
             }
             .padding(24)
             .frame(minWidth: 370, minHeight: 260, alignment: .topLeading)
+            .background(SetupWindowVisibility(isVisible: home.status != .ready))
         }
     }
 
@@ -51,6 +47,34 @@ struct EspDesktopHomeApp: App {
             }
         case .ready:
             Text("Choose controls to add to your display in EspDesktop.")
+        }
+    }
+}
+
+private struct SetupWindowVisibility: UIViewRepresentable {
+    let isVisible: Bool
+
+    func makeUIView(context: Context) -> WindowObserver { WindowObserver() }
+
+    func updateUIView(_ view: WindowObserver, context: Context) {
+        view.isSetupVisible = isVisible
+        view.updateWindowVisibility()
+    }
+
+    final class WindowObserver: UIView {
+        var isSetupVisible = true
+
+        override func didMoveToWindow() {
+            super.didMoveToWindow()
+            updateWindowVisibility()
+        }
+
+        func updateWindowVisibility() {
+            // Keep the scene and HomeKit connection alive for accessory actions.
+            Task { @MainActor [weak self] in
+                guard let self, let window, window.isHidden == isSetupVisible else { return }
+                window.isHidden = !isSetupVisible
+            }
         }
     }
 }
@@ -81,7 +105,6 @@ final class EspDesktopHome: NSObject, ObservableObject, HMHomeManagerDelegate, H
     private var bindings = AppleHomeSceneBindings()
     private var targets: [UUID: Target] = [:]
     private var publishesCatalog = false
-    private var supportsContinue = false
     private var loadedHomes = false
 
     override init() {
@@ -89,7 +112,6 @@ final class EspDesktopHome: NSObject, ObservableObject, HMHomeManagerDelegate, H
         manager.delegate = self
         let arguments = ProcessInfo.processInfo.arguments
         publishesCatalog = arguments.contains("--espdesktop-home-cards")
-        supportsContinue = arguments.contains("--espdesktop-home-continue")
         guard let marker = arguments.firstIndex(of: "--espdesktop-home-connection"), marker + 2 < arguments.count,
               let portNumber = UInt16(arguments[marker + 1]), let port = NWEndpoint.Port(rawValue: portNumber),
               let secret = UUID(uuidString: arguments[marker + 2]) else { return }
@@ -139,13 +161,6 @@ final class EspDesktopHome: NSObject, ObservableObject, HMHomeManagerDelegate, H
         defaults.set(id.uuidString, forKey: "selectedHome")
         defaults.set(true, forKey: "selectedHomeExplicit")
         refresh()
-    }
-
-    var canContinue: Bool { supportsContinue && channel != nil && status == .ready }
-
-    func continueSetup() {
-        guard canContinue, let bindingSet else { return }
-        channel?.send(.init(kind: .continueSetup, bindingSet: bindingSet))
     }
 
     private func refresh() {

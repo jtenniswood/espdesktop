@@ -12,18 +12,19 @@ final class AppleHomeScenes: ObservableObject {
     private static let inactive = UUID(uuid: (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0))
 
     @Published private(set) var status: AppleHomeSceneMessage.Status?
-    @Published private(set) var canChooseHome = false
     @Published private(set) var note = ""
     @Published private(set) var approvals: [String: UUID]
     @Published private(set) var controls: [AppleHomeControl] = []
     @Published private(set) var cardLabels: [String: [UUID: String]]
     var onControlsChanged: (() -> Void)?
-    var onContinueSetup: (() -> Void)?
+    var onSetupCompleted: (() -> Void)?
     private var incomingControls: [AppleHomeControl]?
     private let defaults: UserDefaults
     private var listener: NWListener?
     private var peer: AppleHomeSceneChannel?
     private var helper: NSRunningApplication?
+    private var canChooseHome = false
+    private var revealSetupOnLaunch = false
     private var bindingSet: UUID?
     private var runningAction = false
     private var pendingRun: (UUID, CheckedContinuation<AppleHomeSceneMessage?, Never>)?
@@ -62,15 +63,27 @@ final class AppleHomeScenes: ObservableObject {
     }
     var readyBinding: UUID? { status == .ready ? bindingSet : nil }
 
-    private var setupNeedsNoHomeChoice: Bool {
-        !canChooseHome && (status == .ready || status == .empty)
+    private var setupIsResolved: Bool {
+        status == .ready || (status == .empty && !canChooseHome)
+    }
+
+    private func finishSetupIfNeeded() {
+        guard setupIsResolved, !runningAction, let helper else { return }
+        let returnToEditor = helper.isActive ? onSetupCompleted : nil
+        onSetupCompleted = nil
+        if !helper.isHidden { helper.hide() }
+        returnToEditor?()
     }
 
     func connect(activate: Bool = true) {
         guard listener == nil else {
             if activate {
-                helper?.unhide()
-                helper?.activate(options: [])
+                if let helper {
+                    helper.unhide()
+                    helper.activate(options: [])
+                } else {
+                    revealSetupOnLaunch = true
+                }
             }
             return
         }
@@ -121,14 +134,19 @@ final class AppleHomeScenes: ObservableObject {
         configuration.hides = !activate
         configuration.createsNewApplicationInstance = true
         configuration.arguments = ["--espdesktop-home-connection", String(port.rawValue), secret.uuidString,
-                                   "--espdesktop-home-cards", "--espdesktop-home-continue"]
+                                   "--espdesktop-home-cards"]
         let currentListener = listener
         Task {
             do {
                 let app = try await NSWorkspace.shared.openApplication(at: url, configuration: configuration)
                 guard self.listener === currentListener else { app.terminate(); return }
                 helper = app
-                if setupNeedsNoHomeChoice { app.hide() }
+                if revealSetupOnLaunch && !setupIsResolved {
+                    app.unhide()
+                    app.activate(options: [])
+                }
+                revealSetupOnLaunch = false
+                finishSetupIfNeeded()
             } catch {
                 guard self.listener === currentListener else { return }
                 stop()
@@ -172,7 +190,7 @@ final class AppleHomeScenes: ObservableObject {
                 defaults.set(true, forKey: Self.connectionEnabledKey)
             }
             if message.status != .ready { controls = [] }
-            if setupNeedsNoHomeChoice && !runningAction { helper?.hide() }
+            finishSetupIfNeeded()
             onControlsChanged?()
         case .catalogStart:
             incomingControls = []
@@ -182,10 +200,6 @@ final class AppleHomeScenes: ObservableObject {
             if let incomingControls { controls = incomingControls }
             incomingControls = nil
             onControlsChanged?()
-        case .continueSetup:
-            guard status == .ready, let bindingSet, message.bindingSet == bindingSet, !controls.isEmpty else { return }
-            helper?.hide()
-            onContinueSetup?()
         case .result:
             if let pending = pendingRun, pending.0 == message.request {
                 pendingRun = nil
@@ -225,7 +239,7 @@ final class AppleHomeScenes: ObservableObject {
             let wasHidden = helper.isHidden
             defer {
                 let restoreFocus = helper.isActive
-                if wasHidden { helper.hide() }
+                if wasHidden || setupIsResolved { helper.hide() }
                 if restoreFocus, previousApp?.processIdentifier != helper.processIdentifier {
                     previousApp?.activate(options: [])
                 }
@@ -298,6 +312,8 @@ final class AppleHomeScenes: ObservableObject {
         helper = nil
         status = nil
         canChooseHome = false
+        revealSetupOnLaunch = false
+        onSetupCompleted = nil
         bindingSet = nil
         controls = []
         incomingControls = nil

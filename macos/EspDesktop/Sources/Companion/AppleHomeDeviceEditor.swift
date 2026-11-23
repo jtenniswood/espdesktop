@@ -24,15 +24,15 @@ final class AppleHomeDeviceEditor {
             CompanionStore.panelWebServerURL(from: display.record.host) == panel
     }
 
-    func localControls(onContinueSetup: (() -> Void)? = nil) throws -> USBEditorResponse {
+    func localControls(onSetupCompleted: (() -> Void)? = nil) throws -> USBEditorResponse {
         guard isCurrent, display.state == .connected else {
             return USBEditorResponse(status: 503, headers: [:], body: Data())
         }
         guard supportsNativeLayout else {
             return USBEditorResponse(status: 426, headers: [:], body: Data())
         }
-        if let onContinueSetup, home.status == nil || home.status == .chooseHome {
-            home.onContinueSetup = onContinueSetup
+        if let onSetupCompleted, home.status == nil || home.status == .chooseHome {
+            home.onSetupCompleted = onSetupCompleted
             home.connect()
         }
         let controls = home.status == .ready ? home.controls : []

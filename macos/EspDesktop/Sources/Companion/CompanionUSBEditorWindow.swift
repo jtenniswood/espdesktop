@@ -349,7 +349,7 @@ final class CompanionUSBEditorWindow: NSObject, WKNavigationDelegate, WKUIDelega
                 return USBEditorResponse(status: 404, headers: [:], body: Data())
             }
             if request.method == "POST" {
-                return try appleHomeEditor.localControls(onContinueSetup: { [weak self] in
+                return try appleHomeEditor.localControls(onSetupCompleted: { [weak self] in
                     guard let self, self.isCurrent, self.window.isVisible else { return }
                     self.open()
                 })
