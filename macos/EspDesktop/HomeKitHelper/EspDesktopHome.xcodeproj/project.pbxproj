@@ -88,6 +88,7 @@
                 CURRENT_PROJECT_VERSION = 1;
                 DERIVE_MACCATALYST_PRODUCT_BUNDLE_IDENTIFIER = NO;
                 GENERATE_INFOPLIST_FILE = YES;
+                INFOPLIST_KEY_LSUIElement = YES;
                 INFOPLIST_KEY_NSHomeKitUsageDescription = "Run existing Apple Home scenes from your paired EspDesktop display.";
                 INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
                 IPHONEOS_DEPLOYMENT_TARGET = 16.0;

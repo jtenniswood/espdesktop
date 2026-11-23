@@ -1,4 +1,5 @@
 import AppKit
+import ApplicationServices
 import Network
 import Security
 import Combine
@@ -81,8 +82,29 @@ final class AppleHomeScenes: ObservableObject {
         wantsHomePicker = false
         let returnToEditor = helper.isActive ? onSetupCompleted : nil
         onSetupCompleted = nil
-        if !helper.isHidden { helper.hide() }
+        if helper.activationPolicy == .regular {
+            if !helper.isHidden { helper.hide() }
+        } else if helper.activationPolicy == .accessory && AXIsProcessTrusted() {
+            closeUnusedHelperWindow(helper)
+        }
         returnToEditor?()
+    }
+
+    private func closeUnusedHelperWindow(_ helper: NSRunningApplication) {
+        // Some Catalyst launches leave a native window after destroying its UIKit scene.
+        // Use existing Accessibility access for this signed helper only.
+        let application = AXUIElementCreateApplication(helper.processIdentifier)
+        AXUIElementSetMessagingTimeout(application, 0.2)
+        var value: CFTypeRef?
+        guard AXUIElementCopyAttributeValue(application, kAXWindowsAttribute as CFString, &value) == .success,
+              let windows = value as? [AXUIElement] else { return }
+        for window in windows {
+            guard AXUIElementCopyAttributeValue(window, kAXIdentifierAttribute as CFString, &value) == .success,
+                  value as? String == "SceneWindow" else { continue }
+            guard AXUIElementCopyAttributeValue(window, kAXCloseButtonAttribute as CFString, &value) == .success,
+                  let value, CFGetTypeID(value) == AXUIElementGetTypeID() else { continue }
+            AXUIElementPerformAction(value as! AXUIElement, kAXPressAction as CFString)
+        }
     }
 
     func connect(showHomePickerWhenNeeded: Bool = false) {
@@ -136,6 +158,7 @@ final class AppleHomeScenes: ObservableObject {
         let configuration = NSWorkspace.OpenConfiguration()
         configuration.activates = false
         configuration.hides = true
+        configuration.addsToRecentItems = false
         configuration.createsNewApplicationInstance = true
         configuration.arguments = ["--espdesktop-home-connection", String(port.rawValue), secret.uuidString,
                                    "--espdesktop-home-cards"]
@@ -239,7 +262,7 @@ final class AppleHomeScenes: ObservableObject {
             let wasHidden = helper.isHidden
             defer {
                 let restoreFocus = helper.isActive
-                if wasHidden || setupIsResolved { helper.hide() }
+                if helper.activationPolicy == .regular && (wasHidden || setupIsResolved) { helper.hide() }
                 if restoreFocus, previousApp?.processIdentifier != helper.processIdentifier {
                     previousApp?.activate(options: [])
                 }
