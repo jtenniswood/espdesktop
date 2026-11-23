@@ -14,9 +14,8 @@ layout API. Check that your home appears in Apple Home on the Mac.
 1. In EspDesktop on the Mac, open **Settings → Displays** and click **Device**
    next to your display. Select an empty tile and choose **Apple Home**.
 2. EspDesktop connects automatically. Allow HomeKit access when macOS asks.
-   If only one home is set up, EspDesktop selects it automatically. If a home
-   picker appears, choose your home. The helper hides once the controls are
-   ready, and EspDesktop remembers the choice for background reconnection.
+   The helper connects in the background. If EspDesktop needs you to choose a
+   home, it opens a picker and remembers your choice for future connections.
 3. Pick a control. The Mac editor lists every supported
    control in the connected home. The display's browser editor shows only the
    controls already saved for that display.

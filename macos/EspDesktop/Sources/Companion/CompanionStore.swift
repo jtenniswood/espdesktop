@@ -222,7 +222,7 @@ final class CompanionStore: NSObject, ObservableObject {
                 editor.appleHomeDidChange()
             }
         }
-        if AppleHomeDeviceEditor.asset != nil && appleHome.canRestore { appleHome.connect(activate: false) }
+        if AppleHomeDeviceEditor.asset != nil && appleHome.canRestore { appleHome.connect() }
         obsCatalogueObservation = OBSConnection.displayCatalogues(from: obs.$state)
             .sink { [weak self] actions in
                 self?.publishToConnectedDisplays { $0.publishCatalogue(obsActions: actions) }

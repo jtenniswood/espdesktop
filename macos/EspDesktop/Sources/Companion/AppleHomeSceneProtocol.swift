@@ -51,7 +51,7 @@ struct AppleHomeControl: Codable, Equatable, Identifiable, Sendable {
 
 struct AppleHomeSceneMessage: Codable, Equatable, Sendable {
     enum Kind: String, Codable, Sendable {
-        case hello, status, catalogStart, catalogControl, catalogEnd, run, result, disconnect, continueSetup
+        case hello, status, catalogStart, catalogControl, catalogEnd, run, result, disconnect, continueSetup, showHomePicker
     }
     enum Status: String, Codable, Sendable { case waiting, chooseHome, denied, empty, ready }
 
@@ -62,6 +62,7 @@ struct AppleHomeSceneMessage: Codable, Equatable, Sendable {
     var slot: Int? = nil
     var bindingSet: UUID? = nil
     var canChooseHome: Bool? = nil
+    var presentsHomePickerOnRequest: Bool? = nil
     var reference: UUID? = nil
     var control: AppleHomeControl? = nil
     var succeeded: Bool? = nil

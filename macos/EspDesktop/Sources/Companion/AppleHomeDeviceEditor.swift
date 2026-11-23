@@ -33,7 +33,7 @@ final class AppleHomeDeviceEditor {
         }
         if let onSetupCompleted, home.status == nil || home.status == .chooseHome {
             home.onSetupCompleted = onSetupCompleted
-            home.connect()
+            home.connect(showHomePickerWhenNeeded: true)
         }
         let controls = home.status == .ready ? home.controls : []
         let entries = controls.map { ["id": $0.action, "label": $0.name] }

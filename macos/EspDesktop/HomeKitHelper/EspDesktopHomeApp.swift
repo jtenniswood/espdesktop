@@ -1,3 +1,4 @@
+import Combine
 import Foundation
 import HomeKit
 import Network
@@ -6,76 +7,69 @@ import SwiftUI
 import UIKit
 
 @main
-struct EspDesktopHomeApp: App {
-    @StateObject private var home = EspDesktopHome()
+final class EspDesktopHomeApp: UIResponder, UIApplicationDelegate {
+    let home = EspDesktopHome()
 
-    var body: some Scene {
-        WindowGroup {
-            VStack(alignment: .leading, spacing: 16) {
-                Text("Apple Home").font(.title)
-                content
-                if home.homes.count > 1 && (home.status == .chooseHome || home.status == .empty) {
-                    Picker("Home", selection: Binding(get: { home.selectedHomeID }, set: home.select)) {
-                        if home.selectedHomeID == nil { Text("Choose a Home").tag(nil as UUID?) }
-                        ForEach(home.homes, id: \.uniqueIdentifier) { house in
-                            let count = home.controlCounts[house.uniqueIdentifier, default: 0]
-                            Text("\(house.name) (\(count) available)").tag(Optional(house.uniqueIdentifier))
-                        }
-                    }
-                }
-            }
-            .padding(24)
-            .frame(minWidth: 370, minHeight: 260, alignment: .topLeading)
-            .background(SetupWindowVisibility(isVisible: home.status != .ready))
-        }
-    }
-
-    @ViewBuilder
-    private var content: some View {
-        switch home.status {
-        case .waiting:
-            ProgressView("Loading Apple Home")
-        case .denied:
-            Text("Allow EspDesktop Home in System Settings under Privacy & Security → HomeKit.")
-        case .chooseHome:
-            Text("Choose which home to connect to EspDesktop.")
-        case .empty:
-            if home.homes.isEmpty {
-                Text("No homes are available. Check that your home appears in the Apple Home app on this Mac.")
-            } else {
-                Text("There are no compatible controls or scenes in this home.")
-            }
-        case .ready:
-            Text("Choose controls to add to your display in EspDesktop.")
-        }
+    func application(_ application: UIApplication, configurationForConnecting session: UISceneSession,
+                     options: UIScene.ConnectionOptions) -> UISceneConfiguration {
+        let configuration = UISceneConfiguration(name: nil, sessionRole: session.role)
+        configuration.delegateClass = HomePickerScene.self
+        return configuration
     }
 }
 
-private struct SetupWindowVisibility: UIViewRepresentable {
-    let isVisible: Bool
+@MainActor
+private final class HomePickerScene: UIResponder, UIWindowSceneDelegate {
+    static let activityType = "io.espdesktop.home.choose-home"
+    var window: UIWindow?
+    private var statusObservation: AnyCancellable?
 
-    func makeUIView(context: Context) -> WindowObserver { WindowObserver() }
+    func scene(_ scene: UIScene, willConnectTo session: UISceneSession, options: UIScene.ConnectionOptions) {
+        // Catalyst can open a native window for the initial or restored scene
+        // even when no UIKit window has been created.
+        guard options.userActivities.contains(where: { $0.activityType == Self.activityType }) else {
+            UIApplication.shared.requestSceneSessionDestruction(session, options: nil)
+            return
+        }
+        guard let scene = scene as? UIWindowScene,
+              let app = UIApplication.shared.delegate as? EspDesktopHomeApp else { return }
+        let home = app.home
 
-    func updateUIView(_ view: WindowObserver, context: Context) {
-        view.isSetupVisible = isVisible
-        view.updateWindowVisibility()
+        let window = UIWindow(windowScene: scene)
+        window.rootViewController = UIHostingController(rootView: HomePicker(home: home))
+        self.window = window
+        window.makeKeyAndVisible()
+        statusObservation = home.$status.sink { [weak scene] status in
+            guard let scene, status == .ready || status == .denied else { return }
+            UIApplication.shared.requestSceneSessionDestruction(scene.session, options: nil)
+        }
     }
 
-    final class WindowObserver: UIView {
-        var isSetupVisible = true
+    func sceneDidDisconnect(_ scene: UIScene) {
+        statusObservation = nil
+        window = nil
+    }
 
-        override func didMoveToWindow() {
-            super.didMoveToWindow()
-            updateWindowVisibility()
-        }
+}
 
-        func updateWindowVisibility() {
-            // Keep the scene and HomeKit connection alive for accessory actions.
-            Task { @MainActor [weak self] in
-                guard let self, let window, window.isHidden == isSetupVisible else { return }
-                window.isHidden = !isSetupVisible
+private struct HomePicker: View {
+    @ObservedObject var home: EspDesktopHome
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            Text("Apple Home").font(.title)
+            Text(home.status == .empty ? "There are no compatible controls or scenes in this home."
+                 : "Choose which home to connect to EspDesktop.")
+            Picker("Home", selection: Binding(get: { home.selectedHomeID }, set: home.select)) {
+                if home.selectedHomeID == nil { Text("Choose a Home").tag(nil as UUID?) }
+                ForEach(home.homes, id: \.uniqueIdentifier) { house in
+                    let count = home.controlCounts[house.uniqueIdentifier, default: 0]
+                    Text("\(house.name) (\(count) available)").tag(Optional(house.uniqueIdentifier))
+                }
             }
+            .pickerStyle(.menu)
         }
+        .padding(24)
     }
 }
 
@@ -278,10 +272,17 @@ final class EspDesktopHome: NSObject, ObservableObject, HMHomeManagerDelegate, H
     private func publish(_ update: AppleHomeSceneMessage.Status) {
         status = update
         channel?.send(.init(kind: .status, status: update, bindingSet: update == .ready ? bindingSet : nil,
-                            canChooseHome: homes.count > 1))
+                            canChooseHome: homes.count > 1, presentsHomePickerOnRequest: true))
     }
 
     private func receive(_ message: AppleHomeSceneMessage) async {
+        if message.kind == .showHomePicker {
+            guard status == .chooseHome else { return }
+            let activity = NSUserActivity(activityType: HomePickerScene.activityType)
+            let session = UIApplication.shared.connectedScenes.first { ($0.delegate as? HomePickerScene)?.window != nil }?.session
+            UIApplication.shared.requestSceneSessionActivation(session, userActivity: activity, options: nil)
+            return
+        }
         if message.kind == .disconnect {
             channel?.close()
             return

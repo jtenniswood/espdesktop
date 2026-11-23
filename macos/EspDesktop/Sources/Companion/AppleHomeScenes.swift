@@ -24,7 +24,8 @@ final class AppleHomeScenes: ObservableObject {
     private var peer: AppleHomeSceneChannel?
     private var helper: NSRunningApplication?
     private var canChooseHome = false
-    private var revealSetupOnLaunch = false
+    private var presentsHomePickerOnRequest = false
+    private var wantsHomePicker = false
     private var bindingSet: UUID?
     private var runningAction = false
     private var pendingRun: (UUID, CheckedContinuation<AppleHomeSceneMessage?, Never>)?
@@ -67,24 +68,27 @@ final class AppleHomeScenes: ObservableObject {
         status == .ready || (status == .empty && !canChooseHome)
     }
 
-    private func finishSetupIfNeeded() {
-        guard setupIsResolved, !runningAction, let helper else { return }
+    private func updateSetupPresentation() {
+        guard !runningAction, let helper else { return }
+        if wantsHomePicker, status == .chooseHome {
+            wantsHomePicker = false
+            if presentsHomePickerOnRequest { peer?.send(.init(kind: .showHomePicker)) }
+            helper.unhide()
+            helper.activate(options: [])
+            return
+        }
+        guard setupIsResolved else { return }
+        wantsHomePicker = false
         let returnToEditor = helper.isActive ? onSetupCompleted : nil
         onSetupCompleted = nil
         if !helper.isHidden { helper.hide() }
         returnToEditor?()
     }
 
-    func connect(activate: Bool = true) {
+    func connect(showHomePickerWhenNeeded: Bool = false) {
+        if showHomePickerWhenNeeded { wantsHomePicker = true }
         guard listener == nil else {
-            if activate {
-                if let helper {
-                    helper.unhide()
-                    helper.activate(options: [])
-                } else {
-                    revealSetupOnLaunch = true
-                }
-            }
+            updateSetupPresentation()
             return
         }
         guard let url = Self.helperURL else {
@@ -108,7 +112,7 @@ final class AppleHomeScenes: ObservableObject {
                     switch state {
                     case .ready:
                         guard let port = listener.port else { return }
-                        self.launch(url, port: port, secret: secret, activate: activate)
+                        self.launch(url, port: port, secret: secret)
                     case .failed:
                         self.stop()
                         self.note = "Could not connect to EspDesktop Home."
@@ -128,10 +132,10 @@ final class AppleHomeScenes: ObservableObject {
         }
     }
 
-    private func launch(_ url: URL, port: NWEndpoint.Port, secret: UUID, activate: Bool) {
+    private func launch(_ url: URL, port: NWEndpoint.Port, secret: UUID) {
         let configuration = NSWorkspace.OpenConfiguration()
-        configuration.activates = activate
-        configuration.hides = !activate
+        configuration.activates = false
+        configuration.hides = true
         configuration.createsNewApplicationInstance = true
         configuration.arguments = ["--espdesktop-home-connection", String(port.rawValue), secret.uuidString,
                                    "--espdesktop-home-cards"]
@@ -141,12 +145,7 @@ final class AppleHomeScenes: ObservableObject {
                 let app = try await NSWorkspace.shared.openApplication(at: url, configuration: configuration)
                 guard self.listener === currentListener else { app.terminate(); return }
                 helper = app
-                if revealSetupOnLaunch && !setupIsResolved {
-                    app.unhide()
-                    app.activate(options: [])
-                }
-                revealSetupOnLaunch = false
-                finishSetupIfNeeded()
+                updateSetupPresentation()
             } catch {
                 guard self.listener === currentListener else { return }
                 stop()
@@ -186,11 +185,12 @@ final class AppleHomeScenes: ObservableObject {
             bindingSet = message.status == .ready ? message.bindingSet : nil
             status = message.status
             canChooseHome = message.canChooseHome == true
+            presentsHomePickerOnRequest = message.presentsHomePickerOnRequest == true
             if status == .ready || status == .empty {
                 defaults.set(true, forKey: Self.connectionEnabledKey)
             }
             if message.status != .ready { controls = [] }
-            finishSetupIfNeeded()
+            updateSetupPresentation()
             onControlsChanged?()
         case .catalogStart:
             incomingControls = []
@@ -312,7 +312,8 @@ final class AppleHomeScenes: ObservableObject {
         helper = nil
         status = nil
         canChooseHome = false
-        revealSetupOnLaunch = false
+        presentsHomePickerOnRequest = false
+        wantsHomePicker = false
         onSetupCompleted = nil
         bindingSet = nil
         controls = []
