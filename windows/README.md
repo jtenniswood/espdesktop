@@ -15,13 +15,13 @@ Setup installs for the current user and includes the .NET runtime. It does not n
 
 Keep the PC and display on the same local network. The **Display** page finds nearby displays while you set up. Select one, enter its address manually, or choose **Find nearby displays** to scan again immediately. Choose **Open pairing page**, read the code, and enter it in the Windows app. You can also press and hold the Wi-Fi icon on the display for a code. If the display is paired to a different computer, reset its Companion pairing first. The display pairs with one computer at a time. After pairing, choose **Open display editor** in Settings or the notification area to customize your cards.
 
-Existing S3 firmware calls the connector **Mac Companion**. Use that connector for Windows too. In the display’s web editor you can:
+In the display editor, open **Connectors → Mac Companion** to check pairing with your Windows PC. You can add these controls:
 
 - Add **Applications** cards for approved Start menu apps, with icons and active app highlighting. Shortcut presets are included for common browsers, VS Code, Cursor, Office, Notepad, Slack, Discord, Spotify, and GitHub Desktop where the app can identify them. You can create a custom shortcut for any approved app.
-- If Windows keeps another app in front, use the flashing taskbar button to switch to the requested app. Shortcut pages require the matching app to be in the foreground.
+- Choose when an app’s shortcut subpage opens under **Screen → Appearance → App Subpages**. Shortcut pages require the matching app to be in the foreground. If Windows keeps another app in front, use the flashing taskbar button to switch to the requested app.
 - Add **Folder** cards for folders you approve in Windows. File Explorer uses the firmware’s existing Finder slot, so its app subpage can also show approved folders. If a folder moves, use **Choose again** in Folders to point existing cards at its new location and keep the folder name. Folder paths stay on the PC.
 - Add **Website** cards. Links use your default browser; new windows and active site highlighting work with supported browsers. Highlighting depends on the browser exposing its address bar to Windows accessibility. Some browser versions, languages, and installed web apps may not expose it.
-- Add **Key Shortcut** or **Mac Lock** cards. Enable **Allow keyboard shortcuts and screen lock** in the Windows app first. The editor’s Command and Control choices both map to Windows Ctrl; Option maps to Alt. Shortcuts go to an approved app in front and Windows protects apps running as administrator. The existing Mac Lock card locks Windows.
+- Add **Keyboard Shortcut** or **Lock Machine** cards. Enable **Allow keyboard shortcuts and screen lock** in the Windows app first. The editor’s Command and Control choices both map to Windows Ctrl. Option maps to Alt. Shortcuts go to an approved app in front and Windows protects apps running as administrator.
 - Add statistics, speaker and microphone volume, or mute controls. Setting a volume above zero unmutes that device. The display receives basic system readings while paired. Actions are blocked while Windows is locked.
 
 Use **Start EspDesktop when I sign in** to keep the display connected after login. To stop the app, choose **Quit EspDesktop** from its notification area icon.

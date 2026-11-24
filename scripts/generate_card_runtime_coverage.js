@@ -362,6 +362,7 @@ function reportMarkdown(inventory, contract, cases) {
     local: "Older local-action input; normalizes to Action with local dispatch.",
     text_sensor: "Older sensor input; normalizes to Sensor text mode.",
     companion_subpage: "Mac Companion picker alias that saves as a generic Subpage with its connector option.",
+    companion_apple_shortcuts: "Apple Shortcuts picker alias that saves a Companion Subpage with the workflow kind.",
     media_cover_art: "Hidden compatibility registration that normalizes older Cover Art aliases to Media.",
   };
   for (const [type, spec] of Object.entries(inventory.runtimeOnlyTypes)) {

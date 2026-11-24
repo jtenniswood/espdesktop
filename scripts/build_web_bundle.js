@@ -7,6 +7,8 @@ const esbuild = require("esbuild");
 
 const ROOT = path.resolve(__dirname, "..");
 const ENTRY = path.join(ROOT, "src", "webserver", "entry.ts");
+const SHORTCUT_CATALOGUE = path.join(ROOT, "src", "webserver", "generated", "app_shortcuts.ts");
+const OFFLINE_SHORTCUT_CATALOGUE = path.join(ROOT, "src", "webserver", "generated", "app_shortcuts_offline.ts");
 
 function overlayPlugin(overlays) {
   const normalized = new Map(
@@ -115,7 +117,11 @@ async function main() {
     ),
   );
   fs.writeFileSync(outputPath, app);
-  fs.writeFileSync(path.join(request.outputDir, "embedded.js"), embeddedFallback(app));
+  const offlineCatalogue = request.overlays?.[OFFLINE_SHORTCUT_CATALOGUE] ??
+    fs.readFileSync(OFFLINE_SHORTCUT_CATALOGUE, "utf8");
+  const embedded = await bundleApp(request.devices, request.embeddedMdiStyles,
+    !!request.testHooks, { ...request.overlays, [SHORTCUT_CATALOGUE]: offlineCatalogue });
+  fs.writeFileSync(path.join(request.outputDir, "embedded.js"), embeddedFallback(protectedApp(embedded)));
   fs.writeFileSync(path.join(request.outputDir, "www.js"), webAssetBridge());
   for (const slug of Object.keys(request.devices)) {
     const legacyPath = path.join(request.outputDir, slug, "www.js");

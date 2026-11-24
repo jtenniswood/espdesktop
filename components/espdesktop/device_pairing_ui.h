@@ -4,6 +4,7 @@
 
 #include "button_grid_modal.h"
 #include "companion_controls.h"
+#include "home_assistant_cards.h"
 #include "screen_lock_state.h"
 
 struct DevicePairingButtonColors {
@@ -14,8 +15,7 @@ struct DevicePairingButtonColors {
 // Match the website's dark-mode button blue.
 inline constexpr DevicePairingButtonColors DEVICE_PAIRING_BUTTON_BLUE{0x3E63DD, 0x3451B2};
 inline constexpr DevicePairingButtonColors DEVICE_PAIRING_BUTTON_GREY{0x6C6C6C, 0x555555};
-// A mid-grey outline stays visible against both the dark and light panels.
-inline constexpr uint32_t DEVICE_PAIRING_TILE_BORDER = 0x6C6C6C;
+inline constexpr uint32_t DEVICE_PAIRING_TILE_BORDER = 0x383838;
 
 struct DevicePairingUi {
   lv_obj_t *overlay = nullptr;
@@ -124,7 +124,7 @@ inline void device_pairing_show(const lv_font_t *text_font, const lv_font_t *tit
                                 bool confirm_reset) {
   const auto &theme = current_theme();
   const auto layout = control_modal_calc_layout(icon_width_compensation_percent());
-  const lv_coord_t radius = control_modal_card_radius(nullptr);
+  const lv_coord_t radius = confirm_reset ? control_modal_card_radius(nullptr) : 0;
   const auto shell = control_modal_open_nested_menu(layout.panel_w, radius, device_pairing_close);
   auto &ui = device_pairing_ui();
   ui.overlay = shell.overlay;
@@ -132,14 +132,19 @@ inline void device_pairing_show(const lv_font_t *text_font, const lv_font_t *tit
   control_modal_style_overlay(shell.overlay);
   control_modal_style_panel(shell.panel, radius);
   lv_obj_set_align(shell.panel, LV_ALIGN_TOP_LEFT);
-  control_modal_apply_panel_layout(shell.overlay, shell.panel, layout, radius);
-  lv_obj_set_style_pad_left(shell.panel, layout.inset, LV_PART_MAIN);
-  lv_obj_set_style_pad_right(shell.panel, layout.inset, LV_PART_MAIN);
+  if (confirm_reset) {
+    control_modal_apply_panel_layout(shell.overlay, shell.panel, layout, radius);
+  } else {
+    lv_obj_set_size(shell.panel, lv_pct(100), lv_pct(100));
+  }
+  const lv_coord_t content_width = layout.panel_w - layout.inset * 2;
+  const lv_coord_t side_padding = confirm_reset ? layout.inset : (layout.sw - content_width) / 2;
+  lv_obj_set_style_pad_left(shell.panel, side_padding, LV_PART_MAIN);
+  lv_obj_set_style_pad_right(shell.panel, side_padding, LV_PART_MAIN);
   lv_obj_set_style_pad_row(shell.panel, control_modal_scaled_px(14, layout.short_side), LV_PART_MAIN);
   lv_obj_set_flex_flow(shell.panel, LV_FLEX_FLOW_COLUMN);
   lv_obj_set_flex_align(shell.panel, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
 
-  const lv_coord_t content_width = layout.panel_w - layout.inset * 2;
   const lv_coord_t button_height = std::max<lv_coord_t>(layout.profile.base_touch_target,
       control_modal_scaled_px(60, layout.short_side));
   const lv_coord_t tile_radius = control_modal_scaled_px(10, layout.short_side);
@@ -236,4 +241,36 @@ inline void device_pairing_open(const lv_font_t *text_font, const lv_font_t *tit
   }
   runtime.begin_pairing();
   device_pairing_show(text_font, title_font, false);
+}
+
+inline bool device_show_home_assistant_pairing(const std::string &code, const lv_font_t *font) {
+  if (screen_lock_enabled() || device_pairing_ui().overlay) return false;
+  const auto layout = control_modal_calc_layout(icon_width_compensation_percent());
+  const auto radius = control_modal_card_radius(nullptr);
+  const auto shell = control_modal_open_nested_menu(layout.panel_w, radius, device_pairing_close);
+  auto &ui = device_pairing_ui();
+  ui.overlay = shell.overlay;
+  control_modal_style_overlay(shell.overlay);
+  control_modal_style_panel(shell.panel, radius);
+  control_modal_apply_panel_layout(shell.overlay, shell.panel, layout, radius);
+  lv_obj_set_style_pad_all(shell.panel, layout.inset, LV_PART_MAIN);
+  lv_obj_set_style_pad_row(shell.panel, 8, LV_PART_MAIN);
+  lv_obj_set_flex_flow(shell.panel, LV_FLEX_FLOW_COLUMN);
+  lv_obj_set_flex_align(shell.panel, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
+  const auto &theme = current_theme();
+  device_pairing_label(shell.panel, "Home Assistant", font, theme.text_primary);
+  auto label = [&](const std::string &value) {
+    auto *object = device_pairing_label(shell.panel, value.c_str(), font, theme.text_primary);
+    lv_obj_set_style_base_dir(object, LV_BASE_DIR_LTR, LV_PART_MAIN);
+  };
+  label("Fingerprint");
+  for (size_t start = 0; start < 64; start += 16) label(code.substr(start, 16));
+  label("Pairing code");
+  label(code.substr(65));
+  const auto width = layout.panel_w - layout.inset * 2;
+  auto *done = device_pairing_button(shell.panel, espdesktop_i18n("Done"), width, width,
+                                     layout.profile.base_touch_target, font);
+  bind_immediate_button_action(done, [](lv_event_t *) { control_modal_close_nested_menu(); }, nullptr);
+  ui.refresh_timer = lv_timer_create([](lv_timer_t *) { control_modal_close_nested_menu(); }, 120000, nullptr);
+  return true;
 }

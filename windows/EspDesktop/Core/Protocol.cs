@@ -16,6 +16,9 @@ internal static class Protocol
     private static readonly Dictionary<string, JsonElement> Messages = Contract.GetProperty("messages")
         .EnumerateArray().ToDictionary(m => m.GetProperty("id").GetString()!);
     private static readonly JsonSerializerOptions JsonOptions = new() { Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping };
+    private static readonly Regex VolumeControlPattern = new(
+        @"\A(?:app\.volume\.[A-Za-z0-9.-]{1,96}|input\.level\.[0-9a-f]{64}|obs\.(?:level|cough)\.[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12})\z",
+        RegexOptions.CultureInvariant | RegexOptions.NonBacktracking);
     public static int Version => Contract.GetProperty("version").GetInt32();
     public static string SocketPath => Contract.GetProperty("path").GetString()!;
     public static int Limit(string key) => Contract.GetProperty(key).GetInt32();
@@ -103,6 +106,9 @@ internal static class Protocol
                 return pattern.GetString() switch
                 {
                     "hex64" => s.Length == 64 && s.All(Uri.IsHexDigit),
+                    "volume_control_id" or "writable_volume_control_id" =>
+                        s is "media.output_volume" or "media.input_volume" or "media.output_mute" or "media.input_mute" or "media.cough" ||
+                        VolumeControlPattern.IsMatch(s),
                     { } expression => Regex.IsMatch(s, expression, RegexOptions.CultureInvariant | RegexOptions.NonBacktracking),
                     _ => false
                 };

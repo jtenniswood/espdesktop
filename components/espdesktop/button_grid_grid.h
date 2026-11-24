@@ -2,9 +2,9 @@
 
 #include "grid_native_page_cards.h"
 #include "finder_folder_sync.h"
+#include "obs_live_subpage.h"
 #include <initializer_list>
 
-#include "card_curve.h"
 #include "card_icon_layout.h"
 
 // Internal implementation detail for button_grid.h. Include button_grid.h from device YAML.
@@ -75,24 +75,70 @@ struct GridConfig {
 
 // The approved Mac catalogue is only a render input. The native page store
 // continues to contain the user's placed tiles.
-inline std::vector<CompanionAction> &grid_live_finder_folders() {
-  static std::vector<CompanionAction> folders;
-  return folders;
+inline std::vector<CompanionAction> &grid_live_companion_actions() {
+  static std::vector<CompanionAction> actions;
+  return actions;
 }
 
-inline bool grid_update_finder_folders(const CompanionRuntimeSnapshot &snapshot) {
-  std::vector<CompanionAction> folders;
+inline bool grid_is_apple_shortcuts_page(const ParsedCfg &card) {
+  return apple_shortcuts_navigation_card(card) ||
+      (card.entity == APPLE_SHORTCUTS_APP_ID && companion_app_shortcuts_enabled(card));
+}
+
+inline bool grid_update_live_companion_actions(const CompanionRuntimeSnapshot &snapshot) {
+  std::vector<CompanionAction> actions;
   if (snapshot.connected) {
     for (const auto &action : snapshot.actions)
-      if (is_live_finder_folder(action.id))
-        folders.push_back(action);
+      if (is_live_finder_folder(action.id) || companion_apple_shortcut_action(action.id))
+        actions.push_back(action);
   }
-  auto &previous = grid_live_finder_folders();
-  if (finder_folder_catalogue_equal(previous, folders)) return false;
-  previous = std::move(folders);
+  auto &previous = grid_live_companion_actions();
+  if (live_companion_catalogue_equal(previous, actions)) return false;
   const auto *pages = espdesktop::grid_native_pages();
-  return pages && std::any_of(pages->pages.begin(), pages->pages.end(), [](const auto &page) {
-    return grid_layout_card_config(page.key, {}).entity == "com.apple.finder";
+  const bool generated_page = pages && std::any_of(pages->pages.begin(), pages->pages.end(), [](const auto &page) {
+    const auto owner = grid_layout_card_config(page.key, {});
+    return owner.entity == "com.apple.finder" || grid_is_apple_shortcuts_page(owner);
+  });
+  const auto *store = espdesktop::grid_native_page_store();
+  bool saved_color_changed = false;
+  if (!generated_page && store) {
+    using espdesktop::pages::CardField;
+    for (size_t index = 0; index < store->card_count(); ++index) {
+      const auto &card = *store->card(index);
+      const auto id = store->field(card, CardField::ENTITY);
+      if (apple_shortcut_catalogue_color(previous, id) != apple_shortcut_catalogue_color(actions, id)) {
+        saved_color_changed = true;
+        break;
+      }
+    }
+  }
+  previous = std::move(actions);
+  return generated_page || saved_color_changed;
+}
+
+inline std::vector<CompanionAction> &grid_live_obs_tiles(OBSSubpageKind kind) {
+  static std::vector<CompanionAction> sources_catalogue;
+  static std::vector<CompanionAction> transitions_catalogue;
+  static std::vector<CompanionAction> audio_catalogue;
+  static std::vector<CompanionAction> scenes_catalogue;
+  if (kind == OBSSubpageKind::audio) return audio_catalogue;
+  if (kind == OBSSubpageKind::scenes) return scenes_catalogue;
+  return kind == OBSSubpageKind::sources ? sources_catalogue : transitions_catalogue;
+}
+
+inline bool grid_update_obs_subpage(const CompanionRuntimeSnapshot &snapshot, OBSSubpageKind kind) {
+  // During a reconnect or collection switch, keep the old tiles disabled until
+  // OBS has published the replacement list.
+  if (!companion_published_action(snapshot, kind == OBSSubpageKind::sources ? "obs.sources" : "obs.status.program")) return false;
+  auto entries = obs_subpage_catalogue(snapshot, kind);
+  auto &previous = grid_live_obs_tiles(kind);
+  if (live_companion_catalogue_equal(previous, entries)) return false;
+  previous = std::move(entries);
+  const auto *pages = espdesktop::grid_native_pages();
+  return pages && std::any_of(pages->pages.begin(), pages->pages.end(), [kind](const auto &page) {
+    const auto config = grid_layout_card_config(page.key, {});
+    return config.type == "subpage" &&
+      obs_subpage_kind(cfg_option_value(config.options, "subpage_kind")) == kind;
   });
 }
 
@@ -207,34 +253,34 @@ inline CardPalette card_palette_for_config(const CardPalette &defaults,
                                             const ParsedCfg &config,
                                             const DisplayProfile &display) {
   CardPalette palette = defaults;
-  bool valid = false;
   const std::string active_mode = cfg_option_value(config.options, "card_active_color");
-  palette.explicit_active_color = active_mode == "theme";
-  const std::string off = cfg_option_value(config.options, "card_off_color");
-  if (!off.empty()) {
-    const uint32_t raw = parse_hex_color(off, valid);
-    if (valid) {
-      palette.has_off = true;
-      palette.off_val = display_correct_color(raw, display);
-      palette.has_sensor_color = true;
-      palette.sensor_val = palette.off_val;
-      palette.surface_sensor_val = palette.off_val;
-      palette.custom_background = true;
-      if (active_mode != "theme") {
-        palette.has_on = true;
-        palette.on_val = display_correct_color(active_card_color(raw), display);
-      }
-      palette.progress_val = display_correct_color(card_progress_color(raw), display);
+  bool valid = false;
+  const uint32_t explicit_off = parse_hex_color(cfg_option_value(config.options, "card_off_color"), valid);
+  std::optional<uint32_t> off;
+  if (valid) off = explicit_off;
+  else if (config.type == "companion") off = apple_shortcut_catalogue_color(grid_live_companion_actions(), config.entity);
+  if (off) {
+    palette.has_off = true;
+    palette.off_val = display_correct_color(*off, display);
+    palette.has_sensor_color = true;
+    palette.sensor_val = palette.off_val;
+    palette.surface_sensor_val = palette.off_val;
+    palette.custom_background = true;
+    if (active_mode != "theme") {
+      palette.has_on = true;
+      palette.on_val = display_correct_color(active_card_color(*off), display);
     }
+    palette.progress_val = display_correct_color(card_progress_color(*off), display);
   }
   if (active_mode == "custom") {
     const uint32_t on = parse_hex_color(cfg_option_value(config.options, "card_on_color"), valid);
     if (valid) {
       palette.has_on = true;
       palette.on_val = display_correct_color(on, display);
-      palette.explicit_active_color = true;
     }
   }
+  if (config.type == "companion" && companion_obs_status_card(config.entity))
+    palette.sensor_val = palette.surface_sensor_val;
   return palette;
 }
 
@@ -379,9 +425,7 @@ inline bool info_only_hidden_card_type(const espdesktop::cards::Context &context
 inline void setup_card_visual(BtnSlot &s, const ParsedCfg &p,
                               const espdesktop::cards::Context &context,
                               const GridConfig &cfg,
-                              const CardPalette &default_palette,
-                              int row_span = 1,
-                              int col_span = 1) {
+                              const CardPalette &default_palette) {
   const DisplayProfile display = display_profile_from_grid_config(cfg);
   const CardPalette palette = card_palette_for_config(default_palette, p, display);
   const auto family = context.family;
@@ -394,10 +438,17 @@ inline void setup_card_visual(BtnSlot &s, const ParsedCfg &p,
 #endif
   apply_grid_card_corners(s.btn, cfg.card_corner_radius, cfg.continuous_card_corners);
   theme_set_content_background(s.btn, palette.custom_background);
+  const bool apple_shortcut = p.type == "companion" && companion_apple_shortcut_action(p.entity);
+  const auto pressed_state = apple_shortcut ? APPLE_SHORTCUT_TAP_STATE : LV_STATE_PRESSED;
+  lv_obj_clear_state(s.btn, APPLE_SHORTCUT_TAP_STATE);
+  lv_obj_remove_local_style_prop(s.btn, LV_STYLE_BG_COLOR, APPLE_SHORTCUT_TAP_STATE);
+  lv_obj_remove_local_style_prop(s.btn, LV_STYLE_TEXT_COLOR, APPLE_SHORTCUT_TAP_STATE);
+  lv_obj_remove_local_style_prop(s.btn, LV_STYLE_BG_GRAD_COLOR, APPLE_SHORTCUT_TAP_STATE);
+  lv_obj_remove_local_style_prop(s.btn, LV_STYLE_BG_GRAD_DIR, APPLE_SHORTCUT_TAP_STATE);
   apply_button_colors(s.btn, palette.has_on, palette.on_val,
-    palette.has_off, palette.off_val);
+    palette.has_off, palette.off_val, pressed_state);
   sync_card_checked_text_color(s.btn);
-  apply_button_on_pattern(s.btn, p.options, palette.has_on, palette.on_val);
+  apply_button_on_pattern(s.btn, p.options, palette.has_on, palette.on_val, pressed_state);
   apply_standard_sensor_number_style(s, display);
   if (s.unit_lbl) lv_obj_clear_flag(s.unit_lbl, LV_OBJ_FLAG_HIDDEN);
   if (s.text_lbl) lv_obj_clear_flag(s.text_lbl, LV_OBJ_FLAG_HIDDEN);
@@ -437,12 +488,10 @@ inline void setup_card_visual(BtnSlot &s, const ParsedCfg &p,
   if (espdesktop::cards::basic_action_driver_setup_visual(
         s, p, context, palette.sensor_val)) {
 #ifdef USE_COMPANION
-    if (p.type == "companion")
+    if (p.type == "companion" && !apple_shortcut_workflow_icon(p))
       grid_update_companion_app_icon_palette(s, p, palette, display);
 #endif
     espdesktop::cards::basic_action_driver_attach_interaction(s, p, context);
-    espdesktop::cards::basic_action_driver_refresh_layout(
-      s, p, context, display, row_span, col_span);
     return;
   }
   if (espdesktop::cards::numeric_selectable_driver_setup_visual(
@@ -450,7 +499,7 @@ inline void setup_card_visual(BtnSlot &s, const ParsedCfg &p,
     espdesktop::cards::numeric_selectable_driver_attach_interaction(
       s, p, context);
     espdesktop::cards::numeric_selectable_driver_refresh_layout(
-      s, p, context);
+      s, p, context, display);
     return;
   }
   if (espdesktop::cards::navigation_driver_setup_visual(
@@ -524,11 +573,16 @@ inline void refresh_card_layout(BtnSlot &s, const ParsedCfg &p,
     if (source) companion_layout_card_app_icon(*source, s.app_icon_img);
   }
 #endif
+  // The line clamp anchors the primary label at the bottom. Apply the OBS
+  // subtitle offset afterwards, before the page can draw its first frame.
+  if (espdesktop::cards::basic_action_driver_refresh_layout(
+        s, p, context, display, row_span, col_span)) return;
+
   if (espdesktop::cards::navigation_driver_refresh_layout(
         s, p, context, cfg)) return;
 
   if (espdesktop::cards::numeric_selectable_driver_refresh_layout(
-        s, p, context)) return;
+        s, p, context, display)) return;
 
 }
 
@@ -711,7 +765,7 @@ inline void grid_phase1(
     image_cards[idx - 1] = context.family == espdesktop::cards::Family::IMAGE;
     display_apply_main_width(s.icon_lbl, display);
     display_apply_slot_text_width(s, display);
-    setup_card_visual(s, p, context, cfg, palette, row_span, col_span);
+    setup_card_visual(s, p, context, cfg, palette);
     refresh_card_layout(s, p, cfg, row_span, col_span);
   }
   register_theme_grid(main_page_obj, slots, neutral_buttons, NS, sensor_surfaces,
@@ -1400,8 +1454,20 @@ inline void grid_phase2(
     if (p.entity == "com.apple.finder") {
       const int capacity = bounded_grid_slots(cfg.configured_slots > 0 ? cfg.configured_slots : NS);
       finder_project_folder_tiles(sp_ord, sp_btns, NS, COLS, capacity,
-                                 grid_live_finder_folders(),
-                                 companion_folder_open_behavior(p));
+                                 grid_live_companion_actions(),
+                                 companion_folder_open_behavior(p),
+                                 cfg_option_value(p.options, "generated_card_exclusions"));
+    } else if (grid_is_apple_shortcuts_page(p)) {
+      const int capacity = bounded_grid_slots(cfg.configured_slots > 0 ? cfg.configured_slots : NS);
+      const auto hidden = cfg_option_value(p.options, "apple_shortcuts_hidden");
+      project_apple_shortcut_tiles(sp_ord, sp_btns, NS, COLS, capacity, grid_live_companion_actions(), hidden);
+    } else {
+      const auto kind = obs_subpage_kind(cfg_option_value(p.options, "subpage_kind"));
+      if (kind != OBSSubpageKind::none) {
+        const int capacity = bounded_grid_slots(cfg.configured_slots > 0 ? cfg.configured_slots : NS);
+        project_obs_subpage_tiles(sp_ord, sp_btns, NS, COLS, capacity,
+                                 grid_live_obs_tiles(kind), p.options, kind);
+      }
     }
 
     lv_obj_t *sub_scr = lv_obj_create(nullptr);
@@ -1461,7 +1527,7 @@ inline void grid_phase2(
       espdesktop::card_icons::attach(back_btn, back_slot.icon_lbl, back_slot.text_lbl,
           "large", display_main_width_percent(display), cfg.width_compensation_vertical);
 #ifdef USE_COMPANION
-      companion_set_card_icon_image(back_slot, p.entity, "large");
+      companion_set_card_icon_image(back_slot, p.entity);
       esphome::companion::request_app_icon(p.entity);
 #endif
     }
@@ -1511,7 +1577,7 @@ inline void grid_phase2(
           context.family == espdesktop::cards::Family::IMAGE);
       display_apply_main_width(sub_slot.icon_lbl, display);
       display_apply_slot_text_width(sub_slot, display);
-      setup_card_visual(sub_slot, sb_cfg, context, cfg, page_palette, rs, cs);
+      setup_card_visual(sub_slot, sb_cfg, context, cfg, page_palette);
       // The line clamp re-anchors labels at the button content origin. Slider
       // cards remove button padding so their fill can reach the edges, so run
       // the card-specific refresh after clamping to restore the captured inset.
@@ -1529,16 +1595,17 @@ inline void grid_phase2(
           }
           if (sb_cfg.type == "subpage") {
             espdesktop::cards::navigation_driver_bind_subpage(sub_slot, sb_cfg, context);
-            bind_immediate_button_action(sub_slot.btn, [](lv_event_t *event) {
+            lv_obj_add_event_cb(sub_slot.btn, [](lv_event_t *event) {
               auto *button = static_cast<lv_obj_t *>(lv_event_get_target(event));
               const auto started = esphome::millis();
+              navigation_consume_touch_press(button);
               auto *screen = navigation_screen_for_button(button);
               if (screen && lv_obj_is_valid(screen)) {
                 navigation_begin_page_open(screen, started);
                 lv_scr_load_anim(screen, LV_SCR_LOAD_ANIM_NONE, 0, 0, false);
                 refresh_visible_image_cards();
               }
-            }, nullptr);
+            }, LV_EVENT_PRESSED, nullptr);
             continue;
           }
         }

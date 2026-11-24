@@ -1,0 +1,11 @@
+{
+  "domain": "espdesktop",
+  "name": "EspDesktop",
+  "codeowners": ["@jtenniswood"],
+  "config_flow": true,
+  "documentation": "https://github.com/jtenniswood/espdesktop/issues/483",
+  "integration_type": "device",
+  "iot_class": "local_polling",
+  "version": "0.1.0",
+  "zeroconf": ["_espdesktop._tcp.local."]
+}

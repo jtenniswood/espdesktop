@@ -12,7 +12,9 @@ Folder paths stay on the Mac. The display uses a friendly name and an anonymous 
 | Feature | Approval or permission |
 |---|---|
 | Launching an app | Approve it on the Mac app's **Apps** page |
+| [App Volume](/mac-controls/apps#app-volume) | Enable the app on the Mac app’s **Apps** page and allow **System Audio Recording** when prompted |
 | Opening a folder | Add it on the Mac app's **Folders** page |
+| Running an Apple Shortcut | **All available shortcuts** is on by default. Turn it off in the Mac app’s **Shortcuts** settings to choose which workflows paired displays can run. Workflows run only while the Mac is unlocked. |
 | Keyboard shortcuts and Mac Lock | Enable EspDesktop in **System Settings → Privacy & Security → Accessibility** |
 
 The [touchscreen follows your Mac’s lock state](/settings/system#protect-the-touchscreen) while the app is running and paired.
@@ -20,14 +22,16 @@ The [touchscreen follows your Mac’s lock state](/settings/system#protect-the-t
 ## macOS permission prompts
 
 <figure>
-  <a href="/images/mac-companion-shortcut-access.png"><picture><source type="image/avif" srcset="/images/mac-companion-shortcut-access-480.avif 480w, /images/mac-companion-shortcut-access-960.avif 960w" sizes="(min-width: 768px) 612px, 90vw"><img src="/images/mac-companion-shortcut-access.png" alt="EspDesktop’s Enable Shortcuts step with the macOS permission prompt and Open System Settings button" width="612" height="744" loading="lazy"></picture></a>
-  <figcaption>macOS can show this prompt when you choose Enable Shortcuts in EspDesktop.</figcaption>
+  <a href="/images/mac-companion-shortcut-access.png"><picture><source type="image/avif" srcset="/images/mac-companion-shortcut-access-480.avif 480w, /images/mac-companion-shortcut-access-960.avif 960w" sizes="(min-width: 768px) 612px, 90vw"><img src="/images/mac-companion-shortcut-access.png" alt="EspDesktop’s Enable Keyboard Shortcuts step with the macOS permission prompt and Open System Settings button" width="612" height="744" loading="lazy"></picture></a>
+  <figcaption>macOS can show this prompt when you choose Enable Keyboard Shortcuts in EspDesktop.</figcaption>
 </figure>
 
 <figure>
   <a href="/images/mac-companion-finder-access.png"><picture><source type="image/avif" srcset="/images/mac-companion-finder-access-480.avif 480w, /images/mac-companion-finder-access-772.avif 772w" sizes="(min-width: 768px) 386px, 90vw"><img src="/images/mac-companion-finder-access.png" alt="macOS asking whether EspDesktop can control Finder" width="386" height="504" loading="lazy"></picture></a>
   <figcaption>Folder highlighting may ask for permission to control Finder.</figcaption>
 </figure>
+
+For App Volume, EspDesktop adjusts the audio on your Mac. Your paired display receives the volume percentage. The audio stays on the Mac.
 
 ## Pairing and data
 

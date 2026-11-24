@@ -1,6 +1,7 @@
+import { setCardExposure } from "./home_assistant_cards";
 import { cardTransferOwnsSubpage } from "./card_transfer";
 import type { CardConfig } from "../contracts/types";
-import { CARD_CONFIG_FIELDS, cloneCardConfig, emptyCardConfig, parseRawButtonConfig } from "./card";
+import { CARD_CONFIG_FIELDS, cloneCardConfig, emptyCardConfig, isEmptyCardConfig, parseRawButtonConfig } from "./card";
 import { encodeConfigField } from "./config_primitives";
 import { CARD_CONTRACT_SUBPAGE_TYPE_CODES, CARD_CONTRACT_SUBPAGE_TYPES_BY_CODE } from "../generated/card_contract";
 import { buildSubpageGrid, isBackOrderToken, parseBackOrderToken, parseRawSubpageConfig, parseSubpageOrder, serializeSubpageGrid } from "./subpage";
@@ -195,7 +196,7 @@ function clearGridSlots(grid: number[], sizes: SlotSizeMap, slots: readonly numb
     delete sizes[String(slot)];
   }
 }
-function deleteCards<Tree>(editor: TransferEditor<Tree>, page: number, slots: readonly number[], layout: PageTransferLayout): void {
+function deleteCards<Tree>(editor: TransferEditor<Tree>, page: number, slots: readonly number[], layout: PageTransferLayout): CardConfig[] {
   const source = pageGrid(editor, page, layout);
   for (const slot of slots) {
     cardSlot(slot);
@@ -204,6 +205,7 @@ function deleteCards<Tree>(editor: TransferEditor<Tree>, page: number, slots: re
   clearGridSlots(source.grid, source.sizes, slots, layout);
   editor.writeCards(page, new Map(slots.map(slot => [slot, emptyCardConfig()])), updatedOrder(editor, page, source.grid, source.sizes, layout));
   for (const slot of slots) editor.writeTree(page, slot, null);
+  return slots.map(slot => source.cards[slot - 1]!);
 }
 export function planPageCardDelete(document: PanelConfigDocument, origin: PageTransferOrigin, layout: PageTransferLayout): PanelConfigDocument {
   const candidate = cloneDocument(document);
@@ -212,9 +214,9 @@ export function planPageCardDelete(document: PanelConfigDocument, origin: PageTr
   return candidate;
 }
 
-function deleteSelection<Tree>(editor: TransferEditor<Tree>, origin: PageTransferOrigin, layout: PageTransferLayout): void {
+function deleteSelection<Tree>(editor: TransferEditor<Tree>, origin: PageTransferOrigin, layout: PageTransferLayout): CardConfig[] {
   layoutCheck(layout); pageExists(editor, origin.page); verifyOrigin(editor, origin);
-  deleteCards(editor, origin.page, origin.slots, layout);
+  return deleteCards(editor, origin.page, origin.slots, layout);
 }
 
 /** Plan all owner, order, source and descendant changes before one native save. */
@@ -250,10 +252,8 @@ function pasteCards<Tree>(editor: TransferEditor<Tree>, target: number, start: n
     // Home runtime uses fixed grid identities; subpages can retain higher saved IDs.
     const maxIdentity = target ? PANEL_CONFIG_MAX_SLOT_COUNT : layout.slots;
     for (let possible = 1; possible <= maxIdentity; ++possible) {
-      const button = destination.cards[possible - 1];
-      const empty = !button || CARD_CONFIG_FIELDS.every(field => !button[field] ||
-        ((field === "icon" || field === "icon_on") && button[field] === "Auto"));
-      if (!destination.grid.includes(possible) && !edits.has(possible) && empty && !editor.subtreeAt(target, possible)) { slot = possible; break; }
+      if (!destination.grid.includes(possible) && !edits.has(possible) &&
+          isEmptyCardConfig(destination.cards[possible - 1]) && !editor.subtreeAt(target, possible)) { slot = possible; break; }
     }
     check(slot, "There is not enough room to paste every card without replacing saved cards");
     const placement = findDuplicatePlacement(destination.grid.slice(0, layout.slots), start, entry.size, layout.slots, layout.columns);
@@ -333,19 +333,26 @@ function nativeEditor(draft: NativeLayoutDraft): TransferEditor<NativeTransferTr
 }
 
 export function deleteNativePageCards(draft: NativeLayoutDraft, origin: PageTransferOrigin, grid: PageTransferLayout): void {
-  deleteSelection(nativeEditor(draft), origin, grid);
+  const deleted = deleteSelection(nativeEditor(draft), origin, grid);
+  if (origin.page) draft.hideDeletedAppleShortcuts(origin.page, deleted);
 }
 
 export function pasteNativePageCards(draft: NativeLayoutDraft, page: number, position: number,
-    entries: readonly PageTransferCard[], grid: PageTransferLayout, copyFrom?: PageTransferOrigin): { resized: number } {
+    entries: readonly PageTransferCard[], grid: PageTransferLayout, copyFrom?: PageTransferOrigin, preserveExposure = false): { resized: number } {
   const editor = nativeEditor(draft);
   if (copyFrom) verifyOrigin(editor, copyFrom);
+  const copy = (card: CardConfig): CardConfig => preserveExposure ? card :
+    { ...card, options: setCardExposure(card.options, "", false) };
+  const copyPage = (page: NativePageEdit | null) => page && { ...page, cards: page.cards.map(copy) };
   return pasteCards(editor, page, position, entries.map(entry => {
     const portable = entry.subtree;
     const subtree = entry.nativeTree !== undefined ? entry.nativeTree : portable ? {
       page: portable.configuration === null ? null : readLegacySubpage(portable.configuration),
       children: Object.fromEntries(Object.entries(portable.children).map(([key, raw]) => [key, readLegacySubpage(raw)])),
     } : null;
-    return { button: entry.button, size: entry.size, subtree };
+    return { button: copy(entry.button), size: entry.size, subtree: subtree && {
+      page: copyPage(subtree.page),
+      children: Object.fromEntries(Object.entries(subtree.children).map(([key, child]) => [key, copyPage(child)!])),
+    } };
   }), grid);
 }

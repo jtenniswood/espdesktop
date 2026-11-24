@@ -5,6 +5,8 @@ struct CompanionDisplayRecord: Codable, Equatable, Identifiable {
     var host: String
     var name: String
     var account: String
+    var usbPort: String?
+    var prefersUSB: Bool?
     var connectAtLaunch: Bool
 
     init(id: UUID = UUID(), host: String = "", name: String = "", account: String = "", connectAtLaunch: Bool = true) {
@@ -24,13 +26,15 @@ struct CompanionSavedDisplays {
     func load(readKeychainAccounts: () -> [String]) -> [CompanionDisplayRecord] {
         if let data = defaults.data(forKey: Self.key),
            let records = try? JSONDecoder().decode([CompanionDisplayRecord].self, from: data) {
-            return records
+            let displays = records.filter { $0.account != OBSConnection.legacyCredentialAccount }
+            if displays.count != records.count { save(displays) }
+            return displays
         }
         let legacyHost = defaults.string(forKey: "panelHost")
         let legacy = CompanionPairingSelection.restore(
             host: legacyHost,
             account: defaults.string(forKey: "pairingAccount"),
-            readKeychainAccounts: readKeychainAccounts
+            readKeychainAccounts: { readKeychainAccounts().filter { $0 != OBSConnection.legacyCredentialAccount } }
         )
         let records = legacy.account.isEmpty ? [] : [
             CompanionDisplayRecord(host: legacy.host, name: defaults.string(forKey: "panelDisplayName") ?? "",
@@ -68,10 +72,24 @@ final class CompanionDisplay: CompanionSessionPreferences, Identifiable {
         self.resources = resources
     }
 
-    var name: String { record.name.isEmpty ? record.host : record.name }
+    var name: String { record.name.isEmpty ? (record.host.isEmpty ? "USB display" : record.host) : record.name }
+    var usesUSB: Bool { record.prefersUSB == true && record.usbPort != nil }
     var panelHost: String {
-        get { record.host }
-        set { record.host = newValue }
+        get {
+            if usesUSB, let port = record.usbPort { return CompanionUSBPort.endpoint(for: port) }
+            return record.host
+        }
+        set {
+            var updated = record
+            if let port = CompanionUSBPort.path(from: newValue) {
+                updated.usbPort = port
+                updated.prefersUSB = true
+            } else {
+                updated.host = newValue
+                updated.prefersUSB = nil
+            }
+            record = updated
+        }
     }
     var pairingAccount: String { record.account }
     var hasSavedPairing: Bool { !pairingAccount.isEmpty }

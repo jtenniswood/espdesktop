@@ -59,9 +59,9 @@ image is built or installed.
 
 ## Manual ESPHome configuration / native OTA
 
-Use the repository-pinned ESPHome version (currently 2026.9.1). Copy this into your
-Device Builder configuration, set your device name, and keep Wi-Fi credentials
-in your local `secrets.yaml`:
+Use the [repository-pinned ESPHome version](../../.github/esphome.env). Copy
+this into your Device Builder configuration, set your device name, and keep
+Wi-Fi credentials in your local `secrets.yaml`:
 
 ```yaml
 substitutions:

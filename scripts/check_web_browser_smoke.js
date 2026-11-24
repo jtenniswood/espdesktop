@@ -373,6 +373,7 @@ async function installRoutes(context, slug, options = {}) {
             max_navigation_depth: options.nativeV2 ? 2 : 1, writable_navigation_depth: options.nativeV2 ? 2 : 1,
             max_v2_document_bytes: 524288, preserves_inactive_records: true,
             companion_auto_open_app_subpages: options.nativeAppSubpagePreference === true,
+            companion_app_subpage_mode: options.nativeAppSubpageMode === true,
             max_record_body_bytes: nativeState.maxRecordBodyBytes },
           web_assets: { versions: [1] },
         }),
@@ -2236,11 +2237,10 @@ async function assertAutomaticAppIcons(browser, testCase) {
   for (const native of [false, true]) {
     const fixture = nativeConfigState(testCase.slug);
     fixture.document.buttons[1] = "com.apple.Safari;Safari;Auto;Auto;;;companion;;card_off_color=123ABC";
-    fixture.document.buttons[2] = "com.apple.finder;Finder;Auto;Auto;;;companion;;app_shortcuts";
-    fixture.document.subpages[2] = "~B,1|companion,com.apple.Safari,Safari,Auto,Auto";
-    const legacyTextState = {};
+    fixture.document.buttons[2] = "com.apple.finder;Finder;Auto;Auto;;;companion;;app_shortcuts,icon_size=small";
+    fixture.document.subpages[2] = "~B,1|companion,com.apple.Safari,Safari,Auto,Auto,,,,icon_size=medium";
     const context = await browser.newContext({ viewport: testCase.viewport });
-    await installRoutes(context, testCase.slug, { nativeState: native ? fixture : null, legacyTextState });
+    await installRoutes(context, testCase.slug, { nativeState: native ? fixture : null });
     const { COMPANION_APP_ICON_SIDE: iconSide } = loadTypeScriptModule("src/webserver/generated/companion_capabilities.ts");
     const iconBytes = Buffer.alloc(iconSide * iconSide * 3);
     for (let y = iconSide / 8; y < iconSide * 7 / 8; y++)
@@ -2262,38 +2262,10 @@ async function assertAutomaticAppIcons(browser, testCase) {
     const errors = [];
     page.on("pageerror", error => errors.push(error.message));
     const card = slot => page.locator(`.sp-main [data-slot="${slot}"]`);
-    async function chooseSize(slot, size) {
-      await card(slot).click({ button: "right" });
-      const trigger = page.locator(".sp-ctx-menu").getByRole("button", { name: "App Icon Size", exact: true });
-      await trigger.click();
-      const submenu = page.locator(".sp-ctx-submenu").filter({ has: page.getByRole("button", { name: "Use Default", exact: true }) });
-      assert.deepStrictEqual(await submenu.getByRole("button").allTextContents().then(labels => labels.map(label => label.replace("✓", "").trim())),
-        ["Use Default", "Small", "Medium", "Large"], "all size choices use consistent menu rows");
-      const rows = await submenu.getByRole("button").evaluateAll(buttons => buttons.map(button => {
-        const style = getComputedStyle(button);
-        return { width: button.getBoundingClientRect().width, background: style.backgroundColor,
-          color: style.color, border: style.borderTopWidth, radius: style.borderRadius,
-          fontSize: style.fontSize, fontFamily: style.fontFamily, fontWeight: style.fontWeight };
-      }));
-      const parentStyle = await trigger.evaluate(el => {
-        const style = getComputedStyle(el);
-        return { color: style.color, fontSize: style.fontSize, fontFamily: style.fontFamily, fontWeight: style.fontWeight };
-      });
-      for (const row of rows) {
-        assert(Math.abs(row.width - rows[0].width) < 1, "submenu rows have equal full widths");
-        assert.strictEqual(row.background, "rgba(0, 0, 0, 0)", "submenu rows have no native button background");
-        assert.strictEqual(row.border, "0px", "submenu rows have no native button border");
-        assert.strictEqual(row.radius, "0px", "submenu rows are flat rather than rounded pills");
-        for (const property of ["color", "fontSize", "fontFamily", "fontWeight"])
-          assert.strictEqual(row[property], parentStyle[property], "submenu typography matches the main menu");
-      }
-      const selected = submenu.locator('[aria-pressed="true"]');
-      assert.strictEqual(await selected.count(), 1, "one current size is selected");
-      assert.strictEqual(await selected.locator(".sp-ctx-check").textContent(), "✓", "the current choice has a checkmark");
-      await submenu.getByRole("button", { name: size, exact: true }).click();
-      await page.waitForFunction(({ slot, size }) =>
-        document.querySelector(`.sp-main [data-slot="${slot}"]`)?.dataset.iconSize === size.toLowerCase(), { slot, size });
+    async function assertLargeApp(slot) {
       await card(slot).locator(".sp-companion-app-icon").waitFor();
+      assert.strictEqual(await card(slot).getAttribute("data-icon-size"), "large");
+      assert(!(await card(slot).locator(".sp-btn-label").isVisible()), "app artwork hides its label");
     }
     try {
       await page.goto(`http://espdesktop.test/${testCase.slug}?events=1`, { waitUntil: "domcontentloaded" });
@@ -2303,39 +2275,31 @@ async function assertAutomaticAppIcons(browser, testCase) {
       await card(1).locator(".sp-companion-app-icon").waitFor();
       await card(2).locator(".sp-companion-app-icon").waitFor();
       const initialIconRequests = iconRequests;
-      const widths = {};
-      for (const size of ["Medium", "Large", "Small"]) {
-        await chooseSize(2, size);
-        const saved = native ? fixture.document.buttons[2] : legacyTextState.button_2_config;
-        assert(saved.includes(`icon_size=${size.toLowerCase()}`), "right-click choice persists");
-        assert.strictEqual(await card(2).locator(".sp-btn-label").isVisible(), size !== "Large", "Large hides the label; other sizes restore it");
-        const bounds = await card(2).boundingBox();
-        const image = await card(2).locator(".sp-companion-app-icon").boundingBox();
-        widths[size] = image.width;
-        const badge = card(2).locator(".sp-subpage-badge");
-        const arrow = await badge.boundingBox();
-        const badgeStyle = await badge.evaluate(el => ({ background: getComputedStyle(el).backgroundColor,
-          shadow: getComputedStyle(el).textShadow }));
-        assert.strictEqual(badgeStyle.background, "rgba(0, 0, 0, 0)", "chevron has no background");
-        assert.notStrictEqual(badgeStyle.shadow, "none", "the chevron glyph has a shadow over artwork");
-        if (size === "Large") {
-          assert(arrow.x < bounds.x + bounds.width / 3, "hidden-label chevron sits on the left");
-          const available = await card(2).evaluate(el => Math.min(el.clientWidth - parseFloat(getComputedStyle(el).paddingLeft) - parseFloat(getComputedStyle(el).paddingRight),
-            el.clientHeight - parseFloat(getComputedStyle(el).paddingTop) - parseFloat(getComputedStyle(el).paddingBottom)));
-          assert(Math.abs(image.width * 0.75 - available) < 2, "Large artwork fills the content box");
-        } else {
-          const label = await card(2).locator(".sp-btn-label").boundingBox();
-          assert(Math.abs(arrow.x - label.x - label.width - 4) <= 2, "chevron follows the end of the label");
-          assert(image.y + image.height * 0.875 < label.y, "small and medium artwork remain above the label");
-        }
-      }
-      assert(widths.Small < widths.Medium && widths.Medium < widths.Large, "all app icon sizes are distinct");
-      assert.strictEqual(iconRequests, initialIconRequests, "preview rebuilds reuse cached images");
+      await assertLargeApp(1);
+      await assertLargeApp(2);
+      const layout = await page.waitForFunction(() => {
+        const tile = document.querySelector('.sp-main [data-slot="2"]');
+        const icon = tile?.querySelector(".sp-companion-app-icon");
+        const badge = tile?.querySelector(".sp-subpage-badge");
+        if (!icon?.naturalWidth || !badge) return null;
+        const bounds = tile.getBoundingClientRect();
+        const arrow = badge.getBoundingClientRect();
+        const badgeStyle = getComputedStyle(badge);
+        const style = getComputedStyle(tile);
+        const available = Math.min(tile.clientWidth - parseFloat(style.paddingLeft) - parseFloat(style.paddingRight),
+          tile.clientHeight - parseFloat(style.paddingTop) - parseFloat(style.paddingBottom));
+        return { available, imageWidth: parseFloat(icon.style.width), arrowLeft: arrow.x - bounds.x,
+          tileWidth: bounds.width, background: badgeStyle.backgroundColor, shadow: badgeStyle.textShadow };
+      });
+      const { available, imageWidth, arrowLeft, tileWidth, background, shadow } = await layout.jsonValue();
+      assert.strictEqual(background, "rgba(0, 0, 0, 0)", "chevron has no background");
+      assert.notStrictEqual(shadow, "none", "the chevron glyph has a shadow over artwork");
+      assert(arrowLeft < tileWidth / 3, "hidden-label chevron sits on the left");
+      assert(Math.abs(imageWidth * 0.75 - available) < 2, "Large artwork fills the content box");
       await page.getByRole("tab", { name: "System", exact: true }).click();
       await page.getByRole("tab", { name: "Layout", exact: true }).click();
       await card(1).locator(".sp-companion-app-icon").waitFor();
       assert.strictEqual(iconRequests, initialIconRequests, "tab navigation reuses cached images");
-      // Use the same menu inside a subpage and verify the complete subpage record.
       await card(2).locator(".sp-subpage-badge").click();
       await page.locator(".sp-back-btn").waitFor();
       const backAppIcon = page.locator(".sp-back-btn img.sp-back-hit");
@@ -2352,12 +2316,7 @@ async function assertAutomaticAppIcons(browser, testCase) {
       await page.locator(".sp-back-btn .sp-back-badge").click();
       await card(2).locator(".sp-subpage-badge").waitFor();
       await card(2).locator(".sp-subpage-badge").click();
-      await chooseSize(1, "Large");
-      const subpageSaved = native ? fixture.document.subpages[2] : Object.entries(legacyTextState)
-        .filter(([key]) => key.includes("subpage_2")).map(([,value]) => value).join("");
-      assert(subpageSaved.includes("icon_size=large"), "subpage icon size is saved");
-      await chooseSize(1, "Small");
-      assert(await card(1).locator(".sp-btn-label").isVisible(), "subpage label returns with Small");
+      await assertLargeApp(1);
       const requestsBeforeReload = iconRequests;
       await page.reload({ waitUntil: "domcontentloaded" });
       await page.waitForFunction(() => window.__eventSources?.length > 0);
@@ -2378,6 +2337,93 @@ async function assertAutomaticAppIcons(browser, testCase) {
 
       assert.deepStrictEqual(errors, []);
     } finally { await context.close(); }
+  }
+}
+
+async function assertCardBoxSelection(page, label) {
+  const selectedSlots = () => page.locator(".sp-main .sp-btn.sp-selected").evaluateAll(cards =>
+    cards.map(card => Number(card.dataset.slot)));
+  const box = page.locator(".sp-selection-box");
+  const dragFromAbove = async (fromSlot, toSlot) => {
+    // Device updates can replace the card elements. Read all bounds in one frame.
+    const points = await page.waitForFunction(([fromSlot, toSlot]) => {
+      const wrap = document.querySelector(".sp-wrap")?.getBoundingClientRect();
+      const from = document.querySelector(`.sp-main [data-slot="${fromSlot}"]`)?.getBoundingClientRect();
+      const to = document.querySelector(`.sp-main [data-slot="${toSlot}"]`)?.getBoundingClientRect();
+      if (!wrap?.height || !from?.height || !to?.height) return null;
+      return {
+        start: [from.x + from.width * 0.75, wrap.y + 8],
+        end: [to.x + to.width * 0.25, to.y + to.height * 0.4],
+      };
+    }, [fromSlot, toSlot]);
+    const { start, end } = await points.jsonValue();
+    await points.dispose();
+    await page.mouse.move(...start);
+    await page.mouse.down();
+    await page.mouse.move(...end, { steps: 8 });
+    await box.waitFor();
+  };
+
+  assert.deepStrictEqual(await selectedSlots(), [1], `${label}: starting selection`);
+  await dragFromAbove(2, 1);
+  assert.deepStrictEqual(await selectedSlots(), [1, 2], `${label}: cards highlight before release`);
+  await page.keyboard.press("Escape");
+  await page.mouse.up();
+  assert.strictEqual(await box.count(), 0);
+  assert.deepStrictEqual(await selectedSlots(), [1], `${label}: Escape restores the previous selection`);
+
+  await dragFromAbove(2, 2);
+  await page.mouse.up();
+  assert.deepStrictEqual(await selectedSlots(), [2], `${label}: drag replaces the previous selection`);
+  await page.keyboard.down("Shift");
+  await dragFromAbove(1, 1);
+  await page.mouse.up();
+  await page.keyboard.up("Shift");
+  assert.deepStrictEqual(await selectedSlots(), [1, 2], `${label}: Shift adds to the previous selection`);
+
+  const toggleKey = process.platform === "darwin" ? "Meta" : "Control";
+  await page.keyboard.down(toggleKey);
+  await dragFromAbove(1, 1);
+  await page.mouse.up();
+  await page.keyboard.up(toggleKey);
+  assert.deepStrictEqual(await selectedSlots(), [2], `${label}: Command/Ctrl toggles cards inside the box`);
+
+  await dragFromAbove(2, 1);
+  await page.mouse.up();
+  assert.deepStrictEqual(await selectedSlots(), [1, 2], `${label}: drag commits the cards within the box`);
+  assert.strictEqual(await box.count(), 0);
+  assert.strictEqual(await page.locator(".sp-selection-label").textContent(), "2 cards selected");
+
+  const viewport = page.viewportSize();
+  await page.setViewportSize({ width: 1440, height: 1800 });
+  try {
+    const points = await page.evaluate(() => {
+      const app = document.querySelector("#sp-app").getBoundingClientRect();
+      const wrap = document.querySelector(".sp-wrap").getBoundingClientRect();
+      const hint = document.querySelector("#sp-screen .sp-hint").getBoundingClientRect();
+      const card = document.querySelector('.sp-main [data-slot="1"]').getBoundingClientRect();
+      const end = [card.left + card.width / 2, card.top + card.height / 2];
+      return {
+        end,
+        starts: {
+          "left of": [app.left - 16, end[1]],
+          "right of": [app.right + 16, end[1]],
+          above: [app.left - 16, wrap.top - 8],
+          below: [end[0], Math.max(wrap.bottom, hint.bottom) + 16],
+        },
+      };
+    });
+    for (const [edge, start] of Object.entries(points.starts)) {
+      await page.mouse.move(...start);
+      await page.mouse.down();
+      await page.mouse.move(...points.end, { steps: 8 });
+      assert.strictEqual(await box.count(), 1, `${label}: drag starts in blank space ${edge} the preview`);
+      await page.keyboard.press("Escape");
+      await page.mouse.up();
+      assert.deepStrictEqual(await selectedSlots(), [1, 2], `${label}: Escape restores the selection after dragging from ${edge} the preview`);
+    }
+  } finally {
+    await page.setViewportSize(viewport);
   }
 }
 
@@ -2421,8 +2467,13 @@ async function assertContextColourPicker(browser, testCase) {
       assert.strictEqual(await trigger.locator(".mdi-palette").count(), 1, `${label}: Card Colour uses the palette icon`);
       assert.strictEqual(await menu.locator(".sp-ctx-submenu.sp-ctx-colours").getByText(/^Card Colours?$/, { exact: true }).count(), 0,
         `${label}: the colour panel has no redundant title`);
-      assert(await trigger.evaluate(el => !["none", "normal", '""'].includes(getComputedStyle(el, "::after").content)),
-        `${label}: Card Colour shows a submenu chevron`);
+      assert(await trigger.evaluate(async el => {
+        const chevron = getComputedStyle(el, "::after");
+        const palette = getComputedStyle(el.querySelector(".mdi-palette"));
+        if (["none", "normal", '""'].includes(chevron.content) || chevron.fontFamily !== palette.fontFamily) return false;
+        const faces = await document.fonts.load(`${chevron.fontSize} ${chevron.fontFamily}`, chevron.content.slice(1, -1));
+        return faces.some(face => face.status === "loaded");
+      }), `${label}: the submenu chevron uses the bundled icon font`);
       assert(await menu.locator(":scope > .sp-ctx-item").count() > 0,
         `${label}: the original menu remains alongside the palette`);
       assert.strictEqual(await page.locator(".sp-settings-overlay.sp-visible").count(), 0,
@@ -2471,7 +2522,7 @@ async function assertContextColourPicker(browser, testCase) {
       await waitForSaved(() => !storedButton(1)?.includes("card_off_color="));
       assert(storedButton(1).includes("card_on_color=FFFFFF"));
 
-      await card(2).click({ modifiers: ["ControlOrMeta"] });
+      await assertCardBoxSelection(page, label);
       await openPicker(card(1));
       assert.strictEqual(await menu.locator('.sp-card-color-preset[aria-pressed="true"]').count(), 0,
         `${label}: mixed card backgrounds leave all presets unselected`);
@@ -2796,17 +2847,24 @@ async function assertCardActiveColourControls(page, posts, label) {
 }
 
 async function assertSliderActiveColours(page, label) {
+  const sliders = [
+    ["companion_input_volume", "media.input_volume", "Audio Input", "Microphone", "64AD54"],
+    ["companion_output_volume", "media.output_volume", "Audio Output", "Volume High", "429471"],
+    ["companion_app_volume", "app.volume.com.spotify.client", "Spotify", "Volume High", "6633B9"],
+    ["slider", "obs.level.69da3f8f-7f62-4abe-a594-4e40dd579858", "OBS Mic", "Microphone", "FFFFFF"],
+  ];
+  const matchingFills = ["#A2CE98", "#8EBFAA", "#A385D5", "#BFBFBF"];
+  const offColours = ["rgb(100, 173, 84)", "rgb(66, 148, 113)", "rgb(102, 51, 185)", "rgb(255, 255, 255)"];
   for (const theme of ["Dark", "Light"]) {
     for (const mode of ["matching", "theme", "custom"]) for (const renderWhileHidden of [false, true]) {
-      const types = ["light_brightness", "fan_speed", "cover", "slider", "light_temperature"];
       const events = [
-        { id: "text-button_order", state: "1,2,3,4,5" },
         { id: "text-button_on_color", state: "FFFFFF" },
         { id: "select-screen__theme_mode", state: theme, value: theme },
-        ...types.map((type, index) => ({
+        ...sliders.map(([type, entity, name, icon, colour], index) => ({
           id: `text-button_${index + 1}_config`,
-          state: `light.test;${type};Lightbulb;Auto;;;${type};;card_off_color=313131,card_active_color=${mode},card_on_color=FFFFFF`,
+          state: `${entity};${name};${icon};Auto;;;${type};;card_off_color=${colour},card_active_color=${mode},card_on_color=F5F5F5`,
         })),
+        { id: "text-button_order", state: "1,2,3,4" },
       ];
       if (renderWhileHidden) {
         await page.getByRole("tab", { name: "Screen", exact: true }).click();
@@ -2815,31 +2873,35 @@ async function assertSliderActiveColours(page, label) {
       await page.evaluate(events => window.__seedEspState(events), events);
       await page.getByRole("tab", { name: "Layout" }).click();
       const cards = page.locator(".sp-main > .sp-btn");
-      await cards.first().locator(".sp-slider-fill").waitFor({ state: "visible" });
+      await cards.last().locator(".sp-slider-fill").waitFor({ state: "visible" });
       const rendered = await cards.evaluateAll(cards => cards.map(card => ({
+        slot: card.dataset.slot,
+        background: getComputedStyle(card).backgroundColor,
         fill: card.style.getPropertyValue("--card-slider-fill-color"),
-        fillTop: card.querySelector(".sp-slider-fill").getBoundingClientRect().top,
+        active: card.style.getPropertyValue("--card-active-color"),
         fillBottom: card.querySelector(".sp-slider-fill").getBoundingClientRect().bottom,
-        trackTop: card.querySelector(".sp-slider-track").getBoundingClientRect().top,
         trackBottom: card.querySelector(".sp-slider-track").getBoundingClientRect().bottom,
         texts: Array.from(card.querySelectorAll(".sp-btn-icon,.sp-btn-label")).map(label => ({
           gradient: label.style.backgroundImage,
           clip: getComputedStyle(label).backgroundClip,
         })),
       })));
+      assert.deepEqual(rendered.map(card => card.slot), ["1", "2", "3", "4"],
+        `${label}: expected four mock sliders, got slots ${rendered.map(card => card.slot).join(",")}`);
       for (const [index, card] of rendered.entries()) {
-        assert.strictEqual(card.fill, mode === "matching" ? "#767676" : "#FFFFFF", `${label}: ${theme}/${types[index]}/${mode} fill`);
-        const fromTop = types[index] === "cover";
-        assert(Math.abs(fromTop ? card.fillTop - card.trackTop : card.fillBottom - card.trackBottom) < .1,
-          `${label}: ${types[index]} fill grows from the ${fromTop ? "top" : "bottom"}`);
-        if (mode !== "matching") {
+        const name = `${label}: ${theme}/${sliders[index][2]}/${mode}`;
+        assert.equal(card.background, offColours[index], name + " uses its off-state colour");
+        assert.equal(card.fill, mode === "matching" ? matchingFills[index] : mode === "theme" ? "#FFFFFF" : "#F5F5F5", name + " fill colour");
+        assert.equal(card.fill, card.active, name + " uses its on-state colour");
+        assert(Math.abs(card.fillBottom - card.trackBottom) < .1, name + " fill grows from the bottom");
+        if (mode !== "matching" ? index < sliders.length - 1 : index === 0) {
           assert(card.texts.every(text => text.clip === "text" && text.gradient.includes("rgb(33, 33, 33)")),
-            `${label}: ${theme}/${types[index]}/${mode}${renderWhileHidden ? " after returning from Settings" : ""} text contrasts with the pale fill`);
-          assert(card.texts.every(text => text.gradient.startsWith(`linear-gradient(rgb(${fromTop ? "33, 33, 33" : "255, 255, 255"})`)),
-            `${label}: ${types[index]} text contrast follows the fill direction`);
+            name + " text contrasts with the pale fill");
+          assert(card.texts.every(text => text.gradient.startsWith("linear-gradient(rgb(255, 255, 255)")),
+            name + " text contrast follows the fill direction");
         }
       }
-      if (mode === "custom" && theme === "Dark" && process.env.ESPDESKTOP_SLIDER_COLOUR_SCREENSHOT) {
+      if (mode === "matching" && theme === "Dark" && !renderWhileHidden && process.env.ESPDESKTOP_SLIDER_COLOUR_SCREENSHOT) {
         await page.screenshot({ path: process.env.ESPDESKTOP_SLIDER_COLOUR_SCREENSHOT, fullPage: true });
       }
     }
@@ -3707,24 +3769,22 @@ async function assertClockBarEditorSmoke(page, posts, label) {
     `${label}: clock selection does not expose redundant actions menu button`,
   );
   const selectedClockItem = page.locator('[data-clockbar-item="time"]');
+  const readSelectedClockStyle = () => page.evaluate(() => {
+    const item = document.querySelector('[data-clockbar-item="time"]');
+    if (!item) return null;
+    const style = getComputedStyle(item);
+    return {
+      borderColor: style.borderTopColor,
+      backgroundColor: style.backgroundColor,
+    };
+  });
   await page.mouse.move(0, 0);
   await page.waitForTimeout(250);
-  const selectedClockStyle = await selectedClockItem.evaluate((el) => {
-    var style = getComputedStyle(el);
-    return {
-      borderColor: style.borderTopColor,
-      backgroundColor: style.backgroundColor,
-    };
-  });
+  const selectedClockStyle = await readSelectedClockStyle();
   await selectedClockItem.hover();
   await page.waitForTimeout(250);
-  const hoveredSelectedClockStyle = await selectedClockItem.evaluate((el) => {
-    var style = getComputedStyle(el);
-    return {
-      borderColor: style.borderTopColor,
-      backgroundColor: style.backgroundColor,
-    };
-  });
+  const hoveredSelectedClockStyle = await readSelectedClockStyle();
+  assert(selectedClockStyle?.borderColor, `${label}: selected clock bar item is rendered`);
   assert.notStrictEqual(
     selectedClockStyle.borderColor,
     "rgba(0, 0, 0, 0)",
@@ -4255,6 +4315,164 @@ async function assertNativeProfileJourney(browser, testCase) {
   }
 }
 
+async function chooseOBSCard(page, label, section) {
+  await page.getByRole("button", { name: "OBS Studio card type", exact: true }).click();
+  const picker = section ? page.getByRole("region", { name: section, exact: true }) : page;
+  await picker.getByRole("button", { name: label + " card type", exact: true }).click();
+}
+
+async function assertAppVolumeCard(browser) {
+  const testCase = CASES.find(item => item.slug === "guition-esp32-s3-4848s040");
+  const nativeState = nativeConfigState(testCase.slug);
+  nativeState.document.buttons = {};
+  nativeState.document.subpages = {};
+  nativeState.document.settings.button_order = "";
+  const context = await browser.newContext({ viewport: testCase.viewport });
+  await installRoutes(context, testCase.slug, { nativeState });
+  const coughID = "obs.cough.69da3f8f-7f62-4abe-a594-4e40dd579858";
+  await context.route("**/companion/actions", route => route.fulfill({
+    status: 200,
+    json: [
+      { id: "com.spotify.client", label: "Spotify" },
+      { id: "com.google.Chrome", label: "Chrome" },
+      { id: "folder.music", label: "Music folder" },
+      { id: coughID, label: "OBS Desk Mic" },
+      { id: coughID.replace("obs.cough.", "obs.mute."), label: "Muted · OBS Desk Mic" },
+      { id: "input.level." + "a".repeat(64), label: "USB Microphone" },
+    ],
+  }));
+  try {
+    const page = await context.newPage();
+    await installFakeEventSource(page);
+    await page.goto(`http://espdesktop.test/${testCase.slug}?events=1`);
+    await page.waitForFunction(() => window.__eventSources?.length > 0);
+    await page.getByRole("tab", { name: "Layout", exact: true }).click();
+    await page.evaluate(events => window.__seedEspState(events), nativeDocumentEvents(nativeState.document));
+    await page.locator(".sp-main .sp-empty-cell").first().click();
+    assert.equal(await page.getByRole("button", { name: /^(Input|Output) card type$/ }).count(), 0);
+    await page.getByRole("button", { name: "Sound card type", exact: true }).click();
+    const subtype = page.locator('select[id$="audio-type"]');
+    assert.deepEqual(await subtype.locator("option").allTextContents(),
+      ["Audio Output", "Output Mute", "Output per application",
+        "Audio Input", "Input State", "Input Cough", "Input per device level"]);
+    await subtype.selectOption("companion_app_volume");
+    const application = page.getByLabel("Application", { exact: true });
+    await application.locator('option[value="app.volume.com.spotify.client"]').waitFor({ state: "attached" });
+    assert.deepEqual(await application.locator("option").allTextContents(), ["Select", "Chrome", "Spotify"]);
+    await application.selectOption("app.volume.com.spotify.client");
+    await page.getByRole("button", { name: "Save", exact: true }).click();
+    await waitForNativeState(nativeState, () =>
+      nativeState.document.buttons[1] === "app.volume.com.spotify.client;Spotify;Volume High;Auto;;;companion_app_volume",
+    "App Volume saves the selected app and its label");
+    const card = page.locator('.sp-main [data-slot="1"]');
+    await card.locator(".sp-slider-preview").waitFor();
+    await card.click();
+    await page.getByRole("button", { name: "Edit", exact: true }).click();
+    await application.locator('option[value="app.volume.com.spotify.client"]').waitFor({ state: "attached" });
+    assert.equal(await application.inputValue(), "app.volume.com.spotify.client");
+    await page.keyboard.press("Escape");
+    const deviceAudio = [
+      ["Volume", "output_volume", "Volume High", true],
+      ["Volume", "input_volume", "Microphone", true],
+      ["Mute", "output_mute", "Volume High", false],
+      ["Input State", "input_mute", "Microphone", false],
+    ];
+    for (const [label, control, icon, slider] of deviceAudio) {
+      await page.locator(".sp-main .sp-empty-cell").first().click();
+      await page.getByRole("button", { name: "Sound card type", exact: true }).click();
+      await subtype.selectOption("companion_" + control);
+      await page.getByRole("button", { name: "Save", exact: true }).click();
+      const expected = `media.${control};${label};${icon};Auto;;;companion_${control}`;
+      await waitForNativeState(nativeState, () => Object.values(nativeState.document.buttons).includes(expected),
+        label + " saves its own control");
+      const slot = Object.keys(nativeState.document.buttons).find(key => nativeState.document.buttons[key] === expected);
+      const preview = page.locator(`.sp-main [data-slot="${slot}"]`);
+      assert.equal(await preview.locator(".sp-btn-label").textContent(), label);
+      assert.equal(await preview.locator(".sp-slider-preview").count(), slider ? 1 : 0, label);
+    }
+    await page.locator(".sp-main .sp-empty-cell").first().click();
+    await page.getByRole("button", { name: "Sound card type", exact: true }).click();
+    await subtype.selectOption("companion_input_device");
+    const input = page.getByLabel("Input device", { exact: true });
+    const inputID = "input.level." + "a".repeat(64);
+    await input.locator('option[value="' + inputID + '"]').waitFor({ state: "attached" });
+    await input.selectOption(inputID);
+    await page.getByRole("button", { name: "Save", exact: true }).click();
+    await waitForNativeState(nativeState, () => Object.values(nativeState.document.buttons)
+      .includes(inputID + ";USB Microphone;Microphone;Auto;;;companion_input_device"),
+    "Input per device saves the chosen microphone");
+    await page.locator(".sp-main .sp-empty-cell").first().click();
+    await chooseOBSCard(page, "Audio Controls");
+    const obsAudioType = page.locator('select[id$="obs-audio-type"]');
+    await obsAudioType.selectOption({ label: "Cough" });
+    const cough = page.locator('select[id$="obs-cough"]');
+    await cough.getByRole("option", { name: "OBS Desk Mic" }).waitFor({ state: "attached" });
+    assert.equal(await cough.getByRole("option", { name: "USB Microphone" }).count(), 0);
+    await cough.selectOption(coughID);
+    await page.getByRole("button", { name: "Save", exact: true }).click();
+    await waitForNativeState(nativeState, () => Object.values(nativeState.document.buttons)
+      .includes(coughID + ";Cough;Microphone;Auto;;;companion_obs_cough"),
+    "OBS Cough saves the selected mixer input");
+    const coughSlot = Object.keys(nativeState.document.buttons).find(key => nativeState.document.buttons[key].startsWith(coughID));
+    const coughTile = page.locator(`.sp-main [data-slot="${coughSlot}"]`);
+    await coughTile.getByText("Cough", { exact: true }).waitFor();
+    await coughTile.locator(".mdi-microphone").waitFor();
+    assert.equal(await coughTile.evaluate(tile => tile.style.backgroundColor),
+      await card.evaluate(tile => tile.style.backgroundColor), "Cough preview stays off when the OBS input is muted");
+    await coughTile.click();
+    await page.getByRole("button", { name: "Edit", exact: true }).click();
+    await cough.getByRole("option", { name: "OBS Desk Mic" }).waitFor({ state: "attached" });
+    assert.equal(await cough.inputValue(), coughID);
+    assert.equal(await obsAudioType.inputValue(), "companion_obs_cough");
+    await page.keyboard.press("Escape");
+    await page.locator(".sp-main .sp-empty-cell").first().click();
+    await chooseOBSCard(page, "Output Controls");
+    const output = page.locator('select[id$="obs-output"]');
+    assert.equal(await output.inputValue(), "obs.output.stream");
+    await page.getByRole("button", { name: "Confirmation", exact: true }).click();
+    await page.getByRole("button", { name: "Stop", exact: true }).click();
+    await page.getByRole("button", { name: "Save", exact: true }).click();
+    await waitForNativeState(nativeState, () => Object.values(nativeState.document.buttons)
+      .some(card => card.startsWith("obs.output.stream;") && card.includes("obs_confirm=off")),
+    "The streaming Stop option saves the existing stop-only setting");
+    const outputSlot = Object.keys(nativeState.document.buttons).find(key =>
+      nativeState.document.buttons[key].startsWith("obs.output.stream;"));
+    await page.locator(`.sp-main [data-slot="${outputSlot}"]`).click();
+    await page.getByRole("button", { name: "Edit", exact: true }).click();
+    assert.equal(await output.inputValue(), "obs.output.stream");
+    await page.keyboard.press("Escape");
+    await page.locator(".sp-main .sp-empty-cell").first().click();
+    await chooseOBSCard(page, "Break");
+    await page.getByRole("button", { name: "Save", exact: true }).click();
+    await waitForNativeState(nativeState, () => Object.values(nativeState.document.buttons)
+      .some(card => card.startsWith("obs.brb;") && card.endsWith(";companion")),
+    "OBS BRB saves a stable action without the current break token");
+    await page.evaluate(events => window.__seedEspState(events), [
+      { id: "text-button_order", state: "1,2,3" },
+      { id: "select-screen__theme_mode", state: "Dark", value: "Dark" },
+      { id: "text-button_1_config", state: "media.input_volume;Green;Microphone;Auto;;;companion_input_volume;;card_off_color=64AD54" },
+      { id: "text-button_2_config", state: "media.input_volume;White;Microphone;Auto;;;companion_input_volume;;card_off_color=FFFFFF" },
+      { id: "text-button_3_config", state: "media.input_mute;Mute;Microphone;Auto;;;companion_input_mute;;card_off_color=64AD54" },
+    ]);
+    await page.locator('.sp-main [data-slot="1"]').getByText("Green", { exact: true }).waitFor();
+    const audioColours = () => page.locator(".sp-main > .sp-btn").evaluateAll(cards => cards.map(tile => {
+      const fill = tile.querySelector(".sp-slider-fill");
+      return [tile.style.backgroundColor, fill ? getComputedStyle(fill).backgroundColor : null];
+    }));
+    const expectedAudioColours = [
+      ["rgb(100, 173, 84)", "rgb(162, 206, 152)"],
+      ["rgb(255, 255, 255)", "rgb(191, 191, 191)"],
+      ["rgb(100, 173, 84)", null],
+    ];
+    assert.deepEqual(await audioColours(), expectedAudioColours);
+    await page.evaluate(() => window.__seedEspState([
+      { id: "select-screen__theme_mode", state: "Light", value: "Light" },
+    ]));
+    assert.deepEqual(await audioColours(), expectedAudioColours);
+    console.log("Sound subtypes and guarded OBS cards passed picker and save checks.");
+  } finally { await context.close(); }
+}
+
 async function assertMacLockCard(browser) {
   const testCase = CASES.find(item => item.slug === "guition-esp32-s3-4848s040");
   const nativeState = nativeConfigState(testCase.slug);
@@ -4303,8 +4521,438 @@ async function assertMacLockCard(browser) {
     await assertLockEditor();
     await page.getByRole("button", { name: "Save", exact: true }).click();
     await editCard(2);
-    await modal.getByRole("tablist", { name: "Shortcut type" }).waitFor();
+    await modal.getByRole("tablist", { name: "Keyboard shortcut type" }).waitFor();
     console.log("Mac Lock creation, legacy editing, reload and independent keyboard shortcuts passed.");
+  } finally {
+    await context.close();
+  }
+}
+
+async function assertOnDemandShortcutSettings(browser, testCase) {
+  if (testCase.slug !== "guition-esp32-s3-4848s040") return;
+  const appId = "org.example.RemoteEditor";
+  const nativeState = nativeConfigState(testCase.slug);
+  nativeState.document.buttons[1] = "shortcut.command+a;;Shortcut Command;Auto;;;companion;;";
+  const context = await browser.newContext({ viewport: testCase.viewport });
+  await installRoutes(context, testCase.slug, { nativeState, offlineFallback: true });
+  const requests = [];
+  let online = true;
+  await context.route(url => url.pathname === "/companion/shortcut-page", async route => {
+    if (!online) return route.fulfill({ status: 404 });
+    const { searchParams } = new URL(route.request().url());
+    const id = searchParams.get("appId");
+    const page = Number(searchParams.get("page"));
+    requests.push([id, page]);
+    assert(id === "index" || id === appId);
+    const application = id === "index" ? {
+      applications: [{ appId, label: "Remote Editor" }],
+    } : page === 0 ? {
+      appId, label: "Remote Editor", version: 1, catalog: false,
+      shortcuts: [{ id: "0", label: "Open", shortcut: "command+o", icon: "Open File" }],
+    } : {
+      appId, shortcuts: [],
+      moreShortcuts: [{ id: "72", label: "Focus next item", shortcut: "scoped.tab", icon: "Arrow Right" }],
+    };
+    return route.fulfill({ json: { catalogueVersion: 1, page, complete: id === "index" || page === 1, application } });
+  });
+  const page = await context.newPage();
+  await installFakeEventSource(page);
+  async function openCard() {
+    await page.goto(`http://espdesktop.test/${testCase.slug}?events=1&espdesktop_fallback=1`);
+    await page.waitForFunction(() => window.__eventSources?.length > 0 && window.__ESPDESKTOP_USING_EMBEDDED__);
+    await seedNativeDocument(page, nativeState);
+    await page.locator('.sp-main [data-slot="1"]').click();
+    await page.getByRole("button", { name: "Edit", exact: true }).click();
+  }
+  try {
+    await openCard();
+    await page.getByRole("tab", { name: "Application", exact: true }).click();
+    const apps = page.locator('[id$="shortcut-catalog-app"]');
+    await apps.locator(`option[value="${appId}"]`).waitFor({ state: "attached" });
+    assert.deepEqual(requests, [["index", 0]]);
+    await apps.selectOption(appId);
+    const preset = page.getByRole("radio", { name: /Focus next item/ });
+    await preset.check();
+    assert.deepEqual(requests, [["index", 0], [appId, 0], [appId, 1]]);
+    await page.getByRole("button", { name: "Save", exact: true }).click();
+    await waitForNativeState(nativeState, () => String(nativeState.document.buttons[1]).includes("shortcut.scoped.tab"),
+      "remote shortcut saves its actual keys");
+    online = false;
+    await openCard();
+    assert.equal(await apps.inputValue(), appId);
+    assert(await page.getByRole("radio", { name: /Focus next item/ }).isChecked());
+    console.log("On-demand app discovery, shortcut loading and offline reopening passed.");
+  } finally {
+    await context.close();
+  }
+}
+
+async function assertOBSAppCard(browser) {
+  const testCase = CASES.find(item => item.slug === "guition-esp32-s3-4848s040");
+  const fixture = nativeConfigState(testCase.slug);
+  fixture.document.buttons = { 2: COPY_SHORTCUT };
+  fixture.document.subpages = {};
+  fixture.document.settings = { button_order: "2", web_onboarding_complete: "1" };
+  const appId = "com.obsproject.obs-studio";
+  const unsupportedAppId = "com.example.NoShortcuts";
+  const context = await browser.newContext({ viewport: testCase.viewport });
+  await installRoutes(context, testCase.slug, { nativeState: fixture });
+  await context.route("**/companion/actions", route => route.fulfill({
+    json: [{ id: appId, label: "OBS Studio" }, { id: unsupportedAppId, label: "No Shortcuts" }],
+  }));
+  await mockCompanionAppIcon(context, appId);
+  try {
+    const page = await context.newPage();
+    await installFakeEventSource(page);
+    await page.goto(`http://espdesktop.test/${testCase.slug}?events=1`);
+    await seedNativeDocument(page, fixture);
+    await page.locator(".sp-main .sp-empty-cell").first().click();
+    await chooseCardType(page, "OBS Studio");
+    await page.getByRole("button", { name: "Open the OBS Studio App card type", exact: true })
+      .locator("img.sp-card-type-app-icon").waitFor();
+    await chooseCardType(page, "Open the OBS Studio App");
+    const application = page.getByRole("combobox", { name: "Application", exact: true });
+    await application.getByRole("option", { name: "OBS Studio", exact: true }).waitFor({ state: "attached" });
+    assert.equal(await application.inputValue(), appId);
+    const appSubpage = page.locator(".sp-app-subpage-settings");
+    assert.equal(await appSubpage.getByRole("button", { name: "App Subpage", exact: true }).getAttribute("aria-expanded"), "true");
+    assert.equal(await appSubpage.getByText("Add app subpage", { exact: true }).count(), 0);
+    await page.getByRole("button", { name: "Save", exact: true }).click();
+    const { parseRawButtonConfig } = loadTypeScriptModule("src/webserver/model/card.ts");
+    const savedApp = () => parseRawButtonConfig(fixture.document.buttons[1] || "");
+    await waitForNativeState(fixture, () => savedApp().entity === appId &&
+      fixture.document.subpages[1]?.includes("Edit Transform"), "save the OBS app and its default shortcuts");
+    assert.equal(savedApp().type, "companion");
+    assert.match(savedApp().options, /(?:^|,)app_shortcuts(?:,|$)/);
+    await page.locator('.sp-main [data-slot="1"] .sp-subpage-badge').click();
+    await page.locator(".sp-main").getByText("Edit Transform", { exact: true }).waitFor();
+    await page.locator(".sp-main .sp-back-btn").click();
+    const editSavedApp = async () => {
+      await page.locator('.sp-main [data-slot="1"]').click({ button: "right" });
+      await page.locator(".sp-ctx-menu").getByText("Edit Card", { exact: true }).click();
+    };
+    const save = page.getByRole("button", { name: "Save", exact: true });
+    await editSavedApp();
+    await application.selectOption(unsupportedAppId);
+    assert.equal(await appSubpage.isVisible(), false);
+    await save.click();
+    await waitForNativeState(fixture, () => savedApp().entity === unsupportedAppId &&
+      !fixture.document.subpages[1], "changing to an app without shortcuts saves a launcher only");
+    assert.doesNotMatch(savedApp().options, /(?:^|,)app_shortcuts(?:,|$)/);
+
+    await editSavedApp();
+    await application.selectOption(appId);
+    await save.click();
+    await waitForNativeState(fixture, () => savedApp().entity === appId &&
+      fixture.document.subpages[1]?.includes("Edit Transform"), "selecting a supported app adds its subpage automatically");
+    console.log("The OBS app launcher, automatic shortcut subpage, and plain launcher checks passed.");
+  } finally { await context.close(); }
+}
+
+async function assertOBSSceneCard(browser) {
+  const testCase = CASES.find(item => item.slug === "guition-esp32-s3-4848s040");
+  const fixture = nativeConfigState(testCase.slug);
+  fixture.document.buttons = {
+    1: "obs.replay.buffer;;Repeat;Auto;;;companion",
+    2: "obs.status.program;;Monitor;Auto;;;companion",
+  };
+  fixture.document.settings.button_order = "1,2";
+  const context = await browser.newContext({ viewport: testCase.viewport });
+  await installRoutes(context, testCase.slug, { nativeState: fixture });
+  const sceneUUID = "a51e30ff-0c88-418f-ac5a-fd2e33963c2b";
+  const id = "obs.target." + sceneUUID;
+  const mic = "obs.mute.69da3f8f-7f62-4abe-a594-4e40dd579858";
+  const fader = "obs.level.69da3f8f-7f62-4abe-a594-4e40dd579858";
+  let connectedToOBS = true;
+  let studioModeOn = false;
+  let replayBufferOn = false;
+  let replaySave = "replay_ready";
+  let recordingState = "Idle";
+  let virtualCameraOn = false;
+  let transitionName = "Fade";
+  let takeOnProgram = false;
+  const fadeTransition = "obs.transition.select." + "a".repeat(32);
+  const cutTransition = "obs.transition.select." + "b".repeat(32);
+  await context.route("**/companion/actions", route => route.fulfill({
+    json: connectedToOBS ? [
+      { id: (studioModeOn ? "obs.preview." : "obs.scene.") + sceneUUID, label: "Gameplay" },
+      { id: id + "." + (studioModeOn ? "719a4778-fada-4bb3-aef6-1904669efae7" : "9ea47782-fada-4bb3-aef6-1904669efae7"), label: "Gameplay" },
+      { id: mic, label: "Muted · Desk Mic" },
+      { id: "obs.mute.45f44c62-1c70-4706-8930-f3ec000db026", label: "Unmuted · Master" },
+      { id: fader, label: "Desk Mic" },
+      takeOnProgram
+        ? { id: "obs.take", label: "Take Live · Already on Program", obsState: "take_same_scene", obsAvailable: false }
+        : { id: "obs.take.9ea47782-fada-4bb3-aef6-1904669efae7", label: "Take Live · Setup" },
+      { id: "obs.studio.9ea47782-fada-4bb3-aef6-1904669efae7", label: studioModeOn ? "On" : "Off" },
+      { id: "obs.multiview", label: "Multiview" },
+      { id: "obs.transition.9ea47782-fada-4bb3-aef6-1904669efae7", label: transitionName },
+      { id: fadeTransition + ".9ea47782-fada-4bb3-aef6-1904669efae7", label: "Fade" },
+      { id: cutTransition + ".9ea47782-fada-4bb3-aef6-1904669efae7", label: "Cut" },
+      { id: "obs.transition.selected", label: transitionName === "Fade" ? fadeTransition : cutTransition },
+      { id: "obs.replay.buffer.9ea47782-fada-4bb3-aef6-1904669efae7", label: replayBufferOn ? "On" : "Off" },
+      ...(replayBufferOn ? [{ id: "obs.replay", label: "Save Replay", obsState: replaySave }] : []),
+      { id: "obs.status.record", label: "Recording · " + recordingState },
+      { id: "obs.status.virtualcam", label: "Virtual Camera", obsState: virtualCameraOn ? "output_active" : "output_idle" },
+      { id: "obs.status.program", label: "Program · Gameplay" },
+    ] : [],
+  }));
+  const page = await context.newPage();
+  await installFakeEventSource(page);
+  try {
+    await page.goto("http://espdesktop.test/" + testCase.slug + "?events=1");
+    await page.waitForFunction(() => window.__eventSources?.length > 0);
+    await page.getByRole("tab", { name: "Layout", exact: true }).click();
+    await seedNativeDocument(page, fixture);
+    const studioPicker = page.locator("select[id$='obs-studio']");
+    const replayBufferTile = page.locator('.sp-main [data-slot="1"]');
+    const programTile = page.locator('.sp-main [data-slot="2"]');
+    const confirmation = page.locator("input[id$='obs-confirm-toggle']");
+    const confirmationPanel = page.getByRole("button", { name: "Confirmation", exact: true });
+    const confirmationDirection = page.locator(".sp-segment")
+      .filter({ has: page.getByRole("button", { name: "Both", exact: true }) }).locator("button.active");
+    const openConfirmation = async () => {
+      assert.equal(await page.getByRole("button", { name: "Card Settings", exact: true }).getAttribute("aria-expanded"), "false");
+      assert.equal(await confirmationPanel.getAttribute("aria-expanded"), "false");
+      await confirmationPanel.click();
+      await page.getByText("Confirmation Required", { exact: true }).waitFor();
+    };
+    const editCard = async tile => {
+      await tile.click({ button: "right" });
+      await page.locator(".sp-ctx-menu").getByText("Edit Card", { exact: true }).click();
+    };
+    await editCard(replayBufferTile);
+    await openConfirmation();
+    assert(await confirmation.isChecked());
+    assert.equal(await confirmationDirection.textContent(), "Stop");
+    await page.getByRole("button", { name: "Both", exact: true }).click();
+    await page.getByLabel("Confirm Button", { exact: true }).fill("Proceed");
+    await page.getByRole("button", { name: "Save", exact: true }).click();
+    await waitForNativeState(fixture, () => fixture.document.buttons[1]?.includes("obs_confirm=both") &&
+      fixture.document.buttons[1]?.includes("confirm_yes=Proceed"),
+      "Replay Buffer saves confirmation for both directions and a custom button label");
+    await programTile.getByText("Program", { exact: true }).waitFor();
+    await editCard(programTile);
+    assert.equal(await studioPicker.inputValue(), "obs.status.program", "existing Program cards reopen in Studio Mode");
+    assert.equal(await page.getByLabel("Type", { exact: true }).inputValue(), "obs.status.program");
+    assert.deepEqual(await studioPicker.locator("option").allTextContents(),
+      ["Studio Mode", "Program scene", "Take Live", "Open Multiview"]);
+    await page.keyboard.press("Escape");
+    await page.locator(".sp-main .sp-empty-cell").first().click();
+    const obsGroup = page.getByRole("button", { name: "OBS Studio card type", exact: true });
+    const obsCards = page.locator('#sp-card-type-picker [data-card-type^="companion_obs"]');
+    await obsGroup.waitFor();
+    assert.equal(await obsCards.count(), 0, "individual OBS cards are absent from the top level");
+    await obsGroup.click();
+    const obsSections = page.locator("#sp-card-type-picker > section");
+    assert.deepEqual(await obsSections.getByRole("heading").allTextContents(), ["Card types", "Grouped pages"]);
+    const cardLabels = section => page.getByRole("region", { name: section, exact: true })
+      .getByRole("button").evaluateAll(cards => cards.map(card => card.getAttribute("aria-label")));
+    assert.deepEqual(await cardLabels("Card types"),
+      ["Audio Controls", "Break", "Output Controls", "Replay Buffer", "Scene", "Studio Mode", "Transitions",
+        "Open the OBS Studio App"]
+        .map(label => label + " card type"));
+    assert.deepEqual(await cardLabels("Grouped pages"),
+      ["Audio", "Scenes", "Studio Control", "Transitions"].map(label => label + " card type"));
+    assert((await obsCards.allTextContents()).every(copy => !/\bOBS\b/.test(copy)));
+    assert.match(await page.getByRole("button", { name: "Output Controls card type", exact: true }).innerText(),
+      /Control streaming, recording, and the virtual camera\./);
+    assert.equal(await page.getByRole("button", { name: "Sound card type", exact: true }).count(), 0);
+    await page.getByRole("button", { name: "Back to card types", exact: true }).click();
+    assert.equal(await obsGroup.evaluate(group => document.activeElement === group), true);
+    await chooseOBSCard(page, "Scene");
+    const picker = page.locator("select[id$='obs-scene']");
+    await picker.getByRole("option", { name: "Gameplay", exact: true }).waitFor({ state: "attached" });
+    await programTile.getByText("Gameplay", { exact: true }).waitFor();
+    await replayBufferTile.getByText("Replay Buffer", { exact: true }).waitFor();
+    await replayBufferTile.getByText("Off", { exact: true }).waitFor();
+    const replayBufferOff = await replayBufferTile.evaluate(tile => tile.style.backgroundColor);
+    await picker.selectOption(id);
+    await page.getByRole("button", { name: "Save", exact: true }).click();
+    await waitForNativeState(fixture, () => fixture.document.buttons[3]?.startsWith(id + ";"),
+      "The OBS scene saves under its mode-independent UUID without the action token");
+    await page.locator('.sp-main [data-slot="3"] .mdi-image').waitFor();
+
+    await page.locator(".sp-main .sp-empty-cell").first().click();
+    await chooseOBSCard(page, "Audio Controls");
+    const obsAudioType = page.locator('select[id$="obs-audio-type"]');
+    assert.deepEqual(await obsAudioType.locator("option").allTextContents(), ["Level", "Input State", "Cough"]);
+    await obsAudioType.selectOption({ label: "Input State" });
+    const micPicker = page.locator("select[id$='obs-mic']");
+    await micPicker.getByRole("option", { name: "Desk Mic", exact: true }).waitFor({ state: "attached" });
+    assert.deepEqual(await micPicker.locator("option").allTextContents(), ["Select", "Desk Mic", "Master"]);
+    await micPicker.selectOption(mic);
+    await page.getByRole("button", { name: "Save", exact: true }).click();
+    await waitForNativeState(fixture, () => fixture.document.buttons[4]?.startsWith(mic + ";"),
+      "The OBS mic UUID saves as a Companion card");
+    await page.locator('.sp-main [data-slot="4"] .mdi-microphone-off').waitFor();
+    await page.locator(".sp-main .sp-empty-cell").first().click();
+    await chooseOBSCard(page, "Studio Mode");
+    await studioPicker.selectOption("obs.status.program");
+    await page.getByRole("button", { name: "Save", exact: true }).click();
+    await waitForNativeState(fixture, () => fixture.document.buttons[5]?.startsWith("obs.status.program;;Monitor;"),
+      "A new Program indicator saves from the Studio Mode group");
+    await editCard(page.locator('.sp-main [data-slot="5"]'));
+    await studioPicker.selectOption("obs.take");
+    await page.getByRole("button", { name: "Save", exact: true }).click();
+    await waitForNativeState(fixture, () => fixture.document.buttons[5]?.startsWith("obs.take;;Arrow Right;"),
+      "The Take Live card saves its default icon and stays free of transient tokens");
+    const takeTile = page.locator('.sp-main [data-slot="5"]');
+    await takeTile.getByText("Take Setup", { exact: true }).waitFor();
+    await takeTile.getByText("Fade", { exact: true }).waitFor();
+
+    await page.locator(".sp-main .sp-empty-cell").first().click();
+    await chooseOBSCard(page, "Output Controls");
+    const outputPicker = page.locator("select[id$='obs-output']");
+    assert.deepEqual(await outputPicker.locator("option").allTextContents(), ["Streaming", "Recording", "Virtual Camera"]);
+    await outputPicker.selectOption("obs.output.record");
+    assert.equal(await outputPicker.inputValue(), "obs.output.record");
+    await page.getByRole("button", { name: "Save", exact: true }).click();
+    await waitForNativeState(fixture, () => fixture.document.buttons[6]?.startsWith("obs.output.record;"),
+      "Recording Control saves the output ID");
+    const recordingControl = page.locator('.sp-main [data-slot="6"]');
+    await recordingControl.getByText("Record", { exact: true }).waitFor();
+    await recordingControl.getByText("Idle", { exact: true }).waitFor();
+    await recordingControl.locator(".mdi-stop-circle").waitFor();
+    const recordingIdle = await recordingControl.evaluate(tile => getComputedStyle(tile).backgroundColor);
+    await page.locator(".sp-main .sp-empty-cell").first().click();
+    await chooseOBSCard(page, "Replay Buffer");
+    const replayType = page.locator('select[id$="obs-replay-type"]');
+    assert.equal(await replayType.inputValue(), "obs.replay");
+    await replayType.selectOption("obs.replay.buffer");
+    assert.equal(await replayType.inputValue(), "obs.replay.buffer");
+    await replayType.selectOption("obs.replay");
+    await page.getByRole("button", { name: "Save", exact: true }).click();
+    await waitForNativeState(fixture, () => fixture.document.buttons[7]?.startsWith("obs.replay;"),
+      "The OBS replay card saves a stable ID");
+    const replayTile = page.locator('.sp-main [data-slot="7"]');
+    await replayTile.getByText("Save Replay", { exact: true }).waitFor();
+    await replayTile.getByText("Start Replay Buffer", { exact: true }).waitFor();
+
+    await page.locator(".sp-main .sp-empty-cell").first().click();
+    await chooseOBSCard(page, "Audio Controls");
+    assert.equal(await obsAudioType.inputValue(), "companion_obs_fader");
+    const faderPicker = page.locator("select[id$='obs-level']");
+    await faderPicker.getByRole("option", { name: "Desk Mic", exact: true }).waitFor({ state: "attached" });
+    await faderPicker.selectOption(fader);
+    await page.getByRole("button", { name: "Save", exact: true }).click();
+    await waitForNativeState(fixture, () => fixture.document.buttons[8]?.startsWith(fader + ";Desk Mic;"),
+      "The OBS fader saves the selected input UUID and its unprefixed name");
+    await editCard(page.locator('.sp-main [data-slot="8"]'));
+    await faderPicker.getByRole("option", { name: "Desk Mic", exact: true }).waitFor({ state: "attached" });
+    assert.equal(await faderPicker.inputValue(), fader);
+    assert.equal(await obsAudioType.inputValue(), "companion_obs_fader");
+    await page.locator(".sp-settings-overlay.sp-visible .sp-settings-close").click();
+
+    await page.locator(".sp-main .sp-empty-cell").first().click();
+    await chooseOBSCard(page, "Studio Mode");
+    await openConfirmation();
+    assert(await confirmation.isChecked());
+    assert.equal(await confirmationDirection.textContent(), "Off");
+    await page.getByRole("button", { name: "Save", exact: true }).click();
+    await waitForNativeState(fixture, () => fixture.document.buttons[9]?.startsWith("obs.studio;"),
+      "Studio Mode saves without the ephemeral OBS token");
+    const studioTile = page.locator('.sp-main [data-slot="9"]');
+    await studioTile.getByText("Studio Mode", { exact: true }).waitFor();
+    await studioTile.getByText("Off", { exact: true }).waitFor();
+    const studioOff = await studioTile.evaluate(tile => tile.style.backgroundColor);
+    studioModeOn = true;
+    replayBufferOn = true;
+    await editCard(page.locator('.sp-main [data-slot="3"]'));
+    await picker.getByRole("option", { name: "Gameplay", exact: true }).waitFor({ state: "attached" });
+    assert.equal(await picker.inputValue(), id);
+    await studioTile.getByText("On", { exact: true }).waitFor();
+    assert.notEqual(await studioTile.evaluate(tile => tile.style.backgroundColor), studioOff);
+    await replayBufferTile.getByText("On", { exact: true }).waitFor();
+    assert.notEqual(await replayBufferTile.evaluate(tile => tile.style.backgroundColor), replayBufferOff);
+    await replayTile.getByText("Ready", { exact: true }).waitFor();
+    const replayReadyColor = await replayTile.evaluate(tile => tile.style.backgroundColor);
+    await page.locator(".sp-settings-overlay.sp-visible .sp-settings-close").click();
+    await studioTile.click({ button: "right" });
+    await page.locator(".sp-ctx-menu").getByText("Delete", { exact: true }).click();
+    await studioTile.waitFor({ state: "detached" });
+    await page.locator(".sp-main .sp-empty-cell").first().click();
+    await chooseOBSCard(page, "Transitions", "Card types");
+    const transitionType = page.locator("select[id$='obs-transition-type']");
+    assert.deepEqual(await transitionType.locator("option").allTextContents(), ["Cycle transitions", "Select a transition"]);
+    assert.equal(await transitionType.inputValue(), "obs.transition");
+    await confirmationPanel.waitFor({ state: "detached" });
+    const transitionTitle = studioTile.locator(".sp-btn-label");
+    const transitionDetail = studioTile.locator(".sp-obs-detail");
+    await page.getByRole("button", { name: "Save", exact: true }).click();
+    await waitForNativeState(fixture, () => fixture.document.buttons[9]?.startsWith("obs.transition;;Flip Horizontal;"),
+      "Transition saves its own stable card and default icon");
+    await studioTile.locator(".mdi-flip-horizontal").waitFor();
+    assert.equal(await transitionTitle.innerText(), "Transition");
+    assert.equal(await transitionDetail.innerText(), "Fade");
+    transitionName = "Cut";
+    takeOnProgram = true;
+    replaySave = "replay_saving";
+    recordingState = "Paused";
+    await editCard(page.locator('.sp-main [data-slot="3"]'));
+    await studioTile.getByText("Cut", { exact: true }).waitFor();
+    await takeTile.getByText("Currently Live", { exact: true }).waitFor();
+    assert.equal(await takeTile.locator(".sp-obs-detail").textContent(), "");
+    assert.match(await takeTile.getAttribute("class"), /sp-obs-unavailable/);
+    assert.equal(await transitionTitle.innerText(), "Transition");
+    await replayTile.getByText("Saving", { exact: true }).waitFor();
+    await recordingControl.getByText("Paused", { exact: true }).waitFor();
+    await recordingControl.locator(".mdi-pause").waitFor();
+    assert.notEqual(await recordingControl.evaluate(tile => getComputedStyle(tile).backgroundColor), recordingIdle);
+    assert.equal(await replayTile.evaluate(tile => tile.style.backgroundColor), replayReadyColor);
+    await page.locator(".sp-settings-overlay.sp-visible .sp-settings-close").click();
+    replaySave = "replay_saved";
+    await editCard(studioTile);
+    await transitionType.selectOption("obs.transition.select.");
+    const transitionPicker = page.getByLabel("OBS transition", { exact: true });
+    await transitionPicker.getByRole("option", { name: "Fade", exact: true }).waitFor({ state: "attached" });
+    await replayTile.getByText("Saved", { exact: true }).waitFor();
+    assert.equal(await replayTile.evaluate(tile => tile.style.backgroundColor), replayReadyColor);
+    assert.deepEqual(await transitionPicker.locator("option").allTextContents(), ["Select", "Fade", "Cut"]);
+    await transitionPicker.selectOption(fadeTransition);
+    await page.getByRole("button", { name: "Save", exact: true }).click();
+    await waitForNativeState(fixture, () => fixture.document.buttons[9]?.startsWith(fadeTransition + ";Fade;"),
+      "Dedicated transition card saves the selected transition without the action token");
+    await studioTile.getByText("Fade", { exact: true }).waitFor();
+    const transitionOffColor = await studioTile.evaluate(tile => tile.style.backgroundColor);
+    transitionName = "Fade";
+    replaySave = "replay_ready";
+    await editCard(studioTile);
+    await transitionPicker.getByRole("option", { name: "Fade", exact: true }).waitFor({ state: "attached" });
+    await replayTile.getByText("Ready", { exact: true }).waitFor();
+    assert.equal(await transitionPicker.inputValue(), fadeTransition);
+    await page.waitForFunction(offColor =>
+      document.querySelector('.sp-main [data-slot="9"]')?.style.backgroundColor !== offColor, transitionOffColor);
+    await page.locator(".sp-settings-overlay.sp-visible .sp-settings-close").click();
+    await editCard(recordingControl);
+    await outputPicker.selectOption("obs.output.virtualcam");
+    await page.getByRole("button", { name: "Save", exact: true }).click();
+    await waitForNativeState(fixture, () => fixture.document.buttons[6]?.startsWith("obs.output.virtualcam;"),
+      "Virtual Camera saves as an output control");
+    await recordingControl.getByText("Virtual Camera", { exact: true }).waitFor();
+    await recordingControl.getByText("Idle", { exact: true }).waitFor();
+    await recordingControl.locator(".mdi-video-off").waitFor();
+    const virtualCameraIdle = await recordingControl.evaluate(tile => getComputedStyle(tile).backgroundColor);
+    virtualCameraOn = true;
+    await editCard(page.locator('.sp-main [data-slot="3"]'));
+    await recordingControl.getByText("Active", { exact: true }).waitFor();
+    await recordingControl.locator(".mdi-video").waitFor();
+    assert.notEqual(await recordingControl.evaluate(tile => getComputedStyle(tile).backgroundColor), virtualCameraIdle);
+    await page.locator(".sp-settings-overlay.sp-visible .sp-settings-close").click();
+    await editCard(programTile);
+    await studioPicker.selectOption("obs.multiview");
+    await confirmationPanel.waitFor({ state: "detached" });
+    await page.getByRole("button", { name: "Save", exact: true }).click();
+    await waitForNativeState(fixture, () => fixture.document.buttons[2]?.startsWith("obs.multiview;"),
+      "Multiview saves as a Studio Mode action");
+    await programTile.getByText("Multiview", { exact: true }).waitFor();
+    await programTile.locator(".mdi-view-grid").waitFor();
+    connectedToOBS = false;
+    await editCard(page.locator('.sp-main [data-slot="3"]'));
+    await picker.getByRole("option", { name: "Saved scene (unavailable)" }).waitFor({ state: "attached" });
+    assert.equal(await picker.inputValue(), id);
+    await replayBufferTile.getByText("Unavailable", { exact: true }).waitFor();
+    assert.equal(await replayBufferTile.evaluate(tile => tile.style.backgroundColor), replayBufferOff);
+    console.log("OBS scene, microphone, Take Live, status, replay, and fader card checks passed.");
   } finally {
     await context.close();
   }
@@ -4320,7 +4968,7 @@ async function assertShortcutCatalogSettings(browser, testCase) {
   await installRoutes(context, testCase.slug, { nativeState });
   const page = await context.newPage();
   await installFakeEventSource(page);
-  const toggles = ["Shortcut", "Card Settings", "Custom Colours"].map(name => page.getByRole("button", { name, exact: true }));
+  const toggles = ["Keyboard Shortcut", "Card Settings", "Custom Colours"].map(name => page.getByRole("button", { name, exact: true }));
   const [shortcutToggle, settingsToggle, coloursToggle] = toggles;
   const panels = toggles.map(toggle => page.locator(".sp-disclosure").filter({ has: toggle }));
   const [shortcutPanel, settingsPanel, coloursPanel] = panels;
@@ -4357,69 +5005,93 @@ async function assertShortcutCatalogSettings(browser, testCase) {
       return icons.length === 1 && getComputedStyle(icons[0], "::before").content.includes(expectedGlyph);
     }, String.fromCodePoint(0xF0633));
     await openCard();
-    const type = page.getByRole("tablist", { name: "Shortcut type" });
+    const type = page.getByRole("tablist", { name: "Keyboard shortcut type" });
     const custom = type.getByRole("tab", { name: "Custom", exact: true });
     const application = type.getByRole("tab", { name: "Application", exact: true });
     const app = page.locator('[id$="shortcut-catalog-app"]');
     const action = page.locator('[id$="shortcut-catalog-action"]');
-    const search = page.getByRole("searchbox", { name: "Search by name or keys" });
+    const search = page.getByRole("searchbox", { name: "Find a keyboard shortcut…" });
+    const rows = action.getByRole("radio");
+    const selected = action.getByRole("radio", { checked: true });
+    const preset = value => action.locator(`input[value="${value}"]`);
+    async function selectPreset(value) {
+      await preset(value).check();
+      assert.strictEqual(await selected.count(), 1, "only one shortcut is selected");
+      assert.strictEqual(await selected.inputValue(), value);
+    }
+    assert.deepStrictEqual(await type.getByRole("tab").allTextContents(), ["Application", "Custom"]);
     assert.strictEqual(await custom.getAttribute("aria-selected"), "true", "existing custom shortcuts open the Custom tab");
     assert.strictEqual(await page.locator('[id$="companion-shortcut"]').count(), 0, "the recording field is removed");
-    await custom.press("ArrowRight");
+    await custom.press("ArrowLeft");
     assert.strictEqual(await application.getAttribute("aria-selected"), "true");
     assert(await application.evaluate(tab => tab === document.activeElement), "arrow keys focus the selected tab");
     assert(await page.getByRole("tabpanel", { name: "Application" }).isVisible());
     assert.strictEqual(await shortcutPanel.locator('[id$="shortcut-catalog-app"]').count(), 1);
-    assert.strictEqual(await shortcutPanel.locator('[id$="shortcut-catalog-action"]').count(), 1);
     await shortcutToggle.click();
     assert.strictEqual(await app.isVisible(), false);
     assert.strictEqual(await action.isVisible(), false);
     await assertPanelSpacing();
     await shortcutToggle.click();
-    await assertPanelBottomPadding(shortcutPanel, action, "Application Shortcut field");
+    await assertPanelBottomPadding(shortcutPanel, app, "Application app field");
     await assertPanelSpacing();
-    assert.strictEqual(await action.isDisabled(), true, "choose an app first");
+    assert.strictEqual(await action.isVisible(), false, "choose an app first");
+    assert.strictEqual(await search.isVisible(), false, "search appears after choosing an app");
     const appLabels = await app.locator("option").allTextContents();
-    assert.strictEqual(appLabels[0], "Choose an app…");
+    assert.strictEqual(appLabels[0], "Select");
+    assert.deepStrictEqual(appLabels.filter(label => label.startsWith("ChatGPT")), ["ChatGPT"]);
     assert(appLabels.includes("Safari") && appLabels.includes("Slack") && appLabels.includes("Figma"),
       "the Application tab includes bundled presets for Safari and other apps");
     const names = appLabels.slice(1);
     assert.deepStrictEqual(names, [...names].sort((a, b) => a.localeCompare(b, undefined, { sensitivity: "base" })));
     await app.selectOption("com.apple.Safari");
+    assert.strictEqual(await shortcutPanel.locator('[id$="shortcut-catalog-action"]').count(), 1);
     const safariTemplate = JSON.parse(fs.readFileSync(
       path.join(ROOT, "product", "v2", "app_shortcuts", "safari.json"),
       "utf8",
     ));
     const safariShortcutCount = safariTemplate.shortcuts.length + (safariTemplate.safariShortcuts?.length || 0) + (safariTemplate.moreShortcuts?.length || 0);
-    assert.strictEqual(
-      await action.locator("option").count(),
-      safariShortcutCount + 1,
-      "Safari catalog shortcuts plus placeholder",
-    );
+    assert.strictEqual(await rows.count(), safariShortcutCount, "all Safari shortcuts are listed");
+    await assertPanelBottomPadding(shortcutPanel, action, "Application Shortcut list");
     const reloadPreset = "app_shortcut_preset=com.apple.Safari%3A2";
     for (const query of ["reload", "Cmd+R", "⌘R"]) {
       await search.fill(query);
-      const results = await action.locator("option").allTextContents();
-      assert(results.length < safariShortcutCount + 1);
-      assert(results.includes("Reload (⌘R)"), query);
+      assert((await rows.count()) < safariShortcutCount);
+      assert(await action.getByRole("radio", { name: "Reload ⌘R", exact: true }).isVisible(), query);
     }
     await search.fill("ctrl shift tab");
-    assert((await action.locator("option").allTextContents()).includes("Previous Tab (⌃⇧Tab)"));
+    assert(await action.getByRole("radio", { name: "Previous Tab ⌃⇧Tab", exact: true }).isVisible());
     await search.fill("tab");
-    assert((await action.locator("option").allTextContents()).includes("Next Field (Tab)"));
+    assert(await action.getByRole("radio", { name: "Next Field Tab", exact: true }).isVisible());
     await search.fill("zzzz");
-    await page.getByRole("status").filter({ hasText: "No matching shortcuts" }).waitFor();
-    assert.strictEqual(await action.locator("option").count(), 1);
+    await page.getByRole("status").filter({ hasText: "No matching keyboard shortcuts" }).waitFor();
+    assert.strictEqual(await rows.count(), 0);
     const beforeInvalidSave = nativeState.puts.length;
     await page.getByRole("button", { name: "Save", exact: true }).click();
     assert.strictEqual(nativeState.puts.length, beforeInvalidSave, "incomplete catalog choice cannot save");
     await search.fill("reload");
-    await action.selectOption(reloadPreset);
+    await selectPreset(reloadPreset);
+    assert(await preset(reloadPreset).evaluate(input => input === document.activeElement),
+      "choosing a shortcut retains keyboard focus");
     assert.strictEqual(await search.inputValue(), "reload", "choosing a shortcut keeps the filter");
     await search.fill("zzzz");
-    assert.strictEqual(await action.inputValue(), reloadPreset, "filtering keeps the selected shortcut");
+    assert.strictEqual(await rows.count(), 0, "nonmatching rows are hidden");
     await search.fill("");
-    assert.strictEqual(await action.locator("option").count(), safariShortcutCount + 1);
+    assert.strictEqual(await selected.inputValue(), reloadPreset, "filtering keeps the selected shortcut");
+    assert.strictEqual(await rows.count(), safariShortcutCount);
+    const newTab = action.getByRole("radio", { name: "New Tab ⌘T", exact: true });
+    await newTab.press("Space");
+    assert(await newTab.isChecked(), "keyboard selection activates the new shortcut");
+    assert(await newTab.evaluate(input => {
+      const list = input.closest(".sp-shortcut-catalog-list");
+      const track = input.nextElementSibling;
+      const style = getComputedStyle(track);
+      const outlineOutset = parseFloat(style.outlineWidth) + parseFloat(style.outlineOffset);
+      const clipRight = list.getBoundingClientRect().left + list.clientLeft + list.clientWidth;
+      return input === document.activeElement && style.outlineStyle !== "none" &&
+        track.getBoundingClientRect().right + outlineOutset <= clipRight;
+    }), "the focused shortcut toggle's outline fits inside the scrolling list");
+    assert.strictEqual(await preset(reloadPreset).isChecked(), false, "selecting a new shortcut clears the previous one");
+    await selectPreset(reloadPreset);
     await saveCard();
     assert(String(nativeState.document.buttons[1]).includes("app_shortcut_preset=com.apple.Safari%3A2"));
     await page.reload({ waitUntil: "domcontentloaded" });
@@ -4430,21 +5102,21 @@ async function assertShortcutCatalogSettings(browser, testCase) {
     assert.strictEqual(await application.getAttribute("aria-selected"), "true", "saved presets open the Application tab");
     await application.click();
     assert.strictEqual(await app.inputValue(), "com.apple.Safari");
-    assert.strictEqual(await action.inputValue(), "app_shortcut_preset=com.apple.Safari%3A2");
+    assert.strictEqual(await selected.inputValue(), reloadPreset);
     const slack = require("../product/v2/app_shortcuts/slack.json");
     const slackPreset = "app_shortcut_preset=" + slack.appId + "%3A" + slack.shortcuts[0].id;
     await app.selectOption("com.apple.FinalCut");
-    assert((await action.locator("option").count()) > 350, "Final Cut Pro has a large catalog");
+    assert((await rows.count()) > 350, "Final Cut Pro has a large catalog");
     await search.fill("blade at playhead");
-    assert.deepStrictEqual(await action.locator("option").allTextContents(),
-      ["Choose a shortcut…", "Blade at Playhead (⌘B)"]);
+    assert.strictEqual(await rows.count(), 1);
+    assert(await action.getByRole("radio", { name: "Blade at Playhead ⌘B", exact: true }).isVisible());
     await search.fill("Cmd+B");
-    assert((await action.locator("option").allTextContents()).includes("Blade at Playhead (⌘B)"));
+    assert(await action.getByRole("radio", { name: "Blade at Playhead ⌘B", exact: true }).isVisible());
     await search.fill("reload");
     await app.selectOption(slack.appId);
     assert.strictEqual(await search.inputValue(), "", "switching apps clears the filter");
     assert.strictEqual(await application.getAttribute("aria-selected"), "true", "changing apps keeps the Application tab selected");
-    await action.selectOption(slackPreset);
+    await selectPreset(slackPreset);
     await saveCard();
     assert(String(nativeState.document.buttons[1]).includes(slackPreset));
     await page.reload({ waitUntil: "domcontentloaded" });
@@ -4454,7 +5126,7 @@ async function assertShortcutCatalogSettings(browser, testCase) {
     await openCard();
     assert.strictEqual(await application.getAttribute("aria-selected"), "true");
     assert.strictEqual(await app.inputValue(), slack.appId);
-    assert.strictEqual(await action.inputValue(), slackPreset);
+    assert.strictEqual(await selected.inputValue(), slackPreset);
     await custom.click();
     assert(await page.getByRole("tabpanel", { name: "Custom" }).isVisible());
     await page.locator('[id$="shortcut-key"]').selectOption("a");
@@ -4463,12 +5135,12 @@ async function assertShortcutCatalogSettings(browser, testCase) {
     assert.strictEqual(await custom.getAttribute("aria-selected"), "true", "Custom tab selection survives save");
     assert.strictEqual(await page.locator('[id$="shortcut-key"]').inputValue(), "a");
     assert.strictEqual(await shortcutPanel.locator('[id$="shortcut-key"]').count(), 1, "key is inside Shortcut panel");
-    assert.strictEqual(await shortcutPanel.getByRole("group", { name: "Shortcut modifiers" }).count(), 1, "modifiers are inside Shortcut panel");
+    assert.strictEqual(await shortcutPanel.getByRole("group", { name: "Keyboard shortcut modifiers" }).count(), 1, "modifiers are inside Shortcut panel");
     await shortcutToggle.click();
     assert.strictEqual(await shortcutPanel.locator('[id$="shortcut-key"]').isVisible(), false);
     await assertPanelSpacing();
     await shortcutToggle.click();
-    const modifiers = page.getByRole("group", { name: "Shortcut modifiers" });
+    const modifiers = page.getByRole("group", { name: "Keyboard shortcut modifiers" });
     const command = modifiers.getByRole("button", { name: "⌘ Command", exact: true });
     const shift = modifiers.getByRole("button", { name: "⇧ Shift", exact: true });
     const control = modifiers.getByRole("button", { name: "⌃ Control", exact: true });
@@ -4525,16 +5197,20 @@ async function assertShortcutCatalogSettings(browser, testCase) {
     await page.getByRole("tab", { name: "Layout", exact: true }).click();
     const addShortcut = async () => {
       await page.locator(".sp-main .sp-empty-cell").first().click();
-      await chooseCardType(page, "Key Shortcut");
+      await chooseCardType(page, "Keyboard Shortcut");
     };
+    await addShortcut();
+    assert.strictEqual(await application.getAttribute("aria-selected"), "true", "new shortcuts start on Application");
+    assert.strictEqual(await app.inputValue(), "", "new shortcuts on the main grid start without an app");
+    await page.locator(".sp-settings-close").click();
     await page.locator('.sp-main [data-slot="4"] .sp-subpage-badge').click();
     await addShortcut();
     assert.strictEqual(await application.getAttribute("aria-selected"), "true");
     assert.strictEqual(await app.inputValue(), "com.apple.Safari", "new shortcuts start with the page's app");
-    assert.strictEqual(await action.inputValue(), "", "the user still chooses a shortcut");
-    assert.strictEqual(await action.locator("option").count(), safariShortcutCount + 1);
+    assert.strictEqual(await selected.count(), 0, "the user still chooses a shortcut");
+    assert.strictEqual(await rows.count(), safariShortcutCount);
     await search.fill("new tab");
-    assert((await action.locator("option").allTextContents()).includes("New Tab (⌘T)"));
+    assert(await action.getByRole("radio", { name: "New Tab ⌘T", exact: true }).isVisible());
     await app.selectOption("");
     assert.strictEqual(await app.inputValue(), "", "the app selection can be cleared");
     await app.selectOption(slack.appId);
@@ -4542,7 +5218,7 @@ async function assertShortcutCatalogSettings(browser, testCase) {
     assert(await page.getByRole("tabpanel", { name: "Custom" }).isVisible());
     await application.click();
     assert.strictEqual(await app.inputValue(), slack.appId, "switching tabs retains the user's app choice");
-    await action.selectOption(slackPreset);
+    await selectPreset(slackPreset);
     await saveCard();
     const savedSubpage = nativeState.document.subpages[4];
     assert(decodeURIComponent(savedSubpage).includes(slackPreset), "the saved shortcut keeps the selected preset");
@@ -4552,7 +5228,8 @@ async function assertShortcutCatalogSettings(browser, testCase) {
     await page.locator(".sp-back-btn .sp-back-hit").click();
     await page.locator('.sp-main [data-slot="3"] .sp-subpage-badge').click();
     await addShortcut();
-    assert.strictEqual(await custom.getAttribute("aria-selected"), "true", "generic subpages still start on Custom");
+    assert.strictEqual(await application.getAttribute("aria-selected"), "true", "generic subpages start on Application too");
+    assert.strictEqual(await app.inputValue(), "", "generic subpages start without an app");
 
   } finally {
     await context.close();
@@ -4595,7 +5272,7 @@ async function assertCompanionShortcutSettings(browser, testCase) {
     const appCard = page.locator('.sp-main [data-slot="1"]');
     await appCard.click({ button: "right" });
     const menu = page.locator(".sp-ctx-menu");
-    assert.strictEqual(await menu.getByText("Shortcut List", { exact: true }).count(), 0,
+    assert.strictEqual(await menu.getByText("Keyboard Shortcut List", { exact: true }).count(), 0,
       "the shortcut editor is available inside app subpages");
     await menu.getByText("Edit Card", { exact: true }).click();
     await page.waitForSelector(".sp-settings-overlay.sp-visible");
@@ -4627,7 +5304,7 @@ async function assertCompanionShortcutSettings(browser, testCase) {
     const safariShortcuts = [...safariTemplate.shortcuts, ...(safariTemplate.safariShortcuts ?? []), ...(safariTemplate.moreShortcuts ?? [])];
     const safariShortcutLabel = (id) =>
       safariShortcuts.find((shortcut) => shortcut.id === String(id)).label;
-    const toggleList = appSubpage.getByRole("button", { name: /Show (all|fewer) shortcuts/ });
+    const toggleList = appSubpage.getByRole("button", { name: /Show (all|fewer) keyboard shortcuts/ });
     const toggleActions = appSubpage.locator(".sp-app-subpage-shortcut-actions");
     const visibleRows = appSubpage.locator(".sp-light-tab-row:visible");
     assert.strictEqual(await visibleRows.count(), 20);
@@ -4644,7 +5321,7 @@ async function assertCompanionShortcutSettings(browser, testCase) {
       assert(actions.y + actions.height > toggle.y + toggle.height, "the button has space below it");
     };
     await assertToggleBelowRows();
-    const filter = appSubpage.getByRole("searchbox", { name: "Find a shortcut…" });
+    const filter = appSubpage.getByRole("searchbox", { name: "Find a keyboard shortcut…" });
     const lastShortcut = safariShortcuts.at(-1);
     await filter.fill(lastShortcut.label);
     assert(!(await toggleActions.isVisible()), "search hides the button and its divider");
@@ -4767,14 +5444,14 @@ async function assertCompanionShortcutSettings(browser, testCase) {
     const dialog = page.locator(".sp-settings-modal");
     const showShortcuts = async (target = shortcutCard) => {
       await target.click({ button: "right" });
-      await menu.getByText("Shortcut List", { exact: true }).click();
-      await dialog.getByText("Edit App Shortcuts", { exact: true }).waitFor();
+      await menu.getByText("Keyboard Shortcut List", { exact: true }).click();
+      await dialog.getByText("Edit Keyboard Shortcuts", { exact: true }).waitFor();
     };
     await showShortcuts();
     const dialogRows = dialog.locator(".sp-light-tab-row:visible");
     assert.strictEqual(await dialogRows.count(), safariShortcuts.length, "the standalone editor shows every shortcut");
-    assert.strictEqual(await dialog.getByRole("button", { name: /Show (all|fewer) shortcuts/ }).count(), 0);
-    const dialogSearch = dialog.getByRole("searchbox", { name: "Find a shortcut…" });
+    assert.strictEqual(await dialog.getByRole("button", { name: /Show (all|fewer) keyboard shortcuts/ }).count(), 0);
+    const dialogSearch = dialog.getByRole("searchbox", { name: "Find a keyboard shortcut…" });
     await dialogSearch.fill(safariShortcutLabel(0));
     assert(await dialogRows.count() < safariShortcuts.length, "search still filters the standalone list");
     await dialogSearch.clear();
@@ -4847,12 +5524,32 @@ async function assertCompanionURLOpenBehavior(browser, testCase) {
 async function assertAppSubpageCapacity(browser, testCase) {
   if (testCase.slug !== "guition-esp32-s3-4848s040") return;
   const shortcuts = loadTypeScriptModule("src/webserver/application/companion_shortcut_folder.ts");
-  const { encodeConfigField } = loadTypeScriptModule("src/webserver/model/config_primitives.ts");
+  const { encodeConfigField, setConfigOptionValue } = loadTypeScriptModule("src/webserver/model/config_primitives.ts");
+  const appId = shortcuts.CODEX_BUNDLE_ID;
+  const application = shortcuts.COMPANION_SHORTCUT_APPS.find(app => app.appId === appId);
+  assert(application, "the bundled ChatGPT shortcut catalogue is available");
+  const customShortcut = "command+shift+f12";
+  // Capacity depends on distinct cards, regardless of which presets the catalogue offers.
+  const distinctPresets = new Map(application.shortcuts
+    .filter(preset => preset.shortcut !== customShortcut)
+    .map(preset => [preset.shortcut, preset]));
+  const presets = [...distinctPresets.values()];
+  assert(presets.length >= 7, "the capacity fixture needs seven distinct presets");
+  const initialTabs = presets.slice(0, 4).map(preset => preset.id);
+  const additionalShortcuts = presets.slice(4, 7);
+  const appOptions = setConfigOptionValue("app_shortcuts", shortcuts.COMPANION_APP_SHORTCUTS_TABS_OPTION, initialTabs.join("|"));
   for (const native of [false, true]) {
     const fixture = nativeConfigState(testCase.slug);
-    fixture.document.buttons[1] = "com.openai.codex;Codex;Auto;Auto;;;companion;;app_shortcuts,app_shortcuts_tabs=0%7C3%7C5%7C6";
-    const subpage = shortcuts.createCompanionShortcutSubpage("com.openai.codex", ["0", "3", "5", "6"]);
-    subpage.buttons.push({ type: "companion", entity: "shortcut.command+shift+p", label: "Custom shortcut", icon: "Application", icon_on: "Auto", options: "" });
+    fixture.document.buttons[1] = appId + ";Codex;Auto;Auto;;;companion;;" + appOptions;
+    const subpage = shortcuts.createCompanionShortcutSubpage(appId, initialTabs);
+    subpage.buttons.push({
+      type: "companion",
+      entity: shortcuts.COMPANION_SHORTCUT_PREFIX + customShortcut,
+      label: "Custom shortcut",
+      icon: "Application",
+      icon_on: "Auto",
+      options: setConfigOptionValue("", shortcuts.COMPANION_SHORTCUT_PRESET_OPTION, "custom"),
+    });
     subpage.order.push("5", "", "", "");
     fixture.document.subpages[1] = "~" + subpage.order.join(",") + "|" + subpage.buttons.map(card =>
       [card.type, card.entity, card.label, card.icon, card.icon_on, card.sensor, card.unit, card.precision, card.options]
@@ -4882,7 +5579,7 @@ async function assertAppSubpageCapacity(browser, testCase) {
       assert.strictEqual(await page.locator(".sp-main .sp-empty-cell").count(), 3);
       await page.locator(".sp-back-btn .sp-back-hit").click();
       let app = await openAppSettings();
-      for (const id of ["7", "2", "4"]) {
+      for (const { id } of additionalShortcuts) {
         await page.locator("#sp-inp-companion-shortcut-" + id).evaluate(input => input.click());
         assert(await page.locator("#sp-inp-companion-shortcut-" + id).isChecked(), "available shortcut enables");
         assert.strictEqual(await app.getByText(/No free subpage space/).count(), 0, "three empty cells do not produce a full-page warning");
@@ -4891,12 +5588,17 @@ async function assertAppSubpageCapacity(browser, testCase) {
       const saved = () => native ? fixture.document.subpages[1] : Object.entries(legacyTextState)
         .filter(([key]) => key.includes("subpage_1")).map(([,value]) => value).join("");
       const deadline = Date.now() + 10000;
-      while ((!saved()?.includes("shortcut.command+n") || !saved()?.includes("shortcut.option+command+b")) && Date.now() < deadline)
+      const hasAddedShortcuts = () => {
+        const value = saved();
+        return additionalShortcuts.every(({ shortcut }) =>
+          value?.includes("," + encodeConfigField(shortcuts.COMPANION_SHORTCUT_PREFIX + shortcut) + ","));
+      };
+      while (!hasAddedShortcuts() && Date.now() < deadline)
         await new Promise(resolve => setTimeout(resolve, 25));
-      assert(saved().includes("shortcut.command+n") && saved().includes("shortcut.command+t") && saved().includes("shortcut.option+command+b"), "all three added shortcuts are saved");
+      assert(hasAddedShortcuts(), "all three added shortcuts are saved");
       assert(saved().includes("Custom shortcut"), "the existing custom card is retained");
       app = await openAppSettings();
-      for (const id of ["7", "2", "4"])
+      for (const { id } of additionalShortcuts)
         assert(await page.locator("#sp-inp-companion-shortcut-" + id).isChecked(), "saved shortcut remains enabled when reopened");
       assert.deepStrictEqual(errors, []);
     } finally { await context.close(); }
@@ -5003,9 +5705,22 @@ async function assertCompanionOnlyCardPicker(browser, testCase) {
     );
     assert(await page.locator('[data-card-type="companion_url"]').isVisible(),
       `${testCase.name}: Open URL remains available`);
+    const applications = page.locator('[data-card-type="companion_app"]');
     assert(
-      await page.locator('[data-card-type="companion_app"]').isVisible(),
+      await applications.isVisible(),
       `${testCase.name}: Companion-only picker opens on Mac Companion card types`,
+    );
+    await applications.hover();
+    const hoverBounds = await applications.evaluate(async (tile) => {
+      await Promise.all(tile.getAnimations().map((animation) => animation.finished));
+      return {
+        tileTop: tile.getBoundingClientRect().top,
+        panelTop: tile.closest(".sp-panel").getBoundingClientRect().top,
+      };
+    });
+    assert(
+      hoverBounds.tileTop >= hoverBounds.panelTop,
+      `${testCase.name}: hovering the first card keeps its top border inside the picker`,
     );
     assert.strictEqual(
       await page.locator('[data-card-type="companion_stats"]').count(),
@@ -5747,8 +6462,20 @@ async function assertHomeAssistantConnectorLayout(browser) {
       available: true, active: true, paired: false, connected: false,
       pairing_code: "ABCD",
     };
+    let requestedResync = false;
+    let esphomeEnabled = true;
     if (testCase.companionSupported) {
       await context.route(/\/companion\/pairing(?:\?.*)?$/, route => route.fulfill({ json: pairingState }));
+      await context.route(/\/api\/v1\/home-assistant(?:\?.*)?$/, route => {
+        const request = route.request();
+        if (request.method() === "POST") {
+          const operation = request.headers()["x-espdesktop-request"];
+          if (operation === "resync-buttons") requestedResync = true;
+          else if (operation === "disable-esphome") esphomeEnabled = false;
+          else return route.fulfill({ status: 400 });
+        }
+        return route.fulfill({ json: { enabled: esphomeEnabled } });
+      });
     }
     const page = await context.newPage();
     await installFakeEventSource(page);
@@ -5773,13 +6500,24 @@ async function assertHomeAssistantConnectorLayout(browser) {
         assert(Math.abs(connectorsTopGap - screenTopGap) < 0.5,
           `${testCase.name}: Connectors and Screen have matching top spacing at ${width}px`);
         assert(await connectors.isVisible(), `${testCase.name}: connectors visible at ${width}px`);
+        if (testCase.companionSupported) {
+          await connectors.getByRole("heading", { name: "Home Assistant", exact: true }).waitFor();
+          const gaps = await page.locator("#sp-device > .sp-config").evaluate(config => {
+            const gap = (first, second) => second.getBoundingClientRect().top - first.getBoundingClientRect().bottom;
+            const [companion, homeAssistant] = config.querySelectorAll("#sp-connectors > .card");
+            const [language, time] = Array.from(config.querySelectorAll(":scope > .card"));
+            return [gap(companion, homeAssistant), gap(language, time)];
+          });
+          assert(Math.abs(gaps[0] - gaps[1]) < 0.5,
+            `${testCase.name}: connector and preference cards have matching gaps at ${width}px`);
+        }
         assert(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1),
           `${testCase.name}: System fits at ${width}px`);
       }
       assert.strictEqual(
         await connectors.getByRole("heading", { name: "Home Assistant", exact: true }).count(),
-        0,
-        `${testCase.name}: connected Home Assistant does not expose setup or confirmation UI`,
+        testCase.companionSupported ? 1 : 0,
+        `${testCase.name}: the native ESPHome settings card is shown on supported displays`,
       );
       assert.strictEqual(
         await connectors.getByRole("button", { name: "I’ve enabled actions" }).count(),
@@ -5787,15 +6525,31 @@ async function assertHomeAssistantConnectorLayout(browser) {
         `${testCase.name}: Home Assistant action confirmation is unavailable`,
       );
       if (testCase.companionSupported) {
+        const homeAssistantHeading = connectors.getByRole("heading", { name: "Home Assistant", exact: true });
+        const badge = connectors.getByLabel("ESPHome API enabled", { exact: true });
+        await badge.waitFor({ state: "visible" });
+        assert.strictEqual(await badge.textContent(), "ON");
+        await homeAssistantHeading.click();
+        await connectors.getByRole("button", { name: "Resync buttons", exact: true }).click();
+        await connectors.getByText("Button refresh requested. Home Assistant will reconnect shortly.", { exact: true }).waitFor();
+        assert(requestedResync, `${testCase.name}: resync sends a request to the display`);
+        await connectors.locator("label[for='sp-enable-esphome-api']").click();
+        await connectors.getByText("Setting saved. The display is restarting.", { exact: true }).waitFor();
+        await homeAssistantHeading.click();
+        assert(!(await badge.isVisible()), `${testCase.name}: disabled ESPHome has no On badge`);
         assert(
           await connectors.getByRole("heading", { name: "Mac Companion", exact: true }).count() > 0,
           `${testCase.name}: Mac Companion setup remains available`,
         );
       } else {
-        assert(
-          await connectors.getByText("No external connectors are available on this display.").isVisible(),
-          `${testCase.name}: unsupported profiles show a useful local connector state`,
-        );
+        const banner = connectors.getByRole("note").filter({
+          hasText: "Use the EspDesktop Mac app to pair a compatible display.",
+        });
+        const guide = banner.getByRole("link", { name: "Download and setup guide", exact: true });
+        assert(await guide.isVisible(), `${testCase.name}: unsupported profiles show the Mac app setup guide`);
+        assert.strictEqual(await guide.getAttribute("href"), "https://espdesktop.com/screens/4848s040#download");
+        assert(await banner.evaluate(element => element.classList.contains("sp-info-panel")),
+          `${testCase.name}: the connector note uses the shared info banner style`);
       }
       for (const query of ["tab=connectors", "tab=connectors&connector=mac_companion", "tab=device&connector=mac_companion"]) {
         await page.goto(`http://espdesktop.test/${testCase.slug}?events=1&${query}`, { waitUntil: "domcontentloaded" });
@@ -5942,84 +6696,40 @@ async function assertScreensaverPinRemoval(browser) {
   } finally { await context.close(); }
 }
 
-async function assertCardCurveSettings(browser, testCase) {
+async function assertFixedCardCorners(browser, testCase) {
   const context = await browser.newContext({ viewport: testCase.viewport });
-  let savedPreset = "Large";
   try {
     await installRoutes(context, testCase.slug);
-    await context.route("**/select/screen__card_curve/set**", async route => {
-      savedPreset = new URL(route.request().url()).searchParams.get("option");
-      assert(["Small", "Medium", "Large"].includes(savedPreset));
-      await route.fulfill({ status: 200, contentType: "text/plain", body: "" });
-    });
     const page = await context.newPage();
     await installFakeEventSource(page);
-    const seed = async () => page.evaluate(events => window.__seedEspState(events), [
+    await page.goto(`http://espdesktop.test/${testCase.slug}?events=1`, { waitUntil: "domcontentloaded" });
+    await page.waitForFunction(() => window.__eventSources?.length > 0);
+    await page.evaluate(events => window.__seedEspState(events), [
       ...seededEvents(),
-      { id: "text-button_3_config", state: ";Rooms;Home;Auto;;;subpage" },
-      { id: "text-subpage_3_config", state: "~B,1|,light.kitchen,Kitchen,Lightbulb,Lightbulb" },
       { id: "select-screen__rotation", state: "0", value: "0", option: ["0", "90", "180", "270"] },
-      { id: "select-screen__card_curve", state: savedPreset, value: savedPreset, option: ["Small", "Medium", "Large"] },
+      { id: "select-screen__card_curve", state: "Small", value: "Small" }, // Older firmware.
     ]);
-    const open = async () => {
-      await page.goto(`http://espdesktop.test/${testCase.slug}?events=1`, { waitUntil: "domcontentloaded" });
-      await page.waitForFunction(() => window.__eventSources?.length > 0);
-      await seed();
-      await page.getByRole("tab", { name: "Screen", exact: true }).click();
-      const appearance = page.locator("#sp-settings .card").filter({ has: page.locator("#sp-set-card-curve") });
-      if (!(await page.locator("#sp-set-card-curve").isVisible())) await appearance.locator(".card-header").click();
-      await page.locator("#sp-set-card-curve").waitFor({ state: "visible" });
-      assert.deepStrictEqual(await page.locator("#sp-settings .card-header h3").allTextContents().then(titles => titles.slice(0, 4)),
-        ["Active Colour", "Card Style", "App Subpages", "Theme"], "Appearance settings include the global App Subpages panel");
-      assert.strictEqual(await page.locator("#sp-set-wallpaper, #sp-set-card-transparency, #sp-set-active-card-transparency").count(), 0,
-        "wallpaper controls belong exclusively to the wallpaper PR");
-    };
-    await open();
+    await page.getByRole("tab", { name: "Screen", exact: true }).click();
+    assert.strictEqual(await page.getByRole("heading", { name: "Card Style", exact: true }).count(), 0);
+    assert.strictEqual(await page.getByRole("group", { name: "Card curve", exact: true }).count(), 0);
+    assert.deepStrictEqual(await page.locator("#sp-settings .card-header h3").allTextContents().then(titles => titles.slice(0, 4)),
+      ["Active Colour", "App Subpages", "Theme", "Clock Bar"]);
+    assert.strictEqual(await page.locator("#sp-set-wallpaper, #sp-set-card-transparency, #sp-set-active-card-transparency").count(), 0,
+      "wallpaper controls belong exclusively to the wallpaper PR");
+
     const profile = readManifest().devices[testCase.slug];
     const substitutions = profile.firmware.package.substitutions;
     const width = Number(substitutions.screen_width.replaceAll('"', ""));
-    const base = Number(substitutions.radius.replace("px", ""));
-    const small = Number((substitutions.card_curve_small_radius || '').replace('px', '')) || Math.round(base * .6);
-    const medium = Number((substitutions.card_curve_medium_radius || '').replace('px', '')) || Math.round(base * .8);
-    for (const [preset, firmwareRadius] of [["Small", small], ["Medium", medium], ["Large", base]]) {
-      const expected = profile.web.cardCurveRadii?.[preset] ?? firmwareRadius;
-      const posted = page.waitForResponse(response => response.url().includes(`/select/screen__card_curve/set?option=${preset}`));
-      await page.locator("#sp-set-card-curve").getByRole("button", { name: preset, exact: true }).click();
-      await posted;
-      assert.strictEqual(savedPreset, preset, "curve changes must reach the saved firmware select");
-      const radius = await page.evaluate(logicalWidth => parseFloat(document.documentElement.style.getPropertyValue("--btn-r")) * logicalWidth / 100, width);
-      assert(Math.abs(radius - expected) < .001, `${testCase.slug}: ${preset} must match the configured preview radius ${expected}`);
-      await page.getByRole("tab", { name: "Layout", exact: true }).click();
-      const checkCards = async surface => {
-        await page.waitForFunction(() => [...document.querySelectorAll(".sp-main .sp-btn")].every(card => getComputedStyle(card).clipPath.startsWith("path(")));
-        const shapes = await page.locator(".sp-main .sp-btn").evaluateAll(cards => cards.map(card => {
-          const clip = getComputedStyle(card).clipPath;
-          const path = new Path2D(clip.slice(6, -2));
-          const radius = parseFloat(document.documentElement.style.getPropertyValue("--btn-r")) * document.querySelector(".sp-screen").clientWidth / 100;
-          const ctx = document.createElement("canvas").getContext("2d");
-          return !ctx.isPointInPath(path, radius, radius * .02) && ctx.isPointInPath(path, radius, radius * .1);
-        }));
-        assert(shapes.length >= 2 && shapes.every(Boolean), `${preset}: every ${surface} card must retain the gradual curve`);
-      };
-      await checkCards("home");
-      await page.locator('.sp-main [data-slot="3"] .sp-subpage-badge').click();
-      await page.waitForSelector(".sp-back-btn");
-      await checkCards("subpage, including Back");
-      await page.locator(".sp-back-btn .sp-back-hit").click();
-      await page.waitForSelector(".sp-back-btn", { state: "detached" });
-      await page.getByRole("tab", { name: "Screen", exact: true }).click();
-    }
-    const posted = page.waitForResponse(response => response.url().includes("/select/screen__card_curve/set?option=Medium"));
-    await page.locator("#sp-set-card-curve").getByRole("button", { name: "Medium", exact: true }).click();
-    await posted;
-    await open();
-    assert.strictEqual(await page.locator("#sp-set-card-curve").getByRole("button", { name: "Medium", exact: true }).getAttribute("aria-pressed"), "true", "reload follows the saved curve");
+    const expected = Number(substitutions.radius.replace("px", ""));
+    const radius = await page.evaluate(logicalWidth => parseFloat(document.documentElement.style.getPropertyValue("--btn-r")) * logicalWidth / 100, width);
+    assert(Math.abs(radius - expected) < .001, `${testCase.slug}: the preview must retain the Large radius of ${expected}px`);
+
     await openBackupControls(page);
     const downloadPromise = page.waitForEvent("download");
     await page.getByRole("button", { name: "Export", exact: true }).click();
     const download = await downloadPromise;
     const backup = JSON.parse(fs.readFileSync(await download.path(), "utf8"));
-    assert.strictEqual(backup.screen.card_curve, "Medium", "export includes the saved curve");
+    assert(!Object.hasOwn(backup.screen, "card_curve"), "New backups omit the retired preference");
   } finally { await context.close(); }
 }
 
@@ -6119,7 +6829,7 @@ async function assertPreviewOutlines(browser, testCase, exhaustive = false) {
     await page.waitForSelector('.sp-main > .sp-btn[data-slot="1"].sp-selected');
     const outlineStyle = await page.addStyleTag({ content: ".sp-btn,.sp-empty-cell{transition:none!important;--accent:#ff00ff!important;--card-outline-color:#ff00ff!important}" });
     // Keep the normal smoke run bounded: cover plain, image, artwork, slider
-    // and QR content. The opt-in sweep covers every card and curve preset.
+    // and QR content. The opt-in sweep covers every card type.
     const fixtures = await page.evaluate(exhaustive => {
       const hooks = window.__ESPDESKTOP_TEST_HOOKS__.config;
       const keys = exhaustive
@@ -6132,29 +6842,25 @@ async function assertPreviewOutlines(browser, testCase, exhaustive = false) {
     }, exhaustive);
     assert(fixtures.some(fixture => fixture.key === "image"), "outline sweep must include image cards");
     if (testCase.mediaCoverArtSupported) assert(fixtures.some(fixture => fixture.key === "media_cover_art"), "outline sweep must include Cover Art");
-    for (const preset of (exhaustive ? ["Small", "Medium", "Large"] : ["Medium"])) {
-      await page.evaluate(preset => window.__seedEspState([{ id: "select-screen__card_curve", state: preset, value: preset }]), preset);
-      for (const fixture of fixtures) {
-        await page.evaluate(config => window.__seedEspState([
-          { id: "text-button_order", state: "1" }, { id: "text-button_1_config", state: config },
-        ]), fixture.config);
-        const card = page.locator('.sp-main > .sp-btn[data-slot="1"]');
-        // Info-only profiles deliberately hide unsupported cards.
-        if (!(await card.count())) continue;
-        await assertPreviewOutlinePixels(page, '.sp-main > .sp-btn[data-slot="1"].sp-selected', `${testCase.slug}/${preset}/${fixture.key}`);
-      }
-      const empty = ".sp-main > .sp-empty-cell:not(.sp-info-only-hidden)";
-      await page.locator(empty).first().hover();
-      await assertPreviewOutlinePixels(page, empty, `${testCase.slug}/${preset}/empty`);
+    for (const fixture of fixtures) {
+      await page.evaluate(config => window.__seedEspState([
+        { id: "text-button_order", state: "1" }, { id: "text-button_1_config", state: config },
+      ]), fixture.config);
+      const card = page.locator('.sp-main > .sp-btn[data-slot="1"]');
+      // Info-only profiles deliberately hide unsupported cards.
+      if (!(await card.count())) continue;
+      await assertPreviewOutlinePixels(page, '.sp-main > .sp-btn[data-slot="1"].sp-selected', `${testCase.slug}/${fixture.key}`);
     }
+    const empty = ".sp-main > .sp-empty-cell:not(.sp-info-only-hidden)";
+    await page.locator(empty).first().hover();
+    await assertPreviewOutlinePixels(page, empty, `${testCase.slug}/empty`);
     if (testCase.slug === "guition-esp32-s3-4848s040") {
       await page.evaluate(() => window.__seedEspState([
-        { id: "select-screen__card_curve", state: "Large", value: "Large" },
         { id: "text-button_order", state: "1,2" },
         { id: "text-button_2_config", state: "media_player.living;Speakers;Auto;Auto;speaker_group;;media" },
       ]));
       await assertPreviewOutlinePixels(page, '.sp-main > .sp-media-group-active[data-slot="2"]:not(.sp-selected)',
-        `${testCase.slug}/Large/speaker group`, 3);
+        `${testCase.slug}/speaker group`, 3);
     }
     // A resized, large artwork card exercises mask regeneration as well as layering.
     if (testCase.mediaCoverArtSupported) {
@@ -6165,6 +6871,8 @@ async function assertPreviewOutlines(browser, testCase, exhaustive = false) {
       await page.setViewportSize({ width: 700, height: 900 });
       const card = page.locator('.sp-main > .sp-btn[data-slot="1"]');
       if (!(await card.evaluate(card => card.classList.contains("sp-selected")))) await card.click();
+      // Move away from the card so its resize handle does not cover the measured corner.
+      await page.mouse.move(0, 0);
       await assertPreviewOutlinePixels(page, '.sp-main > .sp-btn[data-slot="1"].sp-selected', `${testCase.slug}/resized artwork`);
     }
     await outlineStyle.evaluate(style => style.remove());
@@ -6215,6 +6923,11 @@ async function assertContinuousPreview(browser, testCase) {
     }));
     assert(Math.abs(gaps.row - gaps.expected) < .05 && Math.abs(gaps.column - gaps.expected) < .05,
       "preview card gaps must retain the configured scale after resizing");
+    const frame = await page.locator(".sp-screen").evaluate(screen => ({
+      gridWidth: screen.clientWidth,
+      previewWidth: screen.offsetWidth,
+    }));
+    assert.equal(frame.gridWidth, frame.previewWidth, "the editor frame stays outside the display area");
   } finally { await context.close(); }
 }
 
@@ -6550,152 +7263,47 @@ async function assertCameraScreensaverDimming(browser, testCase) {
   } finally { await context.close(); }
 }
 
-async function assertInitialGlobalIconSize(browser) {
-  const slug = "guition-esp32-s3-4848s040";
-  for (const preset of ["Large", "Medium", "Small", null]) {
-    const context = await browser.newContext({ viewport: { width: 1000, height: 900 } });
-    await installRoutes(context, slug);
-    let releaseSize;
-    let sizeRequested;
-    const requested = new Promise(resolve => { sizeRequested = resolve; });
-    const released = new Promise(resolve => { releaseSize = resolve; });
-    await context.route("**/select/**", async route => {
-      if (!decodeURIComponent(new URL(route.request().url()).pathname).includes("Default Icon Size")) return route.fallback();
-      sizeRequested();
-      await released;
-      await route.fulfill({ status: preset ? 200 : 404, contentType: "application/json",
-        body: JSON.stringify(preset ? { id: "select-screen__default_icon_size", state: preset, value: preset } : {}) });
-    });
-    await context.route("**/text/**", async route => {
-      const name = decodeURIComponent(new URL(route.request().url()).pathname.split("/")[2]).toLowerCase().replace(/ /g, "_");
-      const slot = name.match(/^button_(\d+)_config$/);
-      const value = name === "button_order" ? "1,2" : slot ? (slot[1] === "1"
-        ? "com.apple.finder;Finder;Monitor;Auto;;;companion;;"
-        : slot[1] === "2" ? "com.apple.Safari;Safari;Monitor;Auto;;;companion;;icon_size=small" : "") : "";
-      await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ id: "text-" + name, value, state: value }) });
-    });
-    const page = await context.newPage();
-    const errors = [];
-    page.on("pageerror", error => errors.push(error.message));
-    await page.addInitScript(() => {
-      window.__initialAppLayouts = [];
-      function record() {
-        const card = document.querySelector('.sp-main [data-slot="1"]:has(.sp-companion-app-icon-fallback)');
-        if (card && card.getBoundingClientRect().width) window.__initialAppLayouts.push({
-          size: card.getAttribute("data-icon-size"),
-          labelVisible: getComputedStyle(card.querySelector(".sp-btn-label")).display !== "none",
-        });
-        requestAnimationFrame(record);
-      }
-      requestAnimationFrame(record);
-    });
-    try {
-      await page.goto(`http://espdesktop.test/${slug}`, { waitUntil: "domcontentloaded" });
-      await requested;
-      await page.waitForTimeout(150);
-      assert.deepStrictEqual(await page.evaluate(() => window.__initialAppLayouts), [], "pending default cannot show app cards in a provisional layout");
-      releaseSize();
-      await page.waitForFunction(() => window.__initialAppLayouts.length >= 3);
-      const expected = preset ? preset.toLowerCase() : "small";
-      const frames = await page.evaluate(() => window.__initialAppLayouts);
-      assert(frames.every(frame => frame.size === expected && frame.labelVisible === (expected !== "large")),
-        `${preset || "unsupported"}: every visible frame starts in the saved layout`);
-      assert.strictEqual(await page.locator('.sp-main [data-slot="2"]').getAttribute("data-icon-size"), "small", "per-card override still wins");
-      assert.deepStrictEqual(errors, []);
-      console.log(`Initial app icon layout passed: ${preset || "unsupported setting"}`);
-    } finally { releaseSize(); await context.close(); }
-  }
-}
-
-async function assertGlobalIconSize(browser, testCase) {
+async function assertFixedAppIconControls(browser, testCase) {
+  if (!testCase.companionSupported) return;
   for (const native of [false, true]) {
-    console.log(`Checking global icon size: ${testCase.slug}/${native ? "native" : "legacy"}`);
     const fixture = nativeConfigState(testCase.slug);
     fixture.document.buttons[1] = "com.apple.finder;Finder;Monitor;Auto;;;companion;;";
     fixture.document.buttons[2] = "com.apple.Safari;Safari;Monitor;Auto;;;companion;;icon_size=small";
-    fixture.document.subpages[3] = "~B,1,2|companion,com.apple.finder,Finder,Monitor,Auto|companion,com.apple.Safari,Safari,Monitor,Auto,,,,icon_size=medium";
-    let savedDefault = "Small";
-    const legacyTextState = {};
     const context = await browser.newContext({ viewport: testCase.viewport });
-    await installRoutes(context, testCase.slug, { nativeState: native ? fixture : null, legacyTextState });
-    const defaultPosts = [];
-    await context.route("**/select/screen__default_icon_size/set**", async route => {
-      savedDefault = new URL(route.request().url()).searchParams.get("option");
-      defaultPosts.push(savedDefault);
-      await route.fulfill({ status: 200, contentType: "text/plain", body: "" });
-    });
+    await installRoutes(context, testCase.slug, { nativeState: native ? fixture : null });
     const page = await context.newPage();
     await installFakeEventSource(page);
     const errors = [];
+    const retiredSettingRequests = [];
     page.on("pageerror", error => errors.push(error.message));
-    const card = slot => page.locator(`.sp-main [data-slot="${slot}"]`);
-    const sizes = page.getByRole("group", { name: "Default app icon size", exact: true });
-    async function open() {
-      await page.goto(`http://espdesktop.test/${testCase.slug}?events=1`, { waitUntil: "domcontentloaded" });
-      await page.waitForFunction(() => window.__eventSources?.length > 0);
-      await seedNativeDocument(page, fixture);
-      await page.evaluate(preset => window.__seedEspState([
-        { id: "select-screen__default_icon_size", state: preset, value: preset, option: ["Small", "Medium", "Large"] },
-      ]), savedDefault);
-    }
-    async function openStyle() {
-      await page.getByRole("tab", { name: "Screen", exact: true }).click();
-      if (!(await sizes.isVisible())) await page.locator("#sp-settings .card").filter({ has: page.locator("#sp-set-default-icon-size") }).locator(".card-header").click();
-    }
+    page.on("request", request => {
+      const path = decodeURIComponent(new URL(request.url()).pathname).toLowerCase().replace(/ +/g, "_");
+      if (path.includes("default_icon_size")) retiredSettingRequests.push(path);
+    });
     try {
-      await open();
-      const originalSmall = native ? fixture.document.buttons[2] : legacyTextState.button_2_config;
-      await openStyle();
-      const posted = page.waitForResponse(response => response.url().includes("/select/screen__default_icon_size/set?option=Large"));
-      await sizes.getByRole("button", { name: "Large", exact: true }).click();
-      await posted;
-      assert.strictEqual(savedDefault, "Large", "global setting reaches the display select");
+      await page.goto("http://espdesktop.test/" + testCase.slug + "?events=1", { waitUntil: "domcontentloaded" });
+      await seedNativeDocument(page, fixture);
+      await page.getByRole("tab", { name: "Screen", exact: true }).click();
+      await page.getByRole("heading", { name: "Active Colour", exact: true }).waitFor();
+      assert.strictEqual(await page.getByRole("group", { name: "Default app icon size", exact: true, includeHidden: true }).count(), 0);
       await page.getByRole("tab", { name: "Layout", exact: true }).click();
-      assert.strictEqual(await card(1).getAttribute("data-icon-size"), "large", "unconfigured cards inherit Large");
-      assert(!(await card(1).locator(".sp-btn-label").isVisible()), "inherited Large hides the label");
-      assert.strictEqual(await card(2).getAttribute("data-icon-size"), "small", "manual Small overrides global Large");
-      assert(await card(2).locator(".sp-btn-label").isVisible());
-      assert.strictEqual(native ? fixture.document.buttons[2] : legacyTextState.button_2_config, originalSmall, "global changes do not rewrite per-card choices");
-      await card(2).click({ button: "right" });
-      await page.locator(".sp-ctx-menu").getByRole("button", { name: "App Icon Size", exact: true }).click();
-      await page.locator(".sp-ctx-submenu").getByRole("button", { name: "Use Default", exact: true }).click();
-      await page.waitForFunction(() => document.querySelector('.sp-main [data-slot="2"]')?.dataset.iconSize === "large");
-      assert(!(native ? fixture.document.buttons[2] : legacyTextState.button_2_config).includes("icon_size="), "Use Default removes the saved override");
-      await card(3).locator(".sp-subpage-badge").click();
-      await page.locator(".sp-back-btn").waitFor();
-      assert.strictEqual(await card(1).getAttribute("data-icon-size"), "large", "subpage cards inherit the global size");
-      assert.strictEqual(await card(2).getAttribute("data-icon-size"), "medium", "subpage manual sizes stay fixed");
-      await page.locator(".sp-back-btn .sp-back-hit").click();
-      // Device/HA events also update inherited cards without changing overrides.
       await page.evaluate(() => window.__seedEspState([
-        { id: "select-screen__default_icon_size", state: "Medium", value: "Medium" },
+        { id: "select-screen__default_icon_size", state: "Small", value: "Small" },
       ]));
-      assert.strictEqual(await card(1).getAttribute("data-icon-size"), "medium");
-      assert(await card(1).locator(".sp-btn-label").isVisible(), "labels return when inherited size shrinks");
-      await open();
-      await openStyle();
-      assert.strictEqual(await sizes.getByRole("button", { name: "Large", exact: true }).getAttribute("aria-pressed"), "true", "reload follows the saved display setting");
-      // Backup settings use the same queue on every profile. Exercise both
-      // native and legacy restore formats on the S3 without repeating full
-      // device restores for each preview geometry.
-      if (testCase.slug !== "guition-esp32-s3-4848s040") {
-        assert.deepStrictEqual(errors, []);
-        continue;
+      for (const slot of [1, 2]) {
+        const card = page.locator('.sp-main [data-slot="' + slot + '"]');
+        assert.strictEqual(await card.getAttribute("data-icon-size"), "large");
+        assert(!(await card.locator(".sp-btn-label").isVisible()));
       }
-      await openBackupControls(page);
-      const downloadPromise = page.waitForEvent("download");
-      await page.getByRole("button", { name: "Export", exact: true }).click();
-      const backup = JSON.parse(fs.readFileSync(await (await downloadPromise).path(), "utf8"));
-      assert.strictEqual(backup.screen.default_icon_size, "large", "backups include the global default");
-      const previousPosts = defaultPosts.length;
-      await importBackup(page, backupFixture(testCase.slug, testCase.slots), "default-icon-size-legacy");
-      await page.locator(".sp-banner").filter({ hasText: "Configuration imported successfully" }).waitFor({ timeout: 30000 });
-      assert.strictEqual(defaultPosts.length, previousPosts, "older backups preserve the current default");
-      backup.screen.default_icon_size = "medium";
-      await page.locator(".sp-banner").evaluate(node => { node.className = "sp-banner"; });
-      await importBackup(page, backup, "default-icon-size-restore");
-      await page.locator(".sp-banner").filter({ hasText: "Configuration imported successfully" }).waitFor({ timeout: 30000 });
-      assert.strictEqual(savedDefault, "Medium", "backup restore restores the global size");
+      const card = page.locator('.sp-main [data-slot="2"]');
+      await card.click({ button: "right" });
+      const menu = page.locator(".sp-ctx-menu");
+      assert.strictEqual(await menu.getByRole("button", { name: "App Icon Size", exact: true }).count(), 0);
+      await menu.getByText("Edit Card", { exact: true }).click();
+      const settings = page.locator(".sp-settings-modal");
+      await settings.waitFor({ state: "visible" });
+      assert.strictEqual(await settings.getByRole("group", { name: "App icon size", exact: true, includeHidden: true }).count(), 0);
+      assert.deepStrictEqual(retiredSettingRequests, []);
       assert.deepStrictEqual(errors, []);
     } finally { await context.close(); }
   }
@@ -6811,13 +7419,8 @@ async function assertAppSubpageOpeningPreference(browser) {
   const testCase = ACTIVE_CASES[0];
   const fixture = nativeConfigState(testCase.slug);
   const context = await browser.newContext({ viewport: testCase.viewport });
-  const routes = { nativeState: fixture, nativeAppSubpagePreference: true };
+  const routes = { nativeState: fixture, nativeAppSubpagePreference: true, nativeAppSubpageMode: true };
   await installRoutes(context, testCase.slug, routes);
-  const returnPosts = [];
-  await context.route("**/switch/*return_home_on_app_switch*/**", async route => {
-    returnPosts.push(new URL(route.request().url()).pathname.split("/").pop());
-    await route.fulfill({ status: 200, contentType: "text/plain", body: "" });
-  });
   const page = await context.newPage();
   const errors = [];
   page.on("pageerror", error => errors.push(error.message));
@@ -6828,57 +7431,54 @@ async function assertAppSubpageOpeningPreference(browser) {
     await seedNativeDocument(page, fixture);
     await page.waitForFunction(() => !document.querySelector("#sp-app").classList.contains("sp-onboarding"));
     await page.getByRole("tab", { name: "Screen", exact: true }).click();
-    const card = page.locator("#sp-settings .card").filter({ has: page.locator("#sp-set-auto-open-app-subpages") });
+    const card = page.locator("#sp-settings .card").filter({ has: page.locator("#sp-set-app-subpage-mode") });
     assert.strictEqual(await card.locator(".card-header h3").textContent(), "App Subpages");
-    assert.strictEqual(await card.evaluate(element => element.previousElementSibling.querySelector(".card-header h3").textContent), "Card Style",
-      "App Subpages appears directly below Card Style on the Screen tab");
+    assert.strictEqual(await card.evaluate(element => element.previousElementSibling.querySelector(".card-header h3").textContent), "Active Colour",
+      "App Subpages appears directly below Active Colour on the Screen tab");
     if (await card.evaluate(element => element.classList.contains("collapsed"))) await card.locator(".card-header").click();
   }
   try {
     await open();
-    const toggle = page.locator("#sp-set-auto-open-app-subpages");
-    assert(await toggle.isChecked(), "automatic opening remains the default");
-    await toggle.locator("..").locator(".sp-toggle-track").click();
-    await waitForNativeState(fixture, () => fixture.document.settings.companion_auto_open_app_subpages === "0",
-      "save automatic app switching with the layout");
+    const mode = page.getByRole("combobox", { name: "Open app subpages", exact: true });
+    await page.waitForFunction(() => !document.querySelector("#sp-set-app-subpage-mode").disabled);
+    assert.equal(await mode.inputValue(), "card", "new displays default to a single card press");
+    for (const value of ["manual", "focus", "card"]) {
+      await mode.selectOption(value);
+      await waitForNativeState(fixture, () => fixture.document.settings.companion_app_subpage_mode === value,
+        "save the opening mode with the layout");
+    }
     await open();
-    await page.evaluate(() => window.__seedEspState([
-      { id: "switch-companion_auto_open_app_subpages_enabled", state: "OFF", value: false },
-    ]));
-    await page.waitForFunction(() => !document.querySelector("#sp-set-auto-open-app-subpages").checked);
-    await toggle.locator("..").locator(".sp-toggle-track").click();
-    await waitForNativeState(fixture, () => fixture.document.settings.companion_auto_open_app_subpages === "1",
-      "save automatic app switching with the layout");
-    const returnToggle = page.locator("#sp-set-return-home-on-app-switch");
-    assert(await returnToggle.isChecked(), "returning home remains the default");
-    await Promise.all([
-      page.waitForResponse(response => response.url().includes("return_home_on_app_switch") && response.url().endsWith("/turn_off")),
-      returnToggle.locator("..").locator(".sp-toggle-track").click(),
-    ]);
-    assert.deepStrictEqual(returnPosts, ["turn_off"], "staying on the page is saved to the device");
-    await open();
-    await page.evaluate(() => window.__seedEspState([
-      { id: "switch-companion_return_home_on_app_switch_enabled", state: "OFF", value: false },
-    ]));
-    await page.waitForFunction(() => !document.querySelector("#sp-set-return-home-on-app-switch").checked);
-    await Promise.all([
-      page.waitForResponse(response => response.url().includes("return_home_on_app_switch") && response.url().endsWith("/turn_on")),
-      returnToggle.locator("..").locator(".sp-toggle-track").click(),
-    ]);
-    assert.deepStrictEqual(returnPosts, ["turn_off", "turn_on"]);
+    await page.waitForFunction(() => !document.querySelector("#sp-set-app-subpage-mode").disabled);
+    assert.equal(await mode.inputValue(), "card");
+    const modern = backupFixture(testCase.slug, testCase.slots);
+    const modernLayout = structuredClone(fixture.document);
+    modernLayout.settings.companion_app_subpage_mode = "focus";
+    modern.native_config = createPanelConfigBackupPayload(encodePanelConfig(modernLayout));
+    await importBackup(page, modern, "restore-app-subpage-mode");
+    await page.locator(".sp-banner").filter({ hasText: "Configuration imported successfully" }).waitFor();
+    assert.equal(fixture.document.settings.companion_app_subpage_mode, "focus");
+    assert.equal(await page.locator("#sp-set-app-subpage-mode").inputValue(), "focus");
     const backup = backupFixture(testCase.slug, testCase.slots);
     backup.settings = { auto_open_app_subpages: false };
     delete backup.screen;
     const backupLayout = structuredClone(fixture.document);
     delete backupLayout.settings.companion_auto_open_app_subpages;
+    delete backupLayout.settings.companion_app_subpage_mode;
     backup.native_config = createPanelConfigBackupPayload(encodePanelConfig(backupLayout));
     await importBackup(page, backup, "restore-app-switching");
     await page.locator(".sp-banner").filter({ hasText: "Configuration imported successfully" }).waitFor();
-    assert.equal(fixture.document.settings.companion_auto_open_app_subpages, "0", "backup restores switching with the layout");
-
+    await waitForNativeState(fixture, () => fixture.document.settings.companion_auto_open_app_subpages === "0",
+      "older backup restores switching with the layout");
+    await page.waitForFunction(() => document.querySelector("#sp-set-app-subpage-mode").value === "manual");
+    routes.nativeAppSubpageMode = false;
+    await open();
+    await page.waitForFunction(() => !document.querySelector("#sp-set-app-subpage-mode").disabled);
+    assert.equal(await mode.locator('option[value="card"]').count(), 0, "older firmware offers its two supported choices");
+    const before = fixture.puts.length;
+    await importBackup(page, modern, "restore-app-subpage-mode-requires-update");
+    await page.locator(".sp-banner").filter({ hasText: "Update the panel firmware to restore the app subpage opening mode" }).waitFor();
     routes.nativeAppSubpagePreference = false;
     await open();
-    const before = fixture.puts.length;
     await importBackup(page, backup, "restore-app-switching-requires-update");
     await page.locator(".sp-banner").filter({ hasText: "Update the panel firmware before restoring the automatic app switching setting" }).waitFor();
     assert.equal(fixture.puts.length, before, "an incompatible backup leaves the saved layout alone");
@@ -7145,10 +7745,472 @@ async function assertReorderAfterDelete(browser) {
   } finally { await context.close(); }
 }
 
+async function mockCompanionAppIcon(context, appId) {
+  const { COMPANION_APP_ICON_SIDE: side } = loadTypeScriptModule("src/webserver/generated/companion_capabilities.ts");
+  const pixels = Buffer.alloc(side * side * 3, 255);
+  await context.route(url => url.pathname === "/companion/app-icon" && url.searchParams.get("appId") === appId,
+    route => route.fulfill({
+      contentType: "application/octet-stream", body: pixels,
+    }));
+}
+
+async function assertAppleShortcutCard(browser) {
+  const testCase = CASES.find(item => item.slug === "guition-esp32-s3-4848s040");
+  const fixture = nativeConfigState(testCase.slug);
+  fixture.document.settings.web_onboarding_complete = "1";
+  const connectorsStatus = { onboarding_complete: true, mac_companion: {
+    available: true, configured: true, paired: true, connected: true,
+  } };
+  const id = "appleshortcut.727ed9bf-de97-42ed-b661-8967497b122c";
+  const replacementId = "appleshortcut.74e95dc0-0244-410f-b466-07aa47b8f1e5";
+  let workflows = [{ id, label: "Start Design Session", shortcutColor: 0xFF6363 }];
+  const context = await browser.newContext({ viewport: testCase.viewport });
+  await installRoutes(context, testCase.slug, { nativeState: fixture, connectorsStatus, nativeV2: true });
+  await context.route("**/companion/actions", route => route.fulfill({
+    json: [{ id: "com.apple.shortcuts", label: "Shortcuts" }, ...workflows],
+  }));
+  await mockCompanionAppIcon(context, "com.apple.shortcuts");
+  try {
+    const page = await context.newPage();
+    await installFakeEventSource(page);
+    async function open() {
+      await page.goto(`http://espdesktop.test/${testCase.slug}?events=1`);
+      await page.waitForSelector("#sp-app");
+      await page.waitForFunction(() => window.__eventSources?.length > 0);
+      await page.waitForLoadState("networkidle");
+      await page.evaluate(events => window.__seedEspState(events), nativeDocumentEvents(fixture.document));
+      await page.locator('.sp-main[aria-disabled="false"]').waitFor();
+    }
+    await open();
+    await page.locator(".sp-main .sp-empty-cell").first().click();
+    const shortcutsGroup = page.getByRole("button", { name: "Apple Shortcuts card type", exact: true });
+    await shortcutsGroup.locator(".sp-card-type-icon.mdi-flash").waitFor();
+    assert.equal(await page.getByRole("button", { name: "Run a shortcut card type" }).count(), 0);
+    await shortcutsGroup.click();
+    const back = page.getByRole("button", { name: "Back to card types", exact: true });
+    assert.equal(await back.evaluate(button => button === document.activeElement), true);
+    assert.deepEqual(await page.locator("#sp-card-type-picker button").evaluateAll(
+      buttons => buttons.map(button => button.getAttribute("aria-label"))),
+      ["Create a list of shortcuts card type", "Run a shortcut card type", "Open the Shortcuts App card type"]);
+    await back.click();
+    assert.equal(await shortcutsGroup.evaluate(button => button === document.activeElement), true);
+    await shortcutsGroup.click();
+    await page.getByRole("button", { name: "Run a shortcut card type" })
+      .locator(".sp-card-type-icon.mdi-flash").waitFor();
+    await page.getByRole("button", { name: "Open the Shortcuts App card type" })
+      .locator("img.sp-card-type-app-icon").waitFor();
+    await chooseCardType(page, "Run a shortcut");
+    const picker = page.getByLabel("Apple Shortcut", { exact: true });
+    await picker.locator(`option[value="${id}"]`).waitFor({ state: "attached" });
+    await picker.selectOption(id);
+    await page.getByRole("button", { name: "Save", exact: true }).click();
+    await waitForNativeState(fixture, () => fixture.puts.length > 0, "save an approved Apple Shortcut");
+    const slot = Object.keys(fixture.document.buttons).find(key => fixture.document.buttons[key].startsWith("~" + id + ","));
+    assert(slot, "the saved card keeps its Apple Shortcut identifier");
+    assert(fixture.document.buttons[slot].startsWith("~" + id + ",Start Design Session,"));
+    assert(!fixture.document.buttons[slot].includes("FF6363"), "the inherited colour is not saved as an override");
+    await page.locator(`.sp-main [data-slot="${slot}"]`).waitFor();
+    await page.waitForFunction(slot =>
+      document.querySelector(`.sp-main [data-slot="${slot}"]`)?.style.backgroundColor === "rgb(255, 99, 99)", slot);
+
+    const shortcutTile = page.locator(`.sp-main [data-slot="${slot}"]`);
+    const appIconMode = page.getByRole("button", { name: "Shortcuts App Icon", exact: true });
+    const customIconMode = page.getByRole("button", { name: "Custom Icon", exact: true });
+    const customIconPicker = page.getByRole("textbox", { name: "Choose an icon", exact: true });
+    async function editShortcutAppearance() {
+      await shortcutTile.click({ button: "right" });
+      await page.locator(".sp-ctx-menu").getByText("Edit Card", { exact: true }).click();
+      const settings = page.getByRole("button", { name: "Card Settings", exact: true });
+      if (await settings.getAttribute("aria-expanded") !== "true") await settings.click();
+    }
+    await shortcutTile.locator("img.sp-companion-app-icon").waitFor();
+    await editShortcutAppearance();
+    assert.equal(await appIconMode.getAttribute("aria-pressed"), "true");
+    assert.equal(await customIconPicker.isVisible(), false);
+    await customIconMode.click();
+    await customIconPicker.fill("Timer");
+    await page.locator(".sp-icon-option").getByText("Timer", { exact: true }).click();
+    await shortcutTile.locator(".sp-btn-icon.mdi-timer-outline").waitFor();
+    assert.equal(await shortcutTile.locator("img.sp-companion-app-icon").count(), 0);
+    await page.getByRole("button", { name: "Save", exact: true }).click();
+    await waitForNativeState(fixture, () => fixture.document.buttons[slot].includes("custom_icon") &&
+      fixture.document.buttons[slot].includes(",Timer,"), "save the custom shortcut icon");
+    await page.locator(".sp-settings-modal").waitFor({ state: "hidden" });
+    await editShortcutAppearance();
+    assert.equal(await customIconMode.getAttribute("aria-pressed"), "true");
+    assert.equal(await customIconPicker.inputValue(), "Timer");
+    await appIconMode.click();
+    await page.getByRole("button", { name: "Save", exact: true }).click();
+    await waitForNativeState(fixture, () => !fixture.document.buttons[slot].includes("custom_icon"),
+      "restore the Shortcuts app icon");
+    await page.locator(".sp-settings-modal").waitFor({ state: "hidden" });
+    await shortcutTile.locator("img.sp-companion-app-icon").waitFor();
+
+    await page.locator(`.sp-main [data-slot="${slot}"]`).click({ button: "right" });
+    await page.locator(".sp-ctx-menu").getByText("Edit Card", { exact: true }).click();
+    await page.getByRole("button", { name: "Custom Colours", exact: true }).click();
+    await page.getByRole("button", { name: "Set colour to yellow", exact: true }).click();
+    await page.getByRole("button", { name: "Save", exact: true }).click();
+    await waitForNativeState(fixture, () => fixture.document.buttons[slot].includes("EED146"), "save the colour override");
+    await page.waitForFunction(slot =>
+      document.querySelector(`.sp-main [data-slot="${slot}"]`)?.style.backgroundColor === "rgb(238, 209, 70)", slot);
+    workflows = [];
+    connectorsStatus.mac_companion.connected = false;
+    // Reopen the saved record in a known visible cell after a fresh load.
+    fixture.document.buttons[1] = fixture.document.buttons[slot];
+    delete fixture.document.buttons[slot];
+    await open();
+    const savedCard = page.locator('.sp-main [data-slot="1"]');
+    await savedCard.getByText("Start Design Session", { exact: true }).waitFor();
+    await savedCard.locator("img.sp-companion-app-icon").waitFor();
+    assert.equal(await savedCard.getAttribute("data-icon-size"), "small");
+    await savedCard.click({ button: "right" });
+    await page.locator(".sp-ctx-menu").getByText("Edit Card", { exact: true }).click();
+    await picker.locator(`option[value="${id}"]`).waitFor({ state: "attached" });
+    assert.equal(await picker.inputValue(), id);
+    assert.equal(await picker.locator("option:checked").textContent(), "Start Design Session (unavailable)");
+    await page.getByRole("button", { name: "Save", exact: true }).click();
+    await page.locator(".sp-settings-modal").waitFor({ state: "hidden" });
+    assert(fixture.document.buttons[1].startsWith("~" + id + ","));
+
+    connectorsStatus.mac_companion.connected = true;
+    workflows = [{ id: replacementId, label: "Stop Distractions" }];
+    await open();
+    await savedCard.click({ button: "right" });
+    await page.locator(".sp-ctx-menu").getByText("Edit Card", { exact: true }).click();
+    await picker.selectOption(replacementId);
+    const label = page.locator("#sp-inp-label");
+    if (!(await label.isVisible())) {
+      await page.getByRole("button", { name: "Card Settings", exact: true }).click();
+    }
+    assert.equal(await label.inputValue(), "Stop Distractions");
+    await page.getByRole("button", { name: "Save", exact: true }).click();
+    await waitForNativeState(fixture, () => fixture.document.buttons[1].startsWith(
+      "~" + replacementId + ",Stop Distractions,"
+    ), "save the replacement Apple Shortcut with its label");
+    await savedCard.getByText("Stop Distractions", { exact: true }).waitFor();
+    await page.locator(".sp-main .sp-empty-cell").first().click();
+    await shortcutsGroup.click();
+    await chooseCardType(page, "Open the Shortcuts App");
+    const application = page.getByRole("combobox", { name: "Application", exact: true });
+    await application.getByRole("option", { name: "Shortcuts", exact: true }).waitFor({ state: "attached" });
+    assert.equal(await application.inputValue(), "com.apple.shortcuts");
+    const appSubpage = page.locator(".sp-app-subpage-settings");
+    assert.equal(await appSubpage.getByRole("button", { name: "App Subpage", exact: true }).getAttribute("aria-expanded"), "true");
+    assert.equal(await appSubpage.getByText("Add app subpage", { exact: true }).count(), 0);
+    await appSubpage.getByText("Stop Distractions", { exact: true }).waitFor();
+    assert.equal(await appSubpage.getByRole("button", { name: "Apple Shortcuts", exact: true }).count(), 0);
+    await page.getByRole("button", { name: "Save", exact: true }).click();
+    const { parseRawButtonConfig } = loadTypeScriptModule("src/webserver/model/card.ts");
+    const pinnedAppSlot = () => Object.keys(fixture.document.buttons).find(slot =>
+      parseRawButtonConfig(fixture.document.buttons[slot]).entity === "com.apple.shortcuts");
+    await waitForNativeState(fixture, () => fixture.document.subpages[pinnedAppSlot()]?.includes(replacementId),
+      "save the preselected Shortcuts app card and its default workflow subpage");
+    const pinnedApp = () => parseRawButtonConfig(fixture.document.buttons[pinnedAppSlot()]);
+    assert.equal(pinnedApp().type, "companion");
+    assert.equal(pinnedApp().sensor, "");
+    assert.match(pinnedApp().options, /(?:^|,)app_shortcuts(?:,|$)/);
+    await page.locator(".sp-settings-modal").waitFor({ state: "hidden" });
+    await page.locator(`.sp-main [data-slot="${pinnedAppSlot()}"]`).click({ button: "right" });
+    await page.locator(".sp-ctx-menu").getByText("Edit Card", { exact: true }).click();
+    const disclosure = appSubpage.getByRole("button", { name: "App Subpage", exact: true });
+    if (await disclosure.getAttribute("aria-expanded") !== "true") await disclosure.click();
+    const savedPage = fixture.document.subpages[pinnedAppSlot()];
+    await page.getByRole("button", { name: "Save", exact: true }).click();
+    await page.locator(".sp-settings-modal").waitFor({ state: "hidden" });
+    assert.equal(fixture.document.subpages[pinnedAppSlot()], savedPage, "resaving keeps the existing app subpage");
+    console.log("The grouped Apple Shortcuts picker, Back button, workflow card, and pinned app passed.");
+  } finally { await context.close(); }
+}
+
+async function assertAppleShortcutSubpage(browser, directCard = false) {
+  const testCase = CASES.find(item => item.slug === "guition-esp32-s3-4848s040");
+  const fixture = nativeConfigState(testCase.slug);
+  fixture.maxRecordBodyBytes = 4096;
+  fixture.document.buttons = directCard ? {} : { 1: "com.apple.shortcuts;Shortcuts;Auto;Auto;;;companion;;" };
+  fixture.document.subpages = {};
+  fixture.document.settings = { button_order: directCard ? "" : "1", web_onboarding_complete: "1" };
+  const workflows = Array.from({ length: directCard ? 256 : 255 }, (_, index) => {
+    const number = String(index + 1).padStart(2, "0");
+    const uuidSuffix = String(index + 1).padStart(12, "0");
+    return { id: "appleshortcut.727ed9bf-de97-42ed-b661-" + uuidSuffix, label: "Workflow " + number };
+  });
+  let available = [...workflows].reverse();
+  const connectorsStatus = { onboarding_complete: true, mac_companion: {
+    available: true, configured: true, paired: true, connected: true,
+  } };
+  const context = await browser.newContext({ viewport: testCase.viewport });
+  await installRoutes(context, testCase.slug, { nativeState: fixture, connectorsStatus, nativeV2: true });
+  await context.route("**/companion/actions", route => route.fulfill({
+    json: directCard ? available : [{ id: "com.apple.shortcuts", label: "Shortcuts" }, ...available],
+  }));
+  if (directCard) await mockCompanionAppIcon(context, "com.apple.shortcuts");
+  try {
+    const page = await context.newPage();
+    await installFakeEventSource(page);
+    async function open() {
+      await page.goto(`http://espdesktop.test/${testCase.slug}?events=1`);
+      await page.waitForFunction(() => window.__eventSources?.length > 0);
+      await page.waitForLoadState("networkidle");
+      await page.evaluate(events => window.__seedEspState(events), nativeDocumentEvents(fixture.document));
+      await page.getByRole("tab", { name: "Layout", exact: true }).click();
+    }
+    const app = page.locator('.sp-main [data-slot="1"]');
+    const modal = page.locator(".sp-settings-modal");
+    const row = workflow => modal.locator(`.sp-light-tab-row[data-tab="${workflow.id}"] input`);
+    await open();
+    await page.locator('.sp-main[aria-disabled="false"]').waitFor();
+    const subpage = directCard ? modal : modal.locator(".sp-app-subpage-settings");
+    if (directCard) {
+      await page.locator(".sp-main .sp-empty-cell").first().click();
+      await page.getByRole("button", { name: "Apple Shortcuts card type", exact: true }).click();
+      await page.getByRole("button", { name: "Create a list of shortcuts card type", exact: true })
+        .locator(".sp-card-type-icon.mdi-flash").waitFor();
+      await chooseCardType(page, "Create a list of shortcuts");
+    } else {
+      await app.click({ button: "right" });
+      await page.locator(".sp-ctx-menu").getByText("Edit Card", { exact: true }).click();
+      const disclosure = subpage.getByRole("button", { name: "App Subpage", exact: true });
+      if (await disclosure.getAttribute("aria-expanded") !== "true") await disclosure.click();
+      assert.equal(await subpage.getByText("Add app subpage", { exact: true }).count(), 0);
+      assert.equal(await subpage.getByRole("button", { name: "Apple Shortcuts", exact: true }).count(), 0);
+    }
+    await row(workflows[21]).waitFor({ state: "attached" });
+    assert.equal(await subpage.locator(".sp-light-tab-row:visible").count(), workflows.length);
+    if (directCard) {
+      const spacing = await modal.evaluate(dialog => {
+        const headers = [...dialog.querySelectorAll(".sp-disclosure-button")];
+        const panel = title => headers.find(header => header.textContent.trim() === title).closest(".sp-disclosure");
+        const shortcuts = panel("Apple Shortcuts");
+        const cardSettings = panel("Card Settings").getBoundingClientRect();
+        const customColours = panel("Custom Colours").getBoundingClientRect();
+        const shortcutBounds = shortcuts.getBoundingClientRect();
+        const listBounds = shortcuts.querySelector(".sp-light-tab-list").getBoundingClientRect();
+        return {
+          bottomPadding: shortcutBounds.bottom - listBounds.bottom,
+          afterShortcuts: cardSettings.top - shortcutBounds.bottom,
+          afterCardSettings: customColours.top - cardSettings.bottom,
+        };
+      });
+      assert.ok(spacing.bottomPadding <= 12, "The shortcuts list has compact bottom padding");
+      assert.ok(spacing.afterShortcuts >= 12 && Math.abs(spacing.afterShortcuts - spacing.afterCardSettings) < 1,
+        "The settings panels have consistent spacing");
+    }
+    assert.deepEqual(await subpage.locator(".sp-light-tab-row:has(input:checked)").evaluateAll(rows =>
+      rows.map(item => item.getAttribute("data-tab"))), workflows.slice(0, 8).map(workflow => workflow.id));
+    await modal.getByRole("button", { name: "Save", exact: true }).click();
+    await waitForNativeState(fixture, () => fixture.document.subpages[1]?.includes(workflows[7].id),
+      "save the first eight workflows and Back");
+    if (directCard) {
+      const { parseRawButtonConfig } = loadTypeScriptModule("src/webserver/model/card.ts");
+      const owner = parseRawButtonConfig(fixture.document.buttons[1]);
+      assert.equal(owner.type, "subpage");
+      assert.equal(owner.label, "Shortcut List");
+      assert.equal(owner.entity, "", "navigation card has no Mac action");
+      assert.match(owner.options, /subpage_kind=apple_shortcuts/);
+    }
+    await modal.waitFor({ state: "hidden" });
+    await open();
+    if (directCard) {
+      await app.locator(".sp-companion-app-icon").waitFor();
+      assert.equal(await app.getAttribute("data-icon-size"), "small");
+      for (const hover of [false, true]) {
+        if (hover) await app.hover();
+        const { gap, padding } = await app.evaluate(card => {
+          const tile = card.getBoundingClientRect();
+          const label = card.querySelector(".sp-btn-label").getBoundingClientRect();
+          const scale = tile.height / card.offsetHeight;
+          return {
+            gap: (tile.bottom - label.bottom) / scale,
+            padding: parseFloat(getComputedStyle(card).paddingBottom),
+          };
+        });
+        assert.ok(Math.abs(gap - padding) < 1,
+          `The Apple Shortcuts label sits at the bottom with ${hover ? "a visible" : "a hidden"} chevron (gap ${gap}, padding ${padding})`);
+      }
+    }
+    async function editFromSubpage() {
+      await app.click({ button: "right" });
+      await page.locator(".sp-ctx-menu").getByText("Edit Subpage", { exact: true }).click();
+      await page.locator(".sp-main").getByText("Workflow 02", { exact: true }).click({ button: "right" });
+      await page.locator(".sp-ctx-menu").getByText("Apple Shortcut List", { exact: true }).click();
+      await modal.getByText("Edit Apple Shortcuts", { exact: true }).waitFor();
+      await row(workflows[21]).waitFor({ state: "attached" });
+    }
+    await editFromSubpage();
+    const shortcutList = modal.getByRole("button", { name: "Apple Shortcuts", exact: true });
+    assert.equal(await shortcutList.getAttribute("aria-expanded"), "true");
+    const firstWorkflow = modal.locator(`.sp-light-tab-row[data-tab="${workflows[0].id}"]`);
+    await shortcutList.click();
+    await firstWorkflow.waitFor({ state: "hidden" });
+    await shortcutList.click();
+    await firstWorkflow.waitFor({ state: "visible" });
+    await row(workflows[0]).evaluate(input => input.click());
+    await row(workflows[21]).evaluate(input => input.click());
+    await modal.getByRole("button", { name: "Drag Workflow 22", exact: true }).press("ArrowUp");
+    await modal.getByRole("button", { name: "Save", exact: true }).click();
+    await waitForNativeState(fixture, () => fixture.document.subpages[1]?.includes(workflows[21].id),
+      "save a replacement workflow from the complete list");
+    available = available.filter(workflow => workflow.id !== workflows[21].id);
+    await open();
+    await editFromSubpage();
+    assert.equal(await row(workflows[0]).isChecked(), false);
+    assert.equal(await row(workflows[21]).isChecked(), true);
+    await modal.getByText("Workflow 22 (unavailable)", { exact: true }).waitFor();
+    const selected = await modal.locator(".sp-light-tab-row:has(input:checked)").evaluateAll(rows =>
+      rows.map(item => item.getAttribute("data-tab")));
+    assert.deepEqual(selected, [...workflows.slice(1, 7), workflows[21], workflows[7]].map(workflow => workflow.id));
+    await modal.locator(".sp-settings-close").click();
+    const deleted = page.locator(".sp-main").getByText("Workflow 02", { exact: true });
+    await deleted.click({ button: "right" });
+    await page.locator(".sp-ctx-menu").getByText("Delete", { exact: true }).click();
+    const { parseRawButtonConfig } = loadTypeScriptModule("src/webserver/model/card.ts");
+    const { appleShortcutExclusionKey, hiddenAppleShortcuts } = loadTypeScriptModule("src/webserver/model/companion_shortcut_page.ts");
+    const savedExclusions = () => hiddenAppleShortcuts(parseRawButtonConfig(fixture.document.buttons[1]).options);
+    await waitForNativeState(fixture, () => !fixture.document.subpages[1]?.includes(workflows[1].id) &&
+      savedExclusions().has(appleShortcutExclusionKey(workflows[1].id)),
+      "save the deletion and hide the workflow from automatic placement");
+    assert(savedExclusions().has(appleShortcutExclusionKey(workflows[0].id)), "preserve the previously hidden workflow");
+    assert(savedExclusions().has(appleShortcutExclusionKey(workflows.at(-1).id)), "exclude workflows at the end of a full catalogue");
+    const newlyAvailable = {
+      id: "appleshortcut.727ed9bf-de97-42ed-b661-8967497b1224", label: "Newly Available Workflow", shortcutColor: 0x198FFD,
+    };
+    available = [...workflows.slice(0, 9), newlyAvailable];
+    await open();
+    await app.click({ button: "right" });
+    await page.locator(".sp-ctx-menu").getByText("Edit Subpage", { exact: true }).click();
+    const generatedTile = page.locator(".sp-main .sp-empty-cell").filter({ hasText: newlyAvailable.label });
+    await generatedTile.waitFor();
+    assert.equal(await generatedTile.evaluate(tile => tile.style.backgroundColor), "rgb(25, 143, 253)");
+    assert.equal(await page.locator(".sp-main").getByText("Workflow 09", { exact: true }).count(), 0,
+      "an already unchecked workflow stays hidden when a space opens");
+    assert.equal(await deleted.count(), 0, "the deleted workflow stays hidden after reload");
+    console.log(`${directCard ? "Apple Shortcuts navigation card" : "Shortcuts app subpage"} defaults, reordering, and persistent deletion passed.`);
+
+    if (directCard) {
+      // A native clipboard transfer can nest a saved Apple Shortcuts card
+      // even though the picker offers it only on Home.
+      const { childPageKey } = loadTypeScriptModule("src/webserver/model/page_keys.ts");
+      const nestedPage = childPageKey(2, 1);
+      const homeWorkflows = fixture.document.subpages[1];
+      fixture.document.buttons[2] = ";Outer Folder;Folder Outline;Auto;;;subpage";
+      fixture.document.settings.button_order = "1,2";
+      fixture.document.subpages[2] = "B,1|:Nested Workflows:Flash:Auto:::subpage::subpage_connector=mac_companion,subpage_kind=apple_shortcuts";
+      fixture.document.subpages[nestedPage] = `~B,1|companion,${workflows[0].id},Workflow%2001,Flash`;
+      fixture.generation++;
+      await open();
+      await page.locator('.sp-main [data-slot="2"]').click({ button: "right" });
+      await page.locator(".sp-ctx-menu").getByText("Edit Subpage", { exact: true }).click();
+      await page.locator(".sp-main").getByText("Nested Workflows", { exact: true }).click({ button: "right" });
+      await page.locator(".sp-ctx-menu").getByText("Edit Card", { exact: true }).click();
+      await row(workflows[0]).waitFor({ state: "attached" });
+      assert.equal(await row(workflows[0]).isChecked(), true, "load the nested workflow selection");
+      assert.equal(await row(workflows[1]).isChecked(), true, "fill a free space in the nested page");
+      await row(workflows[0]).evaluate(input => input.click());
+      await modal.getByRole("button", { name: "Save", exact: true }).click();
+      await waitForNativeState(fixture, () => fixture.document.subpages[nestedPage]?.includes(workflows[1].id),
+        "save the replacement workflow to the nested owner");
+      assert.equal(fixture.document.subpages[1], homeWorkflows, "the unrelated Home subpage keeps its workflows");
+      assert.match(fixture.document.subpages[2], /apple_shortcuts_hidden/, "remember explicitly removed workflows");
+      const newWorkflow = { id: "appleshortcut.727ed9bf-de97-42ed-b661-8967497b1223", label: "New Workflow" };
+      available = [...workflows.slice(0, 8), newWorkflow];
+      await open();
+      await page.locator('.sp-main [data-slot="2"]').click({ button: "right" });
+      await page.locator(".sp-ctx-menu").getByText("Edit Subpage", { exact: true }).click();
+      await page.locator(".sp-main").getByText("Nested Workflows", { exact: true }).click({ button: "right" });
+      await page.locator(".sp-ctx-menu").getByText("Edit Subpage", { exact: true }).click();
+      const newWorkflowTile = page.locator(".sp-main .sp-live-folder-preview").filter({ hasText: "New Workflow" });
+      await newWorkflowTile.locator("img.sp-companion-app-icon").waitFor();
+      assert.equal(await page.locator(".sp-main").getByText("Workflow 01", { exact: true }).count(), 0);
+      console.log("Editing nested Apple Shortcuts saves to its own subpage.");
+    }
+  } finally { await context.close(); }
+}
+
+async function assertFinderCardPicker(browser) {
+  const testCase = CASES.find(item => item.slug === "guition-esp32-s3-4848s040");
+  const fixture = nativeConfigState(testCase.slug);
+  fixture.document.buttons = {};
+  fixture.document.subpages = {};
+  fixture.document.settings = { button_order: "", web_onboarding_complete: "1" };
+  const connectorsStatus = { onboarding_complete: true, mac_companion: {
+    available: true, configured: true, paired: true, connected: true,
+  } };
+  const folderId = "folder.00000000-0000-0000-0000-000000000001";
+  const context = await browser.newContext({ viewport: testCase.viewport });
+  await installRoutes(context, testCase.slug, { nativeState: fixture, connectorsStatus, nativeV2: true });
+  await context.route("**/companion/actions", route => route.fulfill({
+    json: [{ id: "com.apple.finder", label: "Finder" }, { id: folderId, label: "Projects" }],
+  }));
+  await mockCompanionAppIcon(context, "com.apple.finder");
+  try {
+    const page = await context.newPage();
+    await installFakeEventSource(page);
+    await page.goto(`http://espdesktop.test/${testCase.slug}?events=1`);
+    await page.waitForFunction(() => window.__eventSources?.length > 0);
+    await page.evaluate(events => window.__seedEspState(events), nativeDocumentEvents(fixture.document));
+    await page.locator('.sp-main[aria-disabled="false"]').waitFor();
+    const emptyCell = page.locator(".sp-main .sp-empty-cell").first();
+    const group = page.getByRole("button", { name: "Finder Folder card type", exact: true });
+    const back = page.getByRole("button", { name: "Back to card types", exact: true });
+    const save = page.getByRole("button", { name: "Save", exact: true });
+    await emptyCell.click();
+    await group.click();
+    assert.equal(await back.evaluate(button => button === document.activeElement), true);
+    assert.deepEqual(await page.locator("#sp-card-type-picker button").evaluateAll(
+      buttons => buttons.map(button => button.getAttribute("aria-label"))),
+      ["Open Finder card type", "Open a folder card type"]);
+    await back.click();
+    assert.equal(await group.evaluate(button => button === document.activeElement), true);
+    await group.click();
+    await page.getByRole("button", { name: "Open Finder card type", exact: true })
+      .locator("img.sp-card-type-app-icon").waitFor();
+    await chooseCardType(page, "Open Finder");
+    const application = page.getByRole("combobox", { name: "Application", exact: true });
+    await application.getByRole("option", { name: "Finder", exact: true }).waitFor({ state: "attached" });
+    assert.equal(await application.inputValue(), "com.apple.finder");
+    const appSubpage = page.locator(".sp-app-subpage-settings");
+    const disclosure = appSubpage.getByRole("button", { name: "App Subpage", exact: true });
+    assert.equal(await disclosure.getAttribute("aria-expanded"), "true");
+    assert.equal(await appSubpage.getByText("Add app subpage", { exact: true }).count(), 0);
+    await save.click();
+
+    const slotFor = entity => Object.keys(fixture.document.buttons).find(slot =>
+      parseRawButtonConfig(fixture.document.buttons[slot]).entity === entity);
+    await waitForNativeState(fixture, () => !!fixture.document.subpages[slotFor("com.apple.finder")],
+      "save the Finder application card with its subpage");
+    const finderSlot = slotFor("com.apple.finder");
+    const finderCard = parseRawButtonConfig(fixture.document.buttons[finderSlot]);
+    assert.equal(finderCard.type, "companion");
+    assert.equal(finderCard.sensor, "");
+    assert.match(finderCard.options, /(?:^|,)app_shortcuts(?:,|$)/);
+    await page.locator(`.sp-main [data-slot="${finderSlot}"] .sp-subpage-badge`).click();
+    await page.locator(".sp-main [data-generated-card]").getByText("Projects", { exact: true }).waitFor();
+    await page.locator(".sp-main .sp-back-btn").click();
+
+    await emptyCell.click();
+    await group.click();
+    await chooseCardType(page, "Open a folder");
+    const folder = page.getByRole("combobox", { name: "Folder", exact: true });
+    await folder.locator(`option[value="${folderId}"]`).waitFor({ state: "attached" });
+    await folder.selectOption(folderId);
+    await save.click();
+    await waitForNativeState(fixture, () => !!slotFor(folderId), "save the single folder shortcut");
+    const folderSlot = slotFor(folderId);
+    assert.equal(parseRawButtonConfig(fixture.document.buttons[folderSlot]).label, "Projects");
+    assert.equal(fixture.document.subpages[folderSlot], undefined);
+    console.log("Finder card picker, Back button, Finder subpage, and single folder shortcut passed.");
+  } finally { await context.close(); }
+}
+
 async function assertLiveFinderPreview(browser) {
   const testCase = CASES.find(item => item.slug === "guition-esp32-s3-4848s040");
   const fixture = nativeConfigState(testCase.slug);
-  const [example] = require("../compatibility/fixtures/finder_folder_preview.json");
+  const [fixtureExample] = require("../compatibility/fixtures/finder_folder_preview.json");
+  const example = structuredClone(fixtureExample);
+  const ids = new Map(example.expected.map(([, id], i) => [id, "folder.00000000-0000-0000-0000-" + String(i + 1).padStart(12, "0")]));
+  example.catalogue = example.catalogue.map(([id, label]) => [ids.get(id) || id, label]);
+  example.expected = example.expected.map(([pos, id, label]) => [pos, ids.get(id), label]);
   fixture.document.buttons = { 1: "com.apple.finder;Finder;Auto;Auto;;;companion;;app_shortcuts" };
   const tiles = example.buttons.map((id, index) => `companion,${id},Saved ${index + 1},Auto,Auto`);
   fixture.document.subpages = { 1: `~${example.order}|${tiles.join("|")}` };
@@ -7168,11 +8230,11 @@ async function assertLiveFinderPreview(browser) {
     await page.waitForFunction(() => window.__eventSources?.length > 0);
     await page.evaluate(events => window.__seedEspState(events), nativeDocumentEvents(fixture.document));
     await page.locator('.sp-main [data-slot="1"] .sp-subpage-badge').click();
-    const live = page.locator(".sp-main .sp-live-folder-preview");
+    const live = page.locator(".sp-main [data-generated-card]");
     await live.first().waitFor();
     async function assertProjectedTiles() {
       const values = await live.evaluateAll(tiles => tiles.map(tile =>
-        [Number(tile.parentElement.dataset.pos), tile.textContent, tile.parentElement.hasAttribute("data-slot")]));
+        [Number(tile.dataset.pos), tile.querySelector(".sp-btn-label").textContent, tile.hasAttribute("data-slot")]));
       assert.deepEqual(values, example.expected.map(([position, , label]) => [position, label, false]));
       assert.equal(await page.locator('.sp-main [data-slot="1"] .sp-btn-label').textContent(), "Saved 1");
       assert.equal(await page.locator(".sp-main .sp-back-btn").count(), 1);
@@ -7184,7 +8246,15 @@ async function assertLiveFinderPreview(browser) {
     await live.first().waitFor();
     await assertProjectedTiles();
     assert.equal(fixture.puts.length, 0, "live Finder activity never writes saved pages");
-    console.log("Live Finder placement, disconnect and reconnect browser checks passed.");
+    const [position, id, name] = example.expected[0];
+    await live.filter({ hasText: name }).click({ button: "right" });
+    await page.locator(".sp-ctx-menu").getByText("Delete", { exact: true }).click();
+    await waitForNativeState(fixture, () => fixture.document.buttons[1].includes(id.slice("folder.".length).replace(/-/g, "")) &&
+      !fixture.puts.at(-1)?.layout?.pages.find(group => group.key === 1)?.cards.some(card => card.config.entity === id),
+      "Deleting an automatic Finder card keeps its exclusion");
+    await page.locator(`.sp-main [data-pos="${position}"]`).first().waitFor();
+    assert.equal(await page.locator(".sp-main").getByText(name, { exact: true }).count(), 0);
+    console.log("Live Finder placement, reconnect, and deletion checks passed.");
   } finally { await context.close(); }
 }
 
@@ -7264,12 +8334,12 @@ async function assertNestedCompanionPages(browser) {
     await page.locator('.sp-main [data-slot="1"] .sp-subpage-badge').click();
     const folderAppCard = page.locator('.sp-main [data-slot="1"]');
     await folderAppCard.click({ button: "right" });
-    assert.strictEqual(await page.locator(".sp-ctx-menu").getByText("Shortcut List", { exact: true }).count(), 0,
+    assert.strictEqual(await page.locator(".sp-ctx-menu").getByText("Keyboard Shortcut List", { exact: true }).count(), 0,
       "ordinary folders do not have a shortcut editor");
     await page.locator(".sp-ctx-menu").getByText("Edit Card", { exact: true }).click();
     const creation = page.locator(".sp-settings-modal .sp-app-subpage-settings");
     if (await creation.locator(".sp-disclosure-button").getAttribute("aria-expanded") !== "true") await creation.locator(".sp-disclosure-button").click();
-    await page.locator('[id$="companion-app-shortcuts"]').evaluate(input => input.click());
+    assert.equal(await creation.getByText("Add app subpage", { exact: true }).count(), 0);
     await page.getByRole("button", { name: "Save", exact: true }).click();
     await waitForNativeState(fixture, () => fixture.puts.length === 1 && !!fixture.document.subpages[33], "create a nested app page atomically");
     assert(fixture.document.subpages[1].includes("app_shortcuts"));
@@ -7278,14 +8348,14 @@ async function assertNestedCompanionPages(browser) {
     fixture.document = existing; fixture.generation++; fixture.puts = [];
     await open();
     await page.locator(".sp-main .sp-empty-cell").first().click();
-    await chooseCardType(page, "Key Shortcut");
+    await chooseCardType(page, "Keyboard Shortcut");
     assert.strictEqual(await page.getByRole("tab", { name: "Application", exact: true }).getAttribute("aria-selected"), "true");
     assert.strictEqual(await page.locator('[id$="shortcut-catalog-app"]').inputValue(), "com.apple.Safari",
       "a nested app page uses the app that owns the inner page");
     await page.locator(".sp-settings-close").click();
     await page.locator('.sp-main [data-slot="1"]').click({ button: "right" });
-    await page.locator(".sp-ctx-menu").getByText("Shortcut List", { exact: true }).click();
-    await page.locator(".sp-settings-modal").getByText("Edit App Shortcuts", { exact: true }).waitFor();
+    await page.locator(".sp-ctx-menu").getByText("Keyboard Shortcut List", { exact: true }).click();
+    await page.locator(".sp-settings-modal").getByText("Edit Keyboard Shortcuts", { exact: true }).waitFor();
     await page.locator('[id$="companion-shortcut-1"]').evaluate(input => input.click());
     let rejectNext = true;
     await page.route("**/api/v1/config", async route => {
@@ -7348,6 +8418,467 @@ async function assertNestedCompanionPages(browser) {
   } catch(error) { await page.screenshot({ path: "/tmp/nested-browser.png" }); fs.writeFileSync("/tmp/nested-browser.html", await page.content()); throw error; } finally { await context.close(); }
 }
 
+async function assertSavedOBSLayout(browser) {
+  const testCase = CASES.find(item => item.slug === "guition-esp32-s3-4848s040");
+  const fixture = nativeConfigState(testCase.slug);
+  const main = "11111111-1111-1111-1111-111111111111";
+  const away = "22222222-2222-2222-2222-222222222222";
+  const mic = "33333333-3333-3333-3333-333333333333";
+  fixture.document = {
+    deviceProfile: testCase.slug,
+    buttons: {
+      1: "com.apple.Safari;Safari;Monitor;Auto;;;companion",
+      2: "~,OBS Studio,Monitor,Auto,,,subpage,,subpage_connector=mac_companion",
+      3: "obs.output.record;;Record;Auto;;;companion",
+    },
+    subpages: {
+      2: ["~B,1,2,3,4,5", "G,,Switching,Image,,,,,subpage_connector=mac_companion",
+        "G,,Audio,Microphone,,,,,subpage_connector=mac_companion",
+        "G,,Outputs,Broadcast,,,,,subpage_connector=mac_companion",
+        "CP,obs.status.program,,Monitor", "CP,obs.brb,,Coffee to Go"].join("|"),
+      65: ["B,1,2,3,4,5", `obs.target.${main}::Image Card Loading::::companion`,
+        `obs.target.${away}::Image Card Loading::::companion`, "obs.studio::Split Vertical::::companion",
+        "obs.take::Arrow Right::::companion", "obs.transition::Flip Horizontal::::companion"].join("|"),
+      66: ["B,1,2,3", `obs.mute.${mic}::Microphone::::companion`,
+        `obs.level.${mic}:Mic level:Microphone::::slider`,
+        `obs.cough.${mic}::Microphone Off::::companion_obs_cough`].join("|"),
+      67: ["B,1,2,3,4", "obs.output.stream::Broadcast::::companion", "obs.output.record::Record::::companion",
+        "obs.replay.buffer::Repeat::::companion", "obs.replay::History::::companion"].join("|"),
+    },
+    settings: { button_order: "1,2,3", web_onboarding_complete: "1" },
+  };
+  const context = await browser.newContext({ viewport: testCase.viewport });
+  await installRoutes(context, testCase.slug, {
+    nativeState: fixture, nativeV2: true, nativeAppSubpagePreference: true,
+    connectorsStatus: {
+      onboarding_complete: true,
+      mac_companion: { available: true, configured: true, paired: true, connected: true },
+    },
+  });
+  const token = "44444444-4444-4444-4444-444444444444";
+  let recording = false;
+  let stopping = false;
+  let muted = true;
+  let streaming = false;
+  let onBreak = false;
+  let studioProgram = "";
+  let selectedScene = "";
+  let scenes = [[main, "Gameplay"], [away, "Break Room"]];
+  const fade = "a".repeat(32), cut = "b".repeat(32), slide = "c".repeat(32), wipe = "d".repeat(32);
+  let transitions = [[fade, "Fade"], [cut, "Cut"], [wipe, "Wipe"]];
+  const desktop = "55555555-5555-5555-5555-555555555555";
+  const music = "66666666-6666-6666-6666-666666666666";
+  const gameAudio = "77777777-7777-7777-7777-777777777777";
+  let mixerInputs = [[mic, "Desk Mic"], [desktop, "Desktop Audio"], [music, "Music"]];
+  let servePanelProjection = true;
+  await context.route("**/companion/page-preview", route => {
+    const request = route.request().postDataJSON();
+    if (!servePanelProjection || request.kind !== "obs_scenes") return route.fulfill({ status: 503 });
+    assert.deepEqual([request.columns, request.slots, request.order], [3, 9, "B"]);
+    assert.deepEqual(request.entities, []);
+    return route.fulfill({ json: [
+      { position: 1, width: 1, id: `obs.target.${away}`, label: "Break Room" },
+      { position: 2, width: 1, id: `obs.target.${main}`, label: "Gameplay" },
+      { position: 4, width: 1, id: "obs.brb", label: "Break" },
+      { position: 6, width: 1, id: "obs.transition", label: "Transition" },
+      { position: 7, width: 2, id: "obs.take", label: "Take Live" },
+    ] });
+  });
+  await context.route("**/companion/actions", route => route.fulfill({ json: [
+    ...scenes.map(([id, label]) => ({ id: `obs.target.${id}.${token}`, label })),
+    { id: `obs.selected.${selectedScene || (studioProgram ? away : main)}`, label: "Selected OBS scene" },
+    ...(studioProgram ? [{ id: `obs.program.${studioProgram}`, label: "OBS Program scene" }] : []),
+    { id: "obs.studio." + token, label: studioProgram ? "On" : "Off" },
+    { id: `obs.mute.${mic}`, label: (muted ? "Muted" : "Unmuted") + " · Desk Mic" },
+    { id: "obs.take", label: "Take Live · Enable Studio Mode" },
+    { id: "obs.status.stream", label: streaming ? "Stream · Live" : "Stream · Idle" },
+    { id: "obs.status.record", label: recording ? "Recording · Active" : "Recording · Idle" },
+    { id: "obs.brb." + token, label: onBreak ? "Resume" : "BRB · Break Room" },
+    ...mixerInputs.map(([id, label]) => ({ id: `obs.level.${id}`, label })),
+    { id: `obs.mute.${music}`, label: "Muted · Music" },
+    { id: `obs.cough.${mic}`, label: "Desk Mic" },
+    { id: `obs.replay.buffer.${token}`, label: "Off" },
+    { id: `obs.transition.${token}`, label: "Fade" },
+    ...transitions.map(([hash, name]) => ({ id: `obs.transition.select.${hash}.${token}`, label: name })),
+    ...(recording ? [{ id: "obs.record.active", label: "Recording" }] : []),
+    ...(stopping ? [{ id: "obs.output.record", label: "Stopping" }] : []),
+  ] }));
+  const page = await context.newPage();
+  await page.clock.install();
+  await installFakeEventSource(page);
+  try {
+    await page.goto("http://espdesktop.test/" + testCase.slug + "?events=1");
+    await page.waitForFunction(() => window.__eventSources?.length > 0);
+    await page.evaluate(events => window.__seedEspState(events), nativeDocumentEvents(fixture.document));
+    await page.getByRole("tab", { name: "Layout", exact: true }).click();
+    await page.locator('.sp-main[aria-disabled="false"]').getByText("OBS Studio", { exact: true }).waitFor();
+    const editCard = async tile => {
+      await tile.click({ button: "right" });
+      await page.getByText("Edit Card", { exact: true }).click();
+    };
+    const recordTile = page.locator('.sp-main [data-slot="3"]');
+    await editCard(recordTile);
+    await page.getByRole("button", { name: "Confirmation", exact: true }).click();
+    const confirmation = page.locator("input[id$='obs-confirm-toggle']");
+    await page.getByText("Confirmation Required", { exact: true }).waitFor();
+    assert(await confirmation.isChecked(), "saved OBS output cards confirm both directions by default");
+    assert.equal(await page.getByText("Off means stopping the output. On means starting it.", { exact: true }).count(), 0);
+    await page.getByRole("button", { name: "Start", exact: true }).click();
+    await page.getByLabel("Message", { exact: true }).fill("Record a local clip?");
+    await page.getByLabel("Confirm Button", { exact: true }).fill("Record");
+    await page.getByLabel("Cancel Button", { exact: true }).fill("Back");
+    await page.getByRole("button", { name: "Save", exact: true }).click();
+    await waitForNativeState(fixture, () => fixture.document.buttons[3]?.includes("obs_confirm=on") &&
+      fixture.document.buttons[3].includes("confirm_yes=Record") && fixture.document.buttons[3].includes("confirm_no=Back"),
+      "OBS output confirmation choices persist");
+    await recordTile.getByText("Record", { exact: true }).waitFor();
+    const idleColor = await recordTile.evaluate(tile => getComputedStyle(tile).backgroundColor);
+    const editFolder = async label => {
+      await page.locator(".sp-main").getByText(label, { exact: true }).click({ button: "right" });
+      await page.getByText("Edit Subpage", { exact: true }).click();
+    };
+    const goBack = () => page.locator(".sp-back-btn .sp-back-hit").click();
+    const closeSettings = page.locator(".sp-settings-overlay.sp-visible .sp-settings-close");
+    await editFolder("OBS Studio");
+    const brbTile = page.locator('.sp-main [data-slot="5"]');
+    await brbTile.locator(".mdi-coffee-to-go").waitFor();
+    await brbTile.getByText("Start", { exact: true }).waitFor();
+    await editFolder("Audio");
+    const micTile = page.locator('.sp-main [data-slot="1"]');
+    await micTile.locator(".mdi-microphone-off").waitFor();
+    const fader = page.locator(".sp-main .sp-slider-fill");
+    const fillColor = () => fader.evaluate(fill => getComputedStyle(fill).backgroundColor);
+    const mutedFill = await fillColor();
+    const sliderUsesActiveColour = fill => fill.evaluate(element => {
+      const card = element.closest(".sp-btn");
+      return card.style.getPropertyValue("--card-slider-fill-color") ===
+        card.style.getPropertyValue("--card-active-color");
+    });
+    assert(await sliderUsesActiveColour(fader), "the muted mic slider uses its ON colour");
+    await goBack();
+    await editFolder("Outputs");
+    const streamTile = page.locator('.sp-main [data-slot="1"]');
+    await streamTile.locator(".mdi-broadcast-off").waitFor();
+    await streamTile.getByText("Idle", { exact: true }).waitFor();
+    await page.locator(".sp-main").getByText("Replay Buffer", { exact: true }).waitFor();
+    await page.locator(".sp-main").getByText("Save Replay", { exact: true }).waitFor();
+    await goBack();
+    await editFolder("Switching");
+    const mainTile = page.locator('.sp-main [data-slot="1"]');
+    const breakTile = page.locator('.sp-main [data-slot="2"]');
+    await mainTile.locator(".mdi-image").waitFor();
+    await breakTile.locator(".mdi-image").waitFor();
+    await mainTile.getByText("Gameplay", { exact: true }).waitFor();
+    await breakTile.getByText("Break Room", { exact: true }).waitFor();
+    const colour = tile => tile.evaluate(card => getComputedStyle(card).backgroundColor);
+    const onColor = await colour(mainTile);
+    const offColor = await colour(breakTile);
+    assert.notEqual(onColor, offColor);
+    assert.equal(await mainTile.locator(".sp-obs-detail").innerText(), "Scene");
+    assert.equal(await breakTile.locator(".sp-obs-detail").innerText(), "Scene");
+    await page.locator(".sp-main").getByText("Enable Studio Mode", { exact: true }).waitFor();
+    await editCard(mainTile);
+    const scene = page.locator('select[id$="obs-scene"]');
+    await scene.locator(`option[value="obs.target.${main}"]`).waitFor({ state: "attached" });
+    assert.equal(await scene.inputValue(), "obs.target." + main);
+    await page.getByRole("button", { name: "Card Settings", exact: true }).click();
+    const sceneLabel = page.getByRole("textbox", { name: "Label", exact: true });
+    assert.equal(await sceneLabel.inputValue(), "Gameplay");
+    await scene.selectOption("obs.target." + away);
+    assert.equal(await sceneLabel.inputValue(), "Break Room");
+    await sceneLabel.fill("Custom scene label");
+    await scene.selectOption("obs.target." + main);
+    assert.equal(await sceneLabel.inputValue(), "Custom scene label");
+    await sceneLabel.fill("");
+    await closeSettings.click();
+    muted = false;
+    streaming = true;
+    recording = true;
+    onBreak = true;
+    studioProgram = main;
+    await editCard(mainTile);
+    await page.waitForFunction(offColor =>
+      getComputedStyle(document.querySelector('.sp-main [data-slot="1"]')).backgroundColor === offColor, offColor);
+    assert.equal(await mainTile.locator(".sp-obs-detail").innerText(), "Scene");
+    assert.equal(await colour(mainTile), offColor);
+    assert.equal(await colour(breakTile), onColor);
+    await page.getByRole("button", { name: "Custom Colours", exact: true }).click();
+    await page.getByRole("group", { name: "Active state colour", exact: true }).getByRole("button", { name: "Custom", exact: true }).click();
+    await page.getByRole("group", { name: "Active state colour presets", exact: true }).locator('input[type="color"]').fill("#64ad54");
+    assert.equal(await colour(mainTile), offColor);
+    await closeSettings.click();
+    studioProgram = away;
+    await editCard(mainTile);
+    await scene.locator(`option[value="obs.target.${main}"]`).waitFor({ state: "attached" });
+    await breakTile.getByText("Scene", { exact: true }).waitFor();
+    await breakTile.locator(".mdi-image").waitFor();
+    await mainTile.locator(".mdi-image").waitFor();
+    assert.equal(await mainTile.locator(".sp-obs-detail").innerText(), "Scene");
+    await page.waitForFunction(onColor => {
+      const tile = document.querySelector('.sp-main [data-slot="2"]');
+      return tile && getComputedStyle(tile).backgroundColor === onColor;
+    }, onColor);
+    await closeSettings.click();
+    await goBack();
+    await brbTile.getByText("Resume", { exact: true }).waitFor();
+    assert.equal(await colour(brbTile), onColor);
+    await editFolder("Audio");
+    await micTile.locator(".mdi-microphone").waitFor();
+    assert.equal(await fillColor(), mutedFill, "unmuting keeps the same fill colour");
+    await goBack();
+    await editFolder("Outputs");
+    await streamTile.getByText("Live", { exact: true }).waitFor();
+    assert.equal(await colour(streamTile), onColor);
+    await goBack();
+    await goBack();
+    await recordTile.getByText("Recording", { exact: true }).waitFor({ timeout: 12000 });
+    assert.notEqual(await colour(recordTile), idleColor);
+    stopping = true;
+    await editCard(recordTile);
+    await recordTile.getByText("Stopping", { exact: true }).waitFor();
+    assert.notEqual(await colour(recordTile), idleColor);
+    await closeSettings.click();
+    await page.locator(".sp-main .sp-empty-cell").first().click();
+    await chooseOBSCard(page, "Transitions", "Grouped pages");
+    const modal = page.locator(".sp-settings-modal");
+    const transitionsList = modal.getByRole("button", { name: "Transitions", exact: true });
+    async function assertTransitionSettingsSpacing() {
+      const gaps = await modal.evaluate(dialog => {
+        const headers = [...dialog.querySelectorAll(".sp-disclosure-button")];
+        const bounds = title => headers.find(header => header.textContent.trim() === title)
+          .closest(".sp-disclosure").getBoundingClientRect();
+        const cardSettings = bounds("Card Settings");
+        return [cardSettings.top - bounds("Transitions").bottom, bounds("Custom Colours").top - cardSettings.bottom];
+      });
+      assert.ok(gaps[0] >= 12 && Math.abs(gaps[0] - gaps[1]) < 1,
+        `Transitions and Card Settings should have matching gaps below them (got ${gaps.join("px and ")}px)`);
+    }
+    assert.equal(await transitionsList.getAttribute("aria-expanded"), "false");
+    await assertTransitionSettingsSpacing();
+    await transitionsList.click();
+    const fadeToggle = page.getByRole("checkbox", { name: "Fade", exact: true });
+    const fadeRow = page.locator(".sp-light-tab-row").filter({ has: fadeToggle });
+    await fadeRow.waitFor();
+    await assertTransitionSettingsSpacing();
+    assert(await fadeToggle.isChecked());
+    await fadeRow.locator(".sp-light-tab-label").click();
+    await page.getByRole("button", { name: "Move Wipe up", exact: true }).click();
+    assert.equal(await transitionsList.getAttribute("aria-expanded"), "true");
+    await transitionsList.click();
+    assert.equal(await transitionsList.getAttribute("aria-expanded"), "false");
+    await page.getByRole("button", { name: "Save", exact: true }).click();
+    await waitForNativeState(fixture, () => fixture.document.buttons[4]?.includes("obs_transition_order") &&
+      fixture.puts.at(-1)?.layout?.pages.some(group => group.key === 4 && group.order === "B"),
+      "Automatic Transitions page saves its visibility settings and Back button");
+    await editFolder("Transitions");
+    const automaticTiles = page.locator(".sp-main [data-generated-card]");
+    await automaticTiles.getByText("Cut", { exact: true }).waitFor();
+    assert.deepEqual(await automaticTiles.locator(".sp-btn-label").allTextContents(), ["Wipe", "Cut"]);
+    const savedCount = fixture.puts.length;
+    transitions = [[slide, "Slide"], [fade, "Fade"], [wipe, "Wipe"]];
+    await page.clock.fastForward(30_000);
+    await automaticTiles.getByText("Slide", { exact: true }).waitFor();
+    assert.deepEqual(await automaticTiles.locator(".sp-btn-label").allTextContents(), ["Wipe", "Slide"]);
+    assert.equal(fixture.puts.length, savedCount, "New transition catalogue states never rewrite the saved layout");
+    await goBack();
+    await page.locator(".sp-main .sp-empty-cell").first().click();
+    await chooseOBSCard(page, "Audio");
+    const desktopRow = page.locator(".sp-light-tab-row").filter({
+      has: page.getByRole("checkbox", { name: "Desktop Audio", exact: true }),
+    });
+    await desktopRow.locator(".sp-light-tab-label").click();
+    await page.getByRole("button", { name: "Move Music up", exact: true }).click();
+    await page.getByRole("button", { name: "Save", exact: true }).click();
+    await waitForNativeState(fixture, () => fixture.document.buttons[5]?.includes("obs_audio_order"),
+      "Audio subpage saves the hidden and reordered faders");
+    await editFolder("Audio");
+    await automaticTiles.getByText("Desk Mic", { exact: true }).waitFor();
+    assert.deepEqual(await automaticTiles.locator(".sp-btn-label").allTextContents(), ["Music", "Desk Mic"]);
+    const musicTile = automaticTiles.filter({ hasText: "Music" });
+    assert(await sliderUsesActiveColour(musicTile.locator(".sp-slider-fill")),
+      "a muted slider on the automatic Audio page uses its ON colour");
+    assert.equal(await automaticTiles.locator(".sp-slider-fill").count(), 2);
+    const beforeAudioChange = fixture.puts.length;
+    mixerInputs = [[desktop, "Desktop Audio"], [music, "Music"], [gameAudio, "Game Audio"]];
+    await page.clock.fastForward(30_000);
+    await automaticTiles.getByText("Game Audio", { exact: true }).waitFor();
+    assert.deepEqual(await automaticTiles.locator(".sp-btn-label").allTextContents(), ["Music", "Game Audio"]);
+    assert.equal(fixture.puts.length, beforeAudioChange);
+    const wrap = "88888888-8888-8888-8888-888888888888";
+    const welcome = "99999999-9999-9999-9999-999999999999";
+    scenes = [...scenes, [wrap, "Wrap Up"]];
+    const originalScenes = scenes;
+    studioProgram = main;
+    await goBack();
+    await page.locator(".sp-main .sp-empty-cell").first().click();
+    await chooseOBSCard(page, "Scenes");
+    const wrapRow = page.locator(".sp-light-tab-row").filter({
+      has: page.getByRole("checkbox", { name: "Wrap Up", exact: true }),
+    });
+    await wrapRow.locator(".sp-light-tab-label").click();
+    await page.getByRole("button", { name: "Move Break Room up", exact: true }).click();
+    await page.getByRole("button", { name: "Save", exact: true }).click();
+    await waitForNativeState(fixture, () => fixture.document.buttons[6]?.includes("obs_scene_order"),
+      "Scenes saves the hidden and reordered scene buttons");
+    await editFolder("Scenes");
+    await automaticTiles.getByText("Gameplay", { exact: true }).waitFor();
+    const sceneCards = automaticTiles.filter({ has: page.locator(".sp-obs-detail").filter({ hasText: /^Scene$/ }) });
+    const sceneNames = () => sceneCards.locator(".sp-btn-label").allTextContents();
+    const automaticTake = automaticTiles.filter({ has: page.getByText("Take Live", { exact: true }) });
+    assert.equal(await automaticTake.getAttribute("data-pos"), "7");
+    assert.match(await automaticTake.getAttribute("class"), /sp-btn-wide/);
+    await automaticTiles.filter({ has: page.getByText("Transition", { exact: true }) }).waitFor();
+    await automaticTiles.filter({ has: page.getByText("Break", { exact: true }) }).waitFor();
+    await page.locator('.sp-main [data-generated-card][data-pos="4"]').getByText("Break", { exact: true }).waitFor();
+    servePanelProjection = false;
+    assert.deepEqual(await sceneNames(), ["Break Room", "Gameplay"]);
+    const generatedProgram = automaticTiles.filter({ hasText: "Gameplay" });
+    const generatedPreview = automaticTiles.filter({ hasText: "Break Room" });
+    await page.clock.fastForward(30_000);
+    await generatedProgram.getByText("Scene", { exact: true }).waitFor();
+    await generatedPreview.getByText("Scene", { exact: true }).waitFor();
+    await generatedProgram.locator(".mdi-image").waitFor();
+    await generatedPreview.locator(".mdi-image").waitFor();
+    await page.waitForFunction(({ onColor, offColor }) => {
+      const colours = new Map(Array.from(document.querySelectorAll(".sp-main [data-generated-card]"), tile =>
+        [tile.querySelector(".sp-btn-label")?.textContent, getComputedStyle(tile).backgroundColor]));
+      return colours.get("Gameplay") === offColor && colours.get("Break Room") === onColor;
+    }, { onColor, offColor });
+    assert.notEqual(await colour(generatedProgram), await colour(generatedPreview));
+    const beforeCollectionChange = fixture.puts.length;
+    scenes = [[welcome, "Welcome"]];
+    selectedScene = welcome;
+    studioProgram = "";
+    await page.clock.fastForward(30_000);
+    await automaticTiles.getByText("Welcome", { exact: true }).waitFor();
+    assert.deepEqual(await sceneNames(), ["Welcome"]);
+    scenes = originalScenes;
+    selectedScene = "";
+    await page.clock.fastForward(30_000);
+    await automaticTiles.getByText("Gameplay", { exact: true }).waitFor();
+    assert.deepEqual(await sceneNames(), ["Break Room", "Gameplay"]);
+    assert.equal(fixture.puts.length, beforeCollectionChange);
+    await generatedProgram.click();
+    assert.equal(fixture.puts.length, beforeCollectionChange, "Selecting an automatic scene does not save it");
+    await page.getByRole("button", { name: "Edit", exact: true }).click();
+    await page.getByLabel("OBS scene", { exact: true }).waitFor();
+    await closeSettings.click();
+    assert.equal(fixture.puts.length, beforeCollectionChange, "Cancelling an automatic scene edit leaves the layout untouched");
+    const empty = page.locator(".sp-main .sp-empty-cell").first();
+    const destination = await empty.getAttribute("data-pos");
+    const from = await generatedProgram.boundingBox();
+    const to = await empty.boundingBox();
+    await page.mouse.move(from.x + from.width / 2, from.y + from.height / 2);
+    await page.mouse.down();
+    await page.mouse.move(to.x + to.width / 2, to.y + to.height / 2, { steps: 10 });
+    await page.locator(`.sp-main .sp-drop-placeholder[data-pos="${destination}"]`).waitFor();
+    await page.mouse.up();
+    const movedScene = page.locator(`.sp-main .sp-btn[data-slot][data-pos="${destination}"]`)
+      .filter({ hasText: "Gameplay" });
+    await movedScene.waitFor();
+    await movedScene.click({ button: "right" });
+    await page.getByText("Edit Card", { exact: true }).click();
+    await page.getByRole("button", { name: "Card Settings", exact: true }).click();
+    await page.getByRole("textbox", { name: "Label", exact: true }).fill("Custom Scene");
+    await page.getByRole("button", { name: "Save", exact: true }).click();
+    const renamed = page.locator(".sp-main .sp-btn[data-slot]").filter({ hasText: "Custom Scene" });
+    await renamed.waitFor();
+    await renamed.click({ button: "right" });
+    await page.locator(".sp-ctx-menu").getByText("Delete", { exact: true }).click();
+    await waitForNativeState(fixture, () => fixture.document.buttons[6].includes("generated_card_exclusions") &&
+      !fixture.puts.at(-1)?.layout?.pages.find(group => group.key === 6)?.cards.some(card => card.config.entity === "obs.target." + main),
+      "The deleted scene stays excluded from automatic projection");
+    await renamed.waitFor({ state: "detached" });
+    assert.equal(await page.locator(".sp-main").getByText("Gameplay", { exact: true }).count(), 0);
+    const beforeTakeEdit = fixture.puts.length;
+    await automaticTake.click({ button: "right" });
+    await page.locator(".sp-ctx-menu").getByText("Edit Card", { exact: true }).click();
+    assert.equal(await page.getByLabel("Type", { exact: true }).inputValue(), "obs.take");
+    assert.equal(fixture.puts.length, beforeTakeEdit, "Opening Take Live settings does not save it");
+    await page.getByRole("button", { name: "Save", exact: true }).click();
+    const savedTake = page.locator('.sp-main .sp-btn-wide[data-pos="7"][data-slot]');
+    await savedTake.getByText("Take Live", { exact: true }).waitFor();
+    await savedTake.click({ button: "right" });
+    await page.locator(".sp-ctx-menu").getByText("Edit Card", { exact: true }).click();
+    await page.getByRole("button", { name: "Card Settings", exact: true }).click();
+    await page.getByRole("textbox", { name: "Label", exact: true }).fill("Send to Program");
+    await page.getByRole("button", { name: "Save", exact: true }).click();
+    await savedTake.getByText("Send to Program", { exact: true }).waitFor();
+    await savedTake.getByText("Enable Studio Mode", { exact: true }).waitFor();
+    await waitForNativeState(fixture, () => fixture.puts.at(-1)?.layout?.pages
+      .find(group => group.key === 6)?.cards.some(card =>
+        card.config.entity === "obs.take" && card.config.label === "Send to Program"),
+    "The renamed Take Live card saves its label and OBS action");
+    console.log("OBS automatic Scenes controls and editable generated cards passed.");
+  } finally {
+    await context.close();
+  }
+}
+
+async function assertStudioControlPage(browser) {
+  const testCase = CASES.find(item => item.slug === "guition-esp32-s3-4848s040");
+  const fixture = nativeConfigState(testCase.slug);
+  fixture.document.settings.web_onboarding_complete = "1";
+  const context = await browser.newContext({ viewport: testCase.viewport });
+  await installRoutes(context, testCase.slug, {
+    nativeState: fixture, nativeV2: true,
+    connectorsStatus: {
+      onboarding_complete: true,
+      mac_companion: { available: true, configured: true, paired: true, connected: true },
+    },
+  });
+  try {
+    const page = await context.newPage();
+    await installFakeEventSource(page);
+    await page.goto(`http://espdesktop.test/${testCase.slug}`);
+    // Start from the native snapshot. The bulk legacy reads enabled by
+    // events=1 can trigger layout refreshes while the card picker is open.
+    await page.waitForFunction(() => window.__eventSources?.some(source => source.readyState === 1));
+    await page.locator('.sp-main[aria-disabled="false"] [data-slot="2"]')
+      .getByText("Copy", { exact: true }).waitFor();
+    await page.locator(".sp-main .sp-empty-cell").first().click();
+    await chooseOBSCard(page, "Studio Control");
+    await page.getByRole("button", { name: "Save", exact: true }).click();
+    await waitForNativeState(fixture, () => Object.values(fixture.document.buttons).some(card => card.includes("Studio Control")),
+      "Studio Control saves the parent card");
+    const slot = Number(Object.entries(fixture.document.buttons).find(([, card]) => card.includes("Studio Control"))[0]);
+    assert.match(fixture.document.buttons[slot], /Movie/);
+    const savedPage = fixture.puts.at(-1)?.layout?.pages.find(group => group.key === slot);
+    assert.equal(savedPage?.order, "B,1,2,3,4b,,5");
+    assert.deepEqual(savedPage?.cards.map(card => card.config.entity),
+      ["obs.output.record", "obs.output.stream", "obs.studio", "obs.replay", "obs.replay.buffer"]);
+    const studioCard = name => page.locator(".sp-main .sp-btn[data-slot]")
+      .filter({ has: page.getByText(name, { exact: true }) });
+    const studioButton = studioCard("Studio Control");
+    await studioButton.locator(".mdi-movie").waitFor();
+    const chevron = studioButton.locator(".sp-subpage-badge");
+    const chevronOpacity = () => chevron.evaluate(badge => getComputedStyle(badge).opacity);
+    await page.mouse.move(0, 0);
+    assert.equal(await chevronOpacity(), "0", "idle folder cards match the device");
+    await studioButton.hover();
+    assert.equal(await chevronOpacity(), "1", "hover reveals the editor navigation control");
+    const enter = async button => {
+      await button.click({ button: "right" });
+      await page.getByText("Edit Subpage", { exact: true }).click();
+    };
+    await enter(studioButton);
+    for (const [pos, label] of [[1, "Record"], [2, "Stream"], [3, "Studio Mode"], [4, "Save Replay"], [6, "Replay Buffer"]]) {
+      await page.locator(`.sp-main [data-pos="${pos}"][data-slot]`).getByText(label, { exact: true }).waitFor();
+    }
+    const replay = page.locator('.sp-main [data-pos="4"].sp-btn-big');
+    await replay.waitFor();
+    await page.locator(".sp-back-btn .sp-back-hit").click();
+    await studioButton.click({ button: "right" });
+    await page.getByText("Edit Card", { exact: true }).click();
+    await page.getByRole("button", { name: "Card Settings", exact: true }).click();
+    await page.locator("#sp-inp-label").fill("My Studio");
+    await page.getByRole("button", { name: "Save", exact: true }).click();
+    await enter(studioCard("My Studio"));
+    await replay.getByText("Save Replay", { exact: true }).waitFor();
+    console.log("Studio Control created with Movie icon and 2×2 Save Replay, and kept its cards after renaming.");
+  } finally { await context.close(); }
+}
+
 async function assertFirstRunSetup(browser) {
   const testCase = CASES.find(item => item.slug === "guition-esp32-s3-4848s040");
   const fixture = nativeConfigState(testCase.slug);
@@ -7359,7 +8890,8 @@ async function assertFirstRunSetup(browser) {
   };
   const context = await browser.newContext({ viewport: { width: 900, height: 800 } });
   await installRoutes(context, testCase.slug, {
-    nativeState: fixture, connectorsStatus: status, nativeV2: true, nativeAppSubpagePreference: true,
+    nativeState: fixture, connectorsStatus: status, nativeV2: true,
+    nativeAppSubpagePreference: true, nativeAppSubpageMode: true,
   });
   let pairingUnavailable = false;
   const pairingState = {
@@ -7410,6 +8942,7 @@ async function assertFirstRunSetup(browser) {
     await dialog.getByText("No apps available. Check app access on your Mac.", { exact: true }).waitFor();
     assert(await dialog.getByText("Step 1 of 2", { exact: true }).isVisible(),
       "an already connected Mac starts at app selection");
+    assert.equal(await dialog.getByRole("button", { name: "Set up OBS Studio", exact: true }).count(), 0);
     const title = dialog.getByRole("heading", { name: "Choose your apps", exact: true });
     assert(await title.evaluate(node => node === document.activeElement && getComputedStyle(node).outlineStyle === "none"),
       "the wizard heading receives focus without a visible outline");
@@ -7434,7 +8967,7 @@ async function assertFirstRunSetup(browser) {
     };
     await dialog.getByText("No apps available. Check app access on your Mac.", { exact: true }).waitFor();
     catalogueReady = true;
-    const addPages = dialog.getByRole("radio", { name: "Add shortcut pages", exact: true });
+    const addPages = dialog.getByRole("radio", { name: "Add keyboard shortcut pages", exact: true });
     const launchOnly = dialog.getByRole("radio", { name: "Launch apps only", exact: true });
     await setChecked(dialog.getByLabel("App 0", { exact: true }), true);
     await dialog.getByRole("button", { name: "Next", exact: true }).click();
@@ -7457,7 +8990,8 @@ async function assertFirstRunSetup(browser) {
     await dialog.getByRole("button", { name: "Next", exact: true }).click();
     assert(await addPages.isChecked(), "Back keeps the global shortcut choice");
     await dialog.getByRole("button", { name: "Next", exact: true }).click();
-    await dialog.getByRole("radio", { name: "Open from the display", exact: true }).check();
+    assert(await dialog.getByRole("radio", { name: "On app card press (default)", exact: true }).isChecked());
+    await dialog.getByRole("radio", { name: "On a second app card press", exact: true }).check();
     await page.setViewportSize({ width: 375, height: 650 });
     fs.mkdirSync(FAILURE_DIR, { recursive: true });
     await page.screenshot({ path: path.join(FAILURE_DIR, "first-run-mobile.png") });
@@ -7492,7 +9026,7 @@ async function assertFirstRunSetup(browser) {
       "the global choice also adds a page for Notes");
     assert.equal(pages.length, 2, "unsupported apps remain launch cards");
     assert.equal(fixture.puts.length, 1);
-    assert.equal(fixture.document.settings.companion_auto_open_app_subpages, "0");
+    assert.equal(fixture.document.settings.companion_app_subpage_mode, "manual");
     assert.deepEqual(switches, [], "setup uses only the layout PUT");
     await open();
     await page.waitForTimeout(200);
@@ -7519,17 +9053,17 @@ async function assertFirstRunSetup(browser) {
       { id: "switch-companion_auto_open_app_subpages_enabled", state: "OFF", value: false },
     ]));
     await page.getByRole("tab", { name: "Screen", exact: true }).click();
-    const settingsCard = page.locator("#sp-settings .card").filter({ has: page.locator("#sp-set-auto-open-app-subpages") });
+    const settingsCard = page.locator("#sp-settings .card").filter({ has: page.locator("#sp-set-app-subpage-mode") });
     if (await settingsCard.evaluate(node => node.classList.contains("collapsed"))) await settingsCard.locator(".card-header").click();
-    const toggle = page.locator("#sp-set-auto-open-app-subpages");
-    await setChecked(toggle, true);
-    await waitForNativeState(fixture, () => fixture.document.settings.companion_auto_open_app_subpages === "1",
-      "save the editor toggle through native configuration");
-    await page.waitForFunction(() => !document.querySelector("#sp-set-auto-open-app-subpages").disabled);
-    await setChecked(toggle, false);
-    await waitForNativeState(fixture, () => fixture.document.settings.companion_auto_open_app_subpages === "0",
-      "restore the editor toggle through native configuration");
+    const mode = page.getByRole("combobox", { name: "Open app subpages", exact: true });
+    await mode.selectOption("focus");
+    await waitForNativeState(fixture, () => fixture.document.settings.companion_app_subpage_mode === "focus",
+      "save the editor selection through native configuration");
+    await mode.selectOption("manual");
+    await waitForNativeState(fixture, () => fixture.document.settings.companion_app_subpage_mode === "manual",
+      "restore the two-press mode through native configuration");
     assert.deepEqual(switches, []);
+    assert.equal(await settingsCard.getByRole("button", { name: "Add OBS starter page", exact: true }).count(), 0);
     await page.getByRole("button", { name: "Setup Again", exact: true }).click();
     await dialog.getByLabel("Safari", { exact: true }).waitFor({ state: "attached" });
     assert(await dialog.getByLabel("Safari", { exact: true }).isChecked(), "settings restores home apps");
@@ -7541,7 +9075,7 @@ async function assertFirstRunSetup(browser) {
     await dialog.getByRole("button", { name: "Next", exact: true }).click();
     assert(await addPages.isChecked(), "settings restores the global shortcut choice");
     await dialog.getByRole("button", { name: "Next", exact: true }).click();
-    const followApp = dialog.getByRole("radio", { name: "Follow the active app", exact: true });
+    const followApp = dialog.getByRole("radio", { name: "When the app gains focus", exact: true });
     assert.equal(await followApp.isChecked(), false);
     await followApp.check();
     failLayout = true;
@@ -7555,7 +9089,7 @@ async function assertFirstRunSetup(browser) {
     await dialog.getByRole("button", { name: "Done", exact: true }).click();
     await dialog.waitFor({ state: "detached" });
     assert(fixture.puts.length >= 2, "the committed replacement finishes setup");
-    assert.equal(fixture.document.settings.companion_auto_open_app_subpages, "1");
+    assert.equal(fixture.document.settings.companion_app_subpage_mode, "focus");
     assert.deepEqual(switches, []);
     await page.getByText("The configuration saved, but its older-firmware copy did not. Do not downgrade this panel yet.", { exact: true }).waitFor();
     fixture.writeStatus = 204;
@@ -7568,8 +9102,8 @@ async function assertFirstRunSetup(browser) {
     await dialog.getByRole("button", { name: "Done", exact: true }).click();
     await dialog.getByRole("alert").waitFor();
     fixture.loseWriteResponse = false;
-    assert.equal(fixture.document.settings.companion_auto_open_app_subpages, "0",
-      "a lost response after commit leaves the entire new setup in place");
+    assert.equal(fixture.document.settings.companion_app_subpage_mode, "focus",
+      "launch-only setup keeps the previous opening mode even when the response is lost");
     assert.deepEqual(switches, []);
     await open();
     await dialog.waitFor({ state: "detached" });
@@ -7673,6 +9207,15 @@ async function assertFirstRunSetup(browser) {
   const browser = await (process.env.ESPDESKTOP_BROWSER_ENGINE === "webkit" ? webkit : chromium).launch();
   const acceptanceOnly = process.env.ESPDESKTOP_BROWSER_ACCEPTANCE_ONLY === "1";
   try {
+    if (process.env.ESPDESKTOP_APP_SUBPAGE_OPENING_ONLY === "1") {
+      await assertAppSubpageOpeningPreference(browser);
+      return;
+    }
+    if (process.env.ESPDESKTOP_CONTEXT_COLOUR_ONLY === "1") {
+      for (const testCase of ACTIVE_CASES) await assertContextColourPicker(browser, testCase);
+      console.log(`Drag selection and context colour checks passed for ${ACTIVE_CASES.length} layouts, native and legacy saves.`);
+      return;
+    }
     if (process.env.ESPDESKTOP_NAMING_ONLY === "1") {
       await assertPageTitleEvents(browser);
       await assertNamingOfflineBackups(browser);
@@ -7684,21 +9227,99 @@ async function assertFirstRunSetup(browser) {
       await assertReorderAfterDelete(browser);
       return;
     }
+    if (process.env.ESPDESKTOP_LIVE_FINDER_ONLY === "1") {
+      await assertFinderCardPicker(browser);
+      await assertLiveFinderPreview(browser);
+      return;
+    }
+    if (process.env.ESPDESKTOP_OBS_STUDIO_CONTROL_ONLY === "1") {
+      await assertStudioControlPage(browser);
+      return;
+    }
+    if (process.env.ESPDESKTOP_OBS_LAYOUT_ONLY === "1") {
+      await assertSavedOBSLayout(browser);
+      return;
+    }
     if (process.env.ESPDESKTOP_FIRST_RUN_ONLY === "1") {
       await assertFirstRunSetup(browser);
+      return;
+    }
+    if (process.env.ESPDESKTOP_APPLE_SHORTCUT_ONLY === "1") {
+      await assertAppleShortcutCard(browser);
+      await assertAppleShortcutSubpage(browser);
+      await assertAppleShortcutSubpage(browser, true);
+      return;
+    }
+    if (process.env.ESPDESKTOP_OBS_ONLY === "1") {
+      await assertOBSAppCard(browser);
+      await assertOBSSceneCard(browser);
+      return;
+    }
+    if (process.env.ESPDESKTOP_APP_VOLUME_ONLY === "1") {
+      await assertAppVolumeCard(browser);
       return;
     }
     if (process.env.ESPDESKTOP_MAC_LOCK_ONLY === "1") {
       await assertMacLockCard(browser);
       return;
     }
+    if (process.env.ESPDESKTOP_ACTIVE_COLOUR_ONLY === "1") {
+      const testCase = ACTIVE_CASES.find(item => item.slug === "guition-esp32-s3-4848s040") || ACTIVE_CASES[0];
+      const context = await browser.newContext({ viewport: testCase.viewport });
+      await installRoutes(context, testCase.slug);
+      const page = await context.newPage();
+      const posts = [];
+      page.on("request", request => {
+        if (request.method() === "POST") posts.push(postRecord(request.url()));
+      });
+      await installFakeEventSource(page);
+      try {
+        await page.goto(`http://espdesktop.test/${testCase.slug}?events=1`, { waitUntil: "domcontentloaded" });
+        await page.waitForSelector("#sp-app");
+        await page.waitForFunction(() => window.__eventSources?.length > 0);
+        await page.evaluate(events => window.__seedEspState(events), [
+          ...seededEvents(),
+          { id: "text-button_order", state: "1" },
+          { id: "text-button_1_config", state: COPY_SHORTCUT },
+        ]);
+        await page.waitForSelector(".sp-main > .sp-btn");
+        await assertCardActiveColourControls(page, posts, testCase.name);
+        await assertSliderActiveColours(page, testCase.name);
+      } finally { await context.close(); }
+      console.log("Card active colour browser checks passed.");
+      return;
+    }
     if (process.env.ESPDESKTOP_CARD_TRANSFER_ONLY === "1") {
       for (const testCase of ACTIVE_CASES) await runCase(browser, testCase);
       return;
     }
+    if (process.env.ESPDESKTOP_GLOBAL_ICON_SIZE_ONLY === "1" || process.env.ESPDESKTOP_INITIAL_ICON_SIZE_ONLY === "1") {
+      for (const testCase of ACTIVE_CASES) await assertFixedAppIconControls(browser, testCase);
+      console.log("Large app icons and missing size controls passed for native and legacy configurations.");
+      return;
+    }
+    if (process.env.ESPDESKTOP_STANDARD_ICON_SIZES_ONLY === "1") {
+      for (const testCase of ACTIVE_CASES) await assertStandardIconSizes(browser, testCase);
+      console.log("Fixed non-app icon layouts and missing size controls passed for native and legacy configurations.");
+      return;
+    }
+    if (process.env.ESPDESKTOP_CONTEXT_ICON_SIZE_ONLY === "1") {
+      for (const testCase of ACTIVE_CASES) await assertAutomaticAppIcons(browser, testCase);
+      console.log("Large app icon artwork and chevrons passed for native and legacy configurations.");
+      return;
+    }
+    await assertOBSAppCard(browser);
+    await assertOBSSceneCard(browser);
+    await assertSavedOBSLayout(browser);
+    await assertStudioControlPage(browser);
+    await assertAppleShortcutCard(browser);
+    await assertAppleShortcutSubpage(browser);
+    await assertAppleShortcutSubpage(browser, true);
+    await assertFinderCardPicker(browser);
     await assertRetiredCardRemoval(browser);
     if (process.env.ESPDESKTOP_RETIRED_CARDS_ONLY === "1") return;
     await assertMacLockCard(browser);
+    await assertAppVolumeCard(browser);
     if (process.env.ESPDESKTOP_RETIRED_SETTINGS_ONLY === "1") {
       for (const testCase of ACTIVE_CASES) await assertRetiredSettingsStayUnavailable(browser, testCase);
       await assertNamingOfflineBackups(browser);
@@ -7711,6 +9332,7 @@ async function assertFirstRunSetup(browser) {
       await assertCompanionShortcutSettings(browser, testCase);
       await assertAppSubpageCapacity(browser, testCase);
       await assertShortcutCatalogSettings(browser, testCase);
+      await assertOnDemandShortcutSettings(browser, testCase);
       await assertCompanionStorageSettings(browser, testCase);
       console.log("Companion shortcut, capacity, catalogue and storage browser checks passed.");
       return;
@@ -7729,32 +9351,14 @@ async function assertFirstRunSetup(browser) {
       for (const testCase of ACTIVE_CASES) await assertSubpageClockBar(browser, testCase);
       return;
     }
-    if (process.env.ESPDESKTOP_APP_SUBPAGE_OPENING_ONLY === "1") {
-      await assertAppSubpageOpeningPreference(browser);
-      return;
-    }
     if (process.env.ESPDESKTOP_CONNECTOR_LAYOUT_ONLY === "1") {
       await assertHomeAssistantConnectorLayout(browser);
       console.log("System connector layout and pairing link browser checks passed.");
       return;
     }
-    if (process.env.ESPDESKTOP_INITIAL_ICON_SIZE_ONLY === "1") {
-      await assertInitialGlobalIconSize(browser);
-      return;
-    }
-    if (process.env.ESPDESKTOP_GLOBAL_ICON_SIZE_ONLY === "1") {
-      for (const testCase of ACTIVE_CASES) await assertGlobalIconSize(browser, testCase);
-      console.log("Global icon size inheritance, overrides, reload and backup checks passed.");
-      return;
-    }
     if (process.env.ESPDESKTOP_APP_SUBPAGE_CAPACITY_ONLY === "1") {
       for (const testCase of ACTIVE_CASES) await assertAppSubpageCapacity(browser, testCase);
       console.log("App subpage free-slot selection and persistence checks passed.");
-      return;
-    }
-    if (process.env.ESPDESKTOP_STANDARD_ICON_SIZES_ONLY === "1") {
-      for (const testCase of ACTIVE_CASES) await assertStandardIconSizes(browser, testCase);
-      console.log("Fixed non-app icon layouts and missing size controls passed for native and legacy configurations.");
       return;
     }
     if (process.env.ESPDESKTOP_COLOURS_ONLY === "1") {
@@ -7788,52 +9392,13 @@ async function assertFirstRunSetup(browser) {
       console.log(`Card title browser checks passed for ${ACTIVE_CASES.length} layouts.`);
       return;
     }
-    if (process.env.ESPDESKTOP_CONTEXT_ICON_SIZE_ONLY === "1") {
-      for (const testCase of ACTIVE_CASES) {
-        await assertAutomaticAppIcons(browser, testCase);
-        }
-      console.log("Right-click app icon sizes and chevrons passed for native and legacy configurations.");
-      return;
-    }
-    if (process.env.ESPDESKTOP_CONTEXT_COLOUR_ONLY === "1") {
-      for (const testCase of ACTIVE_CASES) await assertContextColourPicker(browser, testCase);
-      console.log(`Context colour picker browser checks passed for ${ACTIVE_CASES.length} layouts, native and legacy saves.`);
-      return;
-    }
-    if (process.env.ESPDESKTOP_ACTIVE_COLOUR_ONLY === "1") {
-      const testCase = ACTIVE_CASES.find(item => item.exerciseInteractions) || ACTIVE_CASES[0];
-      const context = await browser.newContext({ viewport: testCase.viewport });
-      await installRoutes(context, testCase.slug);
-      const page = await context.newPage();
-      const posts = [];
-      page.on("request", request => {
-        if (request.method() === "POST") posts.push(postRecord(request.url()));
-      });
-      await installFakeEventSource(page);
-      try {
-        await page.goto(`http://espdesktop.test/${testCase.slug}?events=1`, { waitUntil: "domcontentloaded" });
-        await page.waitForSelector("#sp-app");
-        await page.waitForFunction(() => window.__eventSources?.length > 0);
-        await page.evaluate(events => window.__seedEspState(events), seededEvents());
-        await page.waitForSelector(".sp-main > .sp-btn");
-        await assertCardActiveColourControls(page, posts, testCase.name);
-        await assertSliderActiveColours(page, testCase.name);
-      } finally { await context.close(); }
-      console.log("Card active colour browser checks passed.");
-      return;
-    }
     if (process.env.ESPDESKTOP_OUTLINES_ONLY === "1") {
       for (const testCase of ACTIVE_CASES) await assertPreviewOutlines(browser, testCase, true);
       console.log(`Preview outline pixel checks passed for ${ACTIVE_CASES.length} generated layouts.`);
       return;
     }
-    if (process.env.ESPDESKTOP_CURVE_PRESETS_ONLY === "1") {
-      for (const testCase of ACTIVE_CASES) await assertCardCurveSettings(browser, testCase);
-      console.log(`Card curve preset checks passed for ${ACTIVE_CASES.length} generated layouts.`);
-      return;
-    }
-    await assertCardCurveSettings(browser, ACTIVE_CASES[0]);
     for (const testCase of ACTIVE_CASES) {
+      await assertFixedCardCorners(browser, testCase);
       await assertContinuousPreview(browser, testCase);
       await assertPreviewOutlines(browser, testCase);
     }
@@ -7876,7 +9441,6 @@ async function assertFirstRunSetup(browser) {
     if (!acceptanceOnly) {
       await assertPageTitleEvents(browser);
       await assertRotationStartupOrdering(browser);
-      await assertInitialGlobalIconSize(browser);
     }
     await assertHostedCompatibility(browser);
     await assertFirmwareRetryFeedback(browser);
@@ -7889,11 +9453,12 @@ async function assertFirstRunSetup(browser) {
       }
       await assertNativeProfileJourney(browser, testCase);
       await assertStandardIconSizes(browser, testCase);
-      await assertGlobalIconSize(browser, testCase);
+      await assertFixedAppIconControls(browser, testCase);
       await assertCompanionURLOpenBehavior(browser, testCase);
       await assertCompanionShortcutSettings(browser, testCase);
       await assertAppSubpageCapacity(browser, testCase);
       await assertShortcutCatalogSettings(browser, testCase);
+      await assertOnDemandShortcutSettings(browser, testCase);
       await assertCompanionStorageSettings(browser, testCase);
       await assertCompanionOnlyCardPicker(browser, testCase);
       await assertLegacyProfileFallback(browser, testCase);

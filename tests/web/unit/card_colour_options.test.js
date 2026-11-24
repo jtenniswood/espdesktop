@@ -170,18 +170,11 @@ test("only native app artwork retains saved icon sizes", () => {
 });
 
 
-test("global icon sizes affect inherited cards while every manual size remains fixed", () => {
-  for (const defaultSize of ["small", "medium", "large"]) {
-    assert.equal(colours.cardIconSize("card_off_color=123456", defaultSize), defaultSize);
-    for (const manualSize of ["small", "medium", "large"]) {
-      const options = "card_off_color=123456,icon_size=" + manualSize;
-      assert.equal(colours.cardIconSize(options, defaultSize), manualSize);
-      const inherited = colours.setConfigOptionValue(options, "icon_size", "");
-      assert.equal(colours.cardIconSize(inherited, defaultSize), defaultSize);
-      assert.equal(colours.configOptionValue(inherited, "card_off_color"), "123456");
-    }
+test("editing card colour preserves a valid legacy app icon size", () => {
+  for (const size of ["small", "medium", "large"]) {
+    const options = colours.setCardColor("icon_size=" + size, "123456");
+    assert.equal(colours.configOptionValue(options, "icon_size"), size);
+    assert.equal(colours.configOptionValue(options, "card_off_color"), "123456");
   }
-  assert.equal(colours.cardIconSize("", "Large"), "large");
-  assert.equal(colours.cardIconSize("icon_size=invalid", "medium"), "medium");
-  assert.equal(colours.preserveCardIconSize("", "icon_size=large,card_off_color=123456"), "card_off_color=123456");
+  assert.equal(colours.preserveCardIconSize("icon_size=invalid", "card_off_color=123456"), "card_off_color=123456");
 });

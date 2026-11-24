@@ -6,56 +6,14 @@ description:
 
 # Appearance
 
-The **Appearance** section is at the top of **Screen**. Its panels are
-**Active Colour**, **Card Style** (curve), **Theme**, and [Clock Bar](/features/clock-bar).
+The **Appearance** section is at the top of **Screen**. It includes
+**Active Colour**, **App Subpages**, **Theme**, and [Clock Bar](/features/clock-bar).
 
-Cards use continuous corners, with the same proportions on the panel and
-setup-page preview. Choose **Card curve → Small, Medium or Large** in
-**Screen → Appearance**. The choice applies to home and subpage cards, including Back,
-is saved on the display and survives restarts.
+Home and subpage cards use fixed continuous corners, including Back. Images, artwork and slider fills follow the card outline.
 
-All supported displays use continuous corners that ease gradually into the
-card edges. **Large** is the default when the display has no saved choice.
-Corner sizes in pixels are:
+## App artwork
 
-| Display | Small | Medium | Large |
-| --- | ---: | ---: | ---: |
-| 7-inch and 4.3-inch P4 panels (all versions) | 8 | 20 | 32 |
-| 10-inch panels (all versions) | 13 | 18 | 22 |
-| P4-86 | 21 | 28 | 35 |
-| S3 | 16 | 21 | 26 |
-
-The 7-inch and 4.3-inch P4 panels use a wider spread so each step is clearly visible.
-On other displays, Small uses 60% of Large and Medium uses 80%, rounded to whole pixels.
-The same curve applies to the network-status Settings cards, including Back and Screen Lock. Ordinary modal controls and colour swatches keep their existing button radius.
-Images, artwork and slider fills follow the same outline. The web preview
-uses the same curve, including in browsers without native continuous-corner
-support, and scales the card gaps to match the physical display. Selection
-outlines stay visible above every card type, including Cover Art. Selected-card
-and dashed empty-card outlines follow the chosen curve with even thickness.
-
-The curve setting is included in configuration backups. Restoring an older
-backup without it keeps the current choice. Change **Card Curve** in the web editor. Changes update the preview immediately
-and redraw the physical cards after the display's brief refresh delay.
-
-Find these controls in **Screen → Appearance** on the [Screen settings](/settings/screen#appearance) page. Your selection is saved on the panel and applies without a reboot. Existing panels default to Dark.
-
-## App icon size
-
-Set **Screen → Appearance → Card Style → Default app icon size** to choose the
-starting size for Mac application artwork, including apps inside subpages.
-The default is **Large** when the display has no saved choice.
-Small keeps the original size; Medium enlarges it to 1.5× above the label;
-Large fills the available card area and hides the label.
-
-Right-click an app card and choose **App Icon Size**, or use **App icon size**
-in **Card Settings**, to override the default for that app. Choose **Use Default**
-in the menu or **Default** in Card Settings to follow the global setting again.
-The display remembers the default after reboot, and backups include it. Older
-backups without this setting keep the current default.
-
-All other card icons keep their original small layout and have no size setting.
-Previously saved sizes for those icons are ignored.
+Mac app artwork fills the available card area and hides the label on Home and subpages.
 
 In the web setup preview, subpage arrows sit immediately after the label, or at
 the lower left when no label is shown. A soft shadow keeps the arrow visible
@@ -84,7 +42,7 @@ The eyedropper swatch has a dashed border while empty and a solid border once a 
 
 Text and icons keep white on dark and mid-tone backgrounds, including the orange, green, teal and blue presets. Pale backgrounds use dark grey content. The panel and web preview use the same rule. Custom cards use a brighter tint when active for darker colours, or a darker shade for pale colours and white, making on and off easier to distinguish.
 
-Slider cards use a contrasting fill that keeps labels readable as values change.
+The filled portion of a slider uses the card’s ON colour. The area above it uses the card’s OFF colour, which defaults to the standard button background.
 
 Striped active cards use lighter or darker stripes to keep text readable across both tones.
 

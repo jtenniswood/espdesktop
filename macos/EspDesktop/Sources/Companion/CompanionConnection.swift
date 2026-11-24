@@ -51,6 +51,15 @@ final class CompanionConnection: NSObject {
     var onEvent: ((CompanionSessionEvent) -> Void)?
     private let discovery: CompanionDiscovery
     private var endpointRecovery = CompanionEndpointRecovery()
+    private(set) var pendingEndpoint: String?
+    private var editorRequestID: UInt32 = 0
+    private var editorPending: [UInt32: (callback: CheckedContinuation<Data, Error>, timeout: Task<Void, Never>)] = [:]
+    private var wifiCommandBusy = false
+    private var editorBusy = false
+    var usbEditorConnected: Bool { usbBridge != nil && sessionAuthenticated }
+    private(set) var usbEditorSupported = false
+    private var usbWifiAddressSupported = false
+    private var usbBridge: CompanionUSBBridge?
     private var session: URLSession?
     private var task: URLSessionWebSocketTask?
     private var mode: Mode = .authenticate
@@ -72,10 +81,15 @@ final class CompanionConnection: NSObject {
     private var supportsImmediateApplicationFocus = false
     private var supportsSessionLock = false
     private var supportsPairingReset = false
+    private var supportsCoughButton = false
+    private var supportsInputDevices = false
     private var pairingResetCompletion: CheckedContinuation<Void, Never>?
     private var pairingResetTimeout: Task<Void, Never>?
     private var remoteCatalogueDefinitionsSupported = false
     private var expandedShortcutsSupported = false
+    private var onDemandShortcutsSupported = false
+    private var appVolumeSupported = false
+    private(set) var appleShortcutsSupported = false
     private var authenticationRequestOutstanding = false
     private var appIconData: Data?
     private var appIconIdentifier = ""
@@ -87,6 +101,14 @@ final class CompanionConnection: NSObject {
     private var focusPublicationTask: Task<Void, Never>?
     private var applicationFocusPublisher = CompanionApplicationFocusPublisher()
     private var catalogueGeneration: UInt32 = 0
+    private var supportsOBSCards = false
+    private var supportsOBSAdaptiveScenes = false
+    private var peerCapabilityVersion: UInt32 = 0
+    private var supportsOBSBreak = false
+    private var supportsOBSOutputs = false
+    private var supportsOBSCough = false
+    private var supportsOBSFaders = false
+    private var lastOBSAudioValues: [String: Int] = [:]
     private var definitionGeneration: UInt32 = 0
     private var lastPublishedSystemMetrics: CompanionSystemMetricsSnapshot?
     private var lastSystemMetricsPublication = Date.distantPast
@@ -128,9 +150,77 @@ final class CompanionConnection: NSObject {
     }
 
     func connect(mode: Mode) {
+        pendingEndpoint = nil
         discovery.stop()
         endpointRecovery = CompanionEndpointRecovery()
         startConnection(mode: mode, resetBackoff: true)
+    }
+
+    func switchToDiscoveredNetwork(_ display: DiscoveredDisplay) {
+        let fingerprint = preferences.stringPreference(forKey: certificateFingerprintKey)
+        guard CompanionUSBPort.path(from: preferences.panelHost) != nil,
+              display.id == fingerprint, ConnectionEndpointPolicy.isLocalEndpoint(display.endpoint) else { return }
+        switchEndpoint(display.endpoint)
+    }
+
+    func switchEndpoint(_ endpoint: String) {
+        guard endpoint != preferences.panelHost, preferences.hasSavedPairing,
+              preferences.stringPreference(forKey: certificateFingerprintKey) != nil else { return }
+        discovery.stop()
+        endpointRecovery = CompanionEndpointRecovery()
+        pendingEndpoint = endpoint
+        startConnection(mode: .authenticate, resetBackoff: true)
+    }
+
+    @discardableResult
+    private func restoreSavedEndpoint() -> Bool {
+        guard pendingEndpoint != nil else { return false }
+        connect(mode: .authenticate)
+        return true
+    }
+
+    static func usbPortMatches(_ path: String, fingerprint expected: String) async -> Bool {
+        guard !Task.isCancelled, let bridge = try? CompanionUSBBridge(path: path) else { return false }
+        let delegate = CompanionSessionDelegate()
+        var verified = false
+        delegate.onChallenge = { challenge, completion in
+            Task { @MainActor in
+                guard let identity = serverIdentity(from: challenge), identity.fingerprint == expected else {
+                    completion(.cancelAuthenticationChallenge, nil)
+                    return
+                }
+                verified = true
+                completion(.useCredential, URLCredential(trust: identity.trust))
+            }
+        }
+
+        let configuration = URLSessionConfiguration.ephemeral
+        configuration.connectionProxyDictionary = [:]
+        let session = URLSession(configuration: configuration, delegate: delegate, delegateQueue: nil)
+        let socket = session.webSocketTask(with: bridge.webSocketURL)
+        socket.maximumMessageSize = 1024
+        // A verified TLS handshake and Companion hello identify the port. Do not
+        // authenticate a Companion session or displace the panel's IP connection.
+        socket.resume()
+        let timeout = Task {
+            try? await Task.sleep(for: .seconds(3))
+            if !Task.isCancelled { socket.cancel(with: .goingAway, reason: nil) }
+        }
+        let message = try? await withTaskCancellationHandler {
+            try await socket.receive()
+        } onCancel: {
+            socket.cancel(with: .goingAway, reason: nil)
+        }
+        timeout.cancel()
+        socket.cancel(with: .goingAway, reason: nil)
+        session.invalidateAndCancel()
+        await bridge.stopAndWait()
+
+        guard !Task.isCancelled, verified, case let .string(text) = message,
+              case .hello = CompanionProtocolDecoder.decode(Data(text.utf8), direction: .panelToMac,
+                                                           state: .authenticating)
+        else { return false }
+        return true
     }
 
     private func startConnection(mode: Mode, resetBackoff: Bool) {
@@ -148,16 +238,36 @@ final class CompanionConnection: NSObject {
             updateConnectionStatus("Enter the display address first", state: .failed)
             return
         }
-        endpointRecovery.begin(savedEndpoint: preferences.panelHost)
-        guard let url = connectionURL() else {
-            shouldReconnect = false
-            return
-        }
         self.mode = mode
+        let usbPort = CompanionUSBPort.path(from: pendingEndpoint ?? preferences.panelHost)
+        let url: URL
+        if let usbPort {
+            do {
+                let bridge = try CompanionUSBBridge(path: usbPort)
+                usbBridge = bridge
+                url = bridge.webSocketURL
+            } catch {
+                if restoreSavedEndpoint() { return }
+                let help = "Check the USB cable and close any serial monitor for this port."
+                updateConnectionStatus("Could not open the USB display", state: .failed, recovery: help)
+                scheduleReconnect()
+                return
+            }
+        } else {
+            endpointRecovery.begin(savedEndpoint: preferences.panelHost)
+            guard let networkURL = connectionURL() else {
+                if restoreSavedEndpoint() { return }
+                shouldReconnect = false
+                return
+            }
+            url = networkURL
+        }
         let configuration = URLSessionConfiguration.ephemeral
-        configuration.waitsForConnectivity = true
+        configuration.waitsForConnectivity = usbPort == nil
+        if usbPort != nil { configuration.connectionProxyDictionary = [:] }
         session = URLSession(configuration: configuration, delegate: makeSessionDelegate(), delegateQueue: nil)
         guard let task = session?.webSocketTask(with: url) else {
+            if restoreSavedEndpoint() { return }
             updateConnectionStatus("Could not create the display connection", state: .failed)
             return
         }
@@ -169,6 +279,7 @@ final class CompanionConnection: NSObject {
     }
 
     func disconnect() {
+        pendingEndpoint = nil
         shouldReconnect = false
         discovery.stop()
         endpointRecovery = CompanionEndpointRecovery()
@@ -207,6 +318,7 @@ final class CompanionConnection: NSObject {
     }
 
     private func tearDownConnection() {
+        releaseCoughButton()
         finishPairingResetRequest()
         if !shouldReconnect { discovery.stop() }
         connectionGeneration &+= 1
@@ -218,6 +330,9 @@ final class CompanionConnection: NSObject {
         supportsHighResolutionAppIcons = false
         remoteCatalogueDefinitionsSupported = false
         expandedShortcutsSupported = false
+        onDemandShortcutsSupported = false
+        appVolumeSupported = false
+        appleShortcutsSupported = false
         endpointRecovery.verifiedFingerprint = nil
         authenticationRequestOutstanding = false
         resetAppIconTransferState(clearPendingRequests: true)
@@ -233,6 +348,11 @@ final class CompanionConnection: NSObject {
         task = nil
         session?.invalidateAndCancel()
         session = nil
+        usbEditorSupported = false
+        usbWifiAddressSupported = false
+        finishEditorCommand(.failure(USBEditorError.disconnected))
+        usbBridge?.stop()
+        usbBridge = nil
         lastPublishedSystemMetrics = nil
         lastSystemMetricsPublication = .distantPast
     }
@@ -282,7 +402,8 @@ final class CompanionConnection: NSObject {
     }
 
     private func connectionURL() -> URL? {
-        let raw = (endpointRecovery.attempted ?? preferences.panelHost).trimmingCharacters(in: .whitespacesAndNewlines)
+        let raw = (pendingEndpoint ?? endpointRecovery.attempted ?? preferences.panelHost)
+            .trimmingCharacters(in: .whitespacesAndNewlines)
         guard let parsed = URL(string: raw.contains("://") ? raw : "wss://\(raw)"),
               let host = parsed.host,
               ConnectionEndpointPolicy.isLocalHost(host) else {
@@ -301,13 +422,10 @@ final class CompanionConnection: NSObject {
         _ challenge: URLAuthenticationChallenge,
         completionHandler: AuthenticationChallengeCompletion
     ) {
-        guard challenge.protectionSpace.authenticationMethod == NSURLAuthenticationMethodServerTrust,
-              let trust = challenge.protectionSpace.serverTrust,
-              let certificates = SecTrustCopyCertificateChain(trust) as? [SecCertificate],
-              let certificate = certificates.first else {
-            completionHandler(.performDefaultHandling, nil); return
+        guard let (trust, fingerprint) = Self.serverIdentity(from: challenge) else {
+            completionHandler(.performDefaultHandling, nil)
+            return
         }
-        let fingerprint = SHA256.hash(data: SecCertificateCopyData(certificate) as Data).map { String(format: "%02x", $0) }.joined()
         let saved = preferences.stringPreference(forKey: certificateFingerprintKey)
         if case .pair = mode, !preferences.allowsPairing(certificateFingerprint: fingerprint) {
             shouldReconnect = false
@@ -318,7 +436,10 @@ final class CompanionConnection: NSObject {
         } else if let saved, saved != fingerprint {
             shouldReconnect = false
             hasTerminalConnectionError = true
-            updateConnectionStatus("Blocked: display certificate changed", state: .failed, recovery: "The display’s identity has changed. If you reset or replaced it, forget this display and pair again using the code shown on its touchscreen.")
+            let recovery = usbBridge == nil
+                ? "Check the display address. If you reset or replaced the display, forget it and pair again."
+                : "Select the USB port for the paired display. If you reset or replaced the display, forget it and pair again."
+            updateConnectionStatus("Blocked: display identity does not match", state: .failed, recovery: recovery)
             completionHandler(.cancelAuthenticationChallenge, nil)
         } else if saved != nil {
             endpointRecovery.verifiedFingerprint = fingerprint
@@ -335,6 +456,225 @@ final class CompanionConnection: NSObject {
         }
     }
 
+    private static func serverIdentity(from challenge: URLAuthenticationChallenge)
+        -> (trust: SecTrust, fingerprint: String)? {
+        guard challenge.protectionSpace.authenticationMethod == NSURLAuthenticationMethodServerTrust,
+              let trust = challenge.protectionSpace.serverTrust,
+              let certificates = SecTrustCopyCertificateChain(trust) as? [SecCertificate],
+              let certificate = certificates.first else {
+            return nil
+        }
+        let fingerprint = SHA256.hash(data: SecCertificateCopyData(certificate) as Data)
+            .map { String(format: "%02x", $0) }.joined()
+        return (trust, fingerprint)
+    }
+
+    func requestUSBEditor(_ request: USBEditorRequest, authorization: String? = nil) async throws -> USBEditorResponse {
+        if request.path == USBEditorRequest.wifiPath {
+            guard usbEditorConnected else { throw USBEditorError.disconnected }
+            guard usbEditorSupported else { throw USBEditorError.firmwareUpdateRequired }
+            guard !wifiCommandBusy else { throw USBEditorError.wifiSaveBusy }
+            wifiCommandBusy = true
+            defer { wifiCommandBusy = false }
+            return try await requestUSBWifi(request, generation: connectionGeneration)
+        }
+        let generation = try await beginUSBEditorRequest()
+        defer { editorBusy = false }
+        return try await requestUSBEditorHTTP(request, authorization: authorization, generation: generation)
+    }
+
+    private func beginUSBEditorRequest() async throws -> UInt64 {
+        // The panel has one editor socket per paired display. Wait for this
+        // display's current HTTP request without serializing other panels.
+        while editorBusy { try await Task.sleep(for: .milliseconds(15)) }
+        guard usbEditorConnected else { throw USBEditorError.disconnected }
+        guard usbEditorSupported else { throw USBEditorError.firmwareUpdateRequired }
+        editorBusy = true
+        return connectionGeneration
+    }
+
+    func prepareWifiForNetworkSwitch() async -> Bool? {
+        guard let enabled = await usbWifiEnabled() else { return nil }
+        if enabled { return true }
+        guard !Task.isCancelled else { return false }
+        return await usbWifiEnabled(setting: true) == true
+    }
+
+    func currentUSBWifiAddress() async -> String? {
+        guard usbEditorConnected, usbEditorSupported else { return nil }
+        return await withTaskGroup(of: String?.self) { group in
+            group.addTask { await self.readUSBWifiAddress() }
+            group.addTask {
+                try? await Task.sleep(for: .milliseconds(1500))
+                return nil
+            }
+            let address = await group.next() ?? nil
+            group.cancelAll()
+            return address
+        }
+    }
+
+    private func readUSBWifiAddress() async -> String? {
+        let generation = connectionGeneration
+        if usbWifiAddressSupported {
+            guard let result = try? await editorCommand(8, generation: generation),
+                  connectionGeneration == generation else { return nil }
+            return USBEditorPanelIdentity.localNetworkAddress(fromWiFiReply: result)
+        }
+        guard await usbWifiEnabled() == true,
+              let request = USBEditorRequest(method: "GET", path: "/api/v1/identity"),
+              connectionGeneration == generation,
+              let response = try? await requestUSBEditor(request), response.status == 200,
+              connectionGeneration == generation,
+              let identity = try? JSONDecoder().decode(USBEditorPanelIdentity.self, from: response.body)
+        else { return nil }
+        return identity.localNetworkAddress
+    }
+
+    private func usbWifiEnabled(setting: Bool? = nil) async -> Bool? {
+        let body: Data
+        if let setting {
+            guard let encoded = try? JSONEncoder().encode(USBEditorWifiState(enabled: setting)) else { return nil }
+            body = encoded
+        } else {
+            body = Data()
+        }
+        guard usbEditorConnected, usbEditorSupported,
+              let request = USBEditorRequest(method: setting == nil ? "GET" : "POST",
+                                             path: USBEditorRequest.wifiPath, body: body),
+              let response = try? await requestUSBEditor(request), response.status == 200,
+              let state = try? JSONDecoder().decode(USBEditorWifiState.self, from: response.body)
+        else { return nil }
+        return state.enabled
+    }
+
+    private func requestUSBWifi(_ request: USBEditorRequest, generation: UInt64) async throws -> USBEditorResponse {
+        var result: Data
+        if request.method == "GET" {
+            result = try await editorCommand(5, generation: generation)
+        } else {
+            guard let state = try? JSONDecoder().decode(USBEditorWifiState.self, from: request.body) else {
+                return USBEditorResponse(status: 400, headers: [:], body: Data())
+            }
+            result = try await editorCommand(7, body: Data([state.enabled ? 1 : 0]), generation: generation)
+            if result == Data([4]) { throw USBEditorError.wifiSaveBusy }
+            guard result == Data([1]) else { throw USBEditorError.wifiSaveUnsupported }
+            let clock = ContinuousClock()
+            let deadline = clock.now.advanced(by: .seconds(5))
+            while result == Data([1]) {
+                guard clock.now < deadline else { throw USBEditorError.timedOut }
+                try await Task.sleep(for: .milliseconds(100))
+                result = try await editorCommand(7, generation: generation)
+            }
+            if result == Data([3]) { throw USBEditorError.wifiSaveFailed }
+        }
+        if result == Data([3]) {
+            return USBEditorResponse(status: 404, headers: [:], body: Data())
+        }
+        guard result.count == 2, result.first == 0, let enabled = result.last, enabled <= 1 else {
+            throw USBEditorError.invalidResponse
+        }
+        let body = try JSONEncoder().encode(USBEditorWifiState(enabled: enabled == 1))
+        return USBEditorResponse(status: 200, headers: ["content-type": "application/json"], body: body)
+    }
+
+    private func requestUSBEditorHTTP(_ request: USBEditorRequest, authorization: String?,
+                                      generation: UInt64) async throws -> USBEditorResponse {
+        do {
+            let open = try await editorCommand(1, generation: generation)
+            guard open.first == 0 else { throw USBEditorError.invalidResponse }
+            let requestBytes = request.wireBytes(authorization: authorization)
+            let clock = ContinuousClock()
+            let end = clock.now.advanced(by: .seconds(100))
+            var offset = 0
+            while offset < requestBytes.count {
+                guard clock.now < end else { throw USBEditorError.timedOut }
+                let limit = min(offset + 4096, requestBytes.count)
+                let result = try await editorCommand(2, body: Data(requestBytes[offset..<limit]), generation: generation)
+                if result.first == 1 {
+                    try await Task.sleep(for: .milliseconds(15))
+                    continue
+                }
+                guard result.count == 3, result.first == 0 else { throw USBEditorError.invalidResponse }
+                let count = Int(result[result.startIndex + 1]) * 256 + Int(result[result.startIndex + 2])
+                guard count > 0, count <= limit - offset else { throw USBEditorError.invalidResponse }
+                offset += count
+            }
+            var bytes = Data()
+            while clock.now < end {
+                let result = try await editorCommand(3, generation: generation)
+                switch result.first {
+                case 0:
+                    bytes.append(contentsOf: result.dropFirst())
+                    guard bytes.count <= USBEditorResponse.maximumBytes else { throw USBEditorError.tooLarge }
+                case 1:
+                    try await Task.sleep(for: .milliseconds(15))
+                    continue
+                case 2: break
+                default: throw USBEditorError.invalidResponse
+                }
+                if let response = try USBEditorResponse.parse(bytes, ended: result.first == 2) {
+                    _ = try? await editorCommand(4, generation: generation)
+                    return response
+                }
+            }
+            throw USBEditorError.timedOut
+        } catch {
+            // A later OPEN replaces any incomplete upstream request if the
+            // current WebSocket disappeared before CLOSE could be delivered.
+            _ = try? await editorCommand(4, generation: generation)
+            throw error
+        }
+    }
+
+    private func editorCommand(_ command: UInt8, body: Data = Data(), generation: UInt64) async throws -> Data {
+        try Task.checkCancellation()
+        guard usbEditorConnected, connectionGeneration == generation, let task
+        else { throw USBEditorError.disconnected }
+        editorRequestID &+= 1
+        let id = editorRequestID
+        var frame = Data("UED1".utf8)
+        frame.append(command)
+        withUnsafeBytes(of: id.bigEndian) { frame.append(contentsOf: $0) }
+        frame.append(body)
+        return try await withTaskCancellationHandler {
+            try await withCheckedThrowingContinuation { callback in
+                let timeout = Task { [weak self] in
+                    try? await Task.sleep(for: .seconds(7))
+                    if !Task.isCancelled { self?.finishEditorCommand(.failure(USBEditorError.timedOut), id: id) }
+                }
+                editorPending[id] = (callback, timeout)
+                task.send(.data(frame)) { [weak self] error in
+                    if error != nil {
+                        Task { @MainActor [weak self] in
+                            self?.finishEditorCommand(.failure(USBEditorError.disconnected), id: id)
+                        }
+                    }
+                }
+            }
+        } onCancel: {
+            Task { @MainActor [weak self] in
+                self?.finishEditorCommand(.failure(CancellationError()), id: id)
+            }
+        }
+    }
+
+    private func receiveEditorCommand(_ bytes: Data) {
+        guard bytes.count >= 9, bytes.prefix(4) == Data("UED1".utf8) else { return }
+        let id = bytes.dropFirst(5).prefix(4).reduce(UInt32(0)) { ($0 << 8) | UInt32($1) }
+        var result = Data(bytes.dropFirst(4).prefix(1))
+        result.append(bytes.dropFirst(9))
+        finishEditorCommand(.success(result), id: id)
+    }
+
+    private func finishEditorCommand(_ result: Result<Data, Error>, id: UInt32? = nil) {
+        for key in id.map({ [$0] }) ?? Array(editorPending.keys) {
+            guard let pending = editorPending.removeValue(forKey: key) else { continue }
+            pending.timeout.cancel()
+            pending.callback.resume(with: result)
+        }
+    }
+
     private func receive(from task: URLSessionWebSocketTask) {
         receiveTask = Task { [weak self] in
             guard let self else { return }
@@ -342,7 +682,11 @@ final class CompanionConnection: NSObject {
                 do {
                     let message = try await task.receive()
                     guard !Task.isCancelled, self.task === task else { return }
-                    if case .string(let value) = message { self.handle(value) }
+                    switch message {
+                    case .string(let value): await self.handle(value)
+                    case .data(let data): self.receiveEditorCommand(data)
+                    @unknown default: break
+                    }
                 } catch {
                     guard !Task.isCancelled else { return }
                     self.handleConnectionFailure(for: task, reason: "Receive failed: \(error.localizedDescription)")
@@ -386,6 +730,7 @@ final class CompanionConnection: NSObject {
 
     private func handleConnectionFailure(for failedTask: URLSessionWebSocketTask, reason: String = "Connection closed") {
         guard task === failedTask else { return }
+        releaseCoughButton()
         finishPairingResetRequest()
         print("[EspDesktop] Companion connection lost: \(reason)")
         if !hasTerminalConnectionError, case .pair = mode {
@@ -399,6 +744,9 @@ final class CompanionConnection: NSObject {
         resetAppIconTransferState(clearPendingRequests: true)
         remoteCatalogueDefinitionsSupported = false
         expandedShortcutsSupported = false
+        onDemandShortcutsSupported = false
+        appVolumeSupported = false
+        appleShortcutsSupported = false
         connectionTimeoutTask?.cancel()
         connectionTimeoutTask = nil
         heartbeatTask?.cancel()
@@ -411,7 +759,23 @@ final class CompanionConnection: NSObject {
         failedTask.cancel(with: .goingAway, reason: nil)
         session?.invalidateAndCancel()
         session = nil
+        usbEditorSupported = false
+        usbWifiAddressSupported = false
+        finishEditorCommand(.failure(USBEditorError.disconnected))
+        usbBridge?.stop()
+        usbBridge = nil
+        if restoreSavedEndpoint() { return }
         scheduleReconnect()
+    }
+
+    private func releaseCoughButton() {
+        if supportsOBSCough {
+            supportsOBSCough = false
+            resources.abandonOBSCough(from: ObjectIdentifier(self))
+        }
+        guard supportsCoughButton else { return }
+        supportsCoughButton = false
+        _ = resources.setCoughButtonValue(0, from: ObjectIdentifier(self))
     }
 
     private func resetAppIconTransferState(clearPendingRequests: Bool = false) {
@@ -432,15 +796,16 @@ final class CompanionConnection: NSObject {
             updateConnectionStatus("Display disconnected", state: .disconnected)
             return
         }
-        let savedFingerprint = preferences.stringPreference(forKey: certificateFingerprintKey)
-        // A name refresh can keep an earlier discovery session open. Seed the
-        // recovery candidate from its current results before changing handlers.
-        endpointRecovery.discovered(discovery.displays, expectedFingerprint: savedFingerprint)
-        discovery.onChange = { [weak self] displays in
-            guard let self, self.shouldReconnect, !self.hasTerminalConnectionError else { return }
-            self.endpointRecovery.discovered(displays, expectedFingerprint: savedFingerprint)
+        if CompanionUSBPort.path(from: preferences.panelHost) == nil {
+            let savedFingerprint = preferences.stringPreference(forKey: certificateFingerprintKey)
+            // A name refresh can keep an earlier discovery session open.
+            endpointRecovery.discovered(discovery.displays, expectedFingerprint: savedFingerprint)
+            discovery.onChange = { [weak self] displays in
+                guard let self, self.shouldReconnect, !self.hasTerminalConnectionError else { return }
+                self.endpointRecovery.discovered(displays, expectedFingerprint: savedFingerprint)
+            }
+            discovery.start()
         }
-        discovery.start()
         guard reconnectTask == nil else { return }
         updateConnectionStatus("Display unavailable — reconnecting…", state: .reconnecting)
         reconnectTask = Task { [weak self] in
@@ -457,8 +822,9 @@ final class CompanionConnection: NSObject {
         }
     }
 
-    private func handle(_ message: String) {
-        guard handleJSON(message) else {
+    private func handle(_ message: String) async {
+        guard await handleJSON(message) else {
+            if restoreSavedEndpoint() { return }
             hasTerminalConnectionError = true
             shouldReconnect = false
             tearDownConnection()
@@ -467,7 +833,7 @@ final class CompanionConnection: NSObject {
         }
     }
 
-    private func handleJSON(_ message: String) -> Bool {
+    private func handleJSON(_ message: String) async -> Bool {
         let state: CompanionProtocolState = sessionAuthenticated ? .connected : {
             if case .pair = mode { return .pairing }
             return .authenticating
@@ -498,16 +864,31 @@ final class CompanionConnection: NSObject {
             guard case .authenticate = mode, authenticationRequestOutstanding else { return false }
             authenticationRequestOutstanding = false
             sessionAuthenticated = true
+            usbEditorSupported = payload.usbEditor == true
+            usbWifiAddressSupported = payload.usbWifiAddress == true
             supportsAlphaAppIcons = payload.capabilityVersion >= 4
             supportsHighResolutionAppIcons = payload.capabilityVersion >= 5
             supportsImmediateApplicationFocus = payload.capabilityVersion >= 6
             supportsSessionLock = payload.capabilityVersion >= 7
             supportsPairingReset = payload.capabilityVersion >= 8
             expandedShortcutsSupported = payload.capabilityVersion >= 9
+            onDemandShortcutsSupported = payload.capabilityVersion >= 23
+            supportsOBSCards = payload.capabilityVersion >= 13
+            supportsOBSFaders = payload.capabilityVersion >= 14
+            supportsOBSCough = payload.capabilityVersion >= 16
+            supportsOBSOutputs = payload.capabilityVersion >= 17
+            supportsOBSBreak = payload.capabilityVersion >= 18
+            supportsOBSAdaptiveScenes = payload.capabilityVersion >= 19
+            peerCapabilityVersion = payload.capabilityVersion
+            lastOBSAudioValues.removeAll()
+            appVolumeSupported = payload.capabilityVersion >= 10
+            supportsCoughButton = payload.capabilityVersion >= 11
+            supportsInputDevices = payload.capabilityVersion >= 12
+            appleShortcutsSupported = payload.capabilityVersion >= 24
             // A Bonjour TXT record never authorizes a location change. Both the
             // pinned TLS certificate and the authenticated session must agree.
             let expectedFingerprint = preferences.stringPreference(forKey: certificateFingerprintKey)
-            if let endpoint = endpointRecovery.authenticatedEndpoint(
+            if let endpoint = pendingEndpoint ?? endpointRecovery.authenticatedEndpoint(
                 expectedFingerprint: expectedFingerprint) {
                 preferences.panelHost = endpoint
             }
@@ -515,12 +896,14 @@ final class CompanionConnection: NSObject {
                 expectedFingerprint: expectedFingerprint) {
                 preferences.setPreference(displayName, forKey: displayNameKey)
             }
+            pendingEndpoint = nil
             endpointRecovery = CompanionEndpointRecovery()
-            refreshDisplayName(expectedFingerprint: expectedFingerprint)
+            if usbBridge == nil { refreshDisplayName(expectedFingerprint: expectedFingerprint) }
             connectionTimeoutTask?.cancel()
             connectionTimeoutTask = nil
             reconnectAttempt = 0
-            updateConnectionStatus("Connected to \(preferences.panelHost)", state: .connected)
+            let message = usbBridge == nil ? "Connected to \(preferences.panelHost)" : "Connected over USB"
+            updateConnectionStatus(message, state: .connected)
             let capabilityVersion = payload.capabilityVersion
             onEvent?(.capabilities(systemMetrics: capabilityVersion >= 2))
             remoteCatalogueDefinitionsSupported = Self.supportsRemoteCatalogueDefinitions(
@@ -533,6 +916,9 @@ final class CompanionConnection: NSObject {
         case .catalogueRequest:
             guard sessionAuthenticated else { return false }
             publishCatalogue()
+        case .shortcutCatalogueRequest(let payload):
+            guard sessionAuthenticated, onDemandShortcutsSupported else { return false }
+            publishShortcutCataloguePage(payload)
         case .focusTargets(let payload):
             guard sessionAuthenticated else { return false }
             let targets = payload.items.compactMap { item -> (id: String, url: URL)? in
@@ -550,14 +936,39 @@ final class CompanionConnection: NSObject {
             let requestIdentifier = payload.requestId
             let kind = payload.kind
             if kind == "action", let actionIdentifier = payload.actionId {
+                if (actionIdentifier.hasPrefix("obs.") && !supportsOBSCards) ||
+                    (actionIdentifier.hasPrefix("obs.output.") && !supportsOBSOutputs) ||
+                    (actionIdentifier.hasPrefix("obs.brb.") && !supportsOBSBreak) ||
+                    (actionIdentifier.hasPrefix(OBSConnection.AdaptiveScene.prefix) && !supportsOBSAdaptiveScenes) {
+                    sendJSON(["type": "action.result", "requestId": requestIdentifier, "status": "not_allowed"])
+                    return true
+                }
                 let requestingTask = task
                 Task { [weak self, weak requestingTask] in
                     guard let self, let requestingTask, self.task === requestingTask, self.sessionAuthenticated else { return }
-                    let status = await self.resources.performResultStatus(
-                        actionIdentifier: actionIdentifier,
-                        folderOpenBehavior: payload.folderOpenBehavior ?? "new_window",
-                        shortcutAppID: payload.appId
-                    )
+                    if actionIdentifier.hasPrefix(AppleShortcut.actionPrefix), !self.appleShortcutsSupported {
+                        self.sendJSON(["type": "action.result", "requestId": requestIdentifier, "status": "not_allowed"])
+                        return
+                    }
+                    let status: String
+                    if actionIdentifier.hasPrefix("obs.output.") || actionIdentifier.hasPrefix("obs.brb.") ||
+                        actionIdentifier.hasPrefix("obs.take.") ||
+                        actionIdentifier.hasPrefix(OBSConnection.AdaptiveScene.prefix) ||
+                        actionIdentifier.hasPrefix(OBSConnection.studioModeID + ".") ||
+                        actionIdentifier.hasPrefix(OBSConnection.transitionID + ".") ||
+                        actionIdentifier.hasPrefix(OBSConnection.sourcePrefix) ||
+                        actionIdentifier.hasPrefix(OBSConnection.replayBufferID + ".") {
+                        let performed = await self.resources.performGuardedOBSAction(actionIdentifier: actionIdentifier) {
+                            self.task === requestingTask && self.sessionAuthenticated
+                        }
+                        status = performed ? "performed" : "not_allowed"
+                    } else {
+                        status = await self.resources.performResultStatus(
+                            actionIdentifier: actionIdentifier,
+                            folderOpenBehavior: payload.folderOpenBehavior ?? "new_window",
+                            shortcutAppID: payload.appId
+                        )
+                    }
                     guard self.task === requestingTask, self.sessionAuthenticated else { return }
                     self.sendJSON(["type": "action.result", "requestId": requestIdentifier, "status": status])
                     if status == "activated" {
@@ -603,7 +1014,43 @@ final class CompanionConnection: NSObject {
             let requestIdentifier = payload.requestId
             let controlIdentifier = payload.controlId
             let value = Int(payload.value)
-            let changed = resources.setMediaControlValue(value, controlIdentifier: controlIdentifier)
+            if OBSConnection.coughInputUUID(for: controlIdentifier) != nil {
+                guard supportsOBSCough, let requestingTask = task else { return false }
+                let changed = await resources.setOBSCough(value, controlIdentifier: controlIdentifier,
+                                                          from: ObjectIdentifier(self))
+                guard task === requestingTask, sessionAuthenticated else { return true }
+                if value != 50 {
+                    publishOBSAudioValues(resources.obsAudioValues(), forceControl: controlIdentifier)
+                }
+                sendJSON(["type": "action.result", "requestId": requestIdentifier,
+                          "status": changed ? "performed" : "not_allowed"])
+                return true
+            }
+            if OBSConnection.faderInputUUID(for: controlIdentifier) != nil {
+                guard supportsOBSFaders, let requestingTask = task else { return false }
+                Task { [weak self, weak requestingTask] in
+                    guard let self, let requestingTask, self.task === requestingTask,
+                          self.sessionAuthenticated else { return }
+                    let changed = await self.resources.setOBSFader(value, controlIdentifier: controlIdentifier)
+                    guard self.task === requestingTask, self.sessionAuthenticated else { return }
+                    // A rejected or unchanged drag still needs to settle the panel at the confirmed value.
+                    self.publishOBSAudioValues(self.resources.obsAudioValues(), forceControl: controlIdentifier)
+                    self.sendJSON(["type": "action.result", "requestId": requestIdentifier,
+                                   "status": changed ? "performed" : "not_allowed"])
+                }
+                return true
+            }
+            if CompanionProtocolDecoder.appVolumeBundleIdentifier(controlIdentifier) != nil && !appVolumeSupported {
+                return false
+            }
+            if CompanionProtocolDecoder.isInputDeviceControl(controlIdentifier) && !supportsInputDevices { return false }
+            let activeTask = task
+            let changed = if controlIdentifier == SystemMediaController.coughID {
+                supportsCoughButton && resources.setCoughButtonValue(value, from: ObjectIdentifier(self))
+            } else {
+                await resources.setMediaControlValue(value, controlIdentifier: controlIdentifier)
+            }
+            guard task === activeTask, sessionAuthenticated else { return true }
             sendJSON(["type": "action.result", "requestId": requestIdentifier,
                       "status": changed ? "performed" : "not_allowed"])
         case .error(let payload):
@@ -611,6 +1058,7 @@ final class CompanionConnection: NSObject {
             if code == "pairing_reset_failed" { finishPairingResetRequest() }
             if Self.requiresNewPairing(errorCode: code, authenticated: sessionAuthenticated,
                                        authenticating: authenticationRequestOutstanding) {
+                if restoreSavedEndpoint() { return true }
                 let isForgetting = pairingResetCompletion != nil
                 hasTerminalConnectionError = true
                 shouldReconnect = false
@@ -630,6 +1078,7 @@ final class CompanionConnection: NSObject {
                 if sessionAuthenticated {
                     onEvent?(.status(message))
                 } else {
+                    if restoreSavedEndpoint() { return true }
                     hasTerminalConnectionError = true
                     shouldReconnect = false
                     tearDownConnection()
@@ -773,37 +1222,81 @@ final class CompanionConnection: NSObject {
         send(value)
     }
 
-    func publishCatalogue() {
+    func publishCatalogue(obsActions: [OBSConnection.CatalogueEntry]? = nil, includeDefinitions: Bool = true) {
         // An initial empty scan is provisional; publishing it would prune the
         // panel's persistent icons before discovery supplies the real app list.
         guard resources.applicationCatalogueReady else { return }
         guard sessionAuthenticated || task != nil else { return }
-        applicationFocusPublisher.reset()
+        if obsActions != nil && (!sessionAuthenticated || !supportsOBSCards) { return }
+        if obsActions == nil { applicationFocusPublisher.reset() }
         var capabilities = ["keyboard_shortcuts"]
         capabilities.append(CompanionCapabilities.appIconsCapability)
         capabilities.append(CompanionCapabilities.appIconsAlphaCapability)
         capabilities.append(CompanionCapabilities.appIconsHighResolutionCapability)
         capabilities.append("url_card_focus")
-        sendJSON(["type": "capabilities", "values": capabilities])
+        if onDemandShortcutsSupported { capabilities.append("shortcut_catalogue_on_demand") }
+        if supportsOBSCards { capabilities.append("obs_scene_cards") }
+        if supportsOBSOutputs { capabilities.append("obs_output_controls") }
+        if supportsOBSBreak { capabilities.append("obs_brb") }
+        if obsActions == nil { sendJSON(["type": "capabilities", "values": capabilities]) }
+        let obsOnly = obsActions != nil && peerCapabilityVersion >= 22
+        let supportedOBSActions = supportsOBSCards ? obsActions ?? resources.obsControlActions() : []
+        let obsEntries: [[String: Any]] = supportedOBSActions.filter { entry in
+            (supportsOBSFaders || OBSConnection.faderInputUUID(for: entry.id) == nil) &&
+            (supportsOBSCough || OBSConnection.coughInputUUID(for: entry.id) == nil) &&
+            (supportsOBSOutputs || !entry.id.hasPrefix("obs.output.")) &&
+            (supportsOBSBreak || !(entry.id == "obs.brb" || entry.id.hasPrefix("obs.brb."))) &&
+            (supportsOBSAdaptiveScenes || !entry.id.hasPrefix(OBSConnection.AdaptiveScene.prefix))
+        }.map { entry in
+            var fields: [String: Any] = ["id": entry.id, "label": Self.catalogueLabel(entry.label, fallback: "OBS scene")]
+            if let state = entry.state, peerCapabilityVersion >= state.minimumCapability {
+                fields["obsState"] = state.rawValue
+                if let detail = entry.detail {
+                    fields["obsDetail"] = Self.catalogueLabel(detail, fallback: "Unavailable")
+                }
+                if let available = entry.available { fields["obsAvailable"] = available }
+            }
+            return fields
+        }
         // The browser receives identifiers, never application paths or shell commands.
-        let apps = resources.launchableApps()
-        let entries: [[String: String]] = resources.folderActions().compactMap { folder -> [String: String]? in
+        let apps = obsOnly ? [] : resources.launchableApps()
+        let inputs: [[String: String]] = !obsOnly && supportsInputDevices ? resources.inputDeviceActions().map {
+            ["id": $0.id, "label": Self.catalogueLabel($0.label, fallback: "Input device")]
+        } : []
+        let appleShortcuts: [[String: Any]] = !obsOnly && appleShortcutsSupported
+            ? resources.appleShortcutActions().map { shortcut in
+                var fields: [String: Any] = [
+                    "id": shortcut.actionIdentifier, "label": Self.catalogueLabel(shortcut.name, fallback: "Apple Shortcut"),
+                ]
+                if let color = shortcut.color { fields["shortcutColor"] = color }
+                return fields
+            }
+            : []
+        let folders = obsOnly ? [] : resources.folderActions()
+        let entries: [[String: String]] = folders.compactMap { folder -> [String: String]? in
             guard Self.validCatalogueIdentifier(folder.actionIdentifier) else { return nil }
             return ["id": folder.actionIdentifier, "label": Self.catalogueLabel(folder.name, fallback: "Folder")]
         } + apps.compactMap { app -> [String: String]? in
             guard Self.validCatalogueIdentifier(app.bundleIdentifier) else { return nil }
             return ["id": app.bundleIdentifier, "label": Self.catalogueLabel(app.name, fallback: app.bundleIdentifier)]
         }
+        // Older panels share a limit across Mac and OBS actions. Keep their
+        // existing application order before appending the OBS catalogue.
+        let catalogue = (inputs + entries).map { $0 as [String: Any] } + appleShortcuts + obsEntries
         catalogueGeneration &+= 1
         if catalogueGeneration == 0 { catalogueGeneration = 1 }
-        let pages = stride(from: 0, to: max(entries.count, 1), by: 48).map {
-            Array(entries[$0..<min($0 + 48, entries.count)])
+        let pageSize = appleShortcutsSupported ? 16 : 48
+        let pages = stride(from: 0, to: max(catalogue.count, 1), by: pageSize).map {
+            Array(catalogue[$0..<min($0 + pageSize, catalogue.count)])
         }
         for (page, items) in pages.enumerated() {
-            sendJSON(["type": "catalogue.page", "generation": catalogueGeneration,
-                      "page": page, "complete": page == pages.count - 1, "items": items])
+            var message: [String: Any] = ["type": "catalogue.page", "generation": catalogueGeneration,
+                                         "page": page, "complete": page == pages.count - 1, "items": items]
+            if obsOnly { message["scope"] = "obs" }
+            sendJSON(message)
         }
-        if remoteCatalogueDefinitionsSupported {
+        if obsOnly { return }
+        if includeDefinitions && obsActions == nil && remoteCatalogueDefinitionsSupported && !onDemandShortcutsSupported {
             let definitions = resources.remoteCompanionCatalogues().applicationsForDisplay(approvedApps: apps)
             let installedIDs = Set(apps.map(\.bundleIdentifier))
             let starter = definitions.map(\.starter)
@@ -836,6 +1329,11 @@ final class CompanionConnection: NSObject {
             }
         }
         publishFocusedAction()
+    }
+
+    private func publishShortcutCataloguePage(_ request: CompanionWireShortcutCatalogueRequest) {
+        let catalogue = resources.remoteCompanionCatalogues()
+        sendJSON(catalogue.shortcutPageResponse(request, approvedApps: resources.launchableApps()))
     }
 
     nonisolated static func supportsRemoteCatalogueDefinitions(capabilityVersion: UInt32) -> Bool {
@@ -884,12 +1382,27 @@ final class CompanionConnection: NSObject {
         }
     }
 
+    func publishOBSAudioValues(_ values: [String: Int], force: Bool = false, forceControl: String? = nil) {
+        guard supportsOBSFaders, sessionAuthenticated else { return }
+        let values = values.filter { supportsOBSCough || OBSConnection.coughInputUUID(for: $0.key) == nil }
+        var removed = Set(lastOBSAudioValues.keys.filter { values[$0] == nil })
+        if let forceControl, values[forceControl] == nil { removed.insert(forceControl) }
+        for id in removed.sorted() {
+            sendJSON(["type": "value.state", "controlId": id, "available": false])
+        }
+        for (id, value) in values.sorted(by: { $0.key < $1.key })
+            where force || id == forceControl || lastOBSAudioValues[id] != value {
+            sendJSON(["type": "value.state", "controlId": id, "available": true, "value": value])
+        }
+        lastOBSAudioValues = values
+    }
+
     func publishMediaControlValues(_ values: [String: Int], unavailable: Set<String>) {
-        for identifier in unavailable.sorted() where Self.validMediaControlIdentifier(identifier) {
+        for identifier in unavailable.sorted() where validMediaControlIdentifier(identifier) {
             sendJSON(["type": "value.state", "controlId": identifier, "available": false])
         }
         for (identifier, value) in values.sorted(by: { $0.key < $1.key }) {
-            guard Self.validMediaControlIdentifier(identifier), (0...100).contains(value) else { continue }
+            guard validMediaControlIdentifier(identifier), (0...100).contains(value) else { continue }
             sendJSON(["type": "value.state", "controlId": identifier, "available": true, "value": value])
         }
     }
@@ -962,8 +1475,11 @@ final class CompanionConnection: NSObject {
         }
     }
 
-    private static func validMediaControlIdentifier(_ value: String) -> Bool {
-        SystemMediaController.volumeControlIDs.contains(value)
+    private func validMediaControlIdentifier(_ value: String) -> Bool {
+        if CompanionProtocolDecoder.isInputDeviceControl(value) { return supportsInputDevices }
+        if value == SystemMediaController.coughID { return supportsCoughButton }
+        return SystemMediaController.volumeControlIDs.contains(value) ||
+            (appVolumeSupported && CompanionProtocolDecoder.appVolumeBundleIdentifier(value) != nil)
     }
 
     private static func catalogueLabel(_ value: String, fallback: String) -> String {

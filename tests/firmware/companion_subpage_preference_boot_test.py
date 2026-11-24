@@ -1,4 +1,4 @@
-"""Check that both Companion navigation switches use the native panel document."""
+"""Check that the app subpage mode and legacy switches use the native panel document."""
 import json
 import re
 from pathlib import Path
@@ -13,10 +13,7 @@ boot = re.search(
 assert boot is not None, "Panel settings must bind before grid initialization"
 # Application setup uses AFTER_WIFI (200) and grid initialization starts at -100.
 assert -100 < int(boot[1]) < 200
-for key, apply in (
-    ("companion_auto_open_app_subpages", "companion_set_auto_open_app_subpages"),
-    ("companion_return_home_on_app_switch", "companion_set_return_home_on_app_switch"),
-):
+for key in ("companion_auto_open_app_subpages", "companion_return_home_on_app_switch"):
     assert settings[key] == {"default": "1", "type": "switch"}
     entity = f"{key}_enabled"
     switch = display.split(f"    id: {entity}\n", 1)[1].split("\n  - platform:", 1)[0]
@@ -26,6 +23,8 @@ for key, apply in (
         assert f'ScalarSetting::{key.upper()}, "{value}");' in switch
     binding = boot[2].split(f"app.bind_panel_scalar(Setting::{key.upper()},", 1)[1].split("});", 1)[0]
     assert f"id({entity}).publish_state(enabled);" in binding
-    assert f"{apply}(enabled);" in binding
 
-print("Companion navigation switches edit and apply native panel settings.")
+assert settings["companion_app_subpage_mode"] == {"default": "card", "choices": ["focus", "card", "manual"]}
+binding = boot[2].split("app.bind_panel_scalar(Setting::COMPANION_APP_SUBPAGE_MODE,", 1)[1].split("});", 1)[0]
+assert "companion_set_app_subpage_mode(value);" in binding
+print("Companion app subpage mode applies from native panel settings.")

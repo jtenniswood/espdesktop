@@ -33,12 +33,12 @@ class FirmwareSizeTests(unittest.TestCase):
                               + partition(0, 17, 0x6F0000) + bytes.fromhex("ebeb") + b"\xff" * 30)
         self.summary = self.root / "summary.md"
 
-    def run_report(self, size, compile_status=0):
+    def run_report(self, size, compile_status=0, minimum_headroom=0):
         with self.app.open("wb") as handle:
             handle.truncate(size)
         output = io.StringIO()
         with redirect_stdout(output):
-            status = report("test.recovery.yaml", self.root, compile_status, self.summary)
+            status = report("test.recovery.yaml", self.root, compile_status, self.summary, minimum_headroom)
         return status, output.getvalue()
 
     def test_healthy_image_uses_app_not_factory_size(self):
@@ -65,6 +65,13 @@ class FirmwareSizeTests(unittest.TestCase):
         self.assertIn("::warning::", output)
         self.assertEqual(self.run_report(0x6F0000)[0], 0)
         self.assertEqual(self.summary.read_text().count("## Firmware size"), 1)
+
+    def test_normal_firmware_requires_ota_reserve(self):
+        reserve = 128 * 1024
+        self.assertEqual(self.run_report(0x6F0000 - reserve, minimum_headroom=reserve)[0], 0)
+        status, output = self.run_report(0x6F0000 - reserve + 1, minimum_headroom=reserve)
+        self.assertEqual(status, 1)
+        self.assertIn("below the 128 KiB deployment reserve", output)
 
     def test_other_compile_failure_is_not_masked(self):
         status, output = self.run_report(1024, compile_status=2)
@@ -93,11 +100,11 @@ class FirmwareSizeTests(unittest.TestCase):
             "/config/scripts/retry_firmware_downloads.py", str(repo / "scripts/retry_firmware_downloads.py"))
         self.app.write_bytes(b"firmware")
         result = subprocess.run(["/bin/sh", "-c", script, "sh", "test.yaml",
-                                 "test.yaml", str(self.root)],
+                                 "test.yaml", str(self.root), str(self.summary)],
                                 env={**os.environ, "TEST_COMPILE_STATUS": str(compile_status)},
                                 text=True, capture_output=True)
-        self.assertTrue((self.root / "firmware-size-summary.md").is_file(), result.stderr)
-        self.assertIn("test.yaml", (self.root / "firmware-size-summary.md").read_text())
+        self.assertTrue(self.summary.is_file(), result.stderr)
+        self.assertIn("test.yaml", self.summary.read_text())
         return result
 
     def test_nightly_reports_after_successful_exec_entrypoint(self):

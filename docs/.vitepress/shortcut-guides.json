@@ -1,0 +1,840 @@
+{
+  "1password": {
+    "appId": "com.1password.1password",
+    "workflow": "finding an item and locking your vault when you step away",
+    "shortcuts": [
+      "Search",
+      "Lock",
+      "New Item"
+    ],
+    "tip": "Try Search first with 1Password open. Keep vault actions on a page you can reach easily when you’re signing in to an app."
+  },
+  "adobe-acrobat-reader": {
+    "appId": "com.adobe.Reader",
+    "workflow": "finding your way around long PDFs",
+    "shortcuts": [
+      "Find",
+      "Next Match",
+      "Pause Reading"
+    ],
+    "tip": "Use Find to enter a term, then tap Next Match to move through the same results without reopening the search field."
+  },
+  "adobe-illustrator": {
+    "appId": "com.adobe.illustrator",
+    "workflow": "saving versions of illustrations and exporting artwork",
+    "shortcuts": [
+      "Save As",
+      "Save Copy",
+      "Web Export"
+    ],
+    "tip": "Put Save Copy next to Web Export so you can keep a working copy of an illustration and export a separate version for sharing."
+  },
+  "adobe-lightroom": {
+    "appId": "com.adobe.LightroomCC",
+    "workflow": "checking composition and detail while editing photos",
+    "shortcuts": [
+      "Zoom In",
+      "Zoom Out",
+      "Rotate Left"
+    ],
+    "tip": "Keep Zoom In and Zoom Out together to switch between close inspection and the overall composition. Open a photo before trying Rotate Left."
+  },
+  "adobe-photoshop": {
+    "appId": "com.adobe.Photoshop",
+    "workflow": "transforming artwork and organising layers",
+    "shortcuts": [
+      "Free Transform",
+      "Copy Layer",
+      "Clipping Mask"
+    ],
+    "tip": "Select the layer you want to work on first. Free Transform is a useful first test because Photoshop shows a transform box when the command applies."
+  },
+  "adobe-premiere-pro": {
+    "appId": "com.adobe.PremierePro",
+    "workflow": "setting up a video edit and preparing it for export",
+    "shortcuts": [
+      "New Sequence",
+      "Save Copy",
+      "Export Media"
+    ],
+    "tip": "Try New Sequence with a project open. Keep Export Media separate from the shortcuts you tap repeatedly during an edit."
+  },
+  "affinity-designer": {
+    "appId": "com.seriflabs.affinitydesigner2",
+    "workflow": "starting design files and working with pixel layers",
+    "shortcuts": [
+      "New Document",
+      "Pixel Layer",
+      "Next View"
+    ],
+    "tip": "Add Pixel Layer beside Next View if you work with several documents. Open a design before trying the layer command."
+  },
+  "affinity-photo": {
+    "appId": "com.seriflabs.affinityphoto2",
+    "workflow": "opening images and keeping layer edits organised",
+    "shortcuts": [
+      "Open Document",
+      "New Layer",
+      "Save"
+    ],
+    "tip": "Try New Layer with an image open. Keep Save on the same page so incremental edits are easy to save as you work."
+  },
+  "affinity-publisher": {
+    "appId": "com.seriflabs.affinitypublisher2",
+    "workflow": "starting publications and finding text in long layouts",
+    "shortcuts": [
+      "New Document",
+      "Find",
+      "Next View"
+    ],
+    "tip": "Use Find for a word in an open publication and Next View when you have more than one view to switch between."
+  },
+  "alfred": {
+    "appId": "com.runningwithcrayons.Alfred",
+    "workflow": "opening Alfred and sending search results to Finder",
+    "shortcuts": [
+      "Show Alfred",
+      "Open Result",
+      "Reveal File"
+    ],
+    "tip": "Open Alfred and highlight a file result before trying Reveal File. These button presses follow the shortcuts configured in Alfred."
+  },
+  "arc": {
+    "appId": "company.thebrowser.Browser",
+    "workflow": "managing tabs and reaching the Arc sidebar",
+    "shortcuts": [
+      "New Tab",
+      "Pin Tab",
+      "Toggle Sidebar"
+    ],
+    "tip": "Try Toggle Sidebar in an Arc window. Use Pin Tab on a tab you want to keep in the current space."
+  },
+  "athena": {
+    "appId": "io.github.jtenniswood.athena",
+    "workflow": "starting chats and finding work in Athena",
+    "shortcuts": [
+      "New Chat",
+      "Search Chats",
+      "Command Menu"
+    ],
+    "tip": "Put Search Chats next to New Chat so you can choose between returning to an existing conversation and starting a new one."
+  },
+  "audacity": {
+    "appId": "org.audacityteam.audacity",
+    "workflow": "marking edit points in a recording",
+    "shortcuts": [
+      "Add Label",
+      "Previous Label"
+    ],
+    "tip": "Try Add Label with the playhead at a point you want to revisit. Previous Label is useful once the project has labels to navigate."
+  },
+  "bambu-studio": {
+    "appId": "com.bambulab.bambu-studio",
+    "workflow": "preparing a print plate from a 3D model",
+    "shortcuts": [
+      "Import Model",
+      "Slice Plate",
+      "Save Project"
+    ],
+    "tip": "Import a model and check its position on the plate before slicing. A separate Save Project button helps you keep the plate setup for later."
+  },
+  "bear": {
+    "appId": "net.shinyfrog.bear",
+    "workflow": "formatting notes and making quick checklists",
+    "shortcuts": [
+      "Heading",
+      "Bullet List",
+      "New To-do"
+    ],
+    "tip": "Put the cursor in a note before using the formatting buttons. New To-do is handy for turning a meeting note into a short action list."
+  },
+  "books": {
+    "appId": "com.apple.iBooksX",
+    "workflow": "turning pages and marking places while reading Apple Books",
+    "shortcuts": [
+      "Next Page",
+      "Previous Page",
+      "Bookmark Page"
+    ],
+    "tip": "Open an ebook first and put Next Page and Previous Page side by side. Keep Bookmark Page nearby for passages you want to return to."
+  },
+  "brave-browser": {
+    "appId": "com.brave.Browser",
+    "workflow": "opening pages and recovering tabs in Brave",
+    "shortcuts": [
+      "New Tab",
+      "Reopen Closed Tab",
+      "Search Tabs"
+    ],
+    "tip": "Try New Tab in an open Brave window, then use Search Tabs when several pages are open. Reopen Closed Tab is useful after closing a page by mistake."
+  },
+  "calendar": {
+    "appId": "com.apple.iCal",
+    "workflow": "jumping between today and different Calendar views",
+    "shortcuts": [
+      "Today",
+      "Week View",
+      "New Event"
+    ],
+    "tip": "Put Today next to Week View to get back to your current schedule after browsing another date."
+  },
+  "chatgpt-classic": {
+    "appId": "com.openai.chat",
+    "workflow": "starting and finding conversations in ChatGPT Classic",
+    "shortcuts": [
+      "New Chat",
+      "Find Text",
+      "Toggle Sidebar"
+    ],
+    "tip": "Try the presets with ChatGPT Classic open. Select the matching ChatGPT entry in EspDesktop if you have more than one version installed."
+  },
+  "chatgpt-desktop": {
+    "appId": "com.openai.codex",
+    "workflow": "working across chats and tabs in ChatGPT Desktop",
+    "shortcuts": [
+      "New Chat",
+      "Find Text",
+      "Next Tab"
+    ],
+    "tip": "Use Next Tab after opening more than one chat tab. Pick the ChatGPT Desktop preset group that matches the Mac app you use."
+  },
+  "claude-desktop": {
+    "appId": "com.anthropic.claudefordesktop",
+    "workflow": "starting and finding sessions in Claude Desktop",
+    "shortcuts": [
+      "New Session",
+      "Session Search",
+      "Sidebar"
+    ],
+    "tip": "Keep Session Search close to New Session if you regularly return to earlier work. Try the shortcut in the Claude view where you normally use it."
+  },
+  "cursor": {
+    "appId": "com.todesktop.230313mzl4w4u92",
+    "workflow": "editing code and opening common commands in Cursor",
+    "shortcuts": [
+      "Inline Edit",
+      "Command Palette",
+      "Toggle Sidebar"
+    ],
+    "tip": "Select a few lines in an open file before trying Inline Edit. Command Palette makes a good fallback for actions you rarely use."
+  },
+  "davinci-resolve": {
+    "appId": "com.blackmagic-design.DaVinciResolve",
+    "workflow": "saving edits and stepping through changes in DaVinci Resolve",
+    "shortcuts": [
+      "Save Project",
+      "Undo",
+      "Redo"
+    ],
+    "tip": "Try the buttons in a scratch project. Keeping Undo and Redo next to each other makes it easy to step back and reapply an edit."
+  },
+  "discord": {
+    "appId": "com.hnc.Discord",
+    "workflow": "moving between channels and controlling a Discord call",
+    "shortcuts": [
+      "Quick Switch",
+      "Search Channel",
+      "Toggle Mic"
+    ],
+    "tip": "Try Quick Switch in the Discord window. Test Toggle Mic in a private call and check Discord’s mic indicator before relying on it."
+  },
+  "evernote": {
+    "appId": "com.evernote.Evernote",
+    "workflow": "capturing a note and finding it later",
+    "shortcuts": [
+      "New Note",
+      "Search Notes",
+      "New Task"
+    ],
+    "tip": "Put New Note beside Search Notes for a quick capture-and-retrieve pair. Open your notebook first if you want to check where a new note goes."
+  },
+  "facetime": {
+    "appId": "com.apple.FaceTime",
+    "workflow": "changing the video view during a FaceTime call",
+    "shortcuts": [
+      "Full Screen",
+      "Rotate Video"
+    ],
+    "tip": "Try the view controls with a video window open. Full Screen is a simple first test before arranging your other call controls."
+  },
+  "figma": {
+    "appId": "com.figma.Desktop",
+    "standalone": true
+  },
+  "final-cut-pro": {
+    "appId": "com.apple.FinalCut",
+    "workflow": "organising clips and building a Final Cut Pro timeline",
+    "shortcuts": [
+      "Compound Clip",
+      "New Storyline",
+      "Reveal Media"
+    ],
+    "tip": "Select clips in the timeline before trying Compound Clip or New Storyline. Use Reveal Media when you need to locate a clip’s source."
+  },
+  "finder": {
+    "appId": "com.apple.finder",
+    "workflow": "opening folders and finding files in Finder",
+    "shortcuts": [
+      "New Window",
+      "Go to Folder",
+      "Find Files"
+    ],
+    "tip": "Tap Go to Folder to open Finder’s path field, then enter or paste a folder path on your Mac."
+  },
+  "firefox": {
+    "appId": "org.mozilla.firefox",
+    "workflow": "searching pages and reloading them while browsing",
+    "shortcuts": [
+      "Find Text",
+      "Reload",
+      "Force Reload"
+    ],
+    "tip": "Test Find Text on a page with visible text and keep Force Reload handy for when a standard refresh leaves old content in place."
+  },
+  "freeform": {
+    "appId": "com.apple.freeform",
+    "workflow": "starting boards and making copies to explore ideas",
+    "shortcuts": [
+      "New Board",
+      "Duplicate Board",
+      "Search Boards"
+    ],
+    "tip": "Open or select a board before trying Duplicate Board. Use the copy to explore a different layout while retaining the original."
+  },
+  "garageband": {
+    "appId": "com.apple.garageband10",
+    "workflow": "splitting and joining regions while arranging audio",
+    "shortcuts": [
+      "Split Playhead",
+      "Join Regions",
+      "Snap Grid"
+    ],
+    "tip": "Select a region and move the playhead to the intended cut before using Split Playhead. Try it in a project you can safely experiment with."
+  },
+  "github-desktop": {
+    "appId": "com.github.GitHubClient",
+    "workflow": "checking repository changes and reviewing commit history",
+    "shortcuts": [
+      "Repositories",
+      "View Changes",
+      "Commit History"
+    ],
+    "tip": "Try View Changes with a repository open, then use Commit History to compare current edits with work already committed."
+  },
+  "gitkraken": {
+    "appId": "com.axosoft.gitkraken",
+    "workflow": "finding commits and starting branches in GitKraken",
+    "shortcuts": [
+      "Search Commits",
+      "File History",
+      "New Branch"
+    ],
+    "tip": "Open a repository first. Try Search Commits, then use File History where you would normally inspect how a file has changed."
+  },
+  "google-chrome": {
+    "appId": "com.google.Chrome",
+    "workflow": "finding text and opening browsing windows in Chrome",
+    "shortcuts": [
+      "New Tab",
+      "Find Text",
+      "Incognito"
+    ],
+    "tip": "Open a page and use Find Text to search within it. Keep Incognito separate if you often switch between regular and private browsing."
+  },
+  "hermes": {
+    "appId": "com.nousresearch.hermes",
+    "workflow": "opening and finding work sessions in Hermes",
+    "shortcuts": [
+      "New Session",
+      "Search Sessions",
+      "Command Palette"
+    ],
+    "tip": "Keep Search Sessions next to New Session. Try Command Palette with the Hermes window active to check that the integration is sending keys to the expected app."
+  },
+  "iina": {
+    "appId": "com.colliderli.iina",
+    "workflow": "changing video playback speed and returning to normal",
+    "shortcuts": [
+      "Slower",
+      "Faster",
+      "Reset Speed"
+    ],
+    "tip": "Try the speed buttons with a video playing. Put Reset Speed next to Faster and Slower so you can return to the original playback speed in one tap."
+  },
+  "imovie": {
+    "appId": "com.apple.iMovieApp",
+    "workflow": "starting a movie and viewing it full screen in iMovie",
+    "shortcuts": [
+      "New Movie",
+      "Full Screen"
+    ],
+    "tip": "Use New Movie when you’re ready to start an edit, then try Full Screen with a movie or viewer open."
+  },
+  "iterm2": {
+    "appId": "com.googlecode.iterm2",
+    "workflow": "arranging terminal panes and searching output",
+    "shortcuts": [
+      "Vertical Split",
+      "Horizontal Split",
+      "Find Text"
+    ],
+    "tip": "Try the split controls in an open terminal window. A Find Text button is useful when you need to locate a command or error in existing output."
+  },
+  "keynote": {
+    "appId": "com.apple.iWork.Keynote",
+    "workflow": "working with slide layouts and finding text in a deck",
+    "shortcuts": [
+      "New Layout",
+      "Find",
+      "New Comment"
+    ],
+    "tip": "Open a presentation before trying these buttons. Select something on a slide if you want New Comment attached to a specific item."
+  },
+  "logic-pro": {
+    "appId": "com.apple.logic10",
+    "workflow": "marking sections and grouping tracks in Logic Pro",
+    "shortcuts": [
+      "Add Marker",
+      "Mark Selection",
+      "Group Tracks"
+    ],
+    "tip": "Try Add Marker at a useful playback position. Select the relevant tracks before using Group Tracks."
+  },
+  "mail": {
+    "appId": "com.apple.mail",
+    "workflow": "starting emails and clearing messages from your inbox",
+    "shortcuts": [
+      "New Email",
+      "Reply",
+      "Archive"
+    ],
+    "tip": "Try Reply and Archive with a message selected. Put Archive away from New Email if you want to keep organisation and writing actions distinct."
+  },
+  "mail-plus-for-gmail": {
+    "appId": "com.rockysandstudio.DeskApp-for-Gmail",
+    "workflow": "adding links and sending messages in Mail Plus for Gmail",
+    "shortcuts": [
+      "Insert Link",
+      "Send"
+    ],
+    "tip": "Try Insert Link with a draft open and some text selected. Use a test draft addressed to yourself to check the Send shortcut."
+  },
+  "maps": {
+    "appId": "com.apple.Maps",
+    "workflow": "switching between map views in Apple Maps",
+    "shortcuts": [
+      "Explore",
+      "Driving",
+      "Transit"
+    ],
+    "tip": "Open Maps on your Mac, then try switching from Explore to Transit to see the same area with public transport information."
+  },
+  "messages": {
+    "appId": "com.apple.MobileSMS",
+    "workflow": "starting messages and finding conversations in Apple Messages",
+    "shortcuts": [
+      "New Message",
+      "Search Chats",
+      "Next Chat"
+    ],
+    "tip": "Keep Search Chats beside New Message. Try Next Chat with several conversations visible to check how the Mac app moves through them."
+  },
+  "microsoft-excel": {
+    "appId": "com.microsoft.Excel",
+    "workflow": "starting workbooks and organising spreadsheet data",
+    "shortcuts": [
+      "New Workbook",
+      "Find",
+      "New Table"
+    ],
+    "tip": "Try Find in an open workbook. For New Table, select the range you want to turn into a table before tapping the shortcut."
+  },
+  "microsoft-outlook": {
+    "appId": "com.microsoft.Outlook",
+    "workflow": "composing email and searching your Outlook folders",
+    "shortcuts": [
+      "New Email",
+      "Search Folder",
+      "Advanced Search"
+    ],
+    "tip": "Use Search Folder when you know where a message is likely to be. Advanced Search is useful when you need more ways to narrow the results."
+  },
+  "microsoft-powerpoint": {
+    "appId": "com.microsoft.Powerpoint",
+    "workflow": "building slides and rehearsing a presentation",
+    "shortcuts": [
+      "New Slide",
+      "Duplicate Slide",
+      "Play Here"
+    ],
+    "tip": "Select a slide before tapping Duplicate Slide. Try Play Here when you want to test a section without starting the presentation from the beginning."
+  },
+  "microsoft-teams": {
+    "appId": "com.microsoft.teams2",
+    "workflow": "finding chats and starting messages in Teams",
+    "shortcuts": [
+      "Search",
+      "New Chat",
+      "Popout Chat"
+    ],
+    "tip": "Open Teams to check Search first. Use Popout Chat with a chat selected when you want that conversation in its own window."
+  },
+  "microsoft-word": {
+    "appId": "com.microsoft.Word",
+    "workflow": "working through text edits and formatting in Word",
+    "shortcuts": [
+      "Find",
+      "Find Replace",
+      "Hanging Indent"
+    ],
+    "tip": "Use Find first to check the text you want to change. Select the paragraph you want to format before trying Hanging Indent."
+  },
+  "music": {
+    "appId": "com.apple.Music",
+    "workflow": "finding music and creating playlists in Apple Music",
+    "shortcuts": [
+      "Search",
+      "New Playlist",
+      "Playlist Selection"
+    ],
+    "tip": "Select songs in your library before using Playlist Selection. Use New Playlist if you want to start with an empty playlist."
+  },
+  "notes": {
+    "appId": "com.apple.Notes",
+    "workflow": "capturing ideas and turning them into checklists in Apple Notes",
+    "shortcuts": [
+      "New Note",
+      "Search Notes",
+      "Checklist"
+    ],
+    "tip": "Try New Note first, then place the cursor in the note before tapping Checklist. Search Notes helps you get back to notes later."
+  },
+  "notion": {
+    "appId": "notion.id",
+    "workflow": "finding information and jumping between Notion pages",
+    "shortcuts": [
+      "Find Text",
+      "Jump Page",
+      "Copy URL"
+    ],
+    "tip": "Use Find Text for the page you’re already on and Jump Page to navigate elsewhere. Copy URL is useful when you want to share the current page."
+  },
+  "numbers": {
+    "appId": "com.apple.iWork.Numbers",
+    "workflow": "adding sheets and reviewing spreadsheet content in Numbers",
+    "shortcuts": [
+      "New Sheet",
+      "Find",
+      "New Comment"
+    ],
+    "tip": "Try New Sheet in a Numbers document. Select a cell before using New Comment if you want the comment attached to that data."
+  },
+  "obs-studio": {
+    "appId": "com.obsproject.obs-studio",
+    "workflow": "editing source layouts in OBS Studio",
+    "shortcuts": [
+      "Copy Source",
+      "Paste Source",
+      "Edit Transform"
+    ],
+    "tip": "Select a source in a scratch scene before using Copy Source or Edit Transform. These presets send editor shortcuts to OBS Studio."
+  },
+  "obsidian": {
+    "appId": "md.obsidian",
+    "workflow": "opening notes and searching an Obsidian vault",
+    "shortcuts": [
+      "Quick Switch",
+      "Search Vault",
+      "Toggle Reading"
+    ],
+    "tip": "Use Quick Switch when you know a note’s name, Search Vault when you know some of its text, and Toggle Reading to check how the current note looks."
+  },
+  "opencode": {
+    "appId": "ai.opencode.desktop",
+    "workflow": "opening coding sessions and reviewing changes in OpenCode",
+    "shortcuts": [
+      "New Session",
+      "Review Changes",
+      "Find Files"
+    ],
+    "tip": "Use Find Files when you know what you want to open and Review Changes when you want to inspect the current workspace edits."
+  },
+  "orcaslicer": {
+    "appId": "com.orcaslicer.OrcaSlicer",
+    "workflow": "importing models and preparing print plates in OrcaSlicer",
+    "shortcuts": [
+      "Import Model",
+      "Slice Plate",
+      "Export Slice"
+    ],
+    "tip": "Start with a model on the plate before using Slice Plate. Put Export Slice nearby if you regularly save the resulting print file."
+  },
+  "pages": {
+    "appId": "com.apple.iWork.Pages",
+    "workflow": "starting documents and working through editorial edits in Pages",
+    "shortcuts": [
+      "New Document",
+      "Find",
+      "New Comment"
+    ],
+    "tip": "Highlight the text you want to discuss before tapping New Comment. Use Find to revisit a particular word in a long document."
+  },
+  "photos": {
+    "appId": "com.apple.Photos",
+    "workflow": "finding photos and organising them in albums",
+    "shortcuts": [
+      "Search Photos",
+      "New Album",
+      "New Folder"
+    ],
+    "tip": "Try Search Photos from your library. Use New Album for a photo collection and New Folder when you want to group albums."
+  },
+  "pixelmator-pro": {
+    "appId": "com.pixelmatorteam.pixelmator.x",
+    "workflow": "organising image layers and preparing exports",
+    "shortcuts": [
+      "New Layer",
+      "Fit Image",
+      "Export Image"
+    ],
+    "tip": "Open an image, then try Fit Image to bring the full canvas into view. Keep Export Image nearby for when the edit is ready to share."
+  },
+  "podcasts": {
+    "appId": "com.apple.podcasts",
+    "workflow": "finding shows and managing feeds in Apple Podcasts",
+    "shortcuts": [
+      "Search Podcasts",
+      "Refresh Feeds",
+      "New Station"
+    ],
+    "tip": "Start with Search Podcasts to find something to listen to. Use New Station if you want to group shows you return to regularly."
+  },
+  "preview": {
+    "appId": "com.apple.Preview",
+    "workflow": "switching between tabs and documents in Preview",
+    "shortcuts": [
+      "Next Tab",
+      "Previous Tab",
+      "Next Document"
+    ],
+    "tip": "Open multiple PDFs or images before testing these controls. Next Tab is useful inside one window and Next Document when working across separate documents."
+  },
+  "quicktime-player": {
+    "appId": "com.apple.QuickTimePlayerX",
+    "workflow": "opening recording controls from your desk",
+    "shortcuts": [
+      "Record Screen",
+      "Record Audio",
+      "Record Video"
+    ],
+    "tip": "Choose the recording type on the touchscreen, then check the QuickTime controls on your Mac for the input or screen area."
+  },
+  "raycast": {
+    "appId": "com.raycast.macos",
+    "workflow": "opening Raycast search and reaching an item’s actions",
+    "shortcuts": [
+      "Toggle Raycast",
+      "Root Search",
+      "Actions"
+    ],
+    "tip": "Try Toggle Raycast to bring up the launcher. Highlight a result before tapping Actions to see what Raycast can do with it."
+  },
+  "reminders": {
+    "appId": "com.apple.reminders",
+    "workflow": "capturing tasks and organising lists in Apple Reminders",
+    "shortcuts": [
+      "New Reminder",
+      "New List",
+      "Toggle Complete"
+    ],
+    "tip": "Select a reminder before using Toggle Complete. Keep New Reminder next to it if you use the display to work through a task list."
+  },
+  "safari": {
+    "appId": "com.apple.Safari",
+    "workflow": "opening tabs and finding content in Safari",
+    "shortcuts": [
+      "New Tab",
+      "Tab Overview",
+      "Find Text"
+    ],
+    "tip": "Use Tab Overview when you want to see open Safari tabs together and Find Text when you know what to look for on the current page."
+  },
+  "safari-web-app": {
+    "appId": "com.apple.Safari.WebApp",
+    "workflow": "navigating a website installed as a Mac app",
+    "shortcuts": [
+      "Back",
+      "Find Text",
+      "Main Page"
+    ],
+    "tip": "Open the site from the Dock before trying the shortcuts. Main Page is useful when you want to jump back to the web app’s start page."
+  },
+  "signal": {
+    "appId": "org.whispersystems.signal-desktop",
+    "workflow": "jumping to conversations and searching messages in Signal",
+    "shortcuts": [
+      "New Chat",
+      "Search Chat",
+      "Focus Composer"
+    ],
+    "tip": "Select the conversation before tapping Search Chat or Focus Composer so the action applies to the thread you intend to use."
+  },
+  "sketch": {
+    "appId": "com.bohemiancoding.sketch3",
+    "workflow": "working with design pages and sharing links in Sketch",
+    "shortcuts": [
+      "New Page",
+      "Copy Link",
+      "Zoom Out"
+    ],
+    "tip": "Open a Sketch document before tapping New Page. Use Zoom Out to review how a design is laid out across the canvas."
+  },
+  "slack": {
+    "appId": "com.tinyspeck.slackmacgap",
+    "workflow": "starting messages and finding conversations in Slack",
+    "shortcuts": [
+      "New Message",
+      "Quick Switch",
+      "Search chat"
+    ],
+    "tip": "Use Quick Switch to jump to another channel or person. Search chat helps you find something in the conversation already open."
+  },
+  "spotify": {
+    "appId": "com.spotify.client",
+    "workflow": "finding music and getting back to what’s playing",
+    "shortcuts": [
+      "Search",
+      "Playlists",
+      "Now Playing"
+    ],
+    "tip": "Use Search to find a track or artist. Keep Now Playing nearby when you want to return to playback information while browsing playlists."
+  },
+  "streamlabs-desktop": {
+    "appId": "com.streamlabs.slobs",
+    "workflow": "preparing a streaming layout and getting to common editor commands",
+    "shortcuts": [
+      "Open Settings",
+      "Undo",
+      "Nudge Selection Left"
+    ],
+    "tip": "With a test scene open, select a webcam or overlay source before tapping a nudge shortcut. Open Settings is a simple first test when Streamlabs Desktop is open."
+  },
+  "telegram": {
+    "appId": "ru.keepcoder.Telegram",
+    "workflow": "searching messages and moving between Telegram chats",
+    "shortcuts": [
+      "Search Chat",
+      "Search All",
+      "Next Chat"
+    ],
+    "tip": "Use Search Chat for a detail in the current thread and Search All when you aren’t sure which chat contains the message."
+  },
+  "things-3": {
+    "appId": "com.culturedcode.ThingsMac",
+    "workflow": "capturing tasks and organising them into projects",
+    "shortcuts": [
+      "New To-do",
+      "New Project",
+      "Quick Entry"
+    ],
+    "tip": "Put New To-do and Quick Entry next to each other if you capture tasks both inside Things and while working elsewhere."
+  },
+  "todoist": {
+    "appId": "com.todoist.mac.Todoist",
+    "workflow": "capturing tasks and finding Todoist projects",
+    "shortcuts": [
+      "Add Task",
+      "Quick Find",
+      "Inbox"
+    ],
+    "tip": "Use Add Task to capture an item, then tap Inbox to go back to your unorganised tasks. Quick Find is handy when you know a project name."
+  },
+  "transmit": {
+    "appId": "com.panic.Transmit",
+    "workflow": "refreshing a remote file list and checking transfers",
+    "shortcuts": [
+      "Transfers",
+      "Refresh",
+      "Back"
+    ],
+    "tip": "Connect to a server before trying Refresh in a remote folder. Keep Transfers nearby to check how uploads and downloads are progressing."
+  },
+  "tv": {
+    "appId": "com.apple.TV",
+    "workflow": "organising videos and refreshing playlists in the Apple TV app",
+    "shortcuts": [
+      "New Playlist",
+      "Refresh Playlist",
+      "Import Video"
+    ],
+    "tip": "Try Import Video with a video file you have on your Mac. Playlist controls are useful when you manage items in your local library."
+  },
+  "twitch": {
+    "appId": "tv.twitch.web-app",
+    "workflow": "muting a Twitch stream, changing the player view and saving clips",
+    "shortcuts": [
+      "Mute / Unmute",
+      "Toggle Full Screen",
+      "Clip Live Stream"
+    ],
+    "tip": "In Safari, open twitch.tv and choose File → Add to Dock. Open the installed Twitch web app, click the player, and try Mute / Unmute. Seeking requires a recording or a player with a seek bar. Clip Live Stream depends on whether the channel allows clips."
+  },
+  "visual-studio-code": {
+    "appId": "com.microsoft.VSCode",
+    "workflow": "finding files and running editing commands in Visual Studio Code",
+    "shortcuts": [
+      "Command Palette",
+      "Quick Open",
+      "Save All"
+    ],
+    "tip": "Try Quick Open in a workspace, then type a file name. Keep Save All close by if you tend to edit several files at once."
+  },
+  "vlc": {
+    "appId": "org.videolan.vlc",
+    "workflow": "switching between windowed and full-screen playback in VLC",
+    "shortcuts": [
+      "Full Screen"
+    ],
+    "tip": "Start playing a video in VLC and tap Full Screen. The same shortcut lets you return to the windowed player."
+  },
+  "warp": {
+    "appId": "dev.warp.Warp-Stable",
+    "workflow": "searching terminal commands and opening new tabs in Warp",
+    "shortcuts": [
+      "Command Search",
+      "Focus Input",
+      "New Tab"
+    ],
+    "tip": "Try Command Search in a Warp window, then tap Focus Input to return to the prompt when you’re ready to type."
+  },
+  "whatsapp": {
+    "appId": "net.whatsapp.WhatsApp",
+    "workflow": "organising WhatsApp conversations and starting new messages",
+    "shortcuts": [
+      "New Chat",
+      "Mark Unread",
+      "Mute Chat"
+    ],
+    "tip": "Use Mark Unread on a conversation you want to return to. Select a chat first before tapping Mute Chat so it applies to the right conversation."
+  },
+  "xcode": {
+    "appId": "com.apple.dt.Xcode",
+    "workflow": "building, running and testing projects from the touchscreen",
+    "shortcuts": [
+      "Build",
+      "Run",
+      "Test"
+    ],
+    "tip": "Open a project and select the scheme you want to use in Xcode before tapping Build or Test. Keep Run next to them for the normal build-and-run workflow."
+  },
+  "zoom": {
+    "appId": "us.zoom.xos",
+    "workflow": "reaching meeting actions such as joining and toggling video",
+    "shortcuts": [
+      "Join Meeting",
+      "Toggle Video",
+      "Pause Share"
+    ],
+    "tip": "Try Toggle Video in a private test meeting and check Zoom’s camera indicator. Pause Share applies while you are already sharing your screen."
+  }
+}

@@ -121,7 +121,7 @@ Fonts only include the glyphs explicitly listed for that font.
   `scripts/generate_media_emoji_ranges.py` and a local copy of that version's
   `emoji-data.txt`. Normal builds require no Unicode download. Plain digits,
   `#`, `*`, `©`, `®`, and `™` remain text unless used in an emoji sequence.
-- Icon fonts use Material Design Icon glyph sets such as
+- The EspDesktop icon font uses the original Material Design Icons codepoints in glyph sets such as
   `common/assets/icon_glyphs.yaml`.
 - Number fonts intentionally include only digits and a few symbols such as
   `0-9 . - ° / % :`.
@@ -141,8 +141,8 @@ run:
 python3 scripts/build.py icons
 ```
 
-The web configurator references icons by Material Design Icon name and renders
-them with the MDI webfont/CSS.
+The web configurator uses the same EspDesktop icon font as the firmware.
+The original Material Design Icons slugs still identify its CSS classes.
 
 ## Images
 

@@ -18,12 +18,13 @@ Use a 4-inch Guition 4848S040 to launch approved Windows apps, open File Explore
 
 1. Connect the display and Windows PC to the same local network. Use a 4848S040 with EspDesktop firmware that supports Companion pairing. It can pair with one computer at a time. To move it from another computer, reset the existing Companion pairing on the display first.
 2. In the Windows app’s **Display** settings, select the display or enter its local address. Choose **Open pairing page** and enter the code shown there.
-3. Choose **Open display editor**. Older firmware labels the connector **Mac Companion**. Use that connector with the Windows app.
+3. Choose **Open display editor**. In the editor, use **Connectors → Mac Companion** to check pairing with your Windows PC.
 
 ## Add controls
 
 - Approve apps and folders in the Windows app before adding **Applications** and **Folder** cards.
-- Enable **Allow keyboard shortcuts and screen lock** in the Windows app to use **Key Shortcut** and **Mac Lock** cards. The existing **Mac Lock** card locks Windows. The editor’s Command and Control options both send Windows Ctrl. Option sends Alt.
+- Enable **Allow keyboard shortcuts and screen lock** in the Windows app to use **Keyboard Shortcut** and **Lock Machine** cards. The editor’s Command and Control options both send Windows Ctrl. Option sends Alt.
+- For an app with a shortcut subpage, choose when it opens under **Screen → Appearance → App Subpages**. [App subpage options](/features/subpages#app-page-behavior)
 - Add a **Website** card to open a page in your default browser. New windows and active-site highlighting depend on the browser.
 
 The preview setup and compatibility details are in the [Windows branch guide](https://github.com/jtenniswood/espdesktop/blob/windows-companion/windows/README.md).

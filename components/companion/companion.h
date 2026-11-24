@@ -11,11 +11,16 @@
 #include <atomic>
 #include <array>
 #include <mutex>
+#ifdef USE_COMPANION_USB
+#include "usb_bridge.h"
+#include "usb_editor.h"
+#endif
 #include <optional>
 #include <string>
 #include <utility>
 #include <vector>
 #include "app_icon_store.h"
+#include "home_assistant_api.h"
 
 namespace esphome::companion {
 
@@ -46,6 +51,12 @@ struct CompanionFocusTargetsPreference {
 class CompanionService final : public Component {
  public:
   void set_port(uint16_t port) { this->port_ = port; }
+#ifdef USE_COMPANION_USB_UART
+  void set_usb_uart(uart::UARTComponent *uart) { this->usb_bridge_.emplace(uart); }
+#endif
+#ifdef USE_COMPANION_USB_JTAG
+  void enable_usb_serial_jtag() { this->usb_bridge_.emplace(); }
+#endif
   // The Companion bridge registers callbacks owned by EspDesktopApp during
   // setup, so it must run after that app starts at AFTER_WIFI.
   float get_setup_priority() const override { return setup_priority::AFTER_WIFI - 1.0f; }
@@ -105,11 +116,16 @@ class CompanionService final : public Component {
   bool pairing_active_locked_() const;
   static PairingCode generate_pairing_code_();
 
+  HomeAssistantApi home_assistant_;
   ESPPreferenceObject preferences_;
   ESPPreferenceObject sequence_preferences_;
   ESPPreferenceObject pairing_code_preferences_;
   ESPPreferenceObject focus_targets_preferences_;
   CompanionIdentityPreference identity_{};
+#ifdef USE_COMPANION_USB
+  std::optional<CompanionUSBBridge> usb_bridge_;
+  CompanionUSBEditor usb_editor_;
+#endif
   httpd_handle_t server_{nullptr};
   uint16_t port_{8443};
   CompanionSessionState session_{};
@@ -119,12 +135,14 @@ class CompanionService final : public Component {
   std::string pairing_code_;
   std::atomic<uint32_t> focus_targets_generation_{0};
   std::atomic<bool> focus_targets_supported_{false};
-  std::vector<std::pair<std::string, std::string>> catalogue_actions_;
+  std::vector<CompanionAction> catalogue_actions_;
+  CompanionCatalogueLimits catalogue_limits_;
   std::vector<std::string> catalogue_enabled_icons_;
   std::vector<CompanionRemoteDefinition> remote_definitions_;
   uint16_t application_definition_count_{0};
   uint32_t catalogue_generation_{0};
   uint16_t catalogue_next_page_{0};
+  bool catalogue_obs_only_{false};
   uint32_t definitions_generation_{0};
   uint16_t definitions_next_page_{0};
   struct UnauthenticatedSession {
@@ -140,6 +158,7 @@ class CompanionService final : public Component {
   uint32_t app_icon_generation_{0};
   size_t app_icon_offset_{0};
   std::atomic<bool> app_icons_supported_{false};
+  std::atomic<bool> app_icon_catalogue_refresh_pending_{true};
   std::atomic<uint32_t> authentication_expires_at_{0};
   std::atomic<bool> authentication_expiry_queued_{false};
 };

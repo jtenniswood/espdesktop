@@ -8,28 +8,55 @@ from production_source import definition
 root = Path(__file__).resolve().parents[2]
 controls = (root / 'components/espdesktop/companion_controls.h').read_text()
 driver = (root / 'components/espdesktop/button_grid_numeric_selectable_driver.h').read_text()
+cough_card = (root / 'components/espdesktop/button_grid_cough.h').read_text()
 production = '\n'.join(definition(controls, name)[1] for name in (
-    'companion_apply_mute_state', 'companion_erase_mute_ref', 'companion_mute_deleted',
-    'companion_forget_mute', 'companion_track_mute'))
+    'companion_render_mic_detail', 'companion_render_mute', 'companion_render_value_mute', 'companion_apply_mute_state', 'companion_paint_mute_preview', 'companion_erase_mute_ref', 'companion_mute_deleted',
+    'companion_forget_mute', 'companion_tracked_mute_control', 'companion_track_mute'))
 production += definition(driver, 'numeric_selectable_driver_cleanup')[1]
+production += '\n' + cough_card[cough_card.index('struct CoughTouch'):cough_card.index('inline bool send_cough_button_value')]
+production += '\n'.join(definition(cough_card, name)[1] for name in ('cough_button_release', 'cough_button_press'))
 stubs = r'''
+#include "companion_audio_control.h"
 #include <algorithm>
 #include <cassert>
+#include <cstdint>
+#include <cstring>
 #include <string>
 #include <vector>
-struct lv_obj_t { bool checked=false, disabled=false; std::string text; } first, second, input_icon, output_icon;
+struct lv_obj_t { bool checked=false, disabled=false; std::string text; } first, second, input_icon, output_icon, mic_detail;
 struct lv_event_t { lv_obj_t *target; };
 constexpr int LV_EVENT_DELETE=1;
 struct CompanionMuteRef {
   lv_obj_t *button; std::string control_id; lv_obj_t *icon_label=nullptr;
   const char *icon_unmuted=nullptr, *icon_muted=nullptr;
+  lv_obj_t *text_label=nullptr;
+  std::string resting_label{};
+  lv_obj_t *detail_label=nullptr;
 };
 struct CompanionValue { std::string id; int value; };
 struct CompanionRuntimeSnapshot { bool connected=true; std::vector<CompanionValue> values; };
+constexpr int LV_STATE_CHECKED = 2, LV_STATE_DISABLED = 4;
+bool lv_obj_has_state(lv_obj_t *obj, int state) {
+  return state == LV_STATE_CHECKED ? obj->checked : obj->disabled;
+}
 bool lv_obj_is_valid(lv_obj_t *) { return true; }
+const char *lv_label_get_text(lv_obj_t *obj) { return obj->text.c_str(); }
 void lv_label_set_text(lv_obj_t *obj, const char *text) { obj->text=text; }
+std::string normalize_display_text(const char *text) { return text; }
+const char *espdesktop_i18n(const char *value) { return value; }
+const char *espdesktop_i18n_key(std::string_view key) {
+  return key == "live" ? "Live" : key == "muted" ? "Muted" : "Unavailable";
+}
+bool detail_deleted = false;
+void lv_obj_del(lv_obj_t *obj) { assert(obj == &mic_detail); detail_deleted = true; }
 struct Registry { std::vector<CompanionMuteRef> mutes; } registry;
 Registry &companion_view_registry() { return registry; }
+struct Runtime {
+  int displayed_mute_value(const std::string &, int confirmed) { return confirmed; }
+} runtime;
+Runtime &companion_runtime_service() { return runtime; }
+constexpr auto COMPANION_COUGH_ID = "media.cough";
+void unbind_cough_button(lv_obj_t *) {}
 bool companion_mute_control_valid(const std::string &id) {
   return id == "media.input_mute" || id == "media.output_mute";
 }
@@ -47,24 +74,35 @@ struct BtnSlot { lv_obj_t *btn; };
 struct ParsedCfg {};
 struct Context { bool numeric=false; };
 bool numeric_selectable_driver_matches(const Context &context, const ParsedCfg &) { return context.numeric; }
+namespace esphome { unsigned millis() { return 0; } }
+bool screen_lock_enabled() { return false; }
+bool companion_value(const std::string &, int &value) { value = 0; return true; }
+bool send_cough_button_value(const std::string &, int, int = 100) { return true; }
+void lv_label_set_display_text(lv_obj_t *obj, const char *text) { lv_label_set_text(obj, text); }
 '''
 checks = r'''
 int main() {
   BtnSlot slot{&first};
   companion_track_mute(&first, "media.input_mute", &input_icon, "mic", "mic-off");
   companion_track_mute(&second, "media.output_mute", &output_icon, "speaker", "speaker-off");
+  registry.mutes.front().detail_label = &mic_detail;
   CompanionRuntimeSnapshot snapshot{true, {{"media.input_mute", 100}, {"media.output_mute", 0}}};
   for (const auto &ref : registry.mutes) companion_apply_mute_state(ref, snapshot);
-  assert(first.checked && !first.disabled && input_icon.text=="mic-off");
+  assert(!first.checked && !first.disabled && input_icon.text=="mic-off" && mic_detail.text=="Muted");
   assert(!second.checked && !second.disabled && output_icon.text=="speaker");
+  companion_paint_mute_preview("media.input_mute", 0);
+  assert(first.checked && input_icon.text=="mic" && mic_detail.text=="Live");
+  assert(!second.checked && output_icon.text=="speaker");
+  companion_paint_mute_preview("media.input_mute", 100);
+  assert(!first.checked && input_icon.text=="mic-off" && mic_detail.text=="Muted");
   snapshot.values[0].value=0; snapshot.values[1].value=100;
   for (const auto &ref : registry.mutes) companion_apply_mute_state(ref, snapshot);
-  assert(!first.checked && input_icon.text=="mic");
+  assert(first.checked && input_icon.text=="mic");
   assert(second.checked && output_icon.text=="speaker-off");
   snapshot.connected=false;
   for (const auto &ref : registry.mutes) companion_apply_mute_state(ref, snapshot);
   assert(!first.checked && !second.checked && first.disabled && second.disabled);
-  assert(input_icon.text=="mic" && output_icon.text=="speaker");
+  assert(input_icon.text=="mic" && output_icon.text=="speaker" && mic_detail.text=="Unavailable");
   snapshot.connected=true; snapshot.values.clear();
   for (const auto &ref : registry.mutes) companion_apply_mute_state(ref, snapshot);
   assert(!first.checked && first.disabled && !second.checked && second.disabled);
@@ -72,7 +110,7 @@ int main() {
   // Cleanup runs even when the replacement uses a completely different driver.
   assert(!numeric_selectable_driver_cleanup(slot, {}, Context{false}));
   assert(registry.mutes.size()==1 && registry.mutes.front().button==&second);
-  assert(!first.checked && !first.disabled);
+  assert(!first.checked && !first.disabled && detail_deleted);
   assert(callbacks.size() == 1 && callbacks.front().first == &second);
   // Subsequent mute refreshes cannot alter the replacement card.
   for (const auto &ref : registry.mutes) ref.button->disabled=true;
@@ -89,6 +127,23 @@ int main() {
   callbacks.back().second(&event);
   assert(registry.mutes.size()==1 && registry.mutes.front().button==&second);
   assert(!companion_forget_mute(&first));
+  const std::string cough = "obs.cough.69da3f8f-7f62-4abe-a594-4e40dd579858";
+  lv_obj_t cough_title{false, false, "Cough"};
+  companion_track_mute(&first, cough, &input_icon, "mic", "mic-off", &cough_title);
+  assert(companion_tracked_mute_control(&first) == cough);
+  first.disabled = false;
+  cough_button_press(&first);
+  assert(cough_title.text == "Cough");
+  companion_apply_mute_state(registry.mutes.back(), {true, {{cough, 100}}});
+  assert(cough_title.text == "Muted");
+  cough_button_release(&first);
+  assert(cough_title.text == "Muted");
+  companion_apply_mute_state(registry.mutes.back(), {true, {{cough, 0}}});
+  assert(cough_title.text == "Cough");
+  companion_apply_mute_state(registry.mutes.back(), {true, {{cough, 100}}});
+  assert(cough_title.text == "Muted" && first.checked && !first.disabled && input_icon.text == "mic-off");
+  assert(companion_forget_mute(&first));
+  assert(companion_tracked_mute_control(&first).empty());
 }
 '''
 with tempfile.TemporaryDirectory() as tmp:
@@ -96,6 +151,6 @@ with tempfile.TemporaryDirectory() as tmp:
     binary = Path(tmp) / 'test'
     source.write_text(stubs + production + checks)
     subprocess.run([sys.argv[1] if len(sys.argv) > 1 else 'c++', '-std=c++17',
-                    '-Wall', '-Wextra', '-Werror', str(source), '-o', str(binary)], check=True)
+                    '-Wall', '-Wextra', '-Werror', '-I', str(root / 'components/espdesktop'), str(source), '-o', str(binary)], check=True)
     subprocess.run([str(binary)], check=True)
-print('Mute icons, muted-only colour state, availability and persistent binding cleanup checks passed.')
+print('Mute icons, live microphone colour, availability and persistent binding cleanup checks passed.')

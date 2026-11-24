@@ -62,9 +62,27 @@ const CARD_TYPE_PICKER_DETAILS: Readonly<Record<string, PickerDetails>> = {
   "": { icon: "toggle-switch", description: "Toggle lights, switches, helpers, or fans." },
   alarm: { icon: "shield-home", description: "Control or trigger alarm panel actions." },
   climate: { icon: "thermostat", description: "Show climate status and temperature controls." },
-  companion_app: { icon: "application-outline", description: "Launch an app on the Mac." },
-  companion_folder: { icon: "folder", description: "Open an approved folder on the Mac." },
+  companion_cough: { icon: "microphone-off", description: "Hold to mute the paired Mac’s microphone." },
+  companion_apple_shortcut: { icon: "flash", description: "Add one card that runs a selected Apple Shortcut." },
+  companion_apple_shortcuts: { icon: "flash", description: "Add a card that opens a subpage of Apple Shortcuts workflows." },
+  companion_app: { icon: "application-outline", description: "Launch a Mac app and set up a subpage for its keyboard shortcuts." },
+  companion_folder: { icon: "folder", description: "Open Finder with a folder subpage or add a shortcut to one folder." },
+  companion_output_volume: { icon: "volume-high", description: "Control speakers, mics, and apps." },
+  companion_output_mute: { icon: "volume-off", description: "Mute or unmute the Mac’s sound output." },
+  companion_input_mute: { icon: "microphone-off", description: "Mute or unmute the Mac’s microphone." },
+  companion_app_volume: { icon: "volume-high", description: "Adjust the sound from one Mac app." },
   companion_mac_lock: { icon: "lock", description: "Lock the paired Mac." },
+  companion_obs_brb: { icon: "coffee-to-go", description: "Switch to your break scene and resume when ready." },
+  companion_obs_studio_control: { icon: "movie", description: "Open a page for recording, streaming, Studio Mode, and replay." },
+  companion_obs_studio: { icon: "view-split-vertical", description: "Toggle Studio Mode, see Program, or take Preview live." },
+  companion_obs_audio: { icon: "microphone", description: "Open a page of mixer sliders." },
+  companion_obs_scenes: { icon: "image", description: "Open a page of scenes from the current collection." },
+  companion_obs_transition: { icon: "flip-horizontal", description: "Cycle through transitions or select a specific one." },
+  companion_obs_transitions: { icon: "flip-horizontal", description: "Open a page that fills with the current transitions." },
+  companion_obs_output: { icon: "broadcast", description: "Control streaming, recording, and the virtual camera." },
+  companion_obs_replay: { icon: "history", description: "Save a replay or start and stop the buffer." },
+  companion_obs_fader: { icon: "tune-vertical", description: "Adjust levels, toggle mute, or hold to mute an audio input." },
+  companion_obs: { icon: "monitor", description: "Choose a scene to switch to." },
   companion_shortcut: { icon: "apple-keyboard-command", description: "Run a keyboard shortcut on the Mac." },
   companion_subpage: { icon: "view-grid-plus", description: "Open a nested page of Mac Companion cards." },
   companion_url: { icon: "web", description: "Open a URL on the Mac." },
@@ -92,7 +110,21 @@ const CARD_TYPE_PICKER_DEFAULTS: Readonly<Record<string, string>> = {
   light_brightness: "light_control",
   media_control: "media",
   companion_app: "companion",
+  companion_apple_shortcut: "companion",
+  companion_apple_shortcuts: "subpage",
   companion_folder: "companion",
+  companion_obs: "companion",
+  companion_obs_mic: "companion",
+  companion_obs_fader: "slider",
+  companion_obs_brb: "companion",
+  companion_obs_studio: "companion",
+  companion_obs_transition: "companion",
+  companion_obs_transitions: "subpage",
+  companion_obs_audio: "subpage",
+  companion_obs_scenes: "subpage",
+  companion_obs_studio_control: "subpage",
+  companion_obs_replay: "companion",
+  companion_obs_output: "companion",
   companion_shortcut: "companion",
   companion_subpage: "subpage",
   companion_url: "companion",
@@ -100,6 +132,7 @@ const CARD_TYPE_PICKER_DEFAULTS: Readonly<Record<string, string>> = {
 
 const MAC_COMPANION_HIDDEN_CARD_TYPES = new Set([
   "companion", "push", "slider",
+  "companion_obs_mic", "companion_obs_cough",
 ]);
 
 
@@ -118,7 +151,7 @@ export function cardPickerConnectors(
 export function cardTypeVisibleForConnector(key: string, connector: CardPickerConnector): boolean {
   return connector === "mac_companion" &&
     !MAC_COMPANION_HIDDEN_CARD_TYPES.has(key) &&
-    cardContractAvailability(defaultCardTypeForPicker(key)) === "stable" &&
+    (key === "companion_obs_fader" || cardContractAvailability(defaultCardTypeForPicker(key)) === "stable") &&
     cardTypeConnector(key) !== "home_assistant";
 }
 
@@ -139,39 +172,20 @@ export function cardPreviewTextColor(background: string): string {
   return cardRelativeLuminance(background) < 450000 ? "#FFFFFF" : "#212121";
 }
 
-export function cardSliderFillColor(background: string, selectedActiveColor = ""): string {
-  const selected = selectedActiveColor.replace(/^#/, "").toUpperCase();
-  if (/^[0-9A-F]{6}$/.test(selected)) return selected;
-  const active = activeCardColor(background);
-  if (!active) return "";
-  const base = background.replace(/^#/, "").toUpperCase();
-  const foreground = cardPreviewTextColor(background);
-  const text = cardRelativeLuminance(foreground);
-  const readable = (color: string) => {
-    const fill = cardRelativeLuminance(color);
-    return (Math.max(text, fill) + 50000) * 1000 >= (Math.min(text, fill) + 50000) * 4500;
-  };
-  if (active !== base && readable(active)) return active;
-  for (let amount = 10; amount <= 100; amount += 10) {
-    const shade = [0, 2, 4].map(offset => {
-      const channel = parseInt(active.slice(offset, offset + 2), 16);
-      const value = foreground === "#FFFFFF" ? Math.floor((channel * (100 - amount) + 50) / 100)
-        : channel + Math.floor(((255 - channel) * amount + 50) / 100);
-      return value.toString(16).padStart(2, "0").toUpperCase();
-    }).join("");
-    if (shade !== base && readable(shade)) return shade;
-  }
-  return active;
+export function darkerCardColor(background: string, percent: number): string {
+  const hex = background.replace(/^#/, "").toUpperCase();
+  if (!/^[0-9A-F]{6}$/.test(hex)) return "";
+  return [0, 2, 4].map(offset =>
+    Math.floor(parseInt(hex.slice(offset, offset + 2), 16) * percent / 100).toString(16).padStart(2, "0").toUpperCase()).join("");
 }
 
 export function cardPatternHighlightColor(background: string): string {
   const hex = background.replace(/^#/, "").toUpperCase();
   if (!/^[0-9A-F]{6}$/.test(hex)) return "";
-  const whiteText = cardPreviewTextColor(hex) === "#FFFFFF";
+  if (cardPreviewTextColor(hex) === "#FFFFFF") return darkerCardColor(hex, 65);
   return [0, 2, 4].map(offset => {
     const channel = parseInt(hex.slice(offset, offset + 2), 16);
-    const shade = whiteText ? Math.floor(channel * 65 / 100)
-      : channel + Math.floor((255 - channel) * 35 / 100);
+    const shade = channel + Math.floor((255 - channel) * 35 / 100);
     return shade.toString(16).padStart(2, "0").toUpperCase();
   }).join("");
 }

@@ -14,12 +14,206 @@ private final class DisplayMetricsFixture: SystemMetricsProviding {
 
 @MainActor
 private final class DisplayMediaFixture: MediaControlling {
-    func values() -> [String: Int] { [:] }
+    var readValues: () -> [String: Int] = { [:] }
+    func values() -> [String: Int] { readValues() }
     func setValue(_ value: Int, controlIdentifier: String) -> Bool { false }
+    var coughStarts = 0
+    var coughContinuations = 0
+    var coughEnds = 0
+    func beginCoughMute() -> Bool { coughStarts += 1; return true }
+    func continueCoughMute() -> Bool { coughContinuations += 1; return false }
+    func endCoughMute() -> Bool { coughEnds += 1; return true }
     func unavailableVolumeIDs(values: [String: Int], previousValues: [String: Int], force: Bool) -> Set<String> { [] }
 }
 
 final class CompanionDisplayTests: XCTestCase {
+    @MainActor
+    func testUnavailableUSBPortLeavesBothSavedDisplaysIntact() {
+        let suite = "CompanionDisplayTests.\(UUID())"
+        let defaults = UserDefaults(suiteName: suite)!
+        defer { defaults.removePersistentDomain(forName: suite) }
+        let records = [
+            CompanionDisplayRecord(host: "office.local", name: "Office", account: "office"),
+            CompanionDisplayRecord(host: "desk.local", name: "Desk", account: "desk"),
+        ]
+        let saved = CompanionSavedDisplays(defaults: defaults)
+        saved.save(records)
+        defaults.set("office-pin", forKey: "companion.certificateFingerprint.office")
+        let store = CompanionStore(mediaController: DisplayMediaFixture(), systemMetricsProvider: DisplayMetricsFixture(),
+                                   defaults: defaults)
+        let display = store.displays[0]
+        defer { display.connection.disconnect() }
+
+        let missingPort = "/dev/cu.wchusbserial-missing-\(UUID())"
+        store.setDisplayEndpoint(CompanionUSBPort.endpoint(for: missingPort), for: display)
+
+        XCTAssertNil(display.connection.pendingEndpoint)
+        XCTAssertEqual(display.panelHost, records[0].host)
+        XCTAssertEqual(display.certificateFingerprint, "office-pin")
+        XCTAssertEqual(saved.load { [] }, records)
+    }
+
+    @MainActor
+    func testDisplayCanSwitchTransportsWithoutReplacingPairingOrOtherDisplays() {
+        let suite = "CompanionDisplayTests.\(UUID())"
+        let defaults = UserDefaults(suiteName: suite)!
+        defer { defaults.removePersistentDomain(forName: suite) }
+        let office = CompanionDisplayRecord(host: "office.local", name: "Office", account: "office")
+        let desk = CompanionDisplayRecord(host: "desk.local", name: "Desk", account: "desk")
+        let saved = CompanionSavedDisplays(defaults: defaults)
+        saved.save([office, desk])
+        defaults.set("office-pin", forKey: "companion.certificateFingerprint.office")
+        let store = CompanionStore(mediaController: DisplayMediaFixture(), systemMetricsProvider: DisplayMetricsFixture(),
+                                   defaults: defaults)
+        let display = store.displays[0]
+        let port = "/dev/cu.wchusbserial20130"
+        display.panelHost = CompanionUSBPort.endpoint(for: port)
+
+        XCTAssertTrue(display.usesUSB)
+        XCTAssertTrue(store.isUSBPortInUse(port))
+        XCTAssertFalse(store.isUSBPortInUse(port, except: display))
+        XCTAssertEqual(display.record.host, office.host)
+        XCTAssertEqual(display.certificateFingerprint, "office-pin")
+        XCTAssertEqual(saved.load { [] }.first?.usbPort, port)
+        XCTAssertEqual(saved.load { [] }.last, desk)
+
+        display.panelHost = "office-new.local"
+        XCTAssertFalse(display.usesUSB)
+        XCTAssertEqual(display.record.usbPort, port)
+        XCTAssertEqual(display.id, office.id)
+        XCTAssertEqual(display.pairingAccount, office.account)
+        XCTAssertEqual(saved.load { [] }.first?.host, "office-new.local")
+        XCTAssertEqual(saved.load { [] }.last, desk)
+    }
+
+    @MainActor
+    func testTwoUSBDisplaysKeepTheirOwnPortsAndPairings() {
+        let suite = "CompanionDisplayTests.\(UUID())"
+        let defaults = UserDefaults(suiteName: suite)!
+        defer { defaults.removePersistentDomain(forName: suite) }
+        let office = CompanionDisplayRecord(host: "office.local", name: "Office", account: "office")
+        let desk = CompanionDisplayRecord(host: "desk.local", name: "Desk", account: "desk")
+        let saved = CompanionSavedDisplays(defaults: defaults)
+        saved.save([office, desk])
+        let store = CompanionStore(mediaController: DisplayMediaFixture(), systemMetricsProvider: DisplayMetricsFixture(),
+                                   defaults: defaults)
+        let first = store.displays[0]
+        let second = store.displays[1]
+        let firstPort = CompanionUSBPort.endpoint(for: "/dev/cu.wchusbserial20130")
+        let secondPort = CompanionUSBPort.endpoint(for: "/dev/cu.usbmodem1101")
+
+        first.panelHost = firstPort
+        second.panelHost = secondPort
+        XCTAssertTrue(first.usesUSB)
+        XCTAssertTrue(second.usesUSB)
+        XCTAssertFalse(first.connection === second.connection)
+        store.setDisplayEndpoint(firstPort, for: second)
+        XCTAssertEqual(second.panelHost, secondPort, "A second display cannot take over another display's USB port")
+        XCTAssertEqual(saved.load { [] }.map(\.account), [office.account, desk.account])
+        XCTAssertEqual(saved.load { [] }.compactMap(\.usbPort),
+                       ["/dev/cu.wchusbserial20130", "/dev/cu.usbmodem1101"])
+    }
+
+    @MainActor
+    func testUSBDiscoverySkipsPortsInUseAndRequiresTheSavedIdentity() async {
+        let suite = "CompanionDisplayTests.\(UUID())"
+        let defaults = UserDefaults(suiteName: suite)!
+        defer { defaults.removePersistentDomain(forName: suite) }
+        let remembered = "/dev/cu.usbserial-remembered"
+        let correct = "/dev/cu.wchusbserial20130"
+        let occupied = "/dev/cu.usbmodem1101"
+        var office = CompanionDisplayRecord(host: "office.local", name: "Office", account: "office")
+        office.usbPort = remembered
+        var desk = CompanionDisplayRecord(host: "desk.local", name: "Desk", account: "desk")
+        desk.usbPort = occupied
+        desk.prefersUSB = true
+        let saved = CompanionSavedDisplays(defaults: defaults)
+        saved.save([office, desk])
+        defaults.set("office-pin", forKey: "companion.certificateFingerprint.office")
+        let store = CompanionStore(mediaController: DisplayMediaFixture(), systemMetricsProvider: DisplayMetricsFixture(),
+                                   defaults: defaults)
+        let officeDisplay = store.displays[0]
+        let ports = [correct, occupied, remembered]
+        var checked: [String] = []
+        let discovered = await store.findUSBPort(for: officeDisplay, among: ports) { port, fingerprint in
+            checked.append(port)
+            XCTAssertEqual(fingerprint, "office-pin")
+            return port == correct
+        }
+        XCTAssertEqual(discovered, correct)
+        XCTAssertEqual(checked, [remembered, correct])
+        XCTAssertEqual(officeDisplay.panelHost, "office.local", "Searching must leave the current endpoint alone")
+        XCTAssertEqual(saved.load { [] }, [office, desk])
+        let missing = await store.findUSBPort(for: officeDisplay, among: [occupied, remembered]) { _, _ in false }
+        XCTAssertNil(missing)
+    }
+
+    func testUSBRelayRecoversFramingAfterBootNoiseAndAnOversizedFrame() {
+        let payload: [UInt8] = [1, 0xc0, 0xdb, 0, 3]
+        let data = CompanionUSBBridge.Frame.data.encode(payload[...])
+        let oversized = [UInt8(0xc0), 2] + [UInt8](repeating: 7, count: 1025) + [0xc0]
+        let stream = Array("ESP-ROM:esp32s3".utf8) + oversized + data + CompanionUSBBridge.Frame.close.encode()
+        var decoder = CompanionUSBBridge.Decoder()
+        let frames = stream.compactMap { decoder.append($0) }
+        XCTAssertEqual(frames.map(\.0), [.data, .close])
+        XCTAssertEqual(Array(frames[0].1), payload)
+        XCTAssertTrue(frames[1].1.isEmpty)
+        XCTAssertNil(CompanionUSBPort.path(from: "usb:/dev/../anything"))
+    }
+
+    @MainActor
+    func testCoughReleaseWaitsForAllHoldsAndLateRenewalCannotMuteAgain() {
+        let suite = "CompanionDisplayTests.\(UUID())"
+        let defaults = UserDefaults(suiteName: suite)!
+        defer { defaults.removePersistentDomain(forName: suite) }
+        let media = DisplayMediaFixture()
+        let store = CompanionStore(mediaController: media, systemMetricsProvider: DisplayMetricsFixture(),
+                                   defaults: defaults)
+        let first = NSObject(), second = NSObject()
+        let a = ObjectIdentifier(first), b = ObjectIdentifier(second)
+
+        XCTAssertFalse(store.setCoughButtonValue(50, from: a))
+        XCTAssertEqual(media.coughContinuations, 0)
+        XCTAssertTrue(store.setCoughButtonValue(100, from: a))
+        XCTAssertTrue(store.setCoughButtonValue(50, from: a))
+        XCTAssertEqual(media.coughContinuations, 1)
+        XCTAssertTrue(store.setCoughButtonValue(100, from: b))
+        XCTAssertEqual(media.coughStarts, 1)
+        XCTAssertTrue(store.setCoughButtonValue(0, from: a))
+        XCTAssertEqual(media.coughEnds, 0)
+        XCTAssertFalse(store.setCoughButtonValue(50, from: a))
+        XCTAssertTrue(store.setCoughButtonValue(0, from: b))
+        XCTAssertEqual(media.coughEnds, 1)
+        XCTAssertFalse(store.setCoughButtonValue(50, from: b))
+    }
+
+    @MainActor
+    func testCoughRechecksMicrophoneBeforeThePeriodicRefresh() async {
+        let suite = "CompanionDisplayTests.\(UUID())"
+        let defaults = UserDefaults(suiteName: suite)!
+        defer { defaults.removePersistentDomain(forName: suite) }
+        CompanionSavedDisplays(defaults: defaults).save([
+            CompanionDisplayRecord(host: "office.local", account: "office")
+        ])
+        let media = DisplayMediaFixture()
+        let store = CompanionStore(mediaController: media, systemMetricsProvider: DisplayMetricsFixture(),
+                                   defaults: defaults)
+        let display = store.displays[0]
+        display.connection.onEvent?(.connection(message: "Connected", state: .connected, recovery: nil))
+        defer { store.setConnection(false, for: display) }
+        let refreshed = expectation(description: "Reads the confirmed mute before the next regular snapshot")
+        var reads = 0
+        media.readValues = {
+            reads += 1
+            if reads == 2 { refreshed.fulfill() }
+            return [SystemMediaController.coughID: reads > 1 ? 100 : 0]
+        }
+
+        XCTAssertTrue(store.setCoughButtonValue(100, from: ObjectIdentifier(display.connection)))
+        XCTAssertEqual(reads, 1)
+        await fulfillment(of: [refreshed], timeout: 0.75)
+    }
+
     @MainActor
     func testPreparingAndCancellingRePairingKeepsTheExistingDisplay() {
         let suite = "CompanionDisplayTests.\(UUID())"
@@ -81,6 +275,22 @@ final class CompanionDisplayTests: XCTestCase {
         let saved = CompanionSavedDisplays(defaults: defaults)
         XCTAssertTrue(saved.load { [] }.isEmpty)
         XCTAssertEqual(saved.load { ["office.local"] }.map(\.account), ["office.local"])
+    }
+
+    @MainActor
+    func testLegacyOBSPasswordDoesNotCreateAPairedDisplay() {
+        let suite = "CompanionDisplayTests.\(UUID())"
+        let defaults = UserDefaults(suiteName: suite)!
+        defer { defaults.removePersistentDomain(forName: suite) }
+        let saved = CompanionSavedDisplays(defaults: defaults)
+        XCTAssertTrue(saved.load { [OBSConnection.legacyCredentialAccount] }.isEmpty)
+        XCTAssertEqual(saved.load {
+            [OBSConnection.legacyCredentialAccount, "studio.local"]
+        }.map(\.account), ["studio.local"])
+
+        let display = CompanionDisplayRecord(host: "studio.local", account: "studio.local")
+        saved.save([display, CompanionDisplayRecord(account: OBSConnection.legacyCredentialAccount)])
+        XCTAssertEqual(saved.load { [] }, [display])
     }
 
     @MainActor

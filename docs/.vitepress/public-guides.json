@@ -17,16 +17,26 @@
     "features/first-run.md",
     "features/home.md",
     "features/subpages.md",
+    "features/adding-a-card.md",
     "mac-controls/apps.md",
     "mac-controls/websites.md",
     "mac-controls/folders.md",
     "mac-controls/shortcuts.md",
-    "reference/shortcut-presets.md"
+    "reference/shortcut-presets.md",
+    "mac-controls/apple-shortcuts.md"
+  ],
+  "OBS Studio controls": [
+    "mac-controls/obs-studio.md",
+    "mac-controls/obs-studio/studio-controls.md",
+    "mac-controls/obs-studio/scene-control-and-mixing.md",
+    "mac-controls/obs-studio/audio-controls.md"
   ],
   "Settings and permissions": [
     "settings/screen.md",
     "settings/system.md",
+    "getting-started/home-assistant-actions.md",
     "settings/mac-app.md",
+    "settings/display-connections.md",
     "settings/backup.md",
     "mac-controls/security.md"
   ],

@@ -1,7 +1,5 @@
 import { isRetiredLayoutCard, removeRetiredPanelRecords } from "../features/retired_cards";
 import { legacyHomeAssistantCards, legacyHomeAssistantWarning } from "../model/legacy_home_assistant";
-import { normalizeCardIconSize } from "../model/config_primitives";
-import { syncDefaultIconSizeUi } from "./default_icon_size_ui";
 import { clearScreensaverPinForRestore } from "./screensaver_pin";
 import { resetAwareFetch } from "../api/reset_session";
 import type { PanelIdentityBackup } from "../model/panel_identity";
@@ -12,7 +10,9 @@ import { SCREEN_SCHEDULE_PREFERENCES, decodeScreenSchedulePreferences,
 import { WEB_UI_COLORS } from "../state/ui_tokens";
 import * as EspDesktopModel from "../model";
 import {
+    APP_SUBPAGE_MODE,
     APP_SUBPAGE_PREFERENCE,
+    nativeAppSubpageMode,
     nativeAppSubpagePreference,
     normalizeBrightnessMode,
     normalizeHexColor,
@@ -34,8 +34,6 @@ import {
 import { syncThemeSettingsUi } from "./theme_settings_ui";
 import { DISPLAY_THEME_PREFERENCES, decodeDisplayThemePreferences, displayThemePreferencesFromState,
     legacyDisplayThemePatch } from "../model/display_theme_preferences";
-import { normalizeCardCurve } from "../model/settings";
-import { syncCardCurveUi } from "./card_curve_ui";
 import type { BackupImportController } from "../features/backup_import_controller";
 import type { BackupExportController } from "../features/backup_export_controller";
 import type { BackupFileController } from "../features/backup_file_controller";
@@ -291,8 +289,6 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
                 brightness_night: Math.round(state.brightnessNightVal),
                 brightness_mode: normalizeBrightnessMode(state.brightnessMode),
                 theme_mode: theme.themeMode,
-                default_icon_size: state.defaultIconSizeSupported ? state.defaultIconSize : undefined,
-                card_curve: state.cardCurveSupported ? normalizeCardCurve(state.cardCurve) : undefined,
                 theme_auto_method: theme.themeAutoMethod,
                 theme_light_start: theme.themeLightStart,
                 theme_dark_start: theme.themeDarkStart,
@@ -421,6 +417,11 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
                     nativeController?.client?.preservesInactiveRecords() !== true) {
                     rejectBackup(NATIVE_BACKUP_UPDATE_REQUIRED_MESSAGE);
                 }
+                if (Object.hasOwn(nativeDocument.settings, APP_SUBPAGE_MODE)) {
+                    if (!nativeAppSubpageMode(nativeDocument.settings)) rejectBackup("Invalid app subpage opening mode in this backup.");
+                    if (nativeController?.client?.supportsAppSubpageMode() !== true)
+                        rejectBackup("Update the panel firmware to restore the app subpage opening mode from this backup.");
+                }
                 const savedAppSubpagePreference = nativeAppSubpagePreference(nativeDocument.settings);
                 if (Object.hasOwn(nativeDocument.settings, APP_SUBPAGE_PREFERENCE) && savedAppSubpagePreference === undefined)
                     rejectBackup("Invalid backup value for automatic app switching.");
@@ -526,8 +527,8 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
                     els.setOnColor._syncColor(state.onColor);
                 if (appSubpagePreference !== undefined) {
                     state.autoOpenAppSubpages = appSubpagePreference;
-                    if (els.setAutoOpenAppSubpages) els.setAutoOpenAppSubpages.checked = appSubpagePreference;
                 }
+                els.syncAppSubpageMode?.();
                 if (backupPlan.settings) {
                     var s: any = backupPlan.settings;
 
@@ -600,7 +601,6 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
                     state.subpageChevronsOn = importedSettings.subpageChevron;
                     state.returnHomeOnAppSwitch = importedSettings.returnHomeOnAppSwitch;
                     state.subpageTitleBarOn = importedSettings.subpageTitleBar;
-                    if (els.setReturnHomeOnAppSwitch) els.setReturnHomeOnAppSwitch.checked = state.returnHomeOnAppSwitch;
                     state.timezone = importedTimezone;
                     state.language = importedLanguage;
                     state.clockFormat = importedClockFormat;
@@ -669,15 +669,6 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
                     state.brightnessDayVal = importedScreenSettings.brightnessDayVal;
                     state.brightnessNightVal = importedScreenSettings.brightnessNightVal;
                     state.brightnessMode = importedScreenSettings.brightnessMode;
-                    if (state.defaultIconSizeSupported && Object.prototype.hasOwnProperty.call(screenSettings, "default_icon_size")) {
-                        state.defaultIconSize = normalizeCardIconSize(screenSettings.default_icon_size);
-                        syncDefaultIconSizeUi(state, controllers.runtime);
-                    }
-                    if (state.cardCurveSupported && Object.prototype.hasOwnProperty.call(screenSettings, "card_curve")) {
-                        state.cardCurve = normalizeCardCurve(screenSettings.card_curve);
-                        syncCardCurveUi(state, controllers.runtime);
-                        syncPreviewOrientation(true);
-                    }
                     state.manualBrightnessVal = importedScreenSettings.manualBrightnessVal;
                     state.brightnessDawnTime = importedScreenSettings.brightnessDawnTime;
                     state.brightnessDuskTime = importedScreenSettings.brightnessDuskTime;
@@ -704,10 +695,6 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
                         if (legacyThemePatch.themeMode !== undefined)
                             requestApi.postSelect(entityName("screen_theme_mode"), state.themeMode);
                     }
-                    if (state.defaultIconSizeSupported && Object.prototype.hasOwnProperty.call(screenSettings, "default_icon_size"))
-                        requestApi.postSelect(entityName("screen_default_icon_size"), state.defaultIconSize.charAt(0).toUpperCase() + state.defaultIconSize.slice(1));
-                    if (state.cardCurveSupported && Object.prototype.hasOwnProperty.call(screenSettings, "card_curve"))
-                        requestApi.postSelect(entityName("screen_card_curve"), state.cardCurve);
                     if (state.brightnessMode === "manual")
                         postDisplayBacklightBrightness(state.manualBrightnessVal);
                     postBrightnessDawnTime(state.brightnessDawnTime);

@@ -10,7 +10,7 @@ type LargeNumbersRule = true | {
 };
 
 export const CARD_CONTRACT_VERSION = 1 as const;
-const STABLE_CARD_TYPES: readonly string[] = ["companion", "companion_mac_lock", "subpage"];
+const STABLE_CARD_TYPES: readonly string[] = ["companion", "companion_mac_lock", "companion_app_volume", "companion_output_volume", "companion_input_volume", "companion_output_mute", "companion_input_mute", "companion_cough", "companion_obs_cough", "companion_input_device", "subpage"];
 const PREVIEW_CARD_TYPES: readonly string[] = ["companion_window"];
 const REMOVE_ON_EDIT: readonly string[] = ["companion_webapp", "companion_audio", "wifi_qr", "wifi_qr_card", "companion_window"];
 export const CARD_CONTRACT_RETIRED_TYPES: readonly string[] = ["companion_window", "sensor", "local_sensor", "text_sensor", "internal", "wifi_qr", "wifi_qr_card", "screen_lock", "screensaver", "action", "local", "option_select", "calendar", "clock", "timezone", "webhook", "companion_webapp", "companion_audio", "S", "LS", "I", "SL", "SS", "A", "U", "WH"];
@@ -2515,6 +2515,463 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
       "options": ""
     }
   },
+  "companion_app_volume": {
+    "label": "App Volume",
+    "pickerKey": "companion_output_volume",
+    "allowInSubpage": true,
+    "domains": [],
+    "normalization": {
+      "fields": {
+        "entity": {
+          "policy": "keep"
+        },
+        "label": {
+          "policy": "keep"
+        },
+        "icon": {
+          "policy": "default_if_empty",
+          "value": "Volume High"
+        },
+        "icon_on": {
+          "policy": "default",
+          "value": "Auto"
+        },
+        "sensor": {
+          "policy": "clear"
+        },
+        "unit": {
+          "policy": "clear"
+        },
+        "type": {
+          "policy": "default",
+          "value": "companion_app_volume"
+        },
+        "precision": {
+          "policy": "clear"
+        },
+        "options": {
+          "policy": "clear"
+        }
+      },
+      "unknownOptions": "drop",
+      "canonicalOptionOrder": []
+    },
+    "default": {
+      "entity": "",
+      "label": "",
+      "icon": "Volume High",
+      "icon_on": "Auto",
+      "sensor": "",
+      "unit": "",
+      "type": "companion_app_volume",
+      "precision": "",
+      "options": ""
+    }
+  },
+  "companion_output_volume": {
+    "label": "Volume",
+    "pickerLabel": "Sound",
+    "allowInSubpage": true,
+    "domains": [],
+    "normalization": {
+      "fields": {
+        "entity": {
+          "policy": "default",
+          "value": "media.output_volume"
+        },
+        "label": {
+          "policy": "alias",
+          "aliases": {
+            "": "Volume",
+            "Output Volume": "Volume"
+          }
+        },
+        "icon": {
+          "policy": "default_if_empty",
+          "value": "Volume High"
+        },
+        "icon_on": {
+          "policy": "default",
+          "value": "Auto"
+        },
+        "sensor": {
+          "policy": "clear"
+        },
+        "unit": {
+          "policy": "clear"
+        },
+        "type": {
+          "policy": "default",
+          "value": "companion_output_volume"
+        },
+        "precision": {
+          "policy": "clear"
+        },
+        "options": {
+          "policy": "clear"
+        }
+      },
+      "unknownOptions": "drop",
+      "canonicalOptionOrder": []
+    },
+    "default": {
+      "entity": "media.output_volume",
+      "label": "Volume",
+      "icon": "Volume High",
+      "icon_on": "Auto",
+      "sensor": "",
+      "unit": "",
+      "type": "companion_output_volume",
+      "precision": "",
+      "options": ""
+    }
+  },
+  "companion_input_device": {
+    "label": "Input per device level",
+    "pickerKey": "companion_output_volume",
+    "allowInSubpage": true,
+    "domains": [],
+    "normalization": {
+      "fields": {
+        "entity": {
+          "policy": "keep"
+        },
+        "label": {
+          "policy": "keep"
+        },
+        "icon": {
+          "policy": "default_if_empty",
+          "value": "Microphone"
+        },
+        "icon_on": {
+          "policy": "default",
+          "value": "Auto"
+        },
+        "sensor": {
+          "policy": "clear"
+        },
+        "unit": {
+          "policy": "clear"
+        },
+        "type": {
+          "policy": "default",
+          "value": "companion_input_device"
+        },
+        "precision": {
+          "policy": "clear"
+        },
+        "options": {
+          "policy": "clear"
+        }
+      },
+      "unknownOptions": "drop",
+      "canonicalOptionOrder": []
+    },
+    "default": {
+      "entity": "",
+      "label": "",
+      "icon": "Microphone",
+      "icon_on": "Auto",
+      "sensor": "",
+      "unit": "",
+      "type": "companion_input_device",
+      "precision": "",
+      "options": ""
+    }
+  },
+  "companion_input_volume": {
+    "label": "Volume",
+    "pickerKey": "companion_output_volume",
+    "allowInSubpage": true,
+    "domains": [],
+    "normalization": {
+      "fields": {
+        "entity": {
+          "policy": "default",
+          "value": "media.input_volume"
+        },
+        "label": {
+          "policy": "alias",
+          "aliases": {
+            "": "Volume",
+            "Input Volume": "Volume",
+            "Input Level": "Volume"
+          }
+        },
+        "icon": {
+          "policy": "default_if_empty",
+          "value": "Microphone"
+        },
+        "icon_on": {
+          "policy": "default",
+          "value": "Auto"
+        },
+        "sensor": {
+          "policy": "clear"
+        },
+        "unit": {
+          "policy": "clear"
+        },
+        "type": {
+          "policy": "default",
+          "value": "companion_input_volume"
+        },
+        "precision": {
+          "policy": "clear"
+        },
+        "options": {
+          "policy": "clear"
+        }
+      },
+      "unknownOptions": "drop",
+      "canonicalOptionOrder": []
+    },
+    "default": {
+      "entity": "media.input_volume",
+      "label": "Volume",
+      "icon": "Microphone",
+      "icon_on": "Auto",
+      "sensor": "",
+      "unit": "",
+      "type": "companion_input_volume",
+      "precision": "",
+      "options": ""
+    }
+  },
+  "companion_output_mute": {
+    "label": "Mute",
+    "pickerKey": "companion_output_volume",
+    "allowInSubpage": true,
+    "domains": [],
+    "normalization": {
+      "fields": {
+        "entity": {
+          "policy": "default",
+          "value": "media.output_mute"
+        },
+        "label": {
+          "policy": "alias",
+          "aliases": {
+            "": "Mute",
+            "Output Mute": "Mute"
+          }
+        },
+        "icon": {
+          "policy": "default_if_empty",
+          "value": "Volume High"
+        },
+        "icon_on": {
+          "policy": "default",
+          "value": "Auto"
+        },
+        "sensor": {
+          "policy": "clear"
+        },
+        "unit": {
+          "policy": "clear"
+        },
+        "type": {
+          "policy": "default",
+          "value": "companion_output_mute"
+        },
+        "precision": {
+          "policy": "clear"
+        },
+        "options": {
+          "policy": "clear"
+        }
+      },
+      "unknownOptions": "drop",
+      "canonicalOptionOrder": []
+    },
+    "default": {
+      "entity": "media.output_mute",
+      "label": "Mute",
+      "icon": "Volume High",
+      "icon_on": "Auto",
+      "sensor": "",
+      "unit": "",
+      "type": "companion_output_mute",
+      "precision": "",
+      "options": ""
+    }
+  },
+  "companion_input_mute": {
+    "label": "Input State",
+    "pickerKey": "companion_output_volume",
+    "allowInSubpage": true,
+    "domains": [],
+    "normalization": {
+      "fields": {
+        "entity": {
+          "policy": "default",
+          "value": "media.input_mute"
+        },
+        "label": {
+          "policy": "alias",
+          "aliases": {
+            "": "Input State",
+            "Mute": "Input State",
+            "Input Mute": "Input State",
+            "Microphone Mute": "Input State"
+          }
+        },
+        "icon": {
+          "policy": "default_if_empty",
+          "value": "Microphone"
+        },
+        "icon_on": {
+          "policy": "default",
+          "value": "Auto"
+        },
+        "sensor": {
+          "policy": "clear"
+        },
+        "unit": {
+          "policy": "clear"
+        },
+        "type": {
+          "policy": "default",
+          "value": "companion_input_mute"
+        },
+        "precision": {
+          "policy": "clear"
+        },
+        "options": {
+          "policy": "clear"
+        }
+      },
+      "unknownOptions": "drop",
+      "canonicalOptionOrder": []
+    },
+    "default": {
+      "entity": "media.input_mute",
+      "label": "Input State",
+      "icon": "Microphone",
+      "icon_on": "Auto",
+      "sensor": "",
+      "unit": "",
+      "type": "companion_input_mute",
+      "precision": "",
+      "options": ""
+    }
+  },
+  "companion_cough": {
+    "label": "Cough",
+    "pickerKey": "companion_output_volume",
+    "allowInSubpage": true,
+    "domains": [],
+    "normalization": {
+      "fields": {
+        "entity": {
+          "policy": "clear"
+        },
+        "label": {
+          "policy": "default_if_empty",
+          "value": "Cough"
+        },
+        "icon": {
+          "policy": "alias",
+          "aliases": {
+            "": "Microphone",
+            "Auto": "Microphone"
+          }
+        },
+        "icon_on": {
+          "policy": "default",
+          "value": "Auto"
+        },
+        "sensor": {
+          "policy": "clear"
+        },
+        "unit": {
+          "policy": "clear"
+        },
+        "type": {
+          "policy": "default",
+          "value": "companion_cough"
+        },
+        "precision": {
+          "policy": "clear"
+        },
+        "options": {
+          "policy": "clear"
+        }
+      },
+      "unknownOptions": "drop",
+      "canonicalOptionOrder": []
+    },
+    "default": {
+      "entity": "",
+      "label": "Cough",
+      "icon": "Microphone",
+      "icon_on": "Auto",
+      "sensor": "",
+      "unit": "",
+      "type": "companion_cough",
+      "precision": "",
+      "options": ""
+    }
+  },
+  "companion_obs_cough": {
+    "label": "OBS Input Cough",
+    "allowInSubpage": true,
+    "domains": [],
+    "normalization": {
+      "fields": {
+        "entity": {
+          "policy": "keep"
+        },
+        "label": {
+          "policy": "alias",
+          "aliases": {
+            "": "Cough",
+            "OBS Input Cough": "Cough"
+          }
+        },
+        "icon": {
+          "policy": "alias",
+          "aliases": {
+            "": "Microphone",
+            "Auto": "Microphone"
+          }
+        },
+        "icon_on": {
+          "policy": "default",
+          "value": "Auto"
+        },
+        "sensor": {
+          "policy": "clear"
+        },
+        "unit": {
+          "policy": "clear"
+        },
+        "type": {
+          "policy": "default",
+          "value": "companion_obs_cough"
+        },
+        "precision": {
+          "policy": "clear"
+        },
+        "options": {
+          "policy": "clear"
+        }
+      },
+      "unknownOptions": "drop",
+      "canonicalOptionOrder": []
+    },
+    "default": {
+      "entity": "",
+      "label": "Cough",
+      "icon": "Microphone",
+      "icon_on": "Auto",
+      "sensor": "",
+      "unit": "",
+      "type": "companion_obs_cough",
+      "precision": "",
+      "options": ""
+    }
+  },
   "companion_mac_lock": {
     "label": "Mac Lock",
     "pickerLabel": "Lock Machine",
@@ -2576,6 +3033,14 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
     "domains": [],
     "options": [
       {
+        "name": "generated_card_exclusions",
+        "label": "Customized automatic cards",
+        "kind": "text",
+        "omitDefault": true,
+        "hidden": true,
+        "docsHidden": true
+      },
+      {
         "name": "custom_icon",
         "label": "Use custom icon",
         "kind": "flag",
@@ -2634,6 +3099,14 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
       {
         "name": "app_shortcut_preset",
         "label": "App Shortcut Preset",
+        "kind": "text",
+        "omitDefault": true,
+        "hidden": true,
+        "docsHidden": true
+      },
+      {
+        "name": "apple_shortcuts_hidden",
+        "label": "Hidden Apple Shortcuts",
         "kind": "text",
         "omitDefault": true,
         "hidden": true,
@@ -2715,9 +3188,11 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
         "app_shortcuts",
         "url_open_behavior",
         "finder_open_behavior",
+        "generated_card_exclusions",
         "finder_open_override",
         "app_shortcuts_tabs",
         "app_shortcut_preset",
+        "apple_shortcuts_hidden",
         "large_numbers",
         "stat_labels_off",
         "app_bg_color",
@@ -2799,6 +3274,14 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
     "domains": [],
     "options": [
       {
+        "name": "generated_card_exclusions",
+        "label": "Customized automatic cards",
+        "kind": "text",
+        "omitDefault": true,
+        "hidden": true,
+        "docsHidden": true
+      },
+      {
         "name": "subpage_connector",
         "label": "Subpage Connector",
         "kind": "choice",
@@ -2830,9 +3313,47 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
           "weather",
           "sensor",
           "image",
-          "companion_stat"
+          "companion_stat",
+          "apple_shortcuts",
+          "obs_transitions",
+          "obs_sources",
+          "obs_audio",
+          "obs_scenes",
+          "obs_studio_control"
         ],
         "defaultValue": "",
+        "omitDefault": true
+      },
+      {
+        "name": "apple_shortcuts_hidden",
+        "label": "Hidden Apple Shortcuts",
+        "kind": "text",
+        "omitDefault": true,
+        "hidden": true,
+        "docsHidden": true
+      },
+      {
+        "name": "obs_transition_order",
+        "label": "Transition visibility and order",
+        "kind": "text",
+        "omitDefault": true
+      },
+      {
+        "name": "obs_source_order",
+        "label": "Source visibility and order",
+        "kind": "text",
+        "omitDefault": true
+      },
+      {
+        "name": "obs_audio_order",
+        "label": "Audio slider visibility and order",
+        "kind": "text",
+        "omitDefault": true
+      },
+      {
+        "name": "obs_scene_order",
+        "label": "Scene visibility and order",
+        "kind": "text",
         "omitDefault": true
       },
       {
@@ -2884,6 +3405,12 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
       "canonicalOptionOrder": [
         "subpage_connector",
         "subpage_kind",
+        "apple_shortcuts_hidden",
+        "obs_transition_order",
+        "obs_source_order",
+        "obs_audio_order",
+        "obs_scene_order",
+        "generated_card_exclusions",
         "large_numbers"
       ],
       "optionHook": "normalize_subpage_options"
@@ -3548,6 +4075,102 @@ export const CARD_RUNTIME_SPECS: Readonly<Record<string, CardRuntimeSpec>> = {
       "subpage": true
     }
   },
+  "companion_app_volume": {
+    "driver": "numeric",
+    "capabilities": {
+      "informationOnly": false,
+      "subscriptions": true,
+      "actions": true,
+      "numericControl": true,
+      "modal": false,
+      "runtimeAllocation": true,
+      "subpage": true
+    }
+  },
+  "companion_input_device": {
+    "driver": "numeric",
+    "capabilities": {
+      "informationOnly": false,
+      "subscriptions": true,
+      "actions": true,
+      "numericControl": true,
+      "modal": false,
+      "runtimeAllocation": true,
+      "subpage": true
+    }
+  },
+  "companion_input_volume": {
+    "driver": "numeric",
+    "capabilities": {
+      "informationOnly": false,
+      "subscriptions": true,
+      "actions": true,
+      "numericControl": true,
+      "modal": false,
+      "runtimeAllocation": true,
+      "subpage": true
+    }
+  },
+  "companion_output_volume": {
+    "driver": "numeric",
+    "capabilities": {
+      "informationOnly": false,
+      "subscriptions": true,
+      "actions": true,
+      "numericControl": true,
+      "modal": false,
+      "runtimeAllocation": true,
+      "subpage": true
+    }
+  },
+  "companion_cough": {
+    "driver": "numeric",
+    "capabilities": {
+      "informationOnly": false,
+      "subscriptions": true,
+      "actions": true,
+      "numericControl": false,
+      "modal": false,
+      "runtimeAllocation": false,
+      "subpage": true
+    }
+  },
+  "companion_obs_cough": {
+    "driver": "numeric",
+    "capabilities": {
+      "informationOnly": false,
+      "subscriptions": true,
+      "actions": true,
+      "numericControl": false,
+      "modal": false,
+      "runtimeAllocation": false,
+      "subpage": true
+    }
+  },
+  "companion_input_mute": {
+    "driver": "numeric",
+    "capabilities": {
+      "informationOnly": false,
+      "subscriptions": true,
+      "actions": true,
+      "numericControl": false,
+      "modal": false,
+      "runtimeAllocation": false,
+      "subpage": true
+    }
+  },
+  "companion_output_mute": {
+    "driver": "numeric",
+    "capabilities": {
+      "informationOnly": false,
+      "subscriptions": true,
+      "actions": true,
+      "numericControl": false,
+      "modal": false,
+      "runtimeAllocation": false,
+      "subpage": true
+    }
+  },
   "slider": {
     "driver": "numeric",
     "capabilities": {
@@ -3663,6 +4286,14 @@ export const CARD_CONTRACT_SUBPAGE_TYPE_CODES: Readonly<Record<string, string>> 
   "push": "P",
   "companion": "CP",
   "companion_mac_lock": "ML",
+  "companion_app_volume": "AV",
+  "companion_output_volume": "OV",
+  "companion_input_volume": "IV",
+  "companion_input_device": "ID",
+  "companion_output_mute": "OM",
+  "companion_input_mute": "IM",
+  "companion_cough": "CC",
+  "companion_obs_cough": "OC",
   "subpage": "G"
 };
 export const CARD_CONTRACT_SUBPAGE_TYPES_BY_CODE: Readonly<Record<string, string>> = {
@@ -3699,6 +4330,14 @@ export const CARD_CONTRACT_SUBPAGE_TYPES_BY_CODE: Readonly<Record<string, string
   "P": "push",
   "CP": "companion",
   "ML": "companion_mac_lock",
+  "AV": "companion_app_volume",
+  "OV": "companion_output_volume",
+  "IV": "companion_input_volume",
+  "ID": "companion_input_device",
+  "OM": "companion_output_mute",
+  "IM": "companion_input_mute",
+  "CC": "companion_cough",
+  "OC": "companion_obs_cough",
   "G": "subpage"
 };
 export const CARD_CONTRACT_LARGE_NUMBERS: Readonly<Record<string, LargeNumbersRule>> = {
@@ -3717,6 +4356,7 @@ export const CARD_CONTRACT_OPTION_NAMES: Readonly<Record<string, string>> = {
   "app_shortcut_preset": "app_shortcut_preset",
   "app_shortcuts": "app_shortcuts",
   "app_shortcuts_tabs": "app_shortcuts_tabs",
+  "apple_shortcuts_hidden": "apple_shortcuts_hidden",
   "climate_tabs": "climate_tabs",
   "confirm_message": "confirm_message",
   "confirm_no": "confirm_no",
@@ -3736,6 +4376,7 @@ export const CARD_CONTRACT_OPTION_NAMES: Readonly<Record<string, string>> = {
   "finder_open_override": "finder_open_override",
   "garage_mode": "garage_mode",
   "gate_mode": "gate_mode",
+  "generated_card_exclusions": "generated_card_exclusions",
   "icon_display": "icon_display",
   "image_icon": "image_icon",
   "image_label": "image_label",
@@ -3754,6 +4395,10 @@ export const CARD_CONTRACT_OPTION_NAMES: Readonly<Record<string, string>> = {
   "media_now_playing_controls": "media_now_playing_controls",
   "media_tabs": "media_tabs",
   "number_display": "number_display",
+  "obs_audio_order": "obs_audio_order",
+  "obs_scene_order": "obs_scene_order",
+  "obs_source_order": "obs_source_order",
+  "obs_transition_order": "obs_transition_order",
   "on_pattern": "on_pattern",
   "pin_arm": "pin_arm",
   "pin_disarm": "pin_disarm",

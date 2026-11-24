@@ -70,6 +70,7 @@ export function createSettingsSystemSectionFeature(
         postC6FirmwareUpdateCheck,
     } = firmwarePostApi;
     const { installPublicFirmwareViaWebOta } = publicFirmwareInstall;
+
     // ── Settings System Section ────────────────────────────────────────
     function buildSystemSettingsCards(this: any) {
         var backupBody: any = document.createElement("div");
@@ -339,7 +340,9 @@ export function createSettingsSystemSectionFeature(
         return {
             identityCard: actions.buildIdentityCard?.(),
             backupCard: backupCard,
-            resetCard: buildResetSettings(actions.exportBackup, makeCollapsibleCard, infoPanel),
+            resetCard: window.location.protocol === "espdesktop-usb:"
+                ? undefined
+                : buildResetSettings(actions.exportBackup, makeCollapsibleCard, infoPanel),
             firmwareCard: firmwareCard,
         };
     }

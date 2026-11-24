@@ -1,5 +1,3 @@
-import { normalizeCardIconSize } from "../model/config_primitives";
-import { syncDefaultIconSizeUi } from "./default_icon_size_ui";
 import { state } from "../state/app_instance";
 import { FALLBACK_TIMEZONE_OPTION, NTP_SERVER_DEFAULTS } from "../state/app_state";
 import { applyClockBarStateValue } from "../state/event_state";
@@ -29,8 +27,6 @@ import {
     parseThemeSunOffset,
 } from "../model/settings";
 import { syncThemeSettingsUi } from "./theme_settings_ui";
-import { syncCardCurveUi } from "./card_curve_ui";
-import { normalizeCardCurve } from "../model/settings";
 import type { UiRuntimeState } from "./state";
 import type { CoreFeature } from "./core";
 import { languageOptionsWithFallback, syncLanguageSelect } from "./language_state";
@@ -165,11 +161,10 @@ export function createAppStateEventHandlersFeature(
             },
             "switch-companion__auto_open_app_subpages": function (this: any, val?: any, d?: any) {
                 state.autoOpenAppSubpages = d.value === true || val === "ON";
-                if (els.setAutoOpenAppSubpages) els.setAutoOpenAppSubpages.checked = state.autoOpenAppSubpages;
+                els.syncAppSubpageMode?.();
             },
             "switch-companion__return_home_on_app_switch": function (this: any, val?: any, d?: any) {
                 state.returnHomeOnAppSwitch = d.value === true || val === "ON";
-                if (els.setReturnHomeOnAppSwitch) els.setReturnHomeOnAppSwitch.checked = state.returnHomeOnAppSwitch;
             },
             "switch-screen__subpage_chevron": function (this: any, val?: any, d?: any) {
                 state.subpageChevronsOn = d.value === true || val === "ON";
@@ -298,19 +293,6 @@ export function createAppStateEventHandlersFeature(
             "select-screen__theme_mode": function (this: any, val?: any, d?: any) {
                 state.themeMode = normalizeThemeMode(d.value || val);
                 syncThemeSettingsUi(state, runtime);
-                renderPreview();
-            },
-            "select-screen__default_icon_size": function (val?: any, d?: any) {
-                state.defaultIconSize = normalizeCardIconSize(d.value || val);
-                state.defaultIconSizeSupported = true;
-                syncDefaultIconSizeUi(state, runtime);
-                renderPreview();
-            },
-            "select-screen__card_curve": function (val?: any, d?: any) {
-                state.cardCurve = normalizeCardCurve(d.value || val);
-                state.cardCurveSupported = true;
-                syncCardCurveUi(state, runtime);
-                syncPreviewOrientation(true);
                 renderPreview();
             },
             "select-screen__theme_auto_method": function (this: any, val?: any, d?: any) {

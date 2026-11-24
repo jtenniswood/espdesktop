@@ -37,17 +37,9 @@ const sampleShortcutTabs: Record<string, readonly string[]> = {
   'com.apple.Safari': ['2', '6', '7', '9', '8'],
   [slackAppId]: ['0', '1', '2', '3', '4', '5', '6', '7'],
   'com.apple.Notes': ['0', '1', '2', '3', '4'],
-  [chatgptAppId]: ['0', '2', '3', '4', '5', '6'],
+  [chatgptAppId]: ['0', '7', '10', '18', '17', '57', '46'],
   'com.anthropic.claudefordesktop': ['0', '1', '2', '3'],
 }
-const chatgptShortcutAppearance = [
-  { label: 'Command' },
-  { label: 'Browser', icon: 'Web' },
-  { icon: 'Dock Right' },
-  { label: 'Bottom Terminal', icon: 'Dock Bottom' },
-  { label: 'Side Terminal', icon: 'Dock Right' },
-  { label: 'Side Terminal', icon: 'Dock Right' },
-]
 const idleDelayMs = 5000
 const pressDurationMs = 180
 const embedded = !editable && window.parent !== window
@@ -90,23 +82,13 @@ function samplePageCards(appId: string, tabs: readonly string[]): SamplePageCard
     return demoFolders.filter(({ label }) => finderFolderLabels.includes(label))
       .map(({ id, label }) => ({ entity: id, label, icon: 'Folder Outline' }))
   }
-  const { buttons } = createCompanionShortcutSubpage(appId, tabs)
-  if (appId !== chatgptAppId) return buttons
-
-  // Keep the captured labels and the Approve shortcut, which was retired from the catalog.
-  const cards: SamplePageCard[] = buttons.map((card, index) => ({ ...card, ...chatgptShortcutAppearance[index] }))
-  cards.splice(1, 0, {
-    entity: 'shortcut.command+enter',
-    label: 'Approve',
-    icon: 'Check',
-    options: 'app_shortcut_preset=custom',
-  })
-  return cards
+  return createCompanionShortcutSubpage(appId, tabs).buttons
 }
 
 const sampleButtons: Record<number, string> = {}
 const sampleSubpages: Record<number, string> = {}
-for (const [index, { id, label }] of sampleApps.entries()) {
+const startingApps = editable ? sampleApps.slice(0, 8) : sampleApps
+for (const [index, { id, label }] of startingApps.entries()) {
   const slot = index + 1
   const tabs = sampleShortcutTabs[id]
   let options = 'app_hide_label'
@@ -135,7 +117,6 @@ const sample = {
     entity('switch/Screen: Clock Bar', false),
     entity('switch/Screen: Clock Bar Time', true),
     entity('switch/Screen: Subpage Chevron', false),
-    entity('select/Screen: Default Icon Size', 'Large'),
     entity(displayBacklightId, true, { brightness: 75 }),
   ],
 }
@@ -211,12 +192,16 @@ function sampleAppIcon(appId: string) {
   return request
 }
 
-// Keep the picker tied to the starting layout even after its cards are edited or deleted.
+// Keep sample apps available in the picker even when they are absent from the layout.
 const demoApps = new Map<string, { id: string; label: string }>()
 if (editable) {
-  for (const { config: card } of startingConfig.layout.rootCards) {
-    if (!companionCardHasAppIcon(card) || (appIcons && !snapshotAppIcon(card.entity))) continue
-    demoApps.set(card.entity, { id: card.entity, label: card.label || card.entity })
+  if (snapshot) {
+    for (const { config: card } of startingConfig.layout.rootCards) {
+      if (!companionCardHasAppIcon(card) || (appIcons && !snapshotAppIcon(card.entity))) continue
+      demoApps.set(card.entity, { id: card.entity, label: card.label || card.entity })
+    }
+  } else {
+    for (const { id, label } of sampleApps) demoApps.set(id, { id, label })
   }
 }
 
@@ -254,7 +239,7 @@ window.fetch = async (input, init) => {
             durable_document_version: 2, max_navigation_depth: 2,
             writable_navigation_depth: 2, max_v2_document_bytes: maxConfigBytes,
             max_record_body_bytes: 4096, preserves_inactive_records: true,
-            companion_auto_open_app_subpages: true, display_theme_preferences: true,
+            companion_auto_open_app_subpages: true, companion_app_subpage_mode: true, display_theme_preferences: true,
             screen_schedule_preferences: true,
           },
         })

@@ -10,8 +10,16 @@ function visibleText(node: Element) {
   return (node.textContent || '').replace(/\u200b/g, '').replace(/\s+/g, ' ').trim()
 }
 
+function removeImageCaptions(html: ParentNode) {
+  // Markdown image syntax already carries the alt text.
+  for (const caption of Array.from(html.querySelectorAll('.doc-image-caption'))) {
+    caption.parentNode.removeChild(caption)
+  }
+}
+
 function checkExportContent(html: Element, exportedHtml: string, page: string) {
   const exported = createDocument(exportedHtml)
+  removeImageCaptions(exported)
   for (const [selector, label] of [['ol > li', 'numbered instructions'], ['tr > th, tr > td', 'table cells']]) {
     const before = Array.from(html.querySelectorAll(selector), visibleText)
     const after = Array.from(exported.querySelectorAll(selector), visibleText)
@@ -19,9 +27,15 @@ function checkExportContent(html: Element, exportedHtml: string, page: string) {
       throw new Error(`Markdown export changed ${label} in ${page}`)
     }
   }
+  const faqQuestions = Array.from(html.querySelectorAll('details[data-faq-question] > summary'), visibleText)
+  const headings = new Set(Array.from(exported.querySelectorAll('h3'), visibleText))
+  if (faqQuestions.some(question => !headings.has(question))) {
+    throw new Error(`Markdown export omitted an FAQ question in ${page}`)
+  }
   const paragraphs = new Set(Array.from(exported.querySelectorAll('p'), visibleText))
   for (const paragraph of Array.from(html.querySelectorAll('p'))) {
-    if (paragraph.closest('.custom-block, table, ol, ul')) continue
+    const block = paragraph.closest('.custom-block, table, ol, ul')
+    if (block && !block.hasAttribute('data-faq-question')) continue
     const text = visibleText(paragraph)
     if (text && !paragraphs.has(text)) {
       throw new Error(`Markdown export omitted an article paragraph in ${page}: ${text.slice(0, 100)}`)
@@ -44,6 +58,10 @@ export async function writeMarkdownPages(outDir: string, pages: string[]) {
     bulletListMarker: '-',
     codeBlockStyle: 'fenced',
   }).use(gfm)
+  converter.addRule('faqQuestion', {
+    filter: (node) => node.nodeName === 'SUMMARY' && node.parentElement.hasAttribute('data-faq-question'),
+    replacement: (content) => `\n\n### ${content.trim()}\n\n`,
+  })
   converter.addRule('safetyCallout', {
     filter: (node) => node.classList.contains('custom-block') &&
       (node.classList.contains('warning') || node.classList.contains('danger')),
@@ -64,6 +82,7 @@ export async function writeMarkdownPages(outDir: string, pages: string[]) {
     for (const node of Array.from(content.querySelectorAll('.header-anchor, button, script, style'))) {
       node.parentNode.removeChild(node)
     }
+    removeImageCaptions(content)
     const canonical = canonicalUrlFor(page)
     const installer = content.querySelector('.esp-install-wrapper')
     if (installer) {

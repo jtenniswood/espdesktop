@@ -1,6 +1,6 @@
 ---
 title: Fix USB, Wi-Fi and Mac pairing problems
-description: Fix a missing USB port, Wi-Fi setup hotspot, Mac pairing error or unresponsive shortcut on the EspDesktop 4848S040.
+description: Fix a missing USB port, Wi-Fi setup hotspot, Mac pairing error or unresponsive keyboard shortcut on the EspDesktop 4848S040.
 ---
 
 # Troubleshoot EspDesktop setup and Mac controls {#troubleshoot-mac-controls}
@@ -14,7 +14,7 @@ Find the symptom you see on your 4848S040 or Mac.
 | [The Wi-Fi hotspot does not appear](#wifi-setup-and-reset-recovery) | Give the display up to 90 seconds and check the network name shown on the screen. |
 | [The Mac app cannot find the display](#the-display-does-not-appear-in-espdesktop) | Check that the Mac and display are on the same local network. |
 | [The display appears but will not pair](#the-display-will-not-pair) | Check for the code or a reset prompt on the touchscreen. |
-| [Shortcuts or Mac Lock do nothing](#a-card-does-not-work) | Check macOS Accessibility access for EspDesktop. |
+| [Keyboard shortcuts or Mac Lock do nothing](#a-card-does-not-work) | Check macOS Accessibility access for EspDesktop. |
 
 ## No USB port appears
 

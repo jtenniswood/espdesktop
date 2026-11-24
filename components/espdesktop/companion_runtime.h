@@ -12,9 +12,16 @@
 #include <cstddef>
 #include <cstdint>
 #include <mutex>
+#include <optional>
 #include <string>
+#include <string_view>
 #include <utility>
 #include <vector>
+
+#include "companion_shortcut_catalogue.h"
+#include "companion_capabilities_generated.h"
+
+enum class CompanionAppSubpageMode { FOCUS, CARD, MANUAL };
 
 // Folder focus belongs to Finder; switching directories must keep its subpage open.
 inline std::string companion_focus_application_id(const std::string &action_id) {
@@ -31,6 +38,35 @@ inline bool companion_reported_focus_matches(const std::string &requested,
 struct CompanionAction {
   std::string id;
   std::string label;
+  OBSCardState obs_state{OBSCardState::unknown};
+  std::string obs_detail{};
+  std::optional<bool> obs_available{};
+  std::optional<uint32_t> shortcut_color{};
+  bool operator==(const CompanionAction &other) const {
+    return id == other.id && label == other.label && obs_state == other.obs_state && obs_detail == other.obs_detail &&
+      obs_available == other.obs_available && shortcut_color == other.shortcut_color;
+  }
+};
+
+// Keep OBS and input-device entries from displacing existing Mac actions.
+class CompanionCatalogueLimits {
+ public:
+  bool retain(std::string_view id, bool input_device) {
+    const bool obs = id.rfind("obs.", 0) == 0;
+    const bool obs_source = id == "obs.sources" || id.rfind("obs.source.", 0) == 0;
+    auto &count = input_device ? inputs_ : obs_source ? obs_sources_ : obs ? obs_ : mac_;
+    // 48 scene items, up to 48 visibility markers, and one list marker.
+    const size_t limit = input_device ? 16 : obs_source ? 97 : 256;
+    if (count >= limit) return false;
+    ++count;
+    return true;
+  }
+
+ private:
+  size_t inputs_{0};
+  size_t obs_{0};
+  size_t obs_sources_{0};
+  size_t mac_{0};
 };
 
 struct CompanionValue {
@@ -156,6 +192,8 @@ class CompanionRuntimeService {
  public:
   // Wiring callbacks and pending requests share this service's lifetime.
   CompanionPendingActions pending_actions;
+  CompanionShortcutCatalogue shortcut_catalogue;
+  std::function<bool(uint32_t, const std::string &, uint32_t)> shortcut_catalogue_sender;
   CompanionActionSender action_sender;
   CompanionUrlSender url_sender;
   CompanionValueSender value_sender;
@@ -179,6 +217,11 @@ class CompanionRuntimeService {
   std::vector<CompanionAction> actions() const {
     std::lock_guard<std::mutex> lock(mutex_);
     return actions_;
+  }
+
+  uint32_t action_catalogue_generation() const {
+    std::lock_guard<std::mutex> lock(mutex_);
+    return action_catalogue_generation_;
   }
 
   uint32_t system_metrics_generation() const {
@@ -213,6 +256,54 @@ class CompanionRuntimeService {
     if (item == values_.end()) return false;
     result = item->value;
     return true;
+  }
+
+  // Touch feedback stays separate from confirmed audio state. Only the latest
+  // command for each mute control can settle its preview.
+  int displayed_mute_value(const std::string &id, int confirmed) const {
+    std::lock_guard<std::mutex> lock(mutex_);
+    for (const auto &pending : pending_mutes_)
+      if (!pending.request.empty() && pending.control == id) return pending.value;
+    return confirmed;
+  }
+
+  void preview_mute(const std::string &control, int value, const std::string &request) {
+    std::lock_guard<std::mutex> lock(mutex_);
+    auto entry = std::find_if(pending_mutes_.begin(), pending_mutes_.end(),
+      [&control](const PendingMute &item) { return item.control == control; });
+    if (entry == pending_mutes_.end())
+      entry = std::find_if(pending_mutes_.begin(), pending_mutes_.end(),
+        [](const PendingMute &item) { return item.request.empty(); });
+    if (entry == pending_mutes_.end()) return;
+    *entry = {control, request, value, std::nullopt, false};
+    request_refresh_();
+  }
+
+  void acknowledge_mute(const std::string &request, bool performed) {
+    std::lock_guard<std::mutex> lock(mutex_);
+    for (auto &pending : pending_mutes_) {
+      if (pending.request != request || request.empty()) continue;
+      const bool confirmed = std::any_of(values_.begin(), values_.end(),
+        [&pending](const CompanionValue &item) { return item.id == pending.control && item.value == pending.value; });
+      if (!performed || confirmed) {
+        pending = {};
+        request_refresh_();
+      } else {
+        pending.acknowledged = true;
+      }
+      break;
+    }
+  }
+
+  void expire_mute_previews(uint32_t now) {
+    std::lock_guard<std::mutex> lock(mutex_);
+    for (auto &pending : pending_mutes_) {
+      if (pending.request.empty()) continue;
+      if (!pending.expires_at) pending.expires_at = now + 700;
+      if (static_cast<int32_t>(now - *pending.expires_at) < 0) continue;
+      pending = {};
+      request_refresh_();
+    }
   }
 
   CompanionRuntimeSnapshot snapshot() const {
@@ -257,7 +348,20 @@ class CompanionRuntimeService {
 
   void set_actions(std::vector<CompanionAction> actions) {
     std::lock_guard<std::mutex> lock(mutex_);
+    if (actions == actions_) return;
+    if (!actions.empty()) ++action_catalogue_generation_;
     actions_ = std::move(actions);
+    request_refresh_();
+  }
+
+  void set_obs_actions(std::vector<CompanionAction> actions) {
+    std::lock_guard<std::mutex> lock(mutex_);
+    const auto is_obs = [](const CompanionAction &action) { return action.id.rfind("obs.", 0) == 0; };
+    const auto first_obs = std::find_if(actions_.begin(), actions_.end(), is_obs);
+    if (std::equal(first_obs, actions_.end(), actions.begin(), actions.end())) return;
+    actions_.erase(std::remove_if(first_obs, actions_.end(), is_obs), actions_.end());
+    for (auto &action : actions) actions_.push_back(std::move(action));
+    if (!actions_.empty()) ++action_catalogue_generation_;
     request_refresh_();
   }
 
@@ -273,17 +377,31 @@ class CompanionRuntimeService {
         companion_reported_focus_matches(owner, focused_action_id_, focused_action_ids_);
   }
 
-  void set_value(const std::string &control_id, int value) {
+  void set_value(const std::string &control_id, int value, size_t limit = 0) {
     std::lock_guard<std::mutex> lock(mutex_);
     auto item = std::find_if(values_.begin(), values_.end(),
       [&control_id](const CompanionValue &candidate) { return candidate.id == control_id; });
-    if (item == values_.end()) values_.push_back({control_id, value});
-    else item->value = value;
+    if (item == values_.end()) {
+      if (limit) {
+        const bool obs = control_id.rfind("obs.", 0) == 0;
+        const auto used = std::count_if(values_.begin(), values_.end(), [obs](const CompanionValue &candidate) {
+          return (candidate.id.rfind("obs.", 0) == 0) == obs;
+        });
+        if (static_cast<size_t>(used) >= limit) return;
+      }
+      values_.push_back({control_id, value});
+    } else {
+      item->value = value;
+    }
+    for (auto &pending : pending_mutes_)
+      if (pending.acknowledged && pending.control == control_id && pending.value == value) pending = {};
     request_refresh_();
   }
 
   void remove_value(const std::string &control_id) {
     std::lock_guard<std::mutex> lock(mutex_);
+    for (auto &pending : pending_mutes_)
+      if (pending.control == control_id) pending = {};
     values_.erase(std::remove_if(values_.begin(), values_.end(),
       [&control_id](const CompanionValue &candidate) { return candidate.id == control_id; }),
       values_.end());
@@ -296,9 +414,9 @@ class CompanionRuntimeService {
     request_refresh_();
   }
 
-  void set_auto_open_app_subpages(bool enabled) {
+  void set_app_subpage_mode(CompanionAppSubpageMode mode) {
     std::lock_guard<std::mutex> lock(mutex_);
-    auto_open_app_subpages_ = enabled;
+    app_subpage_mode_ = mode;
     pending_auto_subpage_action_id_.clear();
     subpage_return_requested.store(false);
   }
@@ -313,9 +431,9 @@ class CompanionRuntimeService {
     return return_home_on_app_switch_;
   }
 
-  bool auto_open_app_subpages() const {
+  CompanionAppSubpageMode app_subpage_mode() const {
     std::lock_guard<std::mutex> lock(mutex_);
-    return auto_open_app_subpages_;
+    return app_subpage_mode_;
   }
 
   bool set_focused_action(std::string action_id) {
@@ -366,9 +484,10 @@ class CompanionRuntimeService {
     } else if (auto_subpage_id == closed_app_subpage_action_id_) {
       closed_app_subpage_action_id_.clear();
     }
-    const bool should_return = auto_open_app_subpages_ && connected_ && !previous_auto_subpage_id.empty() &&
+    const bool follows_focus = app_subpage_mode_ == CompanionAppSubpageMode::FOCUS;
+    const bool should_return = follows_focus && connected_ && !previous_auto_subpage_id.empty() &&
       auto_subpage_id != previous_auto_subpage_id;
-    if (!auto_open_app_subpages_ || accepted.empty() || !connected_) pending_auto_subpage_action_id_.clear();
+    if (!follows_focus || accepted.empty() || !connected_) pending_auto_subpage_action_id_.clear();
     else if (previous_auto_subpage_id != auto_subpage_id) pending_auto_subpage_action_id_ = auto_subpage_id;
     focused_action_ids_ = std::move(accepted);
     focused_action_id_ = parent_id(focused_action_ids_);
@@ -392,7 +511,7 @@ class CompanionRuntimeService {
     pending_auto_subpage_action_id_.clear();
     closed_app_subpage_action_id_.clear();
     subpage_return_requested.store(false);
-    return connected_ && auto_open_app_subpages_ ? focused_auto_subpage_id_ : std::string{};
+    return connected_ && app_subpage_mode_ == CompanionAppSubpageMode::FOCUS ? focused_auto_subpage_id_ : std::string{};
   }
 
   bool consume_auto_subpage_action(const std::string &action_id) {
@@ -415,6 +534,7 @@ class CompanionRuntimeService {
     }
     if (!connected_) {
       values_.clear();
+      pending_mutes_ = {};
       focused_action_id_.clear();
       focused_action_ids_.clear();
       application_highlight_known_ = false;
@@ -439,15 +559,24 @@ class CompanionRuntimeService {
 
   mutable std::mutex mutex_;
   std::vector<CompanionAction> actions_;
+  uint32_t action_catalogue_generation_{0};
   bool application_highlight_known_{false};
   std::string application_highlight_id_;
   std::vector<CompanionRemoteDefinition> remote_definitions_;
   std::vector<CompanionURLFocusTarget> url_focus_targets_;
   uint32_t url_focus_targets_generation_{0};
   std::vector<CompanionValue> values_;
+  struct PendingMute {
+    std::string control;
+    std::string request;
+    int value{0};
+    std::optional<uint32_t> expires_at;
+    bool acknowledged{false};
+  };
+  std::array<PendingMute, 3> pending_mutes_{};
   std::string focused_action_id_;
   std::vector<std::string> focused_action_ids_;
-  bool auto_open_app_subpages_ = true;
+  CompanionAppSubpageMode app_subpage_mode_ = CompanionAppSubpageMode::CARD;
   bool return_home_on_app_switch_ = true;
   std::string focused_auto_subpage_id_;
   std::string pending_auto_subpage_action_id_;

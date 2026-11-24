@@ -195,7 +195,7 @@ server.Map(SocketPath, async context =>
             return;
         }
         Check(seq == 8, "repair stale authentication sequence");
-        await Send(socket, "auth.accepted", ("capabilityVersion", 7));
+        await Send(socket, "auth.accepted", ("capabilityVersion", 24));
 #if WINDOWS
         if (windowsBackend is not null)
         {
@@ -212,6 +212,8 @@ server.Map(SocketPath, async context =>
         await Send(socket, "action.invoke", ("kind", "action"), ("actionId", "windows.test"), ("requestId", "1"));
         await FindMessage(socket, "action.result", m => Text(m, "requestId") == "1" && Text(m, "status") == "activated");
         Interlocked.Increment(ref authorizedRequests);
+        await Send(socket, "value.set", ("controlId", "app.volume.com.example.Player"), ("value", 35), ("requestId", "app-volume"));
+        await FindMessage(socket, "action.result", m => Text(m, "requestId") == "app-volume" && Text(m, "status") == "not_allowed");
         await Send(socket, "value.set", ("controlId", FakeDesktop.Speaker), ("value", 65), ("requestId", "volume"));
         await FindMessage(socket, "action.result", m => Text(m, "requestId") == "volume" && Text(m, "status") == "performed");
         await FindMessage(socket, "value.state", m => Text(m, "controlId") == FakeDesktop.Speaker && UInt(m, "value") == 65);

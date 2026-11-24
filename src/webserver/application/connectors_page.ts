@@ -1,3 +1,4 @@
+import type { SettingsUiFeature } from "../features/settings";
 import type { ApplicationDomServices } from "./application_context";
 import type { ControlsShellFeature } from "./controls_shell";
 import type { CompanionPairingState, SettingsCompanionSectionFeature } from "./settings_companion_section";
@@ -45,6 +46,8 @@ export function createConnectorsPageFeature(
     shell: Pick<ControlsShellFeature, "setOnboardingComplete">,
     companionSection: SettingsCompanionSectionFeature,
     companionSupported: boolean,
+    buildHomeAssistantCard: () => HTMLElement,
+    { infoPanel }: Pick<SettingsUiFeature, "infoPanel">,
 ): ConnectorsPageFeature {
     const { document, window, fetch } = dom;
     let current: ConnectorsStatus | null = null;
@@ -95,22 +98,26 @@ export function createConnectorsPageFeature(
         const page = document.createElement("div");
         page.id = "sp-connectors";
         page.className = "sp-connectors-section";
-        const config = document.createElement("div");
-        config.className = "sp-connectors-config";
         const heading = document.createElement("h1");
-        heading.className = "sp-connectors-heading sp-settings-status-title";
+        heading.className = "sp-connectors-heading sp-settings-status-header sp-settings-status-title";
         heading.textContent = "Connectors";
-        config.appendChild(heading);
+        page.appendChild(heading);
         if (companionSupported) {
             const open = requestedConnectorFromSearch(window.location.search) === "mac_companion";
-            config.appendChild(companionSection.buildCompanionSettingsCard(applyCompanionStatus, !open, open));
+            page.appendChild(companionSection.buildCompanionSettingsCard(applyCompanionStatus, !open, open));
+            page.appendChild(buildHomeAssistantCard());
         } else {
-            const message = document.createElement("p");
-            message.className = "sp-connectors-unavailable";
-            message.textContent = "No external connectors are available on this display.";
-            config.appendChild(message);
+            const setupGuide = document.createElement("a");
+            setupGuide.href = "https://espdesktop.com/screens/4848s040#download";
+            setupGuide.target = "_blank";
+            setupGuide.rel = "noopener noreferrer";
+            setupGuide.textContent = "Download and setup guide";
+            page.appendChild(infoPanel(
+                "sp-connectors-setup",
+                "Use the EspDesktop Mac app to pair a compatible display. ",
+                setupGuide,
+            ));
         }
-        page.appendChild(config);
         parent.appendChild(page);
     }
     function start(): void {

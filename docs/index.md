@@ -11,7 +11,7 @@ layout: home
 
 # A touchscreen controller *for your Mac*
 
-EspDesktop turns a 4-inch ESP32-based touchscreen into a controller for opening apps, visiting websites and running shortcuts on your Mac for less than **$26/£20**. Pair it over your local network with the free Mac app.
+EspDesktop turns a 4-inch ESP32-based touchscreen into a controller for opening apps, visiting websites and running keyboard shortcuts on your Mac for less than **$26/£20**. Pair it over your local network with the free Mac app.
 
 <div class="homepage-action">
 
@@ -49,7 +49,7 @@ EspDesktop turns a 4-inch ESP32-based touchscreen into a controller for opening 
 
 ### Launch Mac apps
 
-Open an app or bring it to the front with a tap. Give Slack, Mail or Figma a tile of its own.
+Open or switch to apps like Slack, Mail and Figma. Adjust app volume or mute your mic from the touchscreen.
 
 [Apps](/mac-controls/apps)
 
@@ -92,43 +92,40 @@ Give Downloads, client files or your current project a tile of its own.
   <path d="M6 9h.01M10 9h.01M14 9h.01M18 9h.01M6 12h.01M10 12h.01M14 12h.01M18 12h.01M8 15h8" />
 </svg>
 
-### Keep shortcuts in view
+### Run keyboard shortcuts
 
 Turn key combinations into labelled buttons. Shortcut pages can follow the app you’re using, such as Safari or Figma.
 
-[Keyboard shortcuts](/mac-controls/shortcuts)
+[Keyboard shortcuts](/mac-controls/shortcuts#create-a-shortcut-card)
 
 </article>
 
 <article>
 
 <svg class="homepage-feature-icon" viewBox="0 0 24 24" aria-hidden="true">
-  <rect x="5" y="10" width="14" height="11" rx="2" />
-  <path d="M8 10V7a4 4 0 1 1 8 0v3m-4 5v2" />
+  <path d="m12 3 9 5-9 5-9-5 9-5ZM3 12l9 5 9-5M3 16l9 5 9-5" />
 </svg>
 
-### Lock your Mac
+### Run Apple Shortcuts
 
-Tap the Lock Machine tile when you step away from your desk.
+Run an Apple Shortcuts workflow with one tap, or group your workflows on a page of their own.
 
-[Set up Mac Lock](/mac-controls/security)
+[Apple Shortcuts](/mac-controls/apple-shortcuts)
 
 </article>
 
 <article>
 
 <svg class="homepage-feature-icon" viewBox="0 0 24 24" aria-hidden="true">
-  <path d="M5 3v9m0 4v5M12 3v4m0 4v10M19 3v12m0 4v2" />
-  <rect x="2" y="12" width="6" height="4" rx="1" />
-  <rect x="9" y="7" width="6" height="4" rx="1" />
-  <rect x="16" y="15" width="6" height="4" rx="1" />
+  <rect x="3" y="4" width="18" height="13" rx="2" />
+  <path d="m10 8 5 2.5-5 2.5V8ZM8 21h8m-4-4v4" />
 </svg>
 
-### Make the layout your own
+### Control OBS Studio
 
-Resize tiles, choose their icons and colours, and group related controls into subpages.
+Switch scenes, mute audio inputs, and start or stop streaming and recording from your touchscreen.
 
-[Customise the layout](/features/home)
+[OBS Studio controls](/mac-controls/obs-studio)
 
 </article>
 
@@ -142,7 +139,7 @@ Resize tiles, choose their icons and colours, and group related controls into su
 
 ## EspDesktop in action {#a-look-at-the-web-editor}
 
-Tap Safari, Slack, Notes, ChatGPT, or Claude to see their shortcuts, or tap Finder to see its folders. Tap the app icon on any subpage to go back home.
+Tap Safari, Slack, Notes, ChatGPT, or Claude to see their keyboard shortcuts, or tap Finder to see its folders. Tap the app icon on any subpage to go back home.
 
 <div class="homepage-editor-actions">
 

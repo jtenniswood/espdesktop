@@ -9,6 +9,87 @@
 
 template<typename Config>
 inline bool normalize_saved_config_static(Config &config) {
+  if (config.type == "companion_output_volume") {
+    config.entity = "media.output_volume";
+    if (config.label == "") config.label = "Volume";
+    if (config.label == "Output Volume") config.label = "Volume";
+    if (config.icon.empty()) config.icon = "Volume High";
+    config.icon_on = "Auto";
+    config.sensor.clear();
+    config.unit.clear();
+    config.type = "companion_output_volume";
+    config.precision.clear();
+    config.options.clear();
+    return true;
+  }
+  if (config.type == "companion_input_volume") {
+    config.entity = "media.input_volume";
+    if (config.label == "") config.label = "Volume";
+    if (config.label == "Input Volume") config.label = "Volume";
+    if (config.label == "Input Level") config.label = "Volume";
+    if (config.icon.empty()) config.icon = "Microphone";
+    config.icon_on = "Auto";
+    config.sensor.clear();
+    config.unit.clear();
+    config.type = "companion_input_volume";
+    config.precision.clear();
+    config.options.clear();
+    return true;
+  }
+  if (config.type == "companion_output_mute") {
+    config.entity = "media.output_mute";
+    if (config.label == "") config.label = "Mute";
+    if (config.label == "Output Mute") config.label = "Mute";
+    if (config.icon.empty()) config.icon = "Volume High";
+    config.icon_on = "Auto";
+    config.sensor.clear();
+    config.unit.clear();
+    config.type = "companion_output_mute";
+    config.precision.clear();
+    config.options.clear();
+    return true;
+  }
+  if (config.type == "companion_input_mute") {
+    config.entity = "media.input_mute";
+    if (config.label == "") config.label = "Input State";
+    if (config.label == "Mute") config.label = "Input State";
+    if (config.label == "Input Mute") config.label = "Input State";
+    if (config.label == "Microphone Mute") config.label = "Input State";
+    if (config.icon.empty()) config.icon = "Microphone";
+    config.icon_on = "Auto";
+    config.sensor.clear();
+    config.unit.clear();
+    config.type = "companion_input_mute";
+    config.precision.clear();
+    config.options.clear();
+    return true;
+  }
+  if (config.type == "companion_cough") {
+    config.entity.clear();
+    if (config.label.empty()) config.label = "Cough";
+    if (config.icon == "") config.icon = "Microphone";
+    if (config.icon == "Auto") config.icon = "Microphone";
+    config.icon_on = "Auto";
+    config.sensor.clear();
+    config.unit.clear();
+    config.type = "companion_cough";
+    config.precision.clear();
+    config.options.clear();
+    return true;
+  }
+  if (config.type == "companion_obs_cough") {
+    if (config.label == "") config.label = "Cough";
+    if (config.label == "OBS Input Cough") config.label = "Cough";
+    if (config.icon == "") config.icon = "Microphone";
+    if (config.icon == "Auto") config.icon = "Microphone";
+    config.icon_on = "Auto";
+    config.sensor.clear();
+    config.unit.clear();
+    config.type = "companion_obs_cough";
+    config.precision.clear();
+    config.options.clear();
+    return true;
+  }
   if (config.type == "light_brightness") {
     config.sensor.clear();
     config.type = "light_brightness";

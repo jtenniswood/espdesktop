@@ -10,6 +10,7 @@ inline void lv_label_set_text(lv_obj_t *, const char *) {}
 #define ESPDESKTOP_SUBPAGE_PARSER_ONLY
 #include "button_grid_subpages.h"
 #include "finder_folder_sync.h"
+#include "obs_live_subpage.h"
 
 using namespace esphome::companion;
 
@@ -59,7 +60,162 @@ static void assert_finder_folder_projection() {
 }
 
 int main() {
+  {
+    const std::string base = "appleshortcut.workflow;Shortcut;Flash;Auto;;;companion;;";
+    assert(apple_shortcut_workflow_icon(parse_cfg(base)));
+    const auto custom_flash = parse_cfg(base + "custom_icon,card_off_color=FF6363");
+    assert(!apple_shortcut_workflow_icon(custom_flash));
+    assert(custom_flash.icon == "Flash" && custom_flash.options == "custom_icon,card_off_color=FF6363");
+    const auto legacy_custom = parse_cfg("appleshortcut.workflow;Shortcut;Timer;Auto;;;companion;;");
+    assert(!apple_shortcut_workflow_icon(legacy_custom));
+    const auto custom_subpage = parsed_cfg_from_subpage_btn(
+        parse_subpage_config("~B,1|CP,appleshortcut.workflow,Shortcut,Flash,,,,,custom_icon").at(0));
+    assert(!apple_shortcut_workflow_icon(custom_subpage));
+    assert(cfg_option_token_present(custom_subpage.options, "custom_icon"));
+    assert(companion_card_options_normalized(parse_cfg("com.apple.Safari;Safari;Flash;Auto;;;companion;;custom_icon")).empty());
+  }
+  {
+    const std::string id = "appleshortcut.colored";
+    const std::vector<CompanionAction> initial{{id, "Shortcut"}};
+    auto colored = initial;
+    colored.front().shortcut_color = 0;
+    assert(apple_shortcut_catalogue_color(colored, id) == 0);
+    assert(!apple_shortcut_catalogue_color(initial, id));
+    assert(!apple_shortcut_catalogue_color(colored, "folder.home"));
+    assert(initial != colored && !live_companion_catalogue_equal(initial, colored));
+  }
+  {
+    const std::string a(32, 'a'), b(32, 'b'), c(32, 'c');
+    const std::string prefix = "obs.transition.select.";
+    const std::string token = ".11111111-1111-1111-1111-111111111111";
+    CompanionRuntimeSnapshot snapshot;
+    snapshot.actions = {{prefix + a + token, "Fade"}, {prefix + b, "Cut"}, {prefix + c + token, "Slide"}};
+    const auto catalogue = obs_subpage_catalogue(snapshot, OBSSubpageKind::transitions);
+    assert(catalogue.size() == 3 && catalogue.front().id == prefix + a);
+    const auto folder = parse_cfg(";;Flip Horizontal;Auto;;;subpage;;subpage_kind=obs_transitions,obs_transition_order=" +
+                                  c + "|!" + a);
+    std::vector<SubpageBtn> cards{{"obs.take", "Take Live", "Arrow Right", "Auto", "", "", "companion", "", ""}};
+    SubpageOrder order;
+    parse_subpage_order("B,1", 4, cards.size(), order);
+    normalize_subpage_order_spans(order, 4, 2);
+    project_obs_subpage_tiles(order, cards, 4, 2, 4, catalogue, folder.options, OBSSubpageKind::transitions);
+    assert(cards.size() == 3 && cards[0].entity == "obs.take" && cards[1].entity == prefix + c && cards[2].entity == prefix + b);
+    assert(order.positions[1] == 1 && order.positions[2] == 2 && order.positions[3] == 3);
+  }
+  {
+    const std::string camera = "obs.source." + std::string(32, 'a');
+    const std::string game = "obs.source." + std::string(32, 'b');
+    const std::string marker = "obs.source.visible." + std::string(32, 'a');
+    const std::string command = camera + ".11111111-1111-1111-1111-111111111111";
+    CompanionRuntimeSnapshot snapshot;
+    snapshot.connected = true;
+    snapshot.actions = {{"obs.sources", "Preview"}, {command, "Camera"}, {marker, "Camera"}, {game, "Game"}};
+    const auto catalogue = obs_subpage_catalogue(snapshot, OBSSubpageKind::sources);
+    assert(catalogue.size() == 2 && catalogue.front().id == camera);
+    assert(companion_action_available(snapshot, camera) && !companion_action_available(snapshot, game));
+    std::vector<SubpageBtn> cards;
+    SubpageOrder order;
+    parse_subpage_order("B", 4, cards.size(), order);
+    project_obs_subpage_tiles(order, cards, 4, 2, 4, catalogue, "obs_source_order=!" + std::string(32, 'a'), OBSSubpageKind::sources);
+    assert(cards.size() == 1 && cards.front().entity == game);
+  }
+  {
+    const std::string mic = "obs.level.33333333-3333-3333-3333-333333333333";
+    const std::string game = "obs.level.44444444-4444-4444-4444-444444444444";
+    const std::string music = "obs.level.55555555-5555-5555-5555-555555555555";
+    CompanionRuntimeSnapshot snapshot;
+    snapshot.actions = {{mic, "Mic"}, {"obs.level.invalid", "Invalid"}, {game, "Game"}, {music, "Music"}};
+    const auto catalogue = obs_subpage_catalogue(snapshot, OBSSubpageKind::audio);
+    assert(catalogue.size() == 3 && catalogue.front().id == mic);
+    const auto folder = parse_cfg(";;Microphone;Auto;;;subpage;;subpage_kind=obs_audio,obs_audio_order=" +
+                                  std::string(32, '5') + "|!" + std::string(32, '3'));
+    std::vector<SubpageBtn> cards{{"obs.take", "Take Live", "Arrow Right", "Auto", "", "", "companion", "", ""}};
+    SubpageOrder order;
+    parse_subpage_order("B,1", 4, cards.size(), order);
+    normalize_subpage_order_spans(order, 4, 2);
+    project_obs_subpage_tiles(order, cards, 4, 2, 4, catalogue, folder.options, OBSSubpageKind::audio);
+    assert(cards.size() == 3 && cards[0].entity == "obs.take" && cards[1].entity == music && cards[2].entity == game);
+    const auto fader = parsed_cfg_from_subpage_btn(cards[1]);
+    assert(fader.type == "slider" && fader.label == "Music" && fader.icon == "Microphone");
+    assert(companion_volume_control_valid(fader.entity));
+  }
+  {
+    const std::string first = "obs.target.11111111-1111-1111-1111-111111111111";
+    const std::string second = "obs.target.22222222-2222-2222-2222-222222222222";
+    const std::string hidden = "obs.target.33333333-3333-3333-3333-333333333333";
+    const std::string token = ".44444444-4444-4444-4444-444444444444";
+    CompanionRuntimeSnapshot snapshot;
+    snapshot.connected = true;
+    snapshot.actions = {{first + token, "Gameplay"}, {second + token, "Break"}, {hidden + token, "Wrap Up"},
+                        {"obs.program.11111111-1111-1111-1111-111111111111", "Program"}};
+    const auto catalogue = obs_subpage_catalogue(snapshot, OBSSubpageKind::scenes);
+    assert(catalogue.size() == 3 && catalogue.front().id == first);
+    const auto folder = parse_cfg(";;Image Card Loading;Auto;;;subpage;;subpage_kind=obs_scenes,obs_scene_order=" +
+                                  std::string(32, '2') + "|!" + std::string(32, '3'));
+    std::vector<SubpageBtn> cards;
+    SubpageOrder order;
+    parse_subpage_order("B", 4, cards.size(), order);
+    normalize_subpage_order_spans(order, 4, 2);
+    project_obs_subpage_tiles(order, cards, 4, 2, 4, catalogue, folder.options, OBSSubpageKind::scenes);
+    assert(cards.size() == 2 && cards[0].entity == second && cards[1].entity == first);
+    const auto scene = parsed_cfg_from_subpage_btn(cards[0]);
+    assert(scene.type == "companion" && scene.label == "Break" && scene.icon == "Image Card Loading");
+    assert(companion_obs_scene_card(scene.entity) && companion_action_available(snapshot, scene.entity));
+    cards.clear();
+    SubpageOrder after_delete;
+    parse_subpage_order("B", 4, 0, after_delete);
+    const auto customized = parse_cfg(";;Image Card Loading;Auto;;;subpage;;subpage_kind=obs_scenes,generated_card_exclusions=" +
+                                      std::string(32, '1'));
+    project_obs_subpage_tiles(after_delete, cards, 4, 2, 4, catalogue, customized.options, OBSSubpageKind::scenes);
+    assert(cards.size() == 2 && cards[0].entity == second && cards[1].entity == hidden);
+
+    cards.clear();
+    SubpageOrder footer;
+    parse_subpage_order("B", 9, 0, footer);
+    project_obs_subpage_tiles(footer, cards, 9, 3, 9, catalogue, "", OBSSubpageKind::scenes);
+    assert(cards.size() == 6);
+    assert(footer.positions[7] == 1 && footer.col_span[0] == 2 && footer.positions[8] == 0);
+    assert(cards[0].entity == "obs.take" && footer.positions[6] == 2 && cards[1].entity == "obs.transition");
+    assert(footer.positions[5] == 3 && cards[2].entity == "obs.brb");
+
+    std::vector<SubpageBtn> landscape_cards{{first, "Edited scene", "Image", "Auto", "", "", "companion", "", ""}};
+    SubpageOrder landscape;
+    parse_subpage_order("B,1b", 15, landscape_cards.size(), landscape);
+    normalize_subpage_order_spans(landscape, 15, 5);
+    project_obs_subpage_tiles(landscape, landscape_cards, 15, 5, 15, catalogue,
+        "generated_card_exclusions=" + std::string(32, '3'), OBSSubpageKind::scenes);
+    assert(landscape.positions[1] == 1 && landscape.col_span[0] == 2 && landscape.row_span[0] == 2);
+    assert(landscape.positions[13] == 2 && landscape.col_span[1] == 2 && landscape_cards[1].entity == "obs.take");
+    assert(landscape_cards.size() == 5 && landscape_cards.back().entity == second);
+
+    CompanionRuntimeSnapshot blocked = snapshot;
+    blocked.actions[0].obs_available = false;
+    assert(!companion_action_available(blocked, first));
+
+    cards.resize(1);
+    SubpageOrder manual_take;
+    parse_subpage_order("B,1", 9, 1, manual_take);
+    project_obs_subpage_tiles(manual_take, cards, 9, 3, 9, catalogue,
+        "generated_card_exclusions=brb", OBSSubpageKind::scenes);
+    assert(manual_take.positions[1] == 1 && manual_take.col_span[0] == 1);
+    assert(cards.size() == 5 && cards[1].entity == "obs.transition");
+
+
+  }
   assert_finder_folder_projection();
+  for (const std::string_view hidden : {"inactive|hidden", "v1.JTckIJacIAYKAAxN8jFSi5"}) {
+    const std::string saved_id = "appleshortcut.saved";
+    const std::string new_id = "appleshortcut.new";
+    auto buttons = parse_subpage_config("~B,1|CP,appleshortcut.saved,Saved,Flash|CP,appleshortcut.hidden,Hidden,Flash");
+    SubpageOrder order;
+    parse_subpage_order("B,1", 4, buttons.size(), order);
+    normalize_subpage_order_spans(order, 4, 2);
+    project_apple_shortcut_tiles(order, buttons, 4, 2, 3,
+        {{saved_id, "Saved"}, {"appleshortcut.hidden", "Hidden"}, {new_id, "New"},
+         {"appleshortcut.extra", "Extra"}, {"folder.project", "Project"}}, hidden);
+    assert(order.back_pos == 0 && order.positions[1] == 1 && order.positions[2] == 2 && order.positions[3] == 0);
+    assert(buttons.size() == 2 && buttons.front().entity == saved_id && buttons.back().entity == new_id);
+  }
   const auto mac_lock = normalize_parsed_cfg(
       ParsedCfg{"shortcut.command+a", "", "", "", "url.invalid", "%", "companion_mac_lock", "1", ""});
   assert(mac_lock.entity == "shortcut.command+control+q" && mac_lock.sensor.empty());
@@ -73,6 +229,14 @@ int main() {
       mac_lock.type, mac_lock.sensor);
   assert(lock_runtime.runtime.driver == espdesktop::card_runtime::CardDriverId::COMPANION);
   assert(lock_runtime.allow_in_subpage && companion_shortcut_action_valid(mac_lock.entity));
+
+  const auto shortcuts_page = normalize_parsed_cfg(ParsedCfg{
+      "", "Apple Shortcuts", "Flash", "Auto", "", "", "subpage", "",
+      "subpage_connector=mac_companion,subpage_kind=apple_shortcuts"});
+  assert(shortcuts_page.type == "subpage" && shortcuts_page.entity.empty() && shortcuts_page.sensor.empty());
+  assert(shortcuts_page.label == "Apple Shortcuts" && shortcuts_page.icon == "Flash");
+  assert(cfg_option_value(shortcuts_page.options, "subpage_kind") == "apple_shortcuts");
+  assert(!companion_app_shortcuts_enabled(shortcuts_page));
 
   const auto saved_page = parse_subpage_config("~B,1|companion,com.example.RemoteEditor,Editor,,,,,,app_shortcuts");
   assert(saved_page.size() == 1);
@@ -94,7 +258,9 @@ int main() {
     runtime.set_keyboard_actions_supported(false);
     assert(!runtime.shortcut_page_ready("com.apple.Safari"));
     runtime.set_keyboard_actions_supported(true);
-    runtime.consume_auto_subpage_action("com.apple.Safari");
+    assert(runtime.app_subpage_mode() == CompanionAppSubpageMode::CARD);
+    assert(runtime.pending_auto_subpage_action().empty());
+    runtime.set_app_subpage_mode(CompanionAppSubpageMode::FOCUS);
     runtime.set_application_highlight("com.apple.finder");
     auto state = runtime.snapshot();
     assert(state.application_highlight_known && state.application_highlight_id == "com.apple.finder");
@@ -119,7 +285,6 @@ int main() {
     CompanionRuntimeService runtime;
     const std::string app = "com.apple.Safari";
     runtime.set_connected(true);
-    runtime.set_auto_open_app_subpages(false);
     runtime.set_application_highlight(app);
     assert(!runtime.set_focused_actions({app}));
     assert(!runtime.set_focused_actions({}));
@@ -138,15 +303,16 @@ int main() {
   {
     CompanionRuntimeService runtime;
     runtime.set_connected(true);
+    runtime.set_app_subpage_mode(CompanionAppSubpageMode::FOCUS);
     runtime.set_focused_actions({"first.app"});
     assert(runtime.take_wake_subpage_action() == "first.app");
     assert(runtime.pending_auto_subpage_action().empty());
     assert(runtime.take_wake_subpage_action() == "first.app");  // No new focus event required.
     runtime.set_focused_actions({"second.app"});
     assert(runtime.take_wake_subpage_action() == "second.app");
-    runtime.set_auto_open_app_subpages(false);
+    runtime.set_app_subpage_mode(CompanionAppSubpageMode::MANUAL);
     assert(runtime.take_wake_subpage_action().empty());
-    runtime.set_auto_open_app_subpages(true);
+    runtime.set_app_subpage_mode(CompanionAppSubpageMode::FOCUS);
     runtime.set_connected(false);
     assert(runtime.take_wake_subpage_action().empty());
   }
@@ -179,14 +345,14 @@ int main() {
   const auto restored = project(concurrent_edit, folders);
   assert(restored[0].label == "Renamed while offline" && restored.size() == 2);
   assert(saved.size() == 1 && saved[0].label == "My folder");
-  assert(finder_folder_catalogue_equal(folders, folders));
-  assert(!finder_folder_catalogue_equal(folders, {{"folder.one", "Different"}, folders[1]}));
+  assert(live_companion_catalogue_equal(folders, folders));
+  assert(!live_companion_catalogue_equal(folders, {{"folder.one", "Different"}, folders[1]}));
 
   // Exercise the real translation tables at the device-label boundary.
-  assert(std::string(companion_volume_control_label("media.input_mute")) == "Mute");
+  assert(std::string(companion_volume_control_label("media.input_mute")) == "Input State");
   assert(std::string(companion_volume_control_label("media.output_mute")) == "Mute");
   set_espdesktop_language("de");
-  assert(std::string(companion_volume_control_label("media.input_mute")) == "Stumm");
+  assert(std::string(companion_volume_control_label("media.input_mute")) == "Eingangsstatus");
   assert(std::string(companion_volume_control_label("media.output_volume")) == "Lautstärke");
   assert(std::string(companion_volume_control_label("media.input_volume")) == "Mikro");
   assert(companion_default_action_label("", "url.https%3A%2F%2Fexample.com") == "URL öffnen");
@@ -203,9 +369,6 @@ int main() {
   assert(!companion_connected());
   assert(!companion_card_refresh_requested().load());
   const std::string athena = "com.apple.Safari.WebApp.27234284-164C-41C9-97DD-7189CD41B456";
-  assert(companion_athena_shortcut_target(athena + ":100") == athena);
-  assert(companion_athena_shortcut_target(athena + ":2").empty());
-  assert(companion_athena_shortcut_target("com.apple.Safari:100").empty());
   assert(companion_shortcut_action_valid("shortcut.command+a"));
   assert(companion_shortcut_label("shortcut.command+a") == "\U000F0633" "A");
   assert(companion_shortcut_action_valid("shortcut.control+shift+tab"));
@@ -243,6 +406,64 @@ int main() {
     // The Mac verifies Safari is active. A standalone keyboard card does not need app-launch approval.
     assert(companion_action_available(keyboard_only, "shortcut.tab"));
     assert(companion_action_available(keyboard_only, "shortcut.escape"));
+  }
+  {
+    CompanionRuntimeSnapshot obs;
+    const std::string take_action = "obs.take.45f44c62-1c70-4706-8930-f3ec000db026";
+    obs.actions = {{take_action, "Take Live: BRB"}, {"obs.status.stream", "Stream: Live"}};
+    obs.connected = true;
+    assert(companion_action_available(obs, "obs.take"));
+    assert(companion_published_action(obs, "obs.take")->id == take_action);
+    assert(companion_default_action_label("obs.take", "", &obs) == "Take Live: BRB");
+    const std::string record_action = "obs.output.record.45f44c62-1c70-4706-8930-f3ec000db026";
+    obs.actions.push_back({record_action, "Start Recording"});
+    assert(companion_obs_output_card("obs.output.record"));
+    assert(!companion_obs_output_card(record_action));
+    for (const auto *mode : {"", "both", "unknown"}) {
+      assert(companion_obs_needs_confirmation("obs.output.record", mode, "Start Recording"));
+      assert(companion_obs_needs_confirmation("obs.output.record", mode, "Stop Recording"));
+    }
+    assert(companion_obs_needs_confirmation("obs.output.stream", "on", "Start Streaming"));
+    assert(!companion_obs_needs_confirmation("obs.output.stream", "on", "Stop Streaming"));
+    assert(!companion_obs_needs_confirmation("obs.output.stream", "off", "Start Streaming"));
+    assert(companion_obs_needs_confirmation("obs.output.stream", "off", "Stop Streaming"));
+    assert(companion_obs_needs_confirmation("obs.output.stream", "on", "Unknown direction"));
+    assert(!companion_obs_needs_confirmation("obs.output.record", "none", "Start Recording"));
+    assert(!companion_obs_needs_confirmation("obs.replay.buffer", "", "Legacy label", OBSCardState::toggle_off));
+    assert(companion_obs_needs_confirmation("obs.replay.buffer", "", "Legacy label", OBSCardState::toggle_on));
+    assert(companion_obs_needs_confirmation("obs.output.record", "off", "Legacy label", OBSCardState::output_paused));
+    for (const auto *toggle : {"obs.studio", "obs.replay.buffer"}) {
+      assert(companion_obs_confirmation_supported(toggle));
+      assert(!companion_obs_needs_confirmation(toggle, "", "Off"));
+      assert(companion_obs_needs_confirmation(toggle, "", "On"));
+      assert(companion_obs_needs_confirmation(toggle, "on", "Off"));
+      assert(!companion_obs_needs_confirmation(toggle, "on", "On"));
+      assert(companion_obs_needs_confirmation(toggle, "both", "Off"));
+      assert(companion_obs_needs_confirmation(toggle, "both", "On"));
+      assert(!companion_obs_needs_confirmation(toggle, "none", "On"));
+    }
+    assert(companion_action_available(obs, "obs.output.record"));
+    assert(!companion_action_available(obs, "obs.output.stream"));
+    assert(companion_published_action(obs, "obs.output.record")->id == record_action);
+    assert(companion_default_action_label("obs.output.record", "", &obs) == "Start Recording");
+    const std::string brb_action = "obs.brb.45f44c62-1c70-4706-8930-f3ec000db026";
+    obs.actions.push_back({brb_action, "Resume"});
+    assert(companion_action_available(obs, "obs.brb"));
+    assert(companion_published_action(obs, "obs.brb")->id == brb_action);
+    obs.actions.back() = {"obs.brb", "BRB Check OBS"};
+    assert(!companion_action_available(obs, "obs.brb"));
+    assert(companion_default_action_label("obs.brb", "", &obs) == "BRB Check OBS");
+    const std::string adaptive_scene = "obs.target.69da3f8f-7f62-4abe-a594-4e40dd579858";
+    const std::string armed_scene = adaptive_scene + ".45f44c62-1c70-4706-8930-f3ec000db026";
+    obs.actions.push_back({armed_scene, "Preview Gameplay"});
+    assert(companion_obs_scene_target(adaptive_scene));
+    assert(!companion_obs_scene_target(armed_scene));
+    assert(companion_action_available(obs, adaptive_scene));
+    assert(companion_published_action(obs, adaptive_scene)->id == armed_scene);
+    assert(companion_obs_status_card("obs.status.stream"));
+    obs.connected = false;
+    assert(!companion_action_available(obs, "obs.take"));
+    assert(companion_default_action_label("obs.status.stream", "", &obs) == espdesktop_i18n("Unavailable"));
   }
   assert(companion_shortcut_label("shortcut.shift+escape") == "\U000F0636" "Esc");
   assert(!companion_shortcut_action_valid("shortcut.shift+tab"));
@@ -414,7 +635,12 @@ int main() {
   assert(!companion_return_home_on_app_switch());
   companion_set_return_home_on_app_switch(true);
   assert(companion_return_home_on_app_switch());
+  companion_set_app_subpage_mode("card");
+  assert(companion_app_subpage_opens_on_press("com.apple.Safari"));
+  companion_set_app_subpage_mode("focus");
+  assert(!companion_app_subpage_opens_on_press("com.apple.Safari"));
   companion_set_focused_action("com.apple.Safari");
+  assert(companion_app_subpage_opens_on_press("com.apple.Safari"));
   assert(companion_pending_auto_subpage_action() == "com.apple.Safari");
   assert(companion_consume_auto_subpage_action("com.apple.Safari"));
   assert(companion_pending_auto_subpage_action().empty());
@@ -456,20 +682,22 @@ int main() {
   // opens or returns from a page because another app becomes focused.
   companion_set_focused_action("com.apple.Safari");
   assert(!companion_pending_auto_subpage_action().empty());
-  companion_set_auto_open_app_subpages(false);
-  assert(!companion_auto_open_app_subpages());
+  companion_set_app_subpage_mode("manual");
+  assert(companion_app_subpage_manual());
+  assert(!companion_app_subpage_opens_on_press("com.apple.finder"));
   assert(companion_pending_auto_subpage_action().empty());
   assert(!companion_consume_subpage_return_request());
   companion_set_focused_action("com.apple.finder");
   assert(companion_action_active("com.apple.finder"));
+  assert(companion_app_subpage_opens_on_press("com.apple.finder"));
   assert(companion_pending_auto_subpage_action().empty());
   assert(!companion_consume_subpage_return_request());
   companion_set_focused_actions({"com.apple.Safari", "webapp.google-docs"});
   assert(!companion_action_active("webapp.google-docs"));
   assert(companion_pending_auto_subpage_action().empty());
   assert(!companion_consume_subpage_return_request());
-  companion_set_auto_open_app_subpages(true);
-  assert(companion_auto_open_app_subpages());
+  companion_set_app_subpage_mode("focus");
+  assert(!companion_app_subpage_manual());
   assert(companion_pending_auto_subpage_action().empty());
   companion_set_focused_action("com.apple.finder");
   assert(companion_pending_auto_subpage_action() == "com.apple.finder");
@@ -486,6 +714,57 @@ int main() {
   assert(output_volume == 72);
   companion_remove_value("media.output_volume");
   assert(!companion_value("media.output_volume", output_volume));
+
+  CompanionCatalogueLimits catalogue_limits;
+  for (int index = 0; index < 256; ++index)
+    assert(catalogue_limits.retain("obs.scene." + std::to_string(index), false));
+  assert(!catalogue_limits.retain("obs.status.stream", false));
+  assert(catalogue_limits.retain("obs.sources", false));
+  for (int index = 0; index < 96; ++index)
+    assert(catalogue_limits.retain("obs.source." + std::to_string(index), false));
+  assert(!catalogue_limits.retain("obs.source.overflow", false));
+  for (int index = 0; index < 16; ++index)
+    assert(catalogue_limits.retain("input.level." + std::to_string(index), true));
+  assert(!catalogue_limits.retain("input.level.overflow", true));
+  for (int index = 0; index < 256; ++index)
+    assert(catalogue_limits.retain("com.example.App" + std::to_string(index), false));
+  assert(!catalogue_limits.retain("com.example.Overflow", false));
+
+  const char *system_controls[] = {"media.output_volume", "media.input_volume",
+                                  "media.output_mute", "media.input_mute", "media.cough"};
+  for (const auto *control : system_controls) companion_set_value(control, 100);
+  for (int index = 0; index < 256; ++index) {
+    const std::string id = "app.volume.com.example.Player" + std::to_string(index);
+    companion_set_value(id, 35);
+    int level = 0;
+    assert(companion_value(id, level) && level == 35);
+  }
+  for (int index = 0; index < 16; ++index) {
+    const std::string id = "input.level." + std::string(63, 'a') + "0123456789abcdef"[index];
+    companion_set_value(id, 45);
+    int level = 0;
+    assert(companion_value(id, level) && level == 45);
+  }
+  const std::string obs_level = "obs.level.69da3f8f-7f62-4abe-a594-4e40dd579858";
+  const std::string obs_meter = "obs.meter.69da3f8f-7f62-4abe-a594-4e40dd579858";
+  assert(companion_writable_value_control_valid(obs_level));
+  assert(!companion_writable_value_control_valid(obs_meter));
+  companion_set_value(obs_level, 72);
+  companion_set_value(obs_meter, 85);
+  assert(companion_value(obs_level, output_volume) && output_volume == 72);
+  assert(!companion_value(obs_meter, output_volume));
+  companion_remove_value(obs_level);
+  companion_remove_value(obs_meter);
+  const std::string overflow_input = "input.level." + std::string(64, 'b');
+  companion_set_value(overflow_input, 45);
+  assert(!companion_value(overflow_input, output_volume));
+  companion_set_value("app.volume.com.example.Overflow", 35);
+  assert(!companion_value("app.volume.com.example.Overflow", output_volume));
+  for (int index = 0; index < 256; ++index)
+    companion_remove_value("app.volume.com.example.Player" + std::to_string(index));
+  for (const auto *control : system_controls) companion_remove_value(control);
+  for (int index = 0; index < 16; ++index)
+    companion_remove_value("input.level." + std::string(63, 'a') + "0123456789abcdef"[index]);
   companion_set_focused_actions({"com.apple.Safari", "webapp.google-docs"});
   companion_runtime_service().set_application_highlight("com.apple.finder");
   assert(companion_action_active("com.apple.finder", true));
@@ -497,28 +776,84 @@ int main() {
   assert(companion_action_active("folder.one"));
   int guarded_invocations = 0;
   companion_set_keyboard_actions_supported(true);
-  std::string shortcut_target;
-  register_companion_action_sender([&](const std::string &, const std::string &, const std::string &, const std::string &app) {
+  std::string shortcut_target, sent_action, sent_request;
+  register_companion_action_sender([&](const std::string &action, const std::string &request, const std::string &, const std::string &app) {
+    sent_action = action;
+    sent_request = request;
     shortcut_target = app;
     ++guarded_invocations; return true;
   });
   companion_set_focused_actions({"A"});
   companion_runtime_service().set_application_highlight("B");
-  assert(!invoke_companion_action_for_app("shortcut.control+w", "guard-B", "B"));
-  assert(!invoke_companion_action_for_app("shortcut.control+w", "guard-A", "A"));
+  assert(!invoke_companion_action_for_app("shortcut.control+w", "guard-B", "B", "new_window", "custom", 0));
+  assert(!invoke_companion_action_for_app("shortcut.control+w", "guard-A", "A", "new_window", "custom", 0));
   assert(guarded_invocations == 0);
   companion_set_focused_actions({"B"});
-  assert(invoke_companion_action_for_app("shortcut.control+w", "confirmed-B", "B"));
+  assert(invoke_companion_action_for_app("shortcut.control+w", "confirmed-B", "B", "new_window", "custom", 0));
   assert(guarded_invocations == 1);
-  assert(invoke_companion_action_for_app("shortcut.control+w", "standalone", ""));
-  assert(guarded_invocations == 2);
+  assert(invoke_companion_action_for_app("shortcut.control+w", "standalone", "", "new_window", "custom", 0));
+  assert(guarded_invocations == 2 && sent_action == "shortcut.control+w" && shortcut_target.empty());
   assert(companion_shortcut_action_valid("shortcut.scoped.command+k~command+s"));
   assert(companion_shortcut_action_valid("shortcut.scoped.shift+keypadenter"));
   assert(!companion_shortcut_action_valid("shortcut.scoped.a~b~c~d"));
   assert(!companion_shortcut_action_valid("shortcut.scoped.command+command+a"));
-  assert(!invoke_companion_action_for_app("shortcut.scoped.space", "unscoped", ""));
-  assert(invoke_companion_action_for_app("shortcut.scoped.space", "app-preset", "", "new_window", "org.videolan.vlc:12"));
-  assert(shortcut_target == "org.videolan.vlc");
+  assert(!invoke_companion_action_for_app("shortcut.scoped.space", "unscoped", "", "new_window", "custom", 0));
+  assert(companion_app_scoped_shortcut("shortcut.command+w") == "shortcut.scoped.command+w");
+  assert(companion_app_scoped_shortcut("shortcut.escape-twice") == "shortcut.scoped.escape~escape");
+  assert(companion_app_scoped_shortcut("shortcut.scoped.command+k~command+s") ==
+         "shortcut.scoped.command+k~command+s");
+  assert(companion_app_scoped_shortcut("com.apple.Safari").empty());
+  const auto original_actions = companion_runtime_snapshot().actions;
+  companion_set_actions({{"com.apple.Safari", "Safari"}});
+  {
+    constexpr auto preset = "com.apple.Safari:0";
+    const int before = guarded_invocations;
+    assert(invoke_companion_action_for_app("shortcut.command+w", "preset", "", "new_window", preset, 0));
+    assert(guarded_invocations == before + 1 && sent_action == "com.apple.Safari" && shortcut_target.empty());
+    companion_deliver_action_result("other-preset", "activated");
+    assert(guarded_invocations == before + 1);
+    companion_deliver_action_result("preset", "activated");
+    companion_deliver_action_result("preset", "activated");
+    assert(guarded_invocations == before + 2 && sent_action == "shortcut.scoped.command+w");
+    assert(sent_request == "preset-keys" && shortcut_target == "com.apple.Safari");
+
+    assert(invoke_companion_action_for_app("shortcut.scoped.tab", "preset-denied", "", "new_window", preset, 0));
+    companion_deliver_action_result("preset-denied", "not_allowed");
+    assert(guarded_invocations == before + 3 && sent_action == "com.apple.Safari");
+    assert(!invoke_companion_action_for_app("shortcut.command+w", "missing", "", "new_window", "com.example.Missing:0", 0));
+    assert(guarded_invocations == before + 3);
+
+    companion_set_focused_action("com.apple.Safari");
+    assert(invoke_companion_action_for_app("shortcut.command+w", "same-app", "com.apple.Safari", "new_window", preset, 0));
+    assert(guarded_invocations == before + 4 && sent_action == "shortcut.scoped.command+w");
+    assert(sent_request == "same-app" && shortcut_target == "com.apple.Safari");
+  }
+  companion_set_actions({{"com.adobe.PremierePro.26", "Premiere Pro"}});
+  assert(companion_shortcut_launch_target("com.adobe.PremierePro") == "com.adobe.PremierePro.26");
+  const std::string web_app = "com.apple.Safari.WebApp.01234567-89ab-cdef-0123-456789abcdef";
+  const std::string other_web_app = "com.apple.Safari.WebApp.11234567-89ab-cdef-0123-456789abcdef";
+  companion_set_actions({{web_app, "Web App"}, {other_web_app, "Other Web App"}});
+  assert(companion_shortcut_launch_target("com.apple.Safari.WebApp").empty());
+  companion_set_focused_action(web_app);
+  assert(companion_shortcut_launch_target("com.apple.Safari.WebApp") == web_app);
+  companion_set_actions({{"com.apple.Safari", "Safari"}});
+  const int before_launch = guarded_invocations;
+  int shortcut_runs = 0;
+  assert(companion_activate_then("com.apple.Safari", "ha-launch", 1000, [&]() { ++shortcut_runs; }));
+  assert(guarded_invocations == before_launch + 1);
+  assert(shortcut_runs == 0);
+  companion_deliver_action_result("other-launch", "activated");
+  assert(shortcut_runs == 0);
+  companion_deliver_action_result("ha-launch", "activated");
+  companion_deliver_action_result("ha-launch", "activated");
+  assert(shortcut_runs == 1);
+  assert(companion_activate_then("com.apple.Safari", "ha-denied", 1000, [&]() { ++shortcut_runs; }));
+  companion_deliver_action_result("ha-denied", "not_allowed");
+  assert(shortcut_runs == 1);
+  assert(!companion_activate_then("com.example.Missing", "ha-missing", 1000, [&]() { ++shortcut_runs; }));
+  companion_deliver_action_result("ha-missing", "activated");
+  assert(shortcut_runs == 1);
+  companion_set_actions(original_actions);
   companion_set_value("media.output_volume", 72);
   bool volume_invoked = false;
   register_companion_value_sender([&volume_invoked](const std::string &control, int value,
@@ -540,13 +875,38 @@ int main() {
     companion_set_value(control, 0);
     assert(companion_toggle_mute(control));
     assert(mute_control == control && mute_value == 100 && !mute_request.empty());
-    companion_set_value(control, 100);
-    assert(companion_toggle_mute(control));
+    const auto press_request = mute_request;
+    assert(companion_value(control, output_volume) && output_volume == 0);
+    assert(companion_runtime_service().displayed_mute_value(control, output_volume) == 100);
+    assert(companion_toggle_mute(control)); // A second tap uses the preview.
     assert(mute_value == 0);
+    companion_set_value(control, 100); // The first reply can arrive late.
+    companion_deliver_action_result(press_request, "performed");
+    assert(companion_runtime_service().displayed_mute_value(control, 100) == 0);
+    companion_deliver_action_result(mute_request, "not_allowed");
+    assert(companion_runtime_service().displayed_mute_value(control, 100) == 100);
+    assert(companion_toggle_mute(control));
+    companion_deliver_action_result(mute_request, "performed");
+    companion_set_value(control, 0);
+    companion_set_value(control, 100); // An external change wins after confirmation.
+    assert(companion_runtime_service().displayed_mute_value(control, 100) == 100);
+    assert(companion_toggle_mute(control));
+    companion_expire_action_results(100);
+    companion_expire_action_results(800);
+    assert(companion_runtime_service().displayed_mute_value(control, 100) == 100);
     assert(!invoke_companion_value(control, 50, "invalid-mute"));
     companion_remove_value(control);
     assert(!companion_toggle_mute(control));
   }
+  companion_set_value("media.cough", 0);
+  companion_runtime_service().preview_mute("media.cough", 100, "cough-press");
+  assert(companion_runtime_service().displayed_mute_value("media.cough", 0) == 100);
+  companion_runtime_service().preview_mute("media.cough", 0, "cough-release");
+  companion_set_value("media.cough", 100);
+  companion_deliver_action_result("cough-press", "performed");
+  assert(companion_runtime_service().displayed_mute_value("media.cough", 100) == 0);
+  companion_deliver_action_result("cough-release", "performed");
+  companion_set_value("media.cough", 0);
   companion_set_value("media.input_mute", 100);
   companion_set_connected(false);
   assert(!companion_toggle_mute("media.input_mute"));

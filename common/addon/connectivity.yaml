@@ -16,6 +16,16 @@
 # as well as release build entry points. An AP alone has no setup DNS/form.
 captive_portal:
 
+esphome:
+  on_boot:
+    # Restore the USB Wi-Fi setting before ESPHome starts the radio at priority 250.
+    - priority: 251
+      then:
+        - lambda: |-
+            #ifdef USE_COMPANION_USB
+            esphome::companion::CompanionUSBEditor::restore_wifi_on_boot();
+            #endif
+
 wifi:
   power_save_mode: none
   reboot_timeout: 30min
@@ -45,6 +55,7 @@ wifi:
             // AP instructions on screen indefinitely instead of entering the
             // delayed 60-second reconnect flow.
             return !id(boot_grace_period) &&
+                   !wifi::global_wifi_component->is_disabled() &&
                    wifi::global_wifi_component->has_sta();
         then:
           - script.execute: wifi_reconnect_flow
@@ -104,15 +115,13 @@ script:
             - delay: 60s
             - if:
                 condition:
-                  not:
-                    wifi.connected:
+                  lambda: 'return !wifi::global_wifi_component->is_disabled() && !wifi::global_wifi_component->is_connected();'
                 then:
                   - script.execute: wifi_show_reconnecting
                   - delay: 30s
                   - if:
                       condition:
-                        not:
-                          wifi.connected:
+                        lambda: 'return !wifi::global_wifi_component->is_disabled() && !wifi::global_wifi_component->is_connected();'
                       then:
                         - script.execute: wifi_show_hotspot_setup
 

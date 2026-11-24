@@ -5,9 +5,11 @@
 #include <cstring>
 #include <optional>
 #include <string>
+#include <string_view>
 #include <variant>
 #include <vector>
 #include "companion_capabilities_generated.h"
+#include "companion_audio_control.h"
 
 namespace companion_protocol {
 using namespace ArduinoJson;
@@ -24,6 +26,30 @@ inline bool number_valid(JsonVariantConst value, double minimum, double maximum,
   const double n = value.as<double>();
   return std::isfinite(n) && n >= minimum && n <= maximum && (!integer || std::floor(n) == n);
 }
+inline bool input_device_control_id_valid(std::string_view id) {
+  constexpr std::string_view prefix = "input.level.";
+  if (id.size() != prefix.size() + 64 || id.substr(0, prefix.size()) != prefix) return false;
+  for (char c : id.substr(prefix.size()))
+    if (!((c >= '0' && c <= '9') || (c >= 'a' && c <= 'f'))) return false;
+  return true;
+}
+inline bool writable_volume_control_id_valid(std::string_view id) {
+  if (input_device_control_id_valid(id) || companion_writable_audio_control_id(id) ||
+      id == "media.cough" || companion_obs_cough_control(id)) return true;
+  constexpr std::string_view prefix = "app.volume.";
+  if (id.size() <= prefix.size() || id.size() > 107 || id.substr(0, prefix.size()) != prefix)
+    return false;
+  for (char c : id.substr(prefix.size())) {
+    if (!((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') ||
+          (c >= '0' && c <= '9') || c == '.' || c == '-')) return false;
+  }
+  return true;
+}
+
+inline bool volume_control_id_valid(std::string_view id) {
+  return writable_volume_control_id_valid(id);
+}
+
 inline bool hex_valid(JsonVariantConst value) {
   if (!string_valid(value, 64, 64)) return false;
   for (const char *c = value.as<const char *>(); *c; ++c)
@@ -46,6 +72,8 @@ struct AuthRequest {
 };
 struct AuthAccepted {
   uint32_t capabilityVersion{};
+  std::optional<bool> usbEditor{};
+  std::optional<bool> usbWifiAddress{};
 };
 struct Capabilities {
   std::vector<std::string> values{};
@@ -56,8 +84,13 @@ struct CatalogueRequest {
 struct CataloguePageItemsItem {
   std::string id{};
   std::string label{};
+  std::optional<std::string> obsState{};
+  std::optional<std::string> obsDetail{};
+  std::optional<bool> obsAvailable{};
+  std::optional<uint32_t> shortcutColor{};
 };
 struct CataloguePage {
+  std::optional<std::string> scope{};
   uint32_t generation{};
   uint32_t page{};
   bool complete{};
@@ -193,6 +226,19 @@ struct CatalogueDefinitionsPage {
   bool complete{};
   std::vector<CatalogueDefinitionsPageItemsItem> items{};
 };
+struct ShortcutCatalogueRequest {
+  uint32_t requestId{};
+  std::string appId{};
+  uint32_t page{};
+};
+struct ShortcutCataloguePage {
+  uint32_t requestId{};
+  std::string appId{};
+  uint32_t page{};
+  uint32_t catalogueVersion{};
+  bool complete{};
+  std::optional<std::string> json{};
+};
 struct FocusTargetsItemsItem {
   std::string id{};
   std::string url{};
@@ -234,6 +280,8 @@ inline void encode(JsonObject root, const AuthAccepted &message) {
   root["type"] = "auth.accepted";
   root["protocol"] = COMPANION_PROTOCOL_VERSION;
   root["capabilityVersion"] = message.capabilityVersion;
+  if (message.usbEditor) root["usbEditor"] = *message.usbEditor;
+  if (message.usbWifiAddress) root["usbWifiAddress"] = *message.usbWifiAddress;
 }
 inline void encode(JsonObject root, const Capabilities &message) {
   root["type"] = "capabilities";
@@ -251,6 +299,7 @@ inline void encode(JsonObject root, const CatalogueRequest &message) {
 inline void encode(JsonObject root, const CataloguePage &message) {
   root["type"] = "catalogue.page";
   root["protocol"] = COMPANION_PROTOCOL_VERSION;
+  if (message.scope) root["scope"] = *message.scope;
   root["generation"] = message.generation;
   root["page"] = message.page;
   root["complete"] = message.complete;
@@ -259,6 +308,10 @@ inline void encode(JsonObject root, const CataloguePage &message) {
     auto entry = values_items.add<JsonObject>();
     entry["id"] = item.id;
     entry["label"] = item.label;
+    if (item.obsState) entry["obsState"] = *item.obsState;
+    if (item.obsDetail) entry["obsDetail"] = *item.obsDetail;
+    if (item.obsAvailable) entry["obsAvailable"] = *item.obsAvailable;
+    if (item.shortcutColor) entry["shortcutColor"] = *item.shortcutColor;
   }
 }
 inline void encode(JsonObject root, const ActionInvoke &message) {
@@ -447,6 +500,23 @@ inline void encode(JsonObject root, const CatalogueDefinitionsPage &message) {
     entry["json"] = item.json;
   }
 }
+inline void encode(JsonObject root, const ShortcutCatalogueRequest &message) {
+  root["type"] = "shortcut.catalogue.request";
+  root["protocol"] = COMPANION_PROTOCOL_VERSION;
+  root["requestId"] = message.requestId;
+  root["appId"] = message.appId;
+  root["page"] = message.page;
+}
+inline void encode(JsonObject root, const ShortcutCataloguePage &message) {
+  root["type"] = "shortcut.catalogue.page";
+  root["protocol"] = COMPANION_PROTOCOL_VERSION;
+  root["requestId"] = message.requestId;
+  root["appId"] = message.appId;
+  root["page"] = message.page;
+  root["catalogueVersion"] = message.catalogueVersion;
+  root["complete"] = message.complete;
+  if (message.json) root["json"] = *message.json;
+}
 inline void encode(JsonObject root, const FocusTargets &message) {
   root["type"] = "focus.targets";
   root["protocol"] = COMPANION_PROTOCOL_VERSION;
@@ -474,7 +544,7 @@ inline void encode(JsonObject root, const PairReset &message) {
   root["protocol"] = COMPANION_PROTOCOL_VERSION;
   (void) message;
 }
-using Message = std::variant<Hello, PairRequest, PairAccepted, AuthRequest, AuthAccepted, Capabilities, CatalogueRequest, CataloguePage, ActionInvoke, ActionResult, ValueSet, ValueState, FocusChanged, TimezoneChanged, NowPlaying, SystemMetrics, ArtworkBegin, ArtworkAck, ArtworkEnd, ArtworkAbort, ArtworkRequest, AppIconRequest, AppIconBegin, AppIconUnchanged, AppIconUnavailable, AppIconAck, AppIconEnd, AppIconAbort, Error, CatalogueDefinitionsPage, FocusTargets, SessionLock, PairReset>;
+using Message = std::variant<Hello, PairRequest, PairAccepted, AuthRequest, AuthAccepted, Capabilities, CatalogueRequest, CataloguePage, ActionInvoke, ActionResult, ValueSet, ValueState, FocusChanged, TimezoneChanged, NowPlaying, SystemMetrics, ArtworkBegin, ArtworkAck, ArtworkEnd, ArtworkAbort, ArtworkRequest, AppIconRequest, AppIconBegin, AppIconUnchanged, AppIconUnavailable, AppIconAck, AppIconEnd, AppIconAbort, Error, CatalogueDefinitionsPage, ShortcutCatalogueRequest, ShortcutCataloguePage, FocusTargets, SessionLock, PairReset>;
 inline std::optional<Message> decode(JsonObjectConst root, Direction direction, SessionState state) {
   if (!number_valid(root["protocol"], COMPANION_PROTOCOL_VERSION, COMPANION_PROTOCOL_VERSION, true) || !root["type"].is<const char *>()) return std::nullopt;
   const std::string type = root["type"].as<std::string>();
@@ -529,8 +599,16 @@ inline std::optional<Message> decode(JsonObjectConst root, Direction direction, 
     {
       if (!(number_valid(root["capabilityVersion"], 1, 4294967295, true))) return std::nullopt;
     }
+    if (!root["usbEditor"].isUnbound()) {
+      if (!(root["usbEditor"].is<bool>())) return std::nullopt;
+    }
+    if (!root["usbWifiAddress"].isUnbound()) {
+      if (!(root["usbWifiAddress"].is<bool>())) return std::nullopt;
+    }
     AuthAccepted result;
     result.capabilityVersion = root["capabilityVersion"].as<uint32_t>();
+    if (!root["usbEditor"].isUnbound()) result.usbEditor = root["usbEditor"].as<bool>();
+    if (!root["usbWifiAddress"].isUnbound()) result.usbWifiAddress = root["usbWifiAddress"].as<bool>();
     return result;
   }
   if (type == "capabilities") {
@@ -558,6 +636,9 @@ inline std::optional<Message> decode(JsonObjectConst root, Direction direction, 
   if (type == "catalogue.page") {
     if (direction != Direction::MAC_TO_PANEL) return std::nullopt;
     if (!(state == SessionState::CONNECTED)) return std::nullopt;
+    if (!root["scope"].isUnbound()) {
+      if (!(string_valid(root["scope"], 3, 3) && (std::string_view(root["scope"].as<const char *>()) == "obs"))) return std::nullopt;
+    }
     {
       if (!(number_valid(root["generation"], 1, 4294967295, true))) return std::nullopt;
     }
@@ -577,14 +658,27 @@ inline std::optional<Message> decode(JsonObjectConst root, Direction direction, 
         {
           if (!(string_valid(item.as<JsonObjectConst>()["label"], 1, 96))) return std::nullopt;
         }
+        if (!item.as<JsonObjectConst>()["obsState"].isUnbound()) {
+          if (!(string_valid(item.as<JsonObjectConst>()["obsState"], 1, 32) && (std::string_view(item.as<JsonObjectConst>()["obsState"].as<const char *>()) == "scene_idle" || std::string_view(item.as<JsonObjectConst>()["obsState"].as<const char *>()) == "scene_live" || std::string_view(item.as<JsonObjectConst>()["obsState"].as<const char *>()) == "scene_program" || std::string_view(item.as<JsonObjectConst>()["obsState"].as<const char *>()) == "scene_preview" || std::string_view(item.as<JsonObjectConst>()["obsState"].as<const char *>()) == "scene_program_preview" || std::string_view(item.as<JsonObjectConst>()["obsState"].as<const char *>()) == "take_ready" || std::string_view(item.as<JsonObjectConst>()["obsState"].as<const char *>()) == "take_studio_off" || std::string_view(item.as<JsonObjectConst>()["obsState"].as<const char *>()) == "take_transitioning" || std::string_view(item.as<JsonObjectConst>()["obsState"].as<const char *>()) == "take_no_preview" || std::string_view(item.as<JsonObjectConst>()["obsState"].as<const char *>()) == "take_same_scene" || std::string_view(item.as<JsonObjectConst>()["obsState"].as<const char *>()) == "toggle_on" || std::string_view(item.as<JsonObjectConst>()["obsState"].as<const char *>()) == "toggle_off" || std::string_view(item.as<JsonObjectConst>()["obsState"].as<const char *>()) == "replay_ready" || std::string_view(item.as<JsonObjectConst>()["obsState"].as<const char *>()) == "replay_saving" || std::string_view(item.as<JsonObjectConst>()["obsState"].as<const char *>()) == "replay_saved" || std::string_view(item.as<JsonObjectConst>()["obsState"].as<const char *>()) == "replay_unconfirmed" || std::string_view(item.as<JsonObjectConst>()["obsState"].as<const char *>()) == "output_idle" || std::string_view(item.as<JsonObjectConst>()["obsState"].as<const char *>()) == "output_active" || std::string_view(item.as<JsonObjectConst>()["obsState"].as<const char *>()) == "output_live" || std::string_view(item.as<JsonObjectConst>()["obsState"].as<const char *>()) == "output_paused" || std::string_view(item.as<JsonObjectConst>()["obsState"].as<const char *>()) == "output_stopping" || std::string_view(item.as<JsonObjectConst>()["obsState"].as<const char *>()) == "output_reconnecting" || std::string_view(item.as<JsonObjectConst>()["obsState"].as<const char *>()) == "output_changing" || std::string_view(item.as<JsonObjectConst>()["obsState"].as<const char *>()) == "output_changing_live" || std::string_view(item.as<JsonObjectConst>()["obsState"].as<const char *>()) == "audio_muted" || std::string_view(item.as<JsonObjectConst>()["obsState"].as<const char *>()) == "audio_live" || std::string_view(item.as<JsonObjectConst>()["obsState"].as<const char *>()) == "transition_selected" || std::string_view(item.as<JsonObjectConst>()["obsState"].as<const char *>()) == "transition_idle" || std::string_view(item.as<JsonObjectConst>()["obsState"].as<const char *>()) == "source_visible" || std::string_view(item.as<JsonObjectConst>()["obsState"].as<const char *>()) == "source_hidden" || std::string_view(item.as<JsonObjectConst>()["obsState"].as<const char *>()) == "break_start" || std::string_view(item.as<JsonObjectConst>()["obsState"].as<const char *>()) == "break_resume" || std::string_view(item.as<JsonObjectConst>()["obsState"].as<const char *>()) == "break_transitioning" || std::string_view(item.as<JsonObjectConst>()["obsState"].as<const char *>()) == "break_already" || std::string_view(item.as<JsonObjectConst>()["obsState"].as<const char *>()) == "break_check" || std::string_view(item.as<JsonObjectConst>()["obsState"].as<const char *>()) == "break_unavailable"))) return std::nullopt;
+        }
+        if (!item.as<JsonObjectConst>()["obsDetail"].isUnbound()) {
+          if (!(string_valid(item.as<JsonObjectConst>()["obsDetail"], 1, 96))) return std::nullopt;
+        }
+        if (!item.as<JsonObjectConst>()["obsAvailable"].isUnbound()) {
+          if (!(item.as<JsonObjectConst>()["obsAvailable"].is<bool>())) return std::nullopt;
+        }
+        if (!item.as<JsonObjectConst>()["shortcutColor"].isUnbound()) {
+          if (!(number_valid(item.as<JsonObjectConst>()["shortcutColor"], 0, 16777215, true))) return std::nullopt;
+        }
       }
     }
     CataloguePage result;
+    if (!root["scope"].isUnbound()) result.scope = root["scope"].as<std::string>();
     result.generation = root["generation"].as<uint32_t>();
     result.page = root["page"].as<uint32_t>();
     result.complete = root["complete"].as<bool>();
     for (JsonVariantConst item : root["items"].as<JsonArrayConst>()) {
-      result.items.push_back({item["id"].as<std::string>(), item["label"].as<std::string>()});
+      result.items.push_back({item["id"].as<std::string>(), item["label"].as<std::string>(), item["obsState"].isUnbound() ? std::nullopt : std::optional<std::string>{item["obsState"].as<std::string>()}, item["obsDetail"].isUnbound() ? std::nullopt : std::optional<std::string>{item["obsDetail"].as<std::string>()}, item["obsAvailable"].isUnbound() ? std::nullopt : std::optional<bool>{item["obsAvailable"].as<bool>()}, item["shortcutColor"].isUnbound() ? std::nullopt : std::optional<uint32_t>{item["shortcutColor"].as<uint32_t>()}});
     }
     return result;
   }
@@ -595,19 +689,19 @@ inline std::optional<Message> decode(JsonObjectConst root, Direction direction, 
       if (!(string_valid(root["requestId"], 1, 64))) return std::nullopt;
     }
     {
-      if (!(string_valid(root["kind"], 1, 6) && (root["kind"].as<std::string>() == "action" || root["kind"].as<std::string>() == "url"))) return std::nullopt;
+      if (!(string_valid(root["kind"], 1, 6) && (std::string_view(root["kind"].as<const char *>()) == "action" || std::string_view(root["kind"].as<const char *>()) == "url"))) return std::nullopt;
     }
     if (!root["actionId"].isUnbound()) {
       if (!(string_valid(root["actionId"], 1, 96))) return std::nullopt;
     }
     if (!root["folderOpenBehavior"].isUnbound()) {
-      if (!(string_valid(root["folderOpenBehavior"], 10, 11) && (root["folderOpenBehavior"].as<std::string>() == "new_window" || root["folderOpenBehavior"].as<std::string>() == "same_window"))) return std::nullopt;
+      if (!(string_valid(root["folderOpenBehavior"], 10, 11) && (std::string_view(root["folderOpenBehavior"].as<const char *>()) == "new_window" || std::string_view(root["folderOpenBehavior"].as<const char *>()) == "same_window"))) return std::nullopt;
     }
     if (!root["appId"].isUnbound()) {
       if (!(string_valid(root["appId"], 1, 96))) return std::nullopt;
     }
     if (!root["urlOpenBehavior"].isUnbound()) {
-      if (!(string_valid(root["urlOpenBehavior"], 7, 10) && (root["urlOpenBehavior"].as<std::string>() == "new_tab" || root["urlOpenBehavior"].as<std::string>() == "new_window"))) return std::nullopt;
+      if (!(string_valid(root["urlOpenBehavior"], 7, 10) && (std::string_view(root["urlOpenBehavior"].as<const char *>()) == "new_tab" || std::string_view(root["urlOpenBehavior"].as<const char *>()) == "new_window"))) return std::nullopt;
     }
     if (!root["encodedUrl"].isUnbound()) {
       if (!(string_valid(root["encodedUrl"], 1, 128))) return std::nullopt;
@@ -635,7 +729,7 @@ inline std::optional<Message> decode(JsonObjectConst root, Direction direction, 
       if (!(string_valid(root["requestId"], 1, 64))) return std::nullopt;
     }
     {
-      if (!(string_valid(root["status"], 1, 11) && (root["status"].as<std::string>() == "activated" || root["status"].as<std::string>() == "performed" || root["status"].as<std::string>() == "opened" || root["status"].as<std::string>() == "not_allowed" || root["status"].as<std::string>() == "not_found" || root["status"].as<std::string>() == "failed"))) return std::nullopt;
+      if (!(string_valid(root["status"], 1, 11) && (std::string_view(root["status"].as<const char *>()) == "activated" || std::string_view(root["status"].as<const char *>()) == "performed" || std::string_view(root["status"].as<const char *>()) == "opened" || std::string_view(root["status"].as<const char *>()) == "not_allowed" || std::string_view(root["status"].as<const char *>()) == "not_found" || std::string_view(root["status"].as<const char *>()) == "failed"))) return std::nullopt;
     }
     ActionResult result;
     result.requestId = root["requestId"].as<std::string>();
@@ -649,7 +743,7 @@ inline std::optional<Message> decode(JsonObjectConst root, Direction direction, 
       if (!(string_valid(root["requestId"], 1, 64))) return std::nullopt;
     }
     {
-      if (!(string_valid(root["controlId"], 1, 19) && (root["controlId"].as<std::string>() == "media.output_volume" || root["controlId"].as<std::string>() == "media.input_volume" || root["controlId"].as<std::string>() == "media.output_mute" || root["controlId"].as<std::string>() == "media.input_mute"))) return std::nullopt;
+      if (!(string_valid(root["controlId"], 1, 107) && writable_volume_control_id_valid(root["controlId"].as<const char *>()))) return std::nullopt;
     }
     {
       if (!(number_valid(root["value"], 0, 100, true))) return std::nullopt;
@@ -664,7 +758,7 @@ inline std::optional<Message> decode(JsonObjectConst root, Direction direction, 
     if (direction != Direction::MAC_TO_PANEL) return std::nullopt;
     if (!(state == SessionState::CONNECTED)) return std::nullopt;
     {
-      if (!(string_valid(root["controlId"], 1, 19) && (root["controlId"].as<std::string>() == "media.output_volume" || root["controlId"].as<std::string>() == "media.input_volume" || root["controlId"].as<std::string>() == "media.output_mute" || root["controlId"].as<std::string>() == "media.input_mute"))) return std::nullopt;
+      if (!(string_valid(root["controlId"], 1, 107) && volume_control_id_valid(root["controlId"].as<const char *>()))) return std::nullopt;
     }
     {
       if (!(root["available"].is<bool>())) return std::nullopt;
@@ -742,7 +836,7 @@ inline std::optional<Message> decode(JsonObjectConst root, Direction direction, 
       if (!(string_valid(root["album"], 0, 256))) return std::nullopt;
     }
     {
-      if (!(string_valid(root["state"], 1, 11) && (root["state"].as<std::string>() == "playing" || root["state"].as<std::string>() == "paused" || root["state"].as<std::string>() == "stopped" || root["state"].as<std::string>() == "unavailable"))) return std::nullopt;
+      if (!(string_valid(root["state"], 1, 11) && (std::string_view(root["state"].as<const char *>()) == "playing" || std::string_view(root["state"].as<const char *>()) == "paused" || std::string_view(root["state"].as<const char *>()) == "stopped" || std::string_view(root["state"].as<const char *>()) == "unavailable"))) return std::nullopt;
     }
     {
       if (!(number_valid(root["durationMs"], 0, 86400000, false))) return std::nullopt;
@@ -869,7 +963,7 @@ inline std::optional<Message> decode(JsonObjectConst root, Direction direction, 
       if (!(string_valid(root["sha256"], 1, 64) && hex_valid(root["sha256"]))) return std::nullopt;
     }
     {
-      if (!(string_valid(root["mimeType"], 1, 10) && (root["mimeType"].as<std::string>() == "image/jpeg"))) return std::nullopt;
+      if (!(string_valid(root["mimeType"], 1, 10) && (std::string_view(root["mimeType"].as<const char *>()) == "image/jpeg"))) return std::nullopt;
     }
     ArtworkBegin result;
     result.generation = root["generation"].as<uint32_t>();
@@ -951,7 +1045,7 @@ inline std::optional<Message> decode(JsonObjectConst root, Direction direction, 
       if (!(string_valid(root["sha256"], 64, 64) && hex_valid(root["sha256"]))) return std::nullopt;
     }
     {
-      if (!(string_valid(root["format"], 8, 8) && (root["format"].as<std::string>() == "rgb565a8"))) return std::nullopt;
+      if (!(string_valid(root["format"], 8, 8) && (std::string_view(root["format"].as<const char *>()) == "rgb565a8"))) return std::nullopt;
     }
     AppIconBegin result;
     result.appId = root["appId"].as<std::string>();
@@ -1056,7 +1150,7 @@ inline std::optional<Message> decode(JsonObjectConst root, Direction direction, 
       for (JsonVariantConst item : root["items"].as<JsonArrayConst>()) {
         if (!(item.is<JsonObjectConst>())) return std::nullopt;
         {
-          if (!(string_valid(item.as<JsonObjectConst>()["kind"], 5, 11) && (item.as<JsonObjectConst>()["kind"].as<std::string>() == "application" || item.as<JsonObjectConst>()["kind"].as<std::string>() == "webapp"))) return std::nullopt;
+          if (!(string_valid(item.as<JsonObjectConst>()["kind"], 5, 11) && (std::string_view(item.as<JsonObjectConst>()["kind"].as<const char *>()) == "application" || std::string_view(item.as<JsonObjectConst>()["kind"].as<const char *>()) == "webapp"))) return std::nullopt;
         }
         {
           if (!(string_valid(item.as<JsonObjectConst>()["json"], 2, 12000))) return std::nullopt;
@@ -1070,6 +1164,54 @@ inline std::optional<Message> decode(JsonObjectConst root, Direction direction, 
     for (JsonVariantConst item : root["items"].as<JsonArrayConst>()) {
       result.items.push_back({item["kind"].as<std::string>(), item["json"].as<std::string>()});
     }
+    return result;
+  }
+  if (type == "shortcut.catalogue.request") {
+    if (direction != Direction::PANEL_TO_MAC) return std::nullopt;
+    if (!(state == SessionState::CONNECTED)) return std::nullopt;
+    {
+      if (!(number_valid(root["requestId"], 1, 4294967295, true))) return std::nullopt;
+    }
+    {
+      if (!(string_valid(root["appId"], 1, 96))) return std::nullopt;
+    }
+    {
+      if (!(number_valid(root["page"], 0, 31, true))) return std::nullopt;
+    }
+    ShortcutCatalogueRequest result;
+    result.requestId = root["requestId"].as<uint32_t>();
+    result.appId = root["appId"].as<std::string>();
+    result.page = root["page"].as<uint32_t>();
+    return result;
+  }
+  if (type == "shortcut.catalogue.page") {
+    if (direction != Direction::MAC_TO_PANEL) return std::nullopt;
+    if (!(state == SessionState::CONNECTED)) return std::nullopt;
+    {
+      if (!(number_valid(root["requestId"], 1, 4294967295, true))) return std::nullopt;
+    }
+    {
+      if (!(string_valid(root["appId"], 1, 96))) return std::nullopt;
+    }
+    {
+      if (!(number_valid(root["page"], 0, 31, true))) return std::nullopt;
+    }
+    {
+      if (!(number_valid(root["catalogueVersion"], 1, 4294967295, true))) return std::nullopt;
+    }
+    {
+      if (!(root["complete"].is<bool>())) return std::nullopt;
+    }
+    if (!root["json"].isUnbound()) {
+      if (!(string_valid(root["json"], 2, 12000))) return std::nullopt;
+    }
+    ShortcutCataloguePage result;
+    result.requestId = root["requestId"].as<uint32_t>();
+    result.appId = root["appId"].as<std::string>();
+    result.page = root["page"].as<uint32_t>();
+    result.catalogueVersion = root["catalogueVersion"].as<uint32_t>();
+    result.complete = root["complete"].as<bool>();
+    if (!root["json"].isUnbound()) result.json = root["json"].as<std::string>();
     return result;
   }
   if (type == "focus.targets") {

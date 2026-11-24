@@ -162,14 +162,18 @@ test("disconnect stops catalogue refreshes and ignores an in-flight response", a
 });
 
 
-test("connected catalogue refreshes changed icon hashes without label changes", async () => {
+test("connected catalogue refreshes changed icon hashes and shortcut colours without label changes", async () => {
   const scheduled = new Map();
   let timerID = 0;
   let hash = "a".repeat(64);
+  let shortcutColor = 0xFF6363;
   const updates = [];
   const catalogue = createCompanionCatalogue(async () => ({
     ok: true,
-    json: async () => [{ id: "com.example.app", label: "Example", ...(hash ? { iconHash: hash } : {}) }],
+    json: async () => [
+      { id: "com.example.app", label: "Example", ...(hash ? { iconHash: hash } : {}) },
+      { id: "appleshortcut.pomodoro", label: "Start Pomodoro", shortcutColor },
+    ],
   }));
   const monitor = createCompanionCatalogueMonitor(
     () => catalogue.load(true),
@@ -197,5 +201,62 @@ test("connected catalogue refreshes changed icon hashes without label changes", 
   await refresh();
   assert.equal(updates.length, 3, "evicted icons also invalidate the previous preview");
   assert.equal(updates[2][0].iconHash, undefined);
+  shortcutColor = 0;
+  await refresh();
+  assert.equal(updates.length, 4, "changing only the shortcut colour refreshes the preview");
+  assert.equal(updates[3][1].shortcutColor, 0);
   monitor.stop();
+});
+
+test("app shortcut picker fetches only the selected app, deduplicates requests, and caches the full reply", async () => {
+  const appId = "com.brave.Browser";
+  const calls = [];
+  const starter = { appId, label: "Brave Browser", shortcuts: [{ id: "0" }] };
+  const expanded = { appId, shortcuts: [], moreShortcuts: [{ id: "77" }] };
+  const catalogue = createCompanionCatalogue(async (url) => {
+    calls.push(url);
+    if (calls.length === 1) return new Response(null, { status: 202 });
+    const page = Number(new URL(url, "http://display.local").searchParams.get("page"));
+    return Response.json({
+      catalogueVersion: 24, page, complete: page === 1, application: page === 0 ? starter : expanded,
+    });
+  });
+  const request = catalogue.loadShortcutApplication(appId);
+  assert.equal(catalogue.loadShortcutApplication(appId), request);
+  const definition = await request;
+  assert.equal(definition.label, "Brave Browser");
+  assert.deepEqual(definition.moreShortcuts, [{ id: "77" }]);
+  assert.equal(await catalogue.loadShortcutApplication(appId), definition);
+  assert.deepEqual(calls, [0, 0, 1].map(page => `/companion/shortcut-page?appId=${appId}&page=${page}`));
+});
+
+test("a disconnect or catalogue change during an app transfer never publishes a partial definition", async () => {
+  const appId = "com.brave.Browser";
+  for (const interrupted of [new Response(null, { status: 404 }), Response.json({
+    catalogueVersion: 25, page: 1, complete: true,
+    application: { appId, shortcuts: [], moreShortcuts: [{ id: "77" }] },
+  })]) {
+    const catalogue = createCompanionCatalogue(async (url) => url.endsWith("page=1") ? interrupted : Response.json({
+      catalogueVersion: 24, page: 0, complete: false,
+      application: { appId, label: "Brave Browser", shortcuts: [{ id: "0" }] },
+    }));
+    assert.equal(await catalogue.loadShortcutApplication(appId), null);
+  }
+});
+
+test("picker discovers apps beyond 256 without downloading their shortcut definitions", async () => {
+  const catalogue = createCompanionCatalogue(async (url) => {
+    const params = new URL(url, "http://display.local").searchParams;
+    assert.equal(params.get("appId"), "index");
+    const page = Number(params.get("page"));
+    return Response.json({ page, catalogueVersion: 30, complete: page === 9, application: {
+      applications: Array.from({ length: 32 }, (_, index) => ({
+        appId: `com.example.App${page * 32 + index}`, label: `App ${page * 32 + index}`,
+      })),
+    } });
+  });
+  const { applications } = await catalogue.loadDefinitions();
+  assert.equal(applications.length, 320);
+  assert.equal(applications.at(-1).appId, "com.example.App319");
+  assert(applications.every(app => app.shortcuts.length === 0));
 });

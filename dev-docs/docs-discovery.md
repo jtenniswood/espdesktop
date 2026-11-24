@@ -101,11 +101,26 @@ setup, and control guides use a photo or screenshot from the corresponding
 workflow. Keep the image descriptions and dimensions in
 `docs/.vitepress/config.mts` aligned with the bundled files.
 
-FAQ JSON-LD is derived from the rendered Markdown's level-three questions and
-answers. Edit the visible FAQ; do not add a second hand-maintained answer list.
-Keep detailed procedures in their topic guide and link to them from short FAQ
-answers. Cite a release or dated verification when describing beta status or
-availability; a successful docs build is not physical device testing.
+Use `<FaqAccordion>` on any docs page to present expandable questions. Write
+the section heading above the component, put each question on a `::: details`
+line, and put its Markdown answer below it.
+
+```md
+## FAQ
+
+<FaqAccordion>
+
+::: details How do I customise my display?
+See the [screen layout guide](/features/home).
+:::
+
+</FaqAccordion>
+```
+
+The docs build uses the same questions and answers for FAQ JSON-LD and the
+plain-text Markdown edition. Edit the visible answers and link to the topic
+guides for detailed procedures. The main compatibility FAQ also supports
+its existing level-three question headings.
 
 [FAQ rich results were retired in May 2026](https://developers.google.com/search/updates).
 The schema here keeps the machine-readable content consistent with the page.

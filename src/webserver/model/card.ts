@@ -10,6 +10,7 @@ export type DraftCardConfig = CardConfig & {
   _whenOnActive?: unknown;
   _whenOnMode?: unknown;
   _finderFolderTabs?: string[] | undefined;
+  _appleShortcutTabs?: string[] | undefined;
   _appShortcutSelectionChanged?: unknown;
   _appShortcutAppChanged?: unknown;
 };
@@ -25,6 +26,17 @@ export const CARD_CONFIG_FIELDS: readonly SavedConfigField[] = [
   "precision",
   "options",
 ];
+
+export const OBS_FADER_PREFIX = "obs.level.";
+export const OBS_METER_PREFIX = "obs.meter.";
+
+export function isOBSFaderControlID(entity: unknown): entity is string {
+  return typeof entity === "string" && /^obs\.level\.[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}$/.test(entity);
+}
+
+export function isOBSMeterControlID(entity: unknown): entity is string {
+  return typeof entity === "string" && /^obs\.meter\.[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}$/.test(entity);
+}
 
 export function isMacAudioCard(type: string, entity: string | null | undefined): boolean {
   return type === "slider" &&
@@ -56,6 +68,11 @@ export function emptyCardConfig(type?: string): CardConfig {
   };
 }
 
+export function isEmptyCardConfig(card: CardConfig | undefined): boolean {
+  return !card || CARD_CONFIG_FIELDS.every(field => !card[field] ||
+    ((field === "icon" || field === "icon_on") && card[field] === "Auto"));
+}
+
 export function cloneCardConfig(src?: Partial<CardConfig> & Partial<DraftCardConfig>): DraftCardConfig {
   const button: DraftCardConfig = {
     entity: src?.entity || "",
@@ -81,6 +98,7 @@ export function cloneCardConfig(src?: Partial<CardConfig> & Partial<DraftCardCon
     button._appShortcutAppChanged = src._appShortcutAppChanged;
   }
   if (Array.isArray(src?._finderFolderTabs)) button._finderFolderTabs = [...src._finderFolderTabs];
+  if (Array.isArray(src?._appleShortcutTabs)) button._appleShortcutTabs = [...src._appleShortcutTabs];
   return button;
 }
 
@@ -95,6 +113,7 @@ export function copyCardConfig(
   target._whenOnActive = button._whenOnActive;
   target._whenOnMode = button._whenOnMode;
   target._finderFolderTabs = button._finderFolderTabs;
+  target._appleShortcutTabs = button._appleShortcutTabs;
   target._appShortcutSelectionChanged = button._appShortcutSelectionChanged;
   target._appShortcutAppChanged = button._appShortcutAppChanged;
   return target as DraftCardConfig;

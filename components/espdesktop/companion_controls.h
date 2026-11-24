@@ -9,6 +9,7 @@
 #include <cctype>
 #include <cmath>
 #include <cstdlib>
+#include <cstring>
 #include <functional>
 #include <mutex>
 #include <string>
@@ -17,8 +18,11 @@
 
 #include "app_shortcuts_generated.h"
 #include "companion_capabilities_generated.h"
+#include "companion_audio_control.h"
+#include "companion_obs_confirmation.h"
 #include "companion_runtime_access.h"
 #include "companion_shortcut_page.h"
+#include "icons.h"
 #ifdef USE_COMPANION
 #include "../companion/app_icon_store.h"
 #endif
@@ -83,6 +87,7 @@ inline void companion_cancel_action_result(const std::string &request_id = "") {
 }
 
 inline size_t companion_expire_action_results(uint32_t now) {
+  companion_runtime_service().expire_mute_previews(now);
   size_t expired = 0;
   auto &pending = companion_pending_actions();
   std::lock_guard<std::mutex> lock(pending.mutex);
@@ -98,6 +103,7 @@ inline size_t companion_expire_action_results(uint32_t now) {
 
 inline void companion_deliver_action_result(const std::string &request_id,
                                             const std::string &status) {
+  companion_runtime_service().acknowledge_mute(request_id, status == "performed");
   CompanionActionResultHandler success;
   {
     auto &pending = companion_pending_actions();
@@ -298,19 +304,49 @@ inline void companion_set_keyboard_actions_supported(bool supported) {
   companion_runtime_service().set_keyboard_actions_supported(supported);
 }
 
+inline constexpr char COMPANION_COUGH_ID[] = "media.cough";
+
 inline bool companion_mute_control_valid(const std::string &control_id) {
   return control_id == "media.output_mute" || control_id == "media.input_mute";
 }
 
+inline bool companion_app_volume_control_valid(const std::string &control_id) {
+  constexpr std::string_view prefix = "app.volume.";
+  if (control_id.size() <= prefix.size() || control_id.size() > 107 ||
+      control_id.compare(0, prefix.size(), prefix) != 0) return false;
+  return std::all_of(control_id.begin() + prefix.size(), control_id.end(), [](char c) {
+    return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') ||
+           (c >= '0' && c <= '9') || c == '.' || c == '-';
+  });
+}
+
+inline bool companion_input_device_control_valid(const std::string &id) {
+  constexpr std::string_view prefix = "input.level.";
+  return id.size() == prefix.size() + 64 && id.compare(0, prefix.size(), prefix) == 0 &&
+    std::all_of(id.begin() + prefix.size(), id.end(), [](char c) {
+      return (c >= '0' && c <= '9') || (c >= 'a' && c <= 'f');
+    });
+}
+
 inline bool companion_volume_control_valid(const std::string &control_id) {
-  return control_id == "media.output_volume" || control_id == "media.input_volume" ||
-    companion_mute_control_valid(control_id);
+  return companion_audio_control_id(control_id) || companion_app_volume_control_valid(control_id) ||
+    companion_input_device_control_valid(control_id);
+}
+
+inline bool companion_value_control_valid(const std::string &control_id) {
+  return control_id == COMPANION_COUGH_ID || companion_obs_cough_control(control_id) ||
+    (!companion_obs_meter_control(control_id) && companion_volume_control_valid(control_id));
+}
+
+inline bool companion_writable_value_control_valid(const std::string &control_id) {
+  return companion_value_control_valid(control_id);
 }
 
 inline const char *companion_volume_control_label(const std::string &control_id) {
   if (control_id == "media.output_volume") return espdesktop_i18n("Volume");
   if (control_id == "media.input_volume") return espdesktop_i18n("Mic");
-  if (companion_mute_control_valid(control_id)) return espdesktop_i18n("Mute");
+  if (control_id == "media.input_mute") return espdesktop_i18n_key("input_state");
+  if (control_id == "media.output_mute") return espdesktop_i18n("Mute");
   return espdesktop_i18n("Volume");
 }
 
@@ -319,13 +355,16 @@ inline bool companion_value(const std::string &control_id, int &value) {
 }
 
 inline void companion_set_value(const std::string &control_id, int value) {
-  if (!companion_volume_control_valid(control_id)) return;
+  if (!companion_value_control_valid(control_id)) return;
   value = std::max(0, std::min(100, value));
-  companion_runtime_service().set_value(control_id, value);
+  constexpr size_t max_mac_values = 256 + 5 + 16;
+  constexpr size_t max_obs_values = 40 + 40;
+  const size_t limit = control_id.rfind("obs.", 0) == 0 ? max_obs_values : max_mac_values;
+  companion_runtime_service().set_value(control_id, value, limit);
 }
 
 inline void companion_remove_value(const std::string &control_id) {
-  if (!companion_volume_control_valid(control_id)) return;
+  if (!companion_value_control_valid(control_id)) return;
   companion_runtime_service().remove_value(control_id);
 }
 
@@ -358,8 +397,10 @@ inline std::string companion_consume_closed_app_subpage_action() {
   return companion_runtime_service().consume_closed_app_subpage_action();
 }
 
-inline void companion_set_auto_open_app_subpages(bool enabled) {
-  companion_runtime_service().set_auto_open_app_subpages(enabled);
+inline void companion_set_app_subpage_mode(std::string_view value) {
+  using Mode = CompanionAppSubpageMode;
+  companion_runtime_service().set_app_subpage_mode(
+      value == "focus" ? Mode::FOCUS : value == "manual" ? Mode::MANUAL : Mode::CARD);
 }
 
 inline void companion_set_return_home_on_app_switch(bool enabled) {
@@ -370,8 +411,8 @@ inline bool companion_return_home_on_app_switch() {
   return companion_runtime_service().return_home_on_app_switch();
 }
 
-inline bool companion_auto_open_app_subpages() {
-  return companion_runtime_service().auto_open_app_subpages();
+inline bool companion_app_subpage_manual() {
+  return companion_runtime_service().app_subpage_mode() == CompanionAppSubpageMode::MANUAL;
 }
 
 inline std::string companion_pending_auto_subpage_action() {
@@ -389,6 +430,7 @@ inline bool companion_consume_auto_subpage_action(const std::string &action_id) 
 inline bool companion_action_focused(const CompanionRuntimeSnapshot &snapshot,
                                     const std::string &action_id, bool visual_only = false) {
   if (action_id.empty() || action_id.rfind("shortcut.", 0) == 0 ||
+      companion_apple_shortcut_action(action_id) ||
       action_id.rfind("media.", 0) == 0) return false;
   if (!snapshot.connected) return false;
   if (visual_only && snapshot.application_highlight_known &&
@@ -431,6 +473,11 @@ inline bool companion_application_focused(const std::string &application_id) {
 
 inline bool companion_action_active(const std::string &action_id, bool visual_only = false) {
   return companion_action_focused(action_id, visual_only);
+}
+
+inline bool companion_app_subpage_opens_on_press(const std::string &action_id) {
+  const auto mode = companion_runtime_service().app_subpage_mode();
+  return mode == CompanionAppSubpageMode::CARD ? companion_connected() : companion_action_active(action_id);
 }
 
 inline uint32_t companion_next_request_number() {
@@ -603,15 +650,108 @@ inline std::string companion_shortcut_label(const std::string &action_id) {
 }
 
 
+inline bool companion_obs_status_card(const std::string &id) {
+  return id.rfind("obs.status.", 0) == 0;
+}
+
+inline bool companion_obs_scene_target(std::string_view id) {
+  return companion_obs_audio_uuid(id, "obs.target.");
+}
+
+inline bool companion_obs_hashed_target(std::string_view id, std::string_view prefix) {
+  if (id.size() != prefix.size() + 32 || id.substr(0, prefix.size()) != prefix) return false;
+  const auto key = id.substr(prefix.size());
+  return std::all_of(key.begin(), key.end(), [](char ch) {
+    return (ch >= '0' && ch <= '9') || (ch >= 'a' && ch <= 'f');
+  });
+}
+
+inline bool companion_obs_transition_target(std::string_view id) {
+  return companion_obs_hashed_target(id, "obs.transition.select.");
+}
+
+inline bool companion_obs_source_target(std::string_view id) {
+  return companion_obs_hashed_target(id, "obs.source.");
+}
+
+inline bool companion_obs_scene_card(const std::string &id) {
+  return companion_obs_scene_target(id) || companion_obs_audio_uuid(id, "obs.scene.") ||
+    companion_obs_audio_uuid(id, "obs.preview.");
+}
+
+inline bool companion_obs_break_active(std::string_view label) {
+  return label == "Resume" || label == "Resuming…" || label.rfind("Resume · ", 0) == 0;
+}
+
+inline bool companion_obs_momentary_action(std::string_view id) {
+  return id == "obs.replay" || id == "obs.take" || id == "obs.transition" || id == "obs.multiview";
+}
+
+inline bool companion_obs_tokenized_card(const std::string &id) {
+  return id == "obs.take" || id == "obs.brb" || id == "obs.studio" || id == "obs.transition" ||
+    id == "obs.replay.buffer" || companion_obs_output_card(id) || companion_obs_scene_target(id) ||
+    companion_obs_transition_target(id) || companion_obs_source_target(id);
+}
+
+inline const CompanionAction *companion_published_action(const CompanionRuntimeSnapshot &snapshot,
+                                                          const std::string &id) {
+  if (!snapshot.connected && id.rfind("obs.", 0) == 0) return nullptr;
+  const bool tokenized = companion_obs_tokenized_card(id);
+  const auto item = std::find_if(snapshot.actions.begin(), snapshot.actions.end(), [&](const CompanionAction &action) {
+    // Saved tiles outlive the short-lived action for the state they show.
+    if (action.id == id) return true;
+    return tokenized && action.id.size() == id.size() + 37 &&
+      action.id[id.size()] == '.' && action.id.compare(0, id.size(), id) == 0;
+  });
+  return item == snapshot.actions.end() ? nullptr : &*item;
+}
+
 inline bool companion_action_available(const CompanionRuntimeSnapshot &snapshot, const std::string &action_id) {
-  if (action_id.empty()) return false;
+  if (action_id.empty() || companion_input_device_control_valid(action_id)) return false;
   if (!snapshot.connected) return false;
   if (companion_shortcut_action_valid(action_id)) return snapshot.keyboard_actions_supported;
   // An older Companion may still advertise retired window identifiers.
   if (action_id.rfind("window.", 0) == 0) return false;
-  return std::any_of(snapshot.actions.begin(), snapshot.actions.end(), [&action_id](const CompanionAction &action) {
-    return action.id == action_id;
-  });
+  const auto *action = companion_published_action(snapshot, action_id);
+  return action && action->obs_available != false &&
+    (!companion_obs_tokenized_card(action_id) || action->id != action_id);
+}
+
+inline bool companion_obs_record_stopping(const CompanionRuntimeSnapshot &snapshot) {
+  const auto *action = companion_published_action(snapshot, "obs.output.record");
+  return action && action->id == "obs.output.record" && action->label == "Stopping";
+}
+
+inline const char *companion_obs_output_status_id(const std::string &id) {
+  if (id == "obs.output.virtualcam") return "obs.status.virtualcam";
+  return id == "obs.output.record" ? "obs.status.record" : "obs.status.stream";
+}
+
+inline std::string_view companion_obs_output_status(const CompanionRuntimeSnapshot &snapshot,
+                                                    const std::string &id) {
+  const auto *status = companion_published_action(snapshot, companion_obs_output_status_id(id));
+  if (status && status->obs_state != OBSCardState::unknown) return obs_card_presentation(status->obs_state).detail;
+  if (id == "obs.output.record" && companion_obs_record_stopping(snapshot)) return "Stopping";
+  if (!status) return "Unavailable";
+  const auto separator = status->label.find(" · ");
+  return separator == std::string::npos ? "Unavailable"
+    : std::string_view(status->label).substr(separator + sizeof(" · ") - 1);
+}
+
+inline bool companion_obs_output_active(const CompanionRuntimeSnapshot &snapshot, const std::string &id) {
+  const bool record = id == "obs.output.record";
+  const auto *published = companion_published_action(snapshot, companion_obs_output_status_id(id));
+  if (published && published->obs_state != OBSCardState::unknown) return obs_card_presentation(published->obs_state).lit;
+  if (id == "obs.output.virtualcam") return companion_obs_output_status(snapshot, id) == "Active";
+  if (companion_published_action(snapshot, record ? "obs.record.active" : "obs.stream.active")) return true;
+  const auto status = companion_obs_output_status(snapshot, id);
+  return record ? status == "Active" || status == "Paused" || status == "Stopping"
+    : status == "Live" || status == "Reconnecting";
+}
+
+inline bool companion_obs_output_auto_icon(const std::string &id, const std::string &icon) {
+  return icon.empty() || icon == "Auto" || icon == "Monitor" ||
+    (id == "obs.output.virtualcam" ? icon == "Video" : id == "obs.output.record" ? icon == "Record" : icon == "Broadcast");
 }
 
 inline bool companion_action_available(const std::string &action_id) {
@@ -638,9 +778,11 @@ inline std::string companion_default_action_label(const std::string &action_id,
   if (!companion_encoded_url(url_config).empty()) return espdesktop_i18n("Open URL");
   const auto owned = state ? CompanionRuntimeSnapshot{} : companion_runtime_snapshot();
   const auto &snapshot = state ? *state : owned;
-  const auto action = std::find_if(snapshot.actions.begin(), snapshot.actions.end(),
-    [&action_id](const CompanionAction &candidate) { return candidate.id == action_id; });
-  if (action != snapshot.actions.end() && !action->label.empty()) return action->label;
+  const auto *action = companion_published_action(snapshot, action_id);
+  if (action && !action->label.empty()) return action->label;
+  if (action_id == "obs.replay" && companion_published_action(snapshot, "obs.status.program"))
+    return espdesktop_i18n("Start Replay Buffer");
+  if (action_id.rfind("obs.", 0) == 0) return espdesktop_i18n("Unavailable");
   return action_id.empty() ? espdesktop_i18n("Mac App") : action_id;
 }
 
@@ -651,6 +793,21 @@ inline std::string companion_default_action_label_with_fallback(
   if (label == action_id && !resolved_label.empty()) return resolved_label;
   resolved_label = label;
   return label;
+}
+
+inline std::string companion_obs_control_label(const std::string &action_id, const std::string &alias,
+                                               const std::string &live_label,
+                                               const CompanionRuntimeSnapshot *snapshot = nullptr) {
+  if (action_id == "obs.multiview") return alias.empty() ? espdesktop_i18n_key("obs_multiview") : alias;
+  if (snapshot && companion_obs_output_card(action_id)) {
+    const char *title = action_id == "obs.output.virtualcam" ? "Virtual Camera" : action_id == "obs.output.stream" ? "Stream"
+      : companion_obs_output_active(*snapshot, action_id) ? "Recording" : "Record";
+    return std::string(title) + " · " + std::string(companion_obs_output_status(*snapshot, action_id));
+  }
+  if (!alias.empty() && (companion_obs_scene_card(action_id) || companion_obs_transition_target(action_id) ||
+      companion_obs_source_target(action_id) || companion_obs_audio_uuid(action_id, "obs.mute."))) return alias;
+  if (companion_obs_audio_uuid(action_id, "obs.mute.")) return espdesktop_i18n_key("input_state");
+  return live_label;
 }
 
 inline bool companion_metric_card_should_disable(bool connected, bool preserve_navigation) {
@@ -698,6 +855,13 @@ struct CompanionCardRef {
   bool focus_draw_seen = false;
   bool last_drawn_focus = false;
   std::string required_focus_id{};
+  CompanionAction rendered_obs_action{};
+  std::string obs_label_alias{};
+  lv_obj_t *obs_mute_icon_label = nullptr;
+  const char *obs_mute_icon_off = nullptr;
+  const char *obs_mute_icon_on = nullptr;
+  lv_obj_t *obs_detail = nullptr;
+  lv_obj_t *obs_state_icon = nullptr;
 };
 
 struct CompanionSliderRef {
@@ -707,6 +871,8 @@ struct CompanionSliderRef {
   bool has_icon_on = false;
   const char *icon_off = nullptr;
   const char *icon_on = nullptr;
+  lv_obj_t *text_label = nullptr;
+  std::string base_label{};
 };
 
 inline void companion_apply_card_focus(lv_obj_t *button, const std::string &action_id,
@@ -714,13 +880,42 @@ inline void companion_apply_card_focus(lv_obj_t *button, const std::string &acti
                                        bool show_focus = true,
                                        const CompanionRuntimeSnapshot *snapshot = nullptr) {
   if (!button) return;
+  if (companion_obs_audio_uuid(action_id, "obs.mute.")) return;
   // A URL card targets a page inside the app, but Companion only reports the
   // frontmost app. Keep URL cards from appearing active for the wrong page.
   bool active = false;
-  if (show_focus && companion_card_focus_allowed(url_config)) {
+  if (show_focus && !companion_obs_momentary_action(action_id) && companion_card_focus_allowed(url_config)) {
     const std::string focus_id = url_config.empty() ? action_id : companion_url_card_focus_id(url_config);
-    active = snapshot ? companion_action_focused(*snapshot, focus_id, true)
-                      : companion_action_active(focus_id, true);
+    if (companion_obs_scene_card(action_id) || companion_obs_output_card(action_id) || action_id == "obs.studio" ||
+        action_id == "obs.brb" || action_id == "obs.replay.buffer" || companion_obs_transition_target(action_id) ||
+        companion_obs_source_target(action_id)) {
+      const auto owned = snapshot ? CompanionRuntimeSnapshot{} : companion_runtime_snapshot();
+      const auto &current = snapshot ? *snapshot : owned;
+      const auto *published = companion_published_action(current, action_id);
+      if (companion_obs_output_card(action_id)) {
+        active = companion_obs_output_active(current, action_id);
+      } else if (published && published->obs_state != OBSCardState::unknown) {
+        active = obs_card_presentation(published->obs_state).lit;
+      } else if (action_id == "obs.studio" || action_id == "obs.replay.buffer") {
+        const auto *mode = companion_published_action(current, action_id);
+        active = mode && mode->label == "On";
+      } else if (action_id == "obs.brb") {
+        const auto *action = companion_published_action(current, action_id);
+        active = action && companion_obs_break_active(action->label);
+      } else if (companion_obs_source_target(action_id)) {
+        active = companion_published_action(current, "obs.source.visible." + action_id.substr(sizeof("obs.source.") - 1));
+      } else if (companion_obs_transition_target(action_id)) {
+        const auto *selected = companion_published_action(current, "obs.transition.selected");
+        active = selected && selected->label == action_id;
+      } else {
+        const std::string scene_id = action_id.substr(action_id.rfind('.') + 1);
+        active = companion_action_available(current, action_id) &&
+          companion_published_action(current, "obs.selected." + scene_id);
+      }
+    } else {
+      active = snapshot ? companion_action_focused(*snapshot, focus_id, true)
+                        : companion_action_active(focus_id, true);
+    }
   }
   // Focus is a background visual update, never a prerequisite for a touch
   // action. Avoid resyncing descendants/redrawing cards on unchanged snapshots.
@@ -736,6 +931,9 @@ struct CompanionMuteRef {
   lv_obj_t *icon_label = nullptr;
   const char *icon_unmuted = nullptr;
   const char *icon_muted = nullptr;
+  lv_obj_t *text_label = nullptr;
+  std::string resting_label{};
+  lv_obj_t *detail_label = nullptr;
 };
 
 struct CompanionViewRegistry {
@@ -804,23 +1002,77 @@ inline void companion_slider_deleted(lv_event_t *event) {
 
 inline void companion_track_slider(lv_obj_t *slider, const std::string &control_id,
                                    lv_obj_t *icon_label, bool has_icon_on,
-                                   const char *icon_off, const char *icon_on) {
+                                   const char *icon_off, const char *icon_on,
+                                   lv_obj_t *text_label = nullptr, const std::string &base_label = {}) {
   if (!slider || !companion_volume_control_valid(control_id)) return;
   auto &refs = companion_slider_refs();
   auto existing = std::find_if(refs.begin(), refs.end(), [slider](const CompanionSliderRef &ref) {
     return ref.slider == slider;
   });
+  CompanionSliderRef ref{slider, icon_label, control_id, has_icon_on, icon_off, icon_on, text_label, base_label};
   if (existing != refs.end()) {
-    existing->control_id = control_id;
-    existing->icon_label = icon_label;
-    existing->has_icon_on = has_icon_on;
-    existing->icon_off = icon_off;
-    existing->icon_on = icon_on;
+    *existing = std::move(ref);
   } else {
-    refs.push_back({slider, icon_label, control_id, has_icon_on, icon_off, icon_on});
+    refs.push_back(std::move(ref));
     lv_obj_add_event_cb(slider, companion_slider_deleted, LV_EVENT_DELETE, nullptr);
   }
   companion_request_card_refresh();
+}
+
+inline lv_obj_t *companion_create_card_detail(lv_obj_t *button) {
+  auto *detail = lv_label_create(button);
+  lv_obj_set_width(detail, lv_pct(100));
+  lv_label_set_long_mode(detail, LV_LABEL_LONG_DOT);
+  lv_obj_set_style_text_opa(detail, LV_OPA_80, LV_PART_MAIN);
+  return detail;
+}
+
+inline void companion_layout_mic_detail(lv_obj_t *title, lv_obj_t *detail) {
+  const auto *font = lv_obj_get_style_text_font(detail, LV_PART_MAIN);
+  const int height = lv_font_get_line_height(font);
+  lv_obj_set_height(detail, height);
+  lv_obj_align(detail, LV_ALIGN_BOTTOM_LEFT, 0, 0);
+  lv_obj_align(title, LV_ALIGN_BOTTOM_LEFT, 0, -height - 2);
+}
+
+inline void companion_render_mic_detail(lv_obj_t *detail, bool available, bool muted) {
+  if (!detail || !lv_obj_is_valid(detail)) return;
+  const auto label = normalize_display_text(espdesktop_i18n_key(
+    !available ? "unavailable" : muted ? "muted" : "live"));
+  if (label != lv_label_get_text(detail)) lv_label_set_text(detail, label.c_str());
+}
+
+inline void companion_render_mute(const CompanionMuteRef &ref, bool muted, bool checked) {
+  if (lv_obj_has_state(ref.button, LV_STATE_CHECKED) != checked)
+    set_card_checked_state(ref.button, checked);
+  const char *icon = muted ? ref.icon_muted : ref.icon_unmuted;
+  if (icon && ref.icon_label && lv_obj_is_valid(ref.icon_label) &&
+      std::strcmp(lv_label_get_text(ref.icon_label), icon) != 0)
+    lv_label_set_text(ref.icon_label, icon);
+}
+
+inline OBSCardState companion_obs_mute_state(const CompanionAction *action) {
+  if (!action || action->obs_available == false) return OBSCardState::unknown;
+  if (action->obs_state != OBSCardState::unknown) return action->obs_state;
+  if (action->label.rfind("Muted · ", 0) == 0) return OBSCardState::audio_muted;
+  if (action->label.rfind("Unmuted · ", 0) == 0) return OBSCardState::audio_live;
+  return OBSCardState::unknown;
+}
+
+inline void companion_render_obs_mute(const CompanionCardRef &ref, const CompanionRuntimeSnapshot &snapshot) {
+  if (!ref.obs_mute_icon_label) return;
+  const auto state = companion_obs_mute_state(
+    snapshot.connected ? companion_published_action(snapshot, ref.action_id) : nullptr);
+  const bool muted = state == OBSCardState::audio_muted;
+  const bool live = state == OBSCardState::audio_live;
+  companion_render_mute({ref.button, ref.action_id, ref.obs_mute_icon_label, ref.obs_mute_icon_off,
+                         ref.obs_mute_icon_on}, muted, live);
+}
+
+inline void companion_render_value_mute(const CompanionMuteRef &ref, bool available, bool muted) {
+  const bool microphone = ref.control_id == "media.input_mute";
+  companion_render_mute(ref, muted, available && (microphone ? !muted : muted));
+  companion_render_mic_detail(ref.detail_label, available, muted);
 }
 
 inline void companion_apply_mute_state(const CompanionMuteRef &ref,
@@ -828,12 +1080,23 @@ inline void companion_apply_mute_state(const CompanionMuteRef &ref,
   const auto value = std::find_if(snapshot.values.begin(), snapshot.values.end(),
     [&ref](const CompanionValue &candidate) { return candidate.id == ref.control_id; });
   const bool available = snapshot.connected && value != snapshot.values.end();
-  const bool muted = available && value->value > 0;
-  set_card_disabled_state(ref.button, !available);
-  set_card_checked_state(ref.button, muted);
-  const char *icon = muted ? ref.icon_muted : ref.icon_unmuted;
-  if (icon && ref.icon_label && lv_obj_is_valid(ref.icon_label))
-    lv_label_set_text(ref.icon_label, icon);
+  const bool muted = available && companion_runtime_service().displayed_mute_value(ref.control_id, value->value) > 0;
+  if (lv_obj_has_state(ref.button, LV_STATE_DISABLED) == available)
+    set_card_disabled_state(ref.button, !available);
+  companion_render_value_mute(ref, available, muted);
+  if (companion_obs_cough_control(ref.control_id) && ref.text_label && lv_obj_is_valid(ref.text_label)) {
+    const auto label = muted ? normalize_display_text(espdesktop_i18n("Muted")) : ref.resting_label;
+    if (label != lv_label_get_text(ref.text_label)) lv_label_set_text(ref.text_label, label.c_str());
+  }
+}
+
+inline void companion_paint_mute_preview(const std::string &control, int value) {
+  for (const auto &ref : companion_view_registry().mutes) {
+    if (ref.control_id == control && lv_obj_is_valid(ref.button) &&
+        !lv_obj_has_state(ref.button, LV_STATE_DISABLED)) {
+      companion_render_value_mute(ref, true, value > 0);
+    }
+  }
 }
 
 inline bool companion_erase_mute_ref(lv_obj_t *button) {
@@ -850,28 +1113,64 @@ inline void companion_mute_deleted(lv_event_t *event) {
 }
 
 inline bool companion_forget_mute(lv_obj_t *button) {
+  for (const auto &ref : companion_view_registry().mutes) {
+    if (ref.button != button) continue;
+    if (ref.detail_label && lv_obj_is_valid(ref.detail_label)) lv_obj_del(ref.detail_label);
+    break;
+  }
   if (!companion_erase_mute_ref(button)) return false;
   lv_obj_remove_event_cb(button, companion_mute_deleted);
   return true;
 }
 
+inline std::string companion_tracked_mute_control(lv_obj_t *button, lv_obj_t **text_label = nullptr) {
+  const auto &refs = companion_view_registry().mutes;
+  const auto found = std::find_if(refs.begin(), refs.end(), [button](const auto &ref) {
+    return ref.button == button;
+  });
+  if (text_label) *text_label = found == refs.end() ? nullptr : found->text_label;
+  return found == refs.end() ? std::string{} : found->control_id;
+}
+
 inline void companion_track_mute(lv_obj_t *button, const std::string &control_id,
                                   lv_obj_t *icon_label = nullptr,
                                   const char *icon_unmuted = nullptr,
-                                  const char *icon_muted = nullptr) {
-  if (!button || !companion_mute_control_valid(control_id)) return;
+                                  const char *icon_muted = nullptr,
+                                  lv_obj_t *text_label = nullptr) {
+  if (!button || !(companion_mute_control_valid(control_id) ||
+                   control_id == COMPANION_COUGH_ID || companion_obs_cough_control(control_id))) return;
   companion_forget_mute(button);
   companion_view_registry().mutes.push_back(
-    {button, control_id, icon_label, icon_unmuted, icon_muted});
+    {button, control_id, icon_label, icon_unmuted, icon_muted, text_label,
+     text_label ? lv_label_get_text(text_label) : ""});
   lv_obj_add_event_cb(button, companion_mute_deleted, LV_EVENT_DELETE, nullptr);
   companion_request_card_refresh();
+}
+
+inline void companion_setup_mic_mute_detail(lv_obj_t *button, const lv_font_t *font) {
+  for (auto &ref : companion_view_registry().mutes) {
+    if (ref.button != button || !ref.text_label) continue;
+    if (!ref.detail_label) {
+      ref.detail_label = companion_create_card_detail(button);
+      companion_apply_mute_state(ref, companion_runtime_snapshot());
+      set_card_content_disabled(button, lv_obj_has_state(button, LV_STATE_DISABLED));
+      sync_card_checked_text_color(button);
+    }
+    if (font) lv_obj_set_style_text_font(ref.detail_label, font, LV_PART_MAIN);
+    companion_layout_mic_detail(ref.text_label, ref.detail_label);
+    return;
+  }
 }
 
 inline void companion_track_card(lv_obj_t *button, const std::string &action_id,
                                  const std::string &url_config = "",
                                  lv_obj_t *text_label = nullptr,
                                  bool dynamic_default_label = false,
-                                 bool show_focus = true) {
+                                 bool show_focus = true,
+                                 const std::string &obs_label_alias = "",
+                                 lv_obj_t *obs_mute_icon_label = nullptr,
+                                 const char *obs_mute_icon_off = nullptr,
+                                 const char *obs_mute_icon_on = nullptr) {
   if (!button) return;
   auto &refs = companion_card_refs();
   auto existing = std::find_if(refs.begin(), refs.end(), [button](const CompanionCardRef &ref) {
@@ -886,6 +1185,13 @@ inline void companion_track_card(lv_obj_t *button, const std::string &action_id,
     existing->action_id = action_id;
     existing->url_config = url_config;
     existing->dynamic_default_label = dynamic_default_label;
+    existing->obs_label_alias = obs_label_alias;
+    existing->obs_detail = nullptr;
+    existing->obs_state_icon = nullptr;
+    existing->obs_mute_icon_label = obs_mute_icon_label;
+    existing->obs_mute_icon_off = obs_mute_icon_off;
+    existing->obs_mute_icon_on = obs_mute_icon_on;
+    if (obs_mute_icon_label) companion_render_obs_mute(*existing, companion_runtime_snapshot());
     existing->show_focus = show_focus;
     if (dynamic_default_label) {
       (void) companion_default_action_label_with_fallback(
@@ -908,8 +1214,193 @@ inline void companion_track_card(lv_obj_t *button, const std::string &action_id,
   }
   refs.push_back({button, text_label, action_id, url_config, nullptr, nullptr, "", "", 0, false,
                   false, dynamic_default_label, resolved_default_label, show_focus});
+  refs.back().obs_label_alias = obs_label_alias;
+  refs.back().obs_mute_icon_label = obs_mute_icon_label;
+  refs.back().obs_mute_icon_off = obs_mute_icon_off;
+  refs.back().obs_mute_icon_on = obs_mute_icon_on;
+  if (obs_mute_icon_label) companion_render_obs_mute(refs.back(), companion_runtime_snapshot());
   lv_obj_add_event_cb(button, companion_card_deleted, LV_EVENT_DELETE, nullptr);
   lv_obj_add_event_cb(button, companion_card_focus_drawn, LV_EVENT_DRAW_POST_END, nullptr);
+}
+
+inline const char *companion_obs_status_icon(const std::string &id, const std::string &status, bool available) {
+  if (!available || status == "Unknown") return "Monitor Off";
+  if (id == "obs.status.program") return "Monitor";
+  const bool stream = id == "obs.status.stream" || id == "obs.output.stream";
+  for (const auto &entry : OBS_OUTPUT_STATUS_ICONS)
+    if (status == entry.status) return id == "obs.output.virtualcam" ? entry.virtualcam : stream ? entry.stream : entry.record;
+  return "Monitor Off";
+}
+
+inline bool companion_obs_scene_on_program(const CompanionRuntimeSnapshot &snapshot, const std::string &id) {
+  const auto *scene = companion_published_action(snapshot, id);
+  if (scene && scene->obs_state != OBSCardState::unknown)
+    return scene->obs_state == OBSCardState::scene_live || scene->obs_state == OBSCardState::scene_program ||
+      scene->obs_state == OBSCardState::scene_program_preview;
+
+  const std::string scene_id = id.substr(id.rfind('.') + 1);
+  if (companion_published_action(snapshot, "obs.program." + scene_id)) return true;
+  const auto *studio = companion_published_action(snapshot, "obs.studio");
+  return studio && studio->label == "Off" && companion_published_action(snapshot, "obs.selected." + scene_id);
+}
+
+inline void companion_render_obs_detail(CompanionCardRef &ref, const std::string &label,
+                                        const CompanionRuntimeSnapshot &snapshot, bool refreshing = false) {
+  if (!ref.obs_detail || !lv_obj_is_valid(ref.obs_detail) || !ref.text_label) return;
+  if (companion_obs_audio_uuid(ref.action_id, "obs.mute.")) {
+    if (normalize_display_text(label) != lv_label_get_text(ref.text_label))
+      lv_label_set_display_text(ref.text_label, label.c_str());
+    const auto *action = companion_published_action(snapshot, ref.action_id);
+    const auto state = companion_obs_mute_state(action);
+    const bool muted = state == OBSCardState::audio_muted;
+    companion_render_mic_detail(ref.obs_detail, snapshot.connected &&
+      (muted || state == OBSCardState::audio_live), muted);
+    if (!refreshing) companion_layout_mic_detail(ref.text_label, ref.obs_detail);
+    return;
+  }
+  const std::string separator = " · ";
+  const auto split = label.find(separator);
+  const bool take = ref.action_id == "obs.take";
+  const char *name = take ? "Take Live"
+    : ref.action_id == "obs.replay" ? "Save Replay"
+    : ref.action_id == "obs.replay.buffer" ? "Replay Buffer"
+    : ref.action_id == "obs.status.program" ? "Program"
+    : ref.action_id == "obs.status.stream" ? "Stream"
+    : ref.action_id == "obs.status.record" ? "Recording"
+    : "Break";
+  const bool output = companion_obs_output_card(ref.action_id);
+  const bool scene = companion_obs_scene_card(ref.action_id);
+  const bool studio = ref.action_id == "obs.studio";
+  const bool transition = ref.action_id == "obs.transition";
+  const bool direct_transition = companion_obs_transition_target(ref.action_id);
+  const bool brb = ref.action_id == "obs.brb";
+  std::string primary = !ref.obs_label_alias.empty() ? ref.obs_label_alias
+    : (scene || direct_transition) ? label
+    : output ? espdesktop_i18n(label.substr(0, split))
+    : studio ? espdesktop_i18n_key("label_obs_studio_mode")
+    : transition ? espdesktop_i18n_key("label_obs_transition")
+    : brb ? espdesktop_i18n_key("label_obs_break") : espdesktop_i18n(name);
+  const bool already_on_break = brb && label == "BRB · Already on break";
+  const bool scene_live = scene && companion_obs_scene_on_program(snapshot, ref.action_id);
+  std::string detail = scene ? espdesktop_i18n_key(scene_live ? "live" : "label_obs_scene")
+    : direct_transition ? (ref.rendered_obs_action.id.size() > ref.action_id.size()
+        ? espdesktop_i18n_key("label_obs_transition") : espdesktop_i18n("Unavailable"))
+    : (studio || ref.action_id == "obs.replay.buffer") ? espdesktop_i18n(label)
+    : ref.action_id == "obs.replay" ? (label == name ? espdesktop_i18n("Ready") : espdesktop_i18n(label))
+    : transition ? label
+    : already_on_break ? ""
+    : (split != std::string::npos ? label.substr(split + separator.size()) : (label == name ? "" : label));
+  if (brb) {
+    if (companion_obs_break_active(label)) detail = espdesktop_i18n_key("label_obs_resume");
+    else if (ref.rendered_obs_action.id.rfind("obs.brb.", 0) == 0 || label == "Starting BRB…")
+      detail = espdesktop_i18n("Start");
+  }
+  if (brb || studio || ref.action_id == "obs.replay" || ref.action_id == "obs.replay.buffer" || take) {
+    const auto *action = companion_published_action(snapshot, ref.action_id);
+    if (action && action->obs_state != OBSCardState::unknown) {
+      const auto *text = obs_card_presentation(action->obs_state).detail;
+      if (*text) detail = espdesktop_i18n(text);
+      else detail = action->obs_detail;
+    }
+    const bool take_ready = take && action && (action->obs_state == OBSCardState::take_ready ||
+      (action->obs_state == OBSCardState::unknown && action->id != ref.action_id));
+    if (take_ready) {
+      if (!detail.empty() && (ref.obs_label_alias.empty() || ref.obs_label_alias == name))
+        primary = std::string(espdesktop_i18n_key("label_obs_take")) + " " + detail;
+      const auto *selected = companion_published_action(snapshot, "obs.transition");
+      detail = selected ? selected->label : "";
+    } else if (take && action && (action->obs_state == OBSCardState::take_same_scene ||
+        (action->obs_state == OBSCardState::unknown && label == "Take Live · Already on Program"))) {
+      if (ref.obs_label_alias.empty() || ref.obs_label_alias == name)
+        primary = espdesktop_i18n_key("label_obs_currently_live");
+      detail.clear();
+    } else if (take && action && (action->obs_state == OBSCardState::take_transitioning ||
+        (action->obs_state == OBSCardState::unknown && label == "Take Live · Transitioning"))) {
+      if (refreshing) return;  // Keep the previous text until OBS sends the next settled state.
+      detail.clear();
+    }
+  }
+  if (ref.obs_state_icon) {
+    const auto *icon = find_icon(scene ? (scene_live ? "Broadcast" : "Image Card Loading")
+      : companion_obs_status_icon(ref.action_id, detail, split != std::string::npos));
+    if (std::strcmp(icon, lv_label_get_text(ref.obs_state_icon)) != 0) lv_label_set_text(ref.obs_state_icon, icon);
+  }
+  if (output || (ref.obs_state_icon && !scene && ref.action_id != "obs.status.program")) detail = espdesktop_i18n(detail);
+  if (normalize_display_text(primary) != lv_label_get_text(ref.text_label))
+    lv_label_set_display_text(ref.text_label, primary.c_str());
+  const bool detail_changed = normalize_display_text(detail) != lv_label_get_text(ref.obs_detail);
+  if (detail_changed)
+    lv_label_set_display_text(ref.obs_detail, detail.c_str());
+  if (refreshing && !detail_changed) return;
+  lv_obj_align(ref.obs_detail, LV_ALIGN_BOTTOM_LEFT, 0, 0);
+  if (take || scene) {
+    // These subtitles are one line. Position the title without forcing LVGL
+    // to lay out the screen in the middle of an OBS update.
+    const auto *font = lv_obj_get_style_text_font(ref.obs_detail, LV_PART_MAIN);
+    lv_obj_align(ref.text_label, LV_ALIGN_BOTTOM_LEFT, 0,
+                 detail.empty() ? 0 : -static_cast<int>(lv_font_get_line_height(font)) - 2);
+    return;
+  }
+  lv_obj_update_layout(ref.obs_detail);
+  lv_obj_align(ref.text_label, LV_ALIGN_BOTTOM_LEFT, 0, detail.empty() ? 0 : -lv_obj_get_height(ref.obs_detail) - 2);
+}
+
+inline bool companion_obs_keep_content_bright(const CompanionRuntimeSnapshot &snapshot, const std::string &id) {
+  return companion_obs_output_card(id) && companion_obs_output_status(snapshot, id) != "Unavailable";
+}
+
+inline void companion_update_obs_detail_contrast(const CompanionCardRef &ref, bool keep_content_bright) {
+  const bool disabled = lv_obj_has_state(ref.button, LV_STATE_DISABLED);
+  // LVGL skips the release event if OBS makes the card unavailable during touch.
+  if (disabled && companion_obs_momentary_action(ref.action_id) &&
+      lv_obj_has_state(ref.button, LV_STATE_PRESSED)) {
+    lv_obj_clear_state(ref.button, LV_STATE_PRESSED);
+    sync_card_checked_text_color(ref.button);
+  }
+  if (!ref.obs_detail) return;
+  const bool dim = disabled && !keep_content_bright;
+  if (lv_obj_has_state(ref.text_label, LV_STATE_DISABLED) != dim ||
+      lv_obj_has_state(ref.obs_detail, LV_STATE_DISABLED) != dim)
+    set_card_content_disabled(ref.button, dim);
+}
+
+inline void companion_setup_obs_detail(lv_obj_t *button, const lv_font_t *font, lv_obj_t *state_icon = nullptr) {
+  for (auto &ref : companion_card_refs()) {
+    if (ref.button != button) continue;
+    if (!ref.obs_detail) ref.obs_detail = companion_create_card_detail(button);
+    ref.obs_state_icon = state_icon;
+    if (font) lv_obj_set_style_text_font(ref.obs_detail, font, LV_PART_MAIN);
+    if (ref.action_id == "obs.take" || companion_obs_scene_card(ref.action_id)) {
+      const auto *detail_font = lv_obj_get_style_text_font(ref.obs_detail, LV_PART_MAIN);
+      lv_obj_set_height(ref.obs_detail, lv_font_get_line_height(detail_font));
+    }
+    const auto snapshot = companion_runtime_snapshot();
+    const auto live = companion_default_action_label(ref.action_id, "", &snapshot);
+    const std::string label = companion_obs_scene_card(ref.action_id) ? lv_label_get_text(ref.text_label)
+      : companion_obs_control_label(ref.action_id, ref.obs_label_alias, live, &snapshot);
+    companion_render_obs_detail(ref, label, snapshot);
+    companion_update_obs_detail_contrast(ref, companion_obs_keep_content_bright(snapshot, ref.action_id));
+    return;
+  }
+}
+
+inline void companion_set_rendered_obs_action(CompanionCardRef &ref, const CompanionRuntimeSnapshot &snapshot) {
+  const auto *action = companion_published_action(snapshot, ref.action_id);
+  ref.rendered_obs_action = action ? *action : CompanionAction{};
+}
+
+inline void companion_remember_rendered_obs(lv_obj_t *button, const CompanionRuntimeSnapshot &snapshot) {
+  for (auto &ref : companion_card_refs()) {
+    if (ref.button != button || !companion_obs_tokenized_card(ref.action_id)) continue;
+    companion_set_rendered_obs_action(ref, snapshot);
+    return;
+  }
+}
+
+inline CompanionAction companion_rendered_obs_action(lv_obj_t *button) {
+  for (const auto &ref : companion_card_refs())
+    if (ref.button == button && companion_obs_tokenized_card(ref.action_id)) return ref.rendered_obs_action;
+  return {};
 }
 
 inline void companion_track_metric_card(lv_obj_t *button, lv_obj_t *value_label,
@@ -964,6 +1455,62 @@ inline void companion_refresh_card_focus(const CompanionRuntimeSnapshot &snapsho
   }
 }
 
+inline void companion_render_slider(const CompanionSliderRef &ref, const CompanionRuntimeSnapshot &snapshot) {
+  const auto value = std::find_if(snapshot.values.begin(), snapshot.values.end(),
+    [&ref](const CompanionValue &candidate) { return candidate.id == ref.control_id; });
+  const bool available = snapshot.connected && value != snapshot.values.end();
+  if (ref.text_label && lv_obj_is_valid(ref.text_label)) {
+    const auto *action = ref.base_label.empty() ? companion_published_action(snapshot, ref.control_id) : nullptr;
+    const std::string &title = action ? action->label : ref.base_label;
+    std::string label = title;
+    if (!available) {
+      if (!label.empty()) label += '\n';
+      label += espdesktop_i18n("Unavailable");
+    }
+    const auto normalized = normalize_display_text(label);
+    if (normalized != lv_label_get_text(ref.text_label))
+      lv_label_set_display_text(ref.text_label, label.c_str());
+  }
+  if (available) {
+    lv_slider_set_value(ref.slider, value->value, LV_ANIM_OFF);
+    lv_obj_send_event(ref.slider, LV_EVENT_VALUE_CHANGED, nullptr);
+    if (ref.has_icon_on && ref.icon_label && lv_obj_is_valid(ref.icon_label)) {
+      lv_label_set_text(
+        ref.icon_label, value->value > 0 ? ref.icon_on : ref.icon_off);
+    }
+    lv_obj_clear_state(ref.slider, LV_STATE_DISABLED);
+  } else {
+    lv_obj_add_state(ref.slider, LV_STATE_DISABLED);
+  }
+}
+
+inline void companion_refresh_action_card(CompanionCardRef &ref, const CompanionRuntimeSnapshot &snapshot) {
+  if (ref.text_label && lv_obj_is_valid(ref.text_label) &&
+      (ref.dynamic_default_label || ref.obs_detail)) {
+    // Keep the last friendly name if a disconnected Mac no longer supplies it.
+    std::string label = lv_label_get_text(ref.text_label);
+    if (ref.dynamic_default_label) {
+      const std::string live_label = companion_default_action_label_with_fallback(
+        ref.action_id, ref.url_config, ref.resolved_default_label, &snapshot);
+      label = companion_obs_control_label(ref.action_id, ref.obs_label_alias, live_label, &snapshot);
+    }
+    if (ref.obs_detail) companion_render_obs_detail(ref, label, snapshot, true);
+    else if (normalize_display_text(label) != lv_label_get_text(ref.text_label))
+      lv_label_set_display_text(ref.text_label, label.c_str());
+  }
+  const bool action_available = ref.url_config.empty()
+    ? companion_action_available(snapshot, ref.action_id)
+    : companion_url_available(ref.action_id, ref.url_config);
+  const bool available = action_available && companion_required_focus_ready(ref.required_focus_id, snapshot);
+
+  if (lv_obj_has_state(ref.button, LV_STATE_DISABLED) == available)
+    set_card_disabled_state(ref.button, !available);
+  companion_apply_card_focus(ref.button, ref.action_id, ref.url_config, ref.show_focus, &snapshot);
+  if (ref.obs_detail || companion_obs_momentary_action(ref.action_id))
+    companion_update_obs_detail_contrast(ref, companion_obs_keep_content_bright(snapshot, ref.action_id));
+  companion_render_obs_mute(ref, snapshot);
+}
+
 inline void companion_refresh_cards_if_requested() {
   const bool full_refresh = companion_card_refresh_requested().exchange(false);
   const bool focus_refresh = companion_runtime_service().consume_focus_refresh_request();
@@ -974,9 +1521,19 @@ inline void companion_refresh_cards_if_requested() {
     companion_refresh_card_focus(snapshot);
     return;
   }
+  // Keep the command and its label in sync before lower-priority card work.
+  for (auto &ref : refs) {
+    if (ref.action_id != "obs.take" || !ref.button || !lv_obj_is_valid(ref.button)) continue;
+    companion_set_rendered_obs_action(ref, snapshot);
+    companion_refresh_action_card(ref, snapshot);
+  }
   for (auto it = refs.begin(); it != refs.end();) {
     if (!it->button || !lv_obj_is_valid(it->button)) {
       it = refs.erase(it);
+      continue;
+    }
+    if (it->action_id == "obs.take") {
+      ++it;
       continue;
     }
     if (!it->metric_key.empty()) {
@@ -1012,22 +1569,8 @@ inline void companion_refresh_cards_if_requested() {
       ++it;
       continue;
     }
-    if (it->dynamic_default_label && it->text_label && lv_obj_is_valid(it->text_label)) {
-      // A disconnected Companion temporarily has no action catalogue. Keep
-      // the friendly name seen before the outage instead of showing its ID.
-      const std::string label = companion_default_action_label_with_fallback(
-        it->action_id, it->url_config, it->resolved_default_label, &snapshot);
-      if (normalize_display_text(label) != lv_label_get_text(it->text_label))
-        lv_label_set_display_text(it->text_label, label.c_str());
-    }
-    const bool action_available = it->url_config.empty()
-      ? companion_action_available(snapshot, it->action_id)
-      : companion_url_available(it->action_id, it->url_config);
-    const bool available = action_available && companion_required_focus_ready(it->required_focus_id, snapshot);
-
-    if (lv_obj_has_state(it->button, LV_STATE_DISABLED) == available)
-      set_card_disabled_state(it->button, !available);
-    companion_apply_card_focus(it->button, it->action_id, it->url_config, it->show_focus, &snapshot);
+    if (companion_obs_tokenized_card(it->action_id)) companion_set_rendered_obs_action(*it, snapshot);
+    companion_refresh_action_card(*it, snapshot);
     ++it;
   }
   for (const auto &ref : companion_view_registry().mutes)
@@ -1038,35 +1581,27 @@ inline void companion_refresh_cards_if_requested() {
       it = sliders.erase(it);
       continue;
     }
-    const auto value = std::find_if(snapshot.values.begin(), snapshot.values.end(),
-      [it](const CompanionValue &candidate) { return candidate.id == it->control_id; });
-    const bool available = snapshot.connected && value != snapshot.values.end();
-    if (available) {
-      lv_slider_set_value(it->slider, value->value, LV_ANIM_OFF);
-      lv_obj_send_event(it->slider, LV_EVENT_VALUE_CHANGED, nullptr);
-      if (it->has_icon_on && it->icon_label && lv_obj_is_valid(it->icon_label)) {
-        lv_label_set_text(
-          it->icon_label, value->value > 0 ? it->icon_on : it->icon_off);
-      }
-      lv_obj_clear_state(it->slider, LV_STATE_DISABLED);
-    } else {
-      lv_obj_add_state(it->slider, LV_STATE_DISABLED);
-    }
+    companion_render_slider(*it, snapshot);
     ++it;
   }
 }
 #else
 inline void companion_track_card(void *, const std::string &, const std::string & = "",
-                                 void * = nullptr, bool = false, bool = true) {}
+                                 void * = nullptr, bool = false, bool = true, const std::string & = "",
+                                 void * = nullptr, const char * = nullptr, const char * = nullptr) {}
 inline void companion_track_metric_card(void *, void *, void *, const std::string &,
                                         const std::string &, int) {}
+inline void companion_setup_obs_detail(void *, const void *, void * = nullptr) {}
+inline void companion_setup_mic_mute_detail(void *, const void *) {}
 inline void companion_apply_card_focus(void *, const std::string &, const std::string & = "", bool = true) {}
 inline bool companion_forget_mute(void *) { return false; }
 inline void companion_track_mute(void *, const std::string &, void * = nullptr,
-                                 const char * = nullptr, const char * = nullptr) {}
+                                 const char * = nullptr, const char * = nullptr, void * = nullptr) {}
 inline void companion_track_slider(void *, const std::string &, void *, bool,
-                                   const char *, const char *) {}
+                                   const char *, const char *, void * = nullptr,
+                                   const std::string & = {}) {}
 inline void companion_refresh_cards_if_requested() {}
+inline void companion_paint_mute_preview(const std::string &, int) {}
 inline void companion_require_card_focus(void *, const std::string &) {}
 #endif
 
@@ -1074,25 +1609,21 @@ inline bool companion_toggle_mute(const std::string &control_id) {
   int value = 0;
   if (!companion_mute_control_valid(control_id) || !companion_connected() ||
       !companion_value(control_id, value) || !companion_value_sender()) return false;
-  return companion_value_sender()(control_id, value > 0 ? 0 : 100,
-                                  "mute-" + std::to_string(companion_next_request_number()));
+  const int next = companion_runtime_service().displayed_mute_value(control_id, value) > 0 ? 0 : 100;
+  const auto request = "mute-" + std::to_string(companion_next_request_number());
+  if (!companion_value_sender()(control_id, next, request)) return false;
+  companion_runtime_service().preview_mute(control_id, next, request);
+  companion_paint_mute_preview(control_id, next);
+  return true;
 }
 
 inline bool invoke_companion_action(const std::string &action_id,
                                     const std::string &request_id,
                                     const std::string &folder_open_behavior = "new_window") {
-  if (!companion_action_available(action_id) || !companion_action_sender()) return false;
+  if (companion_obs_status_card(action_id) ||
+      !companion_action_available(action_id) || !companion_action_sender()) return false;
   if (companion_scoped_shortcut(action_id)) return false;
   return companion_action_sender()(action_id, request_id, folder_open_behavior, {});
-}
-
-inline std::string companion_athena_shortcut_target(const std::string &preset) {
-  constexpr auto prefix = "com.apple.Safari.WebApp.";
-  const auto separator = preset.find(':');
-  if (preset.rfind(prefix, 0) != 0 || separator == std::string::npos ||
-      !companion_shortcut_catalog::has_shortcut("io.github.jtenniswood.athena", preset.substr(separator + 1)))
-    return {};
-  return preset.substr(0, separator);
 }
 
 inline std::string companion_shortcut_preset_app(const std::string &preset) {
@@ -1102,30 +1633,71 @@ inline std::string companion_shortcut_preset_app(const std::string &preset) {
   return companion_shortcut_page_app(app) ? app : std::string{};
 }
 
+// Route even legacy single-stroke shortcuts through the Companion's
+// app-scoped replay, which checks the frontmost process at delivery time.
+inline std::string companion_app_scoped_shortcut(const std::string &action_id) {
+  if (!companion_shortcut_action_valid(action_id)) return {};
+  if (companion_scoped_shortcut(action_id)) return action_id;
+  auto keys = action_id.substr(9);
+  if (keys == "claude-escape") keys = "escape";
+  if (keys == "escape-twice") keys = "escape~escape";
+  auto scoped = "shortcut.scoped." + keys;
+  return companion_shortcut_action_valid(scoped) ? scoped : std::string{};
+}
+
+inline bool companion_activate_then(const std::string &app, const std::string &request,
+                                    uint32_t deadline, CompanionActionResultHandler success) {
+  if (!companion_expect_action_result(request, std::move(success), deadline)) return false;
+  if (invoke_companion_action(app, request)) return true;
+  companion_cancel_action_result(request);
+  return false;
+}
+
+// Catalogue templates can match multiple installed apps. Use the focused
+// installation when possible, and only launch if there is a single match.
+inline std::string companion_shortcut_launch_target(const std::string &app) {
+  const auto mac = companion_runtime_snapshot();
+  if (companion_action_available(mac, app)) return app;
+  const bool premiere = app == "com.adobe.PremierePro";
+  if (!premiere && app != "com.apple.Safari.WebApp") return {};
+
+  std::string match;
+  bool ambiguous = false;
+  for (const auto &action : mac.actions) {
+    const bool matches = premiere ? companion_shortcut_catalog::is_versioned_premiere_pro(action.id)
+                                  : companion_shortcut_catalog::is_safari_web_app(action.id);
+    if (!matches) continue;
+    if (companion_action_focused(mac, action.id)) return action.id;
+    ambiguous |= !match.empty() && match != action.id;
+    match = action.id;
+  }
+  return ambiguous ? std::string{} : match;
+}
+
 inline bool invoke_companion_action_for_app(const std::string &action_id,
-                                             const std::string &request_id,
-                                             const std::string &required_focus_id,
-                                             const std::string &folder_open_behavior = "new_window",
-                                             const std::string &preset = {}) {
+                                            const std::string &request_id,
+                                            const std::string &required_focus_id,
+                                            const std::string &folder_open_behavior,
+                                            const std::string &preset,
+                                            uint32_t now) {
   // Never use the early visual highlight to authorize app-specific keys.
   if (!required_focus_id.empty() && !companion_action_focused(required_focus_id)) return false;
-  if (companion_scoped_shortcut(action_id)) {
-    const auto target = companion_shortcut_preset_app(preset);
-    if (target.empty() || !companion_action_available(action_id) || !companion_action_sender()) return false;
-    // Companion independently checks approval and the frontmost process before every stroke.
-    return companion_action_sender()(action_id, request_id, folder_open_behavior, target);
-  }
-  const auto athena_target = companion_athena_shortcut_target(preset);
-  if (!athena_target.empty()) {
-    if ((!required_focus_id.empty() && required_focus_id != athena_target) ||
-        !companion_action_focused(athena_target) || !companion_shortcut_action_valid(action_id) ||
-        !companion_action_available(action_id) || !companion_action_sender()) return false;
-    // The Mac must confirm the same installation is still frontmost when the
-    // command arrives. Older Macs reject this as an unrecognized shortcut.
-    return companion_action_sender()("shortcut.@" + athena_target + ":" + action_id.substr(9),
-                                    request_id, folder_open_behavior, {});
-  }
-  return invoke_companion_action(action_id, request_id, folder_open_behavior);
+  const auto app = companion_shortcut_preset_app(preset);
+  if (app.empty()) return invoke_companion_action(action_id, request_id, folder_open_behavior);
+
+  const auto shortcut = companion_app_scoped_shortcut(action_id);
+  if (shortcut.empty() || !companion_action_available(shortcut) || !companion_action_sender()) return false;
+  const auto target = companion_shortcut_launch_target(app);
+  if (target.empty()) return false;
+
+  // The Mac checks that the approved target is still frontmost before replay.
+  if (target == required_focus_id)
+    return companion_action_sender()(shortcut, request_id, "new_window", target);
+
+  return companion_activate_then(target, request_id, now + 10000, [shortcut, request_id, target] {
+    if (companion_action_available(shortcut) && companion_action_sender())
+      companion_action_sender()(shortcut, request_id + "-keys", "new_window", target);
+  });
 }
 
 inline bool invoke_companion_url(const std::string &url_config,
@@ -1138,7 +1710,7 @@ inline bool invoke_companion_url(const std::string &url_config,
 
 inline bool invoke_companion_value(const std::string &control_id, int value,
                                    const std::string &request_id) {
-  if (!companion_connected() || !companion_volume_control_valid(control_id) ||
+  if (!companion_connected() || !companion_writable_value_control_valid(control_id) ||
       value < 0 || value > 100 || !companion_value_sender() ||
       (companion_mute_control_valid(control_id) && value != 0 && value != 100)) return false;
   return companion_value_sender()(control_id, value, request_id);
@@ -1182,6 +1754,59 @@ inline std::string companion_json_escape(const std::string &value) {
   return result;
 }
 
+inline void companion_send_shortcut_catalogue_page(httpd_req_t *req) {
+  char query[128] = {};
+  char app_id[97] = {};
+  char page_text[3] = {};
+  if (httpd_req_get_url_query_str(req, query, sizeof(query)) != ESP_OK ||
+      httpd_query_key_value(query, "appId", app_id, sizeof(app_id)) != ESP_OK ||
+      (std::strcmp(app_id, "index") != 0 && !companion_shortcut_app_id_valid(app_id)) ||
+      httpd_query_key_value(query, "page", page_text, sizeof(page_text)) != ESP_OK ||
+      !page_text[0] || !std::all_of(page_text, page_text + std::strlen(page_text),
+                                  [](char digit) { return digit >= '0' && digit <= '9'; })) {
+    httpd_resp_send_err(req, HTTPD_400_BAD_REQUEST, "Invalid shortcut catalogue page");
+    return;
+  }
+  const uint32_t page = static_cast<uint32_t>(std::atoi(page_text));
+  if (page > 31) {
+    httpd_resp_send_err(req, HTTPD_400_BAD_REQUEST, "Invalid shortcut catalogue page");
+    return;
+  }
+  auto &runtime = companion_runtime_service();
+  auto result = runtime.shortcut_catalogue.read(app_id, page, esphome::millis());
+  using Status = CompanionShortcutCatalogue::Status;
+  httpd_resp_set_hdr(req, "Cache-Control", "no-store");
+  switch (result.status) {
+    case Status::unavailable:
+      httpd_resp_set_status(req, "404 Not Found");
+      break;
+    case Status::request:
+      if (!runtime.shortcut_catalogue_sender ||
+          !runtime.shortcut_catalogue_sender(result.request_id, app_id, page)) {
+        runtime.shortcut_catalogue.cancel(result.request_id);
+        httpd_resp_set_status(req, "503 Service Unavailable");
+        break;
+      }
+      [[fallthrough]];
+    case Status::pending:
+      httpd_resp_set_status(req, "202 Accepted");
+      break;
+    case Status::ready: {
+      if (result.page.json.empty()) {
+        httpd_resp_set_status(req, "204 No Content");
+        break;
+      }
+      const std::string json = "{\"catalogueVersion\":" + std::to_string(result.page.version) +
+          ",\"page\":" + std::to_string(page) + ",\"complete\":" +
+          (result.page.complete ? "true" : "false") + ",\"application\":" + result.page.json + "}";
+      httpd_resp_set_type(req, "application/json");
+      httpd_resp_send(req, json.c_str(), json.size());
+      return;
+    }
+  }
+  httpd_resp_send(req, "", 0);
+}
+
 class CompanionActionsHandler : public esphome::web_server_idf::AsyncWebHandler {
  public:
   bool canHandle(esphome::web_server_idf::AsyncWebServerRequest *request) const override {
@@ -1189,7 +1814,7 @@ class CompanionActionsHandler : public esphome::web_server_idf::AsyncWebHandler 
     char url_buf[esphome::web_server_idf::AsyncWebServerRequest::URL_BUF_SIZE];
     const auto url = request->url_to(url_buf);
     return url == "/companion/actions" || url == "/companion/networks" ||
-           url == "/companion/definitions";
+           url == "/companion/definitions" || url == "/companion/shortcut-page";
   }
 
   void handleRequest(esphome::web_server_idf::AsyncWebServerRequest *request) override {
@@ -1198,6 +1823,10 @@ class CompanionActionsHandler : public esphome::web_server_idf::AsyncWebHandler 
     bool first = true;
     char url_buf[esphome::web_server_idf::AsyncWebServerRequest::URL_BUF_SIZE];
     const std::string requested_url = request->url_to(url_buf);
+    if (requested_url == "/companion/shortcut-page") {
+      companion_send_shortcut_catalogue_page(*request);
+      return;
+    }
     const bool networks = requested_url == "/companion/networks";
     const bool definitions = requested_url == "/companion/definitions";
     auto &runtime = companion_runtime_service();
@@ -1257,6 +1886,11 @@ class CompanionActionsHandler : public esphome::web_server_idf::AsyncWebHandler 
         first = false;
         json += "{\"id\":\"" + companion_json_escape(action.id) +
           "\",\"label\":\"" + companion_json_escape(action.label) + "\"";
+        if (action.obs_state != OBSCardState::unknown)
+          json += std::string(",\"obsState\":\"") + obs_card_presentation(action.obs_state).id + "\"";
+        if (!action.obs_detail.empty()) json += ",\"obsDetail\":\"" + companion_json_escape(action.obs_detail) + "\"";
+        if (action.obs_available) json += *action.obs_available ? ",\"obsAvailable\":true" : ",\"obsAvailable\":false";
+        if (action.shortcut_color) json += ",\"shortcutColor\":" + std::to_string(*action.shortcut_color);
 #ifdef USE_COMPANION
         // The browser already polls this catalogue. Include cache freshness so
         // updated icons refresh open previews without downloading unchanged pixels.

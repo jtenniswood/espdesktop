@@ -138,11 +138,14 @@ int main() {
 
   using Scalar = panel_settings::ScalarSetting;
   std::vector<bool> applied;
+  std::vector<std::string> opening_modes;
   GridPageRuntime preference(limits, allocate, ConfigurationBuffer::release_host, {}, {}, {},
       [&](Scalar setting, std::string_view value) {
         if (setting == Scalar::COMPANION_AUTO_OPEN_APP_SUBPAGES) applied.push_back(value == "1");
+        if (setting == Scalar::COMPANION_APP_SUBPAGE_MODE) opening_modes.emplace_back(value);
       });
   assert(preference.scalar_setting_value(Scalar::COMPANION_AUTO_OPEN_APP_SUBPAGES) == "1");
+  assert(preference.scalar_setting_value(Scalar::COMPANION_APP_SUBPAGE_MODE) == "card");
   write_preference(preference_key, "0");
   assert(preference.prepare_write(2, updated.data(), size));
   assert(applied.empty());
@@ -167,6 +170,15 @@ int main() {
   assert((applied == std::vector<bool>{false, true}));
   assert(preference.activate_prepared(11, 1, updated.data(), size));
   assert((applied == std::vector<bool>{false, true, false}));
+  assert((opening_modes == std::vector<std::string>{"manual", "card", "manual"}));
+
+  PanelConfigPageAppend modern(reader);
+  assert(modern.set_setting(preference_key, "1"));
+  assert(modern.set_setting("companion_app_subpage_mode", "card"));
+  assert(modern.finish(updated.data(), updated.size(), &size, allocate, ConfigurationBuffer::release_host));
+  assert(preference.prepare_write(2, updated.data(), size));
+  assert(preference.activate_prepared(12, 2, updated.data(), size));
+  assert(opening_modes.back() == "card");
 
   const auto assert_old_theme = [](const ThemeSettings &settings) {
     assert(settings.mode == ThemeMode::AUTO && settings.auto_method == ThemeAutoMethod::SUNRISE_SUNSET);
@@ -265,22 +277,23 @@ int main() {
   std::vector<std::pair<Scalar, std::string>> published;
   GridPageRuntime scalar_runtime(limits, allocate, ConfigurationBuffer::release_host,
       {}, {}, {}, [&](Scalar setting, std::string_view value) { published.emplace_back(setting, value); });
-  assert(scalar_runtime.scalar_setting_value(Scalar::SCREEN_CARD_CURVE) == "Large");
-  write_preference("screen_card_curve", "Medium");
+  assert(scalar_runtime.scalar_setting_value(Scalar::SCREEN_CLOCK_FORMAT) == "24h");
+  write_preference("screen_clock_format", "12h");
   assert(scalar_runtime.prepare_write(2, updated.data(), size) && published.empty());
   assert(scalar_runtime.activate_prepared(17, 2, updated.data(), size));
-  assert(published.size() == 1 && published.back().first == Scalar::SCREEN_CARD_CURVE);
-  assert(published.back().second == "Medium");
-  assert(scalar_runtime.scalar_setting_value(Scalar::SCREEN_CARD_CURVE) == "Medium");
+  assert(published.size() == 1 && published.back().first == Scalar::SCREEN_CLOCK_FORMAT);
+  assert(published.back().second == "12h");
+  assert(scalar_runtime.scalar_setting_value(Scalar::SCREEN_CLOCK_FORMAT) == "12h");
   assert(scalar_runtime.prepare_write(2, updated.data(), size));
   assert(scalar_runtime.activate_prepared(18, 2, updated.data(), size));
   assert(published.size() == 1);
-  write_preference("screen_card_curve", "invalid");
+  write_preference("screen_clock_format", "invalid");
   assert(!scalar_runtime.prepare_write(2, updated.data(), size));
-  assert(published.size() == 1 && scalar_runtime.scalar_setting_value(Scalar::SCREEN_CARD_CURVE) == "Medium");
-  assert(scalar_runtime.prepare_write(2, COMPANION_NESTED_DOCUMENT, sizeof(COMPANION_NESTED_DOCUMENT)));
-  assert(scalar_runtime.activate_prepared(19, 2, COMPANION_NESTED_DOCUMENT, sizeof(COMPANION_NESTED_DOCUMENT)));
-  assert(published.size() == 2 && published.back().second == "Large");
+  write_preference("screen_card_curve", "Small"); // Older configurations may contain a curve preference.
+  assert(scalar_runtime.prepare_write(2, updated.data(), size));
+  assert(scalar_runtime.activate_prepared(19, 2, updated.data(), size));
+  assert(published.size() == 2 && published.back().first == Scalar::SCREEN_CLOCK_FORMAT);
+  assert(published.back().second == "24h");
   write_preference("screensaver_timeout", "3601");
   assert(!scalar_runtime.prepare_write(2, updated.data(), size));
   write_preference("screensaver_timeout", "3600");

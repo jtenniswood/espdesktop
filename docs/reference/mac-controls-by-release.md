@@ -16,8 +16,8 @@ The table describes the public controls in [EspDesktop v1.2.6](https://github.co
 | Mac Lock | Lock the paired Mac. | [Enable Accessibility and add a Lock Machine tile](/mac-controls/security). |
 | Subpages | Group controls behind a tile or show a page for the active app. | [Create a subpage in the display editor](/features/subpages). |
 
-## Mac statistics and volume
+## Mac statistics and audio controls {#mac-statistics-and-volume}
 
 The v1.2.6 card picker omits Mac statistics and dedicated Mac volume controls. An older layout can still contain settings for a previously saved card. If the editor marks it unavailable, [replace or remove it](/getting-started/troubleshooting#a-card-does-not-work). Keep a backup of the original layout if you plan to return to its original firmware release.
 
-Check the [release notes](https://github.com/jtenniswood/espdesktop/releases) for controls added in a newer stable release.
+[App Volume](/mac-controls/apps#app-volume) provides a slider for an individual enabled app on macOS 14.2 or later. [Sound cards](/mac-controls/apps#mac-audio) control the default audio devices or the level of a specific microphone. Check the [release notes](https://github.com/jtenniswood/espdesktop/releases) for versions that include these controls.

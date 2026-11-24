@@ -4,7 +4,7 @@
 
 ![EspDesktop touchscreen showing Mac app tiles beside a keyboard](docs/public/images/espdesktop-desk.jpg)
 
-EspDesktop pairs an affordable ESP32 touchscreen with a native macOS menu-bar app through the **Mac Companion** connector. Use the display to launch apps, open folders and websites, run keyboard shortcuts, and lock your Mac.
+EspDesktop pairs an affordable ESP32 touchscreen with a native macOS menu-bar app through the **Mac Companion** connector. Use the display to launch apps, open folders and websites, run keyboard shortcuts and Apple Shortcuts workflows, control OBS Studio, and lock your Mac.
 
 Set up the display from a normal web browser.
 
@@ -15,14 +15,16 @@ A [Windows 11 companion preview](windows/README.md) is available for testing on 
 ## What You Can Control
 
 - **Applications** — launch only the Mac apps you approve in EspDesktop.
-- **App shortcuts** — open an app-specific page of controls for common actions, or create your own keyboard shortcuts.
+- **App keyboard shortcuts** — open an app-specific page of controls for common actions, or create your own keyboard shortcuts.
+- **Apple Shortcuts** — run a workflow from the Mac’s Shortcuts app with a tap, or group several workflows on a dedicated page. Your Mac must be unlocked. [Set up Apple Shortcuts](https://espdesktop.com/mac-controls/apple-shortcuts).
+- **OBS Studio** — switch scenes, adjust mixer levels, mute inputs, and control streaming, recording, and Studio Mode. Connect EspDesktop to OBS using the built-in OBS WebSocket server. [Set up OBS Studio controls](https://espdesktop.com/mac-controls/obs-studio).
 - **Mac Lock** — lock your Mac with a tap on the display.
 - **Finder folders** — open an approved folder with a tap.
 - **Websites** — open `http://` and `https://` links in your default browser.
 
-You can organise controls into subpages, resize and rearrange cards, change icons and colours, and back up or restore the layout from the display’s built-in editor. See the [feature guide](https://espdesktop.com/#what-you-can-control) for release availability.
+You can organise controls into subpages, resize and rearrange cards, change icons and colours, and back up or restore the layout from the display’s built-in editor. Apple Shortcuts and OBS Studio controls are available in [EspDesktop v1.4.1](https://github.com/jtenniswood/espdesktop/releases/tag/v1.4.1).
 
-<img src="docs/public/images/espdesktop-slack-subpage.jpg" alt="EspDesktop touchscreen showing a Slack subpage with shortcuts for messages, search, and unread chats" width="600">
+<img src="docs/public/images/espdesktop-slack-subpage.jpg" alt="EspDesktop touchscreen showing a Slack subpage with keyboard shortcuts for messages, search, and unread chats" width="600">
 
 ## How It Works
 
@@ -55,7 +57,7 @@ Pair on a trusted local network and remove a display from the Mac app before rep
 - A 2.4 GHz WiFi network shared by the display and Mac
 - An Apple silicon Mac running macOS 13 or newer
 
-The 4848S040 panel is available from AliExpress ([US](https://s.click.aliexpress.com/e/_c3IAOLXl) or [Global](https://s.click.aliexpress.com/e/_c4m73SzH)). A compatible [3D-printable stand is available on MakerWorld](https://makerworld.com/en/models/3592833-espdesktop-4inch-screen-stand#profileId-4115394).
+The 4848S040 panel is available from AliExpress ([US](https://s.click.aliexpress.com/e/_c3qyIYL7) or [Global](https://s.click.aliexpress.com/e/_c4m73SzH)). A compatible [3D-printable stand is available on MakerWorld](https://makerworld.com/en/models/3592833-espdesktop-4inch-screen-stand#profileId-4115394).
 
 ## Project Links
 

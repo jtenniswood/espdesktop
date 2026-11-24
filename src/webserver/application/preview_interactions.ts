@@ -1,3 +1,6 @@
+import type { CardConfig } from "../contracts/types";
+import type { SettingsDraft } from "../state/types";
+import { generatedCardElements } from "../model/generated_page_cards";
 import { cardTransferOwnsSubpage } from "../model/card_transfer";
 import { state } from "../state/app_instance";
 import type { NativePageTransfersFeature } from "./native_page_transfers";
@@ -31,7 +34,7 @@ export interface PreviewInteractionsDependencies {
     readonly shell: Pick<ControlsShellFeature, "isConfigLocked" | "showBanner">;
     readonly requestApi: Pick<ApplicationApiFeature, "postText">;
     readonly grid: Pick<GridFeature, "ctx" | "serializeGrid">;
-    readonly selection: Pick<ButtonSettingsSelectionFeature, "hideSettingsOverlay" | "selectClockBarItem">;
+    readonly selection: Pick<ButtonSettingsSelectionFeature, "clearCardSelection" | "hideSettingsOverlay" | "selectClockBarItem">;
     readonly placement: Pick<PreviewGridPlacementFeature, "findDuplicatePlacement" | "getCellFromEvent" | "planMove" | "applyMove" | "placeSlotAt">;
     readonly contextMenu: PreviewContextMenuFeature;
     readonly renderPreview: () => void;
@@ -47,6 +50,7 @@ export interface PreviewInteractionsFeature {
     deleteSlot(slot?: any): void;
     deleteButtons(slots?: any): void;
     emptyButtonConfig(): any;
+    saveGeneratedDraft(draft: SettingsDraft): Promise<boolean>;
 }
 
 export function createPreviewInteractionsFeature(
@@ -60,10 +64,10 @@ export function createPreviewInteractionsFeature(
     const { entityName } = dependencies.entityState;
     const { isConfigLocked, showBanner } = dependencies.shell;
     const { ctx, serializeGrid } = dependencies.grid;
-    const { hideSettingsOverlay, selectClockBarItem } = dependencies.selection;
+    const { clearCardSelection, hideSettingsOverlay, selectClockBarItem } = dependencies.selection;
     const { findDuplicatePlacement, getCellFromEvent, planMove, applyMove, placeSlotAt } = dependencies.placement;
     const { renderPreview, renderButtonSettings } = dependencies;
-    const { showClockBar, showEmpty, showCard, showBack } = dependencies.contextMenu;
+    const { showClockBar, showEmpty, showCard, showBack, showGenerated } = dependencies.contextMenu;
     const els = runtime.els;
     const {
         isImageCard,
@@ -93,6 +97,56 @@ export function createPreviewInteractionsFeature(
         saveSubpageConfig,
         subpageFirstFreeSlot,
     } = dependencies.codec;
+    function generatedPlan(container: HTMLElement, positions: readonly number[]) {
+        const c = ctx();
+        const grid: number[] = c.grid.slice();
+        const edits = new Map<number, CardConfig>();
+        const sizes = { ...c.sizes };
+        for (const pos of new Set(positions)) {
+            const element = container.querySelector<HTMLElement>(`[data-pos="${pos}"]`);
+            const generated = element && generatedCardElements.get(element);
+            if (grid[pos] !== 0 || !generated) continue;
+            const slot = c.buttons.length + edits.size + 1;
+            edits.set(slot, generated.card);
+            if (generated.size > 1) sizes[slot] = generated.size;
+            placeSlotAt(grid, slot, pos, generated.size);
+        }
+        return { grid, edits, sizes, maxSlotId: c.buttons.length + edits.size };
+    }
+
+    function selectGenerated(pos: number, card: CardConfig, size: number, edit: boolean) {
+        const homeSlot = state.editingSubpage;
+        if (!homeSlot || !dependencies.nativeTransfers?.available()) return;
+        state.clockBarSelectedItem = "";
+        hideSettingsOverlay();
+        const c = ctx();
+        const slot = c.buttons.length + 1;
+        const draft = cardEditorDraftController.newDraft({ slot, homeSlot, isSub: true, pos });
+        draft.button = { ...card };
+        draft.typeSelected = true;
+        draft.generated = { id: card.entity, size };
+        state.settingsDraft = draft;
+        c.setSelected([slot]);
+        c.setLastClicked(-1);
+        renderPreview();
+        if (edit) renderButtonSettings(true);
+    }
+
+    async function saveGeneratedDraft(draft: SettingsDraft): Promise<boolean> {
+        const c = ctx();
+        const position = draft.pos;
+        const generated = draft.generated;
+        if (!generated || position === undefined || !els.previewMain || !state.editingSubpage ||
+            draft.homeSlot !== state.editingSubpage || draft.slot !== c.buttons.length + 1) return false;
+        const plan = generatedPlan(els.previewMain, [position]);
+        if (plan.edits.get(draft.slot)?.entity !== generated.id || (plan.sizes[draft.slot] || 1) !== generated.size) {
+            showBanner("The automatic card moved. Reopen it before saving.", "error");
+            return false;
+        }
+        const order = serializeSubpageGrid({ ...getSubpage(draft.homeSlot), grid: plan.grid, sizes: plan.sizes }).join(",");
+        return dependencies.nativeTransfers?.saveGeneratedDraft(draft, order) ?? false;
+    }
+
     function editCardTitle(title: HTMLElement) {
         if (title.querySelector("input")) return;
         const card = title.closest<HTMLElement>("[data-slot]");
@@ -172,9 +226,113 @@ export function createPreviewInteractionsFeature(
         if (selection && selection.removeAllRanges)
             selection.removeAllRanges();
     }
+    function setupBoxSelection(wrap: HTMLElement, grid: HTMLElement) {
+        const document = grid.ownerDocument;
+        const box = document.createElement("div");
+        box.className = "sp-selection-box";
+        box.setAttribute("aria-hidden", "true");
+
+        document.addEventListener("pointerdown", (start) => {
+            const target = start.target;
+            if (!(target instanceof Element) || !start.isPrimary || start.pointerType !== "mouse" || start.button !== 0 ||
+                isConfigLocked() || grid.classList.contains("sp-grid-loading")) return;
+
+            const insidePreview = wrap.contains(target);
+            if (insidePreview ? target.closest("[data-pos], .sp-topbar") : !isLayoutBackground(target, start.clientY)) return;
+
+            // Keep the previous selection available for modifiers until the drag commits.
+            start.preventDefault();
+            const page = state.editingSubpage;
+            const replace = !start.shiftKey && !start.metaKey && !start.ctrlKey;
+            const toggle = start.metaKey || start.ctrlKey;
+            const initial = new Set<number>(ctx().selected);
+            let selected = new Set<number>();
+            const listeners = new AbortController();
+            const options = { signal: listeners.signal };
+            wrap.setPointerCapture(start.pointerId);
+
+            function finish() {
+                listeners.abort();
+                box.remove();
+                if (wrap.hasPointerCapture(start.pointerId)) wrap.releasePointerCapture(start.pointerId);
+            }
+            function cancel() {
+                const active = box.isConnected;
+                finish();
+                if (active) renderPreview();
+            }
+            function update(event: PointerEvent) {
+                if (state.editingSubpage !== page || isConfigLocked()) {
+                    cancel();
+                    return;
+                }
+                const dx = event.clientX - start.clientX;
+                const dy = event.clientY - start.clientY;
+                if (!box.isConnected && Math.hypot(dx, dy) < 4) return;
+                const left = Math.min(start.clientX, event.clientX);
+                const top = Math.min(start.clientY, event.clientY);
+                const right = Math.max(start.clientX, event.clientX);
+                const bottom = Math.max(start.clientY, event.clientY);
+                selected = new Set<number>();
+                // Only saved cards can participate in the editor's batch actions.
+                const cards = Array.from(grid.querySelectorAll<HTMLElement>(".sp-btn"), card => {
+                    const slot = Number(card.dataset.slot);
+                    const rect = card.getBoundingClientRect();
+                    const hit = left < rect.right && right > rect.left && top < rect.bottom && bottom > rect.top;
+                    const wasSelected = !replace && initial.has(slot);
+                    const include = slot > 0 && (toggle ? hit !== wasSelected : hit || wasSelected);
+                    if (include) selected.add(slot);
+                    return { card, include };
+                });
+                for (const { card, include } of cards) card.classList.toggle("sp-selected", include);
+                Object.assign(box.style, {
+                    left: left + "px", top: top + "px", width: (right - left) + "px", height: (bottom - top) + "px",
+                });
+                if (!box.isConnected) wrap.appendChild(box);
+            }
+            wrap.addEventListener("pointermove", event => {
+                if (event.pointerId === start.pointerId) update(event);
+            }, options);
+            wrap.addEventListener("pointerup", event => {
+                if (event.pointerId !== start.pointerId) return;
+                update(event);
+                if (listeners.signal.aborted) return;
+                const active = box.isConnected;
+                finish();
+                if (!active) {
+                    if (replace && insidePreview && !grid.contains(target)) clearCardSelection();
+                    return;
+                }
+                const c = ctx();
+                const slots = [...selected];
+                c.setSelected(slots);
+                c.setLastClicked(slots.at(-1) ?? -1);
+                state.clockBarSelectedItem = "";
+                if (state.settingsDraft?.generated) state.settingsDraft = null;
+                hideSettingsOverlay();
+                renderPreview();
+            }, options);
+            wrap.addEventListener("lostpointercapture", event => {
+                if (event.pointerId === start.pointerId) cancel();
+            }, options);
+            window.addEventListener("blur", cancel, options);
+            document.addEventListener("keydown", event => {
+                if (event.key === "Escape") cancel();
+            }, options);
+        });
+
+        function isLayoutBackground(target: Element, y: number) {
+            const page = els.screenPage;
+            if (!page.classList.contains("active")) return false;
+            return (target === document.body || target === document.documentElement ||
+                target === els.root || target === page || target === els.previewHint) && y >= page.getBoundingClientRect().top;
+        }
+    }
     function setupPreviewEvents(this: any) {
         var container: any = els.previewMain;
+        if (els.previewWrap) setupBoxSelection(els.previewWrap, container);
         var pendingCellIdx: any = -1;
+        let draggedGeneratedId: string | undefined;
         state.clockBarDragItem = "";
         if (els.topbar) {
             els.topbar.addEventListener("click", function (this: any, e?: any) {
@@ -294,6 +452,11 @@ export function createPreviewInteractionsFeature(
                     handleBtnClick(e, slot, pos);
                 }
             }
+            else if (generatedCardElements.has(target)) {
+                const entry = generatedCardElements.get(target)!;
+                if (!runtime.didDrag) selectGenerated(pos, entry.card, entry.size, false);
+                runtime.didDrag = false;
+            }
             else if (slot === 0) {
                 if (state.clipboard) {
                     e.preventDefault();
@@ -325,6 +488,20 @@ export function createPreviewInteractionsFeature(
             else if (slot === -2) {
                 showBack(e);
             }
+            else if (generatedCardElements.has(target)) {
+                const entry = generatedCardElements.get(target)!;
+                const page = state.editingSubpage;
+                showGenerated(e, () => {
+                    if (state.editingSubpage === page) selectGenerated(pos, entry.card, entry.size, true);
+                }, () => {
+                    if (state.editingSubpage !== page) return;
+                    if (state.settingsDraft?.generated && !state.settingsDraft.dirty) {
+                        state.settingsDraft = null;
+                        c.setSelected([]);
+                    }
+                    void dependencies.nativeTransfers?.hideGenerated(entry.card.entity);
+                });
+            }
             else if (slot === 0) {
                 showEmpty(e, pos);
             }
@@ -344,6 +521,7 @@ export function createPreviewInteractionsFeature(
                 return;
             var pos: any = parseInt(target.getAttribute("data-pos"), 10);
             runtime.dragSrcPos = pos;
+            draggedGeneratedId = generatedCardElements.get(target)?.card.entity;
             if (dependencies.layout.config.dragAnimation)
                 runtime.dragSrcEl = target;
             runtime.didDrag = true;
@@ -440,14 +618,20 @@ export function createPreviewInteractionsFeature(
                 runtime.dragSrcPos = -1;
                 return;
             }
-            const move = planMove(runtime.dragSrcPos, toPos);
+            const projected = c.isSub && dependencies.nativeTransfers?.available()
+                ? generatedPlan(container, [runtime.dragSrcPos, toPos]) : undefined;
+            const fromPos = runtime.dragSrcPos;
+            const sourceId = projected?.edits.get(projected.grid[fromPos] ?? 0)?.entity;
             runtime.dragSrcPos = -1;
+            if (sourceId !== draggedGeneratedId) return;
+            const move = planMove(fromPos, toPos, projected);
             if (!move.accepted) return;
             if (dependencies.nativeTransfers?.available()) {
                 const order = c.isSub
                     ? serializeSubpageGrid({ ...getSubpage(state.editingSubpage), ...move }).join(",")
                     : serializeGridOrder(move.grid, move.sizes);
-                void dependencies.nativeTransfers.place(order);
+                if (projected?.edits.size) void dependencies.nativeTransfers.saveGenerated(projected.edits, order);
+                else void dependencies.nativeTransfers.place(order);
                 return;
             }
             applyMove(move);
@@ -465,6 +649,10 @@ export function createPreviewInteractionsFeature(
         }
         state.clockBarSelectedItem = "";
         var c: any = ctx();
+        if (state.settingsDraft?.generated) {
+            state.settingsDraft = null;
+            c.setSelected([]);
+        }
         if (e.shiftKey || e.ctrlKey || e.metaKey)
             e.preventDefault();
         if (slot === -2) {
@@ -798,6 +986,7 @@ export function createPreviewInteractionsFeature(
         duplicateButton,
         duplicateSubpageButton,
         deleteSlot,
+        saveGeneratedDraft,
         deleteButtons,
         emptyButtonConfig,
     };

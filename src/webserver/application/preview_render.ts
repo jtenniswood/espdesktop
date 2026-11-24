@@ -1,3 +1,5 @@
+import { generatedCardElements, generatedCardExclusions, generatedCardKey, generatedPageCard } from "../model/generated_page_cards";
+import { obsSubpageKind, orderedOBSTiles, obsSubpageCatalogue } from "../model/obs_live_subpage";
 import { removeRetiredCards } from "../features/retired_cards";
 import { cardContractTypeRetired } from "../generated/card_contract";
 import { cardRequiresHomeAssistant } from "../model/legacy_home_assistant";
@@ -7,19 +9,21 @@ import { WEB_UI_COLORS } from "../state/ui_tokens";
 import { COMPANION_APP_ICON_SIDE } from "../generated/companion_capabilities";
 import { appIconArtworkBounds, appIconFitSide } from "../model/app_icon_layout";
 import { PREVIEW_THEME_COLORS, defaultCardBackgroundColor, previewEffectiveTheme } from "../state/preview_theme";
-import { cardIconSize, configOptionValue, cardActiveColor } from "../model/config_primitives";
+import { configOptionValue, cardActiveColor } from "../model/config_primitives";
 import { PANEL_CONFIG_MAX_SLOT_COUNT } from "../model/panel_config";
 import { escHtml, iconSlug } from "./ui_primitives";
 import { companionCardDefaultIcon } from "../model/companion_card";
-import { appShortcutPageBackIcon, appShortcutPageOwner, previewSubpageOwner } from "../model/companion_shortcut_page";
-import { finderFolderPreview } from "../model/finder_folder_preview";
+import { APPLE_SHORTCUT_PREFIX } from "../model/companion_card_codec";
+import { APPLE_SHORTCUTS_APP_ID, appleShortcutBackgroundColor, appShortcutPageBackIcon, appShortcutPageOwner,
+    hiddenAppleShortcuts, isAppleShortcutsPage, previewSubpageOwner } from "../model/companion_shortcut_page";
+import { appleShortcutPreview, finderFolderPreview, liveSubpagePreview, scenePageControls } from "../model/finder_folder_preview";
+import { CARD_SIZE_SINGLE, CARD_SIZE_WIDE } from "../model/grid";
 import type { CompanionAction } from "../api/companion_catalogue";
 import { createWeatherDailyPreviewLayout } from "./weather_daily_preview";
 import {
     buttonConfigDisabledForDevice as isButtonConfigDisabledForDevice,
     cardPreviewTextColor,
     cardProgressColor,
-    cardSliderFillColor,
     applySliderPreviewTextContrast,
     cardPatternHighlightColor,
     cardTypePickerDetails,
@@ -54,7 +58,7 @@ export interface PreviewRenderDependencies {
     readonly grid: Pick<GridFeature, "ctx" | "resolveIcon" | "sizeClass">;
     readonly selection: Pick<ButtonSettingsSelectionFeature, "renderSelectionBar" | "updatePreviewHint">;
     readonly homeAssistantSupported: () => boolean;
-    readonly liveFinderFolders: () => readonly CompanionAction[];
+    readonly liveGeneratedActions: () => readonly CompanionAction[];
 }
 export interface PreviewRenderFeature {
     render(): void;
@@ -255,6 +259,45 @@ export function createPreviewRenderFeature(dependencies: PreviewRenderDependenci
     const isPreviewReadOnly = () => dependencies.displayDemo || dependencies.shell.isPreviewReadOnly();
     const { ctx, resolveIcon, sizeClass } = dependencies.grid;
     const { renderSelectionBar, updatePreviewHint } = dependencies.selection;
+    type LivePlacement = { position: number; width: number; id: string; label: string };
+    let liveProjection: { key: string; tiles?: readonly LivePlacement[]; request: AbortController } | undefined;
+    function panelLiveProjection(kind: string | undefined, options: string, c: any,
+            catalogue: readonly CompanionAction[]): readonly LivePlacement[] | undefined {
+        if (!kind || dependencies.displayDemo || document.documentElement.hasAttribute("data-espdesktop-editor-demo") ||
+            !document.defaultView?.fetch) {
+            liveProjection?.request.abort();
+            liveProjection = undefined;
+            return;
+        }
+        const columns = dependencies.layout.gridCols;
+        const slots = c.maxSlots;
+        const order = serializeSubpageGrid({ grid: c.grid, sizes: c.sizes }).join(",");
+        const body = JSON.stringify({ kind, order, options, columns, slots,
+            capacity: dependencies.layout.totalSlots, entities: c.buttons.map((card: { entity: string }) => card.entity) });
+        const key = JSON.stringify([state.editingSubpage, body, catalogue.map(action => [action.id, action.label])]);
+        if (liveProjection?.key === key) return liveProjection.tiles;
+        liveProjection?.request.abort();
+        const request = new AbortController();
+        const projection = liveProjection = { key, request };
+        void document.defaultView.fetch("/companion/page-preview", {
+            method: "POST", credentials: "same-origin", cache: "no-store",
+            headers: { "Content-Type": "application/json" }, body, signal: request.signal,
+        }).then(async response => response.ok ? await response.json() : undefined).then((tiles: unknown) => {
+            if (liveProjection !== projection || !Array.isArray(tiles)) return;
+            const occupied = c.grid.slice(0, slots);
+            for (const tile of tiles as LivePlacement[]) {
+                const { position, width, id, label } = tile || {};
+                if (!Number.isInteger(position) || position < 0 || position >= slots || occupied[position] !== 0 ||
+                    (width !== 1 && width !== 2) || typeof id !== "string" || typeof label !== "string" ||
+                    (width === 2 && (position + 1 >= slots || position % columns === columns - 1 || occupied[position + 1] !== 0))) return;
+                occupied[position] = -1;
+                if (width === 2) occupied[position + 1] = -1;
+            }
+            liveProjection.tiles = tiles;
+            renderPreview();
+        }).catch(() => { /* Older firmware and offline previews use the local projection. */ });
+        return;
+    }
     const appIconArtwork = new WeakMap<HTMLImageElement, CompanionAppIconPreview>();
     // Use a single measured side for square images at every card aspect ratio.
     function resizeCardIcon(button: Element): void {
@@ -281,10 +324,8 @@ export function createPreviewRenderFeature(dependencies: PreviewRenderDependenci
         const height = button.clientHeight - parseFloat(style.paddingTop) - parseFloat(style.paddingBottom);
         const fitted = appIconFitSide(width, height, labelHeight, Math.max(3, smallSide / 4),
             artwork.artworkWidthFraction, artwork.artworkHeightFraction);
-        const size = button.getAttribute("data-icon-size");
-        const requested = size === "large" ? fitted : smallSide * (size === "medium" ? 1.5 : 1)
-            / artwork.artworkWidthFraction;
-        const side = Math.min(fitted, requested);
+        const side = button.getAttribute("data-icon-size") === "small"
+            ? Math.min(fitted, smallSide / artwork.artworkWidthFraction) : fitted;
         icon.style.width = side + "px";
         icon.style.height = side + "px";
         icon.style.left = (parseFloat(style.paddingLeft) - side * artwork.insetLeftPercent / 100) + "px";
@@ -445,13 +486,38 @@ export function createPreviewRenderFeature(dependencies: PreviewRenderDependenci
         const subpage = pageKey ? getSubpage(pageKey) : null;
         const owner = previewSubpageOwner(pageKey, state.buttons, getSubpage);
         const shortcutOwner = appShortcutPageOwner(owner);
-        const liveFolders = subpage && shortcutOwner === "com.apple.finder"
-            ? finderFolderPreview(subpage.order, c.grid, c.buttons, dependencies.layout.totalSlots,
-                dependencies.liveFinderFolders())
+        const liveKind = obsSubpageKind(owner?.options);
+        const projectionKind = subpage ? liveKind || (shortcutOwner === "com.apple.finder" ? "finder" : undefined) : undefined;
+        const excluded = new Set(generatedCardExclusions(owner?.options));
+        const catalogue = dependencies.liveGeneratedActions();
+        const actionsForPage = projectionKind === "finder" ? catalogue.filter(action => action.id.startsWith("folder."))
+            : projectionKind ? obsSubpageCatalogue(projectionKind, catalogue) : [];
+        const liveActions = actionsForPage.filter(action => !excluded.has(generatedCardKey(action.id)));
+        const projectionGrid: number[] = c.grid.slice(0, c.maxSlots);
+        const panelTiles = panelLiveProjection(projectionKind, owner?.options || "", c, liveActions);
+        const sceneControls = !panelTiles && liveKind === "obs_scenes"
+            ? scenePageControls(projectionGrid, c.buttons, dependencies.layout.totalSlots, dependencies.layout.gridCols, excluded)
+            : new Map<number, { action: CompanionAction; size: number }>();
+        if (panelTiles) {
+            for (const tile of panelTiles) {
+                sceneControls.set(tile.position, { action: tile, size: tile.width === 2 ? CARD_SIZE_WIDE : CARD_SIZE_SINGLE });
+                if (tile.width === 2) projectionGrid[tile.position + 1] = -1;
+            }
+        } else if (projectionKind) {
+            const liveCards = projectionKind === "finder"
+                ? finderFolderPreview(subpage?.order ?? [], c.grid, c.buttons, dependencies.layout.totalSlots, liveActions)
+                : liveSubpagePreview(projectionGrid, c.buttons, dependencies.layout.totalSlots - sceneControls.size,
+                    orderedOBSTiles(projectionKind, liveActions, owner?.options));
+            for (const [position, action] of liveCards) sceneControls.set(position, { action, size: CARD_SIZE_SINGLE });
+        }
+        const liveAppleShortcuts = subpage && isAppleShortcutsPage(owner)
+            ? appleShortcutPreview(subpage.order, projectionGrid, c.buttons,
+                catalogue, hiddenAppleShortcuts(owner?.options))
             : undefined;
         for (var pos: any = 0; pos < c.maxSlots; pos++) {
             var slot: any = c.grid[pos];
-            if (slot === -1)
+            const control = sceneControls.get(pos);
+            if (projectionGrid[pos] === -1 && !control)
                 continue;
             if (slot === -2) {
                 var backBtn: any = document.createElement(dependencies.displayDemo ? "button" : "div");
@@ -485,9 +551,14 @@ export function createPreviewRenderFeature(dependencies: PreviewRenderDependenci
                         backBtn.querySelector(".sp-app-back-icon"), true);
                 }
             }
-            else if (slot > 0) {
-                if (slot > PANEL_CONFIG_MAX_SLOT_COUNT || slot > c.buttons.length ||
-                    (!c.isSub && slot > dependencies.layout.numSlots)) {
+            else if (slot > 0 || control) {
+                const action = control?.action;
+                const generated = action && generatedPageCard(action, liveKind, owner);
+                const draft = state.settingsDraft;
+                const selectedGenerated = generated && draft?.generated?.id === generated.entity &&
+                    draft.pos === pos && draft.homeSlot === pageKey && c.selected.includes(draft.slot);
+                if (!generated && (slot > PANEL_CONFIG_MAX_SLOT_COUNT || slot > c.buttons.length ||
+                    (!c.isSub && slot > dependencies.layout.numSlots))) {
                     var unavailable: any = document.createElement("div");
                     unavailable.className = "sp-empty-cell";
                     unavailable.setAttribute("data-pos", pos);
@@ -495,9 +566,7 @@ export function createPreviewRenderFeature(dependencies: PreviewRenderDependenci
                     continue;
                 }
                 var bIdx: any = slot - 1;
-                if (c.isSub && bIdx >= c.buttons.length)
-                    continue;
-                var b: any = c.buttons[bIdx];
+                var b: any = selectedGenerated && draft.dirty ? draft.button : generated || c.buttons[bIdx];
                 if (state.settingsDraft &&
                     state.settingsDraft.slot === slot &&
                     state.settingsDraft.isSub === c.isSub &&
@@ -518,10 +587,13 @@ export function createPreviewRenderFeature(dependencies: PreviewRenderDependenci
                 if (previewTypeDef && c.isSub && !buttonTypeRegistryValue(previewTypeDef, "allowInSubpage", false)) {
                     previewTypeDef = null;
                 }
-                var slotSz: any = c.sizes[slot];
+                var slotSz: any = control?.size || c.sizes[slot];
                 var cardOffColor: any = configOptionValue(b.options, "card_off_color").replace(/^#/, "").toUpperCase();
                 if (!/^[0-9A-F]{6}$/.test(cardOffColor)) cardOffColor = "";
-                var cardOnColor: any = cardActiveColor(b.options, state.onColor || WEB_UI_COLORS.primary);
+                if (!cardOffColor && b.type === "companion" && b.entity?.startsWith(APPLE_SHORTCUT_PREFIX)) {
+                    cardOffColor = appleShortcutBackgroundColor(catalogue.find(item => item.id === b.entity)?.shortcutColor);
+                }
+                var cardOnColor: any = cardActiveColor(b.options, state.onColor || WEB_UI_COLORS.primary, cardOffColor);
                 var typePreview: any = previewTypeDef && previewTypeDef.renderPreview
                     ? previewTypeDef.renderPreview(b, {
                         escHtml: escHtml, cardSize: slotSz || 1,
@@ -535,19 +607,29 @@ export function createPreviewRenderFeature(dependencies: PreviewRenderDependenci
                 btn.className = "sp-btn" +
                     (typePreview && typePreview.buttonClass ? " " + typePreview.buttonClass : "") +
                     sizeClass(slotSz) +
-                    (c.selected.indexOf(slot) !== -1 ? " sp-selected" : "");
-                btn.style.backgroundColor = "#" + (cardOffColor || color);
-                btn.style.setProperty("--card-active-color", "#" + (cardOnColor || state.onColor || WEB_UI_COLORS.primary));
-                var activeMode: any = configOptionValue(b.options, "card_active_color");
-                var customActive: any = configOptionValue(b.options, "card_on_color").replace(/^#/, "");
-                var explicitActive: any = activeMode === "theme" || (activeMode === "custom" && /^[0-9A-F]{6}$/i.test(customActive));
-                var sliderFillColor: any = cardSliderFillColor(cardOffColor, explicitActive ? cardOnColor : "") || cardOnColor;
+                    (selectedGenerated || c.selected.indexOf(slot) !== -1 ? " sp-selected" : "");
+                const activeColor = cardOnColor || state.onColor || WEB_UI_COLORS.primary;
+                var badgeIcon: any = b.sensor ? "gauge" : "swap-horizontal";
+                var hasWhenOn: any = !typePreview && (b.sensor || (b.icon_on && b.icon_on !== "Auto"));
+                var sensorBadge: any = hasWhenOn
+                    ? '<span class="sp-sensor-badge mdi mdi-' + badgeIcon + '"></span>'
+                    : '';
+                var labelHtml: any = previewHtmlValue(typePreview, "labelHtml", '<span class="sp-btn-label">' + escHtml(label) + '</span>');
+                var iconHtml: any = previewHtmlValue(typePreview, "iconHtml", '<span class="sp-btn-icon mdi mdi-' + iconName + '"></span>');
+                btn.innerHTML = sensorBadge + iconHtml + labelHtml;
+                const isSlider = b.type !== "media" && btn.querySelector(".sp-slider-fill");
+                const sliderFillColor = isSlider ? activeColor : "";
+                let contrastBackground = (typePreview?.isOn ? cardOnColor : cardOffColor) ||
+                    (typePreview?.sensorSurface ? previewColors.surfaceSensor : color);
+                btn.style.backgroundColor = "#" + contrastBackground;
+                btn.style.setProperty("--card-active-color", "#" + activeColor);
                 if (sliderFillColor) btn.style.setProperty("--card-slider-fill-color", "#" + sliderFillColor);
-                var contrastBackground: any = cardOffColor || color;
                 btn.draggable = !isPreviewReadOnly();
                 btn.setAttribute("data-pos", pos);
-                btn.setAttribute("data-slot", slot);
-                var hasWhenOn: any = !typePreview && (b.sensor || (b.icon_on && b.icon_on !== "Auto"));
+                if (generated) {
+                    btn.dataset.generatedCard = "";
+                    generatedCardElements.set(btn, { card: generated, size: slotSz || 1 });
+                } else btn.setAttribute("data-slot", slot);
                 if (!typePreview && hasWhenOn && typeof cardOnPattern === "function" && cardOnPattern(b) === "stripes") {
                     var onColor: any = cardOnColor || (state.onColor && state.onColor.length === 6 ? state.onColor : WEB_UI_COLORS.primary);
                     contrastBackground = onColor;
@@ -559,16 +641,6 @@ export function createPreviewRenderFeature(dependencies: PreviewRenderDependenci
                     btn.style.setProperty("--card-text-color", cardOffColor || contrastBackground !== color
                         ? cardPreviewTextColor(contrastBackground) : "#" + previewColors.textPrimary);
                 }
-                var badgeIcon: any = b.sensor ? "gauge" : "swap-horizontal";
-                var sensorBadge: any = hasWhenOn
-                    ? '<span class="sp-sensor-badge mdi mdi-' + badgeIcon + '"></span>'
-                    : '';
-                var labelHtml: any = previewHtmlValue(typePreview, "labelHtml", '<span class="sp-btn-label">' + escHtml(label) + '</span>');
-                var iconHtml: any = previewHtmlValue(typePreview, "iconHtml", '<span class="sp-btn-icon mdi mdi-' + iconName + '"></span>');
-                btn.innerHTML =
-                    sensorBadge +
-                        iconHtml +
-                        labelHtml;
                 if (!dependencies.homeAssistantSupported() && cardRequiresHomeAssistant(b.type || "", b)) {
                     const warning = "Home Assistant unavailable. Saved configuration kept; replace or remove this card.";
                     btn.title = warning;
@@ -579,7 +651,7 @@ export function createPreviewRenderFeature(dependencies: PreviewRenderDependenci
                     btn.appendChild(badge);
                 }
                 // Offer renaming only when the preview displays a name that can be saved.
-                if (cardContractCard(b.type)?.normalization?.fields.label.policy !== "clear" &&
+                if (!generated && cardContractCard(b.type)?.normalization?.fields.label.policy !== "clear" &&
                     previewHtmlValue(typePreview, "labelEditable", true)) {
                     makeTitleEditable(btn, b.type === "image");
                 }
@@ -587,11 +659,9 @@ export function createPreviewRenderFeature(dependencies: PreviewRenderDependenci
                     const visibleLabel = btn.querySelector(".sp-btn-label")?.textContent?.trim();
                     btn.setAttribute("aria-label", visibleLabel || label);
                 }
-                appendResizeHandle(btn);
+                if (!generated) appendResizeHandle(btn);
                 main.appendChild(btn);
-                const appIconSize = typePreview?.appIconId
-                    ? cardIconSize(b.options, state.defaultIconSize) : "small";
-                btn.setAttribute("data-icon-size", appIconSize);
+                btn.setAttribute("data-icon-size", typePreview?.appIconId ? typePreview.appIconSize || "large" : "small");
                 if (typePreview && typeof typePreview.appIconId === "string" &&
                     typePreview.appIconId.length > 0) {
                     const fallbackIcon = btn.querySelector(".sp-companion-app-icon-fallback") as HTMLElement | null;
@@ -601,7 +671,7 @@ export function createPreviewRenderFeature(dependencies: PreviewRenderDependenci
                         ? typePreview.appIconBackgroundColor : "");
                     loadCardAppIcon(btn, applicationId, backgroundColor, fallbackIcon);
                 }
-                if (["light_brightness", "fan_speed", "cover", "slider", "light_temperature"].indexOf(b.type) !== -1) {
+                if (sliderFillColor) {
                     applySliderPreviewTextContrast(btn, cardOffColor ? cardPreviewTextColor(cardOffColor) : "#" + previewColors.textPrimary, sliderFillColor);
                 }
                 if (btn.classList.contains("sp-weather-daily-card")) weatherLayout.observe(btn);
@@ -611,20 +681,32 @@ export function createPreviewRenderFeature(dependencies: PreviewRenderDependenci
                 empty.className = "sp-empty-cell";
                 empty.setAttribute("data-pos", pos);
                 empty.innerHTML = '<span class="sp-add-pill"><span class="sp-add-icon mdi mdi-plus"></span></span>';
-                const folder = liveFolders?.get(pos);
-                if (folder) {
+                const action = liveAppleShortcuts?.get(pos);
+                if (action) {
                     const tile = document.createElement("div");
                     tile.className = "sp-live-folder-preview";
-                    tile.title = "Live Finder folder. Click the cell to add a saved tile.";
+                    tile.title = "Automatically added Apple Shortcut.";
                     const icon = document.createElement("span");
-                    icon.className = "sp-btn-icon mdi mdi-" + iconSlug(companionCardDefaultIcon("folder"));
+                    icon.className = "sp-btn-icon mdi mdi-" + iconSlug(companionCardDefaultIcon("apple_shortcut"));
                     icon.setAttribute("aria-hidden", "true");
                     const label = document.createElement("span");
                     label.className = "sp-btn-label";
-                    label.textContent = folder.label;
+                    label.textContent = action.label;
                     tile.append(icon, label);
-                    empty.style.backgroundColor = "#" + defaultCardBackgroundColor("companion", state);
+                    const shortcutColor = appleShortcutBackgroundColor(action.shortcutColor);
+                    empty.style.backgroundColor = "#" + (shortcutColor || defaultCardBackgroundColor("companion", state));
+                    if (shortcutColor) {
+                        tile.style.setProperty("--card-text-color", cardPreviewTextColor(shortcutColor));
+                    }
                     empty.appendChild(tile);
+                    void companionAppIconPreviewData(APPLE_SHORTCUTS_APP_ID, "", document).then(preview => {
+                        if (!preview || !tile.isConnected) return;
+                        const image = document.createElement("img");
+                        image.className = "sp-btn-icon sp-companion-app-icon";
+                        image.src = preview.dataUrl;
+                        image.alt = "";
+                        icon.replaceWith(image);
+                    });
                 }
                 main.appendChild(empty);
             }
