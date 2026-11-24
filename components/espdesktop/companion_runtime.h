@@ -159,17 +159,21 @@ using CompanionValueSender = std::function<bool(const std::string &, int, const 
 using CompanionActionResultHandler = std::function<void()>;
 using CompanionConnectionChangedHandler = std::function<void(bool)>;
 
+enum class CompanionActionSuccess : uint8_t { ACTIVATED, PERFORMED };
+
 struct CompanionPendingAction {
   std::string request_id;
   std::string expected_application_id;
   uint32_t expires_at{0};
+  CompanionActionSuccess expected_success{CompanionActionSuccess::ACTIVATED};
   CompanionActionResultHandler success;
 };
 
 struct CompanionPendingActions {
   static constexpr size_t MAX_PENDING = 8;
   std::mutex mutex;
-  std::array<CompanionPendingAction, MAX_PENDING> entries{};
+  // A long-running shortcut must leave room for application activation requests.
+  std::array<CompanionPendingAction, MAX_PENDING * 2> entries{};
 };
 
 inline constexpr size_t COMPANION_PAIRING_CODE_LENGTH = 4;
