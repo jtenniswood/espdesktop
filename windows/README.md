@@ -17,7 +17,7 @@ Keep the PC and display on the same local network. In **Display**, select a near
 
 Choose **Add display** to connect another display to the same PC. Each display can connect to one computer at a time. Use the individual display cards to connect, disconnect, forget, or open the editor for that display. Windows app and folder approvals are shared across all your paired displays.
 
-In the display editor, open **Connectors → Mac Companion** to check pairing with your Windows PC. You can add these controls:
+In the display editor, open **System → Connectors → Companion** to check pairing with your Windows PC. You can add these controls:
 
 - Add **Applications** cards for approved Start menu apps, with icons and active app highlighting. Shortcut presets are included for common browsers, VS Code, Cursor, Office, Notepad, Slack, Discord, Spotify, and GitHub Desktop where the app can identify them. You can create a custom shortcut for any approved app.
 - Choose when an app’s shortcut subpage opens under **Screen → Appearance → App Subpages**. Shortcut pages require the matching app to be in the foreground. If Windows keeps another app in front, use the flashing taskbar button to switch to the requested app.

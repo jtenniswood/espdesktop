@@ -133,7 +133,8 @@ async function checkBrowser() {
     }
     let touchscreenIcons;
     const home = `${base}/`;
-    const setup = page.locator('.homepage-hero').getByRole('link', { name: 'Get started', exact: true });
+    const heroActions = page.locator('.homepage-hero .homepage-action');
+    const setup = heroActions.getByRole('link', { name: 'Get started', exact: true });
     for (const [width, height, colorScheme] of [
       [320, 640, 'light'],
       [390, 844, 'dark'],
@@ -146,6 +147,8 @@ async function checkBrowser() {
       assert.equal(await page.getByRole('heading', { level: 1 }).count(), 1);
       assert(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth),
         `Homepage must fit a ${width}px viewport`);
+      assert.equal(await heroActions.getByRole('link').count(), 1);
+      assert.equal(await setup.getAttribute('href'), '/screens/4848s040');
       const action = await setup.boundingBox();
       assert(action && action.y >= 0 && action.y + action.height <= height,
         `Get started must be visible on the first screen at ${width}px`);
@@ -335,6 +338,13 @@ async function checkBrowser() {
     await page.goto(home);
     await setup.press('Enter');
     await page.waitForURL(`${home}screens/4848s040`);
+    await page.getByRole('heading', { name: 'Set up on macOS' }).waitFor();
+    await page.getByRole('heading', { name: 'Set up on Windows 11' }).waitFor();
+    await page.getByRole('link', { name: 'Windows 11 preview guide', exact: true }).click();
+    await page.waitForURL(`${home}windows-preview`);
+    await page.getByRole('heading', { name: 'EspDesktop for Windows 11 preview', level: 1 }).waitFor();
+    await page.goBack();
+    await page.waitForURL(`${home}screens/4848s040`);
     console.log('Homepage checks passed at desktop, tablet and phone widths.');
     await assertSupportedInstaller();
     const setupDownload = page.locator('.display-setup-step .mac-app-download a.docs-primary-action');
@@ -351,10 +361,10 @@ async function checkBrowser() {
     await page.waitForURL(`${setupPage}#install`);
     await gettingStartedButton.hover();
     await gettingStarted.getByRole('link', { name: 'Download', exact: true }).click();
-    await page.waitForURL(`${setupPage}#download`);
-    await page.getByRole('link', { name: /^(See all|View) Mac downloads$/ }).click();
     await page.waitForURL(`${base}/download`);
-    await page.getByRole('heading', { name: 'Download EspDesktop for Mac', level: 1 }).waitFor();
+    await page.getByRole('heading', { name: 'Download EspDesktop', level: 1 }).waitFor();
+    const windowsDownload = page.getByRole('link', { name: 'Download the Windows installer and pair your display' });
+    assert.equal(await windowsDownload.getAttribute('href'), '/windows-preview#install-espdesktop');
     const download = page.locator('.mac-app-download a');
     await download.waitFor();
     assert.match(await download.getAttribute('href'),
@@ -362,7 +372,7 @@ async function checkBrowser() {
     const officialDownloadHref = await download.getAttribute('href');
     assert.equal(setupDownloadHref, officialDownloadHref.endsWith('.dmg') ? officialDownloadHref : '/download');
     await page.getByRole('link', { name: 'Install and pair the Mac app', exact: true }).click();
-    await page.waitForURL(`${setupPage}#download`);
+    await page.waitForURL(`${setupPage}#setup-on-macos`);
     await page.getByRole('heading', { name: 'Set up the Companion app' }).waitFor();
     assert.equal(await page.locator('.VPSidebar a[href="/getting-started/mac-app"]').count(), 0);
     await page.locator('#pair-the-display').waitFor({ state: 'attached' });
