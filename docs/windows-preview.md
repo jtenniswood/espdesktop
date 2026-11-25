@@ -36,6 +36,17 @@ With current firmware and a connected Windows companion, the card picker shows W
 - For an app with a shortcut subpage, choose when it opens under **Screen → Appearance → App Subpages**. [App subpage options](/features/subpages#app-page-behavior)
 - Add a [Website card](/mac-controls/websites) to open a page in your default browser.
 
+## Control system sound
+
+In the display editor, add a **Sound** card on Home or in a subpage. Choose one **Type** per card.
+
+- **Audio Output** adjusts the default speaker or headphone volume.
+- **Audio Input** adjusts the default microphone level.
+- **Output Mute** toggles speaker or headphone mute.
+- **Input State** toggles microphone mute and shows whether the input is live or muted.
+
+These four cards also work with the macOS companion. They follow the computer’s default audio devices. Moving a level slider above zero unmutes that device. If a control is unavailable, check the companion connection and whether the audio device exposes that control.
+
 ## Switch OBS scenes
 
 In OBS Studio on the same Windows PC, open **Tools → WebSocket Server Settings** and enable the server. In EspDesktop, open **OBS Studio**, enter the port and password shown in OBS, and select **Connect to OBS**. Once connected, open or reload the display editor and add an **OBS Scene** card. Choose the scene you want the card to select.

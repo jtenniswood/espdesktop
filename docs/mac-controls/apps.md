@@ -60,6 +60,8 @@ In the display editor, select an empty tile on Home or in a folder. Choose **Sou
 | **Input per device level** (macOS) | Choose a connected audio input with adjustable gain. The card follows that device even when you change the default microphone. It becomes unavailable while that device is disconnected. |
 | **Output per application** (macOS) | Choose an enabled app and adjust its sound independently. |
 
+**Audio Output**, **Audio Input**, **Output Mute**, and **Input State** also work with the [Windows companion](/windows-preview#control-system-sound).
+
 The level cards display **Volume** or **Mic** by default. The output mute card displays **Mute**. The speaker and microphone icons identify which device each card controls. Mute cards show a crossed-out icon when your computer reports mute. If a card is unavailable, check the companion connection and whether the selected audio device supports that control. Raising a level above zero also unmutes that device.
 
 ## Ready-Made app subpages
