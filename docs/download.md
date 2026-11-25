@@ -17,3 +17,7 @@ Use the Mac app and firmware from the **same EspDesktop release**. If your displ
 - [Install firmware on the display](/screens/4848s040#install)
 - [Install and pair the Mac app](/screens/4848s040#download)
 - [Check app and firmware compatibility](/reference/companion-compatibility)
+
+## Windows 11 preview
+
+Have a Windows PC? [Try the Windows 11 companion preview](/windows-preview) with a Guition 4848S040.

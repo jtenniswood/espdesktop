@@ -17,6 +17,8 @@ EspDesktop turns a 4-inch ESP32-based touchscreen into a controller for opening 
 
 [Get started](/screens/4848s040)
 
+[Windows 11 preview](/windows-preview)
+
 </div>
 
 </div>
