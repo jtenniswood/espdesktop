@@ -1,23 +1,24 @@
 ---
-title: Mac Companion Permissions and Security
-description: Understand the approvals and macOS permissions used by EspDesktop Mac Companion controls.
+title: Companion Permissions and Security
+description: Understand the approvals and permissions used by EspDesktop on macOS and Windows.
 ---
 
-# Mac Companion permissions and security
+# Companion permissions and security
 
-The EspDesktop touchscreen sends its requests over your local network to the paired Mac app. The app checks the request and acts on the Mac. It opens only apps and folders you approve, and sends keyboard shortcuts only after you enable Accessibility for EspDesktop.
+EspDesktop checks requests from the paired touchscreen before acting on your computer. Approve the apps and folders you want to use and enable keyboard shortcuts for your platform.
 
-Folder paths stay on the Mac. The display uses a friendly name and an anonymous identifier for each folder. Firmware and app update checks can contact the project's public hosting, separately from local pairing and control.
+Folder paths stay on your computer. The display uses a friendly name and an anonymous identifier for each folder. Firmware and app update checks can contact the project's public hosting, separately from local pairing and control.
 
 | Feature | Approval or permission |
 |---|---|
-| Launching an app | Approve it on the Mac app's **Apps** page |
+| Launching an app | Approve it on EspDesktop’s **Apps** page |
 | [App Volume](/mac-controls/apps#app-volume) | Enable the app on the Mac app’s **Apps** page and allow **System Audio Recording** when prompted |
-| Opening a folder | Add it on the Mac app's **Folders** page |
+| Opening a folder | Add it on EspDesktop’s **Folders** page |
 | Running an Apple Shortcut | **All available shortcuts** is on by default. Turn it off in the Mac app’s **Shortcuts** settings to choose which workflows paired displays can run. Workflows run only while the Mac is unlocked. |
-| Keyboard shortcuts and Lock Machine | Enable EspDesktop in **System Settings → Privacy & Security → Accessibility** |
+| Keyboard shortcuts and Lock Machine on macOS | Enable EspDesktop in **System Settings → Privacy & Security → Accessibility** |
+| Keyboard shortcuts and Lock Machine on Windows | In EspDesktop, open **Display → Windows integration** and turn on **Allow keyboard shortcuts and screen lock** |
 
-The [touchscreen follows your Mac’s lock state](/settings/system#protect-the-touchscreen) while the app is running and paired.
+The [touchscreen follows your computer’s lock state](/settings/system#protect-the-touchscreen) while the app is running and paired.
 
 ## macOS permission prompts
 
@@ -39,11 +40,10 @@ If macOS asks for **Local Network** access, choose **Allow** so EspDesktop can f
 
 <a href="/images/mac-companion-local-network.png"><picture><source type="image/avif" srcset="/images/mac-companion-local-network-480.avif 480w, /images/mac-companion-local-network-772.avif 772w" sizes="(min-width: 768px) 386px, 90vw"><img src="/images/mac-companion-local-network.png" alt="macOS asking whether EspDesktop can find devices on the local network" width="386" height="390" loading="lazy"></picture></a>
 
-- One Mac can connect to several paired displays at the same time. Each display has its own pairing credential and can access the apps and folders you’ve approved in the Mac app.
-- The pairing code stays valid until pairing succeeds. The display generates a new code for the next pairing. EspDesktop stores the credential in macOS Keychain and checks the display certificate on later connections.
-- Folder paths stay on the Mac. The display receives a friendly folder name and an anonymous identifier.
-- The connector accepts only its defined controls. It does not run shell commands or accept incoming network connections on the Mac.
+- One computer can connect to several paired displays. Each display has its own pairing credential and can access the apps and folders you’ve approved in EspDesktop.
+- The pairing code stays valid until pairing succeeds. The display generates a new code for the next pairing. EspDesktop stores the credential on your computer and checks the display certificate on later connections.
+- The connector accepts only its defined controls. It does not run shell commands or accept incoming network connections on your computer.
 
-To remove a display, choose **Forget** beside it in **Settings → Displays**. A connected display with current firmware shows a new pairing code. If the display was offline or runs older firmware, reset pairing on the touchscreen or under **Connectors → Companion** in the display’s web settings.
+To remove a display, choose **Forget** in **Settings → Displays** on macOS or **Forget display** in **Display** on Windows. A connected display with current firmware shows a new pairing code. If the display was offline or runs older firmware, reset pairing on the touchscreen or under **Connectors → Companion** in the display’s web settings.
 
 See the [EspDesktop privacy policy](/reference/privacy) for how the app, display and docs handle information.
