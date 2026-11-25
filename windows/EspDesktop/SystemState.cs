@@ -106,6 +106,17 @@ internal enum ShortcutReplay { Performed, FocusChanged, Blocked }
 
 internal static class InputSession
 {
+    public static ushort? UnmodifiedKeyForCharacter(nint window, char character)
+    {
+        var thread = GetWindowThreadProcessId(window, out _);
+        if (thread == 0) return null;
+        var layout = GetKeyboardLayout(thread);
+        if (layout == 0) return null;
+        var key = VkKeyScanExW(character, layout);
+        // Keep the card's explicit modifiers. Only remap symbols with an unmodified key.
+        return key is > 0 and <= 0xff ? (ushort)key : null;
+    }
+
     public static bool IsDefaultInputDesktop()
     {
         var desktop = OpenInputDesktop(0, false, 1);
@@ -163,6 +174,9 @@ internal static class InputSession
     [DllImport("user32.dll")] private static extern short GetAsyncKeyState(int key);
     [DllImport("user32.dll")] public static extern nint GetForegroundWindow();
     [DllImport("user32.dll")] public static extern uint GetWindowThreadProcessId(nint window, out uint pid);
+    [DllImport("user32.dll")] private static extern nint GetKeyboardLayout(uint thread);
+    [DllImport("user32.dll", CharSet = CharSet.Unicode, ExactSpelling = true)]
+    private static extern short VkKeyScanExW(char character, nint layout);
     [DllImport("user32.dll")] private static extern nint OpenInputDesktop(uint flags, [MarshalAs(UnmanagedType.Bool)] bool inherit, uint access);
     [DllImport("user32.dll")] [return: MarshalAs(UnmanagedType.Bool)] private static extern bool CloseDesktop(nint desktop);
     [DllImport("user32.dll", CharSet = CharSet.Unicode)] [return: MarshalAs(UnmanagedType.Bool)]

@@ -122,6 +122,10 @@ Check(SafeActions.Shortcut("shortcut.control+escape") is null, "block Start menu
 Check(SafeActions.Shortcut("shortcut.command+escape") is null, "block Start menu through the Command alias");
 Check(SafeActions.Shortcut("shortcut.control+shift+escape") is null, "block task manager");
 Check(SafeActions.Shortcut("shortcut.command+keycomma") is not null, "match panel punctuation IDs");
+Check(SafeActions.Shortcut("shortcut.scoped.control+keybackquote", symbol => symbol == '`' ? (ushort)0xdf : null)
+    ?.SequenceEqual(new ushort[] { 0x11, 0xdf }) == true, "use the foreground layout's backtick key for a saved preset");
+Check(SafeActions.Shortcut("shortcut.control+keybackquote", _ => null)?.SequenceEqual(new ushort[] { 0x11, 0xc0 }) == true,
+    "preserve the fallback when the layout has no unmodified backtick key");
 Check(SafeActions.Shortcut("shortcut.scoped.control+t")?.SequenceEqual(new ushort[] { 0x11, 0x54 }) == true,
     "parse the panel's New Tab preset");
 Check(SafeActions.Shortcut("shortcut.scoped.control+k~control+t") is null, "reject multi-stroke replay");

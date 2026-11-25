@@ -100,11 +100,13 @@ internal sealed class WindowsDesktop(LocalSettings settings) : IDesktop
             return ShortcutsEnabled && LockWorkStation() ? "performed" : "not_allowed";
         if (id.StartsWith("shortcut.", StringComparison.Ordinal))
         {
-            if (!ShortcutsEnabled || SafeActions.Shortcut(id) is not { } keys) return "not_allowed";
+            if (!ShortcutsEnabled) return "not_allowed";
+            var window = InputSession.GetForegroundWindow();
+            if (SafeActions.Shortcut(id, symbol => InputSession.UnmodifiedKeyForCharacter(window, symbol)) is not { } keys)
+                return "not_allowed";
             var scoped = id.StartsWith(SafeActions.ScopedShortcutPrefix, StringComparison.Ordinal);
             var target = Text(message, "appId");
             if (scoped && !apps.Any(app => app.Id == target && Allowed(app))) return "not_allowed";
-            var window = InputSession.GetForegroundWindow();
             var app = Identify(window);
             if (scoped && (app?.Id != target || (target == ExplorerId && !IsExplorerWindow(window))))
                 return ShortcutFocusLost();
