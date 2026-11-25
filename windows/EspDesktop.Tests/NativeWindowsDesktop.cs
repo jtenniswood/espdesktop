@@ -74,38 +74,55 @@ internal sealed record NativeWindowsDesktop(WindowsDesktop Desktop, string Drive
         FolderActions?.Dispose();
     }
 
-    private static Task VerifyDiscoveryRefresh() => RunOnDesktop(async () =>
+    internal static Task VerifyDiscoveryRefresh() => RunOnDesktop(async () =>
     {
         _ = new Application { ShutdownMode = ShutdownMode.OnExplicitShutdown };
         var nextScan = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
         var lateDisplay = new DiscoveredDisplay("192.168.1.20:8443", "Late test display", new string('a', 64));
         var scans = 0;
+        var store = new LocalStore(Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString()));
         var window = new SettingsWindow(smoke: false, discover: _ =>
         {
             scans++;
             if (scans == 2) nextScan.SetResult();
-            return Task.FromResult<DiscoveredDisplay[]>(scans == 2 ? [lateDisplay] : []);
-        });
+            return Task.FromResult<DiscoveredDisplay[]>(scans >= 2 ? [lateDisplay] : []);
+        }, store: store);
         try
         {
             window.Show();
-            var fields = Descendants(window).OfType<TextBox>().ToArray();
-            var address = fields.Single(field => AutomationProperties.GetName(field) == "Display address");
-            var code = fields.Single(field => AutomationProperties.GetName(field) == "Pairing code");
-            if (scans != 1 || !Descendants(window).OfType<TextBlock>().Any(text => text.Text.StartsWith("No nearby displays found.")))
-                throw new InvalidOperationException("Windows setup did not start discovery when it opened.");
-            address.Text = "192.168.1.21";
-            code.Text = "123456";
+            Button Action(string label) => Descendants(window).OfType<Button>().Single(button => Equals(button.Content, label));
+            TextBox Field(string label) => Descendants(window).OfType<TextBox>().Single(field => AutomationProperties.GetName(field) == label);
+            void Click(string label) => Action(label).RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+            bool HasInput() => Descendants(window).OfType<TextBox>().Any();
+            if (scans != 1 || HasInput() || Action("Next").IsEnabled)
+                throw new InvalidOperationException("Setup must discover displays before showing any input fields.");
             await nextScan.Task.WaitAsync(TimeSpan.FromSeconds(16));
-            var display = Descendants(window).OfType<Button>().SingleOrDefault(button =>
-                Equals(button.Content, $"Use {lateDisplay.Name} ({lateDisplay.Address})"));
-            if (display is null || address.Text != "192.168.1.21" || code.Text != "123456")
-                throw new InvalidOperationException("Automatic discovery did not add the display while preserving the setup fields.");
+            var list = Descendants(window).OfType<ListBox>().Single(control => AutomationProperties.GetName(control) == "Nearby displays");
+            list.SelectedItem = list.Items.Cast<ListBoxItem>().Single(item => Equals(item.Tag, lateDisplay));
+            if (!Action("Next").IsEnabled) throw new InvalidOperationException("Selecting a display must enable Next.");
+            Click("Next");
+            var code = Field("Pairing code");
+            if (Action("Pair display").IsEnabled) throw new InvalidOperationException("Pairing must require a code.");
+            code.Text = "123456";
+            if (!Action("Pair display").IsEnabled) throw new InvalidOperationException("Entering a code must enable pairing.");
+            Click("Back");
+            if (HasInput() || !Equals(((ListBoxItem)list.SelectedItem).Tag, lateDisplay))
+                throw new InvalidOperationException("Going back must retain the selected display.");
+            Click("Enter address manually");
+            var address = Field("Display address");
+            address.Text = "192.168.1.21";
+            Click("Next");
+            if (Field("Pairing code").Text.Length != 0) throw new InvalidOperationException("Changing displays must clear the code.");
+            Click("Back");
+            if (Field("Display address").Text != "192.168.1.21")
+                throw new InvalidOperationException("Going back must retain the manual address.");
+            Click("Find nearby displays");
+            var beforeReopen = scans;
             window.Hide();
             window.Show();
-            if (scans != 3 || Descendants(window).OfType<Button>().Contains(display))
+            if (scans != beforeReopen + 1 || HasInput())
                 throw new InvalidOperationException("Reopening setup did not refresh the list of nearby displays.");
-            Console.WriteLine("Passed automatic discovery refresh in Windows Settings, including a late display and preserved pairing fields.");
+            Console.WriteLine("Passed progressive Windows setup, automatic discovery refresh, and Back navigation for both address paths.");
         }
         finally { window.Quit(); }
     });

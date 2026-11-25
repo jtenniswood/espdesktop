@@ -60,6 +60,11 @@ if (args is ["--verify-windows-signed-upgrade", var installedApp, var upgrade, v
     return;
 }
 if (await WindowsAppActions.TryRunTarget(args)) return;
+if (args is ["--verify-windows-setup"])
+{
+    await NativeWindowsDesktop.VerifyDiscoveryRefresh();
+    return;
+}
 if (args is ["--installer-profile", var profileMode])
 {
     VerifyInstallerProfile(profileMode);
@@ -288,6 +293,86 @@ Console.WriteLine("Passed real TLS WebSocket pairing, certificate pinning, count
 await VerifyUpdateRequired();
 await VerifyAddressRecovery();
 await VerifyPairingSaveFailure();
+await VerifyMultipleDisplayConnections();
+
+async Task VerifyMultipleDisplayConnections()
+{
+    using var firstCertificate = TestCertificate();
+    using var secondCertificate = TestCertificate();
+    var firstKey = RandomNumberGenerator.GetBytes(32);
+    var secondKey = RandomNumberGenerator.GetBytes(32);
+    var firstReady = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+    var secondReady = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+    var requestAgain = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+    var stillConnected = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+    await using var first = Simulate(firstCertificate, firstKey, firstReady, null);
+    await using var second = Simulate(secondCertificate, secondKey, secondReady, async socket =>
+    {
+        await requestAgain.Task.WaitAsync(lifetime.Token);
+        await Send(socket, "catalogue.request");
+        await ReadCatalogue(socket);
+        stillConnected.SetResult();
+    });
+    await first.StartAsync(lifetime.Token);
+    await second.StartAsync(lifetime.Token);
+    using var firstStop = CancellationTokenSource.CreateLinkedTokenSource(lifetime.Token);
+    using var secondStop = CancellationTokenSource.CreateLinkedTokenSource(lifetime.Token);
+    var sharedDesktop = new FakeDesktop();
+    var firstTask = Connect(first, firstCertificate, firstKey, firstStop.Token);
+    var secondTask = Connect(second, secondCertificate, secondKey, secondStop.Token);
+    try
+    {
+        await Task.WhenAll(firstReady.Task, secondReady.Task).WaitAsync(lifetime.Token);
+        await firstStop.CancelAsync();
+        await firstTask;
+        requestAgain.SetResult();
+        await stillConnected.Task.WaitAsync(lifetime.Token);
+        Console.WriteLine("Passed independent authenticated connections from one Windows client to two simulated displays.");
+    }
+    finally
+    {
+        await firstStop.CancelAsync();
+        await secondStop.CancelAsync();
+        await Task.WhenAll(firstTask, secondTask);
+    }
+
+    Task Connect(WebApplication panel, X509Certificate2 certificate, byte[] key, CancellationToken token)
+    {
+        var pairing = new Pairing(new Uri(panel.Urls.Single()).Authority, Hash(certificate.RawData), key);
+        return new DisplaySession(sharedDesktop, _ => { }, _ => { }, (_, _) => Task.FromResult<DiscoveredDisplay?>(null))
+            .RunAsync(pairing, token);
+    }
+
+    WebApplication Simulate(X509Certificate2 certificate, byte[] key, TaskCompletionSource ready, Func<WebSocket, Task>? afterReady)
+    {
+        var host = WebApplication.CreateSlimBuilder();
+        host.Logging.ClearProviders();
+        host.WebHost.ConfigureKestrel(k => k.Listen(IPAddress.Loopback, 0, o => o.UseHttps(certificate)));
+        var panel = host.Build();
+        panel.UseWebSockets();
+        panel.Map(SocketPath, async context =>
+        {
+            using var socket = await context.WebSockets.AcceptWebSocketAsync();
+            await Send(socket, "hello");
+            var auth = await Receive(socket);
+            Check(UInt(auth, "sequence") == 1 && Text(auth, "signature") == Sign(key, 1, Text(auth, "nonce")),
+                "each display authenticates with its own pairing");
+            await Send(socket, "auth.accepted", ("capabilityVersion", 7));
+            await ReadCatalogue(socket);
+            ready.SetResult();
+            if (afterReady != null) await afterReady(socket);
+            else
+            {
+                try { await Task.Delay(Timeout.InfiniteTimeSpan, context.RequestAborted); }
+                catch (OperationCanceledException) when (context.RequestAborted.IsCancellationRequested) { }
+            }
+        });
+        return panel;
+    }
+
+    Task<JsonElement> ReadCatalogue(WebSocket socket) => FindMessage(socket, "catalogue.page",
+        message => Text(message.GetProperty("items")[0], "id") == "windows.test");
+}
 
 async Task VerifyUpdateRequired()
 {
@@ -475,7 +560,7 @@ static void VerifyInstallerProfile(string mode)
     switch (mode)
     {
         case "prepare":
-            Check(store.LoadPairing() is null && !store.PairingUnavailable, "prepare the installer check in an empty profile");
+            Check(store.LoadPairings().Length == 0 && !store.PairingUnavailable, "prepare the installer check in an empty profile");
             store.Settings.AllApps = false;
             store.Settings.AllowedApps.Add(appId);
             store.Settings.Folders.Add(folder);
@@ -485,7 +570,7 @@ static void VerifyInstallerProfile(string mode)
             store.SavePairing(expected);
             break;
         case "verify":
-            var actual = store.LoadPairing();
+            var actual = store.LoadPairings().SingleOrDefault();
             Check(actual is not null && actual.Address == expected.Address && actual.Fingerprint == expected.Fingerprint &&
                 actual.Key.SequenceEqual(expected.Key) && actual.Sequence == expected.Sequence && actual.DisplayName == expected.DisplayName,
                 "the installer preserved the protected display pairing");
@@ -506,7 +591,7 @@ static void VerifyLocalStore()
         var store = new LocalStore(profile);
         Check(store.Settings.AllApps && !store.Settings.Shortcuts, "first run uses the default approvals");
         store.ForgetPairing();
-        Check(store.LoadPairing() is null && !store.PairingUnavailable, "an empty profile has no pairing to recover");
+        Check(store.LoadPairings().Length == 0 && !store.PairingUnavailable, "an empty profile has no pairing to recover");
         var folder = new ApprovedFolder("folder.windows-profile", Path.Combine(profile, "Project, résumé"));
         store.Settings.AllApps = false;
         store.Settings.AllowedApps.Add("windows.test");
@@ -522,7 +607,7 @@ static void VerifyLocalStore()
             "the pairing file keeps the address and credential encrypted");
 
         var reopened = new LocalStore(profile);
-        var loaded = reopened.LoadPairing();
+        var loaded = reopened.LoadPairings().SingleOrDefault();
         Check(loaded is { Sequence: 4 } && loaded.Address == pairing.Address &&
               loaded.Fingerprint == pairing.Fingerprint && loaded.Key.SequenceEqual(pairing.Key) && loaded.DisplayName is null,
             "the same Windows user can reopen the protected pairing");
@@ -536,14 +621,25 @@ static void VerifyLocalStore()
         Check(savedFolder.Id == folder.Id && savedFolder.Label == folder.Label && savedFolder.Path == relocated.Path,
             "a relocated folder keeps its saved card identity and name");
         reopened.SavePairing(pairing with { Sequence = 5, DisplayName = "Office display" });
-        Check(new LocalStore(profile).LoadPairing() is { Sequence: 5, DisplayName: "Office display" },
+        Check(new LocalStore(profile).LoadPairings().SingleOrDefault() is { Sequence: 5, DisplayName: "Office display" },
             "a replaced pairing preserves the latest counter and display name");
 
+        var second = new Pairing("192.168.6.101", Hash("second fixture display"), RandomNumberGenerator.GetBytes(32), 9);
+        reopened.SavePairing(second);
+        reopened.SavePairing(pairing with { Sequence = 6, DisplayName = "Office display" });
+        var both = new LocalStore(profile).LoadPairings();
+        Check(both.Length == 2 && both[0].Sequence == 6 && both[1].Fingerprint == second.Fingerprint &&
+              both[1].Sequence == 9 && both[1].Key.SequenceEqual(second.Key),
+            "adding and updating a display preserves the other protected pairing");
+        reopened.ForgetPairing(second.Fingerprint);
+        Check(new LocalStore(profile).LoadPairings().Single() is { Sequence: 6, DisplayName: "Office display" },
+            "forgetting one display leaves the other saved");
+
         reopened.SavePairing(pairing with { Address = null! });
-        Check(reopened.LoadPairing() is null && reopened.PairingUnavailable, "an incomplete pairing can be recovered through Forget");
+        Check(reopened.LoadPairings().Length == 0 && reopened.PairingUnavailable, "an incomplete pairing can be recovered through Forget");
         reopened.ForgetPairing();
         var forgotten = new LocalStore(profile);
-        Check(forgotten.LoadPairing() is null && !forgotten.PairingUnavailable && forgotten.Settings.AllowedApps.Contains("windows.test"),
+        Check(forgotten.LoadPairings().Length == 0 && !forgotten.PairingUnavailable && forgotten.Settings.AllowedApps.Contains("windows.test"),
             "forgetting the pairing preserves the user's local approvals");
 
         foreach (var invalid in new[] { "null", """{"AllowedApps":null}""", """{"Folders":[null]}""" })

@@ -21,7 +21,7 @@ namespace EspDesktop;
 internal sealed class SettingsWindow : Window
 {
     private readonly bool smoke;
-    private readonly LocalStore store = new();
+    private readonly LocalStore store;
     private readonly WindowsDesktop desktop;
     private readonly Func<CancellationToken, Task<DiscoveredDisplay[]>> discover;
     private readonly CancellationTokenSource lifetime = new();
@@ -33,35 +33,48 @@ internal sealed class SettingsWindow : Window
     private readonly TextBlock connectionText = new() { TextWrapping = TextWrapping.Wrap, Visibility = Visibility.Collapsed };
     private readonly TextBox address = new() { MinWidth = 270 };
     private readonly TextBox code = new() { MaxLength = 16, CharacterCasing = CharacterCasing.Upper };
-    private readonly StackPanel nearbyDisplays = new();
+    private readonly ListBox nearbyDisplays = new() { MaxHeight = 240, Margin = new Thickness(0, 4, 0, 8) };
+    private readonly TextBlock discoveryStatus = Paragraph("Looking for nearby displays…");
     private readonly Button findDisplays;
+    private Button? setupAction;
+    private bool manualAddress;
+    private string? pairingAddress, pairingName;
     private readonly ListBox navigation = new() { BorderThickness = new Thickness(0), Background = Brushes.Transparent };
     private readonly string[] pages = ["Display", "Apps", "Folders", "Updates", "Help"];
     private DiscoveredDisplay[] discovered = [];
     private HwndSource? hwndSource;
     private nint powerNotifications;
-    private Pairing? pairing;
-    private CancellationTokenSource? connectionCancellation;
-    private Task? connectionTask;
+    private readonly List<DisplayConnection> displays = [];
+    private bool addingDisplay;
+    private sealed class DisplayConnection(Pairing pairing)
+    {
+        public Pairing Pairing { get; set; } = pairing;
+        public CancellationTokenSource? Cancellation { get; set; }
+        public Task? Task { get; set; }
+        public bool Forgetting { get; set; }
+        public TextBlock Status { get; } = Paragraph("Disconnected");
+        public Button? ConnectionButton { get; set; }
+    }
     private bool busy, scanning, discoveryChecked, appScanning, quitting, updateBusy, installerVerified;
     private WindowsRelease? release;
     private string? updatePath;
     private string updateStatus = "Check for new versions of EspDesktop.";
-    public bool HasPairing => pairing is not null;
+    public bool HasPairing => displays.Count > 0;
     public event Action<string>? ConnectionStatusChanged;
 
-    public SettingsWindow(bool smoke, Func<CancellationToken, Task<DiscoveredDisplay[]>>? discover = null)
+    public SettingsWindow(bool smoke, Func<CancellationToken, Task<DiscoveredDisplay[]>>? discover = null, LocalStore? store = null)
     {
         this.smoke = smoke;
         this.discover = discover ?? Discovery.Find;
-        desktop = new(store.Settings);
-        findDisplays = Button("Find nearby displays", async () => await Scan(interactive: true));
+        this.store = store ?? new LocalStore();
+        desktop = new(this.store.Settings);
+        findDisplays = Button("Refresh", async () => await Scan(interactive: true));
         if (!smoke)
         {
-            pairing = store.LoadPairing();
-            address.Text = pairing?.Address ?? "";
-            if (store.PairingUnavailable) Status("Windows couldn’t open the saved pairing. Forget it and pair again.");
+            displays.AddRange(this.store.LoadPairings().Select(pairing => new DisplayConnection(pairing)));
+            if (this.store.PairingUnavailable) Status("Windows couldn’t open the saved pairings. Clear them and pair again.");
         }
+        addingDisplay = !HasPairing && !this.store.PairingUnavailable;
         Title = "EspDesktop";
         Icon = BitmapFrame.Create(App.IconUri);
         Width = 860;
@@ -106,9 +119,15 @@ internal sealed class SettingsWindow : Window
         navigation.SelectedIndex = 0;
         AutomationProperties.SetName(address, "Display address");
         AutomationProperties.SetName(code, "Pairing code");
+        AutomationProperties.SetName(nearbyDisplays, "Nearby displays");
+        AutomationProperties.SetLiveSetting(discoveryStatus, AutomationLiveSetting.Polite);
+        nearbyDisplays.SelectionChanged += (_, _) => UpdateSetupAction();
+        address.TextChanged += (_, _) => UpdateSetupAction();
+        code.TextChanged += (_, _) => UpdateSetupAction();
         AutomationProperties.SetLiveSetting(connectionText, AutomationLiveSetting.Polite);
         AutomationProperties.SetLiveSetting(notice, AutomationLiveSetting.Polite);
         code.KeyDown += async (_, e) => { if (e.Key == Key.Enter) { e.Handled = true; await Pair(); } };
+        address.KeyDown += (_, e) => { if (e.Key == Key.Enter) { e.Handled = true; ChooseDisplay(); } };
         IsVisibleChanged += (_, _) => UpdateDiscovery();
         discoveryTimer.Tick += async (_, _) => await Scan();
         updatesTimer.Tick += async (_, _) => await CheckUpdates(false);
@@ -133,7 +152,7 @@ internal sealed class SettingsWindow : Window
             navigation.SelectedIndex = 0;
             return;
         }
-        if (pairing != null) StartConnection();
+        foreach (var display in displays) StartConnection(display);
         updatesTimer.Start();
         _ = CheckUpdates(false);
         Render();
@@ -170,12 +189,22 @@ internal sealed class SettingsWindow : Window
         Activate();
     }
 
-    public void OpenPanel() => OpenPanel(pairingPage: false);
+    public void OpenPanel()
+    {
+        if (displays.Count == 1) OpenPanel(displays[0].Pairing.Address);
+        else ShowDisplaySettings();
+    }
 
-    private void OpenPanel(bool pairingPage)
+    private void ShowDisplaySettings()
+    {
+        ShowSettings();
+        navigation.SelectedIndex = 0;
+    }
+
+    private void OpenPanel(string target, bool pairingPage = false)
     {
         DisplayEndpoint endpoint;
-        try { endpoint = DisplayEndpoint.Parse(pairing?.Address ?? address.Text); }
+        try { endpoint = DisplayEndpoint.Parse(target); }
         catch (ArgumentException e)
         {
             ShowSettings();
@@ -195,22 +224,27 @@ internal sealed class SettingsWindow : Window
 
     public async Task ToggleConnection()
     {
-        if (busy || quitting) return;
-        if (pairing == null) { ShowSettings(); navigation.SelectedIndex = 0; return; }
-        if (connectionCancellation != null) await StopConnection();
-        else StartConnection();
-        Render();
+        if (displays.Count == 1) await ToggleConnection(displays[0]);
+        else ShowDisplaySettings();
     }
 
-    private void StartConnection()
+    private async Task ToggleConnection(DisplayConnection display)
     {
-        if (pairing == null || connectionCancellation != null) return;
-        var cancellation = CancellationTokenSource.CreateLinkedTokenSource(lifetime.Token);
-        connectionCancellation = cancellation;
-        connectionTask = RunConnection(pairing, cancellation);
+        if (quitting || display.Forgetting) return;
+        if (display.Cancellation != null) await StopConnection(display);
+        else StartConnection(display);
     }
 
-    private async Task RunConnection(Pairing saved, CancellationTokenSource cancellation)
+    private void StartConnection(DisplayConnection display)
+    {
+        if (display.Cancellation != null) return;
+        var cancellation = CancellationTokenSource.CreateLinkedTokenSource(lifetime.Token);
+        display.Cancellation = cancellation;
+        display.Task = RunConnection(display, cancellation);
+        UpdateConnectionButton(display);
+    }
+
+    private async Task RunConnection(DisplayConnection display, CancellationTokenSource cancellation)
     {
         await Task.Yield(); // publish the task before its completion can clear state
         try
@@ -218,83 +252,124 @@ internal sealed class SettingsWindow : Window
             await new DisplaySession(desktop, p =>
             {
                 store.SavePairing(p);
-                var changed = pairing?.Address != p.Address || pairing?.DisplayName != p.DisplayName;
-                pairing = p;
-                if (changed && !quitting && navigation.SelectedIndex == 0) Render();
-            }, Status, async (fingerprint, token) =>
+                var changed = display.Pairing.Address != p.Address || display.Pairing.DisplayName != p.DisplayName;
+                display.Pairing = p;
+                if (changed && !quitting && !addingDisplay && navigation.SelectedIndex == 0) Render();
+            }, status =>
+            {
+                display.Status.Text = status;
+                if (displays.Count == 1) ConnectionStatusChanged?.Invoke(status);
+            }, async (fingerprint, token) =>
             {
                 try { return (await Discovery.Find(token)).FirstOrDefault(d => d.Fingerprint == fingerprint); }
                 catch (NetworkInformationException) { return null; }
-            }).RunAsync(saved, cancellation.Token);
+            }).RunAsync(display.Pairing, cancellation.Token);
         }
         catch (Exception e) when (e is IOException or UnauthorizedAccessException or CryptographicException or InvalidOperationException)
-        { Status("EspDesktop couldn’t keep the connection. Check the saved pairing and try again."); }
+        { display.Status.Text = "Couldn’t keep the connection. Check the saved pairing and try again."; }
         finally
         {
-            if (connectionCancellation == cancellation)
-            {
-                connectionCancellation = null;
-                connectionTask = null;
-                cancellation.Dispose();
-            }
-            if (!quitting && navigation.SelectedIndex == 0) Render();
+            display.Cancellation = null;
+            display.Task = null;
+            cancellation.Dispose();
+            UpdateConnectionButton(display);
         }
     }
 
-    private async Task StopConnection()
+    private static void UpdateConnectionButton(DisplayConnection display)
     {
-        if (connectionCancellation == null) return;
-        connectionCancellation.Cancel();
-        if (connectionTask != null) await connectionTask;
-        if (!quitting) Status("Disconnected");
+        if (display.ConnectionButton is { } button)
+            button.Content = display.Cancellation == null ? "Connect" : "Disconnect";
+    }
+
+    private async Task StopConnection(DisplayConnection display)
+    {
+        if (display.Task is not { } task) return;
+        display.Cancellation?.Cancel();
+        await task;
+        display.Status.Text = "Disconnected";
+        if (!quitting && displays.Count == 1) ConnectionStatusChanged?.Invoke("Disconnected");
     }
 
     private async Task Pair()
     {
-        if (busy || quitting || pairing != null) return;
-        var entered = address.Text.Trim();
+        if (busy || quitting || !addingDisplay || pairingAddress is not { } entered) return;
         var enteredCode = code.Text.Trim();
+        if (enteredCode.Length == 0) return;
         busy = true;
-        Status("Pairing…");
+        Status("");
         Render();
         try
         {
-            var next = await DisplaySession.PairAsync(entered, enteredCode, lifetime.Token);
+            var next = await DisplaySession.PairAsync(entered, enteredCode, lifetime.Token,
+                displays.Select(display => display.Pairing.Fingerprint).ToHashSet(StringComparer.OrdinalIgnoreCase));
             store.SavePairing(next);
-            pairing = next;
-            code.Clear();
-            StartConnection();
+            var display = new DisplayConnection(next);
+            displays.Add(display);
+            ResetSetup();
+            addingDisplay = false;
+            ConnectionStatusChanged?.Invoke(displays.Count > 1 ? "Multiple displays" : "Connecting…");
+            StartConnection(display);
         }
         catch (Exception e) when (e is ArgumentException or SessionException) { Status(e.Message); }
         catch (Exception e) when (e is OperationCanceledException or WebSocketException or HttpRequestException)
         { Status("Couldn’t reach the display. Check the address and that both devices are on the same network."); }
         catch (Exception e) when (e is IOException or UnauthorizedAccessException or CryptographicException)
         { Status("Windows couldn’t save the pairing. Reset pairing on the display and try again."); }
-        finally { busy = false; if (!quitting) Render(); }
+        finally
+        {
+            busy = false;
+            if (!quitting)
+            {
+                Render();
+                if (addingDisplay && navigation.SelectedIndex == 0) code.Focus();
+            }
+        }
     }
 
-    private async Task Forget()
+    private async Task Forget(DisplayConnection? display)
     {
-        if (busy || MessageBox.Show(this,
-            "This removes the saved pairing from this PC. To pair again, reset the pairing in the display’s web settings.",
-            "Forget this display?", MessageBoxButton.OKCancel, MessageBoxImage.Question) != MessageBoxResult.OK) return;
-        busy = true;
+        if (busy || quitting || display?.Forgetting == true) return;
+        var title = display == null ? "Clear saved pairings?" : "Forget this display?";
+        var message = display == null
+            ? "This removes all saved display pairings from this PC."
+            : "To pair again, reset the pairing in this display’s web settings.";
+        if (MessageBox.Show(this, message, title, MessageBoxButton.OKCancel, MessageBoxImage.Question) != MessageBoxResult.OK ||
+            quitting || display?.Forgetting == true) return;
+        if (display != null) display.Forgetting = true;
         try
         {
-            await StopConnection();
-            store.ForgetPairing();
-            if (pairing != null) address.Text = pairing.Address;
-            pairing = null;
-            code.Clear();
-            Status("Display forgotten.");
+            if (display != null)
+            {
+                await StopConnection(display);
+                store.ForgetPairing(display.Pairing.Fingerprint);
+                displays.Remove(display);
+            }
+            else
+            {
+                await Task.WhenAll(displays.Select(StopConnection));
+                store.ForgetPairing();
+                displays.Clear();
+            }
+            if (!HasPairing)
+            {
+                ResetSetup();
+                addingDisplay = true;
+            }
+            ConnectionStatusChanged?.Invoke(displays.Count == 1 ? displays[0].Status.Text : "");
         }
         catch (Exception e) when (e is IOException or UnauthorizedAccessException) { Report("Windows couldn’t remove the saved pairing."); }
-        finally { busy = false; if (!quitting) Render(); }
+        finally
+        {
+            if (display != null) display.Forgetting = false;
+            if (!quitting) Render();
+        }
     }
 
     private void UpdateDiscovery()
     {
-        if (smoke || quitting || !IsVisible || navigation.SelectedIndex != 0 || pairing != null || store.PairingUnavailable)
+        if (smoke || quitting || !IsVisible || navigation.SelectedIndex != 0 || !addingDisplay ||
+            store.PairingUnavailable || manualAddress || pairingAddress != null)
         {
             discoveryTimer.Stop();
             return;
@@ -307,16 +382,22 @@ internal sealed class SettingsWindow : Window
     private async Task Scan(bool interactive = false)
     {
         if (!discoveryTimer.IsEnabled || busy) return;
-        if (interactive) findDisplays.Content = "Finding displays…";
         if (scanning) return;
         scanning = true;
-        try { ShowDiscoveredDisplays(await discover(lifetime.Token)); }
+        if (interactive) findDisplays.Content = "Searching…";
+        findDisplays.IsEnabled = false;
+        if (nearbyDisplays.Items.Count == 0) discoveryStatus.Text = "Looking for nearby displays…";
+        try { ShowDiscoveredDisplays((await discover(lifetime.Token)).Where(display => !HasDisplay(display.Fingerprint)).ToArray()); }
         catch (NetworkInformationException) { ShowDiscoveredDisplays([]); }
         catch (OperationCanceledException) when (lifetime.IsCancellationRequested) { }
         finally
         {
             scanning = false;
-            findDisplays.Content = "Find nearby displays";
+            findDisplays.Content = "Refresh";
+            findDisplays.IsEnabled = true;
+            discoveryStatus.Text = nearbyDisplays.Items.Count == 0 ? "No nearby displays found." : "";
+            discoveryStatus.Visibility = nearbyDisplays.Items.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
+            nearbyDisplays.Visibility = nearbyDisplays.Items.Count == 0 ? Visibility.Collapsed : Visibility.Visible;
         }
     }
 
@@ -325,15 +406,18 @@ internal sealed class SettingsWindow : Window
         if (quitting || (discoveryChecked && discovered.SequenceEqual(found))) return;
         discovered = found;
         discoveryChecked = true;
-        nearbyDisplays.Children.Clear();
-        if (found.Length == 0)
-            nearbyDisplays.Children.Add(Paragraph("No nearby displays found. You can enter an address below."));
+        var selected = (nearbyDisplays.SelectedItem as ListBoxItem)?.Tag as DiscoveredDisplay;
+        nearbyDisplays.Items.Clear();
         foreach (var display in found)
-            Row(nearbyDisplays, Button($"Use {display.Name} ({display.Address})", () =>
-            {
-                address.Text = display.Address;
-                address.Focus();
-            }));
+        {
+            var details = new StackPanel { Margin = new Thickness(4, 4, 4, 4) };
+            details.Children.Add(new TextBlock { Text = display.Name, FontWeight = FontWeights.SemiBold, TextWrapping = TextWrapping.Wrap });
+            details.Children.Add(new TextBlock { Text = display.Address, FontSize = 12, TextWrapping = TextWrapping.Wrap });
+            var item = new ListBoxItem { Content = details, Tag = display };
+            AutomationProperties.SetName(item, $"{display.Name}, {display.Address}");
+            nearbyDisplays.Items.Add(item);
+            if (selected?.Fingerprint == display.Fingerprint) nearbyDisplays.SelectedItem = item;
+        }
     }
 
     private void Status(string value)
@@ -397,7 +481,7 @@ internal sealed class SettingsWindow : Window
         discoveryTimer.Stop();
         updatesTimer.Stop();
         await lifetime.CancelAsync();
-        await StopConnection();
+        await Task.WhenAll(displays.Select(StopConnection));
         if (store.Settings.CheckForUpdates && store.Settings.InstallUpdates && updatePath is { } installer)
         {
             try { Updates.Install(installer, quiet: true); }
@@ -413,6 +497,7 @@ internal sealed class SettingsWindow : Window
         if (quitting) return;
         if (connectionText.Parent is Panel previous) previous.Children.Remove(connectionText);
         body.Children.Clear();
+        setupAction = null;
         var index = Math.Max(0, navigation.SelectedIndex);
         body.Children.Add(new TextBlock { Text = pages[index], FontSize = 30, FontWeight = FontWeights.SemiBold,
             Margin = new Thickness(0, 0, 0, 14) });
@@ -430,34 +515,39 @@ internal sealed class SettingsWindow : Window
 
     private void DisplayPage()
     {
-        if (pairing is { } saved)
+        if (store.PairingUnavailable && !HasPairing)
         {
-            var card = Card(saved.DisplayName ?? "Paired display", DisplayEndpoint.Parse(saved.Address).Socket.Authority);
+            var card = Card("Saved displays");
             card.Children.Add(connectionText);
-            Row(card, Button("Open display editor", OpenPanel),
-                Button(connectionCancellation == null ? "Connect" : "Disconnect", async () => await ToggleConnection()),
-                Button("Forget display", async () => await Forget()));
+            Row(card, Button("Clear saved pairings", async () => await Forget(null)));
+            return;
         }
-        else if (store.PairingUnavailable)
+
+        if (addingDisplay)
         {
-            var card = Card("Saved pairing");
-            card.Children.Add(connectionText);
-            Row(card, Button("Forget display", async () => await Forget()));
+            DisplaySetup();
+            return;
         }
-        else
+
+        var header = new WrapPanel { Margin = new Thickness(0, 0, 0, 12) };
+        header.Children.Add(Button("Add display", () =>
         {
-            var card = Card("Pair your display", "Use the same local network for your PC and EspDesktop display.");
-            card.Children.Add(connectionText);
-            if (nearbyDisplays.Parent is Panel previous) previous.Children.Remove(nearbyDisplays);
-            card.Children.Add(nearbyDisplays);
-            if (findDisplays.Parent is Panel previousRow) previousRow.Children.Remove(findDisplays);
-            findDisplays.IsEnabled = !busy;
-            Field(card, "Display address", address, findDisplays);
-            Row(card, Button("Open pairing page", () => OpenPanel(pairingPage: true), !busy));
-            card.Children.Add(Paragraph("Get the code from the pairing page or press and hold the display’s Wi-Fi icon."));
-            var pair = Button("Pair display", async () => await Pair(), !busy);
-            if (TryFindResource("AccentButtonStyle") is Style accent) pair.Style = accent;
-            Field(card, "Pairing code", code, pair);
+            ResetSetup();
+            addingDisplay = true;
+            Render();
+        }));
+        body.Children.Add(header);
+        foreach (var display in displays)
+        {
+            var saved = display.Pairing;
+            var card = Card(saved.DisplayName ?? "Paired display", DisplayEndpoint.Parse(saved.Address).Socket.Host);
+            if (display.Status.Parent is Panel previous) previous.Children.Remove(display.Status);
+            AutomationProperties.SetLiveSetting(display.Status, AutomationLiveSetting.Polite);
+            card.Children.Add(display.Status);
+            display.ConnectionButton = Button("Connect", async () => await ToggleConnection(display), !display.Forgetting);
+            UpdateConnectionButton(display);
+            Row(card, Button("Open display editor", () => OpenPanel(display.Pairing.Address)),
+                display.ConnectionButton, Button("Forget display", async () => await Forget(display), !display.Forgetting));
         }
         var permissions = Card("Windows integration");
         var shortcuts = Toggle("Allow keyboard shortcuts and screen lock", store.Settings.Shortcuts, value =>
@@ -473,6 +563,111 @@ internal sealed class SettingsWindow : Window
             try { LocalStore.StartsAtLogin = enabled; }
             catch (Exception e) when (e is UnauthorizedAccessException or IOException) { Report("Windows couldn’t change the startup setting."); }
         }));
+    }
+
+    private void DisplaySetup()
+    {
+        if (pairingAddress is { } target)
+        {
+            var card = Card("Enter pairing code", pairingName == null ? DisplayEndpoint.Parse(target).Socket.Host :
+                $"{pairingName} · {DisplayEndpoint.Parse(target).Socket.Host}");
+            card.Children.Add(Paragraph("Get the code from the pairing page, or press and hold the Wi-Fi icon on your display."));
+            Row(card, Button("Open pairing page", () => OpenPanel(target, pairingPage: true), !busy));
+            code.IsEnabled = !busy;
+            Field(card, "Pairing code", code);
+            card.Children.Add(connectionText);
+            SetupActions(card, busy ? "Pairing…" : "Pair display", async () => await Pair(), Button("Back", () =>
+            {
+                pairingAddress = pairingName = null;
+                code.Clear();
+                Status("");
+                Report("");
+                Render();
+                if (manualAddress) address.Focus(); else nearbyDisplays.Focus();
+            }, !busy));
+            return;
+        }
+
+        var selection = Card(manualAddress ? "Enter display address" : "Choose your display",
+            manualAddress ? "Enter the display’s local IP address or .local name." :
+            "Keep your PC and display on the same local network.");
+        selection.Children.Add(connectionText);
+        if (manualAddress) Field(selection, "Display address", address);
+        else
+        {
+            if (nearbyDisplays.Parent is Panel listParent) listParent.Children.Remove(nearbyDisplays);
+            if (discoveryStatus.Parent is Panel statusParent) statusParent.Children.Remove(discoveryStatus);
+            selection.Children.Add(discoveryStatus);
+            nearbyDisplays.Visibility = nearbyDisplays.Items.Count == 0 ? Visibility.Collapsed : Visibility.Visible;
+            selection.Children.Add(nearbyDisplays);
+            if (findDisplays.Parent is Panel refreshParent) refreshParent.Children.Remove(findDisplays);
+        }
+
+        var alternate = Button(manualAddress ? "Find nearby displays" : "Enter address manually", () =>
+        {
+            manualAddress = !manualAddress;
+            Status("");
+            Render();
+            if (manualAddress) address.Focus(); else nearbyDisplays.Focus();
+        });
+        if (manualAddress) Row(selection, alternate);
+        else Row(selection, alternate, findDisplays);
+        SetupActions(selection, "Next", ChooseDisplay, HasPairing ? Button("Cancel", () =>
+        {
+            ResetSetup();
+            addingDisplay = false;
+            Render();
+        }) : null);
+    }
+
+    private void SetupActions(Panel card, string label, Action action, Button? secondary)
+    {
+        setupAction = Button(label, action);
+        if (TryFindResource("AccentButtonStyle") is Style accent) setupAction.Style = accent;
+        UpdateSetupAction();
+        var actions = new WrapPanel { HorizontalAlignment = HorizontalAlignment.Right, Margin = new Thickness(0, 16, 0, 0) };
+        if (secondary != null) actions.Children.Add(secondary);
+        actions.Children.Add(setupAction);
+        card.Children.Add(actions);
+    }
+
+    private void UpdateSetupAction()
+    {
+        if (setupAction == null) return;
+        setupAction.IsEnabled = !busy && (pairingAddress != null ? code.Text.Trim().Length > 0 :
+            manualAddress ? address.Text.Trim().Length > 0 : nearbyDisplays.SelectedItem != null);
+    }
+
+    private void ChooseDisplay()
+    {
+        var selected = (nearbyDisplays.SelectedItem as ListBoxItem)?.Tag as DiscoveredDisplay;
+        var target = manualAddress ? address.Text.Trim() : selected?.Address;
+        if (string.IsNullOrEmpty(target)) return;
+        try { _ = DisplayEndpoint.Parse(target); }
+        catch (ArgumentException e) { Status(e.Message); return; }
+        pairingAddress = target;
+        pairingName = manualAddress ? null : selected?.Name;
+        Status("");
+        Render();
+        code.Focus();
+    }
+
+    private bool HasDisplay(string fingerprint) => displays.Any(display =>
+        display.Pairing.Fingerprint.Equals(fingerprint, StringComparison.OrdinalIgnoreCase));
+
+    private void ResetSetup()
+    {
+        pairingAddress = pairingName = null;
+        manualAddress = false;
+        address.Clear();
+        code.Clear();
+        discovered = [];
+        discoveryChecked = false;
+        nearbyDisplays.Items.Clear();
+        discoveryStatus.Text = "Looking for nearby displays…";
+        discoveryStatus.Visibility = Visibility.Visible;
+        Status("");
+        Report("");
     }
 
     private void AppsPage()
@@ -515,15 +710,17 @@ internal sealed class SettingsWindow : Window
 
     private void FoldersPage()
     {
-        var card = Card("Approved folders", "The display sees folder names. Paths stay on this PC.");
+        var card = Card("Approved folders", "Paired displays see folder names. Paths stay on this PC.");
         Row(card, Button("Add folder", () => PickFolder(null)));
         if (store.Settings.Folders.Count == 0) card.Children.Add(Paragraph("No folders added yet."));
         foreach (var folder in store.Settings.Folders)
         {
-            card.Children.Add(new Separator());
-            card.Children.Add(new TextBlock { Text = folder.Label, FontWeight = FontWeights.SemiBold, TextWrapping = TextWrapping.Wrap });
-            card.Children.Add(Paragraph(Directory.Exists(folder.Path) ? folder.Path : $"{folder.Path} · Folder not found"));
-            Row(card, Button("Choose again", () => PickFolder(folder)), Button("Remove", () =>
+            card.Children.Add(new Separator { Margin = new Thickness(0) });
+            var entry = new StackPanel { Margin = new Thickness(0, 12, 0, 8) };
+            card.Children.Add(entry);
+            entry.Children.Add(new TextBlock { Text = folder.Label, FontWeight = FontWeights.SemiBold, TextWrapping = TextWrapping.Wrap });
+            entry.Children.Add(Paragraph(Directory.Exists(folder.Path) ? folder.Path : $"{folder.Path} · Folder not found"));
+            Row(entry, Button("Choose again", () => PickFolder(folder)), Button("Remove", () =>
             {
                 if (MessageBox.Show(this, $"Remove {folder.Label} from the display? Your files stay where they are.",
                     "Remove approved folder?", MessageBoxButton.OKCancel, MessageBoxImage.Question) != MessageBoxResult.OK) return;
@@ -610,23 +807,14 @@ internal sealed class SettingsWindow : Window
     private static TextBlock Paragraph(string text) => new() { Text = text, TextWrapping = TextWrapping.Wrap,
         Margin = new Thickness(0, 1, 0, 7) };
 
-    private static void Field(Panel parent, string label, Control input, Button? action = null)
+    private static void Field(Panel parent, string label, Control input)
     {
         if (input.Parent is Panel existing) existing.Children.Remove(input);
         parent.Children.Add(new Label { Content = label, Target = input, Padding = new Thickness(0, 6, 0, 3) });
         input.HorizontalAlignment = HorizontalAlignment.Left;
         input.MinWidth = Math.Max(200, input.MinWidth);
-        if (action == null) parent.Children.Add(input);
-        else
-        {
-            var row = new WrapPanel { Margin = new Thickness(0, 0, 0, 6) };
-            input.Margin = new Thickness(0, 0, 8, 0);
-            input.MinHeight = action.MinHeight;
-            action.Margin = new Thickness(0);
-            row.Children.Add(input);
-            row.Children.Add(action);
-            parent.Children.Add(row);
-        }
+        input.MinHeight = 33;
+        parent.Children.Add(input);
     }
 
     private static Button Button(string name, Action action, bool enabled = true)

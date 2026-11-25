@@ -13,7 +13,9 @@ Setup installs for the current user and includes the .NET runtime. It does not n
 
 ## Pair and control Windows
 
-Keep the PC and display on the same local network. The **Display** page finds nearby displays while you set up. Select one, enter its address manually, or choose **Find nearby displays** to scan again immediately. Choose **Open pairing page**, read the code, and enter it in the Windows app. You can also press and hold the Wi-Fi icon on the display for a code. If the display is paired to a different computer, reset its Companion pairing first. The display pairs with one computer at a time. After pairing, choose **Open display editor** in Settings or the notification area to customize your cards.
+Keep the PC and display on the same local network. In **Display**, select a nearby display or choose **Enter address manually**, then choose **Next**. Choose **Open pairing page** or press and hold the display’s Wi-Fi icon to get a code. Enter the code and choose **Pair display**. If the display is paired to a different computer, reset its Companion pairing first.
+
+Choose **Add display** to connect another display to the same PC. Each display can connect to one computer at a time. Use the individual display cards to connect, disconnect, forget, or open the editor for that display. Windows app and folder approvals are shared across all your paired displays.
 
 In the display editor, open **Connectors → Mac Companion** to check pairing with your Windows PC. You can add these controls:
 
@@ -42,4 +44,27 @@ dotnet run -c Release --project windows/EspDesktop
 
 The workflow builds installers for x64 and Arm64 and installs, opens, and uninstalls each build on Windows. The test project checks the same protocol fixtures as firmware and macOS, and pairs with a simulated display over TLS. Use a Windows 11 PC and a physical 4848S040 for discovery, actual pairing, app and folder focus, browser behavior, shortcuts, volume, lock and reconnect testing.
 
-The preview checks for newer stable Windows releases for your PC’s architecture and display protocol and opens their download page. Firmware-only releases do not affect the Windows update check. In-app installation requires an Authenticode-signed Windows build and a trusted installer signed with the same publisher key. To prepare signed release assets from the release checkout, pass the matching stable version, architecture, and code signing certificate thumbprint to the packaging script on a Windows signing machine. Upload both setup executables to the matching stable release after device testing. This branch does not publish a release.
+The preview checks for newer stable Windows releases for your PC’s architecture and display protocol and opens their download page. Firmware-only releases do not affect the Windows update check. In-app installation requires an Authenticode-signed Windows build and a trusted installer signed with the same publisher key.
+
+### Generate a signed Windows installer
+
+On the Windows build PC, install SignTool from the Windows SDK and make the publisher’s Windows code-signing certificate and private key available in **Current User → Personal**. Find the certificate’s thumbprint:
+
+```powershell
+Get-ChildItem Cert:\CurrentUser\My -CodeSigningCert | Select-Object Subject, Thumbprint, NotAfter
+```
+
+Save the chosen thumbprint once for your Windows account, then open a new PowerShell window:
+
+```powershell
+[Environment]::SetEnvironmentVariable('ESPDESKTOP_WINDOWS_SIGNING_THUMBPRINT', '<thumbprint>', 'User')
+```
+
+The existing installer command now uses that publisher automatically. Add `-RequireSigning` for release builds so a missing certificate stops the build. You can also pass `-SigningThumbprint` to select a certificate for a single build.
+
+```powershell
+./windows/EspDesktop/Packaging/Build-Installer.ps1 -Architecture x64 -Version 0.1.0 -RequireSigning
+./windows/EspDesktop/Packaging/Build-Installer.ps1 -Architecture arm64 -Version 0.1.0 -RequireSigning
+```
+
+The build signs and timestamps the app, setup executable and uninstaller. Use the matching stable version when preparing release assets.

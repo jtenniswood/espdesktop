@@ -30,8 +30,13 @@ try {
     }
 
     Write-Host 'Building and installing the signed test package.'
-    & (Join-Path $packaging 'Build-Installer.ps1') -Architecture $Architecture -Version '0.1.1' `
-        -OutputDirectory $testDir -SigningThumbprint $certificates[0].Thumbprint -TimestampUrl ''
+    $previousThumbprint = $env:ESPDESKTOP_WINDOWS_SIGNING_THUMBPRINT
+    try {
+        $env:ESPDESKTOP_WINDOWS_SIGNING_THUMBPRINT = $certificates[0].Thumbprint
+        & (Join-Path $packaging 'Build-Installer.ps1') -Architecture $Architecture -Version '0.1.1' `
+            -OutputDirectory $testDir -RequireSigning -TimestampUrl ''
+    }
+    finally { $env:ESPDESKTOP_WINDOWS_SIGNING_THUMBPRINT = $previousThumbprint }
     $installer = Join-Path $testDir "EspDesktop-Windows-0.1.1-$Architecture-Setup.exe"
     $directoryArgument = '/DIR="' + $installDir + '"'
     $setup = Start-Process $installer -ArgumentList '/VERYSILENT','/SUPPRESSMSGBOXES','/NORESTART',$directoryArgument -Wait -PassThru
@@ -64,7 +69,7 @@ try {
     Write-Host 'Upgrading the signed app using the same command as its in-app updater.'
     $upgradeVersion = '0.1.2'
     & (Join-Path $packaging 'Build-Installer.ps1') -Architecture $Architecture -Version $upgradeVersion `
-        -OutputDirectory $testDir -SigningThumbprint $certificates[0].Thumbprint -TimestampUrl ''
+        -OutputDirectory $testDir -SigningThumbprint $certificates[0].Thumbprint -RequireSigning -TimestampUrl ''
     $upgrade = Join-Path $testDir "EspDesktop-Windows-$upgradeVersion-$Architecture-Setup.exe"
     dotnet run -c Release --no-build --project (Join-Path $PSScriptRoot 'EspDesktop.Tests.csproj') -- `
         --verify-windows-signed-upgrade (Join-Path $installDir 'EspDesktop.exe') $upgrade "$upgradeVersion.0"

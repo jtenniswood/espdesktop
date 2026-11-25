@@ -17,8 +17,11 @@ Use a 4-inch Guition 4848S040 to launch approved Windows apps, open File Explore
 ## Pair your display
 
 1. Connect the display and Windows PC to the same local network. Use a 4848S040 with EspDesktop firmware that supports Companion pairing. It can pair with one computer at a time. To move it from another computer, reset the existing Companion pairing on the display first.
-2. In the Windows app’s **Display** settings, select the display or enter its local address. Choose **Open pairing page** and enter the code shown there.
-3. Choose **Open display editor**. In the editor, use **Connectors → Mac Companion** to check pairing with your Windows PC.
+2. In the Windows app’s **Display** settings, select the display and choose **Next**. If it doesn’t appear, choose **Enter address manually**.
+3. Choose **Open pairing page** to get the code, or press and hold the display’s Wi-Fi icon. Enter the code and choose **Pair display**.
+4. Choose **Open display editor** on the paired display’s card. In the editor, use **Connectors → Mac Companion** to check pairing with your Windows PC.
+
+Choose **Add display** to pair another panel with the same PC. Each panel has its own connection and editor. App and folder approvals apply to every paired panel.
 
 ## Add controls
 

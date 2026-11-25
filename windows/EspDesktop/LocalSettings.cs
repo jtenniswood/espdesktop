@@ -51,35 +51,67 @@ internal sealed class LocalStore
         Settings = LoadSettings();
     }
 
-    public Pairing? LoadPairing()
+    public Pairing[] LoadPairings()
     {
         try
         {
             var path = Path.Combine(root, "pairing.dat");
-            if (!File.Exists(path)) return null;
             var plain = UserProtection.Transform(File.ReadAllBytes(path), decrypt: true);
             try
             {
-                var pairing = JsonSerializer.Deserialize<Pairing>(plain);
-                if (pairing is null || string.IsNullOrWhiteSpace(pairing.Address) ||
-                    pairing.Key?.Length != 32 || pairing.Fingerprint?.Length != 64 ||
-                    !pairing.Fingerprint.All(Uri.IsHexDigit)) throw new IOException("Invalid saved pairing.");
-                _ = DisplayEndpoint.Parse(pairing.Address);
-                return pairing with { DisplayName = Discovery.FriendlyName(pairing.DisplayName) };
+                using var json = JsonDocument.Parse(plain);
+                var pairings = json.RootElement.ValueKind == JsonValueKind.Array
+                    ? json.RootElement.Deserialize<Pairing[]>() ?? []
+                    : new[] { json.RootElement.Deserialize<Pairing>() };
+                var fingerprints = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+                var valid = pairings.Select(pairing =>
+                {
+                    if (pairing is null || string.IsNullOrWhiteSpace(pairing.Address) ||
+                        pairing.Key?.Length != 32 || pairing.Fingerprint?.Length != 64 ||
+                        !pairing.Fingerprint.All(Uri.IsHexDigit) || !fingerprints.Add(pairing.Fingerprint))
+                        throw new IOException("Invalid saved pairing.");
+                    _ = DisplayEndpoint.Parse(pairing.Address);
+                    return pairing with { DisplayName = Discovery.FriendlyName(pairing.DisplayName) };
+                }).ToArray();
+                PairingUnavailable = false;
+                return valid;
             }
             finally { CryptographicOperations.ZeroMemory(plain); }
         }
+        catch (FileNotFoundException) { return []; }
+        catch (DirectoryNotFoundException) { return []; }
         catch (Exception e) when (e is IOException or UnauthorizedAccessException or JsonException or
             ArgumentException or CryptographicException)
         {
             PairingUnavailable = true;
-            return null;
+            return [];
         }
     }
 
     public void SavePairing(Pairing pairing)
     {
-        var data = JsonSerializer.SerializeToUtf8Bytes(pairing);
+        var saved = LoadPairings().ToList();
+        if (PairingUnavailable) throw new IOException("The saved pairings could not be read.");
+        var index = saved.FindIndex(p => p.Fingerprint.Equals(pairing.Fingerprint, StringComparison.OrdinalIgnoreCase));
+        if (index < 0) saved.Add(pairing);
+        else saved[index] = pairing;
+        WritePairings(saved);
+    }
+
+    public void ForgetPairing(string fingerprint)
+    {
+        var saved = LoadPairings();
+        if (PairingUnavailable) throw new IOException("The saved pairings could not be read.");
+        var remaining = saved.Where(p => !p.Fingerprint.Equals(fingerprint, StringComparison.OrdinalIgnoreCase)).ToArray();
+        if (remaining.Length == 0) ForgetPairing();
+        else WritePairings(remaining);
+    }
+
+    private void WritePairings(IReadOnlyList<Pairing> pairings)
+    {
+        // Keep the original file format when there is one display.
+        var data = pairings.Count == 1 ? JsonSerializer.SerializeToUtf8Bytes(pairings[0]) :
+            JsonSerializer.SerializeToUtf8Bytes(pairings);
         try { Write("pairing.dat", UserProtection.Transform(data, decrypt: false)); PairingUnavailable = false; }
         finally { CryptographicOperations.ZeroMemory(data); }
     }

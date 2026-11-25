@@ -31,7 +31,8 @@ internal interface IDesktop
 internal sealed class DisplaySession(IDesktop desktop, Action<Pairing> save, Action<string> status,
     Func<string, CancellationToken, Task<DiscoveredDisplay?>> findDisplay)
 {
-    public static async Task<Pairing> PairAsync(string address, string code, CancellationToken token)
+    public static async Task<Pairing> PairAsync(string address, string code, CancellationToken token,
+        IReadOnlySet<string>? savedFingerprints = null)
     {
         if (code.Length is < 1 or > 16 || !code.All(c => char.IsAsciiLetterOrDigit(c) || c == '-'))
             throw new ArgumentException("Enter the pairing code shown on the display.");
@@ -40,6 +41,8 @@ internal sealed class DisplaySession(IDesktop desktop, Action<Pairing> save, Act
         string? fingerprint = null;
         using var client = new Link(null, f => fingerprint = f);
         await client.Connect(DisplayEndpoint.Parse(address).Socket, deadline.Token);
+        if (fingerprint is { } identity && savedFingerprints?.Contains(identity) == true)
+            throw new SessionException("This display is already saved on this PC.");
         await client.Send(Message("pair.request", ("code", code)), "pairing", deadline.Token);
         var reply = await client.Reply("pairing", deadline.Token);
         if (Text(reply, "type") != "pair.accepted" || fingerprint is null)

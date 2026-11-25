@@ -24,6 +24,8 @@ internal sealed class WindowsDesktop(LocalSettings settings) : IDesktop
     private static readonly string[] Browsers = ["chrome.exe", "msedge.exe", "firefox.exe", "brave.exe", "vivaldi.exe", "opera.exe"];
     private static readonly StartApp Explorer = new(ExplorerId, "File Explorer", "", ExplorerExe);
     private readonly SystemMetrics metrics = new();
+    private Dictionary<string, object?>? latestMetrics;
+    private long lastMetricsAt;
     private StartApp[] apps = [Explorer];
     private string? cachedAddressBar;
     private nint cachedBrowserWindow;
@@ -334,7 +336,16 @@ internal sealed class WindowsDesktop(LocalSettings settings) : IDesktop
 
     public bool SetValue(string id, int value) => !SessionState.Locked && Audio.Set(id, value);
     public IEnumerable<(string Id, int? Value)> Values() => Audio.Read();
-    public Dictionary<string, object?> Metrics(uint generation) => metrics.Read(generation);
+    public Dictionary<string, object?> Metrics(uint generation)
+    {
+        // Keep the sampling interval independent of how many displays publish it.
+        if (latestMetrics == null || Stopwatch.GetElapsedTime(lastMetricsAt) >= TimeSpan.FromSeconds(1))
+        {
+            latestMetrics = metrics.Read(generation);
+            lastMetricsAt = Stopwatch.GetTimestamp();
+        }
+        return new(latestMetrics) { ["generation"] = generation };
+    }
 
     private static StartApp[] ScanApps()
     {
