@@ -1,5 +1,5 @@
 import { build } from 'esbuild'
-import { copyFile } from 'node:fs/promises'
+import { copyFile, readFile, writeFile } from 'node:fs/promises'
 import { createRequire } from 'node:module'
 import { resolve } from 'node:path'
 import { defineConfig } from 'vitepress'
@@ -115,6 +115,15 @@ export default defineConfig({
     image: { lazyLoading: true },
   },
   async buildEnd({ outDir, pages }) {
+    // Keep the test profile available to firmware builds without listing it on the site.
+    if (!pages.includes('screens/jc1060p470-v3.md')) {
+      const path = resolve(outDir, 'device-profiles.json')
+      const profiles = JSON.parse(await readFile(path, 'utf8'))
+      profiles.devices = profiles.devices.filter(
+        (device: { slug: string }) => device.slug !== 'guition-esp32-p4-jc1060p470-v3',
+      )
+      await writeFile(path, JSON.stringify(profiles, null, 2) + '\n')
+    }
     const demoRenderer = resolve(freshWebOutputDir({ testHooks: false }), 'app.js')
     await Promise.all([
       writeRedirects(outDir),

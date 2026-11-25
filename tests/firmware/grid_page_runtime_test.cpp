@@ -2,6 +2,7 @@
 #include <cassert>
 #include <cstring>
 #include <string>
+#include "device_ui_profile_fixture.h"
 #include "button_grid_subpage_parser.h"
 #include "grid_layout_config.h"
 #include "grid_native_page_cards.h"
@@ -16,7 +17,7 @@ static uint8_t *allocate(size_t size) {
   return fail_allocation ? nullptr : static_cast<uint8_t *>(std::malloc(size));
 }
 int main() {
-  const auto &limits = DEVICE_UI_PROFILES[8];
+  const auto &limits = test_device_ui_profile("guition-esp32-s3-4848s040");
   const auto assert_nested_page = [] {
     assert(grid_native_page(1) && grid_native_page(33));
     assert(grid_native_page(1)->parent == 0 && grid_native_page(33)->parent == 1);

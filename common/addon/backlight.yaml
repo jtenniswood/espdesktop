@@ -354,9 +354,13 @@ script:
           }
           set_request(espdesktop::DisplayRequestSource::BOOT_GUARD, waiting_for_time,
                       espdesktop::DisplayMode::DISPLAY_OFF);
+          const bool mac_display_sleep = follows_mac_display && screen_lock_mac_display_awake() == false;
           set_request(espdesktop::DisplayRequestSource::MAC_DISPLAY_SLEEP,
-                      follows_mac_display && screen_lock_mac_display_awake() == false,
-                      espdesktop::DisplayMode::DISPLAY_OFF);
+                      mac_display_sleep, espdesktop::DisplayMode::DISPLAY_OFF);
+          if (!mac_display_sleep && controller.request_matches(
+                  espdesktop::DisplayRequestSource::REMOTE_DISPLAY_POWER, espdesktop::DisplayMode::ACTIVE)) {
+            controller.clear(espdesktop::DisplayRequestSource::REMOTE_DISPLAY_POWER);
+          }
           set_request(espdesktop::DisplayRequestSource::USER_WAKE,
                       id(manual_wake_ms) != 0, espdesktop::DisplayMode::ACTIVE);
           if (schedule_night) {
@@ -717,6 +721,7 @@ script:
               (*transition.winning_source == espdesktop::DisplayRequestSource::BOOT_GUARD ||
                *transition.winning_source == espdesktop::DisplayRequestSource::SCREEN_SCHEDULE ||
                *transition.winning_source == espdesktop::DisplayRequestSource::MANUAL_SLEEP ||
+               *transition.winning_source == espdesktop::DisplayRequestSource::REMOTE_DISPLAY_POWER ||
                *transition.winning_source == espdesktop::DisplayRequestSource::MAC_DISPLAY_SLEEP);
           if (closes_modals) backlight_close_modals_for_display_takeover();
       - lambda: |-
@@ -867,7 +872,9 @@ script:
       - lambda: |-
           if (id(screensaver_mode).state == "companion" &&
               screen_lock_enabled() && screen_lock_mac_display_awake() == false &&
-              !id(screensaver_action_clock) && !id(screensaver_action_dimmed)) {
+              !id(screensaver_action_clock) && !id(screensaver_action_dimmed) &&
+              !id(espdesktop_app).display().request_matches(
+                  espdesktop::DisplayRequestSource::REMOTE_DISPLAY_POWER, espdesktop::DisplayMode::ACTIVE)) {
             id(screensaver_wake).stop();
             return;
           }

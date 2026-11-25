@@ -95,6 +95,10 @@
     "purpose": "Caps runtime grid allocation to nine slots.",
     "remove_when": "Grid slot capacity is generated from device profile data."
   },
+  "ESPDESKTOP_MAX_GRID_SLOTS=28": {
+    "purpose": "Gives the 7-inch V3 firmware capacity for up to 28 slots during grid trials.",
+    "remove_when": "Grid slot capacity is generated from device profile data."
+  },
   "ESPDESKTOP_S3_DISPLAY_RESET_TEST": {
     "purpose": "Enables the S3 development build’s display capture, resync, and LCD reset diagnostics.",
     "remove_when": "The shifted-image investigation is complete and the diagnostic page is removed."

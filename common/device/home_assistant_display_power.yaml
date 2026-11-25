@@ -1,0 +1,43 @@
+# Native Home Assistant controls for panels that opt into the ESPHome API.
+
+api:
+  encryption: {}
+  reboot_timeout: 0s
+  max_connections: 3
+  max_send_queue: 12
+
+espdesktop:
+  display_power: display_power
+
+esphome:
+  on_boot:
+    - priority: 300
+      then:
+        - lambda: espdesktop::home_assistant::configure_native_api_at_boot();
+
+switch:
+  - platform: template
+    name: Display Power
+    id: display_power
+    internal: true
+    icon: mdi:monitor
+    restore_mode: DISABLED
+    lambda: return id(display_backlight).remote_values.is_on();
+    turn_on_action:
+      - lambda: |-
+          if (!espdesktop::home_assistant::native_api_actions_available()) return;
+          auto &controller = id(espdesktop_app).display();
+          using Source = espdesktop::DisplayRequestSource;
+          if (controller.request_active(Source::MAC_DISPLAY_SLEEP)) {
+            controller.request(Source::REMOTE_DISPLAY_POWER, espdesktop::DisplayMode::ACTIVE);
+          } else {
+            controller.clear(Source::REMOTE_DISPLAY_POWER);
+          }
+          id(screensaver_wake).execute();
+          id(display_mode_reconcile).execute();
+    turn_off_action:
+      - lambda: |-
+          if (!espdesktop::home_assistant::native_api_actions_available()) return;
+          id(espdesktop_app).display().request(
+              espdesktop::DisplayRequestSource::REMOTE_DISPLAY_POWER, espdesktop::DisplayMode::DISPLAY_OFF);
+          id(display_mode_reconcile).execute();

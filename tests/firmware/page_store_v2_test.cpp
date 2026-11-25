@@ -8,6 +8,7 @@
 #include <unordered_map>
 #include <vector>
 
+#include "device_ui_profile_fixture.h"
 #include "page_store_runtime.h"
 #include "page_store_goldens.h"
 #include "panel_config_import.h"
@@ -174,7 +175,7 @@ class Resources final : public PageRuntimeResources {
   PageStoreRuntime *owner{nullptr}; PageStore prepared; bool fail{false}; size_t activations{0};
 };
 void replacement_and_failures() {
-  const auto &limits = DEVICE_UI_PROFILES[8];
+  const auto &limits = test_device_ui_profile("guition-esp32-s3-4848s040");
   const auto original = make_v1(limits, "light.one;Original");
   const auto replacement = imported(make_v1(limits, "light.two;Replacement"));
   for (size_t failure = 1; failure <= 3; ++failure) {
@@ -215,7 +216,7 @@ void replacement_and_failures() {
 }
 
 void legacy_child_folders_need_explicit_targets() {
-  const auto &limits=DEVICE_UI_PROFILES[8];
+  const auto &limits=test_device_ui_profile("guition-esp32-s3-4848s040");
   const auto source=make_v1(limits,";Root;;;;;subpage","~B,1|G,,Unlinked");
   Allocator allocator;PageStoreRuntime runtime(limits,allocator,128*1024);
   assert(!runtime.prepare_write(1,source.data(),source.size()));
@@ -322,7 +323,7 @@ void nested_write_admission() {
 }
 
 void hostile_and_bounds() {
-  const auto &limits = DEVICE_UI_PROFILES[8]; const auto source = wire(authored(limits));
+  const auto &limits = test_device_ui_profile("guition-esp32-s3-4848s040"); const auto source = wire(authored(limits));
   Arena arena(16384), other(arena.size()), scratch; PageStore store;
   assert(stage(source, limits, arena, scratch, store) == PageStoreStatus::OK);
   const auto active_source = store.source_document(); const auto needed = store.memory().arena_bytes;

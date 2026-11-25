@@ -174,6 +174,26 @@ handler = source[source.index("class CompanionAppIconPreviewHandler"):source.ind
 with tempfile.TemporaryDirectory() as tmp:
     path = Path(tmp)
     (path / "test.cpp").write_text(PRELUDE + handler + TEST)
-    subprocess.run([os.environ.get("CXX", "c++"), "-std=c++17", "-Wall", "-Wextra", "-Werror", "-I", str(ROOT / "components/espdesktop"), str(path / "test.cpp"), "-o", str(path / "test")], check=True)
+    compiler = [os.environ.get("CXX", "c++"), "-std=c++17", "-Wall", "-Wextra", "-Werror",
+                "-I", str(HEADER.parent)]
+    subprocess.run(compiler + [str(path / "test.cpp"), "-o", str(path / "test")], check=True)
     subprocess.run([str(path / "test")], check=True)
+    (path / "without_companion.cpp").write_text(r'''
+#define USE_WEBSERVER
+#include "companion_app_icon_endpoint.h"
+
+namespace esphome::web_server_idf {
+class AsyncWebServer {
+ public:
+  AsyncWebServer() = default;
+  AsyncWebServer(const AsyncWebServer &) = delete;
+};
+}
+
+int main() {
+  esphome::web_server_idf::AsyncWebServer server;
+  register_companion_app_icon_preview_endpoint(server);
+}
+''')
+    subprocess.run(compiler + ["-fsyntax-only", str(path / "without_companion.cpp")], check=True)
 print("App icon preview endpoint memory and response tests passed.")

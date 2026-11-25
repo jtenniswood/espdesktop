@@ -33,6 +33,7 @@ int main(int argc, char **argv) {
   if (mode == "table-full") workspace_size = panel_config_import_detail::FIXED + 16;
   if (mode == "finish-short") workspace_size = panel_config_import_detail::FIXED + 512;
   if (mode == "budget") workspace_size = std::min(workspace_size, panel_config_import_detail::FIXED + size_t(32768));
+  if (mode == "large-budget") workspace_size = std::min(workspace_size, panel_config_import_detail::FIXED + 64 * size_t(1024));
   if (workspace_size < bounds.workspace_bytes) {
     std::vector<uint64_t> tight((workspace_size + 7) / 8 + 1, UINT64_C(0xA5A5A5A5A5A5A5A5));
     scratch.swap(tight); workspace = scratch.data();
@@ -61,7 +62,7 @@ int main(int argc, char **argv) {
     if (status != PanelConfigImportStatus::INVALID_ARGUMENT || mode == "unaligned") { assert(used == 0); assert(output[0] != 'E'); }
     std::cerr << unsigned(status) << '\n'; return 2;
   }
-  assert((mode.empty() || mode == "budget") && used <= output.size());
+  assert((mode.empty() || mode == "budget" || mode == "large-budget") && used <= output.size());
   PanelConfigV2Reader reader(output.data(), used); size_t bytes = 0;
   { Guard guard; assert(reader.workspace_bytes(&bytes) == PanelConfigStatus::OK); }
   std::vector<uint64_t> validation((bytes + 7) / 8 + 1);

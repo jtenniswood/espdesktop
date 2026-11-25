@@ -7,6 +7,7 @@
 #include <unordered_map>
 #include <vector>
 
+#include "device_ui_profile_fixture.h"
 #include "page_counted_arena.h"
 #include "page_store_runtime.h"
 #include "panel_config_service_validator.h"
@@ -92,7 +93,7 @@ std::vector<uint8_t> document(const DeviceUiLimits &limits, const char *label) {
 }
 
 void staged_service_lifecycle() {
-  const auto &limits = DEVICE_UI_PROFILES[8];
+  const auto &limits = test_device_ui_profile("guition-esp32-s3-4848s040");
   Allocator allocator;
   PageCountedArena counted(allocator);
   Backend backend;
@@ -169,7 +170,7 @@ public:
 };
 
 void compact_preparation_and_failures() {
-  const auto &limits = DEVICE_UI_PROFILES[8];
+  const auto &limits = test_device_ui_profile("guition-esp32-s3-4848s040");
   Allocator allocator;
   Resources resources;
   const auto original = document(limits, "Original");
@@ -302,7 +303,7 @@ void write_admission_preserves_boot_and_inactive_source() {
 }
 
 void bounded_replacements_and_validation() {
-  const auto &limits = DEVICE_UI_PROFILES[8];
+  const auto &limits = test_device_ui_profile("guition-esp32-s3-4848s040");
   Allocator allocator;
   PageCountedArena counted(allocator);
   const auto a = document(limits, "A");
@@ -318,7 +319,7 @@ void bounded_replacements_and_validation() {
       assert(runtime.active().generation() == generation);
       assert(allocator.allocations.size() == 1);
     }
-    const auto mismatch = document(DEVICE_UI_PROFILES[0], "Mismatch");
+    const auto mismatch = document(test_device_ui_profile("guition-esp32-p4-jc1060p470"), "Mismatch");
     assert(!runtime.prepare(1, mismatch.data(), mismatch.size()));
     assert(runtime.last_stage_status() == PageStoreStatus::PROFILE_MISMATCH);
     assert(runtime.active().generation() == 1000 && allocator.allocations.size() == 1);
@@ -395,7 +396,7 @@ void small_edits_with_fragmented_memory() {
 }
 
 void parsing_growth_preserves_admission_and_rollback() {
-  const auto &limits = DEVICE_UI_PROFILES[8];
+  const auto &limits = test_device_ui_profile("guition-esp32-s3-4848s040");
   std::array<uint8_t, 8192> bytes{};
   PanelConfigWriter writer(bytes.data(), bytes.size());
   assert(writer.begin() == PanelConfigStatus::OK);
