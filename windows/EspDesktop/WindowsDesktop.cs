@@ -99,12 +99,16 @@ internal sealed class WindowsDesktop(LocalSettings settings) : IDesktop
             return ShortcutsEnabled && LockWorkStation() ? "performed" : "not_allowed";
         if (id.StartsWith("shortcut.", StringComparison.Ordinal))
         {
-            if (!ShortcutsEnabled || SafeActions.Shortcut(id) is not { } keys) return "not_allowed";
+            const string scopedPrefix = "shortcut.scoped.";
+            var scoped = id.StartsWith(scopedPrefix, StringComparison.Ordinal);
+            var shortcut = scoped ? "shortcut." + id[scopedPrefix.Length..] : id;
+            if (!ShortcutsEnabled || SafeActions.Shortcut(shortcut) is not { } keys) return "not_allowed";
             var window = InputSession.GetForegroundWindow();
             var app = Identify(window);
             // The sender cannot select a process, change focus, or send keystrokes
             // to Explorer desktop surfaces, elevated apps, or this app's settings.
-            if (app is null || !Allowed(app) || (app.Id == ExplorerId && !IsExplorerWindow(window))) return "not_allowed";
+            if (app is null || !Allowed(app) || (scoped && Text(message, "appId") != app.Id) ||
+                (app.Id == ExplorerId && !IsExplorerWindow(window))) return "not_allowed";
             return InputSession.Replay(window, keys) ? "performed" : "not_allowed";
         }
 

@@ -923,9 +923,20 @@ async Task VerifyAppActions(WebSocket socket, WindowsAppActions app, string deni
     Check(launch == "activated", $"recognize the focused Windows app after launch (reported {launch})");
     await FindMessage(socket, "focus.changed", m => Text(m, "actionId") == app.Entry.Id);
     await Invoke("shortcut-denied", "shortcut.option+tab", "not_allowed");
-    await Invoke("shortcut-delivered", WindowsAppActions.Shortcut, "performed");
+    var scopedShortcut = "shortcut.scoped." + WindowsAppActions.Shortcut["shortcut.".Length..];
+    await Invoke("shortcut-missing-target", scopedShortcut, "not_allowed");
+    await InvokeScoped("shortcut-wrong-target", deniedId, "not_allowed");
+    await InvokeScoped("shortcut-delivered", app.Entry.Id, "performed");
     await app.WaitForShortcut(lifetime.Token);
     Console.WriteLine("Passed authenticated Windows Start menu app launch, focus reporting, and keyboard shortcut delivery.");
+
+    async Task InvokeScoped(string request, string appId, string expected)
+    {
+        await Send(socket, "action.invoke", ("kind", "action"), ("actionId", scopedShortcut),
+            ("appId", appId), ("requestId", request));
+        var result = await FindMessage(socket, "action.result", m => Text(m, "requestId") == request);
+        Check(Text(result, "status") == expected, $"scoped shortcut {request} reported {Text(result, "status")}, expected {expected}");
+    }
 
     async Task<string> Invoke(string request, string id, params string[] statuses)
     {
