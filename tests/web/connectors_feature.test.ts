@@ -44,7 +44,8 @@ export async function runConnectorsFeatureTests(): Promise<void> {
   const statuses = [
     status(),
     status({ mac_companion: { available: true, configured: true, paired: true, connected: true } }),
-    status({ mac_companion: { available: true, configured: true, paired: true, connected: true } }),
+    status({ mac_companion: { available: true, configured: true, paired: true, connected: true, windows_host: true } }),
+    status({ mac_companion: { available: true, configured: true, paired: true, connected: false, windows_host: true } }),
   ];
   let nextStatus = 0;
   const pollStatus: { callback?: () => void } = {};
@@ -95,9 +96,14 @@ export async function runConnectorsFeatureTests(): Promise<void> {
   if (!pollStatus.callback) throw new Error("Connector status polling must be scheduled");
   pollStatus.callback();
   await new Promise((resolve) => setTimeout(resolve, 0));
+  if (feature.companionWindowsHost()) throw new Error("A Mac pairing should use Mac labels");
   pollStatus.callback();
   await new Promise((resolve) => setTimeout(resolve, 0));
-  if (transitions.join(",") !== "false,true") {
+  if (!feature.companionWindowsHost()) throw new Error("A Windows pairing should select Windows labels");
+  pollStatus.callback();
+  await new Promise((resolve) => setTimeout(resolve, 0));
+  if (!feature.companionWindowsHost()) throw new Error("A disconnected Windows pairing should keep its labels");
+  if (transitions.join(",") !== "false,true,false") {
     throw new Error(`Companion connection listeners must report only connection changes: ${transitions}`);
   }
 }

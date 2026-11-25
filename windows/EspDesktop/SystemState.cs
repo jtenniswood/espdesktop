@@ -102,8 +102,21 @@ internal sealed class SystemMetrics
     private static extern bool GetSystemPowerStatus(out Power power);
 }
 
+internal enum ShortcutReplay { Performed, FocusChanged, Blocked }
+
 internal static class InputSession
 {
+    public static ushort? UnmodifiedKeyForCharacter(nint window, char character)
+    {
+        var thread = GetWindowThreadProcessId(window, out _);
+        if (thread == 0) return null;
+        var layout = GetKeyboardLayout(thread);
+        if (layout == 0) return null;
+        var key = VkKeyScanExW(character, layout);
+        // Keep the card's explicit modifiers. Only remap symbols with an unmodified key.
+        return key is > 0 and <= 0xff ? (ushort)key : null;
+    }
+
     public static bool IsDefaultInputDesktop()
     {
         var desktop = OpenInputDesktop(0, false, 1);
@@ -117,22 +130,22 @@ internal static class InputSession
         finally { _ = CloseDesktop(desktop); }
     }
 
-    public static bool Replay(nint window, ushort[] keys)
+    public static ShortcutReplay Replay(nint window, ushort[] keys)
     {
-        if (GetForegroundWindow() != window || !IsDefaultInputDesktop() || GetForegroundWindow() != window) return false;
+        if (!IsDefaultInputDesktop()) return ShortcutReplay.Blocked;
         // Don't combine injected shortcuts with modifiers the user is physically holding.
-        if (new[] { 0x10, 0x11, 0x12, 0x5b, 0x5c }.Any(k => (GetAsyncKeyState(k) & 0x8000) != 0)) return false;
+        if (new[] { 0x10, 0x11, 0x12, 0x5b, 0x5c }.Any(k => (GetAsyncKeyState(k) & 0x8000) != 0)) return ShortcutReplay.Blocked;
         var events = keys.Select(k => Key(k, false)).Concat(keys.Reverse().Select(k => Key(k, true))).ToArray();
         var size = Marshal.SizeOf<Input>();
-        if (GetForegroundWindow() != window) return false;
+        if (GetForegroundWindow() != window) return ShortcutReplay.FocusChanged;
         var written = SendInput((uint)events.Length, events, size);
-        if (written == events.Length) return true;
+        if (written == events.Length) return ShortcutReplay.Performed;
         if (written > 0)
         {
             var remaining = keys.Take((int)Math.Min(written, keys.Length)).Reverse().Select(k => Key(k, true)).ToArray();
             _ = SendInput((uint)remaining.Length, remaining, size);
         }
-        return false;
+        return ShortcutReplay.Blocked;
     }
 
     private static Input Key(ushort key, bool up) => new()
@@ -161,6 +174,9 @@ internal static class InputSession
     [DllImport("user32.dll")] private static extern short GetAsyncKeyState(int key);
     [DllImport("user32.dll")] public static extern nint GetForegroundWindow();
     [DllImport("user32.dll")] public static extern uint GetWindowThreadProcessId(nint window, out uint pid);
+    [DllImport("user32.dll")] private static extern nint GetKeyboardLayout(uint thread);
+    [DllImport("user32.dll", CharSet = CharSet.Unicode, ExactSpelling = true)]
+    private static extern short VkKeyScanExW(char character, nint layout);
     [DllImport("user32.dll")] private static extern nint OpenInputDesktop(uint flags, [MarshalAs(UnmanagedType.Bool)] bool inherit, uint access);
     [DllImport("user32.dll")] [return: MarshalAs(UnmanagedType.Bool)] private static extern bool CloseDesktop(nint desktop);
     [DllImport("user32.dll", CharSet = CharSet.Unicode)] [return: MarshalAs(UnmanagedType.Bool)]

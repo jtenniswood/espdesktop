@@ -279,7 +279,7 @@ def test_companion_startup_order() -> None:
     assert "home_assistant" not in connector and "ConnectorPreference" not in connector, (
         "connector setup must not restore or infer the removed integration"
     )
-    assert "return {true, companion.available, companion.paired, companion.connected};" in connector, (
+    assert re.search(r"return \{true, companion\.available, companion\.paired, companion\.connected\b", connector), (
         "local setup stays usable independently of Mac pairing"
     )
     companion_codegen = (ROOT / "components" / "companion" / "__init__.py").read_text(encoding="utf-8")

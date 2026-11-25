@@ -109,6 +109,9 @@ void CompanionService::setup() {
   global_companion_service = this;
   this->preferences_ = global_preferences->make_preference<CompanionIdentityPreference>(fnv1a_hash("companion_identity"));
   this->preferences_.load(&this->identity_);
+  this->windows_host_preferences_ =
+      global_preferences->make_preference<bool>(fnv1a_hash("companion_windows_host"));
+  this->windows_host_preferences_.load(&this->windows_host_);
   if (!this->ensure_identity_()) {
     ESP_LOGE(TAG, "Could not create the panel TLS identity");
     this->mark_failed();
@@ -175,6 +178,7 @@ void CompanionService::setup() {
       runtime.system_metrics_generation(),
       active ? this->pairing_code_ : "",
       App.get_name() + ".local",
+      this->identity_.paired && this->windows_host_,
     };
   });
   register_companion_actions_endpoint();
@@ -594,9 +598,11 @@ void CompanionService::handle_json_(int socket_fd, const std::string &message) {
       auto next_code = generate_pairing_code_();
       while (std::equal(next_code.begin(), next_code.end(), this->pairing_code_.begin(), this->pairing_code_.end()))
         next_code = generate_pairing_code_();
+      const bool windows_host = false;
       if (!this->preferences_.save(&this->identity_) ||
           !this->sequence_preferences_.save(&this->last_sequence_) ||
-          !this->pairing_code_preferences_.save(&next_code)) {
+          !this->pairing_code_preferences_.save(&next_code) ||
+          (this->windows_host_ && !this->windows_host_preferences_.save(&windows_host))) {
         this->identity_ = previous_identity;
         this->last_sequence_ = previous_sequence;
         this->preferences_.save(&this->identity_);
@@ -605,6 +611,7 @@ void CompanionService::handle_json_(int socket_fd, const std::string &message) {
         this->expire_unauthenticated_socket_(socket_fd);
         return true;
       }
+      this->windows_host_ = false;
       this->pairing_code_.clear();
       this->last_failed_pairing_at_.reset();
       const std::string credential = hex(this->identity_.credential, sizeof(this->identity_.credential));
@@ -641,6 +648,7 @@ void CompanionService::handle_json_(int socket_fd, const std::string &message) {
       bool app_icons_high_resolution_supported = false;
       bool focus_targets_supported = false;
       bool shortcut_catalogue_supported = false;
+      bool windows_host = false;
       for (const auto &capability : payload->values) {
         if (capability == COMPANION_APP_ICONS_CAPABILITY) {
           app_icons_supported = true;
@@ -660,6 +668,17 @@ void CompanionService::handle_json_(int socket_fd, const std::string &message) {
           focus_targets_supported = true;
         } else if (capability == "shortcut_catalogue_on_demand") {
           shortcut_catalogue_supported = true;
+        } else if (capability == "windows_host") {
+          windows_host = true;
+        }
+      }
+      {
+        std::lock_guard<std::mutex> lock(this->pairing_mutex_);
+        if (this->identity_.paired && socket_fd == this->session_.authenticated_socket() &&
+            this->windows_host_ != windows_host) {
+          this->windows_host_ = windows_host;
+          if (!this->windows_host_preferences_.save(&windows_host))
+            ESP_LOGW(TAG, "Could not save the paired Companion's platform");
         }
       }
       companion_runtime_service().shortcut_catalogue.set_supported(shortcut_catalogue_supported);

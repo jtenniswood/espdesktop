@@ -8,6 +8,7 @@ export interface MacCompanionConnectorState {
     configured: boolean;
     paired: boolean;
     connected: boolean;
+    windows_host?: boolean;
 }
 
 export interface ConnectorsStatus {
@@ -19,6 +20,7 @@ export interface ConnectorsPageFeature {
     buildPage(parent: HTMLElement): void;
     start(): void;
     companionConfigured(): boolean;
+    companionWindowsHost(): boolean;
     onStatusChange(callback: () => void): void;
     onCompanionConnectionChange(callback: (connected: boolean) => void): void;
     onCompanionPairingChange(callback: (state: CompanionPairingState | null) => void): void;
@@ -91,6 +93,7 @@ export function createConnectorsPageFeature(
     function applyCompanionStatus(value: CompanionPairingState | null): void {
         if (value) applyStatus({ onboarding_complete: true, mac_companion: {
             available: value.available, configured: value.paired, paired: value.paired, connected: value.connected,
+            windows_host: value.windows_host === true,
         } });
         pairingListeners.forEach(listener => listener(value));
     }
@@ -128,6 +131,7 @@ export function createConnectorsPageFeature(
     return {
         buildPage, start,
         companionConfigured: () => !!current?.mac_companion.paired,
+        companionWindowsHost: () => current?.mac_companion.windows_host === true,
         onStatusChange: callback => { statusListeners.push(callback); },
         onCompanionConnectionChange: callback => { connectionListeners.push(callback); },
         onCompanionPairingChange: callback => { pairingListeners.push(callback); },

@@ -1690,7 +1690,7 @@ inline bool invoke_companion_action_for_app(const std::string &action_id,
   const auto target = companion_shortcut_launch_target(app);
   if (target.empty()) return false;
 
-  // The Mac checks that the approved target is still frontmost before replay.
+  // The Companion checks that the approved target is still frontmost before replay.
   if (target == required_focus_id)
     return companion_action_sender()(shortcut, request_id, "new_window", target);
 
@@ -1860,7 +1860,8 @@ class CompanionActionsHandler : public esphome::web_server_idf::AsyncWebHandler 
       bool has_more = false;
       const auto entries = runtime.remote_definitions_page(page * page_size, page_size,
                                                            definitions_connected, has_more);
-      json = "{\"page\":" + std::to_string(page) + ",\"hasMore\":" +
+      json = "{\"page\":" + std::to_string(page) + ",\"connected\":" +
+        (definitions_connected ? "true" : "false") + ",\"hasMore\":" +
         (has_more ? "true" : "false");
       if (runtime.windows_shortcuts()) json += ",\"shortcutPlatform\":\"windows\"";
       json += ",\"definitions\":[";
@@ -1981,6 +1982,7 @@ inline std::string companion_pairing_json(const CompanionPairingSnapshot &snapsh
     ",\"active\":" + (snapshot.active ? "true" : "false") +
     ",\"paired\":" + (snapshot.paired ? "true" : "false") +
     ",\"connected\":" + (snapshot.connected ? "true" : "false") +
+    ",\"windows_host\":" + (snapshot.windows_host ? "true" : "false") +
     ",\"port\":" + std::to_string(snapshot.port) +
     ",\"system_metrics_generation\":" + std::to_string(snapshot.system_metrics_generation) +
     ",\"code_length\":" + std::to_string(COMPANION_PAIRING_CODE_LENGTH) +

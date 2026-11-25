@@ -120,6 +120,8 @@ class CompanionService final : public Component {
   ESPPreferenceObject preferences_;
   ESPPreferenceObject sequence_preferences_;
   ESPPreferenceObject pairing_code_preferences_;
+  ESPPreferenceObject windows_host_preferences_;
+  bool windows_host_{false};
   ESPPreferenceObject focus_targets_preferences_;
   CompanionIdentityPreference identity_{};
 #ifdef USE_COMPANION_USB

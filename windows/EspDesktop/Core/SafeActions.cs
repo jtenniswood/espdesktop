@@ -2,6 +2,8 @@ namespace EspDesktop.Core;
 
 internal static class SafeActions
 {
+    public const string ScopedShortcutPrefix = "shortcut.scoped.";
+
     public static Uri? WebUrl(string value, bool decode = true)
     {
         if (decode) value = Uri.UnescapeDataString(value);
@@ -20,19 +22,21 @@ internal static class SafeActions
         ["backspace"] = 0x08, ["delete"] = 0x08, ["forwarddelete"] = 0x2e,
         ["tab"] = 0x09, ["return"] = 0x0d, ["enter"] = 0x0d, ["escape"] = 0x1b, ["space"] = 0x20,
         ["pageup"] = 0x21, ["pagedown"] = 0x22, ["end"] = 0x23, ["home"] = 0x24,
-        ["left"] = 0x25, ["up"] = 0x26, ["right"] = 0x27, ["down"] = 0x28, ["insert"] = 0x2d,
-        ["keyminus"] = 0xbd, ["keyequal"] = 0xbb, ["keybracketleft"] = 0xdb, ["keybracketright"] = 0xdd,
-        ["keybackslash"] = 0xdc, ["keysemicolon"] = 0xba, ["keyquote"] = 0xde, ["keycomma"] = 0xbc,
-        ["keyperiod"] = 0xbe, ["keyslash"] = 0xbf, ["keybackquote"] = 0xc0
+        ["left"] = 0x25, ["up"] = 0x26, ["right"] = 0x27, ["down"] = 0x28, ["insert"] = 0x2d
     };
-    public const string ScopedShortcutPrefix = "shortcut.scoped.";
-
-    public static ushort[]? Shortcut(string id)
+    private static readonly Dictionary<string, (char Symbol, ushort DefaultKey)> Punctuation = new()
     {
-        const string prefix = "shortcut.";
-        if (!id.StartsWith(prefix, StringComparison.Ordinal)) return null;
-        var scoped = id.StartsWith(ScopedShortcutPrefix, StringComparison.Ordinal);
-        var parts = id[(scoped ? ScopedShortcutPrefix.Length : prefix.Length)..].Split('+');
+        ["keyminus"] = ('-', 0xbd), ["keyequal"] = ('=', 0xbb), ["keybracketleft"] = ('[', 0xdb),
+        ["keybracketright"] = (']', 0xdd), ["keybackslash"] = ('\\', 0xdc), ["keysemicolon"] = (';', 0xba),
+        ["keyquote"] = ('\'', 0xde), ["keycomma"] = (',', 0xbc), ["keyperiod"] = ('.', 0xbe),
+        ["keyslash"] = ('/', 0xbf), ["keybackquote"] = ('`', 0xc0)
+    };
+
+    public static ushort[]? Shortcut(string id, Func<char, ushort?>? punctuationKey = null)
+    {
+        if (!id.StartsWith("shortcut.", StringComparison.Ordinal)) return null;
+        var prefixLength = id.StartsWith(ScopedShortcutPrefix, StringComparison.Ordinal) ? ScopedShortcutPrefix.Length : 9;
+        var parts = id[prefixLength..].Split('+');
         if (parts.Length > 5 || parts.Distinct().Count() != parts.Length) return null;
         var result = new List<ushort>();
         foreach (var part in parts[..^1])
@@ -45,6 +49,8 @@ internal static class SafeActions
         else if (key.StartsWith('f') && key.Length <= 3 && int.TryParse(key.AsSpan(1), out var f) && f is >= 1 and <= 20 &&
                  key == FormattableString.Invariant($"f{f}")) result.Add((ushort)(0x6f + f));
         else if (Keys.TryGetValue(key, out var vk)) result.Add(vk);
+        else if (Punctuation.TryGetValue(key, out var punctuation))
+            result.Add(punctuationKey?.Invoke(punctuation.Symbol) ?? punctuation.DefaultKey);
         else return null;
         // Windows shell and session shortcuts must not be triggered by the panel.
         if ((result.Contains(0x12) && result[^1] is 0x09 or 0x1b or 0x73) ||

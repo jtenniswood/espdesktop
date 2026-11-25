@@ -126,6 +126,14 @@ Check(SafeActions.Shortcut("shortcut.control+escape") is null, "block Start menu
 Check(SafeActions.Shortcut("shortcut.command+escape") is null, "block Start menu through the Command alias");
 Check(SafeActions.Shortcut("shortcut.control+shift+escape") is null, "block task manager");
 Check(SafeActions.Shortcut("shortcut.command+keycomma") is not null, "match panel punctuation IDs");
+Check(SafeActions.Shortcut("shortcut.scoped.control+keybackquote", symbol => symbol == '`' ? (ushort)0xdf : null)
+    ?.SequenceEqual(new ushort[] { 0x11, 0xdf }) == true, "use the foreground layout's backtick key for a saved preset");
+Check(SafeActions.Shortcut("shortcut.control+keybackquote", _ => null)?.SequenceEqual(new ushort[] { 0x11, 0xc0 }) == true,
+    "preserve the fallback when the layout has no unmodified backtick key");
+Check(SafeActions.Shortcut("shortcut.scoped.control+t")?.SequenceEqual(new ushort[] { 0x11, 0x54 }) == true,
+    "parse the panel's New Tab preset");
+Check(SafeActions.Shortcut("shortcut.scoped.control+k~control+t") is null, "reject multi-stroke replay");
+Check(SafeActions.Shortcut("shortcut.scoped.option+tab") is null, "preserve shell shortcut restrictions");
 Check(SafeActions.Shortcut("shortcut.command+calc.exe") is null, "no command paths as shortcuts");
 Check(Bound("🙂🙂a", 7) == "🙂", "truncate at UTF-8 boundary");
 using (var duplicate = JsonDocument.Parse("""{"type":"catalogue.request","type":"hello","protocol":4}"""))
@@ -726,6 +734,9 @@ async Task VerifyWindowsLock(WebSocket socket)
 
 async Task VerifyNativeDesktop(WebSocket socket, NativeWindowsDesktop fixture)
 {
+    var capabilities = await FindMessage(socket, "capabilities", m => Valid(m, "mac_to_panel", "connected"));
+    Check(capabilities.GetProperty("values").EnumerateArray().Any(value => value.GetString() == "windows_host"),
+        "tell the panel to use Windows keyboard labels");
     var entries = new Dictionary<string, JsonElement>(StringComparer.Ordinal);
     uint catalogueGeneration = 0;
     int? explorerPosition = null;
@@ -928,18 +939,15 @@ async Task VerifyAppActions(WebSocket socket, WindowsAppActions app, string deni
     await Invoke("shortcut-denied", "shortcut.option+tab", "not_allowed");
     await Invoke("shortcut-delivered", WindowsAppActions.Shortcut, "performed");
     await app.WaitForShortcut(lifetime.Token);
-    app.ClearShortcutReceipt();
+    await Invoke("preset-missing-target", "shortcut.scoped.control+t", "not_allowed");
+    await Invoke("preset-unapproved-target", "shortcut.scoped.control+t", "not_allowed", deniedId);
+    await Invoke("preset-wrong-foreground", "shortcut.scoped.control+t", "failed", WindowsDesktop.ExplorerId);
+    Check(!app.ReceivedPreset, "refused presets did not send Ctrl+T to the focused test app");
+    await Invoke("preset-delivered", "shortcut.scoped.control+t", "performed", app.Entry.Id);
+    await app.WaitForPreset(lifetime.Token);
+    Console.WriteLine("Passed authenticated Windows app launch, focus reporting, and custom and scoped shortcut delivery.");
 
-    const string scoped = "shortcut.scoped.control+shift+f8";
-    await Invoke("preset-no-target", scoped, "not_allowed");
-    await Invoke("preset-unapproved-target", scoped, "not_allowed", appId: deniedId);
-    await Invoke("preset-background-target", scoped, "not_found", appId: WindowsDesktop.ExplorerId);
-    Check(!app.HasShortcutReceipt, "rejected presets leave the foreground test app untouched");
-    await Invoke("preset-delivered", scoped, "performed", appId: app.Entry.Id);
-    await app.WaitForShortcut(lifetime.Token);
-    Console.WriteLine("Passed authenticated Windows app launch, focus reporting, and custom and app-scoped shortcuts.");
-
-    async Task<string> Invoke(string request, string id, string status, string? appId = null)
+    async Task Invoke(string request, string id, string status, string? appId = null)
     {
         var fields = new List<(string, object?)> { ("kind", "action"), ("actionId", id), ("requestId", request) };
         if (appId is not null) fields.Add(("appId", appId));
@@ -947,7 +955,6 @@ async Task VerifyAppActions(WebSocket socket, WindowsAppActions app, string deni
         var result = await FindMessage(socket, "action.result", m => Text(m, "requestId") == request);
         var actual = Text(result, "status");
         Check(actual == status, $"{request} reported {actual}, expected {status}");
-        return actual;
     }
 }
 
@@ -961,7 +968,8 @@ async Task VerifyWebsiteActions(WebSocket socket, string browserAddress)
     var first = await OpenPage(0, "new_tab");
     var second = await OpenPage(1, "new_tab");
     Check(first == second, "opening a website in a new tab keeps the browser window");
-    Check(InputSession.Replay(second, [0x11, 0x10, 0x09]), "switch to the previous browser tab with Ctrl+Shift+Tab");
+    Check(InputSession.Replay(second, [0x11, 0x10, 0x09]) == ShortcutReplay.Performed,
+        "switch to the previous browser tab with Ctrl+Shift+Tab");
     await WaitForHighlight(pages[0].Id, "switching back to the original browser tab");
     var third = await OpenPage(2, "new_window");
     Check(third != second, "opening a website in a new window creates a separate browser window");
