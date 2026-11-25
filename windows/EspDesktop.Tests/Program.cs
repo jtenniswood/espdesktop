@@ -72,6 +72,8 @@ if (args is ["--installer-profile", var profileMode])
 }
 VerifyLocalStore();
 VerifyAudioLevelPolicy();
+Check(SystemDisplayBrightness.SupportedLevel([0, 20, 40, 100], 38) == 40, "round brightness to a supported laptop level");
+Check(SystemDisplayBrightness.SupportedLevel([10, 30, 100], 0) == 10, "respect the laptop minimum level");
 VerifyWindowsPresets();
 var exerciseDesktopActions = args is ["--verify-native-windows", "--exercise-desktop-actions"];
 var verifyWindowsLock = args is ["--verify-windows-lock"];
@@ -193,7 +195,11 @@ server.Map(SocketPath, async context =>
         if (seq is 9 or 10)
         {
             await Send(socket, "auth.accepted", ("capabilityVersion", 7));
-            await FindMessage(socket, "catalogue.page", m => m.GetProperty("items")[0].GetProperty("id").GetString() == "windows.test");
+            var oldCatalogue = await FindMessage(socket, "catalogue.page", _ => true);
+            Check(oldCatalogue.GetProperty("items").EnumerateArray().All(item => BrightnessStep(Text(item, "id")) == null),
+                "older firmware does not receive brightness buttons");
+            await Send(socket, "value.set", ("controlId", BrightnessControl), ("value", 20), ("requestId", "old-brightness"));
+            await FindMessage(socket, "action.result", m => Text(m, "requestId") == "old-brightness" && Text(m, "status") == "not_allowed");
             if (seq == 10) reconnected.TrySetResult();
             await socket.CloseOutputAsync(WebSocketCloseStatus.NormalClosure, "test disconnect", lifetime.Token);
             return;
@@ -204,7 +210,7 @@ server.Map(SocketPath, async context =>
             return;
         }
         Check(seq == 8, "repair stale authentication sequence");
-        await Send(socket, "auth.accepted", ("capabilityVersion", 24));
+        await Send(socket, "auth.accepted", ("capabilityVersion", BrightnessCapabilityVersion));
 #if WINDOWS
         if (windowsBackend is not null)
         {
@@ -215,8 +221,17 @@ server.Map(SocketPath, async context =>
             return;
         }
 #endif
-        await FindMessage(socket, "catalogue.page", m => m.GetProperty("items")[0].GetProperty("id").GetString() == "windows.test");
+        var catalogue = await FindMessage(socket, "catalogue.page", _ => true);
+        Check(catalogue.GetProperty("items").EnumerateArray().Count(item => BrightnessStep(Text(item, "id")) != null) == 2,
+            "publish both brightness buttons");
         await FindMessage(socket, "value.state", m => Text(m, "controlId") == FakeDesktop.Speaker && UInt(m, "value") == 50);
+        await FindMessage(socket, "value.state", m => Text(m, "controlId") == BrightnessControl && UInt(m, "value") == 50);
+        await Send(socket, "value.set", ("controlId", BrightnessControl), ("value", 70), ("requestId", "brightness"));
+        await FindMessage(socket, "action.result", m => Text(m, "requestId") == "brightness" && Text(m, "status") == "performed");
+        await FindMessage(socket, "value.state", m => Text(m, "controlId") == BrightnessControl && UInt(m, "value") == 70);
+        await Send(socket, "action.invoke", ("kind", "action"), ("actionId", BrightnessDown), ("requestId", "dim"));
+        await FindMessage(socket, "action.result", m => Text(m, "requestId") == "dim" && Text(m, "status") == "performed");
+        await FindMessage(socket, "value.state", m => Text(m, "controlId") == BrightnessControl && UInt(m, "value") == 60);
 
         await Send(socket, "action.invoke", ("kind", "action"), ("actionId", "windows.test"), ("requestId", "1"));
         await FindMessage(socket, "action.result", m => Text(m, "requestId") == "1" && Text(m, "status") == "activated");
@@ -232,7 +247,16 @@ server.Map(SocketPath, async context =>
         await Send(socket, "value.set", ("controlId", FakeDesktop.Speaker), ("value", 20), ("requestId", "locked-volume"));
         await FindMessage(socket, "action.result", m => Text(m, "requestId") == "locked-volume" && Text(m, "status") == "not_allowed");
         Check(desktop.SpeakerLevel == 65, "locked audio command left the level unchanged");
+        await Send(socket, "action.invoke", ("kind", "action"), ("actionId", BrightnessUp), ("requestId", "locked-brighter"));
+        await FindMessage(socket, "action.result", m => Text(m, "requestId") == "locked-brighter" && Text(m, "status") == "not_allowed");
+        await Send(socket, "value.set", ("controlId", BrightnessControl), ("value", 20), ("requestId", "locked-brightness"));
+        await FindMessage(socket, "action.result", m => Text(m, "requestId") == "locked-brightness" && Text(m, "status") == "not_allowed");
+        Check(desktop.BrightnessLevel == 60, "locked brightness commands left the level unchanged");
         desktop.Locked = false;
+        desktop.BrightnessLevel = null;
+        await FindMessage(socket, "value.state", m => Text(m, "controlId") == BrightnessControl && !m.GetProperty("available").GetBoolean());
+        await Send(socket, "value.set", ("controlId", BrightnessControl), ("value", 20), ("requestId", "unavailable-brightness"));
+        await FindMessage(socket, "action.result", m => Text(m, "requestId") == "unavailable-brightness" && Text(m, "status") == "not_allowed");
 
         await Send(socket, "app_icon.request", ("appId", "windows.test"));
         var icon = await FindMessage(socket, "app_icon.begin", _ => true);
@@ -293,7 +317,7 @@ if (native is not null)
 }
 #endif
 Check(desktop.Actions == 1 && authorizedRequests == 1, "authenticated dispatch and lock enforcement");
-Console.WriteLine("Passed real TLS WebSocket pairing, certificate pinning, counter repair, catalogue, audio dispatch, lock enforcement and icon transfer tests.");
+Console.WriteLine("Passed real TLS WebSocket pairing, certificate pinning, counter repair, catalogue, audio and brightness dispatch, lock enforcement and icon transfer tests.");
 await VerifyUpdateRequired();
 await VerifyAddressRecovery();
 await VerifyPairingSaveFailure();
@@ -1092,18 +1116,32 @@ sealed class FakeDesktop : IDesktop
     public bool Locked { get; set; }
     public int Actions { get; private set; }
     public int SpeakerLevel { get; private set; } = 50;
+    public int? BrightnessLevel { get; set; } = 50;
     public (bool Locked, bool? DisplayAwake) SessionState => (Locked, true);
-    public IReadOnlyList<CatalogueItem> Catalogue() => [new("windows.test", "Test app")];
+    public IReadOnlyList<CatalogueItem> Catalogue() =>
+        [new("windows.test", "Test app"), new(BrightnessUp, "Screen Brighter"), new(BrightnessDown, "Screen Dimmer")];
     public IEnumerable<string> Definitions() => [];
     public string[] Focused(IReadOnlyDictionary<string, Uri> urls) => [];
     public byte[] AppIcon(string appId, int side) => new byte[side * side * 3];
-    public Task<string> Invoke(JsonElement message, CancellationToken token) { Actions++; return Task.FromResult("activated"); }
+    public Task<string> Invoke(JsonElement message, CancellationToken token)
+    {
+        if (BrightnessStep(Text(message, "actionId")) is { } step)
+        {
+            if (BrightnessLevel is not int current) return Task.FromResult("not_allowed");
+            BrightnessLevel = Math.Clamp(current + step, 0, 100);
+            return Task.FromResult("performed");
+        }
+        Actions++;
+        return Task.FromResult("activated");
+    }
     public bool SetValue(string id, int value)
     {
-        if (id != Speaker) return false;
-        SpeakerLevel = value;
+        if (id == Speaker) SpeakerLevel = value;
+        else if (id == BrightnessControl && BrightnessLevel.HasValue) BrightnessLevel = value;
+        else return false;
         return true;
     }
-    public IEnumerable<(string Id, int? Value)> Values() => [(Speaker, SpeakerLevel)];
+    public IEnumerable<(string Id, int? Value)> Values(bool includeBrightness) =>
+        includeBrightness ? [(Speaker, SpeakerLevel), (BrightnessControl, BrightnessLevel)] : [(Speaker, SpeakerLevel)];
     public Dictionary<string, object?> Metrics(uint generation) => Message("system_metrics", ("generation", generation), ("available", false));
 }

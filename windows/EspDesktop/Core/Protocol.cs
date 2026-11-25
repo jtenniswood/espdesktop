@@ -12,6 +12,17 @@ namespace EspDesktop.Core;
 
 internal static class Protocol
 {
+    public const string BrightnessControl = "display.brightness";
+    public const string BrightnessUp = "system.brightness_up";
+    public const string BrightnessDown = "system.brightness_down";
+    public const uint BrightnessCapabilityVersion = 25;
+    public static int? BrightnessStep(string action) => action switch
+    {
+        BrightnessUp => 10,
+        BrightnessDown => -10,
+        _ => null,
+    };
+
     private static readonly JsonElement Contract = ReadContract();
     private static readonly Dictionary<string, JsonElement> Messages = Contract.GetProperty("messages")
         .EnumerateArray().ToDictionary(m => m.GetProperty("id").GetString()!);
@@ -110,7 +121,7 @@ internal static class Protocol
                 {
                     "hex64" => s.Length == 64 && s.All(Uri.IsHexDigit),
                     "volume_control_id" or "writable_volume_control_id" =>
-                        s is "media.output_volume" or "media.input_volume" or "media.output_mute" or "media.input_mute" or "media.cough" ||
+                        s is "media.output_volume" or "media.input_volume" or "media.output_mute" or "media.input_mute" or "media.cough" or BrightnessControl ||
                         VolumeControlPattern.IsMatch(s),
                     { } expression => Regex.IsMatch(s, expression, RegexOptions.CultureInvariant | RegexOptions.NonBacktracking),
                     _ => false
