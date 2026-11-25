@@ -10,6 +10,7 @@ export interface CompanionPairingState {
     active: boolean;
     paired: boolean;
     connected: boolean;
+    windows_host?: boolean;
     port?: number;
     pairing_code: string;
     mdns_name?: string;

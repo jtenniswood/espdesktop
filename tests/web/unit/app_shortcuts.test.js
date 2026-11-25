@@ -135,6 +135,32 @@ test("Twitch presets target the installed Safari web app", async () => {
   assert(!api.companionShortcutPresetCards("com.apple.Safari").some(card => card.label === "Clip Live Stream"));
 });
 
+test("Windows uses the approved companion presets and preserves offline saved presets", async () => {
+  const api = loadTypeScriptModule("src/webserver/application/companion_shortcut_folder.ts");
+  const { createCompanionCatalogue } = loadTypeScriptModule("src/webserver/api/companion_catalogue.ts");
+  const appId = "windows.0123456789abcdef0123456789abcdef";
+  const definition = {
+    version: 1, appId, label: "Browser", catalog: false,
+    shortcuts: [{ id: "0", label: "New Tab", shortcut: "control+t", icon: "New Tab" }],
+  };
+  let entries = [{ kind: "application", definition }];
+  const catalogue = createCompanionCatalogue(async (path) =>
+    path.startsWith("/companion/shortcut-page")
+      ? { status: 404 }
+      : { ok: true, json: async () => ({ page: 0, connected: true, hasMore: false, definitions: entries }) });
+
+  api.replaceCompanionDefinitions((await catalogue.loadDefinitions()).applications);
+  assert.deepEqual(api.companionShortcutCatalogApps({ windowsHost: true }).map(app => app.appId), [appId]);
+  const [saved] = api.companionShortcutPresetCards(appId);
+  assert.equal(saved.entity, "shortcut.control+t");
+  assert.equal(saved.options, `app_shortcut_preset=${appId}%3A0`);
+
+  entries = [];
+  api.replaceCompanionDefinitions((await catalogue.loadDefinitions(true)).applications);
+  assert.deepEqual(api.companionShortcutCatalogApps({ windowsHost: true }), []);
+  assert.equal(api.companionShortcutCatalogApps({ windowsHost: true, savedAppId: appId })[0].appId, appId);
+});
+
 test("ChatGPT Desktop subpages use the curated catalogue and preserve custom cards", () => {
   const api = loadTypeScriptModule("src/webserver/application/companion_shortcut_folder.ts");
   const app = require("../../../product/v2/app_shortcuts/codex.json");

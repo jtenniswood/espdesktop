@@ -774,6 +774,11 @@ export function runCompanionShortcutFeatureTests(): void {
   const selectAll = companionShortcutActionId(shortcutEvent({ metaKey: true }));
   if (selectAll !== "shortcut.command+a") throw new Error("Command-A shortcut encoding changed");
   if (formatCompanionShortcutActionId(selectAll) !== "⌘A") throw new Error("Command-A shortcut label changed");
+  if (formatCompanionShortcutActionId(selectAll, true) !== "Ctrl+A" ||
+      formatCompanionShortcutActionId("shortcut.command+control+option+shift+enter", true) !== "Ctrl+Alt+Shift+Enter" ||
+      formatCompanionShortcutActionId("shortcut.scoped.control+t", true) !== "Ctrl+T") {
+    throw new Error("A Windows pairing must show Windows labels for saved shortcuts and presets");
+  }
 
   const previousTab = companionShortcutActionId(shortcutEvent({
     code: "Tab",

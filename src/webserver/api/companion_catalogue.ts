@@ -238,13 +238,16 @@ export function createCompanionCatalogue(fetchImpl: typeof fetch) {
 
   async function fetchLegacyDefinitions(): Promise<CompanionDefinitions> {
     const applications = new Map<string, AppShortcutApplication>();
+    let connected = false;
     for (let page = 0; page < 64; page += 1) {
       const response = await fetchImpl(`/companion/definitions?page=${page}`, { cache: "no-store" });
       if (!response.ok) throw new Error("Companion definitions unavailable");
       const data: unknown = await response.json();
-      const payload = data as { definitions?: unknown; page?: unknown; hasMore?: unknown } | null;
+      const payload = data as { definitions?: unknown; page?: unknown; hasMore?: unknown; connected?: boolean } | null;
       if (!Array.isArray(payload?.definitions) || payload.page !== page || typeof payload.hasMore !== "boolean")
         throw new Error("Companion definitions page is invalid");
+      if (payload.connected === false) throw new Error("Companion is disconnected");
+      connected = payload.connected === true;
       for (const value of payload.definitions) {
         if (!value || typeof value !== "object") continue;
         const entry = value as { kind?: unknown; definition?: unknown };
@@ -264,7 +267,7 @@ export function createCompanionCatalogue(fetchImpl: typeof fetch) {
       if (!payload.hasMore) break;
       if (page === 63) throw new Error("Companion definitions exceed the supported catalogue size");
     }
-    if (applications.size === 0) throw new Error("Companion definitions are empty or invalid");
+    if (applications.size === 0 && !connected) throw new Error("Companion definitions are empty or invalid");
     return { applications: [...applications.values()] };
   }
 

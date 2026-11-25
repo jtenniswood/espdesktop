@@ -37,6 +37,7 @@ internal sealed class WindowsDesktop(LocalSettings settings) : IDesktop
     public IReadOnlyList<StartApp> Apps => apps;
     public int CatalogueRevision { get; private set; }
     public bool ShortcutsEnabled => settings.Shortcuts;
+    public event Action<string>? ActionNotice;
     public (bool Locked, bool? DisplayAwake) SessionState => (reportedLocked || !InputSession.IsDefaultInputDesktop(), displayAwake);
 
     public void SessionChanged(bool locked) => reportedLocked = locked;
@@ -100,12 +101,20 @@ internal sealed class WindowsDesktop(LocalSettings settings) : IDesktop
         if (id.StartsWith("shortcut.", StringComparison.Ordinal))
         {
             if (!ShortcutsEnabled || SafeActions.Shortcut(id) is not { } keys) return "not_allowed";
+            var scoped = id.StartsWith(SafeActions.ScopedShortcutPrefix, StringComparison.Ordinal);
+            var target = Text(message, "appId");
+            if (scoped && !apps.Any(app => app.Id == target && Allowed(app))) return "not_allowed";
             var window = InputSession.GetForegroundWindow();
             var app = Identify(window);
-            // The sender cannot select a process, change focus, or send keystrokes
-            // to Explorer desktop surfaces, elevated apps, or this app's settings.
+            if (scoped && (app?.Id != target || (target == ExplorerId && !IsExplorerWindow(window))))
+                return ShortcutFocusLost();
+            // Receiving a shortcut never changes focus. Only approved app windows
+            // can receive keys, and Windows also enforces input integrity levels.
             if (app is null || !Allowed(app) || (app.Id == ExplorerId && !IsExplorerWindow(window))) return "not_allowed";
-            return InputSession.Replay(window, keys) ? "performed" : "not_allowed";
+            token.ThrowIfCancellationRequested();
+            var result = InputSession.Replay(window, keys);
+            if (result == ShortcutReplay.FocusChanged && scoped) return ShortcutFocusLost();
+            return result == ShortcutReplay.Performed ? "performed" : "not_allowed";
         }
 
         if (id.StartsWith("folder.", StringComparison.Ordinal))
@@ -134,6 +143,12 @@ internal sealed class WindowsDesktop(LocalSettings settings) : IDesktop
         var selected = apps.FirstOrDefault(a => a.Id == id && Allowed(a));
         if (selected is null) return "not_allowed";
         return await ActivateApplication(selected, token);
+    }
+
+    private string ShortcutFocusLost()
+    {
+        ActionNotice?.Invoke("Shortcut skipped. Bring the intended app to the front and try again.");
+        return "failed";
     }
 
     private async Task<string> ActivateApplication(StartApp app, CancellationToken token)
@@ -165,6 +180,7 @@ internal sealed class WindowsDesktop(LocalSettings settings) : IDesktop
             if (IsActive(app)) return "activated";
             await Task.Delay(50, token);
         } while (Stopwatch.GetElapsedTime(start) < TimeSpan.FromSeconds(3));
+        ActionNotice?.Invoke("Windows kept another app in front. Switch to the requested app and try again.");
         if (window == 0) return "opened";
         if (Identify(window)?.Id == app.Id) FlashTaskbar(window);
         return "failed";

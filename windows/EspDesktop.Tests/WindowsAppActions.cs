@@ -64,6 +64,11 @@ internal sealed class WindowsAppActions : IDisposable
     public async Task WaitForShortcut(CancellationToken token) =>
         await WaitForMarker("received", "The Windows test app did not receive Ctrl+Shift+F8.", token);
 
+    public bool ReceivedPreset => File.Exists(Path.Combine(root, "received-preset"));
+
+    public async Task WaitForPreset(CancellationToken token) =>
+        await WaitForMarker("received-preset", "The Windows test app did not receive Ctrl+T.", token);
+
     public async Task CheckForeground(CancellationToken token)
     {
         var ready = await WaitForMarker("ready", "The Windows test app did not open a window.", token);
@@ -109,6 +114,8 @@ internal sealed class WindowsAppActions : IDisposable
             {
                 if (key.Key == Key.F8 && Keyboard.Modifiers == (ModifierKeys.Control | ModifierKeys.Shift))
                     File.WriteAllText(Path.Combine(directory, "received"), "Ctrl+Shift+F8");
+                if (key.Key == Key.T && Keyboard.Modifiers == ModifierKeys.Control)
+                    File.WriteAllText(Path.Combine(directory, "received-preset"), "Ctrl+T");
             };
             var timer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(250) };
             var started = System.Diagnostics.Stopwatch.StartNew();

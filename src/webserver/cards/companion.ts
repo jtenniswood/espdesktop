@@ -139,18 +139,21 @@ export function companionShortcutActionId(event: Pick<KeyboardEvent,
     return COMPANION_SHORTCUT_PREFIX + parts.join("+");
 }
 
-export function formatCompanionShortcutActionId(actionId: string): string {
+export function formatCompanionShortcutActionId(actionId: string, windowsHost = false): string {
     if (!companionShortcutActionIdValid(actionId)) return "";
     const scoped = actionId.startsWith(SCOPED_SHORTCUT_PREFIX);
     const strokes = actionId.slice((scoped ? SCOPED_SHORTCUT_PREFIX : COMPANION_SHORTCUT_PREFIX).length).split("~");
-    const symbols: Readonly<Record<string, string>> = {
+    const symbols: Readonly<Record<string, string>> = windowsHost ? {
+        command: "Ctrl", control: "Ctrl", option: "Alt", shift: "Shift", function: "Fn",
+    } : {
         command: "⌘", control: "⌃", option: "⌥", shift: "⇧", function: "Fn ",
     };
     return strokes.map(stroke => {
         const parts = stroke.split("+");
         const key = parts.pop() || "";
-        const label = COMPANION_SHORTCUT_KEY_LABELS[key] ||
+        const label = (windowsHost && key === "enter" ? "Enter" : COMPANION_SHORTCUT_KEY_LABELS[key]) ||
             (key.startsWith("keypad") ? "Keypad " + key.slice(6) : key.toUpperCase());
+        if (windowsHost) return [...new Set(parts.map(part => symbols[part])), label].join("+");
         return parts.map(part => symbols[part]).join("") + label;
     }).join(" then ");
 }
@@ -503,13 +506,14 @@ export function registerCompanionCardTypes(
     codec: Pick<ConfigCodecFeature, "buildSubpageGrid" | "enterSubpage" | "enterChildSubpage" | "canCreateSubpage" | "getSubpage" | "saveSubpageConfig">,
     selection: Pick<ButtonSettingsSelectionFeature, "closeSettings">,
     maxSlots: number,
-    connectorStatus: Pick<ConnectorsPageFeature, "onCompanionConnectionChange">,
+    connectorStatus: Pick<ConnectorsPageFeature, "onCompanionConnectionChange" | "onStatusChange" | "companionWindowsHost">,
     publishGeneratedActions: (folders: readonly CompanionAction[]) => boolean,
 ) {
     const { cardBadgePreview, cardBadgeLabelHtml, cardSensorPreviewHtml, fieldLabel } = fields;
     const { renderButtonSettings, renderPreview } = cardUi;
     const catalogue = createCompanionCatalogue(fetchImpl);
     const loadCompanionActions = catalogue.load;
+    let windowsHost = connectorStatus.companionWindowsHost();
     const obsControlLabels = new Map<string, string>();
     const obsCardStates = new Map<string, CompanionAction>();
     const obsPresentationKey = () => JSON.stringify([...obsCardStates].map(([id, action]) =>
@@ -798,6 +802,13 @@ export function registerCompanionCardTypes(
     }
 
     if (supported) {
+        connectorStatus.onStatusChange(() => {
+            const next = connectorStatus.companionWindowsHost();
+            if (windowsHost === next) return;
+            windowsHost = next;
+            if (state.settingsDraft?.button.type === "companion") renderButtonSettings();
+            renderPreview();
+        });
         void loadCompanionActions().then(function (actions) {
             rememberCompanionApplications(actions);
             rememberOBSControls(actions);
@@ -805,8 +816,10 @@ export function registerCompanionCardTypes(
             cardUi.renderPreview();
         }).catch(function () {});
         connectorStatus.onCompanionConnectionChange(function (connected) {
-            if (connected) companionCatalogueMonitor.start();
-            else {
+            if (connected) {
+                companionCatalogueMonitor.start();
+                if (windowsHost && state.settingsDraft?.button.type === "companion") renderButtonSettings();
+            } else {
                 companionCatalogueMonitor.stop();
                 const hadOBSControls = obsControlLabels.size > 0;
                 obsControlLabels.clear();
@@ -1317,7 +1330,7 @@ export function registerCompanionCardTypes(
                 ? appShortcutPageOwner(previewSubpageOwner(parentPage, state.buttons, key => state.subpages[key]))
                 : undefined;
             const catalogueApps = sortCompanionLabels(companionShortcutCatalogApps({
-                pageAppId: pageApp, savedAppId: savedCatalogShortcut?.appId,
+                pageAppId: pageApp, savedAppId: savedCatalogShortcut?.appId, windowsHost,
             }));
             const defaultCatalogApp = catalogueApps.find(app => app.appId === pageApp)?.appId;
             const shortcutType = card._shortcutType || (savedCatalogShortcut || isNewShortcut ? "catalog" : "custom");
@@ -1379,19 +1392,28 @@ export function registerCompanionCardTypes(
             modifierButtons.setAttribute("aria-label", "Keyboard shortcut modifiers");
             const shortcutParts: string[] = currentEntity.slice(COMPANION_SHORTCUT_PREFIX.length).split("+");
             let selectedKey = shortcutParts.pop() || "";
-            const modifiers: [string, string][] = [
+            // Preserve the stored Command alias when a saved Windows shortcut is edited.
+            const windowsControl = shortcutParts.includes("command") ? "command" : "control";
+            const modifiers: [string, string][] = windowsHost ? [
+                [windowsControl, "Ctrl"], ["option", "Alt"], ["shift", "Shift"],
+            ] : [
                 ["command", "⌘ Command"], ["control", "⌃ Control"],
                 ["option", "⌥ Option"], ["shift", "⇧ Shift"],
             ];
             if (currentEntity === "shortcut.function+f") modifiers.push(["function", "Fn"]);
-            const selectedModifiers = new Set(shortcutParts.filter((part) => modifiers.some(([key]) => part === key)));
+            const selectedModifiers = new Set(shortcutParts.filter((part) =>
+                modifiers.some(([key]) => part === key) ||
+                (windowsHost && part === "control" && windowsControl === "command")));
             const modifierControls = new Map<string, HTMLButtonElement>();
             for (const [modifier, label] of modifiers) {
                 const button = document.createElement("button");
                 button.type = "button";
                 button.textContent = label;
                 button.addEventListener("click", function () {
-                    if (selectedModifiers.has(modifier)) selectedModifiers.delete(modifier);
+                    if (selectedModifiers.has(modifier)) {
+                        selectedModifiers.delete(modifier);
+                        if (windowsHost && modifier === "command") selectedModifiers.delete("control");
+                    }
                     else selectedModifiers.add(modifier);
                     saveBuiltShortcut();
                 });
@@ -1424,7 +1446,7 @@ export function registerCompanionCardTypes(
                 for (const key of keys) {
                     const option = document.createElement("option");
                     option.value = key;
-                    option.textContent = COMPANION_SHORTCUT_KEY_LABELS[key] || key.toUpperCase();
+                    option.textContent = (windowsHost && key === "enter" ? "Enter" : COMPANION_SHORTCUT_KEY_LABELS[key]) || key.toUpperCase();
                     group.appendChild(option);
                 }
                 keySelect.appendChild(group);
@@ -1445,7 +1467,7 @@ export function registerCompanionCardTypes(
                 keySelect.value = selectedKey;
             }
             function saveBuiltShortcut(): void {
-                const selected = modifiers.map(([modifier]) => modifier).filter((modifier) => selectedModifiers.has(modifier));
+                const selected = ["command", "control", "option", "shift", "function"].filter((modifier) => selectedModifiers.has(modifier));
                 card.entity = COMPANION_SHORTCUT_PREFIX + [...selected, selectedKey].join("+");
                 card.options = preserveCardColorOptions(card.options, "app_shortcut_preset=custom");
                 helpers.clearFieldError(keySelect);
@@ -1495,7 +1517,7 @@ export function registerCompanionCardTypes(
             if (catalogApp.value) catalogField.appendChild(catalogShortcutField);
             shortcutPanel.section.appendChild(catalogField);
 
-            if (initialMode === "shortcut" && shortcutType === "catalog" && catalogApp.value && panel) {
+            if (!windowsHost && initialMode === "shortcut" && shortcutType === "catalog" && catalogApp.value && panel) {
                 loadAppShortcuts(catalogApp.value, panel);
             }
             const options = initialMode === "shortcut" && shortcutType === "catalog" && catalogApp.value
@@ -1511,7 +1533,7 @@ export function registerCompanionCardTypes(
                 name.textContent = preset.label;
                 const keys = document.createElement("span");
                 keys.className = "sp-shortcut-catalog-keys";
-                keys.textContent = formatCompanionShortcutActionId(preset.entity);
+                keys.textContent = formatCompanionShortcutActionId(preset.entity, windowsHost);
                 const toggle = document.createElement("span");
                 toggle.className = "sp-toggle";
                 const input = document.createElement("input");
@@ -1582,7 +1604,8 @@ export function registerCompanionCardTypes(
             });
             panel?.appendChild(shortcutField);
             helpers.markCardPrimaryField(shortcutField, "shortcut");
-            helpers.requireField(keySelect, "Choose a key with Command, Control, or Option before saving.", function () {
+            helpers.requireField(keySelect, windowsHost ? "Choose a key with Ctrl or Alt before saving." :
+                "Choose a key with Command, Control, or Option before saving.", function () {
                 return initialMode === "shortcut" && shortcutType === "custom";
             }, function () {
                 return companionShortcutActionIdValid(card.entity) && !!selectedKey &&
@@ -2075,7 +2098,7 @@ export function registerCompanionCardTypes(
                         (source && obsControlLabels.has(entity.replace("obs.source.", "obs.source.visible."))),
                 };
             }
-            const shortcutLabel = formatCompanionShortcutActionId(card.entity);
+            const shortcutLabel = formatCompanionShortcutActionId(card.entity, windowsHost);
             const appLabel = mode === "app" || mode === "url"
                 ? companionApplicationLabel(card.entity) : "";
             let urlLabel = "";

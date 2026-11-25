@@ -2,6 +2,8 @@ namespace EspDesktop.Core;
 
 internal static class SafeActions
 {
+    public const string ScopedShortcutPrefix = "shortcut.scoped.";
+
     public static Uri? WebUrl(string value, bool decode = true)
     {
         if (decode) value = Uri.UnescapeDataString(value);
@@ -28,7 +30,8 @@ internal static class SafeActions
     public static ushort[]? Shortcut(string id)
     {
         if (!id.StartsWith("shortcut.", StringComparison.Ordinal)) return null;
-        var parts = id[9..].Split('+');
+        var prefixLength = id.StartsWith(ScopedShortcutPrefix, StringComparison.Ordinal) ? ScopedShortcutPrefix.Length : 9;
+        var parts = id[prefixLength..].Split('+');
         if (parts.Length > 5 || parts.Distinct().Count() != parts.Length) return null;
         var result = new List<ushort>();
         foreach (var part in parts[..^1])

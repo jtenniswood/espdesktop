@@ -68,6 +68,7 @@ internal sealed class SettingsWindow : Window
         this.discover = discover ?? Discovery.Find;
         this.store = store ?? new LocalStore();
         desktop = new(this.store.Settings);
+        desktop.ActionNotice += Report;
         findDisplays = Button("Refresh", async () => await Scan(interactive: true));
         if (!smoke)
         {
