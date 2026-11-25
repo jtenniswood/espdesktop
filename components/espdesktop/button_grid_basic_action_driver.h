@@ -54,6 +54,22 @@ inline bool basic_action_driver_attach_interaction(
   return basic_action_driver_matches(context, config);
 }
 
+inline void setup_apple_shortcut_detail(lv_obj_t *button, const lv_font_t *font) {
+  for (auto &ref : companion_card_refs()) {
+    if (ref.button != button || !ref.text_label) continue;
+    if (!ref.shortcut_detail) {
+      ref.shortcut_detail = companion_create_card_detail(button);
+      ref.shortcut_binding = companion_next_request_number();
+      lv_obj_set_user_data(ref.shortcut_detail, ref.text_label);
+      lv_obj_add_flag(ref.shortcut_detail, LV_OBJ_FLAG_HIDDEN);
+    }
+    if (font) lv_obj_set_style_text_font(ref.shortcut_detail, font, LV_PART_MAIN);
+    if (!lv_obj_has_flag(ref.shortcut_detail, LV_OBJ_FLAG_HIDDEN))
+      companion_layout_card_detail(ref.text_label, ref.shortcut_detail);
+    return;
+  }
+}
+
 inline bool basic_action_driver_refresh_layout(
     BtnSlot &slot, const ParsedCfg &config, const Context &context,
     const DisplayProfile &display, int row_span, int col_span) {
@@ -83,6 +99,8 @@ inline bool basic_action_driver_refresh_layout(
         ? slot.icon_lbl : nullptr);
   if (companion_obs_confirmation_supported(config.entity))
     obs_confirmation_fonts() = {display_switch_confirmation_message_font(display), display.fonts.icon};
+  if (companion_apple_shortcut_action(config.entity))
+    setup_apple_shortcut_detail(slot.btn, display_small_text_font(display));
   return true;
 }
 
@@ -144,9 +162,44 @@ struct BasicActionSubpageEnvironment {
   int *parent_on_count = nullptr;
 };
 
+inline void show_apple_shortcut_completion(lv_obj_t *button, uint32_t binding) {
+  for (const auto &ref : companion_card_refs()) {
+    // A rebuilt dashboard can reuse the same button for a different card.
+    if (ref.button != button || ref.shortcut_binding != binding || !ref.shortcut_detail) continue;
+    auto *detail = ref.shortcut_detail;
+    lv_label_set_display_text(detail, espdesktop_i18n_key("done"));
+    lv_obj_clear_flag(detail, LV_OBJ_FLAG_HIDDEN);
+    companion_layout_card_detail(ref.text_label, detail);
+    sync_bound_card_text_color(button);
+
+    // LVGL deletes animations owned by the detail label when a card is rebuilt.
+    lv_anim_delete(detail, nullptr);
+    lv_anim_t expiry;
+    lv_anim_init(&expiry);
+    lv_anim_set_var(&expiry, detail);
+    lv_anim_set_duration(&expiry, 5000);
+    lv_anim_set_completed_cb(&expiry, [](lv_anim_t *animation) {
+      auto *detail = static_cast<lv_obj_t *>(animation->var);
+      auto *title = static_cast<lv_obj_t *>(lv_obj_get_user_data(detail));
+      lv_obj_add_flag(detail, LV_OBJ_FLAG_HIDDEN);
+      lv_obj_align(title, LV_ALIGN_BOTTOM_LEFT, 0, 0);
+    });
+    lv_anim_start(&expiry);
+    return;
+  }
+}
+
 inline void run_apple_shortcut_card(lv_obj_t *button, const std::string &action_id,
                                     const std::string &request_id) {
+  for (const auto &ref : companion_card_refs()) {
+    if (ref.button != button || !ref.shortcut_detail) continue;
+    companion_expect_action_result(request_id, [button, binding = ref.shortcut_binding]() {
+      show_apple_shortcut_completion(button, binding);
+    }, 0, CompanionActionSuccess::PERFORMED);
+    break;
+  }
   if (!invoke_companion_action(action_id, request_id)) {
+    companion_cancel_action_result(request_id);
     ESP_LOGW("companion", "Action unavailable: %s", action_id.c_str());
     return;
   }
