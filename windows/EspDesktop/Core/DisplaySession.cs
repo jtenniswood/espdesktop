@@ -11,13 +11,15 @@ using static EspDesktop.Core.Protocol;
 namespace EspDesktop.Core;
 
 internal sealed record Pairing(string Address, string Fingerprint, byte[] Key, uint Sequence = 0, string? DisplayName = null);
-internal sealed record CatalogueItem(string Id, string Label);
+internal sealed record CatalogueItem(string Id, string Label, string? ObsState = null);
 
 internal interface IDesktop
 {
     int CatalogueRevision { get; }
     bool ShortcutsEnabled { get; }
     IReadOnlyList<CatalogueItem> Catalogue();
+    IEnumerable<CatalogueItem> ObsCatalogue(uint capability) => [];
+    bool SupportsObs => false;
     IEnumerable<string> Definitions();
     string[] Focused(IReadOnlyDictionary<string, Uri> urls);
     (bool Locked, bool? DisplayAwake) SessionState { get; }
@@ -234,8 +236,14 @@ internal sealed class DisplaySession(IDesktop desktop, Action<Pairing> save, Act
             revision = desktop.CatalogueRevision;
             var capabilities = new List<string> { "app_icons", "app_icons_alpha", "app_icons_240", "url_card_focus" };
             capabilities.Add(desktop.ShortcutsEnabled ? "keyboard_shortcuts" : "keyboard_shortcuts_unavailable");
+            if (capabilityVersion >= 13 && desktop.SupportsObs) capabilities.Add("obs_scene_cards");
             await Send("capabilities", ("values", capabilities));
-            var entries = desktop.Catalogue().Select(i => new { id = i.Id, label = Bound(i.Label, 96) }).ToArray();
+            var entries = desktop.Catalogue().Concat(desktop.ObsCatalogue(capabilityVersion)).Select(item =>
+            {
+                var fields = new Dictionary<string, object?> { ["id"] = item.Id, ["label"] = Bound(item.Label, 96) };
+                if (item.ObsState != null) fields["obsState"] = item.ObsState;
+                return fields;
+            }).ToArray();
             var pages = entries.Chunk(48).ToArray();
             if (pages.Length == 0) pages = [[]];
             var generation = Next(ref catalogueGeneration);
@@ -303,6 +311,13 @@ internal sealed class DisplaySession(IDesktop desktop, Action<Pairing> save, Act
             {
                 case "catalogue.request": await Catalogue(); break;
                 case "action.invoke":
+                    var action = Text(m, "actionId");
+                    if ((action.StartsWith("obs.", StringComparison.Ordinal) && capabilityVersion < 13) ||
+                        (action.StartsWith("obs.target.", StringComparison.Ordinal) && capabilityVersion < 19))
+                    {
+                        await Send("action.result", ("requestId", Text(m, "requestId")), ("status", "not_allowed"));
+                        break;
+                    }
                     await Send("action.result", ("requestId", Text(m, "requestId")),
                         ("status", desktop.SessionState.Locked ? "not_allowed" : await desktop.Invoke(m, token)));
                     break;

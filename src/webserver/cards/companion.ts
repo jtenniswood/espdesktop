@@ -584,6 +584,8 @@ export function registerCompanionCardTypes(
         };
         const name = audio ? "Source" : "OBS scene";
         const target = audio ? "audio input" : name;
+        const connectNote = audio ? "Connect OBS in the Mac Companion and try again."
+            : "Connect OBS in the EspDesktop companion app and try again.";
         const placeholder = "Select";
         const unavailable = audio ? "Saved OBS input (unavailable)" : "Saved scene (unavailable)";
         const isNew = card.entity === (audio ? "obs.mute." : COMPANION_OBS_PREFIX);
@@ -621,9 +623,9 @@ export function registerCompanionCardTypes(
             select.disabled = targets.length === 0;
             showSceneLabel();
             if (targets.length) note.remove();
-            else note.textContent = "Connect OBS in the Mac Companion and try again.";
+            else note.textContent = connectNote;
             cardUi.renderPreview();
-        }).catch(() => { note.textContent = "Connect OBS in the Mac Companion and try again."; });
+        }).catch(() => { note.textContent = connectNote; });
         helpers.renderCardIconPicker(panel, card, helpers, COMPANION_CARD_METADATA.icon);
     }
     function renderOBSConfirmation(panel: HTMLElement, card: { entity: string; options: string }, helpers: any): void {

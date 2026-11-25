@@ -5,6 +5,7 @@ using System.Net.NetworkInformation;
 using System.Net.WebSockets;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography;
+using System.Text;
 using System.Windows;
 using System.Windows.Automation;
 using System.Windows.Controls;
@@ -23,6 +24,12 @@ internal sealed class SettingsWindow : Window
     private readonly bool smoke;
     private readonly LocalStore store;
     private readonly WindowsDesktop desktop;
+    private readonly ObsConnection obs = new();
+    private readonly TextBox obsPort = new() { Text = "4455" };
+    private readonly PasswordBox obsPassword = new();
+    private readonly TextBlock obsStatus = Paragraph("");
+    private CancellationTokenSource? obsCancellation;
+    private Task? obsTask;
     private readonly Func<CancellationToken, Task<DiscoveredDisplay[]>> discover;
     private readonly CancellationTokenSource lifetime = new();
     private readonly DispatcherTimer discoveryTimer = new() { Interval = TimeSpan.FromSeconds(8) };
@@ -40,7 +47,7 @@ internal sealed class SettingsWindow : Window
     private bool manualAddress;
     private string? pairingAddress, pairingName;
     private readonly ListBox navigation = new() { BorderThickness = new Thickness(0), Background = Brushes.Transparent };
-    private readonly string[] pages = ["Display", "Apps", "Folders", "Updates", "Help"];
+    private readonly string[] pages = ["Display", "Apps", "Folders", "Updates", "OBS Studio", "Help"];
     private DiscoveredDisplay[] discovered = [];
     private HwndSource? hwndSource;
     private nint powerNotifications;
@@ -67,7 +74,11 @@ internal sealed class SettingsWindow : Window
         this.smoke = smoke;
         this.discover = discover ?? Discovery.Find;
         this.store = store ?? new LocalStore();
-        desktop = new(this.store.Settings);
+        desktop = new(this.store.Settings, obs);
+        obs.CatalogueChanged += desktop.Changed;
+        obs.StatusChanged += () => obsStatus.Text = obs.Status;
+        obsStatus.Text = obs.Status;
+        AutomationProperties.SetLiveSetting(obsStatus, AutomationLiveSetting.Polite);
         findDisplays = Button("Refresh", async () => await Scan(interactive: true));
         if (!smoke)
         {
@@ -100,7 +111,7 @@ internal sealed class SettingsWindow : Window
         Grid.SetRow(navigation, 1);
         navigation.Margin = new Thickness(12, 0, 0, 8);
         AutomationProperties.SetName(navigation, "Settings pages");
-        string[] glyphs = ["\uE7F4", "\uE71D", "\uE8B7", "\uE895", "\uE897"];
+        string[] glyphs = ["\uE7F4", "\uE71D", "\uE8B7", "\uE895", "\uE714", "\uE897"];
         for (var i = 0; i < pages.Length; i++)
         {
             var item = new StackPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(4, 6, 0, 6) };
@@ -154,6 +165,7 @@ internal sealed class SettingsWindow : Window
             return;
         }
         foreach (var display in displays) StartConnection(display);
+        RestoreObsConnection();
         updatesTimer.Start();
         _ = CheckUpdates(false);
         Render();
@@ -483,6 +495,7 @@ internal sealed class SettingsWindow : Window
         updatesTimer.Stop();
         await lifetime.CancelAsync();
         await Task.WhenAll(displays.Select(StopConnection));
+        await StopObs();
         if (store.Settings.CheckForUpdates && store.Settings.InstallUpdates && updatePath is { } installer)
         {
             try { Updates.Install(installer, quiet: true); }
@@ -509,6 +522,7 @@ internal sealed class SettingsWindow : Window
             case 1: AppsPage(); break;
             case 2: FoldersPage(); break;
             case 3: UpdatesPage(); break;
+            case 4: ObsPage(); break;
             default: HelpPage(); break;
         }
         UpdateDiscovery();
@@ -669,6 +683,99 @@ internal sealed class SettingsWindow : Window
         discoveryStatus.Visibility = Visibility.Visible;
         Status("");
         Report("");
+    }
+
+    private void ObsPage()
+    {
+        var card = Card("OBS WebSocket", "In OBS Studio on this PC, open Tools → WebSocket Server Settings. Enable the server, then enter its port and password here.");
+        if (obsStatus.Parent is Panel parent) parent.Children.Remove(obsStatus);
+        card.Children.Add(obsStatus);
+        obsPort.IsEnabled = obsPassword.IsEnabled = obsTask == null;
+        AutomationProperties.SetName(obsPort, "OBS WebSocket port");
+        AutomationProperties.SetName(obsPassword, "OBS WebSocket password");
+        Field(card, "Server port", obsPort);
+        Field(card, "Server password", obsPassword);
+        Row(card, obsTask == null ? Button("Connect to OBS", ConnectObs) : Button("Disconnect", async () =>
+        {
+            if (!SaveObsSettings(null, null)) return;
+            await StopObs();
+            if (!quitting && navigation.SelectedIndex == 4) Render();
+        }));
+        card.Children.Add(Paragraph("Once connected, choose a scene in the display editor. In Studio Mode the card selects Preview."));
+    }
+
+    private void ConnectObs()
+    {
+        if (obsTask != null || quitting) return;
+        if (!int.TryParse(obsPort.Text.Trim(), out var port) || port is < 1 or > 65535)
+        {
+            Report("Enter a WebSocket port from 1 to 65535.");
+            return;
+        }
+        var password = obsPassword.Password;
+        var bytes = Encoding.UTF8.GetBytes(password);
+        try
+        {
+            var protectedPassword = password.Length == 0 ? null : Convert.ToBase64String(UserProtection.Transform(bytes, false));
+            if (!SaveObsSettings(port, protectedPassword)) return;
+        }
+        catch (CryptographicException) { Report("Windows couldn’t protect the OBS password."); return; }
+        finally { CryptographicOperations.ZeroMemory(bytes); }
+        Report("");
+        StartObs(port, password);
+        Render();
+    }
+
+    private bool SaveObsSettings(int? port, string? protectedPassword)
+    {
+        var settings = store.Settings;
+        var before = (settings.ObsPort, settings.ObsProtectedPassword);
+        (settings.ObsPort, settings.ObsProtectedPassword) = (port, protectedPassword);
+        try { store.Save(); return true; }
+        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
+        {
+            (settings.ObsPort, settings.ObsProtectedPassword) = before;
+            Report("Windows couldn’t save the OBS connection settings.");
+            return false;
+        }
+    }
+
+    private void RestoreObsConnection()
+    {
+        if (store.Settings.ObsPort is not (>= 1 and <= 65535) || store.Settings.ObsPort is not { } port) return;
+        obsPort.Text = port.ToString(System.Globalization.CultureInfo.InvariantCulture);
+        try
+        {
+            if (store.Settings.ObsProtectedPassword is { } protectedPassword)
+            {
+                var bytes = UserProtection.Transform(Convert.FromBase64String(protectedPassword), true);
+                try { obsPassword.Password = Encoding.UTF8.GetString(bytes); }
+                finally { CryptographicOperations.ZeroMemory(bytes); }
+            }
+            StartObs(port, obsPassword.Password);
+        }
+        catch (Exception exception) when (exception is CryptographicException or FormatException)
+        {
+            obsStatus.Text = "Windows couldn’t open the saved OBS password. Enter it again to reconnect.";
+        }
+        if (navigation.SelectedIndex == 4) Render();
+    }
+
+    private void StartObs(int port, string password)
+    {
+        obsCancellation = CancellationTokenSource.CreateLinkedTokenSource(lifetime.Token);
+        obsTask = obs.Run(port, password, obsCancellation.Token);
+    }
+
+    private async Task StopObs()
+    {
+        if (obsCancellation is not { } cancellation || obsTask is not { } task) return;
+        await cancellation.CancelAsync();
+        await task;
+        if (obsCancellation != cancellation) return;
+        obsCancellation = null;
+        obsTask = null;
+        cancellation.Dispose();
     }
 
     private void AppsPage()

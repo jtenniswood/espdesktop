@@ -30,4 +30,10 @@ Choose **Add display** to pair another panel with the same PC. Each panel has it
 - For an app with a shortcut subpage, choose when it opens under **Screen → Appearance → App Subpages**. [App subpage options](/features/subpages#app-page-behavior)
 - Add a **Website** card to open a page in your default browser. New windows and active-site highlighting depend on the browser.
 
+## Switch OBS scenes
+
+In OBS Studio on the same Windows PC, open **Tools → WebSocket Server Settings** and enable the server. In EspDesktop, open **OBS Studio**, enter the port and password shown in OBS, and select **Connect to OBS**. Once connected, open or reload the display editor and add an **OBS Scene** card. Choose the scene you want the card to select.
+
+Scene cards switch Program in normal mode and select Preview in OBS Studio Mode. Use current EspDesktop firmware for the OBS scene picker. EspDesktop saves the connection for the next launch and protects the password with your Windows account.
+
 The preview setup and compatibility details are in the [Windows branch guide](https://github.com/jtenniswood/espdesktop/blob/windows-companion/windows/README.md).

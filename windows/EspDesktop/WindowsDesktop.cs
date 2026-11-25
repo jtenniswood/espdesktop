@@ -16,7 +16,7 @@ using static EspDesktop.Core.Protocol;
 namespace EspDesktop;
 
 internal sealed record StartApp(string Id, string Name, string Target, string? Executable);
-internal sealed class WindowsDesktop(LocalSettings settings) : IDesktop
+internal sealed class WindowsDesktop(LocalSettings settings, ObsConnection? obs = null) : IDesktop
 {
     // Older panels reserve this identifier for the file manager's live folders.
     public const string ExplorerId = "com.apple.finder";
@@ -37,6 +37,8 @@ internal sealed class WindowsDesktop(LocalSettings settings) : IDesktop
     public IReadOnlyList<StartApp> Apps => apps;
     public int CatalogueRevision { get; private set; }
     public bool ShortcutsEnabled => settings.Shortcuts;
+    public bool SupportsObs => obs != null;
+    public IEnumerable<CatalogueItem> ObsCatalogue(uint capability) => obs?.Catalogue(capability) ?? [];
     public (bool Locked, bool? DisplayAwake) SessionState => (reportedLocked || !InputSession.IsDefaultInputDesktop(), displayAwake);
 
     public void SessionChanged(bool locked) => reportedLocked = locked;
@@ -95,6 +97,8 @@ internal sealed class WindowsDesktop(LocalSettings settings) : IDesktop
         }
 
         var id = Text(message, "actionId");
+        if (id.StartsWith("obs.", StringComparison.Ordinal))
+            return obs != null && await obs.Select(id, () => SessionState.Locked, token) ? "performed" : "not_allowed";
         if (id == "shortcut.command+control+q")
             return ShortcutsEnabled && LockWorkStation() ? "performed" : "not_allowed";
         if (id.StartsWith("shortcut.", StringComparison.Ordinal))

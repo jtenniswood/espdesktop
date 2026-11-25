@@ -33,6 +33,8 @@ internal sealed class LocalSettings
     public bool Shortcuts { get; set; }
     public bool CheckForUpdates { get; set; } = true;
     public bool InstallUpdates { get; set; }
+    public int? ObsPort { get; set; }
+    public string? ObsProtectedPassword { get; set; }
     public HashSet<string> AllowedApps { get; set; } = [];
     public List<ApprovedFolder> Folders { get; set; } = [];
 }
