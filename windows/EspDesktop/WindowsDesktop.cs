@@ -37,6 +37,7 @@ internal sealed class WindowsDesktop(LocalSettings settings) : IDesktop
     public IReadOnlyList<StartApp> Apps => apps;
     public int CatalogueRevision { get; private set; }
     public bool ShortcutsEnabled => settings.Shortcuts;
+    public event Action<string>? ShortcutFailed;
     public (bool Locked, bool? DisplayAwake) SessionState => (reportedLocked || !InputSession.IsDefaultInputDesktop(), displayAwake);
 
     public void SessionChanged(bool locked) => reportedLocked = locked;
@@ -100,12 +101,25 @@ internal sealed class WindowsDesktop(LocalSettings settings) : IDesktop
         if (id.StartsWith("shortcut.", StringComparison.Ordinal))
         {
             if (!ShortcutsEnabled || SafeActions.Shortcut(id) is not { } keys) return "not_allowed";
+            var scoped = id.StartsWith(SafeActions.ScopedShortcutPrefix, StringComparison.Ordinal);
+            var target = Text(message, "appId");
+            if (scoped && (target.Length == 0 || !apps.Any(app => app.Id == target && Allowed(app))))
+                return "not_allowed";
             var window = InputSession.GetForegroundWindow();
             var app = Identify(window);
-            // The sender cannot select a process, change focus, or send keystrokes
-            // to Explorer desktop surfaces, elevated apps, or this app's settings.
+            // The request never chooses a window or changes focus. The preset's
+            // app ID must match the window Windows has already put in front.
+            if (scoped && app?.Id != target)
+            {
+                ShortcutFailed?.Invoke("Bring the preset’s app to the front and try again.");
+                return "not_found";
+            }
             if (app is null || !Allowed(app) || (app.Id == ExplorerId && !IsExplorerWindow(window))) return "not_allowed";
-            return InputSession.Replay(window, keys) ? "performed" : "not_allowed";
+            token.ThrowIfCancellationRequested();
+            if (SessionState.Locked) return "not_allowed";
+            if (InputSession.Replay(window, keys)) return "performed";
+            ShortcutFailed?.Invoke("Windows couldn’t send the shortcut. Release any held keys and check which app is active.");
+            return "failed";
         }
 
         if (id.StartsWith("folder.", StringComparison.Ordinal))

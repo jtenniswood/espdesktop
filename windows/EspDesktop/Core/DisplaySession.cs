@@ -232,7 +232,7 @@ internal sealed class DisplaySession(IDesktop desktop, Action<Pairing> save, Act
         private async Task Catalogue()
         {
             revision = desktop.CatalogueRevision;
-            var capabilities = new List<string> { "app_icons", "app_icons_alpha", "app_icons_240", "url_card_focus" };
+            var capabilities = new List<string> { "app_icons", "app_icons_alpha", "app_icons_240", "url_card_focus", "windows_shortcuts" };
             capabilities.Add(desktop.ShortcutsEnabled ? "keyboard_shortcuts" : "keyboard_shortcuts_unavailable");
             await Send("capabilities", ("values", capabilities));
             var entries = desktop.Catalogue().Select(i => new { id = i.Id, label = Bound(i.Label, 96) }).ToArray();

@@ -14,6 +14,7 @@ export async function runCompanionCatalogueTests(): Promise<void> {
   const calls: Array<{ url: string; init: RequestInit | undefined }> = [];
   let definitionId = "example";
   let emptyDefinitions = false;
+  let windows = false;
   let closeUnknownEndpoint = true;
   const requestedPages: number[] = [];
   const fetchImpl = (async (input: RequestInfo | URL, init?: RequestInit) => {
@@ -26,7 +27,9 @@ export async function runCompanionCatalogueTests(): Promise<void> {
     if (url.startsWith("/companion/definitions?page=")) {
       const page = Number(url.slice(url.lastIndexOf("=") + 1));
       requestedPages.push(page);
-      if (emptyDefinitions) return new Response(JSON.stringify({ page, hasMore: false, definitions: [] }), { status: 200 });
+      if (emptyDefinitions) return new Response(JSON.stringify({
+        page, hasMore: false, definitions: [], ...(windows ? { shortcutPlatform: "windows" } : {}),
+      }), { status: 200 });
       if (page === 0) return new Response(JSON.stringify({ page, hasMore: true, definitions: [
         { kind: "application", definition: { appId: "org.example." + definitionId,
           shortcuts: [{ id: "0", label: "Save", shortcut: "command+s", icon: "Save" }] } },
@@ -58,6 +61,11 @@ export async function runCompanionCatalogueTests(): Promise<void> {
   try { await catalogue.loadDefinitions(true); } catch { rejectedEmpty = true; }
   if (!rejectedEmpty || (await catalogue.loadDefinitions()).applications[0]?.appId !== "org.example.updated") {
     throw new Error("An empty offline response must preserve the last valid Companion definitions");
+  }
+  windows = true;
+  const windowsDefinitions = await catalogue.loadDefinitions(true);
+  if (windowsDefinitions.shortcutPlatform !== "windows" || windowsDefinitions.applications.length !== 0) {
+    throw new Error("The editor should recognize Windows even if there are no approved preset apps");
   }
   await catalogue.saveFocusRegistrations({ urls: ["https://example.com/docs?q=1#intro", "invalid"] });
   const request = calls.find((call) => call.url === "/companion/focus-targets");

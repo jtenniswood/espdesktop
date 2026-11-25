@@ -18,6 +18,13 @@ int main() {
   first.companion_runtime().set_actions({{"com.example.First", "First"}});
   first.companion_runtime().set_connected(true);
   assert(first.companion_runtime().consume_refresh_request());
+  first.companion_runtime().set_windows_shortcuts(true);
+  assert(first.companion_runtime().windows_shortcuts());
+  assert(!second.companion_runtime().windows_shortcuts());
+  first.companion_runtime().set_connected(false);
+  first.companion_runtime().set_connected(true);
+  assert(!first.companion_runtime().windows_shortcuts());
+  assert(first.companion_runtime().consume_refresh_request());
   first.companion_runtime().set_actions({{"com.example.First", "First"}});
   assert(!first.companion_runtime().consume_refresh_request());
   const CompanionAction ready{"obs.take.token", "Take Live", OBSCardState::take_ready, "Studio", true};
