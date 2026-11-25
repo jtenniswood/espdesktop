@@ -1169,8 +1169,8 @@ export function registerCompanionCardTypes(
                             else select.add(new Option(network.label, network.id));
                         }
                         status.textContent = networks.length ? "Shows the selected device’s IPv4 address." :
-                            "Connect the companion app and enable Stats sharing to load network devices.";
-                    }).catch(() => { status.textContent = "Network devices unavailable. Connect the companion app and enable Stats sharing."; });
+                            "No network devices reported by the paired computer.";
+                    }).catch(() => { status.textContent = "Network devices unavailable. Check the Companion connection."; });
                     return;
                 }
                 const description = helpers.toggleRow("Show capacity label", helpers.idPrefix + "stat-labels", companionMetricDescriptionEnabled(card));

@@ -5735,9 +5735,14 @@ async function assertCompanionOnlyCardPicker(browser, testCase) {
       connected: false,
     },
   };
+  const nativeState = nativeConfigState(testCase.slug);
+  nativeState.document.buttons = { 1: ";Stats folder;Folder;Auto;;;subpage", 2: COPY_SHORTCUT };
+  nativeState.document.subpages = {};
+  nativeState.document.settings.button_order = "1,2";
   await installRoutes(context, testCase.slug, {
     connectorsStatus: connectorStatus,
     homeAssistantSupport: true,
+    nativeState,
   });
   const page = await context.newPage();
   await installFakeEventSource(page);
@@ -5749,7 +5754,7 @@ async function assertCompanionOnlyCardPicker(browser, testCase) {
     await page.waitForFunction(
       () => window.__eventSources && window.__eventSources.length > 0,
     );
-    await page.evaluate((events) => window.__seedEspState(events), seededEvents());
+    await seedNativeDocument(page, nativeState);
     const emptyCell = page.locator(".sp-empty-cell:not(.sp-info-only-hidden)").first();
     await emptyCell.click();
     await page.waitForSelector("#sp-card-type-picker");
@@ -5801,7 +5806,25 @@ async function assertCompanionOnlyCardPicker(browser, testCase) {
     await page.getByRole("button", { name: "Open File Explorer card type", exact: true }).waitFor();
     await page.getByRole("button", { name: "Back to card types", exact: true }).click();
     await page.locator('[data-card-type="obs_group"]').waitFor();
+    const stats = page.locator('[data-card-type="companion_stats"]');
+    await stats.click();
+    await page.getByLabel("Statistic", { exact: true }).selectOption("memory_usage");
+    const homeSlot = 3;
+    await page.getByRole("button", { name: "Save", exact: true }).click();
+    await waitForNativeState(nativeState, () => parseRawButtonConfig(nativeState.document.buttons[homeSlot] || "").entity === "stat.memory",
+      `${testCase.name}: a Windows Stats card saves on Home`);
+
+    await page.locator('.sp-main [data-slot="1"] .sp-subpage-badge').dispatchEvent("click");
+    await page.waitForSelector(".sp-back-btn");
+    await emptyCell.click();
+    await stats.click();
+    await page.getByLabel("Statistic", { exact: true }).selectOption("processor");
+    await page.getByRole("button", { name: "Save", exact: true }).click();
+    await waitForNativeState(nativeState, () => nativeState.document.subpages[1]?.includes("stat.cpu"),
+      `${testCase.name}: a Windows Stats card saves in a subpage`);
+
     connectorStatus.mac_companion.connected = false;
+    await emptyCell.click();
     await appleShortcuts.waitFor();
   } finally {
     await context.close();

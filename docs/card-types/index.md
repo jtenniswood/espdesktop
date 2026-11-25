@@ -12,14 +12,7 @@ Cards show information and controls on the display. Mac controls use the paired 
 | Goal | Card |
 |---|---|
 | Launch apps, run keyboard shortcuts, or open websites and folders | [Companion](/#what-you-can-control) |
-| Show a system statistic from your Mac or Windows PC | [Stats](#stats) |
 | Open another page of cards | [Subpage](/features/subpages) |
-
-## Stats
-
-On firmware that includes **Stats**, open the display editor and select an empty card on Home or in a subpage. Choose **Companion → Stats**, select a **Statistic**, and save. The display shows readings from the paired Mac or Windows PC while it is connected.
-
-Available readings include processor usage, memory, storage, network throughput, IP address, and battery level when the computer reports one. For storage or IP address, you can choose a drive or network interface.
 
 ## Removed Mac audio cards
 

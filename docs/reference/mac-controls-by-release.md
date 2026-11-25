@@ -22,4 +22,4 @@ The v1.2.6 card picker omits Mac statistics and dedicated Mac volume controls. A
 
 [App Volume](/mac-controls/apps#app-volume) provides a slider for an individual enabled app on macOS 14.2 or later. [Sound cards](/mac-controls/apps#mac-audio) control the default audio devices or the level of a specific microphone. Check the [release notes](https://github.com/jtenniswood/espdesktop/releases) for versions that include these controls.
 
-For setup on newer firmware, see [Stats](/card-types/#stats).
+For setup on newer firmware, see [Stats](/features/adding-a-card#show-system-stats).
