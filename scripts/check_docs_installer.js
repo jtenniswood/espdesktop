@@ -73,6 +73,9 @@ async function checkBrowser() {
     const errors = [];
     const externalScripts = [];
     const manifests = [];
+    const s3Manifest = '/firmware/guition-esp32-s3-4848s040/manifest.json';
+    const v3Manifest = '/firmware/guition-esp32-p4-jc1060p470-v3/manifest.json';
+    let v3ManifestPublished = false;
     page.on('pageerror', error => errors.push(error.message));
     await page.route('**/*', route => {
       const request = route.request();
@@ -82,6 +85,9 @@ async function checkBrowser() {
       }
       if (request.url().includes('/firmware/')) {
         manifests.push(request.url());
+        if (new URL(request.url()).pathname === v3Manifest && !v3ManifestPublished) {
+          return route.fulfill({ status: 404, body: '' });
+        }
         return route.fulfill({ json: { name: 'EspDesktop', version: 'test', builds: [] } });
       }
       // Website demos must work even when the release editor is unavailable.
@@ -94,9 +100,7 @@ async function checkBrowser() {
         throw new DOMException('Port selection canceled', 'NotFoundError');
       } } });
     });
-    // Public EspDesktop setup targets the supported S3, without a P4 picker.
-    const expected = '/firmware/guition-esp32-s3-4848s040/manifest.json';
-    async function assertSupportedInstaller() {
+    async function assertSupportedInstaller(expected) {
       await page.waitForFunction(() => !!customElements.get('esp-web-install-button'));
       const install = page.locator('esp-web-install-button');
       await install.waitFor();
@@ -108,6 +112,28 @@ async function checkBrowser() {
       await canceled.getByText('No port selected', { exact: true }).waitFor({ state: 'visible' });
       await canceled.getByText('Cancel', { exact: true }).click();
       await canceled.waitFor({ state: 'detached' });
+    }
+    async function assertSetupLayout() {
+      const steps = page.locator('.display-setup-step');
+      assert.equal(await steps.count(), 4);
+      assert.equal(await steps.locator('img').count(), 4);
+      for (const width of [320, 768, 1440]) {
+        await page.setViewportSize({ width, height: 900 });
+        assert(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth),
+          `Display setup must fit a ${width}px viewport`);
+      }
+      for (const step of await steps.all()) {
+        const copy = await step.locator('.display-setup-copy').boundingBox();
+        const photo = await step.locator('img').boundingBox();
+        assert(copy.x + copy.width <= photo.x, 'Desktop setup images must appear to the right of the instructions');
+      }
+      await page.setViewportSize({ width: 390, height: 844 });
+      for (const step of await steps.all()) {
+        const copy = await step.locator('.display-setup-copy').boundingBox();
+        const photo = await step.locator('img').boundingBox();
+        assert(copy.y + copy.height <= photo.y, 'Phone setup images must appear below the instructions');
+      }
+      await page.setViewportSize({ width: 1440, height: 900 });
     }
     const launcherApps = ['Finder', 'Safari', 'Calendar', 'Mail', 'Slack', 'Notes', 'Athena', 'ChatGPT', 'Claude'];
     async function checkLauncher(scope, touchscreen = false) {
@@ -133,6 +159,7 @@ async function checkBrowser() {
     }
     let touchscreenIcons;
     const home = `${base}/`;
+    const chooser = '/getting-started/choose-a-display';
     const setup = page.locator('.homepage-hero').getByRole('link', { name: 'Get started', exact: true });
     for (const [width, height, colorScheme] of [
       [320, 640, 'light'],
@@ -160,7 +187,7 @@ async function checkBrowser() {
       const actions = demoSection.locator('.homepage-editor-actions');
       assert.deepEqual(await actions.getByRole('link').allTextContents(), ['Getting Started', 'Preview Editor']);
       const getStarted = actions.getByRole('link', { name: 'Getting Started', exact: true });
-      assert.equal(await getStarted.getAttribute('href'), '/screens/4848s040');
+      assert.equal(await getStarted.getAttribute('href'), chooser);
       const buttonBackground = link => link.evaluate(element => getComputedStyle(element).backgroundColor);
       assert.equal(await buttonBackground(getStarted), await buttonBackground(setup));
       if (width >= 768) {
@@ -329,30 +356,55 @@ async function checkBrowser() {
         `Docs must be visible in the navigation at ${width}px`);
       await docs.click();
       await page.waitForURL(docsUrl);
-      await page.getByRole('heading', { name: 'Getting started with EspDesktop', level: 1 })
+      await page.getByRole('heading', { name: '4-inch Guition 4848S040', level: 1 })
         .and(page.locator(`#${docsHeadingId}`)).waitFor();
     }
     await page.goto(home);
     await setup.press('Enter');
+    await page.waitForURL(`${base}${chooser}`);
+    const fourInch = page.getByRole('link', { name: 'Choose 4-inch', exact: true });
+    const sevenInch = page.getByRole('link', { name: 'Choose 7-inch', exact: true });
+    assert.equal(await fourInch.getAttribute('href'), '/screens/4848s040');
+    assert.equal(await sevenInch.getAttribute('href'), '/screens/jc1060p470-v3');
+    await page.setViewportSize({ width: 320, height: 640 });
+    assert(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth),
+      'Display choices must fit a phone viewport');
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await fourInch.click();
     await page.waitForURL(`${home}screens/4848s040`);
     console.log('Homepage checks passed at desktop, tablet and phone widths.');
-    await assertSupportedInstaller();
+    await assertSupportedInstaller(s3Manifest);
     const setupDownload = page.locator('.display-setup-step .mac-app-download a.docs-primary-action');
     const setupDownloadHref = await setupDownload.getAttribute('href');
     const wizard = page.locator('.display-setup-step a.docs-primary-action').getByText('View setup wizard', { exact: true });
     assert.equal(await wizard.getAttribute('href'), '/features/first-run');
     const setupPage = `${base}/screens/4848s040`;
+    const v3Page = `${base}/screens/jc1060p470-v3`;
     const gettingStarted = page.locator('.VPNavBarMenu .VPFlyout').filter({
       has: page.getByRole('button', { name: 'Getting started', exact: true }),
     });
     const gettingStartedButton = gettingStarted.getByRole('button', { name: 'Getting started', exact: true });
     await gettingStartedButton.hover();
-    await gettingStarted.getByRole('link', { name: 'Install', exact: true }).click();
+    await gettingStarted.getByRole('link', { name: 'Install 4-inch', exact: true }).click();
     await page.waitForURL(`${setupPage}#install`);
     await gettingStartedButton.hover();
+    const requestedBeforeV3 = manifests.length;
+    await gettingStarted.getByRole('link', { name: 'Install 7-inch', exact: true }).click();
+    await page.waitForURL(`${v3Page}#install`);
+    await page.getByText('Browser-installable firmware for this display has not been published yet.', { exact: false }).waitFor();
+    assert.equal(await page.locator('esp-web-install-button').count(), 0);
+    assert.deepEqual(manifests.slice(requestedBeforeV3), [`${base}${v3Manifest}`]);
+    await assertSetupLayout();
+    await page.getByRole('link', { name: 'Install manually with ESPHome' }).click();
+    await page.waitForURL(`${v3Page}#esphome-manual-setup`);
+    v3ManifestPublished = true;
+    await page.reload();
+    await assertSupportedInstaller(v3Manifest);
+    await gettingStartedButton.hover();
+    await gettingStarted.getByRole('link', { name: 'Buy', exact: true }).click();
+    await page.waitForURL(`${base}${chooser}`);
+    await gettingStartedButton.hover();
     await gettingStarted.getByRole('link', { name: 'Download', exact: true }).click();
-    await page.waitForURL(`${setupPage}#download`);
-    await page.getByRole('link', { name: /^(See all|View) Mac downloads$/ }).click();
     await page.waitForURL(`${base}/download`);
     await page.getByRole('heading', { name: 'Download EspDesktop for Mac', level: 1 }).waitFor();
     const download = page.locator('.mac-app-download a');
@@ -373,24 +425,7 @@ async function checkBrowser() {
     await buySection.getByRole('link', { name: 'AliExpress (Global)', exact: true }).waitFor();
     assert.equal(await buySection.getByRole('link', { name: 'Check Mac requirements' }).count(), 0);
     assert.equal(await page.locator('h2[id="_3-configure-your-cards"]').count(), 0);
-    for (const width of [320, 768, 1440]) {
-      await page.setViewportSize({ width, height: 900 });
-      assert(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth),
-        `Display setup must fit a ${width}px viewport`);
-    }
-    const steps = page.locator('.display-setup-step');
-    assert.equal(await steps.count(), 4);
-    for (const step of await steps.all()) {
-      const copy = await step.locator('.display-setup-copy').boundingBox();
-      const photo = await step.locator('img').boundingBox();
-      assert(copy.x + copy.width <= photo.x, 'Desktop setup images must appear to the right of the instructions');
-    }
-    await page.setViewportSize({ width: 390, height: 844 });
-    for (const step of await steps.all()) {
-      const copy = await step.locator('.display-setup-copy').boundingBox();
-      const photo = await step.locator('img').boundingBox();
-      assert(copy.y + copy.height <= photo.y, 'Phone setup images must appear below the instructions');
-    }
+    await assertSetupLayout();
     const canonicalSetup = 'https://espdesktop.com/screens/4848s040';
     // Intercept canonical redirect targets without contacting production.
     await page.route(canonicalSetup, route => route.fulfill({

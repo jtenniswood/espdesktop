@@ -151,6 +151,12 @@ const devices = [
     shape: 'landscape',
     versions: [
       {
+        slug: 'guition-esp32-p4-jc1060p470-v3',
+        number: 3,
+        label: 'V3: Production silicon',
+        revision: 'ESP32-P4 v3.1–v3.99; confirm the chip revision first'
+      },
+      {
         slug: 'guition-esp32-p4-jc1060p470',
         number: 1,
         label: 'V1: Original panel',
@@ -160,7 +166,7 @@ const devices = [
         slug: 'guition-esp32-p4-jc1060p470-v2',
         number: 2,
         label: 'V2: New panel',
-        revision: 'Case marked V2; board date 2622 or newer'
+        revision: 'Case marked V2 or board date 2622 or newer, for earlier chips'
       }
     ]
   },

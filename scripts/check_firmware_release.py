@@ -572,6 +572,7 @@ def test_recovery_sources_and_documentation_stay_complete() -> None:
     screen_docs = {
         "guition-esp32-p4-jc1060p470": ROOT / "docs/screens/jc1060p470-v1.md",
         "guition-esp32-p4-jc1060p470-v2": ROOT / "docs/screens/jc1060p470-v2.md",
+        "guition-esp32-p4-jc1060p470-v3": ROOT / "docs/screens/jc1060p470-v3.md",
         "guition-esp32-p4-jc4880p443": ROOT / "docs/screens/jc4880p443.md",
         "guition-esp32-p4-jc4880p443-v3": ROOT / "docs/screens/jc4880p443-v3.md",
         "guition-esp32-p4-jc8012p4a1": ROOT / "docs/screens/jc8012p4a1-v1.md",
@@ -579,9 +580,13 @@ def test_recovery_sources_and_documentation_stay_complete() -> None:
         "guition-esp32-p4-jc8012p4a1-v3": ROOT / "docs/screens/jc8012p4a1-v3.md",
         "esp32-p4-86": ROOT / "docs/screens/p4-86.md",
     }
+    recovery_guide = (
+        "https://jtenniswood.github.io/espcontrol/getting-started/"
+        "troubleshooting#a-p4-panel-has-unreliable-wifi"
+    )
     for slug, path in screen_docs.items():
         text = path.read_text(encoding="utf-8")
-        assert "C6RecoveryCallout" in text and slug in text, (
+        assert slug in text and ("C6RecoveryCallout" in text or recovery_guide in text), (
             f"{path}: C6 recovery link is missing"
         )
         assert slug in selector, f"{slug}: recovery selector option is missing"

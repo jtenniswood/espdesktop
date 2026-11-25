@@ -26,6 +26,8 @@ const defaultImage = shareImage('espdesktop-home-share.jpg', 1200, 630,
 const pageImages: Record<string, typeof defaultImage> = {
   'screens/4848s040.md': shareImage('espdesktop-desk.jpg', 1320, 1093,
     'EspDesktop touchscreen with buttons for Mac apps next to a keyboard'),
+  'screens/jc1060p470-v3.md': shareImage('jc1060p470-hero.jpg', 1024, 798,
+    '7-inch Guition JC1060P470 landscape touchscreen'),
   'screens/4848s040-stand.md': shareImage('4848s040-stand-printed.jpg', 1000, 1000,
     'The 3D-printed Guition 4848S040 stand with its mounting clips visible'),
   'settings/screen.md': shareImage('web-editor-screen-settings.png', 1694, 2160,
@@ -57,7 +59,9 @@ const guideParents = {
   'mac-controls/obs-studio/scene-control-and-mixing.md': obsStudioParent,
   'mac-controls/obs-studio/audio-controls.md': obsStudioParent,
   'screens/4848s040-stand.md': { name: '4848S040 setup guide', path: 'screens/4848s040.md' },
-  'features/first-run.md': { name: '4848S040 setup guide', path: 'screens/4848s040.md' },
+  'screens/4848s040.md': { name: 'Choose your display', path: 'getting-started/choose-a-display.md' },
+  'screens/jc1060p470-v3.md': { name: 'Choose your display', path: 'getting-started/choose-a-display.md' },
+  'features/first-run.md': { name: 'Choose your display', path: 'getting-started/choose-a-display.md' },
   'features/adding-a-card.md': { name: 'Screen grid', path: 'features/home.md' },
   'features/subpages.md': { name: 'Customise the layout', path: 'features/home.md' },
   'mac-controls/apps.md': { name: 'Customise the layout', path: 'features/home.md' },
@@ -341,9 +345,10 @@ export default defineConfig({
       {
         text: 'Getting started',
         items: [
-          { text: 'Buy', link: '/screens/4848s040#where-to-buy' },
-          { text: 'Install', link: '/screens/4848s040#install' },
-          { text: 'Download', link: '/screens/4848s040#download' },
+          { text: 'Buy', link: '/getting-started/choose-a-display' },
+          { text: 'Install 4-inch', link: '/screens/4848s040#install' },
+          { text: 'Install 7-inch', link: '/screens/jc1060p470-v3#install' },
+          { text: 'Download', link: '/download' },
         ],
       },
       {
@@ -357,8 +362,17 @@ export default defineConfig({
       {
         text: 'Get started',
         items: [
-          { text: 'Setup guide', link: '/screens/4848s040#where-to-buy' },
-          { text: 'Printable stand', link: '/screens/4848s040-stand' },
+          { text: 'Choose your display', link: '/getting-started/choose-a-display' },
+          {
+            text: '4-inch setup',
+            link: '/screens/4848s040',
+            items: [{ text: 'Printable stand', link: '/screens/4848s040-stand' }],
+          },
+          {
+            text: '7-inch V3 setup',
+            link: '/screens/jc1060p470-v3',
+            items: [{ text: 'Printable stand', link: '/screens/jc1060p470-v3#printable-stand' }],
+          },
         ],
       },
       {
