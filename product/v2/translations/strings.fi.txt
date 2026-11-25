@@ -375,3 +375,6 @@ turn_on_studio_mode=Otetaanko studiotila käyttöön?
 turn_off_studio_mode=Poistetaanko studiotila käytöstä?
 start_replay_buffer_prompt=Käynnistetäänkö toistopuskuri?
 stop_replay_buffer_prompt=Pysäytetäänkö toistopuskuri?
+
+end_call=Lopeta puhelu
+end_call_prompt=Lopetetaanko Teams-puhelu?

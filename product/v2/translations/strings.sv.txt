@@ -375,3 +375,6 @@ turn_on_studio_mode=Slå på studioläget?
 turn_off_studio_mode=Slå av studioläget?
 start_replay_buffer_prompt=Starta reprisbuffer?
 stop_replay_buffer_prompt=Stoppa reprisbuffer?
+
+end_call=Avsluta samtal
+end_call_prompt=Avsluta Teams-samtalet?

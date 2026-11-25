@@ -376,3 +376,6 @@ turn_on_studio_mode=Turn on Studio Mode?
 turn_off_studio_mode=Turn off Studio Mode?
 start_replay_buffer_prompt=Start Replay Buffer?
 stop_replay_buffer_prompt=Stop Replay Buffer?
+
+end_call=End call
+end_call_prompt=End the Teams call?

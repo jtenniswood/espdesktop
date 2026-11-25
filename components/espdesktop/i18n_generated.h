@@ -330,6 +330,8 @@ inline const char *espdesktop_i18n_cs(const char *text) {
   if (std::strcmp(text, "Turn off Studio Mode?") == 0) return "Vypnout režim studia?";
   if (std::strcmp(text, "Start Replay Buffer?") == 0) return "Spustit vyrovnávací paměť záznamu?";
   if (std::strcmp(text, "Stop Replay Buffer?") == 0) return "Zastavit vyrovnávací paměť záznamu?";
+  if (std::strcmp(text, "End call") == 0) return "Ukončit hovor";
+  if (std::strcmp(text, "End the Teams call?") == 0) return "Ukončit hovor v Teams?";
   return text;
 }
 
@@ -637,6 +639,8 @@ inline const char *espdesktop_i18n_da(const char *text) {
   if (std::strcmp(text, "Turn off Studio Mode?") == 0) return "Slå studietilstand fra?";
   if (std::strcmp(text, "Start Replay Buffer?") == 0) return "Start genafspilningsbuffer?";
   if (std::strcmp(text, "Stop Replay Buffer?") == 0) return "Stop genafspilningsbuffer?";
+  if (std::strcmp(text, "End call") == 0) return "Afslut opkald";
+  if (std::strcmp(text, "End the Teams call?") == 0) return "Afslut Teams-opkaldet?";
   return text;
 }
 
@@ -950,6 +954,8 @@ inline const char *espdesktop_i18n_de(const char *text) {
   if (std::strcmp(text, "Turn off Studio Mode?") == 0) return "Studiomodus ausschalten?";
   if (std::strcmp(text, "Start Replay Buffer?") == 0) return "Replay-Puffer starten?";
   if (std::strcmp(text, "Stop Replay Buffer?") == 0) return "Replay-Puffer stoppen?";
+  if (std::strcmp(text, "End call") == 0) return "Anruf beenden";
+  if (std::strcmp(text, "End the Teams call?") == 0) return "Teams-Anruf beenden?";
   return text;
 }
 
@@ -1276,6 +1282,8 @@ inline const char *espdesktop_i18n_es(const char *text) {
   if (std::strcmp(text, "Turn off Studio Mode?") == 0) return "¿Desactivar el modo estudio?";
   if (std::strcmp(text, "Start Replay Buffer?") == 0) return "¿Iniciar el búfer de repetición?";
   if (std::strcmp(text, "Stop Replay Buffer?") == 0) return "¿Detener el búfer de repetición?";
+  if (std::strcmp(text, "End call") == 0) return "Finalizar llamada";
+  if (std::strcmp(text, "End the Teams call?") == 0) return "¿Finalizar la llamada de Teams?";
   return text;
 }
 
@@ -1604,6 +1612,8 @@ inline const char *espdesktop_i18n_fi(const char *text) {
   if (std::strcmp(text, "Turn off Studio Mode?") == 0) return "Poistetaanko studiotila käytöstä?";
   if (std::strcmp(text, "Start Replay Buffer?") == 0) return "Käynnistetäänkö toistopuskuri?";
   if (std::strcmp(text, "Stop Replay Buffer?") == 0) return "Pysäytetäänkö toistopuskuri?";
+  if (std::strcmp(text, "End call") == 0) return "Lopeta puhelu";
+  if (std::strcmp(text, "End the Teams call?") == 0) return "Lopetetaanko Teams-puhelu?";
   return text;
 }
 
@@ -1923,6 +1933,8 @@ inline const char *espdesktop_i18n_fr(const char *text) {
   if (std::strcmp(text, "Turn off Studio Mode?") == 0) return "Désactiver le mode Studio ?";
   if (std::strcmp(text, "Start Replay Buffer?") == 0) return "Démarrer le tampon de replay ?";
   if (std::strcmp(text, "Stop Replay Buffer?") == 0) return "Arrêter le tampon de replay ?";
+  if (std::strcmp(text, "End call") == 0) return "Terminer l’appel";
+  if (std::strcmp(text, "End the Teams call?") == 0) return "Terminer l’appel Teams ?";
   return text;
 }
 
@@ -2258,6 +2270,8 @@ inline const char *espdesktop_i18n_he(const char *text) {
   if (std::strcmp(text, "Turn off Studio Mode?") == 0) return "לכבות את מצב האולפן?";
   if (std::strcmp(text, "Start Replay Buffer?") == 0) return "להפעיל את מאגר השידור החוזר?";
   if (std::strcmp(text, "Stop Replay Buffer?") == 0) return "לעצור את מאגר השידור החוזר?";
+  if (std::strcmp(text, "End call") == 0) return "סיים שיחה";
+  if (std::strcmp(text, "End the Teams call?") == 0) return "לסיים את השיחה ב-Teams?";
   return text;
 }
 
@@ -2584,6 +2598,8 @@ inline const char *espdesktop_i18n_hu(const char *text) {
   if (std::strcmp(text, "Turn off Studio Mode?") == 0) return "Kikapcsolja a stúdió módot?";
   if (std::strcmp(text, "Start Replay Buffer?") == 0) return "Elindítja a visszajátszási puffert?";
   if (std::strcmp(text, "Stop Replay Buffer?") == 0) return "Leállítja a visszajátszási puffert?";
+  if (std::strcmp(text, "End call") == 0) return "Hívás befejezése";
+  if (std::strcmp(text, "End the Teams call?") == 0) return "Befejezi a Teams-hívást?";
   return text;
 }
 
@@ -2909,6 +2925,8 @@ inline const char *espdesktop_i18n_it(const char *text) {
   if (std::strcmp(text, "Turn off Studio Mode?") == 0) return "Disattivare la modalità Studio?";
   if (std::strcmp(text, "Start Replay Buffer?") == 0) return "Avviare il buffer di replay?";
   if (std::strcmp(text, "Stop Replay Buffer?") == 0) return "Fermare il buffer di replay?";
+  if (std::strcmp(text, "End call") == 0) return "Termina chiamata";
+  if (std::strcmp(text, "End the Teams call?") == 0) return "Terminare la chiamata di Teams?";
   return text;
 }
 
@@ -3224,6 +3242,8 @@ inline const char *espdesktop_i18n_nb(const char *text) {
   if (std::strcmp(text, "Turn off Studio Mode?") == 0) return "Slå av studiomodus?";
   if (std::strcmp(text, "Start Replay Buffer?") == 0) return "Start avspillingsbufferen?";
   if (std::strcmp(text, "Stop Replay Buffer?") == 0) return "Stopp avspillingsbufferen?";
+  if (std::strcmp(text, "End call") == 0) return "Avslutt samtale";
+  if (std::strcmp(text, "End the Teams call?") == 0) return "Avslutte Teams-samtalen?";
   return text;
 }
 
@@ -3538,6 +3558,8 @@ inline const char *espdesktop_i18n_nl(const char *text) {
   if (std::strcmp(text, "Turn off Studio Mode?") == 0) return "Studiomodus uitschakelen?";
   if (std::strcmp(text, "Start Replay Buffer?") == 0) return "Replaybuffer starten?";
   if (std::strcmp(text, "Stop Replay Buffer?") == 0) return "Replaybuffer stoppen?";
+  if (std::strcmp(text, "End call") == 0) return "Gesprek beëindigen";
+  if (std::strcmp(text, "End the Teams call?") == 0) return "Teams-gesprek beëindigen?";
   return text;
 }
 
@@ -3853,6 +3875,8 @@ inline const char *espdesktop_i18n_pl(const char *text) {
   if (std::strcmp(text, "Turn off Studio Mode?") == 0) return "Wyłączyć tryb studia?";
   if (std::strcmp(text, "Start Replay Buffer?") == 0) return "Uruchomić bufor powtórek?";
   if (std::strcmp(text, "Stop Replay Buffer?") == 0) return "Zatrzymać bufor powtórek?";
+  if (std::strcmp(text, "End call") == 0) return "Zakończ połączenie";
+  if (std::strcmp(text, "End the Teams call?") == 0) return "Zakończyć połączenie w Teams?";
   return text;
 }
 
@@ -4171,6 +4195,8 @@ inline const char *espdesktop_i18n_pt_br(const char *text) {
   if (std::strcmp(text, "Turn off Studio Mode?") == 0) return "Desativar o modo estúdio?";
   if (std::strcmp(text, "Start Replay Buffer?") == 0) return "Iniciar o buffer de replay?";
   if (std::strcmp(text, "Stop Replay Buffer?") == 0) return "Parar o buffer de replay?";
+  if (std::strcmp(text, "End call") == 0) return "Encerrar chamada";
+  if (std::strcmp(text, "End the Teams call?") == 0) return "Encerrar a chamada do Teams?";
   return text;
 }
 
@@ -4496,6 +4522,8 @@ inline const char *espdesktop_i18n_pt(const char *text) {
   if (std::strcmp(text, "Turn off Studio Mode?") == 0) return "Desativar o modo de estúdio?";
   if (std::strcmp(text, "Start Replay Buffer?") == 0) return "Iniciar o buffer de replay?";
   if (std::strcmp(text, "Stop Replay Buffer?") == 0) return "Parar o buffer de replay?";
+  if (std::strcmp(text, "End call") == 0) return "Terminar chamada";
+  if (std::strcmp(text, "End the Teams call?") == 0) return "Terminar a chamada do Teams?";
   return text;
 }
 
@@ -4822,6 +4850,8 @@ inline const char *espdesktop_i18n_ro(const char *text) {
   if (std::strcmp(text, "Turn off Studio Mode?") == 0) return "Dezactivezi modul studio?";
   if (std::strcmp(text, "Start Replay Buffer?") == 0) return "Pornești bufferul de reluare?";
   if (std::strcmp(text, "Stop Replay Buffer?") == 0) return "Oprești bufferul de reluare?";
+  if (std::strcmp(text, "End call") == 0) return "Încheie apelul";
+  if (std::strcmp(text, "End the Teams call?") == 0) return "Închei apelul Teams?";
   return text;
 }
 
@@ -5157,6 +5187,8 @@ inline const char *espdesktop_i18n_ru(const char *text) {
   if (std::strcmp(text, "Turn off Studio Mode?") == 0) return "Выключить режим студии?";
   if (std::strcmp(text, "Start Replay Buffer?") == 0) return "Запустить буфер повтора?";
   if (std::strcmp(text, "Stop Replay Buffer?") == 0) return "Остановить буфер повтора?";
+  if (std::strcmp(text, "End call") == 0) return "Завершить звонок";
+  if (std::strcmp(text, "End the Teams call?") == 0) return "Завершить звонок в Teams?";
   return text;
 }
 
@@ -5476,6 +5508,8 @@ inline const char *espdesktop_i18n_sk(const char *text) {
   if (std::strcmp(text, "Turn off Studio Mode?") == 0) return "Vypnúť režim štúdia?";
   if (std::strcmp(text, "Start Replay Buffer?") == 0) return "Spustiť vyrovnávaciu pamäť záznamu?";
   if (std::strcmp(text, "Stop Replay Buffer?") == 0) return "Zastaviť vyrovnávaciu pamäť záznamu?";
+  if (std::strcmp(text, "End call") == 0) return "Ukončiť hovor";
+  if (std::strcmp(text, "End the Teams call?") == 0) return "Ukončiť hovor v Teams?";
   return text;
 }
 
@@ -5799,6 +5833,8 @@ inline const char *espdesktop_i18n_sl(const char *text) {
   if (std::strcmp(text, "Turn off Studio Mode?") == 0) return "Izklopiš studijski način?";
   if (std::strcmp(text, "Start Replay Buffer?") == 0) return "Zaženeš medpomnilnik ponovitev?";
   if (std::strcmp(text, "Stop Replay Buffer?") == 0) return "Ustaviš medpomnilnik ponovitev?";
+  if (std::strcmp(text, "End call") == 0) return "Končaj klic";
+  if (std::strcmp(text, "End the Teams call?") == 0) return "Končam klic v Teams?";
   return text;
 }
 
@@ -6111,6 +6147,8 @@ inline const char *espdesktop_i18n_sv(const char *text) {
   if (std::strcmp(text, "Turn off Studio Mode?") == 0) return "Slå av studioläget?";
   if (std::strcmp(text, "Start Replay Buffer?") == 0) return "Starta reprisbuffer?";
   if (std::strcmp(text, "Stop Replay Buffer?") == 0) return "Stoppa reprisbuffer?";
+  if (std::strcmp(text, "End call") == 0) return "Avsluta samtal";
+  if (std::strcmp(text, "End the Teams call?") == 0) return "Avsluta Teams-samtalet?";
   return text;
 }
 
@@ -6438,6 +6476,8 @@ inline const char *espdesktop_i18n_tr(const char *text) {
   if (std::strcmp(text, "Turn off Studio Mode?") == 0) return "Stüdyo modu kapatılsın mı?";
   if (std::strcmp(text, "Start Replay Buffer?") == 0) return "Tekrar tamponu başlatılsın mı?";
   if (std::strcmp(text, "Stop Replay Buffer?") == 0) return "Tekrar tamponu durdurulsun mu?";
+  if (std::strcmp(text, "End call") == 0) return "Aramayı bitir";
+  if (std::strcmp(text, "End the Teams call?") == 0) return "Teams araması sonlandırılsın mı?";
   return text;
 }
 
@@ -6768,6 +6808,8 @@ inline const char *espdesktop_i18n_uk(const char *text) {
   if (std::strcmp(text, "Turn off Studio Mode?") == 0) return "Вимкнути режим студії?";
   if (std::strcmp(text, "Start Replay Buffer?") == 0) return "Запустити буфер повтору?";
   if (std::strcmp(text, "Stop Replay Buffer?") == 0) return "Зупинити буфер повтору?";
+  if (std::strcmp(text, "End call") == 0) return "Завершити дзвінок";
+  if (std::strcmp(text, "End the Teams call?") == 0) return "Завершити дзвінок у Teams?";
   return text;
 }
 
@@ -7141,6 +7183,8 @@ inline const char *espdesktop_i18n_key_en(const char *key) {
   if (std::strcmp(key, "turn_off_studio_mode") == 0) return "Turn off Studio Mode?";
   if (std::strcmp(key, "start_replay_buffer_prompt") == 0) return "Start Replay Buffer?";
   if (std::strcmp(key, "stop_replay_buffer_prompt") == 0) return "Stop Replay Buffer?";
+  if (std::strcmp(key, "end_call") == 0) return "End call";
+  if (std::strcmp(key, "end_call_prompt") == 0) return "End the Teams call?";
   return key;
 }
 
@@ -7477,6 +7521,8 @@ inline const char *espdesktop_i18n_key_cs(const char *key) {
   if (std::strcmp(key, "turn_off_studio_mode") == 0) return "Vypnout režim studia?";
   if (std::strcmp(key, "start_replay_buffer_prompt") == 0) return "Spustit vyrovnávací paměť záznamu?";
   if (std::strcmp(key, "stop_replay_buffer_prompt") == 0) return "Zastavit vyrovnávací paměť záznamu?";
+  if (std::strcmp(key, "end_call") == 0) return "Ukončit hovor";
+  if (std::strcmp(key, "end_call_prompt") == 0) return "Ukončit hovor v Teams?";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -7799,6 +7845,8 @@ inline const char *espdesktop_i18n_key_da(const char *key) {
   if (std::strcmp(key, "turn_off_studio_mode") == 0) return "Slå studietilstand fra?";
   if (std::strcmp(key, "start_replay_buffer_prompt") == 0) return "Start genafspilningsbuffer?";
   if (std::strcmp(key, "stop_replay_buffer_prompt") == 0) return "Stop genafspilningsbuffer?";
+  if (std::strcmp(key, "end_call") == 0) return "Afslut opkald";
+  if (std::strcmp(key, "end_call_prompt") == 0) return "Afslut Teams-opkaldet?";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -8128,6 +8176,8 @@ inline const char *espdesktop_i18n_key_de(const char *key) {
   if (std::strcmp(key, "turn_off_studio_mode") == 0) return "Studiomodus ausschalten?";
   if (std::strcmp(key, "start_replay_buffer_prompt") == 0) return "Replay-Puffer starten?";
   if (std::strcmp(key, "stop_replay_buffer_prompt") == 0) return "Replay-Puffer stoppen?";
+  if (std::strcmp(key, "end_call") == 0) return "Anruf beenden";
+  if (std::strcmp(key, "end_call_prompt") == 0) return "Teams-Anruf beenden?";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -8471,6 +8521,8 @@ inline const char *espdesktop_i18n_key_es(const char *key) {
   if (std::strcmp(key, "turn_off_studio_mode") == 0) return "¿Desactivar el modo estudio?";
   if (std::strcmp(key, "start_replay_buffer_prompt") == 0) return "¿Iniciar el búfer de repetición?";
   if (std::strcmp(key, "stop_replay_buffer_prompt") == 0) return "¿Detener el búfer de repetición?";
+  if (std::strcmp(key, "end_call") == 0) return "Finalizar llamada";
+  if (std::strcmp(key, "end_call_prompt") == 0) return "¿Finalizar la llamada de Teams?";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -8817,6 +8869,8 @@ inline const char *espdesktop_i18n_key_fi(const char *key) {
   if (std::strcmp(key, "turn_off_studio_mode") == 0) return "Poistetaanko studiotila käytöstä?";
   if (std::strcmp(key, "start_replay_buffer_prompt") == 0) return "Käynnistetäänkö toistopuskuri?";
   if (std::strcmp(key, "stop_replay_buffer_prompt") == 0) return "Pysäytetäänkö toistopuskuri?";
+  if (std::strcmp(key, "end_call") == 0) return "Lopeta puhelu";
+  if (std::strcmp(key, "end_call_prompt") == 0) return "Lopetetaanko Teams-puhelu?";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -9152,6 +9206,8 @@ inline const char *espdesktop_i18n_key_fr(const char *key) {
   if (std::strcmp(key, "turn_off_studio_mode") == 0) return "Désactiver le mode Studio ?";
   if (std::strcmp(key, "start_replay_buffer_prompt") == 0) return "Démarrer le tampon de replay ?";
   if (std::strcmp(key, "stop_replay_buffer_prompt") == 0) return "Arrêter le tampon de replay ?";
+  if (std::strcmp(key, "end_call") == 0) return "Terminer l’appel";
+  if (std::strcmp(key, "end_call_prompt") == 0) return "Terminer l’appel Teams ?";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -9505,6 +9561,8 @@ inline const char *espdesktop_i18n_key_he(const char *key) {
   if (std::strcmp(key, "turn_off_studio_mode") == 0) return "לכבות את מצב האולפן?";
   if (std::strcmp(key, "start_replay_buffer_prompt") == 0) return "להפעיל את מאגר השידור החוזר?";
   if (std::strcmp(key, "stop_replay_buffer_prompt") == 0) return "לעצור את מאגר השידור החוזר?";
+  if (std::strcmp(key, "end_call") == 0) return "סיים שיחה";
+  if (std::strcmp(key, "end_call_prompt") == 0) return "לסיים את השיחה ב-Teams?";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -9849,6 +9907,8 @@ inline const char *espdesktop_i18n_key_hu(const char *key) {
   if (std::strcmp(key, "turn_off_studio_mode") == 0) return "Kikapcsolja a stúdió módot?";
   if (std::strcmp(key, "start_replay_buffer_prompt") == 0) return "Elindítja a visszajátszási puffert?";
   if (std::strcmp(key, "stop_replay_buffer_prompt") == 0) return "Leállítja a visszajátszási puffert?";
+  if (std::strcmp(key, "end_call") == 0) return "Hívás befejezése";
+  if (std::strcmp(key, "end_call_prompt") == 0) return "Befejezi a Teams-hívást?";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -10191,6 +10251,8 @@ inline const char *espdesktop_i18n_key_it(const char *key) {
   if (std::strcmp(key, "turn_off_studio_mode") == 0) return "Disattivare la modalità Studio?";
   if (std::strcmp(key, "start_replay_buffer_prompt") == 0) return "Avviare il buffer di replay?";
   if (std::strcmp(key, "stop_replay_buffer_prompt") == 0) return "Fermare il buffer di replay?";
+  if (std::strcmp(key, "end_call") == 0) return "Termina chiamata";
+  if (std::strcmp(key, "end_call_prompt") == 0) return "Terminare la chiamata di Teams?";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -10522,6 +10584,8 @@ inline const char *espdesktop_i18n_key_nb(const char *key) {
   if (std::strcmp(key, "turn_off_studio_mode") == 0) return "Slå av studiomodus?";
   if (std::strcmp(key, "start_replay_buffer_prompt") == 0) return "Start avspillingsbufferen?";
   if (std::strcmp(key, "stop_replay_buffer_prompt") == 0) return "Stopp avspillingsbufferen?";
+  if (std::strcmp(key, "end_call") == 0) return "Avslutt samtale";
+  if (std::strcmp(key, "end_call_prompt") == 0) return "Avslutte Teams-samtalen?";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -10850,6 +10914,8 @@ inline const char *espdesktop_i18n_key_nl(const char *key) {
   if (std::strcmp(key, "turn_off_studio_mode") == 0) return "Studiomodus uitschakelen?";
   if (std::strcmp(key, "start_replay_buffer_prompt") == 0) return "Replaybuffer starten?";
   if (std::strcmp(key, "stop_replay_buffer_prompt") == 0) return "Replaybuffer stoppen?";
+  if (std::strcmp(key, "end_call") == 0) return "Gesprek beëindigen";
+  if (std::strcmp(key, "end_call_prompt") == 0) return "Teams-gesprek beëindigen?";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -11183,6 +11249,8 @@ inline const char *espdesktop_i18n_key_pl(const char *key) {
   if (std::strcmp(key, "turn_off_studio_mode") == 0) return "Wyłączyć tryb studia?";
   if (std::strcmp(key, "start_replay_buffer_prompt") == 0) return "Uruchomić bufor powtórek?";
   if (std::strcmp(key, "stop_replay_buffer_prompt") == 0) return "Zatrzymać bufor powtórek?";
+  if (std::strcmp(key, "end_call") == 0) return "Zakończ połączenie";
+  if (std::strcmp(key, "end_call_prompt") == 0) return "Zakończyć połączenie w Teams?";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -11518,6 +11586,8 @@ inline const char *espdesktop_i18n_key_pt_br(const char *key) {
   if (std::strcmp(key, "turn_off_studio_mode") == 0) return "Desativar o modo estúdio?";
   if (std::strcmp(key, "start_replay_buffer_prompt") == 0) return "Iniciar o buffer de replay?";
   if (std::strcmp(key, "stop_replay_buffer_prompt") == 0) return "Parar o buffer de replay?";
+  if (std::strcmp(key, "end_call") == 0) return "Encerrar chamada";
+  if (std::strcmp(key, "end_call_prompt") == 0) return "Encerrar a chamada do Teams?";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -11860,6 +11930,8 @@ inline const char *espdesktop_i18n_key_pt(const char *key) {
   if (std::strcmp(key, "turn_off_studio_mode") == 0) return "Desativar o modo de estúdio?";
   if (std::strcmp(key, "start_replay_buffer_prompt") == 0) return "Iniciar o buffer de replay?";
   if (std::strcmp(key, "stop_replay_buffer_prompt") == 0) return "Parar o buffer de replay?";
+  if (std::strcmp(key, "end_call") == 0) return "Terminar chamada";
+  if (std::strcmp(key, "end_call_prompt") == 0) return "Terminar a chamada do Teams?";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -12204,6 +12276,8 @@ inline const char *espdesktop_i18n_key_ro(const char *key) {
   if (std::strcmp(key, "turn_off_studio_mode") == 0) return "Dezactivezi modul studio?";
   if (std::strcmp(key, "start_replay_buffer_prompt") == 0) return "Pornești bufferul de reluare?";
   if (std::strcmp(key, "stop_replay_buffer_prompt") == 0) return "Oprești bufferul de reluare?";
+  if (std::strcmp(key, "end_call") == 0) return "Încheie apelul";
+  if (std::strcmp(key, "end_call_prompt") == 0) return "Închei apelul Teams?";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -12557,6 +12631,8 @@ inline const char *espdesktop_i18n_key_ru(const char *key) {
   if (std::strcmp(key, "turn_off_studio_mode") == 0) return "Выключить режим студии?";
   if (std::strcmp(key, "start_replay_buffer_prompt") == 0) return "Запустить буфер повтора?";
   if (std::strcmp(key, "stop_replay_buffer_prompt") == 0) return "Остановить буфер повтора?";
+  if (std::strcmp(key, "end_call") == 0) return "Завершить звонок";
+  if (std::strcmp(key, "end_call_prompt") == 0) return "Завершить звонок в Teams?";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -12894,6 +12970,8 @@ inline const char *espdesktop_i18n_key_sk(const char *key) {
   if (std::strcmp(key, "turn_off_studio_mode") == 0) return "Vypnúť režim štúdia?";
   if (std::strcmp(key, "start_replay_buffer_prompt") == 0) return "Spustiť vyrovnávaciu pamäť záznamu?";
   if (std::strcmp(key, "stop_replay_buffer_prompt") == 0) return "Zastaviť vyrovnávaciu pamäť záznamu?";
+  if (std::strcmp(key, "end_call") == 0) return "Ukončiť hovor";
+  if (std::strcmp(key, "end_call_prompt") == 0) return "Ukončiť hovor v Teams?";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -13235,6 +13313,8 @@ inline const char *espdesktop_i18n_key_sl(const char *key) {
   if (std::strcmp(key, "turn_off_studio_mode") == 0) return "Izklopiš studijski način?";
   if (std::strcmp(key, "start_replay_buffer_prompt") == 0) return "Zaženeš medpomnilnik ponovitev?";
   if (std::strcmp(key, "stop_replay_buffer_prompt") == 0) return "Ustaviš medpomnilnik ponovitev?";
+  if (std::strcmp(key, "end_call") == 0) return "Končaj klic";
+  if (std::strcmp(key, "end_call_prompt") == 0) return "Končam klic v Teams?";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -13563,6 +13643,8 @@ inline const char *espdesktop_i18n_key_sv(const char *key) {
   if (std::strcmp(key, "turn_off_studio_mode") == 0) return "Slå av studioläget?";
   if (std::strcmp(key, "start_replay_buffer_prompt") == 0) return "Starta reprisbuffer?";
   if (std::strcmp(key, "stop_replay_buffer_prompt") == 0) return "Stoppa reprisbuffer?";
+  if (std::strcmp(key, "end_call") == 0) return "Avsluta samtal";
+  if (std::strcmp(key, "end_call_prompt") == 0) return "Avsluta Teams-samtalet?";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -13908,6 +13990,8 @@ inline const char *espdesktop_i18n_key_tr(const char *key) {
   if (std::strcmp(key, "turn_off_studio_mode") == 0) return "Stüdyo modu kapatılsın mı?";
   if (std::strcmp(key, "start_replay_buffer_prompt") == 0) return "Tekrar tamponu başlatılsın mı?";
   if (std::strcmp(key, "stop_replay_buffer_prompt") == 0) return "Tekrar tamponu durdurulsun mu?";
+  if (std::strcmp(key, "end_call") == 0) return "Aramayı bitir";
+  if (std::strcmp(key, "end_call_prompt") == 0) return "Teams araması sonlandırılsın mı?";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -14256,6 +14340,8 @@ inline const char *espdesktop_i18n_key_uk(const char *key) {
   if (std::strcmp(key, "turn_off_studio_mode") == 0) return "Вимкнути режим студії?";
   if (std::strcmp(key, "start_replay_buffer_prompt") == 0) return "Запустити буфер повтору?";
   if (std::strcmp(key, "stop_replay_buffer_prompt") == 0) return "Зупинити буфер повтору?";
+  if (std::strcmp(key, "end_call") == 0) return "Завершити дзвінок";
+  if (std::strcmp(key, "end_call_prompt") == 0) return "Завершити дзвінок у Teams?";
   return espdesktop_i18n_key_en(key);
 }
 

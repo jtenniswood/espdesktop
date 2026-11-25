@@ -376,3 +376,6 @@ turn_on_studio_mode=להפעיל את מצב האולפן?
 turn_off_studio_mode=לכבות את מצב האולפן?
 start_replay_buffer_prompt=להפעיל את מאגר השידור החוזר?
 stop_replay_buffer_prompt=לעצור את מאגר השידור החוזר?
+
+end_call=סיים שיחה
+end_call_prompt=לסיים את השיחה ב-Teams?

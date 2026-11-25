@@ -375,3 +375,6 @@ turn_on_studio_mode=Activer le mode Studio ?
 turn_off_studio_mode=Désactiver le mode Studio ?
 start_replay_buffer_prompt=Démarrer le tampon de replay ?
 stop_replay_buffer_prompt=Arrêter le tampon de replay ?
+
+end_call=Terminer l’appel
+end_call_prompt=Terminer l’appel Teams ?

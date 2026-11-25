@@ -23,6 +23,8 @@ ParsedCfg grid_layout_card_config(int, const std::string &) {return current;}
 int card_runtime_context(const ParsedCfg &) {return 0;}
 bool card_runtime_passive(int) {return false;}
 bool screen_lock_enabled() {return false;}
+bool card_action_locked(const ParsedCfg &) {return false;}
+bool touch_actions_consumed() {return false;}
 namespace espdesktop {
 namespace cards {
 '''

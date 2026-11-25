@@ -375,3 +375,6 @@ turn_on_studio_mode=Activezi modul studio?
 turn_off_studio_mode=Dezactivezi modul studio?
 start_replay_buffer_prompt=Pornești bufferul de reluare?
 stop_replay_buffer_prompt=Oprești bufferul de reluare?
+
+end_call=Încheie apelul
+end_call_prompt=Închei apelul Teams?

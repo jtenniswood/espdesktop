@@ -835,10 +835,11 @@ void EspDesktopApp::loop() {
   // Transport callbacks only request a refresh; apply it on the UI loop.
   // The atomic flag keeps this cheap when no Companion state has changed.
 #ifdef USE_COMPANION
-  const bool focus_pending = companion_runtime_service().focus_refresh_pending();
+  const bool focus_pending = companion_runtime_registry().focus_refresh_pending();
 #endif
   companion_refresh_cards_if_requested();
 #ifdef USE_COMPANION
+  companion_refresh_card_lock_badges();
   if (scene_ready) network_status_sync_mac_update_notice();
 #endif
   trace_phase("card refresh");

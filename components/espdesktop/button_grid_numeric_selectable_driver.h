@@ -37,11 +37,13 @@ inline void numeric_selectable_driver_track_slider_cleanup(BtnSlot &slot) {
 }
 inline bool numeric_selectable_driver_setup_visual(
     BtnSlot &slot, const ParsedCfg &config, const Context &context,
-    const CardPalette &palette, const DisplayProfile &) {
+    const CardPalette &palette, const DisplayProfile &display) {
   if (!numeric_selectable_driver_matches(context, config)) return false;
   if (numeric_selectable_cough_card(config) || companion_mute_control_valid(config.entity)) {
     setup_toggle_visual(slot, config);
     remove_button_state_transitions(slot.btn);
+    if (config.entity == "media.input_mute" && card_hold_action(config) == "end_call")
+      mic_hold_fonts() = {display_switch_confirmation_message_font(display), display.fonts.icon};
   } else {
     setup_slider_visual(slot, config, palette.on_val,
       !companion_obs_meter_control(config.entity));
@@ -93,7 +95,7 @@ inline void numeric_selectable_driver_bind_slider(BtnSlot &slot, const ParsedCfg
     const char *muted_icon = find_icon(muted_icon_name);
     if (slot.icon_lbl) lv_label_set_display_text(slot.icon_lbl, unmuted_icon);
     companion_track_mute(slot.btn, config.entity, slot.icon_lbl, unmuted_icon, muted_icon,
-      microphone ? slot.text_lbl : nullptr);
+      microphone ? slot.text_lbl : nullptr, companion_card_computer(config));
     if (microphone) companion_setup_mic_mute_detail(slot.btn, display_small_text_font(display));
     return;
   }
@@ -118,11 +120,13 @@ inline void numeric_selectable_driver_bind_slider(BtnSlot &slot, const ParsedCfg
   }
   const bool obs_audio = companion_obs_level_control(config.entity) || companion_obs_meter_control(config.entity);
   companion_track_slider(slider, config.entity, slot.icon_lbl, has_icon_on, icon_off, icon_on,
-    obs_audio ? slot.text_lbl : nullptr, obs_audio ? config.label : std::string{});
+    obs_audio ? slot.text_lbl : nullptr, obs_audio ? config.label : std::string{},
+    companion_card_computer(config));
 }
 inline void numeric_selectable_bind_cough(BtnSlot &slot, const ParsedCfg &config, bool subpage) {
   const std::string control = config.type == "companion_cough" ? COMPANION_COUGH_ID : config.entity;
-  bind_cough_button(slot.btn, slot.icon_lbl, slot.text_lbl, find_icon(config.icon.c_str()), find_icon("Microphone Off"), control, subpage);
+  bind_cough_button(slot.btn, slot.icon_lbl, slot.text_lbl, find_icon(config.icon.c_str()),
+    find_icon("Microphone Off"), control, subpage, companion_card_computer(config));
   if (config.type == "companion_obs_cough" && !companion_obs_cough_control(control))
     set_card_disabled_state(slot.btn, true);
 }
@@ -151,18 +155,51 @@ inline bool numeric_selectable_driver_bind_subpage(
   }
   numeric_selectable_driver_bind_slider(slot, config, environment.display);
   if (!companion_mute_control_valid(config.entity)) return true;
-  std::string *entity = grid_delete_with_owner(slot.btn, new std::string(config.entity));
-  bind_immediate_button_action(slot.btn, [](lv_event_t *event) {
-    auto *value = static_cast<std::string *>(lv_event_get_user_data(event));
-    if (value) companion_toggle_mute(*value);
-  }, entity);
+  struct MuteCardTarget {
+    std::string control;
+    std::string computer;
+    lv_obj_t *button = nullptr;
+    bool held = false;
+  };
+  const bool hold_end_call = config.entity == "media.input_mute" &&
+      card_hold_action(config) == "end_call";
+  auto *entity = grid_delete_with_owner(slot.btn,
+    new MuteCardTarget{config.entity, companion_card_computer(config), slot.btn});
+  if (hold_end_call) {
+    // Tap keeps the mute toggle on release. A hold opens the end-call
+    // confirmation instead of toggling.
+    lv_obj_add_event_cb(slot.btn, [](lv_event_t *event) {
+      auto *value = static_cast<MuteCardTarget *>(lv_event_get_user_data(event));
+      if (value) value->held = false;
+    }, LV_EVENT_PRESSED, entity);
+    lv_obj_add_event_cb(slot.btn, [](lv_event_t *event) {
+      auto *value = static_cast<MuteCardTarget *>(lv_event_get_user_data(event));
+      if (!value) return;
+      value->held = true;
+      card_hold_end_call(value->button, value->computer);
+    }, LV_EVENT_LONG_PRESSED, entity);
+    lv_obj_add_event_cb(slot.btn, [](lv_event_t *event) {
+      auto *value = static_cast<MuteCardTarget *>(lv_event_get_user_data(event));
+      if (!value || value->held || companion_computer_locked(value->computer)) return;
+      companion_toggle_mute(value->control, value->computer);
+    }, LV_EVENT_SHORT_CLICKED, entity);
+    return true;
+  }
+  // Toggle on release, like the main grid. Acting on touch-down consumed the
+  // pointer, so a page swipe that started on the card could not page and the
+  // card highlighted before its action ran.
+  lv_obj_add_event_cb(slot.btn, [](lv_event_t *event) {
+    auto *value = static_cast<MuteCardTarget *>(lv_event_get_user_data(event));
+    if (value && !companion_computer_locked(value->computer))
+      companion_toggle_mute(value->control, value->computer);
+  }, LV_EVENT_SHORT_CLICKED, entity);
   return true;
 }
 inline bool numeric_selectable_driver_handle_main_click(
     const Context &context, const ParsedCfg &config, lv_obj_t *) {
   if (!numeric_selectable_driver_matches(context, config)) return false;
   if (!numeric_selectable_cough_card(config) && companion_mute_control_valid(config.entity))
-    companion_toggle_mute(config.entity);
+    companion_toggle_mute(config.entity, companion_card_computer(config));
   return true;
 }
 inline ModalTarget numeric_selectable_driver_modal_target(const Context &, const ParsedCfg &, lv_obj_t *) { return {}; }

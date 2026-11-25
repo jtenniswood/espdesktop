@@ -28,14 +28,25 @@ struct lv_event_t { void *data; };
 struct SliderCtx { lv_obj_t *fill = nullptr; };
 struct BtnSlot { lv_obj_t *btn, *sensor_container, *icon_lbl, *text_lbl; };
 struct CardPalette { uint32_t on_val = 0x64AD54; };
-struct DisplayProfile {};
+struct DisplayProfile { struct { const void *icon = nullptr; } fonts; };
 const void *display_small_text_font(const DisplayProfile &) { return nullptr; }
+const void *display_switch_confirmation_message_font(const DisplayProfile &) { return nullptr; }
+std::string card_hold_action(const ParsedCfg &) { return ""; }
+bool companion_computer_locked(const std::string &) { return false; }
+struct MicHoldFonts { const void *message = nullptr; const void *icon = nullptr; };
+MicHoldFonts &mic_hold_fonts() { static MicHoldFonts fonts; return fonts; }
 void companion_setup_mic_mute_detail(lv_obj_t *, const void *) {}
 struct ModalTarget {};
 constexpr int LV_EVENT_DELETE = 1;
+constexpr int LV_EVENT_PRESSED = 2;
+constexpr int LV_EVENT_LONG_PRESSED = 3;
+constexpr int LV_EVENT_SHORT_CLICKED = 4;
 void *lv_obj_get_user_data(lv_obj_t *obj) { return obj->data; }
 void *lv_event_get_user_data(lv_event_t *event) { return event->data; }
-void lv_obj_add_event_cb(lv_obj_t *, void(*)(lv_event_t *), int, void *) {}
+std::vector<std::function<void()>> callbacks;
+void lv_obj_add_event_cb(lv_obj_t *, void(*cb)(lv_event_t *), int code, void *p) {
+  if (code == LV_EVENT_SHORT_CLICKED) callbacks.push_back([=] { lv_event_t e{p}; cb(&e); });
+}
 void lv_label_set_display_text(lv_obj_t *obj, const char *text) { obj->text = text; }
 int layouts = 0, setups = 0, bindings = 0, local_bindings = 0;
 int mute_setups = 0, mute_bindings = 0;
@@ -54,12 +65,15 @@ const char *companion_volume_control_label(const std::string &key) { return key 
 void unbind_cough_button(lv_obj_t *) {}
 constexpr char COMPANION_COUGH_ID[] = "media.cough";
 bool companion_obs_cough_control(const std::string &id) { return id.rfind("obs.cough.", 0) == 0; }
-void bind_cough_button(lv_obj_t *, lv_obj_t *, lv_obj_t *, const char *, const char *, const std::string &, bool) {}
+void bind_cough_button(lv_obj_t *, lv_obj_t *, lv_obj_t *, const char *, const char *, const std::string &, bool,
+                       const std::string & = "") {}
+std::string companion_card_computer(const ParsedCfg &) { return ""; }
 bool companion_forget_mute(lv_obj_t *) { return false; }
 void set_card_checked_state(lv_obj_t *, bool) {}
 void set_card_disabled_state(lv_obj_t *, bool) {}
 const char *find_icon(const char *name) { return name; }
-void companion_track_mute(lv_obj_t *, const std::string &key, lv_obj_t *, const char *, const char *, lv_obj_t *) { assert(companion_mute_control_valid(key)); ++mute_bindings; }
+void companion_track_mute(lv_obj_t *, const std::string &key, lv_obj_t *, const char *, const char *, lv_obj_t *,
+                          const std::string & = "") { assert(companion_mute_control_valid(key)); ++mute_bindings; }
 const char *slider_icon_off(const std::string &, const std::string &, const std::string &) { return "volume"; }
 const char *slider_icon_on(const std::string &, const std::string &, const std::string &, const std::string &) { return "volume-on"; }
 bool companion_obs_level_control(const std::string &) { return false; }
@@ -68,17 +82,17 @@ bool companion_audio_control_id(const std::string &key) {
     return key == "media.output_volume" || key == "media.input_volume" || companion_mute_control_valid(key);
 }
 void companion_track_slider(lv_obj_t *, const std::string &key, lv_obj_t *, bool, const char *, const char *,
-                            lv_obj_t *, const std::string &) { assert(companion_volume_control_valid(key)); ++bindings; }
+                            lv_obj_t *, const std::string &, const std::string & = {}) { assert(companion_volume_control_valid(key)); ++bindings; }
 std::vector<std::pair<std::string,int>> commands;
-bool companion_toggle_mute(const std::string &key) { commands.emplace_back(key,100); return true; }
+bool companion_toggle_mute(const std::string &key, const std::string & = "") { commands.emplace_back(key,100); return true; }
 unsigned companion_next_request_number() { return 1; }
-bool invoke_companion_value(const std::string &key, int value, const char *) { commands.emplace_back(key,value); return true; }
-std::vector<std::function<void()>> callbacks;
+bool invoke_companion_value(const std::string &key, int value, const char *, const std::string & = "") { commands.emplace_back(key,value); return true; }
 template<class T> T *grid_delete_with_owner(lv_obj_t *, T *p) { return p; }
 std::vector<void *> allocations;
-void bind_immediate_button_action(lv_obj_t *, void(*cb)(lv_event_t *), std::string *p) { allocations.push_back(p); callbacks.push_back([=] { lv_event_t e{p}; cb(&e); }); }
+void bind_immediate_button_action(lv_obj_t *, void(*cb)(lv_event_t *), void *p) { allocations.push_back(p); callbacks.push_back([=] { lv_event_t e{p}; cb(&e); }); }
 namespace espdesktop::cards {
 void sensor_driver_register_local_value(BtnSlot &, const ParsedCfg &) { ++local_bindings; }
+bool card_hold_end_call(lv_obj_t *, const std::string &) { return false; }
 }
 '''
 parser = (firmware/'button_grid_config_parser.h').read_text()

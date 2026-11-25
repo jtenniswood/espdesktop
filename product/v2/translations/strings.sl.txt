@@ -375,3 +375,6 @@ turn_on_studio_mode=Vklopiš studijski način?
 turn_off_studio_mode=Izklopiš studijski način?
 start_replay_buffer_prompt=Zaženeš medpomnilnik ponovitev?
 stop_replay_buffer_prompt=Ustaviš medpomnilnik ponovitev?
+
+end_call=Končaj klic
+end_call_prompt=Končam klic v Teams?

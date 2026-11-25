@@ -375,3 +375,6 @@ turn_on_studio_mode=Slå på studiomodus?
 turn_off_studio_mode=Slå av studiomodus?
 start_replay_buffer_prompt=Start avspillingsbufferen?
 stop_replay_buffer_prompt=Stopp avspillingsbufferen?
+
+end_call=Avslutt samtale
+end_call_prompt=Avslutte Teams-samtalen?

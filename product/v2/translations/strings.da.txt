@@ -375,3 +375,6 @@ turn_on_studio_mode=Slå studietilstand til?
 turn_off_studio_mode=Slå studietilstand fra?
 start_replay_buffer_prompt=Start genafspilningsbuffer?
 stop_replay_buffer_prompt=Stop genafspilningsbuffer?
+
+end_call=Afslut opkald
+end_call_prompt=Afslut Teams-opkaldet?

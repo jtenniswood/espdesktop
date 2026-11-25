@@ -375,3 +375,6 @@ turn_on_studio_mode=Włączyć tryb studia?
 turn_off_studio_mode=Wyłączyć tryb studia?
 start_replay_buffer_prompt=Uruchomić bufor powtórek?
 stop_replay_buffer_prompt=Zatrzymać bufor powtórek?
+
+end_call=Zakończ połączenie
+end_call_prompt=Zakończyć połączenie w Teams?

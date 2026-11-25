@@ -302,7 +302,7 @@ lvgl:
   byte_order: little_endian
   touchscreens:
     - touchscreen_id: my_touchscreen
-      long_press_time: 3s
+      long_press_time: 500ms
 
 script:
   - id: apply_screen_rotation

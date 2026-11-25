@@ -375,3 +375,6 @@ turn_on_studio_mode=Zapnout režim studia?
 turn_off_studio_mode=Vypnout režim studia?
 start_replay_buffer_prompt=Spustit vyrovnávací paměť záznamu?
 stop_replay_buffer_prompt=Zastavit vyrovnávací paměť záznamu?
+
+end_call=Ukončit hovor
+end_call_prompt=Ukončit hovor v Teams?

@@ -15,7 +15,8 @@ template<typename T>
 inline T *grid_track_runtime_allocation(lv_obj_t *owner, T *ptr);
 
 namespace esphome::companion {
-void request_app_icon(const std::string &application_id);
+void request_app_icon(const std::string &application_id,
+                      const std::string &computer_id);
 }
 
 struct CompanionAppIconImageData {
@@ -36,6 +37,7 @@ struct CompanionAppIconImageData {
   bool loaded_hash_valid = false;
   bool rendered_online = false;
   bool refresh_pending = false;
+  bool refit_pending = false;
 
   bool prepare_pixels(const std::string &id) {
     std::array<uint8_t, 32> hash{};
@@ -47,6 +49,8 @@ struct CompanionAppIconImageData {
   lv_obj_t *card_label = nullptr;
   bool compact_icon = false;
   std::string application_id;
+  // The computer the card is bound to; its companion is the icon source.
+  std::string computer_id;
   espdesktop::cover_art::AccentPalette accent_palette{};
   uint32_t custom_background_rgb = 0;
   std::string custom_background_option;
@@ -58,6 +62,7 @@ struct CompanionAppIconImageData {
   bool app_icon_mode = false;
   bool companion_online = false;
   bool custom_background = false;
+  bool explicit_active = false;
   bool image_loaded = false;
   bool card_palette_ready = false;
   bool palette_applied = false;
@@ -98,13 +103,14 @@ inline void companion_apply_app_icon_card_palette(
   // Default-colour cards are owned by the live theme. Reconnects and icon
   // refreshes must not restore fallback colours captured before a theme change.
   if (!button || !source.card_palette_ready) return;
-  if (!source.custom_background) return;
-  const bool use_accent = source.app_icon_mode && source.companion_online && source.image_loaded &&
-                          source.accent_palette.valid;
+  if (!source.custom_background && !source.explicit_active) return;
+  const bool use_accent = !source.explicit_active && source.app_icon_mode && source.companion_online &&
+                          source.image_loaded && source.accent_palette.valid;
   const uint32_t default_rgb = use_accent
       ? source.accent_palette.default_rgb : source.fallback_default_rgb;
-  const uint32_t active_rgb = use_accent
-      ? source.accent_palette.active_rgb : source.fallback_active_rgb;
+  const uint32_t active_rgb = source.explicit_active
+      ? source.fallback_active_rgb
+      : (use_accent ? source.accent_palette.active_rgb : source.fallback_active_rgb);
   apply_button_colors(button, true, active_rgb, true, default_rgb);
   sync_card_checked_text_color(button);
   source.palette_applied = true;
@@ -115,9 +121,10 @@ inline void companion_update_app_icon_card_palette(
     uint32_t fallback_default_rgb, uint32_t fallback_active_rgb,
     int correction_red_percent, int correction_green_percent,
     int correction_blue_percent, const std::string &custom_color,
-    bool companion_online) {
+    bool companion_online, bool explicit_active = false) {
   source.app_icon_mode = app_icon_mode;
   source.companion_online = companion_online;
+  source.explicit_active = explicit_active;
   source.fallback_default_rgb = fallback_default_rgb;
   source.fallback_active_rgb = fallback_active_rgb;
   source.color_correction_red_percent = correction_red_percent;
@@ -136,7 +143,7 @@ inline void companion_update_app_icon_card_palette(
       else { source.custom_background = false; source.custom_background_rgb = 0; break; }
     }
   }
-  if (app_icon_mode && source.image_loaded && companion_online && source.custom_background) {
+  if (!explicit_active && app_icon_mode && source.image_loaded && companion_online && source.custom_background) {
     source.accent_palette = espdesktop::cover_art::make_app_icon_custom_palette(
         source.custom_background_rgb, correction_red_percent,
         correction_green_percent, correction_blue_percent);
@@ -258,7 +265,7 @@ inline bool companion_apply_cached_app_icon(CompanionAppIconImageData &source, l
           source.application_id, source.pixels, esphome::companion::APP_ICON_PIXEL_BYTES,
           &source.loaded_hash)) {
     if (image && !source.application_id.empty())
-      esphome::companion::request_app_icon(source.application_id);
+      esphome::companion::request_app_icon(source.application_id, source.computer_id);
     source.release_pixels();
     source.accent_palette = {};
     if (image) lv_obj_add_flag(image, LV_OBJ_FLAG_HIDDEN);
@@ -321,7 +328,8 @@ inline bool companion_apply_cached_app_icon(CompanionAppIconImageData &source, l
 }
 
 inline void companion_set_card_icon_image(BtnSlot &slot, const std::string &application_id,
-                                          bool compact_icon = false) {
+                                          bool compact_icon = false,
+                                          const std::string &computer_id = "") {
   if (!slot.btn || !slot.icon_lbl) return;
   esphome::companion::app_icon_store().begin();
   if (!slot.app_icon_img) slot.app_icon_img = grid_find_companion_app_icon_image(slot.btn);
@@ -346,6 +354,7 @@ inline void companion_set_card_icon_image(BtnSlot &slot, const std::string &appl
   }
   if (!source) return;
   source->application_id = application_id;
+  source->computer_id = computer_id;
   source->fallback_icon = slot.icon_lbl;
   source->card_label = slot.text_lbl;
   source->compact_icon = compact_icon;
@@ -502,7 +511,8 @@ inline void setup_companion_card(BtnSlot &s, const ParsedCfg &p,
     lv_label_set_display_text(s.unit_lbl, "");
     companion_track_metric_card(s.btn, s.text_lbl, nullptr, p.entity, unit,
                                 parse_precision(p.precision), false,
-                                !cfg_option_token_present(p.options, "stat_labels_off"));
+                                !cfg_option_token_present(p.options, "stat_labels_off"),
+                                companion_card_computer(p));
     return;
   }
   const bool obs_status = companion_obs_status_card(p.entity);
@@ -511,15 +521,18 @@ inline void setup_companion_card(BtnSlot &s, const ParsedCfg &p,
   const bool direct_transition = companion_obs_transition_target(p.entity);
   const std::string obs_alias = p.entity.rfind("obs.", 0) == 0 ? p.label : "";
   const bool dynamic_label = obs_status || tokenized_card || p.entity == "obs.replay" || p.label.empty() || !obs_alias.empty();
-  const auto obs_snapshot = tokenized_card ? companion_runtime_snapshot() : CompanionRuntimeSnapshot{};
+  // Bound cards read their own computer; cards saved before multi-computer
+  // pairing read the primary computer, matching where their presses go.
+  const std::string card_computer = companion_card_computer(p);
+  const auto obs_snapshot = companion_runtime_for(card_computer).snapshot();
   const bool url_card = !companion_encoded_url(p.sensor).empty();
   const bool available = url_card
     ? companion_url_available(p.entity, p.sensor)
-    : (tokenized_card ? companion_action_available(obs_snapshot, p.entity) : companion_action_available(p.entity));
+    : companion_action_available(obs_snapshot, p.entity);
   const std::string label = dynamic_label
     ? companion_obs_control_label(p.entity, obs_alias,
-        companion_default_action_label(p.entity, p.sensor, tokenized_card ? &obs_snapshot : nullptr),
-        tokenized_card ? &obs_snapshot : nullptr)
+        companion_default_action_label(p.entity, p.sensor, &obs_snapshot),
+        &obs_snapshot)
     : p.label;
   if (p.type == "companion_mac_lock" && label == card_runtime_label(p.type)) {
     lv_label_set_display_text(s.text_lbl, espdesktop_i18n_key("lock_machine"));
@@ -550,8 +563,8 @@ inline void setup_companion_card(BtnSlot &s, const ParsedCfg &p,
   if (companion_app_icon_enabled(p) || workflow_icon) {
 #ifdef USE_COMPANION
     const std::string id = workflow_icon ? APPLE_SHORTCUTS_APP_ID : p.entity;
-    companion_set_card_icon_image(s, id, workflow_icon);
-    esphome::companion::request_app_icon(id);
+    companion_set_card_icon_image(s, id, workflow_icon, companion_card_computer(p));
+    esphome::companion::request_app_icon(id, companion_card_computer(p));
 #endif
   } else if (s.app_icon_img) {
     lv_obj_add_flag(s.app_icon_img, LV_OBJ_FLAG_HIDDEN);
@@ -562,7 +575,7 @@ inline void setup_companion_card(BtnSlot &s, const ParsedCfg &p,
   }
   companion_track_card(s.btn, p.entity, p.sensor, s.text_lbl, dynamic_label, true, obs_alias,
     obs_mute ? s.icon_lbl : nullptr, obs_mute ? icon : nullptr,
-    obs_mute ? find_icon("Microphone Off") : nullptr);
+    obs_mute ? find_icon("Microphone Off") : nullptr, companion_card_computer(p));
   if (tokenized_card) companion_remember_rendered_obs(s.btn, obs_snapshot);
   set_card_disabled_state(s.btn, !available);
   if (obs_status) {
@@ -585,7 +598,7 @@ inline void setup_companion_card(BtnSlot &s, const ParsedCfg &p,
   } else {
     clear_push_button_transition(s.btn);
   }
-  companion_apply_card_focus(s.btn, p.entity, p.sensor);
+  companion_apply_card_focus(s.btn, p.entity, p.sensor, true, &obs_snapshot);
 }
 
 

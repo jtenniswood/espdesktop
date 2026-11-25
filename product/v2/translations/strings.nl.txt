@@ -375,3 +375,6 @@ turn_on_studio_mode=Studiomodus inschakelen?
 turn_off_studio_mode=Studiomodus uitschakelen?
 start_replay_buffer_prompt=Replaybuffer starten?
 stop_replay_buffer_prompt=Replaybuffer stoppen?
+
+end_call=Gesprek beëindigen
+end_call_prompt=Teams-gesprek beëindigen?

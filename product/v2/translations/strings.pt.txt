@@ -375,3 +375,6 @@ turn_on_studio_mode=Ativar o modo de estúdio?
 turn_off_studio_mode=Desativar o modo de estúdio?
 start_replay_buffer_prompt=Iniciar o buffer de replay?
 stop_replay_buffer_prompt=Parar o buffer de replay?
+
+end_call=Terminar chamada
+end_call_prompt=Terminar a chamada do Teams?

@@ -259,6 +259,8 @@ private:
     const auto previous = std::move(active_);
     active_ = std::move(staged_);
     active_->store = &store;
+    active_->scalar_values = active_->scalars.data();
+    active_->scalar_count = active_->scalars.size();
     grid_native_pages() = active_.get();
     // Apply only after the configuration service commits and activates this snapshot.
     if (publish_theme_preferences_) publish_theme_preferences_(active_->theme_preferences);

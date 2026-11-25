@@ -375,3 +375,6 @@ turn_on_studio_mode=¿Activar el modo estudio?
 turn_off_studio_mode=¿Desactivar el modo estudio?
 start_replay_buffer_prompt=¿Iniciar el búfer de repetición?
 stop_replay_buffer_prompt=¿Detener el búfer de repetición?
+
+end_call=Finalizar llamada
+end_call_prompt=¿Finalizar la llamada de Teams?

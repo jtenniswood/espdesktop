@@ -9,6 +9,68 @@
 
 template<typename Config>
 inline bool normalize_saved_config_static(Config &config) {
+  if (config.type == "companion_app_volume") {
+    if (config.icon.empty()) config.icon = "Volume High";
+    config.icon_on = "Auto";
+    config.sensor.clear();
+    config.unit.clear();
+    config.type = "companion_app_volume";
+    config.precision.clear();
+    std::string normalized_options;
+    const std::string option_source = "," + config.options + ",";
+    { const size_t begin = option_source.find(",computer=");
+      if (begin != std::string::npos) {
+        size_t end = option_source.find(',', begin + 1);
+        if (end == std::string::npos) end = option_source.size();
+        if (!normalized_options.empty()) normalized_options += ",";
+        normalized_options += option_source.substr(begin + 1, end - begin - 1);
+      }
+    }
+    config.options = normalized_options;
+    return true;
+  }
+  if (config.type == "companion_input_device") {
+    if (config.icon.empty()) config.icon = "Microphone";
+    config.icon_on = "Auto";
+    config.sensor.clear();
+    config.unit.clear();
+    config.type = "companion_input_device";
+    config.precision.clear();
+    std::string normalized_options;
+    const std::string option_source = "," + config.options + ",";
+    { const size_t begin = option_source.find(",computer=");
+      if (begin != std::string::npos) {
+        size_t end = option_source.find(',', begin + 1);
+        if (end == std::string::npos) end = option_source.size();
+        if (!normalized_options.empty()) normalized_options += ",";
+        normalized_options += option_source.substr(begin + 1, end - begin - 1);
+      }
+    }
+    config.options = normalized_options;
+    return true;
+  }
+  if (config.type == "companion_mac_lock") {
+    config.entity = "shortcut.command+control+q";
+    if (config.label.empty()) config.label = "Lock Machine";
+    if (config.icon.empty()) config.icon = "Lock";
+    config.icon_on = "Auto";
+    config.sensor.clear();
+    config.unit.clear();
+    config.type = "companion_mac_lock";
+    config.precision.clear();
+    std::string normalized_options;
+    const std::string option_source = "," + config.options + ",";
+    { const size_t begin = option_source.find(",computer=");
+      if (begin != std::string::npos) {
+        size_t end = option_source.find(',', begin + 1);
+        if (end == std::string::npos) end = option_source.size();
+        if (!normalized_options.empty()) normalized_options += ",";
+        normalized_options += option_source.substr(begin + 1, end - begin - 1);
+      }
+    }
+    config.options = normalized_options;
+    return true;
+  }
   if (config.type == "companion_output_volume") {
     config.entity = "media.output_volume";
     if (config.label == "") config.label = "Volume";
@@ -19,7 +81,17 @@ inline bool normalize_saved_config_static(Config &config) {
     config.unit.clear();
     config.type = "companion_output_volume";
     config.precision.clear();
-    config.options.clear();
+    std::string normalized_options;
+    const std::string option_source = "," + config.options + ",";
+    { const size_t begin = option_source.find(",computer=");
+      if (begin != std::string::npos) {
+        size_t end = option_source.find(',', begin + 1);
+        if (end == std::string::npos) end = option_source.size();
+        if (!normalized_options.empty()) normalized_options += ",";
+        normalized_options += option_source.substr(begin + 1, end - begin - 1);
+      }
+    }
+    config.options = normalized_options;
     return true;
   }
   if (config.type == "companion_input_volume") {
@@ -33,7 +105,17 @@ inline bool normalize_saved_config_static(Config &config) {
     config.unit.clear();
     config.type = "companion_input_volume";
     config.precision.clear();
-    config.options.clear();
+    std::string normalized_options;
+    const std::string option_source = "," + config.options + ",";
+    { const size_t begin = option_source.find(",computer=");
+      if (begin != std::string::npos) {
+        size_t end = option_source.find(',', begin + 1);
+        if (end == std::string::npos) end = option_source.size();
+        if (!normalized_options.empty()) normalized_options += ",";
+        normalized_options += option_source.substr(begin + 1, end - begin - 1);
+      }
+    }
+    config.options = normalized_options;
     return true;
   }
   if (config.type == "companion_output_mute") {
@@ -46,7 +128,17 @@ inline bool normalize_saved_config_static(Config &config) {
     config.unit.clear();
     config.type = "companion_output_mute";
     config.precision.clear();
-    config.options.clear();
+    std::string normalized_options;
+    const std::string option_source = "," + config.options + ",";
+    { const size_t begin = option_source.find(",computer=");
+      if (begin != std::string::npos) {
+        size_t end = option_source.find(',', begin + 1);
+        if (end == std::string::npos) end = option_source.size();
+        if (!normalized_options.empty()) normalized_options += ",";
+        normalized_options += option_source.substr(begin + 1, end - begin - 1);
+      }
+    }
+    config.options = normalized_options;
     return true;
   }
   if (config.type == "companion_input_mute") {
@@ -61,7 +153,25 @@ inline bool normalize_saved_config_static(Config &config) {
     config.unit.clear();
     config.type = "companion_input_mute";
     config.precision.clear();
-    config.options.clear();
+    std::string normalized_options;
+    const std::string option_source = "," + config.options + ",";
+    { const size_t begin = option_source.find(",computer=");
+      if (begin != std::string::npos) {
+        size_t end = option_source.find(',', begin + 1);
+        if (end == std::string::npos) end = option_source.size();
+        if (!normalized_options.empty()) normalized_options += ",";
+        normalized_options += option_source.substr(begin + 1, end - begin - 1);
+      }
+    }
+    { const size_t begin = option_source.find(",hold_action=");
+      if (begin != std::string::npos) {
+        size_t end = option_source.find(',', begin + 1);
+        if (end == std::string::npos) end = option_source.size();
+        if (!normalized_options.empty()) normalized_options += ",";
+        normalized_options += option_source.substr(begin + 1, end - begin - 1);
+      }
+    }
+    config.options = normalized_options;
     return true;
   }
   if (config.type == "companion_cough") {
@@ -74,7 +184,17 @@ inline bool normalize_saved_config_static(Config &config) {
     config.unit.clear();
     config.type = "companion_cough";
     config.precision.clear();
-    config.options.clear();
+    std::string normalized_options;
+    const std::string option_source = "," + config.options + ",";
+    { const size_t begin = option_source.find(",computer=");
+      if (begin != std::string::npos) {
+        size_t end = option_source.find(',', begin + 1);
+        if (end == std::string::npos) end = option_source.size();
+        if (!normalized_options.empty()) normalized_options += ",";
+        normalized_options += option_source.substr(begin + 1, end - begin - 1);
+      }
+    }
+    config.options = normalized_options;
     return true;
   }
   if (config.type == "companion_obs_cough") {
@@ -87,7 +207,17 @@ inline bool normalize_saved_config_static(Config &config) {
     config.unit.clear();
     config.type = "companion_obs_cough";
     config.precision.clear();
-    config.options.clear();
+    std::string normalized_options;
+    const std::string option_source = "," + config.options + ",";
+    { const size_t begin = option_source.find(",computer=");
+      if (begin != std::string::npos) {
+        size_t end = option_source.find(',', begin + 1);
+        if (end == std::string::npos) end = option_source.size();
+        if (!normalized_options.empty()) normalized_options += ",";
+        normalized_options += option_source.substr(begin + 1, end - begin - 1);
+      }
+    }
+    config.options = normalized_options;
     return true;
   }
   if (config.type == "light_brightness") {

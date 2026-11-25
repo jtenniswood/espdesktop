@@ -140,6 +140,7 @@ void lv_obj_set_user_data(lv_obj_t *, void *) {}
 void lv_obj_set_style_pad_all(lv_obj_t *, int, int) {}
 void lv_obj_set_style_radius(lv_obj_t *, int, int) {}
 void lv_obj_del(lv_obj_t *) {}
+void companion_card_lock_badge_forget(lv_obj_t *) {}
 void lv_obj_set_style_opa(lv_obj_t *, int, int) {}
 void lv_obj_set_style_text_opa(lv_obj_t *, int, int) {}
 int lv_obj_get_height(lv_obj_t *obj) { return obj->area.y2 - obj->area.y1 + 1; }
@@ -239,6 +240,13 @@ struct CompanionCardRef {
   lv_obj_t *text_label = nullptr, *obs_detail = nullptr, *obs_state_icon = nullptr;
   std::string obs_label_alias{};
   CompanionAction rendered_obs_action{};
+  std::string computer_id{};
+};
+class CompanionSnapshotCache {
+ public:
+  const CompanionRuntimeSnapshot &get(const std::string &, const CompanionRuntimeSnapshot &fallback) {
+    return fallback;
+  }
 };
 struct CompanionSliderRef {
   lv_obj_t *slider = nullptr, *icon_label = nullptr, *text_label = nullptr;
@@ -302,6 +310,7 @@ struct CompanionAppIconImageData {
   struct { uint32_t default_rgb = 0x1565C0, active_rgb = 0x7985CB; bool valid = true; } accent_palette;
   bool app_icon_mode = true, companion_online = true, image_loaded = true;
   bool card_palette_ready = true, custom_background = false, palette_applied = false;
+  bool explicit_active = false;
   uint32_t fallback_default_rgb = 0x313131, fallback_active_rgb = 0x5C73E7;
 };
 '''

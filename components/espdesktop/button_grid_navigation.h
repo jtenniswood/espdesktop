@@ -6,11 +6,14 @@
 
 #include <functional>
 #include <algorithm>
+#include <cstdlib>
+#include <string>
 #include <vector>
 
 #include "grid_navigation_service.h"
 #include "grid_navigation_diagnostics.h"
 #include "espdesktop_app_core.h"
+#include "clock_bar.h"
 
 // Implemented by button_grid_image.h; navigation calls this when a subpage
 // becomes active after the S3 camera screensaver released image buffers.
@@ -21,6 +24,7 @@ inline void image_card_set_clock_bar_companion_icon(
 inline void navigation_refresh_subpage_label();
 #ifdef USE_COMPANION
 inline void companion_refresh_app_icon_visibility(bool release_hidden = false);
+inline void companion_refit_visible_app_icons();
 #endif
 
 // ── Home Assistant-driven home-screen navigation ─────────────────────
@@ -56,6 +60,10 @@ bool neutral_background = true;
     int display_order = 0;
   };
   std::vector<Card> cards;
+  // Extra home screens have no owner card and no Back button.
+  bool is_screen = false;
+  // Owner-card label, used by the Home Assistant active-screen sensor.
+  std::string label;
 };
 
 inline NavigationSubpageEntry *navigation_find_slot(int slot);
@@ -101,6 +109,89 @@ inline std::vector<NavigationSubpageEntry> &navigation_subpages() {
 inline std::vector<lv_obj_t *> &navigation_grid_screens() {
   static std::vector<lv_obj_t *> screens;
   return screens;
+}
+
+// ── Extra home screens ───────────────────────────────────────────────
+// Screen zero is the main page. Extra screens are stored as ownerless pages
+// keyed by their anchor slot and are paged horizontally.
+
+inline lv_obj_t *&navigation_main_screen() {
+  static lv_obj_t *screen = nullptr;
+  return screen;
+}
+
+inline int navigation_screen_index(lv_obj_t *screen);
+
+inline void navigation_register_main_screen(lv_obj_t *screen) {
+  navigation_main_screen() = screen;
+  // Home and its extra screens keep the clock bar and its reserved top space;
+  // only real subpages switch to the compact layout.
+  clock_bar_home_screen_predicate() = [](lv_obj_t *active) {
+    return navigation_screen_index(active) >= 0;
+  };
+}
+
+inline std::vector<int> navigation_screen_keys() {
+  std::vector<int> keys;
+  for (const auto &entry : navigation_subpages())
+    if (entry.is_screen) keys.push_back(entry.slot);
+  std::sort(keys.begin(), keys.end());
+  return keys;
+}
+
+inline NavigationSubpageEntry *navigation_find_screen(int key) {
+  for (auto &entry : navigation_subpages())
+    if (entry.is_screen && entry.slot == key) return &entry;
+  return nullptr;
+}
+
+inline void navigation_register_screen_slot(int key) {
+  if (key <= 0 || navigation_find_screen(key) != nullptr) return;
+  NavigationSubpageEntry entry;
+  entry.slot = key;
+  entry.display_order = key;
+  entry.is_screen = true;
+  navigation_subpages().push_back(entry);
+}
+
+inline void navigation_register_screen_page(int key, lv_obj_t *screen) {
+  navigation_register_screen_slot(key);
+  if (auto *entry = navigation_find_screen(key)) entry->screen = screen;
+  navigation_register_grid_screen_gesture(screen);
+}
+
+inline int navigation_screen_count() {
+  return 1 + static_cast<int>(navigation_screen_keys().size());
+}
+
+inline int navigation_screen_index(lv_obj_t *screen) {
+  if (screen == nullptr) return -1;
+  if (screen == navigation_main_screen()) return 0;
+  const auto keys = navigation_screen_keys();
+  for (size_t i = 0; i < keys.size(); ++i) {
+    const auto *entry = navigation_find_screen(keys[i]);
+    if (entry && entry->screen == screen) return static_cast<int>(i) + 1;
+  }
+  return -1;
+}
+
+inline int navigation_screen_key_at(int index) {
+  if (index <= 0) return 0;
+  const auto keys = navigation_screen_keys();
+  return index <= static_cast<int>(keys.size()) ? keys[index - 1] : 0;
+}
+
+inline lv_obj_t *navigation_screen_at(int index) {
+  if (index == 0) return navigation_main_screen();
+  const int key = navigation_screen_key_at(index);
+  const auto *entry = key ? navigation_find_screen(key) : nullptr;
+  return entry ? entry->screen : nullptr;
+}
+
+// Vertical swipe actions are supplied by the device configuration.
+inline std::function<std::string(int)> &navigation_swipe_action_provider() {
+  static std::function<std::string(int)> provider;
+  return provider;
 }
 
 inline std::string navigation_trim(const std::string &value) {
@@ -185,10 +276,156 @@ inline bool navigation_display_mode_allows_grid_gesture() {
          is_interactive_grid_mode(core->display().target_mode());
 }
 
+inline bool navigation_gesture_started_on_drag(lv_obj_t *screen, const lv_point_t &point,
+                                               lv_dir_t direction) {
+  // Sliders and other drag controls keep a gesture along their own axis.
+  // Ordinary cards do not block a page gesture: they act on release, so a fling
+  // cancels the press.
+  lv_point_t probe = point;
+  lv_obj_t *object = lv_indev_search_obj(screen, &probe);
+  while (object != nullptr && object != screen) {
+    if (touch_object_owns_gesture(object, direction)) return true;
+    object = lv_obj_get_parent(object);
+  }
+  return false;
+}
+
+inline bool navigation_switch_screen(int target, lv_indev_t *indev) {
+  if (target < 0 || target >= navigation_screen_count()) return false;
+  const int current = navigation_screen_index(lv_scr_act());
+  if (target == current) return false;
+  lv_obj_t *screen = navigation_screen_at(target);
+  const int key = navigation_screen_key_at(target);
+  if (screen == nullptr && key > 0) {
+    auto &builder = navigation_subpage_builder();
+    if (!builder) return false;
+    screen = builder(key);
+    if (screen != nullptr) navigation_register_screen_page(key, screen);
+  }
+  if (screen == nullptr) return false;
+  navigation_hide_modals();
+  touch_consume_actions();
+  if (indev != nullptr) lv_indev_wait_release(indev);
+  // Full-screen slides redraw two 480x480 frames per animation step through
+  // software rotation and run at a low frame rate on the S3. Match subpages and
+  // switch immediately so paging feels responsive.
+  lv_scr_load_anim(screen, LV_SCR_LOAD_ANIM_NONE, 0, 0, false);
+  // Reuse cached artwork immediately and restart stale downloads for the page
+  // that is now visible, as subpage navigation already does.
+  refresh_visible_image_cards();
+  return true;
+}
+
+inline bool navigation_run_swipe_action(const std::string &action, lv_indev_t *indev) {
+  const std::string value = navigation_lower(navigation_trim(action));
+  if (value.empty() || value == "none") return false;
+  const int index = navigation_screen_index(lv_scr_act());
+  if (index < 0) return false;
+  if (value == "home") return navigation_switch_screen(0, indev);
+  if (value == "back") return index > 0 && navigation_switch_screen(0, indev);
+  if (value == "previous" || value == "prev" || value == "previous_screen")
+    return navigation_switch_screen(index - 1, indev);
+  if (value == "next" || value == "next_screen")
+    return navigation_switch_screen(index + 1, indev);
+  if (value.rfind("screen_", 0) == 0) {
+    const int number = std::atoi(value.c_str() + 7);
+    return number > 0 && navigation_switch_screen(number, indev);
+  }
+  if (value.rfind("screen:", 0) == 0) {
+    const int key = std::atoi(value.c_str() + 7);
+    const auto keys = navigation_screen_keys();
+    for (size_t i = 0; i < keys.size(); ++i)
+      if (keys[i] == key) return navigation_switch_screen(static_cast<int>(i) + 1, indev);
+  }
+  return false;
+}
+
+// ── Home Assistant surface ───────────────────────────────────────────
+
+inline std::string navigation_active_page_label() {
+  lv_obj_t *screen = lv_scr_act();
+  const int index = navigation_screen_index(screen);
+  if (index == 0) return "Home";
+  if (index > 0) return "Screen " + std::to_string(index + 1);
+  for (const auto &entry : navigation_subpages())
+    if (entry.screen == screen) return entry.label.empty() ? "Subpage" : entry.label;
+  return "Setup";
+}
+
+inline bool navigation_back() {
+  lv_obj_t *screen = lv_scr_act();
+  for (const auto &entry : navigation_subpages()) {
+    if (entry.screen != screen || entry.back_button == nullptr ||
+        !lv_obj_is_valid(entry.back_button)) continue;
+    lv_obj_send_event(entry.back_button, LV_EVENT_SHORT_CLICKED, nullptr);
+    return true;
+  }
+  const int index = navigation_screen_index(screen);
+  return index > 0 && navigation_switch_screen(0, nullptr);
+}
+
+inline bool navigation_swipe_back(lv_indev_t *indev, lv_obj_t *screen) {
+  for (const auto &entry : navigation_subpages()) {
+    if (entry.screen != screen || entry.back_button == nullptr ||
+        !lv_obj_is_valid(entry.back_button)) continue;
+    if (indev != nullptr) lv_indev_wait_release(indev);
+    lv_obj_send_event(entry.back_button, LV_EVENT_SHORT_CLICKED, nullptr);
+    return true;
+  }
+  return false;
+}
+
+inline void navigation_show_notification(const std::string &message,
+                                         uint32_t duration_ms) {
+  if (message.empty()) return;
+  static lv_obj_t *active = nullptr;
+  static lv_timer_t *active_timer = nullptr;
+  if (active_timer != nullptr) {
+    lv_timer_del(active_timer);
+    active_timer = nullptr;
+  }
+  if (active != nullptr && lv_obj_is_valid(active)) lv_obj_del(active);
+  active = lv_obj_create(lv_layer_top());
+  if (active == nullptr) return;
+  lv_obj_remove_flag(active, LV_OBJ_FLAG_CLICKABLE);
+  lv_obj_set_width(active, lv_pct(72));
+  lv_obj_set_height(active, LV_SIZE_CONTENT);
+  lv_obj_set_style_bg_color(active, lv_color_hex(0x202124), LV_PART_MAIN);
+  lv_obj_set_style_bg_opa(active, LV_OPA_90, LV_PART_MAIN);
+  lv_obj_set_style_radius(active, 16, LV_PART_MAIN);
+  lv_obj_set_style_border_width(active, 0, LV_PART_MAIN);
+  lv_obj_set_style_pad_all(active, 14, LV_PART_MAIN);
+  lv_obj_align(active, LV_ALIGN_TOP_MID, 0, 24);
+  lv_obj_t *label = lv_label_create(active);
+  if (label != nullptr) {
+    lv_label_set_text(label, message.c_str());
+    lv_label_set_long_mode(label, LV_LABEL_LONG_WRAP);
+    lv_obj_set_width(label, lv_pct(100));
+    lv_obj_set_style_text_color(label, lv_color_white(), LV_PART_MAIN);
+    lv_obj_set_style_text_align(label, LV_TEXT_ALIGN_CENTER, LV_PART_MAIN);
+    const lv_font_t *font = lv_obj_get_style_text_font(lv_scr_act(), LV_PART_MAIN);
+    if (font != nullptr) lv_obj_set_style_text_font(label, font, LV_PART_MAIN);
+  }
+  const uint32_t period = std::max<uint32_t>(500, std::min<uint32_t>(duration_ms, 60000));
+  active_timer = lv_timer_create([](lv_timer_t *timer) {
+    auto *toast = static_cast<lv_obj_t *>(lv_timer_get_user_data(timer));
+    if (toast != nullptr && toast == active && lv_obj_is_valid(toast)) {
+      lv_obj_del(toast);
+      active = nullptr;
+    }
+    lv_timer_del(timer);
+    active_timer = nullptr;
+  }, period, active);
+  if (active_timer != nullptr) lv_timer_set_repeat_count(active_timer, 1);
+}
+
 struct NavigationGridGesturePress {
   lv_indev_t *device = nullptr;
   lv_obj_t *screen = nullptr;
   lv_point_t start{};
+  // Set when LVGL delivered PRESSED for this touch. A disabled card gets no
+  // PRESSED, so a gesture with this clear began on an unavailable control.
+  bool seen = false;
 };
 
 inline NavigationGridGesturePress &navigation_grid_gesture_press(lv_indev_t *device) {
@@ -207,9 +444,16 @@ inline void navigation_grid_screen_gesture(lv_event_t *event) {
   lv_indev_t *indev = lv_indev_active();
   if (indev == nullptr) return;
   auto &press = navigation_grid_gesture_press(indev);
-  if (code == LV_EVENT_PRESSED || code == LV_EVENT_RELEASED) press.screen = nullptr;
-  if (code == LV_EVENT_RELEASED) return;
-  if (!navigation_display_mode_allows_grid_gesture() ||
+  if (code == LV_EVENT_PRESSED) {
+    press.seen = true;
+    press.screen = nullptr;
+  }
+  if (code == LV_EVENT_RELEASED) {
+    press.seen = false;
+    press.screen = nullptr;
+    return;
+  }
+  if (image_popup_open() || !navigation_display_mode_allows_grid_gesture() ||
       screen_lock_enabled() || control_modal_active().overlay != nullptr ||
       control_modal_nested_active().overlay != nullptr) return;
 
@@ -221,33 +465,74 @@ inline void navigation_grid_screen_gesture(lv_event_t *event) {
   if (code == LV_EVENT_PRESSED) {
     press.screen = screen;
     lv_indev_get_point(indev, &press.start);
+    touch_record_press(indev, press.start);
     return;
+  }
+  if (press.screen == nullptr) {
+    // LVGL does not send PRESSED for a disabled card, but it still sends the
+    // gesture. Start that gesture from the current point so a swipe that
+    // begins on an unavailable card still pages. If a press was delivered but
+    // discarded by a guard, do not treat its gesture as a new touch.
+    if (press.seen) return;
+    lv_indev_get_point(indev, &press.start);
+    press.screen = screen;
   }
   if (press.screen != screen) return;
   const lv_point_t start = press.start;
   press.screen = nullptr;
+  press.seen = false;
   const auto direction = lv_indev_get_gesture_dir(indev);
+  // A right swipe anywhere on a subpage returns to its parent. Home screens
+  // have no Back control here, so the same swipe pages backwards there.
+  // TODO: Generalize edge gestures. Per-edge actions are tracked in TODO.md.
   if (direction == LV_DIR_RIGHT) {
-    const lv_coord_t screen_width = lv_obj_get_width(screen);
-    const lv_coord_t swipe_start_x = start.x;
-    if (screen_width <= 0 || swipe_start_x < 0 ||
-        swipe_start_x > screen_width / 6) return;
-
+    if (navigation_gesture_started_on_drag(screen, start, direction)) return;
     for (const auto &entry : navigation_subpages()) {
       if (entry.screen != screen || entry.back_button == nullptr ||
           !lv_obj_is_valid(entry.back_button)) continue;
       // Use the same Back action as a direct press on the subpage.
       lv_indev_wait_release(indev);
       ESP_LOGD("ui_latency", "Swipe back recognized at=%u", unsigned(esphome::millis()));
-      lv_obj_send_event(entry.back_button, LV_EVENT_PRESSED, nullptr);
+      lv_obj_send_event(entry.back_button, LV_EVENT_SHORT_CLICKED, nullptr);
       ESP_LOGD("ui_latency", "Swipe back finished at=%u", unsigned(esphome::millis()));
       return;
     }
+  }
+
+  // Android-style Back: a left swipe on an ordinary subpage returns to its
+  // parent. On Home or an extra screen the same swipe pages forward instead.
+  if (direction == LV_DIR_LEFT && navigation_screen_index(screen) < 0) {
+    if (navigation_gesture_started_on_drag(screen, start, direction)) return;
+    navigation_swipe_back(indev, screen);
+    return;
+  }
+
+  // Home-screen paging and configured vertical actions. Ordinary subpages keep
+  // their existing edge-Back gesture only.
+  const int screen_index = navigation_screen_index(screen);
+  if (screen_index < 0) return;
+  if (navigation_gesture_started_on_drag(screen, start, direction)) return;
+  if (direction == LV_DIR_LEFT || direction == LV_DIR_RIGHT) {
+    if (navigation_screen_count() <= 1) return;
+    lv_indev_wait_release(indev);
+    navigation_switch_screen(
+        screen_index + (direction == LV_DIR_LEFT ? 1 : -1), indev);
+    return;
+  }
+  if (direction == LV_DIR_TOP || direction == LV_DIR_BOTTOM) {
+    auto &provider = navigation_swipe_action_provider();
+    if (!provider) return;
+    lv_indev_wait_release(indev);
+    navigation_run_swipe_action(provider(direction), indev);
   }
 }
 
 inline void navigation_register_grid_screen_gesture(lv_obj_t *screen) {
   if (screen == nullptr) return;
+  // Grid pages never scroll. A scrollable page becomes LVGL's scroll object
+  // when a drag starts on a card, which suppresses the page gesture. A wide
+  // card that overflows the grid can make the page scrollable.
+  lv_obj_clear_flag(screen, LV_OBJ_FLAG_SCROLLABLE);
   auto &screens = navigation_grid_screens();
   if (std::find(screens.begin(), screens.end(), screen) == screens.end()) {
     screens.push_back(screen);
@@ -336,6 +621,9 @@ inline void navigation_subpage_screen_changed(lv_event_t *) {
   auto &refresh = navigation_subpage_clock_bar_refresh();
   if (refresh) refresh();
   else navigation_refresh_subpage_label();
+#ifdef USE_COMPANION
+  companion_refit_visible_app_icons();
+#endif
   ESP_LOGD("ui_latency", "Subpage refresh done at=%u", unsigned(esphome::millis()));
 }
 
@@ -452,6 +740,10 @@ inline void navigation_trim_subpage_cache(size_t limit, int protected_slot) {
     size_t resident = 0;
     NavigationSubpageEntry *oldest = nullptr;
     for (auto &entry : navigation_subpages()) {
+      // Extra home screens are paging destinations, not cache entries. Keep
+      // their widget trees so a swipe reuses the rendered cards instead of
+      // rebuilding them (and reloading their artwork) on every page change.
+      if (entry.is_screen) continue;
       if (!entry.screen) continue;
       ++resident;
       if (entry.screen == lv_scr_act() || entry.slot == protected_slot) continue;
