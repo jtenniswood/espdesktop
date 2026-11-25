@@ -183,6 +183,7 @@ struct CompanionPairingSnapshot {
   uint32_t system_metrics_generation{0};
   std::string pairing_code;
   std::string mdns_name;
+  bool windows_companion{false};
 };
 
 using CompanionPairingProvider = std::function<CompanionPairingSnapshot()>;

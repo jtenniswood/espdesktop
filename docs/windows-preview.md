@@ -23,6 +23,8 @@ Use a 4-inch Guition 4848S040 to launch approved Windows apps, open File Explore
 
 Choose **Add display** to pair another panel with the same PC. Each panel has its own connection and editor. App and folder approvals apply to every paired panel.
 
+With current firmware and a connected Windows companion, the card picker shows Windows-compatible alternatives for Mac-only features. Existing Mac-only cards stay in the layout and show a macOS requirement in their settings.
+
 ## Add controls
 
 - Approve apps and folders in the Windows app before adding **Applications** and **Folder** cards.
