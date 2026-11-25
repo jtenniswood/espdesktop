@@ -22,7 +22,7 @@ function shareImage(file: string, width: number, height: number, alt: string) {
 }
 
 const defaultImage = shareImage('espdesktop-home-share.jpg', 1200, 630,
-  'EspDesktop: A touchscreen controller for your Mac. The touchscreen shows colourful app tiles on a desk.')
+  'EspDesktop: A touchscreen controller for Mac and Windows. The touchscreen shows colourful app tiles on a desk.')
 const pageImages: Record<string, typeof defaultImage> = {
   'screens/4848s040.md': shareImage('espdesktop-desk.jpg', 1320, 1093,
     'EspDesktop touchscreen with buttons for Mac apps next to a keyboard'),
@@ -101,7 +101,7 @@ const systemSettingsLink = { text: 'System settings', link: '/settings/system' }
 export default defineConfig({
   title: 'EspDesktop',
   description:
-    'Pair a small ESP32 touchscreen with your Mac to launch apps, open folders and websites, and run keyboard shortcuts.',
+    'Pair a small ESP32 touchscreen with your Mac or Windows PC to launch apps, open folders and websites, and run keyboard shortcuts.',
   lang: 'en-US',
   appearance: 'force-dark',
   cleanUrls: true,
@@ -268,8 +268,7 @@ export default defineConfig({
           name: 'EspDesktop',
           url: canonicalUrl,
           applicationCategory: 'UtilitiesApplication',
-          operatingSystem: `macOS ${productFacts.minimumMacOS} or newer`,
-          processorRequirements: productFacts.macProcessor,
+          operatingSystem: `macOS ${productFacts.minimumMacOS} or newer (Apple silicon), Windows 11 (x64 or Arm64 preview)`,
           sameAs: 'https://github.com/jtenniswood/espdesktop',
           installUrl: `${hostname}download`,
           releaseNotes: 'https://github.com/jtenniswood/espdesktop/releases',
@@ -277,7 +276,7 @@ export default defineConfig({
           author,
           softwareHelp: {
             '@type': 'WebPage',
-            url: `${hostname}screens/4848s040#download`,
+            url: `${hostname}screens/4848s040`,
           },
           screenshot: `${hostname}images/mac-app-display.jpg`,
           offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },
@@ -343,7 +342,7 @@ export default defineConfig({
         items: [
           { text: 'Buy', link: '/screens/4848s040#where-to-buy' },
           { text: 'Install', link: '/screens/4848s040#install' },
-          { text: 'Download', link: '/screens/4848s040#download' },
+          { text: 'Download', link: '/download' },
         ],
       },
       {
@@ -357,7 +356,9 @@ export default defineConfig({
       {
         text: 'Get started',
         items: [
-          { text: 'Setup guide', link: '/screens/4848s040#where-to-buy' },
+          { text: 'Display setup', link: '/screens/4848s040' },
+          { text: 'macOS setup', link: '/screens/4848s040#setup-on-macos' },
+          { text: 'Windows 11 setup (preview)', link: '/windows-preview' },
           { text: 'Printable stand', link: '/screens/4848s040-stand' },
         ],
       },

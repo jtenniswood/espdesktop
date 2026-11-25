@@ -991,6 +991,26 @@ int main() {
     assert(companion_expect_action_result("bounded-" + std::to_string(index), []() {}));
   }
   assert(!companion_expect_action_result("bounded-overflow", []() {}));
+
+  // Apple Shortcuts report "performed" after the process exits successfully.
+  // Even with all app activation slots occupied, each shortcut keeps its own result.
+  int shortcut_completions = 0;
+  const auto completed = [&] { shortcut_completions++; };
+  const auto performed = CompanionActionSuccess::PERFORMED;
+  assert(companion_expect_action_result("shortcut-first", completed, 0, performed));
+  assert(companion_expect_action_result("shortcut-second", completed, 0, performed));
+  assert(companion_expect_action_result("shortcut-failed", completed, 0, performed));
+  assert(companion_expect_action_result("shortcut-denied", completed, 0, performed));
+  assert(companion_expect_action_result("shortcut-wrong-status", completed, 0, performed));
+  companion_deliver_action_result("shortcut-denied", "not_allowed");
+  companion_deliver_action_result("shortcut-failed", "failed");
+  companion_deliver_action_result("shortcut-wrong-status", "activated");
+  assert(shortcut_completions == 0);
+  companion_deliver_action_result("shortcut-second", "performed");
+  assert(shortcut_completions == 1);
+  companion_deliver_action_result("shortcut-first", "performed");
+  companion_deliver_action_result("shortcut-second", "performed");
+  assert(shortcut_completions == 2);
   companion_cancel_action_result();
   companion_set_timezone_id("Europe/London");
   assert(companion_timezone_id() == "Europe/London");

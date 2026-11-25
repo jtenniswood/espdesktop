@@ -97,11 +97,11 @@ layout stores only deliberate edits and the IDs of removed generated cards.
 `product/generated/companion_compatibility.json` and the generated public
 compatibility page describe supported protocol pairs and devices. Releases stay
 coordinated until independently supported version pairs have executable tests.
-After firmware and Mac builds succeed, `scripts/companion_release.py` records the
-source revision and artifact hashes in the published
-`companion-compatibility.json`; verification rejects changed files, ambiguous
-Mac artifacts and mismatched firmware provenance. This does not claim physical
-device testing.
+After the firmware, Mac and Windows builds succeed, `scripts/companion_release.py`
+records the source revision and artifact hashes in the published
+`companion-compatibility.json`. Verification checks the expected Windows
+installers for both architectures alongside the Mac archives and firmware
+provenance. Physical device testing is recorded separately.
 
 Run `npm run check:companion-contract`, `npm run test:firmware`, browser unit
 checks, and `swift test --package-path macos/EspDesktop` after boundary changes.

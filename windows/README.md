@@ -2,11 +2,11 @@
 
 Control a Windows 11 PC from the Guition 4848S040 EspDesktop display. The app uses standard Windows controls, follows your Windows theme, and stays in the notification area when you close Settings.
 
-## Install a preview
+## Install EspDesktop
 
-1. Open the **Windows EspDesktop** run on the Windows companion pull request.
-2. Download the **espdesktop-windows-x64-installer** artifact for an Intel or AMD PC, or **espdesktop-windows-arm64-installer** for a Windows on Arm PC. If unsure, check **Settings → System → About → System type** on the PC.
-3. Unzip the artifact and run its setup file. The preview is unsigned and Windows may ask you to confirm that you trust the file. Install only the artifact from this repository’s Actions run.
+1. Open [GitHub Releases](https://github.com/jtenniswood/espdesktop/releases) and select the latest release that lists Windows installers under **Assets**.
+2. Download the setup file ending in **x64-Setup.exe** for Intel or AMD PCs, or **arm64-Setup.exe** for Windows on Arm. If unsure, check **Settings → System → About → System type** on the PC.
+3. Run the setup file. The installer is unsigned, so Windows may ask you to confirm that you trust it.
 4. Open **EspDesktop** from Start. You can remove it later from **Settings → Apps → Installed apps**.
 
 Setup installs for the current user and includes the .NET runtime. It does not need administrator access. Settings and pairing are retained across reinstalls.
@@ -17,7 +17,7 @@ Keep the PC and display on the same local network. In **Display**, select a near
 
 Choose **Add display** to connect another display to the same PC. Each display can connect to one computer at a time. Use the individual display cards to connect, disconnect, forget, or open the editor for that display. Windows app and folder approvals are shared across all your paired displays.
 
-In the display editor, open **Connectors → Mac Companion** to check pairing with your Windows PC. You can add these controls:
+In the display editor, open **System → Connectors → Companion** to check pairing with your Windows PC. You can add these controls:
 
 - Add **Applications** cards for approved Start menu apps, with icons and active app highlighting. Shortcut presets are included for common browsers, VS Code, Cursor, Office, Notepad, Slack, Discord, Spotify, and GitHub Desktop where the app can identify them. You can create a custom shortcut for any approved app.
 - Choose when an app’s shortcut subpage opens under **Screen → Appearance → App Subpages**. Shortcut pages require the matching app to be in the foreground. If Windows keeps another app in front, use the flashing taskbar button to switch to the requested app.
@@ -43,9 +43,9 @@ dotnet run -c Release --project windows/EspDesktop
 ./windows/EspDesktop/Packaging/Build-Installer.ps1 -Architecture x64
 ```
 
-The workflow builds installers for x64 and Arm64 and installs, opens, and uninstalls each build on Windows. The test project checks the same protocol fixtures as firmware and macOS, and pairs with a simulated display over TLS. Use a Windows 11 PC and a physical 4848S040 for discovery, actual pairing, app and folder focus, browser behavior, shortcuts, volume, lock and reconnect testing.
+The workflow builds installers for x64 and Arm64 and installs, opens, and uninstalls each build on Windows. To try an unpublished build, download and unzip the installer artifact for your architecture from its **Windows EspDesktop** run. The test project checks the same protocol fixtures as firmware and macOS, and pairs with a simulated display over TLS. Use a Windows 11 PC and a physical 4848S040 for discovery, actual pairing, app and folder focus, browser behavior, shortcuts, volume, lock and reconnect testing.
 
-The preview checks for newer stable Windows releases for your PC’s architecture and display protocol and opens their download page. Firmware-only releases do not affect the Windows update check. In-app installation requires an Authenticode-signed Windows build and a trusted installer signed with the same publisher key.
+EspDesktop checks for newer stable Windows releases for your PC’s architecture and display protocol and opens their download page. Firmware-only releases do not affect the Windows update check. Run the new setup file from the release page to update. In-app installation requires an Authenticode-signed Windows app and installer with the same trusted publisher key.
 
 ### Generate a signed Windows installer
 
