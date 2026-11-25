@@ -2453,9 +2453,11 @@ async function assertKeyboardCardDeletion(browser, testCase) {
       await card(3).locator(".sp-subpage-badge").click();
       const back = page.locator(".sp-back-btn");
       const bounds = await back.boundingBox();
-      await back.click({ position: { x: bounds.width - 12, y: 12 } });
+      await back.click({ position: { x: bounds.width - 2, y: bounds.height / 2 } });
+      const selection = page.locator(".sp-selection-label");
+      assert.strictEqual(await selection.textContent(), "Back button selected");
       await page.keyboard.press("Backspace");
-      assert(await back.isVisible());
+      assert.strictEqual(await selection.textContent(), "Back button selected");
       assert(await card(1).isVisible());
       await card(1).click({ modifiers: ["ControlOrMeta"], position: { x: 12, y: 12 } });
       await page.keyboard.press("Delete");

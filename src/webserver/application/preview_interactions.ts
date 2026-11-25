@@ -338,13 +338,16 @@ export function createPreviewInteractionsFeature(
 
         if (!els.screenPage.classList.contains("active") || isConfigLocked() || state.settingsDraft?.generated ||
             els.settingsOverlay?.classList.contains("sp-visible") ||
-            window.document.querySelector('[aria-modal="true"], .sp-selection-box')) return;
+            window.document.querySelector('dialog[open], [aria-modal="true"], .sp-selection-box')) return;
 
-        // The subpage's built-in Back button can be selected alongside saved cards.
-        const slots = (ctx().selected as number[]).filter(slot => slot > 0);
+        const selected: number[] = ctx().selected;
+        if (!selected.length) return;
+
+        // Suppress browser history navigation even if only the built-in Back button is selected.
+        event.preventDefault();
+        const slots = selected.filter(slot => slot > 0);
         if (!slots.length) return;
 
-        event.preventDefault();
         dependencies.contextMenu.hide();
         if (slots.length === 1) deleteSlot(slots[0]);
         else deleteButtons(slots);
