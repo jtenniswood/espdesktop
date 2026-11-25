@@ -107,10 +107,12 @@ embeds the offline editor from the same verified web artifact that Pages
 receives. Its SHA-256 is checked before compilation. Generated source
 and build caches are not assets.
 
-**Build Release** makes the firmware and notarized Mac app available as
-workflow artifacts. Its summary gives the candidate run ID and the fingerprint
-of the manifest that records their file hashes and pins the release manifest
-that identifies the hosted editor.
+**Build Release** makes the firmware, notarized Mac app, and unsigned Windows
+setup files for x64 and Arm64 available as workflow artifacts. The Windows jobs
+build from the release revision and exercise install, launch, upgrade, and
+uninstall. The summary gives the candidate run ID and manifest fingerprint.
+The manifest records the Windows installer hashes alongside the Mac archives
+and supported firmware, and pins the release manifest for the hosted editor.
 
 Follow the [stable release setup docs checklist](docs-discovery.md#verify-the-setup-docs-for-each-stable-release)
 with the candidate and again after Pages deploys. Record any physical setup

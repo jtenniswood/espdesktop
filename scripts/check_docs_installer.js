@@ -364,7 +364,7 @@ async function checkBrowser() {
     await page.waitForURL(`${base}/download`);
     await page.getByRole('heading', { name: 'Download EspDesktop', level: 1 }).waitFor();
     const windowsDownload = page.getByRole('link', { name: 'Download the Windows installer and pair your display' });
-    assert.equal(await windowsDownload.getAttribute('href'), '/windows-preview#install-the-preview');
+    assert.equal(await windowsDownload.getAttribute('href'), '/windows-preview#install-espdesktop');
     const download = page.locator('.mac-app-download a');
     await download.waitFor();
     assert.match(await download.getAttribute('href'),

@@ -23,4 +23,4 @@ Use the Mac app and firmware from the **same EspDesktop release**. If your displ
 
 ## Windows 11 preview
 
-The Windows preview supports Windows 11 on Intel, AMD, and Arm PCs. [Download the Windows installer and pair your display](/windows-preview#install-the-preview).
+The Windows preview supports Windows 11 on Intel, AMD, and Arm PCs. [Download the Windows installer and pair your display](/windows-preview#install-espdesktop).

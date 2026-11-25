@@ -45,10 +45,11 @@ def esp32_application_elf_sha256(path):
     return header[176:208].hex()
 
 
-def manifest(firmware_dir, companion_dir, source_revision, version, root=ROOT):
+def manifest(firmware_dir, companion_dir, windows_dir, source_revision, version, root=ROOT):
     if not re.fullmatch(r'[0-9a-f]{40}', source_revision):
         raise ValueError('A full source revision is required')
-    if not re.fullmatch(r'v?\d+\.\d+\.\d+(?:-[0-9A-Za-z][0-9A-Za-z.-]*)?', version):
+    version_match = re.fullmatch(r'v?([0-9]+\.[0-9]+\.[0-9]+)(?:-[0-9A-Za-z][0-9A-Za-z.-]*)?', version)
+    if not version_match:
         raise ValueError('A semantic release version is required')
     contract = compatibility(root)
     provenance_bytes = (firmware_dir / 'release-manifest.json').read_bytes()
@@ -68,16 +69,25 @@ def manifest(firmware_dir, companion_dir, source_revision, version, root=ROOT):
             raise ValueError(f'Expected exactly one Companion {suffix} artifact')
         path = matches[0]
         artifacts[path.name] = {'sha256': digest(path), 'bytes': path.stat().st_size}
+    installer_version = version_match[1]
+    expected_installers = sorted(f'EspDesktop-Windows-{installer_version}-{arch}-Setup.exe' for arch in ('x64', 'arm64'))
+    installers = sorted(windows_dir.iterdir()) if windows_dir.is_dir() else []
+    if [path.name for path in installers] != expected_installers:
+        raise ValueError(f'Expected Windows installers: {", ".join(expected_installers)}')
+    for path in installers:
+        if not path.is_file() or path.stat().st_size == 0:
+            raise ValueError(f'Missing or empty Windows installer: {path.name}')
+        artifacts[path.name] = {'sha256': digest(path), 'bytes': path.stat().st_size}
     return {**contract, 'sourceRevision': source_revision, 'releaseVersion': version,
             'firmwareManifestSha256': hashlib.sha256(provenance_bytes).hexdigest(),
             'artifacts': artifacts,
             'validation': {'automated': 'release workflow checks', 'physicalDeviceTesting': 'not asserted'}}
 
 
-def verify(path, firmware_dir, companion_dir, source_revision, version, root=ROOT, *, tested_fingerprint=None):
+def verify(path, firmware_dir, companion_dir, windows_dir, source_revision, version, root=ROOT, *, tested_fingerprint=None):
     if tested_fingerprint is not None and digest(path) != tested_fingerprint:
         raise ValueError('Candidate fingerprint does not match the confirmed build')
-    expected = manifest(firmware_dir, companion_dir, source_revision, version, root)
+    expected = manifest(firmware_dir, companion_dir, windows_dir, source_revision, version, root)
     if json.loads(path.read_text()) != expected:
         raise ValueError('Companion compatibility manifest or release artifacts do not match')
 
@@ -87,6 +97,7 @@ def main():
     parser.add_argument('command', choices=['create', 'verify'])
     parser.add_argument('--firmware-dir', type=Path, required=True)
     parser.add_argument('--companion-dir', type=Path, required=True)
+    parser.add_argument('--windows-dir', type=Path, required=True)
     parser.add_argument('--source-revision', required=True)
     parser.add_argument('--version', required=True)
     parser.add_argument('--out', type=Path, required=True)
@@ -95,9 +106,9 @@ def main():
     if args.command == 'create':
         if args.tested_fingerprint is not None:
             parser.error('--tested-fingerprint requires verify')
-        args.out.write_text(json.dumps(manifest(args.firmware_dir, args.companion_dir, args.source_revision, args.version), indent=2) + '\n')
+        args.out.write_text(json.dumps(manifest(args.firmware_dir, args.companion_dir, args.windows_dir, args.source_revision, args.version), indent=2) + '\n')
     else:
-        verify(args.out, args.firmware_dir, args.companion_dir, args.source_revision, args.version,
+        verify(args.out, args.firmware_dir, args.companion_dir, args.windows_dir, args.source_revision, args.version,
                tested_fingerprint=args.tested_fingerprint)
 
 

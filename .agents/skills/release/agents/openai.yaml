@@ -1,4 +1,4 @@
 interface:
-  display_name: "Release Firmware and Mac App"
-  short_description: "Publish screen firmware and a signed Mac app together"
-  default_prompt: "Use $release to create the next EspDesktop release with all screen firmware and the signed, notarized Mac app, and verify the complete GitHub Actions release."
+  display_name: "Release Firmware and Desktop Apps"
+  short_description: "Publish screen firmware and Mac and Windows downloads"
+  default_prompt: "Use $release to create the next EspDesktop release with all screen firmware, the signed, notarized Mac app, and both Windows installers. Verify the complete GitHub Actions release."

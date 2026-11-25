@@ -8,6 +8,18 @@ on:
       - 'compatibility/fixtures/companion_protocol_v4.json'
       - '.github/workflows/windows-espdesktop.yml'
   workflow_dispatch:
+    inputs:
+      release_tag:
+        description: Optional release version to build for installer testing
+        type: string
+  workflow_call:
+    inputs:
+      release_tag:
+        required: true
+        type: string
+      source_sha:
+        required: true
+        type: string
 
 permissions:
   contents: read
@@ -27,7 +39,10 @@ jobs:
     timeout-minutes: 18
     steps:
       - uses: actions/checkout@v7.0.1
-      - uses: actions/setup-dotnet@v5
+        with:
+          ref: ${{ inputs.source_sha || github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-dotnet@v6
         with:
           dotnet-version: '10.0.x'
 
@@ -44,7 +59,19 @@ jobs:
           dotnet run -c Release --project windows/EspDesktop.Tests -- --verify-native-windows --exercise-desktop-actions
 
       - name: Build the per-user installer
-        run: ./windows/EspDesktop/Packaging/Build-Installer.ps1 -Architecture ${{ matrix.arch }}
+        shell: pwsh
+        env:
+          RELEASE_TAG: ${{ inputs.release_tag }}
+        run: |
+          $installerArgs = @{ Architecture = '${{ matrix.arch }}' }
+          if ($env:RELEASE_TAG) {
+            if ($env:RELEASE_TAG -cnotmatch '^v?([0-9]+\.[0-9]+\.[0-9]+)(?:-[0-9A-Za-z][0-9A-Za-z.-]*)?$') {
+              throw 'The release tag must be a semantic version.'
+            }
+            # Windows version fields use the numeric portion, including for prereleases.
+            $installerArgs.Version = $Matches[1]
+          }
+          ./windows/EspDesktop/Packaging/Build-Installer.ps1 @installerArgs
 
       - name: Install, open, upgrade, and uninstall the app
         shell: pwsh
@@ -59,6 +86,12 @@ jobs:
           $startMenuLink = Join-Path ([Environment]::GetFolderPath('Programs')) 'EspDesktop.lnk'
           $install = Start-Process $installer -ArgumentList '/VERYSILENT','/SUPPRESSMSGBOXES','/NORESTART',$directoryArgument -Wait -PassThru
           if ($install.ExitCode -ne 0) { throw "Install exit code: $($install.ExitCode)" }
+          $assembly = [IO.Path]::ChangeExtension($appPath, '.dll')
+          $version = [Reflection.AssemblyName]::GetAssemblyName($assembly).Version.ToString(3)
+          $expectedInstaller = "EspDesktop-Windows-${version}-${{ matrix.arch }}-Setup.exe"
+          if ((Split-Path -Leaf $installer) -ne $expectedInstaller) {
+            throw "The installed app version does not match the setup filename. Expected $expectedInstaller."
+          }
           if ($null -ne [Microsoft.Win32.Registry]::GetValue($runRegistryPath, 'EspDesktop', $null)) {
             throw 'A fresh install should leave start-at-sign-in disabled.'
           }
@@ -124,11 +157,13 @@ jobs:
           name: espdesktop-windows-${{ matrix.arch }}-installer
           path: dist/windows/*-Setup.exe
           if-no-files-found: error
+          overwrite: true
 
       - uses: actions/upload-artifact@v7
         if: matrix.arch == 'x64'
         with:
           name: espdesktop-windows-settings-preview
+          overwrite: true
           path: ${{ runner.temp }}/EspDesktop-settings*.png
           if-no-files-found: error
 

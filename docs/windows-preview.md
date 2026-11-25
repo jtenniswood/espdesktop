@@ -7,12 +7,16 @@ description: Install the Windows companion preview and pair your Guition 4848S04
 
 Use a 4-inch Guition 4848S040 to launch approved Windows apps, open File Explorer folders and websites, send keyboard shortcuts, control speaker and microphone levels, or lock your PC. The companion runs in the notification area and can start when you sign in.
 
-## Install the preview
+<span id="install-the-preview"></span>
 
-1. Sign in to GitHub and open the latest successful run for the Windows companion branch. [Windows EspDesktop builds](https://github.com/jtenniswood/espdesktop/actions/workflows/windows-espdesktop.yml?query=branch%3Awindows-companion)
-2. Under **Artifacts**, download **espdesktop-windows-x64-installer** for an Intel or AMD PC, or **espdesktop-windows-arm64-installer** for Windows on Arm. To check your PC, open **Settings → System → About → System type**.
-3. Unzip the artifact and run the setup file. The preview installer is unsigned, so Windows may ask you to confirm that you trust it.
+## Install EspDesktop
+
+1. Open [GitHub Releases](https://github.com/jtenniswood/espdesktop/releases) and choose the latest release that lists Windows installers under **Assets**.
+2. Download the setup file ending in **x64-Setup.exe** for Intel or AMD PCs, or **arm64-Setup.exe** for Windows on Arm. To check your PC, open **Settings → System → About → System type**.
+3. Run the setup file. The installer is unsigned, so Windows may ask you to confirm that you trust it.
 4. Open **EspDesktop** from Start. The app installs for the current user.
+
+To update, run the newer setup file. The installer keeps your settings and display pairing.
 
 ## Pair your display
 
@@ -38,4 +42,4 @@ In OBS Studio on the same Windows PC, open **Tools → WebSocket Server Settings
 
 Scene cards switch Program in normal mode and select Preview in OBS Studio Mode. In Studio Mode, **Take Live** moves a different Preview scene to Program. Use **Transition** to cycle through the transitions configured in OBS, or select a named transition in the card settings. Use current EspDesktop firmware for these controls. EspDesktop saves the connection for the next launch and protects the password with your Windows account.
 
-The preview setup and compatibility details are in the [Windows companion README](https://github.com/jtenniswood/espdesktop/blob/main/windows/README.md).
+For build and compatibility details, see the [Windows app guide](https://github.com/jtenniswood/espdesktop/blob/main/windows/README.md).
