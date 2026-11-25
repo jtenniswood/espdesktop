@@ -11,7 +11,13 @@ namespace EspDesktop.Core;
 internal sealed class ObsConnection
 {
     private sealed record Scene(Guid Id, string Name);
-    private sealed record Snapshot(Scene[] Scenes, Guid? Program, Guid? Preview, bool StudioMode, Guid Token);
+    private sealed record TransitionList(string Current, string[] Names);
+    private sealed record Snapshot(Scene[] Scenes, Guid? Program, Guid? Preview, bool StudioMode, Guid Token,
+        bool TransitionIdle, TransitionList? Transitions, Guid ProductionToken)
+    {
+        public string TakeState => !StudioMode ? "take_studio_off" : !TransitionIdle ? "take_transitioning" :
+            Preview == null || Program == null ? "take_no_preview" : Preview == Program ? "take_same_scene" : "take_ready";
+    }
     private readonly SemaphoreSlim requestGate = new(1);
     private ClientWebSocket? socket;
     private Snapshot? snapshot;
@@ -96,6 +102,29 @@ internal sealed class ObsConnection
             var name = state.Scenes.FirstOrDefault(scene => scene.Id == program)?.Name;
             if (name != null) yield return new("obs.status.program", $"Program · {name}");
         }
+        var ready = state.TakeState == "take_ready";
+        var takeDetail = state.TakeState switch
+        {
+            "take_ready" => state.Scenes.FirstOrDefault(scene => scene.Id == state.Preview)?.Name ?? "Ready",
+            "take_studio_off" => "Enable Studio Mode",
+            "take_no_preview" => "Choose a preview",
+            "take_same_scene" => "Already on Program",
+            _ => "Transitioning"
+        };
+        yield return new(ready ? $"obs.take.{state.ProductionToken:D}" : "obs.take", $"Take Live · {takeDetail}",
+            capability >= 20 ? state.TakeState : null, capability >= 20 && ready ? takeDetail : null);
+        if (state.Transitions is { } transitions)
+        {
+            yield return new(state.TransitionIdle && transitions.Names.Length > 1 ?
+                $"obs.transition.{state.ProductionToken:D}" : "obs.transition", transitions.Current);
+            foreach (var name in transitions.Names)
+            {
+                var id = TransitionId(name);
+                yield return new(state.TransitionIdle ? $"{id}.{state.ProductionToken:D}" : id, name,
+                    capability >= 21 ? name == transitions.Current ? "transition_selected" : "transition_idle" : null);
+                if (name == transitions.Current) yield return new("obs.transition.selected", id);
+            }
+        }
     }
 
     public async Task<bool> Select(string action, Func<bool> isLocked, CancellationToken token)
@@ -105,6 +134,10 @@ internal sealed class ObsConnection
         {
             if (socket is not { State: WebSocketState.Open } client || snapshot is not { } state || isLocked())
                 return false;
+            using var deadline = Deadline(connectionToken);
+            bool CanSend() => ReferenceEquals(socket, client) && !isLocked() && !token.IsCancellationRequested;
+            if (action.StartsWith("obs.take.", StringComparison.Ordinal) || action.StartsWith("obs.transition.", StringComparison.Ordinal))
+                return await PerformProduction(client, state, action, CanSend, deadline.Token);
             var parts = action.Split('.');
             if (parts.Length is < 3 or > 4 || parts[0] != "obs" ||
                 !Guid.TryParseExact(parts[2], "D", out var scene) || !state.Scenes.Any(entry => entry.Id == scene))
@@ -120,16 +153,49 @@ internal sealed class ObsConnection
 
             // The socket is shared by all displays. A display disconnect should
             // cancel its command, without interrupting another display's OBS link.
-            using var deadline = Deadline(connectionToken);
             var mode = await Request(client, "GetStudioModeEnabled", null, deadline.Token);
-            if (mode is not { } response || Flag(response, "studioModeEnabled") != state.StudioMode ||
-                !ReferenceEquals(socket, client) || isLocked() || token.IsCancellationRequested)
+            if (mode is not { } response || Flag(response, "studioModeEnabled") != state.StudioMode || !CanSend())
                 return false;
             var command = state.StudioMode ? "SetCurrentPreviewScene" : "SetCurrentProgramScene";
             return await Request(client, command, new { sceneUuid = scene }, deadline.Token) != null;
         }
         catch (Exception exception) when (IsConnectionFailure(exception)) { return false; }
         finally { requestGate.Release(); }
+    }
+
+    private async Task<bool> PerformProduction(ClientWebSocket client, Snapshot state, string action,
+        Func<bool> canSend, CancellationToken token)
+    {
+        var suffix = $".{state.ProductionToken:D}";
+        if (!state.TransitionIdle || !action.EndsWith(suffix, StringComparison.Ordinal)) return false;
+        var id = action[..^suffix.Length];
+        if (!await TransitionIdle(client, token)) return false;
+        if (id == "obs.take")
+        {
+            if (state.TakeState != "take_ready") return false;
+            var mode = await Request(client, "GetStudioModeEnabled", null, token);
+            if (mode is not { } studio || Flag(studio, "studioModeEnabled") != true) return false;
+            var preview = await Request(client, "GetCurrentPreviewScene", null, token);
+            var program = await Request(client, "GetCurrentProgramScene", null, token);
+            if (preview is not { } next || SceneId(next, "sceneUuid") != state.Preview ||
+                program is not { } live || SceneId(live, "sceneUuid") != state.Program || !canSend()) return false;
+            if (await Request(client, "TriggerStudioModeTransition", null, token) == null) return false;
+            if (ReferenceEquals(socket, client))
+            {
+                snapshot = state with { TransitionIdle = false, ProductionToken = Guid.NewGuid() };
+                CatalogueChanged?.Invoke();
+            }
+            return true;
+        }
+
+        if (state.Transitions is not { } shown || await ReadTransitions(client, token) is not { } fresh ||
+            shown.Current != fresh.Current || !shown.Names.SequenceEqual(fresh.Names)) return false;
+        var nextTransition = id == "obs.transition" && fresh.Names.Length > 1
+            ? fresh.Names[(Array.IndexOf(fresh.Names, fresh.Current) + 1) % fresh.Names.Length]
+            : fresh.Names.FirstOrDefault(name => TransitionId(name) == id);
+        if (nextTransition == null || !canSend()) return false;
+        return nextTransition == fresh.Current ||
+            await Request(client, "SetCurrentSceneTransition", new { transitionName = nextTransition }, token) != null;
     }
 
     private async Task RefreshScenes(ClientWebSocket client, CancellationToken token)
@@ -150,11 +216,36 @@ internal sealed class ObsConnection
         }
         var program = SceneId(list, "currentProgramSceneUuid");
         var preview = SceneId(list, "currentPreviewSceneUuid");
+        var idle = await TransitionIdle(client, token);
+        var transitions = await ReadTransitions(client, token);
         var previous = snapshot;
         var sameTargets = previous != null && previous.StudioMode == enabled && previous.Scenes.SequenceEqual(targets);
-        if (sameTargets && previous!.Program == program && previous.Preview == preview) return;
-        snapshot = new(targets.ToArray(), program, preview, enabled, sameTargets ? previous!.Token : Guid.NewGuid());
+        if (sameTargets && previous!.Program == program && previous.Preview == preview && previous.TransitionIdle == idle &&
+            previous.Transitions?.Current == transitions?.Current &&
+            (transitions == null || previous.Transitions!.Names.SequenceEqual(transitions.Names))) return;
+        snapshot = new(targets.ToArray(), program, preview, enabled, sameTargets ? previous!.Token : Guid.NewGuid(),
+            idle, transitions, Guid.NewGuid());
         CatalogueChanged?.Invoke();
+    }
+
+    private static string TransitionId(string name) => "obs.transition.select." + Hash(name)[..32];
+
+    private static async Task<bool> TransitionIdle(ClientWebSocket client, CancellationToken token)
+    {
+        var result = await Request(client, "GetCurrentSceneTransitionCursor", null, token);
+        return result is { ValueKind: JsonValueKind.Object } response && response.TryGetProperty("transitionCursor", out var cursor) &&
+            cursor.ValueKind == JsonValueKind.Number && cursor.GetDouble() == 1;
+    }
+
+    private static async Task<TransitionList?> ReadTransitions(ClientWebSocket client, CancellationToken token)
+    {
+        var result = await Request(client, "GetSceneTransitionList", null, token);
+        if (result is not { ValueKind: JsonValueKind.Object } response ||
+            !response.TryGetProperty("transitions", out var choices) || choices.ValueKind != JsonValueKind.Array) return null;
+        var current = Text(response, "currentSceneTransitionName");
+        var names = choices.EnumerateArray().Select(choice => Text(choice, "transitionName")).Where(name => name.Length != 0)
+            .GroupBy(name => name, StringComparer.Ordinal).Where(group => group.Count() == 1).Select(group => group.Key).ToArray();
+        return names.Contains(current, StringComparer.Ordinal) ? new(current, names) : null;
     }
 
     private void UpdateStatus(string status)

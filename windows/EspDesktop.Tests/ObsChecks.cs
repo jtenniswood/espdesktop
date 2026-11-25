@@ -15,7 +15,10 @@ internal static class ObsChecks
     public static async Task Run()
     {
         var scene = Guid.NewGuid();
+        var previewScene = Guid.NewGuid();
         var studioMode = false;
+        var transition = "Cut";
+        var takeCount = 0;
         string? selectedBy = null;
         using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(10));
         var builder = WebApplication.CreateSlimBuilder();
@@ -47,8 +50,29 @@ internal static class ObsChecks
                             responseData = new
                             {
                                 currentProgramSceneUuid = scene,
-                                scenes = new[] { new { sceneUuid = scene, sceneName = "Starting soon" } }
+                                currentPreviewSceneUuid = previewScene,
+                                scenes = new[] { new { sceneUuid = scene, sceneName = "Starting soon" },
+                                    new { sceneUuid = previewScene, sceneName = "Live camera" } }
                             };
+                            break;
+                        case "GetCurrentSceneTransitionCursor":
+                            responseData = new { transitionCursor = 1 };
+                            break;
+                        case "GetSceneTransitionList":
+                            responseData = new { currentSceneTransitionName = transition,
+                                transitions = new[] { new { transitionName = "Cut" }, new { transitionName = "Fade" } } };
+                            break;
+                        case "GetCurrentPreviewScene":
+                            responseData = new { sceneUuid = previewScene };
+                            break;
+                        case "GetCurrentProgramScene":
+                            responseData = new { sceneUuid = scene };
+                            break;
+                        case "TriggerStudioModeTransition":
+                            Interlocked.Increment(ref takeCount);
+                            break;
+                        case "SetCurrentSceneTransition":
+                            Volatile.Write(ref transition, Text(request.GetProperty("requestData"), "transitionName"));
                             break;
                         case "SetCurrentProgramScene":
                         case "SetCurrentPreviewScene":
@@ -78,6 +102,8 @@ internal static class ObsChecks
             Check(target.Label == "Starting soon" && target.ObsState == "scene_live", "publishes named scenes and live state");
             Check(!obs.Catalogue(12).Any() && !obs.Catalogue(18).Any(item => item.Id.StartsWith("obs.target.")),
                 "uses the panel's supported OBS scene catalogue format");
+            Check(obs.Catalogue(22).Any(item => item.Id == "obs.take" && item.ObsState == "take_studio_off"),
+                "shows why Take Live is disabled outside Studio Mode");
             var frame = Message("catalogue.page", ("generation", 1), ("page", 0), ("complete", true),
                 ("items", new[] { new { id = target.Id, label = target.Label, obsState = target.ObsState } }));
             _ = Serialize(frame, "connected");
@@ -91,6 +117,23 @@ internal static class ObsChecks
             var studioTarget = await Target(target.Id);
             Check(await obs.Select(studioTarget.Id, () => false, timeout.Token) &&
                 Volatile.Read(ref selectedBy) == "SetCurrentPreviewScene", "selects Preview in Studio Mode");
+            var take = obs.Catalogue(22).Single(item => item.Id.StartsWith("obs.take."));
+            Check(take.ObsState == "take_ready" && take.ObsDetail == "Live camera", "publishes the preview for Take Live");
+            Check(await obs.Select(take.Id, () => false, timeout.Token) && Volatile.Read(ref takeCount) == 1,
+                "takes the displayed preview live");
+            Check(!await obs.Select(take.Id, () => false, timeout.Token), "rejects a repeated Take Live command");
+            while (!obs.Catalogue(22).Any(item => item.Id.StartsWith("obs.transition.") && item.Label == "Cut" &&
+                !item.Id.StartsWith("obs.transition.select"))) await Task.Delay(25, timeout.Token);
+            var cycle = obs.Catalogue(22).Single(item => item.Id.StartsWith("obs.transition.") &&
+                !item.Id.StartsWith("obs.transition.select"));
+            Check(await obs.Select(cycle.Id, () => false, timeout.Token) && Volatile.Read(ref transition) == "Fade",
+                "cycles to the next OBS transition");
+            Check(!await obs.Select(cycle.Id, () => false, timeout.Token), "rejects a stale transition button");
+            while (!obs.Catalogue(22).Any(item => item.Id.StartsWith("obs.transition.") && item.Label == "Fade" &&
+                !item.Id.StartsWith("obs.transition.select"))) await Task.Delay(25, timeout.Token);
+            var cut = obs.Catalogue(22).Single(item => item.Id.StartsWith("obs.transition.select.") && item.Label == "Cut");
+            Check(await obs.Select(cut.Id, () => false, timeout.Token) && Volatile.Read(ref transition) == "Cut",
+                "selects a named OBS transition directly");
         }
         finally
         {
@@ -98,13 +141,14 @@ internal static class ObsChecks
             await run;
         }
         Check(!obs.Catalogue(22).Any(), "clears the scene catalogue on disconnect");
-        Console.WriteLine("Passed OBS WebSocket authentication, display catalogue, guarded scene switching, and disconnect checks.");
+        Console.WriteLine("Passed OBS authentication, scene switching, Take Live, transition controls, and disconnect checks.");
 
         async Task<CatalogueItem> Target(string? previous = null)
         {
             while (true)
             {
-                var item = obs.Catalogue(22).FirstOrDefault(item => item.Id.StartsWith("obs.target.") && item.Id != previous);
+                var item = obs.Catalogue(22).FirstOrDefault(item =>
+                    item.Id.StartsWith($"obs.target.{scene:D}.", StringComparison.Ordinal) && item.Id != previous);
                 if (item != null) return item;
                 await Task.Delay(25, timeout.Token);
             }

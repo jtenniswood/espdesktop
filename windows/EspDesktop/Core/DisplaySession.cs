@@ -11,7 +11,7 @@ using static EspDesktop.Core.Protocol;
 namespace EspDesktop.Core;
 
 internal sealed record Pairing(string Address, string Fingerprint, byte[] Key, uint Sequence = 0, string? DisplayName = null);
-internal sealed record CatalogueItem(string Id, string Label, string? ObsState = null);
+internal sealed record CatalogueItem(string Id, string Label, string? ObsState = null, string? ObsDetail = null);
 
 internal interface IDesktop
 {
@@ -242,6 +242,7 @@ internal sealed class DisplaySession(IDesktop desktop, Action<Pairing> save, Act
             {
                 var fields = new Dictionary<string, object?> { ["id"] = item.Id, ["label"] = Bound(item.Label, 96) };
                 if (item.ObsState != null) fields["obsState"] = item.ObsState;
+                if (item.ObsDetail != null) fields["obsDetail"] = Bound(item.ObsDetail, 96);
                 return fields;
             }).ToArray();
             var pages = entries.Chunk(48).ToArray();

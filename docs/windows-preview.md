@@ -34,6 +34,6 @@ Choose **Add display** to pair another panel with the same PC. Each panel has it
 
 In OBS Studio on the same Windows PC, open **Tools → WebSocket Server Settings** and enable the server. In EspDesktop, open **OBS Studio**, enter the port and password shown in OBS, and select **Connect to OBS**. Once connected, open or reload the display editor and add an **OBS Scene** card. Choose the scene you want the card to select.
 
-Scene cards switch Program in normal mode and select Preview in OBS Studio Mode. Use current EspDesktop firmware for the OBS scene picker. EspDesktop saves the connection for the next launch and protects the password with your Windows account.
+Scene cards switch Program in normal mode and select Preview in OBS Studio Mode. In Studio Mode, **Take Live** moves a different Preview scene to Program. Use **Transition** to cycle through the transitions configured in OBS, or select a named transition in the card settings. Use current EspDesktop firmware for these controls. EspDesktop saves the connection for the next launch and protects the password with your Windows account.
 
 The preview setup and compatibility details are in the [Windows branch guide](https://github.com/jtenniswood/espdesktop/blob/windows-companion/windows/README.md).
