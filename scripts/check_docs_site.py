@@ -251,6 +251,11 @@ def check_build(dist):
     errors = []
     pages = {}
     urls = sitemap_urls((dist / 'sitemap.xml').read_text())
+    profiles = json.loads((dist / 'device-profiles.json').read_text())['devices']
+    has_v3_profile = any(profile['slug'] == 'guition-esp32-p4-jc1060p470-v3' for profile in profiles)
+    has_v3_guide = BASE + 'screens/jc1060p470-v3' in urls
+    if has_v3_profile != has_v3_guide:
+        errors.append('The site must list the 7-inch V3 profile only when its guide is published')
     if len(urls) != len(set(urls)):
         errors.append('Duplicate URL in sitemap')
     for url in urls:
