@@ -85,7 +85,8 @@ export function runNativeEditorStateTests(): void {
   const listeners: Record<string, (event: any) => void> = {};
   runtime.els.previewMain.addEventListener = (name: string, callback: (event: any) => void) => { listeners[name] = callback; };
   let entered = 0, exited = 0;
-  createPreviewInteractionsFeature({ runtime, shell, window: {}, cardEditorDraft: {}, configPersistence: {}, layout, imageOptions: {},
+  const window = { document: { addEventListener() {} } };
+  createPreviewInteractionsFeature({ runtime, shell, window, cardEditorDraft: {}, configPersistence: {}, layout, imageOptions: {},
     codec: { enterChildSubpage: () => { ++entered; }, exitSubpage: () => { ++exited; } }, entityState: {},
     grid: { ctx: () => ({ buttons: state.buttons }) }, selection: {}, placement: {}, contextMenu: {}, requestApi: {},
   } as any).setup();
