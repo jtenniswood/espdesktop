@@ -16,7 +16,7 @@ Set up the display from a normal web browser.
 - **App keyboard shortcuts** — open an app-specific page of controls for common actions, or create your own keyboard shortcuts.
 - **Apple Shortcuts** — run a workflow from the Mac’s Shortcuts app with a tap, or group several workflows on a dedicated page. Your Mac must be unlocked. [Set up Apple Shortcuts](https://espdesktop.com/mac-controls/apple-shortcuts).
 - **OBS Studio** — switch scenes, adjust mixer levels, mute inputs, and control streaming, recording, and Studio Mode. Connect EspDesktop to OBS using the built-in OBS WebSocket server. [Set up OBS Studio controls](https://espdesktop.com/mac-controls/obs-studio).
-- **Mac Lock** — lock your Mac with a tap on the display.
+- **Lock Machine** — lock your Mac with a tap on the display.
 - **Finder folders** — open an approved folder with a tap.
 - **Websites** — open `http://` and `https://` links in your default browser.
 
@@ -30,7 +30,7 @@ You can organise controls into subpages, resize and rearrange cards, change icon
 2. **Connect the display to 2.4 GHz WiFi.**
 3. **Install the EspDesktop Mac app** using the current steps on the [documentation site](https://espdesktop.com/screens/4848s040#download).
 4. **Pair the Mac and display.** Open the display's web settings, choose **System → Mac Companion**, and enter the temporary code in the Mac app.
-5. **Approve access.** Choose the applications and folders the display may use. macOS Accessibility permission is needed for keyboard shortcuts and Mac Lock.
+5. **Approve access.** Choose the applications and folders the display may use. macOS Accessibility permission is needed for keyboard shortcuts and Lock Machine.
 6. **Build your control surface.** Add Companion cards and arrange them from the display's web page.
 
 Start with the [firmware installation steps](https://espdesktop.com/screens/4848s040#install), then follow the [Mac app and pairing steps](https://espdesktop.com/screens/4848s040#download). Install the firmware and Mac app from the same EspDesktop release.

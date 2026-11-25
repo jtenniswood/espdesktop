@@ -507,7 +507,11 @@ inline void setup_companion_card(BtnSlot &s, const ParsedCfg &p,
         companion_default_action_label(p.entity, p.sensor, tokenized_card ? &obs_snapshot : nullptr),
         tokenized_card ? &obs_snapshot : nullptr)
     : p.label;
-  lv_label_set_display_text(s.text_lbl, label.c_str());
+  if (p.type == "companion_mac_lock" && label == card_runtime_label(p.type)) {
+    lv_label_set_display_text(s.text_lbl, espdesktop_i18n_key("lock_machine"));
+  } else {
+    lv_label_set_display_text(s.text_lbl, label.c_str());
+  }
   if (companion_app_launch_card(p) &&
       (cfg_option_token_present(p.options, "app_hide_label") ||
        companion_app_icon_enabled(p))) {
@@ -525,7 +529,8 @@ inline void setup_companion_card(BtnSlot &s, const ParsedCfg &p,
                 p.entity == "obs.studio" ? "Split Vertical" : p.entity == "obs.multiview" ? "View Grid" :
                 (p.entity == "obs.transition" || direct_transition) ? "Flip Horizontal" :
                 p.entity == "obs.replay.buffer" ? "Repeat" :
-                companion_obs_scene_card(p.entity) ? "Image Card Loading" : "Monitor")
+                companion_obs_scene_card(p.entity) ? "Image Card Loading" :
+                companion_shortcut_action_valid(p.entity) ? "Keyboard" : "Monitor")
     : find_icon(p.icon.c_str());
   lv_label_set_display_text(s.icon_lbl, icon);
   if (companion_app_icon_enabled(p) || workflow_icon) {

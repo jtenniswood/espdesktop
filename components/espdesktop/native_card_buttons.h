@@ -30,9 +30,9 @@ inline std::string native_card_label(const ParsedCfg &config, const CompanionRun
   if (config.type == "subpage") return "Folder";
   auto label = companion_default_action_label(config.entity, config.sensor, &mac);
   if (label.empty() || label == config.entity) {
-    if (config.entity.rfind("folder.", 0) == 0) return "Finder Folder";
+    if (config.entity.rfind("folder.", 0) == 0) return "File Folder";
     if (config.type == "companion_mac_lock") return "Lock Machine";
-    return "Mac action";
+    return "Companion action";
   }
   return label;
 }

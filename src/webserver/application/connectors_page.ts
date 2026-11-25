@@ -114,7 +114,7 @@ export function createConnectorsPageFeature(
             setupGuide.textContent = "Download and setup guide";
             page.appendChild(infoPanel(
                 "sp-connectors-setup",
-                "Use the EspDesktop Mac app to pair a compatible display. ",
+                "Use the EspDesktop companion app to pair a compatible display. ",
                 setupGuide,
             ));
         }

@@ -585,7 +585,7 @@ inline const char *card_contract_card_label(const std::string &type) {
   if (type == "companion_input_mute") return "Input State";
   if (type == "companion_cough") return "Cough";
   if (type == "companion_obs_cough") return "OBS Input Cough";
-  if (type == "companion_mac_lock") return "Mac Lock";
+  if (type == "companion_mac_lock") return "Lock Machine";
   if (type == "companion") return "Companion";
   if (type == "slider") return "Legacy Slider";
   if (type == "subpage") return "Subpage";

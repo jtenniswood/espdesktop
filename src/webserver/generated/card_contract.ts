@@ -2973,7 +2973,7 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
     }
   },
   "companion_mac_lock": {
-    "label": "Mac Lock",
+    "label": "Lock Machine",
     "pickerLabel": "Lock Machine",
     "allowInSubpage": true,
     "domains": [],
@@ -2985,7 +2985,7 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
         },
         "label": {
           "policy": "default_if_empty",
-          "value": "Mac Lock"
+          "value": "Lock Machine"
         },
         "icon": {
           "policy": "default_if_empty",
@@ -3017,7 +3017,7 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
     },
     "default": {
       "entity": "shortcut.command+control+q",
-      "label": "Mac Lock",
+      "label": "Lock Machine",
       "icon": "Lock",
       "icon_on": "Auto",
       "sensor": "",
@@ -3069,7 +3069,7 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
       },
       {
         "name": "finder_open_behavior",
-        "label": "Finder Folder Open Behavior",
+        "label": "Folder Open Behavior",
         "kind": "choice",
         "values": [
           "new_window",
@@ -3082,7 +3082,7 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
       },
       {
         "name": "finder_open_override",
-        "label": "Finder Folder Open Override",
+        "label": "Folder Open Override",
         "kind": "flag",
         "omitDefault": true,
         "hidden": true,
