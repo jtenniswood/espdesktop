@@ -8223,7 +8223,9 @@ async function assertFileFolderCardPicker(browser) {
     const page = await context.newPage();
     await installFakeEventSource(page);
     await page.goto(`http://espdesktop.test/${testCase.slug}?events=1`);
-    await page.waitForFunction(() => window.__eventSources?.length > 0);
+    // The connection and initial layout reads can reset the selected slot.
+    await page.waitForFunction(() => window.__eventSources?.at(-1)?.readyState === 1);
+    await page.waitForLoadState("networkidle");
     await page.evaluate(events => window.__seedEspState(events), nativeDocumentEvents(fixture.document));
     await page.locator('.sp-main[aria-disabled="false"]').waitFor();
     const emptyCell = page.locator(".sp-main .sp-empty-cell").first();
