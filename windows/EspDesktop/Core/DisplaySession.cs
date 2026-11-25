@@ -10,10 +10,16 @@ using static EspDesktop.Core.Protocol;
 
 namespace EspDesktop.Core;
 
+<<<<<<< HEAD
 internal sealed record Pairing(string Address, string Fingerprint, byte[] Key, uint Sequence = 0, string? DisplayName = null);
 internal sealed record CatalogueItem(string Id, string Label, string? ObsState = null, string? ObsDetail = null, bool? ObsAvailable = null);
 
 internal readonly record struct AudioValue(string Id, int? Value, bool NoInputDevice = false);
+=======
+internal sealed record Pairing(string Address, string Fingerprint, byte[] Key, uint Sequence = 0, string? DisplayName = null,
+    string? ComputerId = null);
+internal sealed record CatalogueItem(string Id, string Label, string? ObsState = null, string? ObsDetail = null);
+>>>>>>> abbe74e4d (Add Teams microphone control and multi-computer sessions to the Windows companion)
 
 internal interface IDesktop
 {
@@ -37,6 +43,13 @@ internal interface IDesktop
     Dictionary<string, object?> Metrics(uint generation);
 }
 
+// Desktop events that should reach the display immediately instead of on the
+// next sampling tick: the foreground app changed or an audio control changed.
+internal interface IDesktopNotifications
+{
+    event Action? DesktopChanged;
+}
+
 internal sealed class DisplaySession(IDesktop desktop, Action<Pairing> save, Action<string> status,
     Func<string, CancellationToken, Task<DiscoveredDisplay?>> findDisplay)
 {
@@ -46,7 +59,7 @@ internal sealed class DisplaySession(IDesktop desktop, Action<Pairing> save, Act
         active?.ShowPairingBeforeDisconnecting() ?? Task.FromResult(false);
 
     public static async Task<Pairing> PairAsync(string address, string code, CancellationToken token,
-        IReadOnlySet<string>? savedFingerprints = null)
+        IReadOnlySet<string>? savedFingerprints = null, string? name = null, string? clientId = null)
     {
         if (code.Length is < 1 or > 16 || !code.All(c => char.IsAsciiLetterOrDigit(c) || c == '-'))
             throw new ArgumentException("Enter the pairing code shown on the display.");
@@ -58,11 +71,49 @@ internal sealed class DisplaySession(IDesktop desktop, Action<Pairing> save, Act
         await client.Connect(deadline.Token);
         if (fingerprint is { } identity && savedFingerprints?.Contains(identity) == true)
             throw new SessionException("This display is already saved on this PC.");
-        await client.Send(Message("pair.request", ("code", code)), "pairing", deadline.Token);
+        var fields = new List<(string Name, object? Value)> { ("code", code) };
+        if (!string.IsNullOrWhiteSpace(name)) fields.Add(("name", Bound(name, 96)));
+        if (!string.IsNullOrWhiteSpace(clientId)) fields.Add(("clientId", Bound(clientId, 64)));
+        await client.Send(Message("pair.request", fields.ToArray()), "pairing", deadline.Token);
         var reply = await client.Reply("pairing", deadline.Token);
         if (Text(reply, "type") != "pair.accepted" || fingerprint is null)
             throw new SessionException(Error(reply, "Pairing was refused. Check the code and pairing window."));
-        return new Pairing(address, fingerprint, Convert.FromHexString(Text(reply, "credential")));
+        var computerId = Text(reply, "computerId");
+        if (computerId.Length != 16 || !computerId.All(Uri.IsHexDigit)) computerId = null;
+        return new Pairing(address, fingerprint, Convert.FromHexString(Text(reply, "credential")),
+            ComputerId: computerId?.ToLowerInvariant());
+    }
+
+    // Best effort: tell the display to remove only this computer's credential
+    // before the local pairing is forgotten. Failure here must not block the
+    // local removal (the display may be offline or already reset).
+    public static async Task ForgetAsync(Pairing pairing, CancellationToken token)
+    {
+        try
+        {
+            using var deadline = CancellationTokenSource.CreateLinkedTokenSource(token);
+            deadline.CancelAfter(TimeSpan.FromSeconds(8));
+            using var client = new Link(pairing.Fingerprint, _ => { });
+            await client.Connect(DisplayEndpoint.Parse(pairing.Address).Socket, deadline.Token);
+            var sequence = pairing.Sequence == uint.MaxValue ? 1u : pairing.Sequence + 1;
+            var nonce = Guid.NewGuid().ToString();
+            var fields = new List<(string Name, object? Value)>
+            {
+                ("sequence", sequence),
+                ("nonce", nonce),
+                ("signature", Sign(pairing.Key, sequence, nonce)),
+            };
+            if (pairing.ComputerId is not null) fields.Add(("computerId", pairing.ComputerId));
+            await client.Send(Message("auth.request", fields.ToArray()), "authenticating", deadline.Token);
+            var reply = await client.Reply("authenticating", deadline.Token);
+            if (Text(reply, "type") != "auth.accepted") return;
+            await client.Send(Message("pair.reset"), "connected", deadline.Token);
+            await Task.Delay(250, deadline.Token);
+        }
+        catch (Exception e) when (e is OperationCanceledException or WebSocketException or
+            HttpRequestException or IOException or ArgumentException or SessionException)
+        {
+        }
     }
 
     public async Task RunAsync(Pairing pairing, CancellationToken token, string? newAddress = null,
@@ -110,8 +161,14 @@ internal sealed class DisplaySession(IDesktop desktop, Action<Pairing> save, Act
                 pairing = pairing with { Sequence = pairing.Sequence + 1 };
                 SavePairing(pairing);
                 var nonce = Guid.NewGuid().ToString();
-                await client.Send(Message("auth.request", ("sequence", pairing.Sequence), ("nonce", nonce),
-                    ("signature", Sign(pairing.Key, pairing.Sequence, nonce))), "authenticating", timeout.Token);
+                var authFields = new List<(string Name, object? Value)>
+                {
+                    ("sequence", pairing.Sequence),
+                    ("nonce", nonce),
+                    ("signature", Sign(pairing.Key, pairing.Sequence, nonce)),
+                };
+                if (pairing.ComputerId is not null) authFields.Add(("computerId", pairing.ComputerId));
+                await client.Send(Message("auth.request", authFields.ToArray()), "authenticating", timeout.Token);
                 var reply = await client.Reply("authenticating", timeout.Token);
                 if (Text(reply, "type") != "auth.accepted")
                 {
@@ -121,7 +178,21 @@ internal sealed class DisplaySession(IDesktop desktop, Action<Pairing> save, Act
                         SavePairing(pairing);
                         continue;
                     }
+                    // Another computer currently holds both live sessions, or
+                    // the panel could not persist the sequence yet. These clear
+                    // on their own; keep retrying instead of asking the user to
+                    // reset a perfectly good pairing.
+                    if (Text(reply, "code") is "session_limit" or "authentication_storage_failed")
+                        throw new TransientSessionException(
+                            "The display is busy with another computer. Reconnecting automatically…");
                     throw new SessionException(Error(reply, "The display refused the saved pairing. Pair again after resetting it."));
+                }
+                var assignedComputerId = Text(reply, "computerId");
+                if (assignedComputerId.Length == 16 && assignedComputerId.All(Uri.IsHexDigit) &&
+                    !string.Equals(assignedComputerId, pairing.ComputerId, StringComparison.OrdinalIgnoreCase))
+                {
+                    pairing = pairing with { ComputerId = assignedComputerId.ToLowerInvariant() };
+                    SavePairing(pairing);
                 }
                 repairs = 0;
                 failures = 0;
@@ -163,6 +234,14 @@ internal sealed class DisplaySession(IDesktop desktop, Action<Pairing> save, Act
                 }
             }
             catch (OperationCanceledException) when (token.IsCancellationRequested) { return; }
+            catch (TransientSessionException e)
+            {
+                if (token.IsCancellationRequested) return;
+                status(e.Message);
+                var delay = TimeSpan.FromSeconds(Math.Min(30, 1 << Math.Min(++failures, 5)));
+                try { await Task.Delay(delay, token); }
+                catch (OperationCanceledException) when (token.IsCancellationRequested) { return; }
+            }
             catch (SessionException e) { status(e.Message); return; }
             catch (Exception e) when (e is WebSocketException or HttpRequestException or IOException or OperationCanceledException)
             {
@@ -253,34 +332,55 @@ internal sealed class DisplaySession(IDesktop desktop, Action<Pairing> save, Act
             // Keep one pending receive. Link dispatches USB replies while waiting for JSON.
             using var lifetime = CancellationTokenSource.CreateLinkedTokenSource(token);
             var read = link.Read("connected", lifetime.Token);
-            using var timer = new PeriodicTimer(TimeSpan.FromMilliseconds(500));
+            // Desktop events push immediately; the timer is only a heartbeat and
+            // drives the slower system metrics.
+            using var timer = new PeriodicTimer(TimeSpan.FromSeconds(2));
             var tick = timer.WaitForNextTickAsync(lifetime.Token).AsTask();
+            var notifier = desktop as IDesktopNotifications;
+            TaskCompletionSource? changed = notifier is null
+                ? null : new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+            Action? changedHandler = notifier is null
+                ? null : () => changed?.TrySetResult();
+            if (notifier is not null && changedHandler is not null)
+                notifier.DesktopChanged += changedHandler;
             try
             {
                 await Publish(fastOnly: false);
                 while (!token.IsCancellationRequested)
                 {
-                    await Task.WhenAny(tick, read);
+                    var signal = changed?.Task;
+                    if (signal is null) await Task.WhenAny(tick, read);
+                    else await Task.WhenAny(tick, read, signal);
                     if (read.IsCompleted)
                     {
                         await Handle(await read);
                         read = link.Read("connected", lifetime.Token);
                     }
+                    if (signal?.IsCompleted == true)
+                    {
+                        changed = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+                        await Publish(fastOnly: true);
+                    }
                     if (tick.IsCompleted)
                     {
                         await tick;
-                        var slow = slowTick.Elapsed >= TimeSpan.FromSeconds(2);
-                        await Publish(fastOnly: !slow);
-                        if (slow) slowTick.Restart();
+                        await Publish(fastOnly: false);
+                        slowTick.Restart();
                         tick = timer.WaitForNextTickAsync(lifetime.Token).AsTask();
                     }
                 }
             }
             finally
             {
+<<<<<<< HEAD
                 pairingReset.TrySetResult(false);
                 if (capabilityVersion >= CoughVersion) desktop.SetCoughValue(0, this);
                 desktop.AbandonObsHolds(this);
+=======
+                if (notifier is not null && changedHandler is not null)
+                    notifier.DesktopChanged -= changedHandler;
+                changed = null;
+>>>>>>> abbe74e4d (Add Teams microphone control and multi-computer sessions to the Windows companion)
                 await lifetime.CancelAsync();
                 try { await read; }
                 catch (Exception e) when (e is OperationCanceledException or WebSocketException or IOException or SessionException) { }
@@ -358,12 +458,14 @@ internal sealed class DisplaySession(IDesktop desktop, Action<Pairing> save, Act
                 await link.Send(message, "connected", token);
                 sessionState = currentState;
             }
-            var current = currentState.Locked ? [] : desktop.Focused(focusTargets);
+            var targets = new Dictionary<string, Uri>(focusTargets);
+            var current = currentState.Locked ? [] : await Sta.Run(() => desktop.Focused(targets));
             if (focused is null || !current.SequenceEqual(focused))
             {
                 focused = current;
                 await Send("focus.changed", ("actionId", current.FirstOrDefault() ?? ""), ("actionIds", current));
             }
+<<<<<<< HEAD
             foreach (var id in values.Keys.Where(id => !currentValues.ContainsKey(id)).ToArray())
             {
                 await Send("value.state", ("controlId", id), ("available", false));
@@ -379,6 +481,16 @@ internal sealed class DisplaySession(IDesktop desktop, Action<Pairing> save, Act
                 values[state.Id] = state;
             }
             dirtyAudioValues.Clear();
+=======
+            foreach (var (id, value) in await Sta.Run(() => desktop.Values().ToArray()))
+                if (!values.TryGetValue(id, out var previous) || value != previous)
+                {
+                    values[id] = value;
+                    await (value is int v
+                        ? Send("value.state", ("controlId", id), ("available", true), ("value", v))
+                        : Send("value.state", ("controlId", id), ("available", false)));
+                }
+>>>>>>> abbe74e4d (Add Teams microphone control and multi-computer sessions to the Windows companion)
             if (fastOnly) return;
             var newZone = TimeZoneInfo.TryConvertWindowsIdToIanaId(TimeZoneInfo.Local.Id, out var iana) ? iana : TimeZoneInfo.Local.Id;
             if (zone != newZone)
@@ -387,7 +499,10 @@ internal sealed class DisplaySession(IDesktop desktop, Action<Pairing> save, Act
                 await Send("timezone.changed", ("identifier", zone));
             }
             if (capabilityVersion >= 2)
-                await link.Send(desktop.Metrics(Next(ref metricGeneration)), "connected", token);
+            {
+                var generation = Next(ref metricGeneration);
+                await link.Send(await Sta.Run(() => desktop.Metrics(generation)), "connected", token);
+            }
             if (iconTransfer is { } active && active.Timeout.Elapsed > TimeSpan.FromSeconds(12))
             {
                 await Send("app_icon.abort", ("appId", active.Id), ("generation", active.Generation));
@@ -429,11 +544,17 @@ internal sealed class DisplaySession(IDesktop desktop, Action<Pairing> save, Act
                         await Send("action.result", ("requestId", Text(m, "requestId")), ("status", "not_allowed"));
                         break;
                     }
+                    var actionStatus = desktop.SessionState.Locked ? "not_allowed"
+                        : await await Sta.Run(() => desktop.Invoke(m, token));
                     await Send("action.result", ("requestId", Text(m, "requestId")),
-                        ("status", desktop.SessionState.Locked ? "not_allowed" : await desktop.Invoke(m, token)));
+                        ("status", actionStatus));
+                    // Push focus and values immediately instead of waiting for
+                    // the next tick so the display reflects the action now.
+                    await Publish(fastOnly: true);
                     break;
                 case "value.set":
                     var id = Text(m, "controlId");
+<<<<<<< HEAD
                     var value = (int)UInt(m, "value");
                     var changed = SupportsAudioValue(id) && (id == CoughId
                         ? desktop.SetCoughValue(value, this)
@@ -441,7 +562,14 @@ internal sealed class DisplaySession(IDesktop desktop, Action<Pairing> save, Act
                             ? await desktop.SetObsValue(id, value, this, token)
                             : desktop.SetValue(id, value)));
                     if (changed && (id != CoughId || value != 50)) dirtyAudioValues.Add(id);
+=======
+                    var requested = (int)UInt(m, "value");
+                    var changed = !desktop.SessionState.Locked &&
+                        await Sta.Run(() => desktop.SetValue(id, requested));
+                    if (changed) values.Remove(id);
+>>>>>>> abbe74e4d (Add Teams microphone control and multi-computer sessions to the Windows companion)
                     await Send("action.result", ("requestId", Text(m, "requestId")), ("status", changed ? "performed" : "not_allowed"));
+                    if (changed) await Publish(fastOnly: true);
                     break;
                 case "focus.targets":
                     focusTargets.Clear();
@@ -481,8 +609,11 @@ internal sealed class DisplaySession(IDesktop desktop, Action<Pairing> save, Act
         {
             while (iconTransfer is null && iconRequests.TryDequeue(out var request))
             {
-                var pixels = capabilityVersion < 4 ? null : desktop.AppIcon(request.Id,
-                    Limit(capabilityVersion >= 5 ? "appIconSide" : "appIconLegacySide"));
+                var side = Limit(capabilityVersion >= 5 ? "appIconSide" : "appIconLegacySide");
+                // Shell icon extraction can block while extensions run. Keep it
+                // off the WPF UI thread that owns this session loop.
+                var pixels = capabilityVersion < 4 ? null
+                    : await Sta.Run(() => desktop.AppIcon(request.Id, side));
                 if (pixels is null) { await Send("app_icon.unavailable", ("appId", request.Id)); continue; }
                 var hash = Hash(pixels);
                 if (hash == request.Hash) { await Send("app_icon.unchanged", ("appId", request.Id), ("sha256", hash)); continue; }
@@ -606,3 +737,4 @@ internal sealed class DisplaySession(IDesktop desktop, Action<Pairing> save, Act
 }
 
 internal sealed class SessionException(string message) : Exception(message);
+internal sealed class TransientSessionException(string message) : Exception(message);

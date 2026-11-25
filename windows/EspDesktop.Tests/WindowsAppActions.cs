@@ -4,6 +4,7 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Threading;
 using EspDesktop;
+using EspDesktop.Core;
 using ComObject = EspDesktop.Com;
 
 internal sealed class WindowsAppActions : IDisposable
