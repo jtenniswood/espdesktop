@@ -2427,6 +2427,56 @@ async function assertCardBoxSelection(page, label) {
   }
 }
 
+async function assertKeyboardCardDeletion(browser, testCase) {
+  for (const native of [false, true]) {
+    const fixture = nativeConfigState(testCase.slug);
+    const context = await browser.newContext({ viewport: testCase.viewport });
+    await installRoutes(context, testCase.slug, { nativeState: native ? fixture : null, legacyTextState: {} });
+    const page = await context.newPage();
+    await installFakeEventSource(page);
+    const card = slot => page.locator(`.sp-main [data-slot="${slot}"]`);
+    try {
+      await page.goto(`http://espdesktop.test/${testCase.slug}?events=1`, { waitUntil: "domcontentloaded" });
+      await page.waitForFunction(() => window.__eventSources?.length > 0);
+      await seedNativeDocument(page, fixture);
+
+      await card(1).locator(".sp-editable-title").click();
+      const name = page.locator(".sp-card-name-input");
+      await name.fill("Test");
+      await name.press("End");
+      await name.press("Backspace");
+      assert.strictEqual(await name.inputValue(), "Tes");
+      await name.press("Escape");
+      assert(await card(1).isVisible());
+
+      await page.locator(".sp-brand").click();
+      await card(3).locator(".sp-subpage-badge").click();
+      const back = page.locator(".sp-back-btn");
+      const bounds = await back.boundingBox();
+      await back.click({ position: { x: bounds.width - 2, y: bounds.height / 2 } });
+      const selection = page.locator(".sp-selection-label");
+      assert.strictEqual(await selection.textContent(), "Back button selected");
+      await page.keyboard.press("Backspace");
+      assert.strictEqual(await selection.textContent(), "Back button selected");
+      assert(await card(1).isVisible());
+      await card(1).click({ modifiers: ["ControlOrMeta"], position: { x: 12, y: 12 } });
+      await page.keyboard.press("Delete");
+      await card(1).waitFor({ state: "detached" });
+      assert(await back.isVisible());
+
+      await back.locator(".sp-back-hit").click();
+      await card(1).click({ position: { x: 12, y: 12 } });
+      await assertCardBoxSelection(page, testCase.name);
+      await page.keyboard.press("Backspace");
+      await card(1).waitFor({ state: "detached" });
+      await card(2).waitFor({ state: "detached" });
+      assert(await card(3).isVisible());
+    } finally {
+      await context.close();
+    }
+  }
+}
+
 async function assertContextColourPicker(browser, testCase) {
   for (const native of [false, true]) {
     const fixture = nativeConfigState(testCase.slug);
@@ -6126,6 +6176,7 @@ async function runCase(browser, testCase) {
       testCase,
     );
     if (testCase.exerciseInteractions) {
+      await assertKeyboardCardDeletion(browser, testCase);
       await assertContextColourPicker(browser, testCase);
       await assertAutomaticAppIcons(browser, testCase);
       await assertCardActiveColourControls(page, posts, testCase.name);
@@ -9289,6 +9340,11 @@ async function assertFirstRunSetup(browser) {
   try {
     if (process.env.ESPDESKTOP_APP_SUBPAGE_OPENING_ONLY === "1") {
       await assertAppSubpageOpeningPreference(browser);
+      return;
+    }
+    if (process.env.ESPDESKTOP_KEYBOARD_DELETE_ONLY === "1") {
+      for (const testCase of ACTIVE_CASES) await assertKeyboardCardDeletion(browser, testCase);
+      console.log(`Keyboard card deletion passed for ${ACTIVE_CASES.length} layouts, native and legacy saves.`);
       return;
     }
     if (process.env.ESPDESKTOP_CONTEXT_COLOUR_ONLY === "1") {
