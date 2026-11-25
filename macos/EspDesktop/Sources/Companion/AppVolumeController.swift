@@ -1,4 +1,5 @@
 import Foundation
+import AppKit
 import AudioToolbox
 import CoreAudio
 import os
@@ -108,8 +109,12 @@ actor AppVolumeController: AppVolumeControlling {
                       objectIDs(process, kAudioProcessPropertyDevices, scope: kAudioObjectPropertyScopeOutput)
                         .contains(output) else { return false }
                 var identifier: Unmanaged<CFString>?
-                if get(process, kAudioProcessPropertyBundleID, &identifier),
-                   identifier?.takeRetainedValue() as String? == bundleID { return true }
+                let processBundleID = get(process, kAudioProcessPropertyBundleID, &identifier)
+                    ? identifier?.takeRetainedValue() as String? : nil
+                if processBundleID == bundleID { return true }
+                if webKitHelperBelongsToApp(processBundleID, appBundleID: bundleID, ownerBundleID: {
+                    responsibleApplicationBundleID(for: pid)
+                }) { return true }
                 // Chromium and Electron can play through helper executables
                 // inside the approved app bundle.
                 var path = [CChar](repeating: 0, count: 4 * Int(MAXPATHLEN))
@@ -120,6 +125,28 @@ actor AppVolumeController: AppVolumeControlling {
             }
         guard !processes.isEmpty else { return nil }
         return Route(output: output, uid: uid, processes: processes.sorted(), sampleRate: sampleRate)
+    }
+
+    static func webKitHelperBelongsToApp(
+        _ helperBundleID: String?, appBundleID: String, ownerBundleID: () -> String?
+    ) -> Bool {
+        guard helperBundleID == "com.apple.WebKit.GPU" || helperBundleID == "com.apple.WebKit.WebContent" else {
+            return false
+        }
+        return ownerBundleID() == appBundleID
+    }
+
+    private static let responsiblePID: (@convention(c) (pid_t) -> pid_t)? = {
+        // WebKit XPC services can have launchd as their parent. Look up the
+        // responsible app when macOS provides this undocumented symbol.
+        let defaultSymbolScope = UnsafeMutableRawPointer(bitPattern: -2)
+        guard let symbol = dlsym(defaultSymbolScope, "responsibility_get_pid_responsible_for_pid") else { return nil }
+        return unsafeBitCast(symbol, to: (@convention(c) (pid_t) -> pid_t).self)
+    }()
+
+    private static func responsibleApplicationBundleID(for pid: pid_t) -> String? {
+        guard let owner = responsiblePID?(pid), owner > 1, owner != pid else { return nil }
+        return NSRunningApplication(processIdentifier: owner)?.bundleIdentifier
     }
 
     fileprivate static func get<T>(
