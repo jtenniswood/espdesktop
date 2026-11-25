@@ -25,10 +25,14 @@ internal static class SafeActions
         ["keybackslash"] = 0xdc, ["keysemicolon"] = 0xba, ["keyquote"] = 0xde, ["keycomma"] = 0xbc,
         ["keyperiod"] = 0xbe, ["keyslash"] = 0xbf, ["keybackquote"] = 0xc0
     };
+    public const string ScopedShortcutPrefix = "shortcut.scoped.";
+
     public static ushort[]? Shortcut(string id)
     {
-        if (!id.StartsWith("shortcut.", StringComparison.Ordinal)) return null;
-        var parts = id[9..].Split('+');
+        const string prefix = "shortcut.";
+        if (!id.StartsWith(prefix, StringComparison.Ordinal)) return null;
+        var scoped = id.StartsWith(ScopedShortcutPrefix, StringComparison.Ordinal);
+        var parts = id[(scoped ? ScopedShortcutPrefix.Length : prefix.Length)..].Split('+');
         if (parts.Length > 5 || parts.Distinct().Count() != parts.Length) return null;
         var result = new List<ushort>();
         foreach (var part in parts[..^1])

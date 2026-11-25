@@ -44,6 +44,7 @@ import {
 import {
   companionAppShortcutFolderEnabled,
   companionShortcutActionIdValid,
+  companionShortcutCatalogApps,
   companionShortcutFolderEditorAvailable,
   companionShortcutSelectionMatchesSavedParent,
   companionShortcutTabs,
@@ -782,6 +783,23 @@ export function runCompanionShortcutFeatureTests(): void {
   }));
   if (previousTab !== "shortcut.control+shift+tab") throw new Error("Control-Shift-Tab shortcut encoding changed");
   if (formatCompanionShortcutActionId(previousTab) !== "⌃⇧Tab") throw new Error("Control-Shift-Tab shortcut label changed");
+
+  if (formatCompanionShortcutActionId(selectAll, true) !== "Ctrl+A" ||
+      formatCompanionShortcutActionId("shortcut.scoped.control+shift+t", true) !== "Ctrl+Shift+T" ||
+      formatCompanionShortcutActionId("shortcut.command+control+option+enter", true) !== "Ctrl+Alt+Enter" ||
+      formatCompanionShortcutActionId("shortcut.control+delete", true) !== "Ctrl+Backspace") {
+    throw new Error("Windows labels must reflect the delivered keys and preserve the legacy Command alias");
+  }
+  const windowsApp = { version: 1 as const, appId: "windows.abc123", label: "Browser", catalog: false, shortcuts: [] };
+  COMPANION_SHORTCUT_APPS.push(windowsApp);
+  try {
+    if (companionShortcutCatalogApps({ windows: true }).map(app => app.appId).join() !== windowsApp.appId ||
+        companionShortcutCatalogApps().some(app => app.appId === windowsApp.appId) ||
+        companionShortcutCatalogApps({ windows: true, savedAppId: "com.google.Chrome" }).some(app => app.appId === "com.google.Chrome") ||
+        !companionShortcutCatalogApps({ savedAppId: windowsApp.appId }).some(app => app.appId === windowsApp.appId)) {
+      throw new Error("Show the paired platform’s presets and preserve an existing card while the platform is unknown");
+    }
+  } finally { COMPANION_SHORTCUT_APPS.pop(); }
 
   if (companionShortcutActionId(shortcutEvent({ shiftKey: true })) !== "") {
     throw new Error("Shift-only key presses must not become remote shortcuts");

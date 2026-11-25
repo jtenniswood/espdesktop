@@ -234,7 +234,7 @@ internal sealed class DisplaySession(IDesktop desktop, Action<Pairing> save, Act
         private async Task Catalogue()
         {
             revision = desktop.CatalogueRevision;
-            var capabilities = new List<string> { "windows_companion", "app_icons", "app_icons_alpha", "app_icons_240", "url_card_focus" };
+            var capabilities = new List<string> { "windows_companion", "app_icons", "app_icons_alpha", "app_icons_240", "url_card_focus", "windows_shortcuts" };
             capabilities.Add(desktop.ShortcutsEnabled ? "keyboard_shortcuts" : "keyboard_shortcuts_unavailable");
             if (capabilityVersion >= 13 && desktop.SupportsObs) capabilities.Add("obs_scene_cards");
             await Send("capabilities", ("values", capabilities));
