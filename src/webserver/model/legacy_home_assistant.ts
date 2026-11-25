@@ -66,6 +66,23 @@ export function cardRequiresHomeAssistant(
 }
 
 
+const TOGGLE_ENTITY_DOMAINS = new Set(["light", "switch", "input_boolean", "fan", "media_player", "button", "input_button"]);
+const SLIDER_ENTITY_DOMAINS = new Set(["light", "media_player", "fan", "number", "input_number"]);
+
+function entityDomain(entityId: unknown): string {
+  return typeof entityId === "string" ? entityId.slice(0, entityId.indexOf(".")) : "";
+}
+
+// Native Home Assistant controls keep their full runtime when their saved
+// entity is one the panel can toggle or read a level from.
+function homeAssistantControlSupported(key: string, entity: unknown): boolean {
+  const domain = entityDomain(entity);
+  if (key === "slider") return SLIDER_ENTITY_DOMAINS.has(domain);
+  if (key === "light_brightness") return domain === "light";
+  if (key === "light_switch" || key === "") return TOGGLE_ENTITY_DOMAINS.has(domain);
+  return false;
+}
+
 /** Retire only the HA card itself; mixed folders/QR keep their local purpose. */
 export function cardRuntimeRetired(key: string, card?: {
   readonly entity?: string | null; readonly sensor?: string | null;
@@ -74,6 +91,7 @@ export function cardRuntimeRetired(key: string, card?: {
   if (key === "webhook") return true;
   if (!key && !card?.entity && !card?.sensor && !card?.label) return false;
   if (key === "local" || key === "subpage" || key === "wifi_qr" || key === "wifi_qr_card") return false;
+  if (homeAssistantControlSupported(key, card?.entity)) return false;
   return cardRequiresHomeAssistant(key, card);
 }
 

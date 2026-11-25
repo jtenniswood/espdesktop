@@ -26,6 +26,7 @@ import {
     cardProgressColor,
     applySliderPreviewTextContrast,
     cardPatternHighlightColor,
+    cardPickerConnectors,
     cardTypePickerDetails,
     cardTypePickerOptions,
     defaultCardTypeForPicker,
@@ -426,7 +427,14 @@ export function createPreviewRenderFeature(dependencies: PreviewRenderDependenci
         });
     }
     function buttonTypeVisibleInPicker(this: any, key?: any, isSub?: any) {
-        return buttonTypePickerKeys(!!isSub, null).indexOf(key) >= 0;
+        var connectors: any = cardPickerConnectors(
+            dependencies.homeAssistantSupported(),
+            !!dependencies.layout.config.features?.companion,
+        );
+        if (!connectors.length) connectors = [["home_assistant", "Home Assistant"], ["mac_companion", "Companion"]];
+        return connectors.some(function (this: any, connector?: any) {
+            return buttonTypePickerKeys(!!isSub, null, connector[0]).indexOf(key) >= 0;
+        });
     }
     function appendResizeHandle(card: HTMLElement) {
         if (isPreviewReadOnly()) return;

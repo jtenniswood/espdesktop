@@ -107,7 +107,6 @@ const CARD_TYPE_PICKER_DETAILS: Readonly<Record<string, PickerDetails>> = {
 const CARD_TYPE_PICKER_DEFAULTS: Readonly<Record<string, string>> = {
   climate: "climate_control",
   fan_speed: "fan_control",
-  light_brightness: "light_control",
   media_control: "media",
   companion_app: "companion",
   companion_apple_shortcut: "companion",
@@ -140,19 +139,26 @@ const MAC_COMPANION_HIDDEN_CARD_TYPES = new Set([
 export type CardPickerConnector = "home_assistant" | "mac_companion";
 
 export function cardPickerConnectors(
-  _homeAssistantEnabled: boolean,
+  homeAssistantEnabled: boolean,
   companionSupported: boolean,
 ): Array<[CardPickerConnector, string]> {
   const connectors: Array<[CardPickerConnector, string]> = [];
+  if (homeAssistantEnabled) connectors.push(["home_assistant", "Home Assistant"]);
   if (companionSupported) connectors.push(["mac_companion", "Companion"]);
   return connectors;
 }
 
 export function cardTypeVisibleForConnector(key: string, connector: CardPickerConnector): boolean {
-  return connector === "mac_companion" &&
-    !MAC_COMPANION_HIDDEN_CARD_TYPES.has(key) &&
-    (key === "companion_obs_fader" || cardContractAvailability(defaultCardTypeForPicker(key)) === "stable") &&
-    cardTypeConnector(key) !== "home_assistant";
+  if (cardContractTypeRetired(key)) return false;
+  // The default Switch card keeps the empty contract ID used by saved layouts;
+  // the contract cannot list an empty ID as stable, so admit it explicitly.
+  if (key !== "" && key !== "companion_obs_fader" &&
+      cardContractAvailability(defaultCardTypeForPicker(key)) !== "stable") return false;
+  if (connector === "mac_companion" && MAC_COMPANION_HIDDEN_CARD_TYPES.has(key)) return false;
+  const source = cardTypeConnector(key);
+  if (connector === "home_assistant")
+    return source !== "mac_companion" || key === "slider";
+  return source !== "home_assistant";
 }
 
 function cardRelativeLuminance(background: string): number {
@@ -272,10 +278,8 @@ export function cardTypePickerOptions(
   isSub: boolean,
   selectedTypeKey: string | null | undefined,
   connector: CardPickerConnector = "home_assistant",
-  _homeAssistantEnabled = false,
+  homeAssistantEnabled = false,
 ): CardPickerOption[] {
-  const homeAssistantEnabled = false;
-  connector = "mac_companion";
   const options: CardPickerOption[] = [];
   let selectedUnsupported: { key: string; label: string } | null = null;
   const hasSelectedType = selectedTypeKey !== null && selectedTypeKey !== undefined;

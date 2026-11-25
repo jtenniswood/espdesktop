@@ -10,7 +10,7 @@ type LargeNumbersRule = true | {
 };
 
 export const CARD_CONTRACT_VERSION = 1 as const;
-const STABLE_CARD_TYPES: readonly string[] = ["companion", "companion_mac_lock", "companion_app_volume", "companion_output_volume", "companion_input_volume", "companion_output_mute", "companion_input_mute", "companion_cough", "companion_obs_cough", "companion_input_device", "subpage"];
+const STABLE_CARD_TYPES: readonly string[] = ["companion", "companion_mac_lock", "companion_app_volume", "companion_output_volume", "companion_input_volume", "companion_output_mute", "companion_input_mute", "companion_cough", "companion_obs_cough", "companion_input_device", "light_brightness", "light_switch", "slider", "subpage"];
 const PREVIEW_CARD_TYPES: readonly string[] = ["companion_window"];
 const REMOVE_ON_EDIT: readonly string[] = ["companion_webapp", "companion_audio", "wifi_qr", "wifi_qr_card", "companion_window"];
 export const CARD_CONTRACT_RETIRED_TYPES: readonly string[] = ["companion_window", "sensor", "local_sensor", "text_sensor", "internal", "wifi_qr", "wifi_qr_card", "screen_lock", "screensaver", "action", "local", "option_select", "calendar", "clock", "timezone", "webhook", "companion_webapp", "companion_audio", "S", "LS", "I", "SL", "SS", "A", "U", "WH"];
@@ -112,14 +112,15 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
     }
   },
   "": {
-    "hidden": true,
+    "hidden": false,
     "label": "Switch",
     "allowInSubpage": true,
     "domains": [
       "light",
       "switch",
       "input_boolean",
-      "fan"
+      "fan",
+      "media_player"
     ],
     "options": [
       {
@@ -1734,7 +1735,7 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
     }
   },
   "light_brightness": {
-    "hidden": true,
+    "hidden": false,
     "label": "Lights",
     "allowInSubpage": true,
     "domains": [
@@ -1787,7 +1788,7 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
     }
   },
   "light_switch": {
-    "hidden": true,
+    "hidden": false,
     "label": "Lights",
     "allowInSubpage": true,
     "pickerKey": "light_brightness",
@@ -3344,8 +3345,8 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
     }
   },
   "slider": {
-    "label": "Legacy Slider",
-    "hidden": true,
+    "label": "Slider",
+    "hidden": false,
     "allowInSubpage": true,
     "domains": [
       "light",

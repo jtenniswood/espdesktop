@@ -1,6 +1,7 @@
 #pragma once
 
 #include "button_grid_touch.h"
+#include "ha_controls.h"
 
 // Mac Companion controls.
 // The same visual, binding, interaction, layout, and cleanup entry points serve
@@ -35,6 +36,7 @@ inline bool basic_action_driver_matches(const Context &context,
   using Driver = card_runtime::CardDriverId;
   switch (context.runtime.driver) {
     case Driver::COMPANION:
+    case Driver::TOGGLE:
       return true;
     default:
       return false;
@@ -117,7 +119,8 @@ inline bool basic_action_driver_refresh_layout(
 }
 
 inline bool basic_action_driver_cleanup(
-    BtnSlot &, const ParsedCfg &config, const Context &context) {
+    BtnSlot &slot, const ParsedCfg &config, const Context &context) {
+  ha_controls::unregister_widget(slot.btn);
   // Main-grid allocations are released by grid_phase2; subpage allocations
   // are tied to their LVGL owner. Local registries reset before each rebuild.
   return basic_action_driver_matches(context, config);
@@ -139,6 +142,32 @@ struct ToggleDriverState {
   const char **icon_on = nullptr;
 };
 
+inline void basic_action_bind_ha_toggle(BtnSlot &slot, const ParsedCfg &config) {
+  ha_controls::subscribe_state(config.entity);
+  const std::string entity = config.entity;
+  const std::string icon_off = config.icon;
+  const std::string icon_on = config.icon_on;
+  lv_obj_t *button = slot.btn;
+  lv_obj_t *icon = slot.icon_lbl;
+  auto refresh = [button, icon, entity, icon_off, icon_on]() {
+    if (!lv_obj_is_valid(button)) return false;
+    const auto value = ha_controls::state(entity);
+    const bool available = !value.empty() && value != "unavailable" && value != "unknown";
+    set_card_disabled_state(button, !available);
+    const bool on = ha_controls::state_is_on(entity, value);
+    set_card_checked_state(button, on);
+    if (icon != nullptr && lv_obj_is_valid(icon)) {
+      const std::string &name = on && !icon_on.empty() && icon_on != "Auto"
+          ? icon_on : icon_off;
+      if (!name.empty() && name != "Auto")
+        lv_label_set_display_text(icon, find_icon(name.c_str()));
+    }
+    return true;
+  };
+  refresh();
+  ha_controls::register_refresh(button, refresh);
+}
+
 inline bool basic_action_driver_bind_main(
     BtnSlot &slot, const ParsedCfg &config, const Context &context,
     const GridConfig &, const CardPalette &,
@@ -147,6 +176,11 @@ inline bool basic_action_driver_bind_main(
   using Driver = card_runtime::CardDriverId;
   if (!basic_action_driver_matches(context, config)) return false;
   switch (context.runtime.driver) {
+    case Driver::TOGGLE: {
+      if (!ha_controls::toggle_control_valid(config.entity)) break;
+      basic_action_bind_ha_toggle(slot, config);
+      break;
+    }
     default:
       break;
   }
@@ -500,6 +534,23 @@ inline bool basic_action_driver_bind_subpage(
         bind_release_button_action(slot.btn, action, click);
       break;
     }
+    case Driver::TOGGLE: {
+      if (!ha_controls::toggle_control_valid(config.entity)) break;
+      basic_action_bind_ha_toggle(slot, config);
+      struct ToggleTarget { std::string entity; lv_obj_t *button; };
+      auto *target = grid_delete_with_owner(slot.btn,
+        new ToggleTarget{config.entity, slot.btn});
+      lv_obj_add_event_cb(slot.btn, [](lv_event_t *event) {
+        auto *target = static_cast<ToggleTarget *>(lv_event_get_user_data(event));
+        if (target == nullptr) return;
+        if (!ha_controls::toggle_entity(target->entity)) return;
+        if (target->button != nullptr && lv_obj_is_valid(target->button) &&
+            !ha_controls::is_button_entity(target->entity))
+          set_card_checked_state(target->button,
+            !lv_obj_has_state(target->button, LV_STATE_CHECKED));
+      }, LV_EVENT_SHORT_CLICKED, target);
+      break;
+    }
     default:
       break;
   }
@@ -540,6 +591,16 @@ inline bool basic_action_driver_handle_main_click(
         companion_cancel_action_result(request_id);
         ESP_LOGW("companion", "Action unavailable: %s", config.entity.c_str());
       }
+      break;
+    }
+    case Driver::TOGGLE: {
+      if (!ha_controls::toggle_entity(config.entity)) {
+        ESP_LOGW("ha_controls", "Action unavailable for %s", config.entity.c_str());
+        break;
+      }
+      if (button != nullptr && lv_obj_is_valid(button) &&
+          !ha_controls::is_button_entity(config.entity))
+        set_card_checked_state(button, !lv_obj_has_state(button, LV_STATE_CHECKED));
       break;
     }
     default:

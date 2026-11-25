@@ -1,5 +1,6 @@
 #pragma once
 #include "card_modal_target.h"
+#include "ha_controls.h"
 
 // Local Mac output/input volume sliders. Legacy numeric, light, fan and
 // option_select identifiers remain in the saved contract; their drivers retire.
@@ -10,8 +11,15 @@ inline bool numeric_selectable_cough_card(const ParsedCfg &config) {
   return config.type == "companion_cough" || config.type == "companion_obs_cough";
 }
 
+inline bool numeric_selectable_ha_slider(const ParsedCfg &config) {
+  if (config.type != "light_brightness" && config.type != "slider") return false;
+  return ha_controls::slider_control_valid(config.entity) &&
+      !companion_volume_control_valid(config.entity);
+}
+
 inline bool numeric_selectable_driver_matches(const Context &, const ParsedCfg &config) {
   if (numeric_selectable_cough_card(config)) return true;
+  if (numeric_selectable_ha_slider(config)) return true;
   if (config.type == "companion_app_volume")
     return companion_app_volume_control_valid(config.entity);
   if (config.type == "companion_output_volume") return config.entity == "media.output_volume";
@@ -68,6 +76,10 @@ inline bool numeric_selectable_driver_cleanup(
     BtnSlot &slot, const ParsedCfg &config, const Context &context) {
   // The incoming card may use any driver, but the persistent button can still
   // carry a previous mute binding. Remove it before applying the new visual.
+  if (slot.sensor_container != nullptr) {
+    auto *slider = static_cast<lv_obj_t *>(lv_obj_get_user_data(slot.sensor_container));
+    if (slider != nullptr) ha_controls::unregister_widget(slider);
+  }
   unbind_cough_button(slot.btn);
   if (companion_forget_mute(slot.btn)) {
     set_card_checked_state(slot.btn, false);
@@ -140,10 +152,15 @@ inline bool numeric_selectable_driver_bind_main(
     BtnSlot &slot, const ParsedCfg &config, const Context &context,
     const CardPalette &, const DisplayProfile &display) {
   if (!numeric_selectable_driver_matches(context, config)) return false;
-  if (numeric_selectable_cough_card(config))
+  if (numeric_selectable_cough_card(config)) {
     numeric_selectable_bind_cough(slot, config, false);
-  else
+  } else if (numeric_selectable_ha_slider(config)) {
+    if (slot.text_lbl != nullptr && config.label.empty())
+      lv_label_set_display_text(slot.text_lbl,
+        ha_controls::domain_of(config.entity) == "media_player" ? "Volume" : "Brightness");
+  } else {
     numeric_selectable_driver_bind_slider(slot, config, display);
+  }
   return true;
 }
 struct NumericSelectableSubpageEnvironment {
@@ -159,6 +176,8 @@ inline bool numeric_selectable_driver_bind_subpage(
     numeric_selectable_bind_cough(slot, config, true);
     return true;
   }
+  // HA sliders subscribe and render themselves in setup_slider_visual.
+  if (numeric_selectable_ha_slider(config)) return true;
   numeric_selectable_driver_bind_slider(slot, config, environment.display);
   if (!companion_mute_control_valid(config.entity)) return true;
   struct MuteCardTarget {
@@ -207,6 +226,10 @@ inline bool numeric_selectable_driver_handle_main_click(
   if (!numeric_selectable_cough_card(config) && companion_mute_control_valid(config.entity))
     companion_toggle_mute(config.entity, companion_card_computer(config));
   return true;
+}
+
+inline bool numeric_selectable_driver_ha_slider(const ParsedCfg &config) {
+  return numeric_selectable_ha_slider(config);
 }
 inline ModalTarget numeric_selectable_driver_modal_target(const Context &, const ParsedCfg &, lv_obj_t *) { return {}; }
 }  // namespace espdesktop::cards

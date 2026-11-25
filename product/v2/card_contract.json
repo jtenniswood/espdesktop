@@ -634,14 +634,15 @@
       }
     },
     "": {
-      "hidden": true,
+      "hidden": false,
       "label": "Switch",
       "allowInSubpage": true,
       "domains": [
         "light",
         "switch",
         "input_boolean",
-        "fan"
+        "fan",
+        "media_player"
       ],
       "options": [
         {
@@ -2270,7 +2271,7 @@
       }
     },
     "light_brightness": {
-      "hidden": true,
+      "hidden": false,
       "label": "Lights",
       "allowInSubpage": true,
       "domains": [
@@ -2323,7 +2324,7 @@
       }
     },
     "light_switch": {
-      "hidden": true,
+      "hidden": false,
       "label": "Lights",
       "allowInSubpage": true,
       "pickerKey": "light_brightness",
@@ -3880,8 +3881,8 @@
       }
     },
     "slider": {
-      "label": "Legacy Slider",
-      "hidden": true,
+      "label": "Slider",
+      "hidden": false,
       "allowInSubpage": true,
       "domains": [
         "light",
@@ -4559,6 +4560,9 @@
       "companion_cough",
       "companion_obs_cough",
       "companion_input_device",
+      "light_brightness",
+      "light_switch",
+      "slider",
       "subpage"
     ],
     "preview": {
