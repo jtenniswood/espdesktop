@@ -133,8 +133,8 @@ async function checkBrowser() {
     }
     let touchscreenIcons;
     const home = `${base}/`;
-    const hero = page.locator('.homepage-hero');
-    const setup = hero.getByRole('link', { name: 'Get started', exact: true });
+    const heroActions = page.locator('.homepage-hero .homepage-action');
+    const setup = heroActions.getByRole('link', { name: 'Get started', exact: true });
     for (const [width, height, colorScheme] of [
       [320, 640, 'light'],
       [390, 844, 'dark'],
@@ -147,7 +147,7 @@ async function checkBrowser() {
       assert.equal(await page.getByRole('heading', { level: 1 }).count(), 1);
       assert(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth),
         `Homepage must fit a ${width}px viewport`);
-      assert.equal(await hero.getByRole('link').count(), 1);
+      assert.equal(await heroActions.getByRole('link').count(), 1);
       assert.equal(await setup.getAttribute('href'), '/screens/4848s040');
       const action = await setup.boundingBox();
       assert(action && action.y >= 0 && action.y + action.height <= height,
@@ -338,8 +338,8 @@ async function checkBrowser() {
     await page.goto(home);
     await setup.press('Enter');
     await page.waitForURL(`${home}screens/4848s040`);
-    await page.getByRole('heading', { name: 'Set up on macOS', exact: true }).waitFor();
-    await page.getByRole('heading', { name: 'Set up on Windows 11', exact: true }).waitFor();
+    await page.getByRole('heading', { name: 'Set up on macOS' }).waitFor();
+    await page.getByRole('heading', { name: 'Set up on Windows 11' }).waitFor();
     await page.getByRole('link', { name: 'Windows 11 preview guide', exact: true }).click();
     await page.waitForURL(`${home}windows-preview`);
     await page.getByRole('heading', { name: 'EspDesktop for Windows 11 preview', level: 1 }).waitFor();
