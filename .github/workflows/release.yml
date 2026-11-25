@@ -654,9 +654,17 @@ jobs:
             ${{ runner.temp }}/espdesktop-app/companion-appcast-v*.xml
           if-no-files-found: error
 
+  windows-release:
+    name: Build Windows release installers
+    needs: preflight
+    uses: ./.github/workflows/windows-espdesktop.yml
+    with:
+      release_tag: ${{ inputs.release_tag }}
+      source_sha: ${{ needs.preflight.outputs.source_sha }}
+
   prepare-candidate:
     name: Prepare Release Candidate
-    needs: [preflight, assemble-release, espdesktop-release]
+    needs: [preflight, assemble-release, espdesktop-release, windows-release]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7.0.1
@@ -675,17 +683,24 @@ jobs:
           name: espdesktop-app-release
           path: dist/companion
 
-      - name: Record the firmware and Mac app to test
+      - name: Download Windows installers
+        uses: actions/download-artifact@v8
+        with:
+          pattern: espdesktop-windows-*-installer
+          merge-multiple: true
+          path: dist/windows
+
+      - name: Record the firmware and desktop app candidates
         env:
           RELEASE_TAG: ${{ inputs.release_tag }}
           SOURCE_SHA: ${{ needs.preflight.outputs.source_sha }}
         run: |
           python3 scripts/companion_release.py create \
-            --firmware-dir dist/firmware --companion-dir dist/companion \
+            --firmware-dir dist/firmware --companion-dir dist/companion --windows-dir dist/windows \
             --source-revision "${SOURCE_SHA}" \
             --version "${RELEASE_TAG}" --out dist/companion/companion-compatibility.json
           python3 scripts/companion_release.py verify \
-            --firmware-dir dist/firmware --companion-dir dist/companion \
+            --firmware-dir dist/firmware --companion-dir dist/companion --windows-dir dist/windows \
             --source-revision "${SOURCE_SHA}" \
             --version "${RELEASE_TAG}" --out dist/companion/companion-compatibility.json
           FINGERPRINT="$(sha256sum dist/companion/companion-compatibility.json | cut -d ' ' -f 1)"
@@ -694,6 +709,7 @@ jobs:
             printf 'Candidate run: %s\n\n' "${GITHUB_RUN_ID}"
             printf 'Candidate fingerprint: `%s`\n\n' "${FINGERPRINT}"
             printf '%s\n' 'Download **espdesktop-app-release** and **release-candidate-compatibility** from this run.'
+            printf '%s\n' 'The Windows installers are available as **espdesktop-windows-x64-installer** and **espdesktop-windows-arm64-installer**.'
             printf '%s\n' 'Install and open the verified candidate Mac app. Once it is confirmed working, provide this run ID and fingerprint to **Publish Release**.'
           } >> "${GITHUB_STEP_SUMMARY}"
 

@@ -41,7 +41,7 @@ input rather than a release artifact.
 - Reruns may replace expected draft assets, but unexpected stale assets block
   publication.
 - Build Release prepares a private candidate after the tag and draft exist.
-  The candidate manifest binds the firmware and Mac app to one fingerprint.
+  The candidate manifest binds the firmware, Mac archives, and Windows installers to one fingerprint.
 - Publish Release requires a recorded test on the 4848S040 and verifies the
   candidate fingerprint before uploading the same files.
 - GitHub Pages deployment starts after Publish Release succeeds.

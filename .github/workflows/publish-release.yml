@@ -76,6 +76,16 @@ jobs:
           repository: ${{ github.repository }}
           run-id: ${{ inputs.candidate_run }}
 
+      - name: Download tested Windows installers
+        uses: actions/download-artifact@v8
+        with:
+          pattern: espdesktop-windows-*-installer
+          merge-multiple: true
+          path: dist/windows
+          github-token: ${{ github.token }}
+          repository: ${{ github.repository }}
+          run-id: ${{ inputs.candidate_run }}
+
       - name: Download the tested candidate manifest
         uses: actions/download-artifact@v8
         with:
@@ -92,11 +102,13 @@ jobs:
           CANDIDATE_RUN: ${{ inputs.candidate_run }}
         run: |
           python3 scripts/companion_release.py verify \
-            --firmware-dir dist/firmware --companion-dir dist/companion \
+            --firmware-dir dist/firmware --companion-dir dist/companion --windows-dir dist/windows \
             --source-revision "${SOURCE_SHA}" \
             --version "${RELEASE_TAG}" --out dist/companion/companion-compatibility.json \
             --tested-fingerprint "${CONFIRMED_FINGERPRINT}"
           {
+            printf '\n## Windows downloads\n\n'
+            printf '%s\n' 'Choose the x64 setup file for Intel and AMD PCs or the Arm64 setup file for Windows on Arm. The Windows installers are unsigned.'
             printf '\n## Mac verification\n\n'
             printf 'Confirmed the installed Mac app from [build run %s](%s/%s/actions/runs/%s) with fingerprint `%s`.\n' \
               "${CANDIDATE_RUN}" "${GITHUB_SERVER_URL}" "${GITHUB_REPOSITORY}" "${CANDIDATE_RUN}" "${CONFIRMED_FINGERPRINT}"
@@ -133,4 +145,5 @@ jobs:
             --release-contract product/release_contract.json \
             --web-manifest dist/release-web-assets/web-assets.json \
             --web-root dist/release-web-assets \
-            --additional-files "${COMPANION_ZIP}" "${COMPANION_DMG}" "${COMPANION_FEED}" dist/companion/companion-compatibility.json
+            --additional-files "${COMPANION_ZIP}" "${COMPANION_DMG}" "${COMPANION_FEED}" dist/companion/companion-compatibility.json \
+              dist/windows/*.exe
