@@ -580,9 +580,13 @@ def test_recovery_sources_and_documentation_stay_complete() -> None:
         "guition-esp32-p4-jc8012p4a1-v3": ROOT / "docs/screens/jc8012p4a1-v3.md",
         "esp32-p4-86": ROOT / "docs/screens/p4-86.md",
     }
+    recovery_guide = (
+        "https://jtenniswood.github.io/espcontrol/getting-started/"
+        "troubleshooting#a-p4-panel-has-unreliable-wifi"
+    )
     for slug, path in screen_docs.items():
         text = path.read_text(encoding="utf-8")
-        assert "C6RecoveryCallout" in text and slug in text, (
+        assert slug in text and ("C6RecoveryCallout" in text or recovery_guide in text), (
             f"{path}: C6 recovery link is missing"
         )
         assert slug in selector, f"{slug}: recovery selector option is missing"
