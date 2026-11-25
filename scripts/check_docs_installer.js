@@ -356,7 +356,7 @@ async function checkBrowser() {
         `Docs must be visible in the navigation at ${width}px`);
       await docs.click();
       await page.waitForURL(docsUrl);
-      await page.getByRole('heading', { name: 'Getting started with EspDesktop', level: 1 })
+      await page.getByRole('heading', { name: '4-inch Guition 4848S040', level: 1 })
         .and(page.locator(`#${docsHeadingId}`)).waitFor();
     }
     await page.goto(home);
