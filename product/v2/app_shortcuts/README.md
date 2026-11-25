@@ -1,6 +1,22 @@
-# Native Mac app shortcut catalogues
+# Application shortcut catalogues
 
-This folder contains the editable templates used for native Mac app shortcuts. The Mac Companion reads `manifest.json` and its listed templates from the EspDesktop GitHub repository at launch and reconnect. It sends the validated definitions to the paired display, where the web configurator uses them to build app subpages and shortcut choices. The display does not fetch GitHub directly.
+The JSON files at the top level describe macOS shortcuts. Files under `platforms/windows/` describe Windows shortcuts for the same application guides. The Windows companion embeds its own templates and sends them for approved installed apps.
+
+## Add or update a Windows app
+
+1. Use the application's guide slug as the filename, such as `platforms/windows/firefox.json`. A new slug creates a Windows-only guide. Share a slug when the guides cover the same application, and use distinct slugs when Windows editions use different bindings.
+2. Set the display `label` and identify the Windows app by its lowercase executable filename in `executables`, or by an exact Start menu target in `targets`. Use an empty list of executables and omit targets for a reference-only guide.
+3. List the vendor references under `sources` and use `note` when a binding depends on a version, edition, or focused pane.
+4. Give every preset a stable numeric string `id`, a short `label`, a `shortcut`, and an `icon` from `product/v2/icons.json`. Optional `defaultShortcutIds` chooses up to eight presets for a new subpage. Earlier Windows releases assigned IDs by position, so keep those IDs when updating their apps.
+5. Run `python3 scripts/check_app_shortcuts.py`, build the Windows companion and run `npm run docs:build`.
+
+Windows shortcuts use `control`, `option` (Alt), and `shift`, plus the named keys used by the display. The display token `delete` sends Backspace and `forwarddelete` sends Delete. Separate successive strokes with `~`, as in `control+k~control+s`. Each preset is sent to its approved foreground app. The desktop can serve up to 720 presets per template in small pages. Older firmware can load the starter buttons.
+
+Use published Windows defaults and record an edition or context when it matters. Keep operating-system controls, pointer gestures, held keys, Win-key combinations, and configurable actions without a default outside the application presets. See the [Windows coverage audit](platforms/windows/coverage.md) for the applications checked against this catalogue.
+
+## macOS catalogue
+
+The Mac templates use the existing manifest and bundle identifiers. The Mac Companion reads `manifest.json` and its listed templates from the EspDesktop GitHub repository at launch and reconnect. It sends the validated definitions to the paired display, where the web configurator uses them to build app subpages and shortcut choices. The display does not fetch GitHub directly.
 
 Mac Companion bundles the full catalogue for local use without internet. Current displays forward the app index and the requested app's presets in bounded pages. The editor built into firmware includes a small starter set for offline editing when Companion is disconnected. Compatible template updates are fetched on launch or reconnect.
 

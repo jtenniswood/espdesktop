@@ -1,0 +1,40 @@
+{
+  "label": "GitKraken",
+  "executables": [
+    "gitkraken.exe"
+  ],
+  "sources": [
+    "https://help.gitkraken.com/gitkraken-desktop/keyboard-shortcuts/"
+  ],
+  "shortcuts": [
+    {"id": "0", "label": "Command Palette", "shortcut": "control+p", "icon": "Keyboard"},
+    {"id": "1", "label": "Open keyboard shortcuts", "shortcut": "control+keyslash", "icon": "Keyboard"},
+    {"id": "2", "label": "Create branch", "shortcut": "control+b", "icon": "Plus"},
+    {"id": "3", "label": "Fetch all", "shortcut": "control+l", "icon": "Shortcut Command"},
+    {"id": "4", "label": "Stage the file", "shortcut": "s", "icon": "Open File"},
+    {"id": "5", "label": "Unstage the file", "shortcut": "u", "icon": "Open File"},
+    {"id": "6", "label": "Commit staged files with current message", "shortcut": "control+enter", "icon": "Source Branch"},
+    {"id": "7", "label": "Select previous item", "shortcut": "k", "icon": "Group Selection"},
+    {"id": "8", "label": "Select next item", "shortcut": "j", "icon": "Group Selection"},
+    {"id": "9", "label": "Select item to the right", "shortcut": "l", "icon": "Group Selection"},
+    {"id": "10", "label": "Select item to the left", "shortcut": "h", "icon": "Group Selection"},
+    {"id": "11", "label": "Select first commit in graph", "shortcut": "control+home", "icon": "Group Selection"},
+    {"id": "12", "label": "Select last commit in graph", "shortcut": "control+end", "icon": "Group Selection"},
+    {"id": "13", "label": "Undo", "shortcut": "control+z", "icon": "Undo"},
+    {"id": "14", "label": "Search Commits", "shortcut": "control+f", "icon": "Search"},
+    {"id": "15", "label": "Open repo in default terminal", "shortcut": "option+t", "icon": "Keyboard"},
+    {"id": "16", "label": "Open current repo in File Manager", "shortcut": "option+o", "icon": "Open File"},
+    {"id": "17", "label": "Open diff or merge tool", "shortcut": "control+d", "icon": "Source Branch"},
+    {"id": "18", "label": "Close current repo", "shortcut": "control+w", "icon": "Shortcut Command"},
+    {"id": "19", "label": "Toggle Full Screen", "shortcut": "f11", "icon": "Full Screen"},
+    {"id": "20", "label": "Decrease Zoom", "shortcut": "control+keyminus", "icon": "Zoom Out"},
+    {"id": "21", "label": "Reset zoom", "shortcut": "control+0", "icon": "Fit to Screen"},
+    {"id": "22", "label": "Toggle the Left Panel", "shortcut": "control+j", "icon": "Application"},
+    {"id": "23", "label": "Toggle the Commit Detail panel", "shortcut": "control+k", "icon": "Source Branch"},
+    {"id": "24", "label": "Close the panel", "shortcut": "escape", "icon": "Application"},
+    {"id": "25", "label": "New Tab", "shortcut": "control+t", "icon": "New Tab"},
+    {"id": "26", "label": "Jump to next open tab", "shortcut": "control+tab", "icon": "Tab"},
+    {"id": "27", "label": "Jump to the next terminal tab", "shortcut": "control+pagedown", "icon": "Chevron Right"},
+    {"id": "28", "label": "Jump to the previous terminal tab", "shortcut": "control+pageup", "icon": "Tab"}
+  ]
+}

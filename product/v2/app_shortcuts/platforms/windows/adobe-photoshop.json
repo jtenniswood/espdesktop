@@ -1,0 +1,35 @@
+{
+  "label": "Adobe Photoshop",
+  "executables": [
+    "photoshop.exe"
+  ],
+  "sources": [
+    "https://helpx.adobe.com/content/dam/help/en/pdf/photoshop_reference.pdf",
+    "https://helpx.adobe.com/content/dam/help/en/photoshop/using/default-keyboard-shortcuts/photoshop-keyboard-shortcuts.pdf"
+  ],
+  "note": "For the default Photoshop desktop shortcuts. Tool keys apply while you are outside text editing.",
+  "shortcuts": [
+    {"id": "0", "label": "Move tool", "shortcut": "v", "icon": "Shortcut Command"},
+    {"id": "1", "label": "Brush Tool", "shortcut": "b", "icon": "Group Selection"},
+    {"id": "2", "label": "Crop Tool", "shortcut": "c", "icon": "Crop"},
+    {"id": "3", "label": "Free Transform", "shortcut": "control+t", "icon": "Vector"},
+    {"id": "4", "label": "Duplicate Layer", "shortcut": "control+j", "icon": "Keyboard"},
+    {"id": "5", "label": "New Layer", "shortcut": "control+shift+n", "icon": "Plus"},
+    {"id": "6", "label": "New Group", "shortcut": "control+g", "icon": "Plus"},
+    {"id": "7", "label": "Save As", "shortcut": "control+shift+s", "icon": "Save"},
+    {"id": "8", "label": "Undo", "shortcut": "control+z", "icon": "Undo"},
+    {"id": "9", "label": "Redo", "shortcut": "control+shift+z", "icon": "Redo"},
+    {"id": "10", "label": "Deselect", "shortcut": "control+d", "icon": "Deselect"},
+    {"id": "11", "label": "Reselect", "shortcut": "control+shift+d", "icon": "Shortcut Command"},
+    {"id": "12", "label": "Invert selection", "shortcut": "control+shift+i", "icon": "Group Selection"},
+    {"id": "13", "label": "Image Size", "shortcut": "control+option+i", "icon": "Keyboard"},
+    {"id": "14", "label": "Canvas Size", "shortcut": "control+option+c", "icon": "Keyboard"},
+    {"id": "15", "label": "Show or Hide Rulers", "shortcut": "control+r", "icon": "Keyboard"},
+    {"id": "16", "label": "Color Balance", "shortcut": "control+b", "icon": "Keyboard"},
+    {"id": "17", "label": "Levels", "shortcut": "control+l", "icon": "Keyboard"},
+    {"id": "18", "label": "Curves", "shortcut": "control+m", "icon": "Keyboard"},
+    {"id": "19", "label": "Hue or Saturation", "shortcut": "control+u", "icon": "Keyboard"},
+    {"id": "20", "label": "Fit on Screen", "shortcut": "control+0", "icon": "Keyboard"},
+    {"id": "21", "label": "Actual Size", "shortcut": "control+1", "icon": "Keyboard"}
+  ]
+}

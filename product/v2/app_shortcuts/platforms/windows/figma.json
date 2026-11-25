@@ -1,0 +1,37 @@
+{
+  "label": "Figma",
+  "executables": [
+    "figma.exe"
+  ],
+  "sources": [
+    "https://help.figma.com/hc/en-us/articles/360040328653-Use-Figma-products-with-a-keyboard",
+    "https://help.figma.com/hc/en-us/articles/360041539473-Frames-in-Figma-Design",
+    "https://help.figma.com/hc/en-us/articles/360038663154-Create-components-to-reuse-in-designs",
+    "https://help.figma.com/hc/en-us/articles/23570416033943-Use-the-actions-menu-in-Figma-Design",
+    "https://help.figma.com/hc/en-us/articles/4409078832791-Copy-and-paste-objects",
+    "https://help.figma.com/hc/en-us/articles/5665442977431-Select-keyboard-layout"
+  ],
+  "note": "For Figma Design in the desktop app. Commands can depend on the selection and your Figma keyboard layout.",
+  "shortcuts": [
+    {"id": "0", "label": "Duplicate", "shortcut": "control+d", "icon": "Copy"},
+    {"id": "1", "label": "Frame Selection", "shortcut": "control+option+g", "icon": "Group Selection"},
+    {"id": "2", "label": "New Component", "shortcut": "control+option+k", "icon": "Component"},
+    {"id": "3", "label": "Frame tool", "shortcut": "f", "icon": "Shortcut Command"},
+    {"id": "4", "label": "Select child layer", "shortcut": "enter", "icon": "Group Selection"},
+    {"id": "5", "label": "Select Parent Layer", "shortcut": "shift+enter", "icon": "Group Selection"},
+    {"id": "6", "label": "Open Actions Menu", "shortcut": "control+k", "icon": "Keyboard"},
+    {"id": "7", "label": "Copy as PNG", "shortcut": "control+shift+c", "icon": "Image"},
+    {"id": "8", "label": "Paste Over Selection", "shortcut": "control+shift+v", "icon": "Keyboard"},
+    {"id": "9", "label": "Paste to Replace", "shortcut": "control+shift+r", "icon": "Find Replace"},
+    {"id": "10", "label": "Copy", "shortcut": "control+c", "icon": "Copy"},
+    {"id": "11", "label": "Paste", "shortcut": "control+v", "icon": "Paste"},
+    {"id": "12", "label": "Bring Forward", "shortcut": "control+keybracketright", "icon": "Arrow Up"},
+    {"id": "13", "label": "Send Backward", "shortcut": "control+keybracketleft", "icon": "Arrow Down"},
+    {"id": "14", "label": "Show or Hide UI", "shortcut": "control+keyperiod", "icon": "Eye Off"},
+    {"id": "15", "label": "Show Outlines", "shortcut": "control+shift+o", "icon": "Keyboard"},
+    {"id": "16", "label": "Toggle layout guides", "shortcut": "shift+g", "icon": "Application"},
+    {"id": "17", "label": "Focus Toolbar", "shortcut": "control+f6", "icon": "Keyboard"},
+    {"id": "18", "label": "Zoom In", "shortcut": "control+shift+keyequal", "icon": "Keyboard"},
+    {"id": "19", "label": "Zoom Out", "shortcut": "control+keyminus", "icon": "Fit to Screen"}
+  ]
+}

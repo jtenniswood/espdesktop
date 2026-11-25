@@ -1,0 +1,38 @@
+{
+  "label": "Zoom",
+  "executables": [
+    "zoom.exe"
+  ],
+  "sources": [
+    "https://support.zoom.com/hc/en/article?id=zm_kb&sysparm_article=KB0067050"
+  ],
+  "note": "Meeting, Team Chat, and Zoom Phone shortcuts apply in their respective views. Focus Zoom before using a preset.",
+  "shortcuts": [
+    {"id": "0", "label": "Mute Meeting Microphone", "shortcut": "option+a", "icon": "Microphone Off"},
+    {"id": "1", "label": "Toggle Video", "shortcut": "option+v", "icon": "Video"},
+    {"id": "2", "label": "Share or Stop Sharing", "shortcut": "option+s", "icon": "Keyboard", "note": "Focus the meeting controls first."},
+    {"id": "3", "label": "Raise or Lower Hand", "shortcut": "option+y", "icon": "Shortcut Command"},
+    {"id": "4", "label": "Participants", "shortcut": "option+u", "icon": "Keyboard"},
+    {"id": "5", "label": "Meeting Chat", "shortcut": "option+h", "icon": "Chat"},
+    {"id": "6", "label": "Speaker View", "shortcut": "option+f1", "icon": "Keyboard"},
+    {"id": "7", "label": "Gallery View", "shortcut": "option+f2", "icon": "Keyboard"},
+    {"id": "8", "label": "Full Screen", "shortcut": "option+f", "icon": "Full Screen Exit"},
+    {"id": "9", "label": "Leave or End Meeting Prompt", "shortcut": "option+q", "icon": "Keyboard"},
+    {"id": "10", "label": "Copy Invitation Link", "shortcut": "option+shift+i", "icon": "Copy"},
+    {"id": "11", "label": "Invite Participants", "shortcut": "option+i", "icon": "Keyboard"},
+    {"id": "12", "label": "Start or Stop Local Recording", "shortcut": "option+r", "icon": "Stop"},
+    {"id": "13", "label": "Start or Stop Cloud Recording", "shortcut": "option+c", "icon": "Stop"},
+    {"id": "14", "label": "Pause or Resume Recording", "shortcut": "option+p", "icon": "Record"},
+    {"id": "15", "label": "Pause or Resume Screen Share", "shortcut": "option+t", "icon": "Play Pause", "note": "Focus the meeting controls first."},
+    {"id": "16", "label": "Switch camera", "shortcut": "option+n", "icon": "Shortcut Command"},
+    {"id": "17", "label": "Mute Other Participants", "shortcut": "option+m", "icon": "Microphone Off", "note": "Meeting host only."},
+    {"id": "18", "label": "Reactions Panel", "shortcut": "control+shift+y", "icon": "Keyboard"},
+    {"id": "19", "label": "New Team Chat", "shortcut": "control+n", "icon": "Plus"},
+    {"id": "20", "label": "Previous Team Chat", "shortcut": "control+up", "icon": "Chevron Left"},
+    {"id": "21", "label": "Next Team Chat", "shortcut": "control+down", "icon": "Chevron Right"},
+    {"id": "22", "label": "Answer Zoom Phone Call", "shortcut": "control+shift+a", "icon": "Keyboard"},
+    {"id": "23", "label": "Decline Zoom Phone Call", "shortcut": "control+shift+d", "icon": "Keyboard"},
+    {"id": "24", "label": "End Zoom Phone Call", "shortcut": "control+shift+e", "icon": "Keyboard"},
+    {"id": "25", "label": "Mute Zoom Phone Microphone", "shortcut": "control+shift+m", "icon": "Microphone Off"}
+  ]
+}

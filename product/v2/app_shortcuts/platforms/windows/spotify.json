@@ -1,0 +1,43 @@
+{
+  "label": "Spotify",
+  "executables": [
+    "spotify.exe"
+  ],
+  "targets": [
+    "spotifyab.spotifymusic_zpdnekdrzrea0!spotify"
+  ],
+  "sources": [
+    "https://support.spotify.com/us/article/keyboard-shortcuts/"
+  ],
+  "defaultShortcutIds": [
+    "0",
+    "1",
+    "2",
+    "3",
+    "4",
+    "5"
+  ],
+  "shortcuts": [
+    {"id": "0", "label": "Search", "shortcut": "control+k", "icon": "Search"},
+    {"id": "1", "label": "Filter", "shortcut": "control+f", "icon": "Search"},
+    {"id": "2", "label": "Shuffle", "shortcut": "control+s", "icon": "Shuffle"},
+    {"id": "3", "label": "Repeat", "shortcut": "control+r", "icon": "Repeat"},
+    {"id": "4", "label": "Queue", "shortcut": "option+shift+q", "icon": "Playlist Music"},
+    {"id": "5", "label": "Preferences", "shortcut": "control+keycomma", "icon": "Settings"},
+    {"id": "6", "label": "Play or Pause", "shortcut": "space", "icon": "Play Pause"},
+    {"id": "7", "label": "Help", "shortcut": "control+keyslash", "icon": "Keyboard"},
+    {"id": "8", "label": "Like or Unlike Song", "shortcut": "option+shift+b", "icon": "Shortcut Command"},
+    {"id": "9", "label": "Go to Library", "shortcut": "option+shift+0", "icon": "Book"},
+    {"id": "10", "label": "Go to Playlists", "shortcut": "option+shift+1", "icon": "Playlist Music"},
+    {"id": "11", "label": "Go to Podcasts", "shortcut": "option+shift+2", "icon": "Shortcut Command"},
+    {"id": "12", "label": "Go to Artists", "shortcut": "option+shift+3", "icon": "Shortcut Command"},
+    {"id": "13", "label": "Go to Albums", "shortcut": "option+shift+4", "icon": "Shortcut Command"},
+    {"id": "14", "label": "Go to Audiobooks", "shortcut": "option+shift+5", "icon": "Shortcut Command"},
+    {"id": "15", "label": "Go to Home", "shortcut": "option+shift+h", "icon": "Keyboard"},
+    {"id": "16", "label": "Go to Now Playing", "shortcut": "option+shift+j", "icon": "Play"},
+    {"id": "17", "label": "Go to Liked Songs", "shortcut": "option+shift+s", "icon": "Shortcut Command"},
+    {"id": "18", "label": "Show Now Playing Sidebar", "shortcut": "option+shift+r", "icon": "Dock Right"},
+    {"id": "19", "label": "Show Your Library Sidebar", "shortcut": "option+shift+l", "icon": "Dock Left"},
+    {"id": "20", "label": "Mute or Unmute", "shortcut": "m", "icon": "Mute"}
+  ]
+}

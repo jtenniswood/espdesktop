@@ -164,17 +164,21 @@ export function createCompanionCatalogue(fetchImpl: typeof fetch) {
   async function fetchShortcutIndex(): Promise<CompanionDefinitions | null> {
     const applications = new Map<string, AppShortcutApplication>();
     let version: number | undefined;
+    let windows = false;
     for (let page = 0; page < 32; page++) {
       const data = await fetchShortcutPage("index", page, version);
       if (!data) return null;
       version = data.catalogueVersion;
-      const index = (data.application as { applications?: unknown } | null)?.applications;
-      if (!Array.isArray(index) || index.length > 32) throw new Error("Invalid shortcut catalogue index");
-      for (const item of index) {
+      const index = data.application as { applications?: unknown; shortcutPlatform?: unknown } | null;
+      if (!Array.isArray(index?.applications) || index.applications.length > 32) throw new Error("Invalid shortcut catalogue index");
+      const windowsPage = index.shortcutPlatform === "windows";
+      if (page === 0) windows = windowsPage;
+      else if (windows !== windowsPage) throw new Error("Companion platform changed during the catalogue load");
+      for (const item of index.applications) {
         if (typeof item?.appId !== "string" || typeof item.label !== "string") continue;
         applications.set(item.appId, { version: 1, appId: item.appId, label: item.label, shortcuts: [], catalog: false });
       }
-      if (data.complete) return { applications: [...applications.values()] };
+      if (data.complete) return { applications: [...applications.values()], ...(windows ? { shortcutPlatform: "windows" } : {}) };
     }
     throw new Error("Shortcut index has too many pages");
   }

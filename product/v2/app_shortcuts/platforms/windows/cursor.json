@@ -1,0 +1,38 @@
+{
+  "label": "Cursor",
+  "executables": [
+    "cursor.exe"
+  ],
+  "sources": [
+    "https://cursor.com/docs/reference/keyboard-shortcuts"
+  ],
+  "defaultShortcutIds": [
+    "0",
+    "1",
+    "2",
+    "3",
+    "4",
+    "5"
+  ],
+  "shortcuts": [
+    {"id": "0", "label": "Command Palette", "shortcut": "control+shift+p", "icon": "Shortcut Command"},
+    {"id": "1", "label": "Quick Open", "shortcut": "control+p", "icon": "Search"},
+    {"id": "2", "label": "Find in Files", "shortcut": "control+shift+f", "icon": "Search"},
+    {"id": "3", "label": "Save", "shortcut": "control+s", "icon": "Save"},
+    {"id": "4", "label": "Terminal", "shortcut": "control+keybackquote", "icon": "Terminal"},
+    {"id": "5", "label": "Explorer", "shortcut": "control+shift+e", "icon": "Folder"},
+    {"id": "6", "label": "Toggle AI Panel", "shortcut": "control+i", "icon": "Keyboard"},
+    {"id": "7", "label": "Toggle Agent layout", "shortcut": "control+e", "icon": "Application"},
+    {"id": "8", "label": "Cursor Settings", "shortcut": "control+shift+j", "icon": "Settings"},
+    {"id": "9", "label": "General Settings", "shortcut": "control+keycomma", "icon": "Settings"},
+    {"id": "10", "label": "Switch AI Model", "shortcut": "control+keyslash", "icon": "Keyboard"},
+    {"id": "11", "label": "Mode Menu", "shortcut": "control+keyperiod", "icon": "Open File"},
+    {"id": "12", "label": "Toggle Dictation", "shortcut": "control+shift+space", "icon": "Keyboard"},
+    {"id": "13", "label": "Send Immediately", "shortcut": "control+enter", "icon": "Keyboard", "note": "When entering a message."},
+    {"id": "14", "label": "Cancel generation", "shortcut": "control+shift+delete", "icon": "Close", "note": "While the Agent is responding."},
+    {"id": "15", "label": "Add Selection to Chat", "shortcut": "control+shift+l", "icon": "Plus", "note": "Select code first."},
+    {"id": "16", "label": "Paste as Context", "shortcut": "control+v", "icon": "Keyboard", "note": "With supported data on the clipboard."},
+    {"id": "17", "label": "Rotate Agent Mode", "shortcut": "shift+tab", "icon": "Rotate Left"},
+    {"id": "18", "label": "Model Picker", "shortcut": "control+option+keyslash", "icon": "Keyboard"}
+  ]
+}

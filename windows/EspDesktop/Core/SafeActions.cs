@@ -27,6 +27,23 @@ internal static class SafeActions
     };
     public const string ScopedShortcutPrefix = "shortcut.scoped.";
 
+    public static ushort[][]? ShortcutStrokes(string id)
+    {
+        if (id.Length > 96) return null;
+        if (!id.StartsWith(ScopedShortcutPrefix, StringComparison.Ordinal))
+            return Shortcut(id) is { } keys ? [keys] : null;
+
+        var strokes = id[ScopedShortcutPrefix.Length..].Split('~');
+        if (strokes.Length > 3) return null;
+        var result = new ushort[strokes.Length][];
+        for (var i = 0; i < strokes.Length; i++)
+        {
+            if (Shortcut(ScopedShortcutPrefix + strokes[i]) is not { } chord) return null;
+            result[i] = chord;
+        }
+        return result;
+    }
+
     public static ushort[]? Shortcut(string id)
     {
         const string prefix = "shortcut.";
@@ -48,7 +65,8 @@ internal static class SafeActions
         else return null;
         // Windows shell and session shortcuts must not be triggered by the panel.
         if ((result.Contains(0x12) && result[^1] is 0x09 or 0x1b or 0x73) ||
-            (result.Contains(0x11) && result[^1] == 0x1b)) return null;
+            (result.Contains(0x11) && result[^1] == 0x1b) ||
+            (result.Contains(0x11) && result.Contains(0x12) && result[^1] == 0x2e)) return null;
         return [.. result];
     }
 }

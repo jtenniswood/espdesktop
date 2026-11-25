@@ -332,7 +332,9 @@ def check_build(dist):
     report = snapshot(pages)
     groups = json.loads((ROOT / 'docs/.vitepress/public-guides.json').read_text())
     shortcut_guides = json.loads((ROOT / 'docs/.vitepress/shortcut-guides.json').read_text())
-    groups['Application shortcuts'] = [f'reference/shortcut-presets/{slug}.md' for slug in shortcut_guides]
+    windows_templates = ROOT / 'product/v2/app_shortcuts/platforms/windows'
+    shortcut_slugs = set(shortcut_guides) | {file.stem for file in windows_templates.glob('*.json')}
+    groups['Application shortcuts'] = [f'reference/shortcut-presets/{slug}.md' for slug in shortcut_slugs]
     mac_docs = {
         BASE + (path.removesuffix('index.md') if path == 'index.md' or path.endswith('/index.md')
                 else path.removesuffix('.md'))

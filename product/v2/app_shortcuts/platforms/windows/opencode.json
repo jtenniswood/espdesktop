@@ -1,0 +1,24 @@
+{
+  "label": "OpenCode",
+  "executables": [
+    "opencode.exe",
+    "opencode-desktop.exe"
+  ],
+  "sources": [
+    "https://opencode.ai/desktop",
+    "https://opencode.ai/changelog?area=desktop",
+    "https://github.com/anomalyco/opencode/blob/dev/packages/app/src/desktop-menu.ts"
+  ],
+  "note": "For the OpenCode desktop app. The OpenCode terminal interface uses a separate shortcut set.",
+  "shortcuts": [
+    {"id": "0", "label": "Jump to Message", "shortcut": "control+option+g", "icon": "Chat"},
+    {"id": "1", "label": "Open Settings", "shortcut": "control+keycomma", "icon": "Settings"},
+    {"id": "2", "label": "New Window", "shortcut": "control+shift+n", "icon": "Application"},
+    {"id": "3", "label": "Archive Session", "shortcut": "control+shift+s", "icon": "Keyboard"},
+    {"id": "4", "label": "Undo", "shortcut": "control+z", "icon": "Undo"},
+    {"id": "5", "label": "Redo", "shortcut": "control+y", "icon": "Redo"},
+    {"id": "6", "label": "Zoom In", "shortcut": "control+shift+keyequal", "icon": "Keyboard"},
+    {"id": "7", "label": "Zoom Out", "shortcut": "control+keyminus", "icon": "Keyboard"},
+    {"id": "8", "label": "Reset Zoom", "shortcut": "control+0", "icon": "Keyboard"}
+  ]
+}

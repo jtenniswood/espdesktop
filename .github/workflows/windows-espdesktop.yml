@@ -4,6 +4,7 @@ on:
   pull_request:
     paths:
       - 'windows/**'
+      - 'product/v2/app_shortcuts/platforms/windows/**'
       - 'product/v2/companion_capabilities.json'
       - 'compatibility/fixtures/companion_protocol_v4.json'
       - '.github/workflows/windows-espdesktop.yml'

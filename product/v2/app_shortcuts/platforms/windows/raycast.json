@@ -1,0 +1,36 @@
+{
+  "label": "Raycast",
+  "executables": [
+    "raycast.exe"
+  ],
+  "sources": [
+    "https://manual.raycast.com/keyboard-shortcuts"
+  ],
+  "note": "Bring Raycast forward first. Its system-wide launcher shortcut is configurable in Raycast.",
+  "shortcuts": [
+    {"id": "0", "label": "Open settings", "shortcut": "control+keycomma", "icon": "Settings"},
+    {"id": "1", "label": "Open Action Panel", "shortcut": "control+k", "icon": "Keyboard"},
+    {"id": "2", "label": "Primary Action", "shortcut": "enter", "icon": "Run"},
+    {"id": "3", "label": "Secondary Action", "shortcut": "control+enter", "icon": "Run"},
+    {"id": "4", "label": "Tertiary Action", "shortcut": "control+shift+enter", "icon": "Run"},
+    {"id": "5", "label": "Back or Close Raycast", "shortcut": "escape", "icon": "Chevron Left"},
+    {"id": "6", "label": "Return to Root", "shortcut": "shift+escape", "icon": "Search"},
+    {"id": "7", "label": "Open User Guide", "shortcut": "control+shift+keyslash", "icon": "Help"},
+    {"id": "8", "label": "Add to Favorites", "shortcut": "control+f", "icon": "Plus"},
+    {"id": "9", "label": "Previous Result Page", "shortcut": "option+up", "icon": "Arrow Up"},
+    {"id": "10", "label": "Next Result Page", "shortcut": "option+down", "icon": "Arrow Down"},
+    {"id": "11", "label": "Previous Section", "shortcut": "control+up", "icon": "Chevron Left"},
+    {"id": "12", "label": "Next Section", "shortcut": "control+down", "icon": "Chevron Right"},
+    {"id": "13", "label": "Reveal in File Explorer", "shortcut": "control+shift+o", "icon": "Keyboard"},
+    {"id": "14", "label": "Open With", "shortcut": "control+option+o", "icon": "Open External"},
+    {"id": "15", "label": "Preview Item", "shortcut": "control+y", "icon": "Keyboard"},
+    {"id": "16", "label": "Show Item Details", "shortcut": "control+i", "icon": "Information"},
+    {"id": "17", "label": "Duplicate Item", "shortcut": "control+d", "icon": "Duplicate"},
+    {"id": "18", "label": "Pin or Unpin Item", "shortcut": "control+keyperiod", "icon": "Keyboard"},
+    {"id": "19", "label": "Show Hidden Items", "shortcut": "control+shift+keyperiod", "icon": "Eye Off"},
+    {"id": "20", "label": "Toggle Chat History", "shortcut": "control+shift+s", "icon": "History"},
+    {"id": "21", "label": "Search Chats", "shortcut": "control+shift+f", "icon": "Search"},
+    {"id": "22", "label": "Add Chat Attachment", "shortcut": "control+shift+a", "icon": "Plus"},
+    {"id": "23", "label": "Change Model", "shortcut": "control+shift+m", "icon": "Robot"}
+  ]
+}

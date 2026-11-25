@@ -1,6 +1,6 @@
 ---
-title: EspDesktop Mac keyboard shortcut presets by app
-description: Look up the action labels and keyboard combinations in the EspDesktop keyboard shortcut catalog for Mac apps such as Brave Browser, Figma and Safari.
+title: EspDesktop keyboard shortcut presets by app
+description: Look up EspDesktop application shortcuts for macOS and Windows.
 ---
 
 <script setup>
@@ -9,6 +9,6 @@ import ShortcutPresetReference from '../.vitepress/theme/components/ShortcutPres
 
 # Application shortcuts for EspDesktop
 
-This reference covers macOS presets. On Windows, choose **Keyboard Shortcut → Application** in the display editor while your PC is connected to see its presets. Each guide includes suggested buttons, a full shortcut reference, and answers to common questions.
+Filter by platform, then open an app to look up its keyboard shortcuts. To add a supported preset to your touchscreen, pair the [Mac companion](/mac-controls/shortcuts) or the [Windows companion preview](/windows-preview#add-controls), then choose **Keyboard Shortcut → Application** in the display editor.
 
 <ShortcutPresetReference />

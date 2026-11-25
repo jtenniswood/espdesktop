@@ -1,0 +1,58 @@
+{
+  "label": "Brave Browser",
+  "executables": [
+    "brave.exe"
+  ],
+  "sources": [
+    "https://support.brave.app/hc/en-us/articles/360032272171-What-keyboard-shortcuts-can-I-use-in-Brave"
+  ],
+  "defaultShortcutIds": [
+    "0",
+    "1",
+    "2",
+    "3",
+    "4",
+    "5",
+    "6",
+    "7"
+  ],
+  "shortcuts": [
+    {"id": "0", "label": "New Tab", "shortcut": "control+t", "icon": "New Tab"},
+    {"id": "1", "label": "New Window", "shortcut": "control+n", "icon": "New Window"},
+    {"id": "2", "label": "Reopen Tab", "shortcut": "control+shift+t", "icon": "Undo"},
+    {"id": "3", "label": "Find", "shortcut": "control+f", "icon": "Search"},
+    {"id": "4", "label": "Refresh", "shortcut": "control+r", "icon": "Refresh"},
+    {"id": "5", "label": "Close Tab", "shortcut": "control+w", "icon": "Close"},
+    {"id": "6", "label": "Next Tab", "shortcut": "control+tab", "icon": "Chevron Right"},
+    {"id": "7", "label": "Previous Tab", "shortcut": "control+shift+tab", "icon": "Chevron Left"},
+    {"id": "8", "label": "Address Bar", "shortcut": "control+l", "icon": "Search"},
+    {"id": "9", "label": "Go Back", "shortcut": "option+left", "icon": "Page Previous"},
+    {"id": "10", "label": "Go Forward", "shortcut": "option+right", "icon": "Page Next"},
+    {"id": "11", "label": "Private Window", "shortcut": "control+shift+n", "icon": "Incognito"},
+    {"id": "12", "label": "Private Window with Tor", "shortcut": "control+shift+option+n", "icon": "Incognito"},
+    {"id": "13", "label": "Bookmarks Manager", "shortcut": "control+shift+o", "icon": "Bookmark"},
+    {"id": "14", "label": "Show Bookmarks Bar", "shortcut": "control+shift+b", "icon": "Bookmark"},
+    {"id": "15", "label": "History", "shortcut": "control+h", "icon": "History"},
+    {"id": "16", "label": "Downloads", "shortcut": "control+j", "icon": "Download"},
+    {"id": "17", "label": "Bookmark Page", "shortcut": "control+d", "icon": "Bookmark"},
+    {"id": "18", "label": "Bookmark All Tabs", "shortcut": "control+shift+d", "icon": "Folder Plus"},
+    {"id": "19", "label": "Clear Browsing Data", "shortcut": "control+shift+forwarddelete", "icon": "Delete"},
+    {"id": "20", "label": "Full Screen", "shortcut": "f11", "icon": "Full Screen"},
+    {"id": "21", "label": "Developer Tools", "shortcut": "control+shift+i", "icon": "Code"},
+    {"id": "22", "label": "Refresh Without Cache", "shortcut": "control+shift+r", "icon": "Refresh"},
+    {"id": "23", "label": "Find Next", "shortcut": "control+g", "icon": "Search"},
+    {"id": "24", "label": "Find Previous", "shortcut": "control+shift+g", "icon": "Search"},
+    {"id": "25", "label": "Brave Task Manager", "shortcut": "shift+escape", "icon": "Keyboard"},
+    {"id": "26", "label": "Open File", "shortcut": "control+o", "icon": "Open File"},
+    {"id": "27", "label": "Save Page", "shortcut": "control+s", "icon": "Save"},
+    {"id": "28", "label": "Print Page", "shortcut": "control+p", "icon": "Printer"},
+    {"id": "29", "label": "View Page Source", "shortcut": "control+u", "icon": "Code"},
+    {"id": "30", "label": "Zoom In", "shortcut": "control+keyequal", "icon": "Zoom In"},
+    {"id": "31", "label": "Zoom Out", "shortcut": "control+keyminus", "icon": "Zoom Out"},
+    {"id": "32", "label": "Reset Zoom", "shortcut": "control+0", "icon": "Search"},
+    {"id": "33", "label": "Last Tab", "shortcut": "control+9", "icon": "Tab"},
+    {"id": "34", "label": "Select Browser Toolbar", "shortcut": "f6", "icon": "Keyboard"},
+    {"id": "35", "label": "Scroll Down", "shortcut": "space", "icon": "Keyboard"},
+    {"id": "36", "label": "Scroll Up", "shortcut": "shift+space", "icon": "Keyboard"}
+  ]
+}

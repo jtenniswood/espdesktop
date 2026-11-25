@@ -17,6 +17,8 @@
     <Using Remove="System.Windows.Forms" />
     <Using Remove="System.Drawing" />
     <EmbeddedResource Include="../../product/v2/companion_capabilities.json" LogicalName="CompanionContract.json" />
+    <EmbeddedResource Include="../../product/v2/app_shortcuts/platforms/windows/*.json"
+                      LogicalName="WindowsAppShortcuts.%(Filename)%(Extension)" />
     <Resource Include="Packaging/EspDesktop.ico" />
   </ItemGroup>
 </Project>

@@ -1,0 +1,27 @@
+{
+  "label": "Streamlabs Desktop",
+  "executables": [
+    "streamlabs obs.exe"
+  ],
+  "targets": [
+    "com.streamlabs.slobs"
+  ],
+  "sources": [
+    "https://github.com/streamlabs/desktop/blob/master/app/services/editor-commands/editor-commands.ts",
+    "https://github.com/streamlabs/desktop/blob/master/app/services/clipboard.ts",
+    "https://github.com/streamlabs/desktop/blob/master/app/services/selection/index.ts",
+    "https://support.streamlabs.com/hc/en-us/articles/4413170379675-How-to-Set-up-Hotkeys-in-Streamlabs-Desktop"
+  ],
+  "note": "Select an unlocked source in the editor before nudging it. Streaming and recording hotkeys are assigned in Streamlabs Desktop.",
+  "shortcuts": [
+    {"id": "0", "label": "Undo Edit", "shortcut": "control+z", "icon": "Undo"},
+    {"id": "1", "label": "Redo Edit", "shortcut": "control+y", "icon": "Redo"},
+    {"id": "2", "label": "Copy Source", "shortcut": "control+c", "icon": "Keyboard"},
+    {"id": "3", "label": "Paste Source", "shortcut": "control+v", "icon": "Keyboard"},
+    {"id": "4", "label": "Nudge Source Left", "shortcut": "left", "icon": "Keyboard"},
+    {"id": "5", "label": "Nudge Source Right", "shortcut": "right", "icon": "Keyboard"},
+    {"id": "6", "label": "Nudge Source Up", "shortcut": "up", "icon": "Keyboard"},
+    {"id": "7", "label": "Nudge Source Down", "shortcut": "down", "icon": "Keyboard"},
+    {"id": "8", "label": "Delete Selected Source", "shortcut": "forwarddelete", "icon": "Delete"}
+  ]
+}
