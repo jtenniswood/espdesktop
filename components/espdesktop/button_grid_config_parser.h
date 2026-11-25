@@ -207,7 +207,13 @@ inline std::string card_color_options_normalized(const std::string &options) {
   const std::string on = normalize_card_color_value(cfg_option_value(options, "card_on_color"));
   std::string off = normalize_card_color_value(cfg_option_value(options, "card_off_color"));
   if (off.empty() && !explicit_mode) off = on;
+  const std::string unavailable = normalize_card_color_value(
+      cfg_option_value(options, "card_unavailable_color"));
   std::string out = off.empty() ? "" : "card_off_color=" + off;
+  if (!unavailable.empty()) {
+    if (!out.empty()) out += ",";
+    out += "card_unavailable_color=" + unavailable;
+  }
   if (explicit_mode) {
     if (!out.empty()) out += ",";
     out += "card_active_color=" + mode;
@@ -225,7 +231,8 @@ inline std::string options_without_card_colors(const std::string &options) {
     const std::string token = options.substr(start, end - start);
     if (token.compare(0, 14, "card_on_color=") != 0 &&
         token.compare(0, 15, "card_off_color=") != 0 &&
-        token.compare(0, 18, "card_active_color=") != 0) {
+        token.compare(0, 18, "card_active_color=") != 0 &&
+        token.compare(0, 23, "card_unavailable_color=") != 0) {
       if (!token.empty()) {
         if (!out.empty()) out += ",";
         out += token;
@@ -1549,8 +1556,10 @@ inline ParsedCfg normalize_parsed_cfg(ParsedCfg p) {
     }
     if (p.entity == "obs.status.stream" || p.entity == "obs.status.record") {
       p.entity = p.entity == "obs.status.stream" ? "obs.output.stream" : "obs.output.record";
-      // Give previously read-only cards the normal confirmation in both directions.
-      p.options.clear();
+      // Give previously read-only cards the normal confirmation in both
+      // directions while keeping the card's computer binding.
+      const std::string computer = companion_computer_option_suffix(p.options);
+      p.options = computer;
     }
     p.icon_on = "Auto";
     if (companion_system_metric_config(p)) {
@@ -1587,7 +1596,7 @@ inline ParsedCfg normalize_parsed_cfg(ParsedCfg p) {
   const bool normalized_saved_occupancy = normalize_saved_config_occupancy(
       p, normalize_saved_config_occupancy_fields,
       normalize_saved_config_occupancy_options);
-  if (!normalized_saved_static && !normalized_saved_fan && !normalized_saved_mower && !normalized_saved_occupancy && !normalized_saved_access && !p.type.empty() && p.type != "action" && p.type != "alarm" && p.type != "alarm_action" && !climate_card_type(p.type) && p.type != "media" && p.type != "companion" && p.type != "subpage" && p.type != "image" && p.type != "light_control" && p.type != "vacuum" && p.type != "weather" && !card_large_numbers_supported(p)) {
+  if (!normalized_saved_static && !normalized_saved_fan && !normalized_saved_mower && !normalized_saved_occupancy && !normalized_saved_access && !p.type.empty() && p.type != "action" && p.type != "alarm" && p.type != "alarm_action" && !climate_card_type(p.type) && p.type != "media" && !companion_card_type_name(p.type) && p.type != "subpage" && p.type != "image" && p.type != "light_control" && p.type != "vacuum" && p.type != "weather" && !card_large_numbers_supported(p)) {
     p.options.clear();
   }
   if (!card_colors.empty()) {
@@ -1794,6 +1803,12 @@ inline std::string switch_confirmation_yes_text(const ParsedCfg &p) {
 inline std::string switch_confirmation_no_text(const ParsedCfg &p) {
   std::string value = cfg_option_value(p.options, "confirm_no");
   return value.empty() ? espdesktop_i18n(std::string("No")) : value;
+}
+
+// Card-specific behaviour while a touch is held. Empty keeps the established
+// treat-as-tap behaviour.
+inline std::string card_hold_action(const ParsedCfg &p) {
+  return cfg_option_value(p.options, "hold_action");
 }
 
 inline int parse_precision(const std::string &s) {

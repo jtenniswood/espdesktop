@@ -390,3 +390,5 @@ obs_already_on_program=Zaten yayında
 obs_transitioning=Geçiş yapılıyor
 obs_replay_not_confirmed=Tekrar kaydı doğrulanmadı
 obs_check=OBS’yi kontrol edin
+end_call=Aramayı bitir
+end_call_prompt=Teams araması sonlandırılsın mı?

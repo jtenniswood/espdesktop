@@ -391,3 +391,5 @@ obs_already_on_program=כבר בשידור
 obs_transitioning=מעבר מתבצע
 obs_replay_not_confirmed=שמירת השידור החוזר לא אושרה
 obs_check=יש לבדוק את OBS
+end_call=סיים שיחה
+end_call_prompt=לסיים את השיחה ב-Teams?

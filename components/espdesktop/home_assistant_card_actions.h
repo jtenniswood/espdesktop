@@ -1,6 +1,7 @@
 #pragma once
 
 #include "home_assistant_cards.h"
+#include "companion_screen_lock.h"
 #include "device_reset.h"
 #include "external_memory_allocator.h"
 #include "native_api_setting.h"
@@ -101,7 +102,7 @@ inline std::vector<SharedCard, EspDesktopExternalAllocator<SharedCard>> shared_c
 }
 
 inline bool card_available(const SharedCard &card, const CompanionRuntimeSnapshot &mac) {
-  if (screen_lock_enabled() || reset::pending()) return false;
+  if (card_action_locked(card.config) || reset::pending()) return false;
   if (card.config.type == "subpage") return card.target && navigation_allows_companion_focus();
   if (!mac.connected) return false;
   if (card.config.type == "slider") return true;
@@ -110,12 +111,12 @@ inline bool card_available(const SharedCard &card, const CompanionRuntimeSnapsho
 }
 
 inline std::string list_cards() {
-  const auto mac = companion_runtime_snapshot();
   std::string output = "{\"cards\":[";
   bool first = true;
   for (const auto &card : shared_cards()) {
     if (!first) output += ',';
     first = false;
+    const auto mac = companion_runtime_for(companion_card_computer(card.config)).snapshot();
     const auto name = card.config.label.empty()
         ? (card.config.type == "subpage" ? "Subpage" :
            companion_default_action_label(card.config.entity, card.config.sensor, &mac))
@@ -151,32 +152,37 @@ inline std::string shortcut_application(const SharedCard &card) {
 
 inline bool press_app_shortcut(const SharedCard &card, const std::string &app,
                                 const std::string &request) {
+  const std::string computer_id = companion_card_computer(card.config);
+  auto &runtime = companion_runtime_for(computer_id);
   const auto shortcut = companion_app_scoped_shortcut(card.config.entity);
-  const auto target = companion_shortcut_launch_target(app);
-  if (shortcut.empty() || target.empty() || !companion_action_sender()) return false;
+  const auto target = companion_shortcut_launch_target(app, computer_id);
+  if (shortcut.empty() || target.empty() || !runtime.action_sender) return false;
   return companion_activate_then(target, request, esphome::millis() + 10000,
-      [id = card.id, app, target, shortcut, request] {
+      [id = card.id, app, target, shortcut, request, computer_id] {
 #ifdef USE_ESPDESKTOP_NATIVE_CARD_BUTTONS
         if (!native_api_enabled.load()) return;
 #endif
-        const auto mac = companion_runtime_snapshot();
+        auto &runtime = companion_runtime_for(computer_id);
         for (const auto &current : shared_cards()) {
           if (current.id != id) continue;
-          if (card_available(current, mac) && shortcut_application(current) == app &&
+          if (card_available(current, runtime.snapshot()) &&
+              shortcut_application(current) == app &&
               companion_app_scoped_shortcut(current.config.entity) == shortcut &&
-              companion_action_sender())
-            companion_action_sender()(shortcut, request + "-keys", "new_window", target);
+              runtime.action_sender)
+            runtime.action_sender(shortcut, request + "-keys", "new_window", target);
           return;
         }
-      });
+      }, computer_id);
 }
 
 inline bool press_card(const std::string &id) {
   for (const auto &card : shared_cards()) {
     if (id != card.id) continue;
-    if (!card_available(card, companion_runtime_snapshot())) return false;
+    const std::string computer_id = companion_card_computer(card.config);
+    if (!card_available(card, companion_runtime_for(computer_id).snapshot())) return false;
     if (card.config.type == "subpage") return navigation_present_companion_subpage(card.target);
-    if (card.config.type == "slider") return companion_toggle_mute(card.config.entity);
+    if (card.config.type == "slider")
+      return companion_toggle_mute(card.config.entity, computer_id);
     char request[24];
     snprintf(request, sizeof(request), "ha-%08lx",
              static_cast<unsigned long>(companion_next_request_number()));

@@ -66,7 +66,8 @@ inline bool navigation_driver_setup_visual(
     companion_track_metric_card(
       slot.btn, slot.text_lbl, nullptr, config.entity, unit,
       parse_precision(config.precision), true,
-      !cfg_option_token_present(config.options, "stat_labels_off"));
+      !cfg_option_token_present(config.options, "stat_labels_off"),
+      companion_card_computer(config));
   } else {
     ParsedCfg folder = config;
     folder.entity.clear();
@@ -128,7 +129,8 @@ inline bool navigation_driver_bind_main(
     companion_track_metric_card(
       slot.btn, slot.text_lbl, nullptr, config.entity, unit,
       parse_precision(config.precision), true,
-      !cfg_option_token_present(config.options, "stat_labels_off"));
+      !cfg_option_token_present(config.options, "stat_labels_off"),
+      companion_card_computer(config));
     return true;
   }
 
@@ -195,7 +197,7 @@ inline bool navigation_handle_button_press(const ParsedCfg &config, int slot_num
   const auto context = card_runtime_context(config);
   const bool subpage = espdesktop::cards::navigation_driver_matches(context);
   const bool app_subpage = companion_app_shortcuts_enabled(config) &&
-    companion_app_subpage_opens_on_press(config.entity);
+    companion_app_subpage_opens_on_press(config.entity, companion_card_computer(config));
   if (!button || (!subpage && !app_subpage)) return false;
   // The selected driver opens the page after consuming the touch. Check the
   // owner here without building it early, so first-draw timing includes the build.

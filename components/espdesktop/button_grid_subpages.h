@@ -240,7 +240,7 @@ inline SubpageBtn normalize_subpage_btn(SubpageBtn b) {
       !climate_card_type(b.type) && b.type != "cover" && b.type != "garage" && b.type != "gate" &&
       b.type != "sensor" && b.type != "door_window" && b.type != "presence" &&
       b.type != "subpage" && b.type != "light_control" && b.type != "media" &&
-      b.type != "image" && b.type != "weather" &&
+      b.type != "image" && b.type != "weather" && !companion_card_type_name(b.type) &&
       !fan_card_type(b.type) && !card_large_numbers_supported(p)) {
     b.options.clear();
   }
@@ -422,6 +422,9 @@ struct SubpageOrder {
   int back_col_span = 1;
   bool has_back_token = false;
   bool compacted_portrait = false;
+  // Extra home screens use the whole grid: cards start in cell zero and no
+  // Back control occupies a cell.
+  bool screen = false;
 };
 
 inline void parse_subpage_order(const std::string &order_str, int num_slots, int num_btns,
@@ -503,7 +506,7 @@ inline void normalize_subpage_order_spans(SubpageOrder &order, int num_slots,
   for (int position = 0; position < slot_limit; position++) {
     int button_index = order.positions[position];
     if (button_index < 1 || button_index > MAX_GRID_SLOTS) continue;
-    int rendered_position = order.has_back_token ? position : position + 1;
+    int rendered_position = (order.has_back_token || order.screen) ? position : position + 1;
     if (rendered_position >= slot_limit) {
       order.positions[position] = 0;
       continue;
@@ -530,6 +533,10 @@ inline lv_obj_t *create_grid_card_button(lv_obj_t *parent, lv_coord_t radius,
                                          lv_color_t text_color,
                                          bool continuous_corners = false) {
   lv_obj_t *btn = lv_btn_create(parent);
+  // Buttons are scrollable by default, which makes LVGL treat a drag that
+  // starts on a card as a scroll and suppresses page gestures. Cards never
+  // scroll, so let the screen see the gesture.
+  lv_obj_clear_flag(btn, LV_OBJ_FLAG_SCROLLABLE);
   apply_grid_card_corners(btn, radius, continuous_corners);
   lv_obj_set_style_pad_all(btn, pad, LV_PART_MAIN);
   if (label_font) lv_obj_set_style_text_font(btn, label_font, LV_PART_MAIN);

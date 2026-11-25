@@ -29,7 +29,9 @@
     "screen_rotation": { "default": "180", "device_rotation": true },
     "firmware_auto_update": { "default": "1", "type": "switch" },
     "firmware_update_frequency": { "default": "Daily", "choices": ["Hourly", "Daily", "Weekly", "Monthly"] },
-    "esp32_c6_auto_update": { "default": "1", "type": "switch" }
+    "esp32_c6_auto_update": { "default": "1", "type": "switch" },
+    "screen_swipe_up_action": { "default": "none", "choices": ["none", "home", "back", "previous_screen", "next_screen", "screen_1", "screen_2", "screen_3", "screen_4", "screen_5", "screen_6", "screen_7", "screen_8"] },
+    "screen_swipe_down_action": { "default": "none", "choices": ["none", "home", "back", "previous_screen", "next_screen", "screen_1", "screen_2", "screen_3", "screen_4", "screen_5", "screen_6", "screen_7", "screen_8"] }
   },
   "screen_schedule_preferences": {
     "version": 1,

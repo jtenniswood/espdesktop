@@ -37,6 +37,8 @@ enum class ScalarSetting : uint8_t {
   FIRMWARE_AUTO_UPDATE,
   FIRMWARE_UPDATE_FREQUENCY,
   ESP32_C6_AUTO_UPDATE,
+  SCREEN_SWIPE_UP_ACTION,
+  SCREEN_SWIPE_DOWN_ACTION,
   COUNT
 };
 struct ScalarRule {
@@ -242,6 +244,8 @@ inline constexpr std::array<ScalarRule, size_t(ScalarSetting::COUNT)> SCALAR_RUL
   {"firmware_auto_update", "1", [](std::string_view value) { return value == "0" || value == "1"; }},
   {"firmware_update_frequency", "Daily", [](std::string_view value) { return value == "Hourly" || value == "Daily" || value == "Weekly" || value == "Monthly"; }},
   {"esp32_c6_auto_update", "1", [](std::string_view value) { return value == "0" || value == "1"; }},
+  {"screen_swipe_up_action", "none", [](std::string_view value) { return value == "none" || value == "home" || value == "back" || value == "previous_screen" || value == "next_screen" || value == "screen_1" || value == "screen_2" || value == "screen_3" || value == "screen_4" || value == "screen_5" || value == "screen_6" || value == "screen_7" || value == "screen_8"; }},
+  {"screen_swipe_down_action", "none", [](std::string_view value) { return value == "none" || value == "home" || value == "back" || value == "previous_screen" || value == "next_screen" || value == "screen_1" || value == "screen_2" || value == "screen_3" || value == "screen_4" || value == "screen_5" || value == "screen_6" || value == "screen_7" || value == "screen_8"; }},
 }};
 
 inline constexpr std::string_view scalar_setting_default(ScalarSetting setting, std::string_view profile) {

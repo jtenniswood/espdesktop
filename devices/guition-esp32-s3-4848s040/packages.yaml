@@ -104,3 +104,4 @@ packages:
   # ---------------------------------------------------------------------------
   lvgl:            !include device/lvgl.yaml
   sensors:         !include device/sensors.yaml
+  ha_actions:      !include ../../common/addon/ha_actions.yaml

@@ -390,3 +390,5 @@ obs_already_on_program=Že v programu
 obs_transitioning=Prehod poteka
 obs_replay_not_confirmed=Ponovitev ni potrjena
 obs_check=Preveri OBS
+end_call=Končaj klic
+end_call_prompt=Končam klic v Teams?
