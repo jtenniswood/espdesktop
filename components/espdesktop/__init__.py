@@ -92,9 +92,12 @@ async def to_code(config):
         cg.add_global(cg.RawStatement(
             '#include "esphome/components/espdesktop/native_api_setting.h"'
         ), prepend=True)
-        # Root plus two levels of subpages on the 4-inch S3. Firmware
-        # checks this against the generated UI profile at compile time.
-        capacity = 9 + 9 * 8 + 9 * 8 * 8
+        # The opt-in panels support one first-level subpage per root slot
+        # and reserve one slot for Back on each subpage. The firmware checks
+        # this count against the device's UI limits at compile time.
+        slots = len(config[CONF_PANEL_CONFIG][CONF_BUTTONS])
+        subpage_cards = slots - 1
+        capacity = slots + slots * subpage_cards + slots * subpage_cards * subpage_cards
         cg.add_define("ESPDESKTOP_NATIVE_CARD_BUTTON_CAPACITY", capacity)
         for _ in range(capacity):
             CORE.register_platform_component("button", None)

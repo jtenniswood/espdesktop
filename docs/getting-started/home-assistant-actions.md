@@ -1,11 +1,11 @@
 ---
 title: "Run EspDesktop actions from Home Assistant"
-description: "Connect a 4-inch EspDesktop display to Home Assistant, press saved cards from automations, and refresh the button list from the display’s web editor."
+description: "Connect an EspDesktop display to Home Assistant, press saved cards from automations, and refresh the button list from the display’s web editor."
 ---
 
 # Run EspDesktop actions from Home Assistant
 
-The 4-inch Guition 4848S040 can share its saved card actions as buttons through Home Assistant’s built-in ESPHome integration. Use firmware that shows **Home Assistant** under **System → Connectors** in the display’s web editor.
+The 4-inch Guition 4848S040 and 7-inch Guition JC1060P470 V3 can share their saved card actions as buttons through Home Assistant’s built-in ESPHome integration. Use firmware that shows **Home Assistant** under **System → Connectors** in the display’s web editor.
 
 ## Connect the display
 

@@ -217,6 +217,7 @@ safe_mode:
 # Shared infrastructure (API, logging, web server, restart button)
 # ---------------------------------------------------------------------------
 packages:
+  home_assistant_display_power: !include ../../../common/device/home_assistant_display_power.yaml
   core_infra: !include ../../../common/device/core_infra.yaml
 
 # ---------------------------------------------------------------------------
