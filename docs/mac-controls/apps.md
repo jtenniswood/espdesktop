@@ -78,7 +78,7 @@ The page uses the same templates as the **Application** tab on a **Keyboard Shor
 
 You can [add a custom keyboard shortcut](/mac-controls/shortcuts#create-a-shortcut-card) in an empty tile on the app subpage.
 
-For standalone pages, see [Subpages](/features/subpages). For folders, see [Open Finder folders](/mac-controls/folders).
+For standalone pages, see [Subpages](/features/subpages). For folders, see [Open file folders](/mac-controls/folders).
 
 When you close the last visible window of the foreground app, the display returns to Home even if the app is still running.
 

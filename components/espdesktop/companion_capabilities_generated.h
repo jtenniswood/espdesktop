@@ -64,7 +64,7 @@ inline constexpr CompanionProtocolMessagePolicy COMPANION_PROTOCOL_MESSAGES[] = 
 struct CompanionCardModeCapability { const char *id; const char *label; const char *capability; const char *default_icon; };
 inline constexpr CompanionCardModeCapability COMPANION_CARD_MODES[] = {
   {"app", "Applications", "applications", "Monitor"},
-  {"shortcut", "Keyboard Shortcut", "keyboard_shortcuts", "Shortcut Command"},
+  {"shortcut", "Keyboard Shortcut", "keyboard_shortcuts", "Keyboard"},
   {"url", "Open URL", "applications", "Web"},
   {"folder", "Open folder", "folders", "Folder Outline"},
   {"obs", "OBS Scene", "obs_scene_cards", "Image Card Loading"},

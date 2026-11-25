@@ -1,7 +1,7 @@
 ---
 title: "EspDesktop: A touchscreen controller for your Mac"
 titleTemplate: :title
-description: Launch apps, open websites and Finder folders, and run keyboard shortcuts from a 4-inch touchscreen paired with the free EspDesktop Mac app.
+description: Launch apps, open websites and folders, and run keyboard shortcuts from a 4-inch touchscreen paired with the free EspDesktop Mac app.
 layout: home
 ---
 
@@ -77,11 +77,11 @@ Give your calendar or project dashboard a tile that opens it in your default bro
   <path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
 </svg>
 
-### Jump to a Finder folder
+### Jump to a folder
 
 Give Downloads, client files or your current project a tile of its own.
 
-[Finder folders](/mac-controls/folders)
+[File folders](/mac-controls/folders)
 
 </article>
 

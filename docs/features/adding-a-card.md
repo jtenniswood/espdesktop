@@ -9,7 +9,7 @@ description: Add a card to the EspDesktop screen grid, choose a card type, and c
 
 1. Open your display’s address in a browser and select **Layout**. Open Home or the subpage where you want the card.
 2. Click **+** in an empty spot. The **Choose Card** dialog opens.
-3. Pick what the card should do. Choose [**Applications**](/mac-controls/apps) to open a Mac app, [**Folder**](/mac-controls/folders) to open an approved folder, or [**Keyboard Shortcut**](/mac-controls/shortcuts) to run a keyboard shortcut.
+3. Pick what the card should do. Choose [**Applications**](/mac-controls/apps) to open a Mac app, [**File Folder**](/mac-controls/folders) to open an approved folder, or [**Keyboard Shortcut**](/mac-controls/shortcuts) to run a keyboard shortcut.
 
 <a href="/images/web-editor-choose-card.webp"><picture><source type="image/avif" srcset="/images/web-editor-choose-card-480.avif 480w, /images/web-editor-choose-card-960.avif 960w" sizes="(min-width: 768px) 688px, 90vw"><img src="/images/web-editor-choose-card.webp" alt="Choose Card dialog with Applications, Folder, Keyboard Shortcut, Lock Machine, Subpage and Website options" width="1269" height="1022" loading="lazy"></picture></a>
 

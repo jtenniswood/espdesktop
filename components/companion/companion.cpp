@@ -642,6 +642,7 @@ void CompanionService::handle_json_(int socket_fd, const std::string &message) {
     if (const auto *payload = std::get_if<companion_protocol::Capabilities>(&*decoded)) {
       bool keyboard_actions = false;
       bool keyboard_actions_capability_received = false;
+      bool windows_shortcuts = false;
       bool app_icons_supported = false;
       bool app_icons_alpha_supported = false;
       bool app_icons_high_resolution_supported = false;
@@ -661,6 +662,8 @@ void CompanionService::handle_json_(int socket_fd, const std::string &message) {
         } else if (capability == "keyboard_shortcuts_unavailable") {
           keyboard_actions = false;
           keyboard_actions_capability_received = true;
+        } else if (capability == "windows_shortcuts") {
+          windows_shortcuts = true;
         } else if (capability == "url_card_focus") {
           focus_targets_supported = true;
         } else if (capability == "shortcut_catalogue_on_demand") {
@@ -690,7 +693,8 @@ void CompanionService::handle_json_(int socket_fd, const std::string &message) {
       }
       for (const auto &id : configured_icons) this->request_app_icon(id);
       this->defer_session_([this, keyboard_actions, keyboard_actions_capability_received,
-                            focus_targets_supported, shortcut_catalogue_supported]() {
+                            focus_targets_supported, shortcut_catalogue_supported, windows_shortcuts]() {
+        companion_runtime_service().set_windows_shortcuts(windows_shortcuts);
         if (shortcut_catalogue_supported) companion_set_remote_definitions({});
         if (keyboard_actions_capability_received) companion_set_keyboard_actions_supported(keyboard_actions);
         this->focus_targets_supported_.store(focus_targets_supported);

@@ -30,9 +30,9 @@ function setHidden(element: HTMLElement, hidden: boolean): void {
 }
 
 export function companionPairingStatusText(state: CompanionPairingState): string {
-    if (state.connected) return "Mac Companion connected";
+    if (state.connected) return "Companion connected";
     if (state.active && !state.paired) return "Ready to pair";
-    return state.paired ? "Mac paired, but not connected" : "No Mac paired";
+    return state.paired ? "Computer paired, but not connected" : "No computer paired";
 }
 
 export function companionPairingCodeVisible(state: CompanionPairingState): boolean {
@@ -49,7 +49,7 @@ export function createCompanionPairingDetails(
     setHidden(pairingDetails, true);
     const instructions = document.createElement("p");
     instructions.className = "sp-setting-note sp-companion-instructions";
-    instructions.textContent = "Choose this display in the Mac app and enter the code.";
+    instructions.textContent = "Choose this display in the companion app and enter the code.";
     const pairingCodeRow = document.createElement("div");
     pairingCodeRow.className = "sp-companion-code-row";
     const pairingCode = document.createElement("code");
@@ -161,7 +161,7 @@ export function createSettingsCompanionSectionFeature(
         async function clearIconCache(): Promise<void> {
             if (clearingIconCache || !latestState?.available) return;
             if (!window.confirm(
-                "Clear downloaded app icons? Icons used by cards will be requested again from the connected Mac app. Until they arrive, cards may show their custom fallback icons.",
+                "Clear downloaded app icons? Icons used by cards will be requested again from the connected companion app. Until they arrive, cards may show their custom fallback icons.",
             )) return;
             clearingIconCache = true;
             clearIconCacheButton.disabled = true;
@@ -186,7 +186,7 @@ export function createSettingsCompanionSectionFeature(
             "sp-action-btn sp-delete-btn sp-destructive-btn",
             "Reset pairing",
             "restore",
-            "Reset Mac Companion pairing",
+            "Reset Companion pairing",
         );
         resetButton.classList.add("sp-hidden");
         actions.appendChild(resetButton);
@@ -195,7 +195,7 @@ export function createSettingsCompanionSectionFeature(
         async function resetPairing(): Promise<void> {
             if (resetInProgress || !latestState?.paired) return;
             if (!window.confirm(
-                "Reset pairing? This will disconnect and remove the saved Mac Companion pairing. You will need to pair the display again.",
+                "Reset pairing? This will disconnect and remove the saved Companion pairing. You will need to pair the display again.",
             )) return;
             resetInProgress = true;
             resetButton.disabled = true;
@@ -205,10 +205,10 @@ export function createSettingsCompanionSectionFeature(
                     headers: { Accept: "application/json" },
                 });
                 if (!response.ok) throw new Error("Pairing reset was not accepted");
-                showBanner("Mac Companion pairing reset.", "success");
+                showBanner("Companion pairing reset.", "success");
                 await refreshStatus();
             } catch {
-                showBanner("Could not reset Mac Companion pairing.", "error");
+                showBanner("Could not reset Companion pairing.", "error");
             } finally {
                 resetInProgress = false;
                 resetButton.disabled = false;
@@ -223,7 +223,7 @@ export function createSettingsCompanionSectionFeature(
         badge.appendChild(badgeDot);
         badge.appendChild(document.createTextNode("ON"));
 
-        const card: HTMLElement = fields.makeCollapsibleCard("Mac Companion", body, defaultCollapsed, badge);
+        const card: HTMLElement = fields.makeCollapsibleCard("Companion", body, defaultCollapsed, badge);
 
         function render(value: CompanionPairingState): void {
             waitingForDisplayReset = waitingForDisplayReset && value.paired;

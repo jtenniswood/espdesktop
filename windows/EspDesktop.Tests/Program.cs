@@ -117,6 +117,10 @@ Check(SafeActions.WebUrl("https%3A%2F%2Fexample.org")?.Host == "example.org", "v
 foreach (var bad in new[] { "file:///C:/Windows", "https://a:b@example.org", "ms-settings:windowsupdate", "https:%5c%5cexample.com", "https://example.org/%0a" })
     Check(SafeActions.WebUrl(bad) is null, "refuse unsafe URL");
 Check(SafeActions.Shortcut("shortcut.command+shift+t")?.SequenceEqual(new ushort[] { 0x11, 0x10, 0x54 }) == true, "map Command to Ctrl");
+Check(SafeActions.Shortcut("shortcut.scoped.control+t")?.SequenceEqual(new ushort[] { 0x11, 0x54 }) == true,
+    "parse the display's app-scoped shortcut");
+Check(SafeActions.Shortcut("shortcut.scoped.control+t~control+w") is null, "reject scoped sequences");
+Check(SafeActions.Shortcut("shortcut.scoped.option+tab") is null, "block scoped system window switching");
 Check(SafeActions.Shortcut("shortcut.option+f4") is null, "block system window close");
 Check(SafeActions.Shortcut("shortcut.control+escape") is null, "block Start menu");
 Check(SafeActions.Shortcut("shortcut.command+escape") is null, "block Start menu through the Command alias");

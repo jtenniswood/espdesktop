@@ -13,7 +13,7 @@ The table describes the public controls in [EspDesktop v1.2.6](https://github.co
 | Finder folders | Open an approved folder. | [Add the folder in the Mac app](/mac-controls/folders). |
 | Websites | Open a website from a touchscreen tile. | [Add the website in the display editor](/mac-controls/websites). |
 | Keyboard shortcuts | Send a key combination to the active Mac app. | [Enable Accessibility for EspDesktop](/mac-controls/shortcuts#allow-accessibility-access). |
-| Mac Lock | Lock the paired Mac. | [Enable Accessibility and add a Lock Machine tile](/mac-controls/security). |
+| Lock Machine | Lock the paired Mac. | [Enable Accessibility and add a Lock Machine tile](/mac-controls/security). |
 | Subpages | Group controls behind a tile or show a page for the active app. | [Create a subpage in the display editor](/features/subpages). |
 
 ## Mac statistics and audio controls {#mac-statistics-and-volume}

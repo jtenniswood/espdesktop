@@ -61,6 +61,9 @@ internal sealed class WindowsAppActions : IDisposable
         }
     }
 
+    public bool HasShortcutReceipt => File.Exists(Path.Combine(root, "received"));
+    public void ClearShortcutReceipt() => File.Delete(Path.Combine(root, "received"));
+
     public async Task WaitForShortcut(CancellationToken token) =>
         await WaitForMarker("received", "The Windows test app did not receive Ctrl+Shift+F8.", token);
 

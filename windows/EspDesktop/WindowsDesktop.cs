@@ -114,6 +114,7 @@ internal sealed class WindowsDesktop(LocalSettings settings) : IDesktop
             // can receive keys, and Windows also enforces input integrity levels.
             if (app is null || !Allowed(app) || (app.Id == ExplorerId && !IsExplorerWindow(window))) return "not_allowed";
             token.ThrowIfCancellationRequested();
+            if (SessionState.Locked) return "not_allowed";
             var result = InputSession.Replay(window, keys);
             if (result == ShortcutReplay.FocusChanged && scoped) return ShortcutFocusLost();
             return result == ShortcutReplay.Performed ? "performed" : "not_allowed";

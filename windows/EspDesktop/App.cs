@@ -50,6 +50,8 @@ internal sealed class App : Application
                 tray = new Forms.NotifyIcon { Icon = trayIcon, Text = "EspDesktop", ContextMenuStrip = menu, Visible = true };
                 tray.DoubleClick += (_, _) => window.ShowSettings();
                 window.ConnectionStatusChanged += status => tray.Text = Core.Protocol.Bound("EspDesktop · " + status, 100);
+                window.ShortcutFailed += message =>
+                    tray.ShowBalloonTip(5000, "EspDesktop shortcut", message, Forms.ToolTipIcon.Warning);
             }
             var background = !smoke && args.Contains("--background") && window.HasPairing;
             app.Dispatcher.BeginInvoke(async () =>

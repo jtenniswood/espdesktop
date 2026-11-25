@@ -139,6 +139,16 @@ export function companionShortcutActionId(event: Pick<KeyboardEvent,
     return COMPANION_SHORTCUT_PREFIX + parts.join("+");
 }
 
+function companionShortcutKeyLabel(key: string, windowsHost: boolean): string {
+    if (windowsHost) {
+        if (key === "enter") return "Enter";
+        if (key === "delete") return "Backspace";
+        if (key === "forwarddelete") return "Delete";
+    }
+    return COMPANION_SHORTCUT_KEY_LABELS[key] ||
+        (key.startsWith("keypad") ? "Keypad " + key.slice(6) : key.toUpperCase());
+}
+
 export function formatCompanionShortcutActionId(actionId: string, windowsHost = false): string {
     if (!companionShortcutActionIdValid(actionId)) return "";
     const scoped = actionId.startsWith(SCOPED_SHORTCUT_PREFIX);
@@ -151,8 +161,7 @@ export function formatCompanionShortcutActionId(actionId: string, windowsHost = 
     return strokes.map(stroke => {
         const parts = stroke.split("+");
         const key = parts.pop() || "";
-        const label = (windowsHost && key === "enter" ? "Enter" : COMPANION_SHORTCUT_KEY_LABELS[key]) ||
-            (key.startsWith("keypad") ? "Keypad " + key.slice(6) : key.toUpperCase());
+        const label = companionShortcutKeyLabel(key, windowsHost);
         if (windowsHost) return [...new Set(parts.map(part => symbols[part])), label].join("+");
         return parts.map(part => symbols[part]).join("") + label;
     }).join(" then ");
@@ -183,7 +192,7 @@ export function companionShortcutCatalogSelection(card: any) {
     // A saved card includes the actual keys, even when its preset is offline or has changed.
     if (!companionShortcutActionIdValid(card?.entity)) return undefined;
     return { appId, entity: card.entity, label: card.label || "Saved shortcut",
-        icon: card.icon || "Shortcut Command", options };
+        icon: card.icon || companionSubtypeDefaultIcon("shortcut"), options };
 }
 
 export function companionUrlConfig(rawValue: string): string {
@@ -513,7 +522,9 @@ export function registerCompanionCardTypes(
     const { renderButtonSettings, renderPreview } = cardUi;
     const catalogue = createCompanionCatalogue(fetchImpl);
     const loadCompanionActions = catalogue.load;
-    let windowsHost = connectorStatus.companionWindowsHost();
+    let windowsShortcutCatalogue = false;
+    const isWindowsHost = () => connectorStatus.companionWindowsHost() || windowsShortcutCatalogue;
+    let windowsHost = isWindowsHost();
     const obsControlLabels = new Map<string, string>();
     const obsCardStates = new Map<string, CompanionAction>();
     const obsPresentationKey = () => JSON.stringify([...obsCardStates].map(([id, action]) =>
@@ -625,9 +636,9 @@ export function registerCompanionCardTypes(
             select.disabled = targets.length === 0;
             showSceneLabel();
             if (targets.length) note.remove();
-            else note.textContent = "Connect OBS in the Mac Companion and try again.";
+            else note.textContent = "Connect OBS in the companion app and try again.";
             cardUi.renderPreview();
-        }).catch(() => { note.textContent = "Connect OBS in the Mac Companion and try again."; });
+        }).catch(() => { note.textContent = "Connect OBS in the companion app and try again."; });
         helpers.renderCardIconPicker(panel, card, helpers, COMPANION_CARD_METADATA.icon);
     }
     function renderOBSConfirmation(panel: HTMLElement, card: { entity: string; options: string }, helpers: any): void {
@@ -736,7 +747,7 @@ export function registerCompanionCardTypes(
             const note = document.createElement("p");
             note.className = "sp-setting-note";
             const descriptions = {
-                obs_brb: "Choose your break scene and optional mic in the Mac Companion’s OBS settings.",
+                obs_brb: "Choose your break scene and optional mic in the companion app’s OBS settings.",
                 obs_status: "Displays the selected status reported by OBS Studio.",
                 obs_studio: "Choose a Studio Mode control.",
                 obs_replay: "Saves a clip while the OBS Replay Buffer is running.",
@@ -803,7 +814,7 @@ export function registerCompanionCardTypes(
 
     if (supported) {
         connectorStatus.onStatusChange(() => {
-            const next = connectorStatus.companionWindowsHost();
+            const next = isWindowsHost();
             if (windowsHost === next) return;
             windowsHost = next;
             if (state.settingsDraft?.button.type === "companion") renderButtonSettings();
@@ -821,10 +832,14 @@ export function registerCompanionCardTypes(
                 if (windowsHost && state.settingsDraft?.button.type === "companion") renderButtonSettings();
             } else {
                 companionCatalogueMonitor.stop();
+                windowsShortcutCatalogue = false;
+                const platformChanged = windowsHost !== isWindowsHost();
+                windowsHost = isWindowsHost();
+                if (platformChanged && state.settingsDraft?.button.type === "companion") renderButtonSettings();
                 const hadOBSControls = obsControlLabels.size > 0;
                 obsControlLabels.clear();
                 obsCardStates.clear();
-                if (publishGeneratedActions([]) || hadOBSControls) cardUi.renderPreview();
+                if (publishGeneratedActions([]) || hadOBSControls || platformChanged) cardUi.renderPreview();
             }
             document.dispatchEvent(new CustomEvent("espdesktop:app-icon-cache-cleared", { detail: {
                 name: "companion-connection", value: String(connected),
@@ -951,7 +966,7 @@ export function registerCompanionCardTypes(
                 definitions.set(id, label + " (unavailable)");
             }
             if (!definitions.size) {
-                status.textContent = "Enable workflows in Shortcuts settings in the EspDesktop Mac app.";
+                status.textContent = "Enable workflows in Shortcuts settings in the companion app.";
                 return;
             }
             status.remove();
@@ -1058,8 +1073,13 @@ export function registerCompanionCardTypes(
             const savedParent = slot ? (helpers.isSub ? codec.getSubpage(parentPage).buttons[slot - 1] : state.buttons[slot - 1]) : null;
             let companionActions: readonly CompanionAction[] = [];
             void catalogue.loadDefinitions(true).then((definitions) => {
-                if (replaceCompanionDefinitions(definitions.applications)) renderButtonSettings();
-            }).catch(() => { /* Keep the bundled starter definitions while the Mac app is offline. */ });
+                windowsShortcutCatalogue = definitions.shortcutPlatform === "windows";
+                const platformChanged = windowsHost !== isWindowsHost();
+                windowsHost = isWindowsHost();
+                const definitionsChanged = replaceCompanionDefinitions(definitions.applications);
+                if (platformChanged) renderPreview();
+                if ((platformChanged || definitionsChanged) && panel?.isConnected) renderButtonSettings();
+            }).catch(() => { /* Keep available shortcut definitions while Companion is offline. */ });
             let availableCompanionApps: readonly CompanionAction[] = [];
             let availableCompanionFolders: readonly CompanionAction[] = [];
 
@@ -1148,7 +1168,7 @@ export function registerCompanionCardTypes(
                         helpers.saveField("entity", card.entity);
                     });
                     const status = document.createElement("p");
-                    status.textContent = "Loading Mac network devices…";
+                    status.textContent = "Loading network devices…";
                     field.append(select, status);
                     panel?.appendChild(field);
                     void fetch("/companion/networks", { cache: "no-store" }).then(async (response) => {
@@ -1161,8 +1181,8 @@ export function registerCompanionCardTypes(
                             else select.add(new Option(network.label, network.id));
                         }
                         status.textContent = networks.length ? "Shows the selected device’s IPv4 address." :
-                            "Connect the Mac and enable Stats sharing to load network devices.";
-                    }).catch(() => { status.textContent = "Network devices unavailable. Connect the Mac and enable Stats sharing."; });
+                            "Connect the companion app and enable Stats sharing to load network devices.";
+                    }).catch(() => { status.textContent = "Network devices unavailable. Connect the companion app and enable Stats sharing."; });
                     return;
                 }
                 const description = helpers.toggleRow("Show capacity label", helpers.idPrefix + "stat-labels", companionMetricDescriptionEnabled(card));
@@ -1193,7 +1213,7 @@ export function registerCompanionCardTypes(
                 field.append(fieldLabel("Apple Shortcut", picker.id), picker);
                 const note = document.createElement("div");
                 note.className = "sp-field-info-text";
-                note.textContent = "Choose which workflows are available under Shortcuts in the EspDesktop Mac app.";
+                note.textContent = "Choose which workflows are available under Shortcuts in the companion app.";
                 field.appendChild(note);
                 panel?.appendChild(field);
                 helpers.markCardPrimaryField(field, "entity");
@@ -1284,14 +1304,14 @@ export function registerCompanionCardTypes(
             select.disabled = true;
             const loading = document.createElement("option");
             loading.value = "";
-            loading.textContent = "Loading Mac apps…";
+            loading.textContent = "Loading apps…";
             select.appendChild(loading);
             appField.appendChild(select);
             panel?.appendChild(appField);
             if (initialMode === "app") {
                 helpers.markCardPrimaryField(appField, "entity");
             }
-            helpers.requireField(select, "Choose a Mac app before saving.", function () {
+            helpers.requireField(select, "Choose an app before saving.", function () {
                 return initialMode === "app";
             }, function (value: string) {
                 return companionApplicationActionIdCanSave(availableCompanionApps, value, currentEntity);
@@ -1330,7 +1350,7 @@ export function registerCompanionCardTypes(
                 ? appShortcutPageOwner(previewSubpageOwner(parentPage, state.buttons, key => state.subpages[key]))
                 : undefined;
             const catalogueApps = sortCompanionLabels(companionShortcutCatalogApps({
-                pageAppId: pageApp, savedAppId: savedCatalogShortcut?.appId, windowsHost,
+                pageAppId: pageApp, savedAppId: savedCatalogShortcut?.appId, windows: windowsHost,
             }));
             const defaultCatalogApp = catalogueApps.find(app => app.appId === pageApp)?.appId;
             const shortcutType = card._shortcutType || (savedCatalogShortcut || isNewShortcut ? "catalog" : "custom");
@@ -1446,7 +1466,7 @@ export function registerCompanionCardTypes(
                 for (const key of keys) {
                     const option = document.createElement("option");
                     option.value = key;
-                    option.textContent = (windowsHost && key === "enter" ? "Enter" : COMPANION_SHORTCUT_KEY_LABELS[key]) || key.toUpperCase();
+                    option.textContent = companionShortcutKeyLabel(key, windowsHost);
                     group.appendChild(option);
                 }
                 keySelect.appendChild(group);
@@ -1551,7 +1571,7 @@ export function registerCompanionCardTypes(
                     card._shortcutType = "catalog";
                     card._shortcutCatalogApp = catalogApp.value;
                     card.label = companionAppLabel(card.label || "", savedCatalogShortcut?.label || "", preset.label);
-                    card.icon = companionGeneratedIcon(card.icon || "", savedCatalogShortcut?.icon || "Shortcut Command", preset.icon);
+                    card.icon = companionGeneratedIcon(card.icon || "", savedCatalogShortcut?.icon || companionSubtypeDefaultIcon("shortcut"), preset.icon);
                     card.entity = preset.entity;
                     card.options = preserveCardColorOptions(card.options, preset.options);
                     for (const field of ["entity", "options", "label", "icon"]) helpers.saveField(field, card[field]);
@@ -1685,8 +1705,8 @@ export function registerCompanionCardTypes(
                     const note = document.createElement("div");
                     note.className = "sp-field-info-text";
                     note.textContent = isFinder
-                        ? "Folders approved on your Mac appear in free cells. Pin a folder to keep it on the board and edit its name or position."
-                        : "Connect Mac Companion to load this app’s shortcuts.";
+                        ? "Folders approved in the companion app appear in free cells. Pin a folder to keep it on the board and edit its name or position."
+                        : "Connect the companion app to load this app’s shortcuts.";
                     noteField.appendChild(note);
                     appSubpageDisclosure.section.appendChild(noteField);
                 }
@@ -1712,7 +1732,7 @@ export function registerCompanionCardTypes(
             finderOpenBehaviorField.appendChild(finderOpenBehaviorSelect);
             const finderOpenBehaviorNote = document.createElement("div");
             finderOpenBehaviorNote.className = "sp-field-info-text";
-            finderOpenBehaviorNote.textContent = "Default for Finder folder shortcuts. Individual folder cards can override this in Advanced.";
+            finderOpenBehaviorNote.textContent = "Default for folder shortcuts. Individual folder cards can override this in Advanced.";
             finderOpenBehaviorField.appendChild(finderOpenBehaviorNote);
             appSubpageDisclosure.section.appendChild(finderOpenBehaviorField);
             finderOpenBehaviorSelect.addEventListener("change", function () {
@@ -1741,7 +1761,7 @@ export function registerCompanionCardTypes(
             }
             const folderBehaviorChoices: readonly [string, string][] = helpers.isSub
                 && canInheritFinderBehavior
-                ? [["inherit", "Use Finder subpage setting"], ["new_window", "A new window"], ["same_window", "The same window"]]
+                ? [["inherit", "Use folder subpage setting"], ["new_window", "A new window"], ["same_window", "The same window"]]
                 : [["new_window", "A new window"], ["same_window", "The same window"]];
             const hasFinderOverride = configOptionEnabled(card.options, FINDER_OPEN_OVERRIDE_OPTION);
             const selectedFolderBehavior = canInheritFinderBehavior && !hasFinderOverride
@@ -1813,7 +1833,7 @@ export function registerCompanionCardTypes(
                     const page = savedShortcutSubpage || createCompanionShortcutSubpage(card.entity);
                     const heading = document.createElement("div");
                     heading.className = "sp-field";
-                    heading.appendChild(helpers.fieldLabel("Pin Finder folders"));
+                    heading.appendChild(helpers.fieldLabel("Pin folders"));
                     finderFolderList.appendChild(heading);
                     const definitions = [...folderActions];
                     for (const tile of page.buttons || []) {
@@ -1849,7 +1869,7 @@ export function registerCompanionCardTypes(
                 select.replaceChildren();
                 const placeholder = document.createElement("option");
                 placeholder.value = "";
-                placeholder.textContent = applicationActions.length ? "Select" : "No Mac apps are available";
+                placeholder.textContent = applicationActions.length ? "Select" : "No apps are available";
                 select.appendChild(placeholder);
                 applicationActions.forEach(function (action) {
                     const option = document.createElement("option");
@@ -1899,7 +1919,7 @@ export function registerCompanionCardTypes(
                 select.replaceChildren();
                 const unavailable = document.createElement("option");
                 unavailable.value = card.entity || "";
-                unavailable.textContent = card.entity ? "Unavailable (companion offline)" : "Mac companion unavailable";
+                unavailable.textContent = card.entity ? "Unavailable (companion offline)" : "Companion unavailable";
                 unavailable.selected = true;
                 select.appendChild(unavailable);
                 folderSelect.replaceChildren();
@@ -1907,7 +1927,7 @@ export function registerCompanionCardTypes(
                 folderUnavailable.value = initialMode === "folder" && card.entity !== COMPANION_FOLDER_PREFIX
                     ? card.entity || "" : "";
                 folderUnavailable.textContent = folderUnavailable.value
-                    ? "Unavailable (companion offline)" : "Mac companion unavailable";
+                    ? "Unavailable (companion offline)" : "Companion unavailable";
                 folderUnavailable.selected = true;
                 folderSelect.appendChild(folderUnavailable);
             });
@@ -2106,7 +2126,7 @@ export function registerCompanionCardTypes(
             const preview = cardBadgePreview(card, helpers, {
                 label: card.label || (mode === "apple_shortcut" ? "Apple Shortcut" : "") ||
                     shortcutLabel || urlLabel || appLabel || card.entity ||
-                    (mode === "folder" ? "Folder" : "Mac App"),
+                    (mode === "folder" ? "File Folder" : "Application"),
                 iconFallback: companionSubtypeDefaultIcon(mode),
                 badge: COMPANION_CARD_METADATA.preview.badge,
             });
@@ -2334,8 +2354,8 @@ export function registerCompanionCardTypes(
                 select.value = saved;
                 select.disabled = inputs.length === 0;
                 note.textContent = inputs.length ? "Hold to mute the selected input in OBS."
-                    : "Connect OBS in the Mac Companion to choose an input.";
-            }).catch(() => { note.textContent = "Connect OBS in the Mac Companion to choose an input."; });
+                    : "Connect OBS in the companion app to choose an input.";
+            }).catch(() => { note.textContent = "Connect OBS in the companion app to choose an input."; });
             helpers.renderCardIconPicker(panel, card, helpers, coughMetadata.icon);
         },
     });
@@ -2344,7 +2364,7 @@ export function registerCompanionCardTypes(
         ["companion_app", "Applications", "app"],
         ["companion_shortcut", "Keyboard Shortcut", "shortcut"],
         ["companion_url", "Website", "url"],
-        ["companion_folder", "Finder Folder", "folder"],
+        ["companion_folder", "File Folder", "folder"],
         ["companion_obs", "Scene", "obs"],
         ["companion_obs_mic", "Input State", "obs_mic"],
         ["companion_obs_studio", "Studio Mode", "obs_studio"],

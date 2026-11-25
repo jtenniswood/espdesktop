@@ -27,7 +27,7 @@ Choose **Add display** to pair another panel with the same PC. Each panel has it
 
 - Approve apps and folders in the Windows app before adding **Applications** and **Folder** cards.
 - Enable **Allow keyboard shortcuts and screen lock** in the Windows app to use **Keyboard Shortcut** and **Lock Machine** cards. Updated display firmware shows Windows key labels in the editor even when you open it from a Mac. Saved Command shortcuts still send Ctrl.
-- Choose **Application** when adding a keyboard shortcut to pick a preset such as **New Tab** for an approved browser. The preset sends keys only while that browser is in front.
+- Choose **Application** when adding a keyboard shortcut to pick a preset such as **New Tab** for an approved browser. The preset sends keys only while that browser is in front. If Windows keeps another window active, bring the preset’s app forward and tap again.
 - For an app with a shortcut subpage, choose when it opens under **Screen → Appearance → App Subpages**. [App subpage options](/features/subpages#app-page-behavior)
 - Add a **Website** card to open a page in your default browser. New windows and active-site highlighting depend on the browser.
 

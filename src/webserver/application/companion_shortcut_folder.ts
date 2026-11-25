@@ -504,18 +504,19 @@ export function slackShortcutPresetCards(): CompanionShortcutPresetCard[] {
 }
 
 export function companionShortcutCatalogApps(
-    { pageAppId, savedAppId, windowsHost }: {
-        pageAppId?: string | undefined; savedAppId?: string | undefined; windowsHost?: boolean;
+    { pageAppId, savedAppId, windows = false }: {
+        pageAppId?: string | undefined; savedAppId?: string | undefined; windows?: boolean;
     } = {},
 ): AppShortcutApplication[] {
     // The Mac sends site presets under the actual installed Safari web app bundle ID.
     const apps = COMPANION_SHORTCUT_APPS.filter(app =>
+        app.appId.startsWith("windows.") === windows &&
         app.appId !== ATHENA_TEMPLATE_APP_ID && app.appId !== TWITCH_TEMPLATE_APP_ID &&
-        app.appId !== CHATGPT_CLASSIC_BUNDLE_ID &&
-        (!windowsHost || app.appId.startsWith("windows.")));
+        app.appId !== CHATGPT_CLASSIC_BUNDLE_ID);
     const appId = savedAppId ?? pageAppId;
     // A saved Classic card still needs its original app and preset IDs when edited.
     if (appId && appId !== ATHENA_TEMPLATE_APP_ID && appId !== TWITCH_TEMPLATE_APP_ID &&
+        (appId === savedAppId || appId.startsWith("windows.") === windows) &&
         (appId !== CHATGPT_CLASSIC_BUNDLE_ID || appId === savedAppId) && !apps.some(app => app.appId === appId)) {
         const template = companionShortcutApp(appId);
         if (template) apps.push({ ...template, appId });

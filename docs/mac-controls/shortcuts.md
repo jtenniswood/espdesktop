@@ -36,7 +36,7 @@ Enable **EspDesktop** in **System Settings → Privacy & Security → Accessibil
 
 <a href="/images/mac-companion-shortcut-access.png"><picture><source type="image/avif" srcset="/images/mac-companion-shortcut-access-480.avif 480w, /images/mac-companion-shortcut-access-960.avif 960w" sizes="(min-width: 768px) 612px, 90vw"><img src="/images/mac-companion-shortcut-access.png" alt="EspDesktop’s Enable Keyboard Shortcuts step with the macOS permission prompt and Open System Settings button" width="612" height="744" loading="lazy"></picture></a>
 
-If a tile still does nothing, follow [the keyboard shortcut and Mac Lock troubleshooting steps](/getting-started/troubleshooting#a-card-does-not-work).
+If a tile still does nothing, follow [the keyboard shortcut and Lock Machine troubleshooting steps](/getting-started/troubleshooting#a-card-does-not-work).
 
 With Mac Companion connected, the editor loads the full list when you select an app. This works over your local network. The editor built into the display keeps a starter set for editing while Companion is disconnected, and saved cards keep their shortcut keys.
 
