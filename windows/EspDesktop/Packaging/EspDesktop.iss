@@ -35,9 +35,10 @@ SignedUninstaller=yes
 
 [Files]
 Source: "{#PublishDirectory}\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "EspDesktop.ico"; DestDir: "{app}"; DestName: "EspDesktop-Fingerprint.ico"; Flags: ignoreversion
 
 [Icons]
-Name: "{autoprograms}\EspDesktop"; Filename: "{app}\EspDesktop.exe"
+Name: "{autoprograms}\EspDesktop"; Filename: "{app}\EspDesktop.exe"; IconFilename: "{app}\EspDesktop-Fingerprint.ico"
 
 [Run]
 Filename: "{app}\EspDesktop.exe"; Description: "Open EspDesktop"; Flags: nowait postinstall skipifsilent
@@ -46,6 +47,23 @@ Filename: "{app}\EspDesktop.exe"; Description: "Open EspDesktop"; Flags: nowait 
 Root: HKCU; Subkey: "Software\Microsoft\Windows\CurrentVersion\Run"; ValueType: none; ValueName: "EspDesktop"; Flags: dontcreatekey uninsdeletevalue
 
 [Code]
+const
+  SHCNE_UPDATEITEM = $00002000;
+  SHCNF_PATHW = $0005;
+
+procedure SHChangeNotify(Event: Longint; Flags: Cardinal; Path: String; Reserved: Integer);
+  external 'SHChangeNotify@shell32.dll stdcall';
+
+procedure CurStepChanged(CurStep: TSetupStep);
+begin
+  if CurStep = ssPostInstall then
+  begin
+    { Refresh the existing executable's shell icon as well as the new shortcut. }
+    SHChangeNotify(SHCNE_UPDATEITEM, SHCNF_PATHW, ExpandConstant('{app}\EspDesktop.exe'), 0);
+    SHChangeNotify(SHCNE_UPDATEITEM, SHCNF_PATHW, ExpandConstant('{autoprograms}\EspDesktop.lnk'), 0);
+  end;
+end;
+
 function InitializeSetup(): Boolean;
 var
   Index, Attempt: Integer;
