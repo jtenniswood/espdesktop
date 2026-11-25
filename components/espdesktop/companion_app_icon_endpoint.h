@@ -30,7 +30,12 @@ class CompanionAppIconPreviewHandler final
       return;
     }
     const std::string application_id = request->arg("appId");
+    const std::string computer_id = request->arg("computer");
     if (!store.is_referenced(application_id)) {
+      // The editor can ask for a configured app before the panel's saved card
+      // references have synced (for example right after a firmware update).
+      // Add the reference and ask the companion instead of failing outright.
+      esphome::companion::request_app_icon(application_id, computer_id);
       send_not_found(request);
       return;
     }
@@ -55,7 +60,7 @@ class CompanionAppIconPreviewHandler final
     if (!store.copy_pixels(application_id, pixels.get(), pixel_bytes)) {
       // The fixed flash cache may hold fewer icons than the configured cards.
       // Refill an evicted icon on demand; the browser retries this response.
-      esphome::companion::request_app_icon(application_id);
+      esphome::companion::request_app_icon(application_id, computer_id);
       send_not_found(request);
       return;
     }

@@ -3,6 +3,9 @@
   "pickerLabel": "Sound",
   "allowInSubpage": true,
   "domains": [],
+  "options": [
+    { "name": "computer", "label": "Paired computer", "kind": "text", "omitDefault": true, "hidden": true, "docsHidden": true }
+  ],
   "normalization": {
     "fields": {
       "entity": { "policy": "default", "value": "media.output_volume" },
@@ -13,10 +16,10 @@
       "unit": { "policy": "clear" },
       "type": { "policy": "default", "value": "companion_output_volume" },
       "precision": { "policy": "clear" },
-      "options": { "policy": "clear" }
+      "options": { "policy": "keep" }
     },
     "unknownOptions": "drop",
-    "canonicalOptionOrder": []
+    "canonicalOptionOrder": ["computer"]
   },
   "default": {
     "entity": "media.output_volume", "label": "Volume", "icon": "Volume High", "icon_on": "Auto",

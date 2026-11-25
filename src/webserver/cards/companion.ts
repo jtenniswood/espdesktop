@@ -29,6 +29,7 @@ import {
 } from "../model/companion_card";
 export { COMPANION_SYSTEM_METRICS } from "../generated/companion_capabilities";
 import type { CardDefinition, CardRegistry, CardUiServices } from "../application/card_registry";
+import { diagnostics } from "../application/diagnostics";
 import type { ControlsFieldsFeature } from "../application/controls_fields";
 import type { ConfigCodecFeature } from "../application/config_codec";
 import type { ButtonSettingsSelectionFeature } from "../application/button_settings_selection";
@@ -404,6 +405,20 @@ export function companionApplicationActionIdCanSave(
     return !!actionId && (actionId === savedActionId || companionApplicationActionIdValid(actions, actionId));
 }
 
+/** Binds a new companion card to the only connected computer.
+ *
+ * Without an explicit binding the card follows whichever computer becomes
+ * primary, which silently moves cards when computers are added or removed.
+ * Existing and unbound cards keep their previous behaviour.
+ */
+export function bindNewCompanionCardComputer(
+    options: string, computers: readonly { id: string }[], isNew: boolean,
+): string {
+    if (!isNew || configOptionValue(options, "computer")) return options;
+    const computer = computers.length === 1 ? computers[0]?.id ?? "" : "";
+    return computer ? setConfigOptionValue(options, "computer", computer) : options;
+}
+
 export function companionFolderActions(actions: readonly CompanionAction[]): readonly CompanionAction[] {
     return sortCompanionLabels(actions.filter((action) => action.id.startsWith(COMPANION_FOLDER_PREFIX)));
 }
@@ -431,6 +446,14 @@ export function normalizeCompanionCard(card: any): void {
     const previousOptions = card.options;
     normalizeCompanionCardFields(card);
     card.options = preserveCardColorOptions(previousOptions, card.options);
+    card.options = preserveCompanionComputerOption(previousOptions, card.options);
+}
+
+function preserveCompanionComputerOption(previous: unknown, normalized: unknown): string {
+    const computer = configOptionValue(previous, "computer");
+    const options = String(normalized || "");
+    return computer && !configOptionValue(options, "computer")
+        ? setConfigOptionValue(options, "computer", computer) : options;
 }
 
 function normalizeCompanionCardFields(card: any): void {
@@ -528,7 +551,45 @@ export function registerCompanionCardTypes(
     const { cardBadgePreview, cardBadgeLabelHtml, cardSensorPreviewHtml, fieldLabel } = fields;
     const { renderButtonSettings, renderPreview } = cardUi;
     const catalogue = createCompanionCatalogue(fetchImpl);
-    const loadCompanionActions = catalogue.load;
+    // The catalogue now includes actions from every connected computer. The
+    // editor works against one computer at a time and saves that computer on
+    // the card so the display routes its commands to the right machine.
+    let selectedComputer = "";
+    let knownComputers: Array<{ id: string; name: string; primary: boolean }> = [];
+    let lastComputerSignature = "";
+    const rememberComputers = (actions: readonly CompanionAction[]) => {
+        const computers: Array<{ id: string; name: string; primary: boolean }> = [];
+        for (const action of actions) {
+            if (!action.computer || computers.some(computer => computer.id === action.computer)) continue;
+            computers.push({
+                id: action.computer,
+                name: action.computerName || "Computer",
+                primary: action.primary === true,
+            });
+        }
+        computers.sort((first, second) => Number(second.primary) - Number(first.primary));
+        knownComputers = computers;
+        const signature = computers.map(computer =>
+            computer.id + ":" + computer.name + ":" + (computer.primary ? "primary" : "secondary")).join("|");
+        if (signature !== lastComputerSignature) {
+            lastComputerSignature = signature;
+            diagnostics("companion.computers", () => ({ computers }));
+        }
+        if (selectedComputer && !computers.some(computer => computer.id === selectedComputer))
+            selectedComputer = "";
+    };
+    const filterCompanionActions = (actions: readonly CompanionAction[]): readonly CompanionAction[] => {
+        const primary = knownComputers.find(computer => computer.primary) || knownComputers[0];
+        const target = selectedComputer ||
+            (knownComputers.length > 1 && primary ? primary.id : "");
+        if (!target) return actions;
+        const matching = actions.filter(action => !action.computer || action.computer === target);
+        return matching.length > 0 ? matching : actions.filter(action => !action.computer);
+    };
+    const loadCompanionActions = (refresh = false) => catalogue.load(refresh).then(actions => {
+        rememberComputers(actions);
+        return filterCompanionActions(actions);
+    });
     let lastWindowsCatalogue: boolean | undefined;
     function useWindowsShortcuts(): boolean | undefined {
         const platform = connectorStatus.companionPlatform();
@@ -841,6 +902,7 @@ export function registerCompanionCardTypes(
             renderButtonSettings();
         });
         connectorStatus.onCompanionConnectionChange(function (connected) {
+            diagnostics("companion.connection", () => ({ connected }));
             if (connected) companionCatalogueMonitor.start();
             else {
                 companionCatalogueMonitor.stop();
@@ -861,7 +923,7 @@ export function registerCompanionCardTypes(
         card.sensor = mode === "url" ? COMPANION_URL_PREFIX : "";
         card.unit = "";
         card.precision = "";
-        card.options = normalizedCardColorOptions(card.options);
+        card.options = preserveCompanionComputerOption(card.options, normalizedCardColorOptions(card.options));
         card.icon_on = "Auto";
         card.label = "";
 
@@ -874,7 +936,7 @@ export function registerCompanionCardTypes(
     }
 
     function loadAppShortcuts(appId: string, panel: HTMLElement): void {
-        void catalogue.loadShortcutApplication(appId).then(app => {
+        void catalogue.loadShortcutApplication(appId, selectedComputer).then(app => {
             if (app && applyCompanionShortcutApplication(app) && panel.isConnected) renderButtonSettings();
         });
     }
@@ -906,6 +968,7 @@ export function registerCompanionCardTypes(
 
     function renderAppShortcutSettings(panel: HTMLElement, card: any, page: number,
         helpers: { idPrefix: string; saveField: (field: string, value: unknown) => void }, showAll = false): void {
+        selectCompanionComputerForCard(card);
         loadAppShortcuts(card.entity, panel);
         const savedShortcutSubpage = state.subpages[page];
         const savedParent = previewSubpageOwner(page, state.buttons, key => state.subpages[key]);
@@ -1060,6 +1123,74 @@ export function registerCompanionCardTypes(
         return codec.saveSubpageConfig(page);
     }
 
+    function selectCompanionComputerForCard(card: any): void {
+        const saved = configOptionValue(card?.options, "computer");
+        if (saved) selectedComputer = saved;
+        else if (knownComputers.length > 1) {
+            const primary = knownComputers.find(computer => computer.primary) || knownComputers[0];
+            selectedComputer = primary ? primary.id : "";
+        } else selectedComputer = knownComputers.length === 1 ? knownComputers[0]?.id ?? "" : "";
+    }
+
+    function renderCompanionComputerField(panel: HTMLElement | undefined, card: any, helpers: any): void {
+        selectCompanionComputerForCard(card);
+        const isNewDraft = state.settingsDraft?.isNew === true && state.settingsDraft.button === card;
+        const bound = bindNewCompanionCardComputer(card.options, knownComputers, isNewDraft);
+        if (bound !== card.options) {
+            card.options = bound;
+            diagnostics("companion.card-bound", () => ({
+                entity: card.entity,
+                label: card.label,
+                computer: configOptionValue(bound, "computer"),
+                options: bound,
+            }));
+            helpers.saveField("options", card.options);
+        }
+        const saved = configOptionValue(card.options, "computer");
+        const savedMissing = !!saved && !knownComputers.some(computer => computer.id === saved);
+        if (!panel) return;
+        if (knownComputers.length < 2 && !savedMissing) {
+            // The action catalogue arrives asynchronously. Re-render once the
+            // connected computers are known so the selector appears the first
+            // time a card is added instead of waiting for the card to reopen.
+            const known = knownComputers.length;
+            void loadCompanionActions(true).then(() => {
+                if (panel.isConnected && knownComputers.length !== known) renderButtonSettings();
+            }).catch(() => { /* Keep the primary computer while Companion is offline. */ });
+            return;
+        }
+        const field = document.createElement("div");
+        field.className = "sp-field";
+        // Keep the computer selector above the collapsed Card Settings section.
+        field.setAttribute("data-sp-card-primary", "computer");
+        field.appendChild(fieldLabel("Computer", helpers.idPrefix + "companion-computer"));
+        const select = document.createElement("select");
+        select.className = "sp-select";
+        select.id = helpers.idPrefix + "companion-computer";
+        if (savedMissing) {
+            const option = document.createElement("option");
+            option.value = saved;
+            option.textContent = "Saved computer (unavailable)";
+            option.selected = true;
+            select.appendChild(option);
+        }
+        for (const computer of knownComputers) {
+            const option = document.createElement("option");
+            option.value = computer.id;
+            option.textContent = computer.name + (computer.primary ? " (primary)" : "");
+            option.selected = computer.id === selectedComputer;
+            select.appendChild(option);
+        }
+        select.addEventListener("change", () => {
+            selectedComputer = select.value;
+            card.options = setConfigOptionValue(card.options, "computer", selectedComputer);
+            helpers.saveField("options", card.options);
+            renderButtonSettings();
+        });
+        field.appendChild(select);
+        panel.appendChild(field);
+    }
+
     const companionDefinition: any = {
         renderAppShortcutSettings,
         label: function () { return cardContractCardLabel("companion"); },
@@ -1078,6 +1209,7 @@ export function registerCompanionCardTypes(
         },
         renderSettings: function (panel?: HTMLElement, card?: any, slot?: any, helpers?: any) {
             normalizeCompanionCard(card);
+            renderCompanionComputerField(panel, card, helpers);
             const currentEntity = typeof card.entity === "string" ? card.entity : "";
             card.entity = currentEntity;
             const initialMode = companionCardMode(card);
@@ -1107,7 +1239,7 @@ export function registerCompanionCardTypes(
             }
             const savedParent = slot ? (helpers.isSub ? codec.getSubpage(parentPage).buttons[slot - 1] : state.buttons[slot - 1]) : null;
             let companionActions: readonly CompanionAction[] = [];
-            void catalogue.loadDefinitions(true).then((definitions) => {
+            void catalogue.loadDefinitions(true, selectedComputer).then((definitions) => {
                 const windows = definitions.shortcutPlatform === "windows";
                 const platformChanged = lastWindowsCatalogue !== windows;
                 lastWindowsCatalogue = windows;
@@ -1211,7 +1343,10 @@ export function registerCompanionCardTypes(
                     status.textContent = "Loading network devices…";
                     field.append(select, status);
                     panel?.appendChild(field);
-                    void fetch("/companion/networks", { cache: "no-store" }).then(async (response) => {
+                    const networkPath = selectedComputer
+                        ? `/companion/networks?computer=${encodeURIComponent(selectedComputer)}`
+                        : "/companion/networks";
+                    void fetch(networkPath, { cache: "no-store" }).then(async (response) => {
                         if (!response.ok) throw new Error("unavailable");
                         const networks: unknown = await response.json();
                         if (!Array.isArray(networks)) throw new Error("unavailable");
@@ -1221,8 +1356,8 @@ export function registerCompanionCardTypes(
                             else select.add(new Option(network.label, network.id));
                         }
                         status.textContent = networks.length ? "Shows the selected device’s IPv4 address." :
-                            "Connect the companion app and enable Stats sharing to load network devices.";
-                    }).catch(() => { status.textContent = "Network devices unavailable. Connect the companion app and enable Stats sharing."; });
+                            "Connect the computer and enable Stats sharing to load network devices.";
+                    }).catch(() => { status.textContent = "Network devices unavailable. Connect the computer and enable Stats sharing."; });
                     return;
                 }
                 const description = helpers.toggleRow("Show capacity label", helpers.idPrefix + "stat-labels", companionMetricDescriptionEnabled(card));
@@ -1403,7 +1538,8 @@ export function registerCompanionCardTypes(
                     !String(card.entity).startsWith(SCOPED_SHORTCUT_PREFIX)) {
                     card.entity = SCOPED_SHORTCUT_PREFIX + card.entity.slice(COMPANION_SHORTCUT_PREFIX.length);
                 }
-                card.options = preserveCardColorOptions(card.options, "app_shortcut_preset=custom");
+                card.options = preserveCompanionComputerOption(card.options,
+                    preserveCardColorOptions(card.options, "app_shortcut_preset=custom"));
                 helpers.saveField("entity", card.entity);
                 helpers.saveField("options", card.options);
                 renderButtonSettings();
@@ -1527,7 +1663,8 @@ export function registerCompanionCardTypes(
                 const selected = modifiers.map(([modifier]) => modifier).filter((modifier) => selectedModifiers.has(modifier));
                 const prefix = scopedCustomApp ? SCOPED_SHORTCUT_PREFIX : COMPANION_SHORTCUT_PREFIX;
                 card.entity = prefix + [...selected, selectedKey].join("+");
-                card.options = preserveCardColorOptions(card.options, "app_shortcut_preset=custom");
+                card.options = preserveCompanionComputerOption(card.options,
+                    preserveCardColorOptions(card.options, "app_shortcut_preset=custom"));
                 helpers.clearFieldError(keySelect);
                 helpers.saveField("entity", card.entity);
                 helpers.saveField("options", card.options);
@@ -1649,8 +1786,9 @@ export function registerCompanionCardTypes(
                         card.icon = companionGeneratedIcon(card.icon || "", savedCatalogShortcut?.icon || companionSubtypeDefaultIcon("shortcut"), preset.icon);
                         card.entity = preset.entity;
                         card._shortcutAppIcon = useShortcutAppIcon;
-                        card.options = preserveCardColorOptions(card.options, setConfigOption(
-                            preset.options, COMPANION_SHORTCUT_APP_ICON_OPTION, useShortcutAppIcon));
+                        card.options = preserveCompanionComputerOption(card.options,
+                            preserveCardColorOptions(card.options, setConfigOption(
+                                preset.options, COMPANION_SHORTCUT_APP_ICON_OPTION, useShortcutAppIcon)));
                         for (const field of ["entity", "options", "label", "icon"]) helpers.saveField(field, card[field]);
                         const scrollTop = list.scrollTop;
                         renderButtonSettings();
@@ -1715,7 +1853,7 @@ export function registerCompanionCardTypes(
                 card._shortcutCatalogApp = catalogApp.value;
                 card._shortcutAppIcon = useShortcutAppIcon;
                 card.entity = COMPANION_SHORTCUT_PREFIX;
-                card.options = normalizedCardColorOptions(card.options);
+                card.options = preserveCompanionComputerOption(card.options, normalizedCardColorOptions(card.options));
                 helpers.saveField("entity", card.entity);
                 helpers.saveField("options", card.options);
                 renderButtonSettings();
@@ -1938,6 +2076,12 @@ export function registerCompanionCardTypes(
                     JSON.stringify(eligibleShortcutApps().map(app => [app.appId, app.label])) !==
                     JSON.stringify(catalogueApps.map(app => [app.appId, app.label]))) renderButtonSettings();
                 availableCompanionApps = applicationActions;
+                diagnostics("companion.applications", () => ({
+                    entity: card.entity,
+                    selectedComputer,
+                    count: applicationActions.length,
+                    computers: knownComputers.map(computer => computer.name),
+                }));
                 const folderActions = companionFolderActions(actions);
                 availableCompanionFolders = folderActions;
                 if (card.entity === "com.apple.finder" && companionAppShortcutFolderEnabled(card)) {
@@ -2025,7 +2169,12 @@ export function registerCompanionCardTypes(
                     folderSelect.appendChild(unavailable);
                 }
                 folderSelect.disabled = folderActions.length === 0;
-            }).catch(function () {
+            }).catch(function (error: unknown) {
+                diagnostics("companion.applications-failed", () => ({
+                    entity: card.entity,
+                    selectedComputer,
+                    error: error instanceof Error ? error.message : String(error),
+                }));
                 availableCompanionApps = [];
                 availableCompanionFolders = [];
                 select.replaceChildren();
@@ -2312,7 +2461,7 @@ export function registerCompanionCardTypes(
             }
             if ((!existing || appChanged) && card.entity !== "com.apple.finder" &&
                 !companionShortcutDefaultTabs(card.entity).length) {
-                const app = await catalogue.loadShortcutApplication(card.entity);
+                const app = await catalogue.loadShortcutApplication(card.entity, selectedComputer);
                 if (app) applyCompanionShortcutApplication(app);
             }
             const source = existing ? {
@@ -2353,9 +2502,11 @@ export function registerCompanionCardTypes(
     registry.register("companion", companionDefinition);
 
     registry.register("companion_app_volume", targetedAudioCard(
-        supported, async () => companionApplicationActions(await loadCompanionActions(true)), cardUi, fields, "companion_app_volume"));
+        supported, async () => companionApplicationActions(await loadCompanionActions(true)), cardUi, fields, "companion_app_volume", false,
+        (panel, card, helpers) => renderCompanionComputerField(panel, card, helpers)));
     registry.register("companion_input_device", targetedAudioCard(
-        supported, async () => sortCompanionLabels(await loadCompanionActions(true)), cardUi, fields, "companion_input_device", true));
+        supported, async () => sortCompanionLabels(await loadCompanionActions(true)), cardUi, fields, "companion_input_device", true,
+        (panel, card, helpers) => renderCompanionComputerField(panel, card, helpers)));
 
     function deviceAudioCard(type: string, slider: boolean): CardDefinition {
         const defaults = cardContractDefaultConfig(type);
@@ -2371,6 +2522,19 @@ export function registerCompanionCardTypes(
             defaultConfig: () => defaults,
             onSelect: (card) => Object.assign(card, defaults),
             renderSettings: (panel, card, _slot, helpers) => {
+                renderCompanionComputerField(panel, card, helpers);
+                if (type === "companion_input_mute") {
+                    helpers.renderCardOptionToggle(panel, card, helpers, {
+                        label: "Hold to end Teams call",
+                        idSuffix: "hold-end-call",
+                        checked: configOptionValue(card.options, "hold_action") === "end_call",
+                        onChange: (_: unknown, __: unknown, checked: boolean) => {
+                            card.options = setConfigOptionValue(card.options, "hold_action",
+                                checked ? "end_call" : "");
+                            helpers.saveField("options", card.options);
+                        },
+                    });
+                }
                 helpers.renderCardIconPicker(panel, card, helpers, metadata.icon);
             },
             renderPreview: (card, helpers) => cardBadgePreview(card, helpers, {
@@ -2405,9 +2569,11 @@ export function registerCompanionCardTypes(
         normalizeConfig: (card) => Object.assign(card, macLockDefaults, {
             label: card.label || macLockDefaults.label,
             icon: card.icon && card.icon !== "Auto" ? card.icon : macLockDefaults.icon,
-            options: normalizedCardColorOptions(card.options),
+            options: preserveCompanionComputerOption(card.options,
+                normalizedCardColorOptions(card.options)),
         }),
         renderSettings: (panel, card, _slot, helpers) => {
+            renderCompanionComputerField(panel, card, helpers);
             helpers.renderCardIconPicker(panel, card, helpers, macLockMetadata.icon);
         },
         renderPreview: (card, helpers) => cardBadgePreview(card, helpers, {
@@ -2431,6 +2597,7 @@ export function registerCompanionCardTypes(
         defaultConfig: () => coughDefaults,
         onSelect: (card) => Object.assign(card, coughDefaults),
         renderSettings: (panel, card, _slot, helpers) => {
+            renderCompanionComputerField(panel, card, helpers);
             helpers.renderCardIconPicker(panel, card, helpers, coughMetadata.icon);
         },
         renderPreview: (card, helpers) => cardBadgePreview(card, helpers, {
@@ -2452,6 +2619,7 @@ export function registerCompanionCardTypes(
             label: card.label || obsCoughDefaults.label,
         }),
         renderSettings: (panel, card, _slot, helpers) => {
+            renderCompanionComputerField(panel, card, helpers);
             const saved = card.entity;
             const placeholder = "Select";
             const choices: [string, string][] = [["", placeholder]];

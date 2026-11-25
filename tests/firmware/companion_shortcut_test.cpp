@@ -7,6 +7,7 @@ inline void lv_label_set_text(lv_obj_t *, const char *) {}
 #include "companion_controls.h"
 #include "companion_timezone.h"
 #include "button_grid_config_parser.h"
+#include "button_grid_saved_config_static_generated.h"
 #define ESPDESKTOP_SUBPAGE_PARSER_ONLY
 #include "button_grid_subpages.h"
 #include "finder_folder_sync.h"
@@ -562,7 +563,8 @@ int main() {
 
   const std::string folder_action = "folder.00000000-0000-0000-0000-000000000001";
   int focus_registration_updates = 0;
-  companion_runtime_service().focus_registrations_changed_handler = [&focus_registration_updates] {
+  companion_set_focus_registrations({});
+  companion_focus_registrations_changed_handler() = [&focus_registration_updates] {
     ++focus_registration_updates;
   };
   const std::string focus_url = "https://example.com/";
@@ -572,7 +574,7 @@ int main() {
   assert(focus_registration_updates == 1);
   companion_set_focus_registrations({{focus_url_id, focus_url}});
   assert(focus_registration_updates == 1);
-  companion_runtime_service().focus_registrations_changed_handler = {};
+  companion_focus_registrations_changed_handler() = {};
   companion_set_actions({{"com.apple.Safari", "Safari"}, {folder_action, "Projects"}});
   assert(companion_default_action_label("com.apple.Safari") == "Safari");
   std::string resolved_label;
@@ -1071,5 +1073,64 @@ int main() {
   companion_set_connected(true);
   assert(!companion_action_available("media.play_pause"));
   assert(!companion_value("media.output_volume", output_volume));
+
+  ParsedCfg computer_card;
+  computer_card.type = "companion";
+  computer_card.entity = "app.example";
+  assert(companion_card_computer(computer_card).empty());
+  computer_card.options = "computer=0011223344556677";
+  assert(companion_card_computer(computer_card) == "0011223344556677");
+  computer_card.options = "computer=not-a-computer-id";
+  assert(companion_card_computer(computer_card).empty());
+  computer_card.type = "action";
+  computer_card.options = "computer=0011223344556677";
+  assert(companion_card_computer(computer_card).empty());
+
+  // Simple Companion cards keep the per-card computer binding while dropping
+  // unknown saved option tokens.
+  struct SavedCard {
+    std::string entity, label, icon, icon_on, sensor, unit, type, precision, options;
+  };
+  SavedCard volume;
+  volume.type = "companion_output_volume";
+  volume.options = "legacy,junk,computer=0011223344556677";
+  assert(normalize_saved_config_static(volume));
+  assert(volume.options == "computer=0011223344556677");
+  SavedCard app_volume;
+  app_volume.type = "companion_app_volume";
+  app_volume.entity = "app.volume.com.example.Player";
+  app_volume.options = "junk,computer=0011223344556677";
+  assert(normalize_saved_config_static(app_volume));
+  assert(app_volume.options == "computer=0011223344556677");
+  SavedCard mac_lock_card;
+  mac_lock_card.type = "companion_mac_lock";
+  mac_lock_card.options = "computer=0011223344556677";
+  assert(normalize_saved_config_static(mac_lock_card));
+  assert(mac_lock_card.options == "computer=0011223344556677");
+
+  // App and statistics cards keep the binding when their options are rebuilt.
+  ParsedCfg app_card;
+  app_card.type = "companion";
+  app_card.entity = "com.apple.Safari";
+  app_card.options = "computer=0011223344556677,app_shortcuts";
+  const auto normalized_app = normalize_parsed_cfg(app_card);
+  assert(companion_card_computer(normalized_app) == "0011223344556677");
+  assert(cfg_option_token_present(normalized_app.options, "app_shortcuts"));
+  ParsedCfg stat_card;
+  stat_card.type = "companion";
+  stat_card.entity = "stat.cpu";
+  stat_card.options = "computer=0011223344556677,stat_labels_off";
+  const auto normalized_stat = normalize_parsed_cfg(stat_card);
+  assert(companion_card_computer(normalized_stat) == "0011223344556677");
+  assert(cfg_option_token_present(normalized_stat.options, "stat_labels_off"));
+
+  // Companion cards inside a subpage also keep the binding.
+  SubpageBtn subpage_card;
+  subpage_card.type = "companion";
+  subpage_card.entity = "com.apple.Safari";
+  subpage_card.options = "computer=0011223344556677";
+  const auto normalized_subpage = normalize_subpage_btn(subpage_card);
+  assert(companion_card_computer(parsed_cfg_from_subpage_btn(normalized_subpage)) ==
+         "0011223344556677");
   return 0;
 }
