@@ -17,6 +17,8 @@ Launch apps, open folders and websites, and run keyboard shortcuts from a 4-inch
 
 [Get started](/screens/4848s040)
 
+[Windows 11 preview](/windows-preview)
+
 </div>
 
 </div>

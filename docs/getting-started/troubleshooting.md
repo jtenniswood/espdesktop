@@ -82,7 +82,7 @@ For the control's exact requirements, see [Touchscreen controls](/#what-you-can-
 
 ## The touchscreen says to unlock your computer {#the-touchscreen-says-to-unlock-your-mac}
 
-Unlock your computer and make sure EspDesktop is running and connected. If the connection dropped while your computer was locked, the touchscreen unlocks after EspDesktop reconnects and reports that the computer is unlocked.
+Unlock your computer and make sure EspDesktop is running and connected. If several computers are paired, the lock screen clears only after every paired computer reports that it is unlocked. If the connection was lost while your computer was locked, the display unlocks after the app reconnects and reports that it is unlocked.
 
 ## A Mac app or display update breaks compatibility
 

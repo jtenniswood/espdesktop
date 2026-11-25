@@ -57,7 +57,7 @@ In the display editor, select an empty tile on Home or in a folder. Choose **Sou
 | **Audio Output** | Drag to set your computer’s overall sound level on its current default output. |
 | **Audio Input** | Drag to set the level of your computer’s current default microphone or audio input. |
 | **Output Mute** | Tap to mute your computer’s sound output. Tap again to restore it. |
-| **Input State** | Tap to mute or unmute your computer’s microphone. The card uses the on colour for **Live** and the off colour for **Muted**. |
+| **Input State** | Tap to mute or unmute your computer’s microphone. The card uses the on colour for **Live** and the off colour for **Muted**. With the Windows Companion, enable **Hold to end Teams call** to confirm ending a Teams call by pressing and holding. |
 | **Input Cough** (macOS) | Hold to mute the default microphone until you release. |
 | **Input per device level** (macOS) | Choose a connected audio input with adjustable gain. The card follows that device even when you change the default microphone. It becomes unavailable while that device is disconnected. |
 | **Output per application** (macOS) | Choose an enabled app and adjust its sound independently. |

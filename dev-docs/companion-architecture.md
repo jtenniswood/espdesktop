@@ -42,6 +42,26 @@ pairing. The code persists across reboots and rotates after successful pairing.
 The display only shows it while unpaired. Pairing is authorized by access to
 the device webserver.
 
+## Multiple computers
+
+The credential store keeps up to four paired computers. Each authenticated
+WebSocket session owns its catalogue, definitions, focus and system state, and
+the display keeps up to two sessions live at once (`COMPANION_MAX_CONCURRENT_SESSIONS`).
+`CompanionRuntimeRegistry` gives every computer its own `CompanionRuntimeService`;
+the primary runtime belongs to the first paired computer and keeps serving cards
+saved before multi-computer pairing. The active runtime follows the computer
+whose card was touched last so live readouts on shared surfaces match the input.
+
+Cards saved with the `computer=<display-assigned 16-hex ID>` option route their
+actions, values, stats and focus to that computer. Cards without the option keep
+using the primary computer. The browser editor lists each computer separately
+when more than one is connected and records the chosen computer on new cards.
+The catalogues endpoint (`/companion/actions`) annotates every action with its
+computer and name. Pairing status (`/companion/pairing`) lists paired computers
+and their connection state; `/companion/pairing/forget?computer=<id>` removes
+one without disturbing the others. The app-icon cache is shared by application
+ID, so two computers that expose the same application ID share one cached icon.
+
 ## Compatibility and testing
 
 Saved panel configuration compatibility remains separate from transport
