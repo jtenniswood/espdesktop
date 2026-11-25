@@ -364,7 +364,7 @@ int main() {
   assert(std::string(companion_volume_control_label("media.output_volume")) == "Lautstärke");
   assert(std::string(companion_volume_control_label("media.input_volume")) == "Mikro");
   assert(companion_default_action_label("", "url.https%3A%2F%2Fexample.com") == "URL öffnen");
-  assert(companion_default_action_label("") == "Mac-App");
+  assert(companion_default_action_label("") == "Anwendung");
   assert(companion_default_action_label("com.apple.Safari") == "com.apple.Safari");
   assert(companion_shortcut_label("shortcut.command+space") == "\U000F0633" "Leertaste");
   assert(companion_shortcut_label("shortcut.command+home") == "\U000F0633" "Pos1");
@@ -547,7 +547,7 @@ int main() {
   assert(companion_default_action_label("shortcut.command+a") == "\U000F0633" "A");
   assert(companion_default_action_label("com.apple.Safari") == "com.apple.Safari");
   assert(companion_default_action_label("com.apple.Safari", url_config) == "Open URL");
-  assert(companion_default_action_label("") == "Mac App");
+  assert(companion_default_action_label("") == "Application");
   assert(companion_metric_card_should_disable(false, false));
   assert(!companion_metric_card_should_disable(false, true));
   assert(!companion_metric_card_should_disable(true, false));
