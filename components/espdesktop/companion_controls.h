@@ -783,7 +783,7 @@ inline std::string companion_default_action_label(const std::string &action_id,
   if (action_id == "obs.replay" && companion_published_action(snapshot, "obs.status.program"))
     return espdesktop_i18n("Start Replay Buffer");
   if (action_id.rfind("obs.", 0) == 0) return espdesktop_i18n("Unavailable");
-  return action_id.empty() ? espdesktop_i18n("Mac App") : action_id;
+  return action_id.empty() ? espdesktop_i18n_key("mac_app") : action_id;
 }
 
 inline std::string companion_default_action_label_with_fallback(

@@ -43,7 +43,7 @@ export function registerMediaCardTypes(
         renderSettings: function (panel: any) {
             const warning = document.createElement("p");
             warning.className = "sp-setting-note";
-            warning.textContent = "This saved media card needs Home Assistant. Its configuration has been kept. Replace the card to use Mac Companion or a local control.";
+            warning.textContent = "This saved media card needs Home Assistant. Its configuration has been kept. Replace the card to use Companion or a local control.";
             panel.appendChild(warning);
         },
         renderPreview: function (this: any, b?: any, helpers?: any) {

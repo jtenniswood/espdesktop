@@ -52,7 +52,7 @@ export function targetedAudioCard(
             ) as { field: HTMLElement; select: HTMLSelectElement };
             panel.appendChild(field);
             helpers.markCardPrimaryField(field, "entity");
-            helpers.requireField(select, inputDevice ? "Choose an input device before saving." : "Choose an enabled Mac app before saving.");
+            helpers.requireField(select, inputDevice ? "Choose an input device before saving." : "Choose an enabled app before saving.");
             const note = panel.ownerDocument.createElement("p");
             note.className = "sp-setting-note";
             note.textContent = inputDevice ? "Loading input devices…" : "Loading enabled apps…";
@@ -72,11 +72,11 @@ export function targetedAudioCard(
                 select.value = savedEntity;
                 select.disabled = apps.size === 0;
                 note.hidden = apps.size > 0 && (!savedEntity || apps.has(savedEntity));
-                note.textContent = inputDevice ? "Connect a Mac input device with an adjustable level." : apps.size > 0
-                    ? "Enable this app in EspDesktop on the Mac to use its volume control."
-                    : "Connect the Mac companion and enable apps in its Apps settings.";
+                note.textContent = inputDevice ? "Connect an input device with an adjustable level." : apps.size > 0
+                    ? "Enable this app in EspDesktop to use its volume control."
+                    : "Connect the companion app and enable apps in its Apps settings.";
             }).catch(() => {
-                note.textContent = "Connect the Mac companion to load the available choices.";
+                note.textContent = "Connect the companion app to load the available choices.";
             });
         },
         renderSettings: (panel, card, _slot, helpers) => {

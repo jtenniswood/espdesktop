@@ -41,7 +41,7 @@ export function runCompanionPairingFeatureTests(): void {
     connected: true,
     pairing_code: "",
   });
-  if (connectedStatus !== "Mac Companion connected") {
+  if (connectedStatus !== "Companion connected") {
     throw new Error("Connected Companion status must be clear on the settings page");
   }
 }

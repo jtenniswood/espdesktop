@@ -852,7 +852,7 @@ export function createButtonSettingsFeature(
                 picker.replaceChildren();
                 title.textContent = openGroup === "obs_group" ? "OBS Studio" :
                     openGroup === "apple_shortcuts_group" ? "Apple Shortcuts" :
-                    openGroup === "companion_folder" ? "Finder Folder" : mainTitle;
+                    openGroup === "companion_folder" ? "File Folder" : mainTitle;
                 const options: CardPickerOption[] = buttonTypePickerOptionList(!!isSub, selectedTypeKey, activeConnector);
                 const obsOptions = options.filter(option => option.key.startsWith("companion_obs"));
                 const shortcutOptions: PickerOption[] = options.filter(option => isShortcutOption(option.key));
@@ -861,7 +861,7 @@ export function createButtonSettingsFeature(
                     picker.before(back);
                     if (appOption) shortcutOptions.push({
                         ...appOption, key: "apple_shortcuts_open_app", label: "Open the Shortcuts App",
-                        description: "Add an Applications card that opens the Shortcuts app on your Mac.",
+                        description: "Add an Applications card that opens the Shortcuts app.",
                         applicationPreset: { id: APPLE_SHORTCUTS_APP_ID, label: "Shortcuts" },
                     });
                     renderGrid(shortcutOptions);
@@ -870,20 +870,20 @@ export function createButtonSettingsFeature(
                 if (openGroup === "companion_folder") {
                     picker.before(back);
                     const folderOption = options.find(option => option.key === "companion_folder");
-                    const finderOptions: PickerOption[] = [];
+                    const folderOptions: PickerOption[] = [];
                     const canAddSubpage = codec.canCreateSubpage(homeSlot);
-                    if (appOption) finderOptions.push({
-                        ...appOption, key: "finder_open_app", label: "Open Finder",
-                        description: canAddSubpage ? "Add a Finder card with a subpage of approved folders."
+                    if (appOption) folderOptions.push({
+                        ...appOption, key: "finder_open_app", label: "Open folder subpage",
+                        description: canAddSubpage ? "Add a card with a subpage of approved folders."
                             : "This page can’t contain another subpage.",
                         disabled: appOption.disabled || !canAddSubpage,
-                        applicationPreset: { id: "com.apple.finder", label: "Finder" },
+                        applicationPreset: { id: "com.apple.finder", label: "File Folder" },
                     });
-                    if (folderOption) finderOptions.push({
+                    if (folderOption) folderOptions.push({
                         ...folderOption, label: "Open a folder",
-                        description: "Add one card that opens an approved folder on your Mac.",
+                        description: "Add a shortcut to a single approved folder.",
                     });
-                    renderGrid(finderOptions);
+                    renderGrid(folderOptions);
                     return;
                 }
                 if (openGroup === "obs_group") {
@@ -892,7 +892,7 @@ export function createButtonSettingsFeature(
                     const cards: PickerOption[] = obsOptions.filter(option => !isPage(option));
                     if (appOption) cards.push({
                         ...appOption, key: "obs_open_app", label: "Open the OBS Studio App",
-                        description: "Add an Applications card that opens OBS Studio on your Mac.",
+                        description: "Add an Applications card that opens OBS Studio.",
                         applicationPreset: { id: "com.obsproject.obs-studio", label: "OBS Studio" },
                     });
                     renderGrid(cards, "Card types");

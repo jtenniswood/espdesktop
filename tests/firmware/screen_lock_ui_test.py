@@ -69,7 +69,7 @@ void control_modal_style_overlay(lv_obj_t *obj) { obj->full_screen = true; }
 void lv_obj_set_style_text_align(lv_obj_t *obj, int align, int) { obj->text_align = align; }
 const char *espdesktop_i18n_key(const char *key) {
   if (std::strcmp(key, "locked") == 0) return "Locked";
-  if (std::strcmp(key, "unlock_mac_to_use_screen") == 0) return "Unlock your Mac to use this screen";
+  if (std::strcmp(key, "unlock_mac_to_use_screen") == 0) return "Unlock your computer to use this screen";
   return key;
 }
 void lv_label_set_display_text(lv_obj_t *obj, const char *text) { obj->text = text; }
@@ -94,7 +94,7 @@ int main() {
   assert(overlay->parent == &system_layer && overlay->full_screen && (overlay->flags & LV_OBJ_FLAG_CLICKABLE));
   assert(objects[1]->parent == overlay && objects[1]->text == "lock icon" && objects[1]->font == &icon_font);
   assert(objects[2]->text == "Locked" && objects[2]->font == &title_font);
-  assert(objects[3]->text == "Unlock your Mac to use this screen" && objects[3]->font == &body_font);
+  assert(objects[3]->text == "Unlock your computer to use this screen" && objects[3]->font == &body_font);
   assert(objects[3]->text_align == LV_TEXT_ALIGN_CENTER && objects[3]->text_color == current_theme().text_muted);
 
   screen_lock_set_mac_locked(true);
