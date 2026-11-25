@@ -8,6 +8,7 @@ export interface MacCompanionConnectorState {
     configured: boolean;
     paired: boolean;
     connected: boolean;
+    platform?: "windows";
 }
 
 export interface ConnectorsStatus {
@@ -19,6 +20,7 @@ export interface ConnectorsPageFeature {
     buildPage(parent: HTMLElement): void;
     start(): void;
     companionConfigured(): boolean;
+    windowsCompanionConnected(): boolean;
     onStatusChange(callback: () => void): void;
     onCompanionConnectionChange(callback: (connected: boolean) => void): void;
     onCompanionPairingChange(callback: (state: CompanionPairingState | null) => void): void;
@@ -91,6 +93,7 @@ export function createConnectorsPageFeature(
     function applyCompanionStatus(value: CompanionPairingState | null): void {
         if (value) applyStatus({ onboarding_complete: true, mac_companion: {
             available: value.available, configured: value.paired, paired: value.paired, connected: value.connected,
+            ...(value.connected && current?.mac_companion.platform === "windows" ? { platform: "windows" } : {}),
         } });
         pairingListeners.forEach(listener => listener(value));
     }
@@ -114,7 +117,7 @@ export function createConnectorsPageFeature(
             setupGuide.textContent = "Download and setup guide";
             page.appendChild(infoPanel(
                 "sp-connectors-setup",
-                "Use the EspDesktop Mac app to pair a compatible display. ",
+                "Use the EspDesktop companion app to pair a compatible display. ",
                 setupGuide,
             ));
         }
@@ -128,6 +131,7 @@ export function createConnectorsPageFeature(
     return {
         buildPage, start,
         companionConfigured: () => !!current?.mac_companion.paired,
+        windowsCompanionConnected: () => current?.mac_companion.connected === true && current.mac_companion.platform === "windows",
         onStatusChange: callback => { statusListeners.push(callback); },
         onCompanionConnectionChange: callback => { connectionListeners.push(callback); },
         onCompanionPairingChange: callback => { pairingListeners.push(callback); },

@@ -183,6 +183,7 @@ struct CompanionPairingSnapshot {
   uint32_t system_metrics_generation{0};
   std::string pairing_code;
   std::string mdns_name;
+  bool windows_companion{false};
 };
 
 using CompanionPairingProvider = std::function<CompanionPairingSnapshot()>;
@@ -371,6 +372,16 @@ class CompanionRuntimeService {
     request_refresh_();
   }
 
+  void set_windows_shortcuts(bool windows) {
+    std::lock_guard<std::mutex> lock(mutex_);
+    windows_shortcuts_ = windows;
+  }
+
+  bool windows_shortcuts() const {
+    std::lock_guard<std::mutex> lock(mutex_);
+    return connected_ && windows_shortcuts_;
+  }
+
   bool shortcut_page_ready(const std::string &owner) const {
     std::lock_guard<std::mutex> lock(mutex_);
     return connected_ && keyboard_actions_supported_ &&
@@ -543,6 +554,7 @@ class CompanionRuntimeService {
       pending_auto_subpage_action_id_.clear();
       closed_app_subpage_action_id_.clear();
       keyboard_actions_supported_ = false;
+      windows_shortcuts_ = false;
       system_metrics_ = {};
     }
     request_refresh_();
@@ -582,6 +594,7 @@ class CompanionRuntimeService {
   std::string pending_auto_subpage_action_id_;
   std::string closed_app_subpage_action_id_;
   bool keyboard_actions_supported_{false};
+  bool windows_shortcuts_{false};
   bool connected_{false};
   CompanionSystemMetricsSnapshot system_metrics_;
   std::atomic<bool> mac_update_required_{false};

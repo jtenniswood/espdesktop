@@ -18,6 +18,7 @@ struct ConnectorStatus {
   bool companion_available{false};
   bool companion_paired{false};
   bool companion_connected{false};
+  bool companion_windows{false};
 };
 
 class ConnectorStateService {
@@ -31,7 +32,7 @@ class ConnectorStateService {
   ConnectorStatus status() const {
     const CompanionPairingSnapshot companion = companion_pairing_provider()
         ? companion_pairing_provider()() : CompanionPairingSnapshot{};
-    return {true, companion.available, companion.paired, companion.connected};
+    return {true, companion.available, companion.paired, companion.connected, companion.windows_companion};
   }
  private:
   const char *web_auth_username_{""};
@@ -56,6 +57,7 @@ inline std::string connector_status_json(const ConnectorStatus &status, std::opt
       ",\"configured\":" + boolean(status.companion_paired) +
       ",\"paired\":" + boolean(status.companion_paired) +
       ",\"connected\":" + boolean(status.companion_connected);
+  if (status.companion_connected && status.companion_windows) json += ",\"platform\":\"windows\"";
   if (shortcut_ready) json += std::string(",\"shortcut_page_ready\":") + boolean(*shortcut_ready);
   return json + "}}";
 }

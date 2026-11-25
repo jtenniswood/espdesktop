@@ -406,8 +406,11 @@ export function createConfigCodecFeature(
         // A saved card may have one of those fields customized.
         if (b?.type === "companion" && b.entity === macLockDefaults.entity && !b.sensor &&
             !configOptionValue(b.options, "app_shortcut_preset") &&
-            (b.label === macLockDefaults.label || b.icon === macLockDefaults.icon)) {
+            (b.label === "Mac Lock" || b.icon === macLockDefaults.icon)) {
             b.type = macLockDefaults.type;
+        }
+        if (b?.type === macLockDefaults.type && b.label === "Mac Lock") {
+            b.label = macLockDefaults.label;
         }
         const retiredType = retiredSavedCardType(b);
         if (retiredType) {

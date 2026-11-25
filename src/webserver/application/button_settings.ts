@@ -49,7 +49,13 @@ export interface ButtonSettingsFeature {
 export interface CardPickerConnectorState {
     homeAssistantEnabled(): boolean;
     homeAssistantConfigured(): boolean;
+    windowsCompanionConnected(): boolean;
 }
+
+const MAC_ONLY_CARD_TYPES = new Set([
+    "companion_apple_shortcut", "companion_apple_shortcuts",
+    "companion_app_volume", "companion_cough", "companion_input_device",
+]);
 
 export function createButtonSettingsFeature(
     cardEditorDraftController: CardEditorDraftController,
@@ -238,6 +244,7 @@ export function createButtonSettingsFeature(
             settingsModal.classList.remove("sp-card-type-picker-open");
         const shortcutDraft = state.settingsDraft?.appShortcutPage ? state.settingsDraft : null;
         const shortcutPage = shortcutDraft?.appShortcutPage;
+        const windowsCompanion = connectorState.windowsCompanionConnected();
         const homeSlot = shortcutDraft ? shortcutDraft.homeSlot : state.editingSubpage;
         var c: any = ctx(homeSlot);
         if (shortcutPage && shortcutPage !== state.editingSubpage) {
@@ -852,8 +859,9 @@ export function createButtonSettingsFeature(
                 picker.replaceChildren();
                 title.textContent = openGroup === "obs_group" ? "OBS Studio" :
                     openGroup === "apple_shortcuts_group" ? "Apple Shortcuts" :
-                    openGroup === "companion_folder" ? "Finder Folder" : mainTitle;
-                const options: CardPickerOption[] = buttonTypePickerOptionList(!!isSub, selectedTypeKey, activeConnector);
+                    openGroup === "companion_folder" ? windowsCompanion ? "File Explorer" : "File Folder" : mainTitle;
+                const options: CardPickerOption[] = buttonTypePickerOptionList(!!isSub, selectedTypeKey, activeConnector)
+                    .filter(option => !windowsCompanion || !MAC_ONLY_CARD_TYPES.has(option.key));
                 const obsOptions = options.filter(option => option.key.startsWith("companion_obs"));
                 const shortcutOptions: PickerOption[] = options.filter(option => isShortcutOption(option.key));
                 const appOption = options.find(option => option.key === "companion_app");
@@ -861,7 +869,7 @@ export function createButtonSettingsFeature(
                     picker.before(back);
                     if (appOption) shortcutOptions.push({
                         ...appOption, key: "apple_shortcuts_open_app", label: "Open the Shortcuts App",
-                        description: "Add an Applications card that opens the Shortcuts app on your Mac.",
+                        description: "Add an Applications card that opens the Shortcuts app.",
                         applicationPreset: { id: APPLE_SHORTCUTS_APP_ID, label: "Shortcuts" },
                     });
                     renderGrid(shortcutOptions);
@@ -870,29 +878,29 @@ export function createButtonSettingsFeature(
                 if (openGroup === "companion_folder") {
                     picker.before(back);
                     const folderOption = options.find(option => option.key === "companion_folder");
-                    const finderOptions: PickerOption[] = [];
+                    const folderOptions: PickerOption[] = [];
                     const canAddSubpage = codec.canCreateSubpage(homeSlot);
-                    if (appOption) finderOptions.push({
-                        ...appOption, key: "finder_open_app", label: "Open Finder",
-                        description: canAddSubpage ? "Add a Finder card with a subpage of approved folders."
+                    if (appOption) folderOptions.push({
+                        ...appOption, key: "finder_open_app", label: windowsCompanion ? "Open File Explorer" : "Open folder subpage",
+                        description: canAddSubpage ? "Add a card with a subpage of approved folders."
                             : "This page can’t contain another subpage.",
                         disabled: appOption.disabled || !canAddSubpage,
-                        applicationPreset: { id: "com.apple.finder", label: "Finder" },
+                        applicationPreset: { id: "com.apple.finder", label: windowsCompanion ? "File Explorer" : "File Folder" },
                     });
-                    if (folderOption) finderOptions.push({
+                    if (folderOption) folderOptions.push({
                         ...folderOption, label: "Open a folder",
-                        description: "Add one card that opens an approved folder on your Mac.",
+                        description: "Add a shortcut to a single approved folder.",
                     });
-                    renderGrid(finderOptions);
+                    renderGrid(folderOptions);
                     return;
                 }
                 if (openGroup === "obs_group") {
                     picker.before(back);
                     const isPage = (option: CardPickerOption) => defaultButtonTypeForPicker(option.key) === "subpage";
                     const cards: PickerOption[] = obsOptions.filter(option => !isPage(option));
-                    if (appOption) cards.push({
+                    if (appOption && !windowsCompanion) cards.push({
                         ...appOption, key: "obs_open_app", label: "Open the OBS Studio App",
-                        description: "Add an Applications card that opens OBS Studio on your Mac.",
+                        description: "Add an Applications card that opens OBS Studio.",
                         applicationPreset: { id: "com.obsproject.obs-studio", label: "OBS Studio" },
                     });
                     renderGrid(cards, "Card types");
@@ -901,8 +909,21 @@ export function createButtonSettingsFeature(
                     return;
                 }
                 back.remove();
+                const windowsDescriptions: Record<string, string> = {
+                    companion_app: "Launch a Windows app and set up a subpage for its keyboard shortcuts.",
+                    companion_folder: "Open File Explorer or an approved folder.",
+                    companion_output_volume: "Control speaker and microphone levels.",
+                    companion_output_mute: "Mute or unmute Windows sound output.",
+                    companion_input_mute: "Mute or unmute the Windows microphone.",
+                    companion_mac_lock: "Lock the paired Windows PC.",
+                    companion_shortcut: "Run a keyboard shortcut on Windows.",
+                    companion_subpage: "Open a nested page of Companion cards.",
+                    companion_url: "Open a URL on the paired Windows PC.",
+                };
                 const grid = renderGrid(options.filter(option => !option.key.startsWith("companion_obs") &&
-                    !isShortcutOption(option.key)));
+                    !isShortcutOption(option.key)).map(option => windowsCompanion
+                        ? { ...option, label: option.key === "companion_folder" ? "Folders" : option.label,
+                            description: windowsDescriptions[option.key] ?? option.description } : option));
                 const groupButton = (key: "obs_group" | "apple_shortcuts_group", label: string, icon: string, description: string) =>
                     pickerButton({ key, label, icon, description, disabled: false, connector: "mac_companion" },
                         () => openPickerGroup(key));
@@ -1063,6 +1084,12 @@ export function createButtonSettingsFeature(
                 return;
             }
             title.textContent = isAppleShortcutsPage(b) ? "Edit Apple Shortcuts" : "Edit Keyboard Shortcuts";
+            if (windowsCompanion && isAppleShortcutsPage(b)) {
+                const note = document.createElement("p");
+                note.className = "sp-setting-note";
+                note.textContent = "This page requires the macOS companion.";
+                panel.appendChild(note);
+            }
             panel.classList.add("sp-app-subpage-settings");
             renderShortcuts(panel, b, shortcutPage, { idPrefix, saveField }, true);
             const footer = document.createElement("div");
@@ -1081,7 +1108,6 @@ export function createButtonSettingsFeature(
             var selectedTypeKey: any = isNewDraftWithoutType
                 ? null
                 : buttonTypeRegistryValue(rawTypeDef, "pickerKey", "") || (b.type || "");
-            var typeOpts: any = buttonTypePickerOptionList(c.isSub, selectedTypeKey);
             if (isNewDraftWithoutType) {
                 if (settingsModal)
                     settingsModal.classList.add("sp-card-type-picker-open");
@@ -1090,6 +1116,13 @@ export function createButtonSettingsFeature(
                 return;
             }
             title.textContent = obsAudioType ? "Audio Controls" : cardSettingsTitle(rawTypeDef, b);
+        }
+        if (windowsCompanion && (MAC_ONLY_CARD_TYPES.has(b.type) || isAppleShortcutsCard(b) || isAppleShortcutsPage(b) ||
+            b.entity === APPLE_SHORTCUTS_APP_ID)) {
+            const note = document.createElement("p");
+            note.className = "sp-setting-note";
+            note.textContent = "This card requires the macOS companion.";
+            panel.appendChild(note);
         }
         var typeHelpers: any = {
             makeIconPicker: makeIconPicker,
@@ -1149,7 +1182,9 @@ export function createButtonSettingsFeature(
                 ["companion_cough", "Input Cough"],
                 ["companion_input_device", "Input per device level"],
             ];
-            const subtype = selectField("Type", idPrefix + "audio-type", audioSubtypes, b.type,
+            const availableSubtypes = audioSubtypes.filter(([key]) =>
+                !windowsCompanion || key === b.type || !MAC_ONLY_CARD_TYPES.has(key));
+            const subtype = selectField("Type", idPrefix + "audio-type", availableSubtypes, b.type,
                 (event: Event) => selectCardType((event.currentTarget as HTMLSelectElement).value));
             panel.appendChild(subtype.field);
             markCardPrimaryField(subtype.field, "type");

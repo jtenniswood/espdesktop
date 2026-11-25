@@ -783,7 +783,7 @@ inline std::string companion_default_action_label(const std::string &action_id,
   if (action_id == "obs.replay" && companion_published_action(snapshot, "obs.status.program"))
     return espdesktop_i18n("Start Replay Buffer");
   if (action_id.rfind("obs.", 0) == 0) return espdesktop_i18n("Unavailable");
-  return action_id.empty() ? espdesktop_i18n("Mac App") : action_id;
+  return action_id.empty() ? espdesktop_i18n_key("mac_app") : action_id;
 }
 
 inline std::string companion_default_action_label_with_fallback(
@@ -1861,7 +1861,9 @@ class CompanionActionsHandler : public esphome::web_server_idf::AsyncWebHandler 
       const auto entries = runtime.remote_definitions_page(page * page_size, page_size,
                                                            definitions_connected, has_more);
       json = "{\"page\":" + std::to_string(page) + ",\"hasMore\":" +
-        (has_more ? "true" : "false") + ",\"definitions\":[";
+        (has_more ? "true" : "false");
+      if (runtime.windows_shortcuts()) json += ",\"shortcutPlatform\":\"windows\"";
+      json += ",\"definitions\":[";
       if (definitions_connected) {
         for (const auto &definition : entries) {
           if (!first) json += ",";

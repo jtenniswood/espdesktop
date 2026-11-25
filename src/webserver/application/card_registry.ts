@@ -63,7 +63,7 @@ const DEFAULT_DEFINITION: CardDefinition = {
 export function renderRetiredCardSettings(panel: HTMLElement): void {
   const warning = document.createElement("p");
   warning.className = "sp-setting-note";
-  warning.textContent = "This saved card needs Home Assistant. Its configuration has been kept. Replace the card to use Mac Companion or a local control.";
+  warning.textContent = "This saved card needs Home Assistant. Its configuration has been kept. Replace the card to use Companion or a local control.";
   panel.appendChild(warning);
 }
 

@@ -2202,12 +2202,12 @@ async function assertConnectorsManagement(page, testCase) {
     `${testCase.name}: retired Home Assistant connector is absent`);
   if (testCase.companionSupported) {
     assert(
-      await page.locator("#sp-connectors").getByRole("heading", { name: "Mac Companion", exact: true }).count() > 0,
+      await page.locator("#sp-connectors").getByRole("heading", { name: "Companion", exact: true }).count() > 0,
       `${testCase.name}: Mac Companion remains available`,
     );
   } else {
     assert(
-      await page.locator("#sp-connectors").getByRole("heading", { name: "Mac Companion", exact: true }).count() === 0,
+      await page.locator("#sp-connectors").getByRole("heading", { name: "Companion", exact: true }).count() === 0,
       `${testCase.name}: unsupported profiles hide Mac Companion setup`,
     );
   }
@@ -4488,7 +4488,7 @@ async function assertMacLockCard(browser) {
   await installFakeEventSource(page);
   const modal = page.locator(".sp-settings-overlay.sp-visible .sp-settings-modal");
   const assertLockEditor = async () => {
-    await modal.getByText("Mac Lock", { exact: true }).first().waitFor();
+    await modal.getByText("Lock Machine", { exact: true }).first().waitFor();
     assert.strictEqual(await modal.locator('[id$="shortcut-type"], [id$="shortcut-panel"], #sp-card-type-picker').count(), 0);
     await modal.getByRole("button", { name: "Card Settings", exact: true }).waitFor();
     await modal.getByRole("button", { name: "Custom Colours", exact: true }).waitFor();
@@ -4503,12 +4503,14 @@ async function assertMacLockCard(browser) {
     await page.getByRole("tab", { name: "Layout", exact: true }).click();
     await seedNativeDocument(page, nativeState);
     await page.locator(".sp-main .sp-empty-cell").first().click();
+    const shortcutOption = page.getByRole("button", { name: "Keyboard Shortcut card type", exact: true });
+    await shortcutOption.locator(".mdi-keyboard-outline").waitFor();
     await page.getByRole("button", { name: "Lock Machine card type", exact: true }).click();
     await assertLockEditor();
     await page.getByRole("button", { name: "Save", exact: true }).click();
     await waitForNativeState(nativeState, () =>
-      nativeState.document.buttons[3] === "shortcut.command+control+q;Mac Lock;Lock;Auto;;;companion_mac_lock",
-    "Mac Lock saves as a dedicated card type");
+      nativeState.document.buttons[3] === "shortcut.command+control+q;Lock Machine;Lock;Auto;;;companion_mac_lock",
+    "Lock Machine saves as a dedicated card type");
     await editCard(1);
     await assertLockEditor();
     await page.getByRole("button", { name: "Save", exact: true }).click();
@@ -4522,7 +4524,7 @@ async function assertMacLockCard(browser) {
     await page.getByRole("button", { name: "Save", exact: true }).click();
     await editCard(2);
     await modal.getByRole("tablist", { name: "Keyboard shortcut type" }).waitFor();
-    console.log("Mac Lock creation, legacy editing, reload and independent keyboard shortcuts passed.");
+    console.log("Lock Machine creation, legacy editing, reload and independent keyboard shortcuts passed.");
   } finally {
     await context.close();
   }
@@ -4953,6 +4955,69 @@ async function assertOBSSceneCard(browser) {
     await replayBufferTile.getByText("Unavailable", { exact: true }).waitFor();
     assert.equal(await replayBufferTile.evaluate(tile => tile.style.backgroundColor), replayBufferOff);
     console.log("OBS scene, microphone, Take Live, status, replay, and fader card checks passed.");
+  } finally {
+    await context.close();
+  }
+}
+
+async function assertWindowsShortcutSettings(browser, testCase) {
+  if (testCase.slug !== "guition-esp32-s3-4848s040") return;
+  const appId = "windows.abc123";
+  const nativeState = nativeConfigState(testCase.slug);
+  nativeState.document.buttons[1] = "shortcut.command+enter;;Shortcut Command;Auto;;;companion";
+  const context = await browser.newContext({ viewport: testCase.viewport });
+  try {
+    await installRoutes(context, testCase.slug, { nativeState });
+    await context.route(url => url.pathname === "/companion/shortcut-page", route => route.fulfill({ status: 204 }));
+    await context.route(url => url.pathname === "/companion/definitions", route => route.fulfill({
+      json: { page: 0, hasMore: false, definitions: [
+        { kind: "application", definition: {
+          appId, label: "Google Chrome", version: 1, catalog: false,
+          shortcuts: [
+            { id: "0", label: "New Tab", shortcut: "control+t", icon: "New Tab" },
+            { id: "1", label: "Find", shortcut: "control+f", icon: "Search" },
+          ],
+        } },
+      ] },
+    }));
+    const page = await context.newPage();
+    await installFakeEventSource(page);
+    await page.goto(`http://espdesktop.test/${testCase.slug}?events=1`);
+    await page.waitForFunction(() => window.__eventSources?.length > 0);
+    await seedNativeDocument(page, nativeState);
+    const openShortcut = async () => {
+      await page.locator('.sp-main [data-slot="1"]').click();
+      await page.getByRole("button", { name: "Edit", exact: true }).click();
+    };
+    await openShortcut();
+    const ctrl = page.getByRole("button", { name: "Ctrl", exact: true });
+    await ctrl.waitFor();
+    assert.strictEqual(await ctrl.getAttribute("aria-pressed"), "true");
+    const key = page.locator('[id$="shortcut-key"]');
+    assert.strictEqual(await key.inputValue(), "enter");
+    assert.strictEqual(await key.locator(":checked").textContent(), "Enter");
+    await page.getByRole("button", { name: "Save", exact: true }).click();
+    assert.match(nativeState.document.buttons[1], /^shortcut\.command\+enter;/);
+
+    await openShortcut();
+    await page.getByRole("tab", { name: "Application", exact: true }).click();
+    const app = page.locator('[id$="shortcut-catalog-app"]');
+    assert.deepStrictEqual(await app.locator("option").allTextContents(), ["Select", "Google Chrome"]);
+    await app.selectOption(appId);
+    const preset = page.locator(".sp-light-tab-row").filter({ hasText: "New Tab" });
+    assert.strictEqual(await preset.locator(".sp-shortcut-catalog-keys").textContent(), "Ctrl+T");
+    assert.strictEqual(await preset.getByRole("radio").isVisible(), true);
+    assert.strictEqual(await preset.locator(".sp-toggle").count(), 0);
+    const find = page.getByRole("radio", { name: "Find Ctrl+F", exact: true });
+    await find.check();
+    await preset.click();
+    assert.strictEqual(await find.isChecked(), false);
+    assert.strictEqual(await preset.getByRole("radio").isChecked(), true);
+    await page.getByRole("button", { name: "Save", exact: true }).click();
+    await waitForNativeState(nativeState, () => nativeState.document.buttons[1].startsWith("shortcut.control+t;"),
+      "Windows shortcut preset save");
+    assert.match(nativeState.document.buttons[1], /app_shortcut_preset=windows\.abc123(?::|%3A)0/i);
+    console.log("Windows shortcut labels, saved Command alias, and approved app preset passed.");
   } finally {
     await context.close();
   }
@@ -5727,6 +5792,17 @@ async function assertCompanionOnlyCardPicker(browser, testCase) {
       0,
       `${testCase.name}: Stats is unavailable when adding a new card`,
     );
+    const appleShortcuts = page.locator('[data-card-type="apple_shortcuts_group"]');
+    await appleShortcuts.waitFor();
+    connectorStatus.mac_companion.connected = true;
+    connectorStatus.mac_companion.platform = "windows";
+    await appleShortcuts.waitFor({ state: "detached" });
+    await page.getByRole("button", { name: "Folders card type", exact: true }).click();
+    await page.getByRole("button", { name: "Open File Explorer card type", exact: true }).waitFor();
+    await page.getByRole("button", { name: "Back to card types", exact: true }).click();
+    await page.locator('[data-card-type="obs_group"]').waitFor();
+    connectorStatus.mac_companion.connected = false;
+    await appleShortcuts.waitFor();
   } finally {
     await context.close();
   }
@@ -6277,7 +6353,7 @@ async function assertResetControls(browser) {
         await page.setViewportSize({ width: 320, height: 700 });
         assert(await confirmation.evaluate(el => el.scrollWidth <= el.clientWidth), "confirmation must fit a narrow phone");
         await page.setViewportSize(testCase.viewport);
-        assert((await confirmation.innerText()).includes("Saved Wi-Fi credentials and Mac pairing will be erased."));
+        assert((await confirmation.innerText()).includes("Saved Wi-Fi credentials and companion pairing will be erased."));
         for (const text of ["", "reset", " RESET", "RESET ", "RESE"]) {
           await confirmationInput.fill(text);
           await confirmationInput.press("Enter");
@@ -6538,12 +6614,12 @@ async function assertHomeAssistantConnectorLayout(browser) {
         await homeAssistantHeading.click();
         assert(!(await badge.isVisible()), `${testCase.name}: disabled ESPHome has no On badge`);
         assert(
-          await connectors.getByRole("heading", { name: "Mac Companion", exact: true }).count() > 0,
+          await connectors.getByRole("heading", { name: "Companion", exact: true }).count() > 0,
           `${testCase.name}: Mac Companion setup remains available`,
         );
       } else {
         const banner = connectors.getByRole("note").filter({
-          hasText: "Use the EspDesktop Mac app to pair a compatible display.",
+          hasText: "Use the EspDesktop companion app to pair a compatible display.",
         });
         const guide = banner.getByRole("link", { name: "Download and setup guide", exact: true });
         assert(await guide.isVisible(), `${testCase.name}: unsupported profiles show the Mac app setup guide`);
@@ -6555,15 +6631,15 @@ async function assertHomeAssistantConnectorLayout(browser) {
         await page.goto(`http://espdesktop.test/${testCase.slug}?events=1&${query}`, { waitUntil: "domcontentloaded" });
         await page.waitForSelector("#sp-device.active #sp-connectors");
         if (testCase.companionSupported) {
-          const card = connectors.locator(".card").filter({ hasText: "Mac Companion" });
+          const card = connectors.locator(".card").filter({ hasText: "Companion" });
           if (await card.evaluate(element => element.classList.contains("collapsed"))) {
-            await card.getByRole("heading", { name: "Mac Companion", exact: true }).click();
+            await card.getByRole("heading", { name: "Companion", exact: true }).click();
           }
-          await connectors.getByText("Choose this display in the Mac app and enter the code.", { exact: true }).waitFor();
+          await connectors.getByText("Choose this display in the companion app and enter the code.", { exact: true }).waitFor();
         }
       }
       if (testCase.companionSupported) {
-        const companion = connectors.locator(".card").filter({ hasText: "Mac Companion" });
+        const companion = connectors.locator(".card").filter({ hasText: "Companion" });
         const code = companion.locator(".sp-companion-code");
         await code.waitFor({ state: "visible" });
         assert.deepEqual(await code.locator(".sp-companion-code-letter").allTextContents(), [..."ABCD"]);
@@ -6581,13 +6657,13 @@ async function assertHomeAssistantConnectorLayout(browser) {
         assert.equal(await companion.getByRole("button", { name: "Clear downloaded app icons" }).isVisible(), false);
 
         Object.assign(pairingState, { active: false, paired: true, pairing_code: "" });
-        await companion.getByText("Mac paired, but not connected", { exact: true }).waitFor({ state: "visible" });
+        await companion.getByText("Computer paired, but not connected", { exact: true }).waitFor({ state: "visible" });
         pairingState.connected = true;
         await companion.locator(".card-body").waitFor({ state: "hidden" });
 
-        await companion.getByRole("heading", { name: "Mac Companion", exact: true }).click();
+        await companion.getByRole("heading", { name: "Companion", exact: true }).click();
         const clearIcons = companion.getByRole("button", { name: "Clear downloaded app icons" });
-        const reset = companion.getByRole("button", { name: "Reset Mac Companion pairing" });
+        const reset = companion.getByRole("button", { name: "Reset Companion pairing" });
         await clearIcons.waitFor({ state: "visible" });
         await reset.waitFor({ state: "visible" });
         await page.setViewportSize(testCase.viewport);
@@ -8127,7 +8203,7 @@ async function assertAppleShortcutSubpage(browser, directCard = false) {
   } finally { await context.close(); }
 }
 
-async function assertFinderCardPicker(browser) {
+async function assertFileFolderCardPicker(browser) {
   const testCase = CASES.find(item => item.slug === "guition-esp32-s3-4848s040");
   const fixture = nativeConfigState(testCase.slug);
   fixture.document.buttons = {};
@@ -8153,21 +8229,22 @@ async function assertFinderCardPicker(browser) {
     await page.evaluate(events => window.__seedEspState(events), nativeDocumentEvents(fixture.document));
     await page.locator('.sp-main[aria-disabled="false"]').waitFor();
     const emptyCell = page.locator(".sp-main .sp-empty-cell").first();
-    const group = page.getByRole("button", { name: "Finder Folder card type", exact: true });
+    const group = page.getByRole("button", { name: "File Folder card type", exact: true });
     const back = page.getByRole("button", { name: "Back to card types", exact: true });
     const save = page.getByRole("button", { name: "Save", exact: true });
     await emptyCell.click();
     await group.click();
+    assert.equal(await page.locator(".sp-section-title").filter({ hasText: /^File Folder$/ }).count(), 1);
     assert.equal(await back.evaluate(button => button === document.activeElement), true);
     assert.deepEqual(await page.locator("#sp-card-type-picker button").evaluateAll(
       buttons => buttons.map(button => button.getAttribute("aria-label"))),
-      ["Open Finder card type", "Open a folder card type"]);
+      ["Open folder subpage card type", "Open a folder card type"]);
     await back.click();
     assert.equal(await group.evaluate(button => button === document.activeElement), true);
     await group.click();
-    await page.getByRole("button", { name: "Open Finder card type", exact: true })
+    await page.getByRole("button", { name: "Open folder subpage card type", exact: true })
       .locator("img.sp-card-type-app-icon").waitFor();
-    await chooseCardType(page, "Open Finder");
+    await chooseCardType(page, "Open folder subpage");
     const application = page.getByRole("combobox", { name: "Application", exact: true });
     await application.getByRole("option", { name: "Finder", exact: true }).waitFor({ state: "attached" });
     assert.equal(await application.inputValue(), "com.apple.finder");
@@ -8184,6 +8261,7 @@ async function assertFinderCardPicker(browser) {
     const finderSlot = slotFor("com.apple.finder");
     const finderCard = parseRawButtonConfig(fixture.document.buttons[finderSlot]);
     assert.equal(finderCard.type, "companion");
+    assert.equal(finderCard.label, "File Folder");
     assert.equal(finderCard.sensor, "");
     assert.match(finderCard.options, /(?:^|,)app_shortcuts(?:,|$)/);
     await page.locator(`.sp-main [data-slot="${finderSlot}"] .sp-subpage-badge`).click();
@@ -8201,7 +8279,7 @@ async function assertFinderCardPicker(browser) {
     const folderSlot = slotFor(folderId);
     assert.equal(parseRawButtonConfig(fixture.document.buttons[folderSlot]).label, "Projects");
     assert.equal(fixture.document.subpages[folderSlot], undefined);
-    console.log("Finder card picker, Back button, Finder subpage, and single folder shortcut passed.");
+    console.log("File Folder picker, Back button, folder subpage, and single folder shortcut passed.");
   } finally { await context.close(); }
 }
 
@@ -8941,7 +9019,7 @@ async function assertFirstRunSetup(browser) {
     await open();
     const dialog = page.getByRole("dialog");
     const appLimit = 8;
-    await dialog.getByText("No apps available. Check app access on your Mac.", { exact: true }).waitFor();
+    await dialog.getByText("No apps available. Check app access in the companion app.", { exact: true }).waitFor();
     assert(await dialog.getByText("Step 1 of 2", { exact: true }).isVisible(),
       "an already connected Mac starts at app selection");
     assert.equal(await dialog.getByRole("button", { name: "Set up OBS Studio", exact: true }).count(), 0);
@@ -8967,7 +9045,7 @@ async function assertFirstRunSetup(browser) {
       if (await input.isChecked() !== checked) await track.click();
       assert.equal(await input.isChecked(), checked);
     };
-    await dialog.getByText("No apps available. Check app access on your Mac.", { exact: true }).waitFor();
+    await dialog.getByText("No apps available. Check app access in the companion app.", { exact: true }).waitFor();
     catalogueReady = true;
     const addPages = dialog.getByRole("radio", { name: "Add keyboard shortcut pages", exact: true });
     const launchOnly = dialog.getByRole("radio", { name: "Launch apps only", exact: true });
@@ -9124,12 +9202,12 @@ async function assertFirstRunSetup(browser) {
     });
     pairingUnavailable = true;
     await open();
-    const pairingTitle = dialog.getByRole("heading", { name: "Connect your Mac", exact: true });
+    const pairingTitle = dialog.getByRole("heading", { name: "Connect your computer", exact: true });
     await pairingTitle.waitFor();
     assert(await dialog.getByText("Step 1 of 3", { exact: true }).isVisible());
     const openApp = dialog.getByRole("link", { name: "Open EspDesktop", exact: true });
     assert.equal(await openApp.getAttribute("href"), "espdesktop://open");
-    const download = dialog.getByRole("link", { name: "Download EspDesktop for Mac" });
+    const download = dialog.getByRole("link", { name: "Download EspDesktop" });
     assert.equal(await download.getAttribute("href"), "https://github.com/jtenniswood/espdesktop/releases/latest");
     assert.equal(await download.getAttribute("target"), "_blank");
     const next = dialog.getByRole("button", { name: "Next", exact: true });
@@ -9153,13 +9231,13 @@ async function assertFirstRunSetup(browser) {
     assert.equal(await dialog.getByText("ABCD-EFGH", { exact: true }).count(), 0, "the old code is cleared");
     Object.assign(status.mac_companion, { configured: true, paired: true });
     Object.assign(pairingState, { active: false, paired: true, pairing_code: "" });
-    await dialog.getByText("Open EspDesktop on your Mac to reconnect.", { exact: true }).waitFor();
+    await dialog.getByText("Open EspDesktop on your computer to reconnect.", { exact: true }).waitFor();
     assert(await openApp.isVisible(), "the launch link stays available when reconnecting");
     assert(await download.isVisible(), "the download link stays available when reconnecting");
     assert(await next.isDisabled(), "a saved pairing still needs a live connection");
     assert.equal(await dialog.getByRole("button", { name: "Copy pairing code" }).count(), 0);
     status.mac_companion.connected = pairingState.connected = true;
-    await dialog.getByText("Mac connected. Choose Next.", { exact: true }).waitFor();
+    await dialog.getByText("Computer connected. Choose Next.", { exact: true }).waitFor();
     await next.click();
     await title.waitFor();
     assert(await dialog.getByText("Step 2 of 3", { exact: true }).isVisible());
@@ -9230,7 +9308,7 @@ async function assertFirstRunSetup(browser) {
       return;
     }
     if (process.env.ESPDESKTOP_LIVE_FINDER_ONLY === "1") {
-      await assertFinderCardPicker(browser);
+      await assertFileFolderCardPicker(browser);
       await assertLiveFinderPreview(browser);
       return;
     }
@@ -9317,7 +9395,7 @@ async function assertFirstRunSetup(browser) {
     await assertAppleShortcutCard(browser);
     await assertAppleShortcutSubpage(browser);
     await assertAppleShortcutSubpage(browser, true);
-    await assertFinderCardPicker(browser);
+    await assertFileFolderCardPicker(browser);
     await assertRetiredCardRemoval(browser);
     if (process.env.ESPDESKTOP_RETIRED_CARDS_ONLY === "1") return;
     await assertMacLockCard(browser);
@@ -9334,6 +9412,7 @@ async function assertFirstRunSetup(browser) {
       await assertCompanionShortcutSettings(browser, testCase);
       await assertAppSubpageCapacity(browser, testCase);
       await assertShortcutCatalogSettings(browser, testCase);
+      await assertWindowsShortcutSettings(browser, testCase);
       await assertOnDemandShortcutSettings(browser, testCase);
       await assertCompanionStorageSettings(browser, testCase);
       console.log("Companion shortcut, capacity, catalogue and storage browser checks passed.");
@@ -9460,6 +9539,7 @@ async function assertFirstRunSetup(browser) {
       await assertCompanionShortcutSettings(browser, testCase);
       await assertAppSubpageCapacity(browser, testCase);
       await assertShortcutCatalogSettings(browser, testCase);
+      await assertWindowsShortcutSettings(browser, testCase);
       await assertOnDemandShortcutSettings(browser, testCase);
       await assertCompanionStorageSettings(browser, testCase);
       await assertCompanionOnlyCardPicker(browser, testCase);

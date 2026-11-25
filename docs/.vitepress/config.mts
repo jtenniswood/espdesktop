@@ -80,7 +80,7 @@ const customiseLinks = [
 const cardLinks = [
   { text: 'Apps', link: '/mac-controls/apps' },
   { text: 'Websites', link: '/mac-controls/websites' },
-  { text: 'Finder folders', link: '/mac-controls/folders' },
+  { text: 'File folders', link: '/mac-controls/folders' },
   { text: 'Keyboard shortcuts', link: '/mac-controls/shortcuts' },
   { text: 'Keyboard shortcut presets', link: '/reference/shortcut-presets' },
   { text: 'Apple Shortcuts', link: '/mac-controls/apple-shortcuts' },

@@ -62,16 +62,16 @@ const CARD_TYPE_PICKER_DETAILS: Readonly<Record<string, PickerDetails>> = {
   "": { icon: "toggle-switch", description: "Toggle lights, switches, helpers, or fans." },
   alarm: { icon: "shield-home", description: "Control or trigger alarm panel actions." },
   climate: { icon: "thermostat", description: "Show climate status and temperature controls." },
-  companion_cough: { icon: "microphone-off", description: "Hold to mute the paired Mac’s microphone." },
+  companion_cough: { icon: "microphone-off", description: "Hold to mute the paired computer’s microphone." },
   companion_apple_shortcut: { icon: "flash", description: "Add one card that runs a selected Apple Shortcut." },
   companion_apple_shortcuts: { icon: "flash", description: "Add a card that opens a subpage of Apple Shortcuts workflows." },
-  companion_app: { icon: "application-outline", description: "Launch a Mac app and set up a subpage for its keyboard shortcuts." },
-  companion_folder: { icon: "folder", description: "Open Finder with a folder subpage or add a shortcut to one folder." },
+  companion_app: { icon: "application-outline", description: "Launch an app and set up a subpage for its keyboard shortcuts." },
+  companion_folder: { icon: "folder", description: "Open a folder subpage or add a shortcut to a single folder." },
   companion_output_volume: { icon: "volume-high", description: "Control speakers, mics, and apps." },
-  companion_output_mute: { icon: "volume-off", description: "Mute or unmute the Mac’s sound output." },
-  companion_input_mute: { icon: "microphone-off", description: "Mute or unmute the Mac’s microphone." },
-  companion_app_volume: { icon: "volume-high", description: "Adjust the sound from one Mac app." },
-  companion_mac_lock: { icon: "lock", description: "Lock the paired Mac." },
+  companion_output_mute: { icon: "volume-off", description: "Mute or unmute the paired computer’s sound output." },
+  companion_input_mute: { icon: "microphone-off", description: "Mute or unmute the paired computer’s microphone." },
+  companion_app_volume: { icon: "volume-high", description: "Adjust the sound from one app." },
+  companion_mac_lock: { icon: "lock", description: "Lock the paired computer." },
   companion_obs_brb: { icon: "coffee-to-go", description: "Switch to your break scene and resume when ready." },
   companion_obs_studio_control: { icon: "movie", description: "Open a page for recording, streaming, Studio Mode, and replay." },
   companion_obs_studio: { icon: "view-split-vertical", description: "Toggle Studio Mode, see Program, or take Preview live." },
@@ -83,9 +83,9 @@ const CARD_TYPE_PICKER_DETAILS: Readonly<Record<string, PickerDetails>> = {
   companion_obs_replay: { icon: "history", description: "Save a replay or start and stop the buffer." },
   companion_obs_fader: { icon: "tune-vertical", description: "Adjust levels, toggle mute, or hold to mute an audio input." },
   companion_obs: { icon: "monitor", description: "Choose a scene to switch to." },
-  companion_shortcut: { icon: "apple-keyboard-command", description: "Run a keyboard shortcut on the Mac." },
-  companion_subpage: { icon: "view-grid-plus", description: "Open a nested page of Mac Companion cards." },
-  companion_url: { icon: "web", description: "Open a URL on the Mac." },
+  companion_shortcut: { icon: "keyboard-outline", description: "Run a keyboard shortcut on the paired computer." },
+  companion_subpage: { icon: "view-grid-plus", description: "Open a nested page of Companion cards." },
+  companion_url: { icon: "web", description: "Open a website in the paired computer’s browser." },
   cover: { icon: "window-shutter", description: "Control blinds, curtains, or covers." },
   door_window: { icon: "door-open", description: "Show open or closed sensor state." },
   presence: { icon: "account", description: "Show person or presence status." },
@@ -144,7 +144,7 @@ export function cardPickerConnectors(
   companionSupported: boolean,
 ): Array<[CardPickerConnector, string]> {
   const connectors: Array<[CardPickerConnector, string]> = [];
-  if (companionSupported) connectors.push(["mac_companion", "Mac Companion"]);
+  if (companionSupported) connectors.push(["mac_companion", "Companion"]);
   return connectors;
 }
 

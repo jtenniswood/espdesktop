@@ -44,6 +44,7 @@ import {
 import {
   companionAppShortcutFolderEnabled,
   companionShortcutActionIdValid,
+  companionShortcutCatalogApps,
   companionShortcutFolderEditorAvailable,
   companionShortcutSelectionMatchesSavedParent,
   companionShortcutTabs,
@@ -200,7 +201,7 @@ export function runCompanionShortcutFeatureTests(): void {
   const companionModes = companionCardModeOptions();
   if (companionModes.map(([mode]) => mode).join() !== "app,shortcut,url,folder,obs,obs_mic,obs_studio,obs_take,obs_transition,obs_status,obs_replay,obs_replay_buffer,obs_output,obs_brb,apple_shortcut,stats" ||
       companionCardModeValid("window") || companionCardModeValid("webapp") || companionCardModeValid("home_assistant") ||
-      companionCardDefaultIcon("shortcut") !== "Shortcut Command") {
+      companionCardDefaultIcon("shortcut") !== "Keyboard") {
     throw new Error("Companion card modes must come from the generated product contract");
   }
   const appleShortcutID = "appleshortcut.00000000-0000-0000-0000-000000000001";
@@ -657,10 +658,10 @@ export function runCompanionShortcutFeatureTests(): void {
   if (companionSubtypeDefaultIcon("url") !== "Web" ||
       companionSubtypeDefaultIcon("folder") !== "Folder Outline" ||
       companionSubtypeDefaultIcon("stats") !== "Gauge" ||
-      companionSubtypeDefaultIcon("shortcut") !== "Shortcut Command") {
+      companionSubtypeDefaultIcon("shortcut") !== "Keyboard") {
     throw new Error("Companion subtypes must use their requested default icons");
   }
-  if (companionSubtypeIcon("Shortcut Command", "shortcut", "url") !== "Web") {
+  if (companionSubtypeIcon("Keyboard", "shortcut", "url") !== "Web") {
     throw new Error("Changing Companion subtypes must refresh a generated default icon");
   }
   if (companionSubtypeIcon("Star", "shortcut", "url") !== "Star") {
@@ -783,6 +784,23 @@ export function runCompanionShortcutFeatureTests(): void {
   if (previousTab !== "shortcut.control+shift+tab") throw new Error("Control-Shift-Tab shortcut encoding changed");
   if (formatCompanionShortcutActionId(previousTab) !== "⌃⇧Tab") throw new Error("Control-Shift-Tab shortcut label changed");
 
+  if (formatCompanionShortcutActionId(selectAll, true) !== "Ctrl+A" ||
+      formatCompanionShortcutActionId("shortcut.scoped.control+shift+t", true) !== "Ctrl+Shift+T" ||
+      formatCompanionShortcutActionId("shortcut.command+control+option+enter", true) !== "Ctrl+Alt+Enter" ||
+      formatCompanionShortcutActionId("shortcut.control+delete", true) !== "Ctrl+Backspace") {
+    throw new Error("Windows labels must reflect the delivered keys and preserve the legacy Command alias");
+  }
+  const windowsApp = { version: 1 as const, appId: "windows.abc123", label: "Browser", catalog: false, shortcuts: [] };
+  COMPANION_SHORTCUT_APPS.push(windowsApp);
+  try {
+    if (companionShortcutCatalogApps({ windows: true }).map(app => app.appId).join() !== windowsApp.appId ||
+        companionShortcutCatalogApps().some(app => app.appId === windowsApp.appId) ||
+        companionShortcutCatalogApps({ windows: true, savedAppId: "com.google.Chrome" }).some(app => app.appId === "com.google.Chrome") ||
+        !companionShortcutCatalogApps({ savedAppId: windowsApp.appId }).some(app => app.appId === windowsApp.appId)) {
+      throw new Error("Show the paired platform’s presets and preserve an existing card while the platform is unknown");
+    }
+  } finally { COMPANION_SHORTCUT_APPS.pop(); }
+
   if (companionShortcutActionId(shortcutEvent({ shiftKey: true })) !== "") {
     throw new Error("Shift-only key presses must not become remote shortcuts");
   }
@@ -818,8 +836,8 @@ export function runCompanionShortcutFeatureTests(): void {
   }
   const shortcutCard = { entity: "shortcut.command+a", sensor: "", icon: "Monitor" };
   normalizeCompanionCard(shortcutCard);
-  if (shortcutCard.icon !== "Shortcut Command") {
-    throw new Error("Existing shortcut cards must adopt the command default icon");
+  if (shortcutCard.icon !== "Keyboard") {
+    throw new Error("Existing shortcut cards must adopt the keyboard default icon");
   }
   const folderCard = { entity: folderAction, sensor: "", icon: "Folder" };
   normalizeCompanionCard(folderCard);

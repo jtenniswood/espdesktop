@@ -175,6 +175,7 @@ void CompanionService::setup() {
       runtime.system_metrics_generation(),
       active ? this->pairing_code_ : "",
       App.get_name() + ".local",
+      this->windows_companion_.load(),
     };
   });
   register_companion_actions_endpoint();
@@ -546,6 +547,7 @@ void CompanionService::handle_json_(int socket_fd, const std::string &message) {
         httpd_sess_trigger_close(this->server_, previous_socket);
       this->forget_unauthenticated_socket_(socket_fd);
       this->app_icons_supported_.store(false);
+      this->windows_companion_.store(false);
       this->set_connected_(true);
       pairing_lock.unlock();
       std::string accepted = "{\"type\":\"auth.accepted\",\"protocol\":" +
@@ -635,11 +637,13 @@ void CompanionService::handle_json_(int socket_fd, const std::string &message) {
     if (const auto *payload = std::get_if<companion_protocol::Capabilities>(&*decoded)) {
       bool keyboard_actions = false;
       bool keyboard_actions_capability_received = false;
+      bool windows_shortcuts = false;
       bool app_icons_supported = false;
       bool app_icons_alpha_supported = false;
       bool app_icons_high_resolution_supported = false;
       bool focus_targets_supported = false;
       bool shortcut_catalogue_supported = false;
+      bool windows_companion = false;
       for (const auto &capability : payload->values) {
         if (capability == COMPANION_APP_ICONS_CAPABILITY) {
           app_icons_supported = true;
@@ -653,13 +657,18 @@ void CompanionService::handle_json_(int socket_fd, const std::string &message) {
         } else if (capability == "keyboard_shortcuts_unavailable") {
           keyboard_actions = false;
           keyboard_actions_capability_received = true;
+        } else if (capability == "windows_shortcuts") {
+          windows_shortcuts = true;
         } else if (capability == "url_card_focus") {
           focus_targets_supported = true;
         } else if (capability == "shortcut_catalogue_on_demand") {
           shortcut_catalogue_supported = true;
+        } else if (capability == "windows_companion") {
+          windows_companion = true;
         }
       }
       companion_runtime_service().shortcut_catalogue.set_supported(shortcut_catalogue_supported);
+      this->windows_companion_.store(windows_companion);
       this->app_icons_supported_.store(app_icons_supported && app_icons_alpha_supported &&
                                        app_icons_high_resolution_supported);
       // The Mac sends capabilities before a full catalogue, including rescans with the same app IDs.
@@ -671,7 +680,8 @@ void CompanionService::handle_json_(int socket_fd, const std::string &message) {
       }
       for (const auto &id : configured_icons) this->request_app_icon(id);
       this->defer_session_([this, keyboard_actions, keyboard_actions_capability_received,
-                            focus_targets_supported, shortcut_catalogue_supported]() {
+                            focus_targets_supported, shortcut_catalogue_supported, windows_shortcuts, windows_companion]() {
+        companion_runtime_service().set_windows_shortcuts(windows_shortcuts || windows_companion);
         if (shortcut_catalogue_supported) companion_set_remote_definitions({});
         if (keyboard_actions_capability_received) companion_set_keyboard_actions_supported(keyboard_actions);
         this->focus_targets_supported_.store(focus_targets_supported);

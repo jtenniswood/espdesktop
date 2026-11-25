@@ -219,7 +219,15 @@ int main() {
   const auto mac_lock = normalize_parsed_cfg(
       ParsedCfg{"shortcut.command+a", "", "", "", "url.invalid", "%", "companion_mac_lock", "1", ""});
   assert(mac_lock.entity == "shortcut.command+control+q" && mac_lock.sensor.empty());
-  assert(mac_lock.label == "Mac Lock" && mac_lock.icon == "Lock");
+  assert(mac_lock.label == "Lock Machine" && mac_lock.icon == "Lock");
+  for (const auto *type : {"companion", "companion_mac_lock"}) {
+    const auto legacy = normalize_parsed_cfg(
+        ParsedCfg{mac_lock.entity, "Mac Lock", "Shield", "Auto", "", "", type, "", ""});
+    assert(legacy.type == mac_lock.type && legacy.label == mac_lock.label && legacy.icon == "Shield");
+  }
+  const auto explicit_shortcut = normalize_parsed_cfg(
+      ParsedCfg{mac_lock.entity, "Mac Lock", "Lock", "Auto", "", "", "companion", "", "app_shortcut_preset=custom"});
+  assert(explicit_shortcut.type == "companion" && explicit_shortcut.label == "Mac Lock");
   const auto mac_lock_subpage = parse_subpage_config("~1|ML,,Lock Work Mac,Shield");
   assert(mac_lock_subpage.size() == 1);
   const auto subpage_lock = parsed_cfg_from_subpage_btn(mac_lock_subpage.front());
@@ -356,7 +364,7 @@ int main() {
   assert(std::string(companion_volume_control_label("media.output_volume")) == "Lautstärke");
   assert(std::string(companion_volume_control_label("media.input_volume")) == "Mikro");
   assert(companion_default_action_label("", "url.https%3A%2F%2Fexample.com") == "URL öffnen");
-  assert(companion_default_action_label("") == "Mac-App");
+  assert(companion_default_action_label("") == "Anwendung");
   assert(companion_default_action_label("com.apple.Safari") == "com.apple.Safari");
   assert(companion_shortcut_label("shortcut.command+space") == "\U000F0633" "Leertaste");
   assert(companion_shortcut_label("shortcut.command+home") == "\U000F0633" "Pos1");
@@ -539,7 +547,7 @@ int main() {
   assert(companion_default_action_label("shortcut.command+a") == "\U000F0633" "A");
   assert(companion_default_action_label("com.apple.Safari") == "com.apple.Safari");
   assert(companion_default_action_label("com.apple.Safari", url_config) == "Open URL");
-  assert(companion_default_action_label("") == "Mac App");
+  assert(companion_default_action_label("") == "Application");
   assert(companion_metric_card_should_disable(false, false));
   assert(!companion_metric_card_should_disable(false, true));
   assert(!companion_metric_card_should_disable(true, false));
