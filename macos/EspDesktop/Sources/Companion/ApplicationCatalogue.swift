@@ -6,19 +6,19 @@ actor ApplicationCatalogue {
     static let userApplications = FileManager.default.homeDirectoryForCurrentUser
         .appendingPathComponent("Applications", isDirectory: true)
 
-    func scan() -> [LaunchableApp] {
-        let standardRoots = [
-            Self.sharedApplications,
-            URL(fileURLWithPath: "/System/Applications"),
-            Self.userApplications,
-        ]
-        let cryptexRoots = [
-            // Current macOS releases install Safari in the protected Cryptex
-            // application volume and expose only a compatibility link in /Applications.
-            URL(fileURLWithPath: "/System/Cryptexes/App/System/Applications"),
-        ]
-        let keys: Set<URLResourceKey> = [.isDirectoryKey]
+    static let applicationRoots = [
+        sharedApplications,
+        URL(fileURLWithPath: "/System/Applications"),
+        userApplications,
+        // Current macOS releases install Safari in the protected Cryptex
+        // application volume and expose only a compatibility link in /Applications.
+        URL(fileURLWithPath: "/System/Cryptexes/App/System/Applications"),
+    ]
+
+    func scan(roots: [URL] = ApplicationCatalogue.applicationRoots) -> [LaunchableApp] {
+        let keys: Set<URLResourceKey> = [.isAliasFileKey, .isSymbolicLinkKey]
         var found: [LaunchableApp] = []
+        var aliases: [URL] = []
 
         func appendApplication(at url: URL) {
             guard let bundle = Bundle(url: url), let id = bundle.bundleIdentifier else { return }
@@ -32,17 +32,28 @@ actor ApplicationCatalogue {
             ))
         }
 
-        func scanApplicationRoots(_ roots: [URL]) {
-            for root in roots {
-                guard let enumerator = FileManager.default.enumerator(at: root, includingPropertiesForKeys: Array(keys), options: [.skipsHiddenFiles, .skipsPackageDescendants]) else { continue }
-                for case let url as URL in enumerator where url.pathExtension == "app" {
+        appendApplication(at: URL(fileURLWithPath: "/System/Library/CoreServices/Finder.app"))
+        for root in roots {
+            guard let enumerator = FileManager.default.enumerator(
+                at: root, includingPropertiesForKeys: Array(keys), options: [.skipsHiddenFiles, .skipsPackageDescendants]
+            ) else { continue }
+            for case let url as URL in enumerator {
+                let values = try? url.resourceValues(forKeys: keys)
+                if values?.isAliasFile == true, values?.isSymbolicLink != true {
+                    aliases.append(url)
+                } else if url.pathExtension == "app" {
                     appendApplication(at: url)
                 }
             }
         }
-        appendApplication(at: URL(fileURLWithPath: "/System/Library/CoreServices/Finder.app"))
-        scanApplicationRoots(standardRoots)
-        scanApplicationRoots(cryptexRoots)
+
+        // Installed bundles take precedence over aliases with the same bundle identifier.
+        for alias in aliases {
+            guard let target = try? URL(resolvingAliasFileAt: alias, options: [.withoutUI, .withoutMounting]),
+                  target.pathExtension.lowercased() == "app",
+                  (try? target.resourceValues(forKeys: [.isDirectoryKey]).isDirectory) == true else { continue }
+            appendApplication(at: target)
+        }
         return Dictionary(grouping: found, by: \.bundleIdentifier)
             .compactMap { $0.value.first }
             .sorted { lhs, rhs in
@@ -51,5 +62,4 @@ actor ApplicationCatalogue {
                 return nameOrder == .orderedAscending
             }
     }
-
 }
