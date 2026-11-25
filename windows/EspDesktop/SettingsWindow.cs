@@ -76,7 +76,8 @@ internal sealed class SettingsWindow : Window
         }
         addingDisplay = !HasPairing && !this.store.PairingUnavailable;
         Title = "EspDesktop";
-        Icon = BitmapFrame.Create(App.IconUri);
+        Icon = new IconBitmapDecoder(App.IconUri, BitmapCreateOptions.None, BitmapCacheOption.OnLoad)
+            .Frames.MaxBy(frame => frame.PixelWidth);
         Width = 860;
         Height = 690;
         MinWidth = 670;
