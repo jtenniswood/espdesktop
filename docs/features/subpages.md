@@ -1,9 +1,9 @@
 ---
-title: Create Subpages for Mac Controls
+title: Create Subpages for Apps and Controls
 description: Group apps and keyboard shortcuts on your EspDesktop touchscreen, create nested subpages, and choose how app subpages open.
 ---
 
-# Create subpages for Mac controls {#subpages}
+# Create subpages for apps and controls {#subpages}
 
 Use a **Subpage** card to open a folder of related controls. Each subpage reserves one tile for **Back**, which takes you to its parent page. App subpages use the app’s large icon as their Back tile. Other subpages use an arrow and label.
 
@@ -17,7 +17,7 @@ All subpages hide the top title and clock bar so the cards use the full screen. 
 
 Under **Screen → Appearance → App Subpages**, choose when the display opens an app’s subpage.
 
-- **When the app gains focus** follows the app you switch to on your Mac.
+- **When the app gains focus** follows the app you switch to on your computer.
 - **On app card press (default)** opens the app and its subpage with one press on the display.
 - **On a second app card press** opens or switches to the app first. Once it’s active, press its card again to open the subpage.
 

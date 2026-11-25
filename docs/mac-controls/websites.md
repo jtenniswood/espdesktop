@@ -1,11 +1,11 @@
 ---
-title: Open Websites on Your Mac
-description: Add a Website tile to open a favourite site in your Mac’s default browser. Choose a new tab or window on supported browsers.
+title: Open Websites from Your Touchscreen
+description: Add a Website tile to open a favourite site in your default browser. Choose a new tab or window on supported browsers.
 ---
 
-# Open websites on your Mac
+# Open websites
 
-A **Website** card opens a web address in your Mac’s default browser. Give a frequently used site, such as a calendar or project dashboard, its own tile on the touchscreen.
+A **Website** card opens a web address in the default browser on your paired computer. Give a frequently used site, such as a calendar or project dashboard, its own tile on the touchscreen.
 
 ## Add a website card
 
@@ -23,7 +23,10 @@ A **Website** card opens a web address in your Mac’s default browser. Give a f
 
 ## Choose a tab or window
 
-Use matching versions of the EspDesktop Mac app and display firmware. Safari and Google Chrome support both opening options when EspDesktop has **Automation** permission for your browser in macOS System Settings. In other browsers, **New tab** follows the browser’s usual behaviour for links opened from another app. If no browser window is open, opening a tab creates a window for it.
+- **macOS** — Safari and Google Chrome support both options when EspDesktop has **Automation** permission for the browser in macOS System Settings. Other browsers follow their usual behaviour for links opened from another app.
+- **Windows** — new windows and active-site highlighting depend on the browser. To highlight a site, the browser must expose its address bar to Windows accessibility.
+
+If no browser window is open, opening a tab creates a window for it.
 
 ## Replace an older web app card
 

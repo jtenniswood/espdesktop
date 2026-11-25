@@ -30,7 +30,7 @@ On supported 4-inch firmware, open **Connectors → Home Assistant** to enable E
 
 ### Mac screen lock {#protect-the-touchscreen}
 
-Locking your paired Mac also locks the touchscreen while the EspDesktop Mac app is running. If the connection drops while locked, the display waits for EspDesktop to reconnect and report that your Mac has unlocked.
+Locking your paired computer also locks the touchscreen while EspDesktop is running. If the connection drops while locked, the display waits for EspDesktop to reconnect and report that your computer has unlocked.
 
 ### Rename the display {#naming-your-panel}
 

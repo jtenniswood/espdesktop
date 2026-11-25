@@ -1,15 +1,15 @@
 ---
 title: Set Up Your First Touchscreen Layout
-description: Choose your favourite Mac apps, add ready-to-use keyboard shortcuts and decide when keyboard shortcut pages open on your EspDesktop display.
+description: Choose your favourite apps, add ready-to-use keyboard shortcuts and decide when keyboard shortcut pages open on your EspDesktop display.
 ---
 
 # Set up your first touchscreen layout {#app-setup-wizard}
 
-The setup wizard helps you build your first Home screen. Open the web editor for an empty display. If your Mac isn’t connected yet, the wizard starts with **Connect your computer**. Choose **Open EspDesktop** on your Mac if you have a version that supports the launch link, or choose **Download EspDesktop** to get the app. Use the pairing code if prompted. Once connected, choose **Next**. [Install and pair the Mac app](/screens/4848s040#pair-the-display).
+The setup wizard helps you build your first Home screen. Open the web editor for an empty display. If your computer isn’t connected yet, the wizard starts with **Connect your computer**. Follow the pairing steps for [macOS](/screens/4848s040#setup-on-macos) or [Windows](/windows-preview#pair-your-display), then choose **Next** once connected.
 
 ## 1. Choose your apps
 
-Use **Search apps** to find the Mac apps you use most often. Turn on the apps you want on your display, then choose **Next**. You can pick up to eight, depending on your display’s grid size. Setup leaves at least one tile free.
+Use **Search apps** to find the apps you use most often. Turn on the apps you want on your display, then choose **Next**. You can pick up to eight, depending on your display’s grid size. Setup leaves at least one tile free.
 
 <a href="/images/first-run-choose-apps.png"><picture><source type="image/avif" srcset="/images/first-run-choose-apps-480.avif 480w, /images/first-run-choose-apps-960.avif 960w" sizes="(min-width: 768px) 688px, 90vw"><img src="/images/first-run-choose-apps.png" alt="Choose your apps screen with a search field and a switch beside each app" width="1422" height="1696" loading="eager"></picture></a>
 
@@ -25,7 +25,7 @@ Choose **Launch apps only** if you want each card to open its app or bring it to
 
 If you added keyboard shortcut pages, choose how to open them.
 
-- **When the app gains focus** opens its subpage when you switch to the app on your Mac.
+- **When the app gains focus** opens its subpage when you switch to the app on your computer.
 - **On app card press (default)** opens the app and its subpage with one press on the display.
 - **On a second app card press** opens or switches to the app first. Once it’s active, press its card again to open the subpage.
 

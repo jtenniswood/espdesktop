@@ -1,20 +1,20 @@
 ---
-title: Fix USB, Wi-Fi and Mac pairing problems
-description: Fix a missing USB port, Wi-Fi setup hotspot, Mac pairing error or unresponsive keyboard shortcut on the EspDesktop 4848S040.
+title: Fix USB, Wi-Fi and Companion pairing problems
+description: Fix a missing USB port, Wi-Fi setup hotspot, pairing error or unresponsive keyboard shortcut on the EspDesktop 4848S040.
 ---
 
-# Troubleshoot EspDesktop setup and Mac controls {#troubleshoot-mac-controls}
+# Troubleshoot EspDesktop setup and controls {#troubleshoot-mac-controls}
 
-Find the symptom you see on your 4848S040 or Mac.
+Find the symptom you see on your 4848S040 or computer.
 
 | What you see | First check |
 | --- | --- |
 | [The installer shows no USB port](#no-usb-port-appears) | Try a USB-C cable that carries data. |
 | [The firmware installer will not load](#the-firmware-installer-will-not-load) | Open the installer in desktop Chrome or Edge. |
 | [The Wi-Fi hotspot does not appear](#wifi-setup-and-reset-recovery) | Give the display up to 90 seconds and check the network name shown on the screen. |
-| [The Mac app cannot find the display](#the-display-does-not-appear-in-espdesktop) | Check that the Mac and display are on the same local network. |
+| [EspDesktop cannot find the display](#the-display-does-not-appear-in-espdesktop) | Check that the computer and display are on the same local network. |
 | [The display appears but will not pair](#the-display-will-not-pair) | Check for the code or a reset prompt on the touchscreen. |
-| [Keyboard shortcuts or Lock Machine do nothing](#a-card-does-not-work) | Check macOS Accessibility access for EspDesktop. |
+| [Keyboard shortcuts or Lock Machine do nothing](#a-card-does-not-work) | Check the shortcut permission for your platform. |
 
 ## No USB port appears
 
@@ -38,6 +38,8 @@ A working installer shows an **Install EspDesktop** button and opens the USB por
 
 ## The display does not appear in EspDesktop
 
+On Windows, open **Display** and choose **Enter address manually**. Enter the IP address shown on the touchscreen. [Windows pairing steps](/windows-preview#pair-your-display).
+
 - Confirm the display and Mac are connected to the same local network.
 - Allow local-network access for EspDesktop if macOS requested it.
 - Check that guest WiFi or router client isolation is not separating devices.
@@ -46,6 +48,10 @@ A working installer shows an **Install EspDesktop** button and opens the USB por
 Discovery only locates a display; it does not configure its WiFi. For a first-time firmware install, follow [Install EspDesktop](/screens/4848s040#install).
 
 ## The display will not pair
+
+On Windows, confirm the display is on the same local network. If it was paired with another computer, reset pairing on the touchscreen, then use the new code in EspDesktop. [Windows pairing steps](/windows-preview#pair-your-display).
+
+On macOS, follow these steps.
 
 Select the display in the Mac app and choose **Continue**. Enter the four letters shown on the touchscreen and choose **Connect**. If the code screen is closed, tap **Pair** on the display’s Setup screen or **Unpaired** in its Settings. You can also choose **Open pairing webpage**, then **Copy** and paste the code into the Mac app.
 
@@ -67,16 +73,16 @@ If you have one display paired, **Support → Restart Setup** clears its pairing
 
 ## A card does not work
 
-- **App or folder:** confirm it is still approved in the Mac app’s **Apps** or **Folders** page.
-- **Keyboard shortcut or Lock Machine:** enable EspDesktop under **System Settings → Privacy & Security → Accessibility**. If these cards stopped working after replacing the app, remove the old EspDesktop entry and add the installed app again.
+- **App or folder** — check that it is still approved in EspDesktop’s **Apps** or **Folders** page.
+- **Keyboard shortcut or Lock Machine** — check the [permission for your platform](/mac-controls/shortcuts#enable-keyboard-shortcuts). If the cards stopped working after replacing the macOS app, remove the old EspDesktop entry from **Accessibility** and add the installed app again.
 
 If an older card is marked unavailable, replace or remove it in the web editor. EspDesktop keeps the card’s settings in saved layouts and backups so you can identify it.
 
-For the control's exact requirements, see [Mac Controls](/#what-you-can-control).
+For the control's exact requirements, see [Touchscreen controls](/#what-you-can-control).
 
-## The touchscreen says to unlock your Mac
+## The touchscreen says to unlock your computer {#the-touchscreen-says-to-unlock-your-mac}
 
-Unlock the paired Mac and make sure EspDesktop is running and connected. If the connection was lost while your Mac was locked, the display unlocks after the app reconnects and reports that your Mac is unlocked.
+Unlock your computer and make sure EspDesktop is running and connected. If the connection dropped while your computer was locked, the touchscreen unlocks after EspDesktop reconnects and reports that the computer is unlocked.
 
 ## A Mac app or display update breaks compatibility
 
@@ -95,8 +101,8 @@ The `EspDesktop_XXXX` setup hotspot can take up to 90 seconds to appear. Connect
 
 If an ESP32-P4 panel running EspControl can’t join WiFi, see the [C6 WiFi recovery guide](https://jtenniswood.github.io/espcontrol/getting-started/c6-recovery).
 
-[Save a backup](/settings/backup#export-a-backup) before using **System → System → Factory Reset**. Partial reset retains WiFi and Mac pairing. Complete reset requires typing **RESET**, erases saved WiFi and Mac pairing, and requires pairing the Mac again. It disables WiFi networks compiled into the firmware so newly provisioned credentials remain selected after reboot. Installed firmware remains in place.
+[Save a backup](/settings/backup#export-a-backup) before using **System → System → Factory Reset**. Partial reset retains WiFi and Companion pairing. Complete reset requires typing **RESET**, erases saved WiFi and Companion pairing, and requires pairing your computer again. It disables WiFi networks compiled into the firmware so newly provisioned credentials remain selected after reboot. Installed firmware remains in place.
 
 ## Still stuck?
 
-Open **Support** in the Mac app or [report an issue](https://github.com/jtenniswood/espdesktop/issues). Include the display model, macOS and Mac app versions, display firmware version, and the exact message you saw. Leave out Wi-Fi passwords and pairing codes.
+Open **Support** in the Mac app or [report an issue](https://github.com/jtenniswood/espdesktop/issues). Include the display model, macOS or Windows version, EspDesktop app and firmware versions, and the exact message you saw. Leave out Wi-Fi passwords and pairing codes.

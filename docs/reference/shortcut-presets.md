@@ -9,6 +9,6 @@ import ShortcutPresetReference from '../.vitepress/theme/components/ShortcutPres
 
 # Application shortcuts for EspDesktop
 
-Find your app to see which Mac keyboard shortcuts you can put on your EspDesktop touchscreen. Each guide includes suggested buttons, a full shortcut reference, and answers to common questions.
+This reference covers macOS presets. On Windows, choose **Keyboard Shortcut → Application** in the display editor while your PC is connected to see its presets. Each guide includes suggested buttons, a full shortcut reference, and answers to common questions.
 
 <ShortcutPresetReference />

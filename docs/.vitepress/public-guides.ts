@@ -38,9 +38,9 @@ export async function writeGuideIndex(outDir: string, pages: string[], metadata:
   const lines = [
     '# EspDesktop',
     '',
-    `> EspDesktop pairs a ${productFacts.displayLabel} touchscreen with a macOS menu-bar app. Use it to launch apps, open Finder folders and websites, run keyboard shortcuts and lock the Mac.`,
+    `> EspDesktop pairs a ${productFacts.displayLabel} touchscreen with a companion app for macOS or Windows 11 (preview). Use it to launch apps, open folders and websites, run keyboard shortcuts and lock your computer.`,
     '',
-    `The Mac app requires ${productFacts.macProcessor} and macOS ${productFacts.minimumMacOS} or newer. The display needs ${productFacts.displayWiFiBand} Wi-Fi on the same local network as the Mac. Use firmware and the Mac app from the ${productFacts.matchedRelease}.`,
+    `The Mac app requires ${productFacts.macProcessor} and macOS ${productFacts.minimumMacOS} or newer. The display needs ${productFacts.displayWiFiBand} Wi-Fi on the same local network as the computer. On macOS, use firmware and the Mac app from the ${productFacts.matchedRelease}.`,
     '',
     'Each Markdown guide links to its original web page. Open the original installation page to run the interactive installer.',
   ]

@@ -1,6 +1,6 @@
 ---
-title: Run Mac Keyboard Shortcuts from a Touchscreen
-description: Turn custom Mac keyboard shortcuts into tappable EspDesktop tiles or choose presets for apps such as Safari, Slack and Figma.
+title: Run Keyboard Shortcuts from a Touchscreen
+description: Turn macOS and Windows keyboard shortcuts into tappable EspDesktop tiles or choose presets for your apps.
 ---
 
 <script setup>
@@ -14,23 +14,27 @@ onMounted(() => {
 })
 </script>
 
-# Run Mac keyboard shortcuts
+# Run keyboard shortcuts
 
-A **Keyboard Shortcut** card can run a preset for a specific Mac app or send a custom key combination to the active app.
+A **Keyboard Shortcut** card can run a preset for a specific app or send a custom key combination to the active app.
 
 ## Create a keyboard shortcut card {#create-a-shortcut-card}
 
 1. In the display’s web editor, select an empty tile and choose **Companion → Keyboard Shortcut**.
-2. Use the **Application** tab, which opens by default, to pick a preset for an app. Switch to **Custom** to enter keys such as **⌘ Command + F**.
-3. Save and tap the card. An Application preset opens or focuses the selected app before sending the keys. A Custom shortcut sends the keys to whichever app is already active.
+2. Use the **Application** tab, which opens by default, to pick a preset for an app. Switch to **Custom** to enter keys such as **Command + F** on macOS or **Ctrl + F** on Windows.
+3. Save and tap the card. An Application preset opens or focuses the selected app before sending the keys. A Custom shortcut sends the keys to the app already in front. On Windows, that app must be approved in EspDesktop.
 
-The **Application** tab lists apps with shortcut presets. After choosing an app, use **Find a keyboard shortcut…** to search by name or key combination, then select a row. For example, type **New Tab** or **Cmd+T**. Bundled presets are available while the Mac is offline. Expanded presets can include single keys and sequences, and need an updated display and Mac Companion. Approve the target app in EspDesktop on your Mac. The card skips the shortcut if the app cannot be brought to the front.
+The **Application** tab lists apps with presets for the paired computer. Choose an app and use **Find a keyboard shortcut…** to search by action name or key combination. Approve the target app in EspDesktop. If the app cannot be brought to the front, the card skips the shortcut. On Windows, bring the app forward and tap the card again if Windows keeps another window active.
 
-Custom keyboard shortcuts need **Command**, **Control**, or **Option** plus a key. **Shift** is optional.
+Custom shortcuts need **Command**, **Control**, or **Option** plus a key on macOS, or **Ctrl** or **Alt** plus a key on Windows. **Shift** is optional on either platform. When moving a preset card between platforms, reopen its settings and choose the app and shortcut again.
 
-[Look up keyboard shortcut presets by app](/reference/shortcut-presets).
+[Look up macOS keyboard shortcut presets by app](/reference/shortcut-presets).
 
-## Allow accessibility access
+## Enable keyboard shortcuts
+
+On Windows, open **Display → Windows integration** in EspDesktop and turn on **Allow keyboard shortcuts and screen lock**. Windows protects apps running as administrator from these keystrokes.
+
+### Allow accessibility access on macOS {#allow-accessibility-access}
 
 Enable **EspDesktop** in **System Settings → Privacy & Security → Accessibility** so it can send keystrokes.
 
@@ -38,7 +42,7 @@ Enable **EspDesktop** in **System Settings → Privacy & Security → Accessibil
 
 If a tile still does nothing, follow [the keyboard shortcut and Lock Machine troubleshooting steps](/getting-started/troubleshooting#a-card-does-not-work).
 
-With Mac Companion connected, the editor loads the full list when you select an app. This works over your local network. The editor built into the display keeps a starter set for editing while Companion is disconnected, and saved cards keep their shortcut keys.
+With the companion app connected, the editor loads its shortcut catalogue over your local network. On macOS, the editor also has a starter set of presets available while disconnected. Saved cards retain their shortcut keys.
 
 ## Group keyboard shortcuts by app {#use-a-template-on-an-app-subpage}
 
@@ -46,9 +50,9 @@ Use [ready-made app subpages](/mac-controls/apps#ready-made-app-subpages) to kee
 
 When you add a **Keyboard Shortcut** card inside an app subpage, the **Application** tab opens with that app selected. You can pick a different app or switch to **Custom**.
 
-The web editor dims these keyboard shortcuts when the app loses focus or the Mac disconnects. You can still edit and rearrange the tiles.
+The web editor dims these keyboard shortcuts when the app loses focus or the computer disconnects. You can still edit and rearrange the tiles.
 
-## Control Streamlabs Desktop
+## Control Streamlabs Desktop on macOS {#control-streamlabs-desktop}
 
 Approve **Streamlabs Desktop** in the EspDesktop Mac app. Choose **Keyboard Shortcut → Application → Streamlabs Desktop** for menu shortcuts such as **Open Settings**, **Undo** and **Copy**, or save a Streamlabs Desktop application card to add its shortcut subpage. The nudge presets move a selected source in the Streamlabs editor.
 
