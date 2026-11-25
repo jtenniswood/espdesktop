@@ -86,6 +86,7 @@ const CARD_TYPE_PICKER_DETAILS: Readonly<Record<string, PickerDetails>> = {
   companion_shortcut: { icon: "keyboard-outline", description: "Run a keyboard shortcut on the paired computer." },
   companion_subpage: { icon: "view-grid-plus", description: "Open a nested page of Companion cards." },
   companion_url: { icon: "web", description: "Open a website in the paired computer’s browser." },
+  companion_stats: { icon: "gauge", description: "Show a system statistic from the paired computer." },
   cover: { icon: "window-shutter", description: "Control blinds, curtains, or covers." },
   door_window: { icon: "door-open", description: "Show open or closed sensor state." },
   presence: { icon: "account", description: "Show person or presence status." },
@@ -126,6 +127,7 @@ const CARD_TYPE_PICKER_DEFAULTS: Readonly<Record<string, string>> = {
   companion_obs_replay: "companion",
   companion_obs_output: "companion",
   companion_shortcut: "companion",
+  companion_stats: "companion",
   companion_subpage: "subpage",
   companion_url: "companion",
 };

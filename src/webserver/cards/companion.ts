@@ -2358,6 +2358,7 @@ export function registerCompanionCardTypes(
         ["companion_obs_replay", "Replay Buffer", "obs_replay"],
         ["companion_obs_output", "Output Controls", "obs_output"],
         ["companion_apple_shortcut", "Run a shortcut", "apple_shortcut"],
+        ["companion_stats", "Stats", "stats"],
     ];
     companionPickerDefinitions.forEach(function (definition) {
         const key = definition[0];

@@ -5789,8 +5789,8 @@ async function assertCompanionOnlyCardPicker(browser, testCase) {
     );
     assert.strictEqual(
       await page.locator('[data-card-type="companion_stats"]').count(),
-      0,
-      `${testCase.name}: Stats is unavailable when adding a new card`,
+      1,
+      `${testCase.name}: Stats is available when adding a new card`,
     );
     const appleShortcuts = page.locator('[data-card-type="apple_shortcuts_group"]');
     await appleShortcuts.waitFor();
