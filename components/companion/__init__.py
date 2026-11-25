@@ -1,4 +1,4 @@
-"""Secure local Companion connection for the 4848S040 panel.
+"""Secure local Companion connection for supported EspDesktop panels.
 
 The component deliberately runs a small, separate TLS WebSocket server.  It
 does not use Home Assistant's API connection and it never initiates a network

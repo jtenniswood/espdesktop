@@ -14,6 +14,7 @@ from device_profiles import load_device_profiles
 BUTTON_RADII = {
     "guition-esp32-p4-jc1060p470": 10,
     "guition-esp32-p4-jc1060p470-v2": 10,
+    "guition-esp32-p4-jc1060p470-v3": 10,
     "guition-esp32-p4-jc4880p443": 10,
     "guition-esp32-p4-jc4880p443-v3": 10,
     "guition-esp32-p4-jc8012p4a1": 11,
@@ -36,4 +37,4 @@ for slug, profile in profiles.items():
             break
         radius = Template(radius).substitute(substitutions)
     assert radius == f"{BUTTON_RADII[slug]}px", (slug, radius)
-print("Ordinary button radii match the expected values on all nine profiles.")
+print("Ordinary button radii match the expected values on every device profile.")

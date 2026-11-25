@@ -4166,7 +4166,7 @@ async function assertNativeProfileJourney(browser, testCase) {
     connectorsStatus: {
       onboarding_complete: true,
       home_assistant: { available: true, configured: true, connected: true, actions_confirmed: true },
-      mac_companion: testCase.slug === "guition-esp32-s3-4848s040"
+      mac_companion: testCase.companionSupported
         ? { available: true, configured: true, paired: true, connected: true }
         : { available: false, configured: false, paired: false, connected: false },
     },
@@ -6024,7 +6024,7 @@ async function runCase(browser, testCase) {
     connectorsStatus: {
       onboarding_complete: true,
       home_assistant: { available: true, configured: true, connected: true, actions_confirmed: true },
-      mac_companion: testCase.slug === "guition-esp32-s3-4848s040"
+      mac_companion: testCase.companionSupported
         ? { available: true, configured: true, paired: true, connected: true }
         : { available: false, configured: false, paired: false, connected: false },
     },
@@ -8959,8 +8959,7 @@ async function assertStudioControlPage(browser) {
   } finally { await context.close(); }
 }
 
-async function assertFirstRunSetup(browser) {
-  const testCase = CASES.find(item => item.slug === "guition-esp32-s3-4848s040");
+async function assertFirstRunSetup(browser, testCase) {
   const fixture = nativeConfigState(testCase.slug);
   fixture.document = { deviceProfile: testCase.slug, buttons: {}, subpages: {}, settings: {} };
   const status = {
@@ -9018,7 +9017,7 @@ async function assertFirstRunSetup(browser) {
   try {
     await open();
     const dialog = page.getByRole("dialog");
-    const appLimit = 8;
+    const appLimit = Math.min(8, testCase.slots - 1);
     await dialog.getByText("No apps available. Check app access in the companion app.", { exact: true }).waitFor();
     assert(await dialog.getByText("Step 1 of 2", { exact: true }).isVisible(),
       "an already connected Mac starts at app selection");
@@ -9095,7 +9094,7 @@ async function assertFirstRunSetup(browser) {
     await dialog.waitFor({ state: "detached" });
     await page.getByText("Setup saved.", { exact: true }).waitFor();
     assert.equal(Object.keys(fixture.document.buttons).length, appLimit);
-    assert.equal(fixture.document.buttons[9], undefined, "setup leaves the ninth slot free");
+    assert.equal(fixture.document.buttons[appLimit + 1], undefined, "setup leaves a slot free");
     assert.equal(fixture.document.settings.web_onboarding_complete, "1");
     const { rootCards, pages } = fixture.puts[0].layout;
     const safari = rootCards.find(({ config }) => config.entity === "com.apple.Safari");
@@ -9321,7 +9320,11 @@ async function assertFirstRunSetup(browser) {
       return;
     }
     if (process.env.ESPDESKTOP_FIRST_RUN_ONLY === "1") {
-      await assertFirstRunSetup(browser);
+      const firstRunCases = ACTIVE_CASES.filter(item => item.companionSupported);
+      assert(firstRunCases.length > 0, "The first-run wizard needs a Mac Companion profile");
+      for (const testCase of firstRunCases) {
+        await assertFirstRunSetup(browser, testCase);
+      }
       return;
     }
     if (process.env.ESPDESKTOP_APPLE_SHORTCUT_ONLY === "1") {
@@ -9512,7 +9515,9 @@ async function assertFirstRunSetup(browser) {
     await assertNestedCompanionPages(browser);
     await assertLiveFinderPreview(browser);
     await assertAppShortcutPreview(browser);
-    await assertFirstRunSetup(browser);
+    for (const testCase of ACTIVE_CASES.filter(item => item.companionSupported)) {
+      await assertFirstRunSetup(browser, testCase);
+    }
     await assertAppSubpageOpeningPreference(browser);
     await assertEditorRefresh(browser);
     if (process.env.ESPDESKTOP_EDITOR_REFRESH_ONLY === "1") { console.log("Editor refresh browser checks passed."); return; }

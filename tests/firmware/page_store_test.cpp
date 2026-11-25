@@ -6,6 +6,7 @@
 #include <string>
 #include <vector>
 
+#include "device_ui_profile_fixture.h"
 #include "button_grid_subpage_parser.h"
 #include "page_store.h"
 #include "panel_config_document.h"
@@ -18,7 +19,7 @@ using namespace espdesktop::configuration;
 namespace {
 
 struct Document {
-  std::array<uint8_t, 40 * 1024> buffer{};
+  std::array<uint8_t, 64 * 1024> buffer{};
   PanelConfigWriter writer{buffer.data(), buffer.size()};
   size_t size{0};
 
@@ -132,7 +133,7 @@ void profile_corpus(const DeviceUiLimits &limits) {
 }
 
 void compatibility_and_failures() {
-  const auto &limits = DEVICE_UI_PROFILES[8];
+  const auto &limits = test_device_ui_profile("guition-esp32-s3-4848s040");
   Document doc(limits);
   const std::string source = "light.kitchen;Kitchen;Lightbulb;Auto;;;light_switch;;";
   doc.button(1, source);
@@ -160,7 +161,7 @@ void compatibility_and_failures() {
   Arena other{};
   Document valid(limits);
   valid.finish();
-  assert(PageStore::stage_v1(valid.buffer.data(), valid.size, DEVICE_UI_PROFILES[0], 2,
+  assert(PageStore::stage_v1(valid.buffer.data(), valid.size, test_device_ui_profile("guition-esp32-p4-jc1060p470"), 2,
       other.data(), sizeof(other), &store) == PageStoreStatus::PROFILE_MISMATCH);
   assert(store.generation() == 1);
   valid.buffer[0] = 0;
@@ -170,7 +171,7 @@ void compatibility_and_failures() {
 }
 
 void card_type_corpus() {
-  const auto &limits = DEVICE_UI_PROFILES[8];
+  const auto &limits = test_device_ui_profile("guition-esp32-s3-4848s040");
   for (size_t i = 0; i < limits.card_type_count; ++i) {
     const auto &type = limits.card_types[i];
     const std::string root = "light.test;Example;Auto;Auto;;;" + std::string(type.type) + ";;";
@@ -195,7 +196,7 @@ void card_type_corpus() {
 }
 
 void byte_limits_and_exhaustion() {
-  const auto &limits = DEVICE_UI_PROFILES[8];
+  const auto &limits = test_device_ui_profile("guition-esp32-s3-4848s040");
   Document doc(limits);
   std::string label;
   for (size_t i = 0; i < 1200; ++i) label += "é";

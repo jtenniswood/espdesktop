@@ -11,6 +11,11 @@ inline std::atomic<bool> native_api_enabled{false};
 inline std::atomic<bool> native_api_configured{false};
 inline std::atomic<bool> native_button_resync_requested{false};
 
+inline bool native_api_actions_available() {
+  auto *server = esphome::api::global_api_server;
+  return native_api_enabled.load() && server && server->get_noise_ctx().has_psk();
+}
+
 inline void configure_native_api_at_boot() {
   nvs_handle_t handle;
   uint8_t value = 0;

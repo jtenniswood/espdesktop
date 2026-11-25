@@ -83,12 +83,6 @@ companion:
   id: mac_companion
   port: 8443
 
-api:
-  encryption: {}
-  reboot_timeout: 0s
-  max_connections: 3
-  max_send_queue: 12
-
 espdesktop:
   id: espdesktop_app
   panel_config:
@@ -138,9 +132,6 @@ esphome:
     # the modal code is large enough to otherwise trip Xtensa l32r range limits.
     - "-mtext-section-literals"
   on_boot:
-    - priority: 300
-      then:
-        - lambda: espdesktop::home_assistant::configure_native_api_at_boot();
     - priority: 800
       then:
         - lambda: |-
@@ -223,6 +214,7 @@ safe_mode:
 # Shared infrastructure (API, logging, web server, restart button)
 # ---------------------------------------------------------------------------
 packages:
+  home_assistant_display_power: !include ../../../common/device/home_assistant_display_power.yaml
   core_infra: !include ../../../common/device/core_infra.yaml
 
 # The 4848S040 USB-C port is exposed as UART0 through a USB-UART bridge.
@@ -265,10 +257,8 @@ light:
       then:
         - script.execute: display_backlight_handle_state
 
-# ---------------------------------------------------------------------------
-# Built-in relays (4848S040C relay variant)
-# ---------------------------------------------------------------------------
 switch:
+  # Built-in relays (4848S040C relay variant)
   - platform: gpio
     name: Relay 1
     id: relay_1

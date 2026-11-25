@@ -37,13 +37,17 @@ LEGACY_OTA_PARTITION_LAYOUTS = {
     "esp32-p4-86": "partitions_32mb_card_images.csv",
     "guition-esp32-p4-jc1060p470": "partitions_16mb_card_images.csv",
     "guition-esp32-p4-jc1060p470-v2": "partitions_16mb_card_images.csv",
+    "guition-esp32-p4-jc1060p470-v3": "partitions_16mb_card_images.csv",
     "guition-esp32-p4-jc4880p443": "partitions_16mb_card_images.csv",
     "guition-esp32-p4-jc8012p4a1": "partitions_16mb_card_images.csv",
     "guition-esp32-p4-jc8012p4a1-v2": "partitions_16mb_card_images.csv",
     "guition-esp32-p4-jc8012p4a1-v3": "partitions_16mb_card_images.csv",
     "guition-esp32-s3-4848s040": "partitions_16mb_card_images.csv",
 }
-V3_SLUG = "guition-esp32-p4-jc8012p4a1-v3"
+PRODUCTION_DSI_PACKAGE_SLUGS = (
+    "guition-esp32-p4-jc1060p470-v3",
+    "guition-esp32-p4-jc8012p4a1-v3",
+)
 LEGACY_OTA_PARTITION_ROWS = {
     "partitions_16mb_card_images.csv": (
         "nvs,           data, nvs,     0x9000,    0xd000,",
@@ -398,22 +402,23 @@ def test_generated_yaml(profiles: dict[str, dict]) -> None:
 
 def test_v3_release_configuration() -> None:
     """Keep the production V3 build contract outside generated package sections."""
-    package = (ROOT / "devices" / V3_SLUG / "packages.yaml").read_text(encoding="utf-8")
-    device = (ROOT / "devices" / V3_SLUG / "device" / "device.yaml").read_text(encoding="utf-8")
-    factory = (ROOT / "builds" / f"{V3_SLUG}.factory.yaml").read_text(encoding="utf-8")
-    recovery = (ROOT / "builds" / f"{V3_SLUG}.recovery.yaml").read_text(encoding="utf-8")
+    for slug in PRODUCTION_DSI_PACKAGE_SLUGS:
+        package = (ROOT / "devices" / slug / "packages.yaml").read_text(encoding="utf-8")
+        device = (ROOT / "devices" / slug / "device" / "device.yaml").read_text(encoding="utf-8")
+        factory = (ROOT / "builds" / f"{slug}.factory.yaml").read_text(encoding="utf-8")
+        recovery = (ROOT / "builds" / f"{slug}.recovery.yaml").read_text(encoding="utf-8")
 
-    assert "engineering_sample: false" in device, "V3 must target production P4 silicon"
-    assert "url: ${espdesktop_component_url}" in package, "V3 MIPI source must use the configured component URL"
-    assert "ref: ${espdesktop_component_ref}" in package, "V3 MIPI source must use the configured component ref"
-    assert "components: [mipi_dsi]" in package, "V3 must retain the patched MIPI component"
-    assert "web_server:\n  ota: false" in package, "V3 browser firmware uploads must be disabled"
-    assert "restore_mode: ALWAYS_OFF" not in package, "V3 firmware update switches must use shared defaults"
-    assert "espdesktop_component_url: \"file:///config\"" in factory
-    assert "espdesktop_component_ref: \"HEAD\"" in factory
-    assert 'js_include: "../docs/public/webserver/embedded/www.js"' in factory
-    assert f"!include {V3_SLUG}.factory.yaml" in recovery
-    assert "esp32_c6_recovery.yaml" in recovery
+        assert "engineering_sample: false" in device, "V3 must target production P4 silicon"
+        assert "url: ${espdesktop_component_url}" in package, "V3 MIPI source must use the configured component URL"
+        assert "ref: ${espdesktop_component_ref}" in package, "V3 MIPI source must use the configured component ref"
+        assert "components: [mipi_dsi]" in package, "V3 must retain the patched MIPI component"
+        assert "web_server:\n  ota: false" in package, "V3 browser firmware uploads must be disabled"
+        assert "restore_mode: ALWAYS_OFF" not in package, "V3 firmware update switches must use shared defaults"
+        assert "espdesktop_component_url: \"file:///config\"" in factory
+        assert "espdesktop_component_ref: \"HEAD\"" in factory
+        assert 'js_include: "../docs/public/webserver/embedded/www.js"' in factory
+        assert f"!include {slug}.factory.yaml" in recovery
+        assert "esp32_c6_recovery.yaml" in recovery
 
 
 def test_jc4880p443_v3_configuration() -> None:
@@ -431,7 +436,7 @@ def test_jc4880p443_v3_configuration() -> None:
         assert (ROOT / "builds" / f"{slug}{suffix}").is_file()
 
 
-def test_native_home_assistant_api_scope(profile_slugs: list[str]) -> None:
+def test_factory_connector_scope(profiles: dict[str, dict]) -> None:
     from esphome.components.packages import resolve_packages
     from esphome.core import CORE
     from esphome.yaml_util import load_yaml
@@ -442,10 +447,19 @@ def test_native_home_assistant_api_scope(profile_slugs: list[str]) -> None:
         CORE.config_path = str(path)
         try:
             config = resolve_packages(load_yaml(path))
-            native = path.name == "guition-esp32-s3-4848s040.factory.yaml"
+            slug = path.name.removesuffix(".factory.yaml")
+            if slug in profiles:
+                companion = bool(profiles[slug]["capabilities"].get("companion"))
+                assert ("companion" in config) == companion, (
+                    f"{slug}: firmware and web profile must agree on Mac Companion availability"
+                )
+            native = slug in {"guition-esp32-s3-4848s040", "guition-esp32-p4-jc1060p470-v3"}
             assert ("api" in config) == native, f"{path.name}: unexpected native ESPHome API scope"
             if native:
                 assert "encryption" in config["api"], f"{path.name}: native API must support encryption"
+                assert config["espdesktop"].get("display_power") == "display_power", (
+                    f"{path.name}: native API must expose the Display Power switch"
+                )
             assert "dashboard_import" not in config, f"{path.name}: dashboard adoption requires the removed native API"
             for domain in ("sensor", "text_sensor", "binary_sensor", "time"):
                 assert all(item.get("platform") != "homeassistant" for item in config.get(domain, [])), (
@@ -453,7 +467,7 @@ def test_native_home_assistant_api_scope(profile_slugs: list[str]) -> None:
                 )
         finally:
             CORE.reset()
-    for slug in profile_slugs:
+    for slug in profiles:
         public = (ROOT / "devices" / slug / "esphome.yaml").read_text()
         assert "api_encryption" not in public, f"{slug}: remove obsolete native API encryption package"
 
@@ -517,6 +531,7 @@ def test_p4_crash_restart_preserves_safe_mode_counter() -> None:
     slugs = (
         "guition-esp32-p4-jc1060p470",
         "guition-esp32-p4-jc1060p470-v2",
+        "guition-esp32-p4-jc1060p470-v3",
         "guition-esp32-p4-jc4880p443",
         "guition-esp32-p4-jc8012p4a1",
         "guition-esp32-p4-jc8012p4a1-v2",
@@ -567,6 +582,7 @@ def test_rotation_refresh_rebuilds_subpages() -> None:
     slugs = (
         "guition-esp32-p4-jc1060p470",
         "guition-esp32-p4-jc1060p470-v2",
+        "guition-esp32-p4-jc1060p470-v3",
         "guition-esp32-p4-jc4880p443",
         "guition-esp32-p4-jc8012p4a1",
         "guition-esp32-p4-jc8012p4a1-v2",
@@ -620,6 +636,7 @@ def test_seven_inch_width_compensation_rotates_with_screen() -> None:
     for slug in (
         "guition-esp32-p4-jc1060p470",
         "guition-esp32-p4-jc1060p470-v2",
+        "guition-esp32-p4-jc1060p470-v3",
     ):
         profile = profiles[slug]
         assert profile["rotation"]["rotateWidthCompensation"], (
@@ -863,7 +880,7 @@ def main() -> int:
     test_generated_yaml(profiles)
     test_v3_release_configuration()
     test_jc4880p443_v3_configuration()
-    test_native_home_assistant_api_scope(profile_slugs)
+    test_factory_connector_scope(profiles)
     test_ota_preserves_deployed_partition_layouts()
     test_upgrades_do_not_reset_saved_panel_config()
     test_p4_crash_restart_preserves_safe_mode_counter()
