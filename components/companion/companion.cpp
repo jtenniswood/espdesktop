@@ -238,7 +238,21 @@ void CompanionService::dump_config() {
 }
 
 bool CompanionService::ensure_identity_() {
-  if (this->identity_.version == 1 && this->identity_.certificate_len && this->identity_.private_key_len) return true;
+  if (this->identity_.version == 1 && this->identity_.certificate_len &&
+      this->identity_.private_key_len) {
+    // A paired Mac pins the existing certificate fingerprint.
+    if (this->identity_.paired) return true;
+    mbedtls_x509_crt saved_certificate;
+    mbedtls_x509_crt_init(&saved_certificate);
+    const bool parsed = this->identity_.certificate_len <= sizeof(this->identity_.certificate) &&
+        mbedtls_x509_crt_parse_der(&saved_certificate, this->identity_.certificate,
+                                 this->identity_.certificate_len) == 0;
+    const auto &serial = saved_certificate.serial;
+    const bool canonical_serial = parsed && serial.len > 0 && (serial.p[0] & 0x80) == 0 &&
+        (serial.p[0] != 0 || (serial.len > 1 && (serial.p[1] & 0x80) != 0));
+    mbedtls_x509_crt_free(&saved_certificate);
+    if (canonical_serial) return true;
+  }
 
   mbedtls_entropy_context entropy;
   mbedtls_ctr_drbg_context drbg;
@@ -261,8 +275,10 @@ bool CompanionService::ensure_identity_() {
     mbedtls_x509write_crt_set_issuer_key(&certificate, &key);
     if (mbedtls_x509write_crt_set_subject_name(&certificate, "CN=EspDesktop") != 0) break;
     if (mbedtls_x509write_crt_set_issuer_name(&certificate, "CN=EspDesktop") != 0) break;
-    unsigned char serial[] = {static_cast<unsigned char>(esp_random()), static_cast<unsigned char>(esp_random()),
-                              static_cast<unsigned char>(esp_random()), static_cast<unsigned char>(esp_random())};
+    unsigned char serial[16];
+    esp_fill_random(serial, sizeof(serial));
+    // Keep the DER INTEGER positive and prevent redundant leading zero bytes.
+    serial[0] = (serial[0] & 0x3f) | 0x40;
     if (mbedtls_x509write_crt_set_serial_raw(&certificate, serial, sizeof(serial)) != 0) break;
     if (mbedtls_x509write_crt_set_validity(&certificate, "20260101000000", "20360101000000") != 0) break;
     if (mbedtls_x509write_crt_set_basic_constraints(&certificate, 0, -1) != 0) break;

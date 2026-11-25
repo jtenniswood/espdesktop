@@ -683,6 +683,12 @@ target_compile_options(page_store_runtime_test PRIVATE -Wall -Wextra -Werror -UN
 target_include_directories(page_store_runtime_test PRIVATE stubs ../../components/espdesktop)
 add_test(NAME page_store_runtime_test COMMAND page_store_runtime_test)
 
+# These tests load every device profile into one executable. Allow the full
+# document slot range even when an individual firmware build uses a lower cap.
+foreach(target page_store_test page_store_v2_test page_store_runtime_test)
+  target_compile_definitions(${target} PRIVATE ESPDESKTOP_MAX_GRID_SLOTS=32)
+endforeach()
+
 add_executable(configuration_main_loop_test configuration_main_loop_test.cpp
   ../../components/espdesktop/configuration_main_loop.cpp
   ../../components/espdesktop/configuration_service.cpp ../../components/espdesktop/configuration_store.cpp)

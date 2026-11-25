@@ -25,6 +25,7 @@ enum class DisplayRequestSource : uint8_t {
   SETUP_TIMEOUT,
   USER_WAKE,
   MAC_DISPLAY_SLEEP,
+  REMOTE_DISPLAY_POWER,
 };
 
 enum class DisplayTakeoverKind : uint8_t {
@@ -117,6 +118,11 @@ class DisplayModeController {
     return requests_[source_index(source)].active;
   }
 
+  bool request_matches(DisplayRequestSource source, DisplayMode mode) const {
+    const Request &entry = requests_[source_index(source)];
+    return entry.active && entry.mode == mode;
+  }
+
   DisplayTransition resolve() const {
     DisplayTransition result;
     result.previous_mode = current_mode_;
@@ -134,7 +140,13 @@ class DisplayModeController {
       if (apply_source(DisplayRequestSource::ONBOARDING, result)) return result;
     }
 
+    // Remote off survives automatic wakes. A remote wake can override sleeping
+    // Mac display power, while panel sleep and the startup clock guard still win.
+    if (request_matches(DisplayRequestSource::REMOTE_DISPLAY_POWER, DisplayMode::DISPLAY_OFF) &&
+        apply_source(DisplayRequestSource::REMOTE_DISPLAY_POWER, result)) return result;
     if (apply_source(DisplayRequestSource::MANUAL_SLEEP, result)) return result;
+    if (!request_active(DisplayRequestSource::BOOT_GUARD) &&
+        apply_source(DisplayRequestSource::REMOTE_DISPLAY_POWER, result)) return result;
     if (apply_source(DisplayRequestSource::MAC_DISPLAY_SLEEP, result)) return result;
     if (apply_source(DisplayRequestSource::USER_WAKE, result)) return result;
     if (apply_source(DisplayRequestSource::BOOT_GUARD, result)) return result;
@@ -306,6 +318,8 @@ class DisplayModeController {
       case DisplayRequestSource::MANUAL_SLEEP:
         return mode == DisplayMode::DISPLAY_OFF || mode == DisplayMode::DIMMED ||
                mode == DisplayMode::CLOCK;
+      case DisplayRequestSource::REMOTE_DISPLAY_POWER:
+        return mode == DisplayMode::ACTIVE || mode == DisplayMode::DISPLAY_OFF;
       case DisplayRequestSource::USER_WAKE:
         return mode == DisplayMode::ACTIVE;
       case DisplayRequestSource::SETUP_TIMEOUT:
@@ -334,7 +348,7 @@ class DisplayModeController {
   };
 
   static constexpr std::size_t kRequestCount =
-      static_cast<std::size_t>(DisplayRequestSource::MAC_DISPLAY_SLEEP) + 1;
+      static_cast<std::size_t>(DisplayRequestSource::REMOTE_DISPLAY_POWER) + 1;
   static constexpr std::size_t kTakeoverCount = 2;
 
   static constexpr std::size_t source_index(DisplayRequestSource source) {
@@ -415,6 +429,7 @@ inline const char *display_request_source_name(
     case DisplayRequestSource::SETUP_TIMEOUT: return "setup_timeout";
     case DisplayRequestSource::USER_WAKE: return "user_wake";
     case DisplayRequestSource::MAC_DISPLAY_SLEEP: return "mac_display_sleep";
+    case DisplayRequestSource::REMOTE_DISPLAY_POWER: return "remote_display_power";
   }
   return "unknown";
 }

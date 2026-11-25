@@ -47,6 +47,10 @@ class EspDesktopApp : public esphome::Component {
     return esphome::setup_priority::AFTER_WIFI;
   }
 
+#ifdef USE_ESPDESKTOP_NATIVE_CARD_BUTTONS
+  void set_display_power_entity(esphome::EntityBase *entity) { display_power_entity_ = entity; }
+#endif
+
   DisplayLifecycleService &display_lifecycle() { return core_.display_lifecycle(); }
   DisplayModeController &display() { return core_.display(); }
   const DisplayModeController &display() const { return core_.display(); }
@@ -205,6 +209,9 @@ class EspDesktopApp : public esphome::Component {
   // leaves the ESPHome-created application object safe to construct before
   // the framework's allocators and component setup are ready.
   std::unique_ptr<NativeConfigurationRuntime> native_configuration_runtime_;
+#ifdef USE_ESPDESKTOP_NATIVE_CARD_BUTTONS
+  esphome::EntityBase *display_power_entity_{nullptr};
+#endif
   EspDesktopAppCore core_{};
   ApplicationSceneRuntime* application_scene_{nullptr};
   std::array<ScalarPublisher, panel_settings::SCALAR_RULES.size()> scalar_publishers_{};
