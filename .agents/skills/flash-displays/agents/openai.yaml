@@ -1,4 +1,4 @@
 interface:
   display_name: "Flash Displays"
-  short_description: "Flash and test only the EspDesktop S3 at 192.168.6.100."
-  default_prompt: "Use $flash-displays to flash only the S3 at 192.168.6.100 from the active worktree over OTA."
+  short_description: "Flash the EspDesktop S3 or the 7-inch V3 when requested."
+  default_prompt: "Use $flash-displays to flash the selected EspDesktop display from the active worktree over Wi-Fi."
