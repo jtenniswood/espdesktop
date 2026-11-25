@@ -134,8 +134,7 @@ async function checkBrowser() {
     let touchscreenIcons;
     const home = `${base}/`;
     const hero = page.locator('.homepage-hero');
-    const macSetup = hero.getByRole('link', { name: 'Mac', exact: true });
-    const windowsSetup = hero.getByRole('link', { name: 'Windows', exact: true });
+    const setup = hero.getByRole('link', { name: 'Get started', exact: true });
     for (const [width, height, colorScheme] of [
       [320, 640, 'light'],
       [390, 844, 'dark'],
@@ -148,13 +147,11 @@ async function checkBrowser() {
       assert.equal(await page.getByRole('heading', { level: 1 }).count(), 1);
       assert(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth),
         `Homepage must fit a ${width}px viewport`);
-      assert.equal(await macSetup.getAttribute('href'), '/screens/4848s040');
-      assert.equal(await windowsSetup.getAttribute('href'), '/windows-preview');
-      for (const setupLink of [macSetup, windowsSetup]) {
-        const action = await setupLink.boundingBox();
-        assert(action && action.y >= 0 && action.y + action.height <= height,
-          `Both setup links must be visible on the first screen at ${width}px`);
-      }
+      assert.equal(await hero.getByRole('link').count(), 1);
+      assert.equal(await setup.getAttribute('href'), '/screens/4848s040');
+      const action = await setup.boundingBox();
+      assert(action && action.y >= 0 && action.y + action.height <= height,
+        `Get started must be visible on the first screen at ${width}px`);
       const illustration = page.locator('.homepage-hero img');
       await illustration.scrollIntoViewIfNeeded();
       await illustration.evaluate(img => img.decode());
@@ -168,8 +165,7 @@ async function checkBrowser() {
       const getStarted = actions.getByRole('link', { name: 'Getting Started', exact: true });
       assert.equal(await getStarted.getAttribute('href'), '/screens/4848s040');
       const buttonBackground = link => link.evaluate(element => getComputedStyle(element).backgroundColor);
-      assert.equal(await buttonBackground(getStarted), await buttonBackground(macSetup));
-      assert.equal(await buttonBackground(macSetup), await buttonBackground(windowsSetup));
+      assert.equal(await buttonBackground(getStarted), await buttonBackground(setup));
       if (width >= 768) {
         const copy = await demoSection.locator(':scope > div').boundingBox();
         const mock = await demoSection.locator('figure.homepage-demo').boundingBox();
@@ -340,11 +336,14 @@ async function checkBrowser() {
         .and(page.locator(`#${docsHeadingId}`)).waitFor();
     }
     await page.goto(home);
-    await windowsSetup.press('Enter');
+    await setup.press('Enter');
+    await page.waitForURL(`${home}screens/4848s040`);
+    await page.getByRole('heading', { name: 'Set up on macOS', exact: true }).waitFor();
+    await page.getByRole('heading', { name: 'Set up on Windows 11', exact: true }).waitFor();
+    await page.getByRole('link', { name: 'Windows 11 preview guide', exact: true }).click();
     await page.waitForURL(`${home}windows-preview`);
     await page.getByRole('heading', { name: 'EspDesktop for Windows 11 preview', level: 1 }).waitFor();
-    await page.goto(home);
-    await macSetup.press('Enter');
+    await page.goBack();
     await page.waitForURL(`${home}screens/4848s040`);
     console.log('Homepage checks passed at desktop, tablet and phone widths.');
     await assertSupportedInstaller();

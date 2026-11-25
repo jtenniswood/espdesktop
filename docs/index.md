@@ -15,9 +15,7 @@ Launch apps, open folders and websites, and run keyboard shortcuts from a 4-inch
 
 <div class="homepage-action">
 
-[Mac](/screens/4848s040)
-
-[Windows](/windows-preview)
+[Get started](/screens/4848s040)
 
 </div>
 
@@ -197,16 +195,6 @@ In this macOS example, tap an app such as Slack to see its keyboard shortcuts, o
   color: var(--vp-c-text-1);
   font-size: clamp(17px, 1.7vw, 20px);
   line-height: 1.5;
-}
-
-.homepage-action {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-
-.homepage-action p {
-  margin: 0;
 }
 
 .homepage-action a,
