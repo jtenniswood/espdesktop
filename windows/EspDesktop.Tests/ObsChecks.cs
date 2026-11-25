@@ -15,6 +15,8 @@ internal static class ObsChecks
     public static async Task Run()
     {
         var scene = Guid.NewGuid();
+        Check(CatalogueLabel("Camera, wide | backup") == "Camera  wide   backup",
+            "removes display catalogue delimiters from an OBS scene label");
         var previewScene = Guid.NewGuid();
         var studioMode = false;
         var transition = "Cut";
