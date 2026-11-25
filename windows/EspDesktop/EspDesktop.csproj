@@ -20,5 +20,6 @@
     <EmbeddedResource Include="../../product/v2/app_shortcuts/platforms/windows/*.json"
                       LogicalName="WindowsAppShortcuts.%(Filename)%(Extension)" />
     <Resource Include="Packaging/EspDesktop.ico" />
+    <Resource Include="Packaging/TrayComputer.ico" />
   </ItemGroup>
 </Project>
