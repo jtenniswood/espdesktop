@@ -1,48 +1,55 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, defineAsyncComponent, defineComponent, h, ref } from 'vue'
 import type { AppShortcutApplication } from '../../../../src/webserver/generated/app_shortcuts'
 import { shortcutCatalogue, type WindowsShortcutApplication } from '../../shortcut-format'
-import shortcutsGuides from '../../shortcut-guides.json'
+import { data as guides } from '../../shortcut-index.data'
 import ShortcutPresetTable from './ShortcutPresetTable.vue'
 
-const definitions = import.meta.glob<AppShortcutApplication>(
+const macFiles = import.meta.glob<AppShortcutApplication>(
   ['../../../../product/v2/app_shortcuts/*.json', '!../../../../product/v2/app_shortcuts/manifest.json'],
-  { eager: true, import: 'default' },
+  { import: 'default' },
 )
-const apps = shortcutCatalogue(Object.values(definitions))
 const windowsFiles = import.meta.glob<WindowsShortcutApplication>(
-  '../../../../product/v2/app_shortcuts/platforms/windows/*.json', { eager: true, import: 'default' },
+  '../../../../product/v2/app_shortcuts/platforms/windows/*.json', { import: 'default' },
 )
-const windowsApps = new Map(Object.entries(windowsFiles).map(([path, app]) =>
-  [path.split('/').at(-1)!.replace(/\.json$/, ''), app]))
-const guideSlugs = new Map(Object.entries(shortcutsGuides).map(([slug, guide]) => [guide.appId, slug]))
-const referenceEntries = [
-  ...apps.map(app => ({ slug: guideSlugs.get(app.appId)!, appId: app.appId, label: app.label, mac: true })),
-  ...[...windowsApps].filter(([slug]) => !Object.hasOwn(shortcutsGuides, slug))
-    .map(([slug, app]) => ({ slug, appId: slug, label: app.label, mac: false })),
-]
-
 const props = defineProps<{ appId?: string; windowsId?: string }>()
 const search = ref('')
 const platform = ref('all')
-const macApp = computed(() => apps.find(app => app.appId === props.appId))
-const windowsApp = computed(() => windowsApps.get(props.windowsId ?? guideSlugs.get(props.appId ?? '') ?? ''))
+const guide = computed(() => guides.find(entry => entry.macAppId === props.appId && !!props.appId ||
+  entry.slug === props.windowsId))
+const macTable = computed(() => {
+  const file = guide.value?.macFile
+  if (!file) return undefined
+  const load = macFiles[`../../../../product/v2/app_shortcuts/${file}`]
+  return defineAsyncComponent(async () => {
+    const [app] = shortcutCatalogue([await load()])
+    return defineComponent(() => () => h(ShortcutPresetTable, { app, platform: 'macos' }))
+  })
+})
+const windowsTable = computed(() => {
+  const entry = guide.value
+  if (!entry?.windowsLabel) return undefined
+  const load = windowsFiles[`../../../../product/v2/app_shortcuts/platforms/windows/${entry.slug}.json`]
+  return defineAsyncComponent(async () => {
+    const app = await load()
+    return defineComponent(() => () => h(ShortcutPresetTable, { app, platform: 'windows' }))
+  })
+})
 
 const matchingApps = computed(() => {
   const query = search.value.trim().toLowerCase()
-  return referenceEntries.flatMap(app => {
-    const windows = windowsApps.get(app.slug)
-    if (platform.value === 'windows' && !windows || platform.value === 'macos' && !app.mac) return []
-    const label = platform.value === 'windows' ? windows!.label : app.label
+  return guides.flatMap(entry => {
+    const label = platform.value === 'windows' ? entry.windowsLabel :
+      platform.value === 'macos' ? entry.macLabel : entry.macLabel ?? entry.windowsLabel
+    if (!label) return []
     if (label.toLowerCase().includes(query) ||
-        (platform.value === 'all' && windows?.label.toLowerCase().includes(query))) return [{ ...app, label }]
+        (platform.value === 'all' && entry.windowsLabel?.toLowerCase().includes(query))) {
+      const id = (entry.macAppId ?? entry.slug).toLowerCase().replaceAll('.', '-')
+      return [{ slug: entry.slug, id, label }]
+    }
     return []
   }).sort((a, b) => a.label.localeCompare(b.label))
 })
-
-function anchor(appId: string) {
-  return appId.toLowerCase().replaceAll('.', '-')
-}
 </script>
 
 <template>
@@ -60,7 +67,7 @@ function anchor(appId: string) {
       <p role="status">{{ matchingApps.length ? '' : 'No matching apps.' }}</p>
     </div>
     <ul class="preset-list" aria-label="Application shortcut guides">
-      <li v-for="entry in matchingApps" :id="anchor(entry.appId)" :key="entry.appId">
+      <li v-for="entry in matchingApps" :id="entry.id" :key="entry.slug">
         <a :href="`/reference/shortcut-presets/${entry.slug}`">
           <span>{{ entry.label }}</span>
           <span class="preset-chevron" aria-hidden="true"></span>
@@ -68,18 +75,18 @@ function anchor(appId: string) {
       </li>
     </ul>
   </template>
-  <template v-else-if="macApp && windowsApp">
+  <template v-else-if="macTable && windowsTable">
     <details id="windows-shortcuts">
       <summary>Windows shortcuts</summary>
-      <ShortcutPresetTable :app="windowsApp" platform="windows" />
+      <component :is="windowsTable" />
     </details>
     <details id="macos-shortcuts" open>
       <summary>macOS shortcuts</summary>
-      <ShortcutPresetTable :app="macApp" platform="macos" />
+      <component :is="macTable" />
     </details>
   </template>
-  <ShortcutPresetTable v-else-if="windowsApp" :app="windowsApp" platform="windows" />
-  <ShortcutPresetTable v-else-if="macApp" :app="macApp" platform="macos" />
+  <component v-else-if="windowsTable" :is="windowsTable" />
+  <component v-else-if="macTable" :is="macTable" />
 </template>
 
 <style scoped>
