@@ -2520,6 +2520,16 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
     "pickerKey": "companion_output_volume",
     "allowInSubpage": true,
     "domains": [],
+    "options": [
+      {
+        "name": "computer",
+        "label": "Paired computer",
+        "kind": "text",
+        "omitDefault": true,
+        "hidden": true,
+        "docsHidden": true
+      }
+    ],
     "normalization": {
       "fields": {
         "entity": {
@@ -2550,11 +2560,13 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
           "policy": "clear"
         },
         "options": {
-          "policy": "clear"
+          "policy": "keep"
         }
       },
       "unknownOptions": "drop",
-      "canonicalOptionOrder": []
+      "canonicalOptionOrder": [
+        "computer"
+      ]
     },
     "default": {
       "entity": "",
@@ -2573,6 +2585,16 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
     "pickerLabel": "Sound",
     "allowInSubpage": true,
     "domains": [],
+    "options": [
+      {
+        "name": "computer",
+        "label": "Paired computer",
+        "kind": "text",
+        "omitDefault": true,
+        "hidden": true,
+        "docsHidden": true
+      }
+    ],
     "normalization": {
       "fields": {
         "entity": {
@@ -2608,11 +2630,13 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
           "policy": "clear"
         },
         "options": {
-          "policy": "clear"
+          "policy": "keep"
         }
       },
       "unknownOptions": "drop",
-      "canonicalOptionOrder": []
+      "canonicalOptionOrder": [
+        "computer"
+      ]
     },
     "default": {
       "entity": "media.output_volume",
@@ -2631,6 +2655,16 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
     "pickerKey": "companion_output_volume",
     "allowInSubpage": true,
     "domains": [],
+    "options": [
+      {
+        "name": "computer",
+        "label": "Paired computer",
+        "kind": "text",
+        "omitDefault": true,
+        "hidden": true,
+        "docsHidden": true
+      }
+    ],
     "normalization": {
       "fields": {
         "entity": {
@@ -2661,11 +2695,13 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
           "policy": "clear"
         },
         "options": {
-          "policy": "clear"
+          "policy": "keep"
         }
       },
       "unknownOptions": "drop",
-      "canonicalOptionOrder": []
+      "canonicalOptionOrder": [
+        "computer"
+      ]
     },
     "default": {
       "entity": "",
@@ -2684,6 +2720,16 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
     "pickerKey": "companion_output_volume",
     "allowInSubpage": true,
     "domains": [],
+    "options": [
+      {
+        "name": "computer",
+        "label": "Paired computer",
+        "kind": "text",
+        "omitDefault": true,
+        "hidden": true,
+        "docsHidden": true
+      }
+    ],
     "normalization": {
       "fields": {
         "entity": {
@@ -2720,11 +2766,13 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
           "policy": "clear"
         },
         "options": {
-          "policy": "clear"
+          "policy": "keep"
         }
       },
       "unknownOptions": "drop",
-      "canonicalOptionOrder": []
+      "canonicalOptionOrder": [
+        "computer"
+      ]
     },
     "default": {
       "entity": "media.input_volume",
@@ -2743,6 +2791,16 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
     "pickerKey": "companion_output_volume",
     "allowInSubpage": true,
     "domains": [],
+    "options": [
+      {
+        "name": "computer",
+        "label": "Paired computer",
+        "kind": "text",
+        "omitDefault": true,
+        "hidden": true,
+        "docsHidden": true
+      }
+    ],
     "normalization": {
       "fields": {
         "entity": {
@@ -2778,11 +2836,13 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
           "policy": "clear"
         },
         "options": {
-          "policy": "clear"
+          "policy": "keep"
         }
       },
       "unknownOptions": "drop",
-      "canonicalOptionOrder": []
+      "canonicalOptionOrder": [
+        "computer"
+      ]
     },
     "default": {
       "entity": "media.output_mute",
@@ -2801,6 +2861,29 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
     "pickerKey": "companion_output_volume",
     "allowInSubpage": true,
     "domains": [],
+    "options": [
+      {
+        "name": "computer",
+        "label": "Paired computer",
+        "kind": "text",
+        "omitDefault": true,
+        "hidden": true,
+        "docsHidden": true
+      },
+      {
+        "name": "hold_action",
+        "label": "Hold action",
+        "kind": "choice",
+        "values": [
+          "",
+          "end_call"
+        ],
+        "defaultValue": "",
+        "omitDefault": true,
+        "hidden": true,
+        "docsHidden": true
+      }
+    ],
     "normalization": {
       "fields": {
         "entity": {
@@ -2838,11 +2921,14 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
           "policy": "clear"
         },
         "options": {
-          "policy": "clear"
+          "policy": "keep"
         }
       },
       "unknownOptions": "drop",
-      "canonicalOptionOrder": []
+      "canonicalOptionOrder": [
+        "computer",
+        "hold_action"
+      ]
     },
     "default": {
       "entity": "media.input_mute",
@@ -2861,6 +2947,16 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
     "pickerKey": "companion_output_volume",
     "allowInSubpage": true,
     "domains": [],
+    "options": [
+      {
+        "name": "computer",
+        "label": "Paired computer",
+        "kind": "text",
+        "omitDefault": true,
+        "hidden": true,
+        "docsHidden": true
+      }
+    ],
     "normalization": {
       "fields": {
         "entity": {
@@ -2895,11 +2991,13 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
           "policy": "clear"
         },
         "options": {
-          "policy": "clear"
+          "policy": "keep"
         }
       },
       "unknownOptions": "drop",
-      "canonicalOptionOrder": []
+      "canonicalOptionOrder": [
+        "computer"
+      ]
     },
     "default": {
       "entity": "",
@@ -2917,6 +3015,16 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
     "label": "OBS Input Cough",
     "allowInSubpage": true,
     "domains": [],
+    "options": [
+      {
+        "name": "computer",
+        "label": "Paired computer",
+        "kind": "text",
+        "omitDefault": true,
+        "hidden": true,
+        "docsHidden": true
+      }
+    ],
     "normalization": {
       "fields": {
         "entity": {
@@ -2954,11 +3062,13 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
           "policy": "clear"
         },
         "options": {
-          "policy": "clear"
+          "policy": "keep"
         }
       },
       "unknownOptions": "drop",
-      "canonicalOptionOrder": []
+      "canonicalOptionOrder": [
+        "computer"
+      ]
     },
     "default": {
       "entity": "",
@@ -2977,6 +3087,16 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
     "pickerLabel": "Lock Machine",
     "allowInSubpage": true,
     "domains": [],
+    "options": [
+      {
+        "name": "computer",
+        "label": "Paired computer",
+        "kind": "text",
+        "omitDefault": true,
+        "hidden": true,
+        "docsHidden": true
+      }
+    ],
     "normalization": {
       "fields": {
         "entity": {
@@ -3009,11 +3129,13 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
           "policy": "clear"
         },
         "options": {
-          "policy": "clear"
+          "policy": "keep"
         }
       },
       "unknownOptions": "drop",
-      "canonicalOptionOrder": []
+      "canonicalOptionOrder": [
+        "computer"
+      ]
     },
     "default": {
       "entity": "shortcut.command+control+q",
@@ -3035,6 +3157,14 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
       {
         "name": "generated_card_exclusions",
         "label": "Customized automatic cards",
+        "kind": "text",
+        "omitDefault": true,
+        "hidden": true,
+        "docsHidden": true
+      },
+      {
+        "name": "computer",
+        "label": "Paired computer",
         "kind": "text",
         "omitDefault": true,
         "hidden": true,
@@ -3184,6 +3314,7 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
       },
       "unknownOptions": "drop",
       "canonicalOptionOrder": [
+        "computer",
         "custom_icon",
         "app_shortcuts",
         "url_open_behavior",
@@ -4358,6 +4489,7 @@ export const CARD_CONTRACT_OPTION_NAMES: Readonly<Record<string, string>> = {
   "app_shortcuts_tabs": "app_shortcuts_tabs",
   "apple_shortcuts_hidden": "apple_shortcuts_hidden",
   "climate_tabs": "climate_tabs",
+  "computer": "computer",
   "confirm_message": "confirm_message",
   "confirm_no": "confirm_no",
   "confirm_off": "confirm_off",
@@ -4377,6 +4509,7 @@ export const CARD_CONTRACT_OPTION_NAMES: Readonly<Record<string, string>> = {
   "garage_mode": "garage_mode",
   "gate_mode": "gate_mode",
   "generated_card_exclusions": "generated_card_exclusions",
+  "hold_action": "hold_action",
   "icon_display": "icon_display",
   "image_icon": "image_icon",
   "image_label": "image_label",

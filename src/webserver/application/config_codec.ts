@@ -609,6 +609,8 @@ export function createConfigCodecFeature(
                 options = copyLargeNumbersOption("", options);
                 if (configOptionEnabled(b?.options, "stat_labels_off"))
                     options = options ? options + ",stat_labels_off" : "stat_labels_off";
+                const computer = configOptionValue(b?.options, "computer");
+                if (computer) options = setConfigOptionValue(options, "computer", computer);
             } else options = normalizeCompanionCardOptions({
                     ...(b || {}),
                     type,
@@ -647,7 +649,7 @@ export function createConfigCodecFeature(
         else if (isActionOptionSelect || isFanCardType(type)) {
             options = "";
         }
-        else if (type !== "action" && type !== "alarm_action" && !isClimateCardType(type) && type !== "cover" && type !== "garage" && type !== "gate" && type !== "media" && type !== "presence" && type !== "light_control" && type !== "fan_control" && type !== "weather" && !cardLargeNumbersSupported({ type: type, precision: precision })) {
+        else if (type !== "action" && type !== "alarm_action" && !isClimateCardType(type) && type !== "cover" && type !== "garage" && type !== "gate" && type !== "media" && type !== "presence" && type !== "light_control" && type !== "fan_control" && type !== "weather" && type !== "companion" && !type.startsWith("companion_") && !cardLargeNumbersSupported({ type: type, precision: precision })) {
             options = "";
         }
         if (type === "image") {
@@ -865,6 +867,7 @@ export function createConfigCodecFeature(
             var sp: any = parseSubpageConfig(combined);
             const retired = removeRetiredSubpageRecords(combined, sp.buttons, isRetiredLayoutCard);
             sp.sizes = sp.sizes || {};
+            sp.screen = pageDepth(Number(slot)) === 1 && Number(slot) > layout.numSlots;
             var layoutNormalized: any = buildSubpageGridAndNormalizeOrder(sp);
             state.subpages[slot] = sp;
             if (retired.slots.size)
@@ -888,6 +891,7 @@ export function createConfigCodecFeature(
         else if (!subpage.backLabel) {
             subpage.backLabel = backLabelFromOrder(subpage.order);
         }
+        subpage.screen = pageDepth(Number(homeSlot)) === 1 && Number(homeSlot) > layout.numSlots;
         return subpage;
     }
     function buildSubpageGrid(this: any, sp?: any) {
@@ -906,7 +910,7 @@ export function createConfigCodecFeature(
         return JSON.stringify(sp.order) !== previousOrder;
     }
     function serializeSubpageGrid(this: any, sp?: any) {
-        return EspDesktopModel.serializeSubpageGrid(sp.grid, sp.sizes || {}, sp.backLabel || "Back", sp.backColor, sp.title);
+        return EspDesktopModel.serializeSubpageGrid(sp.grid, sp.sizes || {}, sp.backLabel || "Back", sp.backColor, sp.title, sp.screen === true);
     }
     function enterSubpage(this: any, homeSlot?: any) {
         if (!pageDepth(Number(homeSlot))) return;

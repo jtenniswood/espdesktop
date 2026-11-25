@@ -330,6 +330,35 @@ function composeApplicationContext(liveGeneratedActions: () => readonly Companio
     clearPlaceholder: () => { interactions.clearPlaceholder(); },
     updatePreviewHint: () => { selection.updatePreviewHint(); },
     renderPreview: () => { preview.render(); },
+    screenKeys: () => Object.keys(AppInstance.state.subpages).map(Number)
+      .filter((key) => key > layout.numSlots && key <= 32).sort((a, b) => a - b),
+    enterScreen: (key) => {
+      AppInstance.state.editingSubpage = key;
+      AppInstance.state.subpageSelectedSlots = [];
+      AppInstance.state.subpageLastClicked = -1;
+      if (key != null) configurationCodec.buildSubpageGrid(configurationCodec.getSubpage(key));
+      preview.render();
+      buttonSettings.render();
+    },
+    addScreen: async () => {
+      const used = new Set(shell.screenKeys());
+      let key = layout.numSlots + 1;
+      while (key <= 32 && used.has(key)) key++;
+      if (key > 32) return false;
+      const result = await nativePanelConfig.writeSubpage(key, "B");
+      if (result !== "saved" && result !== "mirror-failed") return false;
+      configurationCodec.getSubpage(key);
+      shell.enterScreen(key);
+      return true;
+    },
+    removeScreen: async (key) => {
+      const result = await nativePanelConfig.writeSubpage(key, "");
+      if (result !== "saved" && result !== "mirror-failed") return false;
+      delete AppInstance.state.subpages[key];
+      if (AppInstance.state.editingSubpage === key) shell.enterScreen(null);
+      preview.render();
+      return true;
+    },
   });
   let confirmationOptions: ReturnType<typeof createConfigConfirmationOptionsFeature>;
   let clockBarState: ClockBarFeature;

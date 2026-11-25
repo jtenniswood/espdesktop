@@ -721,6 +721,11 @@ export function createWebStyles(dragAnimation: boolean): string {
         ".sp-companion-code-dash{color:var(--text2);text-align:center}" +
         ".sp-companion-copy{flex-shrink:0}.sp-companion-copy-feedback{font-size:var(--text-sm);color:var(--text2)}.sp-companion-copy-feedback:empty{display:none}" +
         ".sp-companion-actions{display:flex;flex-wrap:wrap;gap:8px}" +
+        ".sp-companion-computers{display:grid;gap:8px;margin:0 0 16px}" +
+        ".sp-companion-computer{display:flex;align-items:center;gap:10px;padding:8px 10px;border:1px solid var(--border);border-radius:10px}" +
+        ".sp-companion-computer-name{flex:1 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;font-weight:600}" +
+        ".sp-companion-computer-state{font-size:var(--text-sm);color:var(--text2)}" +
+        ".sp-companion-computer .sp-action-btn{margin-left:auto}" +
         ".sp-backup-btn{flex:1;display:flex;align-items:center;justify-content:center;gap:8px;" +
         "padding:10px 16px;border:1px solid var(--border);border-radius:var(--action-r);font-size:.8rem;font-weight:500;" +
         "cursor:pointer;font-family:inherit;transition:all .25s;background:var(--surface2);" +
