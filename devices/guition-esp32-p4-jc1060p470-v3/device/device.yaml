@@ -39,9 +39,9 @@ esp32:
       loop_task_stack_size: 16384
     sdkconfig_options:
       CONFIG_SDMMC_HOST_DEFAULT: "y"
-      # Leave room for the web editor, artwork, OTA, and the four sockets
-      # reserved by the Companion TLS listener and its clients.
-      CONFIG_LWIP_MAX_SOCKETS: "19"
+      # Reserve sockets for the native API, Companion, web editor, artwork,
+      # OTA, and mDNS. ESPHome calculates a minimum of 22 for this panel.
+      CONFIG_LWIP_MAX_SOCKETS: "22"
       # HTTPS firmware checks need more stack on ESP32-P4; the default main
       # task stack can trip the stack protector during mbedTLS setup.
       CONFIG_ESP_MAIN_TASK_STACK_SIZE: "8192"
