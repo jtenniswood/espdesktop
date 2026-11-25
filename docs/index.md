@@ -1,7 +1,7 @@
 ---
-title: "EspDesktop: A touchscreen controller for your Mac"
+title: "EspDesktop: A touchscreen controller for Mac and Windows"
 titleTemplate: :title
-description: Launch apps, open websites and folders, and run keyboard shortcuts from a 4-inch touchscreen paired with the free EspDesktop Mac app.
+description: Launch apps, open websites and folders, and run keyboard shortcuts from a 4-inch touchscreen paired with the free EspDesktop app for macOS or Windows 11.
 layout: home
 ---
 
@@ -9,15 +9,13 @@ layout: home
 
 <div>
 
-# A touchscreen controller *for your Mac*
+# Touchscreen control *for Mac and Windows*
 
-EspDesktop turns a 4-inch ESP32-based touchscreen into a controller for opening apps, visiting websites and running keyboard shortcuts on your Mac for less than **$26/£20**. Pair it over your local network with the free Mac app.
+Launch apps, open folders and websites, and run keyboard shortcuts from a 4-inch touchscreen for less than **$26/£20**. Pair it over Wi-Fi with the free EspDesktop app.
 
 <div class="homepage-action">
 
 [Get started](/screens/4848s040)
-
-[Windows 11 preview](/windows-preview)
 
 </div>
 
@@ -47,9 +45,9 @@ EspDesktop turns a 4-inch ESP32-based touchscreen into a controller for opening 
   <rect x="14" y="14" width="7" height="7" rx="1.5" />
 </svg>
 
-### Launch Mac apps
+### Launch apps
 
-Open or switch to apps like Slack, Mail and Figma. Adjust app volume or mute your mic from the touchscreen.
+Open or switch to apps like Slack and Figma. Adjust speaker volume or mute your mic from the touchscreen.
 
 [Apps](/mac-controls/apps)
 
@@ -94,7 +92,7 @@ Give Downloads, client files or your current project a tile of its own.
 
 ### Run keyboard shortcuts
 
-Turn key combinations into labelled buttons. Shortcut pages can follow the app you’re using, such as Safari or Figma.
+Turn key combinations into labelled buttons. Shortcut pages can follow the app you’re using, such as Slack or Figma.
 
 [Keyboard shortcuts](/mac-controls/shortcuts#create-a-shortcut-card)
 
@@ -108,7 +106,7 @@ Turn key combinations into labelled buttons. Shortcut pages can follow the app y
 
 ### Run Apple Shortcuts
 
-Run an Apple Shortcuts workflow with one tap, or group your workflows on a page of their own.
+On macOS, run an Apple Shortcuts workflow with one tap, or group your workflows on a page of their own.
 
 [Apple Shortcuts](/mac-controls/apple-shortcuts)
 
@@ -123,7 +121,7 @@ Run an Apple Shortcuts workflow with one tap, or group your workflows on a page 
 
 ### Control OBS Studio
 
-Switch scenes, mute audio inputs, and start or stop streaming and recording from your touchscreen.
+Switch scenes from your touchscreen. On macOS, you can also mute audio inputs and control streaming and recording.
 
 [OBS Studio controls](/mac-controls/obs-studio)
 
@@ -139,7 +137,7 @@ Switch scenes, mute audio inputs, and start or stop streaming and recording from
 
 ## EspDesktop in action {#a-look-at-the-web-editor}
 
-Tap Safari, Slack, Notes, ChatGPT, or Claude to see their keyboard shortcuts, or tap Finder to see its folders. Tap the app icon on any subpage to go back home.
+In this macOS example, tap an app such as Slack to see its keyboard shortcuts, or tap Finder to see its folders. Tap the app icon on any subpage to go back home.
 
 <div class="homepage-editor-actions">
 

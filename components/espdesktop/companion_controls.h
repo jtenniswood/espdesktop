@@ -55,26 +55,32 @@ inline void companion_clear_pending_action(CompanionPendingAction &pending) {
 
 inline bool companion_expect_action_result(
     const std::string &request_id, const std::string &expected_application_id,
-    CompanionActionResultHandler success, uint32_t expires_at = 0) {
+    CompanionActionResultHandler success, uint32_t expires_at = 0,
+    CompanionActionSuccess expected_success = CompanionActionSuccess::ACTIVATED) {
   if (request_id.empty() || !success) return false;
   auto &pending = companion_pending_actions();
   std::lock_guard<std::mutex> lock(pending.mutex);
-  auto entry = std::find_if(pending.entries.begin(), pending.entries.end(),
-    [&request_id](const CompanionPendingAction &candidate) {
-      return candidate.request_id.empty() || candidate.request_id == request_id;
-    });
-  if (entry == pending.entries.end()) return false;
+  const auto middle = pending.entries.begin() + CompanionPendingActions::MAX_PENDING;
+  const bool performed = expected_success == CompanionActionSuccess::PERFORMED;
+  const auto first = performed ? middle : pending.entries.begin();
+  const auto end = performed ? pending.entries.end() : middle;
+  auto entry = std::find_if(first, end, [&request_id](const CompanionPendingAction &candidate) {
+    return candidate.request_id.empty() || candidate.request_id == request_id;
+  });
+  if (entry == end) return false;
   entry->request_id = request_id;
   entry->expected_application_id = expected_application_id;
   entry->expires_at = expires_at;
+  entry->expected_success = expected_success;
   entry->success = std::move(success);
   return true;
 }
 
 inline bool companion_expect_action_result(const std::string &request_id,
                                            CompanionActionResultHandler success,
-                                           uint32_t expires_at = 0) {
-  return companion_expect_action_result(request_id, "", std::move(success), expires_at);
+                                           uint32_t expires_at = 0,
+                                           CompanionActionSuccess expected_success = CompanionActionSuccess::ACTIVATED) {
+  return companion_expect_action_result(request_id, "", std::move(success), expires_at, expected_success);
 }
 
 inline void companion_cancel_action_result(const std::string &request_id = "") {
@@ -117,7 +123,9 @@ inline void companion_deliver_action_result(const std::string &request_id,
     // that a launched application is frontmost. Older builds report
     // "performed" as soon as launch scheduling succeeds, which is not safe
     // enough to expose keyboard shortcuts.
-    if (status == "activated") success = std::move(entry->success);
+    const char *expected = entry->expected_success == CompanionActionSuccess::PERFORMED
+      ? "performed" : "activated";
+    if (status == expected) success = std::move(entry->success);
     companion_clear_pending_action(*entry);
   }
   if (success) success();
@@ -862,6 +870,8 @@ struct CompanionCardRef {
   const char *obs_mute_icon_on = nullptr;
   lv_obj_t *obs_detail = nullptr;
   lv_obj_t *obs_state_icon = nullptr;
+  lv_obj_t *shortcut_detail = nullptr;
+  uint32_t shortcut_binding = 0;
 };
 
 struct CompanionSliderRef {
@@ -1027,7 +1037,7 @@ inline lv_obj_t *companion_create_card_detail(lv_obj_t *button) {
   return detail;
 }
 
-inline void companion_layout_mic_detail(lv_obj_t *title, lv_obj_t *detail) {
+inline void companion_layout_card_detail(lv_obj_t *title, lv_obj_t *detail) {
   const auto *font = lv_obj_get_style_text_font(detail, LV_PART_MAIN);
   const int height = lv_font_get_line_height(font);
   lv_obj_set_height(detail, height);
@@ -1157,7 +1167,7 @@ inline void companion_setup_mic_mute_detail(lv_obj_t *button, const lv_font_t *f
       sync_card_checked_text_color(button);
     }
     if (font) lv_obj_set_style_text_font(ref.detail_label, font, LV_PART_MAIN);
-    companion_layout_mic_detail(ref.text_label, ref.detail_label);
+    companion_layout_card_detail(ref.text_label, ref.detail_label);
     return;
   }
 }
@@ -1200,7 +1210,11 @@ inline void companion_track_card(lv_obj_t *button, const std::string &action_id,
     // The periodic config tracker does not have the label pointer. Preserve
     // the pointer registered while the card was rendered so state updates can
     // continue replacing the Play/Pause label.
-    if (text_label) existing->text_label = text_label;
+    if (text_label) {
+      existing->text_label = text_label;
+      existing->shortcut_detail = nullptr;
+      existing->shortcut_binding = 0;
+    }
     existing->metric_key.clear();
     existing->metric_unit.clear();
     existing->value_label = nullptr;
@@ -1255,7 +1269,7 @@ inline void companion_render_obs_detail(CompanionCardRef &ref, const std::string
     const bool muted = state == OBSCardState::audio_muted;
     companion_render_mic_detail(ref.obs_detail, snapshot.connected &&
       (muted || state == OBSCardState::audio_live), muted);
-    if (!refreshing) companion_layout_mic_detail(ref.text_label, ref.obs_detail);
+    if (!refreshing) companion_layout_card_detail(ref.text_label, ref.obs_detail);
     return;
   }
   const std::string separator = " · ";
