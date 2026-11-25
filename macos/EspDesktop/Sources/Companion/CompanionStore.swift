@@ -231,6 +231,11 @@ final class CompanionStore: NSObject, ObservableObject {
             name: NSWorkspace.didActivateApplicationNotification,
             object: nil
         )
+        for name in [NSWorkspace.didMountNotification, NSWorkspace.didUnmountNotification] {
+            NSWorkspace.shared.notificationCenter.addObserver(
+                self, selector: #selector(applicationVolumeDidChange(_:)), name: name, object: nil
+            )
+        }
         NotificationCenter.default.addObserver(
             self,
             selector: #selector(systemTimeZoneDidChange(_:)),
@@ -331,6 +336,10 @@ final class CompanionStore: NSObject, ObservableObject {
     private var applicationScan: Task<Void, Never>?
     private var applicationRefreshPending = false
     private(set) var applicationCatalogueReady = false
+
+    @objc private func applicationVolumeDidChange(_ notification: Notification) {
+        refreshApplications()
+    }
 
     func refreshApplications() {
         guard applicationScan == nil else {
