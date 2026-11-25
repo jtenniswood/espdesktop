@@ -86,6 +86,8 @@ const CARD_TYPE_PICKER_DETAILS: Readonly<Record<string, PickerDetails>> = {
   companion_shortcut: { icon: "keyboard-outline", description: "Run a keyboard shortcut on the paired computer." },
   companion_subpage: { icon: "view-grid-plus", description: "Open a nested page of Companion cards." },
   companion_url: { icon: "web", description: "Open a website in the paired computer’s browser." },
+  companion_brightness: { icon: "weather-sunny", description: "Adjust the paired computer’s screen brightness." },
+  companion_system: { icon: "weather-sunny", description: "Brighten or dim the paired computer’s screen." },
   cover: { icon: "window-shutter", description: "Control blinds, curtains, or covers." },
   door_window: { icon: "door-open", description: "Show open or closed sensor state." },
   presence: { icon: "account", description: "Show person or presence status." },
@@ -128,6 +130,8 @@ const CARD_TYPE_PICKER_DEFAULTS: Readonly<Record<string, string>> = {
   companion_shortcut: "companion",
   companion_subpage: "subpage",
   companion_url: "companion",
+  companion_system: "companion",
+  companion_brightness: "slider",
 };
 
 const MAC_COMPANION_HIDDEN_CARD_TYPES = new Set([
@@ -151,7 +155,7 @@ export function cardPickerConnectors(
 export function cardTypeVisibleForConnector(key: string, connector: CardPickerConnector): boolean {
   return connector === "mac_companion" &&
     !MAC_COMPANION_HIDDEN_CARD_TYPES.has(key) &&
-    (key === "companion_obs_fader" || cardContractAvailability(defaultCardTypeForPicker(key)) === "stable") &&
+    (key === "companion_obs_fader" || key === "companion_brightness" || cardContractAvailability(defaultCardTypeForPicker(key)) === "stable") &&
     cardTypeConnector(key) !== "home_assistant";
 }
 

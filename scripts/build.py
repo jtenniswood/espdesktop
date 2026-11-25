@@ -439,6 +439,16 @@ def load_companion_capabilities_data():
     if any(control["width"] not in (1, 2) or not control["label"] for control in data["obsScenePageControls"]):
         raise BuildError("Invalid OBS scene footer controls")
 
+    if not isinstance(data.get("systemActions"), list) or not data["systemActions"]:
+        raise BuildError("Companion capability registry requires a non-empty systemActions list")
+    system_ids = []
+    for action in data["systemActions"]:
+        if not all(isinstance(action.get(key), str) and action[key] for key in ("id", "label", "icon")) or not action["id"].startswith("system."):
+            raise BuildError("Each Companion system action requires a system.* id, label, and icon")
+        system_ids.append(action["id"])
+    if len(system_ids) != len(set(system_ids)):
+        raise BuildError("Companion system action ids must be unique")
+
     identifiers = []
     for metric in data["systemMetrics"]:
         if not all(isinstance(metric.get(key), str) and (metric[key] or key == "unit") for key in ("mode", "id", "label", "labelKey", "unit")):
@@ -839,6 +849,7 @@ def gen_companion_capabilities_ts(data):
         f"export const COMPANION_APP_ICON_SIDE = {protocol['appIconSide']} as const;\n"
         f"export const COMPANION_APP_ICONS_CAPABILITY = {json.dumps(protocol['appIconsCapability'])} as const;\n"
         f"export const COMPANION_APP_ICONS_ALPHA_CAPABILITY = {json.dumps(protocol['appIconsAlphaCapability'])} as const;\n"
+        f"export const COMPANION_SYSTEM_ACTIONS = {companion_ts_literal(data['systemActions'])} as const;\n"
         f"export const COMPANION_CARD_MODES = {companion_ts_literal(data['cardModes'])} as const satisfies readonly CompanionCardMode[];\n"
         f"export const OBS_CONFIRMATION_CONTROLS = {companion_ts_literal(data['obsConfirmationControls'])} as const;\n"
         f"export const OBS_SCENE_PAGE_CONTROLS = {companion_ts_literal(data['obsScenePageControls'])} as const;\n"
@@ -964,6 +975,7 @@ def gen_companion_capabilities_swift(data):
         f"    static let appIconsCapability = {json.dumps(data['protocol']['appIconsCapability'])}\n",
         f"    static let appIconsAlphaCapability = {json.dumps(data['protocol']['appIconsAlphaCapability'])}\n",
         f"    static let appIconsHighResolutionCapability = {json.dumps(data['protocol']['appIconsHighResolutionCapability'])}\n",
+        "    static let systemActions: [String: String] = [" + ", ".join(json.dumps(item["id"]) + ": " + json.dumps(item["label"]) for item in data["systemActions"]) + "]\n",
         "    static let protocolMessages: Set<String> = [\n",
     ]
     lines.extend(f"        {json.dumps(item['id'])},\n" for item in data["protocol"]["messages"])
@@ -1035,10 +1047,10 @@ def sync_companion_capabilities(check_only=False):
         "and SHA-256 checksums of the matching firmware and Mac artifacts. Automated tests do not assert "
         "physical device validation. Independent Mac/firmware release delivery is not yet enabled.\n"))
     manifest = {
-        "source": str(COMPANION_CAPABILITIES_JSON.relative_to(ROOT)),
-        "appShortcutSources": [str(path.relative_to(ROOT)) for path in sorted((ROOT / "product/v2/app_shortcuts").glob("*.json")) if path.name != "manifest.json"],
+        "source": COMPANION_CAPABILITIES_JSON.relative_to(ROOT).as_posix(),
+        "appShortcutSources": [path.relative_to(ROOT).as_posix() for path in sorted((ROOT / "product/v2/app_shortcuts").glob("*.json")) if path.name != "manifest.json"],
         "generator": "python3 scripts/build.py companion",
-        "outputs": [str(path.relative_to(ROOT)) for path, _content in outputs],
+        "outputs": [path.relative_to(ROOT).as_posix() for path, _content in outputs],
     }
     outputs.append((COMPANION_GENERATED_MANIFEST, json.dumps(manifest, indent=2) + "\n"))
     dirty = [path.relative_to(ROOT) for path, content in outputs if not path.exists() or path.read_text() != content]

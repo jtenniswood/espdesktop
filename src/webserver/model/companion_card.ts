@@ -14,7 +14,8 @@ export type CompanionCardModel =
   | { readonly mode: "folder"; readonly folderId: string }
   | { readonly mode: "obs" | "obs_mic" | "obs_studio" | "obs_take" | "obs_transition" | "obs_status" | "obs_replay" | "obs_replay_buffer" | "obs_output" | "obs_brb"; readonly actionId: string }
   | { readonly mode: "apple_shortcut"; readonly actionId: string }
-  | { readonly mode: "stats"; readonly metricId: string; readonly precision: string; readonly unit: string };
+  | { readonly mode: "stats"; readonly metricId: string; readonly precision: string; readonly unit: string }
+  | { readonly mode: "system"; readonly actionId: string };
 
 export function companionCardModeContract(mode: unknown): CompanionCardMode | undefined {
   return COMPANION_CARD_MODES.find((candidate) => candidate.id === mode);

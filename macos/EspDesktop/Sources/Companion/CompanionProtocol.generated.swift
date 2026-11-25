@@ -271,7 +271,7 @@ enum CompanionProtocolDecoder {
             }
             let pattern = rule["pattern"] as? String
             if pattern == "volume_control_id" || pattern == "writable_volume_control_id" {
-                let macControls = ["media.output_volume", "media.input_volume", "media.output_mute", "media.input_mute", "media.cough"]
+                let macControls = ["media.output_volume", "media.input_volume", "media.output_mute", "media.input_mute", "media.cough", "display.brightness"]
                 return macControls.contains(text) || appVolumeBundleIdentifier(text) != nil ||
                     isInputDeviceControl(text) || OBSConnection.faderInputUUID(for: text) != nil ||
                     OBSConnection.coughInputUUID(for: text) != nil

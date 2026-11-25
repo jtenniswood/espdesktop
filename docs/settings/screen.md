@@ -23,6 +23,12 @@ Choose **Apply Configuration** at the bottom of the tab when you’re ready to r
 - **Backlight** controls brightness. Choose **Manual** for a fixed level, **Automatic** to follow sunrise and sunset, or **Timed** to set your own dawn and dusk times. Automatic and Timed let you set separate day and night levels.
 - **Rotation** turns the interface by 0°, 90°, 180° or 270° to match how the display is mounted.
 
+### Adjust your computer’s screen brightness {#mac-display-brightness}
+
+With current firmware and the paired Mac or Windows app, add **Companion → Display brightness** for a 0–100% slider. To add a button, choose **Companion → Screen brightness**, then select **Screen Brighter** or **Screen Dimmer**. Each tap requests a 10-point change, rounded to a level your screen supports.
+
+The slider follows brightness changes made on your computer. On macOS the cards control the main display when macOS exposes its brightness. On Windows the cards use the built-in screen when Windows exposes its brightness, or the primary monitor when it supports DDC/CI brightness control.
+
 ## Sleep & Schedule
 
 - **Screensaver** can dim the screen, show a clock or turn the display off. Choose **Timer** to start it after idle time, or **App Connection** to start it when your paired computer locks or disconnects.

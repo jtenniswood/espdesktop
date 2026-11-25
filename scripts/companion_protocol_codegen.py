@@ -68,7 +68,7 @@ inline bool input_device_control_id_valid(std::string_view id) {
 }
 inline bool writable_volume_control_id_valid(std::string_view id) {
   if (input_device_control_id_valid(id) || companion_writable_audio_control_id(id) ||
-      id == "media.cough" || companion_obs_cough_control(id)) return true;
+      id == "media.cough" || id == "display.brightness" || companion_obs_cough_control(id)) return true;
   constexpr std::string_view prefix = "app.volume.";
   if (id.size() <= prefix.size() || id.size() > 107 || id.substr(0, prefix.size()) != prefix)
     return false;
@@ -272,7 +272,7 @@ enum CompanionProtocolDirection: String { case panelToMac = "panel_to_mac", macT
             }
             let pattern = rule["pattern"] as? String
             if pattern == "volume_control_id" || pattern == "writable_volume_control_id" {
-                let macControls = ["media.output_volume", "media.input_volume", "media.output_mute", "media.input_mute", "media.cough"]
+                let macControls = ["media.output_volume", "media.input_volume", "media.output_mute", "media.input_mute", "media.cough", "display.brightness"]
                 return macControls.contains(text) || appVolumeBundleIdentifier(text) != nil ||
                     isInputDeviceControl(text) || OBSConnection.faderInputUUID(for: text) != nil ||
                     OBSConnection.coughInputUUID(for: text) != nil

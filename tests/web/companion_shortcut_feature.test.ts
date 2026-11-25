@@ -199,7 +199,7 @@ export function runCompanionShortcutFeatureTests(): void {
     COMPANION_SHORTCUT_APPS.pop();
   }
   const companionModes = companionCardModeOptions();
-  if (companionModes.map(([mode]) => mode).join() !== "app,shortcut,url,folder,obs,obs_mic,obs_studio,obs_take,obs_transition,obs_status,obs_replay,obs_replay_buffer,obs_output,obs_brb,apple_shortcut,stats" ||
+  if (companionModes.map(([mode]) => mode).join() !== "app,shortcut,url,folder,obs,obs_mic,obs_studio,obs_take,obs_transition,obs_status,obs_replay,obs_replay_buffer,obs_output,obs_brb,apple_shortcut,stats,system" ||
       companionCardModeValid("window") || companionCardModeValid("webapp") || companionCardModeValid("home_assistant") ||
       companionCardDefaultIcon("shortcut") !== "Keyboard") {
     throw new Error("Companion card modes must come from the generated product contract");
@@ -211,6 +211,21 @@ export function runCompanionShortcutFeatureTests(): void {
       encodeCompanionCard(appleShortcutModel, appleShortcutCard).entity !== appleShortcutID ||
       companionApplicationActions([{ id: appleShortcutID, label: "Start Design Session" }]).length !== 0) {
     throw new Error("Apple Shortcut cards must preserve their ID offline and stay separate from app launch cards");
+  }
+  if (decodeCompanionCard({ ...emptyCardConfig("companion"), entity: "system.default_browser", sensor: "url.https%3A%2F%2Fexample.com" }).mode !== "url") {
+    throw new Error("Mac screen actions must not hide the URL editor for default-browser cards");
+  }
+  for (const entity of ["system.brightness_up", "system.brightness_down"]) {
+    const card = { ...emptyCardConfig("companion"), entity };
+    normalizeCompanionCard(card);
+    if (decodeCompanionCard(card).mode !== "system" || companionAppIconEnabled(card)) {
+      throw new Error("Mac screen buttons must survive normalization without application artwork");
+    }
+  }
+  if (companionSliderMode({ entity: "display.brightness" }) !== "display_brightness" ||
+      companionSliderIcon("Microphone", "mac_input", "display_brightness") !== "Weather Sunny" ||
+      companionSliderIcon("Palette", "display_brightness", "mac_input") !== "Palette") {
+    throw new Error("Mac brightness sliders must use the correct mode and preserve custom icons");
   }
   const storageCard = { ...emptyCardConfig("companion"), entity: "stat.storage_free:external-volume" };
   const legacyOBSStatus = { ...emptyCardConfig("companion"), entity: "obs.status.record",

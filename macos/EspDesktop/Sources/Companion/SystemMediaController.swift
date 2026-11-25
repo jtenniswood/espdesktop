@@ -9,7 +9,9 @@ final class SystemMediaController {
     static let outputMuteID = "media.output_mute"
     static let inputMuteID = "media.input_mute"
     static let coughID = "media.cough"
-    static let volumeControlIDs = Set([outputVolumeID, inputVolumeID, outputMuteID, inputMuteID, coughID])
+    static let brightnessID = "display.brightness"
+    static let volumeControlIDs = Set([outputVolumeID, inputVolumeID, outputMuteID, inputMuteID, coughID, brightnessID])
+    private let displayBrightness = SystemDisplayBrightness()
 
     private struct DeviceKey: Hashable {
         let device: AudioDeviceID
@@ -134,6 +136,9 @@ final class SystemMediaController {
                 result[input.controlID] = Int((level * 100).rounded()).clampedPercentage
             }
         }
+        if let brightness = displayBrightness.value() {
+            result[Self.brightnessID] = brightness
+        }
         return result
     }
 
@@ -188,6 +193,9 @@ final class SystemMediaController {
     }
 
     func setValue(_ value: Int, controlIdentifier: String) -> Bool {
+        if controlIdentifier == Self.brightnessID {
+            return displayBrightness.setValue(value.clampedPercentage)
+        }
         if CompanionProtocolDecoder.isInputDeviceControl(controlIdentifier) {
             // Resolve the stable identifier against the current hardware before writing.
             guard let input = findInputDevices().first(where: { $0.controlID == controlIdentifier }) else { return false }

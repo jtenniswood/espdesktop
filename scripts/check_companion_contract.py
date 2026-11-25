@@ -46,7 +46,7 @@ def main() -> int:
     require(set(message_ids) == required_messages, "the typed message registry is incomplete")
 
     manifest = json.loads(MANIFEST.read_text())
-    require(manifest["source"] == str(CONTRACT.relative_to(ROOT)), "generated manifest source is wrong")
+    require(manifest["source"] == CONTRACT.relative_to(ROOT).as_posix(), "generated manifest source is wrong")
     require(manifest["generator"] == "python3 scripts/build.py companion", "generated command is wrong")
     outputs = [ROOT / path for path in manifest["outputs"]]
     require(len(outputs) >= 15 and all(path.is_file() for path in outputs), "generated outputs are missing")
