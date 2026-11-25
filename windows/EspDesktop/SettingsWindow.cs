@@ -8,6 +8,7 @@ using System.Security.Cryptography;
 using System.Windows;
 using System.Windows.Automation;
 using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
 using System.Windows.Input;
 using System.Windows.Interop;
 using System.Windows.Media;
@@ -53,7 +54,7 @@ internal sealed class SettingsWindow : Window
         public Task? Task { get; set; }
         public bool Forgetting { get; set; }
         public TextBlock Status { get; } = Paragraph("Disconnected");
-        public Button? ConnectionButton { get; set; }
+        public ToggleButton? ConnectionSwitch { get; set; }
     }
     private bool busy, scanning, discoveryChecked, appScanning, quitting, updateBusy, installerVerified;
     private WindowsRelease? release;
@@ -244,7 +245,7 @@ internal sealed class SettingsWindow : Window
         var cancellation = CancellationTokenSource.CreateLinkedTokenSource(lifetime.Token);
         display.Cancellation = cancellation;
         display.Task = RunConnection(display, cancellation);
-        UpdateConnectionButton(display);
+        UpdateConnectionSwitch(display);
     }
 
     private async Task RunConnection(DisplayConnection display, CancellationTokenSource cancellation)
@@ -275,20 +276,22 @@ internal sealed class SettingsWindow : Window
             display.Cancellation = null;
             display.Task = null;
             cancellation.Dispose();
-            UpdateConnectionButton(display);
+            UpdateConnectionSwitch(display);
         }
     }
 
-    private static void UpdateConnectionButton(DisplayConnection display)
+    private static void UpdateConnectionSwitch(DisplayConnection display)
     {
-        if (display.ConnectionButton is { } button)
-            button.Content = display.Cancellation == null ? "Connect" : "Disconnect";
+        if (display.ConnectionSwitch is not { } control) return;
+        control.IsEnabled = !display.Forgetting && display.Cancellation is not { IsCancellationRequested: true };
+        control.IsChecked = display.Cancellation is { IsCancellationRequested: false };
     }
 
     private async Task StopConnection(DisplayConnection display)
     {
         if (display.Task is not { } task) return;
         display.Cancellation?.Cancel();
+        UpdateConnectionSwitch(display);
         await task;
         display.Status.Text = "Disconnected";
         if (!quitting && displays.Count == 1) ConnectionStatusChanged?.Invoke("Disconnected");
@@ -547,10 +550,26 @@ internal sealed class SettingsWindow : Window
             if (display.Status.Parent is Panel previous) previous.Children.Remove(display.Status);
             AutomationProperties.SetLiveSetting(display.Status, AutomationLiveSetting.Polite);
             card.Children.Add(display.Status);
-            display.ConnectionButton = Button("Connect", async () => await ToggleConnection(display), !display.Forgetting);
-            UpdateConnectionButton(display);
+            var connectionSwitch = new ToggleButton
+            {
+                Content = "Connect to this display",
+                Style = ConnectionSwitchStyle.Value,
+            };
+            AutomationProperties.SetName(connectionSwitch, $"Connect to {saved.DisplayName ?? "this display"}");
+            display.ConnectionSwitch = connectionSwitch;
+            UpdateConnectionSwitch(display);
+            connectionSwitch.Checked += (_, _) =>
+            {
+                if (!quitting && !display.Forgetting && display.Cancellation is null) StartConnection(display);
+            };
+            connectionSwitch.Unchecked += async (_, _) =>
+            {
+                if (!quitting && !display.Forgetting && display.Cancellation is { IsCancellationRequested: false })
+                    await StopConnection(display);
+            };
+            card.Children.Add(connectionSwitch);
             Row(card, Button("Open display editor", () => OpenPanel(display.Pairing.Address)),
-                display.ConnectionButton, Button("Forget display", async () => await Forget(display), !display.Forgetting));
+                Button("Forget display", async () => await Forget(display), !display.Forgetting));
         }
         var permissions = Card("Windows integration");
         var shortcuts = Toggle("Allow keyboard shortcuts and screen lock", store.Settings.Shortcuts, value =>
@@ -835,6 +854,10 @@ internal sealed class SettingsWindow : Window
         check.Unchecked += (_, _) => apply(false);
         return check;
     }
+
+    private static readonly Lazy<Style> ConnectionSwitchStyle = new(() =>
+        (Style)((ResourceDictionary)Application.LoadComponent(
+            new Uri("/EspDesktop;component/ConnectionSwitch.xaml", UriKind.Relative)))["ConnectionSwitch"]);
 
     private static void Row(Panel parent, params UIElement[] elements)
     {

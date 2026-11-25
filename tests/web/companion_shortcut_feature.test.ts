@@ -201,7 +201,7 @@ export function runCompanionShortcutFeatureTests(): void {
   const companionModes = companionCardModeOptions();
   if (companionModes.map(([mode]) => mode).join() !== "app,shortcut,url,folder,obs,obs_mic,obs_studio,obs_take,obs_transition,obs_status,obs_replay,obs_replay_buffer,obs_output,obs_brb,apple_shortcut,stats" ||
       companionCardModeValid("window") || companionCardModeValid("webapp") || companionCardModeValid("home_assistant") ||
-      companionCardDefaultIcon("shortcut") !== "Shortcut Command") {
+      companionCardDefaultIcon("shortcut") !== "Keyboard") {
     throw new Error("Companion card modes must come from the generated product contract");
   }
   const appleShortcutID = "appleshortcut.00000000-0000-0000-0000-000000000001";
@@ -658,10 +658,10 @@ export function runCompanionShortcutFeatureTests(): void {
   if (companionSubtypeDefaultIcon("url") !== "Web" ||
       companionSubtypeDefaultIcon("folder") !== "Folder Outline" ||
       companionSubtypeDefaultIcon("stats") !== "Gauge" ||
-      companionSubtypeDefaultIcon("shortcut") !== "Shortcut Command") {
+      companionSubtypeDefaultIcon("shortcut") !== "Keyboard") {
     throw new Error("Companion subtypes must use their requested default icons");
   }
-  if (companionSubtypeIcon("Shortcut Command", "shortcut", "url") !== "Web") {
+  if (companionSubtypeIcon("Keyboard", "shortcut", "url") !== "Web") {
     throw new Error("Changing Companion subtypes must refresh a generated default icon");
   }
   if (companionSubtypeIcon("Star", "shortcut", "url") !== "Star") {
@@ -835,8 +835,8 @@ export function runCompanionShortcutFeatureTests(): void {
   }
   const shortcutCard = { entity: "shortcut.command+a", sensor: "", icon: "Monitor" };
   normalizeCompanionCard(shortcutCard);
-  if (shortcutCard.icon !== "Shortcut Command") {
-    throw new Error("Existing shortcut cards must adopt the command default icon");
+  if (shortcutCard.icon !== "Keyboard") {
+    throw new Error("Existing shortcut cards must adopt the keyboard default icon");
   }
   const folderCard = { entity: folderAction, sensor: "", icon: "Folder" };
   normalizeCompanionCard(folderCard);

@@ -14,7 +14,7 @@ Find the symptom you see on your 4848S040 or Mac.
 | [The Wi-Fi hotspot does not appear](#wifi-setup-and-reset-recovery) | Give the display up to 90 seconds and check the network name shown on the screen. |
 | [The Mac app cannot find the display](#the-display-does-not-appear-in-espdesktop) | Check that the Mac and display are on the same local network. |
 | [The display appears but will not pair](#the-display-will-not-pair) | Check for the code or a reset prompt on the touchscreen. |
-| [Keyboard shortcuts or Mac Lock do nothing](#a-card-does-not-work) | Check macOS Accessibility access for EspDesktop. |
+| [Keyboard shortcuts or Lock Machine do nothing](#a-card-does-not-work) | Check macOS Accessibility access for EspDesktop. |
 
 ## No USB port appears
 
@@ -68,7 +68,7 @@ If you have one display paired, **Support → Restart Setup** clears its pairing
 ## A card does not work
 
 - **App or folder:** confirm it is still approved in the Mac app’s **Apps** or **Folders** page.
-- **Keyboard shortcut or Mac Lock:** enable EspDesktop under **System Settings → Privacy & Security → Accessibility**. If these cards stopped working after replacing the app, remove the old EspDesktop entry and add the installed app again.
+- **Keyboard shortcut or Lock Machine:** enable EspDesktop under **System Settings → Privacy & Security → Accessibility**. If these cards stopped working after replacing the app, remove the old EspDesktop entry and add the installed app again.
 
 If an older card is marked unavailable, replace or remove it in the web editor. EspDesktop keeps the card’s settings in saved layouts and backups so you can identify it.
 

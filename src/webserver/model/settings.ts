@@ -2,7 +2,7 @@ export const APP_SUBPAGE_MODE = "companion_app_subpage_mode";
 export const DEFAULT_APP_SUBPAGE_MODE = "card";
 export const APP_SUBPAGE_MODES = [
   { value: "focus", label: "When the app gains focus",
-    description: "Open the subpage when you switch to the app on your Mac." },
+    description: "Open the subpage when you switch to the app on your computer." },
   { value: "card", label: "On app card press (default)",
     description: "Open the app and its subpage with one press on the display." },
   { value: "manual", label: "On a second app card press",

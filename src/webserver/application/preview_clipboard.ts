@@ -164,7 +164,7 @@ export function createPreviewClipboardFeature(
     }
     function validateCardTransferButton(button: any, inSubpage: any, warnings: any, homeAssistantEnabled = homeAssistantSupported()) {
         if (isMacAudioCard(button?.type, button?.entity)) {
-            throw cardTransferError("Mac Volume, Mic, and mute cards have been removed.");
+            throw cardTransferError("Legacy volume, microphone, and mute cards have been removed.");
         }
         var normalized: any = normalizeButtonConfig(EspDesktopModel.cloneCardConfig(button));
         var type: any = normalized.type || "";
