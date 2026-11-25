@@ -8127,7 +8127,7 @@ async function assertAppleShortcutSubpage(browser, directCard = false) {
   } finally { await context.close(); }
 }
 
-async function assertFinderCardPicker(browser) {
+async function assertFileFolderCardPicker(browser) {
   const testCase = CASES.find(item => item.slug === "guition-esp32-s3-4848s040");
   const fixture = nativeConfigState(testCase.slug);
   fixture.document.buttons = {};
@@ -8151,21 +8151,22 @@ async function assertFinderCardPicker(browser) {
     await page.evaluate(events => window.__seedEspState(events), nativeDocumentEvents(fixture.document));
     await page.locator('.sp-main[aria-disabled="false"]').waitFor();
     const emptyCell = page.locator(".sp-main .sp-empty-cell").first();
-    const group = page.getByRole("button", { name: "Finder Folder card type", exact: true });
+    const group = page.getByRole("button", { name: "File Folder card type", exact: true });
     const back = page.getByRole("button", { name: "Back to card types", exact: true });
     const save = page.getByRole("button", { name: "Save", exact: true });
     await emptyCell.click();
     await group.click();
+    assert.equal(await page.locator(".sp-section-title").filter({ hasText: /^File Folder$/ }).count(), 1);
     assert.equal(await back.evaluate(button => button === document.activeElement), true);
     assert.deepEqual(await page.locator("#sp-card-type-picker button").evaluateAll(
       buttons => buttons.map(button => button.getAttribute("aria-label"))),
-      ["Open Finder card type", "Open a folder card type"]);
+      ["Open folder subpage card type", "Open a folder card type"]);
     await back.click();
     assert.equal(await group.evaluate(button => button === document.activeElement), true);
     await group.click();
-    await page.getByRole("button", { name: "Open Finder card type", exact: true })
+    await page.getByRole("button", { name: "Open folder subpage card type", exact: true })
       .locator("img.sp-card-type-app-icon").waitFor();
-    await chooseCardType(page, "Open Finder");
+    await chooseCardType(page, "Open folder subpage");
     const application = page.getByRole("combobox", { name: "Application", exact: true });
     await application.getByRole("option", { name: "Finder", exact: true }).waitFor({ state: "attached" });
     assert.equal(await application.inputValue(), "com.apple.finder");
@@ -8199,7 +8200,7 @@ async function assertFinderCardPicker(browser) {
     const folderSlot = slotFor(folderId);
     assert.equal(parseRawButtonConfig(fixture.document.buttons[folderSlot]).label, "Projects");
     assert.equal(fixture.document.subpages[folderSlot], undefined);
-    console.log("Finder card picker, Back button, Finder subpage, and single folder shortcut passed.");
+    console.log("File Folder picker, Back button, folder subpage, and single folder shortcut passed.");
   } finally { await context.close(); }
 }
 
@@ -9228,7 +9229,7 @@ async function assertFirstRunSetup(browser) {
       return;
     }
     if (process.env.ESPDESKTOP_LIVE_FINDER_ONLY === "1") {
-      await assertFinderCardPicker(browser);
+      await assertFileFolderCardPicker(browser);
       await assertLiveFinderPreview(browser);
       return;
     }
@@ -9315,7 +9316,7 @@ async function assertFirstRunSetup(browser) {
     await assertAppleShortcutCard(browser);
     await assertAppleShortcutSubpage(browser);
     await assertAppleShortcutSubpage(browser, true);
-    await assertFinderCardPicker(browser);
+    await assertFileFolderCardPicker(browser);
     await assertRetiredCardRemoval(browser);
     if (process.env.ESPDESKTOP_RETIRED_CARDS_ONLY === "1") return;
     await assertMacLockCard(browser);

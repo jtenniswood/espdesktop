@@ -3069,7 +3069,7 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
       },
       {
         "name": "finder_open_behavior",
-        "label": "Finder Folder Open Behavior",
+        "label": "Folder Open Behavior",
         "kind": "choice",
         "values": [
           "new_window",
@@ -3082,7 +3082,7 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
       },
       {
         "name": "finder_open_override",
-        "label": "Finder Folder Open Override",
+        "label": "Folder Open Override",
         "kind": "flag",
         "omitDefault": true,
         "hidden": true,

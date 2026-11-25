@@ -66,7 +66,7 @@ const CARD_TYPE_PICKER_DETAILS: Readonly<Record<string, PickerDetails>> = {
   companion_apple_shortcut: { icon: "flash", description: "Add one card that runs a selected Apple Shortcut." },
   companion_apple_shortcuts: { icon: "flash", description: "Add a card that opens a subpage of Apple Shortcuts workflows." },
   companion_app: { icon: "application-outline", description: "Launch a Mac app and set up a subpage for its keyboard shortcuts." },
-  companion_folder: { icon: "folder", description: "Open Finder with a folder subpage or add a shortcut to one folder." },
+  companion_folder: { icon: "folder", description: "Open a folder subpage or add a shortcut to a single folder." },
   companion_output_volume: { icon: "volume-high", description: "Control speakers, mics, and apps." },
   companion_output_mute: { icon: "volume-off", description: "Mute or unmute the Mac’s sound output." },
   companion_input_mute: { icon: "microphone-off", description: "Mute or unmute the Mac’s microphone." },

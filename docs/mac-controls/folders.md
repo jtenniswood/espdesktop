@@ -1,11 +1,11 @@
 ---
-title: Open Finder Folders from Your Touchscreen
-description: Add an approved Finder folder to EspDesktop and open it from a touchscreen tile. Group project folders together on a Finder subpage.
+title: Open File Folders from Your Touchscreen
+description: Add an approved folder to EspDesktop and open it from a touchscreen tile. Group project folders together on a folder subpage.
 ---
 
-# Open Finder folders
+# Open file folders
 
-Folder cards open only the Finder folders you approve in the Mac app. Folder paths stay on the Mac; the display receives a friendly name and an anonymous identifier.
+Folder cards open only the folders you approve in the Mac app. Folder paths stay on the Mac; the display receives a friendly name and an anonymous identifier.
 
 ## Approve a folder
 
@@ -15,7 +15,7 @@ In the EspDesktop Mac app, open **Settings → Folders**, click **Add Folder…*
 
 ## Add a folder card
 
-1. In the display’s web editor, select an empty tile and choose **Finder Folder → Open a folder**.
+1. In the display’s web editor, select an empty tile and choose **File Folder → Open a folder**.
 2. Select the folder you approved and choose **Save**.
 
 <a href="/images/web-editor-choose-card.webp"><picture><source type="image/avif" srcset="/images/web-editor-choose-card-480.avif 480w, /images/web-editor-choose-card-960.avif 960w" sizes="(min-width: 768px) 688px, 90vw"><img src="/images/web-editor-choose-card.webp" alt="Choose Card dialog in the display’s web editor showing the Folder and Applications options" width="1269" height="1022" loading="lazy"></picture></a>
@@ -24,13 +24,13 @@ In the card’s **Advanced** section, set **Open folder in** to **A new window**
 
 If a folder is moved or renamed, choose **Choose Again…** in the Mac app to restore its access. Removing a folder from the Mac app makes its card unavailable.
 
-## Finder folder subpage
+## Folder subpage
 
-To access your approved folders from one Finder card, select an empty tile in the display’s web editor and choose **Finder Folder → Open Finder**. If you limit which apps the display can launch, first enable Finder under **Apps** in the Mac app.
+To group your approved folders on one page, select an empty tile in the display’s web editor and choose **File Folder → Open folder subpage**. If you limit which apps the display can launch, first enable Finder under **Apps** in the Mac app.
 
-Finder is already selected. Choose **Save** to add the Finder card and its subpage. While your Mac is connected, the Finder subpage automatically shows the folders you added in the Mac app, filling the available spaces on the touchscreen and in the web editor preview.
+Finder is already selected. Choose **Save** to add the card and its subpage. While your Mac is connected, the subpage automatically shows the folders you added in the Mac app, filling the available spaces on the touchscreen and in the web editor preview.
 
-Use **Pin Finder folders** to keep selected tiles in place and drag them into order. Pinned tiles stay visible when your Mac disconnects.
+Use **Pin folders** to keep selected tiles in place and drag them into order. Pinned tiles stay visible when your Mac disconnects.
 
 Under **App Subpage**, use **Folder shortcuts open in** to set the default window behaviour. A folder tile can use that default or override it under **Advanced → Open folder in**.
 

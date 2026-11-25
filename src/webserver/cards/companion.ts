@@ -1689,7 +1689,7 @@ export function registerCompanionCardTypes(
             finderOpenBehaviorField.appendChild(finderOpenBehaviorSelect);
             const finderOpenBehaviorNote = document.createElement("div");
             finderOpenBehaviorNote.className = "sp-field-info-text";
-            finderOpenBehaviorNote.textContent = "Default for Finder folder shortcuts. Individual folder cards can override this in Advanced.";
+            finderOpenBehaviorNote.textContent = "Default for folder shortcuts. Individual folder cards can override this in Advanced.";
             finderOpenBehaviorField.appendChild(finderOpenBehaviorNote);
             appSubpageDisclosure.section.appendChild(finderOpenBehaviorField);
             finderOpenBehaviorSelect.addEventListener("change", function () {
@@ -1718,7 +1718,7 @@ export function registerCompanionCardTypes(
             }
             const folderBehaviorChoices: readonly [string, string][] = helpers.isSub
                 && canInheritFinderBehavior
-                ? [["inherit", "Use Finder subpage setting"], ["new_window", "A new window"], ["same_window", "The same window"]]
+                ? [["inherit", "Use folder subpage setting"], ["new_window", "A new window"], ["same_window", "The same window"]]
                 : [["new_window", "A new window"], ["same_window", "The same window"]];
             const hasFinderOverride = configOptionEnabled(card.options, FINDER_OPEN_OVERRIDE_OPTION);
             const selectedFolderBehavior = canInheritFinderBehavior && !hasFinderOverride
@@ -1790,7 +1790,7 @@ export function registerCompanionCardTypes(
                     const page = savedShortcutSubpage || createCompanionShortcutSubpage(card.entity);
                     const heading = document.createElement("div");
                     heading.className = "sp-field";
-                    heading.appendChild(helpers.fieldLabel("Pin Finder folders"));
+                    heading.appendChild(helpers.fieldLabel("Pin folders"));
                     finderFolderList.appendChild(heading);
                     const definitions = [...folderActions];
                     for (const tile of page.buttons || []) {
@@ -2321,7 +2321,7 @@ export function registerCompanionCardTypes(
         ["companion_app", "Applications", "app"],
         ["companion_shortcut", "Keyboard Shortcut", "shortcut"],
         ["companion_url", "Website", "url"],
-        ["companion_folder", "Finder Folder", "folder"],
+        ["companion_folder", "File Folder", "folder"],
         ["companion_obs", "Scene", "obs"],
         ["companion_obs_mic", "Input State", "obs_mic"],
         ["companion_obs_studio", "Studio Mode", "obs_studio"],
