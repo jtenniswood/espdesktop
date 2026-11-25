@@ -453,10 +453,13 @@ def test_factory_connector_scope(profiles: dict[str, dict]) -> None:
                 assert ("companion" in config) == companion, (
                     f"{slug}: firmware and web profile must agree on Mac Companion availability"
                 )
-            native = path.name == "guition-esp32-s3-4848s040.factory.yaml"
+            native = slug in {"guition-esp32-s3-4848s040", "guition-esp32-p4-jc1060p470-v3"}
             assert ("api" in config) == native, f"{path.name}: unexpected native ESPHome API scope"
             if native:
                 assert "encryption" in config["api"], f"{path.name}: native API must support encryption"
+                assert config["espdesktop"].get("display_power") == "display_power", (
+                    f"{path.name}: native API must expose the Display Power switch"
+                )
             assert "dashboard_import" not in config, f"{path.name}: dashboard adoption requires the removed native API"
             for domain in ("sensor", "text_sensor", "binary_sensor", "time"):
                 assert all(item.get("platform") != "homeassistant" for item in config.get(domain, [])), (
