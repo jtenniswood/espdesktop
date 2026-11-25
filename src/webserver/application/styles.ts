@@ -546,13 +546,11 @@ export function createWebStyles(dragAnimation: boolean): string {
         ".sp-light-tab-drag:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}" +
         ".sp-light-tab-label{min-width:0;color:var(--text);font-size:.9rem;line-height:1.25;cursor:pointer}" +
         ".sp-shortcut-catalog-list{max-height:26rem;overflow:auto;margin:0}" +
-        ".sp-shortcut-catalog-list .sp-light-tab-row{grid-template-columns:minmax(0,1fr) minmax(0,auto) auto;" +
-        "box-sizing:border-box;min-height:53px;padding:8px 0;cursor:pointer}" +
+        ".sp-shortcut-catalog-list .sp-light-tab-row{grid-template-columns:auto minmax(0,1fr) minmax(0,auto);" +
+        "box-sizing:border-box;min-height:53px;padding:8px 6px;cursor:pointer}" +
         ".sp-shortcut-catalog-keys{color:var(--text2);font-size:.8rem;text-align:right;overflow-wrap:anywhere}" +
-        ".sp-shortcut-catalog-list .sp-toggle{margin-inline-end:6px}" +
-        ".sp-shortcut-catalog-list .sp-toggle input{inset:0;width:100%;height:100%;margin:0}" +
-        ".sp-shortcut-catalog-list .sp-toggle-track{pointer-events:none}" +
-        ".sp-shortcut-catalog-list input:focus-visible+.sp-toggle-track{outline:2px solid var(--accent);outline-offset:2px}" +
+        ".sp-shortcut-catalog-radio{width:1.1rem;height:1.1rem;margin:0;accent-color:var(--accent);cursor:pointer}" +
+        ".sp-shortcut-catalog-radio:focus-visible{outline:2px solid var(--accent);outline-offset:2px}" +
         ".sp-segment{display:flex;border-radius:var(--action-r);overflow:hidden;border:1px solid var(--border);margin-bottom:14px}" +
         ".sp-segment-scroll{overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;scrollbar-width:none}" +
         ".sp-segment-scroll::-webkit-scrollbar{display:none}" +

@@ -124,6 +124,7 @@ internal static class InputSession
         if (new[] { 0x10, 0x11, 0x12, 0x5b, 0x5c }.Any(k => (GetAsyncKeyState(k) & 0x8000) != 0)) return false;
         var events = keys.Select(k => Key(k, false)).Concat(keys.Reverse().Select(k => Key(k, true))).ToArray();
         var size = Marshal.SizeOf<Input>();
+        if (GetForegroundWindow() != window) return false;
         var written = SendInput((uint)events.Length, events, size);
         if (written == events.Length) return true;
         if (written > 0)

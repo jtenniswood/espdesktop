@@ -4960,6 +4960,69 @@ async function assertOBSSceneCard(browser) {
   }
 }
 
+async function assertWindowsShortcutSettings(browser, testCase) {
+  if (testCase.slug !== "guition-esp32-s3-4848s040") return;
+  const appId = "windows.abc123";
+  const nativeState = nativeConfigState(testCase.slug);
+  nativeState.document.buttons[1] = "shortcut.command+enter;;Shortcut Command;Auto;;;companion";
+  const context = await browser.newContext({ viewport: testCase.viewport });
+  try {
+    await installRoutes(context, testCase.slug, { nativeState });
+    await context.route(url => url.pathname === "/companion/shortcut-page", route => route.fulfill({ status: 204 }));
+    await context.route(url => url.pathname === "/companion/definitions", route => route.fulfill({
+      json: { page: 0, hasMore: false, definitions: [
+        { kind: "application", definition: {
+          appId, label: "Google Chrome", version: 1, catalog: false,
+          shortcuts: [
+            { id: "0", label: "New Tab", shortcut: "control+t", icon: "New Tab" },
+            { id: "1", label: "Find", shortcut: "control+f", icon: "Search" },
+          ],
+        } },
+      ] },
+    }));
+    const page = await context.newPage();
+    await installFakeEventSource(page);
+    await page.goto(`http://espdesktop.test/${testCase.slug}?events=1`);
+    await page.waitForFunction(() => window.__eventSources?.length > 0);
+    await seedNativeDocument(page, nativeState);
+    const openShortcut = async () => {
+      await page.locator('.sp-main [data-slot="1"]').click();
+      await page.getByRole("button", { name: "Edit", exact: true }).click();
+    };
+    await openShortcut();
+    const ctrl = page.getByRole("button", { name: "Ctrl", exact: true });
+    await ctrl.waitFor();
+    assert.strictEqual(await ctrl.getAttribute("aria-pressed"), "true");
+    const key = page.locator('[id$="shortcut-key"]');
+    assert.strictEqual(await key.inputValue(), "enter");
+    assert.strictEqual(await key.locator(":checked").textContent(), "Enter");
+    await page.getByRole("button", { name: "Save", exact: true }).click();
+    assert.match(nativeState.document.buttons[1], /^shortcut\.command\+enter;/);
+
+    await openShortcut();
+    await page.getByRole("tab", { name: "Application", exact: true }).click();
+    const app = page.locator('[id$="shortcut-catalog-app"]');
+    assert.deepStrictEqual(await app.locator("option").allTextContents(), ["Select", "Google Chrome"]);
+    await app.selectOption(appId);
+    const preset = page.locator(".sp-light-tab-row").filter({ hasText: "New Tab" });
+    assert.strictEqual(await preset.locator(".sp-shortcut-catalog-keys").textContent(), "Ctrl+T");
+    assert.strictEqual(await preset.getByRole("radio").isVisible(), true);
+    assert.strictEqual(await preset.locator(".sp-toggle").count(), 0);
+    const find = page.getByRole("radio", { name: "Find Ctrl+F", exact: true });
+    await find.check();
+    await preset.click();
+    assert.strictEqual(await find.isChecked(), false);
+    assert.strictEqual(await preset.getByRole("radio").isChecked(), true);
+    await page.getByRole("button", { name: "Save", exact: true }).click();
+    await waitForNativeState(nativeState, () => nativeState.document.buttons[1].startsWith("shortcut.control+t;"),
+      "Windows shortcut preset save");
+    assert.match(nativeState.document.buttons[1], /app_shortcut_preset=windows\.abc123(?::|%3A)0/i);
+    console.log("Windows shortcut labels, saved Command alias, and approved app preset passed.");
+  } finally {
+    await context.close();
+  }
+}
+
 async function assertShortcutCatalogSettings(browser, testCase) {
   if (testCase.slug !== "guition-esp32-s3-4848s040") return;
   const nativeState = nativeConfigState(testCase.slug);
@@ -9347,6 +9410,7 @@ async function assertFirstRunSetup(browser) {
       await assertCompanionShortcutSettings(browser, testCase);
       await assertAppSubpageCapacity(browser, testCase);
       await assertShortcutCatalogSettings(browser, testCase);
+      await assertWindowsShortcutSettings(browser, testCase);
       await assertOnDemandShortcutSettings(browser, testCase);
       await assertCompanionStorageSettings(browser, testCase);
       console.log("Companion shortcut, capacity, catalogue and storage browser checks passed.");
@@ -9473,6 +9537,7 @@ async function assertFirstRunSetup(browser) {
       await assertCompanionShortcutSettings(browser, testCase);
       await assertAppSubpageCapacity(browser, testCase);
       await assertShortcutCatalogSettings(browser, testCase);
+      await assertWindowsShortcutSettings(browser, testCase);
       await assertOnDemandShortcutSettings(browser, testCase);
       await assertCompanionStorageSettings(browser, testCase);
       await assertCompanionOnlyCardPicker(browser, testCase);
