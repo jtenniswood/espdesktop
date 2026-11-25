@@ -821,39 +821,48 @@ internal sealed class SettingsWindow : Window
     private void FoldersPage()
     {
         var card = Card("Approved folders", "Paired displays see folder names. Paths stay on this PC.");
-        Row(card, Button("Add folder", () => PickFolder(null)));
+        Row(card, Button("Add folder", PickFolder));
         if (store.Settings.Folders.Count == 0) card.Children.Add(Paragraph("No folders added yet."));
         foreach (var folder in store.Settings.Folders)
         {
             card.Children.Add(new Separator { Margin = new Thickness(0) });
-            var entry = new StackPanel { Margin = new Thickness(0, 12, 0, 8) };
+            var entry = new DockPanel { Margin = new Thickness(0, 12, 0, 8) };
             card.Children.Add(entry);
-            entry.Children.Add(new TextBlock { Text = folder.Label, FontWeight = FontWeights.SemiBold, TextWrapping = TextWrapping.Wrap });
-            entry.Children.Add(Paragraph(Directory.Exists(folder.Path) ? folder.Path : $"{folder.Path} · Folder not found"));
-            Row(entry, Button("Choose again", () => PickFolder(folder)), Button("Remove", () =>
+            var remove = Button($"Remove {folder.Label}", () =>
             {
                 if (MessageBox.Show(this, $"Remove {folder.Label} from the display? Your files stay where they are.",
                     "Remove approved folder?", MessageBoxButton.OKCancel, MessageBoxImage.Question) != MessageBoxResult.OK) return;
                 store.Settings.Folders.Remove(folder);
                 desktop.Changed(); Save(); Render();
-            }));
+            });
+            remove.Content = new TextBlock
+            {
+                Text = "\uE74D",
+                FontFamily = new FontFamily("Segoe Fluent Icons, Segoe MDL2 Assets")
+            };
+            AutomationProperties.SetName(remove, $"Remove {folder.Label}");
+            remove.ToolTip = $"Remove {folder.Label}";
+            remove.Margin = new Thickness(12, 0, 0, 0);
+            remove.VerticalAlignment = VerticalAlignment.Center;
+            DockPanel.SetDock(remove, Dock.Right);
+            entry.Children.Add(remove);
+
+            var details = new StackPanel();
+            details.Children.Add(new TextBlock { Text = folder.Label, FontWeight = FontWeights.SemiBold, TextWrapping = TextWrapping.Wrap });
+            details.Children.Add(Paragraph(Directory.Exists(folder.Path) ? folder.Path : $"{folder.Path} · Folder not found"));
+            entry.Children.Add(details);
         }
     }
 
-    private void PickFolder(ApprovedFolder? folder)
+    private void PickFolder()
     {
-        var picker = new OpenFolderDialog { Title = folder == null ? "Choose a folder for your display" : $"Choose a new location for {folder.Label}" };
-        if (folder != null && Directory.Exists(folder.Path)) picker.InitialDirectory = folder.Path;
+        var picker = new OpenFolderDialog { Title = "Choose a folder for your display" };
         if (picker.ShowDialog(this) != true) return;
         var path = Path.TrimEndingDirectorySeparator(picker.FolderName);
-        if (store.Settings.Folders.Any(f => f.Id != folder?.Id && string.Equals(f.Path, path, StringComparison.OrdinalIgnoreCase)))
+        if (store.Settings.Folders.Any(f => string.Equals(f.Path, path, StringComparison.OrdinalIgnoreCase)))
         { Report("That folder is already approved."); return; }
-        if (folder == null)
-        {
-            if (store.Settings.Folders.Count >= 64) { Report("Remove an approved folder before adding another."); return; }
-            store.Settings.Folders.Add(new("folder." + Guid.NewGuid().ToString().ToLowerInvariant(), path));
-        }
-        else store.Settings.Folders[store.Settings.Folders.IndexOf(folder)] = folder.Relocate(path);
+        if (store.Settings.Folders.Count >= 64) { Report("Remove an approved folder before adding another."); return; }
+        store.Settings.Folders.Add(new("folder." + Guid.NewGuid().ToString().ToLowerInvariant(), path));
         desktop.Changed(); Save(); Render();
     }
 
