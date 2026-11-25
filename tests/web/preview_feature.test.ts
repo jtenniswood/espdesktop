@@ -47,12 +47,12 @@ export function runPreviewFeatureTests(): void {
   equal(defaultCardTypeForPicker("companion_subpage"), "subpage", "Companion subpages use the shared subpage runtime");
   deepEqual(
     cardPickerConnectors(true, true),
-    [["mac_companion", "Mac Companion"]],
+    [["mac_companion", "Companion"]],
     "legacy flags cannot restore a Home Assistant picker",
   );
   deepEqual(
     cardPickerConnectors(false, true),
-    [["mac_companion", "Mac Companion"]],
+    [["mac_companion", "Companion"]],
     "a Companion-only setup omits the Home Assistant picker tab",
   );
   equal(cardTypeVisibleForConnector("subpage", "home_assistant"), false, "Home Assistant subpages remain in the Home Assistant picker");
@@ -121,8 +121,8 @@ export function runPreviewFeatureTests(): void {
   );
   equal(
     companionOptions.find((option) => option.key === "companion_shortcut")?.icon,
-    "apple-keyboard-command",
-    "Companion keyboard shortcut cards use the Apple Command icon",
+    "keyboard-outline",
+    "Companion keyboard shortcut cards use the generic keyboard icon",
   );
   const infoOnlyOptions = cardTypePickerOptions(definitions, [], true, false, "action");
   equal(infoOnlyOptions.some((option) => option.key === "action"), false,

@@ -213,7 +213,7 @@ export function createFirstRunSetup(deps: FirstRunSetupDependencies): { start():
                 catalogueRetry = window.setTimeout(() => { void refresh(true); }, 1500);
             }
         } catch {
-            if (connected) error = "Could not load apps. Check the Mac connection, then reopen setup.";
+            if (connected) error = "Could not load apps. Check the connection, then reopen setup.";
         } finally {
             loading = false;
             render();
@@ -244,7 +244,7 @@ export function createFirstRunSetup(deps: FirstRunSetupDependencies): { start():
             if (addShortcutPages) await Promise.all(chosen.filter(app => hasShortcutPage(app.id) &&
                 !supportsSetupShortcuts(app.id, workflows)).map(async app => {
                 const definition = await catalogue.loadShortcutApplication(app.id);
-                if (!definition) throw new Error("Could not load " + app.label + " shortcuts. Check Mac Companion and try again.");
+                if (!definition) throw new Error("Could not load " + app.label + " shortcuts. Check the companion app and try again.");
                 applyCompanionShortcutApplication(definition);
             }));
             const selectedMode = !skip && addShortcutPages && supportedApps().length > 0 ? openingMode : undefined;
@@ -304,14 +304,14 @@ export function createFirstRunSetup(deps: FirstRunSetupDependencies): { start():
         status.setAttribute("role", "status");
         if (connected) {
             status.classList.add("sp-companion-status-connected");
-            status.textContent = "Mac connected. Choose Next.";
+            status.textContent = "Computer connected. Choose Next.";
             content.appendChild(status);
             return;
         }
         const actions = element("p", "", "sp-setup-pairing");
         const open = element("a", "Open EspDesktop");
         open.href = "espdesktop://open";
-        const download = element("a", "Download EspDesktop for Mac");
+        const download = element("a", "Download EspDesktop");
         download.href = "https://github.com/jtenniswood/espdesktop/releases/latest";
         download.target = "_blank";
         download.rel = "noopener noreferrer";
@@ -323,7 +323,7 @@ export function createFirstRunSetup(deps: FirstRunSetupDependencies): { start():
             let message = "Open Settings → Unpaired on the display to get a pairing code.";
             if (pairingState === undefined) message = "Checking for a pairing code…";
             else if (!pairingState) message = "Could not load the pairing code. Retrying…";
-            else if (pairingState.paired) message = "Open EspDesktop on your Mac to reconnect.";
+            else if (pairingState.paired) message = "Open EspDesktop on your computer to reconnect.";
             status.hidden = !details.element.hidden;
             status.classList.toggle("sp-hidden", status.hidden);
             if (status.textContent !== message) status.textContent = message;
@@ -346,14 +346,14 @@ export function createFirstRunSetup(deps: FirstRunSetupDependencies): { start():
         const pageKind = includesWorkflows ? "app subpage" : "keyboard shortcut page";
         const lastStep = addShortcutPages && supportedCount > 0 ? 3 : 2;
         step = Math.min(step, lastStep);
-        const titles = ["Connect your Mac", "Choose your apps",
+        const titles = ["Connect your computer", "Choose your apps",
             includesWorkflows ? "App subpages" : "Keyboard shortcut pages", "Finish setup"];
         const pairingOffset = Number(includePairingStep);
         const progress = element("p", `Step ${step + pairingOffset} of ${lastStep + pairingOffset}`, "sp-setup-step");
         const title = element("h1", titles[step], "sp-setup-title");
         title.id = "sp-setup-title";
         const explanations = [
-            "Connect to a Mac on the same network.",
+            "Connect to a computer on the same network.",
             `Pick your favourite apps to display (up to ${appLimit} apps).`,
             "Choose what you can do from your app cards.",
             `Choose when the display opens an app’s ${pageKind}.`,
@@ -384,7 +384,7 @@ export function createFirstRunSetup(deps: FirstRunSetupDependencies): { start():
             const searchField = element("div", "", "sp-setup-search");
             searchField.append(deps.shell.createMdiIcon("magnify"), search);
             content.append(searchField, count);
-            if (!loading && !error && apps.length === 0) content.appendChild(element("p", "No apps available. Check app access on your Mac.", "sp-setting-note"));
+            if (!loading && !error && apps.length === 0) content.appendChild(element("p", "No apps available. Check app access in the companion app.", "sp-setting-note"));
             const list = element("div", "", "sp-light-tab-list sp-setup-list");
             for (const app of apps.filter(app => app.label.toLocaleLowerCase().includes(query.toLocaleLowerCase()))) {
                 const row = toggle(`sp-setup-app-${app.id}`, app.label, selected.has(app.id), enabled => {
@@ -427,7 +427,7 @@ export function createFirstRunSetup(deps: FirstRunSetupDependencies): { start():
         }
         dialog.appendChild(content);
         if (step > 0 && !connected) {
-            const status = element("p", "Reconnect your Mac to continue.");
+            const status = element("p", "Reconnect your computer to continue.");
             status.setAttribute("role", "status");
             dialog.appendChild(status);
         }

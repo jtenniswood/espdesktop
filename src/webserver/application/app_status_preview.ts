@@ -83,7 +83,7 @@ export function createAppStatusPreviewFeature(runtime: UiRuntimeState, core: Cor
     }
     function formatTimezoneOption(this: any, opt?: any) {
         if (isAutomaticTimezone(opt))
-            return opt;
+            return "Auto (Companion)";
         var tzId: any = getTzId(opt);
         var offset: any = timezoneOffsetMinutes(tzId, webserverNow());
         if (offset == null || !isFinite(offset))

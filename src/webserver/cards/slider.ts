@@ -115,8 +115,8 @@ export function registerSliderCardTypes(
             select.value = saved;
             select.disabled = names.size === 0;
             if (names.size) note.remove();
-            else note.textContent = "Connect OBS in the Mac Companion to choose an input.";
-        }).catch(() => { note.textContent = "Connect OBS in the Mac Companion to choose an input."; });
+            else note.textContent = "Connect OBS in the companion app to choose an input.";
+        }).catch(() => { note.textContent = "Connect OBS in the companion app to choose an input."; });
         helpers.renderCardIconPicker(panel, card, helpers, { fallback: "Microphone" });
     }
     const { inlineDisclosure } = settingsUi;
@@ -189,7 +189,7 @@ export function registerSliderCardTypes(
                     label: "Control",
                     idSuffix: "slider-control",
                     options: [
-                        ["mac_output", "Mac output volume"],
+                        ["mac_output", "Computer output volume"],
                         ["mac_input", "Mic"],
                         ["mac_output_mute", "Output mute"],
                         ["mac_input_mute", "Input State"],

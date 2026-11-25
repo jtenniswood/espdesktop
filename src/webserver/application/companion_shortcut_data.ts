@@ -34,7 +34,7 @@ export function bundledExpandedShortcuts(appId: string): readonly AppShortcutDef
         });
         return {
             id: String(id),
-            icon: EXPANDED_SHORTCUT_ICONS[pair(row, iconOffset)] ?? "Shortcut Command",
+            icon: EXPANDED_SHORTCUT_ICONS[pair(row, iconOffset)] ?? "Keyboard",
             label: row.slice(iconOffset + 3 + count * 3),
             shortcut: (scoped ? "scoped." : "") + strokes.join("~"),
         };

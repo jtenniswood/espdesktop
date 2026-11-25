@@ -240,9 +240,9 @@ internal sealed class DisplaySession(IDesktop desktop, Action<Pairing> save, Act
             await Send("capabilities", ("values", capabilities));
             var entries = desktop.Catalogue().Concat(desktop.ObsCatalogue(capabilityVersion)).Select(item =>
             {
-                var fields = new Dictionary<string, object?> { ["id"] = item.Id, ["label"] = Bound(item.Label, 96) };
+                var fields = new Dictionary<string, object?> { ["id"] = item.Id, ["label"] = CatalogueLabel(item.Label) };
                 if (item.ObsState != null) fields["obsState"] = item.ObsState;
-                if (item.ObsDetail != null) fields["obsDetail"] = Bound(item.ObsDetail, 96);
+                if (item.ObsDetail != null) fields["obsDetail"] = CatalogueLabel(item.ObsDetail);
                 return fields;
             }).ToArray();
             var pages = entries.Chunk(48).ToArray();
