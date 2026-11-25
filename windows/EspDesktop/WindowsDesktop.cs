@@ -16,7 +16,7 @@ using static EspDesktop.Core.Protocol;
 namespace EspDesktop;
 
 internal sealed record StartApp(string Id, string Name, string Target, string? Executable);
-internal sealed class WindowsDesktop(LocalSettings settings) : IDesktop
+internal sealed class WindowsDesktop(LocalSettings settings, ObsConnection? obs = null) : IDesktop
 {
     // Older panels reserve this identifier for the file manager's live folders.
     public const string ExplorerId = "com.apple.finder";
@@ -37,6 +37,8 @@ internal sealed class WindowsDesktop(LocalSettings settings) : IDesktop
     public IReadOnlyList<StartApp> Apps => apps;
     public int CatalogueRevision { get; private set; }
     public bool ShortcutsEnabled => settings.Shortcuts;
+    public bool SupportsObs => obs != null;
+    public IEnumerable<CatalogueItem> ObsCatalogue(uint capability) => obs?.Catalogue(capability) ?? [];
     public (bool Locked, bool? DisplayAwake) SessionState => (reportedLocked || !InputSession.IsDefaultInputDesktop(), displayAwake);
 
     public void SessionChanged(bool locked) => reportedLocked = locked;
@@ -53,10 +55,8 @@ internal sealed class WindowsDesktop(LocalSettings settings) : IDesktop
 
     // The panel caps its picker while keeping icons eligible for configured cards.
     public IReadOnlyList<CatalogueItem> Catalogue() =>
-        settings.Folders.Select(f => new CatalogueItem(f.Id, Clean(f.Label)))
-        .Concat(apps.Where(Allowed).Select(a => new CatalogueItem(a.Id, Clean(a.Name)))).ToArray();
-    private static string Clean(string label) => Bound(new string(label.Select(c => char.IsControl(c) || c is ',' or '|' ? ' ' : c)
-        .ToArray()).Trim(), 96) is { Length: > 0 } name ? name : "Unnamed";
+        settings.Folders.Select(f => new CatalogueItem(f.Id, CatalogueLabel(f.Label)))
+        .Concat(apps.Where(Allowed).Select(a => new CatalogueItem(a.Id, CatalogueLabel(a.Name)))).ToArray();
 
     public IEnumerable<string> Definitions()
     {
@@ -67,7 +67,7 @@ internal sealed class WindowsDesktop(LocalSettings settings) : IDesktop
             if (presets.Length == 0) continue;
             yield return JsonSerializer.Serialize(new
             {
-                version = 1, appId = app.Id, label = Bound(Clean(app.Name), 48), catalog = false,
+                version = 1, appId = app.Id, label = Bound(CatalogueLabel(app.Name), 48), catalog = false,
                 shortcuts = presets.Select((p, i) => new
                 {
                     id = i.ToString(System.Globalization.CultureInfo.InvariantCulture),
@@ -95,6 +95,8 @@ internal sealed class WindowsDesktop(LocalSettings settings) : IDesktop
         }
 
         var id = Text(message, "actionId");
+        if (id.StartsWith("obs.", StringComparison.Ordinal))
+            return obs != null && await obs.Select(id, () => SessionState.Locked, token) ? "performed" : "not_allowed";
         if (id == "shortcut.command+control+q")
             return ShortcutsEnabled && LockWorkStation() ? "performed" : "not_allowed";
         if (id.StartsWith("shortcut.", StringComparison.Ordinal))

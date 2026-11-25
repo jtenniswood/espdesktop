@@ -43,8 +43,9 @@ export async function runConnectorsFeatureTests(): Promise<void> {
   }
   const statuses = [
     status(),
+    status({ mac_companion: { available: true, configured: true, paired: true, connected: true, platform: "windows" } }),
     status({ mac_companion: { available: true, configured: true, paired: true, connected: true } }),
-    status({ mac_companion: { available: true, configured: true, paired: true, connected: true } }),
+    status({ mac_companion: { available: true, configured: true, paired: true, connected: false, platform: "windows" } }),
   ];
   let nextStatus = 0;
   const pollStatus: { callback?: () => void } = {};
@@ -95,9 +96,14 @@ export async function runConnectorsFeatureTests(): Promise<void> {
   if (!pollStatus.callback) throw new Error("Connector status polling must be scheduled");
   pollStatus.callback();
   await new Promise((resolve) => setTimeout(resolve, 0));
+  if (!feature.windowsCompanionConnected()) throw new Error("The editor must recognize a connected Windows companion");
   pollStatus.callback();
   await new Promise((resolve) => setTimeout(resolve, 0));
-  if (transitions.join(",") !== "false,true") {
+  if (feature.windowsCompanionConnected()) throw new Error("An unknown companion platform must keep the default picker");
+  pollStatus.callback();
+  await new Promise((resolve) => setTimeout(resolve, 0));
+  if (feature.windowsCompanionConnected()) throw new Error("An offline companion must keep the default picker");
+  if (transitions.join(",") !== "false,true,false") {
     throw new Error(`Companion connection listeners must report only connection changes: ${transitions}`);
   }
 }

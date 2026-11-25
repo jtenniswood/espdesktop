@@ -25,6 +25,7 @@ In the display editor, open **Connectors → Mac Companion** to check pairing wi
 - Add **Website** cards. Links use your default browser; new windows and active site highlighting work with supported browsers. Highlighting depends on the browser exposing its address bar to Windows accessibility. Some browser versions, languages, and installed web apps may not expose it.
 - Add **Keyboard Shortcut** or **Lock Machine** cards. Enable **Allow keyboard shortcuts and screen lock** in the Windows app first. The editor’s Command and Control choices both map to Windows Ctrl. Option maps to Alt. Shortcuts go to an approved app in front and Windows protects apps running as administrator.
 - Add statistics, speaker and microphone volume, or mute controls. Setting a volume above zero unmutes that device. The display receives basic system readings while paired. Actions are blocked while Windows is locked.
+- Add **OBS Scene** cards after connecting to OBS Studio on the PC. Open **Tools → WebSocket Server Settings** in OBS, enable the server, then enter its port and password on the **OBS Studio** page in EspDesktop. Scene cards switch Program in normal mode and select Preview in Studio Mode.
 
 Use **Start EspDesktop when I sign in** to keep the display connected after login. To stop the app, choose **Quit EspDesktop** from its notification area icon.
 

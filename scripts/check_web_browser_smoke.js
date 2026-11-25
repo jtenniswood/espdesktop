@@ -5729,6 +5729,17 @@ async function assertCompanionOnlyCardPicker(browser, testCase) {
       0,
       `${testCase.name}: Stats is unavailable when adding a new card`,
     );
+    const appleShortcuts = page.locator('[data-card-type="apple_shortcuts_group"]');
+    await appleShortcuts.waitFor();
+    connectorStatus.mac_companion.connected = true;
+    connectorStatus.mac_companion.platform = "windows";
+    await appleShortcuts.waitFor({ state: "detached" });
+    await page.getByRole("button", { name: "Folders card type", exact: true }).click();
+    await page.getByRole("button", { name: "Open File Explorer card type", exact: true }).waitFor();
+    await page.getByRole("button", { name: "Back to card types", exact: true }).click();
+    await page.locator('[data-card-type="obs_group"]').waitFor();
+    connectorStatus.mac_companion.connected = false;
+    await appleShortcuts.waitFor();
   } finally {
     await context.close();
   }

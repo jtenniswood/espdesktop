@@ -294,6 +294,7 @@ await VerifyUpdateRequired();
 await VerifyAddressRecovery();
 await VerifyPairingSaveFailure();
 await VerifyMultipleDisplayConnections();
+await ObsChecks.Run();
 
 async Task VerifyMultipleDisplayConnections()
 {

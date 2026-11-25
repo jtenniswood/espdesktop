@@ -720,6 +720,7 @@ function composeApplicationContext(liveGeneratedActions: () => readonly Companio
       homeAssistantConfigured: () => connectorsPage
         ? connectorsPage.homeAssistantConfigured()
         : true,
+      windowsCompanionConnected: () => connectorsPage?.windowsCompanionConnected() ?? false,
     },
   );
   const configEvents = createAppConfigEventsFeature(configurationPersistence, configurationCodec, layout, renderQueue);
@@ -936,12 +937,16 @@ function composeApplicationContext(liveGeneratedActions: () => readonly Companio
   );
   let pickerHomeAssistantEnabled = connectorsPage.homeAssistantCardPickerEnabled();
   let pickerHomeAssistantConfigured = connectorsPage.homeAssistantConfigured();
+  let pickerWindowsCompanion = connectorsPage.windowsCompanionConnected();
   connectorsPage.onStatusChange(() => {
     const enabled = connectorsPage.homeAssistantCardPickerEnabled();
     const configured = connectorsPage.homeAssistantConfigured();
-    if (enabled === pickerHomeAssistantEnabled && configured === pickerHomeAssistantConfigured) return;
+    const windows = connectorsPage.windowsCompanionConnected();
+    if (enabled === pickerHomeAssistantEnabled && configured === pickerHomeAssistantConfigured &&
+      windows === pickerWindowsCompanion) return;
     pickerHomeAssistantEnabled = enabled;
     pickerHomeAssistantConfigured = configured;
+    pickerWindowsCompanion = windows;
     buttonSettings.render();
   });
   settingsPage = createSettingsPageFeature(

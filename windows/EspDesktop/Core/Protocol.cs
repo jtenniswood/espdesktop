@@ -19,6 +19,9 @@ internal static class Protocol
     private static readonly Regex VolumeControlPattern = new(
         @"\A(?:app\.volume\.[A-Za-z0-9.-]{1,96}|input\.level\.[0-9a-f]{64}|obs\.(?:level|cough)\.[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12})\z",
         RegexOptions.CultureInvariant | RegexOptions.NonBacktracking);
+    public static string CatalogueLabel(string label) =>
+        Bound(new string(label.Select(c => char.IsControl(c) || c is ',' or '|' ? ' ' : c).ToArray()).Trim(), 96)
+            is { Length: > 0 } safe ? safe : "Unnamed";
     public static int Version => Contract.GetProperty("version").GetInt32();
     public static string SocketPath => Contract.GetProperty("path").GetString()!;
     public static int Limit(string key) => Contract.GetProperty(key).GetInt32();
