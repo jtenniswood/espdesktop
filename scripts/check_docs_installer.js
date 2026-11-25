@@ -134,8 +134,8 @@ async function checkBrowser() {
     let touchscreenIcons;
     const home = `${base}/`;
     const hero = page.locator('.homepage-hero');
-    const macSetup = hero.getByRole('link', { name: 'macOS setup', exact: true });
-    const windowsSetup = hero.getByRole('link', { name: 'Windows 11 setup (preview)', exact: true });
+    const macSetup = hero.getByRole('link', { name: 'Mac', exact: true });
+    const windowsSetup = hero.getByRole('link', { name: 'Windows', exact: true });
     for (const [width, height, colorScheme] of [
       [320, 640, 'light'],
       [390, 844, 'dark'],

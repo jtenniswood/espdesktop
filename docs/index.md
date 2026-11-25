@@ -15,9 +15,9 @@ Launch apps, open folders and websites, and run keyboard shortcuts from a 4-inch
 
 <div class="homepage-action">
 
-[macOS setup](/screens/4848s040)
+[Mac](/screens/4848s040)
 
-[Windows 11 setup (preview)](/windows-preview)
+[Windows](/windows-preview)
 
 </div>
 
