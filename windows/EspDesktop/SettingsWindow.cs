@@ -863,15 +863,15 @@ internal sealed class SettingsWindow : Window
         if (release != null && installerVerified) Row(card, Button("Install update", async () => await InstallUpdate(), !updateBusy));
         card.Children.Add(Toggle("Automatically check for updates", store.Settings.CheckForUpdates, value =>
         { store.Settings.CheckForUpdates = value; Save(); Render(); }));
+        if (!installerVerified) return;
         var install = Toggle("Install verified updates when I quit", store.Settings.InstallUpdates, value =>
         {
             store.Settings.InstallUpdates = value;
             Save();
             if (value) _ = CheckUpdates(false);
         });
-        install.IsEnabled = installerVerified && store.Settings.CheckForUpdates;
+        install.IsEnabled = store.Settings.CheckForUpdates;
         card.Children.Add(install);
-        if (!installerVerified) card.Children.Add(Paragraph("Automatic installation is available in signed Windows releases."));
     }
 
     private void HelpPage()
