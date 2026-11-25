@@ -834,7 +834,7 @@ export function registerCompanionCardTypes(
             const platform = connectorStatus.companionPlatform();
             if (platform === shortcutPlatform) return;
             shortcutPlatform = platform;
-            renderButtonSettings(true);
+            renderButtonSettings();
         });
         connectorStatus.onCompanionConnectionChange(function (connected) {
             if (connected) companionCatalogueMonitor.start();
