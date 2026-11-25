@@ -1604,7 +1604,9 @@ export function registerCompanionCardTypes(
             });
             panel?.appendChild(shortcutField);
             helpers.markCardPrimaryField(shortcutField, "shortcut");
-            helpers.requireField(keySelect, "Choose a key with Command, Control, or Option before saving.", function () {
+            helpers.requireField(keySelect, windowsShortcuts
+                ? "Choose a key with Ctrl or Alt before saving."
+                : "Choose a key with Command, Control, or Option before saving.", function () {
                 return initialMode === "shortcut" && shortcutType === "custom";
             }, function () {
                 return companionShortcutActionIdValid(card.entity) && !!selectedKey &&
