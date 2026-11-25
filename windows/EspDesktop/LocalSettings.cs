@@ -31,10 +31,13 @@ internal sealed class LocalSettings
 {
     public bool AllApps { get; set; } = true;
     public bool Shortcuts { get; set; }
+    public bool ReuseOpenApps { get; set; } = true;
     public bool CheckForUpdates { get; set; } = true;
     public bool InstallUpdates { get; set; }
     public int? ObsPort { get; set; }
     public string? ObsProtectedPassword { get; set; }
+    public string ClientId { get; set; } = "";
+    public string MicMuteSource { get; set; } = "system";
     public HashSet<string> AllowedApps { get; set; } = [];
     public List<ApprovedFolder> Folders { get; set; } = [];
 }
@@ -44,6 +47,9 @@ internal sealed class LocalStore
     private readonly string root;
     public LocalSettings Settings { get; }
     public bool PairingUnavailable { get; private set; }
+    // A failed read means the saved approvals could not be trusted, so a later
+    // save must not replace the intact file with fail-closed defaults.
+    public bool SettingsUnavailable { get; private set; }
 
     public LocalStore() : this(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "EspDesktop")) { }
 
@@ -73,6 +79,9 @@ internal sealed class LocalStore
                         !pairing.Fingerprint.All(Uri.IsHexDigit) || !fingerprints.Add(pairing.Fingerprint))
                         throw new IOException("Invalid saved pairing.");
                     _ = DisplayEndpoint.Parse(pairing.Address);
+                    if (pairing.ComputerId is { } computerId &&
+                        (computerId.Length != 16 || !computerId.All(Uri.IsHexDigit)))
+                        pairing = pairing with { ComputerId = null };
                     return pairing with { DisplayName = Discovery.FriendlyName(pairing.DisplayName) };
                 }).ToArray();
                 PairingUnavailable = false;
@@ -124,22 +133,50 @@ internal sealed class LocalStore
         catch (DirectoryNotFoundException) { }
         PairingUnavailable = false;
     }
-    public void Save() => Write("settings.json", JsonSerializer.SerializeToUtf8Bytes(Settings));
+
+    public string ClientId()
+    {
+        if (Settings.ClientId is not { Length: 32 } id || !id.All(Uri.IsHexDigit))
+        {
+            Settings.ClientId = Convert.ToHexStringLower(RandomNumberGenerator.GetBytes(16));
+            // Pairing can still work from memory while the file is locked.
+            if (!SettingsUnavailable) Save();
+        }
+        return Settings.ClientId;
+    }
+    public void Save()
+    {
+        if (SettingsUnavailable)
+            throw new IOException("The saved Windows settings are unavailable.");
+        Write("settings.json", JsonSerializer.SerializeToUtf8Bytes(Settings));
+    }
     private LocalSettings LoadSettings()
     {
+        var path = Path.Combine(root, "settings.json");
         try
         {
-            var settings = JsonSerializer.Deserialize<LocalSettings>(File.ReadAllBytes(Path.Combine(root, "settings.json")));
+            var settings = JsonSerializer.Deserialize<LocalSettings>(File.ReadAllBytes(path));
             if (settings?.AllowedApps is null || settings.Folders is null ||
                 settings.Folders.Any(folder => folder is null || string.IsNullOrWhiteSpace(folder.Id) ||
                     string.IsNullOrWhiteSpace(folder.Path))) throw new JsonException("Invalid saved settings.");
+            if (settings.MicMuteSource is not ("system" or "teams")) settings.MicMuteSource = "system";
             return settings;
         }
         catch (FileNotFoundException) { return new(); }
         catch (DirectoryNotFoundException) { return new(); }
-        // Fail closed rather than restoring all app approvals after damaged settings.
-        catch (Exception e) when (e is IOException or UnauthorizedAccessException or JsonException)
-        { return new() { AllApps = false, CheckForUpdates = false }; }
+        // Damaged JSON is kept for recovery; only then may a fail-closed set of
+        // defaults replace it. A temporary lock must not destroy the file.
+        catch (JsonException)
+        {
+            try { File.Move(path, path + ".bad", overwrite: true); }
+            catch (Exception e) when (e is IOException or UnauthorizedAccessException) { }
+            return new() { AllApps = false, CheckForUpdates = false };
+        }
+        catch (Exception e) when (e is IOException or UnauthorizedAccessException)
+        {
+            SettingsUnavailable = true;
+            return new() { AllApps = false, CheckForUpdates = false };
+        }
     }
 
     private void Write(string name, byte[] bytes)

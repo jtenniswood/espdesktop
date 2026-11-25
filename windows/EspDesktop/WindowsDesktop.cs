@@ -16,7 +16,7 @@ using static EspDesktop.Core.Protocol;
 namespace EspDesktop;
 
 internal sealed record StartApp(string Id, string Name, string Target, string? Executable);
-internal sealed class WindowsDesktop(LocalSettings settings, ObsConnection? obs = null) : IDesktop
+internal sealed class WindowsDesktop(LocalSettings settings, ObsConnection? obs = null) : IDesktop, IDesktopNotifications
 {
     // Older panels reserve this identifier for the file manager's live folders.
     public const string ExplorerId = "com.apple.finder";
@@ -35,13 +35,41 @@ internal sealed class WindowsDesktop(LocalSettings settings, ObsConnection? obs 
     private long browserReadAt;
     private bool reportedLocked;
     private bool? displayAwake;
+    private WinEventDelegate? foregroundCallback;
+    private nint foregroundHook;
     public IReadOnlyList<StartApp> Apps => apps;
     public int CatalogueRevision { get; private set; }
     public bool ShortcutsEnabled => settings.Shortcuts;
     public bool SupportsObs => obs != null;
     public IEnumerable<CatalogueItem> ObsCatalogue(uint capability) => obs?.Catalogue(capability) ?? [];
     public event Action<string>? ShortcutFailed;
+    public event Action? DesktopChanged;
     public (bool Locked, bool? DisplayAwake) SessionState => (reportedLocked || !InputSession.IsDefaultInputDesktop(), displayAwake);
+
+    public void StartNotifications()
+    {
+        if (foregroundHook == 0)
+        {
+            foregroundCallback = (_, _, window, idObject, _, _, _) =>
+            {
+                if (window != 0 && idObject == 0) DesktopChanged?.Invoke();
+            };
+            foregroundHook = SetWinEventHook(EVENT_SYSTEM_FOREGROUND, EVENT_SYSTEM_FOREGROUND,
+                0, foregroundCallback, 0, 0, WINEVENT_OUTOFCONTEXT | WINEVENT_SKIPOWNPROCESS);
+        }
+        Audio.StartNotifications(() => DesktopChanged?.Invoke());
+    }
+
+    public void StopNotifications()
+    {
+        if (foregroundHook != 0)
+        {
+            _ = UnhookWinEvent(foregroundHook);
+            foregroundHook = 0;
+            foregroundCallback = null;
+        }
+        Audio.StopNotifications();
+    }
 
     public void SessionChanged(bool locked) => reportedLocked = locked;
     public void DisplayChanged(bool awake) => displayAwake = awake;
@@ -167,6 +195,9 @@ internal sealed class WindowsDesktop(LocalSettings settings, ObsConnection? obs 
             return Start(ExplorerExe, "/n,", folder.Path) ? "opened" : "failed";
         }
 
+        if (id == "teams.call.end")
+            return settings.MicMuteSource == "teams" && TeamsCall.End() ? "performed" : "not_allowed";
+
         var selected = apps.FirstOrDefault(a => a.Id == id && Allowed(a));
         if (selected is null) return "not_allowed";
         return await ActivateApplication(selected, token);
@@ -207,9 +238,9 @@ internal sealed class WindowsDesktop(LocalSettings settings, ObsConnection? obs 
 
     private async Task<string> ActivateApplication(StartApp app, CancellationToken token)
     {
-        if (IsActive(app)) return "activated";
+        if (settings.ReuseOpenApps && IsActive(app)) return "activated";
 
-        var window = FindApplicationWindow(app);
+        var window = settings.ReuseOpenApps ? FindApplicationWindow(app) : 0;
         token.ThrowIfCancellationRequested();
         if (SessionState.Locked) return "not_allowed";
         if (window != 0)
@@ -404,8 +435,20 @@ internal sealed class WindowsDesktop(LocalSettings settings, ObsConnection? obs 
         finally { if (bitmap != 0) _ = DeleteObject(bitmap); Com.Release(factory); }
     }
 
-    public bool SetValue(string id, int value) => !SessionState.Locked && Audio.Set(id, value);
-    public IEnumerable<(string Id, int? Value)> Values() => Audio.Read();
+    public bool SetValue(string id, int value) =>
+        !SessionState.Locked && (id == "media.input_mute" && settings.MicMuteSource == "teams"
+            ? TeamsMute.Set(value)
+            : Audio.Set(id, value));
+    public IEnumerable<(string Id, int? Value)> Values()
+    {
+        var teamMute = settings.MicMuteSource == "teams" ? TeamsMute.Read() : null;
+        foreach (var (id, value) in Audio.Read())
+        {
+            yield return id == "media.input_mute" && settings.MicMuteSource == "teams"
+                ? (id, teamMute)
+                : (id, value);
+        }
+    }
     public Dictionary<string, object?> Metrics(uint generation)
     {
         // Keep the sampling interval independent of how many displays publish it.
@@ -642,22 +685,12 @@ internal sealed class WindowsDesktop(LocalSettings settings, ObsConnection? obs 
     [DllImport("user32.dll")] private static extern nint GetTopWindow(nint window);
     [DllImport("user32.dll", CharSet = CharSet.Unicode)] private static extern int GetClassNameW(nint window, StringBuilder name, int max);
     private delegate bool WindowCallback(nint window, nint context);
+    private delegate void WinEventDelegate(nint hook, uint eventType, nint window, int idObject, int idChild, uint thread, uint time);
+    private const uint EVENT_SYSTEM_FOREGROUND = 0x0003;
+    private const uint WINEVENT_OUTOFCONTEXT = 0x0000;
+    private const uint WINEVENT_SKIPOWNPROCESS = 0x0002;
+    [DllImport("user32.dll")] private static extern nint SetWinEventHook(uint eventMin, uint eventMax, nint module, WinEventDelegate callback, uint processId, uint threadId, uint flags);
+    [DllImport("user32.dll")] [return: MarshalAs(UnmanagedType.Bool)] private static extern bool UnhookWinEvent(nint hook);
     [DllImport("user32.dll")] [return: MarshalAs(UnmanagedType.Bool)] private static extern bool EnumWindows(WindowCallback callback, nint context);
     [DllImport("shlwapi.dll", CharSet = CharSet.Unicode)] private static extern int AssocQueryStringW(uint flags, uint type, string association, string? extra, StringBuilder value, ref uint length);
-}
-
-internal static class Sta
-{
-    public static Task<T> Run<T>(Func<T> work)
-    {
-        var completion = new TaskCompletionSource<T>(TaskCreationOptions.RunContinuationsAsynchronously);
-        var thread = new Thread(() =>
-        {
-            try { completion.SetResult(work()); }
-            catch (Exception e) { completion.SetException(e); }
-        }) { IsBackground = true };
-        thread.SetApartmentState(ApartmentState.STA);
-        thread.Start();
-        return completion.Task;
-    }
 }

@@ -168,6 +168,7 @@ internal sealed class SettingsWindow : Window
         }
         foreach (var display in displays) StartConnection(display);
         RestoreObsConnection();
+        desktop.StartNotifications();
         updatesTimer.Start();
         _ = CheckUpdates(false);
         Render();
@@ -317,7 +318,8 @@ internal sealed class SettingsWindow : Window
         try
         {
             var next = await DisplaySession.PairAsync(entered, enteredCode, lifetime.Token,
-                displays.Select(display => display.Pairing.Fingerprint).ToHashSet(StringComparer.OrdinalIgnoreCase));
+                displays.Select(display => display.Pairing.Fingerprint).ToHashSet(StringComparer.OrdinalIgnoreCase),
+                Environment.MachineName, store.ClientId());
             store.SavePairing(next);
             var display = new DisplayConnection(next);
             displays.Add(display);
@@ -347,8 +349,8 @@ internal sealed class SettingsWindow : Window
         if (busy || quitting || display?.Forgetting == true) return;
         var title = display == null ? "Clear saved pairings?" : "Forget this display?";
         var message = display == null
-            ? "This removes all saved display pairings from this PC."
-            : "To pair again, reset the pairing in this display’s web settings.";
+            ? "This removes all saved display pairings from this PC and, when the displays are reachable, from the displays too."
+            : "This removes the saved pairing from this PC and, when the display is reachable, from the display too. Cards set to this computer stop working.";
         if (MessageBox.Show(this, message, title, MessageBoxButton.OKCancel, MessageBoxImage.Question) != MessageBoxResult.OK ||
             quitting || display?.Forgetting == true) return;
         if (display != null) display.Forgetting = true;
@@ -357,12 +359,14 @@ internal sealed class SettingsWindow : Window
             if (display != null)
             {
                 await StopConnection(display);
+                await DisplaySession.ForgetAsync(display.Pairing, lifetime.Token);
                 store.ForgetPairing(display.Pairing.Fingerprint);
                 displays.Remove(display);
             }
             else
             {
                 await Task.WhenAll(displays.Select(StopConnection));
+                await Task.WhenAll(displays.Select(display => DisplaySession.ForgetAsync(display.Pairing, lifetime.Token)));
                 store.ForgetPairing();
                 displays.Clear();
             }
@@ -498,6 +502,7 @@ internal sealed class SettingsWindow : Window
         await lifetime.CancelAsync();
         await Task.WhenAll(displays.Select(StopConnection));
         await StopObs();
+        desktop.StopNotifications();
         if (store.Settings.CheckForUpdates && store.Settings.InstallUpdates && updatePath is { } installer)
         {
             try { Updates.Install(installer, quiet: true); }
@@ -574,6 +579,25 @@ internal sealed class SettingsWindow : Window
             Save();
         });
         permissions.Children.Add(shortcuts);
+        permissions.Children.Add(Toggle("Switch to open apps instead of launching another copy", store.Settings.ReuseOpenApps, value =>
+        {
+            store.Settings.ReuseOpenApps = value;
+            Save();
+        }));
+        var micSource = new ComboBox { MinWidth = 240 };
+        micSource.Items.Add(new ComboBoxItem { Content = "System microphone", Tag = "system" });
+        micSource.Items.Add(new ComboBoxItem { Content = "Microsoft Teams", Tag = "teams" });
+        micSource.SelectedIndex = store.Settings.MicMuteSource == "teams" ? 1 : 0;
+        micSource.SelectionChanged += (_, _) =>
+        {
+            store.Settings.MicMuteSource = micSource.SelectedIndex == 1 ? "teams" : "system";
+            desktop.Changed();
+            Save();
+        };
+        Field(permissions, "Microphone mute source", micSource);
+        permissions.Children.Add(Paragraph(
+            "Microsoft Teams reads and toggles Teams' own Mute button through Windows accessibility. " +
+            "Teams must be running. This is experimental and may depend on the Teams version and language."));
         permissions.Children.Add(Toggle("Start EspDesktop when I sign in", LocalStore.StartsAtLogin, enabled =>
         {
             try { LocalStore.StartsAtLogin = enabled; }
@@ -820,7 +844,7 @@ internal sealed class SettingsWindow : Window
     private void FoldersPage()
     {
         var card = Card("Approved folders", "Paired displays see folder names. Paths stay on this PC.");
-        Row(card, Button("Add folder", PickFolder));
+        Row(card, Button("Add folder", () => PickFolder()));
         if (store.Settings.Folders.Count == 0) card.Children.Add(Paragraph("No folders added yet."));
         foreach (var folder in store.Settings.Folders)
         {
@@ -846,6 +870,12 @@ internal sealed class SettingsWindow : Window
             DockPanel.SetDock(remove, Dock.Right);
             entry.Children.Add(remove);
 
+            var chooseAgain = Button("Choose again", () => PickFolder(folder));
+            chooseAgain.Margin = new Thickness(0, 0, 8, 0);
+            chooseAgain.VerticalAlignment = VerticalAlignment.Center;
+            DockPanel.SetDock(chooseAgain, Dock.Right);
+            entry.Children.Add(chooseAgain);
+
             var details = new StackPanel();
             details.Children.Add(new TextBlock { Text = folder.Label, FontWeight = FontWeights.SemiBold, TextWrapping = TextWrapping.Wrap });
             details.Children.Add(Paragraph(Directory.Exists(folder.Path) ? folder.Path : $"{folder.Path} · Folder not found"));
@@ -853,15 +883,23 @@ internal sealed class SettingsWindow : Window
         }
     }
 
-    private void PickFolder()
+    private void PickFolder(ApprovedFolder? folder = null)
     {
-        var picker = new OpenFolderDialog { Title = "Choose a folder for your display" };
+        var picker = new OpenFolderDialog
+        {
+            Title = folder == null ? "Choose a folder for your display" : $"Choose a new location for {folder.Label}"
+        };
+        if (folder != null && Directory.Exists(folder.Path)) picker.InitialDirectory = folder.Path;
         if (picker.ShowDialog(this) != true) return;
         var path = Path.TrimEndingDirectorySeparator(picker.FolderName);
-        if (store.Settings.Folders.Any(f => string.Equals(f.Path, path, StringComparison.OrdinalIgnoreCase)))
+        if (store.Settings.Folders.Any(f => f.Id != folder?.Id && string.Equals(f.Path, path, StringComparison.OrdinalIgnoreCase)))
         { Report("That folder is already approved."); return; }
-        if (store.Settings.Folders.Count >= 64) { Report("Remove an approved folder before adding another."); return; }
-        store.Settings.Folders.Add(new("folder." + Guid.NewGuid().ToString().ToLowerInvariant(), path));
+        if (folder == null)
+        {
+            if (store.Settings.Folders.Count >= 64) { Report("Remove an approved folder before adding another."); return; }
+            store.Settings.Folders.Add(new("folder." + Guid.NewGuid().ToString().ToLowerInvariant(), path));
+        }
+        else store.Settings.Folders[store.Settings.Folders.IndexOf(folder)] = folder.Relocate(path);
         desktop.Changed(); Save(); Render();
     }
 
