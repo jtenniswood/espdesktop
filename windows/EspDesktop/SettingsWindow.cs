@@ -62,6 +62,7 @@ internal sealed class SettingsWindow : Window
     private string updateStatus = "Check for new versions of EspDesktop.";
     public bool HasPairing => displays.Count > 0;
     public event Action<string>? ConnectionStatusChanged;
+    public event Action<string>? ShortcutFailed;
 
     public SettingsWindow(bool smoke, Func<CancellationToken, Task<DiscoveredDisplay[]>>? discover = null, LocalStore? store = null)
     {
@@ -69,6 +70,7 @@ internal sealed class SettingsWindow : Window
         this.discover = discover ?? Discovery.Find;
         this.store = store ?? new LocalStore();
         desktop = new(this.store.Settings);
+        desktop.ShortcutFailed += message => _ = Dispatcher.InvokeAsync(() => ShortcutFailed?.Invoke(message));
         findDisplays = Button("Refresh", async () => await Scan(interactive: true));
         if (!smoke)
         {

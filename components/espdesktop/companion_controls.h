@@ -1861,7 +1861,9 @@ class CompanionActionsHandler : public esphome::web_server_idf::AsyncWebHandler 
       const auto entries = runtime.remote_definitions_page(page * page_size, page_size,
                                                            definitions_connected, has_more);
       json = "{\"page\":" + std::to_string(page) + ",\"hasMore\":" +
-        (has_more ? "true" : "false") + ",\"definitions\":[";
+        (has_more ? "true" : "false");
+      if (runtime.windows_shortcuts()) json += ",\"shortcutPlatform\":\"windows\"";
+      json += ",\"definitions\":[";
       if (definitions_connected) {
         for (const auto &definition : entries) {
           if (!first) json += ",";

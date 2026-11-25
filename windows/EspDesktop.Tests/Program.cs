@@ -117,6 +117,10 @@ Check(SafeActions.WebUrl("https%3A%2F%2Fexample.org")?.Host == "example.org", "v
 foreach (var bad in new[] { "file:///C:/Windows", "https://a:b@example.org", "ms-settings:windowsupdate", "https:%5c%5cexample.com", "https://example.org/%0a" })
     Check(SafeActions.WebUrl(bad) is null, "refuse unsafe URL");
 Check(SafeActions.Shortcut("shortcut.command+shift+t")?.SequenceEqual(new ushort[] { 0x11, 0x10, 0x54 }) == true, "map Command to Ctrl");
+Check(SafeActions.Shortcut("shortcut.scoped.control+t")?.SequenceEqual(new ushort[] { 0x11, 0x54 }) == true,
+    "parse the display's app-scoped shortcut");
+Check(SafeActions.Shortcut("shortcut.scoped.control+t~control+w") is null, "reject scoped sequences");
+Check(SafeActions.Shortcut("shortcut.scoped.option+tab") is null, "block scoped system window switching");
 Check(SafeActions.Shortcut("shortcut.option+f4") is null, "block system window close");
 Check(SafeActions.Shortcut("shortcut.control+escape") is null, "block Start menu");
 Check(SafeActions.Shortcut("shortcut.command+escape") is null, "block Start menu through the Command alias");
@@ -918,32 +922,31 @@ async Task VerifyFolderActions(WebSocket socket, WindowsFolderActions folders)
 async Task VerifyAppActions(WebSocket socket, WindowsAppActions app, string deniedId)
 {
     await Invoke("app-denied", deniedId, "not_allowed");
-    var launch = await Invoke("app-launch", app.Entry.Id, "activated", "opened");
+    await Invoke("app-launch", app.Entry.Id, "activated");
     await app.CheckForeground(lifetime.Token);
-    Check(launch == "activated", $"recognize the focused Windows app after launch (reported {launch})");
     await FindMessage(socket, "focus.changed", m => Text(m, "actionId") == app.Entry.Id);
     await Invoke("shortcut-denied", "shortcut.option+tab", "not_allowed");
-    var scopedShortcut = "shortcut.scoped." + WindowsAppActions.Shortcut["shortcut.".Length..];
-    await Invoke("shortcut-missing-target", scopedShortcut, "not_allowed");
-    await InvokeScoped("shortcut-wrong-target", deniedId, "not_allowed");
-    await InvokeScoped("shortcut-delivered", app.Entry.Id, "performed");
+    await Invoke("shortcut-delivered", WindowsAppActions.Shortcut, "performed");
     await app.WaitForShortcut(lifetime.Token);
-    Console.WriteLine("Passed authenticated Windows Start menu app launch, focus reporting, and keyboard shortcut delivery.");
+    app.ClearShortcutReceipt();
 
-    async Task InvokeScoped(string request, string appId, string expected)
-    {
-        await Send(socket, "action.invoke", ("kind", "action"), ("actionId", scopedShortcut),
-            ("appId", appId), ("requestId", request));
-        var result = await FindMessage(socket, "action.result", m => Text(m, "requestId") == request);
-        Check(Text(result, "status") == expected, $"scoped shortcut {request} reported {Text(result, "status")}, expected {expected}");
-    }
+    const string scoped = "shortcut.scoped.control+shift+f8";
+    await Invoke("preset-no-target", scoped, "not_allowed");
+    await Invoke("preset-unapproved-target", scoped, "not_allowed", appId: deniedId);
+    await Invoke("preset-background-target", scoped, "not_found", appId: WindowsDesktop.ExplorerId);
+    Check(!app.HasShortcutReceipt, "rejected presets leave the foreground test app untouched");
+    await Invoke("preset-delivered", scoped, "performed", appId: app.Entry.Id);
+    await app.WaitForShortcut(lifetime.Token);
+    Console.WriteLine("Passed authenticated Windows app launch, focus reporting, and custom and app-scoped shortcuts.");
 
-    async Task<string> Invoke(string request, string id, params string[] statuses)
+    async Task<string> Invoke(string request, string id, string status, string? appId = null)
     {
-        await Send(socket, "action.invoke", ("kind", "action"), ("actionId", id), ("requestId", request));
+        var fields = new List<(string, object?)> { ("kind", "action"), ("actionId", id), ("requestId", request) };
+        if (appId is not null) fields.Add(("appId", appId));
+        await Send(socket, "action.invoke", fields.ToArray());
         var result = await FindMessage(socket, "action.result", m => Text(m, "requestId") == request);
         var actual = Text(result, "status");
-        Check(statuses.Contains(actual), $"{request} reported {actual}, expected {string.Join(" or ", statuses)}");
+        Check(actual == status, $"{request} reported {actual}, expected {status}");
         return actual;
     }
 }
