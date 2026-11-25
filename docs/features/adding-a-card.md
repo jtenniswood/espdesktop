@@ -20,6 +20,12 @@ Fill in the options for the card type you picked. For example, choose the app fo
 - **Label** sets the name shown on the touchscreen. Look under **Card Settings** if the field is tucked away. Where the field shows **Automatic**, leave it blank to use the suggested label.
 - **Icon** opens the icon picker. Search for an icon by name and select it. Choose **Auto** to use the default icon when available. Some cards let you pick separate **Off Icon** and **On Icon** values.
 
+## Show system stats
+
+On firmware that includes **Stats**, choose **Stats** from the **Companion** card picker on Home or in a subpage. Select a **Statistic** and save. The display shows readings from the paired Mac or Windows PC while it is connected.
+
+Choose processor usage, memory, storage, network throughput, IP address, or battery level when your computer reports one. For storage or IP address, you can choose a drive or network interface.
+
 ## Customise the colours
 
 1. Expand **Custom Colours** in the card editor. Choose a preset for the card background, or use the eyedropper button to open the custom colour picker.

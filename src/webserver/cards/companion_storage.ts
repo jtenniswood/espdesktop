@@ -42,6 +42,6 @@ export function renderCompanionStorageSelector(panel: HTMLElement | undefined, c
             });
         deviceSelect.value = current;
         hint.textContent = devices.length ? "Mounted local drives. Reopen settings to refresh." :
-            "Enable full disk access to list all drives.";
+            "No storage devices reported by the paired computer.";
     }).catch(() => { hint.textContent = "Storage devices unavailable. Check the Companion connection."; });
 }
