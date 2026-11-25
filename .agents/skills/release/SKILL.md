@@ -2,17 +2,18 @@
 name: release
 description: >-
   Create a coordinated EspDesktop GitHub release with flashable firmware for all
-  supported screens and a Developer ID signed, Apple-notarized Mac app, using the
-  verified draft release workflow. Use for /release, a patch/minor/major release,
-  or publishing firmware and Mac release downloads. Editing this skill does not
-  itself request a release.
+  supported screens, unsigned Windows installers, and a Developer ID signed,
+  Apple-notarized Mac app. Use the verified draft release workflow for /release,
+  a patch/minor/major release, or publishing release downloads. Editing this
+  skill does not itself request a release.
 ---
 
-# Release Screen Firmware and the Mac App
+# Release Screen Firmware and Desktop Apps
 
-Use `.github/workflows/release.yml` (`Build Release`) to build both products from
-one immutable source revision. It builds all release devices, signs and notarizes
-EspDesktop on a GitHub Mac runner, and signs the Sparkle automatic-update feed.
+Use `.github/workflows/release.yml` (`Build Release`) to build firmware and desktop
+apps from one immutable source revision. It builds firmware for all release
+devices, builds and tests both Windows installers, signs and notarizes EspDesktop
+on a GitHub Mac runner, and signs the Sparkle automatic-update feed.
 Build Release creates a private candidate. Install and open its notarized app
 on the Mac handling the release, then ask once whether it works. Use
 `.github/workflows/publish-release.yml` (Publish Release) after confirmation
@@ -117,7 +118,7 @@ For a new tag:
 git tag -a "$TAG" "$SOURCE_SHA" -m "Release $TAG"
 git push origin "$TAG"
 gh release create "$TAG" --verify-tag --draft \
-  --notes "Screen firmware and the signed Mac app are being built and verified. This draft is awaiting confirmation of the local Mac installation." \
+  --notes "Screen firmware, the signed Mac app, and the Windows installers are being built and verified. This draft is awaiting confirmation of the local Mac installation." \
   --fail-on-no-commits
 ```
 
@@ -131,7 +132,7 @@ git ls-remote --exit-code --tags origin "refs/tags/$TAG" "refs/tags/$TAG^{}"
 gh release view "$TAG" --json isDraft,tagName,url
 ```
 
-## 5. Dispatch and monitor both builds
+## 5. Dispatch and monitor the release builds
 
 After the tag and draft are verified, dispatch the workflow from that same tag:
 
@@ -142,17 +143,18 @@ gh run list --workflow release.yml --event workflow_dispatch --limit 10 \
 ```
 
 Match the run to the tag and `SOURCE_SHA`, then monitor with bounded status/log
-checks. Report meaningful progress and failures for both paths:
+checks. Report meaningful progress and failures:
 
 - Product preflight and every device in `python3 scripts/device_matrix.py release`.
 - Firmware assembly, recovery images where declared, manifests and provenance.
 - Mac tests, P12 import, Developer ID signing, Apple acceptance of app and DMG,
   stapling, signature/Gatekeeper checks and Sparkle feed signature verification.
+- Windows setup builds for x64 and Arm64, with install, launch, upgrade, and uninstall tests.
 - Prepare Release Candidate, which verifies the compatibility manifest
   and records the candidate run ID and fingerprint.
 
 On failure, inspect the failed job and confirm the release remains a draft.
-Never publish a partial firmware-only release to bypass a Mac failure. For a
+Wait for the firmware, Mac, and Windows jobs to succeed before publication. For a
 transient failure, retry the failed jobs of the same source-pinned run after
 diagnosis; inspect pending Apple submission IDs before resubmitting. Stop retries
 if the same failure recurs without new evidence or a repair. Source changes need
@@ -214,18 +216,20 @@ second list in this skill. Require nonempty downloads for all of:
 | Each screen with `recovery: true` | `<slug>.recovery.bin`, `<slug>.recovery.manifest.json` |
 | Firmware provenance | `release-manifest.json` |
 | Signed, notarized Mac app | `EspDesktop-${TAG#v}.zip`, `EspDesktop-${TAG#v}.dmg` |
+| Windows setup files | `EspDesktop-Windows-<numeric version>-x64-Setup.exe` and `EspDesktop-Windows-<numeric version>-arm64-Setup.exe` |
 | Signed automatic-update feed | `companion-appcast-v<protocolVersion>.xml` |
 | Coordinated compatibility | `companion-compatibility.json` |
 
 Read the protocol version from tagged `product/v2/companion_capabilities.json`.
 Check the workflow's verification results, not only filenames. The compatibility
-manifest must identify the same tag/source SHA and hashes for the Mac archives
-and supported firmware; the release manifest verifies firmware/web provenance.
+manifest must identify the same tag/source SHA and hashes for the Mac archives,
+Windows installers, and supported firmware. The release manifest verifies
+firmware and web provenance.
 Use `scripts/companion_release.py verify` and the existing firmware verification
 commands if downloaded artifacts require independent verification.
 
 Confirm `isDraft` is false, the prerelease flag is correct, and release notes
-cover both screen and Mac changes. For public download/update availability,
+cover screen and desktop app changes. For public download/update availability,
 check the `Deploy Docs` run triggered by the successful release and its published
 links; distinguish publishing from Pages propagation. Do not claim physical
 screen testing or Accessibility permission persistence from CI results.

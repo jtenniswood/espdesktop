@@ -198,7 +198,15 @@ def test_publication_requires_tested_candidate() -> None:
     assert '.workflow_id == $workflow' in publish
     assert 'confirmed_fingerprint:\n        description:' in publish
     assert 'CONFIRMED_FINGERPRINT: ${{ inputs.confirmed_fingerprint }}' in publish
-    assert publish.count("run-id: ${{ inputs.candidate_run }}") == 3
+    assert publish.count("run-id: ${{ inputs.candidate_run }}") == 4
+    assert "uses: ./.github/workflows/windows-espdesktop.yml" in build
+    candidate = build.split("\n  prepare-candidate:", 1)[1]
+    assert "windows-release" in candidate.split("runs-on:", 1)[0]
+    assert "pattern: espdesktop-windows-*-installer" in candidate
+    assert candidate.count("--windows-dir dist/windows") == 2
+    assert "pattern: espdesktop-windows-*-installer" in publish
+    assert "--windows-dir dist/windows" in publish
+    assert "dist/windows/*.exe" in publish.split("scripts/firmware_release.py publish-draft", 1)[1]
     pages_upload = publish.split("name: Make the tested editor available to Pages", 1)[1]
     pages_upload = pages_upload.split("name: Upload, verify, and publish draft release", 1)[0]
     assert "overwrite: true" in pages_upload, "Publication retries must replace the verified Pages artifact"
