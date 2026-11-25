@@ -21,6 +21,31 @@
     "valid": true
   },
   {
+    "name": "pair request with computer identity",
+    "message": {
+      "protocol": 4,
+      "type": "pair.request",
+      "code": "ABCD-EFGH",
+      "name": "Office PC",
+      "clientId": "0123456789abcdef0123456789abcdef"
+    },
+    "direction": "mac_to_panel",
+    "state": "pairing",
+    "valid": true
+  },
+  {
+    "name": "pair request with empty computer name",
+    "message": {
+      "protocol": 4,
+      "type": "pair.request",
+      "code": "ABCD-EFGH",
+      "name": ""
+    },
+    "direction": "mac_to_panel",
+    "state": "pairing",
+    "valid": false
+  },
+  {
     "name": "pair accepted",
     "message": {
       "protocol": 4,
@@ -30,6 +55,31 @@
     "direction": "panel_to_mac",
     "state": "pairing",
     "valid": true
+  },
+  {
+    "name": "pair accepted with computer id",
+    "message": {
+      "protocol": 4,
+      "type": "pair.accepted",
+      "credential": "0101010101010101010101010101010101010101010101010101010101010101",
+      "computerId": "0123456789abcdef",
+      "name": "Office PC"
+    },
+    "direction": "panel_to_mac",
+    "state": "pairing",
+    "valid": true
+  },
+  {
+    "name": "pair accepted with short computer id",
+    "message": {
+      "protocol": 4,
+      "type": "pair.accepted",
+      "credential": "0101010101010101010101010101010101010101010101010101010101010101",
+      "computerId": "abc"
+    },
+    "direction": "panel_to_mac",
+    "state": "pairing",
+    "valid": false
   },
   {
     "name": "authentication",
@@ -45,6 +95,20 @@
     "valid": true
   },
   {
+    "name": "authentication with computer id",
+    "message": {
+      "protocol": 4,
+      "type": "auth.request",
+      "sequence": 4,
+      "nonce": "a-nonce",
+      "signature": "abababababababababababababababababababababababababababababababab",
+      "computerId": "0123456789abcdef"
+    },
+    "direction": "mac_to_panel",
+    "state": "authenticating",
+    "valid": true
+  },
+  {
     "name": "authenticated",
     "message": {
       "protocol": 4,
@@ -54,6 +118,30 @@
     "direction": "panel_to_mac",
     "state": "authenticating",
     "valid": true
+  },
+  {
+    "name": "authenticated with computer id",
+    "message": {
+      "protocol": 4,
+      "type": "auth.accepted",
+      "capabilityVersion": 25,
+      "computerId": "0123456789abcdef"
+    },
+    "direction": "panel_to_mac",
+    "state": "authenticating",
+    "valid": true
+  },
+  {
+    "name": "authenticated with long computer id",
+    "message": {
+      "protocol": 4,
+      "type": "auth.accepted",
+      "capabilityVersion": 25,
+      "computerId": "0123456789abcdef0"
+    },
+    "direction": "panel_to_mac",
+    "state": "authenticating",
+    "valid": false
   },
   {
     "name": "capabilities",

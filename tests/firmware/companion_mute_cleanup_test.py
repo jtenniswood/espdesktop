@@ -27,7 +27,7 @@ struct lv_obj_t { bool checked=false, disabled=false; std::string text; } first,
 struct lv_event_t { lv_obj_t *target; };
 constexpr int LV_EVENT_DELETE=1;
 struct CompanionMuteRef {
-  lv_obj_t *button; std::string control_id; lv_obj_t *icon_label=nullptr;
+  lv_obj_t *button; std::string control_id; std::string computer_id; lv_obj_t *icon_label=nullptr;
   const char *icon_unmuted=nullptr, *icon_muted=nullptr;
   lv_obj_t *text_label=nullptr;
   std::string resting_label{};
@@ -53,8 +53,12 @@ struct Registry { std::vector<CompanionMuteRef> mutes; } registry;
 Registry &companion_view_registry() { return registry; }
 struct Runtime {
   int displayed_mute_value(const std::string &, int confirmed) { return confirmed; }
+  CompanionRuntimeSnapshot snapshot() const { return {}; }
+  bool connected() const { return true; }
+  void preview_mute(const std::string &, int, const std::string &) {}
 } runtime;
 Runtime &companion_runtime_service() { return runtime; }
+Runtime &companion_runtime_for(const std::string &) { return runtime; }
 constexpr auto COMPANION_COUGH_ID = "media.cough";
 void unbind_cough_button(lv_obj_t *) {}
 bool companion_mute_control_valid(const std::string &id) {
@@ -76,8 +80,12 @@ struct Context { bool numeric=false; };
 bool numeric_selectable_driver_matches(const Context &context, const ParsedCfg &) { return context.numeric; }
 namespace esphome { unsigned millis() { return 0; } }
 bool screen_lock_enabled() { return false; }
+bool screen_lock_computer_locked(const std::string &) { return false; }
+bool companion_computer_locked(const std::string &) { return false; }
 bool companion_value(const std::string &, int &value) { value = 0; return true; }
-bool send_cough_button_value(const std::string &, int, int = 100) { return true; }
+bool companion_value_for(const std::string &, const std::string &, int &value) { value = 0; return true; }
+bool send_cough_button_value(const std::string &, int, int = 100,
+                             const std::string & = "") { return true; }
 void lv_label_set_display_text(lv_obj_t *obj, const char *text) { lv_label_set_text(obj, text); }
 '''
 checks = r'''

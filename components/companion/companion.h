@@ -4,6 +4,8 @@
 #include "esphome/core/helpers.h"
 #include "esphome/core/preferences.h"
 #include "session_state.h"
+#include "credential_store.h"
+#include "client_identity_store.h"
 #include "../espdesktop/companion_runtime.h"
 
 #include <esp_https_server.h>
@@ -69,8 +71,10 @@ class CompanionService final : public Component {
   std::string pairing_code() const;
   bool pairing_active() const;
   bool revoke_pairing();
+  bool revoke_credential(const std::string &computer_id);
   bool reset_and_begin_pairing();
-  void request_app_icon(const std::string &application_id);
+  void request_app_icon(const std::string &application_id,
+                        const std::string &computer_id = "");
   void refresh_app_icons_after_cache_clear();
 
  protected:
@@ -87,10 +91,15 @@ class CompanionService final : public Component {
   void handle_legacy_message_(int socket_fd, const char *message);
   bool start_server_();
   bool ensure_identity_();
-  AuthenticationResult authenticate_locked_(uint32_t sequence, const std::string &nonce,
-                                            const std::string &signature, uint32_t &last_sequence,
-                                            bool record_sequence = true);
-  void defer_session_(std::function<void()> callback, const char *label = "update");
+  AuthenticationResult authenticate_locked_(const std::string &computer_id, uint32_t sequence,
+                                            const std::string &nonce, const std::string &signature,
+                                            uint32_t &last_sequence, bool record_sequence = true,
+                                            size_t *credential_index = nullptr);
+  bool paired_() const { return this->credentials_.count > 0; }
+  bool sync_legacy_identity_locked_(size_t index);
+  bool revoke_credential_locked_(size_t index);
+  void defer_session_(int socket_fd, std::function<void()> callback,
+                      const char *label = "update");
   void handle_message_(int socket_fd, const std::string &message);
   void handle_json_(int socket_fd, const std::string &message);
   void handle_binary_(int socket_fd, const uint8_t *data, size_t size);
@@ -100,16 +109,76 @@ class CompanionService final : public Component {
   void forget_unauthenticated_socket_(int socket_fd);
   void expire_unauthenticated_socket_(int socket_fd);
   void update_authentication_deadline_();
-  void set_connected_(bool connected, int closing_socket = -1);
-  void publish_catalogue_();
-  void publish_focus_targets_();
+  // Per-computer session state. Catalogue and definition assembly happens on
+  // the HTTP server task for one socket at a time; the display-facing runtime
+  // receives the finished result on the UI loop.
+  struct SessionRuntime {
+    int socket{-1};
+    int credential_index{-1};
+    std::string computer_id;
+    std::atomic<bool> app_icons_supported{false};
+    std::atomic<bool> focus_targets_supported{false};
+    uint32_t catalogue_generation{0};
+    uint16_t catalogue_next_page{0};
+    bool catalogue_obs_only{false};
+    std::vector<CompanionAction> catalogue_actions;
+    CompanionCatalogueLimits catalogue_limits;
+    std::vector<std::string> catalogue_enabled_icons;
+    uint32_t definitions_generation{0};
+    uint16_t definitions_next_page{0};
+    uint16_t application_definition_count{0};
+    std::vector<CompanionRemoteDefinition> remote_definitions;
+
+    void reset(bool keep_socket = false) {
+      const int previous_socket = this->socket;
+      this->socket = -1;
+      this->credential_index = -1;
+      this->computer_id.clear();
+      this->app_icons_supported.store(false);
+      this->focus_targets_supported.store(false);
+      this->catalogue_generation = 0;
+      this->catalogue_next_page = 0;
+      this->catalogue_obs_only = false;
+      this->catalogue_actions.clear();
+      this->catalogue_limits = {};
+      this->catalogue_enabled_icons.clear();
+      this->definitions_generation = 0;
+      this->definitions_next_page = 0;
+      this->application_definition_count = 0;
+      this->remote_definitions.clear();
+      if (keep_socket) this->socket = previous_socket;
+    }
+  };
+  SessionRuntime *session_for_socket_(int socket_fd);
+  const SessionRuntime *session_for_socket_(int socket_fd) const;
+  SessionRuntime *session_for_credential_(size_t credential_index);
+  SessionRuntime *attach_session_(int socket_fd, size_t credential_index,
+                                  const std::string &computer_id);
+  void clear_session_(SessionRuntime &session, bool keep_socket = false);
+  void bind_runtime_(const std::string &computer_id);
+  void set_computer_connected_(const std::string &computer_id, bool connected,
+                               int closing_socket = -1);
+  void publish_catalogue_(int socket_fd);
+  void publish_focus_targets_(int socket_fd);
+  void publish_focus_targets_all_();
   void restore_focus_targets_();
   void save_focus_targets_();
-  bool invoke_(const std::string &action_id, const std::string &request_id,
-               const std::string &folder_open_behavior, const std::string &shortcut_app_id);
-  bool invoke_url_(const std::string &encoded_url, const std::string &request_id, bool new_window);
-  bool invoke_value_(const std::string &control_id, int value,
+  bool invoke_(const std::string &computer_id, const std::string &action_id,
+               const std::string &request_id, const std::string &folder_open_behavior,
+               const std::string &shortcut_app_id);
+  bool invoke_url_(const std::string &computer_id, const std::string &encoded_url,
+                   const std::string &request_id, bool new_window);
+  bool invoke_value_(const std::string &computer_id, const std::string &control_id, int value,
                      const std::string &request_id);
+  std::string computer_id_for_credential_locked_(size_t index) const;
+  int credential_index_for_socket_(int socket_fd) const;
+  std::string computer_id_for_socket_(int socket_fd) const;
+  int socket_for_computer_(const std::string &computer_id);
+  // Connection events are queued to the UI loop. A newer event for the same
+  // computer must win over a stale queued disconnect after a quick reconnect.
+  uint32_t next_computer_epoch_(const std::string &computer_id);
+  void forget_computer_epoch_(const std::string &computer_id);
+  bool computer_epoch_current_(const std::string &computer_id, uint32_t epoch) const;
   using PairingCode = std::array<char, COMPANION_PAIRING_CODE_LENGTH>;
   bool begin_pairing_locked_(bool reset, bool show_on_display = false);
   bool revoke_pairing_locked_(const PairingCode *code = nullptr, bool show_on_display = false);
@@ -118,10 +187,14 @@ class CompanionService final : public Component {
 
   HomeAssistantApi home_assistant_;
   ESPPreferenceObject preferences_;
+  ESPPreferenceObject credentials_preferences_;
   ESPPreferenceObject sequence_preferences_;
   ESPPreferenceObject pairing_code_preferences_;
   ESPPreferenceObject focus_targets_preferences_;
+  ESPPreferenceObject client_identities_preferences_;
   CompanionIdentityPreference identity_{};
+  CompanionCredentialsPreference credentials_{};
+  CompanionClientIdentitiesPreference client_identities_{};
 #ifdef USE_COMPANION_USB
   std::optional<CompanionUSBBridge> usb_bridge_;
   CompanionUSBEditor usb_editor_;
@@ -133,18 +206,16 @@ class CompanionService final : public Component {
   std::optional<uint32_t> last_failed_pairing_at_;
   mutable std::mutex pairing_mutex_;
   std::string pairing_code_;
-  std::atomic<uint32_t> focus_targets_generation_{0};
-  std::atomic<bool> focus_targets_supported_{false};
-  std::vector<CompanionAction> catalogue_actions_;
-  CompanionCatalogueLimits catalogue_limits_;
-  std::vector<std::string> catalogue_enabled_icons_;
-  std::vector<CompanionRemoteDefinition> remote_definitions_;
-  uint16_t application_definition_count_{0};
-  uint32_t catalogue_generation_{0};
-  uint16_t catalogue_next_page_{0};
-  bool catalogue_obs_only_{false};
-  uint32_t definitions_generation_{0};
-  uint16_t definitions_next_page_{0};
+  std::array<SessionRuntime, COMPANION_MAX_CONCURRENT_SESSIONS> session_runtimes_{};
+  // Icon-eligible app IDs per session, copied when a catalogue completes so
+  // UI-task icon requests can pick a computer without reading HTTP-task vectors.
+  std::array<std::vector<std::string>, COMPANION_MAX_CONCURRENT_SESSIONS> icon_enabled_snapshots_{};
+  struct ComputerEpoch {
+    std::string id;
+    uint32_t epoch{0};
+  };
+  std::array<ComputerEpoch, COMPANION_MAX_CREDENTIALS> computer_epochs_{};
+  mutable std::mutex session_runtimes_mutex_;
   struct UnauthenticatedSession {
     int socket{-1};
     uint32_t expires_at{0};
@@ -157,7 +228,7 @@ class CompanionService final : public Component {
   std::array<uint8_t, 32> app_icon_sha256_{};
   uint32_t app_icon_generation_{0};
   size_t app_icon_offset_{0};
-  std::atomic<bool> app_icons_supported_{false};
+  int app_icon_socket_{-1};
   std::atomic<bool> windows_companion_{false};
   std::atomic<bool> app_icon_catalogue_refresh_pending_{true};
   std::atomic<uint32_t> authentication_expires_at_{0};
@@ -170,7 +241,9 @@ void begin_companion_pairing();
 std::string companion_pairing_code();
 bool companion_pairing_active();
 void revoke_companion_pairing();
-void request_app_icon(const std::string &application_id);
+bool revoke_companion_credential(const std::string &computer_id);
+void request_app_icon(const std::string &application_id,
+                      const std::string &computer_id = "");
 void sync_app_icon_references(const std::vector<std::string> &application_ids);
 bool clear_companion_app_icon_cache();
 void companion_app_icon_ready(const std::string &application_id);

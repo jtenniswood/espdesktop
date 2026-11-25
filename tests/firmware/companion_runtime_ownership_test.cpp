@@ -103,6 +103,55 @@ int main() {
   assert(first.stop());
   assert(callback_lifetime.expired());
   assert(second.companion_runtime().snapshot().actions[0].id == "com.example.Second");
+
+  // Each paired computer keeps an isolated runtime. Legacy cards resolve to
+  // the primary computer, while the active computer follows the last input.
+  CompanionRuntimeRegistry registry;
+  registry.set_primary_computer("0011223344556677");
+  auto &primary_runtime = registry.for_computer("0011223344556677");
+  auto &secondary_runtime = registry.for_computer("8899aabbccddeeff");
+  assert(&primary_runtime == &registry.primary());
+  assert(&primary_runtime != &secondary_runtime);
+  primary_runtime.set_actions({{"com.example.Primary", "Primary"}});
+  secondary_runtime.set_actions({{"com.example.Secondary", "Secondary"}});
+  primary_runtime.set_connected(true);
+  secondary_runtime.set_connected(true);
+  assert(registry.any_connected());
+  assert(registry.active_computer() == "0011223344556677");
+  assert(registry.active().snapshot().actions[0].id == "com.example.Primary");
+  registry.set_active_computer("8899aabbccddeeff");
+  assert(registry.is_active_computer("8899aabbccddeeff"));
+  assert(registry.active().snapshot().actions[0].id == "com.example.Secondary");
+  assert(registry.for_computer("8899aabbccddeeff").snapshot().actions[0].id == "com.example.Secondary");
+
+  // The registry holds at most four computers. An extra ID reads an empty
+  // runtime rather than borrowing (and then rebinding) another computer.
+  auto &third = registry.for_computer("1111111111111111");
+  auto &fourth = registry.for_computer("2222222222222222");
+  assert(&third != &fourth);
+  auto &overflow = registry.for_computer("3333333333333333");
+  assert(&overflow != &registry.primary());
+  assert(!registry.has_computer("3333333333333333"));
+
+  // Revoking a computer frees its slot for the next pairing.
+  registry.release_computer("1111111111111111");
+  auto &fifth = registry.for_computer("3333333333333333");
+  assert(registry.has_computer("3333333333333333"));
+  assert(&fifth != &registry.primary());
+  fifth.set_actions({{"com.example.Fifth", "Fifth"}});
+  assert(registry.for_computer("3333333333333333").snapshot().actions[0].id == "com.example.Fifth");
+
+  registry.reset_computer("8899aabbccddeeff");
+  assert(!registry.for_computer("8899aabbccddeeff").connected());
+  assert(registry.for_computer("8899aabbccddeeff").snapshot().actions.empty());
+
+  // Promoting a computer moves its state to the primary slot.
+  registry.set_primary_computer("0011223344556677");
+  registry.set_primary_computer("2222222222222222");
+  fourth.set_actions({{"com.example.Fourth", "Fourth"}});
+  assert(registry.primary().snapshot().actions[0].id == "com.example.Fourth");
+  registry.reset();
+
   std::cout << "Companion service: " << sizeof(CompanionRuntimeService)
             << " bytes; connection reads: 0 allocations\n";
 }

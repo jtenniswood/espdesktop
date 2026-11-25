@@ -13,6 +13,7 @@ export function targetedAudioCard(
     fields: ControlsFieldsFeature,
     type: string,
     inputDevice = false,
+    renderComputerField?: (panel: HTMLElement, card: any, helpers: any) => void,
 ): CardDefinition {
     const defaults = cardContractDefaultConfig(type);
     const prefix = inputDevice ? "input.level." : volumePrefix;
@@ -27,6 +28,7 @@ export function targetedAudioCard(
         defaultConfig: () => defaults,
         onSelect: (card) => Object.assign(card, defaults),
         renderSettingsBeforeLabel: (panel, card, _slot, helpers) => {
+            renderComputerField?.(panel, card, helpers);
             const savedEntity = card.entity;
             const apps = new Map<string, string>();
             const placeholder = ["", "Select"];

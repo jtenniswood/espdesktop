@@ -11,6 +11,7 @@
 #include <cmath>
 #include <cstddef>
 #include <cstdint>
+#include <memory>
 #include <mutex>
 #include <optional>
 #include <string>
@@ -164,6 +165,7 @@ enum class CompanionActionSuccess : uint8_t { ACTIVATED, PERFORMED };
 struct CompanionPendingAction {
   std::string request_id;
   std::string expected_application_id;
+  std::string computer_id;
   uint32_t expires_at{0};
   CompanionActionSuccess expected_success{CompanionActionSuccess::ACTIVATED};
   CompanionActionResultHandler success;
@@ -178,6 +180,12 @@ struct CompanionPendingActions {
 
 inline constexpr size_t COMPANION_PAIRING_CODE_LENGTH = 4;
 
+struct CompanionPairedComputer {
+  std::string id;
+  std::string name;
+  bool connected{false};
+};
+
 struct CompanionPairingSnapshot {
   bool available{false};
   bool active{false};
@@ -187,6 +195,8 @@ struct CompanionPairingSnapshot {
   uint32_t system_metrics_generation{0};
   std::string pairing_code;
   std::string mdns_name;
+  bool can_add_computer{true};
+  std::vector<CompanionPairedComputer> computers;
   bool windows_companion{false};
 };
 
@@ -202,9 +212,13 @@ class CompanionRuntimeService {
   CompanionActionSender action_sender;
   CompanionUrlSender url_sender;
   CompanionValueSender value_sender;
+  // The routing target captured by the transport wiring. Empty means "resolve
+  // the primary computer at call time".
+  std::string sender_target;
   CompanionPairingProvider pairing_provider;
   std::function<void()> begin_pairing;
   std::function<bool()> reset_and_begin_pairing;
+  std::function<bool(const std::string &)> revoke_computer;
   std::function<void()> request_pairing_display;
   std::function<bool()> clear_app_icon_cache;
   void (*show_pairing_code_handler)() = nullptr;
@@ -604,4 +618,250 @@ class CompanionRuntimeService {
   std::atomic<bool> mac_update_required_{false};
   std::atomic<bool> refresh_requested_{false};
   std::atomic<bool> focus_refresh_requested_{false};
+};
+
+// One CompanionRuntimeService per paired computer. Existing cards and the
+// display's global surfaces use the primary runtime; cards saved with a
+// computer ID use that computer's runtime. "Active" follows the computer whose
+// card was touched last so live readouts on shared cards match the input.
+inline constexpr size_t COMPANION_MAX_COMPUTER_RUNTIMES = 4;
+
+inline void companion_reset_runtime_state(CompanionRuntimeService &runtime) {
+  runtime.set_connected(false);
+  runtime.set_actions({});
+  runtime.set_obs_actions({});
+  runtime.set_remote_definitions({});
+  runtime.set_keyboard_actions_supported(false);
+  runtime.set_system_metrics({});
+  runtime.set_focused_actions({});
+  runtime.set_application_highlight({});
+  runtime.set_mac_update_required(false);
+}
+
+class CompanionRuntimeRegistry {
+ public:
+  CompanionRuntimeService &primary() { return this->slot_(0); }
+
+  CompanionRuntimeService &for_computer(const std::string &computer_id) {
+    if (computer_id.empty()) return this->primary();
+    std::lock_guard<std::mutex> lock(this->mutex_);
+    const size_t index = this->slot_for_id_locked_(computer_id, true);
+    if (index == SIZE_MAX) return this->unknown_runtime_;
+    if (this->ids_[index].empty()) {
+      this->ids_[index] = computer_id;
+      companion_reset_runtime_state(*this->ensure_slot_locked_(index));
+    }
+    return *this->ensure_slot_locked_(index);
+  }
+
+  CompanionRuntimeService *find_computer(const std::string &computer_id) {
+    if (computer_id.empty()) return nullptr;
+    const size_t index = this->slot_for_id_(computer_id, false);
+    return index == SIZE_MAX ? nullptr : &this->slot_(index);
+  }
+
+  // Card rendering must not allocate a slot for a stale computer ID. Unknown
+  // computers read a shared empty runtime so their cards render unavailable
+  // instead of borrowing another computer's state.
+  CompanionRuntimeService &find_or_primary(const std::string &computer_id) {
+    if (computer_id.empty()) return this->primary();
+    auto *runtime = this->find_computer(computer_id);
+    return runtime ? *runtime : this->unknown_runtime_;
+  }
+
+  bool has_computer(const std::string &computer_id) const {
+    std::lock_guard<std::mutex> lock(this->mutex_);
+    return this->slot_for_id_locked_(computer_id, false) != SIZE_MAX;
+  }
+
+  void set_primary_computer(const std::string &computer_id) {
+    std::lock_guard<std::mutex> lock(this->mutex_);
+    if (computer_id.empty()) {
+      this->primary_id_.clear();
+      return;
+    }
+    if (this->primary_id_ == computer_id) return;
+    const size_t index = this->slot_for_id_locked_(computer_id, false);
+    if (index != SIZE_MAX && index != 0) {
+      // A runtime already exists for this computer. Promote it by swapping it
+      // with slot zero so its state follows the primary designation.
+      std::swap(this->runtimes_[0], this->runtimes_[index]);
+      std::swap(this->ids_[0], this->ids_[index]);
+    } else if (index == SIZE_MAX && this->runtimes_[0] && !this->ids_[0].empty() &&
+               this->ids_[0] != computer_id) {
+      // The previous primary was revoked and the new one has no runtime yet.
+      // Keep the object (service wiring survives) but clear its stale state.
+      companion_reset_runtime_state(*this->runtimes_[0]);
+      this->ids_[0].clear();
+    }
+    this->ids_[0] = computer_id;
+    this->primary_id_ = computer_id;
+  }
+
+  // Free a revoked computer's slot for reuse. The runtime object is kept so
+  // UI references stay valid; its state must be reset by the caller first.
+  void release_computer(const std::string &computer_id) {
+    std::lock_guard<std::mutex> lock(this->mutex_);
+    const size_t index = this->slot_for_id_locked_(computer_id, false);
+    if (index == SIZE_MAX) return;
+    this->ids_[index].clear();
+    if (this->primary_id_ == computer_id) this->primary_id_.clear();
+    if (this->active_id_ == computer_id) this->active_id_.clear();
+  }
+
+  std::string first_connected_computer() {
+    std::lock_guard<std::mutex> lock(this->mutex_);
+    for (size_t index = 0; index < this->runtimes_.size(); index++) {
+      if (!this->runtimes_[index] || !this->runtimes_[index]->connected()) continue;
+      if (this->ids_[index] == this->primary_id_) return this->ids_[index];
+    }
+    for (size_t index = 0; index < this->runtimes_.size(); index++) {
+      if (this->runtimes_[index] && this->runtimes_[index]->connected() &&
+          !this->ids_[index].empty())
+        return this->ids_[index];
+    }
+    return {};
+  }
+
+  const std::string &primary_computer() const { return this->primary_id_; }
+
+  void set_active_computer(const std::string &computer_id) {
+    std::lock_guard<std::mutex> lock(this->mutex_);
+    this->active_id_ = computer_id;
+  }
+
+  std::string active_computer() const {
+    std::lock_guard<std::mutex> lock(this->mutex_);
+    return this->resolve_active_locked_();
+  }
+
+  bool is_active_computer(const std::string &computer_id) const {
+    std::lock_guard<std::mutex> lock(this->mutex_);
+    return this->resolve_active_locked_() == computer_id;
+  }
+
+  CompanionRuntimeService &active() {
+    const std::string id = this->active_computer();
+    return id.empty() ? this->primary() : this->for_computer(id);
+  }
+
+  bool any_connected() {
+    std::lock_guard<std::mutex> lock(this->mutex_);
+    for (const auto &runtime : this->runtimes_)
+      if (runtime && runtime->connected()) return true;
+    return false;
+  }
+
+  bool consume_refresh_request() {
+    std::lock_guard<std::mutex> lock(this->mutex_);
+    bool requested = false;
+    for (auto &runtime : this->runtimes_)
+      if (runtime) requested |= runtime->consume_refresh_request();
+    return requested;
+  }
+
+  bool focus_refresh_pending() {
+    std::lock_guard<std::mutex> lock(this->mutex_);
+    for (const auto &runtime : this->runtimes_)
+      if (runtime && runtime->focus_refresh_pending()) return true;
+    return false;
+  }
+
+  bool consume_focus_refresh_request() {
+    std::lock_guard<std::mutex> lock(this->mutex_);
+    bool requested = false;
+    for (auto &runtime : this->runtimes_)
+      if (runtime) requested |= runtime->consume_focus_refresh_request();
+    return requested;
+  }
+
+  void request_refresh_all() {
+    std::lock_guard<std::mutex> lock(this->mutex_);
+    for (auto &runtime : this->runtimes_)
+      if (runtime) runtime->request_refresh();
+  }
+
+  void set_app_subpage_mode_all(CompanionAppSubpageMode mode) {
+    std::lock_guard<std::mutex> lock(this->mutex_);
+    for (auto &runtime : this->runtimes_)
+      if (runtime) runtime->set_app_subpage_mode(mode);
+    this->app_subpage_mode_ = mode;
+  }
+
+  void set_return_home_on_app_switch_all(bool enabled) {
+    std::lock_guard<std::mutex> lock(this->mutex_);
+    for (auto &runtime : this->runtimes_)
+      if (runtime) runtime->set_return_home_on_app_switch(enabled);
+    this->return_home_on_app_switch_ = enabled;
+  }
+
+  void reset_computer(const std::string &computer_id) {
+    auto *runtime = this->find_computer(computer_id);
+    if (runtime) companion_reset_runtime_state(*runtime);
+  }
+
+  void reset() {
+    std::lock_guard<std::mutex> lock(this->mutex_);
+    for (auto &runtime : this->runtimes_) runtime.reset();
+    for (auto &id : this->ids_) id.clear();
+    this->primary_id_.clear();
+    this->active_id_.clear();
+  }
+
+ private:
+  CompanionRuntimeService &slot_(size_t index) {
+    std::lock_guard<std::mutex> lock(this->mutex_);
+    return *this->ensure_slot_locked_(index);
+  }
+
+  size_t slot_for_id_(const std::string &computer_id, bool allocate) {
+    std::lock_guard<std::mutex> lock(this->mutex_);
+    return this->slot_for_id_locked_(computer_id, allocate);
+  }
+
+  size_t slot_for_id_locked_(const std::string &computer_id, bool allocate) const {
+    if (computer_id.empty()) return 0;
+    if (computer_id == this->primary_id_) return 0;
+    // Slot zero may still hold a computer that is no longer primary while its
+    // revocation is being completed.
+    if (!this->ids_[0].empty() && this->ids_[0] == computer_id) return 0;
+    for (size_t index = 0; index < this->ids_.size(); index++)
+      if (this->runtimes_[index] && this->ids_[index] == computer_id) return index;
+    if (!allocate) return SIZE_MAX;
+    for (size_t index = 1; index < this->ids_.size(); index++)
+      if (this->ids_[index].empty()) return index;
+    return SIZE_MAX;
+  }
+
+  CompanionRuntimeService *ensure_slot_locked_(size_t index) {
+    if (index >= this->runtimes_.size() || index == SIZE_MAX) index = 0;
+    if (!this->runtimes_[index]) {
+      this->runtimes_[index] = std::make_unique<CompanionRuntimeService>();
+      if (this->has_app_subpage_mode_)
+        this->runtimes_[index]->set_app_subpage_mode(this->app_subpage_mode_);
+      if (this->has_return_home_)
+        this->runtimes_[index]->set_return_home_on_app_switch(this->return_home_on_app_switch_);
+    }
+    return this->runtimes_[index].get();
+  }
+
+  std::string resolve_active_locked_() const {
+    if (this->active_id_.empty()) return this->primary_id_;
+    if (this->active_id_ == this->primary_id_) return this->active_id_;
+    for (size_t index = 1; index < this->ids_.size(); index++)
+      if (this->runtimes_[index] && this->ids_[index] == this->active_id_)
+        return this->active_id_;
+    return this->primary_id_;
+  }
+
+  mutable std::mutex mutex_;
+  std::array<std::unique_ptr<CompanionRuntimeService>, COMPANION_MAX_COMPUTER_RUNTIMES> runtimes_{};
+  std::array<std::string, COMPANION_MAX_COMPUTER_RUNTIMES> ids_{};
+  CompanionRuntimeService unknown_runtime_;
+  std::string primary_id_;
+  std::string active_id_;
+  bool has_app_subpage_mode_{false};
+  CompanionAppSubpageMode app_subpage_mode_{CompanionAppSubpageMode::CARD};
+  bool has_return_home_{false};
+  bool return_home_on_app_switch_{true};
 };

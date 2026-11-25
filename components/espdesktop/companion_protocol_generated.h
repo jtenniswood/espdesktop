@@ -61,17 +61,23 @@ struct Hello {
 };
 struct PairRequest {
   std::string code{};
+  std::optional<std::string> name{};
+  std::optional<std::string> clientId{};
 };
 struct PairAccepted {
   std::string credential{};
+  std::optional<std::string> computerId{};
+  std::optional<std::string> name{};
 };
 struct AuthRequest {
   uint32_t sequence{};
   std::string nonce{};
   std::string signature{};
+  std::optional<std::string> computerId{};
 };
 struct AuthAccepted {
   uint32_t capabilityVersion{};
+  std::optional<std::string> computerId{};
   std::optional<bool> usbEditor{};
   std::optional<bool> usbWifiAddress{};
 };
@@ -263,11 +269,15 @@ inline void encode(JsonObject root, const PairRequest &message) {
   root["type"] = "pair.request";
   root["protocol"] = COMPANION_PROTOCOL_VERSION;
   root["code"] = message.code;
+  if (message.name) root["name"] = *message.name;
+  if (message.clientId) root["clientId"] = *message.clientId;
 }
 inline void encode(JsonObject root, const PairAccepted &message) {
   root["type"] = "pair.accepted";
   root["protocol"] = COMPANION_PROTOCOL_VERSION;
   root["credential"] = message.credential;
+  if (message.computerId) root["computerId"] = *message.computerId;
+  if (message.name) root["name"] = *message.name;
 }
 inline void encode(JsonObject root, const AuthRequest &message) {
   root["type"] = "auth.request";
@@ -275,11 +285,13 @@ inline void encode(JsonObject root, const AuthRequest &message) {
   root["sequence"] = message.sequence;
   root["nonce"] = message.nonce;
   root["signature"] = message.signature;
+  if (message.computerId) root["computerId"] = *message.computerId;
 }
 inline void encode(JsonObject root, const AuthAccepted &message) {
   root["type"] = "auth.accepted";
   root["protocol"] = COMPANION_PROTOCOL_VERSION;
   root["capabilityVersion"] = message.capabilityVersion;
+  if (message.computerId) root["computerId"] = *message.computerId;
   if (message.usbEditor) root["usbEditor"] = *message.usbEditor;
   if (message.usbWifiAddress) root["usbWifiAddress"] = *message.usbWifiAddress;
 }
@@ -561,8 +573,16 @@ inline std::optional<Message> decode(JsonObjectConst root, Direction direction, 
     {
       if (!(string_valid(root["code"], 1, 16))) return std::nullopt;
     }
+    if (!root["name"].isUnbound()) {
+      if (!(string_valid(root["name"], 1, 96))) return std::nullopt;
+    }
+    if (!root["clientId"].isUnbound()) {
+      if (!(string_valid(root["clientId"], 1, 64))) return std::nullopt;
+    }
     PairRequest result;
     result.code = root["code"].as<std::string>();
+    if (!root["name"].isUnbound()) result.name = root["name"].as<std::string>();
+    if (!root["clientId"].isUnbound()) result.clientId = root["clientId"].as<std::string>();
     return result;
   }
   if (type == "pair.accepted") {
@@ -571,8 +591,16 @@ inline std::optional<Message> decode(JsonObjectConst root, Direction direction, 
     {
       if (!(string_valid(root["credential"], 1, 64) && hex_valid(root["credential"]))) return std::nullopt;
     }
+    if (!root["computerId"].isUnbound()) {
+      if (!(string_valid(root["computerId"], 16, 16))) return std::nullopt;
+    }
+    if (!root["name"].isUnbound()) {
+      if (!(string_valid(root["name"], 1, 96))) return std::nullopt;
+    }
     PairAccepted result;
     result.credential = root["credential"].as<std::string>();
+    if (!root["computerId"].isUnbound()) result.computerId = root["computerId"].as<std::string>();
+    if (!root["name"].isUnbound()) result.name = root["name"].as<std::string>();
     return result;
   }
   if (type == "auth.request") {
@@ -587,10 +615,14 @@ inline std::optional<Message> decode(JsonObjectConst root, Direction direction, 
     {
       if (!(string_valid(root["signature"], 1, 64) && hex_valid(root["signature"]))) return std::nullopt;
     }
+    if (!root["computerId"].isUnbound()) {
+      if (!(string_valid(root["computerId"], 16, 16))) return std::nullopt;
+    }
     AuthRequest result;
     result.sequence = root["sequence"].as<uint32_t>();
     result.nonce = root["nonce"].as<std::string>();
     result.signature = root["signature"].as<std::string>();
+    if (!root["computerId"].isUnbound()) result.computerId = root["computerId"].as<std::string>();
     return result;
   }
   if (type == "auth.accepted") {
@@ -598,6 +630,9 @@ inline std::optional<Message> decode(JsonObjectConst root, Direction direction, 
     if (!(state == SessionState::AUTHENTICATING)) return std::nullopt;
     {
       if (!(number_valid(root["capabilityVersion"], 1, 4294967295, true))) return std::nullopt;
+    }
+    if (!root["computerId"].isUnbound()) {
+      if (!(string_valid(root["computerId"], 16, 16))) return std::nullopt;
     }
     if (!root["usbEditor"].isUnbound()) {
       if (!(root["usbEditor"].is<bool>())) return std::nullopt;
@@ -607,6 +642,7 @@ inline std::optional<Message> decode(JsonObjectConst root, Direction direction, 
     }
     AuthAccepted result;
     result.capabilityVersion = root["capabilityVersion"].as<uint32_t>();
+    if (!root["computerId"].isUnbound()) result.computerId = root["computerId"].as<std::string>();
     if (!root["usbEditor"].isUnbound()) result.usbEditor = root["usbEditor"].as<bool>();
     if (!root["usbWifiAddress"].isUnbound()) result.usbWifiAddress = root["usbWifiAddress"].as<bool>();
     return result;

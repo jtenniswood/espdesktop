@@ -3,6 +3,10 @@
   "pickerKey": "companion_output_volume",
   "allowInSubpage": true,
   "domains": [],
+  "options": [
+    { "name": "computer", "label": "Paired computer", "kind": "text", "omitDefault": true, "hidden": true, "docsHidden": true },
+    { "name": "hold_action", "label": "Hold action", "kind": "choice", "values": ["", "end_call"], "defaultValue": "", "omitDefault": true, "hidden": true, "docsHidden": true }
+  ],
   "normalization": {
     "fields": {
       "entity": { "policy": "default", "value": "media.input_mute" },
@@ -13,10 +17,10 @@
       "unit": { "policy": "clear" },
       "type": { "policy": "default", "value": "companion_input_mute" },
       "precision": { "policy": "clear" },
-      "options": { "policy": "clear" }
+      "options": { "policy": "keep" }
     },
     "unknownOptions": "drop",
-    "canonicalOptionOrder": []
+    "canonicalOptionOrder": ["computer", "hold_action"]
   },
   "default": {
     "entity": "media.input_mute", "label": "Input State", "icon": "Microphone", "icon_on": "Auto",

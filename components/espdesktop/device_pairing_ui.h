@@ -168,7 +168,7 @@ inline void device_pairing_show(const lv_font_t *text_font, const lv_font_t *tit
     ui.text_font = text_font;
     ui.title_font = title_font;
     bind_immediate_button_action(reset, [](lv_event_t *) {
-      const auto &reset_pairing = companion_runtime_service().reset_and_begin_pairing;
+      const auto &reset_pairing = companion_reset_pairing_handler();
       if (screen_lock_enabled() || !reset_pairing || !device_pairing_snapshot().available) return;
       if (!reset_pairing()) {
         lv_label_set_display_text(device_pairing_ui().status, espdesktop_i18n_key("reset_pairing_failed"));
@@ -231,15 +231,15 @@ inline void device_pairing_show(const lv_font_t *text_font, const lv_font_t *tit
 }
 
 inline void device_pairing_open(const lv_font_t *text_font, const lv_font_t *title_font) {
-  const auto &runtime = companion_runtime_service();
-  if (screen_lock_enabled() || !runtime.begin_pairing) return;
+  const auto &begin_pairing = companion_begin_pairing_handler();
+  if (screen_lock_enabled() || !begin_pairing) return;
   const auto snapshot = device_pairing_snapshot();
   if (!snapshot.available) return;
   if (snapshot.paired) {
-    if (runtime.reset_and_begin_pairing) device_pairing_show(text_font, title_font, true);
+    if (companion_reset_pairing_handler()) device_pairing_show(text_font, title_font, true);
     return;
   }
-  runtime.begin_pairing();
+  begin_pairing();
   device_pairing_show(text_font, title_font, false);
 }
 

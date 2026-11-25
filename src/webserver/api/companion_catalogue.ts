@@ -8,6 +8,9 @@ export interface CompanionAction {
   readonly obsDetail?: string;
   readonly obsAvailable?: boolean;
   readonly shortcutColor?: number;
+  readonly computer?: string;
+  readonly computerName?: string;
+  readonly primary?: boolean;
 }
 export interface CompanionDefinitions {
   readonly applications: readonly AppShortcutApplication[];
@@ -80,7 +83,8 @@ export function createCompanionCatalogueMonitor(
           action.id !== actions[index]?.id || action.label !== actions[index]?.label ||
           action.iconHash !== actions[index]?.iconHash || action.obsState !== actions[index]?.obsState ||
           action.obsDetail !== actions[index]?.obsDetail || action.obsAvailable !== actions[index]?.obsAvailable ||
-          action.shortcutColor !== actions[index]?.shortcutColor);
+          action.shortcutColor !== actions[index]?.shortcutColor ||
+          action.computer !== actions[index]?.computer || action.computerName !== actions[index]?.computerName);
       if (changed) {
         lastActions = actions;
         onActions(actions);
@@ -125,9 +129,8 @@ export function createCompanionCatalogue(fetchImpl: typeof fetch) {
   let cached: readonly CompanionAction[] | null = null;
   let pending: Promise<readonly CompanionAction[]> | null = null;
   let pendingRefresh = false;
-  let definitions: CompanionDefinitions | null = null;
-  let definitionsPending: Promise<CompanionDefinitions> | null = null;
-  let definitionsExpires = 0;
+  const definitionsByComputer = new Map<string, { value: CompanionDefinitions; expires: number }>();
+  const definitionsRequests = new Map<string, Promise<CompanionDefinitions>>();
 
   const shortcutApplications = new Map<string, { app: AppShortcutApplication | null; expires: number }>();
   const shortcutRequests = new Map<string, Promise<AppShortcutApplication | null>>();
@@ -135,8 +138,10 @@ export function createCompanionCatalogue(fetchImpl: typeof fetch) {
 
   type ShortcutPage = { catalogueVersion: number; complete: boolean; application: unknown };
 
-  async function fetchShortcutPage(appId: string, page: number, version?: number): Promise<ShortcutPage | null> {
-    const url = `/companion/shortcut-page?appId=${encodeURIComponent(appId)}&page=${page}`;
+  async function fetchShortcutPage(appId: string, page: number, version?: number,
+                                   computer = ""): Promise<ShortcutPage | null> {
+    const computerQuery = computer ? `&computer=${encodeURIComponent(computer)}` : "";
+    const url = `/companion/shortcut-page?appId=${encodeURIComponent(appId)}&page=${page}${computerQuery}`;
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 7000);
     try {
@@ -161,12 +166,12 @@ export function createCompanionCatalogue(fetchImpl: typeof fetch) {
     }
   }
 
-  async function fetchShortcutIndex(): Promise<CompanionDefinitions | null> {
+  async function fetchShortcutIndex(computer = ""): Promise<CompanionDefinitions | null> {
     const applications = new Map<string, AppShortcutApplication>();
     let version: number | undefined;
     let windows = false;
     for (let page = 0; page < 32; page++) {
-      const data = await fetchShortcutPage("index", page, version);
+      const data = await fetchShortcutPage("index", page, version, computer);
       if (!data) return null;
       version = data.catalogueVersion;
       const index = data.application as { applications?: unknown; shortcutPlatform?: unknown } | null;
@@ -183,12 +188,13 @@ export function createCompanionCatalogue(fetchImpl: typeof fetch) {
     throw new Error("Shortcut index has too many pages");
   }
 
-  async function fetchShortcutApplication(appId: string): Promise<AppShortcutApplication | null> {
+  async function fetchShortcutApplication(appId: string,
+                                          computer = ""): Promise<AppShortcutApplication | null> {
     let starter: AppShortcutApplication | undefined;
     let version: number | undefined;
     const more: NonNullable<AppShortcutApplication["moreShortcuts"]>[number][] = [];
     for (let page = 0; page < 32; page++) {
-      const data = await fetchShortcutPage(appId, page, version);
+      const data = await fetchShortcutPage(appId, page, version, computer);
       if (!data) return null;
       version = data.catalogueVersion;
       const app = data.application as Partial<AppShortcutApplication> | null;
@@ -212,23 +218,25 @@ export function createCompanionCatalogue(fetchImpl: typeof fetch) {
     return request;
   }
 
-  function loadShortcutApplication(appId: string): Promise<AppShortcutApplication | null> {
+  function loadShortcutApplication(appId: string,
+                                   computer = ""): Promise<AppShortcutApplication | null> {
     if (!/^[A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)+$/.test(appId) || appId.length > 96) return Promise.resolve(null);
-    const cached = shortcutApplications.get(appId);
+    const key = computer ? `${computer}:${appId}` : appId;
+    const cached = shortcutApplications.get(key);
     if (cached && cached.expires > Date.now()) return Promise.resolve(cached.app);
-    const pending = shortcutRequests.get(appId);
+    const pending = shortcutRequests.get(key);
     if (pending) return pending;
     if (shortcutRequests.size >= 8) return Promise.resolve(null);
     // The device relays one page at a time. Serialize editors' requests on this client.
-    const request = enqueueShortcutRequest(() => fetchShortcutApplication(appId))
+    const request = enqueueShortcutRequest(() => fetchShortcutApplication(appId, computer))
       .catch(() => null)
       .then(app => {
-        shortcutApplications.delete(appId);
-        shortcutApplications.set(appId, { app, expires: Date.now() + (app ? 60000 : 3000) });
+        shortcutApplications.delete(key);
+        shortcutApplications.set(key, { app, expires: Date.now() + (app ? 60000 : 3000) });
         if (shortcutApplications.size > 8) shortcutApplications.delete(shortcutApplications.keys().next().value!);
         return app;
-      }).finally(() => { shortcutRequests.delete(appId); });
-    shortcutRequests.set(appId, request);
+      }).finally(() => { shortcutRequests.delete(key); });
+    shortcutRequests.set(key, request);
     return request;
   }
 
@@ -241,11 +249,12 @@ export function createCompanionCatalogue(fetchImpl: typeof fetch) {
       typeof item?.id === "string" && typeof item?.label === "string");
   }
 
-  async function fetchLegacyDefinitions(): Promise<CompanionDefinitions> {
+  async function fetchLegacyDefinitions(computer = ""): Promise<CompanionDefinitions> {
     const applications = new Map<string, AppShortcutApplication>();
+    const computerQuery = computer ? `&computer=${encodeURIComponent(computer)}` : "";
     let windows = false;
     for (let page = 0; page < 64; page += 1) {
-      const response = await fetchImpl(`/companion/definitions?page=${page}`, { cache: "no-store" });
+      const response = await fetchImpl(`/companion/definitions?page=${page}${computerQuery}`, { cache: "no-store" });
       if (!response.ok) throw new Error("Companion definitions unavailable");
       const data: unknown = await response.json();
       const payload = data as { definitions?: unknown; page?: unknown; hasMore?: unknown; shortcutPlatform?: unknown } | null;
@@ -317,20 +326,25 @@ export function createCompanionCatalogue(fetchImpl: typeof fetch) {
       });
       if (!response.ok) throw new Error("Companion URL focus targets unavailable");
     },
-    loadDefinitions(refresh = false): Promise<CompanionDefinitions> {
-      if (definitionsPending) return definitionsPending;
-      if (definitions && (!refresh || definitionsExpires > Date.now())) return Promise.resolve(definitions);
+    loadDefinitions(refresh = false, computer = ""): Promise<CompanionDefinitions> {
+      const key = computer || "primary";
+      const pending = definitionsRequests.get(key);
+      if (pending) return pending;
+      const cached = definitionsByComputer.get(key);
+      if (cached && (!refresh || cached.expires > Date.now())) return Promise.resolve(cached.value);
       // Some older firmware closes the connection for an unknown endpoint.
       // Only replace the cached definitions after a complete index or legacy sync.
-      const request = enqueueShortcutRequest(fetchShortcutIndex).catch(() => null).then(async index => {
-        const value = index ?? await fetchLegacyDefinitions();
-        if (index) definitionsExpires = Date.now() + 15000;
-        definitions = value;
-        return value;
-      });
-      definitionsPending = request;
-      void request.then(() => { if (definitionsPending === request) definitionsPending = null; },
-        () => { if (definitionsPending === request) definitionsPending = null; });
+      const request = enqueueShortcutRequest(() => fetchShortcutIndex(computer)).catch(() => null)
+        .then(async index => {
+          const value = index ?? await fetchLegacyDefinitions(computer);
+          definitionsByComputer.set(key, {
+            value, expires: index ? Date.now() + 15000 : 0,
+          });
+          return value;
+        });
+      definitionsRequests.set(key, request);
+      void request.then(() => { if (definitionsRequests.get(key) === request) definitionsRequests.delete(key); },
+        () => { if (definitionsRequests.get(key) === request) definitionsRequests.delete(key); });
       return request;
     },
     load,

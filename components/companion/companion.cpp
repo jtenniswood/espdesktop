@@ -105,6 +105,24 @@ static bool parse_hex_sha256(const std::string &value, std::array<uint8_t, 32> &
   return true;
 }
 
+static bool parse_hex_id(const std::string &value,
+                         std::array<uint8_t, COMPANION_CREDENTIAL_ID_SIZE> &result) {
+  if (value.size() != COMPANION_CREDENTIAL_ID_SIZE * 2) return false;
+  const auto nibble = [](char byte) -> int {
+    if (byte >= '0' && byte <= '9') return byte - '0';
+    if (byte >= 'a' && byte <= 'f') return byte - 'a' + 10;
+    if (byte >= 'A' && byte <= 'F') return byte - 'A' + 10;
+    return -1;
+  };
+  for (size_t i = 0; i < result.size(); i++) {
+    const int high = nibble(value[i * 2]);
+    const int low = nibble(value[i * 2 + 1]);
+    if (high < 0 || low < 0) return false;
+    result[i] = static_cast<uint8_t>((high << 4) | low);
+  }
+  return true;
+}
+
 void CompanionService::setup() {
   global_companion_service = this;
   this->preferences_ = global_preferences->make_preference<CompanionIdentityPreference>(fnv1a_hash("companion_identity"));
@@ -116,65 +134,86 @@ void CompanionService::setup() {
   }
   this->sequence_preferences_ =
       global_preferences->make_preference<uint32_t>(fnv1a_hash("companion_auth_sequence"));
+  if (!this->sequence_preferences_.load(&this->last_sequence_))
+    this->last_sequence_ = 0;
+  this->credentials_preferences_ = global_preferences->make_preference<CompanionCredentialsPreference>(
+      fnv1a_hash("companion_credentials_v1"));
+  const bool loaded_credentials =
+      this->credentials_preferences_.load(&this->credentials_) && this->credentials_.valid();
+  if (!loaded_credentials)
+    this->credentials_.clear();
+  if (this->credentials_.count == 0 && this->identity_.paired) {
+    uint8_t id[COMPANION_CREDENTIAL_ID_SIZE]{};
+    esp_fill_random(id, sizeof(id));
+    if (this->credentials_.add(this->identity_.credential, id, "Computer") < 0 ||
+        !this->credentials_preferences_.save(&this->credentials_)) {
+      ESP_LOGE(TAG, "Could not migrate the Companion credential");
+      this->credentials_.clear();
+    }
+  }
+  if (this->credentials_.count > 0) {
+    this->sync_legacy_identity_locked_(0);
+  } else {
+    this->identity_.paired = 0;
+    this->last_sequence_ = 0;
+    std::fill(std::begin(this->identity_.credential), std::end(this->identity_.credential), 0);
+  }
+  this->client_identities_preferences_ =
+      global_preferences->make_preference<CompanionClientIdentitiesPreference>(
+          fnv1a_hash("companion_client_identities"));
+  if (!this->client_identities_preferences_.load(&this->client_identities_) ||
+      !this->client_identities_.valid())
+    this->client_identities_ = {};
   this->pairing_code_preferences_ =
       // A separate key lets older firmware keep its original code format after a downgrade.
       global_preferences->make_preference<PairingCode>(fnv1a_hash("companion_pairing_code_v2"));
   PairingCode saved_code{};
-  if (!this->identity_.paired && this->pairing_code_preferences_.load(&saved_code)) {
+  if (this->credentials_.count == 0 && this->pairing_code_preferences_.load(&saved_code)) {
     this->pairing_code_.assign(saved_code.begin(), saved_code.end());
   }
   this->focus_targets_preferences_ = global_preferences->make_preference<CompanionFocusTargetsPreference>(
       fnv1a_hash("companion_focus_targets"));
   this->restore_focus_targets_();
-  companion_runtime_service().focus_registrations_changed_handler = [this] {
+  if (this->credentials_.count > 0)
+    companion_set_primary_computer(this->computer_id_for_credential_locked_(0));
+  this->bind_runtime_(companion_primary_computer());
+  companion_focus_registrations_changed_handler() = [this] {
     this->save_focus_targets_();
+    this->publish_focus_targets_all_();
   };
-  if (!this->identity_.paired || !this->sequence_preferences_.load(&this->last_sequence_))
-    this->last_sequence_ = 0;
-  register_companion_action_sender([this](const std::string &action, const std::string &request,
-                                          const std::string &folder_open_behavior,
-                                          const std::string &shortcut_app_id) {
-    return this->invoke_(action, request, folder_open_behavior, shortcut_app_id);
-  });
-  register_companion_url_sender([this](const std::string &url, const std::string &request, bool new_window) {
-    return this->invoke_url_(url, request, new_window);
-  });
-  register_companion_value_sender([this](const std::string &control, int value,
-                                         const std::string &request) {
-    return this->invoke_value_(control, value, request);
-  });
-  companion_runtime_service().shortcut_catalogue_sender =
-      [this](uint32_t request_id, const std::string &app_id, uint32_t page) {
-        return this->send_(this->session_.authenticated_socket(),
-            json::build_json([&](JsonObject root) {
-              root["type"] = "shortcut.catalogue.request";
-              root["protocol"] = COMPANION_PROTOCOL_VERSION;
-              root["requestId"] = request_id;
-              root["appId"] = app_id;
-              root["page"] = page;
-            }));
-      };
-  companion_runtime_service().begin_pairing = [this] { this->begin_pairing(); };
-  companion_runtime_service().reset_and_begin_pairing = [this] { return this->reset_and_begin_pairing(); };
-  companion_runtime_service().request_pairing_display = [this] {
+  companion_begin_pairing_handler() = [this] { this->begin_pairing(); };
+  companion_reset_pairing_handler() = [this] { return this->reset_and_begin_pairing(); };
+  companion_revoke_computer_handler() = [this](const std::string &computer_id) {
+    return this->revoke_credential(computer_id);
+  };
+  companion_request_pairing_display_handler() = [this] {
     this->defer("show-pairing-code", [] {
-      if (auto handler = companion_runtime_service().show_pairing_code_handler) handler();
+      if (auto handler = companion_show_pairing_code_handler()) handler();
     });
   };
-  companion_runtime_service().clear_app_icon_cache = [] { return clear_companion_app_icon_cache(); };
+  companion_clear_app_icon_cache_handler() = [] { return clear_companion_app_icon_cache(); };
   register_companion_pairing_provider([this] {
-    const auto &runtime = companion_runtime_service();
     std::lock_guard<std::mutex> lock(this->pairing_mutex_);
-    const bool active = this->pairing_active_locked_();
+    const bool pairing_active = this->pairing_active_locked_();
+    std::vector<CompanionPairedComputer> computers;
+    computers.reserve(this->credentials_.count);
+    for (size_t index = 0; index < this->credentials_.count; index++) {
+      const auto &entry = this->credentials_.entries[index];
+      computers.push_back({hex(entry.id.data(), entry.id.size()), entry.name.data(),
+                           this->session_.connected(index)});
+    }
     return CompanionPairingSnapshot{
       true,
-      active,
-      this->identity_.paired != 0,
-      this->identity_.paired && runtime.connected(),
+      pairing_active,
+      this->credentials_.count > 0,
+      !computers.empty() && std::any_of(computers.begin(), computers.end(),
+                                        [](const auto &computer) { return computer.connected; }),
       this->port_,
-      runtime.system_metrics_generation(),
-      active ? this->pairing_code_ : "",
+      companion_runtime_registry().primary().system_metrics_generation(),
+      pairing_active ? this->pairing_code_ : "",
       App.get_name() + ".local",
+      this->credentials_.count < COMPANION_MAX_CREDENTIALS,
+      std::move(computers),
       this->windows_companion_.load(),
     };
   });
@@ -194,12 +233,163 @@ void CompanionService::setup() {
   this->set_interval("discovery", 5000, [this] { this->advertise_discovery_(); });
 }
 
+std::string CompanionService::computer_id_for_credential_locked_(size_t index) const {
+  if (index >= this->credentials_.count) return {};
+  const auto &entry = this->credentials_.entries[index];
+  return hex(entry.id.data(), entry.id.size());
+}
+
+int CompanionService::credential_index_for_socket_(int socket_fd) const {
+  return this->session_.credential_index(socket_fd);
+}
+
+std::string CompanionService::computer_id_for_socket_(int socket_fd) const {
+  const int index = this->session_.credential_index(socket_fd);
+  if (index < 0) return {};
+  std::lock_guard<std::mutex> lock(this->pairing_mutex_);
+  return this->computer_id_for_credential_locked_(static_cast<size_t>(index));
+}
+
+int CompanionService::socket_for_computer_(const std::string &computer_id) {
+  std::string target = computer_id;
+  if (target.empty()) target = companion_primary_computer();
+  if (target.empty()) return this->session_.authenticated_socket();
+  std::lock_guard<std::mutex> lock(this->pairing_mutex_);
+  for (size_t index = 0; index < this->credentials_.count; index++) {
+    if (this->computer_id_for_credential_locked_(index) == target)
+      return this->session_.authenticated_socket(index);
+  }
+  return -1;
+}
+
+void CompanionService::forget_computer_epoch_(const std::string &computer_id) {
+  std::lock_guard<std::mutex> lock(this->session_runtimes_mutex_);
+  for (auto &entry : this->computer_epochs_)
+    if (entry.id == computer_id) entry = {};
+}
+
+uint32_t CompanionService::next_computer_epoch_(const std::string &computer_id) {
+  std::lock_guard<std::mutex> lock(this->session_runtimes_mutex_);
+  for (auto &entry : this->computer_epochs_) {
+    if (entry.id == computer_id) return ++entry.epoch;
+  }
+  for (auto &entry : this->computer_epochs_) {
+    if (entry.id.empty()) {
+      entry.id = computer_id;
+      entry.epoch = 1;
+      return entry.epoch;
+    }
+  }
+  this->computer_epochs_[0] = {computer_id, this->computer_epochs_[0].epoch + 1};
+  return this->computer_epochs_[0].epoch;
+}
+
+bool CompanionService::computer_epoch_current_(const std::string &computer_id,
+                                               uint32_t epoch) const {
+  std::lock_guard<std::mutex> lock(this->session_runtimes_mutex_);
+  for (const auto &entry : this->computer_epochs_)
+    if (entry.id == computer_id) return entry.epoch == epoch;
+  return false;
+}
+
+void CompanionService::bind_runtime_(const std::string &computer_id) {
+  auto &runtime = companion_runtime_create(computer_id);
+  // The primary runtime resolves an empty ID at call time, so its senders keep
+  // working when the first computer is paired after boot or the primary moves.
+  const std::string target =
+      computer_id.empty() || computer_id == companion_primary_computer() ? std::string() : computer_id;
+  if (runtime.action_sender && runtime.sender_target == target) return;
+  runtime.sender_target = target;
+  runtime.action_sender = [this, target](const std::string &action, const std::string &request,
+                                         const std::string &folder_open_behavior,
+                                         const std::string &shortcut_app_id) {
+    return this->invoke_(target, action, request, folder_open_behavior, shortcut_app_id);
+  };
+  runtime.url_sender = [this, target](const std::string &url, const std::string &request,
+                                      bool new_window) {
+    return this->invoke_url_(target, url, request, new_window);
+  };
+  runtime.value_sender = [this, target](const std::string &control, int value,
+                                        const std::string &request) {
+    return this->invoke_value_(target, control, value, request);
+  };
+  runtime.shortcut_catalogue_sender =
+      [this, target](uint32_t request_id, const std::string &app_id, uint32_t page) {
+        const int socket_fd = this->socket_for_computer_(target);
+        if (socket_fd < 0) return false;
+        return this->send_(socket_fd, json::build_json([&](JsonObject root) {
+          root["type"] = "shortcut.catalogue.request";
+          root["protocol"] = COMPANION_PROTOCOL_VERSION;
+          root["requestId"] = request_id;
+          root["appId"] = app_id;
+          root["page"] = page;
+        }));
+      };
+}
+
+CompanionService::SessionRuntime *CompanionService::session_for_socket_(int socket_fd) {
+  return const_cast<SessionRuntime *>(
+      static_cast<const CompanionService *>(this)->session_for_socket_(socket_fd));
+}
+
+const CompanionService::SessionRuntime *CompanionService::session_for_socket_(
+    int socket_fd) const {
+  for (const auto &session : this->session_runtimes_)
+    if (session.socket == socket_fd && session.socket >= 0) return &session;
+  return nullptr;
+}
+
+CompanionService::SessionRuntime *CompanionService::session_for_credential_(
+    size_t credential_index) {
+  for (auto &session : this->session_runtimes_)
+    if (session.socket >= 0 && static_cast<size_t>(session.credential_index) == credential_index)
+      return &session;
+  return nullptr;
+}
+
+void CompanionService::clear_session_(SessionRuntime &session, bool keep_socket) {
+  const auto index = static_cast<size_t>(&session - this->session_runtimes_.data());
+  if (index < this->icon_enabled_snapshots_.size())
+    this->icon_enabled_snapshots_[index].clear();
+  session.reset(keep_socket);
+}
+
+CompanionService::SessionRuntime *CompanionService::attach_session_(
+    int socket_fd, size_t credential_index, const std::string &computer_id) {
+  std::lock_guard<std::mutex> lock(this->session_runtimes_mutex_);
+  // A reconnecting computer may still have its previous entry until the old
+  // socket's close callback runs. Reuse that slot instead of taking another.
+  for (auto &session : this->session_runtimes_) {
+    // Computers without an ID come from legacy pairings, where the credential
+    // index is the only way to tell them apart.
+    const bool same_computer = computer_id.empty()
+        ? static_cast<size_t>(session.credential_index) == credential_index
+        : session.computer_id == computer_id;
+    if (session.socket >= 0 && session.socket != socket_fd && same_computer)
+      this->clear_session_(session);
+  }
+  for (auto &session : this->session_runtimes_) {
+    if (session.socket == socket_fd) {
+      this->clear_session_(session, true);
+      session.credential_index = static_cast<int>(credential_index);
+      session.computer_id = computer_id;
+      return &session;
+    }
+  }
+  for (auto &session : this->session_runtimes_) {
+    if (session.socket < 0) {
+      this->clear_session_(session, true);
+      session.socket = socket_fd;
+      session.credential_index = static_cast<int>(credential_index);
+      session.computer_id = computer_id;
+      return &session;
+    }
+  }
+  return nullptr;
+}
+
 void CompanionService::loop() {
   companion_expire_action_results(millis());
-  const auto focus_targets = companion_runtime_service().focus_targets_state();
-  if (focus_targets.connected && this->focus_targets_supported_.load() &&
-      focus_targets.generation != this->focus_targets_generation_.load())
-    this->publish_focus_targets_();
   const uint32_t now = millis();
 #ifdef USE_COMPANION_USB
   if (this->usb_bridge_) {
@@ -233,8 +423,9 @@ void CompanionService::advertise_discovery_() {
 void CompanionService::dump_config() {
   uint8_t fingerprint[32]{};
   mbedtls_sha256(this->identity_.certificate, this->identity_.certificate_len, fingerprint, 0);
-  ESP_LOGCONFIG(TAG, "Companion:\n  Secure WebSocket port: %u\n  Device certificate: %s\n  Paired Mac: %s",
-                this->port_, hex(fingerprint, sizeof(fingerprint)).c_str(), this->identity_.paired ? "yes" : "no");
+  ESP_LOGCONFIG(TAG, "Companion:\n  Secure WebSocket port: %u\n  Device certificate: %s\n  Paired computers: %u",
+                this->port_, hex(fingerprint, sizeof(fingerprint)).c_str(),
+                static_cast<unsigned>(this->credentials_.count));
 }
 
 bool CompanionService::ensure_identity_() {
@@ -308,7 +499,8 @@ bool CompanionService::ensure_identity_() {
 
 bool CompanionService::start_server_() {
   httpd_ssl_config_t config = HTTPD_SSL_CONFIG_DEFAULT();
-  config.httpd.max_open_sockets = 3;
+  // One socket for each concurrently connected computer, plus pairing attempts.
+  config.httpd.max_open_sockets = COMPANION_MAX_CONCURRENT_SESSIONS + 2;
   // Detect a Mac that disappears without closing its WebSocket (power or
   // network loss), so connection-driven screensavers can still activate.
   config.httpd.keep_alive_enable = true;
@@ -356,7 +548,9 @@ void CompanionService::session_close_(httpd_handle_t server, int socket_fd) {
   (void) server;
   if (global_companion_service) {
     global_companion_service->forget_unauthenticated_socket_(socket_fd);
-    global_companion_service->set_connected_(false, socket_fd);
+    // The per-socket session entry still knows the computer even when the
+    // credential was just revoked or its socket replaced.
+    global_companion_service->set_computer_connected_(std::string(), false, socket_fd);
   }
   shutdown(socket_fd, SHUT_RD);
   close(socket_fd);
@@ -418,7 +612,7 @@ esp_err_t CompanionService::handle_websocket_(httpd_req_t *request, bool legacy)
   frame.payload = payload.data();
   if (httpd_ws_recv_frame(request, &frame, frame.len) != ESP_OK) return ESP_FAIL;
   if (frame.type == HTTPD_WS_TYPE_CLOSE) {
-    this->set_connected_(false, socket_fd);
+    this->set_computer_connected_(std::string(), false, socket_fd);
     return ESP_OK;
   }
   if (legacy) {
@@ -428,7 +622,7 @@ esp_err_t CompanionService::handle_websocket_(httpd_req_t *request, bool legacy)
     return ESP_OK;
   }
   if (frame.type == HTTPD_WS_TYPE_BINARY) {
-    if (socket_fd != this->session_.authenticated_socket()) {
+    if (this->session_.credential_index(socket_fd) < 0) {
       this->send_(socket_fd, "{\"type\":\"error\",\"protocol\":" +
           std::to_string(COMPANION_PROTOCOL_VERSION) + ",\"code\":\"authenticate_first\"}");
       this->expire_unauthenticated_socket_(socket_fd);
@@ -454,7 +648,7 @@ void CompanionService::handle_legacy_message_(int socket_fd, const char *message
         !number_valid(root["sequence"], 1, UINT32_MAX, true)) return false;
     uint32_t last_sequence = 0;
     std::unique_lock<std::mutex> pairing_lock(this->pairing_mutex_);
-    const auto result = this->authenticate_locked_(root["sequence"].as<uint32_t>(), root["nonce"] | "",
+    const auto result = this->authenticate_locked_(std::string(), root["sequence"].as<uint32_t>(), root["nonce"] | "",
         root["signature"] | "", last_sequence, /*record_sequence=*/false);
     pairing_lock.unlock();
     const std::string error = "{\"type\":\"error\",\"protocol\":" + std::to_string(protocol);
@@ -471,40 +665,71 @@ void CompanionService::handle_legacy_message_(int socket_fd, const char *message
 }
 
 CompanionService::AuthenticationResult CompanionService::authenticate_locked_(
-    uint32_t sequence, const std::string &nonce, const std::string &signature,
-    uint32_t &last_sequence, bool record_sequence) {
+    const std::string &computer_id, uint32_t sequence, const std::string &nonce,
+    const std::string &signature, uint32_t &last_sequence, bool record_sequence,
+    size_t *credential_index) {
+  if (credential_index != nullptr) *credential_index = 0;
+  if (this->credentials_.count == 0 || sequence == 0 || !safe_field(nonce, 96) || signature.size() != 64)
+    return AuthenticationResult::FAILED;
   // Sign a stable protocol-v3 authentication payload. The sequence is strictly
   // increasing, so a captured authenticated frame cannot be replayed.
-  last_sequence = this->last_sequence_;
-  if (!this->identity_.paired || sequence == 0 || !safe_field(nonce, 96) || signature.size() != 64)
-    return AuthenticationResult::FAILED;
   const std::string signed_message = "auth.request|" + std::to_string(sequence) + "|" + nonce;
   uint8_t digest[32]{};
-  mbedtls_md_hmac(mbedtls_md_info_from_type(MBEDTLS_MD_SHA256), this->identity_.credential, sizeof(this->identity_.credential),
-                  reinterpret_cast<const unsigned char *>(signed_message.data()), signed_message.size(), digest);
-  if (!constant_time_equal(hex(digest, sizeof(digest)), signature))
-    return AuthenticationResult::FAILED;
-  if (sequence <= this->last_sequence_) return AuthenticationResult::STALE_SEQUENCE;
-  // A compatibility check proves possession of the pairing without starting
-  // a session or changing the counter that the updated app will use.
-  if (!record_sequence) {
-    if (!this->session_.connected()) companion_runtime_service().set_mac_update_required(true);
+  const auto matches = [&](size_t index) {
+    const auto &entry = this->credentials_.entries[index];
+    mbedtls_md_hmac(mbedtls_md_info_from_type(MBEDTLS_MD_SHA256), entry.key.data(), entry.key.size(),
+                    reinterpret_cast<const unsigned char *>(signed_message.data()), signed_message.size(), digest);
+    return constant_time_equal(hex(digest, sizeof(digest)), signature);
+  };
+  const auto finish = [&](size_t index) -> AuthenticationResult {
+    last_sequence = this->credentials_.entries[index].sequence;
+    if (sequence <= last_sequence) return AuthenticationResult::STALE_SEQUENCE;
+    // A compatibility check proves possession of the pairing without starting
+    // a session or changing the counter that the updated app will use.
+    if (!record_sequence) {
+      if (!this->session_.connected()) companion_runtime_service().set_mac_update_required(true);
+      if (credential_index != nullptr) *credential_index = index;
+      return AuthenticationResult::AUTHENTICATED;
+    }
+    auto updated = this->credentials_;
+    updated.entries[index].sequence = sequence;
+    if (!this->credentials_preferences_.save(&updated)) {
+      ESP_LOGE(TAG, "Could not persist the Companion authentication sequence");
+      return AuthenticationResult::STORAGE_FAILED;
+    }
+    this->credentials_ = updated;
+    if (index == 0) {
+      this->last_sequence_ = sequence;
+      if (!this->sequence_preferences_.save(&this->last_sequence_))
+        ESP_LOGW(TAG, "Could not write the legacy Companion sequence");
+    }
+    last_sequence = sequence;
+    if (credential_index != nullptr) *credential_index = index;
     return AuthenticationResult::AUTHENTICATED;
+  };
+  if (!computer_id.empty()) {
+    std::array<uint8_t, COMPANION_CREDENTIAL_ID_SIZE> id{};
+    if (!parse_hex_id(computer_id, id)) return AuthenticationResult::FAILED;
+    const int index = this->credentials_.find_id(id.data());
+    if (index < 0 || !matches(static_cast<size_t>(index))) return AuthenticationResult::FAILED;
+    return finish(static_cast<size_t>(index));
   }
-  if (!this->sequence_preferences_.save(&sequence)) {
-    ESP_LOGE(TAG, "Could not persist the Companion authentication sequence");
-    return AuthenticationResult::STORAGE_FAILED;
+  for (size_t index = 0; index < this->credentials_.count; index++) {
+    if (matches(index)) return finish(index);
   }
-  this->last_sequence_ = sequence;
-  last_sequence = sequence;
-  return AuthenticationResult::AUTHENTICATED;
+  return AuthenticationResult::FAILED;
 }
 
-void CompanionService::defer_session_(std::function<void()> callback, const char *label) {
-  const uint32_t generation = this->session_.generation();
+void CompanionService::defer_session_(int socket_fd, std::function<void()> callback,
+                                      const char *label) {
+  const int credential = this->session_.credential_index(socket_fd);
+  const uint32_t generation =
+      credential >= 0 ? this->session_.generation(static_cast<size_t>(credential)) : 0;
   const uint32_t queued_at = millis();
-  this->defer([this, generation, queued_at, label, callback = std::move(callback)]() {
-    if (!this->session_.current(generation)) return;
+  this->defer([this, credential, generation, queued_at, label,
+               callback = std::move(callback)]() {
+    if (credential < 0 || !this->session_.current(static_cast<size_t>(credential), generation))
+      return;
     const uint32_t started = millis();
     callback();
     const uint32_t finished = millis();
@@ -526,7 +751,7 @@ void CompanionService::handle_message_(int socket_fd, const std::string &message
 
 void CompanionService::handle_json_(int socket_fd, const std::string &message) {
   bool parsed = json::parse_json(message, [this, socket_fd](JsonObject root) -> bool {
-    const auto state = socket_fd == this->session_.authenticated_socket()
+    const auto state = this->session_.credential_index(socket_fd) >= 0
       ? companion_protocol::SessionState::CONNECTED
       : (std::string(root["type"] | "") == "pair.request" && this->pairing_active()
         ? companion_protocol::SessionState::PAIRING : companion_protocol::SessionState::AUTHENTICATING);
@@ -540,35 +765,60 @@ void CompanionService::handle_json_(int socket_fd, const std::string &message) {
     };
 
     if (const auto *payload = std::get_if<companion_protocol::AuthRequest>(&*decoded)) {
+      const std::string computer_id = payload->computerId.value_or("");
       const uint32_t sequence = payload->sequence;
       const std::string nonce = payload->nonce;
       const std::string signature = payload->signature;
       uint32_t last_sequence = 0;
+      size_t credential_index = 0;
       std::unique_lock<std::mutex> pairing_lock(this->pairing_mutex_);
-      const auto authentication = this->authenticate_locked_(sequence, nonce, signature, last_sequence);
+      const auto authentication = this->authenticate_locked_(
+          computer_id, sequence, nonce, signature, last_sequence, true, &credential_index);
       if (authentication == AuthenticationResult::STALE_SEQUENCE) {
         send_error("authentication_sequence", last_sequence);
         this->expire_unauthenticated_socket_(socket_fd);
         return true;
       }
       if (authentication != AuthenticationResult::AUTHENTICATED) {
-        const char *code = this->identity_.paired ? "authentication_failed" : "pairing_reset";
+        const char *code = this->credentials_.count > 0 ? "authentication_failed" : "pairing_reset";
         if (authentication == AuthenticationResult::STORAGE_FAILED) code = "authentication_storage_failed";
         send_error(code);
         this->expire_unauthenticated_socket_(socket_fd);
         return true;
       }
-      const int previous_socket = this->session_.authenticate(socket_fd);
-      if (previous_socket != -1 && previous_socket != socket_fd)
-        httpd_sess_trigger_close(this->server_, previous_socket);
-      this->forget_unauthenticated_socket_(socket_fd);
-      this->app_icons_supported_.store(false);
+      if (!this->session_.connected(credential_index) &&
+          this->session_.connected_count() >= COMPANION_MAX_CONCURRENT_SESSIONS) {
+        send_error("session_limit");
+        this->expire_unauthenticated_socket_(socket_fd);
+        return true;
+      }
+      const auto attach = this->session_.authenticate(socket_fd, credential_index);
+      if (!attach.attached) {
+        send_error("session_limit");
+        this->expire_unauthenticated_socket_(socket_fd);
+        return true;
+      }
+      if (attach.replaced_socket >= 0 && attach.replaced_socket != socket_fd)
+        httpd_sess_trigger_close(this->server_, attach.replaced_socket);
+      const std::string accepted_computer_id =
+          this->computer_id_for_credential_locked_(credential_index);
+      if (credential_index == 0 && companion_primary_computer() != accepted_computer_id)
+        companion_set_primary_computer(accepted_computer_id);
+      const std::string active_computer = companion_active_computer();
+      if (active_computer.empty() ||
+          (active_computer != accepted_computer_id &&
+           !companion_runtime_for(active_computer).connected()))
+        companion_set_active_computer(accepted_computer_id);
       this->windows_companion_.store(false);
-      this->set_connected_(true);
+      this->attach_session_(socket_fd, credential_index, accepted_computer_id);
       pairing_lock.unlock();
+      this->forget_unauthenticated_socket_(socket_fd);
+      this->bind_runtime_(accepted_computer_id);
+      this->set_computer_connected_(accepted_computer_id, true);
       std::string accepted = "{\"type\":\"auth.accepted\",\"protocol\":" +
           std::to_string(COMPANION_PROTOCOL_VERSION) + ",\"capabilityVersion\":" +
-          std::to_string(COMPANION_CAPABILITY_VERSION);
+          std::to_string(COMPANION_CAPABILITY_VERSION) + ",\"computerId\":\"" +
+          accepted_computer_id + "\"";
 #ifdef USE_COMPANION_USB
       if (this->usb_bridge_) accepted += ",\"usbEditor\":true";
 #ifdef USE_WIFI
@@ -576,15 +826,17 @@ void CompanionService::handle_json_(int socket_fd, const std::string &message) {
 #endif
 #endif
       this->send_(socket_fd, accepted + "}");
-      this->publish_catalogue_();
+      this->publish_catalogue_(socket_fd);
       return true;
     }
 
     if (const auto *payload = std::get_if<companion_protocol::PairRequest>(&*decoded)) {
       const std::string code = payload->code;
+      const std::string requested_name = payload->name.value_or("");
       const uint32_t now = millis();
       std::unique_lock<std::mutex> pairing_lock(this->pairing_mutex_);
-      if (!safe_field(code, 16) || !this->pairing_active_locked_()) {
+      if (!safe_field(code, 16) || !this->pairing_active_locked_() ||
+          this->credentials_.count >= COMPANION_MAX_CREDENTIALS) {
         send_error("pairing_failed");
         this->expire_unauthenticated_socket_(socket_fd);
         return true;
@@ -600,51 +852,100 @@ void CompanionService::handle_json_(int socket_fd, const std::string &message) {
         this->expire_unauthenticated_socket_(socket_fd);
         return true;
       }
-      const int previous_socket = this->session_.authenticated_socket();
-      this->set_connected_(false);
-      if (previous_socket >= 0 && previous_socket != socket_fd)
-        httpd_sess_trigger_close(this->server_, previous_socket);
-      const auto previous_identity = this->identity_;
-      const uint32_t previous_sequence = this->last_sequence_;
-      for (auto &byte : this->identity_.credential) byte = static_cast<uint8_t>(esp_random());
-      this->identity_.paired = 1;
-      this->last_sequence_ = 0;
+      auto updated = this->credentials_;
+      const std::string client_id = payload->clientId.value_or("");
+      const bool client_id_valid = safe_field(client_id, COMPANION_CLIENT_ID_SIZE);
+      std::array<uint8_t, COMPANION_CREDENTIAL_ID_SIZE> id{};
+      bool reused_id = false;
+      if (client_id_valid) {
+        // A companion that pairs again (for example after a reinstall) keeps
+        // the computer ID its cards are bound to. The pairing code still
+        // authorizes the addition, and the credential itself is always new.
+        if (const auto *known = this->client_identities_.find(client_id);
+            known != nullptr &&
+            std::any_of(known->computer_id.begin(), known->computer_id.end(),
+                        [](uint8_t byte) { return byte != 0; }) &&
+            updated.find_id(known->computer_id.data()) < 0) {
+          id = known->computer_id;
+          reused_id = true;
+        }
+      }
+      if (!reused_id) {
+        for (int attempt = 0; attempt < 8; attempt++) {
+          esp_fill_random(id.data(), id.size());
+          if (updated.find_id(id.data()) < 0) break;
+        }
+        if (updated.find_id(id.data()) >= 0) {
+          send_error("pairing_storage_failed");
+          this->expire_unauthenticated_socket_(socket_fd);
+          return true;
+        }
+      }
+      std::array<uint8_t, COMPANION_CREDENTIAL_KEY_SIZE> key{};
+      esp_fill_random(key.data(), key.size());
+      const int added = updated.add(key.data(), id.data(), requested_name);
       auto next_code = generate_pairing_code_();
       while (std::equal(next_code.begin(), next_code.end(), this->pairing_code_.begin(), this->pairing_code_.end()))
         next_code = generate_pairing_code_();
-      if (!this->preferences_.save(&this->identity_) ||
-          !this->sequence_preferences_.save(&this->last_sequence_) ||
-          !this->pairing_code_preferences_.save(&next_code)) {
-        this->identity_ = previous_identity;
-        this->last_sequence_ = previous_sequence;
-        this->preferences_.save(&this->identity_);
-        this->sequence_preferences_.save(&this->last_sequence_);
+      if (added < 0 || !this->credentials_preferences_.save(&updated)) {
         send_error("pairing_storage_failed");
         this->expire_unauthenticated_socket_(socket_fd);
         return true;
       }
+      const auto &entry = updated.entries[static_cast<size_t>(added)];
+      const std::string credential_hex = hex(entry.key.data(), entry.key.size());
+      const std::string computer_id = hex(entry.id.data(), entry.id.size());
+      this->credentials_ = updated;
+      if (client_id_valid) {
+        auto identities = this->client_identities_;
+        identities.remember(client_id, id.data());
+        if (!this->client_identities_preferences_.save(&identities))
+          ESP_LOGW(TAG, "Could not save the Companion client identity");
+        else
+          this->client_identities_ = identities;
+      }
       this->pairing_code_.clear();
       this->last_failed_pairing_at_.reset();
-      const std::string credential = hex(this->identity_.credential, sizeof(this->identity_.credential));
+      if (!this->pairing_code_preferences_.save(&next_code))
+        ESP_LOGW(TAG, "Could not rotate the Companion pairing code");
+      if (this->credentials_.count == 1) {
+        std::fill(std::begin(this->identity_.credential), std::end(this->identity_.credential), 0);
+        std::copy(entry.key.begin(), entry.key.end(), std::begin(this->identity_.credential));
+        this->identity_.paired = 1;
+        this->last_sequence_ = entry.sequence;
+        if (!this->preferences_.save(&this->identity_) ||
+            !this->sequence_preferences_.save(&this->last_sequence_))
+          ESP_LOGW(TAG, "Could not write the legacy Companion credential");
+      }
+      const bool became_primary = this->credentials_.count == 1;
       pairing_lock.unlock();
-      companion_runtime_service().set_mac_update_required(false);
+      if (became_primary) {
+        companion_set_primary_computer(computer_id);
+        this->bind_runtime_(computer_id);
+      }
+      companion_runtime_registry().primary().set_mac_update_required(false);
       this->defer([] {
-        if (auto handler = companion_runtime_service().pairing_changed_handler) handler();
+        if (auto handler = companion_pairing_changed_notice_handler())
+          handler();
       });
       this->send_(socket_fd, "{\"type\":\"pair.accepted\",\"protocol\":" +
-          std::to_string(COMPANION_PROTOCOL_VERSION) + ",\"credential\":\"" + credential + "\"}");
+          std::to_string(COMPANION_PROTOCOL_VERSION) + ",\"credential\":\"" + credential_hex +
+          "\",\"computerId\":\"" + computer_id + "\"}");
       return true;
     }
 
-    if (socket_fd != this->session_.authenticated_socket()) {
+    const int session_credential = this->session_.credential_index(socket_fd);
+    if (session_credential < 0) {
       send_error("authenticate_first");
       this->expire_unauthenticated_socket_(socket_fd);
       return true;
     }
+    const std::string computer_id = this->computer_id_for_socket_(socket_fd);
+    auto &runtime = companion_runtime_for(computer_id);
 
     if (std::holds_alternative<companion_protocol::PairReset>(*decoded)) {
       std::lock_guard<std::mutex> lock(this->pairing_mutex_);
-      if (socket_fd != this->session_.authenticated_socket() || !this->begin_pairing_locked_(true, true)) {
+      if (!this->revoke_credential_locked_(static_cast<size_t>(session_credential))) {
         send_error("pairing_reset_failed");
       }
       return true;
@@ -683,11 +984,16 @@ void CompanionService::handle_json_(int socket_fd, const std::string &message) {
           windows_companion = true;
         }
       }
-      companion_runtime_service().shortcut_catalogue.set_supported(shortcut_catalogue_supported);
+      auto *session = this->session_for_socket_(socket_fd);
+      if (!session) return false;
+      session->app_icons_supported.store(app_icons_supported && app_icons_alpha_supported &&
+                                         app_icons_high_resolution_supported);
+      session->focus_targets_supported.store(focus_targets_supported);
+      runtime.shortcut_catalogue.set_supported(shortcut_catalogue_supported);
       this->windows_companion_.store(windows_companion);
-      this->app_icons_supported_.store(app_icons_supported && app_icons_alpha_supported &&
-                                       app_icons_high_resolution_supported);
-      // The Mac sends capabilities before a full catalogue, including rescans with the same app IDs.
+      runtime.set_windows_shortcuts(windows_shortcuts || windows_companion);
+      // The computer sends capabilities before a full catalogue, including
+      // rescans with the same app IDs.
       this->app_icon_catalogue_refresh_pending_.store(true);
       std::vector<std::string> configured_icons;
       {
@@ -695,87 +1001,106 @@ void CompanionService::handle_json_(int socket_fd, const std::string &message) {
         if (app_icon_catalogue_ready) configured_icons = app_icon_requests;
       }
       for (const auto &id : configured_icons) this->request_app_icon(id);
-      this->defer_session_([this, keyboard_actions, keyboard_actions_capability_received,
-                            focus_targets_supported, shortcut_catalogue_supported, windows_shortcuts, windows_companion]() {
-        companion_runtime_service().set_windows_shortcuts(windows_shortcuts || windows_companion);
-        if (shortcut_catalogue_supported) companion_set_remote_definitions({});
-        if (keyboard_actions_capability_received) companion_set_keyboard_actions_supported(keyboard_actions);
-        this->focus_targets_supported_.store(focus_targets_supported);
+      this->defer_session_(socket_fd, [this, keyboard_actions,
+                            keyboard_actions_capability_received, shortcut_catalogue_supported,
+                            windows_shortcuts, windows_companion, computer_id]() {
+        auto &runtime = companion_runtime_for(computer_id);
+        runtime.set_windows_shortcuts(windows_shortcuts || windows_companion);
+        if (shortcut_catalogue_supported) companion_set_remote_definitions(runtime, {});
+        if (keyboard_actions_capability_received)
+          companion_set_keyboard_actions_supported(runtime, keyboard_actions);
       });
+      this->publish_focus_targets_(socket_fd);
       return true;
     }
 
     if (const auto *payload = std::get_if<companion_protocol::CataloguePage>(&*decoded)) {
+      auto *session = this->session_for_socket_(socket_fd);
+      if (!session) return false;
       const uint32_t catalogue_generation = payload->generation;
       const uint16_t page = payload->page;
       const bool complete = payload->complete;
       const bool obs_only = payload->scope.has_value();
       if (catalogue_generation == 0 ||
-          (page != 0 && (catalogue_generation != this->catalogue_generation_ ||
-                         page != this->catalogue_next_page_ || obs_only != this->catalogue_obs_only_)))
+          (page != 0 && (catalogue_generation != session->catalogue_generation ||
+                         page != session->catalogue_next_page ||
+                         obs_only != session->catalogue_obs_only)))
         return false;
       if (obs_only && std::any_of(payload->items.begin(), payload->items.end(),
           [](const auto &item) { return item.id.rfind("obs.", 0) != 0; })) return false;
       if (page == 0) {
-        this->catalogue_actions_.clear();
-        this->catalogue_limits_ = {};
-        this->catalogue_enabled_icons_.clear();
-        this->catalogue_generation_ = catalogue_generation;
-        this->catalogue_next_page_ = 0;
-        this->catalogue_obs_only_ = obs_only;
+        session->catalogue_actions.clear();
+        session->catalogue_limits = {};
+        session->catalogue_enabled_icons.clear();
+        session->catalogue_generation = catalogue_generation;
+        session->catalogue_next_page = 0;
+        session->catalogue_obs_only = obs_only;
       }
       for (const auto &item : payload->items) {
         const std::string id = item.id;
         const std::string label = item.label;
         if (!safe_field(id, 96) || !safe_utf8_field(label, 96) || id.rfind("webapp.", 0) == 0) continue;
         const bool input = companion_input_device_control_valid(id);
-        const bool retain_action = this->catalogue_limits_.retain(id, input);
+        const bool retain_action = session->catalogue_limits.retain(id, input);
         if (retain_action) {
           const auto detail = item.obsDetail && safe_utf8_field(*item.obsDetail, 96) ? *item.obsDetail : std::string{};
           const auto state = item.obsState ? obs_card_state(*item.obsState) : OBSCardState::unknown;
           const auto shortcut_color = companion_apple_shortcut_action(id) ? item.shortcutColor : std::nullopt;
-          this->catalogue_actions_.push_back({id, label, state, detail, item.obsAvailable, shortcut_color});
+          session->catalogue_actions.push_back({id, label, state, detail, item.obsAvailable, shortcut_color});
         }
         // Keep icon eligibility for configured cards even when their app is
         // outside the bounded browser catalogue. The reference set is bounded
-        // by the panel configuration rather than the Mac's installed app count.
+        // by the panel configuration rather than the computer's app count.
         if (!obs_only && (retain_action || app_icon_store().is_referenced(id)) &&
             id.rfind("folder.", 0) != 0 && !input && id.rfind("shortcut.", 0) != 0 &&
             !companion_apple_shortcut_action(id) &&
             id.rfind("window.", 0) != 0 && id.rfind("metrics.", 0) != 0 &&
             id.rfind("urlcard.", 0) != 0 && id.rfind("obs.", 0) != 0 &&
-            std::find(this->catalogue_enabled_icons_.begin(), this->catalogue_enabled_icons_.end(), id) ==
-                this->catalogue_enabled_icons_.end())
-          this->catalogue_enabled_icons_.push_back(id);
+            std::find(session->catalogue_enabled_icons.begin(), session->catalogue_enabled_icons.end(), id) ==
+                session->catalogue_enabled_icons.end())
+          session->catalogue_enabled_icons.push_back(id);
       }
-      this->catalogue_next_page_ = page + 1;
+      session->catalogue_next_page = page + 1;
       if (complete) {
-        auto actions = std::move(this->catalogue_actions_);
+        auto actions = std::move(session->catalogue_actions);
         if (obs_only) {
-          this->defer_session_([actions = std::move(actions)]() mutable {
-            companion_runtime_service().set_obs_actions(std::move(actions));
+          this->defer_session_(socket_fd, [actions = std::move(actions), computer_id]() mutable {
+            companion_runtime_for(computer_id).set_obs_actions(std::move(actions));
           }, "OBS catalogue");
           return true;
         }
-        this->defer_session_([actions = std::move(actions)]() mutable { companion_set_actions(std::move(actions)); }, "catalogue");
+        this->defer_session_(socket_fd, [actions = std::move(actions), computer_id]() mutable {
+          companion_set_actions(companion_runtime_for(computer_id), std::move(actions));
+        }, "catalogue");
+        // The icon cache is shared: enable the union of every connected
+        // computer's application cards.
+        std::vector<std::string> enabled_icons;
+        {
+          std::lock_guard<std::mutex> lock(this->session_runtimes_mutex_);
+          for (size_t index = 0; index < this->session_runtimes_.size(); index++) {
+            const auto &other = this->session_runtimes_[index];
+            this->icon_enabled_snapshots_[index] = other.catalogue_enabled_icons;
+            if (other.socket < 0) continue;
+            for (const auto &id : other.catalogue_enabled_icons) {
+              if (std::find(enabled_icons.begin(), enabled_icons.end(), id) == enabled_icons.end())
+                enabled_icons.push_back(id);
+            }
+          }
+        }
         const bool refresh_icons = this->app_icon_catalogue_refresh_pending_.exchange(false);
-        std::vector<std::string> configured_icons, enabled_icons;
+        std::vector<std::string> configured_icons;
         {
           std::lock_guard<std::mutex> lock(app_icon_state_mutex);
-          if (!refresh_icons && app_icon_catalogue_ready && enabled_app_icons == this->catalogue_enabled_icons_)
-            return true;  // An OBS-only update does not need icon cache or dashboard work.
-          enabled_app_icons = this->catalogue_enabled_icons_;
+          if (!refresh_icons && app_icon_catalogue_ready && enabled_app_icons == enabled_icons)
+            return true;  // An update without new app IDs needs no icon work.
+          enabled_app_icons = enabled_icons;
           app_icon_catalogue_ready = true;
-          enabled_icons = enabled_app_icons;
           configured_icons = app_icon_requests;
           requested_app_icons.clear();
         }
         app_icon_store().set_enabled_applications(enabled_icons);
-        this->defer_session_([] { companion_app_icon_ready(""); }, "icons");
-        for (const auto &id : configured_icons) {
-          if (std::find(enabled_icons.begin(), enabled_icons.end(), id) == enabled_icons.end()) continue;
-          this->request_app_icon(id);
-        }
+        this->defer_session_(socket_fd, [] { companion_app_icon_ready(""); }, "icons");
+        for (const auto &id : configured_icons) this->request_app_icon(id);
       }
       return true;
     }
@@ -804,10 +1129,11 @@ void CompanionService::handle_json_(int socket_fd, const std::string &message) {
       this->app_icon_sha256_ = expected;
       this->app_icon_generation_ = payload->generation;
       this->app_icon_offset_ = 0;
+      this->app_icon_socket_ = socket_fd;
       if (!this->send_(socket_fd, "{\"type\":\"app_icon.ack\",\"protocol\":" +
           std::to_string(COMPANION_PROTOCOL_VERSION) + ",\"generation\":" +
           std::to_string(payload->generation) + ",\"nextOffset\":0}")) {
-        this->set_connected_(false, socket_fd);
+        this->set_computer_connected_(computer_id, false, socket_fd);
         httpd_sess_trigger_close(this->server_, socket_fd);
       }
       return true;
@@ -845,7 +1171,9 @@ void CompanionService::handle_json_(int socket_fd, const std::string &message) {
               requested_app_icons.end());
         }
         const std::string application_id = payload->appId;
-        this->defer_session_([application_id] { companion_app_icon_ready(application_id); }, "icon");
+        this->defer_session_(socket_fd, [application_id] {
+          companion_app_icon_ready(application_id);
+        }, "icon");
       } else {
         this->send_(socket_fd, "{\"type\":\"app_icon.abort\",\"protocol\":" +
             std::to_string(COMPANION_PROTOCOL_VERSION) + ",\"appId\":\"" + payload->appId +
@@ -864,27 +1192,29 @@ void CompanionService::handle_json_(int socket_fd, const std::string &message) {
 
     if (const auto *payload = std::get_if<companion_protocol::ShortcutCataloguePage>(&*decoded)) {
       if (payload->json && !companion_json_payload_valid(*payload->json, 12000)) return false;
-      companion_runtime_service().shortcut_catalogue.receive({
+      runtime.shortcut_catalogue.receive({
           payload->requestId, payload->appId, payload->page, payload->catalogueVersion,
           payload->complete, payload->json.value_or("")});
       return true;
     }
 
     if (const auto *payload = std::get_if<companion_protocol::CatalogueDefinitionsPage>(&*decoded)) {
+      auto *session = this->session_for_socket_(socket_fd);
+      if (!session) return false;
       const uint32_t generation = payload->generation;
       const uint16_t page = payload->page;
-      if (generation == 0 || (page != 0 && generation != this->definitions_generation_) ||
-          page != (page == 0 ? 0 : this->definitions_next_page_)) return false;
+      if (generation == 0 || (page != 0 && generation != session->definitions_generation) ||
+          page != (page == 0 ? 0 : session->definitions_next_page)) return false;
       if (page == 0) {
-        this->remote_definitions_.clear();
-        this->application_definition_count_ = 0;
-        this->definitions_generation_ = generation;
-        this->definitions_next_page_ = 0;
+        session->remote_definitions.clear();
+        session->application_definition_count = 0;
+        session->definitions_generation = generation;
+        session->definitions_next_page = 0;
       }
       for (const auto &item : payload->items) {
         const std::string kind = item.kind;
         const std::string json = item.json;
-        if (companion_remote_definition_capacity_available(kind, this->application_definition_count_) &&
+        if (companion_remote_definition_capacity_available(kind, session->application_definition_count) &&
             companion_json_payload_valid(json, 12000)) {
           JsonDocument document;
           const auto error = deserializeJson(document, json);
@@ -892,16 +1222,17 @@ void CompanionService::handle_json_(int socket_fd, const std::string &message) {
           if (error || id.empty() || id.size() > 96) {
             continue;
           }
-          this->remote_definitions_.push_back({kind, id, json});
-          ++this->application_definition_count_;
+          session->remote_definitions.push_back({kind, id, json});
+          ++session->application_definition_count;
         }
       }
-      this->definitions_next_page_ = page + 1;
+      session->definitions_next_page = page + 1;
       if (payload->complete) {
-        auto definitions = std::move(this->remote_definitions_);
-        this->remote_definitions_.clear();
-        this->defer_session_([definitions = std::move(definitions)]() mutable {
-          companion_set_remote_definitions(std::move(definitions));
+        auto definitions = std::move(session->remote_definitions);
+        session->remote_definitions.clear();
+        this->defer_session_(socket_fd, [definitions = std::move(definitions), computer_id]() mutable {
+          companion_set_remote_definitions(companion_runtime_for(computer_id),
+                                           std::move(definitions));
         }, "definitions");
       }
       return true;
@@ -911,7 +1242,9 @@ void CompanionService::handle_json_(int socket_fd, const std::string &message) {
       const std::string request_id = payload->requestId;
       const std::string status = payload->status;
       if (!safe_field(request_id, 64) || !safe_field(status, 32)) return false;
-      this->defer_session_([request_id, status]() { companion_deliver_action_result(request_id, status); });
+      this->defer_session_(socket_fd, [request_id, status, computer_id]() {
+        companion_deliver_action_result(request_id, status, computer_id);
+      });
       return true;
     }
 
@@ -919,12 +1252,16 @@ void CompanionService::handle_json_(int socket_fd, const std::string &message) {
       const std::string control_id = payload->controlId;
       if (!companion_value_control_valid(control_id)) return false;
       if (!payload->available) {
-        this->defer_session_([control_id] { companion_remove_value(control_id); });
+        this->defer_session_(socket_fd, [control_id, computer_id] {
+          companion_remove_value(companion_runtime_for(computer_id), control_id);
+        });
         return true;
       }
       const int value = payload->value ? static_cast<int>(*payload->value) : -1;
       if (value < 0 || value > 100) return false;
-      this->defer_session_([control_id, value] { companion_set_value(control_id, value); });
+      this->defer_session_(socket_fd, [control_id, value, computer_id] {
+        companion_set_value(companion_runtime_for(computer_id), control_id, value);
+      });
       return true;
     }
 
@@ -937,23 +1274,29 @@ void CompanionService::handle_json_(int socket_fd, const std::string &message) {
           [](const std::string &value) { return !safe_field(value, 96); })) return false;
       const bool application_only = payload->applicationOnly.value_or(false);
       const uint32_t received_at = millis();
-      this->defer_session_([action_id, application_only, received_at, action_ids = std::move(action_ids)]() mutable {
+      this->defer_session_(socket_fd, [action_id, application_only, received_at,
+                                      action_ids = std::move(action_ids), computer_id]() mutable {
+        auto &runtime = companion_runtime_for(computer_id);
         if (application_only) {
-          companion_runtime_service().set_application_highlight(action_id);
+          runtime.set_application_highlight(action_id);
           ESP_LOGD(TAG, "Application focus received: %s at=%u", action_id.c_str(), unsigned(received_at));
+        } else if (companion_set_focused_actions(runtime, std::move(action_ids)) &&
+                   companion_is_active_computer(computer_id)) {
+          companion_subpage_return_requested().store(true);
         }
-        else companion_set_focused_actions(std::move(action_ids));
       });
       return true;
     }
 
     if (const auto *payload = std::get_if<companion_protocol::SessionLock>(&*decoded)) {
       // Serialize queueing with explicit pairing revocation so an in-flight
-      // message cannot restore the lock after the former Mac loses trust.
+      // message cannot restore the lock after the former computer loses trust.
       std::lock_guard<std::mutex> lock(this->pairing_mutex_);
-      if (!this->identity_.paired || socket_fd != this->session_.authenticated_socket()) return false;
-      this->defer_session_([locked = payload->locked, awake = payload->displayAwake]() {
-        screen_lock_set_mac_locked(locked, awake);
+      if (this->credentials_.count == 0 || this->session_.credential_index(socket_fd) < 0) return false;
+      const std::string locked_computer = computer_id;
+      this->defer_session_(socket_fd, [locked_computer, locked = payload->locked,
+                                       awake = payload->displayAwake]() {
+        screen_lock_set_computer_locked(locked_computer, locked, awake);
       });
       return true;
     }
@@ -961,7 +1304,9 @@ void CompanionService::handle_json_(int socket_fd, const std::string &message) {
     if (const auto *payload = std::get_if<companion_protocol::TimezoneChanged>(&*decoded)) {
       const std::string timezone = payload->identifier;
       if (!safe_field(timezone, 96)) return false;
-      this->defer_session_([timezone]() { companion_set_timezone_id(timezone); });
+      // The display clock follows the computer the user is interacting with.
+      if (!computer_id.empty() && !companion_is_active_computer(computer_id)) return true;
+      this->defer_session_(socket_fd, [timezone]() { companion_set_timezone_id(timezone); });
       return true;
     }
 
@@ -970,7 +1315,9 @@ void CompanionService::handle_json_(int socket_fd, const std::string &message) {
 
     if (const auto *payload = std::get_if<companion_protocol::SystemMetrics>(&*decoded)) {
       if (!payload->available.value_or(true)) {
-        this->defer_session_([] { companion_set_system_metrics({}); });
+        this->defer_session_(socket_fd, [computer_id] {
+          companion_set_system_metrics(companion_runtime_for(computer_id), {});
+        });
         return true;
       }
       CompanionSystemMetricsSnapshot snapshot;
@@ -1000,8 +1347,8 @@ void CompanionService::handle_json_(int socket_fd, const std::string &message) {
           (snapshot.battery_percent < 0.0f || snapshot.battery_percent > 100.0f)) return false;
       if (std::isfinite(snapshot.network_throughput_kbps) &&
           (snapshot.network_throughput_kbps < 0.0f || snapshot.network_throughput_kbps > 1.0e9f)) return false;
-      this->defer_session_([snapshot]() mutable {
-        companion_set_system_metrics(std::move(snapshot));
+      this->defer_session_(socket_fd, [snapshot = std::move(snapshot), computer_id]() mutable {
+        companion_set_system_metrics(companion_runtime_for(computer_id), std::move(snapshot));
       });
       return true;
     }
@@ -1031,6 +1378,7 @@ void CompanionService::handle_binary_(int socket_fd, const uint8_t *data, size_t
   if (this->usb_editor_.handle(this->server_, socket_fd, data, size)) return;
 #endif
   if (this->app_icon_generation_ != 0) {
+    if (socket_fd != this->app_icon_socket_) return;
     if (size < 13 || size > MAX_APP_ICON_CHUNK_BYTES + 12 || std::memcmp(data, "ICON", 4) != 0) {
       this->reset_app_icon_transfer_();
       return;
@@ -1055,7 +1403,7 @@ void CompanionService::handle_binary_(int socket_fd, const uint8_t *data, size_t
     if (!this->send_(socket_fd, "{\"type\":\"app_icon.ack\",\"protocol\":" +
         std::to_string(COMPANION_PROTOCOL_VERSION) + ",\"generation\":" +
         std::to_string(generation) + ",\"nextOffset\":" + std::to_string(this->app_icon_offset_) + "}")) {
-      this->set_connected_(false, socket_fd);
+      this->set_computer_connected_(this->computer_id_for_socket_(socket_fd), false, socket_fd);
       httpd_sess_trigger_close(this->server_, socket_fd);
     }
   }
@@ -1069,6 +1417,7 @@ void CompanionService::reset_app_icon_transfer_() {
   this->app_icon_application_id_.clear();
   this->app_icon_generation_ = 0;
   this->app_icon_offset_ = 0;
+  this->app_icon_socket_ = -1;
 }
 
 bool CompanionService::send_(int socket_fd, const std::string &message) {
@@ -1136,63 +1485,90 @@ void CompanionService::update_authentication_deadline_() {
       (static_cast<int32_t>(now - earliest) >= 0 ? now : earliest));
 }
 
-void CompanionService::set_connected_(bool connected, int closing_socket) {
+void CompanionService::set_computer_connected_(const std::string &computer_id, bool connected,
+                                               int closing_socket) {
   if (!connected) {
 #ifdef USE_COMPANION_USB
     this->usb_editor_.disconnect(closing_socket);
 #endif
+    std::string id = computer_id;
     if (closing_socket >= 0) {
-      if (!this->session_.disconnect_socket(closing_socket)) return;
+      // Clear the socket's catalogue assembly on the HTTP task regardless of
+      // whether it is still the computer's authenticated socket.
+      {
+        std::lock_guard<std::mutex> lock(this->session_runtimes_mutex_);
+        if (auto *session = this->session_for_socket_(closing_socket)) {
+          id = session->computer_id;
+          this->clear_session_(*session);
+        }
+      }
+      // A socket replaced by the same computer's newer connection, or one
+      // whose credential was just revoked, is no longer mapped. Its runtime
+      // state is handled by the revocation path, so stop here.
+      const int index = this->session_.credential_index(closing_socket);
+      if (index < 0) return;
+      if (id.empty()) id = this->computer_id_for_socket_(closing_socket);
+      this->session_.disconnect_socket(closing_socket);
     } else {
-      this->session_.disconnect();
+      this->session_.clear();
     }
-  }
-  companion_runtime_service().shortcut_catalogue.set_supported(false);
-  if (connected) {
-    this->focus_targets_generation_ = 0xFFFFFFFFu;
-    this->focus_targets_supported_ = false;
     this->app_icon_catalogue_refresh_pending_.store(true);
-  } else {
-    this->focus_targets_supported_ = false;
     this->reset_app_icon_transfer_();
+    const bool any_remaining = this->session_.connected_count() > 0;
+    const uint32_t epoch = this->next_computer_epoch_(id);
+    this->defer([this, id, any_remaining, epoch] {
+      if (!this->computer_epoch_current_(id, epoch)) return;
+      if (!id.empty()) {
+        screen_lock_disconnect_computer(id);
+        companion_reset_computer_runtime(id);
+        companion_set_computer_connected(id, false);
+      } else {
+        companion_set_computer_connected("", false);
+      }
+      // Discard a stale awake state, but keep a sleeping panel dark until a
+      // computer reconnects and reports that its display woke or unlocked.
+      if (!any_remaining) screen_lock_discard_stale_display_awake();
+      if (!any_remaining) companion_set_timezone_id("");
+    });
+    return;
   }
-  this->defer_session_([connected]() {
-    // Discard a stale awake state, but keep a sleeping panel dark until the
-    // Mac reconnects and reports that its display woke or the session unlocked.
-    if (screen_lock_mac_display_awake() == true) screen_lock_mac_display_awake().reset();
-    if (connected) {
-      companion_cancel_action_result();
-      companion_runtime_service().set_connected(false);
-    }
-    companion_set_connected(connected);
-    if (!connected) {
-      companion_set_actions({});
-      companion_set_timezone_id("");
-    }
-  }, "connection");
+  this->app_icon_catalogue_refresh_pending_.store(true);
+  const uint32_t epoch = this->next_computer_epoch_(computer_id);
+  this->defer([this, id = computer_id, epoch] {
+    if (!this->computer_epoch_current_(id, epoch)) return;
+    companion_cancel_action_result("", id);
+    companion_set_computer_connected(id, true);
+  });
 }
 
-void CompanionService::publish_catalogue_() {
-  this->send_(this->session_.authenticated_socket(),
-              "{\"type\":\"catalogue.request\",\"protocol\":" +
-              std::to_string(COMPANION_PROTOCOL_VERSION) + "}");
+void CompanionService::publish_catalogue_(int socket_fd) {
+  this->send_(socket_fd, "{\"type\":\"catalogue.request\",\"protocol\":" +
+      std::to_string(COMPANION_PROTOCOL_VERSION) + "}");
 }
 
-void CompanionService::publish_focus_targets_() {
-  if (!this->focus_targets_supported_.load()) return;
-  const int socket_fd = this->session_.authenticated_socket();
-  if (socket_fd < 0) return;
-  const auto snapshot = companion_runtime_snapshot();
+void CompanionService::publish_focus_targets_(int socket_fd) {
+  {
+    std::lock_guard<std::mutex> lock(this->session_runtimes_mutex_);
+    const auto *session = this->session_for_socket_(socket_fd);
+    if (!session || !session->focus_targets_supported.load()) return;
+  }
+  // URL focus registrations are shared; every connected computer receives the
+  // same list and reports focus for the tabs it owns.
+  const auto &targets = companion_focus_registrations_storage();
   companion_protocol::FocusTargets payload;
-  for (const auto &target : snapshot.url_focus_targets) {
+  for (const auto &target : targets) {
     if (!safe_field(target.id, 96) || target.url.size() < 8 || target.url.size() > 128) continue;
     payload.items.push_back({target.id, target.url});
   }
-  if (this->send_(socket_fd, json::build_json([&payload](JsonObject root) {
-        companion_protocol::encode(root, payload);
-      }))) {
-    this->focus_targets_generation_.store(snapshot.url_focus_targets_generation);
-  }
+  this->send_(socket_fd, json::build_json([&payload](JsonObject root) {
+    companion_protocol::encode(root, payload);
+  }));
+}
+
+void CompanionService::publish_focus_targets_all_() {
+  const auto sockets = this->session_.sockets();
+  for (const int socket_fd : sockets)
+    if (socket_fd >= 0) this->publish_focus_targets_(socket_fd);
 }
 
 void CompanionService::restore_focus_targets_() {
@@ -1215,7 +1591,7 @@ void CompanionService::restore_focus_targets_() {
 }
 
 void CompanionService::save_focus_targets_() {
-  const auto snapshot = companion_runtime_snapshot();
+  const auto &targets = companion_focus_registrations_storage();
   auto stored = std::unique_ptr<CompanionFocusTargetsPreference>(
       new (std::nothrow) CompanionFocusTargetsPreference{});
   if (!stored) {
@@ -1223,7 +1599,7 @@ void CompanionService::save_focus_targets_() {
     return;
   }
   size_t url_count = 0;
-  for (const auto &target : snapshot.url_focus_targets) {
+  for (const auto &target : targets) {
     if (url_count >= 64 || !companion_url_focus_target_valid(target.id, target.url)) continue;
     std::memcpy(stored->urls[url_count], target.url.c_str(), target.url.size() + 1);
     ++url_count;
@@ -1233,9 +1609,11 @@ void CompanionService::save_focus_targets_() {
     ESP_LOGW(TAG, "Could not persist Companion browser focus registrations");
 }
 
-bool CompanionService::invoke_(const std::string &action_id, const std::string &request_id,
-                               const std::string &folder_open_behavior, const std::string &shortcut_app_id) {
-  const int socket_fd = this->session_.authenticated_socket();
+bool CompanionService::invoke_(const std::string &computer_id, const std::string &action_id,
+                               const std::string &request_id,
+                               const std::string &folder_open_behavior,
+                               const std::string &shortcut_app_id) {
+  const int socket_fd = this->socket_for_computer_(computer_id);
   if (socket_fd < 0 || !safe_field(action_id, 96) || !safe_field(request_id, 64) ||
       (folder_open_behavior != "new_window" && folder_open_behavior != "same_window")) return false;
   companion_protocol::ActionInvoke payload;
@@ -1252,9 +1630,9 @@ bool CompanionService::invoke_(const std::string &action_id, const std::string &
   }));
 }
 
-bool CompanionService::invoke_url_(const std::string &encoded_url, const std::string &request_id,
-                                   bool new_window) {
-  const int socket_fd = this->session_.authenticated_socket();
+bool CompanionService::invoke_url_(const std::string &computer_id, const std::string &encoded_url,
+                                   const std::string &request_id, bool new_window) {
+  const int socket_fd = this->socket_for_computer_(computer_id);
   if (socket_fd < 0 || !safe_field(encoded_url, 128) || !safe_field(request_id, 64)) return false;
   companion_protocol::ActionInvoke payload;
   payload.requestId = request_id;
@@ -1267,9 +1645,9 @@ bool CompanionService::invoke_url_(const std::string &encoded_url, const std::st
   }));
 }
 
-bool CompanionService::invoke_value_(const std::string &control_id, int value,
-                                     const std::string &request_id) {
-  const int socket_fd = this->session_.authenticated_socket();
+bool CompanionService::invoke_value_(const std::string &computer_id, const std::string &control_id,
+                                     int value, const std::string &request_id) {
+  const int socket_fd = this->socket_for_computer_(computer_id);
   if (socket_fd < 0 || !companion_writable_value_control_valid(control_id) ||
       value < 0 || value > 100 || !safe_field(request_id, 64)) return false;
   const companion_protocol::ValueSet payload{request_id, control_id, static_cast<uint32_t>(value)};
@@ -1284,8 +1662,8 @@ void CompanionService::begin_pairing() {
 }
 
 bool CompanionService::begin_pairing_locked_(bool reset, bool show_on_display) {
-  if (this->identity_.paired && !reset) return false;
-  if (this->pairing_active_locked_()) return true;
+  if (!reset && this->credentials_.count >= COMPANION_MAX_CREDENTIALS) return false;
+  if (!reset && this->pairing_active_locked_()) return true;
   PairingCode code{};
   if (!this->pairing_code_preferences_.load(&code)) {
     code = generate_pairing_code_();
@@ -1294,7 +1672,7 @@ bool CompanionService::begin_pairing_locked_(bool reset, bool show_on_display) {
       return false;
     }
   }
-  if (this->identity_.paired) return this->revoke_pairing_locked_(&code, show_on_display);
+  if (reset) return this->revoke_pairing_locked_(&code, show_on_display);
   this->pairing_code_.assign(code.begin(), code.end());
   return true;
 }
@@ -1313,7 +1691,7 @@ bool CompanionService::pairing_active() const {
 }
 
 bool CompanionService::pairing_active_locked_() const {
-  return !this->identity_.paired && !this->pairing_code_.empty();
+  return this->credentials_.count < COMPANION_MAX_CREDENTIALS && !this->pairing_code_.empty();
 }
 
 std::string CompanionService::pairing_code() const {
@@ -1321,15 +1699,56 @@ std::string CompanionService::pairing_code() const {
   return this->pairing_code_;
 }
 
-void CompanionService::request_app_icon(const std::string &application_id) {
-  const int socket_fd = this->session_.authenticated_socket();
-  if (socket_fd < 0 || !this->app_icons_supported_.load() ||
-      !safe_application_id(application_id)) return;
+void CompanionService::request_app_icon(const std::string &application_id,
+                                        const std::string &computer_id) {
+  if (!safe_application_id(application_id)) return;
+  int socket_fd = -1;
   {
     std::lock_guard<std::mutex> lock(app_icon_state_mutex);
-    if (app_icon_catalogue_ready &&
-        std::find(enabled_app_icons.begin(), enabled_app_icons.end(), application_id) == enabled_app_icons.end()) return;
-    if (std::find(requested_app_icons.begin(), requested_app_icons.end(), application_id) != requested_app_icons.end()) return;
+    // A configured card reference is always eligible, even before a catalogue
+    // refresh has copied it into the per-session icon lists. This is the path
+    // used right after a firmware update, when the editor or grid asks again.
+    const bool referenced =
+        std::find(app_icon_requests.begin(), app_icon_requests.end(), application_id) !=
+        app_icon_requests.end();
+    if (app_icon_catalogue_ready && !referenced &&
+        std::find(enabled_app_icons.begin(), enabled_app_icons.end(), application_id) == enabled_app_icons.end())
+      return;
+    if (std::find(requested_app_icons.begin(), requested_app_icons.end(), application_id) !=
+        requested_app_icons.end()) return;
+    // Prefer a computer that lists this app, and among those the computer
+    // whose cards the user is currently looking at. A computer without the
+    // app would answer app_icon.unavailable without storing the icon.
+    const std::string active_id = companion_active_computer();
+    std::lock_guard<std::mutex> sessions_lock(this->session_runtimes_mutex_);
+    int fallback_socket = -1;
+    if (!computer_id.empty()) {
+      // A card bound to a specific computer must ask that computer. Asking
+      // another one would cache an unavailable answer for the wrong desktop.
+      for (const auto &session : this->session_runtimes_) {
+        if (session.socket >= 0 && session.app_icons_supported.load() &&
+            session.computer_id == computer_id) {
+          socket_fd = session.socket;
+          break;
+        }
+      }
+    } else {
+      for (size_t index = 0; index < this->session_runtimes_.size(); index++) {
+        const auto &session = this->session_runtimes_[index];
+        if (session.socket < 0 || !session.app_icons_supported.load()) continue;
+        // Catalogue vectors belong to the HTTP task; this session's finished
+        // icon-eligible list is copied here when its catalogue completes.
+        const auto &enabled = this->icon_enabled_snapshots_[index];
+        if (std::find(enabled.begin(), enabled.end(), application_id) == enabled.end()) {
+          if (fallback_socket < 0) fallback_socket = session.socket;
+          continue;
+        }
+        if (session.computer_id == active_id) { socket_fd = session.socket; break; }
+        if (socket_fd < 0) socket_fd = session.socket;
+      }
+      if (socket_fd < 0) socket_fd = fallback_socket;
+    }
+    if (socket_fd < 0) return;
     requested_app_icons.push_back(application_id);
   }
   std::array<uint8_t, 32> hash{};
@@ -1345,7 +1764,7 @@ void CompanionService::request_app_icon(const std::string &application_id) {
 }
 
 void CompanionService::refresh_app_icons_after_cache_clear() {
-  this->defer_session_([] { companion_app_icon_ready(""); });
+  this->defer([] { companion_app_icon_ready(""); });
 }
 
 bool CompanionService::revoke_pairing() {
@@ -1353,9 +1772,94 @@ bool CompanionService::revoke_pairing() {
   return this->revoke_pairing_locked_();
 }
 
+bool CompanionService::revoke_credential(const std::string &computer_id) {
+  std::lock_guard<std::mutex> lock(this->pairing_mutex_);
+  if (computer_id.empty()) return false;
+  for (size_t index = 0; index < this->credentials_.count; index++) {
+    if (this->computer_id_for_credential_locked_(index) == computer_id)
+      return this->revoke_credential_locked_(index);
+  }
+  return false;
+}
+
 bool CompanionService::reset_and_begin_pairing() {
   std::lock_guard<std::mutex> lock(this->pairing_mutex_);
   return this->begin_pairing_locked_(true);
+}
+
+bool CompanionService::sync_legacy_identity_locked_(size_t index) {
+  if (index >= this->credentials_.count) return false;
+  const auto &entry = this->credentials_.entries[index];
+  const bool credential_matches =
+      this->identity_.paired == 1 &&
+      std::equal(entry.key.begin(), entry.key.end(), this->identity_.credential);
+  if (!credential_matches) {
+    this->identity_.paired = 1;
+    std::copy(entry.key.begin(), entry.key.end(), std::begin(this->identity_.credential));
+    if (!this->preferences_.save(&this->identity_)) return false;
+  }
+  if (this->last_sequence_ != entry.sequence) {
+    this->last_sequence_ = entry.sequence;
+    if (!this->sequence_preferences_.save(&this->last_sequence_)) return false;
+  }
+  return true;
+}
+
+bool CompanionService::revoke_credential_locked_(size_t index) {
+  if (index >= this->credentials_.count) return false;
+  const std::string revoked_id = this->computer_id_for_credential_locked_(index);
+  // The close callback clears this socket's per-session state on the HTTP
+  // task, so the web task never touches the catalogue assembly vectors.
+  const int revoked_socket = this->session_.authenticated_socket(index);
+  if (!this->credentials_.revoke(index) || !this->credentials_preferences_.save(&this->credentials_))
+    return false;
+  this->session_.credential_removed(index);
+  if (this->credentials_.count == 0) {
+    this->identity_.paired = 0;
+    std::fill(std::begin(this->identity_.credential), std::end(this->identity_.credential), 0);
+    this->last_sequence_ = 0;
+    if (!this->preferences_.save(&this->identity_) ||
+        !this->sequence_preferences_.save(&this->last_sequence_))
+      return false;
+    companion_set_primary_computer("");
+  } else if (index == 0) {
+    if (!this->sync_legacy_identity_locked_(0)) return false;
+    companion_set_primary_computer(this->computer_id_for_credential_locked_(0));
+  }
+  companion_runtime_registry().primary().set_mac_update_required(false);
+  const bool removes_active = revoked_socket >= 0 &&
+      (companion_active_computer() == revoked_id ||
+       (revoked_id.empty() && companion_active_computer().empty()));
+  this->defer([this, revoked_id, removes_active] {
+    if (!revoked_id.empty()) {
+      companion_reset_computer_runtime(revoked_id);
+      companion_set_computer_connected(revoked_id, false);
+      companion_release_computer_runtime(revoked_id);
+      this->forget_computer_epoch_(revoked_id);
+      screen_lock_clear_computer(revoked_id);
+      if (!std::any_of(screen_lock_computer_states().begin(),
+                       screen_lock_computer_states().end(),
+                       [](const auto &state) { return state.locked; }))
+        screen_lock_set_mac_locked(false);
+    }
+    if (removes_active && !revoked_id.empty())
+      companion_set_active_computer(companion_first_connected_computer());
+    // The revoked socket's close callback no longer runs connection cleanup.
+    if (this->session_.connected_count() == 0) companion_set_timezone_id("");
+    if (auto handler = companion_pairing_changed_notice_handler())
+      handler();
+  });
+  if (revoked_socket >= 0) {
+    this->send_(revoked_socket, "{\"type\":\"error\",\"protocol\":" +
+        std::to_string(COMPANION_PROTOCOL_VERSION) + ",\"code\":\"pairing_reset\"}");
+    httpd_sess_trigger_close(this->server_, revoked_socket);
+  }
+  // Survivors' in-flight catalogue assembly was invalidated with their
+  // deferred work; request a fresh catalogue for each remaining computer.
+  const auto sockets = this->session_.sockets();
+  for (const int socket_fd : sockets)
+    if (socket_fd >= 0) this->publish_catalogue_(socket_fd);
+  return true;
 }
 
 bool CompanionService::revoke_pairing_locked_(const PairingCode *code, bool show_on_display) {
@@ -1364,28 +1868,50 @@ bool CompanionService::revoke_pairing_locked_(const PairingCode *code, bool show
   std::fill(std::begin(unpaired_identity.credential), std::end(unpaired_identity.credential), 0);
   // Unpaired identities ignore the stored sequence. The next successful
   // pairing persists its own sequence before accepting the new credential.
-  if (!this->preferences_.save(&unpaired_identity)) return false;
+  std::vector<std::string> revoked_ids;
+  for (size_t index = 0; index < this->credentials_.count; index++)
+    revoked_ids.push_back(this->computer_id_for_credential_locked_(index));
+  this->credentials_.clear();
+  if (!this->preferences_.save(&unpaired_identity) ||
+      !this->credentials_preferences_.save(&this->credentials_))
+    return false;
 
-  const int previous_socket = this->session_.authenticated_socket();
+  const auto previous_sockets = this->session_.sockets();
+  // Close callbacks clear each socket's per-session state on the HTTP task.
+  this->session_.clear();
   this->identity_ = unpaired_identity;
   this->last_sequence_ = 0;
+  this->sequence_preferences_.save(&this->last_sequence_);
+  companion_set_primary_computer("");
+  companion_set_active_computer("");
   if (code) this->pairing_code_.assign(code->begin(), code->end());
   else this->pairing_code_.clear();
   this->last_failed_pairing_at_.reset();
-  companion_runtime_service().set_mac_update_required(false);
-  this->set_connected_(false);
-  // Revoking trust also clears the Mac's lock. Ordinary disconnects retain it.
-  this->defer([show_on_display] {
+  companion_runtime_registry().primary().set_mac_update_required(false);
+  // Revoking trust also clears each computer's lock. Ordinary disconnects
+  // retain it.
+  this->defer([this, revoked_ids = std::move(revoked_ids), show_on_display] {
+    for (const auto &id : revoked_ids) {
+      companion_reset_computer_runtime(id);
+      companion_set_computer_connected(id, false);
+      companion_release_computer_runtime(id);
+      this->forget_computer_epoch_(id);
+      screen_lock_clear_computer(id);
+    }
     screen_lock_set_mac_locked(false);
-    if (auto handler = companion_runtime_service().pairing_changed_handler) handler();
+    companion_set_timezone_id("");
+    if (auto handler = companion_pairing_changed_notice_handler())
+      handler();
     if (show_on_display) {
-      if (auto handler = companion_runtime_service().show_pairing_code_handler) handler();
+      if (auto handler = companion_show_pairing_code_handler())
+        handler();
     }
   });
-  if (previous_socket >= 0) {
-    this->send_(previous_socket, "{\"type\":\"error\",\"protocol\":" +
+  for (const int socket_fd : previous_sockets) {
+    if (socket_fd < 0) continue;
+    this->send_(socket_fd, "{\"type\":\"error\",\"protocol\":" +
         std::to_string(COMPANION_PROTOCOL_VERSION) + ",\"code\":\"pairing_reset\"}");
-    httpd_sess_trigger_close(this->server_, previous_socket);
+    httpd_sess_trigger_close(this->server_, socket_fd);
   }
   return true;
 }
@@ -1394,7 +1920,10 @@ void begin_companion_pairing() { if (global_companion_service) global_companion_
 std::string companion_pairing_code() { return global_companion_service ? global_companion_service->pairing_code() : ""; }
 bool companion_pairing_active() { return global_companion_service && global_companion_service->pairing_active(); }
 void revoke_companion_pairing() { if (global_companion_service) global_companion_service->revoke_pairing(); }
-void request_app_icon(const std::string &application_id) {
+bool revoke_companion_credential(const std::string &computer_id) {
+  return global_companion_service && global_companion_service->revoke_credential(computer_id);
+}
+void request_app_icon(const std::string &application_id, const std::string &computer_id) {
   if (!safe_application_id(application_id)) return;
   {
     std::lock_guard<std::mutex> lock(app_icon_state_mutex);
@@ -1403,7 +1932,8 @@ void request_app_icon(const std::string &application_id) {
   }
   app_icon_store().begin();
   app_icon_store().add_reference(application_id);
-  if (global_companion_service) global_companion_service->request_app_icon(application_id);
+  if (global_companion_service)
+    global_companion_service->request_app_icon(application_id, computer_id);
 }
 void sync_app_icon_references(const std::vector<std::string> &application_ids) {
   std::vector<std::string> references;

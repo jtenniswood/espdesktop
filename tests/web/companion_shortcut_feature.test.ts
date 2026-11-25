@@ -5,6 +5,7 @@ import {
   companionApplicationActions,
   companionApplicationActionIdCanSave,
   companionApplicationActionIdValid,
+  bindNewCompanionCardComputer,
   companionCardMode,
   companionAppIconEnabled,
   normalizeCompanionAppOptions,
@@ -112,6 +113,20 @@ export function runCompanionShortcutFeatureTests(): void {
   if (companionShortcutTabsForCapacity(["0", "1", "2", "3"], 3).join() !== "0,1" ||
       companionShortcutTabsForCapacity(["0"], 1).length !== 0) {
     throw new Error("Shortcut defaults must leave one subpage slot for Back");
+  }
+  const singleComputer = [{ id: "aaaaaaaaaaaaaaaa" }];
+  const bound = bindNewCompanionCardComputer("", singleComputer, true);
+  const boundWithExisting = bindNewCompanionCardComputer("large_numbers", singleComputer, true);
+  if (configOptionValue(bound, "computer") !== "aaaaaaaaaaaaaaaa" ||
+      configOptionValue(boundWithExisting, "computer") !== "aaaaaaaaaaaaaaaa" ||
+      !configOptionEnabled(boundWithExisting, "large_numbers")) {
+    throw new Error("New companion cards must bind to the only connected computer");
+  }
+  if (bindNewCompanionCardComputer("", singleComputer, false) !== "" ||
+      bindNewCompanionCardComputer("", [{ id: "a" }, { id: "b" }], true) !== "" ||
+      configOptionValue(bindNewCompanionCardComputer(
+        "computer=bbbbbbbbbbbbbbbb", singleComputer, true), "computer") !== "bbbbbbbbbbbbbbbb") {
+    throw new Error("Existing cards, multiple computers and explicit bindings must keep their options");
   }
   const inheritedFolder = { ...emptyCardConfig("companion"), entity: "folder.projects" };
   if (!inheritFinderOpenBehaviorForCard(inheritedFolder, "same_window") ||
