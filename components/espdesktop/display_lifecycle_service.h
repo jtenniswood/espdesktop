@@ -51,8 +51,9 @@ class DisplayLifecycleService {
       return BacklightOnResponse::KEEP_ON;
     }
     if (waiting_for_time ||
-        (controller_.target_source_is(DisplayRequestSource::SCREEN_SCHEDULE) &&
-         controller_.target_mode_is(DisplayMode::DISPLAY_OFF))) {
+        (controller_.target_mode_is(DisplayMode::DISPLAY_OFF) &&
+         (controller_.target_source_is(DisplayRequestSource::SCREEN_SCHEDULE) ||
+          controller_.target_source_is(DisplayRequestSource::REMOTE_DISPLAY_POWER)))) {
       return BacklightOnResponse::KEEP_OFF;
     }
     return controller_.current_mode_is(DisplayMode::DISPLAY_OFF)

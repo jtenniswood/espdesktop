@@ -91,6 +91,7 @@ api:
 
 espdesktop:
   id: espdesktop_app
+  display_power: display_power
   panel_config:
     on_layout_changed:
       - script.execute: refresh_subpage_grid
@@ -265,10 +266,34 @@ light:
       then:
         - script.execute: display_backlight_handle_state
 
-# ---------------------------------------------------------------------------
-# Built-in relays (4848S040C relay variant)
-# ---------------------------------------------------------------------------
 switch:
+  - platform: template
+    name: Display Power
+    id: display_power
+    internal: true
+    icon: mdi:monitor
+    restore_mode: DISABLED
+    lambda: return id(display_backlight).remote_values.is_on();
+    turn_on_action:
+      - lambda: |-
+          if (!espdesktop::home_assistant::native_api_actions_available()) return;
+          auto &controller = id(espdesktop_app).display();
+          using Source = espdesktop::DisplayRequestSource;
+          if (controller.request_active(Source::MAC_DISPLAY_SLEEP)) {
+            controller.request(Source::REMOTE_DISPLAY_POWER, espdesktop::DisplayMode::ACTIVE);
+          } else {
+            controller.clear(Source::REMOTE_DISPLAY_POWER);
+          }
+          id(screensaver_wake).execute();
+          id(display_mode_reconcile).execute();
+    turn_off_action:
+      - lambda: |-
+          if (!espdesktop::home_assistant::native_api_actions_available()) return;
+          id(espdesktop_app).display().request(
+              espdesktop::DisplayRequestSource::REMOTE_DISPLAY_POWER, espdesktop::DisplayMode::DISPLAY_OFF);
+          id(display_mode_reconcile).execute();
+
+  # Built-in relays (4848S040C relay variant)
   - platform: gpio
     name: Relay 1
     id: relay_1

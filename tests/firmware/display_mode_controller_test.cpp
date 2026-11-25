@@ -59,6 +59,31 @@ int main() {
                                    DisplayMode::CLOCK));
   CHECK(!presence_can_wake_display(scheduled_presence.resolve()));
 
+  DisplayModeController remote_power;
+  using Source = DisplayRequestSource;
+  CHECK(remote_power.request(Source::REMOTE_DISPLAY_POWER, DisplayMode::DISPLAY_OFF));
+  CHECK(remote_power.request(Source::USER_WAKE, DisplayMode::ACTIVE));
+  CHECK(remote_power.request(Source::MAC_DISPLAY_SLEEP, DisplayMode::DISPLAY_OFF));
+  CHECK(remote_power.request(Source::MANUAL_SLEEP, DisplayMode::CLOCK));
+  CHECK(decision_is(remote_power, DisplayMode::DISPLAY_OFF, Source::REMOTE_DISPLAY_POWER));
+  CHECK(!presence_can_wake_display(remote_power.resolve()));
+  CHECK(remote_power.begin_takeover(DisplayTakeoverKind::CRITICAL));
+  CHECK(decision_is(remote_power, DisplayMode::ACTIVE, {}, DisplayTakeoverKind::CRITICAL));
+  CHECK(remote_power.end_takeover(DisplayTakeoverKind::CRITICAL));
+  CHECK(decision_is(remote_power, DisplayMode::DISPLAY_OFF, Source::REMOTE_DISPLAY_POWER));
+  CHECK(remote_power.request(Source::ONBOARDING, DisplayMode::ACTIVE));
+  CHECK(decision_is(remote_power, DisplayMode::ACTIVE, Source::ONBOARDING));
+  CHECK(remote_power.clear(Source::ONBOARDING));
+
+  CHECK(remote_power.clear(Source::MANUAL_SLEEP));
+  CHECK(remote_power.request(Source::REMOTE_DISPLAY_POWER, DisplayMode::ACTIVE));
+  CHECK(decision_is(remote_power, DisplayMode::ACTIVE, Source::REMOTE_DISPLAY_POWER));
+  CHECK(remote_power.request(Source::BOOT_GUARD, DisplayMode::DISPLAY_OFF));
+  CHECK(decision_is(remote_power, DisplayMode::DISPLAY_OFF, Source::MAC_DISPLAY_SLEEP));
+  CHECK(remote_power.clear(Source::BOOT_GUARD));
+  CHECK(remote_power.clear(Source::REMOTE_DISPLAY_POWER));
+  CHECK(decision_is(remote_power, DisplayMode::DISPLAY_OFF, Source::MAC_DISPLAY_SLEEP));
+
   // Every higher-priority policy beats every lower-priority policy.
   for (int higher = 1; higher <= 8; ++higher) {
     for (int lower = higher + 1; lower <= 9; ++lower) {

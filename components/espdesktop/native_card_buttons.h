@@ -80,9 +80,7 @@ class NativeCardButton final : public esphome::button::Button {
 
  protected:
   void press_action() override {
-    auto *server = esphome::api::global_api_server;
-    if (native_api_enabled.load() && server && server->get_noise_ctx().has_psk() && !id_.empty())
-      press_card(id_);
+    if (native_api_actions_available() && !id_.empty()) press_card(id_);
   }
 
  private:
@@ -94,11 +92,12 @@ static_assert(ESPDESKTOP_NATIVE_CARD_BUTTON_CAPACITY == espdesktop::DEVICE_UI_LI
 
 class NativeCardButtons {
  public:
-  void setup() {
+  void setup(const esphome::EntityBase *display_power) {
     // The panel editor includes internal entities. Keep the existing
     // editor and diagnostic controls local to the display's web interface.
 #define ENTITY_TYPE_(type, singular, plural, count, upper) \
-    for (auto *entity : esphome::App.get_##plural()) entity->set_internal(true);
+    for (esphome::EntityBase *entity : esphome::App.get_##plural()) \
+      entity->set_internal(entity != display_power);
 #define ENTITY_CONTROLLER_TYPE_(type, singular, plural, count, upper, callback) \
     ENTITY_TYPE_(type, singular, plural, count, upper)
 #include "esphome/core/entity_types.h"
@@ -110,7 +109,7 @@ class NativeCardButtons {
     const auto *store = grid_native_page_store();
     auto *server = esphome::api::global_api_server;
     if (!store || !server || hooks().fingerprint.empty()) return;
-    const bool authorized = native_api_enabled.load() && server->get_noise_ctx().has_psk();
+    const bool authorized = native_api_actions_available();
     const auto catalogue = authorized ? companion_runtime_service().action_catalogue_generation() : 0;
     const bool resync = native_button_resync_requested.exchange(false) && authorized;
     if (!resync && refreshed_ && generation_ == store->generation() && authorized == authorized_ &&

@@ -8,7 +8,7 @@ device-specific wiring.
 from esphome import automation
 import esphome.codegen as cg
 from esphome.components.esp32 import VARIANT_ESP32P4, VARIANT_ESP32S3, get_esp32_variant
-from esphome.components import text
+from esphome.components import switch, text
 import esphome.config_validation as cv
 from esphome.const import CONF_ID
 from esphome.core import CORE, CoroPriority, coroutine_with_priority
@@ -18,6 +18,7 @@ CODEOWNERS = ["@jtenniswood"]
 AUTO_LOAD = ["mdns", "json", "socket"]
 
 CONF_PANEL_CONFIG = "panel_config"
+CONF_DISPLAY_POWER = "display_power"
 CONF_DEVICE_PROFILE = "device_profile"
 CONF_BUTTON_ORDER = "button_order"
 CONF_BUTTON_ON_COLOR = "button_on_color"
@@ -64,6 +65,7 @@ CONFIG_SCHEMA = cv.Schema(
         cv.GenerateID("identity_id"): cv.declare_id(PanelIdentity),
         cv.GenerateID("reset_boot_id"): cv.declare_id(ResetBoot),
         cv.Optional(CONF_PANEL_CONFIG): PANEL_CONFIG_SCHEMA,
+        cv.Optional(CONF_DISPLAY_POWER): cv.use_id(switch.Switch),
         cv.Optional(CONF_WEB_AUTH_USERNAME, default=""): cv.string_strict,
         cv.Optional(CONF_WEB_AUTH_PASSWORD, default=""): cv.sensitive(cv.string_strict),
     }
@@ -84,7 +86,8 @@ def _empty_template_preference_ids(text_configs):
 
 @coroutine_with_priority(CoroPriority.DIAGNOSTICS)
 async def to_code(config):
-    if "api" in CORE.config and "companion" in CORE.config:
+    native_api = "api" in CORE.config and "companion" in CORE.config
+    if native_api:
         cg.add_define("USE_ESPDESKTOP_NATIVE_CARD_BUTTONS")
         cg.add_global(cg.RawStatement(
             '#include "esphome/components/espdesktop/native_api_setting.h"'
@@ -125,6 +128,8 @@ async def to_code(config):
     cg.add(identity.set_web_auth_credentials(username, password))
     var = cg.new_Pvariable(config[CONF_ID])
     await cg.register_component(var, config)
+    if native_api and CONF_DISPLAY_POWER in config:
+        cg.add(var.set_display_power_entity(await cg.get_variable(config[CONF_DISPLAY_POWER])))
     cg.add(var.set_web_auth_credentials(username, password))
 
     panel_config = config.get(CONF_PANEL_CONFIG)

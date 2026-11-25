@@ -22,6 +22,12 @@ To use a card in an automation, add the **Button: Press** action and select the 
 
 Mac actions require an unlocked Mac with the [EspDesktop Mac app running and paired to the display](/screens/4848s040#pair-the-display). A keyboard shortcut on an app’s subpage opens or focuses that app first. If the Mac cannot confirm the app is frontmost, the shortcut is skipped.
 
+## Turn the display on or off
+
+Use **Display Power** under **Controls** on the ESPHome device page. Add it to a dashboard or select it in a **Switch: Turn on** or **Switch: Turn off** automation action. The switch also reflects when the panel's screensaver turns the backlight off.
+
+Switching off keeps the screen dark until you switch it on again or restart the panel. Switching on wakes the screen using its saved brightness and screen schedule. You can wake the panel while the Mac sleeps. The Mac stays locked, and normal Mac-driven sleep resumes once the Mac wakes. First-time setup and alerts that need your attention can still light the screen.
+
 ## Refresh the button list
 
 Home Assistant reads the latest button list when it reconnects. If a newly added card is missing or a name looks out of date, go to **System → Connectors → Home Assistant** in the display’s web editor and select **Resync buttons**. The display stays running while its ESPHome connection briefly reconnects. Reopen **Controls** in Home Assistant to see the refreshed list.

@@ -645,7 +645,7 @@ void EspDesktopApp::retry_configuration_compatibility() {
 
 void EspDesktopApp::setup() {
 #ifdef USE_ESPDESKTOP_NATIVE_CARD_BUTTONS
-  home_assistant::native_buttons().setup();
+  home_assistant::native_buttons().setup(display_power_entity_);
 #endif
 #ifdef USE_COMPANION
   home_assistant::hooks().list = home_assistant::list_cards;
