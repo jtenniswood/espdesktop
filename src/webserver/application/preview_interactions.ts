@@ -328,7 +328,29 @@ export function createPreviewInteractionsFeature(
                 target === els.root || target === page || target === els.previewHint) && y >= page.getBoundingClientRect().top;
         }
     }
+    function deleteSelectionOnKey(event: KeyboardEvent) {
+        if ((event.key !== "Backspace" && event.key !== "Delete") || event.defaultPrevented ||
+            event.repeat || event.isComposing || event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) return;
+
+        const target = event.target;
+        if (!(target instanceof Element) || target.closest("input, textarea, select, .sp-ctx-menu") ||
+            (target instanceof HTMLElement && target.isContentEditable)) return;
+
+        if (!els.screenPage.classList.contains("active") || isConfigLocked() || state.settingsDraft?.generated ||
+            els.settingsOverlay?.classList.contains("sp-visible") ||
+            window.document.querySelector('[aria-modal="true"], .sp-selection-box')) return;
+
+        // The subpage's built-in Back button can be selected alongside saved cards.
+        const slots = (ctx().selected as number[]).filter(slot => slot > 0);
+        if (!slots.length) return;
+
+        event.preventDefault();
+        dependencies.contextMenu.hide();
+        if (slots.length === 1) deleteSlot(slots[0]);
+        else deleteButtons(slots);
+    }
     function setupPreviewEvents(this: any) {
+        window.document.addEventListener("keydown", deleteSelectionOnKey);
         var container: any = els.previewMain;
         if (els.previewWrap) setupBoxSelection(els.previewWrap, container);
         var pendingCellIdx: any = -1;
