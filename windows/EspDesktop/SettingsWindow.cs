@@ -574,7 +574,6 @@ internal sealed class SettingsWindow : Window
             Save();
         });
         permissions.Children.Add(shortcuts);
-        permissions.Children.Add(Paragraph("Shortcuts go to the approved app in front. Windows blocks input into apps running as administrator."));
         permissions.Children.Add(Toggle("Start EspDesktop when I sign in", LocalStore.StartsAtLogin, enabled =>
         {
             try { LocalStore.StartsAtLogin = enabled; }
