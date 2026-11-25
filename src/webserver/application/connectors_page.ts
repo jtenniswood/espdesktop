@@ -21,6 +21,7 @@ export interface ConnectorsPageFeature {
     start(): void;
     companionConfigured(): boolean;
     windowsCompanionConnected(): boolean;
+    companionPlatform(): "macos" | "windows" | null | undefined;
     onStatusChange(callback: () => void): void;
     onCompanionConnectionChange(callback: (connected: boolean) => void): void;
     onCompanionPairingChange(callback: (state: CompanionPairingState | null) => void): void;
@@ -132,6 +133,8 @@ export function createConnectorsPageFeature(
         buildPage, start,
         companionConfigured: () => !!current?.mac_companion.paired,
         windowsCompanionConnected: () => current?.mac_companion.connected === true && current.mac_companion.platform === "windows",
+        companionPlatform: () => current === null ? undefined : current.mac_companion.connected
+            ? (current.mac_companion.platform ?? "macos") : null,
         onStatusChange: callback => { statusListeners.push(callback); },
         onCompanionConnectionChange: callback => { connectionListeners.push(callback); },
         onCompanionPairingChange: callback => { pairingListeners.push(callback); },

@@ -518,14 +518,23 @@ export function registerCompanionCardTypes(
     codec: Pick<ConfigCodecFeature, "buildSubpageGrid" | "enterSubpage" | "enterChildSubpage" | "canCreateSubpage" | "getSubpage" | "saveSubpageConfig">,
     selection: Pick<ButtonSettingsSelectionFeature, "closeSettings">,
     maxSlots: number,
-    connectorStatus: Pick<ConnectorsPageFeature, "onCompanionConnectionChange">,
+    connectorStatus: Pick<ConnectorsPageFeature, "onCompanionConnectionChange" | "onStatusChange" | "companionPlatform">,
     publishGeneratedActions: (folders: readonly CompanionAction[]) => boolean,
 ) {
     const { cardBadgePreview, cardBadgeLabelHtml, cardSensorPreviewHtml, fieldLabel } = fields;
     const { renderButtonSettings, renderPreview } = cardUi;
     const catalogue = createCompanionCatalogue(fetchImpl);
     const loadCompanionActions = catalogue.load;
-    let windowsShortcuts: boolean | undefined;
+    let lastWindowsCatalogue: boolean | undefined;
+    function useWindowsShortcuts(): boolean | undefined {
+        const platform = connectorStatus.companionPlatform();
+        if (platform) return platform === "windows";
+        if (lastWindowsCatalogue !== undefined) return lastWindowsCatalogue;
+        const system = document.defaultView?.navigator.platform ?? "";
+        if (/^win/i.test(system)) return true;
+        if (/^mac/i.test(system)) return false;
+        return undefined;
+    }
     const obsControlLabels = new Map<string, string>();
     const obsCardStates = new Map<string, CompanionAction>();
     const obsPresentationKey = () => JSON.stringify([...obsCardStates].map(([id, action]) =>
@@ -820,6 +829,13 @@ export function registerCompanionCardTypes(
             publishLiveSubpageActions(actions);
             cardUi.renderPreview();
         }).catch(function () {});
+        let shortcutPlatform = connectorStatus.companionPlatform();
+        connectorStatus.onStatusChange(() => {
+            const platform = connectorStatus.companionPlatform();
+            if (platform === shortcutPlatform) return;
+            shortcutPlatform = platform;
+            renderButtonSettings(true);
+        });
         connectorStatus.onCompanionConnectionChange(function (connected) {
             if (connected) companionCatalogueMonitor.start();
             else {
@@ -1062,8 +1078,8 @@ export function registerCompanionCardTypes(
             let companionActions: readonly CompanionAction[] = [];
             void catalogue.loadDefinitions(true).then((definitions) => {
                 const windows = definitions.shortcutPlatform === "windows";
-                const platformChanged = windowsShortcuts !== windows;
-                windowsShortcuts = windows;
+                const platformChanged = lastWindowsCatalogue !== windows;
+                lastWindowsCatalogue = windows;
                 const definitionsChanged = replaceCompanionDefinitions(definitions.applications);
                 if (platformChanged) renderPreview();
                 if ((platformChanged || definitionsChanged) && panel?.isConnected) renderButtonSettings();
@@ -1337,7 +1353,9 @@ export function registerCompanionCardTypes(
             const pageApp = isNewShortcut
                 ? appShortcutPageOwner(previewSubpageOwner(parentPage, state.buttons, key => state.subpages[key]))
                 : undefined;
-            const catalogueApps = sortCompanionLabels(companionShortcutCatalogApps({
+            const windowsShortcuts = useWindowsShortcuts();
+            const platformPending = connectorStatus.companionPlatform() === undefined;
+            const catalogueApps = platformPending ? [] : sortCompanionLabels(companionShortcutCatalogApps({
                 pageAppId: pageApp, savedAppId: savedCatalogShortcut?.appId, windows: windowsShortcuts,
             }));
             const defaultCatalogApp = catalogueApps.find(app => app.appId === pageApp)?.appId;
@@ -2103,7 +2121,7 @@ export function registerCompanionCardTypes(
                         (source && obsControlLabels.has(entity.replace("obs.source.", "obs.source.visible."))),
                 };
             }
-            const shortcutLabel = formatCompanionShortcutActionId(card.entity, windowsShortcuts);
+            const shortcutLabel = formatCompanionShortcutActionId(card.entity, useWindowsShortcuts());
             const appLabel = mode === "app" || mode === "url"
                 ? companionApplicationLabel(card.entity) : "";
             let urlLabel = "";

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, defineAsyncComponent, defineComponent, h, ref } from 'vue'
+import { computed, defineAsyncComponent, defineComponent, h, onMounted, ref } from 'vue'
 import type { AppShortcutApplication } from '../../../../src/webserver/generated/app_shortcuts'
 import { shortcutCatalogue, type WindowsShortcutApplication } from '../../shortcut-format'
 import { data as guides } from '../../shortcut-index.data'
@@ -14,7 +14,21 @@ const windowsFiles = import.meta.glob<WindowsShortcutApplication>(
 )
 const props = defineProps<{ appId?: string; windowsId?: string }>()
 const search = ref('')
-const platform = ref('all')
+const platform = ref<'all' | 'macos' | 'windows'>('all')
+onMounted(() => {
+  if ((props.appId || props.windowsId) && location.hash === '#windows-shortcuts') {
+    platform.value = 'windows'
+    return
+  }
+  if ((props.appId || props.windowsId) && location.hash === '#macos-shortcuts') {
+    platform.value = 'macos'
+    return
+  }
+  const browser = navigator as Navigator & { userAgentData?: { platform?: string } }
+  const system = browser.userAgentData?.platform || browser.platform
+  if (/^win/i.test(system)) platform.value = 'windows'
+  if (/^mac/i.test(system)) platform.value = 'macos'
+})
 const guide = computed(() => guides.find(entry => entry.macAppId === props.appId && !!props.appId ||
   entry.slug === props.windowsId))
 const macTable = computed(() => {
@@ -45,7 +59,9 @@ const matchingApps = computed(() => {
     if (label.toLowerCase().includes(query) ||
         (platform.value === 'all' && entry.windowsLabel?.toLowerCase().includes(query))) {
       const id = (entry.macAppId ?? entry.slug).toLowerCase().replaceAll('.', '-')
-      return [{ slug: entry.slug, id, label }]
+      const section = platform.value !== 'all' && entry.macLabel && entry.windowsLabel
+        ? `#${platform.value}-shortcuts` : ''
+      return [{ slug: entry.slug, id, label, section }]
     }
     return []
   }).sort((a, b) => a.label.localeCompare(b.label))
@@ -68,7 +84,7 @@ const matchingApps = computed(() => {
     </div>
     <ul class="preset-list" aria-label="Application shortcut guides">
       <li v-for="entry in matchingApps" :id="entry.id" :key="entry.slug">
-        <a :href="`/reference/shortcut-presets/${entry.slug}`">
+        <a :href="`/reference/shortcut-presets/${entry.slug}${entry.section}`">
           <span>{{ entry.label }}</span>
           <span class="preset-chevron" aria-hidden="true"></span>
         </a>
@@ -76,11 +92,11 @@ const matchingApps = computed(() => {
     </ul>
   </template>
   <template v-else-if="macTable && windowsTable">
-    <details id="windows-shortcuts">
+    <details id="windows-shortcuts" :open="platform === 'windows'">
       <summary>Windows shortcuts</summary>
       <component :is="windowsTable" />
     </details>
-    <details id="macos-shortcuts" open>
+    <details id="macos-shortcuts" :open="platform !== 'windows'">
       <summary>macOS shortcuts</summary>
       <component :is="macTable" />
     </details>
