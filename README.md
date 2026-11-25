@@ -35,7 +35,7 @@ You can organise controls into subpages, resize and rearrange cards, change icon
 5. **Approve access.** Choose the applications and folders the display may use. macOS Accessibility permission is needed for keyboard shortcuts and Lock Machine.
 6. **Build your control surface.** Add Companion cards and arrange them from the display's web page.
 
-Start with the [firmware installation steps](https://espdesktop.com/screens/4848s040#install), then follow the [Mac app and pairing steps](https://espdesktop.com/screens/4848s040#download). Install the firmware and Mac app from the same EspDesktop release.
+Start by [choosing your display](https://espdesktop.com/getting-started/choose-a-display), then follow the installation and Mac pairing steps for that model. For public firmware, install the firmware and Mac app from the same EspDesktop release. For the V3 test build, check [Companion compatibility](https://espdesktop.com/reference/companion-compatibility).
 
 ## Designed to Stay Narrow
 
@@ -51,7 +51,7 @@ Pair on a trusted local network and remove a display from the Mac app before rep
 
 ## What You Need
 
-- A 4-inch Guition ESP32-S3 4848S040 touchscreen
+- A [4-inch Guition ESP32-S3 4848S040](https://espdesktop.com/screens/4848s040) or [7-inch Guition JC1060P470 V3](https://espdesktop.com/screens/jc1060p470-v3) touchscreen. The 7-inch V3 uses test firmware.
 - A USB-C data cable for the first firmware install
 - Chrome or Edge for browser-based flashing
 - A 2.4 GHz WiFi network shared by the display and Mac
@@ -61,9 +61,8 @@ The 4848S040 panel is available from AliExpress ([US](https://s.click.aliexpress
 
 ## Project Links
 
-- [Install EspDesktop firmware](https://espdesktop.com/screens/4848s040#install)
+- [Choose a display and install EspDesktop](https://espdesktop.com/getting-started/choose-a-display)
 - [Install and pair the Mac app](https://espdesktop.com/screens/4848s040#download)
-- [Supported display](https://espdesktop.com/screens/4848s040)
 - [Mac controls](https://espdesktop.com/#what-you-can-control)
 - [Companion compatibility](https://espdesktop.com/reference/companion-compatibility)
 - [Report a bug or request a feature](https://github.com/jtenniswood/espdesktop/issues)

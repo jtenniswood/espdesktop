@@ -1,11 +1,11 @@
 ---
 title: "Run EspDesktop actions from Home Assistant"
-description: "Connect a 4-inch EspDesktop display to Home Assistant, press saved cards from automations, and refresh the button list from the display’s web editor."
+description: "Connect an EspDesktop display to Home Assistant, press saved cards from automations, and refresh the button list from the display’s web editor."
 ---
 
 # Run EspDesktop actions from Home Assistant
 
-The 4-inch Guition 4848S040 can share its saved card actions as buttons through Home Assistant’s built-in ESPHome integration. Use firmware that shows **Home Assistant** under **System → Connectors** in the display’s web editor.
+The 4-inch Guition 4848S040 and 7-inch Guition JC1060P470 V3 can share their saved card actions as buttons through Home Assistant’s built-in ESPHome integration. Use firmware that shows **Home Assistant** under **System → Connectors** in the display’s web editor.
 
 ## Connect the display
 
@@ -21,6 +21,12 @@ On the ESPHome device page, look under **Controls**. Saved apps, Finder folders,
 To use a card in an automation, add the **Button: Press** action and select the card’s button as the target. You can also add the button to a dashboard.
 
 Mac actions require an unlocked Mac with the [EspDesktop Mac app running and paired to the display](/screens/4848s040#pair-the-display). A keyboard shortcut on an app’s subpage opens or focuses that app first. If the Mac cannot confirm the app is frontmost, the shortcut is skipped.
+
+## Turn the display on or off
+
+Use **Display Power** under **Controls** on the ESPHome device page. Add it to a dashboard or select it in a **Switch: Turn on** or **Switch: Turn off** automation action. The switch also reflects when the panel's screensaver turns the backlight off.
+
+Switching off keeps the screen dark until you switch it on again or restart the panel. Switching on wakes the screen using its saved brightness and screen schedule. You can wake the panel while the Mac sleeps. The Mac stays locked, and normal Mac-driven sleep resumes once the Mac wakes. First-time setup and alerts that need your attention can still light the screen.
 
 ## Refresh the button list
 

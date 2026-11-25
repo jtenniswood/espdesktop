@@ -29,6 +29,7 @@ Each screen uses a different ESPHome package file. For the JC8012P4A1, confirm E
 | 10.1-inch JC8012P4A1 original panel, rear case `2627` or lower | `devices/guition-esp32-p4-jc8012p4a1/packages.yaml` |
 | 10.1-inch JC8012P4A1 new panel, rear case `2628` or higher | `devices/guition-esp32-p4-jc8012p4a1-v2/packages.yaml` |
 | 10.1-inch JC8012P4A1 V3, ESP32-P4 v3.x production silicon | `devices/guition-esp32-p4-jc8012p4a1-v3/packages.yaml` |
+| 7-inch JC1060P470 V3, ESP32-P4 v3.1–v3.99 production silicon | `devices/guition-esp32-p4-jc1060p470-v3/packages.yaml` |
 | 7-inch JC1060P470 V1 / original panel, no version marking on case or board date code before `2622` | `devices/guition-esp32-p4-jc1060p470/packages.yaml` |
 | 7-inch JC1060P470 V2 / new panel, case marked `V2` or board date code `2622` or higher | `devices/guition-esp32-p4-jc1060p470-v2/packages.yaml` |
 | 4.3-inch JC4880P443 | `devices/guition-esp32-p4-jc4880p443/packages.yaml` |
@@ -122,6 +123,7 @@ Use this template for Ethernet-capable models. Do not add a `wifi:` block. Chang
 | Panel | Ethernet package file |
 | --- | --- |
 | 7-inch JC1060P470 Ethernet model | `devices/guition-esp32-p4-jc1060p470/packages.yaml` |
+| 7-inch JC1060P470 V3 Ethernet model | `devices/guition-esp32-p4-jc1060p470-v3/packages.yaml` |
 | 7-inch JC1060P470 new panel Ethernet model | `devices/guition-esp32-p4-jc1060p470-v2/packages.yaml` |
 | ESP32-P4 86 Panel ETH-2RO | `devices/esp32-p4-86/packages.yaml` |
 

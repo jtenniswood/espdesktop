@@ -1,7 +1,7 @@
 ---
 title: "EspDesktop: A touchscreen controller for your Mac"
 titleTemplate: :title
-description: Launch apps, open websites and folders, and run keyboard shortcuts from a 4-inch touchscreen paired with the free EspDesktop Mac app.
+description: Launch apps, open websites and folders, and run keyboard shortcuts from a 4-inch or 7-inch touchscreen paired with the free EspDesktop Mac app.
 layout: home
 ---
 
@@ -11,11 +11,11 @@ layout: home
 
 # A touchscreen controller *for your Mac*
 
-EspDesktop turns a 4-inch ESP32-based touchscreen into a controller for opening apps, visiting websites and running keyboard shortcuts on your Mac for less than **$26/£20**. Pair it over your local network with the free Mac app.
+EspDesktop turns a touchscreen into a controller for opening apps, visiting websites and running keyboard shortcuts on your Mac. Choose a compact 4-inch screen or a wider 7-inch screen and pair it over your local network with the free Mac app.
 
 <div class="homepage-action">
 
-[Get started](/screens/4848s040)
+[Get started](/getting-started/choose-a-display)
 
 [Windows 11 preview](/windows-preview)
 
@@ -143,7 +143,7 @@ Tap Safari, Slack, Notes, ChatGPT, or Claude to see their keyboard shortcuts, or
 
 <div class="homepage-editor-actions">
 
-[Getting Started](/screens/4848s040) <a href="./editor-demo/index.html" target="_self">Preview Editor</a>
+[Getting Started](/getting-started/choose-a-display) <a href="./editor-demo/index.html" target="_self">Preview Editor</a>
 
 </div>
 

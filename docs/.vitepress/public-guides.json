@@ -1,7 +1,9 @@
 {
   "Start here": [
     "index.md",
+    "getting-started/choose-a-display.md",
     "screens/4848s040.md",
+    "screens/jc1060p470-v3.md",
     "download.md",
     "windows-preview.md",
     "reference/faq.md"

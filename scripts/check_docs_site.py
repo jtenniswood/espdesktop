@@ -423,7 +423,7 @@ def check_build(dist):
         'screens/jc1060p470': 'https://jtenniswood.github.io/espcontrol/screens/jc1060p470',
         'features/setup': BASE + 'features/home',
         'reference/request-device-support': BASE + 'screens/4848s040',
-        'screens/index': BASE + 'screens/4848s040',
+        'screens/index': BASE + 'getting-started/choose-a-display',
         'card-types/companion': BASE + '#what-you-can-control',
         'card-types/weather-forecast': 'https://jtenniswood.github.io/espcontrol/',
         'card-types/index': 'https://jtenniswood.github.io/espcontrol/',
@@ -442,6 +442,7 @@ def check_build(dist):
     screen_guides = {
         '4848s040': (BASE + 'screens/4848s040', BASE + 'screens/4848s040#install'),
         'jc1060p470': ('https://jtenniswood.github.io/espcontrol/screens/jc1060p470', 'https://jtenniswood.github.io/espcontrol/screens/jc1060p470'),
+        'jc1060p470-v3': (BASE + 'screens/jc1060p470-v3', BASE + 'screens/jc1060p470-v3#install'),
         'jc1060p470-v2': ('https://jtenniswood.github.io/espcontrol/screens/jc1060p470-v2', 'https://jtenniswood.github.io/espcontrol/screens/jc1060p470-v2'),
         'jc4880p443': ('https://jtenniswood.github.io/espcontrol/screens/jc4880p443', 'https://jtenniswood.github.io/espcontrol/screens/jc4880p443'),
         'jc4880p443-v3': ('https://jtenniswood.github.io/espcontrol/screens/jc4880p443-v3', 'https://jtenniswood.github.io/espcontrol/screens/jc4880p443-v3'),

@@ -285,3 +285,125 @@
   color: var(--vp-c-text-2);
   font-size: 0.875rem;
 }
+
+/* Shared device setup guides */
+.display-setup-page .VPDoc > .container > .aside,
+.display-setup-page .VPDocFooter .last-updated {
+  display: none;
+}
+
+.display-setup-page .VPDoc .content {
+  max-width: 960px;
+}
+
+.display-setup-page .VPDoc.has-aside .content > .content-container {
+  max-width: none;
+}
+
+.display-setup-page .vp-doc {
+  container-type: inline-size;
+}
+
+.display-setup-page .display-setup-intro {
+  margin: 0 auto clamp(24px, 4vw, 40px);
+  text-align: center;
+}
+
+.display-setup-page .display-setup-intro h1 {
+  font-size: clamp(48px, 6.5vw, 88px);
+  text-wrap: balance;
+}
+
+.display-setup-page .display-setup-intro h1 em {
+  color: var(--vp-c-brand-1);
+}
+
+.display-setup-page .display-setup-intro h1 + p {
+  max-width: 48ch;
+  margin: 14px auto 0;
+  color: var(--vp-c-text-2);
+  font-size: clamp(16px, 2vw, 18px);
+  line-height: 1.5;
+  text-wrap: balance;
+}
+
+.display-setup-page .display-setup-step {
+  display: grid;
+  grid-template-areas: "copy" "photo";
+  gap: clamp(24px, 5cqw, 56px);
+  align-items: center;
+  padding-block: clamp(28px, 5cqw, 56px);
+}
+
+.display-setup-page .display-setup-step + .display-setup-step {
+  border-top: 1px solid var(--vp-c-divider);
+}
+
+.display-setup-page .display-setup-copy {
+  grid-area: copy;
+  min-width: 0;
+}
+
+.display-setup-page .display-setup-copy h2 {
+  margin: 0 0 16px;
+  padding: 0;
+  border: 0;
+  font: 400 clamp(36px, 5cqw, 56px)/1 var(--espdesktop-headline-font);
+  letter-spacing: normal;
+}
+
+.display-setup-page .display-setup-copy h2:target {
+  color: var(--vp-c-brand-1);
+}
+
+.display-setup-page .display-setup-copy p,
+.display-setup-page .display-setup-copy ol {
+  color: var(--vp-c-text-2);
+}
+
+.display-setup-page .display-setup-purchase-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.display-setup-page .display-setup-anchor {
+  display: block;
+}
+
+.display-setup-page .display-setup-anchor,
+.display-setup-page .display-setup-copy h2 {
+  scroll-margin-top: calc(var(--vp-nav-height) + 20px);
+}
+
+.display-setup-page .display-setup-photo {
+  grid-area: photo;
+  min-width: 0;
+  overflow: hidden;
+  border-radius: 18px;
+}
+
+.display-setup-page .display-setup-photo img {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 1;
+  object-fit: cover;
+}
+
+.display-setup-page .display-setup-photo-caption {
+  margin: 8px 0 0;
+  color: var(--vp-c-text-2);
+  font-size: 14px;
+}
+
+.display-setup-page .display-setup-app-photo img {
+  object-position: top;
+}
+
+@container (min-width: 600px) {
+  .display-setup-page .display-setup-step {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-areas: "copy photo";
+  }
+}

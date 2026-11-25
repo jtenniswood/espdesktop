@@ -38,7 +38,7 @@ In Manual mode it adjusts the normal brightness. In automatic modes it adjusts t
 
 ## Local Configuration
 
-Configure brightness through the panel’s web page. Home Assistant brightness entities and automation control are retired; the local automatic and timed brightness modes remain.
+Configure brightness through the panel’s web page. The 4-inch Guition 4848S040 and 7-inch Guition JC1060P470 V3 also support [turning the screen on or off from Home Assistant](/getting-started/home-assistant-actions#turn-the-display-on-or-off).
 
 Changing the brightness of **Display Backlight** automatically selects **Manual** mode. Turning the backlight on or off does not change the selected mode, so existing sleep and wake automations continue to work.
 
