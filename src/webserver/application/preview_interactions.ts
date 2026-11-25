@@ -19,6 +19,7 @@ import type { GridFeature } from "./grid";
 import type { ButtonSettingsSelectionFeature } from "./button_settings_selection";
 import type { PreviewGridPlacementFeature } from "./preview_grid_placement";
 import type { PreviewContextMenuFeature } from "./preview_context_menu";
+import { diagnostics } from "./diagnostics";
 import { cardRequiresHomeAssistant } from "../features/preview";
 export interface PreviewInteractionsDependencies {
     readonly homeAssistantSupported: () => boolean;
@@ -792,20 +793,40 @@ export function createPreviewInteractionsFeature(
         renderButtonSettings(true);
     }
     function addSlot(this: any, pos?: any) {
-        if (isConfigLocked())
+        if (isConfigLocked()) {
+            diagnostics("add-card.blocked", () => ({ position: pos, reason: "config-locked" }));
             return;
+        }
         var c: any = ctx();
-        if (pos < 0 || pos >= c.maxSlots || c.grid[pos] !== 0)
+        if (pos < 0 || pos >= c.maxSlots || c.grid[pos] !== 0) {
+            diagnostics("add-card.rejected", () => ({
+                position: pos,
+                maxSlots: c.maxSlots,
+                occupied: pos >= 0 && pos < c.maxSlots ? c.grid[pos] : null,
+                reason: pos < 0 || pos >= c.maxSlots ? "invalid-cell" : "cell-occupied",
+            }));
             return;
+        }
         if (c.isSub) {
             var sp: any = getSubpage(state.editingSubpage);
             var newSlot: any = subpageFirstFreeSlot(sp);
+            diagnostics("add-card.started", () => ({
+                position: pos, slot: newSlot, subpage: state.editingSubpage, isSub: true,
+                cards: sp?.buttons?.length ?? 0,
+            }));
             beginNewCardDraft(pos, newSlot, true);
         }
         else {
             var slot: any = firstFreeSlot();
-            if (slot < 0)
+            if (slot < 0) {
+                diagnostics("add-card.rejected", () => ({
+                    position: pos, reason: "no-free-slot", cards: c.buttons.length, maxSlots: c.maxSlots,
+                }));
                 return;
+            }
+            diagnostics("add-card.started", () => ({
+                position: pos, slot, isSub: false, cards: c.buttons.length, maxSlots: c.maxSlots,
+            }));
             beginNewCardDraft(pos, slot, false);
         }
     }

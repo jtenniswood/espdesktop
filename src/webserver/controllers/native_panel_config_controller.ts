@@ -19,7 +19,7 @@ import type { PanelConfigDocument } from "../model";
 import type { NativePanelConfigGraph } from "../model/panel_config_conversion";
 import { DISPLAY_THEME_PREFERENCES, decodeDisplayThemePreferences, encodeDisplayThemePreferences,
   type DisplayThemePreferences } from "../model/display_theme_preferences";
-import { pageDepth, parentPageKey } from "../model/page_keys";
+import { PAGE_OWNER_SLOTS, pageDepth, parentPageKey } from "../model/page_keys";
 import { validPanelScalarSetting } from "../generated/panel_settings";
 
 export type { NativePanelConfigUpdate } from "../features/native_panel_config";
@@ -342,7 +342,10 @@ export class NativePanelConfigController {
       page?: NativePageEdit | null): Promise<NativePanelConfigSaveOutcome> | false | null {
     try {
       const depth = pageDepth(slot);
-      if (!depth || (depth === 1 ? slot : parentPageKey(slot)) > this.dependencies.slotCount()) return false;
+      // First-level keys above the visible slot count are extra home-screen
+      // anchors, not cards, so they are not limited by slotCount.
+      if (!depth || (depth === 1 ? slot > PAGE_OWNER_SLOTS
+                                 : parentPageKey(slot) > this.dependencies.slotCount())) return false;
     } catch { return false; }
     const update: NativePanelConfigUpdate = current => {
       if (current.deviceProfile !== this.dependencies.deviceProfile()) throw new Error("Device profile changed");

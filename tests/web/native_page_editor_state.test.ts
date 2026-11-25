@@ -64,7 +64,7 @@ export function runNativeEditorStateTests(): void {
   check(appliedLegacy === 2, "a depth-one native save cannot disable legacy state updates");
   const editor = createNativePageEditorFeature({ native: { client: { acceptSnapshot() {} }, writableNavigationDepth: () => 1 } as any,
     codec, layout, runtime, document: { activeElement: null } as any,
-    shell: { showBanner() {}, syncConfigLockUi() {} }, closeSettings() {}, render() {}, canApply: () => true });
+    shell: { showBanner() {}, syncConfigLockUi() {}, renderScreenTabs() {} }, closeSettings() {}, render() {}, canApply: () => true });
   const raw = "~B,1|,light.current," + "Current ".repeat(45);
   editor.replace({ deviceProfile: "test", buttons: { 1: ";Folder;;;;;subpage" }, subpages: { 1: raw }, settings: {} });
   const complete = JSON.stringify(state.subpages);
@@ -155,7 +155,7 @@ export async function runNativeEditorWindowCleanupTests(): Promise<void> {
       },
     } as any,
     codec, layout, runtime, document: { activeElement: null } as any,
-    shell: { showBanner() {}, syncConfigLockUi() {} }, closeSettings() {}, render() {}, canApply: () => true,
+    shell: { showBanner() {}, syncConfigLockUi() {}, renderScreenTabs() {} }, closeSettings() {}, render() {}, canApply: () => true,
   });
   editor.replace(original);
   editor.replace(original);

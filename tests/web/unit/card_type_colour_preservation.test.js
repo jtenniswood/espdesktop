@@ -5,7 +5,7 @@ const fs = require("node:fs");
 const path = require("node:path");
 const esbuild = require("esbuild");
 const { loadTypescriptTest } = require("./helpers/load_typescript_test");
-const { preserveCardColorOptions } = loadTypescriptTest("src/webserver/model/config_primitives.ts");
+const { preserveCardColorOptions, configOptionValue, setConfigOptionValue } = loadTypescriptTest("src/webserver/model/config_primitives.ts");
 const source = fs.readFileSync(path.resolve(__dirname, "../../../src/webserver/application/button_settings.ts"), "utf8");
 const start = source.indexOf("        function selectCardType(");
 const end = source.indexOf("        function renderCardTypeGrid(", start);
@@ -18,7 +18,7 @@ function runSelection(type, options, from = "action") {
     b, isNewDraft: true, draftKey: "new", state: { settingsDraft: { key: "new", typeSelected: false } },
     defaultButtonTypeForPicker: key => key === "media_control" ? "media" : key,
     clearAutomaticTypeDefaults() { b.options = ""; },
-    preserveCardColorOptions,
+    preserveCardColorOptions, configOptionValue, setConfigOptionValue,
     cardRegistry: { definitions: Object.fromEntries(["climate", "alarm", "media", "weather", "light_switch", "light_control", "subpage", "media_control"].map(key => [key, {
       onSelect(button) { selected++; button.options = "target_default=yes"; },
     }])) },

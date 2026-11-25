@@ -10,6 +10,7 @@ import { createColorSwatches } from "../components/color_swatches";
 import { defaultCardBackgroundColor } from "../state/preview_theme";
 import { applySpans, CARD_SIZE_SINGLE, clearSpans } from "../model/grid";
 import { iconSlug, mdiIcon, textSpan } from "./ui_primitives";
+import { diagnostics } from "./diagnostics";
 import type { CardEditorDraftController } from "../features/card_editor_draft_controller";
 import type { CardEditorValidationController } from "../features/card_editor_validation_controller";
 import type { CardEditorSaveController } from "../features/card_editor_save_controller";
@@ -154,7 +155,7 @@ export function createButtonSettingsFeature(
         renderButtonSettings(true);
     }
     function renderColourSettings(panel: HTMLElement, idPrefix: string, value: () => string, onChange: (hex: string) => void, onReset?: () => void) {
-        var cardAppearance: any = disclosureSection("Custom Colours", idPrefix + "card-colours", false);
+        var cardAppearance: any = disclosureSection("Custom Colours", idPrefix + "card-colours", true);
         var cardColorEditor: any = document.createElement("div");
         cardColorEditor.className = "sp-card-color-editor";
         function saveCardColor(this: any, hex?: any) {
@@ -178,6 +179,10 @@ export function createButtonSettingsFeature(
         cardAppearance.panel.replaceChild(cardColorHeader, cardAppearance.button);
         cardColorHeader.appendChild(cardAppearance.button);
         cardColorHeader.appendChild(resetCardColors);
+        var cardColorLabel: any = document.createElement("p");
+        cardColorLabel.className = "sp-setting-note";
+        cardColorLabel.textContent = "Card colour";
+        cardAppearance.section.appendChild(cardColorLabel);
         cardAppearance.section.appendChild(cardColorEditor);
         panel.appendChild(cardAppearance.panel);
         return { editor: cardColorEditor, presets: presetGrid };
@@ -488,7 +493,13 @@ export function createButtonSettingsFeature(
             if (isConfigLocked() || !state.settingsDraft || state.settingsDraft.key !== draftKey)
                 return Promise.resolve(false);
             var draft: any = state.settingsDraft;
+            diagnostics("card-save.attempt", () => ({
+                slot, homeSlot, isNew: draft.isNew, type: draft.button.type,
+                entity: draft.button.entity, options: draft.button.options,
+                position: draft.pos, maxSlots: c.maxSlots,
+            }));
             if (draft.button.type === "subpage" && !codec.canCreateSubpage(homeSlot)) {
+                diagnostics("card-save.rejected", () => ({ slot, reason: "subpage-unavailable", homeSlot }));
                 showBanner("Subpages are not available at this level on this firmware.", "error");
                 return Promise.resolve(false);
             }
@@ -537,6 +548,11 @@ export function createButtonSettingsFeature(
                 grid: c.grid, buttons: c.buttons,
             });
             if (!saved.accepted) {
+                diagnostics("card-save.rejected", () => ({
+                    slot, isNew: draft.isNew, position: draft.pos,
+                    maxSlots: c.maxSlots, grid: c.grid.slice(0, c.maxSlots),
+                    reason: "grid-placement",
+                }));
                 if (draft.isNew)
                     showBanner("That grid space is no longer available. Close this window and try again.", "error");
                 return Promise.resolve(false);
@@ -570,6 +586,10 @@ export function createButtonSettingsFeature(
                 persistence = Promise.resolve("saved");
             return Promise.resolve(persistence).then(function (result: any) {
                 if (!saveResultSucceeded(result)) {
+                    diagnostics("card-save.persistence-failed", () => ({
+                        slot, isNew: draft.isNew, type: savedButton.type,
+                        entity: savedButton.entity, result: String(result),
+                    }));
                     restoreDraftState();
                     return false;
                 }
@@ -596,16 +616,28 @@ export function createButtonSettingsFeature(
                             return false;
                         }
                         state.settingsDraft = null;
+                        diagnostics("card-save.saved", () => ({
+                            slot, isNew: draft.isNew, type: savedButton.type,
+                            entity: savedButton.entity,
+                            computer: configOptionValue(savedButton.options, "computer"),
+                        }));
                         renderPreview();
                         return true;
                     });
                 });
             }).then(async (ok: boolean) => {
                 const committed = atomicEdit ? await atomicEdit.finish(ok) : ok;
-                if (!committed) restoreDraftState();
+                if (!committed) {
+                    diagnostics("card-save.rolled-back", () => ({ slot, isNew: draft.isNew, type: savedButton.type }));
+                    restoreDraftState();
+                }
                 else if (draft.isNew && isStudioControlPage(savedButton.options)) await codec.refreshNativePages();
                 return committed;
-            }).catch(function () {
+            }).catch(function (error: unknown) {
+                diagnostics("card-save.error", () => ({
+                    slot, isNew: draft.isNew,
+                    error: error instanceof Error ? error.message : String(error),
+                }));
                 atomicEdit?.cancel();
                 restoreDraftState();
                 showBanner("Could not save the configuration. Check the connection and try again.", "error");
@@ -746,6 +778,9 @@ export function createButtonSettingsFeature(
                 if (codec.canCreateSubpage(homeSlot)) b._modalSettingsOpen = true;
             }
             b.options = preserveCardColorOptions(previousCardOptions, b.options);
+            const previousComputer = configOptionValue(previousCardOptions, "computer");
+            if (previousComputer && !configOptionValue(b.options, "computer"))
+                b.options = setConfigOptionValue(b.options, "computer", previousComputer);
             if (wasNewDraftWithoutType && state.settingsDraft && state.settingsDraft.key === draftKey) {
                 state.settingsDraft.autoSelectedButton = cloneButtonConfig(b);
             }
@@ -1288,6 +1323,24 @@ export function createButtonSettingsFeature(
             }
             syncActiveColorControls();
             colourControls.editor.appendChild(activeColorField);
+            var unavailableField = document.createElement("div");
+            unavailableField.className = "sp-field";
+            unavailableField.appendChild(fieldLabel("When unavailable", idPrefix + "unavailable-colour"));
+            var unavailableColor = configOptionValue(b.options, "card_unavailable_color");
+            var unavailablePicker = createColorSwatches(
+                () => unavailableColor || "3A3A3A",
+                (hex: string) => {
+                    unavailableColor = hex;
+                    b.options = setConfigOptionValue(b.options, "card_unavailable_color", hex);
+                    saveField("options", b.options);
+                    renderPreview();
+                }, "Unavailable colour presets", "standard");
+            unavailableField.appendChild(unavailablePicker);
+            var unavailableNote: any = document.createElement("p");
+            unavailableNote.className = "sp-setting-note";
+            unavailableNote.textContent = "Used when the companion or entity is unavailable.";
+            unavailableField.appendChild(unavailableNote);
+            colourControls.editor.appendChild(unavailableField);
         }
         groupCardSettingsFields(panel, idPrefix);
         Object.keys(openDisclosureIds).forEach(function (this: any, id?: any) {
