@@ -1,12 +1,12 @@
 {
-  "label": "Mac Lock",
+  "label": "Lock Machine",
   "pickerLabel": "Lock Machine",
   "allowInSubpage": true,
   "domains": [],
   "normalization": {
     "fields": {
       "entity": { "policy": "default", "value": "shortcut.command+control+q" },
-      "label": { "policy": "default_if_empty", "value": "Mac Lock" },
+      "label": { "policy": "default_if_empty", "value": "Lock Machine" },
       "icon": { "policy": "default_if_empty", "value": "Lock" },
       "icon_on": { "policy": "default", "value": "Auto" },
       "sensor": { "policy": "clear" },
@@ -19,7 +19,7 @@
     "canonicalOptionOrder": []
   },
   "default": {
-    "entity": "shortcut.command+control+q", "label": "Mac Lock", "icon": "Lock", "icon_on": "Auto",
+    "entity": "shortcut.command+control+q", "label": "Lock Machine", "icon": "Lock", "icon_on": "Auto",
     "sensor": "", "unit": "", "type": "companion_mac_lock", "precision": "", "options": ""
   }
 }

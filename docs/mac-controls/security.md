@@ -15,7 +15,7 @@ Folder paths stay on the Mac. The display uses a friendly name and an anonymous 
 | [App Volume](/mac-controls/apps#app-volume) | Enable the app on the Mac app’s **Apps** page and allow **System Audio Recording** when prompted |
 | Opening a folder | Add it on the Mac app's **Folders** page |
 | Running an Apple Shortcut | **All available shortcuts** is on by default. Turn it off in the Mac app’s **Shortcuts** settings to choose which workflows paired displays can run. Workflows run only while the Mac is unlocked. |
-| Keyboard shortcuts and Mac Lock | Enable EspDesktop in **System Settings → Privacy & Security → Accessibility** |
+| Keyboard shortcuts and Lock Machine | Enable EspDesktop in **System Settings → Privacy & Security → Accessibility** |
 
 The [touchscreen follows your Mac’s lock state](/settings/system#protect-the-touchscreen) while the app is running and paired.
 
@@ -44,6 +44,6 @@ If macOS asks for **Local Network** access, choose **Allow** so EspDesktop can f
 - Folder paths stay on the Mac. The display receives a friendly folder name and an anonymous identifier.
 - The connector accepts only its defined controls. It does not run shell commands or accept incoming network connections on the Mac.
 
-To remove a display, choose **Forget** beside it in **Settings → Displays**. A connected display with current firmware shows a new pairing code. If the display was offline or runs older firmware, reset pairing on the touchscreen or under **System → Mac Companion** in the display’s web settings.
+To remove a display, choose **Forget** beside it in **Settings → Displays**. A connected display with current firmware shows a new pairing code. If the display was offline or runs older firmware, reset pairing on the touchscreen or under **Connectors → Companion** in the display’s web settings.
 
 See the [EspDesktop privacy policy](/reference/privacy) for how the app, display and docs handle information.
