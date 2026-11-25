@@ -939,7 +939,8 @@ final class CompanionConnection: NSObject {
                 if (actionIdentifier.hasPrefix("obs.") && !supportsOBSCards) ||
                     (actionIdentifier.hasPrefix("obs.output.") && !supportsOBSOutputs) ||
                     (actionIdentifier.hasPrefix("obs.brb.") && !supportsOBSBreak) ||
-                    (actionIdentifier.hasPrefix(OBSConnection.AdaptiveScene.prefix) && !supportsOBSAdaptiveScenes) {
+                    (actionIdentifier.hasPrefix(OBSConnection.AdaptiveScene.prefix) && !supportsOBSAdaptiveScenes) ||
+                    (CompanionCapabilities.systemActions[actionIdentifier] != nil && peerCapabilityVersion < 25) {
                     sendJSON(["type": "action.result", "requestId": requestIdentifier, "status": "not_allowed"])
                     return true
                 }
@@ -1047,6 +1048,8 @@ final class CompanionConnection: NSObject {
             let activeTask = task
             let changed = if controlIdentifier == SystemMediaController.coughID {
                 supportsCoughButton && resources.setCoughButtonValue(value, from: ObjectIdentifier(self))
+            } else if controlIdentifier == SystemMediaController.brightnessID && peerCapabilityVersion < 25 {
+                false
             } else {
                 await resources.setMediaControlValue(value, controlIdentifier: controlIdentifier)
             }
@@ -1273,7 +1276,10 @@ final class CompanionConnection: NSObject {
             }
             : []
         let folders = obsOnly ? [] : resources.folderActions()
-        let entries: [[String: String]] = folders.compactMap { folder -> [String: String]? in
+        let systemEntries = !obsOnly && peerCapabilityVersion >= 25
+            ? CompanionCapabilities.systemActions.sorted { $0.key < $1.key }.map { ["id": $0.key, "label": $0.value] }
+            : []
+        let entries: [[String: String]] = systemEntries + folders.compactMap { folder -> [String: String]? in
             guard Self.validCatalogueIdentifier(folder.actionIdentifier) else { return nil }
             return ["id": folder.actionIdentifier, "label": Self.catalogueLabel(folder.name, fallback: "Folder")]
         } + apps.compactMap { app -> [String: String]? in
@@ -1478,6 +1484,7 @@ final class CompanionConnection: NSObject {
     private func validMediaControlIdentifier(_ value: String) -> Bool {
         if CompanionProtocolDecoder.isInputDeviceControl(value) { return supportsInputDevices }
         if value == SystemMediaController.coughID { return supportsCoughButton }
+        if value == SystemMediaController.brightnessID { return peerCapabilityVersion >= 25 }
         return SystemMediaController.volumeControlIDs.contains(value) ||
             (appVolumeSupported && CompanionProtocolDecoder.appVolumeBundleIdentifier(value) != nil)
     }

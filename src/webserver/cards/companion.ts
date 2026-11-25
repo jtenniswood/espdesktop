@@ -20,6 +20,7 @@ import {
     COMPANION_SYSTEM_METRICS,
     OBS_CARD_STATES,
     OBS_OUTPUT_STATUS_ICONS,
+    COMPANION_SYSTEM_ACTIONS,
 } from "../generated/companion_capabilities";
 import {
     companionCardDefaultIcon,
@@ -27,7 +28,7 @@ import {
     companionCardModeValid,
     type CompanionCardModeId,
 } from "../model/companion_card";
-export { COMPANION_SYSTEM_METRICS } from "../generated/companion_capabilities";
+export { COMPANION_SYSTEM_METRICS, COMPANION_SYSTEM_ACTIONS } from "../generated/companion_capabilities";
 import type { CardDefinition, CardRegistry, CardUiServices } from "../application/card_registry";
 import type { ControlsFieldsFeature } from "../application/controls_fields";
 import type { ConfigCodecFeature } from "../application/config_codec";
@@ -247,6 +248,7 @@ export function companionSubtypeDefaultIcon(mode: string, entity = ""): string {
     if (COMPANION_STATS_MODES.includes(mode)) {
         return companionCardDefaultIcon("stats");
     }
+    if (mode === "system") return COMPANION_SYSTEM_ACTIONS.find((action) => action.id === entity)?.icon || "Weather Sunny";
     return companionCardModeValid(mode)
         ? companionCardDefaultIcon(mode)
         : companionCardDefaultIcon("app");
@@ -376,11 +378,13 @@ export function companionEntityForMode(mode: string): string {
     if (mode === "obs_status") return OBS_PROGRAM_ID;
     if (mode === "apple_shortcut") return APPLE_SHORTCUT_PREFIX;
     if (mode === "stats") return COMPANION_SYSTEM_METRICS[0]?.id || "";
+    if (mode === "system") return COMPANION_SYSTEM_ACTIONS[0]?.id || "";
     return COMPANION_SYSTEM_METRICS.find((metric) => metric.mode === mode)?.id || "";
 }
 
 export function companionApplicationActions(actions: readonly CompanionAction[]): readonly CompanionAction[] {
     return sortCompanionLabels(actions.filter((action) =>
+        !COMPANION_SYSTEM_ACTIONS.some(({ id }) => action.id === id) &&
         !action.id.startsWith(COMPANION_FOLDER_PREFIX) &&
         !action.id.startsWith(APPLE_SHORTCUT_PREFIX) &&
         !action.id.startsWith(COMPANION_OBS_PREFIX) &&
@@ -843,7 +847,7 @@ export function registerCompanionCardTypes(
         card.precision = "";
         card.options = normalizedCardColorOptions(card.options);
         card.icon_on = "Auto";
-        card.label = "";
+        card.label = mode === "system" ? COMPANION_SYSTEM_ACTIONS.find((action) => action.id === card.entity)?.label || "" : "";
 
         const metric = mode === "stats" ? COMPANION_SYSTEM_METRICS[0] : undefined;
         if (metric) {
@@ -1620,6 +1624,36 @@ export function registerCompanionCardTypes(
                         card.entity === currentEntity);
             });
 
+            const systemField = document.createElement("div");
+            systemField.className = "sp-field";
+            systemField.appendChild(fieldLabel("Screen brightness action", helpers.idPrefix + "companion-system-action"));
+            const systemSelect = document.createElement("select");
+            systemSelect.className = "sp-select";
+            systemSelect.id = helpers.idPrefix + "companion-system-action";
+            for (const action of COMPANION_SYSTEM_ACTIONS) {
+                const option = document.createElement("option");
+                option.value = action.id;
+                option.textContent = action.label;
+                option.selected = action.id === card.entity;
+                systemSelect.appendChild(option);
+            }
+            systemSelect.addEventListener("change", () => {
+                const previous = COMPANION_SYSTEM_ACTIONS.find((action) => action.id === card.entity);
+                const next = COMPANION_SYSTEM_ACTIONS.find((action) => action.id === systemSelect.value);
+                if (!next) return;
+                card.icon = companionGeneratedIcon(card.icon || "", previous?.icon || "Weather Sunny", next.icon);
+                card.label = companionAppLabel(card.label || "", previous?.label || "", next.label);
+                card.entity = next.id;
+                for (const field of ["entity", "icon", "label"]) helpers.saveField(field, card[field]);
+                renderButtonSettings();
+            });
+            const systemNote = document.createElement("div");
+            systemNote.className = "sp-field-info-text sp-visible";
+            systemNote.textContent = "Each press changes the paired computer’s screen brightness by 10 percentage points on supported displays.";
+            systemField.append(systemSelect, systemNote);
+            panel?.appendChild(systemField);
+            helpers.markCardPrimaryField(systemField, "system");
+
             const urlField = document.createElement("div");
             urlField.className = "sp-field";
             urlField.appendChild(fieldLabel("URL", helpers.idPrefix + "companion-url"));
@@ -1784,6 +1818,7 @@ export function registerCompanionCardTypes(
                 appFieldLabel.textContent = "Application";
                 folderField.style.display = mode === "folder" ? "" : "none";
                 shortcutField.style.display = mode === "shortcut" ? "" : "none";
+                systemField.style.display = mode === "system" ? "" : "none";
                 urlField.style.display = mode === "url" ? "" : "none";
                 urlBehaviorField.style.display = urlField.style.display;
                 appSubpageDisclosure.panel.style.display = canAddSubpage && mode === "app" &&
@@ -2104,15 +2139,16 @@ export function registerCompanionCardTypes(
                 };
             }
             const shortcutLabel = formatCompanionShortcutActionId(card.entity, windowsShortcuts);
+            const systemLabel = COMPANION_SYSTEM_ACTIONS.find((action) => action.id === card.entity)?.label || "";
             const appLabel = mode === "app" || mode === "url"
                 ? companionApplicationLabel(card.entity) : "";
             let urlLabel = "";
             try { urlLabel = new URL(companionUrlValue(card.sensor || "")).hostname; } catch { /* incomplete URL */ }
             const preview = cardBadgePreview(card, helpers, {
                 label: card.label || (mode === "apple_shortcut" ? "Apple Shortcut" : "") ||
-                    shortcutLabel || urlLabel || appLabel || card.entity ||
+                    shortcutLabel || systemLabel || urlLabel || appLabel || card.entity ||
                     (mode === "folder" ? "File Folder" : "Application"),
-                iconFallback: companionSubtypeDefaultIcon(mode),
+                iconFallback: companionSubtypeDefaultIcon(mode, card.entity),
                 badge: COMPANION_CARD_METADATA.preview.badge,
             });
             const workflowIcon = mode === "apple_shortcut" && appleShortcutUsesAppIcon(card);
@@ -2358,6 +2394,7 @@ export function registerCompanionCardTypes(
         ["companion_obs_replay", "Replay Buffer", "obs_replay"],
         ["companion_obs_output", "Output Controls", "obs_output"],
         ["companion_apple_shortcut", "Run a shortcut", "apple_shortcut"],
+        ["companion_system", "Screen brightness", "system"],
     ];
     companionPickerDefinitions.forEach(function (definition) {
         const key = definition[0];

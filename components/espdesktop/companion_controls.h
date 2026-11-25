@@ -329,7 +329,7 @@ inline bool companion_input_device_control_valid(const std::string &id) {
 }
 
 inline bool companion_volume_control_valid(const std::string &control_id) {
-  return companion_audio_control_id(control_id) || companion_app_volume_control_valid(control_id) ||
+  return control_id == "display.brightness" || companion_audio_control_id(control_id) || companion_app_volume_control_valid(control_id) ||
     companion_input_device_control_valid(control_id);
 }
 
@@ -347,6 +347,7 @@ inline const char *companion_volume_control_label(const std::string &control_id)
   if (control_id == "media.input_volume") return espdesktop_i18n("Mic");
   if (control_id == "media.input_mute") return espdesktop_i18n_key("input_state");
   if (control_id == "media.output_mute") return espdesktop_i18n("Mute");
+  if (control_id == "display.brightness") return espdesktop_i18n("brightness");
   return espdesktop_i18n("Volume");
 }
 
@@ -357,7 +358,7 @@ inline bool companion_value(const std::string &control_id, int &value) {
 inline void companion_set_value(const std::string &control_id, int value) {
   if (!companion_value_control_valid(control_id)) return;
   value = std::max(0, std::min(100, value));
-  constexpr size_t max_mac_values = 256 + 5 + 16;
+  constexpr size_t max_mac_values = 256 + 6 + 16;
   constexpr size_t max_obs_values = 40 + 40;
   const size_t limit = control_id.rfind("obs.", 0) == 0 ? max_obs_values : max_mac_values;
   companion_runtime_service().set_value(control_id, value, limit);
@@ -431,7 +432,7 @@ inline bool companion_action_focused(const CompanionRuntimeSnapshot &snapshot,
                                     const std::string &action_id, bool visual_only = false) {
   if (action_id.empty() || action_id.rfind("shortcut.", 0) == 0 ||
       companion_apple_shortcut_action(action_id) ||
-      action_id.rfind("media.", 0) == 0) return false;
+      action_id.rfind("media.", 0) == 0 || action_id.rfind("system.", 0) == 0) return false;
   if (!snapshot.connected) return false;
   if (visual_only && snapshot.application_highlight_known &&
       action_id.rfind("folder.", 0) != 0 &&
@@ -709,6 +710,11 @@ inline const CompanionAction *companion_published_action(const CompanionRuntimeS
 inline bool companion_action_available(const CompanionRuntimeSnapshot &snapshot, const std::string &action_id) {
   if (action_id.empty() || companion_input_device_control_valid(action_id)) return false;
   if (!snapshot.connected) return false;
+  if (action_id == "system.brightness_up" || action_id == "system.brightness_down") {
+    if (std::none_of(snapshot.values.begin(), snapshot.values.end(), [](const auto &entry) {
+          return entry.id == "display.brightness";
+        })) return false;
+  }
   if (companion_shortcut_action_valid(action_id)) return snapshot.keyboard_actions_supported;
   // An older Companion may still advertise retired window identifiers.
   if (action_id.rfind("window.", 0) == 0) return false;

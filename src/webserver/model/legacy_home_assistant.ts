@@ -43,7 +43,7 @@ export function cardRequiresHomeAssistant(
   } | null | undefined,
 ): boolean {
   if (key === "slider") {
-    return !isMacAudioCard(key, card?.entity) && card?.entity !== OBS_FADER_PREFIX &&
+    return card?.entity !== "display.brightness" && !isMacAudioCard(key, card?.entity) && card?.entity !== OBS_FADER_PREFIX &&
       card?.entity !== OBS_METER_PREFIX && !isOBSFaderControlID(card?.entity) && !isOBSMeterControlID(card?.entity);
   }
   if (key === "subpage") {

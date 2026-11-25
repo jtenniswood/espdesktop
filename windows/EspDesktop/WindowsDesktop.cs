@@ -24,6 +24,7 @@ internal sealed class WindowsDesktop(LocalSettings settings, ObsConnection? obs 
     private static readonly string[] Browsers = ["chrome.exe", "msedge.exe", "firefox.exe", "brave.exe", "vivaldi.exe", "opera.exe"];
     private static readonly StartApp Explorer = new(ExplorerId, "File Explorer", "", ExplorerExe);
     private readonly SystemMetrics metrics = new();
+    private readonly SystemDisplayBrightness brightness = new();
     private Dictionary<string, object?>? latestMetrics;
     private long lastMetricsAt;
     private StartApp[] apps = [Explorer];
@@ -57,7 +58,9 @@ internal sealed class WindowsDesktop(LocalSettings settings, ObsConnection? obs 
     // The panel caps its picker while keeping icons eligible for configured cards.
     public IReadOnlyList<CatalogueItem> Catalogue() =>
         settings.Folders.Select(f => new CatalogueItem(f.Id, CatalogueLabel(f.Label)))
-        .Concat(apps.Where(Allowed).Select(a => new CatalogueItem(a.Id, CatalogueLabel(a.Name)))).ToArray();
+        .Concat(apps.Where(Allowed).Select(a => new CatalogueItem(a.Id, CatalogueLabel(a.Name))))
+        .Append(new CatalogueItem(BrightnessUp, "Screen Brighter"))
+        .Append(new CatalogueItem(BrightnessDown, "Screen Dimmer")).ToArray();
 
     public IEnumerable<string> Definitions()
     {
@@ -96,6 +99,8 @@ internal sealed class WindowsDesktop(LocalSettings settings, ObsConnection? obs 
         }
 
         var id = Text(message, "actionId");
+        if (BrightnessStep(id) is { } step)
+            return brightness.Adjust(step, () => !SessionState.Locked) ? "performed" : "not_allowed";
         if (id.StartsWith("obs.", StringComparison.Ordinal))
             return obs != null && await obs.Select(id, () => SessionState.Locked, token) ? "performed" : "not_allowed";
         if (id == "shortcut.command+control+q")
@@ -351,8 +356,15 @@ internal sealed class WindowsDesktop(LocalSettings settings, ObsConnection? obs 
         finally { if (bitmap != 0) _ = DeleteObject(bitmap); Com.Release(factory); }
     }
 
-    public bool SetValue(string id, int value) => !SessionState.Locked && Audio.Set(id, value);
-    public IEnumerable<(string Id, int? Value)> Values() => Audio.Read();
+    public bool SetValue(string id, int value) => !SessionState.Locked && (id == BrightnessControl
+        ? brightness.Set(value, () => !SessionState.Locked)
+        : Audio.Set(id, value));
+
+    public IEnumerable<(string Id, int? Value)> Values(bool includeBrightness)
+    {
+        foreach (var entry in Audio.Read()) yield return entry;
+        if (includeBrightness) yield return (BrightnessControl, brightness.Read());
+    }
     public Dictionary<string, object?> Metrics(uint generation)
     {
         // Keep the sampling interval independent of how many displays publish it.

@@ -1175,6 +1175,7 @@ final class CompanionStore: NSObject, ObservableObject {
         guard performed else { return "not_allowed" }
         let isApplicationLaunch = !actionIdentifier.hasPrefix(ApprovedFolder.actionPrefix)
             && !actionIdentifier.hasPrefix(CompanionKeyboardShortcut.actionPrefix)
+            && !actionIdentifier.hasPrefix("system.")
         return isApplicationLaunch ? "activated" : "performed"
     }
 
@@ -1220,6 +1221,18 @@ final class CompanionStore: NSObject, ObservableObject {
 
     func perform(actionIdentifier: String, folderOpenBehavior: String = "new_window",
                  shortcutAppID: String? = nil) async -> Bool {
+        if actionIdentifier.hasPrefix("system.") {
+            switch actionIdentifier {
+            case "system.brightness_up", "system.brightness_down":
+                guard let current = mediaController.values()[SystemMediaController.brightnessID] else {
+                    updateStatus("The main Mac display does not support brightness control")
+                    return false
+                }
+                let step = actionIdentifier == "system.brightness_up" ? 10 : -10
+                return await setMediaControlValue(min(100, max(0, current + step)), controlIdentifier: SystemMediaController.brightnessID)
+            default: return false
+            }
+        }
         if actionIdentifier.hasPrefix(ApprovedFolder.actionPrefix) {
             return openFolder(actionIdentifier: actionIdentifier, behavior: folderOpenBehavior)
         }

@@ -15,7 +15,7 @@ inline bool retired_home_assistant_card(const Config &config) {
       type == "screensaver" || type == "wifi_qr" || type == "wifi_qr_card") return false;
   if (type == "action" || type == "sensor") return config.sensor != "local";
   if (type == "slider") {
-    return !companion_audio_control_id(config.entity);
+    return config.entity != "display.brightness" && !companion_audio_control_id(config.entity);
   }
   return !card_contract_type_stable(type);
 }

@@ -26,7 +26,7 @@ internal interface IDesktop
     byte[]? AppIcon(string appId, int side);
     Task<string> Invoke(JsonElement message, CancellationToken token);
     bool SetValue(string id, int value);
-    IEnumerable<(string Id, int? Value)> Values();
+    IEnumerable<(string Id, int? Value)> Values(bool includeBrightness);
     Dictionary<string, object?> Metrics(uint generation);
 }
 
@@ -180,6 +180,7 @@ internal sealed class DisplaySession(IDesktop desktop, Action<Pairing> save, Act
 
     private sealed class Connected(Link link, IDesktop desktop, uint capabilityVersion, CancellationToken token)
     {
+        private bool SupportsBrightness => capabilityVersion >= BrightnessCapabilityVersion;
         private uint catalogueGeneration, definitionGeneration, metricGeneration, iconGeneration;
         private int revision = -1;
         private string zone = "";
@@ -238,7 +239,8 @@ internal sealed class DisplaySession(IDesktop desktop, Action<Pairing> save, Act
             capabilities.Add(desktop.ShortcutsEnabled ? "keyboard_shortcuts" : "keyboard_shortcuts_unavailable");
             if (capabilityVersion >= 13 && desktop.SupportsObs) capabilities.Add("obs_scene_cards");
             await Send("capabilities", ("values", capabilities));
-            var entries = desktop.Catalogue().Concat(desktop.ObsCatalogue(capabilityVersion)).Select(item =>
+            var entries = desktop.Catalogue().Concat(desktop.ObsCatalogue(capabilityVersion))
+                .Where(item => SupportsBrightness || BrightnessStep(item.Id) == null).Select(item =>
             {
                 var fields = new Dictionary<string, object?> { ["id"] = item.Id, ["label"] = CatalogueLabel(item.Label) };
                 if (item.ObsState != null) fields["obsState"] = item.ObsState;
@@ -280,7 +282,7 @@ internal sealed class DisplaySession(IDesktop desktop, Action<Pairing> save, Act
                 focused = current;
                 await Send("focus.changed", ("actionId", current.FirstOrDefault() ?? ""), ("actionIds", current));
             }
-            foreach (var (id, value) in desktop.Values())
+            foreach (var (id, value) in desktop.Values(SupportsBrightness))
                 if (!values.TryGetValue(id, out var previous) || value != previous)
                 {
                     values[id] = value;
@@ -313,18 +315,21 @@ internal sealed class DisplaySession(IDesktop desktop, Action<Pairing> save, Act
                 case "catalogue.request": await Catalogue(); break;
                 case "action.invoke":
                     var action = Text(m, "actionId");
-                    if ((action.StartsWith("obs.", StringComparison.Ordinal) && capabilityVersion < 13) ||
+                    if ((!SupportsBrightness && BrightnessStep(action) != null) ||
+                        (action.StartsWith("obs.", StringComparison.Ordinal) && capabilityVersion < 13) ||
                         (action.StartsWith("obs.target.", StringComparison.Ordinal) && capabilityVersion < 19))
                     {
                         await Send("action.result", ("requestId", Text(m, "requestId")), ("status", "not_allowed"));
                         break;
                     }
-                    await Send("action.result", ("requestId", Text(m, "requestId")),
-                        ("status", desktop.SessionState.Locked ? "not_allowed" : await desktop.Invoke(m, token)));
+                    var result = desktop.SessionState.Locked ? "not_allowed" : await desktop.Invoke(m, token);
+                    if (result == "performed" && BrightnessStep(action) != null) values.Remove(BrightnessControl);
+                    await Send("action.result", ("requestId", Text(m, "requestId")), ("status", result));
                     break;
                 case "value.set":
                     var id = Text(m, "controlId");
-                    var changed = !desktop.SessionState.Locked && desktop.SetValue(id, (int)UInt(m, "value"));
+                    var changed = (id != BrightnessControl || SupportsBrightness) &&
+                        !desktop.SessionState.Locked && desktop.SetValue(id, (int)UInt(m, "value"));
                     if (changed) values.Remove(id);
                     await Send("action.result", ("requestId", Text(m, "requestId")), ("status", changed ? "performed" : "not_allowed"));
                     break;

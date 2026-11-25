@@ -34,6 +34,7 @@ With current firmware and a connected Windows companion, the card picker shows W
 - Approve apps and folders in EspDesktop. Follow the shared guides to [launch apps](/mac-controls/apps) or [open folders in File Explorer](/mac-controls/folders).
 - Follow [keyboard shortcut setup](/mac-controls/shortcuts#enable-keyboard-shortcuts) before adding **Keyboard Shortcut** or **Lock Machine** cards. Existing custom shortcuts saved with Command or Control send Ctrl on Windows. Option sends Alt.
 - For an app with a shortcut subpage, choose when it opens under **Screen → Appearance → App Subpages**. [App subpage options](/features/subpages#app-page-behavior)
+- Add **Display brightness** for a slider or **Screen brightness** for brighter and dimmer buttons. These cards need current firmware and a supported built-in screen or primary DDC/CI monitor. [Screen brightness controls](/settings/screen#mac-display-brightness)
 - Add a [Website card](/mac-controls/websites) to open a page in your default browser.
 
 ## Switch OBS scenes
