@@ -1,0 +1,51 @@
+{
+  "label": "Slack",
+  "executables": [
+    "slack.exe"
+  ],
+  "targets": [
+    "com.squirrel.slack.slack"
+  ],
+  "sources": [
+    "https://slack.com/help/articles/201374536-Slack-keyboard-shortcuts"
+  ],
+  "note": "Certain navigation shortcuts depend on the workspace layout or the active conversation.",
+  "defaultShortcutIds": [
+    "0",
+    "1",
+    "2",
+    "3",
+    "4",
+    "5",
+    "6"
+  ],
+  "shortcuts": [
+    {"id": "0", "label": "New Message", "shortcut": "control+n", "icon": "Chat Plus"},
+    {"id": "1", "label": "Search", "shortcut": "control+g", "icon": "Search"},
+    {"id": "2", "label": "Browse DMs", "shortcut": "control+shift+2", "icon": "Chat"},
+    {"id": "3", "label": "All Unread", "shortcut": "control+shift+a", "icon": "Message Unread"},
+    {"id": "4", "label": "Search Chat", "shortcut": "control+f", "icon": "Search"},
+    {"id": "5", "label": "Set Status", "shortcut": "control+shift+y", "icon": "Bell"},
+    {"id": "6", "label": "Preferences", "shortcut": "control+keycomma", "icon": "Settings"},
+    {"id": "7", "label": "Open Home", "shortcut": "control+shift+1", "icon": "Application"},
+    {"id": "8", "label": "Activity", "shortcut": "control+shift+m", "icon": "Keyboard"},
+    {"id": "9", "label": "Threads", "shortcut": "control+shift+t", "icon": "Application"},
+    {"id": "10", "label": "Browse channels**", "shortcut": "control+shift+l", "icon": "Shortcut Command"},
+    {"id": "11", "label": "Start or End Huddle", "shortcut": "control+shift+h", "icon": "Run"},
+    {"id": "12", "label": "Mute in Huddle", "shortcut": "control+shift+space", "icon": "Mute"},
+    {"id": "13", "label": "Upload file**", "shortcut": "control+o", "icon": "Upload"},
+    {"id": "14", "label": "Open Downloads", "shortcut": "control+shift+j", "icon": "Keyboard"},
+    {"id": "15", "label": "Create Canvas", "shortcut": "control+shift+n", "icon": "Plus"},
+    {"id": "16", "label": "Unread in Conversation", "shortcut": "control+j", "icon": "Keyboard"},
+    {"id": "17", "label": "Previous Conversation", "shortcut": "option+up", "icon": "Chevron Left"},
+    {"id": "18", "label": "Next Conversation", "shortcut": "option+down", "icon": "Chevron Right"},
+    {"id": "19", "label": "Previous Unread Conversation", "shortcut": "option+shift+up", "icon": "Chevron Left"},
+    {"id": "20", "label": "Next Unread Conversation", "shortcut": "option+shift+down", "icon": "Chevron Right"},
+    {"id": "21", "label": "Go Back", "shortcut": "option+left", "icon": "Chevron Left"},
+    {"id": "22", "label": "Go Forward", "shortcut": "option+right", "icon": "Chevron Right"},
+    {"id": "23", "label": "Jump to Conversation", "shortcut": "control+k~control+t", "icon": "Keyboard"},
+    {"id": "24", "label": "Full Screen", "shortcut": "f11", "icon": "Full Screen"},
+    {"id": "25", "label": "Mark Conversation Read", "shortcut": "escape", "icon": "Keyboard"},
+    {"id": "26", "label": "Mark All Read", "shortcut": "shift+escape", "icon": "Keyboard"}
+  ]
+}

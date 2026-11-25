@@ -91,18 +91,26 @@ export async function runConnectorsFeatureTests(): Promise<void> {
   }
   const transitions: boolean[] = [];
   feature.onCompanionConnectionChange((connected) => transitions.push(connected));
+  if (feature.companionPlatform() !== undefined) throw new Error("The paired platform is unknown before the first status");
   feature.start();
   await new Promise((resolve) => setTimeout(resolve, 0));
+  if (feature.companionPlatform() !== null) throw new Error("A disconnected display has no active platform");
   if (!pollStatus.callback) throw new Error("Connector status polling must be scheduled");
   pollStatus.callback();
   await new Promise((resolve) => setTimeout(resolve, 0));
-  if (!feature.windowsCompanionConnected()) throw new Error("The editor must recognize a connected Windows companion");
+  if (!feature.windowsCompanionConnected() || feature.companionPlatform() !== "windows") {
+    throw new Error("The editor must recognize a connected Windows companion");
+  }
   pollStatus.callback();
   await new Promise((resolve) => setTimeout(resolve, 0));
-  if (feature.windowsCompanionConnected()) throw new Error("An unknown companion platform must keep the default picker");
+  if (feature.windowsCompanionConnected() || feature.companionPlatform() !== "macos") {
+    throw new Error("A legacy Mac companion must keep the macOS picker");
+  }
   pollStatus.callback();
   await new Promise((resolve) => setTimeout(resolve, 0));
-  if (feature.windowsCompanionConnected()) throw new Error("An offline companion must keep the default picker");
+  if (feature.windowsCompanionConnected() || feature.companionPlatform() !== null) {
+    throw new Error("A disconnected Windows companion has no active platform");
+  }
   if (transitions.join(",") !== "false,true,false") {
     throw new Error(`Companion connection listeners must report only connection changes: ${transitions}`);
   }

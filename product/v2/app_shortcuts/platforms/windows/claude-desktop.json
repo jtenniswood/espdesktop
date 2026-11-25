@@ -1,0 +1,39 @@
+{
+  "label": "Claude Desktop",
+  "executables": [
+    "claude.exe"
+  ],
+  "sources": [
+    "https://code.claude.com/docs/en/desktop"
+  ],
+  "note": "These shortcuts apply to the Code tab in Claude Desktop.",
+  "shortcuts": [
+    {"id": "0", "label": "New Session", "shortcut": "control+n", "icon": "Chat Plus"},
+    {"id": "1", "label": "Keyboard Shortcuts", "shortcut": "control+keyslash", "icon": "Keyboard"},
+    {"id": "2", "label": "Next Session", "shortcut": "control+tab", "icon": "Chevron Right"},
+    {"id": "3", "label": "Previous Session", "shortcut": "control+shift+tab", "icon": "Chevron Left"},
+    {"id": "4", "label": "Toggle Terminal", "shortcut": "control+keybackquote", "icon": "Terminal"},
+    {"id": "5", "label": "Toggle Changes Pane", "shortcut": "control+shift+d", "icon": "Arrow Expand"},
+    {"id": "6", "label": "Toggle Browser pane", "shortcut": "control+shift+b", "icon": "Application"},
+    {"id": "7", "label": "Open Side Chat", "shortcut": "control+keysemicolon", "icon": "Chat"},
+    {"id": "8", "label": "Stop Response", "shortcut": "escape", "icon": "Stop"},
+    {"id": "9", "label": "Accept Suggested Prompt", "shortcut": "tab", "icon": "Keyboard", "note": "With an empty prompt box."},
+    {"id": "10", "label": "Close Session", "shortcut": "control+w", "icon": "Close Tab"},
+    {"id": "11", "label": "Close Focused Pane", "shortcut": "control+keybackslash", "icon": "Keyboard"},
+    {"id": "12", "label": "Take Session Out of Split View", "shortcut": "control+option+w", "icon": "Keyboard"},
+    {"id": "13", "label": "Select Browser Element", "shortcut": "control+shift+s", "icon": "Target"},
+    {"id": "14", "label": "Cycle View Modes", "shortcut": "control+o", "icon": "Keyboard"},
+    {"id": "15", "label": "Open Model Menu", "shortcut": "control+shift+i", "icon": "Robot"},
+    {"id": "16", "label": "Open Effort Menu", "shortcut": "control+shift+e", "icon": "Gauge"},
+    {"id": "17", "label": "New Environment", "shortcut": "option+0", "icon": "Folder Plus", "note": "On the new session screen."},
+    {"id": "18", "label": "Select Environment 1", "shortcut": "option+1", "icon": "Applications", "note": "On the new session screen."},
+    {"id": "19", "label": "Select Environment 2", "shortcut": "option+2", "icon": "Applications", "note": "On the new session screen."},
+    {"id": "20", "label": "Select Environment 3", "shortcut": "option+3", "icon": "Applications", "note": "On the new session screen."},
+    {"id": "21", "label": "Select Environment 4", "shortcut": "option+4", "icon": "Applications", "note": "On the new session screen."},
+    {"id": "22", "label": "Select Environment 5", "shortcut": "option+5", "icon": "Applications", "note": "On the new session screen."},
+    {"id": "23", "label": "Select Environment 6", "shortcut": "option+6", "icon": "Applications", "note": "On the new session screen."},
+    {"id": "24", "label": "Select Environment 7", "shortcut": "option+7", "icon": "Applications", "note": "On the new session screen."},
+    {"id": "25", "label": "Select Environment 8", "shortcut": "option+8", "icon": "Applications", "note": "On the new session screen."},
+    {"id": "26", "label": "Select Environment 9", "shortcut": "option+9", "icon": "Applications", "note": "On the new session screen."}
+  ]
+}

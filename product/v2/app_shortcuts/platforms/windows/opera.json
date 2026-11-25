@@ -1,0 +1,61 @@
+{
+  "label": "Opera",
+  "executables": [
+    "opera.exe"
+  ],
+  "sources": [
+    "https://help.opera.com/en/latest/shortcuts/"
+  ],
+  "defaultShortcutIds": [
+    "0",
+    "1",
+    "2",
+    "3",
+    "4",
+    "5",
+    "6",
+    "7"
+  ],
+  "shortcuts": [
+    {"id": "0", "label": "New Tab", "shortcut": "control+t", "icon": "New Tab"},
+    {"id": "1", "label": "New Window", "shortcut": "control+n", "icon": "New Window"},
+    {"id": "2", "label": "Reopen Tab", "shortcut": "control+shift+t", "icon": "Undo"},
+    {"id": "3", "label": "Find", "shortcut": "control+f", "icon": "Search"},
+    {"id": "4", "label": "Refresh", "shortcut": "control+r", "icon": "Refresh"},
+    {"id": "5", "label": "Close Tab", "shortcut": "control+w", "icon": "Close"},
+    {"id": "6", "label": "Next Tab", "shortcut": "control+tab", "icon": "Chevron Right"},
+    {"id": "7", "label": "Previous Tab", "shortcut": "control+shift+tab", "icon": "Chevron Left"},
+    {"id": "8", "label": "Address Bar", "shortcut": "control+l", "icon": "Plus"},
+    {"id": "9", "label": "Go Back", "shortcut": "option+left", "icon": "Chevron Left"},
+    {"id": "10", "label": "Go Forward", "shortcut": "option+right", "icon": "Chevron Right"},
+    {"id": "11", "label": "Private Window", "shortcut": "control+shift+n", "icon": "Keyboard"},
+    {"id": "12", "label": "History", "shortcut": "control+h", "icon": "History"},
+    {"id": "13", "label": "Downloads", "shortcut": "control+j", "icon": "Keyboard"},
+    {"id": "14", "label": "Settings", "shortcut": "option+p", "icon": "Settings"},
+    {"id": "15", "label": "Full Screen", "shortcut": "f11", "icon": "Full Screen"},
+    {"id": "16", "label": "Open Extensions page", "shortcut": "control+shift+e", "icon": "Keyboard"},
+    {"id": "17", "label": "Open local file", "shortcut": "control+o", "icon": "Keyboard"},
+    {"id": "18", "label": "Print page", "shortcut": "control+p", "icon": "Printer"},
+    {"id": "19", "label": "Quit Opera", "shortcut": "control+shift+x", "icon": "Keyboard"},
+    {"id": "20", "label": "Save a page locally", "shortcut": "control+s", "icon": "Save"},
+    {"id": "21", "label": "Open help", "shortcut": "f1", "icon": "Keyboard"},
+    {"id": "22", "label": "Find next", "shortcut": "control+g", "icon": "Search"},
+    {"id": "23", "label": "Find previous", "shortcut": "control+shift+g", "icon": "Search"},
+    {"id": "24", "label": "Cycle forward through page elements", "shortcut": "tab", "icon": "Chevron Right"},
+    {"id": "25", "label": "Cycle back through page elements", "shortcut": "shift+tab", "icon": "Chevron Left"},
+    {"id": "26", "label": "Go to bottom of page", "shortcut": "end", "icon": "Keyboard"},
+    {"id": "27", "label": "Go to top of page", "shortcut": "home", "icon": "Keyboard"},
+    {"id": "28", "label": "Page down", "shortcut": "space", "icon": "Keyboard"},
+    {"id": "29", "label": "Page up", "shortcut": "shift+space", "icon": "Keyboard"},
+    {"id": "30", "label": "View page source", "shortcut": "control+u", "icon": "Keyboard"},
+    {"id": "31", "label": "Cycle back through open tabs", "shortcut": "shift+control+tab", "icon": "Chevron Left"},
+    {"id": "32", "label": "Toggle tab menu", "shortcut": "control+m", "icon": "Tab"},
+    {"id": "33", "label": "View previous active tab", "shortcut": "control+keybackquote", "icon": "Chevron Left"},
+    {"id": "34", "label": "Copy", "shortcut": "control+c", "icon": "Keyboard"},
+    {"id": "35", "label": "Cut", "shortcut": "control+x", "icon": "Keyboard"},
+    {"id": "36", "label": "Paste", "shortcut": "control+v", "icon": "Keyboard"},
+    {"id": "37", "label": "Select all", "shortcut": "control+a", "icon": "Keyboard"},
+    {"id": "38", "label": "Undo", "shortcut": "control+z", "icon": "Undo"},
+    {"id": "39", "label": "Redo", "shortcut": "control+shift+z", "icon": "Redo"}
+  ]
+}

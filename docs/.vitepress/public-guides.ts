@@ -1,4 +1,4 @@
-import { globSync } from 'node:fs'
+import { globSync, readdirSync } from 'node:fs'
 import { writeFile } from 'node:fs/promises'
 import { resolve } from 'node:path'
 import { hostname, redirects } from './discovery'
@@ -7,9 +7,11 @@ import shortcutGuides from './shortcut-guides.json'
 import productFacts from './product-facts.json'
 
 const docs = resolve(import.meta.dirname, '..')
+const windowsGuideSlugs = readdirSync(resolve(docs, '../product/v2/app_shortcuts/platforms/windows'))
+  .filter(name => name.endsWith('.json')).map(name => name.slice(0, -5))
 const guideGroups = {
   ...standardGuideGroups,
-  'Application shortcuts': Object.keys(shortcutGuides).map(slug => `reference/shortcut-presets/${slug}.md`),
+  'Application shortcuts': [...new Set([...Object.keys(shortcutGuides), ...windowsGuideSlugs])].map(slug => `reference/shortcut-presets/${slug}.md`),
 }
 const guides = Object.values(guideGroups).flat()
 const publicPaths = new Set([...guides, '404.md', 'reference/shortcut-presets/[app].md'])

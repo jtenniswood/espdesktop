@@ -1,0 +1,31 @@
+{
+  "label": "OBS Studio",
+  "executables": [
+    "obs64.exe",
+    "obs32.exe"
+  ],
+  "sources": [
+    "https://obsproject.com/kb/keyboard-shortcuts"
+  ],
+  "note": "Select a source before nudging or transforming it. Configure streaming and recording hotkeys in OBS Studio.",
+  "shortcuts": [
+    {"id": "0", "label": "Fit Source to Screen", "shortcut": "control+f", "icon": "Shortcut Command"},
+    {"id": "1", "label": "Center Source", "shortcut": "control+d", "icon": "Keyboard"},
+    {"id": "2", "label": "Edit Transform", "shortcut": "control+e", "icon": "Vector"},
+    {"id": "3", "label": "Reset Transform", "shortcut": "control+r", "icon": "Undo"},
+    {"id": "4", "label": "Undo Edit", "shortcut": "control+z", "icon": "Undo"},
+    {"id": "5", "label": "Redo Edit", "shortcut": "control+shift+z", "icon": "Redo"},
+    {"id": "6", "label": "Copy Source", "shortcut": "control+c", "icon": "Copy"},
+    {"id": "7", "label": "Paste Source", "shortcut": "control+v", "icon": "Paste"},
+    {"id": "8", "label": "Remove source", "shortcut": "forwarddelete", "icon": "Delete"},
+    {"id": "9", "label": "Move source up in Sources list", "shortcut": "control+up", "icon": "Arrow Up"},
+    {"id": "10", "label": "Move source down in Sources list", "shortcut": "control+down", "icon": "Arrow Down"},
+    {"id": "11", "label": "Move source to top of Sources list", "shortcut": "control+home", "icon": "Arrow Left"},
+    {"id": "12", "label": "Move source to bottom of Sources list", "shortcut": "control+end", "icon": "Arrow Right"},
+    {"id": "13", "label": "Stretch to screen", "shortcut": "control+s", "icon": "Shortcut Command"},
+    {"id": "14", "label": "Nudge source up", "shortcut": "up", "icon": "Arrow Up"},
+    {"id": "15", "label": "Nudge source down", "shortcut": "down", "icon": "Arrow Down"},
+    {"id": "16", "label": "Nudge source left", "shortcut": "left", "icon": "Arrow Left"},
+    {"id": "17", "label": "Nudge source right", "shortcut": "right", "icon": "Arrow Right"}
+  ]
+}

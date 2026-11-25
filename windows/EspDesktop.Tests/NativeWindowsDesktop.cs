@@ -50,7 +50,7 @@ internal sealed record NativeWindowsDesktop(WindowsDesktop Desktop, string Drive
                 app = await WindowsAppActions.Create(desktop);
                 settings.AllowedApps.Add(app.Entry.Id);
                 browser = desktop.Apps.FirstOrDefault(candidate =>
-                    WindowsPresets.For(candidate.Executable, candidate.Target).Any(preset => preset.Label == "New Tab"))
+                    WindowsPresets.For(candidate.Executable, candidate.Target)?.Shortcuts.Any(preset => preset.Label == "New Tab") == true)
                     ?? throw new InvalidOperationException("The Windows Shell did not list a browser with shortcut presets.");
                 settings.AllowedApps.Add(browser.Id);
             }

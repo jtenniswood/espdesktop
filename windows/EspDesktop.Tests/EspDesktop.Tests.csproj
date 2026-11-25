@@ -15,6 +15,9 @@
   <ItemGroup Condition="'$(TargetFramework)' == 'net10.0'">
     <Compile Include="../EspDesktop/Core/*.cs" LinkBase="Core" />
     <Compile Include="../EspDesktop/Updates.cs" Link="Updates.cs" />
+    <Compile Include="../EspDesktop/WindowsPresets.cs" Link="WindowsPresets.cs" />
+    <EmbeddedResource Include="../../product/v2/app_shortcuts/platforms/windows/*.json"
+                      LogicalName="WindowsAppShortcuts.%(Filename)%(Extension)" />
     <EmbeddedResource Include="../../product/v2/companion_capabilities.json" LogicalName="CompanionContract.json" />
   </ItemGroup>
   <ItemGroup Condition="'$(TargetFramework)' != 'net10.0'">

@@ -1,5 +1,9 @@
 # Shortcut research sources
 
+Windows references live with their [application templates](platforms/windows/). The [Windows coverage audit](platforms/windows/coverage.md) records where the available Windows edition or reference did not match a macOS template.
+
+## macOS
+
 The expanded templates start with the original September 2026 macOS shortcut research. That index lists the vendor sources, keyboard layouts, coverage notes, and app versions. Shortcuts are keyed to the matching app: for example, the legacy ChatGPT bundle uses the Classic references, while the current ChatGPT Desktop bundle uses the current app commands.
 
 Additional primary sources used to verify or extend the supplied research:

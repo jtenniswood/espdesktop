@@ -5036,14 +5036,17 @@ async function assertOBSSceneCard(browser) {
 async function assertWindowsShortcutSettings(browser, testCase) {
   if (testCase.slug !== "guition-esp32-s3-4848s040") return;
   const appId = "windows.abc123";
+  const connectorsStatus = { onboarding_complete: true, mac_companion: {
+    available: true, configured: true, paired: true, connected: true, platform: "windows",
+  } };
   const nativeState = nativeConfigState(testCase.slug);
   nativeState.document.buttons[1] = "shortcut.command+enter;;Shortcut Command;Auto;;;companion";
   const context = await browser.newContext({ viewport: testCase.viewport });
   try {
-    await installRoutes(context, testCase.slug, { nativeState });
+    await installRoutes(context, testCase.slug, { nativeState, connectorsStatus });
     await context.route(url => url.pathname === "/companion/shortcut-page", route => route.fulfill({ status: 204 }));
     await context.route(url => url.pathname === "/companion/definitions", route => route.fulfill({
-      json: { page: 0, hasMore: false, definitions: [
+      json: { page: 0, hasMore: false, shortcutPlatform: "windows", definitions: [
         { kind: "application", definition: {
           appId, label: "Google Chrome", version: 1, catalog: false,
           shortcuts: [
@@ -5090,7 +5093,14 @@ async function assertWindowsShortcutSettings(browser, testCase) {
     await waitForNativeState(nativeState, () => nativeState.document.buttons[1].startsWith("shortcut.control+t;"),
       "Windows shortcut preset save");
     assert.match(nativeState.document.buttons[1], /app_shortcut_preset=windows\.abc123(?::|%3A)0/i);
-    console.log("Windows shortcut labels, saved Command alias, and approved app preset passed.");
+    await openShortcut();
+    await app.locator(`option[value="${appId}"]`).waitFor({ state: "attached" });
+    delete connectorsStatus.mac_companion.platform;
+    await app.locator('option[value="com.apple.Safari"]').waitFor({ state: "attached" });
+    assert.strictEqual(await app.locator(`option[value="${appId}"]`).count(), 0,
+      "a Mac connection hides even the saved Windows preset while its old catalogue is cached");
+    assert.match(nativeState.document.buttons[1], /app_shortcut_preset=windows\.abc123(?::|%3A)0/i);
+    console.log("Windows shortcut labels, saved Command alias, and filtering after a platform switch passed.");
   } finally {
     await context.close();
   }

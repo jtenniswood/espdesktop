@@ -1,0 +1,21 @@
+{
+  "label": "Athena",
+  "executables": [],
+  "sources": [
+    "https://github.com/jtenniswood/athena/blob/main/apps/web-desktop/src/experience/session-shortcuts.tsx",
+    "https://github.com/jtenniswood/athena/blob/main/apps/web-desktop/src/experience/sidebar-shortcuts.tsx"
+  ],
+  "note": "Use these keys with Athena focused in your browser. Some browsers reserve shortcuts for their own tabs or menus.",
+  "shortcuts": [
+    {"id": "0", "label": "Open Files", "shortcut": "control+shift+e", "icon": "Folder"},
+    {"id": "1", "label": "Open Review", "shortcut": "control+shift+g", "icon": "File Compare"},
+    {"id": "2", "label": "Rename Chat", "shortcut": "control+shift+r", "icon": "Rename"},
+    {"id": "3", "label": "Update Chat Title", "shortcut": "control+shift+x", "icon": "Refresh"},
+    {"id": "4", "label": "Pin or Unpin Chat", "shortcut": "control+shift+p", "icon": "Chat"},
+    {"id": "5", "label": "Mark Chat Read or Unread", "shortcut": "control+shift+u", "icon": "Chat"},
+    {"id": "6", "label": "Archive Chat", "shortcut": "control+shift+a", "icon": "Archive"},
+    {"id": "7", "label": "Delete Chat", "shortcut": "control+shift+delete", "icon": "Delete"},
+    {"id": "8", "label": "Archived Chats", "shortcut": "control+option+a", "icon": "Archive"},
+    {"id": "9", "label": "Mark All Read", "shortcut": "control+option+r", "icon": "Check"}
+  ]
+}

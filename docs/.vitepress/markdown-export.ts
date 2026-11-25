@@ -62,6 +62,15 @@ export async function writeMarkdownPages(outDir: string, pages: string[]) {
     filter: (node) => node.nodeName === 'SUMMARY' && node.parentElement.hasAttribute('data-faq-question'),
     replacement: (content) => `\n\n### ${content.trim()}\n\n`,
   })
+  converter.addRule('shortcutPlatform', {
+    filter: (node) => node.nodeName === 'SUMMARY' &&
+      ['windows-shortcuts', 'macos-shortcuts'].includes(node.parentElement.id),
+    replacement: (content) => `
+
+### ${content.trim()}
+
+`,
+  })
   converter.addRule('safetyCallout', {
     filter: (node) => node.classList.contains('custom-block') &&
       (node.classList.contains('warning') || node.classList.contains('danger')),

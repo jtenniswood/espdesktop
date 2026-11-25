@@ -21,6 +21,7 @@ internal interface IDesktop
     IEnumerable<CatalogueItem> ObsCatalogue(uint capability) => [];
     bool SupportsObs => false;
     IEnumerable<string> Definitions();
+    (string? Json, bool Complete) ShortcutPage(string appId, uint page);
     string[] Focused(IReadOnlyDictionary<string, Uri> urls);
     (bool Locked, bool? DisplayAwake) SessionState { get; }
     byte[]? AppIcon(string appId, int side);
@@ -231,11 +232,14 @@ internal sealed class DisplaySession(IDesktop desktop, Action<Pairing> save, Act
         private Task Send(string type, params (string Name, object? Value)[] fields) =>
             link.Send(Message(type, fields), "connected", token);
 
+        private const uint OnDemandShortcutsVersion = 23;
+
         private async Task Catalogue()
         {
             revision = desktop.CatalogueRevision;
             var capabilities = new List<string> { "windows_companion", "app_icons", "app_icons_alpha", "app_icons_240", "url_card_focus", "windows_shortcuts" };
             capabilities.Add(desktop.ShortcutsEnabled ? "keyboard_shortcuts" : "keyboard_shortcuts_unavailable");
+            if (capabilityVersion >= OnDemandShortcutsVersion) capabilities.Add("shortcut_catalogue_on_demand");
             if (capabilityVersion >= 13 && desktop.SupportsObs) capabilities.Add("obs_scene_cards");
             await Send("capabilities", ("values", capabilities));
             var entries = desktop.Catalogue().Concat(desktop.ObsCatalogue(capabilityVersion)).Select(item =>
@@ -251,7 +255,7 @@ internal sealed class DisplaySession(IDesktop desktop, Action<Pairing> save, Act
             for (var i = 0; i < pages.Length; i++)
                 await Send("catalogue.page", ("generation", generation), ("page", i),
                     ("complete", i == pages.Length - 1), ("items", pages[i]));
-            if (capabilityVersion >= 5)
+            if (capabilityVersion is >= 5 and < OnDemandShortcutsVersion)
             {
                 // Leave room for escaping the nested JSON in the outer frame.
                 var definitions = desktop.Definitions().Where(d => System.Text.Encoding.UTF8.GetByteCount(d) <= 7000).ToArray();
@@ -311,6 +315,16 @@ internal sealed class DisplaySession(IDesktop desktop, Action<Pairing> save, Act
             switch (Text(m, "type"))
             {
                 case "catalogue.request": await Catalogue(); break;
+                case "shortcut.catalogue.request" when capabilityVersion >= OnDemandShortcutsVersion:
+                    var appId = Text(m, "appId");
+                    var page = UInt(m, "page");
+                    var (json, complete) = desktop.ShortcutPage(appId, page);
+                    var response = Message("shortcut.catalogue.page",
+                        ("requestId", UInt(m, "requestId")), ("appId", appId), ("page", page),
+                        ("catalogueVersion", Math.Max(1, desktop.CatalogueRevision + 1)), ("complete", complete));
+                    if (json is not null) response.Add("json", json);
+                    await link.Send(response, "connected", token);
+                    break;
                 case "action.invoke":
                     var action = Text(m, "actionId");
                     if ((action.StartsWith("obs.", StringComparison.Ordinal) && capabilityVersion < 13) ||

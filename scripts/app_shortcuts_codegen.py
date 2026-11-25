@@ -175,8 +175,82 @@ def validate_manifest(directory, expected_paths):
         raise ValueError(f'{manifest_path.name}: entries must list each template file exactly once')
 
 
+def validate_windows_apps(root):
+    directory = root / 'product/v2/app_shortcuts/platforms/windows'
+    icons = icon_names(json.loads((root / 'product/v2/icons.json').read_text()))
+    seen = {'executables': set(), 'targets': set()}
+    for path in sorted(directory.glob('*.json')):
+        app = json.loads(path.read_text())
+
+        def require(condition, message):
+            if not condition:
+                raise ValueError(f'{path.name}: {message}')
+
+        def text(value, maximum):
+            return (isinstance(value, str) and value and value == value.strip()
+                    and len(value.encode('utf-8')) <= maximum and not any(ord(c) < 32 for c in value))
+
+        require(re.fullmatch(r'[a-z0-9]+(?:-[a-z0-9]+)*', path.stem), 'invalid guide slug')
+        require(isinstance(app, dict) and
+                set(app) - {'targets', 'note', 'defaultShortcutIds'} == {'label', 'executables', 'sources', 'shortcuts'},
+                'expected label, executables, sources, shortcuts and supported optional fields')
+        require(text(app['label'], 48), 'invalid app label')
+        require('note' not in app or text(app['note'], 400), 'invalid app note')
+        for field, pattern in [('executables', r'[a-z0-9_ .+-]+\.exe'), ('targets', r'[a-z0-9_ .!+-]+')]:
+            values = app.get(field, [])
+            require(isinstance(values, list), f'{field} must be a list')
+            for value in values:
+                require(text(value, 160) and re.fullmatch(pattern, value), f'invalid {field} identity: {value!r}')
+                require(value not in seen[field], f'duplicate {field} identity: {value}')
+                seen[field].add(value)
+        sources = app['sources']
+        require(isinstance(sources, list) and sources and
+                all(text(source, 500) and re.fullmatch(r'https://[^\s]+', source) for source in sources),
+                'provide HTTPS source URLs for the shortcut bindings')
+        shortcuts = app['shortcuts']
+        # The editor requests up to 31 expanded pages of 24 entries after the starter.
+        require(isinstance(shortcuts, list) and 1 <= len(shortcuts) <= 720, 'expected 1–720 shortcuts')
+        ids = set()
+        for item in shortcuts:
+            fields = {'id', 'label', 'shortcut', 'icon'}
+            require(isinstance(item, dict) and set(item) - {'note'} == fields,
+                    'each shortcut needs id, label, shortcut and icon, with an optional note')
+            ident = item['id']
+            require(isinstance(ident, str) and re.fullmatch(r'0|[1-9][0-9]{0,2}', ident) and ident not in ids,
+                    f'invalid or duplicate shortcut ID: {ident!r}')
+            ids.add(ident)
+            require(text(item['label'], 48) and text(item['icon'], 48) and item['icon'] in icons,
+                    f'{ident}: invalid label or icon')
+            require('note' not in item or text(item['note'], 200), f'{ident}: invalid shortcut note')
+            require(windows_shortcut_valid(item['shortcut']), f'{ident}: invalid Windows shortcut')
+        if 'defaultShortcutIds' in app:
+            defaults = app['defaultShortcutIds']
+            require(isinstance(defaults, list) and 1 <= len(defaults) <= 8 and
+                    all(isinstance(value, str) and value in ids for value in defaults) and
+                    len(set(defaults)) == len(defaults), 'defaultShortcutIds must contain 1–8 distinct shortcut IDs')
+
+
+def windows_shortcut_valid(value):
+    if not isinstance(value, str) or len(value) > 80:
+        return False
+    strokes = value.split('~')
+    return len(strokes) <= 3 and all(windows_stroke_valid(stroke) for stroke in strokes)
+
+
+def windows_stroke_valid(stroke):
+    *modifiers, key = stroke.split('+')
+    allowed = {'control', 'option', 'shift'}
+    return (len(set(modifiers)) == len(modifiers) and set(modifiers) <= allowed
+            and not ('option' in modifiers and key in {'tab', 'escape', 'f4'})
+            and not ('control' in modifiers and key == 'escape')
+            and not (key == 'forwarddelete' and {'control', 'option'} <= set(modifiers))
+            and (key in KEYS
+                 or re.fullmatch(r'[a-z0-9]|f(?:[1-9]|1[0-9]|20)', key) is not None))
+
+
 def outputs(root):
     apps = load_apps(root)
+    validate_windows_apps(root)
     for app in apps:
         extended = app.pop('extendedShortcuts', [])
         additional = app.pop('additionalShortcuts', []) + app.pop('claudeShortcuts', [])

@@ -1,0 +1,35 @@
+{
+  "label": "DaVinci Resolve",
+  "executables": [
+    "resolve.exe"
+  ],
+  "sources": [
+    "https://documents.blackmagicdesign.com/UserManuals/DaVinciResolveReferenceManual.pdf"
+  ],
+  "note": "Use the DaVinci Resolve default layout. These editing commands depend on the active timeline or viewer.",
+  "shortcuts": [
+    {"id": "0", "label": "Play or Stop", "shortcut": "space", "icon": "Play Pause"},
+    {"id": "1", "label": "Selection mode", "shortcut": "a", "icon": "Group Selection"},
+    {"id": "2", "label": "Blade Mode", "shortcut": "b", "icon": "Keyboard"},
+    {"id": "3", "label": "Toggle snapping", "shortcut": "n", "icon": "Shortcut Command"},
+    {"id": "4", "label": "Toggle Selected Clips", "shortcut": "d", "icon": "Keyboard"},
+    {"id": "5", "label": "Mark In", "shortcut": "i", "icon": "Shortcut Command"},
+    {"id": "6", "label": "Mark Out", "shortcut": "o", "icon": "Shortcut Command"},
+    {"id": "7", "label": "Insert edit", "shortcut": "f9", "icon": "Plus"},
+    {"id": "8", "label": "Overwrite edit", "shortcut": "f10", "icon": "Shortcut Command"},
+    {"id": "9", "label": "Replace edit", "shortcut": "f11", "icon": "Shortcut Command"},
+    {"id": "10", "label": "Select Nearest Edit", "shortcut": "v", "icon": "Keyboard"},
+    {"id": "11", "label": "Select Clip at Playhead", "shortcut": "shift+v", "icon": "Video Edit"},
+    {"id": "12", "label": "Nudge Clip Left", "shortcut": "keycomma", "icon": "Keyboard"},
+    {"id": "13", "label": "Nudge Clip Right", "shortcut": "keyperiod", "icon": "Keyboard"},
+    {"id": "14", "label": "Nudge Left Five Frames", "shortcut": "shift+keycomma", "icon": "Keyboard"},
+    {"id": "15", "label": "Nudge Right Five Frames", "shortcut": "shift+keyperiod", "icon": "Keyboard"},
+    {"id": "16", "label": "Trim Start to Playhead", "shortcut": "shift+keybracketleft", "icon": "Play Pause"},
+    {"id": "17", "label": "Trim End to Playhead", "shortcut": "shift+keybracketright", "icon": "Play Pause"},
+    {"id": "18", "label": "Previous Edit", "shortcut": "up", "icon": "Chevron Left"},
+    {"id": "19", "label": "Next Edit", "shortcut": "down", "icon": "Plus"},
+    {"id": "20", "label": "Select Clips Forward on Track", "shortcut": "y", "icon": "Chevron Right"},
+    {"id": "21", "label": "Ripple delete", "shortcut": "forwarddelete", "icon": "Delete"},
+    {"id": "22", "label": "Lift Selected Clips", "shortcut": "delete", "icon": "Keyboard"}
+  ]
+}

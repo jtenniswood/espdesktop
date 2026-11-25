@@ -1,0 +1,33 @@
+{
+  "label": "Obsidian",
+  "executables": [
+    "obsidian.exe"
+  ],
+  "sources": [
+    "https://obsidian.md/help/hotkeys",
+    "https://obsidian.md/help/editing-shortcuts",
+    "https://obsidian.md/help/plugins/command-palette",
+    "https://obsidian.md/help/plugins/quick-switcher",
+    "https://obsidian.md/help/edit-and-read"
+  ],
+  "note": "Command shortcuts may be customised in Settings → Hotkeys. Editor movement shortcuts require focus in the note.",
+  "shortcuts": [
+    {"id": "0", "label": "Command Palette", "shortcut": "control+p", "icon": "Shortcut Command"},
+    {"id": "1", "label": "Quick Switcher", "shortcut": "control+o", "icon": "Swap Horizontal"},
+    {"id": "2", "label": "New Note", "shortcut": "control+n", "icon": "Plus"},
+    {"id": "3", "label": "Search All Files", "shortcut": "control+shift+f", "icon": "Search"},
+    {"id": "4", "label": "Find in Note", "shortcut": "control+f", "icon": "Search"},
+    {"id": "5", "label": "Switch Editing or Reading View", "shortcut": "control+e", "icon": "Keyboard"},
+    {"id": "6", "label": "Bold", "shortcut": "control+b", "icon": "Keyboard"},
+    {"id": "7", "label": "Italic", "shortcut": "control+i", "icon": "Keyboard"},
+    {"id": "8", "label": "Paste Without Formatting", "shortcut": "control+shift+v", "icon": "Keyboard"},
+    {"id": "9", "label": "Undo", "shortcut": "control+z", "icon": "Undo"},
+    {"id": "10", "label": "Redo", "shortcut": "control+shift+z", "icon": "Redo"},
+    {"id": "11", "label": "Delete Line", "shortcut": "control+shift+k", "icon": "Delete", "note": "With no text selected."},
+    {"id": "12", "label": "Beginning of Note", "shortcut": "control+home", "icon": "Keyboard"},
+    {"id": "13", "label": "End of Note", "shortcut": "control+end", "icon": "Keyboard"},
+    {"id": "14", "label": "Select All", "shortcut": "control+a", "icon": "Keyboard"},
+    {"id": "15", "label": "Select to Beginning of Note", "shortcut": "control+shift+home", "icon": "Keyboard"},
+    {"id": "16", "label": "Select to End of Note", "shortcut": "control+shift+end", "icon": "Keyboard"}
+  ]
+}

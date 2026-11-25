@@ -1,0 +1,31 @@
+{
+  "label": "Evernote",
+  "executables": [
+    "evernote.exe"
+  ],
+  "sources": [
+    "https://help.evernote.com/hc/en-us/articles/34296687388307-Keyboard-shortcuts"
+  ],
+  "note": "Uses desktop shortcuts. Evernote lets you customise several of them.",
+  "shortcuts": [
+    {"id": "0", "label": "New Note", "shortcut": "control+n", "icon": "Note Plus"},
+    {"id": "1", "label": "Search Notes", "shortcut": "control+option+f", "icon": "Note Search"},
+    {"id": "2", "label": "Quick Switcher", "shortcut": "control+q", "icon": "Keyboard"},
+    {"id": "3", "label": "Create New Notebook", "shortcut": "control+shift+n", "icon": "Folder Plus"},
+    {"id": "4", "label": "Set Tag Filter", "shortcut": "option+f2", "icon": "Search"},
+    {"id": "5", "label": "Go Back", "shortcut": "option+left", "icon": "Chevron Left"},
+    {"id": "6", "label": "Go Forward", "shortcut": "option+right", "icon": "Arrow Right"},
+    {"id": "7", "label": "Show Notes", "shortcut": "control+option+1", "icon": "Keyboard"},
+    {"id": "8", "label": "Show Notebooks", "shortcut": "control+option+2", "icon": "Open File"},
+    {"id": "9", "label": "Show Tags", "shortcut": "control+option+3", "icon": "Keyboard"},
+    {"id": "10", "label": "Switch note list view", "shortcut": "f5", "icon": "Notes"},
+    {"id": "11", "label": "Snippet view", "shortcut": "control+f5", "icon": "Code"},
+    {"id": "12", "label": "Card view", "shortcut": "control+f6", "icon": "Application"},
+    {"id": "13", "label": "Top list view", "shortcut": "control+f7", "icon": "Application"},
+    {"id": "14", "label": "Side list view", "shortcut": "control+f8", "icon": "Application"},
+    {"id": "15", "label": "Bold", "shortcut": "control+b", "icon": "Keyboard"},
+    {"id": "16", "label": "Italic", "shortcut": "control+i", "icon": "Keyboard"},
+    {"id": "17", "label": "Underline", "shortcut": "control+u", "icon": "Keyboard"},
+    {"id": "18", "label": "Find in Note", "shortcut": "control+f", "icon": "Search"}
+  ]
+}

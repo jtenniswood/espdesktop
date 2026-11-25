@@ -1,0 +1,48 @@
+{
+  "label": "WhatsApp",
+  "executables": [
+    "whatsapp.exe"
+  ],
+  "targets": [
+    "5319275a.whatsappdesktop_cv1g1gvanyjgm!app"
+  ],
+  "sources": [
+    "https://faq.whatsapp.com/6204576529560565/?cms_platform=windows-desktop"
+  ],
+  "shortcuts": [
+    {"id": "0", "label": "New Chat", "shortcut": "control+option+n", "icon": "Chat Plus"},
+    {"id": "1", "label": "Search", "shortcut": "control+option+keyslash", "icon": "Search"},
+    {"id": "2", "label": "Search Chat", "shortcut": "control+shift+f", "icon": "Search"},
+    {"id": "3", "label": "Mute Chat", "shortcut": "control+shift+m", "icon": "Do Not Disturb"},
+    {"id": "4", "label": "Mark Chat Unread", "shortcut": "control+shift+u", "icon": "Message Unread"},
+    {"id": "5", "label": "Archive Chat", "shortcut": "control+shift+a", "icon": "Archive"},
+    {"id": "6", "label": "Pin Chat", "shortcut": "control+option+shift+p", "icon": "Pin"},
+    {"id": "7", "label": "Next Chat", "shortcut": "control+keybracketright", "icon": "Chat Plus"},
+    {"id": "8", "label": "Previous Chat", "shortcut": "control+keybracketleft", "icon": "Chevron Left"},
+    {"id": "9", "label": "New Group", "shortcut": "control+shift+n", "icon": "Meeting"},
+    {"id": "10", "label": "Open Profile", "shortcut": "control+option+p", "icon": "Open File"},
+    {"id": "11", "label": "Settings", "shortcut": "option+s", "icon": "Settings"},
+    {"id": "12", "label": "Emoji Panel", "shortcut": "control+option+e", "icon": "Keyboard"},
+    {"id": "13", "label": "GIF Panel", "shortcut": "control+option+g", "icon": "Application"},
+    {"id": "14", "label": "Sticker Panel", "shortcut": "control+option+s", "icon": "Application"},
+    {"id": "15", "label": "Open Chat Info", "shortcut": "option+i", "icon": "Chat"},
+    {"id": "16", "label": "Reply", "shortcut": "option+r", "icon": "Keyboard"},
+    {"id": "17", "label": "Reply Privately", "shortcut": "control+option+r", "icon": "Keyboard"},
+    {"id": "18", "label": "Forward Message", "shortcut": "control+option+d", "icon": "Chevron Right"},
+    {"id": "19", "label": "Star Message", "shortcut": "option+8", "icon": "Chat"},
+    {"id": "20", "label": "Open Attachment Menu", "shortcut": "option+a", "icon": "Keyboard"},
+    {"id": "21", "label": "Edit Last Message", "shortcut": "control+up", "icon": "Chat"},
+    {"id": "22", "label": "Zoom In", "shortcut": "control+shift+keyequal", "icon": "Keyboard"},
+    {"id": "23", "label": "Zoom Out", "shortcut": "control+keyminus", "icon": "Keyboard"},
+    {"id": "24", "label": "Reset Zoom", "shortcut": "control+0", "icon": "Keyboard"},
+    {"id": "25", "label": "Open Chat 1", "shortcut": "control+1", "icon": "Pin"},
+    {"id": "26", "label": "Open Chat 2", "shortcut": "control+2", "icon": "Pin"},
+    {"id": "27", "label": "Open Chat 3", "shortcut": "control+3", "icon": "Pin"},
+    {"id": "28", "label": "Open Chat 4", "shortcut": "control+4", "icon": "Pin"},
+    {"id": "29", "label": "Open Chat 5", "shortcut": "control+5", "icon": "Pin"},
+    {"id": "30", "label": "Open Chat 6", "shortcut": "control+6", "icon": "Pin"},
+    {"id": "31", "label": "Open Chat 7", "shortcut": "control+7", "icon": "Pin"},
+    {"id": "32", "label": "Open Chat 8", "shortcut": "control+8", "icon": "Pin"},
+    {"id": "33", "label": "Open Chat 9", "shortcut": "control+9", "icon": "Pin"}
+  ]
+}

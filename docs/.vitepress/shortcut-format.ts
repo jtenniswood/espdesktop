@@ -1,4 +1,13 @@
-import type { AppShortcutApplication } from '../../src/webserver/generated/app_shortcuts'
+import type { AppShortcutApplication, AppShortcutDefinition } from '../../src/webserver/generated/app_shortcuts'
+
+export interface WindowsShortcutApplication {
+  label: string
+  executables: string[]
+  targets?: string[]
+  sources: string[]
+  note?: string
+  shortcuts: (AppShortcutDefinition & { note?: string })[]
+}
 
 export function shortcutCatalogue(definitions: AppShortcutApplication[]) {
   return definitions
@@ -18,16 +27,21 @@ export function shortcutCatalogue(definitions: AppShortcutApplication[]) {
 
 const keyLabels: Record<string, string> = {
   command: 'Command', control: 'Control', option: 'Option',
+  pageup: 'Page Up', pagedown: 'Page Down', forwarddelete: 'Forward Delete',
   shift: 'Shift', function: 'Fn', keycomma: ',', keyperiod: '.', keyslash: '/',
   keysemicolon: ';', keyquote: "'", keybackslash: '\\', keyminus: '-', keyequal: '=',
   keybracketleft: '[', keybracketright: ']', keybackquote: '`',
 }
 
-export function displayKeys(shortcut: string) {
+const windowsKeyLabels: Record<string, string> = {
+  control: 'Ctrl', option: 'Alt', delete: 'Backspace', forwarddelete: 'Delete',
+}
+
+export function displayKeys(shortcut: string, platform = 'macos') {
   if (shortcut === 'escape-twice') return 'Escape twice'
   if (shortcut === 'claude-escape') return 'Escape (Claude)'
   return shortcut.replace(/^scoped\./, '').split('~').map(stroke => stroke.split('+')
-    .map(key => keyLabels[key] ?? (key.startsWith('keypad')
+    .map(key => (platform === 'windows' ? windowsKeyLabels[key] : undefined) ?? keyLabels[key] ?? (key.startsWith('keypad')
       ? 'Keypad ' + key.slice(6) : key[0].toUpperCase() + key.slice(1)))
     .join(' + ')).join(' then ')
 }

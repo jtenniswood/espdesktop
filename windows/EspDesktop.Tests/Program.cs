@@ -72,7 +72,6 @@ if (args is ["--installer-profile", var profileMode])
 }
 VerifyLocalStore();
 VerifyAudioLevelPolicy();
-VerifyWindowsPresets();
 var exerciseDesktopActions = args is ["--verify-native-windows", "--exercise-desktop-actions"];
 var verifyWindowsLock = args is ["--verify-windows-lock"];
 if (verifyWindowsLock && Environment.GetEnvironmentVariable("RUNNER_ENVIRONMENT") != "github-hosted")
@@ -119,7 +118,12 @@ foreach (var bad in new[] { "file:///C:/Windows", "https://a:b@example.org", "ms
 Check(SafeActions.Shortcut("shortcut.command+shift+t")?.SequenceEqual(new ushort[] { 0x11, 0x10, 0x54 }) == true, "map Command to Ctrl");
 Check(SafeActions.Shortcut("shortcut.scoped.control+t")?.SequenceEqual(new ushort[] { 0x11, 0x54 }) == true,
     "parse the display's app-scoped shortcut");
-Check(SafeActions.Shortcut("shortcut.scoped.control+t~control+w") is null, "reject scoped sequences");
+Check(SafeActions.ShortcutStrokes("shortcut.scoped.control+k~control+s") is { Length: 2 },
+    "accept app-scoped sequences");
+Check(SafeActions.ShortcutStrokes("shortcut.control+k~control+s") is null &&
+      SafeActions.ShortcutStrokes("shortcut.scoped.control+k~option+tab") is null &&
+      SafeActions.ShortcutStrokes("shortcut.scoped.a~b~c~d") is null,
+    "reject unscoped sequences, system strokes and overlong sequences");
 Check(SafeActions.Shortcut("shortcut.scoped.option+tab") is null, "block scoped system window switching");
 Check(SafeActions.Shortcut("shortcut.option+f4") is null, "block system window close");
 Check(SafeActions.Shortcut("shortcut.control+escape") is null, "block Start menu");
@@ -127,6 +131,31 @@ Check(SafeActions.Shortcut("shortcut.command+escape") is null, "block Start menu
 Check(SafeActions.Shortcut("shortcut.control+shift+escape") is null, "block task manager");
 Check(SafeActions.Shortcut("shortcut.command+keycomma") is not null, "match panel punctuation IDs");
 Check(SafeActions.Shortcut("shortcut.command+calc.exe") is null, "no command paths as shortcuts");
+
+foreach (var (executable, target, firstKey) in new (string?, string, string)[]
+{
+    (@"C:\Apps\SLACK.EXE", "Slack", "control+n"),
+    (@"C:\Apps\Discord.exe", "Discord", "control+k"),
+    (@"C:\Apps\Spotify.exe", "Spotify", "control+k"),
+    (@"C:\Apps\GitHubDesktop.exe", "GitHubDesktop", "control+t"),
+    (null, "Microsoft.MicrosoftEdge.Stable_8wekyb3d8bbwe!App", "control+t"),
+    (null, "Microsoft.WindowsNotepad_8wekyb3d8bbwe!App", "control+n")
+})
+{
+    var presets = WindowsPresets.For(executable, target)?.Shortcuts ?? [];
+    Check(presets.Length > 0 && presets[0].Id == "0" && presets[0].Shortcut == firstKey, $"preset IDs and shortcut bindings for {target}");
+    Check(presets.All(preset => SafeActions.ShortcutStrokes("shortcut." + preset.DisplayShortcut) is not null),
+        $"Windows can replay each shortcut for {target}");
+}
+Check(WindowsPresets.For(null, "MSEdge._pin_example") is null,
+    "a pinned website does not inherit Edge browser presets");
+Console.WriteLine("Passed Windows application shortcut preset checks.");
+Check(WindowsPresets.For(@"C:\Apps\Code.exe", "Visual Studio Code")?.Shortcuts.Any(preset =>
+          preset.DisplayShortcut == "scoped.control+k~control+s") == true,
+    "the VS Code two-stroke shortcut can travel through the editor");
+Check(WindowsPresets.For(@"C:\Apps\vlc.exe", "VLC")?.Shortcuts.Any(preset =>
+          preset.DisplayShortcut == "scoped.space") == true,
+    "single-key shortcuts travel in app-scoped form");
 Check(Bound("🙂🙂a", 7) == "🙂", "truncate at UTF-8 boundary");
 using (var duplicate = JsonDocument.Parse("""{"type":"catalogue.request","type":"hello","protocol":4}"""))
     Check(!Valid(duplicate.RootElement, "panel_to_mac", "connected"), "reject ambiguous envelopes");
@@ -217,6 +246,11 @@ server.Map(SocketPath, async context =>
 #endif
         await FindMessage(socket, "catalogue.page", m => m.GetProperty("items")[0].GetProperty("id").GetString() == "windows.test");
         await FindMessage(socket, "value.state", m => Text(m, "controlId") == FakeDesktop.Speaker && UInt(m, "value") == 50);
+
+        await Send(socket, "shortcut.catalogue.request", ("requestId", 10), ("appId", "index"), ("page", 0));
+        var shortcutIndex = await FindMessage(socket, "shortcut.catalogue.page", m => UInt(m, "requestId") == 10);
+        Check(Valid(shortcutIndex, "mac_to_panel", "connected") && Text(shortcutIndex, "json").Contains("windows", StringComparison.Ordinal),
+            "the shortcut page reports the platform even when there are no approved apps");
 
         await Send(socket, "action.invoke", ("kind", "action"), ("actionId", "windows.test"), ("requestId", "1"));
         await FindMessage(socket, "action.result", m => Text(m, "requestId") == "1" && Text(m, "status") == "activated");
@@ -659,28 +693,6 @@ static void VerifyLocalStore()
     finally { scratch.Delete(recursive: true); }
 }
 
-static void VerifyWindowsPresets()
-{
-    foreach (var (executable, target, firstKey) in new (string?, string, string)[]
-    {
-        (@"C:\Apps\SLACK.EXE", "Slack", "control+n"),
-        (@"C:\Apps\Discord.exe", "Discord", "control+k"),
-        (@"C:\Apps\Spotify.exe", "Spotify", "control+k"),
-        (@"C:\Apps\GitHubDesktop.exe", "GitHubDesktop", "control+t"),
-        (null, "Microsoft.MicrosoftEdge.Stable_8wekyb3d8bbwe!App", "control+t"),
-        (null, "Microsoft.WindowsNotepad_8wekyb3d8bbwe!App", "control+n")
-    })
-    {
-        var presets = WindowsPresets.For(executable, target);
-        Check(presets.Length > 0 && presets[0].Keys == firstKey, $"preset IDs and shortcut bindings for {target}");
-        Check(presets.All(preset => SafeActions.Shortcut("shortcut." + preset.Keys) is not null),
-            $"Windows can replay each shortcut for {target}");
-    }
-    Check(WindowsPresets.For(null, "MSEdge._pin_example").Length == 0,
-        "a pinned website does not inherit Edge browser presets");
-    Console.WriteLine("Passed Windows application shortcut preset checks.");
-}
-
 static void VerifyAudioLevelPolicy()
 {
     var volume = 0.5f;
@@ -760,23 +772,6 @@ async Task VerifyNativeDesktop(WebSocket socket, NativeWindowsDesktop fixture)
             "publish the original name for the relocated folder under the same card ID");
     Check(entries.Values.All(item => item.EnumerateObject().Count() == 2), "keep private folder paths off the wire");
 
-    var definitions = await FindMessage(socket, "catalogue.definitions.page", m => m.GetProperty("complete").GetBoolean());
-    var items = definitions.GetProperty("items");
-    Check(items.GetArrayLength() == (fixture.Browser is null ? 0 : 1), "publish presets only for approved apps when shortcuts are enabled");
-    if (fixture.Browser is { } browser)
-    {
-        Check(entries.ContainsKey(browser.Id), "the preset's app appears in the approved catalogue");
-        var definition = items[0];
-        Check(Text(definition, "kind") == "application", "publish browser presets as an application definition");
-        using var document = JsonDocument.Parse(Text(definition, "json"));
-        var app = document.RootElement;
-        var newTab = app.GetProperty("shortcuts")[0];
-        Check(Text(app, "appId") == browser.Id && !app.GetProperty("catalog").GetBoolean() &&
-            Text(newTab, "id") == "0" && Text(newTab, "shortcut") == "control+t" && Text(newTab, "icon") == "New Tab",
-            "the display receives the approved browser's New Tab preset with its saved ID and icon");
-        Console.WriteLine($"Passed Windows shortcut preset publication over TLS ({browser.Name}).");
-    }
-
     var controls = new Dictionary<string, int?>(StringComparer.Ordinal);
     for (var i = 0; i < 4; i++)
     {
@@ -789,6 +784,35 @@ async Task VerifyNativeDesktop(WebSocket socket, NativeWindowsDesktop fixture)
     await FindMessage(socket, "system_metrics", m => Valid(m, "mac_to_panel", "connected") &&
         m.TryGetProperty("memoryUsagePercent", out _) &&
         m.GetProperty("storageDevices").EnumerateArray().Any(d => Text(d, "id") == "startup"));
+
+    await Send(socket, "shortcut.catalogue.request", ("requestId", 1), ("appId", "index"), ("page", 0));
+    var index = await FindMessage(socket, "shortcut.catalogue.page", m => UInt(m, "requestId") == 1);
+    using var indexDocument = JsonDocument.Parse(Text(index, "json"));
+    var items = indexDocument.RootElement.GetProperty("applications");
+    Check(items.GetArrayLength() == (fixture.Browser is null ? 0 : 1), "list presets only for approved apps when shortcuts are enabled");
+    if (fixture.Browser is { } browser)
+    {
+        Check(entries.ContainsKey(browser.Id) && Text(items[0], "appId") == browser.Id,
+            "use the approved installation's app ID in the shortcut index");
+        await Send(socket, "shortcut.catalogue.request", ("requestId", 2), ("appId", browser.Id), ("page", 0));
+        var starter = await FindMessage(socket, "shortcut.catalogue.page", m => UInt(m, "requestId") == 2);
+        using var document = JsonDocument.Parse(Text(starter, "json"));
+        var app = document.RootElement;
+        var newTab = app.GetProperty("shortcuts")[0];
+        Check(Text(app, "appId") == browser.Id && !app.GetProperty("catalog").GetBoolean() &&
+            Text(newTab, "id") == "0" && Text(newTab, "shortcut") == "control+t" && Text(newTab, "icon") == "New Tab",
+            "the display receives New Tab with its saved ID and icon");
+        await Send(socket, "shortcut.catalogue.request", ("requestId", 3), ("appId", browser.Id), ("page", 1));
+        var expanded = await FindMessage(socket, "shortcut.catalogue.page", m => UInt(m, "requestId") == 3);
+        using var expandedDocument = JsonDocument.Parse(Text(expanded, "json"));
+        Check(expandedDocument.RootElement.GetProperty("moreShortcuts").GetArrayLength() > 0 &&
+            expandedDocument.RootElement.GetProperty("shortcuts").GetArrayLength() == 0,
+            "the display receives additional presets on demand");
+        Console.WriteLine($"Passed Windows shortcut preset publication over TLS ({browser.Name}).");
+    }
+    await Send(socket, "shortcut.catalogue.request", ("requestId", 4), ("appId", fixture.UnapprovedAppId), ("page", 0));
+    var denied = await FindMessage(socket, "shortcut.catalogue.page", m => UInt(m, "requestId") == 4);
+    Check(!denied.TryGetProperty("json", out _), "an unapproved app has no shortcut definition");
 
     await Send(socket, "app_icon.request", ("appId", fixture.UnapprovedAppId));
     await FindMessage(socket, "app_icon.unavailable", m => Text(m, "appId") == fixture.UnapprovedAppId);
@@ -1095,6 +1119,9 @@ sealed class FakeDesktop : IDesktop
     public (bool Locked, bool? DisplayAwake) SessionState => (Locked, true);
     public IReadOnlyList<CatalogueItem> Catalogue() => [new("windows.test", "Test app")];
     public IEnumerable<string> Definitions() => [];
+    public (string?, bool) ShortcutPage(string appId, uint page) => appId == "index" && page == 0
+        ? ("""{"shortcutPlatform":"windows","applications":[]}""", true)
+        : (null, true);
     public string[] Focused(IReadOnlyDictionary<string, Uri> urls) => [];
     public byte[] AppIcon(string appId, int side) => new byte[side * side * 3];
     public Task<string> Invoke(JsonElement message, CancellationToken token) { Actions++; return Task.FromResult("activated"); }

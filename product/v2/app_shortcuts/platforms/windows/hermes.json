@@ -1,0 +1,29 @@
+{
+  "label": "Hermes",
+  "executables": [
+    "hermes.exe"
+  ],
+  "sources": [
+    "https://hermes-agent.nousresearch.com/docs/user-guide/desktop"
+  ],
+  "note": "For the native Hermes desktop app. The terminal interface has its own keybindings.",
+  "shortcuts": [
+    {"id": "0", "label": "Command Palette", "shortcut": "control+k", "icon": "Shortcut Command"},
+    {"id": "1", "label": "Command Palette", "shortcut": "control+p", "icon": "Shortcut Command"},
+    {"id": "2", "label": "Show Keyboard Shortcuts", "shortcut": "control+keyslash", "icon": "Keyboard"},
+    {"id": "3", "label": "New Session Tab", "shortcut": "control+t", "icon": "Chat Plus"},
+    {"id": "4", "label": "Next Session Tab", "shortcut": "control+tab", "icon": "Chat Plus"},
+    {"id": "5", "label": "Previous session tab", "shortcut": "control+shift+tab", "icon": "Tab"},
+    {"id": "6", "label": "Close Session Tab", "shortcut": "control+w", "icon": "Close Tab"},
+    {"id": "7", "label": "Reopen Closed Tab", "shortcut": "control+shift+t", "icon": "Tab Restore"},
+    {"id": "8", "label": "New Window", "shortcut": "control+shift+n", "icon": "Plus"},
+    {"id": "9", "label": "Toggle Left Sidebar", "shortcut": "control+b", "icon": "Dock Left"},
+    {"id": "10", "label": "Toggle Right Sidebar", "shortcut": "control+j", "icon": "Dock Right"},
+    {"id": "11", "label": "Swap Sidebars", "shortcut": "control+keybackslash", "icon": "Dock Left"},
+    {"id": "12", "label": "Find in Conversation", "shortcut": "control+f", "icon": "Search"},
+    {"id": "13", "label": "Next Search Match", "shortcut": "control+g", "icon": "Search"},
+    {"id": "14", "label": "Previous Search Match", "shortcut": "control+shift+g", "icon": "Search"},
+    {"id": "15", "label": "Toggle Terminal", "shortcut": "control+keybackquote", "icon": "Keyboard"},
+    {"id": "16", "label": "New Terminal", "shortcut": "control+shift+keybackquote", "icon": "Terminal"}
+  ]
+}

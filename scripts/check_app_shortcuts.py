@@ -6,7 +6,7 @@ from pathlib import Path
 from tempfile import TemporaryDirectory
 import unittest
 
-from app_shortcuts_codegen import icon_names, load_apps, outputs, validate_app
+from app_shortcuts_codegen import icon_names, load_apps, outputs, validate_app, validate_windows_apps, windows_shortcut_valid
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -16,6 +16,14 @@ class AppShortcutTests(unittest.TestCase):
         self.icons = icon_names(json.loads((ROOT / 'product/v2/icons.json').read_text()))
         self.app = json.loads((ROOT / 'product/v2/app_shortcuts/safari.json').read_text())
         self.app.pop('safariShortcuts', None)
+
+    def test_windows_templates_and_key_syntax(self):
+        validate_windows_apps(ROOT)
+        for shortcut in ('control+t', 'option+shift+q', 'space', 'control+k~control+s', 'f11', 'shift+forwarddelete'):
+            self.assertTrue(windows_shortcut_valid(shortcut), shortcut)
+        for shortcut in ('command+t', 'control+a~option+tab', 'a~b~c~d', 'option+tab', 'option+f4',
+                         'control+escape', 'control+option+forwarddelete', 'control+control+t', 'insert'):
+            self.assertFalse(windows_shortcut_valid(shortcut), shortcut)
 
     def test_existing_files_and_legacy_ids(self):
         apps = load_apps(ROOT)

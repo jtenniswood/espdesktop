@@ -1,0 +1,42 @@
+{
+  "label": "VLC",
+  "executables": [
+    "vlc.exe"
+  ],
+  "sources": [
+    "https://raw.githubusercontent.com/videolan/vlc/3.0.x/src/libvlc-module.c"
+  ],
+  "note": "Default VLC 3.0 desktop hotkeys.",
+  "shortcuts": [
+    {"id": "0", "label": "Play or Pause", "shortcut": "space", "icon": "Play Pause"},
+    {"id": "1", "label": "Full Screen", "shortcut": "f", "icon": "Full Screen"},
+    {"id": "2", "label": "Leave Full Screen", "shortcut": "escape", "icon": "Full Screen"},
+    {"id": "3", "label": "Next Item", "shortcut": "n", "icon": "Skip Next"},
+    {"id": "4", "label": "Previous Item", "shortcut": "p", "icon": "Skip Previous"},
+    {"id": "5", "label": "Stop Playback", "shortcut": "s", "icon": "Stop"},
+    {"id": "6", "label": "Raise Volume", "shortcut": "control+up", "icon": "Keyboard"},
+    {"id": "7", "label": "Lower Volume", "shortcut": "control+down", "icon": "Keyboard"},
+    {"id": "8", "label": "Mute", "shortcut": "m", "icon": "Mute"},
+    {"id": "9", "label": "Very Short Jump Back", "shortcut": "shift+left", "icon": "Chevron Left"},
+    {"id": "10", "label": "Very Short Jump Forward", "shortcut": "shift+right", "icon": "Chevron Right"},
+    {"id": "11", "label": "Short Jump Back", "shortcut": "option+left", "icon": "Chevron Left"},
+    {"id": "12", "label": "Short Jump Forward", "shortcut": "option+right", "icon": "Chevron Right"},
+    {"id": "13", "label": "Medium Jump Back", "shortcut": "control+left", "icon": "Chevron Left"},
+    {"id": "14", "label": "Medium Jump Forward", "shortcut": "control+right", "icon": "Chevron Right"},
+    {"id": "15", "label": "Long Jump Back", "shortcut": "control+option+left", "icon": "Chevron Left"},
+    {"id": "16", "label": "Long Jump Forward", "shortcut": "control+option+right", "icon": "Arrow Right"},
+    {"id": "17", "label": "Next Frame", "shortcut": "e", "icon": "Filmstrip Stack"},
+    {"id": "18", "label": "Show Playback Position", "shortcut": "t", "icon": "Clock"},
+    {"id": "19", "label": "Reset Playback Speed", "shortcut": "keyequal", "icon": "Chevron Left"},
+    {"id": "20", "label": "Speed Up", "shortcut": "shift+keyequal", "icon": "Keyboard"},
+    {"id": "21", "label": "Slow Down", "shortcut": "keyminus", "icon": "Keyboard"},
+    {"id": "22", "label": "Cycle Audio Track", "shortcut": "b", "icon": "Music"},
+    {"id": "23", "label": "Cycle Subtitle Track", "shortcut": "v", "icon": "Subtitles"},
+    {"id": "24", "label": "Cycle Aspect Ratio", "shortcut": "a", "icon": "Fit to Screen"},
+    {"id": "25", "label": "Take Snapshot", "shortcut": "shift+s", "icon": "Keyboard"},
+    {"id": "26", "label": "Record", "shortcut": "shift+r", "icon": "Record"},
+    {"id": "27", "label": "Toggle Random Playback", "shortcut": "r", "icon": "Chevron Left"},
+    {"id": "28", "label": "Cycle Loop Mode", "shortcut": "l", "icon": "Keyboard"},
+    {"id": "29", "label": "Toggle Deinterlace", "shortcut": "d", "icon": "Video"}
+  ]
+}
