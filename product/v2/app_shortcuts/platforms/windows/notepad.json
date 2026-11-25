@@ -1,0 +1,33 @@
+{
+  "label": "Notepad",
+  "executables": [
+    "notepad.exe"
+  ],
+  "targets": [
+    "microsoft.windowsnotepad_8wekyb3d8bbwe!app"
+  ],
+  "sources": [
+    "https://support.microsoft.com/en-us/accessibility/windows/keyboard-shortcuts-in-windows"
+  ],
+  "note": "These keys are for Windows 11 Notepad. Tabs depend on the installed version.",
+  "defaultShortcutIds": [
+    "0",
+    "1",
+    "2",
+    "3"
+  ],
+  "shortcuts": [
+    {"id": "0", "label": "New", "shortcut": "control+n", "icon": "New Window"},
+    {"id": "1", "label": "Open", "shortcut": "control+o", "icon": "Folder"},
+    {"id": "2", "label": "Save", "shortcut": "control+s", "icon": "Save"},
+    {"id": "3", "label": "Find", "shortcut": "control+f", "icon": "Search"},
+    {"id": "4", "label": "Replace", "shortcut": "control+h", "icon": "Keyboard"},
+    {"id": "5", "label": "Select All", "shortcut": "control+a", "icon": "Keyboard"},
+    {"id": "6", "label": "Undo", "shortcut": "control+z", "icon": "Undo"},
+    {"id": "7", "label": "Redo", "shortcut": "control+y", "icon": "Redo"},
+    {"id": "8", "label": "Go to Line", "shortcut": "control+g", "icon": "Keyboard"},
+    {"id": "9", "label": "Close Tab", "shortcut": "control+w", "icon": "Tab"},
+    {"id": "10", "label": "Next Tab", "shortcut": "control+tab", "icon": "Chevron Right"},
+    {"id": "11", "label": "Previous Tab", "shortcut": "control+shift+tab", "icon": "Chevron Left"}
+  ]
+}

@@ -1,0 +1,46 @@
+{
+  "label": "Signal",
+  "executables": [
+    "signal.exe"
+  ],
+  "targets": [
+    "com.squirrel.signal-desktop.signal"
+  ],
+  "sources": [
+    "https://support.signal.org/hc/en-us/articles/360036517511-Signal-Desktop-Keyboard-Shortcuts"
+  ],
+  "shortcuts": [
+    {"id": "0", "label": "New Chat", "shortcut": "control+n", "icon": "Chat Plus"},
+    {"id": "1", "label": "Search Conversations", "shortcut": "control+f", "icon": "Search"},
+    {"id": "2", "label": "Search Chat", "shortcut": "control+shift+f", "icon": "Search"},
+    {"id": "3", "label": "Next chat", "shortcut": "control+tab", "icon": "Chat"},
+    {"id": "4", "label": "Previous chat", "shortcut": "control+shift+tab", "icon": "Chat"},
+    {"id": "5", "label": "Previous unread chat", "shortcut": "option+shift+up", "icon": "Message Unread"},
+    {"id": "6", "label": "Next unread chat", "shortcut": "option+shift+down", "icon": "Message Unread"},
+    {"id": "7", "label": "Focus Unread or Last Message", "shortcut": "control+j", "icon": "Message Unread"},
+    {"id": "8", "label": "Preferences", "shortcut": "control+keycomma", "icon": "Settings"},
+    {"id": "9", "label": "Open chat menu", "shortcut": "control+shift+l", "icon": "Chat"},
+    {"id": "10", "label": "Focus Composer", "shortcut": "control+shift+t", "icon": "Draw"},
+    {"id": "11", "label": "Open Shared Media", "shortcut": "control+shift+m", "icon": "Keyboard"},
+    {"id": "12", "label": "Save Media", "shortcut": "control+s", "icon": "Save"},
+    {"id": "13", "label": "Choose Emoji", "shortcut": "control+shift+j", "icon": "Keyboard"},
+    {"id": "14", "label": "Choose Sticker", "shortcut": "control+shift+o", "icon": "Keyboard"},
+    {"id": "15", "label": "Choose GIF", "shortcut": "control+shift+g", "icon": "Keyboard"},
+    {"id": "16", "label": "Record Voice Message", "shortcut": "control+shift+y", "icon": "Microphone"},
+    {"id": "17", "label": "Archive chat", "shortcut": "control+shift+a", "icon": "Archive"},
+    {"id": "18", "label": "Unarchive chat", "shortcut": "control+shift+u", "icon": "Chat"},
+    {"id": "19", "label": "Close Chat", "shortcut": "control+shift+c", "icon": "Chat"},
+    {"id": "20", "label": "Reply to Selected Message", "shortcut": "control+shift+r", "icon": "Reply"},
+    {"id": "21", "label": "React to Selected Message", "shortcut": "control+shift+e", "icon": "Delete"},
+    {"id": "22", "label": "Message Details", "shortcut": "control+d", "icon": "Chat"},
+    {"id": "23", "label": "Message Context Menu", "shortcut": "shift+f10", "icon": "Chat"},
+    {"id": "24", "label": "Expand Composer", "shortcut": "control+shift+k", "icon": "Arrow Expand"},
+    {"id": "25", "label": "Attach file", "shortcut": "control+u", "icon": "Paperclip"},
+    {"id": "26", "label": "Send in Expanded Composer", "shortcut": "control+enter", "icon": "Arrow Expand"},
+    {"id": "27", "label": "Toggle Microphone", "shortcut": "shift+m", "icon": "Microphone Off"},
+    {"id": "28", "label": "Toggle Camera", "shortcut": "shift+v", "icon": "Keyboard"},
+    {"id": "29", "label": "Start voice call", "shortcut": "option+shift+c", "icon": "Microphone"},
+    {"id": "30", "label": "Start video call", "shortcut": "option+shift+y", "icon": "Video"},
+    {"id": "31", "label": "End call", "shortcut": "option+shift+e", "icon": "Shortcut Command"}
+  ]
+}

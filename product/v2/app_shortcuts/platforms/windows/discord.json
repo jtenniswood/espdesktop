@@ -1,0 +1,50 @@
+{
+  "label": "Discord",
+  "executables": [
+    "discord.exe"
+  ],
+  "targets": [
+    "com.squirrel.discord.discord"
+  ],
+  "sources": [
+    "https://support.discord.com/hc/en-us/articles/225977308--Windows-Discord-Hotkeys",
+    "https://support.discord.com/hc/en-us/articles/31232432266647-Discord-Commands-Shortcuts-and-Navigation-Guide"
+  ],
+  "defaultShortcutIds": [
+    "0",
+    "1",
+    "2",
+    "3",
+    "4",
+    "5",
+    "6"
+  ],
+  "shortcuts": [
+    {"id": "0", "label": "Direct Message", "shortcut": "control+k", "icon": "Chat"},
+    {"id": "1", "label": "Search All", "shortcut": "control+shift+f", "icon": "Search"},
+    {"id": "2", "label": "Toggle Mic", "shortcut": "control+shift+m", "icon": "Microphone Off"},
+    {"id": "3", "label": "Toggle Deafen", "shortcut": "control+shift+d", "icon": "Headphones"},
+    {"id": "4", "label": "Upload File", "shortcut": "control+shift+u", "icon": "Upload"},
+    {"id": "5", "label": "Show Pins", "shortcut": "control+p", "icon": "Pin"},
+    {"id": "6", "label": "Show Hotkeys", "shortcut": "control+keyslash", "icon": "Keyboard"},
+    {"id": "7", "label": "Previous Server", "shortcut": "control+option+up", "icon": "Chevron Left"},
+    {"id": "8", "label": "Next Server", "shortcut": "control+option+down", "icon": "Chevron Right"},
+    {"id": "9", "label": "Previous Channel", "shortcut": "option+up", "icon": "Chevron Left"},
+    {"id": "10", "label": "Next Channel", "shortcut": "option+down", "icon": "Chevron Right"},
+    {"id": "11", "label": "Previous Unread Channel", "shortcut": "option+shift+up", "icon": "Chevron Left"},
+    {"id": "12", "label": "Next Unread Channel", "shortcut": "option+shift+down", "icon": "Chevron Right"},
+    {"id": "13", "label": "Mark Channel Read", "shortcut": "escape", "icon": "Keyboard"},
+    {"id": "14", "label": "Mark Server Read", "shortcut": "shift+escape", "icon": "Keyboard"},
+    {"id": "15", "label": "Return to Last Text Channel", "shortcut": "control+b", "icon": "Keyboard"},
+    {"id": "16", "label": "Return to Active Audio Channel", "shortcut": "control+option+a", "icon": "Keyboard"},
+    {"id": "17", "label": "Show Mentions", "shortcut": "control+i", "icon": "Keyboard"},
+    {"id": "18", "label": "Show Channel Members", "shortcut": "control+u", "icon": "Shortcut Command"},
+    {"id": "19", "label": "Show Emoji Picker", "shortcut": "control+e", "icon": "Open File"},
+    {"id": "20", "label": "Jump to Oldest Unread", "shortcut": "shift+pageup", "icon": "Keyboard"},
+    {"id": "21", "label": "Create or join server", "shortcut": "control+shift+n", "icon": "Plus"},
+    {"id": "22", "label": "Accept Call", "shortcut": "control+enter", "icon": "Keyboard"},
+    {"id": "23", "label": "Create Private Group", "shortcut": "control+shift+t", "icon": "Plus"},
+    {"id": "24", "label": "Start Call in DM", "shortcut": "control+keybracketleft", "icon": "Keyboard"},
+    {"id": "25", "label": "Focus Message Box", "shortcut": "tab", "icon": "Chat"}
+  ]
+}

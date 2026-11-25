@@ -1,0 +1,58 @@
+{
+  "label": "Firefox",
+  "executables": [
+    "firefox.exe"
+  ],
+  "sources": [
+    "https://support.mozilla.org/en-US/kb/keyboard-shortcuts-perform-firefox-tasks-quickly"
+  ],
+  "note": "Ctrl + Tab follows the tab-order setting in Firefox. Use Ctrl + Page Up or Ctrl + Page Down to move by position.",
+  "defaultShortcutIds": [
+    "0",
+    "1",
+    "2",
+    "3",
+    "4",
+    "5",
+    "6",
+    "7"
+  ],
+  "shortcuts": [
+    {"id": "0", "label": "New Tab", "shortcut": "control+t", "icon": "New Tab"},
+    {"id": "1", "label": "New Window", "shortcut": "control+n", "icon": "New Window"},
+    {"id": "2", "label": "Reopen Tab", "shortcut": "control+shift+t", "icon": "Undo"},
+    {"id": "3", "label": "Find", "shortcut": "control+f", "icon": "Search"},
+    {"id": "4", "label": "Refresh", "shortcut": "control+r", "icon": "Refresh"},
+    {"id": "5", "label": "Close Tab", "shortcut": "control+w", "icon": "Close"},
+    {"id": "6", "label": "Next Tab", "shortcut": "control+tab", "icon": "Chevron Right"},
+    {"id": "7", "label": "Previous Tab", "shortcut": "control+shift+tab", "icon": "Chevron Left"},
+    {"id": "8", "label": "Address Bar", "shortcut": "control+l", "icon": "Shortcut Command"},
+    {"id": "9", "label": "Go back", "shortcut": "option+left", "icon": "Arrow Left"},
+    {"id": "10", "label": "Go forward", "shortcut": "option+right", "icon": "Arrow Right"},
+    {"id": "11", "label": "Private Window", "shortcut": "control+shift+p", "icon": "New Window"},
+    {"id": "12", "label": "Bookmarks Library", "shortcut": "control+shift+o", "icon": "Dock Left"},
+    {"id": "13", "label": "Bookmarks sidebar", "shortcut": "control+b", "icon": "Dock Left"},
+    {"id": "14", "label": "Show Bookmarks Bar", "shortcut": "control+shift+b", "icon": "Shortcut Command"},
+    {"id": "15", "label": "History sidebar", "shortcut": "control+h", "icon": "Dock Left"},
+    {"id": "16", "label": "Downloads", "shortcut": "control+j", "icon": "Shortcut Command"},
+    {"id": "17", "label": "Bookmark page", "shortcut": "control+d", "icon": "Bookmark"},
+    {"id": "18", "label": "Bookmark All Tabs", "shortcut": "control+shift+d", "icon": "Tab"},
+    {"id": "19", "label": "Clear recent history", "shortcut": "control+shift+forwarddelete", "icon": "Delete"},
+    {"id": "20", "label": "Full Screen", "shortcut": "f11", "icon": "Full Screen"},
+    {"id": "21", "label": "Developer Tools", "shortcut": "f12", "icon": "Keyboard"},
+    {"id": "22", "label": "Refresh Without Cache", "shortcut": "control+shift+r", "icon": "Keyboard"},
+    {"id": "23", "label": "Find next", "shortcut": "control+g", "icon": "Search"},
+    {"id": "24", "label": "Find previous", "shortcut": "control+shift+g", "icon": "Search"},
+    {"id": "25", "label": "Quick Find", "shortcut": "keyslash", "icon": "Search"},
+    {"id": "26", "label": "Mute Tab", "shortcut": "control+m", "icon": "Tab"},
+    {"id": "27", "label": "Print Page", "shortcut": "control+p", "icon": "Printer"},
+    {"id": "28", "label": "Save Page", "shortcut": "control+s", "icon": "Save As"},
+    {"id": "29", "label": "View page source", "shortcut": "control+u", "icon": "Book"},
+    {"id": "30", "label": "Zoom In", "shortcut": "control+keyequal", "icon": "Zoom In"},
+    {"id": "31", "label": "Zoom out", "shortcut": "control+keyminus", "icon": "Zoom Out"},
+    {"id": "32", "label": "Reset zoom", "shortcut": "control+0", "icon": "Fit to Screen"},
+    {"id": "33", "label": "Go to Tab on Right", "shortcut": "control+pagedown", "icon": "Tab"},
+    {"id": "34", "label": "Go to Tab on Left", "shortcut": "control+pageup", "icon": "Tab"},
+    {"id": "35", "label": "Reopen Last Closed Window", "shortcut": "control+shift+n", "icon": "Application"}
+  ]
+}

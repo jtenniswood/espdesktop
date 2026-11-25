@@ -2,7 +2,7 @@ import { readdirSync, readFileSync } from 'node:fs'
 import type { AppShortcutApplication } from '../../../src/webserver/generated/app_shortcuts'
 import iconCatalog from '../../../product/v2/icons.json'
 import guides from '../../.vitepress/shortcut-guides.json'
-import { displayKeys, shortcutCatalogue } from '../../.vitepress/shortcut-format'
+import { displayKeys, shortcutCatalogue, type WindowsShortcutApplication } from '../../.vitepress/shortcut-format'
 
 type Guide = {
   appId: string
@@ -18,8 +18,12 @@ const definitions = readdirSync(sourceDir)
   .filter(name => name.endsWith('.json') && name !== 'manifest.json')
   .map(name => JSON.parse(readFileSync(new URL(name, sourceDir), 'utf8')) as AppShortcutApplication)
 const apps = new Map(shortcutCatalogue(definitions).map(app => [app.appId, app]))
+const windowsDir = new URL('platforms/windows/', sourceDir)
+const windowsApps = new Map(readdirSync(windowsDir).filter(name => name.endsWith('.json')).map(name =>
+  [name.slice(0, -5), JSON.parse(readFileSync(new URL(name, windowsDir), 'utf8')) as WindowsShortcutApplication]))
 const icons = new Map(iconCatalog.icons.map(icon => [icon.name, icon.codepoint]))
 const listFormatter = new Intl.ListFormat('en-GB', { type: 'conjunction' })
+const windowsSetup = '[Set up application shortcut buttons on Windows](/windows-preview#add-controls).\n'
 
 function validateCoverage() {
   const covered = new Set(copy.map(([, guide]) => guide.appId))
@@ -41,7 +45,7 @@ function markdownText(text: string) {
 export default {
   paths() {
     validateCoverage()
-    return copy.filter(([, guide]) => !guide.standalone).map(([slug, guide]) => {
+    const macPaths = copy.filter(([, guide]) => !guide.standalone).map(([slug, guide]) => {
       const app = apps.get(guide.appId)!
       if (!guide.workflow || !guide.tip || !guide.shortcuts?.length) {
         throw new Error(`Missing workflow, starter shortcuts, or tip for ${app.label}`)
@@ -56,7 +60,10 @@ export default {
 
       const appName = markdownText(app.label)
       const title = `${app.label} keyboard shortcuts`
-      const description = `Use ${app.label} keyboard shortcuts on an EspDesktop touchscreen beside your Mac. Try ${listFormatter.format(picks.map(preset => preset.label))}.`
+      const windowsApp = windowsApps.get(slug)
+      const description = windowsApp
+        ? `Look up ${app.label} keyboard shortcuts for macOS and Windows and choose presets for your EspDesktop touchscreen.`
+        : `Use ${app.label} keyboard shortcuts on an EspDesktop touchscreen beside your Mac. Try ${listFormatter.format(picks.map(preset => preset.label))}.`
       const starterKeys = listFormatter.format(picks.map(preset =>
         `**${markdownText(preset.label)}** (**${markdownText(displayKeys(preset.shortcut))}**)`))
       // The first slot is Back, as it is on the display's app subpages.
@@ -125,14 +132,46 @@ Yes. You can choose and reorder cards in the app subpage. You can also [add a cu
 :::
 
 ::: details Why is a ${app.label} shortcut not responding?
-Try the keys shown in the table on your Mac first, with ${appName} open and the right window or item selected. If the keys work on your Mac, check [EspDesktop’s Accessibility permission](/mac-controls/shortcuts#allow-accessibility-access).
+Try the keys for your platform with ${appName} open and the right window or item selected. On a Mac, check [EspDesktop’s Accessibility permission](/mac-controls/shortcuts#allow-accessibility-access).${windowsApp?.executables.length || windowsApp?.targets?.length ? ' On Windows, check that keyboard shortcuts are enabled and that the app is approved in the companion.' : ''}
 :::
 
 </FaqAccordion>
 
+${windowsApp?.executables.length || windowsApp?.targets?.length
+    ? windowsSetup : ''}
 [Browse all application shortcuts](/reference/shortcut-presets).
 `,
       }
     })
+    const windowsPaths = [...windowsApps].filter(([slug]) => !Object.hasOwn(guides, slug)).map(([slug, app]) => ({
+      params: {
+        app: slug,
+        title: `${app.label} keyboard shortcuts for Windows`,
+        description: `Look up Windows keyboard shortcuts for ${app.label} for your EspDesktop touchscreen.`,
+      },
+      content: `
+# ${markdownText(app.label)} keyboard shortcuts for Windows
+
+<ShortcutPresetReference windows-id="${escapeHtml(slug)}" />
+
+## ${markdownText(app.label)} shortcuts FAQ
+
+<FaqAccordion>
+
+::: details Which shortcuts should I try first?
+Start with ${listFormatter.format(app.shortcuts.slice(0, 3).map(preset =>
+    `**${markdownText(preset.label)}** (**${markdownText(displayKeys(preset.shortcut, 'windows'))}**)`))}. Try these keys with the app in front.
+:::
+
+${app.executables.length || app.targets?.length ? `::: details How do I add a shortcut to EspDesktop for Windows?
+Approve the app and enable keyboard shortcuts in the Windows companion. In the display editor, add a **Keyboard Shortcut** card, choose **Application**, then select the app and shortcut. ${windowsSetup.trim()}
+:::
+` : ''}
+</FaqAccordion>
+
+[Browse all application shortcuts](/reference/shortcut-presets).
+`,
+    }))
+    return [...macPaths, ...windowsPaths]
   },
 }

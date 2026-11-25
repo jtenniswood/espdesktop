@@ -1,0 +1,51 @@
+{
+  "label": "Microsoft Outlook",
+  "executables": [
+    "olk.exe"
+  ],
+  "targets": [
+    "microsoft.outlookforwindows_8wekyb3d8bbwe!microsoft.outlookforwindows"
+  ],
+  "sources": [
+    "https://support.microsoft.com/en-us/accessibility/outlook/keyboard-shortcuts-for-outlook"
+  ],
+  "note": "For new Outlook with the Outlook keyboard shortcut scheme. Classic Outlook uses a separate preset list.",
+  "shortcuts": [
+    {"id": "0", "label": "New Message or Event", "shortcut": "control+n", "icon": "Plus"},
+    {"id": "1", "label": "Send message", "shortcut": "control+enter", "icon": "Send", "note": "While composing."},
+    {"id": "2", "label": "Reply", "shortcut": "control+r", "icon": "Keyboard"},
+    {"id": "3", "label": "Reply All", "shortcut": "control+shift+r", "icon": "Reply"},
+    {"id": "4", "label": "Forward message", "shortcut": "control+f", "icon": "Chat"},
+    {"id": "5", "label": "Open Calendar", "shortcut": "control+2", "icon": "Calendar"},
+    {"id": "6", "label": "Open Message in New Window", "shortcut": "shift+enter", "icon": "Plus"},
+    {"id": "7", "label": "Go to Folder Pane", "shortcut": "control+y", "icon": "Keyboard"},
+    {"id": "8", "label": "Open Shortcut Help", "shortcut": "shift+keyslash", "icon": "Keyboard"},
+    {"id": "9", "label": "Copy your selection to the clipboard", "shortcut": "control+c", "icon": "Copy"},
+    {"id": "10", "label": "Cut the text you selected", "shortcut": "control+x", "icon": "Keyboard"},
+    {"id": "11", "label": "Delete text or characters to left cursor", "shortcut": "delete", "icon": "Delete"},
+    {"id": "12", "label": "Insert a hyperlink", "shortcut": "control+k", "icon": "Plus"},
+    {"id": "13", "label": "Paste content from clipboard into location", "shortcut": "control+v", "icon": "Keyboard"},
+    {"id": "14", "label": "Reverse the most recent action", "shortcut": "control+z", "icon": "Keyboard"},
+    {"id": "15", "label": "Apply bold formatting", "shortcut": "control+b", "icon": "Keyboard"},
+    {"id": "16", "label": "Apply italic formatting", "shortcut": "control+i", "icon": "Keyboard"},
+    {"id": "17", "label": "Underline text", "shortcut": "control+u", "icon": "Underline"},
+    {"id": "18", "label": "Collapse the selected section", "shortcut": "left", "icon": "Keyboard"},
+    {"id": "19", "label": "Expand the selected section", "shortcut": "right", "icon": "Keyboard"},
+    {"id": "20", "label": "Delete the selected message", "shortcut": "forwarddelete", "icon": "Delete"},
+    {"id": "21", "label": "Mark conversation or message as read", "shortcut": "control+q", "icon": "Chat"},
+    {"id": "22", "label": "Permanently delete the selected message or item", "shortcut": "shift+forwarddelete", "icon": "Delete"},
+    {"id": "23", "label": "Cancel a search", "shortcut": "escape", "icon": "Filter Plus"},
+    {"id": "24", "label": "Go to the next message", "shortcut": "control+shift+keyperiod", "icon": "Chevron Right"},
+    {"id": "25", "label": "Go to the previous message", "shortcut": "control+shift+keycomma", "icon": "Chevron Left"},
+    {"id": "26", "label": "Select first message in the folder", "shortcut": "home", "icon": "Chat"},
+    {"id": "27", "label": "Go to the bottom of a conversation or message", "shortcut": "end", "icon": "Chat"},
+    {"id": "28", "label": "Move to a different region in the calendar", "shortcut": "f6", "icon": "Keyboard"},
+    {"id": "29", "label": "Move to the next event or area in the view", "shortcut": "tab", "icon": "Chevron Right"},
+    {"id": "30", "label": "Move to a previous event or area in the view", "shortcut": "shift+tab", "icon": "Chevron Left"},
+    {"id": "31", "label": "Go to the next time period", "shortcut": "control+option+right", "icon": "Chevron Right"},
+    {"id": "32", "label": "Go to the previous time period", "shortcut": "control+option+left", "icon": "Chevron Left"},
+    {"id": "33", "label": "Switch to Day view", "shortcut": "control+option+1", "icon": "Keyboard"},
+    {"id": "34", "label": "Switch to Work week view", "shortcut": "control+option+2", "icon": "Keyboard"},
+    {"id": "35", "label": "Switch to three-day view", "shortcut": "option+3", "icon": "Keyboard"}
+  ]
+}

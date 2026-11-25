@@ -1,54 +1,108 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, defineAsyncComponent, defineComponent, h, onMounted, ref } from 'vue'
 import type { AppShortcutApplication } from '../../../../src/webserver/generated/app_shortcuts'
-import { displayKeys, shortcutCatalogue } from '../../shortcut-format'
-import shortcutsGuides from '../../shortcut-guides.json'
+import { shortcutCatalogue, type WindowsShortcutApplication } from '../../shortcut-format'
+import { data as guides } from '../../shortcut-index.data'
+import ShortcutPresetTable from './ShortcutPresetTable.vue'
 
-const definitions = import.meta.glob<AppShortcutApplication>(
+const macFiles = import.meta.glob<AppShortcutApplication>(
   ['../../../../product/v2/app_shortcuts/*.json', '!../../../../product/v2/app_shortcuts/manifest.json'],
-  { eager: true, import: 'default' },
+  { import: 'default' },
 )
-const apps = shortcutCatalogue(Object.values(definitions))
-const props = defineProps<{ appId?: string }>()
+const windowsFiles = import.meta.glob<WindowsShortcutApplication>(
+  '../../../../product/v2/app_shortcuts/platforms/windows/*.json', { import: 'default' },
+)
+const props = defineProps<{ appId?: string; windowsId?: string }>()
 const search = ref('')
-const guideSlugs = new Map(Object.entries(shortcutsGuides).map(([slug, guide]) => [guide.appId, slug]))
-const app = computed(() => apps.find(app => app.appId === props.appId))
+const platform = ref<'all' | 'macos' | 'windows'>('all')
+onMounted(() => {
+  if ((props.appId || props.windowsId) && location.hash === '#windows-shortcuts') {
+    platform.value = 'windows'
+    return
+  }
+  if ((props.appId || props.windowsId) && location.hash === '#macos-shortcuts') {
+    platform.value = 'macos'
+    return
+  }
+  const browser = navigator as Navigator & { userAgentData?: { platform?: string } }
+  const system = browser.userAgentData?.platform || browser.platform
+  if (/^win/i.test(system)) platform.value = 'windows'
+  if (/^mac/i.test(system)) platform.value = 'macos'
+})
+const guide = computed(() => guides.find(entry => entry.macAppId === props.appId && !!props.appId ||
+  entry.slug === props.windowsId))
+const macTable = computed(() => {
+  const file = guide.value?.macFile
+  if (!file) return undefined
+  const load = macFiles[`../../../../product/v2/app_shortcuts/${file}`]
+  return defineAsyncComponent(async () => {
+    const [app] = shortcutCatalogue([await load()])
+    return defineComponent(() => () => h(ShortcutPresetTable, { app, platform: 'macos' }))
+  })
+})
+const windowsTable = computed(() => {
+  const entry = guide.value
+  if (!entry?.windowsLabel) return undefined
+  const load = windowsFiles[`../../../../product/v2/app_shortcuts/platforms/windows/${entry.slug}.json`]
+  return defineAsyncComponent(async () => {
+    const app = await load()
+    return defineComponent(() => () => h(ShortcutPresetTable, { app, platform: 'windows' }))
+  })
+})
 
 const matchingApps = computed(() => {
   const query = search.value.trim().toLowerCase()
-  return apps.filter(app => app.label.toLowerCase().includes(query))
+  return guides.flatMap(entry => {
+    const label = platform.value === 'windows' ? entry.windowsLabel :
+      platform.value === 'macos' ? entry.macLabel : entry.macLabel ?? entry.windowsLabel
+    if (!label) return []
+    if (label.toLowerCase().includes(query) ||
+        (platform.value === 'all' && entry.windowsLabel?.toLowerCase().includes(query))) {
+      const id = (entry.macAppId ?? entry.slug).toLowerCase().replaceAll('.', '-')
+      const section = platform.value !== 'all' && entry.macLabel && entry.windowsLabel
+        ? `#${platform.value}-shortcuts` : ''
+      return [{ slug: entry.slug, id, label, section }]
+    }
+    return []
+  }).sort((a, b) => a.label.localeCompare(b.label))
 })
-
-function anchor(appId: string) {
-  return appId.toLowerCase().replaceAll('.', '-')
-}
 </script>
 
 <template>
-  <template v-if="!appId">
+  <template v-if="!appId && !windowsId">
     <div class="preset-search" role="search" aria-label="Application shortcuts">
       <input v-model="search" type="search" placeholder="Search apps" aria-label="Search apps" />
+      <label class="platform-select">
+        Platform
+        <select v-model="platform">
+          <option value="all">All platforms</option>
+          <option value="macos">macOS</option>
+          <option value="windows">Windows</option>
+        </select>
+      </label>
       <p role="status">{{ matchingApps.length ? '' : 'No matching apps.' }}</p>
     </div>
     <ul class="preset-list" aria-label="Application shortcut guides">
-      <li v-for="entry in matchingApps" :id="anchor(entry.appId)" :key="entry.appId">
-        <a :href="`/reference/shortcut-presets/${guideSlugs.get(entry.appId)}`">
+      <li v-for="entry in matchingApps" :id="entry.id" :key="entry.slug">
+        <a :href="`/reference/shortcut-presets/${entry.slug}${entry.section}`">
           <span>{{ entry.label }}</span>
           <span class="preset-chevron" aria-hidden="true"></span>
         </a>
       </li>
     </ul>
   </template>
-  <table v-else-if="app" :aria-label="`${app.label} shortcuts`">
-    <thead>
-      <tr><th scope="col">Action</th><th scope="col">Keys</th></tr>
-    </thead>
-    <tbody>
-      <tr v-for="shortcut in app.shortcuts" :key="shortcut.id">
-        <td>{{ shortcut.label }}</td><td>{{ displayKeys(shortcut.shortcut) }}</td>
-      </tr>
-    </tbody>
-  </table>
+  <template v-else-if="macTable && windowsTable">
+    <details id="windows-shortcuts" :open="platform === 'windows'">
+      <summary>Windows shortcuts</summary>
+      <component :is="windowsTable" />
+    </details>
+    <details id="macos-shortcuts" :open="platform !== 'windows'">
+      <summary>macOS shortcuts</summary>
+      <component :is="macTable" />
+    </details>
+  </template>
+  <component v-else-if="windowsTable" :is="windowsTable" />
+  <component v-else-if="macTable" :is="macTable" />
 </template>
 
 <style scoped>
@@ -73,6 +127,21 @@ function anchor(appId: string) {
 
 .preset-search [role='status']:empty {
   margin: 0;
+}
+
+.platform-select {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.platform-select select {
+  padding: 6px 10px;
+  border: 1px solid var(--vp-c-divider);
+  border-radius: 6px;
+  background: var(--vp-c-bg-soft);
+  color: var(--vp-c-text-1);
 }
 
 .preset-list {
@@ -117,37 +186,14 @@ function anchor(appId: string) {
   transform: rotate(-45deg);
 }
 
-table {
-  display: table;
-  width: 100%;
-  margin: 12px auto 0;
-  border: 1px solid var(--vp-c-divider);
-  table-layout: fixed;
+details {
+  margin: 12px 0;
 }
 
-th,
-td {
-  border: 0;
-  padding: 8px 12px;
-  text-align: left;
-  vertical-align: top;
-  overflow-wrap: anywhere;
-}
-
-th + th,
-td + td {
-  border-inline-start: 1px solid var(--vp-c-divider);
-}
-
-th {
-  font-size: 13px;
-}
-
-th:first-child {
-  width: 45%;
-}
-
-tbody tr:nth-child(even) {
-  background: var(--vp-c-bg);
+summary {
+  display: list-item;
+  cursor: pointer;
+  padding-block: 8px;
+  font-weight: 600;
 }
 </style>

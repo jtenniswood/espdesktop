@@ -208,6 +208,24 @@ test("connected catalogue refreshes changed icon hashes and shortcut colours wit
   monitor.stop();
 });
 
+test("the Windows shortcut index stays on Windows even when no apps are approved", async () => {
+  const windowsApps = [{ appId: "windows.example", label: "Example" }];
+  for (const entries of [[], windowsApps]) {
+    const calls = [];
+    const catalogue = createCompanionCatalogue(async (url) => {
+      calls.push(url);
+      return Response.json({
+        catalogueVersion: 4, page: 0, complete: true,
+        application: { shortcutPlatform: "windows", applications: entries },
+      });
+    });
+    const definitions = await catalogue.loadDefinitions();
+    assert.equal(definitions.shortcutPlatform, "windows");
+    assert.deepEqual(definitions.applications.map(app => app.appId), entries.map(app => app.appId));
+    assert.deepEqual(calls, ["/companion/shortcut-page?appId=index&page=0"]);
+  }
+});
+
 test("app shortcut picker fetches only the selected app, deduplicates requests, and caches the full reply", async () => {
   const appId = "com.brave.Browser";
   const calls = [];

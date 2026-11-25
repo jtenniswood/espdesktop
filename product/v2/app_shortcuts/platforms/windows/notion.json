@@ -1,0 +1,43 @@
+{
+  "label": "Notion",
+  "executables": [
+    "notion.exe"
+  ],
+  "sources": [
+    "https://www.notion.com/help/keyboard-shortcuts"
+  ],
+  "shortcuts": [
+    {"id": "0", "label": "Search and Jump to Page", "shortcut": "control+p", "icon": "Search"},
+    {"id": "1", "label": "New Page", "shortcut": "control+n", "icon": "New File"},
+    {"id": "2", "label": "New Window", "shortcut": "control+shift+n", "icon": "New Window"},
+    {"id": "3", "label": "New Tab", "shortcut": "control+t", "icon": "New Tab"},
+    {"id": "4", "label": "Next Tab", "shortcut": "control+tab", "icon": "New Tab"},
+    {"id": "5", "label": "Previous Tab", "shortcut": "control+shift+tab", "icon": "Chevron Left"},
+    {"id": "6", "label": "Close Tab", "shortcut": "control+w", "icon": "Tab"},
+    {"id": "7", "label": "Toggle Sidebar", "shortcut": "control+keybackslash", "icon": "Keyboard"},
+    {"id": "8", "label": "Go Back", "shortcut": "control+keybracketleft", "icon": "Back"},
+    {"id": "9", "label": "Go Forward", "shortcut": "control+keybracketright", "icon": "Forward"},
+    {"id": "10", "label": "Toggle Light and Dark Mode", "shortcut": "control+shift+l", "icon": "Keyboard"},
+    {"id": "11", "label": "Copy Link to Page", "shortcut": "control+l", "icon": "Keyboard"},
+    {"id": "12", "label": "Add comment", "shortcut": "control+shift+m", "icon": "Chat"},
+    {"id": "13", "label": "Bold", "shortcut": "control+b", "icon": "Bold"},
+    {"id": "14", "label": "Italic", "shortcut": "control+i", "icon": "Italic"},
+    {"id": "15", "label": "Underline", "shortcut": "control+u", "icon": "Underline"},
+    {"id": "16", "label": "Strikethrough", "shortcut": "control+shift+s", "icon": "Strikethrough"},
+    {"id": "17", "label": "Inline code", "shortcut": "control+e", "icon": "Code"},
+    {"id": "18", "label": "Add Link", "shortcut": "control+k", "icon": "Plus"},
+    {"id": "19", "label": "Duplicate selected blocks", "shortcut": "control+d", "icon": "Duplicate"},
+    {"id": "20", "label": "Select Block", "shortcut": "escape", "icon": "Shortcut Return", "note": "Press while editing a block to select it."},
+    {"id": "21", "label": "Move Selected Blocks Up", "shortcut": "control+shift+up", "icon": "Arrow Up"},
+    {"id": "22", "label": "Move Selected Blocks Down", "shortcut": "control+shift+down", "icon": "Arrow Down"},
+    {"id": "23", "label": "Turn Into Text", "shortcut": "control+shift+0", "icon": "Heading"},
+    {"id": "24", "label": "Heading 1", "shortcut": "control+shift+1", "icon": "Keyboard"},
+    {"id": "25", "label": "Heading 2", "shortcut": "control+shift+2", "icon": "Keyboard"},
+    {"id": "26", "label": "Heading 3", "shortcut": "control+shift+3", "icon": "Keyboard"},
+    {"id": "27", "label": "To-Do Checkbox", "shortcut": "control+shift+4", "icon": "Plus"},
+    {"id": "28", "label": "Bulleted List", "shortcut": "control+shift+5", "icon": "Bullet List"},
+    {"id": "29", "label": "Numbered List", "shortcut": "control+shift+6", "icon": "Numbered List"},
+    {"id": "30", "label": "Toggle List", "shortcut": "control+shift+7", "icon": "Plus"},
+    {"id": "31", "label": "Code Block", "shortcut": "control+shift+8", "icon": "Decrease Indent"}
+  ]
+}

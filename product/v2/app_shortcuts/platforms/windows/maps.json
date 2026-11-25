@@ -1,0 +1,29 @@
+{
+  "label": "Apple Maps on the web",
+  "executables": [],
+  "sources": [
+    "https://support.apple.com/en-us/126616"
+  ],
+  "note": "Use these keys with the map focused in your browser.",
+  "shortcuts": [
+    {"id": "0", "label": "Show or Hide Search", "shortcut": "shift+f", "icon": "Search"},
+    {"id": "1", "label": "Show or Hide Sidebar", "shortcut": "shift+s", "icon": "Keyboard"},
+    {"id": "2", "label": "Show or Hide Directions", "shortcut": "shift+r", "icon": "Keyboard"},
+    {"id": "3", "label": "Show or Hide Guides", "shortcut": "shift+g", "icon": "Keyboard"},
+    {"id": "4", "label": "Look Around", "shortcut": "shift+k", "icon": "Eye Off"},
+    {"id": "5", "label": "Zoom In", "shortcut": "shift+keyequal", "icon": "Zoom In"},
+    {"id": "6", "label": "Zoom out", "shortcut": "keyminus", "icon": "Zoom Out"},
+    {"id": "7", "label": "Pan Left", "shortcut": "left", "icon": "Keyboard"},
+    {"id": "8", "label": "Pan Right", "shortcut": "right", "icon": "Keyboard"},
+    {"id": "9", "label": "Pan Up", "shortcut": "up", "icon": "Keyboard"},
+    {"id": "10", "label": "Pan Down", "shortcut": "down", "icon": "Keyboard"},
+    {"id": "11", "label": "Rotate Left", "shortcut": "option+left", "icon": "Keyboard"},
+    {"id": "12", "label": "Rotate Right", "shortcut": "option+right", "icon": "Keyboard"},
+    {"id": "13", "label": "Rotate Back to North", "shortcut": "option+shift+up", "icon": "Chevron Left"},
+    {"id": "14", "label": "Standard Map", "shortcut": "option+1", "icon": "Keyboard"},
+    {"id": "15", "label": "Hybrid Map", "shortcut": "option+2", "icon": "Keyboard"},
+    {"id": "16", "label": "Satellite Map", "shortcut": "option+3", "icon": "Satellite"},
+    {"id": "17", "label": "Go to Location", "shortcut": "control+option+l", "icon": "Keyboard"},
+    {"id": "18", "label": "Drop Pin", "shortcut": "option+p", "icon": "Keyboard"}
+  ]
+}

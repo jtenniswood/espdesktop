@@ -24,6 +24,7 @@ internal sealed class WindowsDesktop(LocalSettings settings, ObsConnection? obs 
     private static readonly string[] Browsers = ["chrome.exe", "msedge.exe", "firefox.exe", "brave.exe", "vivaldi.exe", "opera.exe"];
     private static readonly StartApp Explorer = new(ExplorerId, "File Explorer", "", ExplorerExe);
     private readonly SystemMetrics metrics = new();
+    private readonly SemaphoreSlim shortcutReplay = new(1, 1);
     private Dictionary<string, object?>? latestMetrics;
     private long lastMetricsAt;
     private StartApp[] apps = [Explorer];
@@ -59,23 +60,60 @@ internal sealed class WindowsDesktop(LocalSettings settings, ObsConnection? obs 
         settings.Folders.Select(f => new CatalogueItem(f.Id, CatalogueLabel(f.Label)))
         .Concat(apps.Where(Allowed).Select(a => new CatalogueItem(a.Id, CatalogueLabel(a.Name)))).ToArray();
 
-    public IEnumerable<string> Definitions()
+    private const int StarterSize = 8;
+    private const int ShortcutPageSize = 24;
+    private const int ShortcutIndexSize = 32;
+    private const int ShortcutIndexLimit = ShortcutIndexSize * 32;
+
+    private IEnumerable<(StartApp App, WindowsPresets.Template Template)> ShortcutApps()
     {
         if (!ShortcutsEnabled) yield break;
         foreach (var app in apps.Where(Allowed))
+            if (WindowsPresets.For(app.Executable, app.Target) is { } template)
+                yield return (app, template);
+    }
+
+    private static string PresetLabel(StartApp app) => Bound(CatalogueLabel(app.Name), 48);
+
+    private static object[] Presets(IEnumerable<WindowsPresets.Preset> presets) =>
+        presets.Select(p => (object)new { id = p.Id, label = p.Label, shortcut = p.DisplayShortcut, icon = p.Icon }).ToArray();
+
+    private static string StarterDefinition(StartApp app, WindowsPresets.Template template)
+    {
+        var defaults = template.DefaultShortcutIds ?? template.Shortcuts.Take(StarterSize).Select(p => p.Id).ToArray();
+        var starter = template.Shortcuts.Where(preset => defaults.Contains(preset.Id));
+        return JsonSerializer.Serialize(new
         {
-            var presets = WindowsPresets.For(app.Executable, app.Target);
-            if (presets.Length == 0) continue;
-            yield return JsonSerializer.Serialize(new
-            {
-                version = 1, appId = app.Id, label = Bound(CatalogueLabel(app.Name), 48), catalog = false,
-                shortcuts = presets.Select((p, i) => new
-                {
-                    id = i.ToString(System.Globalization.CultureInfo.InvariantCulture),
-                    label = p.Label, shortcut = p.Keys, icon = p.Icon
-                }).ToArray()
-            });
+            version = 1, appId = app.Id, label = PresetLabel(app), catalog = false, defaultShortcutIds = defaults,
+            shortcuts = Presets(starter)
+        });
+    }
+
+    public IEnumerable<string> Definitions() =>
+        ShortcutApps().Select(entry => StarterDefinition(entry.App, entry.Template));
+
+    public (string? Json, bool Complete) ShortcutPage(string appId, uint page)
+    {
+        if (appId == "index")
+        {
+            var applications = ShortcutApps().Take(ShortcutIndexLimit).Skip((int)page * ShortcutIndexSize)
+                .Take(ShortcutIndexSize + 1).Select(entry => new { appId = entry.App.Id, label = PresetLabel(entry.App) }).ToArray();
+            return (JsonSerializer.Serialize(new { shortcutPlatform = "windows", applications = applications.Take(ShortcutIndexSize) }),
+                applications.Length <= ShortcutIndexSize);
         }
+
+        var entry = ShortcutApps().FirstOrDefault(entry => entry.App.Id == appId);
+        if (entry.App is null) return (null, true);
+        var (app, template) = entry;
+        var defaults = template.DefaultShortcutIds ?? template.Shortcuts.Take(StarterSize).Select(p => p.Id).ToArray();
+        if (page == 0) return (StarterDefinition(app, template), template.Shortcuts.Length == defaults.Length);
+
+        var start = ((int)page - 1) * ShortcutPageSize;
+        var count = template.Shortcuts.Length - defaults.Length;
+        if (start >= count) return (null, true);
+        var expanded = template.Shortcuts.Where(preset => !defaults.Contains(preset.Id)).Skip(start).Take(ShortcutPageSize);
+        return (JsonSerializer.Serialize(new { appId, shortcuts = Array.Empty<object>(), moreShortcuts = Presets(expanded) }),
+            start + ShortcutPageSize >= count);
     }
 
     public async Task<string> Invoke(JsonElement message, CancellationToken token)
@@ -102,26 +140,8 @@ internal sealed class WindowsDesktop(LocalSettings settings, ObsConnection? obs 
             return ShortcutsEnabled && LockWorkStation() ? "performed" : "not_allowed";
         if (id.StartsWith("shortcut.", StringComparison.Ordinal))
         {
-            if (!ShortcutsEnabled || SafeActions.Shortcut(id) is not { } keys) return "not_allowed";
-            var scoped = id.StartsWith(SafeActions.ScopedShortcutPrefix, StringComparison.Ordinal);
-            var target = Text(message, "appId");
-            if (scoped && (target.Length == 0 || !apps.Any(app => app.Id == target && Allowed(app))))
-                return "not_allowed";
-            var window = InputSession.GetForegroundWindow();
-            var app = Identify(window);
-            // The request never chooses a window or changes focus. The preset's
-            // app ID must match the window Windows has already put in front.
-            if (scoped && app?.Id != target)
-            {
-                ShortcutFailed?.Invoke("Bring the preset’s app to the front and try again.");
-                return "not_found";
-            }
-            if (app is null || !Allowed(app) || (app.Id == ExplorerId && !IsExplorerWindow(window))) return "not_allowed";
-            token.ThrowIfCancellationRequested();
-            if (SessionState.Locked) return "not_allowed";
-            if (InputSession.Replay(window, keys)) return "performed";
-            ShortcutFailed?.Invoke("Windows couldn’t send the shortcut. Release any held keys and check which app is active.");
-            return "failed";
+            if (!ShortcutsEnabled || SafeActions.ShortcutStrokes(id) is not { } strokes) return "not_allowed";
+            return await ReplayShortcut(id, Text(message, "appId"), strokes, token);
         }
 
         if (id.StartsWith("folder.", StringComparison.Ordinal))
@@ -150,6 +170,39 @@ internal sealed class WindowsDesktop(LocalSettings settings, ObsConnection? obs 
         var selected = apps.FirstOrDefault(a => a.Id == id && Allowed(a));
         if (selected is null) return "not_allowed";
         return await ActivateApplication(selected, token);
+    }
+
+    private async Task<string> ReplayShortcut(string id, string target, ushort[][] strokes, CancellationToken token)
+    {
+        // A second display can invoke a shortcut while the first sends a sequence.
+        await shortcutReplay.WaitAsync(token);
+        try
+        {
+            var scoped = id.StartsWith(SafeActions.ScopedShortcutPrefix, StringComparison.Ordinal);
+            if (scoped && (target.Length == 0 || !apps.Any(app => app.Id == target && Allowed(app))))
+                return "not_allowed";
+            var window = InputSession.GetForegroundWindow();
+            var app = Identify(window);
+            // The request never chooses a window or changes focus. The preset's
+            // app ID must match the window Windows has already put in front.
+            if (scoped && app?.Id != target)
+            {
+                ShortcutFailed?.Invoke("Bring the preset’s app to the front and try again.");
+                return "not_found";
+            }
+            if (app is null || !Allowed(app) || (app.Id == ExplorerId && !IsExplorerWindow(window))) return "not_allowed";
+            for (var i = 0; i < strokes.Length; i++)
+            {
+                if (i > 0) await Task.Delay(40, token);
+                token.ThrowIfCancellationRequested();
+                if (SessionState.Locked || !ShortcutsEnabled || !Allowed(app)) return "not_allowed";
+                if (InputSession.Replay(window, strokes[i])) continue;
+                ShortcutFailed?.Invoke("Windows couldn’t send the shortcut. Release any held keys and check which app is active.");
+                return "failed";
+            }
+            return "performed";
+        }
+        finally { shortcutReplay.Release(); }
     }
 
     private async Task<string> ActivateApplication(StartApp app, CancellationToken token)

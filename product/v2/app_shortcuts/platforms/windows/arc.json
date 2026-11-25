@@ -1,0 +1,26 @@
+{
+  "label": "Arc",
+  "executables": [
+    "arc.exe"
+  ],
+  "sources": [
+    "https://resources.arc.net/hc/en-us/articles/22513842649623-Arc-for-Windows-2023-2026-Release-Notes"
+  ],
+  "note": "The Browser Company says Arc will stop working on 22 December 2026.",
+  "shortcuts": [
+    {"id": "0", "label": "Command Bar", "shortcut": "control+t", "icon": "Keyboard"},
+    {"id": "1", "label": "Address Bar", "shortcut": "control+l", "icon": "Plus"},
+    {"id": "2", "label": "Settings", "shortcut": "control+keycomma", "icon": "Settings"},
+    {"id": "3", "label": "Downloads", "shortcut": "control+j", "icon": "Keyboard"},
+    {"id": "4", "label": "Switch Tabs", "shortcut": "control+tab", "icon": "Tab"},
+    {"id": "5", "label": "Close Tab", "shortcut": "control+f4", "icon": "Close Tab"},
+    {"id": "6", "label": "Full Screen", "shortcut": "f11", "icon": "Full Screen"},
+    {"id": "7", "label": "Print Page", "shortcut": "control+p", "icon": "Printer"},
+    {"id": "8", "label": "View Page Source", "shortcut": "control+u", "icon": "Keyboard"},
+    {"id": "9", "label": "Copy URL as Markdown", "shortcut": "option+shift+control+c", "icon": "Tab"},
+    {"id": "10", "label": "Undo Tab or Sidebar Action", "shortcut": "control+z", "icon": "Tab"},
+    {"id": "11", "label": "Developer Tools", "shortcut": "control+shift+i", "icon": "Open File"},
+    {"id": "12", "label": "Add Split View", "shortcut": "control+shift+keyequal", "icon": "Plus"},
+    {"id": "13", "label": "Zoom Out", "shortcut": "control+keyminus", "icon": "Keyboard"}
+  ]
+}

@@ -1,0 +1,31 @@
+{
+  "label": "Apple Music",
+  "executables": [
+    "applemusic.exe"
+  ],
+  "targets": [
+    "appleinc.applemusicwin_nzyj5cx40ttqa!app"
+  ],
+  "sources": [
+    "https://support.apple.com/en-qa/guide/music-windows/mus1019/windows"
+  ],
+  "note": "These bindings are for Apple Music from the Microsoft Store.",
+  "shortcuts": [
+    {"id": "0", "label": "Play or Pause", "shortcut": "control+space", "icon": "Play Pause"},
+    {"id": "1", "label": "Next Song", "shortcut": "control+right", "icon": "Chevron Right"},
+    {"id": "2", "label": "Previous Song", "shortcut": "control+left", "icon": "Chevron Left"},
+    {"id": "3", "label": "Stop", "shortcut": "control+keyperiod", "icon": "Stop"},
+    {"id": "4", "label": "Raise Volume", "shortcut": "control+up", "icon": "Volume Up"},
+    {"id": "5", "label": "Lower Volume", "shortcut": "control+down", "icon": "Keyboard"},
+    {"id": "6", "label": "Show Now Playing in List", "shortcut": "control+l", "icon": "Play Pause"},
+    {"id": "7", "label": "Open equalizer", "shortcut": "control+shift+e", "icon": "Open File"},
+    {"id": "8", "label": "Open MiniPlayer", "shortcut": "control+shift+m", "icon": "Open File"},
+    {"id": "9", "label": "Open Full Screen Player", "shortcut": "control+shift+f", "icon": "Full Screen Exit"},
+    {"id": "10", "label": "Seek Forward", "shortcut": "control+option+right", "icon": "Chevron Right"},
+    {"id": "11", "label": "Seek Backward", "shortcut": "control+option+left", "icon": "Chevron Left"},
+    {"id": "12", "label": "Import File", "shortcut": "control+o", "icon": "Folder"},
+    {"id": "13", "label": "Settings", "shortcut": "control+keycomma", "icon": "Settings"},
+    {"id": "14", "label": "Go Back", "shortcut": "option+left", "icon": "Chevron Left"},
+    {"id": "15", "label": "Open Help", "shortcut": "f1", "icon": "Keyboard"}
+  ]
+}

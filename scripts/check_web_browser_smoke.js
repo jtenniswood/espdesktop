@@ -4378,7 +4378,11 @@ async function assertAppVolumeCard(browser) {
   nativeState.document.subpages = {};
   nativeState.document.settings.button_order = "";
   const context = await browser.newContext({ viewport: testCase.viewport });
-  await installRoutes(context, testCase.slug, { nativeState });
+  const connectorsStatus = {
+    onboarding_complete: true,
+    mac_companion: { available: true, configured: true, paired: true, connected: true },
+  };
+  await installRoutes(context, testCase.slug, { nativeState, connectorsStatus });
   const coughID = "obs.cough.69da3f8f-7f62-4abe-a594-4e40dd579858";
   await context.route("**/companion/actions", route => route.fulfill({
     status: 200,
@@ -4420,6 +4424,25 @@ async function assertAppVolumeCard(browser) {
     await page.getByRole("button", { name: "Edit", exact: true }).click();
     await application.locator('option[value="app.volume.com.spotify.client"]').waitFor({ state: "attached" });
     assert.equal(await application.inputValue(), "app.volume.com.spotify.client");
+
+    connectorsStatus.mac_companion.platform = "windows";
+    const macOnlyNotice = page.getByText("This card requires the macOS companion.", { exact: true });
+    await macOnlyNotice.waitFor();
+    assert.equal(await application.count(), 0, "a saved Mac app volume card cannot select a Windows app");
+    assert.equal(await subtype.inputValue(), "companion_app_volume", "keep the saved type selected");
+    await subtype.selectOption("companion_input_volume");
+    await macOnlyNotice.waitFor({ state: "detached" });
+    assert.deepEqual(await subtype.locator("option").allTextContents(),
+      ["Audio Output", "Output Mute", "Audio Input", "Input State"]);
+    await page.keyboard.press("Escape");
+    assert(nativeState.document.buttons[1].startsWith("app.volume.com.spotify.client;"),
+      "cancelling leaves the saved Mac audio card intact");
+
+    await page.locator(".sp-main .sp-empty-cell").first().click();
+    await page.getByRole("button", { name: "Sound card type", exact: true }).click();
+    assert.equal(await subtype.locator("option").count(), 4, "new Windows Sound cards offer all four system controls");
+    delete connectorsStatus.mac_companion.platform;
+    await subtype.locator('option[value="companion_app_volume"]').waitFor({ state: "attached" });
     await page.keyboard.press("Escape");
     const deviceAudio = [
       ["Volume", "output_volume", "Volume High", true],
@@ -4519,7 +4542,7 @@ async function assertAppVolumeCard(browser) {
       { id: "select-screen__theme_mode", state: "Light", value: "Light" },
     ]));
     assert.deepEqual(await audioColours(), expectedAudioColours);
-    console.log("Sound subtypes and guarded OBS cards passed picker and save checks.");
+    console.log("Mac and Windows Sound subtypes and guarded OBS cards passed picker and save checks.");
   } finally { await context.close(); }
 }
 
@@ -5013,14 +5036,17 @@ async function assertOBSSceneCard(browser) {
 async function assertWindowsShortcutSettings(browser, testCase) {
   if (testCase.slug !== "guition-esp32-s3-4848s040") return;
   const appId = "windows.abc123";
+  const connectorsStatus = { onboarding_complete: true, mac_companion: {
+    available: true, configured: true, paired: true, connected: true, platform: "windows",
+  } };
   const nativeState = nativeConfigState(testCase.slug);
   nativeState.document.buttons[1] = "shortcut.command+enter;;Shortcut Command;Auto;;;companion";
   const context = await browser.newContext({ viewport: testCase.viewport });
   try {
-    await installRoutes(context, testCase.slug, { nativeState });
+    await installRoutes(context, testCase.slug, { nativeState, connectorsStatus });
     await context.route(url => url.pathname === "/companion/shortcut-page", route => route.fulfill({ status: 204 }));
     await context.route(url => url.pathname === "/companion/definitions", route => route.fulfill({
-      json: { page: 0, hasMore: false, definitions: [
+      json: { page: 0, hasMore: false, shortcutPlatform: "windows", definitions: [
         { kind: "application", definition: {
           appId, label: "Google Chrome", version: 1, catalog: false,
           shortcuts: [
@@ -5067,7 +5093,14 @@ async function assertWindowsShortcutSettings(browser, testCase) {
     await waitForNativeState(nativeState, () => nativeState.document.buttons[1].startsWith("shortcut.control+t;"),
       "Windows shortcut preset save");
     assert.match(nativeState.document.buttons[1], /app_shortcut_preset=windows\.abc123(?::|%3A)0/i);
-    console.log("Windows shortcut labels, saved Command alias, and approved app preset passed.");
+    await openShortcut();
+    await app.locator(`option[value="${appId}"]`).waitFor({ state: "attached" });
+    delete connectorsStatus.mac_companion.platform;
+    await app.locator('option[value="com.apple.Safari"]').waitFor({ state: "attached" });
+    assert.strictEqual(await app.locator(`option[value="${appId}"]`).count(), 0,
+      "a Mac connection hides even the saved Windows preset while its old catalogue is cached");
+    assert.match(nativeState.document.buttons[1], /app_shortcut_preset=windows\.abc123(?::|%3A)0/i);
+    console.log("Windows shortcut labels, saved Command alias, and filtering after a platform switch passed.");
   } finally {
     await context.close();
   }

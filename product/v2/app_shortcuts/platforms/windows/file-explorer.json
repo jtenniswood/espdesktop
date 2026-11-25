@@ -1,0 +1,27 @@
+{
+  "label": "File Explorer",
+  "executables": [],
+  "sources": [
+    "https://support.microsoft.com/en-us/accessibility/windows/keyboard-shortcuts-in-windows"
+  ],
+  "note": "Use these keys directly in File Explorer. EspDesktop’s File Explorer integration uses Folder controls.",
+  "shortcuts": [
+    {"id": "0", "label": "New Tab", "shortcut": "control+t", "icon": "Tab"},
+    {"id": "1", "label": "New Window", "shortcut": "control+n", "icon": "Plus"},
+    {"id": "2", "label": "Close Active Tab", "shortcut": "control+w", "icon": "Tab"},
+    {"id": "3", "label": "Next Tab", "shortcut": "control+tab", "icon": "Chevron Right"},
+    {"id": "4", "label": "Previous Tab", "shortcut": "control+shift+tab", "icon": "Chevron Left"},
+    {"id": "5", "label": "Address Bar", "shortcut": "control+l", "icon": "Plus"},
+    {"id": "6", "label": "Search", "shortcut": "control+e", "icon": "Search"},
+    {"id": "7", "label": "Up One Folder", "shortcut": "option+up", "icon": "Keyboard"},
+    {"id": "8", "label": "Back", "shortcut": "option+left", "icon": "Chevron Left"},
+    {"id": "9", "label": "Forward", "shortcut": "option+right", "icon": "Chevron Right"},
+    {"id": "10", "label": "Rename Selection", "shortcut": "f2", "icon": "Keyboard"},
+    {"id": "11", "label": "Refresh", "shortcut": "f5", "icon": "Keyboard"},
+    {"id": "12", "label": "New Folder", "shortcut": "control+shift+n", "icon": "Plus"},
+    {"id": "13", "label": "Preview Pane", "shortcut": "option+p", "icon": "Keyboard"},
+    {"id": "14", "label": "Details Pane", "shortcut": "option+shift+p", "icon": "Keyboard"},
+    {"id": "15", "label": "Properties", "shortcut": "option+enter", "icon": "Keyboard"},
+    {"id": "16", "label": "Select All", "shortcut": "control+a", "icon": "Keyboard"}
+  ]
+}

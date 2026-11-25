@@ -1,0 +1,53 @@
+{
+  "label": "Adobe Acrobat Reader",
+  "executables": [
+    "acrord32.exe",
+    "acrobat.exe"
+  ],
+  "sources": [
+    "https://helpx.adobe.com/acrobat/desktop/get-started/preferences-and-settings/keyboard-shortcuts.html"
+  ],
+  "note": "Reader and Acrobat share navigation keys. The list focuses on viewing, finding, and reading PDFs.",
+  "shortcuts": [
+    {"id": "0", "label": "Find", "shortcut": "control+f", "icon": "Search"},
+    {"id": "1", "label": "Full Search", "shortcut": "control+shift+f", "icon": "Search"},
+    {"id": "2", "label": "Full Screen", "shortcut": "control+l", "icon": "Full Screen"},
+    {"id": "3", "label": "Next Document Tab", "shortcut": "control+tab", "icon": "Arrow Right"},
+    {"id": "4", "label": "Previous Document Tab", "shortcut": "control+shift+tab", "icon": "Arrow Left"},
+    {"id": "5", "label": "Next page", "shortcut": "control+pagedown", "icon": "Page Next"},
+    {"id": "6", "label": "Previous page", "shortcut": "control+pageup", "icon": "Page Previous"},
+    {"id": "7", "label": "First page", "shortcut": "control+home", "icon": "Book"},
+    {"id": "8", "label": "Last page", "shortcut": "control+end", "icon": "Book"},
+    {"id": "9", "label": "Go to Page", "shortcut": "control+shift+n", "icon": "Keyboard"},
+    {"id": "10", "label": "Fit Page", "shortcut": "control+0", "icon": "Book"},
+    {"id": "11", "label": "Actual Size", "shortcut": "control+1", "icon": "Keyboard"},
+    {"id": "12", "label": "Fit Width", "shortcut": "control+2", "icon": "Keyboard"},
+    {"id": "13", "label": "Print", "shortcut": "control+p", "icon": "Printer"},
+    {"id": "14", "label": "Select a highlighted control in the top bar", "shortcut": "enter", "icon": "Keyboard"},
+    {"id": "15", "label": "Move to next open document window", "shortcut": "control+f6", "icon": "Chevron Right"},
+    {"id": "16", "label": "Move to the previous open document window", "shortcut": "control+shift+f6", "icon": "Chevron Left"},
+    {"id": "17", "label": "Close document", "shortcut": "control+f4", "icon": "Open File"},
+    {"id": "18", "label": "Close context menu", "shortcut": "f10", "icon": "Shortcut Escape"},
+    {"id": "19", "label": "Return to Hand tool or Select tool", "shortcut": "escape", "icon": "Group Selection"},
+    {"id": "20", "label": "Open and move focus to navigation pane", "shortcut": "control+shift+f5", "icon": "Application"},
+    {"id": "21", "label": "Move focus to previous pane or panel", "shortcut": "shift+f6", "icon": "Arrow Left"},
+    {"id": "22", "label": "Expand the bookmark", "shortcut": "right", "icon": "Shortcut Command"},
+    {"id": "23", "label": "Collapse the bookmark", "shortcut": "left", "icon": "Bookmark"},
+    {"id": "24", "label": "Move focus to next item navigation panel", "shortcut": "down", "icon": "Application"},
+    {"id": "25", "label": "Open Acrobat user guide", "shortcut": "f1", "icon": "Keyboard"},
+    {"id": "26", "label": "Move back to the previously opened topic", "shortcut": "option+left", "icon": "Arrow Left"},
+    {"id": "27", "label": "Move forward to the next topic", "shortcut": "option+right", "icon": "Arrow Right"},
+    {"id": "28", "label": "Move to the previous pane", "shortcut": "shift+control+tab", "icon": "Chevron Left"},
+    {"id": "29", "label": "Move focus to the next link within a pane", "shortcut": "tab", "icon": "Chevron Right"},
+    {"id": "30", "label": "Move focus to the previous link within a pane", "shortcut": "shift+tab", "icon": "Arrow Left"},
+    {"id": "31", "label": "Edit Tag", "shortcut": "f2", "icon": "Keyboard"},
+    {"id": "32", "label": "Change reading settings for the document", "shortcut": "shift+control+5", "icon": "Book"},
+    {"id": "33", "label": "Reflow a tagged PDF, and return to normal view", "shortcut": "control+4", "icon": "Application"},
+    {"id": "34", "label": "Activate and deactivate Read out loud", "shortcut": "shift+control+y", "icon": "Shortcut Command"},
+    {"id": "35", "label": "Read only the page out loud", "shortcut": "shift+control+v", "icon": "Book"},
+    {"id": "36", "label": "Read out loud the whole document", "shortcut": "shift+control+b", "icon": "Open File"},
+    {"id": "37", "label": "Pause reading out loud", "shortcut": "shift+control+c", "icon": "Stop"},
+    {"id": "38", "label": "Stop reading out loud", "shortcut": "shift+control+e", "icon": "Stop"},
+    {"id": "39", "label": "Select previous Radio button in a group", "shortcut": "up", "icon": "Chevron Left"}
+  ]
+}

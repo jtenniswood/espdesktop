@@ -1,0 +1,26 @@
+{
+  "label": "Apple TV",
+  "executables": [
+    "appletv.exe"
+  ],
+  "targets": [
+    "appleinc.appletvwin_nzyj5cx40ttqa!app"
+  ],
+  "sources": [
+    "https://support.apple.com/en-euro/guide/tvapp-windows/atvc572afcf3/windows"
+  ],
+  "note": "These bindings are for the Apple TV app from the Microsoft Store.",
+  "shortcuts": [
+    {"id": "0", "label": "Play or Pause", "shortcut": "space", "icon": "Play Pause"},
+    {"id": "1", "label": "Raise Volume", "shortcut": "control+up", "icon": "Volume Up"},
+    {"id": "2", "label": "Lower Volume", "shortcut": "control+down", "icon": "Keyboard"},
+    {"id": "3", "label": "New Playlist", "shortcut": "control+n", "icon": "Playlist Plus"},
+    {"id": "4", "label": "Copy Selected Playlist", "shortcut": "control+c", "icon": "Delete"},
+    {"id": "5", "label": "Delete Selected Playlist", "shortcut": "delete", "icon": "Delete"},
+    {"id": "6", "label": "Add a File", "shortcut": "control+o", "icon": "Plus"},
+    {"id": "7", "label": "Add a Folder", "shortcut": "control+shift+o", "icon": "Plus"},
+    {"id": "8", "label": "Downloads", "shortcut": "control+shift+l", "icon": "Keyboard"},
+    {"id": "9", "label": "Settings", "shortcut": "control+keycomma", "icon": "Settings"},
+    {"id": "10", "label": "Help", "shortcut": "f1", "icon": "Keyboard"}
+  ]
+}

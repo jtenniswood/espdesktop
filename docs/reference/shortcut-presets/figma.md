@@ -1,6 +1,6 @@
 ---
 title: Figma keyboard shortcuts
-description: Keep your favourite Figma shortcuts one tap away. Use EspDesktop to duplicate layers, frame selections, and create components from a touchscreen beside your Mac.
+description: Look up Figma keyboard shortcuts for macOS and Windows, including controls for layers, frames, and components.
 ---
 
 <script setup>
@@ -59,4 +59,4 @@ Check that EspDesktop has [macOS Accessibility permission](/mac-controls/shortcu
 
 </FaqAccordion>
 
-[Browse all application shortcuts](/reference/shortcut-presets).
+[Set up application shortcut buttons on Windows](/windows-preview#add-controls) or [browse all application shortcuts](/reference/shortcut-presets).

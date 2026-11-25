@@ -1,0 +1,42 @@
+{
+  "label": "Todoist",
+  "executables": [
+    "todoist.exe"
+  ],
+  "sources": [
+    "https://www.todoist.com/help/todoist/features/use-keyboard-shortcuts-in-todoist-Wyovn2"
+  ],
+  "note": "These are in-app shortcuts. System-wide Quick Add has its own desktop setting.",
+  "shortcuts": [
+    {"id": "0", "label": "Quick Add Task", "shortcut": "q", "icon": "Plus"},
+    {"id": "1", "label": "Quick Find", "shortcut": "control+k", "icon": "Search"},
+    {"id": "2", "label": "Search", "shortcut": "keyslash", "icon": "Search"},
+    {"id": "3", "label": "Toggle Sidebar", "shortcut": "m", "icon": "Keyboard"},
+    {"id": "4", "label": "New Project", "shortcut": "option+p", "icon": "New File"},
+    {"id": "5", "label": "Shortcut Help", "shortcut": "shift+keyslash", "icon": "Paste"},
+    {"id": "6", "label": "Undo", "shortcut": "control+z", "icon": "Undo"},
+    {"id": "7", "label": "Print current view", "shortcut": "control+p", "icon": "Printer"},
+    {"id": "8", "label": "Zoom In", "shortcut": "control+keyequal", "icon": "Keyboard"},
+    {"id": "9", "label": "Zoom Out", "shortcut": "control+keyminus", "icon": "Keyboard"},
+    {"id": "10", "label": "Reset Zoom", "shortcut": "control+0", "icon": "Keyboard"},
+    {"id": "11", "label": "Dismiss/Cancel", "shortcut": "escape", "icon": "Close"},
+    {"id": "12", "label": "Complete focused task", "shortcut": "e", "icon": "Check"},
+    {"id": "13", "label": "Open task view", "shortcut": "enter", "icon": "Application"},
+    {"id": "14", "label": "Save edits", "shortcut": "control+enter", "icon": "Save"},
+    {"id": "15", "label": "Set date", "shortcut": "t", "icon": "Calendar"},
+    {"id": "16", "label": "Remove date", "shortcut": "shift+t", "icon": "Delete"},
+    {"id": "17", "label": "Change priority level", "shortcut": "y", "icon": "Shortcut Command"},
+    {"id": "18", "label": "Comment", "shortcut": "c", "icon": "Chat"},
+    {"id": "19", "label": "Add label", "shortcut": "l", "icon": "Tag"},
+    {"id": "20", "label": "Assign/reassign", "shortcut": "shift+r", "icon": "Shortcut Command"},
+    {"id": "21", "label": "Move to", "shortcut": "v", "icon": "Keyboard"},
+    {"id": "22", "label": "More task actions", "shortcut": "keyperiod", "icon": "Shortcut Command"},
+    {"id": "23", "label": "Move focus to multi-select toolbar", "shortcut": "keycomma", "icon": "Dock Top"},
+    {"id": "24", "label": "Increase indent of focused task", "shortcut": "control+keybracketright", "icon": "Increase Indent"},
+    {"id": "25", "label": "Decrease indent of focused task", "shortcut": "control+keybracketleft", "icon": "Decrease Indent"},
+    {"id": "26", "label": "See or hide sub-tasks", "shortcut": "shift+e", "icon": "Eye Off"},
+    {"id": "27", "label": "Go to today in Upcoming", "shortcut": "home", "icon": "Shortcut Command"},
+    {"id": "28", "label": "Next week in Upcoming", "shortcut": "shift+right", "icon": "Calendar"},
+    {"id": "29", "label": "Previous week in Upcoming", "shortcut": "shift+left", "icon": "Calendar"}
+  ]
+}

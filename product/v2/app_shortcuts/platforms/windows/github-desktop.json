@@ -1,0 +1,59 @@
+{
+  "label": "GitHub Desktop",
+  "executables": [
+    "githubdesktop.exe"
+  ],
+  "targets": [
+    "com.squirrel.githubdesktop.githubdesktop"
+  ],
+  "sources": [
+    "https://docs.github.com/en/desktop/overview/github-desktop-keyboard-shortcuts?platform=windows"
+  ],
+  "defaultShortcutIds": [
+    "0",
+    "1",
+    "2",
+    "3",
+    "4",
+    "5",
+    "6"
+  ],
+  "shortcuts": [
+    {"id": "0", "label": "Repositories", "shortcut": "control+t", "icon": "Git"},
+    {"id": "1", "label": "Changes", "shortcut": "control+1", "icon": "Git"},
+    {"id": "2", "label": "History", "shortcut": "control+2", "icon": "History"},
+    {"id": "3", "label": "Branches", "shortcut": "control+b", "icon": "Git"},
+    {"id": "4", "label": "Open Editor", "shortcut": "control+shift+a", "icon": "Code Tags"},
+    {"id": "5", "label": "Show in Explorer", "shortcut": "control+shift+f", "icon": "Folder"},
+    {"id": "6", "label": "Options", "shortcut": "control+keycomma", "icon": "Settings"},
+    {"id": "7", "label": "Clone Repository", "shortcut": "control+shift+o", "icon": "Code"},
+    {"id": "8", "label": "Add local repository", "shortcut": "control+o", "icon": "Source Branch"},
+    {"id": "9", "label": "Create Repository", "shortcut": "control+n", "icon": "Code"},
+    {"id": "10", "label": "Create Branch", "shortcut": "control+shift+n", "icon": "Plus"},
+    {"id": "11", "label": "Push Commits", "shortcut": "control+p", "icon": "Keyboard"},
+    {"id": "12", "label": "Pull Changes", "shortcut": "control+shift+p", "icon": "Keyboard"},
+    {"id": "13", "label": "Commit Changes", "shortcut": "control+enter", "icon": "Keyboard", "note": "With the commit message field active."},
+    {"id": "14", "label": "Open Repository Terminal", "shortcut": "control+keybackquote", "icon": "Code"},
+    {"id": "15", "label": "View on GitHub", "shortcut": "control+shift+g", "icon": "Keyboard"},
+    {"id": "16", "label": "Toggle full screen view", "shortcut": "f11", "icon": "Full Screen"},
+    {"id": "17", "label": "Reset zoom to default text size", "shortcut": "control+0", "icon": "Fit to Screen"},
+    {"id": "18", "label": "Zoom in for larger text and graphics", "shortcut": "control+keyequal", "icon": "Zoom In"},
+    {"id": "19", "label": "Zoom out for smaller text and graphics", "shortcut": "control+keyminus", "icon": "Zoom Out"},
+    {"id": "20", "label": "Decrease active pane width", "shortcut": "control+8", "icon": "Application"},
+    {"id": "21", "label": "Increase active pane width", "shortcut": "control+9", "icon": "Application"},
+    {"id": "22", "label": "Toggle Developer Tools", "shortcut": "control+shift+i", "icon": "Shortcut Command"},
+    {"id": "23", "label": "Remove an existing repository", "shortcut": "control+forwarddelete", "icon": "Delete"},
+    {"id": "24", "label": "Create an issue on GitHub", "shortcut": "control+i", "icon": "Plus"},
+    {"id": "25", "label": "Go to the commit summary field", "shortcut": "control+g", "icon": "Source Branch"},
+    {"id": "26", "label": "Select or deselect all highlighted files", "shortcut": "space", "icon": "Deselect"},
+    {"id": "27", "label": "Rename the branch", "shortcut": "control+shift+r", "icon": "Rename"},
+    {"id": "28", "label": "Delete the branch", "shortcut": "control+shift+d", "icon": "Delete"},
+    {"id": "29", "label": "Update from default branch", "shortcut": "control+shift+u", "icon": "Source Branch"},
+    {"id": "30", "label": "Compare to an existing branch", "shortcut": "control+shift+b", "icon": "Keyboard"},
+    {"id": "31", "label": "Merge into current branch", "shortcut": "control+shift+m", "icon": "Source Branch"},
+    {"id": "32", "label": "Stash current changes", "shortcut": "control+shift+s", "icon": "Shortcut Command"},
+    {"id": "33", "label": "Show or hide stashed changes", "shortcut": "control+h", "icon": "Keyboard"},
+    {"id": "34", "label": "Compare branches on GitHub", "shortcut": "control+shift+c", "icon": "Shortcut Command"},
+    {"id": "35", "label": "Show pull request on GitHub", "shortcut": "control+r", "icon": "Keyboard"}
+  ]
+}

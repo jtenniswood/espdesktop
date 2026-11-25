@@ -1,0 +1,36 @@
+{
+  "label": "Telegram",
+  "executables": [
+    "telegram.exe"
+  ],
+  "sources": [
+    "https://github.com/telegramdesktop/tdesktop/blob/dev/Telegram/SourceFiles/core/shortcuts.cpp"
+  ],
+  "note": "For Telegram Desktop. The native Telegram app on macOS is a separate client.",
+  "shortcuts": [
+    {"id": "0", "label": "Search Chat", "shortcut": "control+f", "icon": "Search"},
+    {"id": "1", "label": "Next Chat", "shortcut": "control+pagedown", "icon": "Chevron Down"},
+    {"id": "2", "label": "Previous Chat", "shortcut": "control+pageup", "icon": "Chevron Up"},
+    {"id": "3", "label": "First Chat", "shortcut": "control+option+home", "icon": "Chat"},
+    {"id": "4", "label": "Last Chat", "shortcut": "control+option+end", "icon": "Chat"},
+    {"id": "5", "label": "Saved Messages", "shortcut": "control+0", "icon": "Open File"},
+    {"id": "6", "label": "Show Archive", "shortcut": "control+9", "icon": "Keyboard"},
+    {"id": "7", "label": "Show Contacts", "shortcut": "control+j", "icon": "Keyboard"},
+    {"id": "8", "label": "Next Folder", "shortcut": "control+shift+down", "icon": "Chevron Right"},
+    {"id": "9", "label": "Previous Folder", "shortcut": "control+shift+up", "icon": "Chevron Left"},
+    {"id": "10", "label": "Open Chat Menu", "shortcut": "control+keybackslash", "icon": "Chat"},
+    {"id": "11", "label": "Chat Preview", "shortcut": "control+keybracketright", "icon": "Chat"},
+    {"id": "12", "label": "Lock Telegram", "shortcut": "control+l", "icon": "Chat"},
+    {"id": "13", "label": "Close Window", "shortcut": "control+w", "icon": "Keyboard"},
+    {"id": "14", "label": "Reopen Closed Window", "shortcut": "control+shift+t", "icon": "Keyboard"},
+    {"id": "15", "label": "Close Other Windows", "shortcut": "control+shift+w", "icon": "Keyboard"},
+    {"id": "16", "label": "Pinned Chat 1", "shortcut": "control+1", "icon": "Chat"},
+    {"id": "17", "label": "Pinned Chat 2", "shortcut": "control+2", "icon": "Chat"},
+    {"id": "18", "label": "Pinned Chat 3", "shortcut": "control+3", "icon": "Chat"},
+    {"id": "19", "label": "Pinned Chat 4", "shortcut": "control+4", "icon": "Chat"},
+    {"id": "20", "label": "Pinned Chat 5", "shortcut": "control+5", "icon": "Chat"},
+    {"id": "21", "label": "Pinned Chat 6", "shortcut": "control+6", "icon": "Chat"},
+    {"id": "22", "label": "Pinned Chat 7", "shortcut": "control+7", "icon": "Chat"},
+    {"id": "23", "label": "Pinned Chat 8", "shortcut": "control+8", "icon": "Chat"}
+  ]
+}

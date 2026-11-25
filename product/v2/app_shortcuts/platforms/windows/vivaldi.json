@@ -1,0 +1,40 @@
+{
+  "label": "Vivaldi",
+  "executables": [
+    "vivaldi.exe"
+  ],
+  "sources": [
+    "https://help.vivaldi.com/desktop/shortcuts/keyboard-shortcuts/"
+  ],
+  "defaultShortcutIds": [
+    "0",
+    "1",
+    "2",
+    "3",
+    "4",
+    "5",
+    "6",
+    "7"
+  ],
+  "shortcuts": [
+    {"id": "0", "label": "New Tab", "shortcut": "control+t", "icon": "New Tab"},
+    {"id": "1", "label": "New Window", "shortcut": "control+n", "icon": "New Window"},
+    {"id": "2", "label": "Reopen Tab", "shortcut": "control+shift+t", "icon": "Undo"},
+    {"id": "3", "label": "Find", "shortcut": "control+f", "icon": "Search"},
+    {"id": "4", "label": "Refresh", "shortcut": "control+r", "icon": "Refresh"},
+    {"id": "5", "label": "Close Tab", "shortcut": "control+w", "icon": "Close"},
+    {"id": "6", "label": "Next Tab", "shortcut": "control+tab", "icon": "Chevron Right"},
+    {"id": "7", "label": "Previous Tab", "shortcut": "control+shift+tab", "icon": "Chevron Left"},
+    {"id": "8", "label": "Address Bar", "shortcut": "control+l", "icon": "Plus"},
+    {"id": "9", "label": "Go Back", "shortcut": "option+left", "icon": "Chevron Left"},
+    {"id": "10", "label": "Go Forward", "shortcut": "option+right", "icon": "Chevron Right"},
+    {"id": "11", "label": "Private Window", "shortcut": "control+shift+n", "icon": "Keyboard"},
+    {"id": "12", "label": "History", "shortcut": "control+h", "icon": "History"},
+    {"id": "13", "label": "Downloads Panel", "shortcut": "control+shift+d", "icon": "Keyboard"},
+    {"id": "14", "label": "Quick Commands", "shortcut": "f2", "icon": "Keyboard"},
+    {"id": "15", "label": "Settings", "shortcut": "control+f12", "icon": "Settings"},
+    {"id": "16", "label": "Find Next", "shortcut": "control+g", "icon": "Search"},
+    {"id": "17", "label": "Find Previous", "shortcut": "control+shift+g", "icon": "Search"},
+    {"id": "18", "label": "Full Screen", "shortcut": "f11", "icon": "Full Screen"}
+  ]
+}

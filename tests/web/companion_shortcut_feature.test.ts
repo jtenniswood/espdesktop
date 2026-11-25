@@ -794,7 +794,8 @@ export function runCompanionShortcutFeatureTests(): void {
   COMPANION_SHORTCUT_APPS.push(windowsApp);
   try {
     if (companionShortcutCatalogApps({ windows: true }).map(app => app.appId).join() !== windowsApp.appId ||
-        companionShortcutCatalogApps().some(app => app.appId === windowsApp.appId) ||
+        companionShortcutCatalogApps({ windows: false }).some(app => app.appId === windowsApp.appId) ||
+        companionShortcutCatalogApps({ windows: false, savedAppId: windowsApp.appId }).some(app => app.appId === windowsApp.appId) ||
         companionShortcutCatalogApps({ windows: true, savedAppId: "com.google.Chrome" }).some(app => app.appId === "com.google.Chrome") ||
         !companionShortcutCatalogApps({ savedAppId: windowsApp.appId }).some(app => app.appId === windowsApp.appId)) {
       throw new Error("Show the paired platform’s presets and preserve an existing card while the platform is unknown");

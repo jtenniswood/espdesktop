@@ -32,9 +32,23 @@ With current firmware and a connected Windows companion, the card picker shows W
 ## Add controls
 
 - Approve apps and folders in EspDesktop. Follow the shared guides to [launch apps](/mac-controls/apps) or [open folders in File Explorer](/mac-controls/folders).
-- Follow [keyboard shortcut setup](/mac-controls/shortcuts#enable-keyboard-shortcuts) before adding **Keyboard Shortcut** or **Lock Machine** cards. Existing custom shortcuts saved with Command or Control send Ctrl on Windows. Option sends Alt.
+- Follow [keyboard shortcut setup](/mac-controls/shortcuts#enable-keyboard-shortcuts) before adding **Keyboard Shortcut** or **Lock Machine** cards. With current firmware and a connected PC, the editor shows **Ctrl**, **Alt**, and **Shift**. Existing custom shortcuts saved with Command or Control send Ctrl on Windows. Option sends Alt.
+- A **Custom** shortcut sends keys to the approved app in front. An **Application** preset sends keys once its selected app is in front. If Windows keeps another window active, bring the preset’s app forward and tap again.
+- A **Keyboard Shortcut** card in **Application** mode holds one shortcut from the paired computer’s catalogue. [Browse Windows shortcut presets](/reference/shortcut-presets). If a card was saved for the other platform, reopen it and choose the app and shortcut again.
+- Pair current display firmware to browse the full Windows preset list. With older compatible firmware, the editor shows the starter shortcuts. Keep the Windows companion updated to get the latest presets.
 - For an app with a shortcut subpage, choose when it opens under **Screen → Appearance → App Subpages**. [App subpage options](/features/subpages#app-page-behavior)
 - Add a [Website card](/mac-controls/websites) to open a page in your default browser.
+
+## Control system sound
+
+In the display editor, add a **Sound** card on Home or in a subpage. Choose one **Type** per card.
+
+- **Audio Output** adjusts the default speaker or headphone volume.
+- **Audio Input** adjusts the default microphone level.
+- **Output Mute** toggles speaker or headphone mute.
+- **Input State** toggles microphone mute and shows whether the input is live or muted.
+
+These four cards also work with the macOS companion. They follow the computer’s default audio devices. Moving a level slider above zero unmutes that device. If a control is unavailable, check the companion connection and whether the audio device exposes that control.
 
 ## Switch OBS scenes
 
