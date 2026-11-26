@@ -1,10 +1,12 @@
 {
   "label": "GIMP",
   "executables": [
+    "gimp-3.exe",
     "gimp-3.0.exe"
   ],
   "sources": [
-    "https://docs.gimp.org/3.0/pdf/gimp-keys-en.pdf"
+    "https://docs.gimp.org/3.0/pdf/gimp-keys-en.pdf",
+    "https://github.com/GNOME/gimp/blob/master/NEWS.pre-3-0"
   ],
   "note": "These are GIMP 3 defaults.",
   "defaultShortcutIds": [

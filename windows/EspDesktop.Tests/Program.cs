@@ -138,6 +138,7 @@ foreach (var (executable, target, firstKey) in new (string?, string, string)[]
     (@"C:\Apps\Discord.exe", "Discord", "control+k"),
     (@"C:\Apps\Spotify.exe", "Spotify", "control+k"),
     (@"C:\Apps\GitHubDesktop.exe", "GitHubDesktop", "control+t"),
+    (@"C:\Apps\GIMP 3\bin\gimp-3.exe", "GIMP 3", "control+o"),
     (null, "Microsoft.MicrosoftEdge.Stable_8wekyb3d8bbwe!App", "control+t"),
     (null, "Microsoft.WindowsNotepad_8wekyb3d8bbwe!App", "control+n")
 })
