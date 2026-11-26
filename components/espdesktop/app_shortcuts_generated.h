@@ -105,6 +105,7 @@ inline const char *app_label(const std::string &app) {
   if (app == "org.videolan.vlc") return "VLC";
   if (app == "dev.warp.Warp-Stable") return "Warp";
   if (app == "net.whatsapp.WhatsApp") return "WhatsApp";
+  if (app == "com.microsoft.rdc.macos") return "Windows App";
   if (app == "com.apple.dt.Xcode") return "Xcode";
   if (app == "us.zoom.xos") return "Zoom";
   return "";
@@ -193,6 +194,7 @@ inline bool has_shortcut(const std::string &app, const std::string &id) {
   if (app == "org.videolan.vlc") return id == "0";
   if (app == "dev.warp.Warp-Stable") return id == "0" || id == "1" || id == "2" || id == "3" || id == "4" || id == "5" || id == "6" || id == "7";
   if (app == "net.whatsapp.WhatsApp") return id == "0" || id == "1" || id == "2" || id == "3" || id == "4" || id == "5" || id == "6" || id == "7" || id == "8";
+  if (app == "com.microsoft.rdc.macos") return id == "0" || id == "1" || id == "2" || id == "3" || id == "4" || id == "5";
   if (app == "com.apple.dt.Xcode") return id == "0" || id == "1" || id == "2" || id == "3" || id == "4" || id == "5" || id == "6" || id == "7";
   if (app == "us.zoom.xos") return id == "0" || id == "1" || id == "2" || id == "3" || id == "4" || id == "5" || id == "6" || id == "7";
   return false;
