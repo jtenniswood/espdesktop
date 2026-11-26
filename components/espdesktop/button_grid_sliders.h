@@ -311,7 +311,11 @@ inline void slider_cancel_pointer_press(lv_obj_t *slider) {
 
 inline void slider_tap_toggle(SliderCtx *ctx) {
   if (!ctx || !ctx->ha_control) return;
-  if (espdesktop::ha_controls::toggle_control_valid(ctx->entity_id)) {
+  // A tap on a dimmer means on/off for devices that have a meaningful power
+  // state. Media volume sliders keep their level-only behaviour.
+  const auto domain = espdesktop::ha_controls::domain_of(ctx->entity_id);
+  if (domain == "light" || domain == "fan" || domain == "switch" ||
+      domain == "input_boolean") {
     espdesktop::ha_controls::toggle_entity(ctx->entity_id);
   }
 }
