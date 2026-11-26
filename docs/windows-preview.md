@@ -29,6 +29,15 @@ Choose **Add display** to pair another panel with the same PC. Each panel has it
 
 With current firmware and a connected Windows companion, the card picker shows Windows-compatible alternatives for Mac-only features. Existing Mac-only cards stay in the layout and show a macOS requirement in their settings.
 
+### Connect over USB in a development build
+
+Windows development builds with USB support can control a display over a USB data cable with Wi-Fi off. Use a USB-enabled Companion firmware build for your display. For the 4848S040, the standard firmware uses the serial port for diagnostics. The experimental `usb-dev.yaml` profile enables Companion control over USB.
+
+1. Plug the display into the PC. In **Display**, choose **Connect over USB**, select the display’s COM port, and choose **Next**.
+2. On the touchscreen, choose **Pair** on the Setup screen or **Unpaired** in Settings. Enter the code in Windows and choose **Pair display**.
+
+For an already paired display, choose **Change connection** and select a USB port, nearby display, or local IP address. EspDesktop keeps the pairing and saves the new connection after verifying the display. To open the editor from the Windows app, connect over the local network.
+
 ## Add controls
 
 - Approve apps and folders in EspDesktop. Follow the shared guides to [launch apps](/mac-controls/apps) or [open folders in File Explorer](/mac-controls/folders).
