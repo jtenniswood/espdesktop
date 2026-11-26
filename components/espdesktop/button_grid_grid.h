@@ -1405,7 +1405,7 @@ inline void grid_phase2(
   }
   lv_coord_t sp_radius = cfg.card_corner_radius >= 0
     ? cfg.card_corner_radius : lv_obj_get_style_radius(ref_btn, LV_PART_MAIN);
-  lv_coord_t sp_pad = lv_obj_get_style_pad_top(ref_btn, LV_PART_MAIN);
+  const lv_coord_t sp_pad = control_modal_grid_metrics().card_padding;
   const lv_font_t *sp_btn_fnt = lv_obj_get_style_text_font(ref_btn, LV_PART_MAIN);
 
   lv_coord_t mp_pad_top = lv_obj_get_style_pad_top(main_page_obj, LV_PART_MAIN);
@@ -1793,6 +1793,9 @@ inline void grid_execute_board_operation(
     const std::string &accent, lv_obj_t *home) {
   switch (operation) {
     case GridBoardOperation::INITIAL_LAYOUT:
+      // Record the theme inset before configured cards modify the slot styles.
+      if (cfg.num_slots > 0 && slots[0].btn)
+        control_modal_grid_metrics().card_padding = lv_obj_get_style_pad_top(slots[0].btn, LV_PART_MAIN);
       grid_phase1(slots, cfg, order, accent, home);
       break;
     case GridBoardOperation::INITIAL_SUBPAGES:
