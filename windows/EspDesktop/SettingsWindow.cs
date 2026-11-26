@@ -82,7 +82,14 @@ internal sealed class SettingsWindow : Window
         this.discover = discover ?? Discovery.Find;
         this.store = store ?? new LocalStore();
         desktop = new(this.store.Settings, obs);
-        obs.CatalogueChanged += desktop.Changed;
+        obs.CatalogueChanged += desktop.ObsChanged;
+        obs.RestoreBreakSettings(this.store.Settings.ObsBreakChoices, this.store.Settings.ObsBreakNeedsReview);
+        obs.SaveBreakRecovery = SaveBreakRecovery;
+        obs.RaiseMultiview = desktop.RaiseObsMultiview;
+        obs.BreakSettingsChanged += () =>
+        {
+            if (!quitting && navigation.SelectedIndex == 4) Render();
+        };
         obs.StatusChanged += () => obsStatus.Text = obs.Status;
         obsStatus.Text = obs.Status;
         AutomationProperties.SetLiveSetting(obsStatus, AutomationLiveSetting.Polite);
@@ -845,7 +852,84 @@ internal sealed class SettingsWindow : Window
             await StopObs();
             if (!quitting && navigation.SelectedIndex == 4) Render();
         }));
-        card.Children.Add(Paragraph("Once connected, choose a scene in the display editor. In Studio Mode the card selects Preview."));
+        card.Children.Add(Paragraph("Once connected, add OBS controls in the display editor. In Studio Mode, a scene card selects Preview."));
+        ObsBreakPage();
+    }
+
+    private sealed record ObsChoice(Guid? Id, string Label);
+
+    private void ObsBreakPage()
+    {
+        var state = obs.BreakSettings();
+        var card = Card("Break scene", "Set a scene and an optional microphone to mute while you take a break.");
+        if (state.Reviewing)
+        {
+            card.Children.Add(Paragraph("The break was interrupted. Check the live scene and microphone in OBS before using Break again."));
+            Row(card, Button("I checked OBS", obs.AcknowledgeBreak));
+            return;
+        }
+        if (state.Scenes.Length == 0)
+        {
+            card.Children.Add(Paragraph("Connect to OBS to choose a break scene."));
+            return;
+        }
+        if (!state.Editable)
+        {
+            card.Children.Add(Paragraph("Resume from the display before changing the break settings."));
+            return;
+        }
+        var scene = ObsPicker("No break scene", state.Scenes, state.Choice?.Scene);
+        var microphone = ObsPicker("Keep microphone as is", state.Microphones, state.Choice?.Microphone);
+        Field(card, "Break scene", scene);
+        Field(card, "Microphone to mute", microphone);
+        Row(card, Button("Save break settings", () =>
+        {
+            var selected = ((ObsChoice)scene.SelectedItem).Id;
+            var selectedMic = ((ObsChoice)microphone.SelectedItem).Id;
+            var choice = selected is { } sceneId ? new ObsBreakChoice(sceneId, selectedMic) : null;
+            if (!obs.ConfigureBreak(state.Collection, choice, () => SaveBreakChoice(state.Collection, choice)))
+                Report("Couldn’t save the break settings. Check OBS and try again.");
+        }));
+    }
+
+    private static ComboBox ObsPicker(string emptyLabel, (Guid Id, string Name)[] choices, Guid? selected)
+    {
+        var items = new[] { new ObsChoice(null, emptyLabel) }
+            .Concat(choices.Select(choice => new ObsChoice(choice.Id, choice.Name))).ToArray();
+        return new ComboBox { ItemsSource = items, DisplayMemberPath = nameof(ObsChoice.Label),
+            SelectedItem = items.FirstOrDefault(choice => choice.Id == selected) ?? items[0] };
+    }
+
+    private bool SaveBreakChoice(string collection, ObsBreakChoice? choice)
+    {
+        var choices = store.Settings.ObsBreakChoices;
+        var previous = choices.GetValueOrDefault(collection);
+        if (choice == null) choices.Remove(collection);
+        else choices[collection] = choice;
+        if (SaveObsBreakSettings()) return true;
+        if (previous == null) choices.Remove(collection);
+        else choices[collection] = previous;
+        return false;
+    }
+
+    private bool SaveBreakRecovery(bool review)
+    {
+        var previous = store.Settings.ObsBreakNeedsReview;
+        if (previous == review) return true;
+        store.Settings.ObsBreakNeedsReview = review;
+        if (SaveObsBreakSettings()) return true;
+        store.Settings.ObsBreakNeedsReview = previous;
+        return false;
+    }
+
+    private bool SaveObsBreakSettings()
+    {
+        try { store.Save(); return true; }
+        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
+        {
+            Report("Windows couldn’t save the OBS break settings.");
+            return false;
+        }
     }
 
     private void ConnectObs()

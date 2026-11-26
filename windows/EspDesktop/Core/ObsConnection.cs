@@ -8,7 +8,7 @@ using static EspDesktop.Core.Protocol;
 
 namespace EspDesktop.Core;
 
-internal sealed class ObsConnection
+internal sealed partial class ObsConnection
 {
     private sealed record Scene(Guid Id, string Name);
     private sealed record TransitionList(string Current, string[] Names);
@@ -64,11 +64,11 @@ internal sealed class ObsConnection
             finally
             {
                 socket = null;
-                if (snapshot != null)
-                {
-                    snapshot = null;
-                    CatalogueChanged?.Invoke();
-                }
+                var wasConnected = snapshot != null;
+                snapshot = null;
+                ResetControls();
+                if (wasConnected) CatalogueChanged?.Invoke();
+                BreakSettingsChanged?.Invoke();
             }
             try { await Task.Delay(TimeSpan.FromSeconds(3), token); }
             catch (OperationCanceledException) when (token.IsCancellationRequested) { break; }
@@ -79,6 +79,7 @@ internal sealed class ObsConnection
     public IEnumerable<CatalogueItem> Catalogue(uint capability)
     {
         if (capability < 13 || snapshot is not { } state) yield break;
+        foreach (var entry in ControlCatalogue(state, capability)) yield return entry;
         var selected = state.StudioMode ? state.Preview : state.Program;
         foreach (var scene in state.Scenes)
         {
@@ -112,7 +113,7 @@ internal sealed class ObsConnection
             _ => "Transitioning"
         };
         yield return new(ready ? $"obs.take.{state.ProductionToken:D}" : "obs.take", $"Take Live · {takeDetail}",
-            capability >= 20 ? state.TakeState : null, capability >= 20 && ready ? takeDetail : null);
+            capability >= 20 ? state.TakeState : null, capability >= 20 && ready ? takeDetail : null, capability >= 20 ? ready : null);
         if (state.Transitions is { } transitions)
         {
             yield return new(state.TransitionIdle && transitions.Names.Length > 1 ?
@@ -135,7 +136,10 @@ internal sealed class ObsConnection
             if (socket is not { State: WebSocketState.Open } client || snapshot is not { } state || isLocked())
                 return false;
             using var deadline = Deadline(connectionToken);
-            bool CanSend() => ReferenceEquals(socket, client) && !isLocked() && !token.IsCancellationRequested;
+            var generation = collectionGeneration;
+            bool CanSend() => ReferenceEquals(socket, client) && generation == collectionGeneration &&
+                !changingCollection && !isLocked() && !token.IsCancellationRequested;
+            if (IsExtendedAction(action)) return await PerformControl(client, state, action, CanSend, deadline.Token);
             if (action.StartsWith("obs.take.", StringComparison.Ordinal) || action.StartsWith("obs.transition.", StringComparison.Ordinal))
                 return await PerformProduction(client, state, action, CanSend, deadline.Token);
             var parts = action.Split('.');
@@ -200,8 +204,10 @@ internal sealed class ObsConnection
 
     private async Task RefreshScenes(ClientWebSocket client, CancellationToken token)
     {
+        var collectionRevision = collectionGeneration;
         var mode = await Request(client, "GetStudioModeEnabled", null, token);
         var result = await Request(client, "GetSceneList", null, token);
+        if (changingCollection || collectionRevision != collectionGeneration) return;
         if (mode is not { } studio || result is not { } list ||
             Flag(studio, "studioModeEnabled") is not { } enabled ||
             !list.TryGetProperty("scenes", out var scenes) || scenes.ValueKind != JsonValueKind.Array)
@@ -218,26 +224,29 @@ internal sealed class ObsConnection
         var preview = SceneId(list, "currentPreviewSceneUuid");
         var idle = await TransitionIdle(client, token);
         var transitions = await ReadTransitions(client, token);
+        var collectionChanged = await RefreshControls(client, enabled ? preview : program, token);
+        if (changingCollection || collectionRevision != collectionGeneration) return;
         var previous = snapshot;
-        var sameTargets = previous != null && previous.StudioMode == enabled && previous.Scenes.SequenceEqual(targets);
+        var sameTargets = !collectionChanged && previous != null && previous.StudioMode == enabled && previous.Scenes.SequenceEqual(targets);
         if (sameTargets && previous!.Program == program && previous.Preview == preview && previous.TransitionIdle == idle &&
             previous.Transitions?.Current == transitions?.Current &&
             (transitions == null || previous.Transitions!.Names.SequenceEqual(transitions.Names))) return;
         snapshot = new(targets.ToArray(), program, preview, enabled, sameTargets ? previous!.Token : Guid.NewGuid(),
             idle, transitions, Guid.NewGuid());
-        CatalogueChanged?.Invoke();
+        BreakChanged();
+        if (!sameTargets) BreakSettingsChanged?.Invoke();
     }
 
     private static string TransitionId(string name) => "obs.transition.select." + Hash(name)[..32];
 
-    private static async Task<bool> TransitionIdle(ClientWebSocket client, CancellationToken token)
+    private async Task<bool> TransitionIdle(ClientWebSocket client, CancellationToken token)
     {
         var result = await Request(client, "GetCurrentSceneTransitionCursor", null, token);
         return result is { ValueKind: JsonValueKind.Object } response && response.TryGetProperty("transitionCursor", out var cursor) &&
             cursor.ValueKind == JsonValueKind.Number && cursor.GetDouble() == 1;
     }
 
-    private static async Task<TransitionList?> ReadTransitions(ClientWebSocket client, CancellationToken token)
+    private async Task<TransitionList?> ReadTransitions(ClientWebSocket client, CancellationToken token)
     {
         var result = await Request(client, "GetSceneTransitionList", null, token);
         if (result is not { ValueKind: JsonValueKind.Object } response ||
@@ -258,7 +267,7 @@ internal sealed class ObsConnection
     private static async Task Identify(ClientWebSocket client, string password, CancellationToken token)
     {
         var hello = await Receive(client, 0, token);
-        var identify = new Dictionary<string, object> { ["rpcVersion"] = 1, ["eventSubscriptions"] = 0 };
+        var identify = new Dictionary<string, object> { ["rpcVersion"] = 1, ["eventSubscriptions"] = 2 | 4 | 8 | 64 };
         if (hello.TryGetProperty("authentication", out var authentication))
         {
             var secret = Digest(password + Text(authentication, "salt"));
@@ -268,13 +277,13 @@ internal sealed class ObsConnection
         await Receive(client, 2, token);
     }
 
-    private static async Task<JsonElement?> Request(ClientWebSocket client, string request, object? fields, CancellationToken token)
+    private async Task<JsonElement?> Request(ClientWebSocket client, string request, object? fields, CancellationToken token)
     {
         var id = Guid.NewGuid().ToString("N");
         var data = new Dictionary<string, object> { ["requestType"] = request, ["requestId"] = id };
         if (fields != null) data["requestData"] = fields;
         await Send(client, 6, data, token);
-        var reply = await Receive(client, 7, token);
+        var reply = await Receive(client, 7, token, ObserveEvent);
         if (Text(reply, "requestId") != id || Text(reply, "requestType") != request ||
             !reply.TryGetProperty("requestStatus", out var status))
             throw new IOException("OBS returned an unexpected response.");
@@ -285,25 +294,30 @@ internal sealed class ObsConnection
     private static Task Send(ClientWebSocket client, int op, object data, CancellationToken token) =>
         client.SendAsync(JsonSerializer.SerializeToUtf8Bytes(new { op, d = data }), WebSocketMessageType.Text, true, token);
 
-    private static async Task<JsonElement> Receive(ClientWebSocket client, uint opcode, CancellationToken token)
+    private static async Task<JsonElement> Receive(ClientWebSocket client, uint opcode, CancellationToken token, Action<JsonElement>? onEvent = null)
     {
-        using var message = new MemoryStream();
         var buffer = new byte[8192];
         while (true)
         {
-            var result = await client.ReceiveAsync(buffer.AsMemory(), token);
-            if (result.MessageType != WebSocketMessageType.Text || message.Length + result.Count > 1024 * 1024)
-                throw new IOException("OBS closed the WebSocket or sent an invalid message.");
-            message.Write(buffer, 0, result.Count);
-            if (result.EndOfMessage) break;
+            using var message = new MemoryStream();
+            while (true)
+            {
+                var result = await client.ReceiveAsync(buffer.AsMemory(), token);
+                if (result.MessageType != WebSocketMessageType.Text || message.Length + result.Count > 1024 * 1024)
+                    throw new IOException("OBS closed the WebSocket or sent an invalid message.");
+                message.Write(buffer, 0, result.Count);
+                if (result.EndOfMessage) break;
+            }
+            using var json = JsonDocument.Parse(message.ToArray());
+            var envelope = json.RootElement;
+            if (envelope.ValueKind != JsonValueKind.Object || !envelope.TryGetProperty("op", out var op) ||
+                op.ValueKind != JsonValueKind.Number || !op.TryGetUInt32(out var received) ||
+                !envelope.TryGetProperty("d", out var data) || data.ValueKind != JsonValueKind.Object)
+                throw new IOException("Unexpected OBS WebSocket message.");
+            if (received == opcode) return data.Clone();
+            if (received != 5 || onEvent == null) throw new IOException("Unexpected OBS WebSocket opcode.");
+            onEvent(data);
         }
-        using var json = JsonDocument.Parse(message.ToArray());
-        var envelope = json.RootElement;
-        if (envelope.ValueKind != JsonValueKind.Object || !envelope.TryGetProperty("op", out var op) ||
-            op.ValueKind != JsonValueKind.Number || !op.TryGetUInt32(out var received) || received != opcode ||
-            !envelope.TryGetProperty("d", out var data) || data.ValueKind != JsonValueKind.Object)
-            throw new IOException("Unexpected OBS WebSocket message.");
-        return data.Clone();
     }
 
     private static Guid? SceneId(JsonElement data, string key) => Guid.TryParseExact(Text(data, key), "D", out var id) ? id : null;
