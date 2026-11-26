@@ -5130,13 +5130,16 @@ async function assertShortcutIconSettings(browser, testCase) {
     await page.locator(".sp-ctx-menu").getByText("Edit Card", { exact: true }).click();
     await openIconSettings();
   }
+  async function selectShortcut(label) {
+    await page.getByRole("searchbox", { name: "Find a keyboard shortcut…" }).fill(label);
+    await page.getByRole("radio", { name: new RegExp("^" + label + " ") }).check();
+    await openIconSettings();
+  }
   async function addReaderShortcut() {
     await page.locator(".sp-main .sp-empty-cell").first().click();
     await chooseCardType(page, "Keyboard Shortcut");
     if (!await app.inputValue()) await app.selectOption("com.apple.Safari");
-    await page.getByRole("searchbox", { name: "Find a keyboard shortcut…" }).fill("Open Reader");
-    await page.getByRole("radio", { name: /^Open Reader / }).check();
-    await openIconSettings();
+    await selectShortcut("Open Reader");
   }
   async function saveCard() {
     const before = nativeState.puts.length;
@@ -5160,7 +5163,12 @@ async function assertShortcutIconSettings(browser, testCase) {
     await customIcon.click();
     await picker.fill("Timer");
     await page.locator(".sp-icon-option").getByText("Timer", { exact: true }).click();
+    await selectShortcut("Reload");
+    assert.equal(await customIcon.getAttribute("aria-pressed"), "true", "changing presets keeps the custom mode");
+    assert.equal(await picker.inputValue(), "Timer");
     await appIcon.click();
+    await selectShortcut("Open Reader");
+    assert.equal(await appIcon.getAttribute("aria-pressed"), "true", "changing presets keeps the app mode");
     assert.equal(await picker.isVisible(), false);
     await saveCard();
 

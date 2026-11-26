@@ -1365,7 +1365,7 @@ export function registerCompanionCardTypes(
             const pageApp = isNewShortcut ? appShortcutPageOwner(owner(parentPage)) : undefined;
             const inAppSubpage = !!appShortcutPageOwner(owner(parentPage)) ||
                 !!(parentPage && appShortcutPageOwner(owner(parentPageKey(parentPage))));
-            const useShortcutAppIcon = card._shortcutAppIcon ??
+            let useShortcutAppIcon = card._shortcutAppIcon ??
                 (savedCatalogShortcut ? !!companionShortcutAppIconId(card) : isNewShortcut && !inAppSubpage);
             const windowsShortcuts = useWindowsShortcuts();
             const platformPending = connectorStatus.companionPlatform() === undefined;
@@ -2020,6 +2020,7 @@ export function registerCompanionCardTypes(
             });
             if (showShortcutIconMode && panel) {
                 renderShortcutIconSettings(panel, helpers, "App Icon", useShortcutAppIcon, card.icon, enabled => {
+                    useShortcutAppIcon = enabled;
                     card._shortcutAppIcon = enabled;
                     card.options = setConfigOption(card.options, COMPANION_SHORTCUT_APP_ICON_OPTION, enabled);
                     helpers.saveField("options", card.options);
