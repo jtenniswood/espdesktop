@@ -461,6 +461,11 @@ def test_factory_packages(profiles: dict[str, dict]) -> None:
                 assert len(layout["grid_rows"]) == profiles[slug]["layout"]["rows"], (
                     f"{slug}: startup grid rows must match the device profile"
                 )
+            if slug == "guition-esp32-p4-jc8012p4a1-v3":
+                framework = config["esp32"]["framework"]["advanced"]
+                assert framework["loop_task_stack_size"] >= 16384, (
+                    f"{slug}: the live layout rebuild needs a 16 KiB loop task stack"
+                )
             native = slug in {"guition-esp32-s3-4848s040", "guition-esp32-p4-jc1060p470-v3"}
             assert ("api" in config) == native, f"{path.name}: unexpected native ESPHome API scope"
             if native:

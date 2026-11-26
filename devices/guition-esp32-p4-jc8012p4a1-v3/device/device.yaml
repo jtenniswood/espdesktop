@@ -27,6 +27,8 @@ esp32:
     # incompletely in ESPHome containers and then fail while creating .bin files.
     #platform_version: 55.03.37
     advanced:
+      # Live layout saves rebuild cards and subpages on ESPHome's application loop.
+      loop_task_stack_size: 16384
       enable_idf_experimental_features: true
       execute_from_psram: true
       disable_vfs_support_termios: false
