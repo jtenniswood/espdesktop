@@ -9,7 +9,7 @@ Choose **EspDesktop** to control a Mac or Windows PC. Choose **EspControl** to c
 
 | I want to… | Project and setup |
 | --- | --- |
-| Launch apps, open folders or websites, run keyboard shortcuts or lock the computer | **EspDesktop**. Follow the [macOS setup](/screens/4848s040#setup-on-macos) or [Windows 11 setup](/windows-preview) guide. |
+| Launch apps, open folders or websites, run keyboard shortcuts or lock the computer | **EspDesktop**. Follow the [macOS setup](/screens/4848s040#setup-on-macos) or [Windows setup](/windows) guide. |
 | Trigger a saved EspDesktop action from a Home Assistant automation | **EspDesktop**. [Enable the ESPHome integration for your display](/getting-started/home-assistant-actions). |
 | Toggle lights, run Home Assistant scripts or see sensor readings on a touchscreen | **EspControl**. Use the [4848S040 Home Assistant setup guide](https://jtenniswood.github.io/espcontrol/screens/4848s040). |
 
@@ -17,7 +17,7 @@ Choose **EspDesktop** to control a Mac or Windows PC. Choose **EspControl** to c
 
 ## What do I need for computer control?
 
-Pair the display with the EspDesktop app on your local network. The 4848S040 connects to 2.4 GHz Wi-Fi. The Mac app requires Apple silicon and macOS 13 or newer. The Windows preview requires Windows 11.
+Pair the display with the EspDesktop app on your local network. The 4848S040 connects to 2.4 GHz Wi-Fi. The Mac app requires Apple silicon and macOS 13 or newer. The Windows app supports Intel, AMD, and Arm PCs.
 
 ## What do I need for Home Assistant control?
 

@@ -7,7 +7,7 @@ description: Connect OBS Studio to EspDesktop and set up touchscreen pages for s
 
 OBS Studio is a free, open-source app for recording video and live streaming. You build **scenes** from sources like cameras, screen captures, and graphics, then use the mixer to adjust microphones and other audio. [Visit the OBS Project for downloads and guides](https://obsproject.com/).
 
-On macOS and Windows, use your touchscreen to switch scenes in OBS Studio. On macOS, you can also build pages for audio, recording, and streaming controls. The steps below cover macOS. [Connect OBS Studio on Windows](/windows-preview#switch-obs-scenes).
+On macOS and Windows, use your touchscreen to switch scenes in OBS Studio. On macOS, you can also build pages for audio, recording, and streaming controls. The steps below cover macOS. [Connect OBS Studio on Windows](/windows#switch-obs-scenes).
 
 <picture>
   <source type="image/avif" srcset="/images/obs/home-480.avif 480w, /images/obs/home-960.avif 960w" sizes="(min-width: 768px) 688px, min(688px, 90vw)">

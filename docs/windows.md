@@ -1,13 +1,11 @@
 ---
-title: Try EspDesktop for Windows 11
-description: Install the Windows companion preview and pair your Guition 4848S040 touchscreen to launch apps, open folders and control your PC.
+title: EspDesktop Windows setup
+description: Install EspDesktop for Windows and pair your Guition 4848S040 touchscreen to launch apps, open folders and control your PC.
 ---
 
-# EspDesktop for Windows 11 preview
+# Windows setup
 
 Use a 4-inch Guition 4848S040 to launch approved Windows apps, open File Explorer folders and websites, send keyboard shortcuts, control speaker and microphone levels, or lock your PC. The companion runs in the notification area and can start when you sign in.
-
-<span id="install-the-preview"></span>
 
 ## Install EspDesktop
 

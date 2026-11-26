@@ -1,6 +1,6 @@
 ---
 title: Touchscreen Compatibility and Setup FAQ
-description: Find out which touchscreen, macOS and Windows versions work with EspDesktop, how local pairing works, and what permissions controls need.
+description: Find out which touchscreens, Macs, and Windows PCs work with EspDesktop, how local pairing works, and what permissions controls need.
 outline: [2, 3]
 ---
 
@@ -18,7 +18,7 @@ The EspDesktop Mac app requires **Apple silicon and macOS 13 or newer**. Intel M
 
 ### Which Windows PCs does EspDesktop support?
 
-The preview supports **Windows 11** on Intel, AMD, and Arm PCs. See the [Windows setup guide](/windows-preview) for installer and pairing steps.
+EspDesktop for Windows supports Intel, AMD, and Arm PCs. See the [Windows setup guide](/windows) for installer and pairing steps.
 
 ### Does EspDesktop need Home Assistant?
 

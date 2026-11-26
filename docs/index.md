@@ -1,7 +1,7 @@
 ---
 title: "EspDesktop: A touchscreen controller for Mac and Windows"
 titleTemplate: :title
-description: Launch apps, open websites and folders, and run keyboard shortcuts from a 4-inch touchscreen paired with the free EspDesktop app for macOS or Windows 11.
+description: Launch apps, open websites and folders, and run keyboard shortcuts from a 4-inch touchscreen paired with the free EspDesktop app for macOS or Windows.
 layout: home
 ---
 

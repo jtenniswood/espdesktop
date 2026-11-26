@@ -23,7 +23,7 @@ const windowsApps = new Map(readdirSync(windowsDir).filter(name => name.endsWith
   [name.slice(0, -5), JSON.parse(readFileSync(new URL(name, windowsDir), 'utf8')) as WindowsShortcutApplication]))
 const icons = new Map(iconCatalog.icons.map(icon => [icon.name, icon.codepoint]))
 const listFormatter = new Intl.ListFormat('en-GB', { type: 'conjunction' })
-const windowsSetup = '[Set up application shortcut buttons on Windows](/windows-preview#add-controls).\n'
+const windowsSetup = '[Set up application shortcut buttons on Windows](/windows#add-controls).\n'
 
 function validateCoverage() {
   const covered = new Set(copy.map(([, guide]) => guide.appId))

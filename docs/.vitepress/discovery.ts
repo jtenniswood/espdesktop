@@ -13,11 +13,13 @@ export function canonicalUrlFor(relativePath: string) {
 const espcontrol = 'https://jtenniswood.github.io/espcontrol/'
 const immichGuide = `${espcontrol}immich/`
 const displaySetup = `${hostname}screens/4848s040`
+const windowsSetup = `${hostname}windows`
 const macControls = `${hostname}#what-you-can-control`
 
 // GitHub Pages cannot configure HTTP redirects. These HTML fallbacks preserve
 // published links while keeping retired pages out of search and the sitemap.
 export const redirects: Record<string, string> = {
+  'windows-preview': windowsSetup,
   'card-types/climate': `${espcontrol}card-types/climate`,
   'getting-started/mac-app': `${displaySetup}#download`,
   'getting-started/install': `${displaySetup}#install`,
@@ -110,6 +112,14 @@ const formerMacAppSections = Object.fromEntries([
   'check-for-mac-app-updates',
 ].map(section => [`#${section}`, `${displaySetup}#${section}`]))
 
+const formerWindowsSections = {
+  ...Object.fromEntries([
+    'install-espdesktop', 'update-espdesktop', 'pair-your-display',
+    'add-controls', 'control-system-sound', 'switch-obs-scenes',
+  ].map(section => [`#${section}`, `${windowsSetup}#${section}`])),
+  '#install-the-preview': `${windowsSetup}#install-espdesktop`,
+}
+
 export async function writeRedirects(outDir: string) {
   for (const [path, destination] of Object.entries(redirects)) {
     const file = join(outDir, `${path}.html`)
@@ -120,6 +130,7 @@ export async function writeRedirects(outDir: string) {
         ? { '#connect-the-display-to-wifi': `${displaySetup}#connect-the-display-to-wifi` }
       : path === 'getting-started/mac-app' ? formerMacAppSections
       : path === 'immich/installation' ? formerImmichSections
+      : path === 'windows-preview' ? formerWindowsSections
       : undefined
     const fragmentRedirect = formerSections
       ? `<script>

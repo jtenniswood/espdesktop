@@ -15,7 +15,7 @@ description: Add a card to the EspDesktop screen grid, choose a card type, and c
 
 ## Which cards work with my computer?
 
-The picker depends on which computer is connected and the versions of EspDesktop and the display firmware. For computer controls, pair the display with [macOS](/screens/4848s040#setup-on-macos) or [Windows](/windows-preview#pair-your-display) first.
+The picker depends on which computer is connected and the versions of EspDesktop and the display firmware. For computer controls, pair the display with [macOS](/screens/4848s040#setup-on-macos) or [Windows](/windows#pair-your-display) first.
 
 | Card | Use it to | Platform |
 | --- | --- | --- |
@@ -27,7 +27,7 @@ The picker depends on which computer is connected and the versions of EspDesktop
 | [Subpage](/features/subpages) | Group cards on the display. | Both platforms, also usable without a paired computer |
 | [Sound](/card-types/sound) | Adjust speaker, microphone, or app volume. | macOS and Windows. Hold-to-mute is macOS only. |
 | [Apple Shortcuts](/mac-controls/apple-shortcuts) | Run a workflow or group workflows on a page. | macOS |
-| [OBS Studio](/mac-controls/obs-studio) | Switch scenes and control a broadcast. | [Windows scene and transition controls](/windows-preview#switch-obs-scenes). macOS also supports mixer, recording, and streaming controls. |
+| [OBS Studio](/mac-controls/obs-studio) | Switch scenes and control a broadcast. | [Windows scene and transition controls](/windows#switch-obs-scenes). macOS also supports mixer, recording, and streaming controls. |
 
 <span id="set-up-the-card"></span>
 

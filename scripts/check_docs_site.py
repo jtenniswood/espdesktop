@@ -409,6 +409,7 @@ def check_build(dist):
             faq_answers_verified += len(actual)
 
     redirects = {
+        'windows-preview': BASE + 'windows',
         'card-types/climate': 'https://jtenniswood.github.io/espcontrol/card-types/climate',
         'getting-started/mac-app': BASE + 'screens/4848s040#download',
         'getting-started/install': BASE + 'screens/4848s040#install',

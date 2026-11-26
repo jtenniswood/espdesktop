@@ -339,10 +339,11 @@ async function checkBrowser() {
     await setup.press('Enter');
     await page.waitForURL(`${home}screens/4848s040`);
     await page.getByRole('heading', { name: 'Set up on macOS' }).waitFor();
-    await page.getByRole('heading', { name: 'Set up on Windows 11' }).waitFor();
-    await page.getByRole('link', { name: 'Windows 11 preview guide', exact: true }).click();
-    await page.waitForURL(`${home}windows-preview`);
-    await page.getByRole('heading', { name: 'EspDesktop for Windows 11 preview', level: 1 }).waitFor();
+    await page.getByRole('heading', { name: 'Set up on Windows' }).waitFor();
+    await page.getByRole('link', { name: 'Windows setup guide', exact: true }).click();
+    await page.waitForURL(`${home}windows`);
+    await page.getByRole('heading', { name: 'Windows setup', level: 1 }).waitFor();
+    assert.equal(await page.locator('.VPSidebar').getByRole('link', { name: 'Windows setup', exact: true }).getAttribute('href'), '/windows');
     await page.goBack();
     await page.waitForURL(`${home}screens/4848s040`);
     console.log('Homepage checks passed at desktop, tablet and phone widths.');
@@ -364,7 +365,7 @@ async function checkBrowser() {
     await page.waitForURL(`${base}/download`);
     await page.getByRole('heading', { name: 'Download EspDesktop', level: 1 }).waitFor();
     const windowsDownload = page.getByRole('link', { name: 'Download the Windows installer and pair your display' });
-    assert.equal(await windowsDownload.getAttribute('href'), '/windows-preview#install-espdesktop');
+    assert.equal(await windowsDownload.getAttribute('href'), '/windows#install-espdesktop');
     const download = page.locator('.mac-app-download a');
     await download.waitFor();
     assert.match(await download.getAttribute('href'),

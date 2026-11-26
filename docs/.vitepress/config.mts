@@ -270,7 +270,7 @@ export default defineConfig({
           name: 'EspDesktop',
           url: canonicalUrl,
           applicationCategory: 'UtilitiesApplication',
-          operatingSystem: `macOS ${productFacts.minimumMacOS} or newer (Apple silicon), Windows 11 (x64 or Arm64 preview)`,
+          operatingSystem: `macOS ${productFacts.minimumMacOS} or newer (Apple silicon), Windows (x64 or Arm64)`,
           sameAs: 'https://github.com/jtenniswood/espdesktop',
           installUrl: `${hostname}download`,
           releaseNotes: 'https://github.com/jtenniswood/espdesktop/releases',
@@ -360,7 +360,7 @@ export default defineConfig({
         items: [
           { text: 'Display setup', link: '/screens/4848s040' },
           { text: 'macOS setup', link: '/screens/4848s040#setup-on-macos' },
-          { text: 'Windows 11 setup (preview)', link: '/windows-preview' },
+          { text: 'Windows setup', link: '/windows' },
           { text: 'Printable stand', link: '/screens/4848s040-stand' },
         ],
       },
