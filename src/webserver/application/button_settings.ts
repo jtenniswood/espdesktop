@@ -54,7 +54,6 @@ export interface CardPickerConnectorState {
 
 const MAC_ONLY_CARD_TYPES = new Set([
     "companion_apple_shortcut", "companion_apple_shortcuts",
-    "companion_cough",
 ]);
 
 export function createButtonSettingsFeature(
@@ -1118,14 +1117,12 @@ export function createButtonSettingsFeature(
             title.textContent = obsAudioType ? "Audio Controls" : cardSettingsTitle(rawTypeDef, b);
         }
         const soundType = (buttonTypeRegistryValue(rawTypeDef, "pickerKey", "") || b.type) === "companion_output_volume";
-        const macOnlySound = soundType && windowsCompanion && MAC_ONLY_CARD_TYPES.has(b.type);
-        let macOnlyNotice: HTMLParagraphElement | undefined;
         if (windowsCompanion && (MAC_ONLY_CARD_TYPES.has(b.type) || isAppleShortcutsCard(b) || isAppleShortcutsPage(b) ||
             b.entity === APPLE_SHORTCUTS_APP_ID)) {
-            macOnlyNotice = document.createElement("p");
+            const macOnlyNotice = document.createElement("p");
             macOnlyNotice.className = "sp-setting-note";
             macOnlyNotice.textContent = "This card requires the macOS companion.";
-            if (!macOnlySound) panel.appendChild(macOnlyNotice);
+            panel.appendChild(macOnlyNotice);
         }
         var typeHelpers: any = {
             makeIconPicker: makeIconPicker,
@@ -1185,15 +1182,12 @@ export function createButtonSettingsFeature(
                 ["companion_cough", "Input Cough"],
                 ["companion_input_device", "Input per device level"],
             ];
-            const availableSubtypes = audioSubtypes.filter(([key]) =>
-                !windowsCompanion || key === b.type || !MAC_ONLY_CARD_TYPES.has(key));
-            const subtype = selectField("Type", idPrefix + "audio-type", availableSubtypes, b.type,
+            const subtype = selectField("Type", idPrefix + "audio-type", audioSubtypes, b.type,
                 (event: Event) => selectCardType((event.currentTarget as HTMLSelectElement).value));
-            if (macOnlySound && macOnlyNotice) subtype.field.appendChild(macOnlyNotice);
             panel.appendChild(subtype.field);
             markCardPrimaryField(subtype.field, "type");
         }
-        if (!macOnlySound && typeDef && typeDef.renderSettingsBeforeLabel &&
+        if (typeDef && typeDef.renderSettingsBeforeLabel &&
             (!c.isSub || buttonTypeRegistryValue(typeDef, "allowInSubpage", false))) {
             typeDef.renderSettingsBeforeLabel(panel, b, slot, typeHelpers);
         }
