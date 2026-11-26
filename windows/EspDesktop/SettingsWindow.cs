@@ -62,6 +62,8 @@ internal sealed class SettingsWindow : Window
         public Pairing Pairing { get; set; } = pairing;
         public CancellationTokenSource? Cancellation { get; set; }
         public Task? Task { get; set; }
+        public UsbDisplayEditor? UsbEditor { get; set; }
+        public UsbEditorWindow? EditorWindow { get; set; }
         public bool Forgetting { get; set; }
         public TextBlock Status { get; } = Paragraph("Disconnected");
         public Button? ConnectionButton { get; set; }
@@ -212,8 +214,7 @@ internal sealed class SettingsWindow : Window
 
     public void OpenPanel()
     {
-        if (displays.Count == 1 && DisplayEndpoint.Parse(displays[0].Pairing.Address).Settings is not null)
-            OpenPanel(displays[0].Pairing.Address);
+        if (displays.Count == 1) OpenPanel(displays[0]);
         else ShowDisplaySettings();
     }
 
@@ -221,6 +222,36 @@ internal sealed class SettingsWindow : Window
     {
         ShowSettings();
         navigation.SelectedIndex = 0;
+    }
+
+    private void OpenPanel(DisplayConnection display)
+    {
+        if (DisplayEndpoint.Parse(display.Pairing.Address).UsbPort is null)
+        {
+            OpenPanel(display.Pairing.Address);
+            return;
+        }
+
+        if (display.EditorWindow is { } open)
+        {
+            if (open.WindowState == WindowState.Minimized) open.WindowState = WindowState.Normal;
+            open.Activate();
+            return;
+        }
+        if (display.UsbEditor is null)
+        {
+            ShowDisplaySettings();
+            Report(display.Status.Text.StartsWith("Connected", StringComparison.Ordinal)
+                ? "Update this display’s firmware to open its editor over USB."
+                : "Connect the display by USB before opening its editor.");
+            return;
+        }
+
+        var window = new UsbEditorWindow(display.Pairing.DisplayName ?? "Display", () => display.UsbEditor);
+        if (IsVisible) window.Owner = this;
+        display.EditorWindow = window;
+        window.Closed += (_, _) => display.EditorWindow = null;
+        window.Show();
     }
 
     private void OpenPanel(string target, bool pairingPage = false)
@@ -287,7 +318,7 @@ internal sealed class SettingsWindow : Window
             {
                 try { return (await Discovery.Find(token)).FirstOrDefault(d => d.Fingerprint == fingerprint); }
                 catch (NetworkInformationException) { return null; }
-            }).RunAsync(display.Pairing, cancellation.Token, newAddress);
+            }).RunAsync(display.Pairing, cancellation.Token, newAddress, editor => display.UsbEditor = editor);
         }
         catch (Exception e) when (e is IOException or UnauthorizedAccessException or CryptographicException or InvalidOperationException)
         { display.Status.Text = "Couldn’t keep the connection. Check the saved pairing and try again."; }
@@ -371,12 +402,14 @@ internal sealed class SettingsWindow : Window
             {
                 await StopConnection(display);
                 store.ForgetPairing(display.Pairing.Fingerprint);
+                display.EditorWindow?.Close();
                 displays.Remove(display);
             }
             else
             {
                 await Task.WhenAll(displays.Select(StopConnection));
                 store.ForgetPairing();
+                foreach (var saved in displays) saved.EditorWindow?.Close();
                 displays.Clear();
             }
             if (!HasPairing)
@@ -510,6 +543,7 @@ internal sealed class SettingsWindow : Window
         quitting = true;
         discoveryTimer.Stop();
         updatesTimer.Stop();
+        foreach (var display in displays) display.EditorWindow?.Close();
         await lifetime.CancelAsync();
         await Task.WhenAll(displays.Select(StopConnection));
         await StopObs();
@@ -580,8 +614,7 @@ internal sealed class SettingsWindow : Window
             display.ConnectionButton = Button("Connect", async () => await ToggleConnection(display), !display.Forgetting);
             UpdateConnectionButton(display);
             var actions = new List<UIElement>();
-            if (endpoint.Settings is not null)
-                actions.Add(Button("Open display editor", () => OpenPanel(display.Pairing.Address)));
+            actions.Add(Button("Open display editor", () => OpenPanel(display)));
             actions.Add(display.ConnectionButton);
             actions.Add(Button("Change connection", () =>
             {

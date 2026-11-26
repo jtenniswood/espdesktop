@@ -117,6 +117,7 @@ var usbEndpoint = DisplayEndpoint.Parse("usb:com12");
 Check(usbEndpoint is { UsbPort: "COM12", Label: "USB (COM12)", Settings: null, PairingPage: null },
     "use a Windows serial port for USB and keep the editor URL unavailable");
 await VerifyUsbFrames();
+await UsbEditorChecks.Run();
 
 Check(SafeActions.WebUrl("https%3A%2F%2Fexample.org")?.Host == "example.org", "valid URL");
 foreach (var bad in new[] { "file:///C:/Windows", "https://a:b@example.org", "ms-settings:windowsupdate", "https:%5c%5cexample.com", "https://example.org/%0a" })

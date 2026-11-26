@@ -30,7 +30,7 @@ export interface StateLoaderFeature {
     settingsStateEntities(): any[];
     subpageStateEntities(): any[];
     loadStateItems(items?: any[], handleState?: (state: any) => void, concurrency?: number, strict?: boolean): Promise<number>;
-    loadInitialState(handleState?: (state: any) => void, onLoaded?: () => void): void;
+    loadInitialState(handleState?: (state: any) => void, onLoaded?: () => void, nativeLayoutLoaded?: boolean): void;
     waitForInitialState(): Promise<void>;
     refreshFirmwareVersion(): Promise<void>;
     refreshScreensaverTimeout(): void;
@@ -114,10 +114,11 @@ export function createStateLoaderFeature(runtime: UiRuntimeState, layout: Applic
             run();
         });
     }
-    function loadInitialState(this: any, handleState?: any, onLoaded?: any) {
-        initialRead = loadStateItems(cardStateEntities(), handleState, 4, true).then(async (loadedCount) => {
-            if (loadedCount === 0) {
-                throw new Error("Could not read the saved configuration.");
+    function loadInitialState(this: any, handleState?: any, onLoaded?: any, nativeLayoutLoaded = false) {
+        initialRead = Promise.resolve().then(async () => {
+            if (!nativeLayoutLoaded) {
+                const loadedCount = await loadStateItems(cardStateEntities(), handleState, 4, true);
+                if (loadedCount === 0) throw new Error("Could not read the saved configuration.");
             }
             if (onLoaded) onLoaded();
             clearTimeout(runtime.migrationTimer as any);
@@ -125,7 +126,7 @@ export function createStateLoaderFeature(runtime: UiRuntimeState, layout: Applic
             clearTimeout(runtime.sliderMigrationTimer as any);
             runtime.pendingSliderSubpageMigrations = {};
             await loadStateItems(settingsStateEntities(), handleState, 2, true);
-            await loadStateItems(subpageStateEntities(), handleState, 2, true);
+            if (!nativeLayoutLoaded) await loadStateItems(subpageStateEntities(), handleState, 2, true);
             dependencies.publishCompanionURLTargets?.();
         });
         // Keep partial reads out of backups and retry through the normal
