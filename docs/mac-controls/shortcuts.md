@@ -24,7 +24,7 @@ A **Keyboard Shortcut** card can run a preset for a specific app or send a custo
 2. Use the **Application** tab, which opens by default, to pick a preset for an app. Switch to **Custom** to enter keys such as **Command + F** on macOS or **Ctrl + F** on Windows.
 3. Save and tap the card. An Application preset opens or focuses the selected app before sending the keys. A Custom shortcut sends the keys to the app already in front. On Windows, that app must be approved in EspDesktop.
 
-The **Application** tab lists apps with presets for the paired computer. Choose an app and use **Find a keyboard shortcut…** to search by action name or key combination. Approve the target app in EspDesktop. If the app cannot be brought to the front, the card skips the shortcut. On Windows, bring the app forward and tap the card again if Windows keeps another window active.
+The **Application** tab lists apps that have presets, are installed on the paired computer, and are enabled in EspDesktop. Choose an app and use **Find a keyboard shortcut…** to search by action name or key combination. If the app cannot be brought to the front, the card skips the shortcut. On Windows, bring the app forward and tap the card again if Windows keeps another window active.
 
 New app presets outside an app subpage use the app's icon. In **Card Settings → Icon**, choose **Custom Icon** to reveal the icon picker. Shortcuts inside an app subpage start with the preset's symbol. If the app's artwork is unavailable, the tile shows its selected custom icon.
 
@@ -46,7 +46,7 @@ Enable **EspDesktop** in **System Settings → Privacy & Security → Accessibil
 
 If a tile still does nothing, follow [the keyboard shortcut and Lock Machine troubleshooting steps](/getting-started/troubleshooting#a-card-does-not-work).
 
-With the companion app connected, the editor loads its shortcut catalogue over your local network. On macOS, the editor also has a starter set of presets available while disconnected. Saved cards retain their shortcut keys.
+With the companion app connected, the editor loads its shortcut catalogue over your local network. Saved cards retain their shortcut keys if the computer disconnects or the app becomes unavailable.
 
 ## Group keyboard shortcuts by app {#use-a-template-on-an-app-subpage}
 
