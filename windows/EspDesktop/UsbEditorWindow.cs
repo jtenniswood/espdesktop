@@ -13,6 +13,7 @@ namespace EspDesktop;
 
 internal sealed class UsbEditorWindow : Window
 {
+    private readonly byte[]? bundledScript = ReadBundledScript();
     private readonly Uri origin = new($"https://{Guid.NewGuid():N}.espdesktop.invalid/");
     private readonly WebView2 browser = new();
     private readonly TextBlock status = new() { Text = "Loading editor over USB…", TextWrapping = TextWrapping.Wrap };
@@ -120,7 +121,7 @@ internal sealed class UsbEditorWindow : Window
 
     private void LoadEditor()
     {
-        status.Text = "Loading editor over USB… The first load can take a minute.";
+        status.Text = "Loading editor over USB…";
         browser.CoreWebView2.Navigate(origin.AbsoluteUri);
     }
 
@@ -145,6 +146,12 @@ internal sealed class UsbEditorWindow : Window
             {
                 status.Text = "Reconnect the display by USB to continue.";
                 Respond(e, 503);
+                return;
+            }
+
+            if (path == "/0.js" && request.Method == "GET" && bundledScript is not null)
+            {
+                Respond(e, 200, "Content-Type: text/javascript", bundledScript);
                 return;
             }
 
@@ -176,6 +183,15 @@ internal sealed class UsbEditorWindow : Window
             status.Text = "The display didn’t respond. Check the USB connection and retry.";
             Respond(e, 503);
         }
+    }
+
+    private static byte[]? ReadBundledScript()
+    {
+        using var source = typeof(UsbEditorWindow).Assembly.GetManifestResourceStream("UsbEditor.js");
+        if (source is null) return null;
+        using var output = new MemoryStream();
+        source.CopyTo(output);
+        return output.ToArray();
     }
 
     private static byte[]? ReadBody(Stream? content, CancellationToken token)

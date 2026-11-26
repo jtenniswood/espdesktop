@@ -39,9 +39,10 @@ If **Display** says it needs a newer version of EspDesktop for Windows, get the 
 
 ## Build and check
 
-Use the .NET 10 SDK and Inno Setup 6.3 or newer on Windows. From the repository root:
+Use the .NET 10 SDK, Node.js 26, Python 3, and Inno Setup 6.3 or newer on Windows. The installer build bundles the editor from source. From the repository root:
 
 ```powershell
+npm ci
 dotnet run -c Release --project windows/EspDesktop.Tests
 dotnet run -c Release --project windows/EspDesktop
 ./windows/EspDesktop/Packaging/Build-Installer.ps1 -Architecture x64

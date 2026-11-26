@@ -31,6 +31,7 @@ if ($SigningThumbprint) {
 }
 
 $project = Join-Path $PSScriptRoot '..\EspDesktop.csproj'
+$repo = Join-Path $PSScriptRoot '..\..\..'
 if (!$OutputDirectory) { $OutputDirectory = Join-Path $PSScriptRoot '..\..\..\dist\windows' }
 $OutputDirectory = [IO.Path]::GetFullPath($OutputDirectory)
 $tempRoot = [IO.Path]::GetFullPath([IO.Path]::GetTempPath())
@@ -41,7 +42,12 @@ New-Item -ItemType Directory -Path $OutputDirectory -Force | Out-Null
 New-Item -ItemType Directory -Path $staged -Force | Out-Null
 
 try {
-    dotnet publish $project -c Release -r "win-$Architecture" --self-contained -o $publish "-p:Version=$Version" "-p:DebugType=None"
+    $assetBuild = Join-Path $build 'editor'
+    python (Join-Path $repo 'scripts/build.py') www --temporary-output $assetBuild
+    if ($LASTEXITCODE) { throw 'USB editor build failed. Run npm ci from the repository root before building the installer.' }
+    $asset = Join-Path $assetBuild 'embedded/www.js'
+    if (!(Test-Path -LiteralPath $asset -PathType Leaf)) { throw 'The USB editor bundle was not generated.' }
+    dotnet publish $project -c Release -r "win-$Architecture" --self-contained -o $publish "-p:Version=$Version" "-p:DebugType=None" "-p:UsbEditorAsset=$asset"
     if ($LASTEXITCODE) { throw 'Windows publish failed.' }
     $iscc = (Get-Command ISCC.exe -ErrorAction SilentlyContinue).Source
     if (!$iscc) { $iscc = Join-Path ${env:ProgramFiles(x86)} 'Inno Setup 6\ISCC.exe' }
