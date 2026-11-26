@@ -376,3 +376,17 @@ turn_on_studio_mode=Otetaanko studiotila käyttöön?
 turn_off_studio_mode=Poistetaanko studiotila käytöstä?
 start_replay_buffer_prompt=Käynnistetäänkö toistopuskuri?
 stop_replay_buffer_prompt=Pysäytetäänkö toistopuskuri?
+
+# Display pairing, audio and OBS
+label_ha_pairing_fingerprint=Sormenjälki
+label_ha_pairing_code=Pariliitoskoodi
+label_cough=Yskä
+obs_record=Tallenna
+obs_take_live=Siirrä lähetykseen
+obs_save_replay=Tallenna uusinta
+obs_enable_studio_mode=Ota studiotila käyttöön
+obs_choose_preview=Valitse esikatselu
+obs_already_on_program=Jo lähetyksessä
+obs_transitioning=Siirtymä käynnissä
+obs_replay_not_confirmed=Uusintaa ei vahvistettu
+obs_check=Tarkista OBS

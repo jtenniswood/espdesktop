@@ -259,14 +259,14 @@ inline bool device_show_home_assistant_pairing(const std::string &code, const lv
   lv_obj_set_flex_align(shell.panel, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
   const auto &theme = current_theme();
   device_pairing_label(shell.panel, "Home Assistant", font, theme.text_primary);
-  auto label = [&](const std::string &value) {
+  auto code_label = [&](const std::string &value) {
     auto *object = device_pairing_label(shell.panel, value.c_str(), font, theme.text_primary);
     lv_obj_set_style_base_dir(object, LV_BASE_DIR_LTR, LV_PART_MAIN);
   };
-  label("Fingerprint");
-  for (size_t start = 0; start < 64; start += 16) label(code.substr(start, 16));
-  label("Pairing code");
-  label(code.substr(65));
+  device_pairing_label(shell.panel, espdesktop_i18n_key("label_ha_pairing_fingerprint"), font, theme.text_primary);
+  for (size_t start = 0; start < 64; start += 16) code_label(code.substr(start, 16));
+  device_pairing_label(shell.panel, espdesktop_i18n_key("label_ha_pairing_code"), font, theme.text_primary);
+  code_label(code.substr(65));
   const auto width = layout.panel_w - layout.inset * 2;
   auto *done = device_pairing_button(shell.panel, espdesktop_i18n("Done"), width, width,
                                      layout.profile.base_touch_target, font);

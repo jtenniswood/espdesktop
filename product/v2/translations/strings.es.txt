@@ -376,3 +376,17 @@ turn_on_studio_mode=¿Activar el modo estudio?
 turn_off_studio_mode=¿Desactivar el modo estudio?
 start_replay_buffer_prompt=¿Iniciar el búfer de repetición?
 stop_replay_buffer_prompt=¿Detener el búfer de repetición?
+
+# Display pairing, audio and OBS
+label_ha_pairing_fingerprint=Huella digital
+label_ha_pairing_code=Código de emparejamiento
+label_cough=Tos
+obs_record=Grabar
+obs_take_live=Pasar a directo
+obs_save_replay=Guardar repetición
+obs_enable_studio_mode=Activar el modo estudio
+obs_choose_preview=Elige una vista previa
+obs_already_on_program=Ya está en programa
+obs_transitioning=Transición en curso
+obs_replay_not_confirmed=Repetición sin confirmar
+obs_check=Comprueba OBS

@@ -376,3 +376,17 @@ turn_on_studio_mode=Studiomodus inschakelen?
 turn_off_studio_mode=Studiomodus uitschakelen?
 start_replay_buffer_prompt=Replaybuffer starten?
 stop_replay_buffer_prompt=Replaybuffer stoppen?
+
+# Display pairing, audio and OBS
+label_ha_pairing_fingerprint=Vingerafdruk
+label_ha_pairing_code=Koppelcode
+label_cough=Hoesten
+obs_record=Opnemen
+obs_take_live=Naar live schakelen
+obs_save_replay=Herhaling opslaan
+obs_enable_studio_mode=Studiomodus inschakelen
+obs_choose_preview=Kies een voorbeeld
+obs_already_on_program=Al in programma
+obs_transitioning=Overgang bezig
+obs_replay_not_confirmed=Herhaling niet bevestigd
+obs_check=Controleer OBS
