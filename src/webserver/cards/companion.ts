@@ -1100,7 +1100,9 @@ export function registerCompanionCardTypes(
             const parentPage = helpers.isSub ? state.editingSubpage : null;
             const canAddSubpage = codec.canCreateSubpage(parentPage);
             const subpageKey = canAddSubpage && slot ? childPageKey(parentPage ?? 0, Number(slot)) : null;
-            if (canAddSubpage && initialMode === "app" && companionShortcutFolderAppLabel(card.entity)) {
+            const checkAppSubpage = canAddSubpage && initialMode === "app";
+            const hasAppSubpage = checkAppSubpage && Boolean(companionShortcutFolderAppLabel(currentEntity));
+            if (hasAppSubpage) {
                 setCompanionAppShortcutFolderEnabled(card, true);
             }
             const savedParent = slot ? (helpers.isSub ? codec.getSubpage(parentPage).buttons[slot - 1] : state.buttons[slot - 1]) : null;
@@ -1111,7 +1113,12 @@ export function registerCompanionCardTypes(
                 lastWindowsCatalogue = windows;
                 const definitionsChanged = replaceCompanionDefinitions(definitions.applications);
                 if (platformChanged) renderPreview();
-                if ((platformChanged || definitionsChanged) && panel?.isConnected) renderButtonSettings();
+                // An earlier render may have already applied this shared response.
+                const appSubpageChanged = checkAppSubpage &&
+                    Boolean(companionShortcutFolderAppLabel(currentEntity)) !== hasAppSubpage;
+                if ((platformChanged || definitionsChanged || appSubpageChanged) && panel?.isConnected) {
+                    renderButtonSettings();
+                }
             }).catch(() => { /* Keep available shortcut definitions while Companion is offline. */ });
             let availableCompanionApps: readonly CompanionAction[] = [];
             let availableCompanionFolders: readonly CompanionAction[] = [];

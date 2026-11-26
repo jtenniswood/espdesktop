@@ -110,7 +110,9 @@ const CLAUDE_DESKTOP_BUNDLE_ID = "com.anthropic.claudefordesktop";
 const SAFARI_WEB_APP_TEMPLATE = "com.apple.Safari.WebApp";
 const SAFARI_WEB_APP_BUNDLE_ID = /^com\.apple\.Safari\.WebApp\.[a-fA-F0-9]{8}(?:-[a-fA-F0-9]{4}){3}-[a-fA-F0-9]{12}$/;
 const ATHENA_TEMPLATE_APP_ID = "io.github.jtenniswood.athena";
-const TWITCH_TEMPLATE_APP_ID = "tv.twitch.web-app";
+const INSTALLED_WEB_APP_TEMPLATE_IDS = new Set([
+    ATHENA_TEMPLATE_APP_ID, "tv.twitch.web-app", "com.google.meet.web-app",
+]);
 const CHATGPT_CLASSIC_BUNDLE_ID = "com.openai.chat";
 export const CODEX_BUNDLE_ID = "com.openai.codex";
 export const CHATGPT_CLEAR_UNREADS_ACTION = "shortcut.shift+escape";
@@ -526,8 +528,7 @@ export function companionShortcutCatalogApps(
 ): AppShortcutApplication[] {
     const apps: AppShortcutApplication[] = [];
     for (const { id: appId, label } of approvedApps) {
-        if (appId.startsWith("windows.") !== (windows === true) || appId === ATHENA_TEMPLATE_APP_ID ||
-            appId === TWITCH_TEMPLATE_APP_ID || appId === CHATGPT_CLASSIC_BUNDLE_ID) continue;
+        if (appId.startsWith("windows.") !== (windows === true) || INSTALLED_WEB_APP_TEMPLATE_IDS.has(appId) || appId === CHATGPT_CLASSIC_BUNDLE_ID) continue;
         const definition = COMPANION_SHORTCUT_APPS.find(app => app.appId === appId) ??
             (windows ? undefined : companionShortcutApp(appId));
         if (definition) apps.push({
@@ -537,7 +538,7 @@ export function companionShortcutCatalogApps(
     }
     // A saved card can still be edited when its preset or target app is unavailable.
     if (savedAppId && (windows === undefined || savedAppId.startsWith("windows.") === windows) &&
-        savedAppId !== ATHENA_TEMPLATE_APP_ID && savedAppId !== TWITCH_TEMPLATE_APP_ID &&
+        !INSTALLED_WEB_APP_TEMPLATE_IDS.has(savedAppId) &&
         !apps.some(app => app.appId === savedAppId) && /^[A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)+$/.test(savedAppId)) {
         const definition = companionShortcutApp(savedAppId);
         apps.push(definition ? { ...definition, appId: savedAppId } :
