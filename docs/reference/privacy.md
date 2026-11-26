@@ -18,7 +18,7 @@ firmware, or built-in web configuration interface.
 
 EspDesktop does not operate an account system, advertising service, analytics
 platform, or central service that collects your smart-home data. The firmware is
-designed to communicate with a paired Mac on your local network and with
+designed to communicate with a paired computer on your local network and with
 network services you choose to configure. Your device configuration is stored on your
 device or in your own backups.
 
@@ -83,6 +83,18 @@ The packaged app also checks the EspDesktop update feed when automatic checks ar
 enabled or you check manually. The hosting providers may receive ordinary request
 information such as IP address and time. You can change automatic update settings
 in the Mac app’s **Updates** tab.
+
+## EspDesktop Windows app
+
+EspDesktop stores Windows settings, approved apps and folder paths in your
+Windows user profile. Windows protects saved display pairing credentials and the
+OBS WebSocket password using your Windows account. Folder paths stay on the PC.
+The paired display receives approved folder names and identifiers. Use **Forget
+display** to remove a saved pairing.
+
+The Windows app can check GitHub for newer releases. GitHub may receive normal
+request information such as IP address and request time. The **Updates** tab
+lets you turn off automatic checks.
 
 ## Information you provide to the project
 

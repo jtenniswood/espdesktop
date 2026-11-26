@@ -7,4 +7,4 @@ description: "How saved Home Assistant media cards behave after removal."
 
 Home Assistant media cards are retired. Existing cards remain in saved layouts and backups, but no longer control playback, group speakers, download artwork, or open media controls. The editor keeps their saved configuration and explains how to replace them.
 
-Use [Sound cards](/mac-controls/apps#mac-audio) for Mac volume and mute controls. The fullscreen Mac artwork screensaver remains available.
+Use [Sound cards](/card-types/sound) for Mac volume and mute controls. The fullscreen Mac artwork screensaver remains available.

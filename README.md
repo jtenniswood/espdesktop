@@ -8,7 +8,7 @@ EspDesktop pairs an affordable ESP32 touchscreen with a companion app on your co
 
 Set up the display from a normal web browser.
 
-A [Windows 11 companion preview](windows/README.md) is available for testing on Intel, AMD, and Arm PCs.
+The [Windows app](https://espdesktop.com/windows) supports Intel, AMD, and Arm PCs.
 
 **Documentation and setup guides:** [espdesktop.com](https://espdesktop.com/)
 
@@ -17,7 +17,7 @@ A [Windows 11 companion preview](windows/README.md) is available for testing on 
 - **Applications** — launch only the apps you approve in EspDesktop.
 - **App keyboard shortcuts** — open an app-specific page of controls for common actions, or create your own keyboard shortcuts.
 - **Apple Shortcuts** — run a workflow from the Mac’s Shortcuts app with a tap, or group several workflows on a dedicated page. Your Mac must be unlocked. [Set up Apple Shortcuts](https://espdesktop.com/mac-controls/apple-shortcuts).
-- **OBS Studio** — switch scenes and use Studio Mode controls on either platform. macOS also supports mixer, recording, and streaming controls. [Set up OBS Studio controls](https://espdesktop.com/mac-controls/obs-studio).
+- **OBS Studio** — switch scenes, mix audio, and control recording and streaming on Mac and Windows with a compatible release. [Set up OBS Studio controls](https://espdesktop.com/obs-studio).
 - **Lock Machine** — lock your computer with a tap on the display.
 - **File folders** — open an approved folder with a tap.
 - **Websites** — open `http://` and `https://` links in your default browser.
@@ -30,7 +30,7 @@ You can organise controls into subpages, resize and rearrange cards, change icon
 
 1. **Install EspDesktop firmware** on a supported touchscreen from Chrome or Edge.
 2. **Connect the display to 2.4 GHz WiFi.**
-3. **Install EspDesktop** for [macOS](https://espdesktop.com/screens/4848s040#setup-on-macos) or [Windows 11](https://espdesktop.com/windows-preview).
+3. **Install EspDesktop** for [macOS](https://espdesktop.com/macos) or [Windows](https://espdesktop.com/windows).
 4. **Pair the computer and display.** Select the display in EspDesktop and enter its pairing code.
 5. **Approve access.** Choose the applications and folders the display may use. Follow the [permissions guide](https://espdesktop.com/mac-controls/security) to enable keyboard shortcuts and Lock Machine.
 6. **Build your control surface.** Add Companion cards and arrange them from the display's web page.
@@ -55,7 +55,7 @@ Pair on a trusted local network and remove a display from EspDesktop before repl
 - A USB-C data cable for the first firmware install
 - Chrome or Edge for browser-based flashing
 - A 2.4 GHz WiFi network shared by the display and computer
-- An Apple silicon Mac running macOS 13 or newer, or a Windows 11 PC with an Intel, AMD, or Arm processor
+- An Apple silicon Mac running macOS 13 or newer, or an Intel, AMD, or Arm PC running Windows build 22000 or later
 
 The 4848S040 panel is available from AliExpress ([US](https://s.click.aliexpress.com/e/_c3qyIYL7) or [Global](https://s.click.aliexpress.com/e/_c4m73SzH)). A compatible [3D-printable stand is available on MakerWorld](https://makerworld.com/en/models/3592833-espdesktop-4inch-screen-stand#profileId-4115394).
 

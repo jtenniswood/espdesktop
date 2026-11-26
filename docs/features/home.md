@@ -34,7 +34,9 @@ Moves and resizes save when you drop the card or release the handle. Choose **Sa
 
 To select several cards, drag a box from the blank area beside, above, or below the preview, or from a gap between cards. On Home or a subpage, cards touched by the box are highlighted as you drag. Hold **Shift** to add to the selection, **Command** (**Ctrl** on Windows) to toggle cards, or press **Escape** to cancel the drag. Release the mouse, then right-click a selected card for actions such as **Copy**, **Cut** and **Delete**. Press **Backspace** or **Delete** to remove the selected cards from the layout.
 
-To move or copy a card between Home and a subpage, right-click it and choose **Cut** or **Copy**, then right-click an empty tile on the destination page and choose **Paste**. Clipboard actions save the layout as you make them. You can also copy a card’s code to use it on another display.
+To move or copy a card between Home and a subpage, right-click it and choose **Cut** or **Copy**, then right-click an empty tile on the destination page and choose **Paste**. Clipboard actions save the layout as you make them.
+
+To copy a card to another display, right-click it and choose **Copy Code**. In the other display’s **Layout** editor, right-click an empty tile and choose **Paste Code**. Paste the code into the dialog, then choose **Paste** and check that the card fits and opens the intended app, folder, or action.
 
 <a href="/images/web-editor-home.png"><picture><source type="image/avif" srcset="/images/web-editor-home-480.avif 480w, /images/web-editor-home-960.avif 960w" sizes="(min-width: 768px) 688px, 90vw"><img src="/images/web-editor-home.png" alt="Home layout in the web editor with eight app cards and an empty slot" width="1694" height="2266"></picture></a>
 

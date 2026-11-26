@@ -9,7 +9,7 @@
   "sources": [
     "https://support.microsoft.com/en-us/accessibility/windows/keyboard-shortcuts-in-windows"
   ],
-  "note": "These keys are for Windows 11 Notepad. Tabs depend on the installed version.",
+  "note": "Tab shortcuts require a version of Notepad with tabs.",
   "shortcuts": [
     {"id": "0", "label": "New", "shortcut": "control+n", "icon": "New Window"},
     {"id": "1", "label": "Open", "shortcut": "control+o", "icon": "Folder"},
