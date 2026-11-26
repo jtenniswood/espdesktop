@@ -576,9 +576,39 @@ jobs:
         run: python3 scripts/notify_docs_indexnow.py prepare --dist dist --receipt "${RUNNER_TEMP}/indexnow-changes.json"
 
       - name: Upload pages artifact
+        id: pages-upload
         uses: actions/upload-pages-artifact@v5
         with:
           path: dist
+
+      - name: Wait for the Pages artifact to be listed
+        timeout-minutes: 2
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PAGES_ARTIFACT_ID: ${{ steps.pages-upload.outputs.artifact_id }}
+        run: |
+          if [[ ! "$PAGES_ARTIFACT_ID" =~ ^[0-9]+$ ]]; then
+            echo "::error::The Pages upload did not return an artifact ID."
+            exit 1
+          fi
+
+          # The upload can finish before GitHub lists it for deployment.
+          for attempt in {1..12}; do
+            if gh api --method GET "repos/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}/artifacts" \
+              -f name=github-pages |
+              jq -e --arg id "$PAGES_ARTIFACT_ID" \
+                'any(.artifacts[]; (.id | tostring) == $id and .expired == false)' >/dev/null; then
+              echo "Pages artifact ${PAGES_ARTIFACT_ID} is listed (check ${attempt})."
+              exit 0
+            fi
+            if [[ "$attempt" -lt 12 ]]; then
+              sleep 5
+            fi
+          done
+
+          echo "::error::GitHub did not list Pages artifact ${PAGES_ARTIFACT_ID} after 12 checks."
+          exit 1
 
       - name: Deploy to GitHub Pages
         id: deployment
