@@ -111,7 +111,11 @@ internal sealed class SettingsWindow : Window
         WindowStartupLocation = WindowStartupLocation.CenterScreen;
         Closing += (_, e) => { if (!quitting) { e.Cancel = true; Hide(); } };
         SourceInitialized += (_, _) => AttachNotifications();
-        Closed += (_, _) => DetachNotifications();
+        Closed += (_, _) =>
+        {
+            desktop.Dispose();
+            DetachNotifications();
+        };
         scroll = new ScrollViewer { Content = body, VerticalScrollBarVisibility = ScrollBarVisibility.Auto };
         var root = new Grid();
         root.RowDefinitions.Add(new() { Height = GridLength.Auto });
@@ -1212,6 +1216,7 @@ internal sealed class SettingsWindow : Window
             if (wParam == 7) desktop.SessionChanged(true);
             if (wParam == 8) desktop.SessionChanged(false);
         }
+        else if (message == 0x0218 && wParam == 4) desktop.Suspend();
         else if (message == 0x0218 && wParam == 0x8013 && lParam != 0 &&
                  Marshal.PtrToStructure<Guid>(lParam) == SessionDisplayStatus && Marshal.ReadInt32(lParam, 16) >= 4)
             desktop.DisplayChanged(Marshal.ReadInt32(lParam, 20) != 0);
