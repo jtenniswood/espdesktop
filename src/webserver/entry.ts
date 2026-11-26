@@ -885,6 +885,8 @@ function composeApplicationContext(liveGeneratedActions: () => readonly Companio
     preview,
     buttonSettings,
   });
+  const usbEditor = !!dom.document.querySelector?.('meta[name="espdesktop-transport"][content="usb"]');
+  if (usbEditor) Object.assign(dom.window, { espdesktopSerializeUnsavedLayout: backupApplication.serializeUnsavedLayout });
   const reconnect = createReconnectController<unknown>({
     eventStreamEnabled: stateLoader.eventStreamEnabled,
     loadInitialState: stateLoader.loadInitialState,
@@ -907,7 +909,7 @@ function composeApplicationContext(liveGeneratedActions: () => readonly Companio
     stateLoader,
     gridMigration,
     nativePages,
-    !!dom.document.querySelector?.('meta[name="espdesktop-transport"][content="usb"]'),
+    usbEditor,
   );
   publicFirmwareInstall = createPublicFirmwareInstallFeature(
     deviceApi,

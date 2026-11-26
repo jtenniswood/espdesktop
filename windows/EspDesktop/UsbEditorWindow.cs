@@ -2,6 +2,7 @@ using System.IO;
 using System.Net;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Text.Json;
 using System.Windows;
 using System.Windows.Controls;
 using EspDesktop.Core;
@@ -24,6 +25,7 @@ internal sealed class UsbEditorWindow : Window
     private readonly Button export = new() { Content = "Export unsaved layout", Visibility = Visibility.Collapsed };
     private readonly Func<UsbDisplayEditor?> getEditor;
     private byte[]? unsavedLayout;
+    private string? unsavedBackup;
     private readonly CancellationTokenSource lifetime = new();
     private CancellationTokenSource pageReads = new();
     private Task<UsbEditorResponse?>? initialVersion;
@@ -143,19 +145,41 @@ internal sealed class UsbEditorWindow : Window
         LoadEditor();
     }
 
-    private void ExportLayout(object sender, RoutedEventArgs e)
+    private async void ExportLayout(object sender, RoutedEventArgs e)
     {
         if (unsavedLayout is not { } draft) return;
+        var backup = unsavedBackup ?? await SerializeLayout(draft);
+        if (closed) return;
+        if (backup is null)
+        {
+            status.Text = "Couldn’t prepare the unsaved layout for export. Keep this editor open and try again.";
+            return;
+        }
         var dialog = new SaveFileDialog
         {
-            FileName = "Unsaved EspDesktop Layout.bin",
-            Filter = "EspDesktop layout (*.bin)|*.bin",
+            FileName = "Unsaved EspDesktop Layout.json",
+            Filter = "EspDesktop backup (*.json)|*.json",
         };
         if (dialog.ShowDialog(this) != true) return;
-        try { File.WriteAllBytes(dialog.FileName, draft); }
+        try { File.WriteAllText(dialog.FileName, backup); }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
         {
             status.Text = "Couldn’t export the unsaved layout. Choose another location.";
+        }
+    }
+
+    private async Task<string?> SerializeLayout(byte[] draft)
+    {
+        try
+        {
+            var payload = Convert.ToBase64String(draft);
+            var output = await browser.CoreWebView2.ExecuteScriptAsync(
+                $"window.espdesktopSerializeUnsavedLayout?.('{payload}')");
+            return JsonSerializer.Deserialize<string>(output);
+        }
+        catch (Exception ex) when (ex is COMException or InvalidOperationException or JsonException)
+        {
+            return null;
         }
     }
 
@@ -284,7 +308,10 @@ internal sealed class UsbEditorWindow : Window
             var reply = await UsbDisplayEditor.RecoverLayoutSave(headers, body, SendToReconnectedDisplay, token);
             if (reply.Status == 412)
             {
+                var backup = await SerializeLayout(body);
+                if (closed) return reply;
                 unsavedLayout = body;
+                unsavedBackup = backup;
                 export.Visibility = Visibility.Visible;
                 status.Text = "Couldn’t confirm the save. You can export your unsaved layout.";
             }

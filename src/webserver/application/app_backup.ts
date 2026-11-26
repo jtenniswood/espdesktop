@@ -41,6 +41,7 @@ import type { BackupRestoreController } from "../features/backup_restore_control
 import type { ApplicationLayoutState } from "./application_context";
 import type { NativePanelConfigController } from "../controllers/native_panel_config_controller";
 import type { PanelConfigDocument } from "../model";
+import { decodeBase64 } from "../model/panel_config";
 import type { ConfigCodecFeature } from "./config_codec";
 import type { UiRuntimeState } from "./state";
 import type { CoreFeature } from "./core";
@@ -105,6 +106,7 @@ export interface AppBackupFeature {
     normalizeImportedPanelSettings(settings?: unknown): unknown;
     gridColsForImportedSettings(settings?: unknown): number;
     exportConfig(): Promise<void>;
+    serializeUnsavedLayout(payload: string): string;
     importConfig(): void;
 }
 
@@ -205,6 +207,34 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
             ...(nativeDocumentBytes ? { nativeDocumentBytes } : {}),
         });
     }
+    function nativeLayoutSnapshot(document: PanelConfigDocument) {
+        const { deviceId, numSlots, gridCols } = controllers.layout;
+        const { grid, sizes } = EspDesktopModel.parseGridOrder(document.settings.button_order, numSlots, gridCols);
+        return {
+            device: deviceId,
+            slots: numSlots,
+            exported_at: new Date().toISOString(),
+            grid,
+            sizes,
+            button_order: document.settings.button_order || "",
+            button_on_color: document.settings.button_on_color || "",
+            buttons: Array.from({ length: numSlots }, (_, index) => parseButtonConfig(document.buttons[index + 1] || "")),
+            subpages: Object.fromEntries(Object.entries(document.subpages).map(([slot, value]) => [slot, parseSubpageConfig(value)])),
+        };
+    }
+
+    function serializeUnsavedLayout(payload: string): string {
+        const bytes = decodeBase64(payload);
+        const snapshot = nativeLayoutSnapshot(decodeNativeConfigDocument(bytes));
+        const backup = backupExportController.addNativeConfig(createBackupConfig(snapshot), {
+            deviceProfile: snapshot.device,
+            buttons: snapshot.buttons,
+            subpages: snapshot.subpages,
+            nativeDocumentBytes: bytes,
+        });
+        return JSON.stringify(backup, null, 2);
+    }
+
     async function exportConfig(this: any) {
         let identity: PanelIdentityBackup | undefined;
         let identityUnavailable = false;
@@ -236,22 +266,19 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
         const savedSchedule = decodeScreenSchedulePreferences(nativeDocument?.settings[SCREEN_SCHEDULE_PREFERENCES]);
         const schedule = savedSchedule ?? state;
         const scheduleEnabled = savedSchedule ? savedSchedule.scheduleTrigger === "time" : state.scheduleEnabled;
-        const nativeGrid = nativeDocument ? EspDesktopModel.parseGridOrder(
-            nativeDocument.settings.button_order, controllers.layout.numSlots, controllers.layout.gridCols,
-        ) : undefined;
-        var data: any = createBackupConfig({
+        const layoutSnapshot = nativeDocument ? nativeLayoutSnapshot(nativeDocument) : {
             device: controllers.layout.deviceId,
             slots: controllers.layout.numSlots,
             exported_at: new Date().toISOString(),
-            grid: nativeGrid?.grid ?? state.grid,
-            sizes: nativeGrid?.sizes ?? state.sizes,
-            button_order: nativeDocument ? nativeDocument.settings.button_order || "" : serializeGrid(state.grid),
-            button_on_color: nativeDocument ? nativeDocument.settings.button_on_color || "" : state.onColor,
-            buttons: nativeDocument ? Array.from({ length: controllers.layout.numSlots }, (_, index) =>
-                parseButtonConfig(nativeDocument.buttons[index + 1] || "")) : state.buttons,
-            subpages: nativeDocument ? Object.fromEntries(Object.entries(nativeDocument.subpages).map(
-                ([slot, value]) => [slot, parseSubpageConfig(value)],
-            )) : state.subpages,
+            grid: state.grid,
+            sizes: state.sizes,
+            button_order: serializeGrid(state.grid),
+            button_on_color: state.onColor,
+            buttons: state.buttons,
+            subpages: state.subpages,
+        };
+        var data: any = createBackupConfig({
+            ...layoutSnapshot,
             settings: {
                 clock_bar: state.clockBarOn,
                 clock_bar_time: state.clockBarTimeOn,
@@ -750,6 +777,7 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
         normalizeImportedPanelSettings: (settings) => normalizeImportedPanelSettings(settings),
         gridColsForImportedSettings: (settings) => gridColsForImportedSettings(settings),
         exportConfig: () => exportConfig(),
+        serializeUnsavedLayout,
         importConfig: () => importConfig(),
     };
 }
