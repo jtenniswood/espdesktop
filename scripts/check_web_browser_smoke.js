@@ -4604,30 +4604,36 @@ async function assertMacLockCard(browser) {
 async function assertOnDemandShortcutSettings(browser, testCase) {
   if (testCase.slug !== "guition-esp32-s3-4848s040") return;
   const appId = "org.example.RemoteEditor";
+  const finalCutId = "com.apple.FinalCut";
   const nativeState = nativeConfigState(testCase.slug);
   nativeState.document.buttons[1] = "shortcut.command+a;;Shortcut Command;Auto;;;companion;;";
   const context = await browser.newContext({ viewport: testCase.viewport });
   await installRoutes(context, testCase.slug, { nativeState, offlineFallback: true });
   const requests = [];
+  let finishFinalCut;
+  const finalCutPageReady = new Promise(resolve => { finishFinalCut = resolve; });
   let online = true;
   await context.route("**/connectors/status", route => route.fulfill({ json: {
     mac_companion: { available: true, configured: true, paired: true, connected: online },
   } }));
-  await context.route("**/companion/actions", route => route.fulfill({ json: online ? [{ id: appId, label: "Remote Editor" }] : [] }));
+  await context.route("**/companion/actions", route => route.fulfill({ json: online ? [
+    { id: appId, label: "Remote Editor" }, { id: finalCutId, label: "Final Cut Pro" },
+  ] : [] }));
   await context.route(url => url.pathname === "/companion/shortcut-page", async route => {
     if (!online) return route.fulfill({ status: 404 });
     const { searchParams } = new URL(route.request().url());
     const id = searchParams.get("appId");
     const page = Number(searchParams.get("page"));
     requests.push([id, page]);
-    assert(id === "index" || id === appId);
+    assert(id === "index" || id === appId || id === finalCutId);
+    if (id === finalCutId && page === 1) await finalCutPageReady;
     const application = id === "index" ? {
-      applications: [{ appId, label: "Remote Editor" }],
+      applications: [{ appId, label: "Remote Editor" }, { appId: finalCutId, label: "Final Cut Pro" }],
     } : page === 0 ? {
-      appId, label: "Remote Editor", version: 1, catalog: false,
+      appId: id, label: id === appId ? "Remote Editor" : "Final Cut Pro", version: 1, catalog: false,
       shortcuts: [{ id: "0", label: "Open", shortcut: "command+o", icon: "Open File" }],
     } : {
-      appId, shortcuts: [],
+      appId: id, shortcuts: [],
       moreShortcuts: [{ id: "72", label: "Focus next item", shortcut: "scoped.tab", icon: "Arrow Right" }],
     };
     return route.fulfill({ json: { catalogueVersion: 1, page, complete: id === "index" || page === 1, application } });
@@ -4647,10 +4653,23 @@ async function assertOnDemandShortcutSettings(browser, testCase) {
     const apps = page.locator('[id$="shortcut-catalog-app"]');
     await apps.locator(`option[value="${appId}"]`).waitFor({ state: "attached" });
     assert.deepEqual(requests, [["index", 0]]);
+    const expandedPage = page.waitForRequest(request => {
+      const { searchParams } = new URL(request.url());
+      return searchParams.get("appId") === finalCutId && searchParams.get("page") === "1";
+    });
+    await apps.selectOption(finalCutId);
+    await expandedPage;
+    const loading = page.getByRole("status").filter({ hasText: "Loading keyboard shortcuts…" });
+    await loading.waitFor();
+    assert.equal(await page.getByRole("radiogroup", { name: "Keyboard shortcuts" }).getByRole("radio").count(), 0);
+    finishFinalCut();
+    await page.getByRole("radio", { name: /Focus next item/ }).waitFor();
+    await loading.waitFor({ state: "hidden" });
+    assert(await apps.evaluate(select => select === document.activeElement), "loading keeps focus on the app picker");
     await apps.selectOption(appId);
     const preset = page.getByRole("radio", { name: /Focus next item/ });
     await preset.check();
-    assert.deepEqual(requests, [["index", 0], [appId, 0], [appId, 1]]);
+    assert.deepEqual(requests, [["index", 0], [finalCutId, 0], [finalCutId, 1], [appId, 0], [appId, 1]]);
     await page.getByRole("button", { name: "Save", exact: true }).click();
     await waitForNativeState(nativeState, () => String(nativeState.document.buttons[1]).includes("shortcut.scoped.tab"),
       "remote shortcut saves its actual keys");
@@ -4660,6 +4679,7 @@ async function assertOnDemandShortcutSettings(browser, testCase) {
     assert(await page.getByRole("radio", { name: /Focus next item/ }).isChecked());
     console.log("On-demand app discovery, shortcut loading and offline reopening passed.");
   } finally {
+    finishFinalCut();
     await context.close();
   }
 }
@@ -5124,6 +5144,7 @@ async function assertWindowsShortcutSettings(browser, testCase) {
     await openShortcut();
     assert.equal(await page.getByRole("tab", { name: "Application", exact: true }).getAttribute("aria-selected"), "true");
     const groups = page.locator(".sp-shortcut-catalog-group");
+    await groups.first().waitFor();
     assert.deepEqual(await groups.locator("h3").allTextContents(), ["General / In-Car", "Replay Controls", "Camera Editor"]);
     assert(await groups.nth(0).getByRole("radio", { name: "Relative F3", exact: true }).isChecked());
     const stopReplay = groups.nth(1).locator(".sp-light-tab-row").filter({ hasText: "Stop Replay" });
@@ -5170,6 +5191,12 @@ async function assertShortcutIconSettings(browser, testCase) {
   nativeState.document.subpages[4] = "~B,1|companion,shortcut.command%2Bl,Address,Keyboard";
   const context = await browser.newContext({ viewport: testCase.viewport });
   await installRoutes(context, testCase.slug, { nativeState });
+  await context.route("**/connectors/status", route => route.fulfill({ json: {
+    mac_companion: { available: true, configured: true, paired: true, connected: true },
+  } }));
+  await context.route("**/companion/actions", route => route.fulfill({ json: [
+    { id: "com.apple.Safari", label: "Safari" },
+  ] }));
   await mockCompanionAppIcon(context, "com.apple.Safari");
   const page = await context.newPage();
   await installFakeEventSource(page);
@@ -5356,6 +5383,7 @@ async function assertShortcutCatalogSettings(browser, testCase) {
       "utf8",
     ));
     const safariShortcutCount = safariTemplate.shortcuts.length + (safariTemplate.safariShortcuts?.length || 0) + (safariTemplate.moreShortcuts?.length || 0);
+    await rows.first().waitFor();
     assert.strictEqual(await rows.count(), safariShortcutCount, "all Safari shortcuts are listed");
     await assertPanelBottomPadding(shortcutPanel, action, "Application Shortcut list");
     const reloadPreset = "app_shortcut_preset=com.apple.Safari%3A2";
@@ -5412,6 +5440,7 @@ async function assertShortcutCatalogSettings(browser, testCase) {
     const slack = require("../product/v2/app_shortcuts/slack.json");
     const slackPreset = "app_shortcut_preset=" + slack.appId + "%3A" + slack.shortcuts[0].id;
     await app.selectOption("com.apple.FinalCut");
+    await rows.first().waitFor();
     assert((await rows.count()) > 350, "Final Cut Pro has a large catalog");
     await search.fill("blade at playhead");
     assert.strictEqual(await rows.count(), 1);
@@ -5514,6 +5543,7 @@ async function assertShortcutCatalogSettings(browser, testCase) {
     assert.strictEqual(await application.getAttribute("aria-selected"), "true");
     assert.strictEqual(await app.inputValue(), "com.apple.Safari", "new shortcuts start with the page's app");
     assert.strictEqual(await selected.count(), 0, "the user still chooses a shortcut");
+    await rows.first().waitFor();
     assert.strictEqual(await rows.count(), safariShortcutCount);
     await search.fill("new tab");
     assert(await action.getByRole("radio", { name: "New Tab ⌘T", exact: true }).isVisible());

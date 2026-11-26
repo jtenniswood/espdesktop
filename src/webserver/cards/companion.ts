@@ -1592,90 +1592,108 @@ export function registerCompanionCardTypes(
 
             const canChoosePreset = initialMode === "shortcut" && shortcutType === "catalog" &&
                 catalogueApps.some(app => app.appId === catalogApp.value);
-            if (canChoosePreset && panel) loadAppShortcuts(catalogApp.value, panel);
-            const options = canChoosePreset ? companionShortcutPresetCards(catalogApp.value) : [];
-            const presets = sortCompanionLabels(savedCatalogShortcut?.appId === catalogApp.value &&
-                !options.some(item => item.options === savedCatalogShortcut.options && item.entity === savedCatalogShortcut.entity)
-                ? [...options.filter(item => item.options !== savedCatalogShortcut.options), savedCatalogShortcut] : options);
-            const groups = new Map<string, HTMLElement>();
-            for (const { group } of options) {
-                if (!group || groups.has(group)) continue;
-                const section = document.createElement("div");
-                section.className = "sp-shortcut-catalog-group";
-                section.setAttribute("role", "group");
-                const title = document.createElement("h3");
-                title.className = "sp-shortcut-catalog-group-title";
-                title.id = list.id + "-group-" + groups.size;
-                title.textContent = group;
-                section.setAttribute("aria-labelledby", title.id);
-                section.appendChild(title);
-                list.appendChild(section);
-                groups.set(group, section);
-            }
-            if (groups.size) {
-                search.placeholder = "Find a shortcut or group…";
-                search.setAttribute("aria-label", search.placeholder);
-            }
-            const choices = presets.map((preset, index) => {
-                const row = document.createElement("label");
-                row.className = "sp-light-tab-row";
-                const name = document.createElement("span");
-                name.className = "sp-light-tab-label";
-                name.textContent = preset.label;
-                const keys = document.createElement("span");
-                keys.className = "sp-shortcut-catalog-keys";
-                keys.textContent = formatCompanionShortcutActionId(preset.entity, windowsShortcuts);
-                const input = document.createElement("input");
-                input.type = "radio";
-                input.className = "sp-shortcut-catalog-radio";
-                input.name = list.id;
-                input.id = list.id + "-" + index;
-                input.value = preset.options;
-                input.checked = preset.options === savedCatalogShortcut?.options;
-                row.append(input, name, keys);
-                (groups.get(preset.group ?? "") ?? list).appendChild(row);
-                input.addEventListener("change", () => {
-                    card._shortcutType = "catalog";
-                    card._shortcutCatalogApp = catalogApp.value;
-                    card.label = companionAppLabel(card.label || "", savedCatalogShortcut?.label || "", preset.label);
-                    card.icon = companionGeneratedIcon(card.icon || "", savedCatalogShortcut?.icon || companionSubtypeDefaultIcon("shortcut"), preset.icon);
-                    card.entity = preset.entity;
-                    card._shortcutAppIcon = useShortcutAppIcon;
-                    card.options = preserveCardColorOptions(card.options, setConfigOption(
-                        preset.options, COMPANION_SHORTCUT_APP_ICON_OPTION, useShortcutAppIcon));
-                    for (const field of ["entity", "options", "label", "icon"]) helpers.saveField(field, card[field]);
-                    const scrollTop = list.scrollTop;
-                    renderButtonSettings();
-                    const updatedList = document.getElementById(list.id);
-                    if (updatedList) updatedList.scrollTop = scrollTop;
-                    document.getElementById(input.id)?.focus({ preventScroll: true });
-                });
-                return { row, group: preset.group, label: preset.label.toLowerCase(), keys: shortcutSearchKeys(keys.textContent) };
-            });
-            function filterShortcuts() {
-                const query = search.value.trim().toLowerCase();
-                const keys = shortcutSearchKeys(query);
-                const matchingGroups = new Set<string>();
-                let found = false;
-                for (const choice of choices) {
-                    const matches = !query || choice.label.includes(query) ||
-                        !!choice.group?.toLowerCase().includes(query) ||
-                        (keys.length > 0 && keys.every(key => choice.keys.includes(key)));
-                    choice.row.hidden = !matches;
-                    if (matches && choice.group) matchingGroups.add(choice.group);
-                    found ||= matches;
+            function showShortcutChoices(): void {
+                search.disabled = false;
+                const options = canChoosePreset ? companionShortcutPresetCards(catalogApp.value) : [];
+                const presets = sortCompanionLabels(savedCatalogShortcut?.appId === catalogApp.value &&
+                    !options.some(item => item.options === savedCatalogShortcut.options && item.entity === savedCatalogShortcut.entity)
+                    ? [...options.filter(item => item.options !== savedCatalogShortcut.options), savedCatalogShortcut] : options);
+                const groups = new Map<string, HTMLElement>();
+                for (const { group } of options) {
+                    if (!group || groups.has(group)) continue;
+                    const section = document.createElement("div");
+                    section.className = "sp-shortcut-catalog-group";
+                    section.setAttribute("role", "group");
+                    const title = document.createElement("h3");
+                    title.className = "sp-shortcut-catalog-group-title";
+                    title.id = list.id + "-group-" + groups.size;
+                    title.textContent = group;
+                    section.setAttribute("aria-labelledby", title.id);
+                    section.appendChild(title);
+                    list.appendChild(section);
+                    groups.set(group, section);
                 }
-                for (const [group, section] of groups) section.hidden = !matchingGroups.has(group);
-                list.hidden = !found;
-                noMatches.textContent = query && !found ? "No matching keyboard shortcuts" : "";
-                noMatches.classList.toggle("sp-visible", !!noMatches.textContent);
-            }
-            search.addEventListener("input", () => {
-                card._shortcutCatalogSearch = search.value;
+                if (groups.size) {
+                    search.placeholder = "Find a shortcut or group…";
+                    search.setAttribute("aria-label", search.placeholder);
+                }
+                const choices = presets.map((preset, index) => {
+                    const row = document.createElement("label");
+                    row.className = "sp-light-tab-row";
+                    const name = document.createElement("span");
+                    name.className = "sp-light-tab-label";
+                    name.textContent = preset.label;
+                    const keys = document.createElement("span");
+                    keys.className = "sp-shortcut-catalog-keys";
+                    keys.textContent = formatCompanionShortcutActionId(preset.entity, windowsShortcuts);
+                    const input = document.createElement("input");
+                    input.type = "radio";
+                    input.className = "sp-shortcut-catalog-radio";
+                    input.name = list.id;
+                    input.id = list.id + "-" + index;
+                    input.value = preset.options;
+                    input.checked = preset.options === savedCatalogShortcut?.options;
+                    row.append(input, name, keys);
+                    (groups.get(preset.group ?? "") ?? list).appendChild(row);
+                    input.addEventListener("change", () => {
+                        card._shortcutType = "catalog";
+                        card._shortcutCatalogApp = catalogApp.value;
+                        card.label = companionAppLabel(card.label || "", savedCatalogShortcut?.label || "", preset.label);
+                        card.icon = companionGeneratedIcon(card.icon || "", savedCatalogShortcut?.icon || companionSubtypeDefaultIcon("shortcut"), preset.icon);
+                        card.entity = preset.entity;
+                        card._shortcutAppIcon = useShortcutAppIcon;
+                        card.options = preserveCardColorOptions(card.options, setConfigOption(
+                            preset.options, COMPANION_SHORTCUT_APP_ICON_OPTION, useShortcutAppIcon));
+                        for (const field of ["entity", "options", "label", "icon"]) helpers.saveField(field, card[field]);
+                        const scrollTop = list.scrollTop;
+                        renderButtonSettings();
+                        const updatedList = document.getElementById(list.id);
+                        if (updatedList) updatedList.scrollTop = scrollTop;
+                        document.getElementById(input.id)?.focus({ preventScroll: true });
+                    });
+                    return { row, group: preset.group, label: preset.label.toLowerCase(), keys: shortcutSearchKeys(keys.textContent) };
+                });
+                function filterShortcuts() {
+                    const query = search.value.trim().toLowerCase();
+                    const keys = shortcutSearchKeys(query);
+                    const matchingGroups = new Set<string>();
+                    let found = false;
+                    for (const choice of choices) {
+                        const matches = !query || choice.label.includes(query) ||
+                            !!choice.group?.toLowerCase().includes(query) ||
+                            (keys.length > 0 && keys.every(key => choice.keys.includes(key)));
+                        choice.row.hidden = !matches;
+                        if (matches && choice.group) matchingGroups.add(choice.group);
+                        found ||= matches;
+                    }
+                    for (const [group, section] of groups) section.hidden = !matchingGroups.has(group);
+                    list.hidden = !found;
+                    noMatches.textContent = found ? "" : query ? "No matching keyboard shortcuts" : "No keyboard shortcuts available";
+                    noMatches.classList.toggle("sp-visible", !!noMatches.textContent);
+                }
+                search.addEventListener("input", () => {
+                    card._shortcutCatalogSearch = search.value;
+                    filterShortcuts();
+                    list.scrollTop = 0;
+                });
                 filterShortcuts();
-                list.scrollTop = 0;
-            });
-            filterShortcuts();
+            }
+            const selectedAppId = catalogApp.value;
+            const cachedShortcuts = canChoosePreset ? catalogue.cachedShortcutApplication(selectedAppId) : null;
+            if (cachedShortcuts === undefined) {
+                search.disabled = true;
+                list.hidden = true;
+                noMatches.textContent = "Loading keyboard shortcuts…";
+                noMatches.classList.add("sp-visible");
+                void catalogue.loadShortcutApplication(selectedAppId).then(app => {
+                    if (!catalogShortcutField.isConnected) return;
+                    if (app) applyCompanionShortcutApplication(app);
+                    showShortcutChoices();
+                });
+            } else {
+                if (cachedShortcuts) applyCompanionShortcutApplication(cachedShortcuts);
+                showShortcutChoices();
+            }
             helpers.requireField(catalogApp, "Choose an app before saving.", function () {
                 return initialMode === "shortcut" && shortcutType === "catalog";
             });
