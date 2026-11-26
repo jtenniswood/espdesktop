@@ -4392,6 +4392,7 @@ async function assertAppVolumeCard(browser) {
       ] : [
         { id: "com.spotify.client", label: "Spotify" },
         { id: "com.google.Chrome", label: "Chrome" },
+        { id: "io.espdesktop.launcher." + "b".repeat(64), label: "Steam launcher" },
       ]),
       { id: "folder.music", label: "Music folder" },
       { id: coughID, label: "OBS Desk Mic" },
@@ -5033,11 +5034,15 @@ async function assertOBSSceneCard(browser) {
 async function assertWindowsShortcutSettings(browser, testCase) {
   if (testCase.slug !== "guition-esp32-s3-4848s040") return;
   const appId = "windows.abc123";
+  const racingId = "windows.def456";
   const connectorsStatus = { onboarding_complete: true, mac_companion: {
     available: true, configured: true, paired: true, connected: true, platform: "windows",
   } };
   const nativeState = nativeConfigState(testCase.slug);
   nativeState.document.buttons[1] = "shortcut.command+enter;;Shortcut Command;Auto;;;companion";
+  nativeState.document.buttons[3] = racingId + ";iRacing;Auto;Auto;;;companion;;app_shortcuts";
+  nativeState.document.subpages[3] =
+    "~B,1|companion,shortcut.scoped.f3,Relative,Bullet List,,,,,app_shortcut_preset=windows.def456%3A2";
   const context = await browser.newContext({ viewport: testCase.viewport });
   try {
     await installRoutes(context, testCase.slug, { nativeState, connectorsStatus });
@@ -5049,6 +5054,14 @@ async function assertWindowsShortcutSettings(browser, testCase) {
           shortcuts: [
             { id: "0", label: "New Tab", shortcut: "control+t", icon: "New Tab" },
             { id: "1", label: "Find", shortcut: "control+f", icon: "Search" },
+          ],
+        } },
+        { kind: "application", definition: {
+          appId: racingId, label: "iRacing", version: 1, catalog: false,
+          shortcuts: [{ id: "2", label: "Relative", shortcut: "scoped.f3", icon: "Bullet List", group: "General / In-Car" }],
+          moreShortcuts: [
+            { id: "45", label: "Stop Replay", shortcut: "scoped.keypaddecimal", icon: "Stop", group: "Replay Controls" },
+            { id: "116", label: "Add Camera", shortcut: "scoped.control+shift+insert", icon: "Plus", group: "Camera Editor" },
           ],
         } },
       ] },
@@ -5075,8 +5088,9 @@ async function assertWindowsShortcutSettings(browser, testCase) {
     await openShortcut();
     await page.getByRole("tab", { name: "Application", exact: true }).click();
     const app = page.locator('[id$="shortcut-catalog-app"]');
-    assert.deepStrictEqual(await app.locator("option").allTextContents(), ["Select", "Google Chrome"]);
+    assert.deepStrictEqual(await app.locator("option").allTextContents(), ["Select", "Google Chrome", "iRacing"]);
     await app.selectOption(appId);
+    assert.equal(await page.locator(".sp-shortcut-catalog-group").count(), 0, "Chrome keeps its flat picker");
     const preset = page.locator(".sp-light-tab-row").filter({ hasText: "New Tab" });
     assert.strictEqual(await preset.locator(".sp-shortcut-catalog-keys").textContent(), "Ctrl+T");
     assert.strictEqual(await preset.getByRole("radio").isVisible(), true);
@@ -5090,6 +5104,35 @@ async function assertWindowsShortcutSettings(browser, testCase) {
     await waitForNativeState(nativeState, () => nativeState.document.buttons[1].startsWith("shortcut.control+t;"),
       "Windows shortcut preset save");
     assert.match(nativeState.document.buttons[1], /app_shortcut_preset=windows\.abc123(?::|%3A)0/i);
+    await page.locator('.sp-main [data-slot="3"] .sp-subpage-badge').click();
+    await openShortcut();
+    assert.equal(await page.getByRole("tab", { name: "Application", exact: true }).getAttribute("aria-selected"), "true");
+    const groups = page.locator(".sp-shortcut-catalog-group");
+    assert.deepEqual(await groups.locator("h3").allTextContents(), ["General / In-Car", "Replay Controls", "Camera Editor"]);
+    assert(await groups.nth(0).getByRole("radio", { name: "Relative F3", exact: true }).isChecked());
+    const stopReplay = groups.nth(1).locator(".sp-light-tab-row").filter({ hasText: "Stop Replay" });
+    const addCamera = groups.nth(2).locator(".sp-light-tab-row").filter({ hasText: "Add Camera" });
+    assert.equal(await stopReplay.locator(".sp-shortcut-catalog-keys").textContent(), "Keypad .");
+    assert.equal(await addCamera.locator(".sp-shortcut-catalog-keys").textContent(), "Ctrl+Shift+Insert");
+    const search = page.locator('[id$="shortcut-catalog-search"]');
+    await search.fill("Replay Controls");
+    assert.deepEqual(await page.locator(".sp-shortcut-catalog-group:visible h3").allTextContents(), ["Replay Controls"]);
+    await search.fill("Ctrl+Shift+Insert");
+    assert.deepEqual(await page.locator(".sp-shortcut-catalog-group:visible h3").allTextContents(), ["Camera Editor"]);
+    await search.clear();
+    await page.getByRole("tab", { name: "Custom", exact: true }).click();
+    assert.equal(await key.inputValue(), "f3");
+    await key.selectOption("keypaddecimal");
+    await page.getByRole("button", { name: "Shift", exact: true }).click();
+    await page.getByRole("button", { name: "Save", exact: true }).click();
+    await waitForNativeState(nativeState, () => {
+      const saved = decodeURIComponent(nativeState.document.subpages[3]);
+      return saved.includes("shortcut.scoped.shift+keypaddecimal") && saved.includes("app_shortcut_preset=custom");
+    }, "iRacing custom binding keeps its Windows application scope");
+    await openShortcut();
+    assert.equal(await key.inputValue(), "keypaddecimal");
+    await page.locator(".sp-settings-close").click();
+    await page.locator(".sp-back-btn .sp-back-hit").click();
     await openShortcut();
     await app.locator(`option[value="${appId}"]`).waitFor({ state: "attached" });
     delete connectorsStatus.mac_companion.platform;
@@ -5098,6 +5141,101 @@ async function assertWindowsShortcutSettings(browser, testCase) {
       "a Mac connection hides even the saved Windows preset while its old catalogue is cached");
     assert.match(nativeState.document.buttons[1], /app_shortcut_preset=windows\.abc123(?::|%3A)0/i);
     console.log("Windows shortcut labels, saved Command alias, and filtering after a platform switch passed.");
+  } finally {
+    await context.close();
+  }
+}
+
+async function assertShortcutIconSettings(browser, testCase) {
+  if (testCase.slug !== "guition-esp32-s3-4848s040") return;
+  const nativeState = nativeConfigState(testCase.slug);
+  nativeState.document.buttons[1] = "shortcut.command+r;Reload;Refresh;Auto;;;companion;;app_shortcut_preset=com.apple.Safari%3A2";
+  nativeState.document.buttons[4] = "com.apple.Safari;Safari;Auto;Auto;;;companion;;app_shortcuts";
+  nativeState.document.subpages[4] = "~B,1|companion,shortcut.command%2Bl,Address,Keyboard";
+  const context = await browser.newContext({ viewport: testCase.viewport });
+  await installRoutes(context, testCase.slug, { nativeState });
+  await mockCompanionAppIcon(context, "com.apple.Safari");
+  const page = await context.newPage();
+  await installFakeEventSource(page);
+
+  const app = page.locator('[id$="shortcut-catalog-app"]');
+  const cardSettings = page.getByRole("button", { name: "Card Settings", exact: true });
+  const iconMode = page.getByRole("group", { name: "Icon", exact: true });
+  const appIcon = iconMode.getByRole("button", { name: "App Icon", exact: true });
+  const customIcon = iconMode.getByRole("button", { name: "Custom Icon", exact: true });
+  const picker = page.getByRole("textbox", { name: "Choose an icon", exact: true });
+
+  async function openIconSettings() {
+    if (await cardSettings.getAttribute("aria-expanded") !== "true") await cardSettings.click();
+  }
+  async function editTile(tile) {
+    await tile.click({ button: "right" });
+    await page.locator(".sp-ctx-menu").getByText("Edit Card", { exact: true }).click();
+    await openIconSettings();
+  }
+  async function selectShortcut(label) {
+    await page.getByRole("searchbox", { name: "Find a keyboard shortcut…" }).fill(label);
+    await page.getByRole("radio", { name: new RegExp("^" + label + " ") }).check();
+    await openIconSettings();
+  }
+  async function addReaderShortcut() {
+    await page.locator(".sp-main .sp-empty-cell").first().click();
+    await chooseCardType(page, "Keyboard Shortcut");
+    if (!await app.inputValue()) await app.selectOption("com.apple.Safari");
+    await selectShortcut("Open Reader");
+  }
+  async function saveCard() {
+    const before = nativeState.puts.length;
+    await page.getByRole("button", { name: "Save", exact: true }).click();
+    await waitForNativeState(nativeState, () => nativeState.puts.length > before, "save shortcut appearance");
+    await page.locator(".sp-settings-overlay").waitFor({ state: "hidden" });
+  }
+  try {
+    await page.goto(`http://espdesktop.test/${testCase.slug}?events=1`, { waitUntil: "domcontentloaded" });
+    await page.waitForSelector("#sp-app");
+    await page.waitForFunction(() => window.__eventSources?.length > 0);
+    await seedNativeDocument(page, nativeState);
+
+    await editTile(page.locator('.sp-main [data-slot="1"]'));
+    assert.equal(await customIcon.getAttribute("aria-pressed"), "true", "existing presets keep their glyph");
+    await page.locator(".sp-settings-close").click();
+
+    await addReaderShortcut();
+    assert.equal(await appIcon.getAttribute("aria-pressed"), "true", "standalone presets start with app artwork");
+    assert.equal(await picker.isVisible(), false);
+    await customIcon.click();
+    await picker.fill("Timer");
+    await page.locator(".sp-icon-option").getByText("Timer", { exact: true }).click();
+    await selectShortcut("Reload");
+    assert.equal(await customIcon.getAttribute("aria-pressed"), "true", "changing presets keeps the custom mode");
+    assert.equal(await picker.inputValue(), "Timer");
+    await appIcon.click();
+    await selectShortcut("Open Reader");
+    assert.equal(await appIcon.getAttribute("aria-pressed"), "true", "changing presets keeps the app mode");
+    assert.equal(await picker.isVisible(), false);
+    await saveCard();
+
+    const standalone = page.locator(".sp-main [data-slot]").filter({
+      has: page.getByText("Open Reader", { exact: true }),
+    });
+    await standalone.locator("img.sp-companion-app-icon").waitFor();
+    assert.equal(await standalone.getAttribute("data-icon-size"), "small");
+    await editTile(standalone);
+    assert.equal(await appIcon.getAttribute("aria-pressed"), "true", "saved app artwork is restored");
+    await customIcon.click();
+    assert.equal(await picker.inputValue(), "Timer", "the custom glyph survives saving app artwork");
+    await saveCard();
+    await standalone.locator(".sp-btn-icon.mdi-timer-outline").waitFor();
+    assert.equal(await standalone.locator("img.sp-companion-app-icon").count(), 0);
+
+    await page.locator('.sp-main [data-slot="4"] .sp-subpage-badge').click();
+    await addReaderShortcut();
+    assert.equal(await customIcon.getAttribute("aria-pressed"), "true", "app subpage presets start with the glyph");
+    assert.equal(await picker.isVisible(), true);
+    await appIcon.click();
+    assert.equal(await picker.isVisible(), false);
+    await saveCard();
+    await standalone.locator("img.sp-companion-app-icon").waitFor();
   } finally {
     await context.close();
   }
@@ -9500,6 +9638,7 @@ async function assertFirstRunSetup(browser, testCase) {
       await assertCompanionURLOpenBehavior(browser, testCase);
       await assertCompanionShortcutSettings(browser, testCase);
       await assertAppSubpageCapacity(browser, testCase);
+      await assertShortcutIconSettings(browser, testCase);
       await assertShortcutCatalogSettings(browser, testCase);
       await assertWindowsShortcutSettings(browser, testCase);
       await assertOnDemandShortcutSettings(browser, testCase);
@@ -9629,6 +9768,7 @@ async function assertFirstRunSetup(browser, testCase) {
       await assertCompanionURLOpenBehavior(browser, testCase);
       await assertCompanionShortcutSettings(browser, testCase);
       await assertAppSubpageCapacity(browser, testCase);
+      await assertShortcutIconSettings(browser, testCase);
       await assertShortcutCatalogSettings(browser, testCase);
       await assertWindowsShortcutSettings(browser, testCase);
       await assertOnDemandShortcutSettings(browser, testCase);

@@ -26,6 +26,8 @@ A **Keyboard Shortcut** card can run a preset for a specific app or send a custo
 
 The **Application** tab lists apps with presets for the paired computer. Choose an app and use **Find a keyboard shortcut…** to search by action name or key combination. Approve the target app in EspDesktop. If the app cannot be brought to the front, the card skips the shortcut. On Windows, bring the app forward and tap the card again if Windows keeps another window active.
 
+New app presets outside an app subpage use the app's icon. In **Card Settings → Icon**, choose **Custom Icon** to reveal the icon picker. Shortcuts inside an app subpage start with the preset's symbol. If the app's artwork is unavailable, the tile shows its selected custom icon.
+
 Custom shortcuts need **Command**, **Control**, or **Option** plus a key on macOS, or **Ctrl** or **Alt** plus a key on Windows. **Shift** is optional on either platform. When moving a preset card between platforms, reopen its settings and choose the app and shortcut again.
 
 On Windows, saved custom shortcuts map Command and Control to **Ctrl**, and Option to **Alt**. Keep the app and display firmware current to see the full preset list. Older compatible display firmware shows the starter presets.

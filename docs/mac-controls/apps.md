@@ -15,7 +15,7 @@ By default, one press on an app card opens both the app and its subpage. Use **S
 
 Open **Apps** in EspDesktop on your computer. To limit which apps the display can launch, turn off **All available apps** on macOS or **Allow all available apps** on Windows. Then enable the apps you want to control.
 
-For a Mac app on an external drive, select the app in Finder and choose **File → Make Alias**. Move the alias to **Applications** or **~/Applications**. The app appears in EspDesktop while the drive is connected.
+On macOS, EspDesktop finds apps in **Applications**, in the **Applications** folder inside your home folder (`~/Applications`), and on mounted external drives. External apps appear while the drive is connected. Finder aliases in either Applications folder also work.
 
 <a href="/images/mac-app-available-apps.png"><picture><source type="image/avif" srcset="/images/mac-connector/mac_app2-480.avif 480w, /images/mac-connector/mac_app2-960.avif 960w" sizes="(min-width: 768px) 688px, 90vw"><img src="/images/mac-app-available-apps.png" alt="EspDesktop Mac app on the Apps tab with the All available apps switch on" width="1224" height="1488" loading="lazy"></picture></a>
 

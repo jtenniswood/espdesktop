@@ -377,3 +377,17 @@ turn_on_studio_mode=להפעיל את מצב האולפן?
 turn_off_studio_mode=לכבות את מצב האולפן?
 start_replay_buffer_prompt=להפעיל את מאגר השידור החוזר?
 stop_replay_buffer_prompt=לעצור את מאגר השידור החוזר?
+
+# Display pairing, audio and OBS
+label_ha_pairing_fingerprint=טביעת אצבע
+label_ha_pairing_code=קוד צימוד
+label_cough=שיעול
+obs_record=הקלטה
+obs_take_live=העבר לשידור
+obs_save_replay=שמירת שידור חוזר
+obs_enable_studio_mode=הפעלת מצב אולפן
+obs_choose_preview=יש לבחור תצוגה מקדימה
+obs_already_on_program=כבר בשידור
+obs_transitioning=מעבר מתבצע
+obs_replay_not_confirmed=שמירת השידור החוזר לא אושרה
+obs_check=יש לבדוק את OBS

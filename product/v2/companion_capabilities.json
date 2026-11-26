@@ -155,6 +155,10 @@
           "complete": {
             "type": "boolean"
           },
+          "appsProvisional": {
+            "type": "boolean",
+            "optional": true
+          },
           "items": {
             "type": "array",
             "maxItems": 48,

@@ -81,7 +81,7 @@ inline void numeric_selectable_driver_bind_slider(BtnSlot &slot, const ParsedCfg
     const bool default_label = config.label.empty() || (microphone
       ? config.label == "Input State" || config.label == "Mute" ||
         config.label == "Input Mute" || config.label == "Microphone Mute"
-      : config.type == "slider" && (config.label == "Mute" || config.label == "Output Mute"));
+      : config.label == "Mute" || (config.type == "slider" && config.label == "Output Mute"));
     if (slot.text_lbl && default_label)
       lv_label_set_display_text(slot.text_lbl, companion_volume_control_label(config.entity));
     const char *muted_icon_name = microphone ? "Microphone Off" : "Volume Off";
@@ -108,7 +108,10 @@ inline void numeric_selectable_driver_bind_slider(BtnSlot &slot, const ParsedCfg
   if (slot.icon_lbl) {
     lv_label_set_display_text(slot.icon_lbl, icon_off);
   }
-  if (slot.text_lbl && (config.label.empty() || (config.type == "slider" && (
+  const bool native_volume = config.type == "companion_output_volume" || config.type == "companion_input_volume";
+  if (slot.text_lbl && native_volume && config.label == "Volume") {
+    lv_label_set_display_text(slot.text_lbl, espdesktop_i18n_key("volume"));
+  } else if (slot.text_lbl && (config.label.empty() || (config.type == "slider" && (
       (config.entity == "media.output_volume" &&
        (config.label == "Output Volume" || config.label == "Volume")) ||
       (config.entity == "media.input_volume" &&
@@ -122,6 +125,9 @@ inline void numeric_selectable_driver_bind_slider(BtnSlot &slot, const ParsedCfg
 }
 inline void numeric_selectable_bind_cough(BtnSlot &slot, const ParsedCfg &config, bool subpage) {
   const std::string control = config.type == "companion_cough" ? COMPANION_COUGH_ID : config.entity;
+  if (slot.text_lbl && config.label == espdesktop_i18n_key_en("label_cough")) {
+    lv_label_set_display_text(slot.text_lbl, espdesktop_i18n_key("label_cough"));
+  }
   bind_cough_button(slot.btn, slot.icon_lbl, slot.text_lbl, find_icon(config.icon.c_str()), find_icon("Microphone Off"), control, subpage);
   if (config.type == "companion_obs_cough" && !companion_obs_cough_control(control))
     set_card_disabled_state(slot.btn, true);

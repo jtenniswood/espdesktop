@@ -376,3 +376,17 @@ turn_on_studio_mode=Slå på studioläget?
 turn_off_studio_mode=Slå av studioläget?
 start_replay_buffer_prompt=Starta reprisbuffer?
 stop_replay_buffer_prompt=Stoppa reprisbuffer?
+
+# Display pairing, audio and OBS
+label_ha_pairing_fingerprint=Fingeravtryck
+label_ha_pairing_code=Parkopplingskod
+label_cough=Hosta
+obs_record=Spela in
+obs_take_live=Växla till sändning
+obs_save_replay=Spara repris
+obs_enable_studio_mode=Aktivera studioläge
+obs_choose_preview=Välj en förhandsvisning
+obs_already_on_program=Redan i programmet
+obs_transitioning=Övergång pågår
+obs_replay_not_confirmed=Repris inte bekräftad
+obs_check=Kontrollera OBS
