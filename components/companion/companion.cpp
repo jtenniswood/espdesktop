@@ -35,6 +35,7 @@ static std::vector<std::string> app_icon_requests;
 static std::vector<std::string> enabled_app_icons;
 static std::vector<std::string> requested_app_icons;
 static bool app_icon_catalogue_ready = false;
+static bool app_icon_catalogue_provisional = false;
 static constexpr uint32_t RETRY_DELAY_MS = 30 * 1000;
 static constexpr size_t MAX_WEBSOCKET_FRAME_BYTES = COMPANION_MAXIMUM_TEXT_FRAME_BYTES;
 static constexpr size_t MAX_LEGACY_AUTH_FRAME_BYTES = 512;
@@ -759,18 +760,21 @@ void CompanionService::handle_json_(int socket_fd, const std::string &message) {
         }
         this->defer_session_([actions = std::move(actions)]() mutable { companion_set_actions(std::move(actions)); }, "catalogue");
         const bool refresh_icons = this->app_icon_catalogue_refresh_pending_.exchange(false);
+        const bool provisional = payload->appsProvisional.value_or(false);
         std::vector<std::string> configured_icons, enabled_icons;
         {
           std::lock_guard<std::mutex> lock(app_icon_state_mutex);
-          if (!refresh_icons && app_icon_catalogue_ready && enabled_app_icons == this->catalogue_enabled_icons_)
+          if (!refresh_icons && app_icon_catalogue_ready && app_icon_catalogue_provisional == provisional &&
+              enabled_app_icons == this->catalogue_enabled_icons_)
             return true;  // An OBS-only update does not need icon cache or dashboard work.
           enabled_app_icons = this->catalogue_enabled_icons_;
           app_icon_catalogue_ready = true;
+          app_icon_catalogue_provisional = provisional;
           enabled_icons = enabled_app_icons;
           configured_icons = app_icon_requests;
           requested_app_icons.clear();
         }
-        app_icon_store().set_enabled_applications(enabled_icons);
+        app_icon_store().set_enabled_applications(enabled_icons, !provisional);
         this->defer_session_([] { companion_app_icon_ready(""); }, "icons");
         for (const auto &id : configured_icons) {
           if (std::find(enabled_icons.begin(), enabled_icons.end(), id) == enabled_icons.end()) continue;

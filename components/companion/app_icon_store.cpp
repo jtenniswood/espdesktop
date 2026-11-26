@@ -283,13 +283,15 @@ void AppIconStore::add_reference(const std::string &application_id) {
     references_.push_back(application_id);
 }
 
-void AppIconStore::set_enabled_applications(const std::vector<std::string> &application_ids) {
+void AppIconStore::set_enabled_applications(const std::vector<std::string> &application_ids, bool prune_missing) {
   std::lock_guard<std::mutex> lock(mutex_);
   enabled_applications_.clear();
   for (const auto &id : application_ids)
     if (application_id_valid(id) &&
         std::find(enabled_applications_.begin(), enabled_applications_.end(), id) == enabled_applications_.end())
       enabled_applications_.push_back(id);
+  // A catalogue sent during discovery can omit an app that is still on disk.
+  if (!prune_missing) return;
   for (auto &entry : memory_entries_)
     if (entry.pixels && std::find(enabled_applications_.begin(), enabled_applications_.end(), entry.application_id) == enabled_applications_.end())
       entry = {};

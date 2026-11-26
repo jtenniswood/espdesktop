@@ -343,6 +343,7 @@ final class CompanionStore: NSObject, ObservableObject {
     private var applicationScan: Task<Void, Never>?
     private var applicationRefreshPending = false
     private(set) var applicationCatalogueReady = false
+    private(set) var applicationCatalogueProvisional = false
 
     @objc private func applicationVolumeDidChange(_ notification: Notification) {
         refreshApplications(includeExternal: true)
@@ -366,6 +367,7 @@ final class CompanionStore: NSObject, ObservableObject {
 
     private func refreshExternalApplications() {
         externalApplicationScan?.cancel()
+        applicationCatalogueProvisional = true
         externalApplicationScan = Task { [weak self, externalApplicationCatalogue] in
             let volumes = await externalApplicationCatalogue.mountedExternalVolumes()
             guard !Task.isCancelled else { return }
@@ -376,6 +378,11 @@ final class CompanionStore: NSObject, ObservableObject {
                 guard !Task.isCancelled else { return }
                 self?.externalApplications[volume] = applications
                 self?.publishDiscoveredApplications()
+            }
+            guard let self else { return }
+            applicationCatalogueProvisional = false
+            if applicationCatalogueReady {
+                publishToConnectedDisplays { $0.publishCatalogue() }
             }
         }
     }
