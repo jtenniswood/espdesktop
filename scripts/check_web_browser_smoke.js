@@ -2795,7 +2795,7 @@ async function assertContextColourPicker(browser, testCase) {
         });
         await openPicker(page.locator(".sp-back-btn"));
         await menu.locator('[data-color="6036B2"]').click();
-        await page.getByText("The configuration saved, but its older-firmware copy did not. Do not downgrade this panel yet.", { exact: true }).waitFor();
+        await page.getByText("The configuration saved, but the copy for older firmware could not be confirmed. Do not downgrade this panel yet.", { exact: true }).waitFor();
         assert(fixture.document.subpages[3].includes(":6036B2"));
         await openPicker(page.locator(".sp-back-btn"));
         assert.strictEqual(await menu.locator('[data-color="6036B2"]').getAttribute("aria-pressed"), "true",
@@ -9469,7 +9469,7 @@ async function assertFirstRunSetup(browser, testCase) {
     assert(fixture.puts.length >= 2, "the committed replacement finishes setup");
     assert.equal(fixture.document.settings.companion_app_subpage_mode, "focus");
     assert.deepEqual(switches, []);
-    await page.getByText("The configuration saved, but its older-firmware copy did not. Do not downgrade this panel yet.", { exact: true }).waitFor();
+    await page.getByText("The configuration saved, but the copy for older firmware could not be confirmed. Do not downgrade this panel yet.", { exact: true }).waitFor();
     fixture.writeStatus = 204;
     await page.getByRole("tab", { name: "Screen", exact: true }).click();
     if (await settingsCard.evaluate(node => node.classList.contains("collapsed"))) await settingsCard.locator(".card-header").click();
