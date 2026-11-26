@@ -277,18 +277,18 @@ inline bool navigation_display_mode_allows_grid_gesture() {
          is_interactive_grid_mode(core->display().target_mode());
 }
 
-inline bool navigation_gesture_started_on_drag(lv_obj_t *screen, const lv_point_t &point,
-                                               lv_dir_t direction) {
-  // Sliders and other drag controls keep a gesture along their own axis.
-  // Ordinary cards do not block a page gesture: they act on release, so a fling
-  // cancels the press.
-  lv_point_t probe = point;
-  lv_obj_t *object = lv_indev_search_obj(screen, &probe);
-  while (object != nullptr && object != screen) {
-    if (touch_object_owns_gesture(object, direction)) return true;
-    object = lv_obj_get_parent(object);
+inline bool navigation_gesture_started_on_drag() {
+  // A dimmer that is drag-adjusting along its own track owns the rest of the
+  // touch: otherwise a page swipe would fire in the same movement that changes
+  // the level. Taps and swipes across the track never start a dimmer drag, so
+  // they still page.
+  lv_obj_t *slider = touch_dragging_slider();
+  if (slider == nullptr) return false;
+  if (!lv_obj_is_valid(slider)) {
+    touch_dragging_slider() = nullptr;
+    return false;
   }
-  return false;
+  return true;
 }
 
 inline bool navigation_switch_screen(int target, lv_indev_t *indev) {
@@ -487,7 +487,6 @@ inline void navigation_grid_screen_gesture(lv_event_t *event) {
     press.screen = screen;
   }
   if (press.screen != screen) return;
-  const lv_point_t start = press.start;
   press.screen = nullptr;
   press.seen = false;
   const auto direction = lv_indev_get_gesture_dir(indev);
@@ -495,7 +494,7 @@ inline void navigation_grid_screen_gesture(lv_event_t *event) {
   // have no Back control here, so the same swipe pages backwards there.
   // TODO: Generalize edge gestures. Per-edge actions are tracked in TODO.md.
   if (direction == LV_DIR_RIGHT) {
-    if (navigation_gesture_started_on_drag(screen, start, direction)) return;
+    if (navigation_gesture_started_on_drag()) return;
     for (const auto &entry : navigation_subpages()) {
       if (entry.screen != screen || entry.back_button == nullptr ||
           !lv_obj_is_valid(entry.back_button)) continue;
@@ -511,7 +510,7 @@ inline void navigation_grid_screen_gesture(lv_event_t *event) {
   // Android-style Back: a left swipe on an ordinary subpage returns to its
   // parent. On Home or an extra screen the same swipe pages forward instead.
   if (direction == LV_DIR_LEFT && navigation_screen_index(screen) < 0) {
-    if (navigation_gesture_started_on_drag(screen, start, direction)) return;
+    if (navigation_gesture_started_on_drag()) return;
     navigation_swipe_back(indev, screen);
     return;
   }
@@ -520,7 +519,7 @@ inline void navigation_grid_screen_gesture(lv_event_t *event) {
   // their existing edge-Back gesture only.
   const int screen_index = navigation_screen_index(screen);
   if (screen_index < 0) return;
-  if (navigation_gesture_started_on_drag(screen, start, direction)) return;
+  if (navigation_gesture_started_on_drag()) return;
   if (direction == LV_DIR_LEFT || direction == LV_DIR_RIGHT) {
     if (navigation_screen_count() <= 1) return;
     lv_indev_wait_release(indev);

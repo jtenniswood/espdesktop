@@ -41,7 +41,8 @@ int lv_indev_get_gesture_dir(lv_indev_t *p) { return p->direction; }
 bool navigation_display_mode_allows_grid_gesture() { return allowed; }
 bool screen_lock_enabled() { return locked; }
 bool image_popup_open() { return popup_open; }
-bool navigation_gesture_started_on_drag(lv_obj_t *, const lv_point_t &, int) { return drag_start; }
+bool navigation_gesture_started_on_drag() { return drag_start; }
+lv_obj_t *lv_indev_get_active_obj() { return nullptr; }
 void touch_record_press(lv_indev_t *, const lv_point_t &) {}
 void lv_obj_clear_flag(lv_obj_t *, int) {}
 int navigation_screen_index(lv_obj_t *) { return screen_index; }

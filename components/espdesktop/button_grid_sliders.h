@@ -188,6 +188,7 @@ inline void slider_detach_runtime(SliderCtx *ctx,
 inline void slider_geometry_delete_event_cb(lv_event_t *e) {
   if (!e) return;
   lv_obj_t *slider = static_cast<lv_obj_t *>(lv_event_get_target(e));
+  if (touch_dragging_slider() == slider) touch_dragging_slider() = nullptr;
   SliderCtx *ctx = slider ? (SliderCtx *)lv_obj_get_user_data(slider) : nullptr;
   if (!ctx) return;
   slider_detach_runtime(ctx, slider);
@@ -250,6 +251,8 @@ inline void slider_begin_pointer_press(lv_obj_t *slider) {
   ctx->press_active = true;
   ctx->dragging = false;
   ctx->press_value = lv_slider_get_value(slider);
+  // A fresh touch owns the pointer again until it moves along the track.
+  touch_dragging_slider() = nullptr;
   lv_indev_t *indev = lv_indev_active();
   if (indev && lv_indev_get_type(indev) == LV_INDEV_TYPE_POINTER) {
     lv_indev_get_point(indev, &ctx->press_point);
@@ -270,22 +273,34 @@ inline bool slider_pointer_moved(lv_obj_t *slider) {
   int dy = point.y - ctx->press_point.y;
   if (dx < 0) dx = -dx;
   if (dy < 0) dy = -dy;
-  // A finger tap can wobble a few pixels. Only a clear drag changes the level.
-  return dx * dx + dy * dy >= 6 * 6;
+  // A finger tap can wobble a few pixels. Only a clear drag along the dimmer's
+  // own track changes the level; movement across the track stays available to
+  // the page swipe. The page gesture needs 24 px, so this arms first and the
+  // guard below keeps the page from following the same movement.
+  if (ctx->horizontal) return dx >= 10 && dx >= dy;
+  return dy >= 10 && dy >= dx;
 }
 
 inline void slider_update_pointer_press(lv_obj_t *slider) {
   SliderCtx *ctx = slider ? (SliderCtx *)lv_obj_get_user_data(slider) : nullptr;
   if (!ctx || !ctx->press_active) return;
-  if (!ctx->dragging && slider_pointer_moved(slider)) ctx->dragging = true;
+  if (!ctx->dragging && slider_pointer_moved(slider)) {
+    ctx->dragging = true;
+    // Publish the drag so the page gesture guard stops paging for this touch.
+    touch_dragging_slider() = slider;
+  }
   if (ctx->dragging) {
     slider_apply_pointer_value(slider);
   } else {
     // LVGL's slider class moves the knob on press-and-drag by itself. Until the
-    // pointer has clearly moved, keep the pre-press level so a tap does not
-    // jump the brightness before it toggles the light.
+    // pointer has clearly moved along the track, keep the pre-press level so a
+    // tap or page swipe cannot jump the brightness.
     slider_restore_pressed_value(slider);
   }
+}
+
+inline void slider_release_drag_ownership(lv_obj_t *slider) {
+  if (touch_dragging_slider() == slider) touch_dragging_slider() = nullptr;
 }
 
 inline bool slider_finish_pointer_press(lv_obj_t *slider) {
@@ -294,6 +309,7 @@ inline bool slider_finish_pointer_press(lv_obj_t *slider) {
   const bool dragged = ctx->dragging;
   ctx->press_active = false;
   ctx->dragging = false;
+  slider_release_drag_ownership(slider);
   if (dragged) {
     return slider_apply_pointer_value(slider);
   }
@@ -306,6 +322,7 @@ inline void slider_cancel_pointer_press(lv_obj_t *slider) {
   if (!ctx || !ctx->press_active) return;
   ctx->press_active = false;
   ctx->dragging = false;
+  slider_release_drag_ownership(slider);
   slider_restore_pressed_value(slider);
 }
 

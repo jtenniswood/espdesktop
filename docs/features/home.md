@@ -47,6 +47,8 @@ Right-click a card to open its menu.
 - **Name.** Choose **Edit Card**, change the **Label**, and select **Save**. You can also click a visible card name in the grid, type the new name and press **Enter**.
 - **Background colour.** Open **Card Colour** and pick a preset or use the eyedropper to choose a custom colour. Choose **Reset Colour** to restore the default background.
 
+Dimmer cards use a vertical bar on square or tall cards and a horizontal bar on wide cards. Drag the bar along its length to dim or brighten. A simple tap turns the light, fan or switch on or off without changing its level. A swipe across the bar, or a quick swipe anywhere else on a card, still changes screens instead of changing the level.
+
 ## Add a card
 
 Select **+** in an empty spot. See [Adding a card](/features/adding-a-card) for choosing a card type and setting its name, icon, and colours.
@@ -55,7 +57,7 @@ Select **+** in an empty spot. See [Adding a card](/features/adding-a-card) for 
 
 The Layout tab shows **Home** plus a **+** button. Select **+** to add another screen and build it like Home. Screens are optional, so a display with one screen behaves exactly as before. Select a screen tab to edit it, or select the **×** on its tab to remove the screen and its cards. Double-click a tab to rename the screen, and drag tabs left or right to change the screen order.
 
-Fling left or right anywhere on the display — including when the swipe starts on a card — to move between Home and the extra screens. Sliders and card drags keep working when the swipe starts on them.
+Fling left or right anywhere on the display — including when the swipe starts on a card or a dimmer — to move between Home and the extra screens. Dragging a dimmer along its own bar adjusts it instead.
 
 ## Choose swipe actions
 

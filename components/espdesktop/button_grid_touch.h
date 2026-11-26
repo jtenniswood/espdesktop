@@ -5,19 +5,14 @@
 #include "card_text_contrast.h"
 #include "esphome/core/hal.h"
 
-// Drag controls (volume sliders) keep the touch so a screen pager does not
-// steal it. Identify them by widget type instead of an object flag: the theme
-// already uses every LV_OBJ_FLAG_USER_n bit for background ownership. A
-// disabled or non-interactive slider cannot own a drag, and a slider only owns
-// gestures along its own axis so the other direction can still page.
-inline bool touch_object_owns_gesture(lv_obj_t *object, lv_dir_t direction) {
-  if (object == nullptr || !lv_obj_check_type(object, &lv_slider_class) ||
-      lv_obj_has_state(object, LV_STATE_DISABLED) ||
-      !lv_obj_has_flag(object, LV_OBJ_FLAG_CLICKABLE))
-    return false;
-  const bool vertical = lv_obj_get_height(object) >= lv_obj_get_width(object);
-  const bool vertical_gesture = direction == LV_DIR_TOP || direction == LV_DIR_BOTTOM;
-  return vertical == vertical_gesture;
+// The dimmer slider currently following a drag along its own track. The slider
+// driver owns this state so the page guard cannot disagree with the control
+// about whether the touch is a drag: page gestures only stop when the slider
+// says it is adjusting. A tap or a swipe across the track never sets it, so
+// those still page. Cleared when the touch ends or the slider goes away.
+inline lv_obj_t *&touch_dragging_slider() {
+  static lv_obj_t *slider = nullptr;
+  return slider;
 }
 
 // A page change swallows the release that follows its fling so the new screen
