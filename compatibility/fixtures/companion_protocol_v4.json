@@ -106,6 +106,21 @@
     "valid": true
   },
   {
+    "name": "provisional app catalogue page",
+    "message": {
+      "protocol": 4,
+      "type": "catalogue.page",
+      "generation": 1,
+      "page": 0,
+      "complete": true,
+      "appsProvisional": true,
+      "items": []
+    },
+    "direction": "mac_to_panel",
+    "state": "connected",
+    "valid": true
+  },
+  {
     "name": "catalogue page with Apple Shortcuts colours",
     "message": {
       "protocol": 4,

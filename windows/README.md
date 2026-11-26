@@ -1,6 +1,6 @@
 # EspDesktop for Windows
 
-Control a Windows 11 PC from the Guition 4848S040 EspDesktop display. The app uses standard Windows controls, follows your Windows theme, and stays in the notification area when you close Settings.
+Control a Windows PC from the Guition 4848S040 EspDesktop display. The app uses standard Windows controls, follows your Windows theme, and stays in the notification area when you close Settings.
 
 ## Install EspDesktop
 
@@ -14,6 +14,10 @@ Setup installs for the current user and includes the .NET runtime. It does not n
 ## Pair and control Windows
 
 Keep the PC and display on the same local network. In **Display**, select a nearby display or choose **Enter address manually**, then choose **Next**. Choose **Open pairing page** or press and hold the display’s Wi-Fi icon to get a code. Enter the code and choose **Pair display**. If the display is paired to a different computer, reset its Companion pairing first.
+
+For direct USB control, install USB-enabled Companion firmware, such as the 4848S040 experimental `devices/guition-esp32-s3-4848s040/usb-dev.yaml` profile. Use a USB data cable. In **Display**, choose **Connect over USB**, select the display’s COM port and choose **Next**. Get the code from **Pair** on the display’s Setup screen or **Unpaired** in its Settings. Once paired, the display can control Windows with Wi-Fi off. Choose **Open display editor** to manage the display in a Windows app window over USB. It uses the built-in Microsoft Edge WebView2 runtime and works with the display’s Wi-Fi off. A display connected by IP still opens its editor in your browser.
+
+Use **Change connection** on a saved display to switch between IP and USB or select a different COM port. The app keeps the existing pairing and saves the new connection once the display is verified.
 
 Choose **Add display** to connect another display to the same PC. Each display can connect to one computer at a time. Use the individual display cards to connect, disconnect, forget, or open the editor for that display. Windows app and folder approvals are shared across all your paired displays.
 
@@ -29,21 +33,30 @@ In the display editor, open **System → Connectors → Companion** to check pai
 
 Use **Start EspDesktop when I sign in** to keep the display connected after login. To stop the app, choose **Quit EspDesktop** from its notification area icon.
 
+### iRacing shortcuts
+
+With keyboard shortcuts enabled, approve iRacing in the Windows companion’s **Applications** settings. In the display editor, add an **Application** card for iRacing and enable its app subpage. The six starter cards open Lap Timing, Standings, Relative, Fuel, Pit Adjustments and In-Car Adjustments. Start an iRacing Test Drive and bring the simulator window to the foreground before tapping a shortcut. For a changed binding, edit its card and choose **Custom** to match the key you set in iRacing.
+
+Choose **Keyboard Shortcut → Application → iRacing** to browse **General / In-Car**, **Replay Controls** and **Camera Editor**. Search by group, shortcut name or key combination. Open the matching view in iRacing before using its shortcuts. For controls that ship without a key, assign a binding in iRacing first and use a custom shortcut. Whisper and private chat commands require typing their recipient or message in iRacing.
+
+If you used the earlier standalone iRacing test app, pair the standard Windows companion and add the iRacing application card again to pick up its Windows app ID.
+
 The Display page shows the paired display’s name when available and its current address. If the display gets a new address on your local network, EspDesktop can rediscover it and resume the saved pairing. A new address is saved only after the display proves its identity and accepts the pairing. If you reset or replace the display, forget it in EspDesktop and pair again.
 
 If **Display** says it needs a newer version of EspDesktop for Windows, get the latest Windows installer from [GitHub Releases](https://github.com/jtenniswood/espdesktop/releases). EspDesktop keeps your pairing for the updated app.
 
 ## Build and check
 
-Use the .NET 10 SDK and Inno Setup 6.3 or newer on Windows. From the repository root:
+Use the .NET 10 SDK, Node.js 26, Python 3, and Inno Setup 6.3 or newer on Windows. The installer build bundles the editor from source. From the repository root:
 
 ```powershell
+npm ci
 dotnet run -c Release --project windows/EspDesktop.Tests
 dotnet run -c Release --project windows/EspDesktop
 ./windows/EspDesktop/Packaging/Build-Installer.ps1 -Architecture x64
 ```
 
-The workflow builds installers for x64 and Arm64 and installs, opens, and uninstalls each build on Windows. To try an unpublished build, download and unzip the installer artifact for your architecture from its **Windows EspDesktop** run. The test project checks the same protocol fixtures as firmware and macOS, and pairs with a simulated display over TLS. Use a Windows 11 PC and a physical 4848S040 for discovery, actual pairing, app and folder focus, browser behavior, shortcuts, volume, lock and reconnect testing.
+The workflow builds installers for x64 and Arm64 and installs, opens, and uninstalls each build on Windows. To try an unpublished build, download and unzip the installer artifact for your architecture from its **Windows EspDesktop** run. The test project checks the same protocol fixtures as firmware and macOS, and pairs with a simulated display over TLS. Use a Windows PC and a physical 4848S040 for discovery, actual pairing, app and folder focus, browser behavior, shortcuts, volume, lock and reconnect testing.
 
 EspDesktop checks for newer stable Windows releases for your PC’s architecture and display protocol and opens their download page. Firmware-only releases do not affect the Windows update check. Run the new setup file from the release page to update. In-app installation requires an Authenticode-signed Windows app and installer with the same trusted publisher key.
 

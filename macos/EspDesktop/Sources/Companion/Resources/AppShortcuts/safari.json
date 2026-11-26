@@ -178,6 +178,8 @@
     {"id": "56", "label": "Add current webpage", "shortcut": "scoped.command+shift+d", "icon": "Plus"},
     {"id": "57", "label": "Close Reader", "shortcut": "scoped.escape", "icon": "Shortcut Escape"},
     {"id": "58", "label": "Toggle Bookmarks sidebar", "shortcut": "scoped.command+control+1", "icon": "Dock Left"},
+    {"id": "70", "label": "Edit Bookmarks", "shortcut": "scoped.command+option+b", "icon": "Bookmark"},
+    {"id": "71", "label": "Add Bookmark", "shortcut": "scoped.command+d", "icon": "Bookmark Plus"},
     {"id": "59", "label": "Open Downloads", "shortcut": "scoped.command+option+l", "icon": "Open File"},
     {"id": "60", "label": "Select next bookmark or folder", "shortcut": "scoped.up", "icon": "Group Selection"},
     {"id": "61", "label": "Select next bookmark or folder", "shortcut": "scoped.down", "icon": "Group Selection"},

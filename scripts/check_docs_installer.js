@@ -338,17 +338,18 @@ async function checkBrowser() {
     await page.goto(home);
     await setup.press('Enter');
     await page.waitForURL(`${home}screens/4848s040`);
-    await page.getByRole('heading', { name: 'Set up on macOS' }).waitFor();
-    await page.getByRole('heading', { name: 'Set up on Windows 11' }).waitFor();
-    await page.getByRole('link', { name: 'Windows 11 preview guide', exact: true }).click();
-    await page.waitForURL(`${home}windows-preview`);
-    await page.getByRole('heading', { name: 'EspDesktop for Windows 11 preview', level: 1 }).waitFor();
+    const platformActions = page.locator('section[aria-labelledby="download"] .display-setup-actions');
+    const macSetupLink = platformActions.getByRole('link', { name: 'Mac', exact: true });
+    assert.equal(await macSetupLink.getAttribute('href'), '/macos');
+    assert.equal(await page.locator('.VPSidebar').getByRole('link', { name: 'macOS setup', exact: true }).getAttribute('href'), '/macos');
+    await platformActions.getByRole('link', { name: 'Windows', exact: true }).click();
+    await page.waitForURL(`${home}windows`);
+    await page.getByRole('heading', { name: 'Windows setup', level: 1 }).waitFor();
+    assert.equal(await page.locator('.VPSidebar').getByRole('link', { name: 'Windows setup', exact: true }).getAttribute('href'), '/windows');
     await page.goBack();
     await page.waitForURL(`${home}screens/4848s040`);
     console.log('Homepage checks passed at desktop, tablet and phone widths.');
     await assertSupportedInstaller();
-    const setupDownload = page.locator('.display-setup-step .mac-app-download a.docs-primary-action');
-    const setupDownloadHref = await setupDownload.getAttribute('href');
     const wizard = page.locator('.display-setup-step a.docs-primary-action').getByText('View setup wizard', { exact: true });
     assert.equal(await wizard.getAttribute('href'), '/features/first-run');
     const setupPage = `${base}/screens/4848s040`;
@@ -364,19 +365,19 @@ async function checkBrowser() {
     await page.waitForURL(`${base}/download`);
     await page.getByRole('heading', { name: 'Download EspDesktop', level: 1 }).waitFor();
     const windowsDownload = page.getByRole('link', { name: 'Download the Windows installer and pair your display' });
-    assert.equal(await windowsDownload.getAttribute('href'), '/windows-preview#install-espdesktop');
+    assert.equal(await windowsDownload.getAttribute('href'), '/windows#install-espdesktop');
     const download = page.locator('.mac-app-download a');
     await download.waitFor();
     assert.match(await download.getAttribute('href'),
       /^https:\/\/github\.com\/jtenniswood\/espdesktop\/releases(?:\/download\/v?\d+\.\d+\.\d+\/EspDesktop-\d+\.\d+\.\d+\.dmg)?$/);
     const officialDownloadHref = await download.getAttribute('href');
-    assert.equal(setupDownloadHref, officialDownloadHref.endsWith('.dmg') ? officialDownloadHref : '/download');
+    await page.getByText('Apple silicon and macOS 13 or newer', { exact: true }).waitFor();
     await page.getByRole('link', { name: 'Install and pair the Mac app', exact: true }).click();
-    await page.waitForURL(`${setupPage}#setup-on-macos`);
-    await page.getByRole('heading', { name: 'Set up the Companion app' }).waitFor();
+    await page.waitForURL(`${base}/macos`);
+    await page.getByRole('heading', { name: 'macOS setup', level: 1 }).waitFor();
     assert.equal(await page.locator('.VPSidebar a[href="/getting-started/mac-app"]').count(), 0);
-    await page.locator('#pair-the-display').waitFor({ state: 'attached' });
-    await page.getByText('Apple silicon Mac with macOS 13 or newer', { exact: true }).waitFor();
+    assert.equal(await page.locator('main .mac-app-download a').getAttribute('href'), officialDownloadHref);
+    await page.locator('main #pair-your-display').waitFor();
     await page.goto(`${base}/screens/4848s040#where-to-buy`);
     const buySection = page.locator('section[aria-labelledby="where-to-buy"]');
     await buySection.getByRole('link', { name: 'AliExpress (US)', exact: true }).waitFor();
@@ -402,20 +403,40 @@ async function checkBrowser() {
       assert(copy.y + copy.height <= photo.y, 'Phone setup images must appear below the instructions');
     }
     const canonicalSetup = 'https://espdesktop.com/screens/4848s040';
+    const canonicalMacSetup = 'https://espdesktop.com/macos';
     // Intercept canonical redirect targets without contacting production.
     await page.route(canonicalSetup, route => route.fulfill({
       status: 200,
       contentType: 'text/html',
       body: '<!doctype html><title>EspDesktop setup destination</title>',
     }));
+    await page.route(canonicalMacSetup, route => route.fulfill({
+      status: 200,
+      contentType: 'text/html',
+      body: '<!doctype html><title>EspDesktop macOS setup destination</title>',
+    }));
     await page.goto(`${base}/getting-started/install`);
     await page.waitForURL(`${canonicalSetup}#install`);
     await page.goto(`${base}/getting-started/install#connect-the-display-to-wifi`);
     await page.waitForURL(`${canonicalSetup}#connect-the-display-to-wifi`);
     await page.goto(`${base}/getting-started/mac-app`);
-    await page.waitForURL(`${canonicalSetup}#download`);
+    await page.waitForURL(canonicalMacSetup);
     await page.goto(`${base}/getting-started/mac-app#pair-the-display`);
-    await page.waitForURL(`${canonicalSetup}#pair-the-display`);
+    await page.waitForURL(`${canonicalMacSetup}#pair-your-display`);
+    for (const [suffix, section] of [
+      ['', '#connect-obs-studio'],
+      ['/studio-controls', '#replay-buffer'],
+      ['/scene-control-and-mixing', '#preview-a-scene-and-take-it-live'],
+      ['/audio-controls', '#add-an-audio-control'],
+    ]) {
+      const target = `https://espdesktop.com/obs-studio${suffix}`;
+      await page.route(target, route => route.fulfill({
+        contentType: 'text/html',
+        body: '<!doctype html><title>EspDesktop OBS guide destination</title>',
+      }));
+      await page.goto(`${base}/mac-controls/obs-studio${suffix}${section}`);
+      await page.waitForURL(target + section);
+    }
     const beforeRetired = manifests.length;
     const recovery = 'https://jtenniswood.github.io/espcontrol/getting-started/troubleshooting';
     await page.route(recovery, route => route.fulfill({ contentType: 'text/html', body: 'EspControl recovery guide' }));

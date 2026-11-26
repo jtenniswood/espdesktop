@@ -551,6 +551,7 @@ inline bool companion_shortcut_key_valid(const std::string &key, bool scoped) {
     const int number = std::atoi(key.c_str() + 1);
     return number >= 1 && number <= 20 && key == "f" + std::to_string(number);
   }
+  if (scoped && key == "insert") return true;
   if (!scoped || key.rfind("keypad", 0) != 0) return false;
   const auto suffix = key.substr(6);
   if (suffix.size() == 1 && suffix[0] >= '0' && suffix[0] <= '9') return true;
@@ -862,7 +863,6 @@ struct CompanionCardRef {
   bool show_focus = true;
   bool focus_draw_seen = false;
   bool last_drawn_focus = false;
-  std::string required_focus_id{};
   CompanionAction rendered_obs_action{};
   std::string obs_label_alias{};
   lv_obj_t *obs_mute_icon_label = nullptr;
@@ -1190,10 +1190,8 @@ inline void companion_track_card(lv_obj_t *button, const std::string &action_id,
   });
   if (existing != refs.end()) {
     if (companion_metric_key_valid(action_id) && !existing->metric_key.empty()) return;
-    if (existing->action_id != action_id || existing->url_config != url_config) {
+    if (existing->action_id != action_id || existing->url_config != url_config)
       existing->resolved_default_label.clear();
-      existing->required_focus_id.clear();
-    }
     existing->action_id = action_id;
     existing->url_config = url_config;
     existing->dynamic_default_label = dynamic_default_label;
@@ -1442,33 +1440,9 @@ inline void companion_track_metric_card(lv_obj_t *button, lv_obj_t *value_label,
   companion_request_card_refresh();
 }
 
-inline bool companion_required_focus_ready(const std::string &required,
-                                           const CompanionRuntimeSnapshot &snapshot) {
-  return required.empty() || companion_action_focused(snapshot, required);
-}
-
-inline void companion_require_card_focus(lv_obj_t *button, const std::string &required) {
-  for (auto &ref : companion_card_refs()) {
-    if (ref.button != button) continue;
-    ref.required_focus_id = required;
-    const auto snapshot = companion_runtime_snapshot();
-    const bool available = companion_action_available(snapshot, ref.action_id) &&
-      companion_required_focus_ready(required, snapshot);
-    if (lv_obj_has_state(button, LV_STATE_DISABLED) == available)
-      set_card_disabled_state(button, !available);
-    return;
-  }
-}
-
 inline void companion_refresh_card_focus(const CompanionRuntimeSnapshot &snapshot) {
   for (auto &ref : companion_card_refs()) {
     if (!ref.button || !lv_obj_is_valid(ref.button) || !ref.metric_key.empty()) continue;
-    if (!ref.required_focus_id.empty()) {
-      const bool available = companion_action_available(snapshot, ref.action_id) &&
-        companion_required_focus_ready(ref.required_focus_id, snapshot);
-      if (lv_obj_has_state(ref.button, LV_STATE_DISABLED) == available)
-        set_card_disabled_state(ref.button, !available);
-    }
     companion_apply_card_focus(ref.button, ref.action_id, ref.url_config, ref.show_focus, &snapshot);
   }
 }
@@ -1516,10 +1490,9 @@ inline void companion_refresh_action_card(CompanionCardRef &ref, const Companion
     else if (normalize_display_text(label) != lv_label_get_text(ref.text_label))
       lv_label_set_display_text(ref.text_label, label.c_str());
   }
-  const bool action_available = ref.url_config.empty()
+  const bool available = ref.url_config.empty()
     ? companion_action_available(snapshot, ref.action_id)
     : companion_url_available(ref.action_id, ref.url_config);
-  const bool available = action_available && companion_required_focus_ready(ref.required_focus_id, snapshot);
 
   if (lv_obj_has_state(ref.button, LV_STATE_DISABLED) == available)
     set_card_disabled_state(ref.button, !available);
@@ -1620,7 +1593,6 @@ inline void companion_track_slider(void *, const std::string &, void *, bool,
                                    const std::string & = {}) {}
 inline void companion_refresh_cards_if_requested() {}
 inline void companion_paint_mute_preview(const std::string &, int) {}
-inline void companion_require_card_focus(void *, const std::string &) {}
 #endif
 
 inline bool companion_toggle_mute(const std::string &control_id) {
@@ -1694,13 +1666,12 @@ inline std::string companion_shortcut_launch_target(const std::string &app) {
 
 inline bool invoke_companion_action_for_app(const std::string &action_id,
                                             const std::string &request_id,
-                                            const std::string &required_focus_id,
+                                            const std::string &subpage_application,
                                             const std::string &folder_open_behavior,
                                             const std::string &preset,
                                             uint32_t now) {
-  // Never use the early visual highlight to authorize app-specific keys.
-  if (!required_focus_id.empty() && !companion_action_focused(required_focus_id)) return false;
-  const auto app = companion_shortcut_preset_app(preset);
+  auto app = companion_shortcut_preset_app(preset);
+  if (app.empty() && companion_shortcut_action_valid(action_id)) app = subpage_application;
   if (app.empty()) return invoke_companion_action(action_id, request_id, folder_open_behavior);
 
   const auto shortcut = companion_app_scoped_shortcut(action_id);
@@ -1708,8 +1679,9 @@ inline bool invoke_companion_action_for_app(const std::string &action_id,
   const auto target = companion_shortcut_launch_target(app);
   if (target.empty()) return false;
 
-  // The Mac checks that the approved target is still frontmost before replay.
-  if (target == required_focus_id)
+  // Use confirmed focus for subpage shortcuts. The companion also checks
+  // that the approved target is still frontmost before replay.
+  if (target == subpage_application && companion_action_focused(target))
     return companion_action_sender()(shortcut, request_id, "new_window", target);
 
   return companion_activate_then(target, request_id, now + 10000, [shortcut, request_id, target] {

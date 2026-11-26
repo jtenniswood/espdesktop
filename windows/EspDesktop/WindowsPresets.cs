@@ -6,14 +6,21 @@ namespace EspDesktop;
 
 internal static class WindowsPresets
 {
-    internal sealed record Preset(string Id, string Label, string Shortcut, string Icon)
+    internal sealed record Preset(string Id, string Label, string Shortcut, string Icon, string? Group)
     {
-        // Plain and Shift-only strokes need the scoped form on the display.
-        public string DisplayShortcut => Shortcut.Contains('~') ||
-            !Shortcut.Split('+').SkipLast(1).Any(key => key is "control" or "option")
-                ? "scoped." + Shortcut : Shortcut;
+        public string DisplayShortcut
+        {
+            get
+            {
+                var parts = Shortcut.Split('+');
+                var key = parts[^1];
+                return Shortcut.Contains('~') || key == "insert" || key.StartsWith("keypad", StringComparison.Ordinal) ||
+                    !parts.SkipLast(1).Any(modifier => modifier is "control" or "option")
+                        ? "scoped." + Shortcut : Shortcut;
+            }
+        }
     }
-    internal sealed record Template(string[] Executables, string[]? Targets, Preset[] Shortcuts);
+    internal sealed record Template(string[] Executables, string[]? Targets, Preset[] Shortcuts, string[]? DefaultShortcutIds);
     private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web);
     private static readonly Dictionary<string, Template> ByExecutable = new(StringComparer.OrdinalIgnoreCase);
     private static readonly Dictionary<string, Template> ByTarget = new(StringComparer.OrdinalIgnoreCase);
@@ -42,5 +49,27 @@ internal static class WindowsPresets
         if (ByTarget.TryGetValue(target, out var presets)) return presets;
         var name = Path.GetFileName((executable ?? target).Replace('\\', '/'));
         return ByExecutable.GetValueOrDefault(name);
+    }
+
+    public static string? IRacingInstallDirectory(string? launcher)
+    {
+        if (launcher is null) return null;
+        var path = launcher.Replace('\\', '/');
+        var name = Path.GetFileName(path);
+        var directory = Path.GetDirectoryName(path);
+        if (name.Equals("iRacingUI.exe", StringComparison.OrdinalIgnoreCase))
+            return string.Equals(Path.GetFileName(directory), "ui", StringComparison.OrdinalIgnoreCase)
+                ? Path.GetDirectoryName(directory) : directory;
+        return name.Equals("iRacingLauncher64.exe", StringComparison.OrdinalIgnoreCase) ? directory : null;
+    }
+
+    public static bool IsIRacingSimulator(string installDirectory, string? executable)
+    {
+        if (executable is null) return false;
+        var path = executable.Replace('\\', '/');
+        var name = Path.GetFileName(path);
+        return (name.Equals("iRacingSim64DX11.exe", StringComparison.OrdinalIgnoreCase) ||
+                name.Equals("iRacingSim64DX12.exe", StringComparison.OrdinalIgnoreCase)) &&
+            string.Equals(Path.GetDirectoryName(path), installDirectory, StringComparison.OrdinalIgnoreCase);
     }
 }

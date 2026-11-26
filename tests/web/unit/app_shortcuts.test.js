@@ -40,7 +40,9 @@ test("the shortcut catalogue combines bundled and live presets and preserves sav
   const chatGPT = require("../../../product/v2/app_shortcuts/codex.json");
   const classic = require("../../../product/v2/app_shortcuts/chatgpt.json");
   assert(api.replaceCompanionDefinitions([updatedSafari, live, chatGPT, classic]));
-  const apps = new Map(api.companionShortcutCatalogApps().map(app => [app.appId, app.label]));
+  const approvedApps = [updatedSafari, live, chatGPT, classic, { appId: "com.tinyspeck.slackmacgap", label: "Slack" }]
+    .map(app => ({ id: app.appId, label: app.label }));
+  const apps = new Map(api.companionShortcutCatalogApps({ approvedApps }).map(app => [app.appId, app.label]));
   assert.equal(apps.get(safari.appId), updatedSafari.label);
   assert.equal(apps.get(live.appId), live.label);
   assert.equal(apps.get("com.tinyspeck.slackmacgap"), "Slack");
@@ -58,7 +60,10 @@ test("Google Meet presets are offered under the installed app ID", () => {
   const appId = "com.google.Chrome.app.abcdefghijklmnopabcdefghijklmnop";
   const installed = { ...template, appId, label: "Google Meet (Chrome)" };
   api.replaceCompanionDefinitions([template, installed]);
-  const choices = api.companionShortcutCatalogApps({ savedAppId: template.appId });
+  const choices = api.companionShortcutCatalogApps({
+    approvedApps: [{ id: appId, label: installed.label }, { id: template.appId, label: template.label }],
+    savedAppId: template.appId,
+  });
   assert(!choices.some(app => app.appId === template.appId));
   assert.equal(choices.find(app => app.appId === appId)?.label, installed.label);
   const page = api.createCompanionShortcutSubpage(appId);

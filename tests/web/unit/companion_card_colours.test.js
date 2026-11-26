@@ -34,13 +34,13 @@ test("Companion metric reset and shortcut presets retain colour without confusin
   assert(companionShortcutCatalogSelection(card));
 });
 
-test("the picker can include a page's app using a bundled template", () => {
+test("the picker can include approved apps using a bundled template", () => {
   for (const appId of [
     "com.apple.Safari.WebApp.01234567-89AB-CDEF-0123-456789abcdef",
     "com.adobe.PremierePro.26",
   ]) {
     assert(!companionShortcutCatalogApps().some(app => app.appId === appId));
-    assert(companionShortcutCatalogApps({ pageAppId: appId }).some(app => app.appId === appId));
+    assert(companionShortcutCatalogApps({ approvedApps: [{ id: appId, label: "Installed App" }] }).some(app => app.appId === appId));
     const preset = companionShortcutPresetCards(appId)[0];
     assert.equal(companionShortcutCatalogSelection(preset)?.appId, appId);
   }
@@ -49,7 +49,7 @@ test("the picker can include a page's app using a bundled template", () => {
 test("only a card saved with ChatGPT Classic can reopen its legacy preset", () => {
   const appId = "com.openai.chat";
   const preset = companionShortcutPresetCards(appId)[0];
-  assert(!companionShortcutCatalogApps({ pageAppId: appId }).some(app => app.appId === appId));
+  assert(!companionShortcutCatalogApps({ approvedApps: [{ id: appId, label: "Installed App" }] }).some(app => app.appId === appId));
   assert(companionShortcutCatalogApps({ savedAppId: appId }).some(app => app.appId === appId));
   assert.equal(companionShortcutCatalogSelection(preset)?.appId, appId);
 });
