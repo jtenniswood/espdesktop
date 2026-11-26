@@ -376,3 +376,17 @@ turn_on_studio_mode=Zapnout režim studia?
 turn_off_studio_mode=Vypnout režim studia?
 start_replay_buffer_prompt=Spustit vyrovnávací paměť záznamu?
 stop_replay_buffer_prompt=Zastavit vyrovnávací paměť záznamu?
+
+# Display pairing, audio and OBS
+label_ha_pairing_fingerprint=Otisk
+label_ha_pairing_code=Párovací kód
+label_cough=Kašel
+obs_record=Nahrávat
+obs_take_live=Přepnout do vysílání
+obs_save_replay=Uložit záznam
+obs_enable_studio_mode=Zapnout režim studia
+obs_choose_preview=Vyberte náhled
+obs_already_on_program=Již ve vysílání
+obs_transitioning=Probíhá přechod
+obs_replay_not_confirmed=Uložení záznamu nepotvrzeno
+obs_check=Zkontrolujte OBS

@@ -377,3 +377,17 @@ turn_on_studio_mode=Turn on Studio Mode?
 turn_off_studio_mode=Turn off Studio Mode?
 start_replay_buffer_prompt=Start Replay Buffer?
 stop_replay_buffer_prompt=Stop Replay Buffer?
+
+# Display pairing, audio and OBS
+label_ha_pairing_fingerprint=Fingerprint
+label_ha_pairing_code=Pairing code
+label_cough=Cough
+obs_record=Record
+obs_take_live=Take Live
+obs_save_replay=Save Replay
+obs_enable_studio_mode=Enable Studio Mode
+obs_choose_preview=Choose a preview
+obs_already_on_program=Already on Program
+obs_transitioning=Transitioning
+obs_replay_not_confirmed=Replay not confirmed
+obs_check=Check OBS

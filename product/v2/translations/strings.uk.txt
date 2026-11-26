@@ -376,3 +376,17 @@ turn_on_studio_mode=Увімкнути режим студії?
 turn_off_studio_mode=Вимкнути режим студії?
 start_replay_buffer_prompt=Запустити буфер повтору?
 stop_replay_buffer_prompt=Зупинити буфер повтору?
+
+# Display pairing, audio and OBS
+label_ha_pairing_fingerprint=Відбиток
+label_ha_pairing_code=Код сполучення
+label_cough=Кашель
+obs_record=Записати
+obs_take_live=Перемкнути в ефір
+obs_save_replay=Зберегти повтор
+obs_enable_studio_mode=Увімкнути режим студії
+obs_choose_preview=Виберіть попередній перегляд
+obs_already_on_program=Уже в ефірі
+obs_transitioning=Триває перехід
+obs_replay_not_confirmed=Збереження повтору не підтверджено
+obs_check=Перевірте OBS

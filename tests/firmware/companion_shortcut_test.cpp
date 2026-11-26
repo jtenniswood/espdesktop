@@ -811,6 +811,10 @@ int main() {
   assert(guarded_invocations == 2 && sent_action == "shortcut.control+w" && shortcut_target.empty());
   assert(companion_shortcut_action_valid("shortcut.scoped.command+k~command+s"));
   assert(companion_shortcut_action_valid("shortcut.scoped.shift+keypadenter"));
+  assert(companion_shortcut_action_valid("shortcut.scoped.keypaddecimal"));
+  assert(companion_shortcut_action_valid("shortcut.scoped.control+keypad6"));
+  assert(companion_shortcut_action_valid("shortcut.scoped.control+shift+insert"));
+  assert(!companion_shortcut_action_valid("shortcut.control+shift+insert"));
   assert(!companion_shortcut_action_valid("shortcut.scoped.a~b~c~d"));
   assert(!companion_shortcut_action_valid("shortcut.scoped.command+command+a"));
   assert(!invoke_companion_action_for_app("shortcut.scoped.space", "unscoped", "", "new_window", "custom", 0));
@@ -820,6 +824,17 @@ int main() {
          "shortcut.scoped.command+k~command+s");
   assert(companion_app_scoped_shortcut("com.apple.Safari").empty());
   const auto original_actions = companion_runtime_snapshot().actions;
+  {
+    constexpr auto app = "windows.def456";
+    constexpr auto shortcut = "shortcut.scoped.shift+keypad2";
+    const int before = guarded_invocations;
+    companion_set_actions({{app, "iRacing"}});
+    assert(!invoke_companion_action_for_app(shortcut, "unfocused", app, "new_window", "custom", 0));
+    assert(guarded_invocations == before);
+    companion_set_focused_action(app);
+    assert(invoke_companion_action_for_app(shortcut, "focused", app, "new_window", "custom", 0));
+    assert(guarded_invocations == before + 1 && sent_action == shortcut && shortcut_target == app);
+  }
   companion_set_actions({{"com.apple.Safari", "Safari"}});
   {
     constexpr auto preset = "com.apple.Safari:0";

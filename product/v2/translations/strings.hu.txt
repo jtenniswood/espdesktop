@@ -376,3 +376,17 @@ turn_on_studio_mode=Bekapcsolja a stúdió módot?
 turn_off_studio_mode=Kikapcsolja a stúdió módot?
 start_replay_buffer_prompt=Elindítja a visszajátszási puffert?
 stop_replay_buffer_prompt=Leállítja a visszajátszási puffert?
+
+# Display pairing, audio and OBS
+label_ha_pairing_fingerprint=Ujjlenyomat
+label_ha_pairing_code=Párosítási kód
+label_cough=Köhögés
+obs_record=Felvétel indítása
+obs_take_live=Adásba kapcsolás
+obs_save_replay=Visszajátszás mentése
+obs_enable_studio_mode=Stúdió mód bekapcsolása
+obs_choose_preview=Válassz előnézetet
+obs_already_on_program=Már adásban
+obs_transitioning=Átmenet folyamatban
+obs_replay_not_confirmed=A visszajátszás nincs megerősítve
+obs_check=Ellenőrizd az OBS-t

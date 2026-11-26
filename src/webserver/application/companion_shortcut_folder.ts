@@ -135,6 +135,7 @@ export interface CompanionShortcutPresetCard {
     type: string;
     precision: string;
     options: string;
+    group?: string;
 }
 
 export interface CompanionShortcutTabDefinition {
@@ -397,7 +398,7 @@ export function isBooksExtendedShortcut(actionId: string): boolean {
 function shortcutKeyValid(key: string, scoped = false): boolean {
     return /^[a-z0-9]$/.test(key) || COMPANION_SHORTCUT_KEYS.has(key) ||
         /^f(?:[1-9]|1[0-9]|20)$/.test(key) ||
-        (scoped && /^keypad(?:[0-9]|plus|minus|multiply|divide|decimal|equal|enter|clear)$/.test(key));
+        (scoped && (key === "insert" || /^keypad(?:[0-9]|plus|minus|multiply|divide|decimal|equal|enter|clear)$/.test(key)));
 }
 
 export function companionShortcutActionIdValid(actionId: unknown): boolean {
@@ -546,6 +547,7 @@ export function companionShortcutPresetCards(bundleIdentifier: string): Companio
     return companionShortcutChoices(bundleIdentifier).map(item => ({
         ...shortcutCard(COMPANION_SHORTCUT_PREFIX + item.shortcut, item.label, item.icon),
         options: setConfigOptionValue("", COMPANION_SHORTCUT_PRESET_OPTION, bundleIdentifier + ":" + item.id),
+        ...(typeof item.group === "string" && item.group.trim() ? { group: item.group.trim() } : {}),
     }));
 }
 

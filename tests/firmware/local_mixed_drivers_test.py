@@ -20,6 +20,7 @@ prelude = r'''
 #include <string>
 #include <string_view>
 #include <vector>
+#include "i18n_generated.h"
 namespace card_runtime { enum class CardDriverId { ACTION, INTERNAL, COMPANION, SCREEN_LOCK, SCREENSAVER, TOGGLE, PUSH, ALARM_ACTION, FAN, SENSOR }; enum class CardTypeId { SENSOR, LOCAL_SENSOR }; }
 struct Context { struct { card_runtime::CardDriverId driver; card_runtime::CardTypeId type = card_runtime::CardTypeId::SENSOR; } runtime; };
 struct ParsedCfg { std::string type, entity, sensor, icon, icon_on, label; };
@@ -172,5 +173,9 @@ int main() {
 with tempfile.TemporaryDirectory() as tmp:
     cpp, exe = Path(tmp)/'drivers.cpp', Path(tmp)/'drivers'
     cpp.write_text(prelude + production + checks)
-    subprocess.run([sys.argv[1] if len(sys.argv)>1 else 'c++','-std=c++17','-Wall','-Wextra','-Werror',str(cpp),'-o',str(exe)],check=True)
+    subprocess.run([
+        sys.argv[1] if len(sys.argv) > 1 else 'c++',
+        '-std=c++17', '-Wall', '-Wextra', '-Werror', '-I', str(firmware),
+        str(cpp), '-o', str(exe),
+    ], check=True)
     subprocess.run([str(exe)],check=True)

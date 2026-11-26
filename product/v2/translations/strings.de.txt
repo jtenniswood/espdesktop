@@ -376,3 +376,17 @@ turn_on_studio_mode=Studiomodus einschalten?
 turn_off_studio_mode=Studiomodus ausschalten?
 start_replay_buffer_prompt=Replay-Puffer starten?
 stop_replay_buffer_prompt=Replay-Puffer stoppen?
+
+# Display pairing, audio and OBS
+label_ha_pairing_fingerprint=Fingerabdruck
+label_ha_pairing_code=Kopplungscode
+label_cough=Husten
+obs_record=Aufnehmen
+obs_take_live=Live schalten
+obs_save_replay=Replay speichern
+obs_enable_studio_mode=Studiomodus aktivieren
+obs_choose_preview=Vorschau auswählen
+obs_already_on_program=Bereits im Programm
+obs_transitioning=Übergang läuft
+obs_replay_not_confirmed=Replay nicht bestätigt
+obs_check=OBS prüfen
