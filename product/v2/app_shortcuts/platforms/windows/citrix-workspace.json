@@ -1,0 +1,21 @@
+{
+  "label": "Citrix Workspace",
+  "executables": [
+    "wfica32.exe",
+    "wfica64.exe"
+  ],
+  "sources": [
+    "https://prod-docs.citrix.com/en-us/citrix-workspace-app-for-windows/keyboard"
+  ],
+  "note": "These keys apply inside a Citrix session with the Desktop Viewer toolbar disabled. Citrix policy can change how the client handles shortcuts.",
+  "defaultShortcutIds": [
+    "0",
+    "1",
+    "2"
+  ],
+  "shortcuts": [
+    {"id": "0", "label": "Toggle Session Window Mode", "shortcut": "shift+f2", "icon": "Keyboard"},
+    {"id": "1", "label": "Close Session Window", "shortcut": "shift+f3", "icon": "Keyboard"},
+    {"id": "2", "label": "Remote Task Manager", "shortcut": "control+f3", "icon": "Keyboard"}
+  ]
+}

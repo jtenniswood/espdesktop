@@ -1,0 +1,22 @@
+{
+  "label": "AnyDesk",
+  "executables": [
+    "anydesk.exe"
+  ],
+  "sources": [
+    "https://support.anydesk.com/docs/keyboard-hotkeys"
+  ],
+  "note": "Use with the local AnyDesk session window in focus.",
+  "defaultShortcutIds": [
+    "0",
+    "1",
+    "2",
+    "3"
+  ],
+  "shortcuts": [
+    {"id": "0", "label": "Toggle Session Full Screen", "shortcut": "control+option+shift+enter", "icon": "Keyboard"},
+    {"id": "1", "label": "Actual Size", "shortcut": "control+option+shift+f2", "icon": "Keyboard"},
+    {"id": "2", "label": "Shrink View", "shortcut": "control+option+shift+f3", "icon": "Keyboard"},
+    {"id": "3", "label": "Save Session Screenshot", "shortcut": "control+option+shift+p", "icon": "Save"}
+  ]
+}

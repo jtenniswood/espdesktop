@@ -1,0 +1,25 @@
+{
+  "label": "CrystalDiskInfo",
+  "executables": [
+    "diskinfo64.exe",
+    "diskinfo32.exe",
+    "diskinfoa64.exe"
+  ],
+  "sources": [
+    "https://github.com/hiyohiyo/CrystalDiskInfo/blob/master/DiskInfo.rc"
+  ],
+  "defaultShortcutIds": [
+    "0",
+    "1",
+    "2",
+    "3"
+  ],
+  "shortcuts": [
+    {"id": "0", "label": "Refresh Status", "shortcut": "f5", "icon": "Keyboard"},
+    {"id": "1", "label": "Rescan Drives", "shortcut": "f6", "icon": "Keyboard"},
+    {"id": "2", "label": "Copy Status Text", "shortcut": "control+shift+c", "icon": "Keyboard"},
+    {"id": "3", "label": "Save Text Report", "shortcut": "control+t", "icon": "Save"},
+    {"id": "4", "label": "Save Image", "shortcut": "control+s", "icon": "Save"},
+    {"id": "5", "label": "Help", "shortcut": "f1", "icon": "Keyboard"}
+  ]
+}

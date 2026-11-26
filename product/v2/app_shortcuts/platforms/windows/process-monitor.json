@@ -1,0 +1,28 @@
+{
+  "label": "Process Monitor",
+  "executables": [
+    "procmon.exe",
+    "procmon64.exe",
+    "procmon64a.exe"
+  ],
+  "sources": [
+    "https://learn.microsoft.com/en-us/troubleshoot/windows-client/shell-experience/troubleshoot-apps-start-failure-use-process-monitor",
+    "https://download.sysinternals.com/files/ProcessMonitor.zip"
+  ],
+  "note": "Process Monitor commonly runs elevated. Windows protects elevated windows from input sent by non-elevated applications.",
+  "defaultShortcutIds": [
+    "0",
+    "1",
+    "2",
+    "3"
+  ],
+  "shortcuts": [
+    {"id": "0", "label": "Toggle Capture", "shortcut": "control+e", "icon": "Keyboard"},
+    {"id": "1", "label": "Find Event", "shortcut": "control+f", "icon": "Search"},
+    {"id": "2", "label": "Open Filter", "shortcut": "control+l", "icon": "Search"},
+    {"id": "3", "label": "Process Tree", "shortcut": "control+t", "icon": "Keyboard"},
+    {"id": "4", "label": "Event Properties", "shortcut": "control+p", "icon": "Keyboard"},
+    {"id": "5", "label": "Toggle Bookmark", "shortcut": "control+b", "icon": "Keyboard"},
+    {"id": "6", "label": "Save Trace", "shortcut": "control+s", "icon": "Save"}
+  ]
+}

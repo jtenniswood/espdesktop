@@ -1,0 +1,26 @@
+{
+  "label": "WinSCP",
+  "executables": [
+    "winscp.exe"
+  ],
+  "sources": [
+    "https://winscp.net/eng/docs/ui_explorer_key"
+  ],
+  "note": "Uses the Explorer interface bindings. Some keys differ in Commander mode.",
+  "defaultShortcutIds": [
+    "0",
+    "1",
+    "2",
+    "3"
+  ],
+  "shortcuts": [
+    {"id": "0", "label": "New Session Tab", "shortcut": "control+n", "icon": "New Window"},
+    {"id": "1", "label": "Find Remote File", "shortcut": "f3", "icon": "Search"},
+    {"id": "2", "label": "Reconnect", "shortcut": "control+shift+r", "icon": "Keyboard"},
+    {"id": "3", "label": "Refresh Panel", "shortcut": "f5", "icon": "Keyboard"},
+    {"id": "4", "label": "Home Directory", "shortcut": "control+h", "icon": "Folder"},
+    {"id": "5", "label": "Bookmark Directory", "shortcut": "control+b", "icon": "Folder"},
+    {"id": "6", "label": "Preferences", "shortcut": "control+option+p", "icon": "Keyboard"},
+    {"id": "7", "label": "Close Session Tab", "shortcut": "control+w", "icon": "Tab"}
+  ]
+}

@@ -1,0 +1,22 @@
+{
+  "label": "PDF24 Reader",
+  "executables": [
+    "pdf24-reader.exe"
+  ],
+  "sources": [
+    "https://help.pdf24.org/en/pdf24-reader-guide/"
+  ],
+  "note": "These shortcuts apply to PDF24 Reader, which is included in PDF24 Creator.",
+  "defaultShortcutIds": [
+    "0",
+    "1",
+    "2",
+    "3"
+  ],
+  "shortcuts": [
+    {"id": "0", "label": "Open PDF", "shortcut": "control+o", "icon": "Folder"},
+    {"id": "1", "label": "Find in PDF", "shortcut": "control+f", "icon": "Search"},
+    {"id": "2", "label": "Print", "shortcut": "control+p", "icon": "Keyboard"},
+    {"id": "3", "label": "Full Screen", "shortcut": "f11", "icon": "Keyboard"}
+  ]
+}

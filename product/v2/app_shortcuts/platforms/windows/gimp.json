@@ -1,0 +1,26 @@
+{
+  "label": "GIMP",
+  "executables": [
+    "gimp-3.0.exe"
+  ],
+  "sources": [
+    "https://docs.gimp.org/3.0/pdf/gimp-keys-en.pdf"
+  ],
+  "note": "These are GIMP 3 defaults.",
+  "defaultShortcutIds": [
+    "0",
+    "1",
+    "2",
+    "3"
+  ],
+  "shortcuts": [
+    {"id": "0", "label": "Open Image", "shortcut": "control+o", "icon": "Folder"},
+    {"id": "1", "label": "Save Project", "shortcut": "control+s", "icon": "Save"},
+    {"id": "2", "label": "Export As", "shortcut": "control+shift+e", "icon": "Keyboard"},
+    {"id": "3", "label": "Search Actions", "shortcut": "keyslash", "icon": "Search"},
+    {"id": "4", "label": "Open as Layers", "shortcut": "control+option+o", "icon": "Folder"},
+    {"id": "5", "label": "New Image", "shortcut": "control+n", "icon": "New Window"},
+    {"id": "6", "label": "Undo", "shortcut": "control+z", "icon": "Undo"},
+    {"id": "7", "label": "Redo", "shortcut": "control+y", "icon": "Redo"}
+  ]
+}

@@ -1,0 +1,27 @@
+{
+  "label": "Power BI Desktop",
+  "executables": [
+    "pbidesktop.exe"
+  ],
+  "targets": [
+    "microsoft.microsoftpowerbidesktop_8wekyb3d8bbwe!microsoft.microsoftpowerbidesktop"
+  ],
+  "sources": [
+    "https://learn.microsoft.com/en-us/power-bi/create-reports/desktop-accessibility-keyboard-shortcuts"
+  ],
+  "note": "Visual commands depend on the current selection or focus.",
+  "defaultShortcutIds": [
+    "0",
+    "1",
+    "2",
+    "3"
+  ],
+  "shortcuts": [
+    {"id": "0", "label": "Next Section", "shortcut": "control+f6", "icon": "Chevron Right"},
+    {"id": "1", "label": "Open Visual Menu", "shortcut": "option+shift+f10", "icon": "Folder"},
+    {"id": "2", "label": "Show Visual Data", "shortcut": "option+shift+f11", "icon": "Keyboard"},
+    {"id": "3", "label": "Group Selected Visuals", "shortcut": "control+g", "icon": "Keyboard"},
+    {"id": "4", "label": "Enter Visual", "shortcut": "control+right", "icon": "Keyboard"},
+    {"id": "5", "label": "Open Context Menu", "shortcut": "shift+f10", "icon": "Folder"}
+  ]
+}

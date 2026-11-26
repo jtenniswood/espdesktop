@@ -1,0 +1,24 @@
+{
+  "label": "PDF-XChange Editor",
+  "executables": [
+    "pdfxedit.exe"
+  ],
+  "sources": [
+    "https://help.pdf-xchange.com/pdfxe10c/keyboard-shortcuts_ed.html"
+  ],
+  "defaultShortcutIds": [
+    "0",
+    "1",
+    "2",
+    "3"
+  ],
+  "shortcuts": [
+    {"id": "0", "label": "Actual Size", "shortcut": "control+1", "icon": "Keyboard"},
+    {"id": "1", "label": "Find", "shortcut": "control+f", "icon": "Search"},
+    {"id": "2", "label": "Toggle Bookmarks", "shortcut": "control+b", "icon": "Keyboard"},
+    {"id": "3", "label": "Add Bookmark", "shortcut": "control+shift+b", "icon": "Keyboard"},
+    {"id": "4", "label": "Toggle Attachments", "shortcut": "control+shift+a", "icon": "Keyboard"},
+    {"id": "5", "label": "Go Back", "shortcut": "option+left", "icon": "Keyboard"},
+    {"id": "6", "label": "Open PDF", "shortcut": "control+o", "icon": "Folder"}
+  ]
+}

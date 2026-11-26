@@ -1,0 +1,25 @@
+{
+  "label": "draw.io Desktop",
+  "executables": [
+    "draw.io.exe"
+  ],
+  "sources": [
+    "https://www.drawio.com/docs/reference/shortcuts/"
+  ],
+  "note": "These apply to the desktop diagram editor.",
+  "defaultShortcutIds": [
+    "0",
+    "1",
+    "2",
+    "3"
+  ],
+  "shortcuts": [
+    {"id": "0", "label": "Duplicate Selection", "shortcut": "control+d", "icon": "Keyboard"},
+    {"id": "1", "label": "Undo", "shortcut": "control+z", "icon": "Undo"},
+    {"id": "2", "label": "Redo", "shortcut": "control+y", "icon": "Redo"},
+    {"id": "3", "label": "Select All", "shortcut": "control+a", "icon": "Keyboard"},
+    {"id": "4", "label": "Group", "shortcut": "control+g", "icon": "Keyboard"},
+    {"id": "5", "label": "Open Diagram", "shortcut": "control+o", "icon": "Folder"},
+    {"id": "6", "label": "Save Diagram", "shortcut": "control+s", "icon": "Save"}
+  ]
+}

@@ -1,5 +1,7 @@
 # Windows shortcut coverage
 
+See the [top 100 Windows application audit](./top-100.md) for coverage based on popular Windows downloads.
+
 Each Windows JSON file lists the vendor documentation or application source used to choose its presets. The references use the vendor's default bindings for the named edition. A number of apps use different keys by edition, panel focus or keyboard layout. Microsoft Outlook, Affinity 2, Adobe Lightroom, Telegram, and Zoom have notes in their guides.
 
 The following macOS catalogue entries needed an edition or availability check. A browser version generally shares a process with other sites. Reference-only web shortcuts require the matching tab to be in focus.

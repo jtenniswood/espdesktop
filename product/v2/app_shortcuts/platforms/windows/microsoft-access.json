@@ -1,0 +1,23 @@
+{
+  "label": "Microsoft Access",
+  "executables": [
+    "msaccess.exe"
+  ],
+  "sources": [
+    "https://support.microsoft.com/en-us/accessibility/access/keyboard-shortcuts-for-access"
+  ],
+  "defaultShortcutIds": [
+    "0",
+    "1",
+    "2",
+    "3"
+  ],
+  "shortcuts": [
+    {"id": "0", "label": "Open Database", "shortcut": "control+o", "icon": "Folder"},
+    {"id": "1", "label": "Save Object", "shortcut": "control+s", "icon": "Save"},
+    {"id": "2", "label": "Find", "shortcut": "control+f", "icon": "Search"},
+    {"id": "3", "label": "Show Navigation Pane", "shortcut": "f11", "icon": "Keyboard"},
+    {"id": "4", "label": "Open Help", "shortcut": "f1", "icon": "Folder"},
+    {"id": "5", "label": "Close Database Window", "shortcut": "control+w", "icon": "Keyboard"}
+  ]
+}

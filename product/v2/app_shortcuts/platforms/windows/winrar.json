@@ -1,0 +1,26 @@
+{
+  "label": "WinRAR",
+  "executables": [
+    "winrar.exe"
+  ],
+  "sources": [
+    "https://www.win-rar.com/faq0.html",
+    "https://www.rarlab.com/download.htm"
+  ],
+  "defaultShortcutIds": [
+    "0",
+    "1",
+    "2",
+    "3"
+  ],
+  "shortcuts": [
+    {"id": "0", "label": "Open Archive", "shortcut": "control+o", "icon": "Folder"},
+    {"id": "1", "label": "Find Files", "shortcut": "f3", "icon": "Search"},
+    {"id": "2", "label": "Add to Archive", "shortcut": "option+a", "icon": "Keyboard"},
+    {"id": "3", "label": "Extract To", "shortcut": "option+e", "icon": "Keyboard"},
+    {"id": "4", "label": "Parent Folder", "shortcut": "control+pageup", "icon": "Folder"},
+    {"id": "5", "label": "Open Folder or Archive", "shortcut": "control+pagedown", "icon": "Folder"},
+    {"id": "6", "label": "Archive Info", "shortcut": "option+i", "icon": "Keyboard"},
+    {"id": "7", "label": "Test Archive", "shortcut": "option+t", "icon": "Keyboard"}
+  ]
+}

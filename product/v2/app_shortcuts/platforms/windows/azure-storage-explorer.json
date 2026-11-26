@@ -1,0 +1,25 @@
+{
+  "label": "Azure Storage Explorer",
+  "executables": [
+    "storageexplorer.exe"
+  ],
+  "sources": [
+    "https://learn.microsoft.com/en-us/azure/storage/storage-explorer/vs-azure-tools-storage-explorer-accessibility"
+  ],
+  "defaultShortcutIds": [
+    "0",
+    "1",
+    "2",
+    "3"
+  ],
+  "shortcuts": [
+    {"id": "0", "label": "Focus Explorer", "shortcut": "control+shift+e", "icon": "Keyboard"},
+    {"id": "1", "label": "Activity Log", "shortcut": "control+shift+l", "icon": "Keyboard"},
+    {"id": "2", "label": "New Window", "shortcut": "control+shift+n", "icon": "New Window"},
+    {"id": "3", "label": "Next Panel", "shortcut": "f6", "icon": "Chevron Right"},
+    {"id": "4", "label": "Account Management", "shortcut": "control+shift+a", "icon": "Keyboard"},
+    {"id": "5", "label": "Actions and Properties", "shortcut": "control+shift+p", "icon": "Keyboard"},
+    {"id": "6", "label": "Previous Panel", "shortcut": "shift+f6", "icon": "Chevron Left"},
+    {"id": "7", "label": "Close Editor", "shortcut": "control+f4", "icon": "Keyboard"}
+  ]
+}

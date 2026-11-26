@@ -1,0 +1,26 @@
+{
+  "label": "PDFsam Basic",
+  "executables": [
+    "pdfsam.exe",
+    "pdfsam-basic.exe"
+  ],
+  "sources": [
+    "https://github.com/torakiki/pdfsam/blob/master/pdfsam-ui-components/src/main/java/org/pdfsam/ui/components/tool/RunButtonTriggerRequest.java",
+    "https://github.com/torakiki/pdfsam/blob/master/pdfsam-ui-components/src/main/java/org/pdfsam/ui/components/selection/multiple/SelectionTable.java"
+  ],
+  "note": "Input commands depend on the active tool and selected PDF.",
+  "defaultShortcutIds": [
+    "0",
+    "1",
+    "2",
+    "3"
+  ],
+  "shortcuts": [
+    {"id": "0", "label": "Run Current Tool", "shortcut": "control+x", "icon": "Keyboard"},
+    {"id": "1", "label": "Move Input Up", "shortcut": "option+up", "icon": "Keyboard"},
+    {"id": "2", "label": "Move Input Down", "shortcut": "option+down", "icon": "Keyboard"},
+    {"id": "3", "label": "Open Selected Input", "shortcut": "control+o", "icon": "Folder"},
+    {"id": "4", "label": "Open Input Folder", "shortcut": "control+option+o", "icon": "Folder"},
+    {"id": "5", "label": "Show Input Details", "shortcut": "option+p", "icon": "Keyboard"}
+  ]
+}

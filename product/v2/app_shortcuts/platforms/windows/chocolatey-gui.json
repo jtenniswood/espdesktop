@@ -1,0 +1,20 @@
+{
+  "label": "Chocolatey GUI",
+  "executables": [
+    "chocolateygui.exe"
+  ],
+  "sources": [
+    "https://docs.chocolatey.org/en-us/chocolatey-gui/setup/configuration/features/use-keyboard-bindings/"
+  ],
+  "note": "Requires the Use Keyboard Bindings setting. Source order is configurable.",
+  "defaultShortcutIds": [
+    "0",
+    "1",
+    "2"
+  ],
+  "shortcuts": [
+    {"id": "0", "label": "This PC", "shortcut": "control+1", "icon": "Keyboard"},
+    {"id": "1", "label": "First Package Source", "shortcut": "control+2", "icon": "Keyboard"},
+    {"id": "2", "label": "Second Package Source", "shortcut": "control+3", "icon": "Keyboard"}
+  ]
+}

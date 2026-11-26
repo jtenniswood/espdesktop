@@ -1,0 +1,24 @@
+{
+  "label": "DBeaver",
+  "executables": [
+    "dbeaver.exe"
+  ],
+  "sources": [
+    "https://dbeaver.com/docs/dbeaver/Shortcuts/"
+  ],
+  "note": "Editing commands depend on the active editor.",
+  "defaultShortcutIds": [
+    "0",
+    "1",
+    "2",
+    "3"
+  ],
+  "shortcuts": [
+    {"id": "0", "label": "Find or Replace", "shortcut": "control+f", "icon": "Search"},
+    {"id": "1", "label": "Autocomplete", "shortcut": "control+space", "icon": "Keyboard"},
+    {"id": "2", "label": "Quick Fix", "shortcut": "control+1", "icon": "Keyboard"},
+    {"id": "3", "label": "Undo", "shortcut": "control+z", "icon": "Undo"},
+    {"id": "4", "label": "Show Context Info", "shortcut": "control+option+space", "icon": "Keyboard"},
+    {"id": "5", "label": "Incremental Find", "shortcut": "control+j", "icon": "Search"}
+  ]
+}

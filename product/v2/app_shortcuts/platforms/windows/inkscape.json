@@ -1,0 +1,25 @@
+{
+  "label": "Inkscape",
+  "executables": [
+    "inkscape.exe"
+  ],
+  "sources": [
+    "https://wiki.inkscape.org/wiki/Keyboard_shortcuts"
+  ],
+  "defaultShortcutIds": [
+    "0",
+    "1",
+    "2",
+    "3"
+  ],
+  "shortcuts": [
+    {"id": "0", "label": "Select Tool", "shortcut": "f1", "icon": "Keyboard"},
+    {"id": "1", "label": "Node Tool", "shortcut": "f2", "icon": "Keyboard"},
+    {"id": "2", "label": "Zoom to Page", "shortcut": "5", "icon": "Keyboard"},
+    {"id": "3", "label": "Zoom to Drawing", "shortcut": "4", "icon": "Keyboard"},
+    {"id": "4", "label": "Group", "shortcut": "control+g", "icon": "Keyboard"},
+    {"id": "5", "label": "Ungroup", "shortcut": "control+shift+g", "icon": "Keyboard"},
+    {"id": "6", "label": "Fill and Stroke", "shortcut": "control+shift+f", "icon": "Keyboard"},
+    {"id": "7", "label": "Export", "shortcut": "control+shift+e", "icon": "Keyboard"}
+  ]
+}

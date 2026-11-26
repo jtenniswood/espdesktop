@@ -1,0 +1,25 @@
+{
+  "label": "iTunes",
+  "executables": [
+    "itunes.exe"
+  ],
+  "sources": [
+    "https://support.apple.com/en-ie/guide/itunes/itns1019/windows"
+  ],
+  "defaultShortcutIds": [
+    "0",
+    "1",
+    "2",
+    "3"
+  ],
+  "shortcuts": [
+    {"id": "0", "label": "Play or Pause", "shortcut": "space", "icon": "Keyboard"},
+    {"id": "1", "label": "Next Track", "shortcut": "right", "icon": "Chevron Right"},
+    {"id": "2", "label": "Previous Track", "shortcut": "left", "icon": "Chevron Left"},
+    {"id": "3", "label": "Increase Volume", "shortcut": "control+up", "icon": "Keyboard"},
+    {"id": "4", "label": "Decrease Volume", "shortcut": "control+down", "icon": "Keyboard"},
+    {"id": "5", "label": "New Playlist", "shortcut": "control+n", "icon": "New Window"},
+    {"id": "6", "label": "MiniPlayer", "shortcut": "control+shift+m", "icon": "Keyboard"},
+    {"id": "7", "label": "Find Music", "shortcut": "control+f", "icon": "Search"}
+  ]
+}

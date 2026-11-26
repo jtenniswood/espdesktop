@@ -1,0 +1,16 @@
+{
+  "label": "ImageGlass",
+  "executables": [
+    "imageglass.exe"
+  ],
+  "sources": [
+    "https://imageglass.org/news/announcing-imageglass-9-2-maroon-4-93"
+  ],
+  "note": "Image rating shortcut documented for ImageGlass 9.2. Shortcuts are configurable.",
+  "defaultShortcutIds": [
+    "0"
+  ],
+  "shortcuts": [
+    {"id": "0", "label": "Set Image Rating", "shortcut": "option+r", "icon": "Keyboard"}
+  ]
+}

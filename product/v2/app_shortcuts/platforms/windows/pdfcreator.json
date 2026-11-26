@@ -1,0 +1,18 @@
+{
+  "label": "PDFCreator",
+  "executables": [
+    "pdfcreator.exe"
+  ],
+  "sources": [
+    "https://github.com/pdfforge/PDFCreator/blob/master/Source/Application/UI/Presentation/Windows/ManagePrintJobsWindow.xaml"
+  ],
+  "note": "Both keys apply to selected jobs in the Manage Print Jobs window.",
+  "defaultShortcutIds": [
+    "0",
+    "1"
+  ],
+  "shortcuts": [
+    {"id": "0", "label": "Merge Selected Jobs", "shortcut": "control+m", "icon": "Keyboard"},
+    {"id": "1", "label": "Remove Selected Jobs", "shortcut": "forwarddelete", "icon": "Keyboard"}
+  ]
+}

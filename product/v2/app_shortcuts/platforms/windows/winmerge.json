@@ -1,0 +1,25 @@
+{
+  "label": "WinMerge",
+  "executables": [
+    "winmergeu.exe",
+    "winmerge.exe"
+  ],
+  "sources": [
+    "https://manual.winmerge.org/en/Shortcut_keys.html"
+  ],
+  "defaultShortcutIds": [
+    "0",
+    "1",
+    "2",
+    "3"
+  ],
+  "shortcuts": [
+    {"id": "0", "label": "Rescan", "shortcut": "f5", "icon": "Keyboard"},
+    {"id": "1", "label": "Next Difference", "shortcut": "option+down", "icon": "Chevron Right"},
+    {"id": "2", "label": "Previous Difference", "shortcut": "option+up", "icon": "Chevron Left"},
+    {"id": "3", "label": "First Difference", "shortcut": "option+home", "icon": "Keyboard"},
+    {"id": "4", "label": "Last Difference", "shortcut": "option+end", "icon": "Keyboard"},
+    {"id": "5", "label": "Next Tab", "shortcut": "control+tab", "icon": "Chevron Right"},
+    {"id": "6", "label": "Previous Tab", "shortcut": "control+shift+tab", "icon": "Chevron Left"}
+  ]
+}

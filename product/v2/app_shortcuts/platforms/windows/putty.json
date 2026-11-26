@@ -1,0 +1,18 @@
+{
+  "label": "PuTTY",
+  "executables": [
+    "putty.exe"
+  ],
+  "sources": [
+    "https://the.earth.li/~sgtatham/putty/latest/htmldoc/Chapter4.html#config-altspace"
+  ],
+  "note": "Enable the corresponding options under Window > Behaviour in PuTTY before using these shortcuts.",
+  "defaultShortcutIds": [
+    "0",
+    "1"
+  ],
+  "shortcuts": [
+    {"id": "0", "label": "Open System Menu", "shortcut": "option+space", "icon": "Folder"},
+    {"id": "1", "label": "Toggle Full Screen", "shortcut": "option+enter", "icon": "Keyboard"}
+  ]
+}

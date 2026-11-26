@@ -1,0 +1,25 @@
+{
+  "label": "SumatraPDF",
+  "executables": [
+    "sumatrapdf.exe"
+  ],
+  "sources": [
+    "https://www.sumatrapdfreader.org/docs/Keyboard-shortcuts"
+  ],
+  "defaultShortcutIds": [
+    "0",
+    "1",
+    "2",
+    "3"
+  ],
+  "shortcuts": [
+    {"id": "0", "label": "Open PDF", "shortcut": "control+o", "icon": "Folder"},
+    {"id": "1", "label": "Find", "shortcut": "control+f", "icon": "Search"},
+    {"id": "2", "label": "Go to Page", "shortcut": "control+g", "icon": "Keyboard"},
+    {"id": "3", "label": "Toggle Full Screen", "shortcut": "f11", "icon": "Keyboard"},
+    {"id": "4", "label": "Next Page", "shortcut": "pagedown", "icon": "Chevron Right"},
+    {"id": "5", "label": "Previous Page", "shortcut": "pageup", "icon": "Chevron Left"},
+    {"id": "6", "label": "Print", "shortcut": "control+p", "icon": "Keyboard"},
+    {"id": "7", "label": "Close Tab", "shortcut": "control+w", "icon": "Tab"}
+  ]
+}

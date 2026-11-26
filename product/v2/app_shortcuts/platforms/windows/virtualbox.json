@@ -1,0 +1,24 @@
+{
+  "label": "Oracle VirtualBox Manager",
+  "executables": [
+    "virtualbox.exe"
+  ],
+  "sources": [
+    "https://github.com/Virtualbox/virtualbox/blob/main/src/VBox/Frontends/VirtualBox/src/globals/UIActionPoolManager.cpp"
+  ],
+  "note": "These keys apply in VirtualBox Manager.",
+  "defaultShortcutIds": [
+    "0",
+    "1",
+    "2",
+    "3"
+  ],
+  "shortcuts": [
+    {"id": "0", "label": "New Virtual Machine", "shortcut": "control+n", "icon": "New Window"},
+    {"id": "1", "label": "Open Virtual Machine", "shortcut": "control+a", "icon": "Folder"},
+    {"id": "2", "label": "Machine Settings", "shortcut": "control+s", "icon": "Keyboard"},
+    {"id": "3", "label": "Find Virtual Machine", "shortcut": "control+f", "icon": "Search"},
+    {"id": "4", "label": "Import Appliance", "shortcut": "control+i", "icon": "Keyboard"},
+    {"id": "5", "label": "Export Appliance", "shortcut": "control+e", "icon": "Keyboard"}
+  ]
+}

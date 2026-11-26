@@ -1,0 +1,22 @@
+{
+  "label": "Tor Browser",
+  "executables": [],
+  "sources": [
+    "https://support.torproject.org/tor-browser/features/managing-identities/",
+    "https://support.mozilla.org/en-US/kb/keyboard-shortcuts-perform-firefox-tasks-quickly"
+  ],
+  "note": "Tor Browser and Mozilla Firefox may both run as firefox.exe. This Windows reference has no automatic application match.",
+  "defaultShortcutIds": [
+    "0",
+    "1",
+    "2",
+    "3"
+  ],
+  "shortcuts": [
+    {"id": "0", "label": "New Tab", "shortcut": "control+t", "icon": "New Window"},
+    {"id": "1", "label": "Reopen Closed Tab", "shortcut": "control+shift+t", "icon": "Tab"},
+    {"id": "2", "label": "Find in Page", "shortcut": "control+f", "icon": "Search"},
+    {"id": "3", "label": "Focus Address Bar", "shortcut": "control+l", "icon": "Keyboard"},
+    {"id": "4", "label": "Bookmark Page", "shortcut": "control+d", "icon": "Keyboard"}
+  ]
+}

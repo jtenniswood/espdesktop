@@ -1,0 +1,18 @@
+{
+  "label": "TreeSize Free",
+  "executables": [
+    "treesizefree.exe"
+  ],
+  "sources": [
+    "https://www.jam-software.com/treesize_free/changes.shtml"
+  ],
+  "note": "Applies to the selected files in the scan results.",
+  "defaultShortcutIds": [
+    "0",
+    "1"
+  ],
+  "shortcuts": [
+    {"id": "0", "label": "New Instance", "shortcut": "option+n", "icon": "New Window"},
+    {"id": "1", "label": "Cut Selected Files", "shortcut": "control+x", "icon": "Keyboard"}
+  ]
+}

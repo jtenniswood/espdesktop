@@ -1,0 +1,20 @@
+{
+  "label": "Dropbox on the web",
+  "executables": [],
+  "sources": [
+    "https://help.dropbox.com/organize/keyboard-shortcuts"
+  ],
+  "note": "Use in the Files view on dropbox.com. The desktop sync client uses File Explorer for browsing synced files.",
+  "defaultShortcutIds": [
+    "0",
+    "1",
+    "2",
+    "3"
+  ],
+  "shortcuts": [
+    {"id": "0", "label": "Find Files", "shortcut": "keyslash", "icon": "Search"},
+    {"id": "1", "label": "Open Selected Item", "shortcut": "enter", "icon": "Folder"},
+    {"id": "2", "label": "Next Item", "shortcut": "down", "icon": "Chevron Right"},
+    {"id": "3", "label": "Previous Item", "shortcut": "up", "icon": "Chevron Left"}
+  ]
+}
