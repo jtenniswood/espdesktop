@@ -54,6 +54,35 @@ final class ApplicationCatalogueTests: XCTestCase {
         )
     }
 
+    func testDiscoversAppsInHomeApplicationsAndNestedOnExternalVolume() async throws {
+        let root = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        let homeApplications = root.appendingPathComponent("Home/Applications")
+        let externalVolume = root.appendingPathComponent("External Drive")
+        let homeApp = homeApplications.appendingPathComponent("Home.app")
+        let externalApp = externalVolume.appendingPathComponent("Tools/Editors/External.app")
+        let homeID = "io.espdesktop.tests.home-app"
+        let externalID = "io.espdesktop.tests.external-volume-app"
+        defer { try? FileManager.default.removeItem(at: root) }
+
+        try makeApplication(at: homeApp, identifier: homeID)
+        try makeApplication(at: externalApp, identifier: externalID)
+        try makeApplication(at: externalVolume.appendingPathComponent("Copy of Home.app"), identifier: homeID)
+        let helperID = "io.espdesktop.tests.bundled-helper"
+        try makeApplication(at: externalApp.appendingPathComponent("Contents/Helpers/Helper.app"), identifier: helperID)
+
+        let catalogue = ApplicationCatalogue()
+        let discovered = await catalogue.scan(roots: [homeApplications], externalVolumes: [externalVolume])
+        let homeMatch = try XCTUnwrap(discovered.first { $0.bundleIdentifier == homeID })
+        let externalMatch = try XCTUnwrap(discovered.first { $0.bundleIdentifier == externalID })
+        XCTAssertEqual(homeMatch.url.resolvingSymlinksInPath().path, homeApp.resolvingSymlinksInPath().path)
+        XCTAssertEqual(externalMatch.url.resolvingSymlinksInPath().path, externalApp.resolvingSymlinksInPath().path)
+        XCTAssertFalse(discovered.contains { $0.bundleIdentifier == helperID })
+
+        let afterEject = await catalogue.scan(roots: [homeApplications])
+        XCTAssertTrue(afterEject.contains { $0.bundleIdentifier == homeID })
+        XCTAssertFalse(afterEject.contains { $0.bundleIdentifier == externalID })
+    }
+
     private func makeApplication(at url: URL, identifier: String) throws {
         let contents = url.appendingPathComponent("Contents")
         try FileManager.default.createDirectory(at: contents, withIntermediateDirectories: true)

@@ -15,7 +15,26 @@ actor ApplicationCatalogue {
         URL(fileURLWithPath: "/System/Cryptexes/App/System/Applications"),
     ]
 
-    func scan(roots: [URL] = ApplicationCatalogue.applicationRoots) -> [LaunchableApp] {
+    func scan() -> [LaunchableApp] {
+        scan(roots: Self.applicationRoots, externalVolumes: Self.mountedExternalVolumes())
+    }
+
+    static func mountedExternalVolumes() -> [URL] {
+        let keys: Set<URLResourceKey> = [
+            .volumeIsInternalKey, .volumeIsLocalKey, .volumeIsRemovableKey, .volumeIsEjectableKey,
+        ]
+        let volumes = FileManager.default.mountedVolumeURLs(
+            includingResourceValuesForKeys: Array(keys), options: [.skipHiddenVolumes]
+        ) ?? []
+        return volumes.filter { url in
+            guard let values = try? url.resourceValues(forKeys: keys) else { return false }
+            return values.volumeIsLocal == true && (
+                values.volumeIsInternal == false || values.volumeIsRemovable == true || values.volumeIsEjectable == true
+            )
+        }.sorted { $0.path < $1.path }
+    }
+
+    func scan(roots: [URL], externalVolumes: [URL] = []) -> [LaunchableApp] {
         let keys: Set<URLResourceKey> = [.isAliasFileKey, .isSymbolicLinkKey]
         var found: [LaunchableApp] = []
         var aliases: [URL] = []
@@ -54,6 +73,20 @@ actor ApplicationCatalogue {
                   (try? target.resourceValues(forKeys: [.isDirectoryKey]).isDirectory) == true else { continue }
             appendApplication(at: target)
         }
+        // Keep the installed or explicitly aliased copy when the same app is on a drive.
+        let externalKeys: Set<URLResourceKey> = [.isDirectoryKey, .isSymbolicLinkKey]
+        for volume in externalVolumes {
+            guard let enumerator = FileManager.default.enumerator(
+                at: volume, includingPropertiesForKeys: Array(externalKeys), options: [.skipsHiddenFiles, .skipsPackageDescendants]
+            ) else { continue }
+            for case let url as URL in enumerator where url.pathExtension.lowercased() == "app" {
+                guard let values = try? url.resourceValues(forKeys: externalKeys),
+                      values.isDirectory == true, values.isSymbolicLink == false else { continue }
+                enumerator.skipDescendants()
+                appendApplication(at: url)
+            }
+        }
+
         return Dictionary(grouping: found, by: \.bundleIdentifier)
             .compactMap { $0.value.first }
             .sorted { lhs, rhs in
