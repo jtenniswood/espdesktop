@@ -40,6 +40,8 @@ Two levels are supported: **Home → Folder → Subpage**, including **Home → 
 
 Saving a supported app card inside a folder adds its app subpage automatically. Choose **Edit Subpage** to arrange its shortcuts. The selected opening mode also applies inside folders.
 
+In Safari’s app subpage, add **Edit Bookmarks** to open Safari’s bookmarks list or **Add Bookmark** to bookmark the current page.
+
 Pages share the display's existing total card and saved-layout limits. A layout that exceeds them is rejected without replacing the saved layout.
 
 Nested layouts use the new saved-layout format and require firmware with two-level support. Keep a backup before upgrading. After saving with this release, downgrading to older firmware is unsupported. The new firmware still imports older flat layouts and backups.
