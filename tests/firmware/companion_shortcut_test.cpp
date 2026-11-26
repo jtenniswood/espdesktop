@@ -803,6 +803,10 @@ int main() {
   assert(guarded_invocations == 2 && sent_action == "shortcut.control+w" && shortcut_target.empty());
   assert(companion_shortcut_action_valid("shortcut.scoped.command+k~command+s"));
   assert(companion_shortcut_action_valid("shortcut.scoped.shift+keypadenter"));
+  assert(companion_shortcut_action_valid("shortcut.scoped.keypaddecimal"));
+  assert(companion_shortcut_action_valid("shortcut.scoped.control+keypad6"));
+  assert(companion_shortcut_action_valid("shortcut.scoped.control+shift+insert"));
+  assert(!companion_shortcut_action_valid("shortcut.control+shift+insert"));
   assert(!companion_shortcut_action_valid("shortcut.scoped.a~b~c~d"));
   assert(!companion_shortcut_action_valid("shortcut.scoped.command+command+a"));
   assert(!invoke_companion_action_for_app("shortcut.scoped.space", "unscoped", "", "new_window", "custom", 0));

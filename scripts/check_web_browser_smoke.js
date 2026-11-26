@@ -5058,6 +5058,10 @@ async function assertWindowsShortcutSettings(browser, testCase) {
         { kind: "application", definition: {
           appId: racingId, label: "iRacing", version: 1, catalog: false,
           shortcuts: [{ id: "2", label: "Relative", shortcut: "scoped.f3", icon: "Bullet List" }],
+          moreShortcuts: [
+            { id: "45", label: "Stop Replay", shortcut: "scoped.keypaddecimal", icon: "Stop" },
+            { id: "116", label: "Add Camera", shortcut: "scoped.control+shift+insert", icon: "Plus" },
+          ],
         } },
       ] },
     }));
@@ -5101,17 +5105,21 @@ async function assertWindowsShortcutSettings(browser, testCase) {
     await page.locator('.sp-main [data-slot="3"] .sp-subpage-badge').click();
     await openShortcut();
     assert.equal(await page.getByRole("tab", { name: "Application", exact: true }).getAttribute("aria-selected"), "true");
+    const stopReplay = page.locator(".sp-light-tab-row").filter({ hasText: "Stop Replay" });
+    const addCamera = page.locator(".sp-light-tab-row").filter({ hasText: "Add Camera" });
+    assert.equal(await stopReplay.locator(".sp-shortcut-catalog-keys").textContent(), "Keypad .");
+    assert.equal(await addCamera.locator(".sp-shortcut-catalog-keys").textContent(), "Ctrl+Shift+Insert");
     await page.getByRole("tab", { name: "Custom", exact: true }).click();
     assert.equal(await key.inputValue(), "f3");
-    await key.selectOption("keypad2");
+    await key.selectOption("keypaddecimal");
     await page.getByRole("button", { name: "Shift", exact: true }).click();
     await page.getByRole("button", { name: "Save", exact: true }).click();
     await waitForNativeState(nativeState, () => {
       const saved = decodeURIComponent(nativeState.document.subpages[3]);
-      return saved.includes("shortcut.scoped.shift+keypad2") && saved.includes("app_shortcut_preset=custom");
+      return saved.includes("shortcut.scoped.shift+keypaddecimal") && saved.includes("app_shortcut_preset=custom");
     }, "iRacing custom binding keeps its Windows application scope");
     await openShortcut();
-    assert.equal(await key.inputValue(), "keypad2");
+    assert.equal(await key.inputValue(), "keypaddecimal");
     await page.locator(".sp-settings-close").click();
     await page.locator(".sp-back-btn .sp-back-hit").click();
     await openShortcut();

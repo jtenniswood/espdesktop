@@ -192,7 +192,7 @@ def validate_windows_apps(root):
 
         require(re.fullmatch(r'[a-z0-9]+(?:-[a-z0-9]+)*', path.stem), 'invalid guide slug')
         require(isinstance(app, dict) and
-                set(app) - {'targets', 'note'} == {'label', 'executables', 'sources', 'shortcuts'},
+                set(app) - {'targets', 'note', 'defaultShortcutIds'} == {'label', 'executables', 'sources', 'shortcuts'},
                 'expected label, executables, sources, shortcuts and supported optional fields')
         require(text(app['label'], 48), 'invalid app label')
         require('note' not in app or text(app['note'], 400), 'invalid app note')
@@ -223,6 +223,11 @@ def validate_windows_apps(root):
                     f'{ident}: invalid label or icon')
             require('note' not in item or text(item['note'], 200), f'{ident}: invalid shortcut note')
             require(windows_shortcut_valid(item['shortcut']), f'{ident}: invalid Windows shortcut')
+        if 'defaultShortcutIds' in app:
+            defaults = app['defaultShortcutIds']
+            starter_ids = {item['id'] for item in shortcuts[:7]}
+            require(isinstance(defaults, list) and all(isinstance(value, str) and value in starter_ids for value in defaults)
+                    and len(defaults) == len(set(defaults)), 'defaultShortcutIds must be unique IDs from the first seven shortcuts')
 
 
 def windows_shortcut_valid(value):
@@ -239,8 +244,8 @@ def windows_stroke_valid(stroke):
             and not ('option' in modifiers and key in {'tab', 'escape', 'f4'})
             and not ('control' in modifiers and key == 'escape')
             and not (key == 'forwarddelete' and {'control', 'option'} <= set(modifiers))
-            and (key in KEYS
-                 or re.fullmatch(r'[a-z0-9]|f(?:[1-9]|1[0-9]|20)', key) is not None))
+            and (key in KEYS or key in {'insert', 'keypaddecimal'}
+                 or re.fullmatch(r'[a-z0-9]|f(?:[1-9]|1[0-9]|20)|keypad[0-9]', key) is not None))
 
 
 def outputs(root):

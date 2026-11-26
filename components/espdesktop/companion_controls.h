@@ -551,6 +551,7 @@ inline bool companion_shortcut_key_valid(const std::string &key, bool scoped) {
     const int number = std::atoi(key.c_str() + 1);
     return number >= 1 && number <= 20 && key == "f" + std::to_string(number);
   }
+  if (scoped && key == "insert") return true;
   if (!scoped || key.rfind("keypad", 0) != 0) return false;
   const auto suffix = key.substr(6);
   if (suffix.size() == 1 && suffix[0] >= '0' && suffix[0] <= '9') return true;

@@ -144,6 +144,8 @@ function companionShortcutKeyLabel(key: string, windows: boolean): string {
         if (key === "enter") return "Enter";
         if (key === "delete") return "Backspace";
         if (key === "forwarddelete") return "Delete";
+        if (key === "insert") return "Insert";
+        if (key === "keypaddecimal") return "Keypad .";
     }
     return COMPANION_SHORTCUT_KEY_LABELS[key] ||
         (key.startsWith("keypad") ? "Keypad " + key.slice(6) : key.toUpperCase());
@@ -1459,11 +1461,16 @@ export function registerCompanionCardTypes(
             const keyGroups: [string, readonly string[]][] = [
                 ["Letters", Array.from("abcdefghijklmnopqrstuvwxyz")],
                 ["Numbers", Array.from("0123456789")],
-                ["Navigation and editing", Object.values(COMPANION_SHORTCUT_KEYS).filter((key) => !key.startsWith("key"))],
+                ["Navigation and editing", [
+                    ...Object.values(COMPANION_SHORTCUT_KEYS).filter((key) => !key.startsWith("key")),
+                    ...(scopedCustomApp ? ["insert"] : []),
+                ]],
                 ["Punctuation", Object.values(COMPANION_SHORTCUT_KEYS).filter((key) => key.startsWith("key"))],
                 ["Function keys", Array.from({ length: 20 }, (_, index) => "f" + (index + 1))],
             ];
-            if (scopedCustomApp) keyGroups.push(["Number pad", Array.from({ length: 10 }, (_, index) => "keypad" + index)]);
+            if (scopedCustomApp) keyGroups.push(["Number pad", [
+                ...Array.from({ length: 10 }, (_, index) => "keypad" + index), "keypaddecimal",
+            ]]);
             if (currentEntity === "shortcut.claude-escape") keyGroups.push(["App keyboard shortcut", ["claude-escape"]]);
             if (currentEntity === "shortcut.escape-twice") keyGroups.push(["Sequence", ["escape-twice"]]);
             for (const [label, keys] of keyGroups) {

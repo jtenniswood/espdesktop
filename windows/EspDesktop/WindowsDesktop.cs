@@ -83,7 +83,7 @@ internal sealed class WindowsDesktop(LocalSettings settings, ObsConnection? obs 
     private static string StarterDefinition(StartApp app, WindowsPresets.Template template)
     {
         var starter = template.Shortcuts.Take(StarterSize).ToArray();
-        var defaults = starter.Select(preset => preset.Id).ToArray();
+        var defaults = template.DefaultShortcutIds ?? starter.Select(preset => preset.Id).ToArray();
         return JsonSerializer.Serialize(new
         {
             version = 1, appId = app.Id, label = PresetLabel(app), catalog = false, defaultShortcutIds = defaults,

@@ -8,12 +8,19 @@ internal static class WindowsPresets
 {
     internal sealed record Preset(string Id, string Label, string Shortcut, string Icon)
     {
-        // Plain and Shift-only strokes need the scoped form on the display.
-        public string DisplayShortcut => Shortcut.Contains('~') ||
-            !Shortcut.Split('+').SkipLast(1).Any(key => key is "control" or "option")
-                ? "scoped." + Shortcut : Shortcut;
+        public string DisplayShortcut
+        {
+            get
+            {
+                var parts = Shortcut.Split('+');
+                var key = parts[^1];
+                return Shortcut.Contains('~') || key == "insert" || key.StartsWith("keypad", StringComparison.Ordinal) ||
+                    !parts.SkipLast(1).Any(modifier => modifier is "control" or "option")
+                        ? "scoped." + Shortcut : Shortcut;
+            }
+        }
     }
-    internal sealed record Template(string[] Executables, string[]? Targets, Preset[] Shortcuts);
+    internal sealed record Template(string[] Executables, string[]? Targets, Preset[] Shortcuts, string[]? DefaultShortcutIds);
     private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web);
     private static readonly Dictionary<string, Template> ByExecutable = new(StringComparer.OrdinalIgnoreCase);
     private static readonly Dictionary<string, Template> ByTarget = new(StringComparer.OrdinalIgnoreCase);

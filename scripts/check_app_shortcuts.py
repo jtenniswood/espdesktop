@@ -19,10 +19,11 @@ class AppShortcutTests(unittest.TestCase):
 
     def test_windows_templates_and_key_syntax(self):
         validate_windows_apps(ROOT)
-        for shortcut in ('control+t', 'option+shift+q', 'space', 'control+k~control+s', 'f11', 'shift+forwarddelete'):
+        for shortcut in ('control+t', 'option+shift+q', 'space', 'control+k~control+s', 'f11', 'shift+forwarddelete',
+                         'control+shift+insert', 'control+keypad6', 'keypaddecimal'):
             self.assertTrue(windows_shortcut_valid(shortcut), shortcut)
         for shortcut in ('command+t', 'control+a~option+tab', 'a~b~c~d', 'option+tab', 'option+f4',
-                         'control+escape', 'control+option+forwarddelete', 'control+control+t', 'insert'):
+                         'control+escape', 'control+option+forwarddelete', 'control+control+t', 'keypadunknown'):
             self.assertFalse(windows_shortcut_valid(shortcut), shortcut)
 
     def test_existing_files_and_legacy_ids(self):
