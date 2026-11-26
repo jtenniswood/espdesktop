@@ -13,13 +13,23 @@ export function canonicalUrlFor(relativePath: string) {
 const espcontrol = 'https://jtenniswood.github.io/espcontrol/'
 const immichGuide = `${espcontrol}immich/`
 const displaySetup = `${hostname}screens/4848s040`
+const macSetup = `${hostname}macos`
+const windowsSetup = `${hostname}windows`
 const macControls = `${hostname}#what-you-can-control`
+const oldObsPaths = {
+  'mac-controls/obs-studio': `${hostname}obs-studio`,
+  'mac-controls/obs-studio/studio-controls': `${hostname}obs-studio/studio-controls`,
+  'mac-controls/obs-studio/scene-control-and-mixing': `${hostname}obs-studio/scene-control-and-mixing`,
+  'mac-controls/obs-studio/audio-controls': `${hostname}obs-studio/audio-controls`,
+}
 
 // GitHub Pages cannot configure HTTP redirects. These HTML fallbacks preserve
 // published links while keeping retired pages out of search and the sitemap.
 export const redirects: Record<string, string> = {
+  ...oldObsPaths,
+  'windows-preview': windowsSetup,
   'card-types/climate': `${espcontrol}card-types/climate`,
-  'getting-started/mac-app': `${displaySetup}#download`,
+  'getting-started/mac-app': macSetup,
   'getting-started/install': `${displaySetup}#install`,
   'getting-started/c6-recovery': `${espcontrol}getting-started/troubleshooting#a-p4-panel-has-unreliable-wifi`,
   'immich/installation': `${immichGuide}#installation`,
@@ -103,12 +113,22 @@ const formerImmichSections = Object.fromEntries([
   'troubleshooting',
 ].map(section => [`#${section}`, `${immichGuide}#${section}`]))
 
-const formerMacAppSections = Object.fromEntries([
-  'install-a-release',
-  'pair-the-display',
-  'check-the-connection',
-  'check-for-mac-app-updates',
-].map(section => [`#${section}`, `${displaySetup}#${section}`]))
+const formerMacAppSections = {
+  '#install-a-release': `${macSetup}#install-espdesktop`,
+  '#pair-the-display': `${macSetup}#pair-your-display`,
+  '#check-the-connection': `${macSetup}#pair-your-display`,
+  '#check-for-mac-app-updates': '/settings/mac-app#check-for-mac-app-updates',
+}
+
+const formerWindowsSections = {
+  '#install-espdesktop': `${windowsSetup}#install-espdesktop`,
+  '#pair-your-display': `${windowsSetup}#pair-your-display`,
+  '#update-espdesktop': '/settings/system#update-the-windows-app',
+  '#add-controls': '/features/adding-a-card',
+  '#control-system-sound': '/card-types/sound',
+  '#switch-obs-scenes': '/obs-studio#switch-obs-scenes',
+  '#install-the-preview': `${windowsSetup}#install-espdesktop`,
+}
 
 export async function writeRedirects(outDir: string) {
   for (const [path, destination] of Object.entries(redirects)) {
@@ -120,13 +140,16 @@ export async function writeRedirects(outDir: string) {
         ? { '#connect-the-display-to-wifi': `${displaySetup}#connect-the-display-to-wifi` }
       : path === 'getting-started/mac-app' ? formerMacAppSections
       : path === 'immich/installation' ? formerImmichSections
+      : path === 'windows-preview' ? formerWindowsSections
       : undefined
     const fragmentRedirect = formerSections
       ? `<script>
 const target = ${jsonLd(formerSections)}[location.hash]
 if (target) location.replace(target)
 </script>`
-      : ''
+      : Object.hasOwn(oldObsPaths, path)
+        ? `<script>location.replace(${jsonLd(destination)} + location.search + location.hash)</script>`
+        : ''
     await writeFile(file, `<!doctype html>
 <html lang="en"><head><meta charset="utf-8">
 <title>Page moved | EspDesktop</title>

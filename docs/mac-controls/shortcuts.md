@@ -30,7 +30,9 @@ New app presets outside an app subpage use the app's icon. In **Card Settings �
 
 Custom shortcuts need **Command**, **Control**, or **Option** plus a key on macOS, or **Ctrl** or **Alt** plus a key on Windows. **Shift** is optional on either platform. When moving a preset card between platforms, reopen its settings and choose the app and shortcut again.
 
-[Look up macOS keyboard shortcut presets by app](/reference/shortcut-presets).
+On Windows, saved custom shortcuts map Command and Control to **Ctrl**, and Option to **Alt**. Keep the app and display firmware current to see the full preset list. Older compatible display firmware shows the starter presets.
+
+[Look up keyboard shortcut presets by app](/reference/shortcut-presets).
 
 ## Enable keyboard shortcuts
 
@@ -52,12 +54,14 @@ Use [ready-made app subpages](/mac-controls/apps#ready-made-app-subpages) to kee
 
 When you add a **Keyboard Shortcut** card inside an app subpage, the **Application** tab opens with that app selected. You can pick a different app or switch to **Custom**.
 
+On Windows, a new app subpage starts with the first seven available shortcuts. Edit the selection in the display editor.
+
 Tap a shortcut on an app subpage to bring its target app to the front and send the keys. Application presets target the app you chose. Custom shortcuts target the app that owns the subpage. The tiles require a connected EspDesktop companion with keyboard shortcuts enabled.
 
 ## Control Streamlabs Desktop on macOS {#control-streamlabs-desktop}
 
 Approve **Streamlabs Desktop** in the EspDesktop Mac app. Choose **Keyboard Shortcut → Application → Streamlabs Desktop** for menu shortcuts such as **Open Settings**, **Undo** and **Copy**, or save a Streamlabs Desktop application card to add its shortcut subpage. The nudge presets move a selected source in the Streamlabs editor.
 
-For scene switching, mic mute or recording, assign a key combination in [Streamlabs Desktop → Settings → Hotkeys](https://support.streamlabs.com/hc/en-us/articles/4413170379675-How-to-Set-up-Hotkeys-in-Streamlabs-Desktop). Choose a combination with Command, Control or Option that works from your Mac keyboard, then enter the same keys in a **Keyboard Shortcut → Custom** tile. You can put these tiles on the Streamlabs app subpage. Bring Streamlabs to the front before using a Custom tile, which sends keys to the active Mac app.
+For scene switching, mic mute or recording, assign a key combination in [Streamlabs Desktop → Settings → Hotkeys](https://support.streamlabs.com/hc/en-us/articles/4413170379675-How-to-Set-up-Hotkeys-in-Streamlabs-Desktop). Choose a combination with Command, Control or Option that works from your Mac keyboard, then enter the same keys in a **Keyboard Shortcut → Custom** tile. Put these tiles on the Streamlabs app subpage to bring Streamlabs forward when you tap them.
 
 <span id="add-templates-for-another-app">Missing a preset?</span> [Suggest a keyboard shortcut](/mac-controls/improve-shortcuts).

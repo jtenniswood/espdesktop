@@ -38,7 +38,7 @@ A working installer shows an **Install EspDesktop** button and opens the USB por
 
 ## The display does not appear in EspDesktop
 
-On Windows, open **Display** and choose **Enter address manually**. Enter the IP address shown on the touchscreen. [Windows pairing steps](/windows-preview#pair-your-display).
+On Windows, open **Display** and choose **Enter address manually**. Enter the IP address shown on the touchscreen. [Windows pairing steps](/windows#pair-your-display).
 
 - Confirm the display and Mac are connected to the same local network.
 - Allow local-network access for EspDesktop if macOS requested it.
@@ -49,7 +49,7 @@ Discovery only locates a display; it does not configure its WiFi. For a first-ti
 
 ## The display will not pair
 
-On Windows, confirm the display is on the same local network. If it was paired with another computer, reset pairing on the touchscreen, then use the new code in EspDesktop. [Windows pairing steps](/windows-preview#pair-your-display).
+On Windows, confirm the display is on the same local network. Press and hold the display’s Wi-Fi icon to show the pairing code. If it was paired with another computer, reset pairing on the touchscreen and use the new code. [Windows pairing steps](/windows#pair-your-display).
 
 On macOS, follow these steps.
 
@@ -75,10 +75,9 @@ If you have one display paired, **Support → Restart Setup** clears its pairing
 
 - **App or folder** — check that it is still approved in EspDesktop’s **Apps** or **Folders** page.
 - **Keyboard shortcut or Lock Machine** — check the [permission for your platform](/mac-controls/shortcuts#enable-keyboard-shortcuts). If the cards stopped working after replacing the macOS app, remove the old EspDesktop entry from **Accessibility** and add the installed app again.
+- **Sound** — check that the microphone or speaker is connected. For app volume, start playback in the selected app. [Sound setup and requirements](/card-types/sound).
 
-If an older card is marked unavailable, replace or remove it in the web editor. EspDesktop keeps the card’s settings in saved layouts and backups so you can identify it.
-
-For the control's exact requirements, see [Touchscreen controls](/#what-you-can-control).
+If a card is missing from the picker, confirm that EspDesktop shows the display as connected, then reload the editor and check [card availability](/features/adding-a-card#which-cards-work-with-my-computer). If a saved card is unavailable on your platform, use **Layout** to replace or remove it.
 
 ## The touchscreen says to unlock your computer {#the-touchscreen-says-to-unlock-your-mac}
 

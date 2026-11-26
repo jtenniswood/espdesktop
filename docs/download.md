@@ -1,6 +1,6 @@
 ---
 title: Download EspDesktop for Mac and Windows
-description: Download EspDesktop for Apple silicon Macs or try the Windows 11 preview. Pair either app with a Guition 4848S040 display.
+description: Download EspDesktop for Apple silicon Macs and Windows PCs. Pair either app with a Guition 4848S040 display.
 ---
 
 # Download EspDesktop
@@ -18,9 +18,9 @@ The Mac app requires **Apple silicon and macOS 13 or newer**.
 
 Use the Mac app and firmware from the **same EspDesktop release**. If your display already runs an older version, find the matching DMG under **Assets** in [GitHub releases](https://github.com/jtenniswood/espdesktop/releases). Each release also lists its changes and firmware assets.
 
-- [Install and pair the Mac app](/screens/4848s040#setup-on-macos)
+- [Install and pair the Mac app](/macos)
 - [Check app and firmware compatibility](/reference/companion-compatibility)
 
-## Windows 11 preview
+## Windows
 
-The Windows preview supports Windows 11 on Intel, AMD, and Arm PCs. [Download the Windows installer and pair your display](/windows-preview#install-espdesktop).
+EspDesktop for Windows supports Intel, AMD, and Arm PCs. [Download the Windows installer and pair your display](/windows#install-espdesktop).

@@ -1,6 +1,6 @@
 ---
 title: Touchscreen Compatibility and Setup FAQ
-description: Find out which touchscreen, macOS and Windows versions work with EspDesktop, how local pairing works, and what permissions controls need.
+description: Find out which touchscreens, Macs, and Windows PCs work with EspDesktop, how local pairing works, and what permissions controls need.
 outline: [2, 3]
 ---
 
@@ -14,11 +14,11 @@ The macOS and Windows companion apps support the **4-inch Guition ESP32-S3 4848S
 
 ### Which Macs does EspDesktop support? {#which-macos-versions-does-espdesktop-support}
 
-The EspDesktop Mac app requires **Apple silicon and macOS 13 or newer**. Intel Macs are unsupported, including 2019 Intel MacBook Pro and iMac models. Follow the [Mac app setup guide](/screens/4848s040#download) to download it and pair your display.
+The EspDesktop Mac app requires **Apple silicon and macOS 13 or newer**. Intel Macs are unsupported, including 2019 Intel MacBook Pro and iMac models. Follow the [Mac app setup guide](/macos) to download it and pair your display.
 
 ### Which Windows PCs does EspDesktop support?
 
-The preview supports **Windows 11** on Intel, AMD, and Arm PCs. See the [Windows setup guide](/windows-preview) for installer and pairing steps.
+EspDesktop for Windows supports Intel, AMD, and Arm PCs. See the [Windows setup guide](/windows) for installer and pairing steps.
 
 ### Does EspDesktop need Home Assistant?
 
