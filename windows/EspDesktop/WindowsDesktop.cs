@@ -60,7 +60,7 @@ internal sealed class WindowsDesktop(LocalSettings settings, ObsConnection? obs 
         settings.Folders.Select(f => new CatalogueItem(f.Id, CatalogueLabel(f.Label)))
         .Concat(apps.Where(Allowed).Select(a => new CatalogueItem(a.Id, CatalogueLabel(a.Name)))).ToArray();
 
-    private const int StarterSize = 8;
+    private const int StarterSize = 7;
     private const int ShortcutPageSize = 24;
     private const int ShortcutIndexSize = 32;
     private const int ShortcutIndexLimit = ShortcutIndexSize * 32;
@@ -80,8 +80,8 @@ internal sealed class WindowsDesktop(LocalSettings settings, ObsConnection? obs 
 
     private static string StarterDefinition(StartApp app, WindowsPresets.Template template)
     {
-        var defaults = template.DefaultShortcutIds ?? template.Shortcuts.Take(StarterSize).Select(p => p.Id).ToArray();
-        var starter = template.Shortcuts.Where(preset => defaults.Contains(preset.Id));
+        var starter = template.Shortcuts.Take(StarterSize).ToArray();
+        var defaults = starter.Select(preset => preset.Id).ToArray();
         return JsonSerializer.Serialize(new
         {
             version = 1, appId = app.Id, label = PresetLabel(app), catalog = false, defaultShortcutIds = defaults,
@@ -105,15 +105,13 @@ internal sealed class WindowsDesktop(LocalSettings settings, ObsConnection? obs 
         var entry = ShortcutApps().FirstOrDefault(entry => entry.App.Id == appId);
         if (entry.App is null) return (null, true);
         var (app, template) = entry;
-        var defaults = template.DefaultShortcutIds ?? template.Shortcuts.Take(StarterSize).Select(p => p.Id).ToArray();
-        if (page == 0) return (StarterDefinition(app, template), template.Shortcuts.Length == defaults.Length);
+        if (page == 0) return (StarterDefinition(app, template), template.Shortcuts.Length <= StarterSize);
 
-        var start = ((int)page - 1) * ShortcutPageSize;
-        var count = template.Shortcuts.Length - defaults.Length;
-        if (start >= count) return (null, true);
-        var expanded = template.Shortcuts.Where(preset => !defaults.Contains(preset.Id)).Skip(start).Take(ShortcutPageSize);
+        var start = StarterSize + ((int)page - 1) * ShortcutPageSize;
+        if (start >= template.Shortcuts.Length) return (null, true);
+        var expanded = template.Shortcuts.Skip(start).Take(ShortcutPageSize);
         return (JsonSerializer.Serialize(new { appId, shortcuts = Array.Empty<object>(), moreShortcuts = Presets(expanded) }),
-            start + ShortcutPageSize >= count);
+            start + ShortcutPageSize >= template.Shortcuts.Length);
     }
 
     public async Task<string> Invoke(JsonElement message, CancellationToken token)

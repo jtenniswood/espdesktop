@@ -9,15 +9,6 @@
   "sources": [
     "https://docs.github.com/en/desktop/overview/github-desktop-keyboard-shortcuts?platform=windows"
   ],
-  "defaultShortcutIds": [
-    "0",
-    "1",
-    "2",
-    "3",
-    "4",
-    "5",
-    "6"
-  ],
   "shortcuts": [
     {"id": "0", "label": "Repositories", "shortcut": "control+t", "icon": "Git"},
     {"id": "1", "label": "Changes", "shortcut": "control+1", "icon": "Git"},
