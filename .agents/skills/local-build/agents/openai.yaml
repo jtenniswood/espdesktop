@@ -1,0 +1,4 @@
+interface:
+  display_name: "Local Build"
+  short_description: "Build and open the associated Hermes PR"
+  default_prompt: "Use $local-build to build and open an isolated Hermes Experimental app from the PR associated with this chat."

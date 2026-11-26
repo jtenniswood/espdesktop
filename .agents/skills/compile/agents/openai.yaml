@@ -1,0 +1,4 @@
+interface:
+  display_name: "Compile All Devices"
+  short_description: "Compile firmware for every supported display"
+  default_prompt: "Use $compile to compile ESPHome firmware for all supported devices and fix any configuration errors until every device compiles."

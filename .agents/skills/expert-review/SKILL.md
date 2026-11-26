@@ -1,5 +1,5 @@
 ---
-name: Expert Review
+name: expert-review
 description: >-
   Provide an expert codebase review for this repository. Use when the user says
   "Expert Review" or "/expert-review", asks for an expert review, wants

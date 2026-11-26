@@ -1,0 +1,4 @@
+interface:
+  display_name: "Expert Review"
+  short_description: "Recommend focused improvements to this codebase"
+  default_prompt: "Use $expert-review to review this repository and give a ranked list of improvements to maintainability, consistency, reuse, quality, and upgrade safety."
