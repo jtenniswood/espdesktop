@@ -5,6 +5,7 @@ import type { CompanionAction } from "../api/companion_catalogue";
 import { cardContractDefaultConfig, cardContractPickerKey } from "../generated/card_contract";
 
 const volumePrefix = "app.volume.";
+const launcherPrefix = "io.espdesktop.launcher.";
 
 export function targetedAudioCard(
     supported: boolean,
@@ -60,7 +61,10 @@ export function targetedAudioCard(
             select.disabled = true;
             void loadApps().then((actions) => {
                 for (const app of actions) {
-                    if (inputDevice ? /^input\.level\.[0-9a-f]{64}$/.test(app.id) : /^[A-Za-z0-9.-]{1,96}$/.test(app.id)) {
+                    const validTarget = inputDevice
+                        ? /^input\.level\.[0-9a-f]{64}$/.test(app.id)
+                        : !app.id.startsWith(launcherPrefix) && /^[A-Za-z0-9.-]{1,96}$/.test(app.id);
+                    if (validTarget) {
                         apps.set(inputDevice ? app.id : prefix + app.id, app.label);
                     }
                 }
