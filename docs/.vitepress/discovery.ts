@@ -113,10 +113,12 @@ const formerMacAppSections = Object.fromEntries([
 ].map(section => [`#${section}`, `${displaySetup}#${section}`]))
 
 const formerWindowsSections = {
-  ...Object.fromEntries([
-    'install-espdesktop', 'update-espdesktop', 'pair-your-display',
-    'add-controls', 'control-system-sound', 'switch-obs-scenes',
-  ].map(section => [`#${section}`, `${windowsSetup}#${section}`])),
+  '#install-espdesktop': `${windowsSetup}#install-espdesktop`,
+  '#pair-your-display': `${windowsSetup}#pair-your-display`,
+  '#update-espdesktop': '/settings/system#update-the-windows-app',
+  '#add-controls': '/features/adding-a-card',
+  '#control-system-sound': '/card-types/sound',
+  '#switch-obs-scenes': '/mac-controls/obs-studio#switch-obs-scenes',
   '#install-the-preview': `${windowsSetup}#install-espdesktop`,
 }
 

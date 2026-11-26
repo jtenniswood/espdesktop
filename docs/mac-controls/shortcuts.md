@@ -28,7 +28,9 @@ The **Application** tab lists apps with presets for the paired computer. Choose 
 
 Custom shortcuts need **Command**, **Control**, or **Option** plus a key on macOS, or **Ctrl** or **Alt** plus a key on Windows. **Shift** is optional on either platform. When moving a preset card between platforms, reopen its settings and choose the app and shortcut again.
 
-[Look up macOS keyboard shortcut presets by app](/reference/shortcut-presets).
+On Windows, saved custom shortcuts map Command and Control to **Ctrl**, and Option to **Alt**. Keep the app and display firmware current to see the full preset list. Older compatible display firmware shows the starter presets.
+
+[Look up keyboard shortcut presets by app](/reference/shortcut-presets).
 
 ## Enable keyboard shortcuts
 
@@ -49,6 +51,8 @@ With the companion app connected, the editor loads its shortcut catalogue over y
 Use [ready-made app subpages](/mac-controls/apps#ready-made-app-subpages) to keep an app’s keyboard shortcuts together. New pages start with a selection of useful keyboard shortcuts for the app. Smaller displays show as many as will fit, with space for **Back**. From inside an app’s subpage in the web editor, right-click a card and choose **Keyboard Shortcut List** to change which presets appear and how they’re ordered. This opens the full list, with **Find a keyboard shortcut…** available for long lists. In the app card’s settings, use **Show all keyboard shortcuts** to expand a long list. You can add keyboard shortcuts or rearrange the ones on the page.
 
 When you add a **Keyboard Shortcut** card inside an app subpage, the **Application** tab opens with that app selected. You can pick a different app or switch to **Custom**.
+
+On Windows, a new app subpage starts with the first seven available shortcuts. Edit the selection in the display editor.
 
 The web editor dims these keyboard shortcuts when the app loses focus or the computer disconnects. You can still edit and rearrange the tiles.
 

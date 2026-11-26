@@ -56,6 +56,10 @@ In **Firmware updates**, use **Previous firmware** if it offers the version you 
 
 If an update leaves the display unpaired or unavailable, see [update and compatibility troubleshooting](/getting-started/troubleshooting#a-mac-app-or-display-update-breaks-compatibility).
 
+### Update the Windows app
+
+In EspDesktop, open **Updates → Check for updates** or enable **Automatically check for updates**. Choose **Release downloads** and run the newer installer. It keeps your settings and display pairing.
+
 ### Reset the display
 
 Open **Factory Reset** in the **System** tab.

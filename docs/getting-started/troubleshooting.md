@@ -49,7 +49,7 @@ Discovery only locates a display; it does not configure its WiFi. For a first-ti
 
 ## The display will not pair
 
-On Windows, confirm the display is on the same local network. If it was paired with another computer, reset pairing on the touchscreen, then use the new code in EspDesktop. [Windows pairing steps](/windows#pair-your-display).
+On Windows, confirm the display is on the same local network. Press and hold the display’s Wi-Fi icon to show the pairing code. If it was paired with another computer, reset pairing on the touchscreen and use the new code. [Windows pairing steps](/windows#pair-your-display).
 
 On macOS, follow these steps.
 

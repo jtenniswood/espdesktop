@@ -7,7 +7,7 @@ description: Connect OBS Studio to EspDesktop and set up touchscreen pages for s
 
 OBS Studio is a free, open-source app for recording video and live streaming. You build **scenes** from sources like cameras, screen captures, and graphics, then use the mixer to adjust microphones and other audio. [Visit the OBS Project for downloads and guides](https://obsproject.com/).
 
-On macOS and Windows, use your touchscreen to switch scenes in OBS Studio. On macOS, you can also build pages for audio, recording, and streaming controls. The steps below cover macOS. [Connect OBS Studio on Windows](/windows#switch-obs-scenes).
+Use your touchscreen to switch OBS scenes on Mac and Windows. The Mac app also supports mixer, recording, and streaming controls.
 
 <picture>
   <source type="image/avif" srcset="/images/obs/home-480.avif 480w, /images/obs/home-960.avif 960w" sizes="(min-width: 768px) 688px, min(688px, 90vw)">
@@ -18,10 +18,10 @@ This example puts recording and streaming controls on Home, with **Scenes** and 
 
 ## Connect OBS Studio
 
-Use a [paired EspDesktop display](/screens/4848s040) and matching Mac app and display firmware builds that support OBS cards. Keep both OBS Studio and EspDesktop open on the Mac.
+Use a [paired display](/screens/4848s040) with EspDesktop app and firmware versions that support OBS. Keep OBS Studio and EspDesktop open on the same computer.
 
 1. In OBS Studio, open **Tools → WebSocket Server Settings**. Enable the server and keep authentication enabled.
-2. In the EspDesktop Mac app, open **Settings → OBS**. Enter the port and password from OBS. The usual port is **4455**, but use the value shown in OBS if you changed it. Choose **Connect** and wait for **Connected to OBS**. [OBS remote control guide](https://obsproject.com/kb/remote-control-guide)
+2. Open **Settings → OBS** on Mac or **OBS Studio** on Windows in EspDesktop. Enter the port and password shown in OBS. Choose **Connect** on Mac or **Connect to OBS** on Windows. [OBS remote control guide](https://obsproject.com/kb/remote-control-guide)
 3. Open your display’s web editor and select an empty tile on **Layout**. In **Choose Card**, select **OBS Studio**. If the picker shows connector tabs, look under **Companion**.
 
 <a href="/images/obs/choose-card.png">
@@ -31,7 +31,11 @@ Use a [paired EspDesktop display](/screens/4848s040) and matching Mac app and di
   </picture>
 </a>
 
-## Start with grouped pages
+## Switch scenes on Windows {#switch-obs-scenes}
+
+Add a **Scene** card and choose a scene. The card switches Program in normal mode and selects Preview in Studio Mode. Use **Take Live** to send the Preview scene to Program. Use **Transition** to cycle through your OBS transitions or select a named transition.
+
+## Start with grouped pages on Mac {#start-with-grouped-pages}
 
 In the **OBS Studio** picker, look under **Grouped pages**. Pick one and choose **Save**. Tap its card on the touchscreen to open the page, then tap **Back** to return. Repeat for each page you want.
 
