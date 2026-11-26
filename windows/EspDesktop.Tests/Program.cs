@@ -161,6 +161,31 @@ Check(WindowsPresets.For(@"C:\Apps\Code.exe", "Visual Studio Code")?.Shortcuts.A
 Check(WindowsPresets.For(@"C:\Apps\vlc.exe", "VLC")?.Shortcuts.Any(preset =>
           preset.DisplayShortcut == "scoped.space") == true,
     "single-key shortcuts travel in app-scoped form");
+var racingTemplate = WindowsPresets.For(@"D:\Games\iRacing\UI\iRacingUI.exe", "iRacing")!;
+var racingPresets = racingTemplate.Shortcuts;
+Check(racingTemplate.DefaultShortcutIds?.SequenceEqual(["0", "1", "2", "3", "4", "5"]) == true &&
+    racingPresets.Take(6).Select(preset => preset.DisplayShortcut)
+        .SequenceEqual(["scoped.f1", "scoped.f2", "scoped.f3", "scoped.f4", "scoped.f7", "scoped.f8"]),
+    "iRacing keeps its six app-scoped starter presets");
+Check(racingPresets.Length == 131 && racingPresets.All(preset =>
+        SafeActions.ShortcutStrokes("shortcut." + preset.DisplayShortcut) is not null),
+    "Windows can replay every iRacing driving, replay and camera editor preset");
+Check(racingPresets.GroupBy(preset => preset.Group).Select(group => (group.Key, group.Count()))
+        .SequenceEqual(new (string?, int)[] { ("General / In-Car", 43), ("Replay Controls", 28), ("Camera Editor", 60) }),
+    "every iRacing preset belongs to one of the three picker groups");
+Check(racingPresets.Any(preset => preset.DisplayShortcut == "scoped.control+keypad6") &&
+      racingPresets.Any(preset => preset.DisplayShortcut == "scoped.control+shift+insert") &&
+      SafeActions.Shortcut("shortcut.scoped.keypaddecimal")?.SequenceEqual(new ushort[] { 0x6e }) == true,
+    "replay numpad and camera editor keys use app-scoped Windows key codes");
+var racingInstall = WindowsPresets.IRacingInstallDirectory(@"D:\Games\iRacing\UI\iRacingUI.exe")!;
+Check(racingInstall == WindowsPresets.IRacingInstallDirectory(@"D:\Games\iRacing\iRacingLauncher64.exe") &&
+      WindowsPresets.IsIRacingSimulator(racingInstall, @"d:\games\iracing\iRacingSim64DX11.exe") &&
+      WindowsPresets.IsIRacingSimulator(racingInstall, @"D:\Games\iRacing\iRacingSim64DX12.exe") &&
+      !WindowsPresets.IsIRacingSimulator(racingInstall, @"D:\Games\iRacing\UI\iRacingUI.exe") &&
+      !WindowsPresets.IsIRacingSimulator(racingInstall, @"C:\Other\iRacingSim64DX11.exe"),
+    "recognize only simulator windows belonging to the approved iRacing installation");
+Check(SafeActions.Shortcut("shortcut.scoped.shift+keypad2")?.SequenceEqual(new ushort[] { 0x10, 0x62 }) == true &&
+      SafeActions.Shortcut("shortcut.shift+keypad2") is null, "number-pad bindings must be app-scoped");
 Check(Bound("🙂🙂a", 7) == "🙂", "truncate at UTF-8 boundary");
 using (var duplicate = JsonDocument.Parse("""{"type":"catalogue.request","type":"hello","protocol":4}"""))
     Check(!Valid(duplicate.RootElement, "panel_to_mac", "connected"), "reject ambiguous envelopes");
