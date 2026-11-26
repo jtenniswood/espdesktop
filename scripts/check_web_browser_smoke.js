@@ -8679,6 +8679,13 @@ async function assertNestedCompanionPages(browser) {
   fixture.document.deviceProfile = testCase.slug;
   const context = await browser.newContext({ viewport: testCase.viewport });
   await installRoutes(context, testCase.slug, { nativeState: fixture, nativeV2: true });
+  await context.route("**/connectors/status", route => route.fulfill({ json: {
+    onboarding_complete: true,
+    mac_companion: { available: true, configured: true, paired: true, connected: true },
+  } }));
+  await context.route("**/companion/actions", route => route.fulfill({
+    json: [{ id: "com.apple.Safari", label: "Safari" }],
+  }));
   const page = await context.newPage(), errors = [];
   page.on("pageerror", error => errors.push(error.message));
   await installFakeEventSource(page);
