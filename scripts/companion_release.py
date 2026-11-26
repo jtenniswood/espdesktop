@@ -7,7 +7,7 @@ import json
 import re
 from pathlib import Path
 
-from release_devices import load_release_devices
+from release_devices import load_firmware_release_devices, load_release_devices
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -16,10 +16,11 @@ def digest(path):
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
-def compatibility(root=ROOT):
+def compatibility(root=ROOT, *, public_only=False):
     contract = json.loads((root / 'product/v2/companion_capabilities.json').read_text())
     devices = {path.stem: json.loads(path.read_text()) for path in (root / 'product/v2/devices').glob('*.json')}
-    release_slugs = load_release_devices(root / 'product/release_devices.json')
+    load_devices = load_release_devices if public_only else load_firmware_release_devices
+    release_slugs = load_devices(root / 'product/release_devices.json')
     return {
         'schemaVersion': 1,
         'protocolVersion': contract['protocol']['version'],

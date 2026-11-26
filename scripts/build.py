@@ -1005,7 +1005,7 @@ def sync_companion_capabilities(check_only=False):
     ]
     outputs.extend(protocol_outputs(ROOT, data))
     outputs.extend(shortcut_outputs(ROOT))
-    release_compatibility = compatibility(ROOT)
+    release_compatibility = compatibility(ROOT, public_only=True)
     outputs.append((ROOT / "product/generated/companion_compatibility.json", json.dumps(release_compatibility, indent=2) + "\n"))
     outputs.append((ROOT / "docs/reference/companion-compatibility.md",
         "---\ntitle: EspDesktop Mac app and firmware compatibility\n"

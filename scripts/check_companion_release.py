@@ -42,12 +42,18 @@ class CompanionReleaseTests(unittest.TestCase):
                 manifest(firmware, companion, windows, revision, version)
             arm64.write_bytes(b'Windows Arm64 fixture')
             record = manifest(firmware, companion, windows, revision, version)
-            self.assertEqual(record['supportedDevices'], ['guition-esp32-s3-4848s040'])
-            self.assertEqual(len(record['artifacts']), 6)
+            public_slug = 'guition-esp32-s3-4848s040'
+            artifact_only_slug = 'guition-esp32-p4-jc8012p4a1-v3'
+            self.assertEqual(compatibility(public_only=True)['supportedDevices'], [public_slug])
+            self.assertEqual(record['supportedDevices'], [artifact_only_slug, public_slug])
+            self.assertEqual(len(record['artifacts']), 8)
             for installer in (x64, arm64):
                 self.assertEqual(record['artifacts'][installer.name],
                                  {'sha256': digest(installer), 'bytes': installer.stat().st_size})
-            ota = firmware / (record['supportedDevices'][0] + '.ota.bin')
+            factory = firmware / (artifact_only_slug + '.factory.bin')
+            self.assertEqual(record['artifacts'][factory.name],
+                             {'sha256': digest(factory), 'bytes': factory.stat().st_size})
+            ota = firmware / (artifact_only_slug + '.ota.bin')
             self.assertEqual(record['artifacts'][ota.name]['appElfSha256'], elf_hash.hex())
             self.assertEqual(esp32_application_elf_sha256(ota), elf_hash.hex())
             broken = firmware / 'broken.bin'
