@@ -341,6 +341,16 @@
     ],
     "tip": "Open a page and use Find Text to search within it. Keep Incognito separate if you often switch between regular and private browsing."
   },
+  "google-meet": {
+    "appId": "com.google.meet.web-app",
+    "workflow": "controlling your microphone, camera and meeting panels",
+    "shortcuts": [
+      "Toggle Microphone",
+      "Toggle Camera",
+      "Raise / Lower Hand"
+    ],
+    "tip": "Install Google Meet as a web app in Safari or Chrome and approve it in EspDesktop. Join a meeting in that app, then try Toggle Microphone and check the microphone icon in Meet."
+  },
   "hermes": {
     "appId": "com.nousresearch.hermes",
     "workflow": "opening and finding work sessions in Hermes",

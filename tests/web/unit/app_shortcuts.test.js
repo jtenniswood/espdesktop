@@ -52,6 +52,21 @@ test("the shortcut catalogue combines bundled and live presets and preserves sav
     "reloading the same catalogue leaves it unchanged");
 });
 
+test("Google Meet presets are offered under the installed app ID", () => {
+  const api = loadTypeScriptModule("src/webserver/application/companion_shortcut_folder.ts");
+  const template = require("../../../product/v2/app_shortcuts/google-meet.json");
+  const appId = "com.google.Chrome.app.abcdefghijklmnopabcdefghijklmnop";
+  const installed = { ...template, appId, label: "Google Meet (Chrome)" };
+  api.replaceCompanionDefinitions([template, installed]);
+  const choices = api.companionShortcutCatalogApps({ savedAppId: template.appId });
+  assert(!choices.some(app => app.appId === template.appId));
+  assert.equal(choices.find(app => app.appId === appId)?.label, installed.label);
+  const page = api.createCompanionShortcutSubpage(appId);
+  assert.equal(page.buttons.length, 8);
+  assert.equal(page.buttons[0].options, "app_shortcut_preset=" + appId + "%3A100");
+  assert(page.buttons.some(card => card.entity === "shortcut.scoped.c"));
+});
+
 test("Claude Desktop keeps its existing presets and exposes numbered and scoped shortcuts", () => {
   const api = loadTypeScriptModule("src/webserver/application/companion_shortcut_folder.ts");
   const claude = require("../../../product/v2/app_shortcuts/claude-desktop.json");

@@ -109,7 +109,9 @@ const CLAUDE_DESKTOP_BUNDLE_ID = "com.anthropic.claudefordesktop";
 const SAFARI_WEB_APP_TEMPLATE = "com.apple.Safari.WebApp";
 const SAFARI_WEB_APP_BUNDLE_ID = /^com\.apple\.Safari\.WebApp\.[a-fA-F0-9]{8}(?:-[a-fA-F0-9]{4}){3}-[a-fA-F0-9]{12}$/;
 const ATHENA_TEMPLATE_APP_ID = "io.github.jtenniswood.athena";
-const TWITCH_TEMPLATE_APP_ID = "tv.twitch.web-app";
+const INSTALLED_WEB_APP_TEMPLATE_IDS = new Set([
+    ATHENA_TEMPLATE_APP_ID, "tv.twitch.web-app", "com.google.meet.web-app",
+]);
 const CHATGPT_CLASSIC_BUNDLE_ID = "com.openai.chat";
 export const CODEX_BUNDLE_ID = "com.openai.codex";
 export const CHATGPT_CLEAR_UNREADS_ACTION = "shortcut.shift+escape";
@@ -513,14 +515,14 @@ export function companionShortcutCatalogApps(
         pageAppId?: string | undefined; savedAppId?: string | undefined; windows?: boolean | undefined;
     } = {},
 ): AppShortcutApplication[] {
-    // The Mac sends site presets under the actual installed Safari web app bundle ID.
+    // The Mac sends site presets under the actual installed web app bundle ID.
     const apps = COMPANION_SHORTCUT_APPS.filter(app =>
         app.appId.startsWith("windows.") === (windows === true) &&
-        app.appId !== ATHENA_TEMPLATE_APP_ID && app.appId !== TWITCH_TEMPLATE_APP_ID &&
+        !INSTALLED_WEB_APP_TEMPLATE_IDS.has(app.appId) &&
         app.appId !== CHATGPT_CLASSIC_BUNDLE_ID);
     const appId = savedAppId ?? pageAppId;
     // A saved Classic card still needs its original app and preset IDs when edited.
-    if (appId && appId !== ATHENA_TEMPLATE_APP_ID && appId !== TWITCH_TEMPLATE_APP_ID &&
+    if (appId && !INSTALLED_WEB_APP_TEMPLATE_IDS.has(appId) &&
         (appId.startsWith("windows.") === (windows === true) || (windows === undefined && appId === savedAppId)) &&
         (appId !== CHATGPT_CLASSIC_BUNDLE_ID || appId === savedAppId) && !apps.some(app => app.appId === appId)) {
         const template = companionShortcutApp(appId);

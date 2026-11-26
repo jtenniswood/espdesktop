@@ -30,6 +30,12 @@ Custom shortcuts need **Command**, **Control**, or **Option** plus a key on macO
 
 [Look up macOS keyboard shortcut presets by app](/reference/shortcut-presets).
 
+### Google Meet on Mac
+
+Install [Google Meet](https://meet.google.com/) using **File → Add to Dock** in Safari or **Install page as app** in Chrome. Approve the installed Google Meet app in EspDesktop. In the display editor, choose **Google Meet (Safari)** or **Google Meet (Chrome)** under **Keyboard Shortcut → Application** or add the installed app as an application card with a shortcut subpage.
+
+Join a meeting in the installed app to use the presets for your microphone, camera, hand, chat, and other meeting controls. [EspDesktop’s Google Meet presets](/reference/shortcut-presets/google-meet) · [Google Meet’s keyboard shortcut reference](https://support.google.com/a/users/answer/9896256?hl=en)
+
 ## Enable keyboard shortcuts
 
 On Windows, open **Display → Windows integration** in EspDesktop and turn on **Allow keyboard shortcuts and screen lock**. Windows protects apps running as administrator from these keystrokes.
