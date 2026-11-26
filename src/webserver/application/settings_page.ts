@@ -542,14 +542,18 @@ export function createSettingsPageFeature(codec: Pick<ConfigCodecFeature, "bindT
             themeCard,
             clockBarCard,
         ]);
+        const screenKeys = Object.keys(state.subpages).map(Number)
+            .filter((key) => state.subpages[String(key)]?.screen)
+            .sort((left, right) => left - right);
         const swipeOptions = [
             { value: "none", label: "None" },
             { value: "home", label: "Home" },
             { value: "back", label: "Back" },
             { value: "previous_screen", label: "Previous screen" },
             { value: "next_screen", label: "Next screen" },
-            ...Array.from({ length: 8 }, (_, index) => ({
-                value: "screen_" + (index + 1), label: "Screen " + (index + 2),
+            ...screenKeys.map((key, index) => ({
+                value: "screen_" + (index + 1),
+                label: state.subpages[String(key)]?.title || "Screen " + (index + 2),
             })),
         ];
         const swipeUp = selectField("Swipe up", "sp-set-swipe-up", swipeOptions, "none");

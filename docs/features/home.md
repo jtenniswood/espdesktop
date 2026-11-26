@@ -53,7 +53,7 @@ Select **+** in an empty spot. See [Adding a card](/features/adding-a-card) for 
 
 ## Add more home screens
 
-The Layout tab shows **Home** plus a **+** button. Select **+** to add another screen and build it like Home. Screens are optional, so a display with one screen behaves exactly as before. Select a screen tab to edit it, or select the **×** on its tab to remove the screen and its cards.
+The Layout tab shows **Home** plus a **+** button. Select **+** to add another screen and build it like Home. Screens are optional, so a display with one screen behaves exactly as before. Select a screen tab to edit it, or select the **×** on its tab to remove the screen and its cards. Double-click a tab to rename the screen, and drag tabs left or right to change the screen order.
 
 Fling left or right anywhere on the display — including when the swipe starts on a card — to move between Home and the extra screens. Sliders and card drags keep working when the swipe starts on them.
 

@@ -1529,6 +1529,7 @@ inline void grid_phase2(
         !espdesktop::cards::navigation_driver_owns_subpage(parent_context, p)) return nullptr;
 
     std::string sp_back_label = get_subpage_back_label(sp_order_str);
+    const std::string sp_title = get_subpage_back_title(sp_order_str);
 
     SubpageOrder sp_ord;
     parse_subpage_order(sp_order_str, NS, sp_btns.size(), sp_ord, cfg.configured_slots);
@@ -1589,7 +1590,8 @@ inline void grid_phase2(
         navigation_find_slot(navigation_slot)->parent_slot = parent;
       }
     }
-    if (auto *entry = navigation_find_slot(navigation_slot)) entry->label = p.label;
+    if (auto *entry = navigation_find_slot(navigation_slot))
+      entry->label = is_screen && !sp_title.empty() ? sp_title : p.label;
     lv_obj_set_style_bg_color(sub_scr, lv_obj_get_style_bg_color(main_page_obj, LV_PART_MAIN), LV_PART_MAIN);
     lv_obj_set_style_bg_opa(sub_scr, LV_OPA_COVER, LV_PART_MAIN);
     lv_obj_set_layout(sub_scr, LV_LAYOUT_GRID);

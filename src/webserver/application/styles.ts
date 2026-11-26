@@ -30,6 +30,9 @@ export function createWebStyles(dragAnimation: boolean): string {
         "font-size:var(--text-md);font-weight:500;border-bottom:2px solid transparent;text-decoration:none;transition:color .2s}" +
         ".sp-tab:hover{color:var(--text)}" +
         ".sp-tab.active{color:var(--accent);border-bottom-color:var(--accent)}" +
+        ".sp-tab-dragging{opacity:.45}" +
+        ".sp-tab-drop-target{box-shadow:inset 0 -2px 0 var(--accent)}" +
+        ".sp-tab-label{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}" +
         ".sp-tab-docs{position:relative;gap:6px;margin-left:8px;padding-left:24px}" +
         ".sp-tab-docs::before{content:'';position:absolute;left:0;top:12px;bottom:12px;width:1px;background:var(--border)}" +
         ".sp-tab-docs .mdi{font-size:16px;line-height:1;opacity:.7}" +

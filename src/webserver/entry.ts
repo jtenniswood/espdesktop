@@ -364,7 +364,7 @@ function composeApplicationContext(liveGeneratedActions: () => readonly Companio
       if (!page) return false;
       const previous = page.title;
       page.title = String(name || "").trim();
-      const result = await configurationCodec.saveSubpageConfig(key);
+      const result = await configurationPersistence.saveSubpageEntity(key);
       if (result !== "saved" && result !== "mirror-failed" && result !== true) {
         if (previous === undefined) delete page.title;
         else page.title = previous;
@@ -390,7 +390,7 @@ function composeApplicationContext(liveGeneratedActions: () => readonly Companio
         const movedTo = order.indexOf(editing);
         if (movedTo >= 0) AppInstance.state.editingSubpage = keys[movedTo]!;
       }
-      const results = await Promise.all(keys.map(k => configurationCodec.saveSubpageConfig(k)));
+      const results = await Promise.all(keys.map(k => configurationPersistence.saveSubpageEntity(k)));
       preview.render();
       buttonSettings.render();
       return results.every(result => result === "saved" || result === "mirror-failed" || result === true);

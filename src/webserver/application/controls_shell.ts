@@ -31,6 +31,8 @@ export interface ControlsShellDependencies {
     readonly enterScreen: (key: number | null) => void;
     readonly addScreen: () => Promise<boolean> | boolean;
     readonly removeScreen: (key: number) => Promise<boolean> | boolean;
+    readonly renameScreen: (key: number, name: string) => Promise<boolean> | boolean;
+    readonly moveScreen: (key: number, targetIndex: number) => Promise<boolean> | boolean;
 }
 
 export interface ControlsShellFeature {
@@ -243,15 +245,98 @@ export function createControlsShellFeature(
         if (!els.screenTabs)
             return;
         els.screenTabs.textContent = "";
-        var makeTab: any = function (label?: any, active?: any, onClick?: any) {
+        var screenTitle: any = function (key: any, index?: any) {
+            var page: any = state.subpages[key];
+            return page && page.title ? String(page.title) : "Screen " + (index + 2);
+        };
+        var beginRename: any = function (tab?: any, label?: any, key?: any, index?: any) {
+            if (tab.querySelector("input"))
+                return;
+            var input: any = document.createElement("input");
+            input.type = "text";
+            input.className = "sp-tab-rename";
+            input.value = (state.subpages[key] && state.subpages[key].title) || "";
+            input.placeholder = "Screen " + (index + 2);
+            input.style.cssText = "width:8em;min-width:5em;font:inherit;color:inherit;background:transparent;border:0;border-bottom:1px solid currentColor;outline:none;";
+            var finished = false;
+            var finish = async function (this: any, save?: any) {
+                if (finished)
+                    return;
+                finished = true;
+                var value: any = input.value.trim();
+                input.replaceWith(label);
+                label.textContent = screenTitle(key, index);
+                if (save && value !== ((state.subpages[key] && state.subpages[key].title) || "")) {
+                    if (await dependencies.renameScreen(key, value))
+                        renderScreenTabs();
+                }
+            };
+            input.addEventListener("keydown", function (this: any, event?: any) {
+                if (event.key === "Enter") {
+                    event.preventDefault();
+                    void finish(true);
+                }
+                else if (event.key === "Escape") {
+                    event.preventDefault();
+                    void finish(false);
+                }
+            });
+            input.addEventListener("blur", function (this: any) { void finish(true); });
+            input.addEventListener("click", function (this: any, event?: any) { event.stopPropagation(); });
+            input.addEventListener("dblclick", function (this: any, event?: any) { event.stopPropagation(); });
+            label.replaceWith(input);
+            input.focus();
+            input.select();
+        };
+        var makeTab: any = function (label?: any, active?: any, onClick?: any, screenKey?: any, index?: any) {
             var tab: any = document.createElement("div");
             tab.className = "sp-tab" + (active ? " active" : "");
             tab.setAttribute("role", "tab");
             tab.setAttribute("aria-selected", active ? "true" : "false");
             tab.style.cursor = "pointer";
-            tab.appendChild(document.createTextNode(label));
+            var labelNode: any = document.createElement("span");
+            labelNode.className = "sp-tab-label";
+            labelNode.textContent = label;
+            tab.appendChild(labelNode);
             if (onClick)
                 tab.addEventListener("click", onClick);
+            if (screenKey != null) {
+                tab.draggable = true;
+                tab.title = "Drag to reorder; double-click to rename";
+                tab.addEventListener("dragstart", function (this: any, event?: any) {
+                    if (event.dataTransfer) {
+                        event.dataTransfer.effectAllowed = "move";
+                        event.dataTransfer.setData("text/plain", String(screenKey));
+                    }
+                    tab.classList.add("sp-tab-dragging");
+                });
+                tab.addEventListener("dragend", function (this: any) {
+                    tab.classList.remove("sp-tab-dragging");
+                });
+                tab.addEventListener("dragover", function (this: any, event?: any) {
+                    event.preventDefault();
+                    if (event.dataTransfer)
+                        event.dataTransfer.dropEffect = "move";
+                    tab.classList.add("sp-tab-drop-target");
+                });
+                tab.addEventListener("dragleave", function (this: any) {
+                    tab.classList.remove("sp-tab-drop-target");
+                });
+                tab.addEventListener("drop", async function (this: any, event?: any) {
+                    event.preventDefault();
+                    tab.classList.remove("sp-tab-drop-target");
+                    var source: any = Number(event.dataTransfer && event.dataTransfer.getData("text/plain"));
+                    if (!source || source === screenKey)
+                        return;
+                    if (await dependencies.moveScreen(source, index))
+                        renderScreenTabs();
+                });
+                tab.addEventListener("dblclick", function (this: any, event?: any) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    beginRename(tab, labelNode, screenKey, index);
+                });
+            }
             return tab;
         };
         els.screenTabs.appendChild(makeTab("Home", state.editingSubpage == null, function () {
@@ -259,10 +344,10 @@ export function createControlsShellFeature(
             renderScreenTabs();
         }));
         dependencies.screenKeys().forEach(function (key: any, index?: any) {
-            var tab: any = makeTab("Screen " + (index + 2), state.editingSubpage === key, function () {
+            var tab: any = makeTab(screenTitle(key, index), state.editingSubpage === key, function () {
                 dependencies.enterScreen(key);
                 renderScreenTabs();
-            });
+            }, key, index);
             var remove: any = document.createElement("span");
             remove.textContent = "×";
             remove.title = "Remove screen";

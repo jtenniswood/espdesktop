@@ -346,7 +346,15 @@ inline std::string navigation_active_page_label() {
   lv_obj_t *screen = lv_scr_act();
   const int index = navigation_screen_index(screen);
   if (index == 0) return "Home";
-  if (index > 0) return "Screen " + std::to_string(index + 1);
+  if (index > 0) {
+    const auto keys = navigation_screen_keys();
+    if (index <= static_cast<int>(keys.size())) {
+      if (auto *entry = navigation_find_screen(keys[index - 1]);
+          entry != nullptr && !entry->label.empty())
+        return entry->label;
+    }
+    return "Screen " + std::to_string(index + 1);
+  }
   for (const auto &entry : navigation_subpages())
     if (entry.screen == screen) return entry.label.empty() ? "Subpage" : entry.label;
   return "Setup";
