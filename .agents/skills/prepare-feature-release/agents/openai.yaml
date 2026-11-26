@@ -1,0 +1,4 @@
+interface:
+  display_name: "Prepare Feature for Release"
+  short_description: "Check or prepare a feature before release"
+  default_prompt: "Use $prepare-feature-release to check or prepare this feature for release, including translations, documentation, upgrade compatibility, and testing evidence."

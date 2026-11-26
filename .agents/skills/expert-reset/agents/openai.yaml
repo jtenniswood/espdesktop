@@ -1,0 +1,4 @@
+interface:
+  display_name: "Expert Reset"
+  short_description: "Reimagine the project from first principles"
+  default_prompt: "Use $expert-reset to assess how EspDesktop should be rebuilt from first principles, with the current product and user experience as the target."

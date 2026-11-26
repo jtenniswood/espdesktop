@@ -1,0 +1,4 @@
+interface:
+  display_name: "Translations"
+  short_description: "Find and integrate physical display text"
+  default_prompt: "Use $translations to find static user-visible text on EspDesktop displays and integrate it into the firmware translation process."
