@@ -71,16 +71,18 @@ final class ApplicationCatalogueTests: XCTestCase {
         try makeApplication(at: externalApp.appendingPathComponent("Contents/Helpers/Helper.app"), identifier: helperID)
 
         let catalogue = ApplicationCatalogue()
-        let discovered = await catalogue.scan(roots: [homeApplications], externalVolumes: [externalVolume])
+        let localApps = await catalogue.scan(roots: [homeApplications])
+        XCTAssertTrue(localApps.contains { $0.bundleIdentifier == homeID })
+        XCTAssertFalse(localApps.contains { $0.bundleIdentifier == externalID })
+
+        let externalApps = await catalogue.scanExternalVolume(externalVolume)
+        let discovered = ApplicationCatalogue.orderedApplications(localApps + externalApps)
         let homeMatch = try XCTUnwrap(discovered.first { $0.bundleIdentifier == homeID })
         let externalMatch = try XCTUnwrap(discovered.first { $0.bundleIdentifier == externalID })
         XCTAssertEqual(homeMatch.url.resolvingSymlinksInPath().path, homeApp.resolvingSymlinksInPath().path)
         XCTAssertEqual(externalMatch.url.resolvingSymlinksInPath().path, externalApp.resolvingSymlinksInPath().path)
         XCTAssertFalse(discovered.contains { $0.bundleIdentifier == helperID })
 
-        let afterEject = await catalogue.scan(roots: [homeApplications])
-        XCTAssertTrue(afterEject.contains { $0.bundleIdentifier == homeID })
-        XCTAssertFalse(afterEject.contains { $0.bundleIdentifier == externalID })
     }
 
     private func makeApplication(at url: URL, identifier: String) throws {

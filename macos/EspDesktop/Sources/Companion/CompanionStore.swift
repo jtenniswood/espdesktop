@@ -257,7 +257,7 @@ final class CompanionStore: NSObject, ObservableObject {
         ) { [weak self] in
             Task { @MainActor in self?.refreshApplications() }
         }
-        refreshApplications()
+        refreshApplications(includeExternal: true)
         if allAppleShortcutsApproved || !approvedAppleShortcutIDs.isEmpty { refreshAppleShortcuts() }
         Task { await remoteCatalogueStore.refresh() }
     }
@@ -332,16 +332,21 @@ final class CompanionStore: NSObject, ObservableObject {
     }
 
     private let applicationCatalogue = ApplicationCatalogue()
+    private let externalApplicationCatalogue = ApplicationCatalogue()
+    private var localApplications: [LaunchableApp]?
+    private var externalApplications: [URL: [LaunchableApp]] = [:]
+    private var externalApplicationScan: Task<Void, Never>?
     private var applicationFolderMonitor: ApplicationFolderMonitor?
     private var applicationScan: Task<Void, Never>?
     private var applicationRefreshPending = false
     private(set) var applicationCatalogueReady = false
 
     @objc private func applicationVolumeDidChange(_ notification: Notification) {
-        refreshApplications()
+        refreshApplications(includeExternal: true)
     }
 
-    func refreshApplications() {
+    func refreshApplications(includeExternal: Bool = false) {
+        if includeExternal { refreshExternalApplications() }
         guard applicationScan == nil else {
             applicationRefreshPending = true
             return
@@ -349,11 +354,34 @@ final class CompanionStore: NSObject, ObservableObject {
         applicationScan = Task { [weak self, applicationCatalogue] in
             repeat {
                 self?.applicationRefreshPending = false
-                let applications = await applicationCatalogue.scan()
-                self?.applyApplicationScan(applications)
+                self?.localApplications = await applicationCatalogue.scan()
+                self?.publishDiscoveredApplications()
             } while self?.applicationRefreshPending == true
             self?.applicationScan = nil
         }
+    }
+
+    private func refreshExternalApplications() {
+        externalApplicationScan?.cancel()
+        externalApplicationScan = Task { [weak self, externalApplicationCatalogue] in
+            let volumes = await externalApplicationCatalogue.mountedExternalVolumes()
+            guard !Task.isCancelled else { return }
+            self?.externalApplications = self?.externalApplications.filter { volumes.contains($0.key) } ?? [:]
+            self?.publishDiscoveredApplications()
+            for volume in volumes {
+                let applications = await externalApplicationCatalogue.scanExternalVolume(volume)
+                guard !Task.isCancelled else { return }
+                self?.externalApplications[volume] = applications
+                self?.publishDiscoveredApplications()
+            }
+        }
+    }
+
+    private func publishDiscoveredApplications() {
+        guard let localApplications else { return }
+        let external = externalApplications.keys.sorted { $0.path < $1.path }
+            .flatMap { externalApplications[$0] ?? [] }
+        applyApplicationScan(ApplicationCatalogue.orderedApplications(localApplications + external))
     }
 
     private func applyApplicationScan(_ applications: [LaunchableApp]) {
