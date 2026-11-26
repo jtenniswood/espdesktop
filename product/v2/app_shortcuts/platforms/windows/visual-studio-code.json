@@ -10,14 +10,6 @@
     "https://code.visualstudio.com/docs/reference/default-keybindings"
   ],
   "note": "These are default bindings. Several actions require an editor, search field, or language service to be active.",
-  "defaultShortcutIds": [
-    "0",
-    "1",
-    "2",
-    "3",
-    "4",
-    "5"
-  ],
   "shortcuts": [
     {"id": "0", "label": "Command Palette", "shortcut": "control+shift+p", "icon": "Shortcut Command"},
     {"id": "1", "label": "Quick Open", "shortcut": "control+p", "icon": "Search"},

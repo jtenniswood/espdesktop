@@ -10,15 +10,6 @@
     "https://slack.com/help/articles/201374536-Slack-keyboard-shortcuts"
   ],
   "note": "Certain navigation shortcuts depend on the workspace layout or the active conversation.",
-  "defaultShortcutIds": [
-    "0",
-    "1",
-    "2",
-    "3",
-    "4",
-    "5",
-    "6"
-  ],
   "shortcuts": [
     {"id": "0", "label": "New Message", "shortcut": "control+n", "icon": "Chat Plus"},
     {"id": "1", "label": "Search", "shortcut": "control+g", "icon": "Search"},

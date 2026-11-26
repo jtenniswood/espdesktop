@@ -7,16 +7,6 @@
     "https://support.mozilla.org/en-US/kb/keyboard-shortcuts-perform-firefox-tasks-quickly"
   ],
   "note": "Ctrl + Tab follows the tab-order setting in Firefox. Use Ctrl + Page Up or Ctrl + Page Down to move by position.",
-  "defaultShortcutIds": [
-    "0",
-    "1",
-    "2",
-    "3",
-    "4",
-    "5",
-    "6",
-    "7"
-  ],
   "shortcuts": [
     {"id": "0", "label": "New Tab", "shortcut": "control+t", "icon": "New Tab"},
     {"id": "1", "label": "New Window", "shortcut": "control+n", "icon": "New Window"},

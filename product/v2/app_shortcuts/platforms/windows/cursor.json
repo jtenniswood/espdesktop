@@ -6,14 +6,6 @@
   "sources": [
     "https://cursor.com/docs/reference/keyboard-shortcuts"
   ],
-  "defaultShortcutIds": [
-    "0",
-    "1",
-    "2",
-    "3",
-    "4",
-    "5"
-  ],
   "shortcuts": [
     {"id": "0", "label": "Command Palette", "shortcut": "control+shift+p", "icon": "Shortcut Command"},
     {"id": "1", "label": "Quick Open", "shortcut": "control+p", "icon": "Search"},

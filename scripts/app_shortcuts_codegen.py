@@ -192,7 +192,7 @@ def validate_windows_apps(root):
 
         require(re.fullmatch(r'[a-z0-9]+(?:-[a-z0-9]+)*', path.stem), 'invalid guide slug')
         require(isinstance(app, dict) and
-                set(app) - {'targets', 'note', 'defaultShortcutIds'} == {'label', 'executables', 'sources', 'shortcuts'},
+                set(app) - {'targets', 'note'} == {'label', 'executables', 'sources', 'shortcuts'},
                 'expected label, executables, sources, shortcuts and supported optional fields')
         require(text(app['label'], 48), 'invalid app label')
         require('note' not in app or text(app['note'], 400), 'invalid app note')
@@ -223,11 +223,6 @@ def validate_windows_apps(root):
                     f'{ident}: invalid label or icon')
             require('note' not in item or text(item['note'], 200), f'{ident}: invalid shortcut note')
             require(windows_shortcut_valid(item['shortcut']), f'{ident}: invalid Windows shortcut')
-        if 'defaultShortcutIds' in app:
-            defaults = app['defaultShortcutIds']
-            require(isinstance(defaults, list) and 1 <= len(defaults) <= 8 and
-                    all(isinstance(value, str) and value in ids for value in defaults) and
-                    len(set(defaults)) == len(defaults), 'defaultShortcutIds must contain 1–8 distinct shortcut IDs')
 
 
 def windows_shortcut_valid(value):

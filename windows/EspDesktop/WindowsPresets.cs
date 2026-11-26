@@ -13,7 +13,7 @@ internal static class WindowsPresets
             !Shortcut.Split('+').SkipLast(1).Any(key => key is "control" or "option")
                 ? "scoped." + Shortcut : Shortcut;
     }
-    internal sealed record Template(string[] Executables, string[]? Targets, string[]? DefaultShortcutIds, Preset[] Shortcuts);
+    internal sealed record Template(string[] Executables, string[]? Targets, Preset[] Shortcuts);
     private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web);
     private static readonly Dictionary<string, Template> ByExecutable = new(StringComparer.OrdinalIgnoreCase);
     private static readonly Dictionary<string, Template> ByTarget = new(StringComparer.OrdinalIgnoreCase);

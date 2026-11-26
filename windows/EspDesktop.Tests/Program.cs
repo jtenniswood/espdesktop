@@ -798,6 +798,11 @@ async Task VerifyNativeDesktop(WebSocket socket, NativeWindowsDesktop fixture)
         var starter = await FindMessage(socket, "shortcut.catalogue.page", m => UInt(m, "requestId") == 2);
         using var document = JsonDocument.Parse(Text(starter, "json"));
         var app = document.RootElement;
+        var presets = WindowsPresets.For(browser.Executable, browser.Target)!.Shortcuts;
+        var starterIds = presets.Take(7).Select(preset => preset.Id).ToArray();
+        Check(app.GetProperty("defaultShortcutIds").EnumerateArray().Select(id => id.GetString()).SequenceEqual(starterIds) &&
+            app.GetProperty("shortcuts").EnumerateArray().Select(preset => Text(preset, "id")).SequenceEqual(starterIds),
+            "the first seven Windows shortcuts are selected by default in catalogue order");
         var newTab = app.GetProperty("shortcuts")[0];
         Check(Text(app, "appId") == browser.Id && !app.GetProperty("catalog").GetBoolean() &&
             Text(newTab, "id") == "0" && Text(newTab, "shortcut") == "control+t" && Text(newTab, "icon") == "New Tab",
@@ -805,7 +810,8 @@ async Task VerifyNativeDesktop(WebSocket socket, NativeWindowsDesktop fixture)
         await Send(socket, "shortcut.catalogue.request", ("requestId", 3), ("appId", browser.Id), ("page", 1));
         var expanded = await FindMessage(socket, "shortcut.catalogue.page", m => UInt(m, "requestId") == 3);
         using var expandedDocument = JsonDocument.Parse(Text(expanded, "json"));
-        Check(expandedDocument.RootElement.GetProperty("moreShortcuts").GetArrayLength() > 0 &&
+        Check(expandedDocument.RootElement.GetProperty("moreShortcuts").EnumerateArray().Select(preset => Text(preset, "id"))
+                .SequenceEqual(presets.Skip(7).Take(24).Select(preset => preset.Id)) &&
             expandedDocument.RootElement.GetProperty("shortcuts").GetArrayLength() == 0,
             "the display receives additional presets on demand");
         Console.WriteLine($"Passed Windows shortcut preset publication over TLS ({browser.Name}).");
