@@ -144,6 +144,8 @@ function companionShortcutKeyLabel(key: string, windows: boolean): string {
         if (key === "enter") return "Enter";
         if (key === "delete") return "Backspace";
         if (key === "forwarddelete") return "Delete";
+        if (key === "insert") return "Insert";
+        if (key === "keypaddecimal") return "Keypad .";
     }
     return COMPANION_SHORTCUT_KEY_LABELS[key] ||
         (key.startsWith("keypad") ? "Keypad " + key.slice(6) : key.toUpperCase());
@@ -189,13 +191,12 @@ export function companionShortcutCatalogSelection(card: any) {
     if (separator < 0 || !/^(0|[1-9][0-9]{0,2})$/.test(marker.slice(separator + 1))) return undefined;
     const appId = marker.slice(0, separator);
     if (!companionShortcutCatalogApps({ savedAppId: appId }).some((app) => app.appId === appId)) return undefined;
-    const preset = companionShortcutPresetCards(appId).find((preset) =>
-        preset.entity === card?.entity && preset.options === options);
-    if (preset) return { ...preset, appId };
+    const preset = companionShortcutPresetCards(appId).find(preset => preset.options === options);
+    if (preset && preset.entity === card?.entity) return { ...preset, appId };
     // A saved card includes the actual keys, even when its preset is offline or has changed.
     if (!companionShortcutActionIdValid(card?.entity)) return undefined;
     return { appId, entity: card.entity, label: card.label || "Saved shortcut",
-        icon: card.icon || companionSubtypeDefaultIcon("shortcut"), options };
+        icon: card.icon || companionSubtypeDefaultIcon("shortcut"), options, group: preset?.group };
 }
 
 export function companionUrlConfig(rawValue: string): string {
@@ -1350,10 +1351,11 @@ export function registerCompanionCardTypes(
             if (initialMode === "shortcut") panel?.classList.add("sp-shortcut-card-settings");
             const savedCatalogShortcut = companionShortcutCatalogSelection(card);
             const isNewShortcut = initialMode === "shortcut" && state.settingsDraft?.isNew;
-            const pageApp = isNewShortcut
-                ? appShortcutPageOwner(previewSubpageOwner(parentPage, state.buttons, key => state.subpages[key]))
-                : undefined;
+            const ownerApp = appShortcutPageOwner(previewSubpageOwner(parentPage, state.buttons, key => state.subpages[key]));
+            const pageApp = isNewShortcut ? ownerApp : undefined;
+            const scopedCustomApp = ownerApp?.startsWith("windows.") ? ownerApp : undefined;
             const windowsShortcuts = useWindowsShortcuts();
+            const windowsCustomKeys = windowsShortcuts || !!scopedCustomApp;
             const platformPending = connectorStatus.companionPlatform() === undefined;
             const catalogueApps = platformPending ? [] : sortCompanionLabels(companionShortcutCatalogApps({
                 pageAppId: pageApp, savedAppId: savedCatalogShortcut?.appId, windows: windowsShortcuts,
@@ -1369,8 +1371,12 @@ export function registerCompanionCardTypes(
                 card._shortcutCatalogSearch = "";
                 if (!defaultCatalogApp) card._shortcutCatalogApp = "";
                 // Keep the selected combination when switching to Custom.
-                if (type === "catalog" || String(card.entity).startsWith(SCOPED_SHORTCUT_PREFIX)) {
+                if (type === "catalog" || (String(card.entity).startsWith(SCOPED_SHORTCUT_PREFIX) &&
+                    (!scopedCustomApp || String(card.entity).includes("~")))) {
                     card.entity = COMPANION_SHORTCUT_PREFIX;
+                } else if (scopedCustomApp && companionShortcutActionIdValid(card.entity) &&
+                    !String(card.entity).startsWith(SCOPED_SHORTCUT_PREFIX)) {
+                    card.entity = SCOPED_SHORTCUT_PREFIX + card.entity.slice(COMPANION_SHORTCUT_PREFIX.length);
                 }
                 card.options = preserveCardColorOptions(card.options, "app_shortcut_preset=custom");
                 helpers.saveField("entity", card.entity);
@@ -1416,14 +1422,16 @@ export function registerCompanionCardTypes(
             const modifierButtons = document.createElement("fieldset");
             modifierButtons.className = "sp-segment";
             modifierButtons.setAttribute("aria-label", "Keyboard shortcut modifiers");
-            const shortcutParts: string[] = currentEntity.slice(COMPANION_SHORTCUT_PREFIX.length).split("+");
+            const currentPrefix = scopedCustomApp && currentEntity.startsWith(SCOPED_SHORTCUT_PREFIX)
+                ? SCOPED_SHORTCUT_PREFIX : COMPANION_SHORTCUT_PREFIX;
+            const shortcutParts: string[] = currentEntity.slice(currentPrefix.length).split("+");
             let selectedKey = shortcutParts.pop() || "";
-            const modifiers: [string, string][] = windowsShortcuts
+            const modifiers: [string, string][] = windowsCustomKeys
                 ? [["control", "Ctrl"], ["option", "Alt"], ["shift", "Shift"]]
                 : [["command", "⌘ Command"], ["control", "⌃ Control"], ["option", "⌥ Option"], ["shift", "⇧ Shift"]];
-            if (currentEntity === "shortcut.function+f") modifiers.push(["function", "Fn"]);
+            if (!scopedCustomApp && currentEntity === "shortcut.function+f") modifiers.push(["function", "Fn"]);
             const selectedModifiers = new Set(shortcutParts
-                .map(part => windowsShortcuts && part === "command" ? "control" : part)
+                .map(part => windowsCustomKeys && part === "command" ? "control" : part)
                 .filter(part => modifiers.some(([key]) => key === part)));
             const modifierControls = new Map<string, HTMLButtonElement>();
             for (const [modifier, label] of modifiers) {
@@ -1452,10 +1460,16 @@ export function registerCompanionCardTypes(
             const keyGroups: [string, readonly string[]][] = [
                 ["Letters", Array.from("abcdefghijklmnopqrstuvwxyz")],
                 ["Numbers", Array.from("0123456789")],
-                ["Navigation and editing", Object.values(COMPANION_SHORTCUT_KEYS).filter((key) => !key.startsWith("key"))],
+                ["Navigation and editing", [
+                    ...Object.values(COMPANION_SHORTCUT_KEYS).filter((key) => !key.startsWith("key")),
+                    ...(scopedCustomApp ? ["insert"] : []),
+                ]],
                 ["Punctuation", Object.values(COMPANION_SHORTCUT_KEYS).filter((key) => key.startsWith("key"))],
                 ["Function keys", Array.from({ length: 20 }, (_, index) => "f" + (index + 1))],
             ];
+            if (scopedCustomApp) keyGroups.push(["Number pad", [
+                ...Array.from({ length: 10 }, (_, index) => "keypad" + index), "keypaddecimal",
+            ]]);
             if (currentEntity === "shortcut.claude-escape") keyGroups.push(["App keyboard shortcut", ["claude-escape"]]);
             if (currentEntity === "shortcut.escape-twice") keyGroups.push(["Sequence", ["escape-twice"]]);
             for (const [label, keys] of keyGroups) {
@@ -1464,7 +1478,7 @@ export function registerCompanionCardTypes(
                 for (const key of keys) {
                     const option = document.createElement("option");
                     option.value = key;
-                    option.textContent = companionShortcutKeyLabel(key, windowsShortcuts === true);
+                    option.textContent = companionShortcutKeyLabel(key, windowsCustomKeys);
                     group.appendChild(option);
                 }
                 keySelect.appendChild(group);
@@ -1486,7 +1500,8 @@ export function registerCompanionCardTypes(
             }
             function saveBuiltShortcut(): void {
                 const selected = modifiers.map(([modifier]) => modifier).filter((modifier) => selectedModifiers.has(modifier));
-                card.entity = COMPANION_SHORTCUT_PREFIX + [...selected, selectedKey].join("+");
+                const prefix = scopedCustomApp ? SCOPED_SHORTCUT_PREFIX : COMPANION_SHORTCUT_PREFIX;
+                card.entity = prefix + [...selected, selectedKey].join("+");
                 card.options = preserveCardColorOptions(card.options, "app_shortcut_preset=custom");
                 helpers.clearFieldError(keySelect);
                 helpers.saveField("entity", card.entity);
@@ -1551,6 +1566,25 @@ export function registerCompanionCardTypes(
             const presets = sortCompanionLabels(savedCatalogShortcut?.appId === catalogApp.value &&
                 !options.some(item => item.options === savedCatalogShortcut.options && item.entity === savedCatalogShortcut.entity)
                 ? [...options.filter(item => item.options !== savedCatalogShortcut.options), savedCatalogShortcut] : options);
+            const groups = new Map<string, HTMLElement>();
+            for (const { group } of options) {
+                if (!group || groups.has(group)) continue;
+                const section = document.createElement("div");
+                section.className = "sp-shortcut-catalog-group";
+                section.setAttribute("role", "group");
+                const title = document.createElement("h3");
+                title.className = "sp-shortcut-catalog-group-title";
+                title.id = list.id + "-group-" + groups.size;
+                title.textContent = group;
+                section.setAttribute("aria-labelledby", title.id);
+                section.appendChild(title);
+                list.appendChild(section);
+                groups.set(group, section);
+            }
+            if (groups.size) {
+                search.placeholder = "Find a shortcut or group…";
+                search.setAttribute("aria-label", search.placeholder);
+            }
             const choices = presets.map((preset, index) => {
                 const row = document.createElement("label");
                 row.className = "sp-light-tab-row";
@@ -1568,7 +1602,7 @@ export function registerCompanionCardTypes(
                 input.value = preset.options;
                 input.checked = preset.options === savedCatalogShortcut?.options;
                 row.append(input, name, keys);
-                list.appendChild(row);
+                (groups.get(preset.group ?? "") ?? list).appendChild(row);
                 input.addEventListener("change", () => {
                     card._shortcutType = "catalog";
                     card._shortcutCatalogApp = catalogApp.value;
@@ -1583,18 +1617,22 @@ export function registerCompanionCardTypes(
                     if (updatedList) updatedList.scrollTop = scrollTop;
                     document.getElementById(input.id)?.focus({ preventScroll: true });
                 });
-                return { row, label: preset.label.toLowerCase(), keys: shortcutSearchKeys(keys.textContent) };
+                return { row, group: preset.group, label: preset.label.toLowerCase(), keys: shortcutSearchKeys(keys.textContent) };
             });
             function filterShortcuts() {
                 const query = search.value.trim().toLowerCase();
                 const keys = shortcutSearchKeys(query);
+                const matchingGroups = new Set<string>();
                 let found = false;
                 for (const choice of choices) {
                     const matches = !query || choice.label.includes(query) ||
+                        !!choice.group?.toLowerCase().includes(query) ||
                         (keys.length > 0 && keys.every(key => choice.keys.includes(key)));
                     choice.row.hidden = !matches;
+                    if (matches && choice.group) matchingGroups.add(choice.group);
                     found ||= matches;
                 }
+                for (const [group, section] of groups) section.hidden = !matchingGroups.has(group);
                 list.hidden = !found;
                 noMatches.textContent = query && !found ? "No matching keyboard shortcuts" : "";
                 noMatches.classList.toggle("sp-visible", !!noMatches.textContent);
@@ -1626,11 +1664,20 @@ export function registerCompanionCardTypes(
             });
             panel?.appendChild(shortcutField);
             helpers.markCardPrimaryField(shortcutField, "shortcut");
-            helpers.requireField(keySelect, windowsShortcuts
+            helpers.requireField(keySelect, scopedCustomApp ? "Choose a supported Windows key combination before saving."
+                : windowsShortcuts
                 ? "Choose a key with Ctrl or Alt before saving."
                 : "Choose a key with Command, Control, or Option before saving.", function () {
                 return initialMode === "shortcut" && shortcutType === "custom";
             }, function () {
+                if (scopedCustomApp) {
+                    const alt = selectedModifiers.has("option");
+                    const ctrl = selectedModifiers.has("control");
+                    return !!selectedKey && companionShortcutActionIdValid(card.entity) &&
+                        !(alt && ["tab", "escape", "f4"].includes(selectedKey)) &&
+                        !(ctrl && selectedKey === "escape") &&
+                        !(ctrl && alt && selectedKey === "forwarddelete");
+                }
                 return companionShortcutActionIdValid(card.entity) && !!selectedKey &&
                     !String(card.entity).startsWith(SCOPED_SHORTCUT_PREFIX) &&
                     ((!isSafariUnmodifiedShortcut(card.entity) &&
