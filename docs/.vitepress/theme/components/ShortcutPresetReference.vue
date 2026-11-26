@@ -14,7 +14,13 @@ const windowsFiles = import.meta.glob<WindowsShortcutApplication>(
 )
 const props = defineProps<{ appId?: string; windowsId?: string }>()
 const search = ref('')
+// Keep both catalogues in the static HTML and Markdown export.
 const platform = ref<'all' | 'macos' | 'windows'>('all')
+const platformOptions = [
+  { value: 'windows', label: 'Windows' },
+  { value: 'macos', label: 'Mac' },
+] as const
+
 onMounted(() => {
   if ((props.appId || props.windowsId) && location.hash === '#windows-shortcuts') {
     platform.value = 'windows'
@@ -25,9 +31,13 @@ onMounted(() => {
     return
   }
   const browser = navigator as Navigator & { userAgentData?: { platform?: string } }
-  const system = browser.userAgentData?.platform || browser.platform
-  if (/^win/i.test(system)) platform.value = 'windows'
-  if (/^mac/i.test(system)) platform.value = 'macos'
+  const system = [browser.userAgentData?.platform, browser.platform]
+    .find(hint => hint && /^(win|mac)/i.test(hint))
+  if (system) {
+    platform.value = /^win/i.test(system) ? 'windows' : 'macos'
+  } else {
+    platform.value = /\bWindows NT\b/i.test(browser.userAgent) ? 'windows' : 'macos'
+  }
 })
 const guide = computed(() => guides.find(entry => entry.macAppId === props.appId && !!props.appId ||
   entry.slug === props.windowsId))
@@ -72,14 +82,15 @@ const matchingApps = computed(() => {
   <template v-if="!appId && !windowsId">
     <div class="preset-search" role="search" aria-label="Application shortcuts">
       <input v-model="search" type="search" placeholder="Search apps" aria-label="Search apps" />
-      <label class="platform-select">
-        Platform
-        <select v-model="platform">
-          <option value="all">All platforms</option>
-          <option value="macos">macOS</option>
-          <option value="windows">Windows</option>
-        </select>
-      </label>
+      <div class="platform-toggle" role="group" aria-label="Platform">
+        <button
+          v-for="option in platformOptions"
+          :key="option.value"
+          type="button"
+          :aria-pressed="platform === option.value"
+          @click="platform = option.value"
+        >{{ option.label }}</button>
+      </div>
       <p role="status">{{ matchingApps.length ? '' : 'No matching apps.' }}</p>
     </div>
     <ul class="preset-list" aria-label="Application shortcut guides">
@@ -129,19 +140,39 @@ const matchingApps = computed(() => {
   margin: 0;
 }
 
-.platform-select {
-  display: flex;
-  align-items: center;
-  gap: 10px;
+.platform-toggle {
+  display: inline-flex;
+  gap: 2px;
   margin-top: 12px;
+  padding: 3px;
+  border: 1px solid var(--vp-c-divider);
+  border-radius: 9px;
+  background: var(--vp-c-bg-soft);
 }
 
-.platform-select select {
-  padding: 6px 10px;
-  border: 1px solid var(--vp-c-divider);
+.platform-toggle button {
+  min-height: 44px;
+  min-width: 80px;
+  padding: 6px 12px;
+  border: 1px solid transparent;
   border-radius: 6px;
-  background: var(--vp-c-bg-soft);
+  color: var(--vp-c-text-2);
+}
+
+.platform-toggle button:hover {
   color: var(--vp-c-text-1);
+}
+
+.platform-toggle button[aria-pressed='true'] {
+  border-color: var(--vp-c-brand-1);
+  background: var(--vp-c-brand-soft);
+  color: var(--vp-c-text-1);
+  font-weight: 600;
+}
+
+.platform-toggle button:focus-visible {
+  outline: 2px solid var(--vp-c-brand-1);
+  outline-offset: 2px;
 }
 
 .preset-list {

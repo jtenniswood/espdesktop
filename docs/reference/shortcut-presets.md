@@ -9,7 +9,7 @@ import ShortcutPresetReference from '../.vitepress/theme/components/ShortcutPres
 
 # Application shortcuts for EspDesktop
 
-The list starts with apps for your Mac or Windows PC. Use the platform filter to browse another platform.
+Choose **Windows** or **Mac** to browse apps. The page selects your platform when the browser can identify it.
 
 To add a supported preset to your touchscreen, pair the [Mac companion](/mac-controls/shortcuts) or the [Windows companion preview](/windows-preview#add-controls), then choose **Keyboard Shortcut → Application** in the display editor.
 
