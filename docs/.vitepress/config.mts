@@ -84,6 +84,7 @@ const cardLinks = [
   { text: 'Keyboard shortcuts', link: '/mac-controls/shortcuts' },
   { text: 'Keyboard shortcut presets', link: '/reference/shortcut-presets' },
   { text: 'Apple Shortcuts', link: '/mac-controls/apple-shortcuts' },
+  { text: 'Sound', link: '/mac-controls/apps#mac-audio' },
 ]
 const obsStudioLink = { text: 'OBS Studio', link: '/mac-controls/obs-studio' }
 const obsStudioSidebar = {
