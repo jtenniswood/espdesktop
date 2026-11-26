@@ -58,7 +58,9 @@ function layoutSignature({ document: { deviceProfile, settings }, layout }: Nati
         settings[APP_SUBPAGE_MODE], settings[APP_SUBPAGE_PREFERENCE], settings[FIRST_RUN_COMPLETE] ?? ""]);
 }
 
-function setupAppLimit(capacity: number): number {
+function setupAppLimit(deviceProfile: string, capacity: number): number {
+    if (deviceProfile === "guition-esp32-p4-jc8012p4a1-v3") return Math.min(20, capacity);
+    if (deviceProfile === "guition-esp32-p4-jc1060p470-v3") return Math.min(15, capacity);
     return Math.min(8, capacity - 1);
 }
 
@@ -78,7 +80,7 @@ export function applyFirstRunLayout(
         throw new Error("The layout changed while setup was open. Close and reopen setup to keep those changes.");
     }
     if (!replacing && !needsFirstRunSetup(current)) throw new Error("This display already has a layout. Reload to keep its changes.");
-    if (!Number.isInteger(capacity) || capacity < 1 || apps.length > setupAppLimit(capacity) ||
+    if (!Number.isInteger(capacity) || capacity < 1 || apps.length > setupAppLimit(current.document.deviceProfile, capacity) ||
         new Set(apps.map(app => app.id)).size !== apps.length) throw new Error("Choose apps within the setup limit.");
     const entries = apps.map(app => {
         const card = { entity: app.id, label: app.label, icon: "Auto", icon_on: "Auto",
@@ -107,6 +109,7 @@ interface FirstRunSetupDependencies {
     window: Window;
     fetch: typeof fetch;
     capacity: number;
+    deviceProfile: string;
     supported: boolean;
     native: NativePanelConfigController;
     connectors: Pick<ConnectorsPageFeature, "onCompanionConnectionChange" | "onCompanionPairingChange">;
@@ -118,7 +121,7 @@ interface FirstRunSetupDependencies {
 
 export function createFirstRunSetup(deps: FirstRunSetupDependencies): { start(): void; open(): void } {
     const { document, window } = deps;
-    const appLimit = setupAppLimit(deps.capacity);
+    const appLimit = setupAppLimit(deps.deviceProfile, deps.capacity);
     const catalogue = createCompanionCatalogue(deps.fetch);
     const setupLink = new URLSearchParams(window.location.search).get("setup") === "1";
     const pairingLink = !setupLink && requestedConnectorFromSearch(window.location.search) === "mac_companion";

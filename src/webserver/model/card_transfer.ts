@@ -17,7 +17,7 @@ export const CARD_TRANSFER_VERSION = 1;
 export const CARD_TRANSFER_TREE_VERSION = 2;
 export const CARD_TRANSFER_FORMAT = "espdesktop.cards";
 export const CARD_TRANSFER_MAX_BYTES = 64 * 1024;
-export const CARD_TRANSFER_MAX_CARDS = 20;
+export const CARD_TRANSFER_MAX_CARDS = 24;
 
 export interface CardTransferSource {
   device: string;

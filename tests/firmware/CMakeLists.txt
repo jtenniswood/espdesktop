@@ -214,7 +214,7 @@ add_test(NAME icons_legacy_alias_test COMMAND icons_legacy_alias_test)
 add_executable(external_memory_allocator_test external_memory_allocator_test.cpp)
 target_compile_features(external_memory_allocator_test PRIVATE cxx_std_17)
 target_compile_options(external_memory_allocator_test PRIVATE -Wall -Wextra -Werror)
-target_compile_definitions(external_memory_allocator_test PRIVATE USE_ESP32)
+target_compile_definitions(external_memory_allocator_test PRIVATE USE_ESP32 ESP_PLATFORM)
 target_include_directories(external_memory_allocator_test PRIVATE
   stubs
   ../../components/espdesktop

@@ -229,6 +229,12 @@ uint32_t epoch() { return current_epoch.load(); }
 bool pending() { return interlock.pending(); }
 bool ready() { return initialized.load(); }
 bool update_busy() { return interlock.busy(); }
+bool ota_boot_pending_verification() {
+  const auto *running = esp_ota_get_running_partition();
+  esp_ota_img_states_t state{};
+  return running != nullptr && esp_ota_get_state_partition(running, &state) == ESP_OK &&
+         state == ESP_OTA_IMG_PENDING_VERIFY;
+}
 bool begin_configuration_write() { return ready() && interlock.begin_configuration_write(); }
 void finish_configuration_write() { interlock.finish_configuration_write(); }
 void watch_update(esphome::update::UpdateEntity *entity) {

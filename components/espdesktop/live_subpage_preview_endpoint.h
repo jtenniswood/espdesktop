@@ -79,7 +79,7 @@ class LiveSubpagePreviewHandler final : public esphome::web_server_idf::AsyncWeb
 
     const auto snapshot = companion_runtime_snapshot();
     if (finder) {
-      std::vector<CompanionAction> folders;
+      CompanionActionList folders;
       if (snapshot.connected) {
         for (const auto &action : snapshot.actions)
           if (is_live_finder_folder(action.id)) folders.push_back(action);

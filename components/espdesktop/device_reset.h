@@ -25,4 +25,6 @@ bool ready();
 void register_handlers(esphome::web_server_idf::AsyncWebServer &server);
 void watch_update(esphome::update::UpdateEntity *entity);
 bool update_busy();
+// The bootloader will roll back this image if it reboots before confirmation.
+bool ota_boot_pending_verification();
 }  // namespace espdesktop::reset

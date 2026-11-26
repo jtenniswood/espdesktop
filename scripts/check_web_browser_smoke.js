@@ -9306,7 +9306,10 @@ async function assertFirstRunSetup(browser, testCase) {
   try {
     await open();
     const dialog = page.getByRole("dialog");
-    const appLimit = Math.min(8, testCase.slots - 1);
+    const appLimit = ({
+      "guition-esp32-p4-jc8012p4a1-v3": 20,
+      "guition-esp32-p4-jc1060p470-v3": 15,
+    })[testCase.slug] ?? Math.min(8, testCase.slots - 1);
     await dialog.getByText("No apps available. Check app access in the companion app.", { exact: true }).waitFor();
     assert(await dialog.getByText("Step 1 of 2", { exact: true }).isVisible(),
       "an already connected Mac starts at app selection");
@@ -9383,7 +9386,7 @@ async function assertFirstRunSetup(browser, testCase) {
     await dialog.waitFor({ state: "detached" });
     await page.getByText("Setup saved.", { exact: true }).waitFor();
     assert.equal(Object.keys(fixture.document.buttons).length, appLimit);
-    assert.equal(fixture.document.buttons[appLimit + 1], undefined, "setup leaves a slot free");
+    assert.equal(fixture.document.buttons[appLimit + 1], undefined, "setup stops at the app limit");
     assert.equal(fixture.document.settings.web_onboarding_complete, "1");
     const { rootCards, pages } = fixture.puts[0].layout;
     const safari = rootCards.find(({ config }) => config.entity === "com.apple.Safari");

@@ -210,10 +210,11 @@ struct CompanionAction {
   std::optional<uint32_t> shortcut_color{};
 };
 struct CompanionValue { std::string id; int value; };
+using CompanionActionList = std::vector<CompanionAction>;
 struct CompanionRuntimeSnapshot {
   std::string selected_scene{};
   bool connected = true;
-  std::vector<CompanionAction> actions{};
+  CompanionActionList actions{};
   std::vector<CompanionValue> values{};
 };
 CompanionRuntimeSnapshot companion_runtime_snapshot() { return {}; }

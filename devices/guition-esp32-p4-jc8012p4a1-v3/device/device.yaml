@@ -27,6 +27,8 @@ esp32:
     # incompletely in ESPHome containers and then fail while creating .bin files.
     #platform_version: 55.03.37
     advanced:
+      # Live layout saves rebuild cards and subpages on ESPHome's application loop.
+      loop_task_stack_size: 16384
       enable_idf_experimental_features: true
       execute_from_psram: true
       disable_vfs_support_termios: false
@@ -68,8 +70,12 @@ external_components:
       url: ${espdesktop_component_url}
       ref: ${espdesktop_component_ref}
       path: components
-    components: [espdesktop, web_server_idf, artwork_image, gsl3680, captive_portal]
+    components: [espdesktop, web_server_idf, artwork_image, gsl3680, captive_portal, companion]
     refresh: 1s
+
+companion:
+  id: mac_companion
+  port: 8443
 
 espdesktop:
   id: espdesktop_app
@@ -121,6 +127,14 @@ espdesktop:
         subpage_chunks: [subpage_19_config, subpage_19_config_ext, subpage_19_config_ext_2, subpage_19_config_ext_3, subpage_19_config_ext_4, subpage_19_config_ext_5, subpage_19_config_ext_6, subpage_19_config_ext_7]
       - config: button_20_config
         subpage_chunks: [subpage_20_config, subpage_20_config_ext, subpage_20_config_ext_2, subpage_20_config_ext_3, subpage_20_config_ext_4, subpage_20_config_ext_5, subpage_20_config_ext_6, subpage_20_config_ext_7]
+      - config: button_21_config
+        subpage_chunks: [subpage_21_config, subpage_21_config_ext, subpage_21_config_ext_2, subpage_21_config_ext_3, subpage_21_config_ext_4, subpage_21_config_ext_5, subpage_21_config_ext_6, subpage_21_config_ext_7]
+      - config: button_22_config
+        subpage_chunks: [subpage_22_config, subpage_22_config_ext, subpage_22_config_ext_2, subpage_22_config_ext_3, subpage_22_config_ext_4, subpage_22_config_ext_5, subpage_22_config_ext_6, subpage_22_config_ext_7]
+      - config: button_23_config
+        subpage_chunks: [subpage_23_config, subpage_23_config_ext, subpage_23_config_ext_2, subpage_23_config_ext_3, subpage_23_config_ext_4, subpage_23_config_ext_5, subpage_23_config_ext_6, subpage_23_config_ext_7]
+      - config: button_24_config
+        subpage_chunks: [subpage_24_config, subpage_24_config_ext, subpage_24_config_ext_2, subpage_24_config_ext_3, subpage_24_config_ext_4, subpage_24_config_ext_5, subpage_24_config_ext_6, subpage_24_config_ext_7]
 # ---------------------------------------------------------------------------
 # ESPHome core (device name from substitutions)
 # ---------------------------------------------------------------------------
@@ -172,12 +186,21 @@ esphome:
                   esphome::esp32::crash_handler_clear();
                   #endif
                   global_preferences->sync();
-                  ESP_LOGW("jc8012p4a1_v2", "Cleared saved crash report before API logging; rebooting once while preserving the failed-boot counter");
-              - delay: 500ms
-              - lambda: |-
-                  // Avoid safe_reboot(): its safe-mode shutdown hook clears
-                  // the failed-boot counter before the replacement boot.
-                  App.reboot();
+              - if:
+                  condition:
+                    lambda: 'return espdesktop::reset::ota_boot_pending_verification();'
+                  then:
+                    - lambda: |-
+                        // A crash report can carry over from the previous image.
+                        // Safe mode will confirm this image after a successful boot.
+                        ESP_LOGW("jc8012p4a1_v3", "Cleared saved crash report; continuing OTA verification");
+                  else:
+                    - lambda: 'ESP_LOGW("jc8012p4a1_v3", "Cleared saved crash report; rebooting once while preserving the failed-boot counter");'
+                    - delay: 500ms
+                    - lambda: |-
+                        // Avoid safe_reboot(): its safe-mode shutdown hook clears
+                        // the failed-boot counter before the replacement boot.
+                        App.reboot();
     - priority: 250
       then:
         - lambda: |-

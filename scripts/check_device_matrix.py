@@ -11,6 +11,7 @@ from pathlib import Path
 from tempfile import TemporaryDirectory
 
 import device_matrix
+from release_devices import load_firmware_release_devices, load_release_devices
 
 
 def run_ok(args: list[str]) -> object:
@@ -65,7 +66,7 @@ def test_nightly_matrix_includes_every_manifest_slug() -> None:
     }
 
 
-def test_pr_matrix_puts_public_targets_before_manual_representatives() -> None:
+def test_pr_matrix_puts_release_targets_before_manual_representatives() -> None:
     matrix = run_ok(["pr"])
     expected: dict[str, dict[str, object]] = {}
     for slug, device in manifest_data()["devices"].items():
@@ -77,19 +78,22 @@ def test_pr_matrix_puts_public_targets_before_manual_representatives() -> None:
                 "recovery": chip == device_matrix.RECOVERY_CHIP_FAMILY,
             },
         )
-    public = run_ok(["release"])["include"]
-    assert matrix["include"][:len(public)] == [
-        {"slug": entry["slug"], "recovery": entry["recovery"]} for entry in public
+    released = run_ok(["release"])["include"]
+    assert matrix["include"][:len(released)] == [
+        {"slug": entry["slug"], "recovery": entry["recovery"]} for entry in released
     ]
-    public_chips = {entry["chip"] for entry in public}
-    manual = [entry for chip, entry in expected.items() if chip not in public_chips]
-    assert matrix["include"][len(public):] == manual
+    released_chips = {entry["chip"] for entry in released}
+    manual = [entry for chip, entry in expected.items() if chip not in released_chips]
+    assert matrix["include"][len(released):] == manual
     assert len(matrix["include"]) < len(manifest_data()["devices"])
 
 
-def test_release_matrix_includes_only_public_devices() -> None:
+def test_release_matrix_includes_artifact_only_devices() -> None:
     matrix = run_ok(["release"])
-    assert [entry["slug"] for entry in matrix["include"]] == ["guition-esp32-s3-4848s040"]
+    public_slug = "guition-esp32-s3-4848s040"
+    artifact_slug = "guition-esp32-p4-jc8012p4a1-v3"
+    assert [entry["slug"] for entry in matrix["include"]] == [public_slug, artifact_slug]
+    assert load_release_devices() == [public_slug]
     assert len(run_ok(["nightly"])["include"]) > len(matrix["include"])
     try:
         device_matrix.release_matrix({})
@@ -100,7 +104,6 @@ def test_release_matrix_includes_only_public_devices() -> None:
 
 
 def test_release_device_selection_validation() -> None:
-    from release_devices import load_release_devices
     with TemporaryDirectory() as tmp:
         path = Path(tmp) / "release_devices.json"
         for invalid in ([], ["panel", "panel"], [None], "panel"):
@@ -112,7 +115,15 @@ def test_release_device_selection_validation() -> None:
             else:
                 raise AssertionError(f"Invalid release selection accepted: {invalid!r}")
         path.write_text(json.dumps({"devices": ["future-panel"]}))
-        assert load_release_devices(path) == ["future-panel"]
+        assert load_firmware_release_devices(path) == ["future-panel"]
+        for invalid in (["future-panel"], ["other-panel", "other-panel"], None, "other-panel"):
+            path.write_text(json.dumps({"devices": ["future-panel"], "artifactOnlyDevices": invalid}))
+            try:
+                load_firmware_release_devices(path)
+            except ValueError:
+                pass
+            else:
+                raise AssertionError(f"Invalid artifact-only selection accepted: {invalid!r}")
 
 
 def test_missing_chip_metadata_fails() -> None:
@@ -176,8 +187,8 @@ def main() -> int:
     tests = [
         test_release_matrix_shape,
         test_nightly_matrix_includes_every_manifest_slug,
-        test_pr_matrix_puts_public_targets_before_manual_representatives,
-        test_release_matrix_includes_only_public_devices,
+        test_pr_matrix_puts_release_targets_before_manual_representatives,
+        test_release_matrix_includes_artifact_only_devices,
         test_release_device_selection_validation,
         test_missing_chip_metadata_fails,
         test_matrix_build_files_are_required,

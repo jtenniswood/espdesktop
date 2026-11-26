@@ -77,7 +77,7 @@ def main() -> int:
         require(not any(token in text for token in legacy_tokens),
                 f"{source.relative_to(ROOT)} contains a legacy delimiter message")
 
-    require(json.loads((ROOT / "product/generated/companion_compatibility.json").read_text()) == compatibility(),
+    require(json.loads((ROOT / "product/generated/companion_compatibility.json").read_text()) == compatibility(public_only=True),
             "release compatibility is stale")
     # Behavioral authorization and code-visibility tests run in the firmware
     # host suite; spelling checks cannot establish an endpoint security boundary.

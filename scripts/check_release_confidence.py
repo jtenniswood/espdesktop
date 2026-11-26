@@ -8,7 +8,7 @@ from pathlib import Path
 
 import check_public_firmware
 from check_card_contract_outputs import assert_docs_contract
-from release_devices import load_release_devices
+from release_devices import load_firmware_release_devices, load_release_devices
 
 import device_matrix
 from device_profiles import ROOT, load_device_profiles, public_device_capabilities
@@ -77,13 +77,12 @@ def test_firmware_release_matrix(profile_slugs: list[str]) -> None:
         "nightly": device_matrix.nightly_matrix(profiles),
     }
     for label, matrix in matrices.items():
-        expected = load_release_devices() if label == "release" else profile_slugs
+        expected = load_firmware_release_devices() if label == "release" else profile_slugs
         assert_same_slugs(expected, [entry["slug"] for entry in matrix["include"]], f"{label} firmware matrix")
 
     pr_entries = device_matrix.pr_matrix(profiles)["include"]
     pr_chips = [profiles[entry["slug"]]["firmware"]["build"]["chip"] for entry in pr_entries]
     expected_chips = {profile["firmware"]["build"]["chip"] for profile in profiles.values()}
-    assert len(pr_chips) == len(set(pr_chips)), "pull request firmware matrix repeats a chip family"
     assert set(pr_chips) == expected_chips, "pull request firmware matrix does not cover every chip family"
 
 

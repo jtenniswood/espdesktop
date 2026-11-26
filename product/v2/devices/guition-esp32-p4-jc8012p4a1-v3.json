@@ -7,6 +7,9 @@
     "network": "c6-firmware-update"
   },
   "config": {
+    "capabilities": {
+      "companion": true
+    },
     "layout": {
       "portraitSlots": 18
     },
@@ -32,7 +35,10 @@
     }
   },
   "overrides": {
+    "slots": 24,
     "layout": {
+      "cols": 6,
+      "firmwareGrid": "6x4",
       "portraitCols": 3
     },
     "web": {

@@ -2,7 +2,7 @@
 # LVGL MAIN PAGE - Top-layer HUD and button grid
 # =============================================================================
 # Defines the primary UI: a top-layer overlay with temperature and clock
-# labels, and the main page containing up to 20 button widgets. The grid is
+# labels, and the main page containing up to 24 button widgets. The grid is
 # configured dynamically for landscape and portrait in sensors.yaml. Buttons
 # start hidden; sensors.yaml unhides and places active ones at boot via grid
 # cell coords.
@@ -99,7 +99,7 @@ lvgl:
       scrollbar_mode: "off"
       layout:
         type: grid
-        grid_columns: [FR(1), FR(1), FR(1), FR(1), FR(1)]
+        grid_columns: [FR(1), FR(1), FR(1), FR(1), FR(1), FR(1)]
         grid_rows: [FR(1), FR(1), FR(1), FR(1)]
         pad_row: ${main_page_card_gap}
         pad_column: ${main_page_card_gap}
@@ -132,3 +132,7 @@ lvgl:
         - !include { file: ../../../common/device/button_widget.yaml, vars: { num: "18" } }
         - !include { file: ../../../common/device/button_widget.yaml, vars: { num: "19" } }
         - !include { file: ../../../common/device/button_widget.yaml, vars: { num: "20" } }
+        - !include { file: ../../../common/device/button_widget.yaml, vars: { num: "21" } }
+        - !include { file: ../../../common/device/button_widget.yaml, vars: { num: "22" } }
+        - !include { file: ../../../common/device/button_widget.yaml, vars: { num: "23" } }
+        - !include { file: ../../../common/device/button_widget.yaml, vars: { num: "24" } }

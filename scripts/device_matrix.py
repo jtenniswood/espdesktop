@@ -9,7 +9,7 @@ import sys
 from pathlib import Path
 from typing import Any
 
-from release_devices import load_release_devices
+from release_devices import load_firmware_release_devices
 
 from device_profiles import (
     DEVICE_MANIFEST,
@@ -64,8 +64,8 @@ def validate_matrix_build_files(
         raise DeviceMatrixError("missing firmware build input(s):\n" + "\n".join(missing))
 
 
-def release_matrix(profiles: dict[str, dict[str, Any]]) -> dict[str, list[dict[str, str]]]:
-    released = load_release_devices()
+def release_matrix(profiles: dict[str, dict[str, Any]]) -> dict[str, list[dict[str, Any]]]:
+    released = load_firmware_release_devices()
     unknown = set(released) - profiles.keys()
     if unknown:
         raise DeviceMatrixError(f"Unknown release device(s): {sorted(unknown)}")
@@ -74,10 +74,10 @@ def release_matrix(profiles: dict[str, dict[str, Any]]) -> dict[str, list[dict[s
             {
                 "device": slug,
                 "slug": slug,
-                "chip": profile["firmware"]["build"]["chip"],
-                "recovery": profile["firmware"]["build"]["chip"] == RECOVERY_CHIP_FAMILY,
+                "chip": profiles[slug]["firmware"]["build"]["chip"],
+                "recovery": profiles[slug]["firmware"]["build"]["chip"] == RECOVERY_CHIP_FAMILY,
             }
-            for slug, profile in profiles.items() if slug in released
+            for slug in released
         ]
     }
 
@@ -95,11 +95,10 @@ def nightly_matrix(profiles: dict[str, dict[str, Any]]) -> dict[str, list[dict[s
 
 
 def pr_matrix(profiles: dict[str, dict[str, Any]]) -> dict[str, list[dict[str, Any]]]:
-    # PR compiles are serialized. Build every public target first so the
-    # firmware people can test arrives ahead of the manual platform checks.
-    public = release_matrix(profiles)["include"]
-    result = [{"slug": entry["slug"], "recovery": entry["recovery"]} for entry in public]
-    covered = {entry["chip"] for entry in public}
+    # PR compiles are serialized. Build release targets before manual representatives.
+    released = release_matrix(profiles)["include"]
+    result = [{"slug": entry["slug"], "recovery": entry["recovery"]} for entry in released]
+    covered = {entry["chip"] for entry in released}
     for slug, profile in profiles.items():
         chip = profile["firmware"]["build"]["chip"]
         if chip not in covered:

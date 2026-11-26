@@ -1190,9 +1190,10 @@
     },
     "guition-esp32-p4-jc8012p4a1-v3": {
       "slug": "guition-esp32-p4-jc8012p4a1-v3",
-      "slots": 20,
+      "slots": 24,
       "capabilities": {
-        "imageSlots": 6
+        "imageSlots": 6,
+        "companion": true
       },
       "public": {
         "name": "Guition JC8012P4A1 V3 (production silicon)",
@@ -1202,9 +1203,9 @@
         "orientation": "Landscape"
       },
       "layout": {
-        "cols": 5,
+        "cols": 6,
         "rows": 4,
-        "firmwareGrid": "5x4",
+        "firmwareGrid": "6x4",
         "portraitCols": 3,
         "portraitSlots": 18
       },

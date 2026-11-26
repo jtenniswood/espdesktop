@@ -20,6 +20,9 @@
 
 #include "companion_shortcut_catalogue.h"
 #include "companion_capabilities_generated.h"
+#ifdef ESP_PLATFORM
+#include "external_memory_allocator.h"
+#endif
 
 enum class CompanionAppSubpageMode { FOCUS, CARD, MANUAL };
 
@@ -47,6 +50,14 @@ struct CompanionAction {
       obs_available == other.obs_available && shortcut_color == other.shortcut_color;
   }
 };
+
+// Keep catalogue buffers and their snapshots out of the fragmented internal
+// heap when a layout rebuild or TLS connection is using it.
+#ifdef ESP_PLATFORM
+using CompanionActionList = std::vector<CompanionAction, EspDesktopExternalAllocator<CompanionAction>>;
+#else
+using CompanionActionList = std::vector<CompanionAction>;
+#endif
 
 // Keep OBS and input-device entries from displacing existing Mac actions.
 class CompanionCatalogueLimits {
@@ -128,7 +139,7 @@ inline bool companion_remote_definition_capacity_available(const std::string &ki
 }
 
 struct CompanionRuntimeSnapshot {
-  std::vector<CompanionAction> actions;
+  CompanionActionList actions;
   std::vector<CompanionValue> values;
   std::string focused_action_id;
   std::vector<std::string> focused_action_ids;
@@ -220,7 +231,7 @@ class CompanionRuntimeService {
     return connected_;
   }
 
-  std::vector<CompanionAction> actions() const {
+  CompanionActionList actions() const {
     std::lock_guard<std::mutex> lock(mutex_);
     return actions_;
   }
@@ -353,7 +364,7 @@ class CompanionRuntimeService {
     request_refresh_();
   }
 
-  void set_actions(std::vector<CompanionAction> actions) {
+  void set_actions(CompanionActionList actions) {
     std::lock_guard<std::mutex> lock(mutex_);
     if (actions == actions_) return;
     if (!actions.empty()) ++action_catalogue_generation_;
@@ -361,7 +372,7 @@ class CompanionRuntimeService {
     request_refresh_();
   }
 
-  void set_obs_actions(std::vector<CompanionAction> actions) {
+  void set_obs_actions(CompanionActionList actions) {
     std::lock_guard<std::mutex> lock(mutex_);
     const auto is_obs = [](const CompanionAction &action) { return action.id.rfind("obs.", 0) == 0; };
     const auto first_obs = std::find_if(actions_.begin(), actions_.end(), is_obs);
@@ -579,7 +590,7 @@ class CompanionRuntimeService {
   void request_refresh_() { refresh_requested_.store(true); }
 
   mutable std::mutex mutex_;
-  std::vector<CompanionAction> actions_;
+  CompanionActionList actions_;
   uint32_t action_catalogue_generation_{0};
   bool application_highlight_known_{false};
   std::string application_highlight_id_;

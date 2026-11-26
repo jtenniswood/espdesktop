@@ -75,8 +75,8 @@ struct GridConfig {
 
 // The approved Mac catalogue is only a render input. The native page store
 // continues to contain the user's placed tiles.
-inline std::vector<CompanionAction> &grid_live_companion_actions() {
-  static std::vector<CompanionAction> actions;
+inline CompanionActionList &grid_live_companion_actions() {
+  static CompanionActionList actions;
   return actions;
 }
 
@@ -86,7 +86,7 @@ inline bool grid_is_apple_shortcuts_page(const ParsedCfg &card) {
 }
 
 inline bool grid_update_live_companion_actions(const CompanionRuntimeSnapshot &snapshot) {
-  std::vector<CompanionAction> actions;
+  CompanionActionList actions;
   if (snapshot.connected) {
     for (const auto &action : snapshot.actions)
       if (is_live_finder_folder(action.id) || companion_apple_shortcut_action(action.id))
@@ -116,11 +116,11 @@ inline bool grid_update_live_companion_actions(const CompanionRuntimeSnapshot &s
   return generated_page || saved_color_changed;
 }
 
-inline std::vector<CompanionAction> &grid_live_obs_tiles(OBSSubpageKind kind) {
-  static std::vector<CompanionAction> sources_catalogue;
-  static std::vector<CompanionAction> transitions_catalogue;
-  static std::vector<CompanionAction> audio_catalogue;
-  static std::vector<CompanionAction> scenes_catalogue;
+inline CompanionActionList &grid_live_obs_tiles(OBSSubpageKind kind) {
+  static CompanionActionList sources_catalogue;
+  static CompanionActionList transitions_catalogue;
+  static CompanionActionList audio_catalogue;
+  static CompanionActionList scenes_catalogue;
   if (kind == OBSSubpageKind::audio) return audio_catalogue;
   if (kind == OBSSubpageKind::scenes) return scenes_catalogue;
   return kind == OBSSubpageKind::sources ? sources_catalogue : transitions_catalogue;

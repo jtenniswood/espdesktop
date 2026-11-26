@@ -8,6 +8,7 @@ import { imageCaptions } from './image-captions'
 import { writeMarkdownPages } from './markdown-export'
 import { unpublishedMarkdown, writeGuideIndex } from './public-guides'
 import productFacts from './product-facts.json'
+import releaseDevices from '../../product/release_devices.json'
 
 const { freshWebOutputDir } = createRequire(import.meta.url)(resolve(import.meta.dirname, '../../scripts/web_source.js'))
 
@@ -117,15 +118,16 @@ export default defineConfig({
     image: { lazyLoading: true },
   },
   async buildEnd({ outDir, pages }) {
-    // Keep the test profile available to firmware builds without listing it on the site.
+    const hiddenProfiles = new Set(releaseDevices.artifactOnlyDevices)
     if (!pages.includes('screens/jc1060p470-v3.md')) {
-      const path = resolve(outDir, 'device-profiles.json')
-      const profiles = JSON.parse(await readFile(path, 'utf8'))
-      profiles.devices = profiles.devices.filter(
-        (device: { slug: string }) => device.slug !== 'guition-esp32-p4-jc1060p470-v3',
-      )
-      await writeFile(path, JSON.stringify(profiles, null, 2) + '\n')
+      hiddenProfiles.add('guition-esp32-p4-jc1060p470-v3')
     }
+    const path = resolve(outDir, 'device-profiles.json')
+    const profiles = JSON.parse(await readFile(path, 'utf8'))
+    profiles.devices = profiles.devices.filter(
+      (device: { slug: string }) => !hiddenProfiles.has(device.slug),
+    )
+    await writeFile(path, JSON.stringify(profiles, null, 2) + '\n')
     const demoRenderer = resolve(freshWebOutputDir({ testHooks: false }), 'app.js')
     await Promise.all([
       writeRedirects(outDir),

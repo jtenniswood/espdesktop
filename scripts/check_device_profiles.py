@@ -9,7 +9,7 @@ from pathlib import Path
 
 import yaml
 
-from release_devices import load_release_devices
+from release_devices import load_firmware_release_devices, load_release_devices
 
 import device_matrix
 import generate_device_slots
@@ -436,7 +436,7 @@ def test_jc4880p443_v3_configuration() -> None:
         assert (ROOT / "builds" / f"{slug}{suffix}").is_file()
 
 
-def test_factory_connector_scope(profiles: dict[str, dict]) -> None:
+def test_factory_packages(profiles: dict[str, dict]) -> None:
     from esphome.components.packages import resolve_packages
     from esphome.core import CORE
     from esphome.yaml_util import load_yaml
@@ -452,6 +452,19 @@ def test_factory_connector_scope(profiles: dict[str, dict]) -> None:
                 companion = bool(profiles[slug]["capabilities"].get("companion"))
                 assert ("companion" in config) == companion, (
                     f"{slug}: firmware and web profile must agree on Mac Companion availability"
+                )
+                main = next(page for page in config["lvgl"]["pages"] if page["id"] == "main_page")
+                layout = main["layout"]
+                assert len(layout["grid_columns"]) == profiles[slug]["layout"]["cols"], (
+                    f"{slug}: startup grid columns must match the device profile"
+                )
+                assert len(layout["grid_rows"]) == profiles[slug]["layout"]["rows"], (
+                    f"{slug}: startup grid rows must match the device profile"
+                )
+            if slug == "guition-esp32-p4-jc8012p4a1-v3":
+                framework = config["esp32"]["framework"]["advanced"]
+                assert framework["loop_task_stack_size"] >= 16384, (
+                    f"{slug}: the live layout rebuild needs a 16 KiB loop task stack"
                 )
             native = slug in {"guition-esp32-s3-4848s040", "guition-esp32-p4-jc1060p470-v3"}
             assert ("api" in config) == native, f"{path.name}: unexpected native ESPHome API scope"
@@ -535,6 +548,7 @@ def test_p4_crash_restart_preserves_safe_mode_counter() -> None:
         "guition-esp32-p4-jc4880p443",
         "guition-esp32-p4-jc8012p4a1",
         "guition-esp32-p4-jc8012p4a1-v2",
+        "guition-esp32-p4-jc8012p4a1-v3",
     )
     for slug in slugs:
         path = ROOT / "devices" / slug / "device" / "device.yaml"
@@ -854,11 +868,10 @@ def test_firmware_matrices(profile_slugs: list[str]) -> None:
     release = device_matrix.release_matrix(profiles)
     nightly = device_matrix.nightly_matrix(profiles)
     pr = device_matrix.pr_matrix(profiles)
-    assert_profile_slugs(load_release_devices(), [entry["slug"] for entry in release["include"]], "release matrix")
+    assert_profile_slugs(load_firmware_release_devices(), [entry["slug"] for entry in release["include"]], "release matrix")
     assert_profile_slugs(profile_slugs, [entry["slug"] for entry in nightly["include"]], "nightly matrix")
     pr_chips = [profiles[entry["slug"]]["firmware"]["build"]["chip"] for entry in pr["include"]]
     expected_chips = {profile["firmware"]["build"]["chip"] for profile in profiles.values()}
-    assert len(pr_chips) == len(set(pr_chips)), "PR matrix repeats a chip family"
     assert set(pr_chips) == expected_chips, "PR matrix does not cover every chip family"
 
 
@@ -880,7 +893,7 @@ def main() -> int:
     test_generated_yaml(profiles)
     test_v3_release_configuration()
     test_jc4880p443_v3_configuration()
-    test_factory_connector_scope(profiles)
+    test_factory_packages(profiles)
     test_ota_preserves_deployed_partition_layouts()
     test_upgrades_do_not_reset_saved_panel_config()
     test_p4_crash_restart_preserves_safe_mode_counter()

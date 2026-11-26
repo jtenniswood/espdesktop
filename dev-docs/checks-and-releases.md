@@ -71,9 +71,9 @@ Record flashing and device behavior separately in the pull request.
 
 ## Firmware Build Coverage
 
-Pull request firmware checks compile one representative P4 board (7-inch
-`guition-esp32-p4-jc1060p470`) and one S3 board (4-inch
-`guition-esp32-s3-4848s040`). The P4 check also compiles its recovery firmware.
+Pull request firmware checks compile the release targets first, followed by one
+representative of each remaining chip family. Each P4 target also compiles its
+recovery firmware.
 Nightly builds compile every supported device, including P4 recovery firmware.
 A failed nightly run opens a repository issue with the run logs, tested commit,
 job results, and failed targets when available. Setup and matrix failures also
@@ -81,11 +81,11 @@ open an issue; cancelled runs do not. Each failed attempt creates a new issue.
 
 ## Public Release Devices
 
-The first release supports only the 4-inch Guition ESP32-S3 4848S040.
-`product/release_devices.json` controls firmware release builds, public firmware
-downloads, and generated USB install buttons. Add another device there only when
-it is ready to ship. All other device profiles and nightly/PR build coverage are
-retained for future upgrades; their manual setup guides are development material.
+The public release target is the 4-inch Guition ESP32-S3 4848S040.
+In `product/release_devices.json`, `devices` enables website firmware downloads
+and the web installer. `artifactOnlyDevices` enables GitHub release assets and
+keeps those profiles out of the published site data. Both lists feed the
+release build matrix.
 
 ## Release Boundary
 

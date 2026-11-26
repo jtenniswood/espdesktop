@@ -9,10 +9,10 @@ inline auto obs_subpage_accepts(OBSSubpageKind kind) {
   return kind == OBSSubpageKind::sources ? companion_obs_source_target : companion_obs_transition_target;
 }
 
-inline std::vector<CompanionAction> obs_subpage_catalogue(const CompanionRuntimeSnapshot &snapshot,
+inline CompanionActionList obs_subpage_catalogue(const CompanionRuntimeSnapshot &snapshot,
                                                            OBSSubpageKind kind) {
   const auto accepts = obs_subpage_accepts(kind);
-  std::vector<CompanionAction> entries;
+  CompanionActionList entries;
   for (const auto &action : snapshot.actions) {
     std::string_view id = action.id;
     if (kind != OBSSubpageKind::audio && id.size() > 37 && id[id.size() - 37] == '.' &&
@@ -61,13 +61,13 @@ inline void project_obs_scene_controls(SubpageOrder &order, std::vector<SubpageB
 
 inline void project_obs_subpage_tiles(SubpageOrder &order, std::vector<SubpageBtn> &buttons,
                                          int slots, int columns, int capacity,
-                                         const std::vector<CompanionAction> &catalogue,
+                                         const CompanionActionList &catalogue,
                                          const std::string &options, OBSSubpageKind kind) {
   const auto exclusions = cfg_option_value(options, "generated_card_exclusions");
   if (kind == OBSSubpageKind::scenes)
     project_obs_scene_controls(order, buttons, slots, columns, capacity, exclusions);
   const auto preferences = obs_subpage_preferences(options, kind);
-  std::vector<CompanionAction> sorted;
+  CompanionActionList sorted;
   sorted.reserve(catalogue.size());
   for (const auto &hash : preferences) {
     if (hash.front() == '!') continue;
