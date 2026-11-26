@@ -192,6 +192,7 @@ internal sealed class DisplaySession(IDesktop desktop, Action<Pairing> save, Act
         private readonly Queue<(string Id, string Hash)> iconRequests = new();
         private readonly Dictionary<string, Uri> focusTargets = new(StringComparer.Ordinal);
         private readonly Dictionary<string, AudioValue> values = new(StringComparer.Ordinal);
+        private readonly HashSet<string> dirtyAudioValues = new(StringComparer.Ordinal);
         private readonly Stopwatch slowTick = Stopwatch.StartNew();
 
         public async Task Run()
@@ -244,7 +245,7 @@ internal sealed class DisplaySession(IDesktop desktop, Action<Pairing> save, Act
             if (capabilityVersion >= OnDemandShortcutsVersion) capabilities.Add("shortcut_catalogue_on_demand");
             if (capabilityVersion >= 13 && desktop.SupportsObs) capabilities.Add("obs_scene_cards");
             await Send("capabilities", ("values", capabilities));
-            var entries = desktop.Catalogue().Concat(desktop.ObsCatalogue(capabilityVersion)).Select(item =>
+            var entries = desktop.Catalogue().Concat(desktop.ObsCatalogue(capabilityVersion)).Where(item => SupportsAudioValue(item.Id)).Select(item =>
             {
                 var fields = new Dictionary<string, object?> { ["id"] = item.Id, ["label"] = CatalogueLabel(item.Label) };
                 if (item.ObsState != null) fields["obsState"] = item.ObsState;
@@ -269,8 +270,14 @@ internal sealed class DisplaySession(IDesktop desktop, Action<Pairing> save, Act
             }
         }
 
+        private bool SupportsAudioValue(string id) =>
+            (!id.StartsWith(AppVolumePrefix, StringComparison.Ordinal) || capabilityVersion >= 10) &&
+            (!id.StartsWith(InputLevelPrefix, StringComparison.Ordinal) || capabilityVersion >= 12);
+
         private async Task Publish(bool fastOnly)
         {
+            var currentValues = desktop.Values().Where(pair => SupportsAudioValue(pair.Id))
+                .ToDictionary(state => state.Id, StringComparer.Ordinal);
             if (revision != desktop.CatalogueRevision) await Catalogue();
             var currentState = desktop.SessionState;
             if (capabilityVersion >= 7 && currentState != sessionState)
@@ -286,15 +293,21 @@ internal sealed class DisplaySession(IDesktop desktop, Action<Pairing> save, Act
                 focused = current;
                 await Send("focus.changed", ("actionId", current.FirstOrDefault() ?? ""), ("actionIds", current));
             }
-            foreach (var state in desktop.Values())
+            foreach (var id in values.Keys.Where(id => !currentValues.ContainsKey(id)).ToArray())
             {
-                if (values.TryGetValue(state.Id, out var previous) && state == previous) continue;
+                await Send("value.state", ("controlId", id), ("available", false));
+                values.Remove(id);
+            }
+            foreach (var state in currentValues.Values)
+            {
+                if (values.TryGetValue(state.Id, out var previous) && state == previous && !dirtyAudioValues.Remove(state.Id)) continue;
                 var message = Message("value.state", ("controlId", state.Id), ("available", state.Value.HasValue));
                 if (state.Value is int value) message.Add("value", value);
                 else if (state.NoInputDevice) message.Add("noInputDevice", true);
                 await link.Send(message, "connected", token);
                 values[state.Id] = state;
             }
+            dirtyAudioValues.Clear();
             if (fastOnly) return;
             var newZone = TimeZoneInfo.TryConvertWindowsIdToIanaId(TimeZoneInfo.Local.Id, out var iana) ? iana : TimeZoneInfo.Local.Id;
             if (zone != newZone)
@@ -341,8 +354,8 @@ internal sealed class DisplaySession(IDesktop desktop, Action<Pairing> save, Act
                     break;
                 case "value.set":
                     var id = Text(m, "controlId");
-                    var changed = !desktop.SessionState.Locked && desktop.SetValue(id, (int)UInt(m, "value"));
-                    if (changed) values.Remove(id);
+                    var changed = SupportsAudioValue(id) && !desktop.SessionState.Locked && desktop.SetValue(id, (int)UInt(m, "value"));
+                    if (changed) dirtyAudioValues.Add(id);
                     await Send("action.result", ("requestId", Text(m, "requestId")), ("status", changed ? "performed" : "not_allowed"));
                     break;
                 case "focus.targets":

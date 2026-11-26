@@ -4387,8 +4387,12 @@ async function assertAppVolumeCard(browser) {
   await context.route("**/companion/actions", route => route.fulfill({
     status: 200,
     json: [
-      { id: "com.spotify.client", label: "Spotify" },
-      { id: "com.google.Chrome", label: "Chrome" },
+      ...(connectorsStatus.mac_companion.platform === "windows" ? [
+        { id: "windows.spotify", label: "Spotify for Windows" },
+      ] : [
+        { id: "com.spotify.client", label: "Spotify" },
+        { id: "com.google.Chrome", label: "Chrome" },
+      ]),
       { id: "folder.music", label: "Music folder" },
       { id: coughID, label: "OBS Desk Mic" },
       { id: coughID.replace("obs.cough.", "obs.mute."), label: "Muted · OBS Desk Mic" },
@@ -4426,24 +4430,17 @@ async function assertAppVolumeCard(browser) {
     assert.equal(await application.inputValue(), "app.volume.com.spotify.client");
 
     connectorsStatus.mac_companion.platform = "windows";
-    const macOnlyNotice = page.getByText("This card requires the macOS companion.", { exact: true });
-    await macOnlyNotice.waitFor();
-    assert.equal(await application.count(), 0, "a saved Mac app volume card cannot select a Windows app");
-    assert.equal(await subtype.inputValue(), "companion_app_volume", "keep the saved type selected");
-    await subtype.selectOption("companion_input_volume");
-    await macOnlyNotice.waitFor({ state: "detached" });
+    await subtype.locator('option[value="companion_cough"]').waitFor({ state: "detached" });
     assert.deepEqual(await subtype.locator("option").allTextContents(),
-      ["Audio Output", "Output Mute", "Audio Input", "Input State"]);
-    await page.keyboard.press("Escape");
-    assert(nativeState.document.buttons[1].startsWith("app.volume.com.spotify.client;"),
-      "cancelling leaves the saved Mac audio card intact");
-
-    await page.locator(".sp-main .sp-empty-cell").first().click();
-    await page.getByRole("button", { name: "Sound card type", exact: true }).click();
-    assert.equal(await subtype.locator("option").count(), 4, "new Windows Sound cards offer all four system controls");
-    delete connectorsStatus.mac_companion.platform;
-    await subtype.locator('option[value="companion_app_volume"]').waitFor({ state: "attached" });
-    await page.keyboard.press("Escape");
+      ["Audio Output", "Output Mute", "Output per application", "Audio Input", "Input State", "Input per device level"]);
+    assert.equal(await subtype.inputValue(), "companion_app_volume");
+    assert.equal(await application.inputValue(), "app.volume.com.spotify.client");
+    await application.locator('option[value="app.volume.windows.spotify"]').waitFor({ state: "attached" });
+    await application.selectOption("app.volume.windows.spotify");
+    await page.getByRole("button", { name: "Save", exact: true }).click();
+    await waitForNativeState(nativeState, () =>
+      nativeState.document.buttons[1] === "app.volume.windows.spotify;Spotify;Volume High;Auto;;;companion_app_volume",
+    "Windows App Volume saves the selected Windows app and retains the existing card label");
     const deviceAudio = [
       ["Volume", "output_volume", "Volume High", true],
       ["Volume", "input_volume", "Microphone", true],
