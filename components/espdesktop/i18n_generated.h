@@ -331,6 +331,15 @@ inline const char *espdesktop_i18n_cs(const char *text) {
   if (std::strcmp(text, "Turn off Studio Mode?") == 0) return "Vypnout režim studia?";
   if (std::strcmp(text, "Start Replay Buffer?") == 0) return "Spustit vyrovnávací paměť záznamu?";
   if (std::strcmp(text, "Stop Replay Buffer?") == 0) return "Zastavit vyrovnávací paměť záznamu?";
+  if (std::strcmp(text, "Record") == 0) return "Nahrávat";
+  if (std::strcmp(text, "Take Live") == 0) return "Přepnout do vysílání";
+  if (std::strcmp(text, "Save Replay") == 0) return "Uložit záznam";
+  if (std::strcmp(text, "Enable Studio Mode") == 0) return "Zapnout režim studia";
+  if (std::strcmp(text, "Choose a preview") == 0) return "Vyberte náhled";
+  if (std::strcmp(text, "Already on Program") == 0) return "Již ve vysílání";
+  if (std::strcmp(text, "Transitioning") == 0) return "Probíhá přechod";
+  if (std::strcmp(text, "Replay not confirmed") == 0) return "Uložení záznamu nepotvrzeno";
+  if (std::strcmp(text, "Check OBS") == 0) return "Zkontrolujte OBS";
   return text;
 }
 
@@ -639,6 +648,15 @@ inline const char *espdesktop_i18n_da(const char *text) {
   if (std::strcmp(text, "Turn off Studio Mode?") == 0) return "Slå studietilstand fra?";
   if (std::strcmp(text, "Start Replay Buffer?") == 0) return "Start genafspilningsbuffer?";
   if (std::strcmp(text, "Stop Replay Buffer?") == 0) return "Stop genafspilningsbuffer?";
+  if (std::strcmp(text, "Record") == 0) return "Optag";
+  if (std::strcmp(text, "Take Live") == 0) return "Skift til live";
+  if (std::strcmp(text, "Save Replay") == 0) return "Gem genafspilning";
+  if (std::strcmp(text, "Enable Studio Mode") == 0) return "Aktivér studietilstand";
+  if (std::strcmp(text, "Choose a preview") == 0) return "Vælg en forhåndsvisning";
+  if (std::strcmp(text, "Already on Program") == 0) return "Vises allerede i programmet";
+  if (std::strcmp(text, "Transitioning") == 0) return "Skifter";
+  if (std::strcmp(text, "Replay not confirmed") == 0) return "Genafspilning ikke bekræftet";
+  if (std::strcmp(text, "Check OBS") == 0) return "Tjek OBS";
   return text;
 }
 
@@ -953,6 +971,15 @@ inline const char *espdesktop_i18n_de(const char *text) {
   if (std::strcmp(text, "Turn off Studio Mode?") == 0) return "Studiomodus ausschalten?";
   if (std::strcmp(text, "Start Replay Buffer?") == 0) return "Replay-Puffer starten?";
   if (std::strcmp(text, "Stop Replay Buffer?") == 0) return "Replay-Puffer stoppen?";
+  if (std::strcmp(text, "Record") == 0) return "Aufnehmen";
+  if (std::strcmp(text, "Take Live") == 0) return "Live schalten";
+  if (std::strcmp(text, "Save Replay") == 0) return "Replay speichern";
+  if (std::strcmp(text, "Enable Studio Mode") == 0) return "Studiomodus aktivieren";
+  if (std::strcmp(text, "Choose a preview") == 0) return "Vorschau auswählen";
+  if (std::strcmp(text, "Already on Program") == 0) return "Bereits im Programm";
+  if (std::strcmp(text, "Transitioning") == 0) return "Übergang läuft";
+  if (std::strcmp(text, "Replay not confirmed") == 0) return "Replay nicht bestätigt";
+  if (std::strcmp(text, "Check OBS") == 0) return "OBS prüfen";
   return text;
 }
 
@@ -1280,6 +1307,15 @@ inline const char *espdesktop_i18n_es(const char *text) {
   if (std::strcmp(text, "Turn off Studio Mode?") == 0) return "¿Desactivar el modo estudio?";
   if (std::strcmp(text, "Start Replay Buffer?") == 0) return "¿Iniciar el búfer de repetición?";
   if (std::strcmp(text, "Stop Replay Buffer?") == 0) return "¿Detener el búfer de repetición?";
+  if (std::strcmp(text, "Record") == 0) return "Grabar";
+  if (std::strcmp(text, "Take Live") == 0) return "Pasar a directo";
+  if (std::strcmp(text, "Save Replay") == 0) return "Guardar repetición";
+  if (std::strcmp(text, "Enable Studio Mode") == 0) return "Activar el modo estudio";
+  if (std::strcmp(text, "Choose a preview") == 0) return "Elige una vista previa";
+  if (std::strcmp(text, "Already on Program") == 0) return "Ya está en programa";
+  if (std::strcmp(text, "Transitioning") == 0) return "Transición en curso";
+  if (std::strcmp(text, "Replay not confirmed") == 0) return "Repetición sin confirmar";
+  if (std::strcmp(text, "Check OBS") == 0) return "Comprueba OBS";
   return text;
 }
 
@@ -1609,6 +1645,15 @@ inline const char *espdesktop_i18n_fi(const char *text) {
   if (std::strcmp(text, "Turn off Studio Mode?") == 0) return "Poistetaanko studiotila käytöstä?";
   if (std::strcmp(text, "Start Replay Buffer?") == 0) return "Käynnistetäänkö toistopuskuri?";
   if (std::strcmp(text, "Stop Replay Buffer?") == 0) return "Pysäytetäänkö toistopuskuri?";
+  if (std::strcmp(text, "Record") == 0) return "Tallenna";
+  if (std::strcmp(text, "Take Live") == 0) return "Siirrä lähetykseen";
+  if (std::strcmp(text, "Save Replay") == 0) return "Tallenna uusinta";
+  if (std::strcmp(text, "Enable Studio Mode") == 0) return "Ota studiotila käyttöön";
+  if (std::strcmp(text, "Choose a preview") == 0) return "Valitse esikatselu";
+  if (std::strcmp(text, "Already on Program") == 0) return "Jo lähetyksessä";
+  if (std::strcmp(text, "Transitioning") == 0) return "Siirtymä käynnissä";
+  if (std::strcmp(text, "Replay not confirmed") == 0) return "Uusintaa ei vahvistettu";
+  if (std::strcmp(text, "Check OBS") == 0) return "Tarkista OBS";
   return text;
 }
 
@@ -1929,6 +1974,15 @@ inline const char *espdesktop_i18n_fr(const char *text) {
   if (std::strcmp(text, "Turn off Studio Mode?") == 0) return "Désactiver le mode Studio ?";
   if (std::strcmp(text, "Start Replay Buffer?") == 0) return "Démarrer le tampon de replay ?";
   if (std::strcmp(text, "Stop Replay Buffer?") == 0) return "Arrêter le tampon de replay ?";
+  if (std::strcmp(text, "Record") == 0) return "Enregistrer";
+  if (std::strcmp(text, "Take Live") == 0) return "Passer en direct";
+  if (std::strcmp(text, "Save Replay") == 0) return "Enregistrer le replay";
+  if (std::strcmp(text, "Enable Studio Mode") == 0) return "Activer le mode studio";
+  if (std::strcmp(text, "Choose a preview") == 0) return "Choisir un aperçu";
+  if (std::strcmp(text, "Already on Program") == 0) return "Déjà dans le programme";
+  if (std::strcmp(text, "Transitioning") == 0) return "Transition en cours";
+  if (std::strcmp(text, "Replay not confirmed") == 0) return "Replay non confirmé";
+  if (std::strcmp(text, "Check OBS") == 0) return "Vérifier OBS";
   return text;
 }
 
@@ -2265,6 +2319,15 @@ inline const char *espdesktop_i18n_he(const char *text) {
   if (std::strcmp(text, "Turn off Studio Mode?") == 0) return "לכבות את מצב האולפן?";
   if (std::strcmp(text, "Start Replay Buffer?") == 0) return "להפעיל את מאגר השידור החוזר?";
   if (std::strcmp(text, "Stop Replay Buffer?") == 0) return "לעצור את מאגר השידור החוזר?";
+  if (std::strcmp(text, "Record") == 0) return "הקלטה";
+  if (std::strcmp(text, "Take Live") == 0) return "העבר לשידור";
+  if (std::strcmp(text, "Save Replay") == 0) return "שמירת שידור חוזר";
+  if (std::strcmp(text, "Enable Studio Mode") == 0) return "הפעלת מצב אולפן";
+  if (std::strcmp(text, "Choose a preview") == 0) return "יש לבחור תצוגה מקדימה";
+  if (std::strcmp(text, "Already on Program") == 0) return "כבר בשידור";
+  if (std::strcmp(text, "Transitioning") == 0) return "מעבר מתבצע";
+  if (std::strcmp(text, "Replay not confirmed") == 0) return "שמירת השידור החוזר לא אושרה";
+  if (std::strcmp(text, "Check OBS") == 0) return "יש לבדוק את OBS";
   return text;
 }
 
@@ -2592,6 +2655,15 @@ inline const char *espdesktop_i18n_hu(const char *text) {
   if (std::strcmp(text, "Turn off Studio Mode?") == 0) return "Kikapcsolja a stúdió módot?";
   if (std::strcmp(text, "Start Replay Buffer?") == 0) return "Elindítja a visszajátszási puffert?";
   if (std::strcmp(text, "Stop Replay Buffer?") == 0) return "Leállítja a visszajátszási puffert?";
+  if (std::strcmp(text, "Record") == 0) return "Felvétel indítása";
+  if (std::strcmp(text, "Take Live") == 0) return "Adásba kapcsolás";
+  if (std::strcmp(text, "Save Replay") == 0) return "Visszajátszás mentése";
+  if (std::strcmp(text, "Enable Studio Mode") == 0) return "Stúdió mód bekapcsolása";
+  if (std::strcmp(text, "Choose a preview") == 0) return "Válassz előnézetet";
+  if (std::strcmp(text, "Already on Program") == 0) return "Már adásban";
+  if (std::strcmp(text, "Transitioning") == 0) return "Átmenet folyamatban";
+  if (std::strcmp(text, "Replay not confirmed") == 0) return "A visszajátszás nincs megerősítve";
+  if (std::strcmp(text, "Check OBS") == 0) return "Ellenőrizd az OBS-t";
   return text;
 }
 
@@ -2918,6 +2990,15 @@ inline const char *espdesktop_i18n_it(const char *text) {
   if (std::strcmp(text, "Turn off Studio Mode?") == 0) return "Disattivare la modalità Studio?";
   if (std::strcmp(text, "Start Replay Buffer?") == 0) return "Avviare il buffer di replay?";
   if (std::strcmp(text, "Stop Replay Buffer?") == 0) return "Fermare il buffer di replay?";
+  if (std::strcmp(text, "Record") == 0) return "Registra";
+  if (std::strcmp(text, "Take Live") == 0) return "Passa in diretta";
+  if (std::strcmp(text, "Save Replay") == 0) return "Salva replay";
+  if (std::strcmp(text, "Enable Studio Mode") == 0) return "Attiva la modalità studio";
+  if (std::strcmp(text, "Choose a preview") == 0) return "Scegli un’anteprima";
+  if (std::strcmp(text, "Already on Program") == 0) return "Già in programma";
+  if (std::strcmp(text, "Transitioning") == 0) return "Transizione in corso";
+  if (std::strcmp(text, "Replay not confirmed") == 0) return "Replay non confermato";
+  if (std::strcmp(text, "Check OBS") == 0) return "Controlla OBS";
   return text;
 }
 
@@ -3234,6 +3315,15 @@ inline const char *espdesktop_i18n_nb(const char *text) {
   if (std::strcmp(text, "Turn off Studio Mode?") == 0) return "Slå av studiomodus?";
   if (std::strcmp(text, "Start Replay Buffer?") == 0) return "Start avspillingsbufferen?";
   if (std::strcmp(text, "Stop Replay Buffer?") == 0) return "Stopp avspillingsbufferen?";
+  if (std::strcmp(text, "Record") == 0) return "Ta opp";
+  if (std::strcmp(text, "Take Live") == 0) return "Bytt til direktesending";
+  if (std::strcmp(text, "Save Replay") == 0) return "Lagre reprise";
+  if (std::strcmp(text, "Enable Studio Mode") == 0) return "Aktiver studiomodus";
+  if (std::strcmp(text, "Choose a preview") == 0) return "Velg en forhåndsvisning";
+  if (std::strcmp(text, "Already on Program") == 0) return "Allerede i programmet";
+  if (std::strcmp(text, "Transitioning") == 0) return "Overgang pågår";
+  if (std::strcmp(text, "Replay not confirmed") == 0) return "Reprise ikke bekreftet";
+  if (std::strcmp(text, "Check OBS") == 0) return "Sjekk OBS";
   return text;
 }
 
@@ -3549,6 +3639,15 @@ inline const char *espdesktop_i18n_nl(const char *text) {
   if (std::strcmp(text, "Turn off Studio Mode?") == 0) return "Studiomodus uitschakelen?";
   if (std::strcmp(text, "Start Replay Buffer?") == 0) return "Replaybuffer starten?";
   if (std::strcmp(text, "Stop Replay Buffer?") == 0) return "Replaybuffer stoppen?";
+  if (std::strcmp(text, "Record") == 0) return "Opnemen";
+  if (std::strcmp(text, "Take Live") == 0) return "Naar live schakelen";
+  if (std::strcmp(text, "Save Replay") == 0) return "Herhaling opslaan";
+  if (std::strcmp(text, "Enable Studio Mode") == 0) return "Studiomodus inschakelen";
+  if (std::strcmp(text, "Choose a preview") == 0) return "Kies een voorbeeld";
+  if (std::strcmp(text, "Already on Program") == 0) return "Al in programma";
+  if (std::strcmp(text, "Transitioning") == 0) return "Overgang bezig";
+  if (std::strcmp(text, "Replay not confirmed") == 0) return "Herhaling niet bevestigd";
+  if (std::strcmp(text, "Check OBS") == 0) return "Controleer OBS";
   return text;
 }
 
@@ -3865,6 +3964,15 @@ inline const char *espdesktop_i18n_pl(const char *text) {
   if (std::strcmp(text, "Turn off Studio Mode?") == 0) return "Wyłączyć tryb studia?";
   if (std::strcmp(text, "Start Replay Buffer?") == 0) return "Uruchomić bufor powtórek?";
   if (std::strcmp(text, "Stop Replay Buffer?") == 0) return "Zatrzymać bufor powtórek?";
+  if (std::strcmp(text, "Record") == 0) return "Nagrywaj";
+  if (std::strcmp(text, "Take Live") == 0) return "Przełącz na żywo";
+  if (std::strcmp(text, "Save Replay") == 0) return "Zapisz powtórkę";
+  if (std::strcmp(text, "Enable Studio Mode") == 0) return "Włącz tryb studia";
+  if (std::strcmp(text, "Choose a preview") == 0) return "Wybierz podgląd";
+  if (std::strcmp(text, "Already on Program") == 0) return "Już w programie";
+  if (std::strcmp(text, "Transitioning") == 0) return "Trwa przejście";
+  if (std::strcmp(text, "Replay not confirmed") == 0) return "Nie potwierdzono zapisu powtórki";
+  if (std::strcmp(text, "Check OBS") == 0) return "Sprawdź OBS";
   return text;
 }
 
@@ -4184,6 +4292,15 @@ inline const char *espdesktop_i18n_pt_br(const char *text) {
   if (std::strcmp(text, "Turn off Studio Mode?") == 0) return "Desativar o modo estúdio?";
   if (std::strcmp(text, "Start Replay Buffer?") == 0) return "Iniciar o buffer de replay?";
   if (std::strcmp(text, "Stop Replay Buffer?") == 0) return "Parar o buffer de replay?";
+  if (std::strcmp(text, "Record") == 0) return "Gravar";
+  if (std::strcmp(text, "Take Live") == 0) return "Colocar no ar";
+  if (std::strcmp(text, "Save Replay") == 0) return "Salvar replay";
+  if (std::strcmp(text, "Enable Studio Mode") == 0) return "Ativar modo estúdio";
+  if (std::strcmp(text, "Choose a preview") == 0) return "Escolha uma prévia";
+  if (std::strcmp(text, "Already on Program") == 0) return "Já está no programa";
+  if (std::strcmp(text, "Transitioning") == 0) return "Transição em andamento";
+  if (std::strcmp(text, "Replay not confirmed") == 0) return "Replay não confirmado";
+  if (std::strcmp(text, "Check OBS") == 0) return "Verifique o OBS";
   return text;
 }
 
@@ -4510,6 +4627,15 @@ inline const char *espdesktop_i18n_pt(const char *text) {
   if (std::strcmp(text, "Turn off Studio Mode?") == 0) return "Desativar o modo de estúdio?";
   if (std::strcmp(text, "Start Replay Buffer?") == 0) return "Iniciar o buffer de replay?";
   if (std::strcmp(text, "Stop Replay Buffer?") == 0) return "Parar o buffer de replay?";
+  if (std::strcmp(text, "Record") == 0) return "Gravar";
+  if (std::strcmp(text, "Take Live") == 0) return "Passar para direto";
+  if (std::strcmp(text, "Save Replay") == 0) return "Guardar repetição";
+  if (std::strcmp(text, "Enable Studio Mode") == 0) return "Ativar o modo de estúdio";
+  if (std::strcmp(text, "Choose a preview") == 0) return "Escolha uma pré-visualização";
+  if (std::strcmp(text, "Already on Program") == 0) return "Já está no programa";
+  if (std::strcmp(text, "Transitioning") == 0) return "Transição em curso";
+  if (std::strcmp(text, "Replay not confirmed") == 0) return "Repetição não confirmada";
+  if (std::strcmp(text, "Check OBS") == 0) return "Verifique o OBS";
   return text;
 }
 
@@ -4837,6 +4963,15 @@ inline const char *espdesktop_i18n_ro(const char *text) {
   if (std::strcmp(text, "Turn off Studio Mode?") == 0) return "Dezactivezi modul studio?";
   if (std::strcmp(text, "Start Replay Buffer?") == 0) return "Pornești bufferul de reluare?";
   if (std::strcmp(text, "Stop Replay Buffer?") == 0) return "Oprești bufferul de reluare?";
+  if (std::strcmp(text, "Record") == 0) return "Înregistrează";
+  if (std::strcmp(text, "Take Live") == 0) return "Treci în direct";
+  if (std::strcmp(text, "Save Replay") == 0) return "Salvează reluarea";
+  if (std::strcmp(text, "Enable Studio Mode") == 0) return "Activează modul studio";
+  if (std::strcmp(text, "Choose a preview") == 0) return "Alege o previzualizare";
+  if (std::strcmp(text, "Already on Program") == 0) return "Deja în program";
+  if (std::strcmp(text, "Transitioning") == 0) return "Tranziție în curs";
+  if (std::strcmp(text, "Replay not confirmed") == 0) return "Reluare neconfirmată";
+  if (std::strcmp(text, "Check OBS") == 0) return "Verifică OBS";
   return text;
 }
 
@@ -5173,6 +5308,15 @@ inline const char *espdesktop_i18n_ru(const char *text) {
   if (std::strcmp(text, "Turn off Studio Mode?") == 0) return "Выключить режим студии?";
   if (std::strcmp(text, "Start Replay Buffer?") == 0) return "Запустить буфер повтора?";
   if (std::strcmp(text, "Stop Replay Buffer?") == 0) return "Остановить буфер повтора?";
+  if (std::strcmp(text, "Record") == 0) return "Записать";
+  if (std::strcmp(text, "Take Live") == 0) return "Переключить в эфир";
+  if (std::strcmp(text, "Save Replay") == 0) return "Сохранить повтор";
+  if (std::strcmp(text, "Enable Studio Mode") == 0) return "Включить режим студии";
+  if (std::strcmp(text, "Choose a preview") == 0) return "Выберите предпросмотр";
+  if (std::strcmp(text, "Already on Program") == 0) return "Уже в эфире";
+  if (std::strcmp(text, "Transitioning") == 0) return "Идёт переход";
+  if (std::strcmp(text, "Replay not confirmed") == 0) return "Сохранение повтора не подтверждено";
+  if (std::strcmp(text, "Check OBS") == 0) return "Проверьте OBS";
   return text;
 }
 
@@ -5493,6 +5637,15 @@ inline const char *espdesktop_i18n_sk(const char *text) {
   if (std::strcmp(text, "Turn off Studio Mode?") == 0) return "Vypnúť režim štúdia?";
   if (std::strcmp(text, "Start Replay Buffer?") == 0) return "Spustiť vyrovnávaciu pamäť záznamu?";
   if (std::strcmp(text, "Stop Replay Buffer?") == 0) return "Zastaviť vyrovnávaciu pamäť záznamu?";
+  if (std::strcmp(text, "Record") == 0) return "Nahrávať";
+  if (std::strcmp(text, "Take Live") == 0) return "Prepnúť do vysielania";
+  if (std::strcmp(text, "Save Replay") == 0) return "Uložiť záznam";
+  if (std::strcmp(text, "Enable Studio Mode") == 0) return "Zapnúť režim štúdia";
+  if (std::strcmp(text, "Choose a preview") == 0) return "Vyberte náhľad";
+  if (std::strcmp(text, "Already on Program") == 0) return "Už vo vysielaní";
+  if (std::strcmp(text, "Transitioning") == 0) return "Prebieha prechod";
+  if (std::strcmp(text, "Replay not confirmed") == 0) return "Uloženie záznamu nepotvrdené";
+  if (std::strcmp(text, "Check OBS") == 0) return "Skontrolujte OBS";
   return text;
 }
 
@@ -5817,6 +5970,15 @@ inline const char *espdesktop_i18n_sl(const char *text) {
   if (std::strcmp(text, "Turn off Studio Mode?") == 0) return "Izklopiš studijski način?";
   if (std::strcmp(text, "Start Replay Buffer?") == 0) return "Zaženeš medpomnilnik ponovitev?";
   if (std::strcmp(text, "Stop Replay Buffer?") == 0) return "Ustaviš medpomnilnik ponovitev?";
+  if (std::strcmp(text, "Record") == 0) return "Snemaj";
+  if (std::strcmp(text, "Take Live") == 0) return "Preklopi v živo";
+  if (std::strcmp(text, "Save Replay") == 0) return "Shrani ponovitev";
+  if (std::strcmp(text, "Enable Studio Mode") == 0) return "Vklopi studijski način";
+  if (std::strcmp(text, "Choose a preview") == 0) return "Izberi predogled";
+  if (std::strcmp(text, "Already on Program") == 0) return "Že v programu";
+  if (std::strcmp(text, "Transitioning") == 0) return "Prehod poteka";
+  if (std::strcmp(text, "Replay not confirmed") == 0) return "Ponovitev ni potrjena";
+  if (std::strcmp(text, "Check OBS") == 0) return "Preveri OBS";
   return text;
 }
 
@@ -6130,6 +6292,15 @@ inline const char *espdesktop_i18n_sv(const char *text) {
   if (std::strcmp(text, "Turn off Studio Mode?") == 0) return "Slå av studioläget?";
   if (std::strcmp(text, "Start Replay Buffer?") == 0) return "Starta reprisbuffer?";
   if (std::strcmp(text, "Stop Replay Buffer?") == 0) return "Stoppa reprisbuffer?";
+  if (std::strcmp(text, "Record") == 0) return "Spela in";
+  if (std::strcmp(text, "Take Live") == 0) return "Växla till sändning";
+  if (std::strcmp(text, "Save Replay") == 0) return "Spara repris";
+  if (std::strcmp(text, "Enable Studio Mode") == 0) return "Aktivera studioläge";
+  if (std::strcmp(text, "Choose a preview") == 0) return "Välj en förhandsvisning";
+  if (std::strcmp(text, "Already on Program") == 0) return "Redan i programmet";
+  if (std::strcmp(text, "Transitioning") == 0) return "Övergång pågår";
+  if (std::strcmp(text, "Replay not confirmed") == 0) return "Repris inte bekräftad";
+  if (std::strcmp(text, "Check OBS") == 0) return "Kontrollera OBS";
   return text;
 }
 
@@ -6458,6 +6629,15 @@ inline const char *espdesktop_i18n_tr(const char *text) {
   if (std::strcmp(text, "Turn off Studio Mode?") == 0) return "Stüdyo modu kapatılsın mı?";
   if (std::strcmp(text, "Start Replay Buffer?") == 0) return "Tekrar tamponu başlatılsın mı?";
   if (std::strcmp(text, "Stop Replay Buffer?") == 0) return "Tekrar tamponu durdurulsun mu?";
+  if (std::strcmp(text, "Record") == 0) return "Kaydet";
+  if (std::strcmp(text, "Take Live") == 0) return "Canlı yayına al";
+  if (std::strcmp(text, "Save Replay") == 0) return "Tekrarı kaydet";
+  if (std::strcmp(text, "Enable Studio Mode") == 0) return "Stüdyo modunu etkinleştir";
+  if (std::strcmp(text, "Choose a preview") == 0) return "Bir önizleme seçin";
+  if (std::strcmp(text, "Already on Program") == 0) return "Zaten yayında";
+  if (std::strcmp(text, "Transitioning") == 0) return "Geçiş yapılıyor";
+  if (std::strcmp(text, "Replay not confirmed") == 0) return "Tekrar kaydı doğrulanmadı";
+  if (std::strcmp(text, "Check OBS") == 0) return "OBS’yi kontrol edin";
   return text;
 }
 
@@ -6789,6 +6969,15 @@ inline const char *espdesktop_i18n_uk(const char *text) {
   if (std::strcmp(text, "Turn off Studio Mode?") == 0) return "Вимкнути режим студії?";
   if (std::strcmp(text, "Start Replay Buffer?") == 0) return "Запустити буфер повтору?";
   if (std::strcmp(text, "Stop Replay Buffer?") == 0) return "Зупинити буфер повтору?";
+  if (std::strcmp(text, "Record") == 0) return "Записати";
+  if (std::strcmp(text, "Take Live") == 0) return "Перемкнути в ефір";
+  if (std::strcmp(text, "Save Replay") == 0) return "Зберегти повтор";
+  if (std::strcmp(text, "Enable Studio Mode") == 0) return "Увімкнути режим студії";
+  if (std::strcmp(text, "Choose a preview") == 0) return "Виберіть попередній перегляд";
+  if (std::strcmp(text, "Already on Program") == 0) return "Уже в ефірі";
+  if (std::strcmp(text, "Transitioning") == 0) return "Триває перехід";
+  if (std::strcmp(text, "Replay not confirmed") == 0) return "Збереження повтору не підтверджено";
+  if (std::strcmp(text, "Check OBS") == 0) return "Перевірте OBS";
   return text;
 }
 
@@ -7163,6 +7352,18 @@ inline const char *espdesktop_i18n_key_en(const char *key) {
   if (std::strcmp(key, "turn_off_studio_mode") == 0) return "Turn off Studio Mode?";
   if (std::strcmp(key, "start_replay_buffer_prompt") == 0) return "Start Replay Buffer?";
   if (std::strcmp(key, "stop_replay_buffer_prompt") == 0) return "Stop Replay Buffer?";
+  if (std::strcmp(key, "label_ha_pairing_fingerprint") == 0) return "Fingerprint";
+  if (std::strcmp(key, "label_ha_pairing_code") == 0) return "Pairing code";
+  if (std::strcmp(key, "label_cough") == 0) return "Cough";
+  if (std::strcmp(key, "obs_record") == 0) return "Record";
+  if (std::strcmp(key, "obs_take_live") == 0) return "Take Live";
+  if (std::strcmp(key, "obs_save_replay") == 0) return "Save Replay";
+  if (std::strcmp(key, "obs_enable_studio_mode") == 0) return "Enable Studio Mode";
+  if (std::strcmp(key, "obs_choose_preview") == 0) return "Choose a preview";
+  if (std::strcmp(key, "obs_already_on_program") == 0) return "Already on Program";
+  if (std::strcmp(key, "obs_transitioning") == 0) return "Transitioning";
+  if (std::strcmp(key, "obs_replay_not_confirmed") == 0) return "Replay not confirmed";
+  if (std::strcmp(key, "obs_check") == 0) return "Check OBS";
   return key;
 }
 
@@ -7500,6 +7701,18 @@ inline const char *espdesktop_i18n_key_cs(const char *key) {
   if (std::strcmp(key, "turn_off_studio_mode") == 0) return "Vypnout režim studia?";
   if (std::strcmp(key, "start_replay_buffer_prompt") == 0) return "Spustit vyrovnávací paměť záznamu?";
   if (std::strcmp(key, "stop_replay_buffer_prompt") == 0) return "Zastavit vyrovnávací paměť záznamu?";
+  if (std::strcmp(key, "label_ha_pairing_fingerprint") == 0) return "Otisk";
+  if (std::strcmp(key, "label_ha_pairing_code") == 0) return "Párovací kód";
+  if (std::strcmp(key, "label_cough") == 0) return "Kašel";
+  if (std::strcmp(key, "obs_record") == 0) return "Nahrávat";
+  if (std::strcmp(key, "obs_take_live") == 0) return "Přepnout do vysílání";
+  if (std::strcmp(key, "obs_save_replay") == 0) return "Uložit záznam";
+  if (std::strcmp(key, "obs_enable_studio_mode") == 0) return "Zapnout režim studia";
+  if (std::strcmp(key, "obs_choose_preview") == 0) return "Vyberte náhled";
+  if (std::strcmp(key, "obs_already_on_program") == 0) return "Již ve vysílání";
+  if (std::strcmp(key, "obs_transitioning") == 0) return "Probíhá přechod";
+  if (std::strcmp(key, "obs_replay_not_confirmed") == 0) return "Uložení záznamu nepotvrzeno";
+  if (std::strcmp(key, "obs_check") == 0) return "Zkontrolujte OBS";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -7823,6 +8036,18 @@ inline const char *espdesktop_i18n_key_da(const char *key) {
   if (std::strcmp(key, "turn_off_studio_mode") == 0) return "Slå studietilstand fra?";
   if (std::strcmp(key, "start_replay_buffer_prompt") == 0) return "Start genafspilningsbuffer?";
   if (std::strcmp(key, "stop_replay_buffer_prompt") == 0) return "Stop genafspilningsbuffer?";
+  if (std::strcmp(key, "label_ha_pairing_fingerprint") == 0) return "Fingeraftryk";
+  if (std::strcmp(key, "label_ha_pairing_code") == 0) return "Parringskode";
+  if (std::strcmp(key, "label_cough") == 0) return "Hoste";
+  if (std::strcmp(key, "obs_record") == 0) return "Optag";
+  if (std::strcmp(key, "obs_take_live") == 0) return "Skift til live";
+  if (std::strcmp(key, "obs_save_replay") == 0) return "Gem genafspilning";
+  if (std::strcmp(key, "obs_enable_studio_mode") == 0) return "Aktivér studietilstand";
+  if (std::strcmp(key, "obs_choose_preview") == 0) return "Vælg en forhåndsvisning";
+  if (std::strcmp(key, "obs_already_on_program") == 0) return "Vises allerede i programmet";
+  if (std::strcmp(key, "obs_transitioning") == 0) return "Skifter";
+  if (std::strcmp(key, "obs_replay_not_confirmed") == 0) return "Genafspilning ikke bekræftet";
+  if (std::strcmp(key, "obs_check") == 0) return "Tjek OBS";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -8153,6 +8378,18 @@ inline const char *espdesktop_i18n_key_de(const char *key) {
   if (std::strcmp(key, "turn_off_studio_mode") == 0) return "Studiomodus ausschalten?";
   if (std::strcmp(key, "start_replay_buffer_prompt") == 0) return "Replay-Puffer starten?";
   if (std::strcmp(key, "stop_replay_buffer_prompt") == 0) return "Replay-Puffer stoppen?";
+  if (std::strcmp(key, "label_ha_pairing_fingerprint") == 0) return "Fingerabdruck";
+  if (std::strcmp(key, "label_ha_pairing_code") == 0) return "Kopplungscode";
+  if (std::strcmp(key, "label_cough") == 0) return "Husten";
+  if (std::strcmp(key, "obs_record") == 0) return "Aufnehmen";
+  if (std::strcmp(key, "obs_take_live") == 0) return "Live schalten";
+  if (std::strcmp(key, "obs_save_replay") == 0) return "Replay speichern";
+  if (std::strcmp(key, "obs_enable_studio_mode") == 0) return "Studiomodus aktivieren";
+  if (std::strcmp(key, "obs_choose_preview") == 0) return "Vorschau auswählen";
+  if (std::strcmp(key, "obs_already_on_program") == 0) return "Bereits im Programm";
+  if (std::strcmp(key, "obs_transitioning") == 0) return "Übergang läuft";
+  if (std::strcmp(key, "obs_replay_not_confirmed") == 0) return "Replay nicht bestätigt";
+  if (std::strcmp(key, "obs_check") == 0) return "OBS prüfen";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -8497,6 +8734,18 @@ inline const char *espdesktop_i18n_key_es(const char *key) {
   if (std::strcmp(key, "turn_off_studio_mode") == 0) return "¿Desactivar el modo estudio?";
   if (std::strcmp(key, "start_replay_buffer_prompt") == 0) return "¿Iniciar el búfer de repetición?";
   if (std::strcmp(key, "stop_replay_buffer_prompt") == 0) return "¿Detener el búfer de repetición?";
+  if (std::strcmp(key, "label_ha_pairing_fingerprint") == 0) return "Huella digital";
+  if (std::strcmp(key, "label_ha_pairing_code") == 0) return "Código de emparejamiento";
+  if (std::strcmp(key, "label_cough") == 0) return "Tos";
+  if (std::strcmp(key, "obs_record") == 0) return "Grabar";
+  if (std::strcmp(key, "obs_take_live") == 0) return "Pasar a directo";
+  if (std::strcmp(key, "obs_save_replay") == 0) return "Guardar repetición";
+  if (std::strcmp(key, "obs_enable_studio_mode") == 0) return "Activar el modo estudio";
+  if (std::strcmp(key, "obs_choose_preview") == 0) return "Elige una vista previa";
+  if (std::strcmp(key, "obs_already_on_program") == 0) return "Ya está en programa";
+  if (std::strcmp(key, "obs_transitioning") == 0) return "Transición en curso";
+  if (std::strcmp(key, "obs_replay_not_confirmed") == 0) return "Repetición sin confirmar";
+  if (std::strcmp(key, "obs_check") == 0) return "Comprueba OBS";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -8844,6 +9093,18 @@ inline const char *espdesktop_i18n_key_fi(const char *key) {
   if (std::strcmp(key, "turn_off_studio_mode") == 0) return "Poistetaanko studiotila käytöstä?";
   if (std::strcmp(key, "start_replay_buffer_prompt") == 0) return "Käynnistetäänkö toistopuskuri?";
   if (std::strcmp(key, "stop_replay_buffer_prompt") == 0) return "Pysäytetäänkö toistopuskuri?";
+  if (std::strcmp(key, "label_ha_pairing_fingerprint") == 0) return "Sormenjälki";
+  if (std::strcmp(key, "label_ha_pairing_code") == 0) return "Pariliitoskoodi";
+  if (std::strcmp(key, "label_cough") == 0) return "Yskä";
+  if (std::strcmp(key, "obs_record") == 0) return "Tallenna";
+  if (std::strcmp(key, "obs_take_live") == 0) return "Siirrä lähetykseen";
+  if (std::strcmp(key, "obs_save_replay") == 0) return "Tallenna uusinta";
+  if (std::strcmp(key, "obs_enable_studio_mode") == 0) return "Ota studiotila käyttöön";
+  if (std::strcmp(key, "obs_choose_preview") == 0) return "Valitse esikatselu";
+  if (std::strcmp(key, "obs_already_on_program") == 0) return "Jo lähetyksessä";
+  if (std::strcmp(key, "obs_transitioning") == 0) return "Siirtymä käynnissä";
+  if (std::strcmp(key, "obs_replay_not_confirmed") == 0) return "Uusintaa ei vahvistettu";
+  if (std::strcmp(key, "obs_check") == 0) return "Tarkista OBS";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -9180,6 +9441,18 @@ inline const char *espdesktop_i18n_key_fr(const char *key) {
   if (std::strcmp(key, "turn_off_studio_mode") == 0) return "Désactiver le mode Studio ?";
   if (std::strcmp(key, "start_replay_buffer_prompt") == 0) return "Démarrer le tampon de replay ?";
   if (std::strcmp(key, "stop_replay_buffer_prompt") == 0) return "Arrêter le tampon de replay ?";
+  if (std::strcmp(key, "label_ha_pairing_fingerprint") == 0) return "Empreinte";
+  if (std::strcmp(key, "label_ha_pairing_code") == 0) return "Code d’association";
+  if (std::strcmp(key, "label_cough") == 0) return "Toux";
+  if (std::strcmp(key, "obs_record") == 0) return "Enregistrer";
+  if (std::strcmp(key, "obs_take_live") == 0) return "Passer en direct";
+  if (std::strcmp(key, "obs_save_replay") == 0) return "Enregistrer le replay";
+  if (std::strcmp(key, "obs_enable_studio_mode") == 0) return "Activer le mode studio";
+  if (std::strcmp(key, "obs_choose_preview") == 0) return "Choisir un aperçu";
+  if (std::strcmp(key, "obs_already_on_program") == 0) return "Déjà dans le programme";
+  if (std::strcmp(key, "obs_transitioning") == 0) return "Transition en cours";
+  if (std::strcmp(key, "obs_replay_not_confirmed") == 0) return "Replay non confirmé";
+  if (std::strcmp(key, "obs_check") == 0) return "Vérifier OBS";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -9534,6 +9807,18 @@ inline const char *espdesktop_i18n_key_he(const char *key) {
   if (std::strcmp(key, "turn_off_studio_mode") == 0) return "לכבות את מצב האולפן?";
   if (std::strcmp(key, "start_replay_buffer_prompt") == 0) return "להפעיל את מאגר השידור החוזר?";
   if (std::strcmp(key, "stop_replay_buffer_prompt") == 0) return "לעצור את מאגר השידור החוזר?";
+  if (std::strcmp(key, "label_ha_pairing_fingerprint") == 0) return "טביעת אצבע";
+  if (std::strcmp(key, "label_ha_pairing_code") == 0) return "קוד צימוד";
+  if (std::strcmp(key, "label_cough") == 0) return "שיעול";
+  if (std::strcmp(key, "obs_record") == 0) return "הקלטה";
+  if (std::strcmp(key, "obs_take_live") == 0) return "העבר לשידור";
+  if (std::strcmp(key, "obs_save_replay") == 0) return "שמירת שידור חוזר";
+  if (std::strcmp(key, "obs_enable_studio_mode") == 0) return "הפעלת מצב אולפן";
+  if (std::strcmp(key, "obs_choose_preview") == 0) return "יש לבחור תצוגה מקדימה";
+  if (std::strcmp(key, "obs_already_on_program") == 0) return "כבר בשידור";
+  if (std::strcmp(key, "obs_transitioning") == 0) return "מעבר מתבצע";
+  if (std::strcmp(key, "obs_replay_not_confirmed") == 0) return "שמירת השידור החוזר לא אושרה";
+  if (std::strcmp(key, "obs_check") == 0) return "יש לבדוק את OBS";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -9879,6 +10164,18 @@ inline const char *espdesktop_i18n_key_hu(const char *key) {
   if (std::strcmp(key, "turn_off_studio_mode") == 0) return "Kikapcsolja a stúdió módot?";
   if (std::strcmp(key, "start_replay_buffer_prompt") == 0) return "Elindítja a visszajátszási puffert?";
   if (std::strcmp(key, "stop_replay_buffer_prompt") == 0) return "Leállítja a visszajátszási puffert?";
+  if (std::strcmp(key, "label_ha_pairing_fingerprint") == 0) return "Ujjlenyomat";
+  if (std::strcmp(key, "label_ha_pairing_code") == 0) return "Párosítási kód";
+  if (std::strcmp(key, "label_cough") == 0) return "Köhögés";
+  if (std::strcmp(key, "obs_record") == 0) return "Felvétel indítása";
+  if (std::strcmp(key, "obs_take_live") == 0) return "Adásba kapcsolás";
+  if (std::strcmp(key, "obs_save_replay") == 0) return "Visszajátszás mentése";
+  if (std::strcmp(key, "obs_enable_studio_mode") == 0) return "Stúdió mód bekapcsolása";
+  if (std::strcmp(key, "obs_choose_preview") == 0) return "Válassz előnézetet";
+  if (std::strcmp(key, "obs_already_on_program") == 0) return "Már adásban";
+  if (std::strcmp(key, "obs_transitioning") == 0) return "Átmenet folyamatban";
+  if (std::strcmp(key, "obs_replay_not_confirmed") == 0) return "A visszajátszás nincs megerősítve";
+  if (std::strcmp(key, "obs_check") == 0) return "Ellenőrizd az OBS-t";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -10222,6 +10519,18 @@ inline const char *espdesktop_i18n_key_it(const char *key) {
   if (std::strcmp(key, "turn_off_studio_mode") == 0) return "Disattivare la modalità Studio?";
   if (std::strcmp(key, "start_replay_buffer_prompt") == 0) return "Avviare il buffer di replay?";
   if (std::strcmp(key, "stop_replay_buffer_prompt") == 0) return "Fermare il buffer di replay?";
+  if (std::strcmp(key, "label_ha_pairing_fingerprint") == 0) return "Impronta digitale";
+  if (std::strcmp(key, "label_ha_pairing_code") == 0) return "Codice di abbinamento";
+  if (std::strcmp(key, "label_cough") == 0) return "Tosse";
+  if (std::strcmp(key, "obs_record") == 0) return "Registra";
+  if (std::strcmp(key, "obs_take_live") == 0) return "Passa in diretta";
+  if (std::strcmp(key, "obs_save_replay") == 0) return "Salva replay";
+  if (std::strcmp(key, "obs_enable_studio_mode") == 0) return "Attiva la modalità studio";
+  if (std::strcmp(key, "obs_choose_preview") == 0) return "Scegli un’anteprima";
+  if (std::strcmp(key, "obs_already_on_program") == 0) return "Già in programma";
+  if (std::strcmp(key, "obs_transitioning") == 0) return "Transizione in corso";
+  if (std::strcmp(key, "obs_replay_not_confirmed") == 0) return "Replay non confermato";
+  if (std::strcmp(key, "obs_check") == 0) return "Controlla OBS";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -10554,6 +10863,18 @@ inline const char *espdesktop_i18n_key_nb(const char *key) {
   if (std::strcmp(key, "turn_off_studio_mode") == 0) return "Slå av studiomodus?";
   if (std::strcmp(key, "start_replay_buffer_prompt") == 0) return "Start avspillingsbufferen?";
   if (std::strcmp(key, "stop_replay_buffer_prompt") == 0) return "Stopp avspillingsbufferen?";
+  if (std::strcmp(key, "label_ha_pairing_fingerprint") == 0) return "Fingeravtrykk";
+  if (std::strcmp(key, "label_ha_pairing_code") == 0) return "Sammenkoblingskode";
+  if (std::strcmp(key, "label_cough") == 0) return "Hoste";
+  if (std::strcmp(key, "obs_record") == 0) return "Ta opp";
+  if (std::strcmp(key, "obs_take_live") == 0) return "Bytt til direktesending";
+  if (std::strcmp(key, "obs_save_replay") == 0) return "Lagre reprise";
+  if (std::strcmp(key, "obs_enable_studio_mode") == 0) return "Aktiver studiomodus";
+  if (std::strcmp(key, "obs_choose_preview") == 0) return "Velg en forhåndsvisning";
+  if (std::strcmp(key, "obs_already_on_program") == 0) return "Allerede i programmet";
+  if (std::strcmp(key, "obs_transitioning") == 0) return "Overgang pågår";
+  if (std::strcmp(key, "obs_replay_not_confirmed") == 0) return "Reprise ikke bekreftet";
+  if (std::strcmp(key, "obs_check") == 0) return "Sjekk OBS";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -10883,6 +11204,18 @@ inline const char *espdesktop_i18n_key_nl(const char *key) {
   if (std::strcmp(key, "turn_off_studio_mode") == 0) return "Studiomodus uitschakelen?";
   if (std::strcmp(key, "start_replay_buffer_prompt") == 0) return "Replaybuffer starten?";
   if (std::strcmp(key, "stop_replay_buffer_prompt") == 0) return "Replaybuffer stoppen?";
+  if (std::strcmp(key, "label_ha_pairing_fingerprint") == 0) return "Vingerafdruk";
+  if (std::strcmp(key, "label_ha_pairing_code") == 0) return "Koppelcode";
+  if (std::strcmp(key, "label_cough") == 0) return "Hoesten";
+  if (std::strcmp(key, "obs_record") == 0) return "Opnemen";
+  if (std::strcmp(key, "obs_take_live") == 0) return "Naar live schakelen";
+  if (std::strcmp(key, "obs_save_replay") == 0) return "Herhaling opslaan";
+  if (std::strcmp(key, "obs_enable_studio_mode") == 0) return "Studiomodus inschakelen";
+  if (std::strcmp(key, "obs_choose_preview") == 0) return "Kies een voorbeeld";
+  if (std::strcmp(key, "obs_already_on_program") == 0) return "Al in programma";
+  if (std::strcmp(key, "obs_transitioning") == 0) return "Overgang bezig";
+  if (std::strcmp(key, "obs_replay_not_confirmed") == 0) return "Herhaling niet bevestigd";
+  if (std::strcmp(key, "obs_check") == 0) return "Controleer OBS";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -11217,6 +11550,18 @@ inline const char *espdesktop_i18n_key_pl(const char *key) {
   if (std::strcmp(key, "turn_off_studio_mode") == 0) return "Wyłączyć tryb studia?";
   if (std::strcmp(key, "start_replay_buffer_prompt") == 0) return "Uruchomić bufor powtórek?";
   if (std::strcmp(key, "stop_replay_buffer_prompt") == 0) return "Zatrzymać bufor powtórek?";
+  if (std::strcmp(key, "label_ha_pairing_fingerprint") == 0) return "Odcisk palca";
+  if (std::strcmp(key, "label_ha_pairing_code") == 0) return "Kod parowania";
+  if (std::strcmp(key, "label_cough") == 0) return "Kaszel";
+  if (std::strcmp(key, "obs_record") == 0) return "Nagrywaj";
+  if (std::strcmp(key, "obs_take_live") == 0) return "Przełącz na żywo";
+  if (std::strcmp(key, "obs_save_replay") == 0) return "Zapisz powtórkę";
+  if (std::strcmp(key, "obs_enable_studio_mode") == 0) return "Włącz tryb studia";
+  if (std::strcmp(key, "obs_choose_preview") == 0) return "Wybierz podgląd";
+  if (std::strcmp(key, "obs_already_on_program") == 0) return "Już w programie";
+  if (std::strcmp(key, "obs_transitioning") == 0) return "Trwa przejście";
+  if (std::strcmp(key, "obs_replay_not_confirmed") == 0) return "Nie potwierdzono zapisu powtórki";
+  if (std::strcmp(key, "obs_check") == 0) return "Sprawdź OBS";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -11553,6 +11898,18 @@ inline const char *espdesktop_i18n_key_pt_br(const char *key) {
   if (std::strcmp(key, "turn_off_studio_mode") == 0) return "Desativar o modo estúdio?";
   if (std::strcmp(key, "start_replay_buffer_prompt") == 0) return "Iniciar o buffer de replay?";
   if (std::strcmp(key, "stop_replay_buffer_prompt") == 0) return "Parar o buffer de replay?";
+  if (std::strcmp(key, "label_ha_pairing_fingerprint") == 0) return "Impressão digital";
+  if (std::strcmp(key, "label_ha_pairing_code") == 0) return "Código de pareamento";
+  if (std::strcmp(key, "label_cough") == 0) return "Tosse";
+  if (std::strcmp(key, "obs_record") == 0) return "Gravar";
+  if (std::strcmp(key, "obs_take_live") == 0) return "Colocar no ar";
+  if (std::strcmp(key, "obs_save_replay") == 0) return "Salvar replay";
+  if (std::strcmp(key, "obs_enable_studio_mode") == 0) return "Ativar modo estúdio";
+  if (std::strcmp(key, "obs_choose_preview") == 0) return "Escolha uma prévia";
+  if (std::strcmp(key, "obs_already_on_program") == 0) return "Já está no programa";
+  if (std::strcmp(key, "obs_transitioning") == 0) return "Transição em andamento";
+  if (std::strcmp(key, "obs_replay_not_confirmed") == 0) return "Replay não confirmado";
+  if (std::strcmp(key, "obs_check") == 0) return "Verifique o OBS";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -11896,6 +12253,18 @@ inline const char *espdesktop_i18n_key_pt(const char *key) {
   if (std::strcmp(key, "turn_off_studio_mode") == 0) return "Desativar o modo de estúdio?";
   if (std::strcmp(key, "start_replay_buffer_prompt") == 0) return "Iniciar o buffer de replay?";
   if (std::strcmp(key, "stop_replay_buffer_prompt") == 0) return "Parar o buffer de replay?";
+  if (std::strcmp(key, "label_ha_pairing_fingerprint") == 0) return "Impressão digital";
+  if (std::strcmp(key, "label_ha_pairing_code") == 0) return "Código de emparelhamento";
+  if (std::strcmp(key, "label_cough") == 0) return "Tosse";
+  if (std::strcmp(key, "obs_record") == 0) return "Gravar";
+  if (std::strcmp(key, "obs_take_live") == 0) return "Passar para direto";
+  if (std::strcmp(key, "obs_save_replay") == 0) return "Guardar repetição";
+  if (std::strcmp(key, "obs_enable_studio_mode") == 0) return "Ativar o modo de estúdio";
+  if (std::strcmp(key, "obs_choose_preview") == 0) return "Escolha uma pré-visualização";
+  if (std::strcmp(key, "obs_already_on_program") == 0) return "Já está no programa";
+  if (std::strcmp(key, "obs_transitioning") == 0) return "Transição em curso";
+  if (std::strcmp(key, "obs_replay_not_confirmed") == 0) return "Repetição não confirmada";
+  if (std::strcmp(key, "obs_check") == 0) return "Verifique o OBS";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -12241,6 +12610,18 @@ inline const char *espdesktop_i18n_key_ro(const char *key) {
   if (std::strcmp(key, "turn_off_studio_mode") == 0) return "Dezactivezi modul studio?";
   if (std::strcmp(key, "start_replay_buffer_prompt") == 0) return "Pornești bufferul de reluare?";
   if (std::strcmp(key, "stop_replay_buffer_prompt") == 0) return "Oprești bufferul de reluare?";
+  if (std::strcmp(key, "label_ha_pairing_fingerprint") == 0) return "Amprentă";
+  if (std::strcmp(key, "label_ha_pairing_code") == 0) return "Cod de asociere";
+  if (std::strcmp(key, "label_cough") == 0) return "Tuse";
+  if (std::strcmp(key, "obs_record") == 0) return "Înregistrează";
+  if (std::strcmp(key, "obs_take_live") == 0) return "Treci în direct";
+  if (std::strcmp(key, "obs_save_replay") == 0) return "Salvează reluarea";
+  if (std::strcmp(key, "obs_enable_studio_mode") == 0) return "Activează modul studio";
+  if (std::strcmp(key, "obs_choose_preview") == 0) return "Alege o previzualizare";
+  if (std::strcmp(key, "obs_already_on_program") == 0) return "Deja în program";
+  if (std::strcmp(key, "obs_transitioning") == 0) return "Tranziție în curs";
+  if (std::strcmp(key, "obs_replay_not_confirmed") == 0) return "Reluare neconfirmată";
+  if (std::strcmp(key, "obs_check") == 0) return "Verifică OBS";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -12595,6 +12976,18 @@ inline const char *espdesktop_i18n_key_ru(const char *key) {
   if (std::strcmp(key, "turn_off_studio_mode") == 0) return "Выключить режим студии?";
   if (std::strcmp(key, "start_replay_buffer_prompt") == 0) return "Запустить буфер повтора?";
   if (std::strcmp(key, "stop_replay_buffer_prompt") == 0) return "Остановить буфер повтора?";
+  if (std::strcmp(key, "label_ha_pairing_fingerprint") == 0) return "Отпечаток";
+  if (std::strcmp(key, "label_ha_pairing_code") == 0) return "Код сопряжения";
+  if (std::strcmp(key, "label_cough") == 0) return "Кашель";
+  if (std::strcmp(key, "obs_record") == 0) return "Записать";
+  if (std::strcmp(key, "obs_take_live") == 0) return "Переключить в эфир";
+  if (std::strcmp(key, "obs_save_replay") == 0) return "Сохранить повтор";
+  if (std::strcmp(key, "obs_enable_studio_mode") == 0) return "Включить режим студии";
+  if (std::strcmp(key, "obs_choose_preview") == 0) return "Выберите предпросмотр";
+  if (std::strcmp(key, "obs_already_on_program") == 0) return "Уже в эфире";
+  if (std::strcmp(key, "obs_transitioning") == 0) return "Идёт переход";
+  if (std::strcmp(key, "obs_replay_not_confirmed") == 0) return "Сохранение повтора не подтверждено";
+  if (std::strcmp(key, "obs_check") == 0) return "Проверьте OBS";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -12933,6 +13326,18 @@ inline const char *espdesktop_i18n_key_sk(const char *key) {
   if (std::strcmp(key, "turn_off_studio_mode") == 0) return "Vypnúť režim štúdia?";
   if (std::strcmp(key, "start_replay_buffer_prompt") == 0) return "Spustiť vyrovnávaciu pamäť záznamu?";
   if (std::strcmp(key, "stop_replay_buffer_prompt") == 0) return "Zastaviť vyrovnávaciu pamäť záznamu?";
+  if (std::strcmp(key, "label_ha_pairing_fingerprint") == 0) return "Odtlačok";
+  if (std::strcmp(key, "label_ha_pairing_code") == 0) return "Párovací kód";
+  if (std::strcmp(key, "label_cough") == 0) return "Kašeľ";
+  if (std::strcmp(key, "obs_record") == 0) return "Nahrávať";
+  if (std::strcmp(key, "obs_take_live") == 0) return "Prepnúť do vysielania";
+  if (std::strcmp(key, "obs_save_replay") == 0) return "Uložiť záznam";
+  if (std::strcmp(key, "obs_enable_studio_mode") == 0) return "Zapnúť režim štúdia";
+  if (std::strcmp(key, "obs_choose_preview") == 0) return "Vyberte náhľad";
+  if (std::strcmp(key, "obs_already_on_program") == 0) return "Už vo vysielaní";
+  if (std::strcmp(key, "obs_transitioning") == 0) return "Prebieha prechod";
+  if (std::strcmp(key, "obs_replay_not_confirmed") == 0) return "Uloženie záznamu nepotvrdené";
+  if (std::strcmp(key, "obs_check") == 0) return "Skontrolujte OBS";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -13275,6 +13680,18 @@ inline const char *espdesktop_i18n_key_sl(const char *key) {
   if (std::strcmp(key, "turn_off_studio_mode") == 0) return "Izklopiš studijski način?";
   if (std::strcmp(key, "start_replay_buffer_prompt") == 0) return "Zaženeš medpomnilnik ponovitev?";
   if (std::strcmp(key, "stop_replay_buffer_prompt") == 0) return "Ustaviš medpomnilnik ponovitev?";
+  if (std::strcmp(key, "label_ha_pairing_fingerprint") == 0) return "Prstni odtis";
+  if (std::strcmp(key, "label_ha_pairing_code") == 0) return "Koda za seznanjanje";
+  if (std::strcmp(key, "label_cough") == 0) return "Kašelj";
+  if (std::strcmp(key, "obs_record") == 0) return "Snemaj";
+  if (std::strcmp(key, "obs_take_live") == 0) return "Preklopi v živo";
+  if (std::strcmp(key, "obs_save_replay") == 0) return "Shrani ponovitev";
+  if (std::strcmp(key, "obs_enable_studio_mode") == 0) return "Vklopi studijski način";
+  if (std::strcmp(key, "obs_choose_preview") == 0) return "Izberi predogled";
+  if (std::strcmp(key, "obs_already_on_program") == 0) return "Že v programu";
+  if (std::strcmp(key, "obs_transitioning") == 0) return "Prehod poteka";
+  if (std::strcmp(key, "obs_replay_not_confirmed") == 0) return "Ponovitev ni potrjena";
+  if (std::strcmp(key, "obs_check") == 0) return "Preveri OBS";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -13604,6 +14021,18 @@ inline const char *espdesktop_i18n_key_sv(const char *key) {
   if (std::strcmp(key, "turn_off_studio_mode") == 0) return "Slå av studioläget?";
   if (std::strcmp(key, "start_replay_buffer_prompt") == 0) return "Starta reprisbuffer?";
   if (std::strcmp(key, "stop_replay_buffer_prompt") == 0) return "Stoppa reprisbuffer?";
+  if (std::strcmp(key, "label_ha_pairing_fingerprint") == 0) return "Fingeravtryck";
+  if (std::strcmp(key, "label_ha_pairing_code") == 0) return "Parkopplingskod";
+  if (std::strcmp(key, "label_cough") == 0) return "Hosta";
+  if (std::strcmp(key, "obs_record") == 0) return "Spela in";
+  if (std::strcmp(key, "obs_take_live") == 0) return "Växla till sändning";
+  if (std::strcmp(key, "obs_save_replay") == 0) return "Spara repris";
+  if (std::strcmp(key, "obs_enable_studio_mode") == 0) return "Aktivera studioläge";
+  if (std::strcmp(key, "obs_choose_preview") == 0) return "Välj en förhandsvisning";
+  if (std::strcmp(key, "obs_already_on_program") == 0) return "Redan i programmet";
+  if (std::strcmp(key, "obs_transitioning") == 0) return "Övergång pågår";
+  if (std::strcmp(key, "obs_replay_not_confirmed") == 0) return "Repris inte bekräftad";
+  if (std::strcmp(key, "obs_check") == 0) return "Kontrollera OBS";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -13950,6 +14379,18 @@ inline const char *espdesktop_i18n_key_tr(const char *key) {
   if (std::strcmp(key, "turn_off_studio_mode") == 0) return "Stüdyo modu kapatılsın mı?";
   if (std::strcmp(key, "start_replay_buffer_prompt") == 0) return "Tekrar tamponu başlatılsın mı?";
   if (std::strcmp(key, "stop_replay_buffer_prompt") == 0) return "Tekrar tamponu durdurulsun mu?";
+  if (std::strcmp(key, "label_ha_pairing_fingerprint") == 0) return "Parmak izi";
+  if (std::strcmp(key, "label_ha_pairing_code") == 0) return "Eşleştirme kodu";
+  if (std::strcmp(key, "label_cough") == 0) return "Öksürük";
+  if (std::strcmp(key, "obs_record") == 0) return "Kaydet";
+  if (std::strcmp(key, "obs_take_live") == 0) return "Canlı yayına al";
+  if (std::strcmp(key, "obs_save_replay") == 0) return "Tekrarı kaydet";
+  if (std::strcmp(key, "obs_enable_studio_mode") == 0) return "Stüdyo modunu etkinleştir";
+  if (std::strcmp(key, "obs_choose_preview") == 0) return "Bir önizleme seçin";
+  if (std::strcmp(key, "obs_already_on_program") == 0) return "Zaten yayında";
+  if (std::strcmp(key, "obs_transitioning") == 0) return "Geçiş yapılıyor";
+  if (std::strcmp(key, "obs_replay_not_confirmed") == 0) return "Tekrar kaydı doğrulanmadı";
+  if (std::strcmp(key, "obs_check") == 0) return "OBS’yi kontrol edin";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -14299,6 +14740,18 @@ inline const char *espdesktop_i18n_key_uk(const char *key) {
   if (std::strcmp(key, "turn_off_studio_mode") == 0) return "Вимкнути режим студії?";
   if (std::strcmp(key, "start_replay_buffer_prompt") == 0) return "Запустити буфер повтору?";
   if (std::strcmp(key, "stop_replay_buffer_prompt") == 0) return "Зупинити буфер повтору?";
+  if (std::strcmp(key, "label_ha_pairing_fingerprint") == 0) return "Відбиток";
+  if (std::strcmp(key, "label_ha_pairing_code") == 0) return "Код сполучення";
+  if (std::strcmp(key, "label_cough") == 0) return "Кашель";
+  if (std::strcmp(key, "obs_record") == 0) return "Записати";
+  if (std::strcmp(key, "obs_take_live") == 0) return "Перемкнути в ефір";
+  if (std::strcmp(key, "obs_save_replay") == 0) return "Зберегти повтор";
+  if (std::strcmp(key, "obs_enable_studio_mode") == 0) return "Увімкнути режим студії";
+  if (std::strcmp(key, "obs_choose_preview") == 0) return "Виберіть попередній перегляд";
+  if (std::strcmp(key, "obs_already_on_program") == 0) return "Уже в ефірі";
+  if (std::strcmp(key, "obs_transitioning") == 0) return "Триває перехід";
+  if (std::strcmp(key, "obs_replay_not_confirmed") == 0) return "Збереження повтору не підтверджено";
+  if (std::strcmp(key, "obs_check") == 0) return "Перевірте OBS";
   return espdesktop_i18n_key_en(key);
 }
 

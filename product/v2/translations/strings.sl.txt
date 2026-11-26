@@ -376,3 +376,17 @@ turn_on_studio_mode=Vklopiš studijski način?
 turn_off_studio_mode=Izklopiš studijski način?
 start_replay_buffer_prompt=Zaženeš medpomnilnik ponovitev?
 stop_replay_buffer_prompt=Ustaviš medpomnilnik ponovitev?
+
+# Display pairing, audio and OBS
+label_ha_pairing_fingerprint=Prstni odtis
+label_ha_pairing_code=Koda za seznanjanje
+label_cough=Kašelj
+obs_record=Snemaj
+obs_take_live=Preklopi v živo
+obs_save_replay=Shrani ponovitev
+obs_enable_studio_mode=Vklopi studijski način
+obs_choose_preview=Izberi predogled
+obs_already_on_program=Že v programu
+obs_transitioning=Prehod poteka
+obs_replay_not_confirmed=Ponovitev ni potrjena
+obs_check=Preveri OBS

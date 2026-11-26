@@ -376,3 +376,17 @@ turn_on_studio_mode=Slå på studiomodus?
 turn_off_studio_mode=Slå av studiomodus?
 start_replay_buffer_prompt=Start avspillingsbufferen?
 stop_replay_buffer_prompt=Stopp avspillingsbufferen?
+
+# Display pairing, audio and OBS
+label_ha_pairing_fingerprint=Fingeravtrykk
+label_ha_pairing_code=Sammenkoblingskode
+label_cough=Hoste
+obs_record=Ta opp
+obs_take_live=Bytt til direktesending
+obs_save_replay=Lagre reprise
+obs_enable_studio_mode=Aktiver studiomodus
+obs_choose_preview=Velg en forhåndsvisning
+obs_already_on_program=Allerede i programmet
+obs_transitioning=Overgang pågår
+obs_replay_not_confirmed=Reprise ikke bekreftet
+obs_check=Sjekk OBS

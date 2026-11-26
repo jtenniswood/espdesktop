@@ -376,3 +376,17 @@ turn_on_studio_mode=Attivare la modalità Studio?
 turn_off_studio_mode=Disattivare la modalità Studio?
 start_replay_buffer_prompt=Avviare il buffer di replay?
 stop_replay_buffer_prompt=Fermare il buffer di replay?
+
+# Display pairing, audio and OBS
+label_ha_pairing_fingerprint=Impronta digitale
+label_ha_pairing_code=Codice di abbinamento
+label_cough=Tosse
+obs_record=Registra
+obs_take_live=Passa in diretta
+obs_save_replay=Salva replay
+obs_enable_studio_mode=Attiva la modalità studio
+obs_choose_preview=Scegli un’anteprima
+obs_already_on_program=Già in programma
+obs_transitioning=Transizione in corso
+obs_replay_not_confirmed=Replay non confermato
+obs_check=Controlla OBS
