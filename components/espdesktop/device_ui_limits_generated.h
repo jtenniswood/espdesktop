@@ -56,7 +56,7 @@ inline constexpr DeviceUiLimits DEVICE_UI_PROFILES[] = {
     {"guition-esp32-p4-jc4880p443-v3", 2, 3, 6, 6, 5, 2, 6, 8, 255, DEVICE_UI_CARD_TYPES_0, sizeof(DEVICE_UI_CARD_TYPES_0) / sizeof(DeviceCardTypeSupport), 262144, 2097152, 524288},
     {"guition-esp32-p4-jc8012p4a1", 5, 4, 20, 20, 19, 2, 6, 8, 255, DEVICE_UI_CARD_TYPES_0, sizeof(DEVICE_UI_CARD_TYPES_0) / sizeof(DeviceCardTypeSupport), 262144, 2097152, 524288},
     {"guition-esp32-p4-jc8012p4a1-v2", 5, 4, 20, 20, 19, 2, 6, 8, 255, DEVICE_UI_CARD_TYPES_0, sizeof(DEVICE_UI_CARD_TYPES_0) / sizeof(DeviceCardTypeSupport), 262144, 2097152, 524288},
-    {"guition-esp32-p4-jc8012p4a1-v3", 5, 4, 20, 20, 19, 2, 6, 8, 255, DEVICE_UI_CARD_TYPES_0, sizeof(DEVICE_UI_CARD_TYPES_0) / sizeof(DeviceCardTypeSupport), 262144, 2097152, 524288},
+    {"guition-esp32-p4-jc8012p4a1-v3", 6, 4, 24, 24, 23, 2, 6, 8, 255, DEVICE_UI_CARD_TYPES_0, sizeof(DEVICE_UI_CARD_TYPES_0) / sizeof(DeviceCardTypeSupport), 262144, 2097152, 524288},
     {"esp32-p4-86", 3, 3, 9, 9, 8, 2, 6, 8, 255, DEVICE_UI_CARD_TYPES_0, sizeof(DEVICE_UI_CARD_TYPES_0) / sizeof(DeviceCardTypeSupport), 262144, 2097152, 524288},
     {"guition-esp32-s3-4848s040", 3, 3, 9, 9, 8, 2, 2, 4, 255, DEVICE_UI_CARD_TYPES_0, sizeof(DEVICE_UI_CARD_TYPES_0) / sizeof(DeviceCardTypeSupport), 131072, 524288, 131072},
 };
@@ -103,7 +103,7 @@ namespace espdesktop {
 inline constexpr DeviceUiLimits DEVICE_UI_LIMITS = DEVICE_UI_PROFILES[6];
 }  // namespace espdesktop
 #elif defined(ESPDESKTOP_UI_PROFILE_GUITION_ESP32_P4_JC8012P4A1_V3)
-#define ESPDESKTOP_DEVICE_UI_SLOT_COUNT 20
+#define ESPDESKTOP_DEVICE_UI_SLOT_COUNT 24
 namespace espdesktop {
 inline constexpr DeviceUiLimits DEVICE_UI_LIMITS = DEVICE_UI_PROFILES[7];
 }  // namespace espdesktop

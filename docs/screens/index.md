@@ -22,7 +22,7 @@ These are the standard home-screen layouts. A larger card occupies several slots
 | [4.3-inch Guition JC4880P443 V3](/screens/jc4880p443-v3) | ESP32-P4 v3.x | 480 × 800, portrait | 6 |
 | [4-inch P4 86 Panel, ETH-2RO](/screens/p4-86) | ESP32-P4 | 720 × 720, square | 9 |
 | [7-inch Guition JC1060P470](/screens/jc1060p470) | ESP32-P4 | 1024 × 600, landscape | 15 |
-| [10.1-inch Guition JC8012P4A1](/screens/jc8012p4a1) | ESP32-P4 | 1280 × 800, landscape | 20 |
+| [10.1-inch Guition JC8012P4A1](/screens/jc8012p4a1) | ESP32-P4 | 1280 × 800, landscape | 20 on V1 and V2, 24 on V3 |
 
 Camera, media-player, climate and other Home Assistant cards are no longer available. Saved records remain in layouts and backups with unavailable-card warnings. Mac app icons and fullscreen Mac artwork remain available on the Companion profile.
 

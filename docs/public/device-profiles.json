@@ -177,7 +177,7 @@
       "screenSize": "10.1 inches",
       "resolution": "1280 x 800",
       "orientation": "Landscape",
-      "slots": 20,
+      "slots": 24,
       "imageSlots": 6,
       "imageCardTypes": [
         "image",
@@ -185,7 +185,7 @@
       ],
       "grid": {
         "rows": 4,
-        "cols": 5
+        "cols": 6
       },
       "chipFamily": "ESP32-P4",
       "relays": 0,
