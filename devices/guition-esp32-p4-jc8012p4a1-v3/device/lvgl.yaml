@@ -99,7 +99,7 @@ lvgl:
       scrollbar_mode: "off"
       layout:
         type: grid
-        grid_columns: [FR(1), FR(1), FR(1), FR(1), FR(1)]
+        grid_columns: [FR(1), FR(1), FR(1), FR(1), FR(1), FR(1)]
         grid_rows: [FR(1), FR(1), FR(1), FR(1)]
         pad_row: ${main_page_card_gap}
         pad_column: ${main_page_card_gap}

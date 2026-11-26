@@ -436,7 +436,7 @@ def test_jc4880p443_v3_configuration() -> None:
         assert (ROOT / "builds" / f"{slug}{suffix}").is_file()
 
 
-def test_factory_connector_scope(profiles: dict[str, dict]) -> None:
+def test_factory_packages(profiles: dict[str, dict]) -> None:
     from esphome.components.packages import resolve_packages
     from esphome.core import CORE
     from esphome.yaml_util import load_yaml
@@ -452,6 +452,14 @@ def test_factory_connector_scope(profiles: dict[str, dict]) -> None:
                 companion = bool(profiles[slug]["capabilities"].get("companion"))
                 assert ("companion" in config) == companion, (
                     f"{slug}: firmware and web profile must agree on Mac Companion availability"
+                )
+                main = next(page for page in config["lvgl"]["pages"] if page["id"] == "main_page")
+                layout = main["layout"]
+                assert len(layout["grid_columns"]) == profiles[slug]["layout"]["cols"], (
+                    f"{slug}: startup grid columns must match the device profile"
+                )
+                assert len(layout["grid_rows"]) == profiles[slug]["layout"]["rows"], (
+                    f"{slug}: startup grid rows must match the device profile"
                 )
             native = slug in {"guition-esp32-s3-4848s040", "guition-esp32-p4-jc1060p470-v3"}
             assert ("api" in config) == native, f"{path.name}: unexpected native ESPHome API scope"
@@ -880,7 +888,7 @@ def main() -> int:
     test_generated_yaml(profiles)
     test_v3_release_configuration()
     test_jc4880p443_v3_configuration()
-    test_factory_connector_scope(profiles)
+    test_factory_packages(profiles)
     test_ota_preserves_deployed_partition_layouts()
     test_upgrades_do_not_reset_saved_panel_config()
     test_p4_crash_restart_preserves_safe_mode_counter()
