@@ -81,7 +81,6 @@ const matchingApps = computed(() => {
 <template>
   <template v-if="!appId && !windowsId">
     <div class="preset-search" role="search" aria-label="Application shortcuts">
-      <input v-model="search" type="search" placeholder="Search apps" aria-label="Search apps" />
       <div class="platform-toggle" role="group" aria-label="Platform">
         <button
           v-for="option in platformOptions"
@@ -91,6 +90,7 @@ const matchingApps = computed(() => {
           @click="platform = option.value"
         >{{ option.label }}</button>
       </div>
+      <input v-model="search" type="search" placeholder="Search apps" aria-label="Search apps" />
       <p role="status">{{ matchingApps.length ? '' : 'No matching apps.' }}</p>
     </div>
     <ul class="preset-list" aria-label="Application shortcut guides">
@@ -122,6 +122,7 @@ const matchingApps = computed(() => {
 }
 
 .preset-search input {
+  display: block;
   width: 100%;
   min-height: 44px;
   padding: 8px 12px;
@@ -141,12 +142,14 @@ const matchingApps = computed(() => {
 }
 
 .platform-toggle {
-  display: inline-flex;
+  display: inline-grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 1fr;
   gap: 2px;
-  margin-top: 12px;
+  margin-bottom: 12px;
   padding: 3px;
   border: 1px solid var(--vp-c-divider);
-  border-radius: 9px;
+  border-radius: 999px;
   background: var(--vp-c-bg-soft);
 }
 
@@ -155,7 +158,7 @@ const matchingApps = computed(() => {
   min-width: 80px;
   padding: 6px 12px;
   border: 1px solid transparent;
-  border-radius: 6px;
+  border-radius: inherit;
   color: var(--vp-c-text-2);
 }
 
