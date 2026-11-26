@@ -365,6 +365,7 @@ wind_north_west=North West
 output_mute=Вимкнути звук
 microphone_mute=Вимкнути мікрофон
 input_state=Стан входу
+no_audio_input=Немає аудіовходу
 mic=Мікрофон
 mute=Без звуку
 muted=Без звуку

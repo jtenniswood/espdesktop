@@ -1,7 +1,10 @@
 {
   "label": "ChatGPT Desktop",
   "executables": [
-    "codex.exe"
+    "chatgpt.exe"
+  ],
+  "targets": [
+    "openai.codex_2p2nqsd0c76g0!app"
   ],
   "sources": [
     "https://learn.chatgpt.com/docs/app/commands",

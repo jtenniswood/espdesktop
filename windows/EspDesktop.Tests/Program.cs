@@ -139,6 +139,8 @@ foreach (var (executable, target, firstKey) in new (string?, string, string)[]
     (@"C:\Apps\Spotify.exe", "Spotify", "control+k"),
     (@"C:\Apps\GitHubDesktop.exe", "GitHubDesktop", "control+t"),
     (@"C:\Apps\GIMP 3\bin\gimp-3.exe", "GIMP 3", "control+o"),
+    (@"C:\Apps\ChatGPT.exe", "ChatGPT", "control+n"),
+    (null, "OpenAI.Codex_2p2nqsd0c76g0!App", "control+n"),
     (null, "Microsoft.MicrosoftEdge.Stable_8wekyb3d8bbwe!App", "control+t"),
     (null, "Microsoft.WindowsNotepad_8wekyb3d8bbwe!App", "control+n")
 })
@@ -150,6 +152,8 @@ foreach (var (executable, target, firstKey) in new (string?, string, string)[]
 }
 Check(WindowsPresets.For(null, "MSEdge._pin_example") is null,
     "a pinned website does not inherit Edge browser presets");
+Check(WindowsPresets.For(@"C:\Apps\codex.exe", "Codex CLI") is null,
+    "the Codex command-line executable does not inherit ChatGPT Desktop presets");
 Console.WriteLine("Passed Windows application shortcut preset checks.");
 Check(WindowsPresets.For(@"C:\Apps\Code.exe", "Visual Studio Code")?.Shortcuts.Any(preset =>
           preset.DisplayShortcut == "scoped.control+k~control+s") == true,
@@ -247,6 +251,16 @@ server.Map(SocketPath, async context =>
 #endif
         await FindMessage(socket, "catalogue.page", m => m.GetProperty("items")[0].GetProperty("id").GetString() == "windows.test");
         await FindMessage(socket, "value.state", m => Text(m, "controlId") == FakeDesktop.Speaker && UInt(m, "value") == 50);
+        await FindMessage(socket, "value.state", m => Text(m, "controlId") == FakeDesktop.Mic &&
+            !m.GetProperty("available").GetBoolean() && !m.TryGetProperty("noInputDevice", out _));
+        desktop.MicState = new(FakeDesktop.Mic, null, NoInputDevice: true);
+        await FindMessage(socket, "value.state", m => Valid(m, "mac_to_panel", "connected") &&
+            Text(m, "controlId") == FakeDesktop.Mic && !m.GetProperty("available").GetBoolean() &&
+            m.GetProperty("noInputDevice").GetBoolean());
+        desktop.MicState = new(FakeDesktop.Mic, 0);
+        await FindMessage(socket, "value.state", m => Text(m, "controlId") == FakeDesktop.Mic &&
+            m.GetProperty("available").GetBoolean() && UInt(m, "value") == 0 &&
+            !m.TryGetProperty("noInputDevice", out _));
 
         await Send(socket, "shortcut.catalogue.request", ("requestId", 10), ("appId", "index"), ("page", 0));
         var shortcutIndex = await FindMessage(socket, "shortcut.catalogue.page", m => UInt(m, "requestId") == 10);
@@ -1112,6 +1126,8 @@ sealed class ReleaseResponses(IReadOnlyDictionary<string, string?> pages) : Http
 sealed class FakeDesktop : IDesktop
 {
     public const string Speaker = "media.output_volume";
+    public const string Mic = "media.input_mute";
+    public AudioValue MicState { get; set; } = new(Mic, null);
     public int CatalogueRevision => 0;
     public bool ShortcutsEnabled => false;
     public bool Locked { get; set; }
@@ -1132,6 +1148,6 @@ sealed class FakeDesktop : IDesktop
         SpeakerLevel = value;
         return true;
     }
-    public IEnumerable<(string Id, int? Value)> Values() => [(Speaker, SpeakerLevel)];
+    public IEnumerable<AudioValue> Values() => [new(Speaker, SpeakerLevel), MicState];
     public Dictionary<string, object?> Metrics(uint generation) => Message("system_metrics", ("generation", generation), ("available", false));
 }

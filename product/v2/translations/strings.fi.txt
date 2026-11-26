@@ -365,6 +365,7 @@ wind_north_west=North West
 output_mute=Mykistä ääni
 microphone_mute=Mykistä mikrofoni
 input_state=Tulotila
+no_audio_input=Ei äänituloa
 mic=Mikki
 mute=Mykistä
 muted=Mykistetty

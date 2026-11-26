@@ -348,6 +348,10 @@
           "available": {
             "type": "boolean"
           },
+          "noInputDevice": {
+            "type": "boolean",
+            "optional": true
+          },
           "value": {
             "type": "integer",
             "minimum": 0,

@@ -365,6 +365,7 @@ wind_north_west=North West
 output_mute=Stäng av ljud
 microphone_mute=Stäng av mikrofon
 input_state=Ingångsstatus
+no_audio_input=Ingen ljudingång
 mic=Mikrofon
 mute=Tysta
 muted=Tystad
