@@ -9,14 +9,6 @@
   "sources": [
     "https://support.spotify.com/us/article/keyboard-shortcuts/"
   ],
-  "defaultShortcutIds": [
-    "0",
-    "1",
-    "2",
-    "3",
-    "4",
-    "5"
-  ],
   "shortcuts": [
     {"id": "0", "label": "Search", "shortcut": "control+k", "icon": "Search"},
     {"id": "1", "label": "Filter", "shortcut": "control+f", "icon": "Search"},

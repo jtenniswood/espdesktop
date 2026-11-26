@@ -4,15 +4,6 @@
 #include "clock_bar.h"
 
 // Local Mac output and microphone volume widgets.
-struct CardPadding {
-  lv_coord_t left = 0;
-  lv_coord_t top = 0;
-  lv_coord_t right = 0;
-  lv_coord_t bottom = 0;
-};
-
-
-
 struct SliderCtx {
   std::string entity_id;
   lv_obj_t *fill = nullptr;
@@ -40,15 +31,6 @@ struct SliderCtx {
   lv_timer_t *geometry_timer = nullptr;
   lv_obj_t *media_value_lbl = nullptr;
   lv_obj_t *media_status_lbl = nullptr;
-  // Button padding captured before the slider widget zeroes it, so the icon and
-  // label can be inset to match every non-slider card (see setup_slider_visual).
-  lv_coord_t label_pad_left = 0;
-  lv_coord_t label_pad_top = 0;
-  lv_coord_t label_pad_bottom = 0;
-  lv_coord_t content_pad_left = 0;
-  lv_coord_t content_pad_top = 0;
-  lv_coord_t content_pad_right = 0;
-  lv_coord_t content_pad_bottom = 0;
   bool available = true;
   bool interactive = true;
   bool numeric = false;
@@ -84,32 +66,19 @@ struct SliderCtx {
 inline void setup_slider_visual(BtnSlot &slot, const ParsedCfg &config,
                                 uint32_t on_color, bool interactive = true);
 
-inline CardPadding capture_card_padding(lv_obj_t *btn) {
-  CardPadding padding;
-  if (!btn) return padding;
-  padding.left = lv_obj_get_style_pad_left(btn, LV_PART_MAIN);
-  padding.top = lv_obj_get_style_pad_top(btn, LV_PART_MAIN);
-  padding.right = lv_obj_get_style_pad_right(btn, LV_PART_MAIN);
-  padding.bottom = lv_obj_get_style_pad_bottom(btn, LV_PART_MAIN);
-  // Preserve an intentional local inset, such as a subpage's calculated
-  // padding. A reused slider button leaves a local zero override behind;
-  // only in that all-zero case remove the stale override and read the theme.
-  if (padding.left == 0 && padding.top == 0 &&
-      padding.right == 0 && padding.bottom == 0) {
-    lv_obj_remove_local_style_prop(btn, LV_STYLE_PAD_LEFT, LV_PART_MAIN);
-    lv_obj_remove_local_style_prop(btn, LV_STYLE_PAD_TOP, LV_PART_MAIN);
-    lv_obj_remove_local_style_prop(btn, LV_STYLE_PAD_RIGHT, LV_PART_MAIN);
-    lv_obj_remove_local_style_prop(btn, LV_STYLE_PAD_BOTTOM, LV_PART_MAIN);
-    padding.left = lv_obj_get_style_pad_left(btn, LV_PART_MAIN);
-    padding.top = lv_obj_get_style_pad_top(btn, LV_PART_MAIN);
-    padding.right = lv_obj_get_style_pad_right(btn, LV_PART_MAIN);
-    padding.bottom = lv_obj_get_style_pad_bottom(btn, LV_PART_MAIN);
-  }
-  return padding;
-}
-
 inline int slider_position_percent(const SliderCtx *, int position) {
   return std::max(0, std::min(100, position));
+}
+
+inline void slider_align_to_button_edge(lv_obj_t *widget, lv_obj_t *btn,
+                                        lv_coord_t x, lv_coord_t y) {
+  // LVGL positions children from the padded content origin. Offset the two
+  // slider widgets to the outer edge so the shared labels keep their padding.
+  const lv_align_t origin = lv_obj_get_style_base_dir(btn, LV_PART_MAIN) == LV_BASE_DIR_RTL
+    ? LV_ALIGN_TOP_RIGHT : LV_ALIGN_TOP_LEFT;
+  lv_obj_align(widget, origin,
+               x - lv_obj_get_style_space_left(btn, LV_PART_MAIN),
+               y - lv_obj_get_style_space_top(btn, LV_PART_MAIN));
 }
 
 inline void slider_fit_to_button(lv_obj_t *slider, lv_obj_t *btn, bool horizontal) {
@@ -123,16 +92,10 @@ inline void slider_fit_to_button(lv_obj_t *slider, lv_obj_t *btn, bool horizonta
   lv_obj_set_style_pad_top(slider, 0, LV_PART_MAIN);
   lv_obj_set_style_pad_bottom(slider, 0, LV_PART_MAIN);
 
-  if (horizontal) {
-    lv_coord_t h = bh >= bw ? bw - 1 : bh;
-    if (h < 1) h = 1;
-    lv_obj_set_size(slider, bw, h);
-  } else {
-    lv_coord_t w = bw >= bh ? bh - 1 : bw;
-    if (w < 1) w = 1;
-    lv_obj_set_size(slider, w, bh);
-  }
-  lv_obj_align(slider, LV_ALIGN_CENTER, 0, 0);
+  const lv_coord_t w = horizontal ? bw : std::max<lv_coord_t>(1, std::min<lv_coord_t>(bw, bh - 1));
+  const lv_coord_t h = horizontal ? std::max<lv_coord_t>(1, std::min<lv_coord_t>(bh, bw - 1)) : bh;
+  lv_obj_set_size(slider, w, h);
+  slider_align_to_button_edge(slider, btn, bw / 2 - w / 2, bh / 2 - h / 2);
 }
 
 inline void slider_update_fill(lv_obj_t *fill, lv_obj_t *btn, int pct, bool horizontal,
@@ -153,11 +116,11 @@ inline void slider_update_fill(lv_obj_t *fill, lv_obj_t *btn, int pct, bool hori
       if (w < min_w) w = min_w;
     }
     lv_obj_set_size(fill, w, bh);
-    lv_obj_align(fill, inverted ? LV_ALIGN_RIGHT_MID : LV_ALIGN_LEFT_MID, 0, 0);
+    slider_align_to_button_edge(fill, btn, inverted ? bw - w : 0, 0);
   } else {
     lv_coord_t h = (lv_coord_t)((int32_t)bh * pct / 100);
     lv_obj_set_size(fill, bw, h);
-    lv_obj_align(fill, inverted ? LV_ALIGN_TOP_MID : LV_ALIGN_BOTTOM_MID, 0, 0);
+    slider_align_to_button_edge(fill, btn, 0, inverted ? 0 : bh - h);
   }
 }
 
@@ -257,14 +220,13 @@ inline bool slider_apply_vertical_pointer_value(lv_obj_t *slider) {
   return true;
 }
 
-inline lv_obj_t *setup_slider_widget(lv_obj_t *btn, uint32_t on_color, bool horizontal) {
+inline lv_obj_t *setup_slider_widget(lv_obj_t *btn, uint32_t on_color) {
   if (!btn) return nullptr;
-  lv_obj_set_style_pad_all(btn, 0,
-    static_cast<lv_style_selector_t>(LV_PART_MAIN));
   lv_obj_clear_flag(btn, LV_OBJ_FLAG_CLICKABLE);
 
   lv_obj_t *fill = lv_obj_create(btn);
   if (!fill) return nullptr;
+  lv_obj_add_flag(fill, LV_OBJ_FLAG_FLOATING);
   lv_obj_set_size(fill, 0, 0);
   theme_set_content_background(fill);
   lv_obj_set_style_bg_color(fill, lv_color_hex(on_color), LV_PART_MAIN);
@@ -280,6 +242,7 @@ inline lv_obj_t *setup_slider_widget(lv_obj_t *btn, uint32_t on_color, bool hori
     lv_obj_add_flag(btn, LV_OBJ_FLAG_CLICKABLE);
     return nullptr;
   }
+  lv_obj_add_flag(slider, LV_OBJ_FLAG_FLOATING);
   lv_slider_set_range(slider, 0, 100);
   lv_slider_set_value(slider, 0, LV_ANIM_OFF);
 
@@ -338,10 +301,7 @@ inline void setup_slider_visual(BtnSlot &s, const ParsedCfg &p, uint32_t on_colo
     p.entity.c_str(), p.type.c_str());
   setup_toggle_visual(s, p);
 
-  const CardPadding padding = capture_card_padding(s.btn);
-
-  bool horizontal = false;
-  lv_obj_t *slider = setup_slider_widget(s.btn, on_color, horizontal);
+  lv_obj_t *slider = setup_slider_widget(s.btn, on_color);
   if (!slider) {
     ESP_LOGW("slider", "Slider setup failed for %s; falling back to toggle card",
       p.entity.c_str());
@@ -352,8 +312,6 @@ inline void setup_slider_visual(BtnSlot &s, const ParsedCfg &p, uint32_t on_colo
     return;
   }
   ESP_LOGI("slider", "Slider object created for %s", p.entity.c_str());
-  lv_obj_align(s.icon_lbl, LV_ALIGN_TOP_LEFT, padding.left, padding.top);
-  lv_obj_align(s.text_lbl, LV_ALIGN_BOTTOM_LEFT, padding.left, -padding.bottom);
   lv_obj_set_user_data(s.sensor_container, (void *)slider);
 
   lv_obj_t *fill = lv_obj_get_child(s.btn, 0);
@@ -373,11 +331,7 @@ inline void setup_slider_visual(BtnSlot &s, const ParsedCfg &p, uint32_t on_colo
   SliderCtx *ctx = new SliderCtx();
   ctx->entity_id = p.entity;
   ctx->fill = fill;
-  ctx->horizontal = horizontal;
   ctx->radius = lv_obj_get_style_radius(s.btn, LV_PART_MAIN);
-  ctx->label_pad_left = padding.left;
-  ctx->label_pad_top = padding.top;
-  ctx->label_pad_bottom = padding.bottom;
   ctx->interactive = interactive;
   ctx->icon_lbl = s.icon_lbl;
   ctx->sensor_container = s.sensor_container;

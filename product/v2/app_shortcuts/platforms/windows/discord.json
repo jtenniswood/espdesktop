@@ -10,15 +10,6 @@
     "https://support.discord.com/hc/en-us/articles/225977308--Windows-Discord-Hotkeys",
     "https://support.discord.com/hc/en-us/articles/31232432266647-Discord-Commands-Shortcuts-and-Navigation-Guide"
   ],
-  "defaultShortcutIds": [
-    "0",
-    "1",
-    "2",
-    "3",
-    "4",
-    "5",
-    "6"
-  ],
   "shortcuts": [
     {"id": "0", "label": "Direct Message", "shortcut": "control+k", "icon": "Chat"},
     {"id": "1", "label": "Search All", "shortcut": "control+shift+f", "icon": "Search"},

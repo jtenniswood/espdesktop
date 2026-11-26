@@ -204,6 +204,8 @@ export function normalizeCompanionAppShortcutOptions(card: any): string {
     if (card.entity === APPLE_SHORTCUTS_APP_ID)
         return finish(setConfigOptionValue(options, APPLE_SHORTCUTS_HIDDEN_OPTION,
             configOptionValue(card.options, APPLE_SHORTCUTS_HIDDEN_OPTION)));
+    // The app index can arrive before its shortcuts. Keep the default selection implicit.
+    if (!configOptionValue(card.options, COMPANION_APP_SHORTCUTS_TABS_OPTION)) return finish(options);
     const tabs = companionShortcutTabs(card);
     const defaults = companionShortcutDefaultTabs(card.entity);
     const value = tabs.length === 0 ? "none" :
@@ -313,6 +315,9 @@ export function companionShortcutDefaultTabs(bundleIdentifier: string): string[]
     if (bundleIdentifier === "com.apple.finder") return [];
     const app = companionShortcutApp(bundleIdentifier);
     if (!app) return [];
+    if (bundleIdentifier.startsWith("windows.")) {
+        return companionShortcutChoices(bundleIdentifier).slice(0, 7).map(item => item.id);
+    }
     if (Array.isArray(app.defaultShortcutIds)) {
         const available = new Set(companionShortcutChoices(bundleIdentifier).map(item => item.id));
         const defaults = [...new Set(app.defaultShortcutIds)].filter(id => available.has(id));

@@ -160,6 +160,7 @@ struct ControlModalGridMetrics {
   lv_obj_t *first_card = nullptr;
   int cols = 3;
   int rows = 3;
+  lv_coord_t card_padding = 8;
 };
 
 inline ControlModalGridMetrics &control_modal_grid_metrics() {

@@ -3,6 +3,32 @@ const { test } = require("node:test");
 const assert = require("node:assert/strict");
 const { loadTypeScriptModule } = require("../../../scripts/load_typescript_module");
 
+test("Windows app defaults survive loading shortcuts after the app index", () => {
+  const api = loadTypeScriptModule("src/webserver/application/companion_shortcut_folder.ts");
+  const card = { type: "companion", entity: "windows.chrome", options: "app_shortcuts" };
+  const indexed = { version: 1, appId: card.entity, label: "Google Chrome", catalog: false, shortcuts: [] };
+  api.replaceCompanionDefinitions([indexed]);
+  assert.deepEqual(api.companionShortcutTabs(card), []);
+  card.options = api.normalizeCompanionAppShortcutOptions(card);
+  assert.equal(card.options, "app_shortcuts");
+
+  const { shortcuts } = require("../../../product/v2/app_shortcuts/platforms/windows/google-chrome.json");
+  api.applyCompanionShortcutApplication({ ...indexed,
+    shortcuts: shortcuts.slice(0, 6),
+    defaultShortcutIds: shortcuts.slice(0, 6).map(shortcut => shortcut.id),
+    moreShortcuts: shortcuts.slice(6),
+  });
+  const expected = shortcuts.slice(0, 7).map(shortcut => shortcut.id);
+  assert.deepEqual(api.companionShortcutTabs(card), expected);
+  const page = api.createCompanionShortcutSubpage(card.entity, api.companionShortcutTabs(card));
+  assert.deepEqual(api.companionShortcutTabsFromSubpage(card.entity, page), expected);
+
+  api.setCompanionShortcutTabs(card, []);
+  card.options = api.normalizeCompanionAppShortcutOptions(card);
+  assert.equal(card.options, "app_shortcuts,app_shortcuts_tabs=none");
+  assert.deepEqual(api.companionShortcutTabs(card), []);
+});
+
 test("the shortcut catalogue combines bundled and live presets and preserves saved live presets", () => {
   const api = loadTypeScriptModule("src/webserver/application/companion_shortcut_folder.ts");
   const safari = require("../../../product/v2/app_shortcuts/safari.json");
