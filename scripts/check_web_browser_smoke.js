@@ -4430,9 +4430,6 @@ async function assertAppVolumeCard(browser) {
     assert.equal(await application.inputValue(), "app.volume.com.spotify.client");
 
     connectorsStatus.mac_companion.platform = "windows";
-    await subtype.locator('option[value="companion_cough"]').waitFor({ state: "detached" });
-    assert.deepEqual(await subtype.locator("option").allTextContents(),
-      ["Audio Output", "Output Mute", "Output per application", "Audio Input", "Input State", "Input per device level"]);
     assert.equal(await subtype.inputValue(), "companion_app_volume");
     assert.equal(await application.inputValue(), "app.volume.com.spotify.client");
     await application.locator('option[value="app.volume.windows.spotify"]').waitFor({ state: "attached" });
@@ -4442,6 +4439,7 @@ async function assertAppVolumeCard(browser) {
       nativeState.document.buttons[1] === "app.volume.windows.spotify;Spotify;Volume High;Auto;;;companion_app_volume",
     "Windows App Volume saves the selected Windows app and retains the existing card label");
     const deviceAudio = [
+      ["Cough", "cough", "Microphone", false],
       ["Volume", "output_volume", "Volume High", true],
       ["Volume", "input_volume", "Microphone", true],
       ["Mute", "output_mute", "Volume High", false],
@@ -4452,13 +4450,20 @@ async function assertAppVolumeCard(browser) {
       await page.getByRole("button", { name: "Sound card type", exact: true }).click();
       await subtype.selectOption("companion_" + control);
       await page.getByRole("button", { name: "Save", exact: true }).click();
-      const expected = `media.${control};${label};${icon};Auto;;;companion_${control}`;
+      const entity = control === "cough" ? "" : "media." + control;
+      const expected = `${entity};${label};${icon};Auto;;;companion_${control}`;
       await waitForNativeState(nativeState, () => Object.values(nativeState.document.buttons).includes(expected),
         label + " saves its own control");
       const slot = Object.keys(nativeState.document.buttons).find(key => nativeState.document.buttons[key] === expected);
       const preview = page.locator(`.sp-main [data-slot="${slot}"]`);
       assert.equal(await preview.locator(".sp-btn-label").textContent(), label);
       assert.equal(await preview.locator(".sp-slider-preview").count(), slider ? 1 : 0, label);
+      if (control === "cough") {
+        await preview.click({ position: { x: 12, y: 12 } });
+        await page.keyboard.press("Delete");
+        await waitForNativeState(nativeState, () => !Object.values(nativeState.document.buttons).includes(expected),
+          "free the Input Cough slot for the remaining card checks");
+      }
     }
     await page.locator(".sp-main .sp-empty-cell").first().click();
     await page.getByRole("button", { name: "Sound card type", exact: true }).click();

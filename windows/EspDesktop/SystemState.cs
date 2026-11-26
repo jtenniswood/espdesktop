@@ -185,6 +185,7 @@ internal static partial class Audio
             }, default, out var noDevice);
             yield return new(Prefix + name + "_volume", state.Volume);
             yield return new(Prefix + name + "_mute", state.Mute, input && noDevice);
+            if (input) yield return new(CoughId, state.Mute, noDevice);
         }
     }
 
@@ -197,6 +198,36 @@ internal static partial class Audio
             "media.input_mute" or "media.output_mute" when value is 0 or 100 => endpoint.SetMute(value == 100, 0) >= 0,
             _ => false
         }, false, out _);
+    }
+
+    public static bool MuteDefaultInputForCough(Dictionary<string, bool> previousMutes) =>
+        WithEndpoint(true, (device, endpoint) =>
+        {
+            if (device.GetId(out var id) < 0 || ReadMute(endpoint) is not { } muted) return false;
+            if (!muted && endpoint.SetMute(true, 0) < 0) return false;
+            previousMutes.TryAdd(id, muted);
+            return true;
+        }, false, out _);
+
+    public static void RestoreCoughInputs(Dictionary<string, bool> previousMutes)
+    {
+        foreach (var (id, wasMuted) in previousMutes)
+        {
+            if (wasMuted) previousMutes.Remove(id);
+        }
+        if (previousMutes.Count == 0) return;
+
+        ForEachDevice(1, device =>
+        {
+            if (device.GetId(out var id) < 0 || !previousMutes.ContainsKey(id)) return;
+            var restored = WithVolume(device, endpoint => ReadMute(endpoint) switch
+            {
+                false => true,
+                true => endpoint.SetMute(false, 0) >= 0,
+                null => false,
+            }, false);
+            if (restored) previousMutes.Remove(id);
+        });
     }
 
     internal static bool SetLevel(int value, Func<float, bool> writeLevel, Func<bool?> readMute, Func<bool, bool> writeMute)
@@ -212,6 +243,9 @@ internal static partial class Audio
     private static bool? ReadMute(IAudioEndpointVolume endpoint) => endpoint.GetMute(out var muted) >= 0 ? muted : null;
 
     private static T WithEndpoint<T>(bool input, Func<IAudioEndpointVolume, T> action, T fallback, out bool noDevice)
+        => WithEndpoint(input, (_, endpoint) => action(endpoint), fallback, out noDevice);
+
+    private static T WithEndpoint<T>(bool input, Func<IMMDevice, IAudioEndpointVolume, T> action, T fallback, out bool noDevice)
     {
         noDevice = false;
         object? enumerator = null;
@@ -221,7 +255,7 @@ internal static partial class Audio
             enumerator = CreateEnumerator();
             var result = ((IMMDeviceEnumerator)enumerator).GetDefaultAudioEndpoint(input ? 1 : 0, 1, out device);
             noDevice = result == EndpointNotFound;
-            return result >= 0 ? WithVolume(device, action, fallback) : fallback;
+            return result >= 0 ? WithVolume(device, endpoint => action(device, endpoint), fallback) : fallback;
 
         }
         catch (COMException) { return fallback; }

@@ -12,6 +12,7 @@ namespace EspDesktop.Core;
 
 internal static class Protocol
 {
+    public const string CoughId = "media.cough";
     public const string InputLevelPrefix = "input.level.";
     public const string AppVolumePrefix = "app.volume.";
 
@@ -113,7 +114,7 @@ internal static class Protocol
                 {
                     "hex64" => s.Length == 64 && s.All(Uri.IsHexDigit),
                     "volume_control_id" or "writable_volume_control_id" =>
-                        s is "media.output_volume" or "media.input_volume" or "media.output_mute" or "media.input_mute" or "media.cough" ||
+                        s is "media.output_volume" or "media.input_volume" or "media.output_mute" or "media.input_mute" or CoughId ||
                         VolumeControlPattern.IsMatch(s),
                     { } expression => Regex.IsMatch(s, expression, RegexOptions.CultureInvariant | RegexOptions.NonBacktracking),
                     _ => false

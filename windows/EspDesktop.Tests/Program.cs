@@ -99,6 +99,8 @@ using (var fixtures = JsonDocument.Parse(stream))
     Console.WriteLine($"Passed {fixtures.RootElement.GetArrayLength()} shared protocol fixtures.");
 }
 
+CoughChecks.Run(Check);
+
 Check(DisplayEndpoint.Parse("192.168.1.2").Socket.AbsoluteUri == "wss://192.168.1.2:8443/companion/v4", "default display port");
 var panelEndpoint = DisplayEndpoint.Parse("https://panel.local:9443/path?tab=device#fragment");
 Check(panelEndpoint.Settings.AbsoluteUri == "https://panel.local/", "open the display editor");
@@ -228,6 +230,8 @@ server.Map(SocketPath, async context =>
         {
             await Send(socket, "auth.accepted", ("capabilityVersion", 7));
             await FindMessage(socket, "catalogue.page", m => m.GetProperty("items")[0].GetProperty("id").GetString() == "windows.test");
+            await Send(socket, "value.set", ("controlId", CoughId), ("value", 100), ("requestId", "legacy-cough"));
+            await FindMessage(socket, "action.result", m => Text(m, "requestId") == "legacy-cough" && Text(m, "status") == "not_allowed");
             if (seq == 10) reconnected.TrySetResult();
             await socket.CloseOutputAsync(WebSocketCloseStatus.NormalClosure, "test disconnect", lifetime.Token);
             return;
@@ -253,6 +257,7 @@ server.Map(SocketPath, async context =>
         await FindMessage(socket, "value.state", m => Text(m, "controlId") == FakeDesktop.Speaker && UInt(m, "value") == 50);
         await FindMessage(socket, "value.state", m => Text(m, "controlId") == FakeDesktop.Mic &&
             !m.GetProperty("available").GetBoolean() && !m.TryGetProperty("noInputDevice", out _));
+        await FindMessage(socket, "value.state", m => Text(m, "controlId") == CoughId && !m.GetProperty("available").GetBoolean());
         string[] audioTargets = [FakeDesktop.AppVolume, FakeDesktop.InputLevel];
         foreach (var target in audioTargets)
             await FindMessage(socket, "value.state", m => Text(m, "controlId") == target && UInt(m, "value") == 50);
@@ -260,16 +265,26 @@ server.Map(SocketPath, async context =>
         await FindMessage(socket, "value.state", m => Valid(m, "mac_to_panel", "connected") &&
             Text(m, "controlId") == FakeDesktop.Mic && !m.GetProperty("available").GetBoolean() &&
             m.GetProperty("noInputDevice").GetBoolean());
+        await FindMessage(socket, "value.state", m => Text(m, "controlId") == CoughId &&
+            !m.GetProperty("available").GetBoolean() && m.GetProperty("noInputDevice").GetBoolean());
         desktop.MicState = new(FakeDesktop.Mic, 0);
         await FindMessage(socket, "value.state", m => Text(m, "controlId") == FakeDesktop.Mic &&
             m.GetProperty("available").GetBoolean() && UInt(m, "value") == 0 &&
             !m.TryGetProperty("noInputDevice", out _));
+        await FindMessage(socket, "value.state", m => Text(m, "controlId") == CoughId && UInt(m, "value") == 0);
         foreach (var target in audioTargets)
         {
             var request = target == FakeDesktop.AppVolume ? "app-level" : "input-level";
             await Send(socket, "value.set", ("controlId", target), ("value", 35), ("requestId", request));
             await FindMessage(socket, "action.result", m => Text(m, "requestId") == request && Text(m, "status") == "performed");
             await FindMessage(socket, "value.state", m => Text(m, "controlId") == target && UInt(m, "value") == 35);
+        }
+        foreach (var (value, expected) in new[] { (50, "not_allowed"), (100, "performed"), (50, "performed"), (0, "performed") })
+        {
+            await Send(socket, "value.set", ("controlId", CoughId), ("value", value), ("requestId", "cough"));
+            await FindMessage(socket, "action.result", m => Text(m, "requestId") == "cough" && Text(m, "status") == expected);
+            if (value is 0 or 100)
+                await FindMessage(socket, "value.state", m => Text(m, "controlId") == CoughId && UInt(m, "value") == value);
         }
         desktop.AppPlaying = false;
         await FindMessage(socket, "value.state", m => Text(m, "controlId") == FakeDesktop.AppVolume &&
@@ -312,6 +327,9 @@ server.Map(SocketPath, async context =>
         Check(read.Count == 4108 && frame.AsSpan(0, 4).SequenceEqual("ICON"u8) &&
             BinaryPrimitives.ReadUInt32BigEndian(frame.AsSpan(4)) == generation &&
             BinaryPrimitives.ReadUInt32BigEndian(frame.AsSpan(8)) == 0, "icon transfer frame");
+        await Send(socket, "value.set", ("controlId", CoughId), ("value", 100), ("requestId", "disconnect-cough"));
+        await FindMessage(socket, "action.result", m => Text(m, "requestId") == "disconnect-cough" && Text(m, "status") == "performed");
+        Check(desktop.CoughActive, "disconnect starts with a cough hold");
         checks.TrySetResult();
         await socket.CloseOutputAsync(WebSocketCloseStatus.NormalClosure, "done", lifetime.Token);
     }
@@ -356,6 +374,7 @@ if (native is not null)
     return;
 }
 #endif
+Check(!desktop.CoughActive, "ending the connection releases its cough hold");
 Check(desktop.Actions == 1 && authorizedRequests == 1, "authenticated dispatch and lock enforcement");
 Console.WriteLine("Passed real TLS WebSocket pairing, certificate pinning, counter repair, catalogue, audio dispatch, lock enforcement and icon transfer tests.");
 await VerifyUpdateRequired();
@@ -805,14 +824,15 @@ async Task VerifyNativeDesktop(WebSocket socket, NativeWindowsDesktop fixture)
     Check(entries.Values.All(item => item.EnumerateObject().Count() == 2), "keep private folder paths off the wire");
 
     var controls = new Dictionary<string, int?>(StringComparer.Ordinal);
-    for (var i = 0; i < 4; i++)
+    for (var i = 0; i < 5; i++)
     {
         var volume = await FindMessage(socket, "value.state", _ => true);
         Check(Valid(volume, "mac_to_panel", "connected"), "native audio availability and values");
         controls.Add(Text(volume, "controlId"), volume.GetProperty("available").GetBoolean() ? (int)UInt(volume, "value") : null);
     }
-    Check(controls.Keys.ToHashSet().SetEquals(["media.output_volume", "media.input_volume", "media.output_mute", "media.input_mute"]),
+    Check(controls.Keys.ToHashSet().SetEquals(["media.output_volume", "media.input_volume", "media.output_mute", "media.input_mute", CoughId]),
         "advertise Windows speaker and microphone controls");
+    Check(controls[CoughId] == controls["media.input_mute"], "Input Cough reflects the microphone mute state");
     if (audioInputs.Length > 0)
     {
         var publishedInputs = new HashSet<string>(StringComparer.Ordinal);
@@ -1167,6 +1187,8 @@ sealed class FakeDesktop : IDesktop
     public bool AppPlaying { get; set; } = true;
     private int appLevel = 50;
     private int inputLevel = 50;
+    private object? coughSession;
+    public bool CoughActive => coughSession is not null;
     public int CatalogueRevision => 0;
     public bool ShortcutsEnabled => false;
     public bool Locked { get; set; }
@@ -1191,10 +1213,22 @@ sealed class FakeDesktop : IDesktop
             default: return false;
         }
     }
+    public bool SetCoughValue(int value, object session)
+    {
+        if (value == 0)
+        {
+            if (coughSession == session) coughSession = null;
+            return true;
+        }
+        if (Locked || (value != 100 && (value != 50 || coughSession != session))) return false;
+        coughSession = session;
+        return true;
+    }
     public IEnumerable<AudioValue> Values()
     {
         yield return new(Speaker, SpeakerLevel);
         yield return MicState;
+        yield return coughSession is null ? MicState with { Id = CoughId } : new(CoughId, 100);
         if (AppPlaying) yield return new(AppVolume, appLevel);
         yield return new(InputLevel, inputLevel);
     }

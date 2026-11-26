@@ -29,6 +29,7 @@ internal interface IDesktop
     byte[]? AppIcon(string appId, int side);
     Task<string> Invoke(JsonElement message, CancellationToken token);
     bool SetValue(string id, int value);
+    bool SetCoughValue(int value, object session);
     IEnumerable<AudioValue> Values();
     Dictionary<string, object?> Metrics(uint generation);
 }
@@ -226,6 +227,7 @@ internal sealed class DisplaySession(IDesktop desktop, Action<Pairing> save, Act
             }
             finally
             {
+                if (capabilityVersion >= CoughVersion) desktop.SetCoughValue(0, this);
                 await lifetime.CancelAsync();
                 try { await read; }
                 catch (Exception e) when (e is OperationCanceledException or WebSocketException or IOException or SessionException) { }
@@ -235,6 +237,7 @@ internal sealed class DisplaySession(IDesktop desktop, Action<Pairing> save, Act
         private Task Send(string type, params (string Name, object? Value)[] fields) =>
             link.Send(Message(type, fields), "connected", token);
 
+        private const uint CoughVersion = 11;
         private const uint OnDemandShortcutsVersion = 23;
 
         private async Task Catalogue()
@@ -271,6 +274,7 @@ internal sealed class DisplaySession(IDesktop desktop, Action<Pairing> save, Act
         }
 
         private bool SupportsAudioValue(string id) =>
+            (id != CoughId || capabilityVersion >= CoughVersion) &&
             (!id.StartsWith(AppVolumePrefix, StringComparison.Ordinal) || capabilityVersion >= 10) &&
             (!id.StartsWith(InputLevelPrefix, StringComparison.Ordinal) || capabilityVersion >= 12);
 
@@ -354,8 +358,11 @@ internal sealed class DisplaySession(IDesktop desktop, Action<Pairing> save, Act
                     break;
                 case "value.set":
                     var id = Text(m, "controlId");
-                    var changed = SupportsAudioValue(id) && !desktop.SessionState.Locked && desktop.SetValue(id, (int)UInt(m, "value"));
-                    if (changed) dirtyAudioValues.Add(id);
+                    var value = (int)UInt(m, "value");
+                    var changed = SupportsAudioValue(id) && (id == CoughId
+                        ? desktop.SetCoughValue(value, this)
+                        : !desktop.SessionState.Locked && desktop.SetValue(id, value));
+                    if (changed && (id != CoughId || value != 50)) dirtyAudioValues.Add(id);
                     await Send("action.result", ("requestId", Text(m, "requestId")), ("status", changed ? "performed" : "not_allowed"));
                     break;
                 case "focus.targets":

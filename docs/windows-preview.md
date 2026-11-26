@@ -47,8 +47,9 @@ In the display editor, add a **Sound** card on Home or in a subpage. Choose one 
 - **Audio Input** adjusts the default microphone level.
 - **Output Mute** toggles speaker or headphone mute.
 - **Input State** toggles microphone mute and shows whether the input is live or muted. If Windows detects no audio input, the card shows **No audio input** and becomes available again when an input is detected.
+- **Input Cough** mutes the default microphone while you hold the card. Release it to restore the microphone’s previous mute state. Use a current Windows companion and display firmware that lists **Input Cough** under **Sound**.
 
-These four cards follow the computer’s default audio devices. For independent sliders, use **Input per device level** to select a connected microphone or **Output per application** to select an app approved in EspDesktop’s **Apps** settings.
+These cards follow the computer’s default audio devices. For independent sliders, use **Input per device level** to select a connected microphone or **Output per application** to select an app approved in EspDesktop’s **Apps** settings.
 
 Start playing sound in the selected app to create a Windows audio session. The app slider becomes unavailable when Windows no longer has a session for it. Moving a level slider above zero unmutes the selected device or app. Use the latest Windows companion for these two controls.
 
