@@ -376,3 +376,17 @@ turn_on_studio_mode=Activezi modul studio?
 turn_off_studio_mode=Dezactivezi modul studio?
 start_replay_buffer_prompt=Pornești bufferul de reluare?
 stop_replay_buffer_prompt=Oprești bufferul de reluare?
+
+# Display pairing, audio and OBS
+label_ha_pairing_fingerprint=Amprentă
+label_ha_pairing_code=Cod de asociere
+label_cough=Tuse
+obs_record=Înregistrează
+obs_take_live=Treci în direct
+obs_save_replay=Salvează reluarea
+obs_enable_studio_mode=Activează modul studio
+obs_choose_preview=Alege o previzualizare
+obs_already_on_program=Deja în program
+obs_transitioning=Tranziție în curs
+obs_replay_not_confirmed=Reluare neconfirmată
+obs_check=Verifică OBS

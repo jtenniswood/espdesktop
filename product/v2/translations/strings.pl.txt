@@ -376,3 +376,17 @@ turn_on_studio_mode=Włączyć tryb studia?
 turn_off_studio_mode=Wyłączyć tryb studia?
 start_replay_buffer_prompt=Uruchomić bufor powtórek?
 stop_replay_buffer_prompt=Zatrzymać bufor powtórek?
+
+# Display pairing, audio and OBS
+label_ha_pairing_fingerprint=Odcisk palca
+label_ha_pairing_code=Kod parowania
+label_cough=Kaszel
+obs_record=Nagrywaj
+obs_take_live=Przełącz na żywo
+obs_save_replay=Zapisz powtórkę
+obs_enable_studio_mode=Włącz tryb studia
+obs_choose_preview=Wybierz podgląd
+obs_already_on_program=Już w programie
+obs_transitioning=Trwa przejście
+obs_replay_not_confirmed=Nie potwierdzono zapisu powtórki
+obs_check=Sprawdź OBS
