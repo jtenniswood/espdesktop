@@ -52,10 +52,17 @@ These four cards follow the computer’s default audio devices. For independent 
 
 Start playing sound in the selected app to create a Windows audio session. The app slider becomes unavailable when Windows no longer has a session for it. Moving a level slider above zero unmutes the selected device or app. Use the latest Windows companion for these two controls.
 
-## Switch OBS scenes
+## Control OBS Studio {#switch-obs-scenes}
 
 In OBS Studio on the same Windows PC, open **Tools → WebSocket Server Settings** and enable the server. In EspDesktop, open **OBS Studio**, enter the port and password shown in OBS, and select **Connect to OBS**. Once connected, open or reload the display editor and add an **OBS Scene** card. Choose the scene you want the card to select.
 
-Scene cards switch Program in normal mode and select Preview in OBS Studio Mode. In Studio Mode, **Take Live** moves a different Preview scene to Program. Use **Transition** to cycle through the transitions configured in OBS, or select a named transition in the card settings. Use current EspDesktop firmware for these controls. EspDesktop saves the connection for the next launch and protects the password with your Windows account.
+Use a current Windows build and matching display firmware for the full set of controls.
+
+- **Scenes and sources** let you switch Program in normal mode or select Preview in Studio Mode. Use **Take Live** to bring Preview to Program, and use the **Sources** page to show or hide items on the selected scene. Choose a named transition or cycle through them.
+- **Audio Controls** let you adjust the level of an OBS mixer input, toggle its mute, or hold **Cough** to mute it temporarily. If the display disconnects during a hold, check the microphone in OBS before going live.
+- **Studio Control** groups recording, streaming, Studio Mode, and replay controls. You can also add a Virtual Camera control or open the OBS Multiview projector from a separate card.
+- **Break** switches to a scene you choose and can mute an OBS input until you resume. Configure both in the Windows app under **OBS Studio → Break scene**. If a break is interrupted, check Program and the microphone in OBS, then acknowledge the interruption in EspDesktop.
+
+EspDesktop saves the connection for the next launch and protects the password with your Windows account. See the [OBS control guide](/mac-controls/obs-studio) for card options and grouped pages.
 
 For build and compatibility details, see the [Windows app guide](https://github.com/jtenniswood/espdesktop/blob/main/windows/README.md).
