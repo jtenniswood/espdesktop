@@ -178,7 +178,7 @@ export class NativePanelConfigController {
     if (result === "conflict") {
       this.dependencies.showBanner("Configuration changed in another browser. Reload before saving again.", "error");
     } else if (result === "mirror-failed") {
-      this.dependencies.showBanner("The configuration saved, but its older-firmware copy did not. Do not downgrade this panel yet.", "error");
+      this.dependencies.showBanner("The configuration saved, but the copy for older firmware could not be confirmed. Do not downgrade this panel yet.", "error");
     } else if (result === "authentication-required") {
       this.dependencies.showBanner("Sign in to save the configuration, enable web_server_auth, or update the panel firmware.", "error");
     } else if (result === "too-large") {

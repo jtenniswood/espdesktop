@@ -33,3 +33,5 @@ Windows development builds with USB support can control a display over a USB dat
 Use **Change connection** on a saved display to switch between USB and the local network or select a different COM port. EspDesktop verifies the display and keeps its pairing.
 
 Choose **Open display editor** to load and save the layout over USB. The editor opens inside EspDesktop and requires the Microsoft Edge WebView2 Runtime. When the display is connected over IP, the editor opens in your browser.
+
+If USB disconnects while saving a layout, reconnect the same display. EspDesktop checks the saved layout before it retries a write. If it cannot confirm the save, choose **Export unsaved layout** in the editor window before closing it. The resulting JSON file works with **System → Restore backup**.

@@ -34,6 +34,27 @@ for (const version of [1, 2]) {
     assert.deepEqual(native.decodeNativeConfigBackupPayload(planned.config.native_config), bytes);
     const restored = native.decodeNativeConfigDocument(native.decodeNativeConfigBackupPayload(planned.config.native_config));
     assert.deepEqual(JSON.parse(JSON.stringify(restored)), document);
+    const { createAppBackupFeature } = load("src/webserver/application/app_backup.ts");
+    const controllers = Object.fromEntries([
+      "settingsHelpers", "preview", "buttonSettings", "configPersistence", "entityState",
+      "shell", "requestApi", "statusPreview", "grid", "schedulePostApi", "clockBarPostApi",
+      "core", "screenScheduleState", "screensaverTimeout", "firmwareUpdate", "clockBar",
+    ].map(name => [name, {}]));
+    const application = createAppBackupFeature({
+      ...controllers,
+      runtime: { els: {} },
+      layout: { deviceId: document.deviceProfile, numSlots: 9, gridCols: 3 },
+      codec: { parseButtonConfig: model.parseRawButtonConfig, parseSubpageConfig: parse },
+      backupContract: wrapper,
+      backupExport: exporter,
+    });
+    const draftBackup = JSON.parse(application.serializeUnsavedLayout(Buffer.from(bytes).toString("base64")));
+    const draft = wrapper.planBackupImport(draftBackup, { device: document.deviceProfile, slots: 9 });
+    assert.equal(draft.settings, null, "leave display settings out of a draft restore");
+    assert.equal(draft.screen, null, "leave screen preferences out of a draft restore");
+    assert.equal(draft.config.native_config.document_version, version);
+    assert.deepEqual(native.decodeNativeConfigBackupPayload(draft.config.native_config), bytes);
+    assert(draft.config.buttons.some(card => card.label === "Saved volume"), "retain readable layout in the backup");
     const restricted = createBackupContractFeature(feature, { parseSubpageConfig: parse },
       { definitions: {} }, { config: { disabledCardTypes: ["companion"] } });
     assert.throws(() => restricted.planBackupImport(exported, { device: document.deviceProfile, slots: 9 }), /does not support the companion/);

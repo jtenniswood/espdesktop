@@ -103,7 +103,61 @@ internal static class UsbEditorChecks
         var layoutIndex = queuedRequests.IndexOf("GET /api/v1/config", StringComparison.Ordinal);
         Require(layoutIndex >= 0 && layoutIndex < queuedRequests.IndexOf("GET /connectors/status", StringComparison.Ordinal),
             "serve the layout before background requests that have not opened a socket");
-        Console.WriteLine("Passed USB web editor request filtering, round-trip HTTP framing, response decoding, and layout priority.");
+        await RecoverLayoutSave(timeout.Token);
+        Console.WriteLine("Passed USB editor request filtering, HTTP framing, layout priority, and interrupted save recovery.");
+    }
+
+    private static async Task RecoverLayoutSave(CancellationToken token)
+    {
+        var submitted = "new layout"u8.ToArray();
+        var previous = "old layout"u8.ToArray();
+        var headers = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+        {
+            ["If-Match"] = "\"v2-3\"",
+            ["X-Panel-Config-Version"] = "2",
+            ["Authorization"] = "Digest placeholder"
+        };
+        await Check("confirm an already committed save", 200, "\"v2-4\"", submitted, 202, ["GET"]);
+        await Check("retry only when the original precondition still holds", 200, "\"v2-3\"", previous, 204, ["GET", "PUT"]);
+        await Check("preserve a concurrent change", 200, "\"v2-4\"", previous, 412, ["GET"]);
+        await Check("keep a recovery authentication challenge from restarting the write", 401, "\"v2-3\"", previous, 412, ["GET"]);
+        await Check("stop if a concurrent write invalidates the retry", 200, "\"v2-3\"", previous, 412, ["GET", "PUT"], putStatus: 409);
+        await Check("keep the draft when authentication expires during retry", 200, "\"v2-3\"", previous, 412, ["GET", "PUT"], putStatus: 401);
+        await Check("confirm a retry with a second lost response", 200, "\"v2-3\"", previous, 202, ["GET", "PUT", "GET"], loseRetry: true);
+
+        async Task Check(string name, int readStatus, string etag, byte[] stored, int expected,
+            string[] expectedMethods, int putStatus = 204, bool loseRetry = false)
+        {
+            var methods = new List<string>();
+            var status = await UsbDisplayEditor.RecoverLayoutSave(headers, submitted, Send, token);
+            Require(status.Status == expected && methods.SequenceEqual(expectedMethods), name);
+            if (expected is 202 or 204) Require(status.Headers.ContainsKey("ETag"), "return the confirmed layout generation");
+
+            Task<UsbEditorResponse> Send(string method, IReadOnlyDictionary<string, string> requestHeaders,
+                byte[] body, CancellationToken cancellation)
+            {
+                cancellation.ThrowIfCancellationRequested();
+                methods.Add(method);
+                if (method == "GET")
+                {
+                    Require(body.Length == 0 && requestHeaders.Count == 1 &&
+                        requestHeaders.GetValueOrDefault("X-Panel-Config-Version") == "2",
+                        "build a separate read without the PUT authorization or precondition");
+                    return Task.FromResult(new UsbEditorResponse(readStatus,
+                        new() { ["ETag"] = etag, ["X-Panel-Config-Version"] = "2" }, stored));
+                }
+
+                Require(requestHeaders["If-Match"] == headers["If-Match"] && body.SequenceEqual(submitted),
+                    "retry with the original precondition and layout");
+                if (loseRetry)
+                {
+                    stored = submitted;
+                    etag = "\"v2-4\"";
+                    throw new IOException("Connection dropped after the retry was saved.");
+                }
+                return Task.FromResult(new UsbEditorResponse(putStatus, new() { ["ETag"] = "\"v2-4\"" }, []));
+            }
+        }
     }
 
     private static void Require(bool value, string message)
