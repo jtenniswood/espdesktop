@@ -40,6 +40,7 @@ internal sealed class WindowsDesktop(LocalSettings settings, ObsConnection? obs 
     private bool? displayAwake;
     public IReadOnlyList<StartApp> Apps => apps;
     public int CatalogueRevision { get; private set; }
+    public int ObsCatalogueRevision { get; private set; }
     public bool ShortcutsEnabled => settings.Shortcuts;
     public bool SupportsObs => obs != null;
     public IEnumerable<CatalogueItem> ObsCatalogue(uint capability) => obs?.Catalogue(capability) ?? [];
@@ -49,18 +50,27 @@ internal sealed class WindowsDesktop(LocalSettings settings, ObsConnection? obs 
     public void SessionChanged(bool locked)
     {
         reportedLocked = locked;
-        if (locked) cough.ReleaseAll();
+        if (locked)
+        {
+            cough.ReleaseAll();
+            obs?.AbandonCoughs();
+        }
     }
 
     public void DisplayChanged(bool awake)
     {
         displayAwake = awake;
-        if (!awake) cough.ReleaseAll();
+        if (!awake)
+        {
+            cough.ReleaseAll();
+            obs?.AbandonCoughs();
+        }
     }
 
     public void Suspend() => cough.ReleaseAll();
     public void Dispose() => cough.Dispose();
     public void Changed() => CatalogueRevision++;
+    public void ObsChanged() => ObsCatalogueRevision++;
     public bool Allowed(StartApp app) => settings.AllApps || settings.AllowedApps.Contains(app.Id);
 
     public async Task Refresh()
@@ -430,6 +440,11 @@ internal sealed class WindowsDesktop(LocalSettings settings, ObsConnection? obs 
         finally { if (bitmap != 0) _ = DeleteObject(bitmap); Com.Release(factory); }
     }
 
+    public Task<bool> SetObsValue(string id, int value, object owner, CancellationToken token) =>
+        obs?.SetAudioValue(id, value, owner, () => SessionState.Locked, token) ?? Task.FromResult(false);
+
+    public void AbandonObsHolds(object owner) => obs?.AbandonDisplay(owner);
+
     public bool SetValue(string id, int value) => !SessionState.Locked &&
         (id.StartsWith("media.", StringComparison.Ordinal) ? Audio.Set(id, value) : Audio.SetTarget(id, value, IdentifyAudioApp));
 
@@ -444,7 +459,8 @@ internal sealed class WindowsDesktop(LocalSettings settings, ObsConnection? obs 
             audioInputs = inputs;
             Changed();
         }
-        return Audio.Read().Concat(levels.Select(pair => new AudioValue(pair.Key, pair.Value))).ToArray();
+        return Audio.Read().Concat(levels.Select(pair => new AudioValue(pair.Key, pair.Value)))
+            .Concat(obs?.AudioValues() ?? []).ToArray();
     }
 
     private string? IdentifyAudioApp(uint pid) => Identify(ReadProcess(pid)) is { } app && Allowed(app) ? app.Id : null;
@@ -553,6 +569,28 @@ internal sealed class WindowsDesktop(LocalSettings settings, ObsConnection? obs 
         var name = new StringBuilder(64);
         _ = GetClassNameW(window, name, name.Capacity);
         return name.ToString() is "CabinetWClass" or "ExploreWClass";
+    }
+
+    internal bool RaiseObsMultiview()
+    {
+        if (SessionState.Locked) return false;
+        nint match = 0;
+        EnumWindows((window, _) =>
+        {
+            if (!IsWindowVisible(window)) return true;
+            var title = new StringBuilder(128);
+            if (GetWindowTextW(window, title, title.Capacity) == 0 ||
+                !title.ToString().StartsWith("Multiview", StringComparison.OrdinalIgnoreCase)) return true;
+            var identity = ReadWindow(window);
+            var executable = Path.GetFileName(identity.Executable);
+            if (!string.Equals(executable, "obs64.exe", StringComparison.OrdinalIgnoreCase) &&
+                !string.Equals(executable, "obs.exe", StringComparison.OrdinalIgnoreCase)) return true;
+            match = window;
+            return false;
+        }, 0);
+        if (match == 0) return false;
+        RequestWindowFocus(match, CancellationToken.None);
+        return true;
     }
 
     private static nint FindExplorerWindow()
@@ -674,6 +712,7 @@ internal sealed class WindowsDesktop(LocalSettings settings, ObsConnection? obs 
     [DllImport("user32.dll")] private static extern nint GetWindow(nint window, uint command);
     [DllImport("user32.dll")] private static extern nint GetTopWindow(nint window);
     [DllImport("user32.dll", CharSet = CharSet.Unicode)] private static extern int GetClassNameW(nint window, StringBuilder name, int max);
+    [DllImport("user32.dll", CharSet = CharSet.Unicode)] private static extern int GetWindowTextW(nint window, StringBuilder title, int max);
     private delegate bool WindowCallback(nint window, nint context);
     [DllImport("user32.dll")] [return: MarshalAs(UnmanagedType.Bool)] private static extern bool EnumWindows(WindowCallback callback, nint context);
     [DllImport("shlwapi.dll", CharSet = CharSet.Unicode)] private static extern int AssocQueryStringW(uint flags, uint type, string association, string? extra, StringBuilder value, ref uint length);
