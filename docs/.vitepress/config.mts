@@ -83,7 +83,7 @@ const cardLinks = [
   { text: 'Websites', link: '/mac-controls/websites' },
   { text: 'File folders', link: '/mac-controls/folders' },
   { text: 'Keyboard shortcuts', link: '/mac-controls/shortcuts' },
-  { text: 'Keyboard shortcut presets', link: '/reference/shortcut-presets' },
+  { text: 'Supported Apps', link: '/reference/shortcut-presets' },
   { text: 'Apple Shortcuts', link: '/mac-controls/apple-shortcuts' },
   { text: 'Sound', link: '/card-types/sound' },
 ]
