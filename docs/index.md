@@ -121,7 +121,7 @@ On macOS, run an Apple Shortcuts workflow with one tap, or group your workflows 
 
 ### Control OBS Studio
 
-Switch scenes from your touchscreen. On macOS, you can also mute audio inputs and control streaming and recording.
+Switch scenes, mix audio, and control streaming and recording on Mac and Windows with a compatible EspDesktop release.
 
 [OBS Studio controls](/mac-controls/obs-studio)
 
