@@ -85,6 +85,43 @@ final class ApplicationCatalogueTests: XCTestCase {
 
     }
 
+    func testUsesFinderNameForInstalledSafariWebApps() async throws {
+        let root = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: root) }
+        let id = "com.apple.Safari.WebApp.\(UUID().uuidString)"
+        try makeApplication(at: root.appendingPathComponent("Google Calendar.app"), identifier: id)
+
+        let apps = await ApplicationCatalogue().scan(roots: [root])
+        XCTAssertEqual(apps.first { $0.bundleIdentifier == id }?.name, "Google Calendar")
+    }
+
+    func testDiscoversExecutableLauncherWithoutABundleIdentifier() async throws {
+        let root = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: root) }
+
+        for name in ["First Launcher", "Second Launcher", "Missing Executable"] {
+            let bundle = root.appendingPathComponent("\(name).app")
+            let executables = bundle.appendingPathComponent("Contents/MacOS")
+            try FileManager.default.createDirectory(at: executables, withIntermediateDirectories: true)
+            let info = ["CFBundlePackageType": "APPL", "CFBundleExecutable": "run.sh"]
+            let data = try PropertyListSerialization.data(fromPropertyList: info, format: .xml, options: 0)
+            try data.write(to: bundle.appendingPathComponent("Contents/Info.plist"))
+            if name != "Missing Executable" {
+                let executable = executables.appendingPathComponent("run.sh")
+                try Data("#!/bin/sh\nexit 0\n".utf8).write(to: executable)
+                try FileManager.default.setAttributes([.posixPermissions: 0o755], ofItemAtPath: executable.path)
+            }
+        }
+
+        let catalogue = ApplicationCatalogue()
+        let first = await catalogue.scan(roots: [root]).filter(\.usesPathIdentifier)
+        let second = await catalogue.scan(roots: [root]).filter(\.usesPathIdentifier)
+        XCTAssertEqual(first.map(\.name), ["First Launcher", "Second Launcher"])
+        XCTAssertEqual(first.map(\.id), second.map(\.id))
+        XCTAssertEqual(Set(first.map(\.id)).count, 2)
+        XCTAssertTrue(first.allSatisfy { $0.id.utf8.count <= 96 && !$0.id.contains("/") })
+    }
+
     private func makeApplication(at url: URL, identifier: String) throws {
         let contents = url.appendingPathComponent("Contents")
         try FileManager.default.createDirectory(at: contents, withIntermediateDirectories: true)

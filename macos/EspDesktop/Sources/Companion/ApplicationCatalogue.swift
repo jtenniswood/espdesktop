@@ -1,3 +1,4 @@
+import CryptoKit
 import Foundation
 
 /// Filesystem discovery runs independently of the UI actor.
@@ -83,11 +84,26 @@ actor ApplicationCatalogue {
     }
 
     private static func application(at url: URL) -> LaunchableApp? {
-        guard let bundle = Bundle(url: url), let id = bundle.bundleIdentifier else { return nil }
-        let name = (bundle.object(forInfoDictionaryKey: "CFBundleDisplayName") as? String)
+        guard let bundle = Bundle(url: url) else { return nil }
+        let filename = url.deletingPathExtension().lastPathComponent
+        let bundleName = (bundle.object(forInfoDictionaryKey: "CFBundleDisplayName") as? String)
             ?? (bundle.object(forInfoDictionaryKey: "CFBundleName") as? String)
-            ?? url.deletingPathExtension().lastPathComponent
-        return LaunchableApp(bundleIdentifier: id, name: name, url: url)
+        if let id = bundle.bundleIdentifier, !id.isEmpty {
+            let isInstalledSafariWebApp = CompanionKeyboardShortcut.isSafariApplication(id)
+                && !CompanionKeyboardShortcut.isSafariTemplate(id)
+            let name = isInstalledSafariWebApp ? filename : (bundleName ?? filename)
+            return LaunchableApp(bundleIdentifier: id, name: name, url: url)
+        }
+
+        // Some launchers, including shortcuts created by Steam, have no bundle identifier.
+        guard bundle.object(forInfoDictionaryKey: "CFBundlePackageType") as? String == "APPL",
+              let executable = bundle.executableURL,
+              (try? executable.resourceValues(forKeys: [.isRegularFileKey]).isRegularFile) == true,
+              FileManager.default.isExecutableFile(atPath: executable.path) else { return nil }
+        let path = url.resolvingSymlinksInPath().path
+        let digest = SHA256.hash(data: Data(path.utf8)).map { String(format: "%02x", $0) }.joined()
+        return LaunchableApp(bundleIdentifier: LaunchableApp.pathIdentifierPrefix + digest,
+                             name: bundleName ?? filename, url: url)
     }
 
     static func orderedApplications(_ applications: [LaunchableApp]) -> [LaunchableApp] {
