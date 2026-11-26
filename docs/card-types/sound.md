@@ -5,7 +5,7 @@ description: Adjust speaker, microphone, and app volume or mute audio from your 
 
 # Sound controls
 
-Use **Sound** cards to control speakers, microphones, and app volume on your paired Mac or Windows PC. **Input Cough** is available on macOS.
+Use **Sound** cards to control speakers, microphones, and app volume on your paired Mac or Windows PC.
 
 ## Add a Sound card
 
@@ -19,7 +19,7 @@ Use **Sound** cards to control speakers, microphones, and app volume on your pai
 | **Audio Input** | Level of the default microphone or audio input. |
 | **Output Mute** | Mute or unmute the default speakers or headphones. |
 | **Input State** | Mute or unmute the default microphone. The card shows **Live** or **Muted**. |
-| **Input Cough** (macOS only) | Hold to mute the default microphone until you release. |
+| **Input Cough** | Hold to mute the default microphone. Release to restore its previous mute state. On Windows, use a current companion app and matching display firmware. |
 | **Input per device level** | Adjust a specific microphone with adjustable gain, even if you change the default input. |
 | **Output per application** | Adjust the volume of a single approved app. |
 
