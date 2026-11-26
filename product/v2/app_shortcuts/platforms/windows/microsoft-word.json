@@ -9,14 +9,6 @@
   "sources": [
     "https://support.microsoft.com/en-us/accessibility/word/keyboard-shortcuts-in-word"
   ],
-  "defaultShortcutIds": [
-    "0",
-    "1",
-    "2",
-    "3",
-    "4",
-    "5"
-  ],
   "shortcuts": [
     {"id": "0", "label": "New", "shortcut": "control+n", "icon": "New Window"},
     {"id": "1", "label": "Open", "shortcut": "control+o", "icon": "Folder"},

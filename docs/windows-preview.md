@@ -36,7 +36,7 @@ With current firmware and a connected Windows companion, the card picker shows W
 - A **Custom** shortcut sends keys to the approved app in front. An **Application** preset sends keys once its selected app is in front. If Windows keeps another window active, bring the preset’s app forward and tap again.
 - A **Keyboard Shortcut** card in **Application** mode holds one shortcut from the paired computer’s catalogue. [Browse Windows shortcut presets](/reference/shortcut-presets). If a card was saved for the other platform, reopen it and choose the app and shortcut again.
 - Pair current display firmware to browse the full Windows preset list. With older compatible firmware, the editor shows the starter shortcuts. Keep the Windows companion updated to get the latest presets.
-- For an app with a shortcut subpage, choose when it opens under **Screen → Appearance → App Subpages**. [App subpage options](/features/subpages#app-page-behavior)
+- A new app shortcut subpage starts with the first seven available shortcuts. You can change the selection in the editor. Choose when the subpage opens under **Screen → Appearance → App Subpages**. [App subpage options](/features/subpages#app-page-behavior)
 - Add a [Website card](/mac-controls/websites) to open a page in your default browser.
 
 ## Control system sound
