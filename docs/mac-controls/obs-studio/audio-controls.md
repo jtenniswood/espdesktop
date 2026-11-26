@@ -1,11 +1,11 @@
 ---
 title: Control the OBS Audio Mixer from a Touchscreen
-description: Adjust OBS mixer levels, mute individual microphones and other inputs, and set up a grouped audio page on EspDesktop.
+description: Adjust OBS mixer levels, mute individual microphones and other inputs, and set up a grouped audio page with EspDesktop on Mac.
 ---
 
 # Audio controls
 
-[Connect OBS Studio](/mac-controls/obs-studio#connect-obs-studio) to control the inputs in its mixer. When selecting a microphone, choose the input your broadcast captures. It can differ from the Mac’s default microphone.
+OBS mixer controls require the Mac app. [Connect OBS Studio](/mac-controls/obs-studio#connect-obs-studio), then choose the microphone your broadcast captures. It can differ from the Mac’s default microphone. For computer audio on either platform, see [Sound controls](/card-types/sound).
 
 <picture>
   <source type="image/avif" srcset="/images/obs/audio-480.avif 480w, /images/obs/audio-960.avif 960w" sizes="(min-width: 768px) 688px, min(688px, 90vw)">

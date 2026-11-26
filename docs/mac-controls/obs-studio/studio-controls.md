@@ -5,7 +5,7 @@ description: Use EspDesktop to control OBS Studio Mode, Multiview, streaming, re
 
 # Studio controls
 
-[Connect OBS Studio](/mac-controls/obs-studio#connect-obs-studio) to use your touchscreen for recording, streaming, and saving replay clips.
+[Connect OBS Studio](/mac-controls/obs-studio#connect-obs-studio) to use **Program scene** and **Take Live** on Mac or Windows. The grouped Studio Control page, recording, streaming, Virtual Camera, Replay Buffer, and Multiview require Mac.
 
 <picture>
   <source type="image/avif" srcset="/images/obs/studio-480.avif 480w, /images/obs/studio-960.avif 960w" sizes="(min-width: 768px) 688px, min(688px, 90vw)">
@@ -29,12 +29,14 @@ Use **Edit Subpage** to move, edit, or delete the preset cards. Add **Virtual Ca
 
 Add a **Studio Mode** card and choose one option under **Type**.
 
-| Type | What it does |
-| --- | --- |
-| **Studio Mode** | Toggles Studio Mode. The card asks for confirmation before turning it off by default. |
-| **Program scene** | Shows the name of the scene OBS is sending to its output. |
-| **Take Live** | Sends the current Preview scene to Program using the selected transition. See [how to preview a scene and take it live](/mac-controls/obs-studio/scene-control-and-mixing#preview-a-scene-and-take-it-live). |
-| **Open Multiview** | Opens OBS’s overview of scenes full-screen on the first monitor listed by OBS. Tap again to bring the open window to the front. |
+| Type | What it does | Platform |
+| --- | --- | --- |
+| **Studio Mode** | Toggles Studio Mode. The card asks for confirmation before turning it off by default. | Mac |
+| **Program scene** | Shows the name of the scene OBS is sending to its output. | Mac and Windows |
+| **Take Live** | Sends Preview to Program using the selected transition. [Preview a scene and take it live](/mac-controls/obs-studio/scene-control-and-mixing#preview-a-scene-and-take-it-live). | Mac and Windows |
+| **Open Multiview** | Opens OBS’s overview of scenes full-screen on the first monitor listed by OBS. Tap again to bring the open window to the front. | Mac |
+
+On Windows, enable **Studio Mode** in OBS before using **Take Live**.
 
 For **Open Multiview**, enable EspDesktop in **System Settings → Privacy & Security → Accessibility** so it can find and focus the window. Press **Esc** on the Mac to close it.
 

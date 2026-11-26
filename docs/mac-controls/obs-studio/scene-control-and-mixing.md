@@ -1,24 +1,24 @@
 ---
 title: Switch OBS Scenes and Mix Transitions from a Touchscreen
-description: Select OBS scenes, preview a shot, take it live, choose transitions, and switch to a break scene from your EspDesktop touchscreen.
+description: Switch OBS scenes, take Preview live, and choose transitions from an EspDesktop touchscreen on Mac or Windows.
 ---
 
 # Scene control and mixing
 
-**Program** is the scene OBS sends to its output. **Preview** is where you line up the next scene with Studio Mode on. [Connect OBS Studio](/mac-controls/obs-studio#connect-obs-studio), then open **Add Card → OBS Studio** in the display editor.
+Scene, Program, Take Live, and transition controls work on Mac and Windows. **Program** is the live output. **Preview** is where you line up the next scene with Studio Mode on. [Connect OBS Studio](/mac-controls/obs-studio#connect-obs-studio), then open **Add Card → OBS Studio** in the display editor.
 
 <picture>
   <source type="image/avif" srcset="/images/obs/scenes-480.avif 480w, /images/obs/scenes-960.avif 960w" sizes="(min-width: 768px) 688px, min(688px, 90vw)">
   <img src="/images/obs/scenes.jpg" alt="EspDesktop Scenes page with Studio live, Safari in Preview and Cut selected" width="1440" height="1440">
 </picture>
 
-On this customised Scenes page, **Studio** is live and **Safari** is selected in Preview. **Save Replay** was added next to **Take Safari** to keep clip capture within reach.
+Mac example with **Studio** live, **Safari** selected in Preview, and **Save Replay** beside **Take Safari**.
 
 ## Add grouped scene or transition pages
 
 ### Scenes
 
-Choose **Grouped pages → Scenes** and save the card. The page fills with scenes from your current OBS scene collection. **Break**, **Transition**, and **Take Live** appear where there’s room. **Take Live** spans two columns by default.
+Choose **Grouped pages → Scenes** and save the card. The page fills with scenes from your current OBS scene collection. **Transition** and **Take Live** appear where there’s room. **Take Live** spans two columns by default. **Break** requires the Mac app.
 
 Open **Edit Card** on the **Scenes** page card to hide or reorder scenes. In this example, all four are visible. Putting your most-used scenes first gives them the first available cells after **Back**.
 
@@ -49,6 +49,8 @@ Choose **Grouped pages → Transitions** and save the card. It fills available c
 
 ## Preview a scene and take it live
 
+Turn on **Studio Mode** in OBS if you want to preview scenes first. Mac users can also turn it on from a touchscreen card.
+
 1. Use the **Scenes** page or add a **Scene** card and choose an **OBS scene**. With Studio Mode off, tapping the card changes **Program**. With Studio Mode on, it selects **Preview**. The card highlights the scene it controls. EspDesktop keeps the card’s binding if the scene becomes unavailable.
 2. To see what’s live, add a **Studio Mode** card and set **Type** to **Program scene**. The card shows the name of the current Program scene with **Live** underneath.
 3. To send Preview to Program, use **Take Live** on the Scenes page or add a **Studio Mode** card with **Type** set to **Take Live**. With Studio Mode on and Preview different from Program, the card is ready and shows the scene it will take live and the selected transition, such as **Take Safari** with **Cut** underneath. When both scenes match, it shows **Currently Live**. If Preview changes before the command reaches OBS, check the updated name before tapping again.
@@ -64,7 +66,7 @@ Under **Card types → Transitions**, select an option under **Type**.
 
 In Studio Mode, choose the transition you want, then use **Take Live** to send Preview to Program.
 
-## Switch to a break scene
+## Switch to a break scene on Mac {#switch-to-a-break-scene}
 
 1. In the EspDesktop Mac app, open **Settings → OBS → Break Settings**. Under **Break scene**, choose the scene viewers should see during your break. Under **Mute during break**, choose an input such as **Mic/Aux**, or select **Leave audio as is**. EspDesktop saves these choices for the current scene collection.
 2. Use **Break** on the Scenes page or add it under **Card types → Break**. Tap **Start**. If you chose an input, EspDesktop verifies that it’s muted before switching Program.

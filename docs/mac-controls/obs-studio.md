@@ -1,20 +1,20 @@
 ---
-title: Control OBS Studio from a Touchscreen
-description: Connect OBS Studio to EspDesktop and set up touchscreen pages for scenes, audio, transitions, recording, and streaming.
+title: Control OBS Studio on Mac and Windows
+description: Connect OBS Studio to EspDesktop on Mac or Windows to switch scenes, choose transitions, and take Preview live from your touchscreen.
 ---
 
 # OBS Studio controls
 
 OBS Studio is a free, open-source app for recording video and live streaming. You build **scenes** from sources like cameras, screen captures, and graphics, then use the mixer to adjust microphones and other audio. [Visit the OBS Project for downloads and guides](https://obsproject.com/).
 
-Use your touchscreen to switch OBS scenes on Mac and Windows. The Mac app also supports mixer, recording, and streaming controls.
+On **Mac and Windows**, you can switch scenes, show the live Program scene, choose transitions, and take Preview live. **Mac** also supports the OBS mixer, Break, recording, streaming, Virtual Camera, Replay Buffer, Multiview, and toggling Studio Mode.
 
 <picture>
   <source type="image/avif" srcset="/images/obs/home-480.avif 480w, /images/obs/home-960.avif 960w" sizes="(min-width: 768px) 688px, min(688px, 90vw)">
   <img src="/images/obs/home.jpg" alt="EspDesktop Home screen with OBS cards for recording, streaming, scenes and audio" width="1343" height="1440">
 </picture>
 
-This example puts recording and streaming controls on Home, with **Scenes** and **Audio** one tap away.
+Mac example with recording, streaming, **Scenes**, and **Audio** on Home.
 
 ## Connect OBS Studio
 
@@ -31,22 +31,22 @@ Use a [paired display](/screens/4848s040) with EspDesktop app and firmware versi
   </picture>
 </a>
 
-## Switch scenes on Windows {#switch-obs-scenes}
+## Switch scenes {#switch-obs-scenes}
 
-Add a **Scene** card and choose a scene. The card switches Program in normal mode and selects Preview in Studio Mode. Use **Take Live** to send the Preview scene to Program. Use **Transition** to cycle through your OBS transitions or select a named transition.
+Add a **Scene** card and choose the scene you want. With Studio Mode on, the card selects Preview. On Windows, turn on Studio Mode in OBS itself. [Preview scenes, take them live, and choose transitions](/mac-controls/obs-studio/scene-control-and-mixing#preview-a-scene-and-take-it-live).
 
-## Start with grouped pages on Mac {#start-with-grouped-pages}
+## Start with grouped pages
 
 In the **OBS Studio** picker, look under **Grouped pages**. Pick one and choose **Save**. Tap its card on the touchscreen to open the page, then tap **Back** to return. Repeat for each page you want.
 
-| Page | What you get |
-| --- | --- |
-| [Audio](/mac-controls/obs-studio/audio-controls#add-the-audio-grouped-page) | Volume sliders for the inputs in the OBS mixer. |
-| [Scenes](/mac-controls/obs-studio/scene-control-and-mixing#scenes) | Buttons for scenes in the current collection, with Break, Transition, and Take Live where there’s room. |
-| [Studio Control](/mac-controls/obs-studio/studio-controls#add-the-studio-control-grouped-page) | Record, Stream, Studio Mode, Replay Buffer, and Save Replay in one layout. |
-| [Transitions](/mac-controls/obs-studio/scene-control-and-mixing#transitions) | One button per scene transition configured in OBS. |
+| Page | What you get | Platform |
+| --- | --- | --- |
+| [Scenes](/mac-controls/obs-studio/scene-control-and-mixing#scenes) | Buttons for scenes in the current collection. | Mac and Windows |
+| [Transitions](/mac-controls/obs-studio/scene-control-and-mixing#transitions) | One button per scene transition configured in OBS. | Mac and Windows |
+| [Audio](/mac-controls/obs-studio/audio-controls#add-the-audio-grouped-page) | Volume sliders for the inputs in the OBS mixer. | Mac |
+| [Studio Control](/mac-controls/obs-studio/studio-controls#add-the-studio-control-grouped-page) | Record, Stream, Studio Mode, Replay Buffer, and Save Replay. | Mac |
 
-For a first check, add **Scenes** and **Audio**. With Studio Mode on, select a scene and check that it appears in Preview in OBS. Make a short test recording and listen back to check your mix.
+To test on either platform, turn on Studio Mode in OBS and tap a scene. Check that it appears in Preview.
 
 <a href="/images/obs/obs-card-picker.png">
   <picture>
@@ -59,17 +59,17 @@ For a first check, add **Scenes** and **Audio**. With Studio Mode on, select a s
 
 Add individual controls from **Add Card → OBS Studio → Card types**. You can put them on Home or in a subpage.
 
-| Card type | Options and setup |
-| --- | --- |
-| [Audio Controls](/mac-controls/obs-studio/audio-controls#add-an-audio-control) | **Level**, **Input State**, or **Cough**. Choose a mixer input. |
-| [Break](/mac-controls/obs-studio/scene-control-and-mixing#switch-to-a-break-scene) | Set up a break scene and optional mute in the Mac app. |
-| [Output Controls](/mac-controls/obs-studio/studio-controls#streaming-recording-and-virtual-camera) | **Streaming**, **Recording**, or **Virtual Camera**. |
-| [Replay Buffer](/mac-controls/obs-studio/studio-controls#replay-buffer) | **Save Replay** or **Start / Stop Buffer**. |
-| [Scene](/mac-controls/obs-studio/scene-control-and-mixing#preview-a-scene-and-take-it-live) | Choose a scene from the current collection. |
-| [Studio Mode](/mac-controls/obs-studio/studio-controls#studio-mode-and-multiview) | **Studio Mode**, **Program scene**, **Take Live**, or **Open Multiview**. |
-| [Transitions](/mac-controls/obs-studio/scene-control-and-mixing#choose-a-transition) | **Cycle transitions** or **Select a transition**. |
+| Card type | Mac and Windows | Mac only |
+| --- | --- | --- |
+| [Scene](/mac-controls/obs-studio/scene-control-and-mixing#preview-a-scene-and-take-it-live) | Choose a scene from the current collection. | |
+| [Studio Mode](/mac-controls/obs-studio/studio-controls#studio-mode-and-multiview) | **Program scene** and **Take Live**. | Toggle **Studio Mode** or **Open Multiview**. |
+| [Transitions](/mac-controls/obs-studio/scene-control-and-mixing#choose-a-transition) | **Cycle transitions** or **Select a transition**. | |
+| [Audio Controls](/mac-controls/obs-studio/audio-controls#add-an-audio-control) | | **Level**, **Input State**, or **Cough** for a mixer input. |
+| [Break](/mac-controls/obs-studio/scene-control-and-mixing#switch-to-a-break-scene) | | Switch to a break scene and optionally mute a mixer input. |
+| [Output Controls](/mac-controls/obs-studio/studio-controls#streaming-recording-and-virtual-camera) | | **Streaming**, **Recording**, or **Virtual Camera**. |
+| [Replay Buffer](/mac-controls/obs-studio/studio-controls#replay-buffer) | | **Save Replay** or **Start / Stop Buffer**. |
 
-Choose **Open the OBS Studio App** to add an **Applications** card with **OBS Studio** already selected. Saving the card adds an app subpage with OBS Studio keyboard shortcuts.
+On Mac, choose **Open the OBS Studio App** to add an **Applications** card with OBS Studio shortcuts. On Windows, use [Applications](/mac-controls/apps) to launch OBS Studio.
 
 ## Customise an OBS card or page
 
@@ -81,8 +81,8 @@ Choose **Open the OBS Studio App** to add an **Applications** card with **OBS St
 
 <FaqAccordion>
 
-::: details Can I control OBS Studio from a touchscreen on my Mac?
-Yes. Pair your display with the EspDesktop Mac app, then connect the app to OBS Studio using its built-in WebSocket server. Add OBS Studio cards to the display for the scenes, audio inputs, and broadcast controls you use.
+::: details Can I control OBS Studio from a touchscreen on Mac and Windows?
+Yes. Connect EspDesktop to OBS Studio’s WebSocket server, then add an OBS Studio card to your display. Scene switching, transitions, and Take Live work on both platforms.
 :::
 
 ::: details Why is the OBS tab missing in EspDesktop?
@@ -90,7 +90,7 @@ EspDesktop shows **Settings → OBS** when it finds OBS Studio installed in an A
 :::
 
 ::: details Why can’t EspDesktop connect to OBS Studio?
-Open OBS Studio and check that the WebSocket server is enabled. Match the port and password in **Settings → OBS** in EspDesktop. A saved password appears as dots until you click the field. Leave the field blank and choose **Reconnect** to reuse the saved password.
+Check that the OBS WebSocket server is enabled and that its port and password match in EspDesktop. On Mac, leave the password field blank and choose **Reconnect** to reuse the saved password.
 :::
 
 ::: details Can I switch scenes without putting them live immediately?
@@ -98,7 +98,7 @@ Yes. Turn on **Studio Mode** and tap a scene card to select it in Preview. Use *
 :::
 
 ::: details Can I mute my OBS microphone from the touchscreen?
-Yes. Add an **Audio Controls** card, set **Type** to **Input State**, and choose the microphone from the OBS mixer. Use **Cough** to mute it only while you hold the card.
+On Mac, add an **Audio Controls** card, set **Type** to **Input State**, and choose the microphone from the OBS mixer. Use **Cough** to mute it only while you hold the card.
 :::
 
 </FaqAccordion>
