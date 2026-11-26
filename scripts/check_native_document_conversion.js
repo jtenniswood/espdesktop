@@ -135,7 +135,8 @@ const manyEmpty = v1.encodePanelConfig(doc({ buttons: { 1: folder }, subpages: {
 const shortFinish = spawnSync(importCli, ["finish-short"], { input: manyEmpty, cwd: ROOT });
 assert.equal(shortFinish.status, 2, shortFinish.stderr.toString()); ++importFailures;
 for (const source of budgetCases) {
-  const mode = profiles[source.deviceProfile].slots > 25 ? "large-budget" : "budget";
+  // A fully populated layout above 20 slots needs the larger import workspace.
+  const mode = profiles[source.deviceProfile].slots > 20 ? "large-budget" : "budget";
   const result = spawnSync(importCli, [mode], { input: v1.encodePanelConfig(source), cwd: ROOT, maxBuffer: 16 * 1024 * 1024 });
   assert.equal(result.status, 0, `${source.deviceProfile}: ${result.stderr.toString()}`);
   const browser = bridge.convertNativeV1ToV2(v1.encodePanelConfig(source));
