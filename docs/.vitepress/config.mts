@@ -79,13 +79,13 @@ const customiseLinks = [
   { text: 'Adding a card', link: '/features/adding-a-card' },
 ]
 const cardLinks = [
+  { text: 'Apple Shortcuts', link: '/mac-controls/apple-shortcuts' },
   { text: 'Apps', link: '/mac-controls/apps' },
-  { text: 'Websites', link: '/mac-controls/websites' },
   { text: 'File folders', link: '/mac-controls/folders' },
   { text: 'Keyboard shortcuts', link: '/mac-controls/shortcuts' },
-  { text: 'Supported Apps', link: '/reference/shortcut-presets' },
-  { text: 'Apple Shortcuts', link: '/mac-controls/apple-shortcuts' },
   { text: 'Sound', link: '/card-types/sound' },
+  { text: 'Supported Apps', link: '/reference/shortcut-presets' },
+  { text: 'Websites', link: '/mac-controls/websites' },
 ]
 const obsStudioLink = { text: 'OBS Studio', link: '/mac-controls/obs-studio' }
 const obsStudioSidebar = {
