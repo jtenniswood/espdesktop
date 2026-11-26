@@ -9,7 +9,7 @@ Choose **EspDesktop** to control a Mac or Windows PC. Choose **EspControl** to c
 
 | I want to… | Project and setup |
 | --- | --- |
-| Launch apps, open folders or websites, run keyboard shortcuts or lock the computer | **EspDesktop**. Follow the [macOS setup](/screens/4848s040#setup-on-macos) or [Windows setup](/windows) guide. |
+| Launch apps, open folders or websites, run keyboard shortcuts or lock the computer | **EspDesktop**. Follow the [macOS setup](/macos) or [Windows setup](/windows) guide. |
 | Trigger a saved EspDesktop action from a Home Assistant automation | **EspDesktop**. [Enable the ESPHome integration for your display](/getting-started/home-assistant-actions). |
 | Toggle lights, run Home Assistant scripts or see sensor readings on a touchscreen | **EspControl**. Use the [4848S040 Home Assistant setup guide](https://jtenniswood.github.io/espcontrol/screens/4848s040). |
 

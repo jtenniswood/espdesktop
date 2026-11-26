@@ -13,6 +13,7 @@ export function canonicalUrlFor(relativePath: string) {
 const espcontrol = 'https://jtenniswood.github.io/espcontrol/'
 const immichGuide = `${espcontrol}immich/`
 const displaySetup = `${hostname}screens/4848s040`
+const macSetup = `${hostname}macos`
 const windowsSetup = `${hostname}windows`
 const macControls = `${hostname}#what-you-can-control`
 
@@ -21,7 +22,7 @@ const macControls = `${hostname}#what-you-can-control`
 export const redirects: Record<string, string> = {
   'windows-preview': windowsSetup,
   'card-types/climate': `${espcontrol}card-types/climate`,
-  'getting-started/mac-app': `${displaySetup}#download`,
+  'getting-started/mac-app': macSetup,
   'getting-started/install': `${displaySetup}#install`,
   'getting-started/c6-recovery': `${espcontrol}getting-started/troubleshooting#a-p4-panel-has-unreliable-wifi`,
   'immich/installation': `${immichGuide}#installation`,
@@ -105,12 +106,12 @@ const formerImmichSections = Object.fromEntries([
   'troubleshooting',
 ].map(section => [`#${section}`, `${immichGuide}#${section}`]))
 
-const formerMacAppSections = Object.fromEntries([
-  'install-a-release',
-  'pair-the-display',
-  'check-the-connection',
-  'check-for-mac-app-updates',
-].map(section => [`#${section}`, `${displaySetup}#${section}`]))
+const formerMacAppSections = {
+  '#install-a-release': `${macSetup}#install-espdesktop`,
+  '#pair-the-display': `${macSetup}#pair-your-display`,
+  '#check-the-connection': `${macSetup}#pair-your-display`,
+  '#check-for-mac-app-updates': '/settings/mac-app#check-for-mac-app-updates',
+}
 
 const formerWindowsSections = {
   '#install-espdesktop': `${windowsSetup}#install-espdesktop`,

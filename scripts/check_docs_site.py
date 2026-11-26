@@ -411,7 +411,7 @@ def check_build(dist):
     redirects = {
         'windows-preview': BASE + 'windows',
         'card-types/climate': 'https://jtenniswood.github.io/espcontrol/card-types/climate',
-        'getting-started/mac-app': BASE + 'screens/4848s040#download',
+        'getting-started/mac-app': BASE + 'macos',
         'getting-started/install': BASE + 'screens/4848s040#install',
         'getting-started/c6-recovery': 'https://jtenniswood.github.io/espcontrol/getting-started/troubleshooting#a-p4-panel-has-unreliable-wifi',
         'immich/installation': 'https://jtenniswood.github.io/espcontrol/immich/#installation',

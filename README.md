@@ -30,7 +30,7 @@ You can organise controls into subpages, resize and rearrange cards, change icon
 
 1. **Install EspDesktop firmware** on a supported touchscreen from Chrome or Edge.
 2. **Connect the display to 2.4 GHz WiFi.**
-3. **Install EspDesktop** for [macOS](https://espdesktop.com/screens/4848s040#setup-on-macos) or [Windows](https://espdesktop.com/windows).
+3. **Install EspDesktop** for [macOS](https://espdesktop.com/macos) or [Windows](https://espdesktop.com/windows).
 4. **Pair the computer and display.** Select the display in EspDesktop and enter its pairing code.
 5. **Approve access.** Choose the applications and folders the display may use. Follow the [permissions guide](https://espdesktop.com/mac-controls/security) to enable keyboard shortcuts and Lock Machine.
 6. **Build your control surface.** Add Companion cards and arrange them from the display's web page.

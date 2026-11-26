@@ -13,7 +13,7 @@ Choose **Apply Configuration** at the bottom of the tab when you’re ready to r
 
 ### Companion
 
-Open **Connectors → Companion** to check the connection. While the display is unpaired, choose **Copy** to copy the four-letter code, then paste it into the Mac app. [Pair the Mac app](/screens/4848s040#pair-the-display).
+Open **Connectors → Companion** to check the connection. While the display is unpaired, choose **Copy** to copy the four-letter code, then paste it into the Mac app. [Pair the Mac app](/macos#pair-your-display).
 
 <a href="/images/web-editor-mac-companion-pairing.png"><picture><source type="image/avif" srcset="/images/web-editor-mac-companion-pairing-480.avif 480w, /images/web-editor-mac-companion-pairing-960.avif 960w" sizes="(min-width: 768px) 688px, 90vw"><img src="/images/web-editor-mac-companion-pairing.png" alt="Companion card in the System tab showing four boxed letters and a Copy button" width="1372" height="1686" loading="lazy"></picture></a>
 

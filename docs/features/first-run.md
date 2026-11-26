@@ -5,7 +5,7 @@ description: Choose your favourite apps, add ready-to-use keyboard shortcuts and
 
 # Set up your first touchscreen layout {#app-setup-wizard}
 
-The setup wizard helps you build your first Home screen. Open the web editor for an empty display. If your computer isn’t connected yet, the wizard starts with **Connect your computer**. Follow the pairing steps for [macOS](/screens/4848s040#setup-on-macos) or [Windows](/windows#pair-your-display), then choose **Next** once connected.
+The setup wizard helps you build your first Home screen. Open the web editor for an empty display. If your computer isn’t connected yet, the wizard starts with **Connect your computer**. Follow the pairing steps for [macOS](/macos) or [Windows](/windows#pair-your-display), then choose **Next** once connected.
 
 ## 1. Choose your apps
 

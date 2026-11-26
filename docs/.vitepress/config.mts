@@ -156,7 +156,7 @@ export default defineConfig({
       const macReleaseTag = process.env.ESPDESKTOP_MAC_RELEASE_TAG
       const releaseDate = Date.parse(process.env.ESPDESKTOP_MAC_RELEASE_DATE ?? '')
       if (macReleaseTag && Number.isFinite(releaseDate)) {
-        const releasePages = ['download']
+        const releasePages = ['download', 'macos']
         if (process.env.ESPDESKTOP_MATCHED_RELEASE_TAG === macReleaseTag) {
           releasePages.push('reference/companion-compatibility')
         }
@@ -204,7 +204,7 @@ export default defineConfig({
       frontmatter.next = { text: 'Install the display', link: '/screens/4848s040#install' }
     }
 
-    if (relativePath === 'download.md' || relativePath === 'screens/4848s040.md') {
+    if (relativePath === 'download.md' || relativePath === 'macos.md') {
       const releases = 'https://github.com/jtenniswood/espdesktop/releases'
       const tag = process.env.ESPDESKTOP_MAC_RELEASE_TAG
       if (tag && !/^v?\d+\.\d+\.\d+$/.test(tag)) {
@@ -359,7 +359,7 @@ export default defineConfig({
         text: 'Get started',
         items: [
           { text: 'Display setup', link: '/screens/4848s040' },
-          { text: 'macOS setup', link: '/screens/4848s040#setup-on-macos' },
+          { text: 'macOS setup', link: '/macos' },
           { text: 'Windows setup', link: '/windows' },
           { text: 'Printable stand', link: '/screens/4848s040-stand' },
         ],

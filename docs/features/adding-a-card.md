@@ -15,7 +15,7 @@ description: Add a card to the EspDesktop screen grid, choose a card type, and c
 
 ## Which cards work with my computer?
 
-The picker depends on which computer is connected and the versions of EspDesktop and the display firmware. For computer controls, pair the display with [macOS](/screens/4848s040#setup-on-macos) or [Windows](/windows#pair-your-display) first.
+The picker depends on which computer is connected and the versions of EspDesktop and the display firmware. For computer controls, pair the display with [macOS](/macos) or [Windows](/windows#pair-your-display) first.
 
 | Card | Use it to | Platform |
 | --- | --- | --- |
