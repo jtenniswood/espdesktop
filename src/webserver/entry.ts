@@ -976,7 +976,7 @@ function composeApplicationContext(liveGeneratedActions: () => readonly Companio
     },
   );
   const firstRunSetup = createFirstRunSetup({
-    ...dom, capacity: layout.numSlots, supported: !!layout.config.features?.companion,
+    ...dom, capacity: layout.numSlots, deviceProfile: layout.deviceId, supported: !!layout.config.features?.companion,
     native: nativePanelConfig, connectors: connectorsPage, fields, shell,
     autoSwitchEnabled: () => state.autoOpenAppSubpages,
     onSaved: (mirrorFailed) => {

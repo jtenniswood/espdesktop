@@ -69,6 +69,20 @@ test("setup writes native cards and shortcut pages within capacity together with
   assert.throws(() => setup(result, [safari], false), /already has a layout/);
 });
 
+test("setup accepts the full app limit for each large touchscreen and rejects another app", () => {
+  const apps = Array.from({ length: 21 }, (_, index) => ({ id: "org.example.app" + index, label: "App " + index }));
+  for (const [deviceProfile, slots, limit] of [
+    ["guition-esp32-p4-jc8012p4a1-v3", 24, 20],
+    ["guition-esp32-p4-jc1060p470-v3", 15, 15],
+    ["guition-esp32-s3-4848s040", 9, 8],
+  ]) {
+    const input = empty({ deviceProfile });
+    const { layout } = decodePanelPageSnapshot(setup(input, apps.slice(0, limit), false, slots));
+    assert.equal(layout.rootCards.length, limit, deviceProfile);
+    assert.throws(() => setup(input, apps.slice(0, limit + 1), false, slots), /setup limit/, deviceProfile);
+  }
+});
+
 test("skip saves completion without creating cards and launch-only creates no subpages", () => {
   const skipped = decodePanelPageSnapshot(setup(empty(), [], false));
   assert.deepEqual(skipped.layout.rootCards, []);
