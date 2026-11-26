@@ -23,6 +23,7 @@ internal sealed class UsbEditorWindow : Window
     private readonly Button reload = new() { Content = "Reload", IsEnabled = false };
     private readonly Func<UsbDisplayEditor?> getEditor;
     private readonly CancellationTokenSource lifetime = new();
+    private CancellationTokenSource pageReads = new();
     private NetworkCredential? credentials;
     private bool closed;
 
@@ -71,8 +72,10 @@ internal sealed class UsbEditorWindow : Window
         {
             closed = true;
             lifetime.Cancel();
+            pageReads.Cancel();
             browser.Dispose();
             lifetime.Dispose();
+            pageReads.Dispose();
         };
     }
 
@@ -121,20 +124,29 @@ internal sealed class UsbEditorWindow : Window
 
     private void LoadEditor()
     {
+        // Drop queued reads from the previous page. Any submitted write keeps
+        // its normal lifetime so reloading cannot interrupt a save.
+        var previousReads = pageReads;
+        pageReads = new CancellationTokenSource();
+        previousReads.Cancel();
+        previousReads.Dispose();
         status.Text = "Loading editor over USB…";
         browser.CoreWebView2.Navigate(origin.AbsoluteUri);
     }
 
     private async void HandleRequest(object? sender, CoreWebView2WebResourceRequestedEventArgs e)
     {
+        if (closed) return;
         using var deferral = e.GetDeferral();
         string? path = null;
         var method = "";
+        var token = lifetime.Token;
         try
         {
             var request = e.Request;
             path = IsLocal(request.Uri) ? new Uri(request.Uri).PathAndQuery : null;
             method = request.Method;
+            if (method == "GET") token = pageReads.Token;
             if (path == "/" && request.Method == "GET")
             {
                 Respond(e, 200, "Content-Type: text/html; charset=utf-8\r\n" +
@@ -160,11 +172,12 @@ internal sealed class UsbEditorWindow : Window
 
             var headers = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
             foreach (var header in request.Headers) headers[header.Key] = header.Value;
-            var body = ReadBody(request.Content, lifetime.Token);
+            var body = ReadBody(request.Content, token);
             if (body is null) { Respond(e, 413); return; }
             var usedCredentials = credentials;
-            var reply = await RequestPanel(editor, method, path, headers, body, usedCredentials);
+            var reply = await RequestPanel(editor, method, path, headers, body, usedCredentials, token);
             if (closed) return;
+            if (token.IsCancellationRequested) { Respond(e, 503); return; }
             if (reply.Status == 401 && ReferenceEquals(credentials, usedCredentials))
             {
                 credentials = null;
@@ -182,16 +195,15 @@ internal sealed class UsbEditorWindow : Window
         catch (Exception ex) when (IsConnectionError(ex) || ex is COMException)
         {
             if (closed) return;
-            if (method != "GET" || path is "/0.js" or "/api/v1/config" || getEditor() is null)
+            if (!token.IsCancellationRequested && (method != "GET" || path is "/0.js" or "/api/v1/config" || getEditor() is null))
                 status.Text = "The display didn’t respond. Check the USB connection and retry.";
             Respond(e, 503);
         }
     }
 
     private async Task<UsbEditorResponse> RequestPanel(UsbDisplayEditor editor, string method, string path,
-        Dictionary<string, string> headers, byte[] body, NetworkCredential? usedCredentials)
+        Dictionary<string, string> headers, byte[] body, NetworkCredential? usedCredentials, CancellationToken token)
     {
-        var token = lifetime.Token;
         try { return await editor.Request(method, path, headers, body, usedCredentials, token); }
         catch (Exception ex) when (method == "GET" && !token.IsCancellationRequested && IsConnectionError(ex))
         {

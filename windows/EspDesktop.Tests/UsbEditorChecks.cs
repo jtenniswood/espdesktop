@@ -94,7 +94,7 @@ internal static class UsbEditorChecks
         writes.SetLength(0);
         var release = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
         releaseClose = release;
-        var closing = editor.Request("GET", "/espdesktop/version.json", new Dictionary<string, string>(), [], null, timeout.Token);
+        var closing = editor.Request("GET", "/espdesktop/version", new Dictionary<string, string>(), [], null, timeout.Token);
         var background = editor.Request("GET", "/connectors/status", new Dictionary<string, string>(), [], null, timeout.Token);
         var layout = editor.Request("GET", "/api/v1/config", new Dictionary<string, string>(), [], null, timeout.Token);
         release.TrySetResult();

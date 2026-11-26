@@ -21,7 +21,7 @@ internal sealed class UsbDisplayEditor(UsbEditorTunnel tunnel)
         if (!IsAllowed(method, path, body)) return new(403, [], []);
         using var deadline = CancellationTokenSource.CreateLinkedTokenSource(token, tunnel.Session);
         deadline.CancelAfter(TimeSpan.FromSeconds(120));
-        if (path is "/api/v1/config" or "/api/v1/capabilities")
+        if (path is "/espdesktop/version.json" or "/api/v1/capabilities" or "/api/v1/config")
             return await RequestOnTunnel(method, path, headers, body, credentials, deadline.Token).ConfigureAwait(false);
 
         // Let layout discovery and configuration pass queued entity reads while
