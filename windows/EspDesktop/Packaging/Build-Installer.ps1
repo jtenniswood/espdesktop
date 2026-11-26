@@ -43,7 +43,7 @@ New-Item -ItemType Directory -Path $staged -Force | Out-Null
 
 try {
     $assetBuild = Join-Path $build 'editor'
-    python (Join-Path $repo 'scripts/build.py') www --temporary-output $assetBuild
+    python -X utf8 (Join-Path $repo 'scripts/build.py') www --temporary-output $assetBuild
     if ($LASTEXITCODE) { throw 'USB editor build failed. Run npm ci from the repository root before building the installer.' }
     $asset = Join-Path $assetBuild 'embedded/www.js'
     if (!(Test-Path -LiteralPath $asset -PathType Leaf)) { throw 'The USB editor bundle was not generated.' }

@@ -4,6 +4,7 @@ using System.IO;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Windows;
 using System.Windows.Automation;
 using System.Windows.Interop;
@@ -15,7 +16,7 @@ using static EspDesktop.Core.Protocol;
 
 namespace EspDesktop;
 
-internal sealed record StartApp(string Id, string Name, string Target, string? Executable);
+internal sealed record StartApp(string Id, string Name, string Target, string? Executable, string? IRacingInstall = null);
 internal sealed class WindowsDesktop(LocalSettings settings, ObsConnection? obs = null) : IDesktop
 {
     // Older panels reserve this identifier for the file manager's live folders.
@@ -66,6 +67,10 @@ internal sealed class WindowsDesktop(LocalSettings settings, ObsConnection? obs 
     private const int ShortcutPageSize = 24;
     private const int ShortcutIndexSize = 32;
     private const int ShortcutIndexLimit = ShortcutIndexSize * 32;
+    private static readonly JsonSerializerOptions ShortcutJsonOptions = new()
+    {
+        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
+    };
 
     private IEnumerable<(StartApp App, WindowsPresets.Template Template)> ShortcutApps()
     {
@@ -78,17 +83,17 @@ internal sealed class WindowsDesktop(LocalSettings settings, ObsConnection? obs 
     private static string PresetLabel(StartApp app) => Bound(CatalogueLabel(app.Name), 48);
 
     private static object[] Presets(IEnumerable<WindowsPresets.Preset> presets) =>
-        presets.Select(p => (object)new { id = p.Id, label = p.Label, shortcut = p.DisplayShortcut, icon = p.Icon }).ToArray();
+        presets.Select(p => (object)new { id = p.Id, label = p.Label, shortcut = p.DisplayShortcut, icon = p.Icon, group = p.Group }).ToArray();
 
     private static string StarterDefinition(StartApp app, WindowsPresets.Template template)
     {
         var starter = template.Shortcuts.Take(StarterSize).ToArray();
-        var defaults = starter.Select(preset => preset.Id).ToArray();
+        var defaults = template.DefaultShortcutIds ?? starter.Select(preset => preset.Id).ToArray();
         return JsonSerializer.Serialize(new
         {
             version = 1, appId = app.Id, label = PresetLabel(app), catalog = false, defaultShortcutIds = defaults,
             shortcuts = Presets(starter)
-        });
+        }, ShortcutJsonOptions);
     }
 
     public IEnumerable<string> Definitions() =>
@@ -112,7 +117,7 @@ internal sealed class WindowsDesktop(LocalSettings settings, ObsConnection? obs 
         var start = StarterSize + ((int)page - 1) * ShortcutPageSize;
         if (start >= template.Shortcuts.Length) return (null, true);
         var expanded = template.Shortcuts.Skip(start).Take(ShortcutPageSize);
-        return (JsonSerializer.Serialize(new { appId, shortcuts = Array.Empty<object>(), moreShortcuts = Presets(expanded) }),
+        return (JsonSerializer.Serialize(new { appId, shortcuts = Array.Empty<object>(), moreShortcuts = Presets(expanded) }, ShortcutJsonOptions),
             start + ShortcutPageSize >= template.Shortcuts.Length);
     }
 
@@ -182,7 +187,8 @@ internal sealed class WindowsDesktop(LocalSettings settings, ObsConnection? obs 
             if (scoped && (target.Length == 0 || !apps.Any(app => app.Id == target && Allowed(app))))
                 return "not_allowed";
             var window = InputSession.GetForegroundWindow();
-            var app = Identify(window);
+            var identity = ReadWindow(window);
+            var app = Identify(identity);
             // The request never chooses a window or changes focus. The preset's
             // app ID must match the window Windows has already put in front.
             if (scoped && app?.Id != target)
@@ -191,6 +197,11 @@ internal sealed class WindowsDesktop(LocalSettings settings, ObsConnection? obs 
                 return "not_found";
             }
             if (app is null || !Allowed(app) || (app.Id == ExplorerId && !IsExplorerWindow(window))) return "not_allowed";
+            if (app.IRacingInstall is { } install && !WindowsPresets.IsIRacingSimulator(install, identity.Executable))
+            {
+                ShortcutFailed?.Invoke("Bring the iRacing simulator to the front and try again.");
+                return "not_found";
+            }
             for (var i = 0; i < strokes.Length; i++)
             {
                 if (i > 0) await Task.Delay(40, token);
@@ -314,7 +325,9 @@ internal sealed class WindowsDesktop(LocalSettings settings, ObsConnection? obs 
             }
         }
 
-        if (app != null && Allowed(app) && (app.Id != ExplorerId || IsExplorerWindow(window))) ids.Add(app.Id);
+        if (app != null && Allowed(app) && (app.Id != ExplorerId || IsExplorerWindow(window)) &&
+            (app.IRacingInstall is not { } install || WindowsPresets.IsIRacingSimulator(install, identity.Executable)))
+            ids.Add(app.Id);
         if (identity.Executable is { } executable && Browsers.Contains(Path.GetFileName(executable), StringComparer.OrdinalIgnoreCase) &&
             targets.Count != 0)
         {
@@ -457,7 +470,8 @@ internal sealed class WindowsDesktop(LocalSettings settings, ObsConnection? obs 
                         exe = target;
                     if (string.Equals(exe, ExplorerExe, StringComparison.OrdinalIgnoreCase) ||
                         target.Equals("Microsoft.Windows.Explorer", StringComparison.OrdinalIgnoreCase)) continue;
-                    list.Add(new("windows." + Hash(target.ToUpperInvariant())[..32], name, target, exe));
+                    list.Add(new("windows." + Hash(target.ToUpperInvariant())[..32], name, target, exe,
+                        WindowsPresets.IRacingInstallDirectory(exe)));
                 }
                 catch (Exception e) when (IsShellFailure(e)) { }
                 finally { Com.Release(item); }
@@ -477,7 +491,8 @@ internal sealed class WindowsDesktop(LocalSettings settings, ObsConnection? obs 
 
     private static bool Matches(StartApp app, (string? Aumid, string? Executable) identity) =>
         (!string.IsNullOrEmpty(identity.Aumid) && app.Target.Equals(identity.Aumid, StringComparison.OrdinalIgnoreCase)) ||
-        (app.Executable is not null && identity.Executable is not null && app.Executable.Equals(identity.Executable, StringComparison.OrdinalIgnoreCase));
+        (app.Executable is not null && identity.Executable is not null && app.Executable.Equals(identity.Executable, StringComparison.OrdinalIgnoreCase)) ||
+        (app.IRacingInstall is { } install && WindowsPresets.IsIRacingSimulator(install, identity.Executable));
 
     private static (string? Aumid, string? Executable) ReadWindow(nint window)
     {

@@ -907,7 +907,7 @@ function composeApplicationContext(liveGeneratedActions: () => readonly Companio
     stateLoader,
     gridMigration,
     nativePages,
-    dom.document.querySelector('meta[name="espdesktop-transport"][content="usb"]') !== null,
+    !!dom.document.querySelector?.('meta[name="espdesktop-transport"][content="usb"]'),
   );
   publicFirmwareInstall = createPublicFirmwareInstallFeature(
     deviceApi,

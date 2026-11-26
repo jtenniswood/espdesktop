@@ -1362,6 +1362,13 @@ inline std::string companion_shortcut_preset_normalized(const ParsedCfg &p) {
          companion_shortcut_template_id_valid(value.substr(separator + 1)) ? value : "";
 }
 
+inline std::string companion_shortcut_app_icon_id(const ParsedCfg &p) {
+  if (!cfg_option_token_present(p.options, "shortcut_app_icon")) return "";
+  const auto preset = companion_shortcut_preset_normalized(p);
+  const size_t separator = preset.rfind(':');
+  return separator == std::string::npos ? "" : preset.substr(0, separator);
+}
+
 inline std::string companion_card_options_normalized(const ParsedCfg &p) {
   if (p.sensor.rfind("url.", 0) == 0) {
     return companion_url_opens_new_window(p) ? "url_open_behavior=new_window" : "";
@@ -1371,6 +1378,8 @@ inline std::string companion_card_options_normalized(const ParsedCfg &p) {
   if (!preset.empty()) {
     if (!out.empty()) out += ",";
     out += "app_shortcut_preset=" + encode_compact_field(preset);
+    if (preset != "custom" && cfg_option_token_present(p.options, "shortcut_app_icon"))
+      out += ",shortcut_app_icon";
     return out;
   }
   const auto add_token = [&out](const std::string &token) {

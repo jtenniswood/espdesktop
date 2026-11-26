@@ -545,6 +545,8 @@ export function createWebStyles(dragAnimation: boolean): string {
         ".sp-light-tab-drag:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}" +
         ".sp-light-tab-label{min-width:0;color:var(--text);font-size:.9rem;line-height:1.25;cursor:pointer}" +
         ".sp-shortcut-catalog-list{max-height:26rem;overflow:auto;margin:0}" +
+        ".sp-shortcut-catalog-group-title{margin:0;padding:10px 6px 4px;color:var(--text2);font-size:.85rem;font-weight:600}" +
+        ".sp-shortcut-catalog-group+.sp-shortcut-catalog-group{border-top:1px solid var(--border)}" +
         ".sp-shortcut-catalog-list .sp-light-tab-row{grid-template-columns:auto minmax(0,1fr) minmax(0,auto);" +
         "box-sizing:border-box;min-height:53px;padding:8px 6px;cursor:pointer}" +
         ".sp-shortcut-catalog-keys{color:var(--text2);font-size:.8rem;text-align:right;overflow-wrap:anywhere}" +

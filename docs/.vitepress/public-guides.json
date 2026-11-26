@@ -3,7 +3,8 @@
     "index.md",
     "screens/4848s040.md",
     "download.md",
-    "windows-preview.md",
+    "macos.md",
+    "windows.md",
     "reference/faq.md"
   ],
   "Troubleshooting and compatibility": [
@@ -19,6 +20,7 @@
     "features/subpages.md",
     "features/adding-a-card.md",
     "mac-controls/apps.md",
+    "card-types/sound.md",
     "mac-controls/websites.md",
     "mac-controls/folders.md",
     "mac-controls/shortcuts.md",
@@ -26,10 +28,10 @@
     "mac-controls/apple-shortcuts.md"
   ],
   "OBS Studio controls": [
-    "mac-controls/obs-studio.md",
-    "mac-controls/obs-studio/studio-controls.md",
-    "mac-controls/obs-studio/scene-control-and-mixing.md",
-    "mac-controls/obs-studio/audio-controls.md"
+    "obs-studio.md",
+    "obs-studio/studio-controls.md",
+    "obs-studio/scene-control-and-mixing.md",
+    "obs-studio/audio-controls.md"
   ],
   "Settings and permissions": [
     "settings/screen.md",

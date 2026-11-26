@@ -131,6 +131,16 @@ int main() {
   std::vector<uint8_t> pixels(APP_ICON_PIXEL_BYTES, 42), output(APP_ICON_PIXEL_BYTES);
   const auto expected_hash = digest(pixels);
   assert(store.save("app.one", expected_hash, pixels.data(), pixels.size()));
+  std::array<uint8_t, 32> provisional_hash{};
+  store.set_enabled_applications({}, false);
+  assert(store.hash_for("app.one", &provisional_hash) && provisional_hash == expected_hash);
+  assert(!store.save("app.one", expected_hash, pixels.data(), pixels.size()));
+  store.set_enabled_applications({"app.one"});
+  assert(store.hash_for("app.one", &provisional_hash) && provisional_hash == expected_hash);
+  store.set_enabled_applications({});
+  assert(!store.hash_for("app.one", &provisional_hash));
+  store.set_enabled_applications({"app.one"});
+  assert(store.save("app.one", expected_hash, pixels.data(), pixels.size()));
   payload_hashes = 0;
   std::array<uint8_t, 32> copied_hash{};
   assert(store.copy_pixels("app.one", output.data(), output.size(), &copied_hash) && output == pixels);
