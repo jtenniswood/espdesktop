@@ -2795,7 +2795,7 @@ async function assertContextColourPicker(browser, testCase) {
         });
         await openPicker(page.locator(".sp-back-btn"));
         await menu.locator('[data-color="6036B2"]').click();
-        await page.getByText("The configuration saved, but its older-firmware copy did not. Do not downgrade this panel yet.", { exact: true }).waitFor();
+        await page.getByText("The configuration saved, but the copy for older firmware could not be confirmed. Do not downgrade this panel yet.", { exact: true }).waitFor();
         assert(fixture.document.subpages[3].includes(":6036B2"));
         await openPicker(page.locator(".sp-back-btn"));
         assert.strictEqual(await menu.locator('[data-color="6036B2"]').getAttribute("aria-pressed"), "true",
@@ -8679,6 +8679,13 @@ async function assertNestedCompanionPages(browser) {
   fixture.document.deviceProfile = testCase.slug;
   const context = await browser.newContext({ viewport: testCase.viewport });
   await installRoutes(context, testCase.slug, { nativeState: fixture, nativeV2: true });
+  await context.route("**/connectors/status", route => route.fulfill({ json: {
+    onboarding_complete: true,
+    mac_companion: { available: true, configured: true, paired: true, connected: true },
+  } }));
+  await context.route("**/companion/actions", route => route.fulfill({
+    json: [{ id: "com.apple.Safari", label: "Safari" }],
+  }));
   const page = await context.newPage(), errors = [];
   page.on("pageerror", error => errors.push(error.message));
   await installFakeEventSource(page);
@@ -9462,7 +9469,7 @@ async function assertFirstRunSetup(browser, testCase) {
     assert(fixture.puts.length >= 2, "the committed replacement finishes setup");
     assert.equal(fixture.document.settings.companion_app_subpage_mode, "focus");
     assert.deepEqual(switches, []);
-    await page.getByText("The configuration saved, but its older-firmware copy did not. Do not downgrade this panel yet.", { exact: true }).waitFor();
+    await page.getByText("The configuration saved, but the copy for older firmware could not be confirmed. Do not downgrade this panel yet.", { exact: true }).waitFor();
     fixture.writeStatus = 204;
     await page.getByRole("tab", { name: "Screen", exact: true }).click();
     if (await settingsCard.evaluate(node => node.classList.contains("collapsed"))) await settingsCard.locator(".card-header").click();

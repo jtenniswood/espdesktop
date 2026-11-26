@@ -113,8 +113,8 @@ export function createWebStyles(dragAnimation: boolean): string {
         ".sp-topbar .sp-network-preview::before{font-size:inherit;line-height:inherit}" +
         ".sp-network-preview.sp-visible{opacity:1}" +
         ".sp-main{position:absolute;top:var(--grid-top);left:var(--grid-left);right:var(--grid-right);bottom:var(--grid-bottom);" +
-        "display:grid;grid-template-columns:var(--grid-cols);grid-template-rows:var(--grid-rows);gap:var(--grid-gap);overflow:hidden}" +
-        ".sp-main.sp-grid-loading{visibility:hidden;opacity:0;pointer-events:none;transition:opacity .2s,visibility .2s}" +
+        "display:grid;grid-template-columns:var(--grid-cols);grid-template-rows:var(--grid-rows);gap:var(--grid-gap);overflow:hidden;transition:opacity .2s}" +
+        ".sp-main.sp-grid-loading{visibility:hidden;opacity:0;pointer-events:none;transition:opacity .2s,visibility 0s}" +
         ".sp-btn{border-radius:var(--btn-r);padding:var(--btn-pad);" +
         "display:flex;flex-direction:column;justify-content:space-between;" +
         "cursor:pointer;transition:background-color .2s,box-shadow .2s,filter .2s,opacity .2s,transform .2s,color .2s;box-sizing:border-box;border:0;" +
