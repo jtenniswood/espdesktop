@@ -27,22 +27,15 @@ For the per-device and per-app sliders, use EspDesktop app and firmware versions
 
 The default card labels are **Volume**, **Mic**, and **Mute**. A crossed-out icon means the device is muted. Raising a device’s level above zero unmutes it. If a card is unavailable, check that EspDesktop is connected and the audio device supports that control.
 
-## Adjust an app’s volume on macOS {#app-volume}
+<span id="windows-app-volume"></span>
 
-Use macOS 14.2 or later with EspDesktop app and firmware builds that include App Volume.
+## Adjust an app’s volume {#app-volume}
 
-1. In EspDesktop on the Mac, open **Settings → Apps** and enable the app you want to control.
+1. In EspDesktop, open **Apps** and make sure the app you want to control is enabled.
 2. Add a **Sound** card with **Type → Output per application**, choose the app under **Application**, then select **Save**.
-3. Start playback in the app and move the display’s slider. Allow **System Audio Recording** if macOS prompts you.
+3. Start playing audio in the app, then move the slider on the touchscreen.
 
-**100%** plays at the app’s normal volume. **0%** silences it. Disabling the app in EspDesktop or disconnecting the last paired display restores normal playback.
+If the app is missing from the picker, check that your computer is connected and the app is enabled, then reopen the card editor.
 
-If the app is missing from the picker, check that the Mac is connected and the app is enabled, then reopen the editor. If the slider has no effect, check **System Settings → Privacy & Security** for the audio recording permission and confirm the app plays through the Mac’s default output. Compatible mono, stereo, and multichannel outputs include Studio Display speakers. Browser tabs that share an audio process also share its volume.
-
-## Adjust an app’s volume on Windows {#windows-app-volume}
-
-1. In EspDesktop on the PC, make sure the app is approved under **Apps**.
-2. Add a **Sound** card with **Type → Output per application**, choose the app under **Application**, then select **Save**.
-3. Start playback in the app so Windows can detect it, then move the display’s slider.
-
-The slider becomes unavailable when Windows no longer has an audio session for the app. Moving the slider above zero also unmutes the app.
+- **Mac** requires **macOS 14.2 or later**. Allow **System Audio Recording** if prompted. If the slider has no effect, check the permission in **System Settings → Privacy & Security** and use the Mac’s default audio output. Browser tabs that share an audio process also share its volume. **100%** is the app’s normal volume, which returns when you disable the app in EspDesktop or disconnect the last paired display.
+- **Windows** needs an active audio session for the app. If the slider becomes unavailable, start playback again. Moving it above zero also unmutes the app.

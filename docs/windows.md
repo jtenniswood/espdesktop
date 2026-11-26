@@ -41,7 +41,7 @@ With current firmware and a connected Windows companion, the card picker shows W
 
 ## Control system sound
 
-Add a [Sound card](/card-types/sound) to adjust speakers or microphones, or [control a Windows app’s volume](/card-types/sound#windows-app-volume).
+Add a [Sound card](/card-types/sound) to adjust speakers or microphones, or [control an app’s volume](/card-types/sound#app-volume).
 
 ## Switch OBS scenes
 
