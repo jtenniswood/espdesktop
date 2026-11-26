@@ -1,0 +1,17 @@
+{
+  "label": "Zoiper 5",
+  "executables": [
+    "zoiper5.exe"
+  ],
+  "sources": [
+    "https://www.zoiper.com/pdf/User%20Guide%20Zoiper%205%20v.1.0.7.pdf",
+    "https://www.zoiper.com/en/support/home/article/186/Missing%20video%20in%20Zoiper%205"
+  ],
+  "note": "During an active call, choose Transfer and enter the destination in the search field. Pressing Enter in that field makes an unattended transfer.",
+  "defaultShortcutIds": [
+    "0"
+  ],
+  "shortcuts": [
+    {"id": "0", "label": "Confirm Unattended Transfer", "shortcut": "enter", "icon": "Keyboard"}
+  ]
+}

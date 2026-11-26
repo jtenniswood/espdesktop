@@ -1,0 +1,24 @@
+{
+  "label": "Dell Command Update",
+  "executables": [
+    "dellcommandupdate.exe"
+  ],
+  "sources": [
+    "https://www.dell.com/support/manuals/en-uk/command-update/dcu_ug/view-update-history?guid=guid-0307a921-43a3-410f-af4c-5c0201c1d26b&lang=en-us",
+    "https://dl.dell.com/FOLDER14424243M/1/Dell-Command-Update-Application_RXT5N_WIN64_5.7.0_A00.EXE",
+    "https://github.com/dotnet/wpf/blob/main/src/Microsoft.DotNet.Wpf/src/PresentationFramework/System/Windows/Controls/ListBox.cs"
+  ],
+  "note": "Open Update History and focus the list before using these navigation keys. Windows can block shortcut delivery if Dell Command Update is running as administrator.",
+  "defaultShortcutIds": [
+    "0",
+    "1",
+    "2",
+    "3"
+  ],
+  "shortcuts": [
+    {"id": "0", "label": "First History Entry", "shortcut": "home", "icon": "Keyboard"},
+    {"id": "1", "label": "Last History Entry", "shortcut": "end", "icon": "Keyboard"},
+    {"id": "2", "label": "Previous History Page", "shortcut": "pageup", "icon": "Chevron Left"},
+    {"id": "3", "label": "Next History Page", "shortcut": "pagedown", "icon": "Chevron Right"}
+  ]
+}

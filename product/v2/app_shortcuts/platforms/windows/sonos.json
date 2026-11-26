@@ -1,0 +1,30 @@
+{
+  "label": "Sonos Controller S2",
+  "executables": [
+    "sonos.exe"
+  ],
+  "sources": [
+    "https://support.sonos.com/en-us/downloads",
+    "https://update-software.sonos.com/software/rT0797IawE/Sonos_90.0-77070.exe"
+  ],
+  "note": "These bindings follow the Windows Sonos desktop controller. Playback and volume affect the selected room or group.",
+  "defaultShortcutIds": [
+    "0",
+    "1",
+    "2",
+    "3"
+  ],
+  "shortcuts": [
+    {"id": "0", "label": "Play or Pause", "shortcut": "control+p", "icon": "Keyboard"},
+    {"id": "1", "label": "Next Track", "shortcut": "control+right", "icon": "Chevron Right"},
+    {"id": "2", "label": "Previous Track", "shortcut": "control+left", "icon": "Chevron Left"},
+    {"id": "3", "label": "Search Music", "shortcut": "control+f", "icon": "Search"},
+    {"id": "4", "label": "Volume Up", "shortcut": "control+keyequal", "icon": "Keyboard"},
+    {"id": "5", "label": "Volume Down", "shortcut": "control+keyminus", "icon": "Keyboard"},
+    {"id": "6", "label": "Mute or Unmute", "shortcut": "control+m", "icon": "Keyboard"},
+    {"id": "7", "label": "Toggle Shuffle", "shortcut": "control+e", "icon": "Keyboard"},
+    {"id": "8", "label": "Toggle Repeat", "shortcut": "control+r", "icon": "Keyboard"},
+    {"id": "9", "label": "MiniPlayer", "shortcut": "control+d", "icon": "Keyboard"},
+    {"id": "10", "label": "Show Keyboard Shortcuts", "shortcut": "control+k", "icon": "Keyboard"}
+  ]
+}
