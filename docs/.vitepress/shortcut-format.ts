@@ -34,7 +34,7 @@ const keyLabels: Record<string, string> = {
 }
 
 const windowsKeyLabels: Record<string, string> = {
-  control: 'Ctrl', option: 'Alt', delete: 'Backspace', forwarddelete: 'Delete',
+  control: 'Ctrl', option: 'Alt', delete: 'Backspace', forwarddelete: 'Delete', keypaddecimal: 'Keypad .',
 }
 
 export function displayKeys(shortcut: string, platform = 'macos') {

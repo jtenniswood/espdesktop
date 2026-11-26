@@ -4,6 +4,7 @@ export interface AppShortcutDefinition {
     readonly label: string;
     readonly shortcut: string;
     readonly icon: string;
+    readonly group?: string;
 }
 export interface AppShortcutApplication {
     readonly version: number;

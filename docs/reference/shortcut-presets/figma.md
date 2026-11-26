@@ -59,4 +59,4 @@ Check that EspDesktop has [macOS Accessibility permission](/mac-controls/shortcu
 
 </FaqAccordion>
 
-[Set up application shortcut buttons on Windows](/windows-preview#add-controls) or [browse all application shortcuts](/reference/shortcut-presets).
+[Set up keyboard shortcut cards](/mac-controls/shortcuts#create-a-shortcut-card) or [browse all application shortcuts](/reference/shortcut-presets).

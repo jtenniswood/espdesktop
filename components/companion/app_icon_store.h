@@ -33,7 +33,7 @@ class AppIconStore {
   bool available() const;
   void set_references(const std::vector<std::string> &application_ids);
   void add_reference(const std::string &application_id);
-  void set_enabled_applications(const std::vector<std::string> &application_ids);
+  void set_enabled_applications(const std::vector<std::string> &application_ids, bool prune_missing = true);
   bool hash_for(const std::string &application_id,
                 std::array<uint8_t, 32> *hash) const;
   bool is_referenced(const std::string &application_id) const;

@@ -40,7 +40,7 @@ export async function writeGuideIndex(outDir: string, pages: string[], metadata:
   const lines = [
     '# EspDesktop',
     '',
-    `> EspDesktop pairs a ${productFacts.displayLabel} touchscreen with a companion app for macOS or Windows 11 (preview). Use it to launch apps, open folders and websites, run keyboard shortcuts and lock your computer.`,
+    `> EspDesktop pairs a ${productFacts.displayLabel} touchscreen with a companion app for macOS or Windows. Use it to launch apps, open folders and websites, run keyboard shortcuts and lock your computer.`,
     '',
     `The Mac app requires ${productFacts.macProcessor} and macOS ${productFacts.minimumMacOS} or newer. The display needs ${productFacts.displayWiFiBand} Wi-Fi on the same local network as the computer. On macOS, use firmware and the Mac app from the ${productFacts.matchedRelease}.`,
     '',

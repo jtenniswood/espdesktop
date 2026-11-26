@@ -5,11 +5,14 @@ import ServiceManagement
 import SwiftUI
 
 struct LaunchableApp: Identifiable, Hashable, Sendable {
+    static let pathIdentifierPrefix = "io.espdesktop.launcher."
+
     let bundleIdentifier: String
     let name: String
     let url: URL
 
     var id: String { bundleIdentifier }
+    var usesPathIdentifier: Bool { bundleIdentifier.hasPrefix(Self.pathIdentifierPrefix) }
 
     static func == (lhs: LaunchableApp, rhs: LaunchableApp) -> Bool {
         lhs.bundleIdentifier == rhs.bundleIdentifier && lhs.name == rhs.name && lhs.url == rhs.url
@@ -257,7 +260,7 @@ final class CompanionStore: NSObject, ObservableObject {
         ) { [weak self] in
             Task { @MainActor in self?.refreshApplications() }
         }
-        refreshApplications()
+        refreshApplications(includeExternal: true)
         if allAppleShortcutsApproved || !approvedAppleShortcutIDs.isEmpty { refreshAppleShortcuts() }
         Task { await remoteCatalogueStore.refresh() }
     }
@@ -332,16 +335,22 @@ final class CompanionStore: NSObject, ObservableObject {
     }
 
     private let applicationCatalogue = ApplicationCatalogue()
+    private let externalApplicationCatalogue = ApplicationCatalogue()
+    private var localApplications: [LaunchableApp]?
+    private var externalApplications: [URL: [LaunchableApp]] = [:]
+    private var externalApplicationScan: Task<Void, Never>?
     private var applicationFolderMonitor: ApplicationFolderMonitor?
     private var applicationScan: Task<Void, Never>?
     private var applicationRefreshPending = false
     private(set) var applicationCatalogueReady = false
+    private(set) var applicationCatalogueProvisional = false
 
     @objc private func applicationVolumeDidChange(_ notification: Notification) {
-        refreshApplications()
+        refreshApplications(includeExternal: true)
     }
 
-    func refreshApplications() {
+    func refreshApplications(includeExternal: Bool = false) {
+        if includeExternal { refreshExternalApplications() }
         guard applicationScan == nil else {
             applicationRefreshPending = true
             return
@@ -349,11 +358,40 @@ final class CompanionStore: NSObject, ObservableObject {
         applicationScan = Task { [weak self, applicationCatalogue] in
             repeat {
                 self?.applicationRefreshPending = false
-                let applications = await applicationCatalogue.scan()
-                self?.applyApplicationScan(applications)
+                self?.localApplications = await applicationCatalogue.scan()
+                self?.publishDiscoveredApplications()
             } while self?.applicationRefreshPending == true
             self?.applicationScan = nil
         }
+    }
+
+    private func refreshExternalApplications() {
+        externalApplicationScan?.cancel()
+        applicationCatalogueProvisional = true
+        externalApplicationScan = Task { [weak self, externalApplicationCatalogue] in
+            let volumes = await externalApplicationCatalogue.mountedExternalVolumes()
+            guard !Task.isCancelled else { return }
+            self?.externalApplications = self?.externalApplications.filter { volumes.contains($0.key) } ?? [:]
+            self?.publishDiscoveredApplications()
+            for volume in volumes {
+                let applications = await externalApplicationCatalogue.scanExternalVolume(volume)
+                guard !Task.isCancelled else { return }
+                self?.externalApplications[volume] = applications
+                self?.publishDiscoveredApplications()
+            }
+            guard let self else { return }
+            applicationCatalogueProvisional = false
+            if applicationCatalogueReady {
+                publishToConnectedDisplays { $0.publishCatalogue() }
+            }
+        }
+    }
+
+    private func publishDiscoveredApplications() {
+        guard let localApplications else { return }
+        let external = externalApplications.keys.sorted { $0.path < $1.path }
+            .flatMap { externalApplications[$0] ?? [] }
+        applyApplicationScan(ApplicationCatalogue.orderedApplications(localApplications + external))
     }
 
     private func applyApplicationScan(_ applications: [LaunchableApp]) {
@@ -1078,12 +1116,14 @@ final class CompanionStore: NSObject, ObservableObject {
         }
         let configuration = NSWorkspace.OpenConfiguration()
         configuration.activates = true
-        let runningApplication: NSRunningApplication? = await withCheckedContinuation { continuation in
+        let (runningApplication, opened): (NSRunningApplication?, Bool) = await withCheckedContinuation { continuation in
             NSWorkspace.shared.openApplication(at: app.url, configuration: configuration) { application, error in
-                continuation.resume(returning: error == nil ? application : nil)
+                continuation.resume(returning: (application, error == nil))
             }
         }
-        guard let runningApplication else { return false }
+        // A launcher can exit after handing off to another app. Use Launch Services' result.
+        if app.usesPathIdentifier { return opened }
+        guard opened, let runningApplication else { return false }
         _ = runningApplication.activate(options: [.activateIgnoringOtherApps])
         return await waitForApplicationActivation(bundleIdentifier, name: app.name)
     }
@@ -1327,7 +1367,7 @@ final class CompanionStore: NSObject, ObservableObject {
         guard !sessionLock.refresh() else { return false }
         if let bundleID = CompanionProtocolDecoder.appVolumeBundleIdentifier(controlIdentifier) {
             guard let controller = appVolumeController,
-                  let url = launchableApps().first(where: { $0.bundleIdentifier == bundleID })?.url else {
+                  let url = launchableApps().first(where: { $0.bundleIdentifier == bundleID && !$0.usesPathIdentifier })?.url else {
                 return false
             }
             let changed = await controller.setLevel(value, for: bundleID, bundleURL: url)
@@ -1466,12 +1506,13 @@ final class CompanionStore: NSObject, ObservableObject {
     private func refreshAppVolumeValues() {
         guard connectedDisplayCount > 0, appVolumeRefresh == nil,
               let controller = appVolumeController else { return }
-        let selectedApps = Dictionary(uniqueKeysWithValues: launchableApps().map { ($0.bundleIdentifier, $0.url) })
+        let selectedApps = Dictionary(uniqueKeysWithValues: launchableApps()
+            .filter { !$0.usesPathIdentifier }.map { ($0.bundleIdentifier, $0.url) })
         appVolumeRefresh = Task { [weak self] in
             let levels = await controller.levels(for: selectedApps)
             guard !Task.isCancelled, let self else { return }
             appVolumeRefresh = nil
-            let apps = launchableApps().prefix(max(0, 256 - folderActions().count))
+            let apps = launchableApps().prefix(max(0, 256 - folderActions().count)).filter { !$0.usesPathIdentifier }
             let values: [String: Int] = Dictionary(uniqueKeysWithValues: apps.compactMap { app in
                 let id = "app.volume." + app.bundleIdentifier
                 guard CompanionProtocolDecoder.appVolumeBundleIdentifier(id) != nil else { return nil }

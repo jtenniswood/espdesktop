@@ -225,7 +225,7 @@ inline void run_apple_shortcut_card(lv_obj_t *button, const std::string &action_
 
 struct CompanionSubpageActionContext {
   ParsedCfg card;
-  std::string required_focus_id;
+  std::string subpage_application;
 };
 
 inline bool invoke_confirmable_obs_action(const ParsedCfg &card, lv_obj_t *button,
@@ -314,7 +314,7 @@ inline bool invoke_confirmable_obs_action(const ParsedCfg &card, lv_obj_t *butto
 }
 
 inline bool invoke_saved_companion_card(const ParsedCfg &card, const std::string &request_id,
-                                         const std::string &required_focus = {},
+                                         const std::string &subpage_application = {},
                                          lv_obj_t *button = nullptr) {
   if (companion_obs_confirmation_supported(card.entity))
     return invoke_confirmable_obs_action(card, button, request_id);
@@ -322,7 +322,7 @@ inline bool invoke_saved_companion_card(const ParsedCfg &card, const std::string
     return invoke_companion_action(companion_rendered_obs_action(button).id, request_id);
   if (companion_obs_status_card(card.entity)) return false;
   return companion_encoded_url(card.sensor).empty()
-    ? invoke_companion_action_for_app(card.entity, request_id, required_focus,
+    ? invoke_companion_action_for_app(card.entity, request_id, subpage_application,
                                      companion_folder_open_behavior(card),
                                      cfg_option_value(card.options, "app_shortcut_preset"),
                                      esphome::millis())
@@ -337,14 +337,13 @@ inline bool basic_action_driver_bind_subpage(
   switch (context.runtime.driver) {
     case Driver::COMPANION: {
       if (companion_metric_key_valid(config.entity) || companion_obs_status_card(config.entity)) break;
-      std::string required_focus_id;
+      std::string subpage_application;
       if (config.type == "companion" && environment.parent_config &&
           companion_app_shortcuts_enabled(*environment.parent_config) &&
           config.entity.rfind("shortcut.", 0) == 0)
-        required_focus_id = environment.parent_config->entity;
+        subpage_application = environment.parent_config->entity;
       auto *click = grid_delete_with_owner(slot.btn,
-        new CompanionSubpageActionContext{config, required_focus_id});
-      companion_require_card_focus(slot.btn, required_focus_id);
+        new CompanionSubpageActionContext{config, subpage_application});
       const auto action = [](lv_event_t *event) {
         auto *context = static_cast<CompanionSubpageActionContext *>(lv_event_get_user_data(event));
         if (!context) return;
@@ -369,7 +368,7 @@ inline bool basic_action_driver_bind_subpage(
                                   card->entity, request_id);
           return;
         }
-        const bool invoked = invoke_saved_companion_card(*card, request_id, context->required_focus_id,
+        const bool invoked = invoke_saved_companion_card(*card, request_id, context->subpage_application,
           static_cast<lv_obj_t *>(lv_event_get_target(event)));
         if (!invoked) {
           ESP_LOGW("companion", "Action unavailable: %s", card->entity.c_str());

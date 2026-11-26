@@ -51,16 +51,17 @@ const pageImages: Record<string, typeof defaultImage> = {
 const author = { '@type': 'Person', name: 'jtenniswood', url: 'https://github.com/jtenniswood' }
 const websiteId = `${hostname}#website`
 const softwareId = `${hostname}#software`
-const obsStudioParent = { name: 'OBS Studio controls', path: 'mac-controls/obs-studio.md' }
+const obsStudioParent = { name: 'OBS Studio controls', path: 'obs-studio.md' }
 const guideParents = {
-  'mac-controls/obs-studio/studio-controls.md': obsStudioParent,
-  'mac-controls/obs-studio/scene-control-and-mixing.md': obsStudioParent,
-  'mac-controls/obs-studio/audio-controls.md': obsStudioParent,
+  'obs-studio/studio-controls.md': obsStudioParent,
+  'obs-studio/scene-control-and-mixing.md': obsStudioParent,
+  'obs-studio/audio-controls.md': obsStudioParent,
   'screens/4848s040-stand.md': { name: '4848S040 setup guide', path: 'screens/4848s040.md' },
   'features/first-run.md': { name: '4848S040 setup guide', path: 'screens/4848s040.md' },
   'features/adding-a-card.md': { name: 'Screen grid', path: 'features/home.md' },
   'features/subpages.md': { name: 'Customise the layout', path: 'features/home.md' },
   'mac-controls/apps.md': { name: 'Customise the layout', path: 'features/home.md' },
+  'card-types/sound.md': { name: 'Customise the layout', path: 'features/home.md' },
   'mac-controls/websites.md': { name: 'Customise the layout', path: 'features/home.md' },
   'mac-controls/folders.md': { name: 'Customise the layout', path: 'features/home.md' },
   'mac-controls/shortcuts.md': { name: 'Customise the layout', path: 'features/home.md' },
@@ -78,21 +79,22 @@ const customiseLinks = [
   { text: 'Adding a card', link: '/features/adding-a-card' },
 ]
 const cardLinks = [
+  { text: 'Apple Shortcuts', link: '/mac-controls/apple-shortcuts' },
   { text: 'Apps', link: '/mac-controls/apps' },
-  { text: 'Websites', link: '/mac-controls/websites' },
   { text: 'File folders', link: '/mac-controls/folders' },
   { text: 'Keyboard shortcuts', link: '/mac-controls/shortcuts' },
-  { text: 'Keyboard shortcut presets', link: '/reference/shortcut-presets' },
-  { text: 'Apple Shortcuts', link: '/mac-controls/apple-shortcuts' },
+  { text: 'Sound', link: '/card-types/sound' },
+  { text: 'Supported Apps', link: '/reference/shortcut-presets' },
+  { text: 'Websites', link: '/mac-controls/websites' },
 ]
-const obsStudioLink = { text: 'OBS Studio', link: '/mac-controls/obs-studio' }
+const obsStudioLink = { text: 'OBS Studio', link: '/obs-studio' }
 const obsStudioSidebar = {
   ...obsStudioLink,
   collapsed: false,
   items: [
-    { text: 'Studio controls', link: '/mac-controls/obs-studio/studio-controls' },
-    { text: 'Scene control and mixing', link: '/mac-controls/obs-studio/scene-control-and-mixing' },
-    { text: 'Audio controls', link: '/mac-controls/obs-studio/audio-controls' },
+    { text: 'Studio controls', link: '/obs-studio/studio-controls' },
+    { text: 'Scene control and mixing', link: '/obs-studio/scene-control-and-mixing' },
+    { text: 'Audio controls', link: '/obs-studio/audio-controls' },
   ],
 }
 const screenSettingsLink = { text: 'Screen settings', link: '/settings/screen' }
@@ -154,7 +156,7 @@ export default defineConfig({
       const macReleaseTag = process.env.ESPDESKTOP_MAC_RELEASE_TAG
       const releaseDate = Date.parse(process.env.ESPDESKTOP_MAC_RELEASE_DATE ?? '')
       if (macReleaseTag && Number.isFinite(releaseDate)) {
-        const releasePages = ['download']
+        const releasePages = ['download', 'macos']
         if (process.env.ESPDESKTOP_MATCHED_RELEASE_TAG === macReleaseTag) {
           releasePages.push('reference/companion-compatibility')
         }
@@ -202,7 +204,7 @@ export default defineConfig({
       frontmatter.next = { text: 'Install the display', link: '/screens/4848s040#install' }
     }
 
-    if (relativePath === 'download.md' || relativePath === 'screens/4848s040.md') {
+    if (relativePath === 'download.md' || relativePath === 'macos.md') {
       const releases = 'https://github.com/jtenniswood/espdesktop/releases'
       const tag = process.env.ESPDESKTOP_MAC_RELEASE_TAG
       if (tag && !/^v?\d+\.\d+\.\d+$/.test(tag)) {
@@ -268,7 +270,7 @@ export default defineConfig({
           name: 'EspDesktop',
           url: canonicalUrl,
           applicationCategory: 'UtilitiesApplication',
-          operatingSystem: `macOS ${productFacts.minimumMacOS} or newer (Apple silicon), Windows 11 (x64 or Arm64 preview)`,
+          operatingSystem: `macOS ${productFacts.minimumMacOS} or newer (Apple silicon), Windows (x64 or Arm64)`,
           sameAs: 'https://github.com/jtenniswood/espdesktop',
           installUrl: `${hostname}download`,
           releaseNotes: 'https://github.com/jtenniswood/espdesktop/releases',
@@ -357,8 +359,8 @@ export default defineConfig({
         text: 'Get started',
         items: [
           { text: 'Display setup', link: '/screens/4848s040' },
-          { text: 'macOS setup', link: '/screens/4848s040#setup-on-macos' },
-          { text: 'Windows 11 setup (preview)', link: '/windows-preview' },
+          { text: 'macOS setup', link: '/macos' },
+          { text: 'Windows setup', link: '/windows' },
           { text: 'Printable stand', link: '/screens/4848s040-stand' },
         ],
       },
