@@ -19,7 +19,7 @@ using Microsoft.Win32;
 
 namespace EspDesktop;
 
-internal sealed class SettingsWindow : Window
+internal sealed partial class SettingsWindow : Window
 {
     private readonly bool smoke;
     private readonly LocalStore store;
@@ -59,6 +59,11 @@ internal sealed class SettingsWindow : Window
         public CancellationTokenSource? Cancellation { get; set; }
         public Task? Task { get; set; }
         public bool Forgetting { get; set; }
+        public bool Switching { get; set; }
+        public bool WifiBusy { get; set; }
+        public bool EditorOpening { get; set; }
+        public volatile UsbEditorClient? UsbClient;
+        public UsbEditorHost? EditorHost { get; set; }
         public TextBlock Status { get; } = Paragraph("Disconnected");
         public Button? ConnectionButton { get; set; }
     }
@@ -204,9 +209,9 @@ internal sealed class SettingsWindow : Window
         Activate();
     }
 
-    public void OpenPanel()
+    public async void OpenPanel()
     {
-        if (displays.Count == 1) OpenPanel(displays[0].Pairing.Address);
+        if (displays.Count == 1) await OpenEditor(displays[0]);
         else ShowDisplaySettings();
     }
 
@@ -245,21 +250,21 @@ internal sealed class SettingsWindow : Window
 
     private async Task ToggleConnection(DisplayConnection display)
     {
-        if (quitting || display.Forgetting) return;
+        if (quitting || display.Forgetting || display.Switching) return;
         if (display.Cancellation != null) await StopConnection(display);
         else StartConnection(display);
     }
 
-    private void StartConnection(DisplayConnection display)
+    private void StartConnection(DisplayConnection display, string? address = null)
     {
         if (display.Cancellation != null) return;
         var cancellation = CancellationTokenSource.CreateLinkedTokenSource(lifetime.Token);
         display.Cancellation = cancellation;
-        display.Task = RunConnection(display, cancellation);
+        display.Task = RunConnection(display, cancellation, address);
         UpdateConnectionButton(display);
     }
 
-    private async Task RunConnection(DisplayConnection display, CancellationTokenSource cancellation)
+    private async Task RunConnection(DisplayConnection display, CancellationTokenSource cancellation, string? address)
     {
         await Task.Yield(); // publish the task before its completion can clear state
         try
@@ -269,6 +274,7 @@ internal sealed class SettingsWindow : Window
                 store.SavePairing(p);
                 var changed = display.Pairing.Address != p.Address || display.Pairing.DisplayName != p.DisplayName;
                 display.Pairing = p;
+                if (changed && UsbPort.PortName(p.Address) == null) _ = CloseEditor(display);
                 if (changed && !quitting && !addingDisplay && navigation.SelectedIndex == 0) Render();
             }, status =>
             {
@@ -278,7 +284,11 @@ internal sealed class SettingsWindow : Window
             {
                 try { return (await Discovery.Find(token)).FirstOrDefault(d => d.Fingerprint == fingerprint); }
                 catch (NetworkInformationException) { return null; }
-            }).RunAsync(display.Pairing, cancellation.Token);
+            }, WindowsUsb.Connect, client =>
+            {
+                display.UsbClient = client;
+                if (!quitting && !addingDisplay && navigation.SelectedIndex == 0) Render();
+            }).RunAsync(display.Pairing, cancellation.Token, address);
         }
         catch (Exception e) when (e is IOException or UnauthorizedAccessException or CryptographicException or InvalidOperationException)
         { display.Status.Text = "Couldn’t keep the connection. Check the saved pairing and try again."; }
@@ -317,7 +327,7 @@ internal sealed class SettingsWindow : Window
         try
         {
             var next = await DisplaySession.PairAsync(entered, enteredCode, lifetime.Token,
-                displays.Select(display => display.Pairing.Fingerprint).ToHashSet(StringComparer.OrdinalIgnoreCase));
+                displays.Select(display => display.Pairing.Fingerprint).ToHashSet(StringComparer.OrdinalIgnoreCase), WindowsUsb.Connect);
             store.SavePairing(next);
             var display = new DisplayConnection(next);
             displays.Add(display);
@@ -328,7 +338,11 @@ internal sealed class SettingsWindow : Window
         }
         catch (Exception e) when (e is ArgumentException or SessionException) { Status(e.Message); }
         catch (Exception e) when (e is OperationCanceledException or WebSocketException or HttpRequestException)
-        { Status("Couldn’t reach the display. Check the address and that both devices are on the same network."); }
+        {
+            Status(UsbPort.PortName(entered) != null
+                ? "Couldn’t reach the display over USB. Check the cable, COM port, and display firmware."
+                : "Couldn’t reach the display. Check the address and that both devices are on the same network.");
+        }
         catch (Exception e) when (e is IOException or UnauthorizedAccessException or CryptographicException)
         { Status("Windows couldn’t save the pairing. Reset pairing on the display and try again."); }
         finally
@@ -344,7 +358,7 @@ internal sealed class SettingsWindow : Window
 
     private async Task Forget(DisplayConnection? display)
     {
-        if (busy || quitting || display?.Forgetting == true) return;
+        if (busy || quitting || display?.Forgetting == true || display?.Switching == true) return;
         var title = display == null ? "Clear saved pairings?" : "Forget this display?";
         var message = display == null
             ? "This removes all saved display pairings from this PC."
@@ -357,12 +371,14 @@ internal sealed class SettingsWindow : Window
             if (display != null)
             {
                 await StopConnection(display);
+                await CloseEditor(display);
                 store.ForgetPairing(display.Pairing.Fingerprint);
                 displays.Remove(display);
             }
             else
             {
                 await Task.WhenAll(displays.Select(StopConnection));
+                await Task.WhenAll(displays.Select(CloseEditor));
                 store.ForgetPairing();
                 displays.Clear();
             }
@@ -497,6 +513,7 @@ internal sealed class SettingsWindow : Window
         updatesTimer.Stop();
         await lifetime.CancelAsync();
         await Task.WhenAll(displays.Select(StopConnection));
+        await Task.WhenAll(displays.Select(CloseEditor));
         await StopObs();
         if (store.Settings.CheckForUpdates && store.Settings.InstallUpdates && updatePath is { } installer)
         {
@@ -557,14 +574,23 @@ internal sealed class SettingsWindow : Window
         foreach (var display in displays)
         {
             var saved = display.Pairing;
-            var card = Card(saved.DisplayName ?? "Paired display", DisplayEndpoint.Parse(saved.Address).Socket.Host);
+            var usingUsb = UsbPort.PortName(saved.Address) != null;
+            var available = !display.Forgetting && !display.Switching;
+            var card = Card(saved.DisplayName ?? "Paired display", DisplayAddress(saved.Address));
             if (display.Status.Parent is Panel previous) previous.Children.Remove(display.Status);
             AutomationProperties.SetLiveSetting(display.Status, AutomationLiveSetting.Polite);
             card.Children.Add(display.Status);
-            display.ConnectionButton = Button("Connect", async () => await ToggleConnection(display), !display.Forgetting);
+            display.ConnectionButton = Button("Connect", async () => await ToggleConnection(display), available);
             UpdateConnectionButton(display);
-            Row(card, Button("Open display editor", () => OpenPanel(display.Pairing.Address)),
-                display.ConnectionButton, Button("Forget display", async () => await Forget(display), !display.Forgetting));
+            Row(card, Button(usingUsb ? "Open USB editor" : "Open display editor", async () => await OpenEditor(display), available),
+                display.ConnectionButton, Button("Forget display", async () => await Forget(display), available));
+            if (usingUsb)
+                Row(card, Button("Use network", async () => await UseNetwork(display), available),
+                    Button("Change USB port", async () => await UseUsb(display), available),
+                    Button("Toggle display Wi-Fi", async () => await ToggleDisplayWifi(display), available && display.UsbClient != null),
+                    Button("Open network editor", async () => await OpenNetworkEditor(display), available && display.UsbClient != null));
+            else
+                Row(card, Button("Use USB", async () => await UseUsb(display), available));
         }
         var permissions = Card("Windows integration");
         var shortcuts = Toggle("Allow keyboard shortcuts and screen lock", store.Settings.Shortcuts, value =>
@@ -585,10 +611,13 @@ internal sealed class SettingsWindow : Window
     {
         if (pairingAddress is { } target)
         {
-            var card = Card("Enter pairing code", pairingName == null ? DisplayEndpoint.Parse(target).Socket.Host :
-                $"{pairingName} · {DisplayEndpoint.Parse(target).Socket.Host}");
-            card.Children.Add(Paragraph("Get the code from the pairing page, or press and hold the Wi-Fi icon on your display."));
-            Row(card, Button("Open pairing page", () => OpenPanel(target, pairingPage: true), !busy));
+            var viaUsb = UsbPort.PortName(target) != null;
+            var card = Card("Enter pairing code", pairingName == null ? DisplayAddress(target) :
+                $"{pairingName} · {DisplayAddress(target)}");
+            card.Children.Add(Paragraph(viaUsb
+                ? "On the display, choose Pair on the Setup screen or Unpaired in Settings to show the pairing code."
+                : "Get the code from the pairing page, or press and hold the Wi-Fi icon on your display."));
+            if (!viaUsb) Row(card, Button("Open pairing page", () => OpenPanel(target, pairingPage: true), !busy));
             code.IsEnabled = !busy;
             Field(card, "Pairing code", code);
             card.Children.Add(connectionText);
@@ -626,8 +655,9 @@ internal sealed class SettingsWindow : Window
             Render();
             if (manualAddress) address.Focus(); else nearbyDisplays.Focus();
         });
-        if (manualAddress) Row(selection, alternate);
-        else Row(selection, alternate, findDisplays);
+        var usb = Button("Connect by USB", ChooseUsbForPairing);
+        if (manualAddress) Row(selection, alternate, usb);
+        else Row(selection, alternate, findDisplays, usb);
         SetupActions(selection, "Next", ChooseDisplay, HasPairing ? Button("Cancel", () =>
         {
             ResetSetup();

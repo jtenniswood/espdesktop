@@ -15,6 +15,8 @@ Setup installs for the current user and includes the .NET runtime. It does not n
 
 Keep the PC and display on the same local network. In **Display**, select a nearby display or choose **Enter address manually**, then choose **Next**. Choose **Open pairing page** or press and hold the display’s Wi-Fi icon to get a code. Enter the code and choose **Pair display**. If the display is paired to a different computer, reset its Companion pairing first.
 
+With the [4848S040 USB development profile](../devices/guition-esp32-s3-4848s040/usb-dev.yaml), choose **Connect by USB** while adding a display or **Use USB** on an existing display. Use **Open USB editor** to edit its layout in your browser without Wi-Fi. **Use network** switches the same pairing back to IP. The [Windows preview guide](../docs/windows-preview.md#connect-and-edit-over-usb) covers switching and save recovery.
+
 Choose **Add display** to connect another display to the same PC. Each display can connect to one computer at a time. Use the individual display cards to connect, disconnect, forget, or open the editor for that display. Windows app and folder approvals are shared across all your paired displays.
 
 In the display editor, open **System → Connectors → Companion** to check pairing with your Windows PC. You can add these controls:

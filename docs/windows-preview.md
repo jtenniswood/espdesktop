@@ -27,6 +27,17 @@ To update, run the newer setup file. The installer keeps your settings and displ
 
 Choose **Add display** to pair another panel with the same PC. Each panel has its own connection and editor. App and folder approvals apply to every paired panel.
 
+## Connect and edit over USB
+
+Use the [4848S040 USB development profile](https://github.com/jtenniswood/espdesktop/blob/main/devices/guition-esp32-s3-4848s040/usb-dev.yaml), a USB data cable, and a Windows build with USB support. The regular Wi-Fi firmware does not provide this USB connection.
+
+- For a new display, choose **Display → Add display → Connect by USB**. Select its COM port and enter the pairing code shown on the display.
+- For a paired display, choose **Use USB** and select its COM port. Windows verifies the paired display before saving the change. If Windows assigns a different port after reconnecting the cable, choose **Change USB port**.
+- Choose **Open USB editor** to change the layout in your browser with Wi-Fi and internet access off. The browser connects to EspDesktop on your PC, and EspDesktop sends the changes over the cable. If the display has a network address, **Open network editor** opens that address while controls stay on USB.
+- Choose **Toggle display Wi-Fi** to turn Wi-Fi off for offline use. Choose **Use network** to turn it back on and reconnect using the same pairing. If the display is not found automatically, enter the address shown on the display.
+
+If the cable comes out during a save, keep the editor tab open and reconnect. EspDesktop checks what was saved before retrying. If the save cannot be confirmed, use **Export unsaved layout** in the tab.
+
 With current firmware and a connected Windows companion, the card picker shows Windows-compatible alternatives for Mac-only features. Existing Mac-only cards stay in the layout and show a macOS requirement in their settings.
 
 ## Add controls

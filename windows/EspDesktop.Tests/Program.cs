@@ -388,6 +388,7 @@ await VerifyAddressRecovery();
 await VerifyPairingSaveFailure();
 await VerifyMultipleDisplayConnections();
 await ObsChecks.Run();
+await UsbChecks.Run(certificate);
 
 async Task VerifyMultipleDisplayConnections()
 {

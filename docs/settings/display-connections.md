@@ -1,11 +1,11 @@
 ---
 title: Connect EspDesktop over USB or IP
-description: Connect a display to the EspDesktop Mac app over USB or your local network, enter its IP address manually, and switch connections without pairing again.
+description: Connect an EspDesktop display by USB or over your local network and switch connections without pairing again.
 ---
 
 # Display connections (USB & IP)
 
-Use your local network for Mac controls with the standard EspDesktop release. With compatible development builds of both the Mac app and display firmware, you can also run Mac controls and edit the layout over a USB data cable with Wi-Fi off. USB control testing covers the 4-inch Guition 4848S040 and the 7-inch Guition JC1060P470 V3.
+Use your local network for Mac controls with the standard EspDesktop release. With compatible development builds of both the Mac app and display firmware, you can also run Mac controls and edit the layout over a USB data cable with Wi-Fi off. See the [Windows USB instructions](/windows-preview#connect-and-edit-over-usb) for the Windows workflow. USB control testing covers the 4-inch Guition 4848S040 and the 7-inch Guition JC1060P470 V3.
 
 ## Connect over your local network
 
