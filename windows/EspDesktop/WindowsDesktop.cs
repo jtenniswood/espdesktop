@@ -17,7 +17,7 @@ using static EspDesktop.Core.Protocol;
 namespace EspDesktop;
 
 internal sealed record StartApp(string Id, string Name, string Target, string? Executable, string? IRacingInstall = null);
-internal sealed class WindowsDesktop(LocalSettings settings, ObsConnection? obs = null) : IDesktop
+internal sealed class WindowsDesktop(LocalSettings settings, ObsConnection? obs = null) : IDesktop, IDisposable
 {
     // Older panels reserve this identifier for the file manager's live folders.
     public const string ExplorerId = "com.apple.finder";
@@ -25,6 +25,7 @@ internal sealed class WindowsDesktop(LocalSettings settings, ObsConnection? obs 
     private static readonly string[] Browsers = ["chrome.exe", "msedge.exe", "firefox.exe", "brave.exe", "vivaldi.exe", "opera.exe"];
     private static readonly StartApp Explorer = new(ExplorerId, "File Explorer", "", ExplorerExe);
     private readonly SystemMetrics metrics = new();
+    private readonly CoughButton cough = new(Audio.MuteDefaultInputForCough, Audio.RestoreCoughInputs);
     private readonly SemaphoreSlim shortcutReplay = new(1, 1);
     private Dictionary<string, object?>? latestMetrics;
     private long lastMetricsAt;
@@ -49,14 +50,25 @@ internal sealed class WindowsDesktop(LocalSettings settings, ObsConnection? obs 
     public void SessionChanged(bool locked)
     {
         reportedLocked = locked;
-        if (locked) obs?.AbandonCoughs();
+        if (locked)
+        {
+            cough.ReleaseAll();
+            obs?.AbandonCoughs();
+        }
     }
 
     public void DisplayChanged(bool awake)
     {
         displayAwake = awake;
-        if (!awake) obs?.AbandonCoughs();
+        if (!awake)
+        {
+            cough.ReleaseAll();
+            obs?.AbandonCoughs();
+        }
     }
+
+    public void Suspend() => cough.ReleaseAll();
+    public void Dispose() => cough.Dispose();
     public void Changed() => CatalogueRevision++;
     public void ObsChanged() => ObsCatalogueRevision++;
     public bool Allowed(StartApp app) => settings.AllApps || settings.AllowedApps.Contains(app.Id);
@@ -435,6 +447,9 @@ internal sealed class WindowsDesktop(LocalSettings settings, ObsConnection? obs 
 
     public bool SetValue(string id, int value) => !SessionState.Locked &&
         (id.StartsWith("media.", StringComparison.Ordinal) ? Audio.Set(id, value) : Audio.SetTarget(id, value, IdentifyAudioApp));
+
+    public bool SetCoughValue(int value, object session) =>
+        cough.Set(value, session, () => SessionState is { Locked: false, DisplayAwake: not false });
 
     public IEnumerable<AudioValue> Values()
     {

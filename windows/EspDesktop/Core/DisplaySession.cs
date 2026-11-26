@@ -30,6 +30,7 @@ internal interface IDesktop
     byte[]? AppIcon(string appId, int side);
     Task<string> Invoke(JsonElement message, CancellationToken token);
     bool SetValue(string id, int value);
+    bool SetCoughValue(int value, object session);
     Task<bool> SetObsValue(string id, int value, object owner, CancellationToken token) => Task.FromResult(false);
     void AbandonObsHolds(object owner) { }
     IEnumerable<AudioValue> Values();
@@ -250,6 +251,7 @@ internal sealed class DisplaySession(IDesktop desktop, Action<Pairing> save, Act
             }
             finally
             {
+                if (capabilityVersion >= CoughVersion) desktop.SetCoughValue(0, this);
                 desktop.AbandonObsHolds(this);
                 await lifetime.CancelAsync();
                 try { await read; }
@@ -260,6 +262,7 @@ internal sealed class DisplaySession(IDesktop desktop, Action<Pairing> save, Act
         private Task Send(string type, params (string Name, object? Value)[] fields) =>
             link.Send(Message(type, fields), "connected", token);
 
+        private const uint CoughVersion = 11;
         private const uint OnDemandShortcutsVersion = 23;
 
         private async Task Catalogue(bool obsOnly = false)
@@ -306,6 +309,7 @@ internal sealed class DisplaySession(IDesktop desktop, Action<Pairing> save, Act
         }
 
         private bool SupportsAudioValue(string id) =>
+            (id != CoughId || capabilityVersion >= CoughVersion) &&
             (!id.StartsWith(AppVolumePrefix, StringComparison.Ordinal) || capabilityVersion >= 10) &&
             (!id.StartsWith(InputLevelPrefix, StringComparison.Ordinal) || capabilityVersion >= 12) &&
             (!id.StartsWith("obs.level.", StringComparison.Ordinal) || capabilityVersion >= 14) &&
@@ -397,11 +401,12 @@ internal sealed class DisplaySession(IDesktop desktop, Action<Pairing> save, Act
                 case "value.set":
                     var id = Text(m, "controlId");
                     var value = (int)UInt(m, "value");
-                    var changed = SupportsAudioValue(id) && !desktop.SessionState.Locked &&
-                        (id.StartsWith("obs.", StringComparison.Ordinal)
+                    var changed = SupportsAudioValue(id) && (id == CoughId
+                        ? desktop.SetCoughValue(value, this)
+                        : !desktop.SessionState.Locked && (id.StartsWith("obs.", StringComparison.Ordinal)
                             ? await desktop.SetObsValue(id, value, this, token)
-                            : desktop.SetValue(id, value));
-                    if (changed) dirtyAudioValues.Add(id);
+                            : desktop.SetValue(id, value)));
+                    if (changed && (id != CoughId || value != 50)) dirtyAudioValues.Add(id);
                     await Send("action.result", ("requestId", Text(m, "requestId")), ("status", changed ? "performed" : "not_allowed"));
                     break;
                 case "focus.targets":
