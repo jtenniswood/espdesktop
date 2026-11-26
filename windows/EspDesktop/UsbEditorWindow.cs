@@ -24,6 +24,8 @@ internal sealed class UsbEditorWindow : Window
     private readonly Func<UsbDisplayEditor?> getEditor;
     private readonly CancellationTokenSource lifetime = new();
     private CancellationTokenSource pageReads = new();
+    private Task<UsbEditorResponse?>? initialVersion;
+    private Task<UsbEditorResponse>? capabilitiesRead;
     private NetworkCredential? credentials;
     private bool closed;
 
@@ -43,7 +45,7 @@ internal sealed class UsbEditorWindow : Window
         DockPanel.SetDock(reload, Dock.Right);
         footer.Children.Add(reload);
         footer.Children.Add(status);
-        reload.Click += (_, _) => LoadEditor();
+        reload.Click += (_, _) => ReloadEditor();
         root.Children.Add(footer);
 
         var fields = new WrapPanel { Margin = new Thickness(0, 4, 0, 0) };
@@ -57,7 +59,7 @@ internal sealed class UsbEditorWindow : Window
             credentials = new NetworkCredential(username.Text, password.Password);
             password.Clear();
             signIn.Visibility = Visibility.Collapsed;
-            LoadEditor();
+            ReloadEditor();
         };
         fields.Children.Add(submit);
         signIn.Margin = new Thickness(12);
@@ -84,6 +86,7 @@ internal sealed class UsbEditorWindow : Window
         Loaded -= Initialize;
         try
         {
+            PrefetchVersion();
             var dataFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
                 "EspDesktop", "WebView2");
             var environment = await CoreWebView2Environment.CreateAsync(userDataFolder: dataFolder);
@@ -122,7 +125,7 @@ internal sealed class UsbEditorWindow : Window
     private bool IsLocal(string url) => Uri.TryCreate(url, UriKind.Absolute, out var uri) &&
         uri.Scheme == origin.Scheme && uri.Host == origin.Host && uri.IsDefaultPort && uri.UserInfo.Length == 0;
 
-    private void LoadEditor()
+    private void ReloadEditor()
     {
         // Drop queued reads from the previous page. Any submitted write keeps
         // its normal lifetime so reloading cannot interrupt a save.
@@ -130,8 +133,34 @@ internal sealed class UsbEditorWindow : Window
         pageReads = new CancellationTokenSource();
         previousReads.Cancel();
         previousReads.Dispose();
+        capabilitiesRead = null;
+        PrefetchVersion();
+        LoadEditor();
+    }
+
+    private void LoadEditor()
+    {
         status.Text = "Loading editor over USB…";
         browser.CoreWebView2.Navigate(origin.AbsoluteUri);
+    }
+
+    private void PrefetchVersion()
+    {
+        initialVersion = bundledScript is not null && getEditor() is { } editor
+            ? ReadVersion(editor, credentials, pageReads.Token) : null;
+    }
+
+    private static async Task<UsbEditorResponse?> ReadVersion(UsbDisplayEditor editor,
+        NetworkCredential? credentials, CancellationToken token)
+    {
+        // Find the display profile while WebView2 is starting. Transient
+        // failures fall through to the normal request and retry flow.
+        try
+        {
+            var reply = await editor.Request("GET", "/espdesktop/version.json", new Dictionary<string, string>(), [], credentials, token);
+            return reply.Status is 200 or 401 ? reply : null;
+        }
+        catch (Exception ex) when (IsConnectionError(ex)) { return null; }
     }
 
     private async void HandleRequest(object? sender, CoreWebView2WebResourceRequestedEventArgs e)
@@ -175,7 +204,7 @@ internal sealed class UsbEditorWindow : Window
             var body = ReadBody(request.Content, token);
             if (body is null) { Respond(e, 413); return; }
             var usedCredentials = credentials;
-            var reply = await RequestPanel(editor, method, path, headers, body, usedCredentials, token);
+            var reply = await RequestResource(editor, method, path, headers, body, usedCredentials, token);
             if (closed) return;
             if (token.IsCancellationRequested) { Respond(e, 503); return; }
             if (reply.Status == 401 && ReferenceEquals(credentials, usedCredentials))
@@ -199,6 +228,28 @@ internal sealed class UsbEditorWindow : Window
                 status.Text = "The display didn’t respond. Check the USB connection and retry.";
             Respond(e, 503);
         }
+    }
+
+    private async Task<UsbEditorResponse> RequestResource(UsbDisplayEditor editor, string method, string path,
+        Dictionary<string, string> headers, byte[] body, NetworkCredential? usedCredentials, CancellationToken token)
+    {
+        if (method == "GET" && !headers.ContainsKey("If-Match") &&
+            !headers.ContainsKey("X-Panel-Config-Version") && !headers.ContainsKey("X-EspDesktop-Epoch"))
+        {
+            if (path == "/espdesktop/version.json" && initialVersion is { } prefetched)
+            {
+                initialVersion = null;
+                if (await prefetched is { } version) return version;
+            }
+            if (path == "/api/v1/capabilities")
+            {
+                // Layout, identity and settings can share an in-flight read.
+                var read = capabilitiesRead ??= RequestPanel(editor, method, path, headers, body, usedCredentials, token);
+                try { return await read; }
+                finally { if (ReferenceEquals(capabilitiesRead, read)) capabilitiesRead = null; }
+            }
+        }
+        return await RequestPanel(editor, method, path, headers, body, usedCredentials, token);
     }
 
     private async Task<UsbEditorResponse> RequestPanel(UsbDisplayEditor editor, string method, string path,
