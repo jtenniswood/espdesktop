@@ -133,26 +133,60 @@ internal sealed class UsbEditorHost : IAsyncDisposable
         try { return await client.Request(request, token); }
         catch (Exception e) when (ConnectionError(e) && !token.IsCancellationRequested)
         {
-            if (request.Method == "POST") throw;
-            var restored = await WaitForDisplay(token);
-            if (request.Method == "GET") return await restored.Request(request, token);
-
-            // A PUT can be delivered before the USB cable is lost. Read the
-            // saved settings before repeating a write or reporting failure.
-            var readHeaders = request.Headers.Where(header =>
-                    header.Key is "authorization" or "x-panel-config-version")
-                .ToDictionary(header => header.Key, header => header.Value);
-            var saved = await restored.Request(request with { Method = "GET", Body = [], Headers = readHeaders }, token);
-            if (saved.Status == 401) return saved;
-            if (saved.Status == 200 && saved.Headers.TryGetValue("etag", out var generation) &&
-                (!request.Headers.TryGetValue("x-panel-config-version", out var version) ||
-                 saved.Headers.GetValueOrDefault("x-panel-config-version") == version))
+            if (request.Method == "PUT") return await RecoverLayoutSave(request, token);
+            if (request.Method == "GET")
             {
-                if (saved.Body.AsSpan().SequenceEqual(request.Body)) return saved;
-                if (generation == request.Headers.GetValueOrDefault("if-match"))
-                    return await restored.Request(request, token);
+                var restored = await WaitForDisplay(token);
+                return await restored.Request(request, token);
             }
-            return new(409, new Dictionary<string, string>(), "The display’s layout changed. Export the unsaved layout before reloading."u8.ToArray());
+            throw;
+        }
+    }
+
+    private async Task<UsbHttpResponse> RecoverLayoutSave(UsbHttpRequest request, CancellationToken token)
+    {
+        // A PUT can be delivered before the USB cable is lost. Read the
+        // saved settings before repeating a write or reporting failure.
+        var readHeaders = request.Headers.Where(header =>
+                header.Key is "authorization" or "x-panel-config-version")
+            .ToDictionary(header => header.Key, header => header.Value);
+        var read = request with { Method = "GET", Body = [], Headers = readHeaders };
+        using var deadline = CancellationTokenSource.CreateLinkedTokenSource(token);
+        deadline.CancelAfter(TimeSpan.FromSeconds(120));
+        try
+        {
+            while (true)
+            {
+                try
+                {
+                    var client = await WaitForDisplay(deadline.Token);
+                    var saved = await client.Request(read, deadline.Token);
+                    if (saved.Status != 200) return saved;
+                    if (saved.Headers.TryGetValue("etag", out var generation) &&
+                        (!request.Headers.TryGetValue("x-panel-config-version", out var version) ||
+                         saved.Headers.GetValueOrDefault("x-panel-config-version") == version))
+                    {
+                        if (saved.Body.AsSpan().SequenceEqual(request.Body)) return saved;
+                        if (generation == request.Headers.GetValueOrDefault("if-match"))
+                        {
+                            var retried = await client.Request(request, deadline.Token);
+                            if (retried.Status != 409) return retried;
+                        }
+                    }
+                    // The editor retries ordinary 409 responses with a freshly read
+                    // layout. A failed recovery must leave the unsaved draft alone.
+                    return new(412, new Dictionary<string, string>(),
+                        "The display’s layout changed. Export the unsaved layout before reloading."u8.ToArray());
+                }
+                catch (Exception e) when (ConnectionError(e) && !deadline.IsCancellationRequested)
+                {
+                    await Task.Delay(250, deadline.Token);
+                }
+            }
+        }
+        catch (OperationCanceledException e) when (!token.IsCancellationRequested)
+        {
+            throw new IOException("Couldn’t check what the display saved.", e);
         }
     }
 

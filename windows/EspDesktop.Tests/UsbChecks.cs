@@ -101,8 +101,19 @@ internal static class UsbChecks
                     "relay panel web sign-in to the browser");
             http.DefaultRequestHeaders.Authorization = new("Basic", "dGVzdDpwdw==");
             using (var existing = await http.GetAsync(config, token))
-                Check(existing.Headers.ETag?.Tag == "\"1\"" && (await existing.Content.ReadAsByteArrayAsync(token)).SequenceEqual(new byte[] { 4, 5 }),
-                    "read layout and ETag through the authenticated USB session");
+                Check(existing.Headers.ETag?.Tag == "\"1\"" &&
+                    existing.Headers.GetValues("x-panel-config-durable-version").Single() == "1" &&
+                    (await existing.Content.ReadAsByteArrayAsync(token)).SequenceEqual(new byte[] { 4, 5 }),
+                    "preserve the panel’s stored format for exact-byte USB backups");
+
+            using (var request = new HttpRequestMessage(HttpMethod.Get, config))
+            {
+                request.Headers.Add("x-panel-config-version", "1");
+                using var backup = await http.SendAsync(request, token);
+                Check(backup.Headers.GetValues("x-panel-config-version").Single() == "1" &&
+                    (await backup.Content.ReadAsByteArrayAsync(token)).SequenceEqual(new byte[] { 1, 4, 5 }),
+                    "read the unchanged stored bytes rather than the converted editor response");
+            }
 
             var edited = new byte[] { 22, 0xc0, 0xdb, 33 };
             using (var write = new HttpRequestMessage(HttpMethod.Put, config) { Content = new ByteArrayContent(edited) })
@@ -112,6 +123,16 @@ internal static class UsbChecks
                 using var saved = await http.SendAsync(write, token);
                 Check(saved.IsSuccessStatusCode && saved.Headers.ETag?.Tag == "\"2\"" && profile.Layout.SequenceEqual(edited) &&
                     profile.WriteCount == 1, "reconnect and confirm an interrupted layout save without resending it");
+            }
+
+            profile.ReplaceNextSave = true;
+            using (var write = new HttpRequestMessage(HttpMethod.Put, config) { Content = new ByteArrayContent(new byte[] { 91 }) })
+            {
+                write.Headers.IfMatch.Add(new("\"2\""));
+                write.Headers.TryAddWithoutValidation("x-panel-config-version", "2");
+                using var conflict = await http.SendAsync(write, token);
+                Check(conflict.StatusCode == HttpStatusCode.PreconditionFailed && profile.Layout.SequenceEqual(new byte[] { 99 }) &&
+                    profile.WriteCount == 2, "preserve a newer layout and prevent an automatic retry after an interrupted save");
             }
 
             var wire = await WaitForUsbSession();
@@ -180,6 +201,7 @@ internal static class UsbChecks
         public TaskCompletionSource ControlsSeen { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
         public byte[] Layout { get; private set; } = [4, 5];
         public int WriteCount { get; private set; }
+        public volatile bool ReplaceNextSave;
         private bool wifi = true;
 
         public async Task Handle(HttpContext context)
@@ -249,8 +271,10 @@ internal static class UsbChecks
                                 var fields = Encoding.ASCII.GetString(wire, 0, boundary);
                                 if (fields.StartsWith("PUT /api/v1/config ", StringComparison.Ordinal))
                                 {
-                                    Check(fields.Contains("If-Match: \"1\"", StringComparison.OrdinalIgnoreCase), "preserve layout save preconditions");
-                                    Layout = wire[(boundary + 4)..];
+                                    Check(fields.Contains($"If-Match: \"{1 + WriteCount}\"", StringComparison.OrdinalIgnoreCase),
+                                        "preserve layout save preconditions");
+                                    Layout = ReplaceNextSave ? [99] : wire[(boundary + 4)..];
+                                    ReplaceNextSave = false;
                                     WriteCount++;
                                     socket.Abort();
                                     return;
@@ -297,7 +321,10 @@ internal static class UsbChecks
                 "read layout for recovery without the old write precondition");
             if (!fields.Contains("Authorization: Basic dGVzdDpwdw==", StringComparison.OrdinalIgnoreCase))
                 return Http("401 Unauthorized", "WWW-Authenticate: Basic realm=\"EspDesktop\"", []);
-            return Http("200 OK", $"ETag: \"{1 + WriteCount}\"\r\nx-panel-config-version: 2", Layout);
+            const string durable = "x-panel-config-durable-version: 1";
+            if (fields.Contains("x-panel-config-version: 1", StringComparison.OrdinalIgnoreCase))
+                return Http("200 OK", $"x-panel-config-version: 1\r\n{durable}", [1, 4, 5]);
+            return Http("200 OK", $"ETag: \"{1 + WriteCount}\"\r\nx-panel-config-version: 2\r\n{durable}", Layout);
         }
 
         private static byte[] Http(string status, string headers, byte[] body) =>

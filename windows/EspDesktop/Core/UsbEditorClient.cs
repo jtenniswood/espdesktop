@@ -226,7 +226,10 @@ internal sealed record UsbHttpRequest(string Method, string Path, IReadOnlyDicti
     private static readonly HashSet<string> RequestHeaders = new(StringComparer.OrdinalIgnoreCase)
     { "content-type", "if-match", "x-panel-config-version", "x-espdesktop-epoch", "authorization" };
     public static readonly HashSet<string> ResponseHeaders = new(StringComparer.OrdinalIgnoreCase)
-    { "content-type", "content-encoding", "etag", "x-panel-config-version", "x-espdesktop-epoch", "www-authenticate", "retry-after" };
+    {
+        "content-type", "content-encoding", "etag", "x-panel-config-version", "x-panel-config-durable-version",
+        "x-espdesktop-epoch", "www-authenticate", "retry-after"
+    };
     private static readonly HashSet<string> PostRoutes = new(StringComparer.Ordinal)
     {
         "/companion/page-preview", "/companion/focus-targets", "/api/v1/identity", "/api/v1/home-assistant",
