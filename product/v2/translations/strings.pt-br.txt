@@ -365,6 +365,7 @@ wind_north_west=North West
 output_mute=Silenciar saída
 microphone_mute=Silenciar microfone
 input_state=Estado da entrada
+no_audio_input=Sem entrada de áudio
 mic=Microfone
 mute=Silenciar
 muted=Silenciado

@@ -170,19 +170,22 @@ internal static class InputSession
 internal static class Audio
 {
     private const string Prefix = "media.";
-    public static IEnumerable<(string, int?)> Read()
+    private const int EndpointNotFound = unchecked((int)0x80070490);
+
+    public static IEnumerable<AudioValue> Read()
     {
         foreach (var name in new[] { "output", "input" })
         {
-            var state = WithEndpoint(name == "input", endpoint =>
+            var input = name == "input";
+            var state = WithEndpoint(input, endpoint =>
             {
                 int? volume = endpoint.GetMasterVolumeLevelScalar(out var scalar) >= 0
                     ? Math.Clamp((int)Math.Round(scalar * 100), 0, 100) : null;
                 int? mute = ReadMute(endpoint) is { } muted ? muted ? 100 : 0 : null;
                 return (Volume: volume, Mute: mute);
-            }, default);
-            yield return (Prefix + name + "_volume", state.Volume);
-            yield return (Prefix + name + "_mute", state.Mute);
+            }, default, out var noDevice);
+            yield return new(Prefix + name + "_volume", state.Volume);
+            yield return new(Prefix + name + "_mute", state.Mute, input && noDevice);
         }
     }
 
@@ -196,7 +199,7 @@ internal static class Audio
                 () => ReadMute(endpoint), muted => endpoint.SetMute(muted, 0) >= 0),
             "media.input_mute" or "media.output_mute" when value is 0 or 100 => endpoint.SetMute(value == 100, 0) >= 0,
             _ => false
-        }, false);
+        }, false, out _);
     }
 
     internal static bool SetLevel(int value, Func<float, bool> writeLevel, Func<bool?> readMute, Func<bool, bool> writeMute)
@@ -207,14 +210,21 @@ internal static class Audio
 
     private static bool? ReadMute(IAudioEndpointVolume endpoint) => endpoint.GetMute(out var muted) >= 0 ? muted : null;
 
-    private static T WithEndpoint<T>(bool input, Func<IAudioEndpointVolume, T> action, T fallback)
+    private static T WithEndpoint<T>(bool input, Func<IAudioEndpointVolume, T> action, T fallback, out bool noDevice)
     {
+        noDevice = false;
         object? enumerator = null, raw = null;
         IMMDevice? device = null;
         try
         {
             enumerator = Activator.CreateInstance(Type.GetTypeFromCLSID(new("BCDE0395-E52F-467C-8E3D-C4579291692E"))!);
-            Check(((IMMDeviceEnumerator)enumerator!).GetDefaultAudioEndpoint(input ? 1 : 0, 1, out device));
+            var result = ((IMMDeviceEnumerator)enumerator!).GetDefaultAudioEndpoint(input ? 1 : 0, 1, out device);
+            if (result == EndpointNotFound)
+            {
+                noDevice = true;
+                return fallback;
+            }
+            Check(result);
             var guid = typeof(IAudioEndpointVolume).GUID;
             Check(device.Activate(in guid, 23, 0, out raw));
             return action((IAudioEndpointVolume)raw);

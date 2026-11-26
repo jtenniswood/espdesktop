@@ -117,6 +117,7 @@ struct ValueSet {
 struct ValueState {
   std::string controlId{};
   bool available{};
+  std::optional<bool> noInputDevice{};
   std::optional<uint32_t> value{};
 };
 struct FocusChanged {
@@ -343,6 +344,7 @@ inline void encode(JsonObject root, const ValueState &message) {
   root["protocol"] = COMPANION_PROTOCOL_VERSION;
   root["controlId"] = message.controlId;
   root["available"] = message.available;
+  if (message.noInputDevice) root["noInputDevice"] = *message.noInputDevice;
   if (message.value) root["value"] = *message.value;
 }
 inline void encode(JsonObject root, const FocusChanged &message) {
@@ -763,6 +765,9 @@ inline std::optional<Message> decode(JsonObjectConst root, Direction direction, 
     {
       if (!(root["available"].is<bool>())) return std::nullopt;
     }
+    if (!root["noInputDevice"].isUnbound()) {
+      if (!(root["noInputDevice"].is<bool>())) return std::nullopt;
+    }
     if (!root["value"].isUnbound()) {
       if (!(number_valid(root["value"], 0, 100, true))) return std::nullopt;
     }
@@ -772,6 +777,7 @@ inline std::optional<Message> decode(JsonObjectConst root, Direction direction, 
     ValueState result;
     result.controlId = root["controlId"].as<std::string>();
     result.available = root["available"].as<bool>();
+    if (!root["noInputDevice"].isUnbound()) result.noInputDevice = root["noInputDevice"].as<bool>();
     if (!root["value"].isUnbound()) result.value = root["value"].as<uint32_t>();
     return result;
   }

@@ -139,6 +139,7 @@ struct CompanionRuntimeSnapshot {
   uint32_t url_focus_targets_generation{0};
   bool application_highlight_known{false};
   std::string application_highlight_id;
+  bool no_input_device{false};
 };
 
 inline std::string companion_network_address(const CompanionRuntimeSnapshot &snapshot,
@@ -315,7 +316,8 @@ class CompanionRuntimeService {
     std::lock_guard<std::mutex> lock(mutex_);
     return {actions_, values_, focused_action_id_, focused_action_ids_, keyboard_actions_supported_,
             connected_, system_metrics_, url_focus_targets_,
-            url_focus_targets_generation_, application_highlight_known_, application_highlight_id_};
+            url_focus_targets_generation_, application_highlight_known_, application_highlight_id_,
+            no_input_device_};
   }
 
   std::string highlighted_application() const {
@@ -408,13 +410,15 @@ class CompanionRuntimeService {
     } else {
       item->value = value;
     }
+    if (control_id == "media.input_mute") no_input_device_ = false;
     for (auto &pending : pending_mutes_)
       if (pending.acknowledged && pending.control == control_id && pending.value == value) pending = {};
     request_refresh_();
   }
 
-  void remove_value(const std::string &control_id) {
+  void remove_value(const std::string &control_id, bool no_input_device = false) {
     std::lock_guard<std::mutex> lock(mutex_);
+    if (control_id == "media.input_mute") no_input_device_ = no_input_device;
     for (auto &pending : pending_mutes_)
       if (pending.control == control_id) pending = {};
     values_.erase(std::remove_if(values_.begin(), values_.end(),
@@ -549,6 +553,7 @@ class CompanionRuntimeService {
     }
     if (!connected_) {
       values_.clear();
+      no_input_device_ = false;
       pending_mutes_ = {};
       focused_action_id_.clear();
       focused_action_ids_.clear();
@@ -582,6 +587,7 @@ class CompanionRuntimeService {
   std::vector<CompanionURLFocusTarget> url_focus_targets_;
   uint32_t url_focus_targets_generation_{0};
   std::vector<CompanionValue> values_;
+  bool no_input_device_{false};
   struct PendingMute {
     std::string control;
     std::string request;

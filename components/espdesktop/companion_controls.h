@@ -371,9 +371,9 @@ inline void companion_set_value(const std::string &control_id, int value) {
   companion_runtime_service().set_value(control_id, value, limit);
 }
 
-inline void companion_remove_value(const std::string &control_id) {
+inline void companion_remove_value(const std::string &control_id, bool no_input_device = false) {
   if (!companion_value_control_valid(control_id)) return;
-  companion_runtime_service().remove_value(control_id);
+  companion_runtime_service().remove_value(control_id, no_input_device);
 }
 
 inline std::atomic<bool> &companion_subpage_return_requested();
@@ -1045,10 +1045,11 @@ inline void companion_layout_card_detail(lv_obj_t *title, lv_obj_t *detail) {
   lv_obj_align(title, LV_ALIGN_BOTTOM_LEFT, 0, -height - 2);
 }
 
-inline void companion_render_mic_detail(lv_obj_t *detail, bool available, bool muted) {
+inline void companion_render_mic_detail(lv_obj_t *detail, bool available, bool muted,
+                                        bool no_input_device = false) {
   if (!detail || !lv_obj_is_valid(detail)) return;
   const auto label = normalize_display_text(espdesktop_i18n_key(
-    !available ? "unavailable" : muted ? "muted" : "live"));
+    available ? (muted ? "muted" : "live") : (no_input_device ? "no_audio_input" : "unavailable")));
   if (label != lv_label_get_text(detail)) lv_label_set_text(detail, label.c_str());
 }
 
@@ -1079,10 +1080,11 @@ inline void companion_render_obs_mute(const CompanionCardRef &ref, const Compani
                          ref.obs_mute_icon_on}, muted, live);
 }
 
-inline void companion_render_value_mute(const CompanionMuteRef &ref, bool available, bool muted) {
+inline void companion_render_value_mute(const CompanionMuteRef &ref, bool available, bool muted,
+                                        bool no_input_device = false) {
   const bool microphone = ref.control_id == "media.input_mute";
   companion_render_mute(ref, muted, available && (microphone ? !muted : muted));
-  companion_render_mic_detail(ref.detail_label, available, muted);
+  companion_render_mic_detail(ref.detail_label, available, muted, microphone && no_input_device);
 }
 
 inline void companion_apply_mute_state(const CompanionMuteRef &ref,
@@ -1093,7 +1095,7 @@ inline void companion_apply_mute_state(const CompanionMuteRef &ref,
   const bool muted = available && companion_runtime_service().displayed_mute_value(ref.control_id, value->value) > 0;
   if (lv_obj_has_state(ref.button, LV_STATE_DISABLED) == available)
     set_card_disabled_state(ref.button, !available);
-  companion_render_value_mute(ref, available, muted);
+  companion_render_value_mute(ref, available, muted, snapshot.connected && snapshot.no_input_device);
   if (companion_obs_cough_control(ref.control_id) && ref.text_label && lv_obj_is_valid(ref.text_label)) {
     const auto label = muted ? normalize_display_text(espdesktop_i18n("Muted")) : ref.resting_label;
     if (label != lv_label_get_text(ref.text_label)) lv_label_set_text(ref.text_label, label.c_str());

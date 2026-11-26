@@ -34,7 +34,9 @@ struct CompanionMuteRef {
   lv_obj_t *detail_label=nullptr;
 };
 struct CompanionValue { std::string id; int value; };
-struct CompanionRuntimeSnapshot { bool connected=true; std::vector<CompanionValue> values; };
+struct CompanionRuntimeSnapshot {
+  bool connected=true; std::vector<CompanionValue> values; bool no_input_device=false;
+};
 constexpr int LV_STATE_CHECKED = 2, LV_STATE_DISABLED = 4;
 bool lv_obj_has_state(lv_obj_t *obj, int state) {
   return state == LV_STATE_CHECKED ? obj->checked : obj->disabled;
@@ -45,6 +47,7 @@ void lv_label_set_text(lv_obj_t *obj, const char *text) { obj->text=text; }
 std::string normalize_display_text(const char *text) { return text; }
 const char *espdesktop_i18n(const char *value) { return value; }
 const char *espdesktop_i18n_key(std::string_view key) {
+  if (key == "no_audio_input") return "No audio input";
   return key == "live" ? "Live" : key == "muted" ? "Muted" : "Unavailable";
 }
 bool detail_deleted = false;
@@ -106,6 +109,17 @@ int main() {
   snapshot.connected=true; snapshot.values.clear();
   for (const auto &ref : registry.mutes) companion_apply_mute_state(ref, snapshot);
   assert(!first.checked && first.disabled && !second.checked && second.disabled);
+  snapshot.no_input_device=true;
+  companion_apply_mute_state(registry.mutes.front(), snapshot);
+  assert(!first.checked && first.disabled && mic_detail.text=="No audio input");
+  snapshot.connected=false;
+  companion_apply_mute_state(registry.mutes.front(), snapshot);
+  assert(first.disabled && mic_detail.text=="Unavailable");
+  snapshot.connected=true;
+  snapshot.no_input_device=false;
+  snapshot.values.push_back({"media.input_mute", 0});
+  companion_apply_mute_state(registry.mutes.front(), snapshot);
+  assert(first.checked && !first.disabled && mic_detail.text=="Live");
   first.checked=true; first.disabled=true;
   // Cleanup runs even when the replacement uses a completely different driver.
   assert(!numeric_selectable_driver_cleanup(slot, {}, Context{false}));

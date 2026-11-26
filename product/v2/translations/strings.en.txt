@@ -366,6 +366,7 @@ wind_north_west=North West
 output_mute=Output Mute
 microphone_mute=Microphone Mute
 input_state=Input State
+no_audio_input=No audio input
 mic=Mic
 mute=Mute
 muted=Muted

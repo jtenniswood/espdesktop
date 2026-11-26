@@ -46,7 +46,7 @@ In the display editor, add a **Sound** card on Home or in a subpage. Choose one 
 - **Audio Output** adjusts the default speaker or headphone volume.
 - **Audio Input** adjusts the default microphone level.
 - **Output Mute** toggles speaker or headphone mute.
-- **Input State** toggles microphone mute and shows whether the input is live or muted.
+- **Input State** toggles microphone mute and shows whether the input is live or muted. If Windows detects no audio input, the card shows **No audio input** and becomes available again when an input is detected.
 
 These four cards also work with the macOS companion. They follow the computer’s default audio devices. Moving a level slider above zero unmutes that device. If a control is unavailable, check the companion connection and whether the audio device exposes that control.
 
