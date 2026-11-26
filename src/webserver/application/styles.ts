@@ -49,7 +49,6 @@ export function createWebStyles(dragAnimation: boolean): string {
         "@media(max-width:600px){.sp-settings-modal.sp-first-run{width:100%;height:100dvh;padding:24px 16px 16px}.sp-first-run .sp-settings-close{top:12px;right:12px}.sp-setup-title{font-size:1.5rem}.sp-setup-modes{grid-template-columns:1fr}.sp-setup-mode{min-height:100px}}" +
         ".sp-first-run .sp-toggle-row:has(input:disabled){opacity:.55}.sp-first-run .sp-toggle input:focus-visible+.sp-toggle-track{outline:2px solid var(--accent);outline-offset:2px}" +
         ".sp-first-run .sp-action-btn:disabled,.sp-first-run .sp-settings-close:disabled{opacity:.55;cursor:default}.sp-first-run .sp-setup-footer{flex-wrap:wrap;margin-top:0}.sp-setup-error{color:var(--danger)}" +
-        ".sp-onboarding .sp-nav{display:none}" +
         ".sp-connector-status{display:flex;align-items:center;gap:8px;margin:0 0 16px;color:var(--text2);font-size:.86rem}" +
         ".sp-connector-status::before{content:'';width:8px;height:8px;border-radius:50%;background:var(--text3);flex:0 0 auto}" +
         ".sp-connector-status-connected{color:var(--success)}" +

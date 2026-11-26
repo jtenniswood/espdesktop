@@ -28,6 +28,10 @@ Choose **Apply Configuration** at the bottom of the tab when you’re ready to r
 - **Screensaver** can dim the screen, show a clock or turn the display off. Choose **Timer** to start it after idle time, or **App Connection** to start it when your paired computer locks or disconnects.
 - **Night Schedule** sets a daily period to dim the screen, turn it off or show a clock. It takes priority over the screensaver. It is off on new displays. If you enable it with the preset hours and brightness, the screen dims to **15%** from **7:00 PM to 7:00 AM** in the display’s local time.
 
+For the **Clock** screensaver, turn on **Show date** to include the local date or adjust the separate day and night clock brightness. When the screensaver dims the display, Automatic and Timed backlight modes also offer separate day and night dim levels.
+
+When the night schedule uses **Screen Off**, set **When Woken, Idle Time to Screen Off** and **When Woken, Screen Brightness** to control how long and how brightly the screen wakes after a tap. The defaults are one minute and 10%.
+
 When the display is asleep, tap once to wake it, then tap a card to use it.
 
 ### Computer screen lock {#mac-screen-lock}

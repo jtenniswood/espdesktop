@@ -10,8 +10,7 @@ using static EspDesktop.Core.Protocol;
 
 namespace EspDesktop.Core;
 
-internal sealed record Pairing(string Address, string Fingerprint, byte[] Key, uint Sequence = 0, string? DisplayName = null,
-    string? LastNetworkAddress = null);
+internal sealed record Pairing(string Address, string Fingerprint, byte[] Key, uint Sequence = 0, string? DisplayName = null);
 internal sealed record CatalogueItem(string Id, string Label, string? ObsState = null, string? ObsDetail = null);
 
 internal readonly record struct AudioValue(string Id, int? Value, bool NoInputDevice = false);
@@ -35,20 +34,18 @@ internal interface IDesktop
 }
 
 internal sealed class DisplaySession(IDesktop desktop, Action<Pairing> save, Action<string> status,
-    Func<string, CancellationToken, Task<DiscoveredDisplay?>> findDisplay,
-    Func<string, CancellationToken, ValueTask<Stream>>? openUsb = null,
-    Action<UsbEditorClient?>? usbChanged = null)
+    Func<string, CancellationToken, Task<DiscoveredDisplay?>> findDisplay)
 {
     public static async Task<Pairing> PairAsync(string address, string code, CancellationToken token,
-        IReadOnlySet<string>? savedFingerprints = null,
-        Func<string, CancellationToken, ValueTask<Stream>>? openUsb = null)
+        IReadOnlySet<string>? savedFingerprints = null)
     {
         if (code.Length is < 1 or > 16 || !code.All(c => char.IsAsciiLetterOrDigit(c) || c == '-'))
             throw new ArgumentException("Enter the pairing code shown on the display.");
         using var deadline = CancellationTokenSource.CreateLinkedTokenSource(token);
         deadline.CancelAfter(TimeSpan.FromSeconds(12));
         string? fingerprint = null;
-        using var client = new Link(null, f => fingerprint = f, address, openUsb);
+        var endpoint = DisplayEndpoint.Parse(address);
+        using var client = new Link(endpoint, null, f => fingerprint = f);
         await client.Connect(deadline.Token);
         if (fingerprint is { } identity && savedFingerprints?.Contains(identity) == true)
             throw new SessionException("This display is already saved on this PC.");
@@ -59,11 +56,12 @@ internal sealed class DisplaySession(IDesktop desktop, Action<Pairing> save, Act
         return new Pairing(address, fingerprint, Convert.FromHexString(Text(reply, "credential")));
     }
 
-    public async Task RunAsync(Pairing pairing, CancellationToken token, string? selectedAddress = null)
+    public async Task RunAsync(Pairing pairing, CancellationToken token, string? newAddress = null,
+        Action<UsbDisplayEditor?>? editorChanged = null)
     {
         var failures = 0;
         var repairs = 0;
-        var attemptedAddress = selectedAddress ?? pairing.Address;
+        var attemptedAddress = newAddress ?? pairing.Address;
         var unverifiedAddresses = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         DiscoveredDisplay? recoveryCandidate = null;
         var searchedForName = false;
@@ -75,14 +73,15 @@ internal sealed class DisplaySession(IDesktop desktop, Action<Pairing> save, Act
                 timeout.CancelAfter(TimeSpan.FromSeconds(12));
                 status(failures == 0 ? "Connecting…" : "Reconnecting…");
                 var pinMismatch = false;
-                var usbPort = UsbPort.PortName(attemptedAddress);
-                using var client = new Link(pairing.Fingerprint, f => pinMismatch = f != pairing.Fingerprint,
-                    attemptedAddress, openUsb);
+                var endpoint = DisplayEndpoint.Parse(attemptedAddress);
+                using var client = new Link(endpoint, pairing.Fingerprint, f => pinMismatch = !f.Equals(pairing.Fingerprint, StringComparison.OrdinalIgnoreCase));
                 try { await client.Connect(timeout.Token); }
                 catch (WebSocketException) when (pinMismatch)
                 {
-                    if (usbPort != null || selectedAddress != null)
-                        throw new SessionException("That connection belongs to a different display. Choose the paired display’s port or address.");
+                    if (endpoint.UsbPort is not null)
+                        throw new SessionException("This USB port is connected to a different display. Choose another port.");
+                    if (newAddress is not null)
+                        throw new SessionException("That address belongs to a different display. Check the address and try again.");
                     if (attemptedAddress != pairing.Address)
                     {
                         // Reject a discovered address that cannot prove the pinned identity.
@@ -118,35 +117,34 @@ internal sealed class DisplaySession(IDesktop desktop, Action<Pairing> save, Act
                 repairs = 0;
                 failures = 0;
                 unverifiedAddresses.Clear();
-                var endpoint = usbPort == null ? DisplayEndpoint.Parse(attemptedAddress).Socket : null;
                 var discovery = recoveryCandidate;
-                if (endpoint != null && discovery is null && pairing.DisplayName is null && !searchedForName)
+                if (endpoint.UsbPort is null && discovery is null && pairing.DisplayName is null && !searchedForName)
                 {
                     searchedForName = true;
                     discovery = await FindPairedDisplay();
                 }
-                var displayName = discovery is not null && DisplayEndpoint.Parse(discovery.Address).Socket == endpoint
+                var displayName = discovery is not null && DisplayEndpoint.Parse(discovery.Address).Socket == endpoint.Socket
                     ? Discovery.FriendlyName(discovery.Name) ?? pairing.DisplayName : pairing.DisplayName;
                 if (pairing.Address != attemptedAddress || pairing.DisplayName != displayName)
                 {
-                    var lastNetworkAddress = usbPort == null ? attemptedAddress :
-                        UsbPort.PortName(pairing.Address) == null ? pairing.Address : pairing.LastNetworkAddress;
-                    pairing = pairing with { Address = attemptedAddress, DisplayName = displayName, LastNetworkAddress = lastNetworkAddress };
+                    pairing = pairing with { Address = attemptedAddress, DisplayName = displayName };
                     SavePairing(pairing);
                 }
                 recoveryCandidate = null;
-                selectedAddress = null;
-                status(usbPort == null ? $"Connected to {displayName ?? endpoint!.Host}" : $"Connected over USB ({usbPort})");
-                if (usbPort != null && Flag(reply, "usbEditor"))
+                newAddress = null;
+                status($"Connected to {displayName ?? endpoint.Label}");
+                using var connected = CancellationTokenSource.CreateLinkedTokenSource(token);
+                if (endpoint.UsbPort is not null && reply.TryGetProperty("usbEditor", out var supportsEditor) &&
+                    supportsEditor.ValueKind == JsonValueKind.True && editorChanged is not null)
                 {
-                    client.EnableUsbEditor(Flag(reply, "usbWifiAddress"));
-                    usbChanged?.Invoke(client.UsbEditor);
+                    client.Editor = new UsbEditorTunnel(client.SendBinary, connected.Token);
+                    editorChanged(new UsbDisplayEditor(client.Editor));
                 }
-                try { await new Connected(client, desktop, UInt(reply, "capabilityVersion"), token).Run(); }
+                try { await new Connected(client, desktop, UInt(reply, "capabilityVersion"), connected.Token).Run(); }
                 finally
                 {
-                    client.UsbEditor?.Disconnect();
-                    if (usbPort != null) usbChanged?.Invoke(null);
+                    await connected.CancelAsync();
+                    if (client.Editor is not null) editorChanged?.Invoke(null);
                 }
             }
             catch (OperationCanceledException) when (token.IsCancellationRequested) { return; }
@@ -154,13 +152,13 @@ internal sealed class DisplaySession(IDesktop desktop, Action<Pairing> save, Act
             catch (Exception e) when (e is WebSocketException or HttpRequestException or IOException or OperationCanceledException)
             {
                 if (token.IsCancellationRequested) return;
-                var viaUsb = UsbPort.PortName(attemptedAddress) != null;
-                status(viaUsb ? "USB display unavailable. Reconnect the cable or close any serial monitor." :
-                    "Display unavailable. Reconnecting automatically…");
+                status(DisplayEndpoint.Parse(attemptedAddress).UsbPort is { } port
+                    ? $"USB display unavailable on {port}. Reconnecting automatically…"
+                    : "Display unavailable. Reconnecting automatically…");
                 var delay = TimeSpan.FromSeconds(Math.Min(30, 1 << Math.Min(++failures, 5)));
                 try
                 {
-                    if (!viaUsb) attemptedAddress = await FindRecoveryAddress() ?? selectedAddress ?? pairing.Address;
+                    attemptedAddress = newAddress ?? await FindRecoveryAddress() ?? pairing.Address;
                     await Task.Delay(delay, token);
                 }
                 catch (OperationCanceledException) when (token.IsCancellationRequested) { return; }
@@ -169,6 +167,7 @@ internal sealed class DisplaySession(IDesktop desktop, Action<Pairing> save, Act
 
         async Task<string?> FindRecoveryAddress()
         {
+            if (DisplayEndpoint.Parse(pairing.Address).UsbPort is not null) return null;
             var discovered = await FindPairedDisplay();
             recoveryCandidate = discovered is not null && !unverifiedAddresses.Contains(discovered.Address) ? discovered : null;
             return recoveryCandidate is not null && !recoveryCandidate.Address.Equals(pairing.Address, StringComparison.OrdinalIgnoreCase)
@@ -179,7 +178,7 @@ internal sealed class DisplaySession(IDesktop desktop, Action<Pairing> save, Act
         {
             var display = await findDisplay(pairing.Fingerprint, token);
             if (display is null || !display.Fingerprint.Equals(pairing.Fingerprint, StringComparison.OrdinalIgnoreCase)) return null;
-            try { _ = DisplayEndpoint.Parse(display.Address); }
+            try { if (DisplayEndpoint.Parse(display.Address).UsbPort is not null) return null; }
             catch (ArgumentException) { return null; }
             return display;
         }
@@ -193,9 +192,6 @@ internal sealed class DisplaySession(IDesktop desktop, Action<Pairing> save, Act
             }
         }
     }
-
-    private static bool Flag(JsonElement reply, string key) =>
-        reply.TryGetProperty(key, out var value) && value.ValueKind == JsonValueKind.True;
 
     private static string Error(JsonElement reply, string fallback) => Text(reply, "code") switch
     {
@@ -223,8 +219,7 @@ internal sealed class DisplaySession(IDesktop desktop, Action<Pairing> save, Act
 
         public async Task Run()
         {
-            // There is exactly one pending receive and all sends and action dispatches
-            // happen on this loop, including the publications initiated by a timer.
+            // Keep one pending receive. Link dispatches USB replies while waiting for JSON.
             using var lifetime = CancellationTokenSource.CreateLinkedTokenSource(token);
             var read = link.Read("connected", lifetime.Token);
             using var timer = new PeriodicTimer(TimeSpan.FromMilliseconds(500));
@@ -461,19 +456,20 @@ internal sealed class DisplaySession(IDesktop desktop, Action<Pairing> save, Act
     {
         private readonly ClientWebSocket socket = new();
         private readonly HttpMessageInvoker http;
-        private readonly Uri endpoint;
-        private readonly SemaphoreSlim sends = new(1);
-        public UsbEditorClient? UsbEditor { get; private set; }
+        private readonly SemaphoreSlim sender = new(1);
+        public UsbEditorTunnel? Editor { get; set; }
 
-        public Link(string? pin, Action<string> observed, string address, Func<string, CancellationToken, ValueTask<Stream>>? openUsb)
+        private readonly DisplayEndpoint endpoint;
+
+        public Link(DisplayEndpoint endpoint, string? pin, Action<string> observed)
         {
-            var port = UsbPort.PortName(address);
-            endpoint = port == null ? DisplayEndpoint.Parse(address).Socket : new Uri("wss://127.0.0.1" + SocketPath);
+            this.endpoint = endpoint;
             var handler = new SocketsHttpHandler
             {
                 UseProxy = false, AllowAutoRedirect = false, UseCookies = false,
-                ConnectCallback = port == null ? DisplayEndpoint.ConnectLocal :
-                    (_, token) => openUsb?.Invoke(port, token) ?? ValueTask.FromException<Stream>(new IOException("USB is unavailable.")),
+                ConnectTimeout = endpoint.UsbPort is null ? Timeout.InfiniteTimeSpan : TimeSpan.FromSeconds(8),
+                ConnectCallback = endpoint.UsbPort is { } port ? (_, token) => UsbDisplayStream.Connect(port, token) :
+                    DisplayEndpoint.ConnectLocal,
                 SslOptions = new SslClientAuthenticationOptions
                 {
                     RemoteCertificateValidationCallback = (_, certificate, _, _) =>
@@ -487,24 +483,21 @@ internal sealed class DisplaySession(IDesktop desktop, Action<Pairing> save, Act
                 }
             };
             http = new HttpMessageInvoker(handler);
-            socket.Options.KeepAliveInterval = TimeSpan.FromSeconds(20);
+            socket.Options.KeepAliveInterval = TimeSpan.FromSeconds(endpoint.UsbPort is null ? 20 : 15);
             socket.Options.KeepAliveTimeout = TimeSpan.FromSeconds(15);
         }
 
-        public Task Connect(CancellationToken token) => socket.ConnectAsync(endpoint, http, token);
-
-        public void EnableUsbEditor(bool wifiAddressSupported) => UsbEditor = new(SendBinary, wifiAddressSupported);
-
+        public Task Connect(CancellationToken token) => socket.ConnectAsync(endpoint.Socket, http, token);
         public Task Send(Dictionary<string, object?> m, string state, CancellationToken token) =>
             SendFrame(Serialize(m, state), WebSocketMessageType.Text, token);
-
-        public Task SendBinary(byte[] bytes, CancellationToken token) => SendFrame(bytes, WebSocketMessageType.Binary, token);
+        public Task SendBinary(byte[] bytes, CancellationToken token) =>
+            SendFrame(bytes, WebSocketMessageType.Binary, token);
 
         private async Task SendFrame(byte[] bytes, WebSocketMessageType type, CancellationToken token)
         {
-            await sends.WaitAsync(token);
-            try { await socket.SendAsync(bytes.AsMemory(), type, true, token); }
-            finally { sends.Release(); }
+            await sender.WaitAsync(token).ConfigureAwait(false);
+            try { await socket.SendAsync(bytes.AsMemory(), type, true, token).ConfigureAwait(false); }
+            finally { sender.Release(); }
         }
 
         public async Task<JsonElement> Reply(string state, CancellationToken token)
@@ -525,14 +518,15 @@ internal sealed class DisplaySession(IDesktop desktop, Action<Pairing> save, Act
             {
                 var part = await socket.ReceiveAsync(buffer.AsMemory(used), token);
                 if (part.MessageType == WebSocketMessageType.Close) throw new IOException("The display disconnected.");
+                if (part.MessageType != WebSocketMessageType.Text && Editor is null) break;
                 used += part.Count;
                 if (!part.EndOfMessage) continue;
-                if (part.MessageType == WebSocketMessageType.Binary && UsbEditor?.Receive(buffer.AsSpan(0, used)) == true)
+                if (part.MessageType == WebSocketMessageType.Binary)
                 {
+                    Editor?.Receive(buffer.AsSpan(0, used));
                     used = 0;
                     continue;
                 }
-                if (part.MessageType != WebSocketMessageType.Text) break;
                 try
                 {
                     using var doc = JsonDocument.Parse(buffer.AsMemory(0, used), new JsonDocumentOptions { MaxDepth = 16 });

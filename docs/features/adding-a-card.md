@@ -7,15 +7,33 @@ description: Add a card to the EspDesktop screen grid, choose a card type, and c
 
 ## Choose a card type
 
-1. Open your display’s address in a browser and select **Layout**. Open Home or the subpage where you want the card.
-2. Click **+** in an empty spot. The **Choose Card** dialog opens.
-3. Pick what the card should do. Choose [**Applications**](/mac-controls/apps) to open an approved app, [**File Folder** or **File Explorer**](/mac-controls/folders) to open an approved folder, or [**Keyboard Shortcut**](/mac-controls/shortcuts) to run a keyboard shortcut.
+1. Open your display’s editor and select **Layout**. Choose Home or the subpage where you want the card.
+2. Click **+** in an empty spot and choose a card. If the picker shows connector tabs, open **Companion** for computer controls.
+3. Set what the card should do, such as which app to open, then select **Save**.
 
 <a href="/images/web-editor-choose-card.webp"><picture><source type="image/avif" srcset="/images/web-editor-choose-card-480.avif 480w, /images/web-editor-choose-card-960.avif 960w" sizes="(min-width: 768px) 688px, 90vw"><img src="/images/web-editor-choose-card.webp" alt="Choose Card dialog with Applications, Folder, Keyboard Shortcut, Lock Machine, Subpage and Website options" width="1269" height="1022" loading="lazy"></picture></a>
 
-## Set up the card
+## Which cards work with my computer?
 
-Fill in the options for the card type you picked. For example, choose the app for an **Applications** card or enter a web address for a [**Website** card](/mac-controls/websites). Companion cards need EspDesktop paired with your computer.
+The picker depends on which computer is connected and the versions of EspDesktop and the display firmware. For computer controls, pair the display with [macOS](/macos) or [Windows](/windows#pair-your-display) first.
+
+| Card | Use it to | Platform |
+| --- | --- | --- |
+| [Applications](/mac-controls/apps) | Open an approved app or add a page of its shortcuts. | macOS and Windows |
+| [Folders](/mac-controls/folders) | Open an approved folder or a page of folders. | macOS and Windows |
+| [Website](/mac-controls/websites) | Open a web address. | macOS and Windows |
+| [Keyboard Shortcut](/mac-controls/shortcuts) | Send your own shortcut or choose an app preset. | macOS and Windows |
+| [Lock Machine](/mac-controls/security) | Lock the paired computer. | macOS and Windows |
+| [Subpage](/features/subpages) | Group cards on the display. | Both platforms, also usable without a paired computer |
+| [Sound](/card-types/sound) | Adjust speaker, microphone, or app volume. | macOS and Windows. Hold-to-mute is macOS only. |
+| [Apple Shortcuts](/mac-controls/apple-shortcuts) | Run a workflow or group workflows on a page. | macOS |
+| [OBS Studio](/obs-studio) | Switch scenes, mix audio, and control recording and streaming. | Mac and Windows, depending on your EspDesktop release. |
+
+<span id="set-up-the-card"></span>
+
+## Change the label or icon
+
+Right-click a saved card in **Layout** and choose **Edit Card**.
 
 - **Label** sets the name shown on the touchscreen. Look under **Card Settings** if the field is tucked away. Where the field shows **Automatic**, leave it blank to use the suggested label.
 - **Icon** opens the icon picker. Search for an icon by name and select it. Choose **Auto** to use the default icon when available. Some cards let you pick separate **Off Icon** and **On Icon** values.
@@ -24,6 +42,6 @@ Fill in the options for the card type you picked. For example, choose the app fo
 
 1. Expand **Custom Colours** in the card editor. Choose a preset for the card background, or use the eyedropper button to open the custom colour picker.
 2. Where **Active state colour** is available, choose **Matching** for a shade based on the card background, **Global** to use the screen’s active colour, or **Custom** to pick a separate colour.
-3. Select **Save** to add the card to the touchscreen. To change it later, right-click it in **Layout** and choose **Edit Card**. For a quick background change, use **Card Colour** in the right-click menu.
+3. Select **Save**. For a quick background change, right-click the card and choose **Card Colour**.
 
 See [Screen grid](/features/home) for moving and resizing cards.

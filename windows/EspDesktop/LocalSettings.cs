@@ -72,8 +72,7 @@ internal sealed class LocalStore
                         pairing.Key?.Length != 32 || pairing.Fingerprint?.Length != 64 ||
                         !pairing.Fingerprint.All(Uri.IsHexDigit) || !fingerprints.Add(pairing.Fingerprint))
                         throw new IOException("Invalid saved pairing.");
-                    UsbPort.ValidateAddress(pairing.Address);
-                    if (pairing.LastNetworkAddress != null) _ = DisplayEndpoint.Parse(pairing.LastNetworkAddress);
+                    _ = DisplayEndpoint.Parse(pairing.Address);
                     return pairing with { DisplayName = Discovery.FriendlyName(pairing.DisplayName) };
                 }).ToArray();
                 PairingUnavailable = false;
