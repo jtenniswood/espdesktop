@@ -1293,6 +1293,9 @@ final class CompanionConnection: NSObject {
             var message: [String: Any] = ["type": "catalogue.page", "generation": catalogueGeneration,
                                          "page": page, "complete": page == pages.count - 1, "items": items]
             if obsOnly { message["scope"] = "obs" }
+            if !obsOnly && page == pages.count - 1 && resources.applicationCatalogueProvisional {
+                message["appsProvisional"] = true
+            }
             sendJSON(message)
         }
         if obsOnly { return }

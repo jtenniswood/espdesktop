@@ -4392,6 +4392,7 @@ async function assertAppVolumeCard(browser) {
       ] : [
         { id: "com.spotify.client", label: "Spotify" },
         { id: "com.google.Chrome", label: "Chrome" },
+        { id: "io.espdesktop.launcher." + "b".repeat(64), label: "Steam launcher" },
       ]),
       { id: "folder.music", label: "Music folder" },
       { id: coughID, label: "OBS Desk Mic" },
