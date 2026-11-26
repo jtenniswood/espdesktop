@@ -16,7 +16,9 @@ Use a 4-inch Guition 4848S040 to launch approved Windows apps, open File Explore
 3. Run the setup file. The installer is unsigned, so Windows may ask you to confirm that you trust it.
 4. Open **EspDesktop** from Start. The app installs for the current user.
 
-To update, run the newer setup file. The installer keeps your settings and display pairing.
+## Update EspDesktop
+
+Open **Updates → Check for updates** in the Windows app, or leave **Automatically check for updates** enabled. Choose **Release downloads** to get a newer installer, then run the setup file for your PC. The installer keeps your settings and display pairing.
 
 ## Pair your display
 

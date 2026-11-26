@@ -59,10 +59,10 @@ In the display editor, select an empty tile on Home or in a folder. Choose **Sou
 | **Output Mute** | Tap to mute your computer’s sound output. Tap again to restore it. |
 | **Input State** | Tap to mute or unmute your computer’s microphone. The card uses the on colour for **Live** and the off colour for **Muted**. |
 | **Input Cough** (macOS) | Hold to mute the default microphone until you release. |
-| **Input per device level** (macOS) | Choose a connected audio input with adjustable gain. The card follows that device even when you change the default microphone. It becomes unavailable while that device is disconnected. |
-| **Output per application** (macOS) | Choose an enabled app and adjust its sound independently. |
+| **Input per device level** | Choose a connected audio input with adjustable gain. The card follows that device even when you change the default microphone. It becomes unavailable while that device is disconnected. |
+| **Output per application** | Choose an enabled app and adjust its sound independently. |
 
-**Audio Output**, **Audio Input**, **Output Mute**, and **Input State** also work with the [Windows companion](/windows-preview#control-system-sound).
+Windows supports every type in the table except **Input Cough**. To use the two independent sliders, use a Windows companion and display firmware that include those controls. For **Output per application**, start playback in the selected Windows app before moving the slider. [Windows sound setup](/windows-preview#control-system-sound).
 
 The level cards display **Volume** or **Mic** by default. The output mute card displays **Mute**. The speaker and microphone icons identify which device each card controls. Mute cards show a crossed-out icon when your computer reports mute. If a card is unavailable, check the companion connection and whether the selected audio device supports that control. Raising a level above zero also unmutes that device.
 

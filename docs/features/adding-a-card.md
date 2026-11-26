@@ -13,6 +13,22 @@ description: Add a card to the EspDesktop screen grid, choose a card type, and c
 
 <a href="/images/web-editor-choose-card.webp"><picture><source type="image/avif" srcset="/images/web-editor-choose-card-480.avif 480w, /images/web-editor-choose-card-960.avif 960w" sizes="(min-width: 768px) 688px, 90vw"><img src="/images/web-editor-choose-card.webp" alt="Choose Card dialog with Applications, Folder, Keyboard Shortcut, Lock Machine, Subpage and Website options" width="1269" height="1022" loading="lazy"></picture></a>
 
+## Which cards work with my computer?
+
+Availability depends on the connected companion and the versions of the app and display firmware. Use a matching release that includes the controls you want.
+
+| Card | macOS | Windows 11 |
+| --- | --- | --- |
+| [Applications](/mac-controls/apps) | Open approved apps and add shortcut subpages. | Open approved apps and add shortcut subpages. |
+| [Folders](/mac-controls/folders) | Open a Finder folder or a page of approved folders. | Open a File Explorer folder or a page of approved folders. |
+| [Website](/mac-controls/websites) | Open a web address. | Open a web address. |
+| [Keyboard Shortcut](/mac-controls/shortcuts) | Custom shortcuts and Mac app presets. | Custom shortcuts and Windows app presets. |
+| [Lock Machine](/mac-controls/security) | Lock the paired Mac. | Lock the paired PC. |
+| [Subpage](/features/subpages) | Group cards on the display. | Group cards on the display. |
+| [Sound](/mac-controls/apps#mac-audio) | Speaker and microphone controls, including app volume, individual microphones, and hold-to-mute. | [Speaker and microphone controls](/windows-preview#control-system-sound), including app volume and individual microphones. |
+| [Apple Shortcuts](/mac-controls/apple-shortcuts) | Run individual workflows or group them on a page. | Unavailable. |
+| [OBS Studio](/mac-controls/obs-studio) | Scenes, mixer controls, recording, and streaming. | [Scene selection, Take Live, and transitions](/windows-preview#switch-obs-scenes). |
+
 ## Set up the card
 
 Fill in the options for the card type you picked. For example, choose the app for an **Applications** card or enter a web address for a [**Website** card](/mac-controls/websites). Companion cards need EspDesktop paired with your computer.

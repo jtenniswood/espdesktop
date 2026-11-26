@@ -5,6 +5,10 @@ description: Check which touchscreen actions EspDesktop v1.2.6 offers, what perm
 
 # Supported EspDesktop Mac controls
 
+For current card choices across macOS and Windows, see [Adding a card](/features/adding-a-card#which-cards-work-with-my-computer).
+
+## EspDesktop v1.2.6 reference
+
 The table describes the public controls in [EspDesktop v1.2.6](https://github.com/jtenniswood/espdesktop/releases/tag/v1.2.6) on the Guition 4848S040. Use the Mac app and firmware from the same release.
 
 | Control | What it does | Setup |
