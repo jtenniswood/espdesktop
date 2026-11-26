@@ -238,7 +238,7 @@ inline void grid_update_companion_app_icon_palette(
     connection_observer_registered = true;
   }
   companion_update_app_icon_card_palette(
-      *source, slot.btn, companion_app_icon_enabled(config),
+      *source, slot.btn, companion_app_icon_enabled(config) || !companion_shortcut_app_icon_id(config).empty(),
       palette.off_val,
       palette.on_val,
       display.color.red_percent, display.color.green_percent,
