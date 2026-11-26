@@ -365,6 +365,7 @@ wind_north_west=North West
 output_mute=Uitvoer dempen
 microphone_mute=Microfoon dempen
 input_state=Invoerstatus
+no_audio_input=Geen audio-invoer
 mic=Microfoon
 mute=Dempen
 muted=Gedempt

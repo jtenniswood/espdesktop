@@ -919,7 +919,8 @@ void CompanionService::handle_json_(int socket_fd, const std::string &message) {
       const std::string control_id = payload->controlId;
       if (!companion_value_control_valid(control_id)) return false;
       if (!payload->available) {
-        this->defer_session_([control_id] { companion_remove_value(control_id); });
+        const bool no_input_device = payload->noInputDevice.value_or(false);
+        this->defer_session_([control_id, no_input_device] { companion_remove_value(control_id, no_input_device); });
         return true;
       }
       const int value = payload->value ? static_cast<int>(*payload->value) : -1;

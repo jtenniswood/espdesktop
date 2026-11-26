@@ -405,7 +405,7 @@ internal sealed class WindowsDesktop(LocalSettings settings, ObsConnection? obs 
     }
 
     public bool SetValue(string id, int value) => !SessionState.Locked && Audio.Set(id, value);
-    public IEnumerable<(string Id, int? Value)> Values() => Audio.Read();
+    public IEnumerable<AudioValue> Values() => Audio.Read();
     public Dictionary<string, object?> Metrics(uint generation)
     {
         // Keep the sampling interval independent of how many displays publish it.

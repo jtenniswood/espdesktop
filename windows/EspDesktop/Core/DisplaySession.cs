@@ -13,6 +13,8 @@ namespace EspDesktop.Core;
 internal sealed record Pairing(string Address, string Fingerprint, byte[] Key, uint Sequence = 0, string? DisplayName = null);
 internal sealed record CatalogueItem(string Id, string Label, string? ObsState = null, string? ObsDetail = null);
 
+internal readonly record struct AudioValue(string Id, int? Value, bool NoInputDevice = false);
+
 internal interface IDesktop
 {
     int CatalogueRevision { get; }
@@ -27,7 +29,7 @@ internal interface IDesktop
     byte[]? AppIcon(string appId, int side);
     Task<string> Invoke(JsonElement message, CancellationToken token);
     bool SetValue(string id, int value);
-    IEnumerable<(string Id, int? Value)> Values();
+    IEnumerable<AudioValue> Values();
     Dictionary<string, object?> Metrics(uint generation);
 }
 
@@ -189,7 +191,7 @@ internal sealed class DisplaySession(IDesktop desktop, Action<Pairing> save, Act
         private Transfer? iconTransfer;
         private readonly Queue<(string Id, string Hash)> iconRequests = new();
         private readonly Dictionary<string, Uri> focusTargets = new(StringComparer.Ordinal);
-        private readonly Dictionary<string, int?> values = new(StringComparer.Ordinal);
+        private readonly Dictionary<string, AudioValue> values = new(StringComparer.Ordinal);
         private readonly Stopwatch slowTick = Stopwatch.StartNew();
 
         public async Task Run()
@@ -284,14 +286,15 @@ internal sealed class DisplaySession(IDesktop desktop, Action<Pairing> save, Act
                 focused = current;
                 await Send("focus.changed", ("actionId", current.FirstOrDefault() ?? ""), ("actionIds", current));
             }
-            foreach (var (id, value) in desktop.Values())
-                if (!values.TryGetValue(id, out var previous) || value != previous)
-                {
-                    values[id] = value;
-                    await (value is int v
-                        ? Send("value.state", ("controlId", id), ("available", true), ("value", v))
-                        : Send("value.state", ("controlId", id), ("available", false)));
-                }
+            foreach (var state in desktop.Values())
+            {
+                if (values.TryGetValue(state.Id, out var previous) && state == previous) continue;
+                var message = Message("value.state", ("controlId", state.Id), ("available", state.Value.HasValue));
+                if (state.Value is int value) message.Add("value", value);
+                else if (state.NoInputDevice) message.Add("noInputDevice", true);
+                await link.Send(message, "connected", token);
+                values[state.Id] = state;
+            }
             if (fastOnly) return;
             var newZone = TimeZoneInfo.TryConvertWindowsIdToIanaId(TimeZoneInfo.Local.Id, out var iana) ? iana : TimeZoneInfo.Local.Id;
             if (zone != newZone)

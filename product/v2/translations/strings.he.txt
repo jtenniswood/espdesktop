@@ -366,6 +366,7 @@ wind_north_west=North West
 output_mute=השתקת פלט
 microphone_mute=השתקת מיקרופון
 input_state=מצב קלט
+no_audio_input=אין קלט שמע
 mic=מיקרופון
 mute=השתקה
 muted=מושתק

@@ -365,6 +365,7 @@ wind_north_west=North West
 output_mute=Çıkışı sessize al
 microphone_mute=Mikrofonu sessize al
 input_state=Giriş durumu
+no_audio_input=Ses girişi yok
 mic=Mikrofon
 mute=Sessiz
 muted=Sessiz
