@@ -8,12 +8,6 @@
     "https://update-software.sonos.com/software/rT0797IawE/Sonos_90.0-77070.exe"
   ],
   "note": "These bindings follow the Windows Sonos desktop controller. Playback and volume affect the selected room or group.",
-  "defaultShortcutIds": [
-    "0",
-    "1",
-    "2",
-    "3"
-  ],
   "shortcuts": [
     {"id": "0", "label": "Play or Pause", "shortcut": "control+p", "icon": "Keyboard"},
     {"id": "1", "label": "Next Track", "shortcut": "control+right", "icon": "Chevron Right"},

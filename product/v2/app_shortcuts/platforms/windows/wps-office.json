@@ -7,12 +7,6 @@
     "https://www.wps.com/academy/common-shortcut-keys-in-wps-spreadsheet-quick-tutorials-1861871/"
   ],
   "note": "These presets are for WPS Spreadsheet.",
-  "defaultShortcutIds": [
-    "0",
-    "1",
-    "2",
-    "3"
-  ],
   "shortcuts": [
     {"id": "0", "label": "New Workbook", "shortcut": "control+n", "icon": "New Window"},
     {"id": "1", "label": "Open", "shortcut": "control+o", "icon": "Folder"},

@@ -6,12 +6,6 @@
   "sources": [
     "https://learn.microsoft.com/en-us/azure/storage/storage-explorer/vs-azure-tools-storage-explorer-accessibility"
   ],
-  "defaultShortcutIds": [
-    "0",
-    "1",
-    "2",
-    "3"
-  ],
   "shortcuts": [
     {"id": "0", "label": "Focus Explorer", "shortcut": "control+shift+e", "icon": "Keyboard"},
     {"id": "1", "label": "Activity Log", "shortcut": "control+shift+l", "icon": "Keyboard"},

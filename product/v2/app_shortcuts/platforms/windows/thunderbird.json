@@ -6,12 +6,6 @@
   "sources": [
     "https://support.mozilla.org/en-US/kb/keyboard-shortcuts-thunderbird"
   ],
-  "defaultShortcutIds": [
-    "0",
-    "1",
-    "2",
-    "3"
-  ],
   "shortcuts": [
     {"id": "0", "label": "Compose", "shortcut": "control+n", "icon": "Keyboard"},
     {"id": "1", "label": "Reply", "shortcut": "control+r", "icon": "Keyboard"},

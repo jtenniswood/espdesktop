@@ -8,10 +8,6 @@
     "https://download2.veeam.com/VAW/v13/VeeamAgentWindows_13.1.2.812_wg.exe"
   ],
   "note": "Open the side menu in the Veeam Agent control panel before using these shortcuts. They follow the navigation built into the Windows tray client.",
-  "defaultShortcutIds": [
-    "0",
-    "1"
-  ],
   "shortcuts": [
     {"id": "0", "label": "Next Menu Item", "shortcut": "down", "icon": "Keyboard"},
     {"id": "1", "label": "Previous Menu Item", "shortcut": "up", "icon": "Keyboard"},

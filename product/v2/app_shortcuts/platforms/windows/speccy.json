@@ -9,12 +9,6 @@
     "https://www.ccleaner.com/speccy/download"
   ],
   "note": "Uses the English menu access keys from Speccy 1.34 for Windows.",
-  "defaultShortcutIds": [
-    "0",
-    "1",
-    "2",
-    "3"
-  ],
   "shortcuts": [
     {"id": "0", "label": "Save System Snapshot", "shortcut": "option+f~s", "icon": "Save"},
     {"id": "1", "label": "Load System Snapshot", "shortcut": "option+f~l", "icon": "Keyboard"},

@@ -6,12 +6,6 @@
   "sources": [
     "https://github.com/ip7z/7zip/blob/main/CPP/7zip/UI/FileManager/resource.rc"
   ],
-  "defaultShortcutIds": [
-    "0",
-    "1",
-    "2",
-    "3"
-  ],
   "shortcuts": [
     {"id": "0", "label": "Open Item", "shortcut": "enter", "icon": "Folder"},
     {"id": "1", "label": "Rename", "shortcut": "f2", "icon": "Keyboard"},

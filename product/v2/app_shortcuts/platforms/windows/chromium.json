@@ -5,12 +5,6 @@
     "https://chromium.googlesource.com/chromium/src.git/+/refs/heads/main/chrome/browser/ui/accelerator_table.cc"
   ],
   "note": "Chromium and Google Chrome may both run as chrome.exe. This Windows reference has no automatic application match.",
-  "defaultShortcutIds": [
-    "0",
-    "1",
-    "2",
-    "3"
-  ],
   "shortcuts": [
     {"id": "0", "label": "New Tab", "shortcut": "control+t", "icon": "New Window"},
     {"id": "1", "label": "Reopen Closed Tab", "shortcut": "control+shift+t", "icon": "Tab"},

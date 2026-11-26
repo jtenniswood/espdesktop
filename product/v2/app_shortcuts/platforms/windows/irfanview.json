@@ -7,12 +7,6 @@
   "sources": [
     "https://www.irfanview.net/help/guida/hlp_hotkeys.htm"
   ],
-  "defaultShortcutIds": [
-    "0",
-    "1",
-    "2",
-    "3"
-  ],
   "shortcuts": [
     {"id": "0", "label": "Next Image", "shortcut": "space", "icon": "Chevron Right"},
     {"id": "1", "label": "Previous Image", "shortcut": "delete", "icon": "Chevron Left"},

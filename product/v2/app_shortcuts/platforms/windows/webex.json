@@ -8,12 +8,6 @@
     "https://help.webex.com/article/7wr87q/Cisco-Webex-Teams-Keyboard-Navigation-and-Shortcuts"
   ],
   "note": "Space shortcuts apply in messaging.",
-  "defaultShortcutIds": [
-    "0",
-    "1",
-    "2",
-    "3"
-  ],
   "shortcuts": [
     {"id": "0", "label": "Attach File", "shortcut": "control+o", "icon": "Keyboard"},
     {"id": "1", "label": "Open Emoji Panel", "shortcut": "control+shift+space", "icon": "Folder"},

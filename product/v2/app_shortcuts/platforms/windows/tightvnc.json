@@ -7,9 +7,6 @@
     "https://www.tightvnc.com/faq.php"
   ],
   "note": "This key is handled locally in a TightVNC Viewer session.",
-  "defaultShortcutIds": [
-    "0"
-  ],
   "shortcuts": [
     {"id": "0", "label": "Exit Full Screen", "shortcut": "control+option+shift+f", "icon": "Keyboard"}
   ]

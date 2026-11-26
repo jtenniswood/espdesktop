@@ -7,12 +7,6 @@
     "https://winscp.net/eng/docs/ui_explorer_key"
   ],
   "note": "Uses the Explorer interface bindings. Some keys differ in Commander mode.",
-  "defaultShortcutIds": [
-    "0",
-    "1",
-    "2",
-    "3"
-  ],
   "shortcuts": [
     {"id": "0", "label": "New Session Tab", "shortcut": "control+n", "icon": "New Window"},
     {"id": "1", "label": "Find Remote File", "shortcut": "f3", "icon": "Search"},

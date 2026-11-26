@@ -6,12 +6,6 @@
   "sources": [
     "https://wiki.filezilla-project.org/Keyboard_shortcuts"
   ],
-  "defaultShortcutIds": [
-    "0",
-    "1",
-    "2",
-    "3"
-  ],
   "shortcuts": [
     {"id": "0", "label": "Search Remote Files", "shortcut": "f3", "icon": "Search"},
     {"id": "1", "label": "Refresh Panels", "shortcut": "f5", "icon": "Keyboard"},

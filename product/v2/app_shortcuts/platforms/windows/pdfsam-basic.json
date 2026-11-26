@@ -9,12 +9,6 @@
     "https://github.com/torakiki/pdfsam/blob/master/pdfsam-ui-components/src/main/java/org/pdfsam/ui/components/selection/multiple/SelectionTable.java"
   ],
   "note": "Input commands depend on the active tool and selected PDF.",
-  "defaultShortcutIds": [
-    "0",
-    "1",
-    "2",
-    "3"
-  ],
   "shortcuts": [
     {"id": "0", "label": "Run Current Tool", "shortcut": "control+x", "icon": "Keyboard"},
     {"id": "1", "label": "Move Input Up", "shortcut": "option+up", "icon": "Keyboard"},

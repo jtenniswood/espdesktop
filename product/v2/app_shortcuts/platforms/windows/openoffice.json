@@ -5,12 +5,6 @@
     "https://wiki.openoffice.org/wiki/Documentation/OOo3_User_Guides/Getting_Started/General_shortcut_keys"
   ],
   "note": "Apache OpenOffice and LibreOffice can both use soffice.exe. This guide requires edition detection before it can be enabled on the display.",
-  "defaultShortcutIds": [
-    "0",
-    "1",
-    "2",
-    "3"
-  ],
   "shortcuts": [
     {"id": "0", "label": "Open", "shortcut": "control+o", "icon": "Folder"},
     {"id": "1", "label": "Save", "shortcut": "control+s", "icon": "Save"},

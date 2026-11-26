@@ -8,12 +8,6 @@
     "https://www.voidtools.com/en-us/support/everything/keyboard_shortcuts/"
   ],
   "note": "File commands require focus in the results list.",
-  "defaultShortcutIds": [
-    "0",
-    "1",
-    "2",
-    "3"
-  ],
   "shortcuts": [
     {"id": "0", "label": "Focus Search", "shortcut": "control+f", "icon": "Search"},
     {"id": "1", "label": "Reload Details", "shortcut": "f5", "icon": "Keyboard"},

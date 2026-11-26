@@ -9,12 +9,6 @@
     "https://download.sysinternals.com/files/Autoruns.zip"
   ],
   "note": "Bindings follow the menus in Microsoft's Windows release.",
-  "defaultShortcutIds": [
-    "0",
-    "1",
-    "2",
-    "3"
-  ],
   "shortcuts": [
     {"id": "0", "label": "Quick Filter", "shortcut": "control+q", "icon": "Search"},
     {"id": "1", "label": "Find", "shortcut": "control+f", "icon": "Search"},

@@ -9,9 +9,6 @@
     "https://doc.qt.io/qt-6/qkeysequence.html#standard-shortcuts"
   ],
   "note": "Use with the Search or Activity window open. In search, Escape may dismiss an open filter first.",
-  "defaultShortcutIds": [
-    "0"
-  ],
   "shortcuts": [
     {"id": "0", "label": "Close Search or Activity Window", "shortcut": "escape", "icon": "Search"}
   ]

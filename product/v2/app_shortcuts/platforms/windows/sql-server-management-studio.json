@@ -6,12 +6,6 @@
   "sources": [
     "https://learn.microsoft.com/en-us/ssms/sql-server-management-studio-keyboard-shortcuts"
   ],
-  "defaultShortcutIds": [
-    "0",
-    "1",
-    "2",
-    "3"
-  ],
   "shortcuts": [
     {"id": "0", "label": "New Query", "shortcut": "control+n", "icon": "New Window"},
     {"id": "1", "label": "Open File", "shortcut": "control+o", "icon": "Folder"},

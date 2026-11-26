@@ -8,12 +8,6 @@
     "https://help.webex.com/article/84har3"
   ],
   "note": "These bindings apply to a meeting in the Windows Meetings client.",
-  "defaultShortcutIds": [
-    "0",
-    "1",
-    "2",
-    "3"
-  ],
   "shortcuts": [
     {"id": "0", "label": "Mute or Unmute", "shortcut": "control+m", "icon": "Keyboard"},
     {"id": "1", "label": "Start or Stop Video", "shortcut": "control+shift+v", "icon": "Keyboard"},

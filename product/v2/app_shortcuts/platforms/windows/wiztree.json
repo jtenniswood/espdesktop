@@ -8,12 +8,6 @@
     "https://diskanalyzer.com/whats-new"
   ],
   "note": "Folder rescans use the tree selection. WizTree can run with elevated access, which Windows protects from injected input.",
-  "defaultShortcutIds": [
-    "0",
-    "1",
-    "2",
-    "3"
-  ],
   "shortcuts": [
     {"id": "0", "label": "Rescan", "shortcut": "f5", "icon": "Keyboard"},
     {"id": "1", "label": "Rescan Selected Folder", "shortcut": "control+f5", "icon": "Folder"},

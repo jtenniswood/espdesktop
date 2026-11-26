@@ -9,12 +9,6 @@
     "https://download.sysinternals.com/files/ProcessExplorer.zip"
   ],
   "note": "Bindings follow the menus in Microsoft's Windows release. Windows protects elevated windows from input sent by non-elevated applications.",
-  "defaultShortcutIds": [
-    "0",
-    "1",
-    "2",
-    "3"
-  ],
   "shortcuts": [
     {"id": "0", "label": "System Information", "shortcut": "control+i", "icon": "Keyboard"},
     {"id": "1", "label": "Filter Processes", "shortcut": "control+f", "icon": "Search"},

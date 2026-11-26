@@ -9,12 +9,6 @@
     "https://github.com/windirstat/windirstat/wiki/Keyboard-Shortcuts"
   ],
   "note": "These bindings apply to the current WinDirStat release.",
-  "defaultShortcutIds": [
-    "0",
-    "1",
-    "2",
-    "3"
-  ],
   "shortcuts": [
     {"id": "0", "label": "Select Scan Target", "shortcut": "control+o", "icon": "Keyboard"},
     {"id": "1", "label": "Refresh Selected", "shortcut": "f5", "icon": "Keyboard"},

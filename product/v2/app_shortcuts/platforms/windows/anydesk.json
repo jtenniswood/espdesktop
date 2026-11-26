@@ -7,12 +7,6 @@
     "https://support.anydesk.com/docs/keyboard-hotkeys"
   ],
   "note": "Use with the local AnyDesk session window in focus.",
-  "defaultShortcutIds": [
-    "0",
-    "1",
-    "2",
-    "3"
-  ],
   "shortcuts": [
     {"id": "0", "label": "Toggle Session Full Screen", "shortcut": "control+option+shift+enter", "icon": "Keyboard"},
     {"id": "1", "label": "Actual Size", "shortcut": "control+option+shift+f2", "icon": "Keyboard"},

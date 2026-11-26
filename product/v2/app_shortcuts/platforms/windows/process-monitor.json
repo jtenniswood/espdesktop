@@ -10,12 +10,6 @@
     "https://download.sysinternals.com/files/ProcessMonitor.zip"
   ],
   "note": "Process Monitor commonly runs elevated. Windows protects elevated windows from input sent by non-elevated applications.",
-  "defaultShortcutIds": [
-    "0",
-    "1",
-    "2",
-    "3"
-  ],
   "shortcuts": [
     {"id": "0", "label": "Toggle Capture", "shortcut": "control+e", "icon": "Keyboard"},
     {"id": "1", "label": "Find Event", "shortcut": "control+f", "icon": "Search"},

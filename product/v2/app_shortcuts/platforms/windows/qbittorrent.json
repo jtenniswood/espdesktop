@@ -7,12 +7,6 @@
     "https://github.com/qbittorrent/qBittorrent/blob/master/src/gui/mainwindow.cpp"
   ],
   "note": "Select a transfer before using Start or Pause.",
-  "defaultShortcutIds": [
-    "0",
-    "1",
-    "2",
-    "3"
-  ],
   "shortcuts": [
     {"id": "0", "label": "Open Torrent", "shortcut": "control+o", "icon": "Folder"},
     {"id": "1", "label": "Add Torrent Link", "shortcut": "control+shift+o", "icon": "Keyboard"},

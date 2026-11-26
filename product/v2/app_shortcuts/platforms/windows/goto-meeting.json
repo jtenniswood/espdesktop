@@ -9,12 +9,6 @@
     "https://app.goto.com/index.221ed438d95590b242da.js"
   ],
   "note": "Use the meeting controls with the meeting window in focus. The current GoTo app lets users change shortcuts. View commands also apply in the main app window.",
-  "defaultShortcutIds": [
-    "0",
-    "1",
-    "2",
-    "3"
-  ],
   "shortcuts": [
     {"id": "0", "label": "Toggle Microphone", "shortcut": "control+shift+m", "icon": "Keyboard"},
     {"id": "1", "label": "Toggle Camera", "shortcut": "control+shift+k", "icon": "Keyboard"},

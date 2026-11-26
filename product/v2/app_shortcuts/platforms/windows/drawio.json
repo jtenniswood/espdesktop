@@ -7,12 +7,6 @@
     "https://www.drawio.com/docs/reference/shortcuts/"
   ],
   "note": "These apply to the desktop diagram editor.",
-  "defaultShortcutIds": [
-    "0",
-    "1",
-    "2",
-    "3"
-  ],
   "shortcuts": [
     {"id": "0", "label": "Duplicate Selection", "shortcut": "control+d", "icon": "Keyboard"},
     {"id": "1", "label": "Undo", "shortcut": "control+z", "icon": "Undo"},

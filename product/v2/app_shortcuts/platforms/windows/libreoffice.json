@@ -12,12 +12,6 @@
     "https://help.libreoffice.org/latest/en-GB/text/shared/04/01010000.html"
   ],
   "note": "These bindings are shared across the LibreOffice suite. An installation that only exposes the shared soffice.exe launcher may require manual shortcuts.",
-  "defaultShortcutIds": [
-    "0",
-    "1",
-    "2",
-    "3"
-  ],
   "shortcuts": [
     {"id": "0", "label": "Open", "shortcut": "control+o", "icon": "Folder"},
     {"id": "1", "label": "Save", "shortcut": "control+s", "icon": "Save"},

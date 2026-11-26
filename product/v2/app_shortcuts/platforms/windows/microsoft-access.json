@@ -6,12 +6,6 @@
   "sources": [
     "https://support.microsoft.com/en-us/accessibility/access/keyboard-shortcuts-for-access"
   ],
-  "defaultShortcutIds": [
-    "0",
-    "1",
-    "2",
-    "3"
-  ],
   "shortcuts": [
     {"id": "0", "label": "Open Database", "shortcut": "control+o", "icon": "Folder"},
     {"id": "1", "label": "Save Object", "shortcut": "control+s", "icon": "Save"},

@@ -7,12 +7,6 @@
   "sources": [
     "https://manual.winmerge.org/en/Shortcut_keys.html"
   ],
-  "defaultShortcutIds": [
-    "0",
-    "1",
-    "2",
-    "3"
-  ],
   "shortcuts": [
     {"id": "0", "label": "Rescan", "shortcut": "f5", "icon": "Keyboard"},
     {"id": "1", "label": "Next Difference", "shortcut": "option+down", "icon": "Chevron Right"},

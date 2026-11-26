@@ -6,12 +6,6 @@
   "sources": [
     "https://help.pdf-xchange.com/pdfxe10c/keyboard-shortcuts_ed.html"
   ],
-  "defaultShortcutIds": [
-    "0",
-    "1",
-    "2",
-    "3"
-  ],
   "shortcuts": [
     {"id": "0", "label": "Actual Size", "shortcut": "control+1", "icon": "Keyboard"},
     {"id": "1", "label": "Find", "shortcut": "control+f", "icon": "Search"},

@@ -7,12 +7,6 @@
     "https://support.microsoft.com/en-us/accessibility/onenote/keyboard-shortcuts-in-onenote"
   ],
   "note": "These bindings apply to the desktop edition.",
-  "defaultShortcutIds": [
-    "0",
-    "1",
-    "2",
-    "3"
-  ],
   "shortcuts": [
     {"id": "0", "label": "New Page", "shortcut": "control+n", "icon": "New Window"},
     {"id": "1", "label": "New Section", "shortcut": "control+t", "icon": "New Window"},

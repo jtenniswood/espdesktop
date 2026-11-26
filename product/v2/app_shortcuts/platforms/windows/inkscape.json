@@ -6,12 +6,6 @@
   "sources": [
     "https://wiki.inkscape.org/wiki/Keyboard_shortcuts"
   ],
-  "defaultShortcutIds": [
-    "0",
-    "1",
-    "2",
-    "3"
-  ],
   "shortcuts": [
     {"id": "0", "label": "Select Tool", "shortcut": "f1", "icon": "Keyboard"},
     {"id": "1", "label": "Node Tool", "shortcut": "f2", "icon": "Keyboard"},

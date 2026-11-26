@@ -8,9 +8,6 @@
     "https://github.com/electron/electron/blob/main/lib/browser/api/menu-item-roles.ts"
   ],
   "note": "Ctrl+W uses the File menu's Close action in the Windows desktop client.",
-  "defaultShortcutIds": [
-    "0"
-  ],
   "shortcuts": [
     {"id": "0", "label": "Close Window", "shortcut": "control+w", "icon": "Keyboard"}
   ]

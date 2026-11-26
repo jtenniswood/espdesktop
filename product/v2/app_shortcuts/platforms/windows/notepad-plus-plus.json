@@ -6,12 +6,6 @@
   "sources": [
     "https://github.com/notepad-plus-plus/notepad-plus-plus/blob/master/PowerEditor/src/Parameters.cpp"
   ],
-  "defaultShortcutIds": [
-    "0",
-    "1",
-    "2",
-    "3"
-  ],
   "shortcuts": [
     {"id": "0", "label": "New Tab", "shortcut": "control+n", "icon": "New Window"},
     {"id": "1", "label": "Open", "shortcut": "control+o", "icon": "Folder"},

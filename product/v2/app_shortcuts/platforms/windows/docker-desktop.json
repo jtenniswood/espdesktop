@@ -7,9 +7,6 @@
     "https://docs.docker.com/desktop/use-desktop/container/"
   ],
   "note": "Use on the Logs tab of a container in Docker Desktop.",
-  "defaultShortcutIds": [
-    "0"
-  ],
   "shortcuts": [
     {"id": "0", "label": "Find in Container Logs", "shortcut": "control+f", "icon": "Search"}
   ]

@@ -6,12 +6,6 @@
   "sources": [
     "https://support.apple.com/en-ie/guide/itunes/itns1019/windows"
   ],
-  "defaultShortcutIds": [
-    "0",
-    "1",
-    "2",
-    "3"
-  ],
   "shortcuts": [
     {"id": "0", "label": "Play or Pause", "shortcut": "space", "icon": "Keyboard"},
     {"id": "1", "label": "Next Track", "shortcut": "right", "icon": "Chevron Right"},

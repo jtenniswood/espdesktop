@@ -7,12 +7,6 @@
     "https://github.com/greenshot/greenshot/blob/main/src/Greenshot.Editor/Forms/ImageEditorForm.Designer.cs"
   ],
   "note": "Use inside Greenshot's image editor.",
-  "defaultShortcutIds": [
-    "0",
-    "1",
-    "2",
-    "3"
-  ],
   "shortcuts": [
     {"id": "0", "label": "Undo", "shortcut": "control+z", "icon": "Undo"},
     {"id": "1", "label": "Redo", "shortcut": "control+y", "icon": "Redo"},

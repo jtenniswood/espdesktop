@@ -7,12 +7,6 @@
     "https://docs.blender.org/manual/en/latest/interface/keymap/blender_default.html"
   ],
   "note": "Uses the default Blender keymap. Quick Favorites and Maximize Area depend on pointer location.",
-  "defaultShortcutIds": [
-    "0",
-    "1",
-    "2",
-    "3"
-  ],
   "shortcuts": [
     {"id": "0", "label": "Search Menus", "shortcut": "f3", "icon": "Search"},
     {"id": "1", "label": "Quick Favorites", "shortcut": "q", "icon": "Keyboard"},

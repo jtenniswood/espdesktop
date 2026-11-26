@@ -10,12 +10,6 @@
     "https://learn.microsoft.com/en-us/windows/terminal/customize-settings/actions"
   ],
   "note": "Defaults depend on the configured key bindings. New Tab opens the first profile in the dropdown.",
-  "defaultShortcutIds": [
-    "0",
-    "1",
-    "2",
-    "3"
-  ],
   "shortcuts": [
     {"id": "0", "label": "New Tab", "shortcut": "control+shift+1", "icon": "New Window"},
     {"id": "1", "label": "Close Pane", "shortcut": "control+shift+w", "icon": "Keyboard"},

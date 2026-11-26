@@ -9,12 +9,6 @@
     "https://github.com/dotnet/wpf/blob/main/src/Microsoft.DotNet.Wpf/src/PresentationFramework/System/Windows/Controls/ListBox.cs"
   ],
   "note": "Open Update History and focus the list before using these navigation keys. Windows can block shortcut delivery if Dell Command Update is running as administrator.",
-  "defaultShortcutIds": [
-    "0",
-    "1",
-    "2",
-    "3"
-  ],
   "shortcuts": [
     {"id": "0", "label": "First History Entry", "shortcut": "home", "icon": "Keyboard"},
     {"id": "1", "label": "Last History Entry", "shortcut": "end", "icon": "Keyboard"},

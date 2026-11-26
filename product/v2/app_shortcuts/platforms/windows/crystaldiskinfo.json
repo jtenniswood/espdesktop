@@ -8,12 +8,6 @@
   "sources": [
     "https://github.com/hiyohiyo/CrystalDiskInfo/blob/master/DiskInfo.rc"
   ],
-  "defaultShortcutIds": [
-    "0",
-    "1",
-    "2",
-    "3"
-  ],
   "shortcuts": [
     {"id": "0", "label": "Refresh Status", "shortcut": "f5", "icon": "Keyboard"},
     {"id": "1", "label": "Rescan Drives", "shortcut": "f6", "icon": "Keyboard"},

@@ -7,12 +7,6 @@
     "https://manual.calibre-ebook.com/gui.html#keyboard-shortcuts"
   ],
   "note": "Use when the book list has focus. The ebook viewer has separate key bindings.",
-  "defaultShortcutIds": [
-    "0",
-    "1",
-    "2",
-    "3"
-  ],
   "shortcuts": [
     {"id": "0", "label": "Add Books", "shortcut": "a", "icon": "Keyboard"},
     {"id": "1", "label": "Edit Metadata", "shortcut": "e", "icon": "Keyboard"},

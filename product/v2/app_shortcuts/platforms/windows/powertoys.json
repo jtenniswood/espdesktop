@@ -7,12 +7,6 @@
     "https://learn.microsoft.com/windows/powertoys/run"
   ],
   "note": "These shortcuts apply while the PowerToys Run launcher has focus.",
-  "defaultShortcutIds": [
-    "0",
-    "1",
-    "2",
-    "3"
-  ],
   "shortcuts": [
     {"id": "0", "label": "Open Selected Result", "shortcut": "enter", "icon": "Folder"},
     {"id": "1", "label": "Open File Location", "shortcut": "control+shift+e", "icon": "Folder"},

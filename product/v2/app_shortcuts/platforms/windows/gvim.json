@@ -7,12 +7,6 @@
     "https://vimhelp.org/windows.txt.html"
   ],
   "note": "Use these window commands in Normal mode.",
-  "defaultShortcutIds": [
-    "0",
-    "1",
-    "2",
-    "3"
-  ],
   "shortcuts": [
     {"id": "0", "label": "Split Horizontally", "shortcut": "control+w~s", "icon": "Keyboard"},
     {"id": "1", "label": "Split Vertically", "shortcut": "control+w~v", "icon": "Keyboard"},

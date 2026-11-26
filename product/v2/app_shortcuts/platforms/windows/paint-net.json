@@ -7,12 +7,6 @@
   "sources": [
     "https://paint.net/doc/latest/KeyboardMouseCommands.html"
   ],
-  "defaultShortcutIds": [
-    "0",
-    "1",
-    "2",
-    "3"
-  ],
   "shortcuts": [
     {"id": "0", "label": "Open Image", "shortcut": "control+o", "icon": "Folder"},
     {"id": "1", "label": "Toggle Layers", "shortcut": "f7", "icon": "Keyboard"},

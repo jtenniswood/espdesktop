@@ -5,12 +5,6 @@
     "https://github.com/python/cpython/blob/main/Lib/idlelib/config-keys.def"
   ],
   "note": "Run Module applies in the editor. Windows can host IDLE in the shared pythonw.exe interpreter.",
-  "defaultShortcutIds": [
-    "0",
-    "1",
-    "2",
-    "3"
-  ],
   "shortcuts": [
     {"id": "0", "label": "New Editor", "shortcut": "control+n", "icon": "New Window"},
     {"id": "1", "label": "Open File", "shortcut": "control+o", "icon": "Folder"},

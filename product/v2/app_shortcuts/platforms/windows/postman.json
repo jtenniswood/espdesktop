@@ -8,11 +8,6 @@
     "https://learning.postman.com/docs/sending-requests/response-data/troubleshooting-api-requests/"
   ],
   "note": "Additional defaults are listed under Shortcuts in the Postman settings.",
-  "defaultShortcutIds": [
-    "0",
-    "1",
-    "2"
-  ],
   "shortcuts": [
     {"id": "0", "label": "New Tab", "shortcut": "control+t", "icon": "New Window"},
     {"id": "1", "label": "Close Tab", "shortcut": "control+w", "icon": "Tab"},

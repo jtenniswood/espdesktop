@@ -6,12 +6,6 @@
   "sources": [
     "https://bitwarden.com/help/keyboard-shortcuts/"
   ],
-  "defaultShortcutIds": [
-    "0",
-    "1",
-    "2",
-    "3"
-  ],
   "shortcuts": [
     {"id": "0", "label": "Find Vault Item", "shortcut": "control+f", "icon": "Search"},
     {"id": "1", "label": "Password Generator", "shortcut": "control+g", "icon": "Keyboard"},

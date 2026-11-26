@@ -10,12 +10,6 @@
     "https://learn.microsoft.com/en-us/power-bi/create-reports/desktop-accessibility-keyboard-shortcuts"
   ],
   "note": "Visual commands depend on the current selection or focus.",
-  "defaultShortcutIds": [
-    "0",
-    "1",
-    "2",
-    "3"
-  ],
   "shortcuts": [
     {"id": "0", "label": "Next Section", "shortcut": "control+f6", "icon": "Chevron Right"},
     {"id": "1", "label": "Open Visual Menu", "shortcut": "option+shift+f10", "icon": "Folder"},

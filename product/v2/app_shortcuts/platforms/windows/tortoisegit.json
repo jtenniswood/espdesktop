@@ -7,10 +7,6 @@
     "https://tortoisegit.org/docs/tortoisegit/tgit-dug-showlog.html"
   ],
   "note": "Both commands apply in the Log dialog. Jump to Copied Commit pastes the hash outside the search box. TortoiseGit dialogs are normally opened from File Explorer.",
-  "defaultShortcutIds": [
-    "0",
-    "1"
-  ],
   "shortcuts": [
     {"id": "0", "label": "Refresh Log", "shortcut": "f5", "icon": "Keyboard"},
     {"id": "1", "label": "Jump to Copied Commit", "shortcut": "control+v", "icon": "Keyboard"}

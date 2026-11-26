@@ -8,12 +8,6 @@
     "https://www.advanced-ip-scanner.com/help/index.html"
   ],
   "note": "These menu access keys follow the English menus in the Windows release.",
-  "defaultShortcutIds": [
-    "0",
-    "1",
-    "2",
-    "3"
-  ],
   "shortcuts": [
     {"id": "0", "label": "Open File Menu", "shortcut": "option+f", "icon": "Folder"},
     {"id": "1", "label": "Open View Menu", "shortcut": "option+v", "icon": "Folder"},

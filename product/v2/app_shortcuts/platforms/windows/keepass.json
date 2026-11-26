@@ -7,12 +7,6 @@
     "https://keepass.info/help/kb/keyb_shortcuts.html"
   ],
   "note": "Entry commands require focus in the entries list.",
-  "defaultShortcutIds": [
-    "0",
-    "1",
-    "2",
-    "3"
-  ],
   "shortcuts": [
     {"id": "0", "label": "Find Entry", "shortcut": "control+f", "icon": "Search"},
     {"id": "1", "label": "Lock Workspace", "shortcut": "control+l", "icon": "Keyboard"},

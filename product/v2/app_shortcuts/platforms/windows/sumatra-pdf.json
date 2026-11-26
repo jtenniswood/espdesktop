@@ -6,12 +6,6 @@
   "sources": [
     "https://www.sumatrapdfreader.org/docs/Keyboard-shortcuts"
   ],
-  "defaultShortcutIds": [
-    "0",
-    "1",
-    "2",
-    "3"
-  ],
   "shortcuts": [
     {"id": "0", "label": "Open PDF", "shortcut": "control+o", "icon": "Folder"},
     {"id": "1", "label": "Find", "shortcut": "control+f", "icon": "Search"},
