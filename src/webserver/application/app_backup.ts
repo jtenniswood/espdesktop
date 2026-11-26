@@ -232,7 +232,8 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
             subpages: snapshot.subpages,
             nativeDocumentBytes: bytes,
         });
-        return JSON.stringify(backup, null, 2);
+        // Omitted preference sections must stay absent from the restore plan.
+        return JSON.stringify({ ...backup, settings: null, screen: null }, null, 2);
     }
 
     async function exportConfig(this: any) {
@@ -746,7 +747,7 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
                 renderButtonSettings();
                 switchTab("screen");
                 await requestApi.postQueue;
-                if (!requestApi.postQueueError) {
+                if (!requestApi.postQueueError && (backupPlan.settings || backupPlan.screen)) {
                     await clearScreensaverPinForRestore(resetAwareFetch);
                 }
                 if (typeof restoredName === "string" && !requestApi.postQueueError) {

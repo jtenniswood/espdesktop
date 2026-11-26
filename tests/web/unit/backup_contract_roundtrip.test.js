@@ -50,6 +50,8 @@ for (const version of [1, 2]) {
     });
     const draftBackup = JSON.parse(application.serializeUnsavedLayout(Buffer.from(bytes).toString("base64")));
     const draft = wrapper.planBackupImport(draftBackup, { device: document.deviceProfile, slots: 9 });
+    assert.equal(draft.settings, null, "leave display settings out of a draft restore");
+    assert.equal(draft.screen, null, "leave screen preferences out of a draft restore");
     assert.equal(draft.config.native_config.document_version, version);
     assert.deepEqual(native.decodeNativeConfigBackupPayload(draft.config.native_config), bytes);
     assert(draft.config.buttons.some(card => card.label === "Saved volume"), "retain readable layout in the backup");
