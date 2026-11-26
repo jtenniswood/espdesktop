@@ -117,13 +117,13 @@ internal static class UsbEditorChecks
             ["X-Panel-Config-Version"] = "2",
             ["Authorization"] = "Digest placeholder"
         };
-        await Check("confirm an already committed save", 200, "\"v2-4\"", submitted, 204, ["GET"]);
+        await Check("confirm an already committed save", 200, "\"v2-4\"", submitted, 202, ["GET"]);
         await Check("retry only when the original precondition still holds", 200, "\"v2-3\"", previous, 204, ["GET", "PUT"]);
         await Check("preserve a concurrent change", 200, "\"v2-4\"", previous, 412, ["GET"]);
         await Check("keep a recovery authentication challenge from restarting the write", 401, "\"v2-3\"", previous, 412, ["GET"]);
         await Check("stop if a concurrent write invalidates the retry", 200, "\"v2-3\"", previous, 412, ["GET", "PUT"], putStatus: 409);
         await Check("keep the draft when authentication expires during retry", 200, "\"v2-3\"", previous, 412, ["GET", "PUT"], putStatus: 401);
-        await Check("confirm a retry with a second lost response", 200, "\"v2-3\"", previous, 204, ["GET", "PUT", "GET"], loseRetry: true);
+        await Check("confirm a retry with a second lost response", 200, "\"v2-3\"", previous, 202, ["GET", "PUT", "GET"], loseRetry: true);
 
         async Task Check(string name, int readStatus, string etag, byte[] stored, int expected,
             string[] expectedMethods, int putStatus = 204, bool loseRetry = false)
@@ -131,7 +131,7 @@ internal static class UsbEditorChecks
             var methods = new List<string>();
             var status = await UsbDisplayEditor.RecoverLayoutSave(headers, submitted, Send, token);
             Require(status.Status == expected && methods.SequenceEqual(expectedMethods), name);
-            if (expected == 204) Require(status.Headers.ContainsKey("ETag"), "return the confirmed layout generation");
+            if (expected is 202 or 204) Require(status.Headers.ContainsKey("ETag"), "return the confirmed layout generation");
 
             Task<UsbEditorResponse> Send(string method, IReadOnlyDictionary<string, string> requestHeaders,
                 byte[] body, CancellationToken cancellation)

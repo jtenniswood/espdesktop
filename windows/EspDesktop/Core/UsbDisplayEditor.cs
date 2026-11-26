@@ -53,7 +53,9 @@ internal sealed class UsbDisplayEditor(UsbEditorTunnel tunnel)
                     var saved = await request("GET", readHeaders, [], deadline.Token);
                     if (saved.Status != 200 || !saved.Headers.TryGetValue("ETag", out var etag) ||
                         (version is not null && saved.Headers.GetValueOrDefault(versionHeader) != version)) break;
-                    if (saved.Body.AsSpan().SequenceEqual(body)) return new(204, saved.Headers, []);
+                    // The read confirms durable bytes, but cannot confirm the legacy
+                    // mirror outcome that a successful PUT normally reports.
+                    if (saved.Body.AsSpan().SequenceEqual(body)) return new(202, saved.Headers, []);
                     if (retried || etag != headers.GetValueOrDefault("If-Match")) break;
 
                     retried = true;
