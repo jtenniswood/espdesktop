@@ -7,6 +7,8 @@ description: Install EspDesktop for Windows and pair your Guition 4848S040 touch
 
 ## Install EspDesktop
 
+The installer requires Windows build **22000 or later**. Run **winver** to check your build.
+
 1. Open [GitHub Releases](https://github.com/jtenniswood/espdesktop/releases) and choose the latest release that lists Windows installers under **Assets**.
 2. Download the setup file ending in **x64-Setup.exe** for Intel or AMD PCs, or **arm64-Setup.exe** for Windows on Arm. To check your PC, open **Settings → System → About → System type**.
 3. Run the setup file. The installer is unsigned, so Windows may ask you to confirm that you trust it.

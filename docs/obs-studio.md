@@ -7,7 +7,7 @@ description: Switch OBS scenes, mix audio, and control recording and streaming f
 
 OBS Studio is a free, open-source app for recording video and live streaming. You build **scenes** from sources like cameras, screen captures, and graphics, then use the mixer to adjust microphones and other audio. [Visit the OBS Project for downloads and guides](https://obsproject.com/).
 
-This guide covers OBS controls on **Mac and Windows**. On Windows, use the full guide once your EspDesktop app and display firmware release includes the expanded OBS controls. Earlier Windows releases support scene selection, Program scene, Take Live, and transitions.
+Windows currently supports scene selection, Program scene, Take Live, and transitions. The remaining OBS controls in this guide work on Mac and are planned for Windows.
 
 <picture>
   <source type="image/avif" srcset="/images/obs/home-480.avif 480w, /images/obs/home-960.avif 960w" sizes="(min-width: 768px) 688px, min(688px, 90vw)">

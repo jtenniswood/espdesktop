@@ -55,7 +55,7 @@ Pair on a trusted local network and remove a display from EspDesktop before repl
 - A USB-C data cable for the first firmware install
 - Chrome or Edge for browser-based flashing
 - A 2.4 GHz WiFi network shared by the display and computer
-- An Apple silicon Mac running macOS 13 or newer, or a Windows PC with an Intel, AMD, or Arm processor
+- An Apple silicon Mac running macOS 13 or newer, or an Intel, AMD, or Arm PC running Windows build 22000 or later
 
 The 4848S040 panel is available from AliExpress ([US](https://s.click.aliexpress.com/e/_c3qyIYL7) or [Global](https://s.click.aliexpress.com/e/_c4m73SzH)). A compatible [3D-printable stand is available on MakerWorld](https://makerworld.com/en/models/3592833-espdesktop-4inch-screen-stand#profileId-4115394).
 

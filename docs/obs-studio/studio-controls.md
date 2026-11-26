@@ -5,7 +5,7 @@ description: Use EspDesktop to control OBS Studio Mode, Multiview, streaming, re
 
 # Studio controls
 
-[Connect OBS Studio](/obs-studio#connect-obs-studio) to control recording, streaming, Studio Mode, and replay from your touchscreen on Mac or Windows.
+Use **Program scene** and **Take Live** on Mac or Windows. Recording, streaming, replay, and the other controls below work on Mac and are planned for Windows. [Connect OBS Studio](/obs-studio#connect-obs-studio).
 
 <picture>
   <source type="image/avif" srcset="/images/obs/studio-480.avif 480w, /images/obs/studio-960.avif 960w" sizes="(min-width: 768px) 688px, min(688px, 90vw)">
