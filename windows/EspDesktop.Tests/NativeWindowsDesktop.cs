@@ -116,13 +116,21 @@ internal sealed record NativeWindowsDesktop(WindowsDesktop Desktop, string Drive
             Click("Back");
             if (Field("Display address").Text != "192.168.1.21")
                 throw new InvalidOperationException("Going back must retain the manual address.");
+            Click("Connect over USB");
+            if (HasInput() || Descendants(window).OfType<ComboBox>().SingleOrDefault(control =>
+                AutomationProperties.GetName(control) == "Display USB port") is null || !Action("Refresh ports").IsEnabled)
+                throw new InvalidOperationException("USB setup must offer a COM port picker and refresh.");
+            Click("Refresh ports");
+            Click("Enter address manually");
+            if (Field("Display address").Text != "192.168.1.21")
+                throw new InvalidOperationException("Switching setup methods must preserve the manually entered address.");
             Click("Find nearby displays");
             var beforeReopen = scans;
             window.Hide();
             window.Show();
             if (scans != beforeReopen + 1 || HasInput())
                 throw new InvalidOperationException("Reopening setup did not refresh the list of nearby displays.");
-            Console.WriteLine("Passed progressive Windows setup, automatic discovery refresh, and Back navigation for both address paths.");
+            Console.WriteLine("Passed progressive Windows setup, automatic discovery refresh, USB port selection, and Back navigation for both network paths.");
         }
         finally { window.Quit(); }
     });

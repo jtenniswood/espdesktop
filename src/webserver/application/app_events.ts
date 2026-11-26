@@ -50,6 +50,7 @@ export function createAppEventsFeature(
     stateLoader: Pick<StateLoaderFeature, "refreshFirmwareVersion" | "refreshScreensaverTimeout" | "eventStreamEnabled" | "loadInitialState">,
     gridMigration: Pick<GridMigrationFeature, "schedule">,
     nativePages?: Pick<NativePageEditorLoader, "refresh" | "invalidate" | "refreshAfterChange">,
+    preferNativeStartup = false,
 ): AppEventsFeature {
     const { rememberEntityPostPath } = entityState;
     const { setConfigLocked, showBanner } = shell;
@@ -65,10 +66,15 @@ export function createAppEventsFeature(
     // ── SSE ────────────────────────────────────────────────────────────────
     function connectEvents(this: any) {
         nativePages?.invalidate();
-        void nativePages?.refresh();
+        const streamEnabled = stateLoader.eventStreamEnabled();
+        const startWithNative = preferNativeStartup && !streamEnabled && nativePages;
+        let nativeLoadedFirst = false;
+        if (!startWithNative) void nativePages?.refresh();
         function markConnected(this: any) {
-            resetStateForConnection(state);
-            runtime.orderReceived = false;
+            if (!nativeLoadedFirst) {
+                resetStateForConnection(state);
+                runtime.orderReceived = false;
+            }
             setConfigLocked(false);
             if (els.banner)
                 els.banner.className = "sp-banner";
@@ -78,7 +84,7 @@ export function createAppEventsFeature(
             runtime.pendingSliderSubpageMigrations = {};
             stateLoader.refreshFirmwareVersion();
             stateLoader.refreshScreensaverTimeout();
-            void nativePages?.refresh();
+            if (!nativeLoadedFirst) void nativePages?.refresh();
         }
         function handleDisconnected(this: any) {
             nativePages?.invalidate();
@@ -170,15 +176,21 @@ export function createAppEventsFeature(
         }
         // SSE has no end-of-initial-state marker. Read a bounded initial
         // snapshot too, so backup export can await all saved settings.
-        if (stateLoader.eventStreamEnabled()) stateLoader.loadInitialState(handleState);
-        reconnectController.connect({
+        if (streamEnabled) stateLoader.loadInitialState(handleState);
+        const connect = () => reconnectController.connect({
             "onConnected": markConnected,
             "onDisconnected": handleDisconnected,
             "onPing": pageTitle.handleWebServerPingEvent,
             "onConfigurationChange": () => nativePages?.refreshAfterChange(),
+            nativeLayoutLoaded: nativeLoadedFirst,
             "parseState": function (e: any) { return parseEntityEventData(e.data); },
             "onState": handleState,
         });
+        if (startWithNative) {
+            // A single USB request can load the saved layout before the
+            // fallback starts polling legacy settings one entity at a time.
+            void startWithNative.refresh().then(loaded => { nativeLoadedFirst = loaded; connect(); });
+        } else connect();
     }
     return { connect: connectEvents };
 }

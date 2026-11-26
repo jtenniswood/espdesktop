@@ -12,7 +12,7 @@ Folder paths stay on your computer. The display uses a friendly name and an anon
 | Feature | Approval or permission |
 |---|---|
 | Launching an app | Approve it on EspDesktop’s **Apps** page |
-| [App Volume](/mac-controls/apps#app-volume) | Enable the app on the Mac app’s **Apps** page and allow **System Audio Recording** when prompted |
+| [App Volume](/card-types/sound#app-volume) | Enable the app on EspDesktop’s **Apps** page. On Mac, allow **System Audio Recording** when prompted. |
 | Opening a folder | Add it on EspDesktop’s **Folders** page |
 | Running an Apple Shortcut | **All available shortcuts** is on by default. Turn it off in the Mac app’s **Shortcuts** settings to choose which workflows paired displays can run. Workflows run only while the Mac is unlocked. |
 | Keyboard shortcuts and Lock Machine on macOS | Enable EspDesktop in **System Settings → Privacy & Security → Accessibility** |

@@ -45,7 +45,7 @@ describe("browserless application contracts", () => {
   });
   test("loads remote Companion templates and registers URL-card focus targets", runCompanionCatalogueTests);
 
-  test("models connector onboarding and card sources", runConnectorsFeatureTests);
+  test("models connector status and card sources", runConnectorsFeatureTests);
 
   test("keeps retired Home Assistant actions out of Connectors and preserves Companion guidance", () => {
     const connectors = fs.readFileSync(path.join(ROOT, "src/webserver/application/connectors_page.ts"), "utf8");
@@ -199,7 +199,7 @@ describe("browserless application contracts", () => {
     assert.match(loader, /export function createStateLoaderFeature/);
     assert.match(entry, /stateLoader = createStateLoaderFeature\(/);
     assert.match(entry, /eventStreamEnabled: stateLoader\.eventStreamEnabled/);
-    assert.match(entry, /stateLoader\.loadInitialState\(handleState, markConnected\)/);
+    assert.match(entry, /loadInitialState: stateLoader\.loadInitialState/);
     assert.doesNotMatch(entry, /installStateLoaderApiModule|stateLoaderCompatibilityGlobals/);
     assert.doesNotMatch(loader, /stateLoaderCompatibilityGlobals|GlobalDescriptors/);
     assert.doesNotMatch(globals, /\bvar (?:cardStateEntities|eventStreamEnabled|loadInitialState|loadStateItems|refreshFirmwareVersion|refreshScreensaverTimeout|settingsStateEntities|subpageStateEntities|waitForReboot):/);
@@ -1589,7 +1589,7 @@ describe("browserless application contracts", () => {
       "__ESPDESKTOP_UI_STARTING__",
       "__ESPDESKTOP_USING_EMBEDDED__",
     ]);
-    assert.deepEqual(globalAliasFiles.sort(), [
+    assert.deepEqual(globalAliasFiles.map(file => file.split(path.sep).join("/")).sort(), [
       "src/webserver/application/app_start.ts",
       "src/webserver/device_config.ts",
       "src/webserver/entry.ts",

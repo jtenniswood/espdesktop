@@ -11,11 +11,12 @@ export interface ReconnectHandlers<State> {
   readonly parseState: (event: { data?: string }) => State | null;
   readonly onState: (state: State) => void;
   readonly onConfigurationChange?: () => void;
+  readonly nativeLayoutLoaded?: boolean;
 }
 
 export interface ReconnectControllerOptions<State> {
   readonly eventStreamEnabled: () => boolean;
-  readonly loadInitialState: (onState: (state: State) => void, onLoaded: () => void) => void;
+  readonly loadInitialState: (onState: (state: State) => void, onLoaded: () => void, nativeLayoutLoaded?: boolean) => void;
   readonly createEventSource: () => EventSourceLike;
   readonly getActiveSource: () => EventSourceLike | null;
   readonly setActiveSource: (source: EventSourceLike | null) => void;
@@ -31,7 +32,7 @@ export class ReconnectController<State> {
     if (previous) previous.close();
     this.options.setActiveSource(null);
     if (!this.options.eventStreamEnabled()) {
-      this.options.loadInitialState(handlers.onState, handlers.onConnected);
+      this.options.loadInitialState(handlers.onState, handlers.onConnected, handlers.nativeLayoutLoaded);
       return;
     }
     const source = this.options.createEventSource();

@@ -43,7 +43,6 @@ export interface ControlsShellFeature {
     readonly isConfigLocked: () => boolean;
     readonly syncConfigLockUi: () => void;
     readonly setConfigLocked: (locked?: any, reason?: any) => void;
-    readonly setOnboardingComplete: (complete: boolean, announce?: boolean) => void;
 }
 
 export function createControlsShellFeature(
@@ -121,8 +120,7 @@ export function createControlsShellFeature(
             document.body.insertBefore(root, document.body.firstChild);
         }
         els.root = root;
-        root.classList.add("sp-onboarding");
-        switchTab(requestedInitialTab ?? "device");
+        switchTab(requestedInitialTab ?? "screen");
     }
     function buildHeader(this: any, parent?: any) {
         var header: any = document.createElement("div");
@@ -266,20 +264,6 @@ export function createControlsShellFeature(
         syncTabChrome();
         if (returningToScreen) dependencies.renderPreview();
     }
-    function setOnboardingComplete(this: any, complete: boolean, announce?: boolean) {
-        if (!els.root)
-            return;
-        const wasOnboarding = els.root.classList.contains("sp-onboarding");
-        els.root.classList.toggle("sp-onboarding", !complete);
-        if (complete && wasOnboarding) {
-            switchTab(requestedInitialTab ?? "screen");
-            if (announce)
-                showBanner("Connector setup complete. You can add cards to your screen.", "success");
-        }
-        else if (!complete && state.activeTab !== "device") {
-            switchTab("device");
-        }
-    }
     function syncTabChrome(this: any) {
         var support: any = document.querySelector(".sp-support-btn");
         if (support)
@@ -351,6 +335,5 @@ export function createControlsShellFeature(
         isConfigLocked,
         syncConfigLockUi,
         setConfigLocked,
-        setOnboardingComplete,
     };
 }

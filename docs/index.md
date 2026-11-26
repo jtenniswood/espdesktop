@@ -1,7 +1,7 @@
 ---
 title: "EspDesktop: A touchscreen controller for Mac and Windows"
 titleTemplate: :title
-description: Launch apps, open websites and folders, and run keyboard shortcuts from a 4-inch touchscreen paired with the free EspDesktop app for macOS or Windows 11.
+description: Launch apps, open websites and folders, and run keyboard shortcuts from a 4-inch touchscreen paired with the free EspDesktop app for macOS or Windows.
 layout: home
 ---
 
@@ -121,9 +121,9 @@ On macOS, run an Apple Shortcuts workflow with one tap, or group your workflows 
 
 ### Control OBS Studio
 
-Switch scenes from your touchscreen. On macOS, you can also mute audio inputs and control streaming and recording.
+Switch scenes, mix audio, and control streaming and recording on Mac and Windows with a compatible EspDesktop release.
 
-[OBS Studio controls](/mac-controls/obs-studio)
+[OBS Studio controls](/obs-studio)
 
 </article>
 
