@@ -1,6 +1,6 @@
 import { obsSubpageCatalogue } from "../model/obs_live_subpage";
 import { targetedAudioCard } from "./companion_app_volume";
-import { childPageKey } from "../model/page_keys";
+import { childPageKey, parentPageKey } from "../model/page_keys";
 import { renderCompanionStorageSelector } from "./companion_storage";
 import { APPLE_SHORTCUT_PREFIX, COMPANION_FOLDER_PREFIX, COMPANION_OBS_PREFIX, OBS_BRB_ID, OBS_MULTIVIEW_ID, OBS_OUTPUT_OPTIONS, OBS_PROGRAM_ID, OBS_REPLAY_BUFFER_ID, OBS_REPLAY_ID, OBS_STUDIO_ID, OBS_STUDIO_OPTIONS, OBS_TAKE_ID, OBS_TRANSITION_ID, OBS_TRANSITION_OPTIONS, OBS_TRANSITION_SELECT, savedOBSTransition, savedOBSSceneTarget, decodeCompanionCard, encodeCompanionCard, companionMetricForEntity, obsConfirmationControl, obsInputName, obsOutputCardEntity, obsSceneCardEntity } from "../model/companion_card_codec";
 import { configOptionEnabled, configOptionValue, setConfigOption, setConfigOptionValue, normalizedCardColorOptions, preserveCardColorOptions, withoutCardColorOptions } from "../model/config_primitives";
@@ -38,6 +38,8 @@ import { state } from "../state/app_instance";
 import {
     COMPANION_SHORTCUT_PREFIX,
     COMPANION_SHORTCUT_PRESET_OPTION,
+    COMPANION_SHORTCUT_APP_ICON_OPTION,
+    companionShortcutAppIconId,
     companionShortcutCatalogApps,
     companionShortcutDefaultTabs,
     companionShortcutPresetCards,
@@ -185,7 +187,8 @@ function shortcutSearchKeys(value: string): string[] {
 }
 
 export function companionShortcutCatalogSelection(card: any) {
-    const options = withoutCardColorOptions(card?.options);
+    const options = setConfigOption(withoutCardColorOptions(card?.options),
+        COMPANION_SHORTCUT_APP_ICON_OPTION, false);
     const marker = configOptionValue(options, COMPANION_SHORTCUT_PRESET_OPTION);
     const separator = marker.lastIndexOf(":");
     if (separator < 0 || !/^(0|[1-9][0-9]{0,2})$/.test(marker.slice(separator + 1))) return undefined;
@@ -876,6 +879,31 @@ export function registerCompanionCardTypes(
         });
     }
 
+    function renderShortcutIconSettings(panel: HTMLElement, helpers: any, appLabel: string,
+        useAppIcon: boolean, customIcon: string, selectAppIcon: (enabled: boolean) => void,
+        selectCustomIcon: (icon: string) => void): void {
+        const picker = helpers.iconPickerField(
+            helpers.idPrefix + "icon-picker", helpers.idPrefix + "icon", customIcon,
+            selectCustomIcon, "Choose an icon", false,
+        );
+        const control = helpers.segmentControl([
+            ["app", appLabel], ["custom", "Custom Icon"],
+        ], useAppIcon ? "app" : "custom", (value: "app" | "custom") => {
+            selectAppIcon(value === "app");
+            syncIconControls(value === "app");
+            cardUi.renderPreview();
+        });
+        function syncIconControls(enabled: boolean): void {
+            control.buttons.app.setAttribute("aria-pressed", String(enabled));
+            control.buttons.custom.setAttribute("aria-pressed", String(!enabled));
+            picker.style.display = enabled ? "none" : "";
+        }
+        control.segment.setAttribute("role", "group");
+        control.segment.setAttribute("aria-label", "Icon");
+        syncIconControls(useAppIcon);
+        panel.append(helpers.fieldWithControl("Icon", null, control.segment), picker);
+    }
+
     function renderAppShortcutSettings(panel: HTMLElement, card: any, page: number,
         helpers: { idPrefix: string; saveField: (field: string, value: unknown) => void }, showAll = false): void {
         loadAppShortcuts(card.entity, panel);
@@ -1267,34 +1295,17 @@ export function registerCompanionCardTypes(
                 });
                 helpers.renderBasicCardFields(panel, card, helpers, COMPANION_CARD_METADATA, { entity: false, icon: false });
                 const defaultIcon = companionSubtypeDefaultIcon("apple_shortcut");
-                const initialIconMode = appleShortcutUsesAppIcon(card) ? "app" : "custom";
-                let customIcon = initialIconMode === "custom" && card.icon && card.icon !== "Auto" ? card.icon : defaultIcon;
-                const customPicker = helpers.iconPickerField(
-                    helpers.idPrefix + "icon-picker", helpers.idPrefix + "icon", customIcon, (icon: string) => {
-                        customIcon = card.icon = icon;
-                        helpers.saveField("icon", icon);
-                    }, "Choose an icon", false,
-                );
-                const iconMode = helpers.segmentControl([
-                    ["app", "Shortcuts App Icon"], ["custom", "Custom Icon"],
-                ], initialIconMode, (value: "app" | "custom") => {
-                    const useCustom = value === "custom";
-                    card.icon = useCustom ? customIcon : defaultIcon;
-                    card.options = setConfigOption(card.options, APPLE_SHORTCUT_CUSTOM_ICON_OPTION, useCustom);
+                const useAppIcon = appleShortcutUsesAppIcon(card);
+                let customIcon = useAppIcon ? defaultIcon : card.icon;
+                renderShortcutIconSettings(panel!, helpers, "Shortcuts App Icon", useAppIcon, customIcon, enabled => {
+                    card.icon = enabled ? defaultIcon : customIcon;
+                    card.options = setConfigOption(card.options, APPLE_SHORTCUT_CUSTOM_ICON_OPTION, !enabled);
                     helpers.saveField("icon", card.icon);
                     helpers.saveField("options", card.options);
-                    syncIconControls(value);
-                    cardUi.renderPreview();
+                }, icon => {
+                    customIcon = card.icon = icon;
+                    helpers.saveField("icon", icon);
                 });
-                function syncIconControls(value: "app" | "custom"): void {
-                    iconMode.buttons.app.setAttribute("aria-pressed", String(value === "app"));
-                    iconMode.buttons.custom.setAttribute("aria-pressed", String(value === "custom"));
-                    customPicker.style.display = value === "custom" ? "" : "none";
-                }
-                iconMode.segment.setAttribute("role", "group");
-                iconMode.segment.setAttribute("aria-label", "Icon");
-                syncIconControls(initialIconMode);
-                panel?.append(helpers.fieldWithControl("Icon", null, iconMode.segment), customPicker);
                 return;
             }
 
@@ -1350,10 +1361,15 @@ export function registerCompanionCardTypes(
             shortcutField.className = "sp-field sp-shortcut-settings";
             if (initialMode === "shortcut") panel?.classList.add("sp-shortcut-card-settings");
             const savedCatalogShortcut = companionShortcutCatalogSelection(card);
-            const isNewShortcut = initialMode === "shortcut" && state.settingsDraft?.isNew;
-            const ownerApp = appShortcutPageOwner(previewSubpageOwner(parentPage, state.buttons, key => state.subpages[key]));
+            const isNewShortcut = initialMode === "shortcut" && !!state.settingsDraft?.isNew;
+            const owner = (key: number | null) => previewSubpageOwner(key, state.buttons, page => state.subpages[page]);
+            const ownerApp = appShortcutPageOwner(owner(parentPage));
             const pageApp = isNewShortcut ? ownerApp : undefined;
             const scopedCustomApp = ownerApp?.startsWith("windows.") ? ownerApp : undefined;
+            const inAppSubpage = !!ownerApp ||
+                !!(parentPage && appShortcutPageOwner(owner(parentPageKey(parentPage))));
+            let useShortcutAppIcon = card._shortcutAppIcon ??
+                (savedCatalogShortcut ? !!companionShortcutAppIconId(card) : isNewShortcut && !inAppSubpage);
             const windowsShortcuts = useWindowsShortcuts();
             const windowsCustomKeys = windowsShortcuts || !!scopedCustomApp;
             const platformPending = connectorStatus.companionPlatform() === undefined;
@@ -1367,6 +1383,7 @@ export function registerCompanionCardTypes(
                 ["catalog", "Application"], ["custom", "Custom"],
             ], shortcutType, function (type: string, tab: HTMLButtonElement) {
                 if (type === shortcutType) return;
+                if (savedCatalogShortcut) card._shortcutAppIcon = useShortcutAppIcon;
                 card._shortcutType = type;
                 card._shortcutCatalogSearch = "";
                 if (!defaultCatalogApp) card._shortcutCatalogApp = "";
@@ -1609,7 +1626,9 @@ export function registerCompanionCardTypes(
                     card.label = companionAppLabel(card.label || "", savedCatalogShortcut?.label || "", preset.label);
                     card.icon = companionGeneratedIcon(card.icon || "", savedCatalogShortcut?.icon || companionSubtypeDefaultIcon("shortcut"), preset.icon);
                     card.entity = preset.entity;
-                    card.options = preserveCardColorOptions(card.options, preset.options);
+                    card._shortcutAppIcon = useShortcutAppIcon;
+                    card.options = preserveCardColorOptions(card.options, setConfigOption(
+                        preset.options, COMPANION_SHORTCUT_APP_ICON_OPTION, useShortcutAppIcon));
                     for (const field of ["entity", "options", "label", "icon"]) helpers.saveField(field, card[field]);
                     const scrollTop = list.scrollTop;
                     renderButtonSettings();
@@ -1655,6 +1674,7 @@ export function registerCompanionCardTypes(
                 card._shortcutCatalogSearch = "";
                 card._shortcutType = "catalog";
                 card._shortcutCatalogApp = catalogApp.value;
+                card._shortcutAppIcon = useShortcutAppIcon;
                 card.entity = COMPANION_SHORTCUT_PREFIX;
                 card.options = normalizedCardColorOptions(card.options);
                 helpers.saveField("entity", card.entity);
@@ -2042,10 +2062,22 @@ export function registerCompanionCardTypes(
                     helpers.saveField("label", nextLabel);
                 }
             });
+            const showShortcutIconMode = initialMode === "shortcut" && shortcutType === "catalog" && !!savedCatalogShortcut;
             helpers.renderBasicCardFields(panel, card, helpers, COMPANION_CARD_METADATA, {
                 entity: false,
-                icon: initialMode !== "app",
+                icon: initialMode !== "app" && !showShortcutIconMode,
             });
+            if (showShortcutIconMode && panel) {
+                renderShortcutIconSettings(panel, helpers, "App Icon", useShortcutAppIcon, card.icon, enabled => {
+                    useShortcutAppIcon = enabled;
+                    card._shortcutAppIcon = enabled;
+                    card.options = setConfigOption(card.options, COMPANION_SHORTCUT_APP_ICON_OPTION, enabled);
+                    helpers.saveField("options", card.options);
+                }, icon => {
+                    card.icon = icon;
+                    helpers.saveField("icon", icon);
+                });
+            }
             if (canAddSubpage && companionShortcutFolderEditorAvailable(card, savedParent)) {
                 const editButton = document.createElement("button");
                 editButton.className = "sp-action-btn sp-edit-subpage-btn";
@@ -2180,10 +2212,11 @@ export function registerCompanionCardTypes(
                 iconFallback: companionSubtypeDefaultIcon(mode),
                 badge: COMPANION_CARD_METADATA.preview.badge,
             });
-            const workflowIcon = mode === "apple_shortcut" && appleShortcutUsesAppIcon(card);
-            if (workflowIcon || companionAppIconEnabled(card)) {
-                preview.appIconId = workflowIcon ? APPLE_SHORTCUTS_APP_ID : card.entity;
-                if (workflowIcon) preview.appIconSize = "small";
+            const shortcutAppIcon = mode === "apple_shortcut" && appleShortcutUsesAppIcon(card)
+                ? APPLE_SHORTCUTS_APP_ID : mode === "shortcut" ? companionShortcutAppIconId(card) : "";
+            if (shortcutAppIcon || companionAppIconEnabled(card)) {
+                preview.appIconId = shortcutAppIcon || card.entity;
+                if (shortcutAppIcon) preview.appIconSize = "small";
                 const background = configOptionValue(card.options, "app_bg_color").toUpperCase();
                 if (/^[0-9A-F]{6}$/.test(background)) preview.appIconBackgroundColor = background;
                 preview.iconHtml = preview.iconHtml.replace(

@@ -5145,6 +5145,101 @@ async function assertWindowsShortcutSettings(browser, testCase) {
   }
 }
 
+async function assertShortcutIconSettings(browser, testCase) {
+  if (testCase.slug !== "guition-esp32-s3-4848s040") return;
+  const nativeState = nativeConfigState(testCase.slug);
+  nativeState.document.buttons[1] = "shortcut.command+r;Reload;Refresh;Auto;;;companion;;app_shortcut_preset=com.apple.Safari%3A2";
+  nativeState.document.buttons[4] = "com.apple.Safari;Safari;Auto;Auto;;;companion;;app_shortcuts";
+  nativeState.document.subpages[4] = "~B,1|companion,shortcut.command%2Bl,Address,Keyboard";
+  const context = await browser.newContext({ viewport: testCase.viewport });
+  await installRoutes(context, testCase.slug, { nativeState });
+  await mockCompanionAppIcon(context, "com.apple.Safari");
+  const page = await context.newPage();
+  await installFakeEventSource(page);
+
+  const app = page.locator('[id$="shortcut-catalog-app"]');
+  const cardSettings = page.getByRole("button", { name: "Card Settings", exact: true });
+  const iconMode = page.getByRole("group", { name: "Icon", exact: true });
+  const appIcon = iconMode.getByRole("button", { name: "App Icon", exact: true });
+  const customIcon = iconMode.getByRole("button", { name: "Custom Icon", exact: true });
+  const picker = page.getByRole("textbox", { name: "Choose an icon", exact: true });
+
+  async function openIconSettings() {
+    if (await cardSettings.getAttribute("aria-expanded") !== "true") await cardSettings.click();
+  }
+  async function editTile(tile) {
+    await tile.click({ button: "right" });
+    await page.locator(".sp-ctx-menu").getByText("Edit Card", { exact: true }).click();
+    await openIconSettings();
+  }
+  async function selectShortcut(label) {
+    await page.getByRole("searchbox", { name: "Find a keyboard shortcut…" }).fill(label);
+    await page.getByRole("radio", { name: new RegExp("^" + label + " ") }).check();
+    await openIconSettings();
+  }
+  async function addReaderShortcut() {
+    await page.locator(".sp-main .sp-empty-cell").first().click();
+    await chooseCardType(page, "Keyboard Shortcut");
+    if (!await app.inputValue()) await app.selectOption("com.apple.Safari");
+    await selectShortcut("Open Reader");
+  }
+  async function saveCard() {
+    const before = nativeState.puts.length;
+    await page.getByRole("button", { name: "Save", exact: true }).click();
+    await waitForNativeState(nativeState, () => nativeState.puts.length > before, "save shortcut appearance");
+    await page.locator(".sp-settings-overlay").waitFor({ state: "hidden" });
+  }
+  try {
+    await page.goto(`http://espdesktop.test/${testCase.slug}?events=1`, { waitUntil: "domcontentloaded" });
+    await page.waitForSelector("#sp-app");
+    await page.waitForFunction(() => window.__eventSources?.length > 0);
+    await seedNativeDocument(page, nativeState);
+
+    await editTile(page.locator('.sp-main [data-slot="1"]'));
+    assert.equal(await customIcon.getAttribute("aria-pressed"), "true", "existing presets keep their glyph");
+    await page.locator(".sp-settings-close").click();
+
+    await addReaderShortcut();
+    assert.equal(await appIcon.getAttribute("aria-pressed"), "true", "standalone presets start with app artwork");
+    assert.equal(await picker.isVisible(), false);
+    await customIcon.click();
+    await picker.fill("Timer");
+    await page.locator(".sp-icon-option").getByText("Timer", { exact: true }).click();
+    await selectShortcut("Reload");
+    assert.equal(await customIcon.getAttribute("aria-pressed"), "true", "changing presets keeps the custom mode");
+    assert.equal(await picker.inputValue(), "Timer");
+    await appIcon.click();
+    await selectShortcut("Open Reader");
+    assert.equal(await appIcon.getAttribute("aria-pressed"), "true", "changing presets keeps the app mode");
+    assert.equal(await picker.isVisible(), false);
+    await saveCard();
+
+    const standalone = page.locator(".sp-main [data-slot]").filter({
+      has: page.getByText("Open Reader", { exact: true }),
+    });
+    await standalone.locator("img.sp-companion-app-icon").waitFor();
+    assert.equal(await standalone.getAttribute("data-icon-size"), "small");
+    await editTile(standalone);
+    assert.equal(await appIcon.getAttribute("aria-pressed"), "true", "saved app artwork is restored");
+    await customIcon.click();
+    assert.equal(await picker.inputValue(), "Timer", "the custom glyph survives saving app artwork");
+    await saveCard();
+    await standalone.locator(".sp-btn-icon.mdi-timer-outline").waitFor();
+    assert.equal(await standalone.locator("img.sp-companion-app-icon").count(), 0);
+
+    await page.locator('.sp-main [data-slot="4"] .sp-subpage-badge').click();
+    await addReaderShortcut();
+    assert.equal(await customIcon.getAttribute("aria-pressed"), "true", "app subpage presets start with the glyph");
+    assert.equal(await picker.isVisible(), true);
+    await appIcon.click();
+    assert.equal(await picker.isVisible(), false);
+    await saveCard();
+    await standalone.locator("img.sp-companion-app-icon").waitFor();
+  } finally {
+    await context.close();
+  }
+}
+
 async function assertShortcutCatalogSettings(browser, testCase) {
   if (testCase.slug !== "guition-esp32-s3-4848s040") return;
   const nativeState = nativeConfigState(testCase.slug);
@@ -9542,6 +9637,7 @@ async function assertFirstRunSetup(browser, testCase) {
       await assertCompanionURLOpenBehavior(browser, testCase);
       await assertCompanionShortcutSettings(browser, testCase);
       await assertAppSubpageCapacity(browser, testCase);
+      await assertShortcutIconSettings(browser, testCase);
       await assertShortcutCatalogSettings(browser, testCase);
       await assertWindowsShortcutSettings(browser, testCase);
       await assertOnDemandShortcutSettings(browser, testCase);
@@ -9671,6 +9767,7 @@ async function assertFirstRunSetup(browser, testCase) {
       await assertCompanionURLOpenBehavior(browser, testCase);
       await assertCompanionShortcutSettings(browser, testCase);
       await assertAppSubpageCapacity(browser, testCase);
+      await assertShortcutIconSettings(browser, testCase);
       await assertShortcutCatalogSettings(browser, testCase);
       await assertWindowsShortcutSettings(browser, testCase);
       await assertOnDemandShortcutSettings(browser, testCase);
