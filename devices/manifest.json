@@ -1142,7 +1142,8 @@
     "guition-esp32-p4-jc8012p4a1-v3": {
       "slots": 20,
       "capabilities": {
-        "imageSlots": 6
+        "imageSlots": 6,
+        "companion": true
       },
       "public": {
         "name": "Guition JC8012P4A1 V3 (production silicon)",

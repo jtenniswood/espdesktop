@@ -7,6 +7,9 @@
     "network": "c6-firmware-update"
   },
   "config": {
+    "capabilities": {
+      "companion": true
+    },
     "layout": {
       "portraitSlots": 18
     },
