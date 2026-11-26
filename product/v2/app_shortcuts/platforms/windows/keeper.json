@@ -1,0 +1,23 @@
+{
+  "label": "Keeper Desktop",
+  "executables": [
+    "keeperpasswordmanager.exe"
+  ],
+  "sources": [
+    "https://docs.keeper.io/user-guides/web-vault",
+    "https://www.keepersecurity.com/desktop_electron/Win32/KeeperSetup32.msi"
+  ],
+  "note": "Use these commands in the signed-in desktop vault. Edit and Save apply to the active record.",
+  "defaultShortcutIds": [
+    "0",
+    "1",
+    "2",
+    "3"
+  ],
+  "shortcuts": [
+    {"id": "0", "label": "Search Vault", "shortcut": "control+f", "icon": "Search"},
+    {"id": "1", "label": "New Record", "shortcut": "control+n", "icon": "New Window"},
+    {"id": "2", "label": "Edit Record", "shortcut": "control+e", "icon": "Keyboard"},
+    {"id": "3", "label": "Save Record", "shortcut": "control+s", "icon": "Save"}
+  ]
+}

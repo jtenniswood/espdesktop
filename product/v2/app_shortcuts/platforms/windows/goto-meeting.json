@@ -1,0 +1,30 @@
+{
+  "label": "GoTo Meeting",
+  "executables": [
+    "goto.exe"
+  ],
+  "sources": [
+    "https://www.goto.com/download",
+    "https://goto-desktop.goto.com/goto-4.21.0-x64.nsis.7z",
+    "https://app.goto.com/index.221ed438d95590b242da.js"
+  ],
+  "note": "Use the meeting controls with the meeting window in focus. The current GoTo app lets users change shortcuts. View commands also apply in the main app window.",
+  "defaultShortcutIds": [
+    "0",
+    "1",
+    "2",
+    "3"
+  ],
+  "shortcuts": [
+    {"id": "0", "label": "Toggle Microphone", "shortcut": "control+shift+m", "icon": "Keyboard"},
+    {"id": "1", "label": "Toggle Camera", "shortcut": "control+shift+k", "icon": "Keyboard"},
+    {"id": "2", "label": "Meeting Participants", "shortcut": "control+shift+1", "icon": "Keyboard"},
+    {"id": "3", "label": "Meeting Chat", "shortcut": "control+shift+2", "icon": "Keyboard"},
+    {"id": "4", "label": "Meeting Settings", "shortcut": "control+shift+3", "icon": "Keyboard"},
+    {"id": "5", "label": "Change Meeting View", "shortcut": "control+y", "icon": "Keyboard"},
+    {"id": "6", "label": "Toggle Full Screen", "shortcut": "f11", "icon": "Keyboard"},
+    {"id": "7", "label": "Zoom In", "shortcut": "control+keyequal", "icon": "Keyboard"},
+    {"id": "8", "label": "Zoom Out", "shortcut": "control+keyminus", "icon": "Keyboard"},
+    {"id": "9", "label": "Actual Size", "shortcut": "control+0", "icon": "Keyboard"}
+  ]
+}
