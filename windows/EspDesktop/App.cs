@@ -8,6 +8,8 @@ internal sealed class App : Application
 {
     internal static readonly Uri IconUri = new("pack://application:,,,/EspDesktop;component/Packaging/EspDesktop.ico");
 
+    private static readonly Uri TrayIconUri = new("pack://application:,,,/EspDesktop;component/Packaging/TrayComputer.ico");
+
     [STAThread]
     public static int Main(string[] args)
     {
@@ -37,10 +39,10 @@ internal sealed class App : Application
         System.Drawing.Icon? trayIcon = null;
         try
         {
-            using var stream = GetResourceStream(IconUri).Stream;
-            trayIcon = new System.Drawing.Icon(stream);
             if (!smoke)
             {
+                using var stream = GetResourceStream(TrayIconUri).Stream;
+                trayIcon = new System.Drawing.Icon(stream);
                 var menu = new Forms.ContextMenuStrip();
                 menu.Items.Add("Open EspDesktop", null, (_, _) => window.ShowSettings());
                 menu.Items.Add("Open display editor", null, (_, _) => window.OpenPanel());
