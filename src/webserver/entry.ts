@@ -359,6 +359,42 @@ function composeApplicationContext(liveGeneratedActions: () => readonly Companio
       preview.render();
       return true;
     },
+    renameScreen: async (key, name) => {
+      const page = configurationCodec.getSubpage(key);
+      if (!page) return false;
+      const previous = page.title;
+      page.title = String(name || "").trim();
+      const result = await configurationCodec.saveSubpageConfig(key);
+      if (result !== "saved" && result !== "mirror-failed" && result !== true) {
+        if (previous === undefined) delete page.title;
+        else page.title = previous;
+        return false;
+      }
+      preview.render();
+      buttonSettings.render();
+      return true;
+    },
+    moveScreen: async (key, targetIndex) => {
+      const keys = shell.screenKeys().slice();
+      const from = keys.indexOf(key);
+      if (from < 0 || targetIndex < 0 || targetIndex >= keys.length || from === targetIndex) return false;
+      const order = keys.slice();
+      const moved = order[from]!;
+      order.splice(from, 1);
+      order.splice(targetIndex, 0, moved);
+      const pages = new Map(keys.map(k => [k, AppInstance.state.subpages[k]]));
+      const editing = AppInstance.state.editingSubpage;
+      for (let index = 0; index < keys.length; index++)
+        AppInstance.state.subpages[keys[index]!] = pages.get(order[index]!)!;
+      if (editing != null) {
+        const movedTo = order.indexOf(editing);
+        if (movedTo >= 0) AppInstance.state.editingSubpage = keys[movedTo]!;
+      }
+      const results = await Promise.all(keys.map(k => configurationCodec.saveSubpageConfig(k)));
+      preview.render();
+      buttonSettings.render();
+      return results.every(result => result === "saved" || result === "mirror-failed" || result === true);
+    },
   });
   let confirmationOptions: ReturnType<typeof createConfigConfirmationOptionsFeature>;
   let clockBarState: ClockBarFeature;

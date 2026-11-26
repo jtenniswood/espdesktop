@@ -91,3 +91,10 @@ inline void bind_immediate_button_action(lv_obj_t *button, lv_event_cb_t action,
   }, LV_EVENT_PRESSED, nullptr);
   lv_obj_add_event_cb(button, action, LV_EVENT_PRESSED, user_data);
 }
+
+// Card actions normally run on release so a swipe can cancel the press. Use
+// this for subpage cards that do not need touch-down behaviour.
+inline void bind_release_button_action(lv_obj_t *button, lv_event_cb_t action,
+                                       void *user_data) {
+  lv_obj_add_event_cb(button, action, LV_EVENT_SHORT_CLICKED, user_data);
+}

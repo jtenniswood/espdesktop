@@ -43,12 +43,10 @@ inline void handle_button_press(const std::string &cfg, int slot_num,
   }
   // Ordinary cards act on release (see handle_button_click) so a swipe can
   // cancel the press. Keep touch-down only for cards that need it.
-  const bool app_subpage_press = companion_app_shortcuts_enabled(p) &&
-      companion_app_subpage_opens_on_press(p.entity, companion_card_computer(p));
-  if (!obs_action_keeps_touch(p) && !app_subpage_press) return;
+  if (!obs_action_keeps_touch(p)) return;
   if (navigation_handle_button_press(p, slot_num, btn_obj)) return;
   // These OBS actions stay on the page and use the native pressed colour until release.
-  if (!obs_action_keeps_touch(p)) consume_button_touch_press(btn_obj);
+  consume_button_touch_press(btn_obj);
   handle_button_click(cfg, slot_num, btn_obj);
 }
 

@@ -497,7 +497,7 @@ inline bool basic_action_driver_bind_subpage(
       if (companion_obs_momentary_action(config.entity))
         lv_obj_add_event_cb(slot.btn, action, LV_EVENT_PRESSED, click);
       else
-        bind_immediate_button_action(slot.btn, action, click);
+        bind_release_button_action(slot.btn, action, click);
       break;
     }
     default:
