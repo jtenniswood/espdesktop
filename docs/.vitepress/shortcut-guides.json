@@ -817,6 +817,16 @@
     ],
     "tip": "Use Mark Unread on a conversation you want to return to. Select a chat first before tapping Mute Chat so it applies to the right conversation."
   },
+  "windows-app": {
+    "appId": "com.microsoft.rdc.macos",
+    "workflow": "opening remote connections and managing session windows from a Mac",
+    "shortcuts": [
+      "PC Quick Connect",
+      "Connection Centre",
+      "Fit to Window"
+    ],
+    "tip": "Try PC Quick Connect from the Connection Centre. Select a saved PC before tapping Connect to Selected PC, or bring an active remote session forward before trying Fit to Window."
+  },
   "xcode": {
     "appId": "com.apple.dt.Xcode",
     "workflow": "building, running and testing projects from the touchscreen",

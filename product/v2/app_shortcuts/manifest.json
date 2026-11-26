@@ -1,6 +1,6 @@
 {
   "formatVersion": 1,
-  "catalogueVersion": 25,
+  "catalogueVersion": 26,
   "minimumCompanionVersion": "1.0.0",
   "entries": [
     {
@@ -332,6 +332,9 @@
     {
       "path": "whatsapp.json",
       "offline": true
+    },
+    {
+      "path": "windows-app.json"
     },
     {
       "path": "xcode.json",

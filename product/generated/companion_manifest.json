@@ -84,6 +84,7 @@
     "product/v2/app_shortcuts/vlc.json",
     "product/v2/app_shortcuts/warp.json",
     "product/v2/app_shortcuts/whatsapp.json",
+    "product/v2/app_shortcuts/windows-app.json",
     "product/v2/app_shortcuts/xcode.json",
     "product/v2/app_shortcuts/zoom.json"
   ],
@@ -181,6 +182,7 @@
     "macos/EspDesktop/Sources/Companion/Resources/AppShortcuts/vlc.json",
     "macos/EspDesktop/Sources/Companion/Resources/AppShortcuts/warp.json",
     "macos/EspDesktop/Sources/Companion/Resources/AppShortcuts/whatsapp.json",
+    "macos/EspDesktop/Sources/Companion/Resources/AppShortcuts/windows-app.json",
     "macos/EspDesktop/Sources/Companion/Resources/AppShortcuts/xcode.json",
     "macos/EspDesktop/Sources/Companion/Resources/AppShortcuts/zoom.json",
     "product/generated/companion_compatibility.json",
