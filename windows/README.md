@@ -15,6 +15,10 @@ Setup installs for the current user and includes the .NET runtime. It does not n
 
 Keep the PC and display on the same local network. In **Display**, select a nearby display or choose **Enter address manually**, then choose **Next**. Choose **Open pairing page** or press and hold the display’s Wi-Fi icon to get a code. Enter the code and choose **Pair display**. If the display is paired to a different computer, reset its Companion pairing first.
 
+For direct USB control, install USB-enabled Companion firmware, such as the 4848S040 experimental `devices/guition-esp32-s3-4848s040/usb-dev.yaml` profile. Use a USB data cable. In **Display**, choose **Connect over USB**, select the display’s COM port and choose **Next**. Get the code from **Pair** on the display’s Setup screen or **Unpaired** in its Settings. Once paired, the display can control Windows with Wi-Fi off. Choose **Open display editor** to manage the display in a Windows app window over USB. It uses the built-in Microsoft Edge WebView2 runtime and works with the display’s Wi-Fi off. A display connected by IP still opens its editor in your browser.
+
+Use **Change connection** on a saved display to switch between IP and USB or select a different COM port. The app keeps the existing pairing and saves the new connection once the display is verified.
+
 Choose **Add display** to connect another display to the same PC. Each display can connect to one computer at a time. Use the individual display cards to connect, disconnect, forget, or open the editor for that display. Windows app and folder approvals are shared across all your paired displays.
 
 In the display editor, open **System → Connectors → Companion** to check pairing with your Windows PC. You can add these controls:
@@ -25,7 +29,7 @@ In the display editor, open **System → Connectors → Companion** to check pai
 - Add **Website** cards. Links use your default browser; new windows and active site highlighting work with supported browsers. Highlighting depends on the browser exposing its address bar to Windows accessibility. Some browser versions, languages, and installed web apps may not expose it.
 - Add **Keyboard Shortcut** or **Lock Machine** cards. Enable **Allow keyboard shortcuts and screen lock** in the Windows app first. The editor’s Command and Control choices both map to Windows Ctrl. Option maps to Alt. Shortcuts go to an approved app in front and Windows protects apps running as administrator.
 - Add statistics, speaker and microphone volume, or mute controls. Setting a volume above zero unmutes that device. The display receives basic system readings while paired. Actions are blocked while Windows is locked.
-- Add **OBS Scene** cards after connecting to OBS Studio on the PC. Open **Tools → WebSocket Server Settings** in OBS, enable the server, then enter its port and password on the **OBS Studio** page in EspDesktop. Scene cards switch Program in normal mode and select Preview in Studio Mode.
+- Add OBS controls after connecting to OBS Studio on the PC. Open **Tools → WebSocket Server Settings** in OBS, enable the server, then enter its port and password on the **OBS Studio** page in EspDesktop. With current display firmware, the editor offers scenes and source visibility, mixer controls, Break, outputs, replay, Studio Mode, and Multiview.
 
 Use **Start EspDesktop when I sign in** to keep the display connected after login. To stop the app, choose **Quit EspDesktop** from its notification area icon.
 
@@ -43,9 +47,10 @@ If **Display** says it needs a newer version of EspDesktop for Windows, get the 
 
 ## Build and check
 
-Use the .NET 10 SDK and Inno Setup 6.3 or newer on Windows. From the repository root:
+Use the .NET 10 SDK, Node.js 26, Python 3, and Inno Setup 6.3 or newer on Windows. The installer build bundles the editor from source. From the repository root:
 
 ```powershell
+npm ci
 dotnet run -c Release --project windows/EspDesktop.Tests
 dotnet run -c Release --project windows/EspDesktop
 ./windows/EspDesktop/Packaging/Build-Installer.ps1 -Architecture x64

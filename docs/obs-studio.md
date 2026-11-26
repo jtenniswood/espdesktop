@@ -7,7 +7,7 @@ description: Switch OBS scenes, mix audio, and control recording and streaming f
 
 OBS Studio is a free, open-source app for recording video and live streaming. You build **scenes** from sources like cameras, screen captures, and graphics, then use the mixer to adjust microphones and other audio. [Visit the OBS Project for downloads and guides](https://obsproject.com/).
 
-Windows currently supports scene selection, Program scene, Take Live, and transitions. The remaining OBS controls in this guide work on Mac and are planned for Windows.
+On macOS and Windows, use your touchscreen to switch scenes, control the mixer, and manage recording and streaming. Use a current companion app and matching display firmware.
 
 <picture>
   <source type="image/avif" srcset="/images/obs/home-480.avif 480w, /images/obs/home-960.avif 960w" sizes="(min-width: 768px) 688px, min(688px, 90vw)">
@@ -41,10 +41,11 @@ In the **OBS Studio** picker, look under **Grouped pages**. Pick one and choose 
 
 | Page | What you get |
 | --- | --- |
-| [Scenes](/obs-studio/scene-control-and-mixing#scenes) | Buttons for scenes in the current collection. |
-| [Transitions](/obs-studio/scene-control-and-mixing#transitions) | One button per scene transition configured in OBS. |
 | [Audio](/obs-studio/audio-controls#add-the-audio-grouped-page) | Volume sliders for the inputs in the OBS mixer. |
-| [Studio Control](/obs-studio/studio-controls#add-the-studio-control-grouped-page) | Record, Stream, Studio Mode, Replay Buffer, and Save Replay. |
+| [Scenes](/obs-studio/scene-control-and-mixing#scenes) | Buttons for scenes in the current collection, with Break, Transition, and Take Live where there’s room. |
+| Sources | Visibility controls for items in Preview in Studio Mode, or in Program in normal mode. |
+| [Studio Control](/obs-studio/studio-controls#add-the-studio-control-grouped-page) | Record, Stream, Studio Mode, Replay Buffer, and Save Replay in one layout. |
+| [Transitions](/obs-studio/scene-control-and-mixing#transitions) | One button per scene transition configured in OBS. |
 
 To test on either platform, turn on Studio Mode in OBS and tap a scene. Check that it appears in Preview.
 

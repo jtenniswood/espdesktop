@@ -11,13 +11,14 @@ using static EspDesktop.Core.Protocol;
 namespace EspDesktop.Core;
 
 internal sealed record Pairing(string Address, string Fingerprint, byte[] Key, uint Sequence = 0, string? DisplayName = null);
-internal sealed record CatalogueItem(string Id, string Label, string? ObsState = null, string? ObsDetail = null);
+internal sealed record CatalogueItem(string Id, string Label, string? ObsState = null, string? ObsDetail = null, bool? ObsAvailable = null);
 
 internal readonly record struct AudioValue(string Id, int? Value, bool NoInputDevice = false);
 
 internal interface IDesktop
 {
     int CatalogueRevision { get; }
+    int ObsCatalogueRevision => 0;
     bool ShortcutsEnabled { get; }
     IReadOnlyList<CatalogueItem> Catalogue();
     IEnumerable<CatalogueItem> ObsCatalogue(uint capability) => [];
@@ -29,6 +30,8 @@ internal interface IDesktop
     byte[]? AppIcon(string appId, int side);
     Task<string> Invoke(JsonElement message, CancellationToken token);
     bool SetValue(string id, int value);
+    Task<bool> SetObsValue(string id, int value, object owner, CancellationToken token) => Task.FromResult(false);
+    void AbandonObsHolds(object owner) { }
     IEnumerable<AudioValue> Values();
     Dictionary<string, object?> Metrics(uint generation);
 }
@@ -44,8 +47,9 @@ internal sealed class DisplaySession(IDesktop desktop, Action<Pairing> save, Act
         using var deadline = CancellationTokenSource.CreateLinkedTokenSource(token);
         deadline.CancelAfter(TimeSpan.FromSeconds(12));
         string? fingerprint = null;
-        using var client = new Link(null, f => fingerprint = f);
-        await client.Connect(DisplayEndpoint.Parse(address).Socket, deadline.Token);
+        var endpoint = DisplayEndpoint.Parse(address);
+        using var client = new Link(endpoint, null, f => fingerprint = f);
+        await client.Connect(deadline.Token);
         if (fingerprint is { } identity && savedFingerprints?.Contains(identity) == true)
             throw new SessionException("This display is already saved on this PC.");
         await client.Send(Message("pair.request", ("code", code)), "pairing", deadline.Token);
@@ -55,11 +59,12 @@ internal sealed class DisplaySession(IDesktop desktop, Action<Pairing> save, Act
         return new Pairing(address, fingerprint, Convert.FromHexString(Text(reply, "credential")));
     }
 
-    public async Task RunAsync(Pairing pairing, CancellationToken token)
+    public async Task RunAsync(Pairing pairing, CancellationToken token, string? newAddress = null,
+        Action<UsbDisplayEditor?>? editorChanged = null)
     {
         var failures = 0;
         var repairs = 0;
-        var attemptedAddress = pairing.Address;
+        var attemptedAddress = newAddress ?? pairing.Address;
         var unverifiedAddresses = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         DiscoveredDisplay? recoveryCandidate = null;
         var searchedForName = false;
@@ -71,10 +76,15 @@ internal sealed class DisplaySession(IDesktop desktop, Action<Pairing> save, Act
                 timeout.CancelAfter(TimeSpan.FromSeconds(12));
                 status(failures == 0 ? "Connecting…" : "Reconnecting…");
                 var pinMismatch = false;
-                using var client = new Link(pairing.Fingerprint, f => pinMismatch = f != pairing.Fingerprint);
-                try { await client.Connect(DisplayEndpoint.Parse(attemptedAddress).Socket, timeout.Token); }
+                var endpoint = DisplayEndpoint.Parse(attemptedAddress);
+                using var client = new Link(endpoint, pairing.Fingerprint, f => pinMismatch = !f.Equals(pairing.Fingerprint, StringComparison.OrdinalIgnoreCase));
+                try { await client.Connect(timeout.Token); }
                 catch (WebSocketException) when (pinMismatch)
                 {
+                    if (endpoint.UsbPort is not null)
+                        throw new SessionException("This USB port is connected to a different display. Choose another port.");
+                    if (newAddress is not null)
+                        throw new SessionException("That address belongs to a different display. Check the address and try again.");
                     if (attemptedAddress != pairing.Address)
                     {
                         // Reject a discovered address that cannot prove the pinned identity.
@@ -110,14 +120,13 @@ internal sealed class DisplaySession(IDesktop desktop, Action<Pairing> save, Act
                 repairs = 0;
                 failures = 0;
                 unverifiedAddresses.Clear();
-                var endpoint = DisplayEndpoint.Parse(attemptedAddress).Socket;
                 var discovery = recoveryCandidate;
-                if (discovery is null && pairing.DisplayName is null && !searchedForName)
+                if (endpoint.UsbPort is null && discovery is null && pairing.DisplayName is null && !searchedForName)
                 {
                     searchedForName = true;
                     discovery = await FindPairedDisplay();
                 }
-                var displayName = discovery is not null && DisplayEndpoint.Parse(discovery.Address).Socket == endpoint
+                var displayName = discovery is not null && DisplayEndpoint.Parse(discovery.Address).Socket == endpoint.Socket
                     ? Discovery.FriendlyName(discovery.Name) ?? pairing.DisplayName : pairing.DisplayName;
                 if (pairing.Address != attemptedAddress || pairing.DisplayName != displayName)
                 {
@@ -125,19 +134,34 @@ internal sealed class DisplaySession(IDesktop desktop, Action<Pairing> save, Act
                     SavePairing(pairing);
                 }
                 recoveryCandidate = null;
-                status($"Connected to {displayName ?? endpoint.Host}");
-                await new Connected(client, desktop, UInt(reply, "capabilityVersion"), token).Run();
+                newAddress = null;
+                status($"Connected to {displayName ?? endpoint.Label}");
+                using var connected = CancellationTokenSource.CreateLinkedTokenSource(token);
+                if (endpoint.UsbPort is not null && reply.TryGetProperty("usbEditor", out var supportsEditor) &&
+                    supportsEditor.ValueKind == JsonValueKind.True && editorChanged is not null)
+                {
+                    client.Editor = new UsbEditorTunnel(client.SendBinary, connected.Token);
+                    editorChanged(new UsbDisplayEditor(client.Editor));
+                }
+                try { await new Connected(client, desktop, UInt(reply, "capabilityVersion"), connected.Token).Run(); }
+                finally
+                {
+                    await connected.CancelAsync();
+                    if (client.Editor is not null) editorChanged?.Invoke(null);
+                }
             }
             catch (OperationCanceledException) when (token.IsCancellationRequested) { return; }
             catch (SessionException e) { status(e.Message); return; }
             catch (Exception e) when (e is WebSocketException or HttpRequestException or IOException or OperationCanceledException)
             {
                 if (token.IsCancellationRequested) return;
-                status("Display unavailable. Reconnecting automatically…");
+                status(DisplayEndpoint.Parse(attemptedAddress).UsbPort is { } port
+                    ? $"USB display unavailable on {port}. Reconnecting automatically…"
+                    : "Display unavailable. Reconnecting automatically…");
                 var delay = TimeSpan.FromSeconds(Math.Min(30, 1 << Math.Min(++failures, 5)));
                 try
                 {
-                    attemptedAddress = await FindRecoveryAddress() ?? pairing.Address;
+                    attemptedAddress = newAddress ?? await FindRecoveryAddress() ?? pairing.Address;
                     await Task.Delay(delay, token);
                 }
                 catch (OperationCanceledException) when (token.IsCancellationRequested) { return; }
@@ -146,6 +170,7 @@ internal sealed class DisplaySession(IDesktop desktop, Action<Pairing> save, Act
 
         async Task<string?> FindRecoveryAddress()
         {
+            if (DisplayEndpoint.Parse(pairing.Address).UsbPort is not null) return null;
             var discovered = await FindPairedDisplay();
             recoveryCandidate = discovered is not null && !unverifiedAddresses.Contains(discovered.Address) ? discovered : null;
             return recoveryCandidate is not null && !recoveryCandidate.Address.Equals(pairing.Address, StringComparison.OrdinalIgnoreCase)
@@ -156,7 +181,7 @@ internal sealed class DisplaySession(IDesktop desktop, Action<Pairing> save, Act
         {
             var display = await findDisplay(pairing.Fingerprint, token);
             if (display is null || !display.Fingerprint.Equals(pairing.Fingerprint, StringComparison.OrdinalIgnoreCase)) return null;
-            try { _ = DisplayEndpoint.Parse(display.Address); }
+            try { if (DisplayEndpoint.Parse(display.Address).UsbPort is not null) return null; }
             catch (ArgumentException) { return null; }
             return display;
         }
@@ -184,7 +209,7 @@ internal sealed class DisplaySession(IDesktop desktop, Action<Pairing> save, Act
     private sealed class Connected(Link link, IDesktop desktop, uint capabilityVersion, CancellationToken token)
     {
         private uint catalogueGeneration, definitionGeneration, metricGeneration, iconGeneration;
-        private int revision = -1;
+        private int revision = -1, obsRevision = -1;
         private string zone = "";
         private string[]? focused;
         private (bool Locked, bool? DisplayAwake)? sessionState;
@@ -197,8 +222,7 @@ internal sealed class DisplaySession(IDesktop desktop, Action<Pairing> save, Act
 
         public async Task Run()
         {
-            // There is exactly one pending receive and all sends and action dispatches
-            // happen on this loop, including the publications initiated by a timer.
+            // Keep one pending receive. Link dispatches USB replies while waiting for JSON.
             using var lifetime = CancellationTokenSource.CreateLinkedTokenSource(token);
             var read = link.Read("connected", lifetime.Token);
             using var timer = new PeriodicTimer(TimeSpan.FromMilliseconds(500));
@@ -226,6 +250,7 @@ internal sealed class DisplaySession(IDesktop desktop, Action<Pairing> save, Act
             }
             finally
             {
+                desktop.AbandonObsHolds(this);
                 await lifetime.CancelAsync();
                 try { await read; }
                 catch (Exception e) when (e is OperationCanceledException or WebSocketException or IOException or SessionException) { }
@@ -237,27 +262,37 @@ internal sealed class DisplaySession(IDesktop desktop, Action<Pairing> save, Act
 
         private const uint OnDemandShortcutsVersion = 23;
 
-        private async Task Catalogue()
+        private async Task Catalogue(bool obsOnly = false)
         {
-            revision = desktop.CatalogueRevision;
+            if (!obsOnly) revision = desktop.CatalogueRevision;
+            obsRevision = desktop.ObsCatalogueRevision;
             var capabilities = new List<string> { "windows_companion", "app_icons", "app_icons_alpha", "app_icons_240", "url_card_focus", "windows_shortcuts" };
             capabilities.Add(desktop.ShortcutsEnabled ? "keyboard_shortcuts" : "keyboard_shortcuts_unavailable");
             if (capabilityVersion >= OnDemandShortcutsVersion) capabilities.Add("shortcut_catalogue_on_demand");
             if (capabilityVersion >= 13 && desktop.SupportsObs) capabilities.Add("obs_scene_cards");
-            await Send("capabilities", ("values", capabilities));
-            var entries = desktop.Catalogue().Concat(desktop.ObsCatalogue(capabilityVersion)).Where(item => SupportsAudioValue(item.Id)).Select(item =>
+            if (capabilityVersion >= 17 && desktop.SupportsObs) capabilities.Add("obs_output_controls");
+            if (capabilityVersion >= 18 && desktop.SupportsObs) capabilities.Add("obs_brb");
+            if (!obsOnly) await Send("capabilities", ("values", capabilities));
+            var obsCatalogue = desktop.ObsCatalogue(capabilityVersion);
+            var entries = (obsOnly ? obsCatalogue : desktop.Catalogue().Concat(obsCatalogue)).Where(item => SupportsAudioValue(item.Id)).Select(item =>
             {
                 var fields = new Dictionary<string, object?> { ["id"] = item.Id, ["label"] = CatalogueLabel(item.Label) };
                 if (item.ObsState != null) fields["obsState"] = item.ObsState;
                 if (item.ObsDetail != null) fields["obsDetail"] = CatalogueLabel(item.ObsDetail);
+                if (item.ObsAvailable is { } available) fields["obsAvailable"] = available;
                 return fields;
             }).ToArray();
             var pages = entries.Chunk(48).ToArray();
             if (pages.Length == 0) pages = [[]];
             var generation = Next(ref catalogueGeneration);
             for (var i = 0; i < pages.Length; i++)
-                await Send("catalogue.page", ("generation", generation), ("page", i),
+            {
+                var message = Message("catalogue.page", ("generation", generation), ("page", i),
                     ("complete", i == pages.Length - 1), ("items", pages[i]));
+                if (obsOnly) message.Add("scope", "obs");
+                await link.Send(message, "connected", token);
+            }
+            if (obsOnly) return;
             if (capabilityVersion is >= 5 and < OnDemandShortcutsVersion)
             {
                 // Leave room for escaping the nested JSON in the outer frame.
@@ -272,13 +307,17 @@ internal sealed class DisplaySession(IDesktop desktop, Action<Pairing> save, Act
 
         private bool SupportsAudioValue(string id) =>
             (!id.StartsWith(AppVolumePrefix, StringComparison.Ordinal) || capabilityVersion >= 10) &&
-            (!id.StartsWith(InputLevelPrefix, StringComparison.Ordinal) || capabilityVersion >= 12);
+            (!id.StartsWith(InputLevelPrefix, StringComparison.Ordinal) || capabilityVersion >= 12) &&
+            (!id.StartsWith("obs.level.", StringComparison.Ordinal) || capabilityVersion >= 14) &&
+            (!id.StartsWith("obs.cough.", StringComparison.Ordinal) || capabilityVersion >= 16);
 
         private async Task Publish(bool fastOnly)
         {
             var currentValues = desktop.Values().Where(pair => SupportsAudioValue(pair.Id))
                 .ToDictionary(state => state.Id, StringComparer.Ordinal);
             if (revision != desktop.CatalogueRevision) await Catalogue();
+            else if (obsRevision != desktop.ObsCatalogueRevision && capabilityVersion >= 13)
+                await Catalogue(obsOnly: capabilityVersion >= 22);
             var currentState = desktop.SessionState;
             if (capabilityVersion >= 7 && currentState != sessionState)
             {
@@ -344,7 +383,10 @@ internal sealed class DisplaySession(IDesktop desktop, Action<Pairing> save, Act
                 case "action.invoke":
                     var action = Text(m, "actionId");
                     if ((action.StartsWith("obs.", StringComparison.Ordinal) && capabilityVersion < 13) ||
-                        (action.StartsWith("obs.target.", StringComparison.Ordinal) && capabilityVersion < 19))
+                        (action.StartsWith("obs.output.", StringComparison.Ordinal) && capabilityVersion < 17) ||
+                        (action.StartsWith("obs.brb.", StringComparison.Ordinal) && capabilityVersion < 18) ||
+                        (action.StartsWith("obs.target.", StringComparison.Ordinal) && capabilityVersion < 19) ||
+                        (action.StartsWith("obs.source.", StringComparison.Ordinal) && capabilityVersion < 21))
                     {
                         await Send("action.result", ("requestId", Text(m, "requestId")), ("status", "not_allowed"));
                         break;
@@ -354,7 +396,11 @@ internal sealed class DisplaySession(IDesktop desktop, Action<Pairing> save, Act
                     break;
                 case "value.set":
                     var id = Text(m, "controlId");
-                    var changed = SupportsAudioValue(id) && !desktop.SessionState.Locked && desktop.SetValue(id, (int)UInt(m, "value"));
+                    var value = (int)UInt(m, "value");
+                    var changed = SupportsAudioValue(id) && !desktop.SessionState.Locked &&
+                        (id.StartsWith("obs.", StringComparison.Ordinal)
+                            ? await desktop.SetObsValue(id, value, this, token)
+                            : desktop.SetValue(id, value));
                     if (changed) dirtyAudioValues.Add(id);
                     await Send("action.result", ("requestId", Text(m, "requestId")), ("status", changed ? "performed" : "not_allowed"));
                     break;
@@ -435,13 +481,20 @@ internal sealed class DisplaySession(IDesktop desktop, Action<Pairing> save, Act
     {
         private readonly ClientWebSocket socket = new();
         private readonly HttpMessageInvoker http;
+        private readonly SemaphoreSlim sender = new(1);
+        public UsbEditorTunnel? Editor { get; set; }
 
-        public Link(string? pin, Action<string> observed)
+        private readonly DisplayEndpoint endpoint;
+
+        public Link(DisplayEndpoint endpoint, string? pin, Action<string> observed)
         {
+            this.endpoint = endpoint;
             var handler = new SocketsHttpHandler
             {
                 UseProxy = false, AllowAutoRedirect = false, UseCookies = false,
-                ConnectCallback = DisplayEndpoint.ConnectLocal,
+                ConnectTimeout = endpoint.UsbPort is null ? Timeout.InfiniteTimeSpan : TimeSpan.FromSeconds(8),
+                ConnectCallback = endpoint.UsbPort is { } port ? (_, token) => UsbDisplayStream.Connect(port, token) :
+                    DisplayEndpoint.ConnectLocal,
                 SslOptions = new SslClientAuthenticationOptions
                 {
                     RemoteCertificateValidationCallback = (_, certificate, _, _) =>
@@ -455,15 +508,22 @@ internal sealed class DisplaySession(IDesktop desktop, Action<Pairing> save, Act
                 }
             };
             http = new HttpMessageInvoker(handler);
-            socket.Options.KeepAliveInterval = TimeSpan.FromSeconds(20);
+            socket.Options.KeepAliveInterval = TimeSpan.FromSeconds(endpoint.UsbPort is null ? 20 : 15);
             socket.Options.KeepAliveTimeout = TimeSpan.FromSeconds(15);
         }
 
-        public Task Connect(Uri endpoint, CancellationToken token) => socket.ConnectAsync(endpoint, http, token);
-        public async Task Send(Dictionary<string, object?> m, string state, CancellationToken token) =>
-            await socket.SendAsync(Serialize(m, state).AsMemory(), WebSocketMessageType.Text, true, token);
-        public async Task SendBinary(byte[] bytes, CancellationToken token) =>
-            await socket.SendAsync(bytes.AsMemory(), WebSocketMessageType.Binary, true, token);
+        public Task Connect(CancellationToken token) => socket.ConnectAsync(endpoint.Socket, http, token);
+        public Task Send(Dictionary<string, object?> m, string state, CancellationToken token) =>
+            SendFrame(Serialize(m, state), WebSocketMessageType.Text, token);
+        public Task SendBinary(byte[] bytes, CancellationToken token) =>
+            SendFrame(bytes, WebSocketMessageType.Binary, token);
+
+        private async Task SendFrame(byte[] bytes, WebSocketMessageType type, CancellationToken token)
+        {
+            await sender.WaitAsync(token).ConfigureAwait(false);
+            try { await socket.SendAsync(bytes.AsMemory(), type, true, token).ConfigureAwait(false); }
+            finally { sender.Release(); }
+        }
 
         public async Task<JsonElement> Reply(string state, CancellationToken token)
         {
@@ -483,9 +543,15 @@ internal sealed class DisplaySession(IDesktop desktop, Action<Pairing> save, Act
             {
                 var part = await socket.ReceiveAsync(buffer.AsMemory(used), token);
                 if (part.MessageType == WebSocketMessageType.Close) throw new IOException("The display disconnected.");
-                if (part.MessageType != WebSocketMessageType.Text) break;
+                if (part.MessageType != WebSocketMessageType.Text && Editor is null) break;
                 used += part.Count;
                 if (!part.EndOfMessage) continue;
+                if (part.MessageType == WebSocketMessageType.Binary)
+                {
+                    Editor?.Receive(buffer.AsSpan(0, used));
+                    used = 0;
+                    continue;
+                }
                 try
                 {
                     using var doc = JsonDocument.Parse(buffer.AsMemory(0, used), new JsonDocumentOptions { MaxDepth = 16 });

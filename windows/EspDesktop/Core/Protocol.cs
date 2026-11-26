@@ -154,13 +154,27 @@ internal static class Protocol
     }
 }
 
-internal sealed record DisplayEndpoint(Uri Socket, Uri Settings)
+internal sealed record DisplayEndpoint(Uri Socket, Uri? Settings, string? UsbPort = null)
 {
-    public Uri PairingPage => new UriBuilder(Settings) { Query = "tab=connectors&connector=mac_companion" }.Uri;
+    public Uri? PairingPage => Settings is { } settings
+        ? new UriBuilder(settings) { Query = "tab=connectors&connector=mac_companion" }.Uri : null;
+    public string Label => UsbPort is { } port ? $"USB ({port})" : Socket.Host;
+
+    public static bool IsComPort(string name) => name.StartsWith("COM", StringComparison.OrdinalIgnoreCase) &&
+        name.Length is >= 4 and <= 12 && name[3] is >= '1' and <= '9' &&
+        name.AsSpan(4).IndexOfAnyExceptInRange('0', '9') < 0;
 
     public static DisplayEndpoint Parse(string value)
     {
         var raw = value.Trim();
+        if (raw.StartsWith("usb:", StringComparison.OrdinalIgnoreCase))
+        {
+            var port = raw[4..].ToUpperInvariant();
+            if (!IsComPort(port)) throw new ArgumentException("Choose the display’s USB port.");
+            // The custom connection callback uses the serial stream directly.
+            return new(new Uri("wss://localhost" + Protocol.SocketPath), null, port);
+        }
+
         if (!Uri.TryCreate(raw.Contains("://", StringComparison.Ordinal) ? raw : "wss://" + raw,
                 UriKind.Absolute, out var uri) ||
             uri.Scheme is not ("http" or "https" or "ws" or "wss") || uri.UserInfo.Length != 0 ||

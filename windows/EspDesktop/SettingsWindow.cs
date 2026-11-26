@@ -1,5 +1,6 @@
 using System.ComponentModel;
 using System.IO;
+using System.IO.Ports;
 using System.Net.Http;
 using System.Net.NetworkInformation;
 using System.Net.WebSockets;
@@ -44,7 +45,10 @@ internal sealed class SettingsWindow : Window
     private readonly TextBlock discoveryStatus = Paragraph("Looking for nearby displays…");
     private readonly Button findDisplays;
     private Button? setupAction;
-    private bool manualAddress;
+    private enum SetupMethod { Nearby, Address, Usb }
+    private SetupMethod setupMethod;
+    private readonly ComboBox usbPorts = new() { MinWidth = 140 };
+    private DisplayConnection? changingConnection;
     private string? pairingAddress, pairingName;
     private readonly ListBox navigation = new() { BorderThickness = new Thickness(0), Background = Brushes.Transparent };
     private readonly string[] pages = ["Display", "Apps", "Folders", "Updates", "OBS Studio", "Help"];
@@ -58,6 +62,8 @@ internal sealed class SettingsWindow : Window
         public Pairing Pairing { get; set; } = pairing;
         public CancellationTokenSource? Cancellation { get; set; }
         public Task? Task { get; set; }
+        public UsbDisplayEditor? UsbEditor { get; set; }
+        public UsbEditorWindow? EditorWindow { get; set; }
         public bool Forgetting { get; set; }
         public TextBlock Status { get; } = Paragraph("Disconnected");
         public Button? ConnectionButton { get; set; }
@@ -76,7 +82,14 @@ internal sealed class SettingsWindow : Window
         this.discover = discover ?? Discovery.Find;
         this.store = store ?? new LocalStore();
         desktop = new(this.store.Settings, obs);
-        obs.CatalogueChanged += desktop.Changed;
+        obs.CatalogueChanged += desktop.ObsChanged;
+        obs.RestoreBreakSettings(this.store.Settings.ObsBreakChoices, this.store.Settings.ObsBreakNeedsReview);
+        obs.SaveBreakRecovery = SaveBreakRecovery;
+        obs.RaiseMultiview = desktop.RaiseObsMultiview;
+        obs.BreakSettingsChanged += () =>
+        {
+            if (!quitting && navigation.SelectedIndex == 4) Render();
+        };
         obs.StatusChanged += () => obsStatus.Text = obs.Status;
         obsStatus.Text = obs.Status;
         AutomationProperties.SetLiveSetting(obsStatus, AutomationLiveSetting.Polite);
@@ -132,6 +145,8 @@ internal sealed class SettingsWindow : Window
         Content = root;
         navigation.SelectedIndex = 0;
         AutomationProperties.SetName(address, "Display address");
+        AutomationProperties.SetName(usbPorts, "Display USB port");
+        usbPorts.SelectionChanged += (_, _) => UpdateSetupAction();
         AutomationProperties.SetName(code, "Pairing code");
         AutomationProperties.SetName(nearbyDisplays, "Nearby displays");
         AutomationProperties.SetLiveSetting(discoveryStatus, AutomationLiveSetting.Polite);
@@ -141,7 +156,7 @@ internal sealed class SettingsWindow : Window
         AutomationProperties.SetLiveSetting(connectionText, AutomationLiveSetting.Polite);
         AutomationProperties.SetLiveSetting(notice, AutomationLiveSetting.Polite);
         code.KeyDown += async (_, e) => { if (e.Key == Key.Enter) { e.Handled = true; await Pair(); } };
-        address.KeyDown += (_, e) => { if (e.Key == Key.Enter) { e.Handled = true; ChooseDisplay(); } };
+        address.KeyDown += async (_, e) => { if (e.Key == Key.Enter) { e.Handled = true; await ChooseDisplay(); } };
         IsVisibleChanged += (_, _) => UpdateDiscovery();
         discoveryTimer.Tick += async (_, _) => await Scan();
         updatesTimer.Tick += async (_, _) => await CheckUpdates(false);
@@ -206,7 +221,7 @@ internal sealed class SettingsWindow : Window
 
     public void OpenPanel()
     {
-        if (displays.Count == 1) OpenPanel(displays[0].Pairing.Address);
+        if (displays.Count == 1) OpenPanel(displays[0]);
         else ShowDisplaySettings();
     }
 
@@ -214,6 +229,36 @@ internal sealed class SettingsWindow : Window
     {
         ShowSettings();
         navigation.SelectedIndex = 0;
+    }
+
+    private void OpenPanel(DisplayConnection display)
+    {
+        if (DisplayEndpoint.Parse(display.Pairing.Address).UsbPort is null)
+        {
+            OpenPanel(display.Pairing.Address);
+            return;
+        }
+
+        if (display.EditorWindow is { } open)
+        {
+            if (open.WindowState == WindowState.Minimized) open.WindowState = WindowState.Normal;
+            open.Activate();
+            return;
+        }
+        if (display.UsbEditor is null)
+        {
+            ShowDisplaySettings();
+            Report(display.Status.Text.StartsWith("Connected", StringComparison.Ordinal)
+                ? "Update this display’s firmware to open its editor over USB."
+                : "Connect the display by USB before opening its editor.");
+            return;
+        }
+
+        var window = new UsbEditorWindow(display.Pairing.DisplayName ?? "Display", () => display.UsbEditor);
+        if (IsVisible) window.Owner = this;
+        display.EditorWindow = window;
+        window.Closed += (_, _) => display.EditorWindow = null;
+        window.Show();
     }
 
     private void OpenPanel(string target, bool pairingPage = false)
@@ -227,10 +272,12 @@ internal sealed class SettingsWindow : Window
             Report(e.Message);
             return;
         }
+        var page = pairingPage ? endpoint.PairingPage : endpoint.Settings;
+        if (page is null) return;
         Report("");
         try
         {
-            if (WindowsDesktop.OpenShell((pairingPage ? endpoint.PairingPage : endpoint.Settings).AbsoluteUri)) return;
+            if (WindowsDesktop.OpenShell(page.AbsoluteUri)) return;
         }
         catch (Exception e) when (WindowsDesktop.IsShellFailure(e)) { }
         ShowSettings();
@@ -245,21 +292,21 @@ internal sealed class SettingsWindow : Window
 
     private async Task ToggleConnection(DisplayConnection display)
     {
-        if (quitting || display.Forgetting) return;
+        if (busy || quitting || display.Forgetting) return;
         if (display.Cancellation != null) await StopConnection(display);
         else StartConnection(display);
     }
 
-    private void StartConnection(DisplayConnection display)
+    private void StartConnection(DisplayConnection display, string? newAddress = null)
     {
         if (display.Cancellation != null) return;
         var cancellation = CancellationTokenSource.CreateLinkedTokenSource(lifetime.Token);
         display.Cancellation = cancellation;
-        display.Task = RunConnection(display, cancellation);
+        display.Task = RunConnection(display, cancellation, newAddress);
         UpdateConnectionButton(display);
     }
 
-    private async Task RunConnection(DisplayConnection display, CancellationTokenSource cancellation)
+    private async Task RunConnection(DisplayConnection display, CancellationTokenSource cancellation, string? newAddress)
     {
         await Task.Yield(); // publish the task before its completion can clear state
         try
@@ -278,7 +325,7 @@ internal sealed class SettingsWindow : Window
             {
                 try { return (await Discovery.Find(token)).FirstOrDefault(d => d.Fingerprint == fingerprint); }
                 catch (NetworkInformationException) { return null; }
-            }).RunAsync(display.Pairing, cancellation.Token);
+            }).RunAsync(display.Pairing, cancellation.Token, newAddress, editor => display.UsbEditor = editor);
         }
         catch (Exception e) when (e is IOException or UnauthorizedAccessException or CryptographicException or InvalidOperationException)
         { display.Status.Text = "Couldn’t keep the connection. Check the saved pairing and try again."; }
@@ -328,7 +375,11 @@ internal sealed class SettingsWindow : Window
         }
         catch (Exception e) when (e is ArgumentException or SessionException) { Status(e.Message); }
         catch (Exception e) when (e is OperationCanceledException or WebSocketException or HttpRequestException)
-        { Status("Couldn’t reach the display. Check the address and that both devices are on the same network."); }
+        {
+            Status(DisplayEndpoint.Parse(entered).UsbPort is { } port
+                ? $"Couldn’t reach the display on {port}. Check the USB cable, port and firmware."
+                : "Couldn’t reach the display. Check the address and that both devices are on the same network.");
+        }
         catch (Exception e) when (e is IOException or UnauthorizedAccessException or CryptographicException)
         { Status("Windows couldn’t save the pairing. Reset pairing on the display and try again."); }
         finally
@@ -358,12 +409,14 @@ internal sealed class SettingsWindow : Window
             {
                 await StopConnection(display);
                 store.ForgetPairing(display.Pairing.Fingerprint);
+                display.EditorWindow?.Close();
                 displays.Remove(display);
             }
             else
             {
                 await Task.WhenAll(displays.Select(StopConnection));
                 store.ForgetPairing();
+                foreach (var saved in displays) saved.EditorWindow?.Close();
                 displays.Clear();
             }
             if (!HasPairing)
@@ -384,7 +437,7 @@ internal sealed class SettingsWindow : Window
     private void UpdateDiscovery()
     {
         if (smoke || quitting || !IsVisible || navigation.SelectedIndex != 0 || !addingDisplay ||
-            store.PairingUnavailable || manualAddress || pairingAddress != null)
+            store.PairingUnavailable || setupMethod != SetupMethod.Nearby || pairingAddress != null)
         {
             discoveryTimer.Stop();
             return;
@@ -402,7 +455,9 @@ internal sealed class SettingsWindow : Window
         if (interactive) findDisplays.Content = "Searching…";
         findDisplays.IsEnabled = false;
         if (nearbyDisplays.Items.Count == 0) discoveryStatus.Text = "Looking for nearby displays…";
-        try { ShowDiscoveredDisplays((await discover(lifetime.Token)).Where(display => !HasDisplay(display.Fingerprint)).ToArray()); }
+        try { ShowDiscoveredDisplays((await discover(lifetime.Token)).Where(display => changingConnection is { } saved
+            ? saved.Pairing.Fingerprint.Equals(display.Fingerprint, StringComparison.OrdinalIgnoreCase)
+            : !HasDisplay(display.Fingerprint)).ToArray()); }
         catch (NetworkInformationException) { ShowDiscoveredDisplays([]); }
         catch (OperationCanceledException) when (lifetime.IsCancellationRequested) { }
         finally
@@ -495,6 +550,7 @@ internal sealed class SettingsWindow : Window
         quitting = true;
         discoveryTimer.Stop();
         updatesTimer.Stop();
+        foreach (var display in displays) display.EditorWindow?.Close();
         await lifetime.CancelAsync();
         await Task.WhenAll(displays.Select(StopConnection));
         await StopObs();
@@ -557,14 +613,27 @@ internal sealed class SettingsWindow : Window
         foreach (var display in displays)
         {
             var saved = display.Pairing;
-            var card = Card(saved.DisplayName ?? "Paired display", DisplayEndpoint.Parse(saved.Address).Socket.Host);
+            var endpoint = DisplayEndpoint.Parse(saved.Address);
+            var card = Card(saved.DisplayName ?? "Paired display", endpoint.Label);
             if (display.Status.Parent is Panel previous) previous.Children.Remove(display.Status);
             AutomationProperties.SetLiveSetting(display.Status, AutomationLiveSetting.Polite);
             card.Children.Add(display.Status);
             display.ConnectionButton = Button("Connect", async () => await ToggleConnection(display), !display.Forgetting);
             UpdateConnectionButton(display);
-            Row(card, Button("Open display editor", () => OpenPanel(display.Pairing.Address)),
-                display.ConnectionButton, Button("Forget display", async () => await Forget(display), !display.Forgetting));
+            var actions = new List<UIElement>();
+            actions.Add(Button("Open display editor", () => OpenPanel(display)));
+            actions.Add(display.ConnectionButton);
+            actions.Add(Button("Change connection", () =>
+            {
+                ResetSetup();
+                addingDisplay = true;
+                changingConnection = display;
+                setupMethod = endpoint.UsbPort is null ? SetupMethod.Usb : SetupMethod.Nearby;
+                if (setupMethod == SetupMethod.Usb) RefreshUsbPorts();
+                Render();
+            }, !display.Forgetting));
+            actions.Add(Button("Forget display", async () => await Forget(display), !display.Forgetting));
+            Row(card, [.. actions]);
         }
         var permissions = Card("Windows integration");
         var shortcuts = Toggle("Allow keyboard shortcuts and screen lock", store.Settings.Shortcuts, value =>
@@ -585,10 +654,13 @@ internal sealed class SettingsWindow : Window
     {
         if (pairingAddress is { } target)
         {
-            var card = Card("Enter pairing code", pairingName == null ? DisplayEndpoint.Parse(target).Socket.Host :
-                $"{pairingName} · {DisplayEndpoint.Parse(target).Socket.Host}");
-            card.Children.Add(Paragraph("Get the code from the pairing page, or press and hold the Wi-Fi icon on your display."));
-            Row(card, Button("Open pairing page", () => OpenPanel(target, pairingPage: true), !busy));
+            var endpoint = DisplayEndpoint.Parse(target);
+            var card = Card("Enter pairing code", pairingName == null ? endpoint.Label : $"{pairingName} · {endpoint.Label}");
+            card.Children.Add(Paragraph(endpoint.UsbPort is not null
+                ? "On the touchscreen, tap Pair on the Setup screen or Unpaired in Settings to show the code."
+                : "Get the code from the pairing page, or press and hold the Wi-Fi icon on your display."));
+            if (endpoint.PairingPage is not null)
+                Row(card, Button("Open pairing page", () => OpenPanel(target, pairingPage: true), !busy));
             code.IsEnabled = !busy;
             Field(card, "Pairing code", code);
             card.Children.Add(connectionText);
@@ -599,16 +671,24 @@ internal sealed class SettingsWindow : Window
                 Status("");
                 Report("");
                 Render();
-                if (manualAddress) address.Focus(); else nearbyDisplays.Focus();
+                FocusDisplayInput();
             }, !busy));
             return;
         }
 
-        var selection = Card(manualAddress ? "Enter display address" : "Choose your display",
-            manualAddress ? "Enter the display’s local IP address or .local name." :
-            "Keep your PC and display on the same local network.");
+        var selection = setupMethod switch
+        {
+            SetupMethod.Usb => Card("Connect over USB", "Plug in your display with a USB data cable and select its COM port. The display needs USB-enabled Companion firmware."),
+            SetupMethod.Address => Card("Enter display address", "Enter the display’s local IP address or .local name."),
+            _ => Card("Choose your display", "Keep your PC and display on the same local network.")
+        };
         selection.Children.Add(connectionText);
-        if (manualAddress) Field(selection, "Display address", address);
+        if (setupMethod == SetupMethod.Address) Field(selection, "Display address", address);
+        else if (setupMethod == SetupMethod.Usb)
+        {
+            Field(selection, "USB port", usbPorts);
+            if (usbPorts.Items.Count == 0) selection.Children.Add(Paragraph("No available COM ports found."));
+        }
         else
         {
             if (nearbyDisplays.Parent is Panel listParent) listParent.Children.Remove(nearbyDisplays);
@@ -619,21 +699,23 @@ internal sealed class SettingsWindow : Window
             if (findDisplays.Parent is Panel refreshParent) refreshParent.Children.Remove(findDisplays);
         }
 
-        var alternate = Button(manualAddress ? "Find nearby displays" : "Enter address manually", () =>
+        var methods = new WrapPanel { Margin = new Thickness(0, 6, 0, 0) };
+        if (setupMethod != SetupMethod.Nearby) methods.Children.Add(Button("Find nearby displays", () => SelectMethod(SetupMethod.Nearby), !busy));
+        if (setupMethod != SetupMethod.Address) methods.Children.Add(Button("Enter address manually", () => SelectMethod(SetupMethod.Address), !busy));
+        if (setupMethod != SetupMethod.Usb) methods.Children.Add(Button("Connect over USB", () => SelectMethod(SetupMethod.Usb), !busy));
+        if (setupMethod == SetupMethod.Nearby) methods.Children.Add(findDisplays);
+        if (setupMethod == SetupMethod.Usb) methods.Children.Add(Button("Refresh ports", () =>
         {
-            manualAddress = !manualAddress;
-            Status("");
+            RefreshUsbPorts();
             Render();
-            if (manualAddress) address.Focus(); else nearbyDisplays.Focus();
-        });
-        if (manualAddress) Row(selection, alternate);
-        else Row(selection, alternate, findDisplays);
-        SetupActions(selection, "Next", ChooseDisplay, HasPairing ? Button("Cancel", () =>
+        }, !busy));
+        selection.Children.Add(methods);
+        SetupActions(selection, changingConnection is null ? "Next" : "Connect", async () => await ChooseDisplay(), HasPairing ? Button("Cancel", () =>
         {
             ResetSetup();
             addingDisplay = false;
             Render();
-        }) : null);
+        }, !busy) : null);
     }
 
     private void SetupActions(Panel card, string label, Action action, Button? secondary)
@@ -650,19 +732,85 @@ internal sealed class SettingsWindow : Window
     private void UpdateSetupAction()
     {
         if (setupAction == null) return;
-        setupAction.IsEnabled = !busy && (pairingAddress != null ? code.Text.Trim().Length > 0 :
-            manualAddress ? address.Text.Trim().Length > 0 : nearbyDisplays.SelectedItem != null);
+        setupAction.IsEnabled = !busy && (pairingAddress != null ? code.Text.Trim().Length > 0 : setupMethod switch
+        {
+            SetupMethod.Address => address.Text.Trim().Length > 0,
+            SetupMethod.Usb => usbPorts.SelectedItem is string,
+            _ => nearbyDisplays.SelectedItem != null
+        });
     }
 
-    private void ChooseDisplay()
+    private void SelectMethod(SetupMethod method)
     {
+        setupMethod = method;
+        if (method == SetupMethod.Usb) RefreshUsbPorts();
+        Status("");
+        Render();
+        FocusDisplayInput();
+    }
+
+    private void RefreshUsbPorts()
+    {
+        var selected = usbPorts.SelectedItem as string;
+        var reserved = displays.Where(d => d != changingConnection)
+            .Select(d => DisplayEndpoint.Parse(d.Pairing.Address).UsbPort).ToHashSet(StringComparer.OrdinalIgnoreCase);
+        var found = SerialPort.GetPortNames().Where(p => DisplayEndpoint.IsComPort(p) && !reserved.Contains(p))
+            .Distinct(StringComparer.OrdinalIgnoreCase).Order(StringComparer.OrdinalIgnoreCase).ToArray();
+        usbPorts.ItemsSource = found;
+        if (selected is not null && found.Contains(selected)) usbPorts.SelectedItem = selected;
+        else if (found.Length == 1) usbPorts.SelectedIndex = 0;
+    }
+
+    private void FocusDisplayInput()
+    {
+        if (setupMethod == SetupMethod.Address) address.Focus();
+        else if (setupMethod == SetupMethod.Usb) usbPorts.Focus();
+        else nearbyDisplays.Focus();
+    }
+
+    private async Task ChooseDisplay()
+    {
+        if (busy || quitting || !addingDisplay || pairingAddress is not null) return;
         var selected = (nearbyDisplays.SelectedItem as ListBoxItem)?.Tag as DiscoveredDisplay;
-        var target = manualAddress ? address.Text.Trim() : selected?.Address;
+        var target = setupMethod switch
+        {
+            SetupMethod.Address => address.Text.Trim(),
+            SetupMethod.Usb => usbPorts.SelectedItem is string port ? "usb:" + port : null,
+            _ => selected?.Address
+        };
         if (string.IsNullOrEmpty(target)) return;
-        try { _ = DisplayEndpoint.Parse(target); }
+        try
+        {
+            if (setupMethod != SetupMethod.Usb && DisplayEndpoint.Parse(target).UsbPort is not null)
+            {
+                Status("Choose Connect over USB to select a COM port.");
+                return;
+            }
+        }
         catch (ArgumentException e) { Status(e.Message); return; }
+
+        if (changingConnection is { } display)
+        {
+            busy = true;
+            Render();
+            try
+            {
+                await StopConnection(display);
+                if (quitting) return;
+                ResetSetup();
+                addingDisplay = false;
+                StartConnection(display, target);
+            }
+            finally
+            {
+                busy = false;
+                Render();
+            }
+            return;
+        }
+
         pairingAddress = target;
-        pairingName = manualAddress ? null : selected?.Name;
+        pairingName = setupMethod == SetupMethod.Nearby ? selected?.Name : null;
         Status("");
         Render();
         code.Focus();
@@ -674,7 +822,9 @@ internal sealed class SettingsWindow : Window
     private void ResetSetup()
     {
         pairingAddress = pairingName = null;
-        manualAddress = false;
+        setupMethod = SetupMethod.Nearby;
+        changingConnection = null;
+        usbPorts.ItemsSource = null;
         address.Clear();
         code.Clear();
         discovered = [];
@@ -702,7 +852,84 @@ internal sealed class SettingsWindow : Window
             await StopObs();
             if (!quitting && navigation.SelectedIndex == 4) Render();
         }));
-        card.Children.Add(Paragraph("Once connected, choose a scene in the display editor. In Studio Mode the card selects Preview."));
+        card.Children.Add(Paragraph("Once connected, add OBS controls in the display editor. In Studio Mode, a scene card selects Preview."));
+        ObsBreakPage();
+    }
+
+    private sealed record ObsChoice(Guid? Id, string Label);
+
+    private void ObsBreakPage()
+    {
+        var state = obs.BreakSettings();
+        var card = Card("Break scene", "Set a scene and an optional microphone to mute while you take a break.");
+        if (state.Reviewing)
+        {
+            card.Children.Add(Paragraph("The break was interrupted. Check the live scene and microphone in OBS before using Break again."));
+            Row(card, Button("I checked OBS", obs.AcknowledgeBreak));
+            return;
+        }
+        if (state.Scenes.Length == 0)
+        {
+            card.Children.Add(Paragraph("Connect to OBS to choose a break scene."));
+            return;
+        }
+        if (!state.Editable)
+        {
+            card.Children.Add(Paragraph("Resume from the display before changing the break settings."));
+            return;
+        }
+        var scene = ObsPicker("No break scene", state.Scenes, state.Choice?.Scene);
+        var microphone = ObsPicker("Keep microphone as is", state.Microphones, state.Choice?.Microphone);
+        Field(card, "Break scene", scene);
+        Field(card, "Microphone to mute", microphone);
+        Row(card, Button("Save break settings", () =>
+        {
+            var selected = ((ObsChoice)scene.SelectedItem).Id;
+            var selectedMic = ((ObsChoice)microphone.SelectedItem).Id;
+            var choice = selected is { } sceneId ? new ObsBreakChoice(sceneId, selectedMic) : null;
+            if (!obs.ConfigureBreak(state.Collection, choice, () => SaveBreakChoice(state.Collection, choice)))
+                Report("Couldn’t save the break settings. Check OBS and try again.");
+        }));
+    }
+
+    private static ComboBox ObsPicker(string emptyLabel, (Guid Id, string Name)[] choices, Guid? selected)
+    {
+        var items = new[] { new ObsChoice(null, emptyLabel) }
+            .Concat(choices.Select(choice => new ObsChoice(choice.Id, choice.Name))).ToArray();
+        return new ComboBox { ItemsSource = items, DisplayMemberPath = nameof(ObsChoice.Label),
+            SelectedItem = items.FirstOrDefault(choice => choice.Id == selected) ?? items[0] };
+    }
+
+    private bool SaveBreakChoice(string collection, ObsBreakChoice? choice)
+    {
+        var choices = store.Settings.ObsBreakChoices;
+        var previous = choices.GetValueOrDefault(collection);
+        if (choice == null) choices.Remove(collection);
+        else choices[collection] = choice;
+        if (SaveObsBreakSettings()) return true;
+        if (previous == null) choices.Remove(collection);
+        else choices[collection] = previous;
+        return false;
+    }
+
+    private bool SaveBreakRecovery(bool review)
+    {
+        var previous = store.Settings.ObsBreakNeedsReview;
+        if (previous == review) return true;
+        store.Settings.ObsBreakNeedsReview = review;
+        if (SaveObsBreakSettings()) return true;
+        store.Settings.ObsBreakNeedsReview = previous;
+        return false;
+    }
+
+    private bool SaveObsBreakSettings()
+    {
+        try { store.Save(); return true; }
+        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
+        {
+            Report("Windows couldn’t save the OBS break settings.");
+            return false;
+        }
     }
 
     private void ConnectObs()

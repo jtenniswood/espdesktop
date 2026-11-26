@@ -41,6 +41,36 @@ export function runNativeRootSettingsEventTests(): void {
     check(refreshes === (snapshotLoaded ? 2 : 0), "named root events refresh native state, including normalized entity aliases");
   }
 }
+export async function runUsbEditorStartupTests(): Promise<void> {
+  initialize();
+  const noop = new Proxy({}, { get: () => () => undefined }) as any;
+  for (const loaded of [true, false]) {
+    let complete!: (loaded: boolean) => void;
+    const nativeReady = new Promise<boolean>(resolve => { complete = resolve; });
+    const runtime = { els: {}, orderReceived: true } as any;
+    let refreshes = 0;
+    let fallbackStarts = 0;
+    let skipLegacyLayout = false;
+    const reconnect = { connect(handlers: { onConnected(): void; nativeLayoutLoaded: boolean }) {
+      fallbackStarts++;
+      skipLegacyLayout = handlers.nativeLayoutLoaded;
+      handlers.onConnected();
+    } };
+    createAppEventsFeature(reconnect as any, { createHandlers: () => noop } as any, { patterns: () => [] }, runtime,
+      noop, noop, noop, noop, noop, noop,
+      { eventStreamEnabled: () => false, refreshFirmwareVersion() {}, refreshScreensaverTimeout() {} } as any, noop,
+      { invalidate() {}, refresh: () => { refreshes++; return nativeReady; }, refreshAfterChange() {} }, true).connect();
+    check(refreshes === 1 && fallbackStarts === 0, "USB reads the native layout before starting the legacy reads");
+    complete(loaded);
+    await nativeReady;
+    check(Number(fallbackStarts) === 1, "USB still loads the remaining legacy settings");
+    check(skipLegacyLayout === loaded, "USB skips duplicate layout reads only after a successful native load");
+    check(refreshes === (loaded ? 1 : 2) && runtime.orderReceived === loaded,
+      "a loaded native layout remains active while legacy settings arrive; a failed load can recover");
+    clearTimeout(runtime.migrationTimer);
+  }
+}
+
 export function runNativeEditorStateTests(): void {
   initialize();
   const layout = { numSlots: 9, totalSlots: 9, previewSlots: 9, gridCols: 3 } as any;

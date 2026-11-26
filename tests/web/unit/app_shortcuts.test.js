@@ -40,7 +40,9 @@ test("the shortcut catalogue combines bundled and live presets and preserves sav
   const chatGPT = require("../../../product/v2/app_shortcuts/codex.json");
   const classic = require("../../../product/v2/app_shortcuts/chatgpt.json");
   assert(api.replaceCompanionDefinitions([updatedSafari, live, chatGPT, classic]));
-  const apps = new Map(api.companionShortcutCatalogApps().map(app => [app.appId, app.label]));
+  const approvedApps = [updatedSafari, live, chatGPT, classic, { appId: "com.tinyspeck.slackmacgap", label: "Slack" }]
+    .map(app => ({ id: app.appId, label: app.label }));
+  const apps = new Map(api.companionShortcutCatalogApps({ approvedApps }).map(app => [app.appId, app.label]));
   assert.equal(apps.get(safari.appId), updatedSafari.label);
   assert.equal(apps.get(live.appId), live.label);
   assert.equal(apps.get("com.tinyspeck.slackmacgap"), "Slack");
