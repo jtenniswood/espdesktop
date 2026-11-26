@@ -186,12 +186,21 @@ esphome:
                   esphome::esp32::crash_handler_clear();
                   #endif
                   global_preferences->sync();
-                  ESP_LOGW("jc8012p4a1_v2", "Cleared saved crash report before API logging; rebooting once while preserving the failed-boot counter");
-              - delay: 500ms
-              - lambda: |-
-                  // Avoid safe_reboot(): its safe-mode shutdown hook clears
-                  // the failed-boot counter before the replacement boot.
-                  App.reboot();
+              - if:
+                  condition:
+                    lambda: 'return espdesktop::reset::ota_boot_pending_verification();'
+                  then:
+                    - lambda: |-
+                        // A crash report can carry over from the previous image.
+                        // Safe mode will confirm this image after a successful boot.
+                        ESP_LOGW("jc8012p4a1_v3", "Cleared saved crash report; continuing OTA verification");
+                  else:
+                    - lambda: 'ESP_LOGW("jc8012p4a1_v3", "Cleared saved crash report; rebooting once while preserving the failed-boot counter");'
+                    - delay: 500ms
+                    - lambda: |-
+                        // Avoid safe_reboot(): its safe-mode shutdown hook clears
+                        // the failed-boot counter before the replacement boot.
+                        App.reboot();
     - priority: 250
       then:
         - lambda: |-

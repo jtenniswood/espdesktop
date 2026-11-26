@@ -548,6 +548,7 @@ def test_p4_crash_restart_preserves_safe_mode_counter() -> None:
         "guition-esp32-p4-jc4880p443",
         "guition-esp32-p4-jc8012p4a1",
         "guition-esp32-p4-jc8012p4a1-v2",
+        "guition-esp32-p4-jc8012p4a1-v3",
     )
     for slug in slugs:
         path = ROOT / "devices" / slug / "device" / "device.yaml"
