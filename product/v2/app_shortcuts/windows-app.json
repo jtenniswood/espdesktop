@@ -1,0 +1,29 @@
+{
+  "version": 1,
+  "appId": "com.microsoft.rdc.macos",
+  "label": "Windows App",
+  "catalog": false,
+  "defaultShortcutIds": ["0", "1", "2", "3", "4", "5", "6", "7"],
+  "shortcuts": [
+    {"id": "0", "label": "PC Quick Connect", "shortcut": "command+k", "icon": "Remote Desktop"},
+    {"id": "1", "label": "Connection Centre", "shortcut": "command+shift+k", "icon": "Monitor"},
+    {"id": "2", "label": "Devices", "shortcut": "control+1", "icon": "Monitor"},
+    {"id": "3", "label": "Apps", "shortcut": "control+2", "icon": "Application"},
+    {"id": "4", "label": "Search", "shortcut": "command+f", "icon": "Search"},
+    {"id": "5", "label": "Fit to Window", "shortcut": "control+command+s", "icon": "Fit to Screen"}
+  ],
+  "moreShortcuts": [
+    {"id": "6", "label": "Full Screen", "shortcut": "scoped.function+f", "icon": "Full Screen"},
+    {"id": "7", "label": "Connect to Selected PC", "shortcut": "scoped.enter", "icon": "Link"},
+    {"id": "8", "label": "Configure PC", "shortcut": "scoped.command+e", "icon": "Settings"},
+    {"id": "9", "label": "Duplicate PC", "shortcut": "scoped.command+d", "icon": "Duplicate"},
+    {"id": "10", "label": "Delete PC", "shortcut": "scoped.command+delete", "icon": "Delete"},
+    {"id": "11", "label": "Favourite PC", "shortcut": "scoped.command+t", "icon": "Star"},
+    {"id": "12", "label": "Fill Window", "shortcut": "scoped.control+function+f", "icon": "Window Maximise"},
+    {"id": "13", "label": "Centre Window", "shortcut": "scoped.control+function+c", "icon": "Window Restore"},
+    {"id": "14", "label": "Minimise Window", "shortcut": "scoped.command+m", "icon": "Window Minimise"},
+    {"id": "15", "label": "Close Window", "shortcut": "scoped.command+w", "icon": "Window Close"},
+    {"id": "16", "label": "Scancode Keyboard Mode", "shortcut": "scoped.control+command+k", "icon": "Keyboard"},
+    {"id": "17", "label": "Unicode Keyboard Mode", "shortcut": "scoped.control+command+u", "icon": "Keyboard"}
+  ]
+}
