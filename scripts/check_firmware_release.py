@@ -20,6 +20,7 @@ from threading import Thread
 import firmware_release
 import prepare_c6_firmware
 import prepare_release_web_assets
+from release_devices import load_firmware_release_devices, load_release_devices
 
 
 SLUG = "guition-esp32-s3-4848s040"
@@ -587,12 +588,16 @@ def test_recovery_sources_and_documentation_stay_complete() -> None:
         "guition-esp32-p4-jc8012p4a1-v3": ROOT / "docs/screens/jc8012p4a1-v3.md",
         "esp32-p4-86": ROOT / "docs/screens/p4-86.md",
     }
+    artifact_only = set(load_firmware_release_devices()) - set(load_release_devices())
     for slug, path in screen_docs.items():
         text = path.read_text(encoding="utf-8")
         assert "C6RecoveryCallout" in text and slug in text, (
             f"{path}: C6 recovery link is missing"
         )
-        assert slug in selector, f"{slug}: recovery selector option is missing"
+        if slug in artifact_only:
+            assert slug not in selector, f"{slug}: artifact-only device appears in the recovery selector"
+        else:
+            assert slug in selector, f"{slug}: recovery selector option is missing"
     s3_doc = (ROOT / "docs/screens/4848s040.md").read_text(encoding="utf-8")
     assert "C6RecoveryCallout" not in s3_doc
     assert "guition-esp32-s3-4848s040" not in selector
@@ -605,6 +610,8 @@ def test_installers_preflight_public_manifest() -> None:
     install_selector = (
         ROOT / "docs/.vitepress/theme/components/EspInstallSelector.vue"
     ).read_text(encoding="utf-8")
+    for slug in set(load_firmware_release_devices()) - set(load_release_devices()):
+        assert slug not in install_selector, f"{slug}: artifact-only device appears in the installer"
     for component in (install_button, install_selector):
         assert "fetch(manifestUrl" in component
         assert "cache: 'no-store'" in component

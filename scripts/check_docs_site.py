@@ -252,6 +252,13 @@ def check_build(dist):
     pages = {}
     urls = sitemap_urls((dist / 'sitemap.xml').read_text())
     profiles = json.loads((dist / 'device-profiles.json').read_text())['devices']
+    release_devices = json.loads((ROOT / 'product/release_devices.json').read_text())
+    artifact_only = set(release_devices.get('artifactOnlyDevices', []))
+    for profile in json.loads((ROOT / 'docs/public/device-profiles.json').read_text())['devices']:
+        if profile['slug'] in artifact_only and BASE.rstrip('/') + profile['docsPath'] in urls:
+            errors.append(f"Artifact-only device has a published guide: {profile['slug']}")
+    if artifact_only.intersection(profile['slug'] for profile in profiles):
+        errors.append('Artifact-only devices appear in the published device profiles')
     has_v3_profile = any(profile['slug'] == 'guition-esp32-p4-jc1060p470-v3' for profile in profiles)
     has_v3_guide = BASE + 'screens/jc1060p470-v3' in urls
     if has_v3_profile != has_v3_guide:

@@ -1,5 +1,8 @@
 {
   "devices": [
     "guition-esp32-s3-4848s040"
+  ],
+  "artifactOnlyDevices": [
+    "guition-esp32-p4-jc8012p4a1-v3"
   ]
 }

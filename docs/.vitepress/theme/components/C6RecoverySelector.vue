@@ -66,13 +66,6 @@ import { loadUsbInstaller } from '../usb-installer'
 
 const devices = [
   {
-    slug: 'guition-esp32-p4-jc8012p4a1-v3',
-    name: 'JC8012P4A1 V3 production-silicon panel',
-    size: '10.1 in',
-    detail: 'ESP32-P4 v3.x silicon; confirm with chip information first',
-    warning: 'Use this only when chip information confirms ESP32-P4 v3.x production silicon, regardless of case date.',
-  },
-  {
     slug: 'guition-esp32-p4-jc8012p4a1',
     name: 'JC8012P4A1 original panel',
     size: '10.1 in',

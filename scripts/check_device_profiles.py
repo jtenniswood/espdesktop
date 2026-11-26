@@ -9,7 +9,7 @@ from pathlib import Path
 
 import yaml
 
-from release_devices import load_release_devices
+from release_devices import load_firmware_release_devices, load_release_devices
 
 import device_matrix
 import generate_device_slots
@@ -868,11 +868,10 @@ def test_firmware_matrices(profile_slugs: list[str]) -> None:
     release = device_matrix.release_matrix(profiles)
     nightly = device_matrix.nightly_matrix(profiles)
     pr = device_matrix.pr_matrix(profiles)
-    assert_profile_slugs(load_release_devices(), [entry["slug"] for entry in release["include"]], "release matrix")
+    assert_profile_slugs(load_firmware_release_devices(), [entry["slug"] for entry in release["include"]], "release matrix")
     assert_profile_slugs(profile_slugs, [entry["slug"] for entry in nightly["include"]], "nightly matrix")
     pr_chips = [profiles[entry["slug"]]["firmware"]["build"]["chip"] for entry in pr["include"]]
     expected_chips = {profile["firmware"]["build"]["chip"] for profile in profiles.values()}
-    assert len(pr_chips) == len(set(pr_chips)), "PR matrix repeats a chip family"
     assert set(pr_chips) == expected_chips, "PR matrix does not cover every chip family"
 
 

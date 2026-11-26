@@ -119,12 +119,6 @@ const devices = [
     shape: 'landscape',
     versions: [
       {
-        slug: 'guition-esp32-p4-jc8012p4a1-v3',
-        number: 3,
-        label: 'V3: Production silicon',
-        revision: 'ESP32-P4 v3.x silicon; confirm with chip information first'
-      },
-      {
         slug: 'guition-esp32-p4-jc8012p4a1',
         number: 1,
         label: 'V1: Original panel',

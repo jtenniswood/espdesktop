@@ -45,7 +45,7 @@ concurrency:
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
   ESPDESKTOP_NPM_CACHE_MAX_MB: 512
-  OPTIONAL_STABLE_FIRMWARE_SLUGS: guition-esp32-p4-jc8012p4a1 guition-esp32-p4-jc8012p4a1-v2 guition-esp32-p4-jc8012p4a1-v3 guition-esp32-p4-jc4880p443-v3 guition-esp32-p4-jc1060p470-v2 esp32-p4-86
+  OPTIONAL_STABLE_FIRMWARE_SLUGS: guition-esp32-p4-jc8012p4a1 guition-esp32-p4-jc8012p4a1-v2 guition-esp32-p4-jc4880p443-v3 guition-esp32-p4-jc1060p470-v2 esp32-p4-86
 
 jobs:
   build-docs:
@@ -263,6 +263,7 @@ jobs:
 
       - name: Set device slugs
         run: |
+          # The website serves only the public installer targets.
           DEVICE_SLUGS=$(jq -r '.devices | join(" ")' product/release_devices.json)
           RECOVERY_SLUGS=$(jq -r --slurpfile release product/release_devices.json '[.devices | to_entries[] | select(.key as $slug | $release[0].devices | index($slug)) | select(.value.firmware.build.chip == "ESP32-P4") | .key] | join(" ")' devices/manifest.json)
           echo "DEVICE_SLUGS=${DEVICE_SLUGS}" >> "$GITHUB_ENV"
