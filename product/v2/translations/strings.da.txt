@@ -376,3 +376,17 @@ turn_on_studio_mode=Slå studietilstand til?
 turn_off_studio_mode=Slå studietilstand fra?
 start_replay_buffer_prompt=Start genafspilningsbuffer?
 stop_replay_buffer_prompt=Stop genafspilningsbuffer?
+
+# Display pairing, audio and OBS
+label_ha_pairing_fingerprint=Fingeraftryk
+label_ha_pairing_code=Parringskode
+label_cough=Hoste
+obs_record=Optag
+obs_take_live=Skift til live
+obs_save_replay=Gem genafspilning
+obs_enable_studio_mode=Aktivér studietilstand
+obs_choose_preview=Vælg en forhåndsvisning
+obs_already_on_program=Vises allerede i programmet
+obs_transitioning=Skifter
+obs_replay_not_confirmed=Genafspilning ikke bekræftet
+obs_check=Tjek OBS

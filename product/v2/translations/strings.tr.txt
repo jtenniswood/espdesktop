@@ -376,3 +376,17 @@ turn_on_studio_mode=Stüdyo modu açılsın mı?
 turn_off_studio_mode=Stüdyo modu kapatılsın mı?
 start_replay_buffer_prompt=Tekrar tamponu başlatılsın mı?
 stop_replay_buffer_prompt=Tekrar tamponu durdurulsun mu?
+
+# Display pairing, audio and OBS
+label_ha_pairing_fingerprint=Parmak izi
+label_ha_pairing_code=Eşleştirme kodu
+label_cough=Öksürük
+obs_record=Kaydet
+obs_take_live=Canlı yayına al
+obs_save_replay=Tekrarı kaydet
+obs_enable_studio_mode=Stüdyo modunu etkinleştir
+obs_choose_preview=Bir önizleme seçin
+obs_already_on_program=Zaten yayında
+obs_transitioning=Geçiş yapılıyor
+obs_replay_not_confirmed=Tekrar kaydı doğrulanmadı
+obs_check=OBS’yi kontrol edin

@@ -1292,6 +1292,7 @@ inline void companion_render_obs_detail(CompanionCardRef &ref, const std::string
   const bool brb = ref.action_id == "obs.brb";
   std::string primary = !ref.obs_label_alias.empty() ? ref.obs_label_alias
     : (scene || direct_transition) ? label
+    : output && ref.action_id == "obs.output.virtualcam" ? espdesktop_i18n_key("label_obs_virtual_camera")
     : output ? espdesktop_i18n(label.substr(0, split))
     : studio ? espdesktop_i18n_key("label_obs_studio_mode")
     : transition ? espdesktop_i18n_key("label_obs_transition")
@@ -1315,7 +1316,8 @@ inline void companion_render_obs_detail(CompanionCardRef &ref, const std::string
     const auto *action = companion_published_action(snapshot, ref.action_id);
     if (action && action->obs_state != OBSCardState::unknown) {
       const auto *text = obs_card_presentation(action->obs_state).detail;
-      if (*text) detail = espdesktop_i18n(text);
+      if (action->obs_state == OBSCardState::break_resume) detail = espdesktop_i18n_key("label_obs_resume");
+      else if (*text) detail = espdesktop_i18n(text);
       else detail = action->obs_detail;
     }
     const bool take_ready = take && action && (action->obs_state == OBSCardState::take_ready ||
