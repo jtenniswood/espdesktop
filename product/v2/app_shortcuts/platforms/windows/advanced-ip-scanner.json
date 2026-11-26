@@ -1,0 +1,17 @@
+{
+  "label": "Advanced IP Scanner",
+  "executables": [
+    "advanced_ip_scanner.exe"
+  ],
+  "sources": [
+    "https://www.advanced-ip-scanner.com/download/",
+    "https://www.advanced-ip-scanner.com/help/index.html"
+  ],
+  "note": "These menu access keys follow the English menus in the Windows release.",
+  "shortcuts": [
+    {"id": "0", "label": "Open File Menu", "shortcut": "option+f", "icon": "Folder"},
+    {"id": "1", "label": "Open View Menu", "shortcut": "option+v", "icon": "Folder"},
+    {"id": "2", "label": "Open Settings Menu", "shortcut": "option+s", "icon": "Folder"},
+    {"id": "3", "label": "Open Help Menu", "shortcut": "option+h", "icon": "Folder"}
+  ]
+}

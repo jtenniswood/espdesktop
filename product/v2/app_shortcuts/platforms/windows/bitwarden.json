@@ -1,0 +1,18 @@
+{
+  "label": "Bitwarden",
+  "executables": [
+    "bitwarden.exe"
+  ],
+  "sources": [
+    "https://bitwarden.com/help/keyboard-shortcuts/"
+  ],
+  "shortcuts": [
+    {"id": "0", "label": "Find Vault Item", "shortcut": "control+f", "icon": "Search"},
+    {"id": "1", "label": "Password Generator", "shortcut": "control+g", "icon": "Keyboard"},
+    {"id": "2", "label": "Add Login", "shortcut": "control+n", "icon": "Keyboard"},
+    {"id": "3", "label": "Lock Vault", "shortcut": "control+l", "icon": "Keyboard"},
+    {"id": "4", "label": "Preferences", "shortcut": "control+keycomma", "icon": "Keyboard"},
+    {"id": "5", "label": "Reset Zoom", "shortcut": "control+0", "icon": "Keyboard"},
+    {"id": "6", "label": "Toggle Full Screen", "shortcut": "f11", "icon": "Keyboard"}
+  ]
+}

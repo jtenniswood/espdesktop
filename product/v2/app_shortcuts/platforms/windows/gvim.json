@@ -1,0 +1,17 @@
+{
+  "label": "Vim for Windows (gVim)",
+  "executables": [
+    "gvim.exe"
+  ],
+  "sources": [
+    "https://vimhelp.org/windows.txt.html"
+  ],
+  "note": "Use these window commands in Normal mode.",
+  "shortcuts": [
+    {"id": "0", "label": "Split Horizontally", "shortcut": "control+w~s", "icon": "Keyboard"},
+    {"id": "1", "label": "Split Vertically", "shortcut": "control+w~v", "icon": "Keyboard"},
+    {"id": "2", "label": "Next Split", "shortcut": "control+w~w", "icon": "Chevron Right"},
+    {"id": "3", "label": "Close Split", "shortcut": "control+w~c", "icon": "Keyboard"},
+    {"id": "4", "label": "Previous Split", "shortcut": "control+w~shift+w", "icon": "Chevron Left"}
+  ]
+}

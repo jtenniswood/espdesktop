@@ -1,0 +1,17 @@
+{
+  "label": "Wireshark",
+  "executables": [
+    "wireshark.exe"
+  ],
+  "sources": [
+    "https://www.wireshark.org/docs/wsug_html_chunked/ChUseMenuSection.html"
+  ],
+  "shortcuts": [
+    {"id": "0", "label": "Open Capture", "shortcut": "control+o", "icon": "Folder"},
+    {"id": "1", "label": "Find Packet", "shortcut": "control+f", "icon": "Search"},
+    {"id": "2", "label": "Go to Packet", "shortcut": "control+g", "icon": "Keyboard"},
+    {"id": "3", "label": "Reload Capture", "shortcut": "control+r", "icon": "Keyboard"},
+    {"id": "4", "label": "Toggle Capture", "shortcut": "control+e", "icon": "Keyboard"},
+    {"id": "5", "label": "Capture Options", "shortcut": "control+k", "icon": "Keyboard"}
+  ]
+}

@@ -1,0 +1,17 @@
+{
+  "label": "CCleaner 6",
+  "executables": [
+    "ccleaner.exe",
+    "ccleaner64.exe"
+  ],
+  "sources": [
+    "https://download.ccleaner.com/ccsetup641.exe",
+    "https://community.ccleaner.com/t/navigating-ccleaner-v6-24-with-alt-underlined-access-keys-is-borked/80131"
+  ],
+  "note": "These access keys follow the English menus in CCleaner 6. Analyze applies when Custom Clean is open.",
+  "shortcuts": [
+    {"id": "0", "label": "Open Custom Clean", "shortcut": "option+c", "icon": "Keyboard"},
+    {"id": "1", "label": "Analyze Custom Clean", "shortcut": "option+a", "icon": "Search"},
+    {"id": "2", "label": "Open Tools", "shortcut": "option+t", "icon": "Keyboard"}
+  ]
+}

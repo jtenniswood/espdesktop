@@ -1,0 +1,17 @@
+{
+  "label": "7-Zip File Manager",
+  "executables": [
+    "7zfm.exe"
+  ],
+  "sources": [
+    "https://github.com/ip7z/7zip/blob/main/CPP/7zip/UI/FileManager/resource.rc"
+  ],
+  "shortcuts": [
+    {"id": "0", "label": "Open Item", "shortcut": "enter", "icon": "Folder"},
+    {"id": "1", "label": "Rename", "shortcut": "f2", "icon": "Keyboard"},
+    {"id": "2", "label": "Copy To", "shortcut": "f5", "icon": "Keyboard"},
+    {"id": "3", "label": "Create Folder", "shortcut": "f7", "icon": "Folder"},
+    {"id": "4", "label": "Move To", "shortcut": "f6", "icon": "Keyboard"},
+    {"id": "5", "label": "Refresh", "shortcut": "control+r", "icon": "Keyboard"}
+  ]
+}

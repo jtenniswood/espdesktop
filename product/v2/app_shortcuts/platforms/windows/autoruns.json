@@ -1,0 +1,22 @@
+{
+  "label": "Autoruns",
+  "executables": [
+    "autoruns.exe",
+    "autoruns64.exe",
+    "autoruns64a.exe"
+  ],
+  "sources": [
+    "https://download.sysinternals.com/files/Autoruns.zip"
+  ],
+  "note": "Bindings follow the menus in Microsoft's Windows release.",
+  "shortcuts": [
+    {"id": "0", "label": "Quick Filter", "shortcut": "control+q", "icon": "Search"},
+    {"id": "1", "label": "Find", "shortcut": "control+f", "icon": "Search"},
+    {"id": "2", "label": "Refresh", "shortcut": "f5", "icon": "Keyboard"},
+    {"id": "3", "label": "Save Snapshot", "shortcut": "control+s", "icon": "Save"},
+    {"id": "4", "label": "Open Snapshot", "shortcut": "control+o", "icon": "Folder"},
+    {"id": "5", "label": "Next Match", "shortcut": "f3", "icon": "Chevron Right"},
+    {"id": "6", "label": "Previous Match", "shortcut": "shift+f3", "icon": "Chevron Left"},
+    {"id": "7", "label": "Entry Properties", "shortcut": "option+enter", "icon": "Keyboard"}
+  ]
+}

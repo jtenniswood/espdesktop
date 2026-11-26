@@ -1,0 +1,20 @@
+{
+  "label": "qBittorrent",
+  "executables": [
+    "qbittorrent.exe"
+  ],
+  "sources": [
+    "https://github.com/qbittorrent/qBittorrent/blob/master/src/gui/mainwindow.cpp"
+  ],
+  "note": "Select a transfer before using Start or Pause.",
+  "shortcuts": [
+    {"id": "0", "label": "Open Torrent", "shortcut": "control+o", "icon": "Folder"},
+    {"id": "1", "label": "Add Torrent Link", "shortcut": "control+shift+o", "icon": "Keyboard"},
+    {"id": "2", "label": "Transfer Statistics", "shortcut": "control+i", "icon": "Keyboard"},
+    {"id": "3", "label": "Options", "shortcut": "option+o", "icon": "Keyboard"},
+    {"id": "4", "label": "Filter Transfers", "shortcut": "control+f", "icon": "Search"},
+    {"id": "5", "label": "Create Torrent", "shortcut": "control+n", "icon": "Keyboard"},
+    {"id": "6", "label": "Start Selected", "shortcut": "control+s", "icon": "Keyboard"},
+    {"id": "7", "label": "Pause Selected", "shortcut": "control+p", "icon": "Keyboard"}
+  ]
+}

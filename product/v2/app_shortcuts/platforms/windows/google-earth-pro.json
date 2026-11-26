@@ -1,0 +1,18 @@
+{
+  "label": "Google Earth Pro",
+  "executables": [
+    "googleearth.exe"
+  ],
+  "sources": [
+    "https://support.google.com/earth/answer/148115"
+  ],
+  "note": "Use while the 3D viewer has focus.",
+  "shortcuts": [
+    {"id": "0", "label": "Reset North", "shortcut": "n", "icon": "Keyboard"},
+    {"id": "1", "label": "Reset Tilt", "shortcut": "u", "icon": "Keyboard"},
+    {"id": "2", "label": "Reset North and Tilt", "shortcut": "r", "icon": "Keyboard"},
+    {"id": "3", "label": "Overview Map", "shortcut": "control+m", "icon": "Keyboard"},
+    {"id": "4", "label": "Rotate Clockwise", "shortcut": "shift+left", "icon": "Keyboard"},
+    {"id": "5", "label": "Rotate Counterclockwise", "shortcut": "shift+right", "icon": "Keyboard"}
+  ]
+}

@@ -1,0 +1,19 @@
+{
+  "label": "WizTree",
+  "executables": [
+    "wiztree64.exe",
+    "wiztree.exe"
+  ],
+  "sources": [
+    "https://diskanalyzer.com/whats-new"
+  ],
+  "note": "Folder rescans use the tree selection. WizTree can run with elevated access, which Windows protects from injected input.",
+  "shortcuts": [
+    {"id": "0", "label": "Rescan", "shortcut": "f5", "icon": "Keyboard"},
+    {"id": "1", "label": "Rescan Selected Folder", "shortcut": "control+f5", "icon": "Folder"},
+    {"id": "2", "label": "Toggle Treemap", "shortcut": "f9", "icon": "Keyboard"},
+    {"id": "3", "label": "Toggle Filters", "shortcut": "control+shift+f", "icon": "Keyboard"},
+    {"id": "4", "label": "Toggle Header", "shortcut": "control+h", "icon": "Keyboard"},
+    {"id": "5", "label": "Copy File Path", "shortcut": "control+option+c", "icon": "Keyboard"}
+  ]
+}

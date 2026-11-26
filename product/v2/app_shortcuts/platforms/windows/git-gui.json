@@ -1,0 +1,16 @@
+{
+  "label": "Git GUI",
+  "executables": [],
+  "sources": [
+    "https://github.com/git/git/blob/master/git-gui/git-gui.sh"
+  ],
+  "note": "Git for Windows can host Git GUI in the shared Tcl/Tk wish process. This Windows reference has no automatic application match.",
+  "shortcuts": [
+    {"id": "0", "label": "Rescan", "shortcut": "f5", "icon": "Keyboard"},
+    {"id": "1", "label": "Stage Selected Files", "shortcut": "control+t", "icon": "Keyboard"},
+    {"id": "2", "label": "Unstage Selected Files", "shortcut": "control+u", "icon": "Keyboard"},
+    {"id": "3", "label": "Show More Context", "shortcut": "control+keyequal", "icon": "Keyboard"},
+    {"id": "4", "label": "Show Less Context", "shortcut": "control+keyminus", "icon": "Keyboard"},
+    {"id": "5", "label": "Commit", "shortcut": "control+enter", "icon": "Keyboard"}
+  ]
+}

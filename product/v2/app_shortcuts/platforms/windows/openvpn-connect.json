@@ -1,0 +1,14 @@
+{
+  "label": "OpenVPN Connect",
+  "executables": [
+    "openvpnconnect.exe"
+  ],
+  "sources": [
+    "https://packages.openvpn.net/connect/v3/openvpn-connect-3.9.0.5008_signed.msi",
+    "https://github.com/electron/electron/blob/main/lib/browser/api/menu-item-roles.ts"
+  ],
+  "note": "Ctrl+W uses the File menu's Close action in the Windows desktop client.",
+  "shortcuts": [
+    {"id": "0", "label": "Close Window", "shortcut": "control+w", "icon": "Keyboard"}
+  ]
+}

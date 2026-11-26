@@ -1,0 +1,20 @@
+{
+  "label": "WPS Spreadsheet",
+  "executables": [
+    "et.exe"
+  ],
+  "sources": [
+    "https://www.wps.com/academy/common-shortcut-keys-in-wps-spreadsheet-quick-tutorials-1861871/"
+  ],
+  "note": "These presets are for WPS Spreadsheet.",
+  "shortcuts": [
+    {"id": "0", "label": "New Workbook", "shortcut": "control+n", "icon": "New Window"},
+    {"id": "1", "label": "Open", "shortcut": "control+o", "icon": "Folder"},
+    {"id": "2", "label": "Save", "shortcut": "control+s", "icon": "Save"},
+    {"id": "3", "label": "Find", "shortcut": "control+f", "icon": "Search"},
+    {"id": "4", "label": "Replace", "shortcut": "control+h", "icon": "Keyboard"},
+    {"id": "5", "label": "Go To", "shortcut": "control+g", "icon": "Keyboard"},
+    {"id": "6", "label": "Toggle Selection Pane", "shortcut": "control+f1", "icon": "Keyboard"},
+    {"id": "7", "label": "Print", "shortcut": "control+p", "icon": "Keyboard"}
+  ]
+}

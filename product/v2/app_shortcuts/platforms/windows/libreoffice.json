@@ -1,0 +1,24 @@
+{
+  "label": "LibreOffice",
+  "executables": [
+    "swriter.exe",
+    "scalc.exe",
+    "simpress.exe",
+    "sdraw.exe",
+    "sbase.exe",
+    "smath.exe"
+  ],
+  "sources": [
+    "https://help.libreoffice.org/latest/en-GB/text/shared/04/01010000.html"
+  ],
+  "note": "These bindings are shared across the LibreOffice suite. An installation that only exposes the shared soffice.exe launcher may require manual shortcuts.",
+  "shortcuts": [
+    {"id": "0", "label": "Open", "shortcut": "control+o", "icon": "Folder"},
+    {"id": "1", "label": "Save", "shortcut": "control+s", "icon": "Save"},
+    {"id": "2", "label": "Print", "shortcut": "control+p", "icon": "Keyboard"},
+    {"id": "3", "label": "Find", "shortcut": "control+f", "icon": "Search"},
+    {"id": "4", "label": "Find and Replace", "shortcut": "control+h", "icon": "Search"},
+    {"id": "5", "label": "Save As", "shortcut": "control+shift+s", "icon": "Save"},
+    {"id": "6", "label": "Close Document", "shortcut": "control+w", "icon": "Keyboard"}
+  ]
+}

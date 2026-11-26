@@ -1,0 +1,19 @@
+{
+  "label": "FileZilla Client",
+  "executables": [
+    "filezilla.exe"
+  ],
+  "sources": [
+    "https://wiki.filezilla-project.org/Keyboard_shortcuts"
+  ],
+  "shortcuts": [
+    {"id": "0", "label": "Search Remote Files", "shortcut": "f3", "icon": "Search"},
+    {"id": "1", "label": "Refresh Panels", "shortcut": "f5", "icon": "Keyboard"},
+    {"id": "2", "label": "Quick Search", "shortcut": "control+f", "icon": "Search"},
+    {"id": "3", "label": "Add Bookmark", "shortcut": "control+b", "icon": "Keyboard"},
+    {"id": "4", "label": "New Directory", "shortcut": "control+shift+n", "icon": "Folder"},
+    {"id": "5", "label": "Directory Filters", "shortcut": "control+i", "icon": "Folder"},
+    {"id": "6", "label": "Rename File", "shortcut": "f2", "icon": "Keyboard"},
+    {"id": "7", "label": "Open Site Manager", "shortcut": "control+s", "icon": "Folder"}
+  ]
+}

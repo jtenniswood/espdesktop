@@ -138,6 +138,7 @@ foreach (var (executable, target, firstKey) in new (string?, string, string)[]
     (@"C:\Apps\Discord.exe", "Discord", "control+k"),
     (@"C:\Apps\Spotify.exe", "Spotify", "control+k"),
     (@"C:\Apps\GitHubDesktop.exe", "GitHubDesktop", "control+t"),
+    (@"C:\Apps\GIMP 3\bin\gimp-3.exe", "GIMP 3", "control+o"),
     (@"C:\Apps\ChatGPT.exe", "ChatGPT", "control+n"),
     (null, "OpenAI.Codex_2p2nqsd0c76g0!App", "control+n"),
     (null, "Microsoft.MicrosoftEdge.Stable_8wekyb3d8bbwe!App", "control+t"),

@@ -1,0 +1,18 @@
+{
+  "label": "SQL Server Management Studio",
+  "executables": [
+    "ssms.exe"
+  ],
+  "sources": [
+    "https://learn.microsoft.com/en-us/ssms/sql-server-management-studio-keyboard-shortcuts"
+  ],
+  "shortcuts": [
+    {"id": "0", "label": "New Query", "shortcut": "control+n", "icon": "New Window"},
+    {"id": "1", "label": "Open File", "shortcut": "control+o", "icon": "Folder"},
+    {"id": "2", "label": "Find", "shortcut": "control+f", "icon": "Search"},
+    {"id": "3", "label": "Toggle Results Pane", "shortcut": "control+r", "icon": "Keyboard"},
+    {"id": "4", "label": "Parse Query", "shortcut": "control+f5", "icon": "Keyboard"},
+    {"id": "5", "label": "Comment Selection", "shortcut": "control+k~control+c", "icon": "Keyboard"},
+    {"id": "6", "label": "Uncomment Selection", "shortcut": "control+k~control+u", "icon": "Keyboard"}
+  ]
+}

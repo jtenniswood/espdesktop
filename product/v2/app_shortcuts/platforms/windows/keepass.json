@@ -1,0 +1,18 @@
+{
+  "label": "KeePass 2",
+  "executables": [
+    "keepass.exe"
+  ],
+  "sources": [
+    "https://keepass.info/help/kb/keyb_shortcuts.html"
+  ],
+  "note": "Entry commands require focus in the entries list.",
+  "shortcuts": [
+    {"id": "0", "label": "Find Entry", "shortcut": "control+f", "icon": "Search"},
+    {"id": "1", "label": "Lock Workspace", "shortcut": "control+l", "icon": "Keyboard"},
+    {"id": "2", "label": "Save Database", "shortcut": "control+s", "icon": "Save"},
+    {"id": "3", "label": "Add Entry", "shortcut": "control+i", "icon": "Keyboard"},
+    {"id": "4", "label": "Edit Entry", "shortcut": "enter", "icon": "Keyboard"},
+    {"id": "5", "label": "Open Database", "shortcut": "control+o", "icon": "Folder"}
+  ]
+}

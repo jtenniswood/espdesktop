@@ -1,0 +1,16 @@
+{
+  "label": "PowerToys Run",
+  "executables": [
+    "powertoys.powerlauncher.exe"
+  ],
+  "sources": [
+    "https://learn.microsoft.com/windows/powertoys/run"
+  ],
+  "note": "These shortcuts apply while the PowerToys Run launcher has focus.",
+  "shortcuts": [
+    {"id": "0", "label": "Open Selected Result", "shortcut": "enter", "icon": "Folder"},
+    {"id": "1", "label": "Open File Location", "shortcut": "control+shift+e", "icon": "Folder"},
+    {"id": "2", "label": "Copy Path", "shortcut": "control+c", "icon": "Keyboard"},
+    {"id": "3", "label": "Clear or Close", "shortcut": "escape", "icon": "Keyboard"}
+  ]
+}

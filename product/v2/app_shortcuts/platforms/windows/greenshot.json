@@ -1,0 +1,18 @@
+{
+  "label": "Greenshot Image Editor",
+  "executables": [
+    "greenshot.exe"
+  ],
+  "sources": [
+    "https://github.com/greenshot/greenshot/blob/main/src/Greenshot.Editor/Forms/ImageEditorForm.Designer.cs"
+  ],
+  "note": "Use inside Greenshot's image editor.",
+  "shortcuts": [
+    {"id": "0", "label": "Undo", "shortcut": "control+z", "icon": "Undo"},
+    {"id": "1", "label": "Redo", "shortcut": "control+y", "icon": "Redo"},
+    {"id": "2", "label": "Duplicate Annotation", "shortcut": "control+d", "icon": "Keyboard"},
+    {"id": "3", "label": "Select All Annotations", "shortcut": "control+a", "icon": "Keyboard"},
+    {"id": "4", "label": "Actual Size", "shortcut": "control+0", "icon": "Keyboard"},
+    {"id": "5", "label": "Zoom to Fit", "shortcut": "control+9", "icon": "Keyboard"}
+  ]
+}

@@ -1,0 +1,19 @@
+{
+  "label": "IrfanView",
+  "executables": [
+    "i_view64.exe",
+    "i_view32.exe"
+  ],
+  "sources": [
+    "https://www.irfanview.net/help/guida/hlp_hotkeys.htm"
+  ],
+  "shortcuts": [
+    {"id": "0", "label": "Next Image", "shortcut": "space", "icon": "Chevron Right"},
+    {"id": "1", "label": "Previous Image", "shortcut": "delete", "icon": "Chevron Left"},
+    {"id": "2", "label": "Toggle Full Screen", "shortcut": "enter", "icon": "Keyboard"},
+    {"id": "3", "label": "First File", "shortcut": "control+home", "icon": "Keyboard"},
+    {"id": "4", "label": "Last File", "shortcut": "control+end", "icon": "Keyboard"},
+    {"id": "5", "label": "Next Page or File", "shortcut": "control+pagedown", "icon": "Chevron Right"},
+    {"id": "6", "label": "Previous Page or File", "shortcut": "control+pageup", "icon": "Chevron Left"}
+  ]
+}

@@ -1,0 +1,20 @@
+{
+  "label": "Blender",
+  "executables": [
+    "blender.exe"
+  ],
+  "sources": [
+    "https://docs.blender.org/manual/en/latest/interface/keymap/blender_default.html"
+  ],
+  "note": "Uses the default Blender keymap. Quick Favorites and Maximize Area depend on pointer location.",
+  "shortcuts": [
+    {"id": "0", "label": "Search Menus", "shortcut": "f3", "icon": "Search"},
+    {"id": "1", "label": "Quick Favorites", "shortcut": "q", "icon": "Keyboard"},
+    {"id": "2", "label": "Save File", "shortcut": "control+s", "icon": "Save"},
+    {"id": "3", "label": "Open File", "shortcut": "control+o", "icon": "Folder"},
+    {"id": "4", "label": "Undo", "shortcut": "control+z", "icon": "Undo"},
+    {"id": "5", "label": "Redo", "shortcut": "control+shift+z", "icon": "Redo"},
+    {"id": "6", "label": "Render Image", "shortcut": "f12", "icon": "Keyboard"},
+    {"id": "7", "label": "Maximize Area", "shortcut": "control+space", "icon": "Keyboard"}
+  ]
+}

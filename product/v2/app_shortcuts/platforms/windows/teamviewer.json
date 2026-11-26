@@ -1,0 +1,13 @@
+{
+  "label": "TeamViewer Remote",
+  "executables": [
+    "teamviewer.exe"
+  ],
+  "sources": [
+    "https://www.teamviewer.com/en-us/global/support/knowledge-base/teamviewer-remote/get-started/enhanced-accessibility-during-teamviewer-remote-sessions-on-wind/"
+  ],
+  "note": "Applies during a remote control session. TeamViewer lets you change the binding.",
+  "shortcuts": [
+    {"id": "0", "label": "End Remote Session", "shortcut": "control+option+f8", "icon": "Keyboard"}
+  ]
+}

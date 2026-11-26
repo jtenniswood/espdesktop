@@ -1,0 +1,18 @@
+{
+  "label": "Thunderbird",
+  "executables": [
+    "thunderbird.exe"
+  ],
+  "sources": [
+    "https://support.mozilla.org/en-US/kb/keyboard-shortcuts-thunderbird"
+  ],
+  "shortcuts": [
+    {"id": "0", "label": "Compose", "shortcut": "control+n", "icon": "Keyboard"},
+    {"id": "1", "label": "Reply", "shortcut": "control+r", "icon": "Keyboard"},
+    {"id": "2", "label": "Forward", "shortcut": "control+l", "icon": "Keyboard"},
+    {"id": "3", "label": "Get New Messages", "shortcut": "f5", "icon": "New Window"},
+    {"id": "4", "label": "Search All Messages", "shortcut": "control+k", "icon": "Search"},
+    {"id": "5", "label": "Mark as Read or Unread", "shortcut": "m", "icon": "Keyboard"},
+    {"id": "6", "label": "Address Book", "shortcut": "control+shift+b", "icon": "Keyboard"}
+  ]
+}

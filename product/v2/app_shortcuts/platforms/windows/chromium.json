@@ -1,0 +1,18 @@
+{
+  "label": "Chromium",
+  "executables": [],
+  "sources": [
+    "https://chromium.googlesource.com/chromium/src.git/+/refs/heads/main/chrome/browser/ui/accelerator_table.cc"
+  ],
+  "note": "Chromium and Google Chrome may both run as chrome.exe. This Windows reference has no automatic application match.",
+  "shortcuts": [
+    {"id": "0", "label": "New Tab", "shortcut": "control+t", "icon": "New Window"},
+    {"id": "1", "label": "Reopen Closed Tab", "shortcut": "control+shift+t", "icon": "Tab"},
+    {"id": "2", "label": "Find in Page", "shortcut": "control+f", "icon": "Search"},
+    {"id": "3", "label": "Downloads", "shortcut": "control+j", "icon": "Keyboard"},
+    {"id": "4", "label": "New Incognito Window", "shortcut": "control+shift+n", "icon": "New Window"},
+    {"id": "5", "label": "Focus Address Bar", "shortcut": "control+l", "icon": "Keyboard"},
+    {"id": "6", "label": "Bookmark Page", "shortcut": "control+d", "icon": "Keyboard"},
+    {"id": "7", "label": "Full Screen", "shortcut": "f11", "icon": "Keyboard"}
+  ]
+}

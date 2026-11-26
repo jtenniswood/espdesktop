@@ -1,0 +1,19 @@
+{
+  "label": "Everything",
+  "executables": [
+    "everything.exe",
+    "everything64.exe"
+  ],
+  "sources": [
+    "https://www.voidtools.com/en-us/support/everything/keyboard_shortcuts/"
+  ],
+  "note": "File commands require focus in the results list.",
+  "shortcuts": [
+    {"id": "0", "label": "Focus Search", "shortcut": "control+f", "icon": "Search"},
+    {"id": "1", "label": "Reload Details", "shortcut": "f5", "icon": "Keyboard"},
+    {"id": "2", "label": "Toggle Full Screen", "shortcut": "f11", "icon": "Keyboard"},
+    {"id": "3", "label": "Cycle Windows", "shortcut": "control+tab", "icon": "Keyboard"},
+    {"id": "4", "label": "Copy Full Path", "shortcut": "control+shift+c", "icon": "Keyboard"},
+    {"id": "5", "label": "Open Containing Folder", "shortcut": "control+enter", "icon": "Folder"}
+  ]
+}

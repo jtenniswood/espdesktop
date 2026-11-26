@@ -1,0 +1,19 @@
+{
+  "label": "Notepad++",
+  "executables": [
+    "notepad++.exe"
+  ],
+  "sources": [
+    "https://github.com/notepad-plus-plus/notepad-plus-plus/blob/master/PowerEditor/src/Parameters.cpp"
+  ],
+  "shortcuts": [
+    {"id": "0", "label": "New Tab", "shortcut": "control+n", "icon": "New Window"},
+    {"id": "1", "label": "Open", "shortcut": "control+o", "icon": "Folder"},
+    {"id": "2", "label": "Save", "shortcut": "control+s", "icon": "Save"},
+    {"id": "3", "label": "Find", "shortcut": "control+f", "icon": "Search"},
+    {"id": "4", "label": "Replace", "shortcut": "control+h", "icon": "Keyboard"},
+    {"id": "5", "label": "Duplicate Line", "shortcut": "control+d", "icon": "Keyboard"},
+    {"id": "6", "label": "Go to Line", "shortcut": "control+g", "icon": "Keyboard"},
+    {"id": "7", "label": "Close Tab", "shortcut": "control+w", "icon": "Tab"}
+  ]
+}

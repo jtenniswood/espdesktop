@@ -1,0 +1,19 @@
+{
+  "label": "calibre",
+  "executables": [
+    "calibre.exe"
+  ],
+  "sources": [
+    "https://manual.calibre-ebook.com/gui.html#keyboard-shortcuts"
+  ],
+  "note": "Use when the book list has focus. The ebook viewer has separate key bindings.",
+  "shortcuts": [
+    {"id": "0", "label": "Add Books", "shortcut": "a", "icon": "Keyboard"},
+    {"id": "1", "label": "Edit Metadata", "shortcut": "e", "icon": "Keyboard"},
+    {"id": "2", "label": "View Selected Book", "shortcut": "v", "icon": "Keyboard"},
+    {"id": "3", "label": "Convert Books", "shortcut": "c", "icon": "Keyboard"},
+    {"id": "4", "label": "View Last Read", "shortcut": "shift+v", "icon": "Keyboard"},
+    {"id": "5", "label": "Show Jobs", "shortcut": "option+shift+j", "icon": "Keyboard"},
+    {"id": "6", "label": "Add Formats", "shortcut": "shift+a", "icon": "Keyboard"}
+  ]
+}

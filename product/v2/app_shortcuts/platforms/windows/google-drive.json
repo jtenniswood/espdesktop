@@ -1,0 +1,11 @@
+{
+  "label": "Google Drive for Desktop",
+  "executables": [],
+  "sources": [
+    "https://support.google.com/drive/answer/10838124"
+  ],
+  "note": "Google documents this as a system-wide search hotkey. It requires Drive for desktop to be running and its search hotkey to be enabled.",
+  "shortcuts": [
+    {"id": "0", "label": "Search Drive", "shortcut": "control+option+g", "icon": "Search"}
+  ]
+}

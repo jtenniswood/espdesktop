@@ -1,0 +1,17 @@
+{
+  "label": "Apache OpenOffice",
+  "executables": [],
+  "sources": [
+    "https://wiki.openoffice.org/wiki/Documentation/OOo3_User_Guides/Getting_Started/General_shortcut_keys"
+  ],
+  "note": "Apache OpenOffice and LibreOffice can both use soffice.exe. This guide requires edition detection before it can be enabled on the display.",
+  "shortcuts": [
+    {"id": "0", "label": "Open", "shortcut": "control+o", "icon": "Folder"},
+    {"id": "1", "label": "Save", "shortcut": "control+s", "icon": "Save"},
+    {"id": "2", "label": "Print", "shortcut": "control+p", "icon": "Keyboard"},
+    {"id": "3", "label": "Undo", "shortcut": "control+z", "icon": "Undo"},
+    {"id": "4", "label": "New Document", "shortcut": "control+n", "icon": "New Window"},
+    {"id": "5", "label": "Save As", "shortcut": "control+shift+s", "icon": "Save"},
+    {"id": "6", "label": "Close Document", "shortcut": "control+w", "icon": "Keyboard"}
+  ]
+}

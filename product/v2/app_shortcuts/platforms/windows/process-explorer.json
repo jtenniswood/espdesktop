@@ -1,0 +1,22 @@
+{
+  "label": "Process Explorer",
+  "executables": [
+    "procexp.exe",
+    "procexp64.exe",
+    "procexp64a.exe"
+  ],
+  "sources": [
+    "https://download.sysinternals.com/files/ProcessExplorer.zip"
+  ],
+  "note": "Bindings follow the menus in Microsoft's Windows release. Windows protects elevated windows from input sent by non-elevated applications.",
+  "shortcuts": [
+    {"id": "0", "label": "System Information", "shortcut": "control+i", "icon": "Keyboard"},
+    {"id": "1", "label": "Filter Processes", "shortcut": "control+f", "icon": "Search"},
+    {"id": "2", "label": "Find Handle or DLL", "shortcut": "control+shift+f", "icon": "Search"},
+    {"id": "3", "label": "Refresh", "shortcut": "f5", "icon": "Keyboard"},
+    {"id": "4", "label": "Toggle Lower Pane", "shortcut": "control+l", "icon": "Keyboard"},
+    {"id": "5", "label": "View DLLs", "shortcut": "control+d", "icon": "Keyboard"},
+    {"id": "6", "label": "View Handles", "shortcut": "control+h", "icon": "Keyboard"},
+    {"id": "7", "label": "Toggle Process Tree", "shortcut": "control+t", "icon": "Keyboard"}
+  ]
+}

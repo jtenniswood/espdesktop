@@ -1,0 +1,20 @@
+{
+  "label": "WinDirStat",
+  "executables": [
+    "windirstat.exe",
+    "windirstat64.exe",
+    "windirstatarm64.exe"
+  ],
+  "sources": [
+    "https://github.com/windirstat/windirstat/wiki/Keyboard-Shortcuts"
+  ],
+  "note": "These bindings apply to the current WinDirStat release.",
+  "shortcuts": [
+    {"id": "0", "label": "Select Scan Target", "shortcut": "control+o", "icon": "Keyboard"},
+    {"id": "1", "label": "Refresh Selected", "shortcut": "f5", "icon": "Keyboard"},
+    {"id": "2", "label": "Refresh All", "shortcut": "shift+f5", "icon": "Keyboard"},
+    {"id": "3", "label": "Settings", "shortcut": "control+i", "icon": "Keyboard"},
+    {"id": "4", "label": "Save Scan Results", "shortcut": "control+option+s", "icon": "Save"},
+    {"id": "5", "label": "Open Saved Results", "shortcut": "control+option+l", "icon": "Folder"}
+  ]
+}

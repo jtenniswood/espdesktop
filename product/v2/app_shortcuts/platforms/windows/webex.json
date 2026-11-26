@@ -1,0 +1,19 @@
+{
+  "label": "Webex App",
+  "executables": [
+    "webex.exe",
+    "ciscocollabhost.exe"
+  ],
+  "sources": [
+    "https://help.webex.com/article/7wr87q/Cisco-Webex-Teams-Keyboard-Navigation-and-Shortcuts"
+  ],
+  "note": "Space shortcuts apply in messaging.",
+  "shortcuts": [
+    {"id": "0", "label": "Attach File", "shortcut": "control+o", "icon": "Keyboard"},
+    {"id": "1", "label": "Open Emoji Panel", "shortcut": "control+shift+space", "icon": "Folder"},
+    {"id": "2", "label": "Toggle Favorite Space", "shortcut": "control+shift+f", "icon": "Keyboard"},
+    {"id": "3", "label": "Open GIF Panel", "shortcut": "control+g", "icon": "Folder"},
+    {"id": "4", "label": "Open Stickers", "shortcut": "control+j", "icon": "Folder"},
+    {"id": "5", "label": "Add People to Space", "shortcut": "control+shift+p", "icon": "Keyboard"}
+  ]
+}

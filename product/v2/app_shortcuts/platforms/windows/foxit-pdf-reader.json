@@ -1,0 +1,18 @@
+{
+  "label": "Foxit PDF Reader",
+  "executables": [
+    "foxitpdfreader.exe",
+    "foxitreader.exe"
+  ],
+  "sources": [
+    "https://cdn01.foxitsoftware.com/pub/foxit/manual/reader/en_us/foxit-pdf-reader-user-manual-2026.1.pdf"
+  ],
+  "shortcuts": [
+    {"id": "0", "label": "Open PDF", "shortcut": "control+o", "icon": "Folder"},
+    {"id": "1", "label": "Save", "shortcut": "control+s", "icon": "Save"},
+    {"id": "2", "label": "Print", "shortcut": "control+p", "icon": "Keyboard"},
+    {"id": "3", "label": "Find", "shortcut": "control+f", "icon": "Search"},
+    {"id": "4", "label": "Save As", "shortcut": "control+shift+s", "icon": "Save"},
+    {"id": "5", "label": "Close PDF", "shortcut": "control+w", "icon": "Keyboard"}
+  ]
+}

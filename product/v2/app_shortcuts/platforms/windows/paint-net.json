@@ -1,0 +1,20 @@
+{
+  "label": "Paint.NET",
+  "executables": [
+    "paintdotnet.exe",
+    "paint.net.exe"
+  ],
+  "sources": [
+    "https://paint.net/doc/latest/KeyboardMouseCommands.html"
+  ],
+  "shortcuts": [
+    {"id": "0", "label": "Open Image", "shortcut": "control+o", "icon": "Folder"},
+    {"id": "1", "label": "Toggle Layers", "shortcut": "f7", "icon": "Keyboard"},
+    {"id": "2", "label": "Toggle History", "shortcut": "f6", "icon": "Keyboard"},
+    {"id": "3", "label": "Toggle Tools", "shortcut": "f5", "icon": "Keyboard"},
+    {"id": "4", "label": "Toggle Colors", "shortcut": "f8", "icon": "Keyboard"},
+    {"id": "5", "label": "Actual Size", "shortcut": "control+0", "icon": "Keyboard"},
+    {"id": "6", "label": "Next Image", "shortcut": "control+tab", "icon": "Chevron Right"},
+    {"id": "7", "label": "Deselect", "shortcut": "control+d", "icon": "Keyboard"}
+  ]
+}
