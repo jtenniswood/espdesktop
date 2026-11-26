@@ -43,16 +43,7 @@ With current firmware and a connected Windows companion, the card picker shows W
 
 ## Control system sound
 
-In the display editor, add a **Sound** card on Home or in a subpage. Choose one **Type** per card.
-
-- **Audio Output** adjusts the default speaker or headphone volume.
-- **Audio Input** adjusts the default microphone level.
-- **Output Mute** toggles speaker or headphone mute.
-- **Input State** toggles microphone mute and shows whether the input is live or muted. If Windows detects no audio input, the card shows **No audio input** and becomes available again when an input is detected.
-
-These four cards follow the computer’s default audio devices. For independent sliders, use **Input per device level** to select a connected microphone or **Output per application** to select an app approved in EspDesktop’s **Apps** settings.
-
-Start playing sound in the selected app to create a Windows audio session. The app slider becomes unavailable when Windows no longer has a session for it. Moving a level slider above zero unmutes the selected device or app. Use the latest Windows companion for these two controls.
+Add a [Sound card](/card-types/sound) to adjust speakers or microphones, or [control a Windows app’s volume](/card-types/sound#windows-app-volume).
 
 ## Switch OBS scenes
 

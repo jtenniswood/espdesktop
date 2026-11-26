@@ -75,7 +75,7 @@ If you have one display paired, **Support → Restart Setup** clears its pairing
 
 - **App or folder** — check that it is still approved in EspDesktop’s **Apps** or **Folders** page.
 - **Keyboard shortcut or Lock Machine** — check the [permission for your platform](/mac-controls/shortcuts#enable-keyboard-shortcuts). If the cards stopped working after replacing the macOS app, remove the old EspDesktop entry from **Accessibility** and add the installed app again.
-- **Sound** — check that the microphone or speaker is connected. For app volume, start playback in the selected app. [Sound setup and requirements](/mac-controls/apps#mac-audio).
+- **Sound** — check that the microphone or speaker is connected. For app volume, start playback in the selected app. [Sound setup and requirements](/card-types/sound).
 
 If a card is missing from the picker, confirm that EspDesktop shows the display as connected, then reload the editor and check [card availability](/features/adding-a-card#which-cards-work-with-my-computer). If a saved card is unavailable on your platform, use **Layout** to replace or remove it.
 

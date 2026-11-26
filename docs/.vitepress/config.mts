@@ -61,6 +61,7 @@ const guideParents = {
   'features/adding-a-card.md': { name: 'Screen grid', path: 'features/home.md' },
   'features/subpages.md': { name: 'Customise the layout', path: 'features/home.md' },
   'mac-controls/apps.md': { name: 'Customise the layout', path: 'features/home.md' },
+  'card-types/sound.md': { name: 'Customise the layout', path: 'features/home.md' },
   'mac-controls/websites.md': { name: 'Customise the layout', path: 'features/home.md' },
   'mac-controls/folders.md': { name: 'Customise the layout', path: 'features/home.md' },
   'mac-controls/shortcuts.md': { name: 'Customise the layout', path: 'features/home.md' },
@@ -84,7 +85,7 @@ const cardLinks = [
   { text: 'Keyboard shortcuts', link: '/mac-controls/shortcuts' },
   { text: 'Keyboard shortcut presets', link: '/reference/shortcut-presets' },
   { text: 'Apple Shortcuts', link: '/mac-controls/apple-shortcuts' },
-  { text: 'Sound', link: '/mac-controls/apps#mac-audio' },
+  { text: 'Sound', link: '/card-types/sound' },
 ]
 const obsStudioLink = { text: 'OBS Studio', link: '/mac-controls/obs-studio' }
 const obsStudioSidebar = {
