@@ -1,6 +1,6 @@
 # EspDesktop for Windows
 
-Control a Windows 11 PC from the Guition 4848S040 EspDesktop display. The app uses standard Windows controls, follows your Windows theme, and stays in the notification area when you close Settings.
+Control a Windows PC from the Guition 4848S040 EspDesktop display. The app uses standard Windows controls, follows your Windows theme, and stays in the notification area when you close Settings.
 
 ## Install EspDesktop
 
@@ -51,7 +51,7 @@ dotnet run -c Release --project windows/EspDesktop
 ./windows/EspDesktop/Packaging/Build-Installer.ps1 -Architecture x64
 ```
 
-The workflow builds installers for x64 and Arm64 and installs, opens, and uninstalls each build on Windows. To try an unpublished build, download and unzip the installer artifact for your architecture from its **Windows EspDesktop** run. The test project checks the same protocol fixtures as firmware and macOS, and pairs with a simulated display over TLS. Use a Windows 11 PC and a physical 4848S040 for discovery, actual pairing, app and folder focus, browser behavior, shortcuts, volume, lock and reconnect testing.
+The workflow builds installers for x64 and Arm64 and installs, opens, and uninstalls each build on Windows. To try an unpublished build, download and unzip the installer artifact for your architecture from its **Windows EspDesktop** run. The test project checks the same protocol fixtures as firmware and macOS, and pairs with a simulated display over TLS. Use a Windows PC and a physical 4848S040 for discovery, actual pairing, app and folder focus, browser behavior, shortcuts, volume, lock and reconnect testing.
 
 EspDesktop checks for newer stable Windows releases for your PC’s architecture and display protocol and opens their download page. Firmware-only releases do not affect the Windows update check. Run the new setup file from the release page to update. In-app installation requires an Authenticode-signed Windows app and installer with the same trusted publisher key.
 
