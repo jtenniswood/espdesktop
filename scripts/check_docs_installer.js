@@ -338,9 +338,10 @@ async function checkBrowser() {
     await page.goto(home);
     await setup.press('Enter');
     await page.waitForURL(`${home}screens/4848s040`);
-    await page.getByRole('heading', { name: 'Set up on macOS' }).waitFor();
-    await page.getByRole('heading', { name: 'Set up on Windows' }).waitFor();
-    await page.getByRole('link', { name: 'Windows setup guide', exact: true }).click();
+    const platformActions = page.locator('section[aria-labelledby="download"] .display-setup-actions');
+    const setupDownload = platformActions.getByRole('link', { name: 'Mac', exact: true });
+    await setupDownload.waitFor();
+    await platformActions.getByRole('link', { name: 'Windows', exact: true }).click();
     await page.waitForURL(`${home}windows`);
     await page.getByRole('heading', { name: 'Windows setup', level: 1 }).waitFor();
     assert.equal(await page.locator('.VPSidebar').getByRole('link', { name: 'Windows setup', exact: true }).getAttribute('href'), '/windows');
@@ -348,7 +349,6 @@ async function checkBrowser() {
     await page.waitForURL(`${home}screens/4848s040`);
     console.log('Homepage checks passed at desktop, tablet and phone widths.');
     await assertSupportedInstaller();
-    const setupDownload = page.locator('.display-setup-step .mac-app-download a.docs-primary-action');
     const setupDownloadHref = await setupDownload.getAttribute('href');
     const wizard = page.locator('.display-setup-step a.docs-primary-action').getByText('View setup wizard', { exact: true });
     assert.equal(await wizard.getAttribute('href'), '/features/first-run');
@@ -371,13 +371,13 @@ async function checkBrowser() {
     assert.match(await download.getAttribute('href'),
       /^https:\/\/github\.com\/jtenniswood\/espdesktop\/releases(?:\/download\/v?\d+\.\d+\.\d+\/EspDesktop-\d+\.\d+\.\d+\.dmg)?$/);
     const officialDownloadHref = await download.getAttribute('href');
-    assert.equal(setupDownloadHref, officialDownloadHref.endsWith('.dmg') ? officialDownloadHref : '/download');
+    assert.equal(setupDownloadHref, officialDownloadHref.endsWith('.dmg') ? officialDownloadHref : '/download#macos');
+    await page.getByText('Apple silicon and macOS 13 or newer', { exact: true }).waitFor();
     await page.getByRole('link', { name: 'Install and pair the Mac app', exact: true }).click();
     await page.waitForURL(`${setupPage}#setup-on-macos`);
     await page.getByRole('heading', { name: 'Set up the Companion app' }).waitFor();
     assert.equal(await page.locator('.VPSidebar a[href="/getting-started/mac-app"]').count(), 0);
-    await page.locator('#pair-the-display').waitFor({ state: 'attached' });
-    await page.getByText('Apple silicon Mac with macOS 13 or newer', { exact: true }).waitFor();
+    await page.getByRole('heading', { name: 'Pair on Mac' }).and(page.locator('#pair-the-display')).waitFor();
     await page.goto(`${base}/screens/4848s040#where-to-buy`);
     const buySection = page.locator('section[aria-labelledby="where-to-buy"]');
     await buySection.getByRole('link', { name: 'AliExpress (US)', exact: true }).waitFor();
