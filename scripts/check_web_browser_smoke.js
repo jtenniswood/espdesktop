@@ -4610,6 +4610,10 @@ async function assertOnDemandShortcutSettings(browser, testCase) {
   await installRoutes(context, testCase.slug, { nativeState, offlineFallback: true });
   const requests = [];
   let online = true;
+  await context.route("**/connectors/status", route => route.fulfill({ json: {
+    mac_companion: { available: true, configured: true, paired: true, connected: online },
+  } }));
+  await context.route("**/companion/actions", route => route.fulfill({ json: online ? [{ id: appId, label: "Remote Editor" }] : [] }));
   await context.route(url => url.pathname === "/companion/shortcut-page", async route => {
     if (!online) return route.fulfill({ status: 404 });
     const { searchParams } = new URL(route.request().url());
@@ -5046,9 +5050,20 @@ async function assertWindowsShortcutSettings(browser, testCase) {
   const context = await browser.newContext({ viewport: testCase.viewport });
   try {
     await installRoutes(context, testCase.slug, { nativeState, connectorsStatus });
+    await context.route("**/companion/actions", route => route.fulfill({ json:
+      connectorsStatus.mac_companion.platform === "windows" ? [
+        { id: appId, label: "Google Chrome" },
+        { id: racingId, label: "iRacing" },
+        { id: "windows.no-presets", label: "No Presets" },
+      ] : [{ id: "com.apple.Safari", label: "Safari" }],
+    }));
     await context.route(url => url.pathname === "/companion/shortcut-page", route => route.fulfill({ status: 204 }));
     await context.route(url => url.pathname === "/companion/definitions", route => route.fulfill({
       json: { page: 0, hasMore: false, shortcutPlatform: "windows", definitions: [
+        { kind: "application", definition: {
+          appId: "windows.unapproved", label: "Unapproved App", version: 1, catalog: false,
+          shortcuts: [{ id: "0", label: "Open", shortcut: "control+o", icon: "Open File" }],
+        } },
         { kind: "application", definition: {
           appId, label: "Google Chrome", version: 1, catalog: false,
           shortcuts: [
@@ -5088,6 +5103,7 @@ async function assertWindowsShortcutSettings(browser, testCase) {
     await openShortcut();
     await page.getByRole("tab", { name: "Application", exact: true }).click();
     const app = page.locator('[id$="shortcut-catalog-app"]');
+    await app.locator(`option[value="${appId}"]`).waitFor({ state: "attached" });
     assert.deepStrictEqual(await app.locator("option").allTextContents(), ["Select", "Google Chrome", "iRacing"]);
     await app.selectOption(appId);
     assert.equal(await page.locator(".sp-shortcut-catalog-group").count(), 0, "Chrome keeps its flat picker");
@@ -5249,6 +5265,16 @@ async function assertShortcutCatalogSettings(browser, testCase) {
   nativeState.document.subpages[4] = "~B,1|companion,shortcut.command%2Bl,Address,Keyboard";
   const context = await browser.newContext({ viewport: testCase.viewport });
   await installRoutes(context, testCase.slug, { nativeState });
+  await context.route("**/connectors/status", route => route.fulfill({ json: {
+    mac_companion: { available: true, configured: true, paired: true, connected: true },
+  } }));
+  await context.route("**/companion/actions", route => route.fulfill({ json: [
+    { id: "com.apple.Safari", label: "Safari" },
+    { id: "com.apple.FinalCut", label: "Final Cut Pro" },
+    { id: "com.tinyspeck.slackmacgap", label: "Slack" },
+    { id: "com.openai.codex", label: "ChatGPT" },
+    { id: "com.example.NoShortcuts", label: "No Shortcuts" },
+  ] }));
   const page = await context.newPage();
   await installFakeEventSource(page);
   const toggles = ["Keyboard Shortcut", "Card Settings", "Custom Colours"].map(name => page.getByRole("button", { name, exact: true }));
@@ -5319,13 +5345,10 @@ async function assertShortcutCatalogSettings(browser, testCase) {
     await assertPanelSpacing();
     assert.strictEqual(await action.isVisible(), false, "choose an app first");
     assert.strictEqual(await search.isVisible(), false, "search appears after choosing an app");
-    const appLabels = await app.locator("option").allTextContents();
-    assert.strictEqual(appLabels[0], "Select");
-    assert.deepStrictEqual(appLabels.filter(label => label.startsWith("ChatGPT")), ["ChatGPT"]);
-    assert(appLabels.includes("Safari") && appLabels.includes("Slack") && appLabels.includes("Figma"),
-      "the Application tab includes bundled presets for Safari and other apps");
-    const names = appLabels.slice(1);
-    assert.deepStrictEqual(names, [...names].sort((a, b) => a.localeCompare(b, undefined, { sensitivity: "base" })));
+    await app.locator('option[value="com.apple.Safari"]').waitFor({ state: "attached" });
+    assert.deepStrictEqual(await app.locator("option").allTextContents(),
+      ["Select", "ChatGPT", "Final Cut Pro", "Safari", "Slack"],
+      "the Mac picker lists only enabled apps with presets");
     await app.selectOption("com.apple.Safari");
     assert.strictEqual(await shortcutPanel.locator('[id$="shortcut-catalog-action"]').count(), 1);
     const safariTemplate = JSON.parse(fs.readFileSync(
@@ -5366,13 +5389,13 @@ async function assertShortcutCatalogSettings(browser, testCase) {
     assert(await newTab.isChecked(), "keyboard selection activates the new shortcut");
     assert(await newTab.evaluate(input => {
       const list = input.closest(".sp-shortcut-catalog-list");
-      const track = input.nextElementSibling;
-      const style = getComputedStyle(track);
+      const style = getComputedStyle(input);
       const outlineOutset = parseFloat(style.outlineWidth) + parseFloat(style.outlineOffset);
-      const clipRight = list.getBoundingClientRect().left + list.clientLeft + list.clientWidth;
+      const clipLeft = list.getBoundingClientRect().left + list.clientLeft;
+      const radio = input.getBoundingClientRect();
       return input === document.activeElement && style.outlineStyle !== "none" &&
-        track.getBoundingClientRect().right + outlineOutset <= clipRight;
-    }), "the focused shortcut toggle's outline fits inside the scrolling list");
+        radio.left - outlineOutset >= clipLeft && radio.right + outlineOutset <= clipLeft + list.clientWidth;
+    }), "the focused shortcut radio's outline fits inside the scrolling list");
     assert.strictEqual(await preset(reloadPreset).isChecked(), false, "selecting a new shortcut clears the previous one");
     await selectPreset(reloadPreset);
     await saveCard();
@@ -8568,7 +8591,9 @@ async function assertAppShortcutPreview(browser) {
     mac_companion: { available: true, configured: true, paired: true, connected: true, shortcut_page_ready: false },
   };
   await context.route("**/connectors/status**", route => route.fulfill({ status: 200, json: status }));
-  await context.route("**/companion/actions", route => route.fulfill({ status: 200, json: [] }));
+  await context.route("**/companion/actions", route => route.fulfill({
+    json: [{ id: "com.apple.Safari", label: "Safari" }],
+  }));
   try {
     const page = await context.newPage();
     await installFakeEventSource(page);
@@ -8649,6 +8674,7 @@ async function assertNestedCompanionPages(browser) {
     await page.locator(".sp-main .sp-empty-cell").first().click();
     await chooseCardType(page, "Keyboard Shortcut");
     assert.strictEqual(await page.getByRole("tab", { name: "Application", exact: true }).getAttribute("aria-selected"), "true");
+    await page.locator('[id$="shortcut-catalog-app"] option[value="com.apple.Safari"]').waitFor({ state: "attached" });
     assert.strictEqual(await page.locator('[id$="shortcut-catalog-app"]').inputValue(), "com.apple.Safari",
       "a nested app page uses the app that owns the inner page");
     await page.locator(".sp-settings-close").click();

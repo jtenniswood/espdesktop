@@ -1372,10 +1372,11 @@ export function registerCompanionCardTypes(
                 (savedCatalogShortcut ? !!companionShortcutAppIconId(card) : isNewShortcut && !inAppSubpage);
             const windowsShortcuts = useWindowsShortcuts();
             const windowsCustomKeys = windowsShortcuts || !!scopedCustomApp;
-            const platformPending = connectorStatus.companionPlatform() === undefined;
-            const catalogueApps = platformPending ? [] : sortCompanionLabels(companionShortcutCatalogApps({
-                pageAppId: pageApp, savedAppId: savedCatalogShortcut?.appId, windows: windowsShortcuts,
-            }));
+            const platform = connectorStatus.companionPlatform();
+            const eligibleShortcutApps = () => platform ? sortCompanionLabels(companionShortcutCatalogApps({
+                approvedApps: companionApplications, windows: platform === "windows",
+            })) : [];
+            const catalogueApps = eligibleShortcutApps();
             const defaultCatalogApp = catalogueApps.find(app => app.appId === pageApp)?.appId;
             const shortcutType = card._shortcutType || (savedCatalogShortcut || isNewShortcut ? "catalog" : "custom");
             const typeId = helpers.idPrefix + "shortcut-type";
@@ -1533,11 +1534,25 @@ export function registerCompanionCardTypes(
             const catalogApp = document.createElement("select");
             catalogApp.className = "sp-select";
             catalogApp.id = helpers.idPrefix + "shortcut-catalog-app";
-            for (const [value, label] of [["", "Select"], ...catalogueApps.map((app) => [app.appId, app.label] as const)] as const) {
+            const placeholder = catalogueApps.length ? "Select" : "No available apps";
+            for (const [value, label] of [["", placeholder], ...catalogueApps.map((app) => [app.appId, app.label] as const)] as const) {
                 const option = document.createElement("option");
                 option.value = value;
                 option.textContent = label;
                 catalogApp.appendChild(option);
+            }
+            if (savedCatalogShortcut && !catalogueApps.some(app => app.appId === savedCatalogShortcut.appId)) {
+                const [savedApp] = companionShortcutCatalogApps({
+                    savedAppId: savedCatalogShortcut.appId, windows: platform ? platform === "windows" : undefined,
+                });
+                if (savedApp) {
+                    const unavailable = document.createElement("option");
+                    unavailable.value = savedApp.appId;
+                    unavailable.textContent = savedApp.label + " (unavailable)";
+                    unavailable.disabled = true;
+                    unavailable.hidden = true;
+                    catalogApp.appendChild(unavailable);
+                }
             }
             catalogApp.value = savedCatalogShortcut?.appId ?? card._shortcutCatalogApp ?? defaultCatalogApp ?? "";
             if (catalogApp.selectedIndex < 0) catalogApp.value = "";
@@ -1575,11 +1590,10 @@ export function registerCompanionCardTypes(
             if (catalogApp.value) catalogField.appendChild(catalogShortcutField);
             shortcutPanel.section.appendChild(catalogField);
 
-            if (initialMode === "shortcut" && shortcutType === "catalog" && catalogApp.value && panel) {
-                loadAppShortcuts(catalogApp.value, panel);
-            }
-            const options = initialMode === "shortcut" && shortcutType === "catalog" && catalogApp.value
-                ? companionShortcutPresetCards(catalogApp.value) : [];
+            const canChoosePreset = initialMode === "shortcut" && shortcutType === "catalog" &&
+                catalogueApps.some(app => app.appId === catalogApp.value);
+            if (canChoosePreset && panel) loadAppShortcuts(catalogApp.value, panel);
+            const options = canChoosePreset ? companionShortcutPresetCards(catalogApp.value) : [];
             const presets = sortCompanionLabels(savedCatalogShortcut?.appId === catalogApp.value &&
                 !options.some(item => item.options === savedCatalogShortcut.options && item.entity === savedCatalogShortcut.entity)
                 ? [...options.filter(item => item.options !== savedCatalogShortcut.options), savedCatalogShortcut] : options);
@@ -1895,6 +1909,9 @@ export function registerCompanionCardTypes(
                 const applicationActions = companionApplicationActions(actions);
                 rememberCompanionApplications(applicationActions);
                 cardUi.renderPreview();
+                if (initialMode === "shortcut" && panel?.isConnected &&
+                    JSON.stringify(eligibleShortcutApps().map(app => [app.appId, app.label])) !==
+                    JSON.stringify(catalogueApps.map(app => [app.appId, app.label]))) renderButtonSettings();
                 availableCompanionApps = applicationActions;
                 const folderActions = companionFolderActions(actions);
                 availableCompanionFolders = folderActions;
