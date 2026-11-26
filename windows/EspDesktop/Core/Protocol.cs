@@ -12,6 +12,9 @@ namespace EspDesktop.Core;
 
 internal static class Protocol
 {
+    public const string InputLevelPrefix = "input.level.";
+    public const string AppVolumePrefix = "app.volume.";
+
     private static readonly JsonElement Contract = ReadContract();
     private static readonly Dictionary<string, JsonElement> Messages = Contract.GetProperty("messages")
         .EnumerateArray().ToDictionary(m => m.GetProperty("id").GetString()!);

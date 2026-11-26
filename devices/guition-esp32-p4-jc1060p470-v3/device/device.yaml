@@ -155,9 +155,19 @@ esphome:
                   esphome::esp32::crash_handler_clear();
                   #endif
                   global_preferences->sync();
-                  ESP_LOGW("jc1060p470_v2", "Cleared saved crash report before API logging; rebooting once while preserving the failed-boot counter");
               - delay: 500ms
               - lambda: |-
+                  // A crash during OTA shutdown can leave a report for the
+                  // new image. Let it complete normal OTA verification.
+                  esp_ota_img_states_t ota_state;
+                  const auto *running = esp_ota_get_running_partition();
+                  if (running != nullptr &&
+                      esp_ota_get_state_partition(running, &ota_state) == ESP_OK &&
+                      ota_state == ESP_OTA_IMG_PENDING_VERIFY) {
+                    ESP_LOGI("jc1060p470_v2", "Cleared saved crash report; continuing OTA verification");
+                    return;
+                  }
+                  ESP_LOGW("jc1060p470_v2", "Cleared saved crash report; rebooting once while preserving the failed-boot counter");
                   // Avoid safe_reboot(): its safe-mode shutdown hook clears
                   // the failed-boot counter before the replacement boot.
                   App.reboot();

@@ -28,6 +28,7 @@ internal sealed class WindowsDesktop(LocalSettings settings, ObsConnection? obs 
     private Dictionary<string, object?>? latestMetrics;
     private long lastMetricsAt;
     private StartApp[] apps = [Explorer];
+    private CatalogueItem[] audioInputs = [];
     private string? cachedAddressBar;
     private nint cachedBrowserWindow;
     private Task<(nint Window, string? Address)>? browserRead;
@@ -58,7 +59,8 @@ internal sealed class WindowsDesktop(LocalSettings settings, ObsConnection? obs 
     // The panel caps its picker while keeping icons eligible for configured cards.
     public IReadOnlyList<CatalogueItem> Catalogue() =>
         settings.Folders.Select(f => new CatalogueItem(f.Id, CatalogueLabel(f.Label)))
-        .Concat(apps.Where(Allowed).Select(a => new CatalogueItem(a.Id, CatalogueLabel(a.Name)))).ToArray();
+        .Concat(apps.Where(Allowed).Select(a => new CatalogueItem(a.Id, CatalogueLabel(a.Name))))
+        .Concat(audioInputs).ToArray();
 
     private const int StarterSize = 7;
     private const int ShortcutPageSize = 24;
@@ -402,8 +404,21 @@ internal sealed class WindowsDesktop(LocalSettings settings, ObsConnection? obs 
         finally { if (bitmap != 0) _ = DeleteObject(bitmap); Com.Release(factory); }
     }
 
-    public bool SetValue(string id, int value) => !SessionState.Locked && Audio.Set(id, value);
-    public IEnumerable<AudioValue> Values() => Audio.Read();
+    public bool SetValue(string id, int value) => !SessionState.Locked &&
+        (id.StartsWith("media.", StringComparison.Ordinal) ? Audio.Set(id, value) : Audio.SetTarget(id, value, IdentifyAudioApp));
+
+    public IEnumerable<AudioValue> Values()
+    {
+        var (inputs, levels) = Audio.ReadTargets(IdentifyAudioApp);
+        if (!inputs.SequenceEqual(audioInputs))
+        {
+            audioInputs = inputs;
+            Changed();
+        }
+        return Audio.Read().Concat(levels.Select(pair => new AudioValue(pair.Key, pair.Value))).ToArray();
+    }
+
+    private string? IdentifyAudioApp(uint pid) => Identify(ReadProcess(pid)) is { } app && Allowed(app) ? app.Id : null;
     public Dictionary<string, object?> Metrics(uint generation)
     {
         // Keep the sampling interval independent of how many displays publish it.
@@ -468,6 +483,13 @@ internal sealed class WindowsDesktop(LocalSettings settings, ObsConnection? obs 
     {
         _ = InputSession.GetWindowThreadProcessId(window, out var pid);
         if (pid == 0 || pid == Environment.ProcessId) return default;
+        var (aumid, executable) = ReadProcess(pid);
+        return (aumid ?? WindowAppId(window), executable);
+    }
+
+    private static (string? Aumid, string? Executable) ReadProcess(uint pid)
+    {
+        if (pid == 0 || pid == Environment.ProcessId) return default;
         var process = OpenProcess(0x1000, false, pid);
         if (process == 0) return default;
         try
@@ -477,24 +499,22 @@ internal sealed class WindowsDesktop(LocalSettings settings, ObsConnection? obs 
             var exe = QueryFullProcessImageNameW(process, 0, image, ref length) ? image.ToString() : null;
             length = 512;
             var name = new StringBuilder((int)length);
-            return (GetApplicationUserModelId(process, ref length, name) == 0 ? name.ToString() : WindowAppId(window), exe);
+            return (GetApplicationUserModelId(process, ref length, name) == 0 ? name.ToString() : null, exe);
         }
         finally { _ = CloseHandle(process); }
     }
 
     private static string? WindowAppId(nint window)
     {
-        var iid = typeof(IWindowPropertyStore).GUID;
-        IWindowPropertyStore? store = null;
-        PropVariant value = default;
+        var iid = typeof(IPropertyStore).GUID;
+        IPropertyStore? store = null;
         try
         {
             if (SHGetPropertyStoreForWindow(window, in iid, out store) < 0) return null;
             var key = new PropertyKey(new("9F4C2855-9F79-4B39-A8D0-E1D42DE1D5F3"), 5);
-            return store.GetValue(in key, out value) >= 0 && value.Type == 31
-                ? Marshal.PtrToStringUni(value.Pointer) : null;
+            return Com.ReadStringProperty(store, key);
         }
-        finally { _ = PropVariantClear(ref value); Com.Release(store); }
+        finally { Com.Release(store); }
     }
 
     private static bool IsExplorerWindow(nint window)
@@ -594,8 +614,6 @@ internal sealed class WindowsDesktop(LocalSettings settings, ObsConnection? obs 
 
     [StructLayout(LayoutKind.Sequential)]
     private readonly record struct SizeNative(int Width, int Height);
-    [StructLayout(LayoutKind.Sequential, Pack = 4)]
-    private readonly record struct PropertyKey(Guid Format, uint Id);
     [StructLayout(LayoutKind.Sequential)]
     private struct FlashInfo
     {
@@ -603,27 +621,13 @@ internal sealed class WindowsDesktop(LocalSettings settings, ObsConnection? obs 
         public nint Window;
         public uint Flags, Count, Timeout;
     }
-    [StructLayout(LayoutKind.Explicit, Size = 24)]
-    private struct PropVariant
-    {
-        [FieldOffset(0)] public ushort Type;
-        [FieldOffset(8)] public nint Pointer;
-    }
-    [ComImport, Guid("886D8EEB-8CF2-4446-8D02-CDBA1DBDCF99"), InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
-    private interface IWindowPropertyStore
-    {
-        [PreserveSig] int GetCount(out uint count);
-        [PreserveSig] int GetAt(uint index, out PropertyKey key);
-        [PreserveSig] int GetValue(in PropertyKey key, out PropVariant value);
-    }
     [ComImport, Guid("BCC18B79-BA16-442F-80C4-8A59C30C463B"), InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
     private interface IShellItemImageFactory
     {
         [PreserveSig] int GetImage(SizeNative size, int flags, out nint bitmap);
     }
     [DllImport("shell32.dll", CharSet = CharSet.Unicode)] private static extern int SHCreateItemFromParsingName(string path, nint context, in Guid iid, out IShellItemImageFactory item);
-    [DllImport("shell32.dll")] private static extern int SHGetPropertyStoreForWindow(nint window, in Guid iid, out IWindowPropertyStore store);
-    [DllImport("ole32.dll")] private static extern int PropVariantClear(ref PropVariant value);
+    [DllImport("shell32.dll")] private static extern int SHGetPropertyStoreForWindow(nint window, in Guid iid, out IPropertyStore store);
     [DllImport("gdi32.dll")] [return: MarshalAs(UnmanagedType.Bool)] private static extern bool DeleteObject(nint bitmap);
     [DllImport("kernel32.dll")] private static extern nint OpenProcess(uint access, [MarshalAs(UnmanagedType.Bool)] bool inherit, uint pid);
     [DllImport("kernel32.dll")] [return: MarshalAs(UnmanagedType.Bool)] private static extern bool CloseHandle(nint handle);

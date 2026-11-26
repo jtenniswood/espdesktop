@@ -167,7 +167,7 @@ internal static class InputSession
     private static extern bool GetUserObjectInformationW(nint obj, int index, StringBuilder value, int length, out int needed);
 }
 
-internal static class Audio
+internal static partial class Audio
 {
     private const string Prefix = "media.";
     private const int EndpointNotFound = unchecked((int)0x80070490);
@@ -179,8 +179,7 @@ internal static class Audio
             var input = name == "input";
             var state = WithEndpoint(input, endpoint =>
             {
-                int? volume = endpoint.GetMasterVolumeLevelScalar(out var scalar) >= 0
-                    ? Math.Clamp((int)Math.Round(scalar * 100), 0, 100) : null;
+                var volume = ReadVolume(endpoint);
                 int? mute = ReadMute(endpoint) is { } muted ? muted ? 100 : 0 : null;
                 return (Volume: volume, Mute: mute);
             }, default, out var noDevice);
@@ -194,9 +193,7 @@ internal static class Audio
         if (value is < 0 or > 100) return false;
         return WithEndpoint(id.StartsWith("media.input_", StringComparison.Ordinal), endpoint => id switch
         {
-            "media.input_volume" or "media.output_volume" => SetLevel(value,
-                level => endpoint.SetMasterVolumeLevelScalar(level, 0) >= 0,
-                () => ReadMute(endpoint), muted => endpoint.SetMute(muted, 0) >= 0),
+            "media.input_volume" or "media.output_volume" => SetEndpointLevel(endpoint, value),
             "media.input_mute" or "media.output_mute" when value is 0 or 100 => endpoint.SetMute(value == 100, 0) >= 0,
             _ => false
         }, false, out _);
@@ -208,42 +205,44 @@ internal static class Audio
         return value == 0 || readMute() != true || writeMute(false);
     }
 
+    private static bool SetEndpointLevel(IAudioEndpointVolume endpoint, int value) => SetLevel(value,
+        level => endpoint.SetMasterVolumeLevelScalar(level, 0) >= 0,
+        () => ReadMute(endpoint), muted => endpoint.SetMute(muted, 0) >= 0);
+
     private static bool? ReadMute(IAudioEndpointVolume endpoint) => endpoint.GetMute(out var muted) >= 0 ? muted : null;
 
     private static T WithEndpoint<T>(bool input, Func<IAudioEndpointVolume, T> action, T fallback, out bool noDevice)
     {
         noDevice = false;
-        object? enumerator = null, raw = null;
+        object? enumerator = null;
         IMMDevice? device = null;
         try
         {
-            enumerator = Activator.CreateInstance(Type.GetTypeFromCLSID(new("BCDE0395-E52F-467C-8E3D-C4579291692E"))!);
-            var result = ((IMMDeviceEnumerator)enumerator!).GetDefaultAudioEndpoint(input ? 1 : 0, 1, out device);
-            if (result == EndpointNotFound)
-            {
-                noDevice = true;
-                return fallback;
-            }
-            Check(result);
-            var guid = typeof(IAudioEndpointVolume).GUID;
-            Check(device.Activate(in guid, 23, 0, out raw));
-            return action((IAudioEndpointVolume)raw);
+            enumerator = CreateEnumerator();
+            var result = ((IMMDeviceEnumerator)enumerator).GetDefaultAudioEndpoint(input ? 1 : 0, 1, out device);
+            noDevice = result == EndpointNotFound;
+            return result >= 0 ? WithVolume(device, action, fallback) : fallback;
+
         }
         catch (COMException) { return fallback; }
-        finally { Com.Release(raw); Com.Release(device); Com.Release(enumerator); }
+        finally { Com.Release(device); Com.Release(enumerator); }
     }
-    private static void Check(int hr) { if (hr < 0) Marshal.ThrowExceptionForHR(hr); }
+
+    private static object CreateEnumerator() =>
+        Activator.CreateInstance(Type.GetTypeFromCLSID(new("BCDE0395-E52F-467C-8E3D-C4579291692E"))!)!;
 
     [ComImport, Guid("A95664D2-9614-4F35-A746-DE8DB63617E6"), InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
     private interface IMMDeviceEnumerator
     {
-        [PreserveSig] int EnumAudioEndpoints(int flow, uint state, out nint collection);
+        [PreserveSig] int EnumAudioEndpoints(int flow, uint state, out IMMDeviceCollection collection);
         [PreserveSig] int GetDefaultAudioEndpoint(int flow, int role, out IMMDevice device);
     }
     [ComImport, Guid("D666063F-1587-4E43-81F1-B948E807363F"), InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
     private interface IMMDevice
     {
         [PreserveSig] int Activate(in Guid iid, uint context, nint parameters, [MarshalAs(UnmanagedType.IUnknown)] out object value);
+        [PreserveSig] int OpenPropertyStore(uint access, out IPropertyStore store);
+        [PreserveSig] int GetId([MarshalAs(UnmanagedType.LPWStr)] out string id);
     }
     [ComImport, Guid("5CDF2C82-841E-4546-9722-0CF74078229A"), InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
     private interface IAudioEndpointVolume
@@ -267,4 +266,35 @@ internal static class Audio
 internal static class Com
 {
     public static void Release(object? o) { if (o is not null && Marshal.IsComObject(o)) Marshal.ReleaseComObject(o); }
+
+    public static string? ReadStringProperty(IPropertyStore store, PropertyKey key)
+    {
+        PropVariant value = default;
+        try
+        {
+            return store.GetValue(in key, out value) >= 0 && value.Type == 31
+                ? Marshal.PtrToStringUni(value.Pointer) : null;
+        }
+        finally { _ = PropVariantClear(ref value); }
+    }
+
+    [DllImport("ole32.dll")] private static extern int PropVariantClear(ref PropVariant value);
+}
+
+[StructLayout(LayoutKind.Sequential, Pack = 4)]
+internal readonly record struct PropertyKey(Guid Format, uint Id);
+
+[StructLayout(LayoutKind.Explicit, Size = 24)]
+internal struct PropVariant
+{
+    [FieldOffset(0)] public ushort Type;
+    [FieldOffset(8)] public nint Pointer;
+}
+
+[ComImport, Guid("886D8EEB-8CF2-4446-8D02-CDBA1DBDCF99"), InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
+internal interface IPropertyStore
+{
+    [PreserveSig] int GetCount(out uint count);
+    [PreserveSig] int GetAt(uint index, out PropertyKey key);
+    [PreserveSig] int GetValue(in PropertyKey key, out PropVariant value);
 }

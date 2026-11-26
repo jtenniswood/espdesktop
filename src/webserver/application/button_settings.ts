@@ -54,7 +54,7 @@ export interface CardPickerConnectorState {
 
 const MAC_ONLY_CARD_TYPES = new Set([
     "companion_apple_shortcut", "companion_apple_shortcuts",
-    "companion_app_volume", "companion_cough", "companion_input_device",
+    "companion_cough",
 ]);
 
 export function createButtonSettingsFeature(

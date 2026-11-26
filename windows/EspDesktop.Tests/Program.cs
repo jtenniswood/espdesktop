@@ -253,6 +253,9 @@ server.Map(SocketPath, async context =>
         await FindMessage(socket, "value.state", m => Text(m, "controlId") == FakeDesktop.Speaker && UInt(m, "value") == 50);
         await FindMessage(socket, "value.state", m => Text(m, "controlId") == FakeDesktop.Mic &&
             !m.GetProperty("available").GetBoolean() && !m.TryGetProperty("noInputDevice", out _));
+        string[] audioTargets = [FakeDesktop.AppVolume, FakeDesktop.InputLevel];
+        foreach (var target in audioTargets)
+            await FindMessage(socket, "value.state", m => Text(m, "controlId") == target && UInt(m, "value") == 50);
         desktop.MicState = new(FakeDesktop.Mic, null, NoInputDevice: true);
         await FindMessage(socket, "value.state", m => Valid(m, "mac_to_panel", "connected") &&
             Text(m, "controlId") == FakeDesktop.Mic && !m.GetProperty("available").GetBoolean() &&
@@ -261,6 +264,18 @@ server.Map(SocketPath, async context =>
         await FindMessage(socket, "value.state", m => Text(m, "controlId") == FakeDesktop.Mic &&
             m.GetProperty("available").GetBoolean() && UInt(m, "value") == 0 &&
             !m.TryGetProperty("noInputDevice", out _));
+        foreach (var target in audioTargets)
+        {
+            var request = target == FakeDesktop.AppVolume ? "app-level" : "input-level";
+            await Send(socket, "value.set", ("controlId", target), ("value", 35), ("requestId", request));
+            await FindMessage(socket, "action.result", m => Text(m, "requestId") == request && Text(m, "status") == "performed");
+            await FindMessage(socket, "value.state", m => Text(m, "controlId") == target && UInt(m, "value") == 35);
+        }
+        desktop.AppPlaying = false;
+        await FindMessage(socket, "value.state", m => Text(m, "controlId") == FakeDesktop.AppVolume &&
+            !m.GetProperty("available").GetBoolean());
+        desktop.AppPlaying = true;
+        await FindMessage(socket, "value.state", m => Text(m, "controlId") == FakeDesktop.AppVolume && UInt(m, "value") == 35);
 
         await Send(socket, "shortcut.catalogue.request", ("requestId", 10), ("appId", "index"), ("page", 0));
         var shortcutIndex = await FindMessage(socket, "shortcut.catalogue.page", m => UInt(m, "requestId") == 10);
@@ -772,7 +787,9 @@ async Task VerifyNativeDesktop(WebSocket socket, NativeWindowsDesktop fixture)
     }
     var folderCount = fixture.FolderActions is null ? 2 : 5 + NativeWindowsDesktop.CataloguePaddingFolders;
     var appCount = fixture.AppActions is null ? 1 : 3;
-    Check(entries.Count == folderCount + appCount && entries.ContainsKey(WindowsDesktop.ExplorerId) &&
+    var audioInputs = entries.Keys.Where(id => id.StartsWith(InputLevelPrefix, StringComparison.Ordinal)).ToArray();
+    Check(audioInputs.Length <= 16, "limit the input device picker to the panel capacity");
+    Check(entries.Count - audioInputs.Length == folderCount + appCount && entries.ContainsKey(WindowsDesktop.ExplorerId) &&
           !entries.ContainsKey(fixture.UnapprovedAppId), "publish only approved folders and apps");
     if (fixture.AppActions is { } approvedApp)
         Check(entries.TryGetValue(approvedApp.Entry.Id, out var app) && Text(app, "label") == approvedApp.Entry.Name,
@@ -796,6 +813,17 @@ async Task VerifyNativeDesktop(WebSocket socket, NativeWindowsDesktop fixture)
     }
     Check(controls.Keys.ToHashSet().SetEquals(["media.output_volume", "media.input_volume", "media.output_mute", "media.input_mute"]),
         "advertise Windows speaker and microphone controls");
+    if (audioInputs.Length > 0)
+    {
+        var publishedInputs = new HashSet<string>(StringComparer.Ordinal);
+        while (publishedInputs.Count < audioInputs.Length)
+        {
+            var input = await FindMessage(socket, "value.state", m =>
+                audioInputs.Contains(Text(m, "controlId")) && m.GetProperty("available").GetBoolean());
+            Check(Valid(input, "mac_to_panel", "connected"), "publish selectable Windows inputs with their current level");
+            publishedInputs.Add(Text(input, "controlId"));
+        }
+    }
     await FindMessage(socket, "system_metrics", m => Valid(m, "mac_to_panel", "connected") &&
         m.TryGetProperty("memoryUsagePercent", out _) &&
         m.GetProperty("storageDevices").EnumerateArray().Any(d => Text(d, "id") == "startup"));
@@ -1134,6 +1162,11 @@ sealed class FakeDesktop : IDesktop
     public const string Speaker = "media.output_volume";
     public const string Mic = "media.input_mute";
     public AudioValue MicState { get; set; } = new(Mic, null);
+    public const string AppVolume = AppVolumePrefix + "windows.test";
+    public const string InputLevel = InputLevelPrefix + "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
+    public bool AppPlaying { get; set; } = true;
+    private int appLevel = 50;
+    private int inputLevel = 50;
     public int CatalogueRevision => 0;
     public bool ShortcutsEnabled => false;
     public bool Locked { get; set; }
@@ -1150,10 +1183,20 @@ sealed class FakeDesktop : IDesktop
     public Task<string> Invoke(JsonElement message, CancellationToken token) { Actions++; return Task.FromResult("activated"); }
     public bool SetValue(string id, int value)
     {
-        if (id != Speaker) return false;
-        SpeakerLevel = value;
-        return true;
+        switch (id)
+        {
+            case Speaker: SpeakerLevel = value; return true;
+            case AppVolume when AppPlaying: appLevel = value; return true;
+            case InputLevel: inputLevel = value; return true;
+            default: return false;
+        }
     }
-    public IEnumerable<AudioValue> Values() => [new(Speaker, SpeakerLevel), MicState];
+    public IEnumerable<AudioValue> Values()
+    {
+        yield return new(Speaker, SpeakerLevel);
+        yield return MicState;
+        if (AppPlaying) yield return new(AppVolume, appLevel);
+        yield return new(InputLevel, inputLevel);
+    }
     public Dictionary<string, object?> Metrics(uint generation) => Message("system_metrics", ("generation", generation), ("available", false));
 }
