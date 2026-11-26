@@ -35,6 +35,8 @@ internal sealed class LocalSettings
     public bool InstallUpdates { get; set; }
     public int? ObsPort { get; set; }
     public string? ObsProtectedPassword { get; set; }
+    public Dictionary<string, ObsBreakChoice> ObsBreakChoices { get; set; } = new(StringComparer.Ordinal);
+    public bool ObsBreakNeedsReview { get; set; }
     public HashSet<string> AllowedApps { get; set; } = [];
     public List<ApprovedFolder> Folders { get; set; } = [];
 }

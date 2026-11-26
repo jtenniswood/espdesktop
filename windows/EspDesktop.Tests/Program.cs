@@ -281,13 +281,20 @@ server.Map(SocketPath, async context =>
             return;
         }
 #endif
-        await FindMessage(socket, "catalogue.page", m => m.GetProperty("items")[0].GetProperty("id").GetString() == "windows.test");
+        var capabilities = await FindMessage(socket, "capabilities", _ => true);
+        var supported = capabilities.GetProperty("values").EnumerateArray().Select(value => value.GetString()).ToArray();
+        Check(supported.Contains("obs_output_controls") && supported.Contains("obs_brb"),
+            "advertise Windows OBS output and Break capabilities");
+        var catalogue = await FindMessage(socket, "catalogue.page", m => m.GetProperty("items")[0].GetProperty("id").GetString() == "windows.test");
+        Check(catalogue.GetProperty("items").EnumerateArray().Any(item => Text(item, "id") == FakeDesktop.ObsFader),
+            "publish OBS controls alongside existing apps on connect");
         await FindMessage(socket, "value.state", m => Text(m, "controlId") == FakeDesktop.Speaker && UInt(m, "value") == 50);
         await FindMessage(socket, "value.state", m => Text(m, "controlId") == FakeDesktop.Mic &&
             !m.GetProperty("available").GetBoolean() && !m.TryGetProperty("noInputDevice", out _));
         string[] audioTargets = [FakeDesktop.AppVolume, FakeDesktop.InputLevel];
         foreach (var target in audioTargets)
             await FindMessage(socket, "value.state", m => Text(m, "controlId") == target && UInt(m, "value") == 50);
+        await FindMessage(socket, "value.state", m => Text(m, "controlId") == FakeDesktop.ObsFader && UInt(m, "value") == 50);
         desktop.MicState = new(FakeDesktop.Mic, null, NoInputDevice: true);
         await FindMessage(socket, "value.state", m => Valid(m, "mac_to_panel", "connected") &&
             Text(m, "controlId") == FakeDesktop.Mic && !m.GetProperty("available").GetBoolean() &&
@@ -303,6 +310,13 @@ server.Map(SocketPath, async context =>
             await FindMessage(socket, "action.result", m => Text(m, "requestId") == request && Text(m, "status") == "performed");
             await FindMessage(socket, "value.state", m => Text(m, "controlId") == target && UInt(m, "value") == 35);
         }
+        await Send(socket, "value.set", ("controlId", FakeDesktop.ObsFader), ("value", 65), ("requestId", "obs-fader"));
+        await FindMessage(socket, "action.result", m => Text(m, "requestId") == "obs-fader" && Text(m, "status") == "performed");
+        var obsCatalogue = await FindMessage(socket, "catalogue.page", m => Text(m, "scope") == "obs");
+        Check(obsCatalogue.GetProperty("items").EnumerateArray().All(item => Text(item, "id").StartsWith("obs.")),
+            "refresh OBS independently of the app catalogue");
+        await FindMessage(socket, "value.state", m => Text(m, "controlId") == FakeDesktop.ObsFader && UInt(m, "value") == 65);
+
         desktop.AppPlaying = false;
         await FindMessage(socket, "value.state", m => Text(m, "controlId") == FakeDesktop.AppVolume &&
             !m.GetProperty("available").GetBoolean());
@@ -1231,12 +1245,24 @@ sealed class FakeDesktop : IDesktop
     private int appLevel = 50;
     private int inputLevel = 50;
     public int CatalogueRevision => 0;
+    public int ObsCatalogueRevision { get; private set; }
+    public bool SupportsObs => true;
+    public const string ObsFader = "obs.level.797af71d-30e0-425c-b1ea-4b35450bd2cd";
+    private int obsLevel = 50;
     public bool ShortcutsEnabled => false;
     public bool Locked { get; set; }
     public int Actions { get; private set; }
     public int SpeakerLevel { get; private set; } = 50;
     public (bool Locked, bool? DisplayAwake) SessionState => (Locked, true);
     public IReadOnlyList<CatalogueItem> Catalogue() => [new("windows.test", "Test app")];
+    public IEnumerable<CatalogueItem> ObsCatalogue(uint capability) => capability >= 14 ? [new(ObsFader, "Desk mic")] : [];
+    public Task<bool> SetObsValue(string id, int value, object owner, CancellationToken token)
+    {
+        if (id != ObsFader) return Task.FromResult(false);
+        obsLevel = value;
+        ObsCatalogueRevision++;
+        return Task.FromResult(true);
+    }
     public IEnumerable<string> Definitions() => [];
     public (string?, bool) ShortcutPage(string appId, uint page) => appId == "index" && page == 0
         ? ("""{"shortcutPlatform":"windows","applications":[]}""", true)
@@ -1260,6 +1286,7 @@ sealed class FakeDesktop : IDesktop
         yield return MicState;
         if (AppPlaying) yield return new(AppVolume, appLevel);
         yield return new(InputLevel, inputLevel);
+        yield return new(ObsFader, obsLevel);
     }
     public Dictionary<string, object?> Metrics(uint generation) => Message("system_metrics", ("generation", generation), ("available", false));
 }

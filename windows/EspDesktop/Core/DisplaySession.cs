@@ -11,13 +11,14 @@ using static EspDesktop.Core.Protocol;
 namespace EspDesktop.Core;
 
 internal sealed record Pairing(string Address, string Fingerprint, byte[] Key, uint Sequence = 0, string? DisplayName = null);
-internal sealed record CatalogueItem(string Id, string Label, string? ObsState = null, string? ObsDetail = null);
+internal sealed record CatalogueItem(string Id, string Label, string? ObsState = null, string? ObsDetail = null, bool? ObsAvailable = null);
 
 internal readonly record struct AudioValue(string Id, int? Value, bool NoInputDevice = false);
 
 internal interface IDesktop
 {
     int CatalogueRevision { get; }
+    int ObsCatalogueRevision => 0;
     bool ShortcutsEnabled { get; }
     IReadOnlyList<CatalogueItem> Catalogue();
     IEnumerable<CatalogueItem> ObsCatalogue(uint capability) => [];
@@ -29,6 +30,8 @@ internal interface IDesktop
     byte[]? AppIcon(string appId, int side);
     Task<string> Invoke(JsonElement message, CancellationToken token);
     bool SetValue(string id, int value);
+    Task<bool> SetObsValue(string id, int value, object owner, CancellationToken token) => Task.FromResult(false);
+    void AbandonObsHolds(object owner) { }
     IEnumerable<AudioValue> Values();
     Dictionary<string, object?> Metrics(uint generation);
 }
@@ -206,7 +209,7 @@ internal sealed class DisplaySession(IDesktop desktop, Action<Pairing> save, Act
     private sealed class Connected(Link link, IDesktop desktop, uint capabilityVersion, CancellationToken token)
     {
         private uint catalogueGeneration, definitionGeneration, metricGeneration, iconGeneration;
-        private int revision = -1;
+        private int revision = -1, obsRevision = -1;
         private string zone = "";
         private string[]? focused;
         private (bool Locked, bool? DisplayAwake)? sessionState;
@@ -247,6 +250,7 @@ internal sealed class DisplaySession(IDesktop desktop, Action<Pairing> save, Act
             }
             finally
             {
+                desktop.AbandonObsHolds(this);
                 await lifetime.CancelAsync();
                 try { await read; }
                 catch (Exception e) when (e is OperationCanceledException or WebSocketException or IOException or SessionException) { }
@@ -258,27 +262,37 @@ internal sealed class DisplaySession(IDesktop desktop, Action<Pairing> save, Act
 
         private const uint OnDemandShortcutsVersion = 23;
 
-        private async Task Catalogue()
+        private async Task Catalogue(bool obsOnly = false)
         {
-            revision = desktop.CatalogueRevision;
+            if (!obsOnly) revision = desktop.CatalogueRevision;
+            obsRevision = desktop.ObsCatalogueRevision;
             var capabilities = new List<string> { "windows_companion", "app_icons", "app_icons_alpha", "app_icons_240", "url_card_focus", "windows_shortcuts" };
             capabilities.Add(desktop.ShortcutsEnabled ? "keyboard_shortcuts" : "keyboard_shortcuts_unavailable");
             if (capabilityVersion >= OnDemandShortcutsVersion) capabilities.Add("shortcut_catalogue_on_demand");
             if (capabilityVersion >= 13 && desktop.SupportsObs) capabilities.Add("obs_scene_cards");
-            await Send("capabilities", ("values", capabilities));
-            var entries = desktop.Catalogue().Concat(desktop.ObsCatalogue(capabilityVersion)).Where(item => SupportsAudioValue(item.Id)).Select(item =>
+            if (capabilityVersion >= 17 && desktop.SupportsObs) capabilities.Add("obs_output_controls");
+            if (capabilityVersion >= 18 && desktop.SupportsObs) capabilities.Add("obs_brb");
+            if (!obsOnly) await Send("capabilities", ("values", capabilities));
+            var obsCatalogue = desktop.ObsCatalogue(capabilityVersion);
+            var entries = (obsOnly ? obsCatalogue : desktop.Catalogue().Concat(obsCatalogue)).Where(item => SupportsAudioValue(item.Id)).Select(item =>
             {
                 var fields = new Dictionary<string, object?> { ["id"] = item.Id, ["label"] = CatalogueLabel(item.Label) };
                 if (item.ObsState != null) fields["obsState"] = item.ObsState;
                 if (item.ObsDetail != null) fields["obsDetail"] = CatalogueLabel(item.ObsDetail);
+                if (item.ObsAvailable is { } available) fields["obsAvailable"] = available;
                 return fields;
             }).ToArray();
             var pages = entries.Chunk(48).ToArray();
             if (pages.Length == 0) pages = [[]];
             var generation = Next(ref catalogueGeneration);
             for (var i = 0; i < pages.Length; i++)
-                await Send("catalogue.page", ("generation", generation), ("page", i),
+            {
+                var message = Message("catalogue.page", ("generation", generation), ("page", i),
                     ("complete", i == pages.Length - 1), ("items", pages[i]));
+                if (obsOnly) message.Add("scope", "obs");
+                await link.Send(message, "connected", token);
+            }
+            if (obsOnly) return;
             if (capabilityVersion is >= 5 and < OnDemandShortcutsVersion)
             {
                 // Leave room for escaping the nested JSON in the outer frame.
@@ -293,13 +307,17 @@ internal sealed class DisplaySession(IDesktop desktop, Action<Pairing> save, Act
 
         private bool SupportsAudioValue(string id) =>
             (!id.StartsWith(AppVolumePrefix, StringComparison.Ordinal) || capabilityVersion >= 10) &&
-            (!id.StartsWith(InputLevelPrefix, StringComparison.Ordinal) || capabilityVersion >= 12);
+            (!id.StartsWith(InputLevelPrefix, StringComparison.Ordinal) || capabilityVersion >= 12) &&
+            (!id.StartsWith("obs.level.", StringComparison.Ordinal) || capabilityVersion >= 14) &&
+            (!id.StartsWith("obs.cough.", StringComparison.Ordinal) || capabilityVersion >= 16);
 
         private async Task Publish(bool fastOnly)
         {
             var currentValues = desktop.Values().Where(pair => SupportsAudioValue(pair.Id))
                 .ToDictionary(state => state.Id, StringComparer.Ordinal);
             if (revision != desktop.CatalogueRevision) await Catalogue();
+            else if (obsRevision != desktop.ObsCatalogueRevision && capabilityVersion >= 13)
+                await Catalogue(obsOnly: capabilityVersion >= 22);
             var currentState = desktop.SessionState;
             if (capabilityVersion >= 7 && currentState != sessionState)
             {
@@ -365,7 +383,10 @@ internal sealed class DisplaySession(IDesktop desktop, Action<Pairing> save, Act
                 case "action.invoke":
                     var action = Text(m, "actionId");
                     if ((action.StartsWith("obs.", StringComparison.Ordinal) && capabilityVersion < 13) ||
-                        (action.StartsWith("obs.target.", StringComparison.Ordinal) && capabilityVersion < 19))
+                        (action.StartsWith("obs.output.", StringComparison.Ordinal) && capabilityVersion < 17) ||
+                        (action.StartsWith("obs.brb.", StringComparison.Ordinal) && capabilityVersion < 18) ||
+                        (action.StartsWith("obs.target.", StringComparison.Ordinal) && capabilityVersion < 19) ||
+                        (action.StartsWith("obs.source.", StringComparison.Ordinal) && capabilityVersion < 21))
                     {
                         await Send("action.result", ("requestId", Text(m, "requestId")), ("status", "not_allowed"));
                         break;
@@ -375,7 +396,11 @@ internal sealed class DisplaySession(IDesktop desktop, Action<Pairing> save, Act
                     break;
                 case "value.set":
                     var id = Text(m, "controlId");
-                    var changed = SupportsAudioValue(id) && !desktop.SessionState.Locked && desktop.SetValue(id, (int)UInt(m, "value"));
+                    var value = (int)UInt(m, "value");
+                    var changed = SupportsAudioValue(id) && !desktop.SessionState.Locked &&
+                        (id.StartsWith("obs.", StringComparison.Ordinal)
+                            ? await desktop.SetObsValue(id, value, this, token)
+                            : desktop.SetValue(id, value));
                     if (changed) dirtyAudioValues.Add(id);
                     await Send("action.result", ("requestId", Text(m, "requestId")), ("status", changed ? "performed" : "not_allowed"));
                     break;
