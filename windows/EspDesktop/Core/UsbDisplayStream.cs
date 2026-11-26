@@ -22,7 +22,8 @@ internal sealed class UsbDisplayStream(Stream serial) : Stream
         // bytes directly and does not use the configured UART bit rate.
         var port = new SerialPort(portName, 460800)
         {
-            ReadTimeout = 200, WriteTimeout = 1000, ReadBufferSize = 16384,
+            // Buffer serial bursts while downloading the display’s editor bundle.
+            ReadTimeout = 30, WriteTimeout = 1000, ReadBufferSize = 65536,
             Handshake = Handshake.None, DtrEnable = false, RtsEnable = false
         };
         Stream? connected = null;

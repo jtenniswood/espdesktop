@@ -56,7 +56,8 @@ internal sealed class DisplaySession(IDesktop desktop, Action<Pairing> save, Act
         return new Pairing(address, fingerprint, Convert.FromHexString(Text(reply, "credential")));
     }
 
-    public async Task RunAsync(Pairing pairing, CancellationToken token, string? newAddress = null)
+    public async Task RunAsync(Pairing pairing, CancellationToken token, string? newAddress = null,
+        Action<UsbDisplayEditor?>? editorChanged = null)
     {
         var failures = 0;
         var repairs = 0;
@@ -132,7 +133,19 @@ internal sealed class DisplaySession(IDesktop desktop, Action<Pairing> save, Act
                 recoveryCandidate = null;
                 newAddress = null;
                 status($"Connected to {displayName ?? endpoint.Label}");
-                await new Connected(client, desktop, UInt(reply, "capabilityVersion"), token).Run();
+                using var connected = CancellationTokenSource.CreateLinkedTokenSource(token);
+                if (endpoint.UsbPort is not null && reply.TryGetProperty("usbEditor", out var supportsEditor) &&
+                    supportsEditor.ValueKind == JsonValueKind.True && editorChanged is not null)
+                {
+                    client.Editor = new UsbEditorTunnel(client.SendBinary, connected.Token);
+                    editorChanged(new UsbDisplayEditor(client.Editor));
+                }
+                try { await new Connected(client, desktop, UInt(reply, "capabilityVersion"), connected.Token).Run(); }
+                finally
+                {
+                    await connected.CancelAsync();
+                    if (client.Editor is not null) editorChanged?.Invoke(null);
+                }
             }
             catch (OperationCanceledException) when (token.IsCancellationRequested) { return; }
             catch (SessionException e) { status(e.Message); return; }
@@ -206,8 +219,7 @@ internal sealed class DisplaySession(IDesktop desktop, Action<Pairing> save, Act
 
         public async Task Run()
         {
-            // There is exactly one pending receive and all sends and action dispatches
-            // happen on this loop, including the publications initiated by a timer.
+            // Keep one pending receive. Link dispatches USB replies while waiting for JSON.
             using var lifetime = CancellationTokenSource.CreateLinkedTokenSource(token);
             var read = link.Read("connected", lifetime.Token);
             using var timer = new PeriodicTimer(TimeSpan.FromMilliseconds(500));
@@ -444,6 +456,8 @@ internal sealed class DisplaySession(IDesktop desktop, Action<Pairing> save, Act
     {
         private readonly ClientWebSocket socket = new();
         private readonly HttpMessageInvoker http;
+        private readonly SemaphoreSlim sender = new(1);
+        public UsbEditorTunnel? Editor { get; set; }
 
         private readonly DisplayEndpoint endpoint;
 
@@ -474,10 +488,17 @@ internal sealed class DisplaySession(IDesktop desktop, Action<Pairing> save, Act
         }
 
         public Task Connect(CancellationToken token) => socket.ConnectAsync(endpoint.Socket, http, token);
-        public async Task Send(Dictionary<string, object?> m, string state, CancellationToken token) =>
-            await socket.SendAsync(Serialize(m, state).AsMemory(), WebSocketMessageType.Text, true, token);
-        public async Task SendBinary(byte[] bytes, CancellationToken token) =>
-            await socket.SendAsync(bytes.AsMemory(), WebSocketMessageType.Binary, true, token);
+        public Task Send(Dictionary<string, object?> m, string state, CancellationToken token) =>
+            SendFrame(Serialize(m, state), WebSocketMessageType.Text, token);
+        public Task SendBinary(byte[] bytes, CancellationToken token) =>
+            SendFrame(bytes, WebSocketMessageType.Binary, token);
+
+        private async Task SendFrame(byte[] bytes, WebSocketMessageType type, CancellationToken token)
+        {
+            await sender.WaitAsync(token).ConfigureAwait(false);
+            try { await socket.SendAsync(bytes.AsMemory(), type, true, token).ConfigureAwait(false); }
+            finally { sender.Release(); }
+        }
 
         public async Task<JsonElement> Reply(string state, CancellationToken token)
         {
@@ -497,9 +518,15 @@ internal sealed class DisplaySession(IDesktop desktop, Action<Pairing> save, Act
             {
                 var part = await socket.ReceiveAsync(buffer.AsMemory(used), token);
                 if (part.MessageType == WebSocketMessageType.Close) throw new IOException("The display disconnected.");
-                if (part.MessageType != WebSocketMessageType.Text) break;
+                if (part.MessageType != WebSocketMessageType.Text && Editor is null) break;
                 used += part.Count;
                 if (!part.EndOfMessage) continue;
+                if (part.MessageType == WebSocketMessageType.Binary)
+                {
+                    Editor?.Receive(buffer.AsSpan(0, used));
+                    used = 0;
+                    continue;
+                }
                 try
                 {
                     using var doc = JsonDocument.Parse(buffer.AsMemory(0, used), new JsonDocumentOptions { MaxDepth = 16 });

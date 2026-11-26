@@ -36,7 +36,7 @@ Windows development builds with USB support can control a display over a USB dat
 1. Plug the display into the PC. In **Display**, choose **Connect over USB**, select the display’s COM port, and choose **Next**.
 2. On the touchscreen, choose **Pair** on the Setup screen or **Unpaired** in Settings. Enter the code in Windows and choose **Pair display**.
 
-For an already paired display, choose **Change connection** and select a USB port, nearby display, or local IP address. EspDesktop keeps the pairing and saves the new connection after verifying the display. To open the editor from the Windows app, connect over the local network.
+For an already paired display, choose **Change connection** and select a USB port, nearby display, or local IP address. EspDesktop keeps the pairing and saves the new connection after verifying the display. Choose **Open display editor** on the paired display. When connected over USB, the editor opens inside EspDesktop and uses the cable to load and save the layout. The Windows app uses the Microsoft Edge WebView2 Runtime for this window. When connected over IP, the editor opens in your browser.
 
 ## Add controls
 
