@@ -516,10 +516,18 @@ int main() {
   assert(companion_shortcut_preset_normalized(edited_preset) == "com.apple.Safari:0");
   assert(companion_card_options_normalized(edited_preset) ==
          "app_shortcut_preset=com.apple.Safari%3A0");
+  assert(companion_shortcut_app_icon_id(edited_preset).empty());
+  edited_preset.options += ",shortcut_app_icon";
+  const auto with_app_icon = normalize_parsed_cfg(edited_preset);
+  assert(with_app_icon.options == "app_shortcut_preset=com.apple.Safari%3A0,shortcut_app_icon");
+  assert(companion_shortcut_app_icon_id(with_app_icon) == "com.apple.Safari");
   edited_preset.options = "app_shortcut_preset=com.apple.Safari%3A9";
   assert(companion_shortcut_preset_normalized(edited_preset) == "com.apple.Safari:9");
   edited_preset.options = "app_shortcut_preset=custom";
   assert(companion_shortcut_preset_normalized(edited_preset) == "custom");
+  edited_preset.options += ",shortcut_app_icon";
+  assert(companion_card_options_normalized(edited_preset) == "app_shortcut_preset=custom");
+  assert(companion_shortcut_app_icon_id(edited_preset).empty());
   safari_launch.sensor = "url.https%3A%2F%2Fexample.com";
   assert(!companion_app_shortcuts_enabled(safari_launch));
 

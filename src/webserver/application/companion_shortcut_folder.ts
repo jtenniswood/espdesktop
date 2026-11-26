@@ -103,6 +103,7 @@ export const COMPANION_URL_OPEN_BEHAVIOR = "url_open_behavior";
 export const FINDER_OPEN_BEHAVIOR_OPTION = "finder_open_behavior";
 export const FINDER_OPEN_OVERRIDE_OPTION = "finder_open_override";
 export const COMPANION_SHORTCUT_PRESET_OPTION = "app_shortcut_preset";
+export const COMPANION_SHORTCUT_APP_ICON_OPTION = "shortcut_app_icon";
 const COMPANION_SHORTCUT_CUSTOM_PRESET = "custom";
 export const SAFARI_BUNDLE_ID = "com.apple.Safari";
 const CLAUDE_DESKTOP_BUNDLE_ID = "com.anthropic.claudefordesktop";
@@ -181,7 +182,9 @@ export function normalizeCompanionAppShortcutOptions(card: any): string {
     }
     const presetIdentity = companionShortcutPresetIdentity(card, true);
     if (presetIdentity && companionShortcutActionIdValid(card.entity)) {
-        return finish(setConfigOptionValue("", COMPANION_SHORTCUT_PRESET_OPTION, presetIdentity));
+        const options = setConfigOptionValue("", COMPANION_SHORTCUT_PRESET_OPTION, presetIdentity);
+        return finish(setConfigOption(options, COMPANION_SHORTCUT_APP_ICON_OPTION,
+            configOptionEnabled(card.options, COMPANION_SHORTCUT_APP_ICON_OPTION)));
     }
     if (!companionShortcutFolderAppLabel(card.entity)) {
         const identifier = typeof card.entity === "string" ? card.entity : "";
@@ -464,6 +467,13 @@ function companionShortcutPresetIdentity(card: any, preserveUnavailablePreset = 
         /^[A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)+$/.test(bundleIdentifier) &&
         /^(0|[1-9][0-9]{0,2})$/.test(id)) return raw;
     return companionShortcutChoices(bundleIdentifier).some(item => item.id === id) ? raw : "";
+}
+
+export function companionShortcutAppIconId(card: any): string {
+    if (!configOptionEnabled(card.options, COMPANION_SHORTCUT_APP_ICON_OPTION) ||
+        !companionShortcutActionIdValid(card.entity)) return "";
+    const preset = companionShortcutPresetIdentity(card, true);
+    return preset.slice(0, preset.lastIndexOf(":"));
 }
 
 export function reconnectAthenaShortcutSubpage(
