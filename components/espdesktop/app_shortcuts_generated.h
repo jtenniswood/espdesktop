@@ -57,6 +57,7 @@ inline const char *app_label(const std::string &app) {
   if (app == "com.github.GitHubClient") return "GitHub Desktop";
   if (app == "com.axosoft.gitkraken") return "GitKraken";
   if (app == "com.google.Chrome") return "Google Chrome";
+  if (app == "com.google.meet.web-app") return "Google Meet";
   if (app == "com.nousresearch.hermes") return "Hermes";
   if (app == "com.colliderli.iina") return "IINA";
   if (app == "com.apple.iMovieApp") return "iMovie";
@@ -146,6 +147,7 @@ inline bool has_shortcut(const std::string &app, const std::string &id) {
   if (app == "com.github.GitHubClient") return id == "0" || id == "1" || id == "2" || id == "3" || id == "4" || id == "5" || id == "6" || id == "7" || id == "8" || id == "9";
   if (app == "com.axosoft.gitkraken") return id == "0" || id == "1" || id == "2" || id == "3";
   if (app == "com.google.Chrome") return id == "0" || id == "1" || id == "2" || id == "3" || id == "4" || id == "5" || id == "6" || id == "7" || id == "8" || id == "9";
+  if (app == "com.google.meet.web-app") return id == "100" || id == "101" || id == "102" || id == "103" || id == "104" || id == "105" || id == "108" || id == "109" || id == "110";
   if (app == "com.nousresearch.hermes") return id == "0" || id == "1" || id == "2" || id == "3" || id == "4" || id == "5" || id == "6" || id == "7" || id == "8" || id == "9";
   if (app == "com.colliderli.iina") return id == "0" || id == "1" || id == "2" || id == "3" || id == "4";
   if (app == "com.apple.iMovieApp") return id == "0" || id == "1";

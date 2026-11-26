@@ -276,6 +276,63 @@ final class RemoteCompanionCataloguesTests: XCTestCase {
         XCTAssertTrue(resolved.contains { $0.appId == "com.apple.Safari.WebApp" })
     }
 
+    @MainActor
+    func testGoogleMeetPresetsUseApprovedSafariAndChromeInstallations() throws {
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: directory) }
+
+        func installedApp(_ id: String, metadata: [String: Any],
+                          name: String = "Renamed Meeting App") throws -> LaunchableApp {
+            let url = directory.appendingPathComponent(UUID().uuidString + ".app")
+            let contents = url.appendingPathComponent("Contents")
+            try FileManager.default.createDirectory(at: contents, withIntermediateDirectories: true)
+            var plist = metadata
+            plist["CFBundleIdentifier"] = id
+            plist["CFBundlePackageType"] = "AAPL"
+            try PropertyListSerialization.data(fromPropertyList: plist, format: .xml, options: 0)
+                .write(to: contents.appendingPathComponent("Info.plist"))
+            return LaunchableApp(bundleIdentifier: id, name: name, url: url)
+        }
+
+        let safari = try installedApp("com.apple.Safari.WebApp." + UUID().uuidString, metadata: [
+            "Manifest": ["start_url": "https://meet.google.com/"],
+        ])
+        let chromeMetadata = ["CrBundleIdentifier": "com.google.Chrome",
+                              "CrAppModeShortcutURL": "https://meet.google.com/landing"]
+        let chrome = try installedApp("com.google.Chrome.app.abcdefghijklmnopabcdefghijklmnop",
+                                      metadata: chromeMetadata)
+        let other = try installedApp("com.apple.Safari.WebApp." + UUID().uuidString, metadata: [
+            "Manifest": ["start_url": "https://meet.google.com.example.net/"],
+        ], name: "Google Meet")
+        let chromeOther = try installedApp("com.google.Chrome.app.ponmlkjihgfedcbaponmlkjihgfedcba", metadata: [
+            "CrBundleIdentifier": "com.google.Chrome",
+            "CrAppModeShortcutURL": "https://calendar.google.com/",
+        ], name: "Google Meet")
+        let browser = try installedApp("com.google.Chrome", metadata: chromeMetadata, name: "Google Chrome")
+
+        let suite = "GoogleMeetCatalogueTests." + UUID().uuidString
+        let defaults = try XCTUnwrap(UserDefaults(suiteName: suite))
+        defer { defaults.removePersistentDomain(forName: suite) }
+        let catalogue = RemoteCompanionCatalogueStore(defaults: defaults).value
+        let approved = [safari, chrome, other, chromeOther, browser]
+        let resolved = catalogue.applicationsForDisplay(approvedApps: approved)
+        XCTAssertEqual(resolved.filter { $0.label.hasPrefix("Google Meet") }.map(\.appId),
+                       [safari.bundleIdentifier, chrome.bundleIdentifier])
+        XCTAssertEqual(catalogue.shortcutApplication(safari.bundleIdentifier, approvedApps: approved)?.label,
+                       "Google Meet (Safari)")
+        XCTAssertEqual(catalogue.shortcutApplication(chrome.bundleIdentifier, approvedApps: approved)?.label,
+                       "Google Meet (Chrome)")
+        XCTAssertEqual(catalogue.shortcutApplication(other.bundleIdentifier, approvedApps: approved)?.label,
+                       "Safari Web App")
+        XCTAssertNil(catalogue.shortcutApplication(chrome.bundleIdentifier, approvedApps: [safari]))
+        for app in [safari, chrome] {
+            let definition = try XCTUnwrap(catalogue.shortcutApplication(app.bundleIdentifier, approvedApps: approved))
+            XCTAssertTrue(definition.shortcuts.contains { $0.shortcut == "command+d" })
+            XCTAssertTrue(definition.moreShortcuts?.contains { $0.shortcut == "scoped.c" } ?? false)
+            XCTAssertEqual(definition.appId, app.bundleIdentifier)
+        }
+    }
+
     func testURLCardTargetsMatchFullConfiguredURLAndClearWhenUnavailable() throws {
         let target = try XCTUnwrap(URL(string: "https://example.com/docs?q=1#intro"))
         XCTAssertEqual(ActiveTabURLMatcher.matchingURLCardIDs(

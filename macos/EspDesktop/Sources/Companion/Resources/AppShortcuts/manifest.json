@@ -1,6 +1,6 @@
 {
   "formatVersion": 1,
-  "catalogueVersion": 26,
+  "catalogueVersion": 27,
   "minimumCompanionVersion": "1.0.0",
   "entries": [
     {
@@ -142,6 +142,9 @@
     {
       "path": "google-chrome.json",
       "offline": true
+    },
+    {
+      "path": "google-meet.json"
     },
     {
       "path": "hermes-agent.json",
