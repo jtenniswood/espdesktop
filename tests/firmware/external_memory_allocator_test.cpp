@@ -5,6 +5,7 @@
 #include <unistd.h>
 
 #include "external_memory_allocator.h"
+#include "companion_runtime.h"
 
 namespace {
 
@@ -76,6 +77,23 @@ void overlapping_allocations_keep_their_regions() {
   }
 }
 
+void companion_catalogue_grows_and_copies_in_external_memory() {
+  reset_allocator_state();
+  fake_esphome_allocator::internal_available = false;
+  {
+    CompanionActionList catalogue;
+    for (size_t index = 0; index < 256; ++index) {
+      catalogue.push_back({"app." + std::to_string(index), "App"});
+    }
+    const auto snapshot = catalogue;
+    require(snapshot == catalogue);
+    require(esp_ptr_external_ram(catalogue.data()));
+    require(esp_ptr_external_ram(snapshot.data()));
+    require(EspDesktopExternalAllocatorStats::internal_bytes == 0);
+  }
+  require(EspDesktopExternalAllocatorStats::external_bytes == 0);
+}
+
 template<typename Callback>
 void require_abort(Callback callback) {
   pid_t child = fork();
@@ -113,6 +131,7 @@ int main() {
   external_memory_is_preferred();
   internal_memory_is_the_fallback();
   overlapping_allocations_keep_their_regions();
+  companion_catalogue_grows_and_copies_in_external_memory();
   exhaustion_uses_the_explicit_fatal_path();
   allocation_overflow_uses_the_explicit_fatal_path();
   return EXIT_SUCCESS;

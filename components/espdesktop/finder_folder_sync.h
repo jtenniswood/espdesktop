@@ -16,8 +16,8 @@ inline constexpr const char *finder_folder_default_icon() {
 
 // The live catalogue has no ownership of the saved grid. Projection only
 // fills unoccupied cells in the renderer's local copy.
-inline bool live_companion_catalogue_equal(const std::vector<CompanionAction> &left,
-                                         const std::vector<CompanionAction> &right) {
+inline bool live_companion_catalogue_equal(const CompanionActionList &left,
+                                         const CompanionActionList &right) {
   return left.size() == right.size() &&
       std::equal(left.begin(), left.end(), right.begin(), [](const auto &a, const auto &b) {
         return a.id == b.id && a.label == b.label && a.shortcut_color == b.shortcut_color;
@@ -25,7 +25,7 @@ inline bool live_companion_catalogue_equal(const std::vector<CompanionAction> &l
 }
 
 inline std::optional<uint32_t> apple_shortcut_catalogue_color(
-    const std::vector<CompanionAction> &actions, std::string_view id) {
+    const CompanionActionList &actions, std::string_view id) {
   if (!companion_apple_shortcut_action(id)) return std::nullopt;
   const auto action = std::find_if(actions.begin(), actions.end(), [id](const auto &item) {
     return item.id == id;
@@ -59,7 +59,7 @@ inline std::array<bool, MAX_GRID_SLOTS> live_page_occupied_cells(const SubpageOr
 template<typename Accept>
 inline void project_live_folder_tiles(SubpageOrder &order, std::vector<SubpageBtn> &buttons,
                                      int slots, int columns, int capacity,
-                                     const std::vector<CompanionAction> &entries,
+                                     const CompanionActionList &entries,
                                      const char *icon, const std::string &options, Accept accept,
                                      const char *type = "companion",
                                      const std::string &exclusions = {}) {
@@ -84,7 +84,7 @@ inline void project_live_folder_tiles(SubpageOrder &order, std::vector<SubpageBt
 
 inline void finder_project_folder_tiles(SubpageOrder &order, std::vector<SubpageBtn> &buttons,
                                        int slots, int columns, int capacity,
-                                       const std::vector<CompanionAction> &folders,
+                                       const CompanionActionList &folders,
                                        const std::string &open_behavior, const std::string &exclusions = {}) {
   project_live_folder_tiles(order, buttons, slots, columns, capacity, folders,
       finder_folder_default_icon(), "finder_open_behavior=" + open_behavior, is_live_finder_folder, "companion", exclusions);
@@ -92,7 +92,7 @@ inline void finder_project_folder_tiles(SubpageOrder &order, std::vector<Subpage
 
 inline void project_apple_shortcut_tiles(SubpageOrder &order, std::vector<SubpageBtn> &buttons,
                                          int slots, int columns, int capacity,
-                                         const std::vector<CompanionAction> &actions,
+                                         const CompanionActionList &actions,
                                          std::string_view hidden) {
   if (!order.has_back_token) return;
   const auto occupied = live_page_occupied_cells(order, slots, columns);

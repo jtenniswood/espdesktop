@@ -1,5 +1,6 @@
 #pragma once
 
+#include <atomic>
 #include <cstddef>
 #include <cstdlib>
 #include <limits>
@@ -17,11 +18,11 @@
 // wrapper supplies the failure contract required by STL containers and keeps
 // lightweight diagnostics shared by every rebound allocator specialization.
 struct EspDesktopExternalAllocatorStats {
-  static inline size_t external_bytes = 0;
-  static inline size_t internal_bytes = 0;
-  static inline size_t external_allocations = 0;
-  static inline size_t internal_fallbacks = 0;
-  static inline size_t failed_allocations = 0;
+  static inline std::atomic<size_t> external_bytes{0};
+  static inline std::atomic<size_t> internal_bytes{0};
+  static inline std::atomic<size_t> external_allocations{0};
+  static inline std::atomic<size_t> internal_fallbacks{0};
+  static inline std::atomic<size_t> failed_allocations{0};
 };
 
 template<typename T>
@@ -50,15 +51,15 @@ class EspDesktopExternalAllocator {
     const size_t bytes = count * sizeof(T);
 #ifdef USE_ESP32
     if (esp_ptr_external_ram(result)) {
-      EspDesktopExternalAllocatorStats::external_bytes += bytes;
-      EspDesktopExternalAllocatorStats::external_allocations++;
+      EspDesktopExternalAllocatorStats::external_bytes.fetch_add(bytes, std::memory_order_relaxed);
+      EspDesktopExternalAllocatorStats::external_allocations.fetch_add(1, std::memory_order_relaxed);
     } else {
-      EspDesktopExternalAllocatorStats::internal_bytes += bytes;
-      EspDesktopExternalAllocatorStats::internal_fallbacks++;
+      EspDesktopExternalAllocatorStats::internal_bytes.fetch_add(bytes, std::memory_order_relaxed);
+      EspDesktopExternalAllocatorStats::internal_fallbacks.fetch_add(1, std::memory_order_relaxed);
     }
 #else
-    EspDesktopExternalAllocatorStats::internal_bytes += bytes;
-    EspDesktopExternalAllocatorStats::internal_fallbacks++;
+    EspDesktopExternalAllocatorStats::internal_bytes.fetch_add(bytes, std::memory_order_relaxed);
+    EspDesktopExternalAllocatorStats::internal_fallbacks.fetch_add(1, std::memory_order_relaxed);
 #endif
     return result;
   }
@@ -99,12 +100,14 @@ class EspDesktopExternalAllocator {
                                 esphome::RAMAllocator<T>::ALLOC_INTERNAL);
   }
 
-  static void subtract_saturating(size_t &value, size_t amount) {
-    value = amount <= value ? value - amount : 0;
+  static void subtract_saturating(std::atomic<size_t> &value, size_t amount) {
+    auto current = value.load(std::memory_order_relaxed);
+    while (!value.compare_exchange_weak(current, current - (amount <= current ? amount : current),
+                                       std::memory_order_relaxed)) {}
   }
 
   [[noreturn]] static void fail_allocation(size_t count, bool overflow) {
-    EspDesktopExternalAllocatorStats::failed_allocations++;
+    EspDesktopExternalAllocatorStats::failed_allocations.fetch_add(1, std::memory_order_relaxed);
     if (overflow) {
       ESP_LOGE("ha", "Fatal subscription storage allocation failure: "
                      "requested=%u elements x %u bytes (overflow)",

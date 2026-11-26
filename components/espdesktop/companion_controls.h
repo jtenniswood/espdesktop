@@ -300,7 +300,7 @@ inline void companion_set_focus_registrations(std::vector<CompanionURLFocusTarge
   companion_runtime_service().set_focus_registrations(std::move(targets));
 }
 
-inline void companion_set_actions(std::vector<CompanionAction> actions) {
+inline void companion_set_actions(CompanionActionList actions) {
   actions.erase(std::remove_if(actions.begin(), actions.end(),
     [](const CompanionAction &action) {
       return action.id.empty() || action.id.size() > 96 || action.label.size() > 96;
