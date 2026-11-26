@@ -77,8 +77,9 @@ internal sealed class UsbDisplayEditor(UsbEditorTunnel tunnel)
             foreach (var (name, values) in reply.Headers.Concat(reply.Content.Headers))
             {
                 if (name.ToLowerInvariant() is not ("content-type" or "etag" or "x-panel-config-version" or
+                    "x-panel-config-durable-version" or "x-panel-config-generation" or "x-panel-config-legacy-mirror" or
                     "x-espdesktop-companion-online" or "x-espdesktop-app-icon-palette" or
-                    "x-espdesktop-app-icon-default" or "x-espdesktop-app-icon-colour-mode")) continue;
+                    "x-espdesktop-app-icon-default" or "x-espdesktop-app-icon-active")) continue;
                 var value = string.Join(", ", values);
                 if (!value.Contains('\r') && !value.Contains('\n')) responseHeaders[name] = value;
             }

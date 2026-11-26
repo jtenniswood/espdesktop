@@ -14,7 +14,8 @@ internal static class UsbEditorChecks
         using (var gzip = new GZipStream(compressed, CompressionLevel.Fastest, leaveOpen: true)) gzip.Write(body);
         var compressedBody = compressed.ToArray();
         var http = Encoding.ASCII.GetBytes("HTTP/1.1 200 OK\r\nContent-Type: application/json\r\n" +
-            "Content-Encoding: gzip\r\nTransfer-Encoding: chunked\r\nETag: \"4\"\r\nConnection: close\r\n\r\n" +
+            "Content-Encoding: gzip\r\nTransfer-Encoding: chunked\r\nETag: \"4\"\r\n" +
+            "X-Panel-Config-Durable-Version: 2\r\nConnection: close\r\n\r\n" +
             $"{compressedBody.Length:x}\r\n").Concat(compressedBody).Concat("\r\n0\r\n\r\n"u8.ToArray()).ToArray();
 
         using var writes = new MemoryStream();
@@ -63,15 +64,17 @@ internal static class UsbEditorChecks
             ["If-Match"] = "\"3\"",
             ["X-EspDesktop-Epoch"] = "21",
             ["X-Panel-Config-Version"] = "2",
-            ["Content-Type"] = "application/json",
+            ["Content-Type"] = "application/vnd.espdesktop.panel-config",
             ["Authorization"] = "should not go to the display"
         }, "{\"cards\":[]}"u8.ToArray(), null, timeout.Token);
-        Require(ok.Status == 200 && ok.Body.SequenceEqual(body) && ok.Headers["ETag"] == "\"4\"",
+        Require(ok.Status == 200 && ok.Body.SequenceEqual(body) && ok.Headers["ETag"] == "\"4\"" &&
+            ok.Headers["X-Panel-Config-Durable-Version"] == "2",
             "parse a fragmented chunked and gzipped HTTP response over USB");
         var request = Encoding.UTF8.GetString(writes.ToArray());
         Require(request.StartsWith("PUT /api/v1/config HTTP/1.0\r\n", StringComparison.Ordinal) &&
             request.Contains("If-Match: \"3\"\r\n", StringComparison.OrdinalIgnoreCase) &&
             request.Contains("X-EspDesktop-Epoch: 21\r\n", StringComparison.OrdinalIgnoreCase) &&
+            request.Contains("Content-Type: application/vnd.espdesktop.panel-config\r\n", StringComparison.OrdinalIgnoreCase) &&
             !request.Contains("Authorization:", StringComparison.OrdinalIgnoreCase) && request.EndsWith("{\"cards\":[]}"),
             "preserve write preconditions and body and drop untrusted headers");
         Require(closed == 1, "close the firmware socket after the request");

@@ -128,10 +128,13 @@ internal sealed class UsbEditorWindow : Window
     private async void HandleRequest(object? sender, CoreWebView2WebResourceRequestedEventArgs e)
     {
         using var deferral = e.GetDeferral();
+        string? path = null;
+        var method = "";
         try
         {
             var request = e.Request;
-            var path = IsLocal(request.Uri) ? new Uri(request.Uri).PathAndQuery : null;
+            path = IsLocal(request.Uri) ? new Uri(request.Uri).PathAndQuery : null;
+            method = request.Method;
             if (path == "/" && request.Method == "GET")
             {
                 Respond(e, 200, "Content-Type: text/html; charset=utf-8\r\n" +
@@ -160,7 +163,7 @@ internal sealed class UsbEditorWindow : Window
             var body = ReadBody(request.Content, lifetime.Token);
             if (body is null) { Respond(e, 413); return; }
             var usedCredentials = credentials;
-            var reply = await editor.Request(request.Method, path, headers, body, usedCredentials, lifetime.Token);
+            var reply = await RequestPanel(editor, method, path, headers, body, usedCredentials);
             if (closed) return;
             if (reply.Status == 401 && ReferenceEquals(credentials, usedCredentials))
             {
@@ -176,14 +179,36 @@ internal sealed class UsbEditorWindow : Window
             }
             Respond(e, reply.Status, string.Join("\r\n", reply.Headers.Select(header => $"{header.Key}: {header.Value}")), reply.Body);
         }
-        catch (Exception ex) when (ex is HttpRequestException or IOException or OperationCanceledException or
-            System.Net.WebSockets.WebSocketException or COMException)
+        catch (Exception ex) when (IsConnectionError(ex) || ex is COMException)
         {
             if (closed) return;
-            status.Text = "The display didn’t respond. Check the USB connection and retry.";
+            if (method != "GET" || path is "/0.js" or "/api/v1/config" || getEditor() is null)
+                status.Text = "The display didn’t respond. Check the USB connection and retry.";
             Respond(e, 503);
         }
     }
+
+    private async Task<UsbEditorResponse> RequestPanel(UsbDisplayEditor editor, string method, string path,
+        Dictionary<string, string> headers, byte[] body, NetworkCredential? usedCredentials)
+    {
+        var token = lifetime.Token;
+        try { return await editor.Request(method, path, headers, body, usedCredentials, token); }
+        catch (Exception ex) when (method == "GET" && !token.IsCancellationRequested && IsConnectionError(ex))
+        {
+            await Task.Delay(500, token);
+            var current = getEditor();
+            if (current is null)
+            {
+                await Task.Delay(2500, token);
+                current = getEditor();
+            }
+            if (current is null) throw;
+            return await current.Request(method, path, headers, body, usedCredentials, token);
+        }
+    }
+
+    private static bool IsConnectionError(Exception error) => error is HttpRequestException or IOException or
+        OperationCanceledException or System.Net.WebSockets.WebSocketException;
 
     private static byte[]? ReadBundledScript()
     {
