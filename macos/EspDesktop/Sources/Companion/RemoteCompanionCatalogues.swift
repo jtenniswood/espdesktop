@@ -10,7 +10,7 @@ struct RemoteShortcutDefinition: Codable, Sendable, Equatable {
 struct RemoteMacApplicationDefinition: Codable, Sendable, Equatable {
     let version: Int
     var appId: String
-    let label: String
+    var label: String
     let catalog: Bool
     var defaultShortcutIds: [String]?
     var shortcuts: [RemoteShortcutDefinition]
@@ -118,31 +118,45 @@ struct RemoteCompanionCatalogues: Codable, Sendable, Equatable {
     func applicationsForDisplay(approvedApps: [LaunchableApp]) -> [RemoteMacApplicationDefinition] {
         let athenaTemplateID = "io.github.jtenniswood.athena"
         let twitchTemplateID = "tv.twitch.web-app"
-        let templateIDs: Set<String> = [athenaTemplateID, twitchTemplateID]
+        let meetTemplateID = "com.google.meet.web-app"
+        let templateIDs: Set<String> = [athenaTemplateID, twitchTemplateID, meetTemplateID]
         let existingIDs = Set(applications.map(\.appId))
         let installedTemplates = approvedApps.compactMap { app -> RemoteMacApplicationDefinition? in
-            // Safari gives each installation a unique bundle ID. Use its site
-            // metadata so changing the app's name does not affect its presets.
+            // Browser-installed apps have their own bundle IDs. Use the
+            // installed site's metadata so renaming an app preserves its presets.
             let id = app.bundleIdentifier
-            guard !existingIDs.contains(id), id != "com.apple.Safari",
-                  CompanionKeyboardShortcut.isSafariApplication(id),
-                  let bundle = Bundle(url: app.url),
-                  let manifest = bundle.object(forInfoDictionaryKey: "Manifest") as? [String: Any] else { return nil }
+            guard !existingIDs.contains(id), let bundle = Bundle(url: app.url) else { return nil }
             let templateID: String
-            if let startURL = manifest["start_url"] as? String,
-               let url = URL(string: startURL), url.scheme?.lowercased() == "https",
-               let host = url.host?.lowercased(), ["www.twitch.tv", "twitch.tv"].contains(host) {
-                templateID = twitchTemplateID
-            } else if manifest["name"] as? String == "Athena for Hermes Agent" {
-                templateID = athenaTemplateID
+            let isSafariWebApp = id != "com.apple.Safari" && CompanionKeyboardShortcut.isSafariApplication(id)
+            if isSafariWebApp, let manifest = bundle.object(forInfoDictionaryKey: "Manifest") as? [String: Any] {
+                switch Self.httpsHost(manifest["start_url"]) {
+                case "meet.google.com": templateID = meetTemplateID
+                case "www.twitch.tv", "twitch.tv": templateID = twitchTemplateID
+                default:
+                    guard manifest["name"] as? String == "Athena for Hermes Agent" else { return nil }
+                    templateID = athenaTemplateID
+                }
+            } else if id.hasPrefix("com.google.Chrome.app."),
+                      bundle.object(forInfoDictionaryKey: "CrBundleIdentifier") as? String == "com.google.Chrome",
+                      Self.httpsHost(bundle.object(forInfoDictionaryKey: "CrAppModeShortcutURL")) == "meet.google.com" {
+                templateID = meetTemplateID
             } else {
                 return nil
             }
             guard var template = applications.first(where: { $0.appId == templateID }) else { return nil }
             template.appId = id
+            if templateID == meetTemplateID {
+                template.label += isSafariWebApp ? " (Safari)" : " (Chrome)"
+            }
             return template
         }
         return applications.filter { !templateIDs.contains($0.appId) } + installedTemplates
+    }
+
+    private static func httpsHost(_ value: Any?) -> String? {
+        guard let address = value as? String, let url = URL(string: address),
+              url.scheme?.lowercased() == "https" else { return nil }
+        return url.host?.lowercased()
     }
 
     func shortcutApplication(_ appId: String, approvedApps: [LaunchableApp]) -> RemoteMacApplicationDefinition? {

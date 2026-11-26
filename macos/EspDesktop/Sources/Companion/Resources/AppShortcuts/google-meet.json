@@ -1,0 +1,23 @@
+{
+  "version": 1,
+  "appId": "com.google.meet.web-app",
+  "label": "Google Meet",
+  "catalog": false,
+  "defaultShortcutIds": ["100", "101", "102", "103", "104", "105", "106", "107"],
+  "shortcuts": [
+    {"id": "100", "label": "Toggle Microphone", "shortcut": "command+d", "icon": "Microphone Off"},
+    {"id": "101", "label": "Toggle Camera", "shortcut": "command+e", "icon": "Video Off"},
+    {"id": "102", "label": "Raise / Lower Hand", "shortcut": "control+command+h", "icon": "Hand Raise"},
+    {"id": "103", "label": "Toggle Meeting Chat", "shortcut": "control+command+c", "icon": "Chat"},
+    {"id": "104", "label": "Toggle Participants", "shortcut": "control+command+p", "icon": "Account"},
+    {"id": "105", "label": "Start Presenting", "shortcut": "control+command+t", "icon": "Screen Share"},
+    {"id": "108", "label": "Minimise / Expand Your Video", "shortcut": "control+command+m", "icon": "Arrow Collapse"},
+    {"id": "109", "label": "More Participant Tiles", "shortcut": "control+command+k", "icon": "Plus"},
+    {"id": "110", "label": "Fewer Participant Tiles", "shortcut": "control+command+j", "icon": "Minus"}
+  ],
+  "moreShortcuts": [
+    {"id": "106", "label": "Toggle Captions", "shortcut": "scoped.c", "icon": "Subtitles"},
+    {"id": "107", "label": "Picture in Picture", "shortcut": "scoped.shift+m", "icon": "Picture in Picture"},
+    {"id": "111", "label": "Show Keyboard Shortcuts", "shortcut": "scoped.shift+keyslash", "icon": "Keyboard Settings"}
+  ]
+}
