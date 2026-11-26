@@ -103,6 +103,7 @@ export const COMPANION_URL_OPEN_BEHAVIOR = "url_open_behavior";
 export const FINDER_OPEN_BEHAVIOR_OPTION = "finder_open_behavior";
 export const FINDER_OPEN_OVERRIDE_OPTION = "finder_open_override";
 export const COMPANION_SHORTCUT_PRESET_OPTION = "app_shortcut_preset";
+export const COMPANION_SHORTCUT_APP_ICON_OPTION = "shortcut_app_icon";
 const COMPANION_SHORTCUT_CUSTOM_PRESET = "custom";
 export const SAFARI_BUNDLE_ID = "com.apple.Safari";
 const CLAUDE_DESKTOP_BUNDLE_ID = "com.anthropic.claudefordesktop";
@@ -182,7 +183,9 @@ export function normalizeCompanionAppShortcutOptions(card: any): string {
     }
     const presetIdentity = companionShortcutPresetIdentity(card, true);
     if (presetIdentity && companionShortcutActionIdValid(card.entity)) {
-        return finish(setConfigOptionValue("", COMPANION_SHORTCUT_PRESET_OPTION, presetIdentity));
+        const options = setConfigOptionValue("", COMPANION_SHORTCUT_PRESET_OPTION, presetIdentity);
+        return finish(setConfigOption(options, COMPANION_SHORTCUT_APP_ICON_OPTION,
+            configOptionEnabled(card.options, COMPANION_SHORTCUT_APP_ICON_OPTION)));
     }
     if (!companionShortcutFolderAppLabel(card.entity)) {
         const identifier = typeof card.entity === "string" ? card.entity : "";
@@ -467,6 +470,13 @@ function companionShortcutPresetIdentity(card: any, preserveUnavailablePreset = 
     return companionShortcutChoices(bundleIdentifier).some(item => item.id === id) ? raw : "";
 }
 
+export function companionShortcutAppIconId(card: any): string {
+    if (!configOptionEnabled(card.options, COMPANION_SHORTCUT_APP_ICON_OPTION) ||
+        !companionShortcutActionIdValid(card.entity)) return "";
+    const preset = companionShortcutPresetIdentity(card, true);
+    return preset.slice(0, preset.lastIndexOf(":"));
+}
+
 export function reconnectAthenaShortcutSubpage(
     page: SubpageConfig | undefined, previous: string | undefined, replacement: string,
 ): SubpageConfig | null {
@@ -510,27 +520,30 @@ export function slackShortcutPresetCards(): CompanionShortcutPresetCard[] {
 }
 
 export function companionShortcutCatalogApps(
-    { pageAppId, savedAppId, windows }: {
-        pageAppId?: string | undefined; savedAppId?: string | undefined; windows?: boolean | undefined;
+    { approvedApps = [], savedAppId, windows }: {
+        approvedApps?: readonly CompanionAction[]; savedAppId?: string; windows?: boolean | undefined;
     } = {},
 ): AppShortcutApplication[] {
-    // The Mac sends site presets under the actual installed Safari web app bundle ID.
-    const apps = COMPANION_SHORTCUT_APPS.filter(app =>
-        app.appId.startsWith("windows.") === (windows === true) &&
-        app.appId !== ATHENA_TEMPLATE_APP_ID && app.appId !== TWITCH_TEMPLATE_APP_ID &&
-        app.appId !== CHATGPT_CLASSIC_BUNDLE_ID);
-    const appId = savedAppId ?? pageAppId;
-    // A saved Classic card still needs its original app and preset IDs when edited.
-    if (appId && appId !== ATHENA_TEMPLATE_APP_ID && appId !== TWITCH_TEMPLATE_APP_ID &&
-        (appId.startsWith("windows.") === (windows === true) || (windows === undefined && appId === savedAppId)) &&
-        (appId !== CHATGPT_CLASSIC_BUNDLE_ID || appId === savedAppId) && !apps.some(app => app.appId === appId)) {
-        const template = companionShortcutApp(appId);
-        if (template) apps.push({ ...template, appId });
-        else if (appId === savedAppId && /^[A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)+$/.test(appId)) {
-            apps.push({ appId, version: 1, label: appId, catalog: false, shortcuts: [] });
-        }
+    const apps: AppShortcutApplication[] = [];
+    for (const { id: appId, label } of approvedApps) {
+        if (appId.startsWith("windows.") !== (windows === true) || appId === ATHENA_TEMPLATE_APP_ID ||
+            appId === TWITCH_TEMPLATE_APP_ID || appId === CHATGPT_CLASSIC_BUNDLE_ID) continue;
+        const definition = COMPANION_SHORTCUT_APPS.find(app => app.appId === appId) ??
+            (windows ? undefined : companionShortcutApp(appId));
+        if (definition) apps.push({
+            ...definition, appId,
+            label: appId === CODEX_BUNDLE_ID ? "ChatGPT" : definition.appId === appId ? definition.label : label,
+        });
     }
-    return apps.map(app => app.appId === CODEX_BUNDLE_ID ? { ...app, label: "ChatGPT" } : app);
+    // A saved card can still be edited when its preset or target app is unavailable.
+    if (savedAppId && (windows === undefined || savedAppId.startsWith("windows.") === windows) &&
+        savedAppId !== ATHENA_TEMPLATE_APP_ID && savedAppId !== TWITCH_TEMPLATE_APP_ID &&
+        !apps.some(app => app.appId === savedAppId) && /^[A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)+$/.test(savedAppId)) {
+        const definition = companionShortcutApp(savedAppId);
+        apps.push(definition ? { ...definition, appId: savedAppId } :
+            { appId: savedAppId, version: 1, label: savedAppId, catalog: false, shortcuts: [] });
+    }
+    return apps;
 }
 
 export function companionShortcutPresetCards(bundleIdentifier: string): CompanionShortcutPresetCard[] {

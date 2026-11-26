@@ -212,10 +212,15 @@ export function createCompanionCatalogue(fetchImpl: typeof fetch) {
     return request;
   }
 
+  function cachedShortcutApplication(appId: string): AppShortcutApplication | null | undefined {
+    const cached = shortcutApplications.get(appId);
+    return cached && cached.expires > Date.now() ? cached.app : undefined;
+  }
+
   function loadShortcutApplication(appId: string): Promise<AppShortcutApplication | null> {
     if (!/^[A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)+$/.test(appId) || appId.length > 96) return Promise.resolve(null);
-    const cached = shortcutApplications.get(appId);
-    if (cached && cached.expires > Date.now()) return Promise.resolve(cached.app);
+    const cached = cachedShortcutApplication(appId);
+    if (cached !== undefined) return Promise.resolve(cached);
     const pending = shortcutRequests.get(appId);
     if (pending) return pending;
     if (shortcutRequests.size >= 8) return Promise.resolve(null);
@@ -301,6 +306,7 @@ export function createCompanionCatalogue(fetchImpl: typeof fetch) {
   }
 
   return {
+    cachedShortcutApplication,
     loadShortcutApplication,
     async saveFocusRegistrations(registrations: CompanionFocusRegistrations): Promise<void> {
       const targets = [...new Set(registrations.urls)].slice(0, 64).flatMap((value) => {

@@ -20,7 +20,7 @@ On the ESPHome device page, look under **Controls**. Saved apps, Finder folders,
 
 To use a card in an automation, add the **Button: Press** action and select the card’s button as the target. You can also add the button to a dashboard.
 
-Mac actions require an unlocked Mac with the [EspDesktop Mac app running and paired to the display](/screens/4848s040#pair-the-display). A keyboard shortcut on an app’s subpage opens or focuses that app first. If the Mac cannot confirm the app is frontmost, the shortcut is skipped.
+Mac actions require an unlocked Mac with the [EspDesktop Mac app running and paired to the display](/macos#pair-your-display). A keyboard shortcut on an app’s subpage opens or focuses that app first. If the Mac cannot confirm the app is frontmost, the shortcut is skipped.
 
 ## Refresh the button list
 

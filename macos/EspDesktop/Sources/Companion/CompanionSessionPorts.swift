@@ -25,6 +25,7 @@ extension CompanionSessionPreferences {
 @MainActor
 protocol CompanionSessionResources: AnyObject {
     var applicationCatalogueReady: Bool { get }
+    var applicationCatalogueProvisional: Bool { get }
     func obsControlActions() -> [OBSConnection.CatalogueEntry]
     func folderActions() -> [ApprovedFolder]
     func inputDeviceActions() -> [(id: String, label: String)]
@@ -74,6 +75,7 @@ extension CompanionSessionResources {
     func setCoughButtonValue(_ value: Int, from session: ObjectIdentifier) -> Bool { false }
     func immediateFocusedApplicationIdentifier() -> String? { nil }
     var applicationCatalogueReady: Bool { true }
+    var applicationCatalogueProvisional: Bool { false }
     func obsControlActions() -> [OBSConnection.CatalogueEntry] { [] }
     func performGuardedOBSAction(actionIdentifier: String, isValid: @escaping @MainActor () -> Bool) async -> Bool { false }
     func setOBSFader(_ value: Int, controlIdentifier: String) async -> Bool { false }

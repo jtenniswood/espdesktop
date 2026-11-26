@@ -59,6 +59,16 @@ jobs:
           New-ItemProperty -Path $edgePolicy -Name HideFirstRunExperience -Value 1 -PropertyType DWord -Force | Out-Null
           dotnet run -c Release --project windows/EspDesktop.Tests -- --verify-native-windows --exercise-desktop-actions
 
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 26
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.13'
+          architecture: x64
+      - name: Restore editor dependencies
+        run: npm ci --no-audit --no-fund
+
       - name: Build the per-user installer
         shell: pwsh
         env:

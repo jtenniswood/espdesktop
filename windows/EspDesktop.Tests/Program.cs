@@ -1,3 +1,4 @@
+using EspDesktop.Tests;
 using System.Buffers.Binary;
 using System.Net;
 using System.Net.WebSockets;
@@ -101,17 +102,23 @@ using (var fixtures = JsonDocument.Parse(stream))
 
 Check(DisplayEndpoint.Parse("192.168.1.2").Socket.AbsoluteUri == "wss://192.168.1.2:8443/companion/v4", "default display port");
 var panelEndpoint = DisplayEndpoint.Parse("https://panel.local:9443/path?tab=device#fragment");
-Check(panelEndpoint.Settings.AbsoluteUri == "https://panel.local/", "open the display editor");
-Check(panelEndpoint.PairingPage.AbsoluteUri ==
+Check(panelEndpoint.Settings?.AbsoluteUri == "https://panel.local/", "open the display editor");
+Check(panelEndpoint.PairingPage?.AbsoluteUri ==
       "https://panel.local/?tab=connectors&connector=mac_companion", "open the display pairing page");
-Check(DisplayEndpoint.Parse("[fd00::1]:9000").PairingPage.AbsoluteUri ==
+Check(DisplayEndpoint.Parse("[fd00::1]:9000").PairingPage?.AbsoluteUri ==
       "http://[fd00::1]/?tab=connectors&connector=mac_companion", "open the IPv6 display pairing page");
 Check(DisplayEndpoint.Parse("[fd00::1]:9000").Socket.Port == 9000, "IPv6 display port");
-foreach (var invalid in new[] { "example.com", "172.32.0.1", "8.8.8.8", "http://a@panel.local", "file://panel.local", "0.0.0.0" })
+foreach (var invalid in new[] { "example.com", "172.32.0.1", "8.8.8.8", "http://a@panel.local", "file://panel.local", "0.0.0.0", "usb:COM0", "usb:COM5/path", "usb:COM5:9600" })
 {
     try { _ = DisplayEndpoint.Parse(invalid); throw new InvalidOperationException("Unexpected display endpoint: " + invalid); }
     catch (ArgumentException) { }
 }
+var usbEndpoint = DisplayEndpoint.Parse("usb:com12");
+Check(usbEndpoint is { UsbPort: "COM12", Label: "USB (COM12)", Settings: null, PairingPage: null },
+    "use a Windows serial port for USB and keep the editor URL unavailable");
+await VerifyUsbFrames();
+await UsbEditorChecks.Run();
+
 Check(SafeActions.WebUrl("https%3A%2F%2Fexample.org")?.Host == "example.org", "valid URL");
 foreach (var bad in new[] { "file:///C:/Windows", "https://a:b@example.org", "ms-settings:windowsupdate", "https:%5c%5cexample.com", "https://example.org/%0a" })
     Check(SafeActions.WebUrl(bad) is null, "refuse unsafe URL");
@@ -551,6 +558,30 @@ static async Task VerifyWindowsReleaseSelection()
     }
 }
 
+static async Task VerifyUsbFrames()
+{
+    using var wire = new UsbTestWire([
+        0xff, 0xc0, 2, 0xdb, 0xaa, 0xc0, 3, 0xc0, 1, 0xc0,
+        0xc0, 2, 0xdb, 0xdc, 0xdb, 0xdd, 0x42, 0xc0, 3, 0xc0
+    ]);
+    using var usb = UsbDisplayStream.Start(wire, CancellationToken.None);
+    var buffer = new byte[2];
+    Check(await usb.ReadAsync(buffer) == 2 && buffer.SequenceEqual(new byte[] { 0xc0, 0xdb }),
+        "USB decoder handles fragmented and escaped input, including after a malformed frame");
+    Check(await usb.ReadAsync(buffer) == 1 && buffer[0] == 0x42 && await usb.ReadAsync(buffer) == 0,
+        "USB stream keeps unread bytes and handles the firmware close frame");
+
+    var payload = new byte[1025];
+    payload[0] = 0xc0;
+    payload[^1] = 0xdb;
+    await usb.WriteAsync(payload);
+    usb.Dispose();
+    var expected = new byte[] { 0xc0, 1, 0xc0, 0xc0, 2, 0xdb, 0xdc }
+        .Concat(new byte[1023]).Concat(new byte[] { 0xc0, 0xc0, 2, 0xdb, 0xdd, 0xc0, 0xc0, 3, 0xc0 });
+    Check(wire.Written.ToArray().SequenceEqual(expected), "USB writes follow firmware framing and split payloads at 1024 bytes");
+    Console.WriteLine("Passed USB transport framing and endpoint checks.");
+}
+
 async Task VerifyAddressRecovery()
 {
     using var wrongCertificate = TestCertificate();
@@ -604,6 +635,13 @@ async Task VerifyAddressRecovery()
         "only the authenticated address replaces the saved address, with the pairing credential and sequence preserved");
     Check(saves.Select(item => item.DisplayName).SequenceEqual(["Desk display", "Office display", "Office display"]),
         "keep the relocated display's name and reject the name from a mismatched endpoint");
+    var rejectedStatus = "";
+    var refused = new DisplaySession(desktop, _ => throw new InvalidOperationException("Do not save a rejected address."),
+        s => rejectedStatus = s, (_, _) => throw new InvalidOperationException("Do not replace the address explicitly selected by the user."));
+    await refused.RunAsync(saved, lifetime.Token, oldAddress);
+    Check(rejectedStatus.Contains("different display", StringComparison.Ordinal) && wrongRequests == 0,
+        "a connection change must prove the display's identity before sending pairing data or replacing the address");
+
     Console.WriteLine("Passed display address recovery, mismatched discovery rejection, and reconnect over real TLS WebSockets.");
 }
 
@@ -732,12 +770,12 @@ static void VerifyLocalStore()
         Check(new LocalStore(profile).LoadPairings().SingleOrDefault() is { Sequence: 5, DisplayName: "Office display" },
             "a replaced pairing preserves the latest counter and display name");
 
-        var second = new Pairing("192.168.6.101", Hash("second fixture display"), RandomNumberGenerator.GetBytes(32), 9);
+        var second = new Pairing("usb:COM12", Hash("second fixture display"), RandomNumberGenerator.GetBytes(32), 9);
         reopened.SavePairing(second);
         reopened.SavePairing(pairing with { Sequence = 6, DisplayName = "Office display" });
         var both = new LocalStore(profile).LoadPairings();
         Check(both.Length == 2 && both[0].Sequence == 6 && both[1].Fingerprint == second.Fingerprint &&
-              both[1].Sequence == 9 && both[1].Key.SequenceEqual(second.Key),
+              both[1].Address == "usb:COM12" && both[1].Sequence == 9 && both[1].Key.SequenceEqual(second.Key),
             "adding and updating a display preserves the other protected pairing");
         reopened.ForgetPairing(second.Fingerprint);
         Check(new LocalStore(profile).LoadPairings().Single() is { Sequence: 6, DisplayName: "Office display" },

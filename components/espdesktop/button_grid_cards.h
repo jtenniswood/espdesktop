@@ -538,7 +538,8 @@ inline void setup_companion_card(BtnSlot &s, const ParsedCfg &p,
     lv_label_set_long_mode(s.text_lbl, LV_LABEL_LONG_WRAP);
     lv_obj_set_width(s.text_lbl, lv_pct(100));
   }
-  const bool workflow_icon = apple_shortcut_workflow_icon(p);
+  const std::string shortcut_app_icon = apple_shortcut_workflow_icon(p)
+      ? APPLE_SHORTCUTS_APP_ID : companion_shortcut_app_icon_id(p);
   const char *icon = (p.icon.empty() || p.icon == "Auto")
     ? find_icon(companion_apple_shortcut_action(p.entity) ? "Flash" : obs_mute ? "Microphone" : p.entity == "obs.brb" ? "Coffee to Go" :
                 p.entity == "obs.studio" ? "Split Vertical" : p.entity == "obs.multiview" ? "View Grid" :
@@ -548,10 +549,10 @@ inline void setup_companion_card(BtnSlot &s, const ParsedCfg &p,
                 companion_shortcut_action_valid(p.entity) ? "Keyboard" : "Monitor")
     : find_icon(p.icon.c_str());
   lv_label_set_display_text(s.icon_lbl, icon);
-  if (companion_app_icon_enabled(p) || workflow_icon) {
+  if (companion_app_icon_enabled(p) || !shortcut_app_icon.empty()) {
 #ifdef USE_COMPANION
-    const std::string id = workflow_icon ? APPLE_SHORTCUTS_APP_ID : p.entity;
-    companion_set_card_icon_image(s, id, workflow_icon);
+    const std::string &id = shortcut_app_icon.empty() ? p.entity : shortcut_app_icon;
+    companion_set_card_icon_image(s, id, !shortcut_app_icon.empty());
     esphome::companion::request_app_icon(id);
 #endif
   } else if (s.app_icon_img) {

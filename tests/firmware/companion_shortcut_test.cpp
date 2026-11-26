@@ -516,10 +516,18 @@ int main() {
   assert(companion_shortcut_preset_normalized(edited_preset) == "com.apple.Safari:0");
   assert(companion_card_options_normalized(edited_preset) ==
          "app_shortcut_preset=com.apple.Safari%3A0");
+  assert(companion_shortcut_app_icon_id(edited_preset).empty());
+  edited_preset.options += ",shortcut_app_icon";
+  const auto with_app_icon = normalize_parsed_cfg(edited_preset);
+  assert(with_app_icon.options == "app_shortcut_preset=com.apple.Safari%3A0,shortcut_app_icon");
+  assert(companion_shortcut_app_icon_id(with_app_icon) == "com.apple.Safari");
   edited_preset.options = "app_shortcut_preset=com.apple.Safari%3A9";
   assert(companion_shortcut_preset_normalized(edited_preset) == "com.apple.Safari:9");
   edited_preset.options = "app_shortcut_preset=custom";
   assert(companion_shortcut_preset_normalized(edited_preset) == "custom");
+  edited_preset.options += ",shortcut_app_icon";
+  assert(companion_card_options_normalized(edited_preset) == "app_shortcut_preset=custom");
+  assert(companion_shortcut_app_icon_id(edited_preset).empty());
   safari_launch.sensor = "url.https%3A%2F%2Fexample.com";
   assert(!companion_app_shortcuts_enabled(safari_launch));
 
@@ -791,16 +799,8 @@ int main() {
     shortcut_target = app;
     ++guarded_invocations; return true;
   });
-  companion_set_focused_actions({"A"});
-  companion_runtime_service().set_application_highlight("B");
-  assert(!invoke_companion_action_for_app("shortcut.control+w", "guard-B", "B", "new_window", "custom", 0));
-  assert(!invoke_companion_action_for_app("shortcut.control+w", "guard-A", "A", "new_window", "custom", 0));
-  assert(guarded_invocations == 0);
-  companion_set_focused_actions({"B"});
-  assert(invoke_companion_action_for_app("shortcut.control+w", "confirmed-B", "B", "new_window", "custom", 0));
-  assert(guarded_invocations == 1);
   assert(invoke_companion_action_for_app("shortcut.control+w", "standalone", "", "new_window", "custom", 0));
-  assert(guarded_invocations == 2 && sent_action == "shortcut.control+w" && shortcut_target.empty());
+  assert(guarded_invocations == 1 && sent_action == "shortcut.control+w" && shortcut_target.empty());
   assert(companion_shortcut_action_valid("shortcut.scoped.command+k~command+s"));
   assert(companion_shortcut_action_valid("shortcut.scoped.shift+keypadenter"));
   assert(companion_shortcut_action_valid("shortcut.scoped.keypaddecimal"));
@@ -821,11 +821,13 @@ int main() {
     constexpr auto shortcut = "shortcut.scoped.shift+keypad2";
     const int before = guarded_invocations;
     companion_set_actions({{app, "iRacing"}});
-    assert(!invoke_companion_action_for_app(shortcut, "unfocused", app, "new_window", "custom", 0));
-    assert(guarded_invocations == before);
+    assert(invoke_companion_action_for_app(shortcut, "unfocused", app, "new_window", "custom", 0));
+    assert(guarded_invocations == before + 1 && sent_action == app && shortcut_target.empty());
+    companion_deliver_action_result("unfocused", "activated");
+    assert(guarded_invocations == before + 2 && sent_action == shortcut && shortcut_target == app);
     companion_set_focused_action(app);
     assert(invoke_companion_action_for_app(shortcut, "focused", app, "new_window", "custom", 0));
-    assert(guarded_invocations == before + 1 && sent_action == shortcut && shortcut_target == app);
+    assert(guarded_invocations == before + 3 && sent_action == shortcut && shortcut_target == app);
   }
   companion_set_actions({{"com.apple.Safari", "Safari"}});
   {
@@ -850,6 +852,28 @@ int main() {
     assert(invoke_companion_action_for_app("shortcut.command+w", "same-app", "com.apple.Safari", "new_window", preset, 0));
     assert(guarded_invocations == before + 4 && sent_action == "shortcut.scoped.command+w");
     assert(sent_request == "same-app" && shortcut_target == "com.apple.Safari");
+
+    companion_set_focused_action("com.apple.finder");
+    companion_runtime_service().set_application_highlight("com.apple.Safari");
+    assert(invoke_companion_action_for_app("shortcut.command+w", "subpage", "com.apple.Safari",
+                                           "new_window", preset, 0));
+    assert(guarded_invocations == before + 5 && sent_action == "com.apple.Safari" && shortcut_target.empty());
+    companion_deliver_action_result("subpage", "activated");
+    assert(guarded_invocations == before + 6 && sent_action == "shortcut.scoped.command+w");
+    assert(sent_request == "subpage-keys" && shortcut_target == "com.apple.Safari");
+
+    assert(invoke_companion_action_for_app("shortcut.command+t", "other-app", "com.apple.finder",
+                                           "new_window", preset, 0));
+    assert(guarded_invocations == before + 7 && sent_action == "com.apple.Safari" && shortcut_target.empty());
+    companion_deliver_action_result("other-app", "not_allowed");
+    assert(guarded_invocations == before + 7);
+
+    assert(invoke_companion_action_for_app("shortcut.command+f", "custom-mac", "com.apple.Safari",
+                                           "new_window", "custom", 0));
+    assert(guarded_invocations == before + 8 && sent_action == "com.apple.Safari");
+    companion_deliver_action_result("custom-mac", "activated");
+    assert(guarded_invocations == before + 9 && sent_action == "shortcut.scoped.command+f" &&
+           shortcut_target == "com.apple.Safari");
   }
   companion_set_actions({{"com.adobe.PremierePro.26", "Premiere Pro"}});
   assert(companion_shortcut_launch_target("com.adobe.PremierePro") == "com.adobe.PremierePro.26");

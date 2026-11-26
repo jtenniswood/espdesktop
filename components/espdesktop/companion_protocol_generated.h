@@ -94,6 +94,7 @@ struct CataloguePage {
   uint32_t generation{};
   uint32_t page{};
   bool complete{};
+  std::optional<bool> appsProvisional{};
   std::vector<CataloguePageItemsItem> items{};
 };
 struct ActionInvoke {
@@ -304,6 +305,7 @@ inline void encode(JsonObject root, const CataloguePage &message) {
   root["generation"] = message.generation;
   root["page"] = message.page;
   root["complete"] = message.complete;
+  if (message.appsProvisional) root["appsProvisional"] = *message.appsProvisional;
   auto values_items = root["items"].to<JsonArray>();
   for (const auto &item : message.items) {
     auto entry = values_items.add<JsonObject>();
@@ -650,6 +652,9 @@ inline std::optional<Message> decode(JsonObjectConst root, Direction direction, 
     {
       if (!(root["complete"].is<bool>())) return std::nullopt;
     }
+    if (!root["appsProvisional"].isUnbound()) {
+      if (!(root["appsProvisional"].is<bool>())) return std::nullopt;
+    }
     {
       if (!(root["items"].is<JsonArrayConst>() && root["items"].size() <= 48)) return std::nullopt;
       for (JsonVariantConst item : root["items"].as<JsonArrayConst>()) {
@@ -679,6 +684,7 @@ inline std::optional<Message> decode(JsonObjectConst root, Direction direction, 
     result.generation = root["generation"].as<uint32_t>();
     result.page = root["page"].as<uint32_t>();
     result.complete = root["complete"].as<bool>();
+    if (!root["appsProvisional"].isUnbound()) result.appsProvisional = root["appsProvisional"].as<bool>();
     for (JsonVariantConst item : root["items"].as<JsonArrayConst>()) {
       result.items.push_back({item["id"].as<std::string>(), item["label"].as<std::string>(), item["obsState"].isUnbound() ? std::nullopt : std::optional<std::string>{item["obsState"].as<std::string>()}, item["obsDetail"].isUnbound() ? std::nullopt : std::optional<std::string>{item["obsDetail"].as<std::string>()}, item["obsAvailable"].isUnbound() ? std::nullopt : std::optional<bool>{item["obsAvailable"].as<bool>()}, item["shortcutColor"].isUnbound() ? std::nullopt : std::optional<uint32_t>{item["shortcutColor"].as<uint32_t>()}});
     }
