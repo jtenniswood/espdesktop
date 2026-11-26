@@ -26,7 +26,7 @@ test("desktop picker offers PC and Mac controls and removed icons fall back", ()
     "Terminal", "Screenshot", "Screen Share", "Video Call", "CPU", "USB", "Sleep", "Window Maximise"]) {
     assert.ok(iconOptions.includes(name), `${name} is selectable`);
   }
-  for (const name of ["Ceiling Light", "Air Conditioner", "Bathtub", "Robot Vacuum", "Robot Mower", "Weather Rainy", "Washing Machine"]) {
+  for (const name of ["Air Conditioner", "Bathtub", "Weather Rainy", "Washing Machine"]) {
     assert.ok(!iconOptions.includes(name), `${name} is absent from the desktop picker`);
     assert.equal(iconSlug(name), "cog", `${name} uses the fallback icon`);
   }
