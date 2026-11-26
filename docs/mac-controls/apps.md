@@ -63,7 +63,7 @@ See [Sound controls](/card-types/sound) to adjust speakers, microphones, or app 
 
 ## OBS Studio controls
 
-See [OBS Studio controls](/mac-controls/obs-studio) to connect OBS and set up scenes, mixer inputs, and broadcast controls.
+See [OBS Studio controls](/obs-studio) to connect OBS and set up scenes, mixer inputs, and broadcast controls.
 
 ## Website cards {#open-a-website}
 

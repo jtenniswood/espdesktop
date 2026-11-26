@@ -27,7 +27,7 @@ The picker depends on which computer is connected and the versions of EspDesktop
 | [Subpage](/features/subpages) | Group cards on the display. | Both platforms, also usable without a paired computer |
 | [Sound](/card-types/sound) | Adjust speaker, microphone, or app volume. | macOS and Windows. Hold-to-mute is macOS only. |
 | [Apple Shortcuts](/mac-controls/apple-shortcuts) | Run a workflow or group workflows on a page. | macOS |
-| [OBS Studio](/mac-controls/obs-studio) | Switch scenes, mix audio, and control recording and streaming. | Mac and Windows, depending on your EspDesktop release. |
+| [OBS Studio](/obs-studio) | Switch scenes, mix audio, and control recording and streaming. | Mac and Windows, depending on your EspDesktop release. |
 
 <span id="set-up-the-card"></span>
 

@@ -5,7 +5,7 @@ description: Switch OBS scenes, take Preview live, and choose transitions from a
 
 # Scene control and mixing
 
-Scene, Program, Take Live, and transition controls work on Mac and Windows. **Program** is the live output. **Preview** is where you line up the next scene with Studio Mode on. [Connect OBS Studio](/mac-controls/obs-studio#connect-obs-studio), then open **Add Card → OBS Studio** in the display editor.
+Scene, Program, Take Live, and transition controls work on Mac and Windows. **Program** is the live output. **Preview** is where you line up the next scene with Studio Mode on. [Connect OBS Studio](/obs-studio#connect-obs-studio), then open **Add Card → OBS Studio** in the display editor.
 
 <picture>
   <source type="image/avif" srcset="/images/obs/scenes-480.avif 480w, /images/obs/scenes-960.avif 960w" sizes="(min-width: 768px) 688px, min(688px, 90vw)">

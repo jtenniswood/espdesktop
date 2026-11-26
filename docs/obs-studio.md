@@ -7,7 +7,7 @@ description: Switch OBS scenes, mix audio, and control recording and streaming f
 
 OBS Studio is a free, open-source app for recording video and live streaming. You build **scenes** from sources like cameras, screen captures, and graphics, then use the mixer to adjust microphones and other audio. [Visit the OBS Project for downloads and guides](https://obsproject.com/).
 
-This guide covers OBS controls on **Mac and Windows**. Use an EspDesktop app and display firmware release that includes the controls you want. Older Windows builds offer scene and transition controls and may be missing the other cards in this guide.
+This guide covers OBS controls on **Mac and Windows**. On Windows, use the full guide once your EspDesktop app and display firmware release includes the expanded OBS controls. Earlier Windows releases support scene selection, Program scene, Take Live, and transitions.
 
 <picture>
   <source type="image/avif" srcset="/images/obs/home-480.avif 480w, /images/obs/home-960.avif 960w" sizes="(min-width: 768px) 688px, min(688px, 90vw)">
@@ -33,7 +33,7 @@ Use a [paired display](/screens/4848s040) and keep OBS Studio and EspDesktop ope
 
 ## Switch scenes {#switch-obs-scenes}
 
-Add a **Scene** card and choose the scene you want. With Studio Mode on, the card selects Preview. [Preview scenes, take them live, and choose transitions](/mac-controls/obs-studio/scene-control-and-mixing#preview-a-scene-and-take-it-live).
+Add a **Scene** card and choose the scene you want. With Studio Mode on, the card selects Preview. [Preview scenes, take them live, and choose transitions](/obs-studio/scene-control-and-mixing#preview-a-scene-and-take-it-live).
 
 ## Start with grouped pages
 
@@ -41,10 +41,10 @@ In the **OBS Studio** picker, look under **Grouped pages**. Pick one and choose 
 
 | Page | What you get |
 | --- | --- |
-| [Scenes](/mac-controls/obs-studio/scene-control-and-mixing#scenes) | Buttons for scenes in the current collection. |
-| [Transitions](/mac-controls/obs-studio/scene-control-and-mixing#transitions) | One button per scene transition configured in OBS. |
-| [Audio](/mac-controls/obs-studio/audio-controls#add-the-audio-grouped-page) | Volume sliders for the inputs in the OBS mixer. |
-| [Studio Control](/mac-controls/obs-studio/studio-controls#add-the-studio-control-grouped-page) | Record, Stream, Studio Mode, Replay Buffer, and Save Replay. |
+| [Scenes](/obs-studio/scene-control-and-mixing#scenes) | Buttons for scenes in the current collection. |
+| [Transitions](/obs-studio/scene-control-and-mixing#transitions) | One button per scene transition configured in OBS. |
+| [Audio](/obs-studio/audio-controls#add-the-audio-grouped-page) | Volume sliders for the inputs in the OBS mixer. |
+| [Studio Control](/obs-studio/studio-controls#add-the-studio-control-grouped-page) | Record, Stream, Studio Mode, Replay Buffer, and Save Replay. |
 
 To test on either platform, turn on Studio Mode in OBS and tap a scene. Check that it appears in Preview.
 
@@ -61,13 +61,13 @@ Add individual controls from **Add Card → OBS Studio → Card types**. You can
 
 | Card type | What it does |
 | --- | --- |
-| [Scene](/mac-controls/obs-studio/scene-control-and-mixing#preview-a-scene-and-take-it-live) | Choose a scene from the current collection. |
-| [Studio Mode](/mac-controls/obs-studio/studio-controls#studio-mode-and-multiview) | Toggle **Studio Mode**, show **Program scene**, **Take Live**, or **Open Multiview**. |
-| [Transitions](/mac-controls/obs-studio/scene-control-and-mixing#choose-a-transition) | **Cycle transitions** or **Select a transition**. |
-| [Audio Controls](/mac-controls/obs-studio/audio-controls#add-an-audio-control) | **Level**, **Input State**, or **Cough** for a mixer input. |
-| [Break](/mac-controls/obs-studio/scene-control-and-mixing#switch-to-a-break-scene) | Switch to a break scene and optionally mute a mixer input. |
-| [Output Controls](/mac-controls/obs-studio/studio-controls#streaming-recording-and-virtual-camera) | **Streaming**, **Recording**, or **Virtual Camera**. |
-| [Replay Buffer](/mac-controls/obs-studio/studio-controls#replay-buffer) | **Save Replay** or **Start / Stop Buffer**. |
+| [Scene](/obs-studio/scene-control-and-mixing#preview-a-scene-and-take-it-live) | Choose a scene from the current collection. |
+| [Studio Mode](/obs-studio/studio-controls#studio-mode-and-multiview) | Toggle **Studio Mode**, show **Program scene**, **Take Live**, or **Open Multiview**. |
+| [Transitions](/obs-studio/scene-control-and-mixing#choose-a-transition) | **Cycle transitions** or **Select a transition**. |
+| [Audio Controls](/obs-studio/audio-controls#add-an-audio-control) | **Level**, **Input State**, or **Cough** for a mixer input. |
+| [Break](/obs-studio/scene-control-and-mixing#switch-to-a-break-scene) | Switch to a break scene and optionally mute a mixer input. |
+| [Output Controls](/obs-studio/studio-controls#streaming-recording-and-virtual-camera) | **Streaming**, **Recording**, or **Virtual Camera**. |
+| [Replay Buffer](/obs-studio/studio-controls#replay-buffer) | **Save Replay** or **Start / Stop Buffer**. |
 
 To launch OBS Studio from the touchscreen, add an [Applications card](/mac-controls/apps) and select OBS Studio.
 

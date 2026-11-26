@@ -17,7 +17,7 @@ The [Windows app](https://espdesktop.com/windows) supports Intel, AMD, and Arm P
 - **Applications** — launch only the apps you approve in EspDesktop.
 - **App keyboard shortcuts** — open an app-specific page of controls for common actions, or create your own keyboard shortcuts.
 - **Apple Shortcuts** — run a workflow from the Mac’s Shortcuts app with a tap, or group several workflows on a dedicated page. Your Mac must be unlocked. [Set up Apple Shortcuts](https://espdesktop.com/mac-controls/apple-shortcuts).
-- **OBS Studio** — switch scenes, mix audio, and control recording and streaming on Mac and Windows with a compatible release. [Set up OBS Studio controls](https://espdesktop.com/mac-controls/obs-studio).
+- **OBS Studio** — switch scenes, mix audio, and control recording and streaming on Mac and Windows with a compatible release. [Set up OBS Studio controls](https://espdesktop.com/obs-studio).
 - **Lock Machine** — lock your computer with a tap on the display.
 - **File folders** — open an approved folder with a tap.
 - **Websites** — open `http://` and `https://` links in your default browser.

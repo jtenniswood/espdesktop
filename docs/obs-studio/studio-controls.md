@@ -5,7 +5,7 @@ description: Use EspDesktop to control OBS Studio Mode, Multiview, streaming, re
 
 # Studio controls
 
-[Connect OBS Studio](/mac-controls/obs-studio#connect-obs-studio) to control recording, streaming, Studio Mode, and replay from your touchscreen on Mac or Windows.
+[Connect OBS Studio](/obs-studio#connect-obs-studio) to control recording, streaming, Studio Mode, and replay from your touchscreen on Mac or Windows.
 
 <picture>
   <source type="image/avif" srcset="/images/obs/studio-480.avif 480w, /images/obs/studio-960.avif 960w" sizes="(min-width: 768px) 688px, min(688px, 90vw)">
@@ -33,7 +33,7 @@ Add a **Studio Mode** card and choose one option under **Type**.
 | --- | --- |
 | **Studio Mode** | Toggles Studio Mode. The card asks for confirmation before turning it off by default. |
 | **Program scene** | Shows the name of the scene OBS is sending to its output. |
-| **Take Live** | Sends Preview to Program using the selected transition. [Preview a scene and take it live](/mac-controls/obs-studio/scene-control-and-mixing#preview-a-scene-and-take-it-live). |
+| **Take Live** | Sends Preview to Program using the selected transition. [Preview a scene and take it live](/obs-studio/scene-control-and-mixing#preview-a-scene-and-take-it-live). |
 | **Open Multiview** | Opens OBS’s overview of scenes. Tap again to bring the open window to the front. |
 
 On Mac, enable EspDesktop in **System Settings → Privacy & Security → Accessibility** so it can find and focus Multiview. Press **Esc** to close the window.

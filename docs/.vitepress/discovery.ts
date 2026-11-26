@@ -16,10 +16,17 @@ const displaySetup = `${hostname}screens/4848s040`
 const macSetup = `${hostname}macos`
 const windowsSetup = `${hostname}windows`
 const macControls = `${hostname}#what-you-can-control`
+const oldObsPaths = {
+  'mac-controls/obs-studio': `${hostname}obs-studio`,
+  'mac-controls/obs-studio/studio-controls': `${hostname}obs-studio/studio-controls`,
+  'mac-controls/obs-studio/scene-control-and-mixing': `${hostname}obs-studio/scene-control-and-mixing`,
+  'mac-controls/obs-studio/audio-controls': `${hostname}obs-studio/audio-controls`,
+}
 
 // GitHub Pages cannot configure HTTP redirects. These HTML fallbacks preserve
 // published links while keeping retired pages out of search and the sitemap.
 export const redirects: Record<string, string> = {
+  ...oldObsPaths,
   'windows-preview': windowsSetup,
   'card-types/climate': `${espcontrol}card-types/climate`,
   'getting-started/mac-app': macSetup,
@@ -119,7 +126,7 @@ const formerWindowsSections = {
   '#update-espdesktop': '/settings/system#update-the-windows-app',
   '#add-controls': '/features/adding-a-card',
   '#control-system-sound': '/card-types/sound',
-  '#switch-obs-scenes': '/mac-controls/obs-studio#switch-obs-scenes',
+  '#switch-obs-scenes': '/obs-studio#switch-obs-scenes',
   '#install-the-preview': `${windowsSetup}#install-espdesktop`,
 }
 
@@ -140,7 +147,9 @@ export async function writeRedirects(outDir: string) {
 const target = ${jsonLd(formerSections)}[location.hash]
 if (target) location.replace(target)
 </script>`
-      : ''
+      : Object.hasOwn(oldObsPaths, path)
+        ? `<script>location.replace(${jsonLd(destination)} + location.search + location.hash)</script>`
+        : ''
     await writeFile(file, `<!doctype html>
 <html lang="en"><head><meta charset="utf-8">
 <title>Page moved | EspDesktop</title>

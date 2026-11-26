@@ -123,7 +123,7 @@ On macOS, run an Apple Shortcuts workflow with one tap, or group your workflows 
 
 Switch scenes, mix audio, and control streaming and recording on Mac and Windows with a compatible EspDesktop release.
 
-[OBS Studio controls](/mac-controls/obs-studio)
+[OBS Studio controls](/obs-studio)
 
 </article>
 

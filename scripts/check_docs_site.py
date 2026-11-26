@@ -396,7 +396,7 @@ def check_build(dist):
     for url, page in pages.items():
         schemas = [schema for schema in page.schemas if schema.get('@type') == 'FAQPage']
         if not page.faq and not schemas and url not in (
-            BASE + 'reference/faq', BASE + 'mac-controls/obs-studio'
+            BASE + 'reference/faq', BASE + 'obs-studio'
         ) and not url.startswith(BASE + 'reference/shortcut-presets/'):
             continue
         if len(schemas) != 1:
@@ -409,6 +409,10 @@ def check_build(dist):
             faq_answers_verified += len(actual)
 
     redirects = {
+        'mac-controls/obs-studio': BASE + 'obs-studio',
+        'mac-controls/obs-studio/studio-controls': BASE + 'obs-studio/studio-controls',
+        'mac-controls/obs-studio/scene-control-and-mixing': BASE + 'obs-studio/scene-control-and-mixing',
+        'mac-controls/obs-studio/audio-controls': BASE + 'obs-studio/audio-controls',
         'windows-preview': BASE + 'windows',
         'card-types/climate': 'https://jtenniswood.github.io/espcontrol/card-types/climate',
         'getting-started/mac-app': BASE + 'macos',

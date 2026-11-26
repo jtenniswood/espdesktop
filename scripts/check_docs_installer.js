@@ -423,6 +423,20 @@ async function checkBrowser() {
     await page.waitForURL(canonicalMacSetup);
     await page.goto(`${base}/getting-started/mac-app#pair-the-display`);
     await page.waitForURL(`${canonicalMacSetup}#pair-your-display`);
+    for (const [suffix, section] of [
+      ['', '#connect-obs-studio'],
+      ['/studio-controls', '#replay-buffer'],
+      ['/scene-control-and-mixing', '#preview-a-scene-and-take-it-live'],
+      ['/audio-controls', '#add-an-audio-control'],
+    ]) {
+      const target = `https://espdesktop.com/obs-studio${suffix}`;
+      await page.route(target, route => route.fulfill({
+        contentType: 'text/html',
+        body: '<!doctype html><title>EspDesktop OBS guide destination</title>',
+      }));
+      await page.goto(`${base}/mac-controls/obs-studio${suffix}${section}`);
+      await page.waitForURL(target + section);
+    }
     const beforeRetired = manifests.length;
     const recovery = 'https://jtenniswood.github.io/espcontrol/getting-started/troubleshooting';
     await page.route(recovery, route => route.fulfill({ contentType: 'text/html', body: 'EspControl recovery guide' }));

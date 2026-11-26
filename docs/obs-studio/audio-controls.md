@@ -5,7 +5,7 @@ description: Adjust OBS mixer levels, mute individual microphones and other inpu
 
 # Audio controls
 
-[Connect OBS Studio](/mac-controls/obs-studio#connect-obs-studio), then choose the microphone your broadcast captures. It can differ from your computer’s default microphone. To adjust computer audio, see [Sound controls](/card-types/sound).
+[Connect OBS Studio](/obs-studio#connect-obs-studio), then choose the microphone your broadcast captures. It can differ from your computer’s default microphone. To adjust computer audio, see [Sound controls](/card-types/sound).
 
 <picture>
   <source type="image/avif" srcset="/images/obs/audio-480.avif 480w, /images/obs/audio-960.avif 960w" sizes="(min-width: 768px) 688px, min(688px, 90vw)">
@@ -16,7 +16,7 @@ description: Adjust OBS mixer levels, mute individual microphones and other inpu
 
 1. Choose **Add Card → OBS Studio → Grouped pages → Audio**, then save the card. The page fills available cells with sliders for your current mixer inputs.
 2. Open **Edit Card** on the **Audio** page card to hide or reorder inputs. In the example below, **Mic/Aux** comes first. Turn off any capture inputs you rarely adjust. Choose **Save**.
-3. Use **Edit Subpage** to move or resize sliders and add other audio controls in the free cells. See [how to customise grouped pages](/mac-controls/obs-studio#customise-an-obs-card-or-page).
+3. Use **Edit Subpage** to move or resize sliders and add other audio controls in the free cells. See [how to customise grouped pages](/obs-studio#customise-an-obs-card-or-page).
 
 <a href="/images/obs/audio-settings.png">
   <picture>
@@ -46,4 +46,4 @@ description: Adjust OBS mixer levels, mute individual microphones and other inpu
 
 The layout in the photo uses taller **Level** sliders and puts **Cough** beside the mic’s **Input State** button. To build a layout like this, set both buttons to the same **Source** so you can choose between a quick mute and one that stays on until you tap again.
 
-To mute an input when you switch to a break scene, use [Break Settings](/mac-controls/obs-studio/scene-control-and-mixing#switch-to-a-break-scene).
+To mute an input when you switch to a break scene, use [Break Settings](/obs-studio/scene-control-and-mixing#switch-to-a-break-scene).

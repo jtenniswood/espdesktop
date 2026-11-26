@@ -51,11 +51,11 @@ const pageImages: Record<string, typeof defaultImage> = {
 const author = { '@type': 'Person', name: 'jtenniswood', url: 'https://github.com/jtenniswood' }
 const websiteId = `${hostname}#website`
 const softwareId = `${hostname}#software`
-const obsStudioParent = { name: 'OBS Studio controls', path: 'mac-controls/obs-studio.md' }
+const obsStudioParent = { name: 'OBS Studio controls', path: 'obs-studio.md' }
 const guideParents = {
-  'mac-controls/obs-studio/studio-controls.md': obsStudioParent,
-  'mac-controls/obs-studio/scene-control-and-mixing.md': obsStudioParent,
-  'mac-controls/obs-studio/audio-controls.md': obsStudioParent,
+  'obs-studio/studio-controls.md': obsStudioParent,
+  'obs-studio/scene-control-and-mixing.md': obsStudioParent,
+  'obs-studio/audio-controls.md': obsStudioParent,
   'screens/4848s040-stand.md': { name: '4848S040 setup guide', path: 'screens/4848s040.md' },
   'features/first-run.md': { name: '4848S040 setup guide', path: 'screens/4848s040.md' },
   'features/adding-a-card.md': { name: 'Screen grid', path: 'features/home.md' },
@@ -87,14 +87,14 @@ const cardLinks = [
   { text: 'Supported Apps', link: '/reference/shortcut-presets' },
   { text: 'Websites', link: '/mac-controls/websites' },
 ]
-const obsStudioLink = { text: 'OBS Studio', link: '/mac-controls/obs-studio' }
+const obsStudioLink = { text: 'OBS Studio', link: '/obs-studio' }
 const obsStudioSidebar = {
   ...obsStudioLink,
   collapsed: false,
   items: [
-    { text: 'Studio controls', link: '/mac-controls/obs-studio/studio-controls' },
-    { text: 'Scene control and mixing', link: '/mac-controls/obs-studio/scene-control-and-mixing' },
-    { text: 'Audio controls', link: '/mac-controls/obs-studio/audio-controls' },
+    { text: 'Studio controls', link: '/obs-studio/studio-controls' },
+    { text: 'Scene control and mixing', link: '/obs-studio/scene-control-and-mixing' },
+    { text: 'Audio controls', link: '/obs-studio/audio-controls' },
   ],
 }
 const screenSettingsLink = { text: 'Screen settings', link: '/settings/screen' }
