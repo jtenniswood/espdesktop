@@ -887,8 +887,7 @@ function composeApplicationContext(liveGeneratedActions: () => readonly Companio
   });
   const reconnect = createReconnectController<unknown>({
     eventStreamEnabled: stateLoader.eventStreamEnabled,
-    loadInitialState: (handleState, markConnected) =>
-      stateLoader.loadInitialState(handleState, markConnected),
+    loadInitialState: stateLoader.loadInitialState,
     createEventSource: dom.createEventSource,
     getActiveSource: () => runtime.eventSource,
     setActiveSource: (source) => { runtime.eventSource = source; },
@@ -908,6 +907,7 @@ function composeApplicationContext(liveGeneratedActions: () => readonly Companio
     stateLoader,
     gridMigration,
     nativePages,
+    dom.document.querySelector('meta[name="espdesktop-transport"][content="usb"]') !== null,
   );
   publicFirmwareInstall = createPublicFirmwareInstallFeature(
     deviceApi,
@@ -929,7 +929,7 @@ function composeApplicationContext(liveGeneratedActions: () => readonly Companio
   settingsHelpers);
   const companionSection = createSettingsCompanionSectionFeature(dom, shell, fields);
   connectorsPage = createConnectorsPageFeature(
-    dom, shell, companionSection, !!layout.config.features?.companion,
+    dom, companionSection, !!layout.config.features?.companion,
     () => buildHomeAssistantSettings(
       fields.makeCollapsibleCard, fields.toggleRow, settingsUi,
     ),

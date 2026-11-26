@@ -9,6 +9,9 @@ test("flat native snapshots own root order and accent while older readers retain
   loadTypescriptTest("tests/web/native_page_editor_state.test.ts").runNativeRootSettingsEventTests();
 });
 
+test("USB loads the native layout before the legacy settings poll", () =>
+  loadTypescriptTest("tests/web/native_page_editor_state.test.ts").runUsbEditorStartupTests());
+
 test("background snapshot discovery preserves the transfer lock", async () => {
   await loadTypescriptTest("tests/web/native_page_editor_state.test.ts").runNativeEditorTransferLockTests();
 });

@@ -11,6 +11,7 @@ internal sealed class UsbDisplayEditor(UsbEditorTunnel tunnel)
     public const int MaxRequestBytes = 512 * 1024;
     private const int MaxResponseBytes = 8 * 1024 * 1024;
     private readonly SemaphoreSlim requestGate = new(1);
+    private readonly SemaphoreSlim backgroundGate = new(1);
     private UsbEditorResponse? editorScript;
     private NetworkCredential? scriptCredentials;
 
@@ -20,8 +21,21 @@ internal sealed class UsbDisplayEditor(UsbEditorTunnel tunnel)
         if (!IsAllowed(method, path, body)) return new(403, [], []);
         using var deadline = CancellationTokenSource.CreateLinkedTokenSource(token, tunnel.Session);
         deadline.CancelAfter(TimeSpan.FromSeconds(120));
+        if (path is "/api/v1/config" or "/api/v1/capabilities")
+            return await RequestOnTunnel(method, path, headers, body, credentials, deadline.Token).ConfigureAwait(false);
+
+        // Let layout discovery and configuration pass queued entity reads while
+        // keeping the firmware's one-socket limit for requests already underway.
+        await backgroundGate.WaitAsync(deadline.Token).ConfigureAwait(false);
+        try { return await RequestOnTunnel(method, path, headers, body, credentials, deadline.Token).ConfigureAwait(false); }
+        finally { backgroundGate.Release(); }
+    }
+
+    private async Task<UsbEditorResponse> RequestOnTunnel(string method, string path,
+        IReadOnlyDictionary<string, string> headers, byte[] body, NetworkCredential? credentials, CancellationToken token)
+    {
         var isEditorScript = method == "GET" && path == "/0.js";
-        await requestGate.WaitAsync(deadline.Token).ConfigureAwait(false);
+        await requestGate.WaitAsync(token).ConfigureAwait(false);
         var opened = false;
         try
         {
@@ -61,13 +75,13 @@ internal sealed class UsbDisplayEditor(UsbEditorTunnel tunnel)
                         break;
                 }
             }
-            using var reply = await client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, deadline.Token)
+            using var reply = await client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, token)
                 .ConfigureAwait(false);
-            using var source = await reply.Content.ReadAsStreamAsync(deadline.Token).ConfigureAwait(false);
+            using var source = await reply.Content.ReadAsStreamAsync(token).ConfigureAwait(false);
             using var output = new MemoryStream();
             var buffer = new byte[8192];
             int read;
-            while ((read = await source.ReadAsync(buffer, deadline.Token).ConfigureAwait(false)) != 0)
+            while ((read = await source.ReadAsync(buffer, token).ConfigureAwait(false)) != 0)
             {
                 if (output.Length + read > MaxResponseBytes) throw new IOException("The display’s response was too large.");
                 output.Write(buffer, 0, read);

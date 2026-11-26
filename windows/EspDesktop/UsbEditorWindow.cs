@@ -243,7 +243,7 @@ internal sealed class UsbEditorWindow : Window
 
     private const string Html = """
         <!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-        <title>EspDesktop USB editor</title><style>.card:has(.sp-reset-options){display:none!important}</style></head>
+        <meta name="espdesktop-transport" content="usb"><title>EspDesktop USB editor</title><style>.card:has(.sp-reset-options){display:none!important}</style></head>
         <body><esp-app></esp-app><script src="/0.js"></script></body></html>
         """;
 }

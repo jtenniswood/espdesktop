@@ -7578,6 +7578,12 @@ async function assertAppSubpageOpeningPreference(browser) {
   const context = await browser.newContext({ viewport: testCase.viewport });
   const routes = { nativeState: fixture, nativeAppSubpagePreference: true, nativeAppSubpageMode: true };
   await installRoutes(context, testCase.slug, routes);
+  let finishConnectorStatus;
+  const connectorStatus = new Promise(resolve => { finishConnectorStatus = resolve; });
+  await context.route("**/connectors/status**", async route => {
+    await connectorStatus;
+    await route.fallback();
+  });
   const page = await context.newPage();
   const errors = [];
   page.on("pageerror", error => errors.push(error.message));
@@ -7586,7 +7592,10 @@ async function assertAppSubpageOpeningPreference(browser) {
     await page.goto(`http://espdesktop.test/${testCase.slug}?events=1`, { waitUntil: "domcontentloaded" });
     await page.waitForFunction(() => window.__eventSources?.length > 0);
     await seedNativeDocument(page, fixture);
-    await page.waitForFunction(() => !document.querySelector("#sp-app").classList.contains("sp-onboarding"));
+    for (const name of ["Layout", "Screen", "System"])
+      await page.getByRole("tab", { name, exact: true }).waitFor();
+    assert.equal(await page.getByRole("tab", { name: "Layout", exact: true }).getAttribute("aria-selected"), "true");
+    finishConnectorStatus();
     await page.getByRole("tab", { name: "Screen", exact: true }).click();
     const card = page.locator("#sp-settings .card").filter({ has: page.locator("#sp-set-app-subpage-mode") });
     assert.strictEqual(await card.locator(".card-header h3").textContent(), "App Subpages");

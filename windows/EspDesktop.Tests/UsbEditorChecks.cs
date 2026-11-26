@@ -22,8 +22,9 @@ internal static class UsbEditorChecks
         var offset = 0;
         var waited = false;
         var closed = 0;
+        TaskCompletionSource? releaseClose = null;
         UsbEditorTunnel tunnel = null!;
-        tunnel = new UsbEditorTunnel((packet, _) =>
+        tunnel = new UsbEditorTunnel(async (packet, _) =>
         {
             Require(packet.AsSpan(0, 4).SequenceEqual("UED1"u8), "USB editor packet signature");
             byte[] payload;
@@ -48,13 +49,20 @@ internal static class UsbEditorChecks
                     offset += size;
                     break;
                 case 3: result = 2; payload = []; break;
-                case 4: closed++; payload = []; break;
+                case 4:
+                    closed++;
+                    if (releaseClose is { } release)
+                    {
+                        releaseClose = null;
+                        await release.Task;
+                    }
+                    payload = [];
+                    break;
                 default: throw new InvalidOperationException("Unexpected USB editor command.");
             }
             var frame = packet.AsSpan(0, 9).ToArray().Concat(payload).ToArray();
             frame[4] = result;
             tunnel.Receive(frame);
-            return Task.CompletedTask;
         }, CancellationToken.None);
 
         using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(10));
@@ -82,7 +90,20 @@ internal static class UsbEditorChecks
             !UsbDisplayEditor.IsAllowed("POST", "/api/v1/%2e%2e/api/v1/reset", []) &&
             !UsbDisplayEditor.IsAllowed("GET", "//192.168.1.2", []) &&
             !UsbDisplayEditor.IsAllowed("GET", "/events", []), "block unsafe or unbounded USB editor routes");
-        Console.WriteLine("Passed USB web editor request filtering, round-trip HTTP framing, and response decoding.");
+
+        writes.SetLength(0);
+        var release = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        releaseClose = release;
+        var closing = editor.Request("GET", "/espdesktop/version.json", new Dictionary<string, string>(), [], null, timeout.Token);
+        var background = editor.Request("GET", "/connectors/status", new Dictionary<string, string>(), [], null, timeout.Token);
+        var layout = editor.Request("GET", "/api/v1/config", new Dictionary<string, string>(), [], null, timeout.Token);
+        release.TrySetResult();
+        await Task.WhenAll(closing, background, layout).WaitAsync(timeout.Token);
+        var queuedRequests = Encoding.UTF8.GetString(writes.ToArray());
+        var layoutIndex = queuedRequests.IndexOf("GET /api/v1/config", StringComparison.Ordinal);
+        Require(layoutIndex >= 0 && layoutIndex < queuedRequests.IndexOf("GET /connectors/status", StringComparison.Ordinal),
+            "serve the layout before background requests that have not opened a socket");
+        Console.WriteLine("Passed USB web editor request filtering, round-trip HTTP framing, response decoding, and layout priority.");
     }
 
     private static void Require(bool value, string message)

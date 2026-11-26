@@ -1,6 +1,5 @@
 import type { SettingsUiFeature } from "../features/settings";
 import type { ApplicationDomServices } from "./application_context";
-import type { ControlsShellFeature } from "./controls_shell";
 import type { CompanionPairingState, SettingsCompanionSectionFeature } from "./settings_companion_section";
 
 export interface MacCompanionConnectorState {
@@ -32,11 +31,6 @@ export interface ConnectorsPageFeature {
     homeAssistantCardPickerEnabled(): boolean;
 }
 
-export function connectorOnboardingComplete(_status: ConnectorsStatus): boolean {
-    // Local controls remain usable without an external connection.
-    return true;
-}
-
 export function requestedConnectorFromSearch(search: string): "mac_companion" | null {
     const params = new URLSearchParams(search);
     if (params.get("connector") === "mac_companion") return "mac_companion";
@@ -46,7 +40,6 @@ export function requestedConnectorFromSearch(search: string): "mac_companion" | 
 
 export function createConnectorsPageFeature(
     dom: Pick<ApplicationDomServices, "document" | "window" | "fetch">,
-    shell: Pick<ControlsShellFeature, "setOnboardingComplete">,
     companionSection: SettingsCompanionSectionFeature,
     companionSupported: boolean,
     buildHomeAssistantCard: () => HTMLElement,
@@ -72,7 +65,6 @@ export function createConnectorsPageFeature(
             lastConnection = value.mac_companion.connected;
             connectionListeners.forEach(listener => listener(value.mac_companion.connected));
         }
-        shell.setOnboardingComplete(connectorOnboardingComplete(value), false);
         statusListeners.forEach(listener => listener());
     }
     async function refreshStatus(): Promise<void> {

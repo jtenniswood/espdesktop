@@ -1,5 +1,4 @@
 import {
-  connectorOnboardingComplete,
   requestedConnectorFromSearch,
   createConnectorsPageFeature,
   type ConnectorsStatus,
@@ -28,19 +27,6 @@ export async function runConnectorsFeatureTests(): Promise<void> {
   if (requestedConnectorFromSearch("?tab=settings") !== null) {
     throw new Error("Unrelated deep links must not select a connector");
   }
-  if (!connectorOnboardingComplete(status())) {
-    throw new Error("An unconfigured display must remain usable without an external connector");
-  }
-  if (!connectorOnboardingComplete(status({
-    mac_companion: {
-      available: true,
-      configured: true,
-      paired: true,
-      connected: false,
-    },
-  }))) {
-    throw new Error("A trusted Mac pairing must complete onboarding while offline");
-  }
   const statuses = [
     status(),
     status({ mac_companion: { available: true, configured: true, paired: true, connected: true, platform: "windows" } }),
@@ -67,7 +53,6 @@ export async function runConnectorsFeatureTests(): Promise<void> {
         json: async () => statuses[Math.min(nextStatus++, statuses.length - 1)] as ConnectorsStatus,
       })) as unknown as typeof fetch,
     },
-    { setOnboardingComplete() {} } as any,
     { buildCompanionSettingsCard(_onStatus: unknown, collapsed: boolean) {
         companionStartsCollapsed = collapsed;
         const card = element(); card.id = "companion-card"; return card;
