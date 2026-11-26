@@ -161,7 +161,8 @@ inline void companion_layout_card_app_icon(CompanionAppIconImageData &source, lv
       ? lv_obj_get_height(source.card_label) : 0;
   constexpr int canvas = esphome::companion::APP_ICON_SIDE;
   if (!source.artwork_insets_ready && source.pixels) {
-    source.artwork_insets = espdesktop::app_icon::artwork_insets(source.pixels + canvas * canvas * 2, canvas);
+    source.artwork_insets = espdesktop::app_icon::artwork_insets(
+        source.pixels + canvas * canvas * 2, canvas, source.compact_icon);
     source.artwork_insets_ready = true;
   }
   const auto insets = source.artwork_insets;

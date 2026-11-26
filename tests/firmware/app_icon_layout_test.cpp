@@ -59,7 +59,7 @@ int main() {
 
   std::array<uint8_t, 64> alpha{};
   const auto check = [&](uint16_t left, uint16_t top) {
-    const auto insets = espdesktop::app_icon::artwork_insets(alpha.data(), 8);
+    const auto insets = espdesktop::app_icon::artwork_insets(alpha.data(), 8, true);
     assert(insets.left == left && insets.top == top);
   };
   check(0, 0);  // Completely transparent artwork must stay in its slot.
@@ -70,6 +70,11 @@ int main() {
   for (size_t y = 3; y < 7; ++y)
     for (size_t x = 2; x < 6; ++x) alpha[y * 8 + x] = 255;
   check(2, 3);  // Asymmetric canvas insets stay independent.
+  // A full-size app tile reserves padding for the entire visible image.
+  const auto full_icon = espdesktop::app_icon::artwork_insets(alpha.data(), 8);
+  assert(full_icon.left == 1 && full_icon.top == 0);
+  assert(full_icon.right == 2 && full_icon.bottom == 1);
+  assert(fit_side(100, 100, 0, 5, 8, full_icon) == 114);
   for (auto &value : alpha) value /= 4;
   check(2, 3);  // The same artwork remains aligned when translucent.
   assert(espdesktop::app_icon::artwork_insets(nullptr, 8).left == 0);

@@ -304,7 +304,7 @@ inline void network_status_open_modal(const std::string &device_name,
   ui.title_font = text_font;
   const lv_color_t text_color = lv_color_hex(current_theme().text_primary);
   const lv_coord_t radius = control_modal_card_radius(reference);
-  const lv_coord_t card_pad = reference ? lv_obj_get_style_pad_top(reference, LV_PART_MAIN) : 8;
+  const lv_coord_t card_pad = metrics.card_padding;
   const bool continuous_corners = card_uses_continuous_corners(reference);
 
   ui.overlay = lv_obj_create(lv_layer_top());

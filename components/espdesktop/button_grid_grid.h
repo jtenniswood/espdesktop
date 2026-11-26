@@ -523,18 +523,7 @@ inline bool bind_passive_card(
 
 inline void refresh_slider_card_layout(BtnSlot &s) {
   lv_obj_t *slider = (lv_obj_t *)lv_obj_get_user_data(s.sensor_container);
-  SliderCtx *ctx = slider ? (SliderCtx *)lv_obj_get_user_data(slider) : nullptr;
-  // Reuse the padding captured before the slider zeroed it so the icon and label
-  // stay aligned with every non-slider card.
-  const lv_coord_t pad_left = ctx
-    ? ctx->label_pad_left : lv_obj_get_style_pad_left(s.btn, LV_PART_MAIN);
-  const lv_coord_t pad_top = ctx
-    ? ctx->label_pad_top : lv_obj_get_style_pad_top(s.btn, LV_PART_MAIN);
-  const lv_coord_t pad_bottom = ctx
-    ? ctx->label_pad_bottom : lv_obj_get_style_pad_bottom(s.btn, LV_PART_MAIN);
-  if (s.icon_lbl) lv_obj_align(s.icon_lbl, LV_ALIGN_TOP_LEFT, pad_left, pad_top);
-  if (s.text_lbl) lv_obj_align(s.text_lbl, LV_ALIGN_BOTTOM_LEFT, pad_left, -pad_bottom);
-  if (slider) slider_refresh_geometry(slider);
+  slider_refresh_geometry(slider);
 }
 
 inline void refresh_card_layout(BtnSlot &s, const ParsedCfg &p,
@@ -1416,7 +1405,7 @@ inline void grid_phase2(
   }
   lv_coord_t sp_radius = cfg.card_corner_radius >= 0
     ? cfg.card_corner_radius : lv_obj_get_style_radius(ref_btn, LV_PART_MAIN);
-  lv_coord_t sp_pad = lv_obj_get_style_pad_top(ref_btn, LV_PART_MAIN);
+  const lv_coord_t sp_pad = control_modal_grid_metrics().card_padding;
   const lv_font_t *sp_btn_fnt = lv_obj_get_style_text_font(ref_btn, LV_PART_MAIN);
 
   lv_coord_t mp_pad_top = lv_obj_get_style_pad_top(main_page_obj, LV_PART_MAIN);
@@ -1578,9 +1567,6 @@ inline void grid_phase2(
       display_apply_main_width(sub_slot.icon_lbl, display);
       display_apply_slot_text_width(sub_slot, display);
       setup_card_visual(sub_slot, sb_cfg, context, cfg, page_palette);
-      // The line clamp re-anchors labels at the button content origin. Slider
-      // cards remove button padding so their fill can reach the edges, so run
-      // the card-specific refresh after clamping to restore the captured inset.
       refresh_card_layout(sub_slot, sb_cfg, cfg, rs, cs);
       if (retired_home_assistant_card(sb_cfg)) continue;
 
@@ -1807,6 +1793,9 @@ inline void grid_execute_board_operation(
     const std::string &accent, lv_obj_t *home) {
   switch (operation) {
     case GridBoardOperation::INITIAL_LAYOUT:
+      // Record the theme inset before configured cards modify the slot styles.
+      if (cfg.num_slots > 0 && slots[0].btn)
+        control_modal_grid_metrics().card_padding = lv_obj_get_style_pad_top(slots[0].btn, LV_PART_MAIN);
       grid_phase1(slots, cfg, order, accent, home);
       break;
     case GridBoardOperation::INITIAL_SUBPAGES:
