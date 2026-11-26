@@ -1,11 +1,12 @@
 using System.IO;
 using System.Net;
-using System.Net.Http;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Text.Json;
 using System.Windows;
 using System.Windows.Controls;
 using EspDesktop.Core;
+using Microsoft.Win32;
 using Microsoft.Web.WebView2.Core;
 using Microsoft.Web.WebView2.Wpf;
 
@@ -21,7 +22,10 @@ internal sealed class UsbEditorWindow : Window
     private readonly TextBox username = new() { MinWidth = 170 };
     private readonly PasswordBox password = new() { MinWidth = 170 };
     private readonly Button reload = new() { Content = "Reload", IsEnabled = false };
+    private readonly Button export = new() { Content = "Export unsaved layout", Visibility = Visibility.Collapsed };
     private readonly Func<UsbDisplayEditor?> getEditor;
+    private byte[]? unsavedLayout;
+    private string? unsavedBackup;
     private readonly CancellationTokenSource lifetime = new();
     private CancellationTokenSource pageReads = new();
     private Task<UsbEditorResponse?>? initialVersion;
@@ -44,7 +48,10 @@ internal sealed class UsbEditorWindow : Window
         DockPanel.SetDock(footer, Dock.Bottom);
         DockPanel.SetDock(reload, Dock.Right);
         footer.Children.Add(reload);
+        DockPanel.SetDock(export, Dock.Right);
+        footer.Children.Add(export);
         footer.Children.Add(status);
+        export.Click += ExportLayout;
         reload.Click += (_, _) => ReloadEditor();
         root.Children.Add(footer);
 
@@ -138,6 +145,44 @@ internal sealed class UsbEditorWindow : Window
         LoadEditor();
     }
 
+    private async void ExportLayout(object sender, RoutedEventArgs e)
+    {
+        if (unsavedLayout is not { } draft) return;
+        var backup = unsavedBackup ?? await SerializeLayout(draft);
+        if (closed) return;
+        if (backup is null)
+        {
+            status.Text = "Couldn’t prepare the unsaved layout for export. Keep this editor open and try again.";
+            return;
+        }
+        var dialog = new SaveFileDialog
+        {
+            FileName = "Unsaved EspDesktop Layout.json",
+            Filter = "EspDesktop backup (*.json)|*.json",
+        };
+        if (dialog.ShowDialog(this) != true) return;
+        try { File.WriteAllText(dialog.FileName, backup); }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        {
+            status.Text = "Couldn’t export the unsaved layout. Choose another location.";
+        }
+    }
+
+    private async Task<string?> SerializeLayout(byte[] draft)
+    {
+        try
+        {
+            var payload = Convert.ToBase64String(draft);
+            var output = await browser.CoreWebView2.ExecuteScriptAsync(
+                $"window.espdesktopSerializeUnsavedLayout?.('{payload}')");
+            return JsonSerializer.Deserialize<string>(output);
+        }
+        catch (Exception ex) when (ex is COMException or InvalidOperationException or JsonException)
+        {
+            return null;
+        }
+    }
+
     private void LoadEditor()
     {
         status.Text = "Loading editor over USB…";
@@ -213,7 +258,7 @@ internal sealed class UsbEditorWindow : Window
                 status.Text = "Sign in to the display to continue.";
                 signIn.Visibility = Visibility.Visible;
             }
-            else if (reply.Status != 401)
+            else if (reply.Status != 401 && unsavedLayout is null)
             {
                 status.Text = path == "/0.js" && reply.Status != 200
                     ? "The display couldn’t load the editor. Check its firmware and reload." : "Connected over USB";
@@ -256,6 +301,33 @@ internal sealed class UsbEditorWindow : Window
         Dictionary<string, string> headers, byte[] body, NetworkCredential? usedCredentials, CancellationToken token)
     {
         try { return await editor.Request(method, path, headers, body, usedCredentials, token); }
+        catch (Exception ex) when (method == "PUT" && path == "/api/v1/config" &&
+            !token.IsCancellationRequested && IsConnectionError(ex))
+        {
+            status.Text = "Reconnecting to check whether the display saved the layout…";
+            var reply = await UsbDisplayEditor.RecoverLayoutSave(headers, body, SendToReconnectedDisplay, token);
+            if (reply.Status == 412)
+            {
+                var backup = await SerializeLayout(body);
+                if (closed) return reply;
+                unsavedLayout = body;
+                unsavedBackup = backup;
+                export.Visibility = Visibility.Visible;
+                status.Text = "Couldn’t confirm the save. You can export your unsaved layout.";
+            }
+            else if (unsavedLayout is not null)
+            {
+                status.Text = "Connected over USB. An earlier unsaved layout is available to export.";
+            }
+            return reply;
+
+            Task<UsbEditorResponse> SendToReconnectedDisplay(string verb, IReadOnlyDictionary<string, string> requestHeaders,
+                byte[] requestBody, CancellationToken cancellation)
+            {
+                var current = getEditor() ?? throw new IOException("The display is reconnecting.");
+                return current.Request(verb, path, requestHeaders, requestBody, usedCredentials, cancellation);
+            }
+        }
         catch (Exception ex) when (method == "GET" && !token.IsCancellationRequested && IsConnectionError(ex))
         {
             await Task.Delay(500, token);
@@ -270,8 +342,7 @@ internal sealed class UsbEditorWindow : Window
         }
     }
 
-    private static bool IsConnectionError(Exception error) => error is HttpRequestException or IOException or
-        OperationCanceledException or System.Net.WebSockets.WebSocketException;
+    private static bool IsConnectionError(Exception error) => UsbDisplayEditor.IsConnectionError(error);
 
     private static byte[]? ReadBundledScript()
     {

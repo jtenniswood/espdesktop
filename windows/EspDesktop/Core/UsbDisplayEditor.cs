@@ -31,6 +31,54 @@ internal sealed class UsbDisplayEditor(UsbEditorTunnel tunnel)
         finally { backgroundGate.Release(); }
     }
 
+    // A lost response leaves the original PUT ambiguous. Only repeat it
+    // after an independently authenticated read proves its precondition still holds.
+    internal static async Task<UsbEditorResponse> RecoverLayoutSave(
+        IReadOnlyDictionary<string, string> headers, byte[] body,
+        Func<string, IReadOnlyDictionary<string, string>, byte[], CancellationToken, Task<UsbEditorResponse>> request,
+        CancellationToken token)
+    {
+        const string versionHeader = "X-Panel-Config-Version";
+        using var deadline = CancellationTokenSource.CreateLinkedTokenSource(token);
+        deadline.CancelAfter(TimeSpan.FromSeconds(30));
+        var readHeaders = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        if (headers.TryGetValue(versionHeader, out var version)) readHeaders[versionHeader] = version;
+        var retried = false;
+        try
+        {
+            while (true)
+            {
+                try
+                {
+                    var saved = await request("GET", readHeaders, [], deadline.Token);
+                    if (saved.Status != 200 || !saved.Headers.TryGetValue("ETag", out var etag) ||
+                        (version is not null && saved.Headers.GetValueOrDefault(versionHeader) != version)) break;
+                    // The read confirms durable bytes, but cannot confirm the legacy
+                    // mirror outcome that a successful PUT normally reports.
+                    if (saved.Body.AsSpan().SequenceEqual(body)) return new(202, saved.Headers, []);
+                    if (retried || etag != headers.GetValueOrDefault("If-Match")) break;
+
+                    retried = true;
+                    var reply = await request("PUT", headers, body, deadline.Token);
+                    if (reply.Status is >= 200 and < 300) return reply;
+                    break;
+                }
+                catch (Exception ex) when (!deadline.IsCancellationRequested && IsConnectionError(ex))
+                {
+                    await Task.Delay(500, deadline.Token);
+                }
+            }
+        }
+        catch (OperationCanceledException) when (deadline.IsCancellationRequested && !token.IsCancellationRequested) { }
+
+        // The web editor automatically retries 409 and falls back on 503.
+        // Leave both paths unused when the original write remains ambiguous.
+        return new(412, [], []);
+    }
+
+    internal static bool IsConnectionError(Exception error) => error is HttpRequestException or IOException or
+        OperationCanceledException or System.Net.WebSockets.WebSocketException;
+
     private async Task<UsbEditorResponse> RequestOnTunnel(string method, string path,
         IReadOnlyDictionary<string, string> headers, byte[] body, NetworkCredential? credentials, CancellationToken token)
     {
