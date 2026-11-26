@@ -40,7 +40,7 @@ export async function writeGuideIndex(outDir: string, pages: string[], metadata:
     '',
     `> EspDesktop pairs a ${productFacts.displayLabel} touchscreen with a macOS menu-bar app. Use it to launch apps, open Finder folders and websites, run keyboard shortcuts and lock the Mac.`,
     '',
-    `[Choose a display](${hostname}getting-started/choose-a-display) to compare the 4-inch public firmware option and the 7-inch V3 test firmware option.`,
+    `[Choose a display](${hostname}getting-started/choose-a-display) to compare the 4-inch public firmware option and the 7-inch and 10.1-inch V3 test firmware options.`,
     '',
     `The Mac app requires ${productFacts.macProcessor} and macOS ${productFacts.minimumMacOS} or newer. The display needs ${productFacts.displayWiFiBand} Wi-Fi on the same local network as the Mac. Use firmware and the Mac app from the ${productFacts.matchedRelease}.`,
     '',

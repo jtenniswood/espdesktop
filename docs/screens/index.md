@@ -5,7 +5,7 @@ description: Identify EspDesktop firmware profiles and match the panel hardware 
 
 # Supported EspDesktop Firmware Profiles
 
-Public EspDesktop releases support Mac Companion on the **4-inch Guition ESP32-S3 4848S040**. Mac Companion setup on the **7-inch JC1060P470 V3** is available in its [test firmware](/screens/jc1060p470-v3).
+Public EspDesktop releases support Mac Companion on the **4-inch Guition ESP32-S3 4848S040**. Mac Companion setup is also available in test firmware for the [7-inch JC1060P470 V3](/screens/jc1060p470-v3) and [10.1-inch JC8012P4A1 V3](/screens/jc8012p4a1-v3).
 
 The 4-inch 4848S040 can [expose cards to Home Assistant](/getting-started/home-assistant-actions). For Home Assistant touchscreen controls, see [EspControl](https://jtenniswood.github.io/espcontrol/).
 
@@ -23,7 +23,8 @@ These are the standard home-screen layouts. A larger card occupies several slots
 | [4-inch P4 86 Panel, ETH-2RO](/screens/p4-86) | ESP32-P4 | 720 × 720, square | 9 |
 | [7-inch Guition JC1060P470 V1 and V2](/screens/jc1060p470) | ESP32-P4 | 1024 × 600, landscape | 15 |
 | [7-inch Guition JC1060P470 V3 test firmware](/screens/jc1060p470-v3) | ESP32-P4 v3.x | 1024 × 600, landscape | 15 |
-| [10.1-inch Guition JC8012P4A1](/screens/jc8012p4a1) | ESP32-P4 | 1280 × 800, landscape | 20 |
+| [10.1-inch Guition JC8012P4A1 V1 and V2](/screens/jc8012p4a1) | ESP32-P4 | 1280 × 800, landscape | 20 |
+| [10.1-inch Guition JC8012P4A1 V3 test firmware](/screens/jc8012p4a1-v3) | ESP32-P4 v3.x | 1280 × 800, landscape | 24 |
 
 Camera, media-player, climate and other Home Assistant cards are no longer available. Saved records remain in layouts and backups with unavailable-card warnings. Mac app icons and fullscreen Mac artwork remain available on the Companion profile.
 

@@ -61,6 +61,7 @@ const guideParents = {
   'screens/4848s040-stand.md': { name: '4848S040 setup guide', path: 'screens/4848s040.md' },
   'screens/4848s040.md': { name: 'Choose your display', path: 'getting-started/choose-a-display.md' },
   'screens/jc1060p470-v3.md': { name: 'Choose your display', path: 'getting-started/choose-a-display.md' },
+  'screens/jc8012p4a1-v3.md': { name: 'Choose your display', path: 'getting-started/choose-a-display.md' },
   'features/first-run.md': { name: 'Choose your display', path: 'getting-started/choose-a-display.md' },
   'features/adding-a-card.md': { name: 'Screen grid', path: 'features/home.md' },
   'features/subpages.md': { name: 'Customise the layout', path: 'features/home.md' },
@@ -348,6 +349,7 @@ export default defineConfig({
           { text: 'Buy', link: '/getting-started/choose-a-display' },
           { text: 'Install 4-inch', link: '/screens/4848s040#install' },
           { text: 'Install 7-inch', link: '/screens/jc1060p470-v3#install' },
+          { text: 'Install 10.1-inch', link: '/screens/jc8012p4a1-v3#install' },
           { text: 'Download', link: '/download' },
         ],
       },
@@ -373,6 +375,7 @@ export default defineConfig({
             link: '/screens/jc1060p470-v3',
             items: [{ text: 'Printable stand', link: '/screens/jc1060p470-v3#printable-stand' }],
           },
+          { text: '10.1-inch V3 setup', link: '/screens/jc8012p4a1-v3' },
         ],
       },
       {

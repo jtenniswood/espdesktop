@@ -366,10 +366,16 @@ async function checkBrowser() {
     const sevenInch = page.getByRole('link', { name: 'Choose 7-inch', exact: true });
     assert.equal(await fourInch.getAttribute('href'), '/screens/4848s040');
     assert.equal(await sevenInch.getAttribute('href'), '/screens/jc1060p470-v3');
+    const tenInch = page.getByRole('link', { name: 'Choose 10.1-inch', exact: true });
+    assert.equal(await tenInch.getAttribute('href'), '/screens/jc8012p4a1-v3');
     await page.setViewportSize({ width: 320, height: 640 });
     assert(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth),
       'Display choices must fit a phone viewport');
     await page.setViewportSize({ width: 1440, height: 900 });
+    await tenInch.click();
+    await page.waitForURL(`${home}screens/jc8012p4a1-v3`);
+    await page.getByRole('heading', { name: 'Install test firmware over USB' }).waitFor();
+    await page.goto(`${base}${chooser}`);
     await fourInch.click();
     await page.waitForURL(`${home}screens/4848s040`);
     console.log('Homepage checks passed at desktop, tablet and phone widths.');

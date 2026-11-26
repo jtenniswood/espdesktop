@@ -1,7 +1,7 @@
 ---
 title: "EspDesktop: A touchscreen controller for your Mac"
 titleTemplate: :title
-description: Launch apps, open websites and folders, and run keyboard shortcuts from a 4-inch or 7-inch touchscreen paired with the free EspDesktop Mac app.
+description: Launch apps, open websites and folders, and run keyboard shortcuts from a 4-inch, 7-inch, or 10.1-inch touchscreen paired with the free EspDesktop Mac app.
 layout: home
 ---
 
@@ -11,7 +11,7 @@ layout: home
 
 # A touchscreen controller *for your Mac*
 
-EspDesktop turns a touchscreen into a controller for opening apps, visiting websites and running keyboard shortcuts on your Mac. Choose a compact 4-inch screen or a wider 7-inch screen and pair it over your local network with the free Mac app.
+EspDesktop turns a touchscreen into a controller for opening apps, visiting websites and running keyboard shortcuts on your Mac. Choose a 4-inch, 7-inch, or 10.1-inch screen and pair it over your local network with the free Mac app.
 
 <div class="homepage-action">
 

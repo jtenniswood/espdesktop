@@ -1,6 +1,6 @@
 ---
 title: Choose an EspDesktop Display
-description: Compare the 4-inch and 7-inch EspDesktop touchscreens before buying, then open the matching buying and installation guide.
+description: Compare the 4-inch, 7-inch, and 10.1-inch EspDesktop touchscreens before buying, then open the matching buying and installation guide.
 pageClass: display-chooser-page
 aside: false
 ---
@@ -49,6 +49,24 @@ A wider screen with room for more controls. The 1024 × 600 display has a 3×5 H
 EspDesktop firmware for this model is currently a test build. Check the V3 hardware revision before ordering.
 
 <a class="docs-primary-action" href="/screens/jc1060p470-v3">Choose 7-inch</a>
+
+</div>
+
+</article>
+
+<article class="display-choice">
+
+<div class="display-choice-copy">
+
+## 10.1-inch landscape display
+
+**Guition JC8012P4A1 V3 · ESP32-P4**
+
+The 1280 × 800 display has 24 Home slots in landscape and 18 in portrait.
+
+EspDesktop Companion support uses test firmware. Confirm the ESP32-P4 chip revision with the seller before ordering.
+
+<a class="docs-primary-action" href="/screens/jc8012p4a1-v3">Choose 10.1-inch</a>
 
 </div>
 

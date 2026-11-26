@@ -51,7 +51,7 @@ Pair on a trusted local network and remove a display from the Mac app before rep
 
 ## What You Need
 
-- A [4-inch Guition ESP32-S3 4848S040](https://espdesktop.com/screens/4848s040) or [7-inch Guition JC1060P470 V3](https://espdesktop.com/screens/jc1060p470-v3) touchscreen. The 7-inch V3 uses test firmware.
+- A [4-inch Guition ESP32-S3 4848S040](https://espdesktop.com/screens/4848s040) touchscreen with public firmware. The [7-inch Guition JC1060P470 V3](https://espdesktop.com/screens/jc1060p470-v3) and [10.1-inch Guition JC8012P4A1 V3](https://espdesktop.com/screens/jc8012p4a1-v3) use test firmware.
 - A USB-C data cable for the first firmware install
 - Chrome or Edge for browser-based flashing
 - A 2.4 GHz WiFi network shared by the display and Mac

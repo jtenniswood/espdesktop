@@ -24,7 +24,6 @@ export const redirects: Record<string, string> = {
   'getting-started/c6-recovery': `${espcontrol}getting-started/troubleshooting#a-p4-panel-has-unreliable-wifi`,
   'immich/installation': `${immichGuide}#installation`,
   'screens/p4-86': `${espcontrol}screens/p4-86`,
-  'screens/jc8012p4a1-v3': `${espcontrol}screens/jc8012p4a1-v3`,
   'screens/jc8012p4a1-v2': `${espcontrol}screens/jc8012p4a1-v2`,
   'screens/jc8012p4a1-v1': `${espcontrol}screens/jc8012p4a1-v1`,
   'screens/jc8012p4a1': `${espcontrol}screens/jc8012p4a1`,
@@ -66,8 +65,8 @@ export const redirects: Record<string, string> = {
   'generated/screens/jc8012p4a1-install': `${espcontrol}screens/jc8012p4a1`,
   'generated/screens/jc8012p4a1-v2-grid': `${espcontrol}screens/jc8012p4a1-v2`,
   'generated/screens/jc8012p4a1-v2-install': `${espcontrol}screens/jc8012p4a1-v2`,
-  'generated/screens/jc8012p4a1-v3-grid': `${espcontrol}screens/jc8012p4a1-v3`,
-  'generated/screens/jc8012p4a1-v3-install': `${espcontrol}screens/jc8012p4a1-v3`,
+  'generated/screens/jc8012p4a1-v3-grid': `${hostname}screens/jc8012p4a1-v3`,
+  'generated/screens/jc8012p4a1-v3-install': `${hostname}screens/jc8012p4a1-v3#install`,
   'generated/screens/p4-86-grid': `${espcontrol}screens/p4-86`,
   'generated/screens/p4-86-install': `${espcontrol}screens/p4-86`,
 }

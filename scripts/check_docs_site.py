@@ -413,7 +413,6 @@ def check_build(dist):
         'getting-started/c6-recovery': 'https://jtenniswood.github.io/espcontrol/getting-started/troubleshooting#a-p4-panel-has-unreliable-wifi',
         'immich/installation': 'https://jtenniswood.github.io/espcontrol/immich/#installation',
         'screens/p4-86': 'https://jtenniswood.github.io/espcontrol/screens/p4-86',
-        'screens/jc8012p4a1-v3': 'https://jtenniswood.github.io/espcontrol/screens/jc8012p4a1-v3',
         'screens/jc8012p4a1-v2': 'https://jtenniswood.github.io/espcontrol/screens/jc8012p4a1-v2',
         'screens/jc8012p4a1-v1': 'https://jtenniswood.github.io/espcontrol/screens/jc8012p4a1-v1',
         'screens/jc8012p4a1': 'https://jtenniswood.github.io/espcontrol/screens/jc8012p4a1',
@@ -448,7 +447,7 @@ def check_build(dist):
         'jc4880p443-v3': ('https://jtenniswood.github.io/espcontrol/screens/jc4880p443-v3', 'https://jtenniswood.github.io/espcontrol/screens/jc4880p443-v3'),
         'jc8012p4a1': ('https://jtenniswood.github.io/espcontrol/screens/jc8012p4a1', 'https://jtenniswood.github.io/espcontrol/screens/jc8012p4a1'),
         'jc8012p4a1-v2': ('https://jtenniswood.github.io/espcontrol/screens/jc8012p4a1-v2', 'https://jtenniswood.github.io/espcontrol/screens/jc8012p4a1-v2'),
-        'jc8012p4a1-v3': ('https://jtenniswood.github.io/espcontrol/screens/jc8012p4a1-v3', 'https://jtenniswood.github.io/espcontrol/screens/jc8012p4a1-v3'),
+        'jc8012p4a1-v3': (BASE + 'screens/jc8012p4a1-v3', BASE + 'screens/jc8012p4a1-v3#install'),
         'p4-86': ('https://jtenniswood.github.io/espcontrol/screens/p4-86', 'https://jtenniswood.github.io/espcontrol/screens/p4-86'),
     }
     for model, (grid, install) in screen_guides.items():
