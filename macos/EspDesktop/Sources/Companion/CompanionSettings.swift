@@ -1030,8 +1030,8 @@ struct CompanionSettings: View {
             if store.availableApps.isEmpty {
                 Section {
                     emptyState("No Applications Found", symbol: "app.dashed",
-                               detail: "Apps in your Applications folder appear here automatically.") {
-                        Button("Refresh Applications") { store.refreshApplications() }
+                               detail: "Apps from Applications folders and connected external drives appear here automatically.") {
+                        Button("Refresh Applications") { store.refreshApplications(includeExternal: true) }
                     }
                 }
             } else if showingApplicationCustomization {
@@ -1053,7 +1053,7 @@ struct CompanionSettings: View {
             }
         }
         .formStyle(.grouped)
-        .onAppear { store.refreshApplications() }
+        .onAppear { store.refreshApplications(includeExternal: true) }
     }
 
     private var appleShortcutsPage: some View {
