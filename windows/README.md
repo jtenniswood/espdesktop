@@ -33,7 +33,7 @@ Use **Start EspDesktop when I sign in** to keep the display connected after logi
 
 With keyboard shortcuts enabled, approve iRacing in the Windows companion’s **Applications** settings. In the display editor, add an **Application** card for iRacing and enable its app subpage. The six starter cards open Lap Timing, Standings, Relative, Fuel, Pit Adjustments and In-Car Adjustments. Start an iRacing Test Drive and bring the simulator window to the foreground before tapping a shortcut. For a changed binding, edit its card and choose **Custom** to match the key you set in iRacing.
 
-Choose **Keyboard Shortcut → Application → iRacing** to browse the full catalogue of driving, replay and camera editor presets. Open the matching view in iRacing before using its shortcuts. For controls that ship without a key, assign a binding in iRacing first and use a custom shortcut. Whisper and private chat commands require typing their recipient or message in iRacing.
+Choose **Keyboard Shortcut → Application → iRacing** to browse **General / In-Car**, **Replay Controls** and **Camera Editor**. Search by group, shortcut name or key combination. Open the matching view in iRacing before using its shortcuts. For controls that ship without a key, assign a binding in iRacing first and use a custom shortcut. Whisper and private chat commands require typing their recipient or message in iRacing.
 
 If you used the earlier standalone iRacing test app, pair the standard Windows companion and add the iRacing application card again to pick up its Windows app ID.
 

@@ -213,8 +213,8 @@ def validate_windows_apps(root):
         ids = set()
         for item in shortcuts:
             fields = {'id', 'label', 'shortcut', 'icon'}
-            require(isinstance(item, dict) and set(item) - {'note'} == fields,
-                    'each shortcut needs id, label, shortcut and icon, with an optional note')
+            require(isinstance(item, dict) and set(item) - {'note', 'group'} == fields,
+                    'each shortcut needs id, label, shortcut and icon, with an optional note and group')
             ident = item['id']
             require(isinstance(ident, str) and re.fullmatch(r'0|[1-9][0-9]{0,2}', ident) and ident not in ids,
                     f'invalid or duplicate shortcut ID: {ident!r}')
@@ -222,6 +222,7 @@ def validate_windows_apps(root):
             require(text(item['label'], 48) and text(item['icon'], 48) and item['icon'] in icons,
                     f'{ident}: invalid label or icon')
             require('note' not in item or text(item['note'], 200), f'{ident}: invalid shortcut note')
+            require('group' not in item or text(item['group'], 48), f'{ident}: invalid shortcut group')
             require(windows_shortcut_valid(item['shortcut']), f'{ident}: invalid Windows shortcut')
         if 'defaultShortcutIds' in app:
             defaults = app['defaultShortcutIds']
@@ -325,6 +326,7 @@ export interface AppShortcutDefinition {
     readonly label: string;
     readonly shortcut: string;
     readonly icon: string;
+    readonly group?: string;
 }
 export interface AppShortcutApplication {
     readonly version: number;

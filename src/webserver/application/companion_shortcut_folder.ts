@@ -134,6 +134,7 @@ export interface CompanionShortcutPresetCard {
     type: string;
     precision: string;
     options: string;
+    group?: string;
 }
 
 export interface CompanionShortcutTabDefinition {
@@ -536,6 +537,7 @@ export function companionShortcutPresetCards(bundleIdentifier: string): Companio
     return companionShortcutChoices(bundleIdentifier).map(item => ({
         ...shortcutCard(COMPANION_SHORTCUT_PREFIX + item.shortcut, item.label, item.icon),
         options: setConfigOptionValue("", COMPANION_SHORTCUT_PRESET_OPTION, bundleIdentifier + ":" + item.id),
+        ...(typeof item.group === "string" && item.group.trim() ? { group: item.group.trim() } : {}),
     }));
 }
 

@@ -4,6 +4,7 @@ using System.IO;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Windows;
 using System.Windows.Automation;
 using System.Windows.Interop;
@@ -66,6 +67,10 @@ internal sealed class WindowsDesktop(LocalSettings settings, ObsConnection? obs 
     private const int ShortcutPageSize = 24;
     private const int ShortcutIndexSize = 32;
     private const int ShortcutIndexLimit = ShortcutIndexSize * 32;
+    private static readonly JsonSerializerOptions ShortcutJsonOptions = new()
+    {
+        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
+    };
 
     private IEnumerable<(StartApp App, WindowsPresets.Template Template)> ShortcutApps()
     {
@@ -78,7 +83,7 @@ internal sealed class WindowsDesktop(LocalSettings settings, ObsConnection? obs 
     private static string PresetLabel(StartApp app) => Bound(CatalogueLabel(app.Name), 48);
 
     private static object[] Presets(IEnumerable<WindowsPresets.Preset> presets) =>
-        presets.Select(p => (object)new { id = p.Id, label = p.Label, shortcut = p.DisplayShortcut, icon = p.Icon }).ToArray();
+        presets.Select(p => (object)new { id = p.Id, label = p.Label, shortcut = p.DisplayShortcut, icon = p.Icon, group = p.Group }).ToArray();
 
     private static string StarterDefinition(StartApp app, WindowsPresets.Template template)
     {
@@ -88,7 +93,7 @@ internal sealed class WindowsDesktop(LocalSettings settings, ObsConnection? obs 
         {
             version = 1, appId = app.Id, label = PresetLabel(app), catalog = false, defaultShortcutIds = defaults,
             shortcuts = Presets(starter)
-        });
+        }, ShortcutJsonOptions);
     }
 
     public IEnumerable<string> Definitions() =>
@@ -112,7 +117,7 @@ internal sealed class WindowsDesktop(LocalSettings settings, ObsConnection? obs 
         var start = StarterSize + ((int)page - 1) * ShortcutPageSize;
         if (start >= template.Shortcuts.Length) return (null, true);
         var expanded = template.Shortcuts.Skip(start).Take(ShortcutPageSize);
-        return (JsonSerializer.Serialize(new { appId, shortcuts = Array.Empty<object>(), moreShortcuts = Presets(expanded) }),
+        return (JsonSerializer.Serialize(new { appId, shortcuts = Array.Empty<object>(), moreShortcuts = Presets(expanded) }, ShortcutJsonOptions),
             start + ShortcutPageSize >= template.Shortcuts.Length);
     }
 

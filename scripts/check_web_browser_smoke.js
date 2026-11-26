@@ -5057,10 +5057,10 @@ async function assertWindowsShortcutSettings(browser, testCase) {
         } },
         { kind: "application", definition: {
           appId: racingId, label: "iRacing", version: 1, catalog: false,
-          shortcuts: [{ id: "2", label: "Relative", shortcut: "scoped.f3", icon: "Bullet List" }],
+          shortcuts: [{ id: "2", label: "Relative", shortcut: "scoped.f3", icon: "Bullet List", group: "General / In-Car" }],
           moreShortcuts: [
-            { id: "45", label: "Stop Replay", shortcut: "scoped.keypaddecimal", icon: "Stop" },
-            { id: "116", label: "Add Camera", shortcut: "scoped.control+shift+insert", icon: "Plus" },
+            { id: "45", label: "Stop Replay", shortcut: "scoped.keypaddecimal", icon: "Stop", group: "Replay Controls" },
+            { id: "116", label: "Add Camera", shortcut: "scoped.control+shift+insert", icon: "Plus", group: "Camera Editor" },
           ],
         } },
       ] },
@@ -5089,6 +5089,7 @@ async function assertWindowsShortcutSettings(browser, testCase) {
     const app = page.locator('[id$="shortcut-catalog-app"]');
     assert.deepStrictEqual(await app.locator("option").allTextContents(), ["Select", "Google Chrome", "iRacing"]);
     await app.selectOption(appId);
+    assert.equal(await page.locator(".sp-shortcut-catalog-group").count(), 0, "Chrome keeps its flat picker");
     const preset = page.locator(".sp-light-tab-row").filter({ hasText: "New Tab" });
     assert.strictEqual(await preset.locator(".sp-shortcut-catalog-keys").textContent(), "Ctrl+T");
     assert.strictEqual(await preset.getByRole("radio").isVisible(), true);
@@ -5105,10 +5106,19 @@ async function assertWindowsShortcutSettings(browser, testCase) {
     await page.locator('.sp-main [data-slot="3"] .sp-subpage-badge').click();
     await openShortcut();
     assert.equal(await page.getByRole("tab", { name: "Application", exact: true }).getAttribute("aria-selected"), "true");
-    const stopReplay = page.locator(".sp-light-tab-row").filter({ hasText: "Stop Replay" });
-    const addCamera = page.locator(".sp-light-tab-row").filter({ hasText: "Add Camera" });
+    const groups = page.locator(".sp-shortcut-catalog-group");
+    assert.deepEqual(await groups.locator("h3").allTextContents(), ["General / In-Car", "Replay Controls", "Camera Editor"]);
+    assert(await groups.nth(0).getByRole("radio", { name: "Relative F3", exact: true }).isChecked());
+    const stopReplay = groups.nth(1).locator(".sp-light-tab-row").filter({ hasText: "Stop Replay" });
+    const addCamera = groups.nth(2).locator(".sp-light-tab-row").filter({ hasText: "Add Camera" });
     assert.equal(await stopReplay.locator(".sp-shortcut-catalog-keys").textContent(), "Keypad .");
     assert.equal(await addCamera.locator(".sp-shortcut-catalog-keys").textContent(), "Ctrl+Shift+Insert");
+    const search = page.locator('[id$="shortcut-catalog-search"]');
+    await search.fill("Replay Controls");
+    assert.deepEqual(await page.locator(".sp-shortcut-catalog-group:visible h3").allTextContents(), ["Replay Controls"]);
+    await search.fill("Ctrl+Shift+Insert");
+    assert.deepEqual(await page.locator(".sp-shortcut-catalog-group:visible h3").allTextContents(), ["Camera Editor"]);
+    await search.clear();
     await page.getByRole("tab", { name: "Custom", exact: true }).click();
     assert.equal(await key.inputValue(), "f3");
     await key.selectOption("keypaddecimal");

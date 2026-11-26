@@ -191,13 +191,12 @@ export function companionShortcutCatalogSelection(card: any) {
     if (separator < 0 || !/^(0|[1-9][0-9]{0,2})$/.test(marker.slice(separator + 1))) return undefined;
     const appId = marker.slice(0, separator);
     if (!companionShortcutCatalogApps({ savedAppId: appId }).some((app) => app.appId === appId)) return undefined;
-    const preset = companionShortcutPresetCards(appId).find((preset) =>
-        preset.entity === card?.entity && preset.options === options);
-    if (preset) return { ...preset, appId };
+    const preset = companionShortcutPresetCards(appId).find(preset => preset.options === options);
+    if (preset && preset.entity === card?.entity) return { ...preset, appId };
     // A saved card includes the actual keys, even when its preset is offline or has changed.
     if (!companionShortcutActionIdValid(card?.entity)) return undefined;
     return { appId, entity: card.entity, label: card.label || "Saved shortcut",
-        icon: card.icon || companionSubtypeDefaultIcon("shortcut"), options };
+        icon: card.icon || companionSubtypeDefaultIcon("shortcut"), options, group: preset?.group };
 }
 
 export function companionUrlConfig(rawValue: string): string {
@@ -1567,6 +1566,25 @@ export function registerCompanionCardTypes(
             const presets = sortCompanionLabels(savedCatalogShortcut?.appId === catalogApp.value &&
                 !options.some(item => item.options === savedCatalogShortcut.options && item.entity === savedCatalogShortcut.entity)
                 ? [...options.filter(item => item.options !== savedCatalogShortcut.options), savedCatalogShortcut] : options);
+            const groups = new Map<string, HTMLElement>();
+            for (const { group } of options) {
+                if (!group || groups.has(group)) continue;
+                const section = document.createElement("div");
+                section.className = "sp-shortcut-catalog-group";
+                section.setAttribute("role", "group");
+                const title = document.createElement("h3");
+                title.className = "sp-shortcut-catalog-group-title";
+                title.id = list.id + "-group-" + groups.size;
+                title.textContent = group;
+                section.setAttribute("aria-labelledby", title.id);
+                section.appendChild(title);
+                list.appendChild(section);
+                groups.set(group, section);
+            }
+            if (groups.size) {
+                search.placeholder = "Find a shortcut or group…";
+                search.setAttribute("aria-label", search.placeholder);
+            }
             const choices = presets.map((preset, index) => {
                 const row = document.createElement("label");
                 row.className = "sp-light-tab-row";
@@ -1584,7 +1602,7 @@ export function registerCompanionCardTypes(
                 input.value = preset.options;
                 input.checked = preset.options === savedCatalogShortcut?.options;
                 row.append(input, name, keys);
-                list.appendChild(row);
+                (groups.get(preset.group ?? "") ?? list).appendChild(row);
                 input.addEventListener("change", () => {
                     card._shortcutType = "catalog";
                     card._shortcutCatalogApp = catalogApp.value;
@@ -1599,18 +1617,22 @@ export function registerCompanionCardTypes(
                     if (updatedList) updatedList.scrollTop = scrollTop;
                     document.getElementById(input.id)?.focus({ preventScroll: true });
                 });
-                return { row, label: preset.label.toLowerCase(), keys: shortcutSearchKeys(keys.textContent) };
+                return { row, group: preset.group, label: preset.label.toLowerCase(), keys: shortcutSearchKeys(keys.textContent) };
             });
             function filterShortcuts() {
                 const query = search.value.trim().toLowerCase();
                 const keys = shortcutSearchKeys(query);
+                const matchingGroups = new Set<string>();
                 let found = false;
                 for (const choice of choices) {
                     const matches = !query || choice.label.includes(query) ||
+                        !!choice.group?.toLowerCase().includes(query) ||
                         (keys.length > 0 && keys.every(key => choice.keys.includes(key)));
                     choice.row.hidden = !matches;
+                    if (matches && choice.group) matchingGroups.add(choice.group);
                     found ||= matches;
                 }
+                for (const [group, section] of groups) section.hidden = !matchingGroups.has(group);
                 list.hidden = !found;
                 noMatches.textContent = query && !found ? "No matching keyboard shortcuts" : "";
                 noMatches.classList.toggle("sp-visible", !!noMatches.textContent);

@@ -170,6 +170,9 @@ Check(racingTemplate.DefaultShortcutIds?.SequenceEqual(["0", "1", "2", "3", "4",
 Check(racingPresets.Length == 131 && racingPresets.All(preset =>
         SafeActions.ShortcutStrokes("shortcut." + preset.DisplayShortcut) is not null),
     "Windows can replay every iRacing driving, replay and camera editor preset");
+Check(racingPresets.GroupBy(preset => preset.Group).Select(group => (group.Key, group.Count()))
+        .SequenceEqual(new (string?, int)[] { ("General / In-Car", 43), ("Replay Controls", 28), ("Camera Editor", 60) }),
+    "every iRacing preset belongs to one of the three picker groups");
 Check(racingPresets.Any(preset => preset.DisplayShortcut == "scoped.control+keypad6") &&
       racingPresets.Any(preset => preset.DisplayShortcut == "scoped.control+shift+insert") &&
       SafeActions.Shortcut("shortcut.scoped.keypaddecimal")?.SequenceEqual(new ushort[] { 0x6e }) == true,

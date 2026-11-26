@@ -6,7 +6,7 @@ namespace EspDesktop;
 
 internal static class WindowsPresets
 {
-    internal sealed record Preset(string Id, string Label, string Shortcut, string Icon)
+    internal sealed record Preset(string Id, string Label, string Shortcut, string Icon, string? Group)
     {
         public string DisplayShortcut
         {
