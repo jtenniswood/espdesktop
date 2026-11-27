@@ -21,7 +21,7 @@ class ConfigTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as temporary:
             path = Path(temporary) / "config.json"
             config = Config(path=path)
-            config.set_pairing(Pairing("192.168.1.94:8443", FINGERPRINT, KEY, sequence=3))
+            config.set_pairing(Pairing("192.168.0.50:8443", FINGERPRINT, KEY, sequence=3))
             config.approved_apps = {"linux.sample"}
             config.add_folder(temporary)
             self.assertEqual(stat.S_IMODE(path.stat().st_mode), 0o600)
@@ -34,7 +34,7 @@ class ConfigTests(unittest.TestCase):
             self.assertEqual(len(loaded.folders), 1)
 
     def test_invalid_pairing_is_ignored(self) -> None:
-        self.assertIsNone(Pairing.from_dict({"address": "192.168.1.94", "fingerprint": "x", "key": KEY}))
+        self.assertIsNone(Pairing.from_dict({"address": "192.168.0.50", "fingerprint": "x", "key": KEY}))
         self.assertIsNone(Pairing.from_dict({"address": "", "fingerprint": FINGERPRINT, "key": KEY}))
 
     def test_missing_file_is_empty(self) -> None:
@@ -51,11 +51,11 @@ class ConfigTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as temporary:
             path = Path(temporary) / "config.json"
             config = Config(path=path)
-            config.set_home_assistant("http://192.168.1.7:8123", "secret-token")
+            config.set_home_assistant("http://192.168.0.10:8123", "secret-token")
             config.set_ha_entities([HAEntity("light.kitchen", "Kitchen Lights", "light")])
             self.assertEqual(stat.S_IMODE(path.stat().st_mode), 0o600)
             loaded = Config.load(path)
-            self.assertEqual(loaded.ha_url, "http://192.168.1.7:8123")
+            self.assertEqual(loaded.ha_url, "http://192.168.0.10:8123")
             self.assertEqual(loaded.ha_token, "secret-token")
             self.assertEqual(len(loaded.ha_entities), 1)
             self.assertEqual(loaded.ha_entities[0].entity_id, "light.kitchen")
