@@ -923,7 +923,13 @@ inline const char *subpage_companion_stat_default_unit(const std::string &entity
 }
 
 inline std::string companion_metric_options_normalized(const std::string &options) {
-  return cfg_option_token_present(options, "stat_labels_off") ? "stat_labels_off" : "";
+  std::string out = cfg_option_token_present(options, "stat_labels_off") ? "stat_labels_off" : "";
+  const std::string computer = companion_computer_option_suffix(options);
+  if (!computer.empty()) {
+    if (!out.empty()) out += ",";
+    out += computer;
+  }
+  return out;
 }
 
 inline std::string normalize_garage_label_display(const std::string &value) {
@@ -1396,7 +1402,7 @@ inline std::string companion_shortcut_app_icon_id(const ParsedCfg &p) {
   return separator == std::string::npos ? "" : preset.substr(0, separator);
 }
 
-inline std::string companion_card_options_normalized(const ParsedCfg &p) {
+inline std::string companion_card_options_base(const ParsedCfg &p) {
   if (p.sensor.rfind("url.", 0) == 0) {
     return companion_url_opens_new_window(p) ? "url_open_behavior=new_window" : "";
   }
@@ -1448,6 +1454,16 @@ inline std::string companion_card_options_normalized(const ParsedCfg &p) {
     if (companion_app_launch_card(p)) {
       if (cfg_option_token_present(p.options, "app_hide_label")) add_token("app_hide_label");
     }
+  }
+  return out;
+}
+
+inline std::string companion_card_options_normalized(const ParsedCfg &p) {
+  std::string out = companion_card_options_base(p);
+  const std::string computer = companion_computer_option_suffix(p.options);
+  if (!computer.empty()) {
+    if (!out.empty()) out += ",";
+    out += computer;
   }
   return out;
 }

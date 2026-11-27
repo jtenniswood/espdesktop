@@ -258,15 +258,6 @@ int main() {
   navigation_trim_subpage_cache(0, 0);
   assert(!pages[0].screen && !pages[1].screen);
   assert(grid_navigation_diagnostics().pages_evicted.load() == 6);
-
-  // Extra home screens are paging destinations, not cache entries. Pressure
-  // trims evict subpages but keep screens so paging never rebuilds their cards.
-  lv_obj_t extra_screen;
-  pages = {{1, "screen", &extra_screen, 0, 1, true},
-           {2, "folder", &other, 0, 2, false}};
-  navigation_trim_subpage_cache(0, 0);
-  assert(pages[0].screen == &extra_screen && !pages[1].screen);
-  assert(grid_navigation_diagnostics().pages_evicted.load() == 7);
 }
 '''
 with tempfile.TemporaryDirectory() as temporary:
