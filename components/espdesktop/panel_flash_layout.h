@@ -5,7 +5,25 @@ namespace espdesktop {
 // Reserve the final four sectors for an independent NVS store for panel identity.
 constexpr size_t PANEL_IDENTITY_STORAGE_BYTES = 16 * 1024;
 constexpr size_t PANEL_DATA_PARTITION_BYTES = 2 * 1024 * 1024;
-inline size_t panel_config_partition_bytes(size_t size) {
+constexpr size_t PANEL_FLASH_SECTOR_BYTES = 4096;
+constexpr size_t PANEL_CONFIG_FLASH_HEADER_BYTES = 16;
+constexpr size_t PANEL_CONFIG_LEGACY_FLASH_SLOT_BYTES = 40 * 1024;
+constexpr size_t PANEL_CONFIG_EXPANDED_FLASH_SLOT_BYTES = 128 * 1024;
+constexpr size_t PANEL_CONFIG_NVS_SLOT_BYTES = 16 * 1024;
+
+constexpr size_t panel_config_flash_slot_stride(size_t capacity) {
+  return ((PANEL_CONFIG_FLASH_HEADER_BYTES + capacity + PANEL_FLASH_SECTOR_BYTES - 1) /
+          PANEL_FLASH_SECTOR_BYTES) * PANEL_FLASH_SECTOR_BYTES;
+}
+
+constexpr size_t PANEL_CONFIG_LEGACY_FLASH_END =
+    2 * panel_config_flash_slot_stride(PANEL_CONFIG_LEGACY_FLASH_SLOT_BYTES);
+constexpr size_t PANEL_CONFIG_EXPANDED_FLASH_START =
+    PANEL_DATA_PARTITION_BYTES - PANEL_IDENTITY_STORAGE_BYTES -
+    2 * panel_config_flash_slot_stride(PANEL_CONFIG_EXPANDED_FLASH_SLOT_BYTES);
+static_assert(PANEL_CONFIG_LEGACY_FLASH_END < PANEL_CONFIG_EXPANDED_FLASH_START);
+
+constexpr size_t panel_config_partition_bytes(size_t size) {
   return size == PANEL_DATA_PARTITION_BYTES ? size - PANEL_IDENTITY_STORAGE_BYTES : 0;
 }
 }  // namespace espdesktop

@@ -3,6 +3,7 @@
 #include <atomic>
 #include <cstddef>
 #include <cstdint>
+#include <optional>
 
 namespace espdesktop::configuration {
 
@@ -95,6 +96,10 @@ class ConfigurationStore {
                                     const uint8_t *payload,
                                     size_t payload_size);
 
+  // Seed a new storage region without changing the saved layout's revision.
+  CommitResult initialize_from(uint32_t generation, const uint8_t *payload,
+                               size_t payload_size);
+
   size_t maximum_payload_size() const;
 
  private:
@@ -114,7 +119,8 @@ class ConfigurationStore {
                              size_t payload_size, uint32_t *checksum);
   CommitResult commit_internal(bool enforce_generation,
                                uint32_t expected_generation,
-                               const uint8_t *payload, size_t payload_size);
+                               const uint8_t *payload, size_t payload_size,
+                               std::optional<uint32_t> initial_generation = std::nullopt);
   static bool generation_is_newer(uint32_t candidate, uint32_t reference);
   static uint32_t checksum(uint32_t generation, const uint8_t *data,
                            size_t size);

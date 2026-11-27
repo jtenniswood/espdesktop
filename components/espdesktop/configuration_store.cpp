@@ -238,10 +238,16 @@ CommitResult ConfigurationStore::commit_if_generation(
   return commit_internal(true, expected_generation, payload, payload_size);
 }
 
+CommitResult ConfigurationStore::initialize_from(
+    uint32_t generation, const uint8_t *payload, size_t payload_size) {
+  return commit_internal(false, 0, payload, payload_size, generation);
+}
+
 CommitResult ConfigurationStore::commit_internal(bool enforce_generation,
                                                  uint32_t expected_generation,
                                                  const uint8_t *payload,
-                                                 size_t payload_size) {
+                                                 size_t payload_size,
+                                                 std::optional<uint32_t> initial_generation) {
   // A conditional save may originate from concurrent HTTP callbacks. Keep the
   // slot inspection, generation check, write, and verification together so a
   // stale request cannot pass the check before another save is published.
@@ -267,7 +273,7 @@ CommitResult ConfigurationStore::commit_internal(bool enforce_generation,
   }
 
   uint8_t target_slot = 0;
-  uint32_t next_generation = 1;
+  uint32_t next_generation = initial_generation.value_or(1);
   if (first_valid && second_valid) {
     const bool second_newer =
         generation_is_newer(second.generation, first.generation);
@@ -288,7 +294,8 @@ CommitResult ConfigurationStore::commit_internal(bool enforce_generation,
                  : first.generation)
           : (first_valid ? first.generation
                          : (second_valid ? second.generation : 0));
-  if (enforce_generation && expected_generation != current_generation) {
+  if ((enforce_generation && expected_generation != current_generation) ||
+      (initial_generation && (first_valid || second_valid))) {
     return {StoreStatus::GENERATION_CONFLICT, current_generation,
             payload_size, target_slot};
   }

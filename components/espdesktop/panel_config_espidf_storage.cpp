@@ -1,5 +1,5 @@
 #include "panel_config_espidf_storage.h"
-#include "panel_flash_layout.h"
+#include "panel_config_transient_storage.h"
 
 #include <algorithm>
 #include <cstring>
@@ -24,6 +24,12 @@ const char *EspIdfPanelConfigBlobStorage::slot_key(uint8_t slot) {
   return slot == 0 ? "slot_a" : (slot == 1 ? "slot_b" : nullptr);
 }
 
+EspIdfPanelConfigBlobStorage::~EspIdfPanelConfigBlobStorage() {
+#ifdef USE_ESP32
+  if (handle_ != 0) nvs_close(handle_);
+#endif
+}
+
 bool EspIdfPanelConfigBlobStorage::begin() {
 #ifdef USE_ESP32
   if (ready_) return true;
@@ -31,6 +37,19 @@ bool EspIdfPanelConfigBlobStorage::begin() {
     return false;
   ready_ = true;
   return true;
+#else
+  return false;
+#endif
+}
+
+bool EspIdfPanelConfigBlobStorage::begin_read_only_nvs() {
+#ifdef USE_ESP32
+  if (ready_) return false;
+  nvs_handle_t handle = 0;
+  const auto status = nvs_open(PANEL_CONFIG_NAMESPACE, NVS_READONLY, &handle);
+  if (status == ESP_OK) handle_ = handle;
+  ready_ = status == ESP_OK || status == ESP_ERR_NVS_NOT_FOUND;
+  return ready_;
 #else
   return false;
 #endif
@@ -45,11 +64,14 @@ bool EspIdfPanelConfigBlobStorage::begin_card_images_partition(
       CARD_IMAGES_PARTITION_LABEL);
   if (partition == nullptr) return false;
 
-  partition_slot_capacity_ = slot_capacity;
-  if (partition_slot_stride() > panel_config_partition_bytes(partition->size) / 2) {
-    partition_slot_capacity_ = 0;
+  const size_t usable_bytes = panel_config_partition_bytes(partition->size);
+  if (!usable_bytes || slot_capacity > PANEL_CONFIG_EXPANDED_FLASH_SLOT_BYTES)
     return false;
-  }
+  // Keep the deployed small slots at their original offsets. The expanded
+  // pair lives immediately before panel identity, clear of the old layout.
+  partition_base_ = slot_capacity > PANEL_CONFIG_LEGACY_FLASH_SLOT_BYTES
+                        ? PANEL_CONFIG_EXPANDED_FLASH_START : 0;
+  partition_slot_capacity_ = slot_capacity;
   partition_ = partition;
   partition_backed_ = true;
   ready_ = true;
@@ -62,13 +84,11 @@ bool EspIdfPanelConfigBlobStorage::begin_card_images_partition(
 
 #ifdef USE_ESP32
 size_t EspIdfPanelConfigBlobStorage::partition_slot_stride() const {
-  const size_t unaligned = PARTITION_SLOT_HEADER_SIZE + partition_slot_capacity_;
-  return ((unaligned + FLASH_ERASE_SIZE - 1) / FLASH_ERASE_SIZE) *
-         FLASH_ERASE_SIZE;
+  return panel_config_flash_slot_stride(partition_slot_capacity_);
 }
 
 size_t EspIdfPanelConfigBlobStorage::partition_slot_offset(uint8_t slot) const {
-  return static_cast<size_t>(slot) * partition_slot_stride();
+  return partition_base_ + static_cast<size_t>(slot) * partition_slot_stride();
 }
 
 bool EspIdfPanelConfigBlobStorage::erase_partition_slot(uint8_t slot, size_t size) {
@@ -157,6 +177,7 @@ BlobLoadResult EspIdfPanelConfigBlobStorage::load_blob(uint8_t slot,
                ? BlobLoadResult{BlobLoadStatus::OK, capacity}
                : BlobLoadResult{BlobLoadStatus::MISSING};
   }
+  if (handle_ == 0) return {BlobLoadStatus::MISSING};
   size_t stored_size = 0;
   esp_err_t result = nvs_get_blob(handle_, key, nullptr, &stored_size);
   if (result == ESP_ERR_NVS_NOT_FOUND) return {BlobLoadStatus::MISSING};
@@ -299,6 +320,32 @@ bool EspIdfPanelConfigBlobStorage::write_range(uint8_t slot, size_t offset,
   (void)size;
   return false;
 #endif
+}
+
+StoreStatus migrate_expanded_panel_config(
+    ConfigurationStore &destination, uint8_t *scratch, size_t scratch_size,
+    ConfigurationBuffer::Allocate allocate, ConfigurationBuffer::Release release) {
+  const auto current = destination.load_prefix(nullptr, 0);
+  if (current.status != StoreStatus::EMPTY) return current.status;
+
+  const auto read_source = [&](bool from_flash) -> LoadResult {
+    EspIdfPanelConfigBlobStorage source;
+    const size_t capacity = from_flash ? PANEL_CONFIG_LEGACY_FLASH_SLOT_BYTES
+                                       : PANEL_CONFIG_NVS_SLOT_BYTES;
+    const bool opened = from_flash ? source.begin_card_images_partition(capacity)
+                                    : source.begin_read_only_nvs();
+    TransientBlobStorageBackend<PANEL_CONFIG_LEGACY_FLASH_SLOT_BYTES> backend(
+        source, allocate, release);
+    if (!opened || !backend.begin(capacity)) return {StoreStatus::READ_FAILED};
+    ConfigurationStore store(backend);
+    return store.load(scratch, scratch_size);
+  };
+
+  auto previous = read_source(true);
+  if (previous.status == StoreStatus::EMPTY) previous = read_source(false);
+  if (!previous.ok()) return previous.status;
+  return destination.initialize_from(previous.generation, scratch,
+                                     previous.payload_size).status;
 }
 
 }  // namespace espdesktop::configuration
