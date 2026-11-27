@@ -235,16 +235,17 @@ internal sealed class DisplaySession(IDesktop desktop, Action<Pairing> save, Act
 
         public async Task<bool> ShowPairingBeforeDisconnecting()
         {
-            if (capabilityVersion < 8) return false;
-            using var deadline = CancellationTokenSource.CreateLinkedTokenSource(token);
-            deadline.CancelAfter(TimeSpan.FromSeconds(2));
+            if (capabilityVersion < 8 || token.IsCancellationRequested) return false;
+            // A successful reset ends the authenticated session. Its shutdown
+            // must not cancel the wait for the acknowledgement it just received.
+            using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(2));
             try
             {
                 await link.Send(Message("pair.reset"), "connected", deadline.Token);
                 return await pairingReset.Task.WaitAsync(deadline.Token);
             }
             catch (Exception e) when (e is OperationCanceledException or WebSocketException or IOException or ObjectDisposedException)
-            { return false; }
+            { return pairingReset.Task.IsCompletedSuccessfully && pairingReset.Task.Result; }
         }
 
         public async Task Run()

@@ -405,12 +405,7 @@ server.Map(SocketPath, async context =>
         checks.TrySetResult();
         await socket.CloseOutputAsync(WebSocketCloseStatus.NormalClosure, "done", lifetime.Token);
     }
-    catch (Exception e)
-    {
-        if (!checks.TrySetException(e) && !reconnected.TrySetException(e) &&
-            e is not (OperationCanceledException or WebSocketException))
-            Console.Error.WriteLine(e);
-    }
+    catch (Exception e) { if (!checks.TrySetException(e)) reconnected.TrySetException(e); }
 });
 await server.StartAsync(lifetime.Token);
 var address = server.Urls.Single(url => url.StartsWith("https://", StringComparison.Ordinal));
@@ -765,17 +760,10 @@ async Task Send(WebSocket socket, string kind, params (string, object?)[] fields
 async Task<JsonElement> Receive(WebSocket socket, CancellationToken? token = null)
 {
     var buffer = new byte[16384];
-    var received = 0;
-    while (received < buffer.Length)
-    {
-        var r = await socket.ReceiveAsync(buffer.AsMemory(received), token ?? lifetime.Token);
-        Check(r.MessageType == WebSocketMessageType.Text, "text envelope");
-        received += r.Count;
-        if (!r.EndOfMessage) continue;
-        using var document = JsonDocument.Parse(buffer.AsMemory(0, received));
-        return document.RootElement.Clone();
-    }
-    throw new InvalidOperationException("The simulated display received an oversized text envelope.");
+    var r = await socket.ReceiveAsync(buffer.AsMemory(), token ?? lifetime.Token);
+    Check(r.MessageType == WebSocketMessageType.Text && r.EndOfMessage, "text envelope");
+    using var document = JsonDocument.Parse(buffer.AsMemory(0, r.Count));
+    return document.RootElement.Clone();
 }
 async Task<JsonElement> FindMessage(WebSocket socket, string kind, Func<JsonElement, bool> valid)
 {
