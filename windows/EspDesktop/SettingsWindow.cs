@@ -820,7 +820,7 @@ internal sealed class SettingsWindow : Window
             SetupActions(complete, "Configure screen", () =>
             {
                 if (OpenPanel(display)) FinishSetup();
-            }, Button("Done", FinishSetup));
+            }, Button("Done", FinishSetup), HorizontalAlignment.Center);
             return;
         }
 
