@@ -4,6 +4,8 @@
 #include <cstdint>
 
 #include "panel_config_storage_backend.h"
+#include "configuration_buffer.h"
+#include "panel_flash_layout.h"
 
 #ifdef USE_ESP32
 #include <nvs.h>
@@ -20,7 +22,12 @@ class EspIdfPanelConfigBlobStorage final : public BlobStorage {
   // Existing profiles keep their compact NVS backing. Profiles with a large
   // fixed-capacity document can opt into the reserved beginning of the
   // already-deployed card_images partition without changing its layout.
+  EspIdfPanelConfigBlobStorage() = default;
+  ~EspIdfPanelConfigBlobStorage() override;
+  EspIdfPanelConfigBlobStorage(const EspIdfPanelConfigBlobStorage &) = delete;
+  EspIdfPanelConfigBlobStorage &operator=(const EspIdfPanelConfigBlobStorage &) = delete;
   bool begin();
+  bool begin_read_only_nvs();
   bool begin_card_images_partition(size_t slot_capacity);
   BlobLoadResult load_blob(uint8_t slot, uint8_t *output,
                            size_t capacity) override;
@@ -39,8 +46,8 @@ private:
 
 #ifdef USE_ESP32
   static constexpr const char *CARD_IMAGES_PARTITION_LABEL = "card_images";
-  static constexpr size_t FLASH_ERASE_SIZE = 4096;
-  static constexpr size_t PARTITION_SLOT_HEADER_SIZE = 16;
+  static constexpr size_t FLASH_ERASE_SIZE = PANEL_FLASH_SECTOR_BYTES;
+  static constexpr size_t PARTITION_SLOT_HEADER_SIZE = PANEL_CONFIG_FLASH_HEADER_BYTES;
   static constexpr uint32_t PARTITION_COMMIT_MARKER = 0x50434647;
 
   size_t partition_slot_stride() const;
@@ -52,10 +59,17 @@ private:
   nvs_handle_t handle_{0};
   const esp_partition_t *partition_{nullptr};
   size_t partition_slot_capacity_{0};
+  size_t partition_base_{0};
   bool partition_backed_{false};
 #endif
   bool ready_{false};
   StoreStatus sync_failure_{StoreStatus::SYNC_FAILED};
 };
+
+// Copy the newest previously committed layout before the service can import
+// legacy text entities. Keep the old copy intact through interrupted upgrades.
+StoreStatus migrate_expanded_panel_config(
+    ConfigurationStore &destination, uint8_t *scratch, size_t scratch_size,
+    ConfigurationBuffer::Allocate allocate, ConfigurationBuffer::Release release);
 
 }  // namespace espdesktop::configuration

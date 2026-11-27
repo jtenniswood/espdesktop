@@ -83,7 +83,7 @@ espdesktop:
     on_layout_changed:
       - script.execute: refresh_subpage_grid
     device_profile: ${device_slug}
-    storage: card_images
+    storage: expanded_card_images
     button_order: button_order
     button_on_color: button_on_color
     buttons:

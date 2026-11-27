@@ -1,10 +1,12 @@
 #include "app_icon_store.h"
 #include "app_icon_codec.h"
+#include "../espdesktop/panel_flash_layout.h"
 
 #include <algorithm>
 #include <cstring>
 
 #ifdef USE_ESP32
+#include "esphome/core/defines.h"
 #include <esp_partition.h>
 #include <esp_heap_caps.h>
 #include "esphome/core/helpers.h"
@@ -18,17 +20,7 @@ constexpr size_t kFlashEraseBytes = 4096;
 constexpr size_t kRecordHeaderBytes = 256;
 constexpr size_t kHeaderHashOffset = 8;
 constexpr size_t kHeaderAppIdOffset = 40;
-constexpr size_t kPanelConfigSlotCapacity = 40 * 1024;
-constexpr size_t kPanelConfigSlotHeaderBytes = 16;
-constexpr size_t kPanelIdentityReservedBytes = 16 * 1024;
 constexpr uint8_t kRecordMagic[4] = {'E', 'I', 'C', 'A'};
-
-size_t panel_config_slots_end() {
-  const size_t unaligned = kPanelConfigSlotCapacity + kPanelConfigSlotHeaderBytes;
-  const size_t slot_stride =
-      ((unaligned + kFlashEraseBytes - 1) / kFlashEraseBytes) * kFlashEraseBytes;
-  return slot_stride * 2;
-}
 
 bool application_id_valid(const std::string &application_id) {
   return !application_id.empty() &&
@@ -115,9 +107,14 @@ bool AppIconStore::begin() {
   if (available_) return true;
   auto *partition = esp_partition_find_first(
       ESP_PARTITION_TYPE_DATA, ESP_PARTITION_SUBTYPE_ANY, "card_images");
-  if (!partition || partition->size <= kPanelIdentityReservedBytes) return false;
-  const size_t data_end = partition->size - kPanelIdentityReservedBytes;
-  partition_offset_ = panel_config_slots_end();
+  if (!partition || partition->size <= espdesktop::PANEL_IDENTITY_STORAGE_BYTES)
+    return false;
+  size_t data_end = partition->size - espdesktop::PANEL_IDENTITY_STORAGE_BYTES;
+#ifdef ESPDESKTOP_EXPANDED_PANEL_CONFIG
+  if (partition->size == espdesktop::PANEL_DATA_PARTITION_BYTES)
+    data_end = espdesktop::PANEL_CONFIG_EXPANDED_FLASH_START;
+#endif
+  partition_offset_ = espdesktop::PANEL_CONFIG_LEGACY_FLASH_END;
   if (data_end <= partition_offset_) return false;
   slot_count_ = std::min(APP_ICON_MAX_RECORDS,
                          (data_end - partition_offset_) / APP_ICON_RECORD_BYTES);
