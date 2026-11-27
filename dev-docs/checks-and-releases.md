@@ -138,6 +138,39 @@ and formats are listed in [Compatibility Contract](compatibility-contract.md).
 Use [Change the Release Workflow](playbooks/change-release-workflow.md) for the
 exact edit and verification procedure.
 
+## Windows signing with SignPath Foundation
+
+Before enabling Foundation signing, confirm that the project is accepted and
+complete these steps under the [SignPath Foundation terms](https://signpath.org/terms).
+
+- Verify multi-factor authentication for all release team members on GitHub and
+  SignPath. Assign the maintainer as reviewer and signing approver in SignPath.
+  A maintainer reviews outside contributions, including changes to build scripts
+  and workflows, and manually approves each signing request.
+- Inventory the files in both Windows installers and confirm licensing and
+  signing scope with SignPath. The USB editor uses Microsoft’s
+  [WebView2 SDK](https://www.nuget.org/packages/Microsoft.Web.WebView2/1.0.4370.26/License).
+  The SDK package publishes BSD-style terms. Confirm whether SignPath accepts
+  the packaged SDK files and treats the separately installed Windows runtime
+  as a system library. Confirm whether WebView2’s required diagnostics need
+  further action and how SignPath treats the Inno Setup installer and generated
+  uninstaller.
+  Use the Foundation certificate only for artifacts SignPath approves as
+  EspDesktop’s own. Keep upstream binaries’ existing signatures.
+- Configure SignPath’s trusted GitHub build to accept only artifacts built from
+  the official release revision. Run every job leading to signing on a
+  GitHub-hosted runner, as required by the [SignPath GitHub integration](https://docs.signpath.io/trusted-build-systems/github#checks-performed-by-signpath).
+  Set its metadata restrictions to enforce
+  EspDesktop as the product name and the same release version on every signed
+  binary. Verify the signed app and setup together, including an in-app update,
+  before recording their hashes in the release manifest. The current Windows
+  CI signing test uses temporary test certificates.
+- Keep the [Code signing policy](https://espdesktop.com/reference/code-signing)
+  linked from the project home page and release notes. When signed builds are
+  available, update the download and release pages to reflect their status.
+  If SignPath receives a complaint, help verify it, investigate, and identify
+  the cause.
+
 ## Homebrew
 
 The [EspDesktop tap](https://github.com/jtenniswood/homebrew-tap) tracks the

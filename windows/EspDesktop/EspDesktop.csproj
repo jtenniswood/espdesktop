@@ -8,6 +8,8 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
+    <Product>EspDesktop</Product>
+    <IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
     <ApplicationIcon>Packaging/EspDesktop.ico</ApplicationIcon>
     <ApplicationManifest>Packaging/app.manifest</ApplicationManifest>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
