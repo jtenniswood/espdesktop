@@ -143,12 +143,16 @@ exact edit and verification procedure.
 Before enabling Foundation signing, confirm that the project is accepted and
 complete these steps under the [SignPath Foundation terms](https://signpath.org/terms).
 
+- Verify a public Windows release built from Apache 2.0 source is available in
+  the installer format to be signed. The v1.6.0 Windows installers predate
+  relicensing and use the release tag's PolyForm Noncommercial license.
 - Verify multi-factor authentication for all release team members on GitHub and
   SignPath. Assign the maintainer as reviewer and signing approver in SignPath.
   A maintainer reviews outside contributions, including changes to build scripts
   and workflows, and manually approves each signing request.
 - Inventory the files in both Windows installers and confirm licensing and
-  signing scope with SignPath. The USB editor uses Microsoft’s
+  signing scope with SignPath. Verify the installer includes the applicable
+  licenses and notices for the project and its dependencies. The USB editor uses Microsoft’s
   [WebView2 SDK](https://www.nuget.org/packages/Microsoft.Web.WebView2/1.0.4370.26/License).
   The SDK package publishes BSD-style terms. Confirm whether SignPath accepts
   the packaged SDK files and treats the separately installed Windows runtime
