@@ -206,17 +206,6 @@ export default defineConfig({
       frontmatter.next = { text: 'Install the display', link: '/screens/4848s040#install' }
     }
 
-    if (relativePath === 'download.md' || relativePath === 'macos.md') {
-      const releases = 'https://github.com/jtenniswood/espdesktop/releases'
-      const tag = process.env.ESPDESKTOP_MAC_RELEASE_TAG
-      if (tag && !/^v?\d+\.\d+\.\d+$/.test(tag)) {
-        throw new Error(`Invalid Mac release tag: ${tag}`)
-      }
-      const version = tag?.replace(/^v/, '')
-      frontmatter.macReleaseVersion = version
-      frontmatter.macDownloadUrl = version ? `${releases}/latest/download/EspDesktop-latest.dmg` : releases
-    }
-
     const shortcutGuide = relativePath.startsWith('reference/shortcut-presets/')
     if (shortcutGuide && pageData.params) {
       frontmatter.title = pageData.title = pageData.params.title
