@@ -43,6 +43,8 @@ struct SliderCtx {
   bool dragging = false;
   lv_point_t press_point{0, 0};
   int press_value = 0;
+  // Last non-zero level, restored when a tap turns the entity back on.
+  int last_on_value = 0;
   bool numeric_metadata_ready = false;
   bool numeric_min_known = false;
   bool numeric_max_known = false;
@@ -229,6 +231,7 @@ inline bool slider_apply_pointer_value(lv_obj_t *slider) {
     : espdesktop::slider_geometry::vertical_pointer_position(
         point.y, slider_area.y1, slider_area.y2, positions, value);
   if (!mapped) return false;
+  if (value > 0) ctx->last_on_value = value;
   if (lv_slider_get_value(slider) == value) return true;
   lv_slider_set_value(slider, value, LV_ANIM_OFF);
   lv_obj_send_event(slider, LV_EVENT_VALUE_CHANGED, nullptr);
@@ -326,15 +329,27 @@ inline void slider_cancel_pointer_press(lv_obj_t *slider) {
   slider_restore_pressed_value(slider);
 }
 
-inline void slider_tap_toggle(SliderCtx *ctx) {
+inline void slider_tap_toggle(lv_obj_t *slider) {
+  SliderCtx *ctx = slider ? (SliderCtx *)lv_obj_get_user_data(slider) : nullptr;
   if (!ctx || !ctx->ha_control) return;
   // A tap on a dimmer means on/off for devices that have a meaningful power
   // state. Media volume sliders keep their level-only behaviour.
   const auto domain = espdesktop::ha_controls::domain_of(ctx->entity_id);
-  if (domain == "light" || domain == "fan" || domain == "switch" ||
-      domain == "input_boolean") {
-    espdesktop::ha_controls::toggle_entity(ctx->entity_id);
-  }
+  if (domain != "light" && domain != "fan" && domain != "switch" &&
+      domain != "input_boolean") return;
+  const auto known = espdesktop::ha_controls::state(ctx->entity_id);
+  const bool was_on = known.empty()
+      ? lv_slider_get_value(slider) > 0
+      : espdesktop::ha_controls::state_is_on(ctx->entity_id, known);
+  if (!espdesktop::ha_controls::toggle_entity(ctx->entity_id)) return;
+  // Update the card immediately. The state subscription for a page built after
+  // Home Assistant connected may not arrive, so waiting for it can leave the
+  // old level on screen after the light is switched off.
+  const int next = was_on ? 0
+      : (ctx->last_on_value > 0 ? ctx->last_on_value : 100);
+  lv_slider_set_value(slider, next, LV_ANIM_OFF);
+  const int pct = slider_position_percent(ctx, next);
+  slider_update_ctx_fill(ctx, lv_obj_get_parent(slider), ctx->inverted ? 100 - pct : pct);
 }
 
 inline lv_obj_t *setup_slider_widget(lv_obj_t *btn, uint32_t on_color, bool horizontal) {
@@ -495,7 +510,7 @@ inline void setup_slider_visual(BtnSlot &s, const ParsedCfg &p, uint32_t on_colo
       if (!was_dragging) {
         // A tap is an on/off action. It must not send the level the slider
         // class may have picked from the touch point.
-        slider_tap_toggle(state);
+        slider_tap_toggle(widget);
         return;
       }
       if (!mapped) {
