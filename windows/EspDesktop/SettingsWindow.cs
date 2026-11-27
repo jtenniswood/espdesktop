@@ -75,6 +75,7 @@ internal sealed class SettingsWindow : Window
     public bool HasPairing => displays.Count > 0;
     public event Action<string>? ConnectionStatusChanged;
     public event Action<string>? ShortcutFailed;
+    public event Action<Version>? UpdateAvailable;
 
     public SettingsWindow(bool smoke, Func<CancellationToken, Task<DiscoveredDisplay[]>>? discover = null, LocalStore? store = null)
     {
@@ -221,6 +222,13 @@ internal sealed class SettingsWindow : Window
         Show();
         if (WindowState == WindowState.Minimized) WindowState = WindowState.Normal;
         Activate();
+    }
+
+    public void ShowUpdates()
+    {
+        if (quitting) return;
+        navigation.SelectedIndex = 3;
+        ShowSettings();
     }
 
     public void OpenPanel()
@@ -513,10 +521,17 @@ internal sealed class SettingsWindow : Window
         {
             installerVerified = await Task.Run(() => Updates.CanInstall, lifetime.Token);
             var latest = await Updates.Check(lifetime.Token);
+            if (quitting) return;
             if (latest?.Installer != release?.Installer) updatePath = null;
             release = latest;
             updateStatus = release is { } available ? $"EspDesktop {available.Version} is available." :
                 "No newer Windows release was found.";
+            if (!manual && release is { } update && UpdateAvailable is { } notify &&
+                store.Settings.MarkUpdateNotified(update.Version))
+            {
+                Save();
+                notify(update.Version);
+            }
             if (release != null && installerVerified && store.Settings.InstallUpdates && updatePath == null)
             {
                 updatePath = await Updates.Download(release, lifetime.Token);
