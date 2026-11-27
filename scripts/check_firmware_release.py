@@ -207,7 +207,17 @@ def test_publication_requires_tested_candidate() -> None:
     assert candidate.count("--windows-dir dist/windows") == 2
     assert "pattern: espdesktop-windows-*-installer" in publish
     assert "--windows-dir dist/windows" in publish
-    assert "dist/windows/*.exe" in publish.split("scripts/firmware_release.py publish-draft", 1)[1]
+    publication = publish.split("name: Upload, verify, and publish draft release", 1)[1]
+    publication_setup = publication.split("python3 scripts/firmware_release.py publish-draft", 1)[0]
+    assert "dist/windows/*.exe" in publication_setup
+    publish_command = publication.split("python3 scripts/firmware_release.py publish-draft", 1)[1]
+    assert '--additional-files "${ADDITIONAL_FILES[@]}"' in publish_command
+    for alias in (
+        "EspDesktop-latest.zip",
+        "EspDesktop-latest.dmg",
+        "EspDesktop-Windows-${ARCH}-Setup.exe",
+    ):
+        assert alias in publication_setup
     pages_upload = publish.split("name: Make the tested editor available to Pages", 1)[1]
     pages_upload = pages_upload.split("name: Upload, verify, and publish draft release", 1)[0]
     assert "overwrite: true" in pages_upload, "Publication retries must replace the verified Pages artifact"

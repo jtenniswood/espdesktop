@@ -23,6 +23,11 @@ Use the Mac app and firmware from the **same EspDesktop release**. If your displ
 
 ## Windows
 
-EspDesktop for Windows supports Intel, AMD, and Arm PCs. [Download the Windows installer and pair your display](/windows#install-espdesktop).
+EspDesktop for Windows supports Intel, AMD, and Arm PCs. These links always download the latest stable installer:
+
+- [Download for Intel and AMD PCs (x64)](https://github.com/jtenniswood/espdesktop/releases/latest/download/EspDesktop-Windows-x64-Setup.exe)
+- [Download for Windows on Arm (Arm64)](https://github.com/jtenniswood/espdesktop/releases/latest/download/EspDesktop-Windows-arm64-Setup.exe)
+
+[Install the app and pair your display](/windows#install-espdesktop).
 
 [Code signing policy](/reference/code-signing)
