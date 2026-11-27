@@ -92,6 +92,13 @@ inline ButtonGridModalService &control_modal_service() {
   return service;
 }
 
+// Shared access to the top layer for overlays that live above the pages but
+// are not control modals, such as notifications and image popups. Keeping the
+// call here means only this header needs to know about lv_layer_top().
+inline lv_obj_t *control_modal_create_top_layer_object() {
+  return lv_obj_create(lv_layer_top());
+}
+
 inline ControlModalActive &control_modal_active() {
   return control_modal_service().active();
 }

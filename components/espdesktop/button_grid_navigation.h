@@ -1,6 +1,7 @@
 #pragma once
 
 #include "button_grid_touch.h"
+#include "button_grid_modal.h"
 
 // Internal implementation detail for button_grid.h. Include button_grid.h from device YAML.
 
@@ -393,7 +394,7 @@ inline void navigation_show_notification(const std::string &message,
     active_timer = nullptr;
   }
   if (active != nullptr && lv_obj_is_valid(active)) lv_obj_del(active);
-  active = lv_obj_create(lv_layer_top());
+  active = control_modal_create_top_layer_object();
   if (active == nullptr) return;
   lv_obj_remove_flag(active, LV_OBJ_FLAG_CLICKABLE);
   lv_obj_set_width(active, lv_pct(72));

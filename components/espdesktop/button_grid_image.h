@@ -8,6 +8,7 @@
 #include "esphome/core/version.h"
 #include "../artwork_image/image_pipeline_policy.h"
 #include "button_grid_touch.h"
+#include "button_grid_modal.h"
 #include "screen_lock_state.h"
 #include <algorithm>
 #include <new>
@@ -731,7 +732,7 @@ inline void image_card_show_popup(esphome::artwork_image::ArtworkImage *image,
   image_popup_bind_callbacks(image);
   image_popup_open() = true;
 
-  lv_obj_t *overlay = lv_obj_create(lv_layer_top());
+  lv_obj_t *overlay = control_modal_create_top_layer_object();
   if (overlay == nullptr) {
     image_popup_open() = false;
     return;
