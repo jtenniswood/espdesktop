@@ -119,10 +119,12 @@ class NativeCardButtons {
     authorized_ = authorized;
     catalogue_generation_ = catalogue;
 
-    std::vector<Entry> entries;
+    EntryList entries;
     if (authorized) {
       const auto mac = companion_runtime_snapshot();
-      for (const auto &card : shared_cards()) {
+      const auto cards = shared_cards();
+      entries.reserve(cards.size());
+      for (const auto &card : cards) {
         const auto key = esphome::fnv1a_hash(card.id);
         if (!key || std::any_of(esphome::App.get_buttons().begin(), esphome::App.get_buttons().end(),
                                [&](const auto *button) {
@@ -172,9 +174,10 @@ class NativeCardButtons {
     uint32_t key;
     bool operator==(const Entry &) const = default;
   };
+  using EntryList = std::vector<Entry, EspDesktopExternalAllocator<Entry>>;
   // Keep registered addresses stable and only allocate as the layout grows.
   std::vector<std::unique_ptr<NativeCardButton>> buttons_;
-  std::vector<Entry> entries_;
+  EntryList entries_;
   uint32_t generation_{0};
   uint32_t catalogue_generation_{0};
   bool refreshed_{false};

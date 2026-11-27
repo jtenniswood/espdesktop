@@ -3,7 +3,11 @@
 #include "storage_fixture.h"
 using nvs_handle_t = int;
 constexpr int NVS_READWRITE = 1;
-inline esp_err_t nvs_open(const char *, int, nvs_handle_t *handle) {
+constexpr int NVS_READONLY = 0;
+inline void nvs_close(nvs_handle_t) {}
+inline esp_err_t nvs_open(const char *, int mode, nvs_handle_t *handle) {
+  if (mode == NVS_READONLY && storage_fixture::blobs.empty())
+    return ESP_ERR_NVS_NOT_FOUND;
   *handle = 1;
   return ESP_OK;
 }

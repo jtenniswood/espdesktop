@@ -59,6 +59,22 @@ using CompanionActionList = std::vector<CompanionAction, EspDesktopExternalAlloc
 using CompanionActionList = std::vector<CompanionAction>;
 #endif
 
+// An app disappearing from the editor's list does not invalidate any card
+// icons when all the removed apps are absent from the display configuration.
+inline bool companion_can_skip_catalogue_icon_refresh(bool same_catalogue_state,
+                                                      const std::vector<std::string> &previous,
+                                                      const std::vector<std::string> &next,
+                                                      const std::vector<std::string> &referenced) {
+  if (!same_catalogue_state || next.size() >= previous.size()) return false;
+  const auto contains = [](const auto &apps, const auto &id) {
+    return std::find(apps.begin(), apps.end(), id) != apps.end();
+  };
+  return std::all_of(next.begin(), next.end(), [&](const auto &id) { return contains(previous, id); }) &&
+         std::none_of(referenced.begin(), referenced.end(), [&](const auto &id) {
+           return contains(previous, id) && !contains(next, id);
+         });
+}
+
 // Keep OBS and input-device entries from displacing existing Mac actions.
 class CompanionCatalogueLimits {
  public:
@@ -358,6 +374,7 @@ class CompanionRuntimeService {
 
   void set_remote_definitions(std::vector<CompanionRemoteDefinition> definitions) {
     std::lock_guard<std::mutex> lock(mutex_);
+    if (definitions.empty() && remote_definitions_.empty()) return;
     if (definitions.size() > COMPANION_MAX_REMOTE_DEFINITIONS_PER_CATALOGUE)
       definitions.resize(COMPANION_MAX_REMOTE_DEFINITIONS_PER_CATALOGUE);
     remote_definitions_ = std::move(definitions);
@@ -385,6 +402,7 @@ class CompanionRuntimeService {
 
   void set_keyboard_actions_supported(bool supported) {
     std::lock_guard<std::mutex> lock(mutex_);
+    if (keyboard_actions_supported_ == supported) return;
     keyboard_actions_supported_ = supported;
     request_refresh_();
   }
