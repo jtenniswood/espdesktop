@@ -136,34 +136,32 @@ internal sealed class SettingsWindow : Window
             desktop.Dispose();
             DetachNotifications();
         };
-        scroll = new ScrollViewer { Content = body, VerticalScrollBarVisibility = ScrollBarVisibility.Auto };
-        var root = new Grid();
-        root.RowDefinitions.Add(new() { Height = GridLength.Auto });
-        root.RowDefinitions.Add(new());
+        scroll = new ScrollViewer { Content = body, VerticalScrollBarVisibility = ScrollBarVisibility.Auto, Margin = new Thickness(0, 12, 0, 0) };
+        var root = new Grid { Background = Brushes.Transparent, UseLayoutRounding = true };
         root.ColumnDefinitions.Add(new() { Width = new GridLength(180) });
         root.ColumnDefinitions.Add(new());
-        var masthead = new StackPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(20, 16, 20, 18) };
-        masthead.Children.Add(new Image { Source = Icon, Width = 28, Height = 28, Margin = new Thickness(0, 0, 12, 0) });
-        masthead.Children.Add(new TextBlock { Text = "EspDesktop", FontSize = 20, FontWeight = FontWeights.SemiBold, VerticalAlignment = VerticalAlignment.Center });
-        root.Children.Add(masthead);
-        Grid.SetColumnSpan(masthead, 2);
-        Grid.SetRow(navigation, 1);
-        navigation.Margin = new Thickness(12, 0, 0, 8);
+        navigation.Margin = new Thickness(12, 12, 0, 8);
+        navigation.Resources.MergedDictionaries.Add(new ResourceDictionary
+        {
+            Source = new Uri("pack://application:,,,/EspDesktop;component/SettingsNavigation.xaml")
+        });
+        navigation.SetResourceReference(ItemsControl.ItemContainerStyleProperty, "SettingsNavigationItem");
         AutomationProperties.SetName(navigation, "Settings pages");
         string[] glyphs = ["\uE7F4", "\uE71D", "\uE8B7", "\uE895", "\uE714", "\uE897"];
         for (var i = 0; i < pages.Length; i++)
         {
-            var item = new StackPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(4, 6, 0, 6) };
-            item.Children.Add(new TextBlock { Text = glyphs[i], FontFamily = new FontFamily("Segoe Fluent Icons, Segoe MDL2 Assets"),
-                Width = 27, VerticalAlignment = VerticalAlignment.Center });
-            item.Children.Add(new TextBlock { Text = pages[i] });
+            var item = new StackPanel { Orientation = Orientation.Horizontal };
+            var icon = SettingsCard.Icon(glyphs[i], 16);
+            icon.Width = 16;
+            icon.Margin = new Thickness(0, 0, 12, 0);
+            item.Children.Add(icon);
+            item.Children.Add(new TextBlock { Text = pages[i], VerticalAlignment = VerticalAlignment.Center });
             var listItem = new ListBoxItem { Content = item };
             AutomationProperties.SetName(listItem, pages[i]);
             navigation.Items.Add(listItem);
         }
         navigation.SelectionChanged += (_, _) => { Report(""); scroll.ScrollToTop(); Render(); };
         root.Children.Add(navigation);
-        Grid.SetRow(scroll, 1);
         Grid.SetColumn(scroll, 1);
         root.Children.Add(scroll);
         Content = root;
