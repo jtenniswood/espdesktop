@@ -79,7 +79,7 @@ internal sealed record NativeWindowsDesktop(WindowsDesktop Desktop, string Drive
         _ = new Application { ShutdownMode = ShutdownMode.OnExplicitShutdown };
         var nextScan = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
         var prompt = new TaskCompletionSource<PairingPrompt>();
-        var lateDisplay = new DiscoveredDisplay("192.168.1.20:8443", "Late test display", new string('a', 64));
+        var lateDisplay = new DiscoveredDisplay("127.0.0.1:1", "Late test display", new string('a', 64));
         var scans = 0;
         var store = new LocalStore(Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString()));
         var window = new SettingsWindow(smoke: false, discover: _ =>
@@ -92,7 +92,7 @@ internal sealed record NativeWindowsDesktop(WindowsDesktop Desktop, string Drive
             if (address != lateDisplay.Address || code != "ABCD" || savedFingerprints.Count != 0)
                 throw new InvalidOperationException("The setup must submit the selected display and the complete pairing code.");
             return Task.FromResult(new Pairing(address, lateDisplay.Fingerprint, new byte[32], DisplayName: lateDisplay.Name));
-        }, requestPairingPrompt: (uri, _) => uri.Host == "192.168.1.20"
+        }, requestPairingPrompt: (uri, _) => uri.Host == "127.0.0.1"
             ? prompt.Task : Task.FromResult(PairingPrompt.Unavailable));
         try
         {
@@ -193,6 +193,21 @@ internal sealed record NativeWindowsDesktop(WindowsDesktop Desktop, string Drive
             Click("Done");
             if (HasStep(3) || !Action("Open display editor").IsEnabled || store.LoadPairings().Count() != 1)
                 throw new InvalidOperationException("Done must return to the saved display without changing its pairing.");
+            var toggle = Descendants(window).OfType<System.Windows.Controls.Primitives.ToggleButton>()
+                .Single(control => AutomationProperties.GetName(control) == $"Connection for {lateDisplay.Name}");
+            if (toggle.IsChecked != true) throw new InvalidOperationException("A newly connected display must have its switch on.");
+            toggle.IsChecked = false;
+            using (var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(5)))
+            {
+                while (!toggle.IsEnabled) await Task.Delay(25, timeout.Token);
+            }
+            OpenTrayMenu();
+            var connect = ((System.Windows.Forms.ToolStripMenuItem)trayMenu.Items[0]).DropDownItems[2];
+            if (toggle.IsChecked != false || connect.Text != "Connect")
+                throw new InvalidOperationException("Turning off the switch must disconnect the display and update the tray menu.");
+            connect.PerformClick();
+            if (toggle.IsChecked != true)
+                throw new InvalidOperationException("Connecting from the tray menu must turn the saved-display switch on.");
             Click("Add display");
             var saved = list.Items.Cast<ListBoxItem>().Single(item => Equals(item.Tag, lateDisplay));
             if (saved.IsEnabled || !AutomationProperties.GetName(saved).Contains("Already paired", StringComparison.Ordinal))
