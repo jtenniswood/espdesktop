@@ -459,7 +459,9 @@ inline void setup_slider_visual(BtnSlot &s, const ParsedCfg &p, uint32_t on_colo
   ctx->unit_lbl = s.unit_lbl;
   lv_obj_set_user_data(slider, (void *)ctx);
   slider_bind_geometry_refresh(s.btn, slider);
-  lv_obj_add_state(slider, LV_STATE_DISABLED);
+  // Start interactive: an entity whose state has not reached the panel yet is
+  // still a usable control, and a disabled slider never receives the press
+  // that a tap or drag needs.
   if (!interactive) lv_obj_clear_flag(slider, LV_OBJ_FLAG_CLICKABLE);
 
   lv_obj_add_event_cb(slider, [](lv_event_t *e) {
@@ -519,13 +521,16 @@ inline void setup_slider_visual(BtnSlot &s, const ParsedCfg &p, uint32_t on_colo
     auto refresh = [slider_widget, entity]() {
       if (!lv_obj_is_valid(slider_widget)) return false;
       auto *state = static_cast<SliderCtx *>(lv_obj_get_user_data(slider_widget));
-      if (state == nullptr || lv_obj_has_state(slider_widget, LV_STATE_PRESSED)) return true;
+      if (state == nullptr || state->press_active) return true;
       const auto value = espdesktop::ha_controls::state(entity);
-      if (value.empty() || value == "unavailable" || value == "unknown") {
+      if (value == "unavailable" || value == "unknown") {
         lv_obj_add_state(slider_widget, LV_STATE_DISABLED);
         return true;
       }
+      // An empty value only means the state has not arrived yet. Keep the
+      // control usable instead of disabling it until Home Assistant reports.
       lv_obj_clear_state(slider_widget, LV_STATE_DISABLED);
+      if (value.empty()) return true;
       const int pct = espdesktop::ha_controls::slider_percent(entity);
       if (pct < 0) return true;
       lv_slider_set_value(slider_widget, pct, LV_ANIM_OFF);
