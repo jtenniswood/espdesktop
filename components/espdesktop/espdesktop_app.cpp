@@ -407,8 +407,9 @@ bool EspDesktopApp::create_native_configuration_runtime() {
             card->fields[size_t(pages::CardField::ENTITY)]);
         if (entity.empty()) continue;
         const std::string id(entity);
-        if (espdesktop::ha_controls::slider_control_valid(id) ||
-            espdesktop::ha_controls::toggle_control_valid(id))
+        if (espdesktop::ha_controls::slider_control_valid(id))
+          espdesktop::ha_controls::subscribe_slider_state(id);
+        else if (espdesktop::ha_controls::toggle_control_valid(id))
           espdesktop::ha_controls::subscribe_state(id);
       }
     }

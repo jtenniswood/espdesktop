@@ -551,6 +551,13 @@ inline void setup_slider_visual(BtnSlot &s, const ParsedCfg &p, uint32_t on_colo
       // control usable instead of disabling it until Home Assistant reports.
       lv_obj_clear_state(slider_widget, LV_STATE_DISABLED);
       if (value.empty()) return true;
+      // A light can report "on" before its brightness attribute arrives. Do
+      // not guess 100%; keep the level the card is already showing until the
+      // real value is known.
+      if (espdesktop::ha_controls::domain_of(entity) == "light" &&
+          espdesktop::ha_controls::state_is_on(entity, value) &&
+          espdesktop::ha_controls::state(entity, "brightness").empty())
+        return true;
       const int pct = espdesktop::ha_controls::slider_percent(entity);
       if (pct < 0) return true;
       if (pct > 0 && espdesktop::ha_controls::state_is_on(entity, value))
