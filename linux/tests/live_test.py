@@ -2,7 +2,7 @@
 
 Run from the repository root:
 
-    python3 linux/tests/live_test.py --address 192.168.1.94
+    python3 linux/tests/live_test.py --address 192.168.0.50
 
 This is intentionally separate from the unit tests: it pairs with a real panel,
 stores the pairing in the user's companion config, and can launch an approved
@@ -135,7 +135,7 @@ def authenticate(pairing: Pairing, socket_url: str, protocol: Protocol) -> tuple
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--address", default="192.168.1.94")
+    parser.add_argument("--address", default="192.168.0.50")
     parser.add_argument("--config", default=None, help="Companion config path override")
     parser.add_argument("--use-saved", action="store_true", help="Authenticate with the saved pairing")
     parser.add_argument("--launch-app", default=None, help="Approve and launch an application by name")

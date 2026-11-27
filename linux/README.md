@@ -50,8 +50,8 @@ python3 linux/run.py
 
 The first window lets you:
 
-1. Enter the display's address, for example `192.168.1.94` or
-   `espdesktop-4848s040-903ef8.local`.
+1. Enter the display's address, for example `192.168.0.50` or
+   `espdesktop-panel.local`.
 2. Select **Get code from display**. This opens the display's Companion pairing
    window and fills in the code. You can also use **Open pairing page** and read
    the code from the touchscreen.
@@ -109,7 +109,7 @@ Both artifacts can be attached to a release.
 1. In Home Assistant, open **Profile → Security → Long-lived access tokens** and
    create a token for the companion.
 2. In the companion's **Home Assistant actions** section, enter the HA address
-   (for example `http://192.168.1.7:8123`) and the token, then choose
+   (for example `http://192.168.0.10:8123`) and the token, then choose
    **Save and load entities**. The token is stored in the companion config with
    mode `0600`.
 3. Tick the scripts, scenes, lights, switches and other actions the display may
@@ -151,8 +151,8 @@ The live test pairs with a real display, authenticates, sends the catalogue and
 can launch an approved application:
 
 ```sh
-python3 linux/tests/live_test.py --address 192.168.1.94 --launch-app Dolphin
-python3 linux/tests/live_test.py --address 192.168.1.94 --use-saved
+python3 linux/tests/live_test.py --address 192.168.0.50 --launch-app Dolphin
+python3 linux/tests/live_test.py --address 192.168.0.50 --use-saved
 ```
 
 The live test stores the pairing in `~/.config/espdesktop-companion/config.json`

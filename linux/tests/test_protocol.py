@@ -79,22 +79,22 @@ class SignatureTests(unittest.TestCase):
 
 class EndpointTests(unittest.TestCase):
     def test_ip_defaults(self) -> None:
-        endpoint = resolve_display_address("192.168.1.94")
-        self.assertEqual(endpoint.socket_url, "wss://192.168.1.94:8443/companion/v4")
-        self.assertEqual(endpoint.pairing_status_url, "http://192.168.1.94/companion/pairing")
-        self.assertEqual(endpoint.pairing_url, "http://192.168.1.94/?tab=connectors&connector=mac_companion")
+        endpoint = resolve_display_address("192.168.0.50")
+        self.assertEqual(endpoint.socket_url, "wss://192.168.0.50:8443/companion/v4")
+        self.assertEqual(endpoint.pairing_status_url, "http://192.168.0.50/companion/pairing")
+        self.assertEqual(endpoint.pairing_url, "http://192.168.0.50/?tab=connectors&connector=mac_companion")
 
     def test_mdns_name(self) -> None:
-        endpoint = resolve_display_address("espdesktop-4848s040-903ef8.local")
-        self.assertEqual(endpoint.host, "espdesktop-4848s040-903ef8.local")
+        endpoint = resolve_display_address("espdesktop-panel.local")
+        self.assertEqual(endpoint.host, "espdesktop-panel.local")
         self.assertEqual(endpoint.port, 8443)
 
     def test_explicit_port(self) -> None:
-        endpoint = resolve_display_address("192.168.1.94:9443")
-        self.assertEqual(endpoint.socket_url, "wss://192.168.1.94:9443/companion/v4")
+        endpoint = resolve_display_address("192.168.0.50:9443")
+        self.assertEqual(endpoint.socket_url, "wss://192.168.0.50:9443/companion/v4")
 
     def test_rejects_public_and_invalid(self) -> None:
-        for value in ("example.com", "8.8.8.8", "http://user@192.168.1.94", "", "http://192.168.1.94:0"):
+        for value in ("example.com", "8.8.8.8", "http://user@192.168.0.50", "", "http://192.168.0.50:0"):
             with self.subTest(value), self.assertRaises(ProtocolError):
                 resolve_display_address(value)
 
