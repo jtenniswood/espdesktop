@@ -19,6 +19,10 @@ dependencies, profiles, domains, input paths, cache inputs, tool requirements,
 and parallel safety. `scripts/check_tasks.py` plans and executes that registry.
 It can list registered tasks or explain a profile before running it.
 
+The CI workflow verifies generated files and builds the docs on pull requests.
+The same workflow can be run manually from GitHub Actions. Merging into `main`
+can trigger the separate docs deployment when site inputs change.
+
 ## Parallel Execution
 
 Normal npm aliases and CI use one worker. The explicit `check:parallel` entry
