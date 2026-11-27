@@ -56,6 +56,25 @@ function loadCodec() {
   return sandbox.__ESPDESKTOP_TEST_HOOKS__.config;
 }
 
+test("label alignment normalizes, survives card option cleanup, and defaults left", () => {
+  assert.equal(colours.cardLabelAlign("label_align=center"), "center");
+  assert.equal(colours.cardLabelAlign("label_align=right"), "right");
+  assert.equal(colours.cardLabelAlign("label_align=invalid"), "left");
+  assert.equal(colours.normalizedCardLayoutOptions("label_align=center"), "label_align=center");
+  assert.equal(colours.normalizedCardLayoutOptions("label_align=left"), "");
+  assert.equal(colours.withoutCardLayoutOptions("label_align=right,on_pattern=stripes"), "on_pattern=stripes");
+
+  const codec = loadCodec();
+  const slider = codec.normalizeButtonConfig({
+    type: "light_brightness",
+    options: "label_align=center,card_off_color=6633B9",
+  });
+  assert.equal(colours.configOptionValue(slider.options, "label_align"), "center");
+  assert.equal(colours.configOptionValue(slider.options, "card_off_color"), "6633B9");
+  const toggle = codec.normalizeButtonConfig({ type: "", entity: "light.kitchen", options: "label_align=right" });
+  assert.equal(colours.configOptionValue(toggle.options, "label_align"), "right");
+});
+
 test("card colours survive other editor option changes", () => {
   const codec = loadCodec();
   const colour = "card_off_color=6633B9,card_active_color=custom,card_on_color=FFFFFF";

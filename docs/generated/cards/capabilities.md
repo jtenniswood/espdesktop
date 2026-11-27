@@ -10,7 +10,7 @@ This generated reference lists release availability and setup facts from the sha
 | Card | Type | Entity domains | Subpages | Picker grouping | Main modes and options | Status |
 |---|---|---|---|---|---|---|
 | Timer | timer | timer | Yes | Own picker item | None | Retired |
-| Switch | switch | light, switch, input_boolean, fan | Yes | Own picker item | Large Active Display Numbers; Confirmation Required: default, off, on, both; On State Pattern: default, stripes; Message; Confirm Button; Cancel Button | Retired |
+| Switch | switch | light, switch, input_boolean, fan, media_player | Yes | Own picker item | Large Active Display Numbers; Confirmation Required: default, off, on, both; On State Pattern: default, stripes; Message; Confirm Button; Cancel Button | Retired |
 | Vacuum | vacuum | vacuum | Yes | Own picker item | Type: status, start_stop, start_dock, dock, pause_resume, clean_spot, locate, clean_area | Retired |
 | Lawn Mower | lawn_mower | lawn_mower | Yes | Own picker item | Type: status, start_mowing, dock, pause_resume | Retired |
 | Alarm | alarm | alarm_control_panel | Yes | Own picker item | Type: control_panel, away, home, night, vacation, disarm; PIN required for arming; PIN required for disarming; Visible Actions: away, home, night, vacation, disarm; Icon Display: static, status; Label Display: name, status | Retired |
@@ -28,8 +28,8 @@ This generated reference lists release availability and setup facts from the sha
 | Fans | fan_switch | fan | Yes | Fans (fan_speed) | None | Retired |
 | Garage Door | garage | cover | Yes | Own picker item | Interaction: default, open, close; Display: label, status; Confirmation Required: default, off, on, both; Message; Confirm Button; Cancel Button | Retired |
 | Gate | gate | cover | Yes | Own picker item | Interaction: default, open, close, stop; Display: label, status | Retired |
-| Lights | light_brightness | light | Yes | Own picker item | None | Retired |
-| Lights | light_switch | light | Yes | Lights (light_brightness) | None | Retired |
+| Lights | light_brightness | light | Yes | Own picker item | None | Stable |
+| Lights | light_switch | light | Yes | Lights (light_brightness) | None | Stable |
 | Lights | light_temperature | light | Yes | Lights (light_brightness) | None | Retired |
 | Lights | light_control | light | Yes | Lights (light_brightness) | Visible Tabs: power, brightness, temperature, color | Retired |
 | Lock | lock | lock | Yes | Own picker item | Type: default, lock, unlock | Retired |
@@ -45,7 +45,7 @@ This generated reference lists release availability and setup facts from the sha
 | OBS Input Cough | companion_obs_cough | None | Yes | Own picker item | None | Stable |
 | Lock Machine | companion_mac_lock | None | Yes | Own picker item | None | Stable |
 | Companion | companion | None | Yes | Own picker item | App Subpage; Large Sensor Numbers; Show capacity label | Stable |
-| Legacy Slider | slider | light, fan, number, input_number | Yes | Own picker item | None | Retired |
+| Slider | slider | light, fan, number, input_number | Yes | Own picker item | None | Stable |
 | Subpage | subpage | None | Yes | Own picker item | Subpage Connector: default, mac_companion; Subpage Type: default, switch, lights, climate, presence, media, alarm, cover, garage, gate, lock, vacuum, lawn_mower, weather, sensor, image, companion_stat, apple_shortcuts, obs_transitions, obs_sources, obs_audio, obs_scenes, obs_studio_control; Transition visibility and order; Source visibility and order; Audio slider visibility and order; Scene visibility and order; Large State Numbers | Stable |
 | Weather | weather | weather, sensor, input_number | Yes | Own picker item | Type: default, today, tomorrow, daily, wind, rainfall; Wind Source: weather, sensors; Rainfall Source: sensor, forecast | Retired |
 | Camera Card | image | camera, image | Yes | Own picker item | None | Retired |

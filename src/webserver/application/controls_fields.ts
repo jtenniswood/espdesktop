@@ -1,4 +1,4 @@
-import { setConfigOption, setConfigOptionValue } from "../model/config_primitives";
+import { cardLabelAlign, setConfigOption, setConfigOptionValue } from "../model/config_primitives";
 import { CARD_SIZE_LARGE, CARD_SIZE_SINGLE } from "../model/grid";
 import { escHtml, iconSlug } from "./ui_primitives";
 import type { CardRegistry } from "./card_registry";
@@ -35,6 +35,7 @@ export interface ControlsFieldsFeature {
     syncCardLargeNumbersToggle(...args: any[]): any;
     renderCardEntityField(...args: any[]): any;
     renderCardTextField(...args: any[]): any;
+    renderCardLabelAlignment(...args: any[]): any;
     renderCardNumberField(...args: any[]): any;
     renderCardIconPicker(...args: any[]): any;
     renderCardOptionToggle(...args: any[]): any;
@@ -239,6 +240,7 @@ export function createControlsFieldsFeature(
             "url-open-behavior": false,
             media: false,
             folder: false,
+            computer: false,
         };
         var movable: any = [];
         var firstDisclosure: any = null;
@@ -438,6 +440,24 @@ export function createControlsFieldsFeature(
         markCardPrimaryField(field.field, "entity");
         return field;
     }
+    function renderCardLabelAlignment(this: any, panel?: any, b?: any, helpers?: any) {
+        return helpers.renderCardSegmentControl(panel, b, helpers, {
+            label: "Label Alignment",
+            options: [
+                { value: "left", label: "Left" },
+                { value: "center", label: "Center" },
+                { value: "right", label: "Right" },
+            ],
+            value: function (this: any, button?: any) {
+                return cardLabelAlign(button.options);
+            },
+            onSelect: function (this: any, button?: any, cardHelpers?: any, value?: any) {
+                button.options = setConfigOptionValue(
+                    button.options, "label_align", value === "left" ? "" : value);
+                cardHelpers.saveField("options", button.options);
+            },
+        });
+    }
     function renderCardTextField(this: any, panel?: any, b?: any, helpers?: any, metadata?: any) {
         metadata = metadata || {};
         var text: any = metadata.text || metadata;
@@ -446,6 +466,9 @@ export function createControlsFieldsFeature(
         var value: any = text.value != null ? cardMetadataValue(text.value, b, helpers) : b[bindName];
         var control: any = helpers.textField(text.label || "Label", helpers.idPrefix + (text.idSuffix || bindName), value || "", cardMetadataValue(text.placeholder, b, helpers) || "", bindName, text.rerender !== false);
         panel.appendChild(control.field);
+        if (bindName === "label" && text.labelAlign !== false) {
+            renderCardLabelAlignment(panel, b, helpers);
+        }
         return control;
     }
     function renderCardNumberField(this: any, panel?: any, b?: any, helpers?: any, metadata?: any) {
@@ -610,6 +633,7 @@ export function createControlsFieldsFeature(
         cardLargeNumbersActiveForCardSize, cardLargeNumbersHidePreviewLabel,
         applyCardMetadataFields, renderCardModeSelector, renderCardLargeNumbersToggle,
         syncCardLargeNumbersToggle, renderCardEntityField, renderCardTextField,
+        renderCardLabelAlignment,
         renderCardNumberField, renderCardIconPicker, renderCardOptionToggle,
         renderCardIconPair, renderCardActiveColorToggle, renderBasicCardFields,
         renderCardSegmentControl, cardSensorPreviewHtml, cardBadgeLabelHtml,

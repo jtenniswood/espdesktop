@@ -43,4 +43,22 @@ int main() {
     }
   }
   assert(parse_cfg("light.kitchen;Kitchen;Lightbulb;;;;;;icon_size=invalid").options.empty());
+
+  for (const auto &align : {"left", "center", "right"}) {
+    const auto card = parse_cfg(
+      std::string("light.kitchen;Kitchen;Lightbulb;;;;light_brightness;;label_align=") + align);
+    assert(cfg_option_value(card.options, "label_align") == (std::string(align) == "left" ? "" : align));
+    assert(normalize_parsed_cfg(card).options == card.options);
+  }
+  const auto aligned_colour = parse_cfg(
+    "light.kitchen;Kitchen;Lightbulb;;;;light_brightness;;label_align=right,card_off_color=6633B9");
+  assert(cfg_option_value(aligned_colour.options, "label_align") == "right");
+  assert(cfg_option_value(aligned_colour.options, "card_off_color") == "6633B9");
+  assert(normalize_parsed_cfg(aligned_colour).options == aligned_colour.options);
+  assert(parse_cfg("light.kitchen;Kitchen;Lightbulb;;;;light_brightness;;label_align=invalid").options.empty());
+
+  SubpageBtn aligned_subpage;
+  aligned_subpage.type = "light_brightness";
+  aligned_subpage.options = "label_align=center";
+  assert(cfg_option_value(normalize_subpage_btn(aligned_subpage).options, "label_align") == "center");
 }

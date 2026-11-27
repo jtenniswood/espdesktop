@@ -35,6 +35,37 @@ App cards use the normal card theme by default. Previously saved custom backgrou
 
 To add Finder or File Explorer with a page of approved folders, see [Folder subpages](/mac-controls/folders#folder-subpage). On macOS, approve **Finder** in EspDesktop to use its launch card. Touching an app card sends its action immediately. With a matching current Mac app and firmware, macOS activation updates the active colour directly, without waiting for window, Finder-folder or browser-tab checks. The fill has no outline or fade. Detailed focus checks still control app subpages and keyboard shortcuts separately; touch actions and page changes do not wait for either update.
 
+## Adjust an app’s volume on macOS {#app-volume}
+
+An **App Volume** card controls one Mac app at a time. For example, give Spotify its own slider so you can turn down music while keeping your call at the same level. Use macOS 14.2 or later and matching Mac companion and display firmware builds that include App Volume.
+
+1. In EspDesktop on the Mac, open **Settings → Apps** and make sure the app is enabled.
+2. In the display’s web editor, select an empty tile on the home screen or in a folder. Choose **Sound**, then set **Type** to **Output per application**.
+3. Choose the app under **Application** and select **Save**. The card starts with the app’s name as its label. Add another card for each app you want to adjust.
+4. Start playback in the app, then drag the slider on the touchscreen. Allow **System Audio Recording** if macOS prompts you.
+
+At **100%**, the app plays at its normal level. At **0%**, its output is silent. Disabling the app in EspDesktop or disconnecting the last paired display restores normal playback.
+
+If the app is missing from the picker, check that the Mac companion is connected and the app is enabled in **Apps**, then reopen the card editor. If the slider has no effect, check EspDesktop’s audio recording permission in **System Settings → Privacy & Security** and confirm the app plays through the Mac’s default sound output. App Volume supports compatible mono, stereo, and multichannel output streams, including Studio Display speakers. Some apps and audio devices use output paths that the slider cannot adjust. Browser tabs that share one audio process share one volume setting.
+
+## Control speaker and microphone levels {#mac-audio}
+
+In the display editor, select an empty tile on Home or in a folder. Choose **Sound**, then select a **Type**. Each card uses one type, so add another card for each control you want to keep on screen.
+
+| Card | What it controls |
+| --- | --- |
+| **Audio Output** | Drag to set your computer’s overall sound level on its current default output. |
+| **Audio Input** | Drag to set the level of your computer’s current default microphone or audio input. |
+| **Output Mute** | Tap to mute your computer’s sound output. Tap again to restore it. |
+| **Input State** | Tap to mute or unmute your computer’s microphone. The card uses the on colour for **Live** and the off colour for **Muted**. With the Windows Companion, enable **Hold to end Teams call** to confirm ending a Teams call by pressing and holding. |
+| **Input Cough** (macOS) | Hold to mute the default microphone until you release. |
+| **Input per device level** (macOS) | Choose a connected audio input with adjustable gain. The card follows that device even when you change the default microphone. It becomes unavailable while that device is disconnected. |
+| **Output per application** (macOS) | Choose an enabled app and adjust its sound independently. |
+
+**Audio Output**, **Audio Input**, **Output Mute**, and **Input State** also work with the [Windows companion](/windows-preview#control-system-sound).
+
+The level cards display **Volume** or **Mic** by default. The output mute card displays **Mute**. The speaker and microphone icons identify which device each card controls. Mute cards show a crossed-out icon when your computer reports mute. If a card is unavailable, check the companion connection and whether the selected audio device supports that control. Raising a level above zero also unmutes that device.
+
 ## Ready-Made app subpages
 
 Saving an **Applications** card adds an editable subpage when EspDesktop has a keyboard shortcut template for that app. Available presets depend on the paired computer. For example, **Slack** has presets on both platforms.

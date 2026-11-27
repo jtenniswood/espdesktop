@@ -110,10 +110,8 @@ export function registerLightTemperatureCardTypes(
         return n;
     }
     var LIGHT_CONTROL_TYPE_OPTIONS: any = [
-        ["light_control", "All Controls"],
         ["light_switch", "Switch"],
         ["light_brightness", "Brightness"],
-        ["light_temperature", "Colour Temperature"],
     ];
     var LIGHT_CONTROL_TYPE_METADATA: any = {
         mode: {

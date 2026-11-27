@@ -68,7 +68,7 @@ export function setConfigOptionValue(options: unknown, name: string, value: unkn
   return out.join(",");
 }
 
-const CARD_COLOR_OPTIONS = ["card_on_color", "card_off_color", "card_active_color"] as const;
+const CARD_COLOR_OPTIONS = ["card_on_color", "card_off_color", "card_active_color", "card_unavailable_color"] as const;
 
 function normalizedColor(value: unknown): string {
   const hex = String(value || "").replace(/^#/, "").toUpperCase();
@@ -85,7 +85,9 @@ export function normalizedCardColorOptions(options: unknown): string {
   const on = normalizedColor(configOptionValue(options, "card_on_color"));
   // Unmarked legacy active-only customisations still migrate to the card colour.
   const off = normalizedColor(configOptionValue(options, "card_off_color")) || (mode === "matching" ? on : "");
+  const unavailable = normalizedColor(configOptionValue(options, "card_unavailable_color"));
   const out = off ? ["card_off_color=" + off] : [];
+  if (unavailable) out.push("card_unavailable_color=" + unavailable);
   if (mode !== "matching") out.push("card_active_color=" + mode);
   if (mode === "custom" && on) out.push("card_on_color=" + on);
   return out.join(",");
@@ -94,6 +96,24 @@ export function normalizedCardColorOptions(options: unknown): string {
 export function withoutCardColorOptions(options: unknown): string {
   return String(options || "").split(",").filter((part) =>
     !CARD_COLOR_OPTIONS.some((name) => part.indexOf(name + "=") === 0),
+  ).filter(Boolean).join(",");
+}
+
+export type CardLabelAlign = "left" | "center" | "right";
+
+export function cardLabelAlign(options: unknown): CardLabelAlign {
+  const value = configOptionValue(options, "label_align");
+  return value === "center" || value === "right" ? value : "left";
+}
+
+export function normalizedCardLayoutOptions(options: unknown): string {
+  const align = cardLabelAlign(options);
+  return align === "left" ? "" : "label_align=" + align;
+}
+
+export function withoutCardLayoutOptions(options: unknown): string {
+  return String(options || "").split(",").filter((part) =>
+    part.indexOf("label_align=") !== 0,
   ).filter(Boolean).join(",");
 }
 
@@ -109,9 +129,14 @@ export function preserveCardIconSize(options: unknown, normalized: unknown): str
 }
 
 export function preserveCardColorOptions(options: unknown, normalized: unknown): string {
-  // Preserve legacy app icon sizes when editing colours so older firmware can still read them.
+  // Preserve legacy app icon sizes and layout choices when editing colours so
+  // older firmware can still read them and the card keeps its presentation.
   return preserveCardIconSize(options,
-    [withoutCardColorOptions(normalized), normalizedCardColorOptions(options)].filter(Boolean).join(","));
+    [
+      withoutCardLayoutOptions(withoutCardColorOptions(normalized)),
+      normalizedCardColorOptions(options),
+      normalizedCardLayoutOptions(options),
+    ].filter(Boolean).join(","));
 }
 
 export function setCardColor(options: unknown, value: unknown): string {

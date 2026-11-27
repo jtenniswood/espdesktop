@@ -79,7 +79,7 @@ struct Store {
   }
 };
 unsigned icon_requests = 0;
-void request_app_icon(const std::string &id) { assert(id == "example.app"); ++icon_requests; }
+void request_app_icon(const std::string &id, const std::string &) { assert(id == "example.app"); ++icon_requests; }
 Store store;
 Store &app_icon_store() { return store; }
 }

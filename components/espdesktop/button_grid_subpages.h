@@ -64,6 +64,7 @@ inline SubpageBtn normalize_subpage_btn(SubpageBtn b) {
   }
   // Shared appearance options must survive the same cleanup as main cards.
   const std::string icon_size = cfg_option_value(b.options, "icon_size");
+  const std::string layout_options = card_layout_options_normalized(b.options);
   const auto automation_id = cfg_option_value(b.options, "ha_id");
   const bool exposed = cfg_option_token_present(b.options, "ha_exposed");
   std::string type_options;
@@ -73,7 +74,7 @@ inline SubpageBtn normalize_subpage_btn(SubpageBtn b) {
     if (!type_options.empty()) type_options += ",";
     type_options += token;
   }
-  b.options = type_options;
+  b.options = options_without_card_layout_options(type_options);
   // Shared colours must survive the card-specific option cleanup below.
   const std::string card_colors = card_color_options_normalized(b.options);
   b.options = options_without_card_colors(b.options);
@@ -240,7 +241,7 @@ inline SubpageBtn normalize_subpage_btn(SubpageBtn b) {
       !climate_card_type(b.type) && b.type != "cover" && b.type != "garage" && b.type != "gate" &&
       b.type != "sensor" && b.type != "door_window" && b.type != "presence" &&
       b.type != "subpage" && b.type != "light_control" && b.type != "media" &&
-      b.type != "image" && b.type != "weather" &&
+      b.type != "image" && b.type != "weather" && !companion_card_type_name(b.type) &&
       !fan_card_type(b.type) && !card_large_numbers_supported(p)) {
     b.options.clear();
   }
@@ -251,6 +252,10 @@ inline SubpageBtn normalize_subpage_btn(SubpageBtn b) {
   if (icon_size == "small" || icon_size == "medium" || icon_size == "large") {
     if (!b.options.empty()) b.options += ",";
     b.options += "icon_size=" + icon_size;
+  }
+  if (!layout_options.empty()) {
+    if (!b.options.empty()) b.options += ",";
+    b.options += layout_options;
   }
   if (valid_home_assistant_card_id(automation_id) &&
       (b.type == "companion" || b.type == "companion_mac_lock" || b.type == "subpage")) {
@@ -412,6 +417,33 @@ inline std::string get_subpage_back_color(const std::string &order_str) {
   return "";
 }
 
+// The optional third field of a back token stores the page title. Extra
+// home screens use it as their screen name while hiding the Back control.
+inline std::string get_subpage_back_title(const std::string &order_str) {
+  size_t start = 0;
+  while (start < order_str.size()) {
+    size_t end = order_str.find(',', start);
+    if (end == std::string::npos) end = order_str.size();
+    char suffix = '\0';
+    size_t label_start = std::string::npos;
+    if (subpage_back_token_span(order_str, start, end, suffix, &label_start)) {
+      if (label_start != std::string::npos) {
+        const size_t separator = order_str.find(':', label_start);
+        if (separator != std::string::npos && separator < end) {
+          const size_t title_separator = order_str.find(':', separator + 1);
+          if (title_separator != std::string::npos && title_separator < end) {
+            return decode_compact_subpage_field(order_str, title_separator + 1,
+                                                end - title_separator - 1);
+          }
+        }
+      }
+      return std::string{};
+    }
+    start = end + 1;
+  }
+  return std::string{};
+}
+
 // Subpage grid layout with support for a back button token ("B")
 struct SubpageOrder {
   int positions[MAX_GRID_SLOTS] = {};
@@ -422,6 +454,9 @@ struct SubpageOrder {
   int back_col_span = 1;
   bool has_back_token = false;
   bool compacted_portrait = false;
+  // Extra home screens use the whole grid: cards start in cell zero and no
+  // Back control occupies a cell.
+  bool screen = false;
 };
 
 inline void parse_subpage_order(const std::string &order_str, int num_slots, int num_btns,
@@ -503,7 +538,7 @@ inline void normalize_subpage_order_spans(SubpageOrder &order, int num_slots,
   for (int position = 0; position < slot_limit; position++) {
     int button_index = order.positions[position];
     if (button_index < 1 || button_index > MAX_GRID_SLOTS) continue;
-    int rendered_position = order.has_back_token ? position : position + 1;
+    int rendered_position = (order.has_back_token || order.screen) ? position : position + 1;
     if (rendered_position >= slot_limit) {
       order.positions[position] = 0;
       continue;
@@ -530,6 +565,10 @@ inline lv_obj_t *create_grid_card_button(lv_obj_t *parent, lv_coord_t radius,
                                          lv_color_t text_color,
                                          bool continuous_corners = false) {
   lv_obj_t *btn = lv_btn_create(parent);
+  // Buttons are scrollable by default, which makes LVGL treat a drag that
+  // starts on a card as a scroll and suppresses page gestures. Cards never
+  // scroll, so let the screen see the gesture.
+  lv_obj_clear_flag(btn, LV_OBJ_FLAG_SCROLLABLE);
   apply_grid_card_corners(btn, radius, continuous_corners);
   lv_obj_set_style_pad_all(btn, pad, LV_PART_MAIN);
   if (label_font) lv_obj_set_style_text_font(btn, label_font, LV_PART_MAIN);

@@ -67,9 +67,13 @@ export function renderRetiredCardSettings(panel: HTMLElement): void {
   panel.appendChild(warning);
 }
 
+// Native Home Assistant controls that are implemented by the local card
+// runtime and keep their full editor while the panel exposes the HA API.
+const HOME_ASSISTANT_CONTROL_TYPES = new Set(["", "slider", "light_switch", "light_brightness"]);
+
 function localCardDefinition(key: string, definition: CardDefinition): CardDefinition {
   if (!CARD_RUNTIME_SPECS[key] || key === "subpage" || key === "wifi_qr" || key === "wifi_qr_card") return definition;
-  if (key !== "slider" && cardTypeConnector(key) === "home_assistant") {
+  if (!HOME_ASSISTANT_CONTROL_TYPES.has(key) && cardTypeConnector(key) === "home_assistant") {
     return { ...definition, hidden: true, isAvailable: () => false, hideLabel: true,
       cardMetadata: {}, onSelect: null, renderSettingsBeforeLabel: null,
       renderSettings: (panel: HTMLElement, card: any) => {

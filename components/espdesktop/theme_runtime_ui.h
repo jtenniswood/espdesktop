@@ -79,8 +79,15 @@ inline void theme_apply_grid_button(lv_obj_t *button, uint32_t neutral,
   // of the neutral theme. The accent itself remains card/user-owned.
   lv_obj_set_style_text_color(button, lv_color_hex(theme_grid_state_text_color(button, LV_STATE_CHECKED)),
                               static_cast<lv_style_selector_t>(LV_PART_MAIN) | LV_STATE_CHECKED);
-  lv_obj_set_style_text_color(button, lv_color_hex(theme_grid_state_text_color(button, LV_STATE_PRESSED)),
-                              static_cast<lv_style_selector_t>(LV_PART_MAIN) | LV_STATE_PRESSED);
+  if (lv_obj_has_flag(button, CARD_KEEP_PRESSED_COLOR_FLAG)) {
+    // Mute cards keep the current state's fill and text until the action runs.
+    // The button theme may re-add its pressed fill on a theme refresh.
+    lv_obj_remove_style(button, nullptr,
+        static_cast<lv_style_selector_t>(LV_PART_MAIN) | LV_STATE_PRESSED);
+  } else {
+    lv_obj_set_style_text_color(button, lv_color_hex(theme_grid_state_text_color(button, LV_STATE_PRESSED)),
+                                static_cast<lv_style_selector_t>(LV_PART_MAIN) | LV_STATE_PRESSED);
+  }
   sync_card_checked_text_color(button);
   set_card_content_disabled(button, lv_obj_has_state(button, LV_STATE_DISABLED));
 }

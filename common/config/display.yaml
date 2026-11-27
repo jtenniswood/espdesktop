@@ -96,8 +96,8 @@ esphome:
             clock_bar_companion_subpage_title_font() =
                 lv_obj_get_style_text_font(id(display_time), LV_PART_MAIN);
             navigation_subpage_clock_bar_refresh() = []() {
-              // Subpages use compact top spacing; returning home restores the
-              // space required by the home screen's clock-bar setting.
+              // Home and extra home screens keep the clock bar and its reserved
+              // top space; only real subpages use compact spacing.
               const ClockBarVisibility visibility = clock_bar_resolve_visibility(
                   id(clock_bar_enabled).state, id(main_page)->obj,
                   id(espdesktop_app).display().current_mode(),
@@ -118,8 +118,9 @@ esphome:
                   !(clock_bar_should_show(id(clock_bar_enabled).state, id(main_page)->obj,
                       id(espdesktop_app).display().current_mode(),
                       id(espdesktop_app).display().target_schedule_inactive()) &&
-                    id(clock_bar_time_enabled).state && lv_scr_act() == id(main_page)->obj &&
-                    navigation_active_subpage_slot() == 0 && clock_bar_left_title().empty()));
+                    id(clock_bar_time_enabled).state &&
+                    navigation_screen_index(lv_scr_act()) >= 0 &&
+                    clock_bar_left_title().empty()));
               lv_obj_set_style_text_font(
                   id(temperatures),
                   !clock_bar_companion_subpage_label().empty() && clock_bar_modal_label().empty()
@@ -180,7 +181,7 @@ script:
           bool reserve_clock_bar_space = visibility.reserve_space;
           const bool visible = visibility.visible;
           bool show_time = visibility.visible && id(clock_bar_time_enabled).state &&
-              lv_scr_act() == id(main_page)->obj && navigation_active_subpage_slot() == 0 &&
+              navigation_screen_index(lv_scr_act()) >= 0 &&
               clock_bar_left_title().empty();
           const bool show_network = visibility.visible && id(network_status_enabled).state;
           bool show_night_mode = visibility.visible && id(clock_bar_night_mode_enabled).state &&

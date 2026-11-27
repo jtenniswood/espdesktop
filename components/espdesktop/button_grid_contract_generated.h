@@ -10,7 +10,7 @@
 // =============================================================================
 
 constexpr int CARD_CONTRACT_VERSION = 1;
-inline bool card_contract_type_stable(std::string_view type) { return type == "companion" || type == "companion_mac_lock" || type == "companion_app_volume" || type == "companion_output_volume" || type == "companion_input_volume" || type == "companion_output_mute" || type == "companion_input_mute" || type == "companion_cough" || type == "companion_obs_cough" || type == "companion_input_device" || type == "subpage"; }
+inline bool card_contract_type_stable(std::string_view type) { return type == "companion" || type == "companion_mac_lock" || type == "companion_app_volume" || type == "companion_output_volume" || type == "companion_input_volume" || type == "companion_output_mute" || type == "companion_input_mute" || type == "companion_cough" || type == "companion_obs_cough" || type == "companion_input_device" || type == "light_brightness" || type == "light_switch" || type == "slider" || type == "subpage"; }
 inline bool card_contract_type_retired(const std::string &type) { return type == "companion_window" || type == "sensor" || type == "local_sensor" || type == "text_sensor" || type == "internal" || type == "wifi_qr" || type == "wifi_qr_card" || type == "screen_lock" || type == "screensaver" || type == "action" || type == "local" || type == "option_select" || type == "calendar" || type == "clock" || type == "timezone" || type == "webhook" || type == "companion_webapp" || type == "companion_audio" || type == "S" || type == "LS" || type == "I" || type == "SL" || type == "SS" || type == "A" || type == "U" || type == "WH"; }
 namespace espdesktop::card_runtime {
 
@@ -293,6 +293,7 @@ constexpr const char *CARD_CONTRACT_OPTION_NAME_APP_SHORTCUTS = "app_shortcuts";
 constexpr const char *CARD_CONTRACT_OPTION_NAME_APP_SHORTCUTS_TABS = "app_shortcuts_tabs";
 constexpr const char *CARD_CONTRACT_OPTION_NAME_APPLE_SHORTCUTS_HIDDEN = "apple_shortcuts_hidden";
 constexpr const char *CARD_CONTRACT_OPTION_NAME_CLIMATE_TABS = "climate_tabs";
+constexpr const char *CARD_CONTRACT_OPTION_NAME_COMPUTER = "computer";
 constexpr const char *CARD_CONTRACT_OPTION_NAME_CONFIRM_MESSAGE = "confirm_message";
 constexpr const char *CARD_CONTRACT_OPTION_NAME_CONFIRM_NO = "confirm_no";
 constexpr const char *CARD_CONTRACT_OPTION_NAME_CONFIRM_OFF = "confirm_off";
@@ -312,6 +313,7 @@ constexpr const char *CARD_CONTRACT_OPTION_NAME_FINDER_OPEN_OVERRIDE = "finder_o
 constexpr const char *CARD_CONTRACT_OPTION_NAME_GARAGE_MODE = "garage_mode";
 constexpr const char *CARD_CONTRACT_OPTION_NAME_GATE_MODE = "gate_mode";
 constexpr const char *CARD_CONTRACT_OPTION_NAME_GENERATED_CARD_EXCLUSIONS = "generated_card_exclusions";
+constexpr const char *CARD_CONTRACT_OPTION_NAME_HOLD_ACTION = "hold_action";
 constexpr const char *CARD_CONTRACT_OPTION_NAME_ICON_DISPLAY = "icon_display";
 constexpr const char *CARD_CONTRACT_OPTION_NAME_IMAGE_ICON = "image_icon";
 constexpr const char *CARD_CONTRACT_OPTION_NAME_IMAGE_LABEL = "image_label";
@@ -587,7 +589,7 @@ inline const char *card_contract_card_label(const std::string &type) {
   if (type == "companion_obs_cough") return "OBS Input Cough";
   if (type == "companion_mac_lock") return "Lock Machine";
   if (type == "companion") return "Companion";
-  if (type == "slider") return "Legacy Slider";
+  if (type == "slider") return "Slider";
   if (type == "subpage") return "Subpage";
   if (type == "weather") return "Weather";
   if (type == "image") return "Camera Card";

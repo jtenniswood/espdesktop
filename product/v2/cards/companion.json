@@ -5,6 +5,14 @@
   "options": [
     { "name": "generated_card_exclusions", "label": "Customized automatic cards", "kind": "text", "omitDefault": true, "hidden": true, "docsHidden": true },
     {
+      "name": "computer",
+      "label": "Paired computer",
+      "kind": "text",
+      "omitDefault": true,
+      "hidden": true,
+      "docsHidden": true
+    },
+    {
       "name": "custom_icon",
       "label": "Use custom icon",
       "kind": "flag",
@@ -145,6 +153,7 @@
     },
     "unknownOptions": "drop",
     "canonicalOptionOrder": [
+      "computer",
       "custom_icon",
       "app_shortcuts",
       "url_open_behavior",

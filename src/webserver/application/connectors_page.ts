@@ -42,6 +42,7 @@ export function createConnectorsPageFeature(
     dom: Pick<ApplicationDomServices, "document" | "window" | "fetch">,
     companionSection: SettingsCompanionSectionFeature,
     companionSupported: boolean,
+    homeAssistantSupported: () => boolean,
     buildHomeAssistantCard: () => HTMLElement,
     { infoPanel }: Pick<SettingsUiFeature, "infoPanel">,
 ): ConnectorsPageFeature {
@@ -101,8 +102,9 @@ export function createConnectorsPageFeature(
         if (companionSupported) {
             const open = requestedConnectorFromSearch(window.location.search) === "mac_companion";
             page.appendChild(companionSection.buildCompanionSettingsCard(applyCompanionStatus, !open, open));
-            page.appendChild(buildHomeAssistantCard());
-        } else {
+        }
+        if (homeAssistantSupported()) page.appendChild(buildHomeAssistantCard());
+        if (!companionSupported && !homeAssistantSupported()) {
             const setupGuide = document.createElement("a");
             setupGuide.href = "https://espdesktop.com/screens/4848s040#download";
             setupGuide.target = "_blank";
@@ -132,7 +134,7 @@ export function createConnectorsPageFeature(
         onCompanionPairingChange: callback => { pairingListeners.push(callback); },
         homeAssistantConfigured: () => false,
         homeAssistantConnected: () => false,
-        homeAssistantSettingsAvailable: () => false,
-        homeAssistantCardPickerEnabled: () => false,
+        homeAssistantSettingsAvailable: () => homeAssistantSupported(),
+        homeAssistantCardPickerEnabled: () => homeAssistantSupported(),
     };
 }

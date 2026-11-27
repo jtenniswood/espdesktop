@@ -422,6 +422,69 @@ static const IconEntry ICON_ENTRIES[] = {
     {"Coffee to Go",                 "\U000F0177"},
     {"Flip Horizontal",              "\U000F10E7"},
     {"Movie",                        "\U000F0381"},
+    {"Lightbulb",                    "\U000F0335"},
+    {"Lightbulb Outline",            "\U000F0336"},
+    {"Lightbulb On",                 "\U000F06E8"},
+    {"Lightbulb Off",                "\U000F0E4F"},
+    {"Lightbulb Group",              "\U000F1253"},
+    {"Lightbulb Spot",               "\U000F17F4"},
+    {"Lightbulb Variant",            "\U000F1802"},
+    {"Home Lightbulb",               "\U000F1251"},
+    {"Ceiling Light",                "\U000F0769"},
+    {"Ceiling Light Multiple",       "\U000F18DD"},
+    {"Floor Lamp",                   "\U000F08DD"},
+    {"Lamp",                         "\U000F06B5"},
+    {"Desk Lamp",                    "\U000F095F"},
+    {"Wall Sconce",                  "\U000F091C"},
+    {"Chandelier",                   "\U000F1793"},
+    {"Track Light",                  "\U000F0914"},
+    {"String Lights",                "\U000F12BA"},
+    {"LED Strip",                    "\U000F07D6"},
+    {"Light Recessed",               "\U000F179B"},
+    {"Vanity Light",                 "\U000F11E1"},
+    {"Television",                   "\U000F0502"},
+    {"Television Off",               "\U000F083B"},
+    {"Television Classic",           "\U000F07F4"},
+    {"Television Guide",             "\U000F0503"},
+    {"Television Play",              "\U000F0ECF"},
+    {"Television Pause",             "\U000F0F89"},
+    {"Television Stop",              "\U000F0F8A"},
+    {"Remote TV",                    "\U000F0EC5"},
+    {"Projector Screen",             "\U000F042F"},
+    {"Camera",                       "\U000F0100"},
+    {"Toggle Switch",                "\U000F0521"},
+    {"Toggle Switch Off",            "\U000F0522"},
+    {"Toggle Switch Outline",        "\U000F0A1A"},
+    {"Toggle Switch Off Outline",    "\U000F0A19"},
+    {"Toggle Switch Variant",        "\U000F1A25"},
+    {"Toggle Switch Variant Off",    "\U000F1A26"},
+    {"Light Switch",                 "\U000F097E"},
+    {"Light Switch Off",             "\U000F1A24"},
+    {"Power Plug Outline",           "\U000F1425"},
+    {"Power Plug Off",               "\U000F06A6"},
+    {"Power Socket",                 "\U000F0427"},
+    {"Blinds",                       "\U000F00AC"},
+    {"Blinds Open",                  "\U000F1011"},
+    {"Door",                         "\U000F081A"},
+    {"Door Open",                    "\U000F081C"},
+    {"Fan Auto",                     "\U000F171D"},
+    {"Fan Off",                      "\U000F081D"},
+    {"Fan Speed 2",                  "\U000F1473"},
+    {"Garage",                       "\U000F06D9"},
+    {"Garage Open",                  "\U000F06DA"},
+    {"Gate",                         "\U000F0299"},
+    {"Gate Open",                    "\U000F116A"},
+    {"Motion Sensor",                "\U000F0D91"},
+    {"Motion Sensor Off",            "\U000F1435"},
+    {"Robot Vacuum",                 "\U000F070D"},
+    {"Robot Mower",                  "\U000F11F7"},
+    {"Security",                     "\U000F0483"},
+    {"Shield Home",                  "\U000F068A"},
+    {"Shield Lock",                  "\U000F099D"},
+    {"Shield Off",                   "\U000F099E"},
+    {"Airplane",                     "\U000F001D"},
+    {"Weather Night",                "\U000F0594"},
+    {"Thermostat",                   "\U000F0393"},
     // --- GENERATED:ICONS END ---
 };
 
@@ -459,6 +522,18 @@ inline const char* domain_default_icon(const std::string &domain) {
   if (domain == "lock")                       return "\U000F033E";  // Lock
   if (domain == "media_player")               return "\U000F04C3";  // Speaker
   if (domain == "button")                     return "\U000F0741";  // Gesture Tap
+  if (domain == "light")                      return "\U000F0336";  // Lightbulb Outline
+  if (domain == "cover")                      return "\U000F00AC";  // Blinds
+  if (domain == "climate")                    return "\U000F0393";  // Thermostat
+  if (domain == "vacuum")                     return "\U000F070D";  // Robot Vacuum
+  if (domain == "lawn_mower")                 return "\U000F11F7";  // Robot Mower
+  if (domain == "alarm_control_panel")        return "\U000F0483";  // Security
+  if (domain == "remote")                     return "\U000F0EC5";  // Remote TV
+  if (domain == "input_boolean")              return "\U000F0A1A";  // Toggle Switch Outline
+  if (domain == "camera")                     return "\U000F0100";  // Camera
+  if (domain == "person")                     return "\U000F0004";  // Account
+  if (domain == "device_tracker")             return "\U000F0004";  // Account
+  if (domain == "sensor")                     return "\U000F029A";  // Gauge
   // --- GENERATED:DOMAIN_ICONS END ---
   return "\U000F0493";
 }

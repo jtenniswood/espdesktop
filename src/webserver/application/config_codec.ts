@@ -11,8 +11,10 @@ import {
     configOptionEnabled,
     configOptionValue,
     normalizedCardColorOptions,
+    normalizedCardLayoutOptions,
     setConfigOptionValue,
     withoutCardColorOptions,
+    withoutCardLayoutOptions,
 } from "../model/config_primitives";
 import {
     CARD_SIZE_EXTRA_LARGE,
@@ -419,13 +421,15 @@ export function createConfigCodecFeature(
         const exposure = cardExposure(b?.options);
         let iconSizeOptions = b?.options;
         var cardColorOptions: any = b ? normalizedCardColorOptions(b.options) : "";
+        var cardLayoutOptions: any = b ? normalizedCardLayoutOptions(b.options) : "";
         if (b?.type === "companion" && ["media.play_pause", "media.previous", "media.next"].includes(b.entity)) {
             for (const field of ["entity", "label", "icon", "icon_on", "sensor", "unit", "type", "precision", "options"]) b[field] = "";
             cardColorOptions = "";
+            cardLayoutOptions = "";
             iconSizeOptions = "";
         }
         if (b)
-            b.options = setConfigOptionValue(withoutCardColorOptions(b.options || ""), "icon_size", "");
+            b.options = setConfigOptionValue(withoutCardLayoutOptions(withoutCardColorOptions(b.options || "")), "icon_size", "");
         if (b && migrateSavedConfigVacuumLegacy(b)) {
             if (!b.icon || b.icon === "Auto")
                 b.icon = vacuumModeDefaultIcon(b.sensor);
@@ -457,6 +461,7 @@ export function createConfigCodecFeature(
         }
         if (b && cardColorOptions) b.options = [b.options || "", cardColorOptions].filter(Boolean).join(",");
         if (b) b.options = preserveCardIconSize(companionCardHasAppIcon(b) ? iconSizeOptions : "", b.options);
+        if (b && cardLayoutOptions) b.options = [b.options || "", cardLayoutOptions].filter(Boolean).join(",");
         if (b && canExposeCard(b) && exposure.identity)
             b.options = setCardExposure(b.options, exposure.identity, exposure.enabled);
         return b;
@@ -609,6 +614,8 @@ export function createConfigCodecFeature(
                 options = copyLargeNumbersOption("", options);
                 if (configOptionEnabled(b?.options, "stat_labels_off"))
                     options = options ? options + ",stat_labels_off" : "stat_labels_off";
+                const computer = configOptionValue(b?.options, "computer");
+                if (computer) options = setConfigOptionValue(options, "computer", computer);
             } else options = normalizeCompanionCardOptions({
                     ...(b || {}),
                     type,
@@ -647,7 +654,7 @@ export function createConfigCodecFeature(
         else if (isActionOptionSelect || isFanCardType(type)) {
             options = "";
         }
-        else if (type !== "action" && type !== "alarm_action" && !isClimateCardType(type) && type !== "cover" && type !== "garage" && type !== "gate" && type !== "media" && type !== "presence" && type !== "light_control" && type !== "fan_control" && type !== "weather" && !cardLargeNumbersSupported({ type: type, precision: precision })) {
+        else if (type !== "action" && type !== "alarm_action" && !isClimateCardType(type) && type !== "cover" && type !== "garage" && type !== "gate" && type !== "media" && type !== "presence" && type !== "light_control" && type !== "fan_control" && type !== "weather" && type !== "companion" && !type.startsWith("companion_") && !cardLargeNumbersSupported({ type: type, precision: precision })) {
             options = "";
         }
         if (type === "image") {
@@ -865,6 +872,7 @@ export function createConfigCodecFeature(
             var sp: any = parseSubpageConfig(combined);
             const retired = removeRetiredSubpageRecords(combined, sp.buttons, isRetiredLayoutCard);
             sp.sizes = sp.sizes || {};
+            sp.screen = pageDepth(Number(slot)) === 1 && Number(slot) > layout.numSlots;
             var layoutNormalized: any = buildSubpageGridAndNormalizeOrder(sp);
             state.subpages[slot] = sp;
             if (retired.slots.size)
@@ -888,6 +896,7 @@ export function createConfigCodecFeature(
         else if (!subpage.backLabel) {
             subpage.backLabel = backLabelFromOrder(subpage.order);
         }
+        subpage.screen = pageDepth(Number(homeSlot)) === 1 && Number(homeSlot) > layout.numSlots;
         return subpage;
     }
     function buildSubpageGrid(this: any, sp?: any) {
@@ -906,7 +915,7 @@ export function createConfigCodecFeature(
         return JSON.stringify(sp.order) !== previousOrder;
     }
     function serializeSubpageGrid(this: any, sp?: any) {
-        return EspDesktopModel.serializeSubpageGrid(sp.grid, sp.sizes || {}, sp.backLabel || "Back", sp.backColor, sp.title);
+        return EspDesktopModel.serializeSubpageGrid(sp.grid, sp.sizes || {}, sp.backLabel || "Back", sp.backColor, sp.title, sp.screen === true);
     }
     function enterSubpage(this: any, homeSlot?: any) {
         if (!pageDepth(Number(homeSlot))) return;

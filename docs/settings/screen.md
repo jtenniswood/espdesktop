@@ -36,7 +36,7 @@ When the display is asleep, tap once to wake it, then tap a card to use it.
 
 ### Computer screen lock {#mac-screen-lock}
 
-When EspDesktop is connected, locking your computer also locks the touchscreen controls. The display shows **Locked** while its backlight is on. Unlock your computer to use the display again.
+When EspDesktop is connected, locking your computer also locks the touchscreen controls. If several computers are paired, locking one only disables the cards assigned to that computer and marks them with a small lock badge; the lock screen appears once every paired computer is locked. A card that is unavailable for another reason, such as a Teams microphone with no meeting, does not show the badge. The display shows **Locked** while its backlight is on. Unlock your computer to use the display again.
 
 <picture>
   <source type="image/avif" srcset="/images/display-locked-with-mac-640.avif">

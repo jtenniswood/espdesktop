@@ -45,11 +45,49 @@ To copy a card to another display, right-click it and choose **Copy Code**. In t
 Right-click a card to open its menu.
 
 - **Name.** Choose **Edit Card**, change the **Label**, and select **Save**. You can also click a visible card name in the grid, type the new name and press **Enter**.
+- **Label alignment.** In **Edit Card**, set the label to **Left**, **Center** or **Right**.
 - **Background colour.** Open **Card Colour** and pick a preset or use the eyedropper to choose a custom colour. Choose **Reset Colour** to restore the default background.
+
+Dimmer cards use a vertical bar on square or tall cards and a horizontal bar on wide cards. Drag the bar along its length to dim or brighten. A simple tap turns the light, fan or switch on or off without changing its level. A swipe across the bar, or a quick swipe anywhere else on a card, still changes screens instead of changing the level.
 
 ## Add a card
 
 Select **+** in an empty spot. See [Adding a card](/features/adding-a-card) for choosing a card type and setting its name, icon, and colours.
+
+## Add more home screens
+
+The Layout tab shows **Home** plus a **+** button. Select **+** to add another screen and build it like Home. Screens are optional, so a display with one screen behaves exactly as before. Select a screen tab to edit it, or select the **×** on its tab to remove the screen and its cards. Double-click a tab to rename the screen, and drag tabs left or right to change the screen order.
+
+Fling left or right anywhere on the display — including when the swipe starts on a card or a dimmer — to move between Home and the extra screens. Dragging a dimmer along its own bar adjusts it instead.
+
+## Choose swipe actions
+
+Open **Screen → Swipe Gestures** and choose what a swipe up and a swipe down should do: **None**, **Home**, **Back**, **Previous screen**, **Next screen**, or a specific screen. Swipe from the top or bottom edge, or from the background, on Home or any extra screen.
+
+## Swipe back from a subpage
+
+On a subpage, swipe left or right anywhere to return to the previous screen. The left swipe pages forward on Home or an extra screen, so the direction always means "go forward" until you are inside a subpage.
+
+## Control screens from Home Assistant
+
+The panel exposes an **Active screen** text sensor and these actions:
+
+- `esphome.<device>_set_home_screen` with `screen` (0 is Home, 1 is the first extra screen).
+- `esphome.<device>_next_home_screen` and `esphome.<device>_previous_home_screen`.
+- `esphome.<device>_go_back` to leave a subpage or return Home from an extra screen.
+- `esphome.<device>_show_notification` with `message` and `duration_ms` to show a temporary message on the display.
+- `esphome.<device>_show_image_popup` with `url`, `caption`, and `duration_ms` to show a dismissable image popup. Swipe or tap to dismiss; it also wakes the display.
+- `esphome.<device>_dismiss_image_popup` to close it from an automation.
+
+For a camera event, pass a full snapshot URL and a caption. Home Assistant's camera `entity_picture` already contains a short-lived token:
+
+```yaml
+action: esphome.<device>_show_image_popup
+data:
+  url: "http://<home-assistant>:8123{{ state_attr('camera.garage', 'entity_picture') }}"
+  caption: "Garage: person detected"
+  duration_ms: 15000
+```
 
 ## Create a custom subpage
 

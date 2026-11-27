@@ -245,6 +245,7 @@ export function installAppTestHooksConfig(
             },
             parseButtonConfig: parseButtonConfig,
             serializeButtonConfig: serializeButtonConfig,
+            normalizeButtonConfig: codec.normalizeButtonConfig,
             cardContractSubpageTypeCode: cardContractSubpageTypeCode,
             cardContractSubpageTypeFromCode: cardContractSubpageTypeFromCode,
             cardContractLargeNumbersSupported: cardContractLargeNumbersSupported,

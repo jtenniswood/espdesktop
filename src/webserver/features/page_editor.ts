@@ -33,6 +33,7 @@ export function preparePageEditorDocument(document: PanelConfigDocument, slots: 
     for (const page of layout.pages) {
       const runtimePage: RuntimeSubpage = {
         ...parseSubpageOrder(page.order), buttons: page.cards.map(card => normalize(card.config)), grid: [], sizes: {},
+        screen: pageDepth(page.key) === 1 && page.key > slots,
       };
       codec.buildSubpageGrid(runtimePage);
       subpages[page.key] = runtimePage;
@@ -43,6 +44,7 @@ export function preparePageEditorDocument(document: PanelConfigDocument, slots: 
   for (const [key, value] of Object.entries(document.subpages)) {
     if (!/^[1-9][0-9]*$/.test(key) || !pageDepth(Number(key))) throw new Error("Invalid page path");
     const page = codec.parseSubpageConfig(value);
+    page.screen = pageDepth(Number(key)) === 1 && Number(key) > slots;
     codec.buildSubpageGrid(page);
     subpages[Number(key)] = page;
   }
@@ -55,6 +57,8 @@ export function editorPageOwner(key: number, buttons: readonly CardConfig[], sub
 }
 export function restoredEditorPage(key: number | null, document: PageEditorDocument): number | null {
   if (key === null || key <= 0) return null;
+  // Extra home screens have no owner card, so keep them while they exist.
+  if (document.subpages[key]?.screen === true) return key;
   for (let page = key; page !== 0; page = parentPageKey(page))
     if (!cardTransferOwnsSubpage(editorPageOwner(page, document.buttons, document.subpages) ?? {type:"",entity:"",sensor:"",options:""})) return null;
   return key;

@@ -333,7 +333,7 @@ script:
             controller.clear(espdesktop::DisplayRequestSource::IDLE_TIMER);
             controller.clear(espdesktop::DisplayRequestSource::PRESENCE_SENSOR);
             const bool companion_idle = companion_mode && !follows_mac_display &&
-                (!companion_connected() || screen_lock_enabled());
+                (!companion_connected() || screen_lock_display_locked());
             if (leaving_scheduled_clock && id(schedule_enabled).state &&
                 !onboarding && !waiting_for_time &&
                 !id(screensaver_wake).is_running() &&
@@ -354,7 +354,7 @@ script:
           }
           set_request(espdesktop::DisplayRequestSource::BOOT_GUARD, waiting_for_time,
                       espdesktop::DisplayMode::DISPLAY_OFF);
-          const bool mac_display_sleep = follows_mac_display && screen_lock_mac_display_awake() == false;
+          const bool mac_display_sleep = follows_mac_display && screen_lock_display_awake() == false;
           set_request(espdesktop::DisplayRequestSource::MAC_DISPLAY_SLEEP,
                       mac_display_sleep, espdesktop::DisplayMode::DISPLAY_OFF);
           if (!mac_display_sleep && controller.request_matches(
@@ -601,7 +601,7 @@ script:
           then:
             - if:
                 condition:
-                  lambda: 'return companion_connected() && !screen_lock_enabled();'
+                  lambda: 'return companion_connected() && !screen_lock_display_locked();'
                 then:
                   - script.execute: screensaver_wake
                 else:
@@ -871,7 +871,7 @@ script:
     then:
       - lambda: |-
           if (id(screensaver_mode).state == "companion" &&
-              screen_lock_enabled() && screen_lock_mac_display_awake() == false &&
+              screen_lock_display_locked() && screen_lock_display_awake() == false &&
               !id(screensaver_action_clock) && !id(screensaver_action_dimmed) &&
               !id(espdesktop_app).display().request_matches(
                   espdesktop::DisplayRequestSource::REMOTE_DISPLAY_POWER, espdesktop::DisplayMode::ACTIVE)) {

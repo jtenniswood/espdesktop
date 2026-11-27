@@ -17,9 +17,24 @@ bool maps_position_to(int32_t pointer_y, int32_t top, int32_t bottom,
            pointer_y, top, bottom, max_position, actual) && actual == expected;
 }
 
+bool h_maps_to(int32_t pointer_x, int32_t left, int32_t right, int expected) {
+  int actual = -1;
+  return espdesktop::slider_geometry::horizontal_pointer_percent(
+           pointer_x, left, right, actual) && actual == expected;
+}
+
+bool h_maps_position_to(int32_t pointer_x, int32_t left, int32_t right,
+                        int max_position, int expected) {
+  int actual = -1;
+  return espdesktop::slider_geometry::horizontal_pointer_position(
+           pointer_x, left, right, max_position, actual) && actual == expected;
+}
+
 }  // namespace
 
 int main() {
+  using espdesktop::slider_geometry::horizontal_pointer_percent;
+  using espdesktop::slider_geometry::horizontal_pointer_position;
   using espdesktop::slider_geometry::vertical_edge_inset;
   using espdesktop::slider_geometry::vertical_pointer_percent;
   using espdesktop::slider_geometry::vertical_pointer_position;
@@ -71,6 +86,29 @@ int main() {
   if (unchanged != 42) return EXIT_FAILURE;
   if (vertical_pointer_position(0, 0, 100, 0, unchanged)) return EXIT_FAILURE;
   if (vertical_pointer_position(0, 0, 100, -1, unchanged)) return EXIT_FAILURE;
+  if (unchanged != 42) return EXIT_FAILURE;
+
+  // Horizontal dimmers use the same safe endpoint inset, with 0 at the left
+  // and 100 at the right.
+  constexpr int32_t left = 1000;
+  constexpr int32_t right = 1120;
+  if (!h_maps_to(999, left, right, 0)) return EXIT_FAILURE;
+  if (!h_maps_to(1000, left, right, 0)) return EXIT_FAILURE;
+  if (!h_maps_to(1010, left, right, 0)) return EXIT_FAILURE;
+  if (!h_maps_to(1011, left, right, 1)) return EXIT_FAILURE;
+  if (!h_maps_to(1060, left, right, 50)) return EXIT_FAILURE;
+  if (!h_maps_to(1109, left, right, 99)) return EXIT_FAILURE;
+  if (!h_maps_to(1110, left, right, 100)) return EXIT_FAILURE;
+  if (!h_maps_to(1121, left, right, 100)) return EXIT_FAILURE;
+  if (!h_maps_position_to(500, 0, 1000, 1000, 500)) return EXIT_FAILURE;
+  if (!h_maps_position_to(24, 0, 1000, 1000, 0)) return EXIT_FAILURE;
+  if (!h_maps_position_to(976, 0, 1000, 1000, 1000)) return EXIT_FAILURE;
+
+  unchanged = 42;
+  if (horizontal_pointer_percent(0, 10, 9, unchanged)) return EXIT_FAILURE;
+  if (unchanged != 42) return EXIT_FAILURE;
+  if (horizontal_pointer_position(0, 0, 100, 0, unchanged)) return EXIT_FAILURE;
+  if (horizontal_pointer_position(0, 0, 100, -1, unchanged)) return EXIT_FAILURE;
   if (unchanged != 42) return EXIT_FAILURE;
 
   return EXIT_SUCCESS;

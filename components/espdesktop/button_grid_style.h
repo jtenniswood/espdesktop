@@ -38,10 +38,12 @@ inline uint32_t current_button_primary_color() {
 struct CardPalette {
   bool has_on = false;
   bool has_off = false;
+  bool has_unavailable = true;
   bool has_sensor_color = false;
   bool custom_background = false;
   uint32_t on_val = DEFAULT_ACCENT_COLOR;
   uint32_t off_val = theme_display_color(current_theme().surface_card);
+  uint32_t unavailable_val = theme_display_color(current_theme().surface_secondary);
   uint32_t sensor_val = theme_display_color(current_theme().surface_secondary);
   uint32_t surface_sensor_val = theme_display_color(current_theme().surface_sensor);
   uint32_t progress_val = DEFAULT_ACCENT_COLOR;

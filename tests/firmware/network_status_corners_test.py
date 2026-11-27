@@ -29,7 +29,9 @@ fixture = r'''
 using lv_coord_t = int;
 using lv_color_t = uint32_t;
 struct lv_font_t {};
+constexpr int LV_OBJ_FLAG_SCROLLABLE = 1;
 lv_obj_t *lv_btn_create(lv_obj_t *) { return new lv_obj_t; }
+void lv_obj_clear_flag(lv_obj_t *, int) {}
 void lv_obj_set_style_pad_all(lv_obj_t *, int, int) {}
 void lv_obj_set_style_text_font(lv_obj_t *, const lv_font_t *, int) {}
 void lv_obj_set_style_text_color(lv_obj_t *, lv_color_t, int) {}

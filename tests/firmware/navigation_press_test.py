@@ -58,19 +58,28 @@ struct ParsedCfg { std::string type, entity = "app"; bool shortcuts = false; };
 struct Context { bool subpage; };
 Context card_runtime_context(const ParsedCfg &c) { return {c.type == "subpage"}; }
 enum class CompanionAppSubpageMode { FOCUS, CARD, MANUAL };
+struct CompanionRuntimeSnapshot { bool connected = true; };
+bool app_active = false, connected = true, invoked = true;
 struct CompanionRuntime {
   CompanionAppSubpageMode mode = CompanionAppSubpageMode::CARD;
   CompanionAppSubpageMode app_subpage_mode() const { return mode; }
+  CompanionRuntimeSnapshot snapshot() const { return {}; }
+  bool connected() const { return ::connected; }
 } runtime;
 const auto &companion_runtime_service() { return runtime; }
-bool app_active = false, connected = true, invoked = true;
+CompanionRuntime &companion_runtime_for(const std::string &) { return runtime; }
+CompanionRuntime *companion_runtime_for_command(const std::string &) { return &runtime; }
 bool companion_connected() { return connected; }
 bool companion_action_active(const std::string &) { return app_active; }
+bool companion_action_focused(const CompanionRuntimeSnapshot &, const std::string &) { return app_active; }
+std::string companion_card_computer(const ParsedCfg &) { return ""; }
+void companion_set_active_computer(const std::string &) {}
 bool companion_app_shortcuts_enabled(const ParsedCfg &c) { return c.shortcuts; }
 bool companion_metric_key_valid(const std::string &) { return false; }
 bool companion_obs_status_card(const std::string &) { return false; }
 bool companion_apple_shortcut_action(const std::string &) { return false; }
-void run_apple_shortcut_card(lv_obj_t *, const std::string &, const char *) {}
+void run_apple_shortcut_card(lv_obj_t *, const std::string &, const char *,
+                             const std::string & = "") {}
 unsigned companion_next_request_number() { return 1; }
 void companion_cancel_action_result(const char *) {}
 #define ESP_LOGW(...) ((void)0)
@@ -80,7 +89,8 @@ code += function("companion_controls.h", "inline bool companion_app_subpage_open
 code += r'''
 namespace espdesktop::cards {
 int invocations = 0;
-bool invoke_saved_companion_card(const ParsedCfg &, const char *, const std::string &, lv_obj_t *) {
+bool invoke_saved_companion_card(const ParsedCfg &, const char *, const std::string &, lv_obj_t *,
+                                 const std::string & = "") {
   ++invocations; order.push_back(4); return invoked;
 }
 bool navigation_driver_matches(const Context &c) { return c.subpage; }
@@ -89,7 +99,9 @@ code += function("button_grid_navigation_driver.h", "inline bool navigation_driv
 # Compile the production companion dispatch arm without unrelated action drivers.
 basic = (HEADERS / "button_grid_basic_action_driver.h").read_text()
 start = basic.index("    case Driver::COMPANION: {", basic.index("inline bool basic_action_driver_handle_main_click("))
-end = basic.index("    default:", start)
+# Stop at the next driver arm: later arms use Home Assistant controls that this
+# focused dispatch test does not stub.
+end = basic.index("    case Driver::", start + len("    case Driver::COMPANION: {"))
 code += r'''
 bool basic_action_driver_handle_main_click(const Context &, const ParsedCfg &config,
                                          int slot_number, lv_obj_t *button) {
@@ -108,13 +120,14 @@ grid = (HEADERS / "button_grid_grid.h").read_text()
 back = grid[grid.index("lv_obj_add_event_cb(back_btn,"):grid.index("navigation_register_subpage_back_button(navigation_slot")]
 code += r'''
 constexpr int LV_EVENT_PRESSED = 7;
+constexpr int LV_EVENT_SHORT_CLICKED = 8;
 struct lv_event_t { void *target; void *data; };
 void *lv_event_get_target(lv_event_t *e) { return e->target; }
 void *lv_event_get_user_data(lv_event_t *e) { return e->data; }
 void (*back_callback)(lv_event_t *) = nullptr;
 void *back_data = nullptr;
 void lv_obj_add_event_cb(lv_obj_t *, void (*cb)(lv_event_t *), int filter, void *data) {
-  assert(filter == LV_EVENT_PRESSED); back_callback = cb; back_data = data;
+  assert(filter == LV_EVENT_SHORT_CLICKED); back_callback = cb; back_data = data;
 }
 void bind_back(lv_obj_t *back_btn, lv_obj_t *parent_screen) {
 ''' + back + "\n}\n"
@@ -172,10 +185,10 @@ int main() {
 
 # Guard the actual event hookups, not just the routing helpers.
 assert "navigation_consume_touch_press(static_cast<lv_obj_t *>(lv_event_get_target(e)))" in back
-assert "LV_EVENT_PRESSED" in back and "LV_EVENT_CLICKED" not in back
+assert "LV_EVENT_SHORT_CLICKED" in back and "LV_EVENT_CLICKED" not in back
 press = function("button_grid_actions.h", "inline void handle_button_press(")
 assert press.index("navigation_handle_button_press(p, slot_num, btn_obj)") < press.index("handle_button_click(cfg, slot_num, btn_obj)")
-assert press.index("screen_lock_enabled()") < press.index("navigation_handle_button_press(p, slot_num, btn_obj)")
+assert press.index("card_action_locked(p)") < press.index("navigation_handle_button_press(p, slot_num, btn_obj)")
 
 with tempfile.TemporaryDirectory(prefix="espdesktop-navigation-press-") as temp:
     source = Path(temp) / "test.cpp"
