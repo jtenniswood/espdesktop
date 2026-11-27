@@ -1013,6 +1013,7 @@ struct CompanionCardRef {
   bool show_focus = true;
   bool focus_draw_seen = false;
   bool last_drawn_focus = false;
+  std::string required_focus_id{};
   CompanionAction rendered_obs_action{};
   std::string obs_label_alias{};
   lv_obj_t *obs_mute_icon_label = nullptr;

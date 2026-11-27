@@ -240,6 +240,7 @@ class CompanionService final : public Component {
   std::array<uint8_t, 32> app_icon_sha256_{};
   uint32_t app_icon_generation_{0};
   size_t app_icon_offset_{0};
+  std::atomic<bool> app_icons_supported_{false};
   int app_icon_socket_{-1};
   std::atomic<bool> windows_companion_{false};
   std::atomic<bool> app_icon_catalogue_refresh_pending_{true};

@@ -1072,7 +1072,8 @@ void CompanionService::handle_json_(int socket_fd, const std::string &message) {
         auto actions = std::move(session->catalogue_actions);
         if (obs_only) {
           this->defer_session_(socket_fd, [actions = std::move(actions), computer_id]() mutable {
-            companion_runtime_for(computer_id).set_obs_actions(std::move(actions));
+            CompanionActionList obs_actions(actions.begin(), actions.end());
+            companion_runtime_for(computer_id).set_obs_actions(std::move(obs_actions));
           }, "OBS catalogue");
           return true;
         }
@@ -1097,7 +1098,7 @@ void CompanionService::handle_json_(int socket_fd, const std::string &message) {
         const bool refresh_icons = this->app_icon_catalogue_refresh_pending_.exchange(false);
         const bool first_catalogue = this->first_app_icon_catalogue_in_session_.exchange(false);
         const bool provisional = payload->appsProvisional.value_or(false);
-        std::vector<std::string> configured_icons, enabled_icons;
+        std::vector<std::string> configured_icons;
         bool refresh_configured_icons;
         {
           std::lock_guard<std::mutex> lock(app_icon_state_mutex);
