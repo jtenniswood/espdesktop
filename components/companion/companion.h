@@ -160,6 +160,7 @@ class CompanionService final : public Component {
   std::atomic<bool> app_icons_supported_{false};
   std::atomic<bool> windows_companion_{false};
   std::atomic<bool> app_icon_catalogue_refresh_pending_{true};
+  std::atomic<bool> first_app_icon_catalogue_in_session_{true};
   std::atomic<uint32_t> authentication_expires_at_{0};
   std::atomic<bool> authentication_expiry_queued_{false};
 };
