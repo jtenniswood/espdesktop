@@ -93,6 +93,8 @@ export interface RuntimeSubpage {
   backLabel?: string;
   backColor?: string;
   title?: string;
+  // Extra home screens hide the Back tile and use the full grid.
+  screen?: boolean;
 }
 
 export interface AppClipboard {

@@ -192,7 +192,7 @@ inline void network_status_hide_modal() {
 inline void network_status_sync_mac_update_notice() {
   static lv_obj_t *notice = nullptr;
   static bool shown = false;
-  if (!companion_runtime_service().mac_update_required()) {
+  if (!companion_runtime_registry().primary().mac_update_required()) {
     if (notice) lv_obj_del(notice);
     shown = false;
     return;
@@ -261,7 +261,7 @@ inline void network_status_refresh_page() {
       state = espdesktop_i18n("Connected");
       icon = "\U000F031A";
     } else if (snapshot.paired) {
-      state = companion_runtime_service().mac_update_required()
+      state = companion_runtime_registry().primary().mac_update_required()
           ? espdesktop_i18n_key("mac_update_required") : espdesktop_i18n("Disconnected");
     } else {
       state = espdesktop_i18n("Not paired");
@@ -270,10 +270,9 @@ inline void network_status_refresh_page() {
   }
   lv_label_set_display_text(ui.connector_lbl, state);
   lv_label_set_display_text(ui.connector_icon, icon);
-  const auto &runtime = companion_runtime_service();
   const bool can_pair = snapshot.available &&
-      (snapshot.paired ? static_cast<bool>(runtime.reset_and_begin_pairing)
-                       : static_cast<bool>(runtime.begin_pairing));
+      (snapshot.paired ? static_cast<bool>(companion_reset_pairing_handler())
+                       : static_cast<bool>(companion_begin_pairing_handler()));
   if (can_pair && !screen_lock_enabled()) {
     lv_obj_clear_state(ui.pairing_button, LV_STATE_DISABLED);
     lv_obj_add_flag(ui.pairing_button, LV_OBJ_FLAG_CLICKABLE);

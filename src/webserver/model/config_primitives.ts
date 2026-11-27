@@ -68,7 +68,7 @@ export function setConfigOptionValue(options: unknown, name: string, value: unkn
   return out.join(",");
 }
 
-const CARD_COLOR_OPTIONS = ["card_on_color", "card_off_color", "card_active_color"] as const;
+const CARD_COLOR_OPTIONS = ["card_on_color", "card_off_color", "card_active_color", "card_unavailable_color"] as const;
 
 function normalizedColor(value: unknown): string {
   const hex = String(value || "").replace(/^#/, "").toUpperCase();
@@ -85,7 +85,9 @@ export function normalizedCardColorOptions(options: unknown): string {
   const on = normalizedColor(configOptionValue(options, "card_on_color"));
   // Unmarked legacy active-only customisations still migrate to the card colour.
   const off = normalizedColor(configOptionValue(options, "card_off_color")) || (mode === "matching" ? on : "");
+  const unavailable = normalizedColor(configOptionValue(options, "card_unavailable_color"));
   const out = off ? ["card_off_color=" + off] : [];
+  if (unavailable) out.push("card_unavailable_color=" + unavailable);
   if (mode !== "matching") out.push("card_active_color=" + mode);
   if (mode === "custom" && on) out.push("card_on_color=" + on);
   return out.join(",");

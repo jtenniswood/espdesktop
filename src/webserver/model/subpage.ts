@@ -41,6 +41,8 @@ export interface SubpageGridSource {
   backLabel?: string;
   backColor?: string;
   title?: string;
+  // Extra home screens hide the Back control and use the full grid.
+  screen?: boolean;
 }
 
 const BACK_TOKENS = new Set(["B", "Bd", "Bw", "Bb", "Bt", "Bx"]);
@@ -350,7 +352,27 @@ export function buildSubpageGrid(
   const sizes: SlotSizeMap = { ...(subpage.sizes || {}) };
   const order = subpage.order || [];
   const buttonCount = (subpage.buttons || []).length;
-  if (order.length > 0) {
+  if (subpage.screen) {
+    // Extra home screens use the whole grid. Remove only the stored Back cell
+    // (the panel does the same) and keep every other gap in place.
+    let backIndex = -1;
+    order.forEach((item, index) => {
+      if (isBackOrderToken(parseBackOrderToken(item).token)) backIndex = index;
+    });
+    order.forEach((item, index) => {
+      const token = parseBackOrderToken(item).token;
+      if (!token || isBackOrderToken(token)) return;
+      const position = backIndex >= 0 && index > backIndex ? index - 1 : index;
+      if (position < 0 || position >= maxSlots) return;
+      const last = token.charAt(token.length - 1);
+      const parsedSize = sizeFromToken(last);
+      const slot = parseInt(token, 10);
+      if (slot >= 1 && slot <= buttonCount && !Number.isNaN(slot)) {
+        grid[position] = slot;
+        if (parsedSize > 1) sizes[String(slot)] = parsedSize;
+      }
+    });
+  } else if (order.length > 0) {
     const hasBack = order.some((item) => isBackOrderToken(parseBackOrderToken(item).token));
     if (hasBack) {
       for (let i = 0; i < order.length && i < maxSlots; i += 1) {
@@ -400,6 +422,7 @@ export function serializeSubpageGrid(
   backLabel?: string | null,
   backColor?: string | null,
   title?: string | null,
+  screen = false,
 ): string[] {
   let last = -1;
   for (let i = grid.length - 1; i >= 0; i -= 1) {
@@ -408,6 +431,19 @@ export function serializeSubpageGrid(
       last = i;
       break;
     }
+  }
+  if (screen) {
+    // Keep a Back token in the saved page so an empty screen still has a
+    // non-empty record; the panel and this editor both omit the Back control
+    // and pack cards from the first cell.
+    const order: string[] = [
+      backOrderToken("B", backLabel || "Back", backColor, title),
+    ];
+    for (let i = 0; i <= last; i += 1) {
+      const slot = grid[i] ?? 0;
+      order.push(slot > 0 ? String(slot) + sizeToken(sizes[String(slot)]) : "");
+    }
+    return order;
   }
   if (last < 0) return [];
   const order: string[] = [];

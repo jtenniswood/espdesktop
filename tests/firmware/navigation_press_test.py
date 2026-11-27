@@ -58,14 +58,22 @@ struct ParsedCfg { std::string type, entity = "app"; bool shortcuts = false; };
 struct Context { bool subpage; };
 Context card_runtime_context(const ParsedCfg &c) { return {c.type == "subpage"}; }
 enum class CompanionAppSubpageMode { FOCUS, CARD, MANUAL };
+struct CompanionRuntimeSnapshot { bool connected = true; };
+bool app_active = false, connected = true, invoked = true;
 struct CompanionRuntime {
   CompanionAppSubpageMode mode = CompanionAppSubpageMode::CARD;
   CompanionAppSubpageMode app_subpage_mode() const { return mode; }
+  CompanionRuntimeSnapshot snapshot() const { return {}; }
+  bool connected() const { return ::connected; }
 } runtime;
 const auto &companion_runtime_service() { return runtime; }
-bool app_active = false, connected = true, invoked = true;
+CompanionRuntime &companion_runtime_for(const std::string &) { return runtime; }
+CompanionRuntime *companion_runtime_for_command(const std::string &) { return &runtime; }
 bool companion_connected() { return connected; }
 bool companion_action_active(const std::string &) { return app_active; }
+bool companion_action_focused(const CompanionRuntimeSnapshot &, const std::string &) { return app_active; }
+std::string companion_card_computer(const ParsedCfg &) { return ""; }
+void companion_set_active_computer(const std::string &) {}
 bool companion_app_shortcuts_enabled(const ParsedCfg &c) { return c.shortcuts; }
 bool companion_metric_key_valid(const std::string &) { return false; }
 bool companion_obs_status_card(const std::string &) { return false; }

@@ -542,9 +542,43 @@ export function createSettingsPageFeature(codec: Pick<ConfigCodecFeature, "bindT
             themeCard,
             clockBarCard,
         ]);
+        const swipeOptions = [
+            { value: "none", label: "None" },
+            { value: "home", label: "Home" },
+            { value: "back", label: "Back" },
+            { value: "previous_screen", label: "Previous screen" },
+            { value: "next_screen", label: "Next screen" },
+            ...Array.from({ length: 8 }, (_, index) => ({
+                value: "screen_" + (index + 1), label: "Screen " + (index + 2),
+            })),
+        ];
+        const swipeUp = selectField("Swipe up", "sp-set-swipe-up", swipeOptions, "none");
+        const swipeDown = selectField("Swipe down", "sp-set-swipe-down", swipeOptions, "none");
+        let loadedSwipeSettings: Record<string, string> | undefined;
+        const syncSwipeActions = () => {
+            const settings = state.nativePanelDocument?.settings ?? loadedSwipeSettings ?? {};
+            swipeUp.select.value = settings.screen_swipe_up_action ?? "none";
+            swipeDown.select.value = settings.screen_swipe_down_action ?? "none";
+        };
+        swipeUp.select.addEventListener("change", () => {
+            void native.writeSetting("screen_swipe_up_action", swipeUp.select.value);
+        });
+        swipeDown.select.addEventListener("change", () => {
+            void native.writeSetting("screen_swipe_down_action", swipeDown.select.value);
+        });
+        const swipeBody = document.createElement("div");
+        swipeBody.appendChild(swipeUp.field);
+        swipeBody.appendChild(swipeDown.field);
+        void (async () => {
+            if (await native.waitForDiscovery() !== true) return;
+            if (!state.nativePanelDocument) loadedSwipeSettings = (await native.readSnapshot())?.document.settings;
+            syncSwipeActions();
+        })().catch(() => {});
+        const swipeCard = makeCollapsibleCard("Swipe Gestures", swipeBody, true);
         appendSettingsSection(config, "Display", [
             backlightCard,
             rotationCard,
+            swipeCard,
         ]);
         appendSettingsSection(config, "Sleep & Schedule", [
             screensaverCard,
@@ -560,6 +594,7 @@ export function createSettingsPageFeature(codec: Pick<ConfigCodecFeature, "bindT
             systemSettingsCards.backupCard,
             systemSettingsCards.firmwareCard,
             batteryStatusCard,
+            systemSettingsCards.diagnosticsCard,
             systemSettingsCards.resetCard,
         ]);
         page.appendChild(config);

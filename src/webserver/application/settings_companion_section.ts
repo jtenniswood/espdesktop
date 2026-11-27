@@ -5,6 +5,13 @@ import type { ControlsShellFeature } from "./controls_shell";
 
 export { copyCompanionCode };
 
+export interface CompanionComputerState {
+    id: string;
+    name: string;
+    connected: boolean;
+    primary: boolean;
+}
+
 export interface CompanionPairingState {
     available: boolean;
     active: boolean;
@@ -13,6 +20,8 @@ export interface CompanionPairingState {
     port?: number;
     pairing_code: string;
     mdns_name?: string;
+    can_add?: boolean;
+    computers?: CompanionComputerState[];
 }
 
 export interface SettingsCompanionSectionFeature {
@@ -29,13 +38,22 @@ function setHidden(element: HTMLElement, hidden: boolean): void {
 }
 
 export function companionPairingStatusText(state: CompanionPairingState): string {
-    if (state.connected) return "Companion connected";
+    const computers = state.computers ?? [];
+    const connected = computers.filter(computer => computer.connected).length;
+    if (state.connected) {
+        return computers.length > 1
+            ? `${connected} of ${computers.length} computers connected`
+            : "Companion connected";
+    }
     if (state.active && !state.paired) return "Ready to pair";
-    return state.paired ? "Computer paired, but not connected" : "No computer paired";
+    if (!state.paired) return "No computer paired";
+    return computers.length > 1
+        ? `${computers.length} computers paired, none connected`
+        : "Companion paired, but not connected";
 }
 
 export function companionPairingCodeVisible(state: CompanionPairingState): boolean {
-    return !state.paired && state.active && state.pairing_code.trim().length > 0;
+    return state.active && state.pairing_code.trim().length > 0;
 }
 
 export function createCompanionPairingDetails(
@@ -48,7 +66,7 @@ export function createCompanionPairingDetails(
     setHidden(pairingDetails, true);
     const instructions = document.createElement("p");
     instructions.className = "sp-setting-note sp-companion-instructions";
-    instructions.textContent = "Choose this display in the companion app and enter the code.";
+    instructions.textContent = "Open the Companion app on the computer and enter the code.";
     const pairingCodeRow = document.createElement("div");
     pairingCodeRow.className = "sp-companion-code-row";
     const pairingCode = document.createElement("code");
@@ -111,13 +129,17 @@ export function createSettingsCompanionSectionFeature(
     const { document, window, fetch } = dom;
     const { createActionButton, showBanner } = shell;
 
-    async function requestPairing(showOnDisplay = false): Promise<CompanionPairingState> {
+    async function requestPairing(showOnDisplay = false, addComputer = false): Promise<CompanionPairingState> {
         const options: RequestInit = {
             method: "GET",
             cache: "no-store",
             headers: { Accept: "application/json" },
         };
-        const path = showOnDisplay ? "/companion/pairing?show_on_display=1" : "/companion/pairing";
+        const params = new URLSearchParams();
+        if (showOnDisplay) params.set("show_on_display", "1");
+        if (addComputer) params.set("add", "1");
+        const query = params.toString();
+        const path = query ? `/companion/pairing?${query}` : "/companion/pairing";
         const response = await fetch(path, options);
         if (!response.ok) throw new Error("Companion pairing is not available on this panel");
         const state = await response.json() as CompanionPairingState;
@@ -132,7 +154,6 @@ export function createSettingsCompanionSectionFeature(
         showOnDisplay = false,
     ): HTMLElement {
         let latestState: CompanionPairingState | null = null;
-        let waitingForDisplayReset = showOnDisplay;
         const body = document.createElement("div");
         const pairingDetails = createCompanionPairingDetails(dom, createActionButton);
         body.appendChild(pairingDetails.element);
@@ -144,9 +165,86 @@ export function createSettingsCompanionSectionFeature(
         status.setAttribute("aria-live", "polite");
         body.appendChild(status);
 
+        const computerList = document.createElement("div");
+        computerList.className = "sp-companion-computers";
+        setHidden(computerList, true);
+        body.appendChild(computerList);
+        const computerLimitNote = document.createElement("p");
+        computerLimitNote.className = "sp-setting-note";
+        computerLimitNote.textContent = "Up to two paired computers can stay connected at once.";
+        body.appendChild(computerLimitNote);
+        let computerSignature = "";
+
         const actions = document.createElement("div");
         actions.className = "sp-companion-actions";
         body.appendChild(actions);
+        const addComputerButton = createActionButton(
+            "sp-action-btn",
+            "Pair another computer",
+            "plus",
+            "Pair another computer",
+        );
+        addComputerButton.classList.add("sp-hidden");
+        actions.appendChild(addComputerButton);
+        let addingComputer = false;
+
+        async function addComputer(): Promise<void> {
+            if (addingComputer || !latestState?.available) return;
+            addingComputer = true;
+            addComputerButton.disabled = true;
+            try {
+                render(await requestPairing(true, true));
+            } catch {
+                showBanner("Could not start pairing another computer.", "error");
+            } finally {
+                addingComputer = false;
+                addComputerButton.disabled = false;
+            }
+        }
+        addComputerButton.addEventListener("click", () => { void addComputer(); });
+
+        async function forgetComputer(computer: CompanionComputerState): Promise<void> {
+            if (!window.confirm(
+                `Forget ${computer.name}? This disconnects it and removes its pairing. Cards set to this computer will stop working.`,
+            )) return;
+            try {
+                const response = await fetch(
+                    `/companion/pairing/forget?computer=${encodeURIComponent(computer.id)}`,
+                    { method: "POST", headers: { Accept: "application/json" } },
+                );
+                if (!response.ok) throw new Error("Companion pairing removal was not accepted");
+                showBanner(`${computer.name} forgotten.`, "success");
+                await refreshStatus();
+            } catch {
+                showBanner(`Could not forget ${computer.name}.`, "error");
+            }
+        }
+
+        function renderComputers(value: CompanionPairingState, visible: boolean): void {
+            const computers = visible ? value.computers ?? [] : [];
+            const signature = JSON.stringify(computers.map(computer =>
+                [computer.id, computer.name, computer.connected, computer.primary])) + (visible ? "1" : "0");
+            if (signature === computerSignature) return;
+            computerSignature = signature;
+            computerList.replaceChildren();
+            for (const computer of computers) {
+                const row = document.createElement("div");
+                row.className = "sp-companion-computer";
+                const name = document.createElement("span");
+                name.className = "sp-companion-computer-name";
+                name.textContent = computer.name + (computer.primary ? " (primary)" : "");
+                const state = document.createElement("span");
+                state.className = "sp-companion-computer-state";
+                state.textContent = computer.connected ? "Connected" : "Offline";
+                const forget = createActionButton(
+                    "sp-action-btn sp-delete-btn", "Forget", "close", `Forget ${computer.name}`,
+                );
+                forget.addEventListener("click", () => { void forgetComputer(computer); });
+                row.append(name, state, forget);
+                computerList.appendChild(row);
+            }
+            setHidden(computerList, computers.length === 0);
+        }
         const clearIconCacheButton = createActionButton(
             "sp-action-btn sp-delete-btn",
             "Clear app icon cache",
@@ -183,9 +281,9 @@ export function createSettingsCompanionSectionFeature(
 
         const resetButton = createActionButton(
             "sp-action-btn sp-delete-btn sp-destructive-btn",
-            "Reset pairing",
+            "Reset all pairings",
             "restore",
-            "Reset Companion pairing",
+            "Reset all Companion pairings",
         );
         resetButton.classList.add("sp-hidden");
         actions.appendChild(resetButton);
@@ -194,7 +292,7 @@ export function createSettingsCompanionSectionFeature(
         async function resetPairing(): Promise<void> {
             if (resetInProgress || !latestState?.paired) return;
             if (!window.confirm(
-                "Reset pairing? This will disconnect and remove the saved Companion pairing. You will need to pair the display again.",
+                "Reset all pairings? This disconnects and removes every paired computer. You will need to pair the display again.",
             )) return;
             resetInProgress = true;
             resetButton.disabled = true;
@@ -204,10 +302,10 @@ export function createSettingsCompanionSectionFeature(
                     headers: { Accept: "application/json" },
                 });
                 if (!response.ok) throw new Error("Pairing reset was not accepted");
-                showBanner("Companion pairing reset.", "success");
+                showBanner("Companion pairings reset.", "success");
                 await refreshStatus();
             } catch {
-                showBanner("Could not reset Companion pairing.", "error");
+                showBanner("Could not reset Companion pairings.", "error");
             } finally {
                 resetInProgress = false;
                 resetButton.disabled = false;
@@ -225,18 +323,19 @@ export function createSettingsCompanionSectionFeature(
         const card: HTMLElement = fields.makeCollapsibleCard("Companion", body, defaultCollapsed, badge);
 
         function render(value: CompanionPairingState): void {
-            waitingForDisplayReset = waitingForDisplayReset && value.paired;
-            if (value.connected && !latestState?.connected && !waitingForDisplayReset) {
+            if (value.connected && !latestState?.connected) {
                 card.classList.add("collapsed");
             }
             latestState = value;
             pairingDetails.update(value);
             onStatus?.(value);
-            status.textContent = waitingForDisplayReset
-                ? "Confirm Reset pairing on the touchscreen."
-                : companionPairingStatusText(value);
+            status.textContent = companionPairingStatusText(value);
             status.classList.toggle("sp-companion-status-connected", value.connected);
             setHidden(status, !pairingDetails.element.hidden);
+            renderComputers(value, value.paired);
+            setHidden(computerLimitNote, !value.paired);
+            setHidden(addComputerButton,
+                !value.available || !value.paired || value.active || value.can_add === false);
             setHidden(badge, !value.paired);
             setHidden(resetButton, !value.paired);
             setHidden(clearIconCacheButton, !value.available || !value.paired);

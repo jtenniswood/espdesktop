@@ -7,6 +7,47 @@ import type { CardConfig } from "../contracts/types";
 import { configOptionEnabled } from "../model/config_primitives";
 
 export function normalizeSavedConfigStatic(config: CardConfig): boolean {
+  if (config.type === "companion_app_volume") {
+    if (!config.icon) config.icon = "Volume High";
+    config.icon_on = "Auto";
+    config.sensor = "";
+    config.unit = "";
+    config.type = "companion_app_volume";
+    config.precision = "";
+    const savedOptions = String(config.options || "").split(",");
+    const normalizedOptions: string[] = [];
+    { const token = savedOptions.find(part => part.startsWith("computer=")); if (token) normalizedOptions.push(token); }
+    config.options = normalizedOptions.join(",");
+    return true;
+  }
+  if (config.type === "companion_input_device") {
+    if (!config.icon) config.icon = "Microphone";
+    config.icon_on = "Auto";
+    config.sensor = "";
+    config.unit = "";
+    config.type = "companion_input_device";
+    config.precision = "";
+    const savedOptions = String(config.options || "").split(",");
+    const normalizedOptions: string[] = [];
+    { const token = savedOptions.find(part => part.startsWith("computer=")); if (token) normalizedOptions.push(token); }
+    config.options = normalizedOptions.join(",");
+    return true;
+  }
+  if (config.type === "companion_mac_lock") {
+    config.entity = "shortcut.command+control+q";
+    if (!config.label) config.label = "Lock Machine";
+    if (!config.icon) config.icon = "Lock";
+    config.icon_on = "Auto";
+    config.sensor = "";
+    config.unit = "";
+    config.type = "companion_mac_lock";
+    config.precision = "";
+    const savedOptions = String(config.options || "").split(",");
+    const normalizedOptions: string[] = [];
+    { const token = savedOptions.find(part => part.startsWith("computer=")); if (token) normalizedOptions.push(token); }
+    config.options = normalizedOptions.join(",");
+    return true;
+  }
   if (config.type === "companion_output_volume") {
     config.entity = "media.output_volume";
     if (config.label === "") config.label = "Volume";
@@ -17,7 +58,10 @@ export function normalizeSavedConfigStatic(config: CardConfig): boolean {
     config.unit = "";
     config.type = "companion_output_volume";
     config.precision = "";
-    config.options = "";
+    const savedOptions = String(config.options || "").split(",");
+    const normalizedOptions: string[] = [];
+    { const token = savedOptions.find(part => part.startsWith("computer=")); if (token) normalizedOptions.push(token); }
+    config.options = normalizedOptions.join(",");
     return true;
   }
   if (config.type === "companion_input_volume") {
@@ -31,7 +75,10 @@ export function normalizeSavedConfigStatic(config: CardConfig): boolean {
     config.unit = "";
     config.type = "companion_input_volume";
     config.precision = "";
-    config.options = "";
+    const savedOptions = String(config.options || "").split(",");
+    const normalizedOptions: string[] = [];
+    { const token = savedOptions.find(part => part.startsWith("computer=")); if (token) normalizedOptions.push(token); }
+    config.options = normalizedOptions.join(",");
     return true;
   }
   if (config.type === "companion_output_mute") {
@@ -44,7 +91,10 @@ export function normalizeSavedConfigStatic(config: CardConfig): boolean {
     config.unit = "";
     config.type = "companion_output_mute";
     config.precision = "";
-    config.options = "";
+    const savedOptions = String(config.options || "").split(",");
+    const normalizedOptions: string[] = [];
+    { const token = savedOptions.find(part => part.startsWith("computer=")); if (token) normalizedOptions.push(token); }
+    config.options = normalizedOptions.join(",");
     return true;
   }
   if (config.type === "companion_input_mute") {
@@ -59,7 +109,11 @@ export function normalizeSavedConfigStatic(config: CardConfig): boolean {
     config.unit = "";
     config.type = "companion_input_mute";
     config.precision = "";
-    config.options = "";
+    const savedOptions = String(config.options || "").split(",");
+    const normalizedOptions: string[] = [];
+    { const token = savedOptions.find(part => part.startsWith("computer=")); if (token) normalizedOptions.push(token); }
+    { const token = savedOptions.find(part => part.startsWith("hold_action=")); if (token) normalizedOptions.push(token); }
+    config.options = normalizedOptions.join(",");
     return true;
   }
   if (config.type === "companion_cough") {
@@ -72,7 +126,10 @@ export function normalizeSavedConfigStatic(config: CardConfig): boolean {
     config.unit = "";
     config.type = "companion_cough";
     config.precision = "";
-    config.options = "";
+    const savedOptions = String(config.options || "").split(",");
+    const normalizedOptions: string[] = [];
+    { const token = savedOptions.find(part => part.startsWith("computer=")); if (token) normalizedOptions.push(token); }
+    config.options = normalizedOptions.join(",");
     return true;
   }
   if (config.type === "companion_obs_cough") {
@@ -85,7 +142,10 @@ export function normalizeSavedConfigStatic(config: CardConfig): boolean {
     config.unit = "";
     config.type = "companion_obs_cough";
     config.precision = "";
-    config.options = "";
+    const savedOptions = String(config.options || "").split(",");
+    const normalizedOptions: string[] = [];
+    { const token = savedOptions.find(part => part.startsWith("computer=")); if (token) normalizedOptions.push(token); }
+    config.options = normalizedOptions.join(",");
     return true;
   }
   if (config.type === "light_brightness") {

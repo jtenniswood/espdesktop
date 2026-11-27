@@ -3,6 +3,9 @@
   "pickerKey": "companion_output_volume",
   "allowInSubpage": true,
   "domains": [],
+  "options": [
+    { "name": "computer", "label": "Paired computer", "kind": "text", "omitDefault": true, "hidden": true, "docsHidden": true }
+  ],
   "normalization": {
     "fields": {
       "entity": { "policy": "keep" },
@@ -13,10 +16,10 @@
       "unit": { "policy": "clear" },
       "type": { "policy": "default", "value": "companion_input_device" },
       "precision": { "policy": "clear" },
-      "options": { "policy": "clear" }
+      "options": { "policy": "keep" }
     },
     "unknownOptions": "drop",
-    "canonicalOptionOrder": []
+    "canonicalOptionOrder": ["computer"]
   },
   "default": {
     "entity": "", "label": "", "icon": "Microphone", "icon_on": "Auto",

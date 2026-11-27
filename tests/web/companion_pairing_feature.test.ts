@@ -14,14 +14,23 @@ export function runCompanionPairingFeatureTests(): void {
   })) {
     throw new Error("An active unpaired device must show its pairing code");
   }
-  if (companionPairingCodeVisible({
+  if (!companionPairingCodeVisible({
     available: true,
     active: true,
     paired: true,
     connected: false,
     pairing_code: "ABCD-EFGH",
   })) {
-    throw new Error("A paired device must not show a pairing code");
+    throw new Error("A paired device must show the code while another computer is being added");
+  }
+  if (companionPairingCodeVisible({
+    available: true,
+    active: false,
+    paired: true,
+    connected: true,
+    pairing_code: "ABCD-EFGH",
+  })) {
+    throw new Error("A finished pairing window must not show a stale pairing code");
   }
   const openStatus = companionPairingStatusText({
     available: true,
@@ -43,6 +52,21 @@ export function runCompanionPairingFeatureTests(): void {
   });
   if (connectedStatus !== "Companion connected") {
     throw new Error("Connected Companion status must be clear on the settings page");
+  }
+
+  const multiStatus = companionPairingStatusText({
+    available: true,
+    active: false,
+    paired: true,
+    connected: true,
+    pairing_code: "",
+    computers: [
+      { id: "0123456789abcdef", name: "Office PC", connected: true, primary: true },
+      { id: "fedcba9876543210", name: "Studio Mac", connected: false, primary: false },
+    ],
+  });
+  if (multiStatus !== "1 of 2 computers connected") {
+    throw new Error("Multi-computer status must report how many computers are connected");
   }
 }
 
