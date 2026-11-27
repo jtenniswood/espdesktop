@@ -4,6 +4,10 @@
 AppId={{1D724D45-B90B-46A2-92AD-4ED719D766A1}
 AppName=EspDesktop
 AppVersion={#ProductVersion}
+VersionInfoVersion={#ProductVersion}
+VersionInfoProductName=EspDesktop
+VersionInfoProductTextVersion={#ProductVersion}
+InfoBeforeFile=Install-Information.txt
 AppPublisher=EspDesktop
 AppPublisherURL=https://espdesktop.com/
 AppSupportURL=https://github.com/jtenniswood/espdesktop/issues
@@ -33,7 +37,11 @@ SignTool=espdesktop
 SignedUninstaller=yes
 #endif
 
+[Tasks]
+Name: disableupdatechecks; Description: "Turn off automatic update checks"; Flags: unchecked; Check: NeedsUpdatePreference
+
 [Files]
+Source: "Disable-Update-Checks.json"; DestDir: "{localappdata}\EspDesktop"; DestName: "settings.json"; Tasks: disableupdatechecks; Flags: onlyifdoesntexist uninsneveruninstall
 Source: "{#PublishDirectory}\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "EspDesktop.ico"; DestDir: "{app}"; DestName: "EspDesktop-Fingerprint.ico"; Flags: ignoreversion
 
@@ -62,6 +70,11 @@ begin
     SHChangeNotify(SHCNE_UPDATEITEM, SHCNF_PATHW, ExpandConstant('{app}\EspDesktop.exe'), 0);
     SHChangeNotify(SHCNE_UPDATEITEM, SHCNF_PATHW, ExpandConstant('{autoprograms}\EspDesktop.lnk'), 0);
   end;
+end;
+
+function NeedsUpdatePreference(): Boolean;
+begin
+  Result := not FileExists(ExpandConstant('{localappdata}\EspDesktop\settings.json'));
 end;
 
 function InitializeSetup(): Boolean;

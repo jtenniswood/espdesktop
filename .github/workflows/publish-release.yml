@@ -109,6 +109,7 @@ jobs:
           {
             printf '\n## Windows downloads\n\n'
             printf '%s\n' 'Choose the x64 setup file for Intel and AMD PCs or the Arm64 setup file for Windows on Arm. The Windows installers are unsigned.'
+            printf '\nUse EspDesktop to control your Windows PC from a paired touchscreen. See the [Windows setup guide](https://espdesktop.com/windows) and [Code signing policy](https://espdesktop.com/reference/code-signing).\n'
             printf '\n## Mac verification\n\n'
             printf 'Confirmed the installed Mac app from [build run %s](%s/%s/actions/runs/%s) with fingerprint `%s`.\n' \
               "${CANDIDATE_RUN}" "${GITHUB_SERVER_URL}" "${GITHUB_REPOSITORY}" "${CANDIDATE_RUN}" "${CONFIRMED_FINGERPRINT}"

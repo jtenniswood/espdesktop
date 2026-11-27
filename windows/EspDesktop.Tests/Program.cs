@@ -724,6 +724,10 @@ static void VerifyInstallerProfile(string mode)
         SHA256.HashData("installer fixture credential"u8), 12, "Installer test display");
     switch (mode)
     {
+        case "updates-disabled":
+            Check(store.Settings.AllApps && !store.Settings.CheckForUpdates,
+                "Setup turned off automatic update checks and preserved default app approvals");
+            break;
         case "prepare":
             Check(store.LoadPairings().Length == 0 && !store.PairingUnavailable, "prepare the installer check in an empty profile");
             store.Settings.AllApps = false;
@@ -741,6 +745,7 @@ static void VerifyInstallerProfile(string mode)
                 "the installer preserved the protected display pairing");
             Check(!store.Settings.AllApps && store.Settings.Shortcuts && store.Settings.AllowedApps.SetEquals([appId]) &&
                 store.Settings.Folders.SequenceEqual([folder]), "the installer preserved app and folder approvals");
+            Check(!store.Settings.CheckForUpdates, "the installer preserved the update check preference");
             Console.WriteLine("Verified the saved display pairing and approvals after an installer operation.");
             break;
         default: throw new ArgumentException("Unknown installer profile mode.", nameof(mode));
