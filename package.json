@@ -1,7 +1,7 @@
 {
   "name": "espdesktop",
   "private": true,
-  "license": "PolyForm-Noncommercial-1.0.0",
+  "license": "Apache-2.0",
   "scripts": {
     "prepare:ci": "python3 scripts/prepare_ci.py",
     "check:all": "python3 scripts/check_tasks.py run all",
