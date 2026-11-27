@@ -569,12 +569,11 @@ internal sealed class SettingsWindow : Window
             quitting || busy) return;
         busy = true;
         Render();
-        var showManualReset = false;
         try
         {
             if (display != null)
             {
-                showManualReset = display.Session is not { } session || !await session.ShowPairingBeforeDisconnecting();
+                if (display.Session is { } session) await session.ShowPairingBeforeDisconnecting();
                 await StopConnection(display);
                 store.ForgetPairing(display.Pairing.Fingerprint);
                 display.EditorWindow?.Close();
@@ -593,9 +592,7 @@ internal sealed class SettingsWindow : Window
                 addingDisplay = true;
             }
             ConnectionStatusChanged?.Invoke(displays.Count == 1 ? displays[0].Status.Text : "");
-            Report(showManualReset
-                ? "If you need to pair again, open Settings → Paired on the touchscreen and confirm Reset pairing."
-                : "");
+            Report("");
         }
         catch (Exception e) when (e is IOException or UnauthorizedAccessException) { Report("Windows couldn’t remove the saved pairing."); }
         finally
