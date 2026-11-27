@@ -438,7 +438,7 @@ inline void setup_slider_visual(BtnSlot &s, const ParsedCfg &p, uint32_t on_colo
     p.entity.c_str(), p.type.c_str());
   setup_toggle_visual(s, p);
 
-  lv_obj_t *slider = setup_slider_widget(s.btn, on_color);
+  lv_obj_t *slider = setup_slider_widget(s.btn, on_color, false);
   if (!slider) {
     ESP_LOGW("slider", "Slider setup failed for %s; falling back to toggle card",
       p.entity.c_str());
