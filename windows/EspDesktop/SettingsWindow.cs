@@ -197,10 +197,13 @@ internal sealed class SettingsWindow : Window
     {
         if (!smoke || Environment.GetEnvironmentVariable("ESPDESKTOP_SETTINGS_PREVIEW") is not { Length: > 0 } path) return;
         CapturePagePreview(path);
-        foreach (var index in Enumerable.Range(1, pages.Length - 1))
+        var stem = Path.ChangeExtension(path, null);
+        for (var index = 1; index < navigation.Items.Count; index++)
         {
             navigation.SelectedIndex = index;
-            CapturePagePreview($"{Path.ChangeExtension(path, null)}-{pages[index].Replace(' ', '-').ToLowerInvariant()}.png");
+            var page = (ListBoxItem)navigation.Items[index];
+            var name = AutomationProperties.GetName(page).Replace(' ', '-').ToLowerInvariant();
+            CapturePagePreview($"{stem}-{name}.png");
         }
         navigation.SelectedIndex = 0;
     }
