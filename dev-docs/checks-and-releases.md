@@ -71,9 +71,12 @@ Record flashing and device behavior separately in the pull request.
 
 ## Firmware Build Coverage
 
-Pull request firmware checks compile the release targets first, followed by one
-representative of each remaining chip family. Each P4 target also compiles its
-recovery firmware.
+For firmware changes, pull requests build factory and OTA firmware for the
+release targets and one representative of each remaining chip family. Up to two
+displays build at once. Changes to recovery inputs, partition layouts, or the
+ESPHome version also compile recovery firmware for the selected P4 targets.
+Use **Actions → Firmware Compile → Run workflow** on a feature branch to build
+a specific device or the full device matrix, including P4 recovery firmware.
 Nightly builds compile every supported device, including P4 recovery firmware.
 A failed nightly run opens a repository issue with the run logs, tested commit,
 job results, and failed targets when available. Setup and matrix failures also
