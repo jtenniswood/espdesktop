@@ -85,8 +85,8 @@ class EndpointTests(unittest.TestCase):
         self.assertEqual(endpoint.pairing_url, "http://192.168.0.50/?tab=connectors&connector=mac_companion")
 
     def test_mdns_name(self) -> None:
-        endpoint = resolve_display_address("espdesktop-4848s040-903ef8.local")
-        self.assertEqual(endpoint.host, "espdesktop-4848s040-903ef8.local")
+        endpoint = resolve_display_address("espdesktop-panel.local")
+        self.assertEqual(endpoint.host, "espdesktop-panel.local")
         self.assertEqual(endpoint.port, 8443)
 
     def test_explicit_port(self) -> None:
