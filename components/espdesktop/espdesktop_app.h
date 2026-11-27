@@ -30,9 +30,6 @@ namespace espdesktop {
 // owner while behaviour moves into compiled modules.
 class EspDesktopApp : public esphome::Component {
  public:
-  static constexpr size_t PANEL_CONFIG_STORAGE_SLOT_CAPACITY = 40 * 1024;
-  static constexpr size_t PANEL_CONFIG_NVS_SLOT_CAPACITY = 16 * 1024;
-
   EspDesktopApp();
   ~EspDesktopApp();
 

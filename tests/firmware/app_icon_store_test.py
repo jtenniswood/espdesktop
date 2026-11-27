@@ -101,12 +101,39 @@ TEST = r'''
 #include "esp_heap_caps.h"
 #include "app_icon_store.h"
 #include "app_icon_codec.h"
+#include "../espdesktop/panel_flash_layout.h"
 using namespace esphome::companion;
 std::array<uint8_t, 32> digest(const std::vector<uint8_t> &pixels) {
   std::array<uint8_t, 32> result{};
   assert(mbedtls_sha256(pixels.data(), pixels.size(), result.data(), 0) == 0);
   return result;
 }
+#ifdef ESPDESKTOP_EXPANDED_PANEL_CONFIG
+int main() {
+  const size_t reserved = espdesktop::PANEL_CONFIG_EXPANDED_FLASH_START;
+  std::fill(flash.begin() + reserved, flash.end(), 0x5A);
+  AppIconStore store;
+  assert(store.begin());
+  std::vector<std::string> apps;
+  for (int index = 0; index < 20; ++index)
+    apps.push_back("app." + std::to_string(index));
+  store.set_references(apps);
+  store.set_enabled_applications(apps);
+  std::vector<uint8_t> pixels(APP_ICON_PIXEL_BYTES, 42);
+  const auto hash = digest(pixels);
+  for (const auto &app : apps)
+    assert(store.save(app, hash, pixels.data(), pixels.size()));
+  assert(memory_bytes > 0);
+  AppIconStore restarted;
+  assert(restarted.begin());
+  std::array<uint8_t, 32> cached_hash{};
+  assert(restarted.hash_for(apps[8], &cached_hash) && cached_hash == hash);
+  assert(!restarted.hash_for(apps[9], &cached_hash));
+  assert(store.clear_cache());
+  assert(std::all_of(flash.begin() + reserved, flash.end(),
+                     [](uint8_t byte) { return byte == 0x5A; }));
+}
+#else
 int main() {
   // Exercise literal/repeat boundaries, noisy data, truncation and trailing data.
   for (size_t count : {1u, 2u, 3u, 127u, 128u, 129u, 57600u}) {
@@ -351,20 +378,23 @@ int main() {
   assert(store.copy_pixels(apps[11], output.data(), output.size()) && output == pixels);
   assert(store.clear_cache() && memory_bytes == 0);
 }
+#endif
 '''
 with tempfile.TemporaryDirectory(prefix="app-icon-store-") as directory:
     temp = Path(directory)
     (temp / "mbedtls").mkdir()
     (temp / "esphome/core").mkdir(parents=True)
     (temp / "esp_heap_caps.h").write_text(MEMORY)
+    (temp / "esphome/core/defines.h").write_text("")
     (temp / "esphome/core/helpers.h").write_text('#include "esp_heap_caps.h"\n')
     (temp / "esp_partition.h").write_text(PARTITION)
     (temp / "mbedtls/sha256.h").write_text(HASH)
     (temp / "test.cpp").write_text(TEST)
-    subprocess.run([os.environ.get("CXX", "c++"), "-std=c++17", "-Wall", "-Wextra",
-                    "-Werror", "-fsanitize=address,undefined", "-DUSE_ESP32", "-I", str(temp), "-I",
-                    str(ROOT / "components/companion"), str(temp / "test.cpp"),
-                    str(ROOT / "components/companion/app_icon_store.cpp"),
-                    "-o", str(temp / "test")], check=True)
-    subprocess.run([str(temp / "test")], check=True)
+    for defines in ([], ["-DESPDESKTOP_EXPANDED_PANEL_CONFIG"]):
+        subprocess.run([os.environ.get("CXX", "c++"), "-std=c++17", "-Wall", "-Wextra",
+                        "-Werror", "-fsanitize=address,undefined", "-DUSE_ESP32", *defines,
+                        "-I", str(temp), "-I", str(ROOT / "components/companion"),
+                        str(temp / "test.cpp"), str(ROOT / "components/companion/app_icon_store.cpp"),
+                        "-o", str(temp / "test")], check=True)
+        subprocess.run([str(temp / "test")], check=True)
 print("23 full-resolution icons fit across flash and bounded external RAM; reads, eviction and cleanup stay safe.")

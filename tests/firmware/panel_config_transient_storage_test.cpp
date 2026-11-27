@@ -393,6 +393,90 @@ void large_windows_and_power_cuts(bool partition) {
   expected_capacity = CAPACITY;
 }
 
+void expanded_storage_migrates_layout_and_saves_larger_documents(bool from_flash) {
+  fixture::reset();
+  constexpr size_t expanded_capacity = espdesktop::PANEL_CONFIG_EXPANDED_FLASH_SLOT_BYTES;
+  constexpr size_t expanded_start = espdesktop::PANEL_CONFIG_EXPANDED_FLASH_START;
+  constexpr size_t identity_start =
+      espdesktop::panel_config_partition_bytes(espdesktop::PANEL_DATA_PARTITION_BYTES);
+  // Seed bytes on either side of the expanded region, including an old cache
+  // record inside it. The new slots may reuse only the reserved space.
+  fixture::flash[expanded_start - 1] = 0x5A;
+  fixture::flash[expanded_start] = 0x42;
+  fixture::flash[identity_start] = 0xA5;
+  const size_t old_capacity = from_flash ? espdesktop::PANEL_CONFIG_LEGACY_FLASH_SLOT_BYTES
+                                         : espdesktop::PANEL_CONFIG_NVS_SLOT_BYTES;
+  {
+    EspIdfPanelConfigBlobStorage source;
+    assert(from_flash ? source.begin_card_images_partition(old_capacity) : source.begin());
+    TransientBlobStorageBackend<expanded_capacity> backend(
+        source, ConfigurationBuffer::allocate_host, ConfigurationBuffer::release_host);
+    assert(backend.begin(old_capacity));
+    ConfigurationStore store(backend);
+    assert(store.commit(NEW.data(), NEW.size()).ok());
+    assert(store.commit(OLD.data(), OLD.size()).ok());
+  }
+  const auto old_flash = fixture::flash;
+  const auto old_blobs = fixture::blobs;
+
+  EspIdfPanelConfigBlobStorage destination;
+  assert(destination.begin_card_images_partition(expanded_capacity));
+  TransientBlobStorageBackend<expanded_capacity> backend(destination, allocate, release);
+  assert(backend.begin(expanded_capacity));
+  ConfigurationStore store(backend);
+  std::vector<uint8_t> scratch(expanded_capacity);
+  const auto migrate = [&] {
+    return migrate_expanded_panel_config(store, scratch.data(), scratch.size(),
+        ConfigurationBuffer::allocate_host, ConfigurationBuffer::release_host);
+  };
+
+  // Interrupt the first flash erase, then retry from the preserved source.
+  fixture::mutation = 0;
+  fixture::cut_at = 1;
+  fixture::cut_percent = 50;
+  bool interrupted = false;
+  try {
+    migrate();
+  } catch (const fixture::PowerCut &) {
+    interrupted = true;
+  }
+  assert(interrupted);
+  fixture::cut_at = 0;
+  assert(migrate() == StoreStatus::OK);
+  auto loaded = store.load(scratch.data(), scratch.size());
+  assert(loaded.ok() && loaded.generation == 2 && loaded.payload_size == OLD.size());
+  assert(store.initialize_from(2, NEW.data(), NEW.size()).status == StoreStatus::GENERATION_CONFLICT);
+  assert(std::equal(OLD.begin(), OLD.end(), scratch.begin()));
+
+  // Exceed both old byte limits and exercise the second expanded slot through
+  // the final reserved sector. A subsequent boot must prefer this copy.
+  const std::vector<uint8_t> large(store.maximum_payload_size(), 0xA5);
+  assert(store.commit_if_generation(loaded.generation, large.data(), large.size()).ok());
+  const size_t mutations = fixture::mutation;
+  assert(migrate() == StoreStatus::OK && fixture::mutation == mutations);
+  loaded = store.load(scratch.data(), scratch.size());
+  assert(loaded.ok() && loaded.payload_size == large.size());
+  assert(std::equal(large.begin(), large.end(), scratch.begin()));
+  assert(std::equal(old_flash.begin(), old_flash.begin() + expanded_start, fixture::flash.begin()));
+  assert(std::equal(old_flash.begin() + identity_start, old_flash.end(),
+                    fixture::flash.begin() + identity_start));
+  assert(fixture::blobs == old_blobs);
+}
+
+void expanded_storage_without_a_previous_layout() {
+  fixture::reset();
+  constexpr size_t capacity = espdesktop::PANEL_CONFIG_EXPANDED_FLASH_SLOT_BYTES;
+  EspIdfPanelConfigBlobStorage port;
+  assert(port.begin_card_images_partition(capacity));
+  TransientBlobStorageBackend<capacity> backend(port, allocate, release);
+  assert(backend.begin(capacity));
+  ConfigurationStore store(backend);
+  std::array<uint8_t, 32> scratch{};
+  assert(migrate_expanded_panel_config(store, scratch.data(), scratch.size(),
+      ConfigurationBuffer::allocate_host, ConfigurationBuffer::release_host) == StoreStatus::EMPTY);
+  assert(fixture::mutation == 0 && fixture::blobs.empty());
+}
+
 void bounded_partition_read_transactions() {
   fixture::reset();
   constexpr size_t capacity = 40 * 1024;
@@ -495,6 +579,9 @@ int main() {
   commit_failure_is_not_a_definite_capacity_rejection();
   nvs_capacity_rejection_keeps_the_previous_generation(false);
   nvs_capacity_rejection_keeps_the_previous_generation(true);
+  expanded_storage_migrates_layout_and_saves_larger_documents(false);
+  expanded_storage_migrates_layout_and_saves_larger_documents(true);
+  expanded_storage_without_a_previous_layout();
   bounded_partition_read_transactions();
   partition_erases_only_sectors_used_by_replacement();
   assert(live_bytes == 0 && peak_bytes == CAPACITY);

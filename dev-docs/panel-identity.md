@@ -1,9 +1,18 @@
 # Panel identity storage
 
 The deployed 16 MB and 32 MB layouts both contain a 2 MiB `card_images`
-partition. Configuration uses two slots at its beginning. The final 16 KiB
-(offset `0x1fc000`) is reserved for panel identity; configuration slot bounds
-exclude this region through `panel_flash_layout.h`.
+partition. The final 16 KiB (offset `0x1fc000`) is reserved for panel identity.
+The 7-inch and 10-inch Guition P4 profiles use two 128 KiB configuration slots
+immediately before the identity area. On upgrade, firmware copies the newest
+valid layout from the original flash slots at the beginning of the partition
+or from shared NVS. The original copy stays intact. Firmware with an older
+partition table that lacks `card_images` continues to use shared NVS.
+
+The application icon cache shares the space between the configuration regions.
+`panel_flash_layout.h` defines the shared offsets. Older firmware reads its
+original layout and may reuse the expanded space as an icon cache after a
+downgrade. Export a backup before downgrading if you need edits made on the
+new firmware.
 
 Identity opens this region as an independent ESP-IDF NVS store using a persistent
 partition descriptor and `nvs_flash_init_partition_ptr`. This avoids sharing the
