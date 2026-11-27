@@ -19,6 +19,10 @@ dependencies, profiles, domains, input paths, cache inputs, tool requirements,
 and parallel safety. `scripts/check_tasks.py` plans and executes that registry.
 It can list registered tasks or explain a profile before running it.
 
+The CI workflow verifies generated files and builds the docs on pull requests.
+The same workflow can be run manually from GitHub Actions. Merging into `main`
+can trigger the separate docs deployment when site inputs change.
+
 ## Parallel Execution
 
 Normal npm aliases and CI use one worker. The explicit `check:parallel` entry
@@ -71,9 +75,12 @@ Record flashing and device behavior separately in the pull request.
 
 ## Firmware Build Coverage
 
-Pull request firmware checks compile the release targets first, followed by one
-representative of each remaining chip family. Each P4 target also compiles its
-recovery firmware.
+For firmware changes, pull requests build factory and OTA firmware for the
+release targets and one representative of each remaining chip family. Up to two
+displays build at once. Changes to recovery inputs, partition layouts, or the
+ESPHome version also compile recovery firmware for the selected P4 targets.
+Use **Actions → Firmware Compile → Run workflow** on a feature branch to build
+a specific device or the full device matrix, including P4 recovery firmware.
 Nightly builds compile every supported device, including P4 recovery firmware.
 A failed nightly run opens a repository issue with the run logs, tested commit,
 job results, and failed targets when available. Setup and matrix failures also

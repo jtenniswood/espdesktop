@@ -30,6 +30,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       compile_required: ${{ steps.filter.outputs.compile_required }}
+      recovery_required: ${{ steps.filter.outputs.recovery_required }}
     steps:
       - name: Check changed files
         id: filter
@@ -38,13 +39,21 @@ jobs:
         run: |
           if [ "${{ github.event_name }}" != "pull_request" ]; then
             echo "compile_required=true" >> "$GITHUB_OUTPUT"
+            echo "recovery_required=true" >> "$GITHUB_OUTPUT"
             exit 0
           fi
 
           gh api \
             "repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }}/files" \
             --paginate \
-            --jq '.[].filename' > changed-files.txt
+            --jq '.[] | .filename, (.previous_filename // empty)' > changed-files.txt
+
+          # Run the extra P4 build for recovery inputs and firmware toolchain changes.
+          if grep -Eq '^(\.github/esphome\.env|builds/.*\.recovery\.yaml|common/device/(esp32_c6_recovery\.yaml|partitions_.*\.csv)|components/c6_recovery/.*|scripts/prepare_c6_firmware\.py)$' changed-files.txt; then
+            echo "recovery_required=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "recovery_required=false" >> "$GITHUB_OUTPUT"
+          fi
 
           if grep -Eq '^(\.github/esphome\.env|\.github/workflows/(firmware-compile|firmware-editor|nightly-firmware|release)\.yml|common/.*|components/.*|devices/.*|builds/.*|product/((model_v2|release_devices)\.json|v2/.*)|src/webserver/.*|docs/public/webserver/.*|scripts/(build|check_timezones|release_devices|device_matrix|device_profiles|generate_device_manifest|generate_device_slots|prepare_c6_firmware|product_model_v2|panel_settings_codegen|report_firmware_size)\.py|scripts/(build_web_bundle|web_icon_names)\.js|package(-lock)?\.json)$' changed-files.txt; then
             echo "compile_required=true" >> "$GITHUB_OUTPUT"
@@ -92,11 +101,15 @@ jobs:
         id: matrix
         env:
           REQUESTED_DEVICE: ${{ inputs.device }}
+          RECOVERY_REQUIRED: ${{ needs.detect-changes.outputs.recovery_required }}
         run: |
           if [ "$GITHUB_EVENT_NAME" = "pull_request" ]; then
             MATRIX=$(python3 scripts/device_matrix.py pr)
           else
             MATRIX=$(python3 scripts/device_matrix.py nightly)
+          fi
+          if [ "$RECOVERY_REQUIRED" = "false" ]; then
+            MATRIX=$(jq -c '.include[].recovery = false' <<< "$MATRIX")
           fi
           if [ -n "$REQUESTED_DEVICE" ]; then
             MATRIX=$(jq -ce --arg slug "$REQUESTED_DEVICE" \
@@ -121,9 +134,8 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
-      # Keep firmware compiles serialized to limit concurrent GitHub-hosted
-      # runner usage across this matrix.
-      max-parallel: 1
+      # Run PR display builds side by side. Keep manual full-matrix runs serialized.
+      max-parallel: ${{ github.event_name == 'pull_request' && 2 || 1 }}
       matrix: ${{ fromJSON(needs.device-matrix.outputs.matrix) }}
     steps:
       - uses: actions/checkout@v7.0.1
