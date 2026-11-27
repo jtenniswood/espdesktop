@@ -1467,6 +1467,9 @@ def gen_saved_config_media_h(data):
 
 
 SAVED_CONFIG_STATIC_CARD_TYPES = (
+    "companion_app_volume",
+    "companion_input_device",
+    "companion_mac_lock",
     "companion_output_volume",
     "companion_input_volume",
     "companion_output_mute",
@@ -1536,21 +1539,53 @@ def saved_config_static_field_lines(data, card_type, field, rule, language):
     if field != "options" or rule["policy"] != "keep":
         return saved_config_declarative_field_lines(field, rule, language)
     card = data["cards"][card_type]
+    if card["normalization"]["unknownOptions"] != "drop":
+        raise BuildError(f"static saved-config card {card_type} must drop unknown options")
     options = card.get("options", [])
-    if card["normalization"]["unknownOptions"] != "drop" or any(option["kind"] != "flag" for option in options):
-        raise BuildError(f"static saved-config card {card_type} only supports retained flag options")
     names = card["normalization"]["canonicalOptionOrder"]
+    by_name = {option["name"]: option for option in options}
+    if any(name not in by_name for name in names):
+        raise BuildError(f"static saved-config card {card_type} references an undefined option")
     if language == "ts":
-        return [f"    config.options = {json.dumps(names)}.filter(name => configOptionEnabled(config.options, name)).join(\",\");\n"]
-    lines = ["    std::string normalized_options;\n"]
+        lines = [
+            '    const savedOptions = String(config.options || "").split(",");\n',
+            "    const normalizedOptions: string[] = [];\n",
+        ]
+        for name in names:
+            if by_name[name]["kind"] == "flag":
+                lines.append(f"    if (configOptionEnabled(config.options, {json.dumps(name)})) normalizedOptions.push({json.dumps(name)});\n")
+            else:
+                lines.append(
+                    f"    {{ const token = savedOptions.find(part => part.startsWith({json.dumps(name + '=')})); "
+                    "if (token) normalizedOptions.push(token); }\n"
+                )
+        lines.append('    config.options = normalizedOptions.join(",");\n')
+        return lines
+    lines = [
+        "    std::string normalized_options;\n",
+        '    const std::string option_source = "," + config.options + ",";\n',
+    ]
     for name in names:
-        token = json.dumps("," + name + ",")
-        lines.extend([
-            f"    if ((\",\" + config.options + \",\").find({token}) != std::string::npos) {{\n",
-            '      if (!normalized_options.empty()) normalized_options += ",";\n',
-            f"      normalized_options += {json.dumps(name)};\n",
-            "    }\n",
-        ])
+        if by_name[name]["kind"] == "flag":
+            token = json.dumps("," + name + ",")
+            lines.extend([
+                f"    if (option_source.find({token}) != std::string::npos) {{\n",
+                '      if (!normalized_options.empty()) normalized_options += ",";\n',
+                f"      normalized_options += {json.dumps(name)};\n",
+                "    }\n",
+            ])
+        else:
+            prefix = json.dumps("," + name + "=")
+            lines.extend([
+                f"    {{ const size_t begin = option_source.find({prefix});\n",
+                "      if (begin != std::string::npos) {\n",
+                "        size_t end = option_source.find(',', begin + 1);\n",
+                "        if (end == std::string::npos) end = option_source.size();\n",
+                '        if (!normalized_options.empty()) normalized_options += ",";\n',
+                "        normalized_options += option_source.substr(begin + 1, end - begin - 1);\n",
+                "      }\n",
+                "    }\n",
+            ])
     lines.append("    config.options = normalized_options;\n")
     return lines
 
