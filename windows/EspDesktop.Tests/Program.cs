@@ -286,7 +286,7 @@ server.Map(SocketPath, async context =>
         if (seq is >= 12 and <= 14)
         {
             await Send(socket, "auth.accepted", ("capabilityVersion", seq == 14 ? 7 : 8));
-            await FindMessage(socket, "catalogue.page", _ => true);
+            await FindMessage(socket, "system_metrics", _ => true);
             pairingResetReady.Release();
             if (seq != 14)
             {
@@ -405,7 +405,12 @@ server.Map(SocketPath, async context =>
         checks.TrySetResult();
         await socket.CloseOutputAsync(WebSocketCloseStatus.NormalClosure, "done", lifetime.Token);
     }
-    catch (Exception e) { if (!checks.TrySetException(e)) reconnected.TrySetException(e); }
+    catch (Exception e)
+    {
+        if (!checks.TrySetException(e) && !reconnected.TrySetException(e) &&
+            e is not (OperationCanceledException or WebSocketException))
+            Console.Error.WriteLine(e);
+    }
 });
 await server.StartAsync(lifetime.Token);
 var address = server.Urls.Single(url => url.StartsWith("https://", StringComparison.Ordinal));
@@ -471,14 +476,16 @@ async Task VerifyPairingPrompts()
     for (var sequence = 11u; sequence <= 13; sequence++)
     {
         using var stop = CancellationTokenSource.CreateLinkedTokenSource(lifetime.Token);
-        var connection = new DisplaySession(desktop, _ => { }, _ => { }, (_, _) => Task.FromResult<DiscoveredDisplay?>(null));
+        var status = "";
+        var connection = new DisplaySession(desktop, _ => { }, message => status = message,
+            (_, _) => Task.FromResult<DiscoveredDisplay?>(null));
         Check(!await connection.ShowPairingBeforeDisconnecting(), "cannot reset a disconnected display");
         var run = connection.RunAsync(saved with { Sequence = sequence }, stop.Token);
         try
         {
             await pairingResetReady.WaitAsync(lifetime.Token);
             Check(await connection.ShowPairingBeforeDisconnecting() == (sequence == 11),
-                $"reset reply for authentication sequence {sequence + 1} matches the simulated firmware response");
+                $"reset reply for authentication sequence {sequence + 1} matches the simulated firmware response ({status})");
             if (sequence == 11) await run.WaitAsync(lifetime.Token);
         }
         finally
@@ -758,10 +765,17 @@ async Task Send(WebSocket socket, string kind, params (string, object?)[] fields
 async Task<JsonElement> Receive(WebSocket socket, CancellationToken? token = null)
 {
     var buffer = new byte[16384];
-    var r = await socket.ReceiveAsync(buffer.AsMemory(), token ?? lifetime.Token);
-    Check(r.MessageType == WebSocketMessageType.Text && r.EndOfMessage, "text envelope");
-    using var document = JsonDocument.Parse(buffer.AsMemory(0, r.Count));
-    return document.RootElement.Clone();
+    var received = 0;
+    while (received < buffer.Length)
+    {
+        var r = await socket.ReceiveAsync(buffer.AsMemory(received), token ?? lifetime.Token);
+        Check(r.MessageType == WebSocketMessageType.Text, "text envelope");
+        received += r.Count;
+        if (!r.EndOfMessage) continue;
+        using var document = JsonDocument.Parse(buffer.AsMemory(0, received));
+        return document.RootElement.Clone();
+    }
+    throw new InvalidOperationException("The simulated display received an oversized text envelope.");
 }
 async Task<JsonElement> FindMessage(WebSocket socket, string kind, Func<JsonElement, bool> valid)
 {
