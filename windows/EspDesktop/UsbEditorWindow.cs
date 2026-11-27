@@ -18,7 +18,7 @@ internal sealed class UsbEditorWindow : Window
     private readonly Uri origin = new($"https://{Guid.NewGuid():N}.espdesktop.invalid/");
     private readonly WebView2 browser = new();
     private readonly TextBlock status = new() { Text = "Loading editor over USB…", TextWrapping = TextWrapping.Wrap };
-    private readonly StackPanel signIn = new() { Visibility = Visibility.Collapsed };
+    private readonly Border signIn;
     private readonly TextBox username = new() { MinWidth = 170 };
     private readonly PasswordBox password = new() { MinWidth = 170 };
     private readonly Button reload = new() { Content = "Reload", IsEnabled = false };
@@ -61,6 +61,13 @@ internal sealed class UsbEditorWindow : Window
         fields.Children.Add(new Label { Content = "Password", Target = password });
         fields.Children.Add(password);
         var submit = new Button { Content = "Sign in", Margin = new Thickness(8, 0, 0, 0) };
+        fields.Children.Add(submit);
+        signIn = SettingsCard.Create("\uE72E", "Sign in to the display editor",
+            "Use this display’s web editor username and password.", fields);
+        signIn.Margin = new Thickness(12, 12, 12, 6);
+        signIn.Visibility = Visibility.Collapsed;
+        DockPanel.SetDock(signIn, Dock.Top);
+        root.Children.Add(signIn);
         submit.Click += (_, _) =>
         {
             credentials = new NetworkCredential(username.Text, password.Password);
@@ -68,12 +75,6 @@ internal sealed class UsbEditorWindow : Window
             signIn.Visibility = Visibility.Collapsed;
             ReloadEditor();
         };
-        fields.Children.Add(submit);
-        signIn.Margin = new Thickness(12);
-        signIn.Children.Add(new TextBlock { Text = "Sign in with this display’s web editor username and password." });
-        signIn.Children.Add(fields);
-        DockPanel.SetDock(signIn, Dock.Top);
-        root.Children.Add(signIn);
         root.Children.Add(browser);
         Content = root;
         Loaded += Initialize;

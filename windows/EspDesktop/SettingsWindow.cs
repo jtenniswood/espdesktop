@@ -38,7 +38,7 @@ internal sealed class SettingsWindow : Window
     private readonly DispatcherTimer updatesTimer = new() { Interval = TimeSpan.FromDays(1) };
     private readonly StackPanel body = new() { Margin = new Thickness(24, 0, 24, 24) };
     private readonly ScrollViewer scroll;
-    private readonly TextBlock notice = new() { TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 0, 0, 12) };
+    private readonly TextBlock notice = new() { TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 0, 0, 12), Visibility = Visibility.Collapsed };
     private readonly TextBlock connectionText = new() { TextWrapping = TextWrapping.Wrap, Visibility = Visibility.Collapsed };
     private readonly TextBox address = new() { MinWidth = 270 };
     private readonly TextBox code = new() { MaxLength = 16, CharacterCasing = CharacterCasing.Upper };
@@ -146,7 +146,7 @@ internal sealed class SettingsWindow : Window
             AutomationProperties.SetName(listItem, pages[i]);
             navigation.Items.Add(listItem);
         }
-        navigation.SelectionChanged += (_, _) => { notice.Text = ""; scroll.ScrollToTop(); Render(); };
+        navigation.SelectionChanged += (_, _) => { Report(""); scroll.ScrollToTop(); Render(); };
         root.Children.Add(navigation);
         Grid.SetRow(scroll, 1);
         Grid.SetColumn(scroll, 1);
@@ -200,6 +200,18 @@ internal sealed class SettingsWindow : Window
     public void CapturePreview()
     {
         if (!smoke || Environment.GetEnvironmentVariable("ESPDESKTOP_SETTINGS_PREVIEW") is not { Length: > 0 } path) return;
+        CapturePagePreview(path);
+        foreach (var index in Enumerable.Range(1, pages.Length - 1))
+        {
+            navigation.SelectedIndex = index;
+            CapturePagePreview($"{Path.ChangeExtension(path, null)}-{pages[index].Replace(' ', '-').ToLowerInvariant()}.png");
+        }
+        navigation.SelectedIndex = 0;
+    }
+
+    private void CapturePagePreview(string path)
+    {
+        UpdateLayout();
         var content = (FrameworkElement)Content;
         var dpi = VisualTreeHelper.GetDpi(content);
         var bitmap = new RenderTargetBitmap((int)Math.Ceiling(content.ActualWidth * dpi.DpiScaleX),
@@ -522,7 +534,11 @@ internal sealed class SettingsWindow : Window
         ConnectionStatusChanged?.Invoke(value);
     }
 
-    private void Report(string text) => notice.Text = text;
+    private void Report(string text)
+    {
+        notice.Text = text;
+        notice.Visibility = text.Length == 0 ? Visibility.Collapsed : Visibility.Visible;
+    }
 
     private async Task CheckUpdates(bool manual)
     {
@@ -622,7 +638,7 @@ internal sealed class SettingsWindow : Window
     {
         if (store.PairingUnavailable && !HasPairing)
         {
-            var card = Card("Saved displays");
+            var card = Card("\uE7F4", "Saved displays");
             card.Children.Add(connectionText);
             Row(card, Button("Clear saved pairings", async () => await Forget(null), !busy));
             return;
@@ -646,7 +662,7 @@ internal sealed class SettingsWindow : Window
         {
             var saved = display.Pairing;
             var endpoint = DisplayEndpoint.Parse(saved.Address);
-            var card = Card(saved.DisplayName ?? "Paired display", endpoint.Label);
+            var card = Card("\uE7F4", saved.DisplayName ?? "Paired display", endpoint.Label);
             if (display.Status.Parent is Panel previous) previous.Children.Remove(display.Status);
             AutomationProperties.SetLiveSetting(display.Status, AutomationLiveSetting.Polite);
             card.Children.Add(display.Status);
@@ -667,7 +683,7 @@ internal sealed class SettingsWindow : Window
             actions.Add(Button("Forget display", async () => await Forget(display), !busy));
             Row(card, [.. actions]);
         }
-        var permissions = Card("Windows integration");
+        var permissions = Card("\uE713", "Windows integration");
         var shortcuts = Toggle("Allow keyboard shortcuts and screen lock", store.Settings.Shortcuts, value =>
         {
             store.Settings.Shortcuts = value;
@@ -687,7 +703,7 @@ internal sealed class SettingsWindow : Window
         if (pairingAddress is { } target)
         {
             var endpoint = DisplayEndpoint.Parse(target);
-            var card = Card(pairingPrompt is null ? "Requesting a pairing code…" : "Enter pairing code",
+            var card = Card("\uE72E", pairingPrompt is null ? "Requesting a pairing code…" : "Enter pairing code",
                 pairingName == null ? endpoint.Label : $"{pairingName} · {endpoint.Label}");
             if (pairingPrompt is null) return;
             card.Children.Add(Paragraph(pairingPrompt switch
@@ -717,9 +733,9 @@ internal sealed class SettingsWindow : Window
 
         var selection = setupMethod switch
         {
-            SetupMethod.Usb => Card("Connect over USB", "Plug in your display with a USB data cable and select its COM port. The display needs USB-enabled Companion firmware."),
-            SetupMethod.Address => Card("Enter display address", "Enter the display’s local IP address or .local name."),
-            _ => Card("Choose your display", "Keep your PC and display on the same local network.")
+            SetupMethod.Usb => Card("\uE88E", "Connect over USB", "Plug in your display with a USB data cable and select its COM port. The display needs USB-enabled Companion firmware."),
+            SetupMethod.Address => Card("\uE968", "Enter display address", "Enter the display’s local IP address or .local name."),
+            _ => Card("\uE7F4", "Choose your display", "Keep your PC and display on the same local network.")
         };
         selection.Children.Add(connectionText);
         if (setupMethod == SetupMethod.Address) Field(selection, "Display address", address);
@@ -890,7 +906,7 @@ internal sealed class SettingsWindow : Window
 
     private void ObsPage()
     {
-        var card = Card("OBS WebSocket", "In OBS Studio on this PC, open Tools → WebSocket Server Settings. Enable the server, then enter its port and password here.");
+        var card = Card("\uE714", "OBS WebSocket", "In OBS Studio on this PC, open Tools → WebSocket Server Settings. Enable the server, then enter its port and password here.");
         if (obsStatus.Parent is Panel parent) parent.Children.Remove(obsStatus);
         card.Children.Add(obsStatus);
         obsPort.IsEnabled = obsPassword.IsEnabled = obsTask == null;
@@ -913,7 +929,7 @@ internal sealed class SettingsWindow : Window
     private void ObsBreakPage()
     {
         var state = obs.BreakSettings();
-        var card = Card("Break scene", "Set a scene and an optional microphone to mute while you take a break.");
+        var card = Card("\uE769", "Break scene", "Set a scene and an optional microphone to mute while you take a break.");
         if (state.Reviewing)
         {
             card.Children.Add(Paragraph("The break was interrupted. Check the live scene and microphone in OBS before using Break again."));
@@ -1060,7 +1076,7 @@ internal sealed class SettingsWindow : Window
 
     private void AppsPage()
     {
-        var card = Card("Apps available to the display", "EspDesktop finds apps listed in your Start menu.");
+        var card = Card("\uE8A9", "Apps available to the display", "EspDesktop finds apps listed in your Start menu.");
         card.Children.Add(Toggle("Allow all available apps", store.Settings.AllApps, enabled =>
         {
             store.Settings.AllApps = enabled;
@@ -1098,14 +1114,11 @@ internal sealed class SettingsWindow : Window
 
     private void FoldersPage()
     {
-        var card = Card("Approved folders", "Paired displays see folder names. Paths stay on this PC.");
+        var card = Card("\uE8B7", "Approved folders", "Paired displays see folder names. Paths stay on this PC.");
         Row(card, Button("Add folder", PickFolder));
         if (store.Settings.Folders.Count == 0) card.Children.Add(Paragraph("No folders added yet."));
         foreach (var folder in store.Settings.Folders)
         {
-            card.Children.Add(new Separator { Margin = new Thickness(0) });
-            var entry = new DockPanel { Margin = new Thickness(0, 12, 0, 8) };
-            card.Children.Add(entry);
             var remove = Button($"Remove {folder.Label}", () =>
             {
                 if (MessageBox.Show(this, $"Remove {folder.Label} from the display? Your files stay where they are.",
@@ -1113,22 +1126,12 @@ internal sealed class SettingsWindow : Window
                 store.Settings.Folders.Remove(folder);
                 desktop.Changed(); Save(); Render();
             });
-            remove.Content = new TextBlock
-            {
-                Text = "\uE74D",
-                FontFamily = new FontFamily("Segoe Fluent Icons, Segoe MDL2 Assets")
-            };
+            remove.Content = SettingsCard.Icon("\uE74D", 16);
             AutomationProperties.SetName(remove, $"Remove {folder.Label}");
             remove.ToolTip = $"Remove {folder.Label}";
-            remove.Margin = new Thickness(12, 0, 0, 0);
-            remove.VerticalAlignment = VerticalAlignment.Center;
-            DockPanel.SetDock(remove, Dock.Right);
-            entry.Children.Add(remove);
-
-            var details = new StackPanel();
-            details.Children.Add(new TextBlock { Text = folder.Label, FontWeight = FontWeights.SemiBold, TextWrapping = TextWrapping.Wrap });
-            details.Children.Add(Paragraph(Directory.Exists(folder.Path) ? folder.Path : $"{folder.Path} · Folder not found"));
-            entry.Children.Add(details);
+            remove.Margin = new Thickness(16, 0, 0, 0);
+            body.Children.Add(SettingsCard.Create("\uE8B7", folder.Label,
+                Directory.Exists(folder.Path) ? folder.Path : $"{folder.Path} · Folder not found", action: remove));
         }
     }
 
@@ -1146,7 +1149,7 @@ internal sealed class SettingsWindow : Window
 
     private void UpdatesPage()
     {
-        var card = Card($"EspDesktop {Updates.Current.ToString(3)}", updateStatus);
+        var card = Card("\uE777", $"EspDesktop {Updates.Current.ToString(3)}", updateStatus);
         Row(card, Button("Check for updates", async () => await CheckUpdates(true), !updateBusy),
             Button("Release downloads", () => Link(release?.Page ?? Updates.Releases)));
         if (release != null && installerVerified) Row(card, Button("Install update", async () => await InstallUpdate(), !updateBusy));
@@ -1165,12 +1168,16 @@ internal sealed class SettingsWindow : Window
 
     private void HelpPage()
     {
-        var card = Card("Set up your display", "Open Display, find your panel or enter its local address, and open its pairing page. Add your controls in the display’s browser editor after pairing.");
-        Row(card, Button("Go to display settings", () => navigation.SelectedIndex = 0), Button("Open display editor", OpenPanel));
-        var support = Card("Help and feedback");
-        Row(support, Button("EspDesktop documentation", () => Link(new("https://jtenniswood.github.io/espdesktop/"))),
-            Button("Report an issue", () => Link(new("https://github.com/jtenniswood/espdesktop/issues"))),
-            Button("Support EspDesktop", () => Link(new("https://buymeacoffee.com/jtenniswood"))));
+        body.Children.Add(SettingsCard.Link("\uE7F4", "Set up your display",
+            "Find your display or enter its local address, then open its pairing page. Add your controls in the display editor after pairing.",
+            () => navigation.SelectedIndex = 0));
+        body.Children.Add(SettingsCard.Link("\uE8A7", "Open display editor", null, OpenPanel));
+        body.Children.Add(SettingsCard.Link("\uE897", "EspDesktop documentation", null,
+            () => Link(new("https://jtenniswood.github.io/espdesktop/")), external: true));
+        body.Children.Add(SettingsCard.Link("\uE90A", "Report an issue", null,
+            () => Link(new("https://github.com/jtenniswood/espdesktop/issues")), external: true));
+        body.Children.Add(SettingsCard.Link("\uE734", "Support EspDesktop", null,
+            () => Link(new("https://buymeacoffee.com/jtenniswood")), external: true));
     }
 
     private void Save()
@@ -1185,20 +1192,11 @@ internal sealed class SettingsWindow : Window
         catch (Exception e) when (WindowsDesktop.IsShellFailure(e)) { Report("Windows couldn’t open this link."); }
     }
 
-    private StackPanel Card(string title, string? description = null)
+    private StackPanel Card(string glyph, string title, string? description = null)
     {
-        var content = new StackPanel { Margin = new Thickness(16, 12, 16, 10) };
-        content.Children.Add(new TextBlock { Text = title, FontSize = 16, FontWeight = FontWeights.SemiBold,
-            TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 0, 0, 6) });
-        if (description != null) content.Children.Add(Paragraph(description));
-        var border = new Border { CornerRadius = new CornerRadius(8), BorderThickness = new Thickness(1),
-            Margin = new Thickness(0, 0, 0, 12), Child = content };
-        border.SetResourceReference(Border.BorderBrushProperty,
-            TryFindResource("CardStrokeColorDefaultBrush") is Brush ? "CardStrokeColorDefaultBrush" : SystemColors.ControlDarkBrushKey);
-        if (TryFindResource("CardBackgroundFillColorDefaultBrush") is Brush)
-            border.SetResourceReference(Border.BackgroundProperty, "CardBackgroundFillColorDefaultBrush");
-        body.Children.Add(border);
-        return content;
+        var fields = new StackPanel();
+        body.Children.Add(SettingsCard.Create(glyph, title, description, fields));
+        return fields;
     }
 
     private static TextBlock Paragraph(string text) => new() { Text = text, TextWrapping = TextWrapping.Wrap,
