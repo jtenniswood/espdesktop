@@ -164,9 +164,10 @@ complete these steps under the [SignPath Foundation terms](https://signpath.org/
 - Configure SignPath’s trusted GitHub build to accept only artifacts built from
   the official release revision. Run every job leading to signing on a
   GitHub-hosted runner, as required by the [SignPath GitHub integration](https://docs.signpath.io/trusted-build-systems/github#checks-performed-by-signpath).
-  Set its metadata restrictions to enforce
-  EspDesktop as the product name and the same release version on every signed
-  binary. Verify the signed app and setup together, including an in-app update,
+  Enforce EspDesktop as the product name and the same release version on every
+  signed binary. Validate the policy with a test signing request because Inno
+  Setup pads its text metadata fields with spaces. Verify the signed app and
+  setup together, including an in-app update,
   before recording their hashes in the release manifest. The current Windows
   CI signing test uses temporary test certificates.
 - Keep the [Code signing policy](https://espdesktop.com/reference/code-signing)

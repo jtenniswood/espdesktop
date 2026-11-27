@@ -114,7 +114,8 @@ jobs:
           }
           foreach ($binary in @($installer, $appPath)) {
             $metadata = [Diagnostics.FileVersionInfo]::GetVersionInfo($binary)
-            if ($metadata.ProductName -cne 'EspDesktop' -or $metadata.ProductVersion -cne $version) {
+            # Inno Setup pads these text fields to the width of its version resource.
+            if ($metadata.ProductName.TrimEnd(' ') -cne 'EspDesktop' -or $metadata.ProductVersion.TrimEnd(' ') -cne $version) {
               throw "Unexpected product metadata for ${binary}: $($metadata.ProductName) $($metadata.ProductVersion)"
             }
           }
