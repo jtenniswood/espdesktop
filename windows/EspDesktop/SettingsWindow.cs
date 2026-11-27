@@ -572,7 +572,6 @@ internal sealed class SettingsWindow : Window
         ListBoxItem? selected = previous == usbChoice || previous == manualChoice ? previous : null;
         updatingSetupChoices = true;
         setupChoices.Items.Clear();
-        setupChoices.Items.Add(usbChoice);
         foreach (var display in found)
         {
             var paired = changingConnection is null && HasDisplay(display.Fingerprint);
@@ -584,6 +583,7 @@ internal sealed class SettingsWindow : Window
                 old.Fingerprint.Equals(display.Fingerprint, StringComparison.OrdinalIgnoreCase)) selected = item;
         }
         setupChoices.Items.Add(manualChoice);
+        setupChoices.Items.Add(usbChoice);
         setupChoices.SelectedItem = selected;
         updatingSetupChoices = false;
         if (restoreFocus) selected?.Focus();
