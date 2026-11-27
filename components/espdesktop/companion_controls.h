@@ -399,7 +399,8 @@ inline void companion_set_actions(CompanionRuntimeService &runtime,
     [](const CompanionAction &action) {
       return action.id.empty() || action.id.size() > 96 || action.label.size() > 96;
     }), actions.end());
-  runtime.set_actions(std::move(actions));
+  CompanionActionList catalogue(actions.begin(), actions.end());
+  runtime.set_actions(std::move(catalogue));
 }
 
 inline void companion_set_actions(std::vector<CompanionAction> actions) {
