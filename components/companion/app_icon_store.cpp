@@ -288,22 +288,16 @@ void AppIconStore::set_enabled_applications(const std::vector<std::string> &appl
       enabled_applications_.push_back(id);
   // A catalogue sent during discovery can omit an app that is still on disk.
   if (!prune_missing) return;
-  // Configured card references stay cached even when the companion's current
-  // catalogue does not list the app. A catalogue can arrive before the panel
-  // config references are synced, and dropping those icons makes them vanish
-  // until the card is reconfigured.
-  const auto retained = [this](const std::string &id) {
-    return std::find(enabled_applications_.begin(), enabled_applications_.end(), id) !=
-               enabled_applications_.end() ||
-           std::find(references_.begin(), references_.end(), id) != references_.end();
-  };
   for (auto &entry : memory_entries_)
-    if (entry.pixels && !retained(entry.application_id))
+    if (entry.pixels && std::find(enabled_applications_.begin(), enabled_applications_.end(),
+                                  entry.application_id) == enabled_applications_.end())
       entry = {};
   for (const auto &entry : entries_) {
     if (!entry.valid) continue;
     std::string id;
-    if (read_header_locked(entry.slot, &id, nullptr) && !retained(id))
+    if (read_header_locked(entry.slot, &id, nullptr) &&
+        std::find(enabled_applications_.begin(), enabled_applications_.end(), id) ==
+            enabled_applications_.end())
       erase_slot_locked(entry.slot);
   }
 }
