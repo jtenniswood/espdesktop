@@ -686,16 +686,20 @@ void CompanionService::handle_json_(int socket_fd, const std::string &message) {
       }
       companion_runtime_service().shortcut_catalogue.set_supported(shortcut_catalogue_supported);
       this->windows_companion_.store(windows_companion);
-      this->app_icons_supported_.store(app_icons_supported && app_icons_alpha_supported &&
-                                       app_icons_high_resolution_supported);
-      // The Mac sends capabilities before a full catalogue, including rescans with the same app IDs.
+      const bool icons_supported = app_icons_supported && app_icons_alpha_supported &&
+                                   app_icons_high_resolution_supported;
+      const bool previously_supported = this->app_icons_supported_.exchange(icons_supported);
+      // Mac rescans also send capabilities before the updated app list. Wait
+      // for that list before revalidating icons, unless support just started.
       this->app_icon_catalogue_refresh_pending_.store(true);
-      std::vector<std::string> configured_icons;
-      {
-        std::lock_guard<std::mutex> lock(app_icon_state_mutex);
-        if (app_icon_catalogue_ready) configured_icons = app_icon_requests;
+      if (icons_supported && !previously_supported) {
+        std::vector<std::string> configured_icons;
+        {
+          std::lock_guard<std::mutex> lock(app_icon_state_mutex);
+          if (app_icon_catalogue_ready) configured_icons = app_icon_requests;
+        }
+        for (const auto &id : configured_icons) this->request_app_icon(id);
       }
-      for (const auto &id : configured_icons) this->request_app_icon(id);
       this->defer_session_([this, keyboard_actions, keyboard_actions_capability_received,
                             focus_targets_supported, shortcut_catalogue_supported, windows_shortcuts, windows_companion]() {
         companion_runtime_service().set_windows_shortcuts(windows_shortcuts || windows_companion);
@@ -762,19 +766,26 @@ void CompanionService::handle_json_(int socket_fd, const std::string &message) {
         const bool refresh_icons = this->app_icon_catalogue_refresh_pending_.exchange(false);
         const bool provisional = payload->appsProvisional.value_or(false);
         std::vector<std::string> configured_icons, enabled_icons;
+        bool refresh_configured_icons;
         {
           std::lock_guard<std::mutex> lock(app_icon_state_mutex);
-          if (!refresh_icons && app_icon_catalogue_ready && app_icon_catalogue_provisional == provisional &&
-              enabled_app_icons == this->catalogue_enabled_icons_)
-            return true;  // An OBS-only update does not need icon cache or dashboard work.
+          const bool same_catalogue_state = app_icon_catalogue_ready && app_icon_catalogue_provisional == provisional;
+          if (!refresh_icons && same_catalogue_state && enabled_app_icons == this->catalogue_enabled_icons_)
+            return true;
+          refresh_configured_icons = !same_catalogue_state ||
+              !companion_only_removed_unreferenced_apps(enabled_app_icons, this->catalogue_enabled_icons_,
+                                                         app_icon_requests);
           enabled_app_icons = this->catalogue_enabled_icons_;
           app_icon_catalogue_ready = true;
           app_icon_catalogue_provisional = provisional;
           enabled_icons = enabled_app_icons;
-          configured_icons = app_icon_requests;
-          requested_app_icons.clear();
+          if (refresh_configured_icons) {
+            configured_icons = app_icon_requests;
+            requested_app_icons.clear();
+          }
         }
         app_icon_store().set_enabled_applications(enabled_icons, !provisional);
+        if (!refresh_configured_icons) return true;
         this->defer_session_([] { companion_app_icon_ready(""); }, "icons");
         for (const auto &id : configured_icons) {
           if (std::find(enabled_icons.begin(), enabled_icons.end(), id) == enabled_icons.end()) continue;
