@@ -338,10 +338,15 @@ inline void slider_tap_toggle(lv_obj_t *slider) {
   if (domain != "light" && domain != "fan" && domain != "switch" &&
       domain != "input_boolean") return;
   const auto known = espdesktop::ha_controls::state(ctx->entity_id);
+  const int current = lv_slider_get_value(slider);
   const bool was_on = known.empty()
-      ? lv_slider_get_value(slider) > 0
+      ? current > 0
       : espdesktop::ha_controls::state_is_on(ctx->entity_id, known);
   if (!espdesktop::ha_controls::toggle_entity(ctx->entity_id)) return;
+  // Restore the level the card was showing, not a default, when turning back
+  // on later. The Home Assistant state is the fallback for a card that has not
+  // been dragged since the panel started.
+  if (was_on && current > 0) ctx->last_on_value = current;
   // Update the card immediately. The state subscription for a page built after
   // Home Assistant connected may not arrive, so waiting for it can leave the
   // old level on screen after the light is switched off.
@@ -548,6 +553,8 @@ inline void setup_slider_visual(BtnSlot &s, const ParsedCfg &p, uint32_t on_colo
       if (value.empty()) return true;
       const int pct = espdesktop::ha_controls::slider_percent(entity);
       if (pct < 0) return true;
+      if (pct > 0 && espdesktop::ha_controls::state_is_on(entity, value))
+        state->last_on_value = pct;
       lv_slider_set_value(slider_widget, pct, LV_ANIM_OFF);
       slider_update_ctx_fill(state, lv_obj_get_parent(slider_widget), pct);
       return true;
