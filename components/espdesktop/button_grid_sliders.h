@@ -1,11 +1,13 @@
 #pragma once
 #include "button_grid_slider_geometry.h"
 #include "button_grid_slider_contrast.h"
+#include "button_grid_touch.h"
 #include "clock_bar.h"
 
 // Local Mac output and microphone volume widgets.
 struct SliderCtx {
   std::string entity_id;
+  std::string computer_id;
   lv_obj_t *fill = nullptr;
   bool horizontal = false;
   bool cover_tilt = false;
@@ -330,6 +332,7 @@ inline void setup_slider_visual(BtnSlot &s, const ParsedCfg &p, uint32_t on_colo
   slider_bind_text_contrast(s.sensor_container, fill);
   SliderCtx *ctx = new SliderCtx();
   ctx->entity_id = p.entity;
+  ctx->computer_id = companion_card_computer(p);
   ctx->fill = fill;
   ctx->radius = lv_obj_get_style_radius(s.btn, LV_PART_MAIN);
   ctx->interactive = interactive;
@@ -369,7 +372,7 @@ inline void setup_slider_visual(BtnSlot &s, const ParsedCfg &p, uint32_t on_colo
       if (!state || !state->available || lv_obj_has_state(widget, LV_STATE_DISABLED) ||
           !companion_volume_control_valid(state->entity_id)) return;
       slider_apply_vertical_pointer_value(widget);
-      send_slider_action(state->entity_id, lv_slider_get_value(widget));
+      send_slider_action(state->entity_id, lv_slider_get_value(widget), state->computer_id);
     }, LV_EVENT_RELEASED, nullptr);
   }
 }

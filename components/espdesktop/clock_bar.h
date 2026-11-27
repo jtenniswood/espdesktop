@@ -8,6 +8,7 @@
 #include <cmath>
 #include <cstdio>
 #include <cstring>
+#include <functional>
 #include <string>
 #include <vector>
 
@@ -289,6 +290,13 @@ inline bool &clock_bar_subpage_title_bar_enabled() {
   return enabled;
 }
 
+// The grid registers this predicate so extra home screens keep the same clock
+// bar and top padding as Home. Only real subpages use the compact layout.
+inline std::function<bool(lv_obj_t *)> &clock_bar_home_screen_predicate() {
+  static std::function<bool(lv_obj_t *)> predicate;
+  return predicate;
+}
+
 inline ClockBarVisibility clock_bar_resolve_visibility(
     bool enabled,
     lv_obj_t *main_page_obj,
@@ -299,7 +307,12 @@ inline ClockBarVisibility clock_bar_resolve_visibility(
   // keeps the normal UI visible and should preserve its complete clock bar.
   // Keep the same top padding in hidden modes so waking does not briefly
   // resize the cards.
-  const bool subpage_active = main_page_obj && lv_scr_act() != main_page_obj &&
+  auto &home_screen = clock_bar_home_screen_predicate();
+  const bool home_screen_active =
+      main_page_obj != nullptr &&
+      (lv_scr_act() == main_page_obj ||
+       (home_screen && home_screen(lv_scr_act())));
+  const bool subpage_active = main_page_obj && !home_screen_active &&
       clock_bar_active_on_button_grid_page(main_page_obj);
   result.reserve_space = enabled && !subpage_active && !schedule_inactive;
   result.visible = result.reserve_space &&

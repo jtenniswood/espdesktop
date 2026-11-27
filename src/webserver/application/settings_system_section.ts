@@ -1,4 +1,5 @@
 import { buildResetSettings } from "./settings_reset_section";
+import { diagnosticsEnabled, setDiagnosticsEnabled } from "./diagnostics";
 import { state } from "../state/app_instance";
 import type { UiRuntimeState } from "./state";
 import {
@@ -84,6 +85,20 @@ export function createSettingsSystemSectionFeature(
         backupRow.appendChild(importBtn);
         backupBody.appendChild(backupRow);
         var backupCard: any = makeCollapsibleCard("Backup", backupBody, true);
+        var diagnosticsBody: any = document.createElement("div");
+        var diagnosticsToggle: any = toggleRow(
+            "Card editor diagnostics", "sp-set-diagnostics", diagnosticsEnabled());
+        diagnosticsBody.appendChild(diagnosticsToggle.row);
+        var diagnosticsNote: any = document.createElement("p");
+        diagnosticsNote.className = "sp-setting-note";
+        diagnosticsNote.textContent =
+            "Logs card placement, Companion and save events to the browser console. " +
+            "The setting is remembered in this browser.";
+        diagnosticsBody.appendChild(diagnosticsNote);
+        diagnosticsToggle.input.addEventListener("change", function (this: any) {
+            setDiagnosticsEnabled(this.checked);
+        });
+        var diagnosticsCard: any = makeCollapsibleCard("Diagnostics", diagnosticsBody, false);
         var fwBody: any = document.createElement("div");
         var fwOverview: any = document.createElement("div");
         fwOverview.className = "sp-fw-overview";
@@ -344,6 +359,7 @@ export function createSettingsSystemSectionFeature(
                 ? undefined
                 : buildResetSettings(actions.exportBackup, makeCollapsibleCard, infoPanel),
             firmwareCard: firmwareCard,
+            diagnosticsCard: diagnosticsCard,
         };
     }
     return {

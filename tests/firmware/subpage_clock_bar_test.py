@@ -16,6 +16,7 @@ padding_end = source.index("inline bool clock_bar_active_on_button_grid_page(", 
 registry_start = source.index("inline std::vector<lv_obj_t *> &clock_bar_button_grid_pages()")
 code = r'''#include <algorithm>
 #include <cassert>
+#include <functional>
 #include <vector>
 #include "display_mode_controller.h"
 using lv_coord_t = int;
@@ -56,6 +57,10 @@ int main() {
   using espdesktop::DisplayMode;
   clock_bar_register_button_grid_page(&subpage);
   clock_bar_register_button_grid_page(&app_page);
+  // app_page models an extra home screen; subpage is a real subpage.
+  clock_bar_home_screen_predicate() = [](lv_obj_t *page) {
+    return page == &home || page == &app_page;
+  };
   // Execute the production page-change wiring with the home bar turned off.
   refresh();
   assert(home.top == 4 && subpage.top == 4 && !settings_visible);
@@ -75,6 +80,12 @@ int main() {
   active = &home;
   refresh();
   assert(home.top == 40 && settings_visible);
+  active = &app_page;
+  refresh();
+  assert(app_page.top == 40 && settings_visible); // Extra home screens keep Home's bar.
+  active = &subpage;
+  refresh();
+  assert(subpage.top == 4 && !settings_visible); // Subpages still use compact spacing.
   for (bool title_bar : {false, true}) {
     clock_bar_subpage_title_bar_enabled() = title_bar;
   for (bool enabled : {false, true}) {
@@ -83,7 +94,9 @@ int main() {
         active = screen;
         for (auto mode : {DisplayMode::ACTIVE, DisplayMode::DIMMED, DisplayMode::CLOCK}) {
           auto result = clock_bar_resolve_visibility(enabled, &home, mode, scheduled_off);
-          const bool reserve = enabled && (screen == &home || screen == &screensaver) && !scheduled_off;
+          const bool reserve = enabled &&
+              (screen == &home || screen == &app_page || screen == &screensaver) &&
+              !scheduled_off;
           assert(result.reserve_space == reserve);
           assert(result.visible == (reserve && screen != &screensaver && mode != DisplayMode::CLOCK));
         }
@@ -97,11 +110,12 @@ int main() {
   assert(clock_bar_button_grid_pages().empty());
 }
 '''
-# The shared rendering lambda only shows the time on the home screen.
+# The shared rendering lambda shows the time on every home screen.
 display = (root / "common/config/display.yaml").read_text()
 time_guard = display.split("bool show_time =", 1)[1].split(";", 1)[0]
-assert "lv_scr_act() == id(main_page)->obj" in time_guard
-assert "navigation_active_subpage_slot() == 0" in time_guard
+assert "navigation_screen_index(lv_scr_act()) >= 0" in time_guard
+assert "lv_scr_act() == id(main_page)->obj" not in time_guard
+assert "navigation_active_subpage_slot() == 0" not in time_guard
 assert "clock_bar_subpage_title_bar_enabled() = id(subpage_title_bar_enabled).state;" in display
 preference = display.split("    id: subpage_title_bar_enabled\n", 1)[1].split("\n  - platform:", 1)[0]
 assert "restore_mode: DISABLED" in preference

@@ -1,9 +1,12 @@
 #pragma once
 
 #ifdef USE_ESPDESKTOP_NATIVE_CARD_BUTTONS
+#include <array>
+#include <cstring>
 #include <memory>
 #include "esphome/components/api/api_server.h"
 #include "esphome/components/button/button.h"
+#include "esphome/core/entity_base.h"
 #include "native_api_setting.h"
 #include "device_ui_limits.h"
 
@@ -69,6 +72,17 @@ inline std::string native_card_name(const SharedCard &card, const pages::PageSto
   return name;
 }
 
+// The active-screen text sensor is intentionally shared with Home Assistant;
+// every other panel entity stays local to the display's web interface.
+inline bool native_api_entity_exposed(esphome::EntityBase *entity) {
+  if (entity == nullptr) return false;
+  std::array<char, esphome::OBJECT_ID_MAX_LEN> buffer{};
+  const auto object_id = entity->get_object_id_to(buffer);
+  constexpr char active_screen[] = "active_screen";
+  return object_id.size() == sizeof(active_screen) - 1 &&
+         std::memcmp(object_id.c_str(), active_screen, sizeof(active_screen) - 1) == 0;
+}
+
 class NativeCardButton final : public esphome::button::Button {
  public:
   void configure(std::string id, std::string name, uint32_t key) {
@@ -96,8 +110,8 @@ class NativeCardButtons {
     // The panel editor includes internal entities. Keep the existing
     // editor and diagnostic controls local to the display's web interface.
 #define ENTITY_TYPE_(type, singular, plural, count, upper) \
-    for (esphome::EntityBase *entity : esphome::App.get_##plural()) \
-      entity->set_internal(entity != display_power);
+    for (auto *entity : esphome::App.get_##plural()) \
+      if (!native_api_entity_exposed(entity) && entity != display_power) entity->set_internal(true);
 #define ENTITY_CONTROLLER_TYPE_(type, singular, plural, count, upper, callback) \
     ENTITY_TYPE_(type, singular, plural, count, upper)
 #include "esphome/core/entity_types.h"

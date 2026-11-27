@@ -340,6 +340,8 @@ inline const char *espdesktop_i18n_cs(const char *text) {
   if (std::strcmp(text, "Transitioning") == 0) return "Probíhá přechod";
   if (std::strcmp(text, "Replay not confirmed") == 0) return "Uložení záznamu nepotvrzeno";
   if (std::strcmp(text, "Check OBS") == 0) return "Zkontrolujte OBS";
+  if (std::strcmp(text, "End call") == 0) return "Ukončit hovor";
+  if (std::strcmp(text, "End the Teams call?") == 0) return "Ukončit hovor v Teams?";
   return text;
 }
 
@@ -657,6 +659,8 @@ inline const char *espdesktop_i18n_da(const char *text) {
   if (std::strcmp(text, "Transitioning") == 0) return "Skifter";
   if (std::strcmp(text, "Replay not confirmed") == 0) return "Genafspilning ikke bekræftet";
   if (std::strcmp(text, "Check OBS") == 0) return "Tjek OBS";
+  if (std::strcmp(text, "End call") == 0) return "Afslut opkald";
+  if (std::strcmp(text, "End the Teams call?") == 0) return "Afslut Teams-opkaldet?";
   return text;
 }
 
@@ -980,6 +984,8 @@ inline const char *espdesktop_i18n_de(const char *text) {
   if (std::strcmp(text, "Transitioning") == 0) return "Übergang läuft";
   if (std::strcmp(text, "Replay not confirmed") == 0) return "Replay nicht bestätigt";
   if (std::strcmp(text, "Check OBS") == 0) return "OBS prüfen";
+  if (std::strcmp(text, "End call") == 0) return "Anruf beenden";
+  if (std::strcmp(text, "End the Teams call?") == 0) return "Teams-Anruf beenden?";
   return text;
 }
 
@@ -1316,6 +1322,8 @@ inline const char *espdesktop_i18n_es(const char *text) {
   if (std::strcmp(text, "Transitioning") == 0) return "Transición en curso";
   if (std::strcmp(text, "Replay not confirmed") == 0) return "Repetición sin confirmar";
   if (std::strcmp(text, "Check OBS") == 0) return "Comprueba OBS";
+  if (std::strcmp(text, "End call") == 0) return "Finalizar llamada";
+  if (std::strcmp(text, "End the Teams call?") == 0) return "¿Finalizar la llamada de Teams?";
   return text;
 }
 
@@ -1654,6 +1662,8 @@ inline const char *espdesktop_i18n_fi(const char *text) {
   if (std::strcmp(text, "Transitioning") == 0) return "Siirtymä käynnissä";
   if (std::strcmp(text, "Replay not confirmed") == 0) return "Uusintaa ei vahvistettu";
   if (std::strcmp(text, "Check OBS") == 0) return "Tarkista OBS";
+  if (std::strcmp(text, "End call") == 0) return "Lopeta puhelu";
+  if (std::strcmp(text, "End the Teams call?") == 0) return "Lopetetaanko Teams-puhelu?";
   return text;
 }
 
@@ -1983,6 +1993,8 @@ inline const char *espdesktop_i18n_fr(const char *text) {
   if (std::strcmp(text, "Transitioning") == 0) return "Transition en cours";
   if (std::strcmp(text, "Replay not confirmed") == 0) return "Replay non confirmé";
   if (std::strcmp(text, "Check OBS") == 0) return "Vérifier OBS";
+  if (std::strcmp(text, "End call") == 0) return "Terminer l’appel";
+  if (std::strcmp(text, "End the Teams call?") == 0) return "Terminer l’appel Teams ?";
   return text;
 }
 
@@ -2328,6 +2340,8 @@ inline const char *espdesktop_i18n_he(const char *text) {
   if (std::strcmp(text, "Transitioning") == 0) return "מעבר מתבצע";
   if (std::strcmp(text, "Replay not confirmed") == 0) return "שמירת השידור החוזר לא אושרה";
   if (std::strcmp(text, "Check OBS") == 0) return "יש לבדוק את OBS";
+  if (std::strcmp(text, "End call") == 0) return "סיים שיחה";
+  if (std::strcmp(text, "End the Teams call?") == 0) return "לסיים את השיחה ב-Teams?";
   return text;
 }
 
@@ -2664,6 +2678,8 @@ inline const char *espdesktop_i18n_hu(const char *text) {
   if (std::strcmp(text, "Transitioning") == 0) return "Átmenet folyamatban";
   if (std::strcmp(text, "Replay not confirmed") == 0) return "A visszajátszás nincs megerősítve";
   if (std::strcmp(text, "Check OBS") == 0) return "Ellenőrizd az OBS-t";
+  if (std::strcmp(text, "End call") == 0) return "Hívás befejezése";
+  if (std::strcmp(text, "End the Teams call?") == 0) return "Befejezi a Teams-hívást?";
   return text;
 }
 
@@ -2999,6 +3015,8 @@ inline const char *espdesktop_i18n_it(const char *text) {
   if (std::strcmp(text, "Transitioning") == 0) return "Transizione in corso";
   if (std::strcmp(text, "Replay not confirmed") == 0) return "Replay non confermato";
   if (std::strcmp(text, "Check OBS") == 0) return "Controlla OBS";
+  if (std::strcmp(text, "End call") == 0) return "Termina chiamata";
+  if (std::strcmp(text, "End the Teams call?") == 0) return "Terminare la chiamata di Teams?";
   return text;
 }
 
@@ -3324,6 +3342,8 @@ inline const char *espdesktop_i18n_nb(const char *text) {
   if (std::strcmp(text, "Transitioning") == 0) return "Overgang pågår";
   if (std::strcmp(text, "Replay not confirmed") == 0) return "Reprise ikke bekreftet";
   if (std::strcmp(text, "Check OBS") == 0) return "Sjekk OBS";
+  if (std::strcmp(text, "End call") == 0) return "Avslutt samtale";
+  if (std::strcmp(text, "End the Teams call?") == 0) return "Avslutte Teams-samtalen?";
   return text;
 }
 
@@ -3648,6 +3668,8 @@ inline const char *espdesktop_i18n_nl(const char *text) {
   if (std::strcmp(text, "Transitioning") == 0) return "Overgang bezig";
   if (std::strcmp(text, "Replay not confirmed") == 0) return "Herhaling niet bevestigd";
   if (std::strcmp(text, "Check OBS") == 0) return "Controleer OBS";
+  if (std::strcmp(text, "End call") == 0) return "Gesprek beëindigen";
+  if (std::strcmp(text, "End the Teams call?") == 0) return "Teams-gesprek beëindigen?";
   return text;
 }
 
@@ -3973,6 +3995,8 @@ inline const char *espdesktop_i18n_pl(const char *text) {
   if (std::strcmp(text, "Transitioning") == 0) return "Trwa przejście";
   if (std::strcmp(text, "Replay not confirmed") == 0) return "Nie potwierdzono zapisu powtórki";
   if (std::strcmp(text, "Check OBS") == 0) return "Sprawdź OBS";
+  if (std::strcmp(text, "End call") == 0) return "Zakończ połączenie";
+  if (std::strcmp(text, "End the Teams call?") == 0) return "Zakończyć połączenie w Teams?";
   return text;
 }
 
@@ -4301,6 +4325,8 @@ inline const char *espdesktop_i18n_pt_br(const char *text) {
   if (std::strcmp(text, "Transitioning") == 0) return "Transição em andamento";
   if (std::strcmp(text, "Replay not confirmed") == 0) return "Replay não confirmado";
   if (std::strcmp(text, "Check OBS") == 0) return "Verifique o OBS";
+  if (std::strcmp(text, "End call") == 0) return "Encerrar chamada";
+  if (std::strcmp(text, "End the Teams call?") == 0) return "Encerrar a chamada do Teams?";
   return text;
 }
 
@@ -4636,6 +4662,8 @@ inline const char *espdesktop_i18n_pt(const char *text) {
   if (std::strcmp(text, "Transitioning") == 0) return "Transição em curso";
   if (std::strcmp(text, "Replay not confirmed") == 0) return "Repetição não confirmada";
   if (std::strcmp(text, "Check OBS") == 0) return "Verifique o OBS";
+  if (std::strcmp(text, "End call") == 0) return "Terminar chamada";
+  if (std::strcmp(text, "End the Teams call?") == 0) return "Terminar a chamada do Teams?";
   return text;
 }
 
@@ -4972,6 +5000,8 @@ inline const char *espdesktop_i18n_ro(const char *text) {
   if (std::strcmp(text, "Transitioning") == 0) return "Tranziție în curs";
   if (std::strcmp(text, "Replay not confirmed") == 0) return "Reluare neconfirmată";
   if (std::strcmp(text, "Check OBS") == 0) return "Verifică OBS";
+  if (std::strcmp(text, "End call") == 0) return "Încheie apelul";
+  if (std::strcmp(text, "End the Teams call?") == 0) return "Închei apelul Teams?";
   return text;
 }
 
@@ -5317,6 +5347,8 @@ inline const char *espdesktop_i18n_ru(const char *text) {
   if (std::strcmp(text, "Transitioning") == 0) return "Идёт переход";
   if (std::strcmp(text, "Replay not confirmed") == 0) return "Сохранение повтора не подтверждено";
   if (std::strcmp(text, "Check OBS") == 0) return "Проверьте OBS";
+  if (std::strcmp(text, "End call") == 0) return "Завершить звонок";
+  if (std::strcmp(text, "End the Teams call?") == 0) return "Завершить звонок в Teams?";
   return text;
 }
 
@@ -5646,6 +5678,8 @@ inline const char *espdesktop_i18n_sk(const char *text) {
   if (std::strcmp(text, "Transitioning") == 0) return "Prebieha prechod";
   if (std::strcmp(text, "Replay not confirmed") == 0) return "Uloženie záznamu nepotvrdené";
   if (std::strcmp(text, "Check OBS") == 0) return "Skontrolujte OBS";
+  if (std::strcmp(text, "End call") == 0) return "Ukončiť hovor";
+  if (std::strcmp(text, "End the Teams call?") == 0) return "Ukončiť hovor v Teams?";
   return text;
 }
 
@@ -5979,6 +6013,8 @@ inline const char *espdesktop_i18n_sl(const char *text) {
   if (std::strcmp(text, "Transitioning") == 0) return "Prehod poteka";
   if (std::strcmp(text, "Replay not confirmed") == 0) return "Ponovitev ni potrjena";
   if (std::strcmp(text, "Check OBS") == 0) return "Preveri OBS";
+  if (std::strcmp(text, "End call") == 0) return "Končaj klic";
+  if (std::strcmp(text, "End the Teams call?") == 0) return "Končam klic v Teams?";
   return text;
 }
 
@@ -6301,6 +6337,8 @@ inline const char *espdesktop_i18n_sv(const char *text) {
   if (std::strcmp(text, "Transitioning") == 0) return "Övergång pågår";
   if (std::strcmp(text, "Replay not confirmed") == 0) return "Repris inte bekräftad";
   if (std::strcmp(text, "Check OBS") == 0) return "Kontrollera OBS";
+  if (std::strcmp(text, "End call") == 0) return "Avsluta samtal";
+  if (std::strcmp(text, "End the Teams call?") == 0) return "Avsluta Teams-samtalet?";
   return text;
 }
 
@@ -6638,6 +6676,8 @@ inline const char *espdesktop_i18n_tr(const char *text) {
   if (std::strcmp(text, "Transitioning") == 0) return "Geçiş yapılıyor";
   if (std::strcmp(text, "Replay not confirmed") == 0) return "Tekrar kaydı doğrulanmadı";
   if (std::strcmp(text, "Check OBS") == 0) return "OBS’yi kontrol edin";
+  if (std::strcmp(text, "End call") == 0) return "Aramayı bitir";
+  if (std::strcmp(text, "End the Teams call?") == 0) return "Teams araması sonlandırılsın mı?";
   return text;
 }
 
@@ -6978,6 +7018,8 @@ inline const char *espdesktop_i18n_uk(const char *text) {
   if (std::strcmp(text, "Transitioning") == 0) return "Триває перехід";
   if (std::strcmp(text, "Replay not confirmed") == 0) return "Збереження повтору не підтверджено";
   if (std::strcmp(text, "Check OBS") == 0) return "Перевірте OBS";
+  if (std::strcmp(text, "End call") == 0) return "Завершити дзвінок";
+  if (std::strcmp(text, "End the Teams call?") == 0) return "Завершити дзвінок у Teams?";
   return text;
 }
 
@@ -7364,6 +7406,8 @@ inline const char *espdesktop_i18n_key_en(const char *key) {
   if (std::strcmp(key, "obs_transitioning") == 0) return "Transitioning";
   if (std::strcmp(key, "obs_replay_not_confirmed") == 0) return "Replay not confirmed";
   if (std::strcmp(key, "obs_check") == 0) return "Check OBS";
+  if (std::strcmp(key, "end_call") == 0) return "End call";
+  if (std::strcmp(key, "end_call_prompt") == 0) return "End the Teams call?";
   return key;
 }
 
@@ -7713,6 +7757,8 @@ inline const char *espdesktop_i18n_key_cs(const char *key) {
   if (std::strcmp(key, "obs_transitioning") == 0) return "Probíhá přechod";
   if (std::strcmp(key, "obs_replay_not_confirmed") == 0) return "Uložení záznamu nepotvrzeno";
   if (std::strcmp(key, "obs_check") == 0) return "Zkontrolujte OBS";
+  if (std::strcmp(key, "end_call") == 0) return "Ukončit hovor";
+  if (std::strcmp(key, "end_call_prompt") == 0) return "Ukončit hovor v Teams?";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -8048,6 +8094,8 @@ inline const char *espdesktop_i18n_key_da(const char *key) {
   if (std::strcmp(key, "obs_transitioning") == 0) return "Skifter";
   if (std::strcmp(key, "obs_replay_not_confirmed") == 0) return "Genafspilning ikke bekræftet";
   if (std::strcmp(key, "obs_check") == 0) return "Tjek OBS";
+  if (std::strcmp(key, "end_call") == 0) return "Afslut opkald";
+  if (std::strcmp(key, "end_call_prompt") == 0) return "Afslut Teams-opkaldet?";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -8390,6 +8438,8 @@ inline const char *espdesktop_i18n_key_de(const char *key) {
   if (std::strcmp(key, "obs_transitioning") == 0) return "Übergang läuft";
   if (std::strcmp(key, "obs_replay_not_confirmed") == 0) return "Replay nicht bestätigt";
   if (std::strcmp(key, "obs_check") == 0) return "OBS prüfen";
+  if (std::strcmp(key, "end_call") == 0) return "Anruf beenden";
+  if (std::strcmp(key, "end_call_prompt") == 0) return "Teams-Anruf beenden?";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -8746,6 +8796,8 @@ inline const char *espdesktop_i18n_key_es(const char *key) {
   if (std::strcmp(key, "obs_transitioning") == 0) return "Transición en curso";
   if (std::strcmp(key, "obs_replay_not_confirmed") == 0) return "Repetición sin confirmar";
   if (std::strcmp(key, "obs_check") == 0) return "Comprueba OBS";
+  if (std::strcmp(key, "end_call") == 0) return "Finalizar llamada";
+  if (std::strcmp(key, "end_call_prompt") == 0) return "¿Finalizar la llamada de Teams?";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -9105,6 +9157,8 @@ inline const char *espdesktop_i18n_key_fi(const char *key) {
   if (std::strcmp(key, "obs_transitioning") == 0) return "Siirtymä käynnissä";
   if (std::strcmp(key, "obs_replay_not_confirmed") == 0) return "Uusintaa ei vahvistettu";
   if (std::strcmp(key, "obs_check") == 0) return "Tarkista OBS";
+  if (std::strcmp(key, "end_call") == 0) return "Lopeta puhelu";
+  if (std::strcmp(key, "end_call_prompt") == 0) return "Lopetetaanko Teams-puhelu?";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -9453,6 +9507,8 @@ inline const char *espdesktop_i18n_key_fr(const char *key) {
   if (std::strcmp(key, "obs_transitioning") == 0) return "Transition en cours";
   if (std::strcmp(key, "obs_replay_not_confirmed") == 0) return "Replay non confirmé";
   if (std::strcmp(key, "obs_check") == 0) return "Vérifier OBS";
+  if (std::strcmp(key, "end_call") == 0) return "Terminer l’appel";
+  if (std::strcmp(key, "end_call_prompt") == 0) return "Terminer l’appel Teams ?";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -9819,6 +9875,8 @@ inline const char *espdesktop_i18n_key_he(const char *key) {
   if (std::strcmp(key, "obs_transitioning") == 0) return "מעבר מתבצע";
   if (std::strcmp(key, "obs_replay_not_confirmed") == 0) return "שמירת השידור החוזר לא אושרה";
   if (std::strcmp(key, "obs_check") == 0) return "יש לבדוק את OBS";
+  if (std::strcmp(key, "end_call") == 0) return "סיים שיחה";
+  if (std::strcmp(key, "end_call_prompt") == 0) return "לסיים את השיחה ב-Teams?";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -10176,6 +10234,8 @@ inline const char *espdesktop_i18n_key_hu(const char *key) {
   if (std::strcmp(key, "obs_transitioning") == 0) return "Átmenet folyamatban";
   if (std::strcmp(key, "obs_replay_not_confirmed") == 0) return "A visszajátszás nincs megerősítve";
   if (std::strcmp(key, "obs_check") == 0) return "Ellenőrizd az OBS-t";
+  if (std::strcmp(key, "end_call") == 0) return "Hívás befejezése";
+  if (std::strcmp(key, "end_call_prompt") == 0) return "Befejezi a Teams-hívást?";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -10531,6 +10591,8 @@ inline const char *espdesktop_i18n_key_it(const char *key) {
   if (std::strcmp(key, "obs_transitioning") == 0) return "Transizione in corso";
   if (std::strcmp(key, "obs_replay_not_confirmed") == 0) return "Replay non confermato";
   if (std::strcmp(key, "obs_check") == 0) return "Controlla OBS";
+  if (std::strcmp(key, "end_call") == 0) return "Termina chiamata";
+  if (std::strcmp(key, "end_call_prompt") == 0) return "Terminare la chiamata di Teams?";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -10875,6 +10937,8 @@ inline const char *espdesktop_i18n_key_nb(const char *key) {
   if (std::strcmp(key, "obs_transitioning") == 0) return "Overgang pågår";
   if (std::strcmp(key, "obs_replay_not_confirmed") == 0) return "Reprise ikke bekreftet";
   if (std::strcmp(key, "obs_check") == 0) return "Sjekk OBS";
+  if (std::strcmp(key, "end_call") == 0) return "Avslutt samtale";
+  if (std::strcmp(key, "end_call_prompt") == 0) return "Avslutte Teams-samtalen?";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -11216,6 +11280,8 @@ inline const char *espdesktop_i18n_key_nl(const char *key) {
   if (std::strcmp(key, "obs_transitioning") == 0) return "Overgang bezig";
   if (std::strcmp(key, "obs_replay_not_confirmed") == 0) return "Herhaling niet bevestigd";
   if (std::strcmp(key, "obs_check") == 0) return "Controleer OBS";
+  if (std::strcmp(key, "end_call") == 0) return "Gesprek beëindigen";
+  if (std::strcmp(key, "end_call_prompt") == 0) return "Teams-gesprek beëindigen?";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -11562,6 +11628,8 @@ inline const char *espdesktop_i18n_key_pl(const char *key) {
   if (std::strcmp(key, "obs_transitioning") == 0) return "Trwa przejście";
   if (std::strcmp(key, "obs_replay_not_confirmed") == 0) return "Nie potwierdzono zapisu powtórki";
   if (std::strcmp(key, "obs_check") == 0) return "Sprawdź OBS";
+  if (std::strcmp(key, "end_call") == 0) return "Zakończ połączenie";
+  if (std::strcmp(key, "end_call_prompt") == 0) return "Zakończyć połączenie w Teams?";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -11910,6 +11978,8 @@ inline const char *espdesktop_i18n_key_pt_br(const char *key) {
   if (std::strcmp(key, "obs_transitioning") == 0) return "Transição em andamento";
   if (std::strcmp(key, "obs_replay_not_confirmed") == 0) return "Replay não confirmado";
   if (std::strcmp(key, "obs_check") == 0) return "Verifique o OBS";
+  if (std::strcmp(key, "end_call") == 0) return "Encerrar chamada";
+  if (std::strcmp(key, "end_call_prompt") == 0) return "Encerrar a chamada do Teams?";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -12265,6 +12335,8 @@ inline const char *espdesktop_i18n_key_pt(const char *key) {
   if (std::strcmp(key, "obs_transitioning") == 0) return "Transição em curso";
   if (std::strcmp(key, "obs_replay_not_confirmed") == 0) return "Repetição não confirmada";
   if (std::strcmp(key, "obs_check") == 0) return "Verifique o OBS";
+  if (std::strcmp(key, "end_call") == 0) return "Terminar chamada";
+  if (std::strcmp(key, "end_call_prompt") == 0) return "Terminar a chamada do Teams?";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -12622,6 +12694,8 @@ inline const char *espdesktop_i18n_key_ro(const char *key) {
   if (std::strcmp(key, "obs_transitioning") == 0) return "Tranziție în curs";
   if (std::strcmp(key, "obs_replay_not_confirmed") == 0) return "Reluare neconfirmată";
   if (std::strcmp(key, "obs_check") == 0) return "Verifică OBS";
+  if (std::strcmp(key, "end_call") == 0) return "Încheie apelul";
+  if (std::strcmp(key, "end_call_prompt") == 0) return "Închei apelul Teams?";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -12988,6 +13062,8 @@ inline const char *espdesktop_i18n_key_ru(const char *key) {
   if (std::strcmp(key, "obs_transitioning") == 0) return "Идёт переход";
   if (std::strcmp(key, "obs_replay_not_confirmed") == 0) return "Сохранение повтора не подтверждено";
   if (std::strcmp(key, "obs_check") == 0) return "Проверьте OBS";
+  if (std::strcmp(key, "end_call") == 0) return "Завершить звонок";
+  if (std::strcmp(key, "end_call_prompt") == 0) return "Завершить звонок в Teams?";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -13338,6 +13414,8 @@ inline const char *espdesktop_i18n_key_sk(const char *key) {
   if (std::strcmp(key, "obs_transitioning") == 0) return "Prebieha prechod";
   if (std::strcmp(key, "obs_replay_not_confirmed") == 0) return "Uloženie záznamu nepotvrdené";
   if (std::strcmp(key, "obs_check") == 0) return "Skontrolujte OBS";
+  if (std::strcmp(key, "end_call") == 0) return "Ukončiť hovor";
+  if (std::strcmp(key, "end_call_prompt") == 0) return "Ukončiť hovor v Teams?";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -13692,6 +13770,8 @@ inline const char *espdesktop_i18n_key_sl(const char *key) {
   if (std::strcmp(key, "obs_transitioning") == 0) return "Prehod poteka";
   if (std::strcmp(key, "obs_replay_not_confirmed") == 0) return "Ponovitev ni potrjena";
   if (std::strcmp(key, "obs_check") == 0) return "Preveri OBS";
+  if (std::strcmp(key, "end_call") == 0) return "Končaj klic";
+  if (std::strcmp(key, "end_call_prompt") == 0) return "Končam klic v Teams?";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -14033,6 +14113,8 @@ inline const char *espdesktop_i18n_key_sv(const char *key) {
   if (std::strcmp(key, "obs_transitioning") == 0) return "Övergång pågår";
   if (std::strcmp(key, "obs_replay_not_confirmed") == 0) return "Repris inte bekräftad";
   if (std::strcmp(key, "obs_check") == 0) return "Kontrollera OBS";
+  if (std::strcmp(key, "end_call") == 0) return "Avsluta samtal";
+  if (std::strcmp(key, "end_call_prompt") == 0) return "Avsluta Teams-samtalet?";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -14391,6 +14473,8 @@ inline const char *espdesktop_i18n_key_tr(const char *key) {
   if (std::strcmp(key, "obs_transitioning") == 0) return "Geçiş yapılıyor";
   if (std::strcmp(key, "obs_replay_not_confirmed") == 0) return "Tekrar kaydı doğrulanmadı";
   if (std::strcmp(key, "obs_check") == 0) return "OBS’yi kontrol edin";
+  if (std::strcmp(key, "end_call") == 0) return "Aramayı bitir";
+  if (std::strcmp(key, "end_call_prompt") == 0) return "Teams araması sonlandırılsın mı?";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -14752,6 +14836,8 @@ inline const char *espdesktop_i18n_key_uk(const char *key) {
   if (std::strcmp(key, "obs_transitioning") == 0) return "Триває перехід";
   if (std::strcmp(key, "obs_replay_not_confirmed") == 0) return "Збереження повтору не підтверджено";
   if (std::strcmp(key, "obs_check") == 0) return "Перевірте OBS";
+  if (std::strcmp(key, "end_call") == 0) return "Завершити дзвінок";
+  if (std::strcmp(key, "end_call_prompt") == 0) return "Завершити дзвінок у Teams?";
   return espdesktop_i18n_key_en(key);
 }
 

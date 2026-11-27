@@ -172,6 +172,74 @@ internal static partial class Audio
     private const string Prefix = "media.";
     private const int EndpointNotFound = unchecked((int)0x80070490);
 
+    [ComVisible(true)]
+    [Guid("657804FA-D6AD-4496-8A60-352752AF4F89")]
+    [InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
+    private interface IAudioEndpointVolumeCallback
+    {
+        [PreserveSig] int OnNotify(nint data);
+    }
+
+    [ComVisible(true)]
+    [ClassInterface(ClassInterfaceType.None)]
+    private sealed class VolumeCallback(Action changed) : IAudioEndpointVolumeCallback
+    {
+        public int OnNotify(nint data) { changed(); return 0; }
+    }
+
+    private sealed class EndpointRegistration
+    {
+        public object? Enumerator;
+        public IMMDevice? Device;
+        public IAudioEndpointVolume? Endpoint;
+        public VolumeCallback? Callback;
+
+        public void Release()
+        {
+            if (Endpoint is not null && Callback is not null)
+                _ = Endpoint.UnregisterControlChangeNotify(Callback);
+            Com.Release(Endpoint);
+            Com.Release(Device);
+            Com.Release(Enumerator);
+            Endpoint = null;
+            Device = null;
+            Enumerator = null;
+            Callback = null;
+        }
+    }
+
+    private static readonly List<EndpointRegistration> Registrations = [];
+
+    public static void StartNotifications(Action changed)
+    {
+        if (Registrations.Count > 0) return;
+        foreach (var input in new[] { false, true })
+        {
+            var registration = new EndpointRegistration();
+            try
+            {
+                registration.Enumerator = Activator.CreateInstance(
+                    Type.GetTypeFromCLSID(new("BCDE0395-E52F-467C-8E3D-C4579291692E"))!);
+                Check(((IMMDeviceEnumerator)registration.Enumerator!).GetDefaultAudioEndpoint(
+                    input ? 1 : 0, 1, out var device));
+                registration.Device = device;
+                var guid = typeof(IAudioEndpointVolume).GUID;
+                Check(device.Activate(in guid, 23, 0, out var raw));
+                registration.Endpoint = (IAudioEndpointVolume)raw!;
+                registration.Callback = new VolumeCallback(changed);
+                Check(registration.Endpoint.RegisterControlChangeNotify(registration.Callback));
+                Registrations.Add(registration);
+            }
+            catch (COMException) { registration.Release(); }
+        }
+    }
+
+    public static void StopNotifications()
+    {
+        foreach (var registration in Registrations) registration.Release();
+        Registrations.Clear();
+    }
+
     public static IEnumerable<AudioValue> Read()
     {
         foreach (var name in new[] { "output", "input" })
@@ -281,8 +349,8 @@ internal static partial class Audio
     [ComImport, Guid("5CDF2C82-841E-4546-9722-0CF74078229A"), InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
     private interface IAudioEndpointVolume
     {
-        [PreserveSig] int RegisterControlChangeNotify(nint callback);
-        [PreserveSig] int UnregisterControlChangeNotify(nint callback);
+        [PreserveSig] int RegisterControlChangeNotify([MarshalAs(UnmanagedType.Interface)] IAudioEndpointVolumeCallback callback);
+        [PreserveSig] int UnregisterControlChangeNotify([MarshalAs(UnmanagedType.Interface)] IAudioEndpointVolumeCallback callback);
         [PreserveSig] int GetChannelCount(out uint count);
         [PreserveSig] int SetMasterVolumeLevel(float db, nint context);
         [PreserveSig] int SetMasterVolumeLevelScalar(float value, nint context);

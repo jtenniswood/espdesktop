@@ -147,9 +147,10 @@ class EspDesktopAppCore {
   }
 
   CompanionRuntimeService &companion_runtime() {
-    if (!companion_runtime_) companion_runtime_ = std::make_unique<CompanionRuntimeService>();
-    return *companion_runtime_;
+    return this->companion_runtimes_.primary();
   }
+
+  CompanionRuntimeRegistry &companion_runtimes() { return this->companion_runtimes_; }
 
   template<typename ViewService>
   ViewService &companion_view_service() {
@@ -164,7 +165,7 @@ class EspDesktopAppCore {
   }
 
  private:
-  std::unique_ptr<CompanionRuntimeService> companion_runtime_;
+  CompanionRuntimeRegistry companion_runtimes_;
   FixedRuntimeServiceSlot<64> companion_view_service_{};
   AppLifecycleState lifecycle_state_{AppLifecycleState::CONSTRUCTED};
   uint32_t loop_count_{0};

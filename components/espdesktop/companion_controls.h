@@ -42,13 +42,16 @@
 #include "card_text_contrast.h"
 #endif
 
+// Request IDs are globally unique, so pending results live on the primary
+// runtime even when the action was sent to another computer.
 inline CompanionPendingActions &companion_pending_actions() {
-  return companion_runtime_service().pending_actions;
+  return companion_runtime_registry().primary().pending_actions;
 }
 
 inline void companion_clear_pending_action(CompanionPendingAction &pending) {
   pending.request_id.clear();
   pending.expected_application_id.clear();
+  pending.computer_id.clear();
   pending.expires_at = 0;
   pending.success = nullptr;
 }
@@ -56,6 +59,7 @@ inline void companion_clear_pending_action(CompanionPendingAction &pending) {
 inline bool companion_expect_action_result(
     const std::string &request_id, const std::string &expected_application_id,
     CompanionActionResultHandler success, uint32_t expires_at = 0,
+    const std::string &computer_id = "",
     CompanionActionSuccess expected_success = CompanionActionSuccess::ACTIVATED) {
   if (request_id.empty() || !success) return false;
   auto &pending = companion_pending_actions();
@@ -70,6 +74,7 @@ inline bool companion_expect_action_result(
   if (entry == end) return false;
   entry->request_id = request_id;
   entry->expected_application_id = expected_application_id;
+  entry->computer_id = computer_id;
   entry->expires_at = expires_at;
   entry->expected_success = expected_success;
   entry->success = std::move(success);
@@ -79,15 +84,19 @@ inline bool companion_expect_action_result(
 inline bool companion_expect_action_result(const std::string &request_id,
                                            CompanionActionResultHandler success,
                                            uint32_t expires_at = 0,
+                                           const std::string &computer_id = "",
                                            CompanionActionSuccess expected_success = CompanionActionSuccess::ACTIVATED) {
-  return companion_expect_action_result(request_id, "", std::move(success), expires_at, expected_success);
+  return companion_expect_action_result(request_id, "", std::move(success), expires_at,
+                                        computer_id, expected_success);
 }
 
-inline void companion_cancel_action_result(const std::string &request_id = "") {
+inline void companion_cancel_action_result(const std::string &request_id = "",
+                                           const std::string &computer_id = "") {
   auto &pending = companion_pending_actions();
   std::lock_guard<std::mutex> lock(pending.mutex);
   for (auto &entry : pending.entries) {
-    if (request_id.empty() || entry.request_id == request_id)
+    if ((request_id.empty() || entry.request_id == request_id) &&
+        (computer_id.empty() || entry.computer_id == computer_id))
       companion_clear_pending_action(entry);
   }
 }
@@ -108,8 +117,9 @@ inline size_t companion_expire_action_results(uint32_t now) {
 }
 
 inline void companion_deliver_action_result(const std::string &request_id,
-                                            const std::string &status) {
-  companion_runtime_service().acknowledge_mute(request_id, status == "performed");
+                                            const std::string &status,
+                                            const std::string &computer_id = "") {
+  companion_runtime_for(computer_id).acknowledge_mute(request_id, status == "performed");
   CompanionActionResultHandler success;
   {
     auto &pending = companion_pending_actions();
@@ -118,7 +128,9 @@ inline void companion_deliver_action_result(const std::string &request_id,
       [&request_id](const CompanionPendingAction &candidate) {
         return candidate.request_id == request_id;
       });
-    if (entry == pending.entries.end()) return;
+    if (entry == pending.entries.end() ||
+        (!entry->computer_id.empty() && !computer_id.empty() &&
+         entry->computer_id != computer_id)) return;
     // Only a current Companion build sends "activated" after it has verified
     // that a launched application is frontmost. Older builds report
     // "performed" as soon as launch scheduling succeeds, which is not safe
@@ -147,8 +159,66 @@ inline CompanionRuntimeSnapshot companion_runtime_snapshot() {
   return companion_runtime_service().snapshot();
 }
 
+// Commands must never fall back to another computer. A card bound to a
+// forgotten or not-yet-connected computer simply fails.
+inline CompanionRuntimeService *companion_runtime_for_command(const std::string &computer_id) {
+  if (computer_id.empty()) return &companion_runtime_registry().primary();
+  return companion_runtime_registry().find_computer(computer_id);
+}
+
 inline CompanionConnectionChangedHandler &companion_connection_changed_handler() {
-  return companion_runtime_service().connection_changed_handler;
+  static CompanionConnectionChangedHandler handler;
+  return handler;
+}
+
+// Service-wide callbacks belong to the Companion service, not to any one
+// computer's runtime. Promoting another computer must not lose pairing or
+// focus-registration handling.
+inline std::function<void()> &companion_begin_pairing_handler() {
+  static std::function<void()> handler;
+  return handler;
+}
+
+inline std::function<bool()> &companion_reset_pairing_handler() {
+  static std::function<bool()> handler;
+  return handler;
+}
+
+inline std::function<bool(const std::string &)> &companion_revoke_computer_handler() {
+  static std::function<bool(const std::string &)> handler;
+  return handler;
+}
+
+inline std::function<void()> &companion_request_pairing_display_handler() {
+  static std::function<void()> handler;
+  return handler;
+}
+
+inline std::function<bool()> &companion_clear_app_icon_cache_handler() {
+  static std::function<bool()> handler;
+  return handler;
+}
+
+inline std::function<void()> &companion_focus_registrations_changed_handler() {
+  static std::function<void()> handler;
+  return handler;
+}
+
+inline std::function<void()> &companion_show_pairing_code_handler() {
+  static std::function<void()> handler;
+  return handler;
+}
+
+inline std::function<void()> &companion_pairing_changed_notice_handler() {
+  static std::function<void()> handler;
+  return handler;
+}
+
+// URL focus targets are shared by every displayed URL card regardless of the
+// computer that owns it, so they live outside the per-computer runtimes.
+inline std::vector<CompanionURLFocusTarget> &companion_focus_registrations_storage() {
+  static std::vector<CompanionURLFocusTarget> targets;
+  return targets;
 }
 
 inline void register_companion_connection_changed_handler(
@@ -228,12 +298,21 @@ inline bool companion_metric_value(const CompanionRuntimeSnapshot &snapshot,
   return std::isfinite(value);
 }
 
+inline void companion_set_system_metrics(CompanionRuntimeService &runtime,
+                                         CompanionSystemMetricsSnapshot snapshot) {
+  runtime.set_system_metrics(std::move(snapshot));
+}
+
 inline void companion_set_system_metrics(CompanionSystemMetricsSnapshot snapshot) {
-  companion_runtime_service().set_system_metrics(std::move(snapshot));
+  companion_set_system_metrics(companion_runtime_service(), std::move(snapshot));
 }
 
 inline bool companion_connected() {
   return companion_runtime_service().connected();
+}
+
+inline bool companion_connected_for(const std::string &computer_id) {
+  return companion_runtime_for(computer_id).connected();
 }
 
 inline CompanionActionSender &companion_action_sender() {
@@ -249,10 +328,12 @@ inline CompanionValueSender &companion_value_sender() {
 }
 
 inline CompanionPairingProvider &companion_pairing_provider() {
-  return companion_runtime_service().pairing_provider;
+  static CompanionPairingProvider provider;
+  return provider;
 }
 
-inline void companion_set_remote_definitions(std::vector<CompanionRemoteDefinition> definitions) {
+inline void companion_set_remote_definitions(CompanionRuntimeService &runtime,
+                                             std::vector<CompanionRemoteDefinition> definitions) {
   size_t application_count = 0;
   definitions.erase(std::remove_if(definitions.begin(), definitions.end(),
     [&application_count](const CompanionRemoteDefinition &definition) {
@@ -263,7 +344,11 @@ inline void companion_set_remote_definitions(std::vector<CompanionRemoteDefiniti
       ++application_count;
       return false;
     }), definitions.end());
-  companion_runtime_service().set_remote_definitions(std::move(definitions));
+  runtime.set_remote_definitions(std::move(definitions));
+}
+
+inline void companion_set_remote_definitions(std::vector<CompanionRemoteDefinition> definitions) {
+  companion_set_remote_definitions(companion_runtime_service(), std::move(definitions));
 }
 
 inline std::string companion_url_card_focus_id(const std::string &url_config);
@@ -293,23 +378,42 @@ inline bool companion_url_focus_target_valid(const std::string &id, const std::s
   return !authority.empty() && authority.find('@') == std::string::npos;
 }
 
+// URL focus registrations are shared by every connected computer. Each session
+// receives the full list and only reports matches for its own tabs.
 inline void companion_set_focus_registrations(std::vector<CompanionURLFocusTarget> targets) {
   targets.erase(std::remove_if(targets.begin(), targets.end(), [](const auto &target) {
     return !companion_url_focus_target_valid(target.id, target.url);
   }), targets.end());
-  companion_runtime_service().set_focus_registrations(std::move(targets));
+  auto &stored = companion_focus_registrations_storage();
+  if (stored.size() == targets.size() && std::equal(stored.begin(), stored.end(), targets.begin(),
+      [](const auto &left, const auto &right) {
+        return left.id == right.id && left.url == right.url;
+      })) return;
+  stored = std::move(targets);
+  if (auto handler = companion_focus_registrations_changed_handler()) handler();
 }
 
-inline void companion_set_actions(CompanionActionList actions) {
+inline void companion_set_actions(CompanionRuntimeService &runtime,
+                                  std::vector<CompanionAction> actions) {
   actions.erase(std::remove_if(actions.begin(), actions.end(),
     [](const CompanionAction &action) {
       return action.id.empty() || action.id.size() > 96 || action.label.size() > 96;
     }), actions.end());
-  companion_runtime_service().set_actions(std::move(actions));
+  CompanionActionList catalogue(actions.begin(), actions.end());
+  runtime.set_actions(std::move(catalogue));
+}
+
+inline void companion_set_actions(std::vector<CompanionAction> actions) {
+  companion_set_actions(companion_runtime_service(), std::move(actions));
+}
+
+inline void companion_set_keyboard_actions_supported(CompanionRuntimeService &runtime,
+                                                     bool supported) {
+  runtime.set_keyboard_actions_supported(supported);
 }
 
 inline void companion_set_keyboard_actions_supported(bool supported) {
-  companion_runtime_service().set_keyboard_actions_supported(supported);
+  companion_set_keyboard_actions_supported(companion_runtime_service(), supported);
 }
 
 inline constexpr char COMPANION_COUGH_ID[] = "media.cough";
@@ -362,35 +466,58 @@ inline bool companion_value(const std::string &control_id, int &value) {
   return companion_runtime_service().value(control_id, value);
 }
 
-inline void companion_set_value(const std::string &control_id, int value) {
+inline bool companion_value_for(const std::string &computer_id, const std::string &control_id,
+                                int &value) {
+  return companion_runtime_for(computer_id).value(control_id, value);
+}
+
+inline void companion_set_value(CompanionRuntimeService &runtime, const std::string &control_id,
+                                int value) {
   if (!companion_value_control_valid(control_id)) return;
   value = std::max(0, std::min(100, value));
   constexpr size_t max_mac_values = 256 + 5 + 16;
   constexpr size_t max_obs_values = 40 + 40;
   const size_t limit = control_id.rfind("obs.", 0) == 0 ? max_obs_values : max_mac_values;
-  companion_runtime_service().set_value(control_id, value, limit);
+  runtime.set_value(control_id, value, limit);
+}
+
+inline void companion_set_value(const std::string &control_id, int value) {
+  companion_set_value(companion_runtime_service(), control_id, value);
+}
+
+inline void companion_remove_value(CompanionRuntimeService &runtime, const std::string &control_id,
+                                   bool no_input_device = false) {
+  if (!companion_value_control_valid(control_id)) return;
+  runtime.remove_value(control_id, no_input_device);
 }
 
 inline void companion_remove_value(const std::string &control_id, bool no_input_device = false) {
-  if (!companion_value_control_valid(control_id)) return;
-  companion_runtime_service().remove_value(control_id, no_input_device);
+  companion_remove_value(companion_runtime_service(), control_id, no_input_device);
 }
 
 inline std::atomic<bool> &companion_subpage_return_requested();
 
-inline void companion_set_focused_action(std::string action_id) {
+inline bool companion_set_focused_action(CompanionRuntimeService &runtime,
+                                         std::string action_id) {
   if (action_id.size() > 96) action_id.clear();
-  const bool should_return_from_subpage =
-    companion_runtime_service().set_focused_action(std::move(action_id));
-  if (should_return_from_subpage) companion_subpage_return_requested().store(true);
+  return runtime.set_focused_action(std::move(action_id));
+}
+
+inline void companion_set_focused_action(std::string action_id) {
+  if (companion_set_focused_action(companion_runtime_service(), std::move(action_id)))
+    companion_subpage_return_requested().store(true);
+}
+
+inline bool companion_set_focused_actions(CompanionRuntimeService &runtime,
+                                          std::vector<std::string> action_ids) {
+  for (auto &action_id : action_ids)
+    if (action_id.size() > 96) action_id.clear();
+  return runtime.set_focused_actions(std::move(action_ids));
 }
 
 inline void companion_set_focused_actions(std::vector<std::string> action_ids) {
-  for (auto &action_id : action_ids)
-    if (action_id.size() > 96) action_id.clear();
-  const bool should_return_from_subpage =
-    companion_runtime_service().set_focused_actions(std::move(action_ids));
-  if (should_return_from_subpage) companion_subpage_return_requested().store(true);
+  if (companion_set_focused_actions(companion_runtime_service(), std::move(action_ids)))
+    companion_subpage_return_requested().store(true);
 }
 
 inline std::atomic<bool> &companion_subpage_return_requested() {
@@ -407,12 +534,12 @@ inline std::string companion_consume_closed_app_subpage_action() {
 
 inline void companion_set_app_subpage_mode(std::string_view value) {
   using Mode = CompanionAppSubpageMode;
-  companion_runtime_service().set_app_subpage_mode(
+  companion_runtime_registry().set_app_subpage_mode_all(
       value == "focus" ? Mode::FOCUS : value == "manual" ? Mode::MANUAL : Mode::CARD);
 }
 
 inline void companion_set_return_home_on_app_switch(bool enabled) {
-  companion_runtime_service().set_return_home_on_app_switch(enabled);
+  companion_runtime_registry().set_return_home_on_app_switch_all(enabled);
 }
 
 inline bool companion_return_home_on_app_switch() {
@@ -483,25 +610,48 @@ inline bool companion_action_active(const std::string &action_id, bool visual_on
   return companion_action_focused(action_id, visual_only);
 }
 
-inline bool companion_app_subpage_opens_on_press(const std::string &action_id) {
-  const auto mode = companion_runtime_service().app_subpage_mode();
-  return mode == CompanionAppSubpageMode::CARD ? companion_connected() : companion_action_active(action_id);
+inline bool companion_app_subpage_opens_on_press(const std::string &action_id,
+                                                 const std::string &computer_id = "") {
+  auto *found = companion_runtime_for_command(computer_id);
+  if (!found) return false;
+  auto &runtime = *found;
+  const auto mode = runtime.app_subpage_mode();
+  return mode == CompanionAppSubpageMode::CARD
+      ? runtime.connected()
+      : companion_action_focused(runtime.snapshot(), action_id);
 }
 
+// Request IDs must not repeat when the active computer changes.
 inline uint32_t companion_next_request_number() {
-  return ++companion_runtime_service().request_number;
+  static std::atomic<uint32_t> number{0};
+  return ++number;
+}
+
+inline void companion_set_computer_connected(const std::string &computer_id, bool connected) {
+  CompanionRuntimeService *found = computer_id.empty()
+      ? &companion_runtime_registry().primary()
+      : companion_runtime_registry().find_computer(computer_id);
+  if (!found) return;
+  auto &runtime = *found;
+  runtime.set_connected(connected);
+  if (!connected) {
+    companion_cancel_action_result("", computer_id);
+    if (companion_is_active_computer(computer_id))
+      companion_subpage_return_requested().store(true);
+    if (!computer_id.empty() && companion_active_computer() == computer_id)
+      companion_set_active_computer(companion_first_connected_computer());
+  }
+  // Observers reflect whether any computer remains connected, not this one
+  // event, so one computer leaving does not mark the whole connector offline.
+  const bool any_connected = companion_runtime_registry().any_connected();
+  auto &connection_changed = companion_connection_changed_handler();
+  if (connection_changed) connection_changed(any_connected);
+  for (const auto &observer : companion_connection_changed_observers())
+    if (observer) observer(any_connected);
 }
 
 inline void companion_set_connected(bool connected) {
-  companion_runtime_service().set_connected(connected);
-  if (!connected) {
-    companion_cancel_action_result();
-    companion_subpage_return_requested().store(true);
-  }
-  auto &connection_changed = companion_connection_changed_handler();
-  if (connection_changed) connection_changed(connected);
-  for (const auto &observer : companion_connection_changed_observers())
-    if (observer) observer(connected);
+  companion_set_computer_connected("", connected);
 }
 
 inline void register_companion_action_sender(CompanionActionSender sender) {
@@ -850,6 +1000,7 @@ struct CompanionCardRef {
   lv_obj_t *button = nullptr;
   lv_obj_t *text_label = nullptr;
   std::string action_id;
+  std::string computer_id;
   std::string url_config;
   lv_obj_t *value_label = nullptr;
   lv_obj_t *unit_label = nullptr;
@@ -863,6 +1014,7 @@ struct CompanionCardRef {
   bool show_focus = true;
   bool focus_draw_seen = false;
   bool last_drawn_focus = false;
+  std::string required_focus_id{};
   CompanionAction rendered_obs_action{};
   std::string obs_label_alias{};
   lv_obj_t *obs_mute_icon_label = nullptr;
@@ -878,6 +1030,7 @@ struct CompanionSliderRef {
   lv_obj_t *slider = nullptr;
   lv_obj_t *icon_label = nullptr;
   std::string control_id;
+  std::string computer_id;
   bool has_icon_on = false;
   const char *icon_off = nullptr;
   const char *icon_on = nullptr;
@@ -938,6 +1091,7 @@ inline void companion_apply_card_focus(lv_obj_t *button, const std::string &acti
 struct CompanionMuteRef {
   lv_obj_t *button = nullptr;
   std::string control_id;
+  std::string computer_id;
   lv_obj_t *icon_label = nullptr;
   const char *icon_unmuted = nullptr;
   const char *icon_muted = nullptr;
@@ -1013,13 +1167,15 @@ inline void companion_slider_deleted(lv_event_t *event) {
 inline void companion_track_slider(lv_obj_t *slider, const std::string &control_id,
                                    lv_obj_t *icon_label, bool has_icon_on,
                                    const char *icon_off, const char *icon_on,
-                                   lv_obj_t *text_label = nullptr, const std::string &base_label = {}) {
+                                   lv_obj_t *text_label = nullptr, const std::string &base_label = {},
+                                   const std::string &computer_id = "") {
   if (!slider || !companion_volume_control_valid(control_id)) return;
   auto &refs = companion_slider_refs();
   auto existing = std::find_if(refs.begin(), refs.end(), [slider](const CompanionSliderRef &ref) {
     return ref.slider == slider;
   });
-  CompanionSliderRef ref{slider, icon_label, control_id, has_icon_on, icon_off, icon_on, text_label, base_label};
+  CompanionSliderRef ref{slider, icon_label, control_id, computer_id, has_icon_on, icon_off,
+                         icon_on, text_label, base_label};
   if (existing != refs.end()) {
     *existing = std::move(ref);
   } else {
@@ -1076,8 +1232,8 @@ inline void companion_render_obs_mute(const CompanionCardRef &ref, const Compani
     snapshot.connected ? companion_published_action(snapshot, ref.action_id) : nullptr);
   const bool muted = state == OBSCardState::audio_muted;
   const bool live = state == OBSCardState::audio_live;
-  companion_render_mute({ref.button, ref.action_id, ref.obs_mute_icon_label, ref.obs_mute_icon_off,
-                         ref.obs_mute_icon_on}, muted, live);
+  companion_render_mute({ref.button, ref.action_id, ref.computer_id, ref.obs_mute_icon_label,
+                         ref.obs_mute_icon_off, ref.obs_mute_icon_on}, muted, live);
 }
 
 inline void companion_render_value_mute(const CompanionMuteRef &ref, bool available, bool muted,
@@ -1102,8 +1258,10 @@ inline void companion_apply_mute_state(const CompanionMuteRef &ref,
   }
 }
 
-inline void companion_paint_mute_preview(const std::string &control, int value) {
+inline void companion_paint_mute_preview(const std::string &control, int value,
+                                         const std::string &computer_id = "") {
   for (const auto &ref : companion_view_registry().mutes) {
+    if (!computer_id.empty() && ref.computer_id != computer_id) continue;
     if (ref.control_id == control && lv_obj_is_valid(ref.button) &&
         !lv_obj_has_state(ref.button, LV_STATE_DISABLED)) {
       companion_render_value_mute(ref, true, value > 0);
@@ -1135,12 +1293,14 @@ inline bool companion_forget_mute(lv_obj_t *button) {
   return true;
 }
 
-inline std::string companion_tracked_mute_control(lv_obj_t *button, lv_obj_t **text_label = nullptr) {
+inline std::string companion_tracked_mute_control(lv_obj_t *button, lv_obj_t **text_label = nullptr,
+                                                  std::string *computer_id = nullptr) {
   const auto &refs = companion_view_registry().mutes;
   const auto found = std::find_if(refs.begin(), refs.end(), [button](const auto &ref) {
     return ref.button == button;
   });
   if (text_label) *text_label = found == refs.end() ? nullptr : found->text_label;
+  if (computer_id) *computer_id = found == refs.end() ? std::string{} : found->computer_id;
   return found == refs.end() ? std::string{} : found->control_id;
 }
 
@@ -1148,12 +1308,13 @@ inline void companion_track_mute(lv_obj_t *button, const std::string &control_id
                                   lv_obj_t *icon_label = nullptr,
                                   const char *icon_unmuted = nullptr,
                                   const char *icon_muted = nullptr,
-                                  lv_obj_t *text_label = nullptr) {
+                                  lv_obj_t *text_label = nullptr,
+                                  const std::string &computer_id = "") {
   if (!button || !(companion_mute_control_valid(control_id) ||
                    control_id == COMPANION_COUGH_ID || companion_obs_cough_control(control_id))) return;
   companion_forget_mute(button);
   companion_view_registry().mutes.push_back(
-    {button, control_id, icon_label, icon_unmuted, icon_muted, text_label,
+    {button, control_id, computer_id, icon_label, icon_unmuted, icon_muted, text_label,
      text_label ? lv_label_get_text(text_label) : ""});
   lv_obj_add_event_cb(button, companion_mute_deleted, LV_EVENT_DELETE, nullptr);
   companion_request_card_refresh();
@@ -1164,7 +1325,7 @@ inline void companion_setup_mic_mute_detail(lv_obj_t *button, const lv_font_t *f
     if (ref.button != button || !ref.text_label) continue;
     if (!ref.detail_label) {
       ref.detail_label = companion_create_card_detail(button);
-      companion_apply_mute_state(ref, companion_runtime_snapshot());
+      companion_apply_mute_state(ref, companion_runtime_for(ref.computer_id).snapshot());
       set_card_content_disabled(button, lv_obj_has_state(button, LV_STATE_DISABLED));
       sync_card_checked_text_color(button);
     }
@@ -1182,7 +1343,8 @@ inline void companion_track_card(lv_obj_t *button, const std::string &action_id,
                                  const std::string &obs_label_alias = "",
                                  lv_obj_t *obs_mute_icon_label = nullptr,
                                  const char *obs_mute_icon_off = nullptr,
-                                 const char *obs_mute_icon_on = nullptr) {
+                                 const char *obs_mute_icon_on = nullptr,
+                                 const std::string &computer_id = "") {
   if (!button) return;
   auto &refs = companion_card_refs();
   auto existing = std::find_if(refs.begin(), refs.end(), [button](const CompanionCardRef &ref) {
@@ -1193,6 +1355,7 @@ inline void companion_track_card(lv_obj_t *button, const std::string &action_id,
     if (existing->action_id != action_id || existing->url_config != url_config)
       existing->resolved_default_label.clear();
     existing->action_id = action_id;
+    existing->computer_id = computer_id;
     existing->url_config = url_config;
     existing->dynamic_default_label = dynamic_default_label;
     existing->obs_label_alias = obs_label_alias;
@@ -1201,11 +1364,14 @@ inline void companion_track_card(lv_obj_t *button, const std::string &action_id,
     existing->obs_mute_icon_label = obs_mute_icon_label;
     existing->obs_mute_icon_off = obs_mute_icon_off;
     existing->obs_mute_icon_on = obs_mute_icon_on;
-    if (obs_mute_icon_label) companion_render_obs_mute(*existing, companion_runtime_snapshot());
     existing->show_focus = show_focus;
-    if (dynamic_default_label) {
-      (void) companion_default_action_label_with_fallback(
-        action_id, url_config, existing->resolved_default_label);
+    if (obs_mute_icon_label || dynamic_default_label) {
+      const auto state = companion_runtime_for(existing->computer_id).snapshot();
+      if (obs_mute_icon_label) companion_render_obs_mute(*existing, state);
+      if (dynamic_default_label) {
+        (void) companion_default_action_label_with_fallback(
+          action_id, url_config, existing->resolved_default_label, &state);
+      }
     }
     // The periodic config tracker does not have the label pointer. Preserve
     // the pointer registered while the card was rendered so state updates can
@@ -1221,18 +1387,21 @@ inline void companion_track_card(lv_obj_t *button, const std::string &action_id,
     existing->unit_label = nullptr;
     return;
   }
+  CompanionRuntimeSnapshot state;
+  if (dynamic_default_label || obs_mute_icon_label)
+    state = companion_runtime_for(computer_id).snapshot();
   std::string resolved_default_label;
   if (dynamic_default_label) {
     (void) companion_default_action_label_with_fallback(
-      action_id, url_config, resolved_default_label);
+      action_id, url_config, resolved_default_label, &state);
   }
-  refs.push_back({button, text_label, action_id, url_config, nullptr, nullptr, "", "", 0, false,
-                  false, dynamic_default_label, resolved_default_label, show_focus});
+  refs.push_back({button, text_label, action_id, computer_id, url_config, nullptr, nullptr, "",
+                  "", 0, false, false, dynamic_default_label, resolved_default_label, show_focus});
   refs.back().obs_label_alias = obs_label_alias;
   refs.back().obs_mute_icon_label = obs_mute_icon_label;
   refs.back().obs_mute_icon_off = obs_mute_icon_off;
   refs.back().obs_mute_icon_on = obs_mute_icon_on;
-  if (obs_mute_icon_label) companion_render_obs_mute(refs.back(), companion_runtime_snapshot());
+  if (obs_mute_icon_label) companion_render_obs_mute(refs.back(), state);
   lv_obj_add_event_cb(button, companion_card_deleted, LV_EVENT_DELETE, nullptr);
   lv_obj_add_event_cb(button, companion_card_focus_drawn, LV_EVENT_DRAW_POST_END, nullptr);
 }
@@ -1390,7 +1559,7 @@ inline void companion_setup_obs_detail(lv_obj_t *button, const lv_font_t *font, 
       const auto *detail_font = lv_obj_get_style_text_font(ref.obs_detail, LV_PART_MAIN);
       lv_obj_set_height(ref.obs_detail, lv_font_get_line_height(detail_font));
     }
-    const auto snapshot = companion_runtime_snapshot();
+    const auto snapshot = companion_runtime_for(ref.computer_id).snapshot();
     const auto live = companion_default_action_label(ref.action_id, "", &snapshot);
     const std::string label = companion_obs_scene_card(ref.action_id) ? lv_label_get_text(ref.text_label)
       : companion_obs_control_label(ref.action_id, ref.obs_label_alias, live, &snapshot);
@@ -1423,14 +1592,16 @@ inline void companion_track_metric_card(lv_obj_t *button, lv_obj_t *value_label,
                                         lv_obj_t *unit_label, const std::string &metric_key,
                                         const std::string &unit, int precision,
                                         bool preserve_navigation = false,
-                                        bool metric_description = true) {
+                                        bool metric_description = true,
+                                        const std::string &computer_id = "") {
   if (!button || !companion_metric_key_valid(metric_key)) return;
   auto &refs = companion_card_refs();
   auto existing = std::find_if(refs.begin(), refs.end(), [button](const CompanionCardRef &ref) {
     return ref.button == button;
   });
-  CompanionCardRef value{button, nullptr, "", "", value_label, unit_label, metric_key, unit,
-                         std::max(0, std::min(2, precision)), metric_description, preserve_navigation};
+  CompanionCardRef value{button, nullptr, "", computer_id, "", value_label, unit_label, metric_key,
+                         unit, std::max(0, std::min(2, precision)), metric_description,
+                         preserve_navigation};
   if (existing != refs.end()) {
     *existing = std::move(value);
   } else {
@@ -1440,10 +1611,59 @@ inline void companion_track_metric_card(lv_obj_t *button, lv_obj_t *value_label,
   companion_request_card_refresh();
 }
 
+inline bool companion_required_focus_ready(const std::string &required,
+                                           const CompanionRuntimeSnapshot &snapshot) {
+  return required.empty() || companion_action_focused(snapshot, required);
+}
+
+inline void companion_require_card_focus(lv_obj_t *button, const std::string &required) {
+  for (auto &ref : companion_card_refs()) {
+    if (ref.button != button) continue;
+    ref.required_focus_id = required;
+    const auto snapshot = companion_runtime_for(ref.computer_id).snapshot();
+    const bool available = companion_action_available(snapshot, ref.action_id) &&
+      companion_required_focus_ready(required, snapshot);
+    if (lv_obj_has_state(button, LV_STATE_DISABLED) == available)
+      set_card_disabled_state(button, !available);
+    return;
+  }
+}
+
+// One snapshot copy per distinct computer per refresh keeps a multi-computer
+// dashboard from copying every catalogue for every card.
+class CompanionSnapshotCache {
+ public:
+  const CompanionRuntimeSnapshot &get(const std::string &computer_id,
+                                      const CompanionRuntimeSnapshot &fallback) {
+    if (computer_id.empty()) return fallback;
+    for (size_t index = 0; index < this->count_; index++)
+      if (this->ids_[index] == computer_id) return this->snapshots_[index];
+    if (this->count_ < this->snapshots_.size()) {
+      this->ids_[this->count_] = computer_id;
+      this->snapshots_[this->count_] = companion_runtime_for(computer_id).snapshot();
+      return this->snapshots_[this->count_++];
+    }
+    return fallback;
+  }
+
+ private:
+  std::array<std::string, COMPANION_MAX_COMPUTER_RUNTIMES> ids_{};
+  std::array<CompanionRuntimeSnapshot, COMPANION_MAX_COMPUTER_RUNTIMES> snapshots_{};
+  size_t count_{0};
+};
+
 inline void companion_refresh_card_focus(const CompanionRuntimeSnapshot &snapshot) {
+  CompanionSnapshotCache cache;
   for (auto &ref : companion_card_refs()) {
     if (!ref.button || !lv_obj_is_valid(ref.button) || !ref.metric_key.empty()) continue;
-    companion_apply_card_focus(ref.button, ref.action_id, ref.url_config, ref.show_focus, &snapshot);
+    const CompanionRuntimeSnapshot &state = cache.get(ref.computer_id, snapshot);
+    if (!ref.required_focus_id.empty()) {
+      const bool available = companion_action_available(state, ref.action_id) &&
+        companion_required_focus_ready(ref.required_focus_id, state);
+      if (lv_obj_has_state(ref.button, LV_STATE_DISABLED) == available)
+        set_card_disabled_state(ref.button, !available);
+    }
+    companion_apply_card_focus(ref.button, ref.action_id, ref.url_config, ref.show_focus, &state);
   }
 }
 
@@ -1476,7 +1696,10 @@ inline void companion_render_slider(const CompanionSliderRef &ref, const Compani
   }
 }
 
-inline void companion_refresh_action_card(CompanionCardRef &ref, const CompanionRuntimeSnapshot &snapshot) {
+inline void companion_refresh_action_card(CompanionCardRef &ref,
+                                          const CompanionRuntimeSnapshot &fallback,
+                                          CompanionSnapshotCache &cache) {
+  const CompanionRuntimeSnapshot &snapshot = cache.get(ref.computer_id, fallback);
   if (ref.text_label && lv_obj_is_valid(ref.text_label) &&
       (ref.dynamic_default_label || ref.obs_detail)) {
     // Keep the last friendly name if a disconnected Mac no longer supplies it.
@@ -1503,20 +1726,24 @@ inline void companion_refresh_action_card(CompanionCardRef &ref, const Companion
 }
 
 inline void companion_refresh_cards_if_requested() {
-  const bool full_refresh = companion_card_refresh_requested().exchange(false);
-  const bool focus_refresh = companion_runtime_service().consume_focus_refresh_request();
+  const bool full_refresh = companion_runtime_registry().consume_refresh_request();
+  const bool focus_refresh = companion_runtime_registry().consume_focus_refresh_request();
   if (!full_refresh && !focus_refresh) return;
   auto &refs = companion_card_refs();
-  const auto snapshot = companion_runtime_snapshot();
+  // Unbound cards keep following the primary computer, matching their commands;
+  // global surfaces still read the active computer.
+  const auto snapshot = companion_runtime_for("").snapshot();
   if (!full_refresh) {
     companion_refresh_card_focus(snapshot);
     return;
   }
+  CompanionSnapshotCache cache;
   // Keep the command and its label in sync before lower-priority card work.
   for (auto &ref : refs) {
     if (ref.action_id != "obs.take" || !ref.button || !lv_obj_is_valid(ref.button)) continue;
-    companion_set_rendered_obs_action(ref, snapshot);
-    companion_refresh_action_card(ref, snapshot);
+    const auto &state = cache.get(ref.computer_id, snapshot);
+    companion_set_rendered_obs_action(ref, state);
+    companion_refresh_action_card(ref, snapshot, cache);
   }
   for (auto it = refs.begin(); it != refs.end();) {
     if (!it->button || !lv_obj_is_valid(it->button)) {
@@ -1528,8 +1755,9 @@ inline void companion_refresh_cards_if_requested() {
       continue;
     }
     if (!it->metric_key.empty()) {
+      const auto &state = cache.get(it->computer_id, snapshot);
       float value = NAN;
-      const bool available = companion_metric_value(snapshot, it->metric_key, value);
+      const bool available = companion_metric_value(state, it->metric_key, value);
       if (it->value_label) {
         char buffer[32];
         if (!available) snprintf(buffer, sizeof(buffer), "--");
@@ -1537,7 +1765,7 @@ inline void companion_refresh_cards_if_requested() {
         else if (it->precision == 1) snprintf(buffer, sizeof(buffer), "%.1f", value);
         else snprintf(buffer, sizeof(buffer), "%.0f", value);
         std::string label = it->metric_key.rfind("stat.ip_address", 0) == 0
-          ? companion_network_address(snapshot, it->metric_key) : buffer;
+          ? companion_network_address(state, it->metric_key) : buffer;
         if (available && !it->unit_label) {
           label += (it->metric_unit == "%" ? "" : " ") + it->metric_unit;
           const char *suffix = it->metric_description ? companion_metric_suffix_key(it->metric_key) : "";
@@ -1554,66 +1782,94 @@ inline void companion_refresh_cards_if_requested() {
       // Match the unavailable state used by other cards when their backing
       // connection is offline. A missing optional metric (for example,
       // battery on a desktop Mac) remains enabled while Companion is online.
-      const bool disabled = companion_metric_card_should_disable(snapshot.connected, it->preserve_navigation);
+      const bool disabled = companion_metric_card_should_disable(state.connected, it->preserve_navigation);
       if (lv_obj_has_state(it->button, LV_STATE_DISABLED) != disabled)
         set_card_disabled_state(it->button, disabled);
       ++it;
       continue;
     }
-    if (companion_obs_tokenized_card(it->action_id)) companion_set_rendered_obs_action(*it, snapshot);
-    companion_refresh_action_card(*it, snapshot);
+    if (companion_obs_tokenized_card(it->action_id))
+      companion_set_rendered_obs_action(*it, cache.get(it->computer_id, snapshot));
+    companion_refresh_action_card(*it, snapshot, cache);
     ++it;
   }
   for (const auto &ref : companion_view_registry().mutes)
-    companion_apply_mute_state(ref, snapshot);
+    companion_apply_mute_state(ref, cache.get(ref.computer_id, snapshot));
   auto &sliders = companion_slider_refs();
   for (auto it = sliders.begin(); it != sliders.end();) {
     if (!it->slider || !lv_obj_is_valid(it->slider)) {
       it = sliders.erase(it);
       continue;
     }
-    companion_render_slider(*it, snapshot);
+    companion_render_slider(*it, cache.get(it->computer_id, snapshot));
     ++it;
   }
 }
 #else
 inline void companion_track_card(void *, const std::string &, const std::string & = "",
                                  void * = nullptr, bool = false, bool = true, const std::string & = "",
-                                 void * = nullptr, const char * = nullptr, const char * = nullptr) {}
+                                 void * = nullptr, const char * = nullptr, const char * = nullptr,
+                                 const std::string & = {}) {}
 inline void companion_track_metric_card(void *, void *, void *, const std::string &,
-                                        const std::string &, int) {}
+                                        const std::string &, int, bool = false, bool = true,
+                                        const std::string & = {}) {}
 inline void companion_setup_obs_detail(void *, const void *, void * = nullptr) {}
 inline void companion_setup_mic_mute_detail(void *, const void *) {}
 inline void companion_apply_card_focus(void *, const std::string &, const std::string & = "", bool = true) {}
 inline bool companion_forget_mute(void *) { return false; }
 inline void companion_track_mute(void *, const std::string &, void * = nullptr,
-                                 const char * = nullptr, const char * = nullptr, void * = nullptr) {}
+                                 const char * = nullptr, const char * = nullptr, void * = nullptr,
+                                 const std::string & = {}) {}
 inline void companion_track_slider(void *, const std::string &, void *, bool,
                                    const char *, const char *, void * = nullptr,
-                                   const std::string & = {}) {}
+                                   const std::string & = {}, const std::string & = {}) {}
 inline void companion_refresh_cards_if_requested() {}
-inline void companion_paint_mute_preview(const std::string &, int) {}
+inline void companion_paint_mute_preview(const std::string &, int, const std::string & = {}) {}
+inline void companion_require_card_focus(void *, const std::string &) {}
 #endif
 
-inline bool companion_toggle_mute(const std::string &control_id) {
+inline bool companion_toggle_mute(const std::string &control_id,
+                                  const std::string &computer_id = "") {
+  auto *found = companion_runtime_for_command(computer_id);
+  if (!found) return false;
+  auto &runtime = *found;
   int value = 0;
-  if (!companion_mute_control_valid(control_id) || !companion_connected() ||
-      !companion_value(control_id, value) || !companion_value_sender()) return false;
-  const int next = companion_runtime_service().displayed_mute_value(control_id, value) > 0 ? 0 : 100;
+  if (!companion_mute_control_valid(control_id) || !runtime.connected() ||
+      !runtime.value(control_id, value) || !runtime.value_sender) return false;
+  const int next = runtime.displayed_mute_value(control_id, value) > 0 ? 0 : 100;
   const auto request = "mute-" + std::to_string(companion_next_request_number());
-  if (!companion_value_sender()(control_id, next, request)) return false;
-  companion_runtime_service().preview_mute(control_id, next, request);
-  companion_paint_mute_preview(control_id, next);
+  if (!computer_id.empty()) companion_set_active_computer(computer_id);
+  if (!runtime.value_sender(control_id, next, request)) return false;
+  runtime.preview_mute(control_id, next, request);
+  companion_paint_mute_preview(control_id, next, computer_id);
   return true;
 }
 
 inline bool invoke_companion_action(const std::string &action_id,
                                     const std::string &request_id,
-                                    const std::string &folder_open_behavior = "new_window") {
+                                    const std::string &folder_open_behavior = "new_window",
+                                    const std::string &computer_id = "") {
+  auto *found = companion_runtime_for_command(computer_id);
+  if (!found) return false;
+  auto &runtime = *found;
   if (companion_obs_status_card(action_id) ||
-      !companion_action_available(action_id) || !companion_action_sender()) return false;
+      !companion_action_available(runtime.snapshot(), action_id) || !runtime.action_sender)
+    return false;
   if (companion_scoped_shortcut(action_id)) return false;
-  return companion_action_sender()(action_id, request_id, folder_open_behavior, {});
+  if (!computer_id.empty()) companion_set_active_computer(computer_id);
+  return runtime.action_sender(action_id, request_id, folder_open_behavior, {});
+}
+
+// Firmware-owned action outside the user-facing catalogue. The Windows
+// Companion validates the id and only ends a call when Teams is its mic source.
+inline bool companion_end_active_call(const std::string &computer_id = "") {
+  auto *found = companion_runtime_for_command(computer_id);
+  if (!found) return false;
+  auto &runtime = *found;
+  if (!runtime.connected() || !runtime.action_sender) return false;
+  if (!computer_id.empty()) companion_set_active_computer(computer_id);
+  const auto request = "endcall-" + std::to_string(companion_next_request_number());
+  return runtime.action_sender("teams.call.end", request, "new_window", {});
 }
 
 inline std::string companion_shortcut_preset_app(const std::string &preset) {
@@ -1636,17 +1892,22 @@ inline std::string companion_app_scoped_shortcut(const std::string &action_id) {
 }
 
 inline bool companion_activate_then(const std::string &app, const std::string &request,
-                                    uint32_t deadline, CompanionActionResultHandler success) {
-  if (!companion_expect_action_result(request, std::move(success), deadline)) return false;
-  if (invoke_companion_action(app, request)) return true;
+                                    uint32_t deadline, CompanionActionResultHandler success,
+                                    const std::string &computer_id = "") {
+  if (!companion_expect_action_result(request, std::move(success), deadline, computer_id))
+    return false;
+  if (invoke_companion_action(app, request, "new_window", computer_id)) return true;
   companion_cancel_action_result(request);
   return false;
 }
 
 // Catalogue templates can match multiple installed apps. Use the focused
 // installation when possible, and only launch if there is a single match.
-inline std::string companion_shortcut_launch_target(const std::string &app) {
-  const auto mac = companion_runtime_snapshot();
+inline std::string companion_shortcut_launch_target(const std::string &app,
+                                                    const std::string &computer_id = "") {
+  auto *found = companion_runtime_for_command(computer_id);
+  if (!found) return {};
+  const auto mac = found->snapshot();
   if (companion_action_available(mac, app)) return app;
   const bool premiere = app == "com.adobe.PremierePro";
   if (!premiere && app != "com.apple.Safari.WebApp") return {};
@@ -1669,41 +1930,63 @@ inline bool invoke_companion_action_for_app(const std::string &action_id,
                                             const std::string &subpage_application,
                                             const std::string &folder_open_behavior,
                                             const std::string &preset,
-                                            uint32_t now) {
+                                            uint32_t now,
+                                            const std::string &computer_id = "") {
+  auto *found = companion_runtime_for_command(computer_id);
+  if (!found) return false;
+  auto &runtime = *found;
   auto app = companion_shortcut_preset_app(preset);
   if (app.empty() && companion_shortcut_action_valid(action_id)) app = subpage_application;
-  if (app.empty()) return invoke_companion_action(action_id, request_id, folder_open_behavior);
+  if (app.empty())
+    return invoke_companion_action(action_id, request_id, folder_open_behavior, computer_id);
 
   const auto shortcut = companion_app_scoped_shortcut(action_id);
-  if (shortcut.empty() || !companion_action_available(shortcut) || !companion_action_sender()) return false;
-  const auto target = companion_shortcut_launch_target(app);
+  if (shortcut.empty() || !companion_action_available(runtime.snapshot(), shortcut) ||
+      !runtime.action_sender) return false;
+  const auto target = companion_shortcut_launch_target(app, computer_id);
   if (target.empty()) return false;
 
-  // Use confirmed focus for subpage shortcuts. The companion also checks
-  // that the approved target is still frontmost before replay.
-  if (target == subpage_application && companion_action_focused(target))
-    return companion_action_sender()(shortcut, request_id, "new_window", target);
+  if (!computer_id.empty()) companion_set_active_computer(computer_id);
+  // Use confirmed focus for subpage shortcuts. The computer also checks that
+  // the approved target is still frontmost before replay.
+  if (target == subpage_application &&
+      companion_action_focused(runtime.snapshot(), target))
+    return runtime.action_sender(shortcut, request_id, "new_window", target);
 
-  return companion_activate_then(target, request_id, now + 10000, [shortcut, request_id, target] {
-    if (companion_action_available(shortcut) && companion_action_sender())
-      companion_action_sender()(shortcut, request_id + "-keys", "new_window", target);
-  });
+  return companion_activate_then(target, request_id, now + 10000,
+    [shortcut, request_id, target, computer_id] {
+      auto *found = companion_runtime_for_command(computer_id);
+      if (!found) return;
+      auto &runtime = *found;
+      if (companion_action_available(runtime.snapshot(), shortcut) && runtime.action_sender)
+        runtime.action_sender(shortcut, request_id + "-keys", "new_window", target);
+    }, computer_id);
 }
 
 inline bool invoke_companion_url(const std::string &url_config,
                                  const std::string &request_id,
-                                 bool new_window = false) {
+                                 bool new_window = false,
+                                 const std::string &computer_id = "") {
   const std::string encoded_url = companion_encoded_url(url_config);
-  if (encoded_url.empty() || !companion_connected() || !companion_url_sender()) return false;
-  return companion_url_sender()(encoded_url, request_id, new_window);
+  auto *found = companion_runtime_for_command(computer_id);
+  if (!found) return false;
+  auto &runtime = *found;
+  if (encoded_url.empty() || !runtime.connected() || !runtime.url_sender) return false;
+  if (!computer_id.empty()) companion_set_active_computer(computer_id);
+  return runtime.url_sender(encoded_url, request_id, new_window);
 }
 
 inline bool invoke_companion_value(const std::string &control_id, int value,
-                                   const std::string &request_id) {
-  if (!companion_connected() || !companion_writable_value_control_valid(control_id) ||
-      value < 0 || value > 100 || !companion_value_sender() ||
+                                   const std::string &request_id,
+                                   const std::string &computer_id = "") {
+  auto *found = companion_runtime_for_command(computer_id);
+  if (!found) return false;
+  auto &runtime = *found;
+  if (!runtime.connected() || !companion_writable_value_control_valid(control_id) ||
+      value < 0 || value > 100 || !runtime.value_sender ||
       (companion_mute_control_valid(control_id) && value != 0 && value != 100)) return false;
-  return companion_value_sender()(control_id, value, request_id);
+  if (!computer_id.empty()) companion_set_active_computer(computer_id);
+  return runtime.value_sender(control_id, value, request_id);
 }
 
 #ifdef USE_WEBSERVER
@@ -1762,7 +2045,14 @@ inline void companion_send_shortcut_catalogue_page(httpd_req_t *req) {
     httpd_resp_send_err(req, HTTPD_400_BAD_REQUEST, "Invalid shortcut catalogue page");
     return;
   }
-  auto &runtime = companion_runtime_service();
+  char computer_text[17] = {};
+  if (httpd_query_key_value(query, "computer", computer_text, sizeof(computer_text)) != ESP_OK)
+    computer_text[0] = '\0';
+  const std::string requested_computer = computer_text;
+  const bool valid_computer = requested_computer.size() != 16 ||
+      std::all_of(requested_computer.begin(), requested_computer.end(),
+                  [](char ch) { return std::isxdigit(static_cast<unsigned char>(ch)); });
+  auto &runtime = companion_runtime_for(valid_computer ? requested_computer : std::string{});
   auto result = runtime.shortcut_catalogue.read(app_id, page, esphome::millis());
   using Status = CompanionShortcutCatalogue::Status;
   httpd_resp_set_hdr(req, "Cache-Control", "no-store");
@@ -1819,7 +2109,20 @@ class CompanionActionsHandler : public esphome::web_server_idf::AsyncWebHandler 
     }
     const bool networks = requested_url == "/companion/networks";
     const bool definitions = requested_url == "/companion/definitions";
-    auto &runtime = companion_runtime_service();
+    // Catalogue pages can be requested for a specific paired computer. An
+    // omitted ID keeps the primary computer's behaviour.
+    char query_text[96] = {};
+    char computer_text[17] = {};
+    httpd_req_t *query_req = *request;
+    if (httpd_req_get_url_query_str(query_req, query_text, sizeof(query_text)) == ESP_OK)
+      httpd_query_key_value(query_text, "computer", computer_text, sizeof(computer_text));
+    std::string requested_computer = computer_text;
+    if (!requested_computer.empty() &&
+        (requested_computer.size() != 16 ||
+         !std::all_of(requested_computer.begin(), requested_computer.end(),
+                      [](char ch) { return std::isxdigit(static_cast<unsigned char>(ch)); })))
+      requested_computer.clear();
+    auto &runtime = companion_runtime_for(requested_computer);
     const bool connected = runtime.connected();
     if (definitions) {
       constexpr size_t page_size = 4;
@@ -1872,12 +2175,25 @@ class CompanionActionsHandler : public esphome::web_server_idf::AsyncWebHandler 
           "\",\"label\":\"" + companion_json_escape(network.label) + "\"}";
       }
     }
-    if (connected && !networks && !definitions) {
-      for (const auto &action : runtime.actions()) {
-        if (!first) json += ",";
-        first = false;
-        json += "{\"id\":\"" + companion_json_escape(action.id) +
-          "\",\"label\":\"" + companion_json_escape(action.label) + "\"";
+    if (!networks && !definitions) {
+      const CompanionPairingSnapshot pairing = companion_pairing_provider()
+          ? companion_pairing_provider()() : CompanionPairingSnapshot{};
+      std::vector<CompanionPairedComputer> computers = pairing.computers;
+      if (computers.empty() && runtime.connected())
+        computers.push_back({"", "", true});
+      for (const auto &computer : computers) {
+        auto &computer_runtime = computer.id.empty() ? runtime : companion_runtime_for(computer.id);
+        if (!computer_runtime.connected()) continue;
+        const std::string computer_id = computer.id;
+        for (const auto &action : computer_runtime.actions()) {
+          if (!first) json += ",";
+          first = false;
+          json += "{\"id\":\"" + companion_json_escape(action.id) +
+            "\",\"label\":\"" + companion_json_escape(action.label) + "\"" +
+            ",\"computer\":\"" + companion_json_escape(computer_id) +
+            "\",\"computerName\":\"" + companion_json_escape(computer.name) +
+            "\",\"primary\":" +
+            (computer_id == companion_primary_computer() ? "true" : "false");
         if (action.obs_state != OBSCardState::unknown)
           json += std::string(",\"obsState\":\"") + obs_card_presentation(action.obs_state).id + "\"";
         if (!action.obs_detail.empty()) json += ",\"obsDetail\":\"" + companion_json_escape(action.obs_detail) + "\"";
@@ -1898,7 +2214,8 @@ class CompanionActionsHandler : public esphome::web_server_idf::AsyncWebHandler 
           json += ",\"iconHash\":\"" + encoded_hash + "\"";
         }
 #endif
-        json += "}";
+          json += "}";
+        }
       }
     }
     if (!definitions) json += "]";
@@ -1965,8 +2282,18 @@ class CompanionFocusTargetsHandler final : public esphome::web_server_idf::Async
 };
 
 inline std::string companion_pairing_json(const CompanionPairingSnapshot &snapshot) {
-  const std::string pairing_code = !snapshot.paired && snapshot.active
-      ? snapshot.pairing_code : "";
+  const std::string pairing_code = snapshot.active ? snapshot.pairing_code : "";
+  std::string computers = "[";
+  bool first = true;
+  for (const auto &computer : snapshot.computers) {
+    if (!first) computers += ",";
+    first = false;
+    computers += "{\"id\":\"" + companion_json_escape(computer.id) + "\",\"name\":\"" +
+        companion_json_escape(computer.name) + "\",\"connected\":" +
+        (computer.connected ? "true" : "false") + ",\"primary\":" +
+        (computer.id == companion_primary_computer() ? "true" : "false") + "}";
+  }
+  computers += "]";
   return std::string("{\"available\":") + (snapshot.available ? "true" : "false") +
     ",\"active\":" + (snapshot.active ? "true" : "false") +
     ",\"paired\":" + (snapshot.paired ? "true" : "false") +
@@ -1975,7 +2302,8 @@ inline std::string companion_pairing_json(const CompanionPairingSnapshot &snapsh
     ",\"system_metrics_generation\":" + std::to_string(snapshot.system_metrics_generation) +
     ",\"code_length\":" + std::to_string(COMPANION_PAIRING_CODE_LENGTH) +
     ",\"pairing_code\":\"" + companion_json_escape(pairing_code) + "\",\"mdns_name\":\"" +
-    companion_json_escape(snapshot.mdns_name) + "\"}";
+    companion_json_escape(snapshot.mdns_name) + "\",\"can_add\":" +
+    (snapshot.can_add_computer ? "true" : "false") + ",\"computers\":" + computers + "}";
 }
 
 class CompanionPairingHandler : public esphome::web_server_idf::AsyncWebHandler {
@@ -1991,13 +2319,15 @@ class CompanionPairingHandler : public esphome::web_server_idf::AsyncWebHandler 
       companion_authorize_web_request(request),
       [] { return companion_pairing_provider() ? companion_pairing_provider()() : CompanionPairingSnapshot{}; },
       [] {
-        auto &begin = companion_runtime_service().begin_pairing;
+        auto &begin = companion_begin_pairing_handler();
         if (begin) begin();
-      });
+      },
+      request->arg("add") == "1");
     if (!result) return;
     const auto &snapshot = *result;
-    if (companion_pairing_can_show_on_display(snapshot) && request->arg("show_on_display") == "1") {
-      const auto &show = companion_runtime_service().request_pairing_display;
+    if (companion_pairing_can_show_on_page_load(snapshot) &&
+        request->arg("show_on_display") == "1") {
+      const auto &show = companion_request_pairing_display_handler();
       if (show) show();
     }
     const std::string json = companion_pairing_json(snapshot);
@@ -2019,8 +2349,8 @@ class CompanionPairingResetHandler : public esphome::web_server_idf::AsyncWebHan
 
   void handleRequest(esphome::web_server_idf::AsyncWebServerRequest *request) override {
     if (!companion_authorize_web_request(request)) return;
-    const auto &runtime = companion_runtime_service();
-    if (!runtime.reset_and_begin_pairing || !companion_pairing_provider() || !companion_pairing_provider()().available) {
+    const auto &reset_pairing = companion_reset_pairing_handler();
+    if (!reset_pairing || !companion_pairing_provider() || !companion_pairing_provider()().available) {
       httpd_req_t *raw_request = *request;
       httpd_resp_set_status(raw_request, "404 Not Found");
       httpd_resp_set_type(raw_request, "text/plain");
@@ -2028,15 +2358,40 @@ class CompanionPairingResetHandler : public esphome::web_server_idf::AsyncWebHan
       return;
     }
     httpd_req_t *raw_request = *request;
-    if (!runtime.reset_and_begin_pairing()) {
+    if (!reset_pairing()) {
       httpd_resp_send_err(raw_request, HTTPD_500_INTERNAL_SERVER_ERROR, "Could not reset Companion pairing");
       return;
     }
-    if (runtime.request_pairing_display) runtime.request_pairing_display();
+    if (auto display = companion_request_pairing_display_handler()) display();
     httpd_resp_set_status(raw_request, "200 OK");
     httpd_resp_set_type(raw_request, "application/json");
     httpd_resp_set_hdr(raw_request, "Cache-Control", "no-store");
     httpd_resp_send(raw_request, "{\"reset\":true}", HTTPD_RESP_USE_STRLEN);
+  }
+};
+
+class CompanionPairingForgetHandler : public esphome::web_server_idf::AsyncWebHandler {
+ public:
+  bool canHandle(esphome::web_server_idf::AsyncWebServerRequest *request) const override {
+    if (request->method() != HTTP_POST) return false;
+    char url_buf[esphome::web_server_idf::AsyncWebServerRequest::URL_BUF_SIZE];
+    return request->url_to(url_buf) == "/companion/pairing/forget";
+  }
+
+  void handleRequest(esphome::web_server_idf::AsyncWebServerRequest *request) override {
+    if (!companion_authorize_web_request(request)) return;
+    const std::string computer = request->arg("computer");
+    const bool valid = computer.size() == 16 &&
+        std::all_of(computer.begin(), computer.end(),
+                    [](char ch) { return std::isxdigit(static_cast<unsigned char>(ch)); });
+    httpd_req_t *raw_request = *request;
+    const auto &revoke = companion_revoke_computer_handler();
+    const bool removed = valid && revoke && revoke(computer);
+    httpd_resp_set_status(raw_request, removed ? "200 OK" : "404 Not Found");
+    httpd_resp_set_type(raw_request, "application/json");
+    httpd_resp_set_hdr(raw_request, "Cache-Control", "no-store");
+    const char *body = removed ? "{\"forgot\":true}" : "{\"forgot\":false}";
+    httpd_resp_send(raw_request, body, HTTPD_RESP_USE_STRLEN);
   }
 };
 
@@ -2050,7 +2405,7 @@ class CompanionAppIconCacheClearHandler : public esphome::web_server_idf::AsyncW
 
   void handleRequest(esphome::web_server_idf::AsyncWebServerRequest *request) override {
     if (!companion_authorize_web_request(request)) return;
-    auto &clear_cache = companion_runtime_service().clear_app_icon_cache;
+    auto &clear_cache = companion_clear_app_icon_cache_handler();
     const bool cleared = clear_cache && clear_cache();
     httpd_req_t *raw_request = *request;
     httpd_resp_set_status(raw_request, cleared ? "200 OK" : "503 Service Unavailable");
@@ -2069,6 +2424,7 @@ inline void register_companion_actions_endpoint(
   server.addHandler(new CompanionFocusTargetsHandler());
   server.addHandler(new CompanionPairingHandler());
   server.addHandler(new CompanionPairingResetHandler());
+  server.addHandler(new CompanionPairingForgetHandler());
   server.addHandler(new CompanionAppIconCacheClearHandler());
   registered = true;
 }

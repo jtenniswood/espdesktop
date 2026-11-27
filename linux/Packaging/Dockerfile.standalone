@@ -1,0 +1,10 @@
+# Build image for the Linux companion's portable PyInstaller executable.
+# Debian bookworm keeps the resulting binary compatible with Debian 12 and
+# newer Ubuntu releases while still providing a recent PyQt6 wheel.
+FROM python:3.13-bookworm
+
+RUN pip install --no-cache-dir \
+    pyinstaller==6.16.0 \
+    PyQt6==6.10.2
+
+WORKDIR /src

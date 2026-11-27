@@ -1,5 +1,5 @@
 {
-  "version": 24,
+  "version": 25,
   "protocol": {
     "version": 4,
     "path": "/companion/v4",
@@ -31,6 +31,18 @@
             "type": "string",
             "minLength": 1,
             "maxLength": 16
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 96,
+            "optional": true
+          },
+          "clientId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 64,
+            "optional": true
           }
         },
         "states": [
@@ -47,6 +59,18 @@
             "minLength": 1,
             "maxLength": 64,
             "pattern": "hex64"
+          },
+          "computerId": {
+            "type": "string",
+            "minLength": 16,
+            "maxLength": 16,
+            "optional": true
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 96,
+            "optional": true
           }
         },
         "states": [
@@ -73,6 +97,12 @@
             "minLength": 1,
             "maxLength": 64,
             "pattern": "hex64"
+          },
+          "computerId": {
+            "type": "string",
+            "minLength": 16,
+            "maxLength": 16,
+            "optional": true
           }
         },
         "states": [
@@ -88,6 +118,12 @@
             "type": "integer",
             "minimum": 1,
             "maximum": 4294967295
+          },
+          "computerId": {
+            "type": "string",
+            "minLength": 16,
+            "maxLength": 16,
+            "optional": true
           },
           "usbEditor": {
             "type": "boolean",
@@ -1078,7 +1114,9 @@
     "credentialStorage": "keychain",
     "certificatePolicy": "trust_on_first_pair_then_pin",
     "transport": "tls_websocket",
-    "browserAuthentication": "configured_device_web_auth"
+    "browserAuthentication": "configured_device_web_auth",
+    "maximumPairedComputers": 4,
+    "pairedComputerIdentity": "display_assigned"
   },
   "obsOutputStatusIcons": {
     "Idle": ["Stop Circle", "Broadcast Off", "Video Off"],

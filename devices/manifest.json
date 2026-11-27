@@ -1625,7 +1625,10 @@
             "screen_schedule_clock_default_brightness": "\"10\"",
             "button_radius": "8px"
           },
-          "deviceFontPackageKey": "fonts_device"
+          "deviceFontPackageKey": "fonts_device",
+          "extraPackages": {
+            "ha_actions": "!include ../../common/addon/ha_actions.yaml"
+          }
         }
       }
     }

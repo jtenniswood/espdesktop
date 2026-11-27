@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Name=EspDesktop Companion
+Comment=Control an EspDesktop display from this Linux desktop
+Exec=espdesktop-companion
+Icon=espdesktop-companion
+Terminal=false
+Categories=Utility;
+Keywords=EspDesktop;display;companion;KDE;
+StartupNotify=true

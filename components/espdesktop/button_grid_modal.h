@@ -50,6 +50,7 @@ inline ControlModalDefinition control_modal_definition(ControlModalKind kind) {
       return {ControlModalPresentation::TABBED_CONTROL, ControlModalChrome::BACK,
               ControlModalDismissPolicy::DISMISS};
     case ControlModalKind::OBS_OUTPUT_CONFIRMATION:
+    case ControlModalKind::CALL_CONFIRMATION:
     case ControlModalKind::SWITCH_CONFIRMATION:
       return {ControlModalPresentation::CONFIRMATION, ControlModalChrome::CLOSE,
               ControlModalDismissPolicy::DISMISS};
@@ -89,6 +90,13 @@ inline ButtonGridModalService &control_modal_service() {
   // aborting here turns a harmless startup callback into a boot loop.
   static ButtonGridModalService service;
   return service;
+}
+
+// Shared access to the top layer for overlays that live above the pages but
+// are not control modals, such as notifications and image popups. Keeping the
+// call here means only this header needs to know about lv_layer_top().
+inline lv_obj_t *control_modal_create_top_layer_object() {
+  return lv_obj_create(lv_layer_top());
 }
 
 inline ControlModalActive &control_modal_active() {

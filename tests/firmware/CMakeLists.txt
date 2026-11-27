@@ -129,6 +129,18 @@ target_compile_options(companion_session_state_test PRIVATE -Wall -Wextra -Werro
 target_include_directories(companion_session_state_test PRIVATE ../../components/companion)
 add_test(NAME companion_session_state_test COMMAND companion_session_state_test)
 
+add_executable(companion_credential_store_test companion_credential_store_test.cpp)
+target_compile_features(companion_credential_store_test PRIVATE cxx_std_17)
+target_compile_options(companion_credential_store_test PRIVATE -Wall -Wextra -Werror)
+target_include_directories(companion_credential_store_test PRIVATE ../../components/companion)
+add_test(NAME companion_credential_store_test COMMAND companion_credential_store_test)
+
+add_executable(companion_client_identity_test companion_client_identity_test.cpp)
+target_compile_features(companion_client_identity_test PRIVATE cxx_std_17)
+target_compile_options(companion_client_identity_test PRIVATE -Wall -Wextra -Werror)
+target_include_directories(companion_client_identity_test PRIVATE ../../components/companion)
+add_test(NAME companion_client_identity_test COMMAND companion_client_identity_test)
+
 # Use the same JSON parser as ESPHome; the source archive is checksum pinned.
 if(POLICY CMP0135)
   cmake_policy(SET CMP0135 NEW)
@@ -556,6 +568,14 @@ add_test(NAME speaker_announcement_duck_test COMMAND ${Python3_EXECUTABLE}
 add_test(NAME screen_lock_ui_test COMMAND
   ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/screen_lock_ui_test.py ${CMAKE_CXX_COMPILER})
 
+add_test(NAME per_computer_screen_lock_test COMMAND
+  ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/per_computer_screen_lock_test.py
+  ${CMAKE_CXX_COMPILER})
+
+add_test(NAME card_lock_badge_test COMMAND
+  ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/card_lock_badge_test.py
+  ${CMAKE_CXX_COMPILER})
+
 add_test(NAME app_icon_store_test COMMAND
   ${CMAKE_COMMAND} -E env "CXX=${CMAKE_CXX_COMPILER}"
   ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/app_icon_store_test.py)
@@ -588,6 +608,10 @@ add_test(NAME card_icon_layout_test COMMAND card_icon_layout_test)
 
 add_test(NAME left_edge_navigation_test COMMAND ${Python3_EXECUTABLE}
   ${CMAKE_CURRENT_SOURCE_DIR}/left_edge_navigation_test.py ${CMAKE_CXX_COMPILER})
+add_test(NAME touch_gesture_ownership_test COMMAND ${Python3_EXECUTABLE}
+  ${CMAKE_CURRENT_SOURCE_DIR}/touch_gesture_ownership_test.py ${CMAKE_CXX_COMPILER})
+add_test(NAME subpage_mute_release_test COMMAND ${Python3_EXECUTABLE}
+  ${CMAKE_CURRENT_SOURCE_DIR}/subpage_mute_release_test.py ${CMAKE_CXX_COMPILER})
 
 add_test(NAME multipart_header_fragments_test COMMAND
   ${CMAKE_COMMAND} -E env "CXX=${CMAKE_CXX_COMPILER}"
