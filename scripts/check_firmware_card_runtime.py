@@ -322,30 +322,36 @@ def check_root(root: Path) -> list[str]:
     sliders_header = root / "components" / "espdesktop" / SLIDERS_HEADER
     if sliders_header.exists():
         text = sliders_header.read_text(encoding="utf-8")
-        pointer_body = function_body(text, "slider_apply_vertical_pointer_value") or ""
+        pointer_body = function_body(text, "slider_apply_pointer_value") or ""
         pointer_required = (
             "lv_indev_active()",
             "LV_INDEV_TYPE_POINTER",
             "lv_indev_get_point",
             "lv_obj_get_coords",
             "vertical_pointer_position",
+            "horizontal_pointer_position",
             "LV_EVENT_VALUE_CHANGED",
         )
         if any(needle not in pointer_body for needle in pointer_required):
             failures.append(
-                f"components/espdesktop/{SLIDERS_HEADER}: map direct vertical slider pointer input through the full safe endpoint track"
+                f"components/espdesktop/{SLIDERS_HEADER}: map direct slider pointer input through the full safe endpoint track"
             )
 
         setup_body = function_body(text, "setup_slider_visual") or ""
-        if (
-            "LV_EVENT_PRESSED" not in setup_body
-            or "LV_EVENT_PRESSING" not in setup_body
-            or setup_body.count("slider_apply_vertical_pointer_value") < 3
-        ):
+        setup_required = (
+            "LV_EVENT_PRESSED",
+            "LV_EVENT_PRESSING",
+            "LV_EVENT_RELEASED",
+            "slider_begin_pointer_press",
+            "slider_update_pointer_press",
+            "slider_finish_pointer_press",
+            "slider_tap_toggle",
+        )
+        if any(needle not in setup_body for needle in setup_required):
             failures.append(
-                f"components/espdesktop/{SLIDERS_HEADER}: apply direct vertical slider endpoint mapping on press, drag, and release"
+                f"components/espdesktop/{SLIDERS_HEADER}: map direct slider drags and toggle on a tap release"
             )
-        final_map = setup_body.rfind("slider_apply_vertical_pointer_value")
+        final_map = setup_body.rfind("slider_finish_pointer_press")
         send_action = setup_body.rfind("send_slider_action")
         if final_map < 0 or send_action < 0 or final_map > send_action:
             failures.append(
@@ -358,7 +364,7 @@ def check_root(root: Path) -> list[str]:
             "lv_obj_add_event_cb", 0, light_temp_release_event
         )
         light_temp_final_map = light_temp_body.rfind(
-            "slider_apply_vertical_pointer_value", 0, light_temp_release_event
+            "slider_apply_pointer_value", 0, light_temp_release_event
         )
         light_temp_send_action = light_temp_body.rfind(
             "send_light_temp_action", 0, light_temp_release_event
@@ -520,12 +526,13 @@ def check_root(root: Path) -> list[str]:
 
 def run_self_test() -> None:
     valid_slider_runtime = """
-inline bool slider_apply_vertical_pointer_value() {
+inline bool slider_apply_pointer_value() {
   lv_indev_active();
   LV_INDEV_TYPE_POINTER;
   lv_indev_get_point();
   lv_obj_get_coords();
   vertical_pointer_position();
+  horizontal_pointer_position();
   LV_EVENT_VALUE_CHANGED;
 }
 inline void slider_fit_to_button() {
@@ -533,20 +540,22 @@ inline void slider_fit_to_button() {
   lv_obj_set_style_pad_bottom(slider, 0, LV_PART_MAIN);
 }
 inline void setup_slider_visual() {
-  slider_apply_vertical_pointer_value();
+  slider_begin_pointer_press();
   LV_EVENT_PRESSED;
-  slider_apply_vertical_pointer_value();
+  slider_update_pointer_press();
   LV_EVENT_PRESSING;
-  slider_apply_vertical_pointer_value();
+  slider_finish_pointer_press();
+  slider_tap_toggle();
   send_slider_action();
+  LV_EVENT_RELEASED;
 }
 inline void setup_light_temp_visual() {
-  slider_apply_vertical_pointer_value();
+  slider_apply_pointer_value();
   LV_EVENT_PRESSED;
-  slider_apply_vertical_pointer_value();
+  slider_apply_pointer_value();
   LV_EVENT_PRESSING;
   lv_obj_add_event_cb();
-  slider_apply_vertical_pointer_value();
+  slider_apply_pointer_value();
   send_light_temp_action();
   LV_EVENT_RELEASED;
 }
@@ -558,11 +567,11 @@ inline void setup_light_temp_visual() {
         ),
         (
             {"button_grid_sliders.h": valid_slider_runtime.replace("lv_indev_get_point();", "")},
-            ("map direct vertical slider pointer input",),
+            ("map direct slider pointer input",),
         ),
         (
             {"button_grid_sliders.h": valid_slider_runtime.replace("LV_EVENT_PRESSING;", "")},
-            ("apply direct vertical slider endpoint mapping",),
+            ("map direct slider drags and toggle on a tap release",),
         ),
         (
             {

@@ -39,6 +39,10 @@ struct SliderCtx {
   bool ha_control = false;
   bool numeric = false;
   bool numeric_dragging = false;
+  bool press_active = false;
+  bool dragging = false;
+  lv_point_t press_point{0, 0};
+  int press_value = 0;
   bool numeric_metadata_ready = false;
   bool numeric_min_known = false;
   bool numeric_max_known = false;
@@ -139,6 +143,10 @@ inline void slider_refresh_geometry(lv_obj_t *slider) {
   lv_obj_t *btn = lv_obj_get_parent(slider);
   if (!c || !btn) return;
 
+  // A wide card gets a horizontal track; square and tall cards keep the
+  // vertical dimmer. The card can change shape when the grid layout changes,
+  // so re-evaluate orientation instead of fixing it at setup time.
+  c->horizontal = lv_obj_get_width(btn) > lv_obj_get_height(btn);
   slider_fit_to_button(slider, btn, c->horizontal);
   int val = lv_slider_get_value(slider);
   int pct = slider_position_percent(c, val);
@@ -198,10 +206,10 @@ inline void slider_bind_geometry_refresh(lv_obj_t *btn, lv_obj_t *slider) {
       lv_timer_create(slider_deferred_geometry_refresh_cb, 1, slider);
 }
 
-inline bool slider_apply_vertical_pointer_value(lv_obj_t *slider) {
+inline bool slider_apply_pointer_value(lv_obj_t *slider) {
   if (!slider) return false;
   SliderCtx *ctx = (SliderCtx *)lv_obj_get_user_data(slider);
-  if (!ctx || ctx->horizontal || !ctx->interactive || !ctx->available ||
+  if (!ctx || !ctx->interactive || !ctx->available ||
       (ctx->numeric && !ctx->numeric_metadata_ready)) return false;
 
   lv_indev_t *indev = lv_indev_active();
@@ -214,17 +222,101 @@ inline bool slider_apply_vertical_pointer_value(lv_obj_t *slider) {
 
   const int positions = 100;
   int value = 0;
-  if (!espdesktop::slider_geometry::vertical_pointer_position(
-        point.y, slider_area.y1, slider_area.y2, positions, value)) {
-    return false;
-  }
+  const bool mapped = ctx->horizontal
+    ? espdesktop::slider_geometry::horizontal_pointer_position(
+        point.x, slider_area.x1, slider_area.x2, positions, value)
+    : espdesktop::slider_geometry::vertical_pointer_position(
+        point.y, slider_area.y1, slider_area.y2, positions, value);
+  if (!mapped) return false;
   if (lv_slider_get_value(slider) == value) return true;
   lv_slider_set_value(slider, value, LV_ANIM_OFF);
   lv_obj_send_event(slider, LV_EVENT_VALUE_CHANGED, nullptr);
   return true;
 }
 
-inline lv_obj_t *setup_slider_widget(lv_obj_t *btn, uint32_t on_color) {
+inline void slider_restore_pressed_value(lv_obj_t *slider) {
+  if (!slider) return;
+  SliderCtx *ctx = (SliderCtx *)lv_obj_get_user_data(slider);
+  if (!ctx) return;
+  lv_slider_set_value(slider, ctx->press_value, LV_ANIM_OFF);
+  const int pct = slider_position_percent(ctx, lv_slider_get_value(slider));
+  slider_update_ctx_fill(ctx, lv_obj_get_parent(slider), ctx->inverted ? 100 - pct : pct);
+}
+
+inline void slider_begin_pointer_press(lv_obj_t *slider) {
+  if (!slider) return;
+  SliderCtx *ctx = (SliderCtx *)lv_obj_get_user_data(slider);
+  if (!ctx) return;
+  ctx->press_active = true;
+  ctx->dragging = false;
+  ctx->press_value = lv_slider_get_value(slider);
+  lv_indev_t *indev = lv_indev_active();
+  if (indev && lv_indev_get_type(indev) == LV_INDEV_TYPE_POINTER) {
+    lv_indev_get_point(indev, &ctx->press_point);
+  } else {
+    ctx->press_point = {0, 0};
+  }
+}
+
+inline bool slider_pointer_moved(lv_obj_t *slider) {
+  SliderCtx *ctx = slider ? (SliderCtx *)lv_obj_get_user_data(slider) : nullptr;
+  if (!ctx || !ctx->press_active) return false;
+  lv_indev_t *indev = lv_indev_active();
+  if (!indev || lv_indev_get_type(indev) != LV_INDEV_TYPE_POINTER) return false;
+
+  lv_point_t point;
+  lv_indev_get_point(indev, &point);
+  int dx = point.x - ctx->press_point.x;
+  int dy = point.y - ctx->press_point.y;
+  if (dx < 0) dx = -dx;
+  if (dy < 0) dy = -dy;
+  // A finger tap can wobble a few pixels. Only a clear drag changes the level.
+  return dx * dx + dy * dy >= 6 * 6;
+}
+
+inline void slider_update_pointer_press(lv_obj_t *slider) {
+  SliderCtx *ctx = slider ? (SliderCtx *)lv_obj_get_user_data(slider) : nullptr;
+  if (!ctx || !ctx->press_active) return;
+  if (!ctx->dragging && slider_pointer_moved(slider)) ctx->dragging = true;
+  if (ctx->dragging) {
+    slider_apply_pointer_value(slider);
+  } else {
+    // LVGL's slider class moves the knob on press-and-drag by itself. Until the
+    // pointer has clearly moved, keep the pre-press level so a tap does not
+    // jump the brightness before it toggles the light.
+    slider_restore_pressed_value(slider);
+  }
+}
+
+inline bool slider_finish_pointer_press(lv_obj_t *slider) {
+  SliderCtx *ctx = slider ? (SliderCtx *)lv_obj_get_user_data(slider) : nullptr;
+  if (!ctx || !ctx->press_active) return false;
+  const bool dragged = ctx->dragging;
+  ctx->press_active = false;
+  ctx->dragging = false;
+  if (dragged) {
+    return slider_apply_pointer_value(slider);
+  }
+  slider_restore_pressed_value(slider);
+  return false;
+}
+
+inline void slider_cancel_pointer_press(lv_obj_t *slider) {
+  SliderCtx *ctx = slider ? (SliderCtx *)lv_obj_get_user_data(slider) : nullptr;
+  if (!ctx || !ctx->press_active) return;
+  ctx->press_active = false;
+  ctx->dragging = false;
+  slider_restore_pressed_value(slider);
+}
+
+inline void slider_tap_toggle(SliderCtx *ctx) {
+  if (!ctx || !ctx->ha_control) return;
+  if (espdesktop::ha_controls::toggle_control_valid(ctx->entity_id)) {
+    espdesktop::ha_controls::toggle_entity(ctx->entity_id);
+  }
+}
+
+inline lv_obj_t *setup_slider_widget(lv_obj_t *btn, uint32_t on_color, bool horizontal) {
   if (!btn) return nullptr;
   lv_obj_clear_flag(btn, LV_OBJ_FLAG_CLICKABLE);
 
@@ -362,26 +454,41 @@ inline void setup_slider_visual(BtnSlot &s, const ParsedCfg &p, uint32_t on_colo
 
   if (interactive) {
     lv_obj_add_event_cb(slider, [](lv_event_t *event) {
-      slider_apply_vertical_pointer_value(
-          static_cast<lv_obj_t *>(lv_event_get_target(event)));
+      slider_begin_pointer_press(static_cast<lv_obj_t *>(lv_event_get_target(event)));
     }, LV_EVENT_PRESSED, nullptr);
     lv_obj_add_event_cb(slider, [](lv_event_t *event) {
-      slider_apply_vertical_pointer_value(
-          static_cast<lv_obj_t *>(lv_event_get_target(event)));
+      slider_update_pointer_press(static_cast<lv_obj_t *>(lv_event_get_target(event)));
     }, LV_EVENT_PRESSING, nullptr);
     lv_obj_add_event_cb(slider, [](lv_event_t *event) {
       auto *widget = static_cast<lv_obj_t *>(lv_event_get_target(event));
       auto *state = widget
           ? static_cast<SliderCtx *>(lv_obj_get_user_data(widget)) : nullptr;
-      if (!state || !state->available || lv_obj_has_state(widget, LV_STATE_DISABLED) ||
-          (!state->ha_control && !companion_volume_control_valid(state->entity_id))) return;
-      slider_apply_vertical_pointer_value(widget);
+      if (!state || !state->available || lv_obj_has_state(widget, LV_STATE_DISABLED)) {
+        slider_cancel_pointer_press(widget);
+        return;
+      }
+      const bool was_dragging = state->dragging;
+      const bool mapped = slider_finish_pointer_press(widget);
+      if (!was_dragging) {
+        // A tap is an on/off action. It must not send the level the slider
+        // class may have picked from the touch point.
+        slider_tap_toggle(state);
+        return;
+      }
+      if (!mapped) {
+        slider_restore_pressed_value(widget);
+        return;
+      }
+      if (!state->ha_control && !companion_volume_control_valid(state->entity_id)) return;
       if (state->ha_control) {
         espdesktop::ha_controls::set_slider_percent(state->entity_id, lv_slider_get_value(widget));
         return;
       }
       send_slider_action(state->entity_id, lv_slider_get_value(widget), state->computer_id);
     }, LV_EVENT_RELEASED, nullptr);
+    lv_obj_add_event_cb(slider, [](lv_event_t *event) {
+      slider_cancel_pointer_press(static_cast<lv_obj_t *>(lv_event_get_target(event)));
+    }, LV_EVENT_PRESS_LOST, nullptr);
   }
 
   if (ctx->ha_control) {

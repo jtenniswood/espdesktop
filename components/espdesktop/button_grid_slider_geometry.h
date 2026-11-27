@@ -5,16 +5,20 @@
 namespace espdesktop {
 namespace slider_geometry {
 
-inline int32_t vertical_edge_inset(int32_t height) {
-  if (height <= 0) return 0;
+inline int32_t edge_inset(int32_t length) {
+  if (length <= 0) return 0;
 
-  int32_t inset = (height * 8 + 50) / 100;
+  int32_t inset = (length * 8 + 50) / 100;
   if (inset < 8) inset = 8;
   if (inset > 24) inset = 24;
 
-  const int32_t small_slider_limit = height / 4;
+  const int32_t small_slider_limit = length / 4;
   if (inset > small_slider_limit) inset = small_slider_limit;
   return inset;
+}
+
+inline int32_t vertical_edge_inset(int32_t height) {
+  return edge_inset(height);
 }
 
 inline bool vertical_pointer_position(int32_t pointer_y, int32_t top, int32_t bottom,
@@ -46,6 +50,36 @@ inline bool vertical_pointer_position(int32_t pointer_y, int32_t top, int32_t bo
 inline bool vertical_pointer_percent(int32_t pointer_y, int32_t top, int32_t bottom,
                                      int &percent) {
   return vertical_pointer_position(pointer_y, top, bottom, 100, percent);
+}
+
+inline bool horizontal_pointer_position(int32_t pointer_x, int32_t left, int32_t right,
+                                        int32_t position_count, int &position) {
+  if (right < left || position_count <= 0) return false;
+
+  const int32_t width = right - left + 1;
+  const int32_t inset = edge_inset(width);
+  const int32_t safe_left = left + inset;
+  const int32_t safe_right = right - inset;
+  if (safe_right <= safe_left) return false;
+
+  if (pointer_x <= safe_left) {
+    position = 0;
+    return true;
+  }
+  if (pointer_x >= safe_right) {
+    position = position_count;
+    return true;
+  }
+
+  const int32_t span = safe_right - safe_left;
+  position = static_cast<int>(
+    (static_cast<int64_t>(pointer_x - safe_left) * position_count + span / 2) / span);
+  return true;
+}
+
+inline bool horizontal_pointer_percent(int32_t pointer_x, int32_t left, int32_t right,
+                                       int &percent) {
+  return horizontal_pointer_position(pointer_x, left, right, 100, percent);
 }
 
 }  // namespace slider_geometry
