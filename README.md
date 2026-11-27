@@ -81,7 +81,7 @@ After changing card configuration, the web setup page, or generated device files
 
 ## License
 
-EspDesktop is licensed under the [PolyForm Noncommercial License 1.0.0](LICENSE). You can view, change, and share the software for non-commercial purposes. Commercial use needs separate permission from the project owner.
+EspDesktop is licensed under the [Apache License 2.0](LICENSE). You may use, modify, and distribute it, including for commercial purposes, subject to the license terms. The EspDesktop name and logos are not granted under this software license.
 
 Required notice: see [NOTICE](NOTICE).
 
