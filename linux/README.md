@@ -51,7 +51,7 @@ python3 linux/run.py
 The first window lets you:
 
 1. Enter the display's address, for example `192.168.0.50` or
-   `espdesktop-4848s040-903ef8.local`.
+   `espdesktop-panel.local`.
 2. Select **Get code from display**. This opens the display's Companion pairing
    window and fills in the code. You can also use **Open pairing page** and read
    the code from the touchscreen.
