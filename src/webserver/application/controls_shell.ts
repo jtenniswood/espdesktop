@@ -48,7 +48,6 @@ export interface ControlsShellFeature {
     readonly isConfigLocked: () => boolean;
     readonly syncConfigLockUi: () => void;
     readonly setConfigLocked: (locked?: any, reason?: any) => void;
-    readonly setOnboardingComplete: (complete: boolean, announce?: boolean) => void;
     readonly renderScreenTabs: () => void;
     readonly screenKeys: () => readonly number[];
     readonly enterScreen: (key: number | null) => void;
@@ -444,7 +443,6 @@ export function createControlsShellFeature(
         isConfigLocked,
         syncConfigLockUi,
         setConfigLocked,
-        setOnboardingComplete,
         renderScreenTabs,
         screenKeys: () => dependencies.screenKeys(),
         enterScreen: (key) => { dependencies.enterScreen(key); renderScreenTabs(); },
