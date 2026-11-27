@@ -66,7 +66,7 @@ internal static class SettingsCard
         return button;
     }
 
-    private static DockPanel Header(string glyph, string title, string? description, FrameworkElement? action)
+    public static DockPanel Header(string glyph, string title, string? description = null, FrameworkElement? action = null)
     {
         var header = new DockPanel { VerticalAlignment = VerticalAlignment.Center };
         var icon = Icon(glyph, IconSize);

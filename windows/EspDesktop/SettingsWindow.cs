@@ -33,6 +33,7 @@ internal sealed class SettingsWindow : Window
     private Task? obsTask;
     private readonly Func<CancellationToken, Task<DiscoveredDisplay[]>> discover;
     private readonly Func<Uri, CancellationToken, Task<PairingPrompt>> requestPairingPrompt;
+    private readonly Func<string, string, CancellationToken, IReadOnlySet<string>, Task<Pairing>> pairDisplay;
     private readonly CancellationTokenSource lifetime = new();
     private readonly DispatcherTimer discoveryTimer = new() { Interval = TimeSpan.FromSeconds(8) };
     private readonly DispatcherTimer updatesTimer = new() { Interval = TimeSpan.FromDays(1) };
@@ -41,13 +42,23 @@ internal sealed class SettingsWindow : Window
     private readonly TextBlock notice = new() { TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 0, 0, 12), Visibility = Visibility.Collapsed };
     private readonly TextBlock connectionText = new() { TextWrapping = TextWrapping.Wrap, Visibility = Visibility.Collapsed };
     private readonly TextBox address = new() { MinWidth = 270 };
-    private readonly TextBox code = new() { MaxLength = 16, CharacterCasing = CharacterCasing.Upper };
-    private readonly ListBox nearbyDisplays = new() { MaxHeight = 240, Margin = new Thickness(0, 4, 0, 8) };
+    private readonly TextBox code = new()
+    {
+        MaxLength = 16, CharacterCasing = CharacterCasing.Upper, Width = 250, MinHeight = 42,
+        FontSize = 24, HorizontalAlignment = HorizontalAlignment.Center, TextAlignment = TextAlignment.Center
+    };
+    private readonly ListBox setupChoices = new() { MaxHeight = 265, BorderThickness = new Thickness(0), Background = Brushes.Transparent };
+    private readonly StackPanel setupDetails = new();
+    private readonly ListBoxItem usbChoice = SetupChoice("\uE88E", "Connect by USB", "Choose a COM port", SetupMethod.Usb);
+    private readonly ListBoxItem manualChoice = SetupChoice("\uE765", "Enter address manually", "Use an IP address or hostname", SetupMethod.Address);
+    private bool updatingSetupChoices;
+    private int setupGeneration;
     private readonly TextBlock discoveryStatus = Paragraph("Looking for nearby displays…");
     private readonly Button findDisplays;
     private Button? setupAction;
     private enum SetupMethod { Nearby, Address, Usb }
-    private SetupMethod setupMethod;
+    private SetupMethod SelectedSetupMethod => setupChoices.SelectedItem is ListBoxItem { Tag: SetupMethod method }
+        ? method : SetupMethod.Nearby;
     private readonly ComboBox usbPorts = new() { MinWidth = 140 };
     private DisplayConnection? changingConnection;
     private string? pairingAddress, pairingName;
@@ -59,6 +70,7 @@ internal sealed class SettingsWindow : Window
     private nint powerNotifications;
     private readonly List<DisplayConnection> displays = [];
     private bool addingDisplay;
+    private DisplayConnection? completedDisplay;
     private sealed class DisplayConnection(Pairing pairing)
     {
         public Pairing Pairing { get; set; } = pairing;
@@ -80,11 +92,13 @@ internal sealed class SettingsWindow : Window
     public event Action<Version>? UpdateAvailable;
 
     public SettingsWindow(bool smoke, Func<CancellationToken, Task<DiscoveredDisplay[]>>? discover = null, LocalStore? store = null,
-        Func<Uri, CancellationToken, Task<PairingPrompt>>? requestPairingPrompt = null)
+        Func<Uri, CancellationToken, Task<PairingPrompt>>? requestPairingPrompt = null,
+        Func<string, string, CancellationToken, IReadOnlySet<string>, Task<Pairing>>? pairDisplay = null)
     {
         this.smoke = smoke;
         this.discover = discover ?? Discovery.Find;
         this.requestPairingPrompt = requestPairingPrompt ?? DisplayPairingPrompt.Request;
+        this.pairDisplay = pairDisplay ?? DisplaySession.PairAsync;
         this.store = store ?? new LocalStore();
         desktop = new(this.store.Settings, obs);
         obs.CatalogueChanged += desktop.ObsChanged;
@@ -99,7 +113,7 @@ internal sealed class SettingsWindow : Window
         obsStatus.Text = obs.Status;
         AutomationProperties.SetLiveSetting(obsStatus, AutomationLiveSetting.Polite);
         desktop.ShortcutFailed += message => _ = Dispatcher.InvokeAsync(() => ShortcutFailed?.Invoke(message));
-        findDisplays = Button("Refresh", async () => await Scan(interactive: true));
+        findDisplays = Button("Refresh nearby displays", async () => await Scan(interactive: true));
         if (!smoke)
         {
             displays.AddRange(this.store.LoadPairings().Select(pairing => new DisplayConnection(pairing)));
@@ -152,14 +166,21 @@ internal sealed class SettingsWindow : Window
         Grid.SetColumn(scroll, 1);
         root.Children.Add(scroll);
         Content = root;
+        PopulateSetupChoices([]);
         navigation.SelectedIndex = 0;
         AutomationProperties.SetName(address, "Display address");
         AutomationProperties.SetName(usbPorts, "Display USB port");
         usbPorts.SelectionChanged += (_, _) => UpdateSetupAction();
         AutomationProperties.SetName(code, "Pairing code");
-        AutomationProperties.SetName(nearbyDisplays, "Nearby displays");
+        AutomationProperties.SetName(setupChoices, "Display connection options");
         AutomationProperties.SetLiveSetting(discoveryStatus, AutomationLiveSetting.Polite);
-        nearbyDisplays.SelectionChanged += (_, _) => UpdateSetupAction();
+        setupChoices.SelectionChanged += (_, _) =>
+        {
+            if (updatingSetupChoices) return;
+            Status("");
+            ShowSetupDetails();
+            UpdateSetupAction();
+        };
         address.TextChanged += (_, _) => UpdateSetupAction();
         code.TextChanged += (_, _) => UpdateSetupAction();
         AutomationProperties.SetLiveSetting(connectionText, AutomationLiveSetting.Polite);
@@ -169,6 +190,14 @@ internal sealed class SettingsWindow : Window
         IsVisibleChanged += (_, _) => UpdateDiscovery();
         discoveryTimer.Tick += async (_, _) => await Scan();
         updatesTimer.Tick += async (_, _) => await CheckUpdates(false);
+        setupChoices.KeyDown += async (_, e) =>
+        {
+            if (e.Key != Key.Enter) return;
+            e.Handled = true;
+            if (SelectedSetupMethod == SetupMethod.Address) address.Focus();
+            else if (SelectedSetupMethod == SetupMethod.Usb) usbPorts.Focus();
+            else await ChooseDisplay();
+        };
     }
 
     public async Task Initialize()
@@ -262,19 +291,18 @@ internal sealed class SettingsWindow : Window
         navigation.SelectedIndex = 0;
     }
 
-    private void OpenPanel(DisplayConnection display)
+    private bool OpenPanel(DisplayConnection display)
     {
         if (DisplayEndpoint.Parse(display.Pairing.Address).UsbPort is null)
         {
-            OpenPanel(display.Pairing.Address);
-            return;
+            return OpenPanel(display.Pairing.Address);
         }
 
         if (display.EditorWindow is { } open)
         {
             if (open.WindowState == WindowState.Minimized) open.WindowState = WindowState.Normal;
             open.Activate();
-            return;
+            return true;
         }
         if (display.UsbEditor is null)
         {
@@ -282,7 +310,7 @@ internal sealed class SettingsWindow : Window
             Report(display.Status.Text.StartsWith("Connected", StringComparison.Ordinal)
                 ? "Update this display’s firmware to open its editor over USB."
                 : "Connect the display by USB before opening its editor.");
-            return;
+            return false;
         }
 
         var window = new UsbEditorWindow(display.Pairing.DisplayName ?? "Display", () => display.UsbEditor);
@@ -290,9 +318,10 @@ internal sealed class SettingsWindow : Window
         display.EditorWindow = window;
         window.Closed += (_, _) => display.EditorWindow = null;
         window.Show();
+        return true;
     }
 
-    private void OpenPanel(string target, bool pairingPage = false)
+    private bool OpenPanel(string target, bool pairingPage = false)
     {
         DisplayEndpoint endpoint;
         try { endpoint = DisplayEndpoint.Parse(target); }
@@ -301,18 +330,19 @@ internal sealed class SettingsWindow : Window
             ShowSettings();
             navigation.SelectedIndex = 0;
             Report(e.Message);
-            return;
+            return false;
         }
         var page = pairingPage ? endpoint.PairingPage : endpoint.Settings;
-        if (page is null) return;
+        if (page is null) return false;
         Report("");
         try
         {
-            if (WindowsDesktop.OpenShell(page.AbsoluteUri)) return;
+            if (WindowsDesktop.OpenShell(page.AbsoluteUri)) return true;
         }
         catch (Exception e) when (WindowsDesktop.IsShellFailure(e)) { }
         ShowSettings();
         Report("Windows couldn’t open the display in your browser.");
+        return false;
     }
 
     public async Task ToggleConnection()
@@ -397,13 +427,13 @@ internal sealed class SettingsWindow : Window
         Render();
         try
         {
-            var next = await DisplaySession.PairAsync(entered, enteredCode, lifetime.Token,
+            var next = await pairDisplay(entered, enteredCode, lifetime.Token,
                 displays.Select(display => display.Pairing.Fingerprint).ToHashSet(StringComparer.OrdinalIgnoreCase));
             store.SavePairing(next);
             var display = new DisplayConnection(next);
             displays.Add(display);
             ResetSetup();
-            addingDisplay = false;
+            completedDisplay = display;
             ConnectionStatusChanged?.Invoke(displays.Count > 1 ? "Multiple displays" : "Connecting…");
             StartConnection(display);
         }
@@ -422,7 +452,15 @@ internal sealed class SettingsWindow : Window
             if (!quitting)
             {
                 Render();
-                if (addingDisplay && navigation.SelectedIndex == 0) code.Focus();
+                if (navigation.SelectedIndex == 0)
+                {
+                    if (completedDisplay is not null)
+                    {
+                        scroll.ScrollToTop();
+                        setupAction?.Focus();
+                    }
+                    else if (pairingAddress is not null) code.Focus();
+                }
             }
         }
     }
@@ -477,7 +515,7 @@ internal sealed class SettingsWindow : Window
     private void UpdateDiscovery()
     {
         if (smoke || quitting || !IsVisible || navigation.SelectedIndex != 0 || !addingDisplay ||
-            store.PairingUnavailable || setupMethod != SetupMethod.Nearby || pairingAddress != null)
+            store.PairingUnavailable || pairingAddress != null || completedDisplay != null)
         {
             discoveryTimer.Stop();
             return;
@@ -489,25 +527,30 @@ internal sealed class SettingsWindow : Window
 
     private async Task Scan(bool interactive = false)
     {
-        if (!discoveryTimer.IsEnabled || busy) return;
-        if (scanning) return;
+        if (!discoveryTimer.IsEnabled || busy || scanning) return;
+        var generation = setupGeneration;
         scanning = true;
         if (interactive) findDisplays.Content = "Searching…";
         findDisplays.IsEnabled = false;
-        if (nearbyDisplays.Items.Count == 0) discoveryStatus.Text = "Looking for nearby displays…";
-        try { ShowDiscoveredDisplays((await discover(lifetime.Token)).Where(display => changingConnection is { } saved
-            ? saved.Pairing.Fingerprint.Equals(display.Fingerprint, StringComparison.OrdinalIgnoreCase)
-            : !HasDisplay(display.Fingerprint)).ToArray()); }
-        catch (NetworkInformationException) { ShowDiscoveredDisplays([]); }
+        try
+        {
+            var found = await discover(lifetime.Token);
+            if (generation == setupGeneration)
+                ShowDiscoveredDisplays(changingConnection is { } saved
+                    ? found.Where(display => saved.Pairing.Fingerprint.Equals(display.Fingerprint, StringComparison.OrdinalIgnoreCase)).ToArray()
+                    : found);
+        }
+        catch (NetworkInformationException)
+        {
+            if (generation == setupGeneration) ShowDiscoveredDisplays([]);
+        }
         catch (OperationCanceledException) when (lifetime.IsCancellationRequested) { }
         finally
         {
             scanning = false;
-            findDisplays.Content = "Refresh";
-            findDisplays.IsEnabled = true;
-            discoveryStatus.Text = nearbyDisplays.Items.Count == 0 ? "No nearby displays found." : "";
-            discoveryStatus.Visibility = nearbyDisplays.Items.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
-            nearbyDisplays.Visibility = nearbyDisplays.Items.Count == 0 ? Visibility.Collapsed : Visibility.Visible;
+            findDisplays.Content = "Refresh nearby displays";
+            findDisplays.IsEnabled = !busy;
+            if (generation != setupGeneration) _ = Scan(interactive: true);
         }
     }
 
@@ -516,18 +559,48 @@ internal sealed class SettingsWindow : Window
         if (quitting || (discoveryChecked && discovered.SequenceEqual(found))) return;
         discovered = found;
         discoveryChecked = true;
-        var selected = (nearbyDisplays.SelectedItem as ListBoxItem)?.Tag as DiscoveredDisplay;
-        nearbyDisplays.Items.Clear();
+        PopulateSetupChoices(found);
+        discoveryStatus.Text = found.Length == 0 ? "No nearby displays found." : "";
+        discoveryStatus.Visibility = found.Length == 0 ? Visibility.Visible : Visibility.Collapsed;
+    }
+
+    private void PopulateSetupChoices(DiscoveredDisplay[] found)
+    {
+        var previous = setupChoices.SelectedItem as ListBoxItem;
+        var restoreFocus = previous?.IsKeyboardFocusWithin == true;
+        ListBoxItem? selected = previous == usbChoice || previous == manualChoice ? previous : null;
+        updatingSetupChoices = true;
+        setupChoices.Items.Clear();
+        setupChoices.Items.Add(usbChoice);
         foreach (var display in found)
         {
-            var details = new StackPanel { Margin = new Thickness(4, 4, 4, 4) };
-            details.Children.Add(new TextBlock { Text = display.Name, FontWeight = FontWeights.SemiBold, TextWrapping = TextWrapping.Wrap });
-            details.Children.Add(new TextBlock { Text = display.Address, FontSize = 12, TextWrapping = TextWrapping.Wrap });
-            var item = new ListBoxItem { Content = details, Tag = display };
-            AutomationProperties.SetName(item, $"{display.Name}, {display.Address}");
-            nearbyDisplays.Items.Add(item);
-            if (selected?.Fingerprint == display.Fingerprint) nearbyDisplays.SelectedItem = item;
+            var paired = changingConnection is null && HasDisplay(display.Fingerprint);
+            var item = SetupChoice(paired ? "\uE73E" : "\uE7F4", display.Name,
+                paired ? "Already paired" : display.Address, display);
+            item.IsEnabled = !paired;
+            setupChoices.Items.Add(item);
+            if (!paired && previous?.Tag is DiscoveredDisplay old &&
+                old.Fingerprint.Equals(display.Fingerprint, StringComparison.OrdinalIgnoreCase)) selected = item;
         }
+        setupChoices.Items.Add(manualChoice);
+        setupChoices.SelectedItem = selected;
+        updatingSetupChoices = false;
+        if (restoreFocus) selected?.Focus();
+        UpdateSetupAction();
+    }
+
+    private static ListBoxItem SetupChoice(string glyph, string title, string subtitle, object tag)
+    {
+        var item = new ListBoxItem
+        {
+            Content = SettingsCard.Header(glyph, title, subtitle),
+            Tag = tag, Padding = new Thickness(12, 8, 12, 8), Margin = new Thickness(0, 0, 0, 4),
+            MinHeight = 56, HorizontalContentAlignment = HorizontalAlignment.Stretch
+        };
+        item.SetValue(Border.CornerRadiusProperty, new CornerRadius(6));
+        item.SetResourceReference(Control.BackgroundProperty, "CardBackgroundFillColorDefaultBrush");
+        AutomationProperties.SetName(item, $"{title}, {subtitle}");
+        return item;
     }
 
     private void Status(string value)
@@ -622,8 +695,9 @@ internal sealed class SettingsWindow : Window
         body.Children.Clear();
         setupAction = null;
         var index = Math.Max(0, navigation.SelectedIndex);
-        body.Children.Add(new TextBlock { Text = pages[index], FontSize = 30, FontWeight = FontWeights.SemiBold,
-            Margin = new Thickness(0, 0, 0, 14) });
+        if (index != 0 || !addingDisplay)
+            body.Children.Add(new TextBlock { Text = pages[index], FontSize = 30, FontWeight = FontWeights.SemiBold,
+                Margin = new Thickness(0, 0, 0, 14) });
         body.Children.Add(notice);
         switch (index)
         {
@@ -658,30 +732,31 @@ internal sealed class SettingsWindow : Window
         {
             ResetSetup();
             addingDisplay = true;
-            Render();
+            RenderSetupStep();
         }, !busy));
         body.Children.Add(header);
         foreach (var display in displays)
         {
             var saved = display.Pairing;
             var endpoint = DisplayEndpoint.Parse(saved.Address);
-            var card = Card("\uE7F4", saved.DisplayName ?? "Paired display", endpoint.Label);
+            var transport = endpoint.UsbPort is null ? "Network" : "USB";
+            display.ConnectionButton = Button("Connect", async () => await ToggleConnection(display), !busy);
+            display.ConnectionButton.Margin = new Thickness(12, 0, 0, 0);
+            UpdateConnectionButton(display);
+            var card = Card(endpoint.UsbPort is null ? "\uE968" : "\uE88E",
+                saved.DisplayName ?? "Paired display", $"{transport} · {endpoint.Label}", display.ConnectionButton);
             if (display.Status.Parent is Panel previous) previous.Children.Remove(display.Status);
             AutomationProperties.SetLiveSetting(display.Status, AutomationLiveSetting.Polite);
             card.Children.Add(display.Status);
-            display.ConnectionButton = Button("Connect", async () => await ToggleConnection(display), !busy);
-            UpdateConnectionButton(display);
             var actions = new List<UIElement>();
             actions.Add(Button("Open display editor", () => OpenPanel(display), !busy));
-            actions.Add(display.ConnectionButton);
             actions.Add(Button("Change connection", () =>
             {
                 ResetSetup();
                 addingDisplay = true;
                 changingConnection = display;
-                setupMethod = endpoint.UsbPort is null ? SetupMethod.Usb : SetupMethod.Nearby;
-                if (setupMethod == SetupMethod.Usb) RefreshUsbPorts();
-                Render();
+                if (endpoint.UsbPort is null) setupChoices.SelectedItem = usbChoice;
+                RenderSetupStep();
             }, !busy));
             actions.Add(Button("Forget display", async () => await Forget(display), !busy));
             Row(card, [.. actions]);
@@ -703,80 +778,130 @@ internal sealed class SettingsWindow : Window
 
     private void DisplaySetup()
     {
+        if (completedDisplay is { } display)
+        {
+            var complete = SetupPage(3, "You’re connected", "Your display is paired and ready to configure.");
+            SetupActions(complete, "Configure screen", () =>
+            {
+                if (OpenPanel(display)) FinishSetup();
+            }, Button("Done", FinishSetup));
+            return;
+        }
+
         if (pairingAddress is { } target)
         {
             var endpoint = DisplayEndpoint.Parse(target);
-            var card = Card("\uE72E", pairingPrompt is null ? "Requesting a pairing code…" : "Enter pairing code",
-                pairingName == null ? endpoint.Label : $"{pairingName} · {endpoint.Label}");
-            if (pairingPrompt is null) return;
-            card.Children.Add(Paragraph(pairingPrompt switch
+            if (pairingPrompt is null)
+            {
+                SetupPage(2, "Requesting a pairing code…", "Check your display for the pairing prompt.");
+                return;
+            }
+
+            var entry = SetupPage(2, "Enter pairing code", pairingPrompt switch
             {
                 PairingPrompt.Reset => "Confirm Reset pairing on the touchscreen, then enter the new code. If the prompt is missing, open Settings → Paired on the display.",
                 PairingPrompt.Code => "Enter the code shown on your display.",
                 _ when endpoint.UsbPort is not null => "On the touchscreen, tap Pair on the Setup screen or open Settings → Paired or Unpaired.",
-                _ => "Open pairing from the display’s Settings or use the pairing page to show the code."
-            }));
-            if (endpoint.PairingPage is not null)
-                Row(card, Button("Open pairing page", () => OpenPanel(target, pairingPage: true), !busy));
+                _ => "Open pairing from the display’s Settings or use the pairing webpage to show the code."
+            });
+            var device = SetupText(pairingName ?? endpoint.Label, 14);
+            device.Margin = new Thickness(0, 0, 0, 10);
+            entry.Children.Add(device);
+            if (code.Parent is Panel previous) previous.Children.Remove(code);
             code.IsEnabled = !busy;
-            Field(card, "Pairing code", code);
-            card.Children.Add(connectionText);
-            SetupActions(card, busy ? "Pairing…" : "Pair display", async () => await Pair(), Button("Back", () =>
+            entry.Children.Add(code);
+            entry.Children.Add(connectionText);
+            SetupActions(entry, busy ? "Pairing…" : "Connect", async () => await Pair(), Button("Back", () =>
             {
                 pairingAddress = pairingName = null;
                 pairingPrompt = null;
                 code.Clear();
                 Status("");
                 Report("");
-                Render();
+                RenderSetupStep();
                 FocusDisplayInput();
             }, !busy));
+            if (endpoint.PairingPage is not null)
+            {
+                var pairingPage = Button("Open pairing webpage", () => OpenPanel(target, pairingPage: true), !busy);
+                pairingPage.HorizontalAlignment = HorizontalAlignment.Right;
+                pairingPage.Margin = new Thickness(0, 4, 8, 0);
+                entry.Children.Add(pairingPage);
+            }
             return;
         }
 
-        var selection = setupMethod switch
-        {
-            SetupMethod.Usb => Card("\uE88E", "Connect over USB", "Plug in your display with a USB data cable and select its COM port. The display needs USB-enabled Companion firmware."),
-            SetupMethod.Address => Card("\uE968", "Enter display address", "Enter the display’s local IP address or .local name."),
-            _ => Card("\uE7F4", "Choose your display", "Keep your PC and display on the same local network.")
-        };
+        var selection = changingConnection is null
+            ? SetupPage(1, "Choose your display", "Choose a display connected by USB or on your local network.")
+            : SetupPage(null, "Change connection", "Choose how to reconnect to this display.");
+        if (setupChoices.Parent is Panel choicesParent) choicesParent.Children.Remove(setupChoices);
+        if (setupDetails.Parent is Panel detailsParent) detailsParent.Children.Remove(setupDetails);
+        if (discoveryStatus.Parent is Panel statusParent) statusParent.Children.Remove(discoveryStatus);
+        if (findDisplays.Parent is Panel refreshParent) refreshParent.Children.Remove(findDisplays);
+        setupChoices.IsEnabled = !busy;
+        findDisplays.IsEnabled = !busy && !scanning;
+        selection.Children.Add(setupChoices);
+        selection.Children.Add(setupDetails);
+        selection.Children.Add(discoveryStatus);
+        Row(selection, findDisplays);
         selection.Children.Add(connectionText);
-        if (setupMethod == SetupMethod.Address) Field(selection, "Display address", address);
-        else if (setupMethod == SetupMethod.Usb)
-        {
-            Field(selection, "USB port", usbPorts);
-            if (usbPorts.Items.Count == 0) selection.Children.Add(Paragraph("No available COM ports found."));
-        }
-        else
-        {
-            if (nearbyDisplays.Parent is Panel listParent) listParent.Children.Remove(nearbyDisplays);
-            if (discoveryStatus.Parent is Panel statusParent) statusParent.Children.Remove(discoveryStatus);
-            selection.Children.Add(discoveryStatus);
-            nearbyDisplays.Visibility = nearbyDisplays.Items.Count == 0 ? Visibility.Collapsed : Visibility.Visible;
-            selection.Children.Add(nearbyDisplays);
-            if (findDisplays.Parent is Panel refreshParent) refreshParent.Children.Remove(findDisplays);
-        }
-
-        var methods = new WrapPanel { Margin = new Thickness(0, 6, 0, 0) };
-        if (setupMethod != SetupMethod.Nearby) methods.Children.Add(Button("Find nearby displays", () => SelectMethod(SetupMethod.Nearby), !busy));
-        if (setupMethod != SetupMethod.Address) methods.Children.Add(Button("Enter address manually", () => SelectMethod(SetupMethod.Address), !busy));
-        if (setupMethod != SetupMethod.Usb) methods.Children.Add(Button("Connect over USB", () => SelectMethod(SetupMethod.Usb), !busy));
-        if (setupMethod == SetupMethod.Nearby) methods.Children.Add(findDisplays);
-        if (setupMethod == SetupMethod.Usb) methods.Children.Add(Button("Refresh ports", () =>
-        {
-            RefreshUsbPorts();
-            Render();
-        }, !busy));
-        selection.Children.Add(methods);
-        SetupActions(selection, changingConnection is null ? "Next" : "Connect", async () => await ChooseDisplay(), HasPairing ? Button("Cancel", () =>
-        {
-            ResetSetup();
-            addingDisplay = false;
-            Render();
-        }, !busy) : null);
+        ShowSetupDetails();
+        SetupActions(selection, changingConnection is null ? "Continue" : "Connect", async () => await ChooseDisplay(),
+            HasPairing ? Button("Cancel", FinishSetup, !busy) : null);
     }
 
-    private void SetupActions(Panel card, string label, Action action, Button? secondary)
+    private StackPanel SetupPage(int? step, string title, string description)
+    {
+        var page = new StackPanel { MaxWidth = 520, Margin = new Thickness(0, 8, 0, 0) };
+        if (step is { } number)
+        {
+            var progress = SetupText($"Step {number} of 3", 13);
+            progress.Margin = new Thickness(0, 0, 0, 6);
+            page.Children.Add(progress);
+        }
+        var heading = SetupText(title, 30);
+        heading.FontWeight = FontWeights.SemiBold;
+        AutomationProperties.SetHeadingLevel(heading, AutomationHeadingLevel.Level1);
+        page.Children.Add(heading);
+        var summary = SetupText(description, 15);
+        summary.SetResourceReference(TextBlock.ForegroundProperty, "TextFillColorSecondaryBrush");
+        summary.Margin = new Thickness(0, 6, 0, 20);
+        page.Children.Add(summary);
+        body.Children.Add(page);
+        return page;
+    }
+
+    private static TextBlock SetupText(string text, double size) => new()
+    {
+        Text = text, FontSize = size, TextWrapping = TextWrapping.Wrap, TextAlignment = TextAlignment.Center
+    };
+
+    private void ShowSetupDetails()
+    {
+        setupDetails.Children.Clear();
+        switch (SelectedSetupMethod)
+        {
+            case SetupMethod.Address:
+                address.IsEnabled = !busy;
+                Field(setupDetails, "Display address", address);
+                break;
+            case SetupMethod.Usb:
+                RefreshUsbPorts();
+                usbPorts.IsEnabled = !busy;
+                Field(setupDetails, "USB port", usbPorts);
+                var noPorts = Paragraph("No COM ports found. Check your USB data cable and display firmware.");
+                noPorts.Visibility = usbPorts.Items.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
+                setupDetails.Children.Add(noPorts);
+                Row(setupDetails, Button("Refresh ports", () =>
+                {
+                    RefreshUsbPorts();
+                    noPorts.Visibility = usbPorts.Items.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
+                }, !busy));
+                break;
+        }
+    }
+
+    private void SetupActions(Panel page, string label, Action action, Button? secondary)
     {
         setupAction = Button(label, action);
         if (TryFindResource("AccentButtonStyle") is Style accent) setupAction.Style = accent;
@@ -784,27 +909,32 @@ internal sealed class SettingsWindow : Window
         var actions = new WrapPanel { HorizontalAlignment = HorizontalAlignment.Right, Margin = new Thickness(0, 16, 0, 0) };
         if (secondary != null) actions.Children.Add(secondary);
         actions.Children.Add(setupAction);
-        card.Children.Add(actions);
+        page.Children.Add(actions);
     }
 
     private void UpdateSetupAction()
     {
         if (setupAction == null) return;
-        setupAction.IsEnabled = !busy && (pairingAddress != null ? code.Text.Trim().Length > 0 : setupMethod switch
-        {
-            SetupMethod.Address => address.Text.Trim().Length > 0,
-            SetupMethod.Usb => usbPorts.SelectedItem is string,
-            _ => nearbyDisplays.SelectedItem != null
-        });
+        setupAction.IsEnabled = !busy && (completedDisplay != null || (pairingAddress != null
+            ? code.Text.Trim().Length > 0 : SelectedSetupMethod switch
+            {
+                SetupMethod.Address => address.Text.Trim().Length > 0,
+                SetupMethod.Usb => usbPorts.SelectedItem is string,
+                _ => setupChoices.SelectedItem is ListBoxItem { IsEnabled: true, Tag: DiscoveredDisplay }
+            }));
     }
 
-    private void SelectMethod(SetupMethod method)
+    private void RenderSetupStep()
     {
-        setupMethod = method;
-        if (method == SetupMethod.Usb) RefreshUsbPorts();
-        Status("");
+        scroll.ScrollToTop();
         Render();
-        FocusDisplayInput();
+    }
+
+    private void FinishSetup()
+    {
+        ResetSetup();
+        addingDisplay = false;
+        RenderSetupStep();
     }
 
     private void RefreshUsbPorts()
@@ -821,29 +951,31 @@ internal sealed class SettingsWindow : Window
 
     private void FocusDisplayInput()
     {
-        if (setupMethod == SetupMethod.Address) address.Focus();
-        else if (setupMethod == SetupMethod.Usb) usbPorts.Focus();
-        else nearbyDisplays.Focus();
+        if (SelectedSetupMethod == SetupMethod.Address) address.Focus();
+        else if (SelectedSetupMethod == SetupMethod.Usb) usbPorts.Focus();
+        else if (setupChoices.SelectedItem is ListBoxItem item) item.Focus();
+        else setupChoices.Focus();
     }
 
     private async Task ChooseDisplay()
     {
         if (busy || quitting || !addingDisplay || pairingAddress is not null) return;
-        var selected = (nearbyDisplays.SelectedItem as ListBoxItem)?.Tag as DiscoveredDisplay;
-        var target = setupMethod switch
+        var selected = (setupChoices.SelectedItem as ListBoxItem)?.Tag as DiscoveredDisplay;
+        var method = SelectedSetupMethod;
+        var target = method switch
         {
             SetupMethod.Address => address.Text.Trim(),
             SetupMethod.Usb => usbPorts.SelectedItem is string port ? "usb:" + port : null,
-            _ => selected?.Address
+            _ => setupChoices.SelectedItem is ListBoxItem { IsEnabled: true } ? selected?.Address : null
         };
         if (string.IsNullOrEmpty(target)) return;
         DisplayEndpoint endpoint;
         try
         {
             endpoint = DisplayEndpoint.Parse(target);
-            if (setupMethod != SetupMethod.Usb && endpoint.UsbPort is not null)
+            if (method != SetupMethod.Usb && endpoint.UsbPort is not null)
             {
-                Status("Choose Connect over USB to select a COM port.");
+                Status("Choose Connect by USB to select a COM port.");
                 return;
             }
         }
@@ -870,11 +1002,11 @@ internal sealed class SettingsWindow : Window
         }
 
         pairingAddress = target;
-        pairingName = setupMethod == SetupMethod.Nearby ? selected?.Name : null;
+        pairingName = selected?.Name;
         if (endpoint.Settings is { } settings)
         {
             busy = true;
-            Render();
+            RenderSetupStep();
             try { pairingPrompt = await requestPairingPrompt(settings, lifetime.Token); }
             catch (OperationCanceledException) when (quitting) { return; }
             finally { busy = false; }
@@ -883,7 +1015,11 @@ internal sealed class SettingsWindow : Window
         else pairingPrompt = PairingPrompt.Unavailable;
         Status("");
         Render();
-        if (navigation.SelectedIndex == 0) code.Focus();
+        if (navigation.SelectedIndex == 0)
+        {
+            scroll.ScrollToTop();
+            code.Focus();
+        }
     }
 
     private bool HasDisplay(string fingerprint) => displays.Any(display =>
@@ -893,14 +1029,17 @@ internal sealed class SettingsWindow : Window
     {
         pairingAddress = pairingName = null;
         pairingPrompt = null;
-        setupMethod = SetupMethod.Nearby;
-        changingConnection = null;
+        setupGeneration++;
+        completedDisplay = changingConnection = null;
         usbPorts.ItemsSource = null;
         address.Clear();
         code.Clear();
         discovered = [];
         discoveryChecked = false;
-        nearbyDisplays.Items.Clear();
+        updatingSetupChoices = true;
+        setupChoices.SelectedItem = null;
+        updatingSetupChoices = false;
+        PopulateSetupChoices([]);
         discoveryStatus.Text = "Looking for nearby displays…";
         discoveryStatus.Visibility = Visibility.Visible;
         Status("");
@@ -1195,10 +1334,10 @@ internal sealed class SettingsWindow : Window
         catch (Exception e) when (WindowsDesktop.IsShellFailure(e)) { Report("Windows couldn’t open this link."); }
     }
 
-    private StackPanel Card(string glyph, string title, string? description = null)
+    private StackPanel Card(string glyph, string title, string? description = null, FrameworkElement? action = null)
     {
         var fields = new StackPanel();
-        body.Children.Add(SettingsCard.Create(glyph, title, description, fields));
+        body.Children.Add(SettingsCard.Create(glyph, title, description, fields, action));
         return fields;
     }
 

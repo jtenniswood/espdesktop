@@ -87,7 +87,12 @@ internal sealed record NativeWindowsDesktop(WindowsDesktop Desktop, string Drive
             scans++;
             if (scans == 2) nextScan.SetResult();
             return Task.FromResult<DiscoveredDisplay[]>(scans >= 2 ? [lateDisplay] : []);
-        }, store: store, requestPairingPrompt: (uri, _) => uri.Host == "192.168.1.20"
+        }, store: store, pairDisplay: (address, code, _, savedFingerprints) =>
+        {
+            if (address != lateDisplay.Address || code != "ABCD-EFGH" || savedFingerprints.Count != 0)
+                throw new InvalidOperationException("The setup must submit the selected display and the complete pairing code.");
+            return Task.FromResult(new Pairing(address, lateDisplay.Fingerprint, new byte[32]));
+        }, requestPairingPrompt: (uri, _) => uri.Host == "192.168.1.20"
             ? prompt.Task : Task.FromResult(PairingPrompt.Unavailable));
         try
         {
@@ -96,48 +101,70 @@ internal sealed record NativeWindowsDesktop(WindowsDesktop Desktop, string Drive
             TextBox Field(string label) => Descendants(window).OfType<TextBox>().Single(field => AutomationProperties.GetName(field) == label);
             void Click(string label) => Action(label).RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
             bool HasInput() => Descendants(window).OfType<TextBox>().Any();
-            if (scans != 1 || HasInput() || Action("Next").IsEnabled)
+            if (scans != 1 || HasInput() || Action("Continue").IsEnabled)
                 throw new InvalidOperationException("Setup must discover displays before showing any input fields.");
             await nextScan.Task.WaitAsync(TimeSpan.FromSeconds(16));
-            var list = Descendants(window).OfType<ListBox>().Single(control => AutomationProperties.GetName(control) == "Nearby displays");
-            list.SelectedItem = list.Items.Cast<ListBoxItem>().Single(item => Equals(item.Tag, lateDisplay));
-            if (!Action("Next").IsEnabled) throw new InvalidOperationException("Selecting a display must enable Next.");
-            Click("Next");
+            var list = Descendants(window).OfType<ListBox>().Single(control => AutomationProperties.GetName(control) == "Display connection options");
+            var nearby = list.Items.Cast<ListBoxItem>().Single(item => Equals(item.Tag, lateDisplay));
+            void Select(string label) => list.SelectedItem = list.Items.Cast<ListBoxItem>()
+                .Single(item => AutomationProperties.GetName(item).StartsWith(label + ",", StringComparison.Ordinal));
+            bool HasStep(int step) => Descendants(window).OfType<TextBlock>().Any(text => text.Text == $"Step {step} of 3");
+            if (!HasStep(1)) throw new InvalidOperationException("Setup must start at step one.");
+            list.SelectedItem = nearby;
+            if (!Action("Continue").IsEnabled) throw new InvalidOperationException("Selecting a display must enable Continue.");
+            Click("Continue");
+            if (!HasStep(2)) throw new InvalidOperationException("Continuing must enter step two.");
             if (HasInput()) throw new InvalidOperationException("The pairing code field must wait for the display's prompt.");
             prompt.SetResult(PairingPrompt.Reset);
             await Dispatcher.Yield(DispatcherPriority.ApplicationIdle);
             if (!Descendants(window).OfType<TextBlock>().Any(text => text.Text.StartsWith("Confirm Reset pairing", StringComparison.Ordinal)))
                 throw new InvalidOperationException("An already paired display must show touchscreen reset instructions.");
             var code = Field("Pairing code");
-            if (Action("Pair display").IsEnabled) throw new InvalidOperationException("Pairing must require a code.");
+            if (Action("Connect").IsEnabled) throw new InvalidOperationException("Pairing must require a code.");
             code.Text = "123456";
-            if (!Action("Pair display").IsEnabled) throw new InvalidOperationException("Entering a code must enable pairing.");
+            if (!Action("Connect").IsEnabled) throw new InvalidOperationException("Entering a code must enable pairing.");
             Click("Back");
             if (HasInput() || !Equals(((ListBoxItem)list.SelectedItem).Tag, lateDisplay))
                 throw new InvalidOperationException("Going back must retain the selected display.");
-            Click("Enter address manually");
+            Select("Enter address manually");
             var address = Field("Display address");
             address.Text = "192.168.1.21";
-            Click("Next");
+            Click("Continue");
             if (Field("Pairing code").Text.Length != 0) throw new InvalidOperationException("Changing displays must clear the code.");
             Click("Back");
             if (Field("Display address").Text != "192.168.1.21")
                 throw new InvalidOperationException("Going back must retain the manual address.");
-            Click("Connect over USB");
+            Select("Connect by USB");
             if (HasInput() || Descendants(window).OfType<ComboBox>().SingleOrDefault(control =>
                 AutomationProperties.GetName(control) == "Display USB port") is null || !Action("Refresh ports").IsEnabled)
                 throw new InvalidOperationException("USB setup must offer a COM port picker and refresh.");
             Click("Refresh ports");
-            Click("Enter address manually");
+            Select("Enter address manually");
             if (Field("Display address").Text != "192.168.1.21")
                 throw new InvalidOperationException("Switching setup methods must preserve the manually entered address.");
-            Click("Find nearby displays");
+            list.SelectedItem = nearby;
             var beforeReopen = scans;
             window.Hide();
             window.Show();
             if (scans != beforeReopen + 1 || HasInput())
                 throw new InvalidOperationException("Reopening setup did not refresh the list of nearby displays.");
-            Console.WriteLine("Passed progressive Windows setup, automatic discovery refresh, USB port selection, and Back navigation for both network paths.");
+            list.SelectedItem = list.Items.Cast<ListBoxItem>().Single(item => Equals(item.Tag, lateDisplay));
+            Click("Continue");
+            Field("Pairing code").Text = "ABCD-EFGH";
+            Click("Connect");
+            if (!HasStep(3) || !Action("Configure screen").IsEnabled || !window.HasPairing)
+                throw new InvalidOperationException("Successful pairing must offer to configure the screen.");
+            Click("Done");
+            if (HasStep(3) || !Action("Open display editor").IsEnabled || store.LoadPairings().Count() != 1)
+                throw new InvalidOperationException("Done must return to the saved display without changing its pairing.");
+            Click("Add display");
+            var saved = list.Items.Cast<ListBoxItem>().Single(item => Equals(item.Tag, lateDisplay));
+            if (saved.IsEnabled || !AutomationProperties.GetName(saved).Contains("Already paired", StringComparison.Ordinal))
+                throw new InvalidOperationException("Paired displays must be identified and excluded from selection.");
+            Click("Cancel");
+            if (HasStep(1) || !window.HasPairing)
+                throw new InvalidOperationException("Cancel must return to the saved display.");
+            Console.WriteLine("Passed the three-step Windows setup, discovery refresh, USB selection, Back, Done, and Cancel.");
         }
         finally
         {
