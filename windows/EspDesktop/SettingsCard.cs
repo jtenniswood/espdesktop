@@ -18,9 +18,19 @@ internal static class SettingsCard
         FrameworkElement? content = null, FrameworkElement? action = null)
     {
         var header = Header(glyph, title, description, action);
+        FrameworkElement child = header;
+        if (content is not null)
+        {
+            content.Margin = new Thickness(IconSize + IconGap, 8, 0, 0);
+            var stack = new StackPanel();
+            stack.Children.Add(header);
+            stack.Children.Add(content);
+            child = stack;
+        }
+
         var card = new Border
         {
-            Child = header,
+            Child = child,
             MinHeight = 64,
             Padding = Padding,
             Margin = Spacing,
@@ -29,15 +39,6 @@ internal static class SettingsCard
         };
         card.SetResourceReference(Border.BackgroundProperty, "CardBackgroundFillColorDefaultBrush");
         card.SetResourceReference(Border.BorderBrushProperty, "CardStrokeColorDefaultBrush");
-
-        if (content is not null)
-        {
-            content.Margin = new Thickness(IconSize + IconGap, 8, 0, 0);
-            var stack = new StackPanel();
-            stack.Children.Add(header);
-            stack.Children.Add(content);
-            card.Child = stack;
-        }
 
         return card;
     }
