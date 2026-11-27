@@ -95,14 +95,32 @@ jobs:
           $runRegistryPath = 'HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Run'
           $runKey = 'Registry::' + $runRegistryPath
           $startMenuLink = Join-Path ([Environment]::GetFolderPath('Programs')) 'EspDesktop.lnk'
-          $install = Start-Process $installer -ArgumentList '/VERYSILENT','/SUPPRESSMSGBOXES','/NORESTART',$directoryArgument -Wait -PassThru
+          $install = Start-Process $installer -ArgumentList '/VERYSILENT','/SUPPRESSMSGBOXES','/NORESTART','/TASKS=disableupdatechecks',$directoryArgument -Wait -PassThru
           if ($install.ExitCode -ne 0) { throw "Install exit code: $($install.ExitCode)" }
+          $notices = @(
+            'EspDesktop-LICENSE.txt', 'EspDesktop-NOTICE.txt', 'WebView2-LICENSE.txt', 'WebView2-NOTICE.txt',
+            'material-symbols-LICENSE.txt', 'materialdesignicons-LICENSE.txt', 'roboto-LICENSE.txt'
+          )
+          foreach ($notice in $notices) {
+            if (!(Test-Path -LiteralPath (Join-Path $installDir "Licenses/$notice") -PathType Leaf)) {
+              throw "Setup did not install the $notice notice."
+            }
+          }
           $assembly = [IO.Path]::ChangeExtension($appPath, '.dll')
           $version = [Reflection.AssemblyName]::GetAssemblyName($assembly).Version.ToString(3)
           $expectedInstaller = "EspDesktop-Windows-${version}-${{ matrix.arch }}-Setup.exe"
           if ((Split-Path -Leaf $installer) -ne $expectedInstaller) {
             throw "The installed app version does not match the setup filename. Expected $expectedInstaller."
           }
+          foreach ($binary in @($installer, $appPath)) {
+            $metadata = [Diagnostics.FileVersionInfo]::GetVersionInfo($binary)
+            # Inno Setup pads these text fields to the width of its version resource.
+            if ($metadata.ProductName.TrimEnd(' ') -cne 'EspDesktop' -or $metadata.ProductVersion.TrimEnd(' ') -cne $version) {
+              throw "Unexpected product metadata for ${binary}: $($metadata.ProductName) $($metadata.ProductVersion)"
+            }
+          }
+          dotnet run -c Release --no-build --project windows/EspDesktop.Tests -- --installer-profile updates-disabled
+          if ($LASTEXITCODE -ne 0) { throw 'Setup did not turn off automatic update checks.' }
           if ($null -ne [Microsoft.Win32.Registry]::GetValue($runRegistryPath, 'EspDesktop', $null)) {
             throw 'A fresh install should leave start-at-sign-in disabled.'
           }

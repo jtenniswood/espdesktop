@@ -717,6 +717,7 @@ struct CompanionSettings: View {
                             }
                             Button("Connect", action: pairDisplay)
                                 .buttonStyle(.borderedProminent)
+                                .tint(.blue)
                                 .disabled(!canPair)
                         }
                         if CompanionUSBPort.path(from: store.panelHost) == nil {

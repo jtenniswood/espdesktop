@@ -10,7 +10,7 @@ description: Install EspDesktop for macOS and pair your Guition 4848S040 touchsc
 Use an **Apple silicon Mac with macOS 13 or newer**. Download the Mac app from the same EspDesktop release as your display firmware.
 
 <p class="mac-app-download">
-  <a class="docs-primary-action" :href="$frontmatter.macDownloadUrl">{{ $frontmatter.macReleaseVersion ? 'Download for Mac (DMG)' : 'View Mac downloads on GitHub' }}</a>
+  <a class="docs-primary-action" href="https://github.com/jtenniswood/espdesktop/releases/latest/download/EspDesktop-latest.dmg">Download for Mac (DMG)</a>
 </p>
 
 Open the DMG, drag **EspDesktop** to **Applications**, then open it. Allow **Local Network** access if prompted. [Find an installer for older firmware](/download#macos).

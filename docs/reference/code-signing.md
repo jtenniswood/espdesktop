@@ -5,8 +5,12 @@ description: How EspDesktop plans to sign its Windows releases and who approves 
 
 # Code signing policy
 
-EspDesktop is applying for free Windows code signing from [SignPath.io](https://about.signpath.io/), with a certificate from [SignPath Foundation](https://signpath.org/). The available Windows installers are currently unsigned.
+The available Windows installers are unsigned. EspDesktop is applying to the [SignPath Foundation open source program](https://signpath.org/terms). Once approved and enabled, the Windows release attribution will be:
 
-[James Tenniswood](https://github.com/jtenniswood) is the project maintainer and is responsible for commits, code review, and approving each release for signing. The signing process will use Windows builds from the official [EspDesktop repository](https://github.com/jtenniswood/espdesktop) and require manual approval for each signed release.
+> Free code signing provided by [SignPath.io](https://about.signpath.io/), certificate by [SignPath Foundation](https://signpath.org/).
 
-For details on how EspDesktop handles data, see the [privacy policy](/reference/privacy).
+**Committer, reviewer, and signing approver.** [James Tenniswood](https://github.com/jtenniswood), the project maintainer, reviews changes from outside contributors and manually approves each Windows release for signing. The team must use multi-factor authentication for GitHub and SignPath.
+
+Windows installers are built by GitHub Actions from the release revision in the official [EspDesktop repository](https://github.com/jtenniswood/espdesktop). SignPath will verify the source of the submitted build before signing. The signing configuration must check the EspDesktop product name and release version on each binary submitted for signing.
+
+See the [Windows privacy policy](/reference/privacy#espdesktop-windows-app) and [Windows installation and removal instructions](/windows).
