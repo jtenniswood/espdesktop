@@ -818,8 +818,8 @@ internal sealed class SettingsWindow : Window
             AutomationProperties.SetLiveSetting(display.Status, AutomationLiveSetting.Polite);
             card.Children.Add(display.Status);
             var actions = new List<UIElement>();
-            actions.Add(Button("Open display editor", () => OpenPanel(display), !busy));
-            actions.Add(Button("Change connection", () =>
+            actions.Add(Button("Device", () => OpenPanel(display), !busy));
+            actions.Add(Button("Connection", () =>
             {
                 ResetSetup();
                 addingDisplay = true;
@@ -827,7 +827,7 @@ internal sealed class SettingsWindow : Window
                 if (endpoint.UsbPort is null) setupChoices.SelectedItem = usbChoice;
                 RenderSetupStep();
             }, !busy));
-            actions.Add(Button("Forget display", async () => await Forget(display), !busy));
+            actions.Add(Button("Forget", async () => await Forget(display), !busy));
             Row(card, [.. actions]);
         }
         var permissions = Card("\uE713", "Windows integration");

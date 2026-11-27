@@ -191,7 +191,7 @@ internal sealed record NativeWindowsDesktop(WindowsDesktop Desktop, string Drive
                 displayMenu.DropDownItems[2].Text != "Disconnect" || displayMenu.DropDownItems[3].Text != "Customize Display")
                 throw new InvalidOperationException("A paired display must have its own status and actions in the tray menu.");
             Click("Done");
-            if (HasStep(3) || !Action("Open display editor").IsEnabled || store.LoadPairings().Count() != 1)
+            if (HasStep(3) || !Action("Device").IsEnabled || store.LoadPairings().Count() != 1)
                 throw new InvalidOperationException("Done must return to the saved display without changing its pairing.");
             var toggle = Descendants(window).OfType<System.Windows.Controls.Primitives.ToggleButton>()
                 .Single(control => AutomationProperties.GetName(control) == $"Connection for {lateDisplay.Name}");
