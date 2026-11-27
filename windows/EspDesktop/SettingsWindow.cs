@@ -355,7 +355,10 @@ internal sealed class SettingsWindow : Window
 
     internal Forms.ContextMenuStrip CreateTrayMenu()
     {
-        var menu = new Forms.ContextMenuStrip { ShowItemToolTips = true };
+        var menu = new Forms.ContextMenuStrip
+        {
+            ShowItemToolTips = true, ShowCheckMargin = true, ShowImageMargin = false
+        };
         menu.Opening += (_, args) =>
         {
             PopulateTrayMenu(menu);
@@ -408,6 +411,27 @@ internal sealed class SettingsWindow : Window
             ShowSettings();
         });
         menu.Items.Add("Quit", null, (_, _) => Quit());
+        SpaceTrayMenuItems(menu);
+    }
+
+    private static void SpaceTrayMenuItems(Forms.ToolStripDropDownMenu menu)
+    {
+        var margin = new Forms.Padding(menu.LogicalToDeviceUnits(6), menu.LogicalToDeviceUnits(3),
+            menu.LogicalToDeviceUnits(6), menu.LogicalToDeviceUnits(3));
+        foreach (var item in menu.Items.OfType<Forms.ToolStripMenuItem>())
+        {
+            item.Margin = margin;
+            if (item.HasDropDownItems && item.DropDown is Forms.ToolStripDropDownMenu submenu)
+            {
+                submenu.ShowImageMargin = false;
+                SpaceTrayMenuItems(submenu);
+            }
+        }
+
+        // WinForms measures the dropdown width without the horizontal item margins.
+        menu.MinimumSize = System.Drawing.Size.Empty;
+        var preferredWidth = menu.GetPreferredSize(System.Drawing.Size.Empty).Width;
+        menu.MinimumSize = new System.Drawing.Size(preferredWidth + margin.Horizontal, 0);
     }
 
     private async Task SetConnection(DisplayConnection display, bool enabled)
