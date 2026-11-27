@@ -1038,11 +1038,11 @@ int main() {
   int shortcut_completions = 0;
   const auto completed = [&] { shortcut_completions++; };
   const auto performed = CompanionActionSuccess::PERFORMED;
-  assert(companion_expect_action_result("shortcut-first", completed, 0, performed));
-  assert(companion_expect_action_result("shortcut-second", completed, 0, performed));
-  assert(companion_expect_action_result("shortcut-failed", completed, 0, performed));
-  assert(companion_expect_action_result("shortcut-denied", completed, 0, performed));
-  assert(companion_expect_action_result("shortcut-wrong-status", completed, 0, performed));
+  assert(companion_expect_action_result("shortcut-first", completed, 0, "", performed));
+  assert(companion_expect_action_result("shortcut-second", completed, 0, "", performed));
+  assert(companion_expect_action_result("shortcut-failed", completed, 0, "", performed));
+  assert(companion_expect_action_result("shortcut-denied", completed, 0, "", performed));
+  assert(companion_expect_action_result("shortcut-wrong-status", completed, 0, "", performed));
   companion_deliver_action_result("shortcut-denied", "not_allowed");
   companion_deliver_action_result("shortcut-failed", "failed");
   companion_deliver_action_result("shortcut-wrong-status", "activated");

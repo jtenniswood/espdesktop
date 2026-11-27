@@ -1933,9 +1933,6 @@ inline bool invoke_companion_action_for_app(const std::string &action_id,
   auto *found = companion_runtime_for_command(computer_id);
   if (!found) return false;
   auto &runtime = *found;
-  // Never use the early visual highlight to authorize app-specific keys.
-  if (!subpage_application.empty() &&
-      !companion_action_focused(runtime.snapshot(), subpage_application)) return false;
   auto app = companion_shortcut_preset_app(preset);
   if (app.empty() && companion_shortcut_action_valid(action_id)) app = subpage_application;
   if (app.empty())
@@ -1948,8 +1945,10 @@ inline bool invoke_companion_action_for_app(const std::string &action_id,
   if (target.empty()) return false;
 
   if (!computer_id.empty()) companion_set_active_computer(computer_id);
-  // The computer checks that the approved target is still frontmost before replay.
-  if (target == subpage_application)
+  // Use confirmed focus for subpage shortcuts. The computer also checks that
+  // the approved target is still frontmost before replay.
+  if (target == subpage_application &&
+      companion_action_focused(runtime.snapshot(), target))
     return runtime.action_sender(shortcut, request_id, "new_window", target);
 
   return companion_activate_then(target, request_id, now + 10000,
