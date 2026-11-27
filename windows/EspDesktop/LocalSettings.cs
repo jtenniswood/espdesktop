@@ -37,13 +37,10 @@ internal sealed class LocalSettings
     public Version? LastNotifiedUpdate { get; set; }
     public int? ObsPort { get; set; }
     public string? ObsProtectedPassword { get; set; }
-<<<<<<< HEAD
     public Dictionary<string, ObsBreakChoice> ObsBreakChoices { get; set; } = new(StringComparer.Ordinal);
     public bool ObsBreakNeedsReview { get; set; }
-=======
     public string ClientId { get; set; } = "";
     public string MicMuteSource { get; set; } = "system";
->>>>>>> abbe74e4d (Add Teams microphone control and multi-computer sessions to the Windows companion)
     public HashSet<string> AllowedApps { get; set; } = [];
     public List<ApprovedFolder> Folders { get; set; } = [];
 

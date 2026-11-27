@@ -10,16 +10,11 @@ using static EspDesktop.Core.Protocol;
 
 namespace EspDesktop.Core;
 
-<<<<<<< HEAD
-internal sealed record Pairing(string Address, string Fingerprint, byte[] Key, uint Sequence = 0, string? DisplayName = null);
+internal sealed record Pairing(string Address, string Fingerprint, byte[] Key, uint Sequence = 0, string? DisplayName = null,
+    string? ComputerId = null);
 internal sealed record CatalogueItem(string Id, string Label, string? ObsState = null, string? ObsDetail = null, bool? ObsAvailable = null);
 
 internal readonly record struct AudioValue(string Id, int? Value, bool NoInputDevice = false);
-=======
-internal sealed record Pairing(string Address, string Fingerprint, byte[] Key, uint Sequence = 0, string? DisplayName = null,
-    string? ComputerId = null);
-internal sealed record CatalogueItem(string Id, string Label, string? ObsState = null, string? ObsDetail = null);
->>>>>>> abbe74e4d (Add Teams microphone control and multi-computer sessions to the Windows companion)
 
 internal interface IDesktop
 {
@@ -372,15 +367,12 @@ internal sealed class DisplaySession(IDesktop desktop, Action<Pairing> save, Act
             }
             finally
             {
-<<<<<<< HEAD
                 pairingReset.TrySetResult(false);
                 if (capabilityVersion >= CoughVersion) desktop.SetCoughValue(0, this);
                 desktop.AbandonObsHolds(this);
-=======
                 if (notifier is not null && changedHandler is not null)
                     notifier.DesktopChanged -= changedHandler;
                 changed = null;
->>>>>>> abbe74e4d (Add Teams microphone control and multi-computer sessions to the Windows companion)
                 await lifetime.CancelAsync();
                 try { await read; }
                 catch (Exception e) when (e is OperationCanceledException or WebSocketException or IOException or SessionException) { }
@@ -465,7 +457,6 @@ internal sealed class DisplaySession(IDesktop desktop, Action<Pairing> save, Act
                 focused = current;
                 await Send("focus.changed", ("actionId", current.FirstOrDefault() ?? ""), ("actionIds", current));
             }
-<<<<<<< HEAD
             foreach (var id in values.Keys.Where(id => !currentValues.ContainsKey(id)).ToArray())
             {
                 await Send("value.state", ("controlId", id), ("available", false));
@@ -481,16 +472,6 @@ internal sealed class DisplaySession(IDesktop desktop, Action<Pairing> save, Act
                 values[state.Id] = state;
             }
             dirtyAudioValues.Clear();
-=======
-            foreach (var (id, value) in await Sta.Run(() => desktop.Values().ToArray()))
-                if (!values.TryGetValue(id, out var previous) || value != previous)
-                {
-                    values[id] = value;
-                    await (value is int v
-                        ? Send("value.state", ("controlId", id), ("available", true), ("value", v))
-                        : Send("value.state", ("controlId", id), ("available", false)));
-                }
->>>>>>> abbe74e4d (Add Teams microphone control and multi-computer sessions to the Windows companion)
             if (fastOnly) return;
             var newZone = TimeZoneInfo.TryConvertWindowsIdToIanaId(TimeZoneInfo.Local.Id, out var iana) ? iana : TimeZoneInfo.Local.Id;
             if (zone != newZone)
@@ -554,7 +535,6 @@ internal sealed class DisplaySession(IDesktop desktop, Action<Pairing> save, Act
                     break;
                 case "value.set":
                     var id = Text(m, "controlId");
-<<<<<<< HEAD
                     var value = (int)UInt(m, "value");
                     var changed = SupportsAudioValue(id) && (id == CoughId
                         ? desktop.SetCoughValue(value, this)
@@ -562,12 +542,6 @@ internal sealed class DisplaySession(IDesktop desktop, Action<Pairing> save, Act
                             ? await desktop.SetObsValue(id, value, this, token)
                             : desktop.SetValue(id, value)));
                     if (changed && (id != CoughId || value != 50)) dirtyAudioValues.Add(id);
-=======
-                    var requested = (int)UInt(m, "value");
-                    var changed = !desktop.SessionState.Locked &&
-                        await Sta.Run(() => desktop.SetValue(id, requested));
-                    if (changed) values.Remove(id);
->>>>>>> abbe74e4d (Add Teams microphone control and multi-computer sessions to the Windows companion)
                     await Send("action.result", ("requestId", Text(m, "requestId")), ("status", changed ? "performed" : "not_allowed"));
                     if (changed) await Publish(fastOnly: true);
                     break;
