@@ -21,9 +21,9 @@ Open **EspDesktop** from Start.
 ## Pair your display
 
 1. [Install the display firmware](/screens/4848s040#install) if needed, then connect the display and PC to the same local network.
-2. In EspDesktop, open **Display**, select your display, and choose **Next**. If it doesn’t appear, choose **Enter address manually**.
-3. Enter the code shown on the touchscreen and choose **Pair display**. If the display is already paired, confirm **Reset pairing** on the touchscreen first. If no prompt appears, open pairing from the touchscreen’s Settings or choose **Open pairing page**.
-4. Choose **Open display editor** to [set up your first layout](/features/first-run).
+2. In EspDesktop, open **Display**, select your display, and choose **Continue**. If it doesn’t appear, choose **Enter address manually**.
+3. Type one letter in each box or paste the whole code, then choose **Connect**. If your display shows eight letters and only four boxes appear, choose **Change code length**. If the display is already paired, confirm **Reset pairing** on the touchscreen first. If no prompt appears, open pairing from Settings on the touchscreen or choose **Open pairing webpage**.
+4. On **You’re connected**, choose **Configure screen** to [set up your first layout](/features/first-run), or choose **Done** to return to Display.
 
 [Get pairing help](/getting-started/troubleshooting#windows-pairing).
 

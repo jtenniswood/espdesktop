@@ -79,7 +79,7 @@ internal sealed record NativeWindowsDesktop(WindowsDesktop Desktop, string Drive
         _ = new Application { ShutdownMode = ShutdownMode.OnExplicitShutdown };
         var nextScan = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
         var prompt = new TaskCompletionSource<PairingPrompt>();
-        var lateDisplay = new DiscoveredDisplay("192.168.1.20:8443", "Late test display", new string('a', 64));
+        var lateDisplay = new DiscoveredDisplay("127.0.0.1:1", "Late test display", new string('a', 64));
         var scans = 0;
         var store = new LocalStore(Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString()));
         var window = new SettingsWindow(smoke: false, discover: _ =>
@@ -87,57 +87,152 @@ internal sealed record NativeWindowsDesktop(WindowsDesktop Desktop, string Drive
             scans++;
             if (scans == 2) nextScan.SetResult();
             return Task.FromResult<DiscoveredDisplay[]>(scans >= 2 ? [lateDisplay] : []);
-        }, store: store, requestPairingPrompt: (uri, _) => uri.Host == "192.168.1.20"
+        }, store: store, pairDisplay: (address, code, _, savedFingerprints) =>
+        {
+            if (address != lateDisplay.Address || code != "ABCD" || savedFingerprints.Count != 0)
+                throw new InvalidOperationException("The setup must submit the selected display and the complete pairing code.");
+            return Task.FromResult(new Pairing(address, lateDisplay.Fingerprint, new byte[32], DisplayName: lateDisplay.Name));
+        }, requestPairingPrompt: (uri, _) => uri.Host == "127.0.0.1"
             ? prompt.Task : Task.FromResult(PairingPrompt.Unavailable));
         try
         {
             window.Show();
+            using var trayMenu = window.CreateTrayMenu();
+            void OpenTrayMenu()
+            {
+                trayMenu.Show(System.Drawing.Point.Empty);
+                if (!trayMenu.Visible) throw new InvalidOperationException("The tray menu must open on the first and subsequent clicks.");
+                trayMenu.Close();
+            }
+            string?[] TrayActions() => trayMenu.Items.OfType<System.Windows.Forms.ToolStripMenuItem>()
+                .Select(item => item.Text).ToArray();
+            OpenTrayMenu();
+            if (!TrayActions().SequenceEqual(["No displays paired", "Add device", "Settings", "Support", "Quit"]) ||
+                trayMenu.Items[0].Enabled || trayMenu.Items[1] is not System.Windows.Forms.ToolStripSeparator)
+                throw new InvalidOperationException("The unpaired tray menu must show pairing status above the app actions.");
             Button Action(string label) => Descendants(window).OfType<Button>().Single(button => Equals(button.Content, label));
             TextBox Field(string label) => Descendants(window).OfType<TextBox>().Single(field => AutomationProperties.GetName(field) == label);
             void Click(string label) => Action(label).RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+            PairingCodeBoxes CodeBoxes() => Descendants(window).OfType<PairingCodeBoxes>().Single();
+            TextBox[] Letters() => CodeBoxes().Children.OfType<TextBox>().ToArray();
+            void PasteCode(string text)
+            {
+                var data = new DataObject(DataFormats.UnicodeText, text);
+                Letters()[0].RaiseEvent(new DataObjectPastingEventArgs(data, false, DataFormats.UnicodeText));
+            }
             bool HasInput() => Descendants(window).OfType<TextBox>().Any();
-            if (scans != 1 || HasInput() || Action("Next").IsEnabled)
+            if (scans != 1 || HasInput() || Action("Continue").IsEnabled)
                 throw new InvalidOperationException("Setup must discover displays before showing any input fields.");
             await nextScan.Task.WaitAsync(TimeSpan.FromSeconds(16));
-            var list = Descendants(window).OfType<ListBox>().Single(control => AutomationProperties.GetName(control) == "Nearby displays");
-            list.SelectedItem = list.Items.Cast<ListBoxItem>().Single(item => Equals(item.Tag, lateDisplay));
-            if (!Action("Next").IsEnabled) throw new InvalidOperationException("Selecting a display must enable Next.");
-            Click("Next");
+            var list = Descendants(window).OfType<ListBox>().Single(control => AutomationProperties.GetName(control) == "Display connection options");
+            var nearby = list.Items.Cast<ListBoxItem>().Single(item => Equals(item.Tag, lateDisplay));
+            void Select(string label) => list.SelectedItem = list.Items.Cast<ListBoxItem>()
+                .Single(item => AutomationProperties.GetName(item).StartsWith(label + ",", StringComparison.Ordinal));
+            bool HasStep(int step) => Descendants(window).OfType<TextBlock>().Any(text => text.Text == $"Step {step} of 3");
+            if (!HasStep(1)) throw new InvalidOperationException("Setup must start at step one.");
+            list.SelectedItem = nearby;
+            if (!Action("Continue").IsEnabled) throw new InvalidOperationException("Selecting a display must enable Continue.");
+            Click("Continue");
+            if (!HasStep(2)) throw new InvalidOperationException("Continuing must enter step two.");
             if (HasInput()) throw new InvalidOperationException("The pairing code field must wait for the display's prompt.");
-            prompt.SetResult(PairingPrompt.Reset);
+            prompt.SetResult(new PairingPrompt(PairingPromptKind.Reset, PairingPrompt.ShortLength));
             await Dispatcher.Yield(DispatcherPriority.ApplicationIdle);
             if (!Descendants(window).OfType<TextBlock>().Any(text => text.Text.StartsWith("Confirm Reset pairing", StringComparison.Ordinal)))
                 throw new InvalidOperationException("An already paired display must show touchscreen reset instructions.");
-            var code = Field("Pairing code");
-            if (Action("Pair display").IsEnabled) throw new InvalidOperationException("Pairing must require a code.");
-            code.Text = "123456";
-            if (!Action("Pair display").IsEnabled) throw new InvalidOperationException("Entering a code must enable pairing.");
+            window.UpdateLayout();
+            var letters = Letters();
+            if (letters.Length != 4 || letters.Any(box => box.ActualWidth != 42 || box.ActualHeight != 52) || Action("Connect").IsEnabled)
+                throw new InvalidOperationException("A four-letter display must show four empty pairing boxes.");
+            letters[0].Text = "A";
+            if (Action("Connect").IsEnabled) throw new InvalidOperationException("A partial code must not enable pairing.");
+            PasteCode(" abcd ");
+            if (CodeBoxes().Code != "ABCD" || !Action("Connect").IsEnabled)
+                throw new InvalidOperationException("Pasting a complete code must fill the boxes and enable pairing.");
             Click("Back");
             if (HasInput() || !Equals(((ListBoxItem)list.SelectedItem).Tag, lateDisplay))
                 throw new InvalidOperationException("Going back must retain the selected display.");
-            Click("Enter address manually");
+            Select("Enter address manually");
             var address = Field("Display address");
             address.Text = "192.168.1.21";
-            Click("Next");
-            if (Field("Pairing code").Text.Length != 0) throw new InvalidOperationException("Changing displays must clear the code.");
+            Click("Continue");
+            if (Letters().Length != 4 || Letters().Any(box => box.Text.Length != 0))
+                throw new InvalidOperationException("Changing displays must clear the code.");
+            PasteCode("abcd–efgh");
+            if (Letters().Length != 8 || CodeBoxes().Code != "ABCD-EFGH")
+                throw new InvalidOperationException("A legacy code must paste into eight boxes when the length is unknown.");
             Click("Back");
             if (Field("Display address").Text != "192.168.1.21")
                 throw new InvalidOperationException("Going back must retain the manual address.");
-            Click("Connect over USB");
+            Select("Connect by USB");
             if (HasInput() || Descendants(window).OfType<ComboBox>().SingleOrDefault(control =>
                 AutomationProperties.GetName(control) == "Display USB port") is null || !Action("Refresh ports").IsEnabled)
                 throw new InvalidOperationException("USB setup must offer a COM port picker and refresh.");
             Click("Refresh ports");
-            Click("Enter address manually");
+            Select("Enter address manually");
             if (Field("Display address").Text != "192.168.1.21")
                 throw new InvalidOperationException("Switching setup methods must preserve the manually entered address.");
-            Click("Find nearby displays");
+            list.SelectedItem = nearby;
             var beforeReopen = scans;
             window.Hide();
             window.Show();
             if (scans != beforeReopen + 1 || HasInput())
                 throw new InvalidOperationException("Reopening setup did not refresh the list of nearby displays.");
-            Console.WriteLine("Passed progressive Windows setup, automatic discovery refresh, USB port selection, and Back navigation for both network paths.");
+            list.SelectedItem = list.Items.Cast<ListBoxItem>().Single(item => Equals(item.Tag, lateDisplay));
+            Click("Continue");
+            PasteCode("ABCD");
+            Click("Connect");
+            if (!HasStep(3) || !Action("Configure screen").IsEnabled || !window.HasPairing)
+                throw new InvalidOperationException("Successful pairing must offer to configure the screen.");
+            OpenTrayMenu();
+            var displayMenu = (System.Windows.Forms.ToolStripMenuItem)trayMenu.Items[0];
+            if (!TrayActions().SequenceEqual([lateDisplay.Name, "Add device", "Settings", "Support", "Quit"]) ||
+                displayMenu.DropDownItems.Count != 4 || displayMenu.DropDownItems[0].Enabled ||
+                displayMenu.DropDownItems[1] is not System.Windows.Forms.ToolStripSeparator ||
+                displayMenu.DropDownItems[2].Text != "Disconnect" || displayMenu.DropDownItems[3].Text != "Customize Display")
+                throw new InvalidOperationException("A paired display must have its own status and actions in the tray menu.");
+            Click("Done");
+            if (HasStep(3) || !Action("Device").IsEnabled || store.LoadPairings().Count() != 1)
+                throw new InvalidOperationException("Done must return to the saved display without changing its pairing.");
+            var toggle = Descendants(window).OfType<System.Windows.Controls.Primitives.ToggleButton>()
+                .Single(control => AutomationProperties.GetName(control) == $"Connection for {lateDisplay.Name}");
+            if (toggle.IsChecked != true) throw new InvalidOperationException("A newly connected display must have its switch on.");
+            toggle.IsChecked = false;
+            using (var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(5)))
+            {
+                while (!toggle.IsEnabled) await Task.Delay(25, timeout.Token);
+            }
+            OpenTrayMenu();
+            var connect = ((System.Windows.Forms.ToolStripMenuItem)trayMenu.Items[0]).DropDownItems[2];
+            if (toggle.IsChecked != false || connect.Text != "Connect")
+                throw new InvalidOperationException("Turning off the switch must disconnect the display and update the tray menu.");
+            connect.PerformClick();
+            if (toggle.IsChecked != true)
+                throw new InvalidOperationException("Connecting from the tray menu must turn the saved-display switch on.");
+            MenuItem ConnectionMenu() => Descendants(window).OfType<MenuItem>().Single(menu =>
+                AutomationProperties.GetName(menu) == $"Network connection for {lateDisplay.Name}");
+            var connectionMenu = ConnectionMenu();
+            var choices = connectionMenu.Items.OfType<MenuItem>().ToArray();
+            if (!choices.Select(item => item.Header).SequenceEqual(new[] { "Use USB", "Update Address" }))
+                throw new InvalidOperationException("The Network dropdown must offer USB and address changes.");
+            choices[0].RaiseEvent(new RoutedEventArgs(MenuItem.ClickEvent));
+            if (!Descendants(window).OfType<ComboBox>().Any(control => AutomationProperties.GetName(control) == "Display USB port"))
+                throw new InvalidOperationException("Use USB must open the existing COM port picker.");
+            Click("Cancel");
+            var updateAddress = ConnectionMenu().Items.OfType<MenuItem>().Single(item => Equals(item.Header, "Update Address"));
+            updateAddress.RaiseEvent(new RoutedEventArgs(MenuItem.ClickEvent));
+            if (Field("Display address").Text != lateDisplay.Address)
+                throw new InvalidOperationException("Update Address must prefill the saved network address.");
+            Click("Cancel");
+            if (store.LoadPairings().Single().Address != lateDisplay.Address)
+                throw new InvalidOperationException("Cancel must preserve the saved connection method.");
+            Click("Add display");
+            var saved = list.Items.Cast<ListBoxItem>().Single(item => Equals(item.Tag, lateDisplay));
+            if (saved.IsEnabled || !AutomationProperties.GetName(saved).Contains("Already paired", StringComparison.Ordinal))
+                throw new InvalidOperationException("Paired displays must be identified and excluded from selection.");
+            Click("Cancel");
+            if (HasStep(1) || !window.HasPairing)
+                throw new InvalidOperationException("Cancel must return to the saved display.");
+            Console.WriteLine("Passed the three-step Windows setup, discovery refresh, USB selection, Back, Done, Cancel, and tray menu.");
         }
         finally
         {

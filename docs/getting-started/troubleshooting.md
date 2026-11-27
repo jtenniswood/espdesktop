@@ -74,9 +74,9 @@ If you have one display paired, **Support → Restart Setup** clears its pairing
 ### Windows pairing
 
 1. [Install the display firmware](/screens/4848s040#install) if needed, then connect the display and PC to the same local network.
-2. In the Windows app’s **Display** settings, select the display and choose **Next**. If it doesn’t appear, choose **Enter address manually**.
-3. Enter the code shown on the touchscreen and choose **Pair display**. If the display is already paired, confirm **Reset pairing** on the touchscreen first. If no prompt appears, open pairing from the touchscreen’s Settings or choose **Open pairing page**.
-4. Choose **Open display editor** to [set up your first layout](/features/first-run).
+2. In the Windows app’s **Display** settings, select the display and choose **Continue**. If it doesn’t appear, choose **Enter address manually**.
+3. Enter the code shown on the touchscreen and choose **Connect**. If the display is already paired, confirm **Reset pairing** on the touchscreen first. If no prompt appears, open pairing from Settings on the touchscreen or choose **Open pairing webpage**.
+4. Choose **Configure screen**, or choose **Device** on the saved display card, to [set up your first layout](/features/first-run).
 
 ## A card does not work
 
