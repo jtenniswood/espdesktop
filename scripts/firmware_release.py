@@ -417,13 +417,22 @@ def current_web_bundle(web_manifest_path: Path, web_root: Path) -> dict:
     version = bundle.get("webAssetVersion")
     if type(version) is not int or version < 1:
         raise FirmwareReleaseError(f"{web_manifest_path} current web asset version is invalid")
+    current_firmware = bundle.get("firmwareVersions")
     seen_versions = {version}
     for alias in bundles[1:]:
-        # A manifest may retain a separate older bundle for firmware that
-        # predates generated firmware-visible assets. Only entries sharing the
-        # current bundle path are compatibility aliases of the current bundle.
-        if isinstance(alias, dict) and alias.get("path") != bundle.get("path"):
-            continue
+        if isinstance(alias, dict):
+            if alias.get("path") != bundle.get("path"):
+                continue
+            # An unchanged editor may serve both current and retained firmware.
+            # Disjoint firmware lists identify separate entries for the same file.
+            alias_firmware = alias.get("firmwareVersions")
+            if (
+                isinstance(current_firmware, list) and current_firmware
+                and isinstance(alias_firmware, list) and alias_firmware
+                and all(isinstance(item, str) for item in current_firmware + alias_firmware)
+                and set(current_firmware).isdisjoint(alias_firmware)
+            ):
+                continue
         alias_version = alias.get("webAssetVersion") if isinstance(alias, dict) else None
         if (type(alias_version) is not int or alias_version < 1 or alias_version >= version
                 or alias_version in seen_versions

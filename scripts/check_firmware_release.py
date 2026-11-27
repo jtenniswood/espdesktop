@@ -355,9 +355,11 @@ def make_recovery_files(
 
 def web_manifest_for(base: Path, device_profiles: list[str]) -> Path:
     data = json.loads(WEB_MANIFEST.read_text(encoding="utf-8"))
+    current_versions = data["bundles"][0]["firmwareVersions"]
     for bundle in data["bundles"]:
-        bundle["deviceProfiles"] = device_profiles
-        bundle["firmwareVersions"] = [VERSION]
+        if bundle["firmwareVersions"] == current_versions:
+            bundle["deviceProfiles"] = device_profiles
+            bundle["firmwareVersions"] = [VERSION]
     path = base.parent / "web-assets.json"
     path.write_text(json.dumps(data), encoding="utf-8")
     return path
@@ -398,7 +400,21 @@ def test_web_bundle_compatibility_aliases() -> None:
         original = json.loads(path.read_text())
         bundle = firmware_release.current_web_bundle(path, WEB_ROOT)
         assert bundle["webAssetVersion"] == 2
-        for field, value in [("webAssetVersion", 2), ("sha256", "0" * 64), ("deviceProfiles", [])]:
+        # A build with no editor changes can serve current and retained
+        # firmware from the very same immutable file.
+        retained = {**original["bundles"][0], "firmwareVersions": ["v9.8.6"]}
+        original["bundles"] = [
+            *original["bundles"][:2],
+            retained,
+            {**retained, "webAssetVersion": 1},
+        ]
+        path.write_text(json.dumps(original))
+        assert firmware_release.current_web_bundle(path, WEB_ROOT) == bundle
+
+        for field, value in [
+            ("webAssetVersion", 2), ("sha256", "0" * 64), ("deviceProfiles", []),
+            ("firmwareVersions", [VERSION, "v9.8.6"]),
+        ]:
             data = json.loads(json.dumps(original))
             data["bundles"][1][field] = value
             path.write_text(json.dumps(data))
