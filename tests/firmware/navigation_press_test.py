@@ -99,7 +99,9 @@ code += function("button_grid_navigation_driver.h", "inline bool navigation_driv
 # Compile the production companion dispatch arm without unrelated action drivers.
 basic = (HEADERS / "button_grid_basic_action_driver.h").read_text()
 start = basic.index("    case Driver::COMPANION: {", basic.index("inline bool basic_action_driver_handle_main_click("))
-end = basic.index("    default:", start)
+# Stop at the next driver arm: later arms use Home Assistant controls that this
+# focused dispatch test does not stub.
+end = basic.index("    case Driver::", start + len("    case Driver::COMPANION: {"))
 code += r'''
 bool basic_action_driver_handle_main_click(const Context &, const ParsedCfg &config,
                                          int slot_number, lv_obj_t *button) {

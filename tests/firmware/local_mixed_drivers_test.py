@@ -28,6 +28,18 @@ struct lv_obj_t { void *data = nullptr; std::string text; };
 struct lv_event_t { void *data; };
 struct SliderCtx { lv_obj_t *fill = nullptr; };
 struct BtnSlot { lv_obj_t *btn, *sensor_container, *icon_lbl, *text_lbl; };
+namespace ha_controls {
+inline std::string domain_of(const std::string &) { return ""; }
+inline bool is_button_entity(const std::string &) { return false; }
+inline bool state_is_on(const std::string &, const std::string &) { return false; }
+inline bool toggle_control_valid(const std::string &) { return false; }
+inline bool slider_control_valid(const std::string &) { return false; }
+inline std::string state(const std::string &, const std::string & = "") { return ""; }
+inline void subscribe_state(const std::string &, const std::string & = "") {}
+inline bool toggle_entity(const std::string &) { return false; }
+inline void unregister_widget(lv_obj_t *) {}
+inline int register_refresh(lv_obj_t *, std::function<bool()>) { return 0; }
+}
 struct CardPalette { uint32_t on_val = 0x64AD54; };
 struct DisplayProfile { struct { const void *icon = nullptr; } fonts; };
 const void *display_small_text_font(const DisplayProfile &) { return nullptr; }
@@ -112,7 +124,9 @@ int main() {
  using Driver = card_runtime::CardDriverId;
  Context c{{Driver::COMPANION}};
  ParsedCfg config;
- for (Driver retired : {Driver::ACTION,Driver::TOGGLE,Driver::PUSH,Driver::ALARM_ACTION,Driver::FAN,Driver::INTERNAL,Driver::SCREEN_LOCK,Driver::SCREENSAVER}) { c.runtime.driver = retired; assert(!basic_action_driver_matches(c,config)); }
+ for (Driver retired : {Driver::ACTION,Driver::PUSH,Driver::ALARM_ACTION,Driver::FAN,Driver::INTERNAL,Driver::SCREEN_LOCK,Driver::SCREENSAVER}) { c.runtime.driver = retired; assert(!basic_action_driver_matches(c,config)); }
+ c.runtime.driver = Driver::TOGGLE;
+ assert(basic_action_driver_matches(c,config));
  c.runtime.driver = Driver::COMPANION;
  assert(basic_action_driver_matches(c,config));
  lv_obj_t button, container, slider, icon, label; container.data = &slider;

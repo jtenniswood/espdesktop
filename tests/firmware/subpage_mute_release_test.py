@@ -16,9 +16,11 @@ source = r'''
 #include <vector>
 enum lv_event_code_t { LV_EVENT_PRESSED=1, LV_EVENT_LONG_PRESSED=2, LV_EVENT_SHORT_CLICKED=3 };
 struct lv_obj_t { int unused=0; };
+void lv_label_set_display_text(lv_obj_t *, const std::string &) {}
+namespace ha_controls { inline std::string domain_of(const std::string &) { return ""; } }
 struct lv_event_t { void *user_data=nullptr; };
-struct BtnSlot { lv_obj_t *btn=nullptr; };
-struct ParsedCfg { std::string entity; };
+struct BtnSlot { lv_obj_t *btn=nullptr; lv_obj_t *text_lbl=nullptr; };
+struct ParsedCfg { std::string entity; std::string label; };
 struct Context {};
 struct DisplayProfile {};
 struct NumericSelectableSubpageEnvironment { DisplayProfile display; };
@@ -32,6 +34,7 @@ void *lv_event_get_user_data(lv_event_t *event) { return event->user_data; }
 template<typename T> T *grid_delete_with_owner(lv_obj_t *, T *ptr) { return ptr; }
 bool numeric_selectable_driver_matches(const Context &, const ParsedCfg &) { return true; }
 bool numeric_selectable_cough_card(const ParsedCfg &) { return false; }
+bool numeric_selectable_ha_slider(const ParsedCfg &) { return false; }
 void numeric_selectable_bind_cough(BtnSlot &, const ParsedCfg &, bool) {}
 std::string companion_card_computer(const ParsedCfg &) { return ""; }
 void numeric_selectable_driver_bind_slider(BtnSlot &, const ParsedCfg &, const DisplayProfile &) {}
@@ -51,7 +54,7 @@ void send(lv_event_code_t code) {
 int main() {
   lv_obj_t button;
   BtnSlot slot{&button};
-  ParsedCfg config{"media.input_mute"};
+  ParsedCfg config{"media.input_mute", ""};
   Context context;
   NumericSelectableSubpageEnvironment environment;
   assert(numeric_selectable_driver_bind_subpage(slot,config,context,environment));

@@ -77,7 +77,9 @@ void *lv_event_get_target(lv_event_t *event) { return event->target; }
 void companion_request_card_refresh() {}
 void set_card_checked_state(lv_obj_t *obj, bool state) { obj->checked=state; }
 void set_card_disabled_state(lv_obj_t *obj, bool state) { obj->disabled=state; }
-struct BtnSlot { lv_obj_t *btn; };
+struct BtnSlot { lv_obj_t *btn; lv_obj_t *sensor_container = nullptr; };
+void *lv_obj_get_user_data(lv_obj_t *obj) { return obj; }
+namespace ha_controls { inline void unregister_widget(lv_obj_t *) {} }
 struct ParsedCfg {};
 struct Context { bool numeric=false; };
 bool numeric_selectable_driver_matches(const Context &context, const ParsedCfg &) { return context.numeric; }
