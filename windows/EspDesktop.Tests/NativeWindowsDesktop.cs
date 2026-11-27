@@ -208,6 +208,23 @@ internal sealed record NativeWindowsDesktop(WindowsDesktop Desktop, string Drive
             connect.PerformClick();
             if (toggle.IsChecked != true)
                 throw new InvalidOperationException("Connecting from the tray menu must turn the saved-display switch on.");
+            MenuItem ConnectionMenu() => Descendants(window).OfType<MenuItem>().Single(menu =>
+                AutomationProperties.GetName(menu) == $"Network connection for {lateDisplay.Name}");
+            var connectionMenu = ConnectionMenu();
+            var choices = connectionMenu.Items.OfType<MenuItem>().ToArray();
+            if (!choices.Select(item => item.Header).SequenceEqual(new[] { "Use USB", "Update Address" }))
+                throw new InvalidOperationException("The Network dropdown must offer USB and address changes.");
+            choices[0].RaiseEvent(new RoutedEventArgs(MenuItem.ClickEvent));
+            if (!Descendants(window).OfType<ComboBox>().Any(control => AutomationProperties.GetName(control) == "Display USB port"))
+                throw new InvalidOperationException("Use USB must open the existing COM port picker.");
+            Click("Cancel");
+            var updateAddress = ConnectionMenu().Items.OfType<MenuItem>().Single(item => Equals(item.Header, "Update Address"));
+            updateAddress.RaiseEvent(new RoutedEventArgs(MenuItem.ClickEvent));
+            if (Field("Display address").Text != lateDisplay.Address)
+                throw new InvalidOperationException("Update Address must prefill the saved network address.");
+            Click("Cancel");
+            if (store.LoadPairings().Single().Address != lateDisplay.Address)
+                throw new InvalidOperationException("Cancel must preserve the saved connection method.");
             Click("Add display");
             var saved = list.Items.Cast<ListBoxItem>().Single(item => Equals(item.Tag, lateDisplay));
             if (saved.IsEnabled || !AutomationProperties.GetName(saved).Contains("Already paired", StringComparison.Ordinal))
