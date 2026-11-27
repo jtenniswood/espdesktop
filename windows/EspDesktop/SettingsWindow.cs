@@ -64,7 +64,15 @@ internal sealed class SettingsWindow : Window
     private string? pairingAddress, pairingName;
     private PairingPrompt? pairingPrompt;
     private readonly ListBox navigation = new() { BorderThickness = new Thickness(0), Background = Brushes.Transparent };
-    private readonly string[] pages = ["Display", "Apps", "Folders", "Updates", "OBS Studio", "Help"];
+    private static readonly (string Name, string Icon)[] Pages =
+    [
+        ("Display", "\uE7F4"),    // TVMonitor
+        ("Apps", "\uE8A9"),       // ViewAll
+        ("Folders", "\uE8B7"),    // Folder
+        ("Updates", "\uE777"),    // UpdateRestore
+        ("OBS Studio", "\uE714"), // Video
+        ("Help", "\uE897")        // Help
+    ];
     private DiscoveredDisplay[] discovered = [];
     private HwndSource? hwndSource;
     private nint powerNotifications;
@@ -153,24 +161,17 @@ internal sealed class SettingsWindow : Window
         var root = new Grid { Background = Brushes.Transparent, Margin = captionInset, UseLayoutRounding = true };
         root.ColumnDefinitions.Add(new() { Width = new GridLength(180) });
         root.ColumnDefinitions.Add(new());
-        navigation.Margin = new Thickness(12, 12, 0, 8);
+        navigation.Margin = new Thickness(12, 12, 4, 8);
         navigation.Resources.MergedDictionaries.Add(new ResourceDictionary
         {
             Source = new Uri("pack://application:,,,/EspDesktop;component/SettingsNavigation.xaml")
         });
         navigation.SetResourceReference(ItemsControl.ItemContainerStyleProperty, "SettingsNavigationItem");
         AutomationProperties.SetName(navigation, "Settings pages");
-        string[] glyphs = ["\uE7F4", "\uE71D", "\uE8B7", "\uE895", "\uE714", "\uE897"];
-        for (var i = 0; i < pages.Length; i++)
+        foreach (var page in Pages)
         {
-            var item = new StackPanel { Orientation = Orientation.Horizontal };
-            var icon = SettingsCard.Icon(glyphs[i], 16);
-            icon.Width = 16;
-            icon.Margin = new Thickness(0, 0, 12, 0);
-            item.Children.Add(icon);
-            item.Children.Add(new TextBlock { Text = pages[i], VerticalAlignment = VerticalAlignment.Center });
-            var listItem = new ListBoxItem { Content = item };
-            AutomationProperties.SetName(listItem, pages[i]);
+            var listItem = new ListBoxItem { Content = page.Name, Tag = page.Icon };
+            AutomationProperties.SetName(listItem, page.Name);
             navigation.Items.Add(listItem);
         }
         navigation.SelectionChanged += (_, _) => { Report(""); scroll.ScrollToTop(); Render(); };
@@ -230,7 +231,7 @@ internal sealed class SettingsWindow : Window
             _ = Audio.Read().ToArray();
             _ = desktop.Metrics(1);
             _ = desktop.AppIcon(WindowsDesktop.ExplorerId, 144);
-            foreach (var index in Enumerable.Range(0, pages.Length)) navigation.SelectedIndex = index;
+            foreach (var index in Enumerable.Range(0, Pages.Length)) navigation.SelectedIndex = index;
             navigation.SelectedIndex = 0;
             return;
         }
@@ -414,7 +415,7 @@ internal sealed class SettingsWindow : Window
         menu.Items.Add("Settings", null, (_, _) => ShowSettings());
         menu.Items.Add("Support", null, (_, _) =>
         {
-            navigation.SelectedIndex = pages.Length - 1;
+            navigation.SelectedIndex = Pages.Length - 1;
             ShowSettings();
         });
         menu.Items.Add("Quit", null, (_, _) => Quit());
@@ -793,7 +794,7 @@ internal sealed class SettingsWindow : Window
         setupAction = null;
         var index = Math.Max(0, navigation.SelectedIndex);
         if (index != 0 || !addingDisplay)
-            body.Children.Add(new TextBlock { Text = pages[index], FontSize = 30, FontWeight = FontWeights.SemiBold,
+            body.Children.Add(new TextBlock { Text = Pages[index].Name, FontSize = 30, FontWeight = FontWeights.SemiBold,
                 Margin = new Thickness(0, 0, 0, 14) });
         body.Children.Add(notice);
         switch (index)
