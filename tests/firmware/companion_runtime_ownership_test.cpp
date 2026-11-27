@@ -16,11 +16,12 @@ void operator delete(void *p, std::size_t) noexcept { std::free(p); }
 int main() {
   const std::vector<std::string> previous_apps{"app.card", "app.unused", "app.other"};
   const std::vector<std::string> configured_apps{"app.card", "app.already.missing"};
-  assert(companion_only_removed_unreferenced_apps(previous_apps, {"app.other", "app.card"}, configured_apps));
-  assert(!companion_only_removed_unreferenced_apps(previous_apps, {"app.other"}, configured_apps));
-  assert(!companion_only_removed_unreferenced_apps(previous_apps, {"app.card", "app.new"}, configured_apps));
-  assert(!companion_only_removed_unreferenced_apps(previous_apps, previous_apps, configured_apps));
-  assert(companion_only_removed_unreferenced_apps({"app.unused"}, {}, configured_apps));
+  assert(companion_can_skip_catalogue_icon_refresh(true, previous_apps, {"app.other", "app.card"}, configured_apps));
+  assert(!companion_can_skip_catalogue_icon_refresh(false, previous_apps, {"app.other", "app.card"}, configured_apps));
+  assert(!companion_can_skip_catalogue_icon_refresh(true, previous_apps, {"app.other"}, configured_apps));
+  assert(!companion_can_skip_catalogue_icon_refresh(true, previous_apps, {"app.card", "app.new"}, configured_apps));
+  assert(!companion_can_skip_catalogue_icon_refresh(true, previous_apps, previous_apps, configured_apps));
+  assert(companion_can_skip_catalogue_icon_refresh(true, {"app.unused"}, {}, configured_apps));
 
   espdesktop::EspDesktopAppCore first, second;
   first.companion_runtime().set_actions({{"com.example.First", "First"}});

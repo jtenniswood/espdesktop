@@ -61,10 +61,11 @@ using CompanionActionList = std::vector<CompanionAction>;
 
 // An app disappearing from the editor's list does not invalidate any card
 // icons when all the removed apps are absent from the display configuration.
-inline bool companion_only_removed_unreferenced_apps(const std::vector<std::string> &previous,
-                                                     const std::vector<std::string> &next,
-                                                     const std::vector<std::string> &referenced) {
-  if (next.size() >= previous.size()) return false;
+inline bool companion_can_skip_catalogue_icon_refresh(bool same_catalogue_state,
+                                                      const std::vector<std::string> &previous,
+                                                      const std::vector<std::string> &next,
+                                                      const std::vector<std::string> &referenced) {
+  if (!same_catalogue_state || next.size() >= previous.size()) return false;
   const auto contains = [](const auto &apps, const auto &id) {
     return std::find(apps.begin(), apps.end(), id) != apps.end();
   };

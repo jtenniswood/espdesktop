@@ -764,17 +764,19 @@ void CompanionService::handle_json_(int socket_fd, const std::string &message) {
         }
         this->defer_session_([actions = std::move(actions)]() mutable { companion_set_actions(std::move(actions)); }, "catalogue");
         const bool refresh_icons = this->app_icon_catalogue_refresh_pending_.exchange(false);
+        const bool first_catalogue = this->first_app_icon_catalogue_in_session_.exchange(false);
         const bool provisional = payload->appsProvisional.value_or(false);
         std::vector<std::string> configured_icons, enabled_icons;
         bool refresh_configured_icons;
         {
           std::lock_guard<std::mutex> lock(app_icon_state_mutex);
-          const bool same_catalogue_state = app_icon_catalogue_ready && app_icon_catalogue_provisional == provisional;
+          // The first catalogue after reconnect must retry interrupted icon transfers.
+          const bool same_catalogue_state =
+              !first_catalogue && app_icon_catalogue_ready && app_icon_catalogue_provisional == provisional;
           if (!refresh_icons && same_catalogue_state && enabled_app_icons == this->catalogue_enabled_icons_)
             return true;
-          refresh_configured_icons = !same_catalogue_state ||
-              !companion_only_removed_unreferenced_apps(enabled_app_icons, this->catalogue_enabled_icons_,
-                                                         app_icon_requests);
+          refresh_configured_icons = !companion_can_skip_catalogue_icon_refresh(
+              same_catalogue_state, enabled_app_icons, this->catalogue_enabled_icons_, app_icon_requests);
           enabled_app_icons = this->catalogue_enabled_icons_;
           app_icon_catalogue_ready = true;
           app_icon_catalogue_provisional = provisional;
@@ -1168,6 +1170,7 @@ void CompanionService::set_connected_(bool connected, int closing_socket) {
     this->focus_targets_generation_ = 0xFFFFFFFFu;
     this->focus_targets_supported_ = false;
     this->app_icon_catalogue_refresh_pending_.store(true);
+    this->first_app_icon_catalogue_in_session_.store(true);
   } else {
     this->focus_targets_supported_ = false;
     this->reset_app_icon_transfer_();
