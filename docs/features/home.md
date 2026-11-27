@@ -45,6 +45,7 @@ To copy a card to another display, right-click it and choose **Copy Code**. In t
 Right-click a card to open its menu.
 
 - **Name.** Choose **Edit Card**, change the **Label**, and select **Save**. You can also click a visible card name in the grid, type the new name and press **Enter**.
+- **Label alignment.** In **Edit Card**, set the label to **Left**, **Center** or **Right**.
 - **Background colour.** Open **Card Colour** and pick a preset or use the eyedropper to choose a custom colour. Choose **Reset Colour** to restore the default background.
 
 Dimmer cards use a vertical bar on square or tall cards and a horizontal bar on wide cards. Drag the bar along its length to dim or brighten. A simple tap turns the light, fan or switch on or off without changing its level. A swipe across the bar, or a quick swipe anywhere else on a card, still changes screens instead of changing the level.

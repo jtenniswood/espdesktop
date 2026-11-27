@@ -11,8 +11,10 @@ import {
     configOptionEnabled,
     configOptionValue,
     normalizedCardColorOptions,
+    normalizedCardLayoutOptions,
     setConfigOptionValue,
     withoutCardColorOptions,
+    withoutCardLayoutOptions,
 } from "../model/config_primitives";
 import {
     CARD_SIZE_EXTRA_LARGE,
@@ -419,13 +421,15 @@ export function createConfigCodecFeature(
         const exposure = cardExposure(b?.options);
         let iconSizeOptions = b?.options;
         var cardColorOptions: any = b ? normalizedCardColorOptions(b.options) : "";
+        var cardLayoutOptions: any = b ? normalizedCardLayoutOptions(b.options) : "";
         if (b?.type === "companion" && ["media.play_pause", "media.previous", "media.next"].includes(b.entity)) {
             for (const field of ["entity", "label", "icon", "icon_on", "sensor", "unit", "type", "precision", "options"]) b[field] = "";
             cardColorOptions = "";
+            cardLayoutOptions = "";
             iconSizeOptions = "";
         }
         if (b)
-            b.options = setConfigOptionValue(withoutCardColorOptions(b.options || ""), "icon_size", "");
+            b.options = setConfigOptionValue(withoutCardLayoutOptions(withoutCardColorOptions(b.options || "")), "icon_size", "");
         if (b && migrateSavedConfigVacuumLegacy(b)) {
             if (!b.icon || b.icon === "Auto")
                 b.icon = vacuumModeDefaultIcon(b.sensor);
@@ -457,6 +461,7 @@ export function createConfigCodecFeature(
         }
         if (b && cardColorOptions) b.options = [b.options || "", cardColorOptions].filter(Boolean).join(",");
         if (b) b.options = preserveCardIconSize(companionCardHasAppIcon(b) ? iconSizeOptions : "", b.options);
+        if (b && cardLayoutOptions) b.options = [b.options || "", cardLayoutOptions].filter(Boolean).join(",");
         if (b && canExposeCard(b) && exposure.identity)
             b.options = setCardExposure(b.options, exposure.identity, exposure.enabled);
         return b;

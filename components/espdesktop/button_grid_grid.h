@@ -355,6 +355,16 @@ inline bool card_large_numbers_active_for_layout(const ParsedCfg &p, int row_spa
 #include "button_grid_numeric_selectable_driver.h"
 #include "button_grid_navigation_driver.h"
 
+inline void apply_card_label_alignment(lv_obj_t *label, const std::string &options) {
+  if (!label) return;
+  const std::string align = normalize_card_label_align(
+      cfg_option_value(options, "label_align"));
+  lv_obj_set_style_text_align(label,
+    align == "center" ? LV_TEXT_ALIGN_CENTER
+      : align == "right" ? LV_TEXT_ALIGN_RIGHT : LV_TEXT_ALIGN_LEFT,
+    LV_PART_MAIN);
+}
+
 inline void apply_card_label_line_clamp(lv_obj_t *label, const GridConfig &cfg,
                                         int row_span = 1) {
   if (!label || cfg.label_lines <= 0) return;
@@ -599,6 +609,7 @@ inline void refresh_card_layout(BtnSlot &s, const ParsedCfg &p,
     lv_label_set_long_mode(s.text_lbl, LV_LABEL_LONG_WRAP);
     lv_obj_set_width(s.text_lbl, lv_pct(100));
   }
+  if (s.text_lbl) apply_card_label_alignment(s.text_lbl, p.options);
   display_apply_main_width(s.icon_lbl, display);
   control_modal_register_card_label(s);
   display_apply_slot_text_width(s, display);

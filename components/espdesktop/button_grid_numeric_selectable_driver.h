@@ -177,7 +177,12 @@ inline bool numeric_selectable_driver_bind_subpage(
     return true;
   }
   // HA sliders subscribe and render themselves in setup_slider_visual.
-  if (numeric_selectable_ha_slider(config)) return true;
+  if (numeric_selectable_ha_slider(config)) {
+    if (slot.text_lbl != nullptr && config.label.empty())
+      lv_label_set_display_text(slot.text_lbl,
+        ha_controls::domain_of(config.entity) == "media_player" ? "Volume" : "Brightness");
+    return true;
+  }
   numeric_selectable_driver_bind_slider(slot, config, environment.display);
   if (!companion_mute_control_valid(config.entity)) return true;
   struct MuteCardTarget {

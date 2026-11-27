@@ -768,6 +768,10 @@ export function createWebStyles(dragAnimation: boolean): string {
         ".sp-fw-btn.sp-fw-btn-busy:hover{background:rgba(35,37,43,.5);border-color:rgba(74,77,84,.45)}" +
         ".sp-btn-label-row{display:flex;align-items:last baseline;gap:4px;width:100%;overflow:hidden;position:relative;z-index:1}" +
         ".sp-btn-label-row .sp-btn-label{flex:0 1 auto;min-width:0}" +
+        ".sp-label-align-center .sp-btn-label-row{justify-content:center;text-align:center}" +
+        ".sp-label-align-center .sp-btn-label{text-align:center}" +
+        ".sp-label-align-right .sp-btn-label-row{justify-content:flex-end;text-align:right}" +
+        ".sp-label-align-right .sp-btn-label{text-align:right}" +
         ".sp-btn-label-row:has(>.sp-subpage-badge){align-items:flex-end}" +
         ".sp-subpage-badge{font-size:var(--btn-label);line-height:1.35;color:#fff;flex-shrink:0;" +
         "display:inline-block;text-align:center;width:1.35em;height:1.35em;" +

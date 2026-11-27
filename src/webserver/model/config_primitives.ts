@@ -99,6 +99,24 @@ export function withoutCardColorOptions(options: unknown): string {
   ).filter(Boolean).join(",");
 }
 
+export type CardLabelAlign = "left" | "center" | "right";
+
+export function cardLabelAlign(options: unknown): CardLabelAlign {
+  const value = configOptionValue(options, "label_align");
+  return value === "center" || value === "right" ? value : "left";
+}
+
+export function normalizedCardLayoutOptions(options: unknown): string {
+  const align = cardLabelAlign(options);
+  return align === "left" ? "" : "label_align=" + align;
+}
+
+export function withoutCardLayoutOptions(options: unknown): string {
+  return String(options || "").split(",").filter((part) =>
+    part.indexOf("label_align=") !== 0,
+  ).filter(Boolean).join(",");
+}
+
 export type CardIconSize = "small" | "medium" | "large";
 
 export function cardIconSizeOverride(options: unknown): CardIconSize | "" {
@@ -111,9 +129,14 @@ export function preserveCardIconSize(options: unknown, normalized: unknown): str
 }
 
 export function preserveCardColorOptions(options: unknown, normalized: unknown): string {
-  // Preserve legacy app icon sizes when editing colours so older firmware can still read them.
+  // Preserve legacy app icon sizes and layout choices when editing colours so
+  // older firmware can still read them and the card keeps its presentation.
   return preserveCardIconSize(options,
-    [withoutCardColorOptions(normalized), normalizedCardColorOptions(options)].filter(Boolean).join(","));
+    [
+      withoutCardLayoutOptions(withoutCardColorOptions(normalized)),
+      normalizedCardColorOptions(options),
+      normalizedCardLayoutOptions(options),
+    ].filter(Boolean).join(","));
 }
 
 export function setCardColor(options: unknown, value: unknown): string {

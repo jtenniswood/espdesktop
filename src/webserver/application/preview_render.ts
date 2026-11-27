@@ -9,7 +9,7 @@ import { WEB_UI_COLORS } from "../state/ui_tokens";
 import { COMPANION_APP_ICON_SIDE } from "../generated/companion_capabilities";
 import { appIconArtworkBounds, appIconFitSide } from "../model/app_icon_layout";
 import { PREVIEW_THEME_COLORS, defaultCardBackgroundColor, previewEffectiveTheme } from "../state/preview_theme";
-import { configOptionValue, cardActiveColor } from "../model/config_primitives";
+import { configOptionValue, cardActiveColor, cardLabelAlign } from "../model/config_primitives";
 import { PANEL_CONFIG_MAX_SLOT_COUNT } from "../model/panel_config";
 import { escHtml, iconSlug } from "./ui_primitives";
 import { companionCardDefaultIcon } from "../model/companion_card";
@@ -614,7 +614,9 @@ export function createPreviewRenderFeature(dependencies: PreviewRenderDependenci
                     : null;
                 const btn: any = document.createElement(dependencies.displayDemo ? "button" : "div");
                 if (dependencies.displayDemo) btn.type = "button";
+                const labelAlign = cardLabelAlign(b.options);
                 btn.className = "sp-btn" +
+                    (labelAlign !== "left" ? " sp-label-align-" + labelAlign : "") +
                     (typePreview && typePreview.buttonClass ? " " + typePreview.buttonClass : "") +
                     sizeClass(slotSz) +
                     (selectedGenerated || c.selected.indexOf(slot) !== -1 ? " sp-selected" : "");

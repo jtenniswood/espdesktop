@@ -64,6 +64,7 @@ inline SubpageBtn normalize_subpage_btn(SubpageBtn b) {
   }
   // Shared appearance options must survive the same cleanup as main cards.
   const std::string icon_size = cfg_option_value(b.options, "icon_size");
+  const std::string layout_options = card_layout_options_normalized(b.options);
   const auto automation_id = cfg_option_value(b.options, "ha_id");
   const bool exposed = cfg_option_token_present(b.options, "ha_exposed");
   std::string type_options;
@@ -73,7 +74,7 @@ inline SubpageBtn normalize_subpage_btn(SubpageBtn b) {
     if (!type_options.empty()) type_options += ",";
     type_options += token;
   }
-  b.options = type_options;
+  b.options = options_without_card_layout_options(type_options);
   // Shared colours must survive the card-specific option cleanup below.
   const std::string card_colors = card_color_options_normalized(b.options);
   b.options = options_without_card_colors(b.options);
@@ -251,6 +252,10 @@ inline SubpageBtn normalize_subpage_btn(SubpageBtn b) {
   if (icon_size == "small" || icon_size == "medium" || icon_size == "large") {
     if (!b.options.empty()) b.options += ",";
     b.options += "icon_size=" + icon_size;
+  }
+  if (!layout_options.empty()) {
+    if (!b.options.empty()) b.options += ",";
+    b.options += layout_options;
   }
   if (valid_home_assistant_card_id(automation_id) &&
       (b.type == "companion" || b.type == "companion_mac_lock" || b.type == "subpage")) {

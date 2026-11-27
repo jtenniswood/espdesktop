@@ -243,6 +243,34 @@ inline std::string options_without_card_colors(const std::string &options) {
   return out;
 }
 
+inline std::string normalize_card_label_align(const std::string &value) {
+  return value == "center" || value == "right" ? value : "left";
+}
+
+inline std::string card_layout_options_normalized(const std::string &options) {
+  const std::string align = normalize_card_label_align(
+      cfg_option_value(options, "label_align"));
+  return align == "left" ? "" : "label_align=" + align;
+}
+
+inline std::string options_without_card_layout_options(const std::string &options) {
+  std::string out;
+  size_t start = 0;
+  while (start < options.size()) {
+    size_t end = options.find(',', start);
+    if (end == std::string::npos) end = options.size();
+    const std::string token = options.substr(start, end - start);
+    if (token.compare(0, 12, "label_align=") != 0) {
+      if (!token.empty()) {
+        if (!out.empty()) out += ",";
+        out += token;
+      }
+    }
+    start = end + 1;
+  }
+  return out;
+}
+
 inline bool large_numbers_explicitly_disabled(const std::string &options) {
   return cfg_option_value(options, "large_numbers") == "off";
 }
@@ -1496,6 +1524,7 @@ inline ParsedCfg normalize_parsed_cfg(ParsedCfg p) {
     return p;
   }
   const std::string icon_size = cfg_option_value(p.options, "icon_size");
+  const std::string layout_options = card_layout_options_normalized(p.options);
   // Remove legacy sizes before normalization; only app artwork retains a size override.
   std::string type_options;
   size_t start = 0;
@@ -1510,7 +1539,7 @@ inline ParsedCfg normalize_parsed_cfg(ParsedCfg p) {
     }
     start = end + 1;
   }
-  p.options = type_options;
+  p.options = options_without_card_layout_options(type_options);
   const std::string card_colors = card_color_options_normalized(p.options);
   p.options = options_without_card_colors(p.options);
   // Retired Mac playback cards become empty slots, including inside subpages.
@@ -1607,6 +1636,10 @@ inline ParsedCfg normalize_parsed_cfg(ParsedCfg p) {
       (icon_size == "small" || icon_size == "medium" || icon_size == "large")) {
     if (!p.options.empty()) p.options += ",";
     p.options += "icon_size=" + icon_size;
+  }
+  if (!layout_options.empty()) {
+    if (!p.options.empty()) p.options += ",";
+    p.options += layout_options;
   }
   if (valid_home_assistant_card_id(automation_id) &&
       (p.type == "companion" || p.type == "companion_mac_lock" || p.type == "subpage")) {
