@@ -50,6 +50,7 @@ internal static class SettingsCard
         var button = new Button
         {
             Content = Header(glyph, title, description, arrow),
+            HorizontalAlignment = HorizontalAlignment.Stretch,
             HorizontalContentAlignment = HorizontalAlignment.Stretch,
             MinHeight = 64,
             Padding = Padding,
