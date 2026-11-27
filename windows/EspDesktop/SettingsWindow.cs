@@ -51,7 +51,15 @@ internal sealed class SettingsWindow : Window
     private DisplayConnection? changingConnection;
     private string? pairingAddress, pairingName;
     private readonly ListBox navigation = new() { BorderThickness = new Thickness(0), Background = Brushes.Transparent };
-    private readonly string[] pages = ["Display", "Apps", "Folders", "Updates", "OBS Studio", "Help"];
+    private static readonly (string Name, string Icon)[] Pages =
+    [
+        ("Display", "\uE7F4"),    // TVMonitor
+        ("Apps", "\uE8A9"),       // ViewAll
+        ("Folders", "\uE8B7"),    // Folder
+        ("Updates", "\uE777"),    // UpdateRestore
+        ("OBS Studio", "\uE714"), // Video
+        ("Help", "\uE897")        // Help
+    ];
     private DiscoveredDisplay[] discovered = [];
     private HwndSource? hwndSource;
     private nint powerNotifications;
@@ -129,17 +137,17 @@ internal sealed class SettingsWindow : Window
         root.Children.Add(masthead);
         Grid.SetColumnSpan(masthead, 2);
         Grid.SetRow(navigation, 1);
-        navigation.Margin = new Thickness(12, 0, 0, 8);
-        AutomationProperties.SetName(navigation, "Settings pages");
-        string[] glyphs = ["\uE7F4", "\uE71D", "\uE8B7", "\uE895", "\uE714", "\uE897"];
-        for (var i = 0; i < pages.Length; i++)
+        navigation.Margin = new Thickness(12, 0, 4, 8);
+        var navigationStyles = new ResourceDictionary
         {
-            var item = new StackPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(4, 6, 0, 6) };
-            item.Children.Add(new TextBlock { Text = glyphs[i], FontFamily = new FontFamily("Segoe Fluent Icons, Segoe MDL2 Assets"),
-                Width = 27, VerticalAlignment = VerticalAlignment.Center });
-            item.Children.Add(new TextBlock { Text = pages[i] });
-            var listItem = new ListBoxItem { Content = item };
-            AutomationProperties.SetName(listItem, pages[i]);
+            Source = new Uri("pack://application:,,,/EspDesktop;component/SettingsNavigation.xaml")
+        };
+        var navigationItemStyle = (Style)navigationStyles["SettingsNavigationItem"];
+        AutomationProperties.SetName(navigation, "Settings pages");
+        foreach (var page in Pages)
+        {
+            var listItem = new ListBoxItem { Content = page.Name, Tag = page.Icon, Style = navigationItemStyle };
+            AutomationProperties.SetName(listItem, page.Name);
             navigation.Items.Add(listItem);
         }
         navigation.SelectionChanged += (_, _) => { notice.Text = ""; scroll.ScrollToTop(); Render(); };
@@ -182,7 +190,7 @@ internal sealed class SettingsWindow : Window
             _ = Audio.Read().ToArray();
             _ = desktop.Metrics(1);
             _ = desktop.AppIcon(WindowsDesktop.ExplorerId, 144);
-            foreach (var index in Enumerable.Range(0, pages.Length)) navigation.SelectedIndex = index;
+            foreach (var index in Enumerable.Range(0, Pages.Length)) navigation.SelectedIndex = index;
             navigation.SelectedIndex = 0;
             return;
         }
@@ -590,7 +598,7 @@ internal sealed class SettingsWindow : Window
         body.Children.Clear();
         setupAction = null;
         var index = Math.Max(0, navigation.SelectedIndex);
-        body.Children.Add(new TextBlock { Text = pages[index], FontSize = 30, FontWeight = FontWeights.SemiBold,
+        body.Children.Add(new TextBlock { Text = Pages[index].Name, FontSize = 30, FontWeight = FontWeights.SemiBold,
             Margin = new Thickness(0, 0, 0, 14) });
         body.Children.Add(notice);
         switch (index)
