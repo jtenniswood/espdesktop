@@ -16,6 +16,11 @@ from check_docs_site import BASE, Page, sitemap_urls
 from check_public_firmware import PublicFirmwareError, assert_url_non_empty
 
 DISPLAY = 'guition-esp32-s3-4848s040'
+RELEASES = 'https://github.com/jtenniswood/espdesktop/releases'
+LATEST_DMG = f'{RELEASES}/latest/download/EspDesktop-latest.dmg'
+VERSIONED_DMG_ALIAS = re.compile(
+    re.escape(RELEASES) + r'/download/v?(\d+\.\d+\.\d+)/EspDesktop-latest\.dmg'
+)
 DMG = re.compile(
     r'https://github\.com/jtenniswood/espdesktop/releases/download/'
     r'v?(\d+\.\d+\.\d+)/EspDesktop-\1\.dmg'
@@ -179,13 +184,21 @@ def verify(dist, base):
         downloads = dist / 'screens/4848s040.html'
     for link in sorted(set(Page(downloads.read_text(encoding='utf-8')).links)):
         match = DMG.fullmatch(link)
-        if not match:
-            continue
-        if version and match[1] != version:
-            errors.append(f'Mac download {match[1]} and hosted 4848S040 firmware {version} differ')
+        if not match and link != LATEST_DMG:
             continue
         try:
-            assert_url_non_empty(link)
+            asset_url = link
+            if link == LATEST_DMG:
+                status, headers, _ = fetch(link)
+                asset_url = urljoin(link, headers.get('Location', ''))
+                match = VERSIONED_DMG_ALIAS.fullmatch(asset_url)
+                if status not in (301, 302, 303, 307, 308) or not match:
+                    errors.append(f'Mac download {link} did not redirect to a versioned release asset (HTTP {status})')
+                    continue
+            if version and match[1] != version:
+                errors.append(f'Mac download {match[1]} and hosted 4848S040 firmware {version} differ')
+                continue
+            assert_url_non_empty(asset_url)
         except (OSError, PublicFirmwareError) as error:
             errors.append(f'Mac download {link} could not be verified: {error}')
     if not errors:

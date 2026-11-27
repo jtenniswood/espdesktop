@@ -364,12 +364,18 @@ async function checkBrowser() {
     await gettingStarted.getByRole('link', { name: 'Download', exact: true }).click();
     await page.waitForURL(`${base}/download`);
     await page.getByRole('heading', { name: 'Download EspDesktop', level: 1 }).waitFor();
-    const windowsDownload = page.getByRole('link', { name: 'Download the Windows installer and pair your display' });
-    assert.equal(await windowsDownload.getAttribute('href'), '/windows#install-espdesktop');
+    const windowsX64Download = page.getByRole('link', { name: 'Download for Intel and AMD PCs (x64)', exact: true });
+    assert.equal(await windowsX64Download.getAttribute('href'),
+      'https://github.com/jtenniswood/espdesktop/releases/latest/download/EspDesktop-Windows-x64-Setup.exe');
+    const windowsArm64Download = page.getByRole('link', { name: 'Download for Windows on Arm (Arm64)', exact: true });
+    assert.equal(await windowsArm64Download.getAttribute('href'),
+      'https://github.com/jtenniswood/espdesktop/releases/latest/download/EspDesktop-Windows-arm64-Setup.exe');
+    const windowsSetupGuide = page.getByRole('link', { name: 'Install the app and pair your display', exact: true });
+    assert.equal(await windowsSetupGuide.getAttribute('href'), '/windows#install-espdesktop');
     const download = page.locator('.mac-app-download a');
     await download.waitFor();
     assert.match(await download.getAttribute('href'),
-      /^https:\/\/github\.com\/jtenniswood\/espdesktop\/releases(?:\/download\/v?\d+\.\d+\.\d+\/EspDesktop-\d+\.\d+\.\d+\.dmg)?$/);
+      /^https:\/\/github\.com\/jtenniswood\/espdesktop\/releases(?:\/latest\/download\/EspDesktop-latest\.dmg)?$/);
     const officialDownloadHref = await download.getAttribute('href');
     await page.getByText('Apple silicon and macOS 13 or newer', { exact: true }).waitFor();
     await page.getByRole('link', { name: 'Install and pair the Mac app', exact: true }).click();
