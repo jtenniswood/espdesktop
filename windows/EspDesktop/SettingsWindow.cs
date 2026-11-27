@@ -50,6 +50,7 @@ internal sealed class SettingsWindow : Window
     private readonly ComboBox usbPorts = new() { MinWidth = 140 };
     private DisplayConnection? changingConnection;
     private string? pairingAddress, pairingName;
+    private PairingPrompt? pairingPrompt;
     private readonly ListBox navigation = new() { BorderThickness = new Thickness(0), Background = Brushes.Transparent };
     private readonly string[] pages = ["Display", "Apps", "Folders", "Updates", "OBS Studio", "Help"];
     private DiscoveredDisplay[] discovered = [];
@@ -62,9 +63,9 @@ internal sealed class SettingsWindow : Window
         public Pairing Pairing { get; set; } = pairing;
         public CancellationTokenSource? Cancellation { get; set; }
         public Task? Task { get; set; }
+        public DisplaySession? Session { get; set; }
         public UsbDisplayEditor? UsbEditor { get; set; }
         public UsbEditorWindow? EditorWindow { get; set; }
-        public bool Forgetting { get; set; }
         public TextBlock Status { get; } = Paragraph("Disconnected");
         public Button? ConnectionButton { get; set; }
     }
@@ -304,7 +305,7 @@ internal sealed class SettingsWindow : Window
 
     private async Task ToggleConnection(DisplayConnection display)
     {
-        if (busy || quitting || display.Forgetting) return;
+        if (busy || quitting) return;
         if (display.Cancellation != null) await StopConnection(display);
         else StartConnection(display);
     }
@@ -323,7 +324,7 @@ internal sealed class SettingsWindow : Window
         await Task.Yield(); // publish the task before its completion can clear state
         try
         {
-            await new DisplaySession(desktop, p =>
+            var session = new DisplaySession(desktop, p =>
             {
                 store.SavePairing(p);
                 var changed = display.Pairing.Address != p.Address || display.Pairing.DisplayName != p.DisplayName;
@@ -337,12 +338,15 @@ internal sealed class SettingsWindow : Window
             {
                 try { return (await Discovery.Find(token)).FirstOrDefault(d => d.Fingerprint == fingerprint); }
                 catch (NetworkInformationException) { return null; }
-            }).RunAsync(display.Pairing, cancellation.Token, newAddress, editor => display.UsbEditor = editor);
+            });
+            display.Session = session;
+            await session.RunAsync(display.Pairing, cancellation.Token, newAddress, editor => display.UsbEditor = editor);
         }
         catch (Exception e) when (e is IOException or UnauthorizedAccessException or CryptographicException or InvalidOperationException)
         { display.Status.Text = "Couldn’t keep the connection. Check the saved pairing and try again."; }
         finally
         {
+            display.Session = null;
             display.Cancellation = null;
             display.Task = null;
             cancellation.Dispose();
@@ -407,18 +411,21 @@ internal sealed class SettingsWindow : Window
 
     private async Task Forget(DisplayConnection? display)
     {
-        if (busy || quitting || display?.Forgetting == true) return;
+        if (busy || quitting) return;
         var title = display == null ? "Clear saved pairings?" : "Forget this display?";
         var message = display == null
             ? "This removes all saved display pairings from this PC."
-            : "To pair again, reset the pairing in this display’s web settings.";
+            : "This removes the pairing from this PC. If the display is connected, it will be asked to show a fresh pairing code.";
         if (MessageBox.Show(this, message, title, MessageBoxButton.OKCancel, MessageBoxImage.Question) != MessageBoxResult.OK ||
-            quitting || display?.Forgetting == true) return;
-        if (display != null) display.Forgetting = true;
+            quitting || busy) return;
+        busy = true;
+        Render();
+        var showManualReset = false;
         try
         {
             if (display != null)
             {
+                showManualReset = display.Session is not { } session || !await session.ShowPairingBeforeDisconnecting();
                 await StopConnection(display);
                 store.ForgetPairing(display.Pairing.Fingerprint);
                 display.EditorWindow?.Close();
@@ -437,11 +444,14 @@ internal sealed class SettingsWindow : Window
                 addingDisplay = true;
             }
             ConnectionStatusChanged?.Invoke(displays.Count == 1 ? displays[0].Status.Text : "");
+            Report(showManualReset
+                ? "If you need to pair again, open Settings → Paired on the touchscreen and confirm Reset pairing."
+                : "");
         }
         catch (Exception e) when (e is IOException or UnauthorizedAccessException) { Report("Windows couldn’t remove the saved pairing."); }
         finally
         {
-            if (display != null) display.Forgetting = false;
+            busy = false;
             if (!quitting) Render();
         }
     }
@@ -611,7 +621,7 @@ internal sealed class SettingsWindow : Window
         {
             var card = Card("Saved displays");
             card.Children.Add(connectionText);
-            Row(card, Button("Clear saved pairings", async () => await Forget(null)));
+            Row(card, Button("Clear saved pairings", async () => await Forget(null), !busy));
             return;
         }
 
@@ -627,7 +637,7 @@ internal sealed class SettingsWindow : Window
             ResetSetup();
             addingDisplay = true;
             Render();
-        }));
+        }, !busy));
         body.Children.Add(header);
         foreach (var display in displays)
         {
@@ -637,10 +647,10 @@ internal sealed class SettingsWindow : Window
             if (display.Status.Parent is Panel previous) previous.Children.Remove(display.Status);
             AutomationProperties.SetLiveSetting(display.Status, AutomationLiveSetting.Polite);
             card.Children.Add(display.Status);
-            display.ConnectionButton = Button("Connect", async () => await ToggleConnection(display), !display.Forgetting);
+            display.ConnectionButton = Button("Connect", async () => await ToggleConnection(display), !busy);
             UpdateConnectionButton(display);
             var actions = new List<UIElement>();
-            actions.Add(Button("Open display editor", () => OpenPanel(display)));
+            actions.Add(Button("Open display editor", () => OpenPanel(display), !busy));
             actions.Add(display.ConnectionButton);
             actions.Add(Button("Change connection", () =>
             {
@@ -650,8 +660,8 @@ internal sealed class SettingsWindow : Window
                 setupMethod = endpoint.UsbPort is null ? SetupMethod.Usb : SetupMethod.Nearby;
                 if (setupMethod == SetupMethod.Usb) RefreshUsbPorts();
                 Render();
-            }, !display.Forgetting));
-            actions.Add(Button("Forget display", async () => await Forget(display), !display.Forgetting));
+            }, !busy));
+            actions.Add(Button("Forget display", async () => await Forget(display), !busy));
             Row(card, [.. actions]);
         }
         var permissions = Card("Windows integration");
@@ -674,10 +684,16 @@ internal sealed class SettingsWindow : Window
         if (pairingAddress is { } target)
         {
             var endpoint = DisplayEndpoint.Parse(target);
-            var card = Card("Enter pairing code", pairingName == null ? endpoint.Label : $"{pairingName} · {endpoint.Label}");
-            card.Children.Add(Paragraph(endpoint.UsbPort is not null
-                ? "On the touchscreen, tap Pair on the Setup screen or Unpaired in Settings to show the code."
-                : "Get the code from the pairing page, or press and hold the Wi-Fi icon on your display."));
+            var card = Card(pairingPrompt is null ? "Requesting a pairing code…" : "Enter pairing code",
+                pairingName == null ? endpoint.Label : $"{pairingName} · {endpoint.Label}");
+            if (pairingPrompt is null) return;
+            card.Children.Add(Paragraph(pairingPrompt switch
+            {
+                PairingPrompt.Reset => "Confirm Reset pairing on the touchscreen, then enter the new code. If the prompt is missing, open Settings → Paired on the display.",
+                PairingPrompt.Code => "Enter the code shown on your display.",
+                _ when endpoint.UsbPort is not null => "On the touchscreen, tap Pair on the Setup screen or open Settings → Paired or Unpaired.",
+                _ => "Open pairing from the display’s Settings or use the pairing page to show the code."
+            }));
             if (endpoint.PairingPage is not null)
                 Row(card, Button("Open pairing page", () => OpenPanel(target, pairingPage: true), !busy));
             code.IsEnabled = !busy;
@@ -686,6 +702,7 @@ internal sealed class SettingsWindow : Window
             SetupActions(card, busy ? "Pairing…" : "Pair display", async () => await Pair(), Button("Back", () =>
             {
                 pairingAddress = pairingName = null;
+                pairingPrompt = null;
                 code.Clear();
                 Status("");
                 Report("");
@@ -798,9 +815,11 @@ internal sealed class SettingsWindow : Window
             _ => selected?.Address
         };
         if (string.IsNullOrEmpty(target)) return;
+        DisplayEndpoint endpoint;
         try
         {
-            if (setupMethod != SetupMethod.Usb && DisplayEndpoint.Parse(target).UsbPort is not null)
+            endpoint = DisplayEndpoint.Parse(target);
+            if (setupMethod != SetupMethod.Usb && endpoint.UsbPort is not null)
             {
                 Status("Choose Connect over USB to select a COM port.");
                 return;
@@ -830,9 +849,19 @@ internal sealed class SettingsWindow : Window
 
         pairingAddress = target;
         pairingName = setupMethod == SetupMethod.Nearby ? selected?.Name : null;
+        if (endpoint.Settings is { } settings)
+        {
+            busy = true;
+            Render();
+            try { pairingPrompt = await DisplayPairingPrompt.Request(settings, lifetime.Token); }
+            catch (OperationCanceledException) when (quitting) { return; }
+            finally { busy = false; }
+            if (quitting) return;
+        }
+        else pairingPrompt = PairingPrompt.Unavailable;
         Status("");
         Render();
-        code.Focus();
+        if (navigation.SelectedIndex == 0) code.Focus();
     }
 
     private bool HasDisplay(string fingerprint) => displays.Any(display =>
@@ -841,6 +870,7 @@ internal sealed class SettingsWindow : Window
     private void ResetSetup()
     {
         pairingAddress = pairingName = null;
+        pairingPrompt = null;
         setupMethod = SetupMethod.Nearby;
         changingConnection = null;
         usbPorts.ItemsSource = null;
