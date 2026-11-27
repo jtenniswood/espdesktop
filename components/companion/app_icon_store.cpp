@@ -16,7 +16,6 @@
 namespace esphome::companion {
 namespace {
 
-constexpr size_t kFlashEraseBytes = 4096;
 constexpr size_t kRecordHeaderBytes = 256;
 constexpr size_t kHeaderHashOffset = 8;
 constexpr size_t kHeaderAppIdOffset = 40;
