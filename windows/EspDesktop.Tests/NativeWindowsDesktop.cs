@@ -89,7 +89,7 @@ internal sealed record NativeWindowsDesktop(WindowsDesktop Desktop, string Drive
             return Task.FromResult<DiscoveredDisplay[]>(scans >= 2 ? [lateDisplay] : []);
         }, store: store, pairDisplay: (address, code, _, savedFingerprints) =>
         {
-            if (address != lateDisplay.Address || code != "ABCD-EFGH" || savedFingerprints.Count != 0)
+            if (address != lateDisplay.Address || code != "ABCD" || savedFingerprints.Count != 0)
                 throw new InvalidOperationException("The setup must submit the selected display and the complete pairing code.");
             return Task.FromResult(new Pairing(address, lateDisplay.Fingerprint, new byte[32], DisplayName: lateDisplay.Name));
         }, requestPairingPrompt: (uri, _) => uri.Host == "192.168.1.20"
@@ -113,6 +113,13 @@ internal sealed record NativeWindowsDesktop(WindowsDesktop Desktop, string Drive
             Button Action(string label) => Descendants(window).OfType<Button>().Single(button => Equals(button.Content, label));
             TextBox Field(string label) => Descendants(window).OfType<TextBox>().Single(field => AutomationProperties.GetName(field) == label);
             void Click(string label) => Action(label).RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+            PairingCodeBoxes CodeBoxes() => Descendants(window).OfType<PairingCodeBoxes>().Single();
+            TextBox[] Letters() => CodeBoxes().Children.OfType<TextBox>().ToArray();
+            void PasteCode(string text)
+            {
+                var data = new DataObject(DataFormats.UnicodeText, text);
+                Letters()[0].RaiseEvent(new DataObjectPastingEventArgs(data, false, DataFormats.UnicodeText));
+            }
             bool HasInput() => Descendants(window).OfType<TextBox>().Any();
             if (scans != 1 || HasInput() || Action("Continue").IsEnabled)
                 throw new InvalidOperationException("Setup must discover displays before showing any input fields.");
@@ -128,14 +135,19 @@ internal sealed record NativeWindowsDesktop(WindowsDesktop Desktop, string Drive
             Click("Continue");
             if (!HasStep(2)) throw new InvalidOperationException("Continuing must enter step two.");
             if (HasInput()) throw new InvalidOperationException("The pairing code field must wait for the display's prompt.");
-            prompt.SetResult(PairingPrompt.Reset);
+            prompt.SetResult(new PairingPrompt(PairingPromptKind.Reset, PairingPrompt.ShortLength));
             await Dispatcher.Yield(DispatcherPriority.ApplicationIdle);
             if (!Descendants(window).OfType<TextBlock>().Any(text => text.Text.StartsWith("Confirm Reset pairing", StringComparison.Ordinal)))
                 throw new InvalidOperationException("An already paired display must show touchscreen reset instructions.");
-            var code = Field("Pairing code");
-            if (Action("Connect").IsEnabled) throw new InvalidOperationException("Pairing must require a code.");
-            code.Text = "123456";
-            if (!Action("Connect").IsEnabled) throw new InvalidOperationException("Entering a code must enable pairing.");
+            window.UpdateLayout();
+            var letters = Letters();
+            if (letters.Length != 4 || letters.Any(box => box.ActualWidth != 42 || box.ActualHeight != 52) || Action("Connect").IsEnabled)
+                throw new InvalidOperationException("A four-letter display must show four empty pairing boxes.");
+            letters[0].Text = "A";
+            if (Action("Connect").IsEnabled) throw new InvalidOperationException("A partial code must not enable pairing.");
+            PasteCode(" abcd ");
+            if (CodeBoxes().Code != "ABCD" || !Action("Connect").IsEnabled)
+                throw new InvalidOperationException("Pasting a complete code must fill the boxes and enable pairing.");
             Click("Back");
             if (HasInput() || !Equals(((ListBoxItem)list.SelectedItem).Tag, lateDisplay))
                 throw new InvalidOperationException("Going back must retain the selected display.");
@@ -143,7 +155,11 @@ internal sealed record NativeWindowsDesktop(WindowsDesktop Desktop, string Drive
             var address = Field("Display address");
             address.Text = "192.168.1.21";
             Click("Continue");
-            if (Field("Pairing code").Text.Length != 0) throw new InvalidOperationException("Changing displays must clear the code.");
+            if (Letters().Length != 4 || Letters().Any(box => box.Text.Length != 0))
+                throw new InvalidOperationException("Changing displays must clear the code.");
+            PasteCode("abcd–efgh");
+            if (Letters().Length != 8 || CodeBoxes().Code != "ABCD-EFGH")
+                throw new InvalidOperationException("A legacy code must paste into eight boxes when the length is unknown.");
             Click("Back");
             if (Field("Display address").Text != "192.168.1.21")
                 throw new InvalidOperationException("Going back must retain the manual address.");
@@ -163,7 +179,7 @@ internal sealed record NativeWindowsDesktop(WindowsDesktop Desktop, string Drive
                 throw new InvalidOperationException("Reopening setup did not refresh the list of nearby displays.");
             list.SelectedItem = list.Items.Cast<ListBoxItem>().Single(item => Equals(item.Tag, lateDisplay));
             Click("Continue");
-            Field("Pairing code").Text = "ABCD-EFGH";
+            PasteCode("ABCD");
             Click("Connect");
             if (!HasStep(3) || !Action("Configure screen").IsEnabled || !window.HasPairing)
                 throw new InvalidOperationException("Successful pairing must offer to configure the screen.");

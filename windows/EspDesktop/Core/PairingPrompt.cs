@@ -5,11 +5,18 @@ using System.Text.Json;
 
 namespace EspDesktop.Core;
 
-internal enum PairingPrompt
+internal enum PairingPromptKind
 {
     Unavailable,
     Code,
     Reset
+}
+
+internal readonly record struct PairingPrompt(PairingPromptKind Kind, int? CodeLength = null)
+{
+    internal const int ShortLength = 4;
+    internal const int LegacyLength = 8;
+    internal static PairingPrompt Unavailable => new(PairingPromptKind.Unavailable);
 }
 
 internal static class DisplayPairingPrompt
@@ -34,10 +41,13 @@ internal static class DisplayPairingPrompt
             if (status.ValueKind != JsonValueKind.Object ||
                 !status.TryGetProperty("available", out var available) || available.ValueKind != JsonValueKind.True)
                 return PairingPrompt.Unavailable;
+            int? length = status.TryGetProperty("code_length", out var size) && size.ValueKind == JsonValueKind.Number &&
+                size.TryGetInt32(out var reported) && reported is PairingPrompt.ShortLength or PairingPrompt.LegacyLength
+                ? reported : null;
             if (status.TryGetProperty("paired", out var paired) && paired.ValueKind == JsonValueKind.True)
-                return PairingPrompt.Reset;
+                return new(PairingPromptKind.Reset, length);
             return status.TryGetProperty("active", out var active) && active.ValueKind == JsonValueKind.True
-                ? PairingPrompt.Code : PairingPrompt.Unavailable;
+                ? new(PairingPromptKind.Code, length) : new(PairingPromptKind.Unavailable, length);
         }
         catch (Exception e) when (e is HttpRequestException or IOException or JsonException ||
                                   e is OperationCanceledException && !token.IsCancellationRequested)

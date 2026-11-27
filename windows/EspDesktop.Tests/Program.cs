@@ -226,8 +226,8 @@ server.MapGet("/companion/pairing", IResult (HttpContext context) =>
     Check(context.Request.Query["show_on_display"] == "1", "request the pairing prompt on the touchscreen");
     return pairingPromptState switch
     {
-        "paired" => Results.Json(new { available = true, active = false, paired = true }),
-        "unpaired" => Results.Json(new { available = true, active = true, paired = false }),
+        "paired" => Results.Json(new { available = true, active = false, paired = true, code_length = 4 }),
+        "unpaired" => Results.Json(new { available = true, active = true, paired = false, code_length = 8 }),
         _ => Results.NotFound()
     };
 });
@@ -459,10 +459,10 @@ await ObsChecks.Run();
 async Task VerifyPairingPrompts()
 {
     var web = new Uri(server.Urls.Single(url => url.StartsWith("http://", StringComparison.Ordinal)));
-    Check(await DisplayPairingPrompt.Request(web, lifetime.Token) == PairingPrompt.Reset,
+    Check(await DisplayPairingPrompt.Request(web, lifetime.Token) == new PairingPrompt(PairingPromptKind.Reset, PairingPrompt.ShortLength),
         "a paired display prompts for touchscreen reset confirmation");
     pairingPromptState = "unpaired";
-    Check(await DisplayPairingPrompt.Request(web, lifetime.Token) == PairingPrompt.Code,
+    Check(await DisplayPairingPrompt.Request(web, lifetime.Token) == new PairingPrompt(PairingPromptKind.Code, PairingPrompt.LegacyLength),
         "an unpaired display prompts for its code");
     pairingPromptState = "unavailable";
     Check(await DisplayPairingPrompt.Request(web, lifetime.Token) == PairingPrompt.Unavailable,

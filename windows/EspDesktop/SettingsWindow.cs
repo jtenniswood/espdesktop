@@ -44,11 +44,7 @@ internal sealed class SettingsWindow : Window
     private readonly TextBlock notice = new() { TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 0, 0, 12), Visibility = Visibility.Collapsed };
     private readonly TextBlock connectionText = new() { TextWrapping = TextWrapping.Wrap, Visibility = Visibility.Collapsed };
     private readonly TextBox address = new() { MinWidth = 270 };
-    private readonly TextBox code = new()
-    {
-        MaxLength = 16, CharacterCasing = CharacterCasing.Upper, Width = 250, MinHeight = 42,
-        FontSize = 24, HorizontalAlignment = HorizontalAlignment.Center, TextAlignment = TextAlignment.Center
-    };
+    private readonly PairingCodeBoxes code = new();
     private readonly ListBox setupChoices = new() { MaxHeight = 265, BorderThickness = new Thickness(0), Background = Brushes.Transparent };
     private readonly StackPanel setupDetails = new();
     private readonly ListBoxItem usbChoice = SetupChoice("\uE88E", "Connect by USB", "Choose a COM port", SetupMethod.Usb);
@@ -171,7 +167,6 @@ internal sealed class SettingsWindow : Window
         AutomationProperties.SetName(address, "Display address");
         AutomationProperties.SetName(usbPorts, "Display USB port");
         usbPorts.SelectionChanged += (_, _) => UpdateSetupAction();
-        AutomationProperties.SetName(code, "Pairing code");
         AutomationProperties.SetName(setupChoices, "Display connection options");
         AutomationProperties.SetLiveSetting(discoveryStatus, AutomationLiveSetting.Polite);
         setupChoices.SelectionChanged += (_, _) =>
@@ -182,10 +177,10 @@ internal sealed class SettingsWindow : Window
             UpdateSetupAction();
         };
         address.TextChanged += (_, _) => UpdateSetupAction();
-        code.TextChanged += (_, _) => UpdateSetupAction();
+        code.CodeChanged += UpdateSetupAction;
         AutomationProperties.SetLiveSetting(connectionText, AutomationLiveSetting.Polite);
         AutomationProperties.SetLiveSetting(notice, AutomationLiveSetting.Polite);
-        code.KeyDown += async (_, e) => { if (e.Key == Key.Enter) { e.Handled = true; await Pair(); } };
+        code.Submitted += async () => await Pair();
         address.KeyDown += async (_, e) => { if (e.Key == Key.Enter) { e.Handled = true; await ChooseDisplay(); } };
         IsVisibleChanged += (_, _) => UpdateDiscovery();
         discoveryTimer.Tick += async (_, _) => await Scan();
@@ -467,8 +462,7 @@ internal sealed class SettingsWindow : Window
     private async Task Pair()
     {
         if (busy || quitting || !addingDisplay || pairingAddress is not { } entered) return;
-        var enteredCode = code.Text.Trim();
-        if (enteredCode.Length == 0) return;
+        if (code.Code is not { } enteredCode) return;
         busy = true;
         Status("");
         Render();
@@ -506,7 +500,7 @@ internal sealed class SettingsWindow : Window
                         scroll.ScrollToTop();
                         setupAction?.Focus();
                     }
-                    else if (pairingAddress is not null) code.Focus();
+                    else if (pairingAddress is not null) code.FocusCode();
                 }
             }
         }
@@ -833,16 +827,16 @@ internal sealed class SettingsWindow : Window
         if (pairingAddress is { } target)
         {
             var endpoint = DisplayEndpoint.Parse(target);
-            if (pairingPrompt is null)
+            if (pairingPrompt is not { } prompt)
             {
                 SetupPage(2, "Requesting a pairing code…", "Check your display for the pairing prompt.");
                 return;
             }
 
-            var entry = SetupPage(2, "Enter pairing code", pairingPrompt switch
+            var entry = SetupPage(2, "Enter pairing code", prompt.Kind switch
             {
-                PairingPrompt.Reset => "Confirm Reset pairing on the touchscreen, then enter the new code. If the prompt is missing, open Settings → Paired on the display.",
-                PairingPrompt.Code => "Enter the code shown on your display.",
+                PairingPromptKind.Reset => "Confirm Reset pairing on the touchscreen, then enter the new code. If the prompt is missing, open Settings → Paired on the display.",
+                PairingPromptKind.Code => "Enter the code shown on your display.",
                 _ when endpoint.UsbPort is not null => "On the touchscreen, tap Pair on the Setup screen or open Settings → Paired or Unpaired.",
                 _ => "Open pairing from the display’s Settings or use the pairing webpage to show the code."
             });
@@ -857,24 +851,16 @@ internal sealed class SettingsWindow : Window
             {
                 pairingAddress = pairingName = null;
                 pairingPrompt = null;
-                code.Clear();
+                code.Reset(null);
                 Status("");
                 Report("");
                 RenderSetupStep();
                 FocusDisplayInput();
             }, !busy), HorizontalAlignment.Center);
             if (endpoint.PairingPage is not null)
-            {
-                var link = new Hyperlink(new Run("Open pairing webpage")) { IsEnabled = !busy };
-                link.Click += (_, _) => OpenPanel(target, pairingPage: true);
-                var pairingPage = new TextBlock
-                {
-                    TextAlignment = TextAlignment.Center,
-                    Margin = new Thickness(0, 4, 0, 0)
-                };
-                pairingPage.Inlines.Add(link);
-                entry.Children.Add(pairingPage);
-            }
+                entry.Children.Add(SetupLink("Open pairing webpage", () => OpenPanel(target, pairingPage: true), !busy));
+            if (code.CanChangeLength)
+                entry.Children.Add(SetupLink("Change code length", code.ChangeLength, !busy));
             return;
         }
 
@@ -916,6 +902,15 @@ internal sealed class SettingsWindow : Window
         page.Children.Add(summary);
         body.Children.Add(page);
         return page;
+    }
+
+    private static TextBlock SetupLink(string text, Action action, bool enabled)
+    {
+        var link = new Hyperlink(new Run(text)) { IsEnabled = enabled };
+        link.Click += (_, _) => action();
+        var line = new TextBlock { TextAlignment = TextAlignment.Center, Margin = new Thickness(0, 4, 0, 0) };
+        line.Inlines.Add(link);
+        return line;
     }
 
     private static TextBlock SetupText(string text, double size) => new()
@@ -965,7 +960,7 @@ internal sealed class SettingsWindow : Window
     {
         if (setupAction == null) return;
         setupAction.IsEnabled = !busy && (completedDisplay != null || (pairingAddress != null
-            ? code.Text.Trim().Length > 0 : SelectedSetupMethod switch
+            ? code.Code is not null : SelectedSetupMethod switch
             {
                 SetupMethod.Address => address.Text.Trim().Length > 0,
                 SetupMethod.Usb => usbPorts.SelectedItem is string,
@@ -1070,12 +1065,13 @@ internal sealed class SettingsWindow : Window
             if (quitting) return;
         }
         else pairingPrompt = PairingPrompt.Unavailable;
+        code.Reset(pairingPrompt?.CodeLength);
         Status("");
         Render();
         if (navigation.SelectedIndex == 0)
         {
             scroll.ScrollToTop();
-            code.Focus();
+            code.FocusCode();
         }
     }
 
@@ -1090,7 +1086,7 @@ internal sealed class SettingsWindow : Window
         completedDisplay = changingConnection = null;
         usbPorts.ItemsSource = null;
         address.Clear();
-        code.Clear();
+        code.Reset(null);
         discovered = [];
         discoveryChecked = false;
         updatingSetupChoices = true;
