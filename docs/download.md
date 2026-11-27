@@ -12,9 +12,10 @@ Both apps pair with the **4-inch Guition ESP32-S3 4848S040** on your local netwo
 The Mac app requires **Apple silicon and macOS 13 or newer**.
 
 <p class="mac-app-download">
-  <a :href="$frontmatter.macDownloadUrl">{{ $frontmatter.macReleaseVersion ? 'Download for Mac (DMG)' : 'View Mac downloads on GitHub' }}</a>
-  <span v-if="$frontmatter.macReleaseVersion"> · Version {{ $frontmatter.macReleaseVersion }}</span>
+  <a href="https://github.com/jtenniswood/espdesktop/releases/latest/download/EspDesktop-latest.dmg">Download for Mac (DMG)</a>
 </p>
+
+[Download for Mac (ZIP)](https://github.com/jtenniswood/espdesktop/releases/latest/download/EspDesktop-latest.zip)
 
 Use the Mac app and firmware from the **same EspDesktop release**. If your display already runs an older version, find the matching DMG under **Assets** in [GitHub releases](https://github.com/jtenniswood/espdesktop/releases). Each release also lists its changes and firmware assets.
 
