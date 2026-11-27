@@ -18,6 +18,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Threading;
 using EspDesktop.Core;
 using Microsoft.Win32;
+using Forms = System.Windows.Forms;
 
 namespace EspDesktop;
 
@@ -344,10 +345,57 @@ internal sealed class SettingsWindow : Window
         return false;
     }
 
-    public async Task ToggleConnection()
+    internal Forms.ContextMenuStrip CreateTrayMenu()
     {
-        if (displays.Count == 1) await ToggleConnection(displays[0]);
-        else ShowDisplaySettings();
+        var menu = new Forms.ContextMenuStrip { ShowItemToolTips = true };
+        menu.Opening += (_, args) =>
+        {
+            PopulateTrayMenu(menu);
+            args.Cancel = false;
+        };
+        return menu;
+    }
+
+    private void PopulateTrayMenu(Forms.ContextMenuStrip menu)
+    {
+        // Rebuild each time so names, status, and available actions reflect the current displays.
+        foreach (var item in menu.Items.OfType<Forms.ToolStripItem>().ToArray())
+            item.Dispose();
+
+        if (!HasPairing)
+            menu.Items.Add(new Forms.ToolStripMenuItem("No displays paired") { Enabled = false });
+
+        foreach (var display in displays)
+        {
+            var address = DisplayEndpoint.Parse(display.Pairing.Address).Label;
+            var status = display.Status.Text;
+            var item = new Forms.ToolStripMenuItem((display.Pairing.DisplayName ?? address).Replace("&", "&&"))
+            {
+                Checked = status.StartsWith("Connected", StringComparison.Ordinal),
+                ToolTipText = address
+            };
+            item.DropDownItems.Add(new Forms.ToolStripMenuItem(status.Replace("&", "&&")) { Enabled = false });
+            item.DropDownItems.Add(new Forms.ToolStripSeparator());
+            item.DropDownItems.Add(new Forms.ToolStripMenuItem(display.Cancellation is null ? "Connect" : "Disconnect",
+                null, async (_, _) => await ToggleConnection(display)) { Enabled = !busy });
+            item.DropDownItems.Add(new Forms.ToolStripMenuItem("Customize Display", null,
+                (_, _) => OpenPanel(display)) { Enabled = !busy });
+            menu.Items.Add(item);
+        }
+        menu.Items.Add(new Forms.ToolStripSeparator());
+
+        menu.Items.Add(new Forms.ToolStripMenuItem("Add device", null, (_, _) =>
+        {
+            ShowDisplaySettings();
+            if (!addingDisplay) BeginDisplaySetup();
+        }) { Enabled = !busy && !store.PairingUnavailable });
+        menu.Items.Add("Settings", null, (_, _) => ShowSettings());
+        menu.Items.Add("Support", null, (_, _) =>
+        {
+            navigation.SelectedIndex = pages.Length - 1;
+            ShowSettings();
+        });
+        menu.Items.Add("Quit", null, (_, _) => Quit());
     }
 
     private async Task ToggleConnection(DisplayConnection display)
@@ -727,12 +775,7 @@ internal sealed class SettingsWindow : Window
         }
 
         var header = new WrapPanel { Margin = new Thickness(0, 0, 0, 12) };
-        header.Children.Add(Button("Add display", () =>
-        {
-            ResetSetup();
-            addingDisplay = true;
-            RenderSetupStep();
-        }, !busy));
+        header.Children.Add(Button("Add display", BeginDisplaySetup, !busy));
         body.Children.Add(header);
         foreach (var display in displays)
         {
@@ -928,6 +971,14 @@ internal sealed class SettingsWindow : Window
                 SetupMethod.Usb => usbPorts.SelectedItem is string,
                 _ => setupChoices.SelectedItem is ListBoxItem { IsEnabled: true, Tag: DiscoveredDisplay }
             }));
+    }
+
+    private void BeginDisplaySetup()
+    {
+        if (busy || quitting) return;
+        ResetSetup();
+        addingDisplay = true;
+        RenderSetupStep();
     }
 
     private void RenderSetupStep()
