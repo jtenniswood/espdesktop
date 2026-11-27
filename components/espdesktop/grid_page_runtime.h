@@ -81,6 +81,12 @@ public:
         publish_brightness_(std::move(publish_brightness)),
         allocator_(allocate, release), resources_(*this), runtime_(limits_, allocator_, limits.page_store_bytes, &resources_) {}
   bool ready() const override { return !stopped_; }
+  // Home Assistant state subscriptions must exist when the API connection is
+  // established. Pages are built lazily, so subscribe every stored card entity
+  // while the configuration is staged instead.
+  void set_state_prewarm(std::function<void(const Store &)> prewarm) {
+    prewarm_states_ = std::move(prewarm);
+  }
   std::string_view scalar_setting_value(panel_settings::ScalarSetting setting) const {
     return scalar_value(active_.get(), size_t(setting));
   }
@@ -251,6 +257,7 @@ private:
     }
     staged_->refresh_layout = !active_ || active_->accent != staged_->accent ||
         !same_layout(*active_->store, store);
+    if (prewarm_states_) prewarm_states_(store);
     return true;
   }
 
@@ -285,6 +292,7 @@ private:
   std::function<void(const std::optional<ScreenSchedulePreferences> &)> publish_schedule_;
   std::function<void(panel_settings::ScalarSetting, std::string_view)> publish_scalar_;
   std::function<void(const DisplayBrightnessPreferences &)> publish_brightness_;
+  std::function<void(const Store &)> prewarm_states_;
   Allocator allocator_;
   Resources resources_;
   std::unique_ptr<Snapshot> staged_, active_;

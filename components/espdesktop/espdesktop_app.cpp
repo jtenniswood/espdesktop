@@ -390,7 +390,30 @@ bool EspDesktopApp::create_native_configuration_runtime() {
         display_brightness_ = settings;
         if (apply_display_brightness_) apply_display_brightness_(display_brightness_);
       }));
-  if (!runtime->grid_runtime || !install_application_scene(*runtime->grid_runtime)) {
+  if (!runtime->grid_runtime) {
+    native_configuration_runtime_.reset(); return false;
+  }
+  // Subscribe every stored Home Assistant control while the configuration is
+  // staged. Lazily built screens would otherwise subscribe after the API
+  // connection already sent its subscription batch and never receive states.
+  runtime->grid_runtime->set_state_prewarm([](const pages::PageStore &store) {
+    for (pages::PageId page = 0; page < store.page_count(); ++page) {
+      const auto *definition = store.page(page);
+      if (definition == nullptr) continue;
+      for (auto card_id : definition->runtime_cards()) {
+        const auto *card = store.card(card_id);
+        if (card == nullptr) continue;
+        const auto entity = store.string(
+            card->fields[size_t(pages::CardField::ENTITY)]);
+        if (entity.empty()) continue;
+        const std::string id(entity);
+        if (espdesktop::ha_controls::slider_control_valid(id) ||
+            espdesktop::ha_controls::toggle_control_valid(id))
+          espdesktop::ha_controls::subscribe_state(id);
+      }
+    }
+  });
+  if (!install_application_scene(*runtime->grid_runtime)) {
     native_configuration_runtime_.reset(); return false;
   }
   return true;
