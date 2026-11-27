@@ -115,7 +115,8 @@ internal sealed class SettingsWindow : Window
         this.discover = discover ?? Discovery.Find;
         this.requestPairingPrompt = requestPairingPrompt ?? DisplayPairingPrompt.Request;
         this.pairDisplay = pairDisplay ?? ((address, code, token, saved) =>
-            DisplaySession.PairAsync(address, code, token, saved, Environment.MachineName, this.store.ClientId()));
+            DisplaySession.PairAsync(address, code, token, saved,
+                Environment.MachineName + " (Windows)", this.store.ClientId()));
         this.store = store ?? new LocalStore();
         desktop = new(this.store.Settings, obs);
         obs.CatalogueChanged += desktop.ObsChanged;

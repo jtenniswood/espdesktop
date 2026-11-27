@@ -193,7 +193,7 @@ export function createSettingsCompanionSectionFeature(
             addingComputer = true;
             addComputerButton.disabled = true;
             try {
-                render(await requestPairing(false, true));
+                render(await requestPairing(true, true));
             } catch {
                 showBanner("Could not start pairing another computer.", "error");
             } finally {

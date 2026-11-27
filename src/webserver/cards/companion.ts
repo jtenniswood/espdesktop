@@ -1188,7 +1188,9 @@ export function registerCompanionCardTypes(
             renderButtonSettings();
         });
         field.appendChild(select);
-        panel.appendChild(field);
+        // The computer binding is the primary choice for a Companion card, so
+        // keep it above the card type and the collapsed card settings.
+        panel.insertBefore(field, panel.firstChild);
     }
 
     const companionDefinition: any = {
