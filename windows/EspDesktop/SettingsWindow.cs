@@ -32,6 +32,7 @@ internal sealed class SettingsWindow : Window
     private CancellationTokenSource? obsCancellation;
     private Task? obsTask;
     private readonly Func<CancellationToken, Task<DiscoveredDisplay[]>> discover;
+    private readonly Func<Uri, CancellationToken, Task<PairingPrompt>> requestPairingPrompt;
     private readonly CancellationTokenSource lifetime = new();
     private readonly DispatcherTimer discoveryTimer = new() { Interval = TimeSpan.FromSeconds(8) };
     private readonly DispatcherTimer updatesTimer = new() { Interval = TimeSpan.FromDays(1) };
@@ -78,10 +79,12 @@ internal sealed class SettingsWindow : Window
     public event Action<string>? ShortcutFailed;
     public event Action<Version>? UpdateAvailable;
 
-    public SettingsWindow(bool smoke, Func<CancellationToken, Task<DiscoveredDisplay[]>>? discover = null, LocalStore? store = null)
+    public SettingsWindow(bool smoke, Func<CancellationToken, Task<DiscoveredDisplay[]>>? discover = null, LocalStore? store = null,
+        Func<Uri, CancellationToken, Task<PairingPrompt>>? requestPairingPrompt = null)
     {
         this.smoke = smoke;
         this.discover = discover ?? Discovery.Find;
+        this.requestPairingPrompt = requestPairingPrompt ?? DisplayPairingPrompt.Request;
         this.store = store ?? new LocalStore();
         desktop = new(this.store.Settings, obs);
         obs.CatalogueChanged += desktop.ObsChanged;
@@ -853,7 +856,7 @@ internal sealed class SettingsWindow : Window
         {
             busy = true;
             Render();
-            try { pairingPrompt = await DisplayPairingPrompt.Request(settings, lifetime.Token); }
+            try { pairingPrompt = await requestPairingPrompt(settings, lifetime.Token); }
             catch (OperationCanceledException) when (quitting) { return; }
             finally { busy = false; }
             if (quitting) return;

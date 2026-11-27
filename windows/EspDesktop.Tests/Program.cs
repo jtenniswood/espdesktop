@@ -293,7 +293,10 @@ server.Map(SocketPath, async context =>
                 await FindMessage(socket, "pair.reset", m => Valid(m, "mac_to_panel", "connected"));
                 await Send(socket, "error", ("code", seq == 12 ? "pairing_reset" : "pairing_reset_failed"));
             }
-            await socket.ReceiveAsync(new byte[1024].AsMemory(), context.RequestAborted);
+            // Keep the connection open for the client to process the reply. It
+            // can still have catalogue or metrics frames queued after the reset.
+            var buffer = new byte[16384];
+            while ((await socket.ReceiveAsync(buffer.AsMemory(), context.RequestAborted)).MessageType != WebSocketMessageType.Close) { }
             return;
         }
         Check(seq == 8, "repair stale authentication sequence");
@@ -475,7 +478,7 @@ async Task VerifyPairingPrompts()
         {
             await pairingResetReady.WaitAsync(lifetime.Token);
             Check(await connection.ShowPairingBeforeDisconnecting() == (sequence == 11),
-                "authenticated reset requires a successful acknowledgement and supporting firmware");
+                $"reset reply for authentication sequence {sequence + 1} matches the simulated firmware response");
             if (sequence == 11) await run.WaitAsync(lifetime.Token);
         }
         finally
