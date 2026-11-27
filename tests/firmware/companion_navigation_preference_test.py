@@ -33,6 +33,7 @@ struct lv_obj_t {};
 struct ParsedCfg { std::string entity; };
 struct NavigationSubpageEntry {
   int slot; std::string kind; lv_obj_t *screen; int parent_slot = 0; uint64_t last_used = 0;
+  bool is_screen = false;
 };
 namespace esphome { uint32_t millis() { return 15; } }
 #define ESP_LOGD(...) ((void) 0)

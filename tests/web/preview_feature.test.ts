@@ -47,15 +47,15 @@ export function runPreviewFeatureTests(): void {
   equal(defaultCardTypeForPicker("companion_subpage"), "subpage", "Companion subpages use the shared subpage runtime");
   deepEqual(
     cardPickerConnectors(true, true),
-    [["mac_companion", "Companion"]],
-    "legacy flags cannot restore a Home Assistant picker",
+    [["home_assistant", "Home Assistant"], ["mac_companion", "Companion"]],
+    "native Home Assistant support adds its picker tab",
   );
   deepEqual(
     cardPickerConnectors(false, true),
     [["mac_companion", "Companion"]],
     "a Companion-only setup omits the Home Assistant picker tab",
   );
-  equal(cardTypeVisibleForConnector("subpage", "home_assistant"), false, "Home Assistant subpages remain in the Home Assistant picker");
+  equal(cardTypeVisibleForConnector("subpage", "home_assistant"), true, "Home Assistant subpages remain in the Home Assistant picker");
   equal(cardTypeVisibleForConnector("subpage", "mac_companion"), false, "Home Assistant subpages are hidden from Companion");
   equal(cardTypeVisibleForConnector("companion_subpage", "home_assistant"), false, "Companion subpages are hidden from Home Assistant");
   equal(cardTypeVisibleForConnector("companion_subpage", "mac_companion"), true, "Companion subpages remain in the Companion picker");
@@ -77,6 +77,12 @@ export function runPreviewFeatureTests(): void {
   equal(cardContractAvailability("companion_mac_lock"), "stable", "Lock Machine is a stable card");
   equal(cardContractCard("companion_mac_lock")?.pickerLabel, "Lock Machine", "the picker label is shared");
   equal(cardTypeVisibleForConnector("companion_mac_lock", "mac_companion"), true, "the stable card is selectable");
+  for (const key of ["", "light_switch", "light_brightness", "slider"]) {
+    equal(cardTypeVisibleForConnector(key, "home_assistant"), true, `${key || "Switch"} is selectable with Home Assistant`);
+  }
+  equal(cardTypeVisibleForConnector("light_switch", "mac_companion"), false, "Lights stay in the Home Assistant picker");
+  equal(cardContractAvailability("light_switch"), "stable", "Lights is a stable card");
+  equal(cardContractAvailability("slider"), "stable", "Slider is a stable card");
   equal(cardContractAvailability("companion_window"), "preview", "Window Control is a preview card");
   equal(cardTypeVisibleForConnector("companion_window", "mac_companion"), false, "the preview card is absent from the stable picker");
   equal(cardContractRemoveOnEdit("companion_window"), true, "stable layouts release old preview slots");

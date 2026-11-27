@@ -34,6 +34,9 @@ inline void theme_set_content_pressed_fill(lv_obj_t *obj, bool owned = true) {
   if (owned) lv_obj_add_flag(obj, LV_OBJ_FLAG_USER_4);
   else lv_obj_clear_flag(obj, LV_OBJ_FLAG_USER_4);
 }
+// Grid cards that must keep their current fill and text colour while pressed:
+// their state only changes when the action runs on release.
+inline constexpr lv_obj_flag_t CARD_KEEP_PRESSED_COLOR_FLAG = LV_OBJ_FLAG_USER_4;
 
 inline bool theme_color_matches(lv_color_t color, uint32_t rgb) {
   return lv_color_eq(color, lv_color_hex(rgb));

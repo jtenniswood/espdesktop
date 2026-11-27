@@ -18,7 +18,7 @@ export function createNativePageEditorFeature(options: {
   runtime: UiRuntimeState;
   document: Document;
   displayDemo?: boolean;
-  shell: Pick<ControlsShellFeature, "showBanner" | "syncConfigLockUi">;
+  shell: Pick<ControlsShellFeature, "showBanner" | "syncConfigLockUi" | "renderScreenTabs">;
   closeSettings(): void;
   render(): void;
   canApply(): boolean;
@@ -36,7 +36,7 @@ export function createNativePageEditorFeature(options: {
     revision: () => native.changeRevision(),
     read: signal => native.readSnapshot(signal),
     canApply: () => options.canApply() && !state.configLocked && !state.nativeTransferActive && !state.settingsDraft?.dirty && !state.settingsDraft?.isNew &&
-      runtime.dragSrcPos < 0 && !state.clockBarDragItem &&
+      !runtime.isSettingsOpen() && runtime.dragSrcPos < 0 && !state.clockBarDragItem &&
       !options.document.activeElement?.closest(".sp-card-name-input"),
     apply: (snapshot, nativeLayout, preserveSelection) => {
       const cleaned = cleanRetiredCards(snapshot, nativeLayout);
@@ -71,6 +71,7 @@ export function createNativePageEditorFeature(options: {
       clearTimeout(runtime.sliderMigrationTimer as any);
       runtime.pendingSliderSubpageMigrations = {};
       options.shell.syncConfigLockUi();
+      options.shell.renderScreenTabs();
       if (state.nativeConfigReadOnly && !options.displayDemo)
         options.shell.showBanner("This firmware can display nested pages, but cannot save changes to them.", "warning");
       if (cleaned !== snapshot && !state.nativeConfigReadOnly && !removingOldCards) {

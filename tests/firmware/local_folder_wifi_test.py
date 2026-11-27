@@ -24,7 +24,8 @@ int parse_precision(const std::string &){return 0;}
 bool cfg_option_token_present(const std::string &,const char *){return false;}
 bool subpage_companion_stat_config(const ParsedCfg &c){return c.options=="subpage_kind=companion_stat";}
 int metric_bindings=0;
-void companion_track_metric_card(lv_obj_t *,lv_obj_t *,void*,const std::string&,const std::string&,int,bool,bool){++metric_bindings;}
+void companion_track_metric_card(lv_obj_t *,lv_obj_t *,void*,const std::string&,const std::string&,int,bool,bool,const std::string& = {}){++metric_bindings;}
+std::string companion_card_computer(const ParsedCfg &){return "";}
 namespace esphome {using StringRef=std::string;}
 bool is_entity_on_ref(esphome::StringRef){return false;}
 namespace espdesktop::cards {

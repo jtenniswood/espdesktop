@@ -26,6 +26,13 @@ export interface ControlsShellDependencies {
     readonly clearPlaceholder: () => void;
     readonly updatePreviewHint: () => void;
     readonly renderPreview: () => void;
+    // Extra home screens are stored as pages keyed above the visible grid.
+    readonly screenKeys: () => readonly number[];
+    readonly enterScreen: (key: number | null) => void;
+    readonly addScreen: () => Promise<boolean> | boolean;
+    readonly removeScreen: (key: number) => Promise<boolean> | boolean;
+    readonly renameScreen: (key: number, name: string) => Promise<boolean> | boolean;
+    readonly moveScreen: (key: number, targetIndex: number) => Promise<boolean> | boolean;
 }
 
 export interface ControlsShellFeature {
@@ -43,6 +50,9 @@ export interface ControlsShellFeature {
     readonly isConfigLocked: () => boolean;
     readonly syncConfigLockUi: () => void;
     readonly setConfigLocked: (locked?: any, reason?: any) => void;
+    readonly renderScreenTabs: () => void;
+    readonly screenKeys: () => readonly number[];
+    readonly enterScreen: (key: number | null) => void;
 }
 
 export function createControlsShellFeature(
@@ -53,8 +63,16 @@ export function createControlsShellFeature(
     const document = dependencies.document;
     const state = dependencies.state;
     const initialParams = new URLSearchParams(document.defaultView?.location.search ?? "");
-    const requestedInitialTab = ["device", "connectors"].includes(initialParams.get("tab") ?? "") ||
-        initialParams.get("connector") === "mac_companion" ? "device" : null;
+    const requestedConnectorView = initialParams.get("connector") === "mac_companion" ||
+        initialParams.get("tab") === "connectors";
+    const requestedTabName = initialParams.get("tab") ?? "";
+    const requestedInitialTab = requestedConnectorView ? "device"
+        : requestedTabName === "layout" ? "screen"
+        : requestedTabName === "settings" || requestedTabName === "screen" ? "settings"
+        : requestedTabName === "system" || requestedTabName === "device" ? "device"
+        : null;
+    // Restored once the saved layout has loaded and the screen keys are known.
+    let pendingInitialScreen: string | null = initialParams.get("screen") ?? null;
     // ── Build UI ───────────────────────────────────────────────────────────
     function createMdiIcon(this: any, name?: any, className?: any) {
         var icon: any = document.createElement("span");
@@ -166,6 +184,11 @@ export function createControlsShellFeature(
         selectionBar.className = "sp-selection-bar";
         els.selectionBar = selectionBar;
         page.appendChild(selectionBar);
+        var screenTabs: any = document.createElement("div");
+        screenTabs.className = "sp-screen-tabs";
+        screenTabs.style.cssText = "display:flex;gap:6px;align-items:center;margin:0 0 10px;flex-wrap:wrap;";
+        page.appendChild(screenTabs);
+        els.screenTabs = screenTabs;
         var wrap: any = document.createElement("div");
         wrap.className = "sp-wrap";
         wrap.innerHTML =
@@ -216,6 +239,152 @@ export function createControlsShellFeature(
         els.settingsOverlay = overlay;
         parent.appendChild(page);
         els.screenPage = page;
+        renderScreenTabs();
+    }
+    function renderScreenTabs(this: any) {
+        if (!els.screenTabs)
+            return;
+        els.screenTabs.textContent = "";
+        var screenTitle: any = function (key: any, index?: any) {
+            var page: any = state.subpages[key];
+            return page && page.title ? String(page.title) : "Screen " + (index + 2);
+        };
+        var beginRename: any = function (tab?: any, label?: any, key?: any, index?: any) {
+            if (tab.querySelector("input"))
+                return;
+            var input: any = document.createElement("input");
+            input.type = "text";
+            input.className = "sp-tab-rename";
+            input.value = (state.subpages[key] && state.subpages[key].title) || "";
+            input.placeholder = "Screen " + (index + 2);
+            input.style.cssText = "width:8em;min-width:5em;font:inherit;color:inherit;background:transparent;border:0;border-bottom:1px solid currentColor;outline:none;";
+            var finished = false;
+            var finish = async function (this: any, save?: any) {
+                if (finished)
+                    return;
+                finished = true;
+                var value: any = input.value.trim();
+                input.replaceWith(label);
+                label.textContent = screenTitle(key, index);
+                if (save && value !== ((state.subpages[key] && state.subpages[key].title) || "")) {
+                    if (await dependencies.renameScreen(key, value))
+                        renderScreenTabs();
+                }
+            };
+            input.addEventListener("keydown", function (this: any, event?: any) {
+                if (event.key === "Enter") {
+                    event.preventDefault();
+                    void finish(true);
+                }
+                else if (event.key === "Escape") {
+                    event.preventDefault();
+                    void finish(false);
+                }
+            });
+            input.addEventListener("blur", function (this: any) { void finish(true); });
+            input.addEventListener("click", function (this: any, event?: any) { event.stopPropagation(); });
+            input.addEventListener("dblclick", function (this: any, event?: any) { event.stopPropagation(); });
+            label.replaceWith(input);
+            input.focus();
+            input.select();
+        };
+        var makeTab: any = function (label?: any, active?: any, onClick?: any, screenKey?: any, index?: any) {
+            var tab: any = document.createElement("div");
+            tab.className = "sp-tab" + (active ? " active" : "");
+            tab.setAttribute("role", "tab");
+            tab.setAttribute("aria-selected", active ? "true" : "false");
+            tab.style.cursor = "pointer";
+            var labelNode: any = document.createElement("span");
+            labelNode.className = "sp-tab-label";
+            labelNode.textContent = label;
+            tab.appendChild(labelNode);
+            if (onClick)
+                tab.addEventListener("click", onClick);
+            if (screenKey != null) {
+                tab.draggable = true;
+                tab.title = "Drag to reorder; double-click to rename";
+                tab.addEventListener("dragstart", function (this: any, event?: any) {
+                    if (event.dataTransfer) {
+                        event.dataTransfer.effectAllowed = "move";
+                        event.dataTransfer.setData("text/plain", String(screenKey));
+                    }
+                    tab.classList.add("sp-tab-dragging");
+                });
+                tab.addEventListener("dragend", function (this: any) {
+                    tab.classList.remove("sp-tab-dragging");
+                });
+                tab.addEventListener("dragover", function (this: any, event?: any) {
+                    event.preventDefault();
+                    if (event.dataTransfer)
+                        event.dataTransfer.dropEffect = "move";
+                    tab.classList.add("sp-tab-drop-target");
+                });
+                tab.addEventListener("dragleave", function (this: any) {
+                    tab.classList.remove("sp-tab-drop-target");
+                });
+                tab.addEventListener("drop", async function (this: any, event?: any) {
+                    event.preventDefault();
+                    tab.classList.remove("sp-tab-drop-target");
+                    var source: any = Number(event.dataTransfer && event.dataTransfer.getData("text/plain"));
+                    if (!source || source === screenKey)
+                        return;
+                    if (await dependencies.moveScreen(source, index))
+                        renderScreenTabs();
+                });
+                tab.addEventListener("dblclick", function (this: any, event?: any) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    beginRename(tab, labelNode, screenKey, index);
+                });
+            }
+            return tab;
+        };
+        els.screenTabs.appendChild(makeTab("Home", state.editingSubpage == null, function () {
+            dependencies.enterScreen(null);
+            renderScreenTabs();
+        }));
+        dependencies.screenKeys().forEach(function (key: any, index?: any) {
+            var tab: any = makeTab(screenTitle(key, index), state.editingSubpage === key, function () {
+                dependencies.enterScreen(key);
+                renderScreenTabs();
+            }, key, index);
+            var remove: any = document.createElement("span");
+            remove.textContent = "×";
+            remove.title = "Remove screen";
+            remove.style.cssText = "margin-left:6px;opacity:.7;";
+            remove.addEventListener("click", async function (event?: any) {
+                event.stopPropagation();
+                var view: any = document.defaultView;
+                if (view && !view.confirm("Remove this screen and its cards?"))
+                    return;
+                if (await dependencies.removeScreen(key))
+                    renderScreenTabs();
+            });
+            tab.appendChild(remove);
+            els.screenTabs.appendChild(tab);
+        });
+        var add: any = makeTab("+", false, async function () {
+            if (await dependencies.addScreen())
+                renderScreenTabs();
+        });
+        add.title = "Add screen";
+        els.screenTabs.appendChild(add);
+        // Restore a deep-linked screen once the saved layout reports its keys.
+        if (pendingInitialScreen !== null) {
+            const requested: any = pendingInitialScreen === "home" ? null : pendingInitialScreen;
+            const known = requested == null ||
+                dependencies.screenKeys().some(function (this: any, key?: any) { return String(key) === String(requested); });
+            if (known) {
+                pendingInitialScreen = null;
+                const current: any = state.editingSubpage == null ? null : String(state.editingSubpage);
+                if ((requested == null ? null : String(requested)) !== current) {
+                    dependencies.enterScreen(requested == null ? null : Number(requested));
+                    renderScreenTabs();
+                    return;
+                }
+            }
+        }
+        syncViewUrl(state.activeTab);
     }
     // ── Shell controls ───────────────────────────────────────────────────
     function buildApplyBar(this: any) {
@@ -249,6 +418,29 @@ export function createControlsShellFeature(
         bar.appendChild(note);
         return bar;
     }
+    function tabUrlName(tab: string): string {
+        return tab === "screen" ? "layout" : tab === "settings" ? "screen" : "system";
+    }
+    function syncViewUrl(tab: string): void {
+        const view = document.defaultView;
+        if (!view)
+            return;
+        try {
+            const url = new URL(view.location.href);
+            const connectorView = url.searchParams.get("connector") === "mac_companion" ||
+                url.searchParams.get("tab") === "connectors";
+            if (!(tab === "device" && connectorView))
+                url.searchParams.set("tab", tabUrlName(tab));
+            const screenKey = state.editingSubpage;
+            if (tab === "screen" && screenKey != null &&
+                dependencies.screenKeys().some(function (this: any, key?: any) { return String(key) === String(screenKey); }))
+                url.searchParams.set("screen", String(screenKey));
+            else
+                url.searchParams.delete("screen");
+            view.history.replaceState(null, "", url);
+        }
+        catch (e) { /* History is unavailable in embedded or restricted views. */ }
+    }
     function switchTab(this: any, tab?: any) {
         const returningToScreen = tab === "screen" && state.activeTab !== "screen";
         state.activeTab = tab;
@@ -262,6 +454,7 @@ export function createControlsShellFeature(
         els.settingsPage.className = "sp-page" + (tab === "settings" ? " active" : "");
         els.devicePage.className = "sp-page" + (tab === "device" ? " active" : "");
         syncTabChrome();
+        syncViewUrl(tab);
         if (returningToScreen) dependencies.renderPreview();
     }
     function syncTabChrome(this: any) {
@@ -335,5 +528,8 @@ export function createControlsShellFeature(
         isConfigLocked,
         syncConfigLockUi,
         setConfigLocked,
+        renderScreenTabs,
+        screenKeys: () => dependencies.screenKeys(),
+        enterScreen: (key) => { dependencies.enterScreen(key); renderScreenTabs(); },
     };
 }

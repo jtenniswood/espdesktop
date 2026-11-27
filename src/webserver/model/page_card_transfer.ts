@@ -48,6 +48,10 @@ interface TransferEditor<Tree> extends TransferReader<Tree> {
 
 const typeFromCode = (code: string): string => CARD_CONTRACT_SUBPAGE_TYPES_BY_CODE[code] ?? code;
 function check(value: unknown, message: string): asserts value { if (!value) throw new PanelConfigError(message); }
+/** Extra home screens are top-level pages above the visible grid; no card owns them. */
+function extraHomeScreen(page: number, layout: PageTransferLayout): boolean {
+  return pageDepth(page) === 1 && page > layout.slots;
+}
 function cloneDocument(source: PanelConfigDocument): PanelConfigDocument {
   return { ...source, buttons: { ...source.buttons }, subpages: { ...source.subpages }, settings: { ...source.settings } };
 }
@@ -59,11 +63,12 @@ function cardSlot(slot: number): void {
   // Saved card identities are independent of the number of visible cells.
   check(Number.isInteger(slot) && slot >= 1 && slot <= PANEL_CONFIG_MAX_SLOT_COUNT, "Invalid card slot");
 }
-function pageExists<Tree>(source: TransferReader<Tree>, page: number): void {
+function pageExists<Tree>(source: TransferReader<Tree>, page: number, layout: PageTransferLayout): void {
   pageDepth(page);
   if (!page) return;
   const parent = parentPageKey(page);
-  pageExists(source, parent);
+  pageExists(source, parent, layout);
+  if (extraHomeScreen(page, layout)) return;
   const owner = source.readPage(parent).cards[pageOwnerSlot(page) - 1];
   check(owner && cardTransferOwnsSubpage(owner), "The destination page is no longer a folder");
 }
@@ -76,12 +81,13 @@ function readLegacySubpage(raw: string): NativePageEdit {
 function pageGrid<Tree>(source: TransferReader<Tree>, page: number, layout: PageTransferLayout) {
   const parsed = source.readPage(page);
   const placed = !page ? parseGridOrder(parsed.order, 32, layout.columns, {}, layout.slots)
-    : buildSubpageGrid({ ...parseSubpageOrder(parsed.order), buttons: [...parsed.cards] }, layout.slots, layout.columns);
+    : buildSubpageGrid({ ...parseSubpageOrder(parsed.order), buttons: [...parsed.cards],
+        ...(extraHomeScreen(page, layout) ? { screen: true } : {}) }, layout.slots, layout.columns);
   return { ...parsed, grid: placed.grid, sizes: placed.sizes };
 }
 
 function capture<Tree>(reader: TransferReader<Tree>, page: number, slots: readonly number[], layout: PageTransferLayout) {
-  layoutCheck(layout); pageExists(reader, page);
+  layoutCheck(layout); pageExists(reader, page, layout);
   check(slots.length > 0 && new Set(slots).size === slots.length, "Choose distinct cards to copy");
   const source = pageGrid(reader, page, layout);
   const entries = slots.map(slot => {
@@ -180,12 +186,16 @@ function writeLegacyCards(document: PanelConfigDocument, page: number, edits: Re
 function updatedOrder<Tree>(editor: TransferReader<Tree>, page: number, grid: readonly number[], sizes: SlotSizeMap, layout: PageTransferLayout): string {
   if (!page) return serializeGridOrder(grid, sizes);
   const previous = editor.readPage(page);
+  const screen = extraHomeScreen(page, layout);
   const back = parseSubpageOrder(previous.order);
-  const next = serializeSubpageGrid(grid, sizes, back.backLabel, back.backColor, back.title);
+  const next = serializeSubpageGrid(grid, sizes, back.backLabel, back.backColor, back.title, screen);
   // Inactive records belong to the saved document, independently of this grid.
   const tokens = previous.order.split(",");
   const hasBack = tokens.some(token => isBackOrderToken(parseBackOrderToken(token).token));
-  const tail = tokens.slice(layout.slots - (hasBack ? 0 : 1));
+  // A screen saves its Back token in front of every visible cell, so its
+  // dormant records begin one position later than an ordinary page's.
+  const tailStart = screen ? layout.slots + (hasBack ? 1 : 0) : layout.slots - (hasBack ? 0 : 1);
+  const tail = tokens.slice(tailStart);
   if (tail.length) { while (next.length < layout.slots) next.push(""); next.push(...tail); }
   return next.join(",");
 }
@@ -215,7 +225,7 @@ export function planPageCardDelete(document: PanelConfigDocument, origin: PageTr
 }
 
 function deleteSelection<Tree>(editor: TransferEditor<Tree>, origin: PageTransferOrigin, layout: PageTransferLayout): CardConfig[] {
-  layoutCheck(layout); pageExists(editor, origin.page); verifyOrigin(editor, origin);
+  layoutCheck(layout); pageExists(editor, origin.page, layout); verifyOrigin(editor, origin);
   return deleteCards(editor, origin.page, origin.slots, layout);
 }
 
@@ -232,7 +242,7 @@ export function planPageCardPaste(document: PanelConfigDocument, target: number,
 
 function pasteCards<Tree>(editor: TransferEditor<Tree>, target: number, start: number,
     entries: readonly PageTransferCard<Tree>[], layout: PageTransferLayout, move?: PageTransferOrigin): { slots: number[]; resized: number } {
-  layoutCheck(layout); pageExists(editor, target);
+  layoutCheck(layout); pageExists(editor, target, layout);
   check(entries.length > 0 && Number.isInteger(start) && start >= 0 && start < layout.slots, "Invalid paste position");
   if (move) {
     verifyOrigin(editor, move);

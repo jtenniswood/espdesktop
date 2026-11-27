@@ -176,12 +176,13 @@ class PageStoreBuilder {
   }
 
  private:
-  void set_runtime_cards(PageDefinition &page, const DeviceUiLimits &limits, bool root = false) {
+  void set_runtime_cards(PageDefinition &page, const DeviceUiLimits &limits,
+                         bool root = false, bool screen = false) {
     static_assert(MAX_GRID_SLOTS <= 32, "Page membership must cover the renderer's card IDs");
     page.runtime_card_mask = 0;
     if (page.navigable) {
-      const size_t capacity = root ? limits.slot_count : limits.cards_per_subpage;
-      if (root || page.card_count <= capacity) {
+      const size_t capacity = (root || screen) ? limits.slot_count : limits.cards_per_subpage;
+      if (root || screen || page.card_count <= capacity) {
         // Keep the established state ownership for ordinary saved pages.
         const size_t count = std::min<size_t>(page.card_count, capacity);
         page.runtime_card_mask = count == 32 ? UINT32_MAX : (uint32_t{1} << count) - 1;
@@ -193,7 +194,8 @@ class PageStoreBuilder {
         parse_subpage_order(std::string(store_.string(page.order)), limits.slot_count, page.card_count, order);
         for (size_t position = 0; position < limits.slot_count; ++position) {
           const int slot = order.positions[position];
-          const size_t cell = order.has_back_token ? position : position + 1;
+          order.screen = screen;
+          const size_t cell = (order.has_back_token || screen) ? position : position + 1;
           if (cell < limits.slot_count && slot > 0 && slot <= 32)
             page.runtime_card_mask |= uint32_t{1} << (slot - 1);
         }
@@ -356,12 +358,17 @@ class PageStoreBuilder {
       Row navigation;const bool navigable=reader.record(Kind::NAVIGATION,owner_wire,&navigation);
       const bool folder=page_card_owns_subpage(saved_fields(reader,owner)[6], saved_fields(reader,owner)[4], saved_fields(reader,owner)[8]);
       Row wire_page;reader.record(Kind::PAGE,page_positions[index].page,&wire_page);
-      if(folder!=navigable || (wire_page.flags==PANEL_CONFIG_V2_ABSENT_IMPORT &&
-          (wire_page.third || target.card_count || !folder || !navigable)))return PageStoreStatus::INVALID_DOCUMENT;
+      // A root page owned by an absent card beyond the visible grid is an
+      // extra home screen. It has no card or navigation record of its own.
+      const bool screen=!wire_page.first &&
+          owner.flags==PANEL_CONFIG_V2_ABSENT_IMPORT &&
+          owner.second>limits.slot_count;
+      if(!screen && (folder!=navigable || (wire_page.flags==PANEL_CONFIG_V2_ABSENT_IMPORT &&
+          (wire_page.third || target.card_count || !folder || !navigable))))return PageStoreStatus::INVALID_DOCUMENT;
       target.parent=parent->reserved;target.owner=position->reserved;
       const auto &parent_page=pages[target.parent];
-      target.navigable=navigable && parent_page.includes_runtime_card(target.owner);
-      set_runtime_cards(target,limits);
+      target.navigable=screen || (navigable && parent_page.includes_runtime_card(target.owner));
+      set_runtime_cards(target,limits,false,screen);
       if(target.navigable)cards[target.owner].target=index;
     }
     for(size_t i=0;i<position_count;++i) {

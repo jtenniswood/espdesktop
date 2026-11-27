@@ -1,8 +1,8 @@
 {
-  "hidden": true,
+  "hidden": false,
   "label": "Switch",
   "allowInSubpage": true,
-  "domains": ["light", "switch", "input_boolean", "fan"],
+  "domains": ["light", "switch", "input_boolean", "fan", "media_player"],
   "options": [
     { "name": "large_numbers", "label": "Large Active Display Numbers", "kind": "flag", "omitDefault": true },
     { "name": "confirmation_mode", "label": "Confirmation Required", "kind": "choice", "values": ["", "off", "on", "both"], "defaultValue": "", "omitDefault": true, "storage": ["confirm_off", "confirm_on"] },

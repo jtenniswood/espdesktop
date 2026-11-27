@@ -6,6 +6,7 @@
 #include <initializer_list>
 
 #include "card_icon_layout.h"
+#include "card_lock_badge.h"
 
 // Internal implementation detail for button_grid.h. Include button_grid.h from device YAML.
 
@@ -237,6 +238,7 @@ inline void grid_update_companion_app_icon_palette(
     });
     connection_observer_registered = true;
   }
+  const std::string active_mode = cfg_option_value(config.options, "card_active_color");
   companion_update_app_icon_card_palette(
       *source, slot.btn, companion_app_icon_enabled(config) || !companion_shortcut_app_icon_id(config).empty(),
       palette.off_val,
@@ -246,7 +248,7 @@ inline void grid_update_companion_app_icon_palette(
       cfg_option_value(config.options, "card_off_color").empty()
           ? cfg_option_value(config.options, "app_bg_color")
           : cfg_option_value(config.options, "card_off_color"),
-      companion_connected());
+      companion_connected(), active_mode == "custom" || active_mode == "theme");
 }
 #endif
 inline CardPalette card_palette_for_config(const CardPalette &defaults,
@@ -278,6 +280,12 @@ inline CardPalette card_palette_for_config(const CardPalette &defaults,
       palette.has_on = true;
       palette.on_val = display_correct_color(on, display);
     }
+  }
+  const uint32_t unavailable = parse_hex_color(
+      cfg_option_value(config.options, "card_unavailable_color"), valid);
+  if (valid) {
+    palette.has_unavailable = true;
+    palette.unavailable_val = display_correct_color(unavailable, display);
   }
   if (config.type == "companion" && companion_obs_status_card(config.entity))
     palette.sensor_val = palette.surface_sensor_val;
@@ -379,6 +387,7 @@ inline bool card_slot_static_child(const BtnSlot &s, lv_obj_t *child) {
 
 inline void reset_card_slot_dynamic_children(BtnSlot &s) {
   if (!s.btn) return;
+  companion_card_lock_badge_forget(s.btn);
   // Persistent slot labels must lose the previous card owner before contrast sync.
   if (s.icon_lbl) lv_obj_clear_flag(s.icon_lbl, LV_OBJ_FLAG_USER_2);
   if (s.text_lbl) lv_obj_clear_flag(s.text_lbl, LV_OBJ_FLAG_USER_2);
@@ -422,6 +431,19 @@ inline bool info_only_hidden_card_type(const espdesktop::cards::Context &context
   return !card_runtime_information_only(context);
 }
 
+// The button theme paints an accent fill for pressed buttons. A mute card's
+// state changes only when the action runs on release, so strip that fill at
+// touch time even if a theme refresh added it back.
+inline void mute_card_keep_state_on_press(lv_event_t *event) {
+  const auto code = lv_event_get_code(event);
+  if (code != LV_EVENT_PRESSED && code != LV_EVENT_PRESSING) return;
+  auto *button = static_cast<lv_obj_t *>(lv_event_get_target(event));
+  lv_obj_remove_style(button, nullptr,
+      static_cast<lv_style_selector_t>(LV_PART_MAIN) |
+      static_cast<lv_style_selector_t>(LV_STATE_PRESSED));
+  sync_bound_card_text_color(button);
+}
+
 inline void setup_card_visual(BtnSlot &s, const ParsedCfg &p,
                               const espdesktop::cards::Context &context,
                               const GridConfig &cfg,
@@ -435,18 +457,43 @@ inline void setup_card_visual(BtnSlot &s, const ParsedCfg &p,
   reset_card_slot_dynamic_children(s);
 #ifdef USE_COMPANION
   companion_reset_card_app_icon_palette(s);
+  if (companion_card_type_name(p.type))
+    companion_card_lock_badge_attach(s.btn, companion_card_computer(p),
+        cfg.subpage_chevron_font ? cfg.subpage_chevron_font : display.fonts.icon);
 #endif
   apply_grid_card_corners(s.btn, cfg.card_corner_radius, cfg.continuous_card_corners);
   theme_set_content_background(s.btn, palette.custom_background);
+  lv_obj_clear_flag(s.btn, CARD_KEEP_PRESSED_COLOR_FLAG);
   const bool apple_shortcut = p.type == "companion" && companion_apple_shortcut_action(p.entity);
-  const auto pressed_state = apple_shortcut ? APPLE_SHORTCUT_TAP_STATE : LV_STATE_PRESSED;
+  // A mute card must not preview its active colour while the finger is down:
+  // its state only changes when the action runs on release.
+  const bool mute_toggle = p.entity == "media.input_mute" || p.entity == "media.output_mute";
+  const auto pressed_state = apple_shortcut ? APPLE_SHORTCUT_TAP_STATE
+      : mute_toggle ? static_cast<lv_state_t>(LV_STATE_CHECKED)
+                    : static_cast<lv_state_t>(LV_STATE_PRESSED);
   lv_obj_clear_state(s.btn, APPLE_SHORTCUT_TAP_STATE);
   lv_obj_remove_local_style_prop(s.btn, LV_STYLE_BG_COLOR, APPLE_SHORTCUT_TAP_STATE);
   lv_obj_remove_local_style_prop(s.btn, LV_STYLE_TEXT_COLOR, APPLE_SHORTCUT_TAP_STATE);
   lv_obj_remove_local_style_prop(s.btn, LV_STYLE_BG_GRAD_COLOR, APPLE_SHORTCUT_TAP_STATE);
   lv_obj_remove_local_style_prop(s.btn, LV_STYLE_BG_GRAD_DIR, APPLE_SHORTCUT_TAP_STATE);
+  if (mute_toggle) {
+    lv_obj_add_flag(s.btn, CARD_KEEP_PRESSED_COLOR_FLAG);
+    lv_obj_remove_event_cb(s.btn, mute_card_keep_state_on_press);
+    lv_obj_add_event_cb(s.btn, mute_card_keep_state_on_press, LV_EVENT_ALL, nullptr);
+    // Reused slots may still carry a pressed fill from their previous card.
+    const auto pressed_selector = static_cast<lv_style_selector_t>(LV_PART_MAIN) |
+        static_cast<lv_style_selector_t>(LV_STATE_PRESSED);
+    lv_obj_remove_local_style_prop(s.btn, LV_STYLE_BG_COLOR, pressed_selector);
+    lv_obj_remove_local_style_prop(s.btn, LV_STYLE_TEXT_COLOR, pressed_selector);
+    lv_obj_remove_local_style_prop(s.btn, LV_STYLE_BG_GRAD_COLOR, pressed_selector);
+    lv_obj_remove_local_style_prop(s.btn, LV_STYLE_BG_GRAD_DIR, pressed_selector);
+    // The shared button theme paints the on colour for the pressed state.
+    // A mute card must keep showing its current state while held.
+    lv_obj_remove_style(s.btn, nullptr, pressed_selector);
+  }
   apply_button_colors(s.btn, palette.has_on, palette.on_val,
-    palette.has_off, palette.off_val, pressed_state);
+    palette.has_off, palette.off_val, pressed_state,
+    palette.has_unavailable, palette.unavailable_val);
   sync_card_checked_text_color(s.btn);
   apply_button_on_pattern(s.btn, p.options, palette.has_on, palette.on_val, pressed_state);
   apply_standard_sensor_number_style(s, display);
@@ -607,6 +654,11 @@ inline void grid_refresh_layout(
   }
   set_media_home_grid_metrics(main_page_obj, COLS, ROWS, first_card);
   navigation_register_grid_screen_gesture(main_page_obj);
+  navigation_register_main_screen(main_page_obj);
+  navigation_swipe_action_provider() = [](int direction) {
+    return espdesktop::grid_native_scalar(
+        direction == LV_DIR_TOP ? "screen_swipe_up_action" : "screen_swipe_down_action");
+  };
 
   for (int pos = 0; pos < NS; pos++) {
     int idx = order.positions[pos];
@@ -1029,6 +1081,8 @@ inline void companion_refresh_app_icon_visibility(bool release_hidden) {
     if (!source || !source->app_icon_mode) continue;
     lv_obj_t *image = grid_find_companion_app_icon_image_for_data(allocation.owner, source);
     if (!image || lv_obj_get_screen(image) == lv_scr_act() || (!source->pixels && !source->display_pixels)) continue;
+    // Hidden pages only need a refit after they become visible again.
+    source->refit_pending = false;
     // The finished image is sufficient for redraws and cached layout metrics.
     // Keep the original only when resizing failed and LVGL is displaying it.
     if (source->image_loaded && source->display_pixels) source->release_source_pixels();
@@ -1056,9 +1110,26 @@ inline void companion_refresh_app_icon_visibility(bool release_hidden) {
   }
 }
 
+inline void companion_refit_visible_app_icons() {
+  for (const GridRuntimeAllocation &allocation : grid_runtime_allocations()) {
+    if (allocation.deleter != grid_delete_runtime_ptr<CompanionAppIconImageData>) continue;
+    auto *source = static_cast<CompanionAppIconImageData *>(allocation.ptr);
+    if (!source || !source->app_icon_mode || !source->image_loaded) continue;
+    lv_obj_t *image = grid_find_companion_app_icon_image_for_data(allocation.owner, source);
+    if (!image || lv_obj_get_screen(image) != lv_scr_act()) continue;
+    // A page can be built while it is hidden and laid out before its cards
+    // have their final content size. Re-check the visible artwork after the
+    // page paints so it fills the card instead of exposing one corner.
+    source->refit_pending = true;
+    companion_app_icon_work_pending() = true;
+    companion_app_icon_wait_for_frame(image);
+  }
+}
+
 inline void companion_app_icon_screen_changed(lv_event_t *) {
   ESP_LOGD("ui_latency", "Home icons start at=%u", unsigned(esphome::millis()));
   companion_refresh_app_icon_visibility();
+  companion_refit_visible_app_icons();
   ESP_LOGD("ui_latency", "Home icons done at=%u", unsigned(esphome::millis()));
 }
 
@@ -1115,10 +1186,18 @@ inline void companion_process_pending_app_icon_refresh() {
   for (const auto &allocation : grid_runtime_allocations()) {
     if (allocation.deleter != grid_delete_runtime_ptr<CompanionAppIconImageData>) continue;
     auto *source = static_cast<CompanionAppIconImageData *>(allocation.ptr);
-    if (!source || !source->refresh_pending) continue;
-    if (!source->app_icon_mode) { source->refresh_pending = false; continue; }
+    if (!source || (!source->refresh_pending && !source->refit_pending)) continue;
+    if (!source->app_icon_mode) {
+      source->refresh_pending = false;
+      source->refit_pending = false;
+      continue;
+    }
     auto *image = grid_find_companion_app_icon_image_for_data(allocation.owner, source);
-    if (!image) { source->refresh_pending = false; continue; }
+    if (!image) {
+      source->refresh_pending = false;
+      source->refit_pending = false;
+      continue;
+    }
     ++pending_count;
     const bool visible = lv_obj_get_screen(image) == lv_scr_act();
     const int priority = visible ? (lv_obj_has_state(allocation.owner, LV_STATE_CHECKED) ? 0 : 1) : 2;
@@ -1130,8 +1209,11 @@ inline void companion_process_pending_app_icon_refresh() {
   if (!selected) return;
   // Never retain an owner pointer across loop turns: a grid rebuild can delete
   // it. Select from the live registry and rebuild at most one icon per turn.
+  const bool reload = selected->refresh_pending;
   selected->refresh_pending = false;
-  companion_apply_cached_app_icon(*selected, selected_image);
+  selected->refit_pending = false;
+  if (reload) companion_apply_cached_app_icon(*selected, selected_image);
+  else companion_layout_card_app_icon(*selected, selected_image);
   // Present this icon before spending another loop turn rebuilding the next.
   // The page title did not change, so do not repeat its visibility pass here.
   if (companion_app_icon_work_pending()) companion_app_icon_wait_for_frame(selected_image);
@@ -1290,6 +1372,15 @@ inline void grid_phase2(
   }
   int ROWS = (NS + COLS - 1) / COLS;
 
+  // Register Home as screen zero for home-screen paging and the Home Assistant
+  // active-screen sensor. This rebuild path runs on boot; the layout-refresh
+  // path registers the same pointers when it rebuilds the grid later.
+  navigation_register_main_screen(main_page_obj);
+  navigation_swipe_action_provider() = [](int direction) {
+    return espdesktop::grid_native_scalar(
+        direction == LV_DIR_TOP ? "screen_swipe_up_action" : "screen_swipe_down_action");
+  };
+
   static bool has_sensor[MAX_GRID_SLOTS] = {};
   static bool sensor_text_mode[MAX_GRID_SLOTS] = {};
   static bool has_icon_on[MAX_GRID_SLOTS] = {};
@@ -1429,16 +1520,29 @@ inline void grid_phase2(
   auto render_subpage = [=](int navigation_slot, int parent, BtnSlot owner_slot,
                             const ParsedCfg &p, lv_obj_t *parent_screen,
                             const std::string &sp_order_str, std::vector<SubpageBtn> &sp_btns,
-                            std::vector<NestedPageTask> *nested_pages) -> lv_obj_t * {
+                            std::vector<NestedPageTask> *nested_pages,
+                            bool is_screen = false) -> lv_obj_t * {
     const bool is_nested_page = parent != 0;
-    const int parent_index = is_nested_page ? parent - 1 : navigation_slot - 1;
+    const int parent_index = is_nested_page ? parent - 1 : (is_screen ? 0 : navigation_slot - 1);
     const auto parent_context = card_runtime_context(p);
-    if (!espdesktop::cards::navigation_driver_owns_subpage(parent_context, p)) return nullptr;
+    if (!is_screen &&
+        !espdesktop::cards::navigation_driver_owns_subpage(parent_context, p)) return nullptr;
 
     std::string sp_back_label = get_subpage_back_label(sp_order_str);
+    const std::string sp_title = get_subpage_back_title(sp_order_str);
 
     SubpageOrder sp_ord;
     parse_subpage_order(sp_order_str, NS, sp_btns.size(), sp_ord, cfg.configured_slots);
+    if (is_screen && sp_ord.has_back_token) {
+      // Screens have no Back control, so reclaim its cell for the first card.
+      int compact[MAX_GRID_SLOTS] = {};
+      int out = 0;
+      for (int i = 0; i < NS; ++i)
+        if (i != sp_ord.back_pos) compact[out++] = sp_ord.positions[i];
+      for (int i = 0; i < NS; ++i) sp_ord.positions[i] = compact[i];
+      sp_ord.has_back_token = false;
+    }
+    sp_ord.screen = is_screen;
     normalize_subpage_order_spans(sp_ord, NS, COLS);
     if (p.entity == "com.apple.finder") {
       const int capacity = bounded_grid_slots(cfg.configured_slots > 0 ? cfg.configured_slots : NS);
@@ -1474,12 +1578,20 @@ inline void grid_phase2(
         break;
       }
     }
-    espdesktop::cards::navigation_driver_own_subpage(
-      owner_slot, p, parent_context, navigation_slot, display_order, sub_scr);
-    if (is_nested_page) {
-      navigation_register_home_target(navigation_slot, display_order, p.label, {}, owner_slot.btn);
-      navigation_find_slot(navigation_slot)->parent_slot = parent;
+    if (is_screen) {
+      navigation_register_subpage(navigation_slot, display_order, "screen", sub_scr);
+      if (auto *entry = navigation_find_slot(navigation_slot)) entry->is_screen = true;
+      navigation_register_screen_page(navigation_slot, sub_scr);
+    } else {
+      espdesktop::cards::navigation_driver_own_subpage(
+        owner_slot, p, parent_context, navigation_slot, display_order, sub_scr);
+      if (is_nested_page) {
+        navigation_register_home_target(navigation_slot, display_order, p.label, {}, owner_slot.btn);
+        navigation_find_slot(navigation_slot)->parent_slot = parent;
+      }
     }
+    if (auto *entry = navigation_find_slot(navigation_slot))
+      entry->label = is_screen && !sp_title.empty() ? sp_title : p.label;
     lv_obj_set_style_bg_color(sub_scr, lv_obj_get_style_bg_color(main_page_obj, LV_PART_MAIN), LV_PART_MAIN);
     lv_obj_set_style_bg_opa(sub_scr, LV_OPA_COVER, LV_PART_MAIN);
     lv_obj_set_layout(sub_scr, LV_LAYOUT_GRID);
@@ -1493,6 +1605,7 @@ inline void grid_phase2(
     lv_obj_clear_flag(sub_scr, LV_OBJ_FLAG_SCROLLABLE);
     clock_bar_clear_responsive_grid_cards(sub_scr);
 
+    if (!is_screen) {
     lv_obj_t *back_btn = create_grid_card_button(
       sub_scr, sp_radius, sp_pad, sp_btn_fnt, sp_txt_color, cfg.continuous_card_corners);
     set_grid_card_cell(
@@ -1516,8 +1629,8 @@ inline void grid_phase2(
       espdesktop::card_icons::attach(back_btn, back_slot.icon_lbl, back_slot.text_lbl,
           "large", display_main_width_percent(display), cfg.width_compensation_vertical);
 #ifdef USE_COMPANION
-      companion_set_card_icon_image(back_slot, p.entity);
-      esphome::companion::request_app_icon(p.entity);
+      companion_set_card_icon_image(back_slot, p.entity, false, companion_card_computer(p));
+      esphome::companion::request_app_icon(p.entity, companion_card_computer(p));
 #endif
     }
 
@@ -1527,11 +1640,13 @@ inline void grid_phase2(
       navigation_consume_touch_press(static_cast<lv_obj_t *>(lv_event_get_target(e)));
       lv_scr_load_anim((lv_obj_t *)lv_event_get_user_data(e), LV_SCR_LOAD_ANIM_NONE, 0, 0, false);
       navigation_present_page_before_image_refresh(started);
-    }, LV_EVENT_PRESSED, parent_screen);
+    }, LV_EVENT_SHORT_CLICKED, parent_screen);
     navigation_register_subpage_back_button(navigation_slot, back_slot, back_neutral_background);
+    }
 
     auto add_parent_indicator = [&](const std::string &entity_id,
                                     bool (*is_active_state)(esphome::StringRef) = is_entity_on_ref) {
+      if (is_screen) return;
       espdesktop::cards::navigation_driver_add_child_indicator(
         navigation_child_indicators, owner_slot, parent_index, p, parent_context,
         entity_id, is_active_state);
@@ -1547,7 +1662,7 @@ inline void grid_phase2(
           sb_cfg, espdesktop::cards::Surface::SUBPAGE);
       const CardPalette card_palette = card_palette_for_config(page_palette, sb_cfg, display);
       int col, row;
-      if (sp_ord.has_back_token) { col = gp % COLS; row = gp / COLS; }
+      if (sp_ord.has_back_token || is_screen) { col = gp % COLS; row = gp / COLS; }
       else { int op = gp + 1; col = op % COLS; row = op / COLS; }
       int rs = sp_ord.row_span[bn - 1] > 0 ? sp_ord.row_span[bn - 1] : 1;
 
@@ -1591,7 +1706,7 @@ inline void grid_phase2(
                 lv_scr_load_anim(screen, LV_SCR_LOAD_ANIM_NONE, 0, 0, false);
                 refresh_visible_image_cards();
               }
-            }, LV_EVENT_PRESSED, nullptr);
+            }, LV_EVENT_SHORT_CLICKED, nullptr);
             continue;
           }
         }
@@ -1656,6 +1771,11 @@ inline void grid_phase2(
         if (const auto *target = navigation_find_slot_target(page.key))
           display_order = target->display_order;
       }
+      if (!page.parent && page.owner_slot > NS) {
+        // Extra home screens have no visible owner card.
+        navigation_register_screen_slot(page.key);
+        continue;
+      }
       if (espdesktop::cards::navigation_driver_own_subpage(
           owner, config, context, page.key, display_order, nullptr))
         navigation_find_slot(page.key)->parent_slot = page.parent;
@@ -1663,12 +1783,15 @@ inline void grid_phase2(
     navigation_subpage_builder() = [=](int key) -> lv_obj_t * {
       const auto *page = espdesktop::grid_native_page(key);
       const auto *entry = navigation_find_slot(key);
-      if (!page || !entry || !entry->owner_button) return nullptr;
+      if (!page || !entry) return nullptr;
       const auto config = grid_layout_card_config(key, {});
       std::string order;
       std::vector<SubpageBtn> cards;
       if (!grid_read_native_subpage(key, order, cards)) return nullptr;
       if (!page->parent) {
+        if (entry->is_screen)
+          return render_subpage(key, 0, BtnSlot{}, config, main_page_obj, order, cards, nullptr, true);
+        if (!entry->owner_button) return nullptr;
         BtnSlot owner{};
         owner.btn = entry->owner_button;
         return render_subpage(key, 0, owner, config, main_page_obj, order, cards, nullptr);
@@ -1697,6 +1820,17 @@ inline void grid_phase2(
     }
     for (const auto &task : nested_pages)
       render_eager(task.key, task.parent, task.owner, task.config, task.parent_screen, nullptr);
+    if (espdesktop::grid_native_pages()) {
+      for (const auto &page : espdesktop::grid_native_pages()->pages) {
+        if (page.parent != 0 || page.owner_slot <= NS) continue;
+        std::string order;
+        std::vector<SubpageBtn> cards;
+        if (!grid_read_native_subpage(page.key, order, cards)) continue;
+        render_subpage(page.key, 0, BtnSlot{},
+                       grid_layout_card_config(page.key, {}), main_page_obj,
+                       order, cards, nullptr, true);
+      }
+    }
   }
 
   refresh_image_cards();

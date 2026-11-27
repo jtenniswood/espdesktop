@@ -1,0 +1,55 @@
+# =============================================================================
+# HOME ASSISTANT ACTIONS - home-screen navigation and notifications
+# =============================================================================
+# Screen 0 is Home. Extra home screens are numbered 1..N in editor order.
+# Home Assistant actions are named esphome.<device>_show_notification, etc.
+
+text_sensor:
+  - platform: template
+    name: "Active screen"
+    id: active_screen_name
+    entity_category: diagnostic
+    update_interval: 1s
+    lambda: return navigation_active_page_label();
+
+api:
+  actions:
+    - action: show_notification
+      variables:
+        message: string
+        duration_ms: int
+      then:
+        - lambda: |-
+            navigation_show_notification(
+                message, duration_ms > 0 ? uint32_t(duration_ms) : 5000);
+    - action: show_image_popup
+      variables:
+        url: string
+        caption: string
+        duration_ms: int
+      then:
+        - script.execute: screensaver_wake
+        - lambda: |-
+            image_card_show_popup(id(image_card_modal_download_1), url, caption,
+                                  duration_ms > 0 ? uint32_t(duration_ms) : 15000);
+    - action: dismiss_image_popup
+      then:
+        - lambda: image_popup_close();
+    - action: set_home_screen
+      variables:
+        screen: int
+      then:
+        - lambda: navigation_switch_screen(screen, nullptr);
+    - action: next_home_screen
+      then:
+        - lambda: |-
+            const int current = navigation_screen_index(lv_scr_act());
+            if (current >= 0) navigation_switch_screen(current + 1, nullptr);
+    - action: previous_home_screen
+      then:
+        - lambda: |-
+            const int current = navigation_screen_index(lv_scr_act());
+            if (current >= 0) navigation_switch_screen(current - 1, nullptr);
+    - action: go_back
+      then:
+        - lambda: navigation_back();

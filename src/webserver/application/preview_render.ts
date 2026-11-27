@@ -26,6 +26,7 @@ import {
     cardProgressColor,
     applySliderPreviewTextContrast,
     cardPatternHighlightColor,
+    cardPickerConnectors,
     cardTypePickerDetails,
     cardTypePickerOptions,
     defaultCardTypeForPicker,
@@ -164,8 +165,9 @@ function cachedAppIcon(cacheKey: string): CachedAppIcon | undefined {
     return undefined;
 }
 
-export function companionAppIconPreviewData(applicationId: string, backgroundColor: string, document: Document): Promise<CompanionAppIconPreview | null> {
-    const cacheKey = JSON.stringify([applicationId, backgroundColor]);
+export function companionAppIconPreviewData(applicationId: string, backgroundColor: string, document: Document,
+                                            computer = ""): Promise<CompanionAppIconPreview | null> {
+    const cacheKey = JSON.stringify([applicationId, backgroundColor, computer]);
     const cached = cachedAppIcon(cacheKey);
     if (cached) return Promise.resolve(cached.value);
     const pending = companionAppIconRequests.get(cacheKey);
@@ -173,7 +175,8 @@ export function companionAppIconPreviewData(applicationId: string, backgroundCol
     const generation = appIconCacheGeneration;
     if (typeof fetch !== "function") return Promise.resolve(null);
     const query = "appId=" + encodeURIComponent(applicationId) +
-        (backgroundColor ? "&background=" + encodeURIComponent(backgroundColor) : "");
+        (backgroundColor ? "&background=" + encodeURIComponent(backgroundColor) : "") +
+        (computer ? "&computer=" + encodeURIComponent(computer) : "");
     const result = fetch("/companion/app-icon?" + query, {
         credentials: "same-origin",
         cache: "no-store",
@@ -334,7 +337,7 @@ export function createPreviewRenderFeature(dependencies: PreviewRenderDependenci
     const appIconResizeObserver = typeof ResizeObserver === "function"
         ? new ResizeObserver(entries => entries.forEach(entry => resizeCardIcon(entry.target.closest(".sp-btn") || entry.target))) : null;
     function loadCardAppIcon(btn: HTMLElement, applicationId: string, backgroundColor: string,
-                             fallbackIcon: HTMLElement | null, back = false): void {
+                             fallbackIcon: HTMLElement | null, back = false, computer = ""): void {
         const applyIcon = (previewIcon: CompanionAppIconPreview): void => {
             if (!btn.isConnected) return;
             const appIcon = document.createElement("img");
@@ -360,12 +363,12 @@ export function createPreviewRenderFeature(dependencies: PreviewRenderDependenci
         };
         const loadAppIcon = function (attempt: number): void {
             if (!btn.isConnected) return;
-            const cached = cachedAppIcon(JSON.stringify([applicationId, backgroundColor]));
+            const cached = cachedAppIcon(JSON.stringify([applicationId, backgroundColor, computer]));
             if (cached?.value) {
                 applyIcon(cached.value);
                 return;
             }
-            void companionAppIconPreviewData(applicationId, backgroundColor, document).then(function (previewIcon) {
+            void companionAppIconPreviewData(applicationId, backgroundColor, document, computer).then(function (previewIcon) {
                 if (!btn.isConnected) return;
                 if (!previewIcon) {
                     if (attempt < 12) window.setTimeout(function () {
@@ -424,7 +427,14 @@ export function createPreviewRenderFeature(dependencies: PreviewRenderDependenci
         });
     }
     function buttonTypeVisibleInPicker(this: any, key?: any, isSub?: any) {
-        return buttonTypePickerKeys(!!isSub, null).indexOf(key) >= 0;
+        var connectors: any = cardPickerConnectors(
+            dependencies.homeAssistantSupported(),
+            !!dependencies.layout.config.features?.companion,
+        );
+        if (!connectors.length) connectors = [["home_assistant", "Home Assistant"], ["mac_companion", "Companion"]];
+        return connectors.some(function (this: any, connector?: any) {
+            return buttonTypePickerKeys(!!isSub, null, connector[0]).indexOf(key) >= 0;
+        });
     }
     function appendResizeHandle(card: HTMLElement) {
         if (isPreviewReadOnly()) return;
@@ -669,7 +679,8 @@ export function createPreviewRenderFeature(dependencies: PreviewRenderDependenci
                     if (dependencies.displayDemo) btn.dataset.demoAppId = applicationId;
                     const backgroundColor = cardOffColor || (typeof typePreview.appIconBackgroundColor === "string"
                         ? typePreview.appIconBackgroundColor : "");
-                    loadCardAppIcon(btn, applicationId, backgroundColor, fallbackIcon);
+                    loadCardAppIcon(btn, applicationId, backgroundColor, fallbackIcon, false,
+                        configOptionValue(b.options, "computer"));
                 }
                 if (sliderFillColor) {
                     applySliderPreviewTextContrast(btn, cardOffColor ? cardPreviewTextColor(cardOffColor) : "#" + previewColors.textPrimary, sliderFillColor);

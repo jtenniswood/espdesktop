@@ -72,6 +72,54 @@ for (const profile of [{ slots: 6, columns: 2 }, layout, { slots: 15, columns: 3
     valid(result.document);
   });
 }
+test("extra home screens transfer cards without a folder owner", () => {
+  const document = source();
+  const screen = layout.slots + 1;
+  document.subpages[screen] = "~B=Screen:ABCDEF,1,2|subpage,,Child|,light.other,Other";
+  document.subpages[child(screen, 1)] = "~B,1|,light.leaf,Leaf";
+  const before = JSON.stringify(document);
+  const clipboard = transfer.capturePageCards(document, screen, [1], layout);
+  assert.equal(clipboard.entries[0].button.label, "Child");
+  const deleted = transfer.planPageCardDelete(document, clipboard.origin, layout);
+  assert.equal(parsed(deleted.subpages[screen]).buttons[0].label, "");
+  assert.equal(parsed(deleted.subpages[screen]).buttons[1].label, "Other");
+  assert.equal(deleted.subpages[child(screen, 1)], undefined);
+  valid(deleted);
+  const copied = transfer.planPageCardPaste(deleted, screen, 1, clipboard.entries, layout);
+  assert.equal(copied.document.subpages[child(screen, copied.slots[0])], document.subpages[child(screen, 1)]);
+  const movedToHome = transfer.planPageCardPaste(document, 0, 1, clipboard.entries, layout, clipboard.origin);
+  assert.equal(parsed(movedToHome.document.subpages[screen]).buttons[0].label, "");
+  assert.equal(parsed(movedToHome.document.subpages[screen]).buttons[1].label, "Other");
+  assert.equal(movedToHome.document.subpages[child(0, movedToHome.slots[0])],
+    document.subpages[child(screen, 1)]);
+  valid(copied.document); valid(movedToHome.document);
+  assert.equal(JSON.stringify(document), before);
+});
+test("extra home screens keep dormant saved cells after a delete", () => {
+  const document = source();
+  const screen = layout.slots + 1;
+  const records = Array.from({ length: 11 }, (_, i) => `,light.saved_${i + 1},Saved ${i + 1}`);
+  document.subpages[screen] = ["~B=Screen", ...records.map((_, i) => String(i + 1))].join(",") +
+    "|" + records.join("|");
+  const clipboard = transfer.capturePageCards(document, screen, [1], layout);
+  const deleted = transfer.planPageCardDelete(document, clipboard.origin, layout);
+  assert.deepEqual(parsed(deleted.subpages[screen]).order,
+    ["B", "", ...records.slice(1, 9).map((_, i) => String(i + 2)), "10", "11"]);
+  assert.deepEqual(deleted.subpages[screen].split("|").slice(1).slice(9), records.slice(9),
+    "records below the visible grid stay byte-identical");
+  valid(deleted);
+});
+test("a folder card on an extra home screen still owns its subpage", () => {
+  const document = source();
+  const screen = layout.slots + 1;
+  document.subpages[screen] = "~B=Screen,1|subpage,,Child";
+  document.subpages[child(screen, 1)] = "~B,1|,light.leaf,Leaf";
+  const clipboard = transfer.capturePageCards(document, child(screen, 1), [1], layout);
+  assert.equal(clipboard.entries[0].button.label, "Leaf");
+  const deleted = transfer.planPageCardDelete(document, clipboard.origin, layout);
+  assert.equal(parsed(deleted.subpages[child(screen, 1)]).buttons[0].label, "");
+  valid(deleted);
+});
 test("nested folder copy to a different parent remaps its saved page", () => {
   const document = source(), clipboard = transfer.capturePageCards(document, 1, [1], layout);
   const result = transfer.planPageCardPaste(document, 2, 2, clipboard.entries, layout);

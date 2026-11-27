@@ -390,3 +390,5 @@ obs_already_on_program=Bereits im Programm
 obs_transitioning=Übergang läuft
 obs_replay_not_confirmed=Replay nicht bestätigt
 obs_check=OBS prüfen
+end_call=Anruf beenden
+end_call_prompt=Teams-Anruf beenden?

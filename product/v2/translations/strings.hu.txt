@@ -390,3 +390,5 @@ obs_already_on_program=Már adásban
 obs_transitioning=Átmenet folyamatban
 obs_replay_not_confirmed=A visszajátszás nincs megerősítve
 obs_check=Ellenőrizd az OBS-t
+end_call=Hívás befejezése
+end_call_prompt=Befejezi a Teams-hívást?

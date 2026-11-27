@@ -17,7 +17,7 @@
       "label": "Saved",
       "options": ""
     },
-    "retired": true
+    "retired": false
   },
   {
     "card": {
@@ -237,7 +237,7 @@
       "label": "Saved",
       "options": ""
     },
-    "retired": true
+    "retired": false
   },
   {
     "card": {
@@ -247,7 +247,7 @@
       "label": "Saved",
       "options": ""
     },
-    "retired": true
+    "retired": false
   },
   {
     "card": {
@@ -367,7 +367,7 @@
       "label": "Saved",
       "options": ""
     },
-    "retired": true
+    "retired": false
   },
   {
     "card": {
@@ -546,6 +546,26 @@
       "label": "Saved",
       "options": "",
       "type": "slider"
+    },
+    "retired": false
+  },
+  {
+    "card": {
+      "type": "",
+      "entity": "media_player.tv",
+      "sensor": "",
+      "label": "TV",
+      "options": ""
+    },
+    "retired": false
+  },
+  {
+    "card": {
+      "type": "slider",
+      "entity": "media_player.tv",
+      "sensor": "",
+      "label": "Volume",
+      "options": ""
     },
     "retired": false
   }

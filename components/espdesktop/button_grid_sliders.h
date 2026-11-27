@@ -1,11 +1,14 @@
 #pragma once
+#include "ha_controls.h"
 #include "button_grid_slider_geometry.h"
 #include "button_grid_slider_contrast.h"
+#include "button_grid_touch.h"
 #include "clock_bar.h"
 
 // Local Mac output and microphone volume widgets.
 struct SliderCtx {
   std::string entity_id;
+  std::string computer_id;
   lv_obj_t *fill = nullptr;
   bool horizontal = false;
   bool cover_tilt = false;
@@ -33,6 +36,7 @@ struct SliderCtx {
   lv_obj_t *media_status_lbl = nullptr;
   bool available = true;
   bool interactive = true;
+  bool ha_control = false;
   bool numeric = false;
   bool numeric_dragging = false;
   bool numeric_metadata_ready = false;
@@ -330,6 +334,9 @@ inline void setup_slider_visual(BtnSlot &s, const ParsedCfg &p, uint32_t on_colo
   slider_bind_text_contrast(s.sensor_container, fill);
   SliderCtx *ctx = new SliderCtx();
   ctx->entity_id = p.entity;
+  ctx->computer_id = companion_card_computer(p);
+  ctx->ha_control = espdesktop::ha_controls::slider_control_valid(p.entity) &&
+      !companion_volume_control_valid(p.entity);
   ctx->fill = fill;
   ctx->radius = lv_obj_get_style_radius(s.btn, LV_PART_MAIN);
   ctx->interactive = interactive;
@@ -367,9 +374,37 @@ inline void setup_slider_visual(BtnSlot &s, const ParsedCfg &p, uint32_t on_colo
       auto *state = widget
           ? static_cast<SliderCtx *>(lv_obj_get_user_data(widget)) : nullptr;
       if (!state || !state->available || lv_obj_has_state(widget, LV_STATE_DISABLED) ||
-          !companion_volume_control_valid(state->entity_id)) return;
+          (!state->ha_control && !companion_volume_control_valid(state->entity_id))) return;
       slider_apply_vertical_pointer_value(widget);
-      send_slider_action(state->entity_id, lv_slider_get_value(widget));
+      if (state->ha_control) {
+        espdesktop::ha_controls::set_slider_percent(state->entity_id, lv_slider_get_value(widget));
+        return;
+      }
+      send_slider_action(state->entity_id, lv_slider_get_value(widget), state->computer_id);
     }, LV_EVENT_RELEASED, nullptr);
+  }
+
+  if (ctx->ha_control) {
+    espdesktop::ha_controls::subscribe_slider_state(ctx->entity_id);
+    const std::string entity = ctx->entity_id;
+    lv_obj_t *slider_widget = slider;
+    auto refresh = [slider_widget, entity]() {
+      if (!lv_obj_is_valid(slider_widget)) return false;
+      auto *state = static_cast<SliderCtx *>(lv_obj_get_user_data(slider_widget));
+      if (state == nullptr || lv_obj_has_state(slider_widget, LV_STATE_PRESSED)) return true;
+      const auto value = espdesktop::ha_controls::state(entity);
+      if (value.empty() || value == "unavailable" || value == "unknown") {
+        lv_obj_add_state(slider_widget, LV_STATE_DISABLED);
+        return true;
+      }
+      lv_obj_clear_state(slider_widget, LV_STATE_DISABLED);
+      const int pct = espdesktop::ha_controls::slider_percent(entity);
+      if (pct < 0) return true;
+      lv_slider_set_value(slider_widget, pct, LV_ANIM_OFF);
+      slider_update_ctx_fill(state, lv_obj_get_parent(slider_widget), pct);
+      return true;
+    };
+    refresh();
+    espdesktop::ha_controls::register_refresh(slider_widget, refresh);
   }
 }

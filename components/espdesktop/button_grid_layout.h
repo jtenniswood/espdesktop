@@ -158,7 +158,8 @@ inline constexpr lv_state_t APPLE_SHORTCUT_TAP_STATE = LV_STATE_USER_1;
 // Apply on/off background colors to a button's checked/pressed/default states
 inline void apply_button_colors(lv_obj_t *btn, bool has_on, uint32_t on_val,
                                 bool has_off, uint32_t off_val,
-                                lv_state_t pressed_state = LV_STATE_PRESSED) {
+                                lv_state_t pressed_state = LV_STATE_PRESSED,
+                                bool has_unavailable = false, uint32_t unavailable_val = 0) {
   if (has_on) {
     lv_obj_set_style_bg_color(btn, lv_color_hex(on_val),
       static_cast<lv_style_selector_t>(LV_PART_MAIN) | static_cast<lv_style_selector_t>(LV_STATE_CHECKED));
@@ -174,6 +175,12 @@ inline void apply_button_colors(lv_obj_t *btn, bool has_on, uint32_t on_val,
       static_cast<lv_style_selector_t>(LV_PART_MAIN) | static_cast<lv_style_selector_t>(LV_STATE_DEFAULT));
     lv_obj_set_style_text_color(btn, lv_color_hex(display_text_color_for_bg(off_val)),
       static_cast<lv_style_selector_t>(LV_PART_MAIN) | static_cast<lv_style_selector_t>(LV_STATE_DEFAULT));
+  }
+  if (has_unavailable) {
+    lv_obj_set_style_bg_color(btn, lv_color_hex(unavailable_val),
+      static_cast<lv_style_selector_t>(LV_PART_MAIN) | static_cast<lv_style_selector_t>(LV_STATE_DISABLED));
+    lv_obj_set_style_text_color(btn, lv_color_hex(display_text_color_for_bg(unavailable_val)),
+      static_cast<lv_style_selector_t>(LV_PART_MAIN) | static_cast<lv_style_selector_t>(LV_STATE_DISABLED));
   }
   if (has_on || has_off) bind_card_text_contrast_events(btn);
 }

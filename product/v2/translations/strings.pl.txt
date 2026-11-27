@@ -390,3 +390,5 @@ obs_already_on_program=Już w programie
 obs_transitioning=Trwa przejście
 obs_replay_not_confirmed=Nie potwierdzono zapisu powtórki
 obs_check=Sprawdź OBS
+end_call=Zakończ połączenie
+end_call_prompt=Zakończyć połączenie w Teams?

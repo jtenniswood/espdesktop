@@ -178,7 +178,12 @@ export function editableAppShortcutPage(card?: CardConfig): boolean {
 
 export function normalizeCompanionAppShortcutOptions(card: any): string {
     if (!card || card.type !== "companion") return "";
-    const finish = (options: string): string => preserveCardColorOptions(card.options, options);
+    const finish = (options: string): string => {
+        const preserved = preserveCardColorOptions(card.options, options);
+        const computer = configOptionValue(card.options, "computer");
+        return computer && !configOptionValue(preserved, "computer")
+            ? setConfigOptionValue(preserved, "computer", computer) : preserved;
+    };
     const presetMarker = configOptionValue(card.options, COMPANION_SHORTCUT_PRESET_OPTION);
     if (presetMarker === COMPANION_SHORTCUT_CUSTOM_PRESET && companionShortcutActionIdValid(card.entity)) {
         return finish(setConfigOptionValue("", COMPANION_SHORTCUT_PRESET_OPTION, presetMarker));
@@ -221,6 +226,13 @@ export function normalizeCompanionAppShortcutOptions(card: any): string {
 
 /** Normalize the saved options owned by each Companion card mode. */
 export function normalizeCompanionCardOptions(card: any): string {
+    if (!card || card.type !== "companion") return "";
+    const computer = configOptionValue(card.options, "computer");
+    const options = normalizeCompanionCardOptionsBase(card);
+    return computer ? setConfigOptionValue(options, "computer", computer) : options;
+}
+
+function normalizeCompanionCardOptionsBase(card: any): string {
     if (!card || card.type !== "companion") return "";
     const mode = companionSavedCardMode(card);
     if (mode === "apple_shortcut") {

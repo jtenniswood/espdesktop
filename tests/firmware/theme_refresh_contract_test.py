@@ -28,6 +28,10 @@ assert re.search(r"checked:\s+bg_color: \$button_on_color\s+(?:#.*\n\s+)?text_co
 
 grid = (ROOT / "components" / "espdesktop" / "button_grid_grid.h").read_text(encoding="utf-8")
 assert "theme_set_content_background(s.btn, palette.custom_background)" in grid
+assert "lv_obj_clear_flag(s.btn, CARD_KEEP_PRESSED_COLOR_FLAG)" in grid
+assert "lv_obj_add_flag(s.btn, CARD_KEEP_PRESSED_COLOR_FLAG)" in grid
+assert "mute_card_keep_state_on_press" in grid
+assert "lv_obj_add_event_cb(s.btn, mute_card_keep_state_on_press" in grid
 assert "neutral_buttons[idx - 1] = context.family" in grid
 assert "!card_palette.custom_background && context.family" not in grid
 assert "grid_card_uses_sensor_surface(context, p)" in grid
@@ -46,6 +50,7 @@ assert phase2.rindex("refresh_theme_grid_after_rebuild();") < phase2.rindex('gri
 
 firmware = ROOT / "components" / "espdesktop"
 runtime = (firmware / "theme_runtime_ui.h").read_text(encoding="utf-8")
+assert "if (lv_obj_has_flag(button, CARD_KEEP_PRESSED_COLOR_FLAG))" in runtime
 registration = runtime[runtime.index("inline void register_theme_grid("):runtime.index("inline void refresh_theme_grid_after_rebuild()")]
 assert "apply_current_theme();" not in registration
 modal = (firmware / "button_grid_modal.h").read_text(encoding="utf-8")

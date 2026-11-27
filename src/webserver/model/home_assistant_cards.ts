@@ -25,6 +25,6 @@ export function setCardExposure(options: string, identity: string, enabled: bool
 
 export function sameCardAction(a: CardConfig, b: CardConfig): boolean {
     return a.type === b.type && a.entity === b.entity && a.sensor === b.sensor &&
-        ["app_shortcut_preset", "finder_open_behavior", "url_open_behavior"].every(
+        ["computer", "app_shortcut_preset", "finder_open_behavior", "url_open_behavior"].every(
             key => configOptionValue(a.options, key) === configOptionValue(b.options, key));
 }
