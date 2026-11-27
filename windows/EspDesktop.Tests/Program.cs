@@ -216,12 +216,21 @@ builder.Logging.SetMinimumLevel(LogLevel.Warning);
 builder.WebHost.ConfigureKestrel(k =>
 {
     k.Listen(IPAddress.Loopback, 0, o => o.UseHttps(certificate));
-#if WINDOWS
-    if (exerciseDesktopActions) k.Listen(IPAddress.Loopback, 0);
-#endif
+    k.Listen(IPAddress.Loopback, 0);
 });
 await using var server = builder.Build();
 server.UseWebSockets();
+var pairingPromptState = "paired";
+server.MapGet("/companion/pairing", IResult (HttpContext context) =>
+{
+    Check(context.Request.Query["show_on_display"] == "1", "request the pairing prompt on the touchscreen");
+    return pairingPromptState switch
+    {
+        "paired" => Results.Json(new { available = true, active = false, paired = true }),
+        "unpaired" => Results.Json(new { available = true, active = true, paired = false }),
+        _ => Results.NotFound()
+    };
+});
 #if WINDOWS
 var browserPages = new[] { "first", "second", "third" }.Select(name => new BrowserTestPage(name)).ToArray();
 if (exerciseDesktopActions)
@@ -234,6 +243,7 @@ var reconnected = new TaskCompletionSource(TaskCreationOptions.RunContinuationsA
 var authorizedRequests = 0;
 var authenticated = 0;
 var rejectedSequence = 0;
+using var pairingResetReady = new SemaphoreSlim(0);
 var desktop = new FakeDesktop();
 server.Map(SocketPath, async context =>
 {
@@ -271,6 +281,22 @@ server.Map(SocketPath, async context =>
         if (seq == 11)
         {
             await Send(socket, "error", ("code", "mac_update_required"));
+            return;
+        }
+        if (seq is >= 12 and <= 14)
+        {
+            await Send(socket, "auth.accepted", ("capabilityVersion", seq == 14 ? 7 : 8));
+            await FindMessage(socket, "system_metrics", _ => true);
+            pairingResetReady.Release();
+            if (seq != 14)
+            {
+                await FindMessage(socket, "pair.reset", m => Valid(m, "mac_to_panel", "connected"));
+                await Send(socket, "error", ("code", seq == 12 ? "pairing_reset" : "pairing_reset_failed"));
+            }
+            // Keep the connection open for the client to process the reply. It
+            // can still have catalogue or metrics frames queued after the reset.
+            var buffer = new byte[16384];
+            while ((await socket.ReceiveAsync(buffer.AsMemory(), context.RequestAborted)).MessageType != WebSocketMessageType.Close) { }
             return;
         }
         Check(seq == 8, "repair stale authentication sequence");
@@ -426,8 +452,45 @@ Console.WriteLine("Passed real TLS WebSocket pairing, certificate pinning, count
 await VerifyUpdateRequired();
 await VerifyAddressRecovery();
 await VerifyPairingSaveFailure();
+await VerifyPairingPrompts();
 await VerifyMultipleDisplayConnections();
 await ObsChecks.Run();
+
+async Task VerifyPairingPrompts()
+{
+    var web = new Uri(server.Urls.Single(url => url.StartsWith("http://", StringComparison.Ordinal)));
+    Check(await DisplayPairingPrompt.Request(web, lifetime.Token) == PairingPrompt.Reset,
+        "a paired display prompts for touchscreen reset confirmation");
+    pairingPromptState = "unpaired";
+    Check(await DisplayPairingPrompt.Request(web, lifetime.Token) == PairingPrompt.Code,
+        "an unpaired display prompts for its code");
+    pairingPromptState = "unavailable";
+    Check(await DisplayPairingPrompt.Request(web, lifetime.Token) == PairingPrompt.Unavailable,
+        "an unavailable pairing endpoint falls back to manual setup");
+
+    for (var sequence = 11u; sequence <= 13; sequence++)
+    {
+        using var stop = CancellationTokenSource.CreateLinkedTokenSource(lifetime.Token);
+        var status = "";
+        var connection = new DisplaySession(desktop, _ => { }, message => status = message,
+            (_, _) => Task.FromResult<DiscoveredDisplay?>(null));
+        Check(!await connection.ShowPairingBeforeDisconnecting(), "cannot reset a disconnected display");
+        var run = connection.RunAsync(saved with { Sequence = sequence }, stop.Token);
+        try
+        {
+            await pairingResetReady.WaitAsync(lifetime.Token);
+            Check(await connection.ShowPairingBeforeDisconnecting() == (sequence == 11),
+                $"reset reply for authentication sequence {sequence + 1} matches the simulated firmware response ({status})");
+            if (sequence == 11) await run.WaitAsync(lifetime.Token);
+        }
+        finally
+        {
+            await stop.CancelAsync();
+            await run;
+        }
+    }
+    Console.WriteLine("Passed touchscreen pairing prompts and authenticated reset on forget.");
+}
 
 async Task VerifyMultipleDisplayConnections()
 {
@@ -724,6 +787,10 @@ static void VerifyInstallerProfile(string mode)
         SHA256.HashData("installer fixture credential"u8), 12, "Installer test display");
     switch (mode)
     {
+        case "updates-disabled":
+            Check(store.Settings.AllApps && !store.Settings.CheckForUpdates,
+                "Setup turned off automatic update checks and preserved default app approvals");
+            break;
         case "prepare":
             Check(store.LoadPairings().Length == 0 && !store.PairingUnavailable, "prepare the installer check in an empty profile");
             store.Settings.AllApps = false;
@@ -741,6 +808,7 @@ static void VerifyInstallerProfile(string mode)
                 "the installer preserved the protected display pairing");
             Check(!store.Settings.AllApps && store.Settings.Shortcuts && store.Settings.AllowedApps.SetEquals([appId]) &&
                 store.Settings.Folders.SequenceEqual([folder]), "the installer preserved app and folder approvals");
+            Check(!store.Settings.CheckForUpdates, "the installer preserved the update check preference");
             Console.WriteLine("Verified the saved display pairing and approvals after an installer operation.");
             break;
         default: throw new ArgumentException("Unknown installer profile mode.", nameof(mode));

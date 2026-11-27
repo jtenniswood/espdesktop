@@ -40,6 +40,11 @@ internal interface IDesktop
 internal sealed class DisplaySession(IDesktop desktop, Action<Pairing> save, Action<string> status,
     Func<string, CancellationToken, Task<DiscoveredDisplay?>> findDisplay)
 {
+    private Connected? active;
+
+    public Task<bool> ShowPairingBeforeDisconnecting() =>
+        active?.ShowPairingBeforeDisconnecting() ?? Task.FromResult(false);
+
     public static async Task<Pairing> PairAsync(string address, string code, CancellationToken token,
         IReadOnlySet<string>? savedFingerprints = null)
     {
@@ -136,7 +141,6 @@ internal sealed class DisplaySession(IDesktop desktop, Action<Pairing> save, Act
                 }
                 recoveryCandidate = null;
                 newAddress = null;
-                status($"Connected to {displayName ?? endpoint.Label}");
                 using var connected = CancellationTokenSource.CreateLinkedTokenSource(token);
                 if (endpoint.UsbPort is not null && reply.TryGetProperty("usbEditor", out var supportsEditor) &&
                     supportsEditor.ValueKind == JsonValueKind.True && editorChanged is not null)
@@ -144,9 +148,16 @@ internal sealed class DisplaySession(IDesktop desktop, Action<Pairing> save, Act
                     client.Editor = new UsbEditorTunnel(client.SendBinary, connected.Token);
                     editorChanged(new UsbDisplayEditor(client.Editor));
                 }
-                try { await new Connected(client, desktop, UInt(reply, "capabilityVersion"), connected.Token).Run(); }
+                var session = new Connected(client, desktop, UInt(reply, "capabilityVersion"), connected.Token);
+                active = session;
+                try
+                {
+                    status($"Connected to {displayName ?? endpoint.Label}");
+                    await session.Run();
+                }
                 finally
                 {
+                    active = null;
                     await connected.CancelAsync();
                     if (client.Editor is not null) editorChanged?.Invoke(null);
                 }
@@ -202,7 +213,7 @@ internal sealed class DisplaySession(IDesktop desktop, Action<Pairing> save, Act
         "pairing_expired" or "pairing_closed" or "invalid_message" => "Open the display’s pairing page for a fresh code.",
         "invalid_code" or "pairing_invalid_code" or "pairing_failed" => "That code was not accepted. Check the code and pairing window.",
         "pairing_throttled" => "Wait a few seconds and try the code again.",
-        "already_paired" => "This display is already paired. Reset pairing in its web settings first.",
+        "already_paired" => "This display is already paired. On the touchscreen, open Settings → Paired and confirm Reset pairing.",
         "mac_update_required" => "This display needs a newer version of EspDesktop for Windows. Download the latest Windows installer from GitHub Releases.",
         _ => fallback
     };
@@ -220,6 +231,22 @@ internal sealed class DisplaySession(IDesktop desktop, Action<Pairing> save, Act
         private readonly Dictionary<string, AudioValue> values = new(StringComparer.Ordinal);
         private readonly HashSet<string> dirtyAudioValues = new(StringComparer.Ordinal);
         private readonly Stopwatch slowTick = Stopwatch.StartNew();
+        private readonly TaskCompletionSource<bool> pairingReset = new(TaskCreationOptions.RunContinuationsAsynchronously);
+
+        public async Task<bool> ShowPairingBeforeDisconnecting()
+        {
+            if (capabilityVersion < 8 || token.IsCancellationRequested) return false;
+            // A successful reset ends the authenticated session. Its shutdown
+            // must not cancel the wait for the acknowledgement it just received.
+            using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(2));
+            try
+            {
+                await link.Send(Message("pair.reset"), "connected", deadline.Token);
+                return await pairingReset.Task.WaitAsync(deadline.Token);
+            }
+            catch (Exception e) when (e is OperationCanceledException or WebSocketException or IOException or ObjectDisposedException)
+            { return pairingReset.Task.IsCompletedSuccessfully && pairingReset.Task.Result; }
+        }
 
         public async Task Run()
         {
@@ -251,6 +278,7 @@ internal sealed class DisplaySession(IDesktop desktop, Action<Pairing> save, Act
             }
             finally
             {
+                pairingReset.TrySetResult(false);
                 if (capabilityVersion >= CoughVersion) desktop.SetCoughValue(0, this);
                 desktop.AbandonObsHolds(this);
                 await lifetime.CancelAsync();
@@ -373,6 +401,12 @@ internal sealed class DisplaySession(IDesktop desktop, Action<Pairing> save, Act
             token.ThrowIfCancellationRequested();
             switch (Text(m, "type"))
             {
+                case "error" when Text(m, "code") == "pairing_reset":
+                    pairingReset.TrySetResult(true);
+                    throw new SessionException("The display needs to be paired again.");
+                case "error" when Text(m, "code") == "pairing_reset_failed":
+                    pairingReset.TrySetResult(false);
+                    break;
                 case "catalogue.request": await Catalogue(); break;
                 case "shortcut.catalogue.request" when capabilityVersion >= OnDemandShortcutsVersion:
                     var appId = Text(m, "appId");

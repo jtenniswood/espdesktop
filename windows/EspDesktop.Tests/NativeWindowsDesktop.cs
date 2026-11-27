@@ -78,6 +78,7 @@ internal sealed record NativeWindowsDesktop(WindowsDesktop Desktop, string Drive
     {
         _ = new Application { ShutdownMode = ShutdownMode.OnExplicitShutdown };
         var nextScan = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var prompt = new TaskCompletionSource<PairingPrompt>();
         var lateDisplay = new DiscoveredDisplay("192.168.1.20:8443", "Late test display", new string('a', 64));
         var scans = 0;
         var store = new LocalStore(Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString()));
@@ -86,7 +87,8 @@ internal sealed record NativeWindowsDesktop(WindowsDesktop Desktop, string Drive
             scans++;
             if (scans == 2) nextScan.SetResult();
             return Task.FromResult<DiscoveredDisplay[]>(scans >= 2 ? [lateDisplay] : []);
-        }, store: store);
+        }, store: store, requestPairingPrompt: (uri, _) => uri.Host == "192.168.1.20"
+            ? prompt.Task : Task.FromResult(PairingPrompt.Unavailable));
         try
         {
             window.Show();
@@ -101,6 +103,11 @@ internal sealed record NativeWindowsDesktop(WindowsDesktop Desktop, string Drive
             list.SelectedItem = list.Items.Cast<ListBoxItem>().Single(item => Equals(item.Tag, lateDisplay));
             if (!Action("Next").IsEnabled) throw new InvalidOperationException("Selecting a display must enable Next.");
             Click("Next");
+            if (HasInput()) throw new InvalidOperationException("The pairing code field must wait for the display's prompt.");
+            prompt.SetResult(PairingPrompt.Reset);
+            await Dispatcher.Yield(DispatcherPriority.ApplicationIdle);
+            if (!Descendants(window).OfType<TextBlock>().Any(text => text.Text.StartsWith("Confirm Reset pairing", StringComparison.Ordinal)))
+                throw new InvalidOperationException("An already paired display must show touchscreen reset instructions.");
             var code = Field("Pairing code");
             if (Action("Pair display").IsEnabled) throw new InvalidOperationException("Pairing must require a code.");
             code.Text = "123456";
@@ -132,7 +139,11 @@ internal sealed record NativeWindowsDesktop(WindowsDesktop Desktop, string Drive
                 throw new InvalidOperationException("Reopening setup did not refresh the list of nearby displays.");
             Console.WriteLine("Passed progressive Windows setup, automatic discovery refresh, USB port selection, and Back navigation for both network paths.");
         }
-        finally { window.Quit(); }
+        finally
+        {
+            window.Quit();
+            prompt.TrySetCanceled();
+        }
     });
 
     private static IEnumerable<DependencyObject> Descendants(DependencyObject parent)
