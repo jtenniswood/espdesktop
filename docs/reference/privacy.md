@@ -1,18 +1,17 @@
 ---
 title: Privacy Policy
 description:
-  How EspDesktop handles information in the documentation website, firmware, and web configuration interface.
+  How EspDesktop handles information in its desktop apps, documentation website, firmware, and configuration editor.
 ---
 
 # Privacy policy
 
-**Effective date: November 8, 2026**
+**Last updated November 27, 2026**
 
-EspDesktop is a source-available, non-commercial touchscreen control panel
-project maintained by [jtenniswood](https://github.com/jtenniswood). This
-policy explains what
-information may be involved when you use the EspDesktop documentation website,
-firmware, or built-in web configuration interface.
+EspDesktop is an open-source touchscreen control panel project maintained by
+[jtenniswood](https://github.com/jtenniswood) and licensed under Apache 2.0.
+This policy covers the desktop apps, documentation website, firmware, and
+configuration editor.
 
 ## The short version
 
@@ -92,9 +91,20 @@ OBS WebSocket password using your Windows account. Folder paths stay on the PC.
 The paired display receives approved folder names and identifiers. Use **Forget
 display** to remove a saved pairing.
 
-The Windows app can check GitHub for newer releases. GitHub may receive normal
-request information such as IP address and request time. The **Updates** tab
-lets you turn off automatic checks.
+The Windows app can check GitHub for newer releases. These requests can give
+GitHub your IP address, request time, and the EspDesktop Windows app identifier.
+See the [GitHub General Privacy Statement](https://docs.github.com/en/site-policy/privacy-policies/github-general-privacy-statement).
+If Setup offers **Turn off automatic update checks**, select it to skip background
+checks on a fresh install. You can also change this in the app’s **Updates** tab.
+A manual check still contacts GitHub when you request it.
+
+The USB editor uses the Microsoft Edge WebView2 Runtime. WebView2 sends required
+diagnostics to Microsoft, and its optional diagnostics follow **Windows Settings
+→ Privacy & security → Diagnostics & feedback**. The editor uses Microsoft
+Defender SmartScreen, which may send information to Microsoft for reputation
+checks. See [WebView2 data and privacy](https://learn.microsoft.com/en-us/microsoft-edge/webview2/concepts/data-privacy)
+and the [Microsoft Privacy Statement](https://privacy.microsoft.com/privacystatement).
+You can use the main app without opening the USB editor.
 
 ## Information you provide to the project
 
@@ -132,5 +142,4 @@ that service.
 ## Changes to this policy
 
 This policy may be updated when EspDesktop's data practices or the services it
-uses change. The effective date at the top of this page indicates when the
-current version was published.
+uses change. The date at the top of this page indicates when the policy was last updated.

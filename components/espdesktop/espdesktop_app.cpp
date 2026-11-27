@@ -13,6 +13,7 @@
 #include <esp_heap_caps.h>
 #endif
 
+#include "esphome/core/defines.h"
 #include "esphome/core/log.h"
 
 #include "button_grid.h"
@@ -95,6 +96,11 @@ static const char *const TAG = "espdesktop.config";
 // short as 10 seconds. Leave enough of that window for initialization itself
 // to fail safely after the display and restored text entities have settled.
 constexpr uint32_t NATIVE_CONFIGURATION_INITIALIZATION_DELAY_MS = 5000;
+#ifdef ESPDESKTOP_EXPANDED_PANEL_CONFIG
+constexpr size_t PANEL_CONFIG_FLASH_SLOT_BYTES = PANEL_CONFIG_EXPANDED_FLASH_SLOT_BYTES;
+#else
+constexpr size_t PANEL_CONFIG_FLASH_SLOT_BYTES = PANEL_CONFIG_LEGACY_FLASH_SLOT_BYTES;
+#endif
 
 static uint8_t *allocate_configuration_slot(size_t size);
 static void release_configuration_slot(uint8_t *buffer);
@@ -224,9 +230,7 @@ class EspDesktopApp::NativeConfigurationRuntime {
    std::unique_ptr<GridPageRuntime> grid_runtime;
    configuration::PanelConfigDocumentValidator validator{};
    configuration::EspIdfPanelConfigBlobStorage blobs{};
-   configuration::TransientBlobStorageBackend<
-       PANEL_CONFIG_STORAGE_SLOT_CAPACITY>
-       backend;
+   configuration::TransientBlobStorageBackend<PANEL_CONFIG_FLASH_SLOT_BYTES> backend;
    configuration::ConfigurationStore store;
    configuration::ConfigurationMainLoop transactions;
    configuration::ConfigurationCompatibilityRetry compatibility_retry;
@@ -720,8 +724,7 @@ void EspDesktopApp::initialize_native_configuration() {
       const configuration::PanelConfigStorageSelection storage =
           configuration::begin_panel_config_storage(
               runtime.blobs, panel_config_card_images_storage_,
-              PANEL_CONFIG_STORAGE_SLOT_CAPACITY,
-              PANEL_CONFIG_NVS_SLOT_CAPACITY);
+              PANEL_CONFIG_FLASH_SLOT_BYTES, PANEL_CONFIG_NVS_SLOT_BYTES);
       if (!storage.ready || !runtime.backend.begin(storage.slot_capacity)) {
         ESP_LOGE(TAG, "Native configuration storage is unavailable");
         native_configuration_initialized_ = true;
@@ -746,6 +749,21 @@ void EspDesktopApp::initialize_native_configuration() {
       defer_native_configuration_initialization();
       return;
     }
+#ifdef ESPDESKTOP_EXPANDED_PANEL_CONFIG
+    if (runtime.slot_capacity == PANEL_CONFIG_EXPANDED_FLASH_SLOT_BYTES) {
+      const auto migrated = configuration::migrate_expanded_panel_config(
+          runtime.store, document, runtime.slot_capacity,
+          allocate_configuration_slot, release_configuration_slot);
+      if (migrated != configuration::StoreStatus::OK &&
+          migrated != configuration::StoreStatus::EMPTY) {
+        ESP_LOGW(TAG, "Panel configuration storage migration failed (%u); retrying",
+                 static_cast<unsigned>(migrated));
+        native_configuration_initialization_pending_ = true;
+        configuration_buffer_retry_.failed(esphome::millis());
+        return;
+      }
+    }
+#endif
     ESP_LOGI(TAG, "Loading native configuration document");
     const configuration::ServiceLoadResult loaded =
         panel_config_service->load(document, runtime.slot_capacity);

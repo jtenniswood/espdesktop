@@ -54,7 +54,7 @@ PANEL_CONFIG_SCHEMA = cv.Schema(
             cv.ensure_list(PANEL_CONFIG_BUTTON_SCHEMA), cv.Length(min=1, max=32)
         ),
         cv.Optional(CONF_STORAGE, default="nvs"): cv.one_of(
-            "nvs", "card_images", lower=True
+            "nvs", "card_images", "expanded_card_images", lower=True
         ),
     }
 )
@@ -149,8 +149,10 @@ async def to_code(config):
                 for button in panel_config[CONF_BUTTONS]
             ),
         )
-        if panel_config[CONF_STORAGE] == "card_images":
+        if panel_config[CONF_STORAGE] != "nvs":
             cg.add(var.set_panel_config_card_images_storage(True))
+        if panel_config[CONF_STORAGE] == "expanded_card_images":
+            cg.add_define("ESPDESKTOP_EXPANDED_PANEL_CONFIG")
         cg.add(var.set_panel_config_device_profile(panel_config[CONF_DEVICE_PROFILE]))
         if CONF_ON_LAYOUT_CHANGED in panel_config:
             await automation.build_automation(

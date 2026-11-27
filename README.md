@@ -65,6 +65,7 @@ The 4848S040 panel is available from AliExpress ([US](https://s.click.aliexpress
 - [Download EspDesktop for your computer](https://espdesktop.com/download)
 - [Supported display](https://espdesktop.com/screens/4848s040)
 - [Touchscreen controls](https://espdesktop.com/#what-you-can-control)
+- [Code signing policy](https://espdesktop.com/reference/code-signing)
 - [Companion compatibility](https://espdesktop.com/reference/companion-compatibility)
 - [Report a bug or request a feature](https://github.com/jtenniswood/espdesktop/issues)
 

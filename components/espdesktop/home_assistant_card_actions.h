@@ -2,6 +2,7 @@
 
 #include "home_assistant_cards.h"
 #include "device_reset.h"
+#include "external_memory_allocator.h"
 #include "native_api_setting.h"
 #ifdef USE_COMPANION
 #include <mbedtls/sha256.h>
@@ -45,8 +46,9 @@ inline std::string automatic_card_id(int page, int slot, const ParsedCfg &config
 #endif
 }
 
-inline std::vector<SharedCard> shared_cards() {
-  std::vector<SharedCard> cards;
+inline std::vector<SharedCard, EspDesktopExternalAllocator<SharedCard>> shared_cards() {
+  // Layouts with many nested cards can exceed the largest free internal heap block.
+  std::vector<SharedCard, EspDesktopExternalAllocator<SharedCard>> cards;
   const auto *layout = grid_native_pages();
   if (!layout || !layout->store || hooks().fingerprint.size() != 64) return cards;
   const auto &store = *layout->store;

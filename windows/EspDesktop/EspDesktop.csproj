@@ -8,12 +8,14 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
+    <Product>EspDesktop</Product>
+    <IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
     <ApplicationIcon>Packaging/EspDesktop.ico</ApplicationIcon>
     <ApplicationManifest>Packaging/app.manifest</ApplicationManifest>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.4370.26" />
+    <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.4370.26" GeneratePathProperty="true" />
     <PackageReference Include="System.IO.Ports" Version="11.0.0" />
     <InternalsVisibleTo Include="EspDesktop.Tests" />
     <Using Remove="System.Windows.Forms" />
@@ -22,6 +24,14 @@
     <EmbeddedResource Include="../../product/v2/companion_capabilities.json" LogicalName="CompanionContract.json" />
     <EmbeddedResource Include="../../product/v2/app_shortcuts/platforms/windows/*.json"
                       LogicalName="WindowsAppShortcuts.%(Filename)%(Extension)" />
+    <None Include="../../LICENSE" Link="Licenses/EspDesktop-LICENSE.txt" CopyToPublishDirectory="PreserveNewest" />
+    <None Include="../../NOTICE" Link="Licenses/EspDesktop-NOTICE.txt" CopyToPublishDirectory="PreserveNewest" />
+    <None Include="../../common/assets/fonts/*-LICENSE.txt" Link="Licenses/%(Filename)%(Extension)"
+          CopyToPublishDirectory="PreserveNewest" />
+    <None Include="$(PkgMicrosoft_Web_WebView2)/LICENSE.txt" Link="Licenses/WebView2-LICENSE.txt"
+          CopyToPublishDirectory="PreserveNewest" />
+    <None Include="$(PkgMicrosoft_Web_WebView2)/NOTICE.txt" Link="Licenses/WebView2-NOTICE.txt"
+          CopyToPublishDirectory="PreserveNewest" />
     <Resource Include="Packaging/EspDesktop.ico" />
     <Resource Include="Packaging/TrayComputer.ico" />
   </ItemGroup>
