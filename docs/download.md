@@ -29,3 +29,5 @@ EspDesktop for Windows supports Intel, AMD, and Arm PCs. These links always down
 - [Download for Windows on Arm (Arm64)](https://github.com/jtenniswood/espdesktop/releases/latest/download/EspDesktop-Windows-arm64-Setup.exe)
 
 [Install the app and pair your display](/windows#install-espdesktop).
+
+[Code signing policy](/reference/code-signing)

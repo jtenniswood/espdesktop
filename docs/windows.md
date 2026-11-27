@@ -1,36 +1,21 @@
 ---
 title: EspDesktop Windows setup
-description: Install EspDesktop for Windows and pair your Guition 4848S040 touchscreen.
+description: Download EspDesktop for Windows to control your PC from a Guition 4848S040 touchscreen.
 ---
 
 # Windows setup
 
 ## Install EspDesktop
 
-The installer requires Windows build **22000 or later**. Run **winver** to check your build.
+Use **Windows 11** to open apps and run keyboard shortcuts from your EspDesktop touchscreen. Choose **x64** for Intel or AMD PCs, or **Arm64** for Windows on Arm.
 
-1. Download the [latest stable installer for Intel and AMD PCs (x64)](https://github.com/jtenniswood/espdesktop/releases/latest/download/EspDesktop-Windows-x64-Setup.exe) or [Windows on Arm (Arm64)](https://github.com/jtenniswood/espdesktop/releases/latest/download/EspDesktop-Windows-arm64-Setup.exe). To check your PC, open **Settings → System → About → System type**.
-2. Run the setup file. The installer is unsigned, so Windows may ask you to confirm that you trust it.
-3. Open **EspDesktop** from Start. The app installs for the current user.
+<p>
+  <a class="docs-primary-action" href="https://github.com/jtenniswood/espdesktop/releases/latest/download/EspDesktop-Windows-x64-Setup.exe">Download for Windows (x64)</a>
+  <a class="docs-primary-action" href="https://github.com/jtenniswood/espdesktop/releases/latest/download/EspDesktop-Windows-arm64-Setup.exe">Download for Windows (Arm64)</a>
+</p>
 
-## Pair your display
+Run the installer, then open **EspDesktop** from Start. [Pair your display](/getting-started/troubleshooting#windows-pairing).
 
-1. [Install the display firmware](/screens/4848s040#install) if needed, then connect the display and PC to the same local network.
-2. In the Windows app’s **Display** settings, select the display and choose **Next**. If it doesn’t appear, choose **Enter address manually**.
-3. Select **Open pairing page** to get the code. Enter it and choose **Pair display**.
-4. Choose **Open display editor** to [set up your first layout](/features/first-run).
+## Code signing policy
 
-[Get pairing help](/getting-started/troubleshooting#the-display-will-not-pair).
-
-### Connect over USB in a development build
-
-Windows development builds with USB support can control a display over a USB data cable with Wi-Fi off. Use USB-enabled Companion firmware. For the 4848S040, the experimental `usb-dev.yaml` profile enables Companion control over USB.
-
-1. Plug the display into the PC. In **Display**, choose **Connect over USB**, select the display’s COM port, and choose **Next**.
-2. On the touchscreen, choose **Pair** on the Setup screen or **Unpaired** in Settings. Enter the code in Windows and choose **Pair display**.
-
-Use **Change connection** on a saved display to switch between USB and the local network or select a different COM port. EspDesktop verifies the display and keeps its pairing.
-
-Choose **Open display editor** to load and save the layout over USB. The editor opens inside EspDesktop and requires the Microsoft Edge WebView2 Runtime. When the display is connected over IP, the editor opens in your browser.
-
-If USB disconnects while saving a layout, reconnect the same display. EspDesktop checks the saved layout before it retries a write. If it cannot confirm the save, choose **Export unsaved layout** in the editor window before closing it. The resulting JSON file works with **System → Restore backup**.
+EspDesktop is applying to [SignPath.io](https://about.signpath.io/) for free Windows code signing, with a certificate from [SignPath Foundation](https://signpath.org/). The current Windows installers are unsigned. See the [Code signing policy](/reference/code-signing) for approval roles and privacy details.

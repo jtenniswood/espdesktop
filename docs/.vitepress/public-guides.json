@@ -45,6 +45,7 @@
   "Optional": [
     "screens/4848s040-stand.md",
     "reference/privacy.md",
+    "reference/code-signing.md",
     "reference/support.md",
     "mac-controls/improve-shortcuts.md",
     "reference/request-icons.md"
