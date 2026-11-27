@@ -38,7 +38,7 @@ A working installer shows an **Install EspDesktop** button and opens the USB por
 
 ## The display does not appear in EspDesktop
 
-On Windows, open **Display** and choose **Enter address manually**. Enter the IP address shown on the touchscreen. [Windows pairing steps](/windows#pair-your-display).
+On Windows, open **Display** and choose **Enter address manually**. Enter the IP address shown on the touchscreen. [Windows pairing steps](#windows-pairing).
 
 - Confirm the display and Mac are connected to the same local network.
 - Allow local-network access for EspDesktop if macOS requested it.
@@ -49,7 +49,7 @@ Discovery only locates a display; it does not configure its WiFi. For a first-ti
 
 ## The display will not pair
 
-On Windows, confirm the display is on the same local network. Press and hold the display’s Wi-Fi icon to show the pairing code. If it was paired with another computer, reset pairing on the touchscreen and use the new code. [Windows pairing steps](/windows#pair-your-display).
+For Windows, see [Windows pairing](#windows-pairing).
 
 On macOS, follow these steps.
 
@@ -70,6 +70,13 @@ The Mac stores its credential in Keychain and checks the paired display certific
 When pairing works, the Mac app shows **You’re connected**.
 
 If you have one display paired, **Support → Restart Setup** clears its pairing and takes you through first-run setup again. With several displays paired, use **Forget** and **Add Display** on the **Displays** page to set up one display again. Your app and folder choices are kept.
+
+### Windows pairing
+
+1. [Install the display firmware](/screens/4848s040#install) if needed, then connect the display and PC to the same local network.
+2. In the Windows app’s **Display** settings, select the display and choose **Next**. If it doesn’t appear, choose **Enter address manually**.
+3. Select **Open pairing page** to get the code. Enter it and choose **Pair display**. If the display was paired with another computer, reset pairing on the touchscreen and use the new code.
+4. Choose **Open display editor** to [set up your first layout](/features/first-run).
 
 ## A card does not work
 

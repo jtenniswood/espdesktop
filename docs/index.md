@@ -19,6 +19,8 @@ Launch apps, open folders and websites, and run keyboard shortcuts from a 4-inch
 
 </div>
 
+[Code signing policy](/reference/code-signing)
+
 </div>
 
 <figure class="homepage-panel">
