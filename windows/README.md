@@ -58,7 +58,7 @@ dotnet run -c Release --project windows/EspDesktop
 
 The workflow builds installers for x64 and Arm64 and installs, opens, and uninstalls each build on Windows. To try an unpublished build, download and unzip the installer artifact for your architecture from its **Windows EspDesktop** run. The test project checks the same protocol fixtures as firmware and macOS, and pairs with a simulated display over TLS. Use a Windows PC and a physical 4848S040 for discovery, actual pairing, app and folder focus, browser behavior, shortcuts, volume, lock and reconnect testing.
 
-EspDesktop checks for newer stable Windows releases for your PC’s architecture and display protocol and opens their download page. Firmware-only releases do not affect the Windows update check. Run the new setup file from the release page to update. In-app installation requires an Authenticode-signed Windows app and installer with the same trusted publisher key.
+By default, EspDesktop checks at launch and once a day while it’s running, including in the system tray. It shows a Windows notification the first time it finds a newer stable release compatible with your PC and display protocol. Select the notification to open **Updates**, where you can also turn off automatic checks. Run the setup file from **Release downloads** to update manually. In-app installation requires an Authenticode-signed Windows app and installer with the same trusted publisher key.
 
 ### Generate a signed Windows installer
 
