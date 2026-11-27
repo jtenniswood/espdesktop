@@ -81,6 +81,13 @@ internal sealed class SettingsWindow : Window
         public TextBlock Status { get; } = Paragraph("Disconnected");
         public bool ConnectionEnabled => Cancellation is { IsCancellationRequested: false };
         public ToggleButton? ConnectionSwitch { get; set; }
+        public bool IsConnected => Status.Text.StartsWith("Connected to ", StringComparison.Ordinal);
+
+        public void SetStatus(string status)
+        {
+            Status.Text = status;
+            Status.Visibility = IsConnected ? Visibility.Collapsed : Visibility.Visible;
+        }
     }
     private bool busy, scanning, discoveryChecked, appScanning, quitting, updateBusy, installerVerified;
     private WindowsRelease? release;
@@ -308,7 +315,7 @@ internal sealed class SettingsWindow : Window
         if (display.UsbEditor is null)
         {
             ShowDisplaySettings();
-            Report(display.Status.Text.StartsWith("Connected", StringComparison.Ordinal)
+            Report(display.IsConnected
                 ? "Update this display’s firmware to open its editor over USB."
                 : "Connect the display by USB before opening its editor.");
             return false;
@@ -372,7 +379,7 @@ internal sealed class SettingsWindow : Window
             var status = display.Status.Text;
             var item = new Forms.ToolStripMenuItem((display.Pairing.DisplayName ?? address).Replace("&", "&&"))
             {
-                Checked = status.StartsWith("Connected", StringComparison.Ordinal),
+                Checked = display.IsConnected,
                 ToolTipText = address
             };
             item.DropDownItems.Add(new Forms.ToolStripMenuItem(status.Replace("&", "&&")) { Enabled = false });
@@ -438,7 +445,7 @@ internal sealed class SettingsWindow : Window
                 if (changed && !quitting && !addingDisplay && navigation.SelectedIndex == 0) Render();
             }, status =>
             {
-                display.Status.Text = status;
+                display.SetStatus(status);
                 if (displays.Count == 1) ConnectionStatusChanged?.Invoke(status);
             }, async (fingerprint, token) =>
             {
@@ -449,7 +456,7 @@ internal sealed class SettingsWindow : Window
             await session.RunAsync(display.Pairing, cancellation.Token, newAddress, editor => display.UsbEditor = editor);
         }
         catch (Exception e) when (e is IOException or UnauthorizedAccessException or CryptographicException or InvalidOperationException)
-        { display.Status.Text = "Couldn’t keep the connection. Check the saved pairing and try again."; }
+        { display.SetStatus("Couldn’t keep the connection. Check the saved pairing and try again."); }
         finally
         {
             display.Session = null;
@@ -457,7 +464,7 @@ internal sealed class SettingsWindow : Window
             display.Task = null;
             if (cancellation.IsCancellationRequested && !quitting)
             {
-                display.Status.Text = "Disconnected";
+                display.SetStatus("Disconnected");
                 if (displays.Count == 1) ConnectionStatusChanged?.Invoke("Disconnected");
             }
             cancellation.Dispose();
