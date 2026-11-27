@@ -97,7 +97,11 @@ jobs:
           $startMenuLink = Join-Path ([Environment]::GetFolderPath('Programs')) 'EspDesktop.lnk'
           $install = Start-Process $installer -ArgumentList '/VERYSILENT','/SUPPRESSMSGBOXES','/NORESTART','/TASKS=disableupdatechecks',$directoryArgument -Wait -PassThru
           if ($install.ExitCode -ne 0) { throw "Install exit code: $($install.ExitCode)" }
-          foreach ($notice in @('EspDesktop-LICENSE.txt', 'EspDesktop-NOTICE.txt', 'WebView2-LICENSE.txt', 'WebView2-NOTICE.txt')) {
+          $notices = @(
+            'EspDesktop-LICENSE.txt', 'EspDesktop-NOTICE.txt', 'WebView2-LICENSE.txt', 'WebView2-NOTICE.txt',
+            'material-symbols-LICENSE.txt', 'materialdesignicons-LICENSE.txt', 'roboto-LICENSE.txt'
+          )
+          foreach ($notice in $notices) {
             if (!(Test-Path -LiteralPath (Join-Path $installDir "Licenses/$notice") -PathType Leaf)) {
               throw "Setup did not install the $notice notice."
             }

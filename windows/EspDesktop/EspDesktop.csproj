@@ -26,6 +26,8 @@
                       LogicalName="WindowsAppShortcuts.%(Filename)%(Extension)" />
     <None Include="../../LICENSE" Link="Licenses/EspDesktop-LICENSE.txt" CopyToPublishDirectory="PreserveNewest" />
     <None Include="../../NOTICE" Link="Licenses/EspDesktop-NOTICE.txt" CopyToPublishDirectory="PreserveNewest" />
+    <None Include="../../common/assets/fonts/*-LICENSE.txt" Link="Licenses/%(Filename)%(Extension)"
+          CopyToPublishDirectory="PreserveNewest" />
     <None Include="$(PkgMicrosoft_Web_WebView2)/LICENSE.txt" Link="Licenses/WebView2-LICENSE.txt"
           CopyToPublishDirectory="PreserveNewest" />
     <None Include="$(PkgMicrosoft_Web_WebView2)/NOTICE.txt" Link="Licenses/WebView2-NOTICE.txt"
