@@ -172,6 +172,25 @@ inline std::string cfg_option_value(const std::string &options, const char *name
   return "";
 }
 
+inline bool companion_computer_id_valid(const std::string &value) {
+  if (value.size() != 16) return false;
+  for (const char ch : value) {
+    if (!std::isxdigit(static_cast<unsigned char>(ch))) return false;
+  }
+  return true;
+}
+
+inline bool companion_card_type_name(const std::string &type) {
+  return type == "companion" || type.rfind("companion_", 0) == 0;
+}
+
+// Cards keep their display-assigned computer binding through option
+// normalization. Tokens are already sanitized by the browser save path.
+inline std::string companion_computer_option_suffix(const std::string &options) {
+  const std::string value = cfg_option_value(options, "computer");
+  return companion_computer_id_valid(value) ? "computer=" + value : "";
+}
+
 inline std::string normalize_card_color_value(std::string value) {
   if (!value.empty() && value[0] == '#') value.erase(0, 1);
   if (value.size() != 6) return "";
@@ -1294,6 +1313,14 @@ inline bool companion_shortcut_template_id_valid(const std::string &value) {
 inline bool companion_app_shortcuts_enabled(const ParsedCfg &p) {
   return p.type == "companion" && companion_shortcut_page_app(p.entity) &&
          p.sensor.empty() && cfg_option_token_present(p.options, "app_shortcuts");
+}
+
+// Cards created for a specific computer carry its display-assigned ID. Older
+// cards have no option and keep using the display's primary computer.
+inline std::string companion_card_computer(const ParsedCfg &p) {
+  if (!companion_card_type_name(p.type)) return {};
+  const std::string value = cfg_option_value(p.options, "computer");
+  return companion_computer_id_valid(value) ? value : std::string{};
 }
 
 inline bool companion_app_launch_card(const ParsedCfg &p) {
