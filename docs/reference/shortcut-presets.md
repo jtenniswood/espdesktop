@@ -11,6 +11,6 @@ import ShortcutPresetReference from '../.vitepress/theme/components/ShortcutPres
 
 Choose **Windows** or **Mac** to browse apps. The page selects your platform when the browser can identify it.
 
-To add a supported preset to your touchscreen, pair the [Mac companion](/mac-controls/shortcuts) or the [Windows companion](/windows#pair-your-display), then choose **Keyboard Shortcut → Application** in the display editor.
+To add a supported preset to your touchscreen, pair the [Mac companion](/mac-controls/shortcuts) or the [Windows companion](/getting-started/troubleshooting#windows-pairing), then choose **Keyboard Shortcut → Application** in the display editor.
 
 <ShortcutPresetReference />
