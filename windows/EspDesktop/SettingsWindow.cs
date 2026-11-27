@@ -16,6 +16,7 @@ using System.Windows.Input;
 using System.Windows.Interop;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using System.Windows.Shell;
 using System.Windows.Threading;
 using EspDesktop.Core;
 using Microsoft.Win32;
@@ -130,6 +131,12 @@ internal sealed class SettingsWindow : Window
         Title = "EspDesktop";
         Icon = new IconBitmapDecoder(App.IconUri, BitmapCreateOptions.None, BitmapCacheOption.OnLoad)
             .Frames.MaxBy(frame => frame.PixelWidth);
+        var captionInset = new Thickness(0, SystemParameters.WindowNonClientFrameThickness.Top, 0, 0);
+        WindowChrome.SetWindowChrome(this, new WindowChrome
+        {
+            GlassFrameThickness = captionInset,
+            NonClientFrameEdges = NonClientFrameEdges.Left | NonClientFrameEdges.Right | NonClientFrameEdges.Bottom
+        });
         Width = 860;
         Height = 690;
         MinWidth = 670;
@@ -143,7 +150,7 @@ internal sealed class SettingsWindow : Window
             DetachNotifications();
         };
         scroll = new ScrollViewer { Content = body, VerticalScrollBarVisibility = ScrollBarVisibility.Auto, Margin = new Thickness(0, 12, 0, 0) };
-        var root = new Grid { Background = Brushes.Transparent, UseLayoutRounding = true };
+        var root = new Grid { Background = Brushes.Transparent, Margin = captionInset, UseLayoutRounding = true };
         root.ColumnDefinitions.Add(new() { Width = new GridLength(180) });
         root.ColumnDefinitions.Add(new());
         navigation.Margin = new Thickness(12, 12, 0, 8);
