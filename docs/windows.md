@@ -14,6 +14,8 @@ The installer requires Windows build **22000 or later**. Run **winver** to check
 3. Run the setup file. The installer is unsigned, so Windows may ask you to confirm that you trust it.
 4. Open **EspDesktop** from Start. The app installs for the current user.
 
+[Code signing policy](/reference/code-signing)
+
 ## Pair your display
 
 1. [Install the display firmware](/screens/4848s040#install) if needed, then connect the display and PC to the same local network.
