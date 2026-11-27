@@ -551,7 +551,8 @@ inline void setup_companion_card(BtnSlot &s, const ParsedCfg &p,
     lv_label_set_long_mode(s.text_lbl, LV_LABEL_LONG_WRAP);
     lv_obj_set_width(s.text_lbl, lv_pct(100));
   }
-  const std::string shortcut_app_icon = apple_shortcut_workflow_icon(p)
+  const bool workflow_icon = apple_shortcut_workflow_icon(p);
+  const std::string shortcut_app_icon = workflow_icon
       ? APPLE_SHORTCUTS_APP_ID : companion_shortcut_app_icon_id(p);
   const char *icon = (p.icon.empty() || p.icon == "Auto")
     ? find_icon(companion_apple_shortcut_action(p.entity) ? "Flash" : obs_mute ? "Microphone" : p.entity == "obs.brb" ? "Coffee to Go" :

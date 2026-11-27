@@ -81,6 +81,8 @@ bool lv_obj_check_type(const lv_obj_t *obj, const lv_obj_class_t *type) {
   return obj->type == type;
 }
 bool lv_obj_has_flag(const lv_obj_t *obj, lv_obj_flag_t flag) { return (obj->flags & flag) != 0; }
+struct lv_style_t;
+void lv_obj_remove_style(lv_obj_t *, const lv_style_t *, unsigned) {}
 bool lv_obj_has_state(const lv_obj_t *obj, int state) { return (obj->state & state) != 0; }
 lv_style_res_t lv_obj_get_local_style_prop(lv_obj_t *obj, lv_style_prop_t prop, lv_style_value_t *value, int selector) {
   assert(prop == LV_STYLE_BG_COLOR);
