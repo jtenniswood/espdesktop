@@ -1950,7 +1950,9 @@ assert.strictEqual(hooks.buttonTypeVisibleInPickerFor("light_temperature", false
 assert.strictEqual(hooks.buttonTypeVisibleInPickerFor("light_temperature", true), false, "light temperature subtype hidden from subpage picker");
 assert.strictEqual(hooks.buttonTypeVisibleInPickerFor("light_control", false), false, "full light control subtype hidden from top-level picker");
 assert.strictEqual(hooks.buttonTypeRuntimeSpec("light_control").hidden, true, "full light control is grouped under Lights");
-assert.strictEqual(hooks.defaultButtonTypeForPicker("light_brightness"), "light_control", "lights picker defaults to all controls");
+// The all-controls light modal stays retired, so the Lights picker creates the
+// brightness card that the Home Assistant driver supports.
+assert.strictEqual(hooks.defaultButtonTypeForPicker("light_brightness"), "light_brightness", "lights picker defaults to the brightness slider");
 assert.strictEqual(hooks.buttonTypeVisibleInPickerFor("climate", false), false, "climate controls are hidden from the picker");
 assert.strictEqual(hooks.buttonTypeVisibleInPickerFor("climate_control", false), false, "all controls climate subtype hidden from top-level picker");
 assert.strictEqual(hooks.buttonTypeRuntimeSpec("climate_control").label, "All Controls", "all controls climate subtype has its own label");

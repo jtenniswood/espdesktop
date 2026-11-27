@@ -58,14 +58,17 @@ export async function runConnectorsFeatureTests(): Promise<void> {
         const card = element(); card.id = "companion-card"; return card;
     } } as any,
     true,
+    () => true,
     () => {
       const card = element(); card.id = "home-assistant-card"; return card as unknown as HTMLElement;
     },
     { infoPanel() { throw new Error("Supported displays should show connector cards"); } },
   );
-  if (feature.homeAssistantConfigured() || feature.homeAssistantConnected() ||
-      feature.homeAssistantSettingsAvailable() || feature.homeAssistantCardPickerEnabled()) {
-    throw new Error("Retired Home Assistant adapters must never enable runtime features");
+  if (feature.homeAssistantConfigured() || feature.homeAssistantConnected()) {
+    throw new Error("Home Assistant setup does not imply a configured or connected integration");
+  }
+  if (!feature.homeAssistantSettingsAvailable() || !feature.homeAssistantCardPickerEnabled()) {
+    throw new Error("Panels with native Home Assistant support must expose its settings and cards");
   }
   const parent = element();
   feature.buildPage(parent as unknown as HTMLElement);

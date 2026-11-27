@@ -390,3 +390,5 @@ obs_already_on_program=Deja în program
 obs_transitioning=Tranziție în curs
 obs_replay_not_confirmed=Reluare neconfirmată
 obs_check=Verifică OBS
+end_call=Încheie apelul
+end_call_prompt=Închei apelul Teams?

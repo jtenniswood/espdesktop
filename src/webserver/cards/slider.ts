@@ -1,6 +1,6 @@
 import { createCompanionCatalogue } from "../api/companion_catalogue";
-import { OBS_FADER_PREFIX, isOBSFaderControlID } from "../model/card";
 import { renderRetiredCardSettings } from "../application/card_registry";
+import { OBS_FADER_PREFIX, isOBSFaderControlID } from "../model/card";
 import { preserveCardColorOptions } from "../model/config_primitives";
 import {
     cardContractAllowInSubpage,
@@ -154,7 +154,7 @@ export function registerSliderCardTypes(
                 rerender: true,
                 requiredMessage: "Add an entity before saving.",
                 validateDomains: opts.type === "slider",
-                domainValidationMessage: "Choose a light, fan, number, or input_number entity.",
+                domainValidationMessage: "Choose a light, fan, media player, number, or input_number entity.",
             },
             labelField: {
                 label: "Label",
@@ -189,6 +189,7 @@ export function registerSliderCardTypes(
                     label: "Control",
                     idSuffix: "slider-control",
                     options: [
+                        ["home_assistant", "Home Assistant light, fan, or media player"],
                         ["mac_output", "Computer output volume"],
                         ["mac_input", "Mic"],
                         ["mac_output_mute", "Output mute"],
@@ -209,20 +210,23 @@ export function registerSliderCardTypes(
             allowInSubpage: function (this: any) { return cardContractAllowInSubpage(opts.type); },
             pickerKey: function (this: any) { return cardContractPickerKey(opts.type); },
             hidden: function (this: any) { return cardContractHidden(opts.type); },
-            isAvailable: opts.companionVolumeModes ? () => companionSupported : null,
+            isAvailable: null,
             hideLabel: !!opts.hideLabel,
             labelPlaceholder: opts.placeholder,
             defaultConfig: function (this: any) { return cardContractDefaultConfig(opts.type); },
             cardMetadata: metadata,
             onSelect: function (this: any, b?: any) {
-                if (opts.companionVolumeModes) { b.entity = COMPANION_OUTPUT_VOLUME_ID; if (!b.label) b.label = "Volume"; }
+                if (opts.companionVolumeModes && companionSupported) {
+                    b.entity = COMPANION_OUTPUT_VOLUME_ID;
+                    if (!b.label) b.label = "Volume";
+                }
                 b.sensor = opts.type === "cover" ? "modal" : "";
                 b.unit = "";
                 b.icon = opts.defaultIcon;
                 b.icon_on = opts.defaultIconOn;
             },
             renderSettings: function (this: any, panel?: any, b?: any, slot?: any, helpers?: any) {
-                if (opts.type !== "slider" || companionSliderMode(b) === "home_assistant") return renderRetiredCardSettings(panel);
+                if (opts.type === "cover") return renderRetiredCardSettings(panel);
                 const mode = companionSliderMode(b);
                 if (mode === "obs_level") {
                     renderOBSAudioSettings(panel, b, helpers);
@@ -250,14 +254,22 @@ export function registerSliderCardTypes(
                                     mac_input_mute: COMPANION_INPUT_MUTE_ID,
                                 };
                                 const nextMode = this.value;
-                                if (!Object.hasOwn(identifiers, nextMode)) return;
                                 const previousMode = sliderMode;
-                                sliderMode = nextMode;
-                                b.entity = identifiers[nextMode];
-                                b.icon = companionSliderIcon(b.icon, previousMode, nextMode);
-                                b.icon_on = "Auto";
-                                if (!b.label || defaultLabels.includes(b.label))
-                                    b.label = companionSliderDefaultLabel(sliderMode);
+                                if (nextMode === "home_assistant") {
+                                    sliderMode = nextMode;
+                                    if (b.entity && Object.values(identifiers).includes(b.entity)) b.entity = "";
+                                    b.icon = companionSliderIcon(b.icon, previousMode, nextMode);
+                                    b.icon_on = "Auto";
+                                    if (!b.label || defaultLabels.includes(b.label)) b.label = "";
+                                } else {
+                                    if (!Object.hasOwn(identifiers, nextMode)) return;
+                                    sliderMode = nextMode;
+                                    b.entity = identifiers[nextMode];
+                                    b.icon = companionSliderIcon(b.icon, previousMode, nextMode);
+                                    b.icon_on = "Auto";
+                                    if (!b.label || defaultLabels.includes(b.label))
+                                        b.label = companionSliderDefaultLabel(sliderMode);
+                                }
                                 helpers.saveField("entity", b.entity);
                                 helpers.saveField("label", b.label);
                                 helpers.saveField("icon", b.icon);

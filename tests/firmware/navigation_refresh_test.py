@@ -46,6 +46,7 @@ struct lv_event_t {};
 struct CompanionAppIconImageData {
   bool app_icon_mode = true, image_loaded = false, loaded_hash_valid = false;
   bool companion_online = true, rendered_online = true, refresh_pending = false;
+  bool refit_pending = false;
   std::string application_id;
   std::array<uint8_t, 32> loaded_hash{};
   struct {} accent_palette;
@@ -124,6 +125,7 @@ void refresh_visible_image_cards() {
 }
 unsigned applies = 0, title_refreshes = 0;
 void companion_apply_app_icon_card_palette(CompanionAppIconImageData &, lv_obj_t *) {}
+void companion_layout_card_app_icon(CompanionAppIconImageData &, lv_obj_t *) {}
 void companion_apply_cached_app_icon(CompanionAppIconImageData &source, lv_obj_t *image) {
   ++applies;
   const bool cached = source.application_id.empty() ||

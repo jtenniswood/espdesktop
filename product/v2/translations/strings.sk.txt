@@ -390,3 +390,5 @@ obs_already_on_program=Už vo vysielaní
 obs_transitioning=Prebieha prechod
 obs_replay_not_confirmed=Uloženie záznamu nepotvrdené
 obs_check=Skontrolujte OBS
+end_call=Ukončiť hovor
+end_call_prompt=Ukončiť hovor v Teams?

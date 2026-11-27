@@ -390,3 +390,5 @@ obs_already_on_program=Jo lähetyksessä
 obs_transitioning=Siirtymä käynnissä
 obs_replay_not_confirmed=Uusintaa ei vahvistettu
 obs_check=Tarkista OBS
+end_call=Lopeta puhelu
+end_call_prompt=Lopetetaanko Teams-puhelu?

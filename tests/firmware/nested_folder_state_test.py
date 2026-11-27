@@ -31,9 +31,11 @@ bool cfg_option_token_present(std::string, std::string) { return false; }
 struct Binding { lv_obj_t *owner, *label; std::string metric, unit; int precision; };
 std::vector<Binding> bindings;
 void companion_track_metric_card(lv_obj_t *owner, lv_obj_t *label, void *,
-    const std::string &metric, const std::string &unit, int precision, bool, bool) {
+    const std::string &metric, const std::string &unit, int precision, bool, bool,
+    const std::string & = {}) {
   bindings.push_back({owner, label, metric, unit, precision});
 }
+std::string companion_card_computer(const ParsedCfg &) { return ""; }
 '''
 for name in ('navigation_driver_matches', 'navigation_driver_parent_companion_stat_state_enabled',
              'navigation_driver_bind_main', 'navigation_driver_bind_subpage'):

@@ -7,6 +7,10 @@
 #endif
 #include "esphome/core/version.h"
 #include "../artwork_image/image_pipeline_policy.h"
+#include "button_grid_touch.h"
+#include "button_grid_modal.h"
+#include "screen_lock_state.h"
+#include <algorithm>
 #include <new>
 
 #ifndef ESPDESKTOP_IMAGE_CARD_MAX_CONTEXTS
@@ -653,4 +657,147 @@ inline void image_card_set_clock_bar_companion_icon(
     }
   }
   clock_bar_refresh_left_title();
+}
+
+// ── Static image popup ───────────────────────────────────────────────
+// A full-screen, swipe/tap-dismissable image shown on top of any page. Used
+// by Home Assistant to display a camera snapshot when an event arrives.
+
+inline lv_obj_t *&image_popup_overlay() {
+  static lv_obj_t *overlay = nullptr;
+  return overlay;
+}
+inline lv_obj_t *&image_popup_widget() {
+  static lv_obj_t *widget = nullptr;
+  return widget;
+}
+inline lv_obj_t *&image_popup_status() {
+  static lv_obj_t *status = nullptr;
+  return status;
+}
+inline lv_timer_t *&image_popup_timer() {
+  static lv_timer_t *timer = nullptr;
+  return timer;
+}
+inline esphome::artwork_image::ArtworkImage *&image_popup_image() {
+  static esphome::artwork_image::ArtworkImage *image = nullptr;
+  return image;
+}
+
+inline void image_popup_close() {
+  if (image_popup_timer() != nullptr) {
+    lv_timer_del(image_popup_timer());
+    image_popup_timer() = nullptr;
+  }
+  if (image_popup_overlay() != nullptr && lv_obj_is_valid(image_popup_overlay()))
+    lv_obj_del(image_popup_overlay());
+  image_popup_overlay() = nullptr;
+  image_popup_widget() = nullptr;
+  image_popup_status() = nullptr;
+  image_popup_image() = nullptr;
+  image_popup_open() = false;
+}
+
+inline void image_popup_bind_callbacks(esphome::artwork_image::ArtworkImage *image) {
+  if (image == nullptr || image_popup_image() == image) return;
+  image_popup_image() = image;
+  image->add_on_finished_callback([](bool) {
+    if (image_popup_widget() == nullptr || !lv_obj_is_valid(image_popup_widget()))
+      return;
+    // The callback argument reports an unchanged source, not success. Use the
+    // image itself so a completed download is shown instead of an error.
+    auto *popup_image = image_popup_image();
+    if (popup_image != nullptr && popup_image->has_image()) {
+      image_card_set_widget_source(image_popup_widget(), popup_image);
+      if (image_popup_status() != nullptr) lv_obj_add_flag(image_popup_status(), LV_OBJ_FLAG_HIDDEN);
+    } else if (image_popup_status() != nullptr) {
+      lv_label_set_text(image_popup_status(), "Image unavailable");
+      lv_obj_clear_flag(image_popup_status(), LV_OBJ_FLAG_HIDDEN);
+    }
+  });
+  image->add_on_error_callback([]() {
+    if (image_popup_status() != nullptr && lv_obj_is_valid(image_popup_status())) {
+      lv_label_set_text(image_popup_status(), "Image unavailable");
+      lv_obj_clear_flag(image_popup_status(), LV_OBJ_FLAG_HIDDEN);
+    }
+  });
+}
+
+inline void image_card_show_popup(esphome::artwork_image::ArtworkImage *image,
+                                  const std::string &url,
+                                  const std::string &caption,
+                                  uint32_t duration_ms) {
+  if (image == nullptr || url.empty() || screen_lock_enabled()) return;
+  image_popup_close();
+  image_popup_bind_callbacks(image);
+  image_popup_open() = true;
+
+  lv_obj_t *overlay = control_modal_create_top_layer_object();
+  if (overlay == nullptr) {
+    image_popup_open() = false;
+    return;
+  }
+  image_popup_overlay() = overlay;
+  lv_obj_remove_style_all(overlay);
+  lv_obj_set_size(overlay, lv_pct(100), lv_pct(100));
+  lv_obj_set_style_bg_color(overlay, lv_color_black(), LV_PART_MAIN);
+  lv_obj_set_style_bg_opa(overlay, LV_OPA_70, LV_PART_MAIN);
+  lv_obj_add_flag(overlay, LV_OBJ_FLAG_CLICKABLE);
+  lv_obj_clear_flag(overlay, LV_OBJ_FLAG_SCROLLABLE);
+  lv_obj_add_event_cb(overlay, [](lv_event_t *) { image_popup_close(); },
+                      LV_EVENT_CLICKED, nullptr);
+  lv_obj_add_event_cb(overlay, [](lv_event_t *) { image_popup_close(); },
+                      LV_EVENT_GESTURE, nullptr);
+
+  const int screen_w = std::max(1, static_cast<int>(lv_obj_get_width(lv_scr_act())));
+  const int screen_h = std::max(1, static_cast<int>(lv_obj_get_height(lv_scr_act())));
+  const int target_w = std::max(120, screen_w * 85 / 100);
+  const int target_h = std::max(120, screen_h * 62 / 100);
+
+  lv_obj_t *widget = lv_image_create(overlay);
+  if (widget != nullptr) {
+    lv_obj_clear_flag(widget, LV_OBJ_FLAG_CLICKABLE);
+    lv_obj_clear_flag(widget, LV_OBJ_FLAG_SCROLLABLE);
+    lv_obj_set_size(widget, target_w, target_h);
+    lv_obj_align(widget, LV_ALIGN_TOP_MID, 0, 24);
+    lv_image_set_inner_align(widget, LV_IMAGE_ALIGN_CONTAIN);
+    image_card_clear_widget_source(widget);
+    image_popup_widget() = widget;
+  }
+
+  lv_obj_t *status = lv_label_create(overlay);
+  if (status != nullptr) {
+    lv_label_set_text(status, "Loading image...");
+    lv_obj_set_style_text_color(status, lv_color_white(), LV_PART_MAIN);
+    lv_obj_align(status, LV_ALIGN_TOP_MID, 0, 24 + target_h / 2 - 8);
+    image_popup_status() = status;
+  }
+
+  if (!caption.empty()) {
+    lv_obj_t *label = lv_label_create(overlay);
+    if (label != nullptr) {
+      lv_label_set_text(label, caption.c_str());
+      lv_label_set_long_mode(label, LV_LABEL_LONG_WRAP);
+      lv_obj_set_width(label, lv_pct(85));
+      lv_obj_set_style_text_color(label, lv_color_white(), LV_PART_MAIN);
+      lv_obj_set_style_text_align(label, LV_TEXT_ALIGN_CENTER, LV_PART_MAIN);
+      lv_obj_align(label, LV_ALIGN_BOTTOM_MID, 0, -42);
+    }
+  }
+  lv_obj_t *hint = lv_label_create(overlay);
+  if (hint != nullptr) {
+    lv_label_set_text(hint, "Swipe or tap to dismiss");
+    lv_obj_set_style_text_color(hint, lv_color_hex(0xbdbdbd), LV_PART_MAIN);
+    lv_obj_align(hint, LV_ALIGN_BOTTOM_MID, 0, -16);
+  }
+
+  image->set_target_size(target_w, target_h);
+  image->set_resize_mode(esphome::artwork_image::ImageResizeMode::FIT);
+  image->request_update_url(url, std::max(target_w, target_h));
+
+  if (duration_ms > 0) {
+    image_popup_timer() = lv_timer_create([](lv_timer_t *) { image_popup_close(); },
+                                          std::max<uint32_t>(duration_ms, 1000), nullptr);
+    if (image_popup_timer() != nullptr) lv_timer_set_repeat_count(image_popup_timer(), 1);
+  }
 }

@@ -64,7 +64,11 @@ inline bool write_panel_config_capabilities_json(char *output,
       "\"read\":%s,\"write\":%s,\"max_record_body_bytes\":%u,\"preserves_inactive_records\":%s,\"companion_auto_open_app_subpages\":%s,\"companion_app_subpage_mode\":%s,\"display_theme_preferences\":%s,\"screen_schedule_preferences\":%s},\"web_assets\":{\"versions\":[%u],"
       "\"delivery\":\"%s\"},\"reset\":{\"modes\":[\"customization\",\"factory\"],\"status\":\"/api/v1/reset\"}}",
       static_cast<unsigned>(PANEL_CONFIG_API_VERSION),
-      "false",  // Saved HA controls stay unavailable.
+#if defined(USE_API_HOMEASSISTANT_STATES) && defined(USE_API_HOMEASSISTANT_SERVICES)
+      "true",  // Native Home Assistant state subscriptions and actions are built in.
+#else
+      "false",  // Saved HA controls stay unavailable without the native API.
+#endif
       panel_config_read_supported() && panel_config_write_supported() ? "1,2" : "1",
       static_cast<unsigned>(PANEL_CONFIG_DURABLE_WRITE_VERSION),
       static_cast<unsigned>(PANEL_CONFIG_V2_HTTP_MAX_BYTES),

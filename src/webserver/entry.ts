@@ -330,6 +330,71 @@ function composeApplicationContext(liveGeneratedActions: () => readonly Companio
     clearPlaceholder: () => { interactions.clearPlaceholder(); },
     updatePreviewHint: () => { selection.updatePreviewHint(); },
     renderPreview: () => { preview.render(); },
+    screenKeys: () => Object.keys(AppInstance.state.subpages).map(Number)
+      .filter((key) => key > layout.numSlots && key <= 32).sort((a, b) => a - b),
+    enterScreen: (key) => {
+      AppInstance.state.editingSubpage = key;
+      AppInstance.state.subpageSelectedSlots = [];
+      AppInstance.state.subpageLastClicked = -1;
+      if (key != null) configurationCodec.buildSubpageGrid(configurationCodec.getSubpage(key));
+      preview.render();
+      buttonSettings.render();
+    },
+    addScreen: async () => {
+      const used = new Set(shell.screenKeys());
+      let key = layout.numSlots + 1;
+      while (key <= 32 && used.has(key)) key++;
+      if (key > 32) return false;
+      const result = await nativePanelConfig.writeSubpage(key, "B");
+      if (result !== "saved" && result !== "mirror-failed") return false;
+      configurationCodec.getSubpage(key);
+      shell.enterScreen(key);
+      return true;
+    },
+    removeScreen: async (key) => {
+      const result = await nativePanelConfig.writeSubpage(key, "");
+      if (result !== "saved" && result !== "mirror-failed") return false;
+      delete AppInstance.state.subpages[key];
+      if (AppInstance.state.editingSubpage === key) shell.enterScreen(null);
+      preview.render();
+      return true;
+    },
+    renameScreen: async (key, name) => {
+      const page = configurationCodec.getSubpage(key);
+      if (!page) return false;
+      const previous = page.title;
+      page.title = String(name || "").trim();
+      const result = await configurationPersistence.saveSubpageEntity(key);
+      if (result !== "saved" && result !== "mirror-failed" && result !== true) {
+        if (previous === undefined) delete page.title;
+        else page.title = previous;
+        return false;
+      }
+      preview.render();
+      buttonSettings.render();
+      return true;
+    },
+    moveScreen: async (key, targetIndex) => {
+      const keys = shell.screenKeys().slice();
+      const from = keys.indexOf(key);
+      if (from < 0 || targetIndex < 0 || targetIndex >= keys.length || from === targetIndex) return false;
+      const order = keys.slice();
+      const moved = order[from]!;
+      order.splice(from, 1);
+      order.splice(targetIndex, 0, moved);
+      const pages = new Map(keys.map(k => [k, AppInstance.state.subpages[k]]));
+      const editing = AppInstance.state.editingSubpage;
+      for (let index = 0; index < keys.length; index++)
+        AppInstance.state.subpages[keys[index]!] = pages.get(order[index]!)!;
+      if (editing != null) {
+        const movedTo = order.indexOf(editing);
+        if (movedTo >= 0) AppInstance.state.editingSubpage = keys[movedTo]!;
+      }
+      const results = await Promise.all(keys.map(k => configurationPersistence.saveSubpageEntity(k)));
+      preview.render();
+      buttonSettings.render();
+      return results.every(result => result === "saved" || result === "mirror-failed" || result === true);
+    },
   });
   let confirmationOptions: ReturnType<typeof createConfigConfirmationOptionsFeature>;
   let clockBarState: ClockBarFeature;
@@ -932,6 +997,7 @@ function composeApplicationContext(liveGeneratedActions: () => readonly Companio
   const companionSection = createSettingsCompanionSectionFeature(dom, shell, fields);
   connectorsPage = createConnectorsPageFeature(
     dom, companionSection, !!layout.config.features?.companion,
+    () => nativePanelConfig.homeAssistantSupportEnabled(),
     () => buildHomeAssistantSettings(
       fields.makeCollapsibleCard, fields.toggleRow, settingsUi,
     ),

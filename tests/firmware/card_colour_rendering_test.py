@@ -140,6 +140,7 @@ void lv_obj_set_user_data(lv_obj_t *, void *) {}
 void lv_obj_set_style_pad_all(lv_obj_t *, int, int) {}
 void lv_obj_set_style_radius(lv_obj_t *, int, int) {}
 void lv_obj_del(lv_obj_t *) {}
+void companion_card_lock_badge_forget(lv_obj_t *) {}
 void lv_obj_set_style_opa(lv_obj_t *, int, int) {}
 void lv_obj_set_style_text_opa(lv_obj_t *, int, int) {}
 int lv_obj_get_height(lv_obj_t *obj) { return obj->area.y2 - obj->area.y1 + 1; }
@@ -236,9 +237,17 @@ struct CompanionCardRef {
   lv_obj_t *button;
   std::string action_id, url_config, metric_key;
   bool show_focus = true;
+  std::string required_focus_id{};
   lv_obj_t *text_label = nullptr, *obs_detail = nullptr, *obs_state_icon = nullptr;
   std::string obs_label_alias{};
   CompanionAction rendered_obs_action{};
+  std::string computer_id{};
+};
+class CompanionSnapshotCache {
+ public:
+  const CompanionRuntimeSnapshot &get(const std::string &, const CompanionRuntimeSnapshot &fallback) {
+    return fallback;
+  }
 };
 struct CompanionSliderRef {
   lv_obj_t *slider = nullptr, *icon_label = nullptr, *text_label = nullptr;
@@ -281,7 +290,7 @@ groups = (
     ("button_grid_touch.h", "", ("consume_button_touch_press",)),
     ("button_grid_layout.h", "", ("parse_hex_color", "apply_button_colors", "apply_button_on_pattern")),
     ("companion_controls.h", "", ("companion_obs_record_stopping", "companion_obs_output_status_id", "companion_obs_output_status", "companion_obs_output_active")),
-    ("companion_controls.h", "", ("companion_obs_scene_target", "companion_obs_hashed_target", "companion_obs_transition_target", "companion_obs_source_target", "companion_obs_scene_card", "companion_obs_control_label", "companion_obs_break_active", "companion_obs_momentary_action", "companion_apply_card_focus", "companion_refresh_card_focus")),
+    ("companion_controls.h", "", ("companion_obs_scene_target", "companion_obs_hashed_target", "companion_obs_transition_target", "companion_obs_source_target", "companion_obs_scene_card", "companion_obs_control_label", "companion_obs_break_active", "companion_obs_momentary_action", "companion_apply_card_focus", "companion_required_focus_ready", "companion_refresh_card_focus")),
     ("companion_controls.h", "", ("companion_layout_card_detail", "companion_render_mic_detail", "companion_obs_mute_state", "companion_obs_status_card", "companion_obs_status_icon", "companion_obs_scene_on_program", "companion_render_obs_detail", "companion_obs_keep_content_bright", "companion_update_obs_detail_contrast", "companion_render_slider")),
     ("finder_folder_sync.h", "", ("apple_shortcut_catalogue_color",)),
     ("button_grid_grid.h", "", ("grid_live_companion_actions", "card_palette_for_config", "card_slot_static_child", "reset_card_slot_dynamic_children")),
@@ -302,6 +311,7 @@ struct CompanionAppIconImageData {
   struct { uint32_t default_rgb = 0x1565C0, active_rgb = 0x7985CB; bool valid = true; } accent_palette;
   bool app_icon_mode = true, companion_online = true, image_loaded = true;
   bool card_palette_ready = true, custom_background = false, palette_applied = false;
+  bool explicit_active = false;
   uint32_t fallback_default_rgb = 0x313131, fallback_active_rgb = 0x5C73E7;
 };
 '''
@@ -568,9 +578,9 @@ int main() {
       companion_refresh_card_focus(CompanionRuntimeSnapshot{});
     assert(state_writes == before);
     lv_obj_t shortcut;
-    focus_cards = {{&shortcut, "shortcut.control+w", "", ""}};
+    focus_cards = {{&shortcut, "shortcut.control+w", "", "", true, "target"}};
     companion_refresh_card_focus(CompanionRuntimeSnapshot{});
-    assert(!lv_obj_has_state(&shortcut, LV_STATE_DISABLED));
+    assert(lv_obj_has_state(&shortcut, LV_STATE_DISABLED));
     focused_app = "target";
     companion_refresh_card_focus(CompanionRuntimeSnapshot{});
     assert(!lv_obj_has_state(&shortcut, LV_STATE_DISABLED));

@@ -390,3 +390,5 @@ obs_already_on_program=Déjà dans le programme
 obs_transitioning=Transition en cours
 obs_replay_not_confirmed=Replay non confirmé
 obs_check=Vérifier OBS
+end_call=Terminer l’appel
+end_call_prompt=Terminer l’appel Teams ?

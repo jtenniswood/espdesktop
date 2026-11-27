@@ -390,3 +390,5 @@ obs_already_on_program=Уже в ефірі
 obs_transitioning=Триває перехід
 obs_replay_not_confirmed=Збереження повтору не підтверджено
 obs_check=Перевірте OBS
+end_call=Завершити дзвінок
+end_call_prompt=Завершити дзвінок у Teams?

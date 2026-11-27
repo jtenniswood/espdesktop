@@ -390,3 +390,5 @@ obs_already_on_program=Al in programma
 obs_transitioning=Overgang bezig
 obs_replay_not_confirmed=Herhaling niet bevestigd
 obs_check=Controleer OBS
+end_call=Gesprek beëindigen
+end_call_prompt=Teams-gesprek beëindigen?

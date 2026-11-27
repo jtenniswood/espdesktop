@@ -1684,7 +1684,10 @@
             "screen_schedule_clock_default_brightness": "\"10\"",
             "button_radius": "8px"
           },
-          "deviceFontPackageKey": "fonts_device"
+          "deviceFontPackageKey": "fonts_device",
+          "extraPackages": {
+            "ha_actions": "!include ../../common/addon/ha_actions.yaml"
+          }
         }
       },
       "settings": {
@@ -2328,14 +2331,15 @@
         }
       },
       "": {
-        "hidden": true,
+        "hidden": false,
         "label": "Switch",
         "allowInSubpage": true,
         "domains": [
           "light",
           "switch",
           "input_boolean",
-          "fan"
+          "fan",
+          "media_player"
         ],
         "options": [
           {
@@ -3964,7 +3968,7 @@
         }
       },
       "light_brightness": {
-        "hidden": true,
+        "hidden": false,
         "label": "Lights",
         "allowInSubpage": true,
         "domains": [
@@ -4017,7 +4021,7 @@
         }
       },
       "light_switch": {
-        "hidden": true,
+        "hidden": false,
         "label": "Lights",
         "allowInSubpage": true,
         "pickerKey": "light_brightness",
@@ -4750,6 +4754,16 @@
         "pickerKey": "companion_output_volume",
         "allowInSubpage": true,
         "domains": [],
+        "options": [
+          {
+            "name": "computer",
+            "label": "Paired computer",
+            "kind": "text",
+            "omitDefault": true,
+            "hidden": true,
+            "docsHidden": true
+          }
+        ],
         "normalization": {
           "fields": {
             "entity": {
@@ -4780,11 +4794,13 @@
               "policy": "clear"
             },
             "options": {
-              "policy": "clear"
+              "policy": "keep"
             }
           },
           "unknownOptions": "drop",
-          "canonicalOptionOrder": []
+          "canonicalOptionOrder": [
+            "computer"
+          ]
         },
         "default": {
           "entity": "",
@@ -4803,6 +4819,16 @@
         "pickerLabel": "Sound",
         "allowInSubpage": true,
         "domains": [],
+        "options": [
+          {
+            "name": "computer",
+            "label": "Paired computer",
+            "kind": "text",
+            "omitDefault": true,
+            "hidden": true,
+            "docsHidden": true
+          }
+        ],
         "normalization": {
           "fields": {
             "entity": {
@@ -4838,11 +4864,13 @@
               "policy": "clear"
             },
             "options": {
-              "policy": "clear"
+              "policy": "keep"
             }
           },
           "unknownOptions": "drop",
-          "canonicalOptionOrder": []
+          "canonicalOptionOrder": [
+            "computer"
+          ]
         },
         "default": {
           "entity": "media.output_volume",
@@ -4861,6 +4889,16 @@
         "pickerKey": "companion_output_volume",
         "allowInSubpage": true,
         "domains": [],
+        "options": [
+          {
+            "name": "computer",
+            "label": "Paired computer",
+            "kind": "text",
+            "omitDefault": true,
+            "hidden": true,
+            "docsHidden": true
+          }
+        ],
         "normalization": {
           "fields": {
             "entity": {
@@ -4891,11 +4929,13 @@
               "policy": "clear"
             },
             "options": {
-              "policy": "clear"
+              "policy": "keep"
             }
           },
           "unknownOptions": "drop",
-          "canonicalOptionOrder": []
+          "canonicalOptionOrder": [
+            "computer"
+          ]
         },
         "default": {
           "entity": "",
@@ -4914,6 +4954,16 @@
         "pickerKey": "companion_output_volume",
         "allowInSubpage": true,
         "domains": [],
+        "options": [
+          {
+            "name": "computer",
+            "label": "Paired computer",
+            "kind": "text",
+            "omitDefault": true,
+            "hidden": true,
+            "docsHidden": true
+          }
+        ],
         "normalization": {
           "fields": {
             "entity": {
@@ -4950,11 +5000,13 @@
               "policy": "clear"
             },
             "options": {
-              "policy": "clear"
+              "policy": "keep"
             }
           },
           "unknownOptions": "drop",
-          "canonicalOptionOrder": []
+          "canonicalOptionOrder": [
+            "computer"
+          ]
         },
         "default": {
           "entity": "media.input_volume",
@@ -4973,6 +5025,16 @@
         "pickerKey": "companion_output_volume",
         "allowInSubpage": true,
         "domains": [],
+        "options": [
+          {
+            "name": "computer",
+            "label": "Paired computer",
+            "kind": "text",
+            "omitDefault": true,
+            "hidden": true,
+            "docsHidden": true
+          }
+        ],
         "normalization": {
           "fields": {
             "entity": {
@@ -5008,11 +5070,13 @@
               "policy": "clear"
             },
             "options": {
-              "policy": "clear"
+              "policy": "keep"
             }
           },
           "unknownOptions": "drop",
-          "canonicalOptionOrder": []
+          "canonicalOptionOrder": [
+            "computer"
+          ]
         },
         "default": {
           "entity": "media.output_mute",
@@ -5031,6 +5095,29 @@
         "pickerKey": "companion_output_volume",
         "allowInSubpage": true,
         "domains": [],
+        "options": [
+          {
+            "name": "computer",
+            "label": "Paired computer",
+            "kind": "text",
+            "omitDefault": true,
+            "hidden": true,
+            "docsHidden": true
+          },
+          {
+            "name": "hold_action",
+            "label": "Hold action",
+            "kind": "choice",
+            "values": [
+              "",
+              "end_call"
+            ],
+            "defaultValue": "",
+            "omitDefault": true,
+            "hidden": true,
+            "docsHidden": true
+          }
+        ],
         "normalization": {
           "fields": {
             "entity": {
@@ -5068,11 +5155,14 @@
               "policy": "clear"
             },
             "options": {
-              "policy": "clear"
+              "policy": "keep"
             }
           },
           "unknownOptions": "drop",
-          "canonicalOptionOrder": []
+          "canonicalOptionOrder": [
+            "computer",
+            "hold_action"
+          ]
         },
         "default": {
           "entity": "media.input_mute",
@@ -5091,6 +5181,16 @@
         "pickerKey": "companion_output_volume",
         "allowInSubpage": true,
         "domains": [],
+        "options": [
+          {
+            "name": "computer",
+            "label": "Paired computer",
+            "kind": "text",
+            "omitDefault": true,
+            "hidden": true,
+            "docsHidden": true
+          }
+        ],
         "normalization": {
           "fields": {
             "entity": {
@@ -5125,11 +5225,13 @@
               "policy": "clear"
             },
             "options": {
-              "policy": "clear"
+              "policy": "keep"
             }
           },
           "unknownOptions": "drop",
-          "canonicalOptionOrder": []
+          "canonicalOptionOrder": [
+            "computer"
+          ]
         },
         "default": {
           "entity": "",
@@ -5147,6 +5249,16 @@
         "label": "OBS Input Cough",
         "allowInSubpage": true,
         "domains": [],
+        "options": [
+          {
+            "name": "computer",
+            "label": "Paired computer",
+            "kind": "text",
+            "omitDefault": true,
+            "hidden": true,
+            "docsHidden": true
+          }
+        ],
         "normalization": {
           "fields": {
             "entity": {
@@ -5184,11 +5296,13 @@
               "policy": "clear"
             },
             "options": {
-              "policy": "clear"
+              "policy": "keep"
             }
           },
           "unknownOptions": "drop",
-          "canonicalOptionOrder": []
+          "canonicalOptionOrder": [
+            "computer"
+          ]
         },
         "default": {
           "entity": "",
@@ -5207,6 +5321,16 @@
         "pickerLabel": "Lock Machine",
         "allowInSubpage": true,
         "domains": [],
+        "options": [
+          {
+            "name": "computer",
+            "label": "Paired computer",
+            "kind": "text",
+            "omitDefault": true,
+            "hidden": true,
+            "docsHidden": true
+          }
+        ],
         "normalization": {
           "fields": {
             "entity": {
@@ -5239,11 +5363,13 @@
               "policy": "clear"
             },
             "options": {
-              "policy": "clear"
+              "policy": "keep"
             }
           },
           "unknownOptions": "drop",
-          "canonicalOptionOrder": []
+          "canonicalOptionOrder": [
+            "computer"
+          ]
         },
         "default": {
           "entity": "shortcut.command+control+q",
@@ -5265,6 +5391,14 @@
           {
             "name": "generated_card_exclusions",
             "label": "Customized automatic cards",
+            "kind": "text",
+            "omitDefault": true,
+            "hidden": true,
+            "docsHidden": true
+          },
+          {
+            "name": "computer",
+            "label": "Paired computer",
             "kind": "text",
             "omitDefault": true,
             "hidden": true,
@@ -5414,6 +5548,7 @@
           },
           "unknownOptions": "drop",
           "canonicalOptionOrder": [
+            "computer",
             "custom_icon",
             "app_shortcuts",
             "url_open_behavior",
@@ -5443,8 +5578,8 @@
         }
       },
       "slider": {
-        "label": "Legacy Slider",
-        "hidden": true,
+        "label": "Slider",
+        "hidden": false,
         "allowInSubpage": true,
         "domains": [
           "light",
@@ -6122,6 +6257,9 @@
         "companion_cough",
         "companion_obs_cough",
         "companion_input_device",
+        "light_brightness",
+        "light_switch",
+        "slider",
         "subpage"
       ],
       "preview": {

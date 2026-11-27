@@ -2308,8 +2308,8 @@
       "web": {
         "registration": "slider",
         "picker": {
-          "main": false,
-          "subpage": false,
+          "main": true,
+          "subpage": true,
           "infoOnly": false
         },
         "preview": {
@@ -2682,8 +2682,8 @@
       "web": {
         "registration": "companion_obs_fader",
         "picker": {
-          "main": false,
-          "subpage": false,
+          "main": true,
+          "subpage": true,
           "infoOnly": false
         },
         "preview": {

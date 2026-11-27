@@ -390,3 +390,5 @@ obs_already_on_program=Allerede i programmet
 obs_transitioning=Overgang pågår
 obs_replay_not_confirmed=Reprise ikke bekreftet
 obs_check=Sjekk OBS
+end_call=Avslutt samtale
+end_call_prompt=Avslutte Teams-samtalen?

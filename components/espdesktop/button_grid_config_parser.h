@@ -172,6 +172,25 @@ inline std::string cfg_option_value(const std::string &options, const char *name
   return "";
 }
 
+inline bool companion_computer_id_valid(const std::string &value) {
+  if (value.size() != 16) return false;
+  for (const char ch : value) {
+    if (!std::isxdigit(static_cast<unsigned char>(ch))) return false;
+  }
+  return true;
+}
+
+inline bool companion_card_type_name(const std::string &type) {
+  return type == "companion" || type.rfind("companion_", 0) == 0;
+}
+
+// Cards keep their display-assigned computer binding through option
+// normalization. Tokens are already sanitized by the browser save path.
+inline std::string companion_computer_option_suffix(const std::string &options) {
+  const std::string value = cfg_option_value(options, "computer");
+  return companion_computer_id_valid(value) ? "computer=" + value : "";
+}
+
 inline std::string normalize_card_color_value(std::string value) {
   if (!value.empty() && value[0] == '#') value.erase(0, 1);
   if (value.size() != 6) return "";
@@ -188,7 +207,13 @@ inline std::string card_color_options_normalized(const std::string &options) {
   const std::string on = normalize_card_color_value(cfg_option_value(options, "card_on_color"));
   std::string off = normalize_card_color_value(cfg_option_value(options, "card_off_color"));
   if (off.empty() && !explicit_mode) off = on;
+  const std::string unavailable = normalize_card_color_value(
+      cfg_option_value(options, "card_unavailable_color"));
   std::string out = off.empty() ? "" : "card_off_color=" + off;
+  if (!unavailable.empty()) {
+    if (!out.empty()) out += ",";
+    out += "card_unavailable_color=" + unavailable;
+  }
   if (explicit_mode) {
     if (!out.empty()) out += ",";
     out += "card_active_color=" + mode;
@@ -206,7 +231,8 @@ inline std::string options_without_card_colors(const std::string &options) {
     const std::string token = options.substr(start, end - start);
     if (token.compare(0, 14, "card_on_color=") != 0 &&
         token.compare(0, 15, "card_off_color=") != 0 &&
-        token.compare(0, 18, "card_active_color=") != 0) {
+        token.compare(0, 18, "card_active_color=") != 0 &&
+        token.compare(0, 23, "card_unavailable_color=") != 0) {
       if (!token.empty()) {
         if (!out.empty()) out += ",";
         out += token;
@@ -904,7 +930,13 @@ inline const char *subpage_companion_stat_default_unit(const std::string &entity
 }
 
 inline std::string companion_metric_options_normalized(const std::string &options) {
-  return cfg_option_token_present(options, "stat_labels_off") ? "stat_labels_off" : "";
+  std::string out = cfg_option_token_present(options, "stat_labels_off") ? "stat_labels_off" : "";
+  const std::string computer = companion_computer_option_suffix(options);
+  if (!computer.empty()) {
+    if (!out.empty()) out += ",";
+    out += computer;
+  }
+  return out;
 }
 
 inline std::string normalize_garage_label_display(const std::string &value) {
@@ -1296,6 +1328,14 @@ inline bool companion_app_shortcuts_enabled(const ParsedCfg &p) {
          p.sensor.empty() && cfg_option_token_present(p.options, "app_shortcuts");
 }
 
+// Cards created for a specific computer carry its display-assigned ID. Older
+// cards have no option and keep using the display's primary computer.
+inline std::string companion_card_computer(const ParsedCfg &p) {
+  if (!companion_card_type_name(p.type)) return {};
+  const std::string value = cfg_option_value(p.options, "computer");
+  return companion_computer_id_valid(value) ? value : std::string{};
+}
+
 inline bool companion_app_launch_card(const ParsedCfg &p) {
   return p.type == "companion" && !p.entity.empty() && p.sensor.empty() &&
          p.entity.rfind("folder.", 0) != 0 &&
@@ -1369,7 +1409,7 @@ inline std::string companion_shortcut_app_icon_id(const ParsedCfg &p) {
   return separator == std::string::npos ? "" : preset.substr(0, separator);
 }
 
-inline std::string companion_card_options_normalized(const ParsedCfg &p) {
+inline std::string companion_card_options_base(const ParsedCfg &p) {
   if (p.sensor.rfind("url.", 0) == 0) {
     return companion_url_opens_new_window(p) ? "url_open_behavior=new_window" : "";
   }
@@ -1421,6 +1461,16 @@ inline std::string companion_card_options_normalized(const ParsedCfg &p) {
     if (companion_app_launch_card(p)) {
       if (cfg_option_token_present(p.options, "app_hide_label")) add_token("app_hide_label");
     }
+  }
+  return out;
+}
+
+inline std::string companion_card_options_normalized(const ParsedCfg &p) {
+  std::string out = companion_card_options_base(p);
+  const std::string computer = companion_computer_option_suffix(p.options);
+  if (!computer.empty()) {
+    if (!out.empty()) out += ",";
+    out += computer;
   }
   return out;
 }
@@ -1506,8 +1556,10 @@ inline ParsedCfg normalize_parsed_cfg(ParsedCfg p) {
     }
     if (p.entity == "obs.status.stream" || p.entity == "obs.status.record") {
       p.entity = p.entity == "obs.status.stream" ? "obs.output.stream" : "obs.output.record";
-      // Give previously read-only cards the normal confirmation in both directions.
-      p.options.clear();
+      // Give previously read-only cards the normal confirmation in both
+      // directions while keeping the card's computer binding.
+      const std::string computer = companion_computer_option_suffix(p.options);
+      p.options = computer;
     }
     p.icon_on = "Auto";
     if (companion_system_metric_config(p)) {
@@ -1544,7 +1596,7 @@ inline ParsedCfg normalize_parsed_cfg(ParsedCfg p) {
   const bool normalized_saved_occupancy = normalize_saved_config_occupancy(
       p, normalize_saved_config_occupancy_fields,
       normalize_saved_config_occupancy_options);
-  if (!normalized_saved_static && !normalized_saved_fan && !normalized_saved_mower && !normalized_saved_occupancy && !normalized_saved_access && !p.type.empty() && p.type != "action" && p.type != "alarm" && p.type != "alarm_action" && !climate_card_type(p.type) && p.type != "media" && p.type != "companion" && p.type != "subpage" && p.type != "image" && p.type != "light_control" && p.type != "vacuum" && p.type != "weather" && !card_large_numbers_supported(p)) {
+  if (!normalized_saved_static && !normalized_saved_fan && !normalized_saved_mower && !normalized_saved_occupancy && !normalized_saved_access && !p.type.empty() && p.type != "action" && p.type != "alarm" && p.type != "alarm_action" && !climate_card_type(p.type) && p.type != "media" && !companion_card_type_name(p.type) && p.type != "subpage" && p.type != "image" && p.type != "light_control" && p.type != "vacuum" && p.type != "weather" && !card_large_numbers_supported(p)) {
     p.options.clear();
   }
   if (!card_colors.empty()) {
@@ -1751,6 +1803,12 @@ inline std::string switch_confirmation_yes_text(const ParsedCfg &p) {
 inline std::string switch_confirmation_no_text(const ParsedCfg &p) {
   std::string value = cfg_option_value(p.options, "confirm_no");
   return value.empty() ? espdesktop_i18n(std::string("No")) : value;
+}
+
+// Card-specific behaviour while a touch is held. Empty keeps the established
+// treat-as-tap behaviour.
+inline std::string card_hold_action(const ParsedCfg &p) {
+  return cfg_option_value(p.options, "hold_action");
 }
 
 inline int parse_precision(const std::string &s) {

@@ -5,6 +5,8 @@ api:
   reboot_timeout: 0s
   max_connections: 3
   max_send_queue: 12
+  homeassistant_states: true
+  homeassistant_services: true
 
 espdesktop:
   display_power: display_power
