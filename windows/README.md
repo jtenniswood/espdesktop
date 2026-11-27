@@ -13,7 +13,7 @@ Setup installs for the current user and includes the .NET runtime. It does not n
 
 ## Pair and control Windows
 
-Keep the PC and display on the same local network. In **Display**, select a nearby display or choose **Enter address manually**, then choose **Next**. Choose **Open pairing page** or press and hold the display’s Wi-Fi icon to get a code. Enter the code and choose **Pair display**. If the display is paired to a different computer, reset its Companion pairing first.
+Keep the PC and display on the same local network. In **Display**, select a nearby display or choose **Enter address manually**, then choose **Next**. Enter the code shown on the touchscreen and choose **Pair display**. If the display is already paired, confirm **Reset pairing** on the touchscreen first. If no prompt appears, open pairing from the touchscreen’s Settings or choose **Open pairing page**.
 
 For direct USB control, install USB-enabled Companion firmware, such as the 4848S040 experimental `devices/guition-esp32-s3-4848s040/usb-dev.yaml` profile. Use a USB data cable. In **Display**, choose **Connect over USB**, select the display’s COM port and choose **Next**. Get the code from **Pair** on the display’s Setup screen or **Unpaired** in its Settings. Once paired, the display can control Windows with Wi-Fi off. Choose **Open display editor** to manage the display in a Windows app window over USB. It uses the built-in Microsoft Edge WebView2 runtime and works with the display’s Wi-Fi off. A display connected by IP still opens its editor in your browser.
 
