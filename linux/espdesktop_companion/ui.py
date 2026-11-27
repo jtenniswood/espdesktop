@@ -234,7 +234,7 @@ class SettingsWindow(QMainWindow):
         layout.addWidget(note)
         form = QFormLayout()
         self.ha_url = QLineEdit()
-        self.ha_url.setPlaceholderText("http://192.168.1.7:8123")
+        self.ha_url.setPlaceholderText("http://192.168.0.10:8123")
         self.ha_token = QLineEdit()
         self.ha_token.setEchoMode(QLineEdit.EchoMode.Password)
         self.ha_token.setPlaceholderText("Long-lived access token")

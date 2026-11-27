@@ -74,7 +74,7 @@ class HomeAssistantTests(unittest.TestCase):
     def test_validate_url(self) -> None:
         self.assertEqual(validate_ha_url(self.url), self.url)
         self.assertEqual(validate_ha_url("homeassistant.local"), "http://homeassistant.local:8123")
-        for value in ("", "http://example.com", "http://user:pass@192.168.1.7:8123", "http://8.8.8.8"):
+        for value in ("", "http://example.com", "http://user:pass@192.168.0.10:8123", "http://8.8.8.8"):
             with self.subTest(value), self.assertRaises(HomeAssistantError):
                 validate_ha_url(value)
 
