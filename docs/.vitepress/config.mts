@@ -214,7 +214,7 @@ export default defineConfig({
       }
       const version = tag?.replace(/^v/, '')
       frontmatter.macReleaseVersion = version
-      frontmatter.macDownloadUrl = version ? `${releases}/download/${tag}/EspDesktop-${version}.dmg` : releases
+      frontmatter.macDownloadUrl = version ? `${releases}/latest/download/EspDesktop-latest.dmg` : releases
     }
 
     const shortcutGuide = relativePath.startsWith('reference/shortcut-presets/')

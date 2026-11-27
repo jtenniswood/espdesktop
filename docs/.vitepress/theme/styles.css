@@ -145,6 +145,12 @@
   }
 }
 
+.vp-doc .docs-primary-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
 .vp-doc .docs-primary-action {
   display: inline-flex;
   align-items: center;

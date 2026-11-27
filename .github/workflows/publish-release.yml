@@ -135,6 +135,34 @@ jobs:
           PROTOCOL_VERSION="$(python3 -c 'import json; print(json.load(open("product/v2/companion_capabilities.json"))["protocol"]["version"])')"
           COMPANION_FEED="dist/companion/companion-appcast-v${PROTOCOL_VERSION}.xml"
           test -s "${COMPANION_ZIP}" && test -s "${COMPANION_DMG}" && test -s "${COMPANION_FEED}"
+
+          ADDITIONAL_FILES=(
+            "${COMPANION_ZIP}"
+            "${COMPANION_DMG}"
+            "${COMPANION_FEED}"
+            dist/companion/companion-compatibility.json
+            dist/windows/*.exe
+          )
+          if [[ "${RELEASE_TAG}" =~ ^v?([0-9]+\.[0-9]+\.[0-9]+)$ ]]; then
+            RELEASE_VERSION="${BASH_REMATCH[1]}"
+            MAC_ZIP_ALIAS="dist/companion/EspDesktop-latest.zip"
+            MAC_DMG_ALIAS="dist/companion/EspDesktop-latest.dmg"
+            cp "${COMPANION_ZIP}" "${MAC_ZIP_ALIAS}"
+            cp "${COMPANION_DMG}" "${MAC_DMG_ALIAS}"
+            cmp --silent "${COMPANION_ZIP}" "${MAC_ZIP_ALIAS}"
+            cmp --silent "${COMPANION_DMG}" "${MAC_DMG_ALIAS}"
+            ADDITIONAL_FILES+=("${MAC_ZIP_ALIAS}" "${MAC_DMG_ALIAS}")
+
+            for ARCH in x64 arm64; do
+              WINDOWS_INSTALLER="dist/windows/EspDesktop-Windows-${RELEASE_VERSION}-${ARCH}-Setup.exe"
+              WINDOWS_ALIAS="dist/windows/EspDesktop-Windows-${ARCH}-Setup.exe"
+              test -s "${WINDOWS_INSTALLER}"
+              cp "${WINDOWS_INSTALLER}" "${WINDOWS_ALIAS}"
+              cmp --silent "${WINDOWS_INSTALLER}" "${WINDOWS_ALIAS}"
+              ADDITIONAL_FILES+=("${WINDOWS_ALIAS}")
+            done
+          fi
+
           python3 scripts/firmware_release.py publish-draft \
             --version "${RELEASE_TAG}" \
             --dir dist/firmware \
@@ -146,5 +174,4 @@ jobs:
             --release-contract product/release_contract.json \
             --web-manifest dist/release-web-assets/web-assets.json \
             --web-root dist/release-web-assets \
-            --additional-files "${COMPANION_ZIP}" "${COMPANION_DMG}" "${COMPANION_FEED}" dist/companion/companion-compatibility.json \
-              dist/windows/*.exe
+            --additional-files "${ADDITIONAL_FILES[@]}"
