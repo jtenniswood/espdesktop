@@ -996,7 +996,7 @@ function composeApplicationContext(liveGeneratedActions: () => readonly Companio
   settingsHelpers);
   const companionSection = createSettingsCompanionSectionFeature(dom, shell, fields);
   connectorsPage = createConnectorsPageFeature(
-    dom, shell, companionSection, !!layout.config.features?.companion,
+    dom, companionSection, !!layout.config.features?.companion,
     () => nativePanelConfig.homeAssistantSupportEnabled(),
     () => buildHomeAssistantSettings(
       fields.makeCollapsibleCard, fields.toggleRow, settingsUi,
