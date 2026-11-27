@@ -190,8 +190,6 @@ export const PANEL_SCALAR_SETTINGS = {
   firmware_auto_update: { defaultValue: "1", choices: ["0", "1"] },
   firmware_update_frequency: { defaultValue: "Daily", choices: ["Hourly", "Daily", "Weekly", "Monthly"] },
   esp32_c6_auto_update: { defaultValue: "1", choices: ["0", "1"] },
-  screen_swipe_up_action: { defaultValue: "none", choices: ["none", "home", "back", "previous_screen", "next_screen", "screen_1", "screen_2", "screen_3", "screen_4", "screen_5", "screen_6", "screen_7", "screen_8"] },
-  screen_swipe_down_action: { defaultValue: "none", choices: ["none", "home", "back", "previous_screen", "next_screen", "screen_1", "screen_2", "screen_3", "screen_4", "screen_5", "screen_6", "screen_7", "screen_8"] },
 } as const;
 
 export function validPanelScalarSetting(key: string, value: string): boolean {
