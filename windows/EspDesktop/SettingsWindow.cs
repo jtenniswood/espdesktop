@@ -10,6 +10,7 @@ using System.Text;
 using System.Windows;
 using System.Windows.Automation;
 using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
 using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Interop;
@@ -78,7 +79,8 @@ internal sealed class SettingsWindow : Window
         public UsbDisplayEditor? UsbEditor { get; set; }
         public UsbEditorWindow? EditorWindow { get; set; }
         public TextBlock Status { get; } = Paragraph("Disconnected");
-        public Button? ConnectionButton { get; set; }
+        public bool ConnectionEnabled => Cancellation is { IsCancellationRequested: false };
+        public ToggleButton? ConnectionSwitch { get; set; }
     }
     private bool busy, scanning, discoveryChecked, appScanning, quitting, updateBusy, installerVerified;
     private WindowsRelease? release;
@@ -161,6 +163,10 @@ internal sealed class SettingsWindow : Window
         root.Children.Add(navigation);
         Grid.SetColumn(scroll, 1);
         root.Children.Add(scroll);
+        Resources.MergedDictionaries.Add(new ResourceDictionary
+        {
+            Source = new Uri("pack://application:,,,/EspDesktop;component/DisplayConnectionSwitch.xaml")
+        });
         Content = root;
         PopulateSetupChoices([]);
         navigation.SelectedIndex = 0;
@@ -371,8 +377,12 @@ internal sealed class SettingsWindow : Window
             };
             item.DropDownItems.Add(new Forms.ToolStripMenuItem(status.Replace("&", "&&")) { Enabled = false });
             item.DropDownItems.Add(new Forms.ToolStripSeparator());
-            item.DropDownItems.Add(new Forms.ToolStripMenuItem(display.Cancellation is null ? "Connect" : "Disconnect",
-                null, async (_, _) => await ToggleConnection(display)) { Enabled = !busy });
+            var connect = !display.ConnectionEnabled;
+            item.DropDownItems.Add(new Forms.ToolStripMenuItem(connect ? "Connect" : "Disconnect",
+                null, async (_, _) => await SetConnection(display, connect))
+            {
+                Enabled = !busy && display.Cancellation?.IsCancellationRequested != true
+            });
             item.DropDownItems.Add(new Forms.ToolStripMenuItem("Customize Display", null,
                 (_, _) => OpenPanel(display)) { Enabled = !busy });
             menu.Items.Add(item);
@@ -393,11 +403,17 @@ internal sealed class SettingsWindow : Window
         menu.Items.Add("Quit", null, (_, _) => Quit());
     }
 
-    private async Task ToggleConnection(DisplayConnection display)
+    private async Task SetConnection(DisplayConnection display, bool enabled)
     {
-        if (busy || quitting) return;
-        if (display.Cancellation != null) await StopConnection(display);
-        else StartConnection(display);
+        if (enabled == display.ConnectionEnabled) return;
+        if (busy || quitting || !displays.Contains(display) || display.Cancellation?.IsCancellationRequested == true)
+        {
+            UpdateConnectionSwitch(display);
+            return;
+        }
+
+        if (enabled) StartConnection(display);
+        else await StopConnection(display);
     }
 
     private void StartConnection(DisplayConnection display, string? newAddress = null)
@@ -406,7 +422,7 @@ internal sealed class SettingsWindow : Window
         var cancellation = CancellationTokenSource.CreateLinkedTokenSource(lifetime.Token);
         display.Cancellation = cancellation;
         display.Task = RunConnection(display, cancellation, newAddress);
-        UpdateConnectionButton(display);
+        UpdateConnectionSwitch(display);
     }
 
     private async Task RunConnection(DisplayConnection display, CancellationTokenSource cancellation, string? newAddress)
@@ -439,24 +455,29 @@ internal sealed class SettingsWindow : Window
             display.Session = null;
             display.Cancellation = null;
             display.Task = null;
+            if (cancellation.IsCancellationRequested && !quitting)
+            {
+                display.Status.Text = "Disconnected";
+                if (displays.Count == 1) ConnectionStatusChanged?.Invoke("Disconnected");
+            }
             cancellation.Dispose();
-            UpdateConnectionButton(display);
+            UpdateConnectionSwitch(display);
         }
     }
 
-    private static void UpdateConnectionButton(DisplayConnection display)
+    private void UpdateConnectionSwitch(DisplayConnection display)
     {
-        if (display.ConnectionButton is { } button)
-            button.Content = display.Cancellation == null ? "Connect" : "Disconnect";
+        if (display.ConnectionSwitch is not { } connection) return;
+        connection.IsEnabled = !busy && !quitting && display.Cancellation?.IsCancellationRequested != true;
+        connection.IsChecked = display.ConnectionEnabled;
     }
 
     private async Task StopConnection(DisplayConnection display)
     {
         if (display.Task is not { } task) return;
         display.Cancellation?.Cancel();
+        UpdateConnectionSwitch(display);
         await task;
-        display.Status.Text = "Disconnected";
-        if (!quitting && displays.Count == 1) ConnectionStatusChanged?.Invoke("Disconnected");
     }
 
     private async Task Pair()
@@ -776,11 +797,16 @@ internal sealed class SettingsWindow : Window
             var saved = display.Pairing;
             var endpoint = DisplayEndpoint.Parse(saved.Address);
             var transport = endpoint.UsbPort is null ? "Network" : "USB";
-            display.ConnectionButton = Button("Connect", async () => await ToggleConnection(display), !busy);
-            display.ConnectionButton.Margin = new Thickness(12, 0, 0, 0);
-            UpdateConnectionButton(display);
+            var name = saved.DisplayName ?? "Paired display";
+            var connection = new ToggleButton { Margin = new Thickness(12, 0, 0, 0) };
+            connection.SetResourceReference(StyleProperty, "DisplayConnectionSwitch");
+            AutomationProperties.SetName(connection, $"Connection for {saved.DisplayName ?? endpoint.Label}");
+            display.ConnectionSwitch = connection;
+            UpdateConnectionSwitch(display);
+            connection.Checked += async (_, _) => await SetConnection(display, true);
+            connection.Unchecked += async (_, _) => await SetConnection(display, false);
             var card = Card(endpoint.UsbPort is null ? "\uE968" : "\uE88E",
-                saved.DisplayName ?? "Paired display", $"{transport} · {endpoint.Label}", display.ConnectionButton);
+                name, $"{transport} · {endpoint.Label}", connection);
             if (display.Status.Parent is Panel previous) previous.Children.Remove(display.Status);
             AutomationProperties.SetLiveSetting(display.Status, AutomationLiveSetting.Polite);
             card.Children.Add(display.Status);
