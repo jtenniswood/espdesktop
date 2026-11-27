@@ -10,6 +10,7 @@ using System.Text;
 using System.Windows;
 using System.Windows.Automation;
 using System.Windows.Controls;
+using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Interop;
 using System.Windows.Media;
@@ -820,12 +821,17 @@ internal sealed class SettingsWindow : Window
                 Report("");
                 RenderSetupStep();
                 FocusDisplayInput();
-            }, !busy));
+            }, !busy), HorizontalAlignment.Center);
             if (endpoint.PairingPage is not null)
             {
-                var pairingPage = Button("Open pairing webpage", () => OpenPanel(target, pairingPage: true), !busy);
-                pairingPage.HorizontalAlignment = HorizontalAlignment.Right;
-                pairingPage.Margin = new Thickness(0, 4, 8, 0);
+                var link = new Hyperlink(new Run("Open pairing webpage")) { IsEnabled = !busy };
+                link.Click += (_, _) => OpenPanel(target, pairingPage: true);
+                var pairingPage = new TextBlock
+                {
+                    TextAlignment = TextAlignment.Center,
+                    Margin = new Thickness(0, 4, 0, 0)
+                };
+                pairingPage.Inlines.Add(link);
                 entry.Children.Add(pairingPage);
             }
             return;
@@ -901,12 +907,14 @@ internal sealed class SettingsWindow : Window
         }
     }
 
-    private void SetupActions(Panel page, string label, Action action, Button? secondary)
+    private void SetupActions(Panel page, string label, Action action, Button? secondary,
+        HorizontalAlignment alignment = HorizontalAlignment.Right)
     {
         setupAction = Button(label, action);
         if (TryFindResource("AccentButtonStyle") is Style accent) setupAction.Style = accent;
         UpdateSetupAction();
-        var actions = new WrapPanel { HorizontalAlignment = HorizontalAlignment.Right, Margin = new Thickness(0, 16, 0, 0) };
+        var actions = new WrapPanel { HorizontalAlignment = alignment, Margin = new Thickness(0, 16, 0, 0) };
+        if (alignment == HorizontalAlignment.Center) setupAction.Margin = new Thickness(0, 0, 0, 6);
         if (secondary != null) actions.Children.Add(secondary);
         actions.Children.Add(setupAction);
         page.Children.Add(actions);
