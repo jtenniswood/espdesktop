@@ -8,6 +8,10 @@
         <Setter Property="FontFamily" Value="Consolas" />
         <Setter Property="FontSize" Value="24" />
         <Setter Property="TextAlignment" Value="Center" />
+        <Setter Property="Foreground" Value="{DynamicResource TextFillColorPrimaryBrush}" />
+        <Setter Property="SelectionTextBrush" Value="{DynamicResource TextFillColorPrimaryBrush}" />
+        <Setter Property="SelectionBrush" Value="{DynamicResource TextFillColorPrimaryBrush}" />
+        <Setter Property="SelectionOpacity" Value="0.25" />
         <Setter Property="VerticalContentAlignment" Value="Center" />
         <Setter Property="CaretBrush" Value="{DynamicResource AccentTextFillColorPrimaryBrush}" />
         <Setter Property="Background" Value="{DynamicResource TextControlBackground}" />
@@ -20,7 +24,7 @@
                     <Border Background="{TemplateBinding Background}" CornerRadius="9"
                             BorderBrush="{TemplateBinding BorderBrush}"
                             BorderThickness="{TemplateBinding BorderThickness}">
-                        <ScrollViewer x:Name="PART_ContentHost" Focusable="False"
+                        <ScrollViewer x:Name="PART_ContentHost" Focusable="False" Foreground="{TemplateBinding Foreground}"
                                       VerticalAlignment="{TemplateBinding VerticalContentAlignment}" />
                     </Border>
                     <ControlTemplate.Triggers>
