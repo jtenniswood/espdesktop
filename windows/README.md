@@ -17,7 +17,7 @@ Keep the PC and display on the same local network. In **Display**, select a near
 
 For direct USB control, install USB-enabled Companion firmware, such as the 4848S040 experimental `devices/guition-esp32-s3-4848s040/usb-dev.yaml` profile. Use a USB data cable. In **Display**, choose **Connect by USB**, select the display’s COM port and choose **Continue**. Get the code from **Pair** on the display’s Setup screen or **Unpaired** in its Settings. Enter the code and choose **Connect**. Once paired, the display can control Windows with Wi-Fi off. Choose **Device** to manage the display in a Windows app window over USB. It uses the built-in Microsoft Edge WebView2 runtime and works with the display’s Wi-Fi off. A display connected by IP still opens its editor in your browser.
 
-Use **Connection** on a saved display to switch between IP and USB or select a different COM port. The app keeps the existing pairing and saves the new connection once the display is verified.
+On a saved display, open the **Network** or **USB** dropdown to switch connection methods, update the network address, or change the COM port. The app keeps the existing pairing and saves the new connection once the display is verified.
 
 Choose **Add display** to connect another display to the same PC. Each display can connect to one computer at a time. Use the individual display cards to connect, disconnect, forget, or open the editor for that display. Windows app and folder approvals are shared across all your paired displays.
 

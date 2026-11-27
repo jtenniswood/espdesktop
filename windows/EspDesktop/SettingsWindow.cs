@@ -803,7 +803,6 @@ internal sealed class SettingsWindow : Window
         {
             var saved = display.Pairing;
             var endpoint = DisplayEndpoint.Parse(saved.Address);
-            var transport = endpoint.UsbPort is null ? "Network" : "USB";
             var name = saved.DisplayName ?? "Paired display";
             var connection = new ToggleButton { Margin = new Thickness(12, 0, 0, 0) };
             connection.SetResourceReference(StyleProperty, "DisplayConnectionSwitch");
@@ -813,22 +812,13 @@ internal sealed class SettingsWindow : Window
             connection.Checked += async (_, _) => await SetConnection(display, true);
             connection.Unchecked += async (_, _) => await SetConnection(display, false);
             var card = Card(endpoint.UsbPort is null ? "\uE968" : "\uE88E",
-                name, $"{transport} · {endpoint.Label}", connection);
+                name, endpoint.Label, connection);
+            card.Children.Add(ConnectionMenu(display, endpoint));
             if (display.Status.Parent is Panel previous) previous.Children.Remove(display.Status);
             AutomationProperties.SetLiveSetting(display.Status, AutomationLiveSetting.Polite);
             card.Children.Add(display.Status);
-            var actions = new List<UIElement>();
-            actions.Add(Button("Device", () => OpenPanel(display), !busy));
-            actions.Add(Button("Connection", () =>
-            {
-                ResetSetup();
-                addingDisplay = true;
-                changingConnection = display;
-                if (endpoint.UsbPort is null) setupChoices.SelectedItem = usbChoice;
-                RenderSetupStep();
-            }, !busy));
-            actions.Add(Button("Forget", async () => await Forget(display), !busy));
-            Row(card, [.. actions]);
+            Row(card, Button("Device", () => OpenPanel(display), !busy),
+                Button("Forget", async () => await Forget(display), !busy));
         }
         var permissions = Card("\uE713", "Windows integration");
         var shortcuts = Toggle("Allow keyboard shortcuts and screen lock", store.Settings.Shortcuts, value =>
@@ -843,6 +833,69 @@ internal sealed class SettingsWindow : Window
             try { LocalStore.StartsAtLogin = enabled; }
             catch (Exception e) when (e is UnauthorizedAccessException or IOException) { Report("Windows couldn’t change the startup setting."); }
         }));
+    }
+
+    private Menu ConnectionMenu(DisplayConnection display, DisplayEndpoint endpoint)
+    {
+        var usesUsb = endpoint.UsbPort is not null;
+        var method = usesUsb ? "USB" : "Network";
+        var label = new StackPanel { Orientation = Orientation.Horizontal };
+        var icon = SettingsCard.Icon(usesUsb ? "\uE88E" : "\uE774", 14);
+        icon.Margin = new Thickness(0, 0, 8, 0);
+        label.Children.Add(icon);
+        label.Children.Add(new TextBlock { Text = method, VerticalAlignment = VerticalAlignment.Center });
+        var chevron = SettingsCard.Icon("\uE70D", 10);
+        chevron.HorizontalAlignment = HorizontalAlignment.Center;
+        var indicator = new Border
+        {
+            Width = 20, Height = 20, CornerRadius = new CornerRadius(10),
+            Margin = new Thickness(8, 0, 0, 0), VerticalAlignment = VerticalAlignment.Center, Child = chevron
+        };
+        indicator.SetResourceReference(Border.BackgroundProperty, "SubtleFillColorSecondaryBrush");
+        label.Children.Add(indicator);
+
+        var dropdown = new MenuItem { Header = label, IsEnabled = !busy };
+        AutomationProperties.SetName(dropdown, $"{method} connection for {display.Pairing.DisplayName ?? endpoint.Label}");
+        void AddChoice(string title, SetupMethod target)
+        {
+            var item = new MenuItem { Header = title };
+            item.Click += (_, _) => BeginConnectionChange(display, target);
+            dropdown.Items.Add(item);
+        }
+
+        if (usesUsb)
+        {
+            AddChoice("Use Network", SetupMethod.Nearby);
+            AddChoice("Change port", SetupMethod.Usb);
+        }
+        else
+        {
+            AddChoice("Use USB", SetupMethod.Usb);
+            AddChoice("Update Address", SetupMethod.Address);
+        }
+
+        var menu = new Menu
+        {
+            IsMainMenu = false, Background = Brushes.Transparent, HorizontalAlignment = HorizontalAlignment.Left
+        };
+        menu.Items.Add(dropdown);
+        return menu;
+    }
+
+    private void BeginConnectionChange(DisplayConnection display, SetupMethod target)
+    {
+        if (busy || quitting || !displays.Contains(display)) return;
+        ResetSetup();
+        addingDisplay = true;
+        changingConnection = display;
+        if (target == SetupMethod.Usb) setupChoices.SelectedItem = usbChoice;
+        if (target == SetupMethod.Address)
+        {
+            address.Text = display.Pairing.Address;
+            setupChoices.SelectedItem = manualChoice;
+        }
+        RenderSetupStep();
+        FocusDisplayInput();
     }
 
     private void DisplaySetup()
