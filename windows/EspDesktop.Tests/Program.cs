@@ -755,6 +755,11 @@ static void VerifyLocalStore()
     {
         var store = new LocalStore(profile);
         Check(store.Settings.AllApps && !store.Settings.Shortcuts, "first run uses the default approvals");
+        var notifiedVersion = new Version(2, 0, 0);
+        store.Settings.CheckForUpdates = false;
+        Check(!store.Settings.MarkUpdateNotified(notifiedVersion), "disabled automatic checks suppress update notifications");
+        store.Settings.CheckForUpdates = true;
+        Check(store.Settings.MarkUpdateNotified(notifiedVersion), "the first update is eligible for notification");
         store.ForgetPairing();
         Check(store.LoadPairings().Length == 0 && !store.PairingUnavailable, "an empty profile has no pairing to recover");
         var folder = new ApprovedFolder("folder.windows-profile", Path.Combine(profile, "Project, résumé"));
@@ -772,6 +777,10 @@ static void VerifyLocalStore()
             "the pairing file keeps the address and credential encrypted");
 
         var reopened = new LocalStore(profile);
+        Check(!reopened.Settings.MarkUpdateNotified(notifiedVersion) &&
+              !reopened.Settings.MarkUpdateNotified(new(1, 9, 0)) &&
+              reopened.Settings.MarkUpdateNotified(new(2, 0, 1)),
+            "after restarting, only a more recent update is eligible for notification");
         var loaded = reopened.LoadPairings().SingleOrDefault();
         Check(loaded is { Sequence: 4 } && loaded.Address == pairing.Address &&
               loaded.Fingerprint == pairing.Fingerprint && loaded.Key.SequenceEqual(pairing.Key) && loaded.DisplayName is null,

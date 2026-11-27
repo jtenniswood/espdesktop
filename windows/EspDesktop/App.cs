@@ -52,8 +52,23 @@ internal sealed class App : Application
                 tray = new Forms.NotifyIcon { Icon = trayIcon, Text = "EspDesktop", ContextMenuStrip = menu, Visible = true };
                 tray.DoubleClick += (_, _) => window.ShowSettings();
                 window.ConnectionStatusChanged += status => tray.Text = Core.Protocol.Bound("EspDesktop · " + status, 100);
+                var updateBalloon = false;
+                tray.BalloonTipClicked += (_, _) =>
+                {
+                    if (updateBalloon) window.ShowUpdates();
+                    updateBalloon = false;
+                };
+                window.UpdateAvailable += version =>
+                {
+                    updateBalloon = true;
+                    tray.ShowBalloonTip(5000, $"EspDesktop {version} is available",
+                        "Select this notification to open Updates.", Forms.ToolTipIcon.Info);
+                };
                 window.ShortcutFailed += message =>
+                {
+                    updateBalloon = false;
                     tray.ShowBalloonTip(5000, "EspDesktop shortcut", message, Forms.ToolTipIcon.Warning);
+                };
             }
             var background = !smoke && args.Contains("--background") && window.HasPairing;
             app.Dispatcher.BeginInvoke(async () =>
