@@ -91,12 +91,25 @@ internal sealed record NativeWindowsDesktop(WindowsDesktop Desktop, string Drive
         {
             if (address != lateDisplay.Address || code != "ABCD-EFGH" || savedFingerprints.Count != 0)
                 throw new InvalidOperationException("The setup must submit the selected display and the complete pairing code.");
-            return Task.FromResult(new Pairing(address, lateDisplay.Fingerprint, new byte[32]));
+            return Task.FromResult(new Pairing(address, lateDisplay.Fingerprint, new byte[32], DisplayName: lateDisplay.Name));
         }, requestPairingPrompt: (uri, _) => uri.Host == "192.168.1.20"
             ? prompt.Task : Task.FromResult(PairingPrompt.Unavailable));
         try
         {
             window.Show();
+            using var trayMenu = window.CreateTrayMenu();
+            void OpenTrayMenu()
+            {
+                trayMenu.Show(System.Drawing.Point.Empty);
+                if (!trayMenu.Visible) throw new InvalidOperationException("The tray menu must open on the first and subsequent clicks.");
+                trayMenu.Close();
+            }
+            string?[] TrayActions() => trayMenu.Items.OfType<System.Windows.Forms.ToolStripMenuItem>()
+                .Select(item => item.Text).ToArray();
+            OpenTrayMenu();
+            if (!TrayActions().SequenceEqual(["No displays paired", "Add device", "Settings", "Support", "Quit"]) ||
+                trayMenu.Items[0].Enabled || trayMenu.Items[1] is not System.Windows.Forms.ToolStripSeparator)
+                throw new InvalidOperationException("The unpaired tray menu must show pairing status above the app actions.");
             Button Action(string label) => Descendants(window).OfType<Button>().Single(button => Equals(button.Content, label));
             TextBox Field(string label) => Descendants(window).OfType<TextBox>().Single(field => AutomationProperties.GetName(field) == label);
             void Click(string label) => Action(label).RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
@@ -154,6 +167,13 @@ internal sealed record NativeWindowsDesktop(WindowsDesktop Desktop, string Drive
             Click("Connect");
             if (!HasStep(3) || !Action("Configure screen").IsEnabled || !window.HasPairing)
                 throw new InvalidOperationException("Successful pairing must offer to configure the screen.");
+            OpenTrayMenu();
+            var displayMenu = (System.Windows.Forms.ToolStripMenuItem)trayMenu.Items[0];
+            if (!TrayActions().SequenceEqual([lateDisplay.Name, "Add device", "Settings", "Support", "Quit"]) ||
+                displayMenu.DropDownItems.Count != 4 || displayMenu.DropDownItems[0].Enabled ||
+                displayMenu.DropDownItems[1] is not System.Windows.Forms.ToolStripSeparator ||
+                displayMenu.DropDownItems[2].Text != "Disconnect" || displayMenu.DropDownItems[3].Text != "Customize Display")
+                throw new InvalidOperationException("A paired display must have its own status and actions in the tray menu.");
             Click("Done");
             if (HasStep(3) || !Action("Open display editor").IsEnabled || store.LoadPairings().Count() != 1)
                 throw new InvalidOperationException("Done must return to the saved display without changing its pairing.");
@@ -164,7 +184,7 @@ internal sealed record NativeWindowsDesktop(WindowsDesktop Desktop, string Drive
             Click("Cancel");
             if (HasStep(1) || !window.HasPairing)
                 throw new InvalidOperationException("Cancel must return to the saved display.");
-            Console.WriteLine("Passed the three-step Windows setup, discovery refresh, USB selection, Back, Done, and Cancel.");
+            Console.WriteLine("Passed the three-step Windows setup, discovery refresh, USB selection, Back, Done, Cancel, and tray menu.");
         }
         finally
         {
