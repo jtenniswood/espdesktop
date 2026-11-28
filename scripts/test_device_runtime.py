@@ -29,6 +29,40 @@ def navigation_values(value):
     return {key: value[key] for key in NAVIGATION_METRICS}
 
 
+def display_benchmark_values(value):
+    counters = ("sample_time_us", "completed_frames", "last_submit_to_scanout_us", "touch_bucket_us")
+    if (not isinstance(value, dict) or value.get("presentation") not in ("sync", "async")
+            or any(type(value.get(key)) is not int or value[key] < 0 for key in counters)
+            or value["touch_bucket_us"] == 0):
+        raise ValueError("invalid display benchmark counters")
+    for key, length in (("touch_to_scanout", 51), ("idle_us_by_core", 2)):
+        counter_list = value.get(key)
+        if (not isinstance(counter_list, list) or len(counter_list) != length
+                or any(type(n) is not int or n < 0 for n in counter_list)):
+            raise ValueError("invalid display benchmark counter list")
+    return {key: value[key] for key in
+            (*counters, "presentation", "touch_to_scanout", "idle_us_by_core")}
+
+
+def display_benchmark_summary(first, last):
+    span = last["sample_time_us"] - first["sample_time_us"]
+    frames = last["completed_frames"] - first["completed_frames"]
+    bucket_us = first["touch_bucket_us"]
+    if (span <= 0 or frames < 0 or bucket_us != last["touch_bucket_us"]
+            or first["presentation"] != last["presentation"]):
+        return None
+    histogram = [end - start for start, end in zip(first["touch_to_scanout"], last["touch_to_scanout"])]
+    idle_us = [end - start for start, end in zip(first["idle_us_by_core"], last["idle_us_by_core"])]
+    if min(histogram) < 0 or min(idle_us) < 0:
+        return None
+    total = sum(histogram)
+    return {"presentation": last["presentation"], "duration_seconds": span / 1_000_000,
+            "completed_frames": frames, "touch_samples": total,
+            "touch_bucket_us": bucket_us, "touch_to_scanout_histogram": histogram,
+            "cpu_busy_percent_by_core": [round(100 * (1 - min(elapsed, span) / span), 2)
+                                         for elapsed in idle_us]}
+
+
 def positive(value):
     number = float(value)
     if not math.isfinite(number) or number <= 0:
@@ -147,6 +181,8 @@ class HttpProbe:
                 "memory": {key: memory[key] for key in METRICS if key in memory}}
         if "navigation" in health:
             result["navigation"] = navigation_values(health["navigation"])
+        if "display_benchmark" in health:
+            result["display_benchmark"] = display_benchmark_values(health["display_benchmark"])
         return result
 
 
@@ -161,6 +197,7 @@ class Evidence:
     identity: dict = field(default_factory=dict)
     previous: dict | None = None
     memory_minimum: float = 5.0
+    benchmark_first: dict | None = None
 
     def event(self, kind, failure=False, **details):
         if failure:
@@ -182,6 +219,8 @@ class Evidence:
         if self.previous and (data["boot_id"] != self.previous["boot_id"] or data["uptime_ms"] < self.previous["uptime_ms"]):
             self.event("reboot", failure=True, reset_reason=data["reset_reason"])
         self.identity, self.firmware, self.previous = current_identity, data["firmware"], data
+        if self.benchmark_first is None:
+            self.benchmark_first = data.get("display_benchmark")
         if expected_version and self.firmware["esphome_version"] != expected_version:
             self.event("wrong_firmware_version", failure=True)
         if expected_build and self.firmware["compilation_time"] != expected_build:
@@ -210,6 +249,9 @@ def final_report(evidence, args, interrupted=False):
                          "Restarts and network outages fail the test; the runner cannot establish their cause.",
                          "Device logs are not collected. Panics before HTTP delivery may need USB serial capture.",
                          "No screen, touch, Mac control or modal actions are exercised; test these separately."]}
+    benchmark_last = (evidence.previous or {}).get("display_benchmark")
+    if not evidence.failures and evidence.benchmark_first is not None and benchmark_last is not None:
+        report["display_benchmark"] = display_benchmark_summary(evidence.benchmark_first, benchmark_last)
     (evidence.output / "report.json").write_text(json.dumps(report, indent=2, allow_nan=False) + "\n")
     summary = (f"# Device HTTP runtime test: {report['status'].upper()}\n\n"
                f"Target: `{args.host}`; samples: {evidence.counts['http_sample']}; "

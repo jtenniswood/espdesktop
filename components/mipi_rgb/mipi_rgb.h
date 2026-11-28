@@ -32,6 +32,9 @@ class MipiRgb : public display::Display {
   void set_double_buffered(bool enabled) { this->double_buffered_ = enabled; }
   void begin_frame();
   void end_frame();
+#ifdef ESPDESKTOP_S3_DISPLAY_BENCHMARK
+  void record_benchmark_touch();
+#endif
 #ifdef ESPDESKTOP_S3_ASYNC_SCANOUT
   void notify_frame_presented(void (*callback)());
 #endif

@@ -60,6 +60,24 @@ class EvidenceTests(unittest.TestCase):
         self.assertIn('incomplete_http_coverage', report['failures'])
         self.assertIn('missing_memory_diagnostics', report['failures'])
 
+    def test_display_benchmark_uses_deltas_and_checks_counter_resets(self):
+        first = runtime.display_benchmark_values({
+            "presentation": "async", "sample_time_us": 1_000_000,
+            "completed_frames": 20, "last_submit_to_scanout_us": 1000,
+            "touch_bucket_us": 5000, "touch_to_scanout": [4] * 51,
+            "idle_us_by_core": [400_000, 600_000],
+        })
+        last = deepcopy(first)
+        last.update(sample_time_us=2_000_000, completed_frames=30, idle_us_by_core=[900_000, 1_400_000])
+        last["touch_to_scanout"][3] += 7
+        report = runtime.display_benchmark_summary(first, last)
+        self.assertEqual(report["completed_frames"], 10)
+        self.assertEqual(report["touch_samples"], 7)
+        self.assertEqual(report["touch_to_scanout_histogram"][3], 7)
+        self.assertEqual(report["cpu_busy_percent_by_core"], [50.0, 20.0])
+        last["idle_us_by_core"][0] = 0
+        self.assertIsNone(runtime.display_benchmark_summary(first, last))
+
 
 class ReleaseHardwareTests(unittest.TestCase):
     def test_reports_checkpoint_memory_and_binds_the_candidate(self):

@@ -10,6 +10,11 @@
 #include "esphome/components/web_server_idf/web_server_idf.h"
 #include "panel_identity.h"
 #include "grid_navigation_diagnostics.h"
+#ifdef ESPDESKTOP_S3_DISPLAY_BENCHMARK
+#include <freertos/FreeRTOS.h>
+#include <freertos/task.h>
+#include "s3_display_benchmark.h"
+#endif
 
 namespace espdesktop {
 // Read-only health information. No entity values, credentials or saved layout.
@@ -75,6 +80,28 @@ class PanelDiagnosticsHandler final : public esphome::web_server_idf::AsyncWebHa
       if (psram_total > 0) memory["psram_free_percent"] = 100.0 * heap_caps_get_free_size(external) / psram_total;
       memory["heap_largest_bytes"] = heap_caps_get_largest_free_block(internal);
       memory["psram_largest_bytes"] = heap_caps_get_largest_free_block(external);
+#ifdef ESPDESKTOP_S3_DISPLAY_BENCHMARK
+      JsonObject benchmark = root["display_benchmark"].to<JsonObject>();
+#ifdef ESPDESKTOP_S3_ASYNC_SCANOUT
+      benchmark["presentation"] = "async";
+#else
+      benchmark["presentation"] = "sync";
+#endif
+      benchmark["sample_time_us"] = esp_timer_get_time();
+      benchmark["completed_frames"] = s3_display_benchmark.completed_frames.load(std::memory_order_relaxed);
+      benchmark["last_submit_to_scanout_us"] =
+          s3_display_benchmark.last_submit_to_scanout_us.load(std::memory_order_relaxed);
+      benchmark["touch_bucket_us"] = S3DisplayBenchmark::bucket_us;
+      JsonArray histogram = benchmark["touch_to_scanout"].to<JsonArray>();
+      for (const auto &count : s3_display_benchmark.touch_to_scanout)
+        histogram.add(count.load(std::memory_order_relaxed));
+      JsonArray idle = benchmark["idle_us_by_core"].to<JsonArray>();
+      for (BaseType_t core = 0; core < configNUMBER_OF_CORES; ++core) {
+        TaskStatus_t task{};
+        vTaskGetInfo(xTaskGetIdleTaskHandleForCPU(core), &task, pdFALSE, eInvalid);
+        idle.add(task.ulRunTimeCounter);
+      }
+#endif
     });
     httpd_resp_set_type(raw, "application/json");
     httpd_resp_set_hdr(raw, "Cache-Control", "no-store");

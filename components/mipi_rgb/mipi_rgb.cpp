@@ -8,6 +8,9 @@
 #include <driver/gpio.h>
 #include <esp_lcd_panel_rgb.h>
 #include <span>
+#ifdef ESPDESKTOP_S3_DISPLAY_BENCHMARK
+#include "esphome/components/espdesktop/s3_display_benchmark.h"
+#endif
 
 namespace esphome::mipi_rgb {
 
@@ -260,6 +263,9 @@ void MipiRgb::end_frame() {
   // bounce-buffer frame has switched to the submitted image, so the old front
   // can safely become the next drawing buffer. Never overwrite it on timeout.
   xSemaphoreTake(this->frame_done_, 0);
+#ifdef ESPDESKTOP_S3_DISPLAY_BENCHMARK
+  ::espdesktop::s3_display_benchmark.submit();
+#endif
 #ifdef ESPDESKTOP_S3_ASYNC_SCANOUT
   this->frame_submitted_at_ = millis();
   this->frame_pending_ = true;
@@ -269,8 +275,15 @@ void MipiRgb::end_frame() {
     return;
   }
   this->frames_.complete();
+#ifdef ESPDESKTOP_S3_DISPLAY_BENCHMARK
+  ::espdesktop::s3_display_benchmark.complete();
+#endif
 #endif
 }
+
+#ifdef ESPDESKTOP_S3_DISPLAY_BENCHMARK
+void MipiRgb::record_benchmark_touch() { ::espdesktop::s3_display_benchmark.touch(); }
+#endif
 
 #ifdef ESPDESKTOP_S3_ASYNC_SCANOUT
 void MipiRgb::finish_frame_(bool wait) {
@@ -289,6 +302,9 @@ void MipiRgb::finish_frame_(bool wait) {
   }
   this->frame_pending_ = false;
   this->frames_.complete();
+#ifdef ESPDESKTOP_S3_DISPLAY_BENCHMARK
+  ::espdesktop::s3_display_benchmark.complete();
+#endif
   const auto callback = this->frame_presented_;
   this->frame_presented_ = nullptr;
   if (callback != nullptr) callback();

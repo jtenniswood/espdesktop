@@ -105,6 +105,26 @@ without contacting hardware. Firmware host tests execute the production
 diagnostics handler, including authentication, unavailable startup, stable boot
 identity, 64-bit uptime and memory/build serialization.
 
+### Compare S3 presentation builds
+
+Build the `guition-esp32-s3-4848s040-benchmark.factory.yaml` reference and
+`guition-esp32-s3-4848s040-async-scanout.factory.yaml` candidate from the
+same revision, with the same embedded editor and pinned ESPHome version.
+Use the app-only OTA artifacts for an already configured test S3. Use the
+factory artifacts for a separate clean-install check through ESP Web Tools.
+Keep a pre-test backup and the current working OTA artifact available.
+
+Run `npm run test:device-runtime -- --host PANEL_IP --duration 120` for
+each build. Start the interaction sequence after the first sample. Repeat
+the same taps, page opens, Back gestures and artwork/web editor workload,
+then allow a final HTTP sample before stopping. Also record a separate idle
+run. Capture the physical touch-to-visible delay with video where possible.
+The report records both core CPU busy percentages, largest free blocks and
+a histogram of touch detection to observed scan-out completion. The latter
+tracks the next submitted frame within 250 ms of a touch and can include an
+unrelated redraw or a missed tap. The final count represents 250 ms or
+more. Use the video to validate actual visual feedback and check for tearing.
+
 ### S3 secondary-page cache
 
 On the 4848S040 with a native layout, Home stays ready while secondary
