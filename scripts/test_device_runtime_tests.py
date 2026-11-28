@@ -74,6 +74,7 @@ class EvidenceTests(unittest.TestCase):
         self.assertEqual(report["completed_frames"], 10)
         self.assertEqual(report["touch_samples"], 7)
         self.assertEqual(report["touch_to_scanout_histogram"][3], 7)
+        self.assertEqual(report["touch_p95_bucket"], 3)
         self.assertEqual(report["cpu_busy_percent_by_core"], [50.0, 20.0])
         last["idle_us_by_core"][0] = 0
         self.assertIsNone(runtime.display_benchmark_summary(first, last))

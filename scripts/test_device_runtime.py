@@ -56,9 +56,19 @@ def display_benchmark_summary(first, last):
     if min(histogram) < 0 or min(idle_us) < 0:
         return None
     total = sum(histogram)
+    rank = (95 * total + 99) // 100
+    p95_bucket = None
+    for index, count in enumerate(histogram):
+        if rank == 0:
+            break
+        rank -= count
+        if rank <= 0:
+            p95_bucket = index
+            break
     return {"presentation": last["presentation"], "duration_seconds": span / 1_000_000,
             "completed_frames": frames, "touch_samples": total,
             "touch_bucket_us": bucket_us, "touch_to_scanout_histogram": histogram,
+            "touch_p95_bucket": p95_bucket,
             "cpu_busy_percent_by_core": [round(100 * (1 - min(elapsed, span) / span), 2)
                                          for elapsed in idle_us]}
 
@@ -260,6 +270,25 @@ def final_report(evidence, args, interrupted=False):
                f"built `{evidence.firmware.get('compilation_time', 'unavailable')}`.\n\n## Failures\n\n" +
                ("\n".join(f"- {kind}: {count}" for kind, count in evidence.failures.items()) or "None detected.") +
                "\n\n## Limits\n\n" + "\n".join("- " + line for line in report["limits"]) + "\n")
+    if benchmark := report.get("display_benchmark"):
+        cpu = ", ".join(f"core {i}: {busy:.2f}%" for i, busy in enumerate(benchmark["cpu_busy_percent_by_core"]))
+        bucket = benchmark["touch_p95_bucket"]
+        latency = "no touch samples"
+        if bucket is not None:
+            width_ms = benchmark["touch_bucket_us"] / 1000
+            low = bucket * width_ms
+            if bucket == len(benchmark["touch_to_scanout_histogram"]) - 1:
+                latency = f"at least {low:g} ms"
+            else:
+                latency = f"{low:g} to <{low + width_ms:g} ms"
+        summary += ("\n## S3 display benchmark\n\n"
+                    f"- Presentation: {benchmark['presentation']}\n"
+                    f"- CPU busy: {cpu}\n"
+                    f"- Touch to observed scan-out (p95): {latency} "
+                    f"({benchmark['touch_samples']} samples)\n")
+        for metric, label in (("heap_largest_bytes", "Internal RAM"), ("psram_largest_bytes", "PSRAM")):
+            if metric in evidence.metrics:
+                summary += f"- {label}: smallest observed largest free block was {evidence.metrics[metric]['minimum']:,} bytes\n"
     (evidence.output / "report.md").write_text(summary)
     return report
 
