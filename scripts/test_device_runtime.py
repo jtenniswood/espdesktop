@@ -51,9 +51,14 @@ def display_benchmark_values(value):
             raise ValueError("invalid display frame copy diagnostics")
         counters += ("workload_copied_bytes", "frame_copy_strategy")
     if "workload_kind" in value:
-        if value["workload_kind"] not in ("tiles", "pages", "mixed"):
+        if value["workload_kind"] not in ("tiles", "pages", "mixed", "pointer"):
             raise ValueError("invalid display workload kind")
         counters += ("workload_kind",)
+    if value.get("workload_kind") == "pointer":
+        pointer_counters = ("pointer_presses", "pointer_page_changes")
+        if any(type(value.get(key)) is not int or value[key] < 0 for key in pointer_counters):
+            raise ValueError("invalid display pointer counters")
+        counters += pointer_counters
     for key, length in fields:
         counter_list = value.get(key)
         if (not isinstance(counter_list, list) or len(counter_list) != length
@@ -101,6 +106,12 @@ def display_benchmark_summary(first, last):
             if first.get("workload_kind") != last["workload_kind"] and first["workload_events"] > 0:
                 return None
             report["workload"]["kind"] = last["workload_kind"]
+        if last.get("workload_kind") == "pointer":
+            for key in ("pointer_presses", "pointer_page_changes"):
+                difference = last[key] - first.get(key, 0)
+                if difference < 0:
+                    return None
+                report["workload"][key] = difference
         if "workload_copied_bytes" in first and "workload_copied_bytes" in last:
             copied_bytes = last["workload_copied_bytes"] - first["workload_copied_bytes"]
             if copied_bytes < 0 or first["frame_copy_strategy"] != last["frame_copy_strategy"]:

@@ -99,6 +99,14 @@ class EvidenceTests(unittest.TestCase):
         pages = runtime.display_benchmark_summary(
             runtime.display_benchmark_values(first), runtime.display_benchmark_values(last))["workload"]
         self.assertEqual(pages["kind"], "pages")
+        pointer = deepcopy(last)
+        pointer.update(workload_kind="pointer", pointer_presses=200, pointer_page_changes=50)
+        presses = runtime.display_benchmark_summary(
+            runtime.display_benchmark_values(first), runtime.display_benchmark_values(pointer))["workload"]
+        self.assertEqual((presses["pointer_presses"], presses["pointer_page_changes"]), (200, 50))
+        del pointer["pointer_page_changes"]
+        with self.assertRaisesRegex(ValueError, "pointer counters"):
+            runtime.display_benchmark_values(pointer)
         first["workload_events"] = 1
         self.assertIsNone(runtime.display_benchmark_summary(first, last))
         self.assertEqual(report["cpu_busy_percent_by_core"], [50.0, 20.0])

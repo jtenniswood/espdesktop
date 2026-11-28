@@ -171,6 +171,16 @@ reference and candidate compile commands to change pages every fourth
 event and update two tiles between page changes. Check the workload is
 reported as `mixed` and compare its 200 samples to the synchronous reference.
 
+For unattended touch testing, compile the reference and combined-copy
+profile with `-s s3_run_render_workload true -s s3_run_pointer_workload true`.
+This sends press and release coordinates through the same ESPHome LVGL touch
+listener as the GT911. It exercises private tiles, including Open page and
+Back, without invoking saved card actions. Start collection before the
+workload begins and allow 120 seconds. Verify 200 submitted points, 200
+handled presses, 50 page changes and both frame timing histograms. This
+measures the input and render path after coordinates arrive. It cannot
+measure the capacitive sensor or determine when a pixel visibly changes.
+
 ### S3 secondary-page cache
 
 On the 4848S040 with a native layout, Home stays ready while secondary

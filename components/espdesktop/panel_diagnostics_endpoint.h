@@ -109,6 +109,11 @@ class PanelDiagnosticsHandler final : public esphome::web_server_idf::AsyncWebHa
         case S3WorkloadKind::Tiles: benchmark["workload_kind"] = "tiles"; break;
         case S3WorkloadKind::Pages: benchmark["workload_kind"] = "pages"; break;
         case S3WorkloadKind::Mixed: benchmark["workload_kind"] = "mixed"; break;
+        case S3WorkloadKind::Pointer:
+          benchmark["workload_kind"] = "pointer";
+          benchmark["pointer_presses"] = s3_display_benchmark.pointer_presses.load(std::memory_order_relaxed);
+          benchmark["pointer_page_changes"] = s3_display_benchmark.pointer_page_changes.load(std::memory_order_relaxed);
+          break;
       }
       benchmark["workload_copied_bytes"] =
           s3_display_benchmark.workload_copied_bytes.load(std::memory_order_relaxed);

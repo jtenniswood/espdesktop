@@ -9,7 +9,7 @@
 
 namespace espdesktop {
 
-enum class S3WorkloadKind : uint8_t { Tiles, Pages, Mixed };
+enum class S3WorkloadKind : uint8_t { Tiles, Pages, Mixed, Pointer };
 
 // Written on the device loop. Only cumulative results cross to the HTTP task.
 class S3DisplayBenchmark {
@@ -22,6 +22,8 @@ class S3DisplayBenchmark {
   std::array<std::atomic<uint32_t>, bucket_count> workload_to_driver_ready{};
   std::atomic<uint32_t> workload_events{0};
   std::atomic<uint32_t> workload_copied_bytes{0};
+  std::atomic<uint32_t> pointer_presses{0};
+  std::atomic<uint32_t> pointer_page_changes{0};
   std::atomic<bool> workload_finished{false};
   std::atomic<S3WorkloadKind> workload_kind{S3WorkloadKind::Tiles};
   std::atomic<uint32_t> completed_frames{0};

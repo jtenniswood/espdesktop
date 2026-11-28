@@ -408,6 +408,7 @@ lvgl:
   rotation: 180
   touchscreens:
     - touchscreen_id: my_touchscreen
+      id: s3_lvgl_touch_listener
       long_press_time: 3s
 
 script:

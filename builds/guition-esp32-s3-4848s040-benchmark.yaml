@@ -6,6 +6,7 @@ substitutions:
   s3_run_render_workload: "false"
   s3_run_page_workload: "false"
   s3_run_mixed_workload: "false"
+  s3_run_pointer_workload: "false"
 
 esp32:
   framework:
@@ -27,4 +28,9 @@ esphome:
             then:
               - delay: 35s
               - script.execute: screensaver_wake
-              - lambda: espdesktop::s3_render_workload.start(${s3_run_page_workload}, ${s3_run_mixed_workload});
+              - lambda: |-
+                  if (${s3_run_pointer_workload}) {
+                    espdesktop::s3_render_workload.start_pointer(id(s3_lvgl_touch_listener));
+                  } else {
+                    espdesktop::s3_render_workload.start(${s3_run_page_workload}, ${s3_run_mixed_workload});
+                  }
