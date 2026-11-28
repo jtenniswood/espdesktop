@@ -7,6 +7,9 @@
 #include <cstddef>
 #include <cstdint>
 #include <cstring>
+#ifdef ESPDESKTOP_S3_DEFER_FRAME_COPIES
+#include <bitset>
+#endif
 
 namespace esphome::mipi_rgb {
 
@@ -20,6 +23,11 @@ class FrameBufferPair {
     this->width_ = width;
     this->height_ = height;
     this->dirty_ = false;
+#ifdef ESPDESKTOP_S3_DEFER_FRAME_COPIES
+    this->stale_ = {};
+    this->overwritten_.reset();
+    this->copied_bytes_ = 0;
+#endif
 #ifdef ESPDESKTOP_S3_COPY_DIRTY_REGIONS
     this->region_count_ = 0;
     this->region_pixels_ = 0;
@@ -37,6 +45,14 @@ class FrameBufferPair {
         x > this->width_ || width > this->width_ - x ||
         y > this->height_ || height > this->height_ - y ||
         x_offset < 0 || y_offset < 0 || x_pad < 0) return false;
+#ifdef ESPDESKTOP_S3_DEFER_FRAME_COPIES
+    if (width == this->width_ && this->height_ <= static_cast<int>(this->overwritten_.size())) {
+      for (int row = y; row < y + height; ++row) this->overwritten_.set(row);
+    } else {
+      // Repair the old frame before a partial write so its new pixels remain intact.
+      this->prepare();
+    }
+#endif
     const size_t stride = (static_cast<size_t>(x_offset) + width + x_pad) * sizeof(uint16_t);
     pixels += static_cast<size_t>(y_offset) * stride + x_offset * sizeof(uint16_t);
     for (int row = 0; row < height; ++row) {
@@ -66,6 +82,18 @@ class FrameBufferPair {
     return true;
   }
 
+  // Restore any pixels from the previous frame that the next one still needs.
+  void prepare() {
+#ifdef ESPDESKTOP_S3_DEFER_FRAME_COPIES
+    for (int row = this->stale_.top; row < this->stale_.bottom; ++row) {
+      if (this->height_ <= static_cast<int>(this->overwritten_.size()) && this->overwritten_[row]) continue;
+      this->copy_(this->stale_.left, row, this->stale_.right, row + 1);
+      this->copied_bytes_ += (this->stale_.right - this->stale_.left) * sizeof(uint16_t);
+    }
+    this->stale_ = {};
+#endif
+  }
+
   // Call only after the RGB driver signals the old front buffer is reusable.
   // Copy just the changed rectangle so partial updates start from the same
   // image next time, without a whole-frame copy for every clock/status update.
@@ -73,6 +101,13 @@ class FrameBufferPair {
     if (!this->dirty_) return 0;
     std::swap(this->front_, this->back_);
     this->dirty_ = false;
+#ifdef ESPDESKTOP_S3_DEFER_FRAME_COPIES
+    this->stale_ = {this->left_, this->top_, this->right_, this->bottom_};
+    this->overwritten_.reset();
+    const auto copied_bytes = this->copied_bytes_;
+    this->copied_bytes_ = 0;
+    return copied_bytes;
+#else
     const size_t bounding_pixels = static_cast<size_t>(this->right_ - this->left_) *
                                    (this->bottom_ - this->top_);
 #ifdef ESPDESKTOP_S3_COPY_DIRTY_REGIONS
@@ -90,6 +125,7 @@ class FrameBufferPair {
 #endif
     this->copy_(this->left_, this->top_, this->right_, this->bottom_);
     return bounding_pixels * sizeof(uint16_t);
+#endif
   }
 
  protected:
@@ -108,6 +144,14 @@ class FrameBufferPair {
   std::array<Region, 16> regions_{};
   size_t region_count_ = 0;
   size_t region_pixels_ = 0;
+#endif
+#ifdef ESPDESKTOP_S3_DEFER_FRAME_COPIES
+  struct Damage {
+    int left = 0, top = 0, right = 0, bottom = 0;
+  };
+  Damage stale_{};
+  std::bitset<480> overwritten_{};
+  size_t copied_bytes_ = 0;
 #endif
   uint16_t *front_ = nullptr;
   uint16_t *back_ = nullptr;

@@ -47,7 +47,7 @@ def display_benchmark_values(value):
             fields.append((key, 51))
     if "workload_copied_bytes" in value:
         if (type(value["workload_copied_bytes"]) is not int or value["workload_copied_bytes"] < 0
-                or value.get("frame_copy_strategy") not in ("regions", "bounding_rectangle")):
+                or value.get("frame_copy_strategy") not in ("regions", "bounding_rectangle", "deferred")):
             raise ValueError("invalid display frame copy diagnostics")
         counters += ("workload_copied_bytes", "frame_copy_strategy")
     if "workload_kind" in value:

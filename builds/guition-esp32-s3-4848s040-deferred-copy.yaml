@@ -1,0 +1,7 @@
+# Opt-in synchronous comparison that avoids copying rows the next frame replaces.
+packages:
+  benchmark: !include guition-esp32-s3-4848s040-benchmark.yaml
+
+esphome:
+  build_flags:
+    - "-DESPDESKTOP_S3_DEFER_FRAME_COPIES"

@@ -150,6 +150,12 @@ between two complete screens instead of changing two tiles. Allow about
 `pages`. Use this comparison to check page changes and the full-frame
 copy fallback, alongside the sparse tile results.
 
+The opt-in `guition-esp32-s3-4848s040-deferred-copy.yaml` profile tests
+skipping the copy for full-width rows overwritten by the next frame.
+Use the same tile and page workload flags when comparing it with the
+synchronous reference. Compare copy bytes as well as device-loop p95:
+any remaining copy moves earlier in the next frame.
+
 ### S3 secondary-page cache
 
 On the 4848S040 with a native layout, Home stays ready while secondary

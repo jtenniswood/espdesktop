@@ -109,7 +109,9 @@ class PanelDiagnosticsHandler final : public esphome::web_server_idf::AsyncWebHa
           s3_display_benchmark.workload_pages.load(std::memory_order_relaxed) ? "pages" : "tiles";
       benchmark["workload_copied_bytes"] =
           s3_display_benchmark.workload_copied_bytes.load(std::memory_order_relaxed);
-#ifdef ESPDESKTOP_S3_COPY_DIRTY_REGIONS
+#if defined(ESPDESKTOP_S3_DEFER_FRAME_COPIES)
+      benchmark["frame_copy_strategy"] = "deferred";
+#elif defined(ESPDESKTOP_S3_COPY_DIRTY_REGIONS)
       benchmark["frame_copy_strategy"] = "regions";
 #else
       benchmark["frame_copy_strategy"] = "bounding_rectangle";

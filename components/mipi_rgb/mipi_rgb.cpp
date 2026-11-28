@@ -272,6 +272,7 @@ void MipiRgb::end_frame() {
   if (!this->frame_active_ || this->is_failed()) return;
   this->frame_active_ = false;
   if (!this->frames_.dirty()) return;
+  this->frames_.prepare();
   esp_err_t err = esp_lcd_panel_draw_bitmap(this->handle_, 0, 0, this->width_, this->height_,
                                            this->frames_.pending());
   if (err != ESP_OK) {
