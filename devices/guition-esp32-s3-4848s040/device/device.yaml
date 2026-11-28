@@ -394,7 +394,11 @@ lvgl:
     - lambda: |-
         id(my_display).end_frame();
         #ifdef USE_COMPANION
+        #ifdef ESPDESKTOP_S3_ASYNC_SCANOUT
+        id(my_display).notify_frame_presented(companion_focus_frame_presented);
+        #else
         if (!id(my_display).is_failed()) companion_focus_frame_presented();
+        #endif
         #endif
   displays: my_display
   rotation: 180

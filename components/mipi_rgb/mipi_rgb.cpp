@@ -240,6 +240,9 @@ bool IRAM_ATTR MipiRgb::frame_complete_(esp_lcd_panel_handle_t,
 }
 
 void MipiRgb::begin_frame() {
+#ifdef ESPDESKTOP_S3_ASYNC_SCANOUT
+  this->finish_frame_(true);
+#endif
   if (this->double_buffered_ && !this->is_failed()) this->frame_active_ = true;
 }
 
@@ -257,15 +260,55 @@ void MipiRgb::end_frame() {
   // bounce-buffer frame has switched to the submitted image, so the old front
   // can safely become the next drawing buffer. Never overwrite it on timeout.
   xSemaphoreTake(this->frame_done_, 0);
+#ifdef ESPDESKTOP_S3_ASYNC_SCANOUT
+  this->frame_submitted_at_ = millis();
+  this->frame_pending_ = true;
+#else
   if (xSemaphoreTake(this->frame_done_, pdMS_TO_TICKS(100)) != pdTRUE) {
     this->mark_failed(LOG_STR("RGB frame completion timed out"));
     return;
   }
   this->frames_.complete();
+#endif
 }
+
+#ifdef ESPDESKTOP_S3_ASYNC_SCANOUT
+void MipiRgb::finish_frame_(bool wait) {
+  if (!this->frame_pending_) return;
+  constexpr uint32_t frame_timeout_ms = 100;
+  const uint32_t elapsed = millis() - this->frame_submitted_at_;
+  const TickType_t timeout =
+      wait && elapsed < frame_timeout_ms ? pdMS_TO_TICKS(frame_timeout_ms - elapsed) : 0;
+  if (xSemaphoreTake(this->frame_done_, timeout) != pdTRUE) {
+    if (wait || elapsed >= frame_timeout_ms) {
+      this->frame_pending_ = false;
+      this->frame_presented_ = nullptr;
+      this->mark_failed(LOG_STR("RGB frame completion timed out"));
+    }
+    return;
+  }
+  this->frame_pending_ = false;
+  this->frames_.complete();
+  const auto callback = this->frame_presented_;
+  this->frame_presented_ = nullptr;
+  if (callback != nullptr) callback();
+}
+
+void MipiRgb::notify_frame_presented(void (*callback)()) {
+  if (this->is_failed()) return;
+  if (this->frame_pending_) {
+    this->frame_presented_ = callback;
+  } else {
+    callback();
+  }
+}
+#endif
 
 #if defined(USE_ESP32_VARIANT_ESP32S3)
 void MipiRgb::resync_scanout() {
+#ifdef ESPDESKTOP_S3_ASYNC_SCANOUT
+  this->finish_frame_(true);
+#endif
   if (this->handle_ == nullptr || this->is_failed()) {
     ESP_LOGW(TAG, "Cannot resync an unavailable RGB panel");
     return;
@@ -281,6 +324,9 @@ void MipiRgb::resync_scanout() {
 
 #ifdef ESPDESKTOP_S3_DISPLAY_RESET_TEST
 bool MipiRgb::copy_presented_frame(uint16_t *pixels, size_t pixel_count) const {
+#ifdef ESPDESKTOP_S3_ASYNC_SCANOUT
+  if (this->frame_pending_) return false;
+#endif
   if (this->handle_ == nullptr || this->is_failed() || this->frame_active_ ||
       pixel_count != this->width_ * this->height_) {
     return false;
@@ -303,6 +349,9 @@ bool MipiRgb::copy_presented_frame(uint16_t *pixels, size_t pixel_count) const {
 #endif
 
 void MipiRgb::loop() {
+#ifdef ESPDESKTOP_S3_ASYNC_SCANOUT
+  this->finish_frame_(false);
+#endif
   // The ESP-IDF RGB driver already restarts on real DMA underflow when needed.
   // Continuously requesting restarts can cause visible one-frame shifts and flicker.
 }
@@ -356,6 +405,7 @@ void MipiRgb::write_to_display_(int x_start, int y_start, int w, int h, const ui
   if (this->double_buffered_) {
     const bool standalone = !this->frame_active_;
     if (standalone) this->begin_frame();
+    if (this->is_failed()) return;
     if (!this->frames_.write(x_start, y_start, w, h, ptr, x_offset, y_offset, x_pad)) {
       ESP_LOGW(TAG, "Invalid buffered RGB draw area");
     }

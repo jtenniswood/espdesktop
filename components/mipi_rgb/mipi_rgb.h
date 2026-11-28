@@ -32,6 +32,9 @@ class MipiRgb : public display::Display {
   void set_double_buffered(bool enabled) { this->double_buffered_ = enabled; }
   void begin_frame();
   void end_frame();
+#ifdef ESPDESKTOP_S3_ASYNC_SCANOUT
+  void notify_frame_presented(void (*callback)());
+#endif
 #if defined(USE_ESP32_VARIANT_ESP32S3)
   void resync_scanout();
 #endif
@@ -89,6 +92,12 @@ class MipiRgb : public display::Display {
   FrameBufferPair frames_;
   StaticSemaphore_t frame_done_storage_{};
   SemaphoreHandle_t frame_done_ = nullptr;
+#ifdef ESPDESKTOP_S3_ASYNC_SCANOUT
+  void finish_frame_(bool wait);
+  bool frame_pending_ = false;
+  uint32_t frame_submitted_at_ = 0;
+  void (*frame_presented_)() = nullptr;
+#endif
   void setup_enables_();
   void common_setup_();
   InternalGPIOPin *de_pin_{nullptr};
