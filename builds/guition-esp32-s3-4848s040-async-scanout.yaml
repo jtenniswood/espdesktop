@@ -1,6 +1,6 @@
 # Opt-in S3 comparison image. Uses the same installer and network services.
 packages:
-  benchmark: !include guition-esp32-s3-4848s040-benchmark.factory.yaml
+  benchmark: !include guition-esp32-s3-4848s040-benchmark.yaml
 
 esphome:
   build_flags:

@@ -107,8 +107,8 @@ identity, 64-bit uptime and memory/build serialization.
 
 ### Compare S3 presentation builds
 
-Build the `guition-esp32-s3-4848s040-benchmark.factory.yaml` reference and
-`guition-esp32-s3-4848s040-async-scanout.factory.yaml` candidate from the
+Build the `guition-esp32-s3-4848s040-benchmark.yaml` reference and
+`guition-esp32-s3-4848s040-async-scanout.yaml` candidate from the
 same revision, with the same embedded editor and pinned ESPHome version.
 Use the app-only OTA artifacts for an already configured test S3. Use the
 factory artifacts for a separate clean-install check through ESP Web Tools.
