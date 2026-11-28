@@ -173,12 +173,27 @@ reported as `mixed` and compare its 200 samples to the synchronous reference.
 
 For unattended touch testing, compile the reference and combined-copy
 profile with `-s s3_run_render_workload true -s s3_run_pointer_workload true`.
+Save the OTA images separately, then run the comparison from the worktree
+with the pinned ESPHome executable on your path.
+
+```sh
+python3 scripts/test_s3_pointer_comparison.py --host PANEL_IP \
+  --reference reference.ota.bin --candidate combined.ota.bin \
+  --restore current.ota.bin --output build/s3-pointer-comparison
+```
+
+The restore image must match the build currently running on the panel.
+The runner installs and verifies each build, records both reports and
+restores the original firmware even if collection fails. It checks the
+hostname, saved layout, and Home Assistant connector setting after each OTA.
+Use a fresh output directory for each run.
+
 This sends press and release coordinates through the same ESPHome LVGL touch
 listener as the GT911. It exercises private tiles, including Open page and
-Back, without invoking saved card actions. Start collection before the
-workload begins and allow 120 seconds. Verify 200 submitted points, 200
-handled presses, and 200 observations in both press timing histograms.
-Verify 50 page changes and 50 samples in `pointer_release_to_page`, which
+Back, without invoking saved card actions. The runner requires 200 submitted
+points, 200 handled presses, and 200 observations in both press timing
+histograms. It also requires 50 page changes and 50 samples in
+`pointer_release_to_page`, which
 times the release that activated Open page or Back through the first
 completed frame on the destination. These measurements start at software
 input and end at frame completion.
