@@ -95,6 +95,11 @@ class MipiRgb : public display::Display {
   FrameBufferPair frames_;
   StaticSemaphore_t frame_done_storage_{};
   SemaphoreHandle_t frame_done_ = nullptr;
+  bool take_frame_done_(TickType_t wait);
+#ifdef ESPDESKTOP_S3_DISPLAY_BENCHMARK
+  alignas(int64_t) uint8_t frame_done_timestamp_storage_[sizeof(int64_t)]{};
+  int64_t frame_done_timestamp_us_ = 0;
+#endif
 #ifdef ESPDESKTOP_S3_ASYNC_SCANOUT
   void finish_frame_(bool wait);
   bool frame_pending_ = false;

@@ -216,7 +216,12 @@ void MipiRgb::common_setup_() {
       std::memset(back, 0, this->width_ * this->height_ * sizeof(uint16_t));
       this->frames_.reset(static_cast<uint16_t *>(front), static_cast<uint16_t *>(back),
                           this->width_, this->height_);
+#ifdef ESPDESKTOP_S3_DISPLAY_BENCHMARK
+      this->frame_done_ = xQueueCreateStatic(1, sizeof(int64_t), this->frame_done_timestamp_storage_,
+                                            &this->frame_done_storage_);
+#else
       this->frame_done_ = xSemaphoreCreateBinaryStatic(&this->frame_done_storage_);
+#endif
       esp_lcd_rgb_panel_event_callbacks_t callbacks{};
       callbacks.on_frame_buf_complete = frame_complete_;
       err = esp_lcd_rgb_panel_register_event_callbacks(this->handle_, &callbacks, this);
@@ -238,8 +243,22 @@ bool IRAM_ATTR MipiRgb::frame_complete_(esp_lcd_panel_handle_t,
                                        const esp_lcd_rgb_panel_event_data_t *, void *context) {
   auto *display = static_cast<MipiRgb *>(context);
   BaseType_t woken = pdFALSE;
+#ifdef ESPDESKTOP_S3_DISPLAY_BENCHMARK
+  // Retain the first completion while the device loop is busy, as the binary semaphore does.
+  const int64_t timestamp = esp_timer_get_time();
+  xQueueSendFromISR(display->frame_done_, &timestamp, &woken);
+#else
   xSemaphoreGiveFromISR(display->frame_done_, &woken);
+#endif
   return woken == pdTRUE;
+}
+
+bool MipiRgb::take_frame_done_(TickType_t wait) {
+#ifdef ESPDESKTOP_S3_DISPLAY_BENCHMARK
+  return xQueueReceive(this->frame_done_, &this->frame_done_timestamp_us_, wait) == pdTRUE;
+#else
+  return xSemaphoreTake(this->frame_done_, wait) == pdTRUE;
+#endif
 }
 
 void MipiRgb::begin_frame() {
@@ -262,7 +281,7 @@ void MipiRgb::end_frame() {
   // Discard any notification from before submission. A subsequent completed
   // bounce-buffer frame has switched to the submitted image, so the old front
   // can safely become the next drawing buffer. Never overwrite it on timeout.
-  xSemaphoreTake(this->frame_done_, 0);
+  this->take_frame_done_(0);
 #ifdef ESPDESKTOP_S3_DISPLAY_BENCHMARK
   ::espdesktop::s3_display_benchmark.submit();
 #endif
@@ -270,13 +289,13 @@ void MipiRgb::end_frame() {
   this->frame_submitted_at_ = millis();
   this->frame_pending_ = true;
 #else
-  if (xSemaphoreTake(this->frame_done_, pdMS_TO_TICKS(100)) != pdTRUE) {
+  if (!this->take_frame_done_(pdMS_TO_TICKS(100))) {
     this->mark_failed(LOG_STR("RGB frame completion timed out"));
     return;
   }
   this->frames_.complete();
 #ifdef ESPDESKTOP_S3_DISPLAY_BENCHMARK
-  ::espdesktop::s3_display_benchmark.complete();
+  ::espdesktop::s3_display_benchmark.complete(this->frame_done_timestamp_us_);
 #endif
 #endif
 }
@@ -292,7 +311,7 @@ void MipiRgb::finish_frame_(bool wait) {
   const uint32_t elapsed = millis() - this->frame_submitted_at_;
   const TickType_t timeout =
       wait && elapsed < frame_timeout_ms ? pdMS_TO_TICKS(frame_timeout_ms - elapsed) : 0;
-  if (xSemaphoreTake(this->frame_done_, timeout) != pdTRUE) {
+  if (!this->take_frame_done_(timeout)) {
     if (wait || elapsed >= frame_timeout_ms) {
       this->frame_pending_ = false;
       this->frame_presented_ = nullptr;
@@ -303,7 +322,7 @@ void MipiRgb::finish_frame_(bool wait) {
   this->frame_pending_ = false;
   this->frames_.complete();
 #ifdef ESPDESKTOP_S3_DISPLAY_BENCHMARK
-  ::espdesktop::s3_display_benchmark.complete();
+  ::espdesktop::s3_display_benchmark.complete(this->frame_done_timestamp_us_);
 #endif
   const auto callback = this->frame_presented_;
   this->frame_presented_ = nullptr;

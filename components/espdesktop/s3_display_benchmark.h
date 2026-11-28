@@ -15,6 +15,8 @@ class S3DisplayBenchmark {
   static constexpr uint32_t bucket_count = 51;
   std::array<std::atomic<uint32_t>, bucket_count> touch_to_scanout{};
   std::array<std::atomic<uint32_t>, bucket_count> workload_to_scanout{};
+  std::array<std::atomic<uint32_t>, bucket_count> touch_to_driver_ready{};
+  std::array<std::atomic<uint32_t>, bucket_count> workload_to_driver_ready{};
   std::atomic<uint32_t> workload_events{0};
   std::atomic<bool> workload_finished{false};
   std::atomic<uint32_t> completed_frames{0};
@@ -33,18 +35,24 @@ class S3DisplayBenchmark {
     touch_us_ = 0;
   }
 
-  void complete() {
+  void complete(int64_t ready_us) {
     const auto now = esp_timer_get_time();
     last_submit_to_scanout_us.store(now - submitted_us_, std::memory_order_relaxed);
     completed_frames.fetch_add(1, std::memory_order_relaxed);
     if (submitted_touch_us_ == 0 || submitted_us_ - submitted_touch_us_ >= 250000) return;
-    const auto bucket = (now - submitted_touch_us_) / bucket_us;
-    const auto index = bucket < bucket_count ? bucket : bucket_count - 1;
-    auto &histogram = submitted_workload_ ? workload_to_scanout : touch_to_scanout;
-    histogram[index].fetch_add(1, std::memory_order_relaxed);
+    auto &observed = submitted_workload_ ? workload_to_scanout : touch_to_scanout;
+    observed[bucket_(now - submitted_touch_us_)].fetch_add(1, std::memory_order_relaxed);
+    if (ready_us >= submitted_touch_us_ && ready_us <= now) {
+      auto &driver = submitted_workload_ ? workload_to_driver_ready : touch_to_driver_ready;
+      driver[bucket_(ready_us - submitted_touch_us_)].fetch_add(1, std::memory_order_relaxed);
+    }
   }
 
  private:
+  static uint32_t bucket_(int64_t elapsed_us) {
+    const auto bucket = elapsed_us / bucket_us;
+    return bucket < bucket_count ? bucket : bucket_count - 1;
+  }
   int64_t touch_us_ = 0;
   int64_t submitted_us_ = 0;
   int64_t submitted_touch_us_ = 0;

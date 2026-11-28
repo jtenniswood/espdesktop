@@ -45,6 +45,7 @@ struct MipiRgb {
   int width_ = 4, height_ = 2;
   void *handle_ = nullptr, *frame_done_ = nullptr;
   bool is_failed() { return failed; }
+  bool take_frame_done_(TickType_t wait);
   void mark_failed(const char *) { failed = true; }
   void begin_frame();
   void end_frame();
@@ -56,6 +57,7 @@ struct MipiRgb {
 };
 '''
 code += function("void MipiRgb::begin_frame() {")
+code += function("bool MipiRgb::take_frame_done_(TickType_t wait) {")
 code += function("void MipiRgb::end_frame() {")
 code += "\n#ifdef ESPDESKTOP_S3_ASYNC_SCANOUT\n"
 code += function("void MipiRgb::finish_frame_(bool wait) {")

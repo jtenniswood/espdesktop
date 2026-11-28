@@ -42,6 +42,9 @@ def display_benchmark_values(value):
                 or type(value.get("workload_finished")) is not bool):
             raise ValueError("invalid display workload counters")
         counters += ("workload_events", "workload_finished")
+    for key in ("touch_to_driver_ready", "workload_to_driver_ready"):
+        if key in value:
+            fields.append((key, 51))
     for key, length in fields:
         counter_list = value.get(key)
         if (not isinstance(counter_list, list) or len(counter_list) != length
@@ -85,6 +88,13 @@ def display_benchmark_summary(first, last):
         report["workload"] = {"events": events, "finished": last["workload_finished"],
                               "samples": sum(workload), "histogram": workload,
                               "p95_bucket": histogram_p95_bucket(workload)}
+    for key in ("touch_to_driver_ready", "workload_to_driver_ready"):
+        if key in first and key in last:
+            ready = [end - start for start, end in zip(first[key], last[key])]
+            if min(ready) < 0:
+                return None
+            report[key] = {"samples": sum(ready), "histogram": ready,
+                           "p95_bucket": histogram_p95_bucket(ready)}
     return report
 
 

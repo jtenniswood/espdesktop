@@ -98,6 +98,12 @@ class PanelDiagnosticsHandler final : public esphome::web_server_idf::AsyncWebHa
       JsonArray workload = benchmark["workload_to_scanout"].to<JsonArray>();
       for (const auto &count : s3_display_benchmark.workload_to_scanout)
         workload.add(count.load(std::memory_order_relaxed));
+      JsonArray touch_ready = benchmark["touch_to_driver_ready"].to<JsonArray>();
+      for (const auto &count : s3_display_benchmark.touch_to_driver_ready)
+        touch_ready.add(count.load(std::memory_order_relaxed));
+      JsonArray workload_ready = benchmark["workload_to_driver_ready"].to<JsonArray>();
+      for (const auto &count : s3_display_benchmark.workload_to_driver_ready)
+        workload_ready.add(count.load(std::memory_order_relaxed));
       benchmark["workload_events"] = s3_display_benchmark.workload_events.load(std::memory_order_relaxed);
       benchmark["workload_finished"] = s3_display_benchmark.workload_finished.load(std::memory_order_acquire);
       JsonArray idle = benchmark["idle_us_by_core"].to<JsonArray>();

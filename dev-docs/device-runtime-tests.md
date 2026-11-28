@@ -132,8 +132,11 @@ tiles every 100 ms for 200 steps, and returns to the previous screen. Run
 the collector immediately after OTA using `--duration 90 --interval 1` so
 it covers the entire workload. Accept a completed run only when the report's
 `display_benchmark.workload` shows 200 events and 200 samples. The workload
-histogram measures software events through real hardware scan-out. Physical
-touch stays in its own histogram and still needs a person and video.
+histogram measures software events until the device loop handles frame
+completion. Compare it with `workload_to_driver_ready`, which timestamps
+the RGB interrupt that signals the old buffer is reusable before the loop
+can observe it. Require 200 samples in both histograms. Physical touch
+stays in its own histograms and touch-to-visible evidence needs video.
 
 ### S3 secondary-page cache
 

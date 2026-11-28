@@ -83,6 +83,12 @@ class EvidenceTests(unittest.TestCase):
         self.assertEqual(workload,
                          {"events": 200, "finished": True, "samples": 200,
                           "histogram": last["workload_to_scanout"], "p95_bucket": 8})
+        first["workload_to_driver_ready"] = [0] * 51
+        last["workload_to_driver_ready"] = [0] * 51
+        last["workload_to_driver_ready"][5] = 200
+        driver = runtime.display_benchmark_summary(
+            runtime.display_benchmark_values(first), runtime.display_benchmark_values(last))
+        self.assertEqual(driver["workload_to_driver_ready"]["p95_bucket"], 5)
         self.assertEqual(report["cpu_busy_percent_by_core"], [50.0, 20.0])
         last["idle_us_by_core"][0] = 0
         self.assertIsNone(runtime.display_benchmark_summary(first, last))
