@@ -4,6 +4,7 @@ packages:
 
 substitutions:
   s3_run_render_workload: "false"
+  s3_run_page_workload: "false"
 
 esp32:
   framework:
@@ -25,4 +26,4 @@ esphome:
             then:
               - delay: 35s
               - script.execute: screensaver_wake
-              - lambda: espdesktop::s3_render_workload.start();
+              - lambda: espdesktop::s3_render_workload.start(${s3_run_page_workload});

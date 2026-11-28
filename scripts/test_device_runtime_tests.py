@@ -94,6 +94,13 @@ class EvidenceTests(unittest.TestCase):
         copy = runtime.display_benchmark_summary(
             runtime.display_benchmark_values(first), runtime.display_benchmark_values(last))["workload"]
         self.assertEqual((copy["copied_bytes"], copy["copy_strategy"]), (90000, "regions"))
+        first["workload_kind"] = "tiles"
+        last["workload_kind"] = "pages"
+        pages = runtime.display_benchmark_summary(
+            runtime.display_benchmark_values(first), runtime.display_benchmark_values(last))["workload"]
+        self.assertEqual(pages["kind"], "pages")
+        first["workload_events"] = 1
+        self.assertIsNone(runtime.display_benchmark_summary(first, last))
         self.assertEqual(report["cpu_busy_percent_by_core"], [50.0, 20.0])
         last["idle_us_by_core"][0] = 0
         self.assertIsNone(runtime.display_benchmark_summary(first, last))

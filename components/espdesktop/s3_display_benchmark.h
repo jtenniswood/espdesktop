@@ -21,6 +21,7 @@ class S3DisplayBenchmark {
   std::atomic<uint32_t> workload_events{0};
   std::atomic<uint32_t> workload_copied_bytes{0};
   std::atomic<bool> workload_finished{false};
+  std::atomic<bool> workload_pages{false};
   std::atomic<uint32_t> completed_frames{0};
   std::atomic<uint32_t> last_submit_to_scanout_us{0};
 

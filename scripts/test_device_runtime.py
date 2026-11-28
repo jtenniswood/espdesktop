@@ -50,6 +50,10 @@ def display_benchmark_values(value):
                 or value.get("frame_copy_strategy") not in ("regions", "bounding_rectangle")):
             raise ValueError("invalid display frame copy diagnostics")
         counters += ("workload_copied_bytes", "frame_copy_strategy")
+    if "workload_kind" in value:
+        if value["workload_kind"] not in ("tiles", "pages"):
+            raise ValueError("invalid display workload kind")
+        counters += ("workload_kind",)
     for key, length in fields:
         counter_list = value.get(key)
         if (not isinstance(counter_list, list) or len(counter_list) != length
@@ -93,6 +97,10 @@ def display_benchmark_summary(first, last):
         report["workload"] = {"events": events, "finished": last["workload_finished"],
                               "samples": sum(workload), "histogram": workload,
                               "p95_bucket": histogram_p95_bucket(workload)}
+        if "workload_kind" in last:
+            if first.get("workload_kind") != last["workload_kind"] and first["workload_events"] > 0:
+                return None
+            report["workload"]["kind"] = last["workload_kind"]
         if "workload_copied_bytes" in first and "workload_copied_bytes" in last:
             copied_bytes = last["workload_copied_bytes"] - first["workload_copied_bytes"]
             if copied_bytes < 0 or first["frame_copy_strategy"] != last["frame_copy_strategy"]:

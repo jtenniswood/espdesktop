@@ -144,6 +144,12 @@ It uses the bounding rectangle if the region list fills or copying the
 regions would move as many pixels. Compare `display_benchmark.workload.copied_bytes`
 with the synchronous reference for the same 200-event run.
 
+Add `-s s3_run_page_workload true` to both build commands to alternate
+between two complete screens instead of changing two tiles. Allow about
+150 seconds for collection and confirm the report marks the workload as
+`pages`. Use this comparison to check page changes and the full-frame
+copy fallback, alongside the sparse tile results.
+
 ### S3 secondary-page cache
 
 On the 4848S040 with a native layout, Home stays ready while secondary
