@@ -141,9 +141,11 @@ def main():
             install(args, probe, identity, layout, home_assistant, image, digest)
             time.sleep(7)
             report_path = args.output / name
-            subprocess.run([sys.executable, Path(__file__).with_name("test_device_runtime.py"),
-                            "--host", args.host, "--duration", "88", "--interval", "1",
-                            "--output", report_path], check=True)
+            collected = subprocess.run([sys.executable, Path(__file__).with_name("test_device_runtime.py"),
+                                        "--host", args.host, "--duration", "88", "--interval", "1",
+                                        "--output", report_path])
+            if collected.returncode:
+                raise RuntimeError(f"The {name} run failed. See {report_path / 'report.md'}")
             results[name] = summarize(report_path, strategy)
     finally:
         install(args, probe, identity, layout, home_assistant, args.restore, digests[2])
@@ -153,4 +155,7 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except (OSError, RuntimeError, ValueError, subprocess.CalledProcessError) as error:
+        sys.exit(str(error))
