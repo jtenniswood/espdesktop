@@ -2,6 +2,9 @@
 packages:
   factory: !include guition-esp32-s3-4848s040.factory.yaml
 
+substitutions:
+  s3_run_render_workload: "false"
+
 esp32:
   framework:
     sdkconfig_options:
@@ -13,3 +16,15 @@ esp32:
 esphome:
   build_flags:
     - "-DESPDESKTOP_S3_DISPLAY_BENCHMARK"
+  includes:
+    - ../components/espdesktop/s3_render_workload.h
+  on_boot:
+    - priority: -100
+      then:
+        - if:
+            condition:
+              lambda: return ${s3_run_render_workload};
+            then:
+              - delay: 35s
+              - script.execute: screensaver_wake
+              - lambda: espdesktop::s3_render_workload.start();

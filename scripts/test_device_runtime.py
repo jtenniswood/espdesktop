@@ -35,13 +35,29 @@ def display_benchmark_values(value):
             or any(type(value.get(key)) is not int or value[key] < 0 for key in counters)
             or value["touch_bucket_us"] == 0):
         raise ValueError("invalid display benchmark counters")
-    for key, length in (("touch_to_scanout", 51), ("idle_us_by_core", 2)):
+    fields = [("touch_to_scanout", 51), ("idle_us_by_core", 2)]
+    if "workload_to_scanout" in value:
+        fields.append(("workload_to_scanout", 51))
+        if (type(value.get("workload_events")) is not int or value["workload_events"] < 0
+                or type(value.get("workload_finished")) is not bool):
+            raise ValueError("invalid display workload counters")
+        counters += ("workload_events", "workload_finished")
+    for key, length in fields:
         counter_list = value.get(key)
         if (not isinstance(counter_list, list) or len(counter_list) != length
                 or any(type(n) is not int or n < 0 for n in counter_list)):
             raise ValueError("invalid display benchmark counter list")
-    return {key: value[key] for key in
-            (*counters, "presentation", "touch_to_scanout", "idle_us_by_core")}
+    return {key: value[key] for key in (*counters, "presentation", *(key for key, _ in fields))}
+
+
+def histogram_p95_bucket(histogram):
+    rank = (95 * sum(histogram) + 99) // 100
+    if rank:
+        for index, count in enumerate(histogram):
+            rank -= count
+            if rank <= 0:
+                return index
+    return None
 
 
 def display_benchmark_summary(first, last):
@@ -55,22 +71,21 @@ def display_benchmark_summary(first, last):
     idle_us = [end - start for start, end in zip(first["idle_us_by_core"], last["idle_us_by_core"])]
     if min(histogram) < 0 or min(idle_us) < 0:
         return None
-    total = sum(histogram)
-    rank = (95 * total + 99) // 100
-    p95_bucket = None
-    for index, count in enumerate(histogram):
-        if rank == 0:
-            break
-        rank -= count
-        if rank <= 0:
-            p95_bucket = index
-            break
-    return {"presentation": last["presentation"], "duration_seconds": span / 1_000_000,
-            "completed_frames": frames, "touch_samples": total,
-            "touch_bucket_us": bucket_us, "touch_to_scanout_histogram": histogram,
-            "touch_p95_bucket": p95_bucket,
-            "cpu_busy_percent_by_core": [round(100 * (1 - min(elapsed, span) / span), 2)
-                                         for elapsed in idle_us]}
+    report = {"presentation": last["presentation"], "duration_seconds": span / 1_000_000,
+              "completed_frames": frames, "touch_samples": sum(histogram),
+              "touch_bucket_us": bucket_us, "touch_to_scanout_histogram": histogram,
+              "touch_p95_bucket": histogram_p95_bucket(histogram),
+              "cpu_busy_percent_by_core": [round(100 * (1 - min(elapsed, span) / span), 2)
+                                           for elapsed in idle_us]}
+    if "workload_to_scanout" in first and "workload_to_scanout" in last:
+        workload = [end - start for start, end in zip(first["workload_to_scanout"], last["workload_to_scanout"])]
+        events = last["workload_events"] - first["workload_events"]
+        if min(workload) < 0 or events < 0:
+            return None
+        report["workload"] = {"events": events, "finished": last["workload_finished"],
+                              "samples": sum(workload), "histogram": workload,
+                              "p95_bucket": histogram_p95_bucket(workload)}
+    return report
 
 
 def positive(value):

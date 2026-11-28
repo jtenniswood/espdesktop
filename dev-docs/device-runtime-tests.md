@@ -125,6 +125,16 @@ tracks the next submitted frame within 250 ms of a touch and can include an
 unrelated redraw or a missed tap. The final count represents 250 ms or
 more. Use the video to validate actual visual feedback and check for tearing.
 
+For a matched run without an operator, compile each profile with
+`esphome -s s3_run_render_workload true compile BUILDS_YAML`. The test image
+opens a temporary nine-tile scene 35 seconds after boot, presses two spaced
+tiles every 100 ms for 200 steps, and returns to the previous screen. Run
+the collector immediately after OTA using `--duration 90 --interval 1` so
+it covers the entire workload. Accept a completed run only when the report's
+`display_benchmark.workload` shows 200 events and 200 samples. The workload
+histogram measures software events through real hardware scan-out. Physical
+touch stays in its own histogram and still needs a person and video.
+
 ### S3 secondary-page cache
 
 On the 4848S040 with a native layout, Home stays ready while secondary

@@ -75,6 +75,14 @@ class EvidenceTests(unittest.TestCase):
         self.assertEqual(report["touch_samples"], 7)
         self.assertEqual(report["touch_to_scanout_histogram"][3], 7)
         self.assertEqual(report["touch_p95_bucket"], 3)
+        first.update(workload_events=0, workload_finished=False, workload_to_scanout=[0] * 51)
+        last.update(workload_events=200, workload_finished=True, workload_to_scanout=[0] * 51)
+        last["workload_to_scanout"][8] = 200
+        workload = runtime.display_benchmark_summary(
+            runtime.display_benchmark_values(first), runtime.display_benchmark_values(last))["workload"]
+        self.assertEqual(workload,
+                         {"events": 200, "finished": True, "samples": 200,
+                          "histogram": last["workload_to_scanout"], "p95_bucket": 8})
         self.assertEqual(report["cpu_busy_percent_by_core"], [50.0, 20.0])
         last["idle_us_by_core"][0] = 0
         self.assertIsNone(runtime.display_benchmark_summary(first, last))
