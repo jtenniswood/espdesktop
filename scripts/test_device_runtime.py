@@ -45,6 +45,11 @@ def display_benchmark_values(value):
     for key in ("touch_to_driver_ready", "workload_to_driver_ready"):
         if key in value:
             fields.append((key, 51))
+    if "workload_copied_bytes" in value:
+        if (type(value["workload_copied_bytes"]) is not int or value["workload_copied_bytes"] < 0
+                or value.get("frame_copy_strategy") not in ("regions", "bounding_rectangle")):
+            raise ValueError("invalid display frame copy diagnostics")
+        counters += ("workload_copied_bytes", "frame_copy_strategy")
     for key, length in fields:
         counter_list = value.get(key)
         if (not isinstance(counter_list, list) or len(counter_list) != length
@@ -88,6 +93,12 @@ def display_benchmark_summary(first, last):
         report["workload"] = {"events": events, "finished": last["workload_finished"],
                               "samples": sum(workload), "histogram": workload,
                               "p95_bucket": histogram_p95_bucket(workload)}
+        if "workload_copied_bytes" in first and "workload_copied_bytes" in last:
+            copied_bytes = last["workload_copied_bytes"] - first["workload_copied_bytes"]
+            if copied_bytes < 0 or first["frame_copy_strategy"] != last["frame_copy_strategy"]:
+                return None
+            report["workload"]["copied_bytes"] = copied_bytes
+            report["workload"]["copy_strategy"] = last["frame_copy_strategy"]
     for key in ("touch_to_driver_ready", "workload_to_driver_ready"):
         if key in first and key in last:
             ready = [end - start for start, end in zip(first[key], last[key])]

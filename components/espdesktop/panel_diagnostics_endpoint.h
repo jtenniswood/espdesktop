@@ -105,6 +105,13 @@ class PanelDiagnosticsHandler final : public esphome::web_server_idf::AsyncWebHa
       for (const auto &count : s3_display_benchmark.workload_to_driver_ready)
         workload_ready.add(count.load(std::memory_order_relaxed));
       benchmark["workload_events"] = s3_display_benchmark.workload_events.load(std::memory_order_relaxed);
+      benchmark["workload_copied_bytes"] =
+          s3_display_benchmark.workload_copied_bytes.load(std::memory_order_relaxed);
+#ifdef ESPDESKTOP_S3_COPY_DIRTY_REGIONS
+      benchmark["frame_copy_strategy"] = "regions";
+#else
+      benchmark["frame_copy_strategy"] = "bounding_rectangle";
+#endif
       benchmark["workload_finished"] = s3_display_benchmark.workload_finished.load(std::memory_order_acquire);
       JsonArray idle = benchmark["idle_us_by_core"].to<JsonArray>();
       for (BaseType_t core = 0; core < configNUMBER_OF_CORES; ++core) {

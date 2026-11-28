@@ -89,6 +89,11 @@ class EvidenceTests(unittest.TestCase):
         driver = runtime.display_benchmark_summary(
             runtime.display_benchmark_values(first), runtime.display_benchmark_values(last))
         self.assertEqual(driver["workload_to_driver_ready"]["p95_bucket"], 5)
+        first.update(workload_copied_bytes=2000, frame_copy_strategy="regions")
+        last.update(workload_copied_bytes=92000, frame_copy_strategy="regions")
+        copy = runtime.display_benchmark_summary(
+            runtime.display_benchmark_values(first), runtime.display_benchmark_values(last))["workload"]
+        self.assertEqual((copy["copied_bytes"], copy["copy_strategy"]), (90000, "regions"))
         self.assertEqual(report["cpu_busy_percent_by_core"], [50.0, 20.0])
         last["idle_us_by_core"][0] = 0
         self.assertIsNone(runtime.display_benchmark_summary(first, last))

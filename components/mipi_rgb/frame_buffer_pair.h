@@ -1,6 +1,9 @@
 #pragma once
 
 #include <algorithm>
+#ifdef ESPDESKTOP_S3_COPY_DIRTY_REGIONS
+#include <array>
+#endif
 #include <cstddef>
 #include <cstdint>
 #include <cstring>
@@ -17,6 +20,10 @@ class FrameBufferPair {
     this->width_ = width;
     this->height_ = height;
     this->dirty_ = false;
+#ifdef ESPDESKTOP_S3_COPY_DIRTY_REGIONS
+    this->region_count_ = 0;
+    this->region_pixels_ = 0;
+#endif
   }
 
   bool available() const { return this->front_ && this->back_; }
@@ -48,24 +55,60 @@ class FrameBufferPair {
       this->bottom_ = std::max(this->bottom_, y + height);
     }
     this->dirty_ = true;
+#ifdef ESPDESKTOP_S3_COPY_DIRTY_REGIONS
+    if (this->region_count_ < this->regions_.size()) {
+      this->regions_[this->region_count_++] = {x, y, x + width, y + height};
+      this->region_pixels_ += static_cast<size_t>(width) * height;
+    } else {
+      this->region_count_ = this->regions_.size() + 1;
+    }
+#endif
     return true;
   }
 
   // Call only after the RGB driver signals the old front buffer is reusable.
   // Copy just the changed rectangle so partial updates start from the same
   // image next time, without a whole-frame copy for every clock/status update.
-  void complete() {
-    if (!this->dirty_) return;
+  size_t complete() {
+    if (!this->dirty_) return 0;
     std::swap(this->front_, this->back_);
-    for (int row = this->top_; row < this->bottom_; ++row) {
-      const size_t offset = static_cast<size_t>(row) * this->width_ + this->left_;
-      std::memcpy(this->back_ + offset, this->front_ + offset,
-                  (this->right_ - this->left_) * sizeof(uint16_t));
-    }
     this->dirty_ = false;
+    const size_t bounding_pixels = static_cast<size_t>(this->right_ - this->left_) *
+                                   (this->bottom_ - this->top_);
+#ifdef ESPDESKTOP_S3_COPY_DIRTY_REGIONS
+    const auto region_count = this->region_count_;
+    const auto region_pixels = this->region_pixels_;
+    this->region_count_ = 0;
+    this->region_pixels_ = 0;
+    if (region_count <= this->regions_.size() && region_pixels < bounding_pixels) {
+      for (size_t i = 0; i < region_count; ++i) {
+        const auto &region = this->regions_[i];
+        this->copy_(region.left, region.top, region.right, region.bottom);
+      }
+      return region_pixels * sizeof(uint16_t);
+    }
+#endif
+    this->copy_(this->left_, this->top_, this->right_, this->bottom_);
+    return bounding_pixels * sizeof(uint16_t);
   }
 
  protected:
+  void copy_(int left, int top, int right, int bottom) {
+    for (int row = top; row < bottom; ++row) {
+      const size_t offset = static_cast<size_t>(row) * this->width_ + left;
+      std::memcpy(this->back_ + offset, this->front_ + offset,
+                  (right - left) * sizeof(uint16_t));
+    }
+  }
+
+#ifdef ESPDESKTOP_S3_COPY_DIRTY_REGIONS
+  struct Region {
+    int left, top, right, bottom;
+  };
+  std::array<Region, 16> regions_{};
+  size_t region_count_ = 0;
+  size_t region_pixels_ = 0;
+#endif
   uint16_t *front_ = nullptr;
   uint16_t *back_ = nullptr;
   int width_ = 0;

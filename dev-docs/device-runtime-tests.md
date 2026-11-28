@@ -138,6 +138,12 @@ the RGB interrupt that signals the old buffer is reusable before the loop
 can observe it. Require 200 samples in both histograms. Physical touch
 stays in its own histograms and touch-to-visible evidence needs video.
 
+The optional `guition-esp32-s3-4848s040-dirty-regions.yaml` profile keeps
+synchronous presentation and tracks up to 16 updated rectangles per frame.
+It uses the bounding rectangle if the region list fills or copying the
+regions would move as many pixels. Compare `display_benchmark.workload.copied_bytes`
+with the synchronous reference for the same 200-event run.
+
 ### S3 secondary-page cache
 
 On the 4848S040 with a native layout, Home stays ready while secondary

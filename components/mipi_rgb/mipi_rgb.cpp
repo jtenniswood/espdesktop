@@ -293,9 +293,9 @@ void MipiRgb::end_frame() {
     this->mark_failed(LOG_STR("RGB frame completion timed out"));
     return;
   }
-  this->frames_.complete();
+  [[maybe_unused]] const auto copied_bytes = this->frames_.complete();
 #ifdef ESPDESKTOP_S3_DISPLAY_BENCHMARK
-  ::espdesktop::s3_display_benchmark.complete(this->frame_done_timestamp_us_);
+  ::espdesktop::s3_display_benchmark.complete(this->frame_done_timestamp_us_, copied_bytes);
 #endif
 #endif
 }
@@ -320,9 +320,9 @@ void MipiRgb::finish_frame_(bool wait) {
     return;
   }
   this->frame_pending_ = false;
-  this->frames_.complete();
+  [[maybe_unused]] const auto copied_bytes = this->frames_.complete();
 #ifdef ESPDESKTOP_S3_DISPLAY_BENCHMARK
-  ::espdesktop::s3_display_benchmark.complete(this->frame_done_timestamp_us_);
+  ::espdesktop::s3_display_benchmark.complete(this->frame_done_timestamp_us_, copied_bytes);
 #endif
   const auto callback = this->frame_presented_;
   this->frame_presented_ = nullptr;

@@ -3,6 +3,7 @@
 #ifdef ESPDESKTOP_S3_DISPLAY_BENCHMARK
 #include <array>
 #include <atomic>
+#include <cstddef>
 #include <cstdint>
 #include <esp_timer.h>
 
@@ -18,6 +19,7 @@ class S3DisplayBenchmark {
   std::array<std::atomic<uint32_t>, bucket_count> touch_to_driver_ready{};
   std::array<std::atomic<uint32_t>, bucket_count> workload_to_driver_ready{};
   std::atomic<uint32_t> workload_events{0};
+  std::atomic<uint32_t> workload_copied_bytes{0};
   std::atomic<bool> workload_finished{false};
   std::atomic<uint32_t> completed_frames{0};
   std::atomic<uint32_t> last_submit_to_scanout_us{0};
@@ -35,11 +37,12 @@ class S3DisplayBenchmark {
     touch_us_ = 0;
   }
 
-  void complete(int64_t ready_us) {
+  void complete(int64_t ready_us, size_t copied_bytes) {
     const auto now = esp_timer_get_time();
     last_submit_to_scanout_us.store(now - submitted_us_, std::memory_order_relaxed);
     completed_frames.fetch_add(1, std::memory_order_relaxed);
     if (submitted_touch_us_ == 0 || submitted_us_ - submitted_touch_us_ >= 250000) return;
+    if (submitted_workload_) workload_copied_bytes.fetch_add(copied_bytes, std::memory_order_relaxed);
     auto &observed = submitted_workload_ ? workload_to_scanout : touch_to_scanout;
     observed[bucket_(now - submitted_touch_us_)].fetch_add(1, std::memory_order_relaxed);
     if (ready_us >= submitted_touch_us_ && ready_us <= now) {

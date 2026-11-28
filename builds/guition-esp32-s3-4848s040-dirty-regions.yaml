@@ -1,0 +1,7 @@
+# Opt-in comparison image using synchronous presentation and smaller frame copies.
+packages:
+  benchmark: !include guition-esp32-s3-4848s040-benchmark.yaml
+
+esphome:
+  build_flags:
+    - "-DESPDESKTOP_S3_COPY_DIRTY_REGIONS"
