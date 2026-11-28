@@ -105,11 +105,16 @@ class PanelDiagnosticsHandler final : public esphome::web_server_idf::AsyncWebHa
       for (const auto &count : s3_display_benchmark.workload_to_driver_ready)
         workload_ready.add(count.load(std::memory_order_relaxed));
       benchmark["workload_events"] = s3_display_benchmark.workload_events.load(std::memory_order_relaxed);
-      benchmark["workload_kind"] =
-          s3_display_benchmark.workload_pages.load(std::memory_order_relaxed) ? "pages" : "tiles";
+      switch (s3_display_benchmark.workload_kind.load(std::memory_order_relaxed)) {
+        case S3WorkloadKind::Tiles: benchmark["workload_kind"] = "tiles"; break;
+        case S3WorkloadKind::Pages: benchmark["workload_kind"] = "pages"; break;
+        case S3WorkloadKind::Mixed: benchmark["workload_kind"] = "mixed"; break;
+      }
       benchmark["workload_copied_bytes"] =
           s3_display_benchmark.workload_copied_bytes.load(std::memory_order_relaxed);
-#if defined(ESPDESKTOP_S3_DEFER_FRAME_COPIES)
+#if defined(ESPDESKTOP_S3_DEFER_FRAME_COPIES) && defined(ESPDESKTOP_S3_COPY_DIRTY_REGIONS)
+      benchmark["frame_copy_strategy"] = "combined";
+#elif defined(ESPDESKTOP_S3_DEFER_FRAME_COPIES)
       benchmark["frame_copy_strategy"] = "deferred";
 #elif defined(ESPDESKTOP_S3_COPY_DIRTY_REGIONS)
       benchmark["frame_copy_strategy"] = "regions";

@@ -9,12 +9,13 @@ namespace espdesktop {
 // Benches LVGL and real scan-out using private tiles that cannot invoke actions.
 class S3RenderWorkload {
  public:
-  void start(bool page_transitions) {
+  void start(bool page_transitions, bool mixed) {
     this->previous_ = lv_screen_active();
     if (this->previous_ == nullptr) return;
     this->scenes_[0] = this->create_scene_(false);
-    if (page_transitions) this->scenes_[1] = this->create_scene_(true);
-    s3_display_benchmark.workload_pages.store(page_transitions, std::memory_order_relaxed);
+    if (page_transitions || mixed) this->scenes_[1] = this->create_scene_(true);
+    this->kind_ = mixed ? S3WorkloadKind::Mixed : page_transitions ? S3WorkloadKind::Pages : S3WorkloadKind::Tiles;
+    s3_display_benchmark.workload_kind.store(this->kind_, std::memory_order_relaxed);
     lv_screen_load(this->scenes_[0]);
     lv_timer_create([](lv_timer_t *timer) {
       static_cast<S3RenderWorkload *>(lv_timer_get_user_data(timer))->step_(timer);
@@ -30,9 +31,10 @@ class S3RenderWorkload {
     lv_label_set_text(heading, secondary ? "Shortcut page" : "Home");
     lv_obj_set_style_text_color(heading, lv_color_white(), 0);
     lv_obj_align(heading, LV_ALIGN_TOP_MID, 0, 10);
-    for (size_t index = 0; index < this->tiles_.size(); ++index) {
+    auto &tiles = this->tiles_[secondary ? 1 : 0];
+    for (size_t index = 0; index < tiles.size(); ++index) {
       auto *tile = lv_button_create(scene);
-      if (!secondary) this->tiles_[index] = tile;
+      tiles[index] = tile;
       lv_obj_set_size(tile, 144, 132);
       lv_obj_set_pos(tile, 16 + index % 3 * 152, 40 + index / 3 * 144);
       lv_obj_set_style_radius(tile, 22, 0);
@@ -66,12 +68,14 @@ class S3RenderWorkload {
     }
 
     s3_display_benchmark.touch(true);
-    if (this->scenes_[1] != nullptr) {
+    if (this->kind_ == S3WorkloadKind::Pages ||
+        (this->kind_ == S3WorkloadKind::Mixed && this->steps_ % 4 == 0)) {
       lv_screen_load(active == this->scenes_[0] ? this->scenes_[1] : this->scenes_[0]);
     } else {
-      const auto first = this->steps_ % this->tiles_.size();
-      lv_obj_send_event(this->tiles_[first], LV_EVENT_PRESSED, nullptr);
-      lv_obj_send_event(this->tiles_[(first + 4) % this->tiles_.size()], LV_EVENT_PRESSED, nullptr);
+      const auto &tiles = this->tiles_[active == this->scenes_[0] ? 0 : 1];
+      const auto first = this->steps_ % tiles.size();
+      lv_obj_send_event(tiles[first], LV_EVENT_PRESSED, nullptr);
+      lv_obj_send_event(tiles[(first + 4) % tiles.size()], LV_EVENT_PRESSED, nullptr);
     }
     ++this->steps_;
     lv_refr_now(nullptr);
@@ -79,7 +83,8 @@ class S3RenderWorkload {
 
   lv_obj_t *previous_ = nullptr;
   std::array<lv_obj_t *, 2> scenes_{};
-  std::array<lv_obj_t *, 9> tiles_{};
+  std::array<std::array<lv_obj_t *, 9>, 2> tiles_{};
+  S3WorkloadKind kind_ = S3WorkloadKind::Tiles;
   unsigned steps_ = 0;
 };
 

@@ -1,0 +1,7 @@
+# Opt-in synchronous profile that defers copies only after complete redraws.
+packages:
+  deferred: !include guition-esp32-s3-4848s040-deferred-copy.yaml
+
+esphome:
+  build_flags:
+    - "-DESPDESKTOP_S3_COPY_DIRTY_REGIONS"

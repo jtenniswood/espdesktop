@@ -102,12 +102,31 @@ class FrameBufferPair {
     std::swap(this->front_, this->back_);
     this->dirty_ = false;
 #ifdef ESPDESKTOP_S3_DEFER_FRAME_COPIES
-    this->stale_ = {this->left_, this->top_, this->right_, this->bottom_};
-    this->overwritten_.reset();
     const auto copied_bytes = this->copied_bytes_;
     this->copied_bytes_ = 0;
-    return copied_bytes;
+    const bool defer =
+#ifdef ESPDESKTOP_S3_COPY_DIRTY_REGIONS
+        this->overwritten_.count() == static_cast<size_t>(this->height_);
 #else
+        true;
+#endif
+    this->overwritten_.reset();
+    if (defer) {
+      this->stale_ = {this->left_, this->top_, this->right_, this->bottom_};
+#ifdef ESPDESKTOP_S3_COPY_DIRTY_REGIONS
+      this->region_count_ = 0;
+      this->region_pixels_ = 0;
+#endif
+      return copied_bytes;
+    }
+    return copied_bytes + this->copy_current_();
+#else
+    return this->copy_current_();
+#endif
+  }
+
+ protected:
+  size_t copy_current_() {
     const size_t bounding_pixels = static_cast<size_t>(this->right_ - this->left_) *
                                    (this->bottom_ - this->top_);
 #ifdef ESPDESKTOP_S3_COPY_DIRTY_REGIONS
@@ -125,10 +144,8 @@ class FrameBufferPair {
 #endif
     this->copy_(this->left_, this->top_, this->right_, this->bottom_);
     return bounding_pixels * sizeof(uint16_t);
-#endif
   }
 
- protected:
   void copy_(int left, int top, int right, int bottom) {
     for (int row = top; row < bottom; ++row) {
       const size_t offset = static_cast<size_t>(row) * this->width_ + left;

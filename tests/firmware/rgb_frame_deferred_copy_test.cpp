@@ -31,13 +31,21 @@ int main() {
   // Uncovered rows must be preserved, including holes between full-width strips.
   write_row(0, 21);
   write_row(3, 24);
+#ifdef ESPDESKTOP_S3_COPY_DIRTY_REGIONS
+  present(24 * sizeof(uint16_t));
+#else
   present(12 * sizeof(uint16_t));
+#endif
   assert(frames.front()[0] == 21 && frames.front()[6] == 11);
   assert(frames.front()[12] == 12 && frames.front()[18] == 24);
   // Repair before writing a partial rectangle without undoing an earlier full row.
   write_row(3, 30);
   write_pixel(2, 1, 42);
+#ifdef ESPDESKTOP_S3_COPY_DIRTY_REGIONS
+  present(7 * sizeof(uint16_t));
+#else
   present(18 * sizeof(uint16_t));
+#endif
   assert(frames.front()[0] == 21 && frames.front()[6] == 11);
   assert(frames.front()[8] == 42 && frames.front()[18] == 30);
   frames.prepare();
@@ -47,7 +55,11 @@ int main() {
   std::vector<uint16_t> tall_a(481), tall_b(481);
   frames.reset(tall_a.data(), tall_b.data(), 1, 481);
   write_pixel(0, 480, 7);
+#ifdef ESPDESKTOP_S3_COPY_DIRTY_REGIONS
+  present(sizeof(uint16_t));
+#else
   present(0);
+#endif
   write_pixel(0, 0, 8);
   present(sizeof(uint16_t));
   assert(frames.front()[0] == 8 && frames.front()[480] == 7);

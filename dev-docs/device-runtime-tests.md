@@ -156,6 +156,13 @@ Use the same tile and page workload flags when comparing it with the
 synchronous reference. Compare copy bytes as well as device-loop p95:
 any remaining copy moves earlier in the next frame.
 
+The opt-in `guition-esp32-s3-4848s040-combined-copy.yaml` profile defers
+the copy after a confirmed full-screen replacement and uses changed
+rectangles after partial redraws. Add `-s s3_run_mixed_workload true` to the
+reference and candidate compile commands to change pages every fourth
+event and update two tiles between page changes. Check the workload is
+reported as `mixed` and compare its 200 samples to the synchronous reference.
+
 ### S3 secondary-page cache
 
 On the 4848S040 with a native layout, Home stays ready while secondary
