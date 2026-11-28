@@ -108,22 +108,30 @@ identity, 64-bit uptime and memory/build serialization.
 ### Compare S3 presentation builds
 
 Build the `guition-esp32-s3-4848s040-benchmark.yaml` reference and
-`guition-esp32-s3-4848s040-async-scanout.yaml` candidate from the
-same revision, with the same embedded editor and pinned ESPHome version.
+`guition-esp32-s3-4848s040-combined-copy.yaml` candidate from the same
+revision, with the same embedded editor and pinned ESPHome version.
+Leave `s3_run_render_workload` off for the hands-on comparison.
 Use the app-only OTA artifacts for an already configured test S3. Use the
-factory artifacts for a separate clean-install check through ESP Web Tools.
+factory artifacts for a separate clean-install check on a spare S3 through
+ESP Web Tools.
 Keep a pre-test backup and the current working OTA artifact available.
 
 Run `npm run test:device-runtime -- --host PANEL_IP --duration 120` for
 each build. Start the interaction sequence after the first sample. Repeat
 the same taps, page opens, Back gestures and artwork/web editor workload,
 then allow a final HTTP sample before stopping. Also record a separate idle
-run. Capture the physical touch-to-visible delay with video where possible.
+run. Use the same camera frame rate and screen framing for both runs. For
+each comparable tap, count frames from finger contact to the first visible
+response and divide by the frame rate to get the delay in seconds.
 The report records both core CPU busy percentages, largest free blocks and
 a histogram of touch detection to observed scan-out completion. The latter
 tracks the next submitted frame within 250 ms of a touch and can include an
 unrelated redraw or a missed tap. The final count represents 250 ms or
 more. Use the video to validate actual visual feedback and check for tearing.
+
+After each OTA, check that the panel keeps its name and saved layout. Run
+the same existing Home Assistant automation that calls a panel action and
+check both its trace and the expected action on the panel or connected Mac.
 
 For a matched run without an operator, compile each profile with
 `esphome -s s3_run_render_workload true compile BUILDS_YAML`. The test image
