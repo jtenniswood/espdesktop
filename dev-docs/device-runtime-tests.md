@@ -177,9 +177,11 @@ This sends press and release coordinates through the same ESPHome LVGL touch
 listener as the GT911. It exercises private tiles, including Open page and
 Back, without invoking saved card actions. Start collection before the
 workload begins and allow 120 seconds. Verify 200 submitted points, 200
-handled presses, 50 page changes and both frame timing histograms. This
-measures the input and render path after coordinates arrive. It cannot
-measure the capacitive sensor or determine when a pixel visibly changes.
+handled presses, and 200 observations in both press timing histograms.
+Verify 50 page changes and 50 samples in `pointer_release_to_page`, which
+times the release that activated Open page or Back through the first
+completed frame on the destination. These measurements start at software
+input and end at frame completion.
 
 ### S3 secondary-page cache
 

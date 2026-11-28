@@ -57,6 +57,8 @@ class S3RenderWorkload {
         lv_label_set_text(label, secondary ? "Back" : "Open page");
         lv_obj_add_event_cb(tile, [](lv_event_t *event) {
           auto *self = static_cast<S3RenderWorkload *>(lv_event_get_user_data(event));
+          if (lv_event_get_target_obj(event) != self->pointer_target_ || !self->page_release_us_) return;
+          s3_display_benchmark.page_requested(self->page_release_us_);
           lv_screen_load(lv_screen_active() == self->scenes_[0] ? self->scenes_[1] : self->scenes_[0]);
           s3_display_benchmark.pointer_page_changes.fetch_add(1, std::memory_order_relaxed);
         }, LV_EVENT_CLICKED, this);
@@ -78,6 +80,7 @@ class S3RenderWorkload {
 
   void pointer_step_(lv_obj_t *active) {
     if (this->pointer_down_) {
+      this->page_release_us_ = esp_timer_get_time();
       this->pointer_->release();
       this->pointer_down_ = false;
       return;
@@ -85,6 +88,7 @@ class S3RenderWorkload {
     const auto &tiles = this->tiles_[active == this->scenes_[0] ? 0 : 1];
     const size_t index = this->steps_ % 4 == 0 ? 0 : 1 + (this->steps_ % (tiles.size() - 1));
     this->pointer_target_ = tiles[index];
+    this->page_release_us_ = 0;
     lv_area_t area;
     lv_obj_get_coords(this->pointer_target_, &area);
     esphome::touchscreen::TouchPoint point{};
@@ -139,6 +143,7 @@ class S3RenderWorkload {
   unsigned steps_ = 0;
   esphome::lvgl::LVTouchListener *pointer_ = nullptr;
   lv_obj_t *pointer_target_ = nullptr;
+  int64_t page_release_us_ = 0;
   bool pointer_down_ = false;
 };
 

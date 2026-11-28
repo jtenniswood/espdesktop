@@ -104,6 +104,11 @@ class EvidenceTests(unittest.TestCase):
         presses = runtime.display_benchmark_summary(
             runtime.display_benchmark_values(first), runtime.display_benchmark_values(pointer))["workload"]
         self.assertEqual((presses["pointer_presses"], presses["pointer_page_changes"]), (200, 50))
+        pointer["pointer_release_to_page"] = [0] * 51
+        pointer["pointer_release_to_page"][14] = 50
+        transitions = runtime.display_benchmark_summary(
+            runtime.display_benchmark_values(first), runtime.display_benchmark_values(pointer))["pointer_release_to_page"]
+        self.assertEqual((transitions["samples"], transitions["p95_bucket"]), (50, 14))
         del pointer["pointer_page_changes"]
         with self.assertRaisesRegex(ValueError, "pointer counters"):
             runtime.display_benchmark_values(pointer)

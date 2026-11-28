@@ -42,7 +42,7 @@ def display_benchmark_values(value):
                 or type(value.get("workload_finished")) is not bool):
             raise ValueError("invalid display workload counters")
         counters += ("workload_events", "workload_finished")
-    for key in ("touch_to_driver_ready", "workload_to_driver_ready"):
+    for key in ("touch_to_driver_ready", "workload_to_driver_ready", "pointer_release_to_page"):
         if key in value:
             fields.append((key, 51))
     if "workload_copied_bytes" in value:
@@ -125,6 +125,14 @@ def display_benchmark_summary(first, last):
                 return None
             report[key] = {"samples": sum(ready), "histogram": ready,
                            "p95_bucket": histogram_p95_bucket(ready)}
+    if "pointer_release_to_page" in last:
+        first_pages = first.get("pointer_release_to_page", [0] * 51)
+        pages = [end - start for start, end in zip(first_pages, last["pointer_release_to_page"])]
+        if min(pages) < 0:
+            return None
+        report["pointer_release_to_page"] = {
+            "samples": sum(pages), "histogram": pages, "p95_bucket": histogram_p95_bucket(pages),
+        }
     return report
 
 

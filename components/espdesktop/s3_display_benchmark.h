@@ -20,6 +20,7 @@ class S3DisplayBenchmark {
   std::array<std::atomic<uint32_t>, bucket_count> workload_to_scanout{};
   std::array<std::atomic<uint32_t>, bucket_count> touch_to_driver_ready{};
   std::array<std::atomic<uint32_t>, bucket_count> workload_to_driver_ready{};
+  std::array<std::atomic<uint32_t>, bucket_count> pointer_release_to_page{};
   std::atomic<uint32_t> workload_events{0};
   std::atomic<uint32_t> workload_copied_bytes{0};
   std::atomic<uint32_t> pointer_presses{0};
@@ -35,17 +36,24 @@ class S3DisplayBenchmark {
     if (workload) workload_events.fetch_add(1, std::memory_order_relaxed);
   }
 
+  void page_requested(int64_t release_us) { page_release_us_ = release_us; }
+
   void submit() {
     submitted_us_ = esp_timer_get_time();
     submitted_touch_us_ = touch_us_;
     submitted_workload_ = workload_touch_;
     touch_us_ = 0;
+    submitted_page_release_us_ = page_release_us_;
+    page_release_us_ = 0;
   }
 
   void complete(int64_t ready_us, size_t copied_bytes) {
     const auto now = esp_timer_get_time();
     last_submit_to_scanout_us.store(now - submitted_us_, std::memory_order_relaxed);
     completed_frames.fetch_add(1, std::memory_order_relaxed);
+    if (submitted_page_release_us_ > 0 && submitted_us_ - submitted_page_release_us_ < 250000) {
+      pointer_release_to_page[bucket_(now - submitted_page_release_us_)].fetch_add(1, std::memory_order_relaxed);
+    }
     if (submitted_touch_us_ == 0 || submitted_us_ - submitted_touch_us_ >= 250000) return;
     if (submitted_workload_) workload_copied_bytes.fetch_add(copied_bytes, std::memory_order_relaxed);
     auto &observed = submitted_workload_ ? workload_to_scanout : touch_to_scanout;
@@ -64,6 +72,8 @@ class S3DisplayBenchmark {
   int64_t touch_us_ = 0;
   int64_t submitted_us_ = 0;
   int64_t submitted_touch_us_ = 0;
+  int64_t page_release_us_ = 0;
+  int64_t submitted_page_release_us_ = 0;
   bool workload_touch_ = false;
   bool submitted_workload_ = false;
 };
