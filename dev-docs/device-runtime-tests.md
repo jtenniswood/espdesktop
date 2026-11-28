@@ -105,6 +105,99 @@ without contacting hardware. Firmware host tests execute the production
 diagnostics handler, including authentication, unavailable startup, stable boot
 identity, 64-bit uptime and memory/build serialization.
 
+### Compare S3 presentation builds
+
+Build the `guition-esp32-s3-4848s040-benchmark.yaml` reference and
+`guition-esp32-s3-4848s040-combined-copy.yaml` candidate from the same
+revision, with the same embedded editor and pinned ESPHome version.
+Leave `s3_run_render_workload` off for the hands-on comparison.
+Use the app-only OTA artifacts for an already configured test S3. Use the
+factory artifacts for a separate clean-install check on a spare S3 through
+ESP Web Tools.
+Keep a pre-test backup and the current working OTA artifact available.
+
+Run `npm run test:device-runtime -- --host PANEL_IP --duration 120` for
+each build. Start the interaction sequence after the first sample. Repeat
+the same taps, page opens, Back gestures and artwork/web editor workload,
+then allow a final HTTP sample before stopping. Also record a separate idle
+run. Use the same camera frame rate and screen framing for both runs. For
+each comparable tap, count frames from finger contact to the first visible
+response and divide by the frame rate to get the delay in seconds.
+The report records both core CPU busy percentages, largest free blocks and
+a histogram of touch detection to observed scan-out completion. The latter
+tracks the next submitted frame within 250 ms of a touch and can include an
+unrelated redraw or a missed tap. The final count represents 250 ms or
+more. Use the video to validate actual visual feedback and check for tearing.
+
+After each OTA, check that the panel keeps its name and saved layout. Run
+the same existing Home Assistant automation that calls a panel action and
+check both its trace and the expected action on the panel or connected Mac.
+
+For a matched run without an operator, compile each profile with
+`esphome -s s3_run_render_workload true compile BUILDS_YAML`. The test image
+opens a temporary nine-tile scene 35 seconds after boot, presses two spaced
+tiles every 100 ms for 200 steps, and returns to the previous screen. Run
+the collector immediately after OTA using `--duration 90 --interval 1` so
+it covers the entire workload. Accept a completed run only when the report's
+`display_benchmark.workload` shows 200 events and 200 samples. The workload
+histogram measures software events until the device loop handles frame
+completion. Compare it with `workload_to_driver_ready`, which timestamps
+the RGB interrupt that signals the old buffer is reusable before the loop
+can observe it. Require 200 samples in both histograms. Physical touch
+stays in its own histograms and touch-to-visible evidence needs video.
+
+The optional `guition-esp32-s3-4848s040-dirty-regions.yaml` profile keeps
+synchronous presentation and tracks up to 16 updated rectangles per frame.
+It uses the bounding rectangle if the region list fills or copying the
+regions would move as many pixels. Compare `display_benchmark.workload.copied_bytes`
+with the synchronous reference for the same 200-event run.
+
+Add `-s s3_run_page_workload true` to both build commands to alternate
+between two complete screens instead of changing two tiles. Allow about
+150 seconds for collection and confirm the report marks the workload as
+`pages`. Use this comparison to check page changes and the full-frame
+copy fallback, alongside the sparse tile results.
+
+The opt-in `guition-esp32-s3-4848s040-deferred-copy.yaml` profile tests
+skipping the copy for full-width rows overwritten by the next frame.
+Use the same tile and page workload flags when comparing it with the
+synchronous reference. Compare copy bytes as well as device-loop p95:
+any remaining copy moves earlier in the next frame.
+
+The opt-in `guition-esp32-s3-4848s040-combined-copy.yaml` profile defers
+the copy after a confirmed full-screen replacement and uses changed
+rectangles after partial redraws. Add `-s s3_run_mixed_workload true` to the
+reference and candidate compile commands to change pages every fourth
+event and update two tiles between page changes. Check the workload is
+reported as `mixed` and compare its 200 samples to the synchronous reference.
+
+For unattended touch testing, compile the reference and combined-copy
+profile with `-s s3_run_render_workload true -s s3_run_pointer_workload true`.
+Save the OTA images separately, then run the comparison from the worktree
+with the pinned ESPHome executable on your path.
+
+```sh
+python3 scripts/test_s3_pointer_comparison.py --host PANEL_IP \
+  --reference reference.ota.bin --candidate combined.ota.bin \
+  --restore current.ota.bin --output build/s3-pointer-comparison
+```
+
+The restore image must match the build currently running on the panel.
+The runner installs and verifies each build, records both reports and
+restores the original firmware even if collection fails. It checks the
+hostname, saved layout, and Home Assistant connector setting after each OTA.
+Use a fresh output directory for each run.
+
+This sends press and release coordinates through the same ESPHome LVGL touch
+listener as the GT911. It exercises private tiles, including Open page and
+Back, without invoking saved card actions. The runner requires 200 submitted
+points, 200 handled presses, and 200 observations in both press timing
+histograms. It also requires 50 page changes and 50 samples in
+`pointer_release_to_page`, which
+times the release that activated Open page or Back through the first
+completed frame on the destination. These measurements start at software
+input and end at frame completion.
+
 ### S3 secondary-page cache
 
 On the 4848S040 with a native layout, Home stays ready while secondary

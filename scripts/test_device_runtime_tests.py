@@ -60,6 +60,64 @@ class EvidenceTests(unittest.TestCase):
         self.assertIn('incomplete_http_coverage', report['failures'])
         self.assertIn('missing_memory_diagnostics', report['failures'])
 
+    def test_display_benchmark_uses_deltas_and_checks_counter_resets(self):
+        first = runtime.display_benchmark_values({
+            "presentation": "async", "sample_time_us": 1_000_000,
+            "completed_frames": 20, "last_submit_to_scanout_us": 1000,
+            "touch_bucket_us": 5000, "touch_to_scanout": [4] * 51,
+            "idle_us_by_core": [400_000, 600_000],
+        })
+        last = deepcopy(first)
+        last.update(sample_time_us=2_000_000, completed_frames=30, idle_us_by_core=[900_000, 1_400_000])
+        last["touch_to_scanout"][3] += 7
+        report = runtime.display_benchmark_summary(first, last)
+        self.assertEqual(report["completed_frames"], 10)
+        self.assertEqual(report["touch_samples"], 7)
+        self.assertEqual(report["touch_to_scanout_histogram"][3], 7)
+        self.assertEqual(report["touch_p95_bucket"], 3)
+        first.update(workload_events=0, workload_finished=False, workload_to_scanout=[0] * 51)
+        last.update(workload_events=200, workload_finished=True, workload_to_scanout=[0] * 51)
+        last["workload_to_scanout"][8] = 200
+        workload = runtime.display_benchmark_summary(
+            runtime.display_benchmark_values(first), runtime.display_benchmark_values(last))["workload"]
+        self.assertEqual(workload,
+                         {"events": 200, "finished": True, "samples": 200,
+                          "histogram": last["workload_to_scanout"], "p95_bucket": 8})
+        first["workload_to_driver_ready"] = [0] * 51
+        last["workload_to_driver_ready"] = [0] * 51
+        last["workload_to_driver_ready"][5] = 200
+        driver = runtime.display_benchmark_summary(
+            runtime.display_benchmark_values(first), runtime.display_benchmark_values(last))
+        self.assertEqual(driver["workload_to_driver_ready"]["p95_bucket"], 5)
+        first.update(workload_copied_bytes=2000, frame_copy_strategy="regions")
+        last.update(workload_copied_bytes=92000, frame_copy_strategy="regions")
+        copy = runtime.display_benchmark_summary(
+            runtime.display_benchmark_values(first), runtime.display_benchmark_values(last))["workload"]
+        self.assertEqual((copy["copied_bytes"], copy["copy_strategy"]), (90000, "regions"))
+        first["workload_kind"] = "tiles"
+        last["workload_kind"] = "pages"
+        pages = runtime.display_benchmark_summary(
+            runtime.display_benchmark_values(first), runtime.display_benchmark_values(last))["workload"]
+        self.assertEqual(pages["kind"], "pages")
+        pointer = deepcopy(last)
+        pointer.update(workload_kind="pointer", pointer_presses=200, pointer_page_changes=50)
+        presses = runtime.display_benchmark_summary(
+            runtime.display_benchmark_values(first), runtime.display_benchmark_values(pointer))["workload"]
+        self.assertEqual((presses["pointer_presses"], presses["pointer_page_changes"]), (200, 50))
+        pointer["pointer_release_to_page"] = [0] * 51
+        pointer["pointer_release_to_page"][14] = 50
+        transitions = runtime.display_benchmark_summary(
+            runtime.display_benchmark_values(first), runtime.display_benchmark_values(pointer))["pointer_release_to_page"]
+        self.assertEqual((transitions["samples"], transitions["p95_bucket"]), (50, 14))
+        del pointer["pointer_page_changes"]
+        with self.assertRaisesRegex(ValueError, "pointer counters"):
+            runtime.display_benchmark_values(pointer)
+        first["workload_events"] = 1
+        self.assertIsNone(runtime.display_benchmark_summary(first, last))
+        self.assertEqual(report["cpu_busy_percent_by_core"], [50.0, 20.0])
+        last["idle_us_by_core"][0] = 0
+        self.assertIsNone(runtime.display_benchmark_summary(first, last))
+
 
 class ReleaseHardwareTests(unittest.TestCase):
     def test_reports_checkpoint_memory_and_binds_the_candidate(self):

@@ -43,6 +43,20 @@ int main() {
   assert(!frames.write(0, 0, 1, 1, reinterpret_cast<const uint8_t *>(source.data()), -1, 0, 0));
   frames.complete();
   assert(front == original && back == original && !frames.dirty());
+  uint16_t pixel = 200;
+  const auto *bytes = reinterpret_cast<const uint8_t *>(&pixel);
+  assert(frames.write(0, 0, 1, 1, bytes, 0, 0, 0));
+  assert(frames.write(5, 3, 1, 1, bytes, 0, 0, 0));
+#ifdef ESPDESKTOP_S3_COPY_DIRTY_REGIONS
+  assert(frames.complete() == 2 * sizeof(pixel));
+#else
+  assert(frames.complete() == front.size() * sizeof(pixel));
+#endif
+  assert(front == back && front[0] == pixel && front[23] == pixel && front[8] == 91);
+  for (size_t index = 0; index < 17; ++index)
+    assert(frames.write(index % 2 ? 0 : 5, index % 2 ? 0 : 3, 1, 1, bytes, 0, 0, 0));
+  assert(frames.complete() == front.size() * sizeof(pixel));
+  assert(front == back && frames.complete() == 0);
   frames.reset(nullptr, nullptr, 6, 4);
   assert(!frames.available());
 }

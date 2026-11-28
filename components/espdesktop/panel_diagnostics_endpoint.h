@@ -10,6 +10,11 @@
 #include "esphome/components/web_server_idf/web_server_idf.h"
 #include "panel_identity.h"
 #include "grid_navigation_diagnostics.h"
+#ifdef ESPDESKTOP_S3_DISPLAY_BENCHMARK
+#include <freertos/FreeRTOS.h>
+#include <freertos/task.h>
+#include "s3_display_benchmark.h"
+#endif
 
 namespace espdesktop {
 // Read-only health information. No entity values, credentials or saved layout.
@@ -75,6 +80,64 @@ class PanelDiagnosticsHandler final : public esphome::web_server_idf::AsyncWebHa
       if (psram_total > 0) memory["psram_free_percent"] = 100.0 * heap_caps_get_free_size(external) / psram_total;
       memory["heap_largest_bytes"] = heap_caps_get_largest_free_block(internal);
       memory["psram_largest_bytes"] = heap_caps_get_largest_free_block(external);
+#ifdef ESPDESKTOP_S3_DISPLAY_BENCHMARK
+      JsonObject benchmark = root["display_benchmark"].to<JsonObject>();
+#ifdef ESPDESKTOP_S3_ASYNC_SCANOUT
+      benchmark["presentation"] = "async";
+#else
+      benchmark["presentation"] = "sync";
+#endif
+      benchmark["sample_time_us"] = esp_timer_get_time();
+      benchmark["completed_frames"] = s3_display_benchmark.completed_frames.load(std::memory_order_relaxed);
+      benchmark["last_submit_to_scanout_us"] =
+          s3_display_benchmark.last_submit_to_scanout_us.load(std::memory_order_relaxed);
+      benchmark["touch_bucket_us"] = S3DisplayBenchmark::bucket_us;
+      JsonArray histogram = benchmark["touch_to_scanout"].to<JsonArray>();
+      for (const auto &count : s3_display_benchmark.touch_to_scanout)
+        histogram.add(count.load(std::memory_order_relaxed));
+      JsonArray workload = benchmark["workload_to_scanout"].to<JsonArray>();
+      for (const auto &count : s3_display_benchmark.workload_to_scanout)
+        workload.add(count.load(std::memory_order_relaxed));
+      JsonArray touch_ready = benchmark["touch_to_driver_ready"].to<JsonArray>();
+      for (const auto &count : s3_display_benchmark.touch_to_driver_ready)
+        touch_ready.add(count.load(std::memory_order_relaxed));
+      JsonArray workload_ready = benchmark["workload_to_driver_ready"].to<JsonArray>();
+      for (const auto &count : s3_display_benchmark.workload_to_driver_ready)
+        workload_ready.add(count.load(std::memory_order_relaxed));
+      benchmark["workload_events"] = s3_display_benchmark.workload_events.load(std::memory_order_relaxed);
+      switch (s3_display_benchmark.workload_kind.load(std::memory_order_relaxed)) {
+        case S3WorkloadKind::Tiles: benchmark["workload_kind"] = "tiles"; break;
+        case S3WorkloadKind::Pages: benchmark["workload_kind"] = "pages"; break;
+        case S3WorkloadKind::Mixed: benchmark["workload_kind"] = "mixed"; break;
+        case S3WorkloadKind::Pointer: {
+          benchmark["workload_kind"] = "pointer";
+          benchmark["pointer_presses"] = s3_display_benchmark.pointer_presses.load(std::memory_order_relaxed);
+          benchmark["pointer_page_changes"] = s3_display_benchmark.pointer_page_changes.load(std::memory_order_relaxed);
+          JsonArray page_timing = benchmark["pointer_release_to_page"].to<JsonArray>();
+          for (const auto &count : s3_display_benchmark.pointer_release_to_page)
+            page_timing.add(count.load(std::memory_order_relaxed));
+          break;
+        }
+      }
+      benchmark["workload_copied_bytes"] =
+          s3_display_benchmark.workload_copied_bytes.load(std::memory_order_relaxed);
+#if defined(ESPDESKTOP_S3_DEFER_FRAME_COPIES) && defined(ESPDESKTOP_S3_COPY_DIRTY_REGIONS)
+      benchmark["frame_copy_strategy"] = "combined";
+#elif defined(ESPDESKTOP_S3_DEFER_FRAME_COPIES)
+      benchmark["frame_copy_strategy"] = "deferred";
+#elif defined(ESPDESKTOP_S3_COPY_DIRTY_REGIONS)
+      benchmark["frame_copy_strategy"] = "regions";
+#else
+      benchmark["frame_copy_strategy"] = "bounding_rectangle";
+#endif
+      benchmark["workload_finished"] = s3_display_benchmark.workload_finished.load(std::memory_order_acquire);
+      JsonArray idle = benchmark["idle_us_by_core"].to<JsonArray>();
+      for (BaseType_t core = 0; core < configNUMBER_OF_CORES; ++core) {
+        TaskStatus_t task{};
+        vTaskGetInfo(xTaskGetIdleTaskHandleForCPU(core), &task, pdFALSE, eInvalid);
+        idle.add(task.ulRunTimeCounter);
+      }
+#endif
     });
     httpd_resp_set_type(raw, "application/json");
     httpd_resp_set_hdr(raw, "Cache-Control", "no-store");

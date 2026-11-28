@@ -1,0 +1,36 @@
+# Instrumented reference for comparison with the async scan-out profile.
+packages:
+  factory: !include guition-esp32-s3-4848s040.factory.yaml
+
+substitutions:
+  s3_run_render_workload: "false"
+  s3_run_page_workload: "false"
+  s3_run_mixed_workload: "false"
+  s3_run_pointer_workload: "false"
+
+esp32:
+  framework:
+    sdkconfig_options:
+      CONFIG_FREERTOS_USE_TRACE_FACILITY: "y"
+      CONFIG_FREERTOS_GENERATE_RUN_TIME_STATS: "y"
+      CONFIG_FREERTOS_RUN_TIME_STATS_USING_ESP_TIMER: "y"
+      CONFIG_FREERTOS_RUN_TIME_COUNTER_TYPE_U64: "y"
+
+esphome:
+  build_flags:
+    - "-DESPDESKTOP_S3_DISPLAY_BENCHMARK"
+  on_boot:
+    - priority: -100
+      then:
+        - if:
+            condition:
+              lambda: return ${s3_run_render_workload};
+            then:
+              - delay: 35s
+              - script.execute: screensaver_wake
+              - lambda: |-
+                  if (${s3_run_pointer_workload}) {
+                    espdesktop::s3_render_workload.start_pointer(id(s3_lvgl_touch_listener));
+                  } else {
+                    espdesktop::s3_render_workload.start(${s3_run_page_workload}, ${s3_run_mixed_workload});
+                  }

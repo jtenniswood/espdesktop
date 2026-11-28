@@ -351,6 +351,10 @@ touchscreen:
       mirror_x: false
       mirror_y: false
     on_touch:
+      - lambda: |-
+          #ifdef ESPDESKTOP_S3_DISPLAY_BENCHMARK
+          id(my_display).record_benchmark_touch();
+          #endif
       - script.execute: screensaver_wake
 
 # ---------------------------------------------------------------------------
@@ -394,12 +398,17 @@ lvgl:
     - lambda: |-
         id(my_display).end_frame();
         #ifdef USE_COMPANION
+        #ifdef ESPDESKTOP_S3_ASYNC_SCANOUT
+        id(my_display).notify_frame_presented(companion_focus_frame_presented);
+        #else
         if (!id(my_display).is_failed()) companion_focus_frame_presented();
+        #endif
         #endif
   displays: my_display
   rotation: 180
   touchscreens:
     - touchscreen_id: my_touchscreen
+      id: s3_lvgl_touch_listener
       long_press_time: 3s
 
 script:

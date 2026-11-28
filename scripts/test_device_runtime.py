@@ -29,6 +29,113 @@ def navigation_values(value):
     return {key: value[key] for key in NAVIGATION_METRICS}
 
 
+def display_benchmark_values(value):
+    counters = ("sample_time_us", "completed_frames", "last_submit_to_scanout_us", "touch_bucket_us")
+    if (not isinstance(value, dict) or value.get("presentation") not in ("sync", "async")
+            or any(type(value.get(key)) is not int or value[key] < 0 for key in counters)
+            or value["touch_bucket_us"] == 0):
+        raise ValueError("invalid display benchmark counters")
+    fields = [("touch_to_scanout", 51), ("idle_us_by_core", 2)]
+    if "workload_to_scanout" in value:
+        fields.append(("workload_to_scanout", 51))
+        if (type(value.get("workload_events")) is not int or value["workload_events"] < 0
+                or type(value.get("workload_finished")) is not bool):
+            raise ValueError("invalid display workload counters")
+        counters += ("workload_events", "workload_finished")
+    for key in ("touch_to_driver_ready", "workload_to_driver_ready", "pointer_release_to_page"):
+        if key in value:
+            fields.append((key, 51))
+    if "workload_copied_bytes" in value:
+        if (type(value["workload_copied_bytes"]) is not int or value["workload_copied_bytes"] < 0
+                or value.get("frame_copy_strategy") not in ("regions", "bounding_rectangle", "deferred", "combined")):
+            raise ValueError("invalid display frame copy diagnostics")
+        counters += ("workload_copied_bytes", "frame_copy_strategy")
+    if "workload_kind" in value:
+        if value["workload_kind"] not in ("tiles", "pages", "mixed", "pointer"):
+            raise ValueError("invalid display workload kind")
+        counters += ("workload_kind",)
+    if value.get("workload_kind") == "pointer":
+        pointer_counters = ("pointer_presses", "pointer_page_changes")
+        if any(type(value.get(key)) is not int or value[key] < 0 for key in pointer_counters):
+            raise ValueError("invalid display pointer counters")
+        counters += pointer_counters
+    for key, length in fields:
+        counter_list = value.get(key)
+        if (not isinstance(counter_list, list) or len(counter_list) != length
+                or any(type(n) is not int or n < 0 for n in counter_list)):
+            raise ValueError("invalid display benchmark counter list")
+    return {key: value[key] for key in (*counters, "presentation", *(key for key, _ in fields))}
+
+
+def histogram_p95_bucket(histogram):
+    rank = (95 * sum(histogram) + 99) // 100
+    if rank:
+        for index, count in enumerate(histogram):
+            rank -= count
+            if rank <= 0:
+                return index
+    return None
+
+
+def display_benchmark_summary(first, last):
+    span = last["sample_time_us"] - first["sample_time_us"]
+    frames = last["completed_frames"] - first["completed_frames"]
+    bucket_us = first["touch_bucket_us"]
+    if (span <= 0 or frames < 0 or bucket_us != last["touch_bucket_us"]
+            or first["presentation"] != last["presentation"]):
+        return None
+    histogram = [end - start for start, end in zip(first["touch_to_scanout"], last["touch_to_scanout"])]
+    idle_us = [end - start for start, end in zip(first["idle_us_by_core"], last["idle_us_by_core"])]
+    if min(histogram) < 0 or min(idle_us) < 0:
+        return None
+    report = {"presentation": last["presentation"], "duration_seconds": span / 1_000_000,
+              "completed_frames": frames, "touch_samples": sum(histogram),
+              "touch_bucket_us": bucket_us, "touch_to_scanout_histogram": histogram,
+              "touch_p95_bucket": histogram_p95_bucket(histogram),
+              "cpu_busy_percent_by_core": [round(100 * (1 - min(elapsed, span) / span), 2)
+                                           for elapsed in idle_us]}
+    if "workload_to_scanout" in first and "workload_to_scanout" in last:
+        workload = [end - start for start, end in zip(first["workload_to_scanout"], last["workload_to_scanout"])]
+        events = last["workload_events"] - first["workload_events"]
+        if min(workload) < 0 or events < 0:
+            return None
+        report["workload"] = {"events": events, "finished": last["workload_finished"],
+                              "samples": sum(workload), "histogram": workload,
+                              "p95_bucket": histogram_p95_bucket(workload)}
+        if "workload_kind" in last:
+            if first.get("workload_kind") != last["workload_kind"] and first["workload_events"] > 0:
+                return None
+            report["workload"]["kind"] = last["workload_kind"]
+        if last.get("workload_kind") == "pointer":
+            for key in ("pointer_presses", "pointer_page_changes"):
+                difference = last[key] - first.get(key, 0)
+                if difference < 0:
+                    return None
+                report["workload"][key] = difference
+        if "workload_copied_bytes" in first and "workload_copied_bytes" in last:
+            copied_bytes = last["workload_copied_bytes"] - first["workload_copied_bytes"]
+            if copied_bytes < 0 or first["frame_copy_strategy"] != last["frame_copy_strategy"]:
+                return None
+            report["workload"]["copied_bytes"] = copied_bytes
+            report["workload"]["copy_strategy"] = last["frame_copy_strategy"]
+    for key in ("touch_to_driver_ready", "workload_to_driver_ready"):
+        if key in first and key in last:
+            ready = [end - start for start, end in zip(first[key], last[key])]
+            if min(ready) < 0:
+                return None
+            report[key] = {"samples": sum(ready), "histogram": ready,
+                           "p95_bucket": histogram_p95_bucket(ready)}
+    if "pointer_release_to_page" in last:
+        first_pages = first.get("pointer_release_to_page", [0] * 51)
+        pages = [end - start for start, end in zip(first_pages, last["pointer_release_to_page"])]
+        if min(pages) < 0:
+            return None
+        report["pointer_release_to_page"] = {
+            "samples": sum(pages), "histogram": pages, "p95_bucket": histogram_p95_bucket(pages),
+        }
+    return report
+
+
 def positive(value):
     number = float(value)
     if not math.isfinite(number) or number <= 0:
@@ -147,6 +254,8 @@ class HttpProbe:
                 "memory": {key: memory[key] for key in METRICS if key in memory}}
         if "navigation" in health:
             result["navigation"] = navigation_values(health["navigation"])
+        if "display_benchmark" in health:
+            result["display_benchmark"] = display_benchmark_values(health["display_benchmark"])
         return result
 
 
@@ -161,6 +270,7 @@ class Evidence:
     identity: dict = field(default_factory=dict)
     previous: dict | None = None
     memory_minimum: float = 5.0
+    benchmark_first: dict | None = None
 
     def event(self, kind, failure=False, **details):
         if failure:
@@ -182,6 +292,8 @@ class Evidence:
         if self.previous and (data["boot_id"] != self.previous["boot_id"] or data["uptime_ms"] < self.previous["uptime_ms"]):
             self.event("reboot", failure=True, reset_reason=data["reset_reason"])
         self.identity, self.firmware, self.previous = current_identity, data["firmware"], data
+        if self.benchmark_first is None:
+            self.benchmark_first = data.get("display_benchmark")
         if expected_version and self.firmware["esphome_version"] != expected_version:
             self.event("wrong_firmware_version", failure=True)
         if expected_build and self.firmware["compilation_time"] != expected_build:
@@ -210,6 +322,9 @@ def final_report(evidence, args, interrupted=False):
                          "Restarts and network outages fail the test; the runner cannot establish their cause.",
                          "Device logs are not collected. Panics before HTTP delivery may need USB serial capture.",
                          "No screen, touch, Mac control or modal actions are exercised; test these separately."]}
+    benchmark_last = (evidence.previous or {}).get("display_benchmark")
+    if not evidence.failures and evidence.benchmark_first is not None and benchmark_last is not None:
+        report["display_benchmark"] = display_benchmark_summary(evidence.benchmark_first, benchmark_last)
     (evidence.output / "report.json").write_text(json.dumps(report, indent=2, allow_nan=False) + "\n")
     summary = (f"# Device HTTP runtime test: {report['status'].upper()}\n\n"
                f"Target: `{args.host}`; samples: {evidence.counts['http_sample']}; "
@@ -218,6 +333,25 @@ def final_report(evidence, args, interrupted=False):
                f"built `{evidence.firmware.get('compilation_time', 'unavailable')}`.\n\n## Failures\n\n" +
                ("\n".join(f"- {kind}: {count}" for kind, count in evidence.failures.items()) or "None detected.") +
                "\n\n## Limits\n\n" + "\n".join("- " + line for line in report["limits"]) + "\n")
+    if benchmark := report.get("display_benchmark"):
+        cpu = ", ".join(f"core {i}: {busy:.2f}%" for i, busy in enumerate(benchmark["cpu_busy_percent_by_core"]))
+        bucket = benchmark["touch_p95_bucket"]
+        latency = "no touch samples"
+        if bucket is not None:
+            width_ms = benchmark["touch_bucket_us"] / 1000
+            low = bucket * width_ms
+            if bucket == len(benchmark["touch_to_scanout_histogram"]) - 1:
+                latency = f"at least {low:g} ms"
+            else:
+                latency = f"{low:g} to <{low + width_ms:g} ms"
+        summary += ("\n## S3 display benchmark\n\n"
+                    f"- Presentation: {benchmark['presentation']}\n"
+                    f"- CPU busy: {cpu}\n"
+                    f"- Touch to observed scan-out (p95): {latency} "
+                    f"({benchmark['touch_samples']} samples)\n")
+        for metric, label in (("heap_largest_bytes", "Internal RAM"), ("psram_largest_bytes", "PSRAM")):
+            if metric in evidence.metrics:
+                summary += f"- {label}: smallest observed largest free block was {evidence.metrics[metric]['minimum']:,} bytes\n"
     (evidence.output / "report.md").write_text(summary)
     return report
 
