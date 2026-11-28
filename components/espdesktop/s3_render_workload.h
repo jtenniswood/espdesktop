@@ -69,7 +69,7 @@ class S3RenderWorkload {
         if (lv_obj_has_state(target, LV_STATE_CHECKED)) lv_obj_remove_state(target, LV_STATE_CHECKED);
         else lv_obj_add_state(target, LV_STATE_CHECKED);
         auto *self = static_cast<S3RenderWorkload *>(lv_event_get_user_data(event));
-        if (self->kind_ == S3WorkloadKind::Pointer)
+        if (self->kind_ == S3WorkloadKind::Pointer && target == self->pointer_target_)
           s3_display_benchmark.pointer_presses.fetch_add(1, std::memory_order_relaxed);
       }, LV_EVENT_PRESSED, this);
     }
@@ -84,13 +84,13 @@ class S3RenderWorkload {
     }
     const auto &tiles = this->tiles_[active == this->scenes_[0] ? 0 : 1];
     const size_t index = this->steps_ % 4 == 0 ? 0 : 1 + (this->steps_ % (tiles.size() - 1));
+    this->pointer_target_ = tiles[index];
     lv_area_t area;
-    lv_obj_get_coords(tiles[index], &area);
-    auto *display = lv_obj_get_display(active);
+    lv_obj_get_coords(this->pointer_target_, &area);
     esphome::touchscreen::TouchPoint point{};
-    // Invert 180° here because the production listener rotates sensor coordinates.
-    point.x = lv_display_get_horizontal_resolution(display) - 1 - (area.x1 + area.x2) / 2;
-    point.y = lv_display_get_vertical_resolution(display) - 1 - (area.y1 + area.y2) / 2;
+    // The S3 listener and LVGL each apply 180°, so their rotations cancel.
+    point.x = (area.x1 + area.x2) / 2;
+    point.y = (area.y1 + area.y2) / 2;
     point.state = esphome::touchscreen::STATE_PRESSED;
     s3_display_benchmark.touch(true);
     this->pointer_->update({point});
@@ -138,6 +138,7 @@ class S3RenderWorkload {
   S3WorkloadKind kind_ = S3WorkloadKind::Tiles;
   unsigned steps_ = 0;
   esphome::lvgl::LVTouchListener *pointer_ = nullptr;
+  lv_obj_t *pointer_target_ = nullptr;
   bool pointer_down_ = false;
 };
 
