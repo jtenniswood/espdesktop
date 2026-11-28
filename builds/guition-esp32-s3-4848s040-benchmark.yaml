@@ -16,8 +16,6 @@ esp32:
 esphome:
   build_flags:
     - "-DESPDESKTOP_S3_DISPLAY_BENCHMARK"
-  includes:
-    - ../components/espdesktop/s3_render_workload.h
   on_boot:
     - priority: -100
       then:
